@@ -1,0 +1,11 @@
+{
+  "checked_at": "2026-11-01T11:13:48.231697-04:00",
+  "command": "python3 - (inline Markdown/link and workbench diff checks)",
+  "baseline": "87f764a",
+  "markdown_files": 13,
+  "local_links": 56,
+  "workbench_unchanged": true,
+  "errors": [],
+  "runtime_tests_executed": false,
+  "ui_implemented": false
+}
