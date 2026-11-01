@@ -1,0 +1,73 @@
+{
+  "checked_at": "2026-11-01T10:55:48.932745-04:00",
+  "command": "python3 - (inline Markdown/link and baseline comparison)",
+  "baseline": "f5a0e0e",
+  "markdown_files": 12,
+  "local_links": 48,
+  "originals": [
+    {
+      "path": "测试/2026-11-01-信息流Lab/cases/FL01-闲聊中的延期.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-信息流Lab/cases/FL03-相关变化与旧回复.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-信息流Lab/cases/FL04-洪峰与公平.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-信息流Lab/cases/FL05-多人冲突与隔离.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S01-记忆与纠正.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S02-身份与群隐私.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S03-订阅与主动任务.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S05-未知效果与恢复.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S07-情绪与人格.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S08-时间与预算.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-信息流Lab/实验计划.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-信息流Lab/合成公司与标注约定.md",
+      "unchanged": true
+    },
+    {
+      "path": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+      "unchanged": true
+    }
+  ],
+  "issues": [],
+  "review": "author plus read-only architecture review; official tool documentation read",
+  "runtime_tests_executed": false,
+  "judge_models_called": false
+}
