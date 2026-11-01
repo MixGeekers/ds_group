@@ -1,0 +1,91 @@
+{
+  "checked_at": "2026-11-01T10:38:22.228216-04:00",
+  "command": "python3 - (inline document link/structure and git content comparison)",
+  "python": "3.9.6",
+  "baseline_commit": "dc5bd6064321b68d3d28a04a763b23a9a9f7135a",
+  "markdown_files": 10,
+  "local_links": 47,
+  "cases": [
+    {
+      "id": "FL01",
+      "steps": 6,
+      "status": "not_executed"
+    },
+    {
+      "id": "FL03",
+      "steps": 7,
+      "status": "not_executed"
+    },
+    {
+      "id": "FL04",
+      "steps": 6,
+      "status": "not_executed"
+    },
+    {
+      "id": "FL05",
+      "steps": 7,
+      "status": "not_executed"
+    }
+  ],
+  "main_steps": 26,
+  "original_content_checks": [
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S01-记忆与纠正.md",
+      "unchanged": true,
+      "sha256": "d02b9ac5fdaccb2b9aa425bbdc31774c3e1f9e9639c3ea21c68a3be5dcc07ba1"
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S02-身份与群隐私.md",
+      "unchanged": true,
+      "sha256": "8559779aa43d4aeb38cbb7e3863855c098f2bf62e59e6dfb523c141b3bfc4157"
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S03-订阅与主动任务.md",
+      "unchanged": true,
+      "sha256": "f71d835ba514d2efd051543d6bbaa0d40a0bf79c3e8c65c2f60dc4c2b34f6933"
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+      "unchanged": true,
+      "sha256": "231f16644e6c26422c4bbc878820212d7b1e36af07ecca47158f0a3dffc3f8cc"
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S05-未知效果与恢复.md",
+      "unchanged": true,
+      "sha256": "add6e61912c14c6ce04fd3ce63d1159f6f71c7ec1cb3bb9fa38fbf1a68308d2e"
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+      "unchanged": true,
+      "sha256": "d5e8099cfa74d851c5fbe2a1e3e5bff511705c3b593f79060bcdadbd3f9064b3"
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S07-情绪与人格.md",
+      "unchanged": true,
+      "sha256": "10906d35e54364eb7534678c574caecf49e32555b69e36b33204a0d6ee3e67a2"
+    },
+    {
+      "path": "测试/2026-11-01-测试集设计/cases/S08-时间与预算.md",
+      "unchanged": true,
+      "sha256": "18943470b8e990afb09926a53fb61c454e436870e51c5f86bf6b25da725e25b7"
+    },
+    {
+      "path": "测试/2026-11-01-信息流Lab/实验计划.md",
+      "unchanged": true,
+      "sha256": "e3dab791a9cdb2a03aec1a6e7bcc2628a0b5761059ab82a9fcf31ec85c7f370b"
+    },
+    {
+      "path": "架构与设计/A方案全景/公司多人协作与群聊注意力.md",
+      "unchanged": true,
+      "sha256": "b9abfe773bf30b675d4e4a9410034ec8d1f65a5dfd9d9501cecda547e6c1acb0"
+    },
+    {
+      "path": "research/2026-11-01-信息流Lab/目录.md",
+      "unchanged": true,
+      "sha256": "ec130fb156d8a0b16e788421873b0b3c94c8e6617742865281f62ad52cec73d1"
+    }
+  ],
+  "issues": [],
+  "runtime_tests_executed": false,
+  "semantic_review": "author_only"
+}
