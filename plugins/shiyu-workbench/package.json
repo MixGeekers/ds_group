@@ -1,0 +1,24 @@
+{
+  "name": "@shiyu/workbench",
+  "version": "0.1.0",
+  "description": "识雨工作台：主要工作区、技术候选与架构图纸。",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": ["index.js", "core.js", "client.js", "cordis.patch.yml", "locale/*.json", "icon.svg", "README.md"],
+  "scripts": { "test": "node --test tests/*.test.js", "check": "node --check index.js && node --check core.js && node --check client.js" },
+  "engines": { "dsh": ">=0.2.1-rc.5 <0.3.0" },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": ["@deepseek-ai/dsh-client-ui-layout", "@deepseek-ai/dsh-client-ui-sidebar", "@deepseek-ai/dsh-client-locale", "@deepseek-ai/dsh-client-ui-workspace"]
+    }
+  }
+}

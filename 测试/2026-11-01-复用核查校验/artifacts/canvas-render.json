@@ -1,0 +1,14 @@
+{
+  "renderer": "existing @napi-rs/canvas, no browser",
+  "version": "A-2026-11-01-v1.1",
+  "regions": 12,
+  "nodes": 40,
+  "edges": 24,
+  "plans": 40,
+  "width": 6500,
+  "height": 4600,
+  "text": {
+    "overflow": [],
+    "labels": 106
+  }
+}

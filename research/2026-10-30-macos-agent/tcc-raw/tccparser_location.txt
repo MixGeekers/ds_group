@@ -1,0 +1,322 @@
+
+TCC.db Location and Acquisition on macOS | TCC Parser
+Skip to content
+TCC
+Parser
+Blog
+Glossary
+Search
+Home
+Blog
+Glossary
+Search
+Home
+Blog
+TCC database fundamentals
+TCC.db Location and Acquisition on macOS
+Part 
+2
+ of 
+4
+ in
+TCC database fundamentals
+← 
+Previous
+Next
+ →
+TCC.db Location and Acquisition on macOS
+Where the system and per-user TCC.db files live, why Full Disk Access and SIP matter, and how to collect them with the WAL using UAC, Aftermath or Velociraptor.
+Published on
+September 30, 2026
+6
+min read
+tcc
+macos
+acquisition
+dfir
+TL;DR.
+ Collect the entire 
+com.apple.TCC
+ folder, not just 
+TCC.db
+: from 
+/Library/Application Support/
+ for the system and from 
+~/Library/Application Support/
+ for 
+every
+ user, keeping 
+TCC.db-wal
+, 
+TCC.db-shm
+ and 
+MDMOverrides.plist
+. On a live Mac, the copying process needs Full Disk Access. Several popular collectors copy only 
+TCC.db
+, which can miss recent changes still in the WAL. Then drop the result on 
+TCC Parser
+; the 
+How to get your data
+ guide on the home page repeats the commands below.
+A one-page reference for the artifact is on the 
+TCC.db cheat sheet
+. This article goes deeper into collection.
+What to collect
+File
+Path
+Notes
+System TCC.db
+/Library/Application Support/com.apple.TCC/TCC.db
+Full Disk Access, Accessibility, Screen Recording and similar services, usually
+Per-user TCC.db
+/Users/<user>/Library/Application Support/com.apple.TCC/TCC.db
+One per account; camera, microphone, Automation, folders, usually
+WAL
+TCC.db-wal
+ next to each database
+Committed changes not yet checkpointed, plus older page versions
+Shared-memory index
+TCC.db-shm
+ next to each database
+Rebuildable; collect for completeness
+MDM grants
+/Library/Application Support/com.apple.TCC/MDMOverrides.plist
+Managed Macs; PPPC grants by client and service
+REG.db
+/Library/Application Support/com.apple.TCC/REG.db
+Present on many systems; its purpose is not well documented
+MDMOverrides.plist
+ is a dictionary keyed by client identifier; each entry is a dictionary keyed by service name, holding keys such as 
+Allowed
+, 
+CodeRequirement
+, 
+CodeRequirementData
+ and 
+IdentifierType
+. Apple Events entries are nested one level further, per receiving app. Read it with 
+plutil -p
+.
+Do not stop at the accounts you expect. Service accounts, a second admin account, or an account created during the intrusion all have their own database. Enumerate 
+/Users
+ and collect each one.
+Protections: Full Disk Access and SIP
+Two mechanisms get in the way on a live system, and they are often confused:
+Mechanism
+What it blocks
+What it does not block
+TCC itself (
+Full Disk Access
+)
+Reading either database by a process that lacks Full Disk Access, including root
+Reads by a process that holds Full Disk Access
+System Integrity Protection
+Modifying the system database, even by root
+Reading it, by a process with Full Disk Access
+In practice: grant Full Disk Access to the exact program that will do the copy. If you run a collector from Terminal, Terminal needs it; if an agent collects, the agent needs it. 
+sudo
+ does not replace it. Record in your notes which process held Full Disk Access and when you granted it: that grant is itself a new row in the system database, with a 
+last_modified
+ during your collection. Say so in your report so nobody mistakes it for attacker activity.
+Live collection by hand
+With Full Disk Access granted to Terminal, 
+ditto
+ copies each folder with its companion files:
+sudo ditto "/Library/Application Support/com.apple.TCC" ./case/tcc_system
+for u in /Users/*; do
+ [ -d "$u/Library/Application Support/com.apple.TCC" ] && \
+ sudo ditto "$u/Library/Application Support/com.apple.TCC" "./case/tcc_$(basename "$u")"
+done
+shasum -a 256 ./case/tcc_*/* > ./case/tcc_hashes.txt
+Copying the folder rather than a single file keeps the WAL, the SHM, 
+MDMOverrides.plist
+ and anything else 
+tccd
+ keeps there. Zip the 
+case
+ folder if you want to load it in one piece.
+Collection tools and their gotchas
+Tool
+What it collects
+Gotcha
+UAC
+artifacts/files/system/tcc.yaml
+: exactly the system and per-user 
+TCC.db
+Does 
+not
+ include 
+-wal
+/
+-shm
+. Included in the 
+ir_triage
+ profile via 
+files/system/*
+Aftermath (Jamf)
+TCC module copies the system and each user's 
+TCC.db
+ into the case as 
+tcc_root
+ and 
+tcc_<username>
+Raw copies of the main file only, without the WAL. Must run as root with Full Disk Access
+Velociraptor 
+MacOS.System.TCC
+Queries both databases live and returns rows
+Its description says it was tested on Big Sur; older releases need the 
+allowed
+/
+prompt_count
+ layout. It returns rows, not the files
+Velociraptor 
+Generic.Collectors.File
+Raw files matching your globs
+You choose the globs, so you can include the WAL
+mac_apt
+Parses TCC from an image or from a single file
+Parses rather than preserving raw files; keep the source too
+UAC
+sudo ./uac -p ir_triage /tmp
+# or only the TCC artifact
+sudo ./uac -a ./artifacts/files/system/tcc.yaml /tmp
+Because the artifact lists exactly 
+TCC.db
+, add a manual 
+ditto
+ of the folders above if you need the WAL. TCC Parser accepts the UAC 
+.tar.gz
+ output directly; you do not need to extract it.
+Aftermath
+sudo ./aftermath # output to /tmp by default
+sudo ./aftermath -o /Volumes/CASE
+Look for the 
+tcc_root
+ and 
+tcc_<username>
+ copies in the archive. TCC Parser recognizes those names when you drop the Aftermath ZIP.
+Velociraptor
+For rows across a fleet, 
+MacOS.System.TCC
+ (default glob 
+/Library/Application Support/com.apple.TCC/TCC.db,/Users/*/Library/Application Support/com.apple.TCC/TCC.db
+). For the raw files, 
+Generic.Collectors.File
+ with Root 
+/
+ and globs such as:
+Library/Application Support/com.apple.TCC/TCC.db*
+Users/*/Library/Application Support/com.apple.TCC/TCC.db*
+The trailing 
+*
+ picks up 
+-wal
+ and 
+-shm
+. The Velociraptor client needs Full Disk Access on the endpoint.
+mac_apt
+python mac_apt.py -o out -c E01 /path/mac.E01 TCC
+python mac_apt_artifact_only.py -i TCC.db -o out -c TCC
+The 
+TCC
+ plugin supports the Catalina and Big Sur-and-later layouts.
+Dead-box acquisition
+From a full image, mount the Data volume read-only on an analysis host. TCC and SIP do not restrict reads there. The paths are the same relative to the volume root: 
+Library/Application Support/com.apple.TCC/
+ and 
+Users/*/Library/Application Support/com.apple.TCC/
+. Copy the folders out, hash them, and work on the copies.
+Also look for older copies: local APFS snapshots and Time Machine backups may hold earlier versions of the same databases, which is the most reliable way to see grants that were later removed.
+Handling the copies
+Never open the original with a tool that writes.
+ SQLite can checkpoint the WAL into the main file when the last connection closes, which rewrites both files. Work on a second copy.
+Keep the WAL next to its database with the same base name.
+ Parsers pair them by name.
+Keep the path.
+ The user folder in the path is what attributes a per-user database to an account.
+Note time and privileges.
+ Your own Full Disk Access grant and any prompts you trigger become rows.
+Loading into TCC Parser
+Drop the folders, individual files, a ZIP (Velociraptor, Aftermath, zipped folders) or a UAC 
+.tar.gz
+ (no need to extract it) on the drop zone, or use 
+Choose files
+ or 
+Choose a folder
+. The parser replays committed WAL frames, reads 
+MDMOverrides.plist
+, and shows 
+REG.db
+ and any other SQLite file in the folder as raw tables. The walkthrough is in 
+analyze TCC.db in your browser
+.
+FAQ
+Where is TCC.db on macOS?
+The system database is /Library/Application Support/com.apple.TCC/TCC.db. Each user has their own at ~/Library/Application Support/com.apple.TCC/TCC.db. Managed Macs also have /Library/Application Support/com.apple.TCC/MDMOverrides.plist.
+Why is my copy of TCC.db empty or missing?
+On a live Mac, the process doing the copy (Terminal, a collection agent, the tool binary) needs Full Disk Access. Without it, copies fail or come back empty, even when running as root.
+Do I need TCC.db-wal and TCC.db-shm?
+Collect the -wal file whenever it exists: recent changes may not yet be in the main file, and it can hold earlier versions of rows. The -shm file is an index that can be rebuilt; collect it for completeness, but a parser does not need it.
+Does SIP stop me from reading the system TCC.db?
+No. System Integrity Protection protects the system database against modification, even by root. Reading it on a live system needs Full Disk Access. On a mounted image on an analysis host, neither restriction applies.
+Related articles
+TCC.db forensics: the investigator's guide
+Recovering removed TCC grants from the WAL
+The TCC access table across macOS versions
+On this page
+What to collect
+Protections: Full Disk Access and SIP
+Live collection by hand
+Collection tools and their gotchas
+UAC
+Aftermath
+Velociraptor
+mac_apt
+Dead-box acquisition
+Handling the copies
+Loading into TCC Parser
+FAQ
+Where is TCC.db on macOS?
+Why is my copy of TCC.db empty or missing?
+Do I need TCC.db-wal and TCC.db-shm?
+Does SIP stop me from reading the system TCC.db?
+Related articles
+Related articles
+Sep 30, 2026
+How to Analyze TCC.db in Your Browser
+Step by step: load macOS TCC.db files and their WAL into a free in-browser parser, read the findings, review permissions and history, and export.
+tcc
+macos
+tools
+Sep 30, 2026
+TCC.db Forensics: The Investigator's Guide
+What the macOS TCC database records, what it proves and what it does not, the services that matter, and a repeatable workflow for reviewing TCC.db in a case.
+tcc
+macos
+privacy-permissions
+Sep 30, 2026
+Investigating TCC Permission Abuse on macOS
+How attackers abuse macOS TCC permissions, what each technique leaves in TCC.db, and how to pivot to unified logs, launchd, quarantine and shell history.
+tcc
+macos
+incident-response
+TCC
+Parser
+macOS TCC.db parser: decode privacy grants (Full Disk Access, Accessibility, Screen Recording…), code requirements, WAL history, risky grants. Free, local.
+Rust → WebAssembly
+Site
+Blog
+Glossary
+Search
+Sitemap
+Info
+Contact
+Privacy
+Terms
+RSS
+© 
+2026
+TCC Parser
+. 
+All rights reserved.
+Apple, macOS and Mac are trademarks of Apple Inc., registered in the U.S. and other countries. TCC Parser is an independent tool, not affiliated with, sponsored or endorsed by Apple. Its SQLite reader and code-requirement decoder are independent implementations of the public SQLite file format and Apple's documented requirement language.

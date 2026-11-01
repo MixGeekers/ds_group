@@ -1,0 +1,8 @@
+Inspection date: 2026-10-31 (America/Caracas)
+Read-only metadata inspection; application not started or reconfigured.
+Path: /Applications/DeepSeek Harness.app/Contents/Info.plist
+CFBundleIdentifier: com.deepseek.dsh
+CFBundleShortVersionString: 0.2.1-rc.5
+CFBundleVersion: 0.2.1-rc.5
+The inspected upstream dsh-base package is 0.2.2-alpha.2 at ce7073d51254c26cd63b22a60835b8f948deb447.
+Installed profile composition, credentials, session logs, and runtime behavior were not inspected or tested.

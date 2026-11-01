@@ -1,0 +1,236 @@
+Repository: https://github.com/deepseek-ai/dsh-superagent-prototype
+Commit: 6337fc823ce20251c8de8085948165c81aaa701e
+Retrieved: 2026-10-31 (America/Caracas)
+Static source excerpts only; not executed. Upstream tests were read, not run.
+License: MIT; see LICENSE.txt.
+
+===== tests/effects.spec.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/effects.spec.ts
+Git blob SHA: c022237c9c36976fb900521d5692914a412a6029
+
+--- Lines 29-49 ---
+29: it('runs an effect queued inside a transaction once it commits, and none from a transaction that rolled back', async () => {
+30:   const run = vi.fn(async () => {})
+31:   effects.handle('relay', run)
+32:   store.atomic(() => { effects.enqueue('relay', 'kept', relay('a')) })
+33:   expect(() => store.atomic(() => { effects.enqueue('relay', 'dropped', relay('b')); throw new Error('rolled back') })).toThrow('rolled back')
+34:   await effects.idle()
+35:   expect(run.mock.calls).toEqual([[relay('a'), 'kept']])
+36:   expect(effects.pending('relay')).toBe(false)
+37: })
+38: 
+39: it('keeps one effect per key with the latest payload, and runs it again when a new payload arrives while it runs', async () => {
+40:   const hold = deferred()
+41:   const run = vi.fn(async (payload: { text: string }) => { if (payload.text === 'first') await hold.promise })
+42:   effects.handle('relay', run)
+43:   effects.enqueue('relay', 'k', relay('first'))
+44:   await vi.waitFor(() => expect(run).toHaveBeenCalledTimes(1))
+45:   effects.enqueue('relay', 'k', relay('second')); effects.enqueue('relay', 'k', relay('third'))
+46:   hold.resolve()
+47:   await effects.idle()
+48:   expect(run.mock.calls.map(([payload]) => payload.text)).toEqual(['first', 'third'])
+49: })
+
+--- Lines 160-172 ---
+160: it('keeps an effect cancelled and queued again while its first run goes on, which the first run does not end', async () => {
+161:   const hold = deferred<void>()
+162:   const run = vi.fn(async (_payload: { text: string }, _key: string) => { if (run.mock.calls.length === 1) await hold.promise })
+163:   effects.handle('relay', run)
+164:   effects.enqueue('relay', 'k', relay('first'))
+165:   await vi.waitFor(() => expect(run).toHaveBeenCalledOnce())
+166:   effects.cancel('relay', 'k')
+167:   effects.enqueue('relay', 'k', relay('second'))
+168:   hold.resolve()
+169:   await effects.idle()
+170:   expect(run.mock.calls.map(([payload]) => payload.text)).toEqual(['first', 'second'])
+171:   expect(effects.pending('relay')).toBe(false)
+172: })
+
+===== tests/outbox.spec.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/outbox.spec.ts
+Git blob SHA: bc00f9315658830eaf425084354e79f9dc874888
+
+--- Lines 17-41 ---
+17: it('holds every message while processing is paused, and sends it once processing resumes', async () => {
+18:   const lark = vi.mocked(Commands.prototype.lark)
+19:   await h.runtime.settings.pause(true, 'panel')
+20:   lark.mockClear()
+21:   h.runtime.outbox.send({ id: 'held', channel: feishu('1', 'x').channel!, text: '已合并。', kind: 'notice' })
+22:   await h.runtime.sendReplies()
+23:   expect([h.runtime.outbox.status('held'), lark.mock.calls.length]).toEqual(['pending', 0])
+24:   await h.runtime.settings.pause(false, 'panel')
+25:   await h.runtime.pump(); await h.runtime.sendReplies()
+26:   expect(h.runtime.outbox.status('held')).toBe('sent')
+27:   expect(JSON.stringify(lark.mock.calls)).toContain('已合并。')
+28: })
+29: 
+30: it('keeps a message for a Source that is not installed waiting, and sends it once the Source\'s kind registers', async () => {
+31:   const sent: OutboundMessage[] = []
+32:   const probe: SourceKind<Record<string, never>> = { kind: 'probe', title: { zh: '探针', en: 'Probe' }, description: { zh: '', en: '' }, health: [],
+33:     schema: z.object({}).strict(), fields: [],
+34:     channel: { send: async (_host, message) => { sent.push(message); return 'sent' }, link: () => ({ url: '', label: { zh: '探针', en: 'Probe' } }) } }
+35:   h.runtime.outbox.send({ id: 'waiting', channel: { source: 'probe', thread: 'probe:1', address: {} }, text: 'Done', kind: 'reply' })
+36:   await h.runtime.sendReplies()
+37:   expect([h.runtime.outbox.status('waiting'), h.runtime.health.reply?.state]).toEqual(['pending', 'ready'])
+38:   h.runtime.sources.register(probe)
+39:   // A message whose Source was not installed is tried again after 5 seconds.
+40:   await at(5000)
+41:   expect([h.runtime.outbox.status('waiting'), sent.map(message => message.id)]).toEqual(['sent', ['waiting']])
+
+===== tests/followups.spec.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/followups.spec.ts
+Git blob SHA: b4d04c8fb9a3e979109510a7eea8d4b4aef51bdd
+
+--- Lines 47-89 ---
+47: it('leaves a delivered follow-up to its ticket\'s worker: the main Session may stop the ticket on it, and route it only once handed back',
+48:   async () => {
+49:   h = await startRuntime()
+50:   const { ticket, sessionId } = await h.acceptedTicket(feishu('1', '@bot 修一下回归'))
+51:   const other = await h.acceptedTicket(feishu('3', '@bot 另一件事'))
+52:   const settle = async (id: string, text: string, sender?: string) => {
+53:     const message = followup(id, text, sender ? { sender_id: sender } : {})
+54:     h!.runtime.receive(message); await h!.runtime.idle()
+55:     return message.id
+56:   }
+57:   const master = (name: string, args: Record<string, unknown>) => h!.runTool(h!.runtime.masterId, name, args)
+58:   const decides = /its worker decides whether it belongs there/
+59:   // A guest's follow-up stays inferred, so its stop does not stop the work; the main Session cannot route or requeue it.
+60:   const guest = await settle('4', '别做了', 'ou_guest')
+61:   expect(await h!.route({ kind: 'stop', ticket_id: ticket.id, trigger_id: guest })).toMatchObject({ decision: 'ignore' })
+62:   await expect(h!.route({ kind: 'accept', trigger_id: guest, title: 'More', worktree_name: 'more', acknowledgement: 'ok' }))
+63:     .rejects.toThrow(decides)
+64:   await expect(master('orchestrator_trigger_requeue', { trigger_id: guest })).rejects.toThrow(decides)
+65:   // A person may still send it to Eval from the panel.
+66:   expect(await h.api('POST', `triggers/${encodeURIComponent(guest)}/requeue`)).toMatchObject({ status: 200, body: { queued: true } })
+67:   await h.runtime.pump(); await h.runtime.idle()
+68:   expect(h.candidates()).toContain(guest)
+69:   // Alice's follow-ups carry her authority once the worker hands them back: one goes to the other ticket, one becomes new work.
+70:   const attach = await settle('5', '这个其实是另一件事的')
+71:   await expect(h!.route({ kind: 'attach', ticket_id: other.ticket.id, trigger_id: attach })).rejects.toThrow(decides)
+72:   await h.runTool(sessionId, 'orchestrator_trigger_handback', { trigger_id: attach, reason: 'It is about the other request.' })
+73:   expect(await h!.route({ kind: 'attach', ticket_id: other.ticket.id, trigger_id: attach }))
+74:     .toMatchObject({ ticket: expect.objectContaining({ ticket_id: other.ticket.id }) })
+75:   const work = await settle('6', '另外把导出按钮也加上')
+76:   const request = { trigger_id: work, title: '导出按钮', worktree_name: 'export', acknowledgement: '收到，加导出按钮。' }
+77:   await expect(h!.route({ kind: 'accept', ...request })).rejects.toThrow(decides)
+78:   // The attach subscribed the other ticket to this thread, so its worker decides the message too; it is new work once both
+79:   // hand it back.
+80:   await h.runTool(sessionId, 'orchestrator_trigger_handback', { trigger_id: work, reason: 'It asks for an export button.' })
+81:   await expect(h!.route({ kind: 'accept', ...request })).rejects.toThrow(decides)
+82:   await h.runTool(other.sessionId, 'orchestrator_trigger_handback', { trigger_id: work, reason: 'Not this ticket either.' })
+83:   const accepted = await h!.route({ kind: 'accept', ...request })
+84:   expect(h.runtime.store.tickets.get((accepted.ticket as { ticket_id: string }).ticket_id)!.mandate).toMatchObject({ strength: 'explicit' })
+85:   // A stop on a person's request needs no hand-back.
+86:   const stop = await settle('7', '先停一下')
+87:   expect(await h!.route({ kind: 'stop', ticket_id: ticket.id, trigger_id: stop })).toMatchObject({ decision: 'stop' })
+88:   expect(h.runtime.store.tickets.get(ticket.id)!.ended).toMatchObject({ by: 'human', outcome: 'stopped' })
+89: })
+
+--- Lines 235-248 ---
+235: it('sends a request on a thread a worker follows only for context to Eval, and marks the worker\'s copy as context', async () => {
+236:   h = await startRuntime()
+237:   const { ticket, sessionId } = await h.acceptedTicket(feishu('1', '@bot 修一下回归'))
+238:   await h.runTool(sessionId, 'orchestrator_thread_follow', { thread: `feishu:${CHAT}:om_9`, reason: 'The same page.' })
+239:   h.deliveries.mockClear()
+240:   const request = feishu('10', '@bot 把这里的按钮也改了', { root_id: 'om_9' })
+241:   h.runtime.receive(request)
+242:   await h.runtime.idle()
+243:   // It is nobody's follow-up: the main Session assesses it, and the worker reads it as context.
+244:   expect(h.candidates()).toEqual([request.id])
+245:   expect(notices(h)).toEqual([])
+246:   expect(h.runtime.store.triggers.disposition(request.id)).toMatchObject({ fanout: [ticket.id], context: [ticket.id] })
+247:   expect(h.relays(sessionId)).toEqual([expect.objectContaining({ trigger_id: request.id, context: true })])
+248: })
+
+===== tests/policy.spec.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/policy.spec.ts
+Git blob SHA: 4a25b144cfeb6d32923b5a13c41be2f5b541da13
+
+--- Lines 277-302 ---
+277: describe('assessment outcomes', () => {
+278:   const settings = (mode: 'auto' | 'observe') => {
+279:     const parsed = SettingsSchema.parse({})
+280:     return { ...parsed, eval: { ...parsed.eval, mode } }
+281:   }
+282:   const direction = { implementation_requested: true, target_basis: 'specified', requires_design_decision: false, evidence: 'asked' }
+283:   const judged = (current: ReturnType<typeof settings>, matched: boolean) =>
+284:     current.policy.rules.filter(rule => rule.enabled).map(rule => ({ rule_id: rule.id, matched, reason: 'judged' }))
+285:   const accept = (current: ReturnType<typeof settings>, matched = true) => ({ decision: 'accept' as const, rule_assessments: judged(current, matched),
+286:     direction, title: 'Fix', scope: 'small', reason: 'asked', intent_evidence: 'quote', worktree_name: 'fix-copy' })
+287:   it('accepts an inferred candidate on its matched rules in auto mode only, and the Policy admits only enabled matched rules', () => {
+288:     const auto = settings('auto')
+289:     const outcome = assessmentOutcome(accept(auto), auto, 'inferred')
+290:     expect(outcome).toMatchObject({ kind: 'accept', rules: auto.policy.rules.filter(rule => rule.enabled).map(rule => rule.id), name: 'fix-copy' })
+291:     expect(assessmentOutcome(accept(settings('observe')), settings('observe'), 'inferred'))
+292:       .toMatchObject({ kind: 'ignore', reason: { code: 'observed', values: { text: 'asked' } }, audit: { would_accept: true } })
+293:     expect(assessmentOutcome(accept(auto, false), auto, 'inferred')).toMatchObject({ kind: 'ignore', reason: { code: 'noRuleMatched' } })
+294:     expect(() => assessmentOutcome({ ...accept(auto), rule_assessments: [] }, auto, 'inferred')).toThrow('Exactly one assessment for every enabled rule')
+295:     expect(() => assessmentOutcome({ ...accept(auto), intent_evidence: null }, auto, 'inferred')).toThrow('Acceptance requires intent_evidence')
+296:     const scope = { scope: () => ({ listened: true as const, observed: true }) }
+297:     const enabled = auto.policy.rules.find(rule => rule.enabled)!.id
+298:     expect(settingsPolicy(auto, scope).admitsInferred([enabled])).toBe(true)
+299:     expect(settingsPolicy(auto, scope).admitsInferred(['unknown'])).toBe(false)
+300:     expect(settingsPolicy(auto, scope).admitsInferred([])).toBe(false)
+301:     expect(settingsPolicy(settings('observe'), scope).admitsInferred([enabled])).toBe(false)
+302:   })
+
+--- Lines 315-325 ---
+315:   it('accepts an explicit candidate whatever the accept mode, which bears only on inferred ones', () => {
+316:     const rules = SettingsSchema.parse({}).policy.rules.filter(rule => rule.enabled)
+317:     const direction = { implementation_requested: true, target_basis: 'specified', requires_design_decision: false, evidence: 'asked' }
+318:     const assessment = { decision: 'accept' as const, direction, title: 'Fix', scope: 'small', reason: 'asked', intent_evidence: 'quote',
+319:       rule_assessments: rules.map((rule, index) => ({ rule_id: rule.id, matched: index === 0, reason: 'judged' })) }
+320:     for (const mode of ['observe', 'off'] as const) {
+321:       const settings = SettingsSchema.parse({ eval: { mode } })
+322:       expect(assessmentOutcome(assessment, settings, 'explicit')).toMatchObject({ kind: 'accept', title: 'Fix' })
+323:       expect(assessmentOutcome(assessment, settings, 'inferred')).toMatchObject({ kind: 'ignore', reason: { code: 'observed' } })
+324:     }
+325:   })
+
+===== tests/runtime-concurrency.spec.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/runtime-concurrency.spec.ts
+Git blob SHA: 1a7eac3548217bd15f110b2a078a994fa61e5617
+
+--- Lines 146-156 ---
+146: it('wakes an idle worker for a person\'s message at once, in the slot kept beyond the limit', async () => {
+147:   const settings = h.runtime.store.settings()
+148:   h.runtime.store.saveSettings({ ...settings, executor: { ...settings.executor, maxWorkers: 1 } })
+149:   const one = await h.acceptedTicket(feishu('1', '@bot 修一'))
+150:   h.agents.get(one.sessionId)!.status = 'idle'
+151:   const two = await h.acceptedTicket(feishu('5', '@bot 修二'))
+152:   expect(h.agents.get(two.sessionId)!.status).toBe('running')
+153:   h.runtime.receive(feishu('2', '一的补充', { mentions: [], root_id: 'om_1', sender_id: 'ou_guest' })); await h.runtime.idle()
+154:   expect(h.runtime.store.tickets.get(one.ticket.id)!.undelivered).toEqual([])
+155:   expect(h.agents.get(one.sessionId)!.status).toBe('running')
+156: })
+
+--- Lines 853-881 ---
+853:   it('holds one worker slot per ticket that runs or starts, and lets launches take the slots no worker or wake holds', () => {
+854:     const running = ['t1']
+855:     const slots = new WorkerSlots(() => running, () => 3)
+856:     slots.reserve('t2', 'launch')
+857:     slots.reserve('t3', 'wake')
+858:     expect(slots.used()).toBe(3)
+859:     // launches() excludes 'launch' reservations because the launch queue tracks active launches separately.
+860:     expect(slots.launches()).toBe(1)
+861:     expect(() => slots.reserve('t4', 'wake')).toThrow(Later)
+862:     expect(() => slots.reserve('t3', 'wake')).not.toThrow()
+863:     slots.free('t3')
+864:     expect(slots.used()).toBe(2)
+865:     slots.reserve('t4', 'launch')
+866:     expect(slots.used()).toBe(3)
+867:   })
+868:   it('wakes a worker for a person\'s message in the one slot beyond the limit, and ahead of launches once a slot frees up', () => {
+869:     const running = ['t1', 't2', 't3']
+870:     const slots = new WorkerSlots(() => running, () => 3)
+871:     expect(() => slots.reserve('t4', 'launch')).toThrow(Later)
+872:     expect(() => slots.reserve('t4', 'wake')).toThrow(Later)
+873:     slots.reserve('t5', 'person')
+874:     expect(slots.used()).toBe(4)
+875:     expect(slots.launches()).toBeLessThanOrEqual(0)
+876:     // No second person's wake fits beyond the limit; once a worker ends, it does, while a launch still waits.
+877:     expect(() => slots.reserve('t6', 'person')).toThrow(Later)
+878:     running.splice(0, 1)
+879:     expect(() => slots.reserve('t7', 'launch')).toThrow(Later)
+880:     slots.reserve('t6', 'person')
+881:     expect(slots.used()).toBe(4)

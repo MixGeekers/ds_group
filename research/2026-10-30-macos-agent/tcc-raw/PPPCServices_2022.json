@@ -1,0 +1,122 @@
+[
+	{
+        "mdmKey": "Accessibility",
+		"englishName": "Accessibility",
+		"englishDescription": "Allows specified apps to control the Mac via Accessibility APIs."
+	},
+    {
+        "mdmKey": "AppleEvents",
+		"englishName": "AppleEvents",
+		"englishDescription": "Allows specified apps to send a restricted AppleEvent to another process."
+	},
+    {
+        "mdmKey": "Calendar",
+		"englishName": "Calendars",
+		"englishDescription": "Allows specified apps access to event information managed by Calendar.",
+		"entitlements": ["com.apple.security.personal-information.calendars"]
+	},
+    {
+        "mdmKey": "Camera",
+		"englishName": "Camera",
+		"englishDescription": "Use to deny specified apps access to the camera.",
+		"entitlements": ["com.apple.developer.avfoundation.multitasking-camera-access", "com.apple.security.device.camera"],
+		"denyOnly": true
+	},
+    {
+        "mdmKey": "AddressBook",
+		"englishName": "Contacts",
+		"englishDescription": "Allows specified apps access to contact information managed by Contacts.",
+		"entitlements": ["com.apple.developer.contacts.notes", "com.apple.security.personal-information.addressbook"]
+	},
+    {
+        "mdmKey": "SystemPolicyDesktopFolder",
+		"englishName": "Desktop Folder",
+		"englishDescription": "Allows specified apps access to the Desktop folder."
+	},
+    {
+        "mdmKey": "SystemPolicyDocumentsFolder",
+		"englishName": "Documents Folder",
+		"englishDescription": "Allows specified apps access to the Documents folder."
+	},
+    {
+        "mdmKey": "SystemPolicyDownloadsFolder",
+		"englishName": "Downloads Folder",
+		"englishDescription": "Allows specified apps access to the Downloads folder.",
+		"entitlements": ["com.apple.security.files.downloads.read-only", "com.apple.security.files.downloads.read-write"]
+	},
+    {
+        "mdmKey": "FileProviderPresence",
+		"englishName": "File Provider presence",
+		"englishDescription": "Allows specified File Provider apps access to know when the user is using files managed by the File Provider.",
+		"entitlements": ["com.apple.developer.fileprovider.testing-mode"]
+	},
+    {
+        "mdmKey": "ListenEvent",
+		"englishName": "Input Monitoring",
+		"englishDescription": "Set which approved apps have specified access to input devices (mouse, keyboard, trackpad).",
+		"entitlements": ["com.apple.security.device.usb", "com.apple.vm.device-access"],
+		"denyOnly": true,
+		"allowStandardUsersMacOS11Plus": true
+	},
+    {
+        "mdmKey": "MediaLibrary",
+		"englishName": "Media & Apple Music",
+		"englishDescription": "Allows specified apps access to access Apple Music, music and video activity, and the media library."
+	},
+    {
+        "mdmKey": "Microphone",
+		"englishName": "Microphone",
+		"englishDescription": "Deny specified apps access to the microphone.",
+		"entitlements": ["com.apple.security.device.microphone"],
+		"denyOnly": true
+	},
+    {
+        "mdmKey": "SystemPolicyNetworkVolumes",
+		"englishName": "Network Volumes",
+		"englishDescription": "Allows specified apps access to files on network volumes."
+	},
+    {
+        "mdmKey": "Photos",
+		"englishName": "Photos",
+		"englishDescription": "Allows specified apps access to images managed by the Photos app in: /Users/username/Pictures/Photos Library Note: If the user put their photo library somewhere else, it won’t be protected from apps.",
+		"entitlements": ["com.apple.security.assets.pictures.read-only", "com.apple.security.assets.pictures.read-write"]
+	},
+    {
+        "mdmKey": "PostEvent",
+		"englishName": "Post Event",
+		"englishDescription": "Allows specified apps to use CoreGraphics APIs to send CGEvents to the system event stream."
+	},
+    {
+        "mdmKey": "Reminders",
+		"englishName": "Reminders",
+		"englishDescription": "Allows specified apps access to information managed by Reminders."
+	},
+    {
+        "mdmKey": "SystemPolicyRemovableVolumes",
+		"englishName": "Removable Volumes",
+		"englishDescription": "Allows specified apps access to files on removable volumes."
+	},
+    {
+        "mdmKey": "ScreenCapture",
+		"englishName": "Screen Recording",
+		"englishDescription": "Deny specified apps access to capture (read) the contents of the system display.",
+		"denyOnly": true,
+		"allowStandardUsersMacOS11Plus": true
+	},
+    {
+        "mdmKey": "SpeechRecognition",
+		"englishName": "Speech Recognition",
+		"englishDescription": "Allows specified apps to use the system Speech Recognition feature and to send speech data to Apple."
+	},
+    {
+        "mdmKey": "SystemPolicyAllFiles",
+		"englishName": "Full Disk Access",
+		"englishDescription": "Allows specified apps access to data like Mail, Messages, Safari, Home, Time Machine backups, and certain administrative settings for all users on the Mac.",
+		"entitlements": ["com.apple.security.files.all"]
+	},
+    {
+        "mdmKey": "SystemPolicySysAdminFiles",
+		"englishName": "Administrator Files",
+		"englishDescription": "Allows specified apps access to some files used by system administrators."
+	}
+]

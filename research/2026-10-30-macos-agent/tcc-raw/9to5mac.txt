@@ -1,0 +1,176 @@
+
+macOS Sequoia screen recording permission nags can be zapped
+Skip to main content
+Toggle main menu
+9to5Mac Logo
+Go to the 9to5Mac home page
+Switch site
+9to5Toys
+9to5Google Logo
+9to5Google
+Electrek
+Drone DJ Logo
+DroneDJ
+Space Explored
+About
+Privacy
+Toggle social menu
+Toggle dark mode
+ Search for: 
+Submit
+Toggle search form
+Forums
+Store
+Podcasts
+Apple@Work
+Happy Hour
+9to5Mac Daily
+Overtime
+iPhone
+iPhone
+Mac
+Mac
+MacBook Pro
+MacBook Air
+iMac
+Mac mini
+Mac Studio
+Mac Pro
+iPad
+iPad Pro
+iPad Air
+iPad mini
+iPad
+iPadOS
+Watch
+Apple Watch
+Apple Watch Ultra
+Apple Health
+Apple Watch SE
+Vision
+Vision Pro
+visionOS
+Music and TV
+Apple Music
+AirPods
+HomePod
+Apple TV
+Guides
+Reviews
+How Tos
+AAPL
+Apple Store
+Apple Arcade
+Apple Card
+Apple Silicon
+Apple One
+Apple Fitness+
+CarPlay
+Siri
+HomeKit
+Toggle dark mode
+Apps
+Mac
+Security
+macOS Sequoia
+macOS Sequoia screen recording permission nags can now be permanently vanquished
+Ben Lovejoy
+ | Sep 24 2024 - 4:21 am PT 
+ 7 Comments 
+macOS Sequoia
+ screen recording permission reminders can now be permanently vanquished, thanks to a new pay-what-you-like app.
+Apple’s
+ new 
+security
+ feature was intended to make 
+Macs
+ safer, by reminding us that we’d granted a powerful and potentially dangerous permission to an app, but many experienced users simply found it irritating …
+macOS Sequoia screen recording permissions
+Usually, when you grant an app permission to do something – like access your location – that’s a one-off deal. But with Sequoia, 
+you’d be nagged on a weekly basis
+ and asked whether you still wanted that permission in place, which was super-annoying if you use a third-party screenshot app.
+Apple’s argument was that any app with this permission would have the ability to see everything you do, and that was such a big deal a one-off okay wasn’t sufficient.
+The company partially relented, switching the reminders 
+from weekly to monthly
+, but it can still be annoying.
+Amnesia solves the problem
+Jordi Bruin, the developer behind apps like 
+MacWhisper
+ and MacGPT, has now offered a solution, working in partnership with 
+Antoine van der Lee
+. It’s a simple app to edit the .plist for each app, ensuring that it will no longer nag you.
+If you’re not familiar with .plist files, it stands for property lists, and is essentially where macOS stores app preferences.
+Technically, you can’t tell an app to 
+never
+ ask you again, but you can set the next reminder date to a date far into the future – say after your projected lifespan, after the expected heat death of the universe, that sort of thing. And that’s what Amnesia does.
+Top comment by 
+Think Different
+Liked by 2 people 
+Does this paid app reach inside of Apple's C-suite and change the minds of the execs there that thought that nagging features of any kind are a good idea in the first place? Try to imagine the hubris required to intentionally add code that nags the user into doing something they don't want to do because you know better than them how they should use their own computer.
+View all comments
+Amnesia is a pay-what-you-like app, letting you choose the amount it is worth to you. This includes $0 if desired, though if you take the time to install it, that kinda suggests it’s worth something to you.
+There are a couple of things to bear in mind when first using the app:
+When you run the app for the first time to have to give access to the folder where the .plist is stored. The app reads and adjusts the timestamp for the apps you want to change.
+~/Library/Group Containers/group.com.apple.replayd/ScreenCaptureApprovals.plist
+If you are on 15.1 make sure you are using version 1.1 or newer.
+You can 
+download Amnesia here
+.
+Image: 
+Jordi Bruin
+FTC: We use income earning auto affiliate links.
+More.
+You’re reading 9to5Mac — experts who break news about Apple and its surrounding ecosystem, day after day. Be sure to check out 
+our homepage
+ for all the latest news, and follow 9to5Mac on 
+Twitter
+, 
+Facebook
+, and 
+LinkedIn
+ to stay in the loop. Don’t know where to start? Check out our 
+exclusive stories
+, 
+reviews
+, 
+how-tos
+, and 
+subscribe to our YouTube channel
+ Featured 
+ from 
+9to5Mac
+9to5Mac Logo
+MacBook Pro with PROLED XDR vs MacBook Pro: Here’s every difference
+Ryan Christoffel
+Oct 28 2026
+Apple seems to have the right approach to the first touchscreen Mac
+Ben Lovejoy
+Oct 29 2026
+Apple’s best MacBook Pro decision this week had nothing to do with touch
+Marcus Mendes
+Oct 29 2026
+iOS 27.2 adds new video feature that’s perfect for iPhone Duo
+Ryan Christoffel
+Oct 29 2026
+Podcast
+Check out 9to5Mac on YouTube for more Apple news:
+Comments
+Expand
+Close
+ comments
+Expand
+Close
+ comments
+Guides
+Apps
+Lead the curve on tomorrow’s iOS and Mac app h…
+Mac
+Apple’s Mac lineup consists of MacBook, MacBoo…
+Security
+macOS Sequoia
+Author
+ Ben Lovejoy 
+benlovejoy 
+Ben Lovejoy is a British technology writer and EU Editor for 9to5Mac. He’s known for his op-eds and diary pieces, exploring his experience of Apple products over time, for a more rounded review. He also writes fiction, with two technothriller novels, a couple of SF shorts and a rom-com!
+Ben Lovejoy's favorite gear
+Dell 49-inch curved monitor

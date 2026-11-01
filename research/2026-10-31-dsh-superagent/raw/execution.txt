@@ -1,0 +1,366 @@
+Repository: https://github.com/deepseek-ai/dsh-superagent-prototype
+Commit: 6337fc823ce20251c8de8085948165c81aaa701e
+Retrieved: 2026-10-31 (America/Caracas)
+Static source excerpts only; not executed. Upstream tests were read, not run.
+License: MIT; see LICENSE.txt.
+
+===== src/core/model.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/model.ts
+Git blob SHA: 577831217329b9bfef404e9ec3492e94ce3e5649
+
+--- Lines 116-134 ---
+116: export type MandateBasis = Received & { sender?: string; rules?: string[] } & (
+117:   | { via: 'addressed'; addressed: 'mention' | 'direct' }
+118:   | { via: 'followup'; authority?: string }
+119:   | { via: 'admission'; cell: AdmissionCell; addressed?: 'mention' | 'direct'; observation?: { mode: AcceptMode } }
+120:   | { via: 'listed'; addressed?: 'mention' | 'direct'; observation?: { mode?: AcceptMode }; authority?: string }
+121:   /** A message of a bot on its Source's bot list: an inferred candidate at most, never an explicit request or a stop. */
+122:   | { via: 'bot'; addressed?: 'mention' | 'direct'; observation: { mode: AcceptMode } }
+123: )
+124: 
+125: /** Immutable authorization produced by an accept decision; execution is bounded by it and it never changes. */
+126: export interface Mandate {
+127:   strength: Strength
+128:   policyVersion: string
+129:   /** How the gate admitted it, for re-validation and audit. */
+130:   basis: MandateBasis
+131:   actor: ActorRef
+132:   scope: string
+133: }
+134: 
+
+--- Lines 211-233 ---
+211: export type AssignmentState = 'pending' | 'running' | 'ended'
+212: /**
+213:  * What an Assignment reports: work is in progress (`progress`), its worker waits for a Trigger (`waiting`), a result is
+214:  * ready (`ready`), a person must act to unblock or recover it (`blocked` or `failed`), or nothing is left to do (`dropped`).
+215:  */
+216: export type ReportState = 'progress' | 'waiting' | 'ready' | 'blocked' | 'failed' | 'dropped'
+217: /** Binding between a ticket and one executor instance. */
+218: export interface Assignment {
+219:   id: string
+220:   state: AssignmentState
+221:   createdAt: string
+222:   startedAt?: string
+223:   endedAt?: string
+224:   endedReason?: string
+225:   report?: { state: ReportState; summary: string; at: string }
+226:   /** When Inputs last reached the worker; one at or after `report.at` means the worker has been busy with Inputs since that report. */
+227:   deliveredAt?: string
+228:   /**
+229:    * When a turn of its worker last ended with nothing left to run for it and nothing waiting for it: what its Session took
+230:    * into a step before, the worker read.
+231:    */
+232:   idleAt?: string
+233: }
+
+--- Lines 271-309 ---
+271: export type TicketEndBy = 'executor' | 'human'
+272: /** How a ticket ended: with its result, with its pull request merged or closed unmerged, with nothing to do, or stopped by a person. */
+273: export type TicketOutcome = 'completed' | 'merged' | 'closed' | 'dropped' | 'stopped'
+274: /** A question for a person; `triggerId` is the human message that raised it, whose conversation it goes back to. */
+275: export interface Attention { id: string; question: string; triggerId?: string }
+276: /** Ticket aggregate: an authorized work item with its assignments, channels, thread bindings, and inputs. */
+277: export interface Ticket {
+278:   id: string
+279:   title: string
+280:   decisionId: string
+281:   mandate: Mandate
+282:   /** The Channels of the messages it was accepted from, which its replies go to. */
+283:   channels: ChannelRef[]
+284:   /** When, by whom, and how the ticket ended, with a person's or the host's reason beyond the outcome; an open ticket has none. */
+285:   ended?: { at: string; by: TicketEndBy; outcome: TicketOutcome; reason?: string }
+286:   /** Open question for a person; cleared by the executor or when the ticket ends. */
+287:   attention?: Attention
+288:   assignments: Assignment[]
+289:   inputs: TicketInput[]
+290:   /** Inputs not yet handed to a running assignment. */
+291:   undelivered: string[]
+292:   /**
+293:    * Threads a Source made the ticket follow, such as its pull requests': a `ready` report ends the ticket only once
+294:    * `followsDone` holds; the close that makes it hold ends the ticket with that outcome unless its work has not finished (see
+295:    * `Tickets.unfinished`), and then its next `ready` or `dropped` report ends it.
+296:    */
+297:   follows?: Follow[]
+298:   /** People's questions the worker answered, whose answers the main Session may send. */
+299:   answers?: string[]
+300:   createdAt: string
+301:   updatedAt: string
+302:   /** The Triggers it was accepted from: the one that started it, and the batch its Eval held. */
+303:   origin: { triggerId: string; triggerIds: string[] }
+304:   /** What its Executor chose: its short name, directory and assignment text. */
+305:   execution?: Execution
+306:   /** The latest failed delivery of an Input to its worker, until a delivery succeeds. */
+307:   delivery?: { error: string; at: string }
+308: }
+309: /**
+
+===== src/core/tickets.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/tickets.ts
+Git blob SHA: 21376e17fc896af45fa2c06f7a7d6aa17d6e8aa2
+
+--- Lines 200-207 ---
+200:   policyChanged(from: string, to: string, effects: ReadonlyMap<string, PolicyEffect>): void {
+201:     const at = this.now()
+202:     // Iterate tickets oldest first so deliveries queue in acceptance order.
+203:     for (const ticket of this.repo.tickets.open().sort((a, b) => a.createdAt.localeCompare(b.createdAt))) {
+204:       const effect = effects.get(ticket.id)
+205:       // Include `at` in the input key so repeated transitions between the same policy versions still record a new input.
+206:       if (effect) this.addInput(ticket, { id: key('input', ticket.id, 'policy', from, to, at), kind: 'policy-changed', from, to, at, effect })
+207:     }
+
+--- Lines 234-269 ---
+234:   addInput(ticket: Ticket, input: TicketInput): void {
+235:     if (ticket.inputs.some(existing => existing.id === input.id)) return
+236:     ticket.inputs.push(input); ticket.updatedAt = this.now()
+237:     // Hold back automated inputs while the worker is waiting on a person.
+238:     const held = liveTicket(ticket) && automatic(input) && waitsForPerson(ticket)
+239:     if (!held) ticket.undelivered.push(input.id)
+240:     this.repo.tickets.save(ticket)
+241:     if (!liveTicket(ticket) || held) return
+242:     const running = runningAssignment(ticket), latest = latestAssignment(ticket)
+243:     if (running) this.options.executor.deliver(ticket, running)
+244:     else if (latest?.state === 'pending' && !waitsForPerson(ticket)) this.options.executor.start(ticket, latest)
+245:   }
+246:   /**
+247:    * Resume an ended ticket under its unchanged Mandate when a person's message on one of its Threads waits for it: no Eval
+248:    * and no Decision, since nothing new is authorized. One whose Mandate the current Policy no longer holds stays ended and
+249:    * takes nothing (see `refuse`). While processing is paused the message waits, and the first pass after the pause resumes
+250:    * the ticket under the Policy then. Reads the ticket afresh, so it is idempotent and leaves an already-resumed ticket alone.
+251:    */
+252:   wake(ticketId: string): void {
+253:     const ticket = this.repo.tickets.get(ticketId)
+254:     if (!ticket || liveTicket(ticket) || ticket.ended?.by === 'human' || !ticket.undelivered.length) return
+255:     const policy = this.policy()
+256:     if (policy.paused) return
+257:     if (!policy.revalidate(ticket.mandate)) { this.refuse(ticket); return }
+258:     // Only a human's message resumes an ended ticket; bot/CI triggers wait alongside inputs from before the ticket ended.
+259:     const first = ticket.undelivered.map(id => ticket.inputs.find(input => input.id === id)).find(input => input?.kind === 'trigger' && input.human)
+260:     if (first?.kind !== 'trigger') return
+261:     const at = this.now()
+262:     delete ticket.ended; ticket.updatedAt = at
+263:     const assignment = this.newAssignment(ticket)
+264:     // Prepend the resumed marker so it is delivered ahead of the waiting messages.
+265:     const resumed: TicketInput = { id: key('input', ticket.id, 'resumed', first.triggerId), kind: 'resumed', triggerId: first.triggerId, at }
+266:     ticket.inputs.push(resumed); ticket.undelivered.unshift(resumed.id)
+267:     this.repo.tickets.save(ticket)
+268:     this.options.executor.start(ticket, assignment)
+269:     this.emit('ticket.resumed', { ticketId, triggerId: first.triggerId })
+
+--- Lines 318-336 ---
+318:   restart(ticket: Ticket, running: Assignment, reason: string, note: string): void {
+319:     this.endAssignment(ticket, running, reason)
+320:     this.requeueUntaken(ticket, running)
+321:     const assignment = this.newAssignment(ticket)
+322:     const at = this.now()
+323:     const input: TicketInput = { id: key('input', ticket.id, 'restart', assignment.id), kind: 'text', text: note, at }
+324:     ticket.inputs.push(input); ticket.undelivered.push(input.id); ticket.updatedAt = at
+325:     this.repo.tickets.save(ticket)
+326:     this.options.executor.start(ticket, assignment)
+327:   }
+328:   /**
+329:    * Put back, ahead of what waits, the Trigger Inputs delivered to `replaced` that no step of its worker took: a cancel may
+330:    * have dropped them, or a step that claimed them was cut off, and the new Assignment's launch takes a copy still waiting
+331:    * in the Session out, so its delivery is the only one. An earlier end let go of what earlier Assignments left.
+332:    */
+333:   private requeueUntaken(ticket: Ticket, replaced: Assignment): void {
+334:     const untaken = ticket.inputs.filter(input => input.kind === 'trigger' && input.readAt === null && input.deliveredTo === replaced.id
+335:       && !ticket.undelivered.includes(input.id))
+336:     ticket.undelivered.unshift(...untaken.map(input => input.id))
+
+===== src/executor/dsh.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/executor/dsh.ts
+Git blob SHA: 26234f3aa510bdb6501fbf49f3425753354fe284
+
+--- Lines 172-198 ---
+172:   /** Tickets currently holding a startup slot, mapped to whether the start is a launch, a wake, or a wake for a person's message. */
+173:   private readonly starting = new Map<string, 'launch' | 'wake' | 'person'>()
+174:   /**
+175:    * @param running - Returns the ticket IDs whose worker holds a slot (see `DshExecutor.running`).
+176:    * @param max - Returns the configured maximum number of concurrent worker slots.
+177:    */
+178:   constructor(private readonly running: () => string[], private readonly max: () => number) {}
+179:   /** Number of slots currently in use across running workers and starting reservations. */
+180:   used(): number { return new Set([...this.running(), ...this.starting.keys()]).size }
+181:   /** How many launches may run concurrently: the slots not held by a running worker or a wake reservation. */
+182:   launches(): number {
+183:     const wakes = [...this.starting].flatMap(([ticketId, by]) => by !== 'launch' ? [ticketId] : [])
+184:     return this.max() - new Set([...this.running(), ...wakes]).size
+185:   }
+186:   /**
+187:    * Reserves a startup slot for `ticketId`; idempotent if `ticketId` already holds a starting slot.
+188:    * A wake for a person's message (`by === 'person'`) may use one extra slot beyond `max()`.
+189:    * Call `free(ticketId)` once the worker turn is running or the launch/wake attempt ends.
+190:    * @throws Later when no slot is free.
+191:    */
+192:   reserve(ticketId: string, by: 'launch' | 'wake' | 'person'): void {
+193:     if (this.starting.has(ticketId)) return
+194:     if (this.used() >= this.max() + (by === 'person' ? 1 : 0)) throw new Later('No worker slot is free')
+195:     this.starting.set(ticketId, by)
+196:   }
+197:   /** Releases `ticketId`'s starting slot once its worker session is running or the launch/wake attempt has ended. */
+198:   free(ticketId: string): void { this.starting.delete(ticketId) }
+
+--- Lines 290-327 ---
+290:   private async deliverQueued(ticketId: string): Promise<void> {
+291:     // A stop of the worker's background work ends with a cancel, which would drop what is delivered meanwhile.
+292:     await this.stopped(ticketId)
+293:     const first = this.host.store.tickets.get(ticketId)
+294:     const target = first && liveTicket(first) ? runningAssignment(first) : undefined
+295:     if (!first || !target || !first.undelivered.length) return
+296:     let woken = false
+297:     try {
+298:       for (;;) {
+299:         const ticket = this.host.store.tickets.get(ticketId)
+300:         const assignment = ticket && liveTicket(ticket) ? runningAssignment(ticket) : undefined
+301:         const inputId = ticket?.undelivered[0]
+302:         if (!ticket || !assignment || inputId === undefined) return
+303:         // Waking an idle worker reserves a slot (including the extra slot reserved for human follow-ups).
+304:         const sessionId = workerSessionId(ticketId)
+305:         if (!woken && !this.running(ticket)) {
+306:           // A person's message wakes its worker ahead of new launches, in the slot kept for it.
+307:           const person = ticket.undelivered.some(id => fromPerson(ticket.inputs.find(item => item.id === id)))
+308:           this.slots.reserve(ticketId, person ? 'person' : 'wake')
+309:           woken = true
+310:         }
+311:         const input = ticket.inputs.find(item => item.id === inputId)
+312:         try {
+313:           // Recreate the worker session if it was externally deleted.
+314:           if (!this.host.context.agents.get(sessionId as SessionId)) {
+315:             await this.host.sessions.ensure(sessionId, ticket.execution?.directory ?? '', ticket.title, 'worker')
+316:           }
+317:           if (input) await this.deliverInput(ticket, assignment, input)
+318:         } catch (error) {
+319:           if (this.host.closing() || error instanceof Later) throw error
+320:           const current = this.host.store.tickets.get(ticketId)
+321:           if (!current || !liveTicket(current) || runningAssignment(current)?.id !== assignment.id) return
+322:           this.host.engine.deliveryFailed(ticketId, assignment.id, String(error))
+323:           throw error
+324:         }
+325:         this.host.engine.inputsDelivered(ticketId, assignment.id, [inputId])
+326:       }
+327:     } finally { if (woken) this.slots.free(ticketId) }
+
+--- Lines 588-599 ---
+588:   private handOff(ticketId: string, agent: Agent): void {
+589:     this.track(ticketId, stopSubagents(this.host.context, agent, true))
+590:     const left = this.left.get(ticketId) ?? { jobs: new Set<string>(), collect: new AbortController() }
+591:     this.left.set(ticketId, left)
+592:     for (const job of runningJobs(this.host.context, agent.id, left.jobs)) {
+593:       left.jobs.add(job.id)
+594:       void this.background(collectJob(this.host.context, agent.id, job, left.collect.signal).then(async ended => {
+595:         if (!ended) return
+596:         const note = `Your background job ${ended.name} ended: ${ended.status}.`
+597:         await this.host.sessions.prompt(agent.id, `ended:${job.id}`, note, { inject: 'Background job ended' })
+598:       }))
+599:     }
+
+--- Lines 629-661 ---
+629:     // Its turn ends once nothing runs for it in the background, which holds its slot meanwhile: at most for the limit from
+630:     // this idle, and until the worker runs again or the Assignment ends.
+631:     this.settling.get(ticket.id)?.abort()
+632:     const look = new AbortController(), limit = new AbortController()
+633:     this.settling.set(ticket.id, look)
+634:     const timer = setTimeout(() => { limit.abort() }, BACKGROUND_LIMIT_MS)
+635:     timer.unref?.()
+636:     let quiet: boolean
+637:     const left = this.left.get(ticket.id)?.jobs
+638:     try { quiet = await untilQuiet(this.host.context, agent, AbortSignal.any([this.host.lifetime, look.signal, limit.signal]), left) }
+639:     finally { clearTimeout(timer); if (this.settling.get(ticket.id) === look) this.settling.delete(ticket.id) }
+640:     const current = live()
+641:     if (this.host.closing() || look.signal.aborted || (!quiet && !limit.signal.aborted) || !current || this.resuming.has(idle.id)) return
+642:     if (quiet) this.host.engine.turnEnded(ticket.id, idle.id)
+643:     let stopped = ''
+644:     if (!quiet) {
+645:       // Its shell jobs that ran past the limit are killed, which it is told at its next turn; its subagents, whose stop would
+646:       // wake it, go on.
+647:       const sessionId = workerSessionId(ticket.id), minutes = BACKGROUND_LIMIT_MS / 60_000
+648:       const jobs = runningJobs(this.host.context, sessionId, left).map(job => job.name)
+649:       if (jobs.length) {
+650:         void this.background(killJobs(this.host.context, sessionId, 'The job ran past its limit', left))
+651:         const note = `Your background jobs ran ${minutes} minutes after your turn ended and were killed: ${jobs.join(', ')}.`
+652:         void this.background(this.host.sessions.prompt(sessionId, `killed:${jobs.join(',')}`, note, { inject: 'Background jobs killed' }))
+653:       }
+654:       stopped = jobs.length ? `Background jobs ran ${minutes} minutes after the worker's turn ended and were killed: ${jobs.join(', ')}.`
+655:         : `Subagents still ran ${minutes} minutes after the worker's turn ended.`
+656:     }
+657:     // The worker may have reported while its turn ended; a blocked or failed report a person's message has lifted is stale.
+658:     if (handedOff(current)) return
+659:     const last = agent.session.snapshotEvents().filter(event => event.type === 'assistant/message').at(-1)
+660:     const text = last?.type === 'assistant/message'
+661:       ? last.data.message.content.filter(block => block.type === 'text').map(block => block.text).join('\n').trim() : ''
+
+===== src/app/sessions.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/sessions.ts
+Git blob SHA: 1a22388dfa3a402ff3b181c0ca3655a0fd50061f
+
+--- Lines 61-85 ---
+61: const WORK_TOOLS = ['read', 'write', 'edit', 'read_image', 'glob', 'grep', 'bash', 'pwsh', 'job_output', 'job_list', 'job_kill', 'web_search',
+62:   'web_fetch', 'skill', 'todo_write', 'subagent', 'list_subagent_models', 'send_message', 'list_agents', 'interrupt_agent']
+63: /** What the main Session is told when it would wait: what it waits for comes to it, and a waiting step holds back the next. */
+64: const NO_WAIT = 'Reports, follow_up notices, new candidates and a background job\'s end with its output arrive by themselves as messages; '
+65:   + 'end the turn instead of waiting for them.'
+66: /** What a main Session under `standard` is told when its command would wait the shell's default. */
+67: const DEFAULT_WAIT = 'This shell waits up to 60 seconds by default: pass timeoutMs of at most 30000, or run_in_background, '
+68:   + 'as a waiting step holds back new candidates.'
+69: /** `sleep` at a command position: the start, after ; & | ( { ! ` or a newline, or after a keyword or a command that runs it. */
+70: const SLEEP = /(?:^|[;&|({!`\n]|\b(?:do|then|else|elif|if|while|until|time|exec|nohup|command|env)\s)\s*(?:\S*\/)?sleep\b/
+71: /**
+72:  * The main Session's guard: it refuses a bash command that runs sleep or asks to hold the step longer than 30 seconds, and a
+73:  * job wait longer than 5 seconds. Under `standard`, as a main Session created before the router preset runs, the shell holds
+74:  * a command 60 seconds and a job wait lasts 30 seconds by default, so a command needs a timeout or the background, and a
+75:  * job wait its timeout; the router preset ends both after 5 seconds.
+76:  */
+77: function noWait({ name, arguments: input }: { name: string; arguments: unknown }, routed: () => boolean): string | undefined {
+78:   const args = (input ?? {}) as { command?: unknown; timeoutMs?: unknown; run_in_background?: unknown; wait?: unknown; timeout_ms?: unknown }
+79:   if (name === 'bash') {
+80:     const sleeps = typeof args.command === 'string' && SLEEP.test(args.command)
+81:     if (sleeps || typeof args.timeoutMs === 'number' && args.timeoutMs > 30_000) return NO_WAIT
+82:     if (args.timeoutMs === undefined && args.run_in_background !== true && !routed()) return DEFAULT_WAIT
+83:   }
+84:   if (name === 'job_output' && args.wait === true && (typeof args.timeout_ms === 'number' ? args.timeout_ms > 5_000 : !routed())) return NO_WAIT
+85:   return undefined
+
+--- Lines 138-154 ---
+138:   async ensure(id: string, cwd: string, title: string, role: 'orchestrator' | 'worker'): Promise<Agent> {
+139:     const ctx = this.ctx
+140:     let result = await ctx.sessionController.resolveAgent(id as SessionId)
+141:     if ('error' in result && result.error.code === 'session/not-found') {
+142:       const workspace = await ctx.workspaceRegistry.create(cwd)
+143:       // A Session keeps the preset it was created with, one of the bundle's own (cordis.patch.yml).
+144:       await ctx.sessionController.create({ sessionId: id as SessionId, workspaceId: workspace.id,
+145:         agentPreset: role === 'worker' ? WORKER_PRESET : ROUTER_PRESET })
+146:       result = await ctx.sessionController.resolveAgent(id as SessionId)
+147:     }
+148:     if ('error' in result) throw result.error
+149:     const settings = this.host.store.settings()
+150:     await initializeRoleModel(ctx, result.agent, role === 'orchestrator' ? settings.eval.model : settings.executor.model)
+151:     await this.decorate(result.agent)
+152:     ctx.permissionPresets.set(result.agent.session, 'danger-full-access')
+153:     await ctx.sessionController.rename({ sessionId: id as SessionId, title })
+154:     return result.agent
+
+--- Lines 289-311 ---
+289:   private workOnly(agent: Agent, ticketId: string): (() => void)[] {
+290:     const store = this.host.store
+291:     const parent = scopeParentOf(agent)
+292:     const allow = WORK_TOOLS.filter(name => agent.ctx.tools.get(name, parent))
+293:     return [agent.ctx.tools.restrict({ allow }), agent.ctx.tools.guard(() => {
+294:       const current = store.tickets.get(ticketId)
+295:       return !current || !liveTicket(current) ? 'Ticket ended; new work needs a new authorized ticket' : undefined
+296:     })]
+297:   }
+298:   /**
+299:    * A subagent of an Executor Session, or of one of its subagents, which runs under DSH's `standard` preset with the worker's
+300:    * permissions, gets the same work tools as the worker, and none once the worker's ticket ended. Any other agent is left as
+301:    * it is.
+302:    */
+303:   private limitSubagent(agent: Agent): void {
+304:     let parent = agent.session.header.parentSession
+305:     // Up the subagents' parents to the worker, which are loaded while their subagents run.
+306:     for (let depth = 0; parent !== undefined && ticketOfSession(parent) === undefined && depth < 8; depth++) {
+307:       parent = this.ctx.agents.get(parent)?.session.header.parentSession
+308:     }
+309:     const ticketId = parent === undefined ? undefined : ticketOfSession(parent)
+310:     if (ticketId === undefined || !this.host.store.tickets.get(ticketId)) return
+311:     this.bindings.set(agent, { disposers: this.workOnly(agent, ticketId), subagent: true })

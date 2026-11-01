@@ -1,0 +1,259 @@
+Repository: https://github.com/deepseek-ai/deepseek-harness
+Commit: ce7073d51254c26cd63b22a60835b8f948deb447
+Retrieved: 2026-10-31 (America/Caracas)
+Evidence: documentation and limited static source review; not executed.
+License: MIT; see LICENSE.txt.
+
+===== docs/subsystems/schedule.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/docs/subsystems/schedule.md
+Git blob SHA: fb60d5c33fedecd846da7482847c57a08121b889
+
+--- Lines 5-12 ---
+5: Schedule stores Host tasks independently of Session activation. One management API addresses tasks by id, and one evaluator handles seven authoritative timing kinds: `after`, `at`, `every`, `daily`, `weekly`, `cron`, and `rrule`. Targets reuse an existing Session, create one Session and reuse it, or create a Session for each delivery. The [package README](../../packages/schedule/schedule/README.md) owns composition and reminder framing; [`types.ts`](../../packages/schedule/schedule/src/types.ts) owns the complete value and request types.
+6: 
+7: <a id="durable-tasks"></a>
+8: ## Durable tasks
+9: 
+10: The plugin README owns the current [v2 task schema, v1 defaults, and persisted JSON example](../../packages/schedule/schedule/README.md#storage-format). The domain retains its name, routing, and whole-unit layout. All seven timing kinds remain authoritative; normalization preserves committed occurrences and does not convert Cron into RRULE.
+11: 
+12: Malformed storage, invalid rows, mismatched task keys, and unsupported versions reject before tasks activate. Failed opening leaves the medium unchanged. An absent file starts empty. Missing target Sessions remain visible in management; reading a task never activates its Session.
+
+--- Lines 116-133 ---
+116: ## Saved delivery records
+117: 
+118: A receipt records `scheduledAt`, `deliveredAt`, `messageId`, and `targetSessionId`; it acknowledges a durable Session inbox write, not model completion. A saved record may also have its immutable sent `prompt`. Old receipts without a target id use their resolved reusable destination before any retargeting edit, so a later target cannot rewrite their history. A receipt without either an explicit destination or a known reusable target rejects decoding; a new default reservation cannot establish a historical destination.
+119: 
+120: New tasks start with known empty history. An old row without `deliveryHistory` exposes its latest receipt, if present, and sets `earlierRecordsUnavailable: true`; it does not invent lost history or prompt snapshots. An omitted `earlierRecordsPruned` reads as false. Duplicate message ids or disagreement between the latest saved record and `lastDelivery` reject decoding.
+121: 
+122: History follows append order despite clock rollback. Acknowledgment appends and prunes in the same task commit, keeping at most 200 records and 30 days by default while retaining the latest receipt. Query pages are newest first and use an exclusive message-id cursor. Hard deletion removes the task and its history without removing already queued Session messages.
+123: 
+124: <a id="host-delivery"></a>
+125: ## Host delivery
+126: 
+127: One Host timer drives active tasks. Runtime and management writes share one FIFO. Existing and reserved Sessions resolve through `schedule/resolve-agent`, so the embedding owns activation and the injected Web controller is the fallback. Reused-Session tasks hold their execution slot until the target Agent becomes idle; intervening occurrences coalesce. A `new` target permits executions beside one another. Due recurring records targeting the same existing Session share one message; `after` and `at` deliver separately.
+128: 
+129: Timed and manual deliveries obey a per-task minimum interval of 60 seconds. `newSessionIntervalSeconds` can raise it for `new` targets, up to one week. The floor uses the last occurrence when the saved successor preserves the interval, otherwise the last acknowledgment, so delivery latency does not move the rule's anchor. Reads expose `executionActive` and `deliveryFloorEndsAt` only while applicable.
+130: 
+131: Session inbox persistence precedes the task receipt write, so a crash between stores can repeat a delivery. The Host must be running. An active task targeting a Session contributes archive-admission activity; an archive stop deletes those active tasks.
+132: 
+133: After a committed management change, Schedule queues a best-effort notice to each involved loaded Agent except the actor. Notices join the next model step without opening a turn, and their Session I/O does not hold the management/delivery queue. New-per-delivery Sessions are not accumulated in involvement metadata.
+
+===== docs/user/guide/schedule.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/docs/user/guide/schedule.md
+Git blob SHA: 37ed142182edebc9cd07f2c720a2216d133a0fdb
+
+--- Lines 78-88 ---
+78: ## Timing and delivery reference
+79: 
+80: Reminders remain stored when their Session is not open. While the Host runs, it restores or creates the target Session when a reminder becomes due and queues a follow-up without interrupting current work. Restarting checks stored tasks and sends an overdue one-shot or only the latest missed occurrence of each recurring task. Closing the Host stops scheduling until it starts again. Due recurring tasks for the same Session can share one message.
+81: 
+82: A repeat rule in an IANA zone follows local wall time: it skips a local time that does not exist and uses the earlier instant of a repeated local time. Existing tasks keep their timing until you save a new rule: a fixed-rate reminder stays aligned to its creation time, and a daily, weekly, or cron reminder follows its saved local times in its IANA zone. The browser supplies its zone for interpreting natural-language requests; naming a zone explicitly avoids ambiguity. The Automation tasks page shows every next run as a browser-zone clock, and the frequency text names a rule's zone when it differs from the browser's zone; a rule that names no zone uses the browser's zone.
+83: 
+84: Saved delivery records confirm messages persisted in the conversation inbox, not that the model completed the requested work. Failed inbox persistence or task writes add no saved record. A crash or task-write failure after inbox persistence can leave a delivered message unrecorded and repeat a delivery; exactly-once delivery is not guaranteed. Closing the Host discards each message that still waits in a conversation inbox: its saved record remains, the model never receives that message, and the Host does not send it again. This is not an execution history or an external notification channel.
+85: 
+86: Saved records are pruned when an acknowledgment is appended: the Host keeps the records whose acknowledgment time falls inside the configured `deliveryHistoryDays` window, measured back from the appended receipt's `deliveredAt`, and at most the newest `deliveryHistoryRecords` records. The latest receipt always survives, and a pruned window marks earlier records unavailable. The Host keeps the retained history in memory and rewrites the full task row for each acknowledgment. Pagination limits returned record count, not the retained history or instruction bytes.
+87: 
+88: Name, instruction, timing, and target editing, pausing, and resuming are available to the model through `schedule_edit` and to the Automation tasks page for every reminder; neither is a cross-Session relay workflow. A change adds a notice to the next model request of each involved conversation whose Agent is loaded, except the conversation that made the change. Reminders recorded only in an older Session log are not scheduled automatically; recreate the ones you still need. Previously deleted task records are not reconstructed.
+
+===== packages/schedule/schedule/src/index.ts =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/schedule/schedule/src/index.ts
+Git blob SHA: 36b6eaaf91ba8a78b7f20276da10e2409213bf31
+
+--- Lines 247-295 ---
+247:   constructor(ctx: Context, config: Config) {
+248:     super(ctx, 'schedule')
+249:     ctx.inject(['sessionController'], (webCtx) => {
+250:       webCtx.effect(() => {
+251:         this.resolveWebAgent = async (sessionId) => {
+252:           const resolved = await webCtx.sessionController.resolveAgent(sessionId)
+253:           if ('error' in resolved) throw resolved.error
+254:           return resolved.agent
+255:         }
+256:         // Resume overdue tasks when the Web activation provider becomes ready.
+257:         this.runtime?.requestDrive()
+258:         return () => { this.resolveWebAgent = undefined }
+259:       })
+260:     })
+261:     this.limits = {
+262:       retention: {
+263:         days: config.deliveryHistoryDays ?? DEFAULT_DELIVERY_HISTORY_DAYS,
+264:         records: config.deliveryHistoryRecords ?? DEFAULT_DELIVERY_HISTORY_RECORDS,
+265:       },
+266:       newSessionIntervalMs: (config.newSessionIntervalSeconds ?? DEFAULT_NEW_SESSION_INTERVAL_SECONDS) * 1_000,
+267:     }
+268:     this.ready = ctx.storageDomain.open(scheduleDomain).then(async (domain) => {
+269:       try {
+270:         for (const [key, task] of domain.table('tasks').entries()) {
+271:           if (key !== task.record.id) {
+272:             throw new Error(`schedule: stored task key "${key}" differs from record id "${task.record.id}"`)
+273:           }
+274:         }
+275:       } catch (error: unknown) {
+276:         // The open failure is the actionable error; a rejecting close must not replace it.
+277:         try {
+278:           await domain.close()
+279:         } catch (closeError: unknown) {
+280:           ctx.logger.warn(`schedule: closing the domain after an open failure failed: ${String(closeError)}`)
+281:         }
+282:         throw error
+283:       }
+284:       return domain
+285:     })
+286:     this.initialized = ctx.effect(async () => {
+287:       const domain = await this.ready
+288:       let cleanup: () => Promise<void>
+289:       try {
+290:         cleanup = ctx.effect(() => async () => {
+291:           this.stopping = true
+292:           await this.runtime?.dispose()
+293:           await this.chain // The chain contains failures after returning them to their callers.
+294:           await this.notifications // Each notice contains its own delivery failure.
+295:           await domain.close()
+
+===== packages/mcp/mcp-client/README.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/mcp/mcp-client/README.md
+Git blob SHA: be3f250ebfa1c4a5031438b2a90cb2dc1ebd1735
+
+--- Lines 26-28 ---
+26: ## Use this package
+27: 
+28: Add `dsh-mcp-client` when the model should call tools from an external MCP server as if they were native. Give each server a unique name and transport. The official SDK selects the 2026-07-28 protocol when available and falls back to supported legacy revisions. Choose stdio for a local program and Streamable HTTP for a service; stdio negotiation starts a temporary probe process before the serving process.
+
+--- Lines 55-67 ---
+55: | Field | Default | Meaning |
+56: |---|---|---|
+57: | `transport` | required | `stdio` or `streamable-http` |
+58: | `serverName` | required | Namespace for the server's tool names; `[A-Za-z0-9_-]{1,32}`, unique inside one registration scope |
+59: | `command` / `args` / `env` / `cwd` | — | stdio: executable, arguments, extra env merged over scrubbed ambient env, working directory |
+60: | `url` / `headers` | — | streamable-http: endpoint URL and extra request headers |
+61: | `toolCallTimeoutMs` | `60,000` | Timeout per `tools/call` or resource request |
+62: | `maxInstructionBytes` | `32,768` | Maximum UTF-8 bytes of server instructions including attribution; an oversized value rejects the connection |
+63: | `failOnStartupError` | `false` | Reject plugin activation when the initial connection or tool synchronization fails |
+64: | `reconnect.enabled` | `true` | Reconnect automatically after a lost connection |
+65: | `reconnect.initialDelayMs` | `500` | First reconnect delay; doubles per consecutive failed attempt |
+66: | `reconnect.maxDelayMs` | `30,000` | Backoff ceiling; also the uptime after which the attempt budget resets |
+67: | `reconnect.maxAttempts` | `10` | Consecutive failed attempts per outage before giving up |
+
+===== packages/mcp/mcp-client/src/index.ts =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/mcp/mcp-client/src/index.ts
+Git blob SHA: 3f89532b91d915cad20d65fa06ae52ace088958d
+
+--- Lines 154-202 ---
+154: export async function apply(ctx: Context, config: Config): Promise<void> {
+155:   // Fail loud at load: reconnect misconfiguration (including programmatic
+156:   // construction that bypassed Schemastery) rejects THIS instance before any
+157:   // effect registers.
+158:   const reconnect = resolveReconnectPolicy(config.reconnect, `mcp-client(${config.serverName}): reconnect`)
+159: 
+160:   // Reserve the namespace next: a duplicate `serverName` fails THIS instance
+161:   // at load with an actionable error and leaves the earlier instance intact.
+162:   ctx.effect(() => {
+163:     const owner = scopeOf(ctx) ?? ctx.root
+164:     let names = activeServerNames.get(owner)
+165:     if (!names) {
+166:       names = new Set()
+167:       activeServerNames.set(owner, names)
+168:     }
+169:     if (names.has(config.serverName)) {
+170:       throw new Error(
+171:         `mcp-client: serverName "${config.serverName}" is already in use by another mcp-client instance — pick a unique serverName in cordis.yml`,
+172:       )
+173:     }
+174:     names.add(config.serverName)
+175:     return () => void names.delete(config.serverName)
+176:   }, 'mcp-client.serverName')
+177: 
+178:   // The supervisor owns the client/transport generations, the reconnect
+179:   // loop, and the live tool registrations; disposal stops reconnection,
+180:   // quiesces in-flight work, and unregisters the current generation.
+181:   const connection = startConnection(ctx, config, reconnect)
+182:   registerServerContext(ctx, config.serverName, connection)
+183:   let stopping: Promise<void> | undefined
+184:   const dispose = (): Promise<void> => stopping ??= connection.dispose()
+185:   // Cordis announces unload before awaiting an unfinished apply(). Closing
+186:   // the transport here releases startup requests that are still awaiting a reply.
+187:   // oxlint-disable-next-line typescript/no-misused-promises -- Cordis contains observer failures; the effect also awaits this promise.
+188:   ctx.on('internal/plugin', (fiber) => {
+189:     if (fiber !== ctx.fiber || fiber.uid !== null) return
+190:     return dispose()
+191:   }, { global: true })
+192:   ctx.effect(() => dispose, 'mcp-client.connection')
+193: 
+194:   // Block plugin activation on the initial connection + tool discovery so
+195:   // Cordis consumers observe the tools immediately after the fiber activates.
+196:   // When failOnStartupError is true, a failed initial attempt rejects the
+197:   // fiber (Cordis rolls it back); otherwise the error is logged and the
+198:   // supervisor enters its reconnect loop.
+199:   const outcome = await connection.ready
+200:   if (outcome.error !== undefined && config.failOnStartupError) {
+201:     throw new Error(`mcp-client(${config.serverName}): initial connection or tool synchronization failed`, { cause: outcome.error })
+202:   }
+
+===== packages/ssh/README.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/ssh/README.md
+Git blob SHA: ff7db269993f75d6137ebfdb86edbfd2f3b51223
+
+--- Lines 10-29 ---
+10: ## Summary
+11: 
+12: This family runs files, ordinary processes, terminals and sandbox enforcement on one POSIX SSH host while the Harness stays local. A shared OpenSSH connection and installed helper support the existing filesystem, subprocess and sandbox interfaces. Use it in headless or custom profiles whose consumers honor provider-owned paths.
+13: 
+14: ## Table of Contents
+15: 
+16: - [Packages](#packages)
+17: - [Related documentation](#related-documentation)
+18: - [Dev Note](#dev-note)
+19: 
+20: <a id="packages"></a>
+21: ## Packages
+22: 
+23: | Package | Responsibility | Service |
+24: |---|---|---|
+25: | [`ssh`](ssh/README.md) | Connection, helper identity and transport lifecycle | `ctx.ssh` |
+26: | [`ssh-helper-runtime`](ssh-helper-runtime/README.md) | Private Node-free executable distribution | — |
+27: | [`fs-ssh`](fs-ssh/README.md) | Remote file identity, reads and guarded atomic mutations | `ctx.fs` |
+28: | [`subprocess-ssh`](subprocess-ssh/README.md) | Executable lookup, processes, control streams and terminals | `ctx.subprocess` |
+29: | [`sandbox-ssh`](sandbox-ssh/README.md) | Remote file-effect confinement and enforcement facts | `ctx.sandbox` |
+
+===== packages/ssh/ssh/README.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/ssh/ssh/README.md
+Git blob SHA: 106974c3bbdfd5d88886a33dda742d0749cd775d
+
+--- Lines 26-36 ---
+26: ## Use this package
+27: 
+28: Compose this service with [`fs-ssh`](../fs-ssh/README.md), [`subprocess-ssh`](../subprocess-ssh/README.md) and [`sandbox-ssh`](../sandbox-ssh/README.md) in a custom `dsh` profile. The host runs the Harness, model transport and Session storage; the remote machine supplies the files and processes. Headless profiles support this arrangement.
+29: 
+30: The helper validates additional writable roots on the wire; its enforcing provider requires physical directory paths on the remote filesystem. Read-only grants no write access to them.
+31: 
+32: ### Deployment prerequisites
+33: 
+34: Both endpoints require Linux or macOS. The local `ssh` command must support connection multiplexing and Unix-socket forwarding; the server must permit that forwarding. Configure the alias, credentials and known-host entry before startup: the service enables `BatchMode`, requires strict host-key checking, disables agent forwarding and adds no interactive authentication flow.
+35: 
+36: Install an [SSH helper executable archive](../ssh-helper-runtime/README.md), or the built helper script with its matching Node dependencies. Keep the runtime outside the workspace and writable temporary roots. They must also remain outside a backend’s replaced temporary tree, such as bwrap’s private `/tmp`; the workspace may still be under `/tmp`. Digest verification detects an unexpected installed artifact after helper startup; it does not make writable deployment files safe to execute or authenticate a malicious SSH host.
+
+--- Lines 55-68 ---
+55: ## Understand the implementation
+56: 
+57: The helper dispatches `fs.patch`, `fs.delete`, and `fs.move` through its sandboxed filesystem provider; strict schemas validate hunks, source/destination guards, and complete or partial move outcomes. Hunk payloads share the connection frame limit.
+58: 
+59: <details>
+60: <summary>Implementation internals — click to expand</summary>
+61: 
+62: The OpenSSH master carries private administrative RPC. Each program stream uses a separate forwarded Unix socket and an independent SSH channel. Program stdout cannot forge administrative replies or occupy the control stream’s channel window. SSH transport congestion still affects the shared connection.
+63: 
+64: Each stream reservation has a random 256-bit TLS pre-shared key carried only by administrative RPC. TLS authenticates both endpoints and protects every stream byte; the key is never sent as a stream preface. Socket directories are private (`0700`) and sockets use `0600`. Replacing a writable socket path cannot impersonate an endpoint or reveal the stream key; an attacker can still interrupt service or relay opaque TLS records.
+65: 
+66: Connection disposal joins forwarding and cancellation subprocesses and partially established streams before removing local resources. Transport loss rejects pending operations and invalidates the connection. The helper starts managed cleanup on SSH EOF, termination signals or heartbeat expiry. A disconnected client cannot confirm the remote outcome; operations are never reconnected or replayed automatically.
+67: 
+68: Failed startup and process results release their reservations after native quiescence; the bounded completion cache preserves the original rejection for later result reads. Helper shutdown also joins endpoint and directory cleanup already in progress.
+
+--- Lines 95-102 ---
+95: ## Known Limitations and Deferred Work
+96: 
+97: <a id="known-limitations-and-deferred-work"></a>
+98: 
+99: - No Windows endpoint, automatic provisioning, reconnect or replay is supplied.
+100: - Web workspace UI paths still assume host filesystem access; use headless or a custom composition whose consumers honor provider paths.
+101: - TLS stream keys do not protect against remote OS process-memory inspection or debugging. File-effect policy retains the selected sandbox backend’s limits.
+102: 

@@ -1,0 +1,125 @@
+{
+  "errors": [],
+  "network": [],
+  "views": [
+    {
+      "focus": "outer",
+      "overflow": []
+    },
+    {
+      "focus": "inner",
+      "overflow": []
+    },
+    {
+      "focus": "execution",
+      "overflow": []
+    },
+    {
+      "focus": "data",
+      "overflow": []
+    },
+    {
+      "focus": "devices",
+      "overflow": []
+    },
+    {
+      "focus": "recovery",
+      "overflow": []
+    },
+    {
+      "focus": "all",
+      "overflow": []
+    },
+    {
+      "mobile": 390,
+      "width": 390,
+      "document": 390,
+      "state": {
+        "z": 0.4575342465753425,
+        "tx": -383.7808219178082,
+        "ty": -31.972602739726028,
+        "w": 390,
+        "h": 540,
+        "dpr": 2,
+        "selected": null,
+        "focus": "inner",
+        "hover": null,
+        "initialized": true
+      },
+      "overflow": []
+    },
+    {
+      "mobile": "390-all",
+      "overflow": []
+    },
+    {
+      "mobile": 320,
+      "width": 320,
+      "document": 320,
+      "state": {
+        "z": 0.36164383561643837,
+        "tx": -297.47945205479454,
+        "ty": 31.31506849315066,
+        "w": 320,
+        "h": 540,
+        "dpr": 2,
+        "selected": null,
+        "focus": "inner",
+        "hover": null,
+        "initialized": true
+      },
+      "overflow": []
+    },
+    {
+      "mobile": "320-all",
+      "overflow": []
+    }
+  ],
+  "interactions": {
+    "modulePicker": true,
+    "canvasSelection": true,
+    "zoom": true,
+    "drag": true,
+    "wheel": true,
+    "keyboard": true,
+    "download": true
+  },
+  "browser": "156.0.8078.79",
+  "overview": {
+    "state": {
+      "z": 0.44130434782608696,
+      "tx": 77.304347826087,
+      "ty": 18,
+      "w": 1302,
+      "h": 848,
+      "dpr": 2,
+      "selected": null,
+      "focus": "all",
+      "hover": null,
+      "initialized": true
+    },
+    "inspection": {
+      "nodes": 40,
+      "regions": 12,
+      "edges": 24,
+      "canvas": {
+        "width": 2604,
+        "height": 1696
+      },
+      "text": {
+        "overflow": [],
+        "labels": 56
+      }
+    }
+  },
+  "export": {
+    "width": 6500,
+    "height": 4600,
+    "bytes": 2126050,
+    "filename": "识雨全景架构-A-6500x4600.png"
+  },
+  "exportText": {
+    "overflow": [],
+    "labels": 106
+  }
+}

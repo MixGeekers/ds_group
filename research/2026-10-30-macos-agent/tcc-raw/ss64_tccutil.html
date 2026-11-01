@@ -1,0 +1,112 @@
+<!doctype html><html lang="en">
+<head><meta charset="UTF-8">
+<meta name="viewport" content="width=1000, initial-scale=1">
+<link rel="stylesheet" href="../main.css" type="text/css">
+<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" sizes="any" type="image/svg+xml">
+<title>TCCUTIL Command: Manage the privacy database in macOS</title>
+<link rel="canonical" href="https://ss64.com/mac/tccutil.html">
+<script async src="/js/q.js"></script>
+<script async src="/js/content.js"></script>
+</head><body><!-- #BeginLibraryItem "/Library/head_osx.lbi" --><div id="tnav"><ul>
+<li class="tbtn"><a href="../">SS64</a></li>
+<li class="tbtn"><a href="../mac/">macOS <svg viewBox="0 0 13 20.1" width="13" height="13" style="transform: rotate(0deg);"><path d="M0 2.9l7.2 7.2-7.1 7.1L3 20.1l7.1-7.1 2.9-2.9L2.9 0 0 2.9"></path></svg></a></li>
+<li class="tbtn"><a href="syntax.html">How-to <svg viewBox="0 0 13 20.1" width="13" height="13" style="transform: rotate(0deg);"><path d="M0 2.9l7.2 7.2-7.1 7.1L3 20.1l7.1-7.1 2.9-2.9L2.9 0 0 2.9"></path></svg></a></li>
+<li><form action="https://www.google.com/search" method="get">
+<div class="wrapq">
+<input type="text" name="q" id="qu" maxlength="255" placeholder="Search" class="mousetrap" aria-label="Search text" inputmode="search" required>
+<button id="sherlock" type="submit">
+<svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="display:inherit;width:100%;height:100%" viewBox="0 0 26 26"><path d="M11 2a9 9 0 1 0 5.641 16.01 1 1 0 0 0 .152.197l3.5 3.5a1 1 0 1 0 1.414-1.414l-3.5-3.5a1 1 0 0 0-.197-.153A8.96 8.96 0 0 0 20 11a9 9 0 0 0-9-9m0 2a7 7 0 1 1 0 14 7 7 0 0 1 0-14"/></svg>
+</button>
+</div>
+<input type="hidden" name="sitesearch" value="ss64.com/mac/">
+<input type="hidden" name="udm" value="14">
+</form></li>
+</ul></div><!-- #EndLibraryItem --><h1>tccutil</h1> 
+<p>Manage the privacy database.</p>
+<pre>Syntax
+      tccutil reset <i>service</i> [<i>bundle_id</i>]
+
+Options
+
+      <i>Service</i>  Reset all decisions for the specified <i>service</i>, causing apps to
+               prompt again the next time they access the service.
+
+      <i>bundle_id</i>  If a bundle identifier is specified, the service will be reset for that bundle only.</pre>
+<p>The <span class="code">tccutil</span> command manages the privacy database, which stores decisions      the user has made about whether apps may access personal data.</p>
+<p>Keywords are Case-Sensitive.</p>
+<p>Common services:<br>
+<span class="code">Accessibility, 
+AddressBook, 
+All, 
+Calendar, 
+Calls, 
+Camera, 
+FaceID, 
+Microphone, 
+Photos, 
+PhotosAdd, 
+Reminders, 
+RemoteDesktop, 
+Siri, 
+ScreenCapture</span> (for the Screen Recording list), <span class="code">SystemPolicyAllFiles</span> (for the Full Disk Access list), <span class="code">SpeechRecognition.</span></p>
+<p>A full list of  services is not documented and will vary with the software currently installed, but to get a full list you can  search for certain strings in the TCC.framework.</p>
+<p>In Monterey&nbsp;or later (via <a href="https://recoursive.com/2020/03/03/reset_macos_privacy_permissions/">Robin Kunde</a>):</p>
+<blockquote>
+<p class="code">$ strings /System/Library/PrivateFrameworks/TCC.framework/Support/tccd | grep -F kTCCService | grep -F -v ' ' | sed -e s/kTCCService// | sort</p>
+</blockquote>
+<h2>Files</h2>
+<blockquote>
+<p class="code">/Library/Application Support/com.apple.TCC/TCC.db<br>
+~/Library/Application Support/com.apple.TCC/TCC.db</p>
+</blockquote>
+<h3 id="e">Examples</h3>
+<p>Reset Address Book:</p>
+<blockquote>
+<p class="code">$ sudo tccutil reset AddressBook</p>
+</blockquote>
+<p>Reset Accessibility settings, this can resolve a corrupt Apple tcc.db in macOS Mojave:</p>
+<blockquote>
+<p class="code">$ sudo tccutil reset Accessibility</p>
+</blockquote>
+<p>Reset All permissions for Apple Terminal:</p>
+<blockquote>
+<p class="code">$ sudo tccutil reset  All com.apple.Terminal</p>
+</blockquote>
+<p>Reset the Camera permission for Google Chrome:</p>
+<blockquote>
+<p class="code"> $ sudo tccutil reset Camera com.google.Chrome</p>
+</blockquote>
+<p>Reset  all permissions for Google Chrome:</p>
+<blockquote>
+<p class="code">$ sudo tccutil reset All com.google.Chrome</p>
+</blockquote>
+<p>Reset the Camera permission for all apps:</p>
+<blockquote>
+<p class="code">$ sudo tccutil reset Camera</p>
+</blockquote>
+<p>Reset  <b>all</b> permissions for <b>all</b> apps (this is not recommended):</p>
+<blockquote>
+<p class="code"> $ sudo tccutil reset All</p>
+</blockquote>
+<p class="quote">“Freedom is coming to mean little more than the right to ask permission” ~ Joseph Sobran</p>
+<h3>Related macOS commands</h3>
+<p class="space">Local man page: <a href="x-man-page://tccutil">tccutil</a> - Command line help page on your local machine.<br>
+<a href="https://superuser.com/q/346369/391480">lsappinfo</a> - Control and query CoreApplicationServices about the app state on the system, returns the bundleID for a running app.<br>
+<a href="security.html">security</a> - Administer Keychains, keys, certificates and the Security framework.<br>
+<a href="ulimit.html">ulimit</a> - limit the use of system-wide resources.<br>
+<a href="https://eclecticlight.co/2023/02/09/should-you-reset-its-database-or-delete-it-the-woes-of-tcc/">Resetting the TCC  database</a> - The Eclectic Light Company.</p><!-- #BeginLibraryItem "/Library/foot_osx.lbi" --><script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6140977852749469"
+     crossorigin="anonymous"></script>
+<!-- OSX300 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:336px;height:280px"
+     data-ad-client="ca-pub-6140977852749469"
+     data-ad-slot="1823340303"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+<hr>
+<div id=bl>&nbsp;</div>
+<div id=br>Copyright &copy; 1999-2026 <a href="https://ss64.com/">SS64.com</a><br>
+Some rights reserved</div><!-- #EndLibraryItem --></body>
+</html>

@@ -1,0 +1,4 @@
+interface:
+  display_name: "识雨技术探索与候选评估"
+  short_description: "在架构设计阶段调研技术、比较候选并规划隔离实验，避免提前实施"
+  default_prompt: "使用 $shiyu-tech-exploration 调研这个方向，更新技术候选与验证计划，遵守识雨当前阶段和测试目录约定。"

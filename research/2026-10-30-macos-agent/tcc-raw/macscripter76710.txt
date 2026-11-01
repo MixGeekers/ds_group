@@ -1,0 +1,204 @@
+
+Automating Button Click in macOS File Access Permission Dialog - AppleScript | Mac OS X - MacScripter
+Loading
+ MacScripter
+Automating Button Click in macOS File Access Permission Dialog
+Scripting Forums
+AppleScript | Mac OS X
+Jeffkr
+ January 25, 2025, 7:30am
+#1
+Hello all,
+I’m trying to automate the process of clicking the “OK” button in the macOS file access permission dialogs that appear when an app requests access to a folder (e.g., Desktop).
+For example, the dialog typically looks like this:
+“MyApplication.app” would like to access files in your Desktop folder.
+Buttons: “Don’t Allow”, “OK”
+In my case, I don’t really care which button is pressed, but ideally, I’d like the “OK” button to be clicked automatically.
+The goal is to avoid manual intervention in 
+Security & Privacy
+ settings, since the users do not have administrator passwords.
+Any suggestions on how to achieve this programmatically?
+Thanks in advance,
+Jeff
+robertfern
+ January 25, 2025, 4:21pm
+#2
+If they don’t have administrator accounts, they won’t be able to do it anyway, because it will ask for the username and password of an administrator
+Jeffkr
+ January 25, 2025, 4:32pm
+#3
+I have the password encrypted in the script. However, in this case I would not care if they knew the password, my primary goal is to prevent the need for the user to press a button.
+robertfern
+ January 25, 2025, 5:05pm
+#4
+you would have to use GUI scripting to achieve this. Also an App can’t GUI script itself, so you would have to call a second script using
+do shell script “osascript”
+Do you have a copy of the script? If not, then make a short script that will cause the dialog to appear and post it.
+Jeffkr
+ January 25, 2025, 6:00pm
+#5
+Hello robertfern,
+Below is a copy of the script, which only requires permission to control the Desktop when compiled as an “Application” script:
+-- Define username and password for the sudo command
+set uName to "administrator" -- Replace with your actual username
+set pass1 to "myPassWord"
+try
+ -- Step 1: Copy "Illustrator.qlgenerator" from "/System/Library/QuickLook" to the Desktop
+ do shell script "cp -R /System/Library/QuickLook/Illustrator.qlgenerator /Users/" & uName & "/Desktop/Illustrator.qlgenerator" user name uName password pass1 with administrator privileges
+on error
+ set uName to "Administrator"
+ do shell script "cp -R /System/Library/QuickLook/Illustrator.qlgenerator /Users/" & uName & "/Desktop/Illustrator.qlgenerator" user name uName password pass1 with administrator privileges
+end try
+-- Step 2: Ensure full read/write permissions on the copied file on the Desktop
+set desktopFolder to "/Users/" & uName & "/Desktop/Illustrator.qlgenerator"
+do shell script "sudo chmod -R 777 " & quoted form of desktopFolder with administrator privileges
+-- Step 3: Open "Illustrator.qlgenerator" by right-clicking and showing package contents
+tell application "Finder"
+ -- Use the absolute path to the desktop and the Illustrator.qlgenerator file
+ set illustratorFilePath to "/Users/" & uName & "/Desktop/Illustrator.qlgenerator"
+ set illustratorFile to POSIX file illustratorFilePath as alias
+ open illustratorFile
+ delay 1 -- Allow Finder to open the file
+ set packageContents to folder "Contents" of illustratorFile
+end tell
+---Press the "OK" button
+-- Step 4: Open "Info.plist" in the "Contents" folder with TextEdit
+tell application "TextEdit"
+ -- Build the POSIX path to Info.plist
+ set plistPath to illustratorFilePath & "/Contents/Info.plist"
+ -- Step 5: Change the file permissions to be writable (using sudo)
+ do shell script "sudo chmod 777 " & quoted form of plistPath with administrator privileges
+ -- Open Info.plist
+ open POSIX file plistPath
+end tell
+-- Step 6: Delete all text in the opened Info.plist
+tell application "TextEdit"
+ set the text of document 1 to ""
+end tell
+-- Step 7: Replace content with new Info.plist XML
+set newPlistContent to "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" http://www.apple.com/DTDs/PropertyList-1.0.dtd>
+<plist version=\"1.0\">
+<dict>
+<key>BuildMachineOSBuild</key>
+<string>20A241133</string>
+<key>CFBundleDevelopmentRegion</key>
+<string>English</string>
+<key>CFBundleDocumentTypes</key>
+<array>
+<dict>
+<key>CFBundleTypeRole</key>
+<string>QLGenerator</string>
+<key>LSItemContentTypes</key>
+<array>
+<string>com.adobe.encapsulated-postscript</string>
+</array>
+</dict>
+</array>
+<key>CFBundleExecutable</key>
+<string>Illustrator</string>
+<key>CFBundleGetInfoString</key>
+<string>5.0, Copyright Apple Inc. 2007-2013</string>
+<key>CFBundleIdentifier</key>
+<string>com.apple.qlgenerator.illustrator</string>
+<key>CFBundleInfoDictionaryVersion</key>
+<string>6.0</string>
+<key>CFBundleName</key>
+<string>Illustrator</string>
+<key>CFBundleShortVersionString</key>
+<string>5.0</string>
+<key>CFBundleSupportedPlatforms</key>
+<array>
+<string>MacOSX</string>
+</array>
+<key>CFBundleVersion</key>
+<string>950.2</string>
+<key>CFPlugInDynamicRegisterFunction</key>
+<string></string>
+<key>CFPlugInDynamicRegistration</key>
+<string>NO</string>
+<key>CFPlugInFactories</key>
+<dict>
+<key>D656108A-6A50-45BF-A43E-F48A8398E749</key>
+<string>QuickLookGeneratorPluginFactory</string>
+</dict>
+<key>CFPlugInTypes</key>
+<dict>
+<key>5E2D9680-5022-40FA-B806-43349622E5B9</key>
+<array>
+<string>D656108A-6A50-45BF-A43E-F48A8398E749</string>
+</array>
+</dict>
+<key>CFPlugInUnloadFunction</key>
+<string></string>
+<key>DTCompiler</key>
+<string>com.apple.compilers.llvm.clang.1_0</string>
+<key>DTPlatformBuild</key>
+<string>13E6049a</string>
+<key>DTPlatformName</key>
+<string>macosx</string>
+<key>DTPlatformVersion</key>
+<string>12.7</string>
+<key>DTSDKBuild</key>
+<string>21G806</string>
+<key>DTSDKName</key>
+<string>macosx12.7.internal</string>
+<key>DTXcode</key>
+<string>1330</string>
+<key>DTXcodeBuild</key>
+<string>13E6049a</string>
+<key>LSMinimumSystemVersion</key>
+<string>12.7</string>
+<key>QLNeedsToBeRunInMainThread</key>
+<false/>
+<key>QLPreviewHeight</key>
+<real>600</real>
+<key>QLPreviewWidth</key>
+<real>800</real>
+<key>QLSupportsConcurrentRequests</key>
+<true/>
+<key>QLThumbnailMinimumSize</key>
+<integer>0</integer>
+</dict>
+</plist>"
+-- Step 8: Paste new content into Info.plist
+tell application "TextEdit"
+ set the text of document 1 to newPlistContent
+end tell
+-- Step 9: Save the modified Info.plist back into the "Contents" folder on the Desktop
+set plistFilePath to illustratorFilePath & "/Contents/Info.plist"
+tell application "TextEdit"
+ save document 1 in POSIX file plistFilePath
+end tell
+-- Step 10: Close the TextEdit document without saving
+tell application "TextEdit"
+ close document 1 saving no
+end tell
+-- Step 11: Move the "Illustrator.qlgenerator" folder back to the QuickLook directory
+do shell script "sudo mv /Users/" & uName & "/Desktop/Illustrator.qlgenerator /Library/QuickLook/" with administrator privileges
+robertfern
+ January 25, 2025, 6:11pm
+#6
+So far just looking at your script, it only works if the User who is logged in is an Administrator.
+Also had problems on this…
+set desktopFolder to "/Users/" & uName & "/Desktop/Illustrator.qlgenerator"
+do shell script "sudo chmod -R 777 " & quoted form of desktopFolder with administrator privileges
+it gives an error
+chmod: Unable to change file mode on /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted
+chmod: /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted
+chmod: Unable to change file mode on /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted
+BTW, don’t need 'sudo ’ in front of the ‘chmod’. Thats what ‘with administrator privileges’ does. Like so…
+do shell script "chmod -R 777 " & quoted form of desktopFolder user name uName password pass1 with administrator privileges
+I also put in the username and password
+Jeffkr
+ January 25, 2025, 6:33pm
+#7
+I’ve decided to change direction and avoid the dialog altogether. Since all users receiving this installer already have Keyboard Maestro with accessibility access, I can create a new macro that executes the steps in the provided script. The application script will load the new KM macro plist, wait a couple of seconds, and then trigger the macro to perform the necessary functions without displaying the system access dialog.
+Home 
+Categories 
+FAQ/Guidelines 
+Terms of Service 
+Privacy Policy 
+Powered by 
+Discourse
+, best viewed with JavaScript enabled

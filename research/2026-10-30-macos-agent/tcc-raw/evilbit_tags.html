@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>#tcc · theevilbit</title>
+<meta name="description" content="macOS security research by Csaba Fitzl: vulnerabilities, exploits, persistence, talks.">
+<meta name="author" content="Csaba Fitzl">
+<link rel="canonical" href="https://theevilbit.github.io/tags/tcc/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="theevilbit">
+<meta property="og:title" content="#tcc">
+<meta property="og:description" content="macOS security research by Csaba Fitzl: vulnerabilities, exploits, persistence, talks.">
+<meta property="og:url" content="https://theevilbit.github.io/tags/tcc/">
+<meta property="og:image" content="https://theevilbit.github.io/og.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@theevilbit">
+<meta name="twitter:title" content="#tcc">
+<meta name="twitter:description" content="macOS security research by Csaba Fitzl: vulnerabilities, exploits, persistence, talks.">
+<meta name="twitter:image" content="https://theevilbit.github.io/og.png">
+<link rel="alternate" type="application/rss+xml" title="theevilbit" href="/index.xml">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script>try { var t = localStorage.getItem("tb.theme"); document.documentElement.dataset.theme = t || "dark"; } catch (e) { document.documentElement.dataset.theme = "dark"; }</script>
+<link rel="preload" href="/fonts/IBMPlexSans-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts.css?v=1791269065">
+<link rel="stylesheet" href="/style.css?v=1791269065">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">the<span>evil</span>bit<i class="cursor"></i></a>
+    <nav class="nav"><a href="/posts/">Posts</a><a href="/beyond/">Beyond</a><a href="/talks/">Talks</a><a href="/shield/">Shield</a><a href="/about/">About</a><a href="/tags/" class=on>Tags</a><a href="https://apple-cve.com/" target="_blank" rel="noopener">apple-cve.com ↗</a><a href="https://www.iru.com/blog/author/csaba-fitzl" target="_blank" rel="noopener">Iru blog ↗</a><a href="https://macosvuln.training/" target="_blank" rel="noopener">Training ↗</a></nav>
+    <button type="button" class="theme" id="theme" aria-label="switch light / dark">◐</button>
+  </header>
+  <main><header class="page-head"><div class="kicker">Tag</div><h1>tcc</h1></header><ul class="rows"><li class="row"><time datetime="2025-02-21">Feb 21, 2025</time><a class="row-title" href="/posts/macos-audit-story-part3/">The diskarbitrationd and storagekitd Audit Story Part 3</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/tcc/">tcc</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li><li class="row"><time datetime="2024-05-24">May 24, 2024</time><a class="row-title" href="/posts/cve-2023-40424/">CVE-2023-40424 - How Malware Can Bypass Transparency Consent and Control</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/tcc/">tcc</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li><li class="row"><time datetime="2023-02-13">Feb 13, 2023</time><a class="row-title" href="/posts/cve-2022-22655/">CVE-2022-22655 - TCC - Location Services Bypass</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/tcc/">tcc</a><a class="tag" href="/tags/vulnerability/">vulnerability</a><a class="tag" href="/tags/cve/">cve</a></span></li><li class="row"><time datetime="2022-11-14">Nov 14, 2022</time><a class="row-title" href="/posts/cve-2022-32929/">CVE-2022-32929 - Bypass iOS backup&#x27;s TCC protection</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/tcc/">tcc</a><a class="tag" href="/tags/vulnerability/">vulnerability</a><a class="tag" href="/tags/cve/">cve</a></span></li><li class="row"><time datetime="2021-10-29">Oct 29, 2021</time><a class="row-title" href="/posts/cve-2021-30808/">CVE-2021-30808 - CVE-2021-1784 strikes back - TCC bypass via mounting</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/tcc/">tcc</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li><li class="row"><time datetime="2020-07-03">Jul 3, 2020</time><a class="row-title" href="/posts/cve_2020_9771/">CVE-2020-9771 - mount_apfs TCC bypass and privilege escalation</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/tcc/">tcc</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li></ul></main>
+  <footer class="foot">
+    <span>© 2026 Csaba Fitzl</span>
+    <span class="social"><a href="https://github.com/theevilbit/" rel="me noopener">GitHub</a><a href="https://x.com/theevilbit" rel="me noopener">X</a><a href="/index.xml" rel="me noopener">RSS</a></span>
+  </footer>
+</div>
+<script>
+document.getElementById("theme").addEventListener("click", function () {
+  var t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem("tb.theme", t); } catch (e) {}
+});
+</script>
+</body>
+</html>

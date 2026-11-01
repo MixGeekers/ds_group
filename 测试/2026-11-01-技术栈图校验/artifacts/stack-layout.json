@@ -1,0 +1,52 @@
+{
+  "reports": [
+    {
+      "mode": "stack",
+      "nodes": 20,
+      "regions": 5,
+      "edges": 15,
+      "logicalModules": 40,
+      "stackCards": 20,
+      "canvas": {
+        "width": 1,
+        "height": 1
+      },
+      "text": {
+        "overflow": [],
+        "labels": 181
+      },
+      "version": "A-2026-11-01-v1.2",
+      "width": 6500,
+      "height": 4600
+    },
+    {
+      "mode": "logical",
+      "nodes": 40,
+      "regions": 12,
+      "edges": 24,
+      "logicalModules": 40,
+      "stackCards": 20,
+      "canvas": {
+        "width": 1,
+        "height": 1
+      },
+      "text": {
+        "overflow": [],
+        "labels": 106
+      },
+      "version": "A-2026-11-01-v1.2",
+      "width": 6500,
+      "height": 4600
+    }
+  ],
+  "uiChecks": [
+    "mode-button:stack",
+    "mode-button:logical",
+    "20 technical card details",
+    "technical picker",
+    "logical mode selection"
+  ],
+  "coverage": 40,
+  "missing": [],
+  "extra": []
+}

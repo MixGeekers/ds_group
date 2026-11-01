@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>识雨 · A 方案全景架构</title>
+<style>
+:root{--ink:#162b38;--muted:#596e7a;--line:#d9e2e7;--paper:#fff;--surface:#f5f8fa;--blue:#2868b2;--teal:#12796d;--violet:#7955a3;--amber:#a66820;--rose:#ae5865;--shadow:0 8px 26px #183c5410}
+*{box-sizing:border-box}
+body{margin:0;background:var(--surface);color:var(--ink);font-family:Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;line-height:1.5}
+button,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,select:focus-visible,canvas:focus-visible,a:focus-visible{outline:3px solid #3a89dc;outline-offset:3px}
+header{padding:21px 28px 17px;background:var(--paper);border-bottom:1px solid var(--line)}
+.mast{display:flex;justify-content:space-between;align-items:center;gap:20px}
+.eyebrow{font-size:11px;letter-spacing:.18em;color:var(--teal);font-weight:700;margin-bottom:5px}
+h1{font-size:25px;line-height:1.3;letter-spacing:.015em;margin:0;font-weight:650}
+.edition{display:flex;gap:9px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.approved{color:#196852;background:#e8f4ee;border:1px solid #cce7d9;border-radius:5px;padding:4px 9px}
+.subhead{margin:9px 0 0;font-size:13px;color:var(--muted)}
+.workspace{display:grid;grid-template-columns:minmax(0,1fr) 298px;gap:0;min-height:680px}
+.drawing{min-width:0;display:flex;flex-direction:column}
+.toolbar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;padding:13px 20px;background:#fff;border-bottom:1px solid var(--line)}
+.focus-tabs,.tools{display:flex;gap:5px;align-items:center;flex-wrap:wrap}
+.mode-switch{display:flex;gap:5px;align-items:center;padding:4px;background:#edf2f5;border-radius:8px}
+.mode-switch button{border:0;background:transparent;color:var(--muted);padding:8px 14px;border-radius:5px;font-size:13px;font-weight:650}
+.mode-switch button[aria-pressed="true"]{background:#173c4c;color:#fff;box-shadow:0 2px 5px #183c5420}
+.mode-note{font-size:12px;color:var(--muted)}
+.tech-badge{display:inline-block;border:1px solid #cddde4;border-radius:5px;padding:3px 7px;font-size:11px;color:var(--teal);margin:6px 0}
+.focus-tabs button,.tool{background:#fff;color:var(--muted);border:1px solid transparent;border-radius:6px;padding:6px 10px;font-size:12px;white-space:nowrap}
+.focus-tabs button[aria-pressed="true"]{color:#164c7c;background:#eaf2fb}
+.focus-tabs button:hover,.tool:hover{background:#f0f4f7;color:var(--ink)}
+.tools .tool{border-color:var(--line);color:var(--ink)}
+.tools .export{background:#173c4c;color:#fff;border-color:#173c4c}
+.tools .export:hover{background:#235365}
+.zoom{font-size:12px;min-width:41px;text-align:center;font-variant-numeric:tabular-nums}
+.legend{display:flex;align-items:center;gap:15px;flex-wrap:wrap;padding:10px 20px;font-size:11px;color:var(--muted);background:#fafcfd}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.swatch{width:19px;height:0;border-top:2px solid var(--c)}
+.swatch.dashed{border-top-style:dashed}
+.canvas-shell{height:clamp(590px,calc(100vh - 252px),1080px);min-width:0;position:relative;background:#f5f8fa;overflow:hidden}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+canvas.dragging{cursor:grabbing}
+.canvas-footer{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:9px 20px;border-top:1px solid var(--line);font-size:11px;color:var(--muted);background:#fff}
+aside{padding:23px 23px 26px;background:#fff;border-left:1px solid var(--line);min-width:0}
+.side-overline{font-size:11px;letter-spacing:.08em;color:var(--teal);font-weight:700;margin:0 0 9px}
+aside h2{font-size:20px;line-height:1.4;margin:0 0 8px;font-weight:650}
+.detail-summary{font-size:13px;line-height:1.8;color:var(--muted);margin:0}
+.detail-section{margin-top:22px}
+.detail-section h3{font-size:12px;margin:0 0 7px;font-weight:650;color:#335265}
+.detail-section p,.detail-section ul{font-size:12px;line-height:1.85;margin:0;color:var(--muted)}
+.detail-section ul{padding-left:16px}
+.detail-section li+li{margin-top:5px}
+.detail-state{font-size:11px;color:var(--teal);border-top:1px solid var(--line);padding-top:13px;margin-top:22px}
+.picker{border-top:1px solid var(--line);margin-top:24px;padding-top:18px}
+.picker label{display:block;font-size:11px;color:var(--muted);margin-bottom:7px}
+.picker select{display:block;width:100%;padding:8px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:5px;font-size:12px}
+.links{display:flex;flex-wrap:wrap;gap:11px;margin-top:18px}
+a{color:#23689f;text-decoration:none;font-size:12px}
+a:hover{text-decoration:underline}
+.hint{font-size:11px;line-height:1.8;color:var(--muted);margin:20px 0 0}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
+.map-key{display:flex;gap:15px;flex-wrap:wrap;align-items:center;padding:15px 28px;font-size:12px;color:var(--muted);border-top:1px solid var(--line);background:#fff}
+.map-key b{color:var(--ink);font-weight:600}
+@media(min-width:1800px){.workspace{grid-template-columns:minmax(0,1fr) 330px}}
+@media(max-width:1000px){.workspace{grid-template-columns:minmax(0,1fr) 260px}.toolbar{padding:11px 14px}.legend{padding:10px 14px}aside{padding:20px 18px}.canvas-shell{height:690px}}
+@media(max-width:760px){header{padding:17px 18px}.mast{align-items:flex-start;gap:10px}.edition{justify-content:flex-end}.edition .date{display:none}h1{font-size:22px}.subhead{font-size:12px}.workspace{display:flex;flex-direction:column}.toolbar{gap:10px;padding:12px}.focus-tabs{gap:1px}.focus-tabs button{padding:7px 9px}.tools{gap:5px}.tools .tool{padding:7px 10px}.legend{gap:9px;font-size:10px;padding:9px 12px}.canvas-shell{height:540px}aside{border-left:0;border-top:1px solid var(--line);padding:22px 18px}.canvas-footer{padding:9px 12px}.map-key{padding:14px 18px;font-size:11px}.detail-section{margin-top:16px}.picker{margin-top:18px}.canvas-footer .keyboard{display:none}}
+@media(max-width:760px){.mast{display:block}.edition{margin-top:12px;justify-content:flex-start}.eyebrow{white-space:nowrap}h1{white-space:nowrap}}
+@media(pointer:coarse){button{min-height:40px}.picker select{min-height:44px}}
+@media print{header,.toolbar,.legend,aside,.canvas-footer,.map-key{display:none}.workspace{display:block}.canvas-shell{height:95vh}}
+</style>
+</head>
+<body>
+<header>
+  <div class="mast"><div><div class="eyebrow">SHIYU · SYSTEM ATLAS</div><h1>识雨 · 全景架构</h1></div><div class="edition"><span class="approved">A 方案 · 已选择</span><span>方案 v1.2 / 待验证</span><span class="date">2026.11.01</span></div></div>
+  <p class="subhead">技术栈模式展示项目、接口、复用方式与部署位置；逻辑架构模式保留 40 个模块的职责与权限关系。</p>
+</header>
+<main class="workspace">
+  <section class="drawing" aria-label="可缩放架构图">
+    <div class="toolbar">
+      <div class="mode-switch" role="group" aria-label="图示模式"><button type="button" data-mode="stack" aria-pressed="true">技术栈模式</button><button type="button" data-mode="logical" aria-pressed="false">逻辑架构模式</button></div>
+      <nav class="focus-tabs" aria-label="聚焦区域">
+        <button type="button" data-focus="all" aria-pressed="true">全景</button>
+        <button type="button" data-focus="outer" aria-pressed="false">对话</button>
+        <button type="button" data-focus="inner" aria-pressed="false">内层</button>
+        <button type="button" data-focus="execution" aria-pressed="false">执行</button>
+        <button type="button" data-focus="data" aria-pressed="false">数据</button>
+        <button type="button" data-focus="devices" aria-pressed="false">设备</button>
+        <button type="button" data-focus="recovery" aria-pressed="false">恢复</button>
+      </nav>
+      <div class="tools" aria-label="画布操作">
+        <button type="button" class="tool" id="zoom-out" aria-label="缩小">−</button>
+        <output class="zoom" id="zoom-value" aria-label="缩放比例">100%</output>
+        <button type="button" class="tool" id="zoom-in" aria-label="放大">＋</button>
+        <button type="button" class="tool" id="fit">适应画布</button>
+        <button type="button" class="tool export" id="export">导出高清 PNG</button>
+      </div>
+    </div>
+    <div class="legend" id="legend" aria-label="图例">
+      <span><i class="swatch" style="--c:#2868b2"></i>事件 / 只读查询</span>
+      <span><i class="swatch" style="--c:#12796d"></i>视图 / 结果回传</span>
+      <span><i class="swatch" style="--c:#a66820"></i>授权任务 / 执行</span>
+      <span><i class="swatch" style="--c:#7955a3"></i>持久数据</span>
+      <span><i class="swatch dashed" style="--c:#ae5865"></i>恢复 / 外部依赖</span>
+    </div>
+    <div class="canvas-shell" id="canvas-shell">
+      <canvas id="atlas" tabindex="0" role="img" aria-label="识雨 A 方案全景架构。主区域为 DSH 宿主，其识雨插件包含只读对话外层、六部分内层和任务执行。下方是预留数据空间，右侧是设备客户端，左下是宿主外恢复。可缩放、拖动，或用模块选择列表查看职责。">请使用支持 Canvas 的浏览器查看。下方模块选择列表提供所有模块的文本说明。</canvas>
+    </div>
+    <div class="canvas-footer"><span>滚轮缩放 · 拖动平移 · 点击模块查看职责</span><span class="keyboard">键盘：方向键平移 · ＋ / − 缩放 · Home 全景</span><span id="view-label">全景</span></div>
+  </section>
+  <aside aria-label="模块说明">
+    <div id="detail" aria-live="polite"></div>
+    <div class="picker"><label for="node-picker">按名称定位模块</label><select id="node-picker"><option value="">选择模块…</option></select></div>
+    <div class="links"><a href="../A方案全景/完整架构方案.md">完整方案</a><a href="../A方案全景/复用方案.md">40 模块复用方案</a><a href="../A方案全景/跨模块契约.md">公共契约</a><a href="../A方案全景/技术选型与决策.md">技术选型</a><a href="../A方案全景/验证与验收.md">验证计划</a></div>
+    <p class="hint">所有卡片均为待验证设计，不代表已接入。点击技术卡查看固定来源、接口、适配内容及相关模块。数据库线程不是智能 worker。</p>
+  </aside>
+</main>
+<footer class="map-key"><span><b>架构基线</b>　A 方案、六部分内层、外层只读、分域权威</span><span><b>优先复用</b>　DSH · Ombre · Superagent · DS-Bot · 系统监督 · restic</span><span><b>下一阶段</b>　组件探针 → 组合协议 → 故障恢复 → 有界真实依赖</span></footer>
+<p id="status" class="sr-only" role="status" aria-live="polite"></p>
+<script>
+(function(){
+'use strict';
+const WORLD={w:2600,h:1840};
+const COLORS={ink:'#162b38',muted:'#526b79',line:'#d4dfe6',paper:'#ffffff',bg:'#f5f8fa',blue:'#2868b2',teal:'#12796d',violet:'#7955a3',amber:'#a66820',rose:'#ae5865',host:'#365a72'};
+const themes={
+ external:{color:'#526b79',fill:'#f0f4f7',node:'#fff',line:'#cad7df'},
+ host:{color:'#365a72',fill:'#eaf0f5',node:'#fff',line:'#9ab0c0'},
+ plugin:{color:'#365a72',fill:'#f8fafc',node:'#fff',line:'#bdccd8'},
+ outer:{color:'#2868b2',fill:'#edf4fc',node:'#fff',line:'#b5cfe9'},
+ inner:{color:'#7955a3',fill:'#f2eef8',node:'#fff',line:'#cbbcdf'},
+ execution:{color:'#a66820',fill:'#fbf3e7',node:'#fff',line:'#e5c89f'},
+ foundation:{color:'#365a72',fill:'#e4edf3',node:'#f9fcfe',line:'#bbccd8'},
+ data:{color:'#12796d',fill:'#eaf5f1',node:'#fff',line:'#b2d4c7'},
+ devices:{color:'#2868b2',fill:'#edf4fb',node:'#fff',line:'#b5cfe9'},
+ recovery:{color:'#ae5865',fill:'#f9eff0',node:'#fff',line:'#dfb7bd'},
+ backup:{color:'#12796d',fill:'#edf5f2',node:'#fff',line:'#b2d4c7'}
+};
+const regions=[
+ {id:'sources',theme:'external',x:40,y:160,w:300,h:720,title:'输入与事件',sub:'来自用户与获准的来源',num:'01'},
+ {id:'dependencies',theme:'external',x:40,y:920,w:300,h:340,title:'外部依赖',sub:'按路由与数据政策调用',num:'02'},
+ {id:'host',theme:'host',x:380,y:150,w:1800,h:1120,title:'DSH 宿主进程',sub:'A 方案：识雨核心运行于插件中；宿主退出时，判断与调度暂停。',num:'03',large:true},
+ {id:'plugin',theme:'plugin',x:410,y:245,w:1740,h:785,title:'识雨插件',sub:'逻辑职责图 · 不是模型或进程数量图',num:'',compact:true},
+ {id:'outer',theme:'outer',x:440,y:330,w:410,h:660,title:'外层 · 对话与表达',sub:'对内只读 · 双工传消息',num:'A'},
+ {id:'inner',theme:'inner',x:920,y:330,w:690,h:660,title:'内层 · 六部分状态',sub:'由 core 组织判断与受控提交',num:'B'},
+ {id:'execution',theme:'execution',x:1670,y:330,w:450,h:660,title:'任务与执行',sub:'受控任务 · 宿主内执行适配',num:'C'},
+ {id:'foundation',theme:'foundation',x:410,y:1060,w:1740,h:170,title:'DSH 运行底座',sub:'',num:'',compact:true},
+ {id:'devices',theme:'devices',x:2220,y:150,w:340,h:1120,title:'设备执行面',sub:'宿主外设备 · 任务 / 回执',num:'04'},
+ {id:'recovery',theme:'recovery',x:40,y:1360,w:300,h:440,title:'宿主外恢复',sub:'监督器，不承担第二个 core',num:'05'},
+ {id:'data',theme:'data',x:380,y:1360,w:1800,h:440,title:'预留空间 · 持久数据与恢复材料',sub:'控制 SQLite · Ombre 记忆 · DSH 目标日志；分别记录权威来源与恢复版本。',num:'06',large:true},
+ {id:'backup',theme:'backup',x:2220,y:1360,w:340,h:440,title:'独立备份',sub:'与主数据分开故障域',num:'07'}
+];
+const nodes=[];
+function N(id,region,x,y,w,h,title,sub,info){nodes.push(Object.assign({id,region,x,y,w,h,title,sub},info));}
+N('user','sources',65,270,250,125,'用户与目标','DSH Goal · 专用 Session',{
+ summary:'持续目标直接使用 DSH Goal，每个目标有专用 Session；识雨补充范围、预算与授权映射。',duties:['使用原生 revision 与生命周期，保存 GoalBinding。','暂停、取消、到期先阻止新派发，再核对原生结果。'],boundary:'普通消息不生成新授权；不另建第二套目标生命周期。',recovery:'备份包含目标 Session 日志与投影定义；恢复默认 disarmed。',status:'v1.2 方案基线 · 待验证'});
+N('channels','sources',65,460,250,125,'对话渠道','聊天 · 网页 · 通知',{
+ summary:'接入用户对话以及允许的对外表达渠道。',duties:['保留说话者、来源、会话与事件时间。','接收输入，并携带发送结果或失败回执。'],boundary:'连接渠道不授予内部写入权限。',recovery:'重复消息去重；发送超时先核对结果。'});
+N('events','sources',65,650,250,135,'外部事件','文件变化 · 感知信号',{
+ summary:'用户允许订阅的环境变化，作为内部主动判断的材料。',duties:['规范事件身份、来源与新鲜度。','与持续目标对照，决定是否值得形成任务。'],boundary:'观察事件不自动等于新授权，也不自动进入长期记忆。',recovery:'丢失或重复事件须能解释，不盲目重复行动。'});
+N('providers','dependencies',65,1030,250,130,'模型与服务','模型 API · 外部工具',{
+ summary:'由 DSH 适配器与已配置服务提供推理或外部能力。',duties:['按任务选择已配置的模型与工具。','统计费用、延迟与可用状态。'],boundary:'本地落盘与网络外发分别定义；模型、额外日志和遥测是不同路径。',recovery:'不可用时按配置降级或等待，不假定本地保存意味着本地推理。'});
+
+N('links','outer',465,430,360,95,'渠道链接','接收 / 发送 · 身份映射',{
+ summary:'外层的输入与输出连接点。',duties:['把对话变成带来源的观察事件。','按渠道规则发送回复，记录发送回执。'],boundary:'不能直接调用内部记忆、人格或关系的变更入口。',recovery:'以消息身份去重，区分已发送、未发送与结果未知。',status:'v1.2 方案基线 · 待验证'});
+N('dialogue-queue','outer',465,575,360,105,'串行 / 并行队列','DSH inbox · p-queue',{
+ summary:'调度对话相关工作，平衡表达顺序和响应速度。',duties:['同一会话按依赖有序，独立会话有限并发。','按会话代次淘汰未发送的旧生成；仅合并符合条件的未处理文本。'],boundary:'负责调度不等于决定内部应记住什么。',recovery:'取消和新输入使旧代次失效；发送结果未知时先核对。'});
+N('replyer','outer',465,795,360,125,'replyer · 表现','DS-Bot 旁路回复子集',{
+ summary:'局部复用 DS-Bot 快照问答与取消机制，只注入经裁剪的 ReadView。',duties:['复用请求去重、边界裁剪与旁路生成。','移除写工具和完整主会话工具历史，区分保存与发送回执。'],boundary:'实际请求 tools=[]；不能从“已入队”推断“已记住”。',recovery:'过期视图最多重取两次；发送前复核撤权、删除水位和会话代次。'});
+
+N('core','inner',945,430,640,120,'core · 主动判断','目标 / 事件 / 自身状态 → 判断与受控提交',{
+ summary:'在 DSH 插件内组织主动判断、任务委派与内部状态提交。',duties:['对照持续目标、事件、内部状态与预算。','读取实际探测的空间占用、能力、连接与恢复状态。','检查授权、任务身份、状态版本与结果依据。','把模型判断与程序校验、提交分开。'],boundary:'人格、情绪和模型推断不替代行动授权；内部提交保留唯一受控入口。',recovery:'保留任务与授权身份；新执行实例不能覆盖已经更新的内部状态。',status:'v1.2 方案基线 · 待验证'});
+const innerParts=[
+ ['memory',945,590,'记忆','Ombre · 检索','Ombre 服务保存与检索记忆；Mem0 为互斥替代，FTS 为对照。','后端独占记忆主副本；写操作核对结果后发布视图。'],
+ ['relationship',1165,590,'关系','身份 · 认识 · 关联','维护与人或对象的关系状态及其依据。','区分谁说了什么、何时观察到什么；生成内容不自动成为事实。'],
+ ['emotion',1385,590,'情绪','Ombre · feel','复用情绪记忆与 feel，普通记忆与感受分别遵守原生衰减规则。','情绪显著性不证明事实或授予权限；短时 ToneView 不默认自建。'],
+ ['cognition',945,735,'认知','回顾 · 来源核对','复用 Ombre 回顾及 Letta 策略片段，保留矛盾与证据校验。','推断与证据分开；跨日见证不等于多份独立事实证据。'],
+ ['personality',1165,735,'人格','Ombre I · Profile','I 保存自我认识候选；稳定 Profile 复用 DSH 提示装配与版本发布。','稳定配置不由回顾自动改写；有状态读取由内部执行，外层只取快照。'],
+ ['ability',1385,735,'能力','DSH 技能与工具','直接使用宿主 registry、provider 和技能加载，只补验证与授权状态。','声明支持、当前可用和验证通过分别表示。']
+];
+innerParts.forEach(function(p){N(p[0],'inner',p[1],p[2],200,100,p[3],p[4],{summary:p[5],duties:['由内部维护权威状态与来源。','根据任务提供必要、受限的读取结果。'],boundary:p[6],recovery:'恢复以可信数据、版本和校验为依据，不由模型猜测填补。',status:'v1.2 方案基线 · 待验证'});});
+N('views','inner',945,885,640,90,'只读状态视图','裁剪范围 · 分域版本 · 运行状态',{
+ summary:'向 replyer 提供允许读取的组合投影，支持查询和内部主动推送。',duties:['复用宿主上下文装配与 DS-Bot 边界裁剪。','各后端版本、来源摘要和采集时间分别记录。'],boundary:'投影版本不是跨服务原子版本；不携带写入凭据。',recovery:'状态过时需可识别；“配置过”与“当前可用”分开。'});
+
+N('mandate','execution',1695,430,400,95,'任务授权与范围','依据 · 策略版本 · 预算',{
+ summary:'明确一项工作凭什么开始，允许做到哪里。',duties:['记录用户指示或持续规则的依据。','限定任务范围、期限、资源与完成条件。'],boundary:'后续上下文不自动扩大原授权；撤权和取消分别定义。',recovery:'恢复前复核原授权，不把重启当作重新授权。'});
+N('tasks','execution',1695,575,400,105,'任务与执行实例','Superagent Engine / Store',{
+ summary:'复制 Superagent 纯 core 闭包与所需仓储，保留 Task、Assignment、Effect 的统一映射。',duties:['复用任务状态机、事务、effects / outbox 与 worker 生命周期。','补授权、unknown 核对和禁止盲重试；修正事务失败路径。'],boundary:'TaskService 是复用引擎的门面；不另造重复任务真相。',recovery:'未知效果先核对再恢复派发；旧执行实例不能覆盖新状态。'});
+N('worker','execution',1695,735,190,110,'worker · 执行','工具 / 检索',{
+ summary:'按明确委派完成工作，返回结果、证据或变更提案。',duties:['在任务范围内使用计算、检索与工具。','通过设备能力接口访问远端执行器。'],boundary:'worker 持有受限 Assignment；结果和提案均须经程序核验，不能直接改写内部状态。',recovery:'外部动作超时先核对，避免重放已完成动作。'});
+N('verify','execution',1695,900,400,60,'结果核验与回执','执行结果 ≠ 内部提交 ≠ 发送完成',{
+ summary:'核对产物与实际效果，给出可解释的任务结果。',duties:['检查完成条件、来源、任务身份与版本。','将结果或提案返回 core，由内部决定提交。'],boundary:'模型自己宣称成功不足以证明外部效果。',recovery:'结果未知必须明确保留，不能伪装成成功或未执行。'});
+
+[
+ ['model-session',440,'模型与会话','路由 · 上下文 · Session'],
+ ['tool-policy',780,'工具与权限','作用域 · Guard · 沙箱'],
+ ['event-schedule',1120,'事件与定时','触发 · 生命周期事件'],
+ ['persistence',1460,'持久化接口','Session 日志 · 领域数据'],
+ ['lifecycle',1800,'插件生命周期','装载 · 卸载 · 错误诊断']
+].forEach(function(p){N(p[0],'foundation',p[1],1125,310,78,p[2],p[3],{
+ summary:'DSH 提供的运行基础，识雨通过宿主接口使用。',duties:['复用宿主能力，并把识雨自身领域状态单独定义。','按目标宿主版本核对实际配置与可用行为。'],
+ boundary:p[0]==='event-schedule'?'Host 定时触发依赖宿主运行；入箱回执不是业务完成账本。':'运行底座不自动实现识雨六部分内层，也不替代角色权限设计。',
+ recovery:'DSH 主进程退出时这些能力随之停止；由宿主外机制恢复后再核对任务。',status:'上游能力已有资料 / 源码证据；识雨未接入'});});
+
+N('device-gateway','devices',1895,735,200,110,'设备接口','SSH / MCP / CUA',{
+ summary:'复用 DSH 已有浏览器、CUA 与 SSH / MCP 适配，维护设备与授权映射。',duties:['记录 executionMode：direct 或 gated。','现成客户端直接映射；需要离线续做时才补端侧门禁。'],boundary:'不假设现成工具理解 fencing；未知效果冻结资源，不自动换端重试。',recovery:'断连后保留未知结果；重连核对真实效果。'});
+N('desktop-device','devices',2260,350,270,110,'桌面设备','Mac · Win · Linux',{
+ summary:'由设备本地客户端、已有代理或适配器执行桌面与系统工作。',duties:['报告实际可用的文件、进程与 GUI 能力。','按任务返回可核对结果。'],boundary:'各 OS 的能力与权限不同；同一桌面避免多个 worker 争用。',recovery:'任务租约、停止与离线继续规则按能力确定。'});
+N('other-device','devices',2260,600,270,110,'其他终端','移动端 · 浏览器 · 专用设备',{
+ summary:'按具体平台能力接入，保留平台限制与适配差异。',duties:['声明能提供的感知与执行能力。','使用统一的任务身份和回执格式。'],boundary:'不预设每个平台都支持完整控制，也不要求每台运行完整模型。',recovery:'连接恢复后先同步状态，再判断待办任务。'});
+N('robot','devices',2260,850,270,110,'机器人','本地控制 · 故障停止',{
+ summary:'识雨负责较高层任务，复用设备已有 ROS 2 Action 或厂商动作接口。',duties:['执行已授权的高层动作。','报告可用状态、效果与异常。'],boundary:'高频控制与急停留在本地，不依赖远程模型维持即时控制。',recovery:'失联与过期任务由本地停止机制处理；模拟基线 ROS 2 Jazzy，真实控制栈按设备核定。'});
+
+N('supervisor','recovery',65,1470,250,110,'进程监督','launchd / systemd',{
+ summary:'在 DSH 主进程之外监督预期运行状态；属于 A 方案的恢复基础设施。',duties:['区分意外退出与用户明确暂停。','在限定次数和时间内恢复宿主。'],boundary:'不承担独立识雨核心，不继续替 core 作语义决策；本轮没有安装监督器。',recovery:'连续失败停止循环，进入可解释的降级或人工恢复。'});
+N('recovery-entry','recovery',65,1635,250,100,'恢复入口','已知配置 · 核验 · 记录',{
+ summary:'利用已知可用配置、版本和恢复清单恢复宿主。',duties:['保留故障证据与恢复记录。','验证功能与任务一致性后恢复工作。'],boundary:'回滚代码不等于回滚所有新数据；兼容与迁移另行处理。',recovery:'原始数据损坏时使用验证过的备份，不能用模型补写事实。'});
+
+const dataItems=[
+ ['state',410,1465,'内部权威状态','分域保存 · 操作回执 · 来源','Ombre 拥有记忆；控制 SQLite 保存授权、任务与跨服务操作。','局部事务不跨服务；MemoryOperation 核对后才发布已应用结果。'],
+ ['task-store',850,1465,'目标 / 授权 / 任务','DSH Goal 日志 + 控制账本','目标专用 Session 为原生 Goal 权威，控制库保存绑定与任务。','分别保存日志序列和领域版本；备份与恢复必须包含两端。'],
+ ['evidence',1290,1465,'经历 / 证据 / 回执','来源 · 时间 · 保留范围','按政策接受的原始经历、核验材料与消息回执。','日志不自动变成长期记忆；保留和删除范围须明确。'],
+ ['artifacts',1730,1465,'工作文件 / 产物','worker 按任务范围读写','任务工作目录、中间材料和最终产物。','每个任务明确可写范围和清理条件。'],
+ ['cache',410,1630,'索引 / 缓存','后端现成索引 · 可重建','复用 Ombre 索引；FTS / LanceDB 仅在本地对照路线启用。','不复制第二份同义权威记忆；缓存不能反向成为事实来源。'],
+ ['config',850,1630,'配置 / 版本清单','设备 · 策略 · 已知可用版本','运行配置、软件版本、依赖与设备登记。','稳定版与候选变更分开，变更需保留回退条件。'],
+ ['credentials',1290,1630,'凭据引用','专门设施 · 不进入普通上下文','指向专门密钥设施的引用与可用状态。','图中不是明文密钥目录；模型和 replyer 不接触密钥明文。'],
+ ['checkpoint',1730,1630,'本地检查点','原生导出 · 日志 · 版本清单','复用后端导出，包含控制库、Ombre 与 DSH 目标日志。','逐库一致不等于全局一致；无静默证明时需跨组件核对。']
+];
+dataItems.forEach(function(p){N(p[0],'data',p[1],p[2],420,125,p[3],p[4],{summary:p[5],duties:['明确数据所有者、写入入口与实际落盘位置。','记录版本、保留策略和恢复依据。'],boundary:p[6],recovery:'按数据性质选择重建、核对或从验证过的备份恢复。',status:'v1.2 方案基线 · 待验证'});});
+N('backup-copy','backup',2245,1470,290,110,'独立域备份','与主盘分离 · 保留策略',{
+ summary:'以 restic 保存一致性 BackupBundle，覆盖主机或主数据盘故障。',duties:['根据最新完整备份的采集时刻测量恢复点年龄。','保存恢复所需数据、对象清单与版本信息。'],boundary:'真实目的地和恢复凭据在启用前配置；与主盘分离故障域。',recovery:'恢复先核对删除与撤权控制记录；缺最新记录时保持业务读取和执行关闭。'});
+N('restore-test','backup',2245,1635,290,100,'恢复演练','可恢复性 · 业务校验',{
+ summary:'验证备份真正能恢复成可用状态。',duties:['核对数据版本与任务状态。','用已知查询和业务场景验收。'],boundary:'备份文件存在不代表可恢复；本轮没有执行恢复实验。',recovery:'发现不可恢复时保留证据，修正备份或迁移方案。'});
+
+const planLinks={"user": "../A方案全景/01-输入与事件/01-用户与目标/README.md", "channels": "../A方案全景/01-输入与事件/02-对话渠道/README.md", "events": "../A方案全景/01-输入与事件/03-外部事件/README.md", "providers": "../A方案全景/02-外部依赖/01-模型与服务/README.md", "links": "../A方案全景/03-DSH宿主进程/01-识雨插件/01-外层-对话与表达/01-渠道链接/README.md", "dialogue-queue": "../A方案全景/03-DSH宿主进程/01-识雨插件/01-外层-对话与表达/02-串行与并行队列/README.md", "replyer": "../A方案全景/03-DSH宿主进程/01-识雨插件/01-外层-对话与表达/03-replyer-表现/README.md", "core": "../A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/00-core-主动判断/README.md", "memory": "../A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/01-记忆/README.md", "relationship": "../A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/02-关系/README.md", "emotion": "../A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/03-情绪/README.md", "cognition": "../A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/04-认知/README.md", "personality": "../A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/05-人格/README.md", "ability": "../A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/06-能力/README.md", "views": "../A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/07-只读状态视图/README.md", "mandate": "../A方案全景/03-DSH宿主进程/01-识雨插件/03-任务与执行/01-任务授权与范围/README.md", "tasks": "../A方案全景/03-DSH宿主进程/01-识雨插件/03-任务与执行/02-任务与执行实例/README.md", "worker": "../A方案全景/03-DSH宿主进程/01-识雨插件/03-任务与执行/03-worker-任务执行/README.md", "verify": "../A方案全景/03-DSH宿主进程/01-识雨插件/03-任务与执行/04-结果核验与回执/README.md", "model-session": "../A方案全景/03-DSH宿主进程/02-DSH运行底座/01-模型与会话/README.md", "tool-policy": "../A方案全景/03-DSH宿主进程/02-DSH运行底座/02-工具与权限/README.md", "event-schedule": "../A方案全景/03-DSH宿主进程/02-DSH运行底座/03-事件与定时/README.md", "persistence": "../A方案全景/03-DSH宿主进程/02-DSH运行底座/04-持久化接口/README.md", "lifecycle": "../A方案全景/03-DSH宿主进程/02-DSH运行底座/05-插件生命周期/README.md", "device-gateway": "../A方案全景/04-设备执行面/01-设备能力接口/README.md", "desktop-device": "../A方案全景/04-设备执行面/02-桌面设备/README.md", "other-device": "../A方案全景/04-设备执行面/03-其他终端/README.md", "robot": "../A方案全景/04-设备执行面/04-机器人/README.md", "supervisor": "../A方案全景/05-宿主外恢复/01-进程监督/README.md", "recovery-entry": "../A方案全景/05-宿主外恢复/02-恢复入口/README.md", "state": "../A方案全景/06-预留空间/01-内部权威状态/README.md", "task-store": "../A方案全景/06-预留空间/02-目标与授权及任务/README.md", "evidence": "../A方案全景/06-预留空间/03-经历与证据及回执/README.md", "artifacts": "../A方案全景/06-预留空间/04-工作文件与产物/README.md", "cache": "../A方案全景/06-预留空间/05-索引与缓存/README.md", "config": "../A方案全景/06-预留空间/06-配置与版本清单/README.md", "credentials": "../A方案全景/06-预留空间/07-凭据引用/README.md", "checkpoint": "../A方案全景/06-预留空间/08-本地检查点/README.md", "backup-copy": "../A方案全景/07-独立备份/01-独立域备份/README.md", "restore-test": "../A方案全景/07-独立备份/02-恢复演练/README.md"};
+nodes.forEach(function(n){n.planPath=planLinks[n.id];n.status="v1.2 方案基线 · 待验证";if(n.id==="device-gateway")n.focusRegion="execution";});
+
+const edges=[
+ {id:'human-in',from:'user',to:'links',type:'blue',p:[[315,332],[355,332],[355,447],[465,447]]},
+ {id:'chat-in',from:'channels',to:'links',type:'blue',p:[[315,512],[355,512],[355,488],[465,488]]},
+ {id:'external-event',from:'events',to:'core',type:'blue',p:[[190,785],[190,895],[360,895],[360,315],[880,315],[880,500],[945,500]],label:'事件入口',lx:660,ly:312},
+ {id:'input',from:'links',to:'core',type:'blue',p:[[825,460],[945,460]],label:'观察事件',lx:885,ly:445},
+ {id:'queue-in',from:'links',to:'dialogue-queue',type:'blue',p:[[645,525],[645,575]]},
+ {id:'queue-expression',from:'dialogue-queue',to:'replyer',type:'blue',p:[[645,680],[645,795]],label:'表达调度',lx:645,ly:737},
+ {id:'query',from:'replyer',to:'views',type:'blue',p:[[825,820],[900,820],[900,905],[945,905]],label:'只读查询',lx:884,ly:795},
+ {id:'view',from:'views',to:'replyer',type:'teal',p:[[945,942],[870,942],[870,880],[825,880]],label:'视图 / 通知',lx:885,ly:966},
+ {id:'reply',from:'replyer',to:'channels',type:'teal',p:[[465,870],[370,870],[370,552],[315,552]]},
+ {id:'authorize',from:'core',to:'mandate',type:'amber',p:[[1585,465],[1695,465]],label:'授权任务',lx:1640,ly:448},
+ {id:'task',from:'mandate',to:'tasks',type:'amber',p:[[1895,525],[1895,575]]},
+ {id:'run',from:'tasks',to:'worker',type:'amber',p:[[1895,680],[1895,710],[1790,710],[1790,735]]},
+ {id:'checked',from:'worker',to:'verify',type:'teal',p:[[1790,845],[1790,875],[1895,875],[1895,900]]},
+ {id:'return',from:'verify',to:'core',type:'teal',p:[[1695,930],[1640,930],[1640,520],[1585,520]],label:'结果提案',lx:1640,ly:855},
+ {id:'device-task',from:'worker',to:'device-gateway',type:'amber',p:[[1885,780],[1895,780]]},
+ {id:'device-result',from:'device-gateway',to:'verify',type:'teal',p:[[1995,845],[1995,875],[2040,875],[2040,900]]},
+ {id:'device-desktop',from:'device-gateway',to:'desktop-device',type:'amber',both:true,p:[[2095,780],[2190,780],[2190,405],[2260,405]]},
+ {id:'device-other',from:'device-gateway',to:'other-device',type:'amber',both:true,p:[[2095,780],[2190,780],[2190,655],[2260,655]]},
+ {id:'device-robot',from:'device-gateway',to:'robot',type:'amber',both:true,p:[[2095,780],[2190,780],[2190,905],[2260,905]]},
+ {id:'provider',from:'providers',to:'model-session',type:'rose',dash:true,both:true,p:[[315,1095],[360,1095],[360,1163],[440,1163]]},
+ {id:'storage',from:'persistence',to:'state',type:'violet',both:true,p:[[1265,1270],[1265,1360]],label:'受控提交 / 按域保存 / 恢复读取',lx:1265,ly:1320,group:true},
+ {id:'backup',from:'checkpoint',to:'backup-copy',type:'violet',dash:true,p:[[2180,1530],[2245,1530]],group:true},
+ {id:'watchdog',from:'supervisor',to:'lifecycle',type:'rose',dash:true,p:[[315,1525],[355,1525],[355,1215],[380,1215]],group:true},
+ {id:'restore',from:'recovery-entry',to:'supervisor',type:'rose',dash:true,p:[[190,1635],[190,1580]]}
+];
+
+const stackColumns=[
+ {id:'outer',x:40,title:'01  渠道进出',sub:'连接侧车 / 外层表达',color:'blue'},
+ {id:'execution',x:550,title:'02  接纳与触发',sub:'确定性程序 · 不逐条调用模型',color:'teal'},
+ {id:'inner',x:1060,title:'03  决策与控制',sub:'DSH 插件内 · core 按需推理',color:'violet'},
+ {id:'devices',x:1570,title:'04  任务与工具',sub:'DSH 执行 · 设备按能力接入',color:'amber'},
+ {id:'data',x:2080,title:'05  状态与恢复',sub:'分域权威 · 位置标在卡片上',color:'rose'}
+];
+const reuseStyles={direct:{label:'直接使用',color:'#12796d',fill:'#e8f5ef'},copy:{label:'局部复制',color:'#96601c',fill:'#fff2da'},adapt:{label:'领域适配',color:'#2868b2',fill:'#edf4fc'},candidate:{label:'候选接入',color:'#7955a3',fill:'#f2eef8'}};
+const evidenceBase='../../research/2026-11-01-复用核查/';
+const stackCards=[];
+function S(id,col,row,title,version,kind,location,api,patch,modules,summary,boundary,evidence){
+ stackCards.push({id:'stack-'+id,col,row,x:stackColumns[col].x,y:310+row*270,w:480,h:245,title,version,kind,location,api,patch,modules,summary,boundary,evidence});
+}
+S('channels',0,0,'官方 SDK 对照路线','qqbot-nodejs / Lark SDK', 'direct','渠道适配器 → DSH',
+ 'QQ Bot runtime / createLarkChannel','与统一侧车比较；映射身份与回执', ['channels','links'],
+ 'QQ 与飞书可直接接各自官方 Node SDK 的高层渠道运行时，作为统一侧车的最小对照路线。复用协议、鉴权和连接；识雨补事件、身份、媒体引用及发送回执。',
+ 'QQ 官方 Bot 不等于个人 QQ。平台可见通讯录、主动消息和媒体能力分别核验；不推导全量好友控制。', '../../research/2026-11-01-连接订阅与技术栈/渠道连接.md');
+S('bridge',0,1,'OpenClaw 统一渠道侧车','2026.10.9 · 04fefb3 · MIT','candidate','连接侧车 / DSH 双向',
+ 'before_dispatch / send · 三渠道','接管覆盖 + 失败关闭；桥接待编写', ['events','links'],
+ '优先条件验证统一连接 WhatsApp、QQ Bot 与飞书的侧车路线，并与官方 SDK 对照。before_dispatch 返回 handled:true 接管普通派发，Gateway send 负责出站；未有现成 DSH 桥。',
+ 'hook 默认 fail-open 且存在旁路，须补接管覆盖与启动门禁。WhatsApp 插件为 Baileys Web，Meta Cloud API 是独立业务路线；QQ Bot 不等于个人 QQ。', '../../research/2026-11-01-连接订阅与技术栈/渠道连接.md');
+S('replyer',0,2,'DS-Bot 旁路回复','0.2.4 · Apache-2.0','copy','DSH 插件内',
+ 'callAside / complete / cancel','ReadView 注入；实际 tools=[]', ['replyer'],
+ '复制独立快照问答、完成与取消的小闭包，复用已有流式处理。只传有范围和版本的只读上下文，不复制完整主会话工具历史。',
+ '表达结果不能充当保存完成回执；新消息使旧会话代次失效，发送前再检查。', evidenceBase+'输入与外层.md');
+S('queue',0,3,'DSH inbox + p-queue','p-queue 9.0.1 · MIT','direct','外层对话调度',
+ '会话串行 / 跨会话有限并发','持久 inbox + 代次；p-queue 不持久', ['dialogue-queue'],
+ '同一会话保持因果顺序，独立会话有限并发；停止和取消走控制快路。持久 inbox 记录接纳事实，p-queue 只调度进程内旁路模型请求。',
+ '模型总槽 3，后台最多 2，显式对话预留 1。外发 outbox 由统一 EffectDispatcher 拥有。', evidenceBase+'输入与外层.md');
+S('ingress',1,0,'IngressRouter','TypeScript + 受限结构校验','adapt','DSH 插件内',
+ 'EventEnvelope / conversationKey','校验、去重；控制 / 问答 / 工作分流', ['events','links'],
+ '先验证账号、会话、消息身份与载荷，按确定性规则区分控制请求、只读问答和需决策事件。路由处理不等于 core 的模型判断。',
+ '遇到动作、记忆变更或范围不确定，转 core 决策；不靠回复模型直接执行动作。', '../A方案全景/Core派工与对话时序.md');
+S('subscriptions',1,1,'DSH Schedule + 事件源','DSH 0.2.2-alpha.2 · MIT','direct','DSH 插件内',
+ 'schedule → inbox / 来源 SDK','持久订阅 / 无模型接纳 / 游标', ['event-schedule','events'],
+ 'core 可在已有 Mandate 和预算内提交声明式订阅。DSH Schedule 本身向 Agent inbox 投递，不是任意 callback；各来源的监听、webhook 或轮询复用对应 SDK，由 SourceAdapter 规范化事件。',
+ '接纳与过滤先由程序执行。新事件源权限或扩权才需新增授权；订阅不是任意脚本。宿主退出时监听暂停，恢复按 misfire 策略处理。', '../A方案全景/时间与事件订阅.md');
+S('contacts',1,2,'通讯录与身份映射','TypeScript + 控制 SQLite','adapt','DSH 插件内',
+ 'Contact / Endpoint / IdentityBinding','账号可见目录；跨平台身份须证明', ['relationship'],
+ '通讯录保存联系人、平台账号、联系端点、群组和联系偏好；不同渠道的同名人不会自动合并。地址可发送与允许主动联系分别记录。',
+ '不能假设平台返回全量好友通讯录。Ombre them 仅可选保存有依据的人物认识，首验关闭。', '../A方案全景/通讯录与人际关系.md');
+S('config',1,3,'DSH 配置与凭据接口','DSH MIT · 系统 Keychain','direct','宿主 / 系统设施',
+ 'settings / engines.dsh / credentialRef','固定版本、启停与凭据用途绑定', ['lifecycle','config','credentials'],
+ '复用宿主装载、兼容预检与配置接口；凭据使用成熟系统设施。识雨维护运行清单、范围和已知可用版本。',
+ '显示版本是待验证基线；侧车、记忆服务和 DSH 各自记录实际版本与数据位置。', evidenceBase+'宿主与依赖.md');
+S('core',2,0,'DSH Agent：core','DSH 0.2.2-alpha.2 · MIT','direct','DSH 插件内',
+ 'ctx.agents / model / Session','目标评估 → Proposal / TaskIntent', ['core','providers','model-session'],
+ 'core 对需要理解、规划或改变内部状态的输入推理，决定是否有值得做的工作，产出结构化提案和派工意图。模型路由由 DSH 提供。',
+ '纯问答可走只读快路。core 不拥有绕过程序授权、直接写库或随意外发的能力。', '../A方案全景/Core派工与对话时序.md');
+S('policy',2,1,'PolicyGate + Ajv','Ajv 8.20.0 · MIT','adapt','DSH 插件内',
+ 'Mandate / schema / budget / scope','每次派发前复核；停止优先', ['mandate','tool-policy'],
+ '复用 schema 校验与 DSH guard/restriction，再加入识雨的授权范围、预算和撤权规则。模型产物先校验，再登记持久任务或内部命令。',
+ '人格、关系与情绪不生成授权；工具已注册不等于当前任务可调用。', evidenceBase+'任务执行.md');
+S('goals',2,2,'DSH 原生 Goal','专用 Session · revision / phase','direct','DSH 宿主',
+ 'ctx.goals / GoalRef / GoalBinding','一目标一 Session；恢复 disarmed', ['user','task-store'],
+ '持续目标的生命周期直接使用 DSH；控制库保存范围、预算和绑定。原生日志是目标状态权威，不维护第二份独立 Goal 状态机。',
+ '原生 active 也必须通过每轮准入；备份必须包含目标专用 Session 日志。', evidenceBase+'核心与视图.md');
+S('views',2,3,'DSH context + ReadView','DS-Bot 裁剪子集 · Apache-2.0','copy','DSH 插件内',
+ 'snapshot / context / tool boundary','分域版本、读取范围、撤回失效', ['views','cognition','personality'],
+ '复用宿主上下文装配与已核查的边界裁剪。Letta 回顾策略片段辅助生成提案；稳定 Profile 与服务中的自我认识候选分开。',
+ '组合投影不是跨服务原子快照；有状态的回顾/认识读取在内部执行后生成只读结果。', evidenceBase+'核心与视图.md');
+S('engine',3,0,'Superagent Engine','6337fc8 · MIT · 13 文件 core','copy','DSH 插件内',
+ 'Ticket / Assignment / replies','映射识雨状态；补 unknown 核对', ['tasks','verify'],
+ '复制纯 core 依赖闭包，TaskService 作为门面。程序排程器按依赖、优先级、预算和能力选择执行实例，core 不负责手动逐条抢队列。',
+ '任务与一次执行分开；已开始的外部效果未知时冻结资源，不按超时直接换 worker 重试。', evidenceBase+'任务执行.md');
+S('worker',3,1,'DSH Agent：worker','Superagent 槽位 / 生命周期子集','copy','DSH 执行侧',
+ 'AgentHandle / Assignment / cancel','受限工具与上下文；回报产物', ['worker'],
+ '任务引擎创建 Assignment 后，复用 DSH Agent 执行接口与已有 worker 槽位管理。worker 返回结构化结果、来源、产物或内部修改提案。',
+ 'Assignment 绑定能力范围；worker 不能把工具完成当成内部记忆已保存。', evidenceBase+'任务执行.md');
+S('tools',3,2,'DSH 工具 / 设备 SDK','SSH · MCP · CUA · Appium · ROS','direct','宿主 + 设备端',
+ 'tool registry / skill / capability','direct 与 gated 分开；资源排他', ['ability','device-gateway','desktop-device','other-device','robot'],
+ '直接接现成 SSH、浏览器、桌面与移动端客户端；机器人调用已有高层动作接口。模型不承担实时运动控制。',
+ '现成工具不被假定支持端侧 fencing；断连后续做需已验证 gate。每设备具体版本见模块证据。', evidenceBase+'设备.md');
+S('effects',3,3,'Superagent Effects / Store','6337fc8 · MIT','copy','控制账本 / 调度器',
+ 'atomic / effects / outbox / receipt','补事务错误路径；未知副作用不盲重放', ['verify','evidence'],
+ '复用事务和出箱持久记录，将模型外发、渠道发送与设备动作统一登记。结果核验后再更新任务；afterCommit 只做唤醒。',
+ '复制前修补 SAVEPOINT / rollback 失败和异步回调误用；不沿用全部自动重试默认值。', evidenceBase+'任务执行.md');
+S('ombre',4,0,'Ombre Brain','3.6.14 · 115d831 · MIT','direct','独立记忆服务',
+ 'hold / search / feel / dream / I','MemoryOperation；幂等 / 清除待验', ['memory','emotion','personality','cognition','relationship'],
+ '同一后端拥有记忆、感受、索引与自我认识候选。Mem0 为互斥替代，不维护两份可独立修改的同义记忆。',
+ '首验关闭 You/them。dream 和部分认识读取会写状态；只读外层只拿裁剪后的结果。', evidenceBase+'记忆关系认知.md');
+S('sqlite',4,1,'SQLite 控制账本','Superagent 仓储子集 · MIT','copy','宿主 DB WorkerThread',
+ 'Task / Mandate / operation / receipt','单库原子事务；跨后端独立回执', ['state','persistence','task-store'],
+ '控制域复用已有事务和仓储，不重写数据库。DB WorkerThread 执行短同步事务和具名命令，不属于智能 worker。',
+ 'commitSeq 只证明本地提交；远端记忆成功须有后端证据。SQLite WAL 构建修复门槛另验。', evidenceBase+'数据空间.md');
+S('files',4,2,'后端来源 / 文件 / 索引','Ombre SourceStore / MediaStore','direct','各后端数据空间',
+ '原生对象引用 / 原生检索 / 导出','证据关联、保留、删除水位', ['artifacts','evidence','cache'],
+ '复用记忆后端的来源、媒体和检索实现，任务产物按授权范围保存。SQLite/FTS5 仅为本地对照路线，LanceDB 按收益再比较。',
+ '不把缓存当新事实，不为统一目录强行迁移全部后端数据；实际路径与备份覆盖须登记。', evidenceBase+'数据空间.md');
+S('recovery',4,3,'OS 监督 + restic','proper-lockfile 4.1.2 · restic 0.19.1','direct','系统 / 独立备份域',
+ 'launchd / systemd / 原生备份','组件清单；Goal 日志；恢复核对', ['supervisor','recovery-entry','checkpoint','backup-copy','restore-test'],
+ '复用进程监督、单写者锁和备份工具。检查点关联控制库、Ombre 导出与目标日志；恢复先处理停用、删除和 unknown。',
+ '逐库备份不证明全局静默。Ombre 导入有 512 MiB 限制；恢复测试单独约束数据规模。', evidenceBase+'恢复备份.md');
+
+function activeCards(){return state.mode==='stack'?stackCards:nodes;}
+function drawStack(c,z,exp){
+ drawStats={overflow:[],labels:0};c.fillStyle=COLORS.bg;c.fillRect(0,0,WORLD.w,WORLD.h);
+ textBlock(c,'识雨 / 技术栈与执行路径',40,35,1700,43,650,COLORS.ink,1);
+ textBlock(c,'按处理职责分栏 · 实际部署位置标在各卡片上 · 点击查看接口与来源',43,96,1700,24,400,COLORS.muted,1);
+ textBlock(c,'v1.2  /  设计基线 · 尚未运行',2558,47,800,23,600,COLORS.teal,1,'right');
+ textBlock(c,'点击技术卡：接口、来源、边界与模块映射',2558,90,800,20,400,COLORS.muted,1,'right');
+ roundRect(c,530,156,1530,1244,18);c.fillStyle='#eaf0f5';c.fill();c.strokeStyle='#b6c8d5';c.lineWidth=1.5;c.stroke();
+ textBlock(c,'核心执行链：路由、策略与调度由程序执行，DSH Agent core 只在需要决策时推理',553,176,1470,23,600,COLORS.host,1);
+ stackColumns.forEach(function(col){
+   textBlock(c,col.title,col.x+14,228,452,29,650,COLORS[col.color],1);
+   textBlock(c,col.sub,col.x+14,272,452,20,400,COLORS.muted,1);
+ });
+ stackCards.forEach(function(n){
+   const s=reuseStyles[n.kind],selected=state.selected===n.id&&!exp,hover=state.hover===n.id&&!exp;
+   c.save();roundRect(c,n.x,n.y,n.w,n.h,12);c.fillStyle='#fff';c.fill();c.strokeStyle=selected?s.color:'#cbd9e1';c.lineWidth=selected?3.5:hover?2.5:1.4;c.stroke();
+   c.fillStyle=s.color;c.fillRect(n.x,n.y+18,4,n.h-36);
+   roundRect(c,n.x+18,n.y+15,112,29,5);c.fillStyle=s.fill;c.fill();textBlock(c,s.label,n.x+28,n.y+19,95,18,600,s.color,1);
+   textBlock(c,n.location,n.x+n.w-18,n.y+22,310,17,400,COLORS.muted,1,'right');
+   textBlock(c,n.title,n.x+18,n.y+59,n.w-36,29,650,COLORS.ink,1);
+   textBlock(c,n.version,n.x+18,n.y+102,n.w-36,18,400,COLORS.muted,1);
+   c.beginPath();c.moveTo(n.x+18,n.y+133);c.lineTo(n.x+n.w-18,n.y+133);c.strokeStyle='#e3ebef';c.lineWidth=1;c.stroke();
+   textBlock(c,n.api,n.x+18,n.y+147,n.w-36,21,500,COLORS.ink,2);
+   textBlock(c,'补：'+n.patch,n.x+18,n.y+202,n.w-36,18,400,COLORS.muted,2);
+   c.restore();
+ });
+ drawRunPaths(c);
+}
+function drawRunPaths(c){
+ roundRect(c,40,1430,2520,350,15);c.fillStyle='#173c4c';c.fill();
+ textBlock(c,'运行路径 / 路由、推理、派工分别由谁负责',65,1453,2150,28,600,'#fff',1);
+ const rows=[
+   {y:1522,label:'只读聊天快路',color:'#a7d8f7',steps:['渠道 + Bridge','IngressRouter','会话队列','裁剪 ReadView','replyer','授权检查 → 发送'],note:'动作 / 保存 / 不确定 → 升级 core；聊天不中断任务恢复'},
+   {y:1597,label:'任务与状态变更',color:'#f3d49b',steps:['事件 / 工作请求','core：规划提案','PolicyGate','Task / Assignment','worker → 核验','回执 → replyer'],note:'派工由任务引擎排程；worker 回报结果，内部写入另核对'},
+   {y:1672,label:'自主订阅',color:'#b8e6d9',steps:['core 提订阅','现有授权 + 预算','Subscription','DSH 时间 / 监听','匹配去重 → 入箱','目标评估 / 派工'],note:'每次触发先跑程序过滤；不逐 tick 调模型，不扩张原授权'}
+ ];
+ rows.forEach(function(r){
+   textBlock(c,r.label,66,r.y+9,270,22,600,r.color,1);
+   r.steps.forEach(function(step,i){const x=355+i*355;roundRect(c,x,r.y,329,43,6);c.fillStyle='#ffffff12';c.fill();textBlock(c,step,x+13,r.y+9,307,20,500,'#f1f6f8',1);if(i<r.steps.length-1){textBlock(c,'→',x+334,r.y+9,25,20,400,r.color,1);}});
+   textBlock(c,r.note,355,r.y+49,2170,17,400,'#b9d0db',1);
+ });
+ textBlock(c,'复用方式',48,1807,150,18,500,COLORS.muted,1);
+ Object.keys(reuseStyles).forEach(function(key,i){const s=reuseStyles[key],x=205+i*320;c.fillStyle=s.color;c.fillRect(x,1810,14,14);textBlock(c,s.label,x+24,1807,230,18,500,s.color,1);});
+ textBlock(c,'20 技术组合覆盖原 40 模块 · 固定来源与未决项见侧栏',2552,1807,1000,18,400,COLORS.muted,1,'right');
+}
+
+const canvas=document.getElementById('atlas'),ctx=canvas.getContext('2d');
+const shell=document.getElementById('canvas-shell'),detail=document.getElementById('detail'),picker=document.getElementById('node-picker');
+const state={mode:'stack',z:1,tx:0,ty:0,w:0,h:0,dpr:1,selected:null,focus:'all',hover:null,initialized:false};
+let scheduled=false,drag=null,drawStats={overflow:[],labels:0};const pointers=new Map();let pinch=null;
+function roundRect(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r);}
+function escapeHTML(s){return String(s).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+function font(c,size,weight){c.font=(Math.round((weight||500)/100)*100)+' '+size+'px "PingFang SC","Microsoft YaHei",system-ui,sans-serif';}
+function wrap(c,str,width){
+ const out=[];let line='';
+ for(const ch of str){if(ch==='\n'){out.push(line);line='';continue;}if(line&&c.measureText(line+ch).width>width){out.push(line);line=ch;}else line+=ch;}
+ if(line)out.push(line);return out;
+}
+function textBlock(c,str,x,y,width,size,weight,color,maxLines,align){
+ font(c,size,weight);const lines=wrap(c,str,width),max=maxLines||20,lineH=size*1.34;
+ if(lines.length>max)drawStats.overflow.push({text:str,width,size,lines:lines.length,max});
+ c.fillStyle=color||COLORS.ink;c.textBaseline='top';c.textAlign=align||'left';
+ lines.slice(0,max).forEach(function(s,i){c.fillText(s,x,y+i*lineH);drawStats.labels++;});
+ c.textAlign='left';return Math.min(lines.length,max)*lineH;
+}
+function regionFor(node){return regions.find(function(r){return r.id===node.region;});}
+function highlighted(){const ids=new Set();if(state.selected){ids.add(state.selected);edges.forEach(function(e){if(e.from===state.selected||e.to===state.selected){ids.add(e.from);ids.add(e.to);}});}return ids;}
+function drawRegion(c,r,z,exp){
+ const t=themes[r.theme];roundRect(c,r.x,r.y,r.w,r.h,r.id==='host'?20:14);c.fillStyle=t.fill;c.fill();c.lineWidth=r.id==='host'?2.5:1.6;c.strokeStyle=t.line;
+ if(r.id==='plugin')c.setLineDash([9,6]);c.stroke();c.setLineDash([]);
+ const size=r.large?34:r.compact?25:29;
+ const fs=exp||z<.27?size:Math.max(size,(r.compact?10.5:12)/z);
+ c.fillStyle=t.color;c.fillRect(r.x+22,r.y+27,4,r.compact?25:32);
+ const heading=(r.num?r.num+'  ':'')+r.title;
+ textBlock(c,heading,r.x+39,r.y+21,r.w-61,fs,650,t.color,2);
+ if((exp||z>=.56)&&r.sub){
+   if(r.id==='plugin')textBlock(c,r.sub,r.x+215,r.y+27,r.w-245,20,400,COLORS.muted,1);
+   else textBlock(c,r.sub,r.x+24,r.y+(r.large?68:65),r.w-48,19,400,COLORS.muted,r.w<400?2:1);
+ }
+}
+function drawEdge(c,e,z,exp,related){
+ const active=!state.selected||e.from===state.selected||e.to===state.selected||exp;
+ c.save();c.globalAlpha=active?.88:.15;c.strokeStyle=COLORS[e.type];c.fillStyle=COLORS[e.type];c.lineWidth=(active&&state.selected&&!exp?3.4:2.4);c.lineJoin='round';c.lineCap='round';c.setLineDash(e.dash?[10,7]:[]);
+ c.beginPath();e.p.forEach(function(p,i){if(i)c.lineTo(p[0],p[1]);else c.moveTo(p[0],p[1]);});c.stroke();c.setLineDash([]);
+ function arrow(a,b){const v=Math.atan2(b[1]-a[1],b[0]-a[0]),s=9;c.beginPath();c.moveTo(b[0],b[1]);c.lineTo(b[0]-s*Math.cos(v-.48),b[1]-s*Math.sin(v-.48));c.lineTo(b[0]-s*Math.cos(v+.48),b[1]-s*Math.sin(v+.48));c.closePath();c.fill();}
+ arrow(e.p[e.p.length-2],e.p[e.p.length-1]);if(e.both)arrow(e.p[1],e.p[0]);c.restore();
+}
+function drawEdgeLabel(c,e,z,exp){
+ if(!e.label||(!exp&&z<.48&&!e.group))return;
+ const active=!state.selected||e.from===state.selected||e.to===state.selected||exp;
+ c.save();c.globalAlpha=active?1:.25;
+ const fs=exp?20:Math.max(19,11/z);font(c,fs,500);const width=c.measureText(e.label).width;
+ roundRect(c,e.lx-width/2-7,e.ly-fs*.55,width+14,fs+10,5);c.fillStyle='#f8fafc';c.fill();
+ c.fillStyle=COLORS[e.type];c.textAlign='center';c.textBaseline='middle';c.fillText(e.label,e.lx,e.ly+2);c.restore();
+}
+function drawNode(c,n,z,exp,related){
+ const r=regionFor(n),t=themes[r.theme];const selected=state.selected===n.id&&!exp,hover=state.hover===n.id&&!exp;
+ const active=exp||!state.selected||related.has(n.id);
+ c.save();c.globalAlpha=active?1:.32;
+ if(selected||hover){c.shadowColor='#193d5825';c.shadowBlur=selected?18:10;c.shadowOffsetY=4;}
+ roundRect(c,n.x,n.y,n.w,n.h,10);c.fillStyle=t.node;c.fill();c.shadowBlur=0;c.shadowOffsetY=0;
+ c.strokeStyle=selected?t.color:t.line;c.lineWidth=selected?3.4:hover?2.3:1.2;c.stroke();
+ c.fillStyle=t.color;c.beginPath();c.arc(n.x+19,n.y+23,3.2,0,Math.PI*2);c.fill();
+ const simple=n.region==='foundation'||n.id==='views'||n.id==='verify';
+ const baseSize=simple?25:28,fs=exp?baseSize:Math.max(baseSize,11.5/z);
+ const showSub=exp||z>=.56,tw=n.w-51; font(c,fs,600);
+ const titleLines=wrap(c,n.title,tw);
+ const titleHeight=titleLines.length*fs*1.34;
+ let y=showSub?n.y+14:n.y+Math.max(12,(n.h-titleHeight)/2);
+ textBlock(c,n.title,n.x+32,y,tw,fs,600,COLORS.ink,2);
+ if(showSub&&n.sub&&n.h>65){
+   const sy=y+titleHeight+8,subSize=exp?(n.w<=270?17:19):Math.max(n.w<=270?17:18,10.5/z);
+   const lines=Math.min(2,Math.floor((n.y+n.h-8-sy)/(subSize*1.34)));
+   if(lines>0)textBlock(c,n.sub,n.x+17,sy,n.w-34,subSize,400,COLORS.muted,lines);
+ }
+ c.restore();
+}
+function drawScene(c,z,exp){
+ if(state.mode==='stack'){drawStack(c,z,exp);return;}
+ drawStats={overflow:[],labels:0};
+ c.fillStyle=COLORS.bg;c.fillRect(0,0,WORLD.w,WORLD.h);
+ textBlock(c,'识雨 / 全景架构',42,37,1400,exp||z<.27?43:Math.max(43,16/z),650,COLORS.ink,1);
+ textBlock(c,'A 方案 · DSH 插件内核心',45,94,1550,exp||z<.27?24:Math.max(24,11.5/z),450,COLORS.muted,1);
+ textBlock(c,'架构方案 v1.2  /  待运行验证',2558,49,1000,exp||z<.27?22:Math.max(22,11/z),500,COLORS.teal,1,'right');
+ textBlock(c,'2026-11-01  ·  40 模块方案 / 27 项验收计划',2558,87,1000,exp||z<.27?20:Math.max(20,10.5/z),400,COLORS.muted,1,'right');
+ regions.forEach(function(r){drawRegion(c,r,z,exp);});
+ if(!exp&&z<.27){
+   return;
+ }
+ const related=highlighted();
+ edges.forEach(function(e){drawEdge(c,e,z,exp,related);});
+ nodes.forEach(function(n){drawNode(c,n,z,exp,related);});
+ edges.forEach(function(e){drawEdgeLabel(c,e,z,exp);});
+ if(exp){
+   const legend=[['blue','事件 / 只读查询'],['teal','视图 / 结果回传'],['amber','授权任务 / 执行'],['violet','持久数据'],['rose','恢复 / 外部依赖']];
+   legend.forEach(function(item,i){const x=50+i*430;c.strokeStyle=COLORS[item[0]];c.lineWidth=2.4;c.setLineDash(item[0]==='rose'?[8,5]:[]);c.beginPath();c.moveTo(x,1820);c.lineTo(x+30,1820);c.stroke();c.setLineDash([]);textBlock(c,item[1],x+40,1807,350,19,400,COLORS.muted,1);});
+ }
+}
+function render(){
+ scheduled=false;ctx.setTransform(state.dpr,0,0,state.dpr,0,0);ctx.fillStyle=COLORS.bg;ctx.fillRect(0,0,state.w,state.h);
+ ctx.save();ctx.translate(state.tx,state.ty);ctx.scale(state.z,state.z);drawScene(ctx,state.z,false);ctx.restore();
+ document.getElementById('zoom-value').textContent=Math.round(state.z*100)+'%';
+}
+function requestDraw(){if(!scheduled){scheduled=true;requestAnimationFrame(render);}}
+function clampView(){
+ const mx=state.w*.75,my=state.h*.75;
+ state.tx=Math.max(-WORLD.w*state.z+state.w-mx,Math.min(mx,state.tx));
+ state.ty=Math.max(-WORLD.h*state.z+state.h-my,Math.min(my,state.ty));
+}
+function fitBounds(b,pad){
+ pad=pad===undefined?30:pad;state.z=Math.min(2,Math.max(.1,Math.min((state.w-2*pad)/b.w,(state.h-2*pad)/b.h)));
+ state.tx=(state.w-b.w*state.z)/2-b.x*state.z;state.ty=(state.h-b.h*state.z)/2-b.y*state.z;requestDraw();
+}
+function focus(id){
+ if(state.mode==='stack'){
+   state.focus=id;
+   document.querySelectorAll('[data-focus]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.focus===id));});
+   const col=stackColumns.find(function(r){return r.id===(id==='recovery'?'data':id);});
+   if(col){fitBounds({x:col.x-15,y:215,w:510,h:1185},24);document.getElementById('view-label').textContent=col.title;}
+   else{fitBounds({x:0,y:0,w:WORLD.w,h:WORLD.h},18);document.getElementById('view-label').textContent='技术栈全景 · 点击卡片查看接入细节';}
+   return;
+ }
+ const r=regions.find(function(r){return r.id===id;});state.focus=id;
+ document.querySelectorAll('[data-focus]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.focus===id));});
+ if(r){fitBounds({x:r.x-20,y:r.y-12,w:r.w+40,h:r.h+24},28);document.getElementById('view-label').textContent=r.title;}
+ else{fitBounds({x:0,y:0,w:WORLD.w,h:WORLD.h},18);document.getElementById('view-label').textContent=state.z<.27?'全景缩略图 · 用分区按钮放大':'全景';}
+}
+function zoom(factor,x,y){
+ x=x===undefined?state.w/2:x;y=y===undefined?state.h/2:y;
+ const z=Math.max(.12,Math.min(2.6,state.z*factor)),wx=(x-state.tx)/state.z,wy=(y-state.ty)/state.z;
+ state.z=z;state.tx=x-wx*z;state.ty=y-wy*z;clampView();requestDraw();
+}
+function resize(){
+ const b=shell.getBoundingClientRect(),oldW=state.w,oldH=state.h;
+ state.w=Math.round(b.width);state.h=Math.round(b.height);state.dpr=Math.min(window.devicePixelRatio||1,3);
+ canvas.width=Math.round(state.w*state.dpr);canvas.height=Math.round(state.h*state.dpr);
+ if(!state.initialized){state.initialized=true;focus(state.w<600?(state.mode==='stack'?'outer':'inner'):'all');}
+ else if(state.focus!=='custom'){focus(state.focus);}
+ else{state.tx+=(state.w-oldW)/2;state.ty+=(state.h-oldH)/2;requestDraw();}
+}
+function resetDetail(){
+ if(state.mode==='stack'){
+   detail.innerHTML='<p class="side-overline">TECHNOLOGY STACK / v1.2</p><h2>从项目到运行路径</h2><p class="detail-summary">20 张技术卡重新组织原来的 40 个模块：展示谁提供实现、如何接入、运行在哪里，以及识雨还要补什么。</p><div class="detail-section"><h3>先看三件事</h3><ul><li>渠道比较两条路线：OpenClaw 统一侧车，与 QQ / 飞书官方 SDK。侧车接管补丁须先验证。</li><li>路由与排程是程序；core 在需要理解、规划或变更时才推理。</li><li>订阅可由 core 在已有授权内创建，由计时或监听程序触发。</li></ul></div><div class="detail-section"><h3>怎么使用</h3><p>点击卡片查看 API、固定来源和必要改动；切换“逻辑架构模式”查看 40 模块的职责边界。底部三条运行路径说明聊天、派工和自主订阅。</p></div><p class="detail-state">直接使用 / 局部复制 / 领域适配 / 候选接入均为设计选择；尚未接入运行。</p>';
+   return;
+ }
+ detail.innerHTML='<p class="side-overline">A 方案 / DESIGN BASELINE</p><h2>一个核心，多个执行端</h2><p class="detail-summary">识雨的判断与状态管理驻留在 DSH 插件内。设备端承担感知与执行，宿主外机制承担进程恢复。</p><div class="detail-section"><h3>读图顺序</h3><ul><li>左侧：用户、渠道与环境事件。</li><li>中央：只读外层、六部分内层、任务执行。</li><li>下方：预留数据空间及恢复材料。</li><li>右侧：设备接口、客户端与独立备份。</li></ul></div><div class="detail-section"><h3>三条关键边界</h3><ul><li>双工传递消息，不给外层内部写权限。</li><li>worker 返回结果，内部变更由 core 受控提交。</li><li>监督器在宿主外，但不构成第二个智能核心。</li></ul></div><p class="detail-state">A 方案已由用户选择。模块方案、接口与技术基线已细化；尚未运行验证。</p>';
+}
+function select(id,move){
+ const n=activeCards().find(function(n){return n.id===id;});state.selected=n?n.id:null;picker.value=n?n.id:'';
+ if(!n){resetDetail();requestDraw();return;}
+ if(state.mode==='stack'){
+   const badge=reuseStyles[n.kind];
+   detail.innerHTML='<p class="side-overline">'+escapeHTML(stackColumns[n.col].title)+'</p><h2>'+escapeHTML(n.title)+'</h2><span class="tech-badge">'+escapeHTML(badge.label+' · '+n.location)+'</span><p class="detail-summary">'+escapeHTML(n.summary)+'</p><div class="detail-section"><h3>版本 / 许可基线</h3><p>'+escapeHTML(n.version)+'</p></div><div class="detail-section"><h3>接入接口</h3><p>'+escapeHTML(n.api)+'</p></div><div class="detail-section"><h3>需要补的内容</h3><p>'+escapeHTML(n.patch)+'</p></div><div class="detail-section"><h3>边界与待验证项</h3><p>'+escapeHTML(n.boundary)+'</p></div><div class="links"><a href="'+escapeHTML(n.evidence)+'">打开技术依据 / 专题 →</a></div><div class="detail-section"><h3>对应逻辑模块</h3><div class="links">'+n.modules.map(function(id){const m=nodes.find(function(x){return x.id===id;});return '<a href="'+escapeHTML(planLinks[id])+'">'+escapeHTML(m?m.title:id)+'</a>';}).join('')+'</div></div><p class="detail-state">源码或接口静态核查 / 设计建议；运行与组合效果仍待验证。</p>';
+   document.getElementById('status').textContent='已选择技术卡 '+n.title;
+   if(move)focus(stackColumns[n.col].id);
+   requestDraw();return;
+ }
+ const region=regionFor(n);
+ detail.innerHTML='<p class="side-overline">'+escapeHTML(region.title)+'</p><h2>'+escapeHTML(n.title)+'</h2><p class="detail-summary">'+escapeHTML(n.summary)+'</p><div class="detail-section"><h3>负责什么</h3><ul>'+n.duties.map(function(s){return '<li>'+escapeHTML(s)+'</li>';}).join('')+'</ul></div><div class="detail-section"><h3>权限与边界</h3><p>'+escapeHTML(n.boundary)+'</p></div><div class="detail-section"><h3>失败与恢复</h3><p>'+escapeHTML(n.recovery)+'</p></div><p class="detail-state">'+escapeHTML(n.status||'方案基线 · 待验证')+'</p><div class="links"><a href="'+escapeHTML(n.planPath)+'">打开此模块完整方案 →</a></div>';
+ document.getElementById('status').textContent='已选择 '+n.title;
+ if(move){const r=regionFor(n);focus(n.focusRegion||(r.id==='foundation'?'host':r.id));}
+ requestDraw();
+}
+function screenPoint(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+function hit(p){const x=(p.x-state.tx)/state.z,y=(p.y-state.ty)/state.z;return activeCards().find(function(n){return x>=n.x&&x<=n.x+n.w&&y>=n.y&&y<=n.y+n.h;});}
+function markCustom(){state.focus='custom';document.querySelectorAll('[data-focus]').forEach(function(b){b.setAttribute('aria-pressed','false');});document.getElementById('view-label').textContent='自由浏览';}
+canvas.addEventListener('wheel',function(e){e.preventDefault();const p=screenPoint(e);markCustom();if(e.shiftKey){state.tx-=e.deltaY;clampView();requestDraw();}else zoom(Math.exp(-e.deltaY*.0015),p.x,p.y);},{passive:false});
+canvas.addEventListener('pointerdown',function(e){
+ if(e.pointerType==='mouse'&&e.button!==0)return;
+ const p=screenPoint(e);pointers.set(e.pointerId,p);canvas.setPointerCapture(e.pointerId);
+ if(pointers.size===1){drag={x:p.x,y:p.y,tx:state.tx,ty:state.ty,moved:false};canvas.classList.add('dragging');}
+ if(pointers.size===2){const a=Array.from(pointers.values());pinch={distance:Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y),mid:{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2}};if(drag)drag.moved=true;}
+});
+canvas.addEventListener('pointermove',function(e){
+ const p=screenPoint(e);
+ if(pointers.has(e.pointerId))pointers.set(e.pointerId,p);
+ if(pointers.size===2&&pinch){const a=Array.from(pointers.values()),d=Math.hypot(a[1].x-a[0].x,a[1].y-a[0].y),mid={x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2};markCustom();zoom(d/Math.max(pinch.distance,1),pinch.mid.x,pinch.mid.y);state.tx+=mid.x-pinch.mid.x;state.ty+=mid.y-pinch.mid.y;pinch={distance:d,mid};requestDraw();return;}
+ if(drag&&pointers.size===1){if(Math.hypot(p.x-drag.x,p.y-drag.y)>4)drag.moved=true;if(drag.moved){markCustom();state.tx=drag.tx+p.x-drag.x;state.ty=drag.ty+p.y-drag.y;clampView();requestDraw();}return;}
+ const n=hit(p),id=n?n.id:null;if(state.hover!==id){state.hover=id;requestDraw();canvas.style.cursor=id?'pointer':'grab';}
+});
+function pointerEnd(e){
+ const p=screenPoint(e);if(drag&&!drag.moved&&pointers.size===1){const n=hit(p);select(n?n.id:null,false);}
+ pointers.delete(e.pointerId);if(pointers.size===0){drag=null;pinch=null;canvas.classList.remove('dragging');}
+ else if(pointers.size===1){const a=Array.from(pointers.values())[0];drag={x:a.x,y:a.y,tx:state.tx,ty:state.ty,moved:true};pinch=null;}
+}
+canvas.addEventListener('pointerup',pointerEnd);
+canvas.addEventListener('pointercancel',function(e){pointers.delete(e.pointerId);drag=null;pinch=null;canvas.classList.remove('dragging');});
+canvas.addEventListener('pointerleave',function(){state.hover=null;requestDraw();});
+canvas.addEventListener('dblclick',function(e){const p=screenPoint(e);markCustom();zoom(1.4,p.x,p.y);});
+canvas.addEventListener('keydown',function(e){
+ if(e.key==='+'||e.key==='='){e.preventDefault();markCustom();zoom(1.2);}
+ else if(e.key==='-'){e.preventDefault();markCustom();zoom(1/1.2);}
+ else if(e.key==='Home'){e.preventDefault();focus('all');}
+ else if(e.key==='Escape'){select(null,false);}
+ else if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)){e.preventDefault();markCustom();state.tx+=e.key==='ArrowLeft'?60:e.key==='ArrowRight'?-60:0;state.ty+=e.key==='ArrowUp'?60:e.key==='ArrowDown'?-60:0;clampView();requestDraw();}
+});
+document.querySelectorAll('[data-focus]').forEach(function(b){b.addEventListener('click',function(){focus(b.dataset.focus);});});
+document.getElementById('zoom-in').addEventListener('click',function(){markCustom();zoom(1.2);});
+document.getElementById('zoom-out').addEventListener('click',function(){markCustom();zoom(1/1.2);});
+document.getElementById('fit').addEventListener('click',function(){focus('all');});
+picker.addEventListener('change',function(){select(picker.value,true);});
+function populatePicker(){
+ picker.innerHTML='<option value="">'+(state.mode==='stack'?'选择技术卡…':'选择逻辑模块…')+'</option>';
+ const groups=state.mode==='stack'?stackColumns:regions;
+ groups.forEach(function(r,i){const items=activeCards().filter(function(n){return state.mode==='stack'?n.col===i:n.region===r.id;});if(!items.length)return;const group=document.createElement('optgroup');group.label=r.title;items.forEach(function(n){const option=document.createElement('option');option.value=n.id;option.textContent=n.title;group.appendChild(option);});picker.appendChild(group);});
+}
+function setMode(mode){
+ if(!['stack','logical'].includes(mode))throw new Error('Unknown atlas mode: '+mode);
+ state.mode=mode;state.selected=null;state.hover=null;
+ document.querySelectorAll('[data-mode]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.mode===mode));});
+ document.getElementById('legend').innerHTML=mode==='stack'?Object.keys(reuseStyles).map(function(k){const s=reuseStyles[k];return '<span><i class="swatch" style="--c:'+s.color+'"></i>'+s.label+'</span>';}).join('')+'<span class="mode-note">卡片上沿标部署位置 · 底部展示运行路径 · 全部待验证</span>':'<span><i class="swatch" style="--c:#2868b2"></i>事件 / 只读查询</span><span><i class="swatch" style="--c:#12796d"></i>视图 / 回执</span><span><i class="swatch" style="--c:#a66820"></i>授权任务 / 执行</span><span><i class="swatch" style="--c:#7955a3"></i>持久数据</span><span><i class="swatch dashed" style="--c:#ae5865"></i>恢复 / 外部依赖</span>';
+ populatePicker();resetDetail();focus('all');requestDraw();return mode;
+}
+document.querySelectorAll('[data-mode]').forEach(function(b){b.addEventListener('click',function(){setMode(b.dataset.mode);});});
+function exportCanvas(scale){
+ const out=document.createElement('canvas');scale=scale||2.5;out.width=WORLD.w*scale;out.height=WORLD.h*scale;
+ const c=out.getContext('2d');c.scale(scale,scale);drawScene(c,1,true);return out;
+}
+document.getElementById('export').addEventListener('click',function(){
+ const btn=this;btn.disabled=true;btn.textContent='正在生成…';document.getElementById('status').textContent='正在生成全景高清图';
+ requestAnimationFrame(function(){
+   try{const mode=state.mode,out=exportCanvas(2.5);out.toBlob(function(blob){if(!blob)throw new Error('无法生成图片');const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='识雨-'+(mode==='stack'?'技术栈':'逻辑架构')+'-6500x4600.png';a.click();setTimeout(function(){URL.revokeObjectURL(url);},1500);btn.disabled=false;btn.textContent='导出高清 PNG';document.getElementById('status').textContent='已生成 6500 × 4600 当前模式高清图';requestDraw();},'image/png');}
+   catch(error){btn.disabled=false;btn.textContent='导出高清 PNG';document.getElementById('status').textContent='导出失败：'+error.message;}
+ });
+});
+setMode('stack');new ResizeObserver(resize).observe(shell);
+window.shiyuAtlas={
+ version:'A-2026-11-01-v1.2',world:WORLD,nodes:nodes,regions:regions,edges:edges,stackCards:stackCards,stackColumns:stackColumns,
+ getState:function(){return Object.assign({},state);},focus:focus,select:select,setMode:setMode,
+ exportDataURL:function(scale){return exportCanvas(scale||2.5).toDataURL('image/png');},
+ inspect:function(){return{mode:state.mode,nodes:activeCards().length,regions:state.mode==='stack'?stackColumns.length:regions.length,edges:state.mode==='stack'?15:edges.length,logicalModules:nodes.length,stackCards:stackCards.length,canvas:{width:canvas.width,height:canvas.height},text:drawStats};}
+};
+})();
+</script>
+</body>
+</html>

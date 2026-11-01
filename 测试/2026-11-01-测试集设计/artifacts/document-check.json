@@ -1,0 +1,68 @@
+{
+  "checked_at": "2026-11-01T09:56:05.979426-04:00",
+  "check_type": "document_links_and_case_structure_only",
+  "command": "python3 - (inline standard-library checker)",
+  "python_version": "3.9.6",
+  "os": "macOS-26.6.2-arm64-arm-64bit",
+  "markdown_files": 12,
+  "local_links_checked": 44,
+  "case_count": 8,
+  "main_steps": 54,
+  "cases": [
+    {
+      "case_id": "S01",
+      "steps": 7,
+      "file": "cases/S01-记忆与纠正.md",
+      "status": "not_executed"
+    },
+    {
+      "case_id": "S02",
+      "steps": 7,
+      "file": "cases/S02-身份与群隐私.md",
+      "status": "not_executed"
+    },
+    {
+      "case_id": "S03",
+      "steps": 8,
+      "file": "cases/S03-订阅与主动任务.md",
+      "status": "not_executed"
+    },
+    {
+      "case_id": "S04",
+      "steps": 6,
+      "file": "cases/S04-聊天与任务.md",
+      "status": "not_executed"
+    },
+    {
+      "case_id": "S05",
+      "steps": 7,
+      "file": "cases/S05-未知效果与恢复.md",
+      "status": "not_executed"
+    },
+    {
+      "case_id": "S06",
+      "steps": 7,
+      "file": "cases/S06-删除与旧备份.md",
+      "status": "not_executed"
+    },
+    {
+      "case_id": "S07",
+      "steps": 6,
+      "file": "cases/S07-情绪与人格.md",
+      "status": "not_executed"
+    },
+    {
+      "case_id": "S08",
+      "steps": 6,
+      "file": "cases/S08-时间与预算.md",
+      "status": "not_executed"
+    }
+  ],
+  "issues": [],
+  "runtime_tests_executed": false,
+  "limits": [
+    "No candidate, model, channel, device or recovery execution",
+    "No human independent labeling",
+    "Does not establish semantic correctness or V01-V27 pass"
+  ]
+}

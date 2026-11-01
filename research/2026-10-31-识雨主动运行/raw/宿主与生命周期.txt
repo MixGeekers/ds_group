@@ -1,0 +1,185 @@
+Repository: https://github.com/deepseek-ai/deepseek-harness
+Commit: ce7073d51254c26cd63b22a60835b8f948deb447
+Retrieved: 2026-10-31 (America/Caracas)
+Evidence: documentation and limited static source review; not executed.
+License: MIT; see LICENSE.txt.
+
+===== docs/architecture.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/docs/architecture.md
+Git blob SHA: e3f5cd24a39d1d6275a291c83f165e6839ce191b
+
+--- Lines 7-27 ---
+7: ## Cordis
+8: 
+9: [Cordis](cordis-primer.md) is the framework under dsh: plugins contribute services, typed events, and reversible effects to a shared context. Every part of the product is a plugin, including the model adapter, the tool registry, the session log, and the agent loop itself, so each is replaceable from configuration.
+10: 
+11: There is no privileged core to patch: you extend dsh by mounting a plugin beside the others, and registrations are effects that unwind when their plugin unloads.
+12: 
+13: ## Profiles and bundles
+14: 
+15: A running `dsh` is a plugin tree composed at boot from ordered layers.
+16: 
+17: A **profile** is a named composition stored in the Harness home. It lists the bundles it stacks, holds any out-of-tree plugins it installs, and keeps the user's own `cordis.patch.yml`. `web`, `headless`, `sdk`, `sdk-minimal`, and `acp` ship as templates.
+18: 
+19: A **bundle** is a distribution format for Cordis config rows and the code they mount, so whatever it inserts stays patchable by the layers above it.
+20: 
+21: Each declares itself in its own `package.json` under a `dsh` field: `dsh.profile` lists a profile's bundles, and `dsh.bundle` points at a bundle's patch file.
+22: 
+23: [`dsh-base`](../packages/bundle/base/README.md) is the shared first layer of the `web`, `headless`, `sdk`, and `acp` profiles: model adapters, tools, persistence, sandbox and approval policy, settings, credentials, telemetry. [`dsh-web-app`](../packages/bundle/web-app/README.md) adds the browser application, [`dsh-headless`](../packages/bundle/headless/README.md) adds a one-shot runner with no server, [`dsh-sdk-app`](../packages/bundle/sdk-app/README.md) adds the SDK JSON-RPC server, and [`dsh-acp-app`](../packages/bundle/acp-app/README.md) adds the automation-only ACP server. [`dsh-sdk-minimal`](../packages/bundle/sdk-minimal/README.md) is the deliberate exception: one bundle owns its complete explicit SDK tree and does not apply `dsh-base`.
+24: 
+25: Layers apply to an empty entry list: the profile's ordered bundles, its `cordis.patch.yml`, the home patch, then `--patch` overlays. A patch targets a row by id and replaces its whole config, or inserts new rows. A `preset` patch applies these operations inside that declaration’s `config.plugins`, with the same layer precedence.
+26: 
+27: YAML controls HMR: base enables config-only `dsh-hmr`; headless, SDK and ACP disable it; `sdk-minimal` omits it. Profile patches override these defaults. HMR coordinates watching and reloads; the launcher provides profile data and readiness.
+
+--- Lines 39-53 ---
+39: Composition mechanics are in [app-boot](../packages/boot/app-boot/README.md#profiles); config fields are in the generated [config catalog](config-catalog.md).
+40: 
+41: ## Application launch
+42: 
+43: Supported Node applications launch through named `dsh` profiles. The shipped profiles are `web`, `headless`, `sdk`, `sdk-minimal`, and `acp`, selected with `dsh --profile <name>` or `dsh <name>`. `plugin` names the management command; a profile with that name requires `--profile plugin`. The TypeScript SDK resolves its same-version `dsh` dependency and selects `sdk`; custom plugin composition remains a profile plus ordered patch files, not another executable or inline application tree. `sdk-minimal` is a repository-owned standalone bundle behind the same launcher, not a caller-supplied Cordis tree.
+44: 
+45: Vendored CLIs, build-only and test-only executables, direct in-process plugin mounting, and the private browser WebWorker preview are not Harness application launchers. [`verify-application-entrypoints`](../scripts/verify-application-entrypoints.ts) keeps every package bin, executable source, root demo, and the root `start:web` and `dev:web` scripts in an explicit class and rejects a Node application path that bypasses `dsh`.
+46: 
+47: The Python SDK follows the same application architecture. Its runtime wheel packages the normal `dsh` CLI as `deepseek-harness-sdk-runtime-<platform>-<arch>`, and the client launches `dsh --profile sdk` with an explicit Harness home by default. The minimal example selects the shipped `sdk-minimal` profile. Python exposes profile selection and ordered patch files rather than a complete Cordis tree; persistent external plugins are installed through `dsh plugin`. The removed private direct-config carrier has no compatibility bin or fallback parser.
+48: 
+49: ## Desktop application
+50: 
+51: The [Electron desktop application](../apps/desktop/README.md) ships its exact dsh production runtime in signed resources and owns the reserved `$DSH_HOME/profiles/desktop`. Shared helpers initialize profile files, reconcile bundles, and resolve installation and bundle dependencies without replacing pnpm-owned packages. Desktop and npm CLI share product data but keep packages, activation, and lockfiles separate. Desktop’s bundled CLI manages its initialized plugins.
+52: 
+53: Electron starts the private Desktop Host in Electron Node mode. The Host invokes the shared CLI profile runner and complete Web application. The window immediately loads packaged Web assets and waits for boot injections before activating client plugins in the same document. Web owns RPC and streams; the desktop carrier connects the local page to the authenticated Host. Node IPC carries boot injections, readiness, fatal errors, and shutdown. Desktop listens on an OS-assigned port by default; profile configuration can override it. Shell-owned UI runs plugin transactions through bundled pnpm with normal user and profile configuration.
+
+--- Lines 65-79 ---
+65: | [`llm/llm`](subsystems/llm-streaming.md) | Message and stream vocabulary plus the adapter seam | `ctx.llm` |
+66: 
+67: ## Events
+68: 
+69: Events are the extension points, and picking the right domain is the first decision in most changes.
+70: 
+71: - **Session events** are durable facts appended to the log and broadcast through `session/event`. Use one when the fact must survive a reload.
+72: - **Agent events** (`agent/*`) carry a live `Agent`: inbox, step, status, request, validation, continuation. Use one to observe or intercept work in flight.
+73: - **Capability events** attach policy and adapters to a seam (`fs/*`, `tools/*`, `telemetry/*`) without importing the loop.
+74: 
+75: AgentLoop initializes Agents with rollback and awaits serial `agent/created` before queued work. Unload retains resources through Agent teardown; [agent-loop](../packages/core/agent-loop/README.md#understand-the-implementation) defines ordering.
+76: 
+77: The [event map](event-producer-consumer.md) lists every event's producers and consumers.
+78: 
+79: ## Turn flow
+
+--- Lines 137-168 ---
+137: 
+138: Seams are why one provider swap changes the whole product. Filesystem and subprocess providers share one execution world, so pointing them at a remote sandbox moves Bash, PTY, and LSP with them, with no provider forks. [Subagent providers](subsystems/subagent.md) vary just as widely behind one interface, from a fresh child agent to a delegated turn in another product.
+139: 
+140: [Experimental Agent Teams](subsystems/agent-team.md) exposes opt-in `ctx.agentTeams` coordination with durable roster and task state plus direct inbox messaging over continuable subagents.
+141: 
+142: ## Where new behavior goes
+143: 
+144: New behavior attaches to a documented extension point. Changing the loop itself updates this map.
+145: 
+146: | Goal | Mechanism |
+147: |---|---|
+148: | Add a model provider | register its adapter on `ctx.llm` |
+149: | Add a model-facing capability | register on `ctx.tools`; its schema joins prompt assembly |
+150: | Give one session a different capability set | compose an agent preset; a service row there needs an `isolate` realm |
+151: | Add shell execution | register a `ctx.shell` backend; the local one spawns through `ctx.subprocess` |
+152: | Add persistent terminal execution | register a `ctx.terminals` backend plus `dsh-tool-terminal` |
+153: | Add a human command | register on `ctx.commands`; it dispatches without a model turn |
+154: | Manage background jobs | register on `ctx.jobs`; `job_*` tools read or stop jobs |
+155: | Start a Session from an external webhook | register a trusted rule on `ctx.webhookRuntime` and mount a provider adapter |
+156: | Add filesystem access or policy | register a `ctx.fs` provider or listen to `fs/*` events |
+157: | Confine spawned processes | use a `ctx.sandbox` backend; consumers wrap argv before spawning |
+158: | Intercept a request, tool, or turn | use its `agent/*` or `tools/*` event; `agent/turn-stopping` stops a turn |
+159: | Add model-facing context | call `agent.inject()`; it lands in the next admitted request |
+160: | Add UI or editor integration | drive `ctx.agents` and render from `session/event` |
+161: | Add a Web Client Chat node | register a `ConversationNodeDefinition` + keyed renderer |
+162: | Add durable session state | extend `SessionEventMap`; render and replay from the log |
+163: | Generate session titles | register the sole `ctx.sessionTitle` provider |
+164: | Manage a same-session objective | use `ctx.goals`; continue through `agent/*` |
+165: | Fork at a turn boundary | `ctx.agents.create({ sessionId, seed, inheritedEventCount, meta: { isSeeded: true } })` — only agent-loop-published sessions persist |
+166: | Store sessions in a new backend | implement `SessionPersistence` (`create`/`open`/`stat`/`list`/`export`) over the shared handle scaffolding |
+167: | Scope a registration to one agent | use that agent's `agent.ctx` |
+168: 
+
+===== packages/boot/app-boot/README.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/boot/app-boot/README.md
+Git blob SHA: 4d30457f81829edda03dba68d51da13efd55b27e
+
+--- Lines 94-115 ---
+94: ### Startup and reload failures
+95: 
+96: Profile reconciliation returns diagnostics for unchanged inactive entries without failing an unrelated mutation. A new inactive entry, a changed configuration or fiber, or a changed diagnostic fails reconciliation; removed fibers must still finish disposal. Explicit enablement targets must activate even when their failure predates the operation. `recomposeProfile(ctx, patches, binName, { requiredIds, running })` runs one recomposition together with the runtime resolution: it removes the rows the generation no longer lists and waits for their disposal while their packages are still mapped, publishes the latest generation of a recomputable resolution, runs the compatibility preflight against the published packages, applies the generation, starts the `running` entries and entries whose import failed that the update left without a running fiber, and judges activation. `running` lists the entries that ran before the caller stopped some of them; each that failed afterwards counts as a new failure. A failure before the generation applies puts the removed rows back at their places, which starts them again, and starts the `running` entries again. An entry waiting for a service is reported as a warning unless it is required, so it starts once a provider appears; `reconcileProfilePatches()` judges it the same way. A publication the resolution rejects is such a failure and reports `package-moved`. `reconcileProfilePatches()`, which the Config Editor uses, applies and judges the patches without publishing the resolution or retrying failed imports. An entry whose import failed is reported with the error Loader's import returns again, so judging it evaluates the module when the import now succeeds; the state recorded before the change imports nothing, so an entry whose import failed before counts as the same failure whatever its error now is. Successful reconciliation emits `app-boot/config-reload` after lifecycle settlement and diagnostic checks, including programmatic updates without HMR. The event carries no diff or parsed config. Successful reconciliation returns after lifecycle settlement and diagnostic checks; volatile-only entry changes are committed by Loader during the update.
+97: 
+98: After the Loader settles, app-boot warns when only optional entries are inactive. If an enabled required entry cannot activate, `boot()` rejects with `StartupError` after disposal. An independently owned logger exporter retains warning and error records through asynchronous disposal and is released before `boot()` settles. Its message groups all failed plugins and pending services, marks required entries, and retains original stacks, nested causes, and aggregate members. The CLI prints that message once and saves [full startup diagnostics](../../../apps/cli/reference/README.md#startup-diagnostics) before exiting with code 1; unrelated exceptions retain their normal stack output. In the table, stopping startup means disposing any mounted plugins and exiting nonzero without reporting readiness; continuing keeps successful plugins running. Later configuration HMR does not repeat the required-startup audit and does not roll back the whole update.
+99: 
+100: | Failure pattern | Optional entry at startup | Required entry at startup | Later configuration HMR |
+101: |---|---|---|---|
+102: | Root config or required overlay is missing, unreadable, malformed, or contains invalid entries | Stop startup | Stop startup | Malformed or invalid live patches are rejected without changing the running configuration; a valid edit applies |
+103: | Module import fails or module evaluation throws | Warn; continue | Stop startup | Report the error; keep successful siblings; a corrected import can activate |
+104: | Plugin config schema validation fails | Warn; continue | Stop startup | A new entry stays inactive; an existing entry retains its prior instance and config; a valid correction applies |
+105: | Config `!!js` evaluation throws | Warn; continue | Stop startup | Report the error; keep successful siblings; a valid correction can activate |
+106: | `disabled: !!js` evaluation throws | Warn; continue | Stop startup | Report the evaluation error rather than treating the entry as disabled; a valid correction can activate |
+107: | Synchronous `apply()` throws | Warn; continue | Stop startup | Report the error; keep successful siblings; corrected config can activate |
+108: | Asynchronous `apply()` throws | Warn after settlement; continue | Stop startup after settlement | Report the error after settlement; keep successful siblings; corrected config can activate |
+109: | An injected service is unavailable | Warn; continue while the entry waits for its dependencies | Stop startup | Keep the entry waiting; adding the missing provider can activate it |
+110: | HTTP port binding fails | Warn; continue without that endpoint | Stop startup | Keep the process running without the failed endpoint; corrected config can restore it |
+111: | Detached asynchronous work outside the `apply()` return Promise produces an unhandled rejection | Fatal: dispose the app and exit nonzero | Fatal: dispose the app and exit nonzero | Fatal: dispose the app and exit nonzero, regardless of entry id |
+112: | A synchronous callback (a stream `'data'` listener, a timer) throws an uncaught exception at any point in the process lifetime | Fatal: dispose the app and exit nonzero; the failed operation is not resumed | Fatal: dispose the app and exit nonzero; the failed operation is not resumed | Fatal: dispose the app and exit nonzero, regardless of entry id |
+113: | Entry is absent or explicitly disabled | Ignore it | Ignore it | Do not activate it; no required-startup audit |
+114: 
+115: The required list above includes `modules` and `connection`; Web startup cannot succeed when either enabled entry fails. Failure of an optional provider can also prevent a required consumer from activating. Schema rejection before an existing entry updates is not a transactional rollback of sibling changes.
+
+===== packages/boot/app-boot/src/profile-sanitize.ts =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/boot/app-boot/src/profile-sanitize.ts
+Git blob SHA: bc410d93c1be07e15eee57b9b82cf1453b2bd36d
+
+--- Lines 1-34 ---
+1: /** Filesystem recovery for callers that own profile shutdown and write exclusion. */
+2: 
+3: import { existsSync, renameSync } from 'node:fs'
+4: import { join } from 'node:path'
+5: import { PROFILE_PATCH_FILENAME, readProfileManifest } from './profile.ts'
+6: import { writeProfileBundles } from './profile-plugins.ts'
+7: 
+8: /**
+9:  * Back up the profile patch and retain only the caller's recovery bundles.
+10:  * The caller must stop the profile and exclude concurrent profile writes.
+11:  * Installed packages and other manifest fields are preserved; patches are never parsed.
+12:  * Failures propagate and may leave completed changes in place for a retry.
+13:  * @param binName - Diagnostic prefix for invalid profile manifests.
+14:  * @param profileDir - Profile directory to recover without loading its plugins.
+15:  * @param bundles - Ordered bundles to enable after recovery.
+16:  * @returns Backup path with a Unix millisecond timestamp and optional collision ordinal, or undefined if absent.
+17:  */
+18: export function sanitizeProfile(binName: string, profileDir: string, bundles: readonly string[]): string | undefined {
+19:   const manifest = existsSync(join(profileDir, 'package.json')) ? readProfileManifest(binName, profileDir) : undefined
+20:   const patchPath = join(profileDir, PROFILE_PATCH_FILENAME)
+21:   const backupBase = `${patchPath}.bak-${Date.now()}`
+22:   let backupPath: string | undefined = backupBase
+23:   let ordinal = 0
+24:   // Caller-owned write exclusion keeps the selected destination absent until rename.
+25:   while (existsSync(backupPath)) backupPath = `${backupBase}-${++ordinal}`
+26:   try {
+27:     renameSync(patchPath, backupPath)
+28:   } catch (error) {
+29:     if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) throw error
+30:     backupPath = undefined
+31:   }
+32:   if (manifest !== undefined) writeProfileBundles(profileDir, manifest, bundles)
+33:   return backupPath
+34: }
+
+===== apps/desktop/README.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/apps/desktop/README.md
+Git blob SHA: fe24b24568e1a28ae575dea5e705d6dad1916787
+
+--- Lines 70-80 ---
+70: ## Closing the window and quitting
+71: 
+72: Closing the main window (macOS close button and ⌘W; Windows ×, Alt+F4, and the taskbar Close window command) hides it; Windows asks for acknowledgement before the first hide. The page and the Host keep running, tasks continue, and the next show presents the same document with its session, drafts, and scroll position; a fullscreen macOS window leaves fullscreen before hiding. The window returns through the Dock icon, a second launch, or `dsh://open` on macOS, and through the tray on Windows. Minimize is unchanged. Closing the welcome window before the workspace opens quits on Windows and, on macOS, keeps the application in the Dock without a window.
+73: 
+74: Windows keeps a tray icon for the whole run. Its tooltip is the product name, a single click shows and focuses the window, and the context menu offers Open DeepSeek Harness and Quit DeepSeek Harness in the shell locale. Before the first hide, the shared update-dialog overlay explains that running tasks continue and the window can be reopened from the system tray. Confirm hides the window and writes `background-close-confirmed` under Electron userData; Escape, dismissal, or dialog failure keeps the window visible and does not record acknowledgement. Repeated close requests focus the existing shell dialog. In-place updates retain the marker and uninstall removes it. The old `background-notice-shown` marker does not suppress this confirmation. Closing the window sends no system notification. The tray bitmaps are `resources/tray-windows.ico`, rendered from `resources/icon-windows.svg` at 16, 20, 24, 32, 40, 48, and 64 pixels by `pnpm run render:tray-icon`, and packaged as `resources/tray.ico`. macOS ships no menu bar icon.
+75: 
+76: Every ordinary quit entry — ⌘Q, the application menu, the Dock menu, the Windows tray and caption Application menu, and the quit caused by closing the welcome window — asks the Host what it would interrupt. The Host answers over the private IPC channel with two facts: active tasks under the same rule as the update restart check (running agents including subagents and approval waits, queued messages, running or stopping jobs), and armed scheduled reminders reported by the `schedule` family of `workspace/session-activity` for the sessions loaded during this run. Neither fact, the quit proceeds silently. Otherwise a native message box without an owner window — hidden windows stay hidden — shows **Quit DeepSeek Harness?** with one of three localized explanations: running tasks will be interrupted, scheduled tasks will not run while the application is closed, or both. Quit is the default button and Cancel answers Esc; macOS places Cancel left of Quit, Windows places Quit left of Cancel, and the Windows task dialog shows the application icon and stays light regardless of the application theme. A Host that has not reached ready or has failed cannot run tasks, so the quit proceeds without asking. An inspection failure or a Host that misses the two-second deadline is treated as running tasks. While the box is open, another quit request joins it instead of stacking a second one (macOS also raises it; Electron exposes no handle to the Windows task dialog), the explanation does not change when work starts or ends, Quit stops the application without re-inspecting, and Cancel changes nothing. Cancelling a quit that closing the welcome window started shows the welcome window again.
+77: 
+78: The mandatory update confirmation includes the installation wait notice on Windows; macOS uses the shorter restart explanation.
+79: 
+80: The confirmation is skipped when the installer restart already confirmed task interruption, when the fatal-recovery dialog exits or restarts, when the development Restart App and Host command runs, and during operating-system shutdown, restart, or log-off: Windows sets this on the definitive session-end message; macOS sets it on the power-off notification, and because another application can still cancel that shutdown, the next focus or show of the main window clears it. Installer-owned quit cancels any pending ordinary quit decision; late inspection results and dialog answers cannot open another confirmation or repeat cleanup. A user-initiated update download that finishes while the window is hidden defers its Install and Restart confirmation until the window is shown again; the mandatory flow keeps its taskbar and Dock attention. The Windows installer and uninstaller tell a user whose application is still running to quit it from the system tray. Desktop does not enable scheduled tasks by default, so the scheduled-task explanations appear only once that feature is on; reminders fire only in loaded sessions, and unloaded sessions are neither counted nor resumed until they are opened.

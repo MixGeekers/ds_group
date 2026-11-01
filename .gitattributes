@@ -1,0 +1,26 @@
+# Normalize text in Git while preserving binary evidence and exported figures.
+* text=auto
+*.md text eol=lf
+*.js text eol=lf
+*.cjs text eol=lf
+*.mjs text eol=lf
+*.ts text eol=lf
+*.py text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.svg text eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.pdf binary
+
+# Keep evidence snapshots byte-for-byte, including historical line endings.
+research/** -text
+测试/**/artifacts/** -text
+测试/归档/** -text

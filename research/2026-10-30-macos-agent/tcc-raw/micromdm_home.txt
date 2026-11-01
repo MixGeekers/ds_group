@@ -1,0 +1,108 @@
+
+MicroMDM
+Home
+Blog
+Docs
+Projects
+GitHub
+Nano is the new Micro
+NanoMDM
+(and the 
+Nano-suite of projects
+) is the
+new direction
+ we’re currently focused on.
+The MicroMDM "v1" project has been in 
+maintenance mode
+ for over a year and is now 
+deprecated
+.
+Get Started with NanoMDM
+Welcome to the MicroMDM organization
+Welcome to 
+micromdm.io
+: the home of the 
+MicroMDM organization
+,
+building open source
+Mobile Device Management
+tools for Apple devices.
+Documentation
+Get started with NanoMDM
+Read the quickstart tutorial for getting up and running with NanoMDM. The steps in this guide are intended to get you up and running as quickly as possible.
+View the Quickstart Guide
+Join the Community
+The best place to get help is the 
+#micromdm
+ channel on the MacAdmins Slack team. Join us there by getting an invitation at the link below.
+Join Us On Slack
+Join Office Hours
+Come meet the community and maintainers at MicroMDM office hours, usually held every two weeks. Bring your questions about all things Apple MDM and NanoMDM related.
+Office Hours Discussion
+Contribute to the projects
+The MicroMDM organization projects are open source and the core developers are eager to help you make your first Pull Request. Check out the contributing guide for more details.
+Read the Contributing Guide
+MicroMDM organization projects
+NanoMDM
+A minimalist Apple MDM server and library heavily inspired by MicroMDM
+NanoMDM on GitHub
+NanoDEP
+A set of tools, and a Go library powering them, for communicating with Apple's Device Enrollment Program (DEP) API servers.
+NanoDEP on GitHub
+NanoCMD
+A Go library and server for Apple MDM command workflows
+NanoCMD on GitHub
+NanoHUB
+Adapts and unifies NanoMDM, NanoCMD, and KMFDDM into a single MDM server. Intended as a library it includes a reference command-line server as well.
+NanoHUB on GitHub
+NanoAXM
+A set of tools and Go libraries powering them for communicating with the Apple School and Business Manager API.
+NanoAXM on GitHub
+KMFDDM
+An Apple Declarative Device Management (DDM) server. It works together with NanoMDM. A MicroMDM organization sister project.
+KMFDDM on GitHub
+What's new with the MicroMDM organization?
+Organization-linked Activation Lock & Bypass
+To quote our friends over at Iru (formerly Kandji):
+Activation Lock is a theft-deterrent feature found in 
+iOS and iPadOS devices
+ and modern 
+Mac computers
+ (with the Apple T2 Security chip and Apple silicon).
+NanoMDM and NanoDEP now have direct support for organization-linked Activation Lock, the flavor of Activation Lock that is 
+not
+ tied to a user’s Apple Account (i.e. not “Find My”). NanoDEP (as of 
+v0.7.0
+) can 
+lock
+ a device to your organization using the Apple DEP API, and NanoMDM (as of 
+v0.9.0
+) can 
+unlock
+ a device using Apple’s Escrow Key Unlock endpoint. Both sides revolve around the humble Activation Lock Bypass Code. Below we’ll walk through both, step by step.
+Read More…
+View All Articles
+Contribute An Article
+Our community
+Respect, kindness, and collaboration are core to the MicroMDM organization. Please read our 
+Code of Conduct
+.
+Do more with the MicroMDM organization
+Check out the API
+NanoMDM publishes OpenAPI docs for scheduling commands, reading device data and managing the server itself.
+Explore the API
+Review the Code
+The MicroMDM organization projects are free, open source, and permissively licensed! Read the code, contribute features, and offer feedback.
+View the Source Code
+Contribute your ideas
+The MicroMDM developers are eager to make a solution that works for everyone. Let us know what you need to use our projects at your organization.
+Join the Discussion
+MicroMDM
+Organization
+GitHub
+Code of Conduct
+Resources
+Blog
+Documentation
+Projects
+Office Hours

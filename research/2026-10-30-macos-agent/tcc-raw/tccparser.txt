@@ -1,0 +1,74 @@
+
+TCC database fundamentals | TCC Parser
+Skip to content
+TCC
+Parser
+Blog
+Glossary
+Search
+Home
+Blog
+Glossary
+Search
+Home
+Blog
+TCC database fundamentals
+Series
+TCC database fundamentals
+4
+ post
+s
+ in this series. Read them in order or jump to any one.
+TCC.db Forensics: The Investigator's Guide
+What the macOS TCC database records, what it proves and what it does not, the services that matter, and a repeatable workflow for reviewing TCC.db in a case.
+TCC.db Location and Acquisition on macOS
+Where the system and per-user TCC.db files live, why Full Disk Access and SIP matter, and how to collect them with the WAL using UAC, Aftermath or Velociraptor.
+The TCC access Table Across macOS Versions
+How the TCC.db access table changed from Mojave to Big Sur and Sonoma: allowed, auth_value, auth_reason, pid and last_reminded, plus the other tables.
+Decoding csreq Code Requirements in TCC.db
+How to read the csreq and indirect_object_code_identity blobs in TCC.db: compiled code requirements, anchors, identifiers and cdhash-only ad-hoc clients.
+All posts in this series
+Sep 30, 2026
+TCC.db Forensics: The Investigator's Guide
+What the macOS TCC database records, what it proves and what it does not, the services that matter, and a repeatable workflow for reviewing TCC.db in a case.
+tcc
+macos
+privacy-permissions
+Sep 30, 2026
+TCC.db Location and Acquisition on macOS
+Where the system and per-user TCC.db files live, why Full Disk Access and SIP matter, and how to collect them with the WAL using UAC, Aftermath or Velociraptor.
+tcc
+macos
+acquisition
+Sep 30, 2026
+The TCC access Table Across macOS Versions
+How the TCC.db access table changed from Mojave to Big Sur and Sonoma: allowed, auth_value, auth_reason, pid and last_reminded, plus the other tables.
+tcc
+macos
+sqlite
+Sep 30, 2026
+Decoding csreq Code Requirements in TCC.db
+How to read the csreq and indirect_object_code_identity blobs in TCC.db: compiled code requirements, anchors, identifiers and cdhash-only ad-hoc clients.
+tcc
+macos
+code-signing
+TCC
+Parser
+macOS TCC.db parser: decode privacy grants (Full Disk Access, Accessibility, Screen Recording…), code requirements, WAL history, risky grants. Free, local.
+Rust → WebAssembly
+Site
+Blog
+Glossary
+Search
+Sitemap
+Info
+Contact
+Privacy
+Terms
+RSS
+© 
+2026
+TCC Parser
+. 
+All rights reserved.
+Apple, macOS and Mac are trademarks of Apple Inc., registered in the U.S. and other countries. TCC Parser is an independent tool, not affiliated with, sponsored or endorsed by Apple. Its SQLite reader and code-requirement decoder are independent implementations of the public SQLite file format and Apple's documented requirement language.

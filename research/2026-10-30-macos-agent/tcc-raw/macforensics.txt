@@ -1,0 +1,342 @@
+
+TCC Database Forensics: macOS Privacy Permissions | Mac Forensics
+Skip to content
+mac
+forensics
+Home
+Guides
+Artifacts
+Glossary
+Tools
+Search
+Home
+Guides
+Privacy, Permissions & Secrets
+TCC Database Forensics: macOS Privacy Permissions
+Part 
+1
+ of 
+2
+ in
+Privacy, Permissions & Secrets
+Next
+ →
+TCC Database Forensics: macOS Privacy Permissions
+Analyze macOS TCC.db privacy permissions: access table columns, service names, auth_value meanings, MDM grants, SIP protection and unified log evidence.
+Published on
+September 28, 2026
+8
+min read
+macos
+tcc
+privacy
+dfir
+sqlite
+Transparency, Consent and Control, better known as 
+TCC
+, is the macOS framework that decides whether an application may use the camera, the microphone, the screen, the user's documents, other applications' data or the accessibility APIs. Every decision is recorded in SQLite databases. For an investigator, those databases answer a very specific set of questions: which applications were granted sensitive capabilities, whether a suspicious binary asked for Full Disk Access or Screen Recording, when a permission last changed, and whether a grant came from a user click or from an MDM policy. Because malware on macOS often needs TCC permissions to do anything interesting, the TCC database is frequently where its intentions become visible.
+Where the TCC databases live
+Database
+Path
+Typical content
+Protection
+System TCC
+/Library/Application Support/com.apple.TCC/TCC.db
+Full Disk Access, Accessibility, Screen Recording, Input Monitoring, Developer Tools, Endpoint Security clients
+SIP-protected and TCC-protected
+User TCC
+~/Library/Application Support/com.apple.TCC/TCC.db
+Camera, Microphone, Contacts, Calendars, Photos, Automation (Apple Events), Desktop/Documents/Downloads folders, removable and network volumes
+TCC-protected (needs Full Disk Access to read)
+MDM overrides
+/Library/Application Support/com.apple.TCC/MDMOverrides.plist
+Privacy Preferences Policy Control (PPPC) grants pushed by MDM
+SIP-protected
+The split between the two databases is by service, not by who granted it, and it is not perfectly stable across releases. Treat the "typical content" column as a guide and always query both databases. Each local user has their own user-level 
+TCC.db
+, so collect it for every account under 
+/Users
+.
+On a live system, reading any of these files requires the reading process to hold Full Disk Access. System Integrity Protection additionally prevents modification of the system database, even by root. Collection tools such as Aftermath, mac_apt and UAC will silently miss the files if the terminal or agent they run from lacks Full Disk Access, so record the privileges used during collection (see 
+macOS forensic acquisition
+). When working from a mounted image on an analysis host, open a copy of the database, never the original, and include the 
+-wal
+ and 
+-shm
+ files if present.
+The access table
+The table that matters is 
+access
+. Its schema has evolved; on macOS Big Sur and later it contains, among others, the following columns:
+Column
+Meaning
+service
+The TCC service identifier, for example 
+kTCCServiceCamera
+client
+The bundle identifier or the absolute path of the requesting program
+client_type
+0
+ if 
+client
+ is a bundle identifier, 
+1
+ if it is an absolute path
+auth_value
+The decision (see below)
+auth_reason
+Why the decision was made (user consent, user set, MDM policy, and so on)
+auth_version
+Version of the authorization record format
+csreq
+Code signing requirement blob used to verify the client's identity
+indirect_object_identifier
+The target for services that have one, notably Automation (the app being controlled)
+flags
+Additional flags
+last_modified
+Time of the last change, as Unix epoch seconds
+Recent releases have added further columns (for example process and boot identifiers, and reminder-related fields). Run 
+.schema access
+ on your copy before writing queries; do not assume a column exists. On Mojave and Catalina the table used an 
+allowed
+ column (0 or 1) and a 
+prompt_count
+ column instead of 
+auth_value
+ and 
+auth_reason
+.
+auth_value and auth_reason
+auth_value
+Commonly documented meaning
+0
+Denied
+1
+Unknown
+2
+Allowed
+3
+Limited (for services that support partial access, such as Photos)
+auth_reason
+ values are not formally documented by Apple. Community research commonly maps small integers to reasons such as "user consent" (the user answered a prompt), "user set" (the user toggled it in System Settings), "system set", "MDM policy" and "entitled". Use these interpretations as hypotheses and confirm them against the unified log or a test system of the same version before stating them in a report.
+Service names worth knowing
+Service
+What it grants
+kTCCServiceSystemPolicyAllFiles
+Full Disk Access
+kTCCServiceAccessibility
+Control of the UI via accessibility APIs (keystroke injection, clicking)
+kTCCServiceScreenCapture
+Screen Recording
+kTCCServiceListenEvent
+Input Monitoring (observing keyboard and mouse events)
+kTCCServicePostEvent
+Posting synthetic input events
+kTCCServiceMicrophone
+ / 
+kTCCServiceCamera
+Microphone and camera
+kTCCServiceAppleEvents
+Automation: sending Apple Events to another app (target in 
+indirect_object_identifier
+)
+kTCCServiceSystemPolicyDesktopFolder
+, 
+...DocumentsFolder
+, 
+...DownloadsFolder
+Access to those user folders
+kTCCServiceSystemPolicyRemovableVolumes
+, 
+...NetworkVolumes
+Access to removable and network volumes
+kTCCServiceAddressBook
+, 
+kTCCServiceCalendar
+, 
+kTCCServicePhotos
+Contacts, calendars, photos
+kTCCServiceEndpointSecurityClient
+Permission for an Endpoint Security client
+From a threat perspective, Accessibility, Input Monitoring and Screen Recording map to keylogging and screen surveillance; Full Disk Access maps to data theft; Automation grants to 
+com.apple.Terminal
+, 
+com.apple.finder
+ or 
+com.apple.systemevents
+ are frequently abused to borrow another application's permissions.
+Querying TCC.db
+Work on a copy. A basic review of all decisions, newest first:
+SELECT service,
+ client,
+ client_type,
+ auth_value,
+ auth_reason,
+ indirect_object_identifier,
+ datetime(last_modified, 'unixepoch') AS last_modified_utc
+FROM access
+ORDER BY last_modified DESC;
+Focus on the high-risk services and on path-based clients, which are often command-line tools or unpackaged binaries rather than signed applications:
+SELECT service, client, auth_value,
+ datetime(last_modified, 'unixepoch') AS last_modified_utc
+FROM access
+WHERE service IN ('kTCCServiceSystemPolicyAllFiles',
+ 'kTCCServiceAccessibility',
+ 'kTCCServiceScreenCapture',
+ 'kTCCServiceListenEvent',
+ 'kTCCServicePostEvent')
+ OR client_type = 1
+ORDER BY last_modified DESC;
+Run it from the command line:
+cp "/Volumes/Evidence/Users/analyst/Library/Application Support/com.apple.TCC/TCC.db"* ./case/tcc_user/
+sqlite3 -header -column ./case/tcc_user/TCC.db < high_risk.sql
+Note that 
+last_modified
+ is Unix epoch seconds, unlike many other Apple databases that use 
+Mac Absolute Time
+. Also note that 
+last_modified
+ reflects the last change to the row, not every use of the permission. TCC.db does not record each camera activation or each file read.
+A denied row (
+auth_value = 0
+) is evidence too: it shows that a client requested the capability and the user refused, which can be the earliest trace of an intrusion attempt.
+MDM and PPPC grants
+In managed fleets, administrators pre-approve permissions with Privacy Preferences Policy Control (PPPC) configuration profiles. These grants are reflected in 
+MDMOverrides.plist
+ next to the system database rather than as ordinary user decisions. Read it with 
+plutil -p
+. When a suspicious client holds Full Disk Access, determine whether it came from MDM (check the plist and the installed profiles with 
+sudo profiles show -type configuration
+) or from the user. A malicious PPPC profile would itself be a significant finding and points toward the MDM or profile installation path. Note that PPPC can pre-grant many services but cannot silently grant camera, microphone or Screen Recording; for Screen Recording, MDM can only allow standard users to approve it themselves.
+TCC Parser
+ decodes 
+TCC.db
+ (with its 
+-wal
+), 
+MDMOverrides.plist
+ and the 
+csreq
+ blobs together in the browser, which makes it easier to tell MDM grants from user decisions.
+TCC in the unified log
+tccd
+ is the daemon that makes decisions, and it logs under the 
+com.apple.TCC
+ subsystem. This is where you find per-request evidence that the database does not keep:
+log show --info --predicate 'subsystem == "com.apple.TCC"' \
+ --start "2026-09-27 00:00:00" --end "2026-09-28 23:59:59" > tcc_log.txt
+On recent releases, request handling messages include the service, the requesting and responsible processes and the resulting decision. The exact message format changes between versions, and some values may be shown as 
+<private>
+. Retention is limited, so collect logs early (see 
+Unified Logs
+). Correlating a TCC request with process execution, quarantine events and a new LaunchAgent (see 
+launchd persistence
+) often produces a clean infection timeline.
+tccutil and evidence destruction
+tccutil reset <service> [bundle-id]
+ removes decisions from the database, for example 
+tccutil reset ScreenCapture com.example.agent
+. Users and IT staff run it legitimately to fix permission problems, and attackers or cleanup scripts may run it to remove traces. A reset deletes rows, so a missing entry is not proof that access was never granted. Look for gaps with the unified log, APFS snapshots, Time Machine backups and the database's own free pages or WAL file. Never run 
+tccutil
+ on a system under investigation before collection.
+Pitfalls
+Schema changes
+: column sets differ between Mojave, Big Sur and current releases. Check 
+.schema
+ before querying and adapt scripts per version.
+Incomplete collection
+: without Full Disk Access, the database copy fails or comes back empty. A missing TCC.db in a triage package is usually a collection problem, not an absence of data.
+Bundle ID versus path
+: an entry keyed on a bundle identifier applies to any program that satisfies the stored 
+csreq
+. Decode and compare the requirement before assuming the binary on disk is the one that was approved.
+Responsible process attribution
+: permissions are often attributed to the responsible app (for example Terminal) rather than the script or binary that actually used them. A grant to Terminal can cover everything launched from it.
+auth_reason interpretation
+: the integer meanings are community-documented, not official. Hedge accordingly in reports.
+Not a usage log
+: TCC.db records decisions and their last change, not each access. Use the unified log and KnowledgeC/Biome for usage (see 
+KnowledgeC and Biome
+).
+Frequently asked questions
+Where are the TCC databases on macOS?
+There is a system-wide database at /Library/Application Support/com.apple.TCC/TCC.db and a per-user database at ~/Library/Application Support/com.apple.TCC/TCC.db for each user. Permissions such as Full Disk Access, Accessibility and Screen Recording are usually stored in the system database, while camera, microphone, contacts and folder access are usually stored per user.
+What does auth_value 2 mean in TCC.db?
+On macOS Big Sur and later, auth_value 2 means the client was allowed access to the service. A value of 0 means denied, and 3 is generally interpreted as limited access. Older releases used an allowed column instead of auth_value.
+Can I read TCC.db without Full Disk Access?
+Generally no. Both databases are protected by TCC itself and the system database is also protected by System Integrity Protection, so the process reading them, for example Terminal or your collection tool, needs Full Disk Access on a live system. On a dead-box image mounted on an analysis machine this restriction does not apply.
+Artifact cheat sheets for this guide
+Apple Notes NoteStore.sqlite: macOS Notes Forensics
+Calendar, Contacts and Reminders Databases on macOS
+Configuration Profiles and MDM: macOS Managed Settings
+iPhone Backups and Pairing Records on a Mac
+Messages chat.db: macOS iMessage and SMS History
+Microsoft Office and Outlook for Mac: MRU and Mailbox Data
+Notification Center Database: macOS Notification History
+Photos.sqlite: macOS Photos Library Metadata
+Screen Sharing and Apple Remote Desktop Artifacts
+TCC.db: macOS Privacy Permission Grants
+On this page
+Where the TCC databases live
+The access table
+auth_value and auth_reason
+Service names worth knowing
+Querying TCC.db
+MDM and PPPC grants
+TCC in the unified log
+tccutil and evidence destruction
+Pitfalls
+Frequently asked questions
+Where are the TCC databases on macOS?
+What does auth_value 2 mean in TCC.db?
+Can I read TCC.db without Full Disk Access?
+Related guides
+06
+ · 
+TCC & Keychain
+macOS Keychain Forensics: Concepts and Metadata
+Understand macOS keychains for DFIR: login and System keychains, the data protection keychain, iCloud Keychain, metadata value and legal limits.
+Sep 28, 2026
+Read guide
+01
+ · 
+Acquisition & Triage
+Apple Silicon Forensics: What M-Series Macs Change
+How Apple Silicon changes Mac forensics: Secure Enclave, always-on storage encryption, Share Disk, boot security policy, SSV and acquisition strategy.
+Sep 28, 2026
+Read guide
+04
+ · 
+User Activity
+knowledgeC.db and Biome: Reconstructing Mac User Activity
+Where knowledgeC.db and Biome store app usage, focus and device state on macOS, how to query ZOBJECT with correct time conversion, and what Biome changed.
+Sep 28, 2026
+Read guide
+mac
+forensics
+An independent field reference for macOS digital forensics and incident response.
+Explore
+Acquisition & Triage
+Unified Logs
+APFS, Snapshots & FSEvents
+User Activity
+Execution & Persistence
+TCC & Keychain
+Site
+Guides
+Artifacts
+Printable cheat sheet
+Glossary
+Tools
+Sitemap
+Contact
+Privacy
+Terms
+RSS
+© 
+2026
+Mac Forensics
+. 
+All rights reserved.
+Independent educational resource. Not affiliated with, endorsed or sponsored by Apple Inc. Mac, macOS, APFS, Safari and Spotlight are trademarks of Apple Inc.

@@ -1,0 +1,13 @@
+{
+  "reuse_modules": 40,
+  "markdown_files": 108,
+  "local_links": 864,
+  "anchor_links": 50,
+  "markdown_tables": 176,
+  "regions": 12,
+  "modules": 40,
+  "diagram_plans": 40,
+  "validation_cases": 27,
+  "validation_coverage": 40,
+  "errors": []
+}

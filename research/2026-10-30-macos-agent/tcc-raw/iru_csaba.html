@@ -1,0 +1,2135 @@
+<!doctype html><html lang="en" data-theme-mode="light" class="Aurelia" hs-group-id="208458121088" hs-cms-theme="Aurelia"><head>
+    <meta charset="utf-8">
+    <meta name="robots" content="index, follow">
+    <meta name="google-site-verification" content="97cFtzdnP0OGihpWImvlAyaNH5HcYMPiFFsXx_ENhCc">
+
+    
+        <!-- DEBUG: Path did NOT match -->
+    
+
+    
+    
+
+    
+
+    <script>function loadScript(t,d="defer",s,n=!1){if(!t.startsWith("http")&&!t.startsWith("https")&&(t=t.startsWith("//")?`https:${t}`:`https://${t}`),document.querySelector(`script[src="${t}"]`)){s&&n&&s();return}const e=document.createElement("script");e.src=t,d==="defer"?e.defer=!0:d==="async"&&(e.async=!0),e.onload=e.onreadystatechange=function(){(!this.readyState||this.readyState==="loaded"||this.readyState==="complete")&&(s&&s(),e.onload=e.onreadystatechange=null)},document.body.appendChild(e)}function loadStylesheet(t,d,s){if(!t.startsWith("http")&&!t.startsWith("https")&&(t=t.startsWith("//")?`https:${t}`:`https://${t}`),document.querySelector(`link[href="${t}"]`))return;const n=document.createElement("link");n.rel="stylesheet",n.type=s||"text/css",n.href=t,d&&(n.media=d),document.head.appendChild(n)}function domReady(t){["interactive","complete"].indexOf(document.readyState)>=0?t():document.addEventListener("DOMContentLoaded",t)}</script>
+
+    
+    <link rel="preload" href="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/fonts/FKGroteskNeue.woff2" as="font" type="font/woff2" crossorigin>
+    <style>@font-face { font-family: "FK Grotesk Neue"; src: url("https://www.iru.com/hubfs/raw_assets/public/IruAurelia/fonts/FKGroteskNeue.woff2") format("woff2"); font-weight: 100 900; font-display: swap; font-style: normal; font-variation-settings: "wght" 100 900, "ital" 0; }</style>
+
+    
+        
+
+
+
+        
+        
+
+        
+        
+        
+
+        
+        <script>
+            function OptanonWrapper(){
+                var _hsq = (window._hsq = window._hsq || []);
+                _hsq.push(['identify', { cookie_consent_marketing: (window.OnetrustActiveGroups||'NADA').split(',').includes('C0004').toString() }]);
+                _hsq.push(['trackPageView']);
+                var u='https%3A%2F%2Fwww.iru.com',c=document.cookie.match(/OptanonConsent=([^;]+)/);if(c){var v=c[1].replace(/landingPath=[^&]*/,'landingPath='+u).replace(/interactionUrl=[^&]*/,'interactionUrl='+u);document.cookie='OptanonConsent='+v+';path=/;max-age=31536000;SameSite=Lax'}document.cookie.includes('li_fat_id=')&&(document.cookie='li_fat_id=;path=/;domain=.iru.com;max-age=0')
+            }
+        </script>
+
+        
+        
+        <script data-ot-ignore>
+            // Optional: only load GTM after user interaction or delay
+            const loadGTM = () => {
+                if (window.gtmDidLoad) return;
+                window.gtmDidLoad = true;
+                const gtmScript = document.createElement('script');
+                gtmScript.defer = true;
+                gtmScript.src = 'https://www.googletagmanager.com/gtm.js?id=GTM-T7GZQ3L';
+                gtmScript.setAttribute('data-ot-ignore', '');
+                gtmScript.setAttribute('class', 'optanon-category-C0001');
+                document.head.appendChild(gtmScript);
+                // Initialize dataLayer
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+            };
+            // Example triggers:
+            window.addEventListener('scroll', loadGTM, { once: true });
+            window.addEventListener('mousemove', loadGTM, { once: true });
+            window.addEventListener('touchstart', loadGTM, { once: true });
+            setTimeout(loadGTM, 3000); // Also fallback after 3s
+        </script>
+        
+        
+
+    
+
+    
+        <title>The Iru Blog | Csaba Fitzl</title> 
+    
+    <meta name="description" content="Principal macOS Security Researcher">
+
+    
+    <link rel="icon" type="image/png" href="https://www.iru.com/hubfs/assets/favicons/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/svg+xml" href="https://www.iru.com/hubfs/assets/favicons/favicon.svg">
+    <link rel="shortcut icon" href="https://www.iru.com/hubfs/assets/favicons/favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="https://www.iru.com/hubfs/assets/favicons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-title" content="Iru">
+    <link rel="manifest" href="https://www.iru.com/hubfs/assets/favicons/site.webmanifest">
+    <meta name="theme-color" content="#ffffff">
+
+    
+    <meta property="og:image" content="https://www.iru.com/hubfs/assets/favicons/og-image.png">
+    
+
+    
+
+    
+    
+
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    
+    <meta property="og:description" content="Principal macOS Security Researcher">
+    <meta property="og:title" content="The Iru Blog | Csaba Fitzl">
+    <meta name="twitter:description" content="Principal macOS Security Researcher">
+    <meta name="twitter:title" content="The Iru Blog | Csaba Fitzl">
+
+    
+
+    
+
+    <style>
+a.cta_button{-moz-box-sizing:content-box !important;-webkit-box-sizing:content-box !important;box-sizing:content-box !important;vertical-align:middle}.hs-breadcrumb-menu{list-style-type:none;margin:0px 0px 0px 0px;padding:0px 0px 0px 0px}.hs-breadcrumb-menu-item{float:left;padding:10px 0px 10px 10px}.hs-breadcrumb-menu-divider:before{content:'›';padding-left:10px}.hs-featured-image-link{border:0}.hs-featured-image{float:right;margin:0 0 20px 20px;max-width:50%}@media (max-width: 568px){.hs-featured-image{float:none;margin:0;width:100%;max-width:100%}}.hs-screen-reader-text{clip:rect(1px, 1px, 1px, 1px);height:1px;overflow:hidden;position:absolute !important;width:1px}
+</style>
+
+
+    <style>
+        #hs_cos_wrapper_blog_search div {
+            height: auto;
+        }
+    </style>
+
+<link rel="stylesheet" href="https://www.iru.com/hubfs/hub_generated/template_assets/1/198168002050/1793123455857/template_iru.main.min.css">
+<link rel="stylesheet" href="https://www.iru.com/hubfs/hub_generated/module_assets/1/212083345753/1780088477084/module__search-bar.min.css">
+
+    
+
+
+    
+
+<meta name="google-site-verification" content="97cFtzdnP0OGihpWImvlAyaNH5HcYMPiFFsXx_ENhCc">
+
+
+  <!-- DEBUG: Path did NOT match -->
+
+
+<meta property="og:url" content="https://www.iru.com/blog/author/csaba-fitzl">
+<meta property="og:type" content="blog">
+<meta name="twitter:card" content="summary">
+<link rel="alternate" type="application/rss+xml" href="https://www.iru.com/blog/rss.xml">
+<meta name="twitter:domain" content="www.iru.com">
+
+<meta http-equiv="content-language" content="en">
+<link rel="alternate" hreflang="en" href="https://www.iru.com/blog/author/csaba-fitzl">
+<link rel="alternate" hreflang="ja" href="https://www.iru.com/ja/blog/author/csaba-fitzl">
+<link rel="alternate" hreflang="ko" href="https://www.iru.com/ko/blog/author/csaba-fitzl">
+
+
+
+
+
+
+
+    <script type="speculationrules">
+      {"prefetch":[{"eagerness":"moderate","source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":"/*.zip"}},{"not":{"href_matches":"/*.pdf"}},{"not":{"selector_matches":".no-prefetch"}}]}}],"prerender":[{"eagerness":"conservative","source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"selector_matches":".no-prerender"}}]}}]}
+    </script>
+<meta name="generator" content="HubSpot"></head>
+
+<body class="font-sans relative text-terminal bg-cursor ">
+    
+    <a href="#main-content" class="header__skip sr-only">Skip to content</a>
+
+    <div class="body-wrapper min-h-screen flex flex-col w-full relative z-50">
+        
+        <div data-global-resource-path="IruAurelia/templates/partials/header.html">
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div id="header-wrapper" x-data="globalHeader" :style="fixed ? ('height:' + h + 'px') : null">
+
+    <!-- カンジーいる -->
+
+    <div id="iru-header" x-ref="hdr" class="will-change-transform z-[1000]" :class="fixed ? 'fixed top-0 left-0 right-0 w-full' : 'relative'" :style="'transform:translateY(-' + Math.round(offset) + 'px);'" @mouseenter="hoverLock = true; targetOffset = 0" @mouseleave="hoverLock = false" data-theme-mode="light">
+
+        
+        <div role="alert" class="select-none h-10.5 flex justify-center items-center w-full text-cursor bg-terminal" id="notification-banner">
+            <p class="text-sm text-center p-0 m-0">
+                <a href="https://www.iru.com/december-9" class="px-4 py-1 group inline-flex items-center gap-2">
+                    <span>Tune in to the Iru Launch Event on December 9</span>
+                    <svg class="size-4 transition-all group-hover:translate-x-1.5" aria-hidden="true" width="16" height="16" viewbox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 19L19 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /><path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                </a>
+            </p>
+        </div>
+        
+
+        <header class="select-none" role="banner" aria-labelledby="header-heading">
+            <div id="header-heading" class="sr-only">Site Header</div>
+
+            <div class="relative z-10 text-terminal bg-cursor transition-colors duration-300 border-b border-current/10" :class="fixed ? 'backdrop-blur-[19px] bg-cursor/50 shadow-[0_4px_30px_rgba(0,0,0,0.06)]' : ''">
+                <nav aria-label="Global" class="max-w-9xl mx-auto px-4 lg:px-8 py-4 flex justify-between items-center">
+                    
+                    <div class="w-20 md:w-26 shrink-0 flex-1 flex items-center">
+                        <a href="/" class="inline-flex items-center justify-center text-terminal">
+                            
+                            <svg x-ref="logo_iru_svg" class="block transition-all my-0 shrink-0 w-auto h-7.5 sm:h-10 mr-1 sm:mr-1.5" x-effect="$el.style.width = ((inSafeZone || atTop) ? (window.innerWidth >= 640 ? 59 : 45) : 0) + 'px'" @resize.window="$el.style.width = ((inSafeZone || atTop) ? (window.innerWidth >= 640 ? 59 : 45) : 0) + 'px'" aria-hidden="true" width="59" height="40" viewbox="0 0 151 102" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M0 1.49518V15.9237C0 16.7494 0.669413 17.4188 1.49518 17.4188H16.5243C17.3501 17.4188 18.0195 16.7494 18.0195 15.9237V1.49518C18.0195 0.669413 17.3501 0 16.5243 0H1.49518C0.669413 0 0 0.669414 0 1.49518Z" />
+                                <path d="M1.49517 99.676C0.66941 99.676 0 99.0066 0 98.1808V23.6124C0 22.7866 0.669413 22.1172 1.49518 22.1172H16.2991C17.1248 22.1172 17.7942 22.7866 17.7942 23.6124V98.1808C17.7942 99.0066 17.1248 99.676 16.2991 99.676H1.49517Z" />
+                                <path d="M28.2696 99.6788C27.4438 99.6788 26.7744 99.0094 26.7744 98.1837V23.6152C26.7744 22.7894 27.4438 22.12 28.2696 22.12H42.3977C43.2235 22.12 43.8929 22.7894 43.8929 23.6152V32.6283C43.8929 33.1276 44.2977 33.5323 44.7969 33.5323C45.1593 33.5323 45.4854 33.3153 45.6346 32.9851C48.8497 25.8695 55.2198 20.1074 69.6542 21.2457C70.4173 21.3058 70.9972 21.9504 70.9972 22.7159V34.6927C70.9972 35.5917 70.2074 36.2851 69.3124 36.2003C54.5418 34.8001 44.5687 39.9317 44.5687 58.3842V98.1837C44.5687 99.0094 43.8992 99.6788 43.0735 99.6788H28.2696Z" />
+                                <path d="M149.062 21.916C149.888 21.916 150.557 22.5854 150.557 23.4112V97.9797C150.557 98.8055 149.888 99.4749 149.062 99.4749H134.934C134.108 99.4749 133.439 98.8055 133.439 97.9797V90.4429C133.439 89.9161 133.012 89.4891 132.485 89.4891C132.146 89.4891 131.834 89.6693 131.656 89.9579C128.865 94.4713 122.424 101.127 108.137 101.127C90.943 101.127 79.7559 91.5163 79.7559 73.4217V23.4112C79.7559 22.5854 80.4253 21.916 81.251 21.916H96.0549C96.8807 21.916 97.5501 22.5854 97.5501 23.4112V72.3706C97.5501 82.8068 103.707 87.6871 113.017 87.6871C123.603 87.6871 132.763 81.2301 132.763 66.6644V23.4112C132.763 22.5854 133.433 21.916 134.258 21.916H149.062Z" />
+                            </svg>
+                            <img src="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo.png?width=80&amp;height=80&amp;name=iru-logo.png" class="block my-0 shrink-0 size-8 sm:size-10.5" width="80" height="80" loading="eager" alt="Iru Logo" srcset="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo.png?width=40&amp;height=40&amp;name=iru-logo.png 40w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo.png?width=80&amp;height=80&amp;name=iru-logo.png 80w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo.png?width=120&amp;height=120&amp;name=iru-logo.png 120w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo.png?width=160&amp;height=160&amp;name=iru-logo.png 160w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo.png?width=200&amp;height=200&amp;name=iru-logo.png 200w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo.png?width=240&amp;height=240&amp;name=iru-logo.png 240w" sizes="(max-width: 80px) 100vw, 80px">
+                            
+                        </a>
+                    </div>
+                    
+                    <ul class="hidden lg:flex gap-6 [&amp;_a]:cursor-pointer">
+                        
+                        <li x-data="{ open: false }" @mouseleave="open = false">
+                            <div class="px-3 py-6 leading-0 transition-all hover:opacity-80 font-medium text-sm cursor-pointer" @mouseover="open = true" @click="open=!open">Products</div>
+                            <div class="inset-x-0 absolute z-10" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-3" x-cloak x-show="open" style="display: none;">
+                                <div class="max-w-[1240px] mx-auto text-sm p-6 rounded-2xl shadow-2xl text-terminal bg-cursor" @mouseleave="open = false" @click.outside="open = false">
+                                    <div class="grid grid-cols-4 gap-6">
+                                        <div class="flex flex-col gap-6">
+                                            <div class="productNavItemHero">
+                                                <div class="mb-4">
+                                                    <img src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/bg-cards/endpoint.png" alt="Endpoint" loading="eager" class="w-full h-auto">
+                                                </div>
+                                                <a href="/products/endpoint" class="flex items-center gap-1 group font-medium">
+                                                    Endpoint
+                                                    <svg class="size-4 transition-all group-hover:translate-x-1.5" width="20" height="20" viewbox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M5 10H15M15 10L11 6M15 10L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </a>
+                                                <p class="mt-2 text-sm opacity-60 text-pretty">Manage every device with one lightweight agent</p>
+                                            </div>
+                                            <ul class="productNavItemSubItems list-none mb-0">
+                                                <li>
+                                                    <a href="/products/endpoint/endpoint-management" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                                        <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/laptop-icon.png" alt="Endpoint Management Icon" loading="eager">
+                                                        Endpoint Management
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="/products/endpoint/endpoint-detection-response" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                                        <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/radar-icon.png" alt="Endpoint Detection &amp; Response Icon" loading="eager">
+                                                        Endpoint Detection &amp; Response
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="/products/endpoint/vulnerability-management" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                                        <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/triangle-icon.png" alt="Vulnerability Management Icon" loading="eager">
+                                                        Vulnerability Management
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="flex flex-col gap-6">
+                                            <div class="productNavItemHero">
+                                                <div class="mb-4">
+                                                    <img src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/bg-cards/identity.png" alt="Identity" loading="eager" class="w-full h-auto">
+                                                </div>
+                                                <a href="/products/identity" class="flex items-center gap-1 group font-medium">
+                                                    Identity
+                                                    <svg class="size-4 transition-all group-hover:translate-x-1.5" width="20" height="20" viewbox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M5 10H15M15 10L11 6M15 10L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </a>
+                                                <p class="mt-2 text-sm opacity-60 text-pretty">Passwordless access that adapts to every context</p>
+                                            </div>
+                                            <ul class="productNavItemSubItems list-none mb-0">
+                                                <li>
+                                                    <a href="/products/identity" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                                        <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/indentity-icon.png" alt="Workforce Identity Icon" loading="eager">
+                                                        Workforce Identity
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="flex flex-col gap-6">
+                                            <div class="productNavItemHero">
+                                                <div class="mb-4">
+                                                    <img src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/bg-cards/compliance.png" alt="Compliance" loading="eager" class="w-full h-auto">
+                                                </div>
+                                                <a href="/products/compliance" class="flex items-center gap-1 group font-medium">
+                                                    Compliance
+                                                    <svg class="size-4 transition-all group-hover:translate-x-1.5" width="20" height="20" viewbox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M5 10H15M15 10L11 6M15 10L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </a>
+                                                <p class="mt-2 text-sm opacity-60">Stay audit-ready with continuous evidence collection</p>
+                                            </div>
+                                            <ul class="productNavItemSubItems list-none mb-0">
+                                                <li>
+                                                    <a href="/products/compliance/compliance-automation" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                                        <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/checklist-icon.png" alt="Compliance Automation Icon" loading="eager">
+                                                        Compliance Automation
+                                                    </a>
+                                                </li>
+                                                <li>
+                                                    <a href="/products/compliance/trust-center" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                                        <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/world-icon.png" alt="Trust Center Icon" loading="eager">
+                                                        Trust Center
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="productNavItemHero">
+                                            <div class="mb-4">
+                                                <img src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/bg-cards/iru-ai.png" alt="Iru AI" loading="eager" class="w-full h-auto">
+                                            </div>
+                                            <a href="/iru-ai" class="flex items-center gap-1 group font-medium">
+                                                Iru AI
+                                                <svg class="size-4 transition-all group-hover:translate-x-1.5" width="20" height="20" viewbox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M5 10H15M15 10L11 6M15 10L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                                </svg>
+                                            </a>
+                                            <p class="mt-2 text-sm opacity-60 text-pretty">Automating compliance, insights, and actions from a single interface.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+
+                        
+                        <li x-data="{ open: false }" @mouseleave="open = false">
+                            <div class="px-3 py-6 leading-0 transition-all hover:opacity-80 font-medium text-sm cursor-pointer" @mouseover="open = true" @click="open=!open">Solutions</div>
+                            <div class="inset-x-0 absolute z-10" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-3" x-cloak x-show="open" style="display: none;">
+                                <div class="max-w-185 mx-auto text-sm p-6 rounded-2xl shadow-2xl text-terminal bg-cursor" @mouseleave="open = false" @click.outside="open = false">
+                                    <div class="grid grid-cols-[minmax(0,220px)_minmax(0,220px)_minmax(0,220px)] gap-10"> 
+                                        
+                                        <div class="flex flex-col gap-6 w-full shrink">
+                                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                                            By device
+                                        </span>
+                                            <ul class="p-0 mb-0">
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/solutions/mac">
+                                                        Mac
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/solutions/windows">
+                                                        Windows
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a href="/solutions/iphone-ipad" class="text-sm font-medium transition-all hover:opacity-60">
+                                                        iPhone &amp; iPad
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a href="https://www.iru.com/solutions/linux" class="text-sm font-medium transition-all hover:opacity-60">
+                                                        Linux
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/solutions/android">
+                                                        Android
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a href="/solutions/tvos" class="text-sm font-medium transition-all hover:opacity-60">
+                                                        Apple TV
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a href="/solutions/apple-vision" class="text-sm font-medium transition-all hover:opacity-60">
+                                                        Vision Pro
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <div class="flex flex-col gap-6 w-full shrink">
+                                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                                            By use case
+                                        </span>
+
+                                            <ul class="p-0 mb-0">
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/use-cases/zero-touch-deployment">
+                                                        Zero-touch deployment
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/use-cases/automate-patching/">
+                                                        Automated patching
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/use-cases/secure-your-endpoints">
+                                                        Secure endpoints
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/use-cases/improve-worker-experience">
+                                                        Improve worker experience
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/use-cases/automate-it-operations">
+                                                        Automate IT operations
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/use-cases/config-as-code">
+                                                        Configuration-as-code
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/use-cases/mcp">
+                                                        Build with MCP
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="/use-cases/msp">
+                                                        Iru for MSPs
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <div class="flex flex-col gap-6 w-full shrink">
+                                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                                            By size
+                                        </span>
+
+                                            <ul class="p-0 mb-0">
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="https://www.iru.com/use-cases/startups">
+                                                        Startups
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="https://www.iru.com/use-cases/growth">
+                                                        Growing teams
+                                                    </a>
+                                                </li>
+                                                <li class="mb-4">
+                                                    <a class="text-sm font-medium transition-all hover:opacity-60" href="https://www.iru.com/use-cases/enterprise">
+                                                        Enterprise
+                                                    </a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </li>
+
+                        
+                        <li x-data="{ open: false }" @mouseleave="open = false">
+                            <div class="px-3 py-6 leading-0 transition-all hover:opacity-80 font-medium text-sm cursor-pointer" @mouseover="open = true" @click="open=!open">Resources</div>
+                            <div class="inset-x-0 absolute z-10" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-3" x-cloak x-show="open" style="display: none;">
+                                <div class="flex max-w-284 mx-auto rounded-2xl overflow-hidden shadow-2xl text-terminal bg-cursor" @mouseleave="open = false" @click.outside="open = false">
+                                    <div class="flex-1 min-w-0 text-sm p-6">
+                                        <div class="grid grid-cols-[minmax(0,232px)_minmax(0,232px)_minmax(0,232px)] gap-10"> 
+                                            
+                                            <div class="flex flex-col gap-6 w-full">
+                                                <span class="py-2 border-b opacity-60 border-b-current/10">
+                                                    Learn &amp; Connect
+                                                </span>
+
+                                                <ul class="p-0 mb-0">
+                                                    <li class="group mb-6">
+                                                        <a class="flex flex-col gap-1 text-sm transition-all group-hover:opacity-60" href="/blog">
+                                                            <span class="font-medium">Iru Blog</span>
+                                                            <span class="font-normal opacity-60">Updates, research, and how-tos</span>
+                                                        </a>
+                                                    </li>
+                                                    <li class="group mb-6">
+                                                        <a class="flex flex-col gap-1 text-sm transition-all group-hover:opacity-60" href="/events">
+                                                            <span class="font-medium">Events</span>
+                                                            <span class="font-normal opacity-60">Live and on-demand events</span>
+                                                        </a>
+                                                    </li>
+
+                                                    <li class="group mb-6">
+                                                        <a class="flex flex-col gap-1 text-sm transition-all group-hover:opacity-60" href="/podcast">
+                                                            <span class="font-medium">Podcast: Patch Me If You Can</span>
+                                                            <span class="font-normal opacity-60">For builders in IT and security</span>
+                                                        </a>
+                                                    </li>
+
+                                                    <li class="group mb-6">
+                                                        <a class="flex flex-col gap-1 text-sm transition-all group-hover:opacity-60" href="/endpoint">
+                                                            <span class="font-medium">Endpoint Learning Hub</span>
+                                                            <span class="font-normal opacity-60">Guides, resources, best practices</span>
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+
+                                            
+                                            <div class="flex flex-col gap-6 w-full">
+                                                <span class="py-2 border-b opacity-60 border-b-current/10">
+                                                    Why Iru?
+                                                </span>
+
+                                                <ul class="p-0 mb-0">
+                                                    <li class="mb-4">
+                                                        <a href="/resources/customer-stories" class="text-sm font-medium transition-all hover:opacity-60"> Customer Stories</a>
+                                                    </li>
+
+                                                    
+                                                    <li class="mb-4">
+                                                        <a href="/compare" class="text-sm font-medium transition-all hover:opacity-60">Compare Iru</a>
+                                                    </li>
+
+                                                    <li class="mb-4">
+                                                        <a href="/reviews" class="text-sm font-medium transition-all hover:opacity-60"> Wall of Love</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+
+                                            
+                                            <div class="flex flex-col gap-6 w-full">
+                                                <span class="py-2 border-b opacity-60 border-b-current/10">
+                                                     Support
+                                                </span>
+
+                                                <ul class="p-0 mb-0">
+                                                    <li class="mb-4">
+                                                        <a href="https://docs.iru.com/" class="text-sm font-medium transition-all hover:opacity-60">Support Docs</a>
+                                                    </li>
+
+                                                    <li class="mb-4">
+                                                        <a href="https://api-docs.iru.com/" class="text-sm font-medium transition-all hover:opacity-60"> API Documentation</a>
+                                                    </li>
+
+                                                    <li class="mb-4">
+                                                        <a href="/academy" class="text-sm font-medium transition-all hover:opacity-60">Iru Academy</a>
+                                                    </li>
+
+                                                    <li class="mb-4">
+                                                        <a href="/updates/" class="text-sm font-medium transition-all hover:opacity-60">Product Updates</a>
+                                                    </li>
+
+                                                    <li class="mb-4">
+                                                        <a href="/security" class="text-sm font-medium transition-all hover:opacity-60">Security</a>
+                                                    </li>
+                                                    <li class="mb-4">
+                                                        <a href="https://www.iru.com/integrations" class="text-sm font-medium transition-all hover:opacity-60">Integrations</a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    
+                                    <a href="/watch-demo" class="group bg-[#f5f5f5] px-7 pt-6 pb-14 shrink-0 w-[320px] text-sm block">
+                                        <div class="flex flex-col">
+                                            <span class="opacity-60 py-2">
+                                                Watch a Demo
+                                            </span>
+                                            <img class="pt-1 mb-4 w-full h-auto rounded-lg" src="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-desktop-visual.png?width=262&amp;height=143&amp;name=nav-resources-desktop-visual.png" alt="Watch a demo visual" width="262" height="143" srcset="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-desktop-visual.png?width=131&amp;height=72&amp;name=nav-resources-desktop-visual.png 131w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-desktop-visual.png?width=262&amp;height=143&amp;name=nav-resources-desktop-visual.png 262w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-desktop-visual.png?width=393&amp;height=215&amp;name=nav-resources-desktop-visual.png 393w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-desktop-visual.png?width=524&amp;height=286&amp;name=nav-resources-desktop-visual.png 524w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-desktop-visual.png?width=655&amp;height=358&amp;name=nav-resources-desktop-visual.png 655w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-desktop-visual.png?width=786&amp;height=429&amp;name=nav-resources-desktop-visual.png 786w" sizes="(max-width: 262px) 100vw, 262px">
+                                            <span class="font-medium group-hover:opacity-60 ">
+                                                See Iru in action
+                                            </span>
+                                            <span class="block font-normal mt-3 group-hover:opacity-60">
+                                                Get a guided walkthrough of how Iru simplifies data management, connects your systems, and helps your team move faster.
+                                            </span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li x-data="{ open: false }" @mouseleave="open = false">
+                            <div class="px-3 py-6 leading-0 transition-all hover:opacity-80 font-medium text-sm cursor-pointer" @mouseover="open = true" @click="open=!open">Company</div>
+                            <div class="inset-x-0 absolute z-10" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-3" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-3" x-cloak x-show="open" style="display: none;">
+                                <div class="flex gap-10 max-w-[592px] mx-auto rounded-2xl overflow-hidden shadow-2xl text-terminal bg-cursor" @mouseleave="open = false" @click.outside="open = false">
+                                    <div class="flex flex-col gap-6 w-[232px] text-sm p-6">
+                                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                                            Company
+                                        </span>
+
+                                        <ul class="p-0 mb-0">
+                                            <li class="mb-4">
+                                                <a href="/company/about" class="text-sm font-medium transition-all hover:opacity-60">About Iru</a>
+                                            </li>
+                                            <li class="mb-4">
+                                                <a href="/company/careers" class="text-sm font-medium transition-all hover:opacity-60">Careers</a>
+                                            </li>
+                                            <li class="mb-4">
+                                                <a href="/contact" class="text-sm font-medium transition-all hover:opacity-60">Contact</a>
+                                            </li>
+                                        </ul>
+                                    </div>
+
+                                    
+                                    <a href="/industry/msp" class="group bg-[#f5f5f5] px-7 pt-6 pb-14 max-w-[320px] w-full text-sm block">
+                                        <div class="flex flex-col">
+                                            <span class="opacity-60 py-2">
+                                                Watch a Demo
+                                            </span>
+                                            <div class="pt-1 mb-4">
+                                            <div class="">
+                                                <div class="w-full rounded-lg overflow-hidden relative">
+                                                    <video loop autoplay poster="https://www.iru.com/hubfs/assets/iru-motions/intro-iru-poster.png" preload="auto" muted playsinline="" aria-label="Our new united platform" class="w-full h-auto object-cover aspect-video ">
+                                                        <source type="video/webm" src="https://www.iru.com/hubfs/assets/iru-motions/intro-iru.webm">
+                                                    </video>
+                                                </div>
+                                            </div>
+                                        </div>
+                                            <span class="font-medium group-hover:opacity-60 ">
+                                                Introducing Iru
+                                            </span>
+                                            <span class="block font-normal mt-3 group-hover:opacity-60 transition-opacity">
+                                                Our new united platform
+                                            </span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <a class="block px-3 py-6 leading-0 transition-all hover:opacity-80 font-medium text-sm" href="/pricing">Pricing</a>
+                        </li>
+                    </ul>
+
+                    
+                    <div class="flex-1 flex justify-end items-center gap-4">
+                        <a href="/login" class="btn btn--ghost hidden md:flex">Login</a>
+                        <a href="/request-demo" class="btn btn--primary">Book a demo</a>
+                    </div>
+
+                    <button class="p-2.5 pr-1.5 md:pr-2.5 lg:hidden cursor-pointer ml-3" @click="drawer = true">
+                        <svg class="size-6" width="24" height="24" viewbox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 5H20" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M4 12H20" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                            <path d="M4 19H20" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                        </svg>
+                        <span class="sr-only">Open main menu</span>
+                    </button>
+
+                </nav>
+            </div>
+
+
+            
+
+        </header>
+
+    </div>
+
+    
+    <div class="drawer flex flex-col lg:hidden! fixed inset-0 z-[1050] h-dvh text-terminal bg-cursor backdrop-blur-lg bg-cursor/80" x-cloak x-show="drawer" style="display: none" @click.away="drawer = false">
+
+        <div class="flex items-center justify-between p-4">
+            <div class="w-20 md:w-26 shrink-0">
+                <a href="/">
+                    <img src="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo-dark.png?width=200&amp;height=74&amp;name=iru-logo-dark.png" class="h-auto w-20 md:w-26" width="200" height="74" alt="Iru logo" srcset="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo-dark.png?width=100&amp;height=37&amp;name=iru-logo-dark.png 100w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo-dark.png?width=200&amp;height=74&amp;name=iru-logo-dark.png 200w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo-dark.png?width=300&amp;height=111&amp;name=iru-logo-dark.png 300w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo-dark.png?width=400&amp;height=148&amp;name=iru-logo-dark.png 400w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo-dark.png?width=500&amp;height=185&amp;name=iru-logo-dark.png 500w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/iru-logo-dark.png?width=600&amp;height=222&amp;name=iru-logo-dark.png 600w" sizes="(max-width: 200px) 100vw, 200px">
+                    <span class="sr-only">Iru logo</span>
+                </a>
+            </div>
+            <button class="p-2.5 pr-1.5 md:pr-2.5 lg:hidden cursor-pointer" @click="drawer = false">
+                <svg class="size-6" width="24" height="24" viewbox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <span class="sr-only">Close main menu</span>
+            </button>
+        </div>
+
+        <div class="relative grow flex flex-col justify-between gap-8 overflow-y-auto" x-data="{ open: false }" @click.outside="open = false">
+            <nav aria-label="Mobile" class="px-4 py-6 flex flex-col gap-6">
+                
+                <div class="leading-tight flex w-full items-center justify-between py-2 font-medium text-xl cursor-pointer" @click="open='products'">
+                    Products
+                    <svg class="size-4 md:size-5 shrink-0" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <div class="leading-tight flex w-full items-center justify-between py-2 font-medium text-xl cursor-pointer" @click="open='solutions'">
+                    Solutions
+                    <svg class="size-4 md:size-5 shrink-0" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <div class="leading-tight flex w-full items-center justify-between py-2 font-medium text-xl cursor-pointer" @click="open='resources'">
+                    Resources
+                    <svg class="size-4 md:size-5 shrink-0" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <div class="leading-tight flex w-full items-center justify-between py-2 font-medium text-xl cursor-pointer" @click="open='company'">
+                    Company
+                    <svg class="size-4 md:size-5 shrink-0" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <a href="/pricing" class="leading-tight flex w-full items-center justify-between py-2 font-medium text-xl">Pricing</a>
+            </nav>
+
+            <div class="px-4 py-6 flex flex-col gap-4">
+                <a href="/login" class="btn w-full flex btn--ghost">Login</a>
+                <a href="/request-demo" class="btn w-full flex btn--primary">Book a demo</a>
+            </div>
+
+            <div class="absolute inset-0 z-50 overflow-auto px-4 pt-4 pb-8 bg-cursor" x-cloak x-show="open==='products'" style="display: none;">
+                <div class="leading-tight flex gap-3 w-full items-center py-2 font-medium text-base cursor-pointer" @click="open=false">
+                    <svg class="size-4 shrink-0" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Products
+                </div>
+                <div class="mt-4 pt-4 border-t border-current/10">
+                    <div class="productNavItemHero">
+                        <a href="/products/identity" class="flex items-center gap-1 group font-medium">
+                            Identity
+                            <svg class="size-4" width="20" height="20" viewbox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 10H15M15 10L11 6M15 10L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </a>
+                        <p class="mt-2 text-sm opacity-60">Passwordless access that adapts to every context</p>
+                    </div>
+                    <ul class="productNavItemSubItems list-none mt-4 mb-0">
+                        <li>
+                            <a href="/products/identity" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/indentity-icon.png" alt="Workforce Identity Icon" loading="eager">
+                                Workforce Identity
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="productNavItemHero mt-6 pt-4 border-t border-current/10">
+                        <a href="/products/endpoint" class="flex items-center gap-1 group font-medium">
+                            Endpoint
+                            <svg class="size-4" width="20" height="20" viewbox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 10H15M15 10L11 6M15 10L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </a>
+                        <p class="mt-2 text-sm opacity-60">Manage every device with one lightweight agent</p>
+                    </div>
+                    <ul class="productNavItemSubItems list-none mt-4 mb-0">
+                        <li>
+                            <a href="/products/endpoint/endpoint-management" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/laptop-icon.png" alt="Endpoint Management Icon" loading="eager">
+                                Endpoint Management
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/products/endpoint/endpoint-detection-response" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/radar-icon.png" alt="Endpoint Detection &amp; Response Icon" loading="eager">
+                                Endpoint Detection &amp; Response
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/products/endpoint/vulnerability-management" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/triangle-icon.png" alt="Vulnerability Management Icon" loading="eager">
+                                Vulnerability Management
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="productNavItemHero mt-6 pt-4 border-t border-current/10">
+                        <a href="/products/compliance" class="flex items-center gap-1 group font-medium">
+                            Compliance
+                            <svg class="size-4" width="20" height="20" viewbox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 10H15M15 10L11 6M15 10L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </a>
+                        <p class="mt-2 text-sm opacity-60">Stay audit-ready with continuous evidence collection</p>
+                    </div>
+                    <ul class="productNavItemSubItems list-none mt-4 mb-0">
+                        <li>
+                            <a href="/products/compliance/compliance-automation" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/checklist-icon.png" alt="Compliance Automation Icon" loading="eager">
+                                Compliance Automation
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/products/compliance/trust-center" class="flex items-center gap-2 font-medium transition-all hover:opacity-60">
+                                <img class="size-11.5" src="https://www.iru.com/hubfs/raw_assets/public/IruAurelia/images/icons/world-icon.png" alt="Trust Center Icon" loading="eager">
+                                Trust Center
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="productNavItemHero mt-6 pt-4 border-t border-current/10">
+                        <a href="/iru-ai" class="flex items-center gap-1 group font-medium">
+                            Iru AI
+                            <svg class="size-4" width="20" height="20" viewbox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M5 10H15M15 10L11 6M15 10L11 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </a>
+                        <p class="mt-2 text-sm opacity-60">Automating compliance, insights, and actions from a single interface.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute inset-0 z-50 overflow-auto px-4 pt-4 pb-8 bg-cursor" x-cloak x-show="open==='solutions'" style="display: none;">
+                <div class="leading-tight flex gap-3 w-full items-center py-2 font-medium text-base cursor-pointer" @click="open=false">
+                    <svg class="size-4 shrink-0" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Solutions
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-current/10">
+                    
+                    <div class="flex flex-col gap-6">
+                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                            By device
+                        </span>
+
+                        <ul class="p-0 mb-0">
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/solutions/mac">
+                                    Mac
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/solutions/windows">
+                                    Windows
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/solutions/iphone-ipad">
+                                    iPhone &amp; iPad
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="https://www.iru.com/solutions/linux">
+                                    Linux
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/solutions/android">
+                                    Android
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/solutions/tvos">
+                                    Apple TV
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/solutions/apple-vision">
+                                    Vision Pro
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="flex flex-col gap-6">
+                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                            By use case
+                        </span>
+
+                        <ul class="p-0 mb-0">
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/use-cases/zero-touch-deployment">
+                                    Zero-touch deployment
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/use-cases/automate-patching/">
+                                    Automated patching
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/use-cases/secure-your-endpoints">
+                                    Secure endpoints
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/use-cases/improve-worker-experience">
+                                    Improve worker experience
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/use-cases/automate-it-operations">
+                                    Automate IT operations
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/use-cases/config-as-code">
+                                    Configuration-as-code
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/use-cases/mcp">
+                                    Build with MCP
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="/use-cases/msp">
+                                    Iru for MSPs
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="flex flex-col gap-6">
+                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                            By size
+                        </span>
+
+                        <ul class="p-0 mb-0">
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="https://www.iru.com/use-cases/startups">
+                                    Startups
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="https://www.iru.com/use-cases/growth">
+                                    Growing teams
+                                </a>
+                            </li>
+                            <li class="mb-4">
+                                <a class="font-medium transition-all hover:opacity-60" href="https://www.iru.com/use-cases/enterprise">
+                                    Enterprise
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute inset-0 z-50 overflow-auto px-4 pt-4 pb-8 bg-cursor" x-cloak x-show="open==='resources'" style="display: none;">
+                <div class="leading-tight flex gap-3 w-full items-center py-2 font-medium text-xl cursor-pointer" @click="open=false">
+                    <svg class="size-4 shrink-0" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Resources
+                </div>
+
+                <div class="mt-4 pt-4 border-t border-current/10">
+                    <a href="/watch-demo" class="group block max-w-170 mb-7 sm:py-6 sm:grid sm:grid-cols-2 sm:gap-8 sm:items-start">
+                        <div>
+                            <span class="block text-xl font-medium group-hover:opacity-60 ">See Iru in action</span>
+                            <span class="block text-sm mt-2 group-hover:opacity-60">
+                                Get a guided walkthrough of how Iru simplifies data management, connects your systems, and helps your team move faster.
+                            </span>
+                        </div>
+                        <img class="block sm:hidden w-full max-h-[90px] object-cover mt-3 rounded-xl" src="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-mobile-visual.png?width=343&amp;height=90&amp;name=nav-resources-mobile-visual.png" alt="" width="343" height="90" srcset="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-mobile-visual.png?width=172&amp;height=45&amp;name=nav-resources-mobile-visual.png 172w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-mobile-visual.png?width=343&amp;height=90&amp;name=nav-resources-mobile-visual.png 343w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-mobile-visual.png?width=515&amp;height=135&amp;name=nav-resources-mobile-visual.png 515w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-mobile-visual.png?width=686&amp;height=180&amp;name=nav-resources-mobile-visual.png 686w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-mobile-visual.png?width=858&amp;height=225&amp;name=nav-resources-mobile-visual.png 858w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-mobile-visual.png?width=1029&amp;height=270&amp;name=nav-resources-mobile-visual.png 1029w" sizes="(max-width: 343px) 100vw, 343px">
+                        <img class="hidden sm:block w-full h-auto rounded-xl" src="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-tablet-visual.png?width=219&amp;height=141&amp;name=nav-resources-tablet-visual.png" alt="" width="219" height="141" srcset="https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-tablet-visual.png?width=110&amp;height=71&amp;name=nav-resources-tablet-visual.png 110w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-tablet-visual.png?width=219&amp;height=141&amp;name=nav-resources-tablet-visual.png 219w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-tablet-visual.png?width=329&amp;height=212&amp;name=nav-resources-tablet-visual.png 329w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-tablet-visual.png?width=438&amp;height=282&amp;name=nav-resources-tablet-visual.png 438w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-tablet-visual.png?width=548&amp;height=353&amp;name=nav-resources-tablet-visual.png 548w, https://www.iru.com/hs-fs/hubfs/raw_assets/public/IruAurelia/images/nav-ctas/nav-resources-tablet-visual.png?width=657&amp;height=423&amp;name=nav-resources-tablet-visual.png 657w" sizes="(max-width: 219px) 100vw, 219px">
+                    </a>
+
+                    <div class="flex flex-col gap-6">
+                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                            Learn &amp; Connect
+                        </span>
+
+                        <ul class="p-0 mb-0">
+                            <li class="group mb-6">
+                                <a class="flex flex-col gap-1 transition-all group-hover:opacity-60" href="/blog">
+                                    <span class="text-base font-medium">Iru Blog</span>
+                                    <span class="font-normal opacity-60 text-sm">Updates, research, and how-tos</span>
+                                </a>
+                            </li>
+                            <li class="group mb-6">
+                                <a class="flex flex-col gap-1 transition-all group-hover:opacity-60" href="/events">
+                                    <span class="text-base font-medium">Events</span>
+                                    <span class="font-normal opacity-60 text-sm">Live and on-demand events</span>
+                                </a>
+                            </li>
+                            <li class="group mb-6">
+                                <a class="flex flex-col gap-1 transition-all group-hover:opacity-60" href="/podcast">
+                                    <span class="text-base font-medium">Podcast: Patch Me If You Can</span>
+                                    <span class="font-normal opacity-60 text-sm">For builders in IT and security</span>
+                                </a>
+                            </li>
+                            <li class="group mb-6">
+                                <a class="flex flex-col gap-1 transition-all group-hover:opacity-60" href="/endpoint">
+                                    <span class="text-base font-medium">Endpoint Learning Hub</span>
+                                    <span class="font-normal opacity-60 text-sm">Guides, resources, best practices</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="flex flex-col gap-6">
+                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                            Why Iru?
+                        </span>
+
+                        <ul class="p-0 mb-0">
+                            <li class="mb-4">
+                                <a href="/resources/customer-stories" class="text-base font-medium transition-all hover:opacity-60"> Customer Stories</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="/compare" class="text-base font-medium transition-all hover:opacity-60">Compare Iru</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="/reviews" class="text-base font-medium transition-all hover:opacity-60"> Wall of Love</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="flex flex-col gap-6">
+                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                            Support
+                        </span>
+
+                        <ul class="p-0 mb-0">
+                            <li class="mb-4">
+                                <a href="https://docs.iru.com/" class="text-base font-medium transition-all hover:opacity-60">Support Docs</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="https://api-docs.iru.com/" class="text-base font-medium transition-all hover:opacity-60"> API Documentation</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="/academy" class="text-base font-medium transition-all hover:opacity-60">Iru Academy</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="/updates/" class="text-base font-medium transition-all hover:opacity-60">Product Updates</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="/security" class="text-base font-medium transition-all hover:opacity-60">Security</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="https://www.iru.com/integrations" class="text-base font-medium transition-all hover:opacity-60">Integrations</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="absolute inset-0 z-50 overflow-auto px-4 pt-4 pb-8 bg-cursor" x-cloak x-show="open==='company'" style="display: none;">
+                <div class="leading-tight flex gap-3 w-full items-center py-2 font-medium text-xl cursor-pointer" @click="open=false">
+                    <svg class="size-4 shrink-0" width="16" height="16" viewbox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                    Company
+                </div>
+                <div class="mt-4 pt-4 border-t border-current/10">
+                    <a href="/industry/msp" class="group block max-w-170 mb-7 sm:py-6 sm:grid sm:grid-cols-2 sm:gap-8 sm:items-start">
+                        <div>
+                            <span class="block text-xl font-medium group-hover:opacity-60 ">Introducing Iru</span>
+                            <span class="block text-sm mt-2 group-hover:opacity-60 transition-opacity">Our new united platform</span>
+                        </div>
+
+                        <div class="mt-3 sm:mt-0">
+                            <div class="">
+                                <div class="w-full rounded-lg overflow-hidden relative">
+                                    <video loop autoplay poster="https://www.iru.com/hubfs/assets/iru-motions/intro-iru-poster.png" preload="auto" muted playsinline="" aria-label="Our new united platform" class="w-full h-auto object-cover aspect-video ">
+                                        <source type="video/webm" src="https://www.iru.com/hubfs/assets/iru-motions/intro-iru.webm">
+                                    </video>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+
+                    <div class="flex flex-col gap-6">
+                        <span class="py-2 border-b opacity-60 border-b-current/10">
+                            Company
+                        </span>
+
+                        <ul class="p-0 mb-0">
+                            <li class="mb-4">
+                                <a href="/company/about" class="text-base font-medium transition-all hover:opacity-60">About Iru</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="/company/careers" class="text-base font-medium transition-all hover:opacity-60">Careers</a>
+                            </li>
+                            <li class="mb-4">
+                                <a href="/contact" class="text-base font-medium transition-all hover:opacity-60">Contact</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+        
+
+        
+        <main id="main-content" class="body-container-wrapper overflow-x-clip grow  ">
+            
+    <section class="max-w-9xl mx-auto">
+        
+        <div class="px-4 lg:px-8 pt-12 lg:pt-16">
+            <h1 class="h2 mb-8 lg:mb-12">The Iru Blog</h1>
+
+            <div class="relative flex justify-between gap-4 w-full" x-data="{ open: false, filter: 'All' }">
+                
+
+                
+                
+                
+                
+                <div class="hidden lg:flex flex-wrap items-center gap-4">
+                    <a href="/blog" class="btn btn--tag btn--ghost">
+                        <span class="text-sm">All</span>
+                    </a>
+                    
+                        <a href="/blog/tag/reports" class="btn btn--tag btn--ghost">
+                            <span class="text-sm">Reports</span>
+                        </a>
+                    
+                        <a href="/blog/tag/educational" class="btn btn--tag btn--ghost">
+                            <span class="text-sm">Educational</span>
+                        </a>
+                    
+                        <a href="/blog/tag/product-news" class="btn btn--tag btn--ghost">
+                            <span class="text-sm">Product News</span>
+                        </a>
+                    
+                        <a href="/blog/tag/thought-leadership" class="btn btn--tag btn--ghost">
+                            <span class="text-sm">Thought Leadership</span>
+                        </a>
+                    
+                        <a href="/blog/tag/threat-intelligence" class="btn btn--tag btn--ghost">
+                            <span class="text-sm">Threat Intelligence</span>
+                        </a>
+                    
+                </div>
+
+                
+                <button @click="open = !open" :aria-expanded="open" class="lg:hidden flex items-center justify-between gap-3 btn-clean px-3 py-2 w-full max-w-[228px]">
+                    <span x-text="filter" class="text-sm">All</span>
+
+                    <svg :class="{ 'rotate-180': open }" class="transition-transform duration-200" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewbox="0 0 16 16" fill="none">
+                        <path d="M4 6L8 10L12 6" stroke="#0C0C29" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+
+                <div x-cloak x-show="open" x-collapse @click.outside="open = false" class="absolute top-10 z-10 rounded-xl w-full max-w-sm border border-terminal/10 bg-white mt-4 shadow-lg text-sm font-normal lg:hidden">
+                    <div class="flex flex-col gap-1 p-4 max-h-70 overflow-y-scroll">
+                        
+                        <a href="/blog" class="block py-2 w-full hover:opacity-60">
+                            All
+                        </a>
+
+                        
+                            
+                            <a href="/blog/tag/reports" class="block py-2 w-full hover:opacity-60">
+                                Reports
+                            </a>
+                        
+                            
+                            <a href="/blog/tag/educational" class="block py-2 w-full hover:opacity-60">
+                                Educational
+                            </a>
+                        
+                            
+                            <a href="/blog/tag/product-news" class="block py-2 w-full hover:opacity-60">
+                                Product News
+                            </a>
+                        
+                            
+                            <a href="/blog/tag/thought-leadership" class="block py-2 w-full hover:opacity-60">
+                                Thought Leadership
+                            </a>
+                        
+                            
+                            <a href="/blog/tag/threat-intelligence" class="block py-2 w-full hover:opacity-60">
+                                Threat Intelligence
+                            </a>
+                        
+                    </div>
+                </div>
+
+                <div id="hs_cos_wrapper_blog_search" class="hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style="" data-hs-cos-general-type="widget" data-hs-cos-type="module">
+
+
+<div class="h-full max-h-12.5 aspect-square flex-none">
+    <button class="iru-search-bar__trigger" id="blog_search-trigger" type="button" aria-label="Open search" aria-haspopup="dialog">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewbox="0 0 256 256">
+            <path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"></path>
+        </svg>
+    </button>
+</div>
+
+<iru-search-bar id="blog_search" trigger="#blog_search-trigger" results-page="/search" placeholder="Search" search-types="BLOG_POST" blog-id="208458121088" enable-autocomplete></iru-search-bar></div>
+            </div>
+        </div>
+
+
+        
+        
+
+        
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-20 px-4 py-8 lg:px-8">
+            
+                
+                
+
+                
+    <article class="relative md:col-span-2 md:row-span-2 lg:col-span-2 lg:row-span-2" data-article-id="220881365314">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/inside-the-screensharingd-bugs-how-macos-screen-sharing-went-from-root-file-access-to-pre-auth-compromise">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_6.png?width=906&amp;height=510&amp;name=Iru-Blog-Illo_08_2026_6.png" alt="Inside the screensharingd Bugs: How macOS Screen Sharing Went from Root File Access to Pre-Auth Compromise" loading="eager" width="906" height="510" srcset="https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_6.png?width=453&amp;height=255&amp;name=Iru-Blog-Illo_08_2026_6.png 453w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_6.png?width=906&amp;height=510&amp;name=Iru-Blog-Illo_08_2026_6.png 906w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_6.png?width=1359&amp;height=765&amp;name=Iru-Blog-Illo_08_2026_6.png 1359w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_6.png?width=1812&amp;height=1020&amp;name=Iru-Blog-Illo_08_2026_6.png 1812w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_6.png?width=2265&amp;height=1275&amp;name=Iru-Blog-Illo_08_2026_6.png 2265w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_6.png?width=2718&amp;height=1530&amp;name=Iru-Blog-Illo_08_2026_6.png 2718w" sizes="(max-width: 906px) 100vw, 906px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>6 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] lg:text-4xl lg:leading-[1.1em]">Inside the screensharingd Bugs: How macOS Screen Sharing Went from Root File Access to Pre-Auth Compromise</h2>
+
+                
+                    <p class="m-0 text-lg font-normal opacity-60 line-clamp-2">
+                        In late July 2026, a cluster of vulnerabilities in macOS Screen Sharing turned what initially looked like a fairly constrained privilege problem into one of the more interesting macOS remote-attack stories in years.
+                    </p>
+                
+            </div>
+
+            <div class=" flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="September 1, 2026">September 1, 2026</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="219649399648">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/how-a-single-postscript-file-leaks-your-macs-memory">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_3.png?width=517&amp;height=291&amp;name=Iru-Blog-Illo_08_2026_3.png" alt="How a single PostScript file leaks your Mac's memory" loading="eager" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_3.png?width=259&amp;height=146&amp;name=Iru-Blog-Illo_08_2026_3.png 259w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_3.png?width=517&amp;height=291&amp;name=Iru-Blog-Illo_08_2026_3.png 517w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_3.png?width=776&amp;height=437&amp;name=Iru-Blog-Illo_08_2026_3.png 776w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_3.png?width=1034&amp;height=582&amp;name=Iru-Blog-Illo_08_2026_3.png 1034w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_3.png?width=1293&amp;height=728&amp;name=Iru-Blog-Illo_08_2026_3.png 1293w, https://www.iru.com/hs-fs/hubfs/Iru-Blog-Illo_08_2026_3.png?width=1551&amp;height=873&amp;name=Iru-Blog-Illo_08_2026_3.png 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>8 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">How a single PostScript file leaks your Mac's memory</h2>
+
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="August 17, 2026">August 17, 2026</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="206147201658">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/dangers-of-cracking-tools">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/The%20Dangers%20of%20Cracking%20Tools.png?width=517&amp;height=291&amp;name=The%20Dangers%20of%20Cracking%20Tools.png" alt="The Dangers of Cracking Tools" loading="eager" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/The%20Dangers%20of%20Cracking%20Tools.png?width=259&amp;height=146&amp;name=The%20Dangers%20of%20Cracking%20Tools.png 259w, https://www.iru.com/hs-fs/hubfs/The%20Dangers%20of%20Cracking%20Tools.png?width=517&amp;height=291&amp;name=The%20Dangers%20of%20Cracking%20Tools.png 517w, https://www.iru.com/hs-fs/hubfs/The%20Dangers%20of%20Cracking%20Tools.png?width=776&amp;height=437&amp;name=The%20Dangers%20of%20Cracking%20Tools.png 776w, https://www.iru.com/hs-fs/hubfs/The%20Dangers%20of%20Cracking%20Tools.png?width=1034&amp;height=582&amp;name=The%20Dangers%20of%20Cracking%20Tools.png 1034w, https://www.iru.com/hs-fs/hubfs/The%20Dangers%20of%20Cracking%20Tools.png?width=1293&amp;height=728&amp;name=The%20Dangers%20of%20Cracking%20Tools.png 1293w, https://www.iru.com/hs-fs/hubfs/The%20Dangers%20of%20Cracking%20Tools.png?width=1551&amp;height=873&amp;name=The%20Dangers%20of%20Cracking%20Tools.png 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>7 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">The Dangers of Cracking Tools</h2>
+
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="January 28, 2026">January 28, 2026</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+                    <hr class="md:col-span-2 lg:col-span-3 border-terminal/10">
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="195710530331">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/finding-vulnerabilities-in-apple-packages">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/Apple%20Pkg%20.png?width=517&amp;height=291&amp;name=Apple%20Pkg%20.png" alt="Finding Vulnerabilities in Apple Packages at Scale" loading="lazy" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/Apple%20Pkg%20.png?width=259&amp;height=146&amp;name=Apple%20Pkg%20.png 259w, https://www.iru.com/hs-fs/hubfs/Apple%20Pkg%20.png?width=517&amp;height=291&amp;name=Apple%20Pkg%20.png 517w, https://www.iru.com/hs-fs/hubfs/Apple%20Pkg%20.png?width=776&amp;height=437&amp;name=Apple%20Pkg%20.png 776w, https://www.iru.com/hs-fs/hubfs/Apple%20Pkg%20.png?width=1034&amp;height=582&amp;name=Apple%20Pkg%20.png 1034w, https://www.iru.com/hs-fs/hubfs/Apple%20Pkg%20.png?width=1293&amp;height=728&amp;name=Apple%20Pkg%20.png 1293w, https://www.iru.com/hs-fs/hubfs/Apple%20Pkg%20.png?width=1551&amp;height=873&amp;name=Apple%20Pkg%20.png 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>15 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">Finding Vulnerabilities in Apple Packages at Scale</h2>
+
+                
+                    <p class="m-0 text-lg font-normal opacity-60 line-clamp-2">
+                        This article summarizes work we performed in 2024, which we shared in our “Finding Vulnerabilities in Apple Packages at Scale” talk at MacDevOpsYVR and SecurityFest conferences earlier this year. You can watch the full presentation below:
+                    </p>
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="September 9, 2025">September 9, 2025</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="191799142658">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/macos-audit-story-part3">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/Frame%204075370.jpg?width=517&amp;height=291&amp;name=Frame%204075370.jpg" alt="Uncovering Apple Vulnerabilities: diskarbitrationd and storagekitd Audit Part 3" loading="lazy" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/Frame%204075370.jpg?width=259&amp;height=146&amp;name=Frame%204075370.jpg 259w, https://www.iru.com/hs-fs/hubfs/Frame%204075370.jpg?width=517&amp;height=291&amp;name=Frame%204075370.jpg 517w, https://www.iru.com/hs-fs/hubfs/Frame%204075370.jpg?width=776&amp;height=437&amp;name=Frame%204075370.jpg 776w, https://www.iru.com/hs-fs/hubfs/Frame%204075370.jpg?width=1034&amp;height=582&amp;name=Frame%204075370.jpg 1034w, https://www.iru.com/hs-fs/hubfs/Frame%204075370.jpg?width=1293&amp;height=728&amp;name=Frame%204075370.jpg 1293w, https://www.iru.com/hs-fs/hubfs/Frame%204075370.jpg?width=1551&amp;height=873&amp;name=Frame%204075370.jpg 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>10 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">Uncovering Apple Vulnerabilities: diskarbitrationd and storagekitd Audit Part 3</h2>
+
+                
+                    <p class="m-0 text-lg font-normal opacity-60 line-clamp-2">
+                        Over the past two parts of this series, we’ve explored vulnerabilities in macOS’s diskarbitrationd daemon. In part 1, we explored how an attacker could use it to escape the sandbox or escalate privileges. In part 2, we explored how a directory traversal attack could be used to bypass Transparency, Consent, and Control (TCC) protections. Each of these vulnerabilities highlighted the risks posed by weaknesses in macOS’s system daemons and how attackers could chain them together for even more impact.
+                    </p>
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="February 21, 2025">February 21, 2025</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="191799499368">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/macos-audit-story-part2">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/Group%204075370.jpg?width=517&amp;height=291&amp;name=Group%204075370.jpg" alt="Uncovering Apple Vulnerabilities: diskarbitrationd and storagekitd Audit Part 2" loading="lazy" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/Group%204075370.jpg?width=259&amp;height=146&amp;name=Group%204075370.jpg 259w, https://www.iru.com/hs-fs/hubfs/Group%204075370.jpg?width=517&amp;height=291&amp;name=Group%204075370.jpg 517w, https://www.iru.com/hs-fs/hubfs/Group%204075370.jpg?width=776&amp;height=437&amp;name=Group%204075370.jpg 776w, https://www.iru.com/hs-fs/hubfs/Group%204075370.jpg?width=1034&amp;height=582&amp;name=Group%204075370.jpg 1034w, https://www.iru.com/hs-fs/hubfs/Group%204075370.jpg?width=1293&amp;height=728&amp;name=Group%204075370.jpg 1293w, https://www.iru.com/hs-fs/hubfs/Group%204075370.jpg?width=1551&amp;height=873&amp;name=Group%204075370.jpg 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>18 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">Uncovering Apple Vulnerabilities: diskarbitrationd and storagekitd Audit Part 2</h2>
+
+                
+                    <p class="m-0 text-lg font-normal opacity-60 line-clamp-2">
+                        Iru's Threat Research team recently performed an audit on the macOS diskarbitrationd and storagekitd system daemons, uncovering several vulnerabilities. Our team reported all of them to Apple through their responsible disclosure program, and as these are fixed now, we are releasing the details in this blog series - this is part two.
+                    </p>
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="December 12, 2024">December 12, 2024</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="191802665065">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/macos-audit-story-part1">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/Apple-focused%20security%20threats%2036.jpg?width=517&amp;height=291&amp;name=Apple-focused%20security%20threats%2036.jpg" alt="Uncovering Apple Vulnerabilities: The diskarbitrationd and storagekitd Audit Story Part 1" loading="lazy" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/Apple-focused%20security%20threats%2036.jpg?width=259&amp;height=146&amp;name=Apple-focused%20security%20threats%2036.jpg 259w, https://www.iru.com/hs-fs/hubfs/Apple-focused%20security%20threats%2036.jpg?width=517&amp;height=291&amp;name=Apple-focused%20security%20threats%2036.jpg 517w, https://www.iru.com/hs-fs/hubfs/Apple-focused%20security%20threats%2036.jpg?width=776&amp;height=437&amp;name=Apple-focused%20security%20threats%2036.jpg 776w, https://www.iru.com/hs-fs/hubfs/Apple-focused%20security%20threats%2036.jpg?width=1034&amp;height=582&amp;name=Apple-focused%20security%20threats%2036.jpg 1034w, https://www.iru.com/hs-fs/hubfs/Apple-focused%20security%20threats%2036.jpg?width=1293&amp;height=728&amp;name=Apple-focused%20security%20threats%2036.jpg 1293w, https://www.iru.com/hs-fs/hubfs/Apple-focused%20security%20threats%2036.jpg?width=1551&amp;height=873&amp;name=Apple-focused%20security%20threats%2036.jpg 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>20 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">Uncovering Apple Vulnerabilities: The diskarbitrationd and storagekitd Audit Story Part 1</h2>
+
+                
+                    <p class="m-0 text-lg font-normal opacity-60 line-clamp-2">
+                        The Iru team is always looking out for how to help keep your devices secure. In line with that, our Threat Research team performed an audit on the macOS diskarbitrationd and storagekitd system daemons, uncovering several vulnerabilities such as sandbox escapes, local privilege escalations, and TCC bypasses. Our team reported all of them to Apple through their responsible disclosure program, and as these are fixed now, we are releasing the details.
+                    </p>
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="November 8, 2024">November 8, 2024</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="172845024544">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/dock-tile-plugins-persistence">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/2024.07.XX%20Dock%20Tile%20Plugins.png?width=517&amp;height=291&amp;name=2024.07.XX%20Dock%20Tile%20Plugins.png" alt="Dock Tile Plugins Could Be Used to Escalate Privileges" loading="lazy" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/2024.07.XX%20Dock%20Tile%20Plugins.png?width=259&amp;height=146&amp;name=2024.07.XX%20Dock%20Tile%20Plugins.png 259w, https://www.iru.com/hs-fs/hubfs/2024.07.XX%20Dock%20Tile%20Plugins.png?width=517&amp;height=291&amp;name=2024.07.XX%20Dock%20Tile%20Plugins.png 517w, https://www.iru.com/hs-fs/hubfs/2024.07.XX%20Dock%20Tile%20Plugins.png?width=776&amp;height=437&amp;name=2024.07.XX%20Dock%20Tile%20Plugins.png 776w, https://www.iru.com/hs-fs/hubfs/2024.07.XX%20Dock%20Tile%20Plugins.png?width=1034&amp;height=582&amp;name=2024.07.XX%20Dock%20Tile%20Plugins.png 1034w, https://www.iru.com/hs-fs/hubfs/2024.07.XX%20Dock%20Tile%20Plugins.png?width=1293&amp;height=728&amp;name=2024.07.XX%20Dock%20Tile%20Plugins.png 1293w, https://www.iru.com/hs-fs/hubfs/2024.07.XX%20Dock%20Tile%20Plugins.png?width=1551&amp;height=873&amp;name=2024.07.XX%20Dock%20Tile%20Plugins.png 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>4 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">Dock Tile Plugins Could Be Used to Escalate Privileges</h2>
+
+                
+                    <p class="m-0 text-lg font-normal opacity-60 line-clamp-2">
+                        I recently came across a persistence feature in macOS that's tied to Dock tile plugins.
+                    </p>
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="July 19, 2024">July 19, 2024</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="168220008111">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/malware-bypass-tcc">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/2024.05.23%20TCC.png?width=517&amp;height=291&amp;name=2024.05.23%20TCC.png" alt="How Malware Can Bypass Transparency Consent and Control (CVE-2023-40424)" loading="lazy" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/2024.05.23%20TCC.png?width=259&amp;height=146&amp;name=2024.05.23%20TCC.png 259w, https://www.iru.com/hs-fs/hubfs/2024.05.23%20TCC.png?width=517&amp;height=291&amp;name=2024.05.23%20TCC.png 517w, https://www.iru.com/hs-fs/hubfs/2024.05.23%20TCC.png?width=776&amp;height=437&amp;name=2024.05.23%20TCC.png 776w, https://www.iru.com/hs-fs/hubfs/2024.05.23%20TCC.png?width=1034&amp;height=582&amp;name=2024.05.23%20TCC.png 1034w, https://www.iru.com/hs-fs/hubfs/2024.05.23%20TCC.png?width=1293&amp;height=728&amp;name=2024.05.23%20TCC.png 1293w, https://www.iru.com/hs-fs/hubfs/2024.05.23%20TCC.png?width=1551&amp;height=873&amp;name=2024.05.23%20TCC.png 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>9 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">How Malware Can Bypass Transparency Consent and Control (CVE-2023-40424)</h2>
+
+                
+                    <p class="m-0 text-lg font-normal opacity-60 line-clamp-2">
+                        CVE-2023-40424 is a vulnerability that allows a root-level user to create a new user with a custom Transparency Consent and Control (TCC) database in macOS, which can then be used to access other users’ private data.
+                    </p>
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="May 22, 2024">May 22, 2024</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+                
+                
+
+                
+    <article class="relative " data-article-id="160875931283">
+        <a class="absolute w-full h-full z-1" href="https://www.iru.com/blog/apple-mitigates-vulnerabilities-installer-scripts">
+            <!-- Silence is Golden -->
+        </a>
+
+        <div class="h-full flex flex-col gap-6">
+            
+                
+            
+
+            
+            
+                
+            
+            <img class="aspect-video w-full object-cover rounded-xl" src="https://www.iru.com/hs-fs/hubfs/2024.03.XX%20installers.png?width=517&amp;height=291&amp;name=2024.03.XX%20installers.png" alt="How Apple Mitigates Vulnerabilities in Installer Scripts" loading="lazy" width="517" height="291" srcset="https://www.iru.com/hs-fs/hubfs/2024.03.XX%20installers.png?width=259&amp;height=146&amp;name=2024.03.XX%20installers.png 259w, https://www.iru.com/hs-fs/hubfs/2024.03.XX%20installers.png?width=517&amp;height=291&amp;name=2024.03.XX%20installers.png 517w, https://www.iru.com/hs-fs/hubfs/2024.03.XX%20installers.png?width=776&amp;height=437&amp;name=2024.03.XX%20installers.png 776w, https://www.iru.com/hs-fs/hubfs/2024.03.XX%20installers.png?width=1034&amp;height=582&amp;name=2024.03.XX%20installers.png 1034w, https://www.iru.com/hs-fs/hubfs/2024.03.XX%20installers.png?width=1293&amp;height=728&amp;name=2024.03.XX%20installers.png 1293w, https://www.iru.com/hs-fs/hubfs/2024.03.XX%20installers.png?width=1551&amp;height=873&amp;name=2024.03.XX%20installers.png 1551w" sizes="(max-width: 517px) 100vw, 517px">
+
+            <div class="flex flex-col gap-y-2">
+                <div class="flex items-center [&amp;_span]:text-sm [&amp;_span]:opacity-60 gap-x-2">
+                    
+                        <span>Csaba Fitzl</span>
+                        <p class="opacity-60 text-[6px]">•</p>
+                    
+                    <span>14 min read</span>
+                </div>
+
+                <h2 class="m-0 text-wrap text-[22px] leading-[1.32em] ">How Apple Mitigates Vulnerabilities in Installer Scripts</h2>
+
+                
+                    <p class="m-0 text-lg font-normal opacity-60 line-clamp-2">
+                        Vulnerabilities are hot topics inside the world of security research and—because of their potentially dramatic impacts—outside as well. Unfortunately, the strategies and tactics that companies like Apple take to prevent specific vulnerabilities—or even entire families of exploits—typically attract less attention. But the fact is that engineering high-impact mitigations is typically more challenging than finding a single vulnerability.
+                    </p>
+                
+            </div>
+
+            <div class="grow flex items-end gap-x-4">
+                
+                    
+                    
+                    <span class="chip 
+                        
+                            chip--red
+                        
+                    ">Threat Intelligence</span>
+                
+                <time class="text-sm opacity-60 py-2" datetime="March 15, 2024">March 15, 2024</time>
+            </div>
+        </div>
+    </article>
+
+
+                
+            
+        </div>
+
+        
+        <div id="hs_cos_wrapper_blog_pagination" class="hs_cos_wrapper hs_cos_wrapper_widget hs_cos_wrapper_type_module" style="" data-hs-cos-general-type="widget" data-hs-cos-type="module">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+        
+    
+
+
+
+
+
+
+
+</div>
+
+    </section>
+
+        </main>
+
+        
+        <div data-global-resource-path="IruAurelia/templates/partials/footer.html">
+
+
+
+
+
+
+
+
+
+
+<section class="bg-terminal text-cursor">
+    <div class="max-w-9xl mx-auto px-6 lg:px-8 pt-8 pb-12">
+        <div class="grid md:flex justify-between gap-16 lg:gap-16 items-center border-b border-current/10 py-14">
+            <div class="md:w-1/2 lg:w-1/3">
+                <h2 class="mb-6 text-3xl lg:text-4xl">Stay up to date</h2>
+                <p>Iru's bi-weekly collection of articles, videos, and research to keep IT &amp; Security teams ahead of the curve.</p>
+            </div>
+            <div class="md:w-1/3 flex justify-end">
+                <div class="iru-email-solo-subscribe w-full">
+                    <h3 id="hs_cos_wrapper_form_10503754_title" class="hs_cos_wrapper form-title" data-hs-cos-general-type="widget_field" data-hs-cos-type="text"></h3>
+
+<div id="hs_form_target_form_10503754"></div>
+
+
+
+
+
+
+
+
+
+
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="bg-terminal text-cursor" role="contentinfo">
+    <h2 id="footer-heading" class="sr-only">Site Footer</h2>
+    <div class="max-w-9xl mx-auto px-6 lg:px-8 pt-12">
+
+        <div class="grid sm:grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-0">
+            <div class="">
+                <h3 class="text-base font-medium opacity-50 mt-0 mb-4">Product</h3>
+                <ul class="space-y-3 mb-12">
+                    <li><span class="opacity-50">Identity</span></li>
+                    <li><a href="/products/identity" class="inline-flex gap-1 items-center hover:opacity-50">Workforce Identity</a></li>
+                </ul>
+                <ul class="space-y-3 mb-12">
+                    <li><span class="opacity-50">Endpoint</span></li>
+                    <li><a href="/products/endpoint" class="inline-flex gap-1 items-center hover:opacity-50">Endpoint overview</a></li>
+                    <li><a href="/products/endpoint/endpoint-management" class="inline-flex gap-1 items-center hover:opacity-50">Endpoint Management</a></li>
+                    <li><a href="/products/endpoint/endpoint-detection-response" class="inline-flex gap-1 items-center hover:opacity-50">Endpoint Detection &amp; Response</a></li>
+                    <li><a href="/products/endpoint/vulnerability-management" class="inline-flex gap-1 items-center hover:opacity-50">Vulnerability Management</a></li>
+                </ul>
+                <ul class="space-y-3 mb-12">
+                    <li><span class="opacity-50">Compliance</span></li>
+                    <li><a href="/products/compliance" class="inline-flex gap-1 items-center hover:opacity-50">Compliance Overview</a></li>
+                    <li><a href="/products/compliance/compliance-automation" class="inline-flex gap-1 items-center hover:opacity-50">Compliance Automation</a></li>
+                    <li><a href="/products/compliance/trust-center" class="inline-flex gap-1 items-center hover:opacity-50">Trust Center</a></li>
+                </ul>
+                <ul class="space-y-3 mb-12">
+                    <li><span class="opacity-50">Iru AI</span></li>
+                    <li><a href="/iru-ai" class="inline-flex gap-1 items-center hover:opacity-50">Iru AI Overview</a></li>
+                </ul>
+            </div>
+            <div class="">
+                <h3 class="text-base font-medium opacity-50 mt-0 mb-4">Resources</h3>
+                <ul class="space-y-3 mb-12">
+                    <li><a href="/resources/customer-stories" class="inline-flex gap-1 items-center hover:opacity-50">Customer stories</a></li>
+                    <li><a href="/reviews" target="_blank" class="inline-flex gap-1 items-center hover:opacity-50">Wall of love</a></li>
+                    <li><a href="/threats-vulnerabilities" class="inline-flex gap-1 items-center hover:opacity-50">Threat intelligence</a></li>
+                    <li><a href="/library-items" class="inline-flex gap-1 items-center hover:opacity-50">Library Items</a></li>
+                    <li><a href="/integrations" class="inline-flex gap-1 items-center hover:opacity-50">Integrations</a></li>
+                    <li><a href="/resources/definitions" class="inline-flex gap-1 items-center hover:opacity-50">Definitions</a></li>
+                    <li><a href="/endpoint" class="inline-flex gap-1 items-center hover:opacity-50">Endpoint hub</a></li>
+                    <li><a href="https://docs.iru.com/" target="_blank" class="inline-flex gap-1 items-center hover:opacity-50">Support docs</a></li>
+                </ul>
+
+                <ul class="space-y-3 mb-12">
+                    <li class="mb-4"><span class="opacity-50">Solutions</span></li>
+                    <li><span class="opacity-50">By Device</span></li>
+                    <li><a href="/solutions/mac" class="inline-flex gap-1 items-center hover:opacity-50">Mac</a></li>
+                    <li><a href="/solutions/windows" class="inline-flex gap-1 items-center hover:opacity-50">Windows</a></li>
+                    <li><a href="/solutions/iphone-ipad" class="inline-flex gap-1 items-center hover:opacity-50">iPhone &amp; iPad</a></li>
+                    <li><a href="https://www.iru.com/solutions/linux" class="inline-flex gap-1 items-center hover:opacity-50">Linux</a></li>
+                    <li><a href="/solutions/android" class="inline-flex gap-1 items-center hover:opacity-50">Android</a></li>
+                    <li><a href="/solutions/tvos" class="inline-flex gap-1 items-center hover:opacity-50">Apple TV</a></li>
+                    <li><a href="/solutions/apple-vision" class="inline-flex gap-1 items-center hover:opacity-50">Vision Pro</a></li>
+                </ul>
+
+                <ul class="space-y-3 mb-12">
+                    <li><span class="text-base font-medium opacity-50 mt-0 mb-4">By Use Case</span></li>
+                    <li><a href="/use-cases/zero-touch-deployment" class="inline-flex gap-1 items-center hover:opacity-50">Zero-touch deployment</a></li>
+                    <li><a href="/use-cases/automate-patching/" class="inline-flex gap-1 items-center hover:opacity-50">Automated Patching</a></li>
+                    <li><a href="/use-cases/config-as-code" class="inline-flex gap-1 items-center hover:opacity-50">Configuration-as-code</a></li>
+                    <li><a href="/use-cases/mcp" class="inline-flex gap-1 items-center hover:opacity-50">Build with MCP</a></li>
+                </ul>
+            </div>
+            <div class="">
+                <h3 class="text-base font-medium opacity-50 mt-0 mb-4">Company</h3>
+                <ul class="space-y-3 mb-12">
+                    <li><a href="/company/about" class="inline-flex gap-1 items-center hover:opacity-50">About Iru</a></li>
+                    <li><a href="/company/careers" class="inline-flex gap-1 items-center hover:opacity-50">Careers</a></li>
+                    <li><a href="/contact" class="inline-flex gap-1 items-center hover:opacity-50">Contact</a></li>
+                    <li><a href="https://www.iru.com/security" class="inline-flex gap-1 items-center hover:opacity-50">Security</a></li>
+                    <li>
+                        <a href="https://www.iru.com/blog" class="inline-flex gap-1 items-center hover:opacity-50">
+                            The Iru blog
+                            
+                        </a>
+                    </li>
+                    <li><a href="https://www.iru.com/referral-program" class="inline-flex gap-1 items-center hover:opacity-50">Customer referral program</a></li>
+                    <li><a href="https://www.iru.com/compare" class="inline-flex gap-1 items-center hover:opacity-50">Compare</a></li>
+                </ul>
+            </div>
+            <div class="">
+                <h3 class="text-base font-medium opacity-50 mt-0 mb-4">Get Started</h3>
+                <ul class="space-y-3 mb-12">
+                    <li><a href="/pricing" class="inline-flex gap-1 items-center hover:opacity-50">Pricing</a></li>
+                    <li><a href="/login" class="inline-flex gap-1 items-center hover:opacity-50">Log in</a></li>
+                    <li><a href="/request-demo" class="inline-flex gap-1 items-center hover:opacity-50">Book a demo</a></li>
+                </ul>
+                <div class="flex gap-8 mb-12">
+                    <a href="https://www.linkedin.com/company/officiallyiru" class="hover:opacity-50" rel="noopener" target="_blank">
+                        <svg class="size-7" aria-hidden="true" width="28" height="28" viewbox="0 0 28 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M21.2875 3.25H4.7125C4.32462 3.25 3.95263 3.40408 3.67836 3.67836C3.40408 3.95263 3.25 4.32462 3.25 4.7125V21.2875C3.25 21.6754 3.40408 22.0474 3.67836 22.3216C3.95263 22.5959 4.32462 22.75 4.7125 22.75H21.2875C21.6754 22.75 22.0474 22.5959 22.3216 22.3216C22.5959 22.0474 22.75 21.6754 22.75 21.2875V4.7125C22.75 4.32462 22.5959 3.95263 22.3216 3.67836C22.0474 3.40408 21.6754 3.25 21.2875 3.25ZM9.1 19.825H6.175V11.05H9.1V19.825ZM7.6375 9.34375C7.30228 9.33417 6.97731 9.22601 6.70321 9.0328C6.4291 8.83959 6.21801 8.56988 6.09631 8.25738C5.97461 7.94488 5.9477 7.60345 6.01894 7.27575C6.09018 6.94804 6.25641 6.6486 6.49686 6.41482C6.73731 6.18105 7.04132 6.02332 7.3709 5.96134C7.70048 5.89936 8.04102 5.93588 8.34997 6.06633C8.65891 6.19678 8.92257 6.41538 9.10799 6.69482C9.2934 6.97426 9.39236 7.30214 9.3925 7.6375C9.3848 8.09609 9.19588 8.53299 8.86702 8.85271C8.53817 9.17243 8.09613 9.34897 7.6375 9.34375ZM19.825 19.825H16.9V15.2035C16.9 13.819 16.315 13.3218 15.5545 13.3218C15.3315 13.3366 15.1137 13.3953 14.9135 13.4946C14.7133 13.5939 14.5347 13.7318 14.3879 13.9003C14.2411 14.0688 14.1291 14.2646 14.0582 14.4766C13.9874 14.6885 13.9591 14.9124 13.975 15.1353C13.9702 15.1806 13.9702 15.2264 13.975 15.2718V19.825H11.05V11.05H13.8775V12.3175C14.1627 11.8836 14.5546 11.5303 15.0155 11.2913C15.4765 11.0522 15.9911 10.9356 16.51 10.9525C18.0213 10.9525 19.786 11.791 19.786 14.521L19.825 19.825Z" /></svg>
+                        <span class="sr-only">Follow us on LinkedIn</span>
+                    </a>
+                    <a href="https://x.com/officiallyiru" class="hover:opacity-50" rel="noopener" target="_blank">
+                        <svg class="size-7" aria-hidden="true" width="28" height="28" viewbox="0 0 28 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M19.2058 3.25H22.5138L15.2868 11.51L23.7888 22.75H17.1318L11.9178 15.933L5.95182 22.75H2.64182L10.3718 13.915L2.21582 3.25H9.04182L13.7548 9.481L19.2058 3.25ZM18.0448 20.77H19.8778L8.04582 5.126H6.07882L18.0448 20.77Z" /></svg>
+                        <span class="sr-only">Follow us on X</span>
+                    </a>
+                    <a href="https://www.youtube.com/@officiallyiru" class="hover:opacity-50" rel="noopener" target="_blank">
+                        <svg class="size-7" aria-hidden="true" width="28" height="28" viewbox="0 0 28 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M21.888 4.34207C22.8674 4.64526 23.6372 5.53534 23.8993 6.66798C24.3731 8.71884 24.375 13.0003 24.375 13.0003C24.375 13.0003 24.375 17.2818 23.8993 19.3327C23.6372 20.4653 22.8674 21.3554 21.888 21.6586C20.1145 22.2087 13 22.2087 13 22.2087C13 22.2087 5.88547 22.2087 4.11199 21.6586C3.13255 21.3554 2.36286 20.4653 2.10067 19.3327C1.625 17.2818 1.625 13.0003 1.625 13.0003C1.625 13.0003 1.625 8.71884 2.10067 6.66798C2.36286 5.53534 3.13255 4.64526 4.11199 4.34207C5.88547 3.79199 13 3.79199 13 3.79199C13 3.79199 20.1145 3.79199 21.888 4.34207ZM16.8061 13.0007L10.6143 16.5752V9.42603L16.8061 13.0007Z" /></svg>
+                        <span class="sr-only">Follow us on YouTube</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        
+        <div class="lg:flex lg:justify-between lg:items-end gap-8 pt-12">
+            <div class="mb-12 lg:mb-0 lg:order-2">
+                <div class="flex flex-wrap lg:justify-center gap-y-6 gap-x-8">
+                    <a href="/legal/privacy" class="hover:opacity-50">Privacy Policy</a>
+                    <span class="inline-flex items-center gap-1.5 cursor-pointer group optanon-toggle-display">
+                        <svg aria-hidden="true" width="30" height="14" viewbox="0 0 30 14" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M7.39985 12.8H14.1999L17.2999 1.19995H7.39985C4.19985 1.19995 1.59985 3.79995 1.59985 6.99995C1.59985 10.2 4.19985 12.8 7.39985 12.8Z" fill="white" /><path fill-rule="evenodd" clip-rule="evenodd" d="M22.5999 0H7.3999C3.4999 0 0.399902 3.1 0.399902 7C0.399902 10.9 3.4999 14 7.3999 14H22.5999C26.4999 14 29.5999 10.9 29.5999 7C29.5999 3.1 26.3999 0 22.5999 0ZM1.5999 7C1.5999 3.8 4.1999 1.2 7.3999 1.2H17.2999L14.1999 12.8H7.3999C4.1999 12.8 1.5999 10.2 1.5999 7Z" fill="#0066FF" /><path d="M24.6 3.99998C24.8 4.19998 24.8 4.59998 24.6 4.79998L22.5 6.99998L24.7 9.19998C24.9 9.39998 24.9 9.79998 24.7 9.99998C24.5 10.2 24.1 10.2 23.9 9.99998L21.7 7.79998L19.5 9.99998C19.3 10.2 18.9 10.2 18.7 9.99998C18.5 9.79998 18.5 9.39998 18.7 9.19998L20.8 6.99998L18.6 4.79998C18.4 4.59998 18.4 4.19998 18.6 3.99998C18.8 3.79998 19.2 3.79998 19.4 3.99998L21.6 6.19998L23.8 3.99998C23.9999 3.79998 24.4 3.79998 24.6 3.99998Z" fill="white" /><path d="M12.7 4.09995C12.9 4.29995 13 4.69995 12.8 4.89995L8.6 9.79995C8.5 9.89995 8.4 9.99995 8.3 9.99995C8.1 10.1 7.8 10.1 7.6 9.89995L5.4 7.69995C5.2 7.49995 5.2 7.09995 5.4 6.89995C5.6 6.69995 6 6.69995 6.2 6.89995L8 8.59995L11.8 4.09995C12 3.89995 12.4 3.89995 12.7 4.09995Z" fill="#0066FF" /></svg>
+                        <span class="group-hover:opacity-50">Your Privacy Choices</span>
+                    </span>
+                    <a href="/legal/accessibility" class="hover:opacity-50">Accessibility</a>
+                    <a href="/legal" class="hover:opacity-50">Legal</a>
+                </div>
+            </div>
+            <div class="w-38 shrink-0 lg:order-1">
+                <a href="/">
+                    <svg class="w-38 h-auto" aria-hidden="true" width="151" height="102" viewbox="0 0 151 102" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M0 1.49518V15.9237C0 16.7494 0.669413 17.4188 1.49518 17.4188H16.5243C17.3501 17.4188 18.0195 16.7494 18.0195 15.9237V1.49518C18.0195 0.669413 17.3501 0 16.5243 0H1.49518C0.669413 0 0 0.669414 0 1.49518Z" />
+                        <path d="M1.49517 99.676C0.66941 99.676 0 99.0066 0 98.1808V23.6124C0 22.7866 0.669413 22.1172 1.49518 22.1172H16.2991C17.1248 22.1172 17.7942 22.7866 17.7942 23.6124V98.1808C17.7942 99.0066 17.1248 99.676 16.2991 99.676H1.49517Z" />
+                        <path d="M28.2696 99.6788C27.4438 99.6788 26.7744 99.0094 26.7744 98.1837V23.6152C26.7744 22.7894 27.4438 22.12 28.2696 22.12H42.3977C43.2235 22.12 43.8929 22.7894 43.8929 23.6152V32.6283C43.8929 33.1276 44.2977 33.5323 44.7969 33.5323C45.1593 33.5323 45.4854 33.3153 45.6346 32.9851C48.8497 25.8695 55.2198 20.1074 69.6542 21.2457C70.4173 21.3058 70.9972 21.9504 70.9972 22.7159V34.6927C70.9972 35.5917 70.2074 36.2851 69.3124 36.2003C54.5418 34.8001 44.5687 39.9317 44.5687 58.3842V98.1837C44.5687 99.0094 43.8992 99.6788 43.0735 99.6788H28.2696Z" />
+                        <path d="M149.062 21.916C149.888 21.916 150.557 22.5854 150.557 23.4112V97.9797C150.557 98.8055 149.888 99.4749 149.062 99.4749H134.934C134.108 99.4749 133.439 98.8055 133.439 97.9797V90.4429C133.439 89.9161 133.012 89.4891 132.485 89.4891C132.146 89.4891 131.834 89.6693 131.656 89.9579C128.865 94.4713 122.424 101.127 108.137 101.127C90.943 101.127 79.7559 91.5163 79.7559 73.4217V23.4112C79.7559 22.5854 80.4253 21.916 81.251 21.916H96.0549C96.8807 21.916 97.5501 22.5854 97.5501 23.4112V72.3706C97.5501 82.8068 103.707 87.6871 113.017 87.6871C123.603 87.6871 132.763 81.2301 132.763 66.6644V23.4112C132.763 22.5854 133.433 21.916 134.258 21.916H149.062Z" />
+                    </svg>
+                    <span class="sr-only">Iru Inc.</span>
+                </a>
+            </div>
+            <div class="mt-16 lg:mt-0 block w-38 shrink-0 lg:order-3">
+                <lang-switcher current="en"></lang-switcher>
+            </div>
+        </div>
+
+
+        <div class="text-sm lg:text-center py-12 opacity-75">
+            © Copyright 2026 <a href="/" class="hover:opacity-50">Iru,&nbsp;Inc.</a> All&nbsp;rights&nbsp;reserved.
+        </div>
+
+
+    </div>
+</footer></div>
+        
+    </div>
+
+    
+    
+<!-- HubSpot performance collection script -->
+<script defer src="/hs/hsstatic/content-cwv-embed/static-1.1293/embed.js"></script>
+<script>
+var hsVars = hsVars || {}; hsVars['language'] = 'en';
+</script>
+
+<script src="/hs/hsstatic/cos-i18n/static-1.53/bundles/project.js"></script>
+<script defer src="https://www.iru.com/hubfs/hub_generated/template_assets/1/198161581150/1793135987887/template_iru.main.min.js"></script>
+<script src="https://www.iru.com/hubfs/hub_generated/module_assets/1/212083345753/1780088477084/module__search-bar.min.js"></script>
+
+    <!--[if lte IE 8]>
+    <script charset="utf-8" src="https://js.hsforms.net/forms/v2-legacy.js"></script>
+    <![endif]-->
+
+<script data-hs-allowed="true" src="/_hcms/forms/v2.js"></script>
+
+    <script data-hs-allowed="true">
+        var options = {
+            portalId: '5058330',
+            formId: 'c3cc5fbb-6d5b-43e9-9e12-0391f251fa5b',
+            formInstanceId: '2376',
+            
+            pageId: '208458121088',
+            
+            region: 'na1',
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            css: '',
+            target: '#hs_form_target_form_10503754',
+            
+            
+            
+            
+            
+            
+            
+            contentType: "listing-page",
+            
+            
+            
+            formsBaseUrl: '/_hcms/forms/',
+            
+            
+            
+            formData: {
+                cssClass: 'hs-form stacked hs-custom-form'
+            }
+        };
+
+        options.getExtraMetaDataBeforeSubmit = function() {
+            var metadata = {};
+            
+
+            if (hbspt.targetedContentMetadata) {
+                var count = hbspt.targetedContentMetadata.length;
+                var targetedContentData = [];
+                for (var i = 0; i < count; i++) {
+                    var tc = hbspt.targetedContentMetadata[i];
+                     if ( tc.length !== 3) {
+                        continue;
+                     }
+                     targetedContentData.push({
+                        definitionId: tc[0],
+                        criterionId: tc[1],
+                        smartTypeId: tc[2]
+                     });
+                }
+                metadata["targetedContentMetadata"] = JSON.stringify(targetedContentData);
+            }
+
+            return metadata;
+        };
+
+        hbspt.forms.create(options);
+    </script>
+
+
+<!-- Start of HubSpot Analytics Code -->
+<script type="text/javascript">
+var _hsq = _hsq || [];
+_hsq.push(["setContentType", "listing-page"]);
+_hsq.push(["setCanonicalUrl", "https:\/\/www.iru.com\/blog\/author\/csaba-fitzl"]);
+_hsq.push(["setPageId", "208458121090"]);
+_hsq.push(["setContentMetadata", {
+    "contentPageId": 208458121090,
+    "legacyPageId": "208458121090",
+    "contentFolderId": null,
+    "contentGroupId": 208458121088,
+    "abTestId": null,
+    "languageVariantId": 208458121090,
+    "languageCode": "en",
+    
+    
+}]);
+</script>
+
+<script type="text/javascript" id="hs-script-loader" async defer src="/hs/scriptloader/5058330.js"></script>
+<!-- End of HubSpot Analytics Code -->
+
+
+<script type="text/javascript">
+var hsVars = {
+    render_id: "933e4ca6-5980-45cd-a78e-8e33fdd07f48",
+    ticks: 1793136782898,
+    page_id: 208458121090,
+    
+    content_group_id: 208458121088,
+    portal_id: 5058330,
+    app_hs_base_url: "https://app.hubspot.com",
+    cp_hs_base_url: "https://cp.hubspot.com",
+    language: "en",
+    analytics_page_type: "listing-page",
+    scp_content_type: "",
+    
+    analytics_page_id: "208458121090",
+    category_id: 7,
+    folder_id: 0,
+    is_hubspot_user: false
+}
+</script>
+
+
+<script defer src="/hs/hsstatic/HubspotToolsMenu/static-1.640/js/index.js"></script>
+
+
+
+
+
+
+    
+    
+        
+    
+
+
+    
+
+    
+    <script>
+        (function () {
+            var pathPatterns = ['/blog', '/updates'];
+            var path = window.location.pathname.replace(/\/+$/, '') || '/';
+            var shouldRun = pathPatterns.some(function (p) {
+                return path === p || path.indexOf(p + '/') === 0;
+            });
+            if (!shouldRun) return;
+
+            window.addEventListener('DOMContentLoaded', function () {
+                var contentWrappers = document.querySelectorAll('.hs_cos_wrapper_type_rich_text, .post-body, #post-body');
+
+                contentWrappers.forEach(function (module) {
+                    var elements = module.querySelectorAll('*');
+
+                    elements.forEach(function (el) {
+                        if (el.style.lineHeight !== '') {
+                            el.style.removeProperty('line-height');
+                        }
+
+                        // Clean up empty style attributes
+                        if (el.getAttribute('style') === '' || el.getAttribute('style') === null) {
+                            el.removeAttribute('style');
+                        }
+                    });
+                });
+            });
+        })();
+    </script>
+
+</body></html>

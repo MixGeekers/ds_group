@@ -1,0 +1,146 @@
+﻿
+What's new for enterprise in macOS Tahoe 26 - Apple Support
+Apple
+Store
+Mac
+iPad
+iPhone
+Watch
+Vision
+AirPods
+Home
+Entertainment
+Accessories
+Support
+0
++
+What's new for enterprise in macOS Tahoe 26
+Learn about the enterprise content that Apple has released for macOS Tahoe 26.
+macOS updates improve the stability, performance, or compatibility of your device and are recommended for all users. Device administrators can 
+manage software updates
+ using a device management service.
+For information about general improvements, 
+learn about updates to macOS Tahoe
+.
+For details about the security content of these updates, see 
+Apple security releases
+.
+macOS Tahoe 26.6
+The 
+srv_lookup_enabled
+ feature for DFS shares introduced in macOS 26.5 is now disabled by default. For details on how to enable the feature, refer to the 
+nsmb.conf
+ manual page.
+Resolved an issue where Platform SSO devices unexpectedly required reregistration.
+Managed apps are more reliably offered updates through self-service apps.
+Improves stability using an external camera with MacBook Neo while the lid is closed.
+Improves stability when restoring a MacBook Neo using Finder or Apple Configurator.
+macOS Tahoe 26.5.1
+This update addresses an issue for enterprise users where Mac computers with an M5 chip could unexpectedly shut down when using certain content-filtering network extensions.
+macOS Tahoe 26.5
+Resolved an issue where some Mac computers may start up to a black screen after a software update.
+Root and intermediate certificates are correctly updated when renewing enrollment in a device management service.
+Resolved an issue where Mac computers restarted unexpectedly while mounting SMB shares.
+Resolved an issue where MacBook Air with M5 and MacBook Pro with M5 Pro or M5 Max restarted unexpectedly when using some content filter extensions.
+Resolved an issue where successful smart card logins triggered incorrect password attempts.
+When autofill is disabled for Safari using device management, Autofill Passwords and Passkeys can still be enabled for other apps in System Settings.
+X11 apps using XQuartz now display correctly after the app window is resized.
+When the Mac is not bound to Active Directory, the SMB client now performs DNS SRV lookups for 
+_ldap._tcp.<serverName>
+ and 
+_gc._tcp.<serverName>
+ configured in 
+nsmb.conf
+ to discover domain controllers. If domain controllers are found, the client attempts to connect to each one in order. If all domain controller connections fail, the client falls back to the original server name.
+macOS Tahoe 26.4.1
+Resolved an issue where MacBook Air with M5 and MacBook Pro with M5 Pro or M5 Max failed to join 802.1X Wi-Fi networks while using content filter extensions.
+macOS Tahoe 26.4
+A device management service can configure what content can be migrated to a managed Mac computer during Setup Assistant.
+New declarative configurations for Apple Intelligence, External Intelligence, Siri, and Keyboard settings are available. These replace the restrictions for these settings in the 
+com.apple.applicationaccess
+ profile, which are now deprecated.
+New controls are available to configure which volumes that File Provider extensions can access and how they synchronize data.
+Starting in macOS Tahoe 26.4, users will be notified when they launch apps that use Rosetta that they will not open in a future release of macOS. Organizations using a device management service can control the notification experience via the 
+allowRosettaUsageAwareness
+ restrictions key. Rosetta support for apps will remain available through the forthcoming macOS 27.
+The new Age Range setup pane is automatically skipped for devices using Automated Device Enrollment.
+If a new identity certificate fails to install during device management enrollment renewal, the original certificate is retained to prevent unenrollment.
+Resolved an issue where configured printers were removed after a software update.
+Login Window settings configured by device management correctly return to defaults after the configuration is removed.
+Resolved an issue where users created with the 
+AccountConfiguration
+ command and 
+maxPINAgeInDays
+ or 
+changeAtNextAuthpasscode
+ policies applied may fail to authenticate.
+Network shares added to favorites and unmounted no longer fail to reconnect.
+Keynote, Numbers, and Pages do not prompt to sign in to an Apple Account when installed as a managed app.
+macOS Tahoe 26.3
+FileVault is correctly enabled for standard users when enforced by a device management configuration during Setup Assistant.
+Screen Recording permissions for apps are shown correctly in System Settings when a device management configuration allows them to be enabled by standard users.
+Platform SSO login completes successfully when using the User Principle Name if the identity provider password is changed outside of macOS.
+macOS Tahoe 26.2
+App privacy permissions configured by device management are now shown in System Settings > Privacy & Security.
+Resolved an issue where the Lock Screen became unresponsive on a Mac configured for Platform SSO with smart card authentication.
+Stability is improved when viewing log files in Console with Now mode enabled.
+macOS Tahoe 26.1
+Device management services can skip the OS Showcase and Update Completed setup panes.
+When the declarative software update enforcement deadline is reached, and the countdown to restart the device is prompted, the option to select “Not Now” is not available.
+Platform SSO registration using Secure Enclave key authentication in Setup Assistant does not prompt users for passwords when valid SSO tokens are available from the identity provider.
+macOS Tahoe 26.0.1
+The profile editor window in Apple Configurator for Mac is correctly displayed.
+Device management configurations with hardware-bound 802.1X identities are successfully installed.
+macOS Tahoe 26.0
+macOS Tahoe includes new features such as device management service migration, declarative app management, and enhancements for Platform Single Sign-on (SSO).
+Device management
+Apple School Manager and Apple Business Manager now support migrating a device with iOS 26, iPadOS 26, or macOS 26 to a new device management service as well as enforcing enrollment deadlines on eligible devices.
+Organizations can deploy App Store apps, Custom Apps, and packages using declarative device management.
+Device management can activate and enforce Platform SSO during Setup Assistant with Automated Device Enrollment.
+Authenticated guest mode provides an expedited login experience for users who use a Mac for a short period of time with Platform SSO, including a Tap to Login option using compatible NFC accessories.
+New configurations for Safari allow organizations to customize the browsing experience for their users including bookmarks, start page, content summarization, and private browsing.
+When a Mac has the 
+Restore
+ skip key configured by a device management service and that service erases the Mac, the “Transfer Your Data to This Mac” pane is skipped during the next setup.
+If a FileVault recovery key escrow configuration is installed by device management on a Mac when a recovery key is already present, the key is automatically rotated prior to escrow if a bootstrap token is present.
+“Ready for Apple Intelligence” notifications and badges are not shown on devices where any Apple Intelligence features are restricted by device management.
+Software update management using mobile device management commands, restrictions, the 
+com.apple.SoftwareUpdate
+ payload, and queries is deprecated and will be removed next year. Going forward, software updates can be managed and enforced using only declarative software update management.
+Bug fixes and other improvements
+Organizations can use a new Network Extension URL filtering API to provide a comprehensive and privacy-preserving URL filtering solution across the entire system.
+FileVault can now be unlocked over 
+ssh
+ after a restart if Remote Login is enabled and a network connection is available. More information is available on the 
+apple_ssh_and_filevault
+ manual page.
+Accessory security settings are now applied from macOS to macOS Recovery, including previously allowed accessories and the device management restriction 
+allowUSBRestrictedMode
+ to always allow accessories.
+Algorithms DES, 3DES, SHA1-96, and SHA1-160, as well as Diffie-Hellman groups less than 14, are no longer supported for IKEv2 VPNs.
+macOS now supports the Apple Sparse Image Format (ASIF).
+An error is not shown if a user attempts to use Talk to Siri when Siri is restricted by device management.
+Resolved an issue in Keychain Access where the selected keychain appeared empty.
+Stability is improved for AirPlay mirroring when viewing slides in a web browser.
+Published Date:
+July 27, 2026
+Helpful?
+ Yes
+ No
+Character limit:
+250
+Maximum character limit is 250.
+Please don’t include any personal information in your comment.
+ Submit
+ Thanks for your feedback.
+Apple Footer
+
+Apple
+Support
+What's new for enterprise in macOS Tahoe 26
+United States
+Copyright © 2026 Apple Inc. All rights reserved.
+Privacy Policy
+Terms of Use
+Sales and Refunds
+Site Map

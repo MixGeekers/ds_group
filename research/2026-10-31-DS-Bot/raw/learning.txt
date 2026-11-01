@@ -1,0 +1,123 @@
+DS-Bot 第三方源码摘录；仅作静态证据，不执行。
+检索日期：2026-10-31（America/Caracas）
+固定提交：f823773b07ec6ca29d60b31c31af30218a68000d
+许可：Apache-2.0，见 LICENSE.txt 与 NOTICE.txt。
+行号为上游原文件行号；未列出的区间未保存。
+
+===== ds-bot/src/host/learning.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/src/host/learning.js
+Git blob SHA: 28dc0c6622bbe3d4fd2d0ed31de69fd1bc8ca474
+
+--- L1-L31 ---
+1: // Learning from work. After a long turn a Bot's chat is marked for review. When the
+2: // team has been idle for a while, and at most every few hours, one background pass
+3: // reads what was said since the last pass and asks whether it taught a skill worth
+4: // keeping or a lasting project rule. Most work teaches nothing, so most passes
+5: // propose nothing. A proposal waits as a card in the Bot's chat until approved, and
+6: // declined changes are remembered so the same idea does not come back.
+7: import { createHash, randomUUID } from 'node:crypto'
+8: import { readFileSync } from 'node:fs'
+9: import { access, mkdir, readFile, unlink, writeFile } from 'node:fs/promises'
+10: import { dirname, join } from 'node:path'
+11: import { replaceFile } from './files.js'
+12: import { looksLikeKey, looksSecret, writtenIn } from './memory.js'
+13: import { validateCapabilityName } from './capabilities.js'
+14: 
+15: export const LEARNING = {
+16:   minTurnMs: 3 * 60_000,
+17:   idleMs: 10 * 60_000,
+18:   intervalMs: 12 * 60 * 60_000,
+19:   tickMs: 60_000,
+20:   readMs: 15_000,
+21:   textMax: 24_000,
+22:   userTextMax: 8_000,
+23:   userLineMax: 2_000,
+24:   botLineMax: 1_200,
+25:   learnedMax: 5,
+26:   descriptionMax: 300,
+27:   contentMax: 8_000,
+28:   declinedMax: 20,
+29:   agentsFileMax: 16_000,
+30:   agentsEditMax: 400,
+31: }
+
+--- L58-L81 ---
+58: export function skillSystem() {
+59:   return [
+60:     'You review a stretch of finished work by an AI Bot and decide whether it taught a skill worth keeping.',
+61:     'A skill is a short document that a future Bot loads when a task of the same class comes up. Strong models already do most tasks well without one, so a weak or narrow skill only adds noise. Most work teaches nothing new: answer "none" unless every test below passes.',
+62:     '',
+63:     'Tests:',
+64:     '1. Reusable: tasks of this class will come up again in later, different work. A rule that only fits this task, file, bug, or pull request fails.',
+65:     '2. Missing knowledge: it gives constraints or context that a capable model does not have or gets wrong: requirements and corrections the user stated, project or tool conventions found by trial and error, pitfalls that cost time, how this user wants the result checked or delivered. General know-how fails, and so does anything that reading the code or the docs shows at once.',
+66:     '3. Earned: the work shows it. The user asked for it or corrected the Bot, or a non-obvious way was found after one that failed. Never invent rules the work did not show.',
+67:     '4. Not covered: no listed skill already says it. When a learned skill of this Bot covers the class, update that skill instead of making a new one. Also update a learned skill that the work showed to be wrong, outdated, or missing a step.',
+68:     '',
+69:     'Never put in a skill: one-off facts, task progress, file lists, dates, version, pull request or issue numbers, pasted errors or logs, facts about the user that are not about how to work (memory keeps those), or keys, passwords, and tokens.',
+70:     'Write rules that stand alone, not the story of this work: a reason says why the rule matters, never when or how it was broken ("the user corrected this before", "version 1.2 missed it"). Examples must be general, not the files, values, or fixes of this task.',
+71:     '',
+72:     'Form:',
+73:     '- name: the class of task, lowercase letters, digits, and single hyphens, 32 characters at most, e.g. "release-checks", never "fix-login-bug".',
+74:     '- description: one sentence, 200 characters at most, that says when to use the skill. Be concrete about the trigger.',
+75:     '- content: Markdown, 600 words at most. The rules as short imperative lines, each with a brief reason when it is not obvious; numbered steps only where order matters; how to check the work is done. Keep what is still true when you update, and remove what the work showed to be wrong.',
+76:     '',
+77:     'Answer with one JSON object only, one of:',
+78:     '{"action":"none","reason":"<one sentence>"}',
+79:     '{"action":"create","name":"…","description":"…","content":"…","why":"<one sentence: what in this work shows the skill is needed>"}',
+80:     '{"action":"update","name":"<a learned skill listed>","description":"…","content":"<the whole new content>","why":"<one sentence>"}',
+81:   ].join('\n')
+
+--- L630-L648 ---
+630:   async function answer({ id, approve }) {
+631:     const store = data()
+632:     const proposal = Object.hasOwn(store.proposals, id) ? store.proposals[id] : undefined
+633:     if (proposal === undefined) throw Object.assign(new Error('This proposal is no longer open'), { code: 'bot/stale' })
+634:     if (approve !== true) {
+635:       delete store.proposals[id]
+636:       const decline = proposal.kind === 'agents'
+637:         ? { kind: 'agents', folder: proposal.folder, edits: proposal.edits.map(({ op, text, old }) => ({ op, text, old })), at: Date.now() }
+638:         : { name: proposal.name, description: proposal.description, at: Date.now() }
+639:       store.declined = [...store.declined, decline].slice(-settings.declinedMax)
+640:       await persist()
+641:       return { applied: false }
+642:     }
+643:     // A failed approval keeps the card, so the user can still decline it.
+644:     if (proposal.kind === 'agents') await applyAgents(proposal)
+645:     else await applySkill(proposal)
+646:     delete store.proposals[id]
+647:     await persist()
+648:     return { applied: true }
+
+--- L691-L721 ---
+691:   async function applySkill(proposal) {
+692:     const bot = rt.botOf(proposal.botId)
+693:     if (bot === undefined) throw new Error('The Bot that learned this skill is gone')
+694:     const current = skillsOf()[proposal.name]
+695:     const store = data()
+696:     if (proposal.action === 'create') {
+697:       if (proposal.saved) {
+698:         if (current === undefined || current.description !== proposal.description || current.content !== proposal.content) {
+699:           throw new Error(`${proposal.name} changed since this was proposed`)
+700:         }
+701:         store.learned[bot.id] = [...new Set([...(store.learned[bot.id] ?? []), current.name])]
+702:         await persist()
+703:       } else {
+704:         if (current !== undefined) throw new Error(`A skill named ${proposal.name} exists now`)
+705:         const item = await rt.capabilitySave({ name: proposal.name, kind: 'skill', description: proposal.description, content: proposal.content }, { botId: bot.id, ui: false })
+706:         proposal.saved = true
+707:         store.learned[bot.id] = [...new Set([...(store.learned[bot.id] ?? []), item.name])]
+708:         await persist()
+709:       }
+710:     } else if (proposal.action === 'update') {
+711:       if (current === undefined || hashOf(`${current.description}\n${current.content}`) !== proposal.base) throw new Error(`${proposal.name} changed since this was proposed`)
+712:       const item = await rt.capabilitySave({ name: proposal.name, kind: 'skill', description: proposal.description, content: proposal.content }, { botId: bot.id, ui: false })
+713:       store.learned[bot.id] = [...new Set([...(store.learned[bot.id] ?? []), item.name])]
+714:       await persist()
+715:     }
+716:     if (!(bot.capabilities ?? []).includes(proposal.name)) await rt.capabilityEndpoint('bot-capability', { botId: bot.id, name: proposal.name, attached: true })
+717:   }
+718: 
+719:   async function learningEndpoint(endpoint, body) {
+720:     if (endpoint === 'learning-answer') return answer({ id: String(body.id ?? ''), approve: body.approve === true })
+721:     throw new Error(`Unknown endpoint ${endpoint}`)
+

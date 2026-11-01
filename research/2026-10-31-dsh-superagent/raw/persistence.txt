@@ -1,0 +1,246 @@
+Repository: https://github.com/deepseek-ai/dsh-superagent-prototype
+Commit: 6337fc823ce20251c8de8085948165c81aaa701e
+Retrieved: 2026-10-31 (America/Caracas)
+Static source excerpts only; not executed. Upstream tests were read, not run.
+License: MIT; see LICENSE.txt.
+
+===== src/core/engine.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts
+Git blob SHA: c2198adf9c7a10837bec5f4789129bf576e39395
+
+--- Lines 19-48 ---
+19: /**
+20:  * Single transactional entry point for mutating Triggers, Threads, Decisions, Tickets, and Assignments.
+21:  * Coordinates Intake, Evals, Tickets, Assignments, and Replies inside synchronous repository transactions while queuing side
+22:  * effects through ports. Callers receive role-scoped `Pick` interfaces rather than the full engine.
+23:  */
+24: export class Engine {
+25:   private readonly repo: Repositories
+26:   private readonly replies: Replies
+27:   private readonly tickets: Tickets
+28:   private readonly assignments: Assignments
+29:   private readonly evals: Evals
+30:   private readonly intake: Intake
+31:   constructor(private readonly options: EngineOptions) {
+32:     this.repo = options.repo
+33:     this.replies = new Replies(options)
+34:     this.tickets = new Tickets(options, this.replies)
+35:     this.assignments = new Assignments(options, this.tickets, this.replies)
+36:     this.evals = new Evals(options, this.tickets)
+37:     this.intake = new Intake(options, this.tickets)
+38:   }
+39: 
+40:   // Sources
+41: 
+42:   /**
+43:    * A Source's request to take in a Trigger: store it once, fan it out to the tickets that subscribe to its Threads (to an
+44:    * ended one only a person's message, which resumes it at once unless processing is paused, and to none a person stopped),
+45:    * and queue it for Eval on its primary Thread unless a ticket's worker decides it (see `followupOwners`).
+46:    * Triggers that arrive while an Eval of that Thread runs wait together for the next one.
+47:    */
+48:   receive(trigger: Trigger): ReceiveResult { return this.repo.atomic(() => this.intake.receive(trigger)) }
+
+===== src/app/store.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/store.ts
+Git blob SHA: 6dcb8b09d9cab2b60b6b7725ee2982ec3dc502ed
+
+--- Lines 134-161 ---
+134:   /** Callbacks queued to run once the outermost transaction commits, indexed by savepoint level; rolling back a level discards its callbacks. */
+135:   private readonly committed: (() => void)[][] = []
+136:   /**
+137:    * Executes `operation` in a savepoint transaction (nested inside the current transaction if any); a failure rolls back its changes.
+138:    * Post-commit callbacks run only after the outermost transaction commits, and callback errors are reported without failing the committed transaction.
+139:    */
+140:   atomic<T>(operation: () => T): T {
+141:     const level = this.depth++
+142:     const name = `orchestrator_atomic_${level}`
+143:     this.committed[level] = []
+144:     this.db.exec(`SAVEPOINT ${name}`)
+145:     let value: T
+146:     try { value = operation(); this.db.exec(`RELEASE ${name}`) }
+147:     catch (error) { this.db.exec(`ROLLBACK TO ${name}`); this.db.exec(`RELEASE ${name}`); throw error }
+148:     finally { this.depth-- }
+149:     const actions = this.committed.splice(level)[0]!
+150:     if (level) this.committed[level - 1]!.push(...actions)
+151:     else for (const action of actions) { try { action() } catch (error) { this.report(error) } }
+152:     return value
+153:   }
+154:   /**
+155:    * Schedules `action` to run once the outermost transaction commits, or immediately if outside a transaction;
+156:    * callbacks queued inside a transaction that rolls back are discarded and never run.
+157:    * Use `afterCommit` for immediate in-memory follow-ups to a committed write (such as refreshing health or cancelling an in-memory turn) that cannot wait for the effect queue and need not survive a restart; use `Effects` for durable side effects that must survive a crash.
+158:    */
+159:   afterCommit(action: () => void): void {
+160:     if (this.depth) this.committed[this.depth - 1]!.push(action)
+161:     else action()
+
+===== src/app/effects.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/effects.ts
+Git blob SHA: 9255cda8f7a63ed0e7ab70bb023a5927fe5218d5
+
+--- Lines 60-66 ---
+60:   /** Upserts an effect in the caller's transaction, coalescing with any waiting row of the same kind and key while keeping its queue position. */
+61:   enqueue<K extends EffectKind>(kind: K, key: string, payload: EffectPayloads[K]): void {
+62:     this.store.db.prepare(`INSERT INTO effect (kind, key, value, seq, due, since) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(kind, key) DO UPDATE
+63:       SET value = excluded.value, generation = generation + 1, attempts = 0, error = '', due = excluded.due`)
+64:       .run(kind, key, JSON.stringify(payload), ++this.seq, this.now(), new Date(this.now()).toISOString())
+65:     this.kick()
+66:   }
+
+--- Lines 103-145 ---
+103:   private dispatch(): void {
+104:     if (!this.started || this.stopped) return
+105:     for (const [kind, handler] of this.handlers) {
+106:       try {
+107:         const running = new Set([...this.tasks].filter(task => task.kind === kind).map(task => task.key))
+108:         // Ordered kinds block behind their oldest row even when it is not yet due; limit() is queried only after ready rows exist.
+109:         const rows = (handler.ordered
+110:           ? this.store.db.prepare('SELECT key, value, seq, generation, attempts, due FROM effect WHERE kind = ? ORDER BY seq LIMIT 1').all(kind)
+111:           : this.store.db.prepare('SELECT key, value, seq, generation, attempts, due FROM effect WHERE kind = ? AND due <= ? ORDER BY seq LIMIT ?')
+112:             .all(kind, this.now(), 16 + running.size)) as unknown as Row[]
+113:         const ready = handler.ordered && running.size ? [] : rows.filter(row => row.due <= this.now() && !running.has(row.key))
+114:         let room = ready.length ? handler.limit() - running.size : 0
+115:         for (const row of ready) {
+116:           if (room-- <= 0) break
+117:           this.run(kind, handler, row)
+118:         }
+119:         if (this.broken.delete(kind)) this.report(kind)
+120:       } catch (error) { this.failed(kind, error) }
+121:     }
+122:   }
+123:   private run(kind: EffectKind, handler: Handler<never>, row: Row): void {
+124:     const task: Task = { kind, key: row.key, done: Promise.resolve() }
+125:     task.done = this.attempt(kind, handler, row)
+126:       .catch((error: unknown) => { this.failed(kind, error) })
+127:       .finally(() => { this.tasks.delete(task); this.kick() })
+128:     this.tasks.add(task)
+129:   }
+130:   private async attempt(kind: EffectKind, handler: Handler<never>, row: Row): Promise<void> {
+131:     let failure: { error: unknown } | undefined
+132:     try { await handler.run(JSON.parse(row.value) as never, row.key) } catch (error) { failure = { error } }
+133:     // Match seq and generation so a row replaced or re-queued while running is not overwritten.
+134:     const own = 'kind = ? AND key = ? AND seq = ? AND generation = ?', ownRow = [kind, row.key, row.seq, row.generation] as const
+135:     if (!failure) this.store.db.prepare(`DELETE FROM effect WHERE ${own}`).run(...ownRow)
+136:     // Leave running rows untouched on shutdown so they retry on the next start.
+137:     else if (this.stopped) return
+138:     else if (failure.error instanceof Later) {
+139:       this.store.db.prepare(`UPDATE effect SET due = ? WHERE ${own}`).run(this.now() + handler.retry[0], ...ownRow)
+140:     } else {
+141:       const delay = Math.min(handler.retry[1], handler.retry[0] * 2 ** Math.min(row.attempts, 16))
+142:       this.store.db.prepare(`UPDATE effect SET attempts = attempts + 1, error = ?, due = ? WHERE ${own}`)
+143:         .run(String(failure.error).slice(0, 1000), this.now() + delay, ...ownRow)
+144:     }
+145:     if (!this.stopped) this.report(kind)
+
+===== src/app/outbox.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/app/outbox.ts
+Git blob SHA: a5f64b56eca71a4668e0893f890db937bd23a573
+
+--- Lines 17-51 ---
+17: /**
+18:  * Persists outbound channel messages as receipts and delivers them sequentially through `Effects` and `SourceRegistry`.
+19:  * Implements the core `Outbox` port for `Engine` and source contexts, ensuring per-conversation ordering for each ticket until an earlier message fails repeatedly.
+20:  * Messages wait while processing is paused or their source is unavailable, and settle as dropped when the target conversation is ignored or gone.
+21:  */
+22: export class Outbox implements OutboxPort {
+23:   constructor(private readonly host: OutboxHost) {
+24:     host.effects.handle('reply', (_payload, id) => this.deliver(id), { limit: () => host.paused() ? 0 : 1, retry: [5000, 300_000] })
+25:   }
+26:   /** Record a message receipt and enqueue its delivery effect atomically; duplicate message IDs are ignored. */
+27:   send(message: OutboundMessage): void {
+28:     // Validate IM reply length here; acknowledgements are already validated when decided.
+29:     if (message.kind === 'reply' && message.channel.source === 'feishu') checkedImText(message.text)
+30:     const { store, effects } = this.host
+31:     store.atomic(() => { if (store.receipts.add(message)) effects.enqueue('reply', message.id, {}) })
+32:   }
+33:   status(id: string): ReplyStatus | undefined { return this.host.store.receipts.get(id)?.status }
+34:   withdraw(id: string): void {
+35:     const { store, effects } = this.host
+36:     store.atomic(() => { if (store.receipts.withdraw(id)) effects.cancel('reply', id) })
+37:   }
+38:   sent(): Promise<void> { return this.host.effects.idle('reply') }
+39:   private async deliver(id: string): Promise<void> {
+40:     const { store, sources, commands } = this.host
+41:     const receipt = store.receipts.get(id)
+42:     if (receipt?.status !== 'pending') return
+43:     if (!sources.instance(receipt.channel.source)?.enabled) throw new Later('The Source is off or not installed')
+44:     // Hold later messages for the same ticket and conversation behind an earlier pending message until it exceeds the failure threshold.
+45:     if (store.receipts.behind(id, FAILURES_BEFORE_ERROR)) throw new Later('An earlier message of this ticket to this conversation waits')
+46:     if (!sources.channelAllowed(receipt.channel)) { store.receipts.settle(receipt, 'channelIgnored'); return }
+47:     // A permanently unreachable target (such as a recalled message or deleted Issue) settles as `channelGone` so its receipt prevents retries.
+48:     const result = await sources.send(receipt, commands)
+49:     if (result === 'waiting') throw new Later('The Source is not installed')
+50:     store.receipts.settle(receipt, result === 'gone' ? 'channelGone' : 'sent')
+51:   }
+
+===== src/core/memory.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/memory.ts
+Git blob SHA: 114e8c7140c984152a1e87cffe80c60b28f18819
+
+--- Lines 1-23 ---
+1: /** In-memory repository implementation for testing and ephemeral engine instances. */
+2: import { latestAssignment, type Decision, type Thread, type Ticket, type Trigger, type TriggerDisposition } from './model.ts'
+3: import type { Repositories } from './ports.ts'
+4: 
+5: const clone = <T>(value: T): T => structuredClone(value)
+6: /**
+7:  * In-memory implementation of the Repositories port backed by cloned Map entries so caller mutations do not affect stored state.
+8:  * Provides snapshot-based atomic rollback and matches the ordering semantics of the SQLite store for Engine tests.
+9:  */
+10: export class MemoryRepositories implements Repositories {
+11:   private readonly triggerRows = new Map<string, Trigger>()
+12:   private readonly dispositions = new Map<string, TriggerDisposition>()
+13:   private readonly threadRows = new Map<string, Thread>()
+14:   private readonly ticketRows = new Map<string, Ticket>()
+15:   private readonly decisionRows = new Map<string, Decision>()
+16:   atomic<T>(work: () => T): T {
+17:     const maps: Map<string, unknown>[] = [this.triggerRows, this.dispositions, this.threadRows, this.ticketRows, this.decisionRows]
+18:     const snapshot = maps.map(map => new Map(map))
+19:     try { return work() }
+20:     catch (error) {
+21:       maps.forEach((map, index) => { map.clear(); for (const [id, value] of snapshot[index]!) map.set(id, value) })
+22:       throw error
+23:     }
+
+===== docs/007-architecture.md =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/docs/007-architecture.md
+Git blob SHA: 184ea543da47267f3f81285e38fb5355dcc3bcdd
+
+--- Lines 450-486 ---
+450: ## Persistence
+451: 
+452: One SQLite file, `<stateDir>/orchestrator.sqlite`, which only the Store opens.
+453: 
+454: | Table | Holds | Written by |
+455: | --- | --- | --- |
+456: | `trigger` | Each Trigger, its time `at` in the one form `Date#toISOString` gives, set when the Engine receives it, so times compare as text | Engine |
+457: | `disposition` | Where each Trigger went: `filtered` with the Source's reason code, its Eval and Decision, the Tickets it reached, by fan-out or attachment, whether it was requeued, the Tickets that handed it back with their reasons, and those whose Executor acknowledged or answered it | Engine |
+458: | `trigger_thread` | Which Threads each Trigger is on, with its time and whether a person wrote it, so a Thread's Triggers are read without scanning every Trigger, in order of time and then id: a page of a Thread's timeline continues from a `<at>|<id>` cursor, and Triggers that share a time are not skipped | Store, with each Trigger |
+459: | `thread` | Threads: Subscriptions, the Tickets that follow it for context, queued Triggers, the Eval in progress, the count of its expiries and `meta`; the generated columns `active`, set while Triggers are queued or an Eval runs, and `subscribed`, its Source while a Ticket subscribes to it | Engine; Sources write `meta` |
+460: | `ticket` | Tickets with their Mandate, origin, execution, Assignments, Channels, Inputs and the Threads they follow; the generated columns `open`, set while it has not ended, and `active`, set while Inputs are undelivered or the latest Assignment is pending or running | Engine |
+461: | `decision` | Decisions, by Thread | Engine |
+462: | `effect` | The effect queue: per kind and key, the payload, its order, failed attempts with the last error, and when it is due | Effects; the schema 11 migration queues what earlier versions kept for the main Session |
+463: | `outbox` | The receipt of each message for a Channel, by id, with the Ticket it is for and its `status`, `pending`, `sent` or `dropped`, kept so an id is never queued twice; for a dropped message, when and why, as the generated column `dropped`, its time, and a reason code. A message that waits has a `reply` effect, which holds its attempts | The Outbox |
+464: | `kv` | Every other record, by key | The part that names it |
+465: 
+466: A generated column is computed from its row's JSON and is empty outside its set, and each has an index over its set, so a pass reads only active work. A database that predates a column gets it when the Store opens it.
+467: 
+468: `KV` (`src/kv.ts`) defines each key-value record's owner, key and type. All readers and writers use these entries; only migration code names older keys.
+469: 
+470: | Records | Keys or contents |
+471: | --- | --- |
+472: | Schema | Current schema version |
+473: | Settings versions | `settings-revision`, `settings-version:<n>`, `settings-block-revision:<block>`; snapshots include origin, Policy version and affected Tickets |
+474: | Prompt versions | `prompt-revision`, `prompt-version:<n>` |
+475: | Main Session | `master-id` |
+476: | Session prompt history | `session-prompts:<session id>` |
+477: | Source state | Read positions such as `github-cursor:<number>`, PR CI fingerprints and seen Feishu-topic messages; keys begin with the kind or `thread-` plus a Thread key |
+478: | Display names | `source-labels:<source id>` |
+479: 
+480: Dismissal is stored on its Decision. Input text is rendered from the Ticket when read, so neither needs a separate key-value record.
+481: 
+482: Read caches use bounded in-memory `TextCache` instances and are lost on restart. A Session paging through an original Source record or prompt preview must reread offset 0 after a restart. Feishu links resolved after intake are cached the same way; link-based search finds them only after that link has been read during the current process lifetime.
+483: 
+484: Nothing deletes old records yet, so these grow without bound: the `trigger`, `disposition` and `decision` rows; ended Tickets and their Threads; the outbox's receipts; and in `kv`, every saved settings revision and prompt version, the prompt revisions each Session worked under, and the Sources' records per Thread and per Issue or pull request.
+485: 
+486: `SCHEMA_VERSION` only increases. A database of a newer version refuses to start; `src/app/migration.ts` upgrades a database of the pre-release schema 10 once, at start, and refuses an older one.

@@ -1,0 +1,1646 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head profile="http://gmpg.org/xfn/11">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Managing user notifications for apps which request screen access on macOS Sequoia 15.1 | Der Flounder</title>
+
+<link rel="stylesheet" href="https://s0.wp.com/wp-content/themes/pub/inove/style.css?m=1745604443i" type="text/css" media="screen" />
+
+<script type="text/javascript" src="https://s0.wp.com/wp-content/themes/pub/inove/js/base.js?m=1398364822i"></script>
+<script type="text/javascript" src="https://s0.wp.com/wp-content/themes/pub/inove/js/menu.js?m=1351714433i"></script>
+
+<link rel="pingback" href="https://derflounder.wordpress.com/xmlrpc.php" />
+<meta name='robots' content='max-image-preview:large' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel="alternate" type="application/rss+xml" title="Der Flounder &raquo; Feed" href="https://derflounder.wordpress.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Der Flounder &raquo; Comments Feed" href="https://derflounder.wordpress.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="Der Flounder &raquo; Managing user notifications for apps which request screen access on macOS Sequoia&nbsp;15.1 Comments Feed" href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<style id="wp-img-auto-sizes-contain-inline-css">
+img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
+/*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='/_static/??-eJx9jFEKwkAMRC/kGhVh9UM8S91GTbubBJOt9PZtRRBE/Bl4w7yBp4Yk7MgOpQbN9UZs0KFrk/o3QxFZoq0ZDR6YG8c2qJh/0TqZreD3ZaYeP8cv+jcnvhKTj+B3LLOo9TJ3MuAinctpG4+7uI+bQ+wm06xJGQ==&cssminify=yes' type='text/css' media='all' />
+<style id="wp-emoji-styles-inline-css">
+
+	img.wp-smiley, img.emoji {
+		display: inline !important;
+		border: none !important;
+		box-shadow: none !important;
+		height: 1em !important;
+		width: 1em !important;
+		margin: 0 0.07em !important;
+		vertical-align: -0.1em !important;
+		background: none !important;
+		padding: 0 !important;
+	}
+/*# sourceURL=wp-emoji-styles-inline-css */
+</style>
+<style id="wp-block-library-inline-css">
+:root{--wp-block-synced-color:#7a00df;--wp-block-synced-color--rgb:122,0,223;--wp-bound-block-color:var(--wp-block-synced-color);--wp-editor-canvas-background:#ddd;--wp-admin-theme-color:#3858e9;--wp-admin-theme-color--rgb:56,88,233;--wp-admin-theme-color-darker-10:#2145e6;--wp-admin-theme-color-darker-10--rgb:33.0384615385,68.7307692308,230.4615384615;--wp-admin-theme-color-darker-20:#183ad6;--wp-admin-theme-color-darker-20--rgb:23.6923076923,58.1538461538,214.3076923077;--wp-admin-border-width-focus:2px}@media (min-resolution:192dpi){:root{--wp-admin-border-width-focus:1.5px}}body.admin-color-fresh{--wp-admin-theme-color:#007cba;--wp-admin-theme-color--rgb:0,124,186;--wp-admin-theme-color-darker-10:#006ba1;--wp-admin-theme-color-darker-10--rgb:0,107,160.5;--wp-admin-theme-color-darker-20:#005a87;--wp-admin-theme-color-darker-20--rgb:0,90,135;--wp-admin-border-width-focus:2px}@media (min-resolution:192dpi){body.admin-color-fresh{--wp-admin-border-width-focus:1.5px}}.wp-element-button{cursor:pointer}:root .has-very-light-gray-background-color{background-color:#eee}:root .has-very-dark-gray-background-color{background-color:#313131}:root .has-very-light-gray-color{color:#eee}:root .has-very-dark-gray-color{color:#313131}:root .has-vivid-green-cyan-to-vivid-cyan-blue-gradient-background{background:linear-gradient(135deg,#00d084,#0693e3)}:root .has-purple-crush-gradient-background{background:linear-gradient(135deg,#34e2e4,#4721fb 50%,#ab1dfe)}:root .has-hazy-dawn-gradient-background{background:linear-gradient(135deg,#faaca8,#dad0ec)}:root .has-subdued-olive-gradient-background{background:linear-gradient(135deg,#fafae1,#67a671)}:root .has-atomic-cream-gradient-background{background:linear-gradient(135deg,#fdd79a,#004a59)}:root .has-nightshade-gradient-background{background:linear-gradient(135deg,#330968,#31cdcf)}:root .has-midnight-gradient-background{background:linear-gradient(135deg,#020381,#2874fc)}:root{--wp--preset--font-size--normal:16px;--wp--preset--font-size--huge:42px}.has-regular-font-size{font-size:1em}.has-larger-font-size{font-size:2.625em}.has-normal-font-size{font-size:var(--wp--preset--font-size--normal)}.has-huge-font-size{font-size:var(--wp--preset--font-size--huge)}:root .has-text-align-center{text-align:center}:root .has-text-align-left{text-align:left}:root .has-text-align-right{text-align:right}:root .has-inline-color,:root .has-link-color a,:root .has-text-color{-webkit-text-fill-color:currentColor}.has-fit-text{white-space:nowrap!important}#end-resizable-editor-section{display:none}.aligncenter{clear:both}.items-justified-left{justify-content:flex-start}.items-justified-center{justify-content:center}.items-justified-right{justify-content:flex-end}.items-justified-space-between{justify-content:space-between}.screen-reader-text{border:0;clip-path:inset(50%);height:1px;margin:-1px;overflow:hidden;overflow-wrap:normal!important;padding:0;position:absolute;width:1px;word-break:normal!important}.screen-reader-text:focus{background-color:#ddd;clip-path:none;color:#444;display:block;font-size:1em;height:auto;left:5px;line-height:normal;padding:15px 23px 14px;text-decoration:none;top:5px;width:auto;z-index:100000}html :where(.has-border-color){border-style:solid}html :where([style^=border-color],[style*=";border-color"],[style*="; border-color"]){border-style:solid}html :where([style^=border-top-color],[style*=";border-top-color"],[style*="; border-top-color"]){border-top-style:solid}html :where([style^=border-right-color],[style*=";border-right-color"],[style*="; border-right-color"]){border-right-style:solid}html :where([style^=border-bottom-color],[style*=";border-bottom-color"],[style*="; border-bottom-color"]){border-bottom-style:solid}html :where([style^=border-left-color],[style*=";border-left-color"],[style*="; border-left-color"]){border-left-style:solid}html :where([style^=border-width],[style*=";border-width"],[style*="; border-width"]){border-style:solid}html :where([style^=border-top-width],[style*=";border-top-width"],[style*="; border-top-width"]){border-top-style:solid}html :where([style^=border-right-width],[style*=";border-right-width"],[style*="; border-right-width"]){border-right-style:solid}html :where([style^=border-bottom-width],[style*=";border-bottom-width"],[style*="; border-bottom-width"]){border-bottom-style:solid}html :where([style^=border-left-width],[style*=";border-left-width"],[style*="; border-left-width"]){border-left-style:solid}html :where(img[class*=wp-image-]){height:auto;max-width:100%}:where(figure){margin:0 0 1em}html :where(.is-position-sticky){--wp-admin--admin-bar--position-offset:var(--wp-admin--admin-bar--height,0px)}@media screen and (max-width:600px){html :where(.is-position-sticky){--wp-admin--admin-bar--position-offset:0px}}@supports (not (-webkit-backdrop-filter:blur(1px))) and (not (-moz-appearance:none)){mtd[columnalign=right]{text-align:-webkit-right}mtd[columnalign=left]{text-align:-webkit-left}menclose[notation~=top]{border-top:.065em solid;padding-top:.1em}menclose[notation~=bottom]{border-bottom:.065em solid;padding-bottom:.1em}}
+
+/*# sourceURL=/wp-content/plugins/gutenberg-core/v24.3.0/build/styles/block-library/common.min.css */
+</style>
+<style id="wp-block-library-inline-css-extra">
+.has-text-align-justify {
+	text-align:justify;
+}
+.has-text-align-justify{text-align:justify;}
+/*# sourceURL=wp-block-library-inline-css */
+</style>
+
+<style id="classic-theme-styles-inline-css">
+.wp-block-button__link{background-color:#32373c;border-radius:9999px;box-shadow:none;color:#fff;font-size:1.125em;padding:calc(.667em + 2px) calc(1.333em + 2px);text-decoration:none}.wp-block-file__button{background:#32373c;color:#fff}.wp-block-accordion-heading{margin:0}.wp-block-accordion-heading__toggle{background-color:inherit!important;color:inherit!important}.wp-block-accordion-heading__toggle:not(:focus-visible){outline:none}.wp-block-accordion-heading__toggle:focus,.wp-block-accordion-heading__toggle:hover{background-color:inherit!important;border:none;box-shadow:none;color:inherit;padding:var(--wp--preset--spacing--20,1em) 0;text-decoration:none}.wp-block-accordion-heading__toggle:focus-visible{outline:auto;outline-offset:0}.wp-block-tab:not(.has-text-color){color:inherit!important}.wp-block-tab:not(.has-background){background-color:inherit!important}.wp-block-tab:focus,.wp-block-tab:hover{text-decoration:none}.wp-block-tab:focus-visible{outline:auto;outline-offset:0}
+/*# sourceURL=/wp-content/plugins/gutenberg-core/v24.3.0/build/styles/block-library/classic.min.css */
+</style>
+
+<style id="coblocks-inline-format-inline-css">
+.uppercase{text-transform:uppercase}
+/*# sourceURL=coblocks-inline-format-inline-css */
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-12-1' href='/_static/??/wp-content/mu-plugins/core-compat/wp-mediaelement.css,/wp-content/mu-plugins/wpcom-bbpress-premium-themes.css?m=1432920480j&cssminify=yes' type='text/css' media='all' />
+<style id="global-styles-inline-css">
+:root{--wp--preset--aspect-ratio--square: 1;--wp--preset--aspect-ratio--4-3: 4/3;--wp--preset--aspect-ratio--3-4: 3/4;--wp--preset--aspect-ratio--3-2: 3/2;--wp--preset--aspect-ratio--2-3: 2/3;--wp--preset--aspect-ratio--16-9: 16/9;--wp--preset--aspect-ratio--9-16: 9/16;--wp--preset--color--black: #000000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #ffffff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgb(6,147,227) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgb(252,185,0) 0%,rgb(255,105,0) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgb(255,105,0) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--font-family--albert-sans: 'Albert Sans', sans-serif;--wp--preset--font-family--alegreya: Alegreya, serif;--wp--preset--font-family--arvo: Arvo, serif;--wp--preset--font-family--bodoni-moda: 'Bodoni Moda', serif;--wp--preset--font-family--bricolage-grotesque: 'Bricolage Grotesque', sans-serif;--wp--preset--font-family--cabin: Cabin, sans-serif;--wp--preset--font-family--chivo: Chivo, sans-serif;--wp--preset--font-family--commissioner: Commissioner, sans-serif;--wp--preset--font-family--cormorant: Cormorant, serif;--wp--preset--font-family--courier-prime: 'Courier Prime', monospace;--wp--preset--font-family--crimson-pro: 'Crimson Pro', serif;--wp--preset--font-family--dm-mono: 'DM Mono', monospace;--wp--preset--font-family--dm-sans: 'DM Sans', sans-serif;--wp--preset--font-family--dm-serif-display: 'DM Serif Display', serif;--wp--preset--font-family--domine: Domine, serif;--wp--preset--font-family--eb-garamond: 'EB Garamond', serif;--wp--preset--font-family--epilogue: Epilogue, sans-serif;--wp--preset--font-family--fahkwang: Fahkwang, sans-serif;--wp--preset--font-family--figtree: Figtree, sans-serif;--wp--preset--font-family--fira-sans: 'Fira Sans', sans-serif;--wp--preset--font-family--fjalla-one: 'Fjalla One', sans-serif;--wp--preset--font-family--fraunces: Fraunces, serif;--wp--preset--font-family--gabarito: Gabarito, system-ui;--wp--preset--font-family--ibm-plex-mono: 'IBM Plex Mono', monospace;--wp--preset--font-family--ibm-plex-sans: 'IBM Plex Sans', sans-serif;--wp--preset--font-family--ibarra-real-nova: 'Ibarra Real Nova', serif;--wp--preset--font-family--instrument-serif: 'Instrument Serif', serif;--wp--preset--font-family--inter: Inter, sans-serif;--wp--preset--font-family--josefin-sans: 'Josefin Sans', sans-serif;--wp--preset--font-family--jost: Jost, sans-serif;--wp--preset--font-family--libre-baskerville: 'Libre Baskerville', serif;--wp--preset--font-family--libre-franklin: 'Libre Franklin', sans-serif;--wp--preset--font-family--literata: Literata, serif;--wp--preset--font-family--lora: Lora, serif;--wp--preset--font-family--merriweather: Merriweather, serif;--wp--preset--font-family--montserrat: Montserrat, sans-serif;--wp--preset--font-family--newsreader: Newsreader, serif;--wp--preset--font-family--noto-sans-mono: 'Noto Sans Mono', sans-serif;--wp--preset--font-family--nunito: Nunito, sans-serif;--wp--preset--font-family--open-sans: 'Open Sans', sans-serif;--wp--preset--font-family--overpass: Overpass, sans-serif;--wp--preset--font-family--pt-serif: 'PT Serif', serif;--wp--preset--font-family--petrona: Petrona, serif;--wp--preset--font-family--piazzolla: Piazzolla, serif;--wp--preset--font-family--playfair-display: 'Playfair Display', serif;--wp--preset--font-family--plus-jakarta-sans: 'Plus Jakarta Sans', sans-serif;--wp--preset--font-family--poppins: Poppins, sans-serif;--wp--preset--font-family--raleway: Raleway, sans-serif;--wp--preset--font-family--roboto: Roboto, sans-serif;--wp--preset--font-family--roboto-slab: 'Roboto Slab', serif;--wp--preset--font-family--rubik: Rubik, sans-serif;--wp--preset--font-family--rufina: Rufina, serif;--wp--preset--font-family--sora: Sora, sans-serif;--wp--preset--font-family--source-sans-3: 'Source Sans 3', sans-serif;--wp--preset--font-family--source-serif-4: 'Source Serif 4', serif;--wp--preset--font-family--space-mono: 'Space Mono', monospace;--wp--preset--font-family--syne: Syne, sans-serif;--wp--preset--font-family--texturina: Texturina, serif;--wp--preset--font-family--urbanist: Urbanist, sans-serif;--wp--preset--font-family--work-sans: 'Work Sans', sans-serif;--wp--preset--text-shadow--light: 0.05em 0.05em 0.1em rgba(0, 0, 0, 0.3);--wp--preset--text-shadow--strong: 0.1em 0.1em 0.25em rgba(0, 0, 0, 0.5);--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;--wp--preset--shadow--natural: 6px 6px 9px rgba(0, 0, 0, 0.2);--wp--preset--shadow--deep: 12px 12px 50px rgba(0, 0, 0, 0.4);--wp--preset--shadow--sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);--wp--preset--shadow--outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);--wp--preset--shadow--crisp: 6px 6px 0px rgb(0, 0, 0);}.wp-block-button{--wp--preset--dimension--25: 25%;--wp--preset--dimension--50: 50%;--wp--preset--dimension--75: 75%;--wp--preset--dimension--100: 100%;}:where(body) { margin: 0; }:where(.is-layout-flex){gap: 0.5em;}:where(.is-layout-grid){gap: 0.5em;}body .is-layout-flex{display: flex;}.is-layout-flex{flex-wrap: wrap;align-items: center;}.is-layout-flex > :is(*, div){margin: 0;}body .is-layout-grid{display: grid;}.is-layout-grid > :is(*, div){margin: 0;}body{padding-top: 0px;padding-right: 0px;padding-bottom: 0px;padding-left: 0px;}:root :where(.wp-element-button, .wp-block-button__link){background-color: #32373c;border-width: 0;color: #fff;font-family: inherit;font-size: inherit;font-style: inherit;font-weight: inherit;letter-spacing: inherit;line-height: inherit;padding-top: calc(0.667em + 2px);padding-right: calc(1.333em + 2px);padding-bottom: calc(0.667em + 2px);padding-left: calc(1.333em + 2px);text-decoration: none;text-transform: inherit;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}.has-albert-sans-font-family{font-family: var(--wp--preset--font-family--albert-sans) !important;}.has-alegreya-font-family{font-family: var(--wp--preset--font-family--alegreya) !important;}.has-arvo-font-family{font-family: var(--wp--preset--font-family--arvo) !important;}.has-bodoni-moda-font-family{font-family: var(--wp--preset--font-family--bodoni-moda) !important;}.has-bricolage-grotesque-font-family{font-family: var(--wp--preset--font-family--bricolage-grotesque) !important;}.has-cabin-font-family{font-family: var(--wp--preset--font-family--cabin) !important;}.has-chivo-font-family{font-family: var(--wp--preset--font-family--chivo) !important;}.has-commissioner-font-family{font-family: var(--wp--preset--font-family--commissioner) !important;}.has-cormorant-font-family{font-family: var(--wp--preset--font-family--cormorant) !important;}.has-courier-prime-font-family{font-family: var(--wp--preset--font-family--courier-prime) !important;}.has-crimson-pro-font-family{font-family: var(--wp--preset--font-family--crimson-pro) !important;}.has-dm-mono-font-family{font-family: var(--wp--preset--font-family--dm-mono) !important;}.has-dm-sans-font-family{font-family: var(--wp--preset--font-family--dm-sans) !important;}.has-dm-serif-display-font-family{font-family: var(--wp--preset--font-family--dm-serif-display) !important;}.has-domine-font-family{font-family: var(--wp--preset--font-family--domine) !important;}.has-eb-garamond-font-family{font-family: var(--wp--preset--font-family--eb-garamond) !important;}.has-epilogue-font-family{font-family: var(--wp--preset--font-family--epilogue) !important;}.has-fahkwang-font-family{font-family: var(--wp--preset--font-family--fahkwang) !important;}.has-figtree-font-family{font-family: var(--wp--preset--font-family--figtree) !important;}.has-fira-sans-font-family{font-family: var(--wp--preset--font-family--fira-sans) !important;}.has-fjalla-one-font-family{font-family: var(--wp--preset--font-family--fjalla-one) !important;}.has-fraunces-font-family{font-family: var(--wp--preset--font-family--fraunces) !important;}.has-gabarito-font-family{font-family: var(--wp--preset--font-family--gabarito) !important;}.has-ibm-plex-mono-font-family{font-family: var(--wp--preset--font-family--ibm-plex-mono) !important;}.has-ibm-plex-sans-font-family{font-family: var(--wp--preset--font-family--ibm-plex-sans) !important;}.has-ibarra-real-nova-font-family{font-family: var(--wp--preset--font-family--ibarra-real-nova) !important;}.has-instrument-serif-font-family{font-family: var(--wp--preset--font-family--instrument-serif) !important;}.has-inter-font-family{font-family: var(--wp--preset--font-family--inter) !important;}.has-josefin-sans-font-family{font-family: var(--wp--preset--font-family--josefin-sans) !important;}.has-jost-font-family{font-family: var(--wp--preset--font-family--jost) !important;}.has-libre-baskerville-font-family{font-family: var(--wp--preset--font-family--libre-baskerville) !important;}.has-libre-franklin-font-family{font-family: var(--wp--preset--font-family--libre-franklin) !important;}.has-literata-font-family{font-family: var(--wp--preset--font-family--literata) !important;}.has-lora-font-family{font-family: var(--wp--preset--font-family--lora) !important;}.has-merriweather-font-family{font-family: var(--wp--preset--font-family--merriweather) !important;}.has-montserrat-font-family{font-family: var(--wp--preset--font-family--montserrat) !important;}.has-newsreader-font-family{font-family: var(--wp--preset--font-family--newsreader) !important;}.has-noto-sans-mono-font-family{font-family: var(--wp--preset--font-family--noto-sans-mono) !important;}.has-nunito-font-family{font-family: var(--wp--preset--font-family--nunito) !important;}.has-open-sans-font-family{font-family: var(--wp--preset--font-family--open-sans) !important;}.has-overpass-font-family{font-family: var(--wp--preset--font-family--overpass) !important;}.has-pt-serif-font-family{font-family: var(--wp--preset--font-family--pt-serif) !important;}.has-petrona-font-family{font-family: var(--wp--preset--font-family--petrona) !important;}.has-piazzolla-font-family{font-family: var(--wp--preset--font-family--piazzolla) !important;}.has-playfair-display-font-family{font-family: var(--wp--preset--font-family--playfair-display) !important;}.has-plus-jakarta-sans-font-family{font-family: var(--wp--preset--font-family--plus-jakarta-sans) !important;}.has-poppins-font-family{font-family: var(--wp--preset--font-family--poppins) !important;}.has-raleway-font-family{font-family: var(--wp--preset--font-family--raleway) !important;}.has-roboto-font-family{font-family: var(--wp--preset--font-family--roboto) !important;}.has-roboto-slab-font-family{font-family: var(--wp--preset--font-family--roboto-slab) !important;}.has-rubik-font-family{font-family: var(--wp--preset--font-family--rubik) !important;}.has-rufina-font-family{font-family: var(--wp--preset--font-family--rufina) !important;}.has-sora-font-family{font-family: var(--wp--preset--font-family--sora) !important;}.has-source-sans-3-font-family{font-family: var(--wp--preset--font-family--source-sans-3) !important;}.has-source-serif-4-font-family{font-family: var(--wp--preset--font-family--source-serif-4) !important;}.has-space-mono-font-family{font-family: var(--wp--preset--font-family--space-mono) !important;}.has-syne-font-family{font-family: var(--wp--preset--font-family--syne) !important;}.has-texturina-font-family{font-family: var(--wp--preset--font-family--texturina) !important;}.has-urbanist-font-family{font-family: var(--wp--preset--font-family--urbanist) !important;}.has-work-sans-font-family{font-family: var(--wp--preset--font-family--work-sans) !important;}.has-light-text-shadow{text-shadow: var(--wp--preset--text-shadow--light) !important;}.has-strong-text-shadow{text-shadow: var(--wp--preset--text-shadow--strong) !important;}
+/*# sourceURL=global-styles-inline-css */
+</style>
+
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-14-1' href='/_static/??-eJx9jtEOwjAIRX/Iil1iFh+Mn2I6VpvOUpqVbr8vJs7swfjG4XIAWItBzuKzADVTUgsxV5i8FIdPo621INMnAGLOW3hffB55BteEyYlE/GpqkG6sMLSYRtjwiLUe4PfF2Q+Jg5YBdGqH/6Tg2SRGJ1Hf2oN5JBfnt3qjq+0v3dme+s5OLxJUWbY=&cssminify=yes' type='text/css' media='all' />
+<style id="jetpack-global-styles-frontend-style-inline-css">
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+/*# sourceURL=jetpack-global-styles-frontend-style-inline-css */
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-16-1' href='/_static/??-eJyNjcEKAjEMRH/ImhVlqwfxU6TbhrZrmhTTIv69u+JFvHgZ5sHwBh7VeOGG3KB0U6nHzAoztur87cNQRNYInVBBk7tjcCE83zVz3HrVDfxvumb2MPVMAVR8dmRIougX/DhbwrK8pwNEksnROriU884e9+PJDnaYXxwFS20=&cssminify=yes' type='text/css' media='all' />
+<script id="jetpack_related-posts-js-extra">
+var related_posts_js_options = {"post_heading":"h4"};
+//# sourceURL=jetpack_related-posts-js-extra
+</script>
+<script id="wpcom-actionbar-placeholder-js-extra">
+var actionbardata = {"siteID":"4732336","postID":"12443","siteURL":"https://derflounder.wordpress.com","xhrURL":"https://derflounder.wordpress.com/wp-admin/admin-ajax.php","nonce":"8b5f94e85d","isLoggedIn":"","statusMessage":"","statusSubscribed":"","subsEmailDefault":"instantly","proxyScriptUrl":"https://s0.wp.com/wp-content/js/wpcom-proxy-request.js?m=1513050504i&amp;ver=20211021","shortlink":"https://wp.me/pjR60-3eH","i18n":{"followedText":"New posts from this site will now appear in your \u003Ca href=\"https://wordpress.com/reader\"\u003EReader\u003C/a\u003E","foldBar":"Collapse this bar","unfoldBar":"Expand this bar","shortLinkCopied":"Copied to clipboard."}};
+//# sourceURL=wpcom-actionbar-placeholder-js-extra
+</script>
+<script id="jetpack-mu-wpcom-settings-js-before">
+var JETPACK_MU_WPCOM_SETTINGS = {"assetsUrl":"https://s0.wp.com/wp-content/mu-plugins/jetpack-mu-wpcom-plugin/moon/jetpack_vendor/automattic/jetpack-mu-wpcom/src/build/"};
+//# sourceURL=jetpack-mu-wpcom-settings-js-before
+</script>
+<script crossorigin='anonymous' type='text/javascript'  src='/_static/??-eJyNjtEKwjAMRX/ILsyXdQ/ip8hsw2ht09om6P7ePEyYb0IgXO7JIfCqxhViJIYspiZZA3WIyHVxjz1DLoXgFsjBXULy0DAtjN7U0rn/piEHGmI/gYr1IIlH1ek8Bdu2r78gk8PaVHyEv68q2xKb2sp70+6aL+Nk7TRbex7jB2hiTnM='></script>
+<script id="rlt-proxy-js-after">
+	rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+//# sourceURL=rlt-proxy-js-after
+</script>
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://derflounder.wordpress.com/xmlrpc.php?rsd" />
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/" />
+<link rel='shortlink' href='https://wp.me/pjR60-3eH' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fderflounder.wordpress.com%2F2024%2F10%2F31%2Fmanaging-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fderflounder.wordpress.com%2F2024%2F10%2F31%2Fmanaging-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Managing user notifications for apps which request screen access on macOS Sequoia 15.1" />
+<meta property="og:url" content="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/" />
+<meta property="og:description" content="As part of the macOS Sequoia 15.1 release notes, this section is included: MDM profiles can use the new key ‘forceBypassScreenCaptureAlert’, which allows owners of managed devices to opt out of use…" />
+<meta property="article:published_time" content="2024-10-31T13:48:06+00:00" />
+<meta property="article:modified_time" content="2024-10-31T14:06:11+00:00" />
+<meta property="og:site_name" content="Der Flounder" />
+<meta property="og:image" content="https://derflounder.wordpress.com/wp-content/uploads/2024/10/screenshot-2024-10-31-at-8.36.png" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="fb:app_id" content="249643311490" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:creator" content="@rtrouton" />
+<meta name="twitter:site" content="@rtrouton" />
+<meta name="twitter:text:title" content="Managing user notifications for apps which request screen access on macOS Sequoia&nbsp;15.1" />
+<meta name="twitter:image" content="https://derflounder.wordpress.com/wp-content/uploads/2024/10/screenshot-2024-10-31-at-8.36.png?w=144" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="shortcut icon" type="image/x-icon" href="https://s0.wp.com/i/favicon.ico?m=1713425267i" sizes="16x16 24x24 32x32 48x48" />
+<link rel="icon" type="image/x-icon" href="https://s0.wp.com/i/favicon.ico?m=1713425267i" sizes="16x16 24x24 32x32 48x48" />
+<link rel="apple-touch-icon" href="https://s0.wp.com/i/webclip.png?m=1713868326i" />
+<link rel='openid.server' href='https://derflounder.wordpress.com/?openidserver=1' />
+<link rel='openid.delegate' href='https://derflounder.wordpress.com/' />
+<link rel="search" type="application/opensearchdescription+xml" href="https://derflounder.wordpress.com/osd.xml" title="Der Flounder" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+		<style id="wpcom-hotfix-masterbar-style">
+			@media screen and (min-width: 783px) {
+				#wpadminbar .quicklinks li#wp-admin-bar-my-account.with-avatar > a img {
+					margin-top: 5px;
+				}
+			}
+		</style>
+		<style>.recentcomments a{display:inline !important;padding:0 !important;margin:0 !important;}</style>		<style type="text/css">
+			.recentcomments a {
+				display: inline !important;
+				padding: 0 !important;
+				margin: 0 !important;
+			}
+
+			table.recentcommentsavatartop img.avatar, table.recentcommentsavatarend img.avatar {
+				border: 0px;
+				margin: 0;
+			}
+
+			table.recentcommentsavatartop a, table.recentcommentsavatarend a {
+				border: 0px !important;
+				background-color: transparent !important;
+			}
+
+			td.recentcommentsavatarend, td.recentcommentsavatartop {
+				padding: 0px 0px 1px 0px;
+				margin: 0px;
+			}
+
+			td.recentcommentstextend {
+				border: none !important;
+				padding: 0px 0px 2px 10px;
+			}
+
+			.rtl td.recentcommentstextend {
+				padding: 0px 10px 2px 0px;
+			}
+
+			td.recentcommentstexttop {
+				border: none;
+				padding: 0px 0px 0px 10px;
+			}
+
+			.rtl td.recentcommentstexttop {
+				padding: 0px 10px 0px 0px;
+			}
+		</style>
+		<meta name="description" content="As part of the macOS Sequoia 15.1 release notes, this section is included: MDM profiles can use the new key ‘forceBypassScreenCaptureAlert’, which allows owners of managed devices to opt out of user notifications for content capture technologies. (131327961) What&#039;s this note discussing? It&#039;s referring to a user notification that Apple introduced in macOS Sequoia for&hellip;" />
+<noscript><style>.jetpack-comments{visibility:visible!important}</style></noscript><link rel='stylesheet' id='jetpack-gist-styling-css' href='https://github.githubassets.com/assets/gist-embed-0c53c65876ee2949.css?ver=16.4-a.8' media='all' />
+
+</head>
+
+<body class="wp-singular post-template-default single single-post postid-12443 single-format-standard wp-theme-pubinove customizer-styles-applied jetpack-reblog-enabled">
+<!-- wrap START -->
+<div id="wrap">
+
+<!-- container START -->
+<div id="container"  >
+
+<!-- header START -->
+<div id="header">
+
+	<!-- banner START -->
+		<!-- banner END -->
+
+	<div id="caption">
+		<h1 id="title"><a href="https://derflounder.wordpress.com/">Der Flounder</a></h1>
+		<div id="tagline">Seldom updated, occasionally insightful.</div>
+	</div>
+
+	<div class="fixed"></div>
+</div>
+<!-- header END -->
+
+<!-- navigation START -->
+<div id="navigation">
+	<!-- menus START -->
+	<ul id="menus">
+	<li class="page_item"><a class="home" title="Home" href="https://derflounder.wordpress.com/">Home</a></li>
+	<li class="page_item page-item-276"><a href="https://derflounder.wordpress.com/about-2/">About</a></li>
+<li class="page_item page-item-278"><a href="https://derflounder.wordpress.com/contact/">Contact</a></li>
+	<li><a class="lastmenu" href="javascript:void(0);"></a></li>
+</ul>
+
+	<!-- menus END -->
+
+	<!-- searchbox START -->
+	<div id="searchbox">
+		<form action="https://derflounder.wordpress.com" method="get">
+			<div class="content">
+				<input type="text" class="textfield" name="s" size="24" value="" />
+				<input type="submit" class="button" value="" />
+			</div>
+		</form>
+	</div>
+<script type="text/javascript">
+//<![CDATA[
+	var searchbox = MGJS.$("searchbox");
+	var searchtxt = MGJS.getElementsByClassName("textfield", "input", searchbox)[0];
+	var searchbtn = MGJS.getElementsByClassName("button", "input", searchbox)[0];
+	var tiptext = "Type text to search here...";
+	if(searchtxt.value == "" || searchtxt.value == tiptext) {
+		searchtxt.className += " searchtip";
+		searchtxt.value = tiptext;
+	}
+	searchtxt.onfocus = function(e) {
+		if(searchtxt.value == tiptext) {
+			searchtxt.value = "";
+			searchtxt.className = searchtxt.className.replace(" searchtip", "");
+		}
+	}
+	searchtxt.onblur = function(e) {
+		if(searchtxt.value == "") {
+			searchtxt.className += " searchtip";
+			searchtxt.value = tiptext;
+		}
+	}
+	searchbtn.onclick = function(e) {
+		if(searchtxt.value == "" || searchtxt.value == tiptext) {
+			return false;
+		}
+	}
+//]]>
+</script>
+	<!-- searchbox END -->
+
+	<div class="fixed"></div>
+</div>
+<!-- navigation END -->
+
+<!-- content START -->
+<div id="content">
+
+	<!-- main START -->
+	<div id="main">
+
+
+	<div id="postpath">
+		<a title="Go to homepage" href="https://derflounder.wordpress.com/">Home</a>
+		 &gt; <a href="https://derflounder.wordpress.com/category/mac-administration/" rel="category tag">Mac administration</a>, <a href="https://derflounder.wordpress.com/category/macos/" rel="category tag">macOS</a>, <a href="https://derflounder.wordpress.com/category/management-profiles/" rel="category tag">Management Profiles</a>		 &gt; Managing user notifications for apps which request screen access on macOS Sequoia&nbsp;15.1	</div>
+
+	<div id="post-12443" class="post-12443 post type-post status-publish format-standard hentry category-mac-administration category-macos category-management-profiles">
+		<h2>Managing user notifications for apps which request screen access on macOS Sequoia&nbsp;15.1</h2>
+		<div class="info">
+			<span class="date">October 31, 2024</span>
+			<span class="author"><a href="https://derflounder.wordpress.com/author/rtrouton/" rel="author">rtrouton</a></span>										<span class="addcomment"><a href="#respond">Leave a comment</a></span>
+				<span class="comments"><a href="#comments">Go to comments</a></span>
+						<div class="fixed"></div>
+		</div>
+		<div class="content">
+			<p><a href="https://developer.apple.com/documentation/macos-release-notes/macos-15_1-release-notes#Mobile-Device-Management">As part of the macOS Sequoia 15.1 release notes</a>, this section is included:</p>
+<p><em><strong>MDM profiles can use the new key ‘forceBypassScreenCaptureAlert’, which allows owners of managed devices to opt out of user notifications for content capture technologies. (131327961)</strong></em></p>
+<p><img class="aligncenter" title="Screenshot 2024-10-31 at 8.36.png" src="https://derflounder.wordpress.com/wp-content/uploads/2024/10/screenshot-2024-10-31-at-8.36.png?w=595" alt="" /></p>
+<p>What&#8217;s this note discussing? It&#8217;s referring to a user notification that Apple introduced in macOS Sequoia for apps which request screen access but aren&#8217;t using Apple&#8217;s <a href="https://developer.apple.com/documentation/screencapturekit/sccontentsharingpicker">SCContentSharingPickerMode</a> API to do so. A good example is the user notification for the Zoom app, which uses screen access for video conferencing.</p>
+<p><img class="aligncenter" title="DisableScreenAccessRequestUserNotifications.png" src="https://derflounder.wordpress.com/wp-content/uploads/2024/10/disablescreenaccessrequestusernotifications.png?w=435&#038;h=600" alt="" width="435" height="600" border="0" /></p>
+<p>These user notifications appear monthly and request the user to choose whether or not they want to allow this access for the app in question.</p>
+<p>For Mac environments which want to manage these notifications and prevent them from being displayed to their users, Apple has provided management options as part of macOS Sequoia 15.1. For more details, please see below the jump.</p>
+<p><span id="more-12443"></span></p>
+<p>The relevant <a href="https://developer.apple.com/documentation/devicemanagement/restrictions">preference domain and key values</a> are listed below:</p>
+<ul>
+<li>Preference domain: <strong>com.apple.applicationaccess</strong></li>
+<li>Key: <strong>forceBypassScreenCaptureAlert</strong></li>
+<li>Value: Boolean</li>
+</ul>
+<p>It’s important to note that while this management setting works on macOS Sequoia 15.1, it is not available to macOS Sequoia 15.0.1, 15.0.0 or earlier versions of macOS.</p>
+<p>These settings can be managed by a configuration profile, where setting a boolean value of <strong>true</strong> will disable the user notifications. Please see below for an example profile. The example profile is also available via the following link:</p>
+<p><a href="https://github.com/rtrouton/profiles/tree/main/DisableScreenAccessRequestUserNotifications">https://github.com/rtrouton/profiles/tree/main/DisableScreenAccessRequestUserNotifications</a></p>
+<style>.gist table { margin-bottom: 0; }</style><div style="tab-size: 8" id="gist133762961" class="gist">
+    <div class="gist-file" translate="no" data-color-mode="light" data-light-theme="light">
+      <div class="gist-data">
+        
+<div class="js-gist-file-update-container js-task-list-container">
+      <div id="file-disablescreenaccessrequestusernotifications-mobileconfig" class="file my-2">
+    
+    <div itemprop="text"
+      class="Box-body p-0 blob-wrapper data type-xml  "
+      style="overflow: auto" tabindex="0" role="region"
+      aria-label="DisableScreenAccessRequestUserNotifications.mobileconfig content, created by rtrouton on 01:20PM on October 31, 2024."
+    >
+
+        
+<div class="js-check-hidden-unicode js-blob-code-container blob-code-content">
+
+  <template class="js-file-alert-template">
+  <div data-view-component="true" class="flash flash-warn flash-full d-flex flex-items-center">
+  <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-alert">
+    <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+    <span>
+      This file contains hidden or bidirectional Unicode text that may be interpreted or compiled differently than what appears below. To review, open the file in an editor that reveals hidden Unicode characters.
+      <a class="Link--inTextBlock" href="https://github.co/hiddenchars" target="_blank">Learn more about bidirectional Unicode characters</a>
+    </span>
+
+
+  <div data-view-component="true" class="flash-action">        <a href="{{ revealButtonHref }}" data-view-component="true" class="btn-sm btn">    Show hidden characters
+</a>
+</div>
+</div></template>
+<template class="js-line-alert-template">
+  <span aria-label="This line has hidden Unicode characters" data-view-component="true" class="line-alert tooltipped tooltipped-e">
+    <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-alert">
+    <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+</span></template>
+
+  <table data-hpc class="highlight tab-size js-file-line-container" data-tab-size="4" data-paste-markdown-skip data-tagsearch-path="DisableScreenAccessRequestUserNotifications.mobileconfig">
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L1" class="blob-num js-line-number js-blob-rnum" data-line-number="1"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC1" class="blob-code blob-code-inner js-file-line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L2" class="blob-num js-line-number js-blob-rnum" data-line-number="2"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC2" class="blob-code blob-code-inner js-file-line">&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;<a href="http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&#038;gt" rel="nofollow">http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&#038;gt</a>;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L3" class="blob-num js-line-number js-blob-rnum" data-line-number="3"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC3" class="blob-code blob-code-inner js-file-line">&lt;plist version=&quot;1.0&quot;&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L4" class="blob-num js-line-number js-blob-rnum" data-line-number="4"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC4" class="blob-code blob-code-inner js-file-line">&lt;dict&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L5" class="blob-num js-line-number js-blob-rnum" data-line-number="5"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC5" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadContent&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L6" class="blob-num js-line-number js-blob-rnum" data-line-number="6"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC6" class="blob-code blob-code-inner js-file-line">	&lt;array&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L7" class="blob-num js-line-number js-blob-rnum" data-line-number="7"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC7" class="blob-code blob-code-inner js-file-line">		&lt;dict&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L8" class="blob-num js-line-number js-blob-rnum" data-line-number="8"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC8" class="blob-code blob-code-inner js-file-line">			&lt;key&gt;PayloadDisplayName&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L9" class="blob-num js-line-number js-blob-rnum" data-line-number="9"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC9" class="blob-code blob-code-inner js-file-line">			&lt;string&gt;Restrictions&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L10" class="blob-num js-line-number js-blob-rnum" data-line-number="10"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC10" class="blob-code blob-code-inner js-file-line">			&lt;key&gt;PayloadIdentifier&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L11" class="blob-num js-line-number js-blob-rnum" data-line-number="11"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC11" class="blob-code blob-code-inner js-file-line">			&lt;string&gt;com.apple.applicationaccess.C70F311D-B330-4620-9097-F98FD7E39E33&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L12" class="blob-num js-line-number js-blob-rnum" data-line-number="12"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC12" class="blob-code blob-code-inner js-file-line">			&lt;key&gt;PayloadType&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L13" class="blob-num js-line-number js-blob-rnum" data-line-number="13"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC13" class="blob-code blob-code-inner js-file-line">			&lt;string&gt;com.apple.applicationaccess&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L14" class="blob-num js-line-number js-blob-rnum" data-line-number="14"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC14" class="blob-code blob-code-inner js-file-line">			&lt;key&gt;PayloadUUID&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L15" class="blob-num js-line-number js-blob-rnum" data-line-number="15"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC15" class="blob-code blob-code-inner js-file-line">			&lt;string&gt;C70F311D-B330-4620-9097-F98FD7E39E33&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L16" class="blob-num js-line-number js-blob-rnum" data-line-number="16"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC16" class="blob-code blob-code-inner js-file-line">			&lt;key&gt;PayloadVersion&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L17" class="blob-num js-line-number js-blob-rnum" data-line-number="17"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC17" class="blob-code blob-code-inner js-file-line">			&lt;integer&gt;1&lt;/integer&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L18" class="blob-num js-line-number js-blob-rnum" data-line-number="18"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC18" class="blob-code blob-code-inner js-file-line">			&lt;key&gt;forceBypassScreenCaptureAlert&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L19" class="blob-num js-line-number js-blob-rnum" data-line-number="19"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC19" class="blob-code blob-code-inner js-file-line">			&lt;true/&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L20" class="blob-num js-line-number js-blob-rnum" data-line-number="20"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC20" class="blob-code blob-code-inner js-file-line">		&lt;/dict&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L21" class="blob-num js-line-number js-blob-rnum" data-line-number="21"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC21" class="blob-code blob-code-inner js-file-line">	&lt;/array&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L22" class="blob-num js-line-number js-blob-rnum" data-line-number="22"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC22" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadDescription&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L23" class="blob-num js-line-number js-blob-rnum" data-line-number="23"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC23" class="blob-code blob-code-inner js-file-line">	&lt;string&gt;Disables user notifications for apps which request screen access&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L24" class="blob-num js-line-number js-blob-rnum" data-line-number="24"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC24" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadDisplayName&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L25" class="blob-num js-line-number js-blob-rnum" data-line-number="25"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC25" class="blob-code blob-code-inner js-file-line">	&lt;string&gt;Disable Screen Access Request User Notifications&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L26" class="blob-num js-line-number js-blob-rnum" data-line-number="26"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC26" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadIdentifier&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L27" class="blob-num js-line-number js-blob-rnum" data-line-number="27"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC27" class="blob-code blob-code-inner js-file-line">	&lt;string&gt;1A6E3566-0112-40F7-A49F-416D99C61566&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L28" class="blob-num js-line-number js-blob-rnum" data-line-number="28"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC28" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadOrganization&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L29" class="blob-num js-line-number js-blob-rnum" data-line-number="29"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC29" class="blob-code blob-code-inner js-file-line">	&lt;string&gt;Company Name&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L30" class="blob-num js-line-number js-blob-rnum" data-line-number="30"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC30" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadScope&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L31" class="blob-num js-line-number js-blob-rnum" data-line-number="31"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC31" class="blob-code blob-code-inner js-file-line">	&lt;string&gt;System&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L32" class="blob-num js-line-number js-blob-rnum" data-line-number="32"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC32" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadType&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L33" class="blob-num js-line-number js-blob-rnum" data-line-number="33"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC33" class="blob-code blob-code-inner js-file-line">	&lt;string&gt;Configuration&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L34" class="blob-num js-line-number js-blob-rnum" data-line-number="34"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC34" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadUUID&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L35" class="blob-num js-line-number js-blob-rnum" data-line-number="35"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC35" class="blob-code blob-code-inner js-file-line">	&lt;string&gt;1A6E3566-0112-40F7-A49F-416D99C61566&lt;/string&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L36" class="blob-num js-line-number js-blob-rnum" data-line-number="36"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC36" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;PayloadVersion&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L37" class="blob-num js-line-number js-blob-rnum" data-line-number="37"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC37" class="blob-code blob-code-inner js-file-line">	&lt;integer&gt;1&lt;/integer&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L38" class="blob-num js-line-number js-blob-rnum" data-line-number="38"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC38" class="blob-code blob-code-inner js-file-line">&lt;/dict&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-L39" class="blob-num js-line-number js-blob-rnum" data-line-number="39"></td>
+          <td id="file-disablescreenaccessrequestusernotifications-mobileconfig-LC39" class="blob-code blob-code-inner js-file-line">&lt;/plist&gt;</td>
+        </tr>
+  </table>
+</div>
+
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+      <div class="gist-meta">
+        <a href="https://gist.github.com/rtrouton/9d0662f328706ca6b60ac1999bfe3d9c/raw/6d9e53797b1322822ac411df16eb35d10d645137/DisableScreenAccessRequestUserNotifications.mobileconfig" style="float:right" class="Link--inTextBlock">view raw</a>
+        <a href="https://gist.github.com/rtrouton/9d0662f328706ca6b60ac1999bfe3d9c#file-disablescreenaccessrequestusernotifications-mobileconfig" class="Link--inTextBlock">
+          DisableScreenAccessRequestUserNotifications.mobileconfig
+        </a>
+        hosted with &#10084; by <a class="Link--inTextBlock" href="https://github.com">GitHub</a>
+      </div>
+    </div>
+</div>
+
+<p><span style="text-decoration: underline"><strong>Note:</strong></span> If you&#8217;re planning to use the example profile with <a href="https://www.jamf.com/jamf-pro">Jamf Pro</a>, it will need to be signed before it can be uploaded to Jamf Pro. If you&#8217;re not familiar with how to sign profiles, the post linked below is a good guide to how that process works:</p>
+<p><a href="https://macblog.org/sign-configuration-profiles/">https://macblog.org/sign-configuration-profiles/</a></p>
+<p>As an alternative, you can use the <strong>Application &amp; Custom Settings</strong> profile payload in Jamf Pro with the plist shown below to create a profile with the same functionality as the example profile.</p>
+<style>.gist table { margin-bottom: 0; }</style><div style="tab-size: 8" id="gist133763108" class="gist">
+    <div class="gist-file" translate="no" data-color-mode="light" data-light-theme="light">
+      <div class="gist-data">
+        
+<div class="js-gist-file-update-container js-task-list-container">
+      <div id="file-com-apple-applicationaccess-plist" class="file my-2">
+    
+    <div itemprop="text"
+      class="Box-body p-0 blob-wrapper data type-xml-property-list  "
+      style="overflow: auto" tabindex="0" role="region"
+      aria-label="com.apple.applicationaccess.plist content, created by rtrouton on 01:28PM on October 31, 2024."
+    >
+
+        
+<div class="js-check-hidden-unicode js-blob-code-container blob-code-content">
+
+  <template class="js-file-alert-template">
+  <div data-view-component="true" class="flash flash-warn flash-full d-flex flex-items-center">
+  <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-alert">
+    <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+    <span>
+      This file contains hidden or bidirectional Unicode text that may be interpreted or compiled differently than what appears below. To review, open the file in an editor that reveals hidden Unicode characters.
+      <a class="Link--inTextBlock" href="https://github.co/hiddenchars" target="_blank">Learn more about bidirectional Unicode characters</a>
+    </span>
+
+
+  <div data-view-component="true" class="flash-action">        <a href="{{ revealButtonHref }}" data-view-component="true" class="btn-sm btn">    Show hidden characters
+</a>
+</div>
+</div></template>
+<template class="js-line-alert-template">
+  <span aria-label="This line has hidden Unicode characters" data-view-component="true" class="line-alert tooltipped tooltipped-e">
+    <svg aria-hidden="true" data-component="Octicon" height="16" viewBox="0 0 16 16" version="1.1" width="16" data-view-component="true" class="octicon octicon-alert">
+    <path d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path>
+</svg>
+</span></template>
+
+  <table data-hpc class="highlight tab-size js-file-line-container" data-tab-size="4" data-paste-markdown-skip data-tagsearch-path="com.apple.applicationaccess.plist">
+        <tr>
+          <td id="file-com-apple-applicationaccess-plist-L1" class="blob-num js-line-number js-blob-rnum" data-line-number="1"></td>
+          <td id="file-com-apple-applicationaccess-plist-LC1" class="blob-code blob-code-inner js-file-line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-com-apple-applicationaccess-plist-L2" class="blob-num js-line-number js-blob-rnum" data-line-number="2"></td>
+          <td id="file-com-apple-applicationaccess-plist-LC2" class="blob-code blob-code-inner js-file-line">&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot; &quot;<a href="http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&#038;gt" rel="nofollow">http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&#038;gt</a>;</td>
+        </tr>
+        <tr>
+          <td id="file-com-apple-applicationaccess-plist-L3" class="blob-num js-line-number js-blob-rnum" data-line-number="3"></td>
+          <td id="file-com-apple-applicationaccess-plist-LC3" class="blob-code blob-code-inner js-file-line">&lt;plist version=&quot;1.0&quot;&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-com-apple-applicationaccess-plist-L4" class="blob-num js-line-number js-blob-rnum" data-line-number="4"></td>
+          <td id="file-com-apple-applicationaccess-plist-LC4" class="blob-code blob-code-inner js-file-line">&lt;dict&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-com-apple-applicationaccess-plist-L5" class="blob-num js-line-number js-blob-rnum" data-line-number="5"></td>
+          <td id="file-com-apple-applicationaccess-plist-LC5" class="blob-code blob-code-inner js-file-line">	&lt;key&gt;forceBypassScreenCaptureAlert&lt;/key&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-com-apple-applicationaccess-plist-L6" class="blob-num js-line-number js-blob-rnum" data-line-number="6"></td>
+          <td id="file-com-apple-applicationaccess-plist-LC6" class="blob-code blob-code-inner js-file-line">	&lt;true/&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-com-apple-applicationaccess-plist-L7" class="blob-num js-line-number js-blob-rnum" data-line-number="7"></td>
+          <td id="file-com-apple-applicationaccess-plist-LC7" class="blob-code blob-code-inner js-file-line">&lt;/dict&gt;</td>
+        </tr>
+        <tr>
+          <td id="file-com-apple-applicationaccess-plist-L8" class="blob-num js-line-number js-blob-rnum" data-line-number="8"></td>
+          <td id="file-com-apple-applicationaccess-plist-LC8" class="blob-code blob-code-inner js-file-line">&lt;/plist&gt;</td>
+        </tr>
+  </table>
+</div>
+
+
+    </div>
+
+  </div>
+
+</div>
+
+      </div>
+      <div class="gist-meta">
+        <a href="https://gist.github.com/rtrouton/6e2637417f2ff694a4115c3eed50cc5d/raw/d479a57780113dbad3f50c87a13c928e5728af46/com.apple.applicationaccess.plist" style="float:right" class="Link--inTextBlock">view raw</a>
+        <a href="https://gist.github.com/rtrouton/6e2637417f2ff694a4115c3eed50cc5d#file-com-apple-applicationaccess-plist" class="Link--inTextBlock">
+          com.apple.applicationaccess.plist
+        </a>
+        hosted with &#10084; by <a class="Link--inTextBlock" href="https://github.com">GitHub</a>
+      </div>
+    </div>
+</div>
+
+<p><img class="aligncenter" title="Screenshot 2024-10-31 at 9.41.png" src="https://derflounder.wordpress.com/wp-content/uploads/2024/10/screenshot-2024-10-31-at-9.41.png?w=595" alt="" border="0" /></p>
+<div id="jp-post-flair" class="sharedaddy sd-like-enabled sd-sharing-enabled"><div class="sharedaddy sd-sharing-enabled"><div class="robots-nocontent sd-block sd-social sd-social-icon-text sd-sharing"><h3 class="sd-title">Share this:</h3><div class="sd-content"><ul><li class="share-print"><a rel="nofollow noopener noreferrer"
+				data-shared="sharing-print-12443"
+				class="share-print sd-button share-icon"
+				href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/#print?share=print"
+				target="_blank"
+				aria-labelledby="sharing-print-12443"
+				>
+				<span id="sharing-print-12443" hidden>Print (Opens in new window)</span>
+				<span>Print</span>
+			</a></li><li class="share-email"><a rel="nofollow noopener noreferrer"
+				data-shared="sharing-email-12443"
+				class="share-email sd-button share-icon"
+				href="mailto:?subject=%5BShared%20Post%5D%20Managing%20user%20notifications%20for%20apps%20which%20request%20screen%20access%20on%20macOS%20Sequoia%2015.1&#038;body=https%3A%2F%2Fderflounder.wordpress.com%2F2024%2F10%2F31%2Fmanaging-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1%2F&#038;share=email"
+				target="_blank"
+				aria-labelledby="sharing-email-12443"
+				data-email-share-error-title="Do you have email set up?" data-email-share-error-text="If you&#039;re having problems sharing via email, you might not have email set up for your browser. You may need to create a new email yourself." data-email-share-nonce="54162a8678" data-email-share-track-url="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?share=email">
+				<span id="sharing-email-12443" hidden>Email a link to a friend (Opens in new window)</span>
+				<span>Email</span>
+			</a></li><li><a href="#" class="sharing-anchor sd-button share-more"><span>More</span></a></li><li class="share-end"></li></ul><div class="sharing-hidden"><div class="inner" style="display: none;"><ul><li class="share-facebook"><a rel="nofollow noopener noreferrer"
+				data-shared="sharing-facebook-12443"
+				class="share-facebook sd-button share-icon"
+				href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?share=facebook"
+				target="_blank"
+				aria-labelledby="sharing-facebook-12443"
+				>
+				<span id="sharing-facebook-12443" hidden>Share on Facebook (Opens in new window)</span>
+				<span>Facebook</span>
+			</a></li><li class="share-linkedin"><a rel="nofollow noopener noreferrer"
+				data-shared="sharing-linkedin-12443"
+				class="share-linkedin sd-button share-icon"
+				href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?share=linkedin"
+				target="_blank"
+				aria-labelledby="sharing-linkedin-12443"
+				>
+				<span id="sharing-linkedin-12443" hidden>Share on LinkedIn (Opens in new window)</span>
+				<span>LinkedIn</span>
+			</a></li><li class="share-reddit"><a rel="nofollow noopener noreferrer"
+				data-shared="sharing-reddit-12443"
+				class="share-reddit sd-button share-icon"
+				href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?share=reddit"
+				target="_blank"
+				aria-labelledby="sharing-reddit-12443"
+				>
+				<span id="sharing-reddit-12443" hidden>Share on Reddit (Opens in new window)</span>
+				<span>Reddit</span>
+			</a></li><li class="share-twitter"><a rel="nofollow noopener noreferrer"
+				data-shared="sharing-twitter-12443"
+				class="share-twitter sd-button share-icon"
+				href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?share=twitter"
+				target="_blank"
+				aria-labelledby="sharing-twitter-12443"
+				>
+				<span id="sharing-twitter-12443" hidden>Share on X (Opens in new window)</span>
+				<span>X</span>
+			</a></li><li class="share-pinterest"><a rel="nofollow noopener noreferrer"
+				data-shared="sharing-pinterest-12443"
+				class="share-pinterest sd-button share-icon"
+				href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?share=pinterest"
+				target="_blank"
+				aria-labelledby="sharing-pinterest-12443"
+				>
+				<span id="sharing-pinterest-12443" hidden>Share on Pinterest (Opens in new window)</span>
+				<span>Pinterest</span>
+			</a></li><li class="share-tumblr"><a rel="nofollow noopener noreferrer"
+				data-shared="sharing-tumblr-12443"
+				class="share-tumblr sd-button share-icon"
+				href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?share=tumblr"
+				target="_blank"
+				aria-labelledby="sharing-tumblr-12443"
+				>
+				<span id="sharing-tumblr-12443" hidden>Share on Tumblr (Opens in new window)</span>
+				<span>Tumblr</span>
+			</a></li><li class="share-end"></li></ul></div></div></div></div></div><div class='sharedaddy sd-block sd-like jetpack-likes-widget-wrapper jetpack-likes-widget-unloaded' id='like-post-wrapper-4732336-12443-6ae4e967410bc' data-src='//widgets.wp.com/likes/index.html?ver=20261030#blog_id=4732336&amp;post_id=12443&amp;origin=derflounder.wordpress.com&amp;obj_id=4732336-12443-6ae4e967410bc' data-name='like-post-frame-4732336-12443-6ae4e967410bc' data-title='Like or Reblog'><div class='likes-widget-placeholder post-likes-widget-placeholder' style='height: 55px;'><span class='button'><span>Like</span></span> <span class='loading'>Loading...</span></div><span class='sd-text-color'></span><a class='sd-link-color'></a></div>
+<div id='jp-relatedposts' class='jp-relatedposts' >
+	<h3 class="jp-relatedposts-headline"><em>Related</em></h3>
+</div></div>						<div class="fixed"></div>
+		</div>
+		<div class="under">
+			<span><span class="categories">Categories: </span><a href="https://derflounder.wordpress.com/category/mac-administration/" rel="category tag">Mac administration</a>, <a href="https://derflounder.wordpress.com/category/macos/" rel="category tag">macOS</a>, <a href="https://derflounder.wordpress.com/category/management-profiles/" rel="category tag">Management Profiles</a></span>
+			<span></span>
+		</div>
+		<div class="fixed"></div>
+	</div>
+
+	
+
+<script type="text/javascript" src="https://s0.wp.com/wp-content/themes/pub/inove/js/comment.js?m=1399365549i&amp;1"></script>
+
+<div id="comments">
+
+	
+		<div id="cmtswitcher">
+										<a id="commenttab" class="curtab" href="javascript:void(0);">Comments (3)</a>
+			
+							<span class="addcomment"><a href="#respond">Leave a comment</a></span>
+			
+					</div><!-- #cmtswitcher -->
+
+		<div id="commentlist">
+
+			<!-- Comments -->
+			<ol id="thecomments">
+								<li id="comment-72567" class="comment even thread-even depth-1">
+		<div class="author">
+			<div class="pic">
+				<img referrerpolicy="no-referrer" alt='M&#039;s avatar' src='https://0.gravatar.com/avatar/0691c7d9877e33ac663604291fea3bd99d144f4a927245e6b902ae3f66af89dc?s=32&#038;d=identicon&#038;r=G' srcset='https://0.gravatar.com/avatar/0691c7d9877e33ac663604291fea3bd99d144f4a927245e6b902ae3f66af89dc?s=32&#038;d=identicon&#038;r=G 1x, https://0.gravatar.com/avatar/0691c7d9877e33ac663604291fea3bd99d144f4a927245e6b902ae3f66af89dc?s=48&#038;d=identicon&#038;r=G 1.5x, https://0.gravatar.com/avatar/0691c7d9877e33ac663604291fea3bd99d144f4a927245e6b902ae3f66af89dc?s=64&#038;d=identicon&#038;r=G 2x, https://0.gravatar.com/avatar/0691c7d9877e33ac663604291fea3bd99d144f4a927245e6b902ae3f66af89dc?s=96&#038;d=identicon&#038;r=G 3x, https://0.gravatar.com/avatar/0691c7d9877e33ac663604291fea3bd99d144f4a927245e6b902ae3f66af89dc?s=128&#038;d=identicon&#038;r=G 4x' class='avatar avatar-32' height='32' width='32' decoding='async' />			</div><!-- .pic -->
+			<div class="name">
+				M			</div><!-- .name -->
+		</div>
+
+		<div class="info">
+			<div class="date">
+				November 20, 2024 at 2:02 am			</div><!-- .date -->
+			<div class="act">
+				<a rel="nofollow" class="comment-reply-link" href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?replytocom=72567#respond" data-commentid="72567" data-postid="12443" data-belowelement="comment-72567" data-respondelement="respond" data-replyto="Reply to M" aria-label="Reply to M">Reply</a>							</div><!-- .act -->
+			<div class="content">
+				
+				<div id="commentbody-72567">
+					<p>The end of line 2 of your application &amp; custom app section is malformed showing &#8220;<a href="http://www.apple.com/DTDs/PropertyList-1.0.dtd%22&amp;gt" rel="nofollow ugc">&amp;gt</a>;&#8221; instead of the closing bracket &#8220;&gt;&#8221;</p>
+</p>
+<p>Also I think embedding this setting into the &#8220;PayloadContent&#8221; key is preferred to work nicely with other plist restrictions in Jamf</p>
+				</div><!-- #commentbody-ID -->
+			</div><!-- .comment -->
+			<div class="fixed"></div>
+		</div><!-- .info -->
+		<div class="fixed"></div>
+</li><!-- #comment-## -->
+	<li id="comment-72603" class="comment byuser comment-author-hsavirndb odd alt thread-odd thread-alt depth-1">
+		<div class="author">
+			<div class="pic">
+				<img referrerpolicy="no-referrer" alt='hsavirndb&#039;s avatar' src='https://1.gravatar.com/avatar/af5c4472e5b64f3a5f8f26d516341f3b454641d56c09097066a0c9773b9bb11b?s=32&#038;d=identicon&#038;r=G' srcset='https://1.gravatar.com/avatar/af5c4472e5b64f3a5f8f26d516341f3b454641d56c09097066a0c9773b9bb11b?s=32&#038;d=identicon&#038;r=G 1x, https://1.gravatar.com/avatar/af5c4472e5b64f3a5f8f26d516341f3b454641d56c09097066a0c9773b9bb11b?s=48&#038;d=identicon&#038;r=G 1.5x, https://1.gravatar.com/avatar/af5c4472e5b64f3a5f8f26d516341f3b454641d56c09097066a0c9773b9bb11b?s=64&#038;d=identicon&#038;r=G 2x, https://1.gravatar.com/avatar/af5c4472e5b64f3a5f8f26d516341f3b454641d56c09097066a0c9773b9bb11b?s=96&#038;d=identicon&#038;r=G 3x, https://1.gravatar.com/avatar/af5c4472e5b64f3a5f8f26d516341f3b454641d56c09097066a0c9773b9bb11b?s=128&#038;d=identicon&#038;r=G 4x' class='avatar avatar-32' height='32' width='32' decoding='async' />			</div><!-- .pic -->
+			<div class="name">
+				<a href="http://bsidetech.wordpress.com" class="url" rel="ugc external nofollow">hsavirndb</a>			</div><!-- .name -->
+		</div>
+
+		<div class="info">
+			<div class="date">
+				December 16, 2024 at 3:48 pm			</div><!-- .date -->
+			<div class="act">
+				<a rel="nofollow" class="comment-reply-link" href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?replytocom=72603#respond" data-commentid="72603" data-postid="12443" data-belowelement="comment-72603" data-respondelement="respond" data-replyto="Reply to hsavirndb" aria-label="Reply to hsavirndb">Reply</a>							</div><!-- .act -->
+			<div class="content">
+				
+				<div id="commentbody-72603">
+					<p>FYI, had fought with this over the morning and found <a href="https://community.jamf.com/t5/jamf-pro/monthly-tccc-prompts-macos-v15/m-p/328405" rel="nofollow ugc">https://community.jamf.com/t5/jamf-pro/monthly-tccc-prompts-macos-v15/m-p/328405</a> which referred to <a href="https://github.com/apple/device-management/blob/release/mdm/profiles/com.apple.applicationaccess.yaml" rel="nofollow ugc">https://github.com/apple/device-management/blob/release/mdm/profiles/com.apple.applicationaccess.yaml</a>. In the Apple provided configuration for com.apple.applicationaccess, forceBypassScreenCaptureAlert has &#8220;allowmanualinstall&#8221; set to false. This apparently means that the second method you had mentioned (Application &amp; Custom Settings payload via the JAMF GUI) will not work, as Jamf deploys said settings as mcx_preference_setting configs which fall under the &#8220;manualinstall&#8221; category. The signed profile works fine. Thanks for the article!</p>
+				</div><!-- #commentbody-ID -->
+			</div><!-- .comment -->
+			<div class="fixed"></div>
+		</div><!-- .info -->
+		<div class="fixed"></div>
+</li><!-- #comment-## -->
+	<li id="comment-72636" class="comment even thread-even depth-1">
+		<div class="author">
+			<div class="pic">
+				<img referrerpolicy="no-referrer" alt='Doron&#039;s avatar' src='https://0.gravatar.com/avatar/c27949eac1572ed5a5f308ed8076b58b232f6fc83c996f54edf5c83f0a255d02?s=32&#038;d=identicon&#038;r=G' srcset='https://0.gravatar.com/avatar/c27949eac1572ed5a5f308ed8076b58b232f6fc83c996f54edf5c83f0a255d02?s=32&#038;d=identicon&#038;r=G 1x, https://0.gravatar.com/avatar/c27949eac1572ed5a5f308ed8076b58b232f6fc83c996f54edf5c83f0a255d02?s=48&#038;d=identicon&#038;r=G 1.5x, https://0.gravatar.com/avatar/c27949eac1572ed5a5f308ed8076b58b232f6fc83c996f54edf5c83f0a255d02?s=64&#038;d=identicon&#038;r=G 2x, https://0.gravatar.com/avatar/c27949eac1572ed5a5f308ed8076b58b232f6fc83c996f54edf5c83f0a255d02?s=96&#038;d=identicon&#038;r=G 3x, https://0.gravatar.com/avatar/c27949eac1572ed5a5f308ed8076b58b232f6fc83c996f54edf5c83f0a255d02?s=128&#038;d=identicon&#038;r=G 4x' class='avatar avatar-32' height='32' width='32' loading='lazy' decoding='async' />			</div><!-- .pic -->
+			<div class="name">
+				Doron			</div><!-- .name -->
+		</div>
+
+		<div class="info">
+			<div class="date">
+				December 31, 2024 at 9:07 am			</div><!-- .date -->
+			<div class="act">
+				<a rel="nofollow" class="comment-reply-link" href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/?replytocom=72636#respond" data-commentid="72636" data-postid="12443" data-belowelement="comment-72636" data-respondelement="respond" data-replyto="Reply to Doron" aria-label="Reply to Doron">Reply</a>							</div><!-- .act -->
+			<div class="content">
+				
+				<div id="commentbody-72636">
+					<p>While this does seem to work in 15.1, after upgrading to 15.2 seems that the configuration profile within the example above doesn&#8217;t suppress screen capture alerts anymore. In addition, viewing the profile on the endpoint Mac itself (via System Settings app) doesn&#8217;t display the <br />&#8216;Suppress Screen Capture Alerts&#8217; key value.</p>
+<p>What does seem to work is creating a configuration profile and configuring a &#8216;Restrictions&#8217; payload via Jamf Pro 11.12 (which supports the new &#8216;forceBypassScreenCaptureAlert&#8217; key setting) but this payload also includes other default restriction keys which I was not planning on setting.</p>
+<p>Any ideas why things stopped working on 15.2?</p>
+				</div><!-- #commentbody-ID -->
+			</div><!-- .comment -->
+			<div class="fixed"></div>
+		</div><!-- .info -->
+		<div class="fixed"></div>
+</li><!-- #comment-## -->
+						</ol><!-- #thecomments -->
+
+			
+			<!-- Trackbacks and Pingbacks -->
+			<ol id="thetrackbacks">
+									<li class="messagebox">
+						No trackbacks yet.					</li>
+							</ol><!-- #thetrackbacks -->
+
+		</div><!-- #commentlist -->
+	
+
+	<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://derflounder.wordpress.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><div class="jetpack-comments" data-jetpack-comments="{&quot;postId&quot;:12443,&quot;loginUrl&quot;:&quot;https://derflounder.wordpress.com/wp-login.php?redirect_to=https%3A%2F%2Fderflounder.wordpress.com%2F2024%2F10%2F31%2Fmanaging-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1%2F&quot;,&quot;logoutUrl&quot;:&quot;&quot;,&quot;submit&quot;:{&quot;id&quot;:&quot;submit&quot;,&quot;name&quot;:&quot;submit&quot;,&quot;class&quot;:&quot;submit&quot;,&quot;wrapClass&quot;:&quot;&quot;,&quot;label&quot;:&quot;Comment&quot;},&quot;subscriptions&quot;:[{&quot;name&quot;:&quot;subscribe&quot;,&quot;label&quot;:&quot;Notify me of new comments by email.&quot;,&quot;checked&quot;:false},{&quot;name&quot;:&quot;subscribe_blog&quot;,&quot;label&quot;:&quot;Subscribe to keep up with Der Flounder.&quot;,&quot;checked&quot;:false}]}"><p class="comment-form-comment"><label for="comment">Comment</label><textarea id="comment" name="comment" rows="4" required></textarea></p><p class="comment-form-author"><label for="author">Name</label><input id="author" name="author" type="text" value="" required /></p><p class="comment-form-email"><label for="email">Email</label><input id="email" name="email" type="email" value="" required /></p><p class="comment-form-url"><label for="url">Website</label><input id="url" name="url" type="text" value="" maxlength="200" /></p><p class="form-submit"><input name="submit" type="submit" id="submit" class="submit" value="Comment" /> </p></div><noscript><style>.jetpack-comments{display:none!important}</style><p>Turn on JavaScript to leave a comment.</p></noscript><input type='hidden' name='comment_post_ID' value='12443' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+<p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="d69874f237" /></p><p style="display: none !important;" class="akismet-fields-container" data-prefix="ak_"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="84"/><script>
+document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );
+</script>
+</p></form>	</div><!-- #respond -->
+	
+</div><!-- #comments -->
+
+	<div id="postnavi">
+		<span class="prev"><a href="https://derflounder.wordpress.com/2024/11/11/new-hardware-models-appearing-as-21-5-inch-imacs-in-apple-business-manager-and-apple-school-manager/" rel="next">New hardware models appearing as 21.5 inch iMacs in Apple Business Manager and Apple School&nbsp;Manager</a></span>
+		<span class="next"><a href="https://derflounder.wordpress.com/2024/10/28/suppressing-apple-intelligence-notifications-on-macos-sequoia/" rel="prev">Suppressing Apple Intelligence notifications on macOS&nbsp;Sequoia</a></span>
+		<div class="fixed"></div>
+	</div>
+
+
+	</div>
+	<!-- main END -->
+
+	
+<!-- sidebar START -->
+<div id="sidebar">
+
+<!-- sidebar north START -->
+<div id="northsidebar" class="sidebar">
+
+	<!-- feeds -->
+	<div class="widget widget_feeds">
+		<div class="content">
+			<div id="subscribe-feeds">
+				<a rel="external nofollow" id="feedrss" title="Subscribe to this blog..." href="https://derflounder.wordpress.com/feed/"><abbr title="Really Simple Syndication">RSS</abbr> feed</a>
+									<ul id="feed_readers">
+						<li id="google_reader"><a rel="external nofollow" class="reader" title="Subscribe with Google" href="http://fusion.google.com/add?feedurl=https://derflounder.wordpress.com/feed/"><span>Google</span></a></li>
+						<li id="youdao_reader"><a rel="external nofollow" class="reader" title="Subscribe with Youdao" href="http://reader.youdao.com/#url=https://derflounder.wordpress.com/feed/"><span>Youdao</span></a></li>
+						<li id="xianguo_reader"><a rel="external nofollow" class="reader" title="Subscribe with Xian Guo" href="http://www.xianguo.com/subscribe.php?url=https://derflounder.wordpress.com/feed/"><span>Xian Guo</span></a></li>
+						<li id="zhuaxia_reader"><a rel="external nofollow" class="reader" title="Subscribe with Zhua Xia" href="http://www.zhuaxia.com/add_channel.php?url=https://derflounder.wordpress.com/feed/"><span>Zhua Xia</span></a></li>
+						<li id="yahoo_reader"><a rel="external nofollow" class="reader" title="Subscribe with My Yahoo!" href="http://add.my.yahoo.com/rss?url=https://derflounder.wordpress.com/feed/"><span>My Yahoo!</span></a></li>
+						<li id="newsgator_reader"><a rel="external nofollow" class="reader" title="Subscribe with newsgator" href="http://www.newsgator.com/ngs/subscriber/subfext.aspx?url=https://derflounder.wordpress.com/feed/"><span>newsgator</span></a></li>
+						<li id="bloglines_reader"><a rel="external nofollow" class="reader" title="Subscribe with Bloglines" href="http://www.bloglines.com/sub/https://derflounder.wordpress.com/feed/"><span>Bloglines</span></a></li>
+						<li id="inezha_reader"><a rel="external nofollow" class="reader" title="Subscribe with iNezha"	href="http://inezha.com/add?url=https://derflounder.wordpress.com/feed/"><span>iNezha</span></a></li>
+					</ul>
+							</div>
+
+			<!-- twitter -->
+			
+			<div class="fixed"></div>
+		</div>
+	</div>
+
+	<!-- showcase -->
+	
+<div id="calendar-2" class="widget widget_calendar"><div id="calendar_wrap" class="calendar_wrap"><table id="wp-calendar" class="wp-calendar-table">
+	<caption>October 2024</caption>
+	<thead>
+	<tr>
+		<th scope="col" aria-label="Monday">M</th>
+		<th scope="col" aria-label="Tuesday">T</th>
+		<th scope="col" aria-label="Wednesday">W</th>
+		<th scope="col" aria-label="Thursday">T</th>
+		<th scope="col" aria-label="Friday">F</th>
+		<th scope="col" aria-label="Saturday">S</th>
+		<th scope="col" aria-label="Sunday">S</th>
+	</tr>
+	</thead>
+	<tbody>
+	<tr>
+		<td colspan="1" class="pad">&nbsp;</td><td><a href="https://derflounder.wordpress.com/2024/10/01/" aria-label="Posts published on October 1, 2024">1</a></td><td>2</td><td>3</td><td>4</td><td>5</td><td>6</td>
+	</tr>
+	<tr>
+		<td>7</td><td><a href="https://derflounder.wordpress.com/2024/10/08/" aria-label="Posts published on October 8, 2024">8</a></td><td>9</td><td><a href="https://derflounder.wordpress.com/2024/10/10/" aria-label="Posts published on October 10, 2024">10</a></td><td>11</td><td>12</td><td>13</td>
+	</tr>
+	<tr>
+		<td><a href="https://derflounder.wordpress.com/2024/10/14/" aria-label="Posts published on October 14, 2024">14</a></td><td>15</td><td>16</td><td><a href="https://derflounder.wordpress.com/2024/10/17/" aria-label="Posts published on October 17, 2024">17</a></td><td><a href="https://derflounder.wordpress.com/2024/10/18/" aria-label="Posts published on October 18, 2024">18</a></td><td>19</td><td>20</td>
+	</tr>
+	<tr>
+		<td><a href="https://derflounder.wordpress.com/2024/10/21/" aria-label="Posts published on October 21, 2024">21</a></td><td>22</td><td>23</td><td>24</td><td>25</td><td>26</td><td>27</td>
+	</tr>
+	<tr>
+		<td><a href="https://derflounder.wordpress.com/2024/10/28/" aria-label="Posts published on October 28, 2024">28</a></td><td>29</td><td>30</td><td><a href="https://derflounder.wordpress.com/2024/10/31/" aria-label="Posts published on October 31, 2024">31</a></td>
+		<td class="pad" colspan="3">&nbsp;</td>
+	</tr>
+	</tbody>
+	</table><nav aria-label="Previous and next months" class="wp-calendar-nav">
+		<span class="wp-calendar-nav-prev"><a href="https://derflounder.wordpress.com/2024/09/">&laquo; Sep</a></span>
+		<span class="pad">&nbsp;</span>
+		<span class="wp-calendar-nav-next"><a href="https://derflounder.wordpress.com/2024/11/">Nov &raquo;</a></span>
+	</nav></div></div><div id="recent-comments-2" class="widget widget_recent_comments"><h3>Recent Comments</h3>				<table class="recentcommentsavatar" cellspacing="0" cellpadding="0" border="0">
+					<tr><td title="Steen Pedersen" class="recentcommentsavatartop" style="height:48px; width:48px;"><img referrerpolicy="no-referrer" alt='Steen Pedersen&#039;s avatar' src='https://1.gravatar.com/avatar/1296ba7f372e83bb2d55c2a3a7b3f87c517b0d9deb8e4d0fe8c28c9504764e12?s=48&#038;d=identicon&#038;r=G' srcset='https://1.gravatar.com/avatar/1296ba7f372e83bb2d55c2a3a7b3f87c517b0d9deb8e4d0fe8c28c9504764e12?s=48&#038;d=identicon&#038;r=G 1x, https://1.gravatar.com/avatar/1296ba7f372e83bb2d55c2a3a7b3f87c517b0d9deb8e4d0fe8c28c9504764e12?s=72&#038;d=identicon&#038;r=G 1.5x, https://1.gravatar.com/avatar/1296ba7f372e83bb2d55c2a3a7b3f87c517b0d9deb8e4d0fe8c28c9504764e12?s=96&#038;d=identicon&#038;r=G 2x, https://1.gravatar.com/avatar/1296ba7f372e83bb2d55c2a3a7b3f87c517b0d9deb8e4d0fe8c28c9504764e12?s=144&#038;d=identicon&#038;r=G 3x, https://1.gravatar.com/avatar/1296ba7f372e83bb2d55c2a3a7b3f87c517b0d9deb8e4d0fe8c28c9504764e12?s=192&#038;d=identicon&#038;r=G 4x' class='avatar avatar-48' height='48' width='48' loading='lazy' decoding='async' /></td><td class="recentcommentstexttop" style="">Steen Pedersen on <a href="https://derflounder.wordpress.com/2026/07/26/fixing-automatic-login-issues-on-ubuntu-26-04-lts/#comment-72979">Fixing automatic login issues&hellip;</a></td></tr><tr><td title="Ampthilly" class="recentcommentsavatarend" style="height:48px; width:48px;"><a href="https://ampthilly.com/track/laptops/" rel="nofollow"><img referrerpolicy="no-referrer" alt='Ampthilly&#039;s avatar' src='https://2.gravatar.com/avatar/b08b22460b9563f1ab3cf9a62427fd66e3c7dea83985bb685cd2bba74e2f27b0?s=48&#038;d=identicon&#038;r=G' srcset='https://2.gravatar.com/avatar/b08b22460b9563f1ab3cf9a62427fd66e3c7dea83985bb685cd2bba74e2f27b0?s=48&#038;d=identicon&#038;r=G 1x, https://2.gravatar.com/avatar/b08b22460b9563f1ab3cf9a62427fd66e3c7dea83985bb685cd2bba74e2f27b0?s=72&#038;d=identicon&#038;r=G 1.5x, https://2.gravatar.com/avatar/b08b22460b9563f1ab3cf9a62427fd66e3c7dea83985bb685cd2bba74e2f27b0?s=96&#038;d=identicon&#038;r=G 2x, https://2.gravatar.com/avatar/b08b22460b9563f1ab3cf9a62427fd66e3c7dea83985bb685cd2bba74e2f27b0?s=144&#038;d=identicon&#038;r=G 3x, https://2.gravatar.com/avatar/b08b22460b9563f1ab3cf9a62427fd66e3c7dea83985bb685cd2bba74e2f27b0?s=192&#038;d=identicon&#038;r=G 4x' class='avatar avatar-48' height='48' width='48' loading='lazy' decoding='async' /></a></td><td class="recentcommentstextend" style=""><a href="https://ampthilly.com/track/laptops/" rel="nofollow">Ampthilly</a> on <a href="https://derflounder.wordpress.com/2026/10/02/copying-macos-login-keychains-to-different-macs-on-macos-tahoe-26-4-and-later/#comment-72978">Copying macOS login keychains&hellip;</a></td></tr><tr><td title="Richard Purves" class="recentcommentsavatarend" style="height:48px; width:48px;"><img referrerpolicy="no-referrer" alt='Richard Purves&#039;s avatar' src='https://2.gravatar.com/avatar/51cd49a38f38052cefd5dc23485773eec5e0f4fcd08338508a2617bccc31dd1c?s=48&#038;d=identicon&#038;r=G' srcset='https://2.gravatar.com/avatar/51cd49a38f38052cefd5dc23485773eec5e0f4fcd08338508a2617bccc31dd1c?s=48&#038;d=identicon&#038;r=G 1x, https://2.gravatar.com/avatar/51cd49a38f38052cefd5dc23485773eec5e0f4fcd08338508a2617bccc31dd1c?s=72&#038;d=identicon&#038;r=G 1.5x, https://2.gravatar.com/avatar/51cd49a38f38052cefd5dc23485773eec5e0f4fcd08338508a2617bccc31dd1c?s=96&#038;d=identicon&#038;r=G 2x, https://2.gravatar.com/avatar/51cd49a38f38052cefd5dc23485773eec5e0f4fcd08338508a2617bccc31dd1c?s=144&#038;d=identicon&#038;r=G 3x, https://2.gravatar.com/avatar/51cd49a38f38052cefd5dc23485773eec5e0f4fcd08338508a2617bccc31dd1c?s=192&#038;d=identicon&#038;r=G 4x' class='avatar avatar-48' height='48' width='48' loading='lazy' decoding='async' /></td><td class="recentcommentstextend" style="">Richard Purves on <a href="https://derflounder.wordpress.com/2023/08/15/updating-management-status-in-jamf-pro-computer-inventory-records-on-jamf-pro-10-49-0-and-later/#comment-72977">Updating management status in&hellip;</a></td></tr><tr><td title="Per Tomas Bergström" class="recentcommentsavatarend" style="height:48px; width:48px;"><img referrerpolicy="no-referrer" alt='Per Tomas Bergström&#039;s avatar' src='https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=48&#038;d=identicon&#038;r=G' srcset='https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=48&#038;d=identicon&#038;r=G 1x, https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=72&#038;d=identicon&#038;r=G 1.5x, https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=96&#038;d=identicon&#038;r=G 2x, https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=144&#038;d=identicon&#038;r=G 3x, https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=192&#038;d=identicon&#038;r=G 4x' class='avatar avatar-48' height='48' width='48' loading='lazy' decoding='async' /></td><td class="recentcommentstextend" style="">Per Tomas Bergström on <a href="https://derflounder.wordpress.com/2026/07/26/fixing-automatic-login-issues-on-ubuntu-26-04-lts/#comment-72975">Fixing automatic login issues&hellip;</a></td></tr><tr><td title="Per Tomas Bergström" class="recentcommentsavatarend" style="height:48px; width:48px;"><img referrerpolicy="no-referrer" alt='Per Tomas Bergström&#039;s avatar' src='https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=48&#038;d=identicon&#038;r=G' srcset='https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=48&#038;d=identicon&#038;r=G 1x, https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=72&#038;d=identicon&#038;r=G 1.5x, https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=96&#038;d=identicon&#038;r=G 2x, https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=144&#038;d=identicon&#038;r=G 3x, https://2.gravatar.com/avatar/ba14d370cf64d77f2aea55289d73c2b0a14bb5aae77dd940de214422ca23956e?s=192&#038;d=identicon&#038;r=G 4x' class='avatar avatar-48' height='48' width='48' loading='lazy' decoding='async' /></td><td class="recentcommentstextend" style="">Per Tomas Bergström on <a href="https://derflounder.wordpress.com/2026/07/26/fixing-automatic-login-issues-on-ubuntu-26-04-lts/#comment-72974">Fixing automatic login issues&hellip;</a></td></tr>				</table>
+				</div><div id="categories-2" class="widget widget_categories"><h3>Categories</h3><form action="https://derflounder.wordpress.com" method="get"><label class="screen-reader-text" for="cat">Categories</label><select  name='cat' id='cat' class='postform'>
+	<option value='-1'>Select Category</option>
+	<option class="level-0" value="36610060">Absolute Manage&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="35699">Active Directory&nbsp;&nbsp;(19)</option>
+	<option class="level-0" value="236160">Amazon Web Services&nbsp;&nbsp;(22)</option>
+	<option class="level-0" value="786531700">Apple Beta Programs&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="10097795">Apple Business&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="648688806">Apple Business Manager&nbsp;&nbsp;(8)</option>
+	<option class="level-0" value="505319988">Apple File System&nbsp;&nbsp;(41)</option>
+	<option class="level-0" value="268964484">Apple Intelligence&nbsp;&nbsp;(7)</option>
+	<option class="level-0" value="45468150">Apple Mac App Store&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="23447225">Apple Push Notification Service&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="958981">Apple Remote Desktop&nbsp;&nbsp;(8)</option>
+	<option class="level-0" value="439232877">Apple School Manager&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="701531672">Apple Silicon&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="164753191">Apple Volume Purchase Program&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="3467">AppleScript&nbsp;&nbsp;(15)</option>
+	<option class="level-0" value="642595">AppleSeed&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="115349">Automator&nbsp;&nbsp;(15)</option>
+	<option class="level-0" value="199141505">AutoPkg&nbsp;&nbsp;(46)</option>
+	<option class="level-0" value="644060319">autopkg-conductor&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="294569858">AutoPkgr&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="5469">Backup&nbsp;&nbsp;(8)</option>
+	<option class="level-0" value="178">Books&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="9833922">bootstrappr&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="1776907">Bug reporting&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="5259474">Bushel&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="700675">Casper&nbsp;&nbsp;(61)</option>
+	<option class="level-0" value="380040791">CasperCheck&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="80712646">Cauliflower Vest&nbsp;&nbsp;(9)</option>
+	<option class="level-0" value="244977">Common Criteria&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="346717488">createOSXinstallPkg&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="688588835">create_macos_recovery&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="568029039">create_macos_vm_install_dmg&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="303896176">create_vmware_osx_install_dmg&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="763973818">Declarative Device Management&nbsp;&nbsp;(30)</option>
+	<option class="level-0" value="22265015">DeployStudio&nbsp;&nbsp;(14)</option>
+	<option class="level-0" value="19551">Documentation&nbsp;&nbsp;(30)</option>
+	<option class="level-0" value="21167060">Enterprise Connect&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="763785739">Entra ID&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="570873485">esxi_macos_vm_creation&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="103514108">fdesetup&nbsp;&nbsp;(21)</option>
+	<option class="level-0" value="59127130">FileVault 2&nbsp;&nbsp;(146)</option>
+	<option class="level-0" value="2100264">FIPS&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="260839695">First Boot Package Install&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="290762290">First Boot Package Install Generator&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="699929320">Futureproof IT 2020 Conference&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="102026">Gatekeeper&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="3101">Geeky&nbsp;&nbsp;(59)</option>
+	<option class="level-0" value="212876">Installer&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="831">Interviews&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="324281">iOS&nbsp;&nbsp;(17)</option>
+	<option class="level-0" value="32720778">iPadOS&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="106595">iPhone&nbsp;&nbsp;(10)</option>
+	<option class="level-0" value="769663679">Jamf Cloud Distribution Service&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="595406203">Jamf Infrastructure Manager&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="765504712">Jamf Nation User Conference 2011&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="120064081">Jamf Nation User Conference 2012&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="192016705">Jamf Nation User Conference 2013&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="276411802">Jamf Nation User Conference 2014&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="408043736">Jamf Nation User Conference 2015&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="542555881">Jamf Nation User Conference 2016&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="594277380">Jamf Nation User Conference 2017&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="652836842">Jamf Nation User Conference 2018&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="689809276">Jamf Nation User Conference 2019&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="700444486">Jamf Nation User Conference 2020&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="725801040">Jamf Nation User Conference 2021&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="755912567">Jamf Nation User Conference 2022&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="765498710">Jamf Nation User Conference 2023&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="785367202">Jamf Nation User Conference 2025&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="546561811">Jamf Pro&nbsp;&nbsp;(138)</option>
+	<option class="level-0" value="655022205">Jamf Pro API&nbsp;&nbsp;(46)</option>
+	<option class="level-0" value="781365216">Jamf Pro Blueprints&nbsp;&nbsp;(22)</option>
+	<option class="level-0" value="728429331">Jamf Pro Classic API&nbsp;&nbsp;(23)</option>
+	<option class="level-0" value="707076234">Jamf Protect&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="1017">Java&nbsp;&nbsp;(53)</option>
+	<option class="level-0" value="528876">JSS&nbsp;&nbsp;(15)</option>
+	<option class="level-0" value="644618001">JSSImporter&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="610">Linux&nbsp;&nbsp;(35)</option>
+	<option class="level-0" value="62087">Logging&nbsp;&nbsp;(7)</option>
+	<option class="level-0" value="377489723">Mac Admin &amp; Developer Conference UK 2016&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="548545015">Mac Admin &amp; Developer Conference UK 2017&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="605090054">Mac Admin &amp; Developer Conference UK 2018&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="781067677">Mac Admin &amp; Developer Conference UK 2025&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="788794463">Mac Admin &amp; Developer Conference UK 2026&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="10751800">Mac administration&nbsp;&nbsp;(777)</option>
+	<option class="level-0" value="3348">Mac OS X&nbsp;&nbsp;(401)</option>
+	<option class="level-0" value="2558533">Mac OS X Server&nbsp;&nbsp;(32)</option>
+	<option class="level-0" value="521406726">MacAdmin 101&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="575552313">MacDeployment 2017&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="681295759">MacDeployment 2019&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="575228978">MacDevOpsYVR 2017&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="700444489">MacDevOpsYVR 2020&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="719806401">MacDevOpsYVR 2021&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="750788043">MacDevOpsYVR 2022&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="330492044">MacDMV&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="76789227">MacIT Conference 2012&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="122567200">MacIT Conference 2013&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="218895799">MacIT Conference 2014&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="345325795">MacIT Conference 2015&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="55368">macOS&nbsp;&nbsp;(382)</option>
+	<option class="level-0" value="711169685">macOS EC2&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="645516645">macOS Recovery&nbsp;&nbsp;(15)</option>
+	<option class="level-0" value="194885963">macOS Server&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="192015505">MacSysAdmin 2013&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="492792609">MacSysAdmin 2016&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="651155529">MacSysAdmin 2018&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="700444493">MacSysAdmin 2020&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="725163316">MacSysAdmin 2021&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="756070573">MacSysAdmin 2022&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="765783392">MacSysAdmin 2023&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="774898724">MacSysAdmin 2024&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="5764422">MacTech&nbsp;&nbsp;(8)</option>
+	<option class="level-0" value="61789384">MacTech Conference 2011&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="105826123">MacTech Conference 2012&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="192016713">MacTech Conference 2013&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="294077214">MacTech Conference 2014&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="415873640">MacTech Conference 2015&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="543956475">MacTech Conference 2016&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="775445887">Managed Apple Accounts&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="24366189">Management Profiles&nbsp;&nbsp;(62)</option>
+	<option class="level-0" value="7770">MATLAB&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="78968465">Microsoft AutoUpdate&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="44499536">Microsoft Office 365&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="43526953">Microsoft Teams&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="2922803">Mobile Device Management&nbsp;&nbsp;(31)</option>
+	<option class="level-0" value="531971">MRT&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="2558611">NetBoot&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="4617699">Notarization&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="31409582">Office 2011&nbsp;&nbsp;(30)</option>
+	<option class="level-0" value="274133536">Office 2016&nbsp;&nbsp;(12)</option>
+	<option class="level-0" value="44496998">Office 365&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="38873">Open Directory&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="77032396">OpenBSM&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="2438">OS X&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="35912">Packaging&nbsp;&nbsp;(72)</option>
+	<option class="level-0" value="260839725">Payload-Free Package Creator&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="584179339">payload-free_package_printer_generator&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="90156695">Penn State MacAdmins Conference 2012&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="166970187">Penn State MacAdmins Conference 2013&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="244378975">Penn State MacAdmins Conference 2014&nbsp;&nbsp;(8)</option>
+	<option class="level-0" value="349237136">Penn State MacAdmins Conference 2015&nbsp;&nbsp;(9)</option>
+	<option class="level-0" value="511667850">Penn State MacAdmins Conference 2016&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="582743484">Penn State MacAdmins Conference 2017&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="644494387">Penn State MacAdmins Conference 2018&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="683140650">Penn State MacAdmins Conference 2019&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="700444491">Penn State MacAdmins Conference 2020&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="721366226">Penn State MacAdmins Conference 2021&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="750761627">Penn State MacAdmins Conference 2022&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="763973820">Penn State MacAdmins Conference 2023&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="772822137">Penn State MacAdmins Conference 2024&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="782633103">Penn State MacAdmins Conference 2025&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="790681811">Penn State MacAdmins Conference 2026&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="64">Personal&nbsp;&nbsp;(133)</option>
+	<option class="level-0" value="6472">PKI&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="675067029">Privileges.app&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="2039377">Profile Manager&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="49695267">Raspberry Pi&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="53612505">Rosetta 2&nbsp;&nbsp;(5)</option>
+	<option class="level-0" value="139">Safari&nbsp;&nbsp;(8)</option>
+	<option class="level-0" value="762111974">Script2Pkg&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="2929">Scripting&nbsp;&nbsp;(282)</option>
+	<option class="level-0" value="193701296">Secure Enclave&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="115721982">Secure Token&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="801">Security&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="114265">Self Service+&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="715628812">Signing Manager&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="425101657">Simple Package Creator&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="251552">Slack&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="51251">Sophos&nbsp;&nbsp;(6)</option>
+	<option class="level-0" value="375729457">System Integrity Protection&nbsp;&nbsp;(16)</option>
+	<option class="level-0" value="624">Technical&nbsp;&nbsp;(15)</option>
+	<option class="level-0" value="280009">Time Machine&nbsp;&nbsp;(10)</option>
+	<option class="level-0" value="22955111">tvOS&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="1">Uncategorized&nbsp;&nbsp;(134)</option>
+	<option class="level-0" value="9203">Unix&nbsp;&nbsp;(20)</option>
+	<option class="level-0" value="138350">UTM&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="437425224">Veertu&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="40559">Virtualization&nbsp;&nbsp;(18)</option>
+	<option class="level-0" value="762945893">visionOS&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="38600">VMware&nbsp;&nbsp;(62)</option>
+	<option class="level-0" value="9505700">VMware ESXi&nbsp;&nbsp;(35)</option>
+	<option class="level-0" value="335035922">watchOS&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="800">Windows&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="10751803">WWDC 2004&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="280487">WWDC 2006&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="1256147">WWDC 2007&nbsp;&nbsp;(2)</option>
+	<option class="level-0" value="14761865">WWDC 2009&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="50862327">WWDC 2011&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="237640609">WWDC 2015&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="165387620">WWDC 2016&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="503031995">WWDC 2017&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="667452093">WWDC 2019&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="693641939">WWDC 2020&nbsp;&nbsp;(3)</option>
+	<option class="level-0" value="716825103">WWDC 2021&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="729749212">WWDC 2022&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="761294824">WWDC 2023&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="768588316">WWDC 2024&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="776308365">WWDC 2025&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="473626416">X World 2016&nbsp;&nbsp;(4)</option>
+	<option class="level-0" value="176525">Xcode&nbsp;&nbsp;(13)</option>
+	<option class="level-0" value="321440432">Xcode Command Line Tools&nbsp;&nbsp;(1)</option>
+	<option class="level-0" value="10864411">XProtect&nbsp;&nbsp;(13)</option>
+</select>
+</form><script>
+( ( dropdownId ) => {
+	const dropdown = document.getElementById( dropdownId );
+	function onSelectChange() {
+		setTimeout( () => {
+			if ( 'escape' === dropdown.dataset.lastkey ) {
+				return;
+			}
+			if ( dropdown.value && parseInt( dropdown.value ) > 0 && dropdown instanceof HTMLSelectElement ) {
+				dropdown.parentElement.submit();
+			}
+		}, 250 );
+	}
+	function onKeyUp( event ) {
+		if ( 'Escape' === event.key ) {
+			dropdown.dataset.lastkey = 'escape';
+		} else {
+			delete dropdown.dataset.lastkey;
+		}
+	}
+	function onClick() {
+		delete dropdown.dataset.lastkey;
+	}
+	dropdown.addEventListener( 'keyup', onKeyUp );
+	dropdown.addEventListener( 'click', onClick );
+	dropdown.addEventListener( 'change', onSelectChange );
+})( "cat" );
+
+//# sourceURL=WP_Widget_Categories%3A%3Awidget
+</script>
+</div><div id="archives-2" class="widget widget_archive"><h3>Archives</h3>
+			<ul>
+					<li><a href='https://derflounder.wordpress.com/2026/10/'>October 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/09/'>September 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/08/'>August 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/07/'>July 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/06/'>June 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/05/'>May 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/04/'>April 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/03/'>March 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/02/'>February 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2026/01/'>January 2026</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/12/'>December 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/11/'>November 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/10/'>October 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/09/'>September 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/08/'>August 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/07/'>July 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/06/'>June 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/05/'>May 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/04/'>April 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/03/'>March 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/02/'>February 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2025/01/'>January 2025</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/12/'>December 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/11/'>November 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/10/'>October 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/09/'>September 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/08/'>August 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/07/'>July 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/06/'>June 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/05/'>May 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/04/'>April 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/03/'>March 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/02/'>February 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2024/01/'>January 2024</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/12/'>December 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/11/'>November 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/10/'>October 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/09/'>September 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/08/'>August 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/07/'>July 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/06/'>June 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/05/'>May 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/04/'>April 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/03/'>March 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/02/'>February 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2023/01/'>January 2023</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/12/'>December 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/11/'>November 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/10/'>October 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/09/'>September 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/07/'>July 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/06/'>June 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/05/'>May 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/04/'>April 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/03/'>March 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/02/'>February 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2022/01/'>January 2022</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/12/'>December 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/11/'>November 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/10/'>October 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/09/'>September 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/08/'>August 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/07/'>July 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/06/'>June 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/05/'>May 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/04/'>April 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/03/'>March 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/02/'>February 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2021/01/'>January 2021</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/12/'>December 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/11/'>November 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/10/'>October 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/09/'>September 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/08/'>August 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/07/'>July 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/06/'>June 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/05/'>May 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/04/'>April 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/03/'>March 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/02/'>February 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2020/01/'>January 2020</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/12/'>December 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/11/'>November 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/10/'>October 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/09/'>September 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/08/'>August 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/07/'>July 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/06/'>June 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/05/'>May 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/04/'>April 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/03/'>March 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/02/'>February 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2019/01/'>January 2019</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/12/'>December 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/11/'>November 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/10/'>October 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/09/'>September 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/08/'>August 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/07/'>July 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/06/'>June 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/05/'>May 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/04/'>April 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/03/'>March 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/02/'>February 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2018/01/'>January 2018</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/12/'>December 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/11/'>November 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/10/'>October 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/09/'>September 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/08/'>August 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/07/'>July 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/06/'>June 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/05/'>May 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/04/'>April 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/03/'>March 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/02/'>February 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2017/01/'>January 2017</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/12/'>December 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/11/'>November 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/10/'>October 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/09/'>September 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/08/'>August 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/07/'>July 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/06/'>June 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/05/'>May 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/04/'>April 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/03/'>March 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/02/'>February 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2016/01/'>January 2016</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/12/'>December 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/11/'>November 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/10/'>October 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/09/'>September 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/08/'>August 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/07/'>July 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/06/'>June 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/05/'>May 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/04/'>April 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/03/'>March 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/02/'>February 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2015/01/'>January 2015</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/12/'>December 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/11/'>November 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/10/'>October 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/09/'>September 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/08/'>August 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/07/'>July 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/06/'>June 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/05/'>May 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/04/'>April 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/03/'>March 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/02/'>February 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2014/01/'>January 2014</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/12/'>December 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/11/'>November 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/10/'>October 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/09/'>September 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/08/'>August 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/07/'>July 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/06/'>June 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/05/'>May 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/04/'>April 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/03/'>March 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/02/'>February 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2013/01/'>January 2013</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/12/'>December 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/11/'>November 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/10/'>October 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/09/'>September 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/08/'>August 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/07/'>July 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/06/'>June 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/05/'>May 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/04/'>April 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/03/'>March 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/02/'>February 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2012/01/'>January 2012</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/12/'>December 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/11/'>November 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/10/'>October 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/09/'>September 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/08/'>August 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/07/'>July 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/06/'>June 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/05/'>May 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/04/'>April 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/03/'>March 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/02/'>February 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2011/01/'>January 2011</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/12/'>December 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/11/'>November 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/10/'>October 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/09/'>September 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/08/'>August 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/07/'>July 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/05/'>May 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/03/'>March 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2010/02/'>February 2010</a></li>
+	<li><a href='https://derflounder.wordpress.com/2009/12/'>December 2009</a></li>
+	<li><a href='https://derflounder.wordpress.com/2009/11/'>November 2009</a></li>
+	<li><a href='https://derflounder.wordpress.com/2009/10/'>October 2009</a></li>
+	<li><a href='https://derflounder.wordpress.com/2009/09/'>September 2009</a></li>
+	<li><a href='https://derflounder.wordpress.com/2009/06/'>June 2009</a></li>
+	<li><a href='https://derflounder.wordpress.com/2009/04/'>April 2009</a></li>
+	<li><a href='https://derflounder.wordpress.com/2009/03/'>March 2009</a></li>
+	<li><a href='https://derflounder.wordpress.com/2009/02/'>February 2009</a></li>
+	<li><a href='https://derflounder.wordpress.com/2008/12/'>December 2008</a></li>
+	<li><a href='https://derflounder.wordpress.com/2008/11/'>November 2008</a></li>
+	<li><a href='https://derflounder.wordpress.com/2008/10/'>October 2008</a></li>
+	<li><a href='https://derflounder.wordpress.com/2008/09/'>September 2008</a></li>
+	<li><a href='https://derflounder.wordpress.com/2008/03/'>March 2008</a></li>
+	<li><a href='https://derflounder.wordpress.com/2008/02/'>February 2008</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/12/'>December 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/11/'>November 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/10/'>October 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/09/'>September 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/07/'>July 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/06/'>June 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/05/'>May 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/04/'>April 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/03/'>March 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/02/'>February 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2007/01/'>January 2007</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/12/'>December 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/11/'>November 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/10/'>October 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/09/'>September 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/08/'>August 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/07/'>July 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/06/'>June 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/05/'>May 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/04/'>April 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/03/'>March 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/02/'>February 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2006/01/'>January 2006</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/12/'>December 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/11/'>November 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/10/'>October 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/09/'>September 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/07/'>July 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/06/'>June 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/05/'>May 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/04/'>April 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/03/'>March 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/02/'>February 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2005/01/'>January 2005</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/12/'>December 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/11/'>November 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/10/'>October 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/09/'>September 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/08/'>August 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/07/'>July 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/06/'>June 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/05/'>May 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/04/'>April 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/03/'>March 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/02/'>February 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2004/01/'>January 2004</a></li>
+	<li><a href='https://derflounder.wordpress.com/2003/12/'>December 2003</a></li>
+	<li><a href='https://derflounder.wordpress.com/2003/11/'>November 2003</a></li>
+	<li><a href='https://derflounder.wordpress.com/2003/10/'>October 2003</a></li>
+	<li><a href='https://derflounder.wordpress.com/2003/09/'>September 2003</a></li>
+	<li><a href='https://derflounder.wordpress.com/2003/08/'>August 2003</a></li>
+	<li><a href='https://derflounder.wordpress.com/2003/07/'>July 2003</a></li>
+	<li><a href='https://derflounder.wordpress.com/2003/06/'>June 2003</a></li>
+	<li><a href='https://derflounder.wordpress.com/2003/05/'>May 2003</a></li>
+			</ul>
+
+			</div><div id="blog-stats-2" class="widget widget_blog-stats"><h3>Blog Stats</h3>		<ul>
+			<li>11,056,308 hits</li>
+		</ul>
+		</div>	</div>
+</div>
+<!-- sidebar END -->
+	<div class="fixed"></div>
+</div>
+<!-- content END -->
+
+<!-- footer START -->
+<div id="footer">
+	<a id="gotop" href="#" onclick="MGJS.goTop();return false;">Top</a>
+	<div id="themeinfo">
+		<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a> 	</div>
+</div>
+<!-- footer END -->
+
+</div>
+<!-- container END -->
+</div>
+<!-- wrap END -->
+
+<!--  -->
+<script type="speculationrules">
+{"prefetch":[{"source":"document","where":{"and":[{"href_matches":"/*"},{"not":{"href_matches":["/wp-*.php","/wp-admin/*","/files/*","/wp-content/*","/wp-content/plugins/*","/wp-content/themes/pub/inove/*","/*\\?(.+)"]}},{"not":{"selector_matches":"a[rel~=\"nofollow\"]"}},{"not":{"selector_matches":".no-prefetch, .no-prefetch a"}}]},"eagerness":"conservative"}]}
+</script>
+<script id="grofiles-cards-js" src="//0.gravatar.com/js/hovercards/hovercards.min.js?ver=202644fffb5f6f8dc7a9c7ad08f16ba2e694fddff32cc1793b3fe3b32aaa232a52550e"></script>
+<script id="wpgroho-js-extra">
+var WPGroHo = {"my_hash":""};
+//# sourceURL=wpgroho-js-extra
+</script>
+<script crossorigin='anonymous' type='text/javascript'  src='/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240i'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init(
+					'body',
+					'#wp-admin-bar-my-account',
+					{
+						i18n: {
+							'Edit your profile →': 'Edit your profile →',
+							'View profile →': 'View profile →',
+							'Contact': 'Contact',
+							'Send money': 'Send money',
+							'Sorry, we are unable to load this Gravatar profile.': 'Sorry, we are unable to load this Gravatar profile.',
+							'Gravatar not found.': 'Gravatar not found.',
+							'Too Many Requests.': 'Too Many Requests.',
+							'Internal Server Error.': 'Internal Server Error.',
+							'Is this you?': 'Is this you?',
+							'Claim your free profile.': 'Claim your free profile.',
+							'Email': 'Email',
+							'Home Phone': 'Home Phone',
+							'Work Phone': 'Work Phone',
+							'Cell Phone': 'Cell Phone',
+							'Contact Form': 'Contact Form',
+							'Calendar': 'Calendar',
+						},
+					}
+				);
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-cd6fc72dcbc6d134f6d3b071439afa38">
+	</div>
+	<div class="grofile-hash-map-deaab0ae5df6e23af0f731523ac34411">
+	</div>
+	<div class="grofile-hash-map-f50d7505ca010ba1cbfd4942890bee37">
+	</div>
+	<div class="grofile-hash-map-8772aa5226a73ff610f27f68dcfb8a52">
+	</div>
+	<div class="grofile-hash-map-50cf751a0677bfd2c808601e5291d8d3">
+	</div>
+	<div class="grofile-hash-map-0b46082e9c51eb723b73a4d522cea64f">
+	</div>
+	<div class="grofile-hash-map-800bfa052115042cf0b744051fdc82d1">
+	</div>
+	</div>
+			<div id="actionbar" dir="ltr" style="display: none;"
+				class="actnbr-pub-inove" role="region" aria-label="Site actions">
+			<span class="actnbr-live" aria-live="polite"></span>
+			<ul>
+										<li class="actnbr-btn">
+							<a class="actnbr-action actnbr-actn-comment" href="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/#comments">
+								<svg class="actnbr-icon actnbr-icon-comment" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="currentColor"><path d="M18 4H6c-1.1 0-2 .9-2 2v12.9c0 .6.5 1.1 1.1 1.1.3 0 .5-.1.8-.3L8.5 17H18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm.5 11c0 .3-.2.5-.5.5H7.9l-2.4 2.4V6c0-.3.2-.5.5-.5h12c.3 0 .5.2.5.5v9z"/></svg>								<span>Comment							</span>
+							</a>
+						</li>
+											<li class="actnbr-btn">
+							<a class="actnbr-action actnbr-actn-reblog" href="" role="button">
+								<svg class="actnbr-icon actnbr-icon-reusable-block" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="currentColor"><path d="M7 7.2h8.2L13.5 9l1.1 1.1 3.6-3.6-3.5-4-1.1 1 1.9 2.3H7c-.9 0-1.7.3-2.3.9-1.4 1.5-1.4 4.2-1.4 5.6v.2h1.5v-.3c0-1.1 0-3.5 1-4.5.3-.3.7-.5 1.2-.5zm13.8 4V11h-1.5v.3c0 1.1 0 3.5-1 4.5-.3.3-.7.5-1.3.5H8.8l1.7-1.7-1.1-1.1L5.9 17l3.5 4 1.1-1-1.9-2.3H17c.9 0 1.7-.3 2.3-.9 1.5-1.4 1.5-4.2 1.5-5.6z"/></svg><span>Reblog</span>
+							</a>
+						</li>
+											<li class="actnbr-btn actnbr-hidden">
+										<a class="actnbr-action actnbr-actn-follow " href="" role="button" aria-haspopup="dialog" aria-expanded="false">
+				<svg class="actnbr-icon actnbr-icon-bell" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M17 11.5c0 1.353.17 2.368.976 3 .266.209.602.376 1.024.5v1H5v-1c.422-.124.757-.291 1.024-.5.806-.632.976-1.647.976-3V9c0-2.8 2.2-5 5-5s5 2.2 5 5v2.5ZM15.5 9v2.5c0 .93.066 1.98.515 2.897l.053.103H7.932a4.018 4.018 0 0 0 .053-.103c.449-.917.515-1.967.515-2.897V9c0-1.972 1.528-3.5 3.5-3.5s3.5 1.528 3.5 3.5Zm-5.492 9.008c0-.176.023-.346.065-.508h3.854A1.996 1.996 0 0 1 12 20c-1.1 0-1.992-.892-1.992-1.992Z"/></svg>				<span>Subscribe</span>
+			</a>
+			<a class="actnbr-action actnbr-actn-following  no-display" href="" role="button">
+				<svg class="actnbr-icon actnbr-icon-check" width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="fill: none" stroke="currentColor" stroke-width="1.5"><path d="M7 12L10 15L17 8" vector-effect="non-scaling-stroke"/></svg>				<span>Subscribed</span>
+			</a>
+									<div class="actnbr-popover actnbr-panel actnbr-notice" id="follow-bubble" role="dialog" aria-label="Subscribe to Der Flounder">
+								<div class="actnbr-follow-bubble">
+								<div class="actnbr-panel__group"><a class="actnbr-menu__item actnbr-sitename" href="https://derflounder.wordpress.com"><img loading='lazy' alt='' src='https://s-ssl.wordpress.com/i/logo/wpcom-gray-white.png?m=1479929237i' srcset='https://s-ssl.wordpress.com/i/logo/wpcom-gray-white.png 1x' class='avatar avatar-50' height='50' width='50' /><span class="actnbr-menu__label">Der Flounder</span></a></div>																	<div class="actnbr-panel__group">
+										<div class="actnbr-message no-display" aria-live="polite"></div>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" class="no-display">
+																							<div class="actnbr-follow-count">Join 778 other subscribers</div>
+																							<input type="email" name="email" placeholder="Want updates? Enter your email" class="actnbr-email-field" aria-label="Email address" />
+											<input type="hidden" name="action" value="subscribe" />
+											<input type="hidden" name="blog_id" value="4732336" />
+											<input type="hidden" name="source" value="https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/" />
+											<input type="hidden" name="sub-type" value="actionbar-follow" />
+											<input type="hidden" id="_wpnonce" name="_wpnonce" value="61baec2d1b" />											<button type="submit" class="actnbr-button">Sign me up</button>
+										</form>
+										<p class="actnbr-login-nudge">
+											Have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fderflounder.wordpress.com%2F2024%2F10%2F31%2Fmanaging-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1%2F&#038;signup_flow=account">Log in now.</a>										</p>
+									</div>
+																	</div>
+							</div>
+						</li>
+									<li class="actnbr-ellipsis actnbr-hidden">
+					<button type="button" class="actnbr-more-toggle" aria-haspopup="true" aria-expanded="false" aria-label="More options">
+						<svg class="actnbr-icon actnbr-icon-more-horizontal" width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="currentColor"><path d="M11 13h2v-2h-2v2zm-6 0h2v-2H5v2zm12-2v2h2v-2h-2z"/></svg>					</button>
+					<div class="actnbr-popover actnbr-menu" role="menu" aria-label="Site options">
+						<div class="actnbr-menu__group" role="group"><a role="menuitem" class="actnbr-menu__item actnbr-sitename" href="https://derflounder.wordpress.com"><img loading='lazy' alt='' src='https://s-ssl.wordpress.com/i/logo/wpcom-gray-white.png?m=1479929237i' srcset='https://s-ssl.wordpress.com/i/logo/wpcom-gray-white.png 1x' class='avatar avatar-50' height='50' width='50' /><span class="actnbr-menu__label">Der Flounder</span></a></div><div class="actnbr-menu__group" role="group"><a role="menuitem" class="actnbr-menu__item actnbr-shortlink" href="https://wp.me/pjR60-3eH"><span class="actnbr-menu__label actnbr-shortlink__text">Copy shortlink</span><span class="actnbr-menu__icon actnbr-shortlink__icon"><svg class="actnbr-icon actnbr-icon-copy" width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M5 4.5h11a.5.5 0 0 1 .5.5v11a.5.5 0 0 1-.5.5H5a.5.5 0 0 1-.5-.5V5a.5.5 0 0 1 .5-.5ZM3 5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5Zm17 3v10.75c0 .69-.56 1.25-1.25 1.25H6v1.5h12.75a2.75 2.75 0 0 0 2.75-2.75V8H20Z"/></svg></span><span class="actnbr-menu__icon actnbr-shortlink__icon-copied"><svg class="actnbr-icon actnbr-icon-check" width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" style="fill: none" stroke="currentColor" stroke-width="1.5"><path d="M7 12L10 15L17 8" vector-effect="non-scaling-stroke"/></svg></span></a><a role="menuitem" class="actnbr-menu__item actnbr-reader" href="https://wordpress.com/reader/blogs/4732336/posts/12443"><span class="actnbr-menu__label">View post in Reader</span></a></div><div class="actnbr-menu__group" role="group"><a role="menuitem" class="actnbr-menu__item actnbr-subs" href="https://subscribe.wordpress.com/"><span class="actnbr-menu__label">Manage subscriptions</span></a><a role="menuitem" class="actnbr-menu__item actnbr-signup" href="https://wordpress.com/start/"><span class="actnbr-menu__label">Sign up</span></a><a role="menuitem" class="actnbr-menu__item actnbr-login" href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fderflounder.wordpress.com%2F2024%2F10%2F31%2Fmanaging-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1%2F&#038;signup_flow=account"><span class="actnbr-menu__label">Log in</span></a></div><div class="actnbr-menu__group" role="group"><a role="menuitem" class="actnbr-menu__item flb-report" href="https://wordpress.com/abuse/?report_url=https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/" target="_blank" rel="noopener noreferrer"><span class="actnbr-menu__label">Report this content</span><span class="actnbr-menu__icon"><svg class="actnbr-icon actnbr-icon-external" width="18" height="18" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="currentColor"><path d="M19.5 4.5h-7V6h4.44l-5.97 5.97 1.06 1.06L18 7.06v4.44h1.5v-7Zm-13 1a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3H17v3a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h3V5.5h-3Z"/></svg></span></a></div><div class="actnbr-menu__group" role="group"><a role="menuitem" class="actnbr-menu__item actnbr-fold" href=""><span class="actnbr-menu__label">Collapse this bar</span></a></div>					</div>
+				</li>
+			</ul>
+		</div>
+		<script>
+window.addEventListener( "DOMContentLoaded", function () {
+				var link = document.createElement( "link" );
+				link.href = "\/wp-content\/mu-plugins\/jetpack-plugin\/moon\/jetpack_vendor\/automattic\/jetpack-newsletter\/src\/..\/build\/action-bar.css?ver=35dd33285eb46dc308dd";
+				link.rel = "stylesheet";
+				document.head.appendChild( link );
+
+				var script = document.createElement( "script" );
+				script.src = "\/wp-content\/mu-plugins\/jetpack-plugin\/moon\/jetpack_vendor\/automattic\/jetpack-newsletter\/src\/..\/build\/action-bar.js?ver=35dd33285eb46dc308dd";
+				document.body.appendChild( script );
+			} );
+</script>
+
+	<script type="text/javascript">
+		window.WPCOM_sharing_counts = {"https://derflounder.wordpress.com/2024/10/31/managing-user-notifications-for-apps-which-request-screen-access-on-macos-sequoia-15-1/":12443};
+	</script>
+						
+	<script type="text/javascript">
+		(function () {
+			var wpcom_reblog = {
+				source: 'toolbar',
+
+				toggle_reblog_box_flair: function (obj_id, post_id) {
+
+					// Go to site selector. This will redirect to their blog if they only have one.
+					const postEndpoint = `https://wordpress.com/post`;
+
+					// Ideally we would use the permalink here, but fortunately this will be replaced with the 
+					// post permalink in the editor.
+					const originalURL = `${ document.location.href }?page_id=${ post_id }`; 
+					
+					const url =
+						postEndpoint +
+						'?url=' +
+						encodeURIComponent( originalURL ) +
+						'&is_post_share=true' +
+						'&v=5';
+
+					const redirect = function () {
+						if (
+							! window.open( url, '_blank' )
+						) {
+							location.href = url;
+						}
+					};
+
+					if ( /Firefox/.test( navigator.userAgent ) ) {
+						setTimeout( redirect, 0 );
+					} else {
+						redirect();
+					}
+				},
+			};
+
+			window.wpcom_reblog = wpcom_reblog;
+		})();
+	</script>
+<script crossorigin='anonymous' type='text/javascript'  src='/_static/??/wp-content/mu-plugins/likes/queuehandler.js,/wp-includes/js/comment-reply.min.js?m=1792747087j'></script>
+<script id="jetpack-comments-js-before">
+window.JetpackComments = {"version":"0.8.1","styleUrl":"/wp-content/mu-plugins/jetpack-mu-wpcom-plugin/moon/jetpack_vendor/automattic/jetpack-comments/build/comments.css?m=1792510721i\u0026minify=false\u0026ver=6a3fcb65462481c392b3-1792510721","requireNameEmail":true,"mustLogIn":false,"site":{"name":"Der Flounder","iconUrl":""},"manageSubscriptionsUrl":"https://subscribe.wordpress.com/?site=derflounder.wordpress.com","tracks":{"platform":"simple"},"strings":{"reply":"Reply","commentLabel":"Comment","replyLabel":"Reply","placeholder":"Write a comment...","replyPlaceholder":"Write a reply...","name":"Name","email":"Email","emailHint":"Address never made public","emailHasAccount":"That email belongs to a WordPress.com account. Log in with WordPress.com to use it, or enter a different email.","website":"Website (optional)","intro":"Enter your name and email to comment.","continueAsGuest":"Continue as a guest","postWithoutSaving":"No, thanks. I just want to post a comment","save":"Save","saveDetails":"Save my name, email, and website in this browser for the next time I comment.","close":"Close","manageSubscriptions":"Manage subscription","mustLogIn":"You must be logged in to post a comment.","logIn":"Log in","logInWithWordPress":"Log in with WordPress.com","logOut":"Log out","change":"Change","editProfile":"Edit profile","addYourName":"Add your name","cancel":"Cancel","signInFailed":"We could not sign you in. Please try again.","tooLong":"This comment is too long to post. Shorten it to send it.","signInRateLimited":"Too many sign-in attempts. Please wait a moment and try again."},"assetsUrl":"https://s0.wp.com/wp-content/mu-plugins/jetpack-mu-wpcom-plugin/moon/jetpack_vendor/automattic/jetpack-comments/build/","loaderUrl":"https://s0.wp.com/wp-content/mu-plugins/jetpack-mu-wpcom-plugin/moon/jetpack_vendor/automattic/jetpack-comments/build/editor-loader.js?m=1793042026i&amp;minify=false\u0026ver=e97ae311fcf906801392","maxLength":65525,"blocks":true,"editorLocale":{"block title\u0004Paragraph":["Paragraph"],"block title\u0004List":["List"],"block title\u0004List Item":["List Item"],"block title\u0004Quote":["Quote"],"block title\u0004Code":["Code"],"block title\u0004Embed":["Embed"],"block title\u0004Image":["Image"]},"editor":{"blockTools":"Block tools","addBlock":"Add block","embedUrl":"https://public-api.wordpress.com/wpcom/v2/sites/4732336/comments/embed","images":true,"imageError":"This image could not be loaded. Check its URL and try again."},"isLoggedIn":false,"avatarUrl":"https://0.gravatar.com/avatar/?s=80\u0026d=identicon\u0026forcedefault=y\u0026r=G","commenter":{"author":"","email":"","url":""},"user":null,"identity":{"blogId":4732336,"canSignIn":true,"connect":{"url":"https://public-api.wordpress.com/connect/?comment_identity=1\u0026blog_id=4732336\u0026challenge=4UmYo7JLkYb6-5BgfK9k8R5b-Gdbi-1SENEpfO1WUe8\u0026origin=https%3A%2F%2Fderflounder.wordpress.com\u0026expires=1793389855\u0026signature=7944920b5b4e830ae628063d53542130e793bb950922eb99f793f89db0b30140","expires":1793389855,"challenge":"4UmYo7JLkYb6-5BgfK9k8R5b-Gdbi-1SENEpfO1WUe8"},"connectUrl":"https://public-api.wordpress.com/wpcom/v2/sites/4732336/comments/identity/connect","emailUrl":"https://public-api.wordpress.com/wpcom/v2/sites/4732336/comments/identity/email","origin":"https://public-api.wordpress.com","codeField":"jetpack_comment_identity_code","passportField":"jetpack_comment_identity_passport","displayCookie":"jetpack_comment_identity_display","cookieHash":"653166773dc88127bd3afe0b6dfe5ea7","cookiePath":"/","cookieDomain":".wordpress.com","defaultAvatar":"https://0.gravatar.com/avatar/?s=80\u0026d=identicon\u0026forcedefault=y\u0026r=G","logoutUrl":"/wp-admin/admin-ajax.php","logoutAction":"jetpack_comments_identity_logout"}};(function(){function n(){Array.prototype.forEach.call(document.forms,function(f){var i;if(f.querySelector(".jetpack-comments")&&!f.querySelector('[name="jetpack_comments_form_nonce"]')){i=document.createElement("input");i.type="hidden";i.name="jetpack_comments_form_nonce";i.value="60aa7b52e9";f.appendChild(i);}});}n();document.addEventListener("DOMContentLoaded",n);})();window.addEventListener("load",function(){Array.prototype.forEach.call(document.querySelectorAll(".jetpack-comments"),function(e){if(!/\bis-(mounted|plain)\b/.test(e.className)){e.className+=" is-plain";}});});
+//# sourceURL=jetpack-comments-js-before
+</script>
+<script data-wp-strategy="defer" defer id="jetpack-comments-js" src="/wp-content/mu-plugins/jetpack-mu-wpcom-plugin/moon/jetpack_vendor/automattic/jetpack-comments/build/comments.js?m=1793284982i&#038;minify=false&#038;ver=6a3fcb65462481c392b3-1792510721"></script>
+<script id="sharing-js-js-extra">
+var sharing_js_options = {"lang":"en","counts":"1","is_stats_active":"1"};
+//# sourceURL=sharing-js-js-extra
+</script>
+<script crossorigin='anonymous' type='text/javascript'  src='/_static/??/wp-content/mu-plugins/akismet-3.0/_inc/akismet-frontend.js,/wp-content/mu-plugins/jetpack-plugin/moon/_inc/build/sharedaddy/sharing.min.js?m=1787950866j'></script>
+<script id="sharing-js-js-after">
+window.WPCOM_sharing_popups = window.WPCOM_sharing_popups || {};
+window.WPCOM_sharing_popups[ "facebook" ] = "menubar=1,resizable=1,width=600,height=400";
+window.WPCOM_sharing_popups = window.WPCOM_sharing_popups || {};
+window.WPCOM_sharing_popups[ "linkedin" ] = "menubar=1,resizable=1,width=580,height=450";
+window.WPCOM_sharing_popups = window.WPCOM_sharing_popups || {};
+window.WPCOM_sharing_popups[ "twitter" ] = "menubar=1,resizable=1,width=600,height=350";
+window.WPCOM_sharing_popups = window.WPCOM_sharing_popups || {};
+window.WPCOM_sharing_popups[ "tumblr" ] = "menubar=1,resizable=1,width=450,height=450";
+//# sourceURL=sharing-js-js-after
+</script>
+<script id="wp-emoji-settings" type="application/json">
+{"baseUrl":"https://s0.wp.com/wp-content/mu-plugins/wpcom-smileys/twemoji/2/72x72/","ext":".png","svgUrl":"https://s0.wp.com/wp-content/mu-plugins/wpcom-smileys/twemoji/2/svg/","svgExt":".svg","source":{"concatemoji":"/wp-includes/js/wp-emoji-release.min.js?m=1783090810i&ver=7.1.4-alpha-64893"}}
+</script>
+<script type="module">
+/*! This file is auto-generated */
+var e="script#wp-emoji-settings",t=document.querySelector(e);if(!(t instanceof HTMLScriptElement))throw new Error("Element missing: "+e);const r=JSON.parse(t.text),s=(window._wpemojiSettings=r,"wpEmojiSettingsSupports"),o=["flag","emoji"];function i(e){try{var t={supportTests:e,timestamp:(new Date).valueOf()};sessionStorage.setItem(s,JSON.stringify(t))}catch(e){}}function c(e,t,n){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);t=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(n,0,0);const r=new Uint32Array(e.getImageData(0,0,e.canvas.width,e.canvas.height).data);return t.every((e,t)=>e===r[t])}function p(e,t){e.clearRect(0,0,e.canvas.width,e.canvas.height),e.fillText(t,0,0);var n=e.getImageData(16,16,1,1);for(let e=0;e<n.data.length;e++)if(0!==n.data[e])return!1;return!0}function u(e,t,n,r){switch(t){case"flag":return n(e,"\ud83c\udff3\ufe0f\u200d\u26a7\ufe0f","\ud83c\udff3\ufe0f\u200b\u26a7\ufe0f")?!1:!n(e,"\ud83c\udde8\ud83c\uddf6","\ud83c\udde8\u200b\ud83c\uddf6")&&!n(e,"\ud83c\udff4\udb40\udc67\udb40\udc62\udb40\udc65\udb40\udc6e\udb40\udc67\udb40\udc7f","\ud83c\udff4\u200b\udb40\udc67\u200b\udb40\udc62\u200b\udb40\udc65\u200b\udb40\udc6e\u200b\udb40\udc67\u200b\udb40\udc7f");case"emoji":return!r(e,"\ud83e\udec8")}return!1}function f(e,t,n,r){let a;const s=(a="undefined"!=typeof WorkerGlobalScope&&self instanceof WorkerGlobalScope?new OffscreenCanvas(300,150):document.createElement("canvas")).getContext("2d",{willReadFrequently:!0}),o=(s.textBaseline="top",s.font="600 32px Arial",{});return e.forEach(e=>{o[e]=t(s,e,n,r)}),o}function a(e){var t=document.createElement("script");t.src=e,t.defer=!0,document.head.appendChild(t)}r.supports={everything:!0,everythingExceptFlag:!0},new Promise(t=>{let n=function(){try{var e=JSON.parse(sessionStorage.getItem(s));if("object"==typeof e&&"number"==typeof e.timestamp&&(new Date).valueOf()<e.timestamp+604800&&"object"==typeof e.supportTests)return e.supportTests}catch(e){}return null}();if(!n){if("undefined"!=typeof Worker&&"undefined"!=typeof OffscreenCanvas&&"undefined"!=typeof URL&&URL.createObjectURL&&"undefined"!=typeof Blob)try{var e="postMessage("+f.toString()+"("+[JSON.stringify(o),u.toString(),c.toString(),p.toString()].join(",")+"));",r=new Blob([e],{type:"text/javascript"});const a=new Worker(URL.createObjectURL(r),{name:"wpTestEmojiSupports"});return void(a.onmessage=e=>{i(n=e.data),a.terminate(),t(n)})}catch(e){}i(n=f(o,u,c,p))}t(n)}).then(e=>{for(const n in e)r.supports[n]=e[n],r.supports.everything=r.supports.everything&&r.supports[n],"flag"!==n&&(r.supports.everythingExceptFlag=r.supports.everythingExceptFlag&&r.supports[n]);var t;r.supports.everythingExceptFlag=r.supports.everythingExceptFlag&&!r.supports.flag,r.supports.everything||((t=r.source||{}).concatemoji?a(t.concatemoji):t.wpemoji&&t.twemoji&&(a(t.twemoji),a(t.wpemoji)))});
+//# sourceURL=/wp-includes/js/wp-emoji-loader.min.js
+</script>
+	<iframe src='https://widgets.wp.com/likes/master.html?ver=20261030#ver=20261030' scrolling='no' id='likes-master' name='likes-master' style='display:none;'></iframe>
+	<div id='likes-other-gravatars' role="dialog" aria-hidden="true" tabindex="-1"><div class="likes-text"><span>%d</span></div><ul class="wpl-avatars sd-like-gravatars"></ul></div>
+	<script src="//stats.wp.com/w.js?71" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'4732336','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+		// Prevent sending pageview tracking from WP-Admin pages.
+		_stq.push(['view', {'blog':'4732336','v':'wpcom','tz':'0','user_id':'0','post':'12443','subd':'derflounder'}]);
+		_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9Cbndha3kzNmQmWH5YcmtEZElMT0wzelZJamFVUXYyREolPzc0VUYubD9xUWpZbzV+Q3pPanBxS2pQWWFkbzgmMVhnW0JhTiUvLlBmdyxHRmRbVS1NUDFVZFZ+dTRHYyslbDE2VT1tPywuLWVKQVZMVGhhUzYlQXRDNTMlP2xKdXx5L2dQU0RobDdiaWs4M3M2ZkJOfm5BUFtVWUFZQiUxLE9Wa2JOTGxaX0hoNjg3dFZuLzdWS1EraE5yTl1lNVFTVn5hbF1yc3xyRltlLHw2Jn5oYURCPTRib1h4TnVaT3orKzR0'}]);
+_stq.push([ 'clickTrackerInit', '4732336', '12443' ]);
+</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<meta id="bilmur" property="bilmur:data" content="" data-provider="wordpress.com" data-service="simple" data-site-tz="Etc/GMT-0" data-custom-props="{&quot;enq_jquery&quot;:&quot;1&quot;,&quot;logged_in&quot;:&quot;0&quot;,&quot;wptheme&quot;:&quot;pub\/inove&quot;,&quot;wptheme_is_block&quot;:&quot;0&quot;}"   >
+		<script defer src="/wp-content/js/bilmur.min.js?i=19&amp;m=202644"></script> 	
+</body>
+</html>

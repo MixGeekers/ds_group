@@ -1,0 +1,172 @@
+[
+  {
+    "id": "stack-channels",
+    "evidence": "../../research/2026-11-01-连接订阅与技术栈/渠道连接.md",
+    "modules": [
+      "channels",
+      "links"
+    ]
+  },
+  {
+    "id": "stack-bridge",
+    "evidence": "../../research/2026-11-01-连接订阅与技术栈/渠道连接.md",
+    "modules": [
+      "events",
+      "links"
+    ]
+  },
+  {
+    "id": "stack-replyer",
+    "evidence": "../../research/2026-11-01-复用核查/输入与外层.md",
+    "modules": [
+      "replyer"
+    ]
+  },
+  {
+    "id": "stack-queue",
+    "evidence": "../../research/2026-11-01-复用核查/输入与外层.md",
+    "modules": [
+      "dialogue-queue"
+    ]
+  },
+  {
+    "id": "stack-ingress",
+    "evidence": "../A方案全景/Core派工与对话时序.md",
+    "modules": [
+      "events",
+      "links"
+    ]
+  },
+  {
+    "id": "stack-subscriptions",
+    "evidence": "../A方案全景/时间与事件订阅.md",
+    "modules": [
+      "event-schedule",
+      "events"
+    ]
+  },
+  {
+    "id": "stack-contacts",
+    "evidence": "../A方案全景/通讯录与人际关系.md",
+    "modules": [
+      "relationship"
+    ]
+  },
+  {
+    "id": "stack-config",
+    "evidence": "../../research/2026-11-01-复用核查/宿主与依赖.md",
+    "modules": [
+      "lifecycle",
+      "config",
+      "credentials"
+    ]
+  },
+  {
+    "id": "stack-core",
+    "evidence": "../A方案全景/Core派工与对话时序.md",
+    "modules": [
+      "core",
+      "providers",
+      "model-session"
+    ]
+  },
+  {
+    "id": "stack-policy",
+    "evidence": "../../research/2026-11-01-复用核查/任务执行.md",
+    "modules": [
+      "mandate",
+      "tool-policy"
+    ]
+  },
+  {
+    "id": "stack-goals",
+    "evidence": "../../research/2026-11-01-复用核查/核心与视图.md",
+    "modules": [
+      "user",
+      "task-store"
+    ]
+  },
+  {
+    "id": "stack-views",
+    "evidence": "../../research/2026-11-01-复用核查/核心与视图.md",
+    "modules": [
+      "views",
+      "cognition",
+      "personality"
+    ]
+  },
+  {
+    "id": "stack-engine",
+    "evidence": "../../research/2026-11-01-复用核查/任务执行.md",
+    "modules": [
+      "tasks",
+      "verify"
+    ]
+  },
+  {
+    "id": "stack-worker",
+    "evidence": "../../research/2026-11-01-复用核查/任务执行.md",
+    "modules": [
+      "worker"
+    ]
+  },
+  {
+    "id": "stack-tools",
+    "evidence": "../../research/2026-11-01-复用核查/设备.md",
+    "modules": [
+      "ability",
+      "device-gateway",
+      "desktop-device",
+      "other-device",
+      "robot"
+    ]
+  },
+  {
+    "id": "stack-effects",
+    "evidence": "../../research/2026-11-01-复用核查/任务执行.md",
+    "modules": [
+      "verify",
+      "evidence"
+    ]
+  },
+  {
+    "id": "stack-ombre",
+    "evidence": "../../research/2026-11-01-复用核查/记忆关系认知.md",
+    "modules": [
+      "memory",
+      "emotion",
+      "personality",
+      "cognition",
+      "relationship"
+    ]
+  },
+  {
+    "id": "stack-sqlite",
+    "evidence": "../../research/2026-11-01-复用核查/数据空间.md",
+    "modules": [
+      "state",
+      "persistence",
+      "task-store"
+    ]
+  },
+  {
+    "id": "stack-files",
+    "evidence": "../../research/2026-11-01-复用核查/数据空间.md",
+    "modules": [
+      "artifacts",
+      "evidence",
+      "cache"
+    ]
+  },
+  {
+    "id": "stack-recovery",
+    "evidence": "../../research/2026-11-01-复用核查/恢复备份.md",
+    "modules": [
+      "supervisor",
+      "recovery-entry",
+      "checkpoint",
+      "backup-copy",
+      "restore-test"
+    ]
+  }
+]

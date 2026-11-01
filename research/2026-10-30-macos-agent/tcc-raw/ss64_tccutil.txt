@@ -1,0 +1,87 @@
+
+TCCUTIL Command: Manage the privacy database in macOS
+SS64
+macOS 
+How-to 
+tccutil
+Manage the privacy database.
+Syntax
+ tccutil reset 
+service
+ [
+bundle_id
+]
+Options
+Service
+ Reset all decisions for the specified 
+service
+, causing apps to
+ prompt again the next time they access the service.
+bundle_id
+ If a bundle identifier is specified, the service will be reset for that bundle only.
+The 
+tccutil
+ command manages the privacy database, which stores decisions the user has made about whether apps may access personal data.
+Keywords are Case-Sensitive.
+Common services:
+Accessibility, 
+AddressBook, 
+All, 
+Calendar, 
+Calls, 
+Camera, 
+FaceID, 
+Microphone, 
+Photos, 
+PhotosAdd, 
+Reminders, 
+RemoteDesktop, 
+Siri, 
+ScreenCapture
+ (for the Screen Recording list), 
+SystemPolicyAllFiles
+ (for the Full Disk Access list), 
+SpeechRecognition.
+A full list of services is not documented and will vary with the software currently installed, but to get a full list you can search for certain strings in the TCC.framework.
+In Monterey or later (via 
+Robin Kunde
+):
+$ strings /System/Library/PrivateFrameworks/TCC.framework/Support/tccd | grep -F kTCCService | grep -F -v ' ' | sed -e s/kTCCService// | sort
+Files
+/Library/Application Support/com.apple.TCC/TCC.db
+~/Library/Application Support/com.apple.TCC/TCC.db
+Examples
+Reset Address Book:
+$ sudo tccutil reset AddressBook
+Reset Accessibility settings, this can resolve a corrupt Apple tcc.db in macOS Mojave:
+$ sudo tccutil reset Accessibility
+Reset All permissions for Apple Terminal:
+$ sudo tccutil reset All com.apple.Terminal
+Reset the Camera permission for Google Chrome:
+ $ sudo tccutil reset Camera com.google.Chrome
+Reset all permissions for Google Chrome:
+$ sudo tccutil reset All com.google.Chrome
+Reset the Camera permission for all apps:
+$ sudo tccutil reset Camera
+Reset 
+all
+ permissions for 
+all
+ apps (this is not recommended):
+ $ sudo tccutil reset All
+“Freedom is coming to mean little more than the right to ask permission” ~ Joseph Sobran
+Related macOS commands
+Local man page: 
+tccutil
+ - Command line help page on your local machine.
+lsappinfo
+ - Control and query CoreApplicationServices about the app state on the system, returns the bundleID for a running app.
+security
+ - Administer Keychains, keys, certificates and the Security framework.
+ulimit
+ - limit the use of system-wide resources.
+Resetting the TCC database
+ - The Eclectic Light Company.
+Copyright © 1999-2026 
+SS64.com
+Some rights reserved

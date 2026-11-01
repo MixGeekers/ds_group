@@ -1,0 +1,25 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+        <meta name="description" content="StackPrinter - The Stack Exchange Printer Suite">
+        <meta name="keywords" content="printer friendly stackoverflow stackapps stack exchange">
+        <title>StackPrinter</title> 
+        <link rel="stylesheet" href="/stylesheets/main.css">
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+  </head>
+    <body>
+         <div id="home">
+                <a href="/"><img width="20px" heigth="20px" border="0" src="/images/icon_home.png"/></a>
+            </div>
+         <center>
+              <div class="oops">                         
+              </div>
+              <br>
+              <div id="oops_message">                           
+                  ..for the love it bears to fair maidens forgets its ferocity and wildness.. <br>
+                  The StackExchange server is too busy at the moment. Please try again later.
+             </div>                              
+          </center>
+  </body>
+</html>

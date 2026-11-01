@@ -1,0 +1,519 @@
+DS-Bot 第三方源码摘录；仅作静态证据，不执行。
+检索日期：2026-10-31（America/Caracas）
+固定提交：f823773b07ec6ca29d60b31c31af30218a68000d
+许可：Apache-2.0，见 LICENSE.txt 与 NOTICE.txt。
+行号为上游原文件行号；未列出的区间未保存。
+
+===== ds-bot/src/host/tools.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/src/host/tools.js
+Git blob SHA: da3bd8252c7fa05122af86a20f5aca4c685fea37
+
+--- L143-L206 ---
+143:   ctx.tools.register(defineTool({
+144:     name: 'message_bot',
+145:     description: 'Send a message to another Bot on the team. If that Bot is working, it reads your message at its next step and can change course, then answers once that work is done; if it is idle, it starts on it right away. Its reply arrives later as a new message to you; with reply_to "user" it answers the user in its own chat instead. In a group chat it reaches only members of that group, as writing "@Name" there does. With request_id you name the request yourself: a repeat of that name with the same message is not sent again, but gives the receipt of the first call back.',
+146:     parameters: {
+147:       to: { type: 'string', required: true, description: 'Exact Bot name from list_bots' },
+148:       message: { type: 'string', required: true, description: 'Self-contained message; the other Bot cannot see this conversation' },
+149:       reply_to: {
+150:         type: 'string',
+151:         enum: ['me', 'user'],
+152:         description: '"me" (default): the reply comes back to you and the user does not see it. "user": the Bot answers the user in its own chat, where the user reads it, and nothing comes back to you. Use "user" whenever the user wants to hear from that Bot directly or asks Bots to say something in their own chats.',
+153:       },
+154:       when: {
+155:         type: 'string',
+156:         enum: ['now', 'queue'],
+157:         description: '"now" (default): a working Bot reads your message at its next step, between its current actions, and answers once its current work is done; use it for questions, information it needs, corrections and warnings. "queue": it reads your message only after its current work is done, as a separate task; use it only for a new task unrelated to what it is doing now. With reply_to "user" the message always queues.',
+158:       },
+159:       request_id: {
+160:         type: 'string',
+161:         description: `Your own name for this request, up to ${NAME_MAX} characters, so that a repeat of it is not sent twice. Send the same request_id with the same message when you repeat a call: the receipt of the first call comes back and nothing is sent again. A request_id names one request: with other content it is refused.`,
+162:       },
+163:     },
+164:     output,
+165:     async execute(args, exec) {
+166:       await rt.load()
+167:       const sender = callerBot(exec)
+168:       if (sender === undefined) return 'Only Bots on the team can use message_bot.'
+169:       const target = rt.findBot(args.to)
+170:       if (target === undefined) return `No Bot named ${args.to}. Team: ${Object.values(state.bots).map(bot => bot.name).join(', ')}`
+171:       if (target.id === sender.id) return 'You cannot message yourself.'
+172:       if (String(args.message ?? '').trim() === '') return 'Write a message to send.'
+173:       const name = typeof args.request_id === 'string' ? args.request_id.trim() : ''
+174:       if (name.length > NAME_MAX) return `The request_id is ${name.length} characters long; a request name is at most ${NAME_MAX}.`
+175:       const text = absoluteLinks(String(args.message), rt.sessionFolder?.(exec.agent?.session ?? exec.agent))
+176:       const room = rt.roomOf(rt.groupOwners.get(exec.agent?.id)?.roomId)
+177:       // The request the caller named: it is admitted once, and a repeat of it is not sent again.
+178:       const request = name === '' ? undefined : rt.requestIdentity({
+179:         caller: sender.id,
+180:         context: room === undefined ? 'chat' : `room:${room.id}`,
+181:         name,
+182:         payload: {
+183:           to: target.id,
+184:           message: String(args.message ?? '').replace(/\r\n?/g, '\n').trim(),
+185:           reply_to: args.reply_to === 'user' ? 'user' : 'me',
+186:           when: args.when === 'queue' ? 'queue' : 'now',
+187:         },
+188:       })
+189:       // What the caller gets for a request that was admitted before.
+190:       const answer = (outcome) => {
+191:         if (outcome.status === 'replay') return outcome.receipt
+192:         if (outcome.status === 'conflict') refuse(`Not sent: request_id "${name}" was already used for a different request. A request_id names one request; send this one under a new name.`)
+193:         if (outcome.status === 'uncertain') refuse(`Not sent again: the outcome of request_id "${name}" is not known (the delivery failed, or DS Bot restarted while it was in flight), so it was not sent again. Check whether ${target.name} got it before sending it under a new name.`)
+194:         if (outcome.status === 'expired') return `Nothing was sent again: request_id "${name}" was admitted before, but its receipt is no longer kept, so only the fact that it was sent is left. Send the work under a new request_id if it must be done again.`
+195:         if (outcome.status === 'readonly') refuse(`Not sent: this window cannot save the Bot team, so it cannot record the request_id "${name}". Send it from the window that owns the team, or leave the request_id out.`)
+196:         return outcome.receipt
+197:       }
+198:       if (request !== undefined) {
+199:         const seen = await rt.knownRequest(request)
+200:         if (seen !== undefined) return answer(seen)
+201:       }
+202:       if (room !== undefined) {
+203:         const refusal = groupRefusal(room, sender, target)
+204:         if (refusal !== undefined) refuse(refusal)
+205:         const send = () => callInGroup(exec, room, sender, target, text.trim())
+206:         return request === undefined ? await send() : answer(await rt.admitRequest(request, send))
+
+--- L211-L267 ---
+211:       // Whoever waits for this work gets the answer by itself; a message there only
+212:       // sends the work round in a circle. Not a failed call: the turn goes on with
+213:       // the work, and the result says where its answer goes instead of showing a
+214:       // bare error the Bot cannot act on.
+215:       const works = worksOf(exec)
+216:       if (rt.upstreamOf(works).has(target.id)) {
+217:         return `Not sent: ${target.name} is waiting for the result of the work you are doing, and your answer reaches it by itself once everything you handed on is back. Finish the work and end your turn; to ask ${target.name} something, end your turn with the question.`
+218:       }
+219:       const send = async () => {
+220:         const toUser = args.reply_to === 'user'
+221:         const work = toUser ? undefined : works[0]
+222:         const chat = rt.chatOf(target.id)
+223:         const agent = await rt.resolveAgent(chat)
+224:         const status = rt.statusOf(target.id)
+225:         // A request it has not read yet, sent for the same work, takes this one in, so
+226:         // messages to a Bot that cannot read them do not pile up.
+227:         const earlier = unreadRequest(agent, sender.id, toUser)
+228:         const joinable = earlier !== undefined && (toUser || rt.sameWork(earlier.message.source.exchangeId, work))
+229:         const before = joinable ? bodyOf(earlier.message) : undefined
+230:         let long = await rt.attachLong(before ? `${before.text}\n\n${text}` : text, `Message from ${sender.name}.txt`)
+231:         // Nothing went out, so a named request must not take this as a delivered
+232:         // receipt: admitRequest drops the pending record instead, and a retry can send.
+233:         if (long === undefined) { if (request !== undefined) request.unsent = true; return tooLong(text) }
+234:         const joins = before !== undefined && agent.inbox?.remove?.(earlier.message.id) === true
+235:         if (before !== undefined && !joins) long = await rt.attachLong(text, `Message from ${sender.name}.txt`) ?? long
+236:         const working = rt.live.get(chat)?.turn !== undefined
+237:         const steer = (args.when !== 'queue' && !toUser) || (joins && earlier.steered)
+238:         const exchangeId = joins ? earlier.message.source.exchangeId : randomUUID()
+239:         if (joins) rt.forgetDelivery?.(exchangeId)
+240:         else if (!toUser) rt.openWork(exchangeId, { from: sender.id, to: target.id, parent: work })
+241:         try {
+242:           await rt.deliver({ fromId: sender.id, toId: target.id, text: long.text, files: [...long.files, ...(joins ? before.files : [])], length: long.length, role: 'request', steer, exchangeId, ...(joins ? { merged: true } : {}), ...(toUser ? { audience: 'user' } : {}) })
+243:         } catch (error) {
+244:           if (!joins) rt.dropWork(exchangeId)
+245:           throw error
+246:         }
+247:         const sent = toUser
+248:           ? `Delivered to ${target.name}. It will answer the user in its own chat; nothing comes back to you, so point the user to ${target.name}'s chat instead of relaying.`
+249:           : working && steer
+250:             ? `Delivered to ${target.name} while it is working: it reads your message at its next step and answers once that work is done. Its reply will arrive later as a new message; do not wait for it.`
+251:             : working
+252:               ? `Queued for ${target.name}: it reads your message after its current work. Its reply will arrive later as a new message; do not wait for it.`
+253:               : `Delivered to ${target.name}. Its reply will arrive later as a new message; do not wait for it.`
+254:         const asker = rt.ownsWork(sender.id, work) ? rt.botOf(state.works[work].from)?.name : undefined
+255:         const notes = [
+256:           joins ? `${target.name} had not read your earlier message yet, so this one was added to it, and it answers both at once.` : '',
+257:           status === 'idle' ? '' : `${target.name} now: ${status}.`,
+258:           asker ? `When you have handed on everything, end your turn: each reply brings you back to this work, and your answer goes to ${asker} once all of it is back.` : '',
+259:         ].filter(Boolean)
+260:         const out = [sent, ...notes].join(' ')
+261:         // Messages reach a Bot's own chat only; work in a group goes on without them.
+262:         const groups = activeSessions(target.id).running.filter(sessionId => sessionId !== chat)
+263:         if (groups.length === 0) return out
+264:         const stop = rt.isMain(sender.id) ? ' If it must not go on there, use stop_bot.' : ''
+265:         return `${out} Your message does not reach its work in ${groups.map(whereOf).join(' and ')}.${stop}`
+266:       }
+267:       return request === undefined ? await send() : answer(await rt.admitRequest(request, send))
+
+===== ds-bot/src/host/requests.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/src/host/requests.js
+Git blob SHA: d153e4742d78d73de4122ed4ecdc76a50ded5e05
+
+--- L19-L137 ---
+19: export function install(rt) {
+20:   const { state } = rt
+21:   // This run's name: a receipt left pending by another run has an unknown outcome.
+22:   const run = randomUUID()
+23:   const receipts = () => (state.requests ??= {})
+24:   // Requests being admitted now, so that two at once admit one.
+25:   const inflight = new Map()
+26: 
+27:   // What the request asked for, as a short hash: the same name with the same content is
+28:   // the same request, and the same name with other content is a mistake.
+29:   const print = payload => createHash('sha256').update(JSON.stringify(payload)).digest('hex')
+30: 
+31:   // The name of a request in the caller's own space: its Bot, the conversation the request
+32:   // was made from, and the name the caller gave it. The Bot, not its Session: a Bot that
+33:   // moves to a fresh part of its conversation keeps its name.
+34:   const identity = ({ caller, context, name, payload }) => ({
+35:     key: `${caller}\u0000${context}\u0000${name}`,
+36:     print: print(payload),
+37:   })
+38: 
+39:   // What a request that was admitted before means for the caller now: its receipt, a
+40:   // conflict, or an outcome that is not known. Undefined when it was never admitted.
+41:   const verdict = (request, record) => {
+42:     if (record.fingerprint !== request.print) return { status: 'conflict' }
+43:     if (record.outcome === 'delivered') {
+44:       // The receipt is gone, but the name stays taken: it is not used again by accident.
+45:       return record.receipt === undefined ? { status: 'expired' } : { status: 'replay', receipt: record.receipt }
+46:     }
+47:     if (record.outcome === 'uncertain') return { status: 'uncertain' }
+48:     // Admitted, not settled: the call is still going, or it was cut short.
+49:     return undefined
+50:   }
+51: 
+52:   // What is known about a request that was admitted before. Undefined when the request
+53:   // was never admitted.
+54:   const known = async (request) => {
+55:     const record = rt.own(receipts(), request.key)
+56:     if (record === undefined) return undefined
+57:     const seen = verdict(request, record)
+58:     if (seen !== undefined) return seen
+59:     // Admitted, not settled: the call is still going in this run, or another run left it
+60:     // in the air, and then its outcome is not known.
+61:     if (record.run !== run) return { status: 'uncertain' }
+62:     const promise = inflight.get(request.key)
+63:     if (promise === undefined) return { status: 'uncertain' }
+64:     await promise.catch(() => {})
+65:     const settled = rt.own(receipts(), request.key)
+66:     if (settled === undefined) return undefined
+67:     return verdict(request, settled) ?? { status: 'uncertain' }
+68:   }
+69: 
+70:   // Admits the request once and runs it. `work` sends the message and gives the receipt
+71:   // the caller gets. The receipt is written before the message goes out, so that a restart
+72:   // knows the request was admitted.
+73:   const admit = async (request, work) => {
+74:     // The receipt is looked for and written without an await in between, so that two
+75:     // calls at once cannot both admit the same request.
+76:     const record = rt.own(receipts(), request.key)
+77:     if (record !== undefined) {
+78:       const seen = verdict(request, record)
+79:       if (seen !== undefined) return seen
+80:       if (record.run !== run) return { status: 'uncertain' }
+81:       const promise = inflight.get(request.key)
+82:       if (promise === undefined) return { status: 'uncertain' }
+83:       await promise.catch(() => {})
+84:       // The attempt that was going on gave up before it sent anything (its receipt could
+85:       // not be saved), so the request is free to be admitted again.
+86:       if (rt.own(receipts(), request.key) === undefined) return admit(request, work)
+87:       return known(request)
+88:     }
+89:     // A receipt that cannot be saved cannot stop a second delivery later.
+90:     if (rt.readOnly() !== undefined) return { status: 'readonly' }
+91:     const fresh = { fingerprint: request.print, outcome: 'pending', at: Date.now(), run }
+92:     receipts()[request.key] = fresh
+93:     const promise = (async () => {
+94:       try {
+95:         // Ordinary saves may be skipped when this host closes or loses the lock.
+96:         await rt.save({ required: true })
+97:       } catch (error) {
+98:         delete receipts()[request.key]
+99:         rt.warn('ds-bot: the receipt of the request was not saved: %s', error)
+100:         throw error
+101:       }
+102:       try {
+103:         const receipt = await work()
+104:         if (request.unsent === true) {
+105:           // The work decided before anything went out: it is not a delivered
+106:           // receipt, so the request is free to be admitted again. The removal has
+107:           // to be saved before that is true: a leftover pending record stays.
+108:           delete receipts()[request.key]
+109:           try {
+110:             await rt.save({ required: true })
+111:           } catch (error) {
+112:             fresh.outcome = 'uncertain'
+113:             fresh.at = Date.now()
+114:             receipts()[request.key] = fresh
+115:             rt.warn('ds-bot: the removal of the request receipt was not saved: %s', error)
+116:           }
+117:           return receipt
+118:         }
+119:         fresh.outcome = 'delivered'
+120:         fresh.receipt = receipt
+121:         fresh.at = Date.now()
+122:         await rt.save().catch(() => {})
+123:         return receipt
+124:       } catch (error) {
+125:         // The message may have gone out; it is not sent again.
+126:         fresh.outcome = 'uncertain'
+127:         fresh.at = Date.now()
+128:         await rt.save().catch(() => {})
+129:         throw error
+130:       }
+131:     })()
+132:     inflight.set(request.key, promise)
+133:     try {
+134:       return { status: 'sent', receipt: await promise }
+135:     } finally {
+136:       inflight.delete(request.key)
+137:     }
+
+===== ds-bot/src/host/handoffs.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/src/host/handoffs.js
+Git blob SHA: 2cd5d199f49059e6534ce859e66826a86758f256
+
+--- L93-L172 ---
+93:   // The work a turn does: the request it answers, or the work a result that came back
+94:   // (or a turn picked up again) goes on with.
+95:   const workOf = info => (info === undefined ? undefined
+96:     : info.role === 'request' && info.audience !== 'user' ? info.exchangeId : info.work)
+97: 
+98:   // `parent`: the work the sender was doing when it sent this one.
+99:   function openWork(id, { from, to, parent, fromRoom, room }) {
+100:     const above = parent === undefined ? undefined : works()[parent]
+101:     works()[id] = { ...(from ? { from } : {}), ...(to ? { to } : {}), ...(room ? { room } : {}), ...(above ? { parent } : {}), ...(fromRoom ? { fromRoom } : {}), open: [], results: [], at: Date.now() }
+102:     if (above !== undefined) above.open.push(id)
+103:     save()
+104:   }
+105: 
+106:   // The answer to work `id` is on its way, with `result` from `name`. Returns the work
+107:   // it goes on with. That work keeps waiting until a turn reads the answer (`taken`).
+108:   function closeWork(id, name, text) {
+109:     const work = works()[id]
+110:     if (work === undefined) return undefined
+111:     delete works()[id]
+112:     // What it still waits for comes back to it alone.
+113:     for (const child of Object.values(works())) if (child.parent === id) delete child.parent
+114:     const above = works()[work.parent]
+115:     if (above !== undefined) {
+116:       // The whole result goes into a file of its own before the team file names it.
+117:       const file = keepResult(id, text)
+118:       above.results.push({ id, name, text: headOf(text, TEXT_KEPT), ...(text.length > TEXT_KEPT ? { length: text.length } : {}), ...(file ? { file } : {}) })
+119:       whole.set(id, text)
+120:     }
+121:     for (const result of work.results ?? []) whole.delete(result.id)
+122:     // Old state can still name these files until the replacement state lands.
+123:     // A failed save must leave them available to the next host.
+124:     void rt.save().then(() => {
+125:       for (const result of work.results ?? []) dropResult(result.file)
+126:     }).catch(() => {})
+127:     return above === undefined ? undefined : work.parent
+128:   }
+129:   const dropWork = (id) => {
+130:     const work = works()[id]
+131:     if (work === undefined) return
+132:     const { parent } = work
+133:     delete works()[id]
+134:     const above = works()[parent]
+135:     if (above !== undefined) above.open = above.open.filter(other => other !== id)
+136:     for (const result of work.results ?? []) whole.delete(result.id)
+137:     void rt.save().then(() => {
+138:       for (const result of work.results ?? []) dropResult(result.file)
+139:     }).catch(() => {})
+140:   }
+141: 
+142:   function taken(workId, id) {
+143:     const work = works()[workId]
+144:     if (work === undefined || !work.open.includes(id)) return
+145:     work.open = work.open.filter(other => other !== id)
+146:     save()
+147:   }
+148: 
+149:   const owns = (botId, workId) => workId !== undefined && works()[workId]?.to === botId
+150:   const waits = workId => (works()[workId]?.open.length ?? 0) > 0
+151:   function hold(workId, text) {
+152:     const work = works()[workId]
+153:     if (work === undefined || text === '') return
+154:     work.held = headOf(text, TEXT_KEPT)
+155:     save()
+156:   }
+157:   // Who asked for the work, as the turn that answers a request sees its trigger.
+158:   const askedBy = workId => {
+159:     const work = works()[workId]
+160:     return work === undefined ? undefined : { kind: 'bot', role: 'request', exchangeId: workId, senderSessionId: work.from, ...(work.fromRoom ? { senderRoomId: work.fromRoom } : {}) }
+161:   }
+162:   // The answer that goes up: what the Bot said last for this work, then what came back.
+163:   function answerText(workId, reply, botName) {
+164:     const work = works()[workId]
+165:     const said = reply !== '' ? reply : work?.held ?? ''
+166:     const results = (work?.results ?? []).map(result => {
+167:       const { text, whole } = resultText(result)
+168:       const cut = whole ? '' : `\n[cut; ${result.length} characters in all, the rest was not kept]`
+169:       return `${result.name}:\n${text}${cut}`
+170:     })
+171:     if (results.length === 0) return said || `${botName} finished without a reply.`
+172:     return [said || `${botName} finished and wrote nothing more.`, `[Handed back to ${botName} for this work]`, ...results].join('\n\n')
+
+===== ds-bot/src/host/groups.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/src/host/groups.js
+Git blob SHA: c3372da27c6d66a756df61d0aa9a5817d4c98336
+
+--- L298-L341 ---
+298:   async function roomTurn(room, member, sessionId, { text, files }, note, signal, round, by, said = []) {
+299:     if (signal.aborted) return null
+300:     const startedAt = Date.now()
+301:     const exchangeId = randomUUID()
+302:     const turn = { botId: member.id, sessionId, exchangeId }
+303:     const { started } = round
+304:     started.push(turn)
+305:     // The read position is the one of this turn's start, and moves only when the
+306:     // delivery lands: a delivery that failed leaves the member where it was.
+307:     const seenAt = room.seq
+308:     // Checked before the delivery, which may start the turn at once.
+309:     const busy = rt.live.get(sessionId)?.turn !== undefined
+310:     const done = new Promise((resolve) => {
+311:       let timer
+312:       let grace
+313:       const finish = (value) => {
+314:         clearTimeout(timer)
+315:         clearTimeout(grace)
+316:         rt.roomWaiters.delete(exchangeId)
+317:         resolve(value)
+318:       }
+319:       const touch = () => {
+320:         clearTimeout(timer)
+321:         timer = setTimeout(() => finish({ missed: true }), ROOM_REPLY_TIMEOUT_MS)
+322:       }
+323:       const work = () => { grace ??= setTimeout(() => finish({ working: true }), ROOM_WORK_GRACE_MS) }
+324:       const say = (raw) => {
+325:         const step = stripOwnName(member.name, raw)
+326:         if (isPass(step)) return
+327:         said.push(step)
+328:         postInRound(room, round, member, step, Date.now() - startedAt)
+329:       }
+330:       touch()
+331:       rt.roomWaiters.set(exchangeId, { sessionId, botId: member.id, roomId: room.id, resolve: finish, fail: failure => finish({ failure }), touch, work, say, approval: () => finish({ approval: true }) })
+332:       signal.addEventListener('abort', () => finish(null), { once: true })
+333:     })
+334:     try {
+335:       await rt.deliver({ fromId: undefined, toId: member.id, sessionId, role: 'room', roomId: room.id, exchangeId, note, text, files, steer: busy, ...(by ? { askedBy: by } : {}) })
+336:       // The prompt reached the member: its read position moves on.
+337:       room.seen[member.id] = seenAt
+338:       // Still held by an earlier request: this turn cannot start until the user answers.
+339:       if (rt.waitsForApproval?.(sessionId)) rt.roomWaiters.get(exchangeId)?.approval()
+340:       // Still at earlier work: the call steers it at its next step; the round goes on.
+341:       else if (busy) rt.roomWaiters.get(exchangeId)?.resolve({ working: true })
+
+--- L458-L489 ---
+458:   async function runRound(room, round, signal, agent) {
+459:     // The inbox check keeps a message sent during the last speaker's turn inside
+460:     // this round: it drains at the loop's head even once the slots ran out.
+461:     for (let index = 0; index < round.slots.length || waitingLines(agent).length > 0; index += 1) {
+462:       if (signal.aborted) break
+463:       drainRoomInbox(room, round, index, agent)
+464:       if (index >= round.slots.length) break
+465:       const slot = round.slots[index]
+466:       const member = rt.botOf(slot.id)
+467:       // Settings may change mid-round, for example when the admin removes someone.
+468:       if (member === undefined || !room.members.includes(slot.id)) {
+469:         slot.status = 'left'
+470:         continue
+471:       }
+472:       if (slot.origin === 'bot') {
+473:         // The group's one guard: Bots calling each other can go on only so long
+474:         // without the user. Past the limit the call is parked, not dropped — the
+475:         // user releases it by writing here or pressing Continue.
+476:         if ((room.relays ?? 0) >= relayLimit(room)) {
+477:           slot.status = 'paused'
+478:           const paused = (room.paused ??= [])
+479:           if (!paused.some(entry => entry.id === slot.id)) {
+480:             paused.push({
+481:               id: slot.id, name: slot.name,
+482:               ...(slot.note !== undefined ? { note: slot.note } : {}),
+483:               ...(slot.by !== undefined ? { by: slot.by } : {}),
+484:             })
+485:           }
+486:           if (!(round.parked ??= []).includes(slot.name)) round.parked.push(slot.name)
+487:           continue
+488:         }
+489:         room.relays = (room.relays ?? 0) + 1
+
+--- L515-L554 ---
+515:       const reply = await roomTurn(room, member, session.id, { text, files: prompt.files }, slot.note ?? 'your turn', signal, round, slot.by, said)
+516:       round.speaking = null
+517:       const final = typeof reply === 'string' && !isPass(reply) ? reply : undefined
+518:       if (reply?.failure !== undefined) {
+519:         // Not a pass: the user sees why the member is silent, and the round goes on.
+520:         slot.status = 'failed'
+521:         round.failed.push(member.name)
+522:         const { code, status, message } = reply.failure
+523:         round.replies.push({ kind: 'failed', botId: member.id, name: member.name, color: member.color, code, ...(status ? { status } : {}), text: message, time: Date.now() })
+524:       } else if (reply?.approval) {
+525:         // The member's turn goes on in the background and posts when it ends.
+526:         slot.status = 'waiting-approval'
+527:         round.replies.push({ kind: 'approval', botId: member.id, name: member.name, color: member.color, time: Date.now() })
+528:       } else if (reply?.working) {
+529:         slot.status = 'working'
+530:         round.replies.push({ kind: 'working', botId: member.id, name: member.name, color: member.color, time: Date.now() })
+531:       } else if (final !== undefined || (typeof reply === 'string' && said.length > 0)) {
+532:         slot.status = 'posted'
+533:         if (final !== undefined) postInRound(room, round, member, final, Date.now() - startedAt)
+534:       } else {
+535:         slot.status = typeof reply === 'string' ? 'passed' : 'missed'
+536:         round.passed.push(member.name)
+537:         if (reply?.missed) {
+538:           round.replies.push({ kind: 'missed', botId: member.id, name: member.name, color: member.color, time: Date.now() })
+539:           // The round moved on without this member: the log shows the call and then
+540:           // silence, which reads as a lost message. The group is told the baton was
+541:           // dropped, and what brings the member back.
+542:           appendRoom(room, { who: 'DS Bot', kind: 'notice', reason: 'missed', names: [member.name], minutes: Math.round(ROOM_REPLY_TIMEOUT_MS / 60000) })
+543:         }
+544:       }
+545:       const spoken = final === undefined ? said : [...said, final]
+546:       if (spoken.length === 0) continue
+547:       // Only the admin's "@all" calls everyone, so a member cannot set off a storm.
+548:       const leads = rt.isAdminOf(room, member.id)
+549:       const everyone = room.members.map(rt.botOf).filter(Boolean)
+550:       const others = everyone.filter(other => other.id !== member.id)
+551:       const { all, found: named } = mentionsIn(spoken.join('\n\n'), everyone)
+552:       const found = named.filter(other => other.id !== member.id)
+553:       const callees = leads && all ? [...found, ...others.filter(other => !found.includes(other))] : found
+554:       callMembers(round, index, callees, `${member.name} mentioned you`, member.id, 'bot')
+
+--- L775-L791 ---
+775:   function openingSpeakers(room, opener) {
+776:     const everyone = room.members.map(rt.botOf).filter(Boolean)
+777:     const members = everyone.filter(bot => bot.id !== opener.botId)
+778:     const admin = members.find(bot => rt.isAdminOf(room, bot.id))
+779:     if (opener.kickoff) return admin ? [admin] : []
+780:     // A Continue opens a round whose speakers are the calls the limit parked.
+781:     if (opener.resume) return []
+782:     if (opener.quiet) return []
+783:     if (opener.done) return members.filter(bot => bot.id === opener.askedBy)
+784:     const { all, found: named } = mentionsIn(opener.text, everyone, opener.references)
+785:     const found = named.filter(bot => bot.id !== opener.botId)
+786:     if (opener.progress) return found
+787:     if (opener.late) return found.length > 0 ? found : members.filter(bot => bot.id === opener.askedBy)
+788:     if (opener.member) return found
+789:     if (found.length > 0 && !all) return found
+790:     if (!all && room.mode === 'admin' && admin) return [admin]
+791:     return admin ? [admin, ...members.filter(bot => bot !== admin)] : members
+
+--- L917-L942 ---
+917:   async function stopMemberWork(roomId, botId) {
+918:     await rt.load()
+919:     const room = rt.roomOf(roomId)
+920:     const member = rt.botOf(botId)
+921:     const sessionId = rt.own(room?.sessions, botId)
+922:     if (room === undefined || member === undefined || sessionId === undefined || rt.live.get(sessionId)?.turn === undefined) return false
+923:     const agent = await rt.resolveAgent(sessionId)
+924:     agent.cancel({ kind: 'user' })
+925:     await postToRoom(room, member, '', { quiet: true, stopped: true })
+926:     return true
+927:   }
+928:   rt.stopMemberWork = stopMemberWork
+929: 
+930:   // The user stops everything at work in this group at once: the round the group's own
+931:   // Session runs, which takes the member turns it started with it, then each member's
+932:   // turn here. The round goes first, so it calls no one else meanwhile. Work the same
+933:   // Bots do in their own chats or other groups goes on.
+934:   async function stopRoomWork(roomId) {
+935:     await rt.load()
+936:     const room = rt.roomOf(roomId)
+937:     if (room === undefined) return false
+938:     const round = rt.roomBusy(room.id)
+939:     if (round) (await rt.resolveAgent(room.id)).cancel({ kind: 'user' })
+940:     let stopped = false
+941:     for (const botId of room.members) stopped = (await stopMemberWork(room.id, botId)) || stopped
+942:     return round || stopped
+

@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en" class="desktop-view not-mobile-device text-size-normal anon">
+  <head>
+    <meta charset="utf-8">
+    <title>Automating Button Click in macOS File Access Permission Dialog - AppleScript | Mac OS X - MacScripter</title>
+    <meta name="description" content="Hello all, 
+I’m trying to automate the process of clicking the “OK” button in the macOS file access permission dialogs that appear when an app requests access to a folder (e.g., Desktop). 
+For example, the dialog typical&amp;hellip;">
+    <meta name="discourse_theme_id" content="1">
+    <meta name="discourse_current_homepage" content="latest">
+
+    <meta name="generator" content="Discourse 2.9.0.beta14 - https://github.com/discourse/discourse version 3c0a4b37d093b8f4864816adbc458a08dbfe54cc">
+<link rel="icon" type="image/png" href="https://www.macscripter.net/uploads/default/optimized/1X/5b873abd97fd5b0397399636b41aac1d8f98ce7e_2_32x32.png">
+<link rel="apple-touch-icon" type="image/png" href="https://www.macscripter.net/uploads/default/optimized/1X/5b873abd97fd5b0397399636b41aac1d8f98ce7e_2_180x180.png">
+<meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#111111">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+<link rel="canonical" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710" />
+
+<link rel="search" type="application/opensearchdescription+xml" href="https://www.macscripter.net/opensearch.xml" title="MacScripter Search">
+
+    
+
+      <meta name="fragment" content="!">
+
+
+    
+
+      <link rel="preload" href="/assets/start-discourse-f6e4e67026eabe0c9b84599087eb11ee33d8149f196b7439b0630ed5ab4d5f29.js" as="script">
+      <link rel="preload" href="/assets/browser-update-d7761004034ce1ea7686d586f5e8a8d216e6f67b609f9b4bcaba53b8b8d34729.js" as="script">
+    <link rel="preload" href="/assets/browser-detect-7af298cd000a967d2bdc01b04807eda2924a388584ea38ad84919b726283c2ed.js" as="script">
+<script defer src="/assets/browser-detect-7af298cd000a967d2bdc01b04807eda2924a388584ea38ad84919b726283c2ed.js"></script>
+
+
+    <link rel="preload" href="/assets/locales/en-e3045ea79b53526f220d61b0a05efcd56ed3f7d7cf7fde5fefc7d7e47c56d100.js" as="script">
+<script defer src="/assets/locales/en-e3045ea79b53526f220d61b0a05efcd56ed3f7d7cf7fde5fefc7d7e47c56d100.js"></script>
+
+    <link rel="preload" href="/assets/vendor-b6d4d4bbd197dca41c8282c8e5a6fa67b341c2691b6cfd3afcd325af0ef4d4d5.js" as="script">
+<script defer src="/assets/vendor-b6d4d4bbd197dca41c8282c8e5a6fa67b341c2691b6cfd3afcd325af0ef4d4d5.js"></script>
+
+<link rel="preload" href="/assets/chunk.738.3456a17dade8122b414c-b23817e9193dd9557cb70c41b11c1c05f90507629bf670a5330c395e4cf57f81.js" as="script">
+<script defer src="/assets/chunk.738.3456a17dade8122b414c-b23817e9193dd9557cb70c41b11c1c05f90507629bf670a5330c395e4cf57f81.js"></script>
+
+<link rel="preload" href="/assets/chunk.143.7dd710ac17d902aea45b-6214ba71cecd9d2f30021faabc97510e534e9c0770f3c0a4d160bf715a8853a8.js" as="script">
+<script defer src="/assets/chunk.143.7dd710ac17d902aea45b-6214ba71cecd9d2f30021faabc97510e534e9c0770f3c0a4d160bf715a8853a8.js"></script>
+
+    <link rel="preload" href="/assets/discourse-3f6ceed2f89319c1a5a9dd4e132773ef349db3885c0cae1f5c6666a567cabacc.js" as="script">
+<script defer src="/assets/discourse-3f6ceed2f89319c1a5a9dd4e132773ef349db3885c0cae1f5c6666a567cabacc.js"></script>
+
+      <link rel="preload" href="/assets/plugins/chat-1fe3c15989500f424b450bc8cab611ec21f919cb8a396375e83cc32aa1edd03a.js" as="script">
+<script defer src="/assets/plugins/chat-1fe3c15989500f424b450bc8cab611ec21f919cb8a396375e83cc32aa1edd03a.js"></script>
+
+      <link rel="preload" href="/assets/plugins/discourse-bbcode-d68154b792e2339e1d3325517b4e421094e7faf37d193e0375e46fa7c90ba727.js" as="script">
+<script defer src="/assets/plugins/discourse-bbcode-d68154b792e2339e1d3325517b4e421094e7faf37d193e0375e46fa7c90ba727.js"></script>
+
+      <link rel="preload" href="/assets/plugins/discourse-details-3262864f1b5a3f1b862422b3e2a0d3a296de258f13c70f25bd1f512e29ed1d97.js" as="script">
+<script defer src="/assets/plugins/discourse-details-3262864f1b5a3f1b862422b3e2a0d3a296de258f13c70f25bd1f512e29ed1d97.js"></script>
+
+      <link rel="preload" href="/assets/plugins/discourse-local-dates-9d28f3ce590487889fd02805e968430fe98603c4befd1df66cded9fc3279ef6e.js" as="script">
+<script defer src="/assets/plugins/discourse-local-dates-9d28f3ce590487889fd02805e968430fe98603c4befd1df66cded9fc3279ef6e.js"></script>
+
+      <link rel="preload" href="/assets/plugins/discourse-narrative-bot-bf8e6267efb5687e04d6fc15a149f2844ad08b0c425f00e2fce803588955ae16.js" as="script">
+<script defer src="/assets/plugins/discourse-narrative-bot-bf8e6267efb5687e04d6fc15a149f2844ad08b0c425f00e2fce803588955ae16.js"></script>
+
+      <link rel="preload" href="/assets/plugins/discourse-presence-ae7c1b85b92d2b8a2b5fce1e23e28716dbf32aee8ab2d554e206f402f80c212a.js" as="script">
+<script defer src="/assets/plugins/discourse-presence-ae7c1b85b92d2b8a2b5fce1e23e28716dbf32aee8ab2d554e206f402f80c212a.js"></script>
+
+      <link rel="preload" href="/assets/plugins/discourse-solved-efd54dfee0abc519d8357e93f63bb193cceb82f8f19971f4d850936d2eefe96d.js" as="script">
+<script defer src="/assets/plugins/discourse-solved-efd54dfee0abc519d8357e93f63bb193cceb82f8f19971f4d850936d2eefe96d.js"></script>
+
+      <link rel="preload" href="/assets/plugins/discourse-user-notes-ea710ffdfb360e021b005e2334ff01e436d57ab3bc088b03c335265f26375a64.js" as="script">
+<script defer src="/assets/plugins/discourse-user-notes-ea710ffdfb360e021b005e2334ff01e436d57ab3bc088b03c335265f26375a64.js"></script>
+
+      <link rel="preload" href="/assets/plugins/discourse-whos-online-95acbfbf11e345e6418ab6999517061b121ef3975392240968f0f1c525aeb18e.js" as="script">
+<script defer src="/assets/plugins/discourse-whos-online-95acbfbf11e345e6418ab6999517061b121ef3975392240968f0f1c525aeb18e.js"></script>
+
+      <link rel="preload" href="/assets/plugins/docker_manager-ff70400c3d9d231cb526be3fcb755e80aa491193f68813b7ce74f7818a0472a9.js" as="script">
+<script defer src="/assets/plugins/docker_manager-ff70400c3d9d231cb526be3fcb755e80aa491193f68813b7ce74f7818a0472a9.js"></script>
+
+      <link rel="preload" href="/assets/plugins/lazy-yt-37ba46caad39a8d451e22030fac3ba0c04d3c2aa5cf73544b9c23ec143dcbf99.js" as="script">
+<script defer src="/assets/plugins/lazy-yt-37ba46caad39a8d451e22030fac3ba0c04d3c2aa5cf73544b9c23ec143dcbf99.js"></script>
+
+      <link rel="preload" href="/assets/plugins/poll-6f06131c87b74f32e412c132d360d0f51011475d7b04470399e87153185d3ea9.js" as="script">
+<script defer src="/assets/plugins/poll-6f06131c87b74f32e412c132d360d0f51011475d7b04470399e87153185d3ea9.js"></script>
+
+
+
+
+      <link rel="preload" href="/theme-javascripts/f2883193eb03529397fad0852ba510a6ef560981.js?__ws=www.macscripter.net" as="script">
+<script defer src='/theme-javascripts/f2883193eb03529397fad0852ba510a6ef560981.js?__ws=www.macscripter.net' data-theme-id='2'></script>
+
+      <link rel="preload" href="/theme-javascripts/dacbe2311ac494df5f7f397dd90997206b8cba6e.js?__ws=www.macscripter.net" as="script">
+<script defer src='/theme-javascripts/dacbe2311ac494df5f7f397dd90997206b8cba6e.js?__ws=www.macscripter.net' data-theme-id='2'></script>
+
+<link rel="preload" href="/theme-javascripts/e021960da660750917a7bad8c88ff6aafdd57c9b.js?__ws=www.macscripter.net" as="script">
+<script defer src='/theme-javascripts/e021960da660750917a7bad8c88ff6aafdd57c9b.js?__ws=www.macscripter.net' data-theme-id='4'></script>
+
+      
+<link rel="preload" href="/theme-javascripts/f63043d45939e3b69ab545cede688b440669c5e3.js?__ws=www.macscripter.net" as="script">
+<script defer="" src="/theme-javascripts/f63043d45939e3b69ab545cede688b440669c5e3.js?__ws=www.macscripter.net" data-theme-id="1"></script>
+
+
+    
+    <meta id="data-ga-universal-analytics" data-tracking-code="G-3RD9TRS30M" data-json="{&quot;cookieDomain&quot;:&quot;auto&quot;}" data-auto-link-domains="">
+
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3RD9TRS30M"></script>
+  <link rel="preload" href="/assets/google-universal-analytics-v4-2bb8adb2b3d4e54eb20ba9da5e8d181e5703e17472fea680c822deedbf8d7675.js" as="script">
+<script defer src="/assets/google-universal-analytics-v4-2bb8adb2b3d4e54eb20ba9da5e8d181e5703e17472fea680c822deedbf8d7675.js"></script>
+
+
+    <link id="manifest-link" rel="manifest" href=/manifest.webmanifest crossorigin="use-credentials">
+
+
+        <link rel="alternate nofollow" type="application/rss+xml" title="RSS feed of &#39;Automating Button Click in macOS File Access Permission Dialog&#39;" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710.rss" />
+    <meta property="og:site_name" content="MacScripter" />
+<meta property="og:type" content="website" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:image" content="https://www.macscripter.net/uploads/default/original/1X/5b873abd97fd5b0397399636b41aac1d8f98ce7e.png" />
+<meta property="og:image" content="https://www.macscripter.net/uploads/default/original/1X/5b873abd97fd5b0397399636b41aac1d8f98ce7e.png" />
+<meta property="og:url" content="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710" />
+<meta name="twitter:url" content="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710" />
+<meta property="og:title" content="Automating Button Click in macOS File Access Permission Dialog" />
+<meta name="twitter:title" content="Automating Button Click in macOS File Access Permission Dialog" />
+<meta property="og:description" content="Hello all,  I’m trying to automate the process of clicking the “OK” button in the macOS file access permission dialogs that appear when an app requests access to a folder (e.g., Desktop).  For example, the dialog typically looks like this:  “MyApplication.app” would like to access files in your Desktop folder.   Buttons: “Don’t Allow”, “OK”  In my case, I don’t really care which button is pressed, but ideally, I’d like the “OK” button to be clicked automatically.  The goal is to avoid manual int..." />
+<meta name="twitter:description" content="Hello all,  I’m trying to automate the process of clicking the “OK” button in the macOS file access permission dialogs that appear when an app requests access to a folder (e.g., Desktop).  For example, the dialog typically looks like this:  “MyApplication.app” would like to access files in your Desktop folder.   Buttons: “Don’t Allow”, “OK”  In my case, I don’t really care which button is pressed, but ideally, I’d like the “OK” button to be clicked automatically.  The goal is to avoid manual int..." />
+<meta property="article:published_time" content="2025-01-25T07:30:43+00:00" />
+<meta property="og:ignore_canonical" content="true" />
+
+
+
+    <script type="application/ld+json">{"@context":"http://schema.org","@type":"QAPage","name":"Automating Button Click in macOS File Access Permission Dialog","mainEntity":{"@type":"Question","name":"Automating Button Click in macOS File Access Permission Dialog","text":"Hello all,\n\nI’m trying to automate the process of clicking the “OK” button in the macOS file access permission dialogs that appear when an app requests access to a folder (e.g., Desktop).\n\nFor example, the dialog typically looks like this:\n\n“MyApplication.app” would like to access files in your Desk&hellip;","upvoteCount":0,"answerCount":0,"dateCreated":"2025-01-25T07:30:43.120Z","author":{"@type":"Person","name":null}}}</script>
+
+    <meta id="data-discourse-setup" data-base-url="https://www.macscripter.net" data-base-uri="" data-environment="production" data-letter-avatar-version="5_684b749d1c1eee86b31a584fa946fc1a" data-markdown-it-url="/assets/markdown-it-bundle-dcd9743077867b3a68d7b723130cb2711dc4c843b018d7bc609f868289402fef.js" data-service-worker-url="service-worker.js" data-default-locale="en" data-asset-version="1b90120729f463f2a414281e765daae0" data-disable-custom-css="false" data-highlight-js-path="/highlight-js/www.macscripter.net/1f3ca600921c657e3862ce19108c8a88ce0e154b.js" data-svg-sprite-path="/svg-sprite/www.macscripter.net/svg-1-aebc49ea7004e3870e3ab5845f0e1e994b87337b.js" data-enable-js-error-reporting="true" data-color-scheme-is-dark="false" data-user-dark-scheme-id="1">
+
+    <meta name="discourse/config/environment" content="%7B%22modulePrefix%22%3A%22discourse%22%2C%22environment%22%3A%22production%22%2C%22rootURL%22%3A%22%22%2C%22locationType%22%3A%22history%22%2C%22historySupportMiddleware%22%3Afalse%2C%22EmberENV%22%3A%7B%22FEATURES%22%3A%7B%7D%2C%22EXTEND_PROTOTYPES%22%3A%7B%22Date%22%3Afalse%7D%2C%22_APPLICATION_TEMPLATE_WRAPPER%22%3Afalse%2C%22_DEFAULT_ASYNC_OBSERVERS%22%3Atrue%2C%22_JQUERY_INTEGRATION%22%3Atrue%7D%2C%22APP%22%3A%7B%22name%22%3A%22discourse%22%2C%22version%22%3A%222.9.0.beta14%203c0a4b37d093b8f4864816adbc458a08dbfe54cc%22%2C%22exportApplicationGlobal%22%3Atrue%7D%7D" />
+  </head>
+
+  <body class="">
+      <section id="d-splash">
+  <template class="splash-svg-template">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      xmlns:xlink="http://www.w3.org/1999/xlink"
+      version="1.1"
+    >
+      <style>
+        :root {
+          --animation-state: paused;
+        }
+
+        /* user picked a theme where the "regular" scheme is dark */
+        /* user picked a theme a light scheme and also enabled a dark scheme */
+
+        /* deal with light scheme first */
+        @media (prefers-color-scheme: light) {
+          :root {
+            --primary: #222222;
+            --secondary: #ffffff;
+            --tertiary: #0088cc;
+            --quaternary: #e45735;
+            --highlight: #ffdd4a;
+            --success: #009900;
+          }
+        }
+
+        /* then deal with dark scheme */
+        @media (prefers-color-scheme: dark) {
+          :root {
+            --primary: #dddddd;
+            --secondary: #222222;
+            --tertiary: #0f82af;
+            --quaternary: #c14924;
+            --highlight: #a87137;
+            --success: #1ca551;
+          }
+        }
+
+        /* these styles need to live here because the SVG has a different scope */
+        .dots {
+          animation-name: loader;
+          animation-timing-function: ease-in-out;
+          animation-duration: 3s;
+          animation-iteration-count: infinite;
+          animation-play-state: var(--animation-state);
+          stroke: #fff;
+          stroke-width: 0.5px;
+          transform-origin: center;
+          opacity: 0;
+          r: max(1vw, 11px);
+          cy: 50%;
+          filter: saturate(2) opacity(0.85);
+        }
+
+        .dots:first-child {
+          fill: var(--quaternary);
+        }
+
+        .dots:nth-child(2) {
+          fill: var(--quaternary);
+          animation-delay: 0.15s;
+        }
+
+        .dots:nth-child(3) {
+          fill: var(--highlight);
+          animation-delay: 0.3s;
+        }
+
+        .dots:nth-child(4) {
+          fill: var(--tertiary);
+          animation-delay: 0.45s;
+        }
+
+        .dots:nth-child(5) {
+          fill: var(--tertiary);
+          animation-delay: 0.6s;
+        }
+
+        @keyframes loader {
+          0% {
+            opacity: 0;
+            transform: scale(1);
+          }
+          45% {
+            opacity: 1;
+            transform: scale(0.7);
+          }
+          65% {
+            opacity: 1;
+            transform: scale(0.7);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(1);
+          }
+        }
+      </style>
+
+      <g class="container">
+        <circle class="dots" cx="30vw" />
+        <circle class="dots" cx="40vw" />
+        <circle class="dots" cx="50vw" />
+        <circle class="dots" cx="60vw" />
+        <circle class="dots" cx="70vw" />
+      </g>
+    </svg>
+  </template>
+
+  <style>
+    html {
+      overflow-y: hidden !important;
+    }
+
+    /* user picked a theme where the "regular" scheme is dark */
+    /* user picked a theme a light scheme and also enabled a dark scheme */
+
+    /* deal with light scheme first */
+    @media (prefers-color-scheme: light) {
+      html {
+        background-color: #ffffff;
+      }
+
+      #d-splash .preloader-text-wrapper {
+        color: #222222;
+      }
+    }
+
+    /* then deal with dark scheme */
+    @media (prefers-color-scheme: dark) {
+      html {
+        background-color: #222222;
+      }
+
+      #d-splash .preloader-text-wrapper {
+        color: #dddddd;
+      }
+    }
+
+    #d-splash {
+      display: grid;
+      place-items: center;
+      backface-visibility: hidden;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      z-index: 1001;
+      --animation-state: paused;
+    }
+
+    #d-splash .preloader-image {
+      max-width: 100%;
+      height: 100vh;
+    }
+
+    #d-splash .preloader-text-wrapper {
+      position: absolute;
+      opacity: 0;
+      animation: fade-in 0.5s ease-in-out;
+      animation-delay: 1s;
+      animation-fill-mode: forwards;
+      animation-play-state: var(--animation-state);
+      margin-bottom: -4em;
+    }
+
+    #d-splash .preloader-text:after {
+      animation: loading-text 3s infinite;
+      content: "";
+      position: absolute;
+      margin: 0 0.1em;
+      left: 100%;
+    }
+
+    .rtl #d-splash .preloader-text:after {
+      left: 0;
+      right: 100%;
+    }
+
+    @keyframes fade-in {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes loading-text {
+      0% {
+        content: "";
+      }
+      25% {
+        content: ".";
+      }
+      50% {
+        content: "..";
+      }
+      75% {
+        content: "...";
+      }
+    }
+  </style>
+
+  <img
+    class="preloader-image"
+    src="data:image/svg;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"
+    alt="MacScripter"
+  />
+
+  <div class="preloader-text-wrapper">
+    <div class="preloader-text">Loading</div>
+  </div>
+
+  <noscript>
+    <style>
+      html {
+        overflow-y: revert !important;
+      }
+
+      #d-splash {
+        display: none;
+      }
+    </style>
+  </noscript>
+
+  <script>// This script is inlined in `_discourse_splash.html.erb
+const DELAY_TARGET = 2000;
+const POLLING_INTERVAL = 50;
+const splashSvgTemplate = document.querySelector(".splash-svg-template");
+const splashTemplateClone = splashSvgTemplate.content.cloneNode(true);
+const svgElement = splashTemplateClone.querySelector("svg");
+const svgString = new XMLSerializer().serializeToString(svgElement);
+const encodedSvg = btoa(svgString);
+const splashWrapper = document.querySelector("#d-splash");
+const splashImage = splashWrapper && splashWrapper.querySelector(".preloader-image");
+if (splashImage) {
+  splashImage.src = "data:image/svg+xml;base64,".concat(encodedSvg);
+  const connectStart = performance.timing.connectStart || 0;
+  const targetTime = connectStart + DELAY_TARGET;
+  let splashInterval;
+  let discourseReady;
+  const swapSplash = () => {
+    splashWrapper && splashWrapper.style.setProperty("--animation-state", "running");
+    svgElement && svgElement.style.setProperty("--animation-state", "running");
+    const newSvgString = new XMLSerializer().serializeToString(svgElement);
+    const newEncodedSvg = btoa(newSvgString);
+    splashImage.src = "data:image/svg+xml;base64,".concat(newEncodedSvg);
+    performance.mark("discourse-splash-visible");
+    clearSplashInterval();
+  };
+  const clearSplashInterval = () => {
+    clearInterval(splashInterval);
+    splashInterval = null;
+  };
+  (() => {
+    splashInterval = setInterval(() => {
+      if (discourseReady) {
+        clearSplashInterval();
+      }
+      if (Date.now() > targetTime) {
+        swapSplash();
+      }
+    }, POLLING_INTERVAL);
+  })();
+  document.addEventListener("discourse-ready", () => {
+    discourseReady = true;
+    splashWrapper && splashWrapper.remove();
+    performance.mark("discourse-splash-removed");
+  }, {
+    once: true
+  });
+}
+</script>
+
+</section>
+
+
+    <discourse-assets>
+      <discourse-assets-stylesheets>
+        <link href="/stylesheets/color_definitions_base__1_e5d6341b3bd1b60b9d20ece2c7ea274324a5608b.css?__ws=www.macscripter.net" media="all" rel="stylesheet" class="light-scheme"/><link href="/stylesheets/color_definitions_dark_1_1_e948f1d3513f84606b31f10267bda464b09cc6fd.css?__ws=www.macscripter.net" media="(prefers-color-scheme: dark)" rel="stylesheet" class="dark-scheme"/>
+
+  <link href="/stylesheets/desktop_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="desktop"  />
+
+
+
+  <link href="/stylesheets/chat_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="chat"  />
+  <link href="/stylesheets/discourse-bbcode_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="discourse-bbcode"  />
+  <link href="/stylesheets/discourse-details_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="discourse-details"  />
+  <link href="/stylesheets/discourse-local-dates_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="discourse-local-dates"  />
+  <link href="/stylesheets/discourse-narrative-bot_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="discourse-narrative-bot"  />
+  <link href="/stylesheets/discourse-presence_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="discourse-presence"  />
+  <link href="/stylesheets/discourse-solved_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="discourse-solved"  />
+  <link href="/stylesheets/discourse-user-notes_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="discourse-user-notes"  />
+  <link href="/stylesheets/discourse-whos-online_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="discourse-whos-online"  />
+  <link href="/stylesheets/lazy-yt_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="lazy-yt"  />
+  <link href="/stylesheets/poll_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="poll"  />
+  <link href="/stylesheets/chat_desktop_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="chat_desktop"  />
+  <link href="/stylesheets/poll_desktop_ed6bfe6b120ac3e9ae023eb4f49499f7a7e3fa7a.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="poll_desktop"  />
+
+  <link href="/stylesheets/desktop_theme_2_574d3020cd70e0e9b613f0bd33083c57acf2460e.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="desktop_theme" data-theme-id="2" data-theme-name="discotoc"/>
+<link href="/stylesheets/desktop_theme_1_19888bd3019b200a9c067b7480434db97c2cffcf.css?__ws=www.macscripter.net" media="all" rel="stylesheet" data-target="desktop_theme" data-theme-id="1" data-theme-name="default"/>
+
+      </discourse-assets-stylesheets>
+      <discourse-assets-json>
+        <div class="hidden" id="data-preloaded" data-preloaded="{&quot;site&quot;:&quot;{\&quot;default_archetype\&quot;:\&quot;regular\&quot;,\&quot;notification_types\&quot;:{\&quot;mentioned\&quot;:1,\&quot;replied\&quot;:2,\&quot;quoted\&quot;:3,\&quot;edited\&quot;:4,\&quot;liked\&quot;:5,\&quot;private_message\&quot;:6,\&quot;invited_to_private_message\&quot;:7,\&quot;invitee_accepted\&quot;:8,\&quot;posted\&quot;:9,\&quot;moved_post\&quot;:10,\&quot;linked\&quot;:11,\&quot;granted_badge\&quot;:12,\&quot;invited_to_topic\&quot;:13,\&quot;custom\&quot;:14,\&quot;group_mentioned\&quot;:15,\&quot;group_message_summary\&quot;:16,\&quot;watching_first_post\&quot;:17,\&quot;topic_reminder\&quot;:18,\&quot;liked_consolidated\&quot;:19,\&quot;post_approved\&quot;:20,\&quot;code_review_commit_approved\&quot;:21,\&quot;membership_request_accepted\&quot;:22,\&quot;membership_request_consolidated\&quot;:23,\&quot;bookmark_reminder\&quot;:24,\&quot;reaction\&quot;:25,\&quot;votes_released\&quot;:26,\&quot;event_reminder\&quot;:27,\&quot;event_invitation\&quot;:28,\&quot;chat_mention\&quot;:29,\&quot;chat_message\&quot;:30,\&quot;chat_invitation\&quot;:31,\&quot;chat_group_mention\&quot;:32,\&quot;chat_quoted\&quot;:33,\&quot;assigned\&quot;:34,\&quot;question_answer_user_commented\&quot;:35,\&quot;watching_category_or_tag\&quot;:36,\&quot;new_features\&quot;:37,\&quot;following\&quot;:800,\&quot;following_created_topic\&quot;:801,\&quot;following_replied\&quot;:802},\&quot;post_types\&quot;:{\&quot;regular\&quot;:1,\&quot;moderator_action\&quot;:2,\&quot;small_action\&quot;:3,\&quot;whisper\&quot;:4},\&quot;trust_levels\&quot;:{\&quot;newuser\&quot;:0,\&quot;basic\&quot;:1,\&quot;member\&quot;:2,\&quot;regular\&quot;:3,\&quot;leader\&quot;:4},\&quot;groups\&quot;:[{\&quot;id\&quot;:42,\&quot;name\&quot;:\&quot;MacScripterV1\&quot;,\&quot;flair_url\&quot;:null,\&quot;flair_bg_color\&quot;:\&quot;\&quot;,\&quot;flair_color\&quot;:\&quot;\&quot;}],\&quot;filters\&quot;:[\&quot;latest\&quot;,\&quot;unread\&quot;,\&quot;new\&quot;,\&quot;unseen\&quot;,\&quot;top\&quot;,\&quot;read\&quot;,\&quot;posted\&quot;,\&quot;bookmarks\&quot;],\&quot;periods\&quot;:[\&quot;all\&quot;,\&quot;yearly\&quot;,\&quot;quarterly\&quot;,\&quot;monthly\&quot;,\&quot;weekly\&quot;,\&quot;daily\&quot;],\&quot;top_menu_items\&quot;:[\&quot;latest\&quot;,\&quot;unread\&quot;,\&quot;new\&quot;,\&quot;unseen\&quot;,\&quot;top\&quot;,\&quot;read\&quot;,\&quot;posted\&quot;,\&quot;bookmarks\&quot;,\&quot;categories\&quot;],\&quot;anonymous_top_menu_items\&quot;:[\&quot;latest\&quot;,\&quot;top\&quot;,\&quot;categories\&quot;,\&quot;categories\&quot;,\&quot;top\&quot;],\&quot;uncategorized_category_id\&quot;:1,\&quot;user_field_max_length\&quot;:2048,\&quot;post_action_types\&quot;:[{\&quot;id\&quot;:2,\&quot;name_key\&quot;:\&quot;like\&quot;,\&quot;name\&quot;:\&quot;Like\&quot;,\&quot;description\&quot;:\&quot;Like this post\&quot;,\&quot;short_description\&quot;:\&quot;Like this post\&quot;,\&quot;is_flag\&quot;:false,\&quot;is_custom_flag\&quot;:false},{\&quot;id\&quot;:3,\&quot;name_key\&quot;:\&quot;off_topic\&quot;,\&quot;name\&quot;:\&quot;Off-Topic\&quot;,\&quot;description\&quot;:\&quot;This post is not relevant to the current discussion as defined by the title and first post, and should probably be moved elsewhere.\&quot;,\&quot;short_description\&quot;:\&quot;Not relevant to the discussion\&quot;,\&quot;is_flag\&quot;:true,\&quot;is_custom_flag\&quot;:false},{\&quot;id\&quot;:4,\&quot;name_key\&quot;:\&quot;inappropriate\&quot;,\&quot;name\&quot;:\&quot;Inappropriate\&quot;,\&quot;description\&quot;:\&quot;This post contains content that a reasonable person would consider offensive, abusive, to be hateful conduct or a violation of \\u003ca href=\\\&quot;/guidelines\\\&quot;\\u003eour community guidelines\\u003c/a\\u003e.\&quot;,\&quot;short_description\&quot;:\&quot;A violation of \\u003ca href=\\\&quot;/guidelines\\\&quot;\\u003eour community guidelines\\u003c/a\\u003e\&quot;,\&quot;is_flag\&quot;:true,\&quot;is_custom_flag\&quot;:false},{\&quot;id\&quot;:8,\&quot;name_key\&quot;:\&quot;spam\&quot;,\&quot;name\&quot;:\&quot;Spam\&quot;,\&quot;description\&quot;:\&quot;This post is an advertisement, or vandalism. It is not useful or relevant to the current topic.\&quot;,\&quot;short_description\&quot;:\&quot;This is an advertisement or vandalism\&quot;,\&quot;is_flag\&quot;:true,\&quot;is_custom_flag\&quot;:false},{\&quot;id\&quot;:6,\&quot;name_key\&quot;:\&quot;notify_user\&quot;,\&quot;name\&quot;:\&quot;Send @%{username} a message\&quot;,\&quot;description\&quot;:\&quot;I want to talk to this person directly and personally about their post.\&quot;,\&quot;short_description\&quot;:\&quot;I want to talk to this person directly and personally about their post.\&quot;,\&quot;is_flag\&quot;:true,\&quot;is_custom_flag\&quot;:true},{\&quot;id\&quot;:null,\&quot;name_key\&quot;:null,\&quot;name\&quot;:\&quot;translation missing: en.post_action_types..title\&quot;,\&quot;description\&quot;:\&quot;translation missing: en.post_action_types.description\&quot;,\&quot;short_description\&quot;:\&quot;translation missing: en.post_action_types.short_description\&quot;,\&quot;is_flag\&quot;:false,\&quot;is_custom_flag\&quot;:false},{\&quot;id\&quot;:7,\&quot;name_key\&quot;:\&quot;notify_moderators\&quot;,\&quot;name\&quot;:\&quot;Something Else\&quot;,\&quot;description\&quot;:\&quot;This post requires staff attention for another reason not listed above.\&quot;,\&quot;short_description\&quot;:\&quot;Requires staff attention for another reason\&quot;,\&quot;is_flag\&quot;:true,\&quot;is_custom_flag\&quot;:true}],\&quot;topic_flag_types\&quot;:[{\&quot;id\&quot;:4,\&quot;name_key\&quot;:\&quot;inappropriate\&quot;,\&quot;name\&quot;:\&quot;Inappropriate\&quot;,\&quot;description\&quot;:\&quot;This topic contains content that a reasonable person would consider offensive, abusive, to be hateful conduct or a violation of \\u003ca href=\\\&quot;/guidelines\\\&quot;\\u003eour community guidelines\\u003c/a\\u003e.\&quot;,\&quot;short_description\&quot;:\&quot;A violation of \\u003ca href=\\\&quot;/guidelines\\\&quot;\\u003eour community guidelines\\u003c/a\\u003e\&quot;,\&quot;is_flag\&quot;:true,\&quot;is_custom_flag\&quot;:false},{\&quot;id\&quot;:8,\&quot;name_key\&quot;:\&quot;spam\&quot;,\&quot;name\&quot;:\&quot;Spam\&quot;,\&quot;description\&quot;:\&quot;This topic is an advertisement. It is not useful or relevant to this site, but promotional in nature.\&quot;,\&quot;short_description\&quot;:\&quot;This is an advertisement\&quot;,\&quot;is_flag\&quot;:true,\&quot;is_custom_flag\&quot;:false},{\&quot;id\&quot;:null,\&quot;name_key\&quot;:null,\&quot;name\&quot;:\&quot;translation missing: en.topic_flag_types..title\&quot;,\&quot;description\&quot;:\&quot;translation missing: en.topic_flag_types.description\&quot;,\&quot;short_description\&quot;:\&quot;translation missing: en.topic_flag_types.short_description\&quot;,\&quot;is_flag\&quot;:false,\&quot;is_custom_flag\&quot;:false},{\&quot;id\&quot;:7,\&quot;name_key\&quot;:\&quot;notify_moderators\&quot;,\&quot;name\&quot;:\&quot;Something Else\&quot;,\&quot;description\&quot;:\&quot;This topic requires general staff attention based on the \\u003ca href=\\\&quot;/guidelines\\\&quot;\\u003eguidelines\\u003c/a\\u003e, \\u003ca href=\\\&quot;/tos\\\&quot;\\u003eTOS\\u003c/a\\u003e, or for another reason not listed above.\&quot;,\&quot;short_description\&quot;:\&quot;Requires staff attention for another reason\&quot;,\&quot;is_flag\&quot;:true,\&quot;is_custom_flag\&quot;:true}],\&quot;can_create_tag\&quot;:false,\&quot;can_tag_topics\&quot;:false,\&quot;can_tag_pms\&quot;:false,\&quot;tags_filter_regexp\&quot;:\&quot;[/\\\\?#\\\\[\\\\]@!\\\\$\\u0026&#39;\\\\(\\\\)\\\\*\\\\+,;=\\\\.%\\\\\\\\`^\\\\s|\\\\{\\\\}\\\&quot;\\u003c\\u003e]+\&quot;,\&quot;top_tags\&quot;:[\&quot;macscripter-v1\&quot;,\&quot;Finder\&quot;,\&quot;System\&quot;,\&quot;adobe\&quot;,\&quot;mail\&quot;,\&quot;microsoft\&quot;,\&quot;QuarkXPress\&quot;,\&quot;safari\&quot;,\&quot;iTunes\&quot;,\&quot;TextEdit\&quot;,\&quot;FileMaker\&quot;,\&quot;QuickTime\&quot;,\&quot;terminal\&quot;,\&quot;iCal\&quot;,\&quot;Indesign\&quot;,\&quot;address\&quot;,\&quot;Illustrator\&quot;,\&quot;image\&quot;,\&quot;applescript\&quot;,\&quot;internet\&quot;,\&quot;url\&quot;,\&quot;iChat\&quot;,\&quot;scriptdebugger\&quot;,\&quot;ventura\&quot;,\&quot;excel\&quot;,\&quot;Keychain\&quot;,\&quot;Acrobat\&quot;,\&quot;BBedit\&quot;,\&quot;extra\&quot;,\&quot;Script\&quot;,\&quot;iphoto\&quot;],\&quot;topic_featured_link_allowed_category_ids\&quot;:[1,6,8,9,25,10,26,21,30,20,27,29,24,35,16,32,33,19,11,5,23,31,22,34,28,36,14,3,2,37,38,4,13,40,15,12,39],\&quot;user_themes\&quot;:[{\&quot;theme_id\&quot;:1,\&quot;name\&quot;:\&quot;Default\&quot;,\&quot;default\&quot;:true,\&quot;color_scheme_id\&quot;:null}],\&quot;user_color_schemes\&quot;:[{\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;Dark\&quot;,\&quot;is_dark\&quot;:true},{\&quot;id\&quot;:4,\&quot;name\&quot;:\&quot;Dracula\&quot;,\&quot;is_dark\&quot;:true},{\&quot;id\&quot;:6,\&quot;name\&quot;:\&quot;Solarized Dark\&quot;,\&quot;is_dark\&quot;:true},{\&quot;id\&quot;:5,\&quot;name\&quot;:\&quot;Solarized Light\&quot;,\&quot;is_dark\&quot;:false},{\&quot;id\&quot;:3,\&quot;name\&quot;:\&quot;WCAG Dark\&quot;,\&quot;is_dark\&quot;:true},{\&quot;id\&quot;:2,\&quot;name\&quot;:\&quot;WCAG Light\&quot;,\&quot;is_dark\&quot;:false}],\&quot;default_dark_color_scheme\&quot;:{\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;Dark\&quot;,\&quot;version\&quot;:1,\&quot;created_at\&quot;:\&quot;2022-11-18T22:21:00.587Z\&quot;,\&quot;updated_at\&quot;:\&quot;2022-11-18T22:21:00.587Z\&quot;,\&quot;via_wizard\&quot;:true,\&quot;base_scheme_id\&quot;:\&quot;Dark\&quot;,\&quot;theme_id\&quot;:null,\&quot;user_selectable\&quot;:true},\&quot;censored_regexp\&quot;:[],\&quot;custom_emoji_translation\&quot;:{},\&quot;watched_words_replace\&quot;:null,\&quot;watched_words_link\&quot;:null,\&quot;categories\&quot;:[{\&quot;id\&quot;:1,\&quot;name\&quot;:\&quot;Uncategorized\&quot;,\&quot;color\&quot;:\&quot;0088CC\&quot;,\&quot;text_color\&quot;:\&quot;FFFFFF\&quot;,\&quot;slug\&quot;:\&quot;uncategorized\&quot;,\&quot;topic_count\&quot;:0,\&quot;post_count\&quot;:0,\&quot;position\&quot;:0,\&quot;description\&quot;:\&quot;Topics that don&#39;t need a category, or don&#39;t fit into any other existing category.\&quot;,\&quot;description_text\&quot;:\&quot;Topics that don&#39;t need a category, or don&#39;t fit into any other existing category.\&quot;,\&quot;description_excerpt\&quot;:\&quot;Topics that don&#39;t need a category, or don&#39;t fit into any other existing category.\&quot;,\&quot;topic_url\&quot;:\&quot;/t/\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:2,\&quot;name\&quot;:\&quot;Site Feedback\&quot;,\&quot;color\&quot;:\&quot;808281\&quot;,\&quot;text_color\&quot;:\&quot;FFFFFF\&quot;,\&quot;slug\&quot;:\&quot;site-feedback\&quot;,\&quot;topic_count\&quot;:33,\&quot;post_count\&quot;:151,\&quot;position\&quot;:1,\&quot;description\&quot;:\&quot;\\u003cp\\u003eDiscussion about this site, its organization, how it works, and how we can improve it.\\u003c/p\\u003e\&quot;,\&quot;description_text\&quot;:\&quot;Discussion about this site, its organization, how it works, and how we can improve it.\&quot;,\&quot;description_excerpt\&quot;:\&quot;Discussion about this site, its organization, how it works, and how we can improve it.\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-site-feedback-category/1\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:4,\&quot;name\&quot;:\&quot;General\&quot;,\&quot;color\&quot;:\&quot;25AAE2\&quot;,\&quot;text_color\&quot;:\&quot;FFFFFF\&quot;,\&quot;slug\&quot;:\&quot;general\&quot;,\&quot;topic_count\&quot;:18,\&quot;post_count\&quot;:110,\&quot;position\&quot;:3,\&quot;description\&quot;:\&quot;\\u003cp\\u003eCreate topics here that don’t fit into any other existing category.\\u003c/p\\u003e\&quot;,\&quot;description_text\&quot;:\&quot;Create topics here that don’t fit into any other existing category.\&quot;,\&quot;description_excerpt\&quot;:\&quot;Create topics here that don’t fit into any other existing category.\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-general-category/3\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:2,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;enable_accepted_answers\&quot;:null,\&quot;has_chat_enabled\&quot;:true},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:5,\&quot;name\&quot;:\&quot;Scripting Forums\&quot;,\&quot;color\&quot;:\&quot;BF1E2E\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;scripting-forums\&quot;,\&quot;topic_count\&quot;:0,\&quot;post_count\&quot;:0,\&quot;position\&quot;:4,\&quot;description\&quot;:null,\&quot;description_text\&quot;:null,\&quot;description_excerpt\&quot;:null,\&quot;topic_url\&quot;:\&quot;/t/about-the-scripting-forums-category/12520\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:true,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:\&quot;true\&quot;},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:6,\&quot;name\&quot;:\&quot;Applescript Sourcebook\&quot;,\&quot;color\&quot;:\&quot;F1592A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-sourcebook\&quot;,\&quot;topic_count\&quot;:0,\&quot;post_count\&quot;:0,\&quot;position\&quot;:5,\&quot;description\&quot;:null,\&quot;description_text\&quot;:null,\&quot;description_excerpt\&quot;:null,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-sourcebook-category/12522\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:true,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:8,\&quot;name\&quot;:\&quot;Unofficial Applescript Bug Tracker\&quot;,\&quot;color\&quot;:\&quot;9EB83B\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;unofficial-applescript-bug-tracker\&quot;,\&quot;topic_count\&quot;:0,\&quot;post_count\&quot;:0,\&quot;position\&quot;:7,\&quot;description\&quot;:null,\&quot;description_text\&quot;:null,\&quot;description_excerpt\&quot;:null,\&quot;topic_url\&quot;:\&quot;/t/about-the-unofficial-applescript-bug-tracker-category/12525\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:true,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:9,\&quot;name\&quot;:\&quot;Applescript FAQ\&quot;,\&quot;color\&quot;:\&quot;3AB54A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-faq\&quot;,\&quot;topic_count\&quot;:0,\&quot;post_count\&quot;:0,\&quot;position\&quot;:8,\&quot;description\&quot;:null,\&quot;description_text\&quot;:null,\&quot;description_excerpt\&quot;:null,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-faq-category/12527\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:true,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:10,\&quot;name\&quot;:\&quot;AppleScript | Classic Mac OS\&quot;,\&quot;color\&quot;:\&quot;BF1E2E\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-mac-os-archive\&quot;,\&quot;topic_count\&quot;:1337,\&quot;post_count\&quot;:5395,\&quot;position\&quot;:9,\&quot;description\&quot;:\&quot;All versions of \\u003ca href=\\\&quot;http://www.apple.com/applescript/\\\&quot;\\u003eAppleScript\\u003c/a\\u003e prior to \\u003ca href=\\\&quot;http://www.apple.com/macosx/\\\&quot;\\u003eOS X\\u003c/a\\u003e [Read Only Archive]\&quot;,\&quot;description_text\&quot;:\&quot;All versions of AppleScript prior to OS X [Read Only Archive]\&quot;,\&quot;description_excerpt\&quot;:\&quot;All versions of \\u003ca href=\\\&quot;http://www.apple.com/applescript/\\\&quot;\\u003eAppleScript\\u003c/a\\u003e prior to \\u003ca href=\\\&quot;http://www.apple.com/macosx/\\\&quot;\\u003eOS X\\u003c/a\\u003e [Read Only Archive]\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-classic-mac-os-category/12528\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:11,\&quot;name\&quot;:\&quot;AppleScript | Mac OS X\&quot;,\&quot;color\&quot;:\&quot;F1592A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-mac-os-x\&quot;,\&quot;topic_count\&quot;:27755,\&quot;post_count\&quot;:152700,\&quot;position\&quot;:10,\&quot;description\&quot;:\&quot;Scripting OS X\&quot;,\&quot;description_text\&quot;:\&quot;Scripting OS X\&quot;,\&quot;description_excerpt\&quot;:\&quot;Scripting OS X\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-mac-os-x-category/12532\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:\&quot;true\&quot;},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:12,\&quot;name\&quot;:\&quot;AppleScript Studio \\u0026 Xcode\&quot;,\&quot;color\&quot;:\&quot;F7941D\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-studio-xcode\&quot;,\&quot;topic_count\&quot;:3426,\&quot;post_count\&quot;:14875,\&quot;position\&quot;:11,\&quot;description\&quot;:\&quot;Scripting Related topics for AppleScript Studio\&quot;,\&quot;description_text\&quot;:\&quot;Scripting Related topics for AppleScript Studio\&quot;,\&quot;description_excerpt\&quot;:\&quot;Scripting Related topics for AppleScript Studio\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-studio-xcode-category/12533\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:\&quot;true\&quot;},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:13,\&quot;name\&quot;:\&quot;Automator\&quot;,\&quot;color\&quot;:\&quot;9EB83B\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;automator\&quot;,\&quot;topic_count\&quot;:643,\&quot;post_count\&quot;:1943,\&quot;position\&quot;:12,\&quot;description\&quot;:\&quot;Scripting Related topics for \\u003ca href=\\\&quot;http://www.apple.com/macosx/tiger/automator.html\\\&quot;\\u003eAutomator\\u003c/a\\u003e\&quot;,\&quot;description_text\&quot;:\&quot;Scripting Related topics for Automator\&quot;,\&quot;description_excerpt\&quot;:\&quot;Scripting Related topics for \\u003ca href=\\\&quot;http://www.apple.com/macosx/tiger/automator.html\\\&quot;\\u003eAutomator\\u003c/a\\u003e\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-automator-category/12535\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:\&quot;true\&quot;},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:14,\&quot;name\&quot;:\&quot;Code Exchange\&quot;,\&quot;color\&quot;:\&quot;3AB54A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;code-exchange\&quot;,\&quot;topic_count\&quot;:1389,\&quot;post_count\&quot;:5909,\&quot;position\&quot;:13,\&quot;description\&quot;:\&quot;Share your coding ideas freely.\&quot;,\&quot;description_text\&quot;:\&quot;Share your coding ideas freely.\&quot;,\&quot;description_excerpt\&quot;:\&quot;Share your coding ideas freely.\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-code-exchange-category/12536\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:15,\&quot;name\&quot;:\&quot;unScripted\&quot;,\&quot;color\&quot;:\&quot;12A89D\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;unscripted\&quot;,\&quot;topic_count\&quot;:118,\&quot;post_count\&quot;:524,\&quot;position\&quot;:14,\&quot;description\&quot;:\&quot;Applescript Tutorials\&quot;,\&quot;description_text\&quot;:\&quot;Applescript Tutorials\&quot;,\&quot;description_excerpt\&quot;:\&quot;Applescript Tutorials\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-unscripted-category/12537\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:19,\&quot;name\&quot;:\&quot;About the Applescript Sourcebook\&quot;,\&quot;color\&quot;:\&quot;BF1E2E\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;about-the-applescript-sourcebook\&quot;,\&quot;topic_count\&quot;:1,\&quot;post_count\&quot;:1,\&quot;position\&quot;:18,\&quot;description\&quot;:\&quot;Info about Bill Cheeseman, and the Sourcebook’s history\&quot;,\&quot;description_text\&quot;:\&quot;Info about Bill Cheeseman, and the Sourcebook’s history\&quot;,\&quot;description_excerpt\&quot;:\&quot;Info about Bill Cheeseman, and the Sourcebook’s history\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-about-the-applescript-sourcebook-category/12545\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:6,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:20,\&quot;name\&quot;:\&quot;AppleScript for Absolute Starters\&quot;,\&quot;color\&quot;:\&quot;F1592A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-for-absolute-starters\&quot;,\&quot;topic_count\&quot;:4,\&quot;post_count\&quot;:4,\&quot;position\&quot;:19,\&quot;description\&quot;:\&quot;A primer by Bert Altenburg for beginners just learning AppleScript\&quot;,\&quot;description_text\&quot;:\&quot;A primer by Bert Altenburg for beginners just learning AppleScript\&quot;,\&quot;description_excerpt\&quot;:\&quot;A primer by Bert Altenburg for beginners just learning AppleScript\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-for-absolute-starters-category/12547\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:6,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:21,\&quot;name\&quot;:\&quot;About Applescript\&quot;,\&quot;color\&quot;:\&quot;F7941D\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;about-applescript\&quot;,\&quot;topic_count\&quot;:8,\&quot;post_count\&quot;:8,\&quot;position\&quot;:20,\&quot;description\&quot;:\&quot;AppleScript was released as part of System 7.1.1 in October 1993\&quot;,\&quot;description_text\&quot;:\&quot;AppleScript was released as part of System 7.1.1 in October 1993\&quot;,\&quot;description_excerpt\&quot;:\&quot;AppleScript was released as part of System 7.1.1 in October 1993\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-about-applescript-category/12548\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:6,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:22,\&quot;name\&quot;:\&quot;About Automator\&quot;,\&quot;color\&quot;:\&quot;9EB83B\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;about-automator\&quot;,\&quot;topic_count\&quot;:1,\&quot;post_count\&quot;:1,\&quot;position\&quot;:21,\&quot;description\&quot;:\&quot;Automator allows point-and-click ease for automating repetitive tasks\&quot;,\&quot;description_text\&quot;:\&quot;Automator allows point-and-click ease for automating repetitive tasks\&quot;,\&quot;description_excerpt\&quot;:\&quot;Automator allows point-and-click ease for automating repetitive tasks\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-about-automator-category/12549\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:6,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:23,\&quot;name\&quot;:\&quot;Applescript Versions\&quot;,\&quot;color\&quot;:\&quot;3AB54A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-versions\&quot;,\&quot;topic_count\&quot;:25,\&quot;post_count\&quot;:108,\&quot;position\&quot;:22,\&quot;description\&quot;:\&quot;AppleScript version 1.1.2 to Now\&quot;,\&quot;description_text\&quot;:\&quot;AppleScript version 1.1.2 to Now\&quot;,\&quot;description_excerpt\&quot;:\&quot;AppleScript version 1.1.2 to Now\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-versions-category/12550\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:6,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:24,\&quot;name\&quot;:\&quot;Scripting Tips\&quot;,\&quot;color\&quot;:\&quot;12A89D\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;scripting-tips\&quot;,\&quot;topic_count\&quot;:23,\&quot;post_count\&quot;:32,\&quot;position\&quot;:23,\&quot;description\&quot;:\&quot;The Kitchen Sink\&quot;,\&quot;description_text\&quot;:\&quot;The Kitchen Sink\&quot;,\&quot;description_excerpt\&quot;:\&quot;The Kitchen Sink\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-scripting-tips-category/12552\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:6,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:25,\&quot;name\&quot;:\&quot;Scripting Components\&quot;,\&quot;color\&quot;:\&quot;25AAE2\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;scripting-components\&quot;,\&quot;topic_count\&quot;:37,\&quot;post_count\&quot;:37,\&quot;position\&quot;:24,\&quot;description\&quot;:\&quot;Scripting Additions, URL Access Scripting and More\&quot;,\&quot;description_text\&quot;:\&quot;Scripting Additions, URL Access Scripting and More\&quot;,\&quot;description_excerpt\&quot;:\&quot;Scripting Additions, URL Access Scripting and More\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-scripting-components-category/12555\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:6,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:26,\&quot;name\&quot;:\&quot;Bugs Discovered in Leopard\&quot;,\&quot;color\&quot;:\&quot;BF1E2E\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;bugs-discovered-in-leopard\&quot;,\&quot;topic_count\&quot;:5,\&quot;post_count\&quot;:8,\&quot;position\&quot;:25,\&quot;description\&quot;:\&quot;Confirmed Bugs Discovered in Leopard\&quot;,\&quot;description_text\&quot;:\&quot;Confirmed Bugs Discovered in Leopard\&quot;,\&quot;description_excerpt\&quot;:\&quot;Confirmed Bugs Discovered in Leopard\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-bugs-discovered-in-leopard-category/12557\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:8,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:27,\&quot;name\&quot;:\&quot;Bugs Discovered in Tiger\&quot;,\&quot;color\&quot;:\&quot;F1592A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;bugs-discovered-in-tiger\&quot;,\&quot;topic_count\&quot;:3,\&quot;post_count\&quot;:4,\&quot;position\&quot;:26,\&quot;description\&quot;:\&quot;Confirmed Bugs Discovered in Tiger\&quot;,\&quot;description_text\&quot;:\&quot;Confirmed Bugs Discovered in Tiger\&quot;,\&quot;description_excerpt\&quot;:\&quot;Confirmed Bugs Discovered in Tiger\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-bugs-discovered-in-tiger-category/12559\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:8,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:28,\&quot;name\&quot;:\&quot;General Information\&quot;,\&quot;color\&quot;:\&quot;BF1E2E\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;general-information\&quot;,\&quot;topic_count\&quot;:55,\&quot;post_count\&quot;:58,\&quot;position\&quot;:27,\&quot;description\&quot;:\&quot;Is an applescripter a “programmer”?\&quot;,\&quot;description_text\&quot;:\&quot;Is an applescripter a “programmer”?\&quot;,\&quot;description_excerpt\&quot;:\&quot;Is an applescripter a “programmer”?\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-general-information-category/12560\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:29,\&quot;name\&quot;:\&quot;Core Language\&quot;,\&quot;color\&quot;:\&quot;F1592A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;core-language\&quot;,\&quot;topic_count\&quot;:31,\&quot;post_count\&quot;:31,\&quot;position\&quot;:28,\&quot;description\&quot;:\&quot;Simple to understand “What is” questions\&quot;,\&quot;description_text\&quot;:\&quot;Simple to understand “What is” questions\&quot;,\&quot;description_excerpt\&quot;:\&quot;Simple to understand “What is” questions\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-core-language-category/12561\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:30,\&quot;name\&quot;:\&quot;Applescript Studio\&quot;,\&quot;color\&quot;:\&quot;F7941D\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-studio\&quot;,\&quot;topic_count\&quot;:18,\&quot;post_count\&quot;:18,\&quot;position\&quot;:29,\&quot;description\&quot;:\&quot;What is AppleScript Studio?\&quot;,\&quot;description_text\&quot;:\&quot;What is AppleScript Studio?\&quot;,\&quot;description_excerpt\&quot;:\&quot;What is AppleScript Studio?\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-studio-category/12562\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:31,\&quot;name\&quot;:\&quot;OS X Finder\&quot;,\&quot;color\&quot;:\&quot;9EB83B\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;os-x-finder\&quot;,\&quot;topic_count\&quot;:13,\&quot;post_count\&quot;:13,\&quot;position\&quot;:30,\&quot;description\&quot;:\&quot;General Scripting under Mac OS X\&quot;,\&quot;description_text\&quot;:\&quot;General Scripting under Mac OS X\&quot;,\&quot;description_excerpt\&quot;:\&quot;General Scripting under Mac OS X\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-os-x-finder-category/12564\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:32,\&quot;name\&quot;:\&quot;Text Manipulation\&quot;,\&quot;color\&quot;:\&quot;3AB54A\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;text-manipulation\&quot;,\&quot;topic_count\&quot;:16,\&quot;post_count\&quot;:16,\&quot;position\&quot;:31,\&quot;description\&quot;:\&quot;Intermediate to Advanced text string manipulation\&quot;,\&quot;description_text\&quot;:\&quot;Intermediate to Advanced text string manipulation\&quot;,\&quot;description_excerpt\&quot;:\&quot;Intermediate to Advanced text string manipulation\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-text-manipulation-category/12565\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:33,\&quot;name\&quot;:\&quot;Application Scripting\&quot;,\&quot;color\&quot;:\&quot;12A89D\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;application-scripting\&quot;,\&quot;topic_count\&quot;:11,\&quot;post_count\&quot;:11,\&quot;position\&quot;:32,\&quot;description\&quot;:\&quot;How can I make my applications AppleScriptable?\&quot;,\&quot;description_text\&quot;:\&quot;How can I make my applications AppleScriptable?\&quot;,\&quot;description_excerpt\&quot;:\&quot;How can I make my applications AppleScriptable?\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-application-scripting-category/12568\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:34,\&quot;name\&quot;:\&quot;Scripting Additions\&quot;,\&quot;color\&quot;:\&quot;25AAE2\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;scripting-additions\&quot;,\&quot;topic_count\&quot;:12,\&quot;post_count\&quot;:12,\&quot;position\&quot;:33,\&quot;description\&quot;:\&quot;How can I create my own OS X Scripting Additions?\&quot;,\&quot;description_text\&quot;:\&quot;How can I create my own OS X Scripting Additions?\&quot;,\&quot;description_excerpt\&quot;:\&quot;How can I create my own OS X Scripting Additions?\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-scripting-additions-category/12570\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:35,\&quot;name\&quot;:\&quot;Folder Actions\&quot;,\&quot;color\&quot;:\&quot;0E76BD\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;folder-actions\&quot;,\&quot;topic_count\&quot;:8,\&quot;post_count\&quot;:8,\&quot;position\&quot;:34,\&quot;description\&quot;:\&quot;What is a folder action and how do I use one?\&quot;,\&quot;description_text\&quot;:\&quot;What is a folder action and how do I use one?\&quot;,\&quot;description_excerpt\&quot;:\&quot;What is a folder action and how do I use one?\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-folder-actions-category/12572\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:36,\&quot;name\&quot;:\&quot;Miscellaneous Info\&quot;,\&quot;color\&quot;:\&quot;652D90\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;miscellaneous-info\&quot;,\&quot;topic_count\&quot;:27,\&quot;post_count\&quot;:27,\&quot;position\&quot;:35,\&quot;description\&quot;:\&quot;Where can I find a Scriptable Text Editor?\&quot;,\&quot;description_text\&quot;:\&quot;Where can I find a Scriptable Text Editor?\&quot;,\&quot;description_excerpt\&quot;:\&quot;Where can I find a Scriptable Text Editor?\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-miscellaneous-info-category/12573\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:40,\&quot;name\&quot;:\&quot;Shortcuts\&quot;,\&quot;color\&quot;:\&quot;92278F\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;shortcuts\&quot;,\&quot;topic_count\&quot;:97,\&quot;post_count\&quot;:714,\&quot;position\&quot;:36,\&quot;description\&quot;:\&quot;Automating iOS and macOS using Shortcuts.\&quot;,\&quot;description_text\&quot;:\&quot;Automating iOS and macOS using Shortcuts.\&quot;,\&quot;description_excerpt\&quot;:\&quot;Automating iOS and macOS using Shortcuts.\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-shortcuts-category/12579\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:\&quot;true\&quot;},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:39,\&quot;name\&quot;:\&quot;AppleScriptObjC and Xcode\&quot;,\&quot;color\&quot;:\&quot;652D90\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescriptobjc-and-xcode\&quot;,\&quot;topic_count\&quot;:2380,\&quot;post_count\&quot;:15800,\&quot;position\&quot;:37,\&quot;description\&quot;:\&quot;Scripting Related topics for AppleScriptObjC\&quot;,\&quot;description_text\&quot;:\&quot;Scripting Related topics for AppleScriptObjC\&quot;,\&quot;description_excerpt\&quot;:\&quot;Scripting Related topics for AppleScriptObjC\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescriptobjc-and-xcode-category/12577\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:\&quot;true\&quot;},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:38,\&quot;name\&quot;:\&quot;ScriptWire Archive\&quot;,\&quot;color\&quot;:\&quot;0E76BD\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;scriptwire-archive\&quot;,\&quot;topic_count\&quot;:4402,\&quot;post_count\&quot;:4441,\&quot;position\&quot;:38,\&quot;description\&quot;:\&quot;News and Commentary on Scripting [Read Only Archive]\&quot;,\&quot;description_text\&quot;:\&quot;News and Commentary on Scripting [Read Only Archive]\&quot;,\&quot;description_excerpt\&quot;:\&quot;News and Commentary on Scripting [Read Only Archive]\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-scriptwire-archive-category/12575\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:5,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:\&quot;false\&quot;},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false},{\&quot;id\&quot;:37,\&quot;name\&quot;:\&quot;AppleScript Language Guide\&quot;,\&quot;color\&quot;:\&quot;92278F\&quot;,\&quot;text_color\&quot;:\&quot;FFF\&quot;,\&quot;slug\&quot;:\&quot;applescript-language-guide\&quot;,\&quot;topic_count\&quot;:0,\&quot;post_count\&quot;:0,\&quot;position\&quot;:39,\&quot;description\&quot;:\&quot;Introduction to AppleScript Language Guide\&quot;,\&quot;description_text\&quot;:\&quot;Introduction to AppleScript Language Guide\&quot;,\&quot;description_excerpt\&quot;:\&quot;Introduction to AppleScript Language Guide\&quot;,\&quot;topic_url\&quot;:\&quot;/t/about-the-applescript-language-guide-category/12574\&quot;,\&quot;read_restricted\&quot;:false,\&quot;permission\&quot;:null,\&quot;parent_category_id\&quot;:9,\&quot;notification_level\&quot;:1,\&quot;topic_template\&quot;:null,\&quot;has_children\&quot;:false,\&quot;sort_order\&quot;:null,\&quot;sort_ascending\&quot;:null,\&quot;show_subcategory_list\&quot;:false,\&quot;num_featured_topics\&quot;:3,\&quot;default_view\&quot;:null,\&quot;subcategory_list_style\&quot;:\&quot;rows_with_featured_topics\&quot;,\&quot;default_top_period\&quot;:\&quot;all\&quot;,\&quot;default_list_filter\&quot;:\&quot;all\&quot;,\&quot;minimum_required_tags\&quot;:0,\&quot;navigate_to_first_post_after_read\&quot;:false,\&quot;custom_fields\&quot;:{\&quot;has_chat_enabled\&quot;:null,\&quot;enable_accepted_answers\&quot;:null},\&quot;allowed_tags\&quot;:[],\&quot;allowed_tag_groups\&quot;:[],\&quot;allow_global_tags\&quot;:false,\&quot;read_only_banner\&quot;:null,\&quot;uploaded_logo\&quot;:null,\&quot;uploaded_logo_dark\&quot;:null,\&quot;uploaded_background\&quot;:null,\&quot;required_tag_groups\&quot;:[],\&quot;can_edit\&quot;:false}],\&quot;markdown_additional_options\&quot;:{\&quot;chat\&quot;:{\&quot;limited_pretty_text_features\&quot;:[\&quot;anchor\&quot;,\&quot;bbcode-block\&quot;,\&quot;bbcode-inline\&quot;,\&quot;code\&quot;,\&quot;category-hashtag\&quot;,\&quot;censored\&quot;,\&quot;chat-transcript\&quot;,\&quot;discourse-local-dates\&quot;,\&quot;emoji\&quot;,\&quot;emojiShortcuts\&quot;,\&quot;inlineEmoji\&quot;,\&quot;html-img\&quot;,\&quot;hashtag-autocomplete\&quot;,\&quot;mentions\&quot;,\&quot;unicodeUsernames\&quot;,\&quot;onebox\&quot;,\&quot;quotes\&quot;,\&quot;spoiler-alert\&quot;,\&quot;table\&quot;,\&quot;text-post-process\&quot;,\&quot;upload-protocol\&quot;,\&quot;watched-words\&quot;],\&quot;limited_pretty_text_markdown_rules\&quot;:[\&quot;autolink\&quot;,\&quot;list\&quot;,\&quot;backticks\&quot;,\&quot;newline\&quot;,\&quot;code\&quot;,\&quot;fence\&quot;,\&quot;image\&quot;,\&quot;table\&quot;,\&quot;linkify\&quot;,\&quot;link\&quot;,\&quot;strikethrough\&quot;,\&quot;blockquote\&quot;,\&quot;emphasis\&quot;],\&quot;hashtag_configurations\&quot;:{\&quot;topic-composer\&quot;:[\&quot;category\&quot;,\&quot;tag\&quot;,\&quot;channel\&quot;],\&quot;chat-composer\&quot;:[\&quot;channel\&quot;,\&quot;category\&quot;,\&quot;tag\&quot;]}}},\&quot;hashtag_configurations\&quot;:{\&quot;topic-composer\&quot;:[\&quot;category\&quot;,\&quot;tag\&quot;,\&quot;channel\&quot;],\&quot;chat-composer\&quot;:[\&quot;channel\&quot;,\&quot;category\&quot;,\&quot;tag\&quot;]},\&quot;hashtag_icons\&quot;:[\&quot;folder\&quot;,\&quot;tag\&quot;,\&quot;comment\&quot;],\&quot;displayed_about_plugin_stat_groups\&quot;:[\&quot;chat_messages\&quot;],\&quot;show_welcome_topic_banner\&quot;:false,\&quot;whos_online_state\&quot;:{\&quot;count\&quot;:3,\&quot;last_message_id\&quot;:348228,\&quot;users\&quot;:[{\&quot;id\&quot;:7025,\&quot;username\&quot;:\&quot;StefanK\&quot;,\&quot;name\&quot;:\&quot;\&quot;,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/stefank/{size}/121_2.png\&quot;},{\&quot;id\&quot;:11395,\&quot;username\&quot;:\&quot;alastor933\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/a/ea666f/{size}.png\&quot;},{\&quot;id\&quot;:31477,\&quot;username\&quot;:\&quot;Otto\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/o/bbe5ce/{size}.png\&quot;}]},\&quot;archetypes\&quot;:[{\&quot;id\&quot;:\&quot;regular\&quot;,\&quot;name\&quot;:\&quot;Regular Topic\&quot;,\&quot;options\&quot;:[]},{\&quot;id\&quot;:\&quot;banner\&quot;,\&quot;name\&quot;:\&quot;Banner Topic\&quot;,\&quot;options\&quot;:[]}],\&quot;user_fields\&quot;:[],\&quot;auth_providers\&quot;:[{\&quot;name\&quot;:\&quot;google_oauth2\&quot;,\&quot;custom_url\&quot;:null,\&quot;pretty_name_override\&quot;:null,\&quot;title_override\&quot;:null,\&quot;frame_width\&quot;:850,\&quot;frame_height\&quot;:500,\&quot;can_connect\&quot;:true,\&quot;can_revoke\&quot;:true,\&quot;icon\&quot;:null},{\&quot;name\&quot;:\&quot;github\&quot;,\&quot;custom_url\&quot;:null,\&quot;pretty_name_override\&quot;:null,\&quot;title_override\&quot;:null,\&quot;frame_width\&quot;:null,\&quot;frame_height\&quot;:null,\&quot;can_connect\&quot;:true,\&quot;can_revoke\&quot;:true,\&quot;icon\&quot;:\&quot;fab-github\&quot;}]}&quot;,&quot;siteSettings&quot;:&quot;{\&quot;default_locale\&quot;:\&quot;en\&quot;,\&quot;title\&quot;:\&quot;MacScripter\&quot;,\&quot;short_site_description\&quot;:\&quot;macOS and iOS automation\&quot;,\&quot;exclude_rel_nofollow_domains\&quot;:\&quot;\&quot;,\&quot;logo\&quot;:\&quot;/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png\&quot;,\&quot;logo_small\&quot;:\&quot;/uploads/default/original/1X/5b873abd97fd5b0397399636b41aac1d8f98ce7e.png\&quot;,\&quot;digest_logo\&quot;:\&quot;\&quot;,\&quot;mobile_logo\&quot;:\&quot;\&quot;,\&quot;logo_dark\&quot;:\&quot;/uploads/default/original/1X/7b47174034f9bc349f0fc32034941387d9fd4c12.png\&quot;,\&quot;logo_small_dark\&quot;:\&quot;/uploads/default/original/1X/7f4ccd4ea6ce2bbd91f7b0f65315ee9365aaef12.png\&quot;,\&quot;mobile_logo_dark\&quot;:\&quot;/uploads/default/original/1X/7b47174034f9bc349f0fc32034941387d9fd4c12.png\&quot;,\&quot;large_icon\&quot;:\&quot;\&quot;,\&quot;favicon\&quot;:\&quot;\&quot;,\&quot;apple_touch_icon\&quot;:\&quot;\&quot;,\&quot;display_local_time_in_user_card\&quot;:false,\&quot;allow_user_locale\&quot;:false,\&quot;set_locale_from_accept_language_header\&quot;:false,\&quot;set_locale_from_cookie\&quot;:false,\&quot;support_mixed_text_direction\&quot;:false,\&quot;suggested_topics\&quot;:5,\&quot;ga_universal_tracking_code\&quot;:\&quot;G-3RD9TRS30M\&quot;,\&quot;ga_universal_domain_name\&quot;:\&quot;auto\&quot;,\&quot;gtm_container_id\&quot;:\&quot;\&quot;,\&quot;top_menu\&quot;:\&quot;latest|new|unread|top|categories\&quot;,\&quot;post_menu\&quot;:\&quot;read|like|share|flag|edit|bookmark|delete|admin|reply\&quot;,\&quot;post_menu_hidden_items\&quot;:\&quot;flag|bookmark|edit|delete|admin\&quot;,\&quot;share_links\&quot;:\&quot;twitter|facebook|email\&quot;,\&quot;allow_username_in_share_links\&quot;:true,\&quot;share_quote_visibility\&quot;:\&quot;anonymous\&quot;,\&quot;share_quote_buttons\&quot;:\&quot;twitter|email\&quot;,\&quot;desktop_category_page_style\&quot;:\&quot;subcategories_with_featured_topics\&quot;,\&quot;category_colors\&quot;:\&quot;BF1E2E|F1592A|F7941D|9EB83B|3AB54A|12A89D|25AAE2|0E76BD|652D90|92278F|ED207B|8C6238|231F20|808281|B3B5B4|E45735\&quot;,\&quot;category_style\&quot;:\&quot;bullet\&quot;,\&quot;max_category_nesting\&quot;:2,\&quot;enable_mobile_theme\&quot;:true,\&quot;enable_direct_s3_uploads\&quot;:false,\&quot;enable_upload_debug_mode\&quot;:false,\&quot;default_dark_mode_color_scheme_id\&quot;:1,\&quot;relative_date_duration\&quot;:30,\&quot;fixed_category_positions\&quot;:false,\&quot;fixed_category_positions_on_create\&quot;:false,\&quot;enable_badges\&quot;:true,\&quot;enable_badge_sql\&quot;:false,\&quot;max_favorite_badges\&quot;:2,\&quot;whispers_allowed_groups\&quot;:\&quot;\&quot;,\&quot;enable_bookmarks_with_reminders\&quot;:true,\&quot;push_notifications_prompt\&quot;:true,\&quot;enable_desktop_push_notifications\&quot;:true,\&quot;vapid_public_key_bytes\&quot;:\&quot;4|99|222|228|207|179|208|92|163|129|137|52|82|76|77|104|77|197|163|212|109|211|49|95|193|12|139|215|213|240|119|219|15|239|49|60|242|80|9|144|232|254|147|112|20|126|246|163|255|74|151|231|199|113|191|131|0|238|212|33|168|189|83|13|147\&quot;,\&quot;enable_user_status\&quot;:false,\&quot;enable_user_tips\&quot;:false,\&quot;invite_only\&quot;:false,\&quot;login_required\&quot;:false,\&quot;must_approve_users\&quot;:false,\&quot;enable_local_logins\&quot;:true,\&quot;enable_local_logins_via_email\&quot;:true,\&quot;allow_new_registrations\&quot;:true,\&quot;enable_signup_cta\&quot;:true,\&quot;facebook_app_id\&quot;:\&quot;\&quot;,\&quot;auth_skip_create_confirm\&quot;:false,\&quot;auth_overrides_email\&quot;:false,\&quot;enable_discourse_connect\&quot;:false,\&quot;discourse_connect_overrides_avatar\&quot;:false,\&quot;hide_email_address_taken\&quot;:false,\&quot;min_username_length\&quot;:3,\&quot;max_username_length\&quot;:20,\&quot;unicode_usernames\&quot;:false,\&quot;min_password_length\&quot;:10,\&quot;min_admin_password_length\&quot;:15,\&quot;email_editable\&quot;:true,\&quot;logout_redirect\&quot;:\&quot;\&quot;,\&quot;full_name_required\&quot;:false,\&quot;enable_names\&quot;:true,\&quot;invite_expiry_days\&quot;:90,\&quot;invites_per_page\&quot;:40,\&quot;delete_user_max_post_age\&quot;:60,\&quot;delete_all_posts_max\&quot;:15,\&quot;prioritize_username_in_ux\&quot;:true,\&quot;enable_user_directory\&quot;:true,\&quot;allow_anonymous_posting\&quot;:false,\&quot;anonymous_posting_min_trust_level\&quot;:1,\&quot;allow_users_to_hide_profile\&quot;:true,\&quot;hide_user_profiles_from_public\&quot;:false,\&quot;allow_featured_topic_on_user_profiles\&quot;:true,\&quot;hide_suspension_reasons\&quot;:false,\&quot;ignored_users_count_message_threshold\&quot;:5,\&quot;ignored_users_message_gap_days\&quot;:365,\&quot;user_selected_primary_groups\&quot;:false,\&quot;gravatar_name\&quot;:\&quot;Gravatar\&quot;,\&quot;gravatar_base_url\&quot;:\&quot;www.gravatar.com\&quot;,\&quot;gravatar_login_url\&quot;:\&quot;/emails\&quot;,\&quot;enable_group_directory\&quot;:true,\&quot;enable_category_group_moderation\&quot;:false,\&quot;min_post_length\&quot;:20,\&quot;min_first_post_length\&quot;:20,\&quot;min_personal_message_post_length\&quot;:10,\&quot;max_post_length\&quot;:32000,\&quot;topic_featured_link_enabled\&quot;:true,\&quot;min_topic_views_for_delete_confirm\&quot;:5000,\&quot;min_topic_title_length\&quot;:15,\&quot;max_topic_title_length\&quot;:255,\&quot;enable_filtered_replies_view\&quot;:false,\&quot;min_personal_message_title_length\&quot;:2,\&quot;allow_uncategorized_topics\&quot;:false,\&quot;min_title_similar_length\&quot;:10,\&quot;enable_personal_messages\&quot;:true,\&quot;personal_message_enabled_groups\&quot;:\&quot;11\&quot;,\&quot;edit_history_visible_to_public\&quot;:true,\&quot;delete_removed_posts_after\&quot;:24,\&quot;traditional_markdown_linebreaks\&quot;:false,\&quot;enable_markdown_typographer\&quot;:true,\&quot;enable_markdown_linkify\&quot;:true,\&quot;markdown_linkify_tlds\&quot;:\&quot;com|net|org|io|onion|co|tv|ru|cn|us|uk|me|de|fr|fi|gov\&quot;,\&quot;markdown_typographer_quotation_marks\&quot;:\&quot;“|”|‘|’\&quot;,\&quot;enable_rich_text_paste\&quot;:true,\&quot;suppress_reply_directly_below\&quot;:true,\&quot;suppress_reply_directly_above\&quot;:true,\&quot;max_reply_history\&quot;:1,\&quot;enable_mentions\&quot;:true,\&quot;max_users_notified_per_group_mention\&quot;:100,\&quot;here_mention\&quot;:\&quot;here\&quot;,\&quot;newuser_max_embedded_media\&quot;:1,\&quot;newuser_max_attachments\&quot;:0,\&quot;show_pinned_excerpt_mobile\&quot;:true,\&quot;show_pinned_excerpt_desktop\&quot;:true,\&quot;display_name_on_posts\&quot;:false,\&quot;show_time_gap_days\&quot;:7,\&quot;short_progress_text_threshold\&quot;:10000,\&quot;default_code_lang\&quot;:\&quot;applescript\&quot;,\&quot;autohighlight_all_code\&quot;:true,\&quot;highlighted_languages\&quot;:\&quot;bash|javascript|json|markdown|objectivec|plaintext|r|shell|sql|swift|xml|yaml|applescript|applescript|applescript|applescript\&quot;,\&quot;show_copy_button_on_codeblocks\&quot;:true,\&quot;enable_emoji\&quot;:true,\&quot;enable_emoji_shortcuts\&quot;:true,\&quot;emoji_set\&quot;:\&quot;apple\&quot;,\&quot;emoji_autocomplete_min_chars\&quot;:0,\&quot;enable_inline_emoji_translation\&quot;:false,\&quot;code_formatting_style\&quot;:\&quot;code-fences\&quot;,\&quot;allowed_href_schemes\&quot;:\&quot;\&quot;,\&quot;watched_words_regular_expressions\&quot;:false,\&quot;enable_diffhtml_preview\&quot;:false,\&quot;enable_fast_edit\&quot;:true,\&quot;old_post_notice_days\&quot;:14,\&quot;blur_tl0_flagged_posts_media\&quot;:true,\&quot;email_time_window_mins\&quot;:10,\&quot;disable_digest_emails\&quot;:false,\&quot;email_in\&quot;:false,\&quot;enable_imap\&quot;:false,\&quot;enable_smtp\&quot;:false,\&quot;disable_emails\&quot;:\&quot;no\&quot;,\&quot;bounce_score_threshold\&quot;:4,\&quot;enable_secondary_emails\&quot;:true,\&quot;max_image_size_kb\&quot;:4096,\&quot;max_attachment_size_kb\&quot;:4096,\&quot;authorized_extensions\&quot;:\&quot;jpg|jpeg|png|gif|heic|heif|webp|applescript|md|shortcut|svg|zip|pdf\&quot;,\&quot;authorized_extensions_for_staff\&quot;:\&quot;mov|mp3|mp4\&quot;,\&quot;max_image_width\&quot;:690,\&quot;max_image_height\&quot;:500,\&quot;prevent_anons_from_downloading_files\&quot;:false,\&quot;secure_media\&quot;:false,\&quot;secure_uploads\&quot;:false,\&quot;enable_s3_uploads\&quot;:false,\&quot;allow_profile_backgrounds\&quot;:true,\&quot;allow_uploaded_avatars\&quot;:\&quot;0\&quot;,\&quot;default_avatars\&quot;:\&quot;\&quot;,\&quot;external_system_avatars_enabled\&quot;:true,\&quot;external_system_avatars_url\&quot;:\&quot;/letter_avatar_proxy/v4/letter/{first_letter}/{color}/{size}.png\&quot;,\&quot;external_emoji_url\&quot;:\&quot;\&quot;,\&quot;selectable_avatars_mode\&quot;:\&quot;disabled\&quot;,\&quot;selectable_avatars\&quot;:\&quot;\&quot;,\&quot;allow_staff_to_upload_any_file_in_pm\&quot;:true,\&quot;simultaneous_uploads\&quot;:5,\&quot;composer_media_optimization_image_enabled\&quot;:true,\&quot;composer_media_optimization_image_bytes_optimization_threshold\&quot;:524288,\&quot;composer_media_optimization_image_resize_dimensions_threshold\&quot;:1920,\&quot;composer_media_optimization_image_resize_width_target\&quot;:1920,\&quot;composer_media_optimization_image_resize_pre_multiply\&quot;:false,\&quot;composer_media_optimization_image_resize_linear_rgb\&quot;:false,\&quot;composer_media_optimization_image_encode_quality\&quot;:75,\&quot;composer_media_optimization_debug_mode\&quot;:false,\&quot;min_trust_level_to_allow_profile_background\&quot;:0,\&quot;min_trust_level_to_allow_user_card_background\&quot;:0,\&quot;min_trust_level_to_allow_ignore\&quot;:2,\&quot;tl1_requires_read_posts\&quot;:30,\&quot;tl3_links_no_follow\&quot;:false,\&quot;enforce_second_factor\&quot;:\&quot;no\&quot;,\&quot;moderators_change_post_ownership\&quot;:false,\&quot;moderators_view_emails\&quot;:false,\&quot;use_admin_ip_allowlist\&quot;:false,\&quot;allowed_iframes\&quot;:\&quot;https://www.google.com/maps/embed?|https://www.openstreetmap.org/export/embed.html?|https://calendar.google.com/calendar/embed?|https://codepen.io/|https://www.instagram.com|https://forum.latenightsw.com|https://apple.com|https://www.macscripter.net/discobot/certificate.svg\&quot;,\&quot;can_permanently_delete\&quot;:false,\&quot;max_oneboxes_per_post\&quot;:50,\&quot;reviewable_claiming\&quot;:\&quot;disabled\&quot;,\&quot;reviewable_default_topics\&quot;:false,\&quot;reviewable_default_visibility\&quot;:\&quot;low\&quot;,\&quot;alert_admins_if_errors_per_minute\&quot;:0,\&quot;alert_admins_if_errors_per_hour\&quot;:0,\&quot;max_prints_per_hour_per_user\&quot;:5,\&quot;invite_link_max_redemptions_limit\&quot;:5000,\&quot;invite_link_max_redemptions_limit_users\&quot;:10,\&quot;enable_chunked_encoding\&quot;:true,\&quot;long_polling_base_url\&quot;:\&quot;/\&quot;,\&quot;background_polling_interval\&quot;:60000,\&quot;polling_interval\&quot;:3000,\&quot;anon_polling_interval\&quot;:25000,\&quot;flush_timings_secs\&quot;:60,\&quot;verbose_localization\&quot;:false,\&quot;max_new_topics\&quot;:500,\&quot;enable_safe_mode\&quot;:true,\&quot;enable_experimental_hashtag_autocomplete\&quot;:false,\&quot;experimental_hashtag_search_result_limit\&quot;:20,\&quot;enable_new_user_profile_nav_groups\&quot;:\&quot;\&quot;,\&quot;enable_experimental_topic_timeline_groups\&quot;:\&quot;\&quot;,\&quot;navigation_menu\&quot;:\&quot;legacy\&quot;,\&quot;default_sidebar_categories\&quot;:\&quot;11|12|39|14|15|2|4|3\&quot;,\&quot;default_sidebar_tags\&quot;:\&quot;\&quot;,\&quot;tos_url\&quot;:\&quot;\&quot;,\&quot;privacy_policy_url\&quot;:\&quot;\&quot;,\&quot;faq_url\&quot;:\&quot;\&quot;,\&quot;enable_backups\&quot;:true,\&quot;backup_location\&quot;:\&quot;local\&quot;,\&quot;maximum_backups\&quot;:5,\&quot;include_s3_uploads_in_backups\&quot;:false,\&quot;use_pg_headlines_for_excerpt\&quot;:false,\&quot;min_search_term_length\&quot;:3,\&quot;log_search_queries\&quot;:true,\&quot;version_checks\&quot;:true,\&quot;suppress_uncategorized_badge\&quot;:true,\&quot;header_dropdown_category_count\&quot;:8,\&quot;slug_generation_method\&quot;:\&quot;ascii\&quot;,\&quot;summary_timeline_button\&quot;:false,\&quot;topic_views_heat_low\&quot;:1000,\&quot;topic_views_heat_medium\&quot;:2000,\&quot;topic_views_heat_high\&quot;:3500,\&quot;topic_post_like_heat_low\&quot;:0.5,\&quot;topic_post_like_heat_medium\&quot;:1.0,\&quot;topic_post_like_heat_high\&quot;:2.0,\&quot;history_hours_low\&quot;:12,\&quot;history_hours_medium\&quot;:24,\&quot;history_hours_high\&quot;:48,\&quot;cold_age_days_low\&quot;:14,\&quot;cold_age_days_medium\&quot;:90,\&quot;cold_age_days_high\&quot;:180,\&quot;global_notice\&quot;:\&quot;\&quot;,\&quot;general_category_id\&quot;:4,\&quot;default_composer_category\&quot;:\&quot;11\&quot;,\&quot;show_create_topics_notice\&quot;:true,\&quot;welcome_topic_id\&quot;:7,\&quot;bootstrap_mode_min_users\&quot;:50,\&quot;bootstrap_mode_enabled\&quot;:false,\&quot;automatically_unpin_topics\&quot;:true,\&quot;read_time_word_count\&quot;:500,\&quot;topic_page_title_includes_category\&quot;:true,\&quot;svg_icon_subset\&quot;:\&quot;\&quot;,\&quot;allow_bulk_invite\&quot;:true,\&quot;use_polymorphic_bookmarks\&quot;:true,\&quot;suggest_weekends_in_date_pickers\&quot;:true,\&quot;disable_mailing_list_mode\&quot;:false,\&quot;default_topics_automatic_unpin\&quot;:true,\&quot;mute_all_categories_by_default\&quot;:false,\&quot;tagging_enabled\&quot;:true,\&quot;tag_style\&quot;:\&quot;simple\&quot;,\&quot;max_tags_per_topic\&quot;:5,\&quot;max_tag_length\&quot;:20,\&quot;min_trust_level_to_tag_topics\&quot;:\&quot;0\&quot;,\&quot;max_tag_search_results\&quot;:5,\&quot;max_tags_in_filter_list\&quot;:30,\&quot;tags_sort_alphabetically\&quot;:false,\&quot;tags_listed_by_group\&quot;:false,\&quot;pm_tags_allowed_for_groups\&quot;:\&quot;\&quot;,\&quot;suppress_overlapping_tags_in_list\&quot;:false,\&quot;remove_muted_tags_from_latest\&quot;:\&quot;always\&quot;,\&quot;force_lowercase_tags\&quot;:true,\&quot;dashboard_hidden_reports\&quot;:\&quot;\&quot;,\&quot;dashboard_visible_tabs\&quot;:\&quot;moderation|security|reports\&quot;,\&quot;dashboard_general_tab_activity_metrics\&quot;:\&quot;page_view_total_reqs|visits|time_to_first_response|likes|flags|user_to_user_private_messages_with_replies|signups\&quot;,\&quot;presence_enabled\&quot;:true,\&quot;presence_max_users_shown\&quot;:5,\&quot;details_enabled\&quot;:true,\&quot;discourse_narrative_bot_enabled\&quot;:true,\&quot;discourse_local_dates_email_format\&quot;:\&quot;YYYY-MM-DDTHH:mm:ss[Z]\&quot;,\&quot;discourse_local_dates_enabled\&quot;:true,\&quot;discourse_local_dates_default_formats\&quot;:\&quot;LLL|LTS|LL|LLLL\&quot;,\&quot;discourse_local_dates_default_timezones\&quot;:\&quot;Europe/Paris|America/Los_Angeles\&quot;,\&quot;poll_enabled\&quot;:true,\&quot;poll_maximum_options\&quot;:20,\&quot;poll_minimum_trust_level_to_create\&quot;:1,\&quot;poll_groupable_user_fields\&quot;:\&quot;\&quot;,\&quot;poll_export_data_explorer_query_id\&quot;:-16,\&quot;whos_online_active_timeago\&quot;:20,\&quot;whos_online_collapse_threshold\&quot;:10,\&quot;whos_online_maximum_display\&quot;:50,\&quot;whos_online_minimum_display\&quot;:1,\&quot;whos_online_hide_below_minimum_display\&quot;:false,\&quot;whos_online_display_public\&quot;:true,\&quot;whos_online_display_min_trust_level\&quot;:0,\&quot;whos_online_avatar_indicator\&quot;:\&quot;ring\&quot;,\&quot;whos_online_avatar_indicator_topic_lists\&quot;:false,\&quot;user_notes_enabled\&quot;:true,\&quot;docs_enabled\&quot;:false,\&quot;docs_categories\&quot;:\&quot;\&quot;,\&quot;docs_tags\&quot;:\&quot;documentation\&quot;,\&quot;docs_add_solved_filter\&quot;:false,\&quot;docs_add_to_top_menu\&quot;:false,\&quot;solved_enabled\&quot;:true,\&quot;allow_solved_on_all_topics\&quot;:false,\&quot;accept_all_solutions_trust_level\&quot;:4,\&quot;empty_box_on_unsolved\&quot;:false,\&quot;show_filter_by_solved_status\&quot;:false,\&quot;chat_enabled\&quot;:true,\&quot;chat_allowed_groups\&quot;:\&quot;3|11|12|13|14\&quot;,\&quot;chat_channel_retention_days\&quot;:90,\&quot;chat_max_direct_message_users\&quot;:20,\&quot;chat_dm_retention_days\&quot;:0,\&quot;chat_allow_archiving_channels\&quot;:false,\&quot;chat_default_channel_id\&quot;:\&quot;\&quot;,\&quot;default_emoji_reactions\&quot;:\&quot;+1|heart|tada|pray\&quot;,\&quot;chat_minimum_message_length\&quot;:1,\&quot;chat_maximum_message_length\&quot;:6000,\&quot;chat_allow_uploads\&quot;:true,\&quot;max_chat_auto_joined_users\&quot;:10000,\&quot;direct_message_enabled_groups\&quot;:\&quot;11\&quot;,\&quot;chat_message_flag_allowed_groups\&quot;:\&quot;11\&quot;,\&quot;max_mentions_per_chat_message\&quot;:5,\&quot;available_locales\&quot;:\&quot;[{\\\&quot;name\\\&quot;:\\\&quot;اللغة العربية\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;ar\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;беларуская мова\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;be\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;български език\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;bg\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;bosanski jezik\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;bs_BA\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;català\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;ca\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;čeština\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;cs\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;dansk\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;da\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Deutsch\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;de\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;ελληνικά\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;el\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;English (US)\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;en\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;English (UK)\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;en_GB\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Español\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;es\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;eesti\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;et\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;فارسی\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;fa_IR\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;suomi\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;fi\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Français\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;fr\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;galego\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;gl\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;עברית\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;he\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;hrvatski jezik\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;hr\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;magyar\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;hu\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Հայերեն\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;hy\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Indonesian\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;id\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Italiano\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;it\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;日本語\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;ja\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;한국어\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;ko\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;lietuvių kalba\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;lt\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;latviešu valoda\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;lv\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Norsk bokmål\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;nb_NO\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Nederlands\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;nl\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;polski\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;pl_PL\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Português\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;pt\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Português (BR)\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;pt_BR\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;limba română\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;ro\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Русский\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;ru\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;slovenčina\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;sk\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;slovenščina\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;sl\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Shqip\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;sq\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;српски језик\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;sr\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;svenska\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;sv\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Kiswahili\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;sw\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;తెలుగు\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;te\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;ไทย\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;th\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Türkçe\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;tr_TR\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;українська мова\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;uk\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;اردو\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;ur\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;Việt Nam\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;vi\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;简体中文\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;zh_CN\\\&quot;},{\\\&quot;name\\\&quot;:\\\&quot;繁體中文\\\&quot;,\\\&quot;value\\\&quot;:\\\&quot;zh_TW\\\&quot;}]\&quot;,\&quot;require_invite_code\&quot;:false,\&quot;site_logo_url\&quot;:\&quot;https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png\&quot;,\&quot;site_logo_small_url\&quot;:\&quot;https://www.macscripter.net/uploads/default/original/1X/5b873abd97fd5b0397399636b41aac1d8f98ce7e.png\&quot;,\&quot;site_mobile_logo_url\&quot;:\&quot;https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png\&quot;,\&quot;site_favicon_url\&quot;:\&quot;https://www.macscripter.net/uploads/default/optimized/1X/5b873abd97fd5b0397399636b41aac1d8f98ce7e_2_32x32.png\&quot;,\&quot;site_logo_dark_url\&quot;:\&quot;https://www.macscripter.net/uploads/default/original/1X/7b47174034f9bc349f0fc32034941387d9fd4c12.png\&quot;,\&quot;site_logo_small_dark_url\&quot;:\&quot;https://www.macscripter.net/uploads/default/original/1X/7f4ccd4ea6ce2bbd91f7b0f65315ee9365aaef12.png\&quot;,\&quot;site_mobile_logo_dark_url\&quot;:\&quot;https://www.macscripter.net/uploads/default/original/1X/7b47174034f9bc349f0fc32034941387d9fd4c12.png\&quot;}&quot;,&quot;customHTML&quot;:&quot;{\&quot;top\&quot;:\&quot;\&quot;,\&quot;footer\&quot;:\&quot;\&quot;}&quot;,&quot;banner&quot;:&quot;{\&quot;html\&quot;:\&quot;\u003ch1\u003e\\n\u003ca name=\\\&quot;welcome-to-the-new-macscripternet-1\\\&quot; class=\\\&quot;anchor\\\&quot; href=\\\&quot;#welcome-to-the-new-macscripternet-1\\\&quot;\u003e\u003c\\/a\u003eWelcome to the new \u003ca href=\\\&quot;http://MacScripter.net\\\&quot;\u003eMacScripter.net\u003c\\/a\u003e!\u003c\\/h1\u003e\\n\u003cp\u003eIf you have an account on the original \u003ca href=\\\&quot;http://MacScripter.net\\\&quot;\u003eMacScripter.net\u003c\\/a\u003e please use the new site’s Forgot Password feature to establish a new password in order to login.  Please refer to our \u003ca href=\\\&quot;/faq\\\&quot;\u003eFAQ\u003c\\/a\u003e for more information on using the new site.\u003c\\/p\u003e\&quot;,\&quot;key\&quot;:73932,\&quot;url\&quot;:\&quot;https://www.macscripter.net/t/migration-progress/73932\&quot;}&quot;,&quot;customEmoji&quot;:&quot;[]&quot;,&quot;isReadOnly&quot;:&quot;false&quot;,&quot;isStaffWritesOnly&quot;:&quot;false&quot;,&quot;activatedThemes&quot;:&quot;{\&quot;1\&quot;:\&quot;Default\&quot;,\&quot;2\&quot;:\&quot;DiscoTOC\&quot;,\&quot;3\&quot;:\&quot;Open in Script Editor Button\&quot;,\&quot;4\&quot;:\&quot;Hamburger links component\&quot;}&quot;,&quot;topic_76710&quot;:&quot;{\&quot;post_stream\&quot;:{\&quot;posts\&quot;:[{\&quot;id\&quot;:237260,\&quot;name\&quot;:null,\&quot;username\&quot;:\&quot;Jeffkr\&quot;,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/j/7ea924/{size}.png\&quot;,\&quot;created_at\&quot;:\&quot;2025-01-25T07:30:43.211Z\&quot;,\&quot;cooked\&quot;:\&quot;\\u003cp\\u003eHello all,\\u003c/p\\u003e\\n\\u003cp\\u003eI’m trying to automate the process of clicking the “OK” button in the macOS file access permission dialogs that appear when an app requests access to a folder (e.g., Desktop).\\u003c/p\\u003e\\n\\u003cp\\u003eFor example, the dialog typically looks like this:\\u003c/p\\u003e\\n\\u003cp\\u003e\\u003cem\\u003e“MyApplication.app” would like to access files in your Desktop folder.\\u003c/em\\u003e\\u003c/p\\u003e\\n\\u003cul\\u003e\\n\\u003cli\\u003eButtons: “Don’t Allow”, “OK”\\u003c/li\\u003e\\n\\u003c/ul\\u003e\\n\\u003cp\\u003eIn my case, I don’t really care which button is pressed, but ideally, I’d like the “OK” button to be clicked automatically.\\u003c/p\\u003e\\n\\u003cp\\u003eThe goal is to avoid manual intervention in \\u003cstrong\\u003eSecurity \\u0026amp; Privacy\\u003c/strong\\u003e settings, since the users do not have administrator passwords.\\u003c/p\\u003e\\n\\u003cp\\u003eAny suggestions on how to achieve this programmatically?\\u003c/p\\u003e\\n\\u003cp\\u003eThanks in advance,\\u003cbr\\u003e\\nJeff\\u003c/p\\u003e\&quot;,\&quot;post_number\&quot;:1,\&quot;post_type\&quot;:1,\&quot;updated_at\&quot;:\&quot;2025-01-25T07:30:43.211Z\&quot;,\&quot;reply_count\&quot;:0,\&quot;reply_to_post_number\&quot;:null,\&quot;quote_count\&quot;:0,\&quot;incoming_link_count\&quot;:264,\&quot;reads\&quot;:35,\&quot;readers_count\&quot;:34,\&quot;score\&quot;:1327.0,\&quot;yours\&quot;:false,\&quot;topic_id\&quot;:76710,\&quot;topic_slug\&quot;:\&quot;automating-button-click-in-macos-file-access-permission-dialog\&quot;,\&quot;display_username\&quot;:null,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;version\&quot;:1,\&quot;can_edit\&quot;:false,\&quot;can_delete\&quot;:false,\&quot;can_recover\&quot;:false,\&quot;can_wiki\&quot;:false,\&quot;read\&quot;:true,\&quot;user_title\&quot;:null,\&quot;bookmarked\&quot;:false,\&quot;actions_summary\&quot;:[],\&quot;moderator\&quot;:false,\&quot;admin\&quot;:false,\&quot;staff\&quot;:false,\&quot;user_id\&quot;:4238,\&quot;hidden\&quot;:false,\&quot;trust_level\&quot;:2,\&quot;deleted_at\&quot;:null,\&quot;user_deleted\&quot;:false,\&quot;edit_reason\&quot;:null,\&quot;can_view_edit_history\&quot;:true,\&quot;wiki\&quot;:false,\&quot;mentioned_users\&quot;:[],\&quot;can_accept_answer\&quot;:false,\&quot;can_unaccept_answer\&quot;:false,\&quot;accepted_answer\&quot;:false},{\&quot;id\&quot;:237267,\&quot;name\&quot;:null,\&quot;username\&quot;:\&quot;robertfern\&quot;,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/r/a587f6/{size}.png\&quot;,\&quot;created_at\&quot;:\&quot;2025-01-25T16:21:57.330Z\&quot;,\&quot;cooked\&quot;:\&quot;\\u003cp\\u003eIf they don’t have administrator accounts, they won’t be able to do it anyway, because it will ask for the username and password of an administrator\\u003c/p\\u003e\&quot;,\&quot;post_number\&quot;:2,\&quot;post_type\&quot;:1,\&quot;updated_at\&quot;:\&quot;2025-01-25T16:22:33.724Z\&quot;,\&quot;reply_count\&quot;:0,\&quot;reply_to_post_number\&quot;:null,\&quot;quote_count\&quot;:0,\&quot;incoming_link_count\&quot;:1,\&quot;reads\&quot;:29,\&quot;readers_count\&quot;:28,\&quot;score\&quot;:10.8,\&quot;yours\&quot;:false,\&quot;topic_id\&quot;:76710,\&quot;topic_slug\&quot;:\&quot;automating-button-click-in-macos-file-access-permission-dialog\&quot;,\&quot;display_username\&quot;:null,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;version\&quot;:1,\&quot;can_edit\&quot;:false,\&quot;can_delete\&quot;:false,\&quot;can_recover\&quot;:false,\&quot;can_wiki\&quot;:false,\&quot;read\&quot;:true,\&quot;user_title\&quot;:null,\&quot;bookmarked\&quot;:false,\&quot;actions_summary\&quot;:[],\&quot;moderator\&quot;:false,\&quot;admin\&quot;:false,\&quot;staff\&quot;:false,\&quot;user_id\&quot;:20525,\&quot;hidden\&quot;:false,\&quot;trust_level\&quot;:2,\&quot;deleted_at\&quot;:null,\&quot;user_deleted\&quot;:false,\&quot;edit_reason\&quot;:null,\&quot;can_view_edit_history\&quot;:true,\&quot;wiki\&quot;:false,\&quot;mentioned_users\&quot;:[],\&quot;can_accept_answer\&quot;:false,\&quot;can_unaccept_answer\&quot;:false,\&quot;accepted_answer\&quot;:false},{\&quot;id\&quot;:237268,\&quot;name\&quot;:null,\&quot;username\&quot;:\&quot;Jeffkr\&quot;,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/j/7ea924/{size}.png\&quot;,\&quot;created_at\&quot;:\&quot;2025-01-25T16:32:37.699Z\&quot;,\&quot;cooked\&quot;:\&quot;\\u003cp\\u003eI have the password encrypted in the script. However, in this case I would not care if they knew the password, my primary goal is to prevent the need for the user to press a button.\\u003c/p\\u003e\&quot;,\&quot;post_number\&quot;:3,\&quot;post_type\&quot;:1,\&quot;updated_at\&quot;:\&quot;2025-01-25T16:32:37.699Z\&quot;,\&quot;reply_count\&quot;:0,\&quot;reply_to_post_number\&quot;:null,\&quot;quote_count\&quot;:0,\&quot;incoming_link_count\&quot;:2,\&quot;reads\&quot;:29,\&quot;readers_count\&quot;:28,\&quot;score\&quot;:15.8,\&quot;yours\&quot;:false,\&quot;topic_id\&quot;:76710,\&quot;topic_slug\&quot;:\&quot;automating-button-click-in-macos-file-access-permission-dialog\&quot;,\&quot;display_username\&quot;:null,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;version\&quot;:1,\&quot;can_edit\&quot;:false,\&quot;can_delete\&quot;:false,\&quot;can_recover\&quot;:false,\&quot;can_wiki\&quot;:false,\&quot;read\&quot;:true,\&quot;user_title\&quot;:null,\&quot;bookmarked\&quot;:false,\&quot;actions_summary\&quot;:[],\&quot;moderator\&quot;:false,\&quot;admin\&quot;:false,\&quot;staff\&quot;:false,\&quot;user_id\&quot;:4238,\&quot;hidden\&quot;:false,\&quot;trust_level\&quot;:2,\&quot;deleted_at\&quot;:null,\&quot;user_deleted\&quot;:false,\&quot;edit_reason\&quot;:null,\&quot;can_view_edit_history\&quot;:true,\&quot;wiki\&quot;:false,\&quot;mentioned_users\&quot;:[],\&quot;can_accept_answer\&quot;:false,\&quot;can_unaccept_answer\&quot;:false,\&quot;accepted_answer\&quot;:false},{\&quot;id\&quot;:237269,\&quot;name\&quot;:null,\&quot;username\&quot;:\&quot;robertfern\&quot;,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/r/a587f6/{size}.png\&quot;,\&quot;created_at\&quot;:\&quot;2025-01-25T17:05:30.936Z\&quot;,\&quot;cooked\&quot;:\&quot;\\u003cp\\u003eyou would have to use GUI scripting to achieve this. Also an App can’t GUI script itself, so you would have to call a second script using\\u003c/p\\u003e\\n\\u003cblockquote\\u003e\\n\\u003cp\\u003edo shell script “osascript”\\u003c/p\\u003e\\n\\u003c/blockquote\\u003e\\n\\u003cp\\u003eDo you have a copy of the script? If not, then make a short script that will cause the dialog to appear and post it.\\u003c/p\\u003e\&quot;,\&quot;post_number\&quot;:4,\&quot;post_type\&quot;:1,\&quot;updated_at\&quot;:\&quot;2025-01-25T17:08:11.715Z\&quot;,\&quot;reply_count\&quot;:1,\&quot;reply_to_post_number\&quot;:null,\&quot;quote_count\&quot;:0,\&quot;incoming_link_count\&quot;:1,\&quot;reads\&quot;:29,\&quot;readers_count\&quot;:28,\&quot;score\&quot;:15.8,\&quot;yours\&quot;:false,\&quot;topic_id\&quot;:76710,\&quot;topic_slug\&quot;:\&quot;automating-button-click-in-macos-file-access-permission-dialog\&quot;,\&quot;display_username\&quot;:null,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;version\&quot;:1,\&quot;can_edit\&quot;:false,\&quot;can_delete\&quot;:false,\&quot;can_recover\&quot;:false,\&quot;can_wiki\&quot;:false,\&quot;read\&quot;:true,\&quot;user_title\&quot;:null,\&quot;bookmarked\&quot;:false,\&quot;actions_summary\&quot;:[],\&quot;moderator\&quot;:false,\&quot;admin\&quot;:false,\&quot;staff\&quot;:false,\&quot;user_id\&quot;:20525,\&quot;hidden\&quot;:false,\&quot;trust_level\&quot;:2,\&quot;deleted_at\&quot;:null,\&quot;user_deleted\&quot;:false,\&quot;edit_reason\&quot;:null,\&quot;can_view_edit_history\&quot;:true,\&quot;wiki\&quot;:false,\&quot;mentioned_users\&quot;:[],\&quot;can_accept_answer\&quot;:false,\&quot;can_unaccept_answer\&quot;:false,\&quot;accepted_answer\&quot;:false},{\&quot;id\&quot;:237271,\&quot;name\&quot;:null,\&quot;username\&quot;:\&quot;Jeffkr\&quot;,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/j/7ea924/{size}.png\&quot;,\&quot;created_at\&quot;:\&quot;2025-01-25T18:00:21.650Z\&quot;,\&quot;cooked\&quot;:\&quot;\\u003cp\\u003eHello robertfern,\\u003c/p\\u003e\\n\\u003cp\\u003eBelow is a copy of the script, which only requires permission to control the Desktop when compiled as an “Application” script:\\u003c/p\\u003e\\n\\u003cpre\\u003e\\u003ccode class=\\\&quot;lang-applescript\\\&quot;\\u003e\\n-- Define username and password for the sudo command\\nset uName to \\\&quot;administrator\\\&quot; -- Replace with your actual username\\nset pass1 to \\\&quot;myPassWord\\\&quot;\\ntry\\n\\t-- Step 1: Copy \\\&quot;Illustrator.qlgenerator\\\&quot; from \\\&quot;/System/Library/QuickLook\\\&quot; to the Desktop\\n\\tdo shell script \\\&quot;cp -R /System/Library/QuickLook/Illustrator.qlgenerator /Users/\\\&quot; \\u0026amp; uName \\u0026amp; \\\&quot;/Desktop/Illustrator.qlgenerator\\\&quot; user name uName password pass1 with administrator privileges\\non error\\n\\tset uName to \\\&quot;Administrator\\\&quot;\\n\\tdo shell script \\\&quot;cp -R /System/Library/QuickLook/Illustrator.qlgenerator /Users/\\\&quot; \\u0026amp; uName \\u0026amp; \\\&quot;/Desktop/Illustrator.qlgenerator\\\&quot; user name uName password pass1 with administrator privileges\\nend try\\n\\n-- Step 2: Ensure full read/write permissions on the copied file on the Desktop\\nset desktopFolder to \\\&quot;/Users/\\\&quot; \\u0026amp; uName \\u0026amp; \\\&quot;/Desktop/Illustrator.qlgenerator\\\&quot;\\ndo shell script \\\&quot;sudo chmod -R 777 \\\&quot; \\u0026amp; quoted form of desktopFolder with administrator privileges\\n\\n-- Step 3: Open \\\&quot;Illustrator.qlgenerator\\\&quot; by right-clicking and showing package contents\\ntell application \\\&quot;Finder\\\&quot;\\n\\t-- Use the absolute path to the desktop and the Illustrator.qlgenerator file\\n\\tset illustratorFilePath to \\\&quot;/Users/\\\&quot; \\u0026amp; uName \\u0026amp; \\\&quot;/Desktop/Illustrator.qlgenerator\\\&quot;\\n\\tset illustratorFile to POSIX file illustratorFilePath as alias\\n\\topen illustratorFile\\n\\tdelay 1 -- Allow Finder to open the file\\n\\tset packageContents to folder \\\&quot;Contents\\\&quot; of illustratorFile\\nend tell\\n\\n\\n---Press the \\\&quot;OK\\\&quot; button\\n\\n\\n-- Step 4: Open \\\&quot;Info.plist\\\&quot; in the \\\&quot;Contents\\\&quot; folder with TextEdit\\ntell application \\\&quot;TextEdit\\\&quot;\\n\\t-- Build the POSIX path to Info.plist\\n\\tset plistPath to illustratorFilePath \\u0026amp; \\\&quot;/Contents/Info.plist\\\&quot;\\n\\t\\t-- Step 5: Change the file permissions to be writable (using sudo)\\n\\tdo shell script \\\&quot;sudo chmod 777 \\\&quot; \\u0026amp; quoted form of plistPath with administrator privileges\\n\\t-- Open Info.plist\\n\\topen POSIX file plistPath\\nend tell\\n\\n-- Step 6: Delete all text in the opened Info.plist\\ntell application \\\&quot;TextEdit\\\&quot;\\n\\tset the text of document 1 to \\\&quot;\\\&quot;\\nend tell\\n\\n-- Step 7: Replace content with new Info.plist XML\\nset newPlistContent to \\\&quot;\\u0026lt;?xml version=\\\\\\\&quot;1.0\\\\\\\&quot; encoding=\\\\\\\&quot;UTF-8\\\\\\\&quot;?\\u0026gt;\\n\\u0026lt;!DOCTYPE plist PUBLIC \\\\\\\&quot;-//Apple//DTD PLIST 1.0//EN\\\\\\\&quot; http://www.apple.com/DTDs/PropertyList-1.0.dtd\\u0026gt;\\n\\u0026lt;plist version=\\\\\\\&quot;1.0\\\\\\\&quot;\\u0026gt;\\n\\u0026lt;dict\\u0026gt;\\n\\u0026lt;key\\u0026gt;BuildMachineOSBuild\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;20A241133\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleDevelopmentRegion\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;English\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleDocumentTypes\\u0026lt;/key\\u0026gt;\\n\\u0026lt;array\\u0026gt;\\n\\u0026lt;dict\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleTypeRole\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;QLGenerator\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;LSItemContentTypes\\u0026lt;/key\\u0026gt;\\n\\u0026lt;array\\u0026gt;\\n\\u0026lt;string\\u0026gt;com.adobe.encapsulated-postscript\\u0026lt;/string\\u0026gt;\\n\\u0026lt;/array\\u0026gt;\\n\\u0026lt;/dict\\u0026gt;\\n\\u0026lt;/array\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleExecutable\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;Illustrator\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleGetInfoString\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;5.0, Copyright Apple Inc. 2007-2013\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleIdentifier\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;com.apple.qlgenerator.illustrator\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleInfoDictionaryVersion\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;6.0\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleName\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;Illustrator\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleShortVersionString\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;5.0\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleSupportedPlatforms\\u0026lt;/key\\u0026gt;\\n\\u0026lt;array\\u0026gt;\\n\\u0026lt;string\\u0026gt;MacOSX\\u0026lt;/string\\u0026gt;\\n\\u0026lt;/array\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFBundleVersion\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;950.2\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFPlugInDynamicRegisterFunction\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFPlugInDynamicRegistration\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;NO\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFPlugInFactories\\u0026lt;/key\\u0026gt;\\n\\u0026lt;dict\\u0026gt;\\n\\u0026lt;key\\u0026gt;D656108A-6A50-45BF-A43E-F48A8398E749\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;QuickLookGeneratorPluginFactory\\u0026lt;/string\\u0026gt;\\n\\u0026lt;/dict\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFPlugInTypes\\u0026lt;/key\\u0026gt;\\n\\u0026lt;dict\\u0026gt;\\n\\u0026lt;key\\u0026gt;5E2D9680-5022-40FA-B806-43349622E5B9\\u0026lt;/key\\u0026gt;\\n\\u0026lt;array\\u0026gt;\\n\\u0026lt;string\\u0026gt;D656108A-6A50-45BF-A43E-F48A8398E749\\u0026lt;/string\\u0026gt;\\n\\u0026lt;/array\\u0026gt;\\n\\u0026lt;/dict\\u0026gt;\\n\\u0026lt;key\\u0026gt;CFPlugInUnloadFunction\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;DTCompiler\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;com.apple.compilers.llvm.clang.1_0\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;DTPlatformBuild\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;13E6049a\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;DTPlatformName\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;macosx\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;DTPlatformVersion\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;12.7\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;DTSDKBuild\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;21G806\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;DTSDKName\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;macosx12.7.internal\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;DTXcode\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;1330\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;DTXcodeBuild\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;13E6049a\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;LSMinimumSystemVersion\\u0026lt;/key\\u0026gt;\\n\\u0026lt;string\\u0026gt;12.7\\u0026lt;/string\\u0026gt;\\n\\u0026lt;key\\u0026gt;QLNeedsToBeRunInMainThread\\u0026lt;/key\\u0026gt;\\n\\u0026lt;false/\\u0026gt;\\n\\u0026lt;key\\u0026gt;QLPreviewHeight\\u0026lt;/key\\u0026gt;\\n\\u0026lt;real\\u0026gt;600\\u0026lt;/real\\u0026gt;\\n\\u0026lt;key\\u0026gt;QLPreviewWidth\\u0026lt;/key\\u0026gt;\\n\\u0026lt;real\\u0026gt;800\\u0026lt;/real\\u0026gt;\\n\\u0026lt;key\\u0026gt;QLSupportsConcurrentRequests\\u0026lt;/key\\u0026gt;\\n\\u0026lt;true/\\u0026gt;\\n\\u0026lt;key\\u0026gt;QLThumbnailMinimumSize\\u0026lt;/key\\u0026gt;\\n\\u0026lt;integer\\u0026gt;0\\u0026lt;/integer\\u0026gt;\\n\\u0026lt;/dict\\u0026gt;\\n\\u0026lt;/plist\\u0026gt;\\\&quot;\\n\\n-- Step 8: Paste new content into Info.plist\\ntell application \\\&quot;TextEdit\\\&quot;\\n\\tset the text of document 1 to newPlistContent\\nend tell\\n\\n-- Step 9: Save the modified Info.plist back into the \\\&quot;Contents\\\&quot; folder on the Desktop\\nset plistFilePath to illustratorFilePath \\u0026amp; \\\&quot;/Contents/Info.plist\\\&quot;\\ntell application \\\&quot;TextEdit\\\&quot;\\n\\tsave document 1 in POSIX file plistFilePath\\nend tell\\n\\n-- Step 10: Close the TextEdit document without saving\\ntell application \\\&quot;TextEdit\\\&quot;\\n\\tclose document 1 saving no\\nend tell\\n\\n-- Step 11: Move the \\\&quot;Illustrator.qlgenerator\\\&quot; folder back to the QuickLook directory\\ndo shell script \\\&quot;sudo mv /Users/\\\&quot; \\u0026amp; uName \\u0026amp; \\\&quot;/Desktop/Illustrator.qlgenerator /Library/QuickLook/\\\&quot; with administrator privileges\\n\\u003c/code\\u003e\\u003c/pre\\u003e\&quot;,\&quot;post_number\&quot;:5,\&quot;post_type\&quot;:1,\&quot;updated_at\&quot;:\&quot;2025-01-25T18:00:21.650Z\&quot;,\&quot;reply_count\&quot;:0,\&quot;reply_to_post_number\&quot;:4,\&quot;quote_count\&quot;:0,\&quot;incoming_link_count\&quot;:1,\&quot;reads\&quot;:30,\&quot;readers_count\&quot;:29,\&quot;score\&quot;:11.0,\&quot;yours\&quot;:false,\&quot;topic_id\&quot;:76710,\&quot;topic_slug\&quot;:\&quot;automating-button-click-in-macos-file-access-permission-dialog\&quot;,\&quot;display_username\&quot;:null,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;version\&quot;:1,\&quot;can_edit\&quot;:false,\&quot;can_delete\&quot;:false,\&quot;can_recover\&quot;:false,\&quot;can_wiki\&quot;:false,\&quot;read\&quot;:true,\&quot;user_title\&quot;:null,\&quot;reply_to_user\&quot;:{\&quot;username\&quot;:\&quot;robertfern\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/r/a587f6/{size}.png\&quot;},\&quot;bookmarked\&quot;:false,\&quot;actions_summary\&quot;:[],\&quot;moderator\&quot;:false,\&quot;admin\&quot;:false,\&quot;staff\&quot;:false,\&quot;user_id\&quot;:4238,\&quot;hidden\&quot;:false,\&quot;trust_level\&quot;:2,\&quot;deleted_at\&quot;:null,\&quot;user_deleted\&quot;:false,\&quot;edit_reason\&quot;:null,\&quot;can_view_edit_history\&quot;:true,\&quot;wiki\&quot;:false,\&quot;mentioned_users\&quot;:[],\&quot;can_accept_answer\&quot;:false,\&quot;can_unaccept_answer\&quot;:false,\&quot;accepted_answer\&quot;:false},{\&quot;id\&quot;:237272,\&quot;name\&quot;:null,\&quot;username\&quot;:\&quot;robertfern\&quot;,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/r/a587f6/{size}.png\&quot;,\&quot;created_at\&quot;:\&quot;2025-01-25T18:11:14.384Z\&quot;,\&quot;cooked\&quot;:\&quot;\\u003cp\\u003eSo far just looking at your script, it only works if the User who is logged in is an Administrator.\\u003c/p\\u003e\\n\\u003cp\\u003eAlso had problems on this…\\u003c/p\\u003e\\n\\u003cpre\\u003e\\u003ccode class=\\\&quot;lang-applescript\\\&quot;\\u003eset desktopFolder to \\\&quot;/Users/\\\&quot; \\u0026amp; uName \\u0026amp; \\\&quot;/Desktop/Illustrator.qlgenerator\\\&quot;\\ndo shell script \\\&quot;sudo chmod -R 777 \\\&quot; \\u0026amp; quoted form of desktopFolder with administrator privileges\\n\\u003c/code\\u003e\\u003c/pre\\u003e\\n\\u003cp\\u003eit gives an error\\u003c/p\\u003e\\n\\u003cblockquote\\u003e\\n\\u003cp\\u003echmod: Unable to change file mode on /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted\\u003cbr\\u003e\\nchmod: /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted\\u003cbr\\u003e\\nchmod: Unable to change file mode on /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted\\u003c/p\\u003e\\n\\u003c/blockquote\\u003e\\n\\u003cp\\u003eBTW, don’t need &#39;sudo ’ in front of the ‘chmod’. Thats what ‘with administrator privileges’ does. Like so…\\u003c/p\\u003e\\n\\u003cpre\\u003e\\u003ccode class=\\\&quot;lang-applescript\\\&quot;\\u003edo shell script \\\&quot;chmod -R 777 \\\&quot; \\u0026amp; quoted form of desktopFolder user name uName password pass1 with administrator privileges\\n\\u003c/code\\u003e\\u003c/pre\\u003e\\n\\u003cp\\u003eI also put in the username and password\\u003c/p\\u003e\&quot;,\&quot;post_number\&quot;:6,\&quot;post_type\&quot;:1,\&quot;updated_at\&quot;:\&quot;2025-01-25T18:56:51.285Z\&quot;,\&quot;reply_count\&quot;:1,\&quot;reply_to_post_number\&quot;:null,\&quot;quote_count\&quot;:0,\&quot;incoming_link_count\&quot;:2,\&quot;reads\&quot;:30,\&quot;readers_count\&quot;:29,\&quot;score\&quot;:21.0,\&quot;yours\&quot;:false,\&quot;topic_id\&quot;:76710,\&quot;topic_slug\&quot;:\&quot;automating-button-click-in-macos-file-access-permission-dialog\&quot;,\&quot;display_username\&quot;:null,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;version\&quot;:2,\&quot;can_edit\&quot;:false,\&quot;can_delete\&quot;:false,\&quot;can_recover\&quot;:false,\&quot;can_wiki\&quot;:false,\&quot;read\&quot;:true,\&quot;user_title\&quot;:null,\&quot;bookmarked\&quot;:false,\&quot;actions_summary\&quot;:[],\&quot;moderator\&quot;:false,\&quot;admin\&quot;:false,\&quot;staff\&quot;:false,\&quot;user_id\&quot;:20525,\&quot;hidden\&quot;:false,\&quot;trust_level\&quot;:2,\&quot;deleted_at\&quot;:null,\&quot;user_deleted\&quot;:false,\&quot;edit_reason\&quot;:null,\&quot;can_view_edit_history\&quot;:true,\&quot;wiki\&quot;:false,\&quot;mentioned_users\&quot;:[],\&quot;can_accept_answer\&quot;:false,\&quot;can_unaccept_answer\&quot;:false,\&quot;accepted_answer\&quot;:false},{\&quot;id\&quot;:237273,\&quot;name\&quot;:null,\&quot;username\&quot;:\&quot;Jeffkr\&quot;,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/j/7ea924/{size}.png\&quot;,\&quot;created_at\&quot;:\&quot;2025-01-25T18:33:22.382Z\&quot;,\&quot;cooked\&quot;:\&quot;\\u003cp\\u003eI’ve decided to change direction and avoid the dialog altogether. Since all users receiving this installer already have Keyboard Maestro with accessibility access, I can create a new macro that executes the steps in the provided script. The application script will load the new KM macro plist, wait a couple of seconds, and then trigger the macro to perform the necessary functions without displaying the system access dialog.\\u003c/p\\u003e\&quot;,\&quot;post_number\&quot;:7,\&quot;post_type\&quot;:1,\&quot;updated_at\&quot;:\&quot;2025-01-25T18:33:22.382Z\&quot;,\&quot;reply_count\&quot;:0,\&quot;reply_to_post_number\&quot;:6,\&quot;quote_count\&quot;:0,\&quot;incoming_link_count\&quot;:1,\&quot;reads\&quot;:29,\&quot;readers_count\&quot;:28,\&quot;score\&quot;:10.8,\&quot;yours\&quot;:false,\&quot;topic_id\&quot;:76710,\&quot;topic_slug\&quot;:\&quot;automating-button-click-in-macos-file-access-permission-dialog\&quot;,\&quot;display_username\&quot;:null,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;version\&quot;:1,\&quot;can_edit\&quot;:false,\&quot;can_delete\&quot;:false,\&quot;can_recover\&quot;:false,\&quot;can_wiki\&quot;:false,\&quot;read\&quot;:true,\&quot;user_title\&quot;:null,\&quot;reply_to_user\&quot;:{\&quot;username\&quot;:\&quot;robertfern\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/r/a587f6/{size}.png\&quot;},\&quot;bookmarked\&quot;:false,\&quot;actions_summary\&quot;:[],\&quot;moderator\&quot;:false,\&quot;admin\&quot;:false,\&quot;staff\&quot;:false,\&quot;user_id\&quot;:4238,\&quot;hidden\&quot;:false,\&quot;trust_level\&quot;:2,\&quot;deleted_at\&quot;:null,\&quot;user_deleted\&quot;:false,\&quot;edit_reason\&quot;:null,\&quot;can_view_edit_history\&quot;:true,\&quot;wiki\&quot;:false,\&quot;mentioned_users\&quot;:[],\&quot;can_accept_answer\&quot;:false,\&quot;can_unaccept_answer\&quot;:false,\&quot;accepted_answer\&quot;:false}],\&quot;stream\&quot;:[237260,237267,237268,237269,237271,237272,237273]},\&quot;timeline_lookup\&quot;:[[1,643]],\&quot;suggested_topics\&quot;:[{\&quot;id\&quot;:78349,\&quot;title\&quot;:\&quot;Find and replace a comma in the keywords of all images\&quot;,\&quot;fancy_title\&quot;:\&quot;Find and replace a comma in the keywords of all images\&quot;,\&quot;slug\&quot;:\&quot;find-and-replace-a-comma-in-the-keywords-of-all-images\&quot;,\&quot;posts_count\&quot;:21,\&quot;reply_count\&quot;:14,\&quot;highest_post_number\&quot;:21,\&quot;image_url\&quot;:null,\&quot;created_at\&quot;:\&quot;2026-10-22T07:57:10.969Z\&quot;,\&quot;last_posted_at\&quot;:\&quot;2026-10-24T16:08:22.750Z\&quot;,\&quot;bumped\&quot;:true,\&quot;bumped_at\&quot;:\&quot;2026-10-24T16:13:43.762Z\&quot;,\&quot;archetype\&quot;:\&quot;regular\&quot;,\&quot;unseen\&quot;:false,\&quot;pinned\&quot;:false,\&quot;unpinned\&quot;:null,\&quot;visible\&quot;:true,\&quot;closed\&quot;:false,\&quot;archived\&quot;:false,\&quot;bookmarked\&quot;:null,\&quot;liked\&quot;:null,\&quot;tags\&quot;:[\&quot;exiftool\&quot;],\&quot;tags_descriptions\&quot;:{},\&quot;like_count\&quot;:5,\&quot;views\&quot;:533,\&quot;category_id\&quot;:11,\&quot;featured_link\&quot;:null,\&quot;has_accepted_answer\&quot;:false,\&quot;posters\&quot;:[{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Original Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:34795,\&quot;username\&quot;:\&quot;MikeMcSharry\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/m/779978/{size}.png\&quot;}},{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Frequent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:33591,\&quot;username\&quot;:\&quot;IceFole\&quot;,\&quot;name\&quot;:\&quot;\&quot;,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/icefole/{size}/1702_2.png\&quot;}},{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Frequent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:33770,\&quot;username\&quot;:\&quot;VikingOSX\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/vikingosx/{size}/2231_2.png\&quot;}},{\&quot;extras\&quot;:\&quot;latest\&quot;,\&quot;description\&quot;:\&quot;Most Recent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:29248,\&quot;username\&quot;:\&quot;peavine\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/peavine/{size}/355_2.png\&quot;}}]},{\&quot;id\&quot;:77958,\&quot;title\&quot;:\&quot;How to calculate a Julian date for a specific date\&quot;,\&quot;fancy_title\&quot;:\&quot;How to calculate a Julian date for a specific date\&quot;,\&quot;slug\&quot;:\&quot;how-to-calculate-a-julian-date-for-a-specific-date\&quot;,\&quot;posts_count\&quot;:9,\&quot;reply_count\&quot;:4,\&quot;highest_post_number\&quot;:9,\&quot;image_url\&quot;:null,\&quot;created_at\&quot;:\&quot;2026-06-05T12:53:57.902Z\&quot;,\&quot;last_posted_at\&quot;:\&quot;2026-06-06T19:29:48.373Z\&quot;,\&quot;bumped\&quot;:true,\&quot;bumped_at\&quot;:\&quot;2026-06-06T19:29:48.373Z\&quot;,\&quot;archetype\&quot;:\&quot;regular\&quot;,\&quot;unseen\&quot;:false,\&quot;pinned\&quot;:false,\&quot;unpinned\&quot;:null,\&quot;visible\&quot;:true,\&quot;closed\&quot;:false,\&quot;archived\&quot;:false,\&quot;bookmarked\&quot;:null,\&quot;liked\&quot;:null,\&quot;tags\&quot;:[],\&quot;tags_descriptions\&quot;:{},\&quot;like_count\&quot;:0,\&quot;views\&quot;:853,\&quot;category_id\&quot;:11,\&quot;featured_link\&quot;:null,\&quot;has_accepted_answer\&quot;:false,\&quot;posters\&quot;:[{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Original Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:22151,\&quot;username\&quot;:\&quot;SunnyFrinton\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/s/a9a28c/{size}.png\&quot;}},{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Frequent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:31191,\&quot;username\&quot;:\&quot;Mockman\&quot;,\&quot;name\&quot;:\&quot;Ken Keller\&quot;,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/mockman/{size}/70_2.png\&quot;}},{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Frequent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:33619,\&quot;username\&quot;:\&quot;red_menace\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/red_menace/{size}/1734_2.png\&quot;}},{\&quot;extras\&quot;:\&quot;latest\&quot;,\&quot;description\&quot;:\&quot;Most Recent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:50,\&quot;username\&quot;:\&quot;Nigel_Garvey\&quot;,\&quot;name\&quot;:\&quot;Nigel Garvey\&quot;,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/n/958977/{size}.png\&quot;}}]},{\&quot;id\&quot;:78333,\&quot;title\&quot;:\&quot;Getting mail message contents as html\&quot;,\&quot;fancy_title\&quot;:\&quot;Getting mail message contents as html\&quot;,\&quot;slug\&quot;:\&quot;getting-mail-message-contents-as-html\&quot;,\&quot;posts_count\&quot;:4,\&quot;reply_count\&quot;:0,\&quot;highest_post_number\&quot;:4,\&quot;image_url\&quot;:null,\&quot;created_at\&quot;:\&quot;2026-10-16T20:34:22.708Z\&quot;,\&quot;last_posted_at\&quot;:\&quot;2026-10-18T14:20:52.315Z\&quot;,\&quot;bumped\&quot;:true,\&quot;bumped_at\&quot;:\&quot;2026-10-18T14:20:52.315Z\&quot;,\&quot;archetype\&quot;:\&quot;regular\&quot;,\&quot;unseen\&quot;:false,\&quot;pinned\&quot;:false,\&quot;unpinned\&quot;:null,\&quot;visible\&quot;:true,\&quot;closed\&quot;:false,\&quot;archived\&quot;:false,\&quot;bookmarked\&quot;:null,\&quot;liked\&quot;:null,\&quot;tags\&quot;:[\&quot;scriptdebugger\&quot;],\&quot;tags_descriptions\&quot;:{},\&quot;like_count\&quot;:0,\&quot;views\&quot;:332,\&quot;category_id\&quot;:11,\&quot;featured_link\&quot;:null,\&quot;has_accepted_answer\&quot;:false,\&quot;posters\&quot;:[{\&quot;extras\&quot;:\&quot;latest\&quot;,\&quot;description\&quot;:\&quot;Original Poster, Most Recent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:28114,\&quot;username\&quot;:\&quot;danieldlds\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/d/c68b51/{size}.png\&quot;}},{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Frequent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:97,\&quot;username\&quot;:\&quot;Camelot\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/c/f17d59/{size}.png\&quot;}}]},{\&quot;id\&quot;:78021,\&quot;title\&quot;:\&quot;Script to Change the Default Application for All .indd Files?\&quot;,\&quot;fancy_title\&quot;:\&quot;Script to Change the Default Application for All .indd Files?\&quot;,\&quot;slug\&quot;:\&quot;script-to-change-the-default-application-for-all-indd-files\&quot;,\&quot;posts_count\&quot;:11,\&quot;reply_count\&quot;:9,\&quot;highest_post_number\&quot;:11,\&quot;image_url\&quot;:null,\&quot;created_at\&quot;:\&quot;2026-07-03T06:02:30.312Z\&quot;,\&quot;last_posted_at\&quot;:\&quot;2026-07-06T16:35:14.725Z\&quot;,\&quot;bumped\&quot;:true,\&quot;bumped_at\&quot;:\&quot;2026-07-06T16:35:14.725Z\&quot;,\&quot;archetype\&quot;:\&quot;regular\&quot;,\&quot;unseen\&quot;:false,\&quot;pinned\&quot;:false,\&quot;unpinned\&quot;:null,\&quot;visible\&quot;:true,\&quot;closed\&quot;:false,\&quot;archived\&quot;:false,\&quot;bookmarked\&quot;:null,\&quot;liked\&quot;:null,\&quot;tags\&quot;:[\&quot;Finder\&quot;],\&quot;tags_descriptions\&quot;:{},\&quot;like_count\&quot;:2,\&quot;views\&quot;:1025,\&quot;category_id\&quot;:11,\&quot;featured_link\&quot;:null,\&quot;has_accepted_answer\&quot;:false,\&quot;posters\&quot;:[{\&quot;extras\&quot;:\&quot;latest\&quot;,\&quot;description\&quot;:\&quot;Original Poster, Most Recent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:4238,\&quot;username\&quot;:\&quot;Jeffkr\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/j/7ea924/{size}.png\&quot;}},{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Frequent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:8603,\&quot;username\&quot;:\&quot;vaccarolim\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/vaccarolim/{size}/83_2.png\&quot;}},{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Frequent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:88,\&quot;username\&quot;:\&quot;ionah\&quot;,\&quot;name\&quot;:\&quot;Jonas Whale\&quot;,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/ionah/{size}/84_2.png\&quot;}}]},{\&quot;id\&quot;:78071,\&quot;title\&quot;:\&quot;Does the command to load another script add to Applescript&#39;s memory allocation\&quot;,\&quot;fancy_title\&quot;:\&quot;Does the command to load another script add to Applescript\\u0026rsquo;s memory allocation\&quot;,\&quot;slug\&quot;:\&quot;does-the-command-to-load-another-script-add-to-applescripts-memory-allocation\&quot;,\&quot;posts_count\&quot;:3,\&quot;reply_count\&quot;:1,\&quot;highest_post_number\&quot;:3,\&quot;image_url\&quot;:null,\&quot;created_at\&quot;:\&quot;2026-08-03T21:19:24.635Z\&quot;,\&quot;last_posted_at\&quot;:\&quot;2026-08-05T23:59:11.465Z\&quot;,\&quot;bumped\&quot;:true,\&quot;bumped_at\&quot;:\&quot;2026-08-05T23:59:11.465Z\&quot;,\&quot;archetype\&quot;:\&quot;regular\&quot;,\&quot;unseen\&quot;:false,\&quot;pinned\&quot;:false,\&quot;unpinned\&quot;:null,\&quot;visible\&quot;:true,\&quot;closed\&quot;:false,\&quot;archived\&quot;:false,\&quot;bookmarked\&quot;:null,\&quot;liked\&quot;:null,\&quot;tags\&quot;:[],\&quot;tags_descriptions\&quot;:{},\&quot;like_count\&quot;:0,\&quot;views\&quot;:1167,\&quot;category_id\&quot;:11,\&quot;featured_link\&quot;:null,\&quot;has_accepted_answer\&quot;:false,\&quot;posters\&quot;:[{\&quot;extras\&quot;:\&quot;latest\&quot;,\&quot;description\&quot;:\&quot;Original Poster, Most Recent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:16102,\&quot;username\&quot;:\&quot;akim\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/akim/{size}/303_2.png\&quot;}},{\&quot;extras\&quot;:null,\&quot;description\&quot;:\&quot;Frequent Poster\&quot;,\&quot;user\&quot;:{\&quot;id\&quot;:6544,\&quot;username\&quot;:\&quot;paulskinner\&quot;,\&quot;name\&quot;:\&quot;\&quot;,\&quot;avatar_template\&quot;:\&quot;/user_avatar/www.macscripter.net/paulskinner/{size}/2357_2.png\&quot;}}]}],\&quot;tags\&quot;:[],\&quot;tags_descriptions\&quot;:{},\&quot;id\&quot;:76710,\&quot;title\&quot;:\&quot;Automating Button Click in macOS File Access Permission Dialog\&quot;,\&quot;fancy_title\&quot;:\&quot;Automating Button Click in macOS File Access Permission Dialog\&quot;,\&quot;posts_count\&quot;:7,\&quot;created_at\&quot;:\&quot;2025-01-25T07:30:43.120Z\&quot;,\&quot;views\&quot;:5715,\&quot;reply_count\&quot;:2,\&quot;like_count\&quot;:0,\&quot;last_posted_at\&quot;:\&quot;2025-01-25T18:33:22.382Z\&quot;,\&quot;visible\&quot;:true,\&quot;closed\&quot;:false,\&quot;archived\&quot;:false,\&quot;has_summary\&quot;:false,\&quot;archetype\&quot;:\&quot;regular\&quot;,\&quot;slug\&quot;:\&quot;automating-button-click-in-macos-file-access-permission-dialog\&quot;,\&quot;category_id\&quot;:11,\&quot;word_count\&quot;:1116,\&quot;deleted_at\&quot;:null,\&quot;user_id\&quot;:4238,\&quot;featured_link\&quot;:null,\&quot;pinned_globally\&quot;:false,\&quot;pinned_at\&quot;:null,\&quot;pinned_until\&quot;:null,\&quot;image_url\&quot;:null,\&quot;slow_mode_seconds\&quot;:0,\&quot;draft\&quot;:null,\&quot;draft_key\&quot;:\&quot;topic_76710\&quot;,\&quot;draft_sequence\&quot;:null,\&quot;unpinned\&quot;:null,\&quot;pinned\&quot;:false,\&quot;current_post_number\&quot;:1,\&quot;highest_post_number\&quot;:7,\&quot;deleted_by\&quot;:null,\&quot;actions_summary\&quot;:[{\&quot;id\&quot;:4,\&quot;count\&quot;:0,\&quot;hidden\&quot;:false,\&quot;can_act\&quot;:false},{\&quot;id\&quot;:8,\&quot;count\&quot;:0,\&quot;hidden\&quot;:false,\&quot;can_act\&quot;:false},{\&quot;id\&quot;:7,\&quot;count\&quot;:0,\&quot;hidden\&quot;:false,\&quot;can_act\&quot;:false}],\&quot;chunk_size\&quot;:20,\&quot;bookmarked\&quot;:false,\&quot;bookmarks\&quot;:[],\&quot;topic_timer\&quot;:null,\&quot;message_bus_last_id\&quot;:0,\&quot;participant_count\&quot;:2,\&quot;show_read_indicator\&quot;:false,\&quot;thumbnails\&quot;:null,\&quot;slow_mode_enabled_until\&quot;:null,\&quot;details\&quot;:{\&quot;can_edit\&quot;:false,\&quot;notification_level\&quot;:1,\&quot;participants\&quot;:[{\&quot;id\&quot;:4238,\&quot;username\&quot;:\&quot;Jeffkr\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/j/7ea924/{size}.png\&quot;,\&quot;post_count\&quot;:4,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;trust_level\&quot;:2},{\&quot;id\&quot;:20525,\&quot;username\&quot;:\&quot;robertfern\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/r/a587f6/{size}.png\&quot;,\&quot;post_count\&quot;:3,\&quot;primary_group_name\&quot;:null,\&quot;flair_name\&quot;:null,\&quot;flair_url\&quot;:null,\&quot;flair_color\&quot;:null,\&quot;flair_bg_color\&quot;:null,\&quot;trust_level\&quot;:2}],\&quot;created_by\&quot;:{\&quot;id\&quot;:4238,\&quot;username\&quot;:\&quot;Jeffkr\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/j/7ea924/{size}.png\&quot;},\&quot;last_poster\&quot;:{\&quot;id\&quot;:4238,\&quot;username\&quot;:\&quot;Jeffkr\&quot;,\&quot;name\&quot;:null,\&quot;avatar_template\&quot;:\&quot;/letter_avatar_proxy/v4/letter/j/7ea924/{size}.png\&quot;}}}&quot;}"></div>
+      </discourse-assets-json>
+      <discourse-assets-icons></discourse-assets-icons>
+    </discourse-assets>
+
+      
+
+    
+    <noscript data-path="/t/automating-button-click-in-macos-file-access-permission-dialog/76710">
+      <header>
+  <a href="/">
+    MacScripter
+  </a>
+</header>
+
+
+      <div id="main-outlet" class="wrap" role="main">
+        <!-- preload-content: -->
+          <div id="topic-title">
+    <h1>
+      <a href="/t/automating-button-click-in-macos-file-access-permission-dialog/76710">Automating Button Click in macOS File Access Permission Dialog</a>
+    </h1>
+
+      <div class="topic-category" itemscope itemtype="http://schema.org/BreadcrumbList">
+          <span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            <a href="https://www.macscripter.net/c/scripting-forums/5" class="badge-wrapper bullet" itemprop="item">
+              <span class='badge-category-bg' style='background-color: #BF1E2E'></span>
+              <span class='badge-category clear-badge'>
+                <span class='category-name' itemprop='name'>Scripting Forums</span>
+              </span>
+            </a>
+            <meta itemprop="position" content="1" />
+          </span>
+          <span itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            <a href="https://www.macscripter.net/c/scripting-forums/applescript-mac-os-x/11" class="badge-wrapper bullet" itemprop="item">
+              <span class='badge-category-bg' style='background-color: #F1592A'></span>
+              <span class='badge-category clear-badge'>
+                <span class='category-name' itemprop='name'>AppleScript | Mac OS X</span>
+              </span>
+            </a>
+            <meta itemprop="position" content="2" />
+          </span>
+      </div>
+
+  </div>
+
+  
+
+
+      <div id='post_1' itemscope itemtype='http://schema.org/DiscussionForumPosting' class='topic-body crawler-post'>
+        <div class='crawler-post-meta'>
+          <div itemprop='publisher' itemscope itemtype="http://schema.org/Organization">
+            <meta itemprop='name' content='MacScripter'>
+              <div itemprop='logo' itemscope itemtype="http://schema.org/ImageObject">
+                <meta itemprop='url' content='https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png'>
+              </div>
+          </div>
+          <span class="creator" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <a itemprop="url" href='https://www.macscripter.net/u/Jeffkr'><span itemprop='name'>Jeffkr</span></a>
+            
+          </span>
+
+          <link itemprop="mainEntityOfPage" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710">
+
+
+          <span class="crawler-post-infos">
+              <time itemprop='datePublished' datetime='2025-01-25T07:30:43Z' class='post-time'>
+                January 25, 2025,  7:30am
+              </time>
+              <meta itemprop='dateModified' content='2025-01-25T07:30:43Z'>
+          <span itemprop='position'>#1</span>
+          </span>
+        </div>
+        <div class='post' itemprop='articleBody'>
+          <p>Hello all,</p>
+<p>I’m trying to automate the process of clicking the “OK” button in the macOS file access permission dialogs that appear when an app requests access to a folder (e.g., Desktop).</p>
+<p>For example, the dialog typically looks like this:</p>
+<p><em>“MyApplication.app” would like to access files in your Desktop folder.</em></p>
+<ul>
+<li>Buttons: “Don’t Allow”, “OK”</li>
+</ul>
+<p>In my case, I don’t really care which button is pressed, but ideally, I’d like the “OK” button to be clicked automatically.</p>
+<p>The goal is to avoid manual intervention in <strong>Security &amp; Privacy</strong> settings, since the users do not have administrator passwords.</p>
+<p>Any suggestions on how to achieve this programmatically?</p>
+<p>Thanks in advance,<br>
+Jeff</p>
+        </div>
+
+        <meta itemprop='headline' content='Automating Button Click in macOS File Access Permission Dialog'>
+          <meta itemprop='keywords' content=''>
+
+        <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+           <meta itemprop="interactionType" content="http://schema.org/LikeAction"/>
+           <meta itemprop="userInteractionCount" content="0" />
+           <span class='post-likes'></span>
+         </div>
+
+         <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+            <meta itemprop="interactionType" content="http://schema.org/CommentAction"/>
+            <meta itemprop="userInteractionCount" content="0" />
+          </div>
+
+      </div>
+      <div id='post_2' itemscope itemtype='http://schema.org/DiscussionForumPosting' class='topic-body crawler-post'>
+        <div class='crawler-post-meta'>
+          <div itemprop='publisher' itemscope itemtype="http://schema.org/Organization">
+            <meta itemprop='name' content='MacScripter'>
+              <div itemprop='logo' itemscope itemtype="http://schema.org/ImageObject">
+                <meta itemprop='url' content='https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png'>
+              </div>
+          </div>
+          <span class="creator" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <a itemprop="url" href='https://www.macscripter.net/u/robertfern'><span itemprop='name'>robertfern</span></a>
+            
+          </span>
+
+          <link itemprop="mainEntityOfPage" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710">
+
+
+          <span class="crawler-post-infos">
+              <time itemprop='datePublished' datetime='2025-01-25T16:21:57Z' class='post-time'>
+                January 25, 2025,  4:21pm
+              </time>
+              <meta itemprop='dateModified' content='2025-01-25T16:21:57Z'>
+          <span itemprop='position'>#2</span>
+          </span>
+        </div>
+        <div class='post' itemprop='articleBody'>
+          <p>If they don’t have administrator accounts, they won’t be able to do it anyway, because it will ask for the username and password of an administrator</p>
+        </div>
+
+        <meta itemprop='headline' content='Automating Button Click in macOS File Access Permission Dialog'>
+
+        <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+           <meta itemprop="interactionType" content="http://schema.org/LikeAction"/>
+           <meta itemprop="userInteractionCount" content="0" />
+           <span class='post-likes'></span>
+         </div>
+
+         <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+            <meta itemprop="interactionType" content="http://schema.org/CommentAction"/>
+            <meta itemprop="userInteractionCount" content="0" />
+          </div>
+
+      </div>
+      <div id='post_3' itemscope itemtype='http://schema.org/DiscussionForumPosting' class='topic-body crawler-post'>
+        <div class='crawler-post-meta'>
+          <div itemprop='publisher' itemscope itemtype="http://schema.org/Organization">
+            <meta itemprop='name' content='MacScripter'>
+              <div itemprop='logo' itemscope itemtype="http://schema.org/ImageObject">
+                <meta itemprop='url' content='https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png'>
+              </div>
+          </div>
+          <span class="creator" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <a itemprop="url" href='https://www.macscripter.net/u/Jeffkr'><span itemprop='name'>Jeffkr</span></a>
+            
+          </span>
+
+          <link itemprop="mainEntityOfPage" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710">
+
+
+          <span class="crawler-post-infos">
+              <time itemprop='datePublished' datetime='2025-01-25T16:32:37Z' class='post-time'>
+                January 25, 2025,  4:32pm
+              </time>
+              <meta itemprop='dateModified' content='2025-01-25T16:32:37Z'>
+          <span itemprop='position'>#3</span>
+          </span>
+        </div>
+        <div class='post' itemprop='articleBody'>
+          <p>I have the password encrypted in the script. However, in this case I would not care if they knew the password, my primary goal is to prevent the need for the user to press a button.</p>
+        </div>
+
+        <meta itemprop='headline' content='Automating Button Click in macOS File Access Permission Dialog'>
+
+        <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+           <meta itemprop="interactionType" content="http://schema.org/LikeAction"/>
+           <meta itemprop="userInteractionCount" content="0" />
+           <span class='post-likes'></span>
+         </div>
+
+         <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+            <meta itemprop="interactionType" content="http://schema.org/CommentAction"/>
+            <meta itemprop="userInteractionCount" content="0" />
+          </div>
+
+      </div>
+      <div id='post_4' itemscope itemtype='http://schema.org/DiscussionForumPosting' class='topic-body crawler-post'>
+        <div class='crawler-post-meta'>
+          <div itemprop='publisher' itemscope itemtype="http://schema.org/Organization">
+            <meta itemprop='name' content='MacScripter'>
+              <div itemprop='logo' itemscope itemtype="http://schema.org/ImageObject">
+                <meta itemprop='url' content='https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png'>
+              </div>
+          </div>
+          <span class="creator" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <a itemprop="url" href='https://www.macscripter.net/u/robertfern'><span itemprop='name'>robertfern</span></a>
+            
+          </span>
+
+          <link itemprop="mainEntityOfPage" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710">
+
+
+          <span class="crawler-post-infos">
+              <time itemprop='datePublished' datetime='2025-01-25T17:05:30Z' class='post-time'>
+                January 25, 2025,  5:05pm
+              </time>
+              <meta itemprop='dateModified' content='2025-01-25T17:05:30Z'>
+          <span itemprop='position'>#4</span>
+          </span>
+        </div>
+        <div class='post' itemprop='articleBody'>
+          <p>you would have to use GUI scripting to achieve this. Also an App can’t GUI script itself, so you would have to call a second script using</p>
+<blockquote>
+<p>do shell script “osascript”</p>
+</blockquote>
+<p>Do you have a copy of the script? If not, then make a short script that will cause the dialog to appear and post it.</p>
+        </div>
+
+        <meta itemprop='headline' content='Automating Button Click in macOS File Access Permission Dialog'>
+
+        <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+           <meta itemprop="interactionType" content="http://schema.org/LikeAction"/>
+           <meta itemprop="userInteractionCount" content="0" />
+           <span class='post-likes'></span>
+         </div>
+
+         <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+            <meta itemprop="interactionType" content="http://schema.org/CommentAction"/>
+            <meta itemprop="userInteractionCount" content="1" />
+          </div>
+
+      </div>
+      <div id='post_5' itemscope itemtype='http://schema.org/DiscussionForumPosting' class='topic-body crawler-post'>
+        <div class='crawler-post-meta'>
+          <div itemprop='publisher' itemscope itemtype="http://schema.org/Organization">
+            <meta itemprop='name' content='MacScripter'>
+              <div itemprop='logo' itemscope itemtype="http://schema.org/ImageObject">
+                <meta itemprop='url' content='https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png'>
+              </div>
+          </div>
+          <span class="creator" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <a itemprop="url" href='https://www.macscripter.net/u/Jeffkr'><span itemprop='name'>Jeffkr</span></a>
+            
+          </span>
+
+          <link itemprop="mainEntityOfPage" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710">
+
+
+          <span class="crawler-post-infos">
+              <time itemprop='datePublished' datetime='2025-01-25T18:00:21Z' class='post-time'>
+                January 25, 2025,  6:00pm
+              </time>
+              <meta itemprop='dateModified' content='2025-01-25T18:00:21Z'>
+          <span itemprop='position'>#5</span>
+          </span>
+        </div>
+        <div class='post' itemprop='articleBody'>
+          <p>Hello robertfern,</p>
+<p>Below is a copy of the script, which only requires permission to control the Desktop when compiled as an “Application” script:</p>
+<pre><code class="lang-applescript">
+-- Define username and password for the sudo command
+set uName to "administrator" -- Replace with your actual username
+set pass1 to "myPassWord"
+try
+	-- Step 1: Copy "Illustrator.qlgenerator" from "/System/Library/QuickLook" to the Desktop
+	do shell script "cp -R /System/Library/QuickLook/Illustrator.qlgenerator /Users/" &amp; uName &amp; "/Desktop/Illustrator.qlgenerator" user name uName password pass1 with administrator privileges
+on error
+	set uName to "Administrator"
+	do shell script "cp -R /System/Library/QuickLook/Illustrator.qlgenerator /Users/" &amp; uName &amp; "/Desktop/Illustrator.qlgenerator" user name uName password pass1 with administrator privileges
+end try
+
+-- Step 2: Ensure full read/write permissions on the copied file on the Desktop
+set desktopFolder to "/Users/" &amp; uName &amp; "/Desktop/Illustrator.qlgenerator"
+do shell script "sudo chmod -R 777 " &amp; quoted form of desktopFolder with administrator privileges
+
+-- Step 3: Open "Illustrator.qlgenerator" by right-clicking and showing package contents
+tell application "Finder"
+	-- Use the absolute path to the desktop and the Illustrator.qlgenerator file
+	set illustratorFilePath to "/Users/" &amp; uName &amp; "/Desktop/Illustrator.qlgenerator"
+	set illustratorFile to POSIX file illustratorFilePath as alias
+	open illustratorFile
+	delay 1 -- Allow Finder to open the file
+	set packageContents to folder "Contents" of illustratorFile
+end tell
+
+
+---Press the "OK" button
+
+
+-- Step 4: Open "Info.plist" in the "Contents" folder with TextEdit
+tell application "TextEdit"
+	-- Build the POSIX path to Info.plist
+	set plistPath to illustratorFilePath &amp; "/Contents/Info.plist"
+		-- Step 5: Change the file permissions to be writable (using sudo)
+	do shell script "sudo chmod 777 " &amp; quoted form of plistPath with administrator privileges
+	-- Open Info.plist
+	open POSIX file plistPath
+end tell
+
+-- Step 6: Delete all text in the opened Info.plist
+tell application "TextEdit"
+	set the text of document 1 to ""
+end tell
+
+-- Step 7: Replace content with new Info.plist XML
+set newPlistContent to "&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;
+&lt;!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" http://www.apple.com/DTDs/PropertyList-1.0.dtd&gt;
+&lt;plist version=\"1.0\"&gt;
+&lt;dict&gt;
+&lt;key&gt;BuildMachineOSBuild&lt;/key&gt;
+&lt;string&gt;20A241133&lt;/string&gt;
+&lt;key&gt;CFBundleDevelopmentRegion&lt;/key&gt;
+&lt;string&gt;English&lt;/string&gt;
+&lt;key&gt;CFBundleDocumentTypes&lt;/key&gt;
+&lt;array&gt;
+&lt;dict&gt;
+&lt;key&gt;CFBundleTypeRole&lt;/key&gt;
+&lt;string&gt;QLGenerator&lt;/string&gt;
+&lt;key&gt;LSItemContentTypes&lt;/key&gt;
+&lt;array&gt;
+&lt;string&gt;com.adobe.encapsulated-postscript&lt;/string&gt;
+&lt;/array&gt;
+&lt;/dict&gt;
+&lt;/array&gt;
+&lt;key&gt;CFBundleExecutable&lt;/key&gt;
+&lt;string&gt;Illustrator&lt;/string&gt;
+&lt;key&gt;CFBundleGetInfoString&lt;/key&gt;
+&lt;string&gt;5.0, Copyright Apple Inc. 2007-2013&lt;/string&gt;
+&lt;key&gt;CFBundleIdentifier&lt;/key&gt;
+&lt;string&gt;com.apple.qlgenerator.illustrator&lt;/string&gt;
+&lt;key&gt;CFBundleInfoDictionaryVersion&lt;/key&gt;
+&lt;string&gt;6.0&lt;/string&gt;
+&lt;key&gt;CFBundleName&lt;/key&gt;
+&lt;string&gt;Illustrator&lt;/string&gt;
+&lt;key&gt;CFBundleShortVersionString&lt;/key&gt;
+&lt;string&gt;5.0&lt;/string&gt;
+&lt;key&gt;CFBundleSupportedPlatforms&lt;/key&gt;
+&lt;array&gt;
+&lt;string&gt;MacOSX&lt;/string&gt;
+&lt;/array&gt;
+&lt;key&gt;CFBundleVersion&lt;/key&gt;
+&lt;string&gt;950.2&lt;/string&gt;
+&lt;key&gt;CFPlugInDynamicRegisterFunction&lt;/key&gt;
+&lt;string&gt;&lt;/string&gt;
+&lt;key&gt;CFPlugInDynamicRegistration&lt;/key&gt;
+&lt;string&gt;NO&lt;/string&gt;
+&lt;key&gt;CFPlugInFactories&lt;/key&gt;
+&lt;dict&gt;
+&lt;key&gt;D656108A-6A50-45BF-A43E-F48A8398E749&lt;/key&gt;
+&lt;string&gt;QuickLookGeneratorPluginFactory&lt;/string&gt;
+&lt;/dict&gt;
+&lt;key&gt;CFPlugInTypes&lt;/key&gt;
+&lt;dict&gt;
+&lt;key&gt;5E2D9680-5022-40FA-B806-43349622E5B9&lt;/key&gt;
+&lt;array&gt;
+&lt;string&gt;D656108A-6A50-45BF-A43E-F48A8398E749&lt;/string&gt;
+&lt;/array&gt;
+&lt;/dict&gt;
+&lt;key&gt;CFPlugInUnloadFunction&lt;/key&gt;
+&lt;string&gt;&lt;/string&gt;
+&lt;key&gt;DTCompiler&lt;/key&gt;
+&lt;string&gt;com.apple.compilers.llvm.clang.1_0&lt;/string&gt;
+&lt;key&gt;DTPlatformBuild&lt;/key&gt;
+&lt;string&gt;13E6049a&lt;/string&gt;
+&lt;key&gt;DTPlatformName&lt;/key&gt;
+&lt;string&gt;macosx&lt;/string&gt;
+&lt;key&gt;DTPlatformVersion&lt;/key&gt;
+&lt;string&gt;12.7&lt;/string&gt;
+&lt;key&gt;DTSDKBuild&lt;/key&gt;
+&lt;string&gt;21G806&lt;/string&gt;
+&lt;key&gt;DTSDKName&lt;/key&gt;
+&lt;string&gt;macosx12.7.internal&lt;/string&gt;
+&lt;key&gt;DTXcode&lt;/key&gt;
+&lt;string&gt;1330&lt;/string&gt;
+&lt;key&gt;DTXcodeBuild&lt;/key&gt;
+&lt;string&gt;13E6049a&lt;/string&gt;
+&lt;key&gt;LSMinimumSystemVersion&lt;/key&gt;
+&lt;string&gt;12.7&lt;/string&gt;
+&lt;key&gt;QLNeedsToBeRunInMainThread&lt;/key&gt;
+&lt;false/&gt;
+&lt;key&gt;QLPreviewHeight&lt;/key&gt;
+&lt;real&gt;600&lt;/real&gt;
+&lt;key&gt;QLPreviewWidth&lt;/key&gt;
+&lt;real&gt;800&lt;/real&gt;
+&lt;key&gt;QLSupportsConcurrentRequests&lt;/key&gt;
+&lt;true/&gt;
+&lt;key&gt;QLThumbnailMinimumSize&lt;/key&gt;
+&lt;integer&gt;0&lt;/integer&gt;
+&lt;/dict&gt;
+&lt;/plist&gt;"
+
+-- Step 8: Paste new content into Info.plist
+tell application "TextEdit"
+	set the text of document 1 to newPlistContent
+end tell
+
+-- Step 9: Save the modified Info.plist back into the "Contents" folder on the Desktop
+set plistFilePath to illustratorFilePath &amp; "/Contents/Info.plist"
+tell application "TextEdit"
+	save document 1 in POSIX file plistFilePath
+end tell
+
+-- Step 10: Close the TextEdit document without saving
+tell application "TextEdit"
+	close document 1 saving no
+end tell
+
+-- Step 11: Move the "Illustrator.qlgenerator" folder back to the QuickLook directory
+do shell script "sudo mv /Users/" &amp; uName &amp; "/Desktop/Illustrator.qlgenerator /Library/QuickLook/" with administrator privileges
+</code></pre>
+        </div>
+
+        <meta itemprop='headline' content='Automating Button Click in macOS File Access Permission Dialog'>
+
+        <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+           <meta itemprop="interactionType" content="http://schema.org/LikeAction"/>
+           <meta itemprop="userInteractionCount" content="0" />
+           <span class='post-likes'></span>
+         </div>
+
+         <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+            <meta itemprop="interactionType" content="http://schema.org/CommentAction"/>
+            <meta itemprop="userInteractionCount" content="0" />
+          </div>
+
+      </div>
+      <div id='post_6' itemscope itemtype='http://schema.org/DiscussionForumPosting' class='topic-body crawler-post'>
+        <div class='crawler-post-meta'>
+          <div itemprop='publisher' itemscope itemtype="http://schema.org/Organization">
+            <meta itemprop='name' content='MacScripter'>
+              <div itemprop='logo' itemscope itemtype="http://schema.org/ImageObject">
+                <meta itemprop='url' content='https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png'>
+              </div>
+          </div>
+          <span class="creator" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <a itemprop="url" href='https://www.macscripter.net/u/robertfern'><span itemprop='name'>robertfern</span></a>
+            
+          </span>
+
+          <link itemprop="mainEntityOfPage" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710">
+
+
+          <span class="crawler-post-infos">
+              <time itemprop='datePublished' datetime='2025-01-25T18:11:14Z' class='post-time'>
+                January 25, 2025,  6:11pm
+              </time>
+              <meta itemprop='dateModified' content='2025-01-25T18:53:06Z'>
+          <span itemprop='position'>#6</span>
+          </span>
+        </div>
+        <div class='post' itemprop='articleBody'>
+          <p>So far just looking at your script, it only works if the User who is logged in is an Administrator.</p>
+<p>Also had problems on this…</p>
+<pre><code class="lang-applescript">set desktopFolder to "/Users/" &amp; uName &amp; "/Desktop/Illustrator.qlgenerator"
+do shell script "sudo chmod -R 777 " &amp; quoted form of desktopFolder with administrator privileges
+</code></pre>
+<p>it gives an error</p>
+<blockquote>
+<p>chmod: Unable to change file mode on /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted<br>
+chmod: /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted<br>
+chmod: Unable to change file mode on /Users/robert/Desktop/Illustrator.qlgenerator: Operation not permitted</p>
+</blockquote>
+<p>BTW, don’t need 'sudo ’ in front of the ‘chmod’. Thats what ‘with administrator privileges’ does. Like so…</p>
+<pre><code class="lang-applescript">do shell script "chmod -R 777 " &amp; quoted form of desktopFolder user name uName password pass1 with administrator privileges
+</code></pre>
+<p>I also put in the username and password</p>
+        </div>
+
+        <meta itemprop='headline' content='Automating Button Click in macOS File Access Permission Dialog'>
+
+        <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+           <meta itemprop="interactionType" content="http://schema.org/LikeAction"/>
+           <meta itemprop="userInteractionCount" content="0" />
+           <span class='post-likes'></span>
+         </div>
+
+         <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+            <meta itemprop="interactionType" content="http://schema.org/CommentAction"/>
+            <meta itemprop="userInteractionCount" content="1" />
+          </div>
+
+      </div>
+      <div id='post_7' itemscope itemtype='http://schema.org/DiscussionForumPosting' class='topic-body crawler-post'>
+        <div class='crawler-post-meta'>
+          <div itemprop='publisher' itemscope itemtype="http://schema.org/Organization">
+            <meta itemprop='name' content='MacScripter'>
+              <div itemprop='logo' itemscope itemtype="http://schema.org/ImageObject">
+                <meta itemprop='url' content='https://www.macscripter.net/uploads/default/original/1X/b8c65bdb2d2c42419383d00b10a0faaeea44730e.png'>
+              </div>
+          </div>
+          <span class="creator" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            <a itemprop="url" href='https://www.macscripter.net/u/Jeffkr'><span itemprop='name'>Jeffkr</span></a>
+            
+          </span>
+
+          <link itemprop="mainEntityOfPage" href="https://www.macscripter.net/t/automating-button-click-in-macos-file-access-permission-dialog/76710">
+
+
+          <span class="crawler-post-infos">
+              <time itemprop='datePublished' datetime='2025-01-25T18:33:22Z' class='post-time'>
+                January 25, 2025,  6:33pm
+              </time>
+              <meta itemprop='dateModified' content='2025-01-25T18:33:22Z'>
+          <span itemprop='position'>#7</span>
+          </span>
+        </div>
+        <div class='post' itemprop='articleBody'>
+          <p>I’ve decided to change direction and avoid the dialog altogether. Since all users receiving this installer already have Keyboard Maestro with accessibility access, I can create a new macro that executes the steps in the provided script. The application script will load the new KM macro plist, wait a couple of seconds, and then trigger the macro to perform the necessary functions without displaying the system access dialog.</p>
+        </div>
+
+        <meta itemprop='headline' content='Automating Button Click in macOS File Access Permission Dialog'>
+
+        <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+           <meta itemprop="interactionType" content="http://schema.org/LikeAction"/>
+           <meta itemprop="userInteractionCount" content="0" />
+           <span class='post-likes'></span>
+         </div>
+
+         <div itemprop="interactionStatistic" itemscope itemtype="http://schema.org/InteractionCounter">
+            <meta itemprop="interactionType" content="http://schema.org/CommentAction"/>
+            <meta itemprop="userInteractionCount" content="0" />
+          </div>
+
+      </div>
+
+
+
+
+
+
+        <!-- :preload-content -->
+      </div>
+
+      <footer class="container wrap">
+  <nav class='crawler-nav'>
+    <ul>
+      <li itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <span itemprop='name'>
+          <a href='/' itemprop="url">Home </a>
+        </span>
+      </li>
+      <li itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <span itemprop='name'>
+          <a href='/categories' itemprop="url">Categories </a>
+        </span>
+      </li>
+      <li itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <span itemprop='name'>
+          <a href='/guidelines' itemprop="url">FAQ/Guidelines </a>
+        </span>
+      </li>
+      <li itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <span itemprop='name'>
+          <a href='/tos' itemprop="url">Terms of Service </a>
+        </span>
+      </li>
+      <li itemscope itemtype='http://schema.org/SiteNavigationElement'>
+        <span itemprop='name'>
+          <a href='/privacy' itemprop="url">Privacy Policy </a>
+        </span>
+      </li>
+    </ul>
+  </nav>
+  <p class='powered-by-link'>Powered by <a href="https://www.discourse.org">Discourse</a>, best viewed with JavaScript enabled</p>
+</footer>
+
+    </noscript>
+
+      <a rel="me" href="https://mstdn.ca/@alldritt"></a>
+
+<link rel="preload" href="/theme-javascripts/2abe9311f430cee8ff297b45fa4256e858c210f3.js?__ws=www.macscripter.net" as="script">
+<script defer="" src="/theme-javascripts/2abe9311f430cee8ff297b45fa4256e858c210f3.js?__ws=www.macscripter.net" data-theme-id="3"></script>
+
+
+      
+
+    <section id='main'>
+    </section>
+
+      <form id='hidden-login-form' method="post" action="/login" style="display: none;">
+        <input name="username" type="text"     id="signin_username">
+        <input name="password" type="password" id="signin_password">
+        <input name="redirect" type="hidden">
+        <input type="submit" id="signin-button" value="Log In">
+      </form>
+
+    <script defer src="/assets/start-discourse-f6e4e67026eabe0c9b84599087eb11ee33d8149f196b7439b0630ed5ab4d5f29.js"></script>
+
+    
+
+    <script defer src="/assets/browser-update-d7761004034ce1ea7686d586f5e8a8d216e6f67b609f9b4bcaba53b8b8d34729.js"></script>
+
+      
+
+      
+  </body>
+</html>

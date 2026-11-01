@@ -1,0 +1,515 @@
+
+Michael Tsai - Blog - Sequoia Screen Recording Prompts and the Persistent Content Capture Entitlement
+Thursday, 
+August
+8
+, 
+2024
+Sequoia Screen Recording Prompts and the Persistent Content Capture Entitlement
+Matthias Gansrigler
+ (
+Mastodon
+):
+As a macOS engineer, what do you do when you’re told by Apple’s security team you have to turn it 
+even more
+ into Windows Vista and place 
+even more
+ useless alibi-security permission dialogs somewhere, but you’ve run out of new places to put them in?
+Well, you get creative, and show 
+multiple
+ permission dialogs for 
+the same permission
+.
+Can’t innovate anymore, my ass
+!
+Chance Miller
+ (
+Mastodon
+):
+With macOS Sequoia this fall, using apps that need access to screen recording permissions will become a little bit more tedious. Apple is rolling out a change that will require you to give explicit permission on a weekly basis to these types of apps, and every time you reboot your Mac.
+[…]
+While many speculated this could be a bug, that’s not the case.
+William Gallagher
+:
+There are accessibility apps that use screen recording, for instance. Keyboard Maestro can use it to look for specific buttons being shown on a screen, and even the Bartender app uses it as part of controlling menubar apps.
+[…]
+In each case, before the recording can be started, a prompt appears saying that a specified app “can access this computer’s screen and audio.” Curiously, it does not as yet offer the option to say that you don’t want this.
+[…]
+There does appear to be a bug in that sometimes there is a significant delay before the 
+Continue to Allow
+ button responds to clicks. It’s also inconsistent in how sometimes clicking that does allow the screen recording, but the screen recording shows that prompt.
+Craig Hockenberry
+:
+I’ve always been proud that xScope is a tool that sits quietly in the background, ready when you need it.
+So much for the “quietly” part…
+Riley Testut
+:
+As someone who reboots my iMac every morning, looking forward to daily permission alerts 🙃
+Miguel Arroz
+:
+I’ve caught suspicious things thanks to macOS security warnings like games wanting global keystrokes (nothing evil going on, just shitty open source multi-platform libs).
+But this seems excessive. Why not asking if I want the app to have this ability during the next 24 hours, or forever? Either it’s a one off, or if it’s not, I don’t want to have to answer every week.
+Jon Gotow
+:
+And if an app isn’t using Sequoia’s new “screen recording picker”, you’ll see this very technically worded warning. I’m not sure how your average Mac user will respond to this.
+[…]
+Of course, the reason I’m grousing about this is because Default Folder X is affected. In some situations, DFX captures an image of an Open or Save dialog and displays it on top the real file dialog as a “curtain” to hide what its doing while it manipulates the dialog. It doesn’t store or transmit the images – it just takes a screenshot of the file dialog, pops it up on the screen to obscure the dialog while it twiddles a menu, then throws away the screenshot.
+Now Sequoia is throwing up scary weekly reminders about it recording “personal or sensitive information”. Sigh. Assuming that this new Sequoia “feature” is here to stay, I feel the only workable solution is to remove the screen captured façade and just put up a blank window to hide what Default Folder X is doing. This is … ugly.
+Kyle Howells
+:
+The privacy teams in Apple have way too much power.
+Someone high up enough in Apple needs to start telling them NO.
+My number 1 feature request for iOS and macOS is a big switch to turn ALL these “are you sure you want X to still have permission to do Y” off forever!
+Every time one of those puts up it both: interrupts me; and presents an opportunity to break things!
+Erik Schwiebert
+:
+Yes, really, this Mac is under our full control (in fact, it gets paved and re-built multiple times a day) in a secure lab. WTH is it prompting for permissions all the time? There isn't even a TCC entry to suppress the alerts when you are full admin. Sigh.
+Tuomas Hämäläinen
+:
+I share my screen on Teams all the time, and I think drawing/design apps that want to sample colours outside of their windows with the eyedropper tool also need to use this API, so looks like I’m gonna be seeing this a lot… 
+Apple have made Mac OS into exactly the thing they made fun of Windows Vista for. After some time, no one is going to be reading these dialogues anyway, people will blindly click on “allow”, effectively working against the intent of better security.
+Luc Vandal
+:
+macOS: Gradually making your Mac more annoying each year because “security”.
+Jason Snell
+:
+It’s part of a general trend for Apple to continue placing barriers in the way of users who are trying to use software on the Mac.
+[…]
+For the past decade, Apple has been trying to tighten the screws on the Mac in order to bring it closer to the level of security offered on iOS. And on iOS, it’s also restricted software features, including a (supremely annoying) feature that repeatedly asks you if you want to continue allowing apps to track your location.
+[…]
+But what Apple’s testing in the latest macOS Sequoia betas is brutal because there’s no end to it. It’s a subscription you didn’t buy and can’t cancel.
+[…]
+Asking for permission a second time is not unreasonable for the reasons I mentioned above. But at some point 
+the user must be in charge
+. […] Some users will make bad decisions. That’s just reality. The wrong reaction is to take the decision out of 
+every
+ user’s hands to protect the ones who might do something stupid.
+[…]
+Apple’s recent feature changes suggest a value system that’s wildly out of balance, preferring to warn (and control) users no matter how damaging it is to the overall user experience.
+Steve Streza
+:
+The Vista-ification of macOS is so incredibly sad to watch. It is going to grow harder and harder to convince people not to shut off security features because of how annoying they're getting. Apple is becoming the thing they mocked (and sold a lot of Macs on the back of mocking).
+Sami Samhuri
+:
+Can the macOS team please stop? This is worse than UAC.
+Matthew Cassinelli
+:
+Worst decision Apple has made in years.
+John Brayton
+:
+The excessive permission checking is probably the most frustrating aspect of using a Mac.
+Martin Pilkington
+:
+After winning an Oscar and an Emmy, Apple is moving onto the next step in getting an EGOT by going for the Tony Award in Security Theatre 🙄
+Mike Rockwell
+:
+I’ve been 
+toying with Linux again
+ on my 11-inch MacBook Air and I absolutely love how much control you have over the system. Maybe 
+DHH is onto something
+ with his switch away from macOS.
+Jason Snell
+:
+And you know what they’ll say if Apple just declares this a “beta bug” and addresses it before launch: “What were you guys all complaining about?”
+But we know that if we don’t complain, this all just slides through and we’re stuck with it.
+Nick Heer
+:
+But relentless user confirmation is not a good answer for privacy, security, 
+or competition
+. It merely kicks the can down the road, and suggests users cannot be trusted, yet must bear all the responsibility for their choices.
+Matthias Gansrigler
+ (
+Mastodon
+):
+In macOS, when you want to, for example, create a screenshot app and want it to be able to actually take screenshots, you’ll have to get permission from the user for it. With the upcoming macOS 15 Sequoia, that is going to be upped to two dialogs. One: the initial permission request, and two: a weekly reminder, asking if you want to continue to allow this app to capture your screen.
+[…]
+I feel like apps on the Mac App Store should get some perks for being reviewed and vetted by Apple’s App Review.
+[…]
+A developer of a 
+screenshot
+ app that has successfully gone through App Review to be published on the Mac App Store should be able to request a default screen capture entitlement for it, which lets macOS know that no permission dialogs need to be presented, or asked for weekly, at all. It can just take screenshots right after download, because, you know, it’s a screenshot app, and that’s what the user downloaded it for.
+And similarly for core permissions for other app types.
+Guy English
+:
+If adopting new APIs is what developers need to do in order to avoid these user hostile dialogs is what is needed then Apple should provide sample code showing how to move from the old to the new. If the App is on the Mac AppStore they could and should reach out to apps with that entitlement and point the developers in the right direction. For extra points allot Apple dev rel folks to do the conversion for them if needed.
+This helps the 
+user
+.
+Daniel Jalkut
+:
+I think the problem is there is no new API to avoid the hostile dialogs. They occur with the newest APIs.
+Craig Hockenberry
+:
+You’d think that Apple would have figured out that letting developers know about Security changes ahead of time would be a good idea.
+Craig Hockenberry
+:
+A friend pointed me to this [
+Persistent Content Capture entitlement
+] the other day and it feels like a solution to the (justified) uproar over the screen sharing nag.
+The issue here is that Apple has provided no documentation or any other guidance on how to get this entitlement and prevent an app from becoming nagware.
+Isaiah Carew
+:
+we’ve clearly hit an inflection point. the kickback from the macOS screen recording warning has been huge.
+for years apple has slowly improved security, but at extreme detriment to usability, functionality, and developer pain.
+i think this either means apple listens and changes course here right now or the groundswell will continue and accelerate.
+i have trouble being optimistic in these cases, but they did eventually listen about the shitty keyboard. so hope is not entirely lost.
+Jason Snell
+:
+Here’s the thing. Apple 
+should
+ be making it harder for apps to do stuff without users understanding what they’re approving. But with great power comes responsibility. If you’re going to make these changes, you have to make the effort to mitigate the UX disaster. If you introduce new, better APIs, you need to evangelize them to developers and document them properly.
+Too often for the last few years Apple does step one and then fails to do steps two and three. Step one is not the sin.
+John Gruber
+ (
+Mastodon
+, 
+2
+):
+I think it shows just how much care and thoughtfulness went into turning up the dial on these nags that the button label 
+incorrectly capitalizes the “to”
+ in “Continue To Allow”. You can say, well, that’s a little thing. But that’s exactly the sort of little thing that almost never shipped from Apple, even in beta, until the last few years.
+Having to click through these confirmation nags every week, for every such utility you use, is not a little thing at all. It’s the sort of thing companies do when decisions like this are made by people looking to cover their asses, not make insanely great products.
+Craig Hockenberry
+:
+The biggest win for the user experience would be to reorganize System Settings around the apps, and not the categories.
+I want to see all the things that Google Chrome can access, not dig into Extensions, Privacy, Location, et. al. (and don’t get me started on search capabilities).
+Harder than it is on iOS because there are more things to allow/deny, but it’s the way folks expect it to be.
+Anything short of that is just a bandaid.
+Jeff Johnson
+:
+That info should be in the Finder Get Info window and/or preview pane. Also when you press and hold an app icon on the iOS home screen.
+Juli Clover
+:
+Apple’s User Privacy Engineering Manager Katie Skinner and Privacy Product Marketing Lead Sandy Parakilas recently sat down with YouTuber Andru Edwards for a wide-ranging discussion on Apple’s privacy policies.
+Previously:
+macOS 15 Sequoia Public Beta
+Sequoia Removes Gatekeeper Contextual Menu Override
+A Picture Is Worth a Thousand Permissions Requests
+ATS and ATSUI Removal
+Privacy and Security in macOS 14
+The Alert Hammer
+Annoying Catalina Security Features
+Mojave’s New Security and Privacy Protections Face Usability Challenges
+Update (2024-08-13): 
+Craig Hockenberry
+:
+The thing that really gets me about this screen capture situation in the next version of macOS is that it lays bare the hubris of security folks.
+I bet they rarely take screenshots - all their work is low-level internal mechanisms. What good is an image of a SHA hash going to do them?
+Meanwhile there are hundreds of thousands of developers working with designers, clients, managers, and other folks who want to see the current state of their work.
+We take a shit-ton of screenshots.
+Hagen Terschüren
+:
+also … who is surprised when they use a shortcut they specifically programmed to be the shortcut to take a screenshot in a specific app that it then lets this specific app take a screenshot?
+i would understand this for background screen recording. but yes, i actually do know what action i want to happen after purposefully pressed three keys at the same time.
+Craig Hockenberry
+:
+In fact, folks have noticed that CI workflows that build projects and take screenshots from the command line are also affected.
+The only exception is Apple Remote Desktop (VNC) because it has some very specific private entitlements.
+Gus Mueller
+:
+Acorn “records the screen” to sample pixels in other apps when you use the color loupe. This is great if you see a color in a Safari window that you’d like to grab, even if you do have to deal with a scary warning (once) from MacOS. At least it was only once, until now.
+[…]
+This is sad, but not unsurprising given the trajectory of things lately. And if you look closely, you can still see bits of [the canary’s] yellow feather intermixed with the rest of the decomposing body.
+John C. Welch
+:
+Let’s assume we only have to give permission once. After that, an app wants to take screenshots, how does the user know when that happens, how often, and what is being done with those screenshots?
+[…]
+So how do you manage this? Because with a one time forever auth, and a bit of care, I can build an app that 
+seems
+ legit, but meanwhile happily takes screenshots of your Mac, then uploads them to wherever and you’d most likely never know.
+So how do you prevent that for a non-technical user in a way that doesn’t make them have to be a sysadmin?
+This is a good question. It’s not crazy that Apple wanted to do something in Sequoia, but it’s not clear to me that the solution they went with even helps at all.
+Nick Heer
+:
+In response to Apple’s 
+increasingly distrustful
+ permissions prompts, it is worth thinking about what benefits this could provide. For example, apps can start out trustworthy and later 
+become malicious
+ through 
+updates
+ or ownership changes, and users should be reminded of the permissions they have afforded it. There is a recent example of this in Bartender. But I am not sure any of this is helped by yet another alert.
+[…]
+I do not think this new prompt succeeds in helping users make an informed decision. There is no information in the dialog’s text informing you who the developer is, and if it has changed. It does not appear the text of the dialog can be customized for the developer to provide a reason. If this is thrown by an always-running app like Bartender, a user will either become panicked or begin passively accepting this annoyance.
+The latter is now the default response state to a wide variety of alerts and cautions. Car alarms are 
+ineffective
+. Hospitals and other medical facilities are filled with so many beeps 
+staff become “desensitized”
+.
+[…]
+Even if you believe dialog boxes are a helpful intervention, Apple’s own sea of prompts do not fulfill the Jobs criteria: they most often do not tell users specifically how their data will be used, and they either do not ask users every time or they cannot be turned off. They are just an occasional interruption to which you must either agree or find some part of an application is unusable.
+Christina Warren
+:
+17 years ago, Apple rightfully skewered Vista for this same sort of behavior. I actually think the Sequoia stuff is worse.
+Previously:
+The Mac Is a Power Tool
+Update (2024-08-14): 
+Chance Miller
+ (
+MacRumors
+):
+In macOS Sequoia beta 6, however, Apple has adjusted this policy and will now prompt users on a monthly basis instead. macOS Sequoia will also no longer prompt you to approve screen recording permissions every time you reboot your Mac.
+[…]
+A permission request on a monthly basis is certainly better than one on a weekly basis, but I still think there needs to be a way to permanently grant an app screen recording permissions.
+Additionally, Apple’s lack of communication with developers about this change has only made things 
+more
+ confusing and frustrating. Likewise, I’ve reached out to Apple multiple times for clarification and have not received a response.
+Federico Viticci
+:
+I wanted to share something funny about Apple’s nonsensical permissions for macOS Sequoia, but then I realized that at least Mac users 
+do
+ have those options, so I grabbed my iPad and cried in a corner instead 🥲
+Update (2024-08-19): 
+John Gruber
+ (
+Mastodon
+):
+I continue to think part of the problem is thinking too small, and requiring what’s effectively whack-a-mole with multiple recurring permission prompts. Playing that game of whack-a-mole monthly instead of weekly is absolutely an improvement. But I still think there ought to be a way to grant a properly notarized app permanent permission.
+Adam Engst
+:
+Reducing the frequency of these repeated permissions prompts is a step in the right direction, but it is still a mistake. A monthly schedule is less annoying than weekly prompts, but it’s more irritating than what we’re currently accustomed to, with no indication from Apple of why the purported additional security is necessary.
+[…]
+Also, while specificity in interface language has its place, even I don’t know what “requesting to bypass the system window picker” means, so I can’t imagine that a user less involved in the technical details of macOS would have any clue. Allowing obscure technical language to creep into a user interface is problematic on its own; putting it in a dialog meant to inform ordinary users about a potential security concern exacerbates the feelings of ignorance many people already have. Nobody who would have approved usage the first time would find themselves denying it on a subsequent occasion because of this new language. It’s far more likely that people will tune out the dialog gobbledygook and reduce their overall system vigilance.
+Update (2024-08-21): Apple has updated the documentation for the Persistent Content Capture entitlement, clarifying that it’s intended for Virtual Network Computing (VNC) apps and offering 
+a form
+ for developers to request the entitlement (via 
+Luc Vandal
+).
+Update (2024-08-22): 
+Dr. Drang
+:
+The writing of the permissions prompt is as bad as its frequency[…]
+[…]
+In the original Macintosh OS, warnings were conveyed to the user through a specific type of dialog box called an 
+alert
+. Here’s an excerpt from Inside Macintosh (p. 401) introducing alerts[…] The last paragraph of this excerpt spells out how alerts could change with each occurrence and gives an example of how Apple expected this mechanism to be used.
+Update (2024-09-09): 
+Craig Hockenberry
+:
+Here’s why the Sequoia screen capture stuff is such a worry:
+I just got a permission prompt when launching xScope to debug a problem, I had to delete the previous permission to get it to take, authenticate using Touch ID, then quit and relaunch the app manually because it didn’t restart. Then I checked that the Loupe is working.
+Now I can’t remember what I was going to debug in the first place.
+Update (2024-09-12): 
+Nick Heer
+:
+Here is an excerpt from the 
+release notes
+ for the MacOS 15.0 developer beta[…] It turns out the “and” in that last sentence is absolutely critical. In last year’s beta releases of MacOS 14, Apple 
+began advising developers
+ it would be deprecating CoreGraphics screenshot APIs, and that applications should migrate to ScreenCaptureKit. However, this warning was removed by the time MacOS 14.0 shipped to users, only for it to 
+reappear
+ in the beta versions of 14.4 released to developers earlier this year. Apple’s message was to get on board — and fast — with ScreenCaptureKit.
+ScreenCaptureKit was only the first part of this migration for developers. The second part — returning to the all-important “and” from the 15.0 release notes — is SCContentSharingPicker. That is the 
+selection window
+ you may have seen if you have recently tried screen sharing with, say, FaceTime. It has two agreeable benefits: first, it is not yet another permissions dialog; second, it allows the user to know every time the screen is being recorded because they are actively granting access through a trusted system process.
+[…]
+I think it is possible MacOS 15.0 ships without this dialog. In part, that is because its text — “requesting to bypass the system window picker” — is 
+technical and abstruse
+, written with seemingly little care for average user comprehension. I also think that could be true because it is what happened last year with MacOS 14.0. That is not to say it will be gone for good; Apple’s intention is very clear to me. But hopefully there will be some new APIs or entitlement granted to legitimately useful utility apps built around latent access to seeing the whole screen when a user commands. At the very least, users should be able to grant access indefinitely.
+Update (2024-09-18): 
+Nick Heer
+:
+It turns out this prompt, awkward language and all, made it into the public release.
+[…]
+In the latest beta release of MacOS 15.1, Apple added a 
+new device management key
+, 
+forceBypassScreenCaptureAlert
+, to override the monthly permissions request. […] However, my understanding is this cannot be used by more general users; it is only for managed devices.
+Previously:
+macOS 15 Sequoia
+Update (2024-09-23): 
+Miles Wolbe
+ (via 
+Hacker News
+):
+Jeff Johnson 
+credits Ricci Adams
+ with discovering that 
+~/Library/Group Containers/group.com.apple.replayd/ScreenCaptureApprovals.plist
+ stores screen capture approval dates. He reports that the file is protected by TCC and suggests granting Full Disk Access to Terminal, using 
+defaults
+ to read and modify the file, then logging off and on to permanently disable the prompt.
+See also: 
+Matthias Gansrigler
+.
+Update (2024-09-25): 
+Johan Steen
+:
+Using the color picker to pick a color from my own document. 
+? Allow For One Month ? 
+WTF, am I going to be nagged about this, once per month, per app, from now on? I've managed just fine without this baby sitting. 
+Matt Birchler
+:
+“It’s one pop-up a month, that’s not so bad,” the apologists will say, but dear reader, this is 16 pop-ups at random intervals throughout the month, typically interrupting me in the middle of me trying to actually use these apps for my work. That’s damn near one alert every weekday of the month and I gotta tell you, I hated it during the beta.
+Adam Engst
+:
+These prompts are examples of poor user interface design in multiple ways[…] They’re also problematic from a security standpoint for three reasons[…]
+Juli Clover
+ (
+9to5Mac
+):
+If you’re someone who prefers not to get these reminders for screen recording apps at all, you can 
+use the Amnesia app
+ for the Mac to get rid of them. The app basically changes the .plist file for the screen capture app access feature, and it’s a pay what you want situation.
+Update (2024-10-08): 
+Juli Clover
+:
+In the release notes for the sixth beta of the macOS Sequoia 15.1 update, Apple says that users aren’t going to see as many popups for apps they regularly use.
+[…]
+There is no option to remove the popup permanently, but macOS Sequoia 15.1 may make the frequency of the popup more bearable for those who use screen recording apps on a daily basis.
+Apple says the apps are using “using our deprecated content capture technologies” even though they don’t have modern replacements for many of the use cases.
+Amnesia
+Default Folder X
+Entitlements
+Mac
+Mac App
+macOS 15 Sequoia
+Privacy
+Screen Recording
+ScreenFloat
+Screens
+Screenshots
+Top Posts
+Transparency Consent and Control (TCC)
+Virtual Network Computing (VNC)
+xScope
+25 Comments 
+RSS
+ · 
+Twitter
+ · 
+Mastodon
+fukaeri 
+August 8, 2024 3:31 PM
+Apple used to poke fun at microsoft for these kind of things... Here's them at WWDC 2009
+https://youtu.be/BwUGh0XKrNQ?t=1060
+Corentin Cras-Méneur 
+August 8, 2024 3:33 PM
+At this point, I wonder why not get rid of "System Settings > Privacy & Security > Screen & System Audio Recording" altogether.
+The settings there are essentially useless since we get these prompts to re-authorize all the time.
+ProfessorPlasma 
+August 8, 2024 4:04 PM
+I had hoped Apple Intelligence would have enabled situations where the os can actively identify issues and alert you about them. And then I tried out Math notes.
+eliterrell 
+August 8, 2024 4:30 PM
+A couple of months back, I set up syncing over wifi on my phone. Now, every time I set it to charge, it asks me if I trust my computer.
+Apparently a few years ago the was some edge case security concern around that and instead of fixing it, iOS no longer remembers trusted computers.
+Michael Tsai
+August 8, 2024 5:26 PM
+@eliterrell 
+This
+? It also doesn’t remember that I 
+never
+ want my watch to trust my Mac. It always 
+asks
+ me to trust it with Xcode when in range.
+Hammer 
+August 8, 2024 6:51 PM
+If the new permission removes the nags for innovate uses (everything not using the picker) where is the security? A bad actor can add the permission like a good actor. The permission adds one extra straw on the back of devs (like the recent permission requirements for using NSUserDefaults or using a monotonic clock).
+Sebby 
+August 8, 2024 6:52 PM
+Not a bug. Well of course not, that's far too reasonable. FFS, I just thought vocr wasn't ready for the beta, but no, turns out to be deliberate, and vocr is basically useless when you don't start it at boot.
+Privacy? Nah, we need more privacy, just *from* Apple, not *for* Apple!
+Bryan 
+August 8, 2024 7:23 PM
+Not that dissimilar to “this app has been tracking your location for the past week. Is this still okay with you.” dialog on iPhone. 
+You could have installed that app, or your creepy boyfriend might have. The existence of AirTags notwithstanding, this sounds privacy-protecting. 
+Anyone have some better ideas of how to protect from creepy stalkers?
+Marcos
+August 8, 2024 10:17 PM
+I understand the desire to protect privacy but these dialogs as a solutions are just lazy and they are just training users to dismiss without even reading.
+Apple displays a dot when microphone is on, another when video is on, a GPS symbol when location services are active… Put all these in a little privacy menu widget that shows a list of what app has used access to these in the last five minutes, and from there launch a very well designed, clear, and usable “Privacy” GUI in which you can see all the apps with their all the privacy permissions, when they last used them, logs, ability to revoke, etc. This could be turned into a flagship feature for macOS and actually be useful rather than these dumb dialogs that just annoys everyone and the per-app permissions being barebones buried in Settings.
+Stop this laziness.
+foobat 
+August 8, 2024 10:43 PM
+I wish these two things would not be true:
+You cannot change the login in wallpaper for your security (I guess, right, because the other answer is: "I'm a Mac and I'm a controlling dick.")
+You get prompted for conformation of hundreds of little things for your security (I guess, right, because the other answer is: "I'm a Mac and I'm a stupid controlling dick.")
+Michael Tsai
+August 8, 2024 10:50 PM
+@Marcos 
+Bingo
+.
+Bri 
+August 8, 2024 10:55 PM
+This sort of thing is why my next computer will not be a mac. I'll still need to use a mac for work, but it won't be my main computer.
+Even if Apple reverses this decision, and I hope beyond reason that they do, it just exemplifies the kind of idiotic user-hostile decisions they've been making for over a decade now, and at an ever increasing rate. If it's not this, it'll be something else.
+Sebby 
+August 9, 2024 12:21 AM
+I have often thought that the only really sustainable solution is this: the system should just ask, at some point (probably during setup) what kind of user you are. Would you like the system to make all the important decisions for your security, at the risk of having less control and being gated in our lovely community, or would you like to exercise that control as an advanced user wanting to enjoy the opportunities of heading into the jungle out there, with potential attendant risks? Trying to split this herring by on the one hand demanding that you have control, but on the other that Apple take the risk is just silly: you want control, you have to take risk. It is our civic responsibility to insulate people from badness, either by educating them, or by running the app stores from which they consume their software. There is no middle ground, IMO. Unfortunately, this idea is not PC (sorry!) and Apple will never wear it because they're Benevolent dictators who would never let you come to harm. Also because it's convenient for the bottom line, but if you're still splitting hairs about that, you need to find another platform, you little darling, you.
+Plume 
+August 9, 2024 4:05 AM
+Android has solved this reasonably well, I wish Apple would just copy what they do (maybe with a one-time popup showing all permissions an app wants when you first launch it).
+But for me, an even bigger issue is how buggy all of this is, for example, permissions seem to be randomly and invisibly removed from apps. For example, I can't use Default Folder X. OS X randomly forgets its permissions, and then it just freezes the open/save dialog boxes. All the permissions are still checked in Settings, I have to uncheck them, start Default Folder X, have it go through the setup process where it requests permissions, and then it works again for a bit.
+Michael Tsai
+August 9, 2024 8:54 AM
+@Plume Yeah, I just issued a refund yesterday for a customer who was happy with my app but couldn’t use it because a macOS bug that was blocking access. There are workarounds for these privacy/security bugs, but they are often too complicated for people to follow. For example, you need to restart in single user mode to reset a damaged privacy database.
+ObjC4Life 
+August 9, 2024 11:36 AM
+There is a need for a macOS-like Linux distro now more than ever. 
+Between permission prompts galore and low quality SwiftUI interfaces everywhere macOS is going down the toilet.
+It’s like they want to make the Mac as useless as an iPad (for most people…don’t yell at me if you draw with a stylus but please realize you are part of a very small group of people).
+Bri 
+August 9, 2024 2:14 PM
+@ObjC4Life I'm not looking forward to making the switch to Linux, because I'll lose all of the refinement and consistency that macOS's GUI has. Granted it's a lot *less* refined and consistent than it was 10 years ago, but it's still well ahead of Linux, at least in the distros I've tried. But at least I'll finally feel like I'm in complete control of my computer.
+I wonder what distro comes closest to providing a mac-from-10-years-ago-like experience?
+Plume 
+August 9, 2024 3:21 PM
+The problem with Linux aren't the distros. There are plenty of distros (like Pop!_OS) that (in my opinion, at least) provide a way better, more consistent, more stable, faster, more unified UX than either Mac OS or Windows.
+The problem are the apps, because the popular apps (Libre Office, Gimp, Firefox, Blender, Chrome, etc) all have their own ideas for how the UX should work, so they don't properly fit into any of the distros. OTOH, more and more, the same applies to Macs. It's not like in the System 7 days, where an application like Word 6 was immediately recognizable as being out of place.
+So maybe there's a tipping point where the pain caused by Apple is so big, and the difference in usability is so low, that a switch becomes inevitable.
+Sebby 
+August 9, 2024 4:12 PM
+Things are better now than they've ever been for Linux, but inconsistency aside, I do think there's still something of the "hard mode" about it. We take all the conveniences of complete driver support for power management on both Mac and Doze, yet too often that's something you still need to get into the weeds with Linux on. Same for system recovery, assuming your filesystem hasn't self-healed (which, to credit, it usually does). And accessibility, important to me—well let's just say that Mate is the only realistic option there. And so on. Fundamentally Linux is for and by developer people, with a bit of help from enterprise vendors who sell it as a workstation in particular verticals. You just have to bear that in mind. Windows gets a lot of heat but I'd completely understand if you jumped over there instead.
+Alexandre Dieulot
+August 10, 2024 6:26 AM
+For those of us relatively new to the Mac, is there an article listing the yearly macOS UX degradations in the name of security?
+Plume 
+August 10, 2024 7:44 AM
+"We take all the conveniences of complete driver support for power management on both Mac and Doze"
+If you buy a device that's intended to be used with Linux (e.g. System76, Framework) and use a Linux distro they've tested or recommend, you'll be fine. If you just buy a random device and install Linux, you might run into odd support issues (although overall things have gotten quite good in recent years).
+bob 
+August 10, 2024 9:46 PM
+QuickTime Player can record your screen, does Apple warn about this, or exclude themselves?
+Sebby 
+August 11, 2024 5:02 AM
+@Plume Sure, if you're happy to do that. OTOH getting Linux running on my 2018 Mac Mini requires DKMS or a custom kernel to get the SMC (and therefore fan speed control) working. I'm glad Linux is getting the attention it needs but I think people still need to be realistic about how the chips will fall; sometimes it's ugly.
+Nathan_RETRO
+August 12, 2024 12:42 PM
+@Sebby
+Linux can be a freaking pain sometimes and sometimes it's even easier than MacOS/Windows. That's the unfortunate roll of the dice aspect of it. However, Macs running Linux have always been much more difficult for me than most random x86 PCs I happen to pick up here and there. Sometimes it's not hard on the Mac with Linux, but sometimes it's "Why doesn't this boot loader work, when I'm pretty sure it worked last time.", "Why doesn't my webcam work, oh, right you have to extract the kext in Mac OS first.", and "Why doesn't 'insert random power problem" function." My Dell's have mostly just worked fine. For whatever that's worth.
+I still have a single ancient Intel Mac running Linux so the experience is recent. :)
+luckman212
+September 27, 2024 11:19 PM
+Just leaving this here, a small tool I've been working on to manage these nags. Hope it helps someone.
+https://github.com/luckman212/screencapture-nag-remover
+Leave a Comment
+Name 
+E-mail (will not be published) 
+Web site
+Δ
+←
+→
+Blog
+Archives
+Tag Cloud
+Top Posts
+Recently Updated
+RSS Feed
+ · 
+Comments
+Mastodon
+ · 
+Twitter
+Apple News
+Support this site via 
+Patreon
+.
+Try my Mac apps:
+DropDMG
+EagleFiler
+SpamSieve
+ToothFairy
+Copyright © 2000–2026 
+Michael Tsai
+.

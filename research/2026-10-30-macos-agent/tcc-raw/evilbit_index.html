@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>theevilbit</title>
+<meta name="description" content="macOS security research by Csaba Fitzl: vulnerabilities, exploits, persistence, talks.">
+<meta name="author" content="Csaba Fitzl">
+<link rel="canonical" href="https://theevilbit.github.io/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="theevilbit">
+<meta property="og:title" content="theevilbit">
+<meta property="og:description" content="macOS security research by Csaba Fitzl: vulnerabilities, exploits, persistence, talks.">
+<meta property="og:url" content="https://theevilbit.github.io/">
+<meta property="og:image" content="https://theevilbit.github.io/og.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@theevilbit">
+<meta name="twitter:title" content="theevilbit">
+<meta name="twitter:description" content="macOS security research by Csaba Fitzl: vulnerabilities, exploits, persistence, talks.">
+<meta name="twitter:image" content="https://theevilbit.github.io/og.png">
+<link rel="alternate" type="application/rss+xml" title="theevilbit" href="/index.xml">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script>try { var t = localStorage.getItem("tb.theme"); document.documentElement.dataset.theme = t || "dark"; } catch (e) { document.documentElement.dataset.theme = "dark"; }</script>
+<link rel="preload" href="/fonts/IBMPlexSans-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts.css?v=1791269065">
+<link rel="stylesheet" href="/style.css?v=1791269065">
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="/">the<span>evil</span>bit<i class="cursor"></i></a>
+    <nav class="nav"><a href="/posts/">Posts</a><a href="/beyond/">Beyond</a><a href="/talks/">Talks</a><a href="/shield/">Shield</a><a href="/about/">About</a><a href="/tags/">Tags</a><a href="https://apple-cve.com/" target="_blank" rel="noopener">apple-cve.com ↗</a><a href="https://www.iru.com/blog/author/csaba-fitzl" target="_blank" rel="noopener">Iru blog ↗</a><a href="https://macosvuln.training/" target="_blank" rel="noopener">Training ↗</a></nav>
+    <button type="button" class="theme" id="theme" aria-label="switch light / dark">◐</button>
+  </header>
+  <main><section class="hero">
+  <div class="kicker">macOS security research</div>
+  <h1>Csaba Fitzl's blog</h1>
+  <p class="lede">Vulnerabilities, exploits and persistence on macOS — write-ups of my bugs, techniques, talks and tools.</p>
+</section>
+<div class="home-grid">
+  <section class="card">
+    <div class="card-h"><span class="lbl">Latest posts</span><a href="/posts/">all posts →</a></div>
+    <ul class="rows"><li class="row"><time datetime="2026-09-01">Sep 1, 2026</time><a class="row-title" href="/posts/screensharingd-bugs/">Inside the screensharingd Bugs: How macOS Screen Sharing Went from Root File Access to Pre-Auth Compromise</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/rce/">rce</a><a class="tag" href="/tags/vulnerability/">vulnerability</a><a class="tag" href="/tags/cve/">cve</a></span></li><li class="row"><time datetime="2026-08-17">Aug 17, 2026</time><a class="row-title" href="/posts/how-a-single-postscript-file-leaks-your-macs-memory/">How a single PostScript file leaks your Mac&#x27;s memory</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/spotlight/">spotlight</a><a class="tag" href="/tags/memory-corruption/">memory corruption</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li><li class="row"><time datetime="2026-01-28">Jan 28, 2026</time><a class="row-title" href="/posts/dangers-of-cracking-tools/">The Dangers of Cracking Tools</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li><li class="row"><time datetime="2025-12-05">Dec 5, 2025</time><a class="row-title" href="/posts/localized/">macOS LPE via the .localized directory</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/installer/">installer</a></span></li><li class="row"><time datetime="2025-11-11">Nov 11, 2025</time><a class="row-title" href="/posts/crashone-cve-2025-24277-macos-sandbox-escape/">CrashOne - A Starbucks Story - CVE-2025-24277</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/sandbox/">sandbox</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li><li class="row"><time datetime="2025-09-09">Sep 9, 2025</time><a class="row-title" href="/posts/finding-vulnerabilities-in-apple-packages/">Finding Vulnerabilities in Apple Packages at Scale</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/installer/">installer</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li><li class="row"><time datetime="2025-02-21">Feb 21, 2025</time><a class="row-title" href="/posts/macos-audit-story-part3/">The diskarbitrationd and storagekitd Audit Story Part 3</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/tcc/">tcc</a><a class="tag" href="/tags/vulnerability/">vulnerability</a></span></li><li class="row"><time datetime="2024-12-12">Dec 12, 2024</time><a class="row-title" href="/posts/macos-audit-story-part2/">The diskarbitrationd and storagekitd Audit Story Part 2</a><span class="row-tags"><a class="tag" href="/tags/macos/">macos</a><a class="tag" href="/tags/lpe/">lpe</a><a class="tag" href="/tags/vulnerability/">vulnerability</a><a class="tag" href="/tags/cve/">cve</a></span></li></ul>
+  </section>
+  <aside class="side">
+    <a class="card series" href="/beyond/"><span class="kicker">Series · 35 parts</span><b>Beyond the good ol' LaunchAgents</b><span>macOS persistence techniques, one per post.</span></a>
+    <a class="card series" href="/talks/"><span class="kicker">Talks &amp; workshops</span><b>Slides and recordings</b><span>Conference talks since 2014.</span></a>
+    <a class="card series" href="/shield/"><span class="kicker">Tool</span><b>Shield.app</b><span>Protection against process injection on macOS.</span></a>
+  </aside>
+</div>
+</main>
+  <footer class="foot">
+    <span>© 2026 Csaba Fitzl</span>
+    <span class="social"><a href="https://github.com/theevilbit/" rel="me noopener">GitHub</a><a href="https://x.com/theevilbit" rel="me noopener">X</a><a href="/index.xml" rel="me noopener">RSS</a></span>
+  </footer>
+</div>
+<script>
+document.getElementById("theme").addEventListener("click", function () {
+  var t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+  document.documentElement.dataset.theme = t;
+  try { localStorage.setItem("tb.theme", t); } catch (e) {}
+});
+</script>
+</body>
+</html>

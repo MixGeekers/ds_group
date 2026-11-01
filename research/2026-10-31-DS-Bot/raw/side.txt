@@ -1,0 +1,209 @@
+DS-Bot 第三方源码摘录；仅作静态证据，不执行。
+检索日期：2026-10-31（America/Caracas）
+固定提交：f823773b07ec6ca29d60b31c31af30218a68000d
+许可：Apache-2.0，见 LICENSE.txt 与 NOTICE.txt。
+行号为上游原文件行号；未列出的区间未保存。
+
+===== ds-bot/src/host/side.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/src/host/side.js
+Git blob SHA: a68a2e4c9f402ae4110b993a8464b2ba00c9d262
+
+--- L1-L24 ---
+1: // Side chats: questions answered from a fresh snapshot of a Bot's private chat,
+2: // shown in the Bot's side panel. A follow-up carries the chat's finished pairs
+3: // on top of a new snapshot, so the route sees a short conversation. Nothing is
+4: // written into the Session, and no tool call is ever dispatched. A Bot's chats
+5: // live in one file (<home>/side/<botId>.json), not in state.json; only the host
+6: // that owns the team writes them.
+7: import { randomUUID } from 'node:crypto'
+8: import { mkdir, readFile, rm, unlink, writeFile } from 'node:fs/promises'
+9: import { join } from 'node:path'
+10: import { ASIDE_LIMIT } from './constants.js'
+11: import { EMPTY_ERROR, RESTART_ERROR, TOOL_ERROR, callAside, locatePrivate, snapshotOf } from './btw.js'
+12: import { replaceFile } from './files.js'
+13: 
+14: // The mock model recognizes a side question by this first line.
+15: export const SIDE_MARKER = 'ds-bot/side'
+16: 
+17: const SIDE_PROMPT = [
+18:   SIDE_MARKER,
+19:   'Answer from the conversation so far, based on progress up to this snapshot, and from this side chat.',
+20:   'Do not call any tool.',
+21:   'If the answer needs information that is not in the conversation, say so.',
+22:   'Never claim to have done anything.',
+23: ].join('\n')
+24: const SIDE_RETRY = 'Do not call any tool. Answer in text only.'
+
+--- L69-L95 ---
+69:   // All of a Bot's chats in one list. It is read from
+70:   // <home>/side/<botId>.json on first need and kept here; writes are
+71:   // whole-file replaces, queued so a finish and a cancel never interleave. A
+72:   // runtime without a home (a bare channel install) keeps chats in memory only.
+73:   const sideDir = typeof rt.home === 'string' ? join(rt.home, 'side') : undefined
+74:   const botFile = botId => join(sideDir, `${botId}.json`)
+75:   const writes = () => rt.readOnly?.() === undefined
+76:   /** @type {Map<string, object[]>} */
+77:   const chats = new Map()
+78:   const reading = new Map()
+79:   let writing = Promise.resolve()
+80: 
+81:   const writeBot = (botId) => {
+82:     const run = writing.then(async () => {
+83:       if (sideDir === undefined || !writes() || dropped.has(botId) || rt.botOf(botId) === undefined) return
+84:       const path = botFile(botId)
+85:       await mkdir(sideDir, { recursive: true })
+86:       const temp = `${path}.${process.pid}.tmp`
+87:       try {
+88:         await writeFile(temp, JSON.stringify(chats.get(botId) ?? [], null, 2), 'utf8')
+89:         await replaceFile(temp, path)
+90:       } catch (error) {
+91:         await unlink(temp).catch(() => {})
+92:         throw error
+93:       }
+94:     })
+95:     writing = run.catch(() => {})
+
+--- L223-L250 ---
+223:   async function complete(botId, chat, entry, snapshot, signal) {
+224:     const extra = pairsOf(chat, entry, snapshot.header?.config)
+225:     try {
+226:       for (let attempt = 0; attempt < 2; attempt += 1) {
+227:         if (signal.aborted || entry.status !== 'answering' || !alive(botId, chat, entry)) return
+228:         const result = await callAside(ctx, rt, snapshot, { extra, question: entry.question, promptFor, kind: 'side', retry: attempt === 1, signal })
+229:         if (signal.aborted || entry.status !== 'answering' || !alive(botId, chat, entry)) return
+230:         if (result.failed !== undefined) {
+231:           // Cancel already left this entry, and the check above returned. A provider
+232:           // that stops on its own still fails it, so it does not stay 'answering'.
+233:           if (settle(botId, chat, entry, { status: 'failed', error: result.failed, answer: '' })) await persist(botId)
+234:           return
+235:         }
+236:         if (result.cutOff) {
+237:           const answer = result.text ?? ''
+238:           if (settle(botId, chat, entry, { status: 'failed', error: ASIDE_LIMIT, answer, finish: 'max-tokens' })) await persist(botId)
+239:           return
+240:         }
+241:         if (result.toolCalls) {
+242:           if (attempt === 0) continue
+243:           if (settle(botId, chat, entry, { status: 'failed', error: TOOL_ERROR, answer: '' })) await persist(botId)
+244:           return
+245:         }
+246:         if (result.text === '') {
+247:           if (settle(botId, chat, entry, { status: 'failed', error: EMPTY_ERROR, answer: '' })) await persist(botId)
+248:           return
+249:         }
+250:         if (settle(botId, chat, entry, { status: 'done', answer: result.text })) await persist(botId)
+
+--- L272-L320 ---
+272:   async function sideAsk({ sessionId: raw, chatId, recent, text }) {
+273:     const question = typeof text === 'string' ? text : ''
+274:     if (question.trim() === '') throw Object.assign(new Error('Write a question.'), { code: 'bot/invalid' })
+275:     const { sessionId, botId } = locatePrivate(rt, raw, GROUP_REFUSAL)
+276:     const list = await readBot(botId)
+277:     let chat
+278:     if (typeof chatId === 'string' && chatId !== '') {
+279:       chat = list.find(item => item.id === chatId)
+280:       if (chat === undefined) throw new Error(CHAT_ERROR)
+281:       if (answering(chat)) throw new Error(BUSY_ERROR)
+282:     } else if (recent === true) {
+283:       // `/side` reuses the freshest chat whose last entry is not still answering.
+284:       chat = [...list]
+285:         .filter(item => item.entries?.at(-1)?.status !== 'answering')
+286:         .sort((a, b) => (b?.updatedAt ?? 0) - (a?.updatedAt ?? 0))[0]
+287:     }
+288:     const id = randomUUID()
+289:     const controller = new AbortController()
+290:     track(id, botId, controller)
+291:     let started = false
+292:     let created = false
+293:     try {
+294:       const agent = await rt.resolveAgent(sessionId)
+295:       if (abandoned(botId)) throw stopError(botId)
+296:       const snapshot = snapshotOf(agent.session, ctx.get?.('sessionProjections'))
+297:       const route = snapshot.header?.config
+298:       if (!route?.provider || !route?.model) throw new Error('This Bot has not called a model yet. Send a normal message first.')
+299:       if (chat === undefined) {
+300:         chat = newChat(botId)
+301:         list.push(chat)
+302:         created = true
+303:       }
+304:       // `recent` only skips an answering last entry; a stale answering entry
+305:       // anywhere else still holds the chat for one question at a time.
+306:       if (answering(chat)) throw new Error(BUSY_ERROR)
+307:       const entry = { id, question, answer: '', status: 'answering', createdAt: Date.now() }
+308:       chat.entries.push(entry)
+309:       chat.updatedAt = entry.createdAt
+310:       await persist(botId)
+311:       // Unload keeps the saved entry for the next owner. Deletion already removed it.
+312:       if (abandoned(botId) || !alive(botId, chat, entry)) {
+313:         if (disposing && !dropped.has(botId) && alive(botId, chat, entry)) return { chatId: chat.id, entryId: id }
+314:         throw new Error('Unknown Bot')
+315:       }
+316:       const done = complete(botId, chat, entry, snapshot, controller.signal).finally(() => untrack(id))
+317:       const flight = flights.get(id)
+318:       if (flight !== undefined) flight.done = done
+319:       started = true
+320:       return { chatId: chat.id, entryId: id }
+
+===== ds-bot/src/host/btw.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/src/host/btw.js
+Git blob SHA: c4d5a59ad84e9761ab6e46a9ca7fde86734d524a
+
+--- L89-L104 ---
+89: // DSH commits the assistant message before tool results exist. A tail that still
+90: // owes a result is dropped whole: an adapter rejects a tool call with no result,
+91: // and an aside does not wait for one or invent one.
+92: export function trimToolBoundary(messages) {
+93:   if (!Array.isArray(messages) || messages.length === 0) return []
+94:   let index = messages.length
+95:   while (index > 0 && messages[index - 1]?.role === 'tool') index -= 1
+96:   const calls = callIds(messages[index - 1])
+97:   if (calls.length === 0) return messages
+98:   const answered = new Set()
+99:   for (const message of messages.slice(index)) {
+100:     if (typeof message?.toolCallId === 'string') answered.add(message.toolCallId)
+101:   }
+102:   const balanced = calls.every(id => typeof id === 'string' && answered.has(id))
+103:   return balanced ? messages : messages.slice(0, index - 1)
+104: }
+
+--- L141-L179 ---
+141: // Header, derived history, tool history, and the session id, taken together.
+142: export function snapshotOf(session, projections) {
+143:   const header = session.requestHeader()
+144:   const messages = trimToolBoundary(session.deriveMessages())
+145:   const toolHistory = session.toolHistory()
+146:   const sessionId = session.id
+147:   const { anchorSeq, turn } = placementOf(session, projections)
+148:   return { header, messages, toolHistory, sessionId, atSeq: committedSeq(session), anchorSeq, turn }
+149: }
+150: 
+151: // The same route as the conversation, including temperature, stop, and the output
+152: // budget: thinking shares it, so an aside must not set a small one of its own. The
+153: // messages array is tagged for usage. `extra` messages sit between the snapshot
+154: // and the prompt; a side chat's earlier finished pairs go there.
+155: export async function callAside(ctx, rt, snapshot, { extra = [], question, promptFor, kind, retry = false, signal }) {
+156:   const messages = rt.tagUsage([
+157:     ...snapshot.messages,
+158:     ...extra,
+159:     { role: 'user', content: [{ type: 'text', text: promptFor(question, retry) }] },
+160:   ], { sessionId: snapshot.sessionId, kind })
+161:   const assembler = new BlockAssembler()
+162:   const tools = snapshot.header?.tools
+163:   for await (const chunk of ctx.llm.stream({
+164:     ...snapshot.header?.config,
+165:     messages,
+166:     toolHistory: snapshot.toolHistory,
+167:     ...(tools ? { tools: [...tools] } : {}),
+168:     sessionId: snapshot.sessionId,
+169:     signal,
+170:   })) assembler.push(chunk)
+171:   const finish = assembler.finish
+172:   if (finish.kind === 'error' || finish.kind === 'aborted') {
+173:     return { failed: finish.failure?.message ?? finish.kind }
+174:   }
+175:   const text = assembler.blocks().filter(block => block.type === 'text').map(block => block.text).join('\n').trim()
+176:   // Checked before a tool-call retry: a truncated tool call is not a request.
+177:   if (finish.kind === 'max-tokens') return { text, cutOff: true }
+178:   const toolCalls = finish.kind === 'tool-calls' || assembler.blocks().some(block => block?.type === 'tool-call')
+179:   return { text, toolCalls }
+

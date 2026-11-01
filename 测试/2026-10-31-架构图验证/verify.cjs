@@ -1,0 +1,94 @@
+const { chromium } = require('playwright');
+const fs = require('fs');
+const path = require('path');
+const { pathToFileURL } = require('url');
+const root = path.resolve(__dirname, '../..');
+const output = path.join(__dirname, 'artifacts');
+const html = path.join(root, '架构与设计/图示/识雨全景架构-A.html');
+const report = { errors: [], network: [], views: [], interactions: {} };
+fs.mkdirSync(output, { recursive: true });
+const assert = (ok, message) => { if (!ok) throw new Error(message); };
+const settled = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+(async () => {
+  const browser = await chromium.launch({ headless: true, executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' });
+  try {
+    const page = await browser.newPage({ viewport: { width: 1600, height: 1100 }, deviceScaleFactor: 2, acceptDownloads: true });
+    page.on('pageerror', e => report.errors.push(e.message));
+    await page.route(/^https?:/, route => { report.network.push(route.request().url()); return route.abort(); });
+    await page.goto(pathToFileURL(html).href);
+    await page.waitForFunction(() => window.shiyuAtlas && shiyuAtlas.getState().initialized);
+    await settled(page);
+    report.browser = browser.version();
+    report.overview = await page.evaluate(() => ({ state: shiyuAtlas.getState(), inspection: shiyuAtlas.inspect() }));
+    await page.screenshot({ path: path.join(output, 'desktop-overview.png'), fullPage: true });
+    for (const id of ['outer', 'inner', 'execution', 'data', 'devices', 'recovery', 'all']) {
+      await page.locator('[data-focus="' + id + '"]').click();
+      await settled(page);
+      const r = await page.evaluate(() => ({ focus: shiyuAtlas.getState().focus, overflow: shiyuAtlas.inspect().text.overflow }));
+      assert(r.focus === id, 'Focus button failed: ' + id);
+      report.views.push(r);
+      if (['inner', 'data'].includes(id)) await page.screenshot({ path: path.join(output, 'desktop-' + id + '.png'), fullPage: true });
+    }
+    await page.locator('#node-picker').selectOption('core');
+    await settled(page);
+    assert(await page.locator('#detail h2').textContent() === 'core · 主动判断', 'Module selection failed');
+    report.interactions.modulePicker = true;
+    await page.evaluate(() => { shiyuAtlas.select(null, false); shiyuAtlas.focus('inner'); });
+    await settled(page);
+    const p = await page.evaluate(() => {
+      const s = shiyuAtlas.getState(), n = shiyuAtlas.nodes.find(n => n.id === 'memory'), r = document.querySelector('#atlas').getBoundingClientRect();
+      return { x: r.left + s.tx + (n.x + n.w / 2) * s.z, y: r.top + s.ty + (n.y + n.h / 2) * s.z };
+    });
+    await page.mouse.click(p.x, p.y);
+    assert(await page.evaluate(() => shiyuAtlas.getState().selected) === 'memory', 'Canvas hit test failed');
+    report.interactions.canvasSelection = true;
+    const before = await page.evaluate(() => shiyuAtlas.getState());
+    await page.locator('#zoom-in').click();
+    assert(await page.evaluate(() => shiyuAtlas.getState().z) > before.z, 'Zoom button failed');
+    report.interactions.zoom = true;
+    const box = await page.locator('#atlas').boundingBox();
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 70, box.y + box.height / 2 + 30); await page.mouse.up();
+    const dragged = await page.evaluate(() => shiyuAtlas.getState());
+    assert(dragged.focus === 'custom', 'Pan failed');
+    report.interactions.drag = true;
+    const wheelBefore = await page.evaluate(() => shiyuAtlas.getState().z);
+    await page.mouse.wheel(0, -120); await settled(page);
+    assert(await page.evaluate(() => shiyuAtlas.getState().z) > wheelBefore, 'Wheel zoom failed');
+    report.interactions.wheel = true;
+    await page.locator('#atlas').focus(); await page.keyboard.press('Home');
+    assert(await page.evaluate(() => shiyuAtlas.getState().focus) === 'all', 'Keyboard Home failed');
+    report.interactions.keyboard = true;
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator('#export').click();
+    const download = await downloadPromise;
+    const png = path.join(root, '架构与设计/图示/识雨全景架构-A.png');
+    await download.saveAs(png);
+    const bytes = fs.readFileSync(png);
+    report.export = { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20), bytes: bytes.length, filename: download.suggestedFilename() };
+    assert(report.export.width === 6500 && report.export.height === 4600, 'Wrong PNG dimensions');
+    report.interactions.download = true;
+    report.exportText = await page.evaluate(() => { shiyuAtlas.exportDataURL(1); return shiyuAtlas.inspect().text; });
+    await page.close();
+    for (const width of [390, 320]) {
+      const mobile = await browser.newPage({ viewport: { width, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+      mobile.on('pageerror', e => report.errors.push(e.message));
+      await mobile.goto(pathToFileURL(html).href); await settled(mobile);
+      const size = await mobile.evaluate(() => ({ width: innerWidth, document: document.documentElement.scrollWidth, state: shiyuAtlas.getState(), overflow: shiyuAtlas.inspect().text.overflow }));
+      assert(size.document <= width, 'Horizontal mobile overflow: ' + width);
+      report.views.push({ mobile: width, ...size });
+      await mobile.screenshot({ path: path.join(output, 'mobile-' + width + '.png'), fullPage: true });
+      await mobile.locator('[data-focus="all"]').click(); await settled(mobile);
+      const thumbnail = await mobile.evaluate(() => shiyuAtlas.inspect().text.overflow);
+      assert(thumbnail.length === 0, 'Mobile overview title overflow: ' + width);
+      report.views.push({ mobile: width + '-all', overflow: thumbnail });
+      await mobile.close();
+    }
+    assert(report.errors.length === 0, 'JavaScript errors');
+    assert(report.network.length === 0, 'Unexpected network request');
+    assert(report.exportText.overflow.length === 0, 'Export text overflow');
+    assert(report.views.every(v => !v.overflow.length), 'View text overflow');
+    fs.writeFileSync(path.join(output, 'verification.json'), JSON.stringify(report, null, 2));
+    console.log(JSON.stringify({ browser: report.browser, errors: report.errors, network: report.network, export: report.export, interactions: report.interactions, overviewOverflow: report.overview.inspection.text.overflow, exportOverflow: report.exportText.overflow, viewOverflow: report.views.map(v => ({ view: v.focus || v.mobile, overflow: v.overflow })) }));
+  } finally { await browser.close(); }
+})().catch(e => { console.error(String(e).slice(-2200)); process.exitCode = 1; });

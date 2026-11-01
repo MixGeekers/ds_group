@@ -1,0 +1,369 @@
+DS-Bot 第三方源码摘录；仅作静态证据，不执行。
+检索日期：2026-10-31（America/Caracas）
+固定提交：f823773b07ec6ca29d60b31c31af30218a68000d
+许可：Apache-2.0，见 LICENSE.txt 与 NOTICE.txt。
+行号为上游原文件行号；未列出的区间未保存。
+
+===== ds-bot/test/side.test.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/test/side.test.js
+Git blob SHA: 52765e33422c465ef8eb675c855a2fc9acdf99fa
+
+--- L227-L246 ---
+227: test('a side question answers from a snapshot and writes nothing into the session', async (t) => {
+228:   const env = await setup({
+229:     gate: true,
+230:     messages: [user('Look at the file'), assistant({ type: 'text', text: 'Reading it.' }, call('c1'))],
+231:   })
+232:   t.after(() => env.stop())
+233:   const { rt, session, requests, header, toolHistory } = env
+234:   const before = JSON.stringify(session.events)
+235:   const response = await env.call('side-ask', { sessionId: 's-now', text: 'what changed?' })
+236:   assert.equal(response.ok, true, response.error?.message)
+237:   assert.equal(typeof response.value.chatId, 'string')
+238:   assert.equal(typeof response.value.entryId, 'string')
+239:   const chat = chatOf(rt, response.value.chatId)
+240:   const [entry] = chat.entries
+241:   assert.equal(entry.id, response.value.entryId)
+242:   assert.equal(entry.status, 'answering')
+243:   assert.equal(entry.question, 'what changed?')
+244:   assert.equal(entry.answer, '')
+245:   assert.equal(session.writes, 0)
+246:   assert.equal(JSON.stringify(session.events), before)
+
+--- L272-L283 ---
+272:   env.gates[0].resolve()
+273:   await rt.sideJoin(entry.id)
+274:   assert.equal(entry.status, 'done')
+275:   assert.equal(entry.answer, 'Because of the snapshot.')
+276:   assert.equal(typeof entry.finishedAt, 'number')
+277:   assert.equal(entry.error, undefined)
+278:   assert.equal(chat.updatedAt, entry.finishedAt)
+279:   assert.equal(session.writes, 0)
+280:   assert.equal(JSON.stringify(session.events), before)
+281:   const file = chatsFile(env.home)
+282:   assert.equal(file.length, 1)
+283:   assert.equal(file[0].entries[0].status, 'done')
+
+--- L502-L524 ---
+502: test('a tool call is asked again once, then the entry fails if it calls a tool again', async (t) => {
+503:   const once = await setup({ scripts: [toolCall('c1'), stop('The file is ready.')] })
+504:   t.after(() => once.stop())
+505:   const asked = await once.call('side-ask', { sessionId: 's-now', text: 'where is it?' })
+506:   await once.rt.sideJoin(asked.value.entryId)
+507:   assert.equal(once.requests.length, 2)
+508:   assert.equal(promptOf(once.requests[0]).includes('Answer in text only.'), false)
+509:   assert.equal(promptOf(once.requests[1]).includes('Do not call any tool. Answer in text only.'), true)
+510:   assert.equal(promptOf(once.requests[1]).startsWith(`${SIDE_MARKER}\n`), true)
+511:   const entry = chatOf(once.rt, asked.value.chatId).entries[0]
+512:   assert.equal(entry.status, 'done')
+513:   assert.equal(entry.answer, 'The file is ready.')
+514: 
+515:   const twice = await setup({ scripts: [toolCall('c1'), toolCall('c2')] })
+516:   t.after(() => twice.stop())
+517:   const again = await twice.call('side-ask', { sessionId: 's-now', text: 'try the tool' })
+518:   await twice.rt.sideJoin(again.value.entryId)
+519:   const failed = chatOf(twice.rt, again.value.chatId).entries[0]
+520:   assert.equal(twice.requests.length, 2)
+521:   assert.equal(failed.status, 'failed')
+522:   assert.equal(failed.answer, '')
+523:   assert.equal(failed.error, 'The model called a tool again after being told not to, so this aside was not answered.')
+524: })
+
+===== ds-bot/test/request-id.test.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/test/request-id.test.js
+Git blob SHA: b8dfded808110436816a3d879e0a5563f597a90b
+
+--- L113-L125 ---
+113: test('a request with an id is delivered once, and a repeat gives the first receipt back', async (t) => {
+114:   const home = tempHome()
+115:   const { agents, tool, stop } = await boot(home, team())
+116:   t.after(async () => { await stop(); cleanup(home) })
+117: 
+118:   const first = await tool('message_bot', { to: 'Writer', message: 'do the thing', request_id: 'r-1' }, 'a')
+119:   assert.equal(first, 'Delivered to Writer. Its reply will arrive later as a new message; do not wait for it.')
+120:   assert.equal(agents.get('b').calls.length, 1)
+121: 
+122:   const again = await tool('message_bot', { to: 'Writer', message: 'do the thing', request_id: 'r-1' }, 'a')
+123:   assert.equal(again, first)
+124:   assert.equal(agents.get('b').calls.length, 1)
+125: })
+
+--- L155-L179 ---
+155: test('two calls at once with the same request id admit it once', async (t) => {
+156:   const home = tempHome()
+157:   const { agents, tool, stop } = await boot(home, team())
+158:   t.after(async () => { await stop(); cleanup(home) })
+159: 
+160:   const [first, second] = await Promise.all([
+161:     tool('message_bot', { to: 'Writer', message: 'same request', request_id: 'r-1' }, 'a'),
+162:     tool('message_bot', { to: 'Writer', message: 'same request', request_id: 'r-1' }, 'a'),
+163:   ])
+164:   assert.equal(first, second)
+165:   assert.equal(agents.get('b').calls.length, 1)
+166: })
+167: 
+168: test('a repeat after a restart gives the receipt back and sends nothing', async (t) => {
+169:   const home = tempHome()
+170:   const first = await boot(home, team())
+171:   const receipt = await first.tool('message_bot', { to: 'Writer', message: 'do the thing', request_id: 'r-1' }, 'a')
+172:   await first.stop()
+173: 
+174:   const again = await boot(home)
+175:   t.after(async () => { await again.stop(); cleanup(home) })
+176:   const out = await again.tool('message_bot', { to: 'Writer', message: 'do the thing', request_id: 'r-1' }, 'a')
+177:   assert.equal(out, receipt)
+178:   assert.equal(again.agentOf('b').calls.length, 0)
+179: })
+
+--- L263-L279 ---
+263: test('a request that was in the air when DS Bot stopped is not sent again', async (t) => {
+264:   const home = tempHome()
+265:   const first = await boot(home, team())
+266:   // The delivery hangs, as it would when DS Bot stops in the middle of it.
+267:   first.ctx.sessions.flush = async () => new Promise(() => {})
+268:   const inFlight = first.tool('message_bot', { to: 'Writer', message: 'do the thing', request_id: 'r-1' }, 'a')
+269:   inFlight.catch(() => {})
+270:   for (let count = 0; count < 200 && Object.keys(first.rt.state.requests).length === 0; count += 1) await delay(10)
+271:   assert.equal(Object.keys(first.rt.state.requests).length, 1)
+272:   assert.equal(Object.values(first.rt.state.requests)[0].outcome, 'pending')
+273:   await first.stop()
+274: 
+275:   const again = await boot(home)
+276:   t.after(async () => { await again.stop(); cleanup(home) })
+277:   // The outcome of that admission is not known, so it is not sent again.
+278:   await assert.rejects(again.tool('message_bot', { to: 'Writer', message: 'do the thing', request_id: 'r-1' }, 'a'), /outcome of request_id "r-1" is not known/)
+279:   assert.equal(again.agentOf('b').calls.length, 0)
+
+--- L295-L318 ---
+295: test('a request whose receipt cannot be saved is not sent', async (t) => {
+296:   const home = tempHome()
+297:   const { rt, agents, tool, stop } = await boot(home, team())
+298:   t.after(async () => { await stop(); cleanup(home) })
+299: 
+300:   const save = rt.save
+301:   rt.save = async () => { throw new Error('the disk is full') }
+302:   await assert.rejects(tool('message_bot', { to: 'Writer', message: 'do the thing', request_id: 'r-1' }, 'a'), /the disk is full/)
+303:   assert.equal(agents.get('b')?.calls.length ?? 0, 0)
+304:   // Nothing went out, so the name is free again.
+305:   rt.save = save
+306:   const out = await tool('message_bot', { to: 'Writer', message: 'do the thing', request_id: 'r-1' }, 'a')
+307:   assert.match(out, /^Delivered to Writer/)
+308:   assert.equal(agents.get('b').calls.length, 1)
+309: })
+310: 
+311: test('calls without a request id are sent as they were', async (t) => {
+312:   const home = tempHome()
+313:   const { agents, tool, stop } = await boot(home, team())
+314:   t.after(async () => { await stop(); cleanup(home) })
+315: 
+316:   await tool('message_bot', { to: 'Writer', message: 'one' }, 'a')
+317:   await tool('message_bot', { to: 'Writer', message: 'two' }, 'a')
+318:   assert.equal(agents.get('b').calls.length, 2)
+
+===== ds-bot/test/memory-pending.test.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/test/memory-pending.test.js
+Git blob SHA: 3df38d7e756c94e75b02ad764bf1398738e529da
+
+--- L67-L89 ---
+67: test('a change that cannot be published stays pending, and is finished before the next read', async (t) => {
+68:   const { ctx, home, tool, read, journal, stop } = start()
+69:   t.after(() => stop())
+70:   // The change log cannot be written: the entry is published, but its row is not.
+71:   mkdirSync(join(home, 'memory', 'journal.jsonl'), { recursive: true })
+72:   const said = await failureText(tool('remember', { text: 'Trip to Kyoto', topic: 'travel' }, 'b2'))
+73:   assert.doesNotMatch(said, /^Saved to your memory/)
+74:   assert.match(read('bots', 'b2', 'travel.md'), /Trip to Kyoto/)
+75:   assert.ok(existsSync(pendingFile(home)), 'the change is pending')
+76:   await warned(home, 'is pending')
+77:   const prompt = () => ctx.sections.get('bot-memory').text({ agent: { id: 'b2' } })
+78:   assert.match(prompt(), /memory.*unavailable/i)
+79:   assert.doesNotMatch(prompt(), /\[\[travel\]\]/)
+80:   // The change log is there again: the next read finishes the change.
+81:   rmSync(join(home, 'memory', 'journal.jsonl'), { recursive: true, force: true })
+82:   assert.match(await tool('recall', { query: 'Kyoto' }, 'b2'), /Trip to Kyoto/)
+83:   assert.ok(!existsSync(pendingFile(home)), 'the change is finished')
+84:   assert.deepEqual(journal().map(row => [row.op, row.scope, row.file]), [['add', 'bot:b2', 'travel.md']])
+85:   assert.match(read('bots', 'b2', 'MEMORY.md'), /- \[\[travel\]\]/)
+86:   assert.match(prompt(), /\[\[travel\]\]/)
+87:   // Reading again does not write a second row.
+88:   await tool('recall', {}, 'b2')
+89:   assert.equal(journal().length, 1)
+
+--- L156-L189 ---
+156: test('a change that was already finished does not get a second row', async (t) => {
+157:   const home = mkdtempSync(join(tmpdir(), 'ds-bot-memory-'))
+158:   writeFileSync(join(home, 'state.json'), JSON.stringify(TEAM))
+159:   const row = { op: 'add', scope: 'bot:b2', file: 'MEMORY.md', actor: 'b2', actorName: 'Writer', after: '- One [added: 2026-10-23]' }
+160:   // The change is finished: its row is in the change log, and the record of it is
+161:   // still there.
+162:   mkdirSync(join(home, 'memory'), { recursive: true })
+163:   writeFileSync(join(home, 'memory', 'journal.jsonl'), `${JSON.stringify({ id: 'change-1', time: '2026-10-23T10:00:00.000Z', ...row })}\n`)
+164:   interrupted(home, {
+165:     steps: [{ action: 'write', path: 'bots/b2/MEMORY.md', text: '# Memory\n\n- One [added: 2026-10-23]\n\n## Index\n' }],
+166:     row,
+167:   })
+168:   const { read, journal, stop } = start({ home })
+169:   t.after(() => stop())
+170:   await until(() => !existsSync(pendingFile(home)))
+171:   assert.equal(journal().length, 1)
+172:   assert.match(read('bots', 'b2', 'MEMORY.md'), /- One/)
+173: })
+174: 
+175: test('a record of a change that cannot be read stops the memory', async (t) => {
+176:   const { ctx, home, tool, read, stop } = start()
+177:   t.after(() => stop())
+178:   await tool('remember', { text: 'First fact' }, 'b2')
+179:   const before = read('bots', 'b2', 'MEMORY.md')
+180:   writeFileSync(pendingFile(home), '{ this is not a record')
+181:   assert.match(await tool('recall', {}, 'b2'), /pending\.json is not readable/)
+182:   assert.doesNotMatch(await failureText(tool('remember', { text: 'Second fact' }, 'b2')), /Second fact/)
+183:   assert.equal(read('bots', 'b2', 'MEMORY.md'), before)
+184:   const prompt = () => ctx.sections.get('bot-memory').text({ agent: { id: 'b2' } })
+185:   assert.doesNotMatch(prompt(), /First fact/)
+186:   assert.match(prompt(), /memory.*unavailable/i)
+187:   assert.equal(existsSync(join(home, 'memory', 'snapshots', 'b2.md')), false)
+188:   rmSync(pendingFile(home))
+189:   assert.match(prompt(), /First fact/)
+
+===== ds-bot/test/learning.test.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/test/learning.test.js
+Git blob SHA: 91f1e5646123e664ba56b3e3d29bc16197d2e6df
+
+--- L800-L819 ---
+800: test('declined proposals are recorded and included in the next skill request', async t => {
+801:   const history = { b2: [...ownChat] }
+802:   const runtime = await startRuntime({ history, replies: [createReply, noneReply] })
+803:   t.after(() => runtime.stop())
+804:   await finishTurn(runtime.ctx)
+805:   await until(() => Object.keys(runtime.learningState().proposals ?? {}).length === 1)
+806:   const proposal = (await runtime.call('state')).value.learning.b2[0]
+807: 
+808:   addNextTurn(history)
+809:   await finishTurn(runtime.ctx)
+810:   await until(() => runtime.learningState().pending?.b2?.includes('b2'))
+811:   await settle()
+812:   assert.equal(runtime.requests.length, 1)
+813: 
+814:   const answer = await runtime.call('learning-answer', { id: proposal.id, approve: false })
+815:   assert.equal(answer.value.applied, false)
+816:   await until(() => runtime.learningState().cursors?.b2 === 13 && runtime.learningState().pending?.b2 === undefined)
+817:   assert.equal(runtime.teamState().capabilities.items['release-checks'], undefined)
+818:   assert.equal(runtime.learningState().declined[0].name, 'release-checks')
+819:   assert.match(runtime.requests[1].messages[0].content[0].text, /Proposals the user declined[\s\S]*- release-checks: Use when checking a release\./)
+
+--- L822-L861 ---
+822: test('an update approval fails if the learned skill description alone changed', async t => {
+823:   const seed = JSON.parse(JSON.stringify(TEAM))
+824:   seed.bots.b2.capabilities = ['release-checks']
+825:   seed.capabilities.items['release-checks'] = {
+826:     name: 'release-checks',
+827:     kind: 'skill',
+828:     description: 'Use when checking a release.',
+829:     content: 'Run the original release checks.',
+830:     createdBy: 'b2',
+831:     createdAt: 3,
+832:     updatedAt: 3,
+833:     learned: true,
+834:   }
+835:   const updateReply = JSON.stringify({
+836:     action: 'update',
+837:     name: 'release-checks',
+838:     description: 'Use when checking a release.',
+839:     content: 'Run the new release checks.',
+840:     why: 'The work showed an additional step.',
+841:   })
+842:   const runtime = await startRuntime({ seed, replies: [updateReply], learningSeed: { learned: { b2: ['release-checks'] } } })
+843:   t.after(() => runtime.stop())
+844:   await finishTurn(runtime.ctx)
+845:   await until(() => Object.keys(runtime.learningState().proposals ?? {}).length === 1)
+846:   const proposal = (await runtime.call('state')).value.learning.b2[0]
+847: 
+848:   await runtime.call('capability-save', {
+849:     name: 'release-checks',
+850:     kind: 'skill',
+851:     description: 'Use when checking a release candidate.',
+852:     content: 'Run the original release checks.',
+853:   })
+854:   const answer = await runtime.call('learning-answer', { id: proposal.id, approve: true })
+855:   assert.equal(answer.ok, false)
+856:   assert.match(JSON.stringify(answer), /release-checks changed since this was proposed/)
+857:   assert.equal(runtime.teamState().capabilities.items['release-checks'].description, 'Use when checking a release candidate.')
+858:   assert.equal(Object.keys(runtime.learningState().proposals).length, 1)
+859:   const declined = await runtime.call('learning-answer', { id: proposal.id, approve: false })
+860:   assert.equal(declined.ok, true)
+861:   assert.equal(Object.keys(runtime.learningState().proposals).length, 0)
+
+===== ds-bot/test/group-work.test.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/test/group-work.test.js
+Git blob SHA: d70f1a4fedd9f0280ebb2506fd29b7ad642a6598
+
+--- L122-L155 ---
+122: test('work past the grace lets the round go on, and the member that asked answers the result', async (t) => {
+123:   t.mock.timers.enable({ apis: ['setTimeout'] })
+124:   const host = await start(t)
+125:   const first = host.round('c1', host.say('@Chief 安排一下文档'))
+126:   await settle(() => host.agentOf('ga').calls.length === 1)
+127:   host.begin('ga')
+128:   host.finish('ga', '@Writer 把文档整理好')
+129:   await settle(() => host.agentOf('gb').calls.length === 1)
+130:   const called = host.begin('gb')
+131:   assert.equal(called.source.askedBy, 'a')
+132:   host.emit('gb', 'tool/call', { callId: 'k1', name: 'pwsh', arguments: '{}' })
+133:   t.mock.timers.tick(ROOM_WORK_GRACE_MS - 1)
+134:   await settle(() => true)
+135:   assert.equal(first(), undefined)
+136:   t.mock.timers.tick(1)
+137:   await settle(() => first() !== undefined)
+138:   assert.deepEqual(kinds(first()), [['message', 'Chief'], ['working', 'Writer']])
+139: 
+140:   host.emit('gb', 'tool/result', { callId: 'k1' })
+141:   host.finish('gb', '整理好了，在 docs/ 下。')
+142:   await settle(() => host.agentOf('r1').calls.length === 1)
+143:   const post = host.takePost()
+144:   assert.deepEqual([post.source.late, post.source.askedBy, text(post)], [true, 'a', '[Group post from Writer]\n整理好了，在 docs/ 下。'])
+145:   const second = host.round('c2', post)
+146:   await settle(() => host.agentOf('ga').calls.length === 2)
+147:   assert.match(text(host.agentOf('ga').calls[1]), /Writer: 整理好了，在 docs\/ 下。/)
+148:   host.begin('ga')
+149:   host.finish('ga', '[PASS]')
+150:   await settle(() => second() !== undefined)
+151:   assert.deepEqual(host.agentOf('gc').calls, [])
+152: })
+153: 
+154: // 公开#165: asked in a group to hand out work, Chief sent it with message_bot. Members
+155: // did it in their own chats, apart from the group (Bots outside the group too), and
+
+===== ds-bot/test/steward.test.js =====
+URL: https://github.com/Fei2411/DS-Bot/blob/f823773b07ec6ca29d60b31c31af30218a68000d/ds-bot/test/steward.test.js
+Git blob SHA: 42e59fd87b68a3409cdeedcadbd5702c60e18805
+
+--- L80-L107 ---
+80: test('a checkpoint keeps the messages to the Bot word for word after the summary', () => {
+81:   const text = checkpointText({ number: 2, summary: '  - Done: outline\n', kept: ['[part 1 #4 · 10-09 15:01] User: 按这个大纲写'], more: true })
+82:   assert.match(text, /^\[Checkpoint 2\]\n- Done: outline\n\nYour own replies up to here are condensed above; read_own_chat finds them word for word\.\n\n## Messages to you, word for word \(oldest first\)\n\(Older messages are not shown here; read_own_chat finds them\.\)\n\[part 1 #4 · 10-09 15:01\] User: 按这个大纲写$/)
+83:   assert.match(checkpointText({ number: 1, summary: 'x', kept: [], more: false }), /\(none\)$/)
+84: })
+85: 
+86: test('the checkpoint also reads the messages the backend keeps after it', () => {
+87:   const say = (role, text) => ({ role, content: [{ type: 'text', text }] })
+88:   const region = [say('user', '审查第 1 批'), say('assistant', '第 1 批完成')]
+89:   const all = [...region, say('user', '审查第 2 批，然后给总排名'), say('assistant', '第 2 批完成')]
+90:   assert.deepEqual(checkpointTail(region, all), all.slice(2))
+91:   // Nothing is kept, or the region is not where the history starts: no tail.
+92:   assert.deepEqual(checkpointTail(all, all), [])
+93:   assert.deepEqual(checkpointTail([say('assistant', 'x')], all), [])
+94:   assert.deepEqual(checkpointTail(undefined, all), [])
+95: 
+96:   const note = checkpointTailNote(all.slice(2))
+97:   assert.match(note, /^The last 2 messages above, from the one that begins "审查第 2 批，然后给总排名", stay right after your summary, word for word\./)
+98:   assert.match(note, /summarize only what comes before them/)
+99:   assert.match(checkpointTailNote([say('assistant', 'done')]), /^The last message above,/)
+100:   assert.match(checkpointTailNote([{ role: 'assistant', content: [{ type: 'tool_use', id: 't', name: 'read', input: {} }] }]), /from your own step/)
+101:   assert.ok(checkpointTailNote([say('user', '长'.repeat(300))]).includes(`"${'长'.repeat(80)}"`))
+102: })
+103: 
+104: test('the checkpoint records unanswered requests as remaining, and does not answer them', () => {
+105:   assert.match(CHECKPOINT_PROMPT, /every request not yet answered in your replies above/)
+106:   assert.match(CHECKPOINT_PROMPT, /The user never sees this summary, so do not do any of the remaining work in it/)
+107: })
+

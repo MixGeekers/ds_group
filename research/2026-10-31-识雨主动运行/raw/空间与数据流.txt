@@ -1,0 +1,137 @@
+Repository: https://github.com/deepseek-ai/deepseek-harness
+Commit: ce7073d51254c26cd63b22a60835b8f948deb447
+Retrieved: 2026-10-31 (America/Caracas)
+Evidence: documentation and limited static source review; not executed.
+License: MIT; see LICENSE.txt.
+
+===== docs/subsystems/working-directory.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/docs/subsystems/working-directory.md
+Git blob SHA: 4e9ae74c57ed1b4ee10355d51a08c35235009018
+
+--- Lines 5-15 ---
+5: A Session's active directory is owned by [`dsh-working-directory`](../../packages/session/working-directory/README.md). The immutable header identifies the original project; `working-directory/change` records the effective directory used by later directory-based operations. The generated [persistence catalog](../persistence-catalog.md) owns the event declaration.
+6: 
+7: ## Directory selection
+8: 
+9: `ctx.workingDirectory.get(session)` reads the logged value. `ensure(agent)` validates it and restores the original project when the directory disappeared. `set(agent, path)` validates and records a requested change. Sessions without a header directory use the configured runtime fallback; an unavailable fallback produces an error.
+10: 
+11: Changes are local to one Session. Relative filesystem operations, newly started processes, instruction discovery, skills, and file completion use the active directory. Existing terminals and persistent shells retain their own directories. Sandbox writable roots and project membership remain anchored to the original project.
+12: 
+13: ## Model context
+14: 
+15: The initial value and subsequent current values reach the model as required user-context snapshots, even when optional runtime context is disabled. Each committed change attempts to queue a notice through the ordinary Agent inbox; cancellation or disposal can discard notices before request admission. The directory event survives, and the next admitted request receives the current value. Directory context never enters the system prompt. [`working_directory`](../../packages/session/tool-working-directory/README.md) exposes one optional `cd` argument.
+
+===== docs/subsystems/storage.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/docs/subsystems/storage.md
+Git blob SHA: 16c994d8b0eb9aeba2662145a2374906ef3d1087
+
+--- Lines 1-7 ---
+1: # Storage
+2: 
+3: English | [中文](storage.zh.md)
+4: 
+5: The storage subsystem persists everything that is not a session event log (session logs have their own seam — [persistence.md](persistence.md)). It is one optional capability, not part of the agent-loop spine, split as a [capability seam](../../.agents/notes/implemented/architecture/2026-06-13-capability-seams.md): the hub and Service Definition ([dsh-storage](../../packages/storage/storage), `ctx.storage`), the Service Providers ([dsh-storage-json](../../packages/storage/storage-json), registered as `json`, and [dsh-storage-sqlite](../../packages/storage/storage-sqlite), registered as `sqlite`), and the Consumer data form ([dsh-storage-domain](../../packages/storage/storage-domain), `ctx.storageDomain`, also reachable as `ctx.storage.domain`) — the backend contract's only Consumer and the typed API everything else uses. The hub performs no IO itself: backends own media, data forms own semantics, and product packages never touch backends directly. Design record: [domain KV storage Agent Note](../../.agents/notes/proposed/architecture/2026-07-24-domain-kv-storage-and-workspace.md).
+6: 
+7: Source: [`packages/storage/storage/src/backend.ts`](../../packages/storage/storage/src/backend.ts) · [`packages/storage/storage-domain/src/spec.ts`](../../packages/storage/storage-domain/src/spec.ts) · [`packages/storage/storage-domain/src/events.ts`](../../packages/storage/storage-domain/src/events.ts)
+
+--- Lines 98-108 ---
+98: ## Domain versioning
+99: 
+100: `version` names the current read/write format. `compatibleVersions` lists older versions whose records and global value the owner can decode with its current schemas; only nonnegative integers below `version` are allowed. Without that declaration, reads stay exact-version. Acceptance does not weaken record validation or permit a newer unknown version. Each row's saved fields must determine its meaning unambiguously; a unit stamp cannot distinguish different meanings of identical fields in mixed rows.
+101: 
+102: Ordinary compatible opens and reads do not restamp or normalize saved values. Whole-unit JSON publishes the current stamp and changed data in one atomic file replacement; SQLite commits its first updated unit stamp and mutation in one transaction; batch deletes always use one transaction. Deleting missing records or an empty batch does not advance the stamp. The stamp identifies an accepted format, not completion of value normalization; readers must accept mixed generations. A backend with a unit-wide stamp rejects an unsupported unit version.
+103: 
+104: Serialization failure before publication or successful SQLite rollback preserves the previous data and stamp. An I/O failure after JSON replacement, or a failure of SQLite rollback itself, can leave the saved outcome unknown despite rejection. Stop using and close the backend and its domains, then reopen to inspect saved state before deciding whether to retry. The backend READMEs define these failure cases.
+105: 
+106: JSON's `per-record` layout checks and stamps each document independently; an unsupported document reads as absent. Its existing whole-unit bootstrap is an exception to read-only loading: it copies accepted historical values into current-stamped documents without converting them. An existing declared table directory, even when empty, or a declared global document suppresses bootstrap. SQLite retains unit-wide version checks regardless of the layout request. See the [JSON backend](../../packages/storage/storage-json/README.md) and [SQLite backend](../../packages/storage/storage-sqlite/README.md) for layout and recovery behavior.
+107: 
+108: For a compatible successor, bump `version`, keep all still-readable stamps in `compatibleVersions`, and extend the same schema's decoding/defaults. Consumers normalize values when rewriting selected records; Storage does not assign application record versions. Verify historical and skipped upgrades, mixed values, reads without writes, failure rollback, restart, other-unit isolation, and unknown-version refusal. Table removal and layout changes require their own retention and upgrade policy; a compatible stamp alone does not define either.
+
+===== apps/desktop/README.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/apps/desktop/README.md
+Git blob SHA: fe24b24568e1a28ae575dea5e705d6dad1916787
+
+--- Lines 289-293 ---
+289: ### Local desktop settings
+290: 
+291: The [shell configuration decision](../../.agents/notes/implemented/architecture/2026-10-08-desktop-shell-configuration.md) defines Host-independent ownership and the criteria for evaluating existing settings for migration.
+292: 
+293: The Electron main process reads `app.getPath('userData')/desktop/settings.json` once at startup, independently of Host and Cordis configuration. The default packaged paths are `%APPDATA%\@deepseek-ai\dsh-desktop\desktop\settings.json` on Windows and `~/Library/Application Support/@deepseek-ai/dsh-desktop/desktop/settings.json` on macOS. Development uses the `userData` path printed by its launcher. `DSH_HOME` does not relocate this file.
+
+--- Lines 370-372 ---
+370: - Release signing, notarization, update hosting, and previous-version installed-artifact qualification require the production release environment.
+371: - Dependency lifecycle scripts follow pnpm’s build permissions; Desktop provides no separate approval dialog.
+372: - The desktop shell shares sessions, settings, credentials, workspaces, and storage under `$DSH_HOME` with CLI dsh, while executable packages, plugin activation, and lockfiles remain separate.
+
+===== apps/cli/reference/README.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/apps/cli/reference/README.md
+Git blob SHA: a37545004890b74ad2995c108c3a253e68bb6951
+
+--- Lines 135-141 ---
+135: ## Shared deployment behavior
+136: 
+137: The base bundle mounts the native DeepSeek adapter, settings and credential providers, stable `web_search` and `web_fetch`, the HTTP fetch provider, default-on DeepSeek session-log upload, and feedback-gated OTel upload for all users. Provider credentials resolve from the inherited environment, `$DSH_HOME/.credentials.yaml`, the invoking directory's `.env`, then `$DSH_HOME/.env`; the managed document is never materialized into `process.env`, while both `.env` files are ordinary launch environment layers. Search uses `DEEPSEEK_API_KEY` and accepts `DEEPSEEK_SEARCH_BASE_URL`. Enabled fetch calls run in every sandbox and approval mode without per-call confirmation and can reach loopback and private-network hosts. The Web app disables the base tool row and exposes the same tools through its `cordis`, `ptc`, and `standard` agent presets.
+138: 
+139: Feedback is recorded in the Session log without starting model work. The [DeepSeek session-log contributor](../../../packages/session/session-log-deepseek/README.md) sends complete unaccepted log suffixes with subsequent DeepSeek requests by default, including requests sent through configured gateways; turn off **Settings → General → Upload Session Log when using the official model API** in Web, or set its `enabled` configuration to `false` to opt out. [OTel session upload](../../../packages/session/session-telemetry-otel/README.md) applies to all users and providers, including `deepseek-official`, without requiring a request header. The base defaults to `FEEDBACK_ONLY`: new own text feedback, message ratings, edits, and withdrawals release the complete canonical prefix through that event, including stored context; later records wait for the next explicit feedback. Inherited parent feedback does not authorize a fork. Requests, restoration, mount, and HMR do not trigger capture. SDK batching may finish an authorized upload without further interaction or model work. `DSH_TELEMETRY_MODE=DISABLED` disables OTel delivery; `FULL` is rejected, and any non-empty `DSH_TELEMETRY_DISABLED` disables its row. `DSH_TELEMETRY_OTLP_URL` selects the collector. Handoff is best-effort, not collector acceptance; no durable outbox or retry guarantee is provided. These OTel settings do not enable or disable the DeepSeek contribution. Neither path changes model input, but exports can include message text, tool arguments and results, and workspace paths.
+140: 
+141: Install external plugin bundles through `dsh plugin --profile <name> add <package-or-git-spec>`. The installed package owns its dependencies and contributes its declared `cordis.patch.yml` layer. The CLI also ships `@deepseek-ai/dsh-mcp-client` as a dependency for patch layers, but no MCP server is enabled by default because each server command is trusted executable code outside the agent sandbox.
+
+===== packages/bundle/base/package.json =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/bundle/base/package.json
+Git blob SHA: 6c6e50873246bc66c8945ed8f457c79700ac98e0
+
+--- Lines 1-12 ---
+1: {
+2:   "name": "@deepseek-ai/dsh-base",
+3:   "description": "The shared dsh core as a profile bundle: the first patch layer of base-backed profiles, inserting core rows over the empty profile root",
+4:   "version": "0.2.2-alpha.2",
+5:   "publishConfig": {
+6:     "access": "public"
+7:   },
+8:   "repository": {
+9:     "type": "git",
+10:     "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+11:     "directory": "packages/bundle/base"
+12:   },
+
+===== packages/bundle/base/cordis.patch.yml =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/bundle/base/cordis.patch.yml
+Git blob SHA: e37664bb4fc0fb69ec673d52b4d8401dcc105fed
+
+--- Lines 36-46 ---
+36: 
+37:     - id: deepseek-llm-api-extensions
+38:       name: '@deepseek-ai/dsh-deepseek-llm-api-extensions'
+39: 
+40:     - id: session
+41:       name: '@deepseek-ai/dsh-session'
+42: 
+43:     - id: session-log-deepseek
+44:       name: '@deepseek-ai/dsh-session-log-deepseek'
+45: 
+46:     - id: typert
+
+===== packages/session/session-log-deepseek/README.md =====
+Source: https://github.com/deepseek-ai/deepseek-harness/blob/ce7073d51254c26cd63b22a60835b8f948deb447/packages/session/session-log-deepseek/README.md
+Git blob SHA: f686732ba9f84731949c399c0056c9e18ffc7c05
+
+--- Lines 26-44 ---
+26: <a id="configuration"></a>
+27: ## Configuration
+28: 
+29: | Key | Default | Meaning |
+30: |---|---:|---|
+31: | `enabled` | `true` | Send the `dsh_session_log` contribution. Changes apply to the next request; `false` stops Session-log upload. |
+32: | `maxBytes` | 8 MiB | Largest serialized `dsh_session_log` field, in UTF-8 bytes, that one request carries. |
+33: 
+34: Shipped profiles mount the plugin, so the default configuration registers the request field and appends the acceptance watermark; `enabled: false` stops the contribution. The Web switch can override bundle defaults through the active profile; home patches and command-line overlays retain precedence and reject conflicting form writes.
+35: 
+36: The Web **Settings → General → Upload Session Log when using the official model API** switch persists `enabled` through the Host configuration. In-flight requests keep their prepared payload. Re-enabling resumes the unaccepted suffix, including events recorded while disabled. OpenTelemetry feedback uploads have a separate setting.
+37: 
+38: <a id="request-field"></a>
+39: ## Request field
+40: 
+41: For a request carrying a live `sessionId`, the plugin folds the greatest accepted watermark for that exact Session format generation, snapshots `Session.events`, and sends the longest contiguous run after the watermark that fits `maxBytes`. A process-local fold scans each event once and consumes later appends incrementally; restart and HMR rebuild it from the durable log. The version-1 field contains `sessionFormatVersion`, a raw session header (`seedLength` is present only for a seeded Session), numeric `afterSeq` and `throughSeq`, and every complete canonical event translated to raw-number envelope fields. Forked sessions ignore inherited parent watermarks because both the recorded Session id and format generation must match the request source. Surface events require `surfaceOp`, with numeric `startSeq` and `endSeq` for replacements; only system, user, and tool events may carry `sourceEventSeqs`. Assistant provider metadata stays in the embedded stream, and log-only events carry neither metadata field.
+42: 
+43: `maxBytes` bounds the complete serialized field in UTF-8 bytes, including the header and numeric envelope fields. A backlog above the limit drains across consecutive accepted requests, each continuing after the previous `throughSeq`. When the first pending event alone exceeds the limit, the request omits `dsh_session_log`, the plugin logs one warning per blocking event, and the watermark stays before that event until `maxBytes` admits it. An event too large for the runtime to serialize at all is handled the same way, and no `maxBytes` value admits it.
+44: 

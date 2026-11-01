@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<link rel="stylesheet" type="text/css" href="/articles/style.css">
+	<meta name="viewport" content="initial-scale=1.0">
+	<link rel="alternate" type="application/atom+xml" href="/articles/atom.xml" title="Articles Feed">
+	<title>Stop macOS 15 Sequoia monthly screen recording prompts</title>
+</head>
+<body>
+<nav>
+Previous: <a href="/articles/2024/8/9.html">Can't change security policy or disable SIP with macOS 15 Sequoia</a>
+<br><a href="/articles/index.html" title="The Desolation of Blog">Articles index</a></nav>
+<header><a href="https://lapcatsoftware.com">Jeff Johnson</a> (<a href="https://underpassapp.com">My apps</a>, <a href="https://www.paypal.me/JeffJohnsonWI">PayPal.Me</a>, <a href="https://mastodon.social/@lapcatsoftware" title="@lapcatsoftware@mastodon.social">Mastodon</a>)</header>
+<h1>Stop macOS 15 Sequoia monthly screen recording prompts</h1>
+<h3>September 21 2024</h3>
+
+<p>All credit for this discovery should go to <a href="https://www.ricciadams.com/">Ricci Adams</a>, who told me about it. But Ricci doesn't have a blog, and I do, so here it is. Thank you very much, Ricci, and please start a blog!</p>
+<p>Much has already been written about the new monthly screen recording prompt in macOS 15 Sequoia. As always, <a href="https://mjtsai.com/blog/2024/08/08/sequoia-screen-recording-prompts-and-the-persistent-content-capture-entitlement/">Michael Tsai has an excellent summary</a>.</p>
+<div><img src="10.png" width="372" height="440" alt="Shottr is requesting to bypass the system private window picker and directly access your screen and audio. Allow For One Month"></div>
+<p>The good news is that there's a way to stop the prompts forever. Ricci Adams found the file where the prompt dates are stored.</p>
+<blockquote><code>defaults read ~/Library/<wbr>Group\&nbsp;Containers/<wbr>group.com.apple.replayd/<wbr>ScreenCaptureApprovals.plist</code></blockquote>
+<p>This file is protected by TCC, so to access it you'll need to grant Full Disk Access to Terminal app.</p>
+<p><code>{
+<br>&nbsp;&nbsp;&nbsp;&nbsp;"/Applications/<wbr>Shottr.app/<wbr>Contents/<wbr>MacOS/<wbr>Shottr" = "2024-09-21 12:40:36 +0000";
+<br>}</code></p>
+<p>In the plist file, the keys are the paths of the executable files with screen recording permission, and the values are dates. I'm using the <a href="https://shottr.cc">Shottr</a> screenshot tool as an example.</p>
+<p>To stop the prompts forever&mdash;for the rest of your life, anyway&mdash;set the date to far in the future, for example, the year 3024 instead of 2024.</p>
+<blockquote><code>defaults write ~/Library/<wbr>Group\&nbsp;Containers/<wbr>group.com.apple.replayd/<wbr>ScreenCaptureApprovals.plist "/Applications/<wbr>Shottr.app/<wbr>Contents/<wbr>MacOS/<wbr>Shottr" -date "3024-09-21 12:40:36 +0000"</code></blockquote>
+<p>You'll need to do this for each app, and afterward logout and login again so that the <code>replayd</code> process recognizes the new defaults.</p>
+<p>At this point, I typically spoil my blog posts by writing something nasty about Tim Cook, Craig Federighi, and company, so I'll refrain from that this time and just let you enjoy your newfound freedom from monthly nagging.</p>
+
+<header><a href="https://lapcatsoftware.com">Jeff Johnson</a> (<a href="https://underpassapp.com">My apps</a>, <a href="https://www.paypal.me/JeffJohnsonWI">PayPal.Me</a>, <a href="https://mastodon.social/@lapcatsoftware" title="@lapcatsoftware@mastodon.social">Mastodon</a>)</header>
+<nav><a href="/articles/index.html" title="The Desolation of Blog">Articles index</a><br>
+Previous: <a href="/articles/2024/8/9.html">Can't change security policy or disable SIP with macOS 15 Sequoia</a>
+</nav>
+</body>
+</html>

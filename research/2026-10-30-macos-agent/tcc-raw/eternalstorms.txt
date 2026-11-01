@@ -1,0 +1,305 @@
+
+PSA: No More macOS 15 Sequoia Monthly Screen Recording Permission Reminders – Eternal Storms Software | Blog
+ Eternal Storms Software | Blog 
+by Matthias Gansrigler-Hrad, an indie software developer
+Website
+Contact & Connect
+Mail Me
+Tip Jar
+September 23, 2024
+ PSA: No More macOS 15 Sequoia Monthly Screen Recording Permission Reminders 
+Public Relations
+Link
+Mail
+Twitter
+Facebook
+Instagram
+LinkedIn
+GitHub
+Twitch
+YouTube
+macOS 15 Sequoia introduced a new, annoying 
+screen capture permission reminder
+ that has brought on a lot of 
+push-back
+ from developers (myself included).
+Now, 
+Ricci Adams
+ has found a way to virtually stop the nagging for specific apps. (I found out about this from Jeff Johnson’s 
+Desolation of Blog
+ blog).
+First things first: Please use your own discretion when trying this. Consider if you’re savvy enough to work with the Terminal, and if you really want to remove the permission reminder for an app.
+Apparently, there is a TCC 
+(Transparency, Consent and Control)
+ – protected file that keeps track of when to show the next nag screen for specific screen capturing apps, located at
+~/Library/Group Containers/group.com.apple.replayd/ScreenCaptureApprovals.plist
+Using Terminal (which first needs to be granted Full Disk Access in System Settings > Privacy & Security), you can set that date far into the future so you won’t ever see the nag again.
+For example, I wanted to make absolutely sure it never bothers me again for my own app 
+ScreenFloat
+, so I just set it to my retirement date: January 1st, 4321.
+defaults write ~/Library/Group\ Containers/group.com.apple.replayd/ScreenCaptureApprovals.plist "/Applications/ScreenFloat.app/Contents/MacOS/ScreenFloat/" -date "4321-01-01 00:00:00 +0000"
+Restart your Mac (or log out and back in) so it accepts the new defaults, and you’re all set.
+Link
+Mail
+Twitter
+Facebook
+Instagram
+LinkedIn
+GitHub
+Twitch
+YouTube
+macOS 15 Sequoia
+, 
+screenfloat
+, 
+transloader
+, 
+yoink
+Matthias
+I'm a solo, indie software developer, crafting apps for Mac, iPad, iPhone, Apple Watch and Apple TV.
+I'm responsible for the apps Yoink, ScreenFloat, Transloader, Tameno, DeskMat, Glimpses, flickery, SiriMote, Upsies, BackLog and more. 
+ View all posts by Matthias 
+ Previous post
+Next post 
+Comments are closed.
+Hello and welcome 🤗
+My name is Matthias, I’m the solo, indie software developer behind Eternal Storms Software, based in Vienna, Austria. I craft apps for Mac, iPad, iPhone, Apple Watch and Apple TV and am responsible for apps like Yoink, ScreenFloat, Transloader, DeskMat, Tameno, Citator, Glimpses, SiriMote, flickery, and GimmeSomeTune.
+I mostly write about my apps and their development, with the odd off-topic post about whatever interests me at the time.
+Thank you for your visit. It’s nice to have you here.
+If you need to reach me, there are “Contact & Connect” and “Mail me” links at the top right : )
+My Apps
+Yoink – Better Drag and Drop
+ScreenFloat – Power Up Your Screenshots
+Transloader – Start downloads on your Macs remotely
+Tameno – Self-Repeating “Tapping” Timers
+DeskMat – Cover your Desktops with Ease
+Citator – Cherish your Quotes
+Glimpses – Still Motion Video Creator
+flickery – flickr on the Mac
+Upsies – MetalFX Image Upscaler
+SiriMote – Control your Mac with your Siri Remote
+BackLog – Access your Mac’s Log Archives
+RSS Feeds
+Posts Feed
+Latest Posts
+DeskMat v1.3.5 Can Cover Your Desktop Automatically for Screenshots
+DeskMat for Mac v1.3.5 – your Desktop-cover for more privacy during screen sharing, cleaner streams, and distraction-free work – now has a new trigger...
+DeskMat v1.3.4 Improves Performance of Live Wallpaper Mode
+DeskMat for Mac v1.3.4 – your Desktop-cover for more privacy during screen sharing, cleaner streams, and distraction-free work – now runs more efficiently when...
+Back from Rhodes, Greece
+What a lovely place!
+Transloader v3.1.95 improves downloads, iCloud sync, site- and macOS compatibility
+Transloader for Mac, iPhone and iPad lets you start and manage downloads on your Macs, remotely from your iPhone, iPad, or other Macs.Version 3.1.95...
+DeskMat v1.3.3 contains minor macOS 27 “Golden Gate” improvements
+DeskMat for Mac v1.3.3 – your Desktop-covering companion for more privacy during screen sharing, cleaner streams, and distraction-free work – now runs even more...
+Categories
+Categories
+Select Category
+Apps  (207)
+   Citator  (3)
+      Announcements  (1)
+      Release Notes  (2)
+   DeskMat  (15)
+      Accolades  (1)
+      Announcements  (1)
+      Development  (1)
+      Release Notes  (9)
+      Tutorials  (2)
+   flickery  (7)
+      Announcements  (3)
+      Development  (3)
+      Release Notes  (2)
+   Freeware  (13)
+   Glimpses  (9)
+      Announcements  (2)
+      Development  (1)
+      Release Notes  (2)
+   ScreenFloat  (60)
+      ScreenFloat for Mac  (59)
+         Accolades  (2)
+         Announcements  (12)
+         Development  (5)
+         Release Notes  (23)
+         Tutorials  (9)
+   Tameno  (20)
+      Announcements  (2)
+      Release Notes  (11)
+      Tutorials  (5)
+   Transloader  (37)
+      Accolades  (1)
+      Announcements  (9)
+      Development  (1)
+      Release Notes  (12)
+      Tutorials  (7)
+      Usage Tips  (2)
+   Yoink  (76)
+      Yoink for iPhone and iPad  (22)
+         Accolades  (1)
+         Announcements  (2)
+         Release Notes  (14)
+         Tutorials  (1)
+         Usage Tips  (1)
+      Yoink for Mac  (60)
+         Accolades  (3)
+         Announcements  (13)
+         Development  (1)
+         Release Notes  (26)
+         Tutorials  (5)
+Guest Posts  (3)
+Promotions  (20)
+Public Relations  (20)
+Show and Tell  (6)
+Software Development  (66)
+   Business  (19)
+   Cocoa  (10)
+   Developer Tip  (17)
+   Open Source  (13)
+   Post-Mortems  (9)
+   UX, UI  (3)
+Thoughts  (59)
+   Apple  (17)
+   Off Topic  (16)
+      Personal  (2)
+   Opinions  (11)
+   What I…  (20)
+Archives
+Archives
+Select Month
+ October 2026  (3)
+ September 2026  (5)
+ August 2026  (7)
+ July 2026  (5)
+ June 2026  (7)
+ May 2026  (4)
+ April 2026  (6)
+ March 2026  (8)
+ February 2026  (2)
+ January 2026  (1)
+ December 2025  (1)
+ November 2025  (4)
+ October 2025  (1)
+ September 2025  (1)
+ August 2025  (1)
+ July 2025  (1)
+ June 2025  (1)
+ May 2025  (3)
+ April 2025  (3)
+ March 2025  (4)
+ February 2025  (3)
+ January 2025  (2)
+ December 2024  (4)
+ October 2024  (2)
+ September 2024  (5)
+ August 2024  (10)
+ July 2024  (4)
+ June 2024  (3)
+ May 2024  (5)
+ April 2024  (2)
+ March 2024  (2)
+ February 2024  (2)
+ January 2024  (10)
+ November 2023  (2)
+ October 2023  (1)
+ September 2023  (4)
+ August 2023  (3)
+ June 2023  (1)
+ April 2023  (1)
+ February 2023  (1)
+ January 2023  (1)
+ December 2022  (1)
+ November 2022  (3)
+ September 2022  (1)
+ July 2022  (1)
+ June 2022  (2)
+ April 2022  (5)
+ March 2022  (2)
+ February 2022  (4)
+ January 2022  (4)
+ October 2021  (2)
+ September 2021  (3)
+ August 2021  (1)
+ July 2021  (4)
+ June 2021  (8)
+ March 2021  (2)
+ November 2020  (2)
+ October 2020  (9)
+ September 2020  (2)
+ July 2020  (1)
+ March 2020  (1)
+ October 2019  (1)
+ July 2019  (1)
+ June 2019  (1)
+ April 2019  (4)
+ March 2019  (1)
+ February 2019  (1)
+ January 2019  (1)
+ November 2018  (2)
+ October 2018  (1)
+ September 2018  (3)
+ May 2018  (2)
+ April 2018  (1)
+ March 2018  (2)
+ February 2018  (1)
+ December 2017  (1)
+ October 2017  (3)
+ July 2017  (1)
+ June 2017  (1)
+ March 2017  (1)
+ February 2017  (3)
+ November 2016  (4)
+ October 2016  (6)
+ September 2016  (4)
+ August 2016  (4)
+ July 2016  (1)
+ May 2016  (3)
+ April 2016  (3)
+ March 2016  (4)
+ February 2016  (2)
+ January 2016  (2)
+ December 2015  (2)
+ November 2015  (3)
+ October 2015  (2)
+ September 2015  (5)
+ August 2015  (1)
+ July 2015  (3)
+ June 2015  (3)
+ May 2015  (1)
+ April 2015  (4)
+ March 2015  (3)
+ February 2015  (1)
+ January 2015  (5)
+ December 2014  (1)
+ November 2014  (1)
+ September 2014  (2)
+ August 2014  (1)
+ April 2014  (1)
+ February 2014  (1)
+ July 2013  (2)
+ June 2013  (1)
+ January 2013  (1)
+ October 2012  (1)
+ August 2012  (1)
+ July 2012  (1)
+ June 2012  (1)
+ May 2012  (1)
+ January 2012  (1)
+ November 2011  (2)
+ September 2011  (1)
+ July 2011  (2)
+ June 2011  (4)
+ March 2011  (2)
+ February 2011  (1)
+ January 2011  (5)
+Info
+Eternal Storms Software
+Matthias Gansrigler-Hrad
+Indie Mac- and iOS Software Developer
+Apps
+ | 
+Contact & Connect
+ | 
+Mail
+ | 
+Tip Jar
+ @ Eternal Storms Software, Matthias Gansrigler-Hrad Designed by 
+WPlook Studio

@@ -1,0 +1,310 @@
+Repository: https://github.com/deepseek-ai/dsh-superagent-prototype
+Commit: 6337fc823ce20251c8de8085948165c81aaa701e
+Retrieved: 2026-10-31 (America/Caracas)
+Static source excerpts only; not executed. Upstream tests were read, not run.
+License: MIT; see LICENSE.txt.
+
+===== src/core/intake.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/intake.ts
+Git blob SHA: 145c72192087afb10c150649780cf0a97ccb3983
+
+--- Lines 14-62 ---
+14:  * Engine delegates trigger reception to this part.
+15:  */
+16: export class Intake extends EnginePart {
+17:   constructor(options: EngineOptions, private readonly tickets: Tickets) { super(options) }
+18: 
+19:   receive(received: Trigger): ReceiveResult {
+20:     // Normalize source timestamps (such as GitHub whole seconds) to canonical ISO form.
+21:     const trigger = { ...received, at: isoTime(received.at) }
+22:     if (!trigger.threads.length) throw new Error('A trigger must belong to at least one thread')
+23:     if (this.repo.triggers.get(trigger.id)) return 'duplicate'
+24:     const at = this.now()
+25:     const filter = this.options.scope.scope(trigger)
+26:     if (!filter.listened) {
+27:       this.repo.triggers.save(trigger); this.repo.triggers.saveDisposition(trigger.id, { filtered: { code: filter.reason }, fanout: [], at })
+28:       return 'filtered'
+29:     }
+30:     this.repo.triggers.save(trigger)
+31:     const keys = trigger.threads.map(threadKey)
+32:     // Track reached tickets and whether they were reached only via context threads (a ticket's own thread makes `context` false).
+33:     const reached = new Map<string, { ticket: Ticket; context: boolean }>()
+34:     for (const ref of trigger.threads) {
+35:       const thread = this.thread(ref)
+36:       if (!thread.lastAt || trigger.at > thread.lastAt) thread.lastAt = trigger.at
+37:       thread.correlated = [...new Set([...thread.correlated, ...keys.filter(other => other !== thread.key)])]
+38:       for (const ticketId of thread.subscriptions) {
+39:         const ticket = this.repo.tickets.get(ticketId)
+40:         // Only a person's message on a non-context thread resumes an ended ticket; bots and CI do not (the Executor re-reads
+41:         // threads when it resumes), and a human-stopped ticket receives nothing because its Mandate was withdrawn.
+42:         const followed = !!thread.context?.includes(ticketId)
+43:         const resumes = trigger.human && ticket?.ended?.by !== 'human' && !followed
+44:         if (!ticket || (!liveTicket(ticket) && !resumes)) continue
+45:         reached.set(ticketId, { ticket, context: followed && (reached.get(ticketId)?.context ?? true) })
+46:       }
+47:       this.repo.threads.save(thread)
+48:     }
+49:     for (const [ticketId, { ticket, context: followed }] of reached) {
+50:       this.tickets.addInput(ticket, { id: key('input', ticketId, 'trigger', trigger.id), kind: 'trigger', triggerId: trigger.id, at,
+51:         ...trigger.human ? { human: true } : {}, ...followed ? { context: true } : {} })
+52:     }
+53:     const fanout = [...reached.keys()], context = fanout.filter(id => reached.get(id)!.context)
+54:     const disposition = { fanout, ...context.length ? { context } : {}, at }
+55:     this.repo.triggers.saveDisposition(trigger.id, disposition)
+56:     // A person's message that no ticket decides, such as one that reached only tickets a person stopped or that follow the
+57:     // Thread for context, and every bot's, goes to Eval.
+58:     if (!this.owners(trigger).length) this.queueForEval(trigger)
+59:     for (const ticketId of fanout) this.tickets.wake(ticketId)
+60:     this.emit('trigger.received', { triggerId: trigger.id, threads: trigger.threads.map(threadKey) })
+61:     return 'stored'
+62:   }
+
+===== src/policy.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/policy.ts
+Git blob SHA: b6a66cfd102e25a56e15c7aaf0be26f4520d6ab8
+
+--- Lines 25-60 ---
+25: /** Check whether an assessment established implementation intent and a settled target without open design decisions. */
+26: export function directionAllowed(value: unknown): value is AdmissionDirection {
+27:   const result = AdmissionDirectionSchema.safeParse(value)
+28:   return result.success && result.data.implementation_requested && result.data.target_basis !== 'undetermined' && !result.data.requires_design_decision
+29: }
+30: export interface Assessment {
+31:   decision: 'accept' | 'ignore' | 'unavailable'; rule_assessments: RuleAssessment[]; direction: unknown
+32:   title: string; scope: string; reason: string; intent_evidence?: string | null; acknowledgement?: string | null; worktree_name?: string
+33: }
+34: /**
+35:  * Validate an assessment against enabled rules and convert it into an engine `AssessmentOutcome`.
+36:  * Acceptance requires a settled direction, at least one matched enabled rule, and `intent_evidence`, and accepts an
+37:  * inferred candidate only in `auto` mode (otherwise recording it as `would_accept`).
+38:  * @throws when `rule_assessments` does not cover every enabled rule exactly once, or an accept omits `intent_evidence`.
+39:  */
+40: export function assessmentOutcome(assessment: Assessment, settings: Pick<Settings, 'policy' | 'eval'>, strength: Strength): AssessmentOutcome {
+41:   const enabled = settings.policy.rules.filter(rule => rule.enabled)
+42:   const judged = assessment.rule_assessments
+43:   const ids = new Set(judged.map(item => item.rule_id))
+44:   if (judged.length !== enabled.length || ids.size !== judged.length || enabled.some(rule => !ids.has(rule.id))) {
+45:     throw new Error('Exactly one assessment for every enabled rule is required; disabled, unknown or missing rule IDs are not allowed')
+46:   }
+47:   const matches = judged.filter(item => item.matched).map(({ rule_id, reason }) => ({ rule_id, reason }))
+48:   const evidence = assessment.intent_evidence ? { intent_evidence: assessment.intent_evidence } : {}
+49:   const audit = { matches, rule_assessments: judged, direction: assessment.direction, ...evidence }
+50:   if (assessment.decision !== 'accept') return { kind: assessment.decision, reason: assessment.reason, audit }
+51:   if (!directionAllowed(assessment.direction)) return { kind: 'ignore', audit, reason: { code: 'directionUnsettled' } }
+52:   if (!matches.length) return { kind: 'ignore', audit, reason: { code: 'noRuleMatched' } }
+53:   if (!assessment.intent_evidence) throw new Error('Acceptance requires intent_evidence')
+54:   const { title, scope, worktree_name: name } = assessment
+55:   if (strength === 'inferred' && settings.eval.mode !== 'auto') {
+56:     const proposal = { title, scope, worktree_name: name }
+57:     return { kind: 'ignore', audit: { ...audit, would_accept: true, proposal }, reason: { code: 'observed', values: { text: assessment.reason } } }
+58:   }
+59:   return { kind: 'accept', title, scope, reason: assessment.reason, ...(assessment.acknowledgement ? { acknowledgement: assessment.acknowledgement } : {}),
+60:     rules: matches.map(match => match.rule_id), audit, ...(name ? { name } : {}) }
+
+--- Lines 168-241 ---
+168:   const version = policyVersion(settings)
+169:   const mode = settings.eval.mode
+170:   /** Gate non-human triggers: only listed bots (as inferred candidates) and senderless system/CI events may pass; other bots are rejected. */
+171:   const machineGate = (trigger: Trigger): GateResult => {
+172:     const bot = trigger.actor.id ? listedBot(settings, trigger.actor) : undefined
+173:     if (trigger.actor.id && !bot) return { admissible: false, reason: 'not_human' }
+174:     const scope = listened(sources, trigger.source, trigger.meta)
+175:     if (!scope.listened || !(trigger.addressed || scope.observed)) return { admissible: false, reason: 'not_human' }
+176:     const recorded = { source: trigger.source, scope: trigger.meta, ...scope.row === undefined ? {} : { row: scope.row } }
+177:     const addressed = trigger.addressed ? { addressed: trigger.addressed } : {}
+178:     if (bot) {
+179:       if (mode === 'off') return { admissible: false, reason: 'admission_ignored' }
+180:       const basis = { ...recorded, via: 'bot' as const, sender: senderName(bot), ...addressed, observation: { mode } }
+181:       return { admissible: true, strength: 'inferred', basis }
+182:     }
+183:     const cell = 'unlistedUnaddressed' as const
+184:     if (admissionOf(settings, trigger.source, scope.row, cell) !== 'inferred' || mode === 'off') {
+185:       return { admissible: false, reason: 'admission_ignored' }
+186:     }
+187:     return { admissible: true, strength: 'inferred', basis: { ...recorded, via: 'admission', cell, observation: { mode } } }
+188:   }
+189:   return {
+190:     version, paused: settings.paused, evalTimeoutMs: settings.eval.timeoutSeconds * 1000,
+191:     gate(trigger: Trigger, thread, tickets) {
+192:       if (!trigger.human) return machineGate(trigger)
+193:       const allowed = allowedSender(settings, trigger.actor)
+194:       const scope = listened(sources, trigger.source, trigger.meta)
+195:       const row = scope.listened ? scope.row : undefined
+196:       const recorded = { source: trigger.source, scope: trigger.meta, ...row === undefined ? {} : { row }, ...allowed ? { sender: senderName(allowed) } : {} }
+197:       if (allowed && trigger.addressed) return { admissible: true, strength: 'explicit', basis: { ...recorded, via: 'addressed', addressed: trigger.addressed } }
+198:       const cell = admissionCell(!!allowed, !!trigger.addressed)!
+199:       // Unaddressed messages only use the admission table when the Source observes all messages in that scope.
+200:       const receivable = !!trigger.addressed || (scope.listened && scope.observed)
+201:       const admission = receivable ? admissionOf(settings, trigger.source, row, cell) : 'ignore'
+202:       const basis = { ...recorded, via: 'admission' as const, cell, ...trigger.addressed ? { addressed: trigger.addressed } : {} }
+203:       // Check explicit admission cells before thread follow-ups so a thread's tickets never weaken an explicit request to a follow-up.
+204:       if (admission === 'explicit') return { admissible: true, strength: 'explicit', basis }
+205:       // Direct-message threads belong to one sender (no follow-up for others), and inferred follow-ups require an accept mode other than off (when off, the table decides).
+206:       if (!(trigger.addressed === 'direct' && !allowed) && (allowed || mode !== 'off') && participating(thread, tickets)) {
+207:         return { admissible: true, strength: allowed ? 'explicit' : 'inferred', basis: { ...recorded, via: 'followup' } }
+208:       }
+209:       if (admission === 'inferred' && mode !== 'off') return { admissible: true, strength: 'inferred', basis: { ...basis, observation: { mode } } }
+210:       return { admissible: false, reason: !allowed ? 'not_a_member' : receivable && admission === 'ignore' ? 'admission_ignored' : 'no_mention' }
+211:     },
+212:     admitsInferred: rules => mode === 'auto' && rules.length > 0 && rules.every(id => settings.policy.rules.some(rule => rule.enabled && rule.id === id)),
+213:     revalidate(mandate: Mandate) {
+214:       // Revalidation rules follow docs/002 (Eval path; Resume revalidates).
+215:       const { basis } = mandate
+216:       const { source } = basis
+217:       const current = source && basis.scope ? listened(sources, source, basis.scope) : undefined
+218:       if (current && !current.listened) return false
+219:       const rulesOn = (rules: string[] | undefined) => (rules ?? []).every(id => settings.policy.rules.some(rule => rule.enabled && rule.id === id))
+220:       // Explicit follow-ups remain valid; inferred follow-ups require auto mode and enabled matched rules.
+221:       if (basis.via === 'followup') return mandate.strength === 'explicit' || (mode === 'auto' && rulesOn(basis.rules))
+222:       // A bot's candidate holds only while the bot remains on its Source's bot list and passes the observation checks below.
+223:       if (basis.via === 'bot' && !listedBot(settings, mandate.actor)) return false
+224:       // An admission-table Mandate holds while the sender's current cell still grants at least the original strength.
+225:       if (basis.via === 'admission') {
+226:         const { cell } = basis
+227:         const listed = !!allowedSender(settings, mandate.actor)
+228:         // A listed sender who addresses the agent is always explicit and uses no table cell.
+229:         if (cell === 'unlistedAddressed' && listed) return true
+230:         // A sender added to the allowed list since acceptance moves to the listed cell, and still undergoes observation checks below.
+231:         const now = cell === 'unlistedUnaddressed' && listed ? 'listedUnaddressed' : cell
+232:         if (now === 'listedUnaddressed' && !listed) return false
+233:         const admission = admissionOf(settings, source ?? '', current?.listened ? current.row : undefined, now)
+234:         if (STRENGTH[admission] < STRENGTH[mandate.strength]) return false
+235:         if (mandate.strength === 'explicit') return true
+236:       } else if (basis.via !== 'bot' && !allowedSender(settings, mandate.actor)) return false
+237:       // Observed/inferred Mandates hold only while auto mode is active and all matched rules remain enabled.
+238:       if ((basis.via === 'admission' || basis.via === 'listed' || basis.via === 'bot') && basis.observation) return mode === 'auto' && rulesOn(basis.rules)
+239:       return true
+240:     },
+241:   }
+
+===== src/core/evals.ts =====
+Source: https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/evals.ts
+Git blob SHA: 35de470e2c241e2b945c955fccc3877f443092f7
+
+--- Lines 71-119 ---
+71:   start(threadKeyValue: string, policy: Policy): void {
+72:     const thread = this.repo.threads.get(threadKeyValue)!
+73:     const at = this.now()
+74:     // A person's follow-up a ticket still decides is that ticket's: one an older version queued leaves the queue without a Decision.
+75:     const delivered = (id: string) => {
+76:       const trigger = this.repo.triggers.get(id)
+77:       return !!trigger && this.owners(trigger).length > 0
+78:     }
+79:     if (thread.pending.some(delivered)) {
+80:       const followups = thread.pending.filter(delivered)
+81:       thread.pending = thread.pending.filter(id => !followups.includes(id))
+82:       this.repo.threads.save(thread)
+83:       for (const triggerId of followups) this.emit('trigger.followup', { triggerId })
+84:       if (!thread.pending.length) return
+85:     }
+86:     // Triggers that already originated a ticket cannot lend authority to a new evaluation or spawn a duplicate ticket.
+87:     const accepted = this.accepted(thread.key)
+88:     const started = thread.pending.filter(id => accepted.has(id))
+89:     const startedTicket = (id: string): Reason => ({ code: 'startedTicket', triggerId: id, values: { ticket: accepted.get(id)!.ticketId! } })
+90:     if (started.length) this.ignore(thread, started, started.map(startedTicket), policy, at)
+91:     const triggers = thread.pending.flatMap(id => { const trigger = this.repo.triggers.get(id); return trigger ? [trigger] : [] })
+92:     const tickets = this.ticketsOnThread(thread)
+93:     const reasons: Reason[] = []
+94:     let strongest: { trigger: Trigger; strength: Strength; basis: MandateBasis } | undefined
+95:     for (const trigger of triggers) {
+96:       const gate = policy.gate(trigger, thread, tickets)
+97:       if (!gate.admissible) { reasons.push({ code: gate.reason, triggerId: trigger.id }); continue }
+98:       const later = gate.strength === strongest?.strength && trigger.at >= strongest.trigger.at
+99:       const weaker = !strongest || stronger(strongest.strength, gate.strength) !== strongest.strength
+100:       if (weaker || later) strongest = { trigger, strength: gate.strength, basis: gate.basis }
+101:     }
+102:     if (!strongest) {
+103:       if (thread.pending.length) this.ignore(thread, [...thread.pending], reasons.length ? reasons : [{ code: 'noAdmissible' }], policy, at)
+104:       this.repo.threads.save(thread)
+105:       return
+106:     }
+107:     const evalId = key('eval', thread.key, policy.version, at, ...thread.pending)
+108:     const deadline = new Date(Date.parse(at) + policy.evalTimeoutMs).toISOString()
+109:     const { strength, trigger: { actor }, basis } = strongest
+110:     thread.evaluating = { id: evalId, threadKey: thread.key, triggerIds: thread.pending, primary: strongest.trigger.id, strength, actor, basis,
+111:       policyVersion: policy.version, startedAt: at, deadline }
+112:     thread.pending = []
+113:     this.repo.threads.save(thread)
+114:     for (const trigger of triggers) {
+115:       this.repo.triggers.saveDisposition(trigger.id, { ...(this.repo.triggers.disposition(trigger.id) ?? { fanout: [], at }), evalId })
+116:     }
+117:     this.emit('eval.started', { evalId, threadKey: thread.key, triggerIds: thread.evaluating.triggerIds, strength: strongest.strength })
+118:     this.options.assessor.request(this.candidateOf(thread))
+119:   }
+
+--- Lines 131-155 ---
+131:   decide(triggerId: string, outcome: Outcome): Decision {
+132:     const trigger = this.repo.triggers.get(triggerId)
+133:     if (!trigger) throw new UserError('unknownTrigger')
+134:     const held = this.holding(triggerId)
+135:     if (outcome.evalId && held?.evaluating?.id !== outcome.evalId) throw new UserError('evalFinished', { eval: outcome.evalId })
+136:     // Prevent a replayed trigger that already created a ticket from spawning a second one.
+137:     const earlier = outcome.kind === 'accept' ? this.accepted(threadKey(trigger.threads[0]!)).get(triggerId) : undefined
+138:     if (earlier) {
+139:       // Only an Eval started by an earlier version can still hold it; reassess the remaining triggers without it, or ignore it if alone.
+140:       const others = held?.evaluating?.triggerIds.filter(id => id !== triggerId) ?? []
+141:       if (held && others.length) this.reassess(held, { code: 'acceptedBefore', values: { trigger: triggerId } }, [triggerId])
+142:       else if (held) {
+143:         this.finish(held, held.evaluating!, { kind: 'ignore', reason: [{ code: 'startedTicket', triggerId, values: { ticket: earlier.ticketId! } }] })
+144:       }
+145:       return earlier
+146:     }
+147:     // A follow-up that reached a ticket is its worker's to judge: the main Session may only stop the work on it.
+148:     if (outcome.kind !== 'stop') this.leftToWorkers(trigger)
+149:     const thread = held ?? this.thread(trigger.threads[0]!)
+150:     const evaluation = held?.evaluating ?? this.directEval(thread, trigger, outcome.kind, outcome.kind === 'stop' ? outcome.ticketId : undefined)
+151:     // An inferred candidate is accepted only on enabled rules its assessment matched, while assessments may accept.
+152:     if (outcome.kind === 'accept' && evaluation.strength !== 'explicit' && !this.policy().admitsInferred(outcome.rules ?? [])) {
+153:       throw new UserError('notExplicit')
+154:     }
+155:     return this.decideEval(thread, evaluation, outcome)
+
+--- Lines 218-229 ---
+218:   policyChanged(from: string, to: string): void {
+219:     for (const thread of this.repo.threads.active()) if (thread.evaluating) this.reassess(thread, { code: 'policyChanged' })
+220:     this.emit('policy.changed', { from, to })
+221:   }
+222:   /** End a Thread's Eval as unavailable for `reason` and queue its Triggers, except `without`, for a new Eval ahead of the others. */
+223:   private reassess(thread: Thread, reason: Reason, without: string[] = []): Decision {
+224:     const ids = thread.evaluating!.triggerIds.filter(id => !without.includes(id))
+225:     const decision = this.finish(thread, thread.evaluating!, { kind: 'unavailable', reason: [reason] })
+226:     const current = this.repo.threads.get(thread.key)!
+227:     current.pending = [...ids, ...current.pending.filter(id => !ids.includes(id))]
+228:     this.repo.threads.save(current)
+229:     return decision
+
+--- Lines 282-315 ---
+282:   private decideEval(thread: Thread, evaluation: Evaluation, outcome: AssessmentOutcome): Decision {
+283:     const audit = outcome.audit ? { audit: outcome.audit } : {}
+284:     // Requeue if Policy changed without a live policyChanged call (such as across an upgrade or restart).
+285:     if (this.policy().version !== evaluation.policyVersion) {
+286:       if (thread.evaluating?.id === evaluation.id) return this.reassess(thread, { code: 'policyChanged' })
+287:       return this.finish(thread, evaluation, { kind: 'unavailable', reason: [{ code: 'policyChanged' }], ...audit })
+288:     }
+289:     // An inferred candidate ignored without an assessment, from its card, says so beside the reason given.
+290:     const unassessed = outcome.kind === 'ignore' && evaluation.strength !== 'explicit' && !outcome.audit ? [{ code: 'ignoredFromCard' }] : []
+291:     if (outcome.kind === 'ignore' || outcome.kind === 'unavailable') return this.finish(thread, evaluation, { kind: outcome.kind,
+292:       reason: [...unassessed, ...reasonOf(outcome.reason)], ...audit })
+293:     if (outcome.kind === 'stop') {
+294:       const ticket = this.repo.tickets.get(outcome.ticketId)
+295:       if (!ticket || !liveTicket(ticket)) return this.finish(thread, evaluation, { kind: 'ignore', reason: [{ code: 'stopUnknown' }],
+296:         ...audit })
+297:       if (evaluation.strength !== 'explicit') return this.finish(thread, evaluation, { kind: 'ignore',
+298:         reason: [{ code: 'stopNotExplicit' }], ...audit })
+299:       const decision = this.finish(thread, evaluation, { kind: 'stop', reason: reasonOf(outcome.reason), ticketId: ticket.id, ...audit })
+300:       this.tickets.end(ticket.id, 'human', 'stopped', this.now(), typeof outcome.reason === 'string' ? outcome.reason : undefined)
+301:       return decision
+302:     }
+303:     return this.accept(thread, evaluation, outcome)
+304:   }
+305:   /** Record an accept with the Mandate the Eval gives, and have Tickets create its ticket. */
+306:   private accept(thread: Thread, evaluation: Evaluation, outcome: Extract<AssessmentOutcome, { kind: 'accept' }>): Decision {
+307:     const at = this.now()
+308:     const basis = { ...evaluation.basis, ...(outcome.rules ? { rules: outcome.rules } : {}) }
+309:     const { strength, policyVersion, actor } = evaluation
+310:     const mandate: Mandate = { strength, policyVersion, basis, actor, scope: outcome.scope }
+311:     const ticketId = key('ticket', evaluation.id)
+312:     const audit = outcome.audit ? { audit: outcome.audit } : {}
+313:     const decision = this.finish(thread, evaluation, { kind: 'accept', reason: reasonOf(outcome.reason), ...audit, mandate, ticketId })
+314:     this.tickets.create(ticketId, decision.id, mandate, evaluation, outcome, at)
+315:     return decision

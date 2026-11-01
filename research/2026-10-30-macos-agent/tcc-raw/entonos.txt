@@ -1,0 +1,494 @@
+
+How to modify TCC on macOS via command line – Entonos
+Search
+about
+projects
+contact
+the geek shop
+useful bits
+about
+projects
+contact
+the geek shop
+useful bits
+Home
+useful bits
+computing
+How to modify TCC on macOS via...
+How to modify TCC on macOS via command line
+How to modify TCC on macOS via command line
+June 23, 2023
+by
+ G.J. Parker 
+computing
+DIM
+macOS
+WARNING
+This post uses macOS Ventura 13.4.1 and Terminal has been granted Full Disk Access permission.
+To provide transparency, consent and control (TCC), macOS uses various systems for controlling permissions according to the user. For example, on Ventura’s Privacy section in System Settings…>Privacy & Security section
+Ventura’s System Settings>Privacy & Security>Privacy section
+Selecting any of these Privacy options, say Full Disk Access, show
+Ventura’s System Settings…>Privacy & Security>Privacy>Full Disk Access example
+These various options are typically updated when an application requires access to some resource (such as the microphone, camera, file, etc.) or action (automation, accessibility, etc.). If you chose not to grant permission you can do that when the application first asks for permission or by manually turning off access in these various sections. TCC handles many of these cases by using two 
+sqlite3
+ databases: 
+/Library/Application\ Support/com.apple.TCC/TCC.db
+ and 
+~/Library/Application\ Support/com.apple.TCC/TCC.db
+ (please note the space in the path).
+/Library/Application\ Support/com.apple.TCC/TCC.db
+ requires SIP to be turned off in order to modify it. Let us look at the common schema of these databases. NOTE: For the below Terminal commands to work, Terminal must be granted Full Disk Access.
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db
+SQLite version 3.39.5 2022-10-14 20:58:05
+Enter ".help" for usage hints.
+sqlite> .schema
+CREATE TABLE admin (key TEXT PRIMARY KEY NOT NULL, value INTEGER NOT NULL);
+CREATE TABLE policies ( id INTEGER NOT NULL PRIMARY KEY, bundle_id TEXT NOT NULL, uuid TEXT NOT NULL, display TEXT NOT NULL, UNIQUE (bundle_id, uuid));
+CREATE TABLE active_policy ( client TEXT NOT NULL, client_type INTEGER NOT NULL, policy_id INTEGER NOT NULL, PRIMARY KEY (client, client_type), FOREIGN KEY (policy_id) REFERENCES policies(id) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE access ( service TEXT NOT NULL, client TEXT NOT NULL, client_type INTEGER NOT NULL, auth_value INTEGER NOT NULL, auth_reason INTEGER NOT NULL, auth_version INTEGER NOT NULL, csreq BLOB, policy_id INTEGER, indirect_object_identifier_type INTEGER, indirect_object_identifier TEXT NOT NULL DEFAULT 'UNUSED', indirect_object_code_identity BLOB, flags INTEGER, last_modified INTEGER NOT NULL DEFAULT (CAST(strftime('%s','now') AS INTEGER)), PRIMARY KEY (service, client, client_type, indirect_object_identifier), FOREIGN KEY (policy_id) REFERENCES policies(id) ON DELETE CASCADE ON UPDATE CASCADE);
+CREATE TABLE access_overrides ( service TEXT NOT NULL PRIMARY KEY);
+CREATE TABLE expired ( service TEXT NOT NULL, client TEXT NOT NULL, client_type INTEGER NOT NULL, csreq BLOB, last_modified INTEGER NOT NULL , expired_at INTEGER NOT NULL DEFAULT (CAST(strftime('%s','now') AS INTEGER)), PRIMARY KEY (service, client, client_type));
+CREATE INDEX active_policy_id ON active_policy(policy_id);
+sqlite> 
+Turns out we are concerned with TABLE 
+access
+ (after cleaning it up a bit):
+CREATE TABLE access (service TEXT, client TEXT, client_type INTEGERL, auth_value INTEGER, auth_reason INTEGER, auth_version INTEGER, 
+ csreq BLOB, policy_id INTEGER, indirect_object_identifier_type INTEGER, indirect_object_identifier TEXT, 
+ indirect_object_code_identity BLOB, flags INTEGER, last_modified INTEGER, ... )
+Of these, 
+service
+, 
+client
+, and 
+auth_value
+ is the type of permission, application and if the permission is being enforced (value of 2) or not (value of 0). If 
+client_type
+ is 0, then 
+client
+ is an application BundleID otherwise it is 1 and is a fully resolved path to the application executable. So let’s list all the applications that have Full Disk Access:
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db 'SELECT client FROM access WHERE auth_value AND service = "kTCCServiceSystemPolicyAllFiles"'
+% sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db 'SELECT client FROM access WHERE auth_value AND service = "kTCCServiceSystemPolicyAllFiles"' 
+/usr/libexec/sshd-keygen-wrapper
+com.apple.Terminal
+org.m0k.transmission
+% 
+For me, only the System level 
+TCC.db
+ has these permissions stored. Let’s see how many entries in total for each:
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db "SELECT COUNT(*) FROM access WHERE auth_value" 
+131
+% sqlite3 /Library/Application\ Support/com.apple.TCC/TCC.db "SELECT COUNT(*) FROM access WHERE auth_value" 
+8
+%
+So most of the information is stored under the local user, namely 
+~/Library/Application\ Support/com.apple.TCC/TCC.db
+. By parsing 
+/System/Library/PrivateFrameworks/TCC.framework/Resources/Localizable.loctable
+ with 
+plutil
+ and similarly applying 
+strings
+ to 
+/System/Library/PrivateFrameworks/TCC.framework/Support/tccd
+, it appears we have the following 
+services
+ (not an exhaustive list):
+kTCCServiceAddressBook
+client
+ would like to access your contacts.
+kTCCServiceAppleEvents
+client
+ wants access to control 
+indirect_object_identifier
+. Allowing control will provide access to documents and data in 
+indirect_object_identifier
+, and to perform actions within that app.
+kTCCServiceBluetoothAlways
+client
+ would like to use Bluetooth.
+kTCCServiceCalendar
+client
+ would like to access your calendar.
+kTCCServiceCamera
+client
+ would like to access the camera.
+kTCCServiceContactsFull
+client
+ would like to access all of your contacts information.
+kTCCServiceContactsLimited
+client
+ would like to access your contacts basic information.
+kTCCServiceFileProviderDomain
+client
+ wants to access files managed by 
+indirect_object_identifier
+.
+kTCCServiceFileProviderPresence
+Do you want to allow 
+client
+ to see when you are using files managed by it? It will see which applications are used to access files and whether you are actively using them. It will not see when files that are not managed by it are accessed.
+kTCCServiceFocusStatus
+Allow 
+client
+ to share that you have notifications silenced when using Focus?
+kTCCServiceGameCenterFriends
+Allow 
+client
+ to connect you with your Game Center friends?
+kTCCServiceLocation
+client
+ would like to use your current location.
+kTCCServiceMediaLibrary
+client
+ would like to access Apple Music, your music and video activity, and your media library.
+kTCCServiceMicrophone
+client
+ would like to access the microphone.
+kTCCServiceMotion
+client
+ would like to access your Motion & Fitness Activity.
+kTCCServicePhotos
+client
+ would like to access your Photos
+kTCCServicePhotosAdd
+client
+ would like to add to your Photos
+kTCCServicePrototype3Rights
+client
+ would like authorization to Test Service Proto3Right.
+kTCCServicePrototype4Rights
+client
+ would like authorization to Test Service Proto4Right.
+kTCCServiceReminders
+client
+ would like to access your reminders.
+kTCCServiceScreenCapture
+client
+ would like to capture the contents of the system display.
+kTCCServiceSiri
+Would you like to use 
+client
+ with Siri?
+kTCCServiceSpeechRecognition
+client
+ would like to access Speech Recognition.
+kTCCServiceSystemPolicyAppBundles
+client
+ would like to modify apps on your Mac.
+kTCCServiceAccessibility
+client
+ would like Full Disk Access
+kTCCServiceSystemPolicyDesktopFolder
+client
+ would like to access files in your Desktop folder.
+kTCCServiceSystemPolicyDeveloperFiles
+client
+ would like to access a file used in Software Development.
+kTCCServiceSystemPolicyDocumentsFolder
+client
+ would like to access files in your Documents folder.
+kTCCServiceSystemPolicyDownloadsFolder
+client
+ would like to access files in your Downloads folder.
+kTCCServiceSystemPolicyNetworkVolumes
+client
+ would like to access files on a network volume.
+kTCCServiceSystemPolicyRemovableVolumes
+client
+ would like to access files on a removable volume.
+kTCCServiceSystemPolicySysAdminFiles
+client
+ would like to administer your computer. Administration can include modifying passwords, networking, and system settings.
+kTCCServiceUserAvailability
+client
+ would like to access your Availability
+kTCCServiceWebBrowserPublicKeyCredential
+Would you like to allow 
+client
+ to access and use your saved passkeys?
+kTCCServiceWillow
+client
+ would like to access your Home data.
+kTCCServiceAccessibility
+Allows 
+client
+ to control computer
+kTCCServicePostEvent
+Allows 
+client
+ to send keystrokes
+kTCCServiceListenEvent
+Allows 
+client
+ to monitor of your keyboard
+kTCCServiceDeveloperTool
+Allows 
+client
+ to run software locally that do not meet the system’s security policy
+Services available for TCC
+And 
+client
+ is typically the BundleID for an application. For any application, 
+codesign
+ will work while 
+lsappinfo
+ only works for running apps:
+% codesign -dr - /Applications/DIM.app | awk -F \" '{print $2}' 
+Executable=/Applications/DIM.app/Contents/MacOS/DIM
+com.parker9.DIM-4
+% lsappinfo info -only bundleID Finder 
+"CFBundleIdentifier"="com.apple.finder"
+%
+where 
+com.parker9.DIM-4
+ and 
+com.apple.finder
+ would be the 
+client
+ for 
+DIM
+ and Finder, respectively. Let’s find all applications that can control other applications:
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db 'SELECT client,indirect_object_identifier FROM access WHERE auth_value AND service = "kTCCServiceAppleEvents"' | sed 's/|/ : /'
+/System/Library/Frameworks/Security.framework/authtrampoline : com.apple.systemevents
+com.apple.Terminal : com.apple.TextEdit
+com.apple.Terminal : com.perforce.p4merge
+com.parker9.DIM-4 : com.apple.finder
+org.videolan.vlc : com.apple.Music
+Let’s look for all entries for 
+client com.parker9.DIM-4
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db 'SELECT service FROM access WHERE auth_value AND client IS "com.parker9.DIM-4"' 
+kTCCServiceAppleEvents
+We can either disallow a permission or delete one or all permissions granted to 
+com.parker9.DIM-4
+:
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db 'UPDATE access SET auth_value = "0" WHERE auth_value AND client IS "com.parker9.DIM-4"' # to disallow service (toggle UI element)
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db "DELETE FROM access WHERE client IS 'com.parker9.DIM-4' AND service IS 'kTCCServiceAppleEvents'" # to delete this service only
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db "DELETE FROM access WHERE client IS 'com.parker9.DIM-4'" # delete all services for this app
+If you choose the first option, then to reverse the change, you simply set 
+auth_value
+ to 2 instead of 0. Adding an entry is a bit more involved since for it to show up in System Settings…>Privacy & Security we need to have non-default values in the various columns and in particular 
+csreq
+ blob (and possibly 
+indirect_object_code_identity
+ blob). It is not too difficult to find this blob for any given application:
+% codesign -dr - /Applications/DIM.app 2>&1 | awk -F ' => ' '/designated/{print $2}' | csreq -r- -b /tmp/csreq.bin 
+% echo "'$(xxd -p /tmp/csreq.bin | tr -d '\n')'"
+'fade0c00000000c00000000100000006000000060000000f0000000200000011636f6d2e7061726b6572392e44494d2d34000000000000070000000e000000000000000a2a864886f7636406010900000000000000000006000000060000000e000000010000000a2a864886f763640602060000000000000000000e000000000000000a2a864886f7636406010d0000000000000000000b000000000000000a7375626a6563742e4f550000000000010000000a584a395a4c344b59564e0000'
+% codesign -dr - /System/Library/CoreServices/Finder.app 2>&1 | awk -F ' => ' '/designated/{print $2}' | csreq -r- -b /tmp/csreq.bin 
+% echo "'$(xxd -p /tmp/csreq.bin | tr -d '\n')'"
+'fade0c000000002c00000001000000060000000200000010636f6d2e6170706c652e66696e64657200000003' %
+And so to add back the permission we would do
+% sqlite3 ~/Library/Application\ Support/com.apple.TCC/TCC.db "INSERT or REPLACE INTO access VALUES('kTCCServiceAppleEvents','com.parker9.DIM-4',0,2,4,1,'fade0c00000000c00000000100000006000000060000000f0000000200000011636f6d2e7061726b6572392e44494d2d34000000000000070000000e000000000000000a2a864886f7636406010900000000000000000006000000060000000e000000010000000a2a864886f763640602060000000000000000000e000000000000000a2a864886f7636406010d0000000000000000000b000000000000000a7375626a6563742e4f550000000000010000000a584a395a4c344b59564e0000',NULL,0,'com.apple.finder','fade0c000000002c00000001000000060000000200000010636f6d2e6170706c652e66696e64657200000003',0,0)"
+%
+(yes, that is all one line). 
+If you know sqlite commands, you can do many interesting queries and modifications to the TCC database. Of course, one should be careful if modifying since it can cause problems. It may be best to make backup of the 
+TCC.db
+ file before modifying it. Or use Time Machine if you run into problems.
+Finally, it should be pointed out that all of the above is not documented by Apple and therefore is subject to change without notice. User beware.
+An Apple approved way of controlling TCC from the command line is 
+tccutil
+. The only command 
+tccutil
+ understands is 
+reset
+ followed by a 
+service
+ or 
+ALL
+ with an optional BundleID (
+man tccutil
+ is your friend). This command essentially just sets 
+auth_value
+ to zero and so when an application requires that 
+service
+, macOS will throw up a dialog confirming you wish to grant permission.
+Tags: 
+codesign
+, 
+plutil
+, 
+sqlite
+, 
+sqlite3
+, 
+Terminal
+, 
+xxd
+Previous Post
+Epic Unreal Engine and Perforce for version control
+Next Post
+So, you want to be a physicist? (Full)
+Add a Comment
+Cancel reply
+Your email address will not be published. Required fields are marked *
+Save my name, email, and website in this browser for the next time I comment.
+Δ
+Archives
+October 2026
+September 2026
+June 2023
+May 2022
+December 2021
+May 2021
+December 2020
+July 2020
+June 2020
+May 2020
+March 2020
+February 2020
+December 2019
+November 2019
+October 2019
+September 2019
+August 2019
+July 2019
+June 2019
+Categories
+cloud
+computing
+corporate
+critique
+DIM
+fortran
+github
+HTC
+iOS
+macOS
+Matlab
+Octave
+physics
+ProDice
+swift
+Tags
+acme.sh
+App Store
+automation
+AWS
+Azure
+cloud
+codesign
+computing
+corporate
+critique
+Desktop
+dice
+DIM
+GoogleCloud
+Green's functions
+Green's theorem
+HAMR
+HDD
+Helix Core
+Homebrew
+hosting
+HTC
+icons
+iOS
+Laplace
+M1 Pro
+macOS
+MAMR
+matlab
+octave
+Perforce
+physics
+plutil
+ProDice
+research
+S3
+simulation
+simulations
+SSL
+swift
+UE
+UE4
+UE5
+UTM
+xxd
+Recent Posts
+Free SSL Certificate renewal
+October 12, 2026
+So, you want to be a physicist? (Full)
+September 18, 2026
+How to modify TCC on macOS via command line
+June 23, 2023
+Epic Unreal Engine and Perforce for version control
+May 22, 2022
+Solving Laplace’s equation given a surface potential
+May 5, 2022
+First impressions of Apple Silicon
+December 14, 2021
+Which CGRect was that?
+May 20, 2021
+AWS Graviton2, Batch and multi-arch docker
+December 26, 2020
+unconventional magnetic recording
+July 30, 2020
+ProDice for iOS
+July 15, 2020
+Categories
+cloud
+computing
+corporate
+critique
+DIM
+fortran
+github
+HTC
+iOS
+macOS
+Matlab
+Octave
+physics
+ProDice
+swift
+Tags
+acme.sh
+App Store
+automation
+AWS
+Azure
+cloud
+codesign
+computing
+corporate
+critique
+Desktop
+dice
+DIM
+GoogleCloud
+Green's functions
+Green's theorem
+HAMR
+HDD
+Helix Core
+Homebrew
+hosting
+HTC
+icons
+iOS
+Laplace
+M1 Pro
+macOS
+MAMR
+matlab
+octave
+Perforce
+physics
+plutil
+ProDice
+research
+S3
+simulation
+simulations
+SSL
+swift
+UE
+UE4
+UE5
+UTM
+xxd
+ @ Entonos All Rights Reserved 
+EntonosGames.com
+ Shopping Basket 

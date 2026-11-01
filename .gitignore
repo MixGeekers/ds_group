@@ -1,0 +1,46 @@
+# Local machine metadata and editor leftovers
+.DS_Store
+._*
+*.swp
+*.swo
+*~
+
+# Local agent settings and credentials
+/.codex/
+/.aws/
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Rebuildable dependency environments and caches
+node_modules/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+coverage/
+
+# Runtime state inside exploration experiments
+/测试/**/runtime/
+/测试/**/cache/
+/测试/**/tmp/
+/测试/**/dist/
+/测试/**/build/
+/测试/**/*.db
+/测试/**/*.db-*
+/测试/**/*.sqlite
+/测试/**/*.sqlite-*
+/测试/**/*.sqlite3
+/测试/**/*.sqlite3-*
+
+# Keep research snapshots, synthetic cases and reviewed artifacts tracked.
+# Do not ignore plugins/shiyu-workbench, tests/, artifacts/, *.log or images wholesale.
