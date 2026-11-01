@@ -1,0 +1,17 @@
+{
+  "purchaseOrders": [
+    { "id": "PO01", "quantity": 100, "unitPrice": 12 },
+    { "id": "PO02", "quantity": 50, "unitPrice": 20 },
+    { "id": "PO03", "quantity": 200, "unitPrice": 2 }
+  ],
+  "receipts": [
+    { "purchaseOrderId": "PO01", "quantity": 100 },
+    { "purchaseOrderId": "PO02", "quantity": 40 },
+    { "purchaseOrderId": "PO03", "quantity": 200 }
+  ],
+  "invoices": [
+    { "id": "INV01", "purchaseOrderId": "PO01", "quantity": 100, "amount": 1200 },
+    { "id": "INV02", "purchaseOrderId": "PO02", "quantity": 50, "amount": 1100 },
+    { "id": "INV02", "purchaseOrderId": "PO02", "quantity": 50, "amount": 1100 }
+  ]
+}

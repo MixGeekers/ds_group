@@ -1,0 +1,1203 @@
+{
+  "at": "2026-11-01T15:56:03.022Z",
+  "node": "v24.19.0",
+  "scope": "lab_self_test",
+  "passed": true,
+  "limitations": [
+    "使用确定性参考执行器；未调用真实识雨模型或付费评分 Agent。",
+    "业务服务为本地有状态替身；不代表真实系统维护能力。"
+  ],
+  "results": [
+    {
+      "id": "run-mvy0hhhd-6b3143d3",
+      "config": {
+        "scenarioId": "mixed-office",
+        "target": "reference",
+        "seed": 42,
+        "noiseCount": 0,
+        "speed": 20,
+        "workerConcurrency": 3,
+        "taskDelayMs": 20,
+        "fault": "none",
+        "maxDurationMs": 60000
+      },
+      "status": "completed",
+      "metrics": {
+        "scheduledInputs": 21,
+        "injectedInputs": 21,
+        "replies": 18,
+        "toolCalls": 65,
+        "completedTasks": 8,
+        "failedTasks": 0,
+        "pendingTasks": 0,
+        "maxInjectionLagMs": 1129.1371250000002,
+        "elapsedMs": 3953
+      },
+      "artifacts": [
+        {
+          "path": "outputs/T02/reconciliation.csv",
+          "bytes": 174,
+          "sha256": "6e448d5d2fe1dddf9e80e5b3977bb42259978e19cbf64ddbd2f769ea4d3fbcc7"
+        },
+        {
+          "path": "outputs/T02/result.json",
+          "bytes": 614,
+          "sha256": "67b44ab7ab7393c66d1d58f604f7e49001f8762c94495b2317366af43e994ad8"
+        },
+        {
+          "path": "outputs/T03/minutes.docx",
+          "bytes": 10142,
+          "sha256": "ca24e913ed29ec4e7e2c6e914d3f917190e0fc0d867038059c5ed770b85c449f"
+        },
+        {
+          "path": "outputs/T03/minutes.md",
+          "bytes": 593,
+          "sha256": "971d7608b52201bf18cff2d6e0fd3264e593d86cfd7399159e2d76d3159f93f8"
+        },
+        {
+          "path": "outputs/T03/result.json",
+          "bytes": 839,
+          "sha256": "3462f2f8b9c74b6c3f3b698a3ee182fc2c6c8315c76f7f80d2eca1b1aa5496ea"
+        },
+        {
+          "path": "outputs/T04/copy.md",
+          "bytes": 743,
+          "sha256": "d3d1e43a58eac46986ee7c6574d9984cf74f0427ec570eb3f9cff375f526ebb2"
+        },
+        {
+          "path": "outputs/T04/result.json",
+          "bytes": 783,
+          "sha256": "8979af633e61c9f5ab59589433010ca0108be58facd5e1d102d3bd496bbefbf8"
+        },
+        {
+          "path": "outputs/T05/comparison.md",
+          "bytes": 437,
+          "sha256": "43da83116c5e2019fb4f15624e80d6d254cb0f44f4442c02fdb2c4acc0e38ce7"
+        },
+        {
+          "path": "outputs/T05/result.json",
+          "bytes": 561,
+          "sha256": "465f02f7b3168d1cca75ca03d5a2cbdcc5d4708bb9ad2ad36dbb9bbd397b66a3"
+        },
+        {
+          "path": "outputs/T06/plan.csv",
+          "bytes": 125,
+          "sha256": "cb03aaffa3abe22b4a918bad902527b2d6af9791b8361ffb5629847ad4ed8dec"
+        },
+        {
+          "path": "outputs/T06/result.json",
+          "bytes": 585,
+          "sha256": "8de9fde41812bc345e4167f54fb4220733b7b71d3f6d35baa22ba66753e6d4fe"
+        },
+        {
+          "path": "outputs/T07/inspection.md",
+          "bytes": 319,
+          "sha256": "cf4e8eb6ffbfb144d77f30158219e09f3fa32c3e21e1d6759a279f3f30282543"
+        },
+        {
+          "path": "outputs/T07/result.json",
+          "bytes": 387,
+          "sha256": "44dfeaeee1f4f08a9c4c4138f819f4644041ef4ceff6b88611b222e0d35b6c40"
+        },
+        {
+          "path": "outputs/T01/report.xlsx",
+          "bytes": 8614,
+          "sha256": "23e1eeb745af2cb80fe8970157eafb04a3134e9a592391de27f54c35bfe9d52b"
+        },
+        {
+          "path": "outputs/T01/report.csv",
+          "bytes": 112,
+          "sha256": "62b584a6318eca2d0dc0b14ebb3e091d8203e03d545d021de3c7d071d1c6ce6a"
+        },
+        {
+          "path": "outputs/T01/result.json",
+          "bytes": 616,
+          "sha256": "6eb0691a25098a1127dda8a09b726f148a2ee54b04716bb9536016571d76412a"
+        },
+        {
+          "path": "outputs/T08/maintenance.md",
+          "bytes": 289,
+          "sha256": "533c57999364407d3e83a769bc194afbb4713811927c04778fecaaa37e3036fa"
+        },
+        {
+          "path": "outputs/T08/result.json",
+          "bytes": 326,
+          "sha256": "8467a97c2f3046df843b7832b593cf194c065bf85cf7cdece05ad3d925afa62f"
+        }
+      ],
+      "factReport": {
+        "id": "facts-ae9576ef-5e1b-4d36-b364-985e09fed018",
+        "at": "2026-11-01T15:55:32.330Z",
+        "scope": "lab_self_test",
+        "assertions": [
+          {
+            "id": "task:T01:verified",
+            "name": "本周经营报表",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T01",
+            "evidenceRefs": [
+              "task:T01",
+              "run-mvy0hhhd-6b3143d3:e2",
+              "artifact:outputs/T01/result.json",
+              "run-mvy0hhhd-6b3143d3:e187",
+              "artifact:outputs/T01/report.xlsx",
+              "run-mvy0hhhd-6b3143d3:e181",
+              "artifact:outputs/T01/report.csv",
+              "run-mvy0hhhd-6b3143d3:e184",
+              "artifact:inputs/orders.json",
+              "run-mvy0hhhd-6b3143d3:e193"
+            ]
+          },
+          {
+            "id": "task:T02:verified",
+            "name": "采购单据对账",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T02",
+            "evidenceRefs": [
+              "task:T02",
+              "run-mvy0hhhd-6b3143d3:e10",
+              "artifact:outputs/T02/result.json",
+              "run-mvy0hhhd-6b3143d3:e70",
+              "artifact:outputs/T02/reconciliation.csv",
+              "run-mvy0hhhd-6b3143d3:e67",
+              "artifact:inputs/reconciliation.json",
+              "run-mvy0hhhd-6b3143d3:e76"
+            ]
+          },
+          {
+            "id": "task:T03:verified",
+            "name": "项目会议纪要",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T03",
+            "evidenceRefs": [
+              "task:T03",
+              "run-mvy0hhhd-6b3143d3:e18",
+              "artifact:outputs/T03/result.json",
+              "run-mvy0hhhd-6b3143d3:e90",
+              "artifact:outputs/T03/minutes.docx",
+              "run-mvy0hhhd-6b3143d3:e84",
+              "artifact:outputs/T03/minutes.md",
+              "run-mvy0hhhd-6b3143d3:e87",
+              "artifact:inputs/meeting.json",
+              "run-mvy0hhhd-6b3143d3:e96"
+            ]
+          },
+          {
+            "id": "task:T04:verified",
+            "name": "蓝桥 S2 上市文案",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T04",
+            "evidenceRefs": [
+              "task:T04",
+              "run-mvy0hhhd-6b3143d3:e26",
+              "artifact:outputs/T04/result.json",
+              "run-mvy0hhhd-6b3143d3:e115",
+              "artifact:outputs/T04/copy.md",
+              "run-mvy0hhhd-6b3143d3:e112",
+              "artifact:inputs/product.json",
+              "run-mvy0hhhd-6b3143d3:e121"
+            ]
+          },
+          {
+            "id": "task:T05:verified",
+            "name": "三家供应商方案比较",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T05",
+            "evidenceRefs": [
+              "task:T05",
+              "run-mvy0hhhd-6b3143d3:e31",
+              "artifact:outputs/T05/result.json",
+              "run-mvy0hhhd-6b3143d3:e132",
+              "artifact:outputs/T05/comparison.md",
+              "run-mvy0hhhd-6b3143d3:e129",
+              "artifact:inputs/suppliers.json",
+              "run-mvy0hhhd-6b3143d3:e138"
+            ]
+          },
+          {
+            "id": "task:T06:verified",
+            "name": "本周交付资源安排",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T06",
+            "evidenceRefs": [
+              "task:T06",
+              "run-mvy0hhhd-6b3143d3:e36",
+              "artifact:outputs/T06/result.json",
+              "run-mvy0hhhd-6b3143d3:e150",
+              "artifact:outputs/T06/plan.csv",
+              "run-mvy0hhhd-6b3143d3:e147",
+              "artifact:inputs/delivery.json",
+              "run-mvy0hhhd-6b3143d3:e156"
+            ]
+          },
+          {
+            "id": "task:T07:verified",
+            "name": "订单服务健康巡检",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T07",
+            "evidenceRefs": [
+              "task:T07",
+              "run-mvy0hhhd-6b3143d3:e41",
+              "artifact:outputs/T07/result.json",
+              "run-mvy0hhhd-6b3143d3:e168",
+              "artifact:outputs/T07/inspection.md",
+              "run-mvy0hhhd-6b3143d3:e165",
+              "run-mvy0hhhd-6b3143d3:e162",
+              "run-mvy0hhhd-6b3143d3:e177"
+            ]
+          },
+          {
+            "id": "task:T08:verified",
+            "name": "订单服务容量修复",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T08",
+            "evidenceRefs": [
+              "task:T08",
+              "run-mvy0hhhd-6b3143d3:e46",
+              "artifact:outputs/T08/result.json",
+              "run-mvy0hhhd-6b3143d3:e210",
+              "artifact:outputs/T08/maintenance.md",
+              "run-mvy0hhhd-6b3143d3:e207",
+              "artifact:service.json",
+              "run-mvy0hhhd-6b3143d3:e198",
+              "run-mvy0hhhd-6b3143d3:e204",
+              "run-mvy0hhhd-6b3143d3:e201",
+              "run-mvy0hhhd-6b3143d3:e216"
+            ]
+          },
+          {
+            "id": "protocol:event-sequence",
+            "name": "独立事件证据连续性",
+            "status": "pass",
+            "detail": "已保存事件的序号连续且身份不重复；不外推为所有外部事件均已捕获。",
+            "evidenceRefs": [
+              "run-mvy0hhhd-6b3143d3:e1",
+              "run-mvy0hhhd-6b3143d3:e221"
+            ]
+          },
+          {
+            "id": "protocol:unique-effects",
+            "name": "同一操作不重复产生效果",
+            "status": "pass",
+            "detail": "按独立世界账本核对操作身份；此断言仅覆盖当前实际发生的效果。",
+            "evidenceRefs": [
+              "run-mvy0hhhd-6b3143d3:e5",
+              "run-mvy0hhhd-6b3143d3:e13",
+              "run-mvy0hhhd-6b3143d3:e21",
+              "run-mvy0hhhd-6b3143d3:e29",
+              "run-mvy0hhhd-6b3143d3:e34",
+              "run-mvy0hhhd-6b3143d3:e39"
+            ]
+          },
+          {
+            "id": "scope:internal-capabilities",
+            "name": "core 与内层六域的能力结论",
+            "status": "inconclusive",
+            "detail": "本版状态记录来自被测对象上报，尚未独立验证真实 core、记忆后端及六域长期能力；这些能力不记为通过。",
+            "evidenceRefs": []
+          }
+        ],
+        "tasksPassed": 8,
+        "tasksTotal": 8,
+        "completionRate": 1,
+        "summary": "Lab 参考执行器自检：8/8 项已注入工作通过独立成果与送达核验。",
+        "limitations": [
+          "完成率分母为已注入任务；提前结束但尚未交付的任务保留在分母中，标记不可判定。",
+          "文案与文档的实用性、协作分寸及自主决策质量须另由评分 Agent 或人工评审。",
+          "系统巡检与维护对象是本运行可复位的服务替身，不能外推为真实生产运维能力。",
+          "参考执行器是确定性 Lab 自检对象；本报告不证明识雨或真实模型的能力。"
+        ]
+      }
+    },
+    {
+      "id": "run-mvy0hkmb-ef78acd8",
+      "config": {
+        "scenarioId": "noise-storm",
+        "target": "reference",
+        "seed": 42,
+        "noiseCount": 400,
+        "speed": 20,
+        "workerConcurrency": 3,
+        "taskDelayMs": 20,
+        "fault": "none",
+        "maxDurationMs": 60000
+      },
+      "status": "completed",
+      "metrics": {
+        "scheduledInputs": 421,
+        "injectedInputs": 421,
+        "replies": 18,
+        "toolCalls": 65,
+        "completedTasks": 8,
+        "failedTasks": 0,
+        "pendingTasks": 0,
+        "maxInjectionLagMs": 16221.944083000002,
+        "elapsedMs": 20634
+      },
+      "artifacts": [
+        {
+          "path": "outputs/T03/minutes.docx",
+          "bytes": 10142,
+          "sha256": "ebad37367d239601b6274e3d35fb08c4cf10341e46799c4f14f583c21f870da4"
+        },
+        {
+          "path": "outputs/T03/minutes.md",
+          "bytes": 593,
+          "sha256": "971d7608b52201bf18cff2d6e0fd3264e593d86cfd7399159e2d76d3159f93f8"
+        },
+        {
+          "path": "outputs/T03/result.json",
+          "bytes": 839,
+          "sha256": "3462f2f8b9c74b6c3f3b698a3ee182fc2c6c8315c76f7f80d2eca1b1aa5496ea"
+        },
+        {
+          "path": "outputs/T02/reconciliation.csv",
+          "bytes": 174,
+          "sha256": "6e448d5d2fe1dddf9e80e5b3977bb42259978e19cbf64ddbd2f769ea4d3fbcc7"
+        },
+        {
+          "path": "outputs/T02/result.json",
+          "bytes": 614,
+          "sha256": "67b44ab7ab7393c66d1d58f604f7e49001f8762c94495b2317366af43e994ad8"
+        },
+        {
+          "path": "outputs/T04/copy.md",
+          "bytes": 743,
+          "sha256": "d3d1e43a58eac46986ee7c6574d9984cf74f0427ec570eb3f9cff375f526ebb2"
+        },
+        {
+          "path": "outputs/T04/result.json",
+          "bytes": 783,
+          "sha256": "8979af633e61c9f5ab59589433010ca0108be58facd5e1d102d3bd496bbefbf8"
+        },
+        {
+          "path": "outputs/T05/comparison.md",
+          "bytes": 437,
+          "sha256": "43da83116c5e2019fb4f15624e80d6d254cb0f44f4442c02fdb2c4acc0e38ce7"
+        },
+        {
+          "path": "outputs/T05/result.json",
+          "bytes": 561,
+          "sha256": "465f02f7b3168d1cca75ca03d5a2cbdcc5d4708bb9ad2ad36dbb9bbd397b66a3"
+        },
+        {
+          "path": "outputs/T06/plan.csv",
+          "bytes": 125,
+          "sha256": "cb03aaffa3abe22b4a918bad902527b2d6af9791b8361ffb5629847ad4ed8dec"
+        },
+        {
+          "path": "outputs/T06/result.json",
+          "bytes": 585,
+          "sha256": "8de9fde41812bc345e4167f54fb4220733b7b71d3f6d35baa22ba66753e6d4fe"
+        },
+        {
+          "path": "outputs/T07/inspection.md",
+          "bytes": 319,
+          "sha256": "cf4e8eb6ffbfb144d77f30158219e09f3fa32c3e21e1d6759a279f3f30282543"
+        },
+        {
+          "path": "outputs/T07/result.json",
+          "bytes": 387,
+          "sha256": "44dfeaeee1f4f08a9c4c4138f819f4644041ef4ceff6b88611b222e0d35b6c40"
+        },
+        {
+          "path": "outputs/T08/maintenance.md",
+          "bytes": 289,
+          "sha256": "533c57999364407d3e83a769bc194afbb4713811927c04778fecaaa37e3036fa"
+        },
+        {
+          "path": "outputs/T08/result.json",
+          "bytes": 326,
+          "sha256": "8467a97c2f3046df843b7832b593cf194c065bf85cf7cdece05ad3d925afa62f"
+        },
+        {
+          "path": "outputs/T01/report.xlsx",
+          "bytes": 8614,
+          "sha256": "87251f7f3a9dd1df0bd00becd2aa291d8bffbc4048091b03100b12d67f6a915d"
+        },
+        {
+          "path": "outputs/T01/report.csv",
+          "bytes": 112,
+          "sha256": "62b584a6318eca2d0dc0b14ebb3e091d8203e03d545d021de3c7d071d1c6ce6a"
+        },
+        {
+          "path": "outputs/T01/result.json",
+          "bytes": 616,
+          "sha256": "6eb0691a25098a1127dda8a09b726f148a2ee54b04716bb9536016571d76412a"
+        }
+      ],
+      "factReport": {
+        "id": "facts-c005d4b1-83e4-48a0-87e5-397688de6873",
+        "at": "2026-11-01T15:55:53.140Z",
+        "scope": "lab_self_test",
+        "assertions": [
+          {
+            "id": "task:T01:verified",
+            "name": "本周经营报表",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T01",
+            "evidenceRefs": [
+              "task:T01",
+              "run-mvy0hkmb-ef78acd8:e2",
+              "artifact:outputs/T01/result.json",
+              "run-mvy0hkmb-ef78acd8:e611",
+              "artifact:outputs/T01/report.xlsx",
+              "run-mvy0hkmb-ef78acd8:e605",
+              "artifact:outputs/T01/report.csv",
+              "run-mvy0hkmb-ef78acd8:e608",
+              "artifact:inputs/orders.json",
+              "run-mvy0hkmb-ef78acd8:e617"
+            ]
+          },
+          {
+            "id": "task:T02:verified",
+            "name": "采购单据对账",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T02",
+            "evidenceRefs": [
+              "task:T02",
+              "run-mvy0hkmb-ef78acd8:e11",
+              "artifact:outputs/T02/result.json",
+              "run-mvy0hkmb-ef78acd8:e162",
+              "artifact:outputs/T02/reconciliation.csv",
+              "run-mvy0hkmb-ef78acd8:e159",
+              "artifact:inputs/reconciliation.json",
+              "run-mvy0hkmb-ef78acd8:e168"
+            ]
+          },
+          {
+            "id": "task:T03:verified",
+            "name": "项目会议纪要",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T03",
+            "evidenceRefs": [
+              "task:T03",
+              "run-mvy0hkmb-ef78acd8:e21",
+              "artifact:outputs/T03/result.json",
+              "run-mvy0hkmb-ef78acd8:e138",
+              "artifact:outputs/T03/minutes.docx",
+              "run-mvy0hkmb-ef78acd8:e132",
+              "artifact:outputs/T03/minutes.md",
+              "run-mvy0hkmb-ef78acd8:e135",
+              "artifact:inputs/meeting.json",
+              "run-mvy0hkmb-ef78acd8:e144"
+            ]
+          },
+          {
+            "id": "task:T04:verified",
+            "name": "蓝桥 S2 上市文案",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T04",
+            "evidenceRefs": [
+              "task:T04",
+              "run-mvy0hkmb-ef78acd8:e31",
+              "artifact:outputs/T04/result.json",
+              "run-mvy0hkmb-ef78acd8:e515",
+              "artifact:outputs/T04/copy.md",
+              "run-mvy0hkmb-ef78acd8:e512",
+              "artifact:inputs/product.json",
+              "run-mvy0hkmb-ef78acd8:e521"
+            ]
+          },
+          {
+            "id": "task:T05:verified",
+            "name": "三家供应商方案比较",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T05",
+            "evidenceRefs": [
+              "task:T05",
+              "run-mvy0hkmb-ef78acd8:e43",
+              "artifact:outputs/T05/result.json",
+              "run-mvy0hkmb-ef78acd8:e532",
+              "artifact:outputs/T05/comparison.md",
+              "run-mvy0hkmb-ef78acd8:e529",
+              "artifact:inputs/suppliers.json",
+              "run-mvy0hkmb-ef78acd8:e538"
+            ]
+          },
+          {
+            "id": "task:T06:verified",
+            "name": "本周交付资源安排",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T06",
+            "evidenceRefs": [
+              "task:T06",
+              "run-mvy0hkmb-ef78acd8:e52",
+              "artifact:outputs/T06/result.json",
+              "run-mvy0hkmb-ef78acd8:e550",
+              "artifact:outputs/T06/plan.csv",
+              "run-mvy0hkmb-ef78acd8:e547",
+              "artifact:inputs/delivery.json",
+              "run-mvy0hkmb-ef78acd8:e556"
+            ]
+          },
+          {
+            "id": "task:T07:verified",
+            "name": "订单服务健康巡检",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T07",
+            "evidenceRefs": [
+              "task:T07",
+              "run-mvy0hkmb-ef78acd8:e64",
+              "artifact:outputs/T07/result.json",
+              "run-mvy0hkmb-ef78acd8:e568",
+              "artifact:outputs/T07/inspection.md",
+              "run-mvy0hkmb-ef78acd8:e565",
+              "run-mvy0hkmb-ef78acd8:e562",
+              "run-mvy0hkmb-ef78acd8:e577"
+            ]
+          },
+          {
+            "id": "task:T08:verified",
+            "name": "订单服务容量修复",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T08",
+            "evidenceRefs": [
+              "task:T08",
+              "run-mvy0hkmb-ef78acd8:e77",
+              "artifact:outputs/T08/result.json",
+              "run-mvy0hkmb-ef78acd8:e595",
+              "artifact:outputs/T08/maintenance.md",
+              "run-mvy0hkmb-ef78acd8:e592",
+              "artifact:service.json",
+              "run-mvy0hkmb-ef78acd8:e583",
+              "run-mvy0hkmb-ef78acd8:e589",
+              "run-mvy0hkmb-ef78acd8:e586",
+              "run-mvy0hkmb-ef78acd8:e601"
+            ]
+          },
+          {
+            "id": "protocol:event-sequence",
+            "name": "独立事件证据连续性",
+            "status": "pass",
+            "detail": "已保存事件的序号连续且身份不重复；不外推为所有外部事件均已捕获。",
+            "evidenceRefs": [
+              "run-mvy0hkmb-ef78acd8:e1",
+              "run-mvy0hkmb-ef78acd8:e621"
+            ]
+          },
+          {
+            "id": "protocol:unique-effects",
+            "name": "同一操作不重复产生效果",
+            "status": "pass",
+            "detail": "按独立世界账本核对操作身份；此断言仅覆盖当前实际发生的效果。",
+            "evidenceRefs": [
+              "run-mvy0hkmb-ef78acd8:e5",
+              "run-mvy0hkmb-ef78acd8:e14",
+              "run-mvy0hkmb-ef78acd8:e24",
+              "run-mvy0hkmb-ef78acd8:e34",
+              "run-mvy0hkmb-ef78acd8:e46",
+              "run-mvy0hkmb-ef78acd8:e55"
+            ]
+          },
+          {
+            "id": "scope:internal-capabilities",
+            "name": "core 与内层六域的能力结论",
+            "status": "inconclusive",
+            "detail": "本版状态记录来自被测对象上报，尚未独立验证真实 core、记忆后端及六域长期能力；这些能力不记为通过。",
+            "evidenceRefs": []
+          }
+        ],
+        "tasksPassed": 8,
+        "tasksTotal": 8,
+        "completionRate": 1,
+        "summary": "Lab 参考执行器自检：8/8 项已注入工作通过独立成果与送达核验。",
+        "limitations": [
+          "完成率分母为已注入任务；提前结束但尚未交付的任务保留在分母中，标记不可判定。",
+          "文案与文档的实用性、协作分寸及自主决策质量须另由评分 Agent 或人工评审。",
+          "系统巡检与维护对象是本运行可复位的服务替身，不能外推为真实生产运维能力。",
+          "参考执行器是确定性 Lab 自检对象；本报告不证明识雨或真实模型的能力。"
+        ]
+      }
+    },
+    {
+      "id": "run-mvy0i0ny-63fae5cf",
+      "config": {
+        "scenarioId": "async-handoff",
+        "target": "reference",
+        "seed": 42,
+        "noiseCount": 60,
+        "speed": 20,
+        "workerConcurrency": 3,
+        "taskDelayMs": 20,
+        "fault": "tool-once",
+        "maxDurationMs": 60000
+      },
+      "status": "completed",
+      "metrics": {
+        "scheduledInputs": 70,
+        "injectedInputs": 70,
+        "replies": 10,
+        "toolCalls": 37,
+        "completedTasks": 4,
+        "failedTasks": 0,
+        "pendingTasks": 0,
+        "maxInjectionLagMs": 2161.719541999998,
+        "elapsedMs": 4080
+      },
+      "artifacts": [
+        {
+          "path": "outputs/T03/minutes.docx",
+          "bytes": 10139,
+          "sha256": "09dd0aa75bc5ee00d298c18529651f95c50d00ca819554fcf4adae5983181d06"
+        },
+        {
+          "path": "outputs/T03/minutes.md",
+          "bytes": 593,
+          "sha256": "971d7608b52201bf18cff2d6e0fd3264e593d86cfd7399159e2d76d3159f93f8"
+        },
+        {
+          "path": "outputs/T03/result.json",
+          "bytes": 839,
+          "sha256": "3462f2f8b9c74b6c3f3b698a3ee182fc2c6c8315c76f7f80d2eca1b1aa5496ea"
+        },
+        {
+          "path": "outputs/T07/inspection.md",
+          "bytes": 319,
+          "sha256": "cf4e8eb6ffbfb144d77f30158219e09f3fa32c3e21e1d6759a279f3f30282543"
+        },
+        {
+          "path": "outputs/T07/result.json",
+          "bytes": 387,
+          "sha256": "44dfeaeee1f4f08a9c4c4138f819f4644041ef4ceff6b88611b222e0d35b6c40"
+        },
+        {
+          "path": "outputs/T01/report.xlsx",
+          "bytes": 8615,
+          "sha256": "94923c331a2226d52b54974c6abd7ca44699e0ca5d854244931d8233524af579"
+        },
+        {
+          "path": "outputs/T01/report.csv",
+          "bytes": 112,
+          "sha256": "62b584a6318eca2d0dc0b14ebb3e091d8203e03d545d021de3c7d071d1c6ce6a"
+        },
+        {
+          "path": "outputs/T01/result.json",
+          "bytes": 616,
+          "sha256": "6eb0691a25098a1127dda8a09b726f148a2ee54b04716bb9536016571d76412a"
+        },
+        {
+          "path": "outputs/T08/maintenance.md",
+          "bytes": 289,
+          "sha256": "533c57999364407d3e83a769bc194afbb4713811927c04778fecaaa37e3036fa"
+        },
+        {
+          "path": "outputs/T08/result.json",
+          "bytes": 326,
+          "sha256": "8467a97c2f3046df843b7832b593cf194c065bf85cf7cdece05ad3d925afa62f"
+        }
+      ],
+      "factReport": {
+        "id": "facts-ec1c195b-e78e-41e7-a8a4-705959ce43d0",
+        "at": "2026-11-01T15:55:57.312Z",
+        "scope": "lab_self_test",
+        "assertions": [
+          {
+            "id": "task:T01:verified",
+            "name": "本周经营报表",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T01",
+            "evidenceRefs": [
+              "task:T01",
+              "run-mvy0i0ny-63fae5cf:e2",
+              "artifact:outputs/T01/result.json",
+              "run-mvy0i0ny-63fae5cf:e151",
+              "artifact:outputs/T01/report.xlsx",
+              "run-mvy0i0ny-63fae5cf:e145",
+              "artifact:outputs/T01/report.csv",
+              "run-mvy0i0ny-63fae5cf:e148",
+              "artifact:inputs/orders.json",
+              "run-mvy0i0ny-63fae5cf:e157"
+            ]
+          },
+          {
+            "id": "task:T03:verified",
+            "name": "项目会议纪要",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T03",
+            "evidenceRefs": [
+              "task:T03",
+              "run-mvy0i0ny-63fae5cf:e10",
+              "artifact:outputs/T03/result.json",
+              "run-mvy0i0ny-63fae5cf:e103",
+              "artifact:outputs/T03/minutes.docx",
+              "run-mvy0i0ny-63fae5cf:e97",
+              "artifact:outputs/T03/minutes.md",
+              "run-mvy0i0ny-63fae5cf:e100",
+              "artifact:inputs/meeting.json",
+              "run-mvy0i0ny-63fae5cf:e109"
+            ]
+          },
+          {
+            "id": "task:T07:verified",
+            "name": "订单服务健康巡检",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T07",
+            "evidenceRefs": [
+              "task:T07",
+              "run-mvy0i0ny-63fae5cf:e19",
+              "artifact:outputs/T07/result.json",
+              "run-mvy0i0ny-63fae5cf:e132",
+              "artifact:outputs/T07/inspection.md",
+              "run-mvy0i0ny-63fae5cf:e129",
+              "run-mvy0i0ny-63fae5cf:e126",
+              "run-mvy0i0ny-63fae5cf:e141"
+            ]
+          },
+          {
+            "id": "task:T08:verified",
+            "name": "订单服务容量修复",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T08",
+            "evidenceRefs": [
+              "task:T08",
+              "run-mvy0i0ny-63fae5cf:e29",
+              "artifact:outputs/T08/result.json",
+              "run-mvy0i0ny-63fae5cf:e174",
+              "artifact:outputs/T08/maintenance.md",
+              "run-mvy0i0ny-63fae5cf:e171",
+              "artifact:service.json",
+              "run-mvy0i0ny-63fae5cf:e162",
+              "run-mvy0i0ny-63fae5cf:e168",
+              "run-mvy0i0ny-63fae5cf:e165",
+              "run-mvy0i0ny-63fae5cf:e180"
+            ]
+          },
+          {
+            "id": "protocol:event-sequence",
+            "name": "独立事件证据连续性",
+            "status": "pass",
+            "detail": "已保存事件的序号连续且身份不重复；不外推为所有外部事件均已捕获。",
+            "evidenceRefs": [
+              "run-mvy0i0ny-63fae5cf:e1",
+              "run-mvy0i0ny-63fae5cf:e185"
+            ]
+          },
+          {
+            "id": "protocol:unique-effects",
+            "name": "同一操作不重复产生效果",
+            "status": "pass",
+            "detail": "按独立世界账本核对操作身份；此断言仅覆盖当前实际发生的效果。",
+            "evidenceRefs": [
+              "run-mvy0i0ny-63fae5cf:e5",
+              "run-mvy0i0ny-63fae5cf:e13",
+              "run-mvy0i0ny-63fae5cf:e22",
+              "run-mvy0i0ny-63fae5cf:e32",
+              "run-mvy0i0ny-63fae5cf:e43",
+              "run-mvy0i0ny-63fae5cf:e67"
+            ]
+          },
+          {
+            "id": "scope:internal-capabilities",
+            "name": "core 与内层六域的能力结论",
+            "status": "inconclusive",
+            "detail": "本版状态记录来自被测对象上报，尚未独立验证真实 core、记忆后端及六域长期能力；这些能力不记为通过。",
+            "evidenceRefs": []
+          }
+        ],
+        "tasksPassed": 4,
+        "tasksTotal": 4,
+        "completionRate": 1,
+        "summary": "Lab 参考执行器自检：4/4 项已注入工作通过独立成果与送达核验。",
+        "limitations": [
+          "完成率分母为已注入任务；提前结束但尚未交付的任务保留在分母中，标记不可判定。",
+          "文案与文档的实用性、协作分寸及自主决策质量须另由评分 Agent 或人工评审。",
+          "系统巡检与维护对象是本运行可复位的服务替身，不能外推为真实生产运维能力。",
+          "参考执行器是确定性 Lab 自检对象；本报告不证明识雨或真实模型的能力。"
+        ]
+      }
+    },
+    {
+      "id": "run-mvy0i3va-7ccfbfed",
+      "config": {
+        "scenarioId": "async-handoff",
+        "target": "reference",
+        "seed": 42,
+        "noiseCount": 60,
+        "speed": 20,
+        "workerConcurrency": 3,
+        "taskDelayMs": 20,
+        "fault": "lost-receipt",
+        "maxDurationMs": 60000
+      },
+      "status": "completed",
+      "metrics": {
+        "scheduledInputs": 70,
+        "injectedInputs": 70,
+        "replies": 10,
+        "toolCalls": 36,
+        "completedTasks": 4,
+        "failedTasks": 0,
+        "pendingTasks": 0,
+        "maxInjectionLagMs": 1489.0972500000025,
+        "elapsedMs": 3063
+      },
+      "artifacts": [
+        {
+          "path": "outputs/T03/minutes.docx",
+          "bytes": 10141,
+          "sha256": "86b35d619f7ec1dc54034be8b46fc33cb5d7c4207a6be840b1dda58f3e1be016"
+        },
+        {
+          "path": "outputs/T03/minutes.md",
+          "bytes": 593,
+          "sha256": "971d7608b52201bf18cff2d6e0fd3264e593d86cfd7399159e2d76d3159f93f8"
+        },
+        {
+          "path": "outputs/T03/result.json",
+          "bytes": 839,
+          "sha256": "3462f2f8b9c74b6c3f3b698a3ee182fc2c6c8315c76f7f80d2eca1b1aa5496ea"
+        },
+        {
+          "path": "outputs/T07/inspection.md",
+          "bytes": 319,
+          "sha256": "cf4e8eb6ffbfb144d77f30158219e09f3fa32c3e21e1d6759a279f3f30282543"
+        },
+        {
+          "path": "outputs/T07/result.json",
+          "bytes": 387,
+          "sha256": "44dfeaeee1f4f08a9c4c4138f819f4644041ef4ceff6b88611b222e0d35b6c40"
+        },
+        {
+          "path": "outputs/T08/maintenance.md",
+          "bytes": 289,
+          "sha256": "533c57999364407d3e83a769bc194afbb4713811927c04778fecaaa37e3036fa"
+        },
+        {
+          "path": "outputs/T08/result.json",
+          "bytes": 326,
+          "sha256": "8467a97c2f3046df843b7832b593cf194c065bf85cf7cdece05ad3d925afa62f"
+        },
+        {
+          "path": "outputs/T01/report.xlsx",
+          "bytes": 8614,
+          "sha256": "7d4c2aa1b8ed5f1c42c9a35d849e1e7a302f0936312ea6369fbdc6e7e7e2bae1"
+        },
+        {
+          "path": "outputs/T01/report.csv",
+          "bytes": 112,
+          "sha256": "62b584a6318eca2d0dc0b14ebb3e091d8203e03d545d021de3c7d071d1c6ce6a"
+        },
+        {
+          "path": "outputs/T01/result.json",
+          "bytes": 616,
+          "sha256": "6eb0691a25098a1127dda8a09b726f148a2ee54b04716bb9536016571d76412a"
+        }
+      ],
+      "factReport": {
+        "id": "facts-87519a3e-cf89-495b-bc3a-8cf9f8c68b43",
+        "at": "2026-11-01T15:56:00.434Z",
+        "scope": "lab_self_test",
+        "assertions": [
+          {
+            "id": "task:T01:verified",
+            "name": "本周经营报表",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T01",
+            "evidenceRefs": [
+              "task:T01",
+              "run-mvy0i3va-7ccfbfed:e2",
+              "artifact:outputs/T01/result.json",
+              "run-mvy0i3va-7ccfbfed:e174",
+              "artifact:outputs/T01/report.xlsx",
+              "run-mvy0i3va-7ccfbfed:e168",
+              "artifact:outputs/T01/report.csv",
+              "run-mvy0i3va-7ccfbfed:e171",
+              "artifact:inputs/orders.json",
+              "run-mvy0i3va-7ccfbfed:e180"
+            ]
+          },
+          {
+            "id": "task:T03:verified",
+            "name": "项目会议纪要",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T03",
+            "evidenceRefs": [
+              "task:T03",
+              "run-mvy0i3va-7ccfbfed:e10",
+              "artifact:outputs/T03/result.json",
+              "run-mvy0i3va-7ccfbfed:e82",
+              "artifact:outputs/T03/minutes.docx",
+              "run-mvy0i3va-7ccfbfed:e75",
+              "artifact:outputs/T03/minutes.md",
+              "run-mvy0i3va-7ccfbfed:e79",
+              "artifact:inputs/meeting.json",
+              "run-mvy0i3va-7ccfbfed:e88"
+            ]
+          },
+          {
+            "id": "task:T07:verified",
+            "name": "订单服务健康巡检",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T07",
+            "evidenceRefs": [
+              "task:T07",
+              "run-mvy0i3va-7ccfbfed:e19",
+              "artifact:outputs/T07/result.json",
+              "run-mvy0i3va-7ccfbfed:e110",
+              "artifact:outputs/T07/inspection.md",
+              "run-mvy0i3va-7ccfbfed:e107",
+              "run-mvy0i3va-7ccfbfed:e104",
+              "run-mvy0i3va-7ccfbfed:e119"
+            ]
+          },
+          {
+            "id": "task:T08:verified",
+            "name": "订单服务容量修复",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T08",
+            "evidenceRefs": [
+              "task:T08",
+              "run-mvy0i3va-7ccfbfed:e29",
+              "artifact:outputs/T08/result.json",
+              "run-mvy0i3va-7ccfbfed:e159",
+              "artifact:outputs/T08/maintenance.md",
+              "run-mvy0i3va-7ccfbfed:e156",
+              "artifact:service.json",
+              "run-mvy0i3va-7ccfbfed:e147",
+              "run-mvy0i3va-7ccfbfed:e153",
+              "run-mvy0i3va-7ccfbfed:e150",
+              "run-mvy0i3va-7ccfbfed:e165"
+            ]
+          },
+          {
+            "id": "protocol:event-sequence",
+            "name": "独立事件证据连续性",
+            "status": "pass",
+            "detail": "已保存事件的序号连续且身份不重复；不外推为所有外部事件均已捕获。",
+            "evidenceRefs": [
+              "run-mvy0i3va-7ccfbfed:e1",
+              "run-mvy0i3va-7ccfbfed:e184"
+            ]
+          },
+          {
+            "id": "protocol:unique-effects",
+            "name": "同一操作不重复产生效果",
+            "status": "pass",
+            "detail": "按独立世界账本核对操作身份；此断言仅覆盖当前实际发生的效果。",
+            "evidenceRefs": [
+              "run-mvy0i3va-7ccfbfed:e5",
+              "run-mvy0i3va-7ccfbfed:e13",
+              "run-mvy0i3va-7ccfbfed:e22",
+              "run-mvy0i3va-7ccfbfed:e32",
+              "run-mvy0i3va-7ccfbfed:e43",
+              "run-mvy0i3va-7ccfbfed:e69"
+            ]
+          },
+          {
+            "id": "scope:internal-capabilities",
+            "name": "core 与内层六域的能力结论",
+            "status": "inconclusive",
+            "detail": "本版状态记录来自被测对象上报，尚未独立验证真实 core、记忆后端及六域长期能力；这些能力不记为通过。",
+            "evidenceRefs": []
+          }
+        ],
+        "tasksPassed": 4,
+        "tasksTotal": 4,
+        "completionRate": 1,
+        "summary": "Lab 参考执行器自检：4/4 项已注入工作通过独立成果与送达核验。",
+        "limitations": [
+          "完成率分母为已注入任务；提前结束但尚未交付的任务保留在分母中，标记不可判定。",
+          "文案与文档的实用性、协作分寸及自主决策质量须另由评分 Agent 或人工评审。",
+          "系统巡检与维护对象是本运行可复位的服务替身，不能外推为真实生产运维能力。",
+          "参考执行器是确定性 Lab 自检对象；本报告不证明识雨或真实模型的能力。"
+        ]
+      }
+    },
+    {
+      "id": "run-mvy0i6a1-8ec403da",
+      "config": {
+        "scenarioId": "memory-followup",
+        "target": "reference",
+        "seed": 42,
+        "noiseCount": 60,
+        "speed": 20,
+        "workerConcurrency": 3,
+        "taskDelayMs": 20,
+        "fault": "none",
+        "maxDurationMs": 60000
+      },
+      "status": "completed",
+      "metrics": {
+        "scheduledInputs": 71,
+        "injectedInputs": 71,
+        "replies": 7,
+        "toolCalls": 26,
+        "completedTasks": 3,
+        "failedTasks": 0,
+        "pendingTasks": 0,
+        "maxInjectionLagMs": 1350.015832999997,
+        "elapsedMs": 2494
+      },
+      "artifacts": [
+        {
+          "path": "outputs/T03/minutes.docx",
+          "bytes": 10139,
+          "sha256": "bc6f7dbf52652b17845bc5dd1d3eff750800a2e97b40f9848788387c1c0408da"
+        },
+        {
+          "path": "outputs/T03/minutes.md",
+          "bytes": 593,
+          "sha256": "971d7608b52201bf18cff2d6e0fd3264e593d86cfd7399159e2d76d3159f93f8"
+        },
+        {
+          "path": "outputs/T03/result.json",
+          "bytes": 839,
+          "sha256": "3462f2f8b9c74b6c3f3b698a3ee182fc2c6c8315c76f7f80d2eca1b1aa5496ea"
+        },
+        {
+          "path": "outputs/T04/copy.md",
+          "bytes": 743,
+          "sha256": "d3d1e43a58eac46986ee7c6574d9984cf74f0427ec570eb3f9cff375f526ebb2"
+        },
+        {
+          "path": "outputs/T04/result.json",
+          "bytes": 783,
+          "sha256": "8979af633e61c9f5ab59589433010ca0108be58facd5e1d102d3bd496bbefbf8"
+        },
+        {
+          "path": "outputs/T01/report.xlsx",
+          "bytes": 8614,
+          "sha256": "bf28f2f2e603ab151dac6c53808b048d53807081cd23305d9713f375120985da"
+        },
+        {
+          "path": "outputs/T01/report.csv",
+          "bytes": 112,
+          "sha256": "62b584a6318eca2d0dc0b14ebb3e091d8203e03d545d021de3c7d071d1c6ce6a"
+        },
+        {
+          "path": "outputs/T01/result.json",
+          "bytes": 616,
+          "sha256": "6eb0691a25098a1127dda8a09b726f148a2ee54b04716bb9536016571d76412a"
+        }
+      ],
+      "factReport": {
+        "id": "facts-e3bf3ffc-571e-49a3-9275-bfe8dd32f5c7",
+        "at": "2026-11-01T15:56:02.998Z",
+        "scope": "lab_self_test",
+        "assertions": [
+          {
+            "id": "task:T01:verified",
+            "name": "本周经营报表",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T01",
+            "evidenceRefs": [
+              "task:T01",
+              "run-mvy0i6a1-8ec403da:e8",
+              "artifact:outputs/T01/result.json",
+              "run-mvy0i6a1-8ec403da:e144",
+              "artifact:outputs/T01/report.xlsx",
+              "run-mvy0i6a1-8ec403da:e138",
+              "artifact:outputs/T01/report.csv",
+              "run-mvy0i6a1-8ec403da:e141",
+              "artifact:inputs/orders.json",
+              "run-mvy0i6a1-8ec403da:e150"
+            ]
+          },
+          {
+            "id": "task:T03:verified",
+            "name": "项目会议纪要",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T03",
+            "evidenceRefs": [
+              "task:T03",
+              "run-mvy0i6a1-8ec403da:e17",
+              "artifact:outputs/T03/result.json",
+              "run-mvy0i6a1-8ec403da:e93",
+              "artifact:outputs/T03/minutes.docx",
+              "run-mvy0i6a1-8ec403da:e87",
+              "artifact:outputs/T03/minutes.md",
+              "run-mvy0i6a1-8ec403da:e90",
+              "artifact:inputs/meeting.json",
+              "run-mvy0i6a1-8ec403da:e99"
+            ]
+          },
+          {
+            "id": "task:T04:verified",
+            "name": "蓝桥 S2 上市文案",
+            "status": "pass",
+            "detail": "独立读取实际成品，核验业务事实与送达记录通过；未使用任务完成自述作为依据。",
+            "taskId": "T04",
+            "evidenceRefs": [
+              "task:T04",
+              "run-mvy0i6a1-8ec403da:e26",
+              "artifact:outputs/T04/result.json",
+              "run-mvy0i6a1-8ec403da:e122",
+              "artifact:outputs/T04/copy.md",
+              "run-mvy0i6a1-8ec403da:e119",
+              "artifact:inputs/product.json",
+              "run-mvy0i6a1-8ec403da:e128"
+            ]
+          },
+          {
+            "id": "protocol:event-sequence",
+            "name": "独立事件证据连续性",
+            "status": "pass",
+            "detail": "已保存事件的序号连续且身份不重复；不外推为所有外部事件均已捕获。",
+            "evidenceRefs": [
+              "run-mvy0i6a1-8ec403da:e1",
+              "run-mvy0i6a1-8ec403da:e154"
+            ]
+          },
+          {
+            "id": "protocol:unique-effects",
+            "name": "同一操作不重复产生效果",
+            "status": "pass",
+            "detail": "按独立世界账本核对操作身份；此断言仅覆盖当前实际发生的效果。",
+            "evidenceRefs": [
+              "run-mvy0i6a1-8ec403da:e11",
+              "run-mvy0i6a1-8ec403da:e20",
+              "run-mvy0i6a1-8ec403da:e29",
+              "run-mvy0i6a1-8ec403da:e79",
+              "run-mvy0i6a1-8ec403da:e87",
+              "run-mvy0i6a1-8ec403da:e90"
+            ]
+          },
+          {
+            "id": "scope:internal-capabilities",
+            "name": "core 与内层六域的能力结论",
+            "status": "inconclusive",
+            "detail": "本版状态记录来自被测对象上报，尚未独立验证真实 core、记忆后端及六域长期能力；这些能力不记为通过。",
+            "evidenceRefs": []
+          }
+        ],
+        "tasksPassed": 3,
+        "tasksTotal": 3,
+        "completionRate": 1,
+        "summary": "Lab 参考执行器自检：3/3 项已注入工作通过独立成果与送达核验。",
+        "limitations": [
+          "完成率分母为已注入任务；提前结束但尚未交付的任务保留在分母中，标记不可判定。",
+          "文案与文档的实用性、协作分寸及自主决策质量须另由评分 Agent 或人工评审。",
+          "系统巡检与维护对象是本运行可复位的服务替身，不能外推为真实生产运维能力。",
+          "参考执行器是确定性 Lab 自检对象；本报告不证明识雨或真实模型的能力。"
+        ]
+      }
+    }
+  ]
+}

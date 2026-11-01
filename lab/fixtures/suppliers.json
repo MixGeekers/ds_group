@@ -1,0 +1,8 @@
+{
+  "currency": "CNY", "quantity": 100, "deadline": "2026-11-10", "minQuality": 95,
+  "quotes": [
+    { "supplierId": "SA", "unitPrice": 105, "shipping": 200, "quality": 96, "deliveryDate": "2026-11-08" },
+    { "supplierId": "SB", "unitPrice": 98, "shipping": 400, "quality": 93, "deliveryDate": "2026-11-07" },
+    { "supplierId": "SC", "unitPrice": 110, "shipping": 0, "quality": 98, "deliveryDate": "2026-11-09" }
+  ]
+}

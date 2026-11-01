@@ -1,0 +1,8 @@
+{
+  "name": "蓝桥订单服务",
+  "description": "Lab 内有状态的测试服务替身；独立保存配置版本，健康状态由当前配置计算。",
+  "checks": ["maxConnections >= requiredConnections", "maintenance == false"],
+  "maintenanceScope": "可以调整本次 run 的 maxConnections 与 maintenance；不涉及真实设备或真实公司服务。",
+  "maxAllowedConnections": 256,
+  "success": "更改配置后重新 inspect，healthy 为 true，记录前后 revision 和配置。"
+}

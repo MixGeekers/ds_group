@@ -1,0 +1,14 @@
+{
+  "period": { "start": "2026-10-26", "end": "2026-11-01" },
+  "currency": "CNY",
+  "orders": [
+    { "id": "O1001", "productId": "P-A", "date": "2026-10-26", "quantity": 12, "unitPrice": 80, "status": "shipped" },
+    { "id": "O1002", "productId": "P-B", "date": "2026-10-27", "quantity": 8, "unitPrice": 150, "status": "shipped" },
+    { "id": "O1002", "productId": "P-B", "date": "2026-10-27", "quantity": 8, "unitPrice": 150, "status": "shipped" },
+    { "id": "O1003", "productId": "P-C", "date": "2026-10-28", "quantity": 5, "unitPrice": 200, "status": "confirmed" },
+    { "id": "O1004", "productId": "P-A", "date": "2026-10-29", "quantity": 10, "unitPrice": 80, "status": "cancelled" },
+    { "id": "O1005", "productId": "P-B", "date": "2026-10-30", "quantity": 6, "unitPrice": 150, "status": "shipped" },
+    { "id": "O1006", "productId": "P-A", "date": "2026-11-02", "quantity": 20, "unitPrice": 80, "status": "confirmed" }
+  ],
+  "returns": [ { "id": "R01", "orderId": "O1002", "quantity": 2 } ]
+}

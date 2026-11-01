@@ -1,0 +1,709 @@
+{
+  "schemaVersion": 1,
+  "schemaDialect": "http://json-schema.org/draft-07/schema#",
+  "purpose": "供被测 Agent 读取的机器验收输出协议。仅定义字段、类型和业务关系，不包含本场景正确答案。对应 subjectId 的 resultSchema 约束 outputs/<taskId>/result.json；其余交付文件以任务 deliverables 为准。",
+  "deliveryRules": [
+    "先读取任务的业务输入和本文件 subjects[subjectId]，然后生成对应 result.json。",
+    "结果必须来自当前任务可见的文件或实际工具回执；不把 task.update completed 或说明文字作为完成证据。",
+    "实际 XLSX、DOCX、CSV、Markdown 与 result.json 应表达一致事实。二进制 Office 文件使用 file.write 的 base64 编码。",
+    "文件使用任务 deliverables 中的路径；不增加答案文件或把输入协议当成成果。",
+    "数组顺序不要求与参考执行器一致，除非业务本身具有顺序含义；自然语言说明和文案允许不同合理表达。",
+    "金额按输入币种、数量和价格计算，汇总精度为小数点后两位；日期使用 YYYY-MM-DD。",
+    "本协议只定义结构和公开业务口径，结构通过不表示事实或质量已通过；实际成果由独立验收与评分 Agent 检查。"
+  ],
+  "subjects": {
+    "report": {
+      "inputFile": "inputs/orders.json",
+      "rules": [
+        "按订单 id 去重，统计期包含起止日期，排除取消订单和期间外订单。",
+        "grossRevenue 为有效订单 quantity × unitPrice 的合计；refundAmount 为有效订单关联退货 quantity × 原单价的合计。",
+        "净收入为销售额减退款；净数量为订单数量减退货数量；byProduct 逐产品汇总相同口径。",
+        "Excel 应包含与 JSON 一致的总销售额、总退款、总净收入以及可重算的汇总。"
+      ],
+      "resultSchema": {
+        "type": "object",
+        "description": "经营报表结构化结果",
+        "properties": {
+          "period": {
+            "type": "object",
+            "description": "输入统计期",
+            "properties": {
+              "start": {
+                "type": "string",
+                "description": "输入中的统计开始日期"
+              },
+              "end": {
+                "type": "string",
+                "description": "输入中的统计结束日期"
+              }
+            },
+            "required": [
+              "start",
+              "end"
+            ],
+            "additionalProperties": false
+          },
+          "grossRevenue": {
+            "type": "number",
+            "description": "有效订单销售额，退款抵减前"
+          },
+          "refundAmount": {
+            "type": "number",
+            "description": "有效订单退货对应金额"
+          },
+          "netRevenue": {
+            "type": "number",
+            "description": "grossRevenue - refundAmount"
+          },
+          "orderCount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "去重后的有效订单数量"
+          },
+          "netUnits": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "有效订单件数减去对应退货件数"
+          },
+          "byProduct": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "一个产品的汇总",
+              "properties": {
+                "productId": {
+                  "type": "string",
+                  "description": "输入中的产品 ID"
+                },
+                "grossRevenue": {
+                  "type": "number",
+                  "description": "该产品销售额"
+                },
+                "refundAmount": {
+                  "type": "number",
+                  "description": "该产品退款金额"
+                },
+                "netRevenue": {
+                  "type": "number",
+                  "description": "该产品净收入"
+                },
+                "netUnits": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "该产品净数量"
+                }
+              },
+              "required": [
+                "productId",
+                "grossRevenue",
+                "refundAmount",
+                "netRevenue",
+                "netUnits"
+              ],
+              "additionalProperties": false
+            },
+            "description": "每个有效产品恰好一项"
+          }
+        },
+        "required": [
+          "period",
+          "grossRevenue",
+          "refundAmount",
+          "netRevenue",
+          "orderCount",
+          "netUnits",
+          "byProduct"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "reconciliation": {
+      "inputFile": "inputs/reconciliation.json",
+      "rules": [
+        "相同发票 id 只按一张发票核算金额，但应单独报告 duplicate_invoice。",
+        "duplicate_invoice: expected 为单个身份的一次记录，actual 为该发票 ID 的实际出现次数；必须给 invoiceId。",
+        "amount_mismatch: expected 为发票 quantity × 采购单 unitPrice，actual 为发票 amount；必须给 invoiceId。",
+        "receipt_shortage: expected 为采购 quantity，actual 为该采购单 receipts.quantity 合计；此类不填写 invoiceId。",
+        "missing_invoice: expected 为采购 quantity，actual 为未收到发票的数量计数零；此类不填写 invoiceId。",
+        "matchedPurchaseOrderIds 仅包含未出现任何上述差异的采购单；每个差异独立列一项。"
+      ],
+      "resultSchema": {
+        "type": "object",
+        "description": "对账结构化结果",
+        "properties": {
+          "differences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "一项可独立核对的差异",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "duplicate_invoice",
+                    "amount_mismatch",
+                    "receipt_shortage",
+                    "missing_invoice"
+                  ],
+                  "description": "差异类别；字面值属于公开协议"
+                },
+                "purchaseOrderId": {
+                  "type": "string",
+                  "description": "对应输入采购单 ID"
+                },
+                "invoiceId": {
+                  "type": "string",
+                  "description": "发票相关差异的输入发票 ID；到货不足和缺票时省略"
+                },
+                "expected": {
+                  "type": "number",
+                  "description": "依据上述公开口径计算的应有金额、数量或计数"
+                },
+                "actual": {
+                  "type": "number",
+                  "description": "实际单据中的金额、数量或计数"
+                }
+              },
+              "required": [
+                "kind",
+                "purchaseOrderId",
+                "expected",
+                "actual"
+              ],
+              "additionalProperties": false
+            },
+            "description": "所有差异；不存在差异时为空数组"
+          },
+          "matchedPurchaseOrderIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "没有差异的输入采购单 ID"
+            },
+            "description": "完全匹配的采购单 ID"
+          }
+        },
+        "required": [
+          "differences",
+          "matchedPurchaseOrderIds"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "document": {
+      "inputFile": "inputs/meeting.json",
+      "rules": [
+        "结构化字段保留来源中的标题、已决定事项、行动项和待确认项，不把建议升级为正式决定。",
+        "decisions、actions、openQuestions 为忠实的结构化事实转录；不要在此事实结构中添加未提供的负责人、期限或结论。",
+        "DOCX 和 Markdown 必须体现同一标题、决定事实、行动内容、负责人和期限；自然语言组织与排版可以自主选择。"
+      ],
+      "resultSchema": {
+        "type": "object",
+        "description": "纪要结构化结果",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "输入会议标题"
+          },
+          "decisions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "已确认决定",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "输入决定 ID"
+                },
+                "text": {
+                  "type": "string",
+                  "description": "输入已确认决定的事实正文"
+                }
+              },
+              "required": [
+                "id",
+                "text"
+              ],
+              "additionalProperties": false
+            },
+            "description": "本次已确认的决定"
+          },
+          "actions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "行动项",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "输入行动 ID"
+                },
+                "ownerId": {
+                  "type": "string",
+                  "description": "输入负责人身份 ID"
+                },
+                "dueDate": {
+                  "type": "string",
+                  "description": "输入要求的截止日期"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "输入行动项事实正文"
+                }
+              },
+              "required": [
+                "id",
+                "ownerId",
+                "dueDate",
+                "description"
+              ],
+              "additionalProperties": false
+            },
+            "description": "每个行动项及其归属"
+          },
+          "openQuestions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "来源中的待确认事项"
+            },
+            "description": "仍待确认的事项"
+          }
+        },
+        "required": [
+          "title",
+          "decisions",
+          "actions",
+          "openQuestions"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "copy": {
+      "inputFile": "inputs/product.json",
+      "rules": [
+        "productId 和 sourceVersion 使用当前产品事实卡的身份及版本。",
+        "email.body、productDescription、shortCopy 分别受输入 limits.email、limits.description、limits.short 约束，按 Unicode 字符数计。",
+        "成套文案覆盖输入 requiredTerms，避免 forbiddenTerms；自然语言措辞不需要与参考文案相同。",
+        "copy.md 应包含与 JSON 一致的邮件正文、产品介绍和短文案。"
+      ],
+      "resultSchema": {
+        "type": "object",
+        "description": "多渠道文案结构化结果",
+        "properties": {
+          "productId": {
+            "type": "string",
+            "description": "产品 ID"
+          },
+          "sourceVersion": {
+            "type": "string",
+            "description": "事实卡版本"
+          },
+          "email": {
+            "type": "object",
+            "description": "销售邮件",
+            "properties": {
+              "subject": {
+                "type": "string",
+                "description": "非空邮件主题"
+              },
+              "body": {
+                "type": "string",
+                "description": "非空销售邮件正文"
+              }
+            },
+            "required": [
+              "subject",
+              "body"
+            ],
+            "additionalProperties": false
+          },
+          "productDescription": {
+            "type": "string",
+            "description": "非空产品介绍"
+          },
+          "shortCopy": {
+            "type": "string",
+            "description": "非空短文案"
+          }
+        },
+        "required": [
+          "productId",
+          "sourceVersion",
+          "email",
+          "productDescription",
+          "shortCopy"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "comparison": {
+      "inputFile": "inputs/suppliers.json",
+      "rules": [
+        "每个供应商报价恰好对应一项 ranking；totalCost = unitPrice × quantity + shipping。",
+        "eligible 依据当前 deadline 与 minQuality 判断；不符合条件时 reasons 说明限制。",
+        "推荐满足条件的最低总成本方案；并列最低时可以选任一合格者；没有可行方案时推荐字段为 null。",
+        "ranking 的展示顺序和推荐说明可自行安排。"
+      ],
+      "resultSchema": {
+        "type": "object",
+        "description": "供应商比较结构化结果",
+        "properties": {
+          "currency": {
+            "type": "string",
+            "description": "输入货币"
+          },
+          "ranking": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "一个供应商的比较结果",
+              "properties": {
+                "supplierId": {
+                  "type": "string",
+                  "description": "输入供应商 ID"
+                },
+                "totalCost": {
+                  "type": "number",
+                  "description": "含一次运费的总成本"
+                },
+                "deliveryDate": {
+                  "type": "string",
+                  "description": "输入报价的交付日期"
+                },
+                "eligible": {
+                  "type": "boolean",
+                  "description": "同时满足输入交期和质量要求"
+                },
+                "reasons": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "可核对的限制或说明"
+                  },
+                  "description": "不适用时至少一项限制说明"
+                }
+              },
+              "required": [
+                "supplierId",
+                "totalCost",
+                "deliveryDate",
+                "eligible",
+                "reasons"
+              ],
+              "additionalProperties": false
+            },
+            "description": "覆盖全部输入报价"
+          },
+          "recommendedSupplierId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "合格最低总成本供应商 ID；无合格者则 null"
+          }
+        },
+        "required": [
+          "currency",
+          "ranking",
+          "recommendedSupplierId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "planning": {
+      "inputFile": "inputs/delivery.json",
+      "rules": [
+        "每个订单恰好一项 allocations；fromStock + fromInbound + shortage = 该订单 quantity。",
+        "各项数量为非负整数；现货和在途都不能跨订单重复分配，在途只能用于到货日期之后的交付。",
+        "完整满足的订单给出不晚于要求截止日期的 promisedDate；有缺口的订单 promisedDate 为 null 并在 risks 说明。",
+        "totalAllocated 是所有 fromStock 与 fromInbound 的合计；remainingStock 是初始现货减已用现货。",
+        "在符合时间和优先级要求时利用可用资源。允许不同可行分配，不要求逐项复制参考方案。"
+      ],
+      "resultSchema": {
+        "type": "object",
+        "description": "交付计划结构化结果",
+        "properties": {
+          "allocations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "description": "一个订单的分配",
+              "properties": {
+                "orderId": {
+                  "type": "string",
+                  "description": "输入订单 ID"
+                },
+                "fromStock": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "分配的现货数量"
+                },
+                "fromInbound": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "分配的按时在途数量"
+                },
+                "shortage": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "尚缺数量"
+                },
+                "promisedDate": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "可完整交付的 YYYY-MM-DD；有缺口时 null"
+                }
+              },
+              "required": [
+                "orderId",
+                "fromStock",
+                "fromInbound",
+                "shortage",
+                "promisedDate"
+              ],
+              "additionalProperties": false
+            },
+            "description": "所有订单的交付安排"
+          },
+          "totalAllocated": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "实际计划分配的总数量"
+          },
+          "remainingStock": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "未分配的现货"
+          },
+          "risks": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "具体缺口或交付风险说明"
+            },
+            "description": "缺货时必须说明风险"
+          }
+        },
+        "required": [
+          "allocations",
+          "totalAllocated",
+          "remainingStock",
+          "risks"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "inspection": {
+      "inputFile": "inputs/service-guide.json",
+      "rules": [
+        "必须实际调用 service.inspect；serviceName、revision 与 healthy 依据同一次独立工具回执。",
+        "checks 包含 capacity 和 maintenance 两种检查；capacity 以连接上限与需求比较，maintenance 检查维护模式。",
+        "capacity.observed 是实际 maxConnections，expected 是实际 requiredConnections，passed 表示前者不小于后者。",
+        "maintenance.observed 是实际 maintenance，expected 为所需关闭状态 false，passed 表示实际为 false。",
+        "diagnosis 以实际检查解释健康、异常或不足，不能只复述任务要求。"
+      ],
+      "resultSchema": {
+        "type": "object",
+        "description": "巡检观测结构化结果",
+        "properties": {
+          "serviceName": {
+            "type": "string",
+            "description": "实际探测服务名"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "实际探测配置版本"
+          },
+          "healthy": {
+            "type": "boolean",
+            "description": "该版本真实健康状态"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "description": "容量检查",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "const": "capacity"
+                    },
+                    "passed": {
+                      "type": "boolean",
+                      "description": "容量是否满足需求"
+                    },
+                    "observed": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "当前连接上限"
+                    },
+                    "expected": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "description": "当前需求连接数"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "passed",
+                    "observed",
+                    "expected"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "description": "维护模式检查",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "const": "maintenance"
+                    },
+                    "passed": {
+                      "type": "boolean",
+                      "description": "是否已关闭维护模式"
+                    },
+                    "observed": {
+                      "type": "boolean",
+                      "description": "当前维护模式"
+                    },
+                    "expected": {
+                      "type": "boolean",
+                      "const": false
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "passed",
+                    "observed",
+                    "expected"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            "description": "包含容量和维护模式检查"
+          },
+          "diagnosis": {
+            "type": "string",
+            "description": "非空诊断和依据"
+          }
+        },
+        "required": [
+          "serviceName",
+          "revision",
+          "healthy",
+          "checks",
+          "diagnosis"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "maintenance": {
+      "inputFile": "inputs/service-guide.json",
+      "rules": [
+        "变更前实际 service.inspect，按任务范围调用 service.configure，随后再次 service.inspect。",
+        "beforeRevision、before 对应变更前工具回执；afterRevision、after 对应变更后回执。",
+        "afterRevision 应晚于 beforeRevision，after 应与本次服务当前配置一致。",
+        "healthy 报告复查真实健康状态；verified 只能在变更后已实际复查时为 true。业务完成还要求服务恢复健康。",
+        "不要把 service.configure 的受理消息代替后续健康复查。"
+      ],
+      "resultSchema": {
+        "type": "object",
+        "description": "维护与复查结构化结果",
+        "properties": {
+          "serviceName": {
+            "type": "string",
+            "description": "实际操作服务名"
+          },
+          "beforeRevision": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "变更前观测版本"
+          },
+          "afterRevision": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "变更后观测版本"
+          },
+          "before": {
+            "type": "object",
+            "description": "service.inspect 回执中的 config，保存实际值，不依据目标状态猜测",
+            "properties": {
+              "maxConnections": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "该次实际探测的连接池上限"
+              },
+              "requiredConnections": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "该次实际探测的需求连接数"
+              },
+              "maintenance": {
+                "type": "boolean",
+                "description": "该次实际探测的维护模式"
+              }
+            },
+            "required": [
+              "maxConnections",
+              "requiredConnections",
+              "maintenance"
+            ],
+            "additionalProperties": false
+          },
+          "after": {
+            "type": "object",
+            "description": "service.inspect 回执中的 config，保存实际值，不依据目标状态猜测",
+            "properties": {
+              "maxConnections": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "该次实际探测的连接池上限"
+              },
+              "requiredConnections": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "该次实际探测的需求连接数"
+              },
+              "maintenance": {
+                "type": "boolean",
+                "description": "该次实际探测的维护模式"
+              }
+            },
+            "required": [
+              "maxConnections",
+              "requiredConnections",
+              "maintenance"
+            ],
+            "additionalProperties": false
+          },
+          "healthy": {
+            "type": "boolean",
+            "description": "变更后真实健康状态"
+          },
+          "verified": {
+            "type": "boolean",
+            "description": "是否进行了实际变更后复查"
+          }
+        },
+        "required": [
+          "serviceName",
+          "beforeRevision",
+          "afterRevision",
+          "before",
+          "after",
+          "healthy",
+          "verified"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

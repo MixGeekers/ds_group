@@ -1,0 +1,9 @@
+{
+  "stock": 60,
+  "inbound": [ { "id": "IN01", "quantity": 40, "date": "2026-11-04" } ],
+  "orders": [
+    { "id": "ORDER-A1", "quantity": 50, "dueDate": "2026-11-03", "priority": 1 },
+    { "id": "ORDER-A2", "quantity": 30, "dueDate": "2026-11-04", "priority": 2 },
+    { "id": "ORDER-B1", "quantity": 40, "dueDate": "2026-11-05", "priority": 3 }
+  ]
+}

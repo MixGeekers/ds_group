@@ -1,0 +1,9 @@
+{
+  "id": "LANQIAO-S2", "version": "v2", "name": "蓝桥 S2",
+  "batteryHours": 72, "protection": "IP54", "price": 399,
+  "targetAudience": "需要长时间外出工作的团队",
+  "requiredTerms": ["蓝桥 S2", "72 小时", "IP54"],
+  "forbiddenTerms": ["永久续航", "行业第一", "浸泡防水"],
+  "limits": { "email": 350, "description": 220, "short": 80 },
+  "notes": "续航为标准测试条件下的最长值，实际使用存在差异。IP54 不支持浸泡使用。"
+}
