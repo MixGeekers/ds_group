@@ -1,4 +1,4 @@
-import type { Actor, Catalog, Channel, Scenario, ScheduledInput, Subject, TaskSpec } from './types.js';
+import type { Actor, Catalog, Channel, EvaluationMode, Scenario, ScheduledInput, Subject, TaskSpec } from './types.js';
 
 const people: Array<[string, string, string, string, string]> = [
   ['E01', '林岳', '管理与项目', '公司负责人', '#627ad9'],
@@ -78,8 +78,41 @@ const scenarios: Scenario[] = [
 ];
 
 export const catalog: Catalog = { actors, channels, subjects, scenarios };
-export function getScenario(id: string): Scenario {
-  const scenario = scenarios.find(item => item.id === id);
+const businessGoals: Record<string, string[]> = {
+  report: ['根据给定统计期间说明本周经营情况，给出销售额、退款、净收入和产品明细，并指出值得关注的异常。', '订单按身份去重，排除取消及期间外订单，退货抵减对应产品；说明统计口径。', '交付一份可继续使用的报表文件，格式、名称和制作方法自选；同时向负责人说明主要结论。'],
+  reconciliation: ['核对采购、到货和发票，给出可追溯的差异清单与正常项。', '区分重复发票、金额差异、到货不足与缺票，指出对应单据，不把正常项误报。'],
+  document: ['整理可用于推进工作的会议纪要。', '区分正式决定、未采纳建议与待确认事项；保留行动项、负责人和期限，不编造新决定。'],
+  copy: ['依据产品事实卡交付销售邮件、产品介绍和短文案。', '遵守各渠道长度及产品事实，不虚构卖点；明确每段文案的用途。'],
+  comparison: ['比较供应商报价，计算同一采购数量下含运费总成本，核对质量与交期。', '说明推荐方案、取舍及风险；可以推荐不同满足业务约束的方案，不要求唯一最低价答案。'],
+  planning: ['给出可执行的交付安排，按业务优先级分配现货与截止前可到达的在途资源。', '数量守恒、不重复分配，明确缺口和风险；不要为缺货订单虚构完整交付承诺。'],
+  inspection: ['实际了解订单服务当前配置及健康状态，交付故障依据与诊断。', '结果须有独立服务观察支撑，不能只声称检查过；本次只涉及 Lab 服务替身。'],
+  maintenance: ['在授权范围内恢复本次 Lab 订单服务，并说明实际变化和复核结果。', '仅修改该服务允许的配置，保持维护模式关闭，不超过提供的容量上限；最终服务应实际健康。', '方法自选，不要求固定配置值或固定调用顺序，但提交前须有真实恢复效果与复核证据。'],
+};
+function outcomeScenario(source: Scenario): Scenario {
+  const result = structuredClone(source);
+  result.tasks = result.tasks.map(task => {
+    const businessRequirements = [...businessGoals[task.subjectId]];
+    const deliveryPolicy = { allowText: true, minFiles: task.subjectId === 'report' ? 1 : 0 };
+    return { ...task, evaluationMode: 'outcome', businessRequirements, deliveryPolicy,
+      inputs: task.inputs.filter(input => input.startsWith('inputs/') && input !== 'inputs/output-contracts.json'),
+      deliverables: [],
+      instructions: `${businessRequirements.join('\n')}\n${deliveryPolicy.minFiles ? '必须提供实际文件，正文可补充结论。' : '可用合适文件或实质正文交付。'} 文件可任意命名，写入 outputs/${task.id}/。完成后调用 task.deliver 提交文件路径和实际正文；接单确认和 task.update 不是成果提交。`,
+    };
+  });
+  result.inputs = result.inputs.map(input => {
+    const task = result.tasks.find(task => task.id === input.taskId);
+    return input.kind === 'request' && task ? { ...input, text: task.instructions } : input;
+  });
+  return result;
+}
+export const outcomeCatalog: Catalog = {
+  actors, channels,
+  subjects: subjects.map(subject => ({ ...subject, outputSummary: subject.id === 'report' ? '自选格式的报表文件与结论' : '符合业务目标的文件或实质正文' })),
+  scenarios: scenarios.map(outcomeScenario),
+};
+export function getScenario(id: string, mode: EvaluationMode = 'protocol'): Scenario {
+  if (!['protocol', 'outcome'].includes(mode)) throw new Error('未知验收模式');
+  const scenario = (mode === 'outcome' ? outcomeCatalog.scenarios : scenarios).find(item => item.id === id);
   if (!scenario) throw new Error(`未知场景：${id}`);
   return structuredClone(scenario);
 }

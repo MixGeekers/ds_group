@@ -6,6 +6,7 @@ import { catalog, getScenario } from './catalog.ts';
 import { seedWorkspace, executeWork } from './workloads.ts';
 import { evaluateRun } from './evaluation.ts';
 import { LabStore } from './store.ts';
+import { isAcknowledgementOnly } from './outcome.ts';
 import type { ActionResult, Artifact, LabEvent, ReviewResult, Role, RunConfig, RunDetail, RunSummary, ScheduledInput, ServiceState, TargetAction, TargetInput, TaskRecord, TaskSpec, TaskStatus } from './types.ts';
 
 export const DEFAULT_CONFIG: RunConfig = {
@@ -39,9 +40,11 @@ function stable(value: unknown): string {
 }
 
 function configFor(input: Partial<RunConfig>): RunConfig {
-  const config = { ...DEFAULT_CONFIG, ...input };
-  getScenario(config.scenarioId);
+  const config = { ...DEFAULT_CONFIG, ...input, evaluationMode: input.evaluationMode ?? 'protocol' };
+  if (!['protocol', 'outcome'].includes(config.evaluationMode)) throw new Error('未知验收模式');
+  getScenario(config.scenarioId, config.evaluationMode);
   if (!['reference', 'external'].includes(config.target)) throw new Error('未知被测对象');
+  if (config.evaluationMode === 'outcome' && config.target === 'reference') throw new Error('业务成果模式仅支持 external；参考执行器只用于 protocol 自检');
   if (!['none', 'tool-once', 'lost-receipt'].includes(config.fault)) throw new Error('未知故障配置');
   const limits: Array<[keyof RunConfig, number, number, boolean]> = [
     ['seed', 0, 0xffff_ffff, true], ['noiseCount', 0, 5000, true], ['speed', 0.1, 1000, false],
@@ -134,7 +137,7 @@ export class LabEngine {
     if (this.closed) throw new Error('Lab 已关闭');
     if (this.creating + [...this.runtimes.values()].filter(rt => !terminalStatuses.has(rt.run.status)).length >= 4) throw Object.assign(new Error('最多同时运行 4 个实验'), { statusCode: 409 });
     const config = configFor(input);
-    const scenario = getScenario(config.scenarioId);
+    const scenario = getScenario(config.scenarioId, config.evaluationMode);
     this.creating++;
     try {
     const id = `run-${Date.now().toString(36)}-${randomBytes(4).toString('hex')}`;
@@ -153,7 +156,11 @@ export class LabEngine {
       events: [], artifacts: [], reviews: [], service, memory: {},
       manifest: {
         schemaVersion: 1, scenarioId: scenario.id, scenarioDigest: hash(stable(scenario)), scheduleDigest: hash(stable(schedule)),
-        createdAt: new Date().toISOString(), seed: config.seed, config: clone(config),
+        createdAt: new Date().toISOString(), seed: config.seed, config: clone(config), evaluationMode: config.evaluationMode,
+        ...(config.evaluationMode === 'outcome' ? { inputAssets: [...new Set(scenario.tasks.flatMap(task => task.inputs))].map(path => {
+          const bytes = readFileSync(join(runDir, 'workspace', path));
+          return { path, bytes: bytes.length, sha256: hash(bytes) };
+        }) } : {}),
         scope: config.target === 'reference' ? 'lab_self_test' : 'target_evaluation',
         components: { inputDriver: 'real', world: 'stateful_test_double', worker: config.target === 'reference' ? 'deterministic_reference' : 'external', core: config.target === 'reference' ? 'scripted_reference' : 'external', memory: 'target_reported_observation', evaluator: 'independent_files_and_effects' },
         clock: { business: 'scaled-scenario-time', performance: 'monotonic-wall-time', speed: config.speed },
@@ -289,6 +296,11 @@ export class LabEngine {
       // A completion claim is not the final delivery handshake. Wait for the
       // current deliverables and an actual message after their latest write.
       for (const task of rt.run.tasks.filter(item => item.introduced && item.status === 'completed')) {
+        if (rt.run.config.evaluationMode === 'outcome') {
+          const submitted = rt.run.events.find(event => event.type === 'task.delivered' && event.role === 'world' && event.taskId === task.id);
+          if (!submitted || !rt.run.events.some(event => event.type === 'message.delivered' && event.role === 'world' && event.taskId === task.id && event.causeId === submitted.id && event.seq > submitted.seq && event.channelId === task.channelId && event.data?.toActorId === task.ownerId)) return;
+          continue;
+        }
         if (!task.deliverables.every(path => rt.run.artifacts.some(artifact => artifact.taskId === task.id && artifact.path === path))) return;
         const writes = rt.run.events.filter(event => event.type === 'file.written' && event.taskId === task.id && task.deliverables.includes(String(event.data?.path)));
         const latestWrite = Math.max(0, ...writes.map(event => event.seq));
@@ -352,8 +364,10 @@ export class LabEngine {
     const run = this.find(id).run;
     return clone(run.events.filter(event => event.type.startsWith('input.') && event.seq > after).map(event => {
       const record = event.taskId ? run.tasks.find(task => task.id === event.taskId && task.introduced) : undefined;
-      const task: TaskSpec | undefined = record ? { id: record.id, subjectId: record.subjectId, title: record.title, ownerId: record.ownerId, channelId: record.channelId, instructions: record.instructions, inputs: [...record.inputs], deliverables: [...record.deliverables], dependencies: [...record.dependencies], workMs: record.workMs, dueAtMs: record.dueAtMs } : undefined;
-      return { seq: event.seq, event, ...(task ? { task } : {}) };
+      const task: TaskSpec | undefined = record ? { id: record.id, subjectId: record.subjectId, title: record.title, ownerId: record.ownerId, channelId: record.channelId, instructions: record.instructions, inputs: [...record.inputs], deliverables: [...record.deliverables], dependencies: [...record.dependencies], workMs: record.workMs, dueAtMs: record.dueAtMs,
+        ...(record.evaluationMode ? { evaluationMode: record.evaluationMode, businessRequirements: record.businessRequirements, deliveryPolicy: record.deliveryPolicy } : {}),
+      } : undefined;
+      return { seq: event.seq, event, evaluationMode: run.config.evaluationMode ?? 'protocol', ...(task ? { task } : {}) };
     }));
   }
 
@@ -398,7 +412,7 @@ export class LabEngine {
     if (taskId && !rt.run.tasks.some(task => task.id === taskId && task.introduced)) return { ok: false, error: '任务尚未接纳或不存在' };
     this.emit(rt, 'tool.call', action.type === 'message.send' ? 'replyer' : 'worker', `请求 ${action.type}`, { taskId, data: { operationId, actionType: action.type, ...('path' in action ? { path: action.path } : {}) } });
     rt.run.metrics.toolCalls++;
-    const canFault = action.type === 'file.write' || action.type === 'service.configure';
+    const canFault = action.type === 'file.write' || action.type === 'service.configure' || action.type === 'task.deliver';
     if (canFault && !rt.faultConsumed && rt.run.config.fault === 'tool-once') {
       rt.faultConsumed = true;
       const result: ActionResult = { ok: false, error: 'Lab 注入一次工具不可用；没有产生效果。', retryable: true };
@@ -413,6 +427,9 @@ export class LabEngine {
       rt.faultConsumed = true;
       const unknown: ActionResult = { ok: false, error: 'Lab 注入回执丢失；实际效果需要按同一 operationId 核对。', unknown: true };
       this.emit(rt, 'tool.result', 'world', unknown.error!, { taskId, data: { operationId, actionType: action.type, ...unknown } });
+      // Submission is already durable even when its reply is lost. Do not leave
+      // the final outcome waiting for another, unrelated action to seal the run.
+      if (action.type === 'task.deliver') this.maybeFinish(rt);
       return unknown;
     }
     this.emit(rt, 'tool.result', 'world', result.ok ? `${action.type} 已完成。` : result.error ?? '操作失败。', { taskId, data: { operationId, actionType: action.type, ok: result.ok, ...(result.error ? { error: result.error } : {}) } });
@@ -426,8 +443,39 @@ export class LabEngine {
     const run = rt.run;
     const task = 'taskId' in action && action.taskId ? run.tasks.find(item => item.id === action.taskId && item.introduced) : undefined;
     switch (action.type) {
+      case 'task.deliver': {
+        if (run.config.evaluationMode !== 'outcome') throw new Error('task.deliver 仅用于 outcome；protocol 保持原交付协议');
+        if (!task || terminalTasks.has(task.status)) throw new Error('任务尚未接纳或已结束，不能重复提交');
+        if (!Array.isArray(action.paths) || action.paths.length > 32 || new Set(action.paths).size !== action.paths.length || action.paths.some(path => typeof path !== 'string')) throw new Error('paths 必须为不重复的文件路径数组，最多 32 项');
+        if (typeof action.text !== 'string' || action.text.length > 10000) throw new Error('提交正文必须为至多 10000 字符的文本');
+        const policy = task.deliveryPolicy;
+        if (!policy || action.paths.length < policy.minFiles) throw new Error('此任务要求实际成果文件，不能仅提交正文或完成通知');
+        if (!action.paths.length && (!policy.allowText || isAcknowledgementOnly(action.text))) throw new Error('正文交付须包含实际业务成果，不能仅有接单确认或完成自述');
+        const artifacts = action.paths.map(path => {
+          if (!path.startsWith(`outputs/${task.id}/`)) throw new Error('交付引用必须属于当前任务 outputs/<taskId>/');
+          const registered = run.artifacts.filter(artifact => artifact.path === path && artifact.taskId === task.id);
+          if (registered.length !== 1) throw new Error(`交付文件尚未注册或不属于当前任务：${path}`);
+          const artifact = registered[0];
+          const bytes = readFileSync(this.safePath(run.id, path, false));
+          if (!bytes.length || bytes.length > 4 * 1024 * 1024) throw new Error(`交付文件为空或超过 4 MiB 验收上限：${path}`);
+          const sha256 = hash(bytes);
+          const write = run.events.filter(event => event.type === 'file.written' && event.role === 'world' && event.data?.path === path).at(-1);
+          if (artifact.bytes !== bytes.length || artifact.sha256 !== sha256 || !write || write.taskId !== task.id || write.data?.sha256 !== sha256 || write.data?.bytes !== bytes.length) throw new Error(`交付文件损坏或与实际写入记录不符：${path}`);
+          return { path, bytes: bytes.length, sha256 };
+        });
+        if (!catalog.channels.find(channel => channel.id === task.channelId)?.memberIds.includes(task.ownerId)) throw new Error('任务交付对象不在任务会话中');
+        const text = [action.text.trim(), ...(action.paths.length ? [`交付产物：${action.paths.join('、')}`] : [])].filter(Boolean).join('\n');
+        const data = { operationId, source: 'explicit_submission', toActorId: task.ownerId, paths: [...action.paths], text: action.text, artifacts };
+        task.status = 'completed'; task.finishedAt = new Date().toISOString(); task.detail = '实际成果已显式提交，业务质量等待独立验收与 Judge。';
+        const submitted = this.emit(rt, 'task.delivered', 'world', text, { taskId: task.id, channelId: task.channelId, data });
+        run.metrics.replies++;
+        const delivered = this.emit(rt, 'message.delivered', 'world', text, { taskId: task.id, channelId: task.channelId, causeId: submitted.id, data: { ...data, deliveryEventId: submitted.id } });
+        task.delivery = { operationId, eventId: submitted.id, messageEventId: delivered.id, submittedAt: submitted.at, paths: [...action.paths], text: action.text };
+        return { ok: true, data: { submitted: true, status: task.status, ...task.delivery, channelId: task.channelId, toActorId: task.ownerId, needsJudge: true } };
+      }
       case 'task.update': {
         if (!task || !taskStates.has(action.status)) throw new Error('无效任务状态');
+        if (run.config.evaluationMode === 'outcome' && action.status === 'completed') throw new Error('outcome 模式请用 task.deliver 提交实际成果；完成自述不算交付');
         if (terminalTasks.has(task.status) && task.status !== action.status) throw new Error('已结束任务不能用旧操作重新打开');
         task.status = action.status; task.detail = typeof action.detail === 'string' ? action.detail.slice(0, 4000) : undefined;
         if (action.status === 'running') task.startedAt ??= new Date().toISOString();
@@ -441,6 +489,12 @@ export class LabEngine {
         const file = this.safePath(run.id, action.path, false);
         const bytes = readFileSync(file);
         if (bytes.length > 5 * 1024 * 1024) throw new Error('文件超过单次读取上限');
+        if (run.config.evaluationMode === 'outcome') {
+          const source = (run.manifest.inputAssets as Array<{ path: string; bytes: number; sha256: string }> | undefined)?.find(asset => asset.path === action.path);
+          const artifact = run.artifacts.find(artifact => artifact.path === action.path);
+          const expected = source ?? artifact;
+          if (!expected || expected.bytes !== bytes.length || expected.sha256 !== hash(bytes)) throw new Error('工作文件与独立记录摘要不符');
+        }
         const binary = ['.xlsx', '.docx', '.png', '.pdf', '.zip'].includes(extname(file).toLowerCase());
         return { ok: true, data: { path: action.path, content: bytes.toString(binary ? 'base64' : 'utf8'), encoding: binary ? 'base64' : 'utf8' } };
       }
@@ -471,6 +525,7 @@ export class LabEngine {
         return { ok: true, data: { delivered: true, channelId: action.channelId } };
       }
       case 'service.inspect': {
+        if (run.config.evaluationMode === 'outcome' && (task ? !['inspection', 'maintenance'].includes(task.subjectId) : !run.tasks.some(item => item.introduced && ['inspection', 'maintenance'].includes(item.subjectId)))) throw new Error('服务资产尚未由相关任务引入');
         this.emit(rt, 'service.inspected', 'world', `${run.service.name}：${run.service.healthy ? '健康' : '异常'}`, { taskId: action.taskId, data: { service: clone(run.service), operationId } });
         return { ok: true, data: clone(run.service) };
       }
@@ -478,6 +533,10 @@ export class LabEngine {
         if (!task || task.subjectId !== 'maintenance') throw new Error('当前任务不包含测试服务维护');
         if (terminalTasks.has(task.status)) throw new Error('已结束任务不可继续修改服务');
         if (!Number.isInteger(action.maxConnections) || action.maxConnections < 1 || action.maxConnections > 1024 || typeof action.maintenance !== 'boolean') throw new Error('无效服务配置');
+        if (run.config.evaluationMode === 'outcome') {
+          const guide = JSON.parse(readFileSync(this.safePath(run.id, 'inputs/service-guide.json', false), 'utf8')) as { maxAllowedConnections: number };
+          if (action.maxConnections > guide.maxAllowedConnections || action.maintenance) throw new Error('超出本任务公开的维护授权范围');
+        }
         run.service.config.maxConnections = action.maxConnections; run.service.config.maintenance = action.maintenance;
         run.service.healthy = action.maxConnections >= run.service.config.requiredConnections && !action.maintenance;
         run.service.revision++;

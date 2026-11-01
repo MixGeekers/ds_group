@@ -1,6 +1,7 @@
 export type RunStatus = 'prepared' | 'running' | 'draining' | 'completed' | 'stopped' | 'interrupted' | 'failed';
 export type TaskStatus = 'queued' | 'running' | 'waiting' | 'completed' | 'failed' | 'cancelled';
 export type TargetMode = 'reference' | 'external';
+export type EvaluationMode = 'protocol' | 'outcome';
 export type Role = 'core' | 'worker' | 'replyer' | 'world' | 'lab' | 'memory';
 export interface Actor { id: string; name: string; department: string; title: string; color: string; }
 export interface Channel { id: string; name: string; kind: 'group' | 'direct' | 'system'; memberIds: string[]; }
@@ -9,6 +10,9 @@ export interface TaskSpec {
   id: string; subjectId: string; title: string; ownerId: string; channelId: string;
   instructions: string; inputs: string[]; deliverables: string[]; dependencies: string[];
   workMs: number; dueAtMs: number;
+  evaluationMode?: EvaluationMode;
+  businessRequirements?: string[];
+  deliveryPolicy?: { allowText: boolean; minFiles: number };
 }
 export interface ScheduledInput {
   id: string; atMs: number; actorId: string; channelId: string; text: string;
@@ -24,6 +28,8 @@ export interface RunConfig {
   scenarioId: string; target: TargetMode; seed: number; noiseCount: number;
   speed: number; workerConcurrency: number; taskDelayMs: number;
   fault: 'none' | 'tool-once' | 'lost-receipt'; maxDurationMs: number;
+  /** Omission preserves the original fixed-contract self-test. */
+  evaluationMode?: EvaluationMode;
 }
 export interface LabEvent {
   id: string; seq: number; runId: string; at: string; elapsedMs: number; businessMs: number;
@@ -33,6 +39,7 @@ export interface LabEvent {
 export interface TaskRecord extends TaskSpec {
   status: TaskStatus; introduced: boolean; startedAt?: string; finishedAt?: string;
   detail?: string; artifactPaths: string[];
+  delivery?: { operationId: string; eventId: string; messageEventId: string; submittedAt: string; paths: string[]; text: string };
 }
 export interface Artifact {
   path: string; name: string; bytes: number; sha256: string; mime: string; taskId?: string;
@@ -45,6 +52,9 @@ export interface FactReport {
   id: string; at: string; scope: 'lab_self_test' | 'target_evaluation';
   assertions: Assertion[]; tasksPassed: number; tasksTotal: number; completionRate: number;
   summary: string; limitations: string[];
+  evaluationMode?: EvaluationMode;
+  tasksSubmitted?: number;
+  needsJudge?: boolean;
 }
 export interface JudgeDimension {
   name: string; status: 'scored' | 'not_applicable' | 'insufficient_evidence';
@@ -75,9 +85,10 @@ export interface RunDetail extends RunSummary {
   manifest: Record<string, unknown>;
 }
 export interface TargetInput {
-  seq: number; event: LabEvent; task?: TaskSpec;
+  seq: number; event: LabEvent; task?: TaskSpec; evaluationMode?: EvaluationMode;
 }
 export type TargetAction =
+  | { type: 'task.deliver'; taskId: string; paths: string[]; text: string }
   | { type: 'task.update'; taskId: string; status: TaskStatus; detail?: string }
   | { type: 'file.read'; path: string }
   | { type: 'file.write'; taskId: string; path: string; content: string; encoding?: 'utf8' | 'base64' }
@@ -91,6 +102,8 @@ export interface EvidencePacket {
   schemaVersion: 1; runId: string; scope: FactReport['scope']; rubricVersion: string;
   instructions: string; events: LabEvent[]; tasks: TaskRecord[]; artifacts: Artifact[];
   facts: FactReport; evidence: Array<{ ref: string; text: string }>;
+  evaluationMode?: EvaluationMode;
+  fileIndex?: Array<{ ref: string; path: string; kind: 'input' | 'artifact' | 'service'; bytes: number; sha256: string; taskId?: string }>;
 }
 export interface WorkContext {
   runDir: string; task: TaskSpec; signal: AbortSignal;

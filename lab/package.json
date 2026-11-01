@@ -1,39 +1,36 @@
 {
-  "name": "shiyu-lab",
-  "version": "0.1.0",
+  "name": "@shiyu/gym",
+  "version": "0.2.0",
+  "description": "识雨健身房：DSH 原生公司模拟、Agent 训练与独立成果评审。",
   "private": true,
   "type": "module",
-  "engines": {
-    "node": ">=24.19.0 <25"
+  "exports": { ".": "./plugin/index.js", "./client": "./plugin/client.js", "./locale/*.json": "./plugin/locale/*.json", "./icon": "./plugin/icon.svg" },
+  "files": ["plugin/*.js", "plugin/locale/*.json", "plugin/icon.svg", "cordis.patch.yml", "dist/gym", "README.md"],
+  "engines": { "node": ">=24.19.0 <25", "dsh": ">=0.2.1-rc.5 <0.3.0" },
+  "dsh": {
+    "bundle": { "patch": "./cordis.patch.yml" },
+    "client": { "platform": "web", "immediately": true, "inject": ["@deepseek-ai/dsh-client-ui-layout", "@deepseek-ai/dsh-client-ui-sidebar", "@deepseek-ai/dsh-client-locale"] }
   },
   "scripts": {
     "dev": "node --import tsx src/server.ts",
     "start": "node --import tsx src/server.ts",
     "web:dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && npm run build:plugin",
+    "build:plugin": "tsc -p plugin/tsconfig.json && node plugin/build.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test --test-concurrency=1 tests/*.test.ts",
+    "test:plugin": "npm run build:plugin && node --test --test-concurrency=1 plugin/tests/*.test.js",
+    "check:plugin": "node --check plugin/index.js && node --check plugin/service.js && node --check plugin/agent-driver.js && node --check plugin/tools.js && node --check plugin/client.js",
     "smoke": "node --import tsx src/cli.ts smoke",
     "lab": "node --import tsx src/cli.ts",
     "test:ui": "playwright test"
   },
   "dependencies": {
-    "@fastify/static": "10.1.8",
-    "docx": "9.15.1",
-    "exceljs": "4.4.0",
-    "fastify": "5.12.7",
-    "lucide-react": "1.66.0",
-    "react": "19.3.1",
-    "react-dom": "19.3.1"
+    "@fastify/static": "10.1.8", "docx": "9.15.1", "exceljs": "4.4.0", "fastify": "5.12.7",
+    "lucide-react": "1.66.0", "react": "19.3.1", "react-dom": "19.3.1"
   },
   "devDependencies": {
-    "@playwright/test": "1.64.1",
-    "@types/node": "24.19.2",
-    "@types/react": "19.3.0",
-    "@types/react-dom": "19.3.0",
-    "@vitejs/plugin-react": "6.1.2",
-    "tsx": "4.23.15",
-    "typescript": "7.0.2",
-    "vite": "8.3.5"
+    "@playwright/test": "1.64.1", "@types/node": "24.19.2", "@types/react": "19.3.0", "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.2", "tsx": "4.23.15", "typescript": "7.0.2", "vite": "8.3.5"
   }
 }

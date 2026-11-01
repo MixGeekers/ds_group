@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-01",
+  "timeZone": "America/Caracas",
+  "package": "@shiyu/gym",
+  "version": "0.2.0",
+  "scope": "lab_plugin_implementation_validation",
+  "automated": {
+    "coreTests": { "passed": 78, "failed": 0, "historicalCases": 55, "newOutcomeCases": 23 },
+    "pluginTests": { "passed": 13, "failed": 0, "durationMs": 2590.688042 },
+    "typecheck": "passed",
+    "prototypeBuild": "passed",
+    "pluginBuild": "passed",
+    "pluginSyntax": "passed",
+    "packageDryRunFiles": 30
+  },
+  "installed": { "application": "applied", "warnings": [], "dshVersion": "0.2.1-rc.5", "hostNode": "v24.21.0", "clientSidebarRegistration": "active", "preservedWorkbenchRegistration": "active" },
+  "hostProbe": {
+    "ready": true,
+    "noModelCalled": true,
+    "visibleTools": ["gym_target"],
+    "promptTokenEstimate": { "before": 1735, "after": 551, "method": "DSH heuristic over serialized prompt sections, contexts and tool schemas; not provider billing" }
+  },
+  "nativeReferenceRun": {
+    "runId": "run-mvy6my22-37dca7f7",
+    "scenarioId": "mixed-office",
+    "scope": "lab_self_test",
+    "driver": "reference",
+    "evaluationMode": "protocol",
+    "tasksPassed": 8,
+    "tasksTotal": 8,
+    "xlsxPreviewVerified": true,
+    "generatedArtifactCount": 18
+  },
+  "limitations": [
+    "No real model request was sent by these tests; actual target/Judge model performance is not claimed.",
+    "Live Client registration was checked, but browser-click, screenshot, light/dark and rendered-icon checks were unavailable.",
+    "Tool scoping is not operating-system blind-test isolation.",
+    "The ordinary DSH model baseline is not the implemented Shiyu kernel.",
+    "Old prototype Playwright evidence is not evidence for this native plugin UI."
+  ]
+}

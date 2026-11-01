@@ -1,5 +1,9 @@
 export const protocol = {
   version: 1,
+  evaluationModes: {
+    protocol: '默认：固定成果契约，兼容参考执行器。',
+    outcome: '仅 external：按业务目标交付，文件名称/格式/步骤自选。TaskSpec.businessRequirements 与 deliveryPolicy 是公开要求；task.deliver 是明确提交，task.update(completed) 和普通消息不算提交。'
+  },
   title: '识雨 Lab 外部被测 Agent 协议',
   notice: '这是本地 DEV 接口。参考执行器仅验证 Lab；真实 Agent 需独立进程接入。Agent 可读已发生输入及工作资产，不能读取评分答案。相同操作的重试必须复用 operationId。',
   lifecycle: [
@@ -13,7 +17,8 @@ export const protocol = {
   actions: {
     'file.read': { path: 'inputs/orders.csv' },
     'file.write': { taskId: 'T01', path: 'outputs/T01/result.json', content: '{...}', encoding: 'utf8 | base64' },
-    'task.update': { taskId: 'T01', status: 'queued | running | waiting | completed | failed | cancelled', detail: '当前进度' },
+    'task.update': { taskId: 'T01', status: 'queued | running | waiting | completed | failed | cancelled', detail: '当前进度；outcome 禁止用 completed 代替显式提交' },
+    'task.deliver': { taskId: 'T01', paths: ['outputs/T01/自选文件名.csv'], text: '实际交付正文或成果说明；仅 outcome。paths 为该任务已注册且未损坏的文件，最多32项；允许正文交付的任务可用空数组，但不能仅发接单确认。文本最多10000字符。收件人固定为任务负责人及会话。相同 operationId 重试返回原收据；新提交在封存后拒绝。' },
     'message.send': { channelId: '从目录读取', text: '交付说明', taskId: 'T01', toActorId: '可选' },
     'service.inspect': { taskId: 'T07' },
     'service.configure': { taskId: 'T08', maxConnections: 120, maintenance: false },
