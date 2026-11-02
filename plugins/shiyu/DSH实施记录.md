@@ -1038,3 +1038,39 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 后续任何“已受追踪表”的结构变更都不得原地 ALTER；应使用新表/新账本或未来实现触发器重建（需单独设计与测试）。本切片未实现通用触发器重建。
 2. 修复只覆盖内层派生权威；其他域若有同类 ALTER 迁移需同样审计。
 3. 修复后未重跑真实模型/业务；宿主证据仅为启动/升级/零模型。
+
+## 31. 第三轮联合固定宿主零模型验证（修复后的 round-3 构建）
+
+状态：**固定宿主零模型限定通过**（激活/迁移升级/发布/两探针/诊断缓存/只读）；**同时如实记录了本轮真实发生的激活失败与热修复**。代码 HEAD `c2bb475`，dist 由该 HEAD 的隔离 worktree 构建（109 文件，digest `342fa7ab…`），修复后一次有序 disable→enable。
+
+### 31.1 失败 → 诊断 → 修复（真实事件）
+
+1. round-3 构建（`e400fcc`）第一次有序 reload **失败**：`EventServiceError: Transaction connection is quarantined (STORE_ISOLATED)`，插件 entry 保持 failed，重试同样失败。
+2. 在 live 控制库**副本**上复现，并用临时错误链插桩得到真实原因：`Commit watermark: tracking schema was modified or uses a reserved name`（`shiyu_relationship_meta` UPDATE 触发器）。H4e 的 additive migration 对已受 commit-watermark 追踪的内层 meta 表使用 `ALTER TABLE`，触发器 SQL 内嵌列清单，升级无法与既有触发器定义协调 → fail-closed。
+3. 热修复（`c2bb475`）：派生权威改放独立 `derivation_meta` 表，meta 表不再 ALTER；新增 `tests/inner-upgrade.test.ts` 构造 pre-H4e 磁盘 schema 验证 additive 升级与二次打开。修复构建重新启用**成功激活**。
+
+### 31.2 观察结果
+
+| 项 | 实际 |
+|---|---|
+| 启动 | 新实例 `5ec0bc5c…`，启动 `2026-11-02T22:41:05.378Z`；paused=false；schema4 六域 available（manifestHash `8e9f0530…` 不变）、inner 文案如实 |
+| 迁移升级 | live 四域 meta 表仍为 **9 列**（无 derived 列）；`derivation_meta` 行 = derived_revision 0 / digest 空；watermark `341`；重开一致 |
+| `channels` 投影 | ready、watermark 全 0、bindings/connections/conversations 空、pending 全 0、degraded 空、无正文 |
+| `diagnostics.timeSource` | 新：`state=idle`、`lastTickAt` 有值、`schedules=0/occurrences=0/accepted=0`——零模型协作 tick 实际运行且无规则时不产生事件 |
+| `notifications` | `enabled=false`（无受信 effect 端口） |
+| worker 探针 | 3 工具、authorityFields=[]、counters 全 0、released/disposed、probe session `shiyu-worker-probe-c5a9b9f6…` |
+| core 探针 | 3 core 工具、authorityFields=[]、counters 全 0、released/disposed、probe session `shiyu-core-probe-ec0dac67…` |
+| 探针后状态 | 只读；`diagnostics.eventToolProbe`/`coreEventToolProbe` 均缓存完整回执；快照仍无损 |
+| 重载增量（pre-reload2→after） | commitSeq `335→341`（+6 启动生命周期/能力观察写入）；events `41→42`（+1 lifecycle 及投递 ack）；stateVersion 6；capability revision `19→21`（hostEpoch 重绑）；unknown Task 元数据以 `runtime_reopened_requires_reconciliation` 刷新到 version 31（仍 unknown、无重试/无成功声明） |
+| 失败窗口增量（before→failed） | commitSeq `322→325`：两次失败激活在迁移失败前完成 boot catalog 事务（含 H2b 两个新事件类型），业务事实不变 |
+| 探针副作用 | 两探针前后 commitSeq/events/deliveries/stateVersion/capability revision/runtime-state 文件哈希全不变；唯一新增 = 两个已释放/归档探针 Session；20 个已知业务 Session 逐字节不变 |
+| 模型/外部动作 | 产品 0 模型/0 embedding/0 Task/0 Goal/0 渠道输入/0 Lab 输入 |
+
+证据：[round3-joint-zero-model.json](<artifacts/dsh/host/round3-joint-zero-model.json>) 及同目录 before/failed/pre-reload2/after/after-tools 审计与 status/probe 原文。
+
+### 31.3 边界与未测
+
+1. 零模型证据只证激活、迁移升级、发布、受限挂载/释放、诊断缓存与只读；不证真实模型调用、provider 预算/缓存、真实计划质量或真实渠道流量。
+2. `runtime.checkpoint.capture` 因 trusted staging/manifest composition 缺省而显式 unavailable，未在宿主执行。
+3. 真实浏览器 DOM 渲染未证明；lifecycle=degraded 仍来自保留的历史 unknown/暂停事实。
+4. 失败尝试的诊断是在 live DB 副本上复现的；修复后宿主成功激活是本轮 live 证据，但未对失败激活做宿主内重放。

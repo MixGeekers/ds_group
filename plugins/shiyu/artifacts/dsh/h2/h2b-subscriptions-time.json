@@ -191,5 +191,12 @@
       "path": "plugins/shiyu/artifacts/dsh/h2/h2b-subscriptions-time.json",
       "note": "self hash omitted"
     }
-  }
+  },
+  "evidenceCorrections": [
+    {
+      "id": "F3-R1",
+      "finding": "H2b implementer log path overwritten by the Lead run",
+      "resolution": "implementer log entry marked superseded and re-bound to the retained Lead run; count 1404 preserved, no conclusion change"
+    }
+  ]
 }

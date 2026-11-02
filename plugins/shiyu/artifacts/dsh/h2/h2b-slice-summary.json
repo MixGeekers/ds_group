@@ -65,8 +65,11 @@
       "arithmetic": "1382 baseline + 22 new tests = 1404",
       "log": {
         "path": "plugins/shiyu/.local/slice-verify-h2b.log",
-        "sha256": "1c150f34…"
-      }
+        "sha256": "33177e355b6d4d9cd4a2d13108dc1d6f872a1bde108cc3b9a7cc6f7f2a0d31a5",
+        "status": "overwritten-by-lead-run",
+        "note": "the implementer 1404 log was overwritten by the Lead 1404 run at the same path; the retained log is the Lead independent run and the counts/log hash in the Lead evidence are authoritative"
+      },
+      "superseded": true
     },
     "leadIndependentSliceCheck": {
       "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 5062485 + only these 7 files; node_modules + pinned Python symlinked)",
@@ -104,5 +107,12 @@
     "hostReloads": 0,
     "realChannelCalls": 0
   },
-  "evidenceLevel": "G1 module/integration + real temporary SQLite + synthetic clock/observation; runtime and host acceptance not claimed."
+  "evidenceLevel": "G1 module/integration + real temporary SQLite + synthetic clock/observation; runtime and host acceptance not claimed.",
+  "evidenceCorrections": [
+    {
+      "id": "F3-R1",
+      "finding": "H2b implementer log path overwritten by the Lead run",
+      "resolution": "implementer log entry marked superseded and re-bound to the retained Lead run; count 1404 preserved, no conclusion change"
+    }
+  ]
 }

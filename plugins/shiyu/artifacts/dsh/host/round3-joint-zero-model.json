@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 1,
+  "phase": "round3-host",
+  "slice": "fixed-host zero-model validation of the round-3 build after the H4e migration hotfix",
+  "capturedAt": "2026-11-02T22:42:13.773Z",
+  "status": "fixed-host-zero-model-limited",
+  "purpose": "Validate the round-3 build on the fixed host: record the real activation failure caused by the first H4e migration, the diagnosis and the hotfix, then prove the repaired build activates, the live control DB upgraded additively, schema4 publication and diagnostics stay truthful, and the worker/core zero-model probes remain read-only.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-round3-host-execution-plan.json",
+    "sha256": "08cdecc796300e58855f9d295cff6546dbffc784a743da061d5dcbd431daf9dc"
+  },
+  "code": {
+    "head": "c2bb475",
+    "dist": {
+      "files": 109,
+      "digest": "342fa7ababb497f343a5a8928c8bfbeb0c78805db672228345ba0000fd23aa0a"
+    },
+    "note": "dist built from an isolated worktree at the committed hotfix HEAD and installed after digest comparison",
+    "failedBuild": {
+      "head": "e400fcc",
+      "dist": {
+        "files": 109,
+        "digest": "982e5b096145ec76"
+      },
+      "note": "the round-3 integration build that failed to activate before the H4e migration hotfix"
+    }
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "reloads": 1,
+    "failedAttempts": 2,
+    "newInstanceId": "5ec0bc5c-61e3-4030-99b8-c14e1d4fcd47",
+    "startedAt": "2026-11-02T22:41:05.378Z"
+  },
+  "incident": {
+    "symptom": "the first round-3 ordered reload failed with EventServiceError: Transaction connection is quarantined (STORE_ISOLATED) and the plugin entry stayed failed across retries.",
+    "diagnosis": "reproduced on a copy of the live control DB; instrumentation showed \"Commit watermark: tracking schema was modified or uses a reserved name\" for the shiyu_relationship_meta UPDATE trigger after the H4e ALTER TABLE migration. Trigger SQL embeds the tracked column list, so altering a tracked table cannot reconcile an existing trigger definition.",
+    "fix": "H4e derivation authority moved to a separate additive <domain>_derivation_meta table; inner meta tables are never altered; tests/inner-upgrade.test.ts covers a pre-H4e on-disk schema upgrade; hotspot commit c2bb475.",
+    "liveDb": "after the fixed activation the four inner meta tables still have exactly the 9 pre-H4e columns and the derivation rows start at derived_revision=0, derivation_digest=''; the control watermark is 341 and reopens stay consistent."
+  },
+  "statusAfterReload": {
+    "payload": {
+      "file": "artifacts/dsh/host/round3/status-after-reload.json",
+      "bytes": 55853,
+      "sha256": "361339cf4668d061ec008014dcbb481294b6acbb62ccb0348d7d1ca516720c7c",
+      "bytesSemantics": "actual committed file bytes (UTF-8); earlier char-count values replaced"
+    },
+    "schemaVersion": 1,
+    "lifecycle": "degraded",
+    "state": "idle",
+    "innerPublication": {
+      "schemaVersion": 4,
+      "stateVersion": 6,
+      "manifestHash": "8e9f0530d2c4cc175ccaf9be5447833eada1eef42a62a03dbaf7d12bb49324fd",
+      "domains": {
+        "memory": "available",
+        "relationship": "available",
+        "emotion": "available",
+        "cognition": "available",
+        "personality": "available",
+        "ability": "available"
+      }
+    },
+    "channels": {
+      "source": "channel-ingress",
+      "status": {
+        "ready": true,
+        "schemaVersion": 1
+      },
+      "bindings": 0,
+      "connections": 0,
+      "conversations": 0,
+      "pending": {
+        "invalidationWatermark": 0,
+        "appliedThrough": 0,
+        "unapplied": 0,
+        "unbound": 0,
+        "truncated": false
+      },
+      "degraded": []
+    },
+    "diagnosticsBeforeProbes": {
+      "eventToolProbe": null,
+      "coreEventToolProbe": null,
+      "timeSource": {
+        "state": "idle",
+        "lastTickAt": "2026-11-02T22:41:17.280Z",
+        "lastTick": {
+          "evaluatedAt": 1793659277280,
+          "schedules": 0,
+          "occurrences": 0,
+          "accepted": 0,
+          "duplicate": 0,
+          "skipped": 0,
+          "deferred": 0,
+          "gaps": [],
+          "items": []
+        }
+      },
+      "notifications": {
+        "enabled": false
+      }
+    },
+    "counts": {
+      "tasks": 3,
+      "coreGoals": 2,
+      "labConnections": 3,
+      "sessions": 10,
+      "activeWork": 0
+    },
+    "truthfulness": "conversation summary now states H6a/H6b offline wiring and remaining real-platform gaps; dashboard summary mentions the channel read-only projection; inner summary remains the corrected six-domain text."
+  },
+  "workerProbe": {
+    "call": "shiyu_diagnose_worker_tools",
+    "payload": {
+      "file": "artifacts/dsh/host/round3/worker-tool-probe.json",
+      "bytes": 2445,
+      "sha256": "7f54854635ebca79c4c5a44b727874dfb5278a34d0766b23653cd4d68235478c",
+      "bytesSemantics": "actual committed file bytes (UTF-8)"
+    },
+    "ok": true,
+    "preset": "shiyu-runtime-worker-v1",
+    "scope": "local-owner",
+    "probeSessionId": "shiyu-worker-probe-c5a9b9f6-a9cd-4e4b-98d0-68abf1cc845c",
+    "zeroModel": true,
+    "readOnly": true,
+    "sent": false,
+    "tools": [
+      {
+        "name": "shiyu_worker_probe_task",
+        "source": "assignment"
+      },
+      {
+        "name": "shiyu_worker_event_types",
+        "source": "event"
+      },
+      {
+        "name": "shiyu_worker_event_report",
+        "source": "event"
+      }
+    ],
+    "authorityFields": [],
+    "counters": {
+      "modelRequests": 0,
+      "modelStreams": 0,
+      "assistantMessages": 0,
+      "userMessages": 0,
+      "toolEvents": 0,
+      "usageEvents": 0
+    },
+    "released": true,
+    "disposed": true,
+    "expected": true
+  },
+  "coreProbe": {
+    "call": "shiyu_diagnose_core_event_tools",
+    "payload": {
+      "file": "artifacts/dsh/host/round3/core-event-tool-probe.json",
+      "bytes": 2584,
+      "sha256": "976fa65d5294401a9ea00c41c022106cc31f02629a882cbda15715a081e88909",
+      "bytesSemantics": "actual committed file bytes (UTF-8)"
+    },
+    "ok": true,
+    "preset": "shiyu-runtime-core-goal-v1",
+    "scope": "local-owner",
+    "probeSessionId": "shiyu-core-probe-ec0dac67-6227-4bb4-8c04-0e33b047d98c",
+    "zeroModel": true,
+    "readOnly": true,
+    "sent": false,
+    "tools": [
+      {
+        "name": "shiyu_core_event_types",
+        "parameterKeys": []
+      },
+      {
+        "name": "shiyu_core_event_subscriptions",
+        "parameterKeys": [
+          "limit"
+        ]
+      },
+      {
+        "name": "shiyu_core_event_report",
+        "parameterKeys": [
+          "type",
+          "payload",
+          "idempotencyKey",
+          "correlationId"
+        ]
+      }
+    ],
+    "authorityFields": [],
+    "counters": {
+      "modelRequests": 0,
+      "modelStreams": 0,
+      "assistantMessages": 0,
+      "userMessages": 0,
+      "toolEvents": 0,
+      "usageEvents": 0
+    },
+    "released": true,
+    "disposed": true,
+    "expected": true
+  },
+  "statusAfterProbes": {
+    "payload": {
+      "file": "artifacts/dsh/host/round3/status-after-probes.json",
+      "bytes": 60780,
+      "sha256": "6bf1faceecbac579818a2a20bc1a2213e81a37670288c209a46d73b347fad5c4",
+      "bytesSemantics": "actual committed file bytes (UTF-8); earlier char-count values replaced"
+    },
+    "eventToolProbeCached": true,
+    "coreEventToolProbeCached": true,
+    "timeSourceIdle": true,
+    "notificationsDisabled": true,
+    "channelsSameEmpty": true,
+    "innerPublicationSame": true
+  },
+  "deltas": {
+    "failureWindow": {
+      "note": "startup before the incident vs after the two failed activations and the repaired activation",
+      "commitSeq": [
+        322,
+        325
+      ],
+      "events": [
+        40,
+        40
+      ],
+      "sessions": [
+        20,
+        20
+      ]
+    },
+    "repairedReload": {
+      "commitSeq": [
+        335,
+        341
+      ],
+      "events": [
+        41,
+        42
+      ],
+      "deliveries": [
+        {
+          "acked": 40
+        },
+        {
+          "acked": 41
+        }
+      ],
+      "stateVersion": [
+        6,
+        6
+      ],
+      "capabilityRevision": [
+        19,
+        21
+      ],
+      "sessions": [
+        20,
+        20
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ]
+    },
+    "probes": {
+      "commitSeq": [
+        341,
+        341
+      ],
+      "events": [
+        42,
+        42
+      ],
+      "deliveries": [
+        {
+          "acked": 41
+        },
+        {
+          "acked": 41
+        }
+      ],
+      "stateVersion": [
+        6,
+        6
+      ],
+      "capabilityRevision": [
+        21,
+        21
+      ],
+      "sessions": [
+        20,
+        22
+      ],
+      "addedSessionFiles": [
+        "--Users-caja-.dsh-profiles-desktop--/shiyu-worker-probe-c5a9b9f6-a9cd-4e4b-98d0-68abf1cc845c/session.v4.jsonl.zstd",
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-probe-ec0dac67-6227-4bb4-8c04-0e33b047d98c/session.v4.jsonl.zstd"
+      ],
+      "changedKnownSessionFiles": []
+    },
+    "classification": {
+      "failureWindow": "the two failed activations ran the boot catalog transaction before the migration failed; commitSeq 322->325 covers the additive catalog rows/first boot and no business facts changed.",
+      "repairedReload": "+6 commitSeq from startup lifecycle/capability writes and the capability observation; +1 event (runtime.lifecycle.changed) and its delivery ack; stateVersion unchanged at 6; capability revision +2 for the hostEpoch rebind; unknown Task uncertainty metadata refreshed with reason runtime_reopened_requires_reconciliation (version 31, state unknown, no success claim).",
+      "probes": "commitSeq/events/deliveries/stateVersion/capability revision and the runtime-state file hash are unchanged across both probes; the only session change is exactly two new released/archived probe Session files (worker + core) while all 20 previously known Session files remain byte-identical.",
+      "postProbeStatus": "the read-only status after the probes is side-effect free (unchanged counters) and returns both cached probe receipts; diagnostics.timeSource shows an idle zero-model tick with schedules=0 and notifications remain disabled."
+    },
+    "repairActivation": {
+      "note": "window between the failed attempts and the repaired activation (the repaired enable)",
+      "commitSeq": [
+        325,
+        335
+      ],
+      "events": [
+        40,
+        41
+      ],
+      "sessions": [
+        20,
+        20
+      ],
+      "classification": "+10 commits in the repaired activation window: the additive derivation_meta migration schema commit, the normal startup lifecycle/capability writes, and one runtime.lifecycle.changed event with its delivery/ack. The commits were not enumerated one by one in this zero-model window; no business facts changed and the failure was already explained."
+    },
+    "unknownTaskMetadata": {
+      "versions": "version 28 after round-2 validation -> 29 after the failed attempts window -> 30 before the repaired reload -> 31 after the repaired reload (current status)",
+      "note": "every window only refreshed the retained uncertainty metadata (reason runtime_reopened_requires_reconciliation); the Task state stays unknown with no retry, no success claim and no budget/effect change."
+    }
+  },
+  "findings": [
+    "The round-3 build initially failed to activate because the H4e migration altered a commit-watermark-tracked table; this is now reproduced, diagnosed, fixed additively, regression-tested and confirmed on the real host.",
+    "The repaired live DB keeps the pre-H4e inner meta columns unchanged and derives the authority from separate rows at 0/empty; a reopen stays consistent.",
+    "Both zero-model diagnostics mount exactly their expected restricted tools with no authority fields, zero counters, released/disposed, and the post-probe status is side-effect free with both receipts cached.",
+    "diagnostics.timeSource proves the zero-model cooperative tick is running (idle, schedules=0) and notifications stay disabled without a trusted effect port.",
+    "schema4 publication, channels projection and capability definitionDigest remain truthful; no success proof was fabricated."
+  ],
+  "scope": {
+    "orderedReloads": 1,
+    "failedAttempts": 2,
+    "toolCalls": 4,
+    "productModelCalls": 0,
+    "embeddingCalls": 0,
+    "taskCreates": 0,
+    "goalOperations": 0,
+    "channelInputs": 0,
+    "labInputs": 0
+  },
+  "evidence": {
+    "beforeAudit": "artifacts/dsh/host/round3/round3-host-before.json",
+    "failedAudit": "artifacts/dsh/host/round3/round3-host-after-disable.json",
+    "preReloadAudit": "artifacts/dsh/host/round3/round3-host-pre-reload2.json",
+    "afterAudit": "artifacts/dsh/host/round3/round3-host-after.json",
+    "afterToolsAudit": "artifacts/dsh/host/round3/round3-host-after-tools.json",
+    "statusAfterReload": "artifacts/dsh/host/round3/status-after-reload.json",
+    "statusAfterProbes": "artifacts/dsh/host/round3/status-after-probes.json",
+    "workerProbe": "artifacts/dsh/host/round3/worker-tool-probe.json",
+    "coreProbe": "artifacts/dsh/host/round3/core-event-tool-probe.json",
+    "relativePathEncoding": "Session relative paths retain the host-encoded project directory name (e.g. --Users-caja-...--); they contain no absolute path, no message body and no secret, and follow the same convention as earlier host evidence; future exports should redact them.",
+    "sanitizedAudits": "The committed round3-host-*.json audits differ from their .local originals only by replacing the local home/data-root path with <home>; no other field was altered."
+  },
+  "limitations": [
+    "Zero-model evidence only: activation/upgrade/publication/probes/diagnostics are proven, not real model tool invocation, provider budgets, real plan quality or channel traffic.",
+    "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was not executed on the host.",
+    "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts.",
+    "The failed attempt diagnostics were reproduced on a copied DB rather than by retrying the failed live enable; the successful host run after the fix is the live proof."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F3-R2..R6",
+      "finding": "payload byte semantics, unexplained repair-activation window, per-window unknown Task metadata versions, missing failed-build identity and relativePath convention",
+      "resolution": "actual bytes plus semantics recorded; repairActivation window 325->335 classified; unknown Task versions per window disclosed; failedBuild (e400fcc/982e5b09) recorded; relativePath/sanitized-audit conventions disclosed"
+    }
+  ]
+}
