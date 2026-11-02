@@ -2,7 +2,8 @@ import { createHash } from 'node:crypto';
 import type { LocalArtifactStore } from '../adapters/artifacts/index.js';
 import type { TaskDetail } from '../adapters/control-store/task-domain.js';
 import { GoalSessionAdapter, type CoreDecisionEventToolFactory, type CoreDecisionEventToolProbeOptions,
-  type CoreDecisionEventToolProbeResult, type GoalAdapterOptions, type GoalAuthorityContext, type GoalAuthorityVerdict,
+  type CoreDecisionEventToolProbeResult, type CoreEventToolModelProbeRequestOptions, type CoreEventToolModelProbeResult,
+  type GoalAdapterOptions, type GoalAuthorityContext, type GoalAuthorityVerdict,
   type GoalBindingPort, type GoalCompletionProof, type GoalReadResult, type NativeGoalRef, type CoreDecisionAccounting, type CoreDecisionResult } from '../adapters/dsh/goals.js';
 import type { DshContext } from '../adapters/dsh/sessions.js';
 import type { CoreCommands, CoreEvaluation, CoreGoal, CorePrepareInput, CoreCompletionRequest } from '../contracts/core.js';
@@ -183,6 +184,16 @@ export class LocalCoreService {
     if (typeof adapter.probeCoreDecisionEventTools !== 'function') throw new LocalCoreError('NATIVE_MISMATCH');
     this.open(options.signal);
     return adapter.probeCoreDecisionEventTools(this.options.eventTools, options);
+  }
+  /** Trusted bounded real-model diagnostic: one fixed prompt, at most one
+   * read-only event-tool round and two main requests, then native release and
+   * archive. It never creates a Goal/Task/budget/Effect or business fact. */
+  async probeCoreEventToolModelRound(options: CoreEventToolModelProbeRequestOptions = {}): Promise<CoreEventToolModelProbeResult> {
+    this.open(options.signal); await this.options.assertRuntimeAllowed(); this.open(options.signal);
+    const adapter = this.adapter as LocalCoreAdapter & { probeCoreEventToolModelRound?: (options?: CoreEventToolModelProbeRequestOptions) => Promise<CoreEventToolModelProbeResult> };
+    if (typeof adapter.probeCoreEventToolModelRound !== 'function') throw new LocalCoreError('NATIVE_MISMATCH');
+    this.open(options.signal);
+    return adapter.probeCoreEventToolModelRound(options);
   }
   private open(signal?: AbortSignal): void { if (this.closed) throw new LocalCoreError('CLOSED'); signal?.throwIfAborted(); }
   private async allowed(active: Active): Promise<void> {

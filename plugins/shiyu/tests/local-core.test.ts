@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
-import { LocalCoreService, LocalCoreCompletionError, LocalCorePreflightError, type LocalCoreAdapter } from '../src/control/local-core.js';
+import { LocalCoreService, LocalCoreCompletionError, LocalCoreError, LocalCorePreflightError, type LocalCoreAdapter } from '../src/control/local-core.js';
 import { CoreDomain } from '../src/adapters/control-store/core-domain.js';
 import { TaskDomain, type TaskCommands, type TaskDomainRequest } from '../src/adapters/control-store/task-domain.js';
 import { SQLiteGoalBindingStore } from '../src/adapters/control-store/goal-bindings.js';
@@ -675,4 +675,23 @@ test('a planned Goal with no new fact performs no extra model round or plan revi
   assert.equal((await f.store.request('core.evaluations', { goalId: goal.goalId })).length, 1);
   assert.equal((await f.get(goal.goalId)).planVersion, 1);
   assert.equal((await f.store.request('core.plan', { goalId: goal.goalId })).history.length, 1);
+});
+
+test('the bounded real-model core event-tool probe delegates to the trusted adapter and rejects a missing method', async () => {
+  const receipt = { status: 'unknown', usage: { status: 'unknown' } };
+  let received: unknown;
+  const service = new LocalCoreService({ ctx: {} as DshContext, store: {} as never, bindings: {} as never,
+    artifacts: {} as never, assertRuntimeAllowed() {},
+    adapterFactory: () => ({
+      async initialize() {}, async close() {},
+      async probeCoreEventToolModelRound(options: unknown) { received = options; return receipt as never; },
+    } as never) });
+  const result = await service.probeCoreEventToolModelRound({ timeoutMs: 60000, maxTokens: 256 });
+  assert.equal(result, receipt);
+  assert.deepEqual(received, { timeoutMs: 60000, maxTokens: 256 });
+  await service.close();
+  const unsupported = new LocalCoreService({ ctx: {} as DshContext, store: {} as never, bindings: {} as never,
+    artifacts: {} as never, assertRuntimeAllowed() {}, adapterFactory: () => ({ async initialize() {}, async close() {} } as never) });
+  await assert.rejects(unsupported.probeCoreEventToolModelRound(), error => error instanceof LocalCoreError && error.code === 'NATIVE_MISMATCH');
+  await unsupported.close();
 });
