@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h4d",
+  "capturedAt": "2026-11-02T20:36:04.656Z",
+  "head": "7f354ac4f5176796c1e48ef7cf0a864149106fe1",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h4d-1793651506557",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/local-reply-domain.ts",
+      "bytes": 41706,
+      "sha256": "3870997e7855cbb2765bbdd189141e29c4ce8fa1fd3de6258b90829afc9d9a0b"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-reply.ts",
+      "bytes": 38470,
+      "sha256": "5588637baf333d3b01cb41dd7f20f214bd69925fb7547ee83f34f4de50eddd8d"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply-domain.test.ts",
+      "bytes": 33129,
+      "sha256": "bd4a3df6044ee0fe51a11ef1c5b1fa15f61d45d905a93fa47433cef990e62a4b"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply.test.ts",
+      "bytes": 54474,
+      "sha256": "6edd24f2aa347e04f47cd933e1f7839ce65ebfb38b823035c4032da11a0c3449"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 257684,
+    "bytes": 146852,
+    "sha256": "55b0d88041856714474de83649a8eab2211bf7bf7fb022531af8f9202c20b91b",
+    "tests": {
+      "tests": 1345,
+      "pass": 1345,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 256661.01325",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h4d.log",
+    "bytes": 146852,
+    "sha256": "55b0d88041856714474de83649a8eab2211bf7bf7fb022531af8f9202c20b91b"
+  },
+  "verdict": "pass"
+}

@@ -80,7 +80,7 @@
         }
       },
       "targeted": {
-        "localReplySuite": "tests/local-reply.test.ts -> 32/32（26 既有 + 6 新增）",
+        "localReplySuite": "tests/local-reply.test.ts -> 32/32（25 既有 + 7 新增）",
         "replyAdjacent": "local-reply*.test.ts + lab-reply*.test.ts + inner-view.test.ts -> 86/86",
         "runtimeLab": "runtime-lab + runtime-core + lab-integration + lab-reply-capture -> 50/50",
         "labAndSemantic": "lab-service + runtime-semantic-memory -> 31/31",
@@ -144,5 +144,11 @@
     "hostReloads": 0,
     "channelCalls": 0
   },
-  "evidenceLevel": "G1 module + real temporary SQLite/Worker IPC + deterministic assertions; real generation is explicitly untested."
+  "evidenceLevel": "G1 module + real temporary SQLite/Worker IPC + deterministic assertions; real generation is explicitly untested.",
+  "evidenceCorrections": [
+    {
+      "id": "G5-residual",
+      "note": "localReplySuite arithmetic corrected to 25 existing + 7 new (32 total); counts/logs/conclusions unchanged"
+    }
+  ]
 }

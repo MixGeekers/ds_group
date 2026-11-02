@@ -6,7 +6,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
 import { installCommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
-import { LocalReplyDomain, type LocalReplyCapture, type LocalReplyContextReceipt, type LocalReplyNativeBinding, type LocalReplyOperation } from '../src/adapters/control-store/local-reply-domain.js';
+import { LocalReplyDomain, type LocalReplyCapture, type LocalReplyContextReceipt, type LocalReplyInnerSources, type LocalReplyNativeBinding, type LocalReplyOperation } from '../src/adapters/control-store/local-reply-domain.js';
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
 import { sessionBindingKey } from '../src/adapters/dsh/sessions.js';
 import { ConversationError, ConversationStore, type ConversationActor, type ContextToken } from '../src/control/conversations/index.js';
@@ -56,10 +56,12 @@ function fixture(t: TestContext, persistent = false) {
   const link = (taskId: string) => h.store.linkReference(owner, { topicId: topic.topicId, expectedRevision: h.store.getTopic(owner, topic.topicId).revision, reference: { kind: 'task', id: taskId } });
   link('task-a');
   const update = (version: number, taskId = 'task-a') => h.store.recordBackgroundUpdate(owner, { eventId: `${taskId}-v${version}`, scope: 'local-owner', reference: { kind: 'task', id: taskId }, sourceVersion: version, evidenceRef: `event:${taskId}-v${version}` });
-  const capture = () => {
+  const capture = (inner?: LocalReplyCapture['inner'], options: { expiresMs?: number; lab?: { operationId: string; replyId: string } } = {}) => {
     const current = h.bindingFor(conversation.conversationId);
-    const value: LocalReplyCapture = { captureId: randomUUID(), expiresAt: new Date(time + 30000).toISOString(),
-      context: { ...h.store.contextSnapshot(owner, bindingId), businessId: current.businessId, ...(current.sessionId ? { sessionId: current.sessionId } : {}) } };
+    const value: LocalReplyCapture = { captureId: randomUUID(), expiresAt: new Date(time + (options.expiresMs ?? 30000)).toISOString(),
+      ...(options.lab ? { replyExecution: { kind: 'lab-reply-v1' as const, operationId: options.lab.operationId, replyId: options.lab.replyId, connectionId: 'lab-connection' } } : {}),
+      context: { ...h.store.contextSnapshot(owner, bindingId), businessId: current.businessId, ...(current.sessionId ? { sessionId: current.sessionId } : {}) },
+      ...(inner ? { inner: structuredClone(inner) } : {}) };
     captures.set(value.captureId, { capture: structuredClone(value), versions: new Map(value.context.sources.map(source => [source.reference.id, taskVersions.get(source.reference.id)!])) });
     return value;
   };
@@ -257,4 +259,145 @@ test('trusted ready draft gate rejects legacy, changed sources, expired captures
   current.tx.atomic(() => current.db.prepare('UPDATE shiyu_local_reply_inputs SET record_json=? WHERE operation_id=?').run(JSON.stringify(done.ready), record.operationId));
   current.advanceTime(30000);
   assert.throws(() => current.domain.assertReadyDraft(record.operationId), code('EXPIRED'));
+});
+
+/* ------------------------------------------------------------------ */
+/* H4d: explicit inner provenance on prepare                          */
+/* ------------------------------------------------------------------ */
+const INNER_DOMAIN_LIST = ['relationship', 'emotion', 'cognition', 'personality'] as const;
+const INNER_RECORD_ID = 'assertion:inner-a:r1';
+const INNER_RECORD_DIGEST = hash('inner-record-digest');
+const innerAuthority = (domain: (typeof INNER_DOMAIN_LIST)[number]) => ({ authorityId: `${domain}-authority`, installationGeneration: 'inner-install',
+  policyVersion: 1, tombstoneWatermark: 0, baselineId: `${domain}-baseline` });
+function innerBundle(recordsFor: Partial<Record<(typeof INNER_DOMAIN_LIST)[number], LocalReplyCapture['inner']>> = {}): NonNullable<LocalReplyCapture['inner']> {
+  const domains: NonNullable<LocalReplyCapture['inner']>['domains'] = {};
+  for (const domain of INNER_DOMAIN_LIST) {
+    const patched = (recordsFor[domain]?.domains?.[domain]) as { records?: { recordId: string; revision: number; evidenceState: 'valid'; recordDigest: string }[] } | undefined;
+    domains[domain] = { domain, authority: innerAuthority(domain),
+      records: domain === 'relationship' ? [{ recordId: INNER_RECORD_ID, revision: 1, evidenceState: 'valid' as const, recordDigest: INNER_RECORD_DIGEST }] : (patched?.records ?? []) };
+  }
+  return { domains };
+}
+function innerSummary(captureId: string): LocalReplyInnerSources {
+  return { schemaVersion: 1, policyVersion: 1, captureId, domains: INNER_DOMAIN_LIST.map(domain => domain === 'relationship'
+    ? { domain, status: 'included' as const, authority: { backendId: `control-${domain}`, ...innerAuthority(domain) },
+        records: [{ recordId: INNER_RECORD_ID, revision: 1, evidenceState: 'valid' as const, recordDigest: INNER_RECORD_DIGEST }] }
+    : { domain, status: 'empty' as const, authority: { backendId: `control-${domain}`, ...innerAuthority(domain) }, records: [] }) };
+}
+function preparedWithInner(t: TestContext, options: { persistent?: boolean; lab?: boolean } = {}) {
+  const h = fixture(t, Boolean(options.persistent));
+  const { operation } = h.admit('inner-prepared');
+  const captured = h.capture(innerBundle(), options.lab ? { lab: { operationId: operation.operationId, replyId: operation.inputId }, expiresMs: 120000 } : {});
+  const innerSources = innerSummary(captured.captureId);
+  const prepared = h.domain.prepare({ operationId: operation.operationId, captureId: captured.captureId, viewId: randomUUID(), loadedTaskIds: ['task-a'], innerSources });
+  return { h, prepared, captured, innerSources };
+}
+
+test('prepare persists body-free inner provenance and returns it on readback and reopen', t => {
+  const { h, prepared, innerSources, captured } = preparedWithInner(t, { persistent: true });
+  assert.deepEqual(prepared.innerSources, innerSources);
+  assert.deepEqual(h.domain.get({ operationId: prepared.operationId }).innerSources, innerSources);
+  const serialized = JSON.stringify(prepared);
+  assert.equal(serialized.includes('合成'), false);
+  assert.equal(serialized.includes('payload'), false);
+  assert.equal(serialized.includes('grant'), false);
+  assert.equal(serialized.includes('permit'), false);
+  assert.equal(serialized.includes(innerSources.domains![0]!.records![0]!.recordDigest), true);
+  const reopened = h.open();
+  assert.deepEqual(reopened.domain.get({ operationId: prepared.operationId }).innerSources, innerSources);
+  // Record projection is exactly the bounded digest surface.
+  assert.deepEqual(Object.keys(innerSources.domains[0]!.records[0]!).sort(), ['evidenceState', 'recordDigest', 'recordId', 'revision']);
+  assert.equal(captured.captureId, innerSources.captureId);
+});
+
+test('prepare replay is idempotent in effect while a second prepare stays refused and changes nothing', t => {
+  const { h, prepared, captured, innerSources } = preparedWithInner(t);
+  const before = h.domain.get({ operationId: prepared.operationId }), watermark = h.watermark.read();
+  assert.throws(() => h.domain.prepare({ operationId: prepared.operationId, captureId: captured.captureId, viewId: randomUUID(), loadedTaskIds: ['task-a'], innerSources }), code('REPLY_ALREADY_PREPARED'));
+  assert.throws(() => h.domain.prepare({ operationId: prepared.operationId, captureId: captured.captureId, viewId: randomUUID(), loadedTaskIds: ['task-a'] }), code('REPLY_ALREADY_PREPARED'));
+  assert.deepEqual(h.domain.get({ operationId: prepared.operationId }), before);
+  assert.deepEqual(h.watermark.read(), watermark);
+});
+
+test('legacy callers without inner provenance stay compatible and read back as not_provided', t => {
+  const h = fixture(t), prepared = h.prepare('legacy-inner');
+  assert.equal(prepared.innerSources, undefined);
+  assert.equal('innerSources' in h.domain.get({ operationId: prepared.operationId }), false);
+  const value = h.native(prepared); h.domain.bind({ binding: value }); h.domain.contextDurable({ receipt: h.receipt(value) });
+  const ready = h.domain.ready({ operationId: prepared.operationId, assistantRef: { sessionId: value.sessionId, eventSeq: 6, messageId: 'assistant-a' } });
+  assert.equal(ready.status, 'ready'); assert.equal(ready.innerSources, undefined);
+});
+
+test('inner provenance is closed: bodies, grants, bad order, bad digests and mismatch are refused before persistence', t => {
+  const h = fixture(t), { operation } = h.admit('reject-inner'), captured = h.capture(innerBundle());
+  const valid = innerSummary(captured.captureId);
+  const prepare = (innerSources: unknown) => h.domain.prepare({ operationId: operation.operationId, captureId: captured.captureId, viewId: randomUUID(), loadedTaskIds: ['task-a'], innerSources } as never);
+  const withRecord = (patch: Record<string, unknown>) => ({ ...structuredClone(valid), domains: [{ ...structuredClone(valid.domains[0]!), records: [{ ...structuredClone(valid.domains[0]!.records[0]!), ...patch }] }, ...structuredClone(valid.domains.slice(1))] });
+  const cases: [unknown, string[]][] = [
+    [{ ...structuredClone(valid), body: '正文' }, ['INVALID_SCHEMA']],
+    [withRecord({ payload: { text: '正文' } }), ['INVALID_INNER_SOURCES', 'INVALID_SCHEMA']],
+    [withRecord({ evidenceState: 'degraded' }), ['INVALID_INNER_SOURCES']],
+    [withRecord({ recordDigest: 'not-a-digest' }), ['INVALID_INNER_SOURCES']],
+    [withRecord({ revision: 0 }), ['INVALID_INNER_SOURCES']],
+    [{ ...structuredClone(valid), domains: [...structuredClone(valid.domains)].reverse() }, ['INVALID_INNER_SOURCES']],
+    [{ ...structuredClone(valid), domains: structuredClone(valid.domains).slice(0, 3) }, ['INVALID_INNER_SOURCES']],
+    [((): LocalReplyInnerSources => { const value = structuredClone(valid); value.domains[0]!.authority!.authorityId = 'other-authority'; return value; })(), ['STALE_INNER_CONTEXT']],
+    [((): LocalReplyInnerSources => { const value = structuredClone(valid); value.domains[0]!.records[0]!.recordDigest = hash('changed'); return value; })(), ['STALE_INNER_CONTEXT']],
+    [((): LocalReplyInnerSources => { const value = structuredClone(valid); value.domains[0]!.records.push({ ...structuredClone(value.domains[0]!.records[0]!), recordId: 'assertion:unknown:r1' }); return value; })(), ['STALE_INNER_CONTEXT']],
+  ];
+  for (const [index, [invalid, allowed]] of cases.entries()) {
+    try { prepare(invalid); throw new Error(`inner source case ${index} was accepted`); }
+    catch (error) {
+      if (error instanceof Error && /^inner source case/.test(error.message)) throw error;
+      if (!(error instanceof ConversationError && allowed.includes(error.code))) {
+        throw new Error(`inner source case ${index} expected ${allowed.join('/')} got ${(error as { code?: string }).code}: ${JSON.stringify(invalid).slice(0, 160)}`);
+      }
+    }
+  }
+  assert.equal(h.db.prepare('SELECT COUNT(*) AS n FROM shiyu_reply_drafts').get()!.n, 0);
+});
+
+test('a revoked inner capture is refused at prepare time and its record change is refused before dispatch', t => {
+  const unknown = fixture(t);
+  const unknownOperation = unknown.admit('inner-unknown').operation, unknownPrimary = unknown.capture();
+  assert.throws(() => unknown.domain.prepare({ operationId: unknownOperation.operationId, captureId: unknownPrimary.captureId, viewId: randomUUID(), loadedTaskIds: ['task-a'],
+    innerSources: { ...innerSummary(unknownPrimary.captureId), captureId: randomUUID() } }), code('UNKNOWN_CAPTURE'));
+  const { h, prepared, captured } = preparedWithInner(t);
+  const value = h.native(prepared);
+  h.domain.bind({ binding: value });
+  // Simulate a degraded/withdrawn inner record after prepare: the pinned capture bytes changed.
+  const saved = h.captures.get(captured.captureId)!;
+  saved.capture.inner!.domains.relationship!.records[0]!.recordDigest = hash('changed-after-prepare');
+  assert.throws(() => h.domain.authorize({ operationId: prepared.operationId, phase: 'ready' }), code('STALE_INNER_CONTEXT'));
+  saved.capture.inner!.domains.relationship!.records[0]!.recordDigest = INNER_RECORD_DIGEST;
+  saved.capture.inner!.domains.relationship!.records[0]!.evidenceState = 'degraded';
+  assert.throws(() => h.domain.authorize({ operationId: prepared.operationId, phase: 'ready' }), code('STALE_INNER_CONTEXT'));
+  // An expired inner capture is a revocation blocker for a local reply.
+  saved.capture.inner!.domains.relationship!.records[0]!.evidenceState = 'valid';
+  h.advanceTime(31000);
+  assert.throws(() => h.domain.authorize({ operationId: prepared.operationId, phase: 'ready' }), code('EXPIRED'));
+});
+
+test('a Lab reply tolerates only the inner read-snapshot time bound, not changed provenance', t => {
+  const { h, prepared, captured } = preparedWithInner(t, { lab: true });
+  const value = h.native(prepared);
+  h.domain.bind({ binding: value });
+  h.advanceTime(31000);
+  // Primary Lab capture lives to 120s; the 30s inner read snapshot may expire, and
+  // the replyer re-derives/compares the bounded block before release.
+  const authorized = h.domain.authorize({ operationId: prepared.operationId, phase: 'ready' });
+  assert.equal(authorized.status, 'dispatching');
+  const saved = h.captures.get(captured.captureId)!;
+  saved.capture.inner!.domains.relationship!.records[0]!.recordDigest = hash('lab-changed');
+  assert.throws(() => h.domain.authorize({ operationId: prepared.operationId, phase: 'ready' }), code('STALE_INNER_CONTEXT'));
+});
+
+test('inner provenance from another conversation or another domain authority is refused', t => {
+  const h = fixture(t), { operation } = h.admit('cross-audience-inner');
+  const primary = h.capture(), inner = h.capture(innerBundle());
+  const valid = innerSummary(inner.captureId);
+  const saved = h.captures.get(inner.captureId)!;
+  saved.capture.context.token.conversationId = 'another-conversation';
+  assert.throws(() => h.domain.prepare({ operationId: operation.operationId, captureId: primary.captureId, viewId: randomUUID(), loadedTaskIds: ['task-a'], innerSources: valid }),
+    (error: unknown) => error instanceof ConversationError && ['STALE_INNER_CONTEXT', 'STALE_CONTEXT', 'VIEW_INVALIDATED'].includes(error.code));
 });

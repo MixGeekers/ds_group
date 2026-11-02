@@ -29,9 +29,9 @@
     ],
     "newTests": {
       "file": "plugins/shiyu/tests/local-reply.test.ts",
-      "before": 26,
+      "before": 25,
       "after": 32,
-      "added": 6
+      "added": 7
     },
     "twoPhaseRead": "在既有 primary capture（task/memory，语义不变）之外，另发一次 purpose=reply_context + innerDomains=[relationship,emotion,cognition,personality] 的 metadata-only capture（同 Worker、同会话、同受众）；按固定策略从捕获元数据选出有界 eligible recordIds（每域最多 6、kind 白名单、evidenceState=valid 且 bodyAvailable、排除 superseded/digested/resolved/reverted/merged/tombstoned/rejected/withdrawn/expired），仅对这些 id 调 view.readInnerBodies 读取正文；prompt 构造前与 ready/loaded 提交前各调一次 view.validateCapture{phase:\"ready\"} 新鲜重验（撤回/降级/篡改时拒绝返回旧内容）。",
     "whySecondaryCapture": "primary capture 若带 innerDomains，会经 local.ts ReadView 对全部 eligible inner 记录读正文，而 ReadView 的 maxItems=20 会让 data 行数截断并触发既有 “complete current local Task context” 拒绝；另发 metadata-only capture 可把内层正文选择与既有 Task/memory 合同解耦，选择边界在正文读取之前完成。primary captureId/viewId 仍绑定 task/memory 来源，inner captureId 全程用于正文读取与两次重验。",
@@ -107,7 +107,7 @@
       }
     },
     "targeted": {
-      "localReplySuite": "tests/local-reply.test.ts -> 32/32（26 既有 + 6 新增）",
+      "localReplySuite": "tests/local-reply.test.ts -> 32/32（25 既有 + 7 新增，无删除）",
       "replyAdjacent": "local-reply*.test.ts + lab-reply*.test.ts + inner-view.test.ts -> 86/86",
       "runtimeLab": "runtime-lab + runtime-core + lab-integration + lab-reply-capture -> 50/50",
       "labAndSemantic": "lab-service + runtime-semantic-memory -> 31/31",
@@ -151,5 +151,12 @@
     "复制 plugins/shiyu/src/control/local-reply.ts 与 plugins/shiyu/tests/local-reply.test.ts 到 worktree；ln -s 主树 plugins/shiyu/node_modules、主树 plugins/shiyu/.local/ombre",
     "cd /tmp/shiyu-h4c/plugins/shiyu && npm run check",
     "cd <repo>/plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-reply.test.ts"
+  ],
+  "corrections": [
+    {
+      "source": "independent-verifier task-18 G5 (2026-11-02, HEAD a68eeb2)",
+      "what": "描述性测试算术更正：父提交 41c496b 的 tests/local-reply.test.ts 为 25 项，H4c 新增 7 项（非此前写的 26+6）；最终 32/32 与三次隔离 check 计数（1271/1213/1256）均未变化，未重跑、未改写结果。",
+      "scope": "仅描述字段；文件哈希/日志/计数/结论不改。"
+    }
   ]
 }

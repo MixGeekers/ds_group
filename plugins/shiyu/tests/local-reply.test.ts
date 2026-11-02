@@ -486,6 +486,29 @@ test('the replyer consumes a deterministic, sourced and explicitly non-authorita
   assert.match(prompt, /\n获准资料：\{.*"viewId"/s);
   assert.equal(prompt.split('\n本轮用户输入：\n').at(1), TEXT);
   assert.equal(f.native.requests[0]!.maxTokens, 512);
+  // H4d: the Worker persisted explicit, body-free inner provenance for this reply.
+  const sources = result.operation.innerSources!;
+  assert.ok(sources); assert.notEqual(sources.captureId, result.operation.captureId);
+  assert.deepEqual(sources.domains.map(domain => domain.domain), ['relationship', 'emotion', 'cognition', 'personality']);
+  const innerRelationship = sources.domains[0]!;
+  assert.equal(innerRelationship.status, 'included'); assert.ok(innerRelationship.authority); assert.ok(innerRelationship.records.length >= 1);
+  assert.equal(innerRelationship.authority!.backendId, 'control-relationship');
+  assert.equal(JSON.stringify(sources).includes('合成别名-ALPHA'), false);
+  assert.equal(JSON.stringify(sources).includes('payload'), false);
+  assert.equal(JSON.stringify(sources).includes('permit'), false);
+  assert.equal(JSON.stringify(sources).includes('grant'), false);
+  const promptRecordIds = domains[0]!.records.map(record => record.recordId).sort();
+  const sourceRecordIds = innerRelationship.records.map(record => record.recordId).sort();
+  assert.equal(JSON.stringify(promptRecordIds), JSON.stringify(sourceRecordIds));
+  for (const record of domains[0]!.records) {
+    const summary = innerRelationship.records.find(item => item.recordId === record.recordId)!;
+    assert.equal(summary.revision, record.revision); assert.equal(summary.evidenceState, record.evidenceState);
+  }
+  assert.equal(new Set(sources.domains.flatMap(domain => domain.records.map(record => record.recordId))).size,
+    sources.domains.reduce((total, domain) => total + domain.records.length, 0));
+  const persisted = await f.store.request('conversation.reply.get', { operationId: result.operation.operationId });
+  assert.deepEqual(persisted.innerSources, sources);
+  assert.equal(persisted.status, 'ready');
 });
 
 test('identical authority state reproduces byte-identical inner reference text across two executions', async t => {
@@ -600,4 +623,44 @@ test('when an inner domain is not initialized the reply still completes with an 
   assert.equal(domains.every(domain => domain.status === 'unavailable'), true);
   assert.equal(domains.find(domain => domain.domain === 'personality')!.reason, 'INNER_DOMAIN_UNAVAILABLE');
   assert.equal(native.modelSteps, 1);
+  // The whole inner capture was unavailable, so no provenance field is claimed.
+  assert.equal(result.operation.innerSources, undefined);
+});
+
+test('a withdrawal during generation rejects the pending draft before it can become ready', async t => {
+  const f = await fixture(t), conversationId = f.conversation.conversationId;
+  const observation = { kind: 'conversation-observation' as const, sourceId: conversationId, revision: 1 };
+  await f.store.request('cognition.propose', { requestId: 'ready-bound-claim', conversationId, claimType: 'owner-statement', subjectIds: ['ready-bound'],
+    predicate: 'ready-bound-predicate', proposition: '生成期间会被撤回的命题。', confidenceBps: 6000, sourceRefs: [observation] });
+  f.native.afterLoad = async () => {
+    await f.store.request('cognition.withdraw', { requestId: 'revoke-during-generation', evidenceRefs: [observation] });
+  };
+  await assert.rejects(f.run('revoked-during-generation'), (error: unknown) => error instanceof Error && error.name === 'LocalReplyFailure');
+  const operationId = (f.native.requests[0] as unknown as { context: { operationId: string } }).context.operationId;
+  const persisted = await f.store.request('conversation.reply.get', { operationId });
+  assert.ok(['failed', 'unknown'].includes(persisted.status));
+  // The native context was already confirmed; only the draft release is refused.
+  assert.equal(persisted.status, 'failed'); assert.equal(persisted.durability, 'confirmed');
+  assert.equal(persisted.assistantRef, undefined);
+});
+
+test('a Lab permit reply also carries the bounded inner reference and explicit provenance', async t => {
+  const f = await labProfileFixture(t), conversationId = f.claim.conversationId;
+  const observation = { kind: 'conversation-observation' as const, sourceId: conversationId, revision: 1 };
+  await f.store.request('relationship.registerSubject', { requestId: 'lab-inner-subject', account: { connectionId: 'synthetic-lab', identityNamespace: 'lab',
+    identityType: 'member', externalSubjectId: 'lab-inner-person' }, entityKind: 'person', displayName: 'Lab 同名' }).then(subject =>
+    f.store.request('relationship.assert', { requestId: 'lab-inner-alias', conversationId, subjectId: subject.record.entityId, predicate: 'alias',
+      value: 'Lab别名-BETA', sourceRefs: [observation] }));
+  const result = await f.run();
+  assert.equal(result.operation.status, 'ready');
+  assert.equal(f.captures(), 1); assert.equal(f.native.requests.length, 1); assert.equal(f.native.modelSteps, 1);
+  const prompt = f.native.requests[0]!.prompt;
+  assert.equal(prompt.includes(INNER_REFERENCE_MARKER), true);
+  assert.equal(prompt.includes('Lab别名-BETA'), true);
+  const block = innerPromptBlock(prompt).block;
+  assert.equal((block.domains as { domain: string; status: string }[]).find(domain => domain.domain === 'relationship')!.status, 'included');
+  const sources = result.operation.innerSources!;
+  assert.ok(sources); assert.notEqual(sources.captureId, result.operation.captureId);
+  assert.equal(JSON.stringify(sources).includes('Lab别名-BETA'), false);
+  assert.equal(result.operation.innerSources!.domains.find(domain => domain.domain === 'personality')!.status, 'included');
 });

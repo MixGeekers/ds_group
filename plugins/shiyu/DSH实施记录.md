@@ -328,7 +328,7 @@ node scripts/harness/traceability.mjs --strict --out artifacts/dsh/harness/trace
 
 ### 9.3 失败 / unknown / 未测
 
-1. replyer 上游已由 H4c 接入四域参考（§13）；但 `conversation.reply.prepare` JSON 合同未扩展显式 inner 来源字段，Lab capture 路径仍显式 unavailable，真实模型如何使用内层块未验。
+1. replyer 上游已由 H4c 接入四域参考（§13），H4d 已补 `prepare` 显式 inner 来源摘要与 Lab 内层只读路径（§18）；真实模型如何使用内层块、Lab permit-bound capture 是否携带 inner 元数据仍未验/未扩展。
 2. 仪表盘为 client JS 面板，合成宿主 209 项 UI 通过不等于真实 DSH 宿主渲染验收；真实数据一致性未验。
 3. 未新增 IPC 命令或权限；无宿主、模型、embedding 调用。
 4. 固定宿主零模型 reload 后 `systems[].inner.summary` 已如实、`innerProjection` schema4 六域可见（`artifacts/dsh/h4/h4b-host-visible.json`）；但真实浏览器 DOM 渲染未由本检查证明（合成宿主 UI 209 项是独立证据层），真实数据一致性未验。
@@ -612,3 +612,37 @@ findings 处理（均 minor，不推翻结论）：
 | G11 traceability oracle 口径 15 vs 22 | H7-prep（task-17）在 traceability 注明 oracle corpus 口径（H0b 15 + H0c business 7） |
 
 未观察项：未独立重跑五套件（以日志/哈希/计数+断言审阅+Lead slice-verify 二次执行为证）；host 无 provider 网络 trace；H3 真实模型 plan、H4c 真实模型消费、H6a 真实平台、H0c 业务验收均未测，证据已声明。
+
+## 18. H4d 切片：reply prepare 显式 inner 来源与 Lab 内层路径
+
+状态：**离线通过（G1 模块/属性 + 真实临时 SQLite/Worker IPC）**；真实模型/真实 Lab 房间/宿主未验。2026-11-02 完成并审阅。
+
+### 18.1 交付（4 文件 + 2 证据）
+
+- `src/adapters/control-store/local-reply-domain.ts`：`conversation.reply.prepare` 新增可选、body-free 的 `innerSources` 合同：schemaVersion/policyVersion/captureId + 固定四域顺序的 `{domain,status:included|empty|unavailable,reason?,authority:{backendId,authorityId,installationGeneration,policyVersion,tombstoneWatermark,baselineId}|null,records:[{recordId,revision,evidenceState,recordDigest}≤6]}`。封闭校验（未知字段/正文/payload/grant/permit、域序、digest、revision 全拒），通过 `validateCapture(innerCaptureId,'prepare')` 回查真实 capture 逐项比对 authority/record revision/evidenceState/recordDigest，不符→`STALE_INNER_CONTEXT`；字段写入 operation 持久记录，`conversation.reply.get` 原样回读，重开库仍在；重复 prepare 被拒且零状态/零 commitSeq 变化；`current(operation,phase)` 在 prepare/ack/ready 回查 inner 摘要，撤回/降级拒绝；Lab 路径只对 `EXPIRED` 容忍 30s 快照/120s permit 时间边界，provenance 变化仍拒绝。
+- `src/control/local-reply.ts`：`buildInnerSources` 从同一次 metadata capture + 两段式 body 读取生成摘要并随 prepare 提交，并逐字节比对 Worker 回包确保“prompt 嵌入 = 持久准备”；Lab reply 不再一律 unavailable，改为同会话只读 `captureLocal{innerDomains}` + `readInnerBodies`（同 INNER_REFERENCE_POLICY/确定性/受众裁剪/不可用显式），Permit-bound `captureLabReply` 合同、Permit、预算、发送语义零变化；Lab ready 前重新派生内层块逐字节比较（变化→`INNER_REFERENCE_CHANGED`）。
+- 测试：`tests/local-reply-domain.test.ts` 13→20（+7：持久/回读/重开、幂等、旧记录 not_provided、封闭负例、撤回/降级拒绝、Lab 时间边界、跨会话 capture 拒绝）；`tests/local-reply.test.ts` 32→34（+2：本地 prompt 与持久摘要对齐/生成期撤回不 ready；Lab permit 正例仍单主调用、无额外发送/预算）。
+- 证据：`artifacts/dsh/h4/h4d-prepare-inner.json`（文件/日志 SHA、verifierChecklist、边界）；`h4c-replyer-inner-context.json` 按 G5 修正描述性算术（25+7），并同步修正 `h4c-slice-summary` 残留字符串。
+
+### 18.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `a68eeb2` + 仅 4 文件）`npm run check` | exit 0；**1345/1345 通过，0 失败/取消/跳过**（= 1336 + 9）；日志 `.local/h4d-check-final.log` SHA256 `911b8e7a…`/146824B |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `7f354ac` + 仅 4 文件） | exit 0；**1345/1345 通过，0 跳过**；证据 `artifacts/dsh/slices/h4d-verify.json` |
+| 定向 | local-reply-domain 20/20、local-reply 34/34、reply/lab 邻接 116/116 |
+| 证据级别 | G1 离线模块 + 真实临时 SQLite/Worker IPC + prompt 确定性；无宿主/模型/真实 Lab 房间 |
+
+### 18.3 失败 / unknown / 未测
+
+1. 真实模型如何使用显式 inner 来源块、Lab 真实房间与发送/预算未验；Lab permit-bound capture 仍未携带 inner 元数据（如需扩 ViewDomain/Lab 合同另开切片）。
+2. `innerSources` 只是摘要（不含正文），旧记录缺字段只表示 `not_provided`，不能反推当时无内层数据。
+3. 30s 读取快照/120s permit 的时间边界仅在 Lab 路径按 `EXPIRED` 容忍，其他 provenance 变化仍拒绝；未做长期时钟/暂停/恢复组合。
+4. 未改 runtime.ts/index.ts/client/dsh adapters/view-domain 核心；无宿主/模型声明。
+
+### 18.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4d-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-reply-domain.test.ts tests/local-reply.test.ts
+```

@@ -5,6 +5,7 @@ import { isAsyncFunction } from 'node:util/types';
 import { ConversationError, ConversationStore, type ContextSnapshot, type ContextToken, type ReplyBinding, type SourceVersion } from '../../control/conversations/index.js';
 import type { TrustedPolicyActor } from '../../control/policy/mandates.js';
 import { SqliteTransactions } from './transaction.js';
+import { INNER_DOMAINS, INNER_DOMAIN_BACKENDS, type InnerDomain } from '../../contracts/inner.js';
 
 const OWNER: TrustedPolicyActor = { principalId: 'local-owner', kind: 'owner', scopes: ['local-owner'] };
 const canonical = (value: unknown) => JSON.stringify(value, (_key, item: unknown) => item && typeof item === 'object' && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
@@ -17,11 +18,98 @@ function fields(value: unknown, allowed: string[], required = allowed): void {
   if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => !allowed.includes(key))
     || required.some(key => !Object.hasOwn(value, key))) fail('INVALID_SCHEMA', 'Unknown or missing local reply fields');
 }
+const INNER_SOURCE_REASON = /^[A-Za-z][A-Za-z0-9_.-]{0,79}$/;
+const codeOf = (error: unknown): string => error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' ? error.code : '';
+function positiveInteger(value: unknown): value is number { return Number.isSafeInteger(value) && (value as number) >= 1; }
+function innerAuthoritySummary(value: unknown, domain: InnerDomain): LocalReplyInnerAuthority {
+  fields(value, ['backendId', 'authorityId', 'installationGeneration', 'policyVersion', 'tombstoneWatermark', 'baselineId']);
+  const item = value as Record<string, unknown>;
+  if (item.backendId !== INNER_DOMAIN_BACKENDS[domain] || !opaque(item.authorityId) || !opaque(item.installationGeneration)
+    || !positiveInteger(item.policyVersion) || !Number.isSafeInteger(item.tombstoneWatermark) || (item.tombstoneWatermark as number) < 0
+    || !opaque(item.baselineId)) fail('INVALID_INNER_SOURCES', 'Invalid bounded inner authority summary');
+  return { backendId: item.backendId as string, authorityId: item.authorityId as string,
+    installationGeneration: item.installationGeneration as string, policyVersion: item.policyVersion as number,
+    tombstoneWatermark: item.tombstoneWatermark as number, baselineId: item.baselineId as string };
+}
+/**
+ * Closed, body-free validation for explicit inner provenance. Summaries carry
+ * authority identity and record revisions/digests only; payloads, grants and
+ * permits are refused as unknown fields.
+ */
+export function validateInnerSources(value: unknown): LocalReplyInnerSources {
+  fields(value, ['schemaVersion', 'policyVersion', 'captureId', 'domains']);
+  const root = value as Record<string, unknown>;
+  if (root.schemaVersion !== 1 || root.policyVersion !== 1 || !opaque(root.captureId)) fail('INVALID_INNER_SOURCES', 'Invalid inner source contract header');
+  const rawDomains = root.domains;
+  if (!Array.isArray(rawDomains) || rawDomains.length !== INNER_DOMAINS.length) fail('INVALID_INNER_SOURCES', 'Inner source contract requires the four fixed domains');
+  const domains = (rawDomains as unknown[]).map((raw: unknown, index: number) => {
+    const domain = INNER_DOMAINS[index]!;
+    fields(raw, ['domain', 'status', 'reason', 'authority', 'records'], ['domain', 'status', 'authority', 'records']);
+    const entry = raw as Record<string, unknown>;
+    if (entry.domain !== domain) fail('INVALID_INNER_SOURCES', 'Inner source domains must use the fixed audited order');
+    if (!['included', 'empty', 'unavailable'].includes(entry.status as string)) fail('INVALID_INNER_SOURCES', 'Invalid inner source domain status');
+    if (entry.status === 'unavailable') {
+      if (typeof entry.reason !== 'string' || !INNER_SOURCE_REASON.test(entry.reason) || entry.authority !== null
+        || !Array.isArray(entry.records) || entry.records.length) fail('INVALID_INNER_SOURCES', 'Unavailable inner domains carry only a bounded reason');
+      return { domain, status: 'unavailable' as const, reason: entry.reason as string, authority: null, records: [] };
+    }
+    const authority = innerAuthoritySummary(entry.authority, domain);
+    const rawRecords = entry.records;
+    if (!Array.isArray(rawRecords) || rawRecords.length > 6 || (entry.status === 'included') !== (rawRecords.length > 0)) {
+      fail('INVALID_INNER_SOURCES', 'Invalid bounded inner record summary count');
+    }
+    const records = (rawRecords as unknown[]).map((rawRecord: unknown) => {
+      fields(rawRecord, ['recordId', 'revision', 'evidenceState', 'recordDigest']);
+      const record = rawRecord as Record<string, unknown>;
+      if (!opaque(record.recordId) || !positiveInteger(record.revision) || record.evidenceState !== 'valid' || !sha(record.recordDigest)) {
+        fail('INVALID_INNER_SOURCES', 'Inner record summaries are versioned, evidence-checked and body-free');
+      }
+      return { recordId: record.recordId as string, revision: record.revision as number, evidenceState: 'valid' as const, recordDigest: record.recordDigest as string };
+    });
+    if (new Set(records.map(record => record.recordId)).size !== records.length) fail('INVALID_INNER_SOURCES', 'Duplicate inner record summary');
+    return { domain, status: entry.status as 'included' | 'empty', authority, records };
+  });
+  return { schemaVersion: 1, policyVersion: 1, captureId: root.captureId as string, domains };
+}
+
+export interface LocalReplyCaptureInnerDomain {
+  domain: InnerDomain;
+  authority: { authorityId: string; installationGeneration: string; policyVersion: number; tombstoneWatermark: number; baselineId: string };
+  records: { recordId: string; revision: number; evidenceState: 'valid' | 'degraded' | 'revoked'; recordDigest: string }[];
+}
 export interface LocalReplyCapture {
   captureId: string; expiresAt: string;
   replyExecution?: { kind: 'lab-reply-v1'; operationId: string; replyId: string; connectionId: string };
   context: ContextSnapshot & { businessId: string; sessionId?: string };
   memory?: MemoryViewSnapshot;
+  /** Metadata-only inner-domain projection. Bodies never enter the control record. */
+  inner?: { domains: Partial<Record<InnerDomain, LocalReplyCaptureInnerDomain>> };
+}
+/* -------------------------------------------------------------------------- */
+/* H4d: explicit inner-domain provenance for one prepared reply               */
+/* -------------------------------------------------------------------------- */
+export interface LocalReplyInnerAuthority {
+  backendId: string; authorityId: string; installationGeneration: string;
+  policyVersion: number; tombstoneWatermark: number; baselineId: string;
+}
+export interface LocalReplyInnerRecord {
+  recordId: string; revision: number; evidenceState: 'valid'; recordDigest: string;
+}
+export interface LocalReplyInnerSourceDomain {
+  domain: InnerDomain;
+  status: 'included' | 'empty' | 'unavailable';
+  reason?: string;
+  /** Authority summary only; never a grant, permit or body. */
+  authority: LocalReplyInnerAuthority | null;
+  records: LocalReplyInnerRecord[];
+}
+/**
+ * Explicit, body-free provenance for the inner-domain reference that was selected
+ * for one reply. Older records simply have no field (not_provided); the field is
+ * never inferred after the fact.
+ */
+export interface LocalReplyInnerSources {
+  schemaVersion: 1; policyVersion: 1; captureId: string; domains: LocalReplyInnerSourceDomain[];
 }
 /** Installed by the trusted Worker; captures are never supplied by public callers. */
 export interface LocalReplyAuthority {
@@ -53,13 +141,15 @@ export interface LocalReplyOperation {
   expectedSessionId?: string; captureId?: string; viewId?: string; contextTokenId?: string; expiresAt?: string;
   sources?: SourceVersion[]; draftId?: string; nativeBinding?: LocalReplyNativeBinding;
   memorySources?: MemoryViewSource[];
+  /** Explicit H4d inner provenance. Absent means the producer did not provide it (legacy/not_provided). */
+  innerSources?: LocalReplyInnerSources;
   contextReceipt?: LocalReplyContextReceipt; assistantRef?: LocalReplyAssistantRef; draftRef?: string; reasonCode?: string;
   /** Hash of the exact transient native assistant text; no body is stored here. */
   textSha256?: string;
 }
 export interface LocalReplyCommands {
   'conversation.reply.admit': { input: { conversationId: string; inputId: string; inputHash: string; mode?: 'reply' | 'load' }; output: { duplicate: boolean; operation: LocalReplyOperation } };
-  'conversation.reply.prepare': { input: { operationId: string; captureId: string; viewId: string; loadedTaskIds: string[]; loadedMemoryOperationIds?: string[] }; output: LocalReplyOperation };
+  'conversation.reply.prepare': { input: { operationId: string; captureId: string; viewId: string; loadedTaskIds: string[]; loadedMemoryOperationIds?: string[]; innerSources?: LocalReplyInnerSources }; output: LocalReplyOperation };
   'conversation.reply.bind': { input: { binding: LocalReplyNativeBinding }; output: LocalReplyOperation };
   'conversation.reply.authorize': { input: { operationId: string; phase: 'dispatch' | 'ack' | 'ready' }; output: LocalReplyOperation };
   'conversation.reply.contextDurable': { input: { receipt: LocalReplyContextReceipt }; output: LocalReplyOperation };
@@ -142,6 +232,17 @@ export class LocalReplyDomain {
     if (capture.captureId !== operation.captureId || capture.expiresAt !== operation.expiresAt || !this.sameToken(operation.token, capture.context.token)
       || !this.sameToken(operation.token, token) || binding.businessId !== operation.businessId || binding.sessionEpoch !== operation.sessionEpoch) fail('STALE_CONTEXT', 'Reply context or binding changed');
     if (operation.nativeBinding && binding.sessionId !== operation.nativeBinding.sessionId) fail('SESSION_BINDING_CONFLICT', 'Native reply binding changed');
+    if (operation.innerSources) {
+      try { this.innerCoverage(operation.innerSources, operation.conversationId, phase === 'prepare' ? 'prepare' : phase === 'ack' ? 'ack' : 'ready'); }
+      catch (error) {
+        // The H4c inner capture is a 30-second read snapshot while a Lab reply may
+        // legitimately run up to 120 seconds. Expiry alone is time bound, not a
+        // revocation; the replyer re-derives and compares the bounded reference
+        // before release, so a changed/revoked selection is still rejected.
+        if (codeOf(error) === 'EXPIRED' && capture.replyExecution?.kind === 'lab-reply-v1') return capture;
+        throw error;
+      }
+    }
     return capture;
   }
   admit(input: LocalReplyCommands['conversation.reply.admit']['input']): LocalReplyCommands['conversation.reply.admit']['output'] {
@@ -172,8 +273,39 @@ export class LocalReplyDomain {
       return { duplicate: false, operation };
     });
   }
+  /**
+   * Re-read the exact inner capture named by a prepared reply and require the
+   * persisted authority/record summaries to still describe it. Bodies never
+   * leave their domain here; this is control-plane provenance, not content.
+   */
+  private innerCoverage(sources: LocalReplyInnerSources, conversationId: string, phase: 'prepare' | 'ack' | 'ready'): void {
+    if (!this.authority) fail('AUTHORITY_UNAVAILABLE', 'Reply context authority is unavailable');
+    const innerCapture = this.authority!.validateCapture(sources.captureId, phase);
+    if (innerCapture.context.token.conversationId !== conversationId) fail('STALE_INNER_CONTEXT', 'Inner capture belongs to another conversation');
+    const innerDomains: Partial<Record<InnerDomain, LocalReplyCaptureInnerDomain>> = innerCapture.inner?.domains ?? {};
+    if (!innerCapture.inner && !sources.domains.every(domain => domain.status === 'unavailable')) {
+      fail('INVALID_INNER_SOURCES', 'Inner provenance claims content but the capture has no inner projection');
+    }
+    for (const entry of sources.domains) {
+      if (entry.status === 'unavailable') continue;
+      const captured = innerDomains[entry.domain];
+      if (!captured) { fail('STALE_INNER_CONTEXT', 'An inner domain summary is no longer present in its capture'); continue; }
+      const authority = entry.authority!;
+      if (authority.authorityId !== captured.authority.authorityId
+        || authority.installationGeneration !== captured.authority.installationGeneration
+        || authority.policyVersion !== captured.authority.policyVersion
+        || authority.tombstoneWatermark !== captured.authority.tombstoneWatermark
+        || authority.baselineId !== captured.authority.baselineId) fail('STALE_INNER_CONTEXT', 'Inner authority summary changed');
+      for (const record of entry.records) {
+        const found = captured.records.find(item => item.recordId === record.recordId);
+        if (!found || found.revision !== record.revision || found.evidenceState !== 'valid' || found.recordDigest !== record.recordDigest) {
+          fail('STALE_INNER_CONTEXT', 'An inner record summary no longer matches its capture');
+        }
+      }
+    }
+  }
   prepare(input: LocalReplyCommands['conversation.reply.prepare']['input']): LocalReplyOperation {
-    fields(input, ['operationId', 'captureId', 'viewId', 'loadedTaskIds', 'loadedMemoryOperationIds'], ['operationId', 'captureId', 'viewId', 'loadedTaskIds']);
+    fields(input, ['operationId', 'captureId', 'viewId', 'loadedTaskIds', 'loadedMemoryOperationIds', 'innerSources'], ['operationId', 'captureId', 'viewId', 'loadedTaskIds']);
     const memoryIds = input.loadedMemoryOperationIds ?? [];
     if (!id(input.captureId) || !opaque(input.viewId) || !Array.isArray(input.loadedTaskIds) || input.loadedTaskIds.length > 20
       || input.loadedTaskIds.some(value => !id(value)) || new Set(input.loadedTaskIds).size !== input.loadedTaskIds.length
@@ -187,6 +319,8 @@ export class LocalReplyDomain {
         || capture.replyExecution.operationId !== operation.operationId || capture.replyExecution.replyId !== operation.inputId)) fail('LAB_CAPTURE_SCOPE', 'Lab capture belongs to another generation operation');
       if (!this.sameToken(operation.token, capture.context.token) || capture.context.businessId !== operation.businessId
         || (operation.expectedSessionId && capture.context.sessionId !== operation.expectedSessionId)) fail('STALE_CONTEXT', 'Capture does not match the admitted input');
+      const innerSources = input.innerSources === undefined ? undefined : validateInnerSources(input.innerSources);
+      if (innerSources) this.innerCoverage(innerSources, operation.conversationId, 'prepare');
       const loaded = new Set(input.loadedTaskIds);
       const sources = capture.context.sources.filter(source => source.reference.kind === 'task' && loaded.has(source.reference.id));
       if (sources.length !== loaded.size) fail('FORBIDDEN_REFERENCE', 'Loaded references are not captured conversation sources');
@@ -198,6 +332,7 @@ export class LocalReplyDomain {
       if (!this.sameToken(draft.token, capture.context.token) || sources.some(source => !draft.dependencies.some(value => value.reference.kind === source.reference.kind && value.reference.id === source.reference.id && value.sourceVersion === source.sourceVersion))) fail('STALE_CONTEXT', 'Captured reply dependencies changed');
       Object.assign(operation, { status: 'prepared', captureId: input.captureId, viewId: input.viewId, expiresAt: capture.expiresAt, sources, draftId,
         ...(memorySources.length ? { memorySources: structuredClone(memorySources) } : {}),
+        ...(innerSources ? { innerSources: structuredClone(innerSources) } : {}),
         token: structuredClone(capture.context.token), contextTokenId: digest([input.captureId, input.viewId, capture.context.token]) });
       this.current(operation, 'prepare'); return this.save(operation);
     });

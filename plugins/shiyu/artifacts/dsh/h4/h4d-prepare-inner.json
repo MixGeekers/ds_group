@@ -1,0 +1,227 @@
+{
+  "slice": "H4d：reply prepare 显式 inner 来源字段与 Lab 内层路径",
+  "recordedAt": "2026-11-02T16:30:44-04:00",
+  "workspace": "plugins/shiyu",
+  "baseline": {
+    "head": "a68eeb2",
+    "note": "Lead 指定 HEAD；工作树另含其他切片 WIP，未触碰；本切片 4 文件 + 1 处既有 H4c 证据描述更正。"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/local-reply-domain.ts",
+        "sha256": "3870997e7855cbb2765bbdd189141e29c4ce8fa1fd3de6258b90829afc9d9a0b",
+        "bytes": 41706,
+        "lines": 505
+      },
+      {
+        "path": "plugins/shiyu/src/control/local-reply.ts",
+        "sha256": "5588637baf333d3b01cb41dd7f20f214bd69925fb7547ee83f34f4de50eddd8d",
+        "bytes": 38470,
+        "lines": 497
+      },
+      {
+        "path": "plugins/shiyu/tests/local-reply-domain.test.ts",
+        "sha256": "bd4a3df6044ee0fe51a11ef1c5b1fa15f61d45d905a93fa47433cef990e62a4b",
+        "bytes": 33129,
+        "lines": 403
+      },
+      {
+        "path": "plugins/shiyu/tests/local-reply.test.ts",
+        "sha256": "6edd24f2aa347e04f47cd933e1f7839ce65ebfb38b823035c4032da11a0c3449",
+        "bytes": 54474,
+        "lines": 666
+      }
+    ],
+    "diffStat": [
+      ".../adapters/control-store/local-reply-domain.ts   | 139 ++++++++++++++++++-",
+      " plugins/shiyu/src/control/local-reply.ts           |  67 +++++++--",
+      " plugins/shiyu/tests/local-reply-domain.test.ts     | 151 ++++++++++++++++++++-",
+      " plugins/shiyu/tests/local-reply.test.ts            |  63 +++++++++",
+      " 4 files changed, 402 insertions(+), 18 deletions(-)"
+    ],
+    "testCounts": {
+      "local-reply-domain.test.ts": {
+        "before": 13,
+        "after": 20,
+        "added": 7
+      },
+      "local-reply.test.ts": {
+        "before": 32,
+        "after": 34,
+        "added": 2
+      }
+    },
+    "prepareContract": {
+      "newOptionalField": "conversation.reply.prepare input 增加可选 `innerSources`；旧调用/旧记录无该字段，保持兼容并显式视为 not_provided。",
+      "shape": "{schemaVersion:1, policyVersion:1, captureId, domains:[按 relationship→emotion→cognition→personality 固定顺序，每项 {domain,status:included|empty|unavailable,reason?,authority:{backendId,authorityId,installationGeneration,policyVersion,tombstoneWatermark,baselineId}|null,records:[{recordId,revision,evidenceState:\"valid\",recordDigest}]}]}；每域≤6 条、≤4 域；不含正文/payload/grant/permit/授权。",
+      "validation": "封闭字段与边界校验（validateInnerSources）；authority 后端映射、reason 编码、记录摘要必须为 sha256；prepare 时通过 LocalReplyAuthority.validateCapture(innerCaptureId,\"prepare\") 回查真实 capture，逐域比对 authority 摘要与记录 revision/evidenceState/recordDigest；缺 capture/摘要不符 → STALE_INNER_CONTEXT，结构非法 → INVALID_INNER_SOURCES/INVALID_SCHEMA。",
+      "persistence": "innerSources 写入 shiyu_local_reply_inputs 的 operation record_json；conversation.reply.get 原样回读；重开数据库后仍可回读；只存摘要，不复制正文。",
+      "idempotency": "prepare 仍只允许一次；同 operation 的重复 prepare 返回 REPLY_ALREADY_PREPARED 且不改变持久字段、不推进 commitSeq（效果幂等）；不同 innerSources 的第二次 prepare 同样被拒绝。",
+      "revalidation": "current(operation,phase) 在 prepare/ack/ready 都会用 innerSources.captureId 回查 capture 并比对摘要；记录变更/撤回/降级 → STALE_INNER_CONTEXT。Lab 执行 capture 的 120s 窗口与 inner 读取快照 30s TTL 不同：仅当主 capture 带 replyExecution=lab-reply-v1 且 inner 回查仅因 EXPIRED 时容忍时间边界（不是撤权）；replyer 在 ready 前重新派生同一有界参考块并逐字节比较，选择变化仍拒绝（INNER_REFERENCE_CHANGED）。"
+    },
+    "localReplyIntegration": {
+      "provenance": "buildInnerSources(capture, reference) 从同一 metadata capture + 同一次两段式 body 读取生成摘要，随 prepare 提交；Worker 回包后逐字节比对确保“prompt 嵌入的选择 = 持久准备的选择”，不一致即失败。",
+      "labPath": "Lab reply 不再一律标记 inner unavailable：复用同会话 `view.captureLocal{innerDomains:[四域]}` 只读 metadata capture + `view.readInnerBodies` 两段式（与本地 reply 同一 INNER_REFERENCE_POLICY/块策略/确定性/受众裁剪/不可用显式）。未改 view-domain/captureLabReply permit 合同，也未改 Permit、预算、发送或 Lab 权限；Permit-bound 执行 capture 仍只负责原生执行绑定。",
+      "legacyNotProvided": "整包 inner capture 不可用时不伪造 innerSources；operation.innerSources 缺省即为 not_provided，prompt 内层块仍逐域显式 unavailable。"
+    },
+    "unchangedInvariants": [
+      "同 Session 复用、零工具、单主调用、maxTokens/预算/期限、ReadView 双校验、草稿新鲜度、用户输入定界符与 inputHash 语义未改",
+      "未新增模型/embedding 调用；inner 读取全部为同 Worker 只读 GET 命令",
+      "Lab capture/permit/发送/预算语义未改"
+    ]
+  },
+  "verification": {
+    "isolatedWorktree": {
+      "path": "/tmp/shiyu-h4d",
+      "head": "a68eeb2",
+      "method": "git worktree --detach a68eeb2 + 仅 4 个切片文件；node_modules 与 .local/ombre symlink",
+      "command": "cd /tmp/shiyu-h4d/plugins/shiyu && npm run check",
+      "exitCode": 0,
+      "typecheck": "pass",
+      "tests": 1345,
+      "pass": 1345,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 245375,
+      "build": "pass",
+      "clientSyntax": "pass",
+      "log": {
+        "path": ".local/h4d-check-final.log",
+        "sha256": "911b8e7a1f31e787c74f1cab9697b15b460ca2f6c704cd34b880e8f80479c00f",
+        "bytes": 146824
+      }
+    },
+    "targetedMainTree": {
+      "replyAndLab": "local-reply*.test.ts + lab-reply*.test.ts + lab-service + runtime-lab + runtime-semantic-memory -> 116/116 pass",
+      "localReplyDomain": "tests/local-reply-domain.test.ts -> 20/20",
+      "localReplyService": "tests/local-reply.test.ts -> 34/34",
+      "typecheck": "npx tsc --noEmit 对本切片 4 文件无错误（主树其余并行 WIP 未计入）",
+      "logs": {
+        "prepareInner": {
+          "path": ".local/h4d-targeted-prepare-inner.log",
+          "sha256": "0563a70ef7679a3b3e407d2bbdc1e0356306fd7fa7734373878c37129d4e9c76",
+          "bytes": 6132,
+          "command": "node --import tsx --test --test-concurrency=1 tests/local-reply-domain.test.ts tests/local-reply.test.ts",
+          "tests": 54,
+          "pass": 54,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0,
+          "exitCode": 0
+        },
+        "replyLabAdjacent": {
+          "path": ".local/h4d-targeted-reply-lab.log",
+          "sha256": "8f28952e45823daf5cbde6d8c37f6a276faa65ff6bbf1999b88922bf3f80328b",
+          "bytes": 12965,
+          "command": "node --import tsx --test --test-concurrency=1 tests/local-reply*.test.ts tests/lab-reply*.test.ts tests/lab-service.test.ts tests/runtime-lab.test.ts tests/runtime-semantic-memory.test.ts",
+          "tests": 116,
+          "pass": 116,
+          "fail": 0,
+          "skipped": 0,
+          "cancelled": 0,
+          "exitCode": 0
+        }
+      }
+    },
+    "newTestCoverage": [
+      "prepare 显式 innerSources 持久化 + conversation.reply.get 回读 + 真实 SQLite 重开回读；字段仅摘要、无正文/授权字段。",
+      "prepare 幂等：重复 prepare 拒绝且不改变持久字段/不推进 commitSeq；使用不同 innerSources 的第二次 prepare 同样拒绝。",
+      "旧调用/旧记录兼容：不带 innerSources 的 prepare 正常进入 ready，回读无字段（not_provided）。",
+      "封闭校验负例：顶层/嵌套正文、降级 evidenceState、坏 digest、revision=0、域顺序错、域数错、authority 不符、未知记录、跨会话 inner capture 均被拒。",
+      "撤回/降级：prepare 前 inner capture 未知/撤销 → UNKNOWN_CAPTURE/STALE_INNER_CONTEXT；prepare 后记录 digest/evidenceState 变化 → authorize(ready) STALE_INNER_CONTEXT；本地 reply inner 快照过期 → EXPIRED。",
+      "Lab：真实 permit Lab reply 正例（prompt 内层块 included、operation.innerSources 持久、captureLabReply 仍 1 次、单主调用、无额外预算/发送）；Lab 31s 长生成仍成功（时间边界容忍 + ready 前重派生块逐字节比较）；Lab 内层记录变化 → STALE_INNER_CONTEXT/INNER_REFERENCE_CHANGED。",
+      "集成：本地 reply 正例 prompt 记录与持久摘要逐项对齐；生成期间撤回证据 → draft 不 ready、operation=failed 且 assistantRef 缺失、上下文已确认事实保留；不可用域时 innerSources 缺省并显式 unavailable。",
+      "既有 H4c 确定性/上限/跨受众/撤回/篡改测试全部保持通过。"
+    ]
+  },
+  "evidenceCorrections": [
+    {
+      "target": "plugins/shiyu/artifacts/dsh/h4/h4c-replyer-inner-context.json",
+      "reason": "independent-verifier task-18 G5 描述性算术更正（父提交 25 项 + H4c 新增 7 项 = 32；此前误写 26+6）。最终计数/日志/结论不变；文件 sha256 由 81593c9b… 变为 e8a529e8…（描述变更）。",
+      "needsReReview": true
+    }
+  ],
+  "evidenceLevel": "G1 模块/属性测试 + 真实临时 SQLite/Worker IPC + prompt 确定性断言；无模型、无 embedding、无真实 Lab 房间/宿主 reload。",
+  "failures": [],
+  "boundaries": [
+    "未改 Lab 执行 capture 合同（view-domain 不在 H4d 写作用域）：内层参考通过同会话只读 capture 取得，Permit/预算/发送语义不变；若未来要求 permit-bound capture 本身携带 inner 元数据，需另切片扩展 ViewDomain/Lab 合同。",
+    "未运行真实模型/Lab 房间/宿主；Lab 31s 用例使用合成 permit 与 NativeFixture，不代表真实 host 生成时长或 provider 行为。",
+    "innerSources 只约束“本次 reply 选中的摘要”，不保存正文；正文仍是领域权威，撤回后由领域/ReadView 拒绝。",
+    "Lab inner 读取快照 30s 与 permit 120s 的差异被显式处理（仅 EXPIRED 容忍 + ready 前重新派生比较）；这是有界读模型，不是持久 inner 上下文。",
+    "旧记录 innerSources 缺省只表示 not_provided，不能反推当时没有内层记录。"
+  ],
+  "reproduce": [
+    "git -C <repo> worktree add --detach /tmp/shiyu-h4d a68eeb2",
+    "复制 4 个切片文件；ln -s 主树 plugins/shiyu/node_modules、主树 plugins/shiyu/.local/ombre",
+    "cd /tmp/shiyu-h4d/plugins/shiyu && npm run check",
+    "cd <repo>/plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-reply-domain.test.ts tests/local-reply.test.ts"
+  ],
+  "verifierChecklist": {
+    "purpose": "供 independent-verifier 在 H4d 提交后逐项只读核对（期望值在提交时冻结；自报数字不替代你的核对）。",
+    "commitIdentity": [
+      "提交后由 Lead 提供 commit SHA；本清单的 path→sha256 应与 git blob 内容一致。",
+      "隔离 worktree HEAD 按任务要求为 a68eeb2；Lead 其后的 7f354ac 只改 artifacts（0 个 src/client/tests 文件），不改变本切片验证基线。"
+    ],
+    "expectedFileHashes": [
+      {
+        "path": "src/adapters/control-store/local-reply-domain.ts",
+        "sha256": "3870997e7855cbb2765bbdd189141e29c4ce8fa1fd3de6258b90829afc9d9a0b",
+        "bytes": 41706
+      },
+      {
+        "path": "src/control/local-reply.ts",
+        "sha256": "5588637baf333d3b01cb41dd7f20f214bd69925fb7547ee83f34f4de50eddd8d",
+        "bytes": 38470
+      },
+      {
+        "path": "tests/local-reply-domain.test.ts",
+        "sha256": "bd4a3df6044ee0fe51a11ef1c5b1fa15f61d45d905a93fa47433cef990e62a4b",
+        "bytes": 33129
+      },
+      {
+        "path": "tests/local-reply.test.ts",
+        "sha256": "6edd24f2aa347e04f47cd933e1f7839ce65ebfb38b823035c4032da11a0c3449",
+        "bytes": 54474
+      }
+    ],
+    "expectedArtifact": {
+      "path": "plugins/shiyu/artifacts/dsh/h4/h4d-prepare-inner.json",
+      "note": "artifact 自身哈希在附加本清单后变化，提交后请以 git blob sha 为准；内容断言见本次 H4d 交付消息。"
+    },
+    "expectedCheckLog": {
+      "path": ".local/h4d-check-final.log (gitignored)",
+      "sha256": "911b8e7a1f31e787c74f1cab9697b15b460ca2f6c704cd34b880e8f80479c00f",
+      "bytes": 146824,
+      "tests": 1345,
+      "pass": 1345,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "durationMs": 245375,
+      "exitCode": 0,
+      "worktreeHead": "a68eeb2"
+    },
+    "expectedTargeted": {
+      "tests/local-reply-domain.test.ts": "20/20（HEAD 13 + 7 新增）",
+      "tests/local-reply.test.ts": "34/34（HEAD 32 + 2 新增）",
+      "reply+lab adjacent": "116/116",
+      "combinedPrepareInner": "tests/local-reply-domain.test.ts + tests/local-reply.test.ts -> 54/54（20+34）；日志与 sha/bytes 见 verification.targetedMainTree.logs.prepareInner",
+      "combinedReplyLab": "reply/lab 邻接 116/116；日志与 sha/bytes 见 verification.targetedMainTree.logs.replyLabAdjacent"
+    },
+    "checksToRun": [
+      "git diff HEAD -- 4 files：确认只含 prepare innerSources 合同/持久化/重验、local-reply 摘要与 Lab 只读路径、对应测试；无 runtime/client/view-domain/dsh adapters 改动。",
+      "tests/local-reply-domain.test.ts：prepare innerSources 持久 + conversation.reply.get 回读 + reopen、幂等（重复 prepare 拒绝且零 commitSeq）、旧记录 not_provided、封闭负例矩阵、prepare 前后撤回/降级拒绝、Lab 只容忍 EXPIRED 而拒绝 provenance 变化、跨会话拒绝。",
+      "tests/local-reply.test.ts：本地正例 prompt 记录与持久摘要逐项对齐；生成期撤回 → draft failed/未 ready；不可用域 innerSources 缺省；Lab 真实 permit 正例（captureLabReply 1 次、单主调用、innerSources 持久）。",
+      "确认 1345/1345、0 skip/0 todo；确认 artifact 无 home 绝对路径/秘密/正文；确认公开证据未声称宿主/模型验收。",
+      "H4c G5：与 HEAD 旧版逐字段 diff 只 4 处描述性变化（before 26→25、added 6→7、localReplySuite 文本、corrections[]）；文件/日志哈希、1271/1213/1256 不变。",
+      "独立重跑上述两条 targeted 命令，或对照 .local/h4d-targeted-{prepare-inner,reply-lab}.log 的 sha256/bytes 与 summary。"
+    ],
+    "notClaimed": [
+      "未运行真实模型/embedding/真实 Lab 房间/宿主 reload。",
+      "Lab permit-bound capture 合同未携带 innerDomains（view-domain 不在写作用域）；Lab inner 用同会话只读 capture。",
+      "旧记录缺 innerSources 仅表示 not_provided，不能反推当时无内层数据。"
+    ]
+  }
+}
