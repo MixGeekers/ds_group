@@ -1,0 +1,134 @@
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ -35,6 +35,13 @@
+ import { localNoteDefinitionDigest, localNoteEnvironmentFingerprint, UNAVAILABLE_WORKER_DEPENDENCY } from './adapters/capability-identity.js';
+ import { LabTargetAdapter } from './adapters/lab/index.js';
+ import { LabService, type LabServiceOptions, type LabOwnerConnectInput, type LabOwnerControlInput, type LabOwnerReconcileInput, type LabActivity } from './control/lab.js';
++import {
++  createRuntimeCheckpointComposition,
++  detectSessionPersistenceLogResolver,
++  type RuntimeCheckpointComposition,
++} from './recovery/host-ports.js';
++import { RuntimeCheckpointCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
++import type { RuntimeManifest } from './recovery/types.js';
+ 
+ export const VERSION = '0.1.0';
+ const OWN_SCOPE = 'runtime';
+@@ -87,6 +94,19 @@
+   labAdapterFactory?: LabServiceOptions['adapterFactory'];
+   /** Trusted fixture/composition only; never accepted from command JSON. */
+   memoryFactory?: (config: ManagedOmbreConfig) => Pick<ManagedOmbreBackend, 'adapter' | 'open' | 'status' | 'close'>;
++  /**
++   * H5b trusted composition only: explicit checkpoint staging root outside the
++   * live data root. Public commands, model output and GET traffic can never set
++   * or widen it. Absent means the owner-only checkpoint command stays
++   * unavailable (CHECKPOINT_STAGING_UNCONFIGURED), never a temp fallback.
++   */
++  checkpointStagingRoot?: string;
++  /**
++   * H5b trusted fixed host identity (DSH version/commit, Node, plugin and
++   * component schema versions). The composition must never guess a host
++   * version from a request; absent keeps the checkpoint command unavailable.
++   */
++  checkpointRuntimeManifest?: RuntimeManifest;
+ }
+ function memoryEntry(entry: LocalMemoryEntry) {
+   return { operationId: entry.operation.operationId, version: entry.operation.version, requestId: entry.requestId,
+@@ -149,6 +169,12 @@
+   private pauseRequested = false;
+   private lastFailure?: string;
+   private contextSafety: { ready: boolean; messageFactory?: 'official' | 'injected'; error?: string } = { ready: false };
++  /** H5b owner-only checkpoint command; created during init without any I/O below the command path. */
++  private checkpointCommand?: RuntimeCheckpointCommand;
++  /** Lazily created by the first explicit owner command; never by a GET/snapshot read. */
++  private checkpoint?: RuntimeCheckpointComposition;
++  /** Last explicit checkpoint diagnostic code; used for degrade visibility, never for auto retry. */
++  private checkpointFailure?: string;
+   constructor(private readonly ctx: DshContext, config: RuntimeConfig = {}, private readonly options: RuntimeOptions = {}) {
+     const defaultDirectory = fileURLToPath(new URL('../.local/runtime/', import.meta.url));
+     if (config.dataDir !== undefined && (typeof config.dataDir !== 'string' || !path.isAbsolute(config.dataDir))) throw new Error('dataDir must be an absolute path');
+@@ -260,6 +286,17 @@
+       this.goals = this.options.goalFactory?.(goalOptions) ?? new LocalGoalLifecycleService(goalOptions);
+       await this.goals.initialize();
+       await this.store.request('task.setPaused', { paused: this.pauseRequested });
++      // H5b: owner-only local checkpoint command. Nothing is captured here and no
++      // staging directory is written; the composition is created lazily only by
++      // an explicit `runtime.checkpoint.capture` command, so GET/status reads can
++      // never trigger a checkpoint. A failed attempt is surfaced in the command
++      // result and this diagnostic field; it is never retried automatically.
++      this.checkpointCommand = new RuntimeCheckpointCommand({
++        composition: () => this.checkpointComposition(),
++        isOpen: () => !this.closed && !this.closing,
++        isPaused: () => this.pauseRequested,
++        onDiagnostic: entry => { this.checkpointFailure = entry.code ?? undefined; },
++      });
+       const labStatus = await this.store.request('lab.status', {});
+       if (labStatus.ready) {
+         try {
+@@ -641,6 +678,11 @@
+     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
+     if (action === 'runtime.pause') return this.setPaused(true);
+     if (action === 'runtime.resume') return this.setPaused(false);
++    // H5b: owner-only local checkpoint. Dispatched before ensureCanRun() so a
++    // paused runtime can still snapshot local state (no model/dispatch side
++    // effects); the handler validates the exact fields, is single-flight and
++    // performs at most one capture attempt per explicit command.
++    if (action === 'runtime.checkpoint.capture') return this.commandCheckpoint(value, signal);
+     if (action === 'conversation.linkLocalTask') {
+       this.ensureCanRun(); signal?.throwIfAborted();
+       if (Object.keys(value).some(key => !['action', 'taskId', 'localConversationKey'].includes(key))
+@@ -740,6 +782,54 @@
+       throw error;
+     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+   }
++  /** Lazily create the H5b composition on the first explicit owner command only. */
++  private async checkpointComposition(): Promise<RuntimeCheckpointComposition | undefined> {
++    if (this.checkpoint) return this.checkpoint;
++    const stagingRoot = this.options.checkpointStagingRoot;
++    const runtimeManifest = this.options.checkpointRuntimeManifest;
++    // Absent trusted composition inputs keep the command explicitly unavailable;
++    // never fall back to a temp directory or guess a host version.
++    if (!stagingRoot || !runtimeManifest) return undefined;
++    if (!this.state.state.installationGeneration) throw new Error('CHECKPOINT_GENERATION_UNAVAILABLE');
++    try {
++      const persistence = this.ctx.get('sessionPersistence');
++      // Candidate, non-contract resolver: the installed JSONL backend exposes a
++      // diagnostic resolveCurrentLog; the provider-neutral contract does not.
++      const resolver = detectSessionPersistenceLogResolver(persistence);
++      this.checkpoint = await createRuntimeCheckpointComposition({
++        dataDir: this.dataDir,
++        stagingRoot,
++        controlStore: this.store,
++        generation: { installationGeneration: this.state.state.installationGeneration, hostEpoch: this.instanceId },
++        runtimeManifest,
++        goalSessions: {
++          ...(resolver ? { resolver } : {}),
++          // Public sessions service: exact session object + acknowledged flush.
++          flushSession: async (sessionId: string) => {
++            const sessions = this.ctx.get('sessions');
++            if (typeof sessions?.get !== 'function' || typeof sessions?.flush !== 'function') return false;
++            let session: unknown;
++            try { session = sessions.get(sessionId); } catch { return false; }
++            if (!session) return false;
++            return (await sessions.flush(session)) === true;
++          },
++        },
++      });
++      this.checkpointFailure = undefined;
++      return this.checkpoint;
++    } catch (error) {
++      this.checkpointFailure = error instanceof Error ? error.message : String(error);
++      throw error;
++    }
++  }
++
++  /** Owner-only checkpoint command. Never called by a GET/snapshot path. */
++  private async commandCheckpoint(value: Record<string, unknown>, signal?: AbortSignal): Promise<RuntimeCheckpointCommandResult> {
++    this.ensureOpen();
++    if (!this.checkpointCommand) throw new Error('CHECKPOINT_UNAVAILABLE');
++    return this.checkpointCommand.handle(value, signal);
++  }
++
+   private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+     if (!this.lab) throw new Error('LAB_UNAVAILABLE');
+     const action = value.action;

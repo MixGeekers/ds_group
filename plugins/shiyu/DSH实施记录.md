@@ -906,3 +906,43 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/events-s
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4e-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-lifecycle.test.ts tests/inner-*.test.ts
 ```
+
+## 27. H5b 切片：检查点 Runtime 组合层接入（端口适配/命令处理器/生产阻断账）
+
+状态：**离线通过（G1 组合 + 合成 seam）**；生产组合明确 `incomplete`（未伪造 ready），真实宿主命令/真实 Session 路径/真实 Ombre 导出未验。2026-11-02 完成并审阅。
+
+### 27.1 交付（11 源文件 + 4 测试 + 证据）
+
+- 新增 `src/recovery/host-ports.ts`：ControlSourcePort（真实 `dataDir/control/events.sqlite` + `node:sqlite` backup + 既有 ControlStore 只读 live 前置，`livePrecheck` 入清单）、GoalSessionPort（`goal.binding.list` 枚举；**精确日志路径只来自注入 resolver**，候选为已安装 JSONL 后端的诊断 `resolveCurrentLog` 并标注非公共契约；native phase/armed、flush、projection 由注入提供；只接受可离线核验的 plain JSONL；无 native GoalRef 显式 exclusion）、MemoryExportPort（生产显式 `MEMORY_EXPORT_UNAVAILABLE` + required scope；仅测试注入合成导出）、SharedObjectPort（`dataDir/workspaces` 有界只读清单+逐文件/聚合 hash，拒符号链接/逃逸，引用对象才复制）；组合入口 `createRuntimeCheckpointComposition()`（staging 必须在 live 根外且在 allowedStagingRoots 内；只有四组件 complete 且 `verifyBundleDirectory` 真实字节复核通过才 ready）。
+- 新增 `src/recovery/runtime-command.ts`：owner-only `runtime.checkpoint.capture` handler（严格字段、单飞 busy 不排队、paused 允许且不改暂停态、显式触发/不因 GET、无自动重试、结构化失败降级、路径脱敏）。
+- B1 additive 兼容扩展：`control.livePrecheck`、`dsh-goal-sessions.excludedBindings`、`shared-objects.workspaceInventory`、`restore-report.goalExclusions`；capture 增加 liveDataRoot/allowedStagingRoots 围栏与显式 exclusion；旧 H5-B1 证据保持历史。
+- 精确集成 diff：`artifacts/dsh/h5/runtime-checkpoint-capture.diff`（7839 B，`git apply --check` 通过；含 RuntimeOptions 两个 trusted 字段 `checkpointStagingRoot`/`checkpointRuntimeManifest`、类字段、init 命令处理器、dispatch 分支（在 ensureCanRun 之前，paused 可快照）、懒组合方法；不改 snapshot/GET 路由）。
+- 测试：`tests/recovery-host-ports.test.ts`（14）+ `tests/recovery-h5b-support.ts`、`recovery-h5b-matrix.ts`、`recovery-h5b-evidence.test.ts`；15 项矩阵覆盖注入点→期望→实际。
+- 证据：`artifacts/dsh/h5/h5b-runtime-integration.json`、`h5b-slice-summary.json`、`runtime-checkpoint-capture.diff`、`artifacts/dsh/slices/h5b-verify.json`。
+
+### 27.2 生产宿主结论（未伪造 ready）
+
+当前生产组合**不可 ready**：Goal Session 公共只读路径/原生状态/projection 导出缺失（`GOAL_SESSION_EXPORT_UNAVAILABLE`），managed Ombre 无公开导出（`MEMORY_EXPORT_UNAVAILABLE`）；`availability.expectedReady=false`，capture=incomplete，blockers 均附具体 requiredScope；不存在临时目录回退或猜路径。ready 路径仅以合成 seam 验证（临时真实 Session 文件 + 合成 resolver/native-state/flush/projection/memory），并完成隔离根 restore 核对（read-view only、dispatch blocked、armed→disarmed、live 数据根未动）。
+
+### 27.3 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `d160756` + 仅切片文件） | **两次连续 `npm run check` 均 1397/1397、0 失败/跳过、exit 0**（pinned Python 跨语言测试实际执行，非 skip） |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `69d725f` + 切片文件 + 证据测试所需 2 个 artifacts） | exit 0；**1426/1426 通过，0 跳过**（= 1411 + 15）；证据 `artifacts/dsh/slices/h5b-verify.json` |
+| 首次 Lead 尝试 | 失败原因是证据测试要求 committed 的 integration diff/evidence artifacts 存在，而首次 manifest 未包含它们；把 2 个 artifacts 加入 manifest 后重跑通过；失败原因已如实记录，非实现缺陷 |
+| 定向 | 恢复套件 53/53；`tsc` 0 错误；diff `git apply --check` 通过 |
+| 证据级别 | G1 组合/离线 + 合成 seam；生产 ready 明确阻断，不宣称完成 |
+
+### 27.4 失败 / unknown / 未测
+
+1. `runtime.ts` 集成 diff 未由本切片落地：Lead 应用时必须保持 trusted composition 输入（stagingRoot/runtimeManifest）缺省，使命令显式 unavailable 而不是伪造 ready；固定宿主命令执行/重载、真实 Session 路径与 flush、zstd 离线解码、真实 Ombre 导出、独立故障域/V27、RPO/RTO、激活切换均未验。
+2. ready 路径仅合成 seam；生产 readiness=false，required scope 已列出。
+3. 只读 SQLite backup 可能刷新 `-shm` 协调文件（非产品写入）；证据断言 DB+WAL 字节不变并说明。
+
+### 27.5 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h5b-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/recovery-host-ports.test.ts tests/recovery-h5b-evidence.test.ts
+```

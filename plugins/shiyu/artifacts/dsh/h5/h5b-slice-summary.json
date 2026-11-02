@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "phase": "H5b",
+  "slice": "checkpoint runtime composition ports, owner-only capture command handler and production-host blocker accounting",
+  "capturedAt": "2026-11-02T22:16:45.534Z",
+  "status": "offline-verified-composition",
+  "purpose": "Bridge the H5-B1 isolated checkpoint module to the Runtime composition layer without activating live restore: injectable host ports (control DB backup, Goal session log export via an injected resolver, memory export unavailable, shared-object inventory), an owner-only single-flight capture command handler, and an explicit accounting that the current production composition cannot become ready until the host provides the required scopes.",
+  "baseline": {
+    "head": "69d725f",
+    "note": "H0..H6c/H2b/H4e committed; 1411 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/recovery/host-ports.ts",
+      "bytes": 41748,
+      "sha256": "75f0cb7caa3b11342854c2ec6f4a270b01c91fcb776cee32907985f21ebefe44"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/runtime-command.ts",
+      "bytes": 10263,
+      "sha256": "7e4500668450cb3ba91cf9a6bf519043b4cd195423142c1300c461e8f6791da2"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/capture.ts",
+      "bytes": 52858,
+      "sha256": "1142bc52dc69d5a496f54c2d42ddad052b8c066e44923cf0e7ec38f299653ac4"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/types.ts",
+      "bytes": 17203,
+      "sha256": "ffd7064d0b0d3eff5a7e90ddd1ab5b2b678c153a09ead8d860fd869ef332e004"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/ports.ts",
+      "bytes": 6550,
+      "sha256": "5ed3165a0dbb8e57cc5c87cf4974c4768a5d767c3465c079cc296ef1db7765a6"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/schema.ts",
+      "bytes": 69248,
+      "sha256": "28debdcb6e48aff43eee931266b81b334838d2c8856401a18bbd73a8c2545c88"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/verify.ts",
+      "bytes": 33608,
+      "sha256": "b92464d2d6bf6252b7157c79bc000a9985a9c4cee21b45f7471880c4cfbc227a"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/restore.ts",
+      "bytes": 42190,
+      "sha256": "718f3166a1514bc6f5dbff55730d062c054e6757e88128a110732117f7925aed"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/index.ts",
+      "bytes": 3632,
+      "sha256": "8e03d49db7f9721600cc19dfb152949c10501c3f296008b6279dc602b2e84595"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/errors.ts",
+      "bytes": 1635,
+      "sha256": "d5f8ee052ec2d462a420e3abc960e8ae1bbb7e0989741cf78cf8252aeefe2b83"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/README.md",
+      "bytes": 25088,
+      "sha256": "e7eec908031bdc77c250bd51dbe23961c1c37e9daf870af44544dbd27c20001a"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-host-ports.test.ts",
+      "bytes": 27254,
+      "sha256": "d97ec3412c7ee2b14ea51a36073dbb7cf649797e7fc45bfca5faf6bfe360f200"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-h5b-support.ts",
+      "bytes": 17355,
+      "sha256": "96e07c001b3550e963962fb5cfb7d5a33a58cb4595838a145cc0e841aa97d21f"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-h5b-matrix.ts",
+      "bytes": 27152,
+      "sha256": "5a5bf74b1e010814df5635d1366e0c9e404f114dbb0d68287e59861ed709208d"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-h5b-evidence.test.ts",
+      "bytes": 12474,
+      "sha256": "55b338a1374355c0144cc0521f0303ac1b85951e8cc656ff04ac919b3cd72078"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h5/runtime-checkpoint-capture.diff",
+      "bytes": 7839,
+      "sha256": "110c97c157967de5e65ded09595c2d861df97f73af77e6c232102f150dc3de32"
+    }
+  ],
+  "implementation": {
+    "hostPorts": "new host-ports.ts: ControlSourcePort copies the real control SQLite DB with node:sqlite backup plus a read-only live precheck via existing ControlStore requests; GoalSessionPort enumerates active bindings from the control store and exports exact native Session logs only via an injected path resolver (candidate: the installed JSONL backend resolveCurrentLog, marked non-contract diagnostic; no guessed paths) with flush/native-state/projection evidence injected; MemoryExportPort is explicitly MEMORY_EXPORT_UNAVAILABLE in production with the required scope; SharedObjectPort inventories dataDir/workspaces read-only with per-file/aggregate hashes and rejects symlinks/escapes; composition requires staging outside the live root and allowed staging roots, and only returns ready after all four required components are complete and verifyBundleDirectory re-hashes the staged bytes.",
+    "command": "new runtime-command.ts: owner-only runtime.checkpoint.capture handler (strict fields, single-flight busy without queueing, paused allowed without changing pause state, explicit trigger only, no GET path, no automatic retry, structured failure degradation, path redaction); a lazily created composition; the exact runtime.ts integration diff is provided as a separate patch (7839 bytes, git apply --check passes).",
+    "b1Extensions": "additive H5-B1 compatibility fields control.livePrecheck, dsh-goal-sessions.excludedBindings, shared-objects.workspaceInventory and restore-report.goalExclusions; capture gains liveDataRoot/allowedStagingRoots fences and explicit goal exclusions; old H5-B1 evidence is left untouched as historical.",
+    "productionHost": "the real production composition cannot be ready in this slice: GOAL_SESSION_EXPORT_UNAVAILABLE (no public read-only exact log path / native Goal state / durability barrier / exportable projection or offline-decodable format) and MEMORY_EXPORT_UNAVAILABLE (no public managed-Ombre export/archive API); capture returns incomplete with per-component required scope and never a temp fallback; the ready path is proven only with synthetic seams and isolated-root restore."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "isolated worktree at HEAD d160756 + only slice files (node_modules symlink, .local/ombre symlink)",
+      "command": "npm run check",
+      "runs": 2,
+      "exitCode": 0,
+      "tests": 1397,
+      "pass": 1397,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "arithmetic": "1382 baseline + 15 new tests = 1397 (both trial and final runs)",
+      "log": {
+        "path": "plugins/shiyu/.local/h5b-verify/h5b-check-final.log",
+        "sha256": "e1eac93cc1878c5a5639fcfdcf6b2188a4b03ac2819644246e32b8bc0d51ad9b",
+        "bytes": 152291
+      },
+      "note": "the pinned-Python cross-language test actually ran (not skipped); trial and final runs both 1397/1397"
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 69d725f + only slice files plus the two evidence artifacts the evidence test verifies; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h5b-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1426,
+        "pass": 1426,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 297877,
+      "log": "plugins/shiyu/.local/slice-verify-h5b.log",
+      "arithmetic": "1411 baseline + 15 new tests = 1426",
+      "note": "the first Lead attempt failed because the evidence test verifies the committed integration diff/evidence artifacts, which the slice manifest had not staged; the artifacts were added to the manifest and the re-run is authoritative (0 skips)."
+    },
+    "targeted": {
+      "tests": 53,
+      "pass": 53,
+      "note": "recovery suite including the 15 new matrix cases; also tsc 0 errors and git apply --check passes"
+    },
+    "matrix": "15/15 injection-point matrix cases: control backup, goal log byte copy/tail checks, goal exclusion, memory unavailable, projection missing, staging interruption, hash mismatch, live-root rejection, isolated restore verified, workspace inventory, command single-flight, resolver provenance, production-host blocked, goal unverifiable format, live precheck monotonicity."
+  },
+  "failedUnknownUntested": [
+    "The runtime.ts integration diff is not applied by this slice; the Lead applies it and must keep the trusted checkpointStagingRoot/checkpointRuntimeManifest composition inputs absent by default, so the command stays explicitly unavailable rather than fabricating readiness.",
+    "Real host command execution/reload, real Session path/flush host evidence, zstd offline decoding, real managed-Ombre export, independent fault domain/V27, RPO/RTO and activation switching are untested.",
+    "Ready-path verification uses synthetic seams only; production readiness is explicitly false with required scopes listed.",
+    "The read-only SQLite backup may refresh the -shm coordination file (not a product write); evidence asserts DB+WAL bytes are unchanged and documents this."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "realOmbreCalls": 0
+  },
+  "evidenceLevel": "G1 composition/offline + synthetic seams; production readiness explicitly blocked, not claimed."
+}

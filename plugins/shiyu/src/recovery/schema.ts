@@ -277,11 +277,58 @@ const checkControlWatermarks = (out: Violations, value: unknown, path: string): 
  * Component manifests
  * ---------------------------------------------------------------------------------------------- */
 
+const checkGoalExclusions = (out: Violations, value: unknown, path: string): void => {
+  if (!checkArray(out, value, path, 5000)) return;
+  const goalIds = new Set<string>();
+  for (const [index, item] of value.entries()) {
+    const itemPath = `${path}[${index}]`;
+    if (!checkObject(out, item, itemPath, ['goalId', 'sessionId', 'reasonCode', 'detail'], ['goalId', 'sessionId', 'reasonCode', 'detail'])) continue;
+    if (checkText(out, item.goalId, `${itemPath}.goalId`, { max: 200, pattern: SAFE_ID })) {
+      if (goalIds.has(item.goalId)) out.add('duplicate', `${itemPath}.goalId`, 'duplicate goal exclusion');
+      goalIds.add(item.goalId);
+    }
+    checkText(out, item.sessionId, `${itemPath}.sessionId`, { max: 200, pattern: SAFE_ID });
+    checkText(out, item.reasonCode, `${itemPath}.reasonCode`, { max: 64, pattern: /^[A-Z][A-Z0-9_]{2,63}$/ });
+    checkText(out, item.detail, `${itemPath}.detail`, { max: 300 });
+  }
+};
+
+const checkWorkspaceInventory = (out: Violations, value: unknown, path: string): void => {
+  if (!checkObject(out, value, path, ['rootId', 'files', 'totalBytes', 'aggregateSha256', 'truncated', 'excludedCount'],
+    ['rootId', 'files', 'totalBytes', 'aggregateSha256', 'truncated', 'excludedCount'])) return;
+  checkHash(out, value.rootId, `${path}.rootId`);
+  checkInteger(out, value.totalBytes, `${path}.totalBytes`, 0);
+  checkHash(out, value.aggregateSha256, `${path}.aggregateSha256`);
+  checkBoolean(out, value.truncated, `${path}.truncated`);
+  checkInteger(out, value.excludedCount, `${path}.excludedCount`, 0);
+  if (checkArray(out, value.files, `${path}.files`, 5000)) {
+    const paths = new Set<string>();
+    let total = 0;
+    for (const [index, item] of value.files.entries()) {
+      const itemPath = `${path}.files[${index}]`;
+      if (!checkObject(out, item, itemPath, ['relativePath', 'bytes', 'sha256'], ['relativePath', 'bytes', 'sha256'])) continue;
+      if (checkText(out, item.relativePath, `${itemPath}.relativePath`, { max: 300 })) {
+        if (item.relativePath.startsWith('/') || item.relativePath.split('/').some((segment: string) => !segment || segment === '.' || segment === '..')) {
+          out.add('format', `${itemPath}.relativePath`, 'workspace inventory path must be a safe relative path');
+        }
+        if (paths.has(item.relativePath)) out.add('duplicate', `${itemPath}.relativePath`, 'duplicate workspace inventory path');
+        paths.add(item.relativePath);
+      }
+      if (checkInteger(out, item.bytes, `${itemPath}.bytes`, 0)) total += item.bytes;
+      checkHash(out, item.sha256, `${itemPath}.sha256`);
+    }
+    if (value.truncated === false && typeof value.totalBytes === 'number' && total !== value.totalBytes) {
+      out.add('semantics', `${path}.totalBytes`, 'workspace inventory total does not match its file entries');
+    }
+  }
+};
+
 const CONTROL_KEYS = ['schemaVersion', 'componentId', 'databaseFile', 'databaseBytes', 'databaseSha256', 'integrity',
-  'watermarks', 'goalBindings', 'inFlight', 'objectRefs', 'capturedAt'] as const;
+  'watermarks', 'goalBindings', 'inFlight', 'objectRefs', 'livePrecheck', 'capturedAt'] as const;
+const CONTROL_REQUIRED = CONTROL_KEYS.filter((key) => key !== 'livePrecheck');
 
 export const validateControlComponentManifest = (value: unknown, out = new Violations(50), path = '$'): ValidationResult => {
-  if (checkObject(out, value, path, CONTROL_KEYS, CONTROL_KEYS)) {
+  if (checkObject(out, value, path, CONTROL_KEYS, CONTROL_REQUIRED)) {
     if (value.schemaVersion !== COMPONENT_MANIFEST_SCHEMA_VERSION) out.add('version', `${path}.schemaVersion`, 'unsupported component manifest schema');
     if (value.componentId !== 'control') out.add('value', `${path}.componentId`, 'expected control');
     checkText(out, value.databaseFile, `${path}.databaseFile`, { max: 300 });
@@ -333,15 +380,23 @@ export const validateControlComponentManifest = (value: unknown, out = new Viola
       }
     }
     checkStringArray(out, value.objectRefs, `${path}.objectRefs`, 5000, SAFE_ID);
+    if (value.livePrecheck !== undefined) {
+      if (checkObject(out, value.livePrecheck, `${path}.livePrecheck`, ['commitSeq', 'stateVersion', 'observedAt'], ['commitSeq', 'stateVersion', 'observedAt'])) {
+        checkInteger(out, value.livePrecheck.commitSeq, `${path}.livePrecheck.commitSeq`, 0);
+        checkInteger(out, value.livePrecheck.stateVersion, `${path}.livePrecheck.stateVersion`, 1);
+        checkTime(out, value.livePrecheck.observedAt, `${path}.livePrecheck.observedAt`);
+      }
+    }
     checkTime(out, value.capturedAt, `${path}.capturedAt`);
   }
   return out.result();
 };
 
-const GOAL_SESSIONS_KEYS = ['schemaVersion', 'componentId', 'sessions', 'versions', 'capturedAt'] as const;
+const GOAL_SESSIONS_KEYS = ['schemaVersion', 'componentId', 'sessions', 'excludedBindings', 'versions', 'capturedAt'] as const;
+const GOAL_SESSIONS_REQUIRED = GOAL_SESSIONS_KEYS.filter((key) => key !== 'excludedBindings');
 
 export const validateGoalSessionsComponentManifest = (value: unknown, out = new Violations(50), path = '$'): ValidationResult => {
-  if (checkObject(out, value, path, GOAL_SESSIONS_KEYS, GOAL_SESSIONS_KEYS)) {
+  if (checkObject(out, value, path, GOAL_SESSIONS_KEYS, GOAL_SESSIONS_REQUIRED)) {
     if (value.schemaVersion !== COMPONENT_MANIFEST_SCHEMA_VERSION) out.add('version', `${path}.schemaVersion`, 'unsupported component manifest schema');
     if (value.componentId !== 'dsh-goal-sessions') out.add('value', `${path}.componentId`, 'expected dsh-goal-sessions');
     if (checkArray(out, value.sessions, `${path}.sessions`, 5000)) {
@@ -402,6 +457,7 @@ export const validateGoalSessionsComponentManifest = (value: unknown, out = new 
           && item.logTail.bytes !== item.logBytes) out.add('semantics', `${itemPath}.logBytes`, 'log bytes must match the tail identity');
       }
     }
+    if (value.excludedBindings !== undefined) checkGoalExclusions(out, value.excludedBindings, `${path}.excludedBindings`);
     if (checkArray(out, value.versions, `${path}.versions`, 16)) {
       for (const [index, item] of value.versions.entries()) checkComponentVersion(out, item, `${path}.versions[${index}]`);
     }
@@ -440,10 +496,11 @@ export const validateMemoryComponentManifest = (value: unknown, out = new Violat
   return out.result();
 };
 
-const SHARED_KEYS = ['schemaVersion', 'componentId', 'objects', 'referencedBy', 'capturedAt'] as const;
+const SHARED_KEYS = ['schemaVersion', 'componentId', 'objects', 'referencedBy', 'workspaceInventory', 'capturedAt'] as const;
+const SHARED_REQUIRED = SHARED_KEYS.filter((key) => key !== 'workspaceInventory');
 
 export const validateSharedObjectsComponentManifest = (value: unknown, out = new Violations(50), path = '$'): ValidationResult => {
-  if (checkObject(out, value, path, SHARED_KEYS, SHARED_KEYS)) {
+  if (checkObject(out, value, path, SHARED_KEYS, SHARED_REQUIRED)) {
     if (value.schemaVersion !== COMPONENT_MANIFEST_SCHEMA_VERSION) out.add('version', `${path}.schemaVersion`, 'unsupported component manifest schema');
     if (value.componentId !== 'shared-objects') out.add('value', `${path}.componentId`, 'expected shared-objects');
     if (checkArray(out, value.objects, `${path}.objects`, 20000)) {
@@ -468,6 +525,7 @@ export const validateSharedObjectsComponentManifest = (value: unknown, out = new
         checkStringArray(out, item.objectIds, `${itemPath}.objectIds`, 20000, SAFE_ID);
       }
     }
+    if (value.workspaceInventory !== undefined) checkWorkspaceInventory(out, value.workspaceInventory, `${path}.workspaceInventory`);
     checkTime(out, value.capturedAt, `${path}.capturedAt`);
   }
   return out.result();
@@ -804,8 +862,9 @@ export const validateRestoreReport = (value: unknown): ValidationResult => {
   const out = new Violations(80);
   const keys = ['schemaVersion', 'reportId', 'snapshotId', 'bundleManifestSha256', 'mode', 'dispatch', 'activate', 'status',
     'readView', 'reconcileRequired', 'targetRootHash', 'startedAt', 'endedAt', 'checks', 'components', 'barrier', 'deletion',
-    'goals', 'unknown', 'generation', 'activation', 'oldRoot', 'liveActivation', 'failures'] as const;
-  if (!checkObject(out, value, '$', keys, keys)) return out.result();
+    'goals', 'goalExclusions', 'unknown', 'generation', 'activation', 'oldRoot', 'liveActivation', 'failures'] as const;
+  const requiredKeys = keys.filter((key) => key !== 'goalExclusions');
+  if (!checkObject(out, value, '$', keys, requiredKeys)) return out.result();
   if (value.schemaVersion !== RESTORE_REPORT_SCHEMA_VERSION) out.add('version', '$.schemaVersion', 'unsupported restore report schema');
   checkText(out, value.reportId, '$.reportId', { max: 128, pattern: SAFE_ID });
   checkText(out, value.snapshotId, '$.snapshotId', { max: 128, pattern: SNAPSHOT_ID });
@@ -879,6 +938,7 @@ export const validateRestoreReport = (value: unknown): ValidationResult => {
       if (item.dispatch !== 'blocked') out.add('semantics', `${itemPath}.dispatch`, 'restored goals must not dispatch');
     }
   }
+  if (value.goalExclusions !== undefined) checkGoalExclusions(out, value.goalExclusions, '$.goalExclusions');
   if (checkObject(out, value.unknown, '$.unknown', ['preserved', 'replayed'], ['preserved', 'replayed'])) {
     checkArray(out, value.unknown.preserved, '$.unknown.preserved', 20000);
     if (value.unknown.replayed !== 0) out.add('semantics', '$.unknown.replayed', 'unknown operations must never be replayed');

@@ -1,0 +1,586 @@
+{
+  "schemaVersion": 1,
+  "slice": "H5b",
+  "title": "检查点 Runtime 组合层接入：离线端口适配、精确集成 diff 与故障矩阵",
+  "generatedAt": "2026-11-02T21:46:10.812Z",
+  "evidenceLevel": "G1+ offline Runtime composition (real temporary ControlStore/SQLite/Session files; synthetic native-state/flush/projection/memory seams)",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sqliteVersion": "3.53.3",
+    "os": null,
+    "tsxVersion": "4.23.15"
+  },
+  "fingerprints": {
+    "source": {
+      "git": {
+        "head": "d1607562f401a8bf5c87382d216036d68661285b",
+        "trackedChanges": 25,
+        "untracked": 32
+      },
+      "moduleFiles": [
+        {
+          "path": "src/recovery/host-ports.ts",
+          "sha256": "75f0cb7caa3b11342854c2ec6f4a270b01c91fcb776cee32907985f21ebefe44"
+        },
+        {
+          "path": "src/recovery/runtime-command.ts",
+          "sha256": "7e4500668450cb3ba91cf9a6bf519043b4cd195423142c1300c461e8f6791da2"
+        },
+        {
+          "path": "src/recovery/capture.ts",
+          "sha256": "1142bc52dc69d5a496f54c2d42ddad052b8c066e44923cf0e7ec38f299653ac4"
+        },
+        {
+          "path": "src/recovery/types.ts",
+          "sha256": "ffd7064d0b0d3eff5a7e90ddd1ab5b2b678c153a09ead8d860fd869ef332e004"
+        },
+        {
+          "path": "src/recovery/ports.ts",
+          "sha256": "5ed3165a0dbb8e57cc5c87cf4974c4768a5d767c3465c079cc296ef1db7765a6"
+        },
+        {
+          "path": "src/recovery/schema.ts",
+          "sha256": "28debdcb6e48aff43eee931266b81b334838d2c8856401a18bbd73a8c2545c88"
+        },
+        {
+          "path": "src/recovery/verify.ts",
+          "sha256": "b92464d2d6bf6252b7157c79bc000a9985a9c4cee21b45f7471880c4cfbc227a"
+        },
+        {
+          "path": "src/recovery/restore.ts",
+          "sha256": "718f3166a1514bc6f5dbff55730d062c054e6757e88128a110732117f7925aed"
+        },
+        {
+          "path": "src/recovery/README.md",
+          "sha256": "e7eec908031bdc77c250bd51dbe23961c1c37e9daf870af44544dbd27c20001a"
+        }
+      ]
+    },
+    "build": {
+      "buildCommand": "npm run check (tsc --noEmit + node --import tsx --test tests/*.test.ts + tsc -p tsconfig.build.json + node --check client/index.js)",
+      "tsconfigBuildSha256": "54b6d705480e307e263aa78965b318c0921d5b94fa346b385ca68cbd8318137a",
+      "packageJsonSha256": "7eb06a89562c77d7f6f674b630011764d9350528a81d316786470c4afdcf4700",
+      "packageLockSha256": "3897d1556dd268721ae9f67f1be4ebfc2d31d666d2c622240994c0aa93506dec"
+    },
+    "tests": {
+      "files": [
+        {
+          "path": "tests/recovery-h5b-support.ts",
+          "sha256": "96e07c001b3550e963962fb5cfb7d5a33a58cb4595838a145cc0e841aa97d21f"
+        },
+        {
+          "path": "tests/recovery-h5b-matrix.ts",
+          "sha256": "5a5bf74b1e010814df5635d1366e0c9e404f114dbb0d68287e59861ed709208d"
+        },
+        {
+          "path": "tests/recovery-host-ports.test.ts",
+          "sha256": "d97ec3412c7ee2b14ea51a36073dbb7cf649797e7fc45bfca5faf6bfe360f200"
+        },
+        {
+          "path": "tests/recovery-h5b-evidence.test.ts",
+          "sha256": "55b338a1374355c0144cc0521f0303ac1b85951e8cc656ff04ac919b3cd72078"
+        }
+      ],
+      "command": "node --import tsx --test tests/recovery-host-ports.test.ts tests/recovery-h5b-evidence.test.ts"
+    }
+  },
+  "integrationDiff": {
+    "path": "artifacts/dsh/h5/runtime-checkpoint-capture.diff",
+    "sha256": "110c97c157967de5e65ded09595c2d861df97f73af77e6c232102f150dc3de32",
+    "bytes": 7839,
+    "appliesToPinnedRuntime": true,
+    "target": "src/runtime.ts (Lead applies; this slice does not edit it)",
+    "preconditions": [
+      "RuntimeOptions.checkpointStagingRoot is a trusted absolute path outside dataDir; otherwise the command returns CHECKPOINT_STAGING_UNCONFIGURED and never falls back to temp.",
+      "RuntimeOptions.checkpointRuntimeManifest is a trusted fixed host identity; the composition never guesses a host version from a request.",
+      "The command is dispatched before ensureCanRun() so a paused runtime can snapshot local state; it performs no model calls, dispatches nothing and does not change pause state.",
+      "Composition creation is lazy and happens only inside the explicit command; GET/snapshot/status paths never call it.",
+      "A failed attempt is returned as a structured failed/incomplete result and recorded in the diagnostic field; it is never retried automatically and never queued."
+    ],
+    "failureDegradation": [
+      "Goal Session path/state/projection/flush unavailable → component explicitly unavailable → Bundle incomplete, never ready.",
+      "Managed Ombre export unavailable → memory component explicitly unavailable → Bundle incomplete, never ready.",
+      "Capture failure or staging interruption → structured failed/incomplete result; lastGood is not replaced."
+    ]
+  },
+  "boundaries": {
+    "slice": "H5b",
+    "evidenceLevel": "G1+ offline Runtime composition + synthetic Goal/memory seams",
+    "runtimeWiredInThisSlice": false,
+    "integrationDiffAppliedByLead": false,
+    "liveDataRootTouched": false,
+    "liveNativeSessionTouched": false,
+    "liveControlDatabaseWritten": false,
+    "modelCalls": 0,
+    "realOmbreBackendUsed": false,
+    "realChannelOrDeviceCalls": 0,
+    "memoryExportAvailableOnCurrentHost": false,
+    "goalSessionPublicApiAvailableOnCurrentHost": false,
+    "productionHostReady": false,
+    "readyPathValidatedWithSyntheticSeamsOnly": true,
+    "activationImplemented": false,
+    "h5B1ArtifactsHistorical": "artifacts/dsh/h5/h5-recovery-matrix.json + h5-recovery-validator-selftest.json were generated for the H5-B1 submission (5a7bc9e) and are not rewritten by H5b; H5b additive schema fields are optional/backward compatible and this file records the current source/test fingerprints.",
+    "schemaChangesAreAdditive": [
+      "control.livePrecheck",
+      "dsh-goal-sessions.excludedBindings",
+      "shared-objects.workspaceInventory",
+      "restore-report.goalExclusions"
+    ],
+    "v22Claim": "sub-scenarios only; composition capture/restore on synthetic seams",
+    "v27Claim": "not attempted; requires an independent failure domain and offline recovery credentials",
+    "fullHostAcceptance": false
+  },
+  "blockers": [
+    {
+      "componentId": "dsh-goal-sessions",
+      "code": "GOAL_SESSION_EXPORT_UNAVAILABLE",
+      "requiredScope": [
+        "public read-only API that returns the exact durable log path for a native Session (the installed JSONL backend resolveCurrentLog is an internal diagnostic, not a provider-neutral contract)",
+        "public read-only native Goal state (GoalRef revision, phase, activation/armed) without creating or resuming an Agent",
+        "host durability barrier for the exact session (sessions.flush or an equivalent acknowledged flush)",
+        "exportable projection definition + configuration digest for the log format, or an approved offline projection/export adapter",
+        "a host-supported offline-decodable log format: plain JSONL, or a public read/decompress API (default zstd frames are not independently verifiable offline)"
+      ]
+    },
+    {
+      "componentId": "memory",
+      "code": "MEMORY_EXPORT_UNAVAILABLE",
+      "requiredScope": [
+        "an approved public export/archive API for the managed Ombre memory backend that returns a component manifest, reference closure and deletion state",
+        "or an approved offline export adapter with the same manifest/hash/closure semantics, without writing the live managed vault"
+      ]
+    }
+  ],
+  "matrix": [
+    {
+      "caseId": "composition.control-backup-and-precheck",
+      "scenario": "真实临时 ControlStore 上完成控制库 node:sqlite backup，并用既有 store request 读取 live 前置事实",
+      "requirement": "task-21-1/2",
+      "injectionPoint": "无故障：真实 ControlStore + 真实临时 dataDir；Goal/memory 端口为注入替身",
+      "expected": "ready；livePrecheck 单调、staged DB quick_check=ok、live 数据根无产品写入",
+      "observed": "ready; precheck commitSeq=24, stateVersion=2; staged quick_check=ok; live tree stable",
+      "pass": true,
+      "evidence": {
+        "manifestSha256": "a41c103463d3e275370151b6b3f5e55aa8c332bf9afc28773dec8c543c2f6a71",
+        "livePrecheck": {
+          "commitSeq": 24,
+          "observedAt": "2026-11-02T21:00:04.000Z",
+          "stateVersion": 2
+        }
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.goal-bytes-and-tail",
+      "scenario": "Goal Session 端口从注入 resolver 取得精确路径，复制字节并核对真实序列/尾/flush/projection",
+      "requirement": "task-21-1",
+      "injectionPoint": "真实临时 Session 文件 + 合成 resolver/native-state/flush/projection",
+      "expected": "ready；复制字节与源文件一致；tail.lastSequence=4；flush 为 acknowledged host-flush",
+      "observed": "copied bytes identical; tail seq=4; host-flush acknowledged; projection digest matches; bundle re-verified",
+      "pass": true,
+      "evidence": {
+        "logSha256": "20950f72c36d93b2dc199f097369c10b5743cfcccb2d46708c76d294dca6881c"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.goal-missing-log",
+      "scenario": "GoalBinding 存在但权威日志不可解析",
+      "requirement": "task-21-1/4",
+      "injectionPoint": "resolver 返回 undefined",
+      "expected": "非 ready；MISSING_GOAL_SESSION；不写 lastGood",
+      "observed": "incomplete MISSING_GOAL_SESSION; lastGood absent",
+      "pass": true,
+      "evidence": {
+        "code": "MISSING_GOAL_SESSION"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.goal-missing-projection",
+      "scenario": "缺少 projection 定义/配置导出",
+      "requirement": "task-21-1/4",
+      "injectionPoint": "projection seam 缺失",
+      "expected": "非 ready；PROJECTION_EXPORT_UNAVAILABLE；不写 lastGood",
+      "observed": "incomplete PROJECTION_EXPORT_UNAVAILABLE; lastGood absent",
+      "pass": true,
+      "evidence": {
+        "code": "PROJECTION_EXPORT_UNAVAILABLE"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.goal-native-state-unavailable",
+      "scenario": "宿主公共 API 不能读取原生 Goal phase/armed",
+      "requirement": "task-21-1/4",
+      "injectionPoint": "nativeState 返回 undefined",
+      "expected": "非 ready；GOAL_SESSION_EXPORT_UNAVAILABLE；不写 lastGood",
+      "observed": "incomplete GOAL_SESSION_EXPORT_UNAVAILABLE; lastGood absent",
+      "pass": true,
+      "evidence": {
+        "code": "GOAL_SESSION_EXPORT_UNAVAILABLE"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.goal-unverifiable-format",
+      "scenario": "默认 zstd 日志无法在本切片独立离线核验",
+      "requirement": "task-21-1/4",
+      "injectionPoint": "resolver format=zstd",
+      "expected": "非 ready；LOG_FORMAT_NOT_OFFLINE_VERIFIABLE；不写 lastGood",
+      "observed": "incomplete LOG_FORMAT_NOT_OFFLINE_VERIFIABLE; lastGood absent",
+      "pass": true,
+      "evidence": {
+        "code": "LOG_FORMAT_NOT_OFFLINE_VERIFIABLE"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.memory-unavailable",
+      "scenario": "当前 managed Ombre 无公开导出 API",
+      "requirement": "task-21-1/2",
+      "injectionPoint": "Goal 端口注入替身 + 生产 memory 端口（不可用）",
+      "expected": "incomplete MEMORY_EXPORT_UNAVAILABLE；availability blockers 含 requiredScope；不得 ready",
+      "observed": "incomplete MEMORY_EXPORT_UNAVAILABLE with requiredScope; no lastGood",
+      "pass": true,
+      "evidence": {
+        "requiredScope": 2
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.production-host-blocked",
+      "scenario": "无任何合成 seam 的生产组合（真实 store/workspace）",
+      "requirement": "task-21-1/2",
+      "injectionPoint": "生产端口：无 Goal resolver/native-state/projection、无 Ombre 导出",
+      "expected": "expectedReady=false；capture 非 ready；blockers 精确列出 Goal+memory required scope；不伪造 ready",
+      "observed": "production host explicitly blocked with bounded required scopes; capture not ready",
+      "pass": true,
+      "evidence": {
+        "blockers": [
+          "GOAL_SESSION_EXPORT_UNAVAILABLE",
+          "MEMORY_EXPORT_UNAVAILABLE"
+        ]
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.staging-interrupted",
+      "scenario": "staging 完成前模拟进程中断（控制快照之后）",
+      "requirement": "task-21-2/V15",
+      "injectionPoint": "fault injection after-control-snapshot: interrupt",
+      "expected": "incomplete STAGING_INTERRUPTED；partial 目录保留；无 ready、无 lastGood",
+      "observed": "incomplete STAGING_INTERRUPTED; partial retained; no lastGood",
+      "pass": true,
+      "evidence": {
+        "code": "STAGING_INTERRUPTED"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.hash-mismatch",
+      "scenario": "真实 workspace 对象字节在 port 缓存后被改写",
+      "requirement": "task-21-4/V22",
+      "injectionPoint": "workspace port inventory 后改写文件；control.objectRefs 引用该对象",
+      "expected": "failed HASH_MISMATCH；不得 ready",
+      "observed": "failed HASH_MISMATCH; not ready",
+      "pass": true,
+      "evidence": {
+        "code": "HASH_MISMATCH"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.live-root-rejected",
+      "scenario": "staging 根指向 live 数据根内部 / 未批准父目录",
+      "requirement": "task-21-2",
+      "injectionPoint": "stagingRoot=dataDir/checkpoint；以及 allowedStagingRoots 之外的目录",
+      "expected": "LIVE_ROOT_PROTECTED / TARGET_NOT_ISOLATED；live 数据根不写入",
+      "observed": "LIVE_ROOT_PROTECTED + TARGET_NOT_ISOLATED; live root unchanged",
+      "pass": true,
+      "evidence": {
+        "live": "LIVE_ROOT_PROTECTED",
+        "isolated": "TARGET_NOT_ISOLATED"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.isolated-restore-verified",
+      "scenario": "组合产出的 ready Bundle 在隔离临时根恢复",
+      "requirement": "task-21-3",
+      "injectionPoint": "ready composition bundle + 隔离根 + 最新 barrier",
+      "expected": "verified；readView read-only；dispatch blocked；旧 armed → disarmed；live 数据根未动",
+      "observed": "verified read-only restore; armed→disarmed; live root unchanged",
+      "pass": true,
+      "evidence": {
+        "checks": 15
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.workspace-inventory",
+      "scenario": "真实 dataDir/workspaces 只读清单+hash；符号链接排除",
+      "requirement": "task-21-1",
+      "injectionPoint": "workspace 文件 + 一个指向根外的符号链接",
+      "expected": "shared-objects manifest 记录清单/聚合 hash/excludedCount；不复制未引用文件",
+      "observed": "inventory recorded with aggregate hash; symlink excluded",
+      "pass": true,
+      "evidence": {
+        "files": 2,
+        "excludedCount": 1
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.command-single-flight",
+      "scenario": "owner-only 命令：显式触发、paused 允许、单飞不排队、不自动重试",
+      "requirement": "task-21-3",
+      "injectionPoint": "fake composition（captureResult=incomplete）+ paused=true + 并发第二次请求",
+      "expected": "explicit only；pausedAtRequest=true；第二次 busy 且只执行一次 capture；retried=false",
+      "observed": "explicit command ran once; paused preserved; concurrent status=incomplete; captured blocks=1",
+      "pass": true,
+      "evidence": {
+        "calls": 2
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    },
+    {
+      "caseId": "composition.resolver-candidate-provenance",
+      "scenario": "宿主候选 resolver 的 provenance 与不可用分支",
+      "requirement": "task-21-1",
+      "injectionPoint": "fake persistence 对象：有/无 resolveCurrentLog；compression none/zstd",
+      "expected": "有方法 → provenance=jsonl-internal-diagnostic 且可解析；无方法 → null；zstd → format=zstd（后续显式不可离线核验）",
+      "observed": "candidate resolver detected with explicit provenance; missing method returns null; zstd format reported",
+      "pass": true,
+      "evidence": {
+        "provenance": "jsonl-internal-diagnostic"
+      },
+      "evidenceLayer": "G1+offline-composition-synthetic-seams"
+    }
+  ],
+  "summary": {
+    "total": 15,
+    "passed": 15,
+    "failed": 0
+  },
+  "productionHost": {
+    "readyObtainable": false,
+    "blockers": [
+      {
+        "componentId": "dsh-goal-sessions",
+        "code": "GOAL_SESSION_EXPORT_UNAVAILABLE",
+        "requiredScope": [
+          "public read-only API that returns the exact durable log path for a native Session (the installed JSONL backend resolveCurrentLog is an internal diagnostic, not a provider-neutral contract)",
+          "public read-only native Goal state (GoalRef revision, phase, activation/armed) without creating or resuming an Agent",
+          "host durability barrier for the exact session (sessions.flush or an equivalent acknowledged flush)",
+          "exportable projection definition + configuration digest for the log format, or an approved offline projection/export adapter",
+          "a host-supported offline-decodable log format: plain JSONL, or a public read/decompress API (default zstd frames are not independently verifiable offline)"
+        ]
+      },
+      {
+        "componentId": "memory",
+        "code": "MEMORY_EXPORT_UNAVAILABLE",
+        "requiredScope": [
+          "an approved public export/archive API for the managed Ombre memory backend that returns a component manifest, reference closure and deletion state",
+          "or an approved offline export adapter with the same manifest/hash/closure semantics, without writing the live managed vault"
+        ]
+      }
+    ],
+    "observedCaptureStatus": "incomplete"
+  },
+  "regeneration": {
+    "command": "SHIYU_WRITE_EVIDENCE=1 node --import tsx --test tests/recovery-h5b-evidence.test.ts",
+    "sourceOfTruth": "tests/recovery-h5b-matrix.ts (same runner the tests assert)"
+  },
+  "verification": {
+    "generatedAt": "2026-11-02T21:46:19.384348Z",
+    "worktree": {
+      "path": "<temporary-worktree>/shiyu-h5b-verify/plugins/shiyu",
+      "baselineCommit": "d160756",
+      "method": "git worktree add --detach HEAD + 仅复制本切片 src/recovery、tests/recovery-*、artifacts/dsh/h5；node_modules 符号链接；.local/ombre 仅符号链接复用既有 pinned Python/Ombre 夹具（未安装依赖）"
+    },
+    "commands": [
+      "npm run check  # tsc --noEmit && node --import tsx --test --test-concurrency=1 tests/*.test.ts && tsc -p tsconfig.build.json && node --check client/index.js"
+    ],
+    "runs": {
+      "trial": {
+        "transientPath": "<transient-tmp>/h5b-check-full.log",
+        "sha256": "71b1bce65905b242a53396c2fba239967294052c123b0dd57d64efabebcacbe3",
+        "bytes": 152357,
+        "exitCode": 0,
+        "counts": {
+          "tests": 1397,
+          "suites": 0,
+          "pass": 1397,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 363613.443417
+        },
+        "pythonCrossLanguageTestRan": true,
+        "pythonCrossLanguageTestSkipped": false,
+        "archivedCopy": {
+          "path": ".local/h5b-verify/h5b-check-trial.log",
+          "sha256": "71b1bce65905b242a53396c2fba239967294052c123b0dd57d64efabebcacbe3",
+          "bytes": 152357,
+          "gitIgnored": true,
+          "matchesTransientLog": true
+        }
+      },
+      "final": {
+        "transientPath": "<transient-tmp>/h5b-check-final.log",
+        "sha256": "e1eac93cc1878c5a5639fcfdcf6b2188a4b03ac2819644246e32b8bc0d51ad9b",
+        "bytes": 152291,
+        "exitCode": 0,
+        "counts": {
+          "tests": 1397,
+          "suites": 0,
+          "pass": 1397,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 394956.564208
+        },
+        "pythonCrossLanguageTestRan": true,
+        "pythonCrossLanguageTestSkipped": false,
+        "archivedCopy": {
+          "path": ".local/h5b-verify/h5b-check-final.log",
+          "sha256": "e1eac93cc1878c5a5639fcfdcf6b2188a4b03ac2819644246e32b8bc0d51ad9b",
+          "bytes": 152291,
+          "gitIgnored": true,
+          "matchesTransientLog": true
+        }
+      }
+    },
+    "zeroSkipEvidence": {
+      "tests": 1397,
+      "pass": 1397,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "pythonCrossLanguageTestRan": true,
+      "note": "两次连续全量 check 均为 0 fail / 0 skip / exit 0；pinned Python/Ombre 夹具以既有 .local/ombre 符号链接复用，未安装依赖。"
+    },
+    "sliceFileHashes": {
+      "files": [
+        {
+          "path": "src/recovery/README.md",
+          "sha256": "e7eec908031bdc77c250bd51dbe23961c1c37e9daf870af44544dbd27c20001a"
+        },
+        {
+          "path": "src/recovery/capture.ts",
+          "sha256": "1142bc52dc69d5a496f54c2d42ddad052b8c066e44923cf0e7ec38f299653ac4"
+        },
+        {
+          "path": "src/recovery/control-facts.ts",
+          "sha256": "c1f73a4b80e9405df070e13268513063943140629fdb80168afa61f8ceb2de2b"
+        },
+        {
+          "path": "src/recovery/errors.ts",
+          "sha256": "d5f8ee052ec2d462a420e3abc960e8ae1bbb7e0989741cf78cf8252aeefe2b83"
+        },
+        {
+          "path": "src/recovery/files.ts",
+          "sha256": "9e40ff972539028a7c9c6b618ae9b0d0347e7a1d38c2b492b312e3c0180db8fa"
+        },
+        {
+          "path": "src/recovery/host-ports.ts",
+          "sha256": "75f0cb7caa3b11342854c2ec6f4a270b01c91fcb776cee32907985f21ebefe44"
+        },
+        {
+          "path": "src/recovery/index.ts",
+          "sha256": "8e03d49db7f9721600cc19dfb152949c10501c3f296008b6279dc602b2e84595"
+        },
+        {
+          "path": "src/recovery/local-state.ts",
+          "sha256": "8913888b90ea52090883bc8ad3c420d850e3419b2552db272db94e3b1edfefa1"
+        },
+        {
+          "path": "src/recovery/ports.ts",
+          "sha256": "5ed3165a0dbb8e57cc5c87cf4974c4768a5d767c3465c079cc296ef1db7765a6"
+        },
+        {
+          "path": "src/recovery/restore.ts",
+          "sha256": "718f3166a1514bc6f5dbff55730d062c054e6757e88128a110732117f7925aed"
+        },
+        {
+          "path": "src/recovery/runtime-command.ts",
+          "sha256": "7e4500668450cb3ba91cf9a6bf519043b4cd195423142c1300c461e8f6791da2"
+        },
+        {
+          "path": "src/recovery/schema.ts",
+          "sha256": "28debdcb6e48aff43eee931266b81b334838d2c8856401a18bbd73a8c2545c88"
+        },
+        {
+          "path": "src/recovery/types.ts",
+          "sha256": "ffd7064d0b0d3eff5a7e90ddd1ab5b2b678c153a09ead8d860fd869ef332e004"
+        },
+        {
+          "path": "src/recovery/verify.ts",
+          "sha256": "b92464d2d6bf6252b7157c79bc000a9985a9c4cee21b45f7471880c4cfbc227a"
+        },
+        {
+          "path": "tests/recovery-capture.test.ts",
+          "sha256": "45093658d4987546de0bc035df3313b51bef9a32ef4e663e17f6935b813c14bd"
+        },
+        {
+          "path": "tests/recovery-evidence.test.ts",
+          "sha256": "640f17d42626f05881c3327a0a8cc6dea4acb633ed125124d2954cf106beeeec"
+        },
+        {
+          "path": "tests/recovery-fault-matrix.test.ts",
+          "sha256": "a8b85eae65e66249712c14ca05d5fdd83490a42071850caa481f681f1f471f97"
+        },
+        {
+          "path": "tests/recovery-h5b-evidence.test.ts",
+          "sha256": "55b338a1374355c0144cc0521f0303ac1b85951e8cc656ff04ac919b3cd72078"
+        },
+        {
+          "path": "tests/recovery-h5b-matrix.ts",
+          "sha256": "5a5bf74b1e010814df5635d1366e0c9e404f114dbb0d68287e59861ed709208d"
+        },
+        {
+          "path": "tests/recovery-h5b-support.ts",
+          "sha256": "96e07c001b3550e963962fb5cfb7d5a33a58cb4595838a145cc0e841aa97d21f"
+        },
+        {
+          "path": "tests/recovery-host-ports.test.ts",
+          "sha256": "d97ec3412c7ee2b14ea51a36073dbb7cf649797e7fc45bfca5faf6bfe360f200"
+        },
+        {
+          "path": "tests/recovery-matrix.ts",
+          "sha256": "e829c5435f3cf2257b56fe7b9c798c66e7b7e4a1ca420149483b51e004e67923"
+        },
+        {
+          "path": "tests/recovery-restore.test.ts",
+          "sha256": "45beceb72e0ec26666ea528e45a59577053ddcc331412ff0bfe323afd366d42d"
+        },
+        {
+          "path": "tests/recovery-schema.test.ts",
+          "sha256": "6b5c2f87c266e64774375d88971eeb73b648a0f788a5812abc75b8a045372298"
+        },
+        {
+          "path": "tests/recovery-support.ts",
+          "sha256": "a4cd152f88686beb79811cbadbcbd1a5b82332685b3fb8c264a54af9383b397c"
+        },
+        {
+          "path": "artifacts/dsh/h5/runtime-checkpoint-capture.diff",
+          "sha256": "110c97c157967de5e65ded09595c2d861df97f73af77e6c232102f150dc3de32"
+        }
+      ]
+    },
+    "boundaries": {
+      "liveDataRootTouched": false,
+      "liveNativeSessionTouched": false,
+      "runtimeTsEdited": false,
+      "gitCommitMade": false,
+      "dependenciesInstalled": false,
+      "realOmbreBackendUsed": false,
+      "modelCalls": 0
+    }
+  }
+}

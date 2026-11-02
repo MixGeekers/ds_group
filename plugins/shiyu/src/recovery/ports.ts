@@ -8,6 +8,7 @@
  * mutual exclusion that the runtime has not actually proven.
  */
 import type { DatabaseSync } from 'node:sqlite';
+import type { WorkspaceInventory } from './types.js';
 import type {
   ControlWatermarks,
   DeletionLedger,
@@ -38,6 +39,12 @@ export interface ControlSourceLease {
   runtimeManifest: RuntimeManifest;
   /** Bounded description of how target writers were frozen for this capture. */
   quiescenceEvidence: string;
+  /**
+   * Read-only facts observed through the live control authority before the
+   * backup. The captured snapshot must be at least this advanced; this is a
+   * monotonic precheck, never a claim that writers were paused.
+   */
+  liveFacts?: { commitSeq: number; stateVersion: number; observedAt: string };
   /**
    * Object ids referenced by control-side rows that are not derivable from the
    * database schema in this slice (for example an object_refs table owned by a
@@ -81,6 +88,12 @@ export interface GoalSessionCapture {
   quiescenceEvidence: string;
   capturedAt: string;
   sessions: GoalSessionSnapshot[];
+  /**
+   * Control bindings deliberately excluded from this capture (no native
+   * GoalRef, no Session materialized, ...). Missing session without an
+   * exclusion is a hard incomplete.
+   */
+  excluded?: import('./types.js').GoalSessionExclusion[];
 }
 
 /**
@@ -124,6 +137,8 @@ export interface SharedObjectRead {
 
 export interface SharedObjectPort {
   read(objectId: string): Promise<SharedObjectRead | undefined>;
+  /** Optional read-only observation of the host workspace root at capture time. */
+  inventory?(): Promise<WorkspaceInventory>;
 }
 
 export interface BarrierReadRequest {

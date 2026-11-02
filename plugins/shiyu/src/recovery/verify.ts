@@ -347,6 +347,17 @@ const verifySharedObjects = async (
     await readComponentFile(checks, bundleDirectory, object.file, { bytes: object.bytes, sha256: object.sha256 },
       `shared-objects.object[${index}]`, 'shared object');
   }
+  if (component.workspaceInventory !== undefined) {
+    const inventory = component.workspaceInventory;
+    const aggregate = sha256(canonicalJson([...inventory.files].sort((a, b) => a.relativePath.localeCompare(b.relativePath))));
+    expectTrue(checks, 'shared-objects.workspace-inventory.hash', aggregate === inventory.aggregateSha256,
+      'WORKSPACE_INVENTORY_UNAVAILABLE', 'components/shared-objects/manifest.json', 'workspace inventory aggregate hash mismatches');
+    const total = inventory.files.reduce((sum, file) => sum + file.bytes, 0);
+    if (!inventory.truncated) {
+      expectTrue(checks, 'shared-objects.workspace-inventory.total', total === inventory.totalBytes,
+        'WORKSPACE_INVENTORY_UNAVAILABLE', 'components/shared-objects/manifest.json', 'workspace inventory total mismatches');
+    }
+  }
   if (manifest.status === 'ready') {
     if (manifest.objectManifest === null) {
       checks.fail('shared-objects.manifest-ref', 'OBJECT_CLOSURE_INCOMPLETE', 'bundle.json', 'ready bundle requires a top-level object manifest');
@@ -399,10 +410,15 @@ const verifyClosure = (
     'DELETION_WATERMARK_STALE', 'components/memory/manifest.json', 'memory deletion watermark is ahead of the control ledger');
   const bindings = new Map(control.goalBindings.map((item) => [item.goalId, item]));
   const sessions = new Map(goals.sessions.map((item) => [item.goalId, item]));
+  const exclusions = new Map((goals.excludedBindings ?? []).map((item) => [item.goalId, item]));
   let closureOk = true;
   for (const [goalId, binding] of bindings) {
     const session = sessions.get(goalId);
-    if (!session) { closureOk = false; break; }
+    if (!session) {
+      const exclusion = exclusions.get(goalId);
+      if (!exclusion || exclusion.sessionId !== binding.sessionId) { closureOk = false; break; }
+      continue;
+    }
     if (session.sessionId !== binding.sessionId) { closureOk = false; break; }
     if (binding.goalRef !== null && (session.goalRef.id !== binding.goalRef.id || session.goalRef.revision !== binding.goalRef.revision)) { closureOk = false; break; }
     if (canonicalJson(session.binding) !== canonicalJson({
@@ -410,10 +426,12 @@ const verifyClosure = (
       metadataVersion: binding.metadataVersion, completionCriteriaHash: binding.completionCriteriaHash,
     })) { closureOk = false; break; }
   }
-  expectTrue(checks, 'closure.goal-bindings', closureOk, 'MISSING_GOAL_SESSION', 'components/dsh-goal-sessions/manifest.json',
-    'Goal Session closure does not match the control GoalBinding set');
-  expectTrue(checks, 'closure.goal-sessions-count', sessions.size === bindings.size, 'UNDECLARED_GOAL_SESSION', 'components/dsh-goal-sessions/manifest.json',
-    'captured Goal Sessions do not exactly cover the control GoalBinding set');
+  const overlapping = [...exclusions.keys()].filter((goalId) => sessions.has(goalId));
+  expectTrue(checks, 'closure.goal-bindings', closureOk && overlapping.length === 0, 'MISSING_GOAL_SESSION', 'components/dsh-goal-sessions/manifest.json',
+    'Goal Session closure (captured or explicitly excluded) does not match the control GoalBinding set');
+  expectTrue(checks, 'closure.goal-sessions-count', sessions.size + exclusions.size === bindings.size,
+    'UNDECLARED_GOAL_SESSION', 'components/dsh-goal-sessions/manifest.json',
+    'captured and excluded Goal Sessions do not exactly cover the control GoalBinding set');
   if (manifest.status === 'ready' && manifest.runtimeManifest !== null) {
     const versions = new Map(manifest.runtimeManifest.components.map((item) => [item.componentId, item]));
     for (const required of ['dsh', 'shiyu-plugin', 'projection']) {

@@ -55,6 +55,7 @@ import {
   type ControlComponentManifest,
   type DeletionLedger,
   type GenerationTransition,
+  type GoalSessionExclusion,
   type GoalSessionsComponentManifest,
   type InFlightRecord,
   type MemoryComponentManifest,
@@ -416,6 +417,7 @@ export class IsolatedRestoreService {
     check('copy.control.inflight', 'pass', 'control');
     componentChecks.push({ componentId: 'control', manifestValid: true, hashVerified: true, integrity: 'ok' });
 
+    const goalExclusions: GoalSessionExclusion[] = goalsManifest.excludedBindings ?? [];
     const goalChecks = await this.verifyRestoredGoals(dataRoot, goalsManifest);
     if (goalChecks === null) {
       check('copy.goal-sessions.tails', 'fail', 'dsh-goal-sessions');
@@ -558,6 +560,7 @@ export class IsolatedRestoreService {
       },
       deletion: { ledgerApplied, appliedEntries, removedRefs: removedCount, visibleRefs: visible.length, resurrectionDetected: false },
       goals: restoredGoals,
+      goalExclusions,
       preserved: controlManifest.inFlight,
       generation,
       failures: [],
@@ -743,6 +746,7 @@ export class IsolatedRestoreService {
     barrier: RestoreBarrierCheck;
     deletion: RestoreReport['deletion'];
     goals: RestoredGoalCheck[];
+    goalExclusions?: GoalSessionExclusion[];
     preserved: InFlightRecord[];
     generation: GenerationTransition;
     failures: { code: string; componentId: RestoreReport['failures'][number]['componentId'] }[];
@@ -770,6 +774,7 @@ export class IsolatedRestoreService {
       barrier: input.barrier,
       deletion: input.deletion,
       goals: input.goals,
+      goalExclusions: input.goalExclusions ?? [],
       unknown: { preserved: input.preserved, replayed: 0 },
       generation: input.generation,
       activation: this.activationRecord(input.status, input.reasonCode, input.readView),

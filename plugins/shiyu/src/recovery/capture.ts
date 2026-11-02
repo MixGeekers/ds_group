@@ -66,6 +66,7 @@ import {
   type ControlComponentManifest,
   type ControlWatermarks,
   type GenerationIdentity,
+  type GoalSessionExclusion,
   type GoalSessionRecord,
   type GoalSessionsComponentManifest,
   type LastGoodPointer,
@@ -74,6 +75,7 @@ import {
   type RuntimeManifest,
   type SharedObjectRecord,
   type SharedObjectsComponentManifest,
+  type WorkspaceInventory,
   type StagingJournal,
 } from './types.js';
 import type {
@@ -110,6 +112,10 @@ export interface CaptureServiceOptions {
   stagingRoot: string;
   /** Free bytes that must remain untouched after the capture. */
   reserveBytes?: number;
+  /** Optional live data root guard: the staging root may not overlap it. */
+  liveDataRoot?: string;
+  /** Optional allow-list of absolute staging parents; when present the staging root must be inside one. */
+  allowedStagingRoots?: readonly string[];
 }
 
 const SNAPSHOT_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
@@ -134,9 +140,47 @@ const INCOMPLETE_CODES: ReadonlySet<RecoveryErrorCode> = new Set<RecoveryErrorCo
   'OBJECT_CLOSURE_INCOMPLETE',
   'DELETION_BASELINE_MISMATCH',
   'DELETION_WATERMARK_STALE',
+  'GOAL_SESSION_EXPORT_UNAVAILABLE',
+  'PROJECTION_EXPORT_UNAVAILABLE',
+  'MEMORY_EXPORT_UNAVAILABLE',
+  'CONTROL_FACTS_UNAVAILABLE',
+  'WORKSPACE_INVENTORY_UNAVAILABLE',
+  'LOG_FORMAT_NOT_OFFLINE_VERIFIABLE',
 ]);
 
 const encoder = new TextEncoder();
+
+/**
+ * Validate the read-only workspace inventory supplied by a host port. The
+ * inventory is evidence-only (it is not copied into the bundle), but every
+ * listed path/hash must still be bounded and self-consistent.
+ */
+const validateWorkspaceInventory = (value: WorkspaceInventory): WorkspaceInventory => {
+  const fail = (message: string): never => { throw new RecoveryError('WORKSPACE_INVENTORY_UNAVAILABLE', message, 'shared-objects'); };
+  if (!value || typeof value !== 'object' || Array.isArray(value)) fail('Workspace inventory is not an object');
+  if (typeof value.rootId !== 'string' || !/^[a-f0-9]{64}$/.test(value.rootId)) fail('Workspace inventory rootId is invalid');
+  if (!Array.isArray(value.files) || value.files.length > 5000) fail('Workspace inventory file list is missing or too large');
+  if (typeof value.truncated !== 'boolean') fail('Workspace inventory truncated flag is invalid');
+  if (!Number.isSafeInteger(value.excludedCount) || value.excludedCount < 0) fail('Workspace inventory exclusion count is invalid');
+  let total = 0;
+  const seen = new Set<string>();
+  const files = value.files.map((file) => {
+    if (!file || typeof file !== 'object') fail('Workspace inventory entry is not an object');
+    assertSafeRelativeRef(file.relativePath, 'workspace inventory path');
+    if (seen.has(file.relativePath)) fail('Workspace inventory contains a duplicate path');
+    seen.add(file.relativePath);
+    if (!Number.isSafeInteger(file.bytes) || file.bytes < 0) fail('Workspace inventory entry size is invalid');
+    if (typeof file.sha256 !== 'string' || !/^[a-f0-9]{64}$/.test(file.sha256)) fail('Workspace inventory entry hash is invalid');
+    total += file.bytes;
+    return { relativePath: file.relativePath, bytes: file.bytes, sha256: file.sha256 };
+  }).sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+  if (typeof value.aggregateSha256 !== 'string' || sha256(canonicalJson(files)) !== value.aggregateSha256) {
+    fail('Workspace inventory aggregate hash does not match its file list');
+  }
+  if (!Number.isSafeInteger(value.totalBytes) || value.totalBytes < 0) fail('Workspace inventory total is invalid');
+  if (!value.truncated && total !== value.totalBytes) fail('Workspace inventory total does not match its file list');
+  return { rootId: value.rootId, files, totalBytes: value.totalBytes, aggregateSha256: value.aggregateSha256, truncated: value.truncated, excludedCount: value.excludedCount };
+};
 
 /** Filesystem-safe deterministic stem for an externally supplied identifier. */
 const fileStem = (id: string): string => `${id.replace(/[^A-Za-z0-9._-]/g, '_')}-${sha256(id).slice(0, 12)}`;
@@ -323,6 +367,20 @@ class CaptureAttempt {
     const database = await fileEvidence(databasePath);
     const integrity = await sqliteIntegrity(databasePath);
     const facts = readControlFacts(databasePath);
+    const liveFacts = this.lease.liveFacts;
+    let livePrecheck: ControlComponentManifest['livePrecheck'];
+    if (liveFacts !== undefined) {
+      if (!Number.isSafeInteger(liveFacts.commitSeq) || liveFacts.commitSeq < 0
+        || !Number.isSafeInteger(liveFacts.stateVersion) || liveFacts.stateVersion < 1
+        || typeof liveFacts.observedAt !== 'string' || !Number.isFinite(Date.parse(liveFacts.observedAt))) {
+        throw new RecoveryError('CONTROL_FACTS_UNAVAILABLE', 'Control lease live facts are malformed', 'control');
+      }
+      if (facts.watermarks.commitSeq < liveFacts.commitSeq || facts.watermarks.stateVersion < liveFacts.stateVersion) {
+        throw new RecoveryError('COMPONENT_FAILED',
+          'Completed control snapshot is older than the live precheck facts; the backup cannot be the requested capture', 'control');
+      }
+      livePrecheck = { commitSeq: liveFacts.commitSeq, stateVersion: liveFacts.stateVersion, observedAt: liveFacts.observedAt };
+    }
     this.controlFacts = facts;
     this.watermarks = facts.watermarks;
     const capturedAt = this.now();
@@ -337,6 +395,7 @@ class CaptureAttempt {
       goalBindings: facts.goalBindings,
       inFlight: facts.inFlight,
       objectRefs: [...new Set(lease.objectRefs)].sort(),
+      ...(livePrecheck ? { livePrecheck } : {}),
       capturedAt,
     };
     const written = await this.writeComponentManifest(path.join(directory, 'manifest.json'), manifest, validateControlComponentManifest);
@@ -363,8 +422,23 @@ class CaptureAttempt {
     }
     const byGoal = new Map(batch.sessions.map((item) => [item.goalId, item]));
     const expected = new Set(goalIds);
+    const exclusions: GoalSessionExclusion[] = [];
+    for (const exclusion of batch.excluded ?? []) {
+      const binding = facts.goalBindings.find((item) => item.goalId === exclusion.goalId);
+      if (!binding) throw new RecoveryError('UNDECLARED_GOAL_SESSION', `Excluded goal ${exclusion.goalId} is not a captured GoalBinding`, 'dsh-goal-sessions');
+      if (exclusion.sessionId !== binding.sessionId) {
+        throw new RecoveryError('GOAL_REF_MISMATCH', `Excluded goal ${exclusion.goalId} Session identity does not match the control binding`, 'dsh-goal-sessions');
+      }
+      if (typeof exclusion.reasonCode !== 'string' || !/^[A-Z][A-Z0-9_]{2,63}$/.test(exclusion.reasonCode)
+        || typeof exclusion.detail !== 'string' || !exclusion.detail.trim() || exclusion.detail.length > 300) {
+        throw new RecoveryError('INVALID_SCHEMA', 'Goal Session exclusion reason is malformed', 'dsh-goal-sessions');
+      }
+      if (byGoal.has(exclusion.goalId)) throw new RecoveryError('INVALID_SCHEMA', 'A goal cannot be both captured and excluded', 'dsh-goal-sessions');
+      if (exclusions.some((item) => item.goalId === exclusion.goalId)) throw new RecoveryError('INVALID_SCHEMA', 'Duplicate Goal Session exclusion', 'dsh-goal-sessions');
+      exclusions.push({ goalId: exclusion.goalId, sessionId: exclusion.sessionId, reasonCode: exclusion.reasonCode, detail: exclusion.detail });
+    }
     for (const goalId of goalIds) {
-      if (!byGoal.has(goalId)) {
+      if (!byGoal.has(goalId) && !exclusions.some((item) => item.goalId === goalId)) {
         throw new RecoveryError('MISSING_GOAL_SESSION', `GoalBinding ${goalId} has no authoritative Session log in the capture`, 'dsh-goal-sessions');
       }
     }
@@ -373,6 +447,7 @@ class CaptureAttempt {
         throw new RecoveryError('UNDECLARED_GOAL_SESSION', `Goal Session ${item.sessionId} is not declared by the captured GoalBindings`, 'dsh-goal-sessions');
       }
     }
+    exclusions.sort((a, b) => a.goalId.localeCompare(b.goalId));
     const directory = path.join(this.ctx.partialDir, 'components', 'dsh-goal-sessions');
     const sessionsDir = path.join(directory, 'sessions');
     await ensureDir(sessionsDir);
@@ -480,6 +555,7 @@ class CaptureAttempt {
       schemaVersion: COMPONENT_MANIFEST_SCHEMA_VERSION,
       componentId: 'dsh-goal-sessions',
       sessions: records,
+      excludedBindings: exclusions,
       versions: [this.runtimeEntry('dsh-goal-sessions')],
       capturedAt: batch.capturedAt,
     };
@@ -602,6 +678,15 @@ class CaptureAttempt {
       }
       records.push({ objectId, file, bytes: bytes.byteLength, sha256: digest });
     }
+    let workspaceInventory: WorkspaceInventory | undefined;
+    if (this.env.sharedObjects.inventory) {
+      try {
+        workspaceInventory = validateWorkspaceInventory(await this.env.sharedObjects.inventory());
+      } catch (error) {
+        if (error instanceof RecoveryError) throw error;
+        throw new RecoveryError('WORKSPACE_INVENTORY_UNAVAILABLE', `Workspace inventory failed: ${(error as Error).message}`, 'shared-objects');
+      }
+    }
     const manifest: SharedObjectsComponentManifest = {
       schemaVersion: COMPONENT_MANIFEST_SCHEMA_VERSION,
       componentId: 'shared-objects',
@@ -610,6 +695,7 @@ class CaptureAttempt {
         { componentId: 'control', objectIds: [...new Set(controlObjectRefs)].sort() },
         { componentId: 'memory', objectIds: [...new Set(memoryObjectRefs)].sort() },
       ],
+      ...(workspaceInventory ? { workspaceInventory } : {}),
       capturedAt: this.now(),
     };
     const written = await this.writeComponentManifest(path.join(directory, 'manifest.json'), manifest, validateSharedObjectsComponentManifest);
@@ -821,6 +907,22 @@ export class CheckpointCaptureService {
   constructor(private readonly options: CaptureServiceOptions) {
     if (!path.isAbsolute(options.stagingRoot)) throw new RecoveryError('INVALID_SCHEMA', 'Staging root must be an absolute path');
     this.stagingRoot = path.resolve(options.stagingRoot);
+    if (options.liveDataRoot !== undefined) {
+      if (!path.isAbsolute(options.liveDataRoot)) throw new RecoveryError('INVALID_SCHEMA', 'liveDataRoot must be an absolute path');
+      const live = path.resolve(options.liveDataRoot);
+      const inside = (child: string, parent: string): boolean => child === parent || child.startsWith(`${parent}${path.sep}`);
+      if (inside(this.stagingRoot, live) || inside(live, this.stagingRoot)) {
+        throw new RecoveryError('LIVE_ROOT_PROTECTED', 'Staging root must not overlap the live data root');
+      }
+    }
+    if (options.allowedStagingRoots !== undefined) {
+      if (!Array.isArray(options.allowedStagingRoots) || options.allowedStagingRoots.length === 0) {
+        throw new RecoveryError('TARGET_NOT_ISOLATED', 'allowedStagingRoots must contain at least one absolute parent');
+      }
+      const allowed = options.allowedStagingRoots.every((root) => typeof root === 'string' && path.isAbsolute(root)
+        && (this.stagingRoot === path.resolve(root) || this.stagingRoot.startsWith(`${path.resolve(root)}${path.sep}`)));
+      if (!allowed) throw new RecoveryError('TARGET_NOT_ISOLATED', 'Staging root is outside the caller-approved staging roots');
+    }
     this.bundlesRoot = path.join(this.stagingRoot, 'bundles');
     this.lastGoodFile = path.join(this.stagingRoot, 'last-good.json');
     this.reserveBytes = options.reserveBytes ?? 0;

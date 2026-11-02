@@ -165,6 +165,30 @@ export interface ControlWatermarks {
   authorizationEpoch: number;
 }
 
+/** Bindings intentionally outside the Goal Session capture set (H5b host adapter). */
+export interface GoalSessionExclusion {
+  goalId: string;
+  sessionId: string;
+  reasonCode: string;
+  detail: string;
+}
+
+export interface WorkspaceInventoryFile {
+  relativePath: string;
+  bytes: number;
+  sha256: string;
+}
+
+/** Read-only observation of ``dataDir/workspaces``; evidence-only, never a restore dependency. */
+export interface WorkspaceInventory {
+  rootId: string;
+  files: WorkspaceInventoryFile[];
+  totalBytes: number;
+  aggregateSha256: string;
+  truncated: boolean;
+  excludedCount: number;
+}
+
 export interface ControlComponentManifest {
   schemaVersion: number;
   componentId: 'control';
@@ -177,6 +201,8 @@ export interface ControlComponentManifest {
   goalBindings: ControlGoalBindingRecord[];
   inFlight: InFlightRecord[];
   objectRefs: string[];
+  /** Read-only facts observed through the live ControlStore before the backup (monotonic precheck). */
+  livePrecheck?: { commitSeq: number; stateVersion: number; observedAt: string };
   capturedAt: string;
 }
 
@@ -184,6 +210,12 @@ export interface GoalSessionsComponentManifest {
   schemaVersion: number;
   componentId: 'dsh-goal-sessions';
   sessions: GoalSessionRecord[];
+  /**
+   * Control GoalBindings that the host deliberately kept out of this capture
+   * (for example a binding with no native GoalRef yet). Every control binding
+   * must be either captured or explicitly excluded; a silent gap prevents ready.
+   */
+  excludedBindings?: GoalSessionExclusion[];
   /** Projection/plugin version facts needed to interpret the logs. */
   versions: RuntimeComponentVersion[];
   capturedAt: string;
@@ -223,6 +255,8 @@ export interface SharedObjectsComponentManifest {
   objects: SharedObjectRecord[];
   /** Every object referenced by the other components must be present here. */
   referencedBy: { componentId: 'control' | 'memory'; objectIds: string[] }[];
+  /** Observation of the host workspace root at capture time; not copied into the bundle. */
+  workspaceInventory?: WorkspaceInventory;
   capturedAt: string;
 }
 
@@ -455,6 +489,8 @@ export interface RestoreReport {
   barrier: RestoreBarrierCheck;
   deletion: MemoryDeletionApplication;
   goals: RestoredGoalCheck[];
+  /** Bindings whose logs were explicitly outside the bundle (never presented as restored). */
+  goalExclusions: GoalSessionExclusion[];
   unknown: { preserved: InFlightRecord[]; replayed: 0 };
   generation: GenerationTransition;
   activation: RecoveryActivationRecord;

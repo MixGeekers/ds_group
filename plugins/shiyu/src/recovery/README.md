@@ -1,6 +1,6 @@
 # 本地检查点与隔离恢复模块（H5-B1 · 离线）
 
-状态：**离线模块已实现并离线通过（G1）；未接入 Runtime/宿主，未做 live 修复、独立故障域或 V22/V27 完整验收。** 证据见
+状态：**离线模块已实现并离线通过（G1）；H5b 已提供 Runtime 组合层适配与 owner-only 命令的精确集成 diff，但 runtime.ts 由 Lead 落、本切片未接线；未做 live 修复、独立故障域或 V22/V27 完整验收。** 证据见
 [`artifacts/dsh/h5/`](../../artifacts/dsh/h5/)；需求来源为[交接 02 §6.9](<../../../../架构与设计/DSH交接/02-测试设计与验收标准.md#69-检查点迁移长期运行与恢复>)、
 [A方案 05-宿主外恢复](<../../../../架构与设计/A方案全景/05-宿主外恢复/README.md>)、
 [06-预留空间/08-本地检查点](<../../../../架构与设计/A方案全景/06-预留空间/08-本地检查点/README.md>)、
@@ -218,3 +218,53 @@ npm run check                                 # 全量（建议隔离 worktree�
    `MemoryExportPort`（Ombre 原生导出）、`SharedObjectPort`、`RecoveryBarrierPort`；补 live-host 集成测试与失效路径。
 2. 以固定宿主和真实临时数据根做 G2/G3 证据；再按交接 02 §6.9 做 V22 完整基准与 V27 独立故障域演练。
 3. 迁移/旧 schema reader 兼容、OS 断点与环境故障注入另开切片；本模块的 `minimumReaderVersion`/`dataSchema` 字段已预留位置。
+
+---
+
+## 9. H5b：Runtime 组合层接入（离线，runtime.ts 由 Lead 落）
+
+H5b 把 H5-B1 的纯引擎接入既有 Runtime 资源，但不修改 `runtime.ts`：交付物是
+[`host-ports.ts`](host-ports.ts)、[`runtime-command.ts`](runtime-command.ts)、测试与证据，以及可直接
+`git apply --check` 的精确集成 diff [`runtime-checkpoint-capture.diff`](../../artifacts/dsh/h5/runtime-checkpoint-capture.diff)（证据 JSON 记录其 SHA256）。
+
+### 9.1 端口 → 真实资源映射
+
+| 端口 | H5b 适配器 | 当前真实宿主状态 |
+|---|---|---|
+| ControlSourcePort | 读 `{dataDir}/control/events.sqlite`（正则文件/符号链接检查），capture 用 `node:sqlite backup` 到 staging；capture 前用**既有 ControlStore worker** `control.watermark` + `view.state` 读 live 前置事实，staged 快照必须单调覆盖它（`livePrecheck`） | **available**（只读挂载未使用写连接；WAL 只读访问可能更新 `-shm` 协调文件，不是产品写入） |
+| GoalSessionPort | 通过 ControlStore `goal.binding.list` 枚举 GoalBinding；精确日志路径**只**来自注入 resolver（候选：已安装 JSONL 持久化后端的诊断方法 `resolveCurrentLog`，非 provider-neutral 公共契约）；native phase/armed 必须有只读公共 API；flush 走 `sessions.get(id)` + `sessions.flush(session)`；log 只接受可离线核验的 plain JSONL | **unavailable/incomplete**：缺公共路径 API、只读原生 Goal 状态、projection 导出与可离线解码格式；已在证据中列为 blocker + required scope |
+| MemoryExportPort | 生产端口显式抛 `MEMORY_EXPORT_UNAVAILABLE`（managed Ombre 本部署无公开导出/归档工具，required scope 见 `HOST_MEMORY_REQUIRED_SCOPE`） | **unavailable** → Bundle **不得 ready** |
+| SharedObjectPort | 只读、有界地枚举/哈希 `{dataDir}/workspaces`（拒绝符号链接与逃逸，`maxFiles/maxTotalBytes/maxFileBytes`）；引用对象才复制，清单作为证据写入 shared-objects manifest（`workspaceInventory`，非恢复依赖） | **available（只读清单）**；持久 object_refs 表尚未实现，引用集合当前通常为空 |
+
+组合入口 `createRuntimeCheckpointComposition()` 只接受显式、位于 live 根之外且（可选）在 `allowedStagingRoots`
+内的 staging 根；`liveDataRoot`/`allowedStagingRoots` 围栏在 `CheckpointCaptureService` 构造时再次强制。
+只有四个必需组件 complete 且 `verifyBundleDirectory` 真实字节复核通过才 ready；否则 failed/incomplete，失败不写 lastGood。
+
+### 9.2 owner-only 命令语义（`runtime.checkpoint.capture`）
+
+- **显式触发**：只有 owner 控制面命令进入 `RuntimeCheckpointCommand.handle()`；composition 懒创建也只在命令内发生，
+  snapshot/GET 路径从不调用（不自动、不因 GET 触发）。
+- **单飞不排队**：并发第二个请求返回 `busy`（`CHECKPOINT_BUSY`），不排队、不合并、不重试。
+- **暂停语义**：paused 时允许执行（纯本地只读/备份，无模型、无派发），结果记录 `pausedAtRequest=true`、
+  `desiredState=unchanged`；命令不修改暂停状态。dispatch 分支位于 `ensureCanRun()` 之前。
+- **失败降级**：组件 unavailable/无法核验 → Bundle `incomplete`，命令返回结构化 `status/failureCodes/blockedComponents`；
+  staging 中断不发布 ready；一次命令最多一次 capture 尝试（`retried:false, autoTriggered:false`）。
+- **前置**：`RuntimeOptions.checkpointStagingRoot`（信任组合、live 根之外）与
+  `RuntimeOptions.checkpointRuntimeManifest`（固定宿主身份）缺一 → `CHECKPOINT_STAGING_UNCONFIGURED`/失败，
+  绝不回退到临时目录或猜测宿主版本。
+- 集成 diff 含：imports、RuntimeOptions 两个 trusted 字段、类字段、init 内命令处理器（无 I/O）、
+  dispatch 分支、懒组合方法与 `commandCheckpoint`；**不改** snapshot/GET 路由。
+
+### 9.3 证据与边界（H5b）
+
+- 测试：[`tests/recovery-host-ports.test.ts`](../../tests/recovery-host-ports.test.ts)（14 用例：真实临时 ControlStore backup+precheck、
+  Goal 字节/尾/flush、缺日志/缺 projection/缺 native state/缺 flush/zstd、memory unavailable、生产宿主 blocked、
+  staging 中断、workspace 对象 hash 不符、live 根与 staging 围栏、隔离恢复、控制 fact 读取、候选 resolver、命令单飞/暂停/无重试）；
+  [`tests/recovery-h5b-evidence.test.ts`](../../tests/recovery-h5b-evidence.test.ts) 生成 15 条矩阵证据。
+- 证据：[`artifacts/dsh/h5/h5b-runtime-integration.json`](../../artifacts/dsh/h5/h5b-runtime-integration.json)（逐例注入点→期望→实际、
+  source/build/test 指纹、production blockers 与 required scope、diff SHA256/可应用性、边界声明）、
+  [`runtime-checkpoint-capture.diff`](../../artifacts/dsh/h5/runtime-checkpoint-capture.diff)。
+- **真实生产宿主在本切片不可 ready**：Goal Session 公共路径/原生状态 API 与 Ombre 导出缺失，已如实列为 blocker；
+  ready 路径仅用合成 seam（临时 Session 文件 + 合成 resolver/native-state/flush/projection/memory）验证。
+- 未测/未证：Lead 落 diff 后的真实运行命令与宿主 reload、真实 `~/.dsh/sessions` 路径解析、压缩日志离线解码、
+  真实 Ombre 导出、独立故障域/V27、RPO/RTO、激活切换。restore 仍只进入临时隔离根、不激活、不动 live 根。
