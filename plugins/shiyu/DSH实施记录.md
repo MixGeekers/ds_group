@@ -127,6 +127,7 @@ Error: tool "shiyu_status" returned invalid output: value is not lossless JSON
 | [host-status-zero-model.json](<artifacts/dsh/h0/host-status-zero-model.json>) | 冻结计划的零模型宿主核对：重载、工具输出、前后审计、增量分类、边界 |
 | [host-status-tool-observation.json](<artifacts/dsh/h0/host-status-tool-observation.json>) | 同一原生会话中 `shiyu_status` 修复前报错与修复后完整 JSON 的原始事件记录（含 payload 哈希） |
 | [host-audit-before.json](<artifacts/dsh/h0/host-audit-before.json>) / [installed](<artifacts/dsh/h0/host-audit-installed.json>) / [after](<artifacts/dsh/h0/host-audit-after.json>) / [after-tool](<artifacts/dsh/h0/host-audit-after-tool.json>) | 只读宿主状态审计（路径脱敏） |
+| [h4-host-zero-model.json](<artifacts/dsh/h4/h4-host-zero-model.json>) / [shiyu-status-schema4-host.json](<artifacts/dsh/h4/shiyu-status-schema4-host.json>) | H1+H4+H5 验证构建的一次固定宿主零模型重载：schema4 六域发布、只读工具成功与前后只读审计；含 before/after/after-tool 审计与增量分类 |
 | `plugins/shiyu/.local/h0-baseline-check.log`、`.local/h0-verify-log.sha256`、`.local/dsh-h0-host-execution-plan.json` | 基线日志、验证构建日志哈希、冻结执行计划（`plugins/shiyu/.local/` 为本包 gitignore 的运行数据目录） |
 
 复现命令（在 `plugins/shiyu/`）：
@@ -250,11 +251,12 @@ node --import tsx --test --test-concurrency=1 tests/recovery-*.test.ts
 | 实现者隔离 worktree（HEAD `08995d1` + 仅本切片 21 文件）`npm run check` | exit 0；**1088/1088 通过，0 失败/取消/跳过**；typecheck/build/Client 语法通过；= 1025 基线 + 63 新测试 |
 | Lead 独立 `scripts/slice-verify.mjs`（HEAD `31af227` + 仅本切片，symlink node_modules 与 pinned Python） | exit 0；**1159/1159 通过，0 失败/跳过**；= 1096 已提交基线 + 63；证据 `artifacts/dsh/slices/h4-verify.json`、日志 `.local/slice-verify-h4.log` |
 | 覆盖 | 四域各自：写入/来源→发布→裁剪读取→使用→纠正/撤回→重启恢复；负例含同名误合并 0、跨受众泄露 0、删除复活 0、普通消息改人格 0、缺失 authority fail-closed；publication schema4 组合与读视图两段式；真实 WorkerThread 双连接 CAS 唯一赢家 |
-| 证据级别 | G1 模块/属性 + 真实临时 SQLite/WorkerThread；无宿主、模型、embedding、真实 Ombre 正文与渠道 |
+| **加入固定宿主零模型重载（H1+H4+H5 联合构建）** | `shiyu_status` 返回有效无损 JSON；`innerProjection.manifest.schemaVersion=4` 且六域 available（memory + 四新域 + ability，含 backendId/authorityId/capabilities）；stateVersion 5→6 为真实启动发布；Task/Goal/Lab/预算/Effect/17 个 Session 文件不变；工具调用前后 commitSeq 302→302（严格只读）；无模型/embedding/Task/Goal/Session 探针/Lab 输入；证据 `artifacts/dsh/h4/h4-host-zero-model.json` |
+| 证据级别 | G1 模块/属性 + 真实临时 SQLite/WorkerThread；外加一次固定宿主零模型启动/发布/只读工具核对（H4 宿主证据，非 V24 或业务验收） |
 
 ### 7.3 失败 / unknown / 未测
 
-1. 未接线（Lead 集成边界）：`src/views/local.ts` replyer 四域只读组合（`captureLocal{innerDomains}` + `view.readInnerBodies`）、client 仪表盘六域可用性面板（读 `runtime.snapshot().innerProjection`）；完成后需补固定宿主零模型 H4 证据。
+1. 未接线（H4b 集成中）：`src/views/local.ts` replyer 四域只读组合（`captureLocal{innerDomains}` + `view.readInnerBodies`）、client 仪表盘六域可用性面板与 `src/health/systems.ts` 的 inner summary 文案（宿主实测发现仍写“关系、情绪、认知、人格待接入”，与 schema4 manifest 不符，已列入 H4b）；H4b 后需再做一次零模型 reload 才算仪表盘宿主可见。
 2. 未实现：关系纠正后的跨域重算（仅来源失效降级）、emotion 规则版本迁移与 personality 学习启用路径、完整历史回放视图（capture 只暴露当前 latest 可用版本）。
 3. 未测：真实 DSH 宿主、真实模型/embedding、真实 Ombre 记忆正文、真实渠道/设备/业务；publication available 只是读取能力声明，不是授权或业务验收。
 

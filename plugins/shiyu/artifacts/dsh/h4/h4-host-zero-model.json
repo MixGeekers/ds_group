@@ -1,0 +1,217 @@
+{
+  "schemaVersion": 1,
+  "phase": "H1H4H5",
+  "slice": "fixed-host zero-model reload of the verified H1+H4+H5 build",
+  "capturedAt": "2026-11-02T19:02:44.226Z",
+  "status": "fixed-host-zero-model-limited",
+  "purpose": "Verify on the fixed installed host that the verified H1+H4+H5 build loads, the schema4 inner publication is readable through shiyu_status with valid lossless JSON, existing business facts are preserved and the reload has no model/embedding/business side effects.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-h1h4h5-host-execution-plan.json",
+    "sha256": "19e60810c5a3f0993ffcf050aaecba1e4ef84b1f654091f826dbd4d9307d630e"
+  },
+  "code": {
+    "head": "3b3b69f",
+    "note": "H1/H4/H5/H0b and final H1 verification evidence committed; dist built from an isolated worktree at this HEAD and installed after digest comparison",
+    "dist": {
+      "files": 98,
+      "digest": "647aaa7fbaa485015d0f93bc6732a6e052616df3034580b3a71fd8d890a30264"
+    }
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "reloads": 1,
+    "newInstanceId": "7dddbb6c-562d-4d08-9f62-adf8e3c026bd",
+    "startedAt": "2026-11-02T19:02:08.950Z",
+    "toolObservedAt": "2026-11-02T19:02:22.849Z"
+  },
+  "before": {
+    "commitSeq": 291,
+    "stateVersion": 5,
+    "publicationManifest": "fd3fc22e39717b1a9a476c608d3dd72835c22f19ec30ff21d10288b0150858bf",
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "goals": 2,
+    "lab": {
+      "disconnected": 3
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "sessions": {
+      "count": 17,
+      "digest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    },
+    "paused": false
+  },
+  "after": {
+    "commitSeq": 302,
+    "stateVersion": 6,
+    "publicationManifest": "8e9f0530d2c4cc175ccaf9be5447833eada1eef42a62a03dbaf7d12bb49324fd",
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "goals": 2,
+    "lab": {
+      "disconnected": 3
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "sessions": {
+      "count": 17,
+      "digest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    },
+    "paused": false,
+    "capability": {
+      "revision": 10,
+      "enabled": true,
+      "availability": "available"
+    }
+  },
+  "afterToolCall": {
+    "commitSeq": 302,
+    "events": 37,
+    "deliveries": {
+      "acked": 36
+    },
+    "stateVersion": 6,
+    "capRevision": 10,
+    "sessionsDigest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979",
+    "stateFileHash": "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+  },
+  "snapshot": {
+    "schemaVersion": 1,
+    "instanceId": "7dddbb6c-562d-4d08-9f62-adf8e3c026bd",
+    "state": "idle",
+    "lifecycle": "degraded",
+    "innerPublication": {
+      "schemaVersion": 4,
+      "stateVersion": 6,
+      "manifestHash": "8e9f0530d2c4cc175ccaf9be5447833eada1eef42a62a03dbaf7d12bb49324fd",
+      "publishedAt": "2026-11-02T19:02:09.145Z",
+      "domains": {
+        "memory": {
+          "status": "available",
+          "backendId": "ombre-local",
+          "capabilities": [
+            "exact_read",
+            "semantic_search"
+          ],
+          "reason": null
+        },
+        "relationship": {
+          "status": "available",
+          "backendId": "control-relationship",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ],
+          "reason": null
+        },
+        "emotion": {
+          "status": "available",
+          "backendId": "control-emotion",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ],
+          "reason": null
+        },
+        "cognition": {
+          "status": "available",
+          "backendId": "control-cognition",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ],
+          "reason": null
+        },
+        "personality": {
+          "status": "available",
+          "backendId": "control-personality",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ],
+          "reason": null
+        },
+        "ability": {
+          "status": "available",
+          "backendId": "control-ability",
+          "capabilities": [
+            "state_read"
+          ],
+          "reason": null
+        }
+      }
+    },
+    "counts": {
+      "tasks": 3,
+      "coreGoals": 2,
+      "labConnections": 3,
+      "conversations": 7,
+      "sessions": 10,
+      "activeWork": 0
+    },
+    "capability": {
+      "revision": 10,
+      "enabled": true,
+      "availability": "available",
+      "verification": "unknown"
+    }
+  },
+  "payload": {
+    "file": "artifacts/dsh/h4/shiyu-status-schema4-host.json",
+    "bytes": 50630,
+    "sha256": "33772db64a32b6eb1174c5a4a7ffa408ee6dd8342bc2b3033b68e12fdd7c03fe"
+  },
+  "deltaClassification": {
+    "commitSeq": "291 -> 302 (+11): expected host initialization writes (runtime lifecycle event, capability hostEpoch observation, state publication schema4).",
+    "stateVersion": "5 -> 6: the schema4 publication is actually published on startup; the four new domains are available because their local instances initialized. This is a real lifecycle write, not a tool-call side effect.",
+    "events": "36 -> 37 (+1 runtime.lifecycle.changed) and deliveries 35 -> 36 (ack of that event); no task/goal/lab/model event.",
+    "capability": "revision 8 -> 10 and hostEpoch rebind: Runtime init re-observed the fixed local-note dependency for the new host instance; enabled stays true, binding digest unchanged, availability available, success proof stays unknown (no proof fabrication).",
+    "businessFacts": "tasks (2 succeeded / 1 unknown), goals (2), lab (3 disconnected), budget (21 settled / 3 unknown), effects (13 succeeded) and the 17 owned native Session file digest are unchanged.",
+    "toolCall": "strictly read-only: commitSeq/events/deliveries/stateVersion/capability revision/sessions digest/state-file hash all unchanged across the tool call."
+  },
+  "findings": [
+    "shiyu_status now returns the schema4 six-domain publication (relationship/emotion/cognition/personality available with backendId/authorityId/capabilities; memory available; ability available) with valid lossless JSON.",
+    "Known cosmetic/UI gap: the systems[].inner summary in the snapshot still says the four domains are pending because src/health/systems.ts text was not updated in H4; H4b must update that summary and the dashboard panel (manifest-level data is already correct).",
+    "Task uncertainty metadata on the retained unknown Task was refreshed at startup (version 24 -> 25) as documented recovery metadata; no retry, no new assignment, no success claim."
+  ],
+  "scope": {
+    "orderedReloads": 1,
+    "toolCalls": 1,
+    "modelCalls": 0,
+    "embeddingCalls": 0,
+    "taskCreates": 0,
+    "goalOperations": 0,
+    "sessionProbes": 0,
+    "labInputs": 0,
+    "labConnects": 0,
+    "labPluginReloads": 0,
+    "workbenchPluginReloads": 0
+  },
+  "evidence": {
+    "beforeAudit": "artifacts/dsh/h4/before.json",
+    "afterAudit": "artifacts/dsh/h4/after.json",
+    "afterToolAudit": "artifacts/dsh/h4/after-tool.json",
+    "payload": "artifacts/dsh/h4/shiyu-status-schema4-host.json"
+  },
+  "limitations": [
+    "This verifies startup/publication/tool contract and read-only behavior on one fixed host instance; it is not V24 lifecycle acceptance, generation, compaction or long-history host evidence.",
+    "lifecycle=degraded reflects retained historical unknown/paused facts (A-round unknown budget, unresolved core evaluation), not a new failure.",
+    "No model, embedding, channel, device or business action was exercised."
+  ]
+}
