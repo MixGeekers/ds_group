@@ -946,3 +946,36 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-li
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h5b-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/recovery-host-ports.test.ts tests/recovery-h5b-evidence.test.ts
 ```
+
+## 28. H7-acceptance 切片：全量验收追踪与门控运行器
+
+状态：**G1 工具/证据层通过**；产品与业务验收**未运行**（executed=passed=0）。2026-11-02 完成并审阅。
+
+### 28.1 交付（6 文件 + 清单/证据）
+
+- `tests/harness/acceptance-registry.ts`：从 `架构与设计/A方案全景/目录.md` 物化 **12 区域 / 40 模块**清单：需求来源、九系统映射（全部非空）、已知代码路径与产品测试文件 ID（存在性校验）、oracle、已提交证据来源（evidence.ts source ids）、阻塞资源、limitations；状态仅由证据/资源派生：`limited-only / blocked / not_covered / unknown`，**绝无 passed**。
+- `tests/harness/acceptance.ts`：全量验收追踪/门控运行器：V01–V27 保留原门槛与编号（27 条、未重编号、source heading 逐条核验；14 资源阻塞、12 limited-evidence、1 not_covered、0 passed）；S01–S08/FL01–FL08 从 H0c skeleton 读取并原样传播 `synthetic-fixture-only-not-run` 与 `canUseForBusinessAcceptance=false`；九系统↔40 模块↔V/S/FL 映射完整；门控永远 `incomplete`、`completeNineSystems=false`，内置 9 项 blocked 资源与 cannotClaim；负例拒绝把 tooling_ready/limited-only 当 pass、删除 unknown/skipped/notRun 分母、伪造 complete、升级 H0c 标志。
+- `scripts/harness/acceptance.mjs`（CLI）+ 两份 README 章节；8 项测试；`artifacts/dsh/harness/h7-acceptance-slice.json` 与 summary。
+- 全量 `acceptance-report.json/.md` 不在本切片生成：按 A 方案在回合末 clean frozen HEAD 上重生成，由 Lead 作为 artifacts-only follow-up 提交。
+
+### 28.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 overlay（HEAD `d160756` + 6 code/test） | tsc EXIT 0；harness 71/71、0 skip；全量 check 见 1 个既有负载敏感 `lab-integration` 超时（未修改该测试，同 HEAD 可复现），本切片只声明 harness 绿与 tsc 绿 |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `5eede56` + 仅 7 文件） | exit 0；**1434/1434 通过，0 跳过**（= 1426 + 8）；证据 `artifacts/dsh/slices/h7-acceptance-verify.json` |
+| acceptance CLI 预览（隔离树，/tmp 输出） | gate=incomplete、completeNineSystems=false；40 模块=30 limited-only/5 blocked/5 not_covered；九系统均 limited-evidence-only；V=27（14 blocked/12 limited/1 not-covered）；S/FL=16 全 skeleton 未运行、canUse=false；executed=passed=0；honesty=pass |
+| 证据级别 | G1 工具/证据层；不能据此声明九系统完成 |
+
+### 28.3 失败 / unknown / 未测
+
+1. 未执行任何产品/宿主/模型/业务验收：executed=0/passed=0；系统/模块/V/S/FL 全部为 not_covered/limited-only/blocked/skeleton。
+2. 全量 acceptance-report 待回合末 clean HEAD 生成；本切片只有预览（未提交）。
+3. 已知负载敏感 `lab-integration` 超时属该测试 owner，非本切片改动；不因工具绿而升级任何产品行。
+
+### 28.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h7-acceptance-manifest.json>
+cd plugins/shiyu && node scripts/harness/acceptance.mjs --out /tmp/acceptance-preview
+```

@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "phase": "H7-acceptance",
+  "slice": "full acceptance tracking registry and honest gate runner over nine systems, 40 modules, V/S/FL",
+  "capturedAt": "2026-11-02T22:22:11.834Z",
+  "status": "offline-verified-tooling",
+  "purpose": "Materialize the 40-module requirement index and the V01-V27/S01-S08/FL01-FL08 indexes into a machine-readable acceptance registry, and add a gate runner that derives every status from evidence only, keeps executed/passed at zero where nothing ran, and refuses to promote tooling or limited evidence into a product pass.",
+  "baseline": {
+    "head": "5eede56",
+    "note": "H0..H6c/H2b/H4e/H5b committed; 1426 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "bytes": 31860,
+      "sha256": "565f86a94090fe18a7f2d4a537871e13949f505e0598a7e42b9b05b20a43c14c"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance.ts",
+      "bytes": 51125,
+      "sha256": "a860658c067412880501c1d1f178199aed443ab29b1effdba04ee8eb82ec8c49"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-acceptance.test.ts",
+      "bytes": 22447,
+      "sha256": "debecdfbf81812562d360fe4082b195566c28617c59f2b8bb86486454d3a3c3b"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/acceptance.mjs",
+      "bytes": 1275,
+      "sha256": "6f0211ac1cdb4b1df921bc08a05db85a38724000950adfc45336f86946be6dc2"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/README.md",
+      "bytes": 18466,
+      "sha256": "9f4766586e6f45df64a459db6158995b32c1bd9229eaa70530fc4168c4e6bcb7"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/README.md",
+      "bytes": 2032,
+      "sha256": "9e1abf983048a482feea99965ef18b2e7bf1ce7f5ac2e7a2b5d7d5716093b069"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/h7-acceptance-slice.json",
+      "bytes": 6572,
+      "sha256": "6ce42e8b9bd0200483efc8aadf4adcccf68b4ed6d78a9150cec22029b0956fe7"
+    }
+  ],
+  "implementation": {
+    "registry": "12 regions / 40 modules from 架构与设计/A方案全景/目录.md with requirement source, nine-system mapping, known code paths and product test ids (existence-checked), oracle, committed evidence source ids, blocked resources and limitations; statuses are evidence-derived only: limited-only / blocked / not_covered / unknown.",
+    "vSFl": "V01-V27 keep the original thresholds and numbering (14 resource-blocked, 12 limited-evidence, 1 not-covered, 0 passed); S01-S08/FL01-FL08 are read from the H0c skeleton with synthetic-fixture-only-not-run and canUseForBusinessAcceptance=false propagated verbatim; system<->module<->V/S/FL mapping completeness is asserted.",
+    "runner": "scripts/harness/acceptance.mjs reads traceability/selfproof/manifest/fl-coverage plus the registry and emits acceptance-report.json/.md with per-system/module/V/S/FL status in the non-authoritative tooling layer; planned=92, executed=passed=failed=0, unknown/blocked/notRun separated, gate always incomplete and completeNineSystems=false, nine blocked resources, cannotClaim text; honesty tests reject tooling_ready/limited-only as pass, removing unknown/skipped/notRun from denominators, forged completion and H0c flag upgrades.",
+    "tests": "8 tests: registry completeness, unique 40 modules, unmapped -> unknown, negative promotion rejection, honest denominators, deterministic output plus CLI, no product/network imports, documentation contract."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "isolated overlay worktree at HEAD d160756 + 6 code/test files",
+      "tsc": "EXIT 0",
+      "harnessTests": "71/71 pass, 0 skip",
+      "note": "full npm run check in the overlay saw one already-known load-flaky lab-integration timeout (not modified, reproducible on the same shared HEAD); this slice reports the harness suite and tsc, not a full green claim."
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 5eede56 + only these 7 files)",
+      "evidence": "artifacts/dsh/slices/h7-acceptance-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1434,
+        "pass": 1434,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 305216,
+      "log": "plugins/shiyu/.local/slice-verify-h7-acceptance.log",
+      "arithmetic": "1426 baseline + 8 new tests = 1434"
+    },
+    "preview": "acceptance CLI preview (isolated tree, /tmp output): gate=incomplete, completeNineSystems=false, modules=40 (30 limited-only/5 blocked/5 not_covered), systems=9 all limited-evidence-only, V=27 (14 blocked/12 limited/1 not-covered), S/FL=16 all synthetic-fixture-only-not-run with canUse=false, executed=passed=0, honesty=pass.",
+    "note": "The full acceptance-report artifacts are intentionally not regenerated in this slice; they are generated at the end of the round on a clean frozen HEAD (A-plan) and committed as an artifacts-only follow-up by the Lead."
+  },
+  "failedUnknownUntested": [
+    "No product/host/model/business acceptance was executed: executed=0/passed=0; every system, module, V and S/FL item remains not_covered/limited-only/blocked/skeleton-only.",
+    "The acceptance-report.json/.md full artifacts are not part of this slice; they are regenerated on the clean round-end HEAD by the test-harness and committed separately.",
+    "The known load-flaky lab-integration test is not this slice and was reported to its owner; no product src was changed.",
+    "This tooling cannot by itself establish nine-system completion; the negative honesty tests explicitly reject such a claim."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 tooling/evidence layer only; product and business acceptance not claimed."
+}

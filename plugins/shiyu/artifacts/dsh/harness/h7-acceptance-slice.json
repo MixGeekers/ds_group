@@ -1,0 +1,159 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.h7-acceptance-slice-evidence",
+  "phase": "H7-acceptance",
+  "capturedAt": "2026-11-02T21:45:22.955Z",
+  "baselineHead": "d160756",
+  "status": "code-tests-delivered-not-clean-refresh",
+  "purpose": "Record the H7-acceptance code/test/manifest slice: 40-module registry, V/S/FL preservation, full acceptance gate runner and tests. Full harness artifacts (acceptance-report.json/md) are regenerated at the round-end clean HEAD and committed separately.",
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "bytes": 31860,
+      "sha256": "565f86a94090fe18a7f2d4a537871e13949f505e0598a7e42b9b05b20a43c14c"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance.ts",
+      "bytes": 51125,
+      "sha256": "a860658c067412880501c1d1f178199aed443ab29b1effdba04ee8eb82ec8c49"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-acceptance.test.ts",
+      "bytes": 22447,
+      "sha256": "debecdfbf81812562d360fe4082b195566c28617c59f2b8bb86486454d3a3c3b"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/acceptance.mjs",
+      "bytes": 1275,
+      "sha256": "6f0211ac1cdb4b1df921bc08a05db85a38724000950adfc45336f86946be6dc2"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/README.md",
+      "bytes": 18466,
+      "sha256": "9f4766586e6f45df64a459db6158995b32c1bd9229eaa70530fc4168c4e6bcb7"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/README.md",
+      "bytes": 2032,
+      "sha256": "9e1abf983048a482feea99965ef18b2e7bf1ce7f5ac2e7a2b5d7d5716093b069"
+    }
+  ],
+  "commands": [
+    "npx tsc --noEmit",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+    "npm run check (isolated worktree d160756 + only slice files)",
+    "node scripts/harness/acceptance.mjs --out-dir <tmp> --traceability <artifact> --selfproof <artifact> --manifest <artifact> --coverage <artifact> --generated-at 2026-11-02T00:00:00.000Z"
+  ],
+  "verification": {
+    "sharedTree": {
+      "tsc": {
+        "exitCode": 0
+      },
+      "harness": {
+        "tests": 71,
+        "pass": 71,
+        "fail": 0,
+        "skipped": 0,
+        "logSha256": "b10d95659a988bef90878bb66a933c729cb316c366864293744d0787e30e29ac",
+        "logBytes": 6768
+      }
+    },
+    "isolatedWorktree": {
+      "head": "d160756",
+      "worktree": "/tmp/accept-verify (ephemeral; d160756 + only 6 slice files; node_modules + .local/ombre symlinked)",
+      "tsc": {
+        "exitCode": 0,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "bytes": 0
+      },
+      "harness": {
+        "tests": 71,
+        "pass": 71,
+        "fail": 0,
+        "skipped": 0,
+        "logSha256": "59485159e5089bcbb511128e277404d92f713fffde624f7ae184ee09cb033a78",
+        "logBytes": 6760
+      },
+      "fullCheck": {
+        "tests": 1390,
+        "pass": 1389,
+        "fail": 1,
+        "skipped": 0,
+        "exitCode": 1,
+        "note": "pre-existing flaky tests/lab-integration.test.ts 20-channel lab test timed out under full-suite load; standalone retries show 1 fail then 1 pass; not changed by this slice and not in harness suite"
+      }
+    },
+    "acceptancePreview": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "modules": 40,
+      "systems": 9,
+      "vItems": 27,
+      "scenarios": 16,
+      "executed": 0,
+      "passed": 0,
+      "moduleStatuses": {
+        "limitedOnly": 30,
+        "blocked": 5,
+        "notCovered": 5
+      },
+      "buildIssues": 0,
+      "honesty": "pass",
+      "jsonSha256": "a49f855f778b69e8ef0a509ec1c032a68e92a95f8ca5a74ddf235da9a606492e",
+      "markdownSha256": "8ba86b5c2cc454a27358ec903d71b43e6e56debcfbf1db65ca8015d0d2720532",
+      "logSha256": "a536d2b4f2a417a0081e6df4d37a80d7a5e505966fef57a6f994b60b9ae80871"
+    }
+  },
+  "archivedCopies": [
+    {
+      "path": "plugins/shiyu/.local/h7-acceptance/accept-check.log",
+      "sha256": "04a3e8d19a5f64cf85446d43c67a19c488c96419e9735a159159c0c89c8f4fcf",
+      "bytes": 152048
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-acceptance/accept-check2.log",
+      "sha256": "3685b6ffc119adadeb1dcc2ccd20e9cab64f1d150c93f8dcaf4ff6be7d7a714f",
+      "bytes": 152066
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-acceptance/accept-isolated-harness.log",
+      "sha256": "59485159e5089bcbb511128e277404d92f713fffde624f7ae184ee09cb033a78",
+      "bytes": 6760
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-acceptance/accept-isolated-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-acceptance/accept-preview.log",
+      "sha256": "a536d2b4f2a417a0081e6df4d37a80d7a5e505966fef57a6f994b60b9ae80871",
+      "bytes": 323
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-acceptance/accept-lab-retry-1.log",
+      "sha256": "84e41c792b1fa8e214c3e5ac2551212ae18e8613bc20f080ffa4a49a4250f2f7",
+      "bytes": 3076
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-acceptance/accept-lab-retry-2.log",
+      "sha256": "08adae16dad2c8cb0d8d1d1999f6225deaa10e3bd0ca2e3921f6d4ecc496faf7",
+      "bytes": 2131
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-acceptance/accept-shared-harness.log",
+      "sha256": "b10d95659a988bef90878bb66a933c729cb316c366864293744d0787e30e29ac",
+      "bytes": 6768
+    }
+  ],
+  "lifetimeNote": "Logs are gitignored machine-local copies under plugins/shiyu/.local/h7-acceptance/ for review of this slice; they are ephemeral and may be cleaned after review. Committed artifacts/evidence are authoritative.",
+  "uncovered": [
+    "acceptance-report.json/md are NOT regenerated in this slice; round-end clean HEAD will run acceptance.mjs and Lead commits them separately",
+    "H7-prep has no product/host/model/business acceptance execution: all dimensions executed=0/passed=0",
+    "40 modules: 30 limited-only, 5 blocked (real device/credentials), 5 not_covered (event-schedule/supervisor/cache); none passed",
+    "V01–V27: 14 resource-blocked, 12 limited-evidence-only, 1 not-covered (V08); no complete V pass",
+    "S01–S08/FL01–FL08 remain synthetic-fixture-only-not-run and canUseForBusinessAcceptance=false; 16/16 blocked on real Lab/model/holdout/double-annotation resources",
+    "9 systems remain limited-evidence-only/incomplete; completeNineSystems=false",
+    "pre-existing flaky tests/lab-integration.test.ts not fixed in this slice (outside scope); full check exit 1 attributable to that test, harness suite/tsc green"
+  ]
+}

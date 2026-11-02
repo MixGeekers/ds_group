@@ -24,6 +24,8 @@
 | `selfproof.ts` | 自证执行器：真实运行 `tests/harness-*.test.ts`，解析 TAP，冻结 artifact，校验 stale/伪通过 |
 | `traceability.ts` | 覆盖追踪生成器：来源核验→证据计算→JSON+Markdown→诚实性门；输出 H7 证据层映射（`h7-traceability-mapping.md`） |
 | `evidence.ts` | H7-prep 证据层映射：已提交切片证据（路径+frozen HEAD blob SHA256+切片 commit 祖先）→ 产品行的 evidenceLevel/evidenceRefs/limitations/partialSubscenarios；产品行状态仍 not_covered |
+| `acceptance-registry.ts` | H7-acceptance：12 区域/40 模块机器可读清单（需求来源/系统映射/已知代码路径/测试ID/证据来源/阻塞资源） |
+| `acceptance.ts` | H7-acceptance 全量验收追踪与门控运行器：40 模块 + 九系统 + V01–V27 + S/FL 分母/证据/blocked 资源/gate（永不声明完整九系统完成） |
 | `fixtures/crash-child.ts` | 真实子进程崩溃夹具（临时 SQLite + 观察账本 + 命名崩溃断点） |
 | `business/` | H0c S/FL 业务骨架：catalog、fixture/答案生成器、四类允许结果 oracle、H1–H8 + 功能/质量聚合、DEV/REG/HOLDOUT 拆分、覆盖索引 |
 | `fl-scenarios.ts` | H0c CLI 实现：生成 `artifacts/dsh/harness/fl-scenarios/` 的 fixtures/answers/manifest/coverage/scoring 骨架 |
@@ -53,7 +55,10 @@ node scripts/harness/fl-scenarios.mjs --require-selfproof
 
 # 6) H7-prep 证据层映射随 traceability 生成（h7-traceability-mapping.md）
 
-# 7) 全量检查（typecheck + 主 glob 全部测试 + build + client 语法）
+# 7) H7-acceptance 全量验收追踪与门控（读取 traceability/selfproof/manifest/fl-coverage + 40 模块清单）
+node scripts/harness/acceptance.mjs
+
+# 8) 全量检查（typecheck + 主 glob 全部测试 + build + client 语法）
 npm run check
 ```
 
@@ -89,6 +94,16 @@ H0c 的 7 个自证 oracle（catalog / fixture isolation / four-class answers / 
 - 边界必须写在 limitations：H5 仅 G1 模块、H4b 仅合成 UI+零模型宿主、H2a/H2a-probe 零模型探针、H1 独立验证为离线 oracle、历史限定样本不升级、固定宿主证据一律零模型、无真实浏览器 DOM/真实业务。
 - `traceability.md` §8 渲染逐系统“证据→状态→缺口”；`artifacts/dsh/harness/h7-traceability-mapping.md` 给出完整逐系统/逐来源明细与复核方法。
 - oracle corpus 范围：`traceability.json#oracles` 覆盖 H0b corpus（15 个）；H0c business oracles（7 个 `business-oracle:*`）在 `tool-selfproof.json` 与 `oracleCorpus` 字段中计数，合计 22，不是缺少 7 个 oracle。
+
+## H7-acceptance 全量验收追踪与门控
+
+`acceptance-registry.ts` 把 `架构与设计/A方案全景/目录.md` 的 **12 区域、40 模块** 物化为机器可读清单：每模块含需求来源（目录.md 行 + 模块 README）、九系统映射、已知代码路径/产品测试文件ID、oracle、已提交证据来源、阻塞资源与 limitations。`acceptance.ts` 读取 committed `traceability.json` + `tool-selfproof.json` + `manifest.json` + H0c `fl-scenarios/coverage.json`，生成：
+
+- `artifacts/dsh/harness/acceptance-report.json` 与 `acceptance-report.md`：逐系统/40 模块/V01–V27/S01–S08+FL01–FL08 状态、证据引用、分母（planned/executed/passed/failed/unknown/blocked/skipped/notRun/notApplicable）与门控结论；
+- **门控永远是 `incomplete`、`completeNineSystems=false`**：H7-prep 没有任何产品/宿主/模型/业务验收执行（executed=0、passed=0）；`tooling_ready`、`limited-only`、`unknown`、`blocked` 永不折算为 pass；不得声明完整九系统完成或任何 V 项整体通过；
+- **S/FL 原样传播 H0c 标志**：`synthetic-fixture-only-not-run`、`canUseForBusinessAcceptance=false`（未被覆盖则报告 unknown/issue，不猜测）；
+- **blocked 资源清单**：真实设备授权、真实渠道账号、真实凭据、有界真实模型额度、Lab 业务运行、宿主长窗口、独立故障域备份、HOLDOUT 隔离、双人盲评；
+- 负例诚实门：把 gate 改成 complete、把模块/系统标成 passed、把 limited-only/tooling_ready 当 pass、把 unknown/skipped/notRun 从分母删除、把 H0c 标志升级，都会被 `checkAcceptanceHonesty` 拒绝。
 
 ## 自证如何工作（判定器先验真）
 
