@@ -1,0 +1,195 @@
+{
+  "schemaVersion": 1,
+  "kind": "h2b-subscriptions-time-offline",
+  "slice": "H2b 订阅生命周期/一次性等待/插件自有时间源/通知路由基础（离线）",
+  "capturedAt": "2026-11-02T21:44:51.107Z",
+  "repository": {
+    "headAtVerification": "d1607562f401a8bf5c87382d216036d68661285b",
+    "note": "Isolated worktree = shared HEAD at verification time + only this H2b slice files (node_modules and pinned .local/ombre symlinked). H1/H2a/H2c/H3/H6 files outside the slice are unchanged. HEAD moved during development; evidence binds the verification commit above.",
+    "timeSourceDecision": "The time source is a plugin-owned declarative SchedulePort implementation (RuleBasedSchedulePort reading the plugin rule file) driven by a cooperative runtime tick (TimeSourcePump). It does NOT depend on @deepseek-ai/dsh-schedule; the host schedule prompt-injection semantics are explicitly out of this slice."
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin/arm64"
+  },
+  "changedFiles": [
+    {
+      "path": "plugins/shiyu/src/control/events/rules.ts",
+      "bytes": 23714,
+      "sha256": "6001227a5fd5d94b1902373ab7dd3fa95ba63c56918b5713f42629956ccb4f1d"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/subscriptions.ts",
+      "bytes": 23390,
+      "sha256": "a3ea382b86697e4e68fcbef3f6e5d5053b9181d8c1b8624295f31d66aa9bffeb"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/time-source.ts",
+      "bytes": 28181,
+      "sha256": "0325fe9c2a0c87141d588d9d34e41c72ba5c185890f2a08a69e515ff209fe372"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/notifications.ts",
+      "bytes": 11573,
+      "sha256": "a5cdaff1c043732d08b2ea0e49d2ac9bb36d3a67b9f94610e2aed34882677d3d"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-subscriptions.test.ts",
+      "bytes": 15490,
+      "sha256": "65f523032372d117ed24b3723c814cf20970005be334a6f903e22689bec62569"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-time-source.test.ts",
+      "bytes": 18264,
+      "sha256": "55fa7193242574a83020fd7896be78466920fd08d0df7ca5065b762abf215495"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-notifications.test.ts",
+      "bytes": 12122,
+      "sha256": "b4f1d5f954bb8ec47492d430a4f0340f4f0e2e88113d16cf4b9aa57ddc37375e"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-manifest.json",
+      "bytes": 497,
+      "sha256": "4c628f6203d19b78f46374cb12340790b19112ec3cfc097f9730ed0e26bd25b6"
+    }
+  ],
+  "commands": [
+    "node --import tsx --test --test-concurrency=1 tests/events-subscriptions.test.ts tests/events-time-source.test.ts tests/events-notifications.test.ts tests/events*.test.ts tests/event-tools.test.ts tests/background-pump.test.ts",
+    "node plugins/shiyu/scripts/slice-verify.mjs --slice h2b --manifest plugins/shiyu/artifacts/dsh/h2/h2b-manifest.json"
+  ],
+  "targetedRuns": {
+    "all": {
+      "tests": 98,
+      "pass": 98,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "log": {
+        "path": "plugins/shiyu/.local/h2b-targeted.log",
+        "sha256": "7948d8b2a82a18a6f30a23bb73b1b92fa79a33b3b65ffe9a2b7c66d0bcb076dd"
+      }
+    },
+    "newTests": {
+      "tests": 22,
+      "pass": 22,
+      "fail": 0,
+      "files": [
+        {
+          "file": "plugins/shiyu/tests/events-subscriptions.test.ts",
+          "tests": 6,
+          "topics": [
+            "lifecycle revisions/generations, unsubscribe eligibility",
+            "condition change activation fence",
+            "pause/resume same-event dedupe",
+            "white-listed bounded conditions + durable changed state",
+            "condition-gated continuation zero wake",
+            "once wait zero-model/qualification/expiry/cancel"
+          ]
+        },
+        {
+          "file": "plugins/shiyu/tests/events-time-source.test.ts",
+          "tests": 10,
+          "topics": [
+            "baseline/latest-only canonical occurrences",
+            "duplicate schedule identity",
+            "cancel/pause/resume/clock rollback/restart no replay",
+            "once schedule",
+            "daily timezone change",
+            "bounded read-only observation scan",
+            "paused observation skip",
+            "cooperative pump zero-model/coalescing/close drain",
+            "pump pause gating",
+            "owner-scoped subscription reader"
+          ]
+        },
+        {
+          "file": "plugins/shiyu/tests/events-notifications.test.ts",
+          "tests": 6,
+          "topics": [
+            "per-destination restricted views/no broadcast",
+            "durable intent dedupe across restart",
+            "unknown never retried + read-only reconcile",
+            "failed no auto retry",
+            "fan-out/pending bounds",
+            "causation chain depth/cycle loop block"
+          ]
+        }
+      ]
+    },
+    "historicalRegression": {
+      "files": [
+        "tests/events*.test.ts (H2a/H2c)",
+        "tests/event-tools.test.ts",
+        "tests/background-pump.test.ts"
+      ],
+      "note": "All pre-existing event/worker/core suites remain green in the same run; no existing test file was modified."
+    }
+  },
+  "isolatedFullCheck": {
+    "evidencePath": "plugins/shiyu/artifacts/dsh/slices/h2b-verify.json",
+    "evidenceSha256": "3d47255351086106407d08b117182f80dbdb0b5bc89b5c2b880004768cc10646",
+    "head": "d1607562f401a8bf5c87382d216036d68661285b",
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "tests": 1404,
+    "pass": 1404,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 402383,
+    "baselineTestsWithoutSlice": 1382,
+    "log": {
+      "path": "plugins/shiyu/.local/slice-verify-h2b.log",
+      "bytes": 153193,
+      "sha256": "1c150f344865073f28963bac5e9422f18bf1ca523566f87bf86a9bb4c1b940b0"
+    },
+    "verdict": "pass"
+  },
+  "boundaryDeclaration": {
+    "storeAuthority": "The control store remains the only authority for subscription acceptance, ruleRevision/activationGeneration, deliveries, ack and claim fencing. The plugin-owned EventRuleStore (atomic JSON file) only holds bounded declarative metadata and derived observation/time/wait/intent state; it cannot create, authorize or dispatch a subscription.",
+    "lifecycle": "create/update/pause/resume/unsubscribe/list/status expose expectedRevision CAS. Store-level rule changes (types/filter/expiresAt) keep their existing ruleRevision/activationGeneration semantics. Declarative-only changes (condition/notification/time/observation) bump the plugin conditionRevision and explicitly fence the old activation generation via pause+resume, cancelling pending deliveries; the same accepted event cannot become a second match (durable delivery identity excludes activationGeneration).",
+    "onceWait": "A one-shot wait is a durable background subscription with once+expiresAt. Waiting consumes no worker slot and calls no model. A claimed delivery is settled by a trusted qualification gate (current Assignment/Goal/pause/budget); denial keeps only the zero-model background reference with an explicit reason. Expiry/cancel close dispatch eligibility and never wake a gate.",
+    "conditions": "Conditions are declarative only: white-listed filterable fields, bounded predicates (<=8), operators eq/in/changed/gt/gte/lt/lte/exists, primitive values (in <=16). No callbacks, JS, SQL or regex are representable. A matched condition gates continuation; it does not grant authority or create Task/Goal effects; unaffected conditions remain zero-model.",
+    "timeSource": "Canonical occurrence identity = subscriptionId + rule revision (plugin conditionRevision) + scheduled occurrence (kind/revision/scheduledFor), mirrored into the durable event idempotency key. latest-only collapses missed periods to one latest occurrence; skip/grace drops stale ones with a gap. Fresh state/restart establishes a baseline and never replays history; clock rollback, timezone/rule changes and pause/cancel/retire are explicit gaps and never re-fire; duplicate schedule records for one identity accept at most once. One-shot schedules fire once and never after restart. The cooperative pump coalesces ticks, drains in-flight work on close and is gated by runtime pause; it calls no model and occupies no operation slot.",
+    "externalObservation": "External changes use an injected read-only observation port with bounded polling (minIntervalMs). Errors/invalid results become visible gaps, never \"no change\"; unchanged versions produce no events; a changed/newer version publishes one deterministic event. The service never calls a model per tick.",
+    "notifications": "Destinations come only from the accepting subscription/request rule; association alone never broadcasts. Every destination gets its own restricted view (metadata + explicitly allowed payload fields only) with a digest. Intent identity is durable (rootEventId+eventId+destination+category) and survives restart/reconnect; delivered/unknown/failed intents are not resent. An unknown send is never retried automatically; only a read-only receipt query can converge it. Causation chains are bounded (default depth 8) and cycles block routing; fan-out and pending intents are bounded with explicit deferred counters.",
+    "unchangedRoles": "replyer stays zero-tool; worker/core event tool surfaces and H1/H2a/H2c boundaries are untouched by this slice."
+  },
+  "runtimeIntegration": {
+    "file": "plugins/shiyu/src/runtime.ts (Lead lands; not edited here)",
+    "precondition": "Construct rule store/lifecycle/reader/time source/pump after `this.events = new EventService(this.store);` and before the background pump starts. Catalog must include H2B_EVENT_TYPES. The observation port and notification effect port are trusted composition (never command JSON). The cooperative pump uses its own timer, no operation slot; allowed() must be false while paused/closed/closing. Close must drain the pump before store close.",
+    "failureDegradation": "If the observation port is absent, only time schedules run. Time/observation failures are recorded in gaps and snapshot diagnostics, never as \"no change\". No rule store or no pump leaves the rest of the runtime unaffected; H2b control APIs remain opt-in trusted composition.",
+    "diffText": "--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ imports\n+import { EventRuleStore } from './control/events/rules.js';\n+import { RuleStoreSubscriptionReader, SubscriptionLifecycleService } from './control/events/subscriptions.js';\n+import { H2B_EVENT_TYPES, RuleBasedSchedulePort, TimeSourcePump, TimeSourceService, type ReadonlyObservationPort } from './control/events/time-source.js';\n+import { NotificationRouter, type NotificationEffectPort } from './control/events/notifications.js';\n@@ catalog (trusted event defs)\n-const catalog: EventTypeDefinition[] = [...SHIYU_EVENT_TYPES, ...ownTypes.map(...)];\n+const catalog: EventTypeDefinition[] = [...SHIYU_EVENT_TYPES, ...H2B_EVENT_TYPES, ...ownTypes.map(...)];\n@@ export interface RuntimeOptions\n+  /** Trusted composition only: read-only external observation + notification Effect. */\n+  timeObservationPort?: ReadonlyObservationPort;\n+  notificationEffectPort?: NotificationEffectPort;\n@@ class RuntimeService fields\n+  eventRules!: EventRuleStore;\n+  subscriptions!: SubscriptionLifecycleService;\n+  subscriptionReader!: RuleStoreSubscriptionReader;\n+  timeSource!: TimeSourceService;\n+  timePump?: TimeSourcePump;\n+  notificationRouter?: NotificationRouter;\n@@ init(), immediately after `this.events = new EventService(this.store);`\n+      this.eventRules = new EventRuleStore({ filename: path.join(this.dataDir, 'control', 'event-rules.json') });\n+      this.subscriptions = new SubscriptionLifecycleService({ events: this.events, rules: this.eventRules });\n+      this.subscriptionReader = new RuleStoreSubscriptionReader(this.eventRules, this.events);\n+      this.timeSource = new TimeSourceService({ events: this.events, rules: this.eventRules,\n+        schedule: new RuleBasedSchedulePort(this.eventRules),\n+        principal: { principalId: 'shiyu-time-source', kind: 'component', scopes: ['local-owner'],\n+          publishTypes: ['time.occurred', 'observation.changed'], subscribeTypes: [], targetRefs: [] },\n+        readSubscription: id => this.subscriptionReader.read(id),\n+        triggerEventType: 'time.occurred', observationEventType: 'observation.changed',\n+        ...(this.options.timeObservationPort ? { observation: this.options.timeObservationPort } : {}) });\n+      this.timePump = new TimeSourcePump({ source: this.timeSource,\n+        allowed: () => !this.pauseRequested && !this.closed && !this.closing,\n+        onFailure: error => { this.lastFailure = error instanceof Error ? error.message : String(error); } });\n+      this.timePump.start();\n+      if (this.options.notificationEffectPort) this.notificationRouter = new NotificationRouter({ events: this.events,\n+        rules: this.eventRules, effect: this.options.notificationEffectPort });\n@@ close(): stop the cooperative tick before draining native work\n+    const timeClosing = this.timePump?.close();\n@@ close(): include it with the other stopped loops, e.g. `Promise.allSettled([backgroundClosing, corePumpClosing, coreClosing, labClosing, timeClosing])`\n@@ snapshot().diagnostics (optional read-only projection)\n+        timeSource: this.timePump ? this.timePump.snapshot() : null,\n+        notifications: this.notificationRouter ? { enabled: true } : { enabled: false },\n"
+  },
+  "gapsAndUntested": [
+    "runtime.ts integration (catalog + rule store/lifecycle/time pump + diagnostics) is delivered as an exact diff and not live; fixed-host/zero-model probe for H2b is left for Lead.",
+    "No real model, embedding, channel, device or real effect endpoint was used: notification Effect and external observation are synthetic doubles; the notification sender adapter (channel/Effect) remains future channel-slice work.",
+    "Agent-facing declarative-condition tools are not mounted: installEventTools is not used by runtime today, and the condition/notification API is trusted composition. If desired, a later slice can pass SubscriptionLifecycleService into the generic event tool installation.",
+    "IANA timezone database/DST rules are not embedded: daily schedules take an explicit injected zoneOffsetMinutes; a production adapter must supply offsets and report changes. This keeps offline determinism but is not a general tz implementation.",
+    "Notification \"dedupe survives reconnect\" is proven across process/rule-store restart, not against a real platform that may redeliver after reconnect; platform receipt semantics stay unknown.",
+    "Causal loop detection uses the bounded visible event history (500); a chain whose ancestors were pruned/not visible is treated as shallow and is not detectable. Cross-runtime echo suppression remains future work.",
+    "Budget bounding is structural (maxFanout, maxPendingIntents, chain depth, maxOccurrencesPerTick); monetary/model cost bounding is not part of H2b and no model slot is touched.",
+    "DSH host Schedule was deliberately NOT used; a future optional host-schedule adapter may be evaluated separately without becoming the time authority."
+  ],
+  "evidenceBoundaries": [
+    "G1/G2 offline: real temporary SQLite control store + real temporary rule file + synthetic clock/schedule/observation/effect doubles. Not fixed-host, model, channel or business acceptance.",
+    "Counts are snapshot-specific and must not be summed with other slices or reused after source changes."
+  ],
+  "artifacts": {
+    "manifest": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-manifest.json",
+      "bytes": 497,
+      "sha256": "4c628f6203d19b78f46374cb12340790b19112ec3cfc097f9730ed0e26bd25b6"
+    },
+    "isolatedCheck": {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h2b-verify.json",
+      "bytes": 2570,
+      "sha256": "3d47255351086106407d08b117182f80dbdb0b5bc89b5c2b880004768cc10646"
+    },
+    "thisEvidence": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-subscriptions-time.json",
+      "note": "self hash omitted"
+    }
+  }
+}

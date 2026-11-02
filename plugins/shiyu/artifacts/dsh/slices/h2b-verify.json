@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h2b",
+  "capturedAt": "2026-11-02T21:59:57.354Z",
+  "head": "50624850a8ccd3fc781c40ec79f01f2099157456",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h2b-1793656519740",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/events/rules.ts",
+      "bytes": 23714,
+      "sha256": "6001227a5fd5d94b1902373ab7dd3fa95ba63c56918b5713f42629956ccb4f1d"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/subscriptions.ts",
+      "bytes": 23390,
+      "sha256": "a3ea382b86697e4e68fcbef3f6e5d5053b9181d8c1b8624295f31d66aa9bffeb"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/time-source.ts",
+      "bytes": 28181,
+      "sha256": "0325fe9c2a0c87141d588d9d34e41c72ba5c185890f2a08a69e515ff209fe372"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/notifications.ts",
+      "bytes": 11573,
+      "sha256": "a5cdaff1c043732d08b2ea0e49d2ac9bb36d3a67b9f94610e2aed34882677d3d"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-subscriptions.test.ts",
+      "bytes": 15490,
+      "sha256": "65f523032372d117ed24b3723c814cf20970005be334a6f903e22689bec62569"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-time-source.test.ts",
+      "bytes": 18264,
+      "sha256": "55fa7193242574a83020fd7896be78466920fd08d0df7ca5065b762abf215495"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-notifications.test.ts",
+      "bytes": 12122,
+      "sha256": "b4f1d5f954bb8ec47492d430a4f0340f4f0e2e88113d16cf4b9aa57ddc37375e"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 277416,
+    "bytes": 152915,
+    "sha256": "33177e35368720c8b2258e87e1b5b86a5bd3facaf640a6fb7e5cf2083b6cba70",
+    "tests": {
+      "tests": 1404,
+      "pass": 1404,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 276540.645042",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h2b.log",
+    "bytes": 152915,
+    "sha256": "33177e35368720c8b2258e87e1b5b86a5bd3facaf640a6fb7e5cf2083b6cba70"
+  },
+  "verdict": "pass"
+}

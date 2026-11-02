@@ -1,0 +1,13 @@
+{
+  "slice": "h2b-subscriptions-time",
+  "files": [
+    "plugins/shiyu/src/control/events/rules.ts",
+    "plugins/shiyu/src/control/events/subscriptions.ts",
+    "plugins/shiyu/src/control/events/time-source.ts",
+    "plugins/shiyu/src/control/events/notifications.ts",
+    "plugins/shiyu/tests/events-subscriptions.test.ts",
+    "plugins/shiyu/tests/events-time-source.test.ts",
+    "plugins/shiyu/tests/events-notifications.test.ts",
+    "plugins/shiyu/artifacts/dsh/h2/h2b-manifest.json"
+  ]
+}

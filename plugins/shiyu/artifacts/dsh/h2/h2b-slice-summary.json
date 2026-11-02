@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "phase": "H2b",
+  "slice": "subscription lifecycle, one-shot waits, declarative conditions, plugin-owned time source and notification routing",
+  "capturedAt": "2026-11-02T22:00:09.634Z",
+  "status": "offline-verified-module",
+  "purpose": "Add the H2b event layer offline: CAS subscription lifecycle with activation-generation semantics, one-shot zero-model waits, declarative bounded conditions, a plugin-owned declarative SchedulePort with a cooperative zero-model tick, and a destination-restricted notification router with durable intent identity.",
+  "baseline": {
+    "head": "5062485",
+    "note": "H0..H6c committed; 1382 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/events/rules.ts",
+      "bytes": 23714,
+      "sha256": "6001227a5fd5d94b1902373ab7dd3fa95ba63c56918b5713f42629956ccb4f1d"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/subscriptions.ts",
+      "bytes": 23390,
+      "sha256": "a3ea382b86697e4e68fcbef3f6e5d5053b9181d8c1b8624295f31d66aa9bffeb"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/time-source.ts",
+      "bytes": 28181,
+      "sha256": "0325fe9c2a0c87141d588d9d34e41c72ba5c185890f2a08a69e515ff209fe372"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/notifications.ts",
+      "bytes": 11573,
+      "sha256": "a5cdaff1c043732d08b2ea0e49d2ac9bb36d3a67b9f94610e2aed34882677d3d"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-subscriptions.test.ts",
+      "bytes": 15490,
+      "sha256": "65f523032372d117ed24b3723c814cf20970005be334a6f903e22689bec62569"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-time-source.test.ts",
+      "bytes": 18264,
+      "sha256": "55fa7193242574a83020fd7896be78466920fd08d0df7ca5065b762abf215495"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-notifications.test.ts",
+      "bytes": 12122,
+      "sha256": "b4f1d5f954bb8ec47492d430a4f0340f4f0e2e88113d16cf4b9aa57ddc37375e"
+    }
+  ],
+  "implementation": {
+    "rules": "EventRuleStore persists declarative rules and derived state as atomic JSON under the control dir (subscriptions/deliveries/ack remain authoritative in the control DB): conditions only eq/in/changed/gt/gte/lt/lte/exists, <=8 predicates, filterable primitives, in<=16; callbacks/JS/SQL/regex are not expressible; bounded retention of lastSeen, time/observation watermarks, wait outcomes and notification intents.",
+    "lifecycle": "SubscriptionLifecycleService: subscribe/update/pause/resume/unsubscribe/list/status with expectedRevision CAS; declarative-only updates bump a condition revision and close the old activation generation via pause+resume while cancelling old pending deliveries; a paused/resumed subscription never gets a second hit for the same event; withDeclarativeCondition gates continuation so unmatched events only store a zero-model background reference and ack; OnceWaitService holds one-shot waits without a worker slot or model call and still revalidates Assignment/Goal/pause/budget before dispatch.",
+    "timeSource": "SchedulePort plus RuleBasedSchedulePort (plugin rules, not DSH dsh-schedule); trigger identity = subscription + ruleRevision(condition revision) + canonical scheduled occurrence; duplicate ticks/schedules execute once; latest-only merges missed occurrences, skip/grace drops expired ones with an explicit gap; fresh/restart establish a baseline and never replay history; clock backstop/timezone/rule changes record gaps; once triggers once and never on restart; cancel/pause/unsubscribe never revive; injected read-only ObservationPort polls boundedly (failure is a gap, not no-change); TimeSourcePump is a cooperative tick with its own timer, no operation slot, no model call, pause gate, in-flight tick merge and drain on close; H2B_EVENT_TYPES = time.occurred/observation.changed.",
+    "notifications": "NotificationRouter: destinations only from registered rules (association never broadcasts); each destination gets a restricted view (metadata plus explicit allowedFields and digest); durable intent identity dedupes across restart/reconnect; unknown/failed are never auto-resent (read-only reconcile only); causation depth (default 8) and loop blocking; fan-out and pending intents bounded with explicit deferred; zero model calls."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "ephemeral worktree at HEAD d160756 + only 8 files",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1404,
+      "pass": 1404,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "arithmetic": "1382 baseline + 22 new tests = 1404",
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h2b.log",
+        "sha256": "1c150f34…"
+      }
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 5062485 + only these 7 files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h2b-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1404,
+        "pass": 1404,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 277416,
+      "log": "plugins/shiyu/.local/slice-verify-h2b.log",
+      "arithmetic": "1382 baseline + 22 new tests = 1404"
+    },
+    "targeted": {
+      "tests": 98,
+      "pass": 98,
+      "fail": 0,
+      "note": "H2b three files plus existing events/event-tools/background-pump regression"
+    },
+    "positive": "lifecycle CAS/profile/activation generations, one-shot wait, declarative condition gating, time identity/duplicate tick/latest-only/misfire/backstop/timezone/once/restart, observation failure-as-gap, notification restricted views/dedupe/reconcile/chain-loop/bounds/zero-model silence.",
+    "negative": "stale revision updates, removed predicates on a paused subscription, wrong activation generation, expired/cancelled waits, forged time/observation identities, replay attempts, unknown notification sends, causation loops, fan-out overflow and model activity all fail or degrade explicitly."
+  },
+  "failedUnknownUntested": [
+    "Runtime integration (catalog + rule store + lifecycle/reader + TimeSourcePump + optional NotificationRouter + close drain + read-only diagnostics) is the Lead step; exact diff is in the teammate evidence.",
+    "Fixed-host zero-model validation, real models/channels/Effect ports, IANA DST database (daily uses injected zoneOffsetMinutes in this slice), agent-facing condition-subscription tools, cross-runtime echo detection and platform-level notification receipt semantics are untested.",
+    "Causal loop detection is limited to the visible 500-event history; ancestry trimmed beyond that is not detected. Structural bounds are not monetary/model budgets.",
+    "No real model/embedding/channel/Lab action in this slice."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "realChannelCalls": 0
+  },
+  "evidenceLevel": "G1 module/integration + real temporary SQLite + synthetic clock/observation; runtime and host acceptance not claimed."
+}

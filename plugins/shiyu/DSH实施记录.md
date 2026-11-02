@@ -834,3 +834,39 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h6c-manifest.json>
 cd plugins/shiyu && npm run test:ui
 ```
+
+## 25. H2b 切片：订阅生命周期、一次性等待、时间源与通知路由基础
+
+状态：**离线通过（G1 模块/集成 + 真实临时 SQLite + 合成时钟/观察端口）**；Runtime 集成与宿主/真实依赖未验。2026-11-02 完成并审阅。
+
+### 25.1 交付（7 文件 + 证据）
+
+- `src/control/events/rules.ts`：`EventRuleStore` 以控制目录下原子 JSON 持久化声明式规则与派生状态（订阅/投递/ack 仍以控制库为唯一权威）。条件只允许 `eq/in/changed/gt/gte/lt/lte/exists`、≤8 谓词、filterable 原始值、in≤16；**不可表达 callback/JS/SQL/正则**；对 lastSeen、时间/观察水位、wait outcome、notification intent 做有界保留。
+- `src/control/events/subscriptions.ts`：`SubscriptionLifecycleService`（subscribe/update/pause/resume/unsubscribe/list/status，expectedRevision CAS；declarative-only 变更 bump conditionRevision 并通过 pause+resume 关闭旧 activation generation、取消旧 pending，同一事件不会因暂停恢复二次命中）；`withDeclarativeCondition()` 把条件接入既有 continuation gate（不匹配只落零模型背景引用并 ack，不唤醒）；`OnceWaitService`（一次性等待+期限，不占 worker 槽、零模型；匹配后仍校验 Assignment/Goal/pause/budget，拒绝保留背景引用；取消/过期关闭资格）；`RuleStoreSubscriptionReader`。
+- `src/control/events/time-source.ts`：`SchedulePort` + `RuleBasedSchedulePort`（插件自带，**不依赖 DSH dsh-schedule**）；触发身份 = `subscriptionId + ruleRevision(conditionRevision) + 规范计划发生时刻`；重复 tick/schedule 同身份只执行一次；latest-only 合并错过周期、skip/grace 丢过期并记 gap；fresh/restart 建立 baseline 不重放历史；时钟回拨/时区/规则变更记 gap 不重复触发；once 只触发一次且重启不重放；取消/暂停/退订不复活；注入只读 `ObservationPort` 有界轮询（失败=gap 非“无变化”）；`TimeSourcePump` 协作 tick（自有 timer、不占操作槽、不调模型、pause 门控、合并进行中 tick、close drain）；`H2B_EVENT_TYPES`（`time.occurred`/`observation.changed`）供 runtime catalog。
+- `src/control/events/notifications.ts`：`NotificationRouter`：目的地只来自登记规则（仅关联从不广播）；每目的地独立受限视图（metadata+显式 allowedFields+digest）；durable intent 身份跨重启/重连去重；unknown/failed 不自动重发（只读 reconcile）；causation 链深（默认 8）/环阻断；fan-out 与 pending intents 有界并显式 deferred；无模型调用。
+- 测试：`tests/events-subscriptions.test.ts` 6、`events-time-source.test.ts` 10、`events-notifications.test.ts` 6（共 22）。
+- 证据：`artifacts/dsh/h2/h2b-subscriptions-time.json`（含 runtime.ts 精确集成 diff）、`h2b-slice-summary.json`、`artifacts/dsh/slices/h2b-verify.json`。
+
+### 25.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `d160756` + 仅 8 文件） | exit 0；**1404/1404 通过，0 失败/取消/跳过**（= 1382 + 22） |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `5062485` + 仅 7 文件） | exit 0；**1404/1404 通过，0 跳过**；证据 `artifacts/dsh/slices/h2b-verify.json` |
+| 定向 | 98/98（H2b 3 文件 + 既有 events/event-tools/background-pump 回归） |
+| 证据级别 | G1 离线模块/集成；非 Runtime/宿主/真实依赖验收 |
+
+### 25.3 失败 / unknown / 未测
+
+1. Runtime 集成（catalog + rule store/lifecycle/reader + `TimeSourcePump` + 可选 NotificationRouter + close drain + 只读 diagnostics）为 Lead 步骤；精确 diff 在队友证据中。
+2. 固定宿主零模型验证、真实模型/渠道/Effect 端口、IANA DST 数据库（本切片 daily 用注入 zoneOffsetMinutes）、agent-facing 条件订阅工具、跨运行时回声与平台级通知回执语义未测。
+3. 因果环检测受可见 500 事件历史限制；结构有界不是货币/模型成本预算。
+4. 无真实模型/embedding/渠道/Lab 动作。
+
+### 25.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h2b-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/events-subscriptions.test.ts tests/events-time-source.test.ts tests/events-notifications.test.ts
+```
