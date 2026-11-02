@@ -1,0 +1,308 @@
+{
+  "schemaVersion": 1,
+  "phase": "final-joint-host",
+  "slice": "final joint fixed-host zero-model validation of H1/H2a/H2a-probe/H3/H4/H4b/H4c/H5/H6a build",
+  "capturedAt": "2026-11-02T20:14:10.494Z",
+  "status": "fixed-host-zero-model-limited",
+  "purpose": "Reload the final verified build once on the fixed DSH host and prove: startup; schema4 six-domain publication; lossless read-only status tool; truthful inner summary; zero-model worker tool surface diagnosis; preserved business facts; and no unclassified side effects.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-final-host-execution-plan.json",
+    "sha256": "66206bcfeb056bbc3612f806eec50ea157e5493716d4a2d19899614db2888c19"
+  },
+  "code": {
+    "head": "3b25e1b",
+    "dist": {
+      "files": 101,
+      "digest": "ce295911b6c064f93c76cf28ff81ca8d89697e2e85835e1fdd3983c4d14ddf37"
+    },
+    "note": "dist built from an isolated worktree at the committed HEAD and installed after digest comparison; the previous H4b dist is backed up in .local/dist-backup/h4b"
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "reloads": 1,
+    "newInstanceId": "18322852-c137-44f9-8dea-f5fbba4fb08c",
+    "startedAt": "2026-11-02T20:12:48.788Z"
+  },
+  "statusTool": {
+    "call": "shiyu_status",
+    "isError": false,
+    "readOnly": true,
+    "payloadBytes": 51276,
+    "payloadSha256": "5ff56a8a477eed4e2de9a5b21f44c48113ec2051786f536abc808dd56a94b6c5",
+    "schemaVersion": 1,
+    "lifecycle": "degraded",
+    "state": "idle",
+    "innerPublication": {
+      "schemaVersion": 4,
+      "stateVersion": 6,
+      "manifestHash": "8e9f0530d2c4cc175ccaf9be5447833eada1eef42a62a03dbaf7d12bb49324fd",
+      "domains": {
+        "memory": {
+          "status": "available",
+          "backendId": "ombre-local",
+          "capabilities": [
+            "exact_read",
+            "semantic_search"
+          ]
+        },
+        "relationship": {
+          "status": "available",
+          "backendId": "control-relationship",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "emotion": {
+          "status": "available",
+          "backendId": "control-emotion",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "cognition": {
+          "status": "available",
+          "backendId": "control-cognition",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "personality": {
+          "status": "available",
+          "backendId": "control-personality",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "ability": {
+          "status": "available",
+          "backendId": "control-ability",
+          "capabilities": [
+            "state_read"
+          ]
+        }
+      }
+    },
+    "innerSummary": "记忆、关系、情绪、认知、人格与能力六域已在本机控制库接线：各域保留权威、版本、来源与撤回/删除屏障，只读视图按受众裁剪并分离元数据与正文；available 只是已发布的读取能力声明，不等于授权或业务验收，真实生成路径与跨域重算仍待推进。",
+    "innerSummaryTruthful": true,
+    "counts": {
+      "tasks": 3,
+      "coreGoals": 2,
+      "labConnections": 3,
+      "sessions": 10,
+      "activeWork": 0
+    },
+    "diagnostics": {
+      "eventToolProbe": null
+    },
+    "capability": {
+      "revision": 14,
+      "enabled": true,
+      "availability": "available",
+      "verification": "unknown",
+      "definitionDigest": "5a591515147e63ccd956f4ed85b95ccf7df8b29770f4c13ac0ef11d3636c652e"
+    }
+  },
+  "diagnosisTool": {
+    "call": "shiyu_diagnose_worker_tools",
+    "isError": false,
+    "payloadSha256": "13e9e4e9a3e727dc35955caa3c27a0cdba37c68f151e81453603a152b7c79fe2",
+    "ok": true,
+    "zeroModel": true,
+    "readOnly": true,
+    "sent": false,
+    "probeSessionId": "shiyu-worker-probe-940b80a0-1966-4441-a2e5-300148c86f95",
+    "preset": "shiyu-runtime-worker-v1",
+    "scope": "local-owner",
+    "tools": [
+      {
+        "name": "shiyu_worker_probe_task",
+        "source": "assignment",
+        "parameterKeys": [],
+        "additionalProperties": false
+      },
+      {
+        "name": "shiyu_worker_event_types",
+        "source": "event",
+        "parameterKeys": [],
+        "additionalProperties": false
+      },
+      {
+        "name": "shiyu_worker_event_report",
+        "source": "event",
+        "parameterKeys": [
+          "type",
+          "payload",
+          "idempotencyKey",
+          "correlationId"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "assignmentTools": [
+      "shiyu_worker_probe_task"
+    ],
+    "eventTools": [
+      "shiyu_worker_event_types",
+      "shiyu_worker_event_report"
+    ],
+    "hostToolsOnHost": [
+      "working_directory",
+      "shiyu_workbench",
+      "load_workspace_dependencies",
+      "shiyu_gym",
+      "shiyu_status",
+      "shiyu_diagnose_worker_tools"
+    ],
+    "authorityFields": [],
+    "counters": {
+      "modelRequests": 0,
+      "modelStreams": 0,
+      "assistantMessages": 0,
+      "userMessages": 0,
+      "toolEvents": 0,
+      "usageEvents": 0
+    },
+    "released": true,
+    "disposed": true,
+    "expectedSurface": true
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        308,
+        315
+      ],
+      "events": [
+        38,
+        39
+      ],
+      "deliveries": [
+        {
+          "acked": 37
+        },
+        {
+          "acked": 38
+        }
+      ],
+      "stateVersion": [
+        6,
+        6
+      ],
+      "capabilityRevision": [
+        12,
+        14
+      ],
+      "sessions": [
+        17,
+        17
+      ],
+      "sessionDigest": [
+        "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979",
+        "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ]
+    },
+    "toolsRun": {
+      "commitSeq": [
+        315,
+        315
+      ],
+      "events": [
+        39,
+        39
+      ],
+      "deliveries": [
+        {
+          "acked": 38
+        },
+        {
+          "acked": 38
+        }
+      ],
+      "capabilityRevision": [
+        14,
+        14
+      ],
+      "stateFileHash": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "sessions": [
+        17,
+        18
+      ],
+      "addedSessionFiles": [
+        "--Users-caja-.dsh-profiles-desktop--/shiyu-worker-probe-940b80a0-1966-4441-a2e5-300148c86f95/session.v4.jsonl.zstd"
+      ],
+      "changedKnownSessionFiles": []
+    },
+    "classification": {
+      "reload": "+7 commitSeq: expected startup lifecycle writes (runtime lifecycle event, capability hostEpoch re-observation, startup publication checks). events +1 = the runtime.lifecycle.changed event; no task/goal/lab/model event.",
+      "publication": "stateVersion stays 6: schema4 manifest and authority ids unchanged; all six domains available.",
+      "capability": "revision 12 -> 14 (+2 hostEpoch rebind + availability observation). definitionDigest changed from 1f9c5911... to 5a591515... because the stable implementation identity intentionally covers the changed worker execution surface (shared mount extraction/probe code); enabled/availability stay true/available and verification stays unknown - no success proof is fabricated.",
+      "toolsRun": "commitSeq stays 315, events stay 39, deliveries stay 38, stateVersion/capability revision unchanged, runtime-state file hash unchanged: both tool calls are read-only with respect to the control ledger. Exactly one new owned Session file appears (the released/archived shiyu-worker-probe-* diagnostic Session); all 17 previously known Session files are byte-identical.",
+      "probe": "receipt: ok, zeroModel, readOnly, sent=false; tools exactly the placeholder task tool + two restricted event tools; authorityFields empty; all model counters 0; released=disposed=true; the host-side tool list is reported but none of those host tools were mounted into the restricted surface."
+    }
+  },
+  "findings": [
+    "The probe creates one released/archived native Session file per call (diagnostic side effect); this is classified and must not be used as a business path.",
+    "Capability definitionDigest legitimately changed with the worker execution-surface code; the proof state remains unknown and the original informational policy is unchanged.",
+    "The top-level scope notice still lists some inner states as pending; it is not a manifest contradiction (memory lifecycle/cross-domain recomputation remain unfinished)."
+  ],
+  "scope": {
+    "orderedReloads": 1,
+    "toolCalls": 2,
+    "productModelCalls": 0,
+    "embeddingCalls": 0,
+    "taskCreates": 0,
+    "goalOperations": 0,
+    "labInputs": 0,
+    "labConnects": 0,
+    "labPluginReloads": 0,
+    "workbenchPluginReloads": 0
+  },
+  "evidence": {
+    "beforeAudit": "artifacts/dsh/host/final-host-before.json",
+    "afterAudit": "artifacts/dsh/host/final-host-after.json",
+    "afterToolsAudit": "artifacts/dsh/host/final-host-after-tools.json",
+    "statusPayload": "artifacts/dsh/host/shiyu-status-final-build.json",
+    "diagnosisPayload": "artifacts/dsh/host/worker-tools-diagnosis-final-build.json"
+  },
+  "limitations": [
+    "Zero-model evidence only: the probe proves restricted mounting, non-forgeable tool parameters and release. It does not prove a model actually called an event tool, provider budgets/cache, real task/Goal continuation or H3 plan execution under a real model.",
+    "Real browser DOM rendering of the dashboard is not proven by these JSON observations; synthetic-host UI tests remain a separate evidence layer.",
+    "lifecycle=degraded continues to reflect retained historical unknown/paused facts, not a new failure."
+  ]
+}

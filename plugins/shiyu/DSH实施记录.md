@@ -562,3 +562,29 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/core-pla
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h6a-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/channel-*.test.ts tests/ingress-worker.test.ts
 ```
+
+## 16. 联合固定宿主零模型验证（最终构建，2026-11-02）
+
+状态：**固定宿主零模型限定通过**（启动/发布/只读工具/受限工具挂载/无重放），不是 V24 或业务验收。代码 HEAD `3b25e1b`，dist 由该 HEAD 的隔离 worktree 构建（101 文件，digest `ce295911…`），一次有序 disable→enable。
+
+### 16.1 观察结果
+
+| 项 | 实际 |
+|---|---|
+| 插件启动 | 新实例 `18322852…` 启动于 `2026-11-02T20:12:48.788Z`；全局 paused=false |
+| `shiyu_status` | 返回有效无损 JSON（payload 54,095 字节，SHA256 已冻结）；`innerProjection.manifest.schemaVersion=4`、六域 available（memory/relationship/emotion/cognition/personality/ability，backend/authority/capabilities 不变）；`systems[].inner.summary` 为如实文案（旧“关系、情绪、认知、人格待接入”已消失） |
+| `shiyu_diagnose_worker_tools`（本次新增诊断工具） | ok=true、zeroModel=true、readOnly=true、sent=false；装配工具恰为 `shiyu_worker_probe_task`（assignment）+ `shiyu_worker_event_types`/`shiyu_worker_event_report`（event）；`assignmentTools`/`eventTools` 分离；`authorityFields=[]`；counters 全 0（modelRequests/modelStreams/assistantMessages/userMessages/toolEvents/usageEvents）；released=disposed=true；探针 Session `shiyu-worker-probe-940b80a0…` 已释放/归档；宿主工具列表中 shell/工作区等仅存在于宿主侧，未挂入受限 surface |
+| 重载增量 | commitSeq `308→315`（+7 启动生命周期/能力 hostEpoch 观察写入）；events `38→39`（+1 runtime.lifecycle.changed 及其投递 ack）；stateVersion 保持 6；capability revision `12→14`（hostEpoch 重绑 + availability 观察），enabled/available 保持 true/available，verification 仍 unknown；definitionDigest 由 `1f9c5911…` 变为 `5a591515…`——稳定实现身份覆盖了变化的 worker 执行面（mountRestrictedSurface/探针），这是预期变化，未伪造成功证明 |
+| 业务事实 | Task 3（2 succeeded/1 unknown，unknown 元数据版本 26→27 为启动恢复元数据刷新）、Goal 2、Lab 3 disconnected、预算 24（21 settled/3 unknown）、Effect 13 全部不变；17 个已知自有 Session 文件 bytes/SHA256 逐字节不变 |
+| 工具调用只读性 | `shiyu_status` 与诊断工具调用前后：commitSeq `315→315`、events `39→39`、deliveries `38→38`、stateVersion/capability revision 不变、runtime-state 文件 SHA256 不变 |
+| 会话增量 | 唯一新增文件 = 探针诊断会话 `shiyu-worker-probe-940b80a0…/session.v4.jsonl.zstd`（已释放/归档）；无其他新增/变更 |
+| 模型/外部调用 | 产品 0 模型/0 embedding/0 Task/0 Goal 操作/0 Lab 输入；探针 counters 全 0 |
+
+证据：[final-joint-zero-model.json](<artifacts/dsh/host/final-joint-zero-model.json>)、[shiyu-status-final-build.json](<artifacts/dsh/host/shiyu-status-final-build.json>)、[worker-tools-diagnosis-final-build.json](<artifacts/dsh/host/worker-tools-diagnosis-final-build.json>)、before/after/after-tools 只读审计（同目录）。
+
+### 16.2 边界与未测
+
+1. 零模型证据只证启动、发布、只读工具与受限**挂载/不可伪造字段/释放**；不证真实模型调用事件工具、provider 预算/缓存、真实 Task/Goal 续接或 H3 计划在真实模型下的执行。
+2. 真实浏览器 DOM 渲染未由 JSON 观察证明；合成宿主 UI 是独立证据层。
+3. 诊断探针每次调用会创建并释放一个原生诊断 Session 文件（预期副作用，不可作为业务路径）；17 个已知业务 Session 未变。
+4. lifecycle=degraded 仍来自保留的历史 unknown/暂停业务事实，不是本轮新失败。
