@@ -4,7 +4,7 @@ import { defaultModel } from './sessions.js';
 import { pinOwnedSessionTitle } from './session-title.js';
 import type { DshAgent, DshAgentContext, DshAgentHandle, DshContext } from './sessions.js';
 import type { NativeMessageFactory } from './native-message.js';
-import { coldNativeInbox, nativeInboxReferences } from './native-context.js';
+import { coldNativeInboxSnapshot, extendNativeHistorySnapshot, nativeInboxReferences, observeNativeBaseline, assertNativeLiveHistory, type NativeColdInboxSnapshot } from './native-context.js';
 import { CoreDecisionRun, validateCoreDecisionRequest, type CoreDecisionRequest, type CoreDecisionResult, type CoreDecisionPhase } from './core-decision.js';
 export type { CoreDecisionRequest, CoreDecisionResult, CoreDecisionBinding, CoreDecisionAccounting, CoreDecisionMessageRef, CoreDecisionPhase } from './core-decision.js';
 
@@ -261,12 +261,23 @@ export class GoalSessionAdapter {
     }
     owner.disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: [] })));
   }
-  private async withNative<T>(binding: GoalBinding, create: boolean, run: (agent: DshAgent) => Promise<T>, signal?: AbortSignal, decision?: CoreDecisionRun): Promise<T> {
+  /**
+   * Core recovery keeps the exact pre-resume cut, re-observes the resumed live
+   * Session inside the host's maintenance phase, binds the fixed title append,
+   * and rechecks that baseline before handing control to the caller. Lifecycle
+   * (no-inference) operations keep their previous semantics.
+   */
+  private async withNative<T>(binding: GoalBinding, create: boolean, run: (agent: DshAgent, baseline: NativeColdInboxSnapshot | undefined) => Promise<T>, signal?: AbortSignal, decision?: CoreDecisionRun): Promise<T> {
     const nativeSignal = signal ? AbortSignal.any([signal, this.shutdown.signal]) : this.shutdown.signal;
     nativeSignal.throwIfAborted();
     await this.initialize();
     if (this.core && this.cleanupFailures.length) throw new Error('Core native cleanup is unresolved; another Session activation is forbidden');
-    if (this.core && !create && (await coldNativeInbox(this.options.ctx, binding.sessionId, this.preset, nativeSignal)).length) throw new Error('Unknown native inbox blocks Core Goal recovery');
+    let baseline: NativeColdInboxSnapshot | undefined;
+    if (this.core && !create) {
+      baseline = await coldNativeInboxSnapshot(this.options.ctx, binding.sessionId, this.preset, nativeSignal,
+        decision ? { deadlineAtMs: decision.deadlineAtMs } : {});
+      if (baseline.references.length) throw new Error('Unknown native inbox blocks Core Goal recovery');
+    }
     const owner: SessionOwner = { disposers: [], decision }; this.owners.add(owner);
     try {
       const shared = { agentOptions: { ...defaultModel('core'), maxTokens: decision?.maxTokens ?? 1 }, signal: nativeSignal, setup: (ctx: DshAgentContext, agent: DshAgent) => this.compose(owner, binding, ctx, agent) };
@@ -275,10 +286,41 @@ export class GoalSessionAdapter {
       // Native recovery is disarmed; explicitly fence this exact owner as well.
       this.goals().disarm(owner.handle.agent);
       if (this.core && nativeInboxReferences(owner.handle.agent.inbox).length) throw new Error('Unknown native inbox blocks Core Goal activation');
+      if (this.core) {
+        const agent = owner.handle.agent;
+        baseline = await observeNativeBaseline(this.options.ctx, agent, this.preset, {
+          ...(baseline === undefined ? {} : { expectedPrefix: baseline }),
+          ...(decision === undefined ? {} : { deadlineAtMs: decision.deadlineAtMs }),
+          signal: nativeSignal,
+        });
+        if (baseline.references.length) throw new Error('Unknown native inbox blocks Core Goal activation');
+        assertNativeLiveHistory(this.options.ctx, agent.session, baseline, agent.inbox);
+      }
       await pinOwnedSessionTitle(this.options.ctx, owner.handle.agent.session, this.core ? '识雨 · 受限目标规划' : '识雨目标权威会话');
       this.assertOpen(); nativeSignal.throwIfAborted();
-      return await run(owner.handle.agent);
+      if (this.core) baseline = await this.bindCoreTitleAppend(owner.handle.agent, baseline!, nativeSignal);
+      return await run(owner.handle.agent, baseline);
     } finally { await this.release(owner); }
+  }
+  /** A fixed title is a legitimate write; it must extend the observed cut by exactly its event. */
+  private async bindCoreTitleAppend(agent: DshAgent, baseline: NativeColdInboxSnapshot, signal: AbortSignal): Promise<NativeColdInboxSnapshot> {
+    const title = '识雨 · 受限目标规划';
+    const snapshot = this.options.ctx.get('sessionTitle').get(agent.session);
+    if (!snapshot || snapshot.title !== title || snapshot.source?.kind !== 'user'
+      || !Array.isArray(snapshot.messageSeqs) || snapshot.messageSeqs.length) throw new Error('Native Goal Session title pin could not be read back after its fixed append');
+    if (Number.isSafeInteger(snapshot.eventSeq) && snapshot.eventSeq! >= baseline.eventCount) {
+      if (snapshot.eventSeq !== baseline.eventCount) throw new Error('Native Goal fixed title did not extend the observed history by exactly one event');
+      const next = await extendNativeHistorySnapshot(this.options.ctx, baseline, {
+        seq: snapshot.eventSeq as number,
+        validate: event => event.type === 'session/title' && event.data?.title === title
+          && event.data?.source?.kind === 'user' && Array.isArray(event.data?.messageSeqs) && event.data.messageSeqs.length === 0,
+      }, this.preset, { signal });
+      assertNativeLiveHistory(this.options.ctx, agent.session, next, agent.inbox);
+      return next;
+    }
+    // No title append: the observed cut and the live watermark must still agree.
+    assertNativeLiveHistory(this.options.ctx, agent.session, baseline, agent.inbox);
+    return baseline;
   }
   private async release(owner: SessionOwner): Promise<void> {
     return owner.release ??= (async () => {
@@ -445,7 +487,7 @@ export class GoalSessionAdapter {
         const binding = await this.load(request.goalId); session = binding.sessionId;
         await run.prepare(binding); await this.initialize();
         this.decisionRuns.set(binding.sessionId, run);
-        candidate = await this.withNative(binding, false, agent => run.execute(agent), run.signal, run);
+        candidate = await this.withNative(binding, false, (agent, baseline) => run.execute(agent, baseline), run.signal, run);
         await run.gate('result');
       } catch (error) { failure = error; }
       try { await run.account(candidate !== undefined && failure === undefined); }

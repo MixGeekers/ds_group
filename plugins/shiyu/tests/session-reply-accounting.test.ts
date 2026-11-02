@@ -40,10 +40,11 @@ function fixture() {
       source: { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'working-directory:current', text }] } };
   };
   const extraInput = () => ({ id: 'unexpected-input', role: 'user', content: [{ type: 'text', text: 'unexpected body' }], source: { kind: 'user' } });
-  const append = (id: string, type: string, data: unknown, surfaceOp?: string) => {
+  const append = (id: string, type: string, data: unknown, surfaceOp?: string): SessionEvent => {
     const row = records.get(id)!, event: SessionEvent = { seq: row.events.length, type, data: structuredClone(data), ...(surfaceOp ? { surfaceOp } : {}) };
     row.events.push(event); global.emit('session/event', live.get(id)?.session, event);
     if (live.has(id)) locals.get(id)!.emit('session/event', live.get(id)!.session, event);
+    return event;
   };
   const stream = (request: object): AsyncIterable<unknown> => global.waterfall('llm/stream', [request], () => (async function* () {
     const prepared = request as { sessionId: string; messages: unknown[] };
@@ -54,11 +55,15 @@ function fixture() {
   })());
   const make = async (options: any, resume: boolean) => {
     const id = resume ? options.resumeSessionId : options.sessionId;
-    if (!resume) records.set(id, { header: structuredClone(options.meta), events: [], durable: [], inbox: [] });
+    if (!resume) records.set(id, { header: { version: 4, id, createdAt: 1, isSeeded: false, cwd: options.meta?.cwd, agentPreset: options.meta?.agentPreset }, events: [], durable: [], inbox: [] });
     const row = records.get(id); assert.ok(row);
     const hooks = new Hooks(); locals.set(id, hooks);
-    const session: DshSession = { id, header: row.header, deriveMessages: () => row.events.flatMap(event => event.type === 'user/message'
-      ? [event.data] : event.type === 'assistant/message' ? [event.data.message] : []) };
+    const session: DshSession = {
+      id, header: row.header, inheritedEventCount: 0, get seq() { return row.events.length; },
+      append(type, data, appendOptions) { return append(id, type, data, appendOptions?.surfaceOp); },
+      deriveMessages: () => row.events.flatMap(event => event.type === 'user/message'
+        ? [event.data] : event.type === 'assistant/message' ? [event.data.message] : []),
+    };
     const ctx: DshAgentContext = { on: (name, callback) => hooks.on(name, callback),
       tools: { presentAs: () => () => {}, schemas: () => [], restrict: () => () => {}, guard: () => () => {} },
       systemPrompt: { suppressRuntimeContext: () => () => {}, section: () => () => {}, assemble: async () => ({ tools: [] }) } };
@@ -105,7 +110,12 @@ function fixture() {
         } catch { append(id, 'turn/end', { reason: { kind: 'error' } }); }
         finally { agent.status = 'idle'; }
       })();
-    }, whenIdle: () => idle, cancel() { cancelled = true; } };
+    }, whenIdle: () => idle,
+      async runMaintenance<T>(job: (signal: AbortSignal) => T | Promise<T>): Promise<T> {
+        if (agent.status !== 'idle') throw new Error('Native Agent already has active work');
+        return job(new AbortController().signal);
+      },
+      cancel() { cancelled = true; } };
     live.set(id, agent); await options.setup(ctx, agent); global.emit('agent/created', { agent });
     if (resume) counts.resumes++; else counts.creates++;
     return { agent, async dispose() { counts.disposes++; if (failDispose) throw new Error('synthetic dispose failed'); await idle; live.delete(id); } };
@@ -115,11 +125,17 @@ function fixture() {
       if (name === 'agentPresets') return { register: async () => () => {} };
       if (name === 'llm') return { resolveCallConfig: async (model: unknown) => model };
       if (name === 'workingDirectory') return { get: () => currentCwd };
-      if (name === 'sessionTitle') return { rename(session: DshSession, title: string) { const value = { title, source: { kind: 'user' } }; titles.set(session.id, value); return value; }, get: (session: DshSession) => titles.get(session.id) };
-      if (name === 'sessions') return { async flush(session: DshSession) { counts.flushes++; const row = records.get(session.id)!; row.durable = structuredClone(row.events); return true; } };
+      if (name === 'sessionTitle') return {
+        rename(session: DshSession, title: string) { const value = { title, source: { kind: 'user' }, messageSeqs: [] }; titles.set(session.id, value); return value; },
+        get: (session: DshSession) => titles.get(session.id),
+      };
+      if (name === 'sessions') return {
+        async flush(session: DshSession) { counts.flushes++; const row = records.get(session.id)!; row.durable = structuredClone(row.events); return true; },
+        get(id: string) { return live.get(id)?.session; },
+      };
       if (name === 'sessionPersistence') return { async open(id: string, mode: string) {
         assert.equal(mode, 'read'); const row = records.get(id); assert.ok(row); counts.opens++;
-        return { header: row.header, inheritedEventCount: 0, async read(offset: number, count: number) {
+        return { header: structuredClone(row.header), inheritedEventCount: 0, async read(offset: number, count: number) {
           const events = structuredClone(row.durable.slice(offset, offset + count));
           if (corruptAssistantRead && count === 1 && events[0]?.type === 'assistant/message') events[0].data.usage.totalTokens++;
           if (count === 1 && events[0]?.type === 'user/message' && events[0].data?.source?.kind === 'runtime-context') {
@@ -128,10 +144,13 @@ function fixture() {
           return { events, eventState: 'detached' };
         }, async close() { counts.closes++; } };
       } };
-      if (name === 'sessionProjections') return { restore(_initial: unknown, events: SessionEvent[]) {
+      if (name === 'sessionProjections') return { restore(_initial: unknown, events: SessionEvent[], baseSeq: number) {
         const lanes: Record<string, NativeUserMessage[]> = { 'next-turn': [], 'next-step': [] };
-        for (const event of events) if (event.type === 'agent/inbox/spliced') lanes[event.data.target].splice(event.data.start, event.data.removedCount, ...structuredClone(event.data.inserted));
-        return { snapshot: { values: { inbox: lanes } } };
+        events.forEach((event, index) => {
+          if (event.seq !== baseSeq + index) throw new Error('Native projection cannot restore across a missing seq');
+          if (event.type === 'agent/inbox/spliced') lanes[event.data.target].splice(event.data.start, event.data.removedCount, ...structuredClone(event.data.inserted));
+        });
+        return { snapshot: { asOfSeq: events.at(-1)?.seq ?? baseSeq - 1, values: { inbox: lanes } } };
       } };
     } };
   let messages = 0;

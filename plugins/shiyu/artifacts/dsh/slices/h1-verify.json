@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h1",
+  "capturedAt": "2026-11-02T18:48:08.987Z",
+  "head": "08995d182d2ae5ecda69ae81992a636af37f6399",
+  "worktree": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h1-1793645141511",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+      "bytes": 36742,
+      "sha256": "747450b8b7c63087961f9faf68802c7d78704a5ac175e84900bcaaf1bdf5b794"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/sessions.ts",
+      "bytes": 79245,
+      "sha256": "c856085a936d958071eb3c71a249696be136f802a52f07f5401badef9c290e90"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 37117,
+      "sha256": "788cf6a237c1f0bc9cf50b6e08f2f8f1d0b5ebf02cbbf8cf9ac0689716d8470c"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 24474,
+      "sha256": "4ceb0a291fc08129a365dc304d260e1268c5993f610cdec55a4af8ada7e67769"
+    },
+    {
+      "path": "plugins/shiyu/tests/native-context.test.ts",
+      "bytes": 35467,
+      "sha256": "f8a52d0de03d1e1eedf4d619ad4cea4a91af44704a90643ef7306df5ea841dc5"
+    },
+    {
+      "path": "plugins/shiyu/tests/native-history.test.ts",
+      "bytes": 31925,
+      "sha256": "4be5ad11e9f94a198035231f758f6fd187eeb17da6cdf8be4249546e836039a3"
+    },
+    {
+      "path": "plugins/shiyu/tests/sessions.test.ts",
+      "bytes": 63616,
+      "sha256": "f9c54eb480e32945e22f41baf53354729feb3ef0299223ee012acaddc2b991a1"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-goal-sessions.test.ts",
+      "bytes": 47437,
+      "sha256": "f1ff5f4de07b6c187effe100c16f4651164358101032c64536916aa84b0f6c84"
+    },
+    {
+      "path": "plugins/shiyu/tests/session-reply-accounting.test.ts",
+      "bytes": 26363,
+      "sha256": "a869ada4fc1109c44c5c7626044d67eb0a67e1eb267613f0531f78614cb7e34f"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 146732,
+    "bytes": 115987,
+    "sha256": "aa34267956574e1455e5b6cba3dbb6f0454744f12669a89d76ad8db9b4166a90",
+    "tests": {
+      "tests": 1058,
+      "pass": 1058,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 145629.9795",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h1.log",
+    "bytes": 115987,
+    "sha256": "aa34267956574e1455e5b6cba3dbb6f0454744f12669a89d76ad8db9b4166a90"
+  },
+  "verdict": "pass"
+}

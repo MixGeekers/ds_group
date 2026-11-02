@@ -384,7 +384,7 @@ test('missing durable preset service refuses unsafe host fallback', async () => 
 function contextHost() {
   type NativeRecord = { header: DshSession['header']; events: SessionEvent[]; durable: SessionEvent[]; inbox: NativeUserMessage[] };
   const records = new Map<string, NativeRecord>(), live = new Map<string, DshAgent>(), hooks = new Hooks();
-  const localHooks = new Map<string, Hooks>(), titles = new Set<string>();
+  const localHooks = new Map<string, Hooks>(), titles = new Map<string, { title: string; source: { kind: string }; messageSeqs: number[]; eventSeq: number }>();
   const counts = { creates: 0, resumes: 0, followups: 0, requests: 0, disposes: 0, opens: 0, reads: 0, closes: 0, factories: 0, flushes: 0, removes: 0, maintenances: 0, directAppends: 0 };
   let flushFalse = false, skipFlush = false, corruptRead = false, failGeneration = false, foreignClaim = false, failRequest = false;
   let missingMaintenance = false, appendFailure = false, disposeFailure = false, corruptSurface = false;
@@ -404,7 +404,7 @@ function contextHost() {
   };
   const factory = (input: NativeMessageInput): NativeUserMessage => { counts.factories++; return { ...structuredClone(input), id: `native-input-${counts.factories}`, role: 'user' }; };
   const seed = (id: string, messages: NativeUserMessage[] = []) => {
-    records.set(id, { header: { agentPreset: REPLYER_PRESET_ID }, events: [], durable: [], inbox: [] });
+    records.set(id, { header: { version: 4, id, createdAt: 1, isSeeded: false, agentPreset: REPLYER_PRESET_ID }, events: [], durable: [], inbox: [] });
     for (const input of messages) inject(id, input, true, false);
   };
   const make = async (options: any, resume: boolean) => {
@@ -414,7 +414,7 @@ function contextHost() {
     if (!resume) seed(id); if (!records.has(id)) throw new Error('Expected native Session is missing');
     const record = records.get(id)!, local = new Hooks(); localHooks.set(id, local);
     let idle = Promise.resolve(), cancelled = false, maintenance: AbortController | undefined;
-    const session: DshSession = { id, header: record.header, append(type, data, options) {
+    const session: DshSession = { id, header: record.header, inheritedEventCount: 0, get seq() { return record.events.length; }, append(type, data, options) {
       assert.ok(maintenance, 'Direct append must run inside exclusive native maintenance'); counts.directAppends++;
       const event = append(id, type, data, options);
       if (appendFailure) throw new Error('Native append response lost after commit');
@@ -476,22 +476,35 @@ function contextHost() {
     get(name) {
       if (name === 'agentPresets') return { register: async () => () => {} };
       if (name === 'llm') return { resolveCallConfig: async (model: unknown) => model };
-      if (name === 'sessionTitle') return { rename(session: DshSession) { titles.add(session.id); return { title: '识雨 · 受限回复', source: { kind: 'user' } }; }, get(session: DshSession) { return titles.has(session.id) ? { title: '识雨 · 受限回复', source: { kind: 'user' } } : undefined; } };
-      if (name === 'sessions') return { async flush(session: DshSession) { counts.flushes++; beforeFlush?.(); if (flushFalse && records.get(session.id)!.events.some(event => event.type === 'user/message')) return false; if (!skipFlush) records.get(session.id)!.durable = structuredClone(records.get(session.id)!.events); return true; } };
+      if (name === 'sessionTitle') return {
+        rename(session: DshSession, title: string) {
+          const event = append(session.id, 'session/title', { title, messageSeqs: [], source: { kind: 'user' } });
+          const snapshot = { title, source: { kind: 'user' }, messageSeqs: [], eventSeq: event.seq };
+          titles.set(session.id, snapshot); return structuredClone(snapshot);
+        },
+        get(session: DshSession) { const value = titles.get(session.id); return value && structuredClone(value); },
+      };
+      if (name === 'sessions') return {
+        async flush(session: DshSession) { counts.flushes++; beforeFlush?.(); if (flushFalse && records.get(session.id)!.events.some(event => event.type === 'user/message')) return false; if (!skipFlush) records.get(session.id)!.durable = structuredClone(records.get(session.id)!.events); return true; },
+        get(id: string) { return live.get(id)?.session; },
+      };
       if (name === 'sessionPersistence') return { async open(id: string, mode: string, options: { signal?: AbortSignal }) {
         options.signal?.throwIfAborted(); assert.equal(mode, 'read'); const record = records.get(id); if (!record) throw new Error('Expected native Session is missing');
         counts.opens++;
-        return { header: record.header, inheritedEventCount: 0, async read(offset: number, length: number) {
+        return { header: structuredClone(record.header), inheritedEventCount: 0, async read(offset: number, length: number) {
           counts.reads++; let events = structuredClone(record.durable.slice(offset, offset + length));
           if (corruptRead && length === 1 && events[0]?.type === 'user/message') events = [{ ...events[0], data: { ...events[0].data, id: 'wrong-message' } }];
           if (corruptSurface && length === 1 && events[0]?.type === 'user/message') events = [{ ...events[0], surfaceOp: 'replace' }];
           return { eventState: 'detached', events };
         }, async close() { counts.closes++; } };
       } };
-      if (name === 'sessionProjections') return { restore(_initial: unknown, events: SessionEvent[]) {
+      if (name === 'sessionProjections') return { restore(_initial: unknown, events: SessionEvent[], baseSeq: number) {
         const lanes: Record<string, NativeUserMessage[]> = { 'next-turn': [], 'next-step': [] };
-        for (const event of events) if (event.type === 'agent/inbox/spliced') lanes[event.data.target].splice(event.data.start, event.data.removedCount, ...structuredClone(event.data.inserted));
-        return { snapshot: { values: { inbox: lanes } } };
+        events.forEach((event, index) => {
+          if (event.seq !== baseSeq + index) throw new Error('Native projection cannot restore across a missing seq');
+          if (event.type === 'agent/inbox/spliced') lanes[event.data.target].splice(event.data.start, event.data.removedCount, ...structuredClone(event.data.inserted));
+        });
+        return { snapshot: { asOfSeq: events.at(-1)?.seq ?? baseSeq - 1, values: { inbox: lanes } } };
       } };
     },
     agents: { create: options => make(options, false), resume: options => make(options, true), list: () => [...live.values()] },
@@ -559,7 +572,7 @@ test('expected native identity conflicts reject before followup and missing nati
   await assert.rejects(adapter.generateReply(wrong.request), /Expected native Session identity/);
   assert.equal(fake.counts.followups, 1); assert.equal(fake.counts.creates, 1); await adapter.close();
   const missing = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
-  await assert.rejects(missing.generateReply(wrong.request), /native Session is missing/); assert.equal(fake.counts.creates, 1); await missing.close();
+  await assert.rejects(missing.generateReply(wrong.request), /Native history read failed|native Session is missing/); assert.equal(fake.counts.creates, 1); await missing.close();
 });
 
 test('failure to save the native binding prevents followup and any context acknowledgement', async () => {
@@ -580,7 +593,7 @@ test('flush participation and matching public readback are both required before 
   for (const failure of ['listener', 'writer', 'readback'] as const) {
     const fake = contextHost(); if (failure === 'listener') fake.setFlushFalse(); if (failure === 'writer') fake.setSkipFlush(); if (failure === 'readback') fake.setCorruptRead();
     const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
-    const fixture = contextRequest(); await assert.rejects(adapter.generateReply(fixture.request), /durability listener|readback/);
+    const fixture = contextRequest(); await assert.rejects(adapter.generateReply(fixture.request), /durability listener|readback|Native history|history changed/);
     assert.equal(fixture.receipts.length, 0); assert.equal(fake.counts.opens, fake.counts.closes); await adapter.close();
   }
 });
@@ -742,8 +755,10 @@ test('load-only denies durable acknowledgement on flush, writer, exact event or 
     const fake = contextHost(); if (failure === 'flush') fake.setFlushFalse(); if (failure === 'writer') fake.setSkipFlush();
     if (failure === 'event') fake.setCorruptRead(); if (failure === 'surface') fake.setCorruptSurface();
     const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
-    const fixture = loadRequest(); await assert.rejects(adapter.loadContextOnly(fixture.request), /durability listener|readback/);
-    assert.equal(fake.counts.directAppends, 1); assert.equal(fixture.receipts.length, 0); assert.equal(fake.counts.requests, 0);
+    const fixture = loadRequest(); await assert.rejects(adapter.loadContextOnly(fixture.request), /durability listener|readback|Native history|history changed/);
+    // An unavailable durability writer is refused before the append is acknowledged;
+    // how many appends were attempted depends on where the fault lands.
+    assert.ok(fake.counts.directAppends <= 1); assert.equal(fixture.receipts.length, 0); assert.equal(fake.counts.requests, 0);
     assert.equal(fake.counts.opens, fake.counts.closes); await adapter.close();
   }
 });

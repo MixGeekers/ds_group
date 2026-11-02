@@ -1,7 +1,11 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { pinOwnedSessionTitle } from './session-title.js';
 import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
-import { appendNativeContextMessage, assertNativeMaintenance, coldNativeInbox, flushNative, nativeContextServices, nativeInboxReferences, readNativeAssistantEvent, verifyNativeEvent } from './native-context.js';
+import {
+  appendNativeContextMessage, assertNativeLiveHistory, assertNativeMaintenance, coldNativeInbox, coldNativeInboxSnapshot,
+  extendNativeHistorySnapshot, flushNative, nativeContextServices, nativeInboxReferences, readNativeAssistantEvent,
+  verifyNativeEvent, type NativeColdInboxSnapshot,
+} from './native-context.js';
 
 export type SessionRole = 'core' | 'worker' | 'replyer';
 export type ReasoningEffort = 'low' | 'high' | 'max';
@@ -45,7 +49,11 @@ export interface SessionEvent {
 }
 export interface DshSession {
   id: string;
-  header: { agentPreset?: string; [key: string]: unknown };
+  header: { version?: number; id?: string; isSeeded?: boolean; agentPreset?: string; [key: string]: unknown };
+  /** Public next-event sequence number (the native log length). */
+  seq?: number;
+  /** Exact fork-inherited prefix length; never inferred from the header. */
+  inheritedEventCount?: number;
   deriveMessages?(): readonly unknown[];
   append?(type: 'user/message', data: NativeUserMessage, options: { surfaceOp: 'append' }): SessionEvent;
 }
@@ -233,6 +241,14 @@ function positive(value: number | undefined, fallback: number, ceiling: number, 
 function message(error: unknown): string { return error instanceof Error ? error.message : String(error); }
 function abortError(): Error { return new Error('Session generation cancelled'); }
 function throwIfAborted(signal?: AbortSignal): void { signal?.throwIfAborted(); }
+/** Exact observed event identity for a legitimate append receipt. */
+function sameNativeEvent(left: SessionEvent, right: SessionEvent): boolean {
+  try {
+    return left.type === right.type && left.seq === right.seq
+      && (right.surfaceOp === undefined || left.surfaceOp === right.surfaceOp)
+      && nativeMessageHash(left.data) === nativeMessageHash(right.data);
+  } catch { return false; }
+}
 /** Preserve the same ordered text-block representation for generation and cold reads. */
 function replyText(value: any): string {
   if (!Array.isArray(value?.content)) throw new Error('No completed reply text returned');
@@ -277,6 +293,8 @@ interface LiveSession {
   unknownNativeInput?: boolean;
   inboxEvents?: SessionEvent[];
   loadOnly?: boolean;
+  /** Absolute epoch-ms deadline of the current context operation, if any. */
+  deadlineAtMs?: number;
   loadRun?: {
     safety: ContextLoadSafety;
     binding: ReplyContextBinding;
@@ -643,7 +661,13 @@ export class ShiyuSessionAdapter {
     })();
     return state.closing;
   }
-  private async clearKnownInbox(state: LiveSession, known: readonly { messageId: string; messageHash: string }[], signal?: AbortSignal): Promise<void> {
+  /**
+   * Remove only explicitly registered obsolete inputs. With a verified
+   * baseline, the resulting append suffix is re-observed through the official
+   * reader/projector and must equal the exact removal events we witnessed.
+   */
+  private async clearKnownInbox(state: LiveSession, known: readonly { messageId: string; messageHash: string }[], signal?: AbortSignal,
+    baseline?: NativeColdInboxSnapshot): Promise<NativeColdInboxSnapshot | undefined> {
     const agent = state.handle!.agent;
     if (state.unknownNativeInput) {
       agent.cancel({ kind: 'hook', reason: 'Unknown native input requires explicit reconciliation' }, { keepInbox: true });
@@ -658,6 +682,7 @@ export class ShiyuSessionAdapter {
     if (new Set(pending.map(item => item.messageId)).size !== pending.length || pending.some(item => allowed.get(item.messageId) !== item.messageHash)) {
       throw new Error('Unknown native inbox input blocks continuation and safe disposal');
     }
+    const removedEvents: SessionEvent[] = [];
     for (const item of pending) {
       signal?.throwIfAborted();
       const current = nativeInboxReferences(agent.inbox).find(value => value.messageId === item.messageId);
@@ -667,14 +692,83 @@ export class ShiyuSessionAdapter {
       const event = state.inboxEvents?.find(value => Number.isSafeInteger(value.seq) && value.seq! > previousSeq && value.data?.target === current.lane
         && value.data?.start === current.index && value.data?.removedCount === 1 && Array.isArray(value.data?.inserted) && value.data.inserted.length === 0 && value.data?.outcome === 'canceled');
       if (!event) throw new Error('Native inbox removal has no exact event receipt');
+      removedEvents.push(structuredClone(event));
       await flushNative(this.options.ctx, agent.session, signal);
       rejectUnknown();
       await verifyNativeEvent(this.options.ctx, agent.session.id, event, signal);
       rejectUnknown();
     }
+    if (pending.length && baseline) {
+      const next = await coldNativeInboxSnapshot(this.options.ctx, agent.session.id, REPLYER_PRESET_ID, signal, {
+        ...(state.deadlineAtMs === undefined ? {} : { deadlineAtMs: state.deadlineAtMs }),
+        expectedPrefix: baseline,
+        allowAppended: (event, index) => removedEvents[index] !== undefined && sameNativeEvent(event, removedEvents[index]!),
+        liveSession: agent.session,
+        liveInbox: agent.inbox,
+      });
+      if (next.references.length) throw new Error('Native inbox removal was not confirmed by its durable projection');
+      rejectUnknown();
+      if (nativeInboxReferences(agent.inbox).length) throw new Error('Native inbox changed during precise removal');
+      return next;
+    }
     if (pending.length && (await coldNativeInbox(this.options.ctx, agent.session.id, REPLYER_PRESET_ID, signal)).length) throw new Error('Native inbox removal was not confirmed by its durable projection');
     rejectUnknown();
     if (nativeInboxReferences(agent.inbox).length) throw new Error('Native inbox changed during precise removal');
+    return baseline;
+  }
+  /**
+   * After native create/resume, observe the exact live Session in the host's
+   * exclusive maintenance phase: flush, cold-read with prefix continuity, and
+   * bind object/id/header/preset/inherited/inbox/seq to that observation.
+   */
+  private async observeResumedBaseline(state: LiveSession, previous: NativeColdInboxSnapshot | undefined, signal: AbortSignal,
+    allowAppended?: (event: SessionEvent, index: number) => boolean): Promise<NativeColdInboxSnapshot> {
+    const agent = state.handle!.agent;
+    assertNativeMaintenance(agent);
+    return agent.runMaintenance!(async nativeSignal => {
+      const fused = AbortSignal.any([signal, nativeSignal]);
+      await flushNative(this.options.ctx, agent.session, fused);
+      const snapshot = await coldNativeInboxSnapshot(this.options.ctx, agent.session.id, REPLYER_PRESET_ID, fused, {
+        ...(state.deadlineAtMs === undefined ? {} : { deadlineAtMs: state.deadlineAtMs }),
+        ...(previous === undefined ? {} : { expectedPrefix: previous }),
+        ...(allowAppended === undefined ? {} : { allowAppended }),
+        liveSession: agent.session,
+        liveInbox: agent.inbox,
+      });
+      if (state.unknownNativeInput) throw new Error('Unknown native activity blocks the recovered context baseline');
+      return snapshot;
+    });
+  }
+  /** Synchronous point-in-time recheck; must run after every related await and adjacent to a write. */
+  private assertNativeBaseline(state: LiveSession, baseline: NativeColdInboxSnapshot): void {
+    const agent = state.handle!.agent;
+    assertNativeLiveHistory(this.options.ctx, agent.session, baseline, agent.inbox);
+    if (state.unknownNativeInput) throw new Error('Unknown native input blocks this context operation');
+  }
+  /** Fixed title pin: verify the applied `session/title` append is exactly the observed one. */
+  private async pinNativeTitle(state: LiveSession, baseline: NativeColdInboxSnapshot, title: string, signal: AbortSignal): Promise<NativeColdInboxSnapshot> {
+    const session = state.handle!.agent.session, titles = this.options.ctx.get('sessionTitle');
+    this.assertNativeBaseline(state, baseline);
+    await pinOwnedSessionTitle(this.options.ctx, session, title);
+    const snapshot = titles.get(session);
+    if (!snapshot || snapshot.title !== title || snapshot.source?.kind !== 'user' || !Array.isArray(snapshot.messageSeqs) || snapshot.messageSeqs.length) {
+      throw new Error('Native Session title pin could not be read back after its fixed append');
+    }
+    let next = baseline;
+    if (Number.isSafeInteger(snapshot.eventSeq) && snapshot.eventSeq! >= baseline.eventCount) {
+      if (snapshot.eventSeq !== baseline.eventCount) throw new Error('Native fixed title did not extend the observed history by exactly one event');
+      const eventSeq = snapshot.eventSeq as number;
+      next = await extendNativeHistorySnapshot(this.options.ctx, baseline, {
+        seq: eventSeq,
+        validate: event => event.type === 'session/title' && event.data?.title === title
+          && event.data?.source?.kind === 'user' && Array.isArray(event.data?.messageSeqs) && event.data.messageSeqs.length === 0,
+      }, REPLYER_PRESET_ID, { signal, ...(state.deadlineAtMs === undefined ? {} : { deadlineAtMs: state.deadlineAtMs }) });
+      this.assertNativeBaseline(state, next);
+      return next;
+    }
+    // No title append: the native watermark must not have moved.
+    this.assertNativeBaseline(state, baseline);
+    return baseline;
   }
   private async confirmContext(state: LiveSession, signal: AbortSignal): Promise<ReplyContextReceipt | undefined> {
     if (state.unknownNativeInput) throw new Error('Unknown native input cannot acknowledge a managed context');
@@ -740,7 +834,13 @@ export class ShiyuSessionAdapter {
         const live = this.live.get(key);
         if (live) { live.protectInbox = true; if (live.handle) validateInbox(nativeInboxReferences(live.handle.agent.inbox)); }
         const previousId = expected ?? existing?.sessionId;
-        if (previousId) validateInbox(await coldNativeInbox(this.options.ctx, previousId, REPLYER_PRESET_ID, operation.signal));
+        let baseline: NativeColdInboxSnapshot | undefined;
+        if (previousId) {
+          // Retain the exact pre-resume cut: the resumed live Session must
+          // preserve this prefix and may only append a trusted native suffix.
+          baseline = await coldNativeInboxSnapshot(this.options.ctx, previousId, REPLYER_PRESET_ID, operation.signal, { deadlineAtMs: request.deadlineMs });
+          validateInbox(baseline.references);
+        }
         this.assertOpen(); throwIfAborted(operation.signal);
         await this.prepareContextSafety();
         this.assertOpen(); throwIfAborted(operation.signal);
@@ -748,6 +848,7 @@ export class ShiyuSessionAdapter {
         this.assertOpen(); throwIfAborted(operation.signal);
         const state = await this.attach(key, request.businessId, request.scope, operation.signal, false, expected, true);
         state.operation = operation; state.steps = 0; state.turnError = undefined; state.observedEvents = []; state.operationMaxTokens = maxTokens;
+        state.deadlineAtMs = request.deadlineMs;
         state.primaryRun = { operation, dispatchAttempted: false, requests: 0, streams: 0, completedStreams: 0, incomplete: false };
         const binding: ReplyContextBinding = { ...base, sessionId: state.binding.sessionId, messageId: userMessage.id, messageHash: nativeMessageHash(userMessage) };
         state.contextRun = { safety, binding, userMessage, events: [] };
@@ -756,16 +857,24 @@ export class ShiyuSessionAdapter {
         operation.signal.addEventListener('abort', cancel, { once: true });
         if (operation.signal.aborted) cancel();
         try {
+          // Bind the recovered live Session to the exact pre-resume cut inside
+          // the host's exclusive maintenance phase before any business callback.
+          baseline = await this.observeResumedBaseline(state, baseline, operation.signal);
+          this.assertNativeBaseline(state, baseline);
           // Live recheck closes the cold-read/resume race; unknown entries are never disposed away.
-          await this.clearKnownInbox(state, safety.staleInbox ?? [], operation.signal);
+          baseline = (await this.clearKnownInbox(state, safety.staleInbox ?? [], operation.signal, baseline))!;
           this.assertOpen(); throwIfAborted(operation.signal);
+          this.assertNativeBaseline(state, baseline);
           await safety.onBound(Object.freeze({ ...binding }));
           this.assertOpen(); throwIfAborted(operation.signal);
-          await pinOwnedSessionTitle(this.options.ctx, agent.session, '识雨 · 受限回复');
+          // A fixed title write changes the native seq; include its exact event in the baseline.
+          baseline = await this.pinNativeTitle(state, baseline, '识雨 · 受限回复', operation.signal);
           await safety.authorize(Object.freeze({ ...binding, phase: 'admission' }));
           this.assertOpen(); throwIfAborted(operation.signal);
+          this.assertNativeBaseline(state, baseline);
           await this.update(state, { status: 'running' });
           this.assertOpen(); throwIfAborted(operation.signal);
+          this.assertNativeBaseline(state, baseline);
           state.primaryRun.dispatchAttempted = true; agent.followup(userMessage);
           let idleError: unknown;
           try { await agent.whenIdle(); } catch (error) { idleError = error; }
@@ -846,7 +955,11 @@ export class ShiyuSessionAdapter {
           if (live.handle) emptyInbox(nativeInboxReferences(live.handle.agent.inbox));
         }
         const previousId = expected ?? existing?.sessionId;
-        if (previousId) emptyInbox(await coldNativeInbox(this.options.ctx, previousId, REPLYER_PRESET_ID, operation.signal));
+        let baseline: NativeColdInboxSnapshot | undefined;
+        if (previousId) {
+          baseline = await coldNativeInboxSnapshot(this.options.ctx, previousId, REPLYER_PRESET_ID, operation.signal, { deadlineAtMs: request.deadlineMs });
+          emptyInbox(baseline.references);
+        }
         await this.prepareContextSafety(); check();
         const userMessage = checkedNativeUserMessage(await this.messageFactory!({ content: [{ type: 'text', text: prompt }], source: { kind: 'user' } }), prompt);
         check();
@@ -854,6 +967,7 @@ export class ShiyuSessionAdapter {
         await safety.authorize(Object.freeze({ ...base, phase: 'admission' })); check();
         const state = await this.attach(key, businessId, scope, operation.signal, false, expected, true, true);
         state.operation = operation; state.steps = 0; state.observedEvents = [];
+        state.deadlineAtMs = request.deadlineMs;
         const binding: ReplyContextBinding = { ...base, sessionId: state.binding.sessionId, messageId: userMessage.id, messageHash: nativeMessageHash(userMessage) };
         state.loadRun = { safety, binding };
         const agent = state.handle!.agent;
@@ -868,21 +982,50 @@ export class ShiyuSessionAdapter {
             const signal = AbortSignal.any([operation.signal, nativeSignal]);
             check(signal);
             emptyInbox(nativeInboxReferences(agent.inbox));
-            await pinOwnedSessionTitle(this.options.ctx, agent.session, '识雨 · 受限回复'); check(signal);
+            // 1) Flush and bind the resumed live Session to the exact pre-resume
+            // cut; only a trusted native resume/setup suffix may have appeared.
+            await flushNative(this.options.ctx, agent.session, signal);
+            baseline = await coldNativeInboxSnapshot(this.options.ctx, binding.sessionId, REPLYER_PRESET_ID, signal, {
+              deadlineAtMs: request.deadlineMs, expectedPrefix: baseline, liveSession: agent.session, liveInbox: agent.inbox,
+            });
+            check(signal); emptyInbox(baseline.references);
+            // 2) The fixed title is a legitimate write: bind its exact append.
+            baseline = await this.pinNativeTitle(state, baseline, '识雨 · 受限回复', signal);
+            emptyInbox(nativeInboxReferences(agent.inbox)); check(signal);
             await safety.authorize(Object.freeze({ ...binding, phase: 'append' })); check(signal);
+            this.assertNativeBaseline(state, baseline);
             emptyInbox(nativeInboxReferences(agent.inbox));
             if (state.unknownNativeInput || state.loadRun?.violation) throw new Error('Unknown native activity blocks load-only context');
+            // 3) The only message this operation may load. Its identity, not a
+            // tail or inbox heuristic, is the exact append boundary observed below.
             const event = appendNativeContextMessage(agent.session, userMessage);
             state.loadRun!.event = event;
             check(signal);
+            // Durability first: the exact append is then verified from the
+            // public read handle, so a lost write can never be acknowledged.
             await flushNative(this.options.ctx, agent.session, signal);
+            baseline = await extendNativeHistorySnapshot(this.options.ctx, baseline, {
+              seq: event.seq!,
+              validate: appended => appended.type === 'user/message' && appended.surfaceOp === 'append'
+                && appended.data?.id === userMessage.id && nativeMessageHash(appended.data) === nativeMessageHash(userMessage),
+            }, REPLYER_PRESET_ID, { signal, deadlineAtMs: request.deadlineMs });
+            this.assertNativeBaseline(state, baseline);
             await verifyNativeEvent(this.options.ctx, binding.sessionId, event, signal);
-            emptyInbox(await coldNativeInbox(this.options.ctx, binding.sessionId, REPLYER_PRESET_ID, signal));
+            // 4) A complete verifying pass must observe zero extra suffix events:
+            // an external direct append (even one that leaves the inbox empty)
+            // is recorded as foreign and blocks the acknowledgement.
+            baseline = await coldNativeInboxSnapshot(this.options.ctx, binding.sessionId, REPLYER_PRESET_ID, signal, {
+              deadlineAtMs: request.deadlineMs, expectedPrefix: baseline, allowAppended: () => false,
+              liveSession: agent.session, liveInbox: agent.inbox,
+            });
+            emptyInbox(baseline.references);
             check(signal);
             if (state.unknownNativeInput || state.loadRun?.violation) throw new Error('Unknown native activity blocks context acknowledgement');
             await safety.authorize(Object.freeze({ ...binding, phase: 'context_ack' })); check(signal);
+            this.assertNativeBaseline(state, baseline);
             const durable: ReplyContextReceipt = { ...binding, userMessageSeq: event.seq!, confirmedAt: this.timestamp(), durability: 'confirmed' };
             await safety.onContextDurable(Object.freeze(durable)); check(signal);
+            this.assertNativeBaseline(state, baseline);
             return durable;
           });
           check();

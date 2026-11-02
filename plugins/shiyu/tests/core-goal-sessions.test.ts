@@ -30,7 +30,7 @@ type DecisionRequest = Parameters<GoalSessionAdapter['decisionRound']>[0];
 type Accounting = Parameters<DecisionRequest['onAccounting']>[0];
 interface Stored {
   header: DshSession['header']; events: SessionEvent[]; durable: SessionEvent[];
-  native?: Omit<NativeGoalView, 'activation'>; title?: { title: string; source: { kind: string } };
+  native?: Omit<NativeGoalView, 'activation'>; title?: { title: string; source: { kind: string }; messageSeqs?: number[]; eventSeq?: number };
   inbox: NativeUserMessage[];
 }
 interface FakeAgent extends DshAgent { hooks: Hooks; guards: Hook[]; activation: 'armed' | 'disarmed'; cancelled: boolean }
@@ -120,10 +120,18 @@ function fixture() {
     if (createGate) await createGate; // Deliberately ignores AbortSignal to test late ownership.
     const id = resume ? options.resumeSessionId : options.sessionId;
     if (resume) { if (!stored.has(id)) throw new Error('Native Session not found'); resumes++; }
-    else { assert.equal(stored.has(id), false); stored.set(id, { header: structuredClone(options.meta), events: [], durable: [], inbox: [] }); creates++; }
+    else {
+      assert.equal(stored.has(id), false);
+      stored.set(id, { header: { version: 4, id, createdAt: 1, isSeeded: false, cwd: options.meta.cwd, agentPreset: options.meta.agentPreset }, events: [], durable: [], inbox: [] });
+      creates++;
+    }
     const record = stored.get(id)!, hooks = new Hooks(), guards: Hook[] = [];
-    const session: DshSession = { id, header: record.header };
-    let idle = Promise.resolve(), agent: FakeAgent;
+    const session: DshSession = {
+      id, header: record.header, inheritedEventCount: 0,
+      get seq() { return record.events.length; },
+      append(type, data, appendOptions) { return append(agent, type, data, appendOptions?.surfaceOp); },
+    };
+    let idle = Promise.resolve(), agent: FakeAgent, maintenance: AbortController | undefined;
     const local: DshAgentContext = {
       on: (name, handler) => hooks.on(name, handler),
       tools: { schemas: () => [{ name: 'shell' }, { name: 'run_code' }, { name: 'create_goal' }], presentAs: () => () => {}, restrict: () => () => {},
@@ -178,6 +186,11 @@ function fixture() {
         })();
       },
       whenIdle: () => idle,
+      async runMaintenance<T>(job: (signal: AbortSignal) => T | Promise<T>): Promise<T> {
+        if (maintenance !== undefined) throw new Error('Native Agent already has active work');
+        maintenance = new AbortController();
+        try { return await job(maintenance.signal); } finally { maintenance = undefined; }
+      },
       cancel(_cause, options) { agent.cancelled = true; trace.push('cancel'); if (!options?.keepInbox) record.inbox.length = 0; },
     };
     lastAgent = agent; live.set(id, agent); await options.setup(local, agent); global.emit('agent/created', { agent });
@@ -190,9 +203,19 @@ function fixture() {
       if (name === 'workingDirectory') return workingDirectoryAvailable ? { get: currentDirectory } : undefined;
       if (name === 'llm') return { resolveCallConfig: async (value: unknown) => structuredClone(value), stream };
       if (name === 'agentPresets') return { register(value: { id: string }) { assert.equal(presets.has(value.id), false); presets.add(value.id); return () => { presets.delete(value.id); }; } };
-      if (name === 'sessions') return { async flush(session: DshSession) { trace.push('flush'); if (failFlush) throw new Error('Native flush failed'); const record = stored.get(session.id)!; record.durable = structuredClone(record.events); return true; } };
-      if (name === 'sessionTitle') return { get: (session: DshSession) => stored.get(session.id)?.title,
-        rename(session: DshSession, title: string) { const result = { title, source: { kind: 'user' } }; stored.get(session.id)!.title = result; return result; } };
+      if (name === 'sessions') return {
+        async flush(session: DshSession) { trace.push('flush'); if (failFlush) throw new Error('Native flush failed'); const record = stored.get(session.id)!; record.durable = structuredClone(record.events); return true; },
+        get(id: string) { return live.get(id)?.session; },
+      };
+      if (name === 'sessionTitle') return {
+        get: (session: DshSession) => { const value = stored.get(session.id)?.title; return value && structuredClone(value); },
+        rename(session: DshSession, title: string) {
+          const agent = live.get(session.id)!;
+          const event = append(agent, 'session/title', { title, messageSeqs: [], source: { kind: 'user' } });
+          const result = { title, source: { kind: 'user' }, messageSeqs: [], eventSeq: event.seq };
+          stored.get(session.id)!.title = structuredClone(result); return result;
+        },
+      };
       if (name === 'sessionPersistence') return { async open(sessionId: string, mode: string) {
         assert.equal(mode, 'read'); const record = stored.get(sessionId); if (!record) throw new Error('Native Session not found'); opens++;
         return { header: structuredClone(record.header), inheritedEventCount: 0, async read(offset: number, count: number) {
@@ -204,10 +227,13 @@ function fixture() {
           return { events, eventState: 'detached' };
         }, async close() { closes++; } };
       } };
-      if (name === 'sessionProjections') return { async restore(_context: unknown, events: SessionEvent[]) {
+      if (name === 'sessionProjections') return { async restore(_context: unknown, events: SessionEvent[], baseSeq: number) {
         const inbox: NativeUserMessage[] = [];
-        for (const event of events) if (event.type === 'agent/inbox/spliced' && event.data.target === 'next-turn') inbox.splice(event.data.start, event.data.removedCount, ...event.data.inserted);
-        return { snapshot: { values: { inbox: { 'next-turn': inbox, 'next-step': [] } } } };
+        events.forEach((event, index) => {
+          if (event.seq !== baseSeq + index) throw new Error('Native projection cannot restore across a missing seq');
+          if (event.type === 'agent/inbox/spliced' && event.data.target === 'next-turn') inbox.splice(event.data.start, event.data.removedCount, ...event.data.inserted);
+        });
+        return { snapshot: { asOfSeq: events.at(-1)?.seq ?? baseSeq - 1, values: { inbox: { 'next-turn': inbox, 'next-step': [] } } } };
       } };
     },
   };
@@ -513,4 +539,63 @@ test('authority revoked after dispatch registration or before result release blo
       assert.equal(f.counts().streams, timing === 'dispatch' ? 0 : 1); assert.equal(f.accounting.length, 1);
     } finally { f.setAllowed(true); await driver.close(); }
   }
+});
+
+test('Core dispatch rechecks the exact live history after the durable onDispatch callback await', async () => {
+  const f = fixture(), driver = f.adapter();
+  try {
+    const created = await driver.create(f.create), sessionId = created.binding.sessionId;
+    await assert.rejects(driver.decisionRound(f.decision(ref(created.native), { async onDispatch() {
+      const record = f.stored.get(sessionId)!, agent = f.live.get(sessionId)!;
+      const event: SessionEvent = { seq: record.events.length, type: 'user/message', surfaceOp: 'append', time: Date.now(),
+        data: { id: 'foreign-during-dispatch', role: 'user', content: [{ type: 'text', text: 'foreign body' }], source: { kind: 'user' } } };
+      record.events.push(event); record.durable = structuredClone(record.events);
+      agent.hooks.emit('session/event', agent.session, event);
+    } })), /history|Native history|changed/i);
+    assert.equal(f.counts().followups, 0); assert.equal(f.counts().streams, 0);
+    assert.equal(f.accounting.length, 1); assert.equal(f.accounting[0]!.dispatchAttempted, false);
+    assert.ok(f.stored.get(sessionId)!.events.some(event => event.data?.id === 'foreign-during-dispatch'));
+  } finally { await driver.close(); }
+});
+
+test('Core dispatch rechecks the live inbox after the durable onDispatch callback await and preserves foreign input', async () => {
+  const f = fixture(), driver = f.adapter();
+  let sessionId = '';
+  try {
+    const created = await driver.create(f.create); sessionId = created.binding.sessionId;
+    await assert.rejects(driver.decisionRound(f.decision(ref(created.native), { async onDispatch() {
+      const record = f.stored.get(sessionId)!, agent = f.live.get(sessionId)!;
+      const foreign = { id: 'foreign-inbox-during-dispatch', role: 'user' as const, content: [{ type: 'text' as const, text: 'foreign pending body' }], source: { kind: 'user' as const } };
+      record.inbox.push(foreign);
+      const event: SessionEvent = { seq: record.events.length, type: 'agent/inbox/spliced', time: Date.now(),
+        data: { target: 'next-turn', start: 0, removedCount: 0, inserted: [foreign] } };
+      record.events.push(event); record.durable = structuredClone(record.events);
+      agent.hooks.emit('session/event', agent.session, event);
+      agent.hooks.emit('agent/inbox/inserted', { message: foreign });
+    } })), /inbox|history|Native history|changed|release failed/i);
+    assert.equal(f.counts().followups, 0); assert.equal(f.counts().streams, 0);
+    assert.equal(f.accounting.length, 1); assert.equal(f.accounting[0]!.dispatchAttempted, false);
+    assert.equal(f.stored.get(sessionId)!.inbox[0]!.id, 'foreign-inbox-during-dispatch');
+  } finally { await assert.rejects(driver.close(), /cleanup failed/); }
+});
+
+test('Core cold recovery reuses a long native history and keeps the single admitted request', async () => {
+  const f = fixture(), driver = f.adapter();
+  try {
+    const created = await driver.create(f.create), sessionId = created.binding.sessionId;
+    const record = f.stored.get(sessionId)!;
+    // Thousands of prior events of the same Session; no inbox mutation.
+    for (let index = 0; index < 3000; index++) {
+      const seq = record.events.length;
+      record.events.push(index % 2 === 0
+        ? { seq, type: 'user/message', surfaceOp: 'append', time: Date.now(), data: { id: `history-user-${index}`, role: 'user', content: [{ type: 'text', text: 'synthetic history' }], source: { kind: 'user' } } }
+        : { seq, type: 'assistant/message', time: Date.now(), data: { message: { id: `history-assistant-${index}`, role: 'assistant', content: [] } } });
+    }
+    record.durable = structuredClone(record.events);
+    const before = record.events.length;
+    const result = await driver.decisionRound(f.decision(ref(created.native)));
+    assert.ok(result.text.length > 0); assert.equal(result.verified, false);
+    assert.equal(f.counts().streams, 1); assert.ok(record.events.length > before);
+    assert.equal(f.counts().opens, f.counts().closes);
+  } finally { await driver.close(); }
 });

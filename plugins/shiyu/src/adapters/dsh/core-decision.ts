@@ -1,7 +1,7 @@
 import type { GoalBinding, GoalAuthorityVerdict, NativeGoalRef, NativeGoalView } from './goals.js';
 import { defaultModel, type DshAgent, type DshAgentContext, type DshContext, type DshSession, type ModelUsage, type SessionEvent } from './sessions.js';
 import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
-import { flushNative, nativeInboxReferences, verifyNativeEvent } from './native-context.js';
+import { assertNativeLiveHistory, flushNative, nativeInboxReferences, verifyNativeEvent, type NativeColdInboxSnapshot } from './native-context.js';
 
 export type CoreDecisionPhase = 'start' | 'bound' | 'dispatch' | 'pre-step' | 'request' | 'stream' | 'context' | 'result';
 export interface CoreDecisionBinding { goalId: string; goalRef: NativeGoalRef; roundId: string; sessionId: string; messageId: string; messageHash: string }
@@ -75,6 +75,7 @@ export class CoreDecisionRun {
   private readonly events: SessionEvent[] = [];
   private accounted = false;
   private isAgentLoopRequest?: (request: unknown) => boolean;
+  private historyBaseline?: NativeColdInboxSnapshot;
   unknownInbox = false;
   constructor(private readonly options: Options) {
     this.maxTokens = options.request.maxTokens; this.deadline = options.request.deadlineAtMs;
@@ -82,6 +83,8 @@ export class CoreDecisionRun {
     this.timer = setTimeout(() => this.stop(new Error('Core decision deadline expired')), Math.max(1, this.deadline - options.now()));
     this.signal.addEventListener('abort', this.onAbort, { once: true });
   }
+  /** Current absolute authority deadline; it may only shrink after a fresh grant. */
+  get deadlineAtMs(): number { return this.deadline; }
   private onAbort = (): void => {
     if (!this.released) try { this.agent?.cancel({ kind: 'hook', reason: 'Core decision cancelled' }, { keepInbox: true }); }
     catch (error) { this.failure ??= error; }
@@ -244,11 +247,30 @@ export class CoreDecisionRun {
       throw nativeRejected(event.data?.source?.kind === 'runtime-context' ? 'CORE_NATIVE_CONTEXT_REJECTED' : 'CORE_NATIVE_INPUT_REJECTED', 'Core native input durability could not be confirmed');
     }
   }
-  async execute(agent: DshAgent): Promise<CoreDecisionResult> {
-    this.agent = agent; await this.gate('bound'); const before = this.goal().roundsStarted;
+  /**
+   * The dispatch boundary is an exact native history cut, not just an empty
+   * inbox. Any await that can interleave an external native write is followed
+   * by a synchronous identity/watermark recheck before the owned followup.
+   */
+  private assertNativeBaseline(): void {
+    this.assertCurrent();
+    if (!this.historyBaseline || !this.agent) throw new Error('Core native history baseline is unavailable');
+    assertNativeLiveHistory(this.options.ctx, this.agent.session, this.historyBaseline, this.agent.inbox);
+  }
+  async execute(agent: DshAgent, historyBaseline?: NativeColdInboxSnapshot): Promise<CoreDecisionResult> {
+    this.agent = agent;
+    if (!historyBaseline) throw new Error('Core decision requires a verified native history baseline');
+    this.historyBaseline = historyBaseline;
+    await this.gate('bound');
+    this.assertNativeBaseline();
+    const before = this.goal().roundsStarted;
     if (agent.status !== 'idle' || nativeInboxReferences(agent.inbox).length) throw new Error('Core decision requires an idle empty native inbox');
     await this.options.request.onDispatch(structuredClone(this.expected!));
+    // The durable dispatch callback may await arbitrary storage. Recheck the
+    // exact live object/header/inherited prefix/watermark/inbox afterwards.
+    this.assertNativeBaseline();
     await this.gate('dispatch');
+    this.assertNativeBaseline();
     if (nativeInboxReferences(agent.inbox).length) { this.unknownInbox = true; throw new Error('Core inbox changed before dispatch'); }
     this.dispatchAttempted = true; agent.followup(this.message!);
     // Native cancellation owns the loop; do not race disposal against a still-running native stream.

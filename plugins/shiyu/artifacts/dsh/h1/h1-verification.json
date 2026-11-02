@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "phase": "H1",
+  "slice": "3J native Session long-history cold recovery",
+  "capturedAt": "2026-11-02T18:48:36.694Z",
+  "status": "offline-verified-module-and-combination",
+  "purpose": "Complete 3J: bounded paged cold recovery of DSH native Session history beyond the old 2048-event cap, two-pass verification, exact official projection, recovery prefix identity and await-boundary rechecks wired into load-only, replyer and core decision paths.",
+  "baseline": {
+    "head": "08995d1",
+    "note": "H0 slice already committed/pushed; 1025 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+      "bytes": 36742,
+      "sha256": "747450b8b7c63087961f9faf68802c7d78704a5ac175e84900bcaaf1bdf5b794"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/sessions.ts",
+      "bytes": 79245,
+      "sha256": "c856085a936d958071eb3c71a249696be136f802a52f07f5401badef9c290e90"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 37117,
+      "sha256": "788cf6a237c1f0bc9cf50b6e08f2f8f1d0b5ebf02cbbf8cf9ac0689716d8470c"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 24474,
+      "sha256": "4ceb0a291fc08129a365dc304d260e1268c5993f610cdec55a4af8ada7e67769"
+    },
+    {
+      "path": "plugins/shiyu/tests/native-context.test.ts",
+      "bytes": 35467,
+      "sha256": "f8a52d0de03d1e1eedf4d619ad4cea4a91af44704a90643ef7306df5ea841dc5"
+    },
+    {
+      "path": "plugins/shiyu/tests/native-history.test.ts",
+      "bytes": 31925,
+      "sha256": "4be5ad11e9f94a198035231f758f6fd187eeb17da6cdf8be4249546e836039a3"
+    },
+    {
+      "path": "plugins/shiyu/tests/sessions.test.ts",
+      "bytes": 63616,
+      "sha256": "f9c54eb480e32945e22f41baf53354729feb3ef0299223ee012acaddc2b991a1"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-goal-sessions.test.ts",
+      "bytes": 47437,
+      "sha256": "f1ff5f4de07b6c187effe100c16f4651164358101032c64536916aa84b0f6c84"
+    },
+    {
+      "path": "plugins/shiyu/tests/session-reply-accounting.test.ts",
+      "bytes": 26363,
+      "sha256": "a869ada4fc1109c44c5c7626044d67eb0a67e1eb267613f0531f78614cb7e34f"
+    }
+  ],
+  "implementation": {
+    "coldRead": "bounded paging (512 events/page, 32768 events, 32 MiB, 256 reads, 10s absolute deadline, 64 appended-suffix events); explicit NativeHistoryError codes instead of silent truncation",
+    "projection": "one official projector restore over the complete bounded cut; exact header.version4/id/preset/isSeeded/inheritedEventCount and snapshot.asOfSeq === eventCount-1 (empty = -1); inbox projection reference identity",
+    "consistency": "two complete sequential passes; second pass compares per-event hash and explicit EOF without retaining a second history; append/shrink/same-length early rewrite during the observation are detected",
+    "prefixIdentity": "chained history digest proves the exact pre-resume prefix; only trusted native recovery suffix events accepted (interrupted closers, session/end-seed marker, fixed user title); foreign user/assistant messages, inbox splices and automatic titles are rejected",
+    "wiring": [
+      "load-only: baseline retained across pause/resume, flush + cold read + live object/id/header/inherited/inbox/seq binding, exact own append boundary, zero-extra-suffix verifying pass, foreign direct append during authorization/flush blocks the receipt without deleting it",
+      "replyer: same pre-resume cut, unknown inbox retained, fixed title append bound as its own exact event",
+      "core: dispatch boundary rechecks the exact baseline after onDispatch/authorization awaits; history baseline required before followup"
+    ],
+    "errorCodes": [
+      "NATIVE_HISTORY_SERVICES",
+      "NATIVE_HISTORY_HEADER",
+      "NATIVE_HISTORY_SEQUENCE",
+      "NATIVE_HISTORY_LIMIT",
+      "NATIVE_HISTORY_CHANGED",
+      "NATIVE_HISTORY_PROJECTION",
+      "NATIVE_HISTORY_CANCELLED",
+      "NATIVE_HISTORY_DEADLINE",
+      "NATIVE_HISTORY_READ",
+      "NATIVE_HISTORY_CLOSE"
+    ]
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "/tmp/shiyu-h1-check (ephemeral; HEAD + the 9 slice files)",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1058,
+      "pass": 1058,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "startedAt": "2026-11-02T18:39:49Z",
+      "endedAt": "2026-11-02T18:44:47Z",
+      "log": {
+        "path": "plugins/shiyu/.local/phase3j-final-check.log",
+        "bytes": 117921,
+        "sha256": "8c05c87f719afc9ea2ecc7b3fac690d89827e741b00b2c455d36505b0da5c258"
+      },
+      "note": "test count = 1025 baseline + 33 net new H1 tests (native-context 6→22, native-history new 14, core-goal-sessions 17→20)"
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "plugins/shiyu/scripts/slice-verify.mjs (isolated git worktree at HEAD + only this slice, node_modules + pinned Python fixture symlinked)",
+      "evidence": "plugins/shiyu/artifacts/dsh/slices/h1-verify.json",
+      "exitCode": 0,
+      "tests": 1058,
+      "pass": 1058,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 146732,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h1.log",
+        "sha256": "aa34267956574e1455e5b6cba3dbb6f0454744f12669a89d76ad8db9b4166a90"
+      }
+    },
+    "independentVerifierInterim": {
+      "suite": "tests/verify (independent from product implementation; own oracle, tsconfig and glob)",
+      "runId": "2026-11-02T18-45-41-522Z",
+      "cases": 117,
+      "casePass": 117,
+      "casesFailed": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "tapTests": 103,
+      "tapPass": 103,
+      "note": "Interim run against the working tree while the H1 files were frozen; the final verification run on the committed HEAD is performed separately by the independent verifier and will be recorded in its own report."
+    }
+  },
+  "failedUnknownUntested": [
+    "Real fixed-host long-history cold recovery and reload were not executed in this slice; live native Session operations, model calls and embeddings are all 0.",
+    "Native compaction/checkpoint integration is not implemented; long-history beyond the explicit bounds fails closed.",
+    "Lifecycle (non-core) Goal namespace keeps its previous behavior (no new recovery baseline).",
+    "Timeouts/cancellation rely on cooperative SDK AbortSignal; a single backend read that ignores abort can return later than the timer (no hard real-time claim), but never yields a success receipt.",
+    "Two matching complete passes are stable append-only observation, not an atomic snapshot under arbitrary external writers; same-length early rewrites are only detectable between passes.",
+    "No fixed-host or V24/V13/V14 acceptance is claimed; the next H1 follow-ups are compaction/recovery layering and bounded fixed-host long-history checks."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "liveDatabaseWrites": 0,
+    "liveNativeSessionOperations": 0
+  },
+  "evidenceLevel": "G1 module + native-interface combination tests with synthetic worlds and temporary real SQLite; fixed SDK 0.2.1-rc.5 static source read only (not executed)."
+}
