@@ -15,7 +15,8 @@
 import { randomUUID } from 'node:crypto';
 import { RecoveryError } from './errors.js';
 import { summarizeCaptureResult } from './host-ports.js';
-import type { CaptureResult } from './types.js';
+import { validateCheckpointProbeResult } from './checkpoint-probe.js';
+import type { CaptureResult, CheckpointProbeResult } from './types.js';
 import type { RuntimeCheckpointComposition } from './host-ports.js';
 
 export interface RuntimeCheckpointCommandDeps {
@@ -218,5 +219,69 @@ export class RuntimeCheckpointCommand {
       this.report(result);
       return result;
     }
+  }
+}
+
+/* ------------------------------------------------------------------------------------------------
+ * Owner-only read-only availability probe
+ * ---------------------------------------------------------------------------------------------- */
+
+export interface RuntimeCheckpointProbeDeps {
+  /** Trusted closure that performs the read-only probe; never captures. */
+  probe(): CheckpointProbeResult | Promise<CheckpointProbeResult>;
+  isOpen(): boolean;
+  isPaused(): boolean;
+  /** Receipt sink; the Runtime stores this under snapshot().diagnostics.checkpointProbe. */
+  onReceipt?(receipt: CheckpointProbeResult): void;
+  now?(): Date;
+}
+
+const PROBE_ACTION = 'runtime.checkpoint.probe';
+
+const readProbeRequest = (input: unknown): void => {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new RecoveryError('CHECKPOINT_INPUT_INVALID', 'Expected a checkpoint probe command object');
+  }
+  const value = input as Record<string, unknown>;
+  const descriptors = Object.getOwnPropertyDescriptors(value);
+  if (Object.values(descriptors).some((descriptor) => !Object.hasOwn(descriptor, 'value'))) {
+    throw new RecoveryError('CHECKPOINT_INPUT_INVALID', 'Checkpoint probe command must contain plain data fields');
+  }
+  const keys = Object.keys(value);
+  if (keys.length !== 1 || keys[0] !== 'action') throw new RecoveryError('CHECKPOINT_INPUT_INVALID', 'Checkpoint probe accepts exactly one field: action');
+  if (value.action !== PROBE_ACTION) throw new RecoveryError('CHECKPOINT_INPUT_INVALID', 'Unsupported checkpoint probe action');
+};
+
+/**
+ * Strict owner-only `runtime.checkpoint.probe` handler. Read-only and
+ * idempotent: it never captures, writes files, calls a resolver or changes
+ * pause state. Its validated receipt is the only output; the Runtime stores it
+ * in `snapshot().diagnostics.checkpointProbe`.
+ */
+export class RuntimeCheckpointProbeCommand {
+  private lastReceipt?: CheckpointProbeResult;
+  constructor(private readonly deps: RuntimeCheckpointProbeDeps) {}
+
+  private now(): string { return (this.deps.now?.() ?? new Date()).toISOString(); }
+
+  async handle(input: unknown, signal?: AbortSignal): Promise<CheckpointProbeResult> {
+    if (!this.deps.isOpen()) throw new RecoveryError('CHECKPOINT_INPUT_INVALID', 'Runtime is not open');
+    signal?.throwIfAborted();
+    readProbeRequest(input);
+    const receipt = await this.deps.probe();
+    signal?.throwIfAborted();
+    const validation = validateCheckpointProbeResult(receipt);
+    if (!validation.ok) {
+      const first = validation.violations[0];
+      throw new RecoveryError('CHECKPOINT_PROBE_INVALID', `Probe receipt failed validation at ${first?.path ?? '$'}: ${first?.message ?? 'unknown violation'}`);
+    }
+    this.lastReceipt = structuredClone(receipt);
+    try { this.deps.onReceipt?.(structuredClone(receipt)); } catch { /* a diagnostics sink failure never changes the probe receipt */ }
+    return receipt;
+  }
+
+  /** Latest validated receipt (diagnostics helper; no I/O). */
+  receipt(): CheckpointProbeResult | undefined {
+    return this.lastReceipt ? structuredClone(this.lastReceipt) : undefined;
   }
 }

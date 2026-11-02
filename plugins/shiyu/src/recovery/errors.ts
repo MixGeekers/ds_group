@@ -43,7 +43,8 @@ export type RecoveryErrorCode =
   | 'LOG_FORMAT_NOT_OFFLINE_VERIFIABLE'
   | 'CHECKPOINT_BUSY'
   | 'CHECKPOINT_INPUT_INVALID'
-  | 'CHECKPOINT_STAGING_UNCONFIGURED';
+  | 'CHECKPOINT_STAGING_UNCONFIGURED'
+  | 'CHECKPOINT_PROBE_INVALID';
 
 export class RecoveryError extends Error {
   constructor(

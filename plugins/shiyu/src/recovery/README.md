@@ -1,6 +1,6 @@
 # 本地检查点与隔离恢复模块（H5-B1 · 离线）
 
-状态：**离线模块已实现并离线通过（G1）；H5b 已提供 Runtime 组合层适配与 owner-only 命令的精确集成 diff，但 runtime.ts 由 Lead 落、本切片未接线；未做 live 修复、独立故障域或 V22/V27 完整验收。** 证据见
+状态：**离线模块已实现并离线通过（G1）；H5b 已提供 Runtime 组合层适配与 capture 命令集成（Lead 已落），H5b-probe 追加只读可用性探针的精确集成 diff；未做 live 修复、独立故障域或 V22/V27 完整验收。** 证据见
 [`artifacts/dsh/h5/`](../../artifacts/dsh/h5/)；需求来源为[交接 02 §6.9](<../../../../架构与设计/DSH交接/02-测试设计与验收标准.md#69-检查点迁移长期运行与恢复>)、
 [A方案 05-宿主外恢复](<../../../../架构与设计/A方案全景/05-宿主外恢复/README.md>)、
 [06-预留空间/08-本地检查点](<../../../../架构与设计/A方案全景/06-预留空间/08-本地检查点/README.md>)、
@@ -268,3 +268,35 @@ H5b 把 H5-B1 的纯引擎接入既有 Runtime 资源，但不修改 `runtime.ts
   ready 路径仅用合成 seam（临时 Session 文件 + 合成 resolver/native-state/flush/projection/memory）验证。
 - 未测/未证：Lead 落 diff 后的真实运行命令与宿主 reload、真实 `~/.dsh/sessions` 路径解析、压缩日志离线解码、
   真实 Ombre 导出、独立故障域/V27、RPO/RTO、激活切换。restore 仍只进入临时隔离根、不激活、不动 live 根。
+
+---
+
+## 10. H5b-probe：检查点可用性只读探针
+
+目的：给宿主零模型取证一个**只读**入口，证明 checkpoint 命令路径与组件阻断清单真实存在，而不执行 capture、
+不写 staging、不调用 resolver、不读取真实 Session 内容。
+
+- 入口：`probeCheckpointAvailability(options)`（[`checkpoint-probe.ts`](checkpoint-probe.ts)）；owner 命令
+  `runtime.checkpoint.probe` 由 [`RuntimeCheckpointProbeCommand`](runtime-command.ts) 处理，receipt 经严格
+  `validateCheckpointProbeResult` 后才允许存储。
+- 只读能力探测（不产生副作用）：
+  - staging：仅配置/路径围栏与只读 `lstat`（不存在也算 configured，探针绝不创建）；
+  - control：经注入的 `controlStore.request('goal.binding.list')`（或注入的等价只读源）枚举 GoalBinding；
+  - Goal Session：**只检查 resolver 是否注入**，绝不调用 `resolveCurrentLog`；对 native state/flush/projection 只检查注入标志；
+  - memory：生产默认显式 `MEMORY_EXPORT_UNAVAILABLE`（带 `HOST_MEMORY_REQUIRED_SCOPE`），只有显式注入可用性才标 available；
+  - workspace：仅只读 `lstat` + 有界目录读取（不 hash、不复制、不写）；
+  - paused：只回显，不改变。
+- 返回固定 `ready:false` / `expectedReady:false` / `readOnly:true` / `captureAttempted:false` / `resolverInvoked:false` /
+  `filesWritten:0`；`components` 固定为 staging、control、dsh-goal-sessions、memory、shared-objects 五项，`blockers` 与
+  非 available 组件一一对应；原因码至少覆盖 `CHECKPOINT_STAGING_UNCONFIGURED`、`GOAL_SESSION_EXPORT_UNAVAILABLE`、
+  `MEMORY_EXPORT_UNAVAILABLE`。
+- Runtime 集成 diff：[`runtime-checkpoint-probe.diff`](../../artifacts/dsh/h5/runtime-checkpoint-probe.diff)（runtime.ts 增加
+  probe 命令字段、init 闭包、dispatch 分支、`commandCheckpointProbe` 与 `snapshot().diagnostics.checkpointProbe` 回执；
+  index.ts 仅注释说明 owner 命令走既有 `serveCommand`，不新增模型工具/HTTP 路由）。
+- 测试与证据：[`tests/recovery-checkpoint-probe.test.ts`](../../tests/recovery-checkpoint-probe.test.ts)（10 用例：staging 未配置、
+  真实 ControlStore 枚举、resolver 仅探测不调用、空 binding、memory 显式不可用、全缺失结构完整、workspace/越界、
+  命令严格字段/paused 只读/不写文件/不 capture/幂等、坏回执拒绝、evidence generator）；
+  [`artifacts/dsh/h5/h5b-checkpoint-probe.json`](../../artifacts/dsh/h5/h5b-checkpoint-probe.json)（矩阵、指纹、diff SHA/可应用性、
+  零副作用保证、全量 check 验证记录）。
+- 边界：探针不产生 ready、不做 capture、不验证 bundle 字节、不覆盖真实宿主命令执行；V22/V27、真实 Ombre 导出、
+  真实 Session 路径与激活切换仍未验收。

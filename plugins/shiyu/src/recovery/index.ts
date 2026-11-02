@@ -87,9 +87,22 @@ export type {
   HostWorkspaceObjectPort,
   RuntimeCheckpointComposition,
 } from './host-ports.js';
-export { RuntimeCheckpointCommand } from './runtime-command.js';
+export { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand } from './runtime-command.js';
 export type {
   RuntimeCheckpointCommandDeps,
   RuntimeCheckpointCommandResult,
   RuntimeCheckpointComponentState,
+  RuntimeCheckpointProbeDeps,
 } from './runtime-command.js';
+export {
+  CHECKPOINT_PROBE_REASON_CODES,
+  probeCheckpointAvailability,
+  validateCheckpointProbeResult,
+} from './checkpoint-probe.js';
+export type {
+  CheckpointProbeControlStore,
+  CheckpointProbeGoalSeams,
+  CheckpointProbeOptions,
+  CheckpointProbeValidation,
+  CheckpointProbeViolation,
+} from './checkpoint-probe.js';

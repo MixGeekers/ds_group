@@ -23,6 +23,7 @@ export const GENERATION_RECORD_SCHEMA_VERSION = 1;
 export const RESTORE_REPORT_SCHEMA_VERSION = 1;
 export const STAGING_JOURNAL_SCHEMA_VERSION = 1;
 export const DELETION_LEDGER_SCHEMA_VERSION = 1;
+export const CHECKPOINT_PROBE_SCHEMA_VERSION = 1;
 
 export const REQUIRED_COMPONENT_IDS = ['control', 'dsh-goal-sessions', 'memory', 'shared-objects'] as const;
 export type ComponentId = (typeof REQUIRED_COMPONENT_IDS)[number];
@@ -526,6 +527,63 @@ export type CaptureResult =
       partialDirectory: string | null;
       lastGoodUpdated: false;
     };
+
+/* ------------------------------------------------------------------------------------------------
+ * H5b read-only checkpoint availability probe
+ * ---------------------------------------------------------------------------------------------- */
+
+export type CheckpointProbeComponentId = 'staging' | 'control' | 'dsh-goal-sessions' | 'memory' | 'shared-objects';
+export type CheckpointProbeComponentStatus = 'available' | 'unavailable' | 'unconfigured';
+
+export interface CheckpointProbeComponent {
+  id: CheckpointProbeComponentId;
+  status: CheckpointProbeComponentStatus;
+  reasonCode: string | null;
+  requiredScope: string[];
+  detail: string;
+}
+
+export interface CheckpointProbeBlocker {
+  id: CheckpointProbeComponentId;
+  reasonCode: string;
+  requiredScope: string[];
+}
+
+export interface CheckpointProbeStaging {
+  configured: boolean;
+  exists: boolean | null;
+  withinLiveRoot: boolean | null;
+  detail: string;
+}
+
+export interface CheckpointProbeGoalBindings {
+  source: 'controlStore' | 'injected' | 'unavailable';
+  total: number | null;
+  active: number | null;
+  detail: string;
+}
+
+/**
+ * Read-only availability receipt. `ready`/`expectedReady` are literal false:
+ * this probe never captures, never verifies bundle bytes and never claims the
+ * production host can produce a ready Bundle.
+ */
+export interface CheckpointProbeResult {
+  schemaVersion: number;
+  action: 'runtime.checkpoint.probe';
+  observedAt: string;
+  paused: boolean;
+  readOnly: true;
+  captureAttempted: false;
+  resolverInvoked: false;
+  filesWritten: 0;
+  ready: false;
+  expectedReady: false;
+  staging: CheckpointProbeStaging;
+  goalBindings: CheckpointProbeGoalBindings;
+  components: CheckpointProbeComponent[];
+  blockers: CheckpointProbeBlocker[];
+}
 
 /** Offline verification surface over a restored, isolated root. Read-only. */
 export interface RestoredInstanceState {

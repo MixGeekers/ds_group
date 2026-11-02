@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "slice": "H5b-probe",
+  "title": "检查点可用性只读探针：宿主零模型取证（不 capture/不写文件/不调 resolver）",
+  "generatedAt": "2026-11-02T23:11:19.572Z",
+  "evidenceLevel": "G1+ offline read-only probe (real temporary ControlStore/SQLite; synthetic resolver markers/memory availability)",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sqliteVersion": "3.53.3"
+  },
+  "fingerprints": {
+    "source": {
+      "git": {
+        "head": "50e347de6798165c17e9c2cec5a6ba4944c20820"
+      },
+      "moduleFiles": [
+        {
+          "path": "src/recovery/checkpoint-probe.ts",
+          "sha256": "dfcd0298ecb363fddaf37a58269d25730c84b9edee45e48752d29f6bb6601e3a"
+        },
+        {
+          "path": "src/recovery/runtime-command.ts",
+          "sha256": "8e85e2861f541871fa5e1b0be07ed6978b49a20a709a4779f0429abc8a409cda"
+        },
+        {
+          "path": "src/recovery/types.ts",
+          "sha256": "da57b7bdb14bf617fa84c6cc57c0b8e7d3e2c8f99bb4e12ca215ef4dc3ef2231"
+        },
+        {
+          "path": "src/recovery/index.ts",
+          "sha256": "c52b4d6bf70a9623ecb177d43143b7c9a86b9b2738f3c4a7bad909afe2737141"
+        },
+        {
+          "path": "src/recovery/errors.ts",
+          "sha256": "79f19347d3733ba095ddcbb46a41a3e98491239e18a96a7b0a75ac8b16d07d0d"
+        }
+      ]
+    },
+    "build": {
+      "buildCommand": "npm run check (tsc --noEmit + node --import tsx --test tests/*.test.ts + tsc -p tsconfig.build.json + node --check client/index.js)",
+      "tsconfigBuildSha256": "54b6d705480e307e263aa78965b318c0921d5b94fa346b385ca68cbd8318137a",
+      "packageJsonSha256": "7eb06a89562c77d7f6f674b630011764d9350528a81d316786470c4afdcf4700",
+      "packageLockSha256": "3897d1556dd268721ae9f67f1be4ebfc2d31d666d2c622240994c0aa93506dec"
+    },
+    "tests": {
+      "files": [
+        {
+          "path": "tests/recovery-checkpoint-probe.test.ts",
+          "sha256": "769ff29c4e2bb269df46f84382a3b49c05e5891c20a5425a836f5964bd8a3820"
+        }
+      ]
+    }
+  },
+  "integrationDiff": {
+    "path": "artifacts/dsh/h5/runtime-checkpoint-probe.diff",
+    "sha256": "b35cdc13199aa27d83b04a010ec99f8654beba76be8e25daf14457e87991b381",
+    "bytes": 6318,
+    "applies": true,
+    "runtimeTs": "adds RuntimeCheckpointProbeCommand wiring, runtime.checkpoint.probe dispatch and snapshot().diagnostics.checkpointProbe receipt storage",
+    "indexTs": "comment-only clarification: the existing owner command route serves runtime.checkpoint.probe; no new model tool or HTTP route is added"
+  },
+  "guarantees": {
+    "readOnly": true,
+    "captureAttempted": false,
+    "resolverInvoked": false,
+    "filesWritten": 0,
+    "pauseStateChanged": false,
+    "liveDataRootTouched": false,
+    "liveNativeSessionTouched": false,
+    "controlWrites": 0,
+    "modelCalls": 0,
+    "realOmbreBackendUsed": false,
+    "runtimeWiredInThisSlice": false
+  },
+  "reasonCodes": [
+    "CHECKPOINT_STAGING_UNCONFIGURED",
+    "GOAL_SESSION_EXPORT_UNAVAILABLE",
+    "MEMORY_EXPORT_UNAVAILABLE"
+  ],
+  "summary": {
+    "total": 7,
+    "passed": 7,
+    "failed": 0
+  },
+  "cases": [
+    {
+      "caseId": "probe.staging-unconfigured",
+      "injectionPoint": "stagingRoot 未配置（生产默认）",
+      "expected": "CHECKPOINT_STAGING_UNCONFIGURED blocker；readOnly/captureAttempted/resolverInvoked/filesWritten 固定",
+      "observed": "blockers=CHECKPOINT_STAGING_UNCONFIGURED,MEMORY_EXPORT_UNAVAILABLE; staging=unconfigured",
+      "pass": true,
+      "evidence": {
+        "blockers": [
+          "CHECKPOINT_STAGING_UNCONFIGURED",
+          "MEMORY_EXPORT_UNAVAILABLE"
+        ]
+      }
+    },
+    {
+      "caseId": "probe.goal-resolver-missing",
+      "injectionPoint": "真实 ControlStore + 2 个 active binding，resolver 未注入",
+      "expected": "GOAL_SESSION_EXPORT_UNAVAILABLE blocker；control available；不做 resolver 调用",
+      "observed": "active=2, blockers=GOAL_SESSION_EXPORT_UNAVAILABLE,MEMORY_EXPORT_UNAVAILABLE",
+      "pass": true,
+      "evidence": {
+        "goalBindings": {
+          "source": "controlStore",
+          "total": 2,
+          "active": 2,
+          "detail": "2 active of 2 bindings (conservative: native GoalRef or unresolved receipt)"
+        }
+      }
+    },
+    {
+      "caseId": "probe.memory-unavailable",
+      "injectionPoint": "memoryExport 未注入（managed Ombre 无公开导出）",
+      "expected": "MEMORY_EXPORT_UNAVAILABLE blocker；requiredScope 非空",
+      "observed": "memory=MEMORY_EXPORT_UNAVAILABLE; requiredScope=2",
+      "pass": true,
+      "evidence": {
+        "requiredScope": [
+          "an approved public export/archive API for the managed Ombre memory backend that returns a component manifest, reference closure and deletion state",
+          "or an approved offline export adapter with the same manifest/hash/closure semantics, without writing the live managed vault"
+        ]
+      }
+    },
+    {
+      "caseId": "probe.all-missing-structure",
+      "injectionPoint": "全依赖缺失（空 options）",
+      "expected": "结构完整 5 组件、blockers 与组件一致、严格校验通过",
+      "observed": "components=5, blockers=5",
+      "pass": true,
+      "evidence": {
+        "components": [
+          "staging",
+          "control",
+          "dsh-goal-sessions",
+          "memory",
+          "shared-objects"
+        ],
+        "blockers": [
+          "CHECKPOINT_STAGING_UNCONFIGURED",
+          "CONTROL_FACTS_UNAVAILABLE",
+          "GOAL_SESSION_EXPORT_UNAVAILABLE",
+          "MEMORY_EXPORT_UNAVAILABLE",
+          "WORKSPACE_INVENTORY_UNAVAILABLE"
+        ]
+      }
+    },
+    {
+      "caseId": "probe.resolver-presence-only",
+      "injectionPoint": "注入会抛错的 resolver 对象 + 全 seam",
+      "expected": "组件 available；resolver 调用次数 0；ready/expectedReady 仍 false",
+      "observed": "resolverCalls=0; goal=available",
+      "pass": true,
+      "evidence": {
+        "resolverCalls": 0
+      }
+    },
+    {
+      "caseId": "probe.command-readonly-idempotent",
+      "injectionPoint": "owner 命令 paused=true，两次调用 + 非法字段",
+      "expected": "不写文件/不 capture/不改 paused/非法字段拒绝；两次结构一致",
+      "observed": "two idempotent read-only receipts; captureCalls=0; invalid rejected=true",
+      "pass": true,
+      "evidence": {
+        "captureCalls": 0
+      }
+    },
+    {
+      "caseId": "probe.workspace-unreadable",
+      "injectionPoint": "workspaceRoot 指向不存在目录",
+      "expected": "WORKSPACE_INVENTORY_UNAVAILABLE blocker",
+      "observed": "shared-objects=WORKSPACE_INVENTORY_UNAVAILABLE",
+      "pass": true,
+      "evidence": {
+        "code": "WORKSPACE_INVENTORY_UNAVAILABLE"
+      }
+    }
+  ],
+  "regeneration": {
+    "command": "SHIYU_WRITE_EVIDENCE=1 node --import tsx --test tests/recovery-checkpoint-probe.test.ts"
+  },
+  "verification": {
+    "generatedAt": "2026-11-02T23:11:27.712121Z",
+    "worktree": {
+      "path": "<temporary-worktree>/shiyu-probe-verify/plugins/shiyu",
+      "baselineCommit": "50e347d",
+      "method": "git worktree add --detach HEAD + 仅复制本切片 src/recovery、tests/recovery-*、artifacts/dsh/h5 的 probe 证据/diff；node_modules 符号链接；.local/ombre 仅符号链接复用既有 pinned Python/Ombre 夹具（未安装依赖）"
+    },
+    "commands": [
+      "npm run check  # tsc --noEmit && node --import tsx --test --test-concurrency=1 tests/*.test.ts && tsc -p tsconfig.build.json && node --check client/index.js"
+    ],
+    "runs": {
+      "trial": {
+        "transientPath": "<transient-tmp>/probe-check-trial.log",
+        "sha256": "83b76b2ccc93bc63346ea2b7447858be549bdd16ee6468226078cc774cd0b2de",
+        "bytes": 156995,
+        "exitCode": 0,
+        "counts": {
+          "tests": 1445,
+          "suites": 0,
+          "pass": 1445,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 339071.673208
+        },
+        "pythonCrossLanguageTestRan": true,
+        "pythonCrossLanguageTestSkipped": false,
+        "archivedCopy": {
+          "path": ".local/probe-verify/probe-check-trial.log",
+          "sha256": "83b76b2ccc93bc63346ea2b7447858be549bdd16ee6468226078cc774cd0b2de",
+          "bytes": 156995,
+          "gitIgnored": true,
+          "matchesTransientLog": true
+        }
+      },
+      "final": {
+        "transientPath": "<transient-tmp>/probe-check-final.log",
+        "sha256": "adba9183e49ec5262d15f1b7789693967527053b5e3fb9c8f428d04e93526103",
+        "bytes": 156906,
+        "exitCode": 0,
+        "counts": {
+          "tests": 1445,
+          "suites": 0,
+          "pass": 1445,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 335218.953416
+        },
+        "pythonCrossLanguageTestRan": true,
+        "pythonCrossLanguageTestSkipped": false,
+        "archivedCopy": {
+          "path": ".local/probe-verify/probe-check-final.log",
+          "sha256": "adba9183e49ec5262d15f1b7789693967527053b5e3fb9c8f428d04e93526103",
+          "bytes": 156906,
+          "gitIgnored": true,
+          "matchesTransientLog": true
+        }
+      }
+    },
+    "zeroSkipEvidence": {
+      "tests": 1445,
+      "pass": 1445,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "pythonCrossLanguageTestRan": true,
+      "note": "两次连续全量 check 均为 0 fail / 0 skip / exit 0；pinned Python/Ombre 夹具以既有 .local/ombre 符号链接复用，未安装依赖。"
+    },
+    "sliceFileHashes": {
+      "files": [
+        {
+          "path": "src/recovery/README.md",
+          "sha256": "79235dfad894217e7d42fdf9c1967f975629d7b061bf4d1cbdb8975fe7391f0c"
+        },
+        {
+          "path": "src/recovery/capture.ts",
+          "sha256": "1142bc52dc69d5a496f54c2d42ddad052b8c066e44923cf0e7ec38f299653ac4"
+        },
+        {
+          "path": "src/recovery/checkpoint-probe.ts",
+          "sha256": "dfcd0298ecb363fddaf37a58269d25730c84b9edee45e48752d29f6bb6601e3a"
+        },
+        {
+          "path": "src/recovery/control-facts.ts",
+          "sha256": "c1f73a4b80e9405df070e13268513063943140629fdb80168afa61f8ceb2de2b"
+        },
+        {
+          "path": "src/recovery/errors.ts",
+          "sha256": "79f19347d3733ba095ddcbb46a41a3e98491239e18a96a7b0a75ac8b16d07d0d"
+        },
+        {
+          "path": "src/recovery/files.ts",
+          "sha256": "9e40ff972539028a7c9c6b618ae9b0d0347e7a1d38c2b492b312e3c0180db8fa"
+        },
+        {
+          "path": "src/recovery/host-ports.ts",
+          "sha256": "75f0cb7caa3b11342854c2ec6f4a270b01c91fcb776cee32907985f21ebefe44"
+        },
+        {
+          "path": "src/recovery/index.ts",
+          "sha256": "c52b4d6bf70a9623ecb177d43143b7c9a86b9b2738f3c4a7bad909afe2737141"
+        },
+        {
+          "path": "src/recovery/local-state.ts",
+          "sha256": "8913888b90ea52090883bc8ad3c420d850e3419b2552db272db94e3b1edfefa1"
+        },
+        {
+          "path": "src/recovery/ports.ts",
+          "sha256": "5ed3165a0dbb8e57cc5c87cf4974c4768a5d767c3465c079cc296ef1db7765a6"
+        },
+        {
+          "path": "src/recovery/restore.ts",
+          "sha256": "718f3166a1514bc6f5dbff55730d062c054e6757e88128a110732117f7925aed"
+        },
+        {
+          "path": "src/recovery/runtime-command.ts",
+          "sha256": "8e85e2861f541871fa5e1b0be07ed6978b49a20a709a4779f0429abc8a409cda"
+        },
+        {
+          "path": "src/recovery/schema.ts",
+          "sha256": "28debdcb6e48aff43eee931266b81b334838d2c8856401a18bbd73a8c2545c88"
+        },
+        {
+          "path": "src/recovery/types.ts",
+          "sha256": "da57b7bdb14bf617fa84c6cc57c0b8e7d3e2c8f99bb4e12ca215ef4dc3ef2231"
+        },
+        {
+          "path": "src/recovery/verify.ts",
+          "sha256": "b92464d2d6bf6252b7157c79bc000a9985a9c4cee21b45f7471880c4cfbc227a"
+        },
+        {
+          "path": "tests/recovery-capture.test.ts",
+          "sha256": "45093658d4987546de0bc035df3313b51bef9a32ef4e663e17f6935b813c14bd"
+        },
+        {
+          "path": "tests/recovery-checkpoint-probe.test.ts",
+          "sha256": "769ff29c4e2bb269df46f84382a3b49c05e5891c20a5425a836f5964bd8a3820"
+        },
+        {
+          "path": "tests/recovery-evidence.test.ts",
+          "sha256": "640f17d42626f05881c3327a0a8cc6dea4acb633ed125124d2954cf106beeeec"
+        },
+        {
+          "path": "tests/recovery-fault-matrix.test.ts",
+          "sha256": "a8b85eae65e66249712c14ca05d5fdd83490a42071850caa481f681f1f471f97"
+        },
+        {
+          "path": "tests/recovery-h5b-evidence.test.ts",
+          "sha256": "08c7d312a051f76247b3f56fb5a294f90062ba01c96da247be09536a3ba01730"
+        },
+        {
+          "path": "tests/recovery-h5b-matrix.ts",
+          "sha256": "5a5bf74b1e010814df5635d1366e0c9e404f114dbb0d68287e59861ed709208d"
+        },
+        {
+          "path": "tests/recovery-h5b-support.ts",
+          "sha256": "96e07c001b3550e963962fb5cfb7d5a33a58cb4595838a145cc0e841aa97d21f"
+        },
+        {
+          "path": "tests/recovery-host-ports.test.ts",
+          "sha256": "d97ec3412c7ee2b14ea51a36073dbb7cf649797e7fc45bfca5faf6bfe360f200"
+        },
+        {
+          "path": "tests/recovery-matrix.ts",
+          "sha256": "e829c5435f3cf2257b56fe7b9c798c66e7b7e4a1ca420149483b51e004e67923"
+        },
+        {
+          "path": "tests/recovery-restore.test.ts",
+          "sha256": "45beceb72e0ec26666ea528e45a59577053ddcc331412ff0bfe323afd366d42d"
+        },
+        {
+          "path": "tests/recovery-schema.test.ts",
+          "sha256": "6b5c2f87c266e64774375d88971eeb73b648a0f788a5812abc75b8a045372298"
+        },
+        {
+          "path": "tests/recovery-support.ts",
+          "sha256": "a4cd152f88686beb79811cbadbcbd1a5b82332685b3fb8c264a54af9383b397c"
+        },
+        {
+          "path": "artifacts/dsh/h5/runtime-checkpoint-probe.diff",
+          "sha256": "b35cdc13199aa27d83b04a010ec99f8654beba76be8e25daf14457e87991b381"
+        }
+      ]
+    },
+    "boundaries": {
+      "liveDataRootTouched": false,
+      "liveNativeSessionTouched": false,
+      "runtimeTsEdited": false,
+      "gitCommitMade": false,
+      "dependenciesInstalled": false,
+      "realOmbreBackendUsed": false,
+      "modelCalls": 0
+    }
+  }
+}

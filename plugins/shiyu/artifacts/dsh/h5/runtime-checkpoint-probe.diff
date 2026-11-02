@@ -1,0 +1,105 @@
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ -44,8 +44,9 @@
+   detectSessionPersistenceLogResolver,
+   type RuntimeCheckpointComposition,
+ } from './recovery/host-ports.js';
+-import { RuntimeCheckpointCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
+-import type { RuntimeManifest } from './recovery/types.js';
++import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
++import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
++import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
+ 
+ export const VERSION = '0.1.0';
+ const OWN_SCOPE = 'runtime';
+@@ -190,6 +191,10 @@
+   private checkpoint?: RuntimeCheckpointComposition;
+   /** Last explicit checkpoint diagnostic code; used for degrade visibility, never for auto retry. */
+   private checkpointFailure?: string;
++  /** H5b-probe owner-only read-only availability command. */
++  private checkpointProbeCommand?: RuntimeCheckpointProbeCommand;
++  /** Last validated probe receipt; the only place it is stored (snapshot diagnostics). */
++  private checkpointProbeReceipt?: CheckpointProbeResult;
+   constructor(private readonly ctx: DshContext, config: RuntimeConfig = {}, private readonly options: RuntimeOptions = {}) {
+     const defaultDirectory = fileURLToPath(new URL('../.local/runtime/', import.meta.url));
+     if (config.dataDir !== undefined && (typeof config.dataDir !== 'string' || !path.isAbsolute(config.dataDir))) throw new Error('dataDir must be an absolute path');
+@@ -331,6 +336,31 @@
+         isOpen: () => !this.closed && !this.closing,
+         isPaused: () => this.pauseRequested,
+         onDiagnostic: entry => { this.checkpointFailure = entry.code ?? undefined; },
++      });
++      // H5b-probe: read-only availability probe. The closure only runs inside the
++      // explicit owner command; it never captures, writes files, calls a resolver
++      // or changes pause state. The validated receipt is kept for diagnostics.
++      this.checkpointProbeCommand = new RuntimeCheckpointProbeCommand({
++        probe: () => probeCheckpointAvailability({
++          stagingRoot: this.options.checkpointStagingRoot,
++          dataDir: this.dataDir,
++          paused: this.pauseRequested,
++          controlStore: this.store,
++          ownerId: 'local-owner',
++          scope: 'local-owner',
++          sessionLogResolver: typeof this.ctx.get('sessionPersistence')?.resolveCurrentLog === 'function'
++            ? { candidate: 'jsonl-internal-diagnostic' }
++            : undefined,
++          goalSeams: {
++            nativeState: false,
++            flush: typeof this.ctx.get('sessions')?.flush === 'function',
++            projection: false,
++          },
++          workspaceRoot: path.join(this.dataDir, 'workspaces'),
++        }),
++        isOpen: () => !this.closed && !this.closing,
++        isPaused: () => this.pauseRequested,
++        onReceipt: receipt => { this.checkpointProbeReceipt = receipt; },
+       });
+       const labStatus = await this.store.request('lab.status', {});
+       if (labStatus.ready) {
+@@ -666,7 +696,8 @@
+         eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,
+         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
+         timeSource: this.timePump ? this.timePump.snapshot() : null,
+-        notifications: this.notificationRouter ? { enabled: true } : { enabled: false } },
++        notifications: this.notificationRouter ? { enabled: true } : { enabled: false },
++        checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null },
+       background: { ...conversations.background, ...backgroundState },
+       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
+       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
+@@ -720,6 +751,9 @@
+     // effects); the handler validates the exact fields, is single-flight and
+     // performs at most one capture attempt per explicit command.
+     if (action === 'runtime.checkpoint.capture') return this.commandCheckpoint(value, signal);
++    // H5b-probe: read-only availability receipt, dispatched before ensureCanRun()
++    // so a paused runtime can still be diagnosed without model/dispatch effects.
++    if (action === 'runtime.checkpoint.probe') return this.commandCheckpointProbe(value, signal);
+     if (action === 'conversation.linkLocalTask') {
+       this.ensureCanRun(); signal?.throwIfAborted();
+       if (Object.keys(value).some(key => !['action', 'taskId', 'localConversationKey'].includes(key))
+@@ -867,6 +901,13 @@
+     return this.checkpointCommand.handle(value, signal);
+   }
+ 
++  /** Owner-only read-only checkpoint availability command. */
++  private async commandCheckpointProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<CheckpointProbeResult> {
++    this.ensureOpen();
++    if (!this.checkpointProbeCommand) throw new Error('CHECKPOINT_UNAVAILABLE');
++    return this.checkpointProbeCommand.handle(value, signal);
++  }
++
+   private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+     if (!this.lab) throw new Error('LAB_UNAVAILABLE');
+     const action = value.action;
+--- a/plugins/shiyu/src/index.ts
++++ b/plugins/shiyu/src/index.ts
+@@ -24,6 +24,11 @@
+   try { return Response.json(await service.snapshot(), { headers }); }
+   catch (error) { return errorResponse(error, 503); }
+ }
++/**
++ * Owner command route. Owner-only commands (including runtime.checkpoint.probe)
++ * travel through here from the trusted control surface; they are never exposed
++ * as model tools or GET endpoints.
++ */
+ export async function serveCommand(service: RuntimeService, request: Request): Promise<Response> {
+   try { return Response.json(await service.command(await readCommand(request), request.signal), { headers }); }
+   catch (error) { return errorResponse(error); }
