@@ -7,6 +7,8 @@
 
 ## 主方案
 
+2026-11-02 的[统一事件接口与发布订阅](<../../../统一事件接口与发布订阅.md>)补充 Agent/普通组件共同使用的发布、订阅、类型发现和回执接口；仍复用下述账本、outbox、原生 Session 与进程内唤醒。组件可直接消费，纯背景更新不触发模型，Agent 续接须经过现有准入。该扩展仅设计，未声称宿主已提供同名统一服务。
+
 本模块现在同时承载[时间与事件订阅方案](<../../../时间与事件订阅.md>)中的宿主接缝。core在有效Mandate内可以自主建立声明式SubscriptionSpec，程序负责限额、来源绑定、确定性匹配和持久命中；不为每个tick创建模型任务，也不默认逐次询问用户。注册规则与安装可执行监听器分开；后者需已有对应实施/权限范围。
 
 [复用核查](<../../../../../research/2026-11-01-复用核查/宿主与依赖.md>)明确直接调用 `ScheduleService.create/list/view/history/run/edit`，不复制整个调度器。纯业务到期路径若不需要 Session 投递，直接依赖 `@deepseek-ai/dsh-util-time` 的 `Cron.parse/RRule.parse`、`rule.next/resolve` 和时区解析；该 MIT 包已使用 Temporal polyfill 与 rrule。删除自写cron/RRULE/时区解析和另一通用定时框架的计划。持久输入幂等和Goal到期筛选仍是产品规则。
