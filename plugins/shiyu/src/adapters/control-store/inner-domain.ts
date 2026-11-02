@@ -141,19 +141,18 @@ export abstract class InnerDomainBase {
 
   /* --------------------------------- storage -------------------------------- */
   private tables(): string[] {
-    return ['meta', 'records', 'bodies', 'evidence_tombstones', 'record_tombstones', 'commands', 'derivations'].map(name => `${this.prefix}${name}`);
+    return ['meta', 'records', 'bodies', 'evidence_tombstones', 'record_tombstones', 'commands', 'derivations', 'derivation_meta'].map(name => `${this.prefix}${name}`);
   }
   private install(): void {
     const expected = this.tables();
     const existing = new Set((this.db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name LIKE ?").all(`${this.prefix}%`) as Row[]).map(row => String(row.name)));
-    const required = expected.filter(table => !table.endsWith('derivations'));
+    const required = expected.filter(table => !table.endsWith('derivations') && !table.endsWith('derivation_meta'));
     if (existing.size && required.some(table => !existing.has(table))) innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain storage is incomplete; refusing to rebuild it');
     if (!existing.size) {
       this.db.exec(`
         CREATE TABLE ${this.prefix}meta(id INTEGER PRIMARY KEY CHECK(id=1),schema_version INTEGER NOT NULL,authority_id TEXT NOT NULL,
           installation_generation TEXT NOT NULL,policy_version INTEGER NOT NULL,revision INTEGER NOT NULL,
-          tombstone_watermark INTEGER NOT NULL,baseline_id TEXT NOT NULL,installed_at TEXT NOT NULL,
-          derived_revision INTEGER NOT NULL DEFAULT 0,derivation_digest TEXT NOT NULL DEFAULT '');
+          tombstone_watermark INTEGER NOT NULL,baseline_id TEXT NOT NULL,installed_at TEXT NOT NULL);
         CREATE TABLE ${this.prefix}records(record_id TEXT PRIMARY KEY,identity TEXT NOT NULL,revision INTEGER NOT NULL,
           record_json TEXT NOT NULL CHECK(json_valid(record_json)),UNIQUE(identity,revision));
         CREATE INDEX ${this.prefix}records_identity ON ${this.prefix}records(identity,revision DESC);
@@ -165,17 +164,22 @@ export abstract class InnerDomainBase {
         CREATE TABLE ${this.prefix}commands(request_id TEXT PRIMARY KEY,kind TEXT NOT NULL,intent_hash TEXT NOT NULL,
           receipt_json TEXT NOT NULL CHECK(json_valid(receipt_json)));
         CREATE TABLE ${this.prefix}derivations(record_id TEXT PRIMARY KEY,derivation TEXT NOT NULL,reasons_json TEXT NOT NULL,
-          record_digest TEXT NOT NULL);`);
+          record_digest TEXT NOT NULL);
+        CREATE TABLE ${this.prefix}derivation_meta(id INTEGER PRIMARY KEY CHECK(id=1),derived_revision INTEGER NOT NULL,derivation_digest TEXT NOT NULL);`);
     } else {
       // Additive H4e migration for already-installed H4 domains: keep records,
-      // add the deterministic derivation ledger and its authority columns.
+      // add the deterministic derivation ledger and a SEPARATE authority table.
+      // Never ALTER a table already covered by the commit-watermark triggers:
+      // tracked trigger SQL embeds the column list, so an in-place column add
+      // would fail closed on the next tracked transaction. A new table keeps the
+      // upgrade additive and lets the watermark install its own triggers.
       if (!existing.has(`${this.prefix}derivations`)) {
         this.db.exec(`CREATE TABLE ${this.prefix}derivations(record_id TEXT PRIMARY KEY,derivation TEXT NOT NULL,reasons_json TEXT NOT NULL,
           record_digest TEXT NOT NULL);`);
       }
-      const columns = new Set((this.db.prepare(`PRAGMA table_info(${this.prefix}meta)`).all() as Row[]).map(row => String(row.name)));
-      if (!columns.has('derived_revision')) this.db.exec(`ALTER TABLE ${this.prefix}meta ADD COLUMN derived_revision INTEGER NOT NULL DEFAULT 0`);
-      if (!columns.has('derivation_digest')) this.db.exec(`ALTER TABLE ${this.prefix}meta ADD COLUMN derivation_digest TEXT NOT NULL DEFAULT ''`);
+      if (!existing.has(`${this.prefix}derivation_meta`)) {
+        this.db.exec(`CREATE TABLE ${this.prefix}derivation_meta(id INTEGER PRIMARY KEY CHECK(id=1),derived_revision INTEGER NOT NULL,derivation_digest TEXT NOT NULL);`);
+      }
     }
     this.installDomainTables();
     const metaRow = this.db.prepare(`SELECT * FROM ${this.prefix}meta WHERE id=1`).get() as Row | undefined;
@@ -185,9 +189,12 @@ export abstract class InnerDomainBase {
         if (this.db.prepare(`SELECT ${column} FROM ${this.prefix}${table} LIMIT 1`).get()) innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain authority is missing but durable state remains');
       }
       const at = this.now();
-      this.db.prepare(`INSERT INTO ${this.prefix}meta VALUES(1,1,?,?,?,0,0,?,?,0,'')`).run(
+      this.db.prepare(`INSERT INTO ${this.prefix}meta VALUES(1,1,?,?,?,0,0,?,?)`).run(
         randomUUID(), this.identity.installationGeneration, this.policyVersion(), randomUUID(), at);
     }
+    // The derivation authority lives in its own row; create it once for both a
+    // fresh install and an additive upgrade without touching tracked meta.
+    this.db.prepare(`INSERT OR IGNORE INTO ${this.prefix}derivation_meta VALUES(1,0,'')`).run();
     const meta = this.meta();
     if (meta.policyVersion !== this.policyVersion()) innerFail('INCOMPATIBLE_INNER_POLICY', 'Inner-domain rules version needs an explicit migration');
     if (meta.installationGeneration !== this.identity.installationGeneration) {
@@ -201,7 +208,8 @@ export abstract class InnerDomainBase {
   protected initializeDomain(): void { /* domain-specific baseline, only on explicit install */ }
   protected meta(): Meta {
     this.tx.assertUsable();
-    const row = this.db.prepare(`SELECT * FROM ${this.prefix}meta WHERE id=1`).get() as Row | undefined;
+    const row = this.db.prepare(`SELECT m.*, d.derived_revision AS derived_revision, d.derivation_digest AS derivation_digest
+      FROM ${this.prefix}meta m JOIN ${this.prefix}derivation_meta d ON d.id=1 WHERE m.id=1`).get() as Row | undefined;
     if (!row || row.schema_version !== 1 || typeof row.authority_id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,199}$/.test(row.authority_id)
       || typeof row.installation_generation !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,199}$/.test(row.installation_generation)
       || !Number.isSafeInteger(row.policy_version) || Number(row.policy_version) < 1 || !Number.isSafeInteger(row.revision) || Number(row.revision) < 0
@@ -218,9 +226,12 @@ export abstract class InnerDomainBase {
       derivedRevision: Number(row.derived_revision), derivationDigest: String(row.derivation_digest) };
   }
   private saveMeta(meta: Meta): void {
-    const changed = this.db.prepare(`UPDATE ${this.prefix}meta SET installation_generation=?,policy_version=?,revision=?,tombstone_watermark=?,derived_revision=?,derivation_digest=? WHERE id=1`)
-      .run(meta.installationGeneration, meta.policyVersion, meta.revision, meta.tombstoneWatermark, meta.derivedRevision, meta.derivationDigest);
+    const changed = this.db.prepare(`UPDATE ${this.prefix}meta SET installation_generation=?,policy_version=?,revision=?,tombstone_watermark=? WHERE id=1`)
+      .run(meta.installationGeneration, meta.policyVersion, meta.revision, meta.tombstoneWatermark);
     if (changed.changes !== 1) innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain authority disappeared');
+    const derived = this.db.prepare(`UPDATE ${this.prefix}derivation_meta SET derived_revision=?,derivation_digest=? WHERE id=1`)
+      .run(meta.derivedRevision, meta.derivationDigest);
+    if (derived.changes !== 1) innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain derivation authority disappeared');
   }
   private touch(): void { const meta = this.meta(); meta.revision = innerInteger(meta.revision + 1, 'revision', 0); this.saveMeta(meta); }
   /** Invalidation-relevant authority; excludes data revision so unrelated writes do not pin captures. */

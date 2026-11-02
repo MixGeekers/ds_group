@@ -12,8 +12,8 @@
   "files": [
     {
       "path": "plugins/shiyu/src/adapters/control-store/inner-domain.ts",
-      "bytes": 44973,
-      "sha256": "2834bad864e35fe13048226614a77427d07d0d919721101110e04f5b7e2d078f"
+      "bytes": 45823,
+      "sha256": "7052b0c6f64af235356fc849f934b13ab65c57b23281be2fc97e2a74034f403d"
     },
     {
       "path": "plugins/shiyu/src/adapters/control-store/relationship-domain.ts",
@@ -117,5 +117,13 @@
     "embeddingCalls": 0,
     "hostReloads": 0
   },
-  "evidenceLevel": "G1 module/integration + real temporary SQLite/Worker IPC; not host or business acceptance."
+  "evidenceLevel": "G1 module/integration + real temporary SQLite/Worker IPC; not host or business acceptance.",
+  "migrationFix": {
+    "recordedAt": "2026-11-02T22:35:14.699Z",
+    "symptom": "the fixed host failed to re-activate after the H4e slice: the additive migration used ALTER TABLE on inner meta tables that are already covered by commit-watermark triggers, so the trigger SQL no longer matched the new column list and every tracked transaction failed closed (STORE_ISOLATED).",
+    "rootCause": "commit-watermark trigger SQL embeds the tracked column list; altering a tracked table inside an owned atomic() cannot reconcile an existing trigger definition, so the upgrade aborted and the plugin never activated.",
+    "fix": "the derivation authority now lives in a separate additive table (<domain>_derivation_meta); inner meta tables are never altered, so the upgrade is purely additive and the watermark installs triggers for the new table only. meta()/saveMeta read and write the joined derivation row; the derivation ledger table is unchanged.",
+    "regressionTest": "tests/inner-upgrade.test.ts creates a pre-H4e on-disk inner schema, opens the current ControlStore (additive upgrade), asserts the meta columns stay unchanged, the derivation authority starts at 0/'', and a second open proves the tracking triggers still match.",
+    "evidence": "reproduced on a copy of the live control DB: before the fix every open failed with the quarantined error; after the fix the copy upgraded and reopened twice, then the real host activated successfully."
+  }
 }

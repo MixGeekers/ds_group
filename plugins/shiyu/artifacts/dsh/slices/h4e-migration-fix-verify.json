@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h4e-migration-fix",
+  "capturedAt": "2026-11-02T22:40:36.948Z",
+  "head": "e400fcc1b54d5a05c60a62a499ee438a7119f0f5",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h4e-migration-fix-1793658914776",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/inner-domain.ts",
+      "bytes": 45823,
+      "sha256": "7052b0c6f64af235356fc849f934b13ab65c57b23281be2fc97e2a74034f403d"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-upgrade.test.ts",
+      "bytes": 4454,
+      "sha256": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 321130,
+    "bytes": 155811,
+    "sha256": "fd93f3356ac6341b7e2841df253f3845f93c4a3a6117a474a68ffdad3260dfa4",
+    "tests": {
+      "tests": 1435,
+      "pass": 1435,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 319953.893541",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h4e-migration-fix.log",
+    "bytes": 155811,
+    "sha256": "fd93f3356ac6341b7e2841df253f3845f93c4a3a6117a474a68ffdad3260dfa4"
+  },
+  "verdict": "pass"
+}

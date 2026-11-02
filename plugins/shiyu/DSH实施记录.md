@@ -1006,3 +1006,35 @@ cd plugins/shiyu && node scripts/harness/acceptance.mjs --out /tmp/acceptance-pr
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <round3-integration-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.test.ts tests/host-status.test.ts tests/events-time-source.test.ts tests/recovery-h5b-evidence.test.ts
 ```
+
+## 30. H4e 迁移热修复：避免 ALTER 已受 commit-watermark 追踪的表
+
+状态：**已修复并在固定宿主恢复激活**（离线回归 + 真实宿主升级路径证据）；真实模型/业务未验。2026-11-02。
+
+### 30.1 症状与根因
+
+- 症状：round-3 构建第一次有序 reload 失败，插件 entry 进入 `failed`，错误为 `EventServiceError: Transaction connection is quarantined...`（底层 `STORE_ISOLATED`）。
+- 诊断：在 live 控制库副本上复现；用临时错误链插桩后得到真实原因 `Commit watermark: tracking schema was modified or uses a reserved name [trigger ... ON shiyu_relationship_meta ...]`。**H4e 的 additive migration 对已存在域使用 `ALTER TABLE ... ADD COLUMN`**，而 commit-watermark 的 UPDATE 追踪触发器 SQL 内嵌了列清单；在 owned atomic 内变更列后，`beforeCommit` 期望的触发器 SQL 与已安装触发器不一致，fail-closed 回滚并隔离连接，导致每次启用都失败。
+- 这不是数据库损坏：live 库回滚后仍一致；问题是**升级路径不可行**（H4e 隔离测试都用全新临时库，CREATE 一次成型，未覆盖“旧库升级”）。
+
+### 30.2 修复
+
+- 派生权威改放**独立的新表** `${prefix}derivation_meta(id=1, derived_revision, derivation_digest)`；`meta` 表不再 ALTER，升级纯 additive；commit-watermark 只为新表安装触发器，既有触发器的列清单不变。
+- `meta()` 通过 JOIN 读取派生行；`saveMeta` 分别更新 `meta` 与 `derivation_meta` 两行；derivations 账本表不变。
+- 回归测试 `tests/inner-upgrade.test.ts`：构造 pre-H4e 磁盘内层 schema → 当前 ControlStore 打开（additive 升级）→ 断言 meta 列未变、派生权威 0/空、第二次打开仍通过（追踪触发器一致）。
+
+### 30.3 验证
+
+| 验证 | 结果 |
+|---|---|
+| live 控制库副本（修复前） | 每次 open 命中 quarantined 错误（可复现） |
+| live 控制库副本（修复后） | 两次连续 open 成功；additive 升级落盘；`outer` 触发校验通过 |
+| 回归测试 | `tests/inner-upgrade.test.ts` 1/1 + `inner-lifecycle` 7/7 |
+| 固定宿主 | 修复构建重新 disable→enable **成功激活**（后续 round-3 零模型验证另记） |
+| 证据 | H4e 证据 JSON 记录 `migrationFix`（症状/根因/修复/回归/复现）；`.local` 保留首次失败与诊断日志 |
+
+### 30.4 约束与未测
+
+1. 后续任何“已受追踪表”的结构变更都不得原地 ALTER；应使用新表/新账本或未来实现触发器重建（需单独设计与测试）。本切片未实现通用触发器重建。
+2. 修复只覆盖内层派生权威；其他域若有同类 ALTER 迁移需同样审计。
+3. 修复后未重跑真实模型/业务；宿主证据仅为启动/升级/零模型。
