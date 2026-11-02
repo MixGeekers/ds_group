@@ -2,7 +2,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
-import { makeConversation, makeConversationBackground, makeGoalVerificationReceipt, makeLocalTask, makeSession, makeSnapshot, makeVerificationReceipt } from './fixtures.js';
+import { makeContextVerificationReceipt, makeContextVerificationRecord, makeConversation, makeConversationBackground, makeGoalVerificationReceipt, makeLocalTask, makeSession, makeSnapshot, makeVerificationReceipt } from './fixtures.js';
 
 const packageRoot = fileURLToPath(new URL('../../', import.meta.url));
 const port = Number(process.env.SHIYU_UI_PORT ?? 4341);
@@ -15,6 +15,8 @@ let goalVerification = {}, goalVerificationAborts = 0;
 const pendingGoalVerifications = new Map();
 let conversationLink = {}, conversationLinkAborts = 0;
 const linkedConversations = new Map(), pendingConversationLinks = new Map();
+let contextVerification = {}, contextVerificationAborts = 0;
+const pendingContextVerifications = new Map();
 const json = (res, status, value) => { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
 const readJson = async req => { const chunks = []; for await (const chunk of req) chunks.push(chunk); return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); };
 const server = http.createServer(async (req, res) => {
@@ -31,11 +33,14 @@ const server = http.createServer(async (req, res) => {
         pendingGoalVerifications.clear();
         for (const pending of pendingConversationLinks.values()) pending.cancel();
         pendingConversationLinks.clear(); linkedConversations.clear();
+        for (const pending of pendingContextVerifications.values()) pending.cancel();
+        pendingContextVerifications.clear();
         snapshot = makeSnapshot(body); stateReads = 0; commands = []; failReads = false;
         verification = {}; verificationAborts = 0;
         taskAdmission = {}; admissionAborts = 0;
         goalVerification = {}; goalVerificationAborts = 0;
         conversationLink = {}; conversationLinkAborts = 0;
+        contextVerification = {}; contextVerificationAborts = 0;
       }
       if (Object.hasOwn(body, 'failReads')) failReads = Boolean(body.failReads);
       if (body.snapshot) snapshot = body.snapshot;
@@ -47,9 +52,11 @@ const server = http.createServer(async (req, res) => {
       if (body.releaseGoalVerification) for (const pending of [...pendingGoalVerifications.values()]) pending.finish();
       if (body.conversationLink) conversationLink = { ...body.conversationLink };
       if (body.releaseConversationLink) for (const pending of [...pendingConversationLinks.values()]) pending.finish();
+      if (body.contextVerification) contextVerification = { ...body.contextVerification };
+      if (body.releaseContextVerification) for (const pending of [...pendingContextVerifications.values()]) pending.finish();
       return json(res, 200, { ok: true });
     }
-    if (url.pathname === '/__test/stats' && req.method === 'GET') return json(res, 200, { stateReads, commands, pendingVerifications: pendingVerifications.size, verificationAborts, taskAdmissions: admittedTasks.size, pendingTaskAdmissions: pendingTaskAdmissions.size, admissionAborts, pendingGoalVerifications: pendingGoalVerifications.size, goalVerificationAborts, linkedConversations: linkedConversations.size, pendingConversationLinks: pendingConversationLinks.size, conversationLinkAborts });
+    if (url.pathname === '/__test/stats' && req.method === 'GET') return json(res, 200, { stateReads, commands, pendingVerifications: pendingVerifications.size, verificationAborts, taskAdmissions: admittedTasks.size, pendingTaskAdmissions: pendingTaskAdmissions.size, admissionAborts, pendingGoalVerifications: pendingGoalVerifications.size, goalVerificationAborts, linkedConversations: linkedConversations.size, pendingConversationLinks: pendingConversationLinks.size, conversationLinkAborts, pendingContextVerifications: pendingContextVerifications.size, contextVerificationAborts });
     if (url.pathname === '/api/shiyu/state') {
       if (req.method !== 'GET') return json(res, 405, { error: 'Only GET is supported.' });
       stateReads++;
@@ -58,8 +65,36 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/shiyu/commands') {
       if (req.method !== 'POST') return json(res, 405, { error: 'Only POST is supported.' });
       const body = await readJson(req);
-      if (!['session.probe', 'session.verify-model', 'task.createLocal', 'goal.verify-lifecycle', 'conversation.linkLocalTask', 'runtime.pause', 'runtime.resume'].includes(body.action)) return json(res, 400, { error: 'Unknown synthetic command.' });
+      if (!['session.probe', 'session.verify-model', 'task.createLocal', 'goal.verify-lifecycle', 'conversation.linkLocalTask', 'conversation.verifyContext', 'runtime.pause', 'runtime.resume'].includes(body.action)) return json(res, 400, { error: 'Unknown synthetic command.' });
       commands.push(body);
+      if (body.action === 'conversation.verifyContext') {
+        const responseId = `test-context-response-${commands.length}`, options = { ...contextVerification };
+        const bindingId = snapshot.conversations?.find(entry => entry.conversationId === body.conversationId)?.bindingId;
+        let finished = false;
+        const finish = () => {
+          if (finished) return;
+          finished = true; pendingContextVerifications.delete(responseId);
+          if (options.error) return json(res, 503, { error: { code: 'SYNTHETIC_CONTEXT_UNCONFIRMED', message: '合成测试：背景验证结果未确认。' } });
+          const receipt = makeContextVerificationReceipt(body.conversationId, bindingId);
+          for (const key of options.omit || []) delete receipt[key];
+          Object.assign(receipt, options.overrides || {});
+          // Opt-in GET publication is deliberately independent of the HTTP
+          // receipt so the UI cannot infer that pending context was consumed.
+          if (options.publish) snapshot = { ...snapshot,
+            conversations: snapshot.conversations.map(entry => entry.conversationId === body.conversationId ? { ...entry, needsSync: false, pending: [] } : entry),
+            diagnostics: { ...snapshot.diagnostics, contextVerification: makeContextVerificationRecord({ conversationId: body.conversationId, instanceId: snapshot.instanceId }) },
+          };
+          return json(res, 200, receipt);
+        };
+        const cancel = () => { if (finished) return; finished = true; pendingContextVerifications.delete(responseId); json(res, 409, { error: { message: 'Synthetic test reset.' } }); };
+        res.once('close', () => {
+          if (finished) return;
+          finished = true; pendingContextVerifications.delete(responseId); contextVerificationAborts++;
+        });
+        if (options.defer) pendingContextVerifications.set(responseId, { finish, cancel });
+        else finish();
+        return;
+      }
       if (body.action === 'conversation.linkLocalTask') {
         const responseId = `test-conversation-response-${commands.length}`, options = { ...conversationLink };
         let entry = linkedConversations.get(body.taskId);

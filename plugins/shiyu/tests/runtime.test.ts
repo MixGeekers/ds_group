@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { RuntimeService } from '../src/runtime.js';
@@ -29,6 +29,7 @@ class FakeWorkers {
 class FakeSessions implements SessionDriver {
   probes = 0; generations = 0; closed = false;
   async initialize() {}
+  async prepareContextSafety() { return { ready: true as const, messageFactory: 'injected' as const, nativeReadback: true as const, coldProjection: true as const }; }
   async probe() { this.probes++; return { ready: true as const, noModelCalled: true as const, sessionId: 'synthetic-probe', tools: [], model: defaultModel('replyer'), released: true as const, archived: true as const }; }
   generateReply(input: ReplyRequest): Promise<ReplyResult> {
     this.generations++;
@@ -54,6 +55,107 @@ async function fixture(t: any, allowCloseFailure = false) {
 function syntheticReply(request: ReplyRequest, text: string): ReplyResult {
   return { text, usage: { status: 'unknown' }, binding: { key: sessionBindingKey('replyer', request.businessId, request.scope), role: 'replyer', businessId: request.businessId, scope: request.scope, sessionId: 'shiyu-replyer-synthetic-model-check', model: defaultModel('replyer'), status: 'idle', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), usage: { status: 'unknown' } } };
 }
+
+async function contextFixture(t: any) {
+  const base = await fixture(t);
+  const detail = await base.runtime.store.request('task.createLocal', { requestId: 'context-runtime-fixture', title: 'Synthetic context Task', content: 'Synthetic artifact input' });
+  const linked: any = await base.runtime.command({ action: 'conversation.linkLocalTask', taskId: detail.task.taskId });
+  const conversation = (await base.runtime.snapshot()).conversations[0]!;
+  return { ...base, task: detail.task, conversation, linked };
+}
+// Runtime-only driver double. Domain/capture/native durability are verified in
+// their integration tests; these receipts exercise admission and final checks.
+function contextResult(input: any, conversation: any, text: string, round: number, sessionId = 'shiyu-replyer-synthetic-context'): any {
+  const reply = syntheticReply({ businessId: 'synthetic-context', scope: 'local-owner', prompt: input.text }, text);
+  reply.binding.sessionId = sessionId;
+  return { duplicate: false, operation: { operationId: `synthetic-op-${round}`, status: 'ready' },
+    view: { viewId: `synthetic-view-${round}`, conversation: { bindingId: conversation.bindingId, sessionEpoch: 1, conversationGeneration: round + 3 } },
+    reply: { ...reply, contextReceipt: { durability: 'confirmed', sessionId, userMessageSeq: round * 2 }, assistantRef: { sessionId, eventSeq: round * 2 + 1, messageId: `assistant-${round}` } } };
+}
+
+test('context verification admits two bounded rounds and stores only diagnostic metadata', async t => {
+  const { runtime, task, conversation, directory, fake } = await contextFixture(t);
+  const requests: any[] = []; let marker = '';
+  runtime.localReplies.run = async request => {
+    requests.push(request);
+    marker ||= request.text.match(/SHIYU_[a-f0-9]{12}/u)![0];
+    return contextResult(request, conversation, JSON.stringify({ taskId: task.taskId, state: task.state, marker }), requests.length);
+  };
+  const receipt: any = await runtime.command({ action: 'conversation.verifyContext', conversationId: conversation.conversationId });
+  assert.equal(receipt.verified, true); assert.equal(receipt.calls, 2);
+  assert.equal(receipt.sameSession, true); assert.equal(receipt.contextDurable, true); assert.equal(receipt.draftsValidated, true); assert.equal(receipt.sent, false);
+  assert.deepEqual(requests.map(request => request.maxTokens), [512, 512]);
+  assert.notEqual(requests[0].inputId, requests[1].inputId);
+  assert.ok(!requests[1].text.includes(marker));
+  assert.equal((await runtime.snapshot()).diagnostics.contextVerification?.ok, true);
+  for (let i = 0; i < 5; i++) await runtime.snapshot();
+  assert.equal(requests.length, 2); assert.equal(fake.generations, 0);
+  const state = await readFile(path.join(directory, 'runtime-state.json'), 'utf8');
+  assert.ok(!state.includes(marker)); assert.ok(!state.includes(requests[0].text));
+});
+
+test('context verification stops on the first unverified reply and retains failure as failure', async t => {
+  const { runtime, conversation } = await contextFixture(t); let calls = 0;
+  runtime.localReplies.run = async request => { calls++; return contextResult(request, conversation, 'unverified reply', calls); };
+  await assert.rejects(runtime.command({ action: 'conversation.verifyContext', conversationId: conversation.conversationId }), /requested JSON/);
+  assert.equal(calls, 1);
+  const state = await runtime.snapshot();
+  assert.equal(state.diagnostics.contextVerification?.ok, false); assert.equal(state.diagnostics.contextVerification?.calls, 1);
+  assert.equal(state.activeWork.length, 0); assert.equal(state.lifecycle, 'degraded');
+});
+
+test('two matching answers cannot confirm context verification if native Session identity changes', async t => {
+  const { runtime, task, conversation } = await contextFixture(t); let calls = 0, marker = '';
+  runtime.localReplies.run = async request => {
+    calls++; marker ||= request.text.match(/SHIYU_[a-f0-9]{12}/u)![0];
+    return contextResult(request, conversation, JSON.stringify({ taskId: task.taskId, state: task.state, marker }), calls, `shiyu-replyer-synthetic-${calls}`);
+  };
+  await assert.rejects(runtime.command({ action: 'conversation.verifyContext', conversationId: conversation.conversationId }), /same native Session/);
+  assert.equal(calls, 2); assert.equal((await runtime.snapshot()).diagnostics.contextVerification?.ok, false);
+});
+
+test('business reply admission refuses caller authority and pause, and does not relabel duplicate operations as drafts', async t => {
+  const { runtime, conversation } = await contextFixture(t); let calls = 0;
+  runtime.localReplies.run = async () => { calls++; return { duplicate: true, operation: { status: 'unknown' } } as any; };
+  const command = { action: 'conversation.replyLocal', conversationId: conversation.conversationId, inputId: 'one-input', text: 'Synthetic status question' };
+  await assert.rejects(runtime.command({ ...command, scope: 'another-audience' }), /Invalid local reply/);
+  await assert.rejects(runtime.command({ action: 'conversation.verifyContext', conversationId: conversation.conversationId, businessId: 'forged-binding' }), /Invalid local reply/);
+  assert.equal(calls, 0);
+  const duplicate: any = await runtime.command(command);
+  assert.equal(duplicate.status, 'existing'); assert.equal(duplicate.duplicate, true); assert.equal(duplicate.operation.status, 'unknown');
+  await runtime.command({ action: 'runtime.pause' });
+  await assert.rejects(runtime.command(command), /paused/);
+  assert.equal(calls, 1);
+});
+
+test('pause cancels an in-flight business reply before the runtime can release a draft', async t => {
+  const { runtime, conversation } = await contextFixture(t);
+  let entered!: () => void;
+  const began = new Promise<void>(resolve => { entered = resolve; });
+  runtime.localReplies.run = async request => new Promise((_resolve, reject) => {
+    request.signal!.addEventListener('abort', () => reject(new Error('Synthetic context cancelled')), { once: true }); entered();
+  });
+  const running = runtime.command({ action: 'conversation.replyLocal', conversationId: conversation.conversationId, inputId: 'cancel-me', text: 'Synthetic status question' });
+  const rejected = assert.rejects(running, /cancelled/);
+  await began; await runtime.command({ action: 'runtime.pause' }); await rejected;
+  assert.equal(runtime.operations.size, 0); assert.equal((await runtime.snapshot()).state, 'paused');
+});
+
+test('missing native context prerequisites leave the dashboard available and admit no business reply', async t => {
+  const { runtime, conversation, fake, create } = await contextFixture(t);
+  await runtime.close();
+  fake.prepareContextSafety = async () => { throw new Error('Synthetic native message factory unavailable'); };
+  const restarted = create(); await restarted.init();
+  try {
+    const before = await restarted.store.request('control.watermark', {});
+    const snapshot = await restarted.snapshot();
+    assert.equal(snapshot.diagnostics.contextSafety.ready, false);
+    assert.equal(snapshot.dependencies.find(item => item.id === 'native-context')?.status, 'unavailable');
+    await assert.rejects(restarted.command({ action: 'conversation.verifyContext', conversationId: conversation.conversationId }), /Native context safety is unavailable/);
+    assert.deepEqual(await restarted.store.request('control.watermark', {}), before);
+    assert.equal(fake.generations, 0); assert.equal(restarted.operations.size, 0);
+  } finally { await restarted.close(); }
+});
 
 test('task completion reaches local conversations in the background, while reads preserve unconsumed Session context', async t => {
   const { runtime, workers, fake, goals } = await fixture(t);

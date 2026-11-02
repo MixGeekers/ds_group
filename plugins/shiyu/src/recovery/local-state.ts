@@ -13,6 +13,9 @@ export interface LocalState {
   lastProbe?: { at: string; ok: boolean; message: string; instanceId?: string };
   lastModelVerification?: { at: string; ok: boolean; message: string; instanceId: string; calls: number; sessionId?: string; usage: ModelUsage[] };
   lastGoalVerification?: { at: string; ok: boolean; message: string; instanceId: string; goalId?: string; sessionId?: string };
+  /** Diagnostic metadata only. `calls` counts attempted orchestration turns, including pre-dispatch failures;
+   * it is not a native request/usage count. Prompts and replies stay in the native Session. */
+  lastContextVerification?: { at: string; ok: boolean; message: string; instanceId: string; calls: number; conversationId?: string; sessionId?: string };
 }
 
 /** Business bindings only. Model history and compaction remain in DSH. */

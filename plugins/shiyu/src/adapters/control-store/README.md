@@ -46,3 +46,15 @@ Schema 变更、写入 `user_version` 和 REINDEX 只允许经受控事务内的
 同日后续复核发现两个自动回滚边界：捕获 `INSERT OR ROLLBACK` 后继续 `exec` 建表会逃逸；仅增加 `db.isTransaction` 仍挡不住之前缓存的 CREATE TABLE / 写 PRAGMA。两者均已在真实临时文件数据库复现并修复，未以“最后 quarantine”代替阻止写入。直接执行修复后水位 21 项＋事务 16 项为 37/37；缓存变更入口修复后水位 23 项＋事务 16 项＋Conversation Worker 11 项同批 50/50，通过类型检查。回归核对新表不存在、PRAGMA 未改变、REINDEX 及 `sqlite_sequence` 直接 DML 被拒绝、原数据保留、重开序号能继续。上述早期通过批次保留为发现前历史，不作为最终补丁的全部验证。
 
 事务封装的上游适配许可与固定来源保留在 `transaction.ts`；水位实现为识雨新增代码，未复制第三方计数实现。
+
+## 3C：已发布内层清单与可信本地 capture
+
+`worker.ts` 在已有 Task/Conversation 仓储后构造 `StatePublicationStore`、`LocalReadSafetyStore`、`ViewDomain`。首次启动明确发布六域均 unavailable 的清单；重开有发布头时不再发布。内层发布与真实 `commitSeq` 是独立语义，Task 进度使用自己的 aggregate version。详细字段与受信写边界见 [state README](../../state/README.md)。
+
+可信 IPC 仅提供 `view.captureLocal({conversationId,purpose})`、`view.validateCapture({captureId,phase?})` 和纯读 `view.state({})`。身份、scope、字段和来源版本均不能来自公开参数。capture 启动一段同步只读事务，读取持久发布头、policy/auth/tombstone 权威、control baseline/seq、Conversation context/business/session 及关联 Task 的真实 version。只输出 Task 的 `taskId/title/state/version/updatedAt/stopRequested`，不含模型正文、输入、产物路径或预算能力。
+
+capture 最长 30 秒，最多 256 个，Worker 重启全部失效；GET 不写 DB、不消费事件、不 ackContext。组件读取绑定捕获的字节，不能在异步拼装中再次读出更晚的 Task 内容。每次 authority resolve/source check 都经 Worker 新鲜校验当前来源；固定 expiresAt 不因 resolve 而续期。无关 commitSeq 增长不使视图失效，真实 Task aggregate/关联变化则阻止 prepare/ready。
+
+`ack` 只核对当前强安全向量和固定期限，允许后台在加载期间继续增长；Conversation 同事务回执只确认实际加载的捕获来源，后续 pending 仍保留。`prepare/ready` 另核对捕获来源与 Task.version。初次原生 Session 绑定可填入同 epoch 的 sessionId；已有 sessionId、generation、audience、routing 或安全权威变化均拒绝旧 capture。确认原生持久接收与源 cursor 的写入由 Conversation reply 控制域承担，读取接口本身不宣称已加载。
+
+3C 本轮定向批次（2026-11-02）：新 publication 13 项、local capture 12 项、真实 Worker view 6 项、ReadView 14 项、原 Conversation Worker 11 项，共 **56/56 通过**，全包类型检查通过。包括 50 个并发 capture 不写水位、重开保留基线、纯读不发布/不 ack、真正 Task 版本变化、无关事件提交仍可使用、政策/全局 epoch/本地来源屏障独立失效、异步读期间来源变化拒绝输出。只读复核另外复现了“BEGIN 等锁跨过 TTL”边界：验证进入前尚有效、等待第二连接后已过期仍返回；已加入事务内前后期限检查，真实双连接持锁回归通过。所有数据库和来源均为临时合成数据，没有运行真实 DSH 宿主、付费模型或 Ombre。

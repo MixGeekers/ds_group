@@ -19,3 +19,5 @@ npx playwright test --config tests/ui/playwright.config.mjs
 `goal.verify-lifecycle` 仅返回合成的任务／Goal／Session 标识和四步回执，不创建真实 Goal、Session 或 Task。相关测试核对最近成功本地任务的选择、严格回执字段及独立暂停通道：`npm run test:ui -- goal-verification.spec.js`。
 
 `conversation.linkLocalTask` 仅在内存中关联合成任务和对话控制投影。回执可延迟、缺字段或与 GET 不匹配；测试核对受理与快照分离、固定 local-owner 范围、背景来源只读且刷新不确认消费，以及独立暂停通道。不会创建真实 Conversation、Session 或调用模型。定向运行：`npm run test:ui -- conversations.spec.js`。
+
+`conversation.verifyContext` 返回合成的背景持久化、每轮草稿放行核验及同 Session 两轮检查回执。GET 的 pending 投影和保存记录可独立设定，不因回执成功自动清空；可模拟延迟、错误和篡改字段。测试覆盖显式请求、对话／绑定一致性、切换详情、历史记录、暂停通道及 95 秒客户端等待上限；不加载真实背景或调用模型。定向运行：`npm run test:ui -- context-verification.spec.js`。

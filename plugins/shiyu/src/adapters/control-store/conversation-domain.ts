@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import { ConversationError, ConversationStore, type BackgroundReceipt, type PendingBackground, type SourceVersion } from '../../control/conversations/index.js';
+import { ConversationError, ConversationStore, type BackgroundReceipt, type PendingBackground, type SourceVersion, type ContextSnapshot } from '../../control/conversations/index.js';
 import type { TaskView } from '../../control/tasks/index.js';
 import type { TrustedPolicyActor } from '../../control/policy/mandates.js';
 import type { AckInput, ClaimedDelivery, ClaimInput, EventPrincipal, EventStats, FailInput, StoredDelivery, StoredEvent, StoredSubscription, SubscribeInput } from '../../contracts/events.js';
 import { SqliteTransactions } from './transaction.js';
+import { LocalReplyDomain, type LocalReplyAuthority, type LocalReplyCommands, type LocalReplyDomainRequest, type LocalReplyOperation } from './local-reply-domain.js';
 
 export const CONVERSATION_BACKGROUND_HANDLER = 'conversation.background';
 export const LOCAL_CONVERSATION_KEY_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
@@ -41,6 +42,7 @@ export interface LocalConversationEntry {
   sources: SourceVersion[];
   pending: PendingBackground[];
   taskRefs: { taskId: string; state: TaskView['state']; version: number }[];
+  latestReply?: Pick<LocalReplyOperation, 'operationId' | 'inputId' | 'status' | 'durability' | 'viewId' | 'draftId' | 'updatedAt' | 'reasonCode'> & { sessionId?: string; userMessageSeq?: number; assistantEventSeq?: number };
   subscriptionRefs: { id: string; taskId: string; status: StoredSubscription['status']; replayTruncated: boolean; replayedCount: number; startSequence: number }[];
 }
 export type LocalBackgroundStats = Pick<EventStats, 'subscriptions' | 'pending' | 'claimed' | 'acknowledged' | 'failed' | 'cancelled'>;
@@ -58,7 +60,7 @@ export interface BackgroundConsumptionResult {
   failed: number;
   deliveries: { deliveryId: string; eventId: string; status: 'acked' | 'retrying' | 'failed' | 'stale'; backgroundStatus?: BackgroundReceipt['status']; errorCode?: string }[];
 }
-export interface ConversationCommands {
+export interface ConversationCommands extends LocalReplyCommands {
   'conversation.ensureLocalTask': { input: { taskId: string; localConversationKey?: string }; output: LocalConversationEntry };
   'conversation.consumeBackground': { input: { limit?: number }; output: BackgroundConsumptionResult };
   'conversation.snapshotLocal': { input: { conversationId?: string }; output: LocalConversationSnapshot };
@@ -83,6 +85,7 @@ function errorCode(error: unknown): string {
 /** Local synthetic business bindings and durable background projection; no Session, model, body or send port. */
 export class ConversationDomain {
   private readonly conversations: ConversationStore;
+  private readonly replies: LocalReplyDomain;
   constructor(private readonly db: DatabaseSync, private readonly tx: SqliteTransactions, private readonly options: Options) {
     if (!tx.owns(db)) fail('TRANSACTION_MISMATCH', 'Conversation domain requires the shared transaction connection');
     this.conversations = new ConversationStore(db, tx, {
@@ -96,6 +99,22 @@ export class ConversationDomain {
     tx.atomic(() => db.exec(`CREATE TABLE IF NOT EXISTS shiyu_local_conversations (
       local_key TEXT PRIMARY KEY,conversation_id TEXT NOT NULL UNIQUE,topic_id TEXT NOT NULL UNIQUE,binding_id TEXT NOT NULL UNIQUE
     )`));
+    this.replies = new LocalReplyDomain(db, tx, { conversations: this.conversations, bindingFor: conversationId => this.localReplyBinding(conversationId) });
+  }
+  private localReplyBinding(conversationId: string) {
+    text(conversationId, 'conversationId');
+    const local = this.bindings(conversationId)[0];
+    if (!local) fail('UNKNOWN_CONVERSATION', 'No local synthetic conversation has this identity');
+    return this.conversations.getReplyBinding(OWNER, local!.bindingId);
+  }
+  /** Trusted same-Worker view authority is installed once; no public command can replace it. */
+  setReplyAuthority(authority: LocalReplyAuthority): void { this.replies.setAuthority(authority); }
+  replyContext(conversationId: string): ContextSnapshot & { businessId: string; sessionId?: string } {
+    return this.tx.atomic(() => {
+      const binding = this.localReplyBinding(conversationId);
+      return { ...this.conversations.contextSnapshot(OWNER, binding.bindingId), businessId: binding.businessId,
+        ...(binding.sessionId ? { sessionId: binding.sessionId } : {}) };
+    });
   }
   private bindings(conversationId?: string): LocalBinding[] {
     this.tx.assertUsable();
@@ -108,10 +127,15 @@ export class ConversationDomain {
       const task = this.options.getTask(source.reference.id); return { taskId: task.taskId, state: task.state, version: task.version };
     });
     const ids = new Set(taskRefs.map(task => task.taskId));
+    const reply = this.replies.latest(binding.conversationId);
+    const latestReply = reply ? { operationId: reply.operationId, inputId: reply.inputId, status: reply.status, durability: reply.durability, updatedAt: reply.updatedAt,
+      ...(reply.viewId ? { viewId: reply.viewId } : {}), ...(reply.draftId ? { draftId: reply.draftId } : {}), ...(reply.reasonCode ? { reasonCode: reply.reasonCode } : {}),
+      ...(reply.nativeBinding ? { sessionId: reply.nativeBinding.sessionId } : {}), ...(reply.contextReceipt ? { userMessageSeq: reply.contextReceipt.userMessageSeq } : {}),
+      ...(reply.assistantRef ? { assistantEventSeq: reply.assistantRef.eventSeq } : {}) } : undefined;
     return {
       conversationId: binding.conversationId, localConversationKey: binding.localKey, topicId: binding.topicId, bindingId: binding.bindingId, scope: LOCAL_SCOPE,
       audienceVersion: version.audienceVersion, conversationGeneration: version.conversationGeneration, routingRevision: version.routingRevision,
-      sessionEpoch: version.sessionEpoch, contextVersion: version.contextVersion, needsSync: context.needsSync, sources: context.sources, pending: context.pending, taskRefs,
+      sessionEpoch: version.sessionEpoch, contextVersion: version.contextVersion, needsSync: context.needsSync, sources: context.sources, pending: context.pending, taskRefs, ...(latestReply ? { latestReply } : {}),
       subscriptionRefs: subscriptions.filter(sub => typeof sub.filter?.taskId === 'string' && ids.has(sub.filter.taskId)).map(sub => ({ id: sub.id, taskId: String(sub.filter!.taskId),
         status: sub.status, replayTruncated: sub.replayTruncated, replayedCount: sub.replayedCount, startSequence: sub.startSequence })),
     };
@@ -189,6 +213,7 @@ export class ConversationDomain {
     return result;
   }
   execute(request: ConversationDomainRequest): unknown {
+    if (request.command.startsWith('conversation.reply.')) return this.replies.execute(request as LocalReplyDomainRequest);
     switch (request.command) {
       case 'conversation.ensureLocalTask': return this.ensureLocalTask(request.args);
       case 'conversation.consumeBackground': return this.consumeBackground(request.args);

@@ -17,10 +17,11 @@ import type { TaskWorkerDriver } from './control/task-runner.js';
 import { LocalGoalLifecycleService } from './control/goal-lifecycle.js';
 import type { GoalLifecycleOptions, GoalLifecycleResult, GoalLifecycleRunOptions } from './control/goal-lifecycle.js';
 import { BackgroundPump } from './control/background-pump.js';
+import { LocalReplyService } from './control/local-reply.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
-const ownTypes = ['runtime.lifecycle.changed', 'runtime.session.probed', 'runtime.model.verified', 'runtime.goal.verified'];
+const ownTypes = ['runtime.lifecycle.changed', 'runtime.session.probed', 'runtime.model.verified', 'runtime.goal.verified', 'runtime.context.verified'];
 const catalog: EventTypeDefinition[] = [...SHIYU_EVENT_TYPES, ...ownTypes.map(type => ({
   type, schemaVersion: 1, description: 'Shiyu runtime lifecycle evidence.',
   publisherKinds: ['component' as const], publisherIds: ['shiyu-runtime'],
@@ -33,6 +34,7 @@ const principal: EventPrincipal = {
 };
 export interface SessionDriver {
   initialize(): Promise<void>;
+  prepareContextSafety?(): Promise<{ ready: true; messageFactory: 'official' | 'injected'; nativeReadback: true; coldProjection: true }>;
   probe(): Promise<ProbeResult>;
   generateReply(request: ReplyRequest): Promise<ReplyResult>;
   getStatus(): Promise<SessionStatus[]>;
@@ -66,6 +68,7 @@ export class RuntimeService {
   tasks!: LocalTaskRunner;
   goals!: GoalLifecycleDriver;
   background!: BackgroundPump;
+  localReplies!: LocalReplyService;
   private closed = false;
   private closing?: Promise<void>;
   private controlTail: Promise<void> = Promise.resolve();
@@ -75,6 +78,7 @@ export class RuntimeService {
   private readonly attemptedTasks = new Set<string>();
   private pauseRequested = false;
   private lastFailure?: string;
+  private contextSafety: { ready: boolean; messageFactory?: 'official' | 'injected'; error?: string } = { ready: false };
   constructor(private readonly ctx: DshContext, config: RuntimeConfig = {}, private readonly options: RuntimeOptions = {}) {
     const defaultDirectory = fileURLToPath(new URL('../.local/runtime/', import.meta.url));
     if (config.dataDir !== undefined && (typeof config.dataDir !== 'string' || !path.isAbsolute(config.dataDir))) throw new Error('dataDir must be an absolute path');
@@ -99,6 +103,11 @@ export class RuntimeService {
         bindings: { load: async () => structuredClone(this.state.state.bindings), save: bindings => this.state.update(state => { state.bindings = structuredClone(bindings); }) },
       });
       await this.sessions.initialize();
+      try {
+        if (!this.sessions.prepareContextSafety) throw new Error('Session driver has no native context safety preparation');
+        this.contextSafety = await this.sessions.prepareContextSafety();
+      } catch (error) { this.contextSafety = { ready: false, error: error instanceof Error ? error.message : String(error) }; }
+      this.localReplies = new LocalReplyService({ store: this.store, sessions: this.sessions, assertRuntimeAllowed: () => this.ensureCanRun() });
       this.workers = this.options.workerFactory?.(this.ctx) ?? new WorkerSessionDriver({ ctx: this.ctx });
       await this.workers.initialize();
       this.artifacts = await LocalArtifactStore.open(path.join(this.dataDir, 'workspaces'));
@@ -134,6 +143,7 @@ export class RuntimeService {
       await this.background.start();
     } catch (error) {
       await this.background?.close().catch(() => undefined);
+      await this.localReplies?.close().catch(() => undefined);
       await this.goals?.close().catch(() => undefined);
       await this.workers?.close().catch(() => undefined);
       await this.artifacts?.close().catch(() => undefined);
@@ -184,11 +194,12 @@ export class RuntimeService {
   }
   async snapshot() {
     this.ensureOpen();
-    const [info, stats, recent, subscriptions, sessions, tasks, conversations] = await Promise.all([
+    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection] = await Promise.all([
       this.store.info(), this.events.stats(principal), this.events.listEvents(principal, { limit: 40 }),
       this.events.listSubscriptions(principal), this.sessions.getStatus(),
       this.store.request('task.list', {}),
       this.store.request('conversation.snapshotLocal', {}),
+      this.store.request('view.state', {}),
     ]);
     const at = new Date().toISOString();
     const probe = this.state.state.lastProbe;
@@ -202,6 +213,9 @@ export class RuntimeService {
       systems: structuredClone(systems),
       tasks,
       conversations: conversations.conversations,
+      innerProjection: innerProjection ?? null,
+      diagnostics: { contextVerification: this.state.state.lastContextVerification ? structuredClone(this.state.state.lastContextVerification) : null,
+        contextSafety: structuredClone(this.contextSafety) },
       background: { ...conversations.background, ...backgroundState },
       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
@@ -216,6 +230,7 @@ export class RuntimeService {
         { id: 'native-session', name: 'DSH 原生会话', status: probe?.instanceId === this.instanceId ? (probe.ok ? 'available' : 'unavailable') : 'unknown', summary: probe ? `${probe.instanceId === this.instanceId ? '' : '上次运行的检查记录，本次尚未检查：'}${probe.message}` : '尚未执行会话连接检查', checkedAt: probe?.at },
         { id: 'model', name: '生成模型', status: verification?.instanceId === this.instanceId ? (verification.ok ? 'available' : 'unavailable') : 'unknown', summary: verification ? `${verification.instanceId === this.instanceId ? '' : '上次运行的验证记录：'}${verification.message}` : '配置为 opencode-go / deepseek-v4.1-flash；连接检查不代表推理可用。', checkedAt: verification?.at },
         { id: 'native-goal', name: 'DSH 原生 Goal', status: goalVerification?.instanceId === this.instanceId ? (goalVerification.ok ? 'available' : 'unavailable') : 'unknown', summary: goalVerification ? `${goalVerification.instanceId === this.instanceId ? '' : '上次运行的验证记录：'}${goalVerification.message}` : '尚未验证原生 Goal 生命周期；查看页面不会创建或恢复目标会话。', checkedAt: goalVerification?.at },
+        { id: 'native-context', name: '原生上下文接线', status: this.contextSafety.ready ? 'available' : 'unavailable', summary: this.contextSafety.ready ? '消息工厂与原生持久化接口已加载；不代表上下文已实际加载或模型已验证。' : this.contextSafety.error ?? '上下文接线尚未准备', checkedAt: this.startedAt },
         { id: 'memory', name: '长期记忆与语义检索', status: 'unconfigured', summary: '尚未接入' },
         { id: 'channels', name: '外部频道与设备', status: 'unconfigured', summary: '尚未接入' },
       ],
@@ -278,6 +293,7 @@ export class RuntimeService {
       this.operations.get(value.taskId)?.controller.abort();
       return { accepted: true, task };
     }
+    if (action === 'conversation.replyLocal' || action === 'conversation.verifyContext') return this.commandLocalReply(value, signal);
     if (action !== 'session.probe' && action !== 'reply.generate' && action !== 'session.verify-model' && action !== 'goal.verify-lifecycle') throw new Error('Unsupported runtime command');
     this.ensureCanRun(); signal?.throwIfAborted();
     if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
@@ -336,6 +352,80 @@ export class RuntimeService {
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
+  private async commandLocalReply(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (!this.contextSafety.ready) throw new Error('Native context safety is unavailable; no model request was admitted');
+    const diagnostic = value.action === 'conversation.verifyContext';
+    const allowed = diagnostic ? ['action', 'conversationId'] : ['action', 'conversationId', 'inputId', 'text'];
+    if (Object.keys(value).some(key => !allowed.includes(key))
+      || typeof value.conversationId !== 'string' || !/^[a-f0-9-]{36}$/.test(value.conversationId)
+      || (!diagnostic && (typeof value.inputId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(value.inputId)
+        || typeof value.text !== 'string' || !value.text.trim() || value.text.length > 16000))) throw new Error('Invalid local reply input');
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    if (diagnostic && [...this.operations.values()].some(op => op.phase.startsWith('上下文验证'))) throw new Error('Context verification is already running');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: diagnostic ? '检查背景加载与原生会话复用' : '生成本地业务只读草稿',
+      phase: diagnostic ? '上下文验证：检查本地任务来源' : '取得只读业务视图', status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    let requestedRounds = 0;
+    try {
+      if (!diagnostic) {
+        const result = await this.localReplies.run({ conversationId: value.conversationId, inputId: value.inputId as string, text: value.text as string, signal: op.controller.signal, maxTokens: 512 });
+        this.ensureCanRun(); op.controller.signal.throwIfAborted();
+        this.lastFailure = undefined;
+        return { ...result, status: result.duplicate ? 'existing' : 'draft', sent: false };
+      }
+      const snapshot = await this.store.request('conversation.snapshotLocal', { conversationId: value.conversationId });
+      const conversation = snapshot.conversations[0];
+      const task = conversation?.taskRefs[0];
+      if (!task) throw new Error('Context verification requires an associated local Task');
+      const marker = `SHIYU_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
+      const responses: Awaited<ReturnType<LocalReplyService['run']>>[] = [];
+      const prompts = [
+        `这是本地只读上下文验证。请记住合成代号 ${marker}，并根据本次业务快照读取任务 ${task.taskId} 的实际状态。只输出 JSON，且仅有 taskId、state、marker 三个字段；marker 填该合成代号，state 填快照中的原始英文状态值。`,
+        `再次根据本次业务快照读取任务 ${task.taskId} 的实际状态，并回忆上一轮的合成代号。只输出 JSON，且仅有 taskId、state、marker 三个字段；不得从任务状态猜测代号。`,
+      ];
+      for (let index = 0; index < prompts.length; index++) {
+        this.ensureCanRun(); op.controller.signal.throwIfAborted();
+        op.phase = `上下文验证 ${index + 1}/2：读取业务视图并确认原生加载`;
+        requestedRounds++;
+        const result = await this.localReplies.run({ conversationId: conversation.conversationId, inputId: `context-check-${op.id}-${index + 1}`, text: prompts[index]!, signal: op.controller.signal, maxTokens: 512 });
+        this.ensureCanRun(); op.controller.signal.throwIfAborted();
+        const reply = result.reply;
+        if (result.duplicate || !reply || !result.view || result.view.conversation?.bindingId !== conversation.bindingId
+          || reply.contextReceipt?.durability !== 'confirmed' || reply.contextReceipt.sessionId !== reply.binding.sessionId
+          || !reply.assistantRef || reply.assistantRef.sessionId !== reply.binding.sessionId) throw new Error('Native context and draft receipts were not confirmed');
+        const text = reply.text.trim().replace(/^```json\s*\n?([\s\S]*?)\n?```$/u, '$1');
+        let answer: Record<string, unknown>;
+        try { answer = JSON.parse(text); } catch { throw new Error('Context verification reply was not the requested JSON'); }
+        if (!answer || typeof answer !== 'object' || Array.isArray(answer) || Object.keys(answer).sort().join(',') !== 'marker,state,taskId'
+          || answer.taskId !== task.taskId || answer.state !== task.state || answer.marker !== marker) throw new Error('Context verification did not confirm the Task state and native Session history');
+        responses.push(result);
+      }
+      const first = responses[0]!, second = responses[1]!;
+      if (first.reply!.binding.sessionId !== second.reply!.binding.sessionId
+        || first.view!.conversation!.sessionEpoch !== second.view!.conversation!.sessionEpoch) throw new Error('Context verification did not reuse the same native Session binding');
+      const sessionId = second.reply!.binding.sessionId;
+      await this.state.update(state => { state.lastContextVerification = { at: new Date().toISOString(), ok: true, instanceId: this.instanceId,
+        calls: requestedRounds, conversationId: conversation.conversationId, sessionId,
+        message: '两轮本地任务状态与合成代号核对通过；同一原生 Session，背景加载耐久回执及逐轮草稿放行检查通过。未发送消息。' }; });
+      await this.record('runtime.context.verified', '本地背景加载与原生会话复用验证通过', 'succeeded');
+      this.lastFailure = undefined;
+      return { verified: true, conversationId: conversation.conversationId, bindingId: conversation.bindingId, sameSession: true, sessionId,
+        calls: requestedRounds, contextDurable: true, draftsValidated: true, sent: false, model: second.reply!.binding.model,
+        usage: responses.map(result => result.reply!.usage),
+        rounds: responses.map(result => ({ viewId: result.view!.viewId, conversationGeneration: result.view!.conversation!.conversationGeneration,
+          contextReceipt: result.reply!.contextReceipt, assistantRef: result.reply!.assistantRef })) };
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      if (diagnostic) await this.state.update(state => { state.lastContextVerification = { at: new Date().toISOString(), ok: false,
+        instanceId: this.instanceId, calls: requestedRounds, conversationId: value.conversationId as string, message: this.lastFailure! }; });
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private startTask(taskId: string, title: string): void {
     this.ensureCanRun();
     this.attemptedTasks.add(taskId);
@@ -365,6 +455,7 @@ export class RuntimeService {
     if (this.closing) return this.closing;
     this.closed = true;
     const backgroundClosing = this.background?.close();
+    const replyClosing = this.localReplies?.close();
     this.closing = (async () => {
       for (const op of this.operations.values()) op.controller.abort();
       try {
@@ -376,7 +467,7 @@ export class RuntimeService {
           const failures = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
           if (failures.length) throw new AggregateError(failures, 'Native Session cleanup failed');
         }
-        finally { await Promise.allSettled([...this.operations.values()].map(op => op.done)); }
+        finally { await Promise.allSettled([...this.operations.values()].map(op => op.done)); await replyClosing; }
       }
       finally { try { await this.artifacts?.close(); } finally { try { await this.store?.close(); } finally { await this.state?.close(); } } }
     })();

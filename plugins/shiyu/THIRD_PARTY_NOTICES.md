@@ -6,6 +6,11 @@ documentation workbench as runtime dependencies.
 
 - DSH: DeepSeek Harness, MIT. The installed host is inspected separately from
   the historical source snapshot `ce7073d51254c26cd63b22a60835b8f948deb447`.
+- `@deepseek-ai/dsh-llm` 0.2.1-rc.5 is a host-supplied peer. The native reply
+  adapter uses its public `./message` export to construct complete user messages.
+  The optional peer flag keeps offline development independent of a host SDK
+  installation; native context operations still require the actual factory.
+  No SDK source is copied or distributed in this package.
 - Node.js `node:sqlite`: provided by the host runtime; the actual SQLite version
   and journal mode are measured when the control-store worker starts.
 - The native client obtains React from the host. React is MIT-licensed.

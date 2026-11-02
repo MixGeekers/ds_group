@@ -248,3 +248,11 @@ test('read ports stay read-only and query text is not retained as authority or s
   await assert.rejects(f.service.assertCurrent(actor, one.viewId, use), code('FORBIDDEN'));
   f.service.dispose(); await assert.rejects(f.service.read(actor, request), code('DISPOSED'));
 });
+
+test('scoped authority baseline identities are returned and invalidate views independently of numeric watermarks', async () => {
+  const f = fixture();
+  f.state.access.authority = { publicationBaselineId: 'publication-one', policyAuthorityId: 'policy-one', deletionAuthorityId: 'deletion-one', deletionScope: 'local-task-source', indexMode: 'not-used' };
+  const view = await f.service.read(actor, request); assert.deepEqual(view.authority, f.state.access.authority);
+  f.state.access.authority.deletionAuthorityId = 'replacement-deletion-baseline';
+  await assert.rejects(f.service.assertCurrent(actor, view.viewId, use), code('VIEW_INVALIDATED'));
+});

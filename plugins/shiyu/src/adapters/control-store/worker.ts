@@ -16,6 +16,9 @@ import { TaskDomain, type TaskDomainRequest } from './task-domain.js';
 import { SQLiteGoalBindingStore } from './goal-bindings.js';
 import { ConversationDomain, conversationEventPrincipal, type ConversationDomainRequest } from './conversation-domain.js';
 import { installCommitWatermark, type CommitWatermarkReader } from './commit-watermark.js';
+import { ViewDomain, type ViewDomainRequest } from './view-domain.js';
+import { StatePublicationStore, createStatePublisher, initialStateManifest } from '../../state/publication.js';
+import { LocalReadSafetyStore } from '../../state/safety.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -28,6 +31,7 @@ let transactions!: SqliteTransactions;
 let tasks: TaskDomain | undefined;
 let goalBindings: SQLiteGoalBindingStore | undefined;
 let conversations: ConversationDomain | undefined;
+let views: ViewDomain | undefined;
 let commitWatermark: CommitWatermarkReader;
 const fail = (code: string, message: string): never => { throw new EventServiceError(code, message); };
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -397,6 +401,10 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
 
 function execute(request: StoreRequest): unknown {
   if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
+  if (request.command.startsWith('view.')) {
+    if (!views) return fail('VIEWS_UNAVAILABLE', 'Local views require the trusted runtime identity.');
+    return views.execute(request as ViewDomainRequest);
+  }
   if (request.command.startsWith('conversation.')) {
     if (!conversations) return fail('CONVERSATIONS_UNAVAILABLE', 'Local conversations require a trusted runtime identity.');
     return conversations.execute(request as ConversationDomainRequest);
@@ -514,6 +522,13 @@ function initialize(): void {
         ack: input => ack(actor, input), fail: input => failDelivery(actor, input),
       },
     });
+    const publication = new StatePublicationStore(db, transactions, { publisherIds: ['shiyu-state-service'] });
+    // Explicit initialization publication, not a GET side effect or a Task version mapping.
+    if (!publication.get()) publication.publish(createStatePublisher('shiyu-state-service'), { requestId: 'initial-inner-availability-v1', manifest: initialStateManifest() });
+    const safety = new LocalReadSafetyStore(db, transactions, { getAuthEpoch: () => tasks!.mandates.health().authEpoch });
+    views = new ViewDomain(db, transactions, { publication, safety, watermark: commitWatermark,
+      context: conversationId => conversations!.replyContext(conversationId), getTask: taskId => tasks!.get(taskId).task });
+    conversations.setReplyAuthority({ validateCapture: (captureId, phase) => views!.validateReplyCapture(captureId, { for: phase }) });
   }
 }
 

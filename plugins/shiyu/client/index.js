@@ -74,6 +74,17 @@ window.__ModuleLoader__.load({
       backgroundDelivery: '后台标记投递', backgroundDeliveryHint: '这里的待投递与已落库计数属于后台投递，不代表来源已加载到 Session；暂停时仍可接收后台标记。',
       backgroundUnavailable: '后台投递状态尚未接入', backgroundState: '扫描状态', backgroundPending: '待投递', backgroundClaimed: '已认领', backgroundAcknowledged: '已落库确认', backgroundCancelled: '已取消投递',
       backgroundLastScan: '最近扫描', backgroundLastFailure: '最近失败', backgroundBatch: '最近扫描批次', backgroundProcessed: '已处理', status_stopped: '已停止',
+      contextVerifyTitle: '背景加载与会话复用', contextVerify: '验证背景加载与会话复用', contextVerifying: '正在验证背景加载与会话复用…',
+      contextVerifyHint: '显式执行 2 轮本地合成模型生成，验证背景加载并复用同一 Session。', contextVerifyLimits: '使用 opencode-go/deepseek-v4.1-flash（low），每轮最多 512 输出 tokens；只读，不发送消息，不自动重试。',
+      contextVerifyNeedsTask: '当前对话需有至少一项已关联任务。', contextVerifyPending: '正在等待对话（{id}）的背景加载检查回执；可通过“暂停运行”取消。',
+      contextVerifyUnconfirmed: '检查回执未完整确认本次对话、绑定、同一 Session、2 次请求、背景持久化、每轮草稿放行核验及未发送；结果未确认。',
+      contextVerifyTimeout: '等待背景加载检查超时，结果未确认。请刷新核对；不会自动重试。', contextVerifyReturned: '对话（{id}）的检查回执已收到，可在对应对话详情查看。',
+      contextVerifyReceipt: '本次背景检查回执', contextVerifyDone: '该次检查通过：2 轮生成复用同一 Session；背景确认已持久化，每轮草稿在放行时通过核验，未发送消息。',
+      contextVerifySnapshotOnly: '待加载状态仍以服务快照为准；本次回执不会清空页面中的背景记录。',
+      contextDurable: '背景确认持久化', draftsValidated: '每轮草稿放行核验', sameSession: 'Session 复用', confirmed: '已确认', outboundMessage: '对外消息', notSent: '未发送',
+      contextVerifyHistory: '已保存的背景检查记录', contextVerifyHistoryHint: '这是该次检查的持久记录，不能确认当前背景状态，也不代表本次操作通过。', diagnosticMessage: '记录说明',
+      contextSafetyUnavailable: '原生背景加载尚不可用，请查看诊断中的依赖状态。', contextSafetyMissing: '原生背景加载就绪检查尚未接入。',
+      contextAttemptedRounds: '尝试轮数', contextAttemptedRoundsHint: '读取视图或模型派发前失败，也可能计入尝试轮数。实际模型调用以 Session 观察记录为准；此计数不代表完整计费用量。',
       commandFailed: '操作未完成', commandUncertain: '操作结果未确认，请先刷新状态再决定下一步。', requestFailed: '请求失败',
       controlPending: '正在处理请求…', close: '关闭详情', phase: '阶段', checked: '最近检查', source: '来自运行快照',
     };
@@ -147,6 +158,17 @@ window.__ModuleLoader__.load({
       backgroundDelivery: 'Background marker delivery', backgroundDeliveryHint: 'Pending and acknowledged delivery counts do not confirm that sources were loaded into a Session. Background markers may still arrive while paused.',
       backgroundUnavailable: 'Background delivery status is not connected yet', backgroundState: 'Scanner state', backgroundPending: 'Awaiting delivery', backgroundClaimed: 'Claimed', backgroundAcknowledged: 'Recorded acknowledgements', backgroundCancelled: 'Cancelled deliveries',
       backgroundLastScan: 'Last scan', backgroundLastFailure: 'Last failure', backgroundBatch: 'Last scan batch', backgroundProcessed: 'Processed', status_stopped: 'Stopped',
+      contextVerifyTitle: 'Context loading and Session reuse', contextVerify: 'Verify context loading and Session reuse', contextVerifying: 'Verifying context loading and Session reuse…',
+      contextVerifyHint: 'Explicitly runs 2 local synthetic model turns to check context loading and reuse of the same Session.', contextVerifyLimits: 'Uses opencode-go/deepseek-v4.1-flash (low), with at most 512 output tokens per turn. Read-only, no outbound message, and no automatic retry.',
+      contextVerifyNeedsTask: 'This conversation needs at least one linked task.', contextVerifyPending: 'Waiting for the context check receipt for Conversation ({id}). Use “Pause runtime” to cancel.',
+      contextVerifyUnconfirmed: 'The receipt does not fully confirm this Conversation, binding, same Session, 2 requests, durable context acknowledgement, draft validation at each release, and no send. The result is unconfirmed.',
+      contextVerifyTimeout: 'The context check timed out with no confirmed result. Refresh to inspect it; no automatic retry will occur.', contextVerifyReturned: 'A check receipt was received for Conversation ({id}). View it in that conversation’s details.',
+      contextVerifyReceipt: 'Context check receipt from this operation', contextVerifyDone: 'This check passed: 2 turns reused one Session, context acknowledgement was persisted, each draft passed validation at release, and no message was sent.',
+      contextVerifySnapshotOnly: 'Pending context still follows the service snapshot. This receipt does not clear background records in the page.',
+      contextDurable: 'Context acknowledgement persisted', draftsValidated: 'Draft validation at each release', sameSession: 'Same Session reused', confirmed: 'Confirmed', outboundMessage: 'Outbound message', notSent: 'Not sent',
+      contextVerifyHistory: 'Saved context check record', contextVerifyHistoryHint: 'This persisted record describes that check. It does not confirm the current context state or a pass for this operation.', diagnosticMessage: 'Record message',
+      contextSafetyUnavailable: 'Native context loading is unavailable. See dependency status in Diagnostics.', contextSafetyMissing: 'The native context readiness check is not connected yet.',
+      contextAttemptedRounds: 'Attempted turns', contextAttemptedRoundsHint: 'Failures while reading a view or before model dispatch may still count as attempted turns. Use Session observations for actual model calls; this is not a complete billing measure.',
       commandFailed: 'Operation did not complete', commandUncertain: 'The result is unconfirmed. Refresh the state before deciding what to do next.', requestFailed: 'Request failed',
       controlPending: 'Processing request…', close: 'Close details', phase: 'Phase', checked: 'Last checked', source: 'From the runtime snapshot',
     };
@@ -234,6 +256,8 @@ window.__ModuleLoader__.load({
           const [controlError, setControlError] = useState('');
           const [controlNotice, setControlNotice] = useState('');
           const [goalReceipt, setGoalReceipt] = useState(null);
+          const [contextReceipt, setContextReceipt] = useState(null);
+          const [contextAttempt, setContextAttempt] = useState(null);
           const rootRef = useRef(null);
           const operations = useRef({ refresh: () => {}, command: () => {} });
           useEffect(() => {
@@ -261,7 +285,7 @@ window.__ModuleLoader__.load({
                 if (reading === controller) { reading = null; if (alive && !disposed) setLoading(false); }
               }
             }
-            async function issue(action, payload = {}) {
+            async function issue(action, payload = {}, expected = {}) {
               const isControl = action === 'runtime.pause' || action === 'runtime.resume';
               if (!alive || disposed || (isControl ? controlInFlight || (action === 'runtime.resume' && commandInFlight) : commandInFlight || controlInFlight)) return;
               const setPending = isControl ? setControlCommand : setCommand;
@@ -270,9 +294,10 @@ window.__ModuleLoader__.load({
               if (isControl) controlInFlight = true; else commandInFlight = true;
               setPending(action); setError(''); setNotice('');
               if (action === 'goal.verify-lifecycle') setGoalReceipt(null);
+              if (action === 'conversation.verifyContext') { setContextReceipt(null); setContextAttempt({ conversationId: payload.conversationId, bindingId: expected.bindingId }); }
               const controller = new AbortController(); writes.add(controller);
               let timedOut = false;
-              const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, action === 'session.verify-model' ? 250000 : 20000);
+              const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, action === 'session.verify-model' ? 250000 : action === 'conversation.verifyContext' ? 95000 : 20000);
               deadlines.add(timeout);
               try {
                 const result = await api('commands', { signal: controller.signal, action, payload });
@@ -281,6 +306,10 @@ window.__ModuleLoader__.load({
                 if (action === 'task.createLocal' && (result?.accepted !== true || typeof result?.task?.taskId !== 'string' || !result.task.taskId.trim())) throw new Error(t('localTaskUnconfirmed'));
                 if (action === 'conversation.linkLocalTask' && (result?.accepted !== true || result?.taskId !== payload.taskId
                   || !['conversationId', 'bindingId'].every(key => typeof result?.[key] === 'string' && Boolean(result[key].trim())))) throw new Error(t('conversationLinkUnconfirmed'));
+                if (action === 'conversation.verifyContext' && (result?.verified !== true || result?.conversationId !== payload.conversationId
+                  || typeof result?.bindingId !== 'string' || !result.bindingId.trim() || result.bindingId !== expected.bindingId
+                  || typeof result?.sessionId !== 'string' || !result.sessionId.trim() || result?.sameSession !== true || result?.calls !== 2
+                  || result?.contextDurable !== true || result?.draftsValidated !== true || result?.sent !== false)) throw new Error(t('contextVerifyUnconfirmed'));
                 if (action === 'goal.verify-lifecycle' && (result?.verified !== true || result?.taskId !== payload.taskId
                   || !['goalId', 'nativeGoalId', 'sessionId'].every(key => typeof result?.[key] === 'string' && Boolean(result[key].trim()))
                   || result?.nativePhase !== 'complete' || result?.inferenceRequested !== false
@@ -302,14 +331,24 @@ window.__ModuleLoader__.load({
                   setNotice(t('conversationLinkAccepted', { id: result.taskId }));
                   setSelectedConversation({ conversationId: result.conversationId, bindingId: result.bindingId, taskId: result.taskId }); setTab('conversations');
                 }
+                if (action === 'conversation.verifyContext') {
+                  // Only receipt metadata is retained. Binding identity is local
+                  // validation context and is never added to the public command.
+                  setContextReceipt({ conversationId: result.conversationId, bindingId: result.bindingId, sessionId: result.sessionId,
+                    calls: result.calls, instanceId: expected.instanceId });
+                  setNotice(t('contextVerifyReturned', { id: result.conversationId }));
+                }
                 const refreshed = await refresh(true);
-                if (alive && !disposed && refreshed && !['task.createLocal', 'goal.verify-lifecycle', 'conversation.linkLocalTask'].includes(action)) setNotice(t(action === 'session.probe' ? 'probeDone' : action === 'session.verify-model' ? 'modelVerifyDone' : action === 'runtime.pause' ? 'pausedDone' : 'resumedDone'));
+                if (alive && !disposed && refreshed && !['task.createLocal', 'goal.verify-lifecycle', 'conversation.linkLocalTask', 'conversation.verifyContext'].includes(action)) setNotice(t(action === 'session.probe' ? 'probeDone' : action === 'session.verify-model' ? 'modelVerifyDone' : action === 'runtime.pause' ? 'pausedDone' : 'resumedDone'));
               } catch (error) {
-                if (alive && !disposed) { setError(timedOut && action === 'session.verify-model' ? t('modelVerifyTimeout') : controller.signal.aborted ? t('commandUncertain') : error.message || t('commandFailed')); await refresh(true); }
+                if (alive && !disposed) {
+                  const message = timedOut && action === 'session.verify-model' ? t('modelVerifyTimeout') : timedOut && action === 'conversation.verifyContext' ? t('contextVerifyTimeout') : controller.signal.aborted ? t('commandUncertain') : error.message || t('commandFailed');
+                  setError(action === 'conversation.verifyContext' ? `${t('conversationId')} · ${payload.conversationId}: ${message}` : message); await refresh(true);
+                }
               } finally {
                 clearTimeout(timeout); deadlines.delete(timeout); writes.delete(controller);
                 if (isControl) controlInFlight = false; else commandInFlight = false;
-                if (alive && !disposed) setPending('');
+                if (alive && !disposed) { setPending(''); if (action === 'conversation.verifyContext') setContextAttempt(null); }
               }
             }
             operations.current = { refresh: () => refresh(true), command: issue };
@@ -450,6 +489,7 @@ window.__ModuleLoader__.load({
                     h('div', { className: 'syr-section-title' }, h('h2', null, t('conversationDetails')), h(Button, { icon: 'close', className: 'syr-btn syr-subtle', 'aria-label': t('close'), onClick: () => setSelectedConversation(null) })),
                     h('p', { className: 'syr-notice syr-small', 'data-level': conversation.needsSync === true ? 'warning' : 'info', 'data-testid': 'conversation-load-state' }, contextLabel(conversation)),
                     h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('conversationReadOnly')),
+                    contextVerificationContent(),
                     h('div', { className: 'syr-section-gap' }, h(Facts, { rows: [
                       ['conversationId', conversation.conversationId, true], ['topicId', conversation.topicId, true], ['replyBindingId', conversation.bindingId, true], ['localConversationKey', conversation.localConversationKey, true], ['conversationScope', conversation.scope, true],
                       ['contextVersion', numeric(conversation.contextVersion)], ['audienceVersion', numeric(conversation.audienceVersion)], ['conversationGeneration', numeric(conversation.conversationGeneration)], ['routingRevision', numeric(conversation.routingRevision)], ['sessionEpoch', numeric(conversation.sessionEpoch)],
@@ -470,6 +510,31 @@ window.__ModuleLoader__.load({
                     ['subscriptions', numeric(background.subscriptions)], ['backgroundPending', numeric(background.pending)], ['backgroundClaimed', numeric(background.claimed)], ['backgroundAcknowledged', numeric(background.acknowledged)], ['failed', numeric(background.failed)], ['backgroundCancelled', numeric(background.cancelled)]] }),
                   typeof background.lastFailure === 'string' && background.lastFailure && h('p', { className: 'syr-alert syr-section-gap', 'data-testid': 'conversation-background-failure' }, h('strong', null, t('backgroundLastFailure')), background.lastFailure),
                   background.lastBatch && h('section', { className: 'syr-task-result' }, h(Title, null, t('backgroundBatch')), h(Facts, { rows: [['backgroundClaimed', numeric(background.lastBatch.claimed)], ['backgroundProcessed', numeric(background.lastBatch.processed)], ['failed', numeric(background.lastBatch.failed)]] })))));
+          }
+          function contextVerificationContent() {
+            const hasTask = arr(conversation?.taskRefs).some(ref => typeof ref?.taskId === 'string' && Boolean(ref.taskId.trim()));
+            const identityKnown = conversation?.scope === 'local-owner' && ['conversationId', 'bindingId'].every(key => typeof conversation?.[key] === 'string' && Boolean(conversation[key].trim()));
+            const contextReady = snapshot.diagnostics?.contextSafety?.ready === true;
+            const canVerify = canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && identityKnown && hasTask && contextReady;
+            const pendingHere = command === 'conversation.verifyContext' && contextAttempt?.conversationId === conversation.conversationId && contextAttempt?.bindingId === conversation.bindingId;
+            const receipt = contextReceipt?.conversationId === conversation.conversationId && contextReceipt?.bindingId === conversation.bindingId && contextReceipt?.instanceId === snapshot.instanceId ? contextReceipt : null;
+            const saved = snapshot.diagnostics?.contextVerification;
+            const history = saved && typeof saved === 'object' && !Array.isArray(saved) && saved.conversationId === conversation.conversationId ? saved : null;
+            return h('section', { className: 'syr-task-result', 'aria-label': t('contextVerifyTitle'), 'data-testid': 'context-verification' },
+              h(Title, null, t('contextVerifyTitle')), h('p', { className: 'syr-small syr-muted' }, t('contextVerifyHint')), h('p', { className: 'syr-small syr-muted' }, t('contextVerifyLimits')),
+              !contextReady && h('p', { className: 'syr-small syr-muted', 'data-testid': 'context-verification-readiness' }, t(snapshot.diagnostics?.contextSafety?.ready === false ? 'contextSafetyUnavailable' : 'contextSafetyMissing')),
+              !hasTask && h('p', { className: 'syr-small syr-muted' }, t('contextVerifyNeedsTask')),
+              h('div', { className: 'syr-section-gap' }, h(Button, { disabled: !canVerify, onClick: () => {
+                if (canVerify) void operations.current.command('conversation.verifyContext', { conversationId: conversation.conversationId }, { bindingId: conversation.bindingId, instanceId: snapshot.instanceId });
+              } }, t(pendingHere ? 'contextVerifying' : 'contextVerify'))),
+              receipt && h('section', { className: 'syr-task-result', 'aria-label': t('contextVerifyReceipt'), 'data-testid': 'context-verification-receipt' }, h(Title, null, t('contextVerifyReceipt')),
+                h('p', { className: 'syr-small' }, t('contextVerifyDone')), h('p', { className: 'syr-small syr-muted' }, t('contextVerifySnapshotOnly')),
+                h('p', { className: 'syr-small syr-muted' }, t('contextAttemptedRoundsHint')),
+                h('div', { className: 'syr-section-gap' }, h(Facts, { rows: [['conversationId', receipt.conversationId, true], ['replyBindingId', receipt.bindingId, true], ['sessionId', receipt.sessionId, true], ['contextAttemptedRounds', numeric(receipt.calls)], ['sameSession', t('confirmed')], ['contextDurable', t('confirmed')], ['draftsValidated', t('confirmed')], ['outboundMessage', t('notSent')]] }))),
+              history && h('section', { className: 'syr-task-result', 'aria-label': t('contextVerifyHistory'), 'data-testid': 'context-verification-history' }, h(Title, null, t('contextVerifyHistory')),
+                h('p', { className: 'syr-small syr-muted' }, t('contextVerifyHistoryHint')),
+                h('p', { className: 'syr-small syr-muted' }, t('contextAttemptedRoundsHint')),
+                h('div', { className: 'syr-section-gap' }, h(Facts, { rows: [['checked', dateTime(history.at, locale)], ['status', label(history.ok === true ? 'passed' : history.ok === false ? 'failed' : 'unknown')], ['instance', history.instanceId, true], ['contextAttemptedRounds', numeric(history.calls)], ['conversationId', history.conversationId, true], ['sessionId', history.sessionId, true], ['diagnosticMessage', typeof history.message === 'string' ? history.message : t('unknownValue')]] }))));
           }
           function diagnostics() {
             return h('div', { className: 'syr-stack' },
@@ -498,7 +563,7 @@ window.__ModuleLoader__.load({
             controlError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), controlError),
             commandNotice && h('p', { className: 'syr-feedback', role: 'status' }, commandNotice),
             controlNotice && h('p', { className: 'syr-feedback', role: 'status' }, controlNotice),
-            command && h('p', { className: 'syr-feedback', role: 'status' }, t(command === 'session.verify-model' ? 'modelVerifyPending' : 'controlPending')),
+            command && h('p', { className: 'syr-feedback', role: 'status' }, t(command === 'session.verify-model' ? 'modelVerifyPending' : command === 'conversation.verifyContext' ? 'contextVerifyPending' : 'controlPending', { id: contextAttempt?.conversationId || t('unknownValue') })),
             controlCommand && h('p', { className: 'syr-feedback', role: 'status' }, t('controlPending')),
             snapshot ? (tab === 'overview' ? overview() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
             h('footer', { className: 'syr-footer' }, h('span', null, lastRead ? `${t('lastRead')} · ${dateTime(lastRead, locale)}` : t('unknownHint')), h('span', null, t('autoRefresh')))));

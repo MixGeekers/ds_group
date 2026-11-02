@@ -1,5 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { pinOwnedSessionTitle } from './session-title.js';
+import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
+import { coldNativeInbox, flushNative, nativeContextServices, nativeInboxReferences, verifyNativeEvent } from './native-context.js';
 
 export type SessionRole = 'core' | 'worker' | 'replyer';
 export type ReasoningEffort = 'low' | 'high' | 'max';
@@ -37,6 +39,8 @@ export interface SessionBindingPort {
 export interface SessionEvent {
   type: string;
   data: any;
+  seq?: number;
+  time?: number;
 }
 export interface DshSession {
   id: string;
@@ -49,7 +53,8 @@ export interface DshAgent {
   ctx: DshAgentContext;
   followup(message: { content: { type: 'text'; text: string }[]; source: { kind: 'user' } }): void;
   whenIdle(): Promise<void>;
-  cancel(cause: { kind: 'hook'; reason: string }): void;
+  cancel(cause: { kind: 'hook'; reason: string }, options?: { keepInbox?: boolean }): void;
+  inbox?: { readonly nextTurn: readonly NativeUserMessage[]; readonly nextStep: readonly NativeUserMessage[]; remove(messageId: string): boolean };
 }
 type Disposer = () => void | Promise<void>;
 export interface DshAgentContext {
@@ -89,6 +94,40 @@ export interface SessionAdapterOptions {
   maxTokens?: number;
   timeoutMs?: number;
   now?: () => Date;
+  /** Trusted injection for tests; production defaults to the official host peer export. */
+  createUserMessage?: NativeMessageFactory;
+}
+export interface ReplyContextBinding {
+  operationId: string;
+  contextTokenId: string;
+  sessionEpoch: number;
+  key: string;
+  businessId: string;
+  scope: string;
+  sessionId: string;
+  messageId: string;
+  messageHash: string;
+}
+export interface ReplyContextReceipt extends ReplyContextBinding {
+  userMessageSeq: number;
+  confirmedAt: string;
+  durability: 'confirmed';
+}
+export interface NativeAssistantRef { sessionId: string; eventSeq: number; messageId: string }
+export type ReplyAuthorizationPhase = 'admission' | 'pre_step' | 'context_ack' | 'release';
+export type ReplyAuthorizationCheck = Pick<ReplyContextBinding, 'operationId' | 'contextTokenId' | 'sessionEpoch' | 'key' | 'businessId' | 'scope'>
+  & Partial<Pick<ReplyContextBinding, 'sessionId' | 'messageId' | 'messageHash'>> & { phase: ReplyAuthorizationPhase };
+export interface ReplyContextSafety {
+  operationId: string;
+  contextTokenId: string;
+  sessionEpoch: number;
+  expectedSessionId?: string;
+  /** Only prior registered messages explicitly declared obsolete by the controller. Unknown entries block. */
+  staleInbox?: readonly { messageId: string; messageHash: string }[];
+  onBound(binding: Readonly<ReplyContextBinding>): void | Promise<void>;
+  /** Throw to deny. The controller distinguishes strong binding/authority checks from live source freshness. */
+  authorize(check: Readonly<ReplyAuthorizationCheck>): void | Promise<void>;
+  onContextDurable(receipt: Readonly<ReplyContextReceipt>): void | Promise<void>;
 }
 export interface ReplyRequest {
   businessId: string;
@@ -96,6 +135,9 @@ export interface ReplyRequest {
   prompt: string;
   signal?: AbortSignal;
   maxTokens?: number;
+  /** Absolute UTC epoch milliseconds, including queueing/attach; mandatory for context-safe requests. */
+  deadlineMs?: number;
+  context?: ReplyContextSafety;
 }
 export interface SessionStatus extends SessionBinding {
   hostStatus: 'idle' | 'running' | 'not_attached';
@@ -104,6 +146,8 @@ export interface ReplyResult {
   text: string;
   binding: SessionBinding;
   usage: ModelUsage;
+  contextReceipt?: ReplyContextReceipt;
+  assistantRef?: NativeAssistantRef;
 }
 export interface ProbeResult {
   ready: true;
@@ -145,6 +189,15 @@ function positive(value: number | undefined, fallback: number, ceiling: number, 
 function message(error: unknown): string { return error instanceof Error ? error.message : String(error); }
 function abortError(): Error { return new Error('Session generation cancelled'); }
 function throwIfAborted(signal?: AbortSignal): void { signal?.throwIfAborted(); }
+/** The caller can stop waiting, while the serialized native work remains owned until late cleanup finishes. */
+function untilCancelled<T>(work: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const abort = () => reject(signal.reason ?? abortError());
+    signal.addEventListener('abort', abort, { once: true });
+    work.then(value => { signal.removeEventListener('abort', abort); resolve(value); }, error => { signal.removeEventListener('abort', abort); reject(error); });
+    if (signal.aborted) { signal.removeEventListener('abort', abort); abort(); }
+  });
+}
 function observedUsage(events: SessionEvent[]): ModelUsage {
   const samples = events.flatMap(event => event.type === 'assistant/message' || event.type === 'compaction/summary' ? [event.data?.usage].filter(Boolean) : []);
   if (!samples.length) return { status: 'unknown' };
@@ -166,6 +219,17 @@ interface LiveSession {
   turnError?: string;
   operationMaxTokens?: number;
   closing?: Promise<void>;
+  protectInbox?: boolean;
+  unknownNativeInput?: boolean;
+  inboxEvents?: SessionEvent[];
+  contextRun?: {
+    safety: ReplyContextSafety;
+    binding: ReplyContextBinding;
+    userMessage: NativeUserMessage;
+    events: SessionEvent[];
+    receipt?: ReplyContextReceipt;
+    authorizationError?: unknown;
+  };
 }
 
 /** Thin native-Session adapter. It never implements an LLM loop or rewrites logs. */
@@ -185,6 +249,7 @@ export class ShiyuSessionAdapter {
   private createdDispose?: Disposer;
   private closed = false;
   private closing?: Promise<void>;
+  private messageFactory?: NativeMessageFactory;
 
   constructor(options: SessionAdapterOptions) {
     this.options = options;
@@ -218,6 +283,14 @@ export class ShiyuSessionAdapter {
   }
   /** Install the runtime-owned preset and lifecycle hooks outside read handlers. */
   async initialize(): Promise<void> { await this.init(); }
+  /** A no-inference readiness check: validate public host capabilities without constructing a message or Session. */
+  async prepareContextSafety(): Promise<{ ready: true; messageFactory: 'official' | 'injected'; nativeReadback: true; coldProjection: true }> {
+    this.assertOpen(); nativeContextServices(this.options.ctx);
+    const factory = this.options.createUserMessage ?? await loadNativeMessageFactory();
+    if (typeof factory !== 'function') throw new Error('Official native user-message factory is unavailable');
+    this.assertOpen(); this.messageFactory = factory;
+    return { ready: true, messageFactory: this.options.createUserMessage ? 'injected' : 'official', nativeReadback: true, coldProjection: true };
+  }
   private persist(): Promise<void> {
     const snapshot = structuredClone([...this.bindings.values()]);
     const save = this.saveTail.then(() => this.options.bindings.save(snapshot));
@@ -253,22 +326,58 @@ export class ShiyuSessionAdapter {
     state.disposers.push(ctx.systemPrompt.suppressRuntimeContext());
     state.disposers.push(ctx.systemPrompt.section({ name: 'shiyu:replyer', order: 0, complete: true, text: READ_ONLY_PROMPT }));
     state.disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: [] })));
-    state.disposers.push(ctx.on('agent/request', async (_payload, next) => ({ ...await next(), ...state.binding.model, maxTokens: state.operationMaxTokens ?? this.maxTokens })));
-    state.disposers.push(ctx.on('agent/pre-step', async (_payload, next) => {
+    state.disposers.push(ctx.on('agent/request', async (_payload, next) => {
+      if (state.contextRun) {
+        await state.contextRun.safety.authorize(Object.freeze({ ...state.contextRun.binding, phase: 'pre_step' }));
+        this.assertOpen(); throwIfAborted(state.operation?.signal);
+      }
+      return { ...await next(), ...state.binding.model, maxTokens: state.operationMaxTokens ?? this.maxTokens };
+    }));
+    state.disposers.push(ctx.on('agent/pre-step', async (payload, next) => {
       if (this.closed || state.closing || !state.operation || state.operation.signal.aborted || ++state.steps > 1) return { kind: 'reject' };
+      if (state.contextRun) {
+        try {
+          const messages = payload?.messages;
+          if (!Array.isArray(messages) || messages.length !== 1 || messages[0]?.id !== state.contextRun.binding.messageId
+            || nativeMessageHash(messages[0]) !== state.contextRun.binding.messageHash) {
+            state.unknownNativeInput = true;
+            const error = new Error('Native step claimed an unregistered or changed context input');
+            state.operation.abort(error);
+            throw error;
+          }
+          await state.contextRun.safety.authorize(Object.freeze({ ...state.contextRun.binding, phase: 'pre_step' }));
+          this.assertOpen(); throwIfAborted(state.operation.signal);
+        } catch (error) { state.contextRun.authorizationError = error; return { kind: 'reject' }; }
+      }
       return next();
     }));
+    state.disposers.push(ctx.on('agent/inbox/inserted', (payload: { message?: unknown }) => {
+      if (!state.protectInbox) return;
+      const incoming = payload?.message as { id?: unknown } | undefined;
+      if (!state.contextRun || incoming?.id !== state.contextRun.binding.messageId || nativeMessageHash(incoming) !== state.contextRun.binding.messageHash) {
+        state.unknownNativeInput = true;
+        state.operation?.abort(new Error('Unknown native input arrived during a managed context operation'));
+      }
+    }));
     state.disposers.push(ctx.on('session/event', (session: DshSession, event: SessionEvent) => {
-      if (session !== agent.session || !state.operation) return;
+      if (session !== agent.session) return;
+      if (state.protectInbox && event.type === 'agent/inbox/spliced') {
+        state.inboxEvents ??= []; state.inboxEvents.push(structuredClone(event));
+        if (state.inboxEvents.length > 256) state.inboxEvents.shift();
+      }
+      if (!state.operation) return;
+      if (state.contextRun && ['user/message', 'assistant/message', 'turn/end'].includes(event.type)) state.contextRun.events.push(structuredClone(event));
       if (event.type === 'assistant/message' || event.type === 'compaction/summary') state.observedEvents?.push(event);
       if (event.type === 'turn/end' && event.data?.reason?.kind !== 'completed') state.turnError = `Model turn ended: ${event.data?.reason?.kind ?? 'unknown'}`;
     }));
   }
-  private async attach(key: string, businessId: string, scope: string, signal?: AbortSignal, fresh = false): Promise<LiveSession> {
+  private async attach(key: string, businessId: string, scope: string, signal?: AbortSignal, fresh = false, expectedSessionId?: string, protectInbox = false): Promise<LiveSession> {
     await this.init();
     this.assertOpen(); throwIfAborted(signal);
     const current = this.live.get(key);
     if (current && !current.closing) {
+      if (expectedSessionId && current.binding.sessionId !== expectedSessionId) throw new Error('Expected native Session identity does not match the live binding');
+      if (protectInbox) current.protectInbox = true;
       if (!fresh) return current;
       await this.release(current);
     }
@@ -278,13 +387,14 @@ export class ShiyuSessionAdapter {
     if (JSON.stringify(resolved) !== JSON.stringify(this.model)) throw new Error('Host changed the requested model selection');
     this.assertOpen(); throwIfAborted(signal);
     let binding = fresh ? undefined : this.bindings.get(key);
-    const resuming = binding !== undefined;
+    if (expectedSessionId && binding && binding.sessionId !== expectedSessionId) throw new Error('Expected native Session identity does not match the persisted binding');
+    const resuming = binding !== undefined || expectedSessionId !== undefined;
     if (binding && JSON.stringify(binding.model) !== JSON.stringify(this.model)) throw new Error('Existing Session has a different model profile; explicit migration is required');
     if (!binding) {
-      binding = { key, role: 'replyer', businessId, scope, sessionId: `${SESSION_PREFIX}${randomUUID()}`, model: resolved, status: 'creating', createdAt: this.timestamp(), updatedAt: this.timestamp(), usage: { status: 'unknown' } };
+      binding = { key, role: 'replyer', businessId, scope, sessionId: expectedSessionId ?? `${SESSION_PREFIX}${randomUUID()}`, model: resolved, status: 'creating', createdAt: this.timestamp(), updatedAt: this.timestamp(), usage: { status: 'unknown' } };
       this.bindings.set(key, binding);
     }
-    const state: LiveSession = { binding, disposers: [], steps: 0 };
+    const state: LiveSession = { binding, disposers: [], steps: 0, protectInbox };
     this.live.set(key, state);
     try {
       await this.update(state, { status: 'creating' });
@@ -295,6 +405,7 @@ export class ShiyuSessionAdapter {
         ? this.options.ctx.agents.resume({ ...shared, resumeSessionId: binding.sessionId })
         : this.options.ctx.agents.create({ ...shared, sessionId: binding.sessionId, meta: { cwd: this.options.cwd, agentPreset: REPLYER_PRESET_ID } });
       state.handle = await state.creation;
+      if (state.handle.agent.session.id !== binding.sessionId) throw new Error('Host attached a different native Session identity');
       this.assertOpen(); throwIfAborted(signal);
       if (state.closing) throw abortError();
       const assembly = await state.handle.agent.ctx.systemPrompt.assemble({ scope: state.handle.agent });
@@ -315,7 +426,14 @@ export class ShiyuSessionAdapter {
       let disposed = true;
       try {
         const handle = state.handle ?? await state.creation?.catch(() => undefined);
-        handle?.agent.cancel({ kind: 'hook', reason: error ?? 'Managed Session released' });
+        if (handle) state.handle ??= handle;
+        if (handle && state.protectInbox) {
+          // Native handle.dispose clears inbox even after cancel(keepInbox:true).
+          // Refuse teardown when it could silently erase an unregistered input.
+          const known = state.contextRun ? [{ messageId: state.contextRun.binding.messageId, messageHash: state.contextRun.binding.messageHash }, ...state.contextRun.safety.staleInbox ?? []] : [];
+          await this.clearKnownInbox(state, known);
+        }
+        handle?.agent.cancel({ kind: 'hook', reason: error ?? 'Managed Session released' }, state.protectInbox ? { keepInbox: true } : undefined);
         await handle?.dispose();
       } catch (failure) { disposed = false; errors.push(failure); }
       // If the host fails to dispose, retain the deny hooks on the remaining Agent.
@@ -329,6 +447,151 @@ export class ShiyuSessionAdapter {
       if (errors.length) throw new AggregateError(errors, 'Managed Session release failed');
     })();
     return state.closing;
+  }
+  private async clearKnownInbox(state: LiveSession, known: readonly { messageId: string; messageHash: string }[], signal?: AbortSignal): Promise<void> {
+    const agent = state.handle!.agent;
+    if (state.unknownNativeInput) {
+      agent.cancel({ kind: 'hook', reason: 'Unknown native input requires explicit reconciliation' }, { keepInbox: true });
+      await agent.whenIdle();
+      throw new Error('Unknown native input blocks continuation and safe disposal');
+    }
+    const allowed = new Map(known.map(item => [item.messageId, item.messageHash]));
+    const pending = nativeInboxReferences(agent.inbox);
+    if (new Set(pending.map(item => item.messageId)).size !== pending.length || pending.some(item => allowed.get(item.messageId) !== item.messageHash)) {
+      throw new Error('Unknown native inbox input blocks continuation and safe disposal');
+    }
+    for (const item of pending) {
+      signal?.throwIfAborted();
+      const current = nativeInboxReferences(agent.inbox).find(value => value.messageId === item.messageId);
+      if (!current || current.messageHash !== item.messageHash) throw new Error('Native inbox changed before precise removal');
+      const previousSeq = state.inboxEvents?.at(-1)?.seq ?? -1;
+      if (agent.inbox!.remove(item.messageId) !== true || nativeInboxReferences(agent.inbox).some(value => value.messageId === item.messageId)) throw new Error('Known obsolete native inbox input was not removed');
+      const event = state.inboxEvents?.find(value => Number.isSafeInteger(value.seq) && value.seq! > previousSeq && value.data?.target === current.lane
+        && value.data?.start === current.index && value.data?.removedCount === 1 && Array.isArray(value.data?.inserted) && value.data.inserted.length === 0 && value.data?.outcome === 'canceled');
+      if (!event) throw new Error('Native inbox removal has no exact event receipt');
+      await flushNative(this.options.ctx, agent.session, signal);
+      await verifyNativeEvent(this.options.ctx, agent.session.id, event, signal);
+    }
+    if (pending.length && (await coldNativeInbox(this.options.ctx, agent.session.id, REPLYER_PRESET_ID, signal)).length) throw new Error('Native inbox removal was not confirmed by its durable projection');
+  }
+  private async confirmContext(state: LiveSession, signal: AbortSignal): Promise<ReplyContextReceipt | undefined> {
+    if (state.unknownNativeInput) throw new Error('Unknown native input cannot acknowledge a managed context');
+    const run = state.contextRun!;
+    const matched = run.events.filter(event => event.type === 'user/message' && event.data?.id === run.binding.messageId);
+    if (!matched.length) return undefined;
+    if (matched.length !== 1 || matched[0].data?.role !== 'user' || nativeMessageHash(matched[0].data) !== run.binding.messageHash) throw new Error('Native user event did not exactly match the registered context input');
+    this.assertOpen(); throwIfAborted(signal);
+    await flushNative(this.options.ctx, state.handle!.agent.session, signal);
+    await verifyNativeEvent(this.options.ctx, run.binding.sessionId, matched[0], signal);
+    await run.safety.authorize(Object.freeze({ ...run.binding, phase: 'context_ack' }));
+    this.assertOpen(); throwIfAborted(signal);
+    const receipt: ReplyContextReceipt = { ...run.binding, userMessageSeq: matched[0].seq!, confirmedAt: this.timestamp(), durability: 'confirmed' };
+    await run.safety.onContextDurable(Object.freeze(receipt));
+    this.assertOpen(); throwIfAborted(signal);
+    run.receipt = receipt; return receipt;
+  }
+  private async generateContextReply(request: ReplyRequest): Promise<ReplyResult> {
+    const provided = request.context!;
+    for (const [name, value] of Object.entries({ operationId: provided.operationId, contextTokenId: provided.contextTokenId })) {
+      if (typeof value !== 'string' || !value.trim() || value.length > 300) throw new Error(`Invalid ${name}`);
+    }
+    if (!Number.isSafeInteger(provided.sessionEpoch) || provided.sessionEpoch < 1 || typeof provided.onBound !== 'function'
+      || typeof provided.authorize !== 'function' || typeof provided.onContextDurable !== 'function') throw new Error('Context-safe replies require epoch, binding, authorization and durability callbacks');
+    if (provided.expectedSessionId !== undefined && (typeof provided.expectedSessionId !== 'string' || !provided.expectedSessionId.startsWith(SESSION_PREFIX) || provided.expectedSessionId.length > 300)) throw new Error('Invalid expected native Session identity');
+    if (!Array.isArray(provided.staleInbox ?? []) || (provided.staleInbox?.length ?? 0) > 16
+      || provided.staleInbox?.some(item => !item || typeof item.messageId !== 'string' || !item.messageId || item.messageId.length > 200 || !/^[a-f0-9]{64}$/.test(item.messageHash))
+      || new Set(provided.staleInbox?.map(item => item.messageId)).size !== (provided.staleInbox?.length ?? 0)) throw new Error('Invalid bounded obsolete inbox references');
+    const safety: ReplyContextSafety = Object.freeze({ ...provided, staleInbox: provided.staleInbox?.map(item => Object.freeze({ ...item })) });
+    const key = sessionBindingKey('replyer', request.businessId, request.scope);
+    const maxTokens = positive(request.maxTokens, this.maxTokens, this.maxTokens, 'reply maxTokens');
+    if (!Number.isSafeInteger(request.deadlineMs)) throw new Error('Context-safe replies require an absolute deadlineMs');
+    const remaining = request.deadlineMs! - (this.options.now?.() ?? new Date()).getTime();
+    if (remaining <= 0) throw new Error('Context-safe reply deadline has expired');
+    nativeContextServices(this.options.ctx);
+    const operation = new AbortController();
+    const callerCancellation = new AbortController();
+    const stopOperation = () => operation.abort(callerCancellation.signal.reason ?? abortError());
+    callerCancellation.signal.addEventListener('abort', stopOperation, { once: true });
+    const abort = () => callerCancellation.abort(request.signal?.reason ?? abortError());
+    request.signal?.addEventListener('abort', abort, { once: true });
+    if (request.signal?.aborted) abort();
+    const timer = setTimeout(() => callerCancellation.abort(new Error('Context-safe reply deadline expired')), Math.min(remaining, this.timeoutMs));
+    const base = Object.freeze({ operationId: safety.operationId, contextTokenId: safety.contextTokenId, sessionEpoch: safety.sessionEpoch, key, businessId: request.businessId, scope: request.scope });
+    try {
+      return await untilCancelled(this.inOrder(key, async () => {
+        this.assertOpen(); throwIfAborted(operation.signal);
+        await safety.authorize(Object.freeze({ ...base, phase: 'admission' }));
+        this.assertOpen(); throwIfAborted(operation.signal);
+        await this.init();
+        const existing = this.bindings.get(key), expected = safety.expectedSessionId;
+        if (expected && existing && existing.sessionId !== expected) throw new Error('Expected native Session identity does not match the managed binding');
+        if (existing?.status === 'archived') throw new Error('Archived native Session cannot serve a business context');
+        const known = new Map((safety.staleInbox ?? []).map(item => [item.messageId, item.messageHash]));
+        const validateInbox = (items: ReturnType<typeof nativeInboxReferences>) => {
+          if (new Set(items.map(item => item.messageId)).size !== items.length || items.some(item => known.get(item.messageId) !== item.messageHash)) throw new Error('Unknown native inbox input blocks context-safe continuation');
+        };
+        const live = this.live.get(key);
+        if (live) { live.protectInbox = true; if (live.handle) validateInbox(nativeInboxReferences(live.handle.agent.inbox)); }
+        const previousId = expected ?? existing?.sessionId;
+        if (previousId) validateInbox(await coldNativeInbox(this.options.ctx, previousId, REPLYER_PRESET_ID, operation.signal));
+        this.assertOpen(); throwIfAborted(operation.signal);
+        await this.prepareContextSafety();
+        this.assertOpen(); throwIfAborted(operation.signal);
+        const userMessage = checkedNativeUserMessage(await this.messageFactory!({ content: [{ type: 'text', text: request.prompt }], source: { kind: 'user' } }), request.prompt);
+        this.assertOpen(); throwIfAborted(operation.signal);
+        const state = await this.attach(key, request.businessId, request.scope, operation.signal, false, expected, true);
+        state.operation = operation; state.steps = 0; state.turnError = undefined; state.observedEvents = []; state.operationMaxTokens = maxTokens;
+        const binding: ReplyContextBinding = { ...base, sessionId: state.binding.sessionId, messageId: userMessage.id, messageHash: nativeMessageHash(userMessage) };
+        state.contextRun = { safety, binding, userMessage, events: [] };
+        const agent = state.handle!.agent;
+        const cancel = () => agent.cancel({ kind: 'hook', reason: 'Context-safe reply cancelled or expired' }, { keepInbox: true });
+        operation.signal.addEventListener('abort', cancel, { once: true });
+        if (operation.signal.aborted) cancel();
+        try {
+          // Live recheck closes the cold-read/resume race; unknown entries are never disposed away.
+          await this.clearKnownInbox(state, safety.staleInbox ?? [], operation.signal);
+          this.assertOpen(); throwIfAborted(operation.signal);
+          await safety.onBound(Object.freeze({ ...binding }));
+          this.assertOpen(); throwIfAborted(operation.signal);
+          await pinOwnedSessionTitle(this.options.ctx, agent.session, '识雨 · 受限回复');
+          await safety.authorize(Object.freeze({ ...binding, phase: 'admission' }));
+          this.assertOpen(); throwIfAborted(operation.signal);
+          await this.update(state, { status: 'running' });
+          this.assertOpen(); throwIfAborted(operation.signal);
+          agent.followup(userMessage);
+          let idleError: unknown;
+          try { await agent.whenIdle(); } catch (error) { idleError = error; }
+          this.assertOpen(); throwIfAborted(operation.signal);
+          // A failed generation can still have loaded a durable native input. This receipt is independent.
+          const contextReceipt = await this.confirmContext(state, operation.signal);
+          if (idleError) throw idleError;
+          if (state.contextRun.authorizationError) throw state.contextRun.authorizationError;
+          if (state.turnError) throw new Error(state.turnError);
+          if (!contextReceipt) throw new Error('No confirmed native context input is available');
+          const assistant = state.contextRun.events.filter(event => event.type === 'assistant/message' && !event.data?.interrupted && event.seq! > contextReceipt.userMessageSeq).at(-1);
+          const assistantMessage = assistant?.data?.message;
+          if (!assistant || !Number.isSafeInteger(assistant.seq) || typeof assistantMessage?.id !== 'string' || !assistantMessage.id) throw new Error('No exact completed native assistant event reference is available');
+          const text = assistantMessage.content?.filter((block: any) => block.type === 'text').map((block: any) => block.text).join('\n');
+          if (typeof text !== 'string' || !text.trim()) throw new Error('No completed reply text returned');
+          // Flush/readback also binds the returned draft reference to the actual persisted assistant event.
+          await flushNative(this.options.ctx, agent.session, operation.signal);
+          await verifyNativeEvent(this.options.ctx, binding.sessionId, assistant, operation.signal);
+          await safety.authorize(Object.freeze({ ...binding, phase: 'release' }));
+          this.assertOpen(); throwIfAborted(operation.signal);
+          const usage = observedUsage(state.observedEvents!);
+          await this.update(state, { status: 'idle', usage });
+          this.assertOpen(); throwIfAborted(operation.signal);
+          return { text, binding: structuredClone(state.binding), usage, contextReceipt, assistantRef: { sessionId: binding.sessionId, eventSeq: assistant.seq!, messageId: assistantMessage.id } };
+        } catch (error) {
+          try { await this.release(state, operation.signal.aborted ? 'cancelled' : 'error', message(error)); }
+          catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Context-safe reply failed and native cleanup could not be confirmed'); }
+          throw error;
+        } finally {
+          operation.signal.removeEventListener('abort', cancel);
+          if (state.operation === operation) { state.operation = undefined; state.observedEvents = undefined; state.operationMaxTokens = undefined; state.contextRun = undefined; }
+        }
+      }), callerCancellation.signal);
+    } finally { clearTimeout(timer); request.signal?.removeEventListener('abort', abort); callerCancellation.signal.removeEventListener('abort', stopOperation); }
   }
   async probe(): Promise<ProbeResult> {
     const key = sessionBindingKey('replyer', PROBE_BUSINESS_ID, PROBE_SCOPE);
@@ -359,9 +622,13 @@ export class ShiyuSessionAdapter {
   }
   async generateReply(request: ReplyRequest): Promise<ReplyResult> {
     if (typeof request.prompt !== 'string' || !request.prompt.trim() || request.prompt.length > 100000) throw new Error('Invalid reply prompt');
+    if (request.context) return this.generateContextReply(request);
     const maxTokens = positive(request.maxTokens, this.maxTokens, this.maxTokens, 'reply maxTokens');
     const key = sessionBindingKey('replyer', request.businessId, request.scope);
     return this.inOrder(key, async () => {
+      throwIfAborted(request.signal);
+      const factory = this.options.createUserMessage ?? this.messageFactory ?? await loadNativeMessageFactory();
+      const userMessage = checkedNativeUserMessage(await factory({ content: [{ type: 'text', text: request.prompt }], source: { kind: 'user' } }), request.prompt);
       throwIfAborted(request.signal);
       const state = await this.attach(key, request.businessId, request.scope, request.signal);
       this.assertOpen(); throwIfAborted(request.signal);
@@ -379,7 +646,7 @@ export class ShiyuSessionAdapter {
         await pinOwnedSessionTitle(this.options.ctx, agent.session, '识雨 · 受限回复');
         await this.update(state, { status: 'running' });
         this.assertOpen(); throwIfAborted(operation.signal);
-        agent.followup({ content: [{ type: 'text', text: request.prompt }], source: { kind: 'user' } });
+        agent.followup(userMessage);
         await agent.whenIdle();
         throwIfAborted(operation.signal);
         if (state.turnError) throw new Error(state.turnError);

@@ -18,6 +18,11 @@ export interface ViewConversationVersion {
 }
 export interface SafetyWatermarks { authEpoch: number | null; tombstoneWatermark: number | null }
 export interface ComponentGrant { backendId: string; fields: readonly string[] }
+/** Baseline identities make scoped zero watermarks distinguishable from unavailable backends. */
+export interface ViewAuthorityIdentity {
+  publicationBaselineId: string; policyAuthorityId: string; deletionAuthorityId: string;
+  deletionScope: 'local-task-source'; indexMode: 'not-used';
+}
 /** Produced only by the current policy/deletion authority and authenticated conversation adapter. */
 export interface ViewAccess {
   principalId: string; purpose: ViewPurpose; scope: string; audienceIds: readonly string[];
@@ -25,6 +30,7 @@ export interface ViewAccess {
   policyVersion: number; authEpoch: number; tombstoneWatermark: number;
   appliedSafety: SafetyWatermarks; commitSeq: number; stateVersion: number; indexWatermark: number;
   conversation?: ViewConversationVersion;
+  authority?: ViewAuthorityIdentity;
 }
 export interface ViewSourceRef {
   sourceId: string; revision: Revision; contentHash?: string; observedAt: string; trustClass: string;
@@ -72,6 +78,7 @@ export interface ReadView {
   sourceRefs: ViewSourceRef[]; data: { backendId: string; recordId: string; fields: Record<string, JsonValue> }[];
   /** Component observations have independent versions/times; this is never a distributed atomic snapshot. */
   consistency: 'component-scoped'; conversation?: ViewConversationVersion;
+  authority?: ViewAuthorityIdentity;
   truncated: { items: boolean; bytes: boolean };
 }
 export interface ReadViewOptions {
@@ -114,7 +121,7 @@ function scopeHash(actor: TrustedViewActor, request: ViewRequest, access: ViewAc
 function securityHash(actor: TrustedViewActor, request: ViewRequest, access: ViewAccess): string {
   const conversation = access.conversation;
   return hash({ scopeHash: scopeHash(actor, request, access), expiresAt: access.expiresAt, policyVersion: access.policyVersion,
-    authEpoch: access.authEpoch, tombstoneWatermark: access.tombstoneWatermark, appliedSafety: access.appliedSafety,
+    authEpoch: access.authEpoch, tombstoneWatermark: access.tombstoneWatermark, appliedSafety: access.appliedSafety, authority: access.authority,
     conversation: conversation && { bindingId: conversation.bindingId, conversationId: conversation.conversationId, scope: conversation.scope,
       audienceVersion: conversation.audienceVersion, conversationGeneration: conversation.conversationGeneration,
       routingRevision: conversation.routingRevision, sessionEpoch: conversation.sessionEpoch } });
@@ -189,6 +196,8 @@ export class ReadViewService {
       || new Set(access.components.map(item => item.backendId)).size !== access.components.length
       || access.components.some(item => !name(item.backendId) || item.backendId === 'conversation' || !list(item.fields, 64) || item.fields.some((field: string) => ['__proto__', 'constructor', 'prototype'].includes(field)))
       || !timestamp(access.expiresAt) || ![access.policyVersion, access.authEpoch, access.tombstoneWatermark, access.commitSeq, access.stateVersion, access.indexWatermark].every(integer)) fail('DEPENDENCY_UNAVAILABLE', 'Current view authority is incomplete');
+    if (access.authority && (!name(access.authority.publicationBaselineId) || !name(access.authority.policyAuthorityId)
+      || !name(access.authority.deletionAuthorityId) || access.authority.deletionScope !== 'local-task-source' || access.authority.indexMode !== 'not-used')) fail('DEPENDENCY_UNAVAILABLE', 'View authority baseline is incomplete');
     if (Date.parse(access.expiresAt) <= this.now().getTime()) fail('EXPIRED', 'View authority has expired');
     if (request.taskId && !access.resourceRefs.includes(`task:${request.taskId}`)) fail('FORBIDDEN', 'View access is not permitted');
     if (request.conversationId) {
@@ -237,6 +246,7 @@ export class ReadViewService {
       policyVersion: access.policyVersion, authEpoch: access.authEpoch, tombstoneWatermark: access.tombstoneWatermark,
       indexWatermark: access.indexWatermark, aggregateVersions: [], components: [], freshness: { status: 'current' },
       sourceRefs: [], data: [], consistency: 'component-scoped', ...(access.conversation ? { conversation: clone(access.conversation) } : {}),
+      ...(access.authority ? { authority: clone(access.authority) } : {}),
       truncated: { items: false, bytes: false },
     };
     if (!name(view.viewId) || this.issued.has(view.viewId)) fail('INVALID_VIEW_ID', 'A fresh view identity is required');

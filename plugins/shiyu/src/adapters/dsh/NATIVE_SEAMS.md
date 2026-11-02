@@ -2,6 +2,25 @@
 
 2026-11-02，静态核查本机 `/Applications/DeepSeek Harness.app/Contents/Resources/app.asar` 中 DSH `0.2.1-rc.5`。下列行号指 ASAR 内对应 npm 包的 `lib/index.js`，不是其他版本的兼容承诺。实现调用宿主公开服务，没有复制宿主源码或自建模型循环。
 
+## Replyer 上下文加载与草稿引用
+
+本节接缝依据同一 DSH `0.2.1-rc.5` 的本机源码静态核查。`sessions.ts` 的业务请求通过显式 `context` 安全模式接入；原有 probe 与诊断路径保持独立，不能把普通回复成功当作上下文持久加载证明。
+
+- `@deepseek-ai/dsh-llm/package.json:4,31–34`：版本为 `0.2.1-rc.5`，公开导出 `./message`；`lib/types/message.js:26–58` 的 `createUserMessage({content, source})` 生成完整 `role='user'` 与一次性原生 `id`，深拷贝并冻结。识雨通过宿主 peer `@deepseek-ai/dsh-llm/message` 导入工厂，不复制其实现。safe 与 legacy replyer 都只构造一次完整消息后传入 followup；业务侧只登记 ID、内容 hash 与原生引用，不复制会话正文历史。
+- `@deepseek-ai/dsh-app-boot:1347–1350,1676–1728`：linked plugin 的 peer 映射读取 `peerDependencies` 的名称；optional peer 的声明不绕过宿主映射。`prepareContextSafety()` 只加载并验证工厂及公共 flush/read/projector 服务，不构造消息、不创建 Session、不请求推理。它的 ready **不等于**任何资料已经进入原生历史；真实加载仍须下述逐次回执。
+- `@deepseek-ai/dsh-agent-loop:800–808,906–918,1066–1074`：followup 先进入原生 inbox，随后 wake；原生不会替调用者补全缺失消息 ID。pre-step 的 `messages` 是本步实际认领的新输入，`user/message` 的 `data` 即完整消息。适配器同时核对实际 claimed 消息的唯一 ID/hash，拒绝未知输入；观察到事件或 `whenIdle()` 本身不构成加载/生成成功。
+- `@deepseek-ai/dsh-session:1938–1967` 的 `sessions.flush(exactSession)` 只确认有 durability listener 参与；`@deepseek-ai/dsh-session-persistence-jsonl:421–432` 的无 writer 分支可能不落盘。因此 receipt 必须同时核对精确 `user/message`、flush 与公开 `sessionPersistence.open(id, 'read', {signal})` 后 `read(seq, 1, {signal})` 的 seq/type/完整消息 hash。该公共只读 handle 的接口见同包 `56–110,140–178,2481–2519`，在 finally 中 close。草稿另行确认精确 assistant event 并返回 `{sessionId,eventSeq,messageId}`，不只取任意最后一条回复。
+- `@deepseek-ai/dsh-session-projection:262–318`：冷读调用公开 `sessionProjections.restore({}, events, 0, header, inheritedEventCount)`，使用已注册的 `snapshot.values.inbox` 投影；inbox 注册/字段见 `@deepseek-ai/dsh-agent-loop:26–61,1581–1584`。当前冷读最多 **2048 个完整、连续事件**，超限、缺段或无 inbox 投影均拒绝恢复。此上限是首切片的显式限制，不是第二套 checkpoint/history；尚未实现超长 Session 的压缩恢复接线。
+- `@deepseek-ai/dsh-agent-loop:145–149,179–207,815–820,1703–1726`：`cancel(...,{keepInbox:true})` 保留 inbox，但 `handle.dispose()` 默认 cancel 会清空它。未知 inbox 因此在 resume 前或 live continuation 时阻止执行；若已挂载的会话出现未知输入，适配器保留拒绝钩子和 handle，close 明确报告清理失败，**不静默 dispose**。仅控制域明确登记为过期的 ID/hash 可逐项 remove，并核对对应 canceled splice、flush、精确回读和冷投影。首个业务编排不自动声明过期输入，不自动重放。
+
+顺序为 admission 授权 → 确认期望 native ID → onBound 持久绑定/dispatch-intent → followup → 原生 pre-step/request 再授权 → 精确加载回读 → context_ack 授权及 onContextDurable → 草稿 release 授权。加载回执独立于生成结果：模型失败不抹除已证明的加载；取消、过期和未知输入不得 ack。context_ack 只核对该捕获版本的权限与强绑定，背景来源变新由 pre-step/release 的当前来源验证拒绝旧草稿，不把已经加载的旧捕获伪装成未加载。绝对 `deadlineMs` 包含排队/初始化/创建，调用者可及时收到超时，串行锁仍持有晚到原生操作直至清理完成，close 会等待。
+
+Conversation generation 变化由业务 token 令旧草稿失效，不单独换 Session；sessionEpoch 由控制域纳入 businessId，expectedSessionId 一经给出就必须精确恢复，缺失或不符不会创建替代会话。当前未覆盖长期会话、压缩后恢复、超过冷读上限的恢复或真实频道输入，不以短程热复用结果声明这些能力完成。
+
+本轮 `tests/sessions.test.ts` **33/33** 与类型检查通过：公共服务替身覆盖完整消息工厂、绑定先于 followup、exact user/assistant 回读、失败生成与独立加载、取消/flush 假成功、来源变更、未知 inbox 和未观察到 inserted 时的实际 claimed 输入、已知过期项精确移除，以及初始化/排队/晚创建期限。测试未连接真实宿主或模型。真实 zero-prep、原生加载及有限模型轮次的证据由主实施记录单列。
+
+后续事项：`workers.ts` 的历史 followup 仍传 partial message，本轮未改 Worker 冻结路径；后续 Worker 原生接缝演进应复用同一公开工厂。此静态契约风险不推翻此前实际 Worker 成功证据，也不冒称本轮已修复。
+
 ## 固定标题与用量
 
 - `@deepseek-ai/dsh-session-title:281–310`：`get(exactSession)` 返回 `{title, source, messageSeqs, eventSeq, updatedAt}`；`rename(exactLiveSession, title)` 同步写原生 `session/title`，`source.kind='user'`，并 supersede 旧自动标题。

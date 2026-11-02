@@ -35,6 +35,7 @@ export function makeSnapshot({ state = 'idle', populated = false } = {}) {
       { id: 'model', name: '模型服务', status: 'unconfigured', summary: '测试未配置模型。' },
     ],
     usage: { calls: 0, inputTokens: null, outputTokens: null, cacheReadTokens: null },
+    diagnostics: { contextSafety: { ready: true, messageFactory: 'injected' } },
     notices: [{ id: 'synthetic-fixture', level: 'info', message: '合成 UI 测试快照，不代表本体运行验收。' }],
   };
 }
@@ -133,6 +134,25 @@ export function makeConversationBackground(overrides = {}) {
   return {
     subscriptions: 1, pending: 0, claimed: 0, acknowledged: 9, failed: 0, cancelled: 0,
     state: 'idle', lastScanAt: new Date().toISOString(), lastBatch: { claimed: 1, processed: 1, failed: 0 },
+    ...overrides,
+  };
+}
+
+// Fabricated bounded context-check evidence. No Session, inference or context
+// acknowledgement occurs in this fixture; GET projections are set separately.
+export function makeContextVerificationReceipt(conversationId = 'test-conversation-1', bindingId = 'test-binding-1') {
+  return {
+    verified: true, conversationId, bindingId, sameSession: true,
+    sessionId: 'test-context-session-1', calls: 2, contextDurable: true,
+    draftsValidated: true, sent: false, synthetic: true,
+  };
+}
+
+export function makeContextVerificationRecord(overrides = {}) {
+  return {
+    at: new Date().toISOString(), ok: true, message: '合成测试：背景验证保存记录。',
+    instanceId: 'test-runtime-instance', calls: 2,
+    conversationId: 'test-conversation-1', sessionId: 'test-context-session-1',
     ...overrides,
   };
 }

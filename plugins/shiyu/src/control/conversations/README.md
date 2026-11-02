@@ -85,3 +85,7 @@ Event ack 只表示背景标记已持久化，本切片不调用 `ackContext`。
 新增 `tests/conversation-store-integration.test.ts` 使用临时 SQLite 和真实 Worker IPC 验证上述本地接线；故障案例使用真实 SQLite 加同步合成 EventPort，在 ack 写入后抛错验证共同回滚。测试中的 Task 完成证据为显式合成观察，不访问真实产物、宿主、模型或渠道。完整验收结果由本轮实施记录列明，不将这些合成结果算作真实渠道验收。
 
 本轮命令 `node --import tsx --test tests/conversation-store-integration.test.ts tests/conversations.test.ts`：28/28 通过（新增集成 11 项、原领域 17 项）；全包 `tsc --noEmit --pretty false` 通过。集成测试还核对真实 `commitSeq`：claim 与背景投影加 ack 各计一次写提交，多个绑定和嵌套 savepoint 不多计；重复 ensure、空消费和只读 snapshot 不增加水位。
+
+## 阶段 3C 本地回复接线
+
+新增 [本地只读回复控制](../local-reply.md) 通过真实 Worker capture/ReadView 和原生 replyer 接缝处理输入去重、稳定 Session 绑定、加载回执与草稿资格。上节阶段 3B 的“不调用 ackContext”是该历史切片的范围；阶段 3C 只在精确原生加载耐久回执通过后，同事务记录证据与确认实际加载来源。刷新及后台事件 ack 仍不确认原生上下文。
