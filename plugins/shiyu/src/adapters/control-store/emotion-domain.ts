@@ -8,6 +8,7 @@ import {
 } from '../../contracts/inner.js';
 export type { EmotionDomainRequest } from '../../contracts/inner.js';
 import { InnerDomainBase, type InnerDomainBaseOptions, type StoredInnerRecord } from './inner-domain.js';
+import type { InnerDerivationReason } from '../../contracts/inner.js';
 import { SqliteTransactions } from './transaction.js';
 
 /** Explicit review/decay rule version; changing it needs a migration, never a silent rollout. */
@@ -43,6 +44,12 @@ export class EmotionDomain extends InnerDomainBase {
     if (record.kind !== 'experience' && record.status !== 'active') innerFail('CORRUPT_INNER_DOMAIN', 'Only experiences can be digested');
   }
 
+  /** Digested observations remain historical, not current evidence for dependants. */
+  protected sourceCurrent(record: StoredInnerRecord): { current: boolean; reason?: InnerDerivationReason } {
+    if (record.kind === 'experience') return record.status === 'active' ? { current: true } : { current: false, reason: 'source_not_current' };
+    if (record.kind === 'review' || record.kind === 'regulation') return { current: true };
+    return { current: false, reason: 'source_not_current' };
+  }
   observe(input: EmotionCommands['emotion.observe']['input']): EmotionCommands['emotion.observe']['output'] {
     innerFields(input, ['requestId', 'conversationId', 'valenceBps', 'arousalBps', 'label', 'observedAt', 'sourceRefs'],
       ['requestId', 'conversationId', 'valenceBps', 'arousalBps', 'label', 'sourceRefs']);
@@ -198,6 +205,8 @@ export class EmotionDomain extends InnerDomainBase {
       case 'emotion.captureForView': return this.captureForView(request.args);
       case 'emotion.validateForView': return this.validateForView(request.args);
       case 'emotion.readBodies': return this.readBodies(request.args);
+      case 'emotion.recompute': return this.recompute(request.args);
+      case 'emotion.derivations': innerFields(request.args, []); return this.derivations();
       default: return innerFail('INVALID_INNER_INPUT', 'Unknown emotion command');
     }
   }

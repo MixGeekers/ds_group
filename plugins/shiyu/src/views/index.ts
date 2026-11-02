@@ -32,7 +32,8 @@ export interface ViewMemoryAuthority {
 /** Independent inner-domain authority/deletion identity; never a global version or permission. */
 export interface ViewInnerAuthority {
   domain: InnerDomain; authorityId: string; installationGeneration: string; policyVersion: number;
-  tombstoneWatermark: number; baselineId: string;
+  tombstoneWatermark: number; baselineId: string; /** H4e deterministic recompute revision. */
+  derivedRevision?: number;
 }
 /** Capability binding and safety revision have no shared deletion or proof watermark. */
 export interface ViewAbilityAuthority {
@@ -191,12 +192,14 @@ function sameAbilityAuthority(actual: ViewAbilityAuthority | undefined, expected
 function innerAuthority(value: ViewInnerAuthority | undefined): boolean {
   return Boolean(value && (INNER_DOMAINS as readonly string[]).includes(value.domain) && name(value.authorityId)
     && name(value.installationGeneration) && integer(value.policyVersion) && value.policyVersion >= 1
-    && integer(value.tombstoneWatermark) && name(value.baselineId));
+    && integer(value.tombstoneWatermark) && name(value.baselineId)
+    && (value.derivedRevision === undefined || (integer(value.derivedRevision) && value.derivedRevision >= 0)));
 }
 function sameInnerAuthority(actual: ViewInnerAuthority | undefined, expected: ViewInnerAuthority | undefined): boolean {
   return innerAuthority(actual) && innerAuthority(expected) && actual!.domain === expected!.domain
     && (['authorityId', 'installationGeneration', 'policyVersion', 'tombstoneWatermark', 'baselineId'] as const)
-      .every(key => actual![key] === expected![key]);
+      .every(key => actual![key] === expected![key])
+    && (actual!.derivedRevision ?? 0) === (expected!.derivedRevision ?? 0);
 }
 function jsonValue(value: unknown, depth = 0): JsonValue {
   if (depth > 16) fail('INVALID_COMPONENT', 'Component data is too deeply nested');

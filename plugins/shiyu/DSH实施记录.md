@@ -870,3 +870,39 @@ cd plugins/shiyu && npm run test:ui
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h2b-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/events-subscriptions.test.ts tests/events-time-source.test.ts tests/events-notifications.test.ts
 ```
+
+## 26. H4e 切片：记忆生命周期完善与跨域派生重算/失效
+
+状态：**离线通过（G1 模块/集成 + 真实临时 SQLite/Worker IPC）**；宿主/真实 Ombre/模型未验。2026-11-02 完成并审阅。
+
+### 26.1 交付（10 文件 + 证据）
+
+- 派生模型：来源三态（current/version_changed/invalid）→ 派生状态 `current / needs_review / degraded / source_invalid / revoked` + 有界 reasons；capture metadata 携带 derivation+reasons，`bodyAvailable` 仅 current/degraded；`validateForView` 同时比对 authority、recordDigest 与派生态，旧 capture/旧正文被拒绝；`derivedRevision` 纳入 authority 与 ReadView 的 inner authority 校验。
+- 跨域来源：`INNER_SOURCE_KINDS` 新增 relationship-record / emotion-record / personality-profile；各域 `sourceReference` 只读解析（4 层环保护 fail-closed）；来源版本变化写入被拒（`INNER_SOURCE_NOT_CURRENT`），撤回/遗忘不可复活；relationship merge→`source_merged`、split→确定性恢复 current；personality 仅 active profile 可作来源；emotion digested observation 非 current。
+- 同事务一致性：Worker 对四域写命令与 `memory.withdrawLocal/forgetLocal` 用外层事务包裹，并在同库事务内触发四域 `recompute`；digest 变化才持久化派生账本并 +1 derivedRevision（无变化不写、不抬版本）；新增只读 `*.derivations`/`*.recompute` IPC。
+- 记忆生命周期：`memory.forgetLocal`（consent→withdrawn + forgottenAt + deletion tombstone；与 withdraw 共享屏障、各自幂等）+ 只读 `memory.lifecycle`（owner-controlled、automaticExpiry=false、physicalErase=false、删除水位/可读性/可发布性）；publication 保持 schema4 六域 capabilities，不误升级 verification。
+- 测试：新增 `tests/inner-lifecycle.test.ts` 7 项（撤回→依赖降级/旧 capture 拒；forget/lifecycle/publication 不变；personality 版本；merge/split；emotion 撤回；recompute 幂等/重启；两连接只 bump 一次）。
+- 证据：`artifacts/dsh/h4/h4e-lifecycle-recompute.json`、`h4e-slice-summary.json`、`artifacts/dsh/slices/h4e-verify.json`。
+
+### 26.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `d160756` + 仅 10 文件） | exit 0；**1389/1389 通过，0 失败/取消/跳过**（= 1382 + 7）；~408s |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `479ad43` + 仅 10 文件） | exit 0；**1411/1411 通过，0 跳过**（= 1404 + 7）；证据 `artifacts/dsh/slices/h4e-verify.json` |
+| 定向 | inner-lifecycle 7/7；回归批（inner-*/memory-*/local-reply*/local-view*/memory-view-store/views/state-publication/lab-reply*）320/320 |
+| 证据级别 | G1 离线模块/集成；非宿主/真实 Ombre/业务验收 |
+
+### 26.3 失败 / unknown / 未测
+
+1. retention 仅显式逻辑生命周期（无后台过期/物理擦除/备份删除传播）；语义索引/缓存未新增物理真空清理，旧读取由来源态与 derivedRevision 阻止。
+2. recompute 为同库有界 latest 扫描；跨组件只显式 unknown，不宣称跨服务原子快照；旧记录无 derivation 字段按 current 归一化（表示“未计算过”，不是重新证明）。
+3. relationship merge/split 可逆与撤回/遗忘不可复活的语义分别测试；未做长期并发/多 writer。
+4. 无真实模型/embedding/宿主 reload/真实 Ombre。
+
+### 26.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4e-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-lifecycle.test.ts tests/inner-*.test.ts
+```

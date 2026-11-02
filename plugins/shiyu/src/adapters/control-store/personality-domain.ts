@@ -9,6 +9,7 @@ import {
 } from '../../contracts/inner.js';
 export type { PersonalityDomainRequest } from '../../contracts/inner.js';
 import { InnerDomainBase, type InnerDomainBaseOptions, type StoredInnerRecord } from './inner-domain.js';
+import type { InnerDerivationReason } from '../../contracts/inner.js';
 import { SqliteTransactions } from './transaction.js';
 
 /** Stable-profile policy version. Ordinary conversation has no path to change it. */
@@ -73,6 +74,10 @@ export class PersonalityDomain extends InnerDomainBase {
     return record.kind === 'profile' && record.recordId === this.activeRecordId();
   }
 
+  /** Only the currently active profile version is current provenance. */
+  protected sourceCurrent(record: StoredInnerRecord): { current: boolean; reason?: InnerDerivationReason } {
+    return record.kind === 'profile' && record.status === 'active' ? { current: true } : { current: false, reason: 'source_not_current' };
+  }
   private domainState(): DomainState {
     this.tx.assertUsable();
     const row = this.db.prepare(`SELECT * FROM ${this.prefix}state WHERE id=1`).get() as Record<string, unknown> | undefined;
@@ -229,6 +234,8 @@ export class PersonalityDomain extends InnerDomainBase {
       case 'personality.captureForView': return this.captureForView(request.args);
       case 'personality.validateForView': return this.validateForView(request.args);
       case 'personality.readBodies': return this.readBodies(request.args);
+      case 'personality.recompute': return this.recompute(request.args);
+      case 'personality.derivations': innerFields(request.args, []); return this.derivations();
       default: return innerFail('INVALID_INNER_INPUT', 'Unknown personality command');
     }
   }

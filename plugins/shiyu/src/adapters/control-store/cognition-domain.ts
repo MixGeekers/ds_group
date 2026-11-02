@@ -260,6 +260,8 @@ export class CognitionDomain extends InnerDomainBase {
       case 'cognition.captureForView': return this.captureForView(request.args);
       case 'cognition.validateForView': return this.validateForView(request.args);
       case 'cognition.readBodies': return this.readBodies(request.args);
+      case 'cognition.recompute': return this.recompute(request.args);
+      case 'cognition.derivations': innerFields(request.args, []); return this.derivations();
       default: return innerFail('INVALID_INNER_INPUT', 'Unknown cognition command');
     }
   }

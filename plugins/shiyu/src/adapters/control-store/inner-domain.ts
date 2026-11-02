@@ -3,12 +3,13 @@ import type { DatabaseSync } from 'node:sqlite';
 import { isAsyncFunction, isPromise } from 'node:util/types';
 import {
   INNER_DOMAINS, MAX_INNER_SOURCE_REFS, MAX_INNER_VIEW_RECORDS,
-  innerAudience, innerDigest, innerEvidenceVisible, innerFail, innerFields, innerId, innerInstant, innerInteger,
+  innerAudience, innerDerivationOf, innerDerivationReasons, innerDigest, innerEvidenceVisible, innerFail, innerFields, innerId, innerInstant, innerInteger,
   innerOwnerCommandRequest, innerRecordDigest, innerSourceRefs, innerToken, innerCaptureHash, validateInnerCapture,
   validateInnerBodyRead, innerAudienceVisible,
   type InnerAudience, type InnerAuthority, type InnerBodyRead, type InnerBodyReadInput, type InnerCapture,
-  type InnerCaptureInput, type InnerConversationFacts, type InnerDomain, type InnerEvidenceFacts,
-  type InnerEvidenceState, type InnerRecordMetadata, type InnerSourceRef, type InnerWithdrawReceipt,
+  type InnerCaptureInput, type InnerConversationFacts, type InnerDerivation, type InnerDerivationCounts,
+  type InnerDerivationReason, type InnerDerivationStateRecord, type InnerDomain, type InnerEvidenceFacts,
+  type InnerEvidenceState, type InnerRecordMetadata, type InnerRecomputeReceipt, type InnerSourceRef, type InnerWithdrawReceipt,
 } from '../../contracts/inner.js';
 import { SqliteTransactions } from './transaction.js';
 
@@ -52,6 +53,12 @@ interface Meta {
   tombstoneWatermark: number;
   baselineId: string;
   installedAt: string;
+  derivedRevision: number;
+  derivationDigest: string;
+}
+export interface InnerDerivationResult {
+  derivation: InnerDerivation; reasons: InnerDerivationReason[];
+  evidenceState: InnerEvidenceState; bodyAvailable: boolean;
 }
 type Row = Record<string, unknown>;
 
@@ -134,17 +141,19 @@ export abstract class InnerDomainBase {
 
   /* --------------------------------- storage -------------------------------- */
   private tables(): string[] {
-    return ['meta', 'records', 'bodies', 'evidence_tombstones', 'record_tombstones', 'commands'].map(name => `${this.prefix}${name}`);
+    return ['meta', 'records', 'bodies', 'evidence_tombstones', 'record_tombstones', 'commands', 'derivations'].map(name => `${this.prefix}${name}`);
   }
   private install(): void {
     const expected = this.tables();
     const existing = new Set((this.db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name LIKE ?").all(`${this.prefix}%`) as Row[]).map(row => String(row.name)));
-    if (existing.size && expected.some(table => !existing.has(table))) innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain storage is incomplete; refusing to rebuild it');
+    const required = expected.filter(table => !table.endsWith('derivations'));
+    if (existing.size && required.some(table => !existing.has(table))) innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain storage is incomplete; refusing to rebuild it');
     if (!existing.size) {
       this.db.exec(`
         CREATE TABLE ${this.prefix}meta(id INTEGER PRIMARY KEY CHECK(id=1),schema_version INTEGER NOT NULL,authority_id TEXT NOT NULL,
           installation_generation TEXT NOT NULL,policy_version INTEGER NOT NULL,revision INTEGER NOT NULL,
-          tombstone_watermark INTEGER NOT NULL,baseline_id TEXT NOT NULL,installed_at TEXT NOT NULL);
+          tombstone_watermark INTEGER NOT NULL,baseline_id TEXT NOT NULL,installed_at TEXT NOT NULL,
+          derived_revision INTEGER NOT NULL DEFAULT 0,derivation_digest TEXT NOT NULL DEFAULT '');
         CREATE TABLE ${this.prefix}records(record_id TEXT PRIMARY KEY,identity TEXT NOT NULL,revision INTEGER NOT NULL,
           record_json TEXT NOT NULL CHECK(json_valid(record_json)),UNIQUE(identity,revision));
         CREATE INDEX ${this.prefix}records_identity ON ${this.prefix}records(identity,revision DESC);
@@ -154,7 +163,19 @@ export abstract class InnerDomainBase {
           withdrawn_at TEXT NOT NULL,PRIMARY KEY(kind,source_id));
         CREATE TABLE ${this.prefix}record_tombstones(identity TEXT PRIMARY KEY,watermark INTEGER NOT NULL,withdrawn_at TEXT NOT NULL);
         CREATE TABLE ${this.prefix}commands(request_id TEXT PRIMARY KEY,kind TEXT NOT NULL,intent_hash TEXT NOT NULL,
-          receipt_json TEXT NOT NULL CHECK(json_valid(receipt_json)));`);
+          receipt_json TEXT NOT NULL CHECK(json_valid(receipt_json)));
+        CREATE TABLE ${this.prefix}derivations(record_id TEXT PRIMARY KEY,derivation TEXT NOT NULL,reasons_json TEXT NOT NULL,
+          record_digest TEXT NOT NULL);`);
+    } else {
+      // Additive H4e migration for already-installed H4 domains: keep records,
+      // add the deterministic derivation ledger and its authority columns.
+      if (!existing.has(`${this.prefix}derivations`)) {
+        this.db.exec(`CREATE TABLE ${this.prefix}derivations(record_id TEXT PRIMARY KEY,derivation TEXT NOT NULL,reasons_json TEXT NOT NULL,
+          record_digest TEXT NOT NULL);`);
+      }
+      const columns = new Set((this.db.prepare(`PRAGMA table_info(${this.prefix}meta)`).all() as Row[]).map(row => String(row.name)));
+      if (!columns.has('derived_revision')) this.db.exec(`ALTER TABLE ${this.prefix}meta ADD COLUMN derived_revision INTEGER NOT NULL DEFAULT 0`);
+      if (!columns.has('derivation_digest')) this.db.exec(`ALTER TABLE ${this.prefix}meta ADD COLUMN derivation_digest TEXT NOT NULL DEFAULT ''`);
     }
     this.installDomainTables();
     const metaRow = this.db.prepare(`SELECT * FROM ${this.prefix}meta WHERE id=1`).get() as Row | undefined;
@@ -164,7 +185,7 @@ export abstract class InnerDomainBase {
         if (this.db.prepare(`SELECT ${column} FROM ${this.prefix}${table} LIMIT 1`).get()) innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain authority is missing but durable state remains');
       }
       const at = this.now();
-      this.db.prepare(`INSERT INTO ${this.prefix}meta VALUES(1,1,?,?,?,0,0,?,?)`).run(
+      this.db.prepare(`INSERT INTO ${this.prefix}meta VALUES(1,1,?,?,?,0,0,?,?,0,'')`).run(
         randomUUID(), this.identity.installationGeneration, this.policyVersion(), randomUUID(), at);
     }
     const meta = this.meta();
@@ -186,16 +207,19 @@ export abstract class InnerDomainBase {
       || !Number.isSafeInteger(row.policy_version) || Number(row.policy_version) < 1 || !Number.isSafeInteger(row.revision) || Number(row.revision) < 0
       || !Number.isSafeInteger(row.tombstone_watermark) || Number(row.tombstone_watermark) < 0
       || typeof row.baseline_id !== 'string' || !/^[a-f0-9-]{36}$/.test(row.baseline_id)
-      || typeof row.installed_at !== 'string' || !Number.isFinite(Date.parse(row.installed_at))) {
+      || typeof row.installed_at !== 'string' || !Number.isFinite(Date.parse(row.installed_at))
+      || !Number.isSafeInteger(row.derived_revision) || Number(row.derived_revision) < 0
+      || typeof row.derivation_digest !== 'string' || !(row.derivation_digest === '' || /^[a-f0-9]{64}$/.test(row.derivation_digest))) {
       innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain authority metadata is invalid');
     }
     return { schemaVersion: 1, authorityId: String(row.authority_id), installationGeneration: String(row.installation_generation),
       policyVersion: Number(row.policy_version), revision: Number(row.revision), tombstoneWatermark: Number(row.tombstone_watermark),
-      baselineId: String(row.baseline_id), installedAt: String(row.installed_at) };
+      baselineId: String(row.baseline_id), installedAt: String(row.installed_at),
+      derivedRevision: Number(row.derived_revision), derivationDigest: String(row.derivation_digest) };
   }
   private saveMeta(meta: Meta): void {
-    const changed = this.db.prepare(`UPDATE ${this.prefix}meta SET installation_generation=?,policy_version=?,revision=?,tombstone_watermark=? WHERE id=1`)
-      .run(meta.installationGeneration, meta.policyVersion, meta.revision, meta.tombstoneWatermark);
+    const changed = this.db.prepare(`UPDATE ${this.prefix}meta SET installation_generation=?,policy_version=?,revision=?,tombstone_watermark=?,derived_revision=?,derivation_digest=? WHERE id=1`)
+      .run(meta.installationGeneration, meta.policyVersion, meta.revision, meta.tombstoneWatermark, meta.derivedRevision, meta.derivationDigest);
     if (changed.changes !== 1) innerFail('CORRUPT_INNER_DOMAIN', 'Inner-domain authority disappeared');
   }
   private touch(): void { const meta = this.meta(); meta.revision = innerInteger(meta.revision + 1, 'revision', 0); this.saveMeta(meta); }
@@ -203,7 +227,8 @@ export abstract class InnerDomainBase {
   authority(): InnerAuthority {
     const meta = this.meta();
     return { domain: this.domain, authorityId: meta.authorityId, installationGeneration: meta.installationGeneration,
-      policyVersion: meta.policyVersion, tombstoneWatermark: meta.tombstoneWatermark, baselineId: meta.baselineId };
+      policyVersion: meta.policyVersion, tombstoneWatermark: meta.tombstoneWatermark, baselineId: meta.baselineId,
+      derivedRevision: meta.derivedRevision };
   }
 
   /* ------------------------------- record rows ------------------------------ */
@@ -340,37 +365,149 @@ export abstract class InnerDomainBase {
   }
 
   /* -------------------------------- evidence -------------------------------- */
-  private evidenceFact(ref: InnerSourceRef, audience: InnerAudience): 'valid' | 'invalid' {
-    if (this.isEvidenceTombstoned(ref)) return 'invalid';
-    if (ref.kind === 'owner-command') return innerOwnerCommandRequest(ref) === undefined ? 'invalid' : 'valid';
+  /**
+   * Domain-specific currentness of one stored record when another record cites it
+   * as a source (merge/split, superseded profile, digested observation, ...).
+   * The base only requires the record to be the latest revision and not tombstoned.
+   */
+  protected sourceCurrent(record: StoredInnerRecord): { current: boolean; reason?: InnerDerivationReason } {
+    void record;
+    return { current: true };
+  }
+  private sourceVerdict(ref: InnerSourceRef, audience: InnerAudience): { verdict: 'current' | 'version_changed' | 'invalid'; reason?: InnerDerivationReason } {
+    if (this.isEvidenceTombstoned(ref)) return { verdict: 'invalid', reason: 'source_revoked' };
+    if (ref.kind === 'owner-command') {
+      return innerOwnerCommandRequest(ref) === undefined ? { verdict: 'invalid', reason: 'source_missing' } : { verdict: 'current' };
+    }
     if (ref.kind === 'conversation-observation') {
       let facts: InnerConversationFacts | undefined;
-      try { facts = synchronous(this.options.resolveConversation(ref.sourceId)); } catch { return 'invalid'; }
-      if (!facts || !facts.active) return 'invalid';
+      try { facts = synchronous(this.options.resolveConversation(ref.sourceId)); } catch { return { verdict: 'invalid', reason: 'source_unavailable' }; }
+      if (!facts || !facts.active) return { verdict: 'invalid', reason: 'source_missing' };
       const source = innerAudience(facts.audience);
-      return innerEvidenceVisible(source, audience) ? 'valid' : 'invalid';
+      return innerEvidenceVisible(source, audience) ? { verdict: 'current' } : { verdict: 'invalid', reason: 'source_unavailable' };
     }
     const resolver = this.options.resolveEvidence;
-    if (!resolver) return 'invalid';
+    if (!resolver) return { verdict: 'invalid', reason: 'source_unavailable' };
     let facts: InnerEvidenceFacts | undefined;
-    try { facts = synchronous(resolver(structuredClone(ref), { audience: structuredClone(audience) })); } catch { return 'invalid'; }
-    if (!facts || !facts.valid) return 'invalid';
+    try { facts = synchronous(resolver(structuredClone(ref), { audience: structuredClone(audience) })); }
+    catch { return { verdict: 'invalid', reason: 'source_unavailable' }; }
+    if (!facts) return { verdict: 'invalid', reason: 'source_missing' };
     const source = innerAudience(facts.audience);
-    return innerEvidenceVisible(source, audience) ? 'valid' : 'invalid';
-  }
-  protected evidenceState(record: StoredInnerRecord): InnerEvidenceState {
-    if (this.isIdentityTombstoned(record.identity)) return 'revoked';
-    let valid = 0, invalid = 0;
-    for (const ref of record.sourceRefs) {
-      if (this.evidenceFact(ref, record.audience) === 'valid') valid++; else invalid++;
+    if (!innerEvidenceVisible(source, audience)) return { verdict: 'invalid', reason: 'source_unavailable' };
+    if (facts.valid && (facts.state === undefined || facts.state === 'current')) return { verdict: 'current' };
+    if (facts.state === 'version_changed') {
+      const known = ['version_changed', 'source_not_current', 'source_merged'];
+      return { verdict: 'version_changed', reason: known.includes(String(facts.reason)) ? facts.reason as InnerDerivationReason : 'version_changed' };
     }
-    return invalid === 0 ? 'valid' : valid === 0 ? 'revoked' : 'degraded';
+    const knownInvalid = ['version_changed', 'source_missing', 'source_revoked', 'source_unavailable', 'source_merged', 'source_not_current', 'record_withdrawn'];
+    return { verdict: 'invalid', reason: facts.reason && knownInvalid.includes(facts.reason)
+      ? (facts.reason === 'record_withdrawn' ? 'source_revoked' : facts.reason as InnerDerivationReason) : 'source_unavailable' };
+  }
+  /** Deterministic, explainable provenance derivation for one latest record. */
+  protected derivation(record: StoredInnerRecord): InnerDerivationResult {
+    if (this.isIdentityTombstoned(record.identity)) {
+      return { derivation: 'revoked', reasons: ['record_withdrawn'], evidenceState: 'revoked', bodyAvailable: false };
+    }
+    let current = 0, changed = 0, invalid = 0;
+    const reasons: InnerDerivationReason[] = [];
+    const remember = (reason: InnerDerivationReason | undefined): void => {
+      if (reason && reasons.length < 4 && !reasons.includes(reason)) reasons.push(reason);
+    };
+    for (const ref of record.sourceRefs) {
+      const verdict = this.sourceVerdict(ref, record.audience);
+      if (verdict.verdict === 'current') current++;
+      else if (verdict.verdict === 'version_changed') { changed++; remember(verdict.reason ?? 'version_changed'); }
+      else { invalid++; remember(verdict.reason ?? 'source_unavailable'); }
+    }
+    let derivation: InnerDerivation;
+    if (changed === 0 && invalid === 0) derivation = 'current';
+    else if (invalid === 0) derivation = 'needs_review';
+    else if (current > 0 || changed > 0) derivation = 'degraded';
+    else derivation = 'source_invalid';
+    const evidenceState: InnerEvidenceState = derivation === 'current' ? 'valid' : derivation === 'source_invalid' ? 'revoked' : 'degraded';
+    return { derivation, reasons, evidenceState, bodyAvailable: derivation === 'current' || derivation === 'degraded' };
+  }
+  /** Backwards-compatible evidence summary for one record. */
+  protected evidenceState(record: StoredInnerRecord): InnerEvidenceState { return this.derivation(record).evidenceState; }
+  /**
+   * Public same-Worker provenance read used when another inner domain cites this
+   * record. Never returns bodies and never grants anything; it re-derives the
+   * cited record's currentness deterministically (worker resolver is depth-bounded
+   * so cyclic cross-domain citations fail closed).
+   */
+  sourceReference(recordIdValue: string, revisionValue: number): InnerEvidenceFacts | undefined {
+    const recordId = innerId(recordIdValue, 'recordId');
+    const revision = innerInteger(revisionValue, 'source revision', 0);
+    return this.tx.atomic(() => {
+      const record = this.record(recordId);
+      if (!record) return undefined;
+      const audience = structuredClone(record.audience);
+      if (this.isIdentityTombstoned(record.identity)) return { valid: false, audience, revision: record.revision, state: 'invalid', reason: 'record_withdrawn' };
+      const latest = this.latest(record.identity);
+      if (!latest || latest.recordId !== recordId) return { valid: false, audience, revision: record.revision, state: 'version_changed', reason: 'source_not_current' };
+      if (record.revision !== revision) return { valid: false, audience, revision: record.revision, state: 'version_changed', reason: 'version_changed' };
+      const hook = this.sourceCurrent(record);
+      if (!hook.current) return { valid: false, audience, revision: record.revision, state: 'version_changed', reason: hook.reason ?? 'source_not_current' };
+      const state = this.derivation(record);
+      if (state.evidenceState === 'valid') return { valid: true, audience, revision: record.revision, state: 'current' };
+      return { valid: false, audience, revision: record.revision, state: state.derivation === 'needs_review' ? 'version_changed' : 'invalid',
+        reason: state.reasons[0] ?? 'source_unavailable' };
+    });
+  }
+  private derivationSummary(): { counts: InnerDerivationCounts; states: InnerDerivationStateRecord[]; digest: string } {
+    const counts: InnerDerivationCounts = { current: 0, needs_review: 0, degraded: 0, source_invalid: 0, revoked: 0 };
+    const states: InnerDerivationStateRecord[] = [];
+    for (const record of this.latestRecords()) {
+      const state = this.derivation(record);
+      counts[state.derivation]++;
+      states.push({ recordId: record.recordId, derivation: state.derivation, reasons: [...state.reasons] });
+    }
+    states.sort((left, right) => left.recordId.localeCompare(right.recordId));
+    const digest = innerDigest({ domain: this.domain, policyVersion: this.policyVersion(), counts, states });
+    return { counts, states, digest };
+  }
+  /** Read-only current derivation ledger with its persisted invalidation revision. */
+  derivations(): { domain: InnerDomain; derivedRevision: number; digest: string; counts: InnerDerivationCounts; states: InnerDerivationStateRecord[] } {
+    return this.tx.atomic(() => {
+      const meta = this.meta();
+      const summary = this.derivationSummary();
+      return { domain: this.domain, derivedRevision: meta.derivedRevision, digest: summary.digest, counts: summary.counts, states: summary.states };
+    });
+  }
+  /**
+   * Deterministic bounded recompute of this domain's derived view. It only bumps
+   * the authority revision (and persists the audit ledger) when the computed
+   * summary digest actually changes, so unrelated writes do not churn captures.
+   */
+  recompute(input: { requestId: string }): InnerRecomputeReceipt {
+    innerFields(input, ['requestId']);
+    const requestId = innerId(input.requestId, 'requestId');
+    return this.tx.atomic(() => this.command(requestId, 'recompute', {}, () => {
+      const meta = this.meta();
+      const summary = this.derivationSummary();
+      const changed = summary.digest !== meta.derivationDigest;
+      if (changed) {
+        this.db.prepare(`DELETE FROM ${this.prefix}derivations`).run();
+        const insert = this.db.prepare(`INSERT INTO ${this.prefix}derivations VALUES(?,?,?,?)`);
+        for (const state of summary.states) {
+          const record = this.record(state.recordId)!;
+          insert.run(state.recordId, state.derivation, JSON.stringify(state.reasons), record.recordDigest);
+        }
+        meta.derivedRevision = innerInteger(meta.derivedRevision + 1, 'derivedRevision', 0);
+        meta.derivationDigest = summary.digest;
+        meta.revision = innerInteger(meta.revision + 1, 'revision', 0);
+        this.saveMeta(meta);
+      }
+      const receipt: InnerRecomputeReceipt = { requestId, changed, derivedRevision: meta.derivedRevision, digest: summary.digest,
+        counts: summary.counts, states: summary.states };
+      return receipt;
+    }));
   }
   /**
    * Write-time provenance check. Every reference resolves inside the writing
-   * audience; a memory/task source must still be current; a conversation source
-   * must be the same trusted audience. Returns the number of non-owner-command
-   * (independently observable) references so domains can require real evidence.
+   * audience and must still be current; a version change is refused separately
+   * from an unavailable/withdrawn source. Returns the number of non-owner-command
+   * references so domains can require real evidence.
    */
   protected assertWriteEvidence(sourceRefs: InnerSourceRef[], audience: InnerAudience, requestId: string): { refs: InnerSourceRef[]; external: number } {
     const refs = innerSourceRefs(sourceRefs);
@@ -380,8 +517,9 @@ export abstract class InnerDomainBase {
         if (innerOwnerCommandRequest(ref) !== requestId) innerFail('INNER_SOURCE_INVALID', 'Owner-command provenance must name this exact trusted command');
         continue;
       }
-      const state = this.evidenceFact(ref, audience);
-      if (state !== 'valid') {
+      const verdict = this.sourceVerdict(ref, audience);
+      if (verdict.verdict !== 'current') {
+        if (verdict.verdict === 'version_changed') innerFail('INNER_SOURCE_NOT_CURRENT', 'A source version moved on; refresh it before relying on it');
         if (ref.kind === 'memory-operation' && this.isEvidenceTombstoned(ref)) innerFail('INNER_SOURCE_REVOKED', 'A withdrawn source cannot support new inner state');
         innerFail('INNER_SOURCE_UNAVAILABLE', 'An evidence source is unavailable, withdrawn or outside this audience');
       }
@@ -393,12 +531,14 @@ export abstract class InnerDomainBase {
   protected ownerCommand(requestId: string): InnerSourceRef { return { kind: 'owner-command', sourceId: `owner-command:${innerId(requestId, 'requestId')}`, revision: 1 }; }
 
   /* -------------------------------- captures -------------------------------- */
-  protected captureRecord(record: StoredInnerRecord, evidenceState: InnerEvidenceState): InnerRecordMetadata {
+  protected captureRecord(record: StoredInnerRecord): InnerRecordMetadata {
+    const derived = this.derivation(record);
     return {
       recordId: record.recordId, revision: record.revision, kind: record.kind, status: record.status,
-      evidenceState, audience: structuredClone(record.audience), sourceRefs: structuredClone(record.sourceRefs),
+      evidenceState: derived.evidenceState, derivation: derived.derivation, derivationReasons: [...derived.reasons],
+      audience: structuredClone(record.audience), sourceRefs: structuredClone(record.sourceRefs),
       observedAt: record.observedAt, ...(record.validUntil === undefined ? {} : { validUntil: record.validUntil }),
-      recordDigest: record.recordDigest, bodyAvailable: evidenceState !== 'revoked',
+      recordDigest: record.recordDigest, bodyAvailable: derived.bodyAvailable,
     };
   }
   protected visibleLatest(conversationId: string): StoredInnerRecord[] {
@@ -423,7 +563,7 @@ export abstract class InnerDomainBase {
       }
       const truncated = !selected && records.length > MAX_INNER_VIEW_RECORDS;
       if (truncated) records = records.slice(0, MAX_INNER_VIEW_RECORDS);
-      const metadata = records.map(record => this.captureRecord(record, this.evidenceState(record)));
+      const metadata = records.map(record => this.captureRecord(record));
       const header = { domain: this.domain, conversationId, capturedAt: this.now(), audience: structuredClone(facts.audience), authority: this.authority(), records: metadata, truncated };
       return { schemaVersion: 1 as const, ...header, snapshotHash: innerCaptureHash(header) };
     });
@@ -445,7 +585,11 @@ export abstract class InnerDomainBase {
         innerFail('INNER_CAPTURE_INVALIDATED', 'A captured inner record changed or lost its authority');
       }
       if (this.isIdentityTombstoned(current.identity)) innerFail('INNER_CAPTURE_INVALIDATED', 'A captured inner source was withdrawn');
-      if (this.evidenceState(current) !== metadata.evidenceState) innerFail('INNER_CAPTURE_INVALIDATED', 'A captured inner source changed availability');
+      const derived = this.derivation(current);
+      if (derived.evidenceState !== metadata.evidenceState) innerFail('INNER_CAPTURE_INVALIDATED', 'A captured inner source changed availability');
+      if (derived.derivation !== (metadata.derivation ?? 'current') || JSON.stringify(derived.reasons) !== JSON.stringify(metadata.derivationReasons ?? [])) {
+        innerFail('INNER_CAPTURE_INVALIDATED', 'A captured inner source derivation changed (review/degrade/revoke)');
+      }
       if (!innerAudienceVisible(current.audience, capture.audience)) innerFail('INNER_CAPTURE_INVALIDATED', 'A captured inner record left its audience');
     }
     return structuredClone(capture);
@@ -463,7 +607,8 @@ export abstract class InnerDomainBase {
         if (!metadata.bodyAvailable) innerFail('INNER_BODY_FORBIDDEN', 'A withdrawn inner source has no readable body');
         const record = this.record(recordId) ?? innerFail('INNER_CAPTURE_INVALIDATED', 'Captured inner record disappeared');
         if (record.revision !== metadata.revision || record.recordDigest !== metadata.recordDigest) innerFail('INNER_CAPTURE_INVALIDATED', 'Captured inner record changed before its body read');
-        return { recordId, revision: record.revision, kind: record.kind, evidenceState: metadata.evidenceState, payload: this.payload(record) };
+        return { recordId, revision: record.revision, kind: record.kind, evidenceState: metadata.evidenceState,
+          derivation: metadata.derivation ?? innerDerivationOf(undefined), derivationReasons: [...(metadata.derivationReasons ?? [])], payload: this.payload(record) };
       });
       return { schemaVersion: 1 as const, domain: this.domain, authority: structuredClone(capture.authority), capturedAt: capture.capturedAt, bodies };
     });

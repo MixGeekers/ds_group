@@ -1,0 +1,138 @@
+{
+  "slice": "H4e：记忆生命周期完善与跨域派生重算/失效",
+  "recordedAt": "2026-11-02T17:45:35-04:00",
+  "workspace": "plugins/shiyu",
+  "baseline": {
+    "head": "d160756",
+    "note": "隔离 worktree 仅含本切片 10 文件；主树其他切片 WIP 未纳入、未触碰。"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "plugins/shiyu/src/contracts/inner.ts",
+        "sha256": "644fb84504aa8f2b628199b8daa375940699e31b3555aef5e48a45a94aefbf7f",
+        "bytes": 56180,
+        "lines": 802
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/inner-domain.ts",
+        "sha256": "2834bad864e35fe13048226614a77427d07d0d919721101110e04f5b7e2d078f",
+        "bytes": 44973,
+        "lines": 677
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/relationship-domain.ts",
+        "sha256": "c36d6d27c20c1d79ede32b58c4af929c8d07f8a010232413aad7af299b62910c",
+        "bytes": 20679,
+        "lines": 288
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/emotion-domain.ts",
+        "sha256": "73404d3f9040d88e0386ac0482c0405e1f79f33b116687aecc4696b37472138f",
+        "bytes": 14401,
+        "lines": 213
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/cognition-domain.ts",
+        "sha256": "c4bd3a35d6a265e33066f6fcd09282d8c047db129a48e476101ca2db5262032d",
+        "bytes": 19726,
+        "lines": 268
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/personality-domain.ts",
+        "sha256": "423333cd7d9ff37650d611136803ce5dc69327008f964417a56caa26ec6caecf",
+        "bytes": 18063,
+        "lines": 242
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/memory-domain.ts",
+        "sha256": "9f8db510f54e08fd398dbfbfabb3f3b0323b49779e46d53c8ed59a00d7e7a038",
+        "bytes": 55214,
+        "lines": 598
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+        "sha256": "f55793e199cff1452e896c2e1b856b8e68ddaf1504fff969727a0162bc6f8f7f",
+        "bytes": 64757,
+        "lines": 895
+      },
+      {
+        "path": "plugins/shiyu/src/views/index.ts",
+        "sha256": "f096ca447c945a787e2c28a6d652fe7b9b99c9aee1b864cb32b6c57ce08614fb",
+        "bytes": 42356,
+        "lines": 516
+      },
+      {
+        "path": "plugins/shiyu/tests/inner-lifecycle.test.ts",
+        "sha256": "6afdbfd33cecff38d932a41f98a7fd7f4e1ddff4f33f67b6f6e9176bbd821207",
+        "bytes": 26660,
+        "lines": 284
+      }
+    ],
+    "diffStat": "8 src 文件 +409/−71（含 cognition/relationship/emotion/personality 域钩子与命令、inner 公共基类、memory 生命周期、worker 编排、views authority）+ 新增 tests/inner-lifecycle.test.ts（7 项）",
+    "newTests": {
+      "file": "plugins/shiyu/tests/inner-lifecycle.test.ts",
+      "count": 7
+    },
+    "derivationModel": "显式确定性的来源派生状态：current / needs_review / degraded / source_invalid / revoked（以及 reasons: version_changed/source_missing/source_revoked/source_unavailable/source_merged/source_not_current/record_withdrawn）。来源解析判三态 current/version_changed/invalid；capture metadata 带 derivation+reasons，bodyAvailable 仅 current/degraded；validateForView 同时比对 authority、recordDigest 与 derivation 状态；readBodies 对不可读派生显式拒绝。",
+    "crossDomainSources": "INNER_SOURCE_KINDS 增加 relationship-record / emotion-record / personality-profile；Worker 解析这些引用到对应域的 public sourceReference（只读、无正文），并带 4 层深度上限使循环跨域引用 fail-closed。写路径要求来源必须 current：版本已变化的来源返回 INNER_SOURCE_NOT_CURRENT，撤回/不可用返回 INNER_SOURCE_UNAVAILABLE/REVOKED。",
+    "recompute": "每域新增确定性有界 recompute 与只读 derivations 命令：digest 变更时才持久化 derivation 账本并 +1 derivedRevision，同时把 derivedRevision 纳入 authority 向量（views 的 inner authority 校验同步），因此旧 capture/正文在依赖变化后被拒绝；无变化时不写、不抬高 revision。",
+    "sameTransaction": "Worker 对四域写命令与 memory.withdrawLocal/memory.forgetLocal 统一用外层 transaction 包裹并在同一事务内触发四域 recompute，写成功与失效信号同库提交；纯读/捕获/validate/readBodies 不触发写入。",
+    "memoryLifecycle": "memory.forgetLocal 为显式逻辑遗忘（consent→withdrawn + forgottenAt + deletion tombstone，不复制/不物理擦除正文），与 withdrawLocal 共享同一屏障路径且各自幂等；新增只读 memory.lifecycle 暴露 policyVersion/retentionMode=owner-controlled/automaticExpiry=false/physicalErase=false/consent 状态/时间/删除水位/可读性/可发布性。MEMORY_LIFECYCLE_POLICY_V1 固定，未引入自动过期或第二正文权威。",
+    "publication": "schema4 与六域 capabilities 未变；recompute/forget 不发布、不把 available 或 verification 升级；测试断言 stateVersion/manifestHash/manifest.domains 不变。",
+    "backwardCompatibility": "derivation/derivedRevision 在契约中为可选并在校验/hash 中归一化：未包含这些字段的旧 capture/旧记录仍可读取与重验；旧记录无 innerSources 等语义不变。"
+  },
+  "verification": {
+    "isolatedWorktree": {
+      "path": "/tmp/shiyu-h4e",
+      "head": "d160756",
+      "method": "git worktree --detach d160756 + 本切片 10 文件；node_modules 与 .local/ombre symlink",
+      "command": "cd /tmp/shiyu-h4e/plugins/shiyu && npm run check",
+      "exitCode": 0,
+      "typecheck": "pass",
+      "tests": 1389,
+      "pass": 1389,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 407901,
+      "build": "pass",
+      "clientSyntax": "pass",
+      "log": {
+        "path": ".local/h4e-check-final.log",
+        "sha256": "53775528b01e1d200fa4e1ffac710ef0d32707c390b2ee33986c4ae34377cdb2",
+        "bytes": 151665
+      }
+    },
+    "targetedMainTree": {
+      "innerLifecycle": "tests/inner-lifecycle.test.ts -> 7/7 pass",
+      "regressionBatch": "inner-* + memory-* + local-reply* + local-view* + memory-view-store + views + state-publication + lab-reply* -> 320/320 pass",
+      "note": "主树另有并行 WIP；最终结论以隔离 worktree 为准。"
+    },
+    "testCoverage": [
+      "memory 撤回：关系派生记录 degraded（reasons source_revoked）、cognition/emotion 依赖记录非 current；旧 capture validate 拒绝、旧 readInnerBodies 拒绝；derivedRevision 实际抬升；撤回来源不可用于新写（不得复活）。",
+      "memory forget：逻辑屏障 + forgottenAt + lifecycle policy 只读语义 + 重复 request 幂等 + readLocal 拒绝 + publication stateVersion/manifestHash/capabilities 不变（不误升级）。",
+      "personality profile 版本：旧 profile 失效使依赖 claim needs_review（source_not_current, bodyAvailable=false）、旧 personality capture 失效、旧 profile 不可再引用、新 active profile 可引用。",
+      "relationship merge/split：依赖 entity 的 claim 在 merge 后 needs_review（source_merged）、split 后确定性恢复 current；历史证据记录未被改写。",
+      "emotion observation 撤回：依赖关系断言 degraded（source_revoked）、emotion state 排除且 revokedEvidence 显式、撤回来源不可用于新写。",
+      "recompute：幂等/重放、无变化不抬 revision、变化 +1、重启后 derivedRevision/撤销状态持久、旧 capture 重启后仍拒绝、publication 六域 available/capabilities 不变。",
+      "并发：两个独立 SQLite 连接对同一域 recompute，一个 bump 一个 no-op（BEGIN IMMEDIATE），撤回后不可复活且重开 capture 不含被撤回 identity。"
+    ]
+  },
+  "evidenceLevel": "G1 模块/属性测试 + 真实临时 SQLite/Worker IPC（含真实 WorkerThread 事务与跨域来源图）；无模型、无 embedding、无真实 Ombre 正文、无宿主 reload、无真实渠道/业务验收。",
+  "failures": [],
+  "boundaries": [
+    "retention 为显式逻辑生命周期（owner-controlled、无自动过期、无物理擦除）；未实现后台保留期清理或备份删除传播，需另切片。",
+    "recompute 是同库有界确定性扫描（每个域的全部 latest records），跨组件仅显式 unknown；没有跨服务原子快照声明。",
+    "语义索引/缓存的物理清理仍依赖既有 memory 删除屏障（读取需当前权限与 reference），H4e 未新增索引真空清理；派生失效以 derivedRevision/来源态阻止旧读取。",
+    "派生状态只约束“是否可继续作为 current 证据”，不修改原始记录正文，也不允许模型自述升级状态。",
+    "旧记录缺少 derivation 字段时按 current 归一化；这表示“未计算过”，不是对历史的重新证明。",
+    "relationship merge/split 是可逆版本变化（split 后来源恢复 current），与撤回/遗忘的不可复活语义不同；测试分别覆盖。"
+  ],
+  "reproduce": [
+    "git -C <repo> worktree add --detach /tmp/shiyu-h4e d160756",
+    "复制本切片 10 文件；ln -s 主树 plugins/shiyu/node_modules、主树 plugins/shiyu/.local/ombre",
+    "cd /tmp/shiyu-h4e/plugins/shiyu && npm run check",
+    "cd <repo>/plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-lifecycle.test.ts"
+  ]
+}

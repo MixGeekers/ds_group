@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "phase": "H4e",
+  "slice": "memory lifecycle completion plus deterministic cross-domain derivation recompute/invalidation",
+  "capturedAt": "2026-11-02T22:05:58.794Z",
+  "status": "offline-verified-module",
+  "purpose": "Complete the controlled memory lifecycle (explicit logical forget, lifecycle read-only policy) without creating a second body authority, and make source changes (memory operation, relationship record, emotion record, personality profile) deterministically invalidate or recompute dependent cognition/emotion/relationship derivations inside the same DB transaction, so old captures/reads can never resurrect a withdrawn source.",
+  "baseline": {
+    "head": "479ad43",
+    "note": "H0..H6c/H2b committed; 1404 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/inner-domain.ts",
+      "bytes": 44973,
+      "sha256": "2834bad864e35fe13048226614a77427d07d0d919721101110e04f5b7e2d078f"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/relationship-domain.ts",
+      "bytes": 20679,
+      "sha256": "c36d6d27c20c1d79ede32b58c4af929c8d07f8a010232413aad7af299b62910c"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/emotion-domain.ts",
+      "bytes": 14401,
+      "sha256": "73404d3f9040d88e0386ac0482c0405e1f79f33b116687aecc4696b37472138f"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/cognition-domain.ts",
+      "bytes": 19726,
+      "sha256": "c4bd3a35d6a265e33066f6fcd09282d8c047db129a48e476101ca2db5262032d"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/personality-domain.ts",
+      "bytes": 18063,
+      "sha256": "423333cd7d9ff37650d611136803ce5dc69327008f964417a56caa26ec6caecf"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/memory-domain.ts",
+      "bytes": 55214,
+      "sha256": "9f8db510f54e08fd398dbfbfabb3f3b0323b49779e46d53c8ed59a00d7e7a038"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+      "bytes": 64757,
+      "sha256": "f55793e199cff1452e896c2e1b856b8e68ddaf1504fff969727a0162bc6f8f7f"
+    },
+    {
+      "path": "plugins/shiyu/src/contracts/inner.ts",
+      "bytes": 56180,
+      "sha256": "644fb84504aa8f2b628199b8daa375940699e31b3555aef5e48a45a94aefbf7f"
+    },
+    {
+      "path": "plugins/shiyu/src/views/index.ts",
+      "bytes": 42356,
+      "sha256": "f096ca447c945a787e2c28a6d652fe7b9b99c9aee1b864cb32b6c57ce08614fb"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-lifecycle.test.ts",
+      "bytes": 26660,
+      "sha256": "6afdbfd33cecff38d932a41f98a7fd7f4e1ddff4f33f67b6f6e9176bbd821207"
+    }
+  ],
+  "implementation": {
+    "derivationModel": "explicit deterministic source derivation states current/needs_review/degraded/source_invalid/revoked with bounded reasons (version_changed/source_missing/source_revoked/source_unavailable/source_merged/source_not_current/record_withdrawn); capture metadata carries derivation+reasons; bodyAvailable only for current/degraded; validateForView compares authority, recordDigest and derivation; derivedRevision participates in authority and ReadView inner authority checks; old captures/bodies are rejected.",
+    "crossDomainSources": "INNER_SOURCE_KINDS adds relationship-record / emotion-record / personality-profile; each domain exposes a read-only sourceReference resolver with 4-level cycle protection (fail closed); writing against a source whose version changed is rejected with INNER_SOURCE_NOT_CURRENT; withdrawn/forgotten sources never revive. relationship merge maps source_merged and split deterministically restores current; personality only an active profile may be a source; digested emotion observations are not current.",
+    "transaction": "Worker wraps the four inner-domain write commands and memory.withdrawLocal/forgetLocal in an outer transaction and triggers recomputeInnerDomains inside the same DB transaction; a digest change persists the derivation ledger and bumps derivedRevision exactly once (no change = no write/no bump); read-only *.derivations and *.recompute IPC commands are added.",
+    "memoryLifecycle": "memory.forgetLocal (consent -> withdrawn + forgottenAt + deletion tombstone; shares the withdraw barrier and is individually idempotent) plus read-only memory.lifecycle (owner-controlled, automaticExpiry=false, physicalErase=false, deletion watermark/readability/publishability); publication keeps schema4 six-domain capabilities and does not overstate verification."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "ephemeral worktree at HEAD d160756 + only 10 files",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1389,
+      "pass": 1389,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "arithmetic": "1382 baseline + 7 new tests = 1389",
+      "log": {
+        "path": "plugins/shiyu/.local/h4e-check-final.log",
+        "sha256": "53775528b01e1d200fa4e1ffac710ef0d32707c390b2ee33986c4ae34377cdb2"
+      }
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 479ad43 + only these 10 files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h4e-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1411,
+        "pass": 1411,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 288607,
+      "log": "plugins/shiyu/.local/slice-verify-h4e.log",
+      "arithmetic": "1404 baseline + 7 new tests = 1411"
+    },
+    "targeted": {
+      "tests": 320,
+      "pass": 320,
+      "note": "inner-lifecycle 7/7 plus inner-*/memory-*/local-reply*/local-view*/memory-view-store/views/state-publication/lab-reply* regression"
+    },
+    "positive": "withdraw -> dependent derivation degraded/source_revoked; old capture and readInnerBodies rejected; forget is idempotent and reports the logical policy; publication unchanged; personality version -> needs_review and old capture rejected; relationship merge -> needs_review and split -> deterministic current restore without rewriting history; emotion withdrawal -> degraded/revokedEvidence; recompute idempotent, restart-durable, two connections = one revision bump.",
+    "negative": "old version sources are rejected before write (INNER_SOURCE_NOT_CURRENT), withdrawn/forgotten sources cannot be reused or revived, stale captures fail validation, no-op recompute does not bump the revision, publication capabilities/verification are never promoted."
+  },
+  "failedUnknownUntested": [
+    "Retention is explicit logical lifecycle only; no background expiry, physical erase, backup-deletion propagation or index vacuum cleanup.",
+    "Recompute is a bounded same-DB latest scan; cross-component state is explicit unknown rather than a cross-service atomic snapshot.",
+    "Old records without derivation fields normalize to current (meaning \"never computed\"), not re-proof.",
+    "No real model/embedding/host reload/real Ombre in this slice; cross-domain semantic re-derivation by a model is not attempted and never authoritative."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 module/integration + real temporary SQLite/Worker IPC; not host or business acceptance."
+}

@@ -16,7 +16,7 @@ export interface PrepareLocalMemory { requestId: string; conversationId: string;
 export interface LocalMemorySource {
   sourceId: string; revision: number; conversationId: string; scope: 'local-owner';
   bodyDigest: string; bodyBytes: number; audienceVersion: number;
-  consent: { kind: 'explicit-owner-save'; basisRef: string; state: 'active' | 'withdrawn'; grantedAt: string; withdrawnAt?: string };
+  consent: { kind: 'explicit-owner-save'; basisRef: string; state: 'active' | 'withdrawn'; grantedAt: string; withdrawnAt?: string; forgottenAt?: string };
 }
 export interface LocalMemoryEntry {
   requestId: string; conversationId: string; source: LocalMemorySource;
@@ -62,6 +62,18 @@ export interface MemoryDispatchPlan { operation: MemoryOperation; command: Memor
 export interface MemoryVerifiedReceiptInput {
   operationId: string; claim: EffectClaim; observation: MemoryBackendObservation; reconciliation: boolean;
 }
+/** Explicit logical lifecycle policy; no silent expiry and no second body authority. */
+export const MEMORY_LIFECYCLE_POLICY_V1 = Object.freeze({
+  schemaVersion: 1 as const, policyVersion: 1 as const, retentionMode: 'owner-controlled' as const,
+  automaticExpiry: false as const, physicalErase: false as const, forgetMode: 'logical-tombstone' as const,
+});
+export interface MemoryLifecycle {
+  schemaVersion: 1; policy: typeof MEMORY_LIFECYCLE_POLICY_V1;
+  operationId: string; sourceId: string; conversationId: string; savedAt: string;
+  consentState: 'active' | 'withdrawn'; withdrawnAt?: string; forgottenAt?: string;
+  retention: { retained: boolean; mode: 'owner-controlled'; automaticExpiry: false; physicalErase: false; reasonCode: string };
+  backendStatus: string; bodyReferencePresent: boolean; canPublish: boolean; deletionWatermark: number;
+}
 export interface MemoryCommands {
   'memory.prepareLocal': { input: PrepareLocalMemory; output: PreparedLocalMemory };
   'memory.claim': { input: { operationId: string; leaseMs?: number }; output: MemoryDispatchPlan | undefined };
@@ -69,6 +81,8 @@ export interface MemoryCommands {
   'memory.recordVerifiedReceipt': { input: MemoryVerifiedReceiptInput; output: LocalMemoryEntry };
   'memory.markUnknown': { input: { operationId: string; claim: EffectClaim; reasonCode: string }; output: LocalMemoryEntry };
   'memory.withdrawLocal': { input: { requestId: string; operationId: string }; output: WithdrawLocalMemoryResult };
+  'memory.forgetLocal': { input: { requestId: string; operationId: string }; output: WithdrawLocalMemoryResult };
+  'memory.lifecycle': { input: { operationId: string }; output: MemoryLifecycle };
   'memory.publishLocal': { input: { operationId: string; expectedVersion: number; receiptId: string }; output: LocalMemoryEntry };
   'memory.get': { input: { operationId: string }; output: LocalMemoryEntry };
   'memory.readLocal': { input: { operationId: string }; output: { entry: LocalMemoryEntry; readToken: MemoryReadToken; bodyReceiptId: string } };
@@ -335,6 +349,17 @@ export class MemoryDomain {
     });
   }
   withdrawLocal(input: MemoryCommands['memory.withdrawLocal']['input']): WithdrawLocalMemoryResult {
+    return this.removeLocalSource(input, 'withdraw');
+  }
+  /**
+   * Logical forget: the same durable consent/deletion barrier as withdrawal, but
+   * recorded as an explicit owner forget. It never copies or erases a second body
+   * and never resurrects a forgotten source.
+   */
+  forgetLocal(input: MemoryCommands['memory.forgetLocal']['input']): WithdrawLocalMemoryResult {
+    return this.removeLocalSource(input, 'forget');
+  }
+  private removeLocalSource(input: { requestId: string; operationId: string }, mode: 'withdraw' | 'forget'): WithdrawLocalMemoryResult {
     fields(input, ['requestId', 'operationId']); id(input.requestId, 'requestId'); id(input.operationId, 'operationId', 150);
     return this.tx.atomic(() => {
       const local = this.local(input.operationId), source = this.source(local.sourceId);
@@ -344,22 +369,49 @@ export class MemoryDomain {
       if (source.scope !== SCOPE || source.conversationId !== local.conversationId) fail('MEMORY_CONVERSATION_FORBIDDEN', 'Source is not owned by this local-owner conversation');
       const old = this.row('SELECT operation_id,intent_hash FROM shiyu_local_memory_withdrawals WHERE request_id=?', input.requestId);
       if (old) { if (old.intent_hash !== digest(input)) fail('IDEMPOTENCY_CONFLICT', 'Withdrawal identity changed'); return this.get(local.operationId); }
+      const operationIdTag = mode === 'forget' ? 'memory-forget' : 'memory-withdrawal';
       let contextInvalidation: MemoryContextInvalidation | undefined;
-      if (source.consent.state === 'active') {
-        source.consent.state = 'withdrawn'; source.consent.withdrawnAt = this.now(); source.revision++;
+      if (source.consent.state === 'active' || mode === 'forget') {
+        const wasActive = source.consent.state === 'active';
+        if (wasActive) { source.consent.state = 'withdrawn'; source.consent.withdrawnAt = this.now(); }
+        if (mode === 'forget' && !source.consent.forgottenAt) source.consent.forgottenAt = this.now();
+        source.revision++;
         this.db.prepare('UPDATE shiyu_local_memory_sources SET record_json=? WHERE source_id=?').run(JSON.stringify(source), source.sourceId);
-        this.ledger.tombstone(OWNER, { deletionId: `memory-withdrawal:${input.requestId}`, scope: SCOPE, refs: [source.sourceId], expectedWatermark: this.ledger.watermark(), reasonCode: 'OWNER_SAVE_CONSENT_WITHDRAWN' });
-        const grant = this.mandates.get(OWNER, local.mandateId); if (grant.state !== 'revoked') this.mandates.revoke(OWNER, { mandateId: grant.mandateId, expectedVersion: grant.version });
-        const effect = this.effects.get(this.operation(local).effectId)!;
-        if (effect.status === 'cancelled') this.settleBudget(local, 0, `memory-unused:${local.operationId}`, `memory-withdrawal:${input.requestId}`);
-        else if (effect.status === 'unknown' || effect.status === 'dispatching') this.unknownBudget(local);
-        // This is deliberately inside the consent/tombstone transaction. Native
-        // cancellation is a later notification; durable context fences must
-        // commit atomically even when that notification never arrives.
-        if (this.options.onWithdrawSources) contextInvalidation = this.withdrawContext(`memory-withdrawal:${digest(input)}`, [source.sourceId]);
+        this.ledger.tombstone(OWNER, { deletionId: `${operationIdTag}:${input.requestId}`, scope: SCOPE, refs: [source.sourceId], expectedWatermark: this.ledger.watermark(),
+          reasonCode: mode === 'forget' ? 'OWNER_FORGET' : 'OWNER_SAVE_CONSENT_WITHDRAWN' });
+        if (wasActive) {
+          const grant = this.mandates.get(OWNER, local.mandateId); if (grant.state !== 'revoked') this.mandates.revoke(OWNER, { mandateId: grant.mandateId, expectedVersion: grant.version });
+          const effect = this.effects.get(this.operation(local).effectId)!;
+          if (effect.status === 'cancelled') this.settleBudget(local, 0, `memory-unused:${local.operationId}`, `${operationIdTag}:${input.requestId}`);
+          else if (effect.status === 'unknown' || effect.status === 'dispatching') this.unknownBudget(local);
+          // This is deliberately inside the consent/tombstone transaction. Native
+          // cancellation is a later notification; durable context fences must
+          // commit atomically even when that notification never arrives.
+          if (this.options.onWithdrawSources) contextInvalidation = this.withdrawContext(`${operationIdTag}:${digest(input)}`, [source.sourceId]);
+        }
       }
       this.db.prepare('INSERT INTO shiyu_local_memory_withdrawals VALUES(?,?,?)').run(input.requestId, local.operationId, digest(input));
       return { ...this.get(local.operationId), ...(contextInvalidation ? { contextInvalidation } : {}) };
+    });
+  }
+  /** Read-only, auditable retention/forget state; never mutates or widens access. */
+  lifecycle(input: MemoryCommands['memory.lifecycle']['input']): MemoryLifecycle {
+    fields(input, ['operationId']);
+    return this.tx.atomic(() => {
+      const entry = this.get(input.operationId), source = entry.source;
+      const forgottenAt = source.consent.forgottenAt;
+      const retained = source.consent.state === 'active';
+      return {
+        schemaVersion: 1, policy: structuredClone(MEMORY_LIFECYCLE_POLICY_V1),
+        operationId: input.operationId, sourceId: source.sourceId, conversationId: source.conversationId, savedAt: source.consent.grantedAt,
+        consentState: source.consent.state,
+        ...(source.consent.withdrawnAt === undefined ? {} : { withdrawnAt: source.consent.withdrawnAt }),
+        ...(forgottenAt === undefined ? {} : { forgottenAt }),
+        retention: { retained, mode: 'owner-controlled', automaticExpiry: false, physicalErase: false,
+          reasonCode: retained ? 'CONSENT_ACTIVE' : forgottenAt ? 'OWNER_FORGET' : 'OWNER_SAVE_CONSENT_WITHDRAWN' },
+        backendStatus: entry.operation.status, bodyReferencePresent: Boolean(entry.reference), canPublish: entry.canPublish,
+        deletionWatermark: this.ledger.deletionState().tombstoneWatermark,
+      };
     });
   }
   publishLocal(input: MemoryCommands['memory.publishLocal']['input']): LocalMemoryEntry {
@@ -530,6 +582,8 @@ export class MemoryDomain {
       case 'memory.recordVerifiedReceipt': return this.recordVerifiedReceipt(request.args);
       case 'memory.markUnknown': return this.markUnknown(request.args);
       case 'memory.withdrawLocal': return this.withdrawLocal(request.args);
+      case 'memory.forgetLocal': return this.forgetLocal(request.args);
+      case 'memory.lifecycle': return this.lifecycle(request.args);
       case 'memory.publishLocal': return this.publishLocal(request.args);
       case 'memory.get': fields(request.args, ['operationId']); return this.get(request.args.operationId);
       case 'memory.readLocal': return this.readLocal(request.args);

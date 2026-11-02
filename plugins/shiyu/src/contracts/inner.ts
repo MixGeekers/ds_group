@@ -30,7 +30,8 @@ export interface InnerAudience {
   kind: InnerAudienceKind;
   audienceId: string;
 }
-export const INNER_SOURCE_KINDS = ['owner-command', 'conversation-observation', 'memory-operation', 'task-receipt'] as const;
+export const INNER_SOURCE_KINDS = ['owner-command', 'conversation-observation', 'memory-operation', 'task-receipt',
+  'relationship-record', 'emotion-record', 'personality-profile'] as const;
 export type InnerSourceKind = (typeof INNER_SOURCE_KINDS)[number];
 /** A durable, resolvable provenance reference; never a bearer permission. */
 export interface InnerSourceRef { kind: InnerSourceKind; sourceId: string; revision: number }
@@ -41,6 +42,9 @@ export interface InnerEvidenceFacts {
   audience: InnerAudience;
   revision: number;
   observedAt?: string;
+  /** Optional finer verdict: a resolvable source whose version/status moved on. */
+  state?: 'current' | 'version_changed' | 'invalid';
+  reason?: string;
 }
 /** Trusted same-Worker conversation/audience read. */
 export interface InnerConversationFacts {
@@ -52,6 +56,23 @@ export interface InnerConversationFacts {
 
 export const INNER_EVIDENCE_STATES = ['valid', 'degraded', 'revoked'] as const;
 export type InnerEvidenceState = (typeof INNER_EVIDENCE_STATES)[number];
+/** Explicit derived-state vocabulary; never inferred from model text. */
+export const INNER_DERIVATIONS = ['current', 'needs_review', 'degraded', 'source_invalid', 'revoked'] as const;
+export type InnerDerivation = (typeof INNER_DERIVATIONS)[number];
+export const INNER_DERIVATION_REASONS = ['version_changed', 'source_missing', 'source_revoked', 'source_unavailable',
+  'source_merged', 'source_not_current', 'record_withdrawn'] as const;
+export type InnerDerivationReason = (typeof INNER_DERIVATION_REASONS)[number];
+export const MAX_INNER_DERIVATION_REASONS = 4;
+export interface InnerDerivationCounts { current: number; needs_review: number; degraded: number; source_invalid: number; revoked: number }
+export interface InnerDerivationStateRecord { recordId: string; derivation: InnerDerivation; reasons: InnerDerivationReason[] }
+export interface InnerDerivationsView {
+  domain: InnerDomain; derivedRevision: number; digest: string;
+  counts: InnerDerivationCounts; states: InnerDerivationStateRecord[];
+}
+export interface InnerRecomputeReceipt {
+  requestId: string; changed: boolean; derivedRevision: number; digest: string;
+  counts: InnerDerivationCounts; states: InnerDerivationStateRecord[];
+}
 
 /** Invalidation-relevant domain authority; deliberately excludes max(version) bookkeeping. */
 export interface InnerAuthority {
@@ -61,6 +82,8 @@ export interface InnerAuthority {
   policyVersion: number;
   tombstoneWatermark: number;
   baselineId: string;
+  /** Bumped only by deterministic recompute summaries that actually changed. */
+  derivedRevision?: number;
 }
 
 /** Metadata-only capture. Never contains a body, payload digest or memory text. */
@@ -70,6 +93,9 @@ export interface InnerRecordMetadata {
   kind: string;
   status: string;
   evidenceState: InnerEvidenceState;
+  /** Explicit deterministic derivation of this record's provenance chain. */
+  derivation?: InnerDerivation;
+  derivationReasons?: InnerDerivationReason[];
   audience: InnerAudience;
   sourceRefs: InnerSourceRef[];
   observedAt: string;
@@ -93,6 +119,8 @@ export interface InnerBodyRecord {
   revision: number;
   kind: string;
   evidenceState: InnerEvidenceState;
+  derivation?: InnerDerivation;
+  derivationReasons?: InnerDerivationReason[];
   payload: Record<string, unknown>;
 }
 export interface InnerBodyRead {
@@ -216,7 +244,8 @@ export function innerOwnerCommandRequest(ref: InnerSourceRef): string | undefine
   return ref.kind === 'owner-command' && ref.sourceId.startsWith('owner-command:') ? ref.sourceId.slice('owner-command:'.length) : undefined;
 }
 export function innerAuthority(value: unknown): InnerAuthority {
-  innerFields(value, ['domain', 'authorityId', 'installationGeneration', 'policyVersion', 'tombstoneWatermark', 'baselineId']);
+  innerFields(value, ['domain', 'authorityId', 'installationGeneration', 'policyVersion', 'tombstoneWatermark', 'baselineId', 'derivedRevision'],
+    ['domain', 'authorityId', 'installationGeneration', 'policyVersion', 'tombstoneWatermark', 'baselineId']);
   if (!INNER_DOMAINS.includes(value.domain as InnerDomain)) innerFail('INVALID_INNER_INPUT', 'Invalid inner domain');
   return {
     domain: value.domain as InnerDomain,
@@ -225,14 +254,30 @@ export function innerAuthority(value: unknown): InnerAuthority {
     policyVersion: innerInteger(value.policyVersion, 'policyVersion'),
     tombstoneWatermark: innerInteger(value.tombstoneWatermark, 'tombstoneWatermark', 0),
     baselineId: innerId(value.baselineId, 'baselineId'),
+    derivedRevision: value.derivedRevision === undefined ? 0 : innerInteger(value.derivedRevision, 'derivedRevision', 0),
   };
 }
+export function innerDerivationOf(value: unknown): InnerDerivation {
+  if (value === undefined) return 'current';
+  if (!INNER_DERIVATIONS.includes(value as InnerDerivation)) innerFail('INVALID_INNER_INPUT', 'Invalid derivation state');
+  return value as InnerDerivation;
+}
+export function innerDerivationReasons(value: unknown): InnerDerivationReason[] {
+  if (value === undefined) return [];
+  if (!Array.isArray(value) || value.length > MAX_INNER_DERIVATION_REASONS
+    || value.some(item => !INNER_DERIVATION_REASONS.includes(item as InnerDerivationReason))
+    || new Set(value).size !== value.length) innerFail('INVALID_INNER_INPUT', 'Invalid bounded derivation reasons');
+  return [...value] as InnerDerivationReason[];
+}
 export function innerRecordMetadata(value: unknown): InnerRecordMetadata {
-  innerFields(value, ['recordId', 'revision', 'kind', 'status', 'evidenceState', 'audience', 'sourceRefs', 'observedAt', 'validUntil', 'recordDigest', 'bodyAvailable'],
+  innerFields(value, ['recordId', 'revision', 'kind', 'status', 'evidenceState', 'derivation', 'derivationReasons', 'audience', 'sourceRefs', 'observedAt', 'validUntil', 'recordDigest', 'bodyAvailable'],
     ['recordId', 'revision', 'kind', 'status', 'evidenceState', 'audience', 'sourceRefs', 'observedAt', 'recordDigest', 'bodyAvailable']);
   if (!INNER_EVIDENCE_STATES.includes(value.evidenceState as InnerEvidenceState)) innerFail('INVALID_INNER_INPUT', 'Invalid evidence state');
   if (typeof value.bodyAvailable !== 'boolean') innerFail('INVALID_INNER_INPUT', 'bodyAvailable must be boolean');
+  const derivation = innerDerivationOf(value.derivation);
+  const derivationReasons = innerDerivationReasons(value.derivationReasons);
   return {
+    derivation, derivationReasons,
     recordId: innerId(value.recordId, 'recordId'),
     revision: innerInteger(value.revision, 'revision'),
     kind: innerToken(value.kind, 'record kind'),
@@ -256,8 +301,12 @@ function canonicalJson(value: unknown): string {
 export function innerCanonical(value: unknown): string { return canonicalJson(value); }
 export function innerDigest(value: unknown): string { return createHash('sha256').update(innerCanonical(value)).digest('hex'); }
 function captureHash(value: Pick<InnerCapture, 'domain' | 'conversationId' | 'capturedAt' | 'audience' | 'authority' | 'records' | 'truncated'>): string {
+  // Normalize the additive H4e fields so captures produced before this slice hash
+  // identically while new captures still bind their derivation state.
+  const authority = innerAuthority(value.authority);
+  const records = value.records.map(record => innerRecordMetadata(record));
   return innerDigest({ schemaVersion: 1, domain: value.domain, conversationId: value.conversationId, capturedAt: value.capturedAt,
-    audience: value.audience, authority: value.authority, records: value.records, truncated: value.truncated });
+    audience: innerAudience(value.audience), authority, records, truncated: value.truncated });
 }
 export function innerRecordDigest(value: {
   recordId: string; revision: number; kind: string; status: string; audience: InnerAudience;
@@ -330,11 +379,13 @@ export function validateInnerBodyRead(value: unknown): InnerBodyRead {
   if (value.schemaVersion !== 1 || !INNER_DOMAINS.includes(value.domain as InnerDomain)) innerFail('INVALID_INNER_INPUT', 'Invalid inner body read header');
   if (!Array.isArray(value.bodies) || !value.bodies.length || value.bodies.length > MAX_INNER_VIEW_RECORDS) innerFail('INVALID_INNER_INPUT', 'Invalid bounded inner bodies');
   const bodies = value.bodies.map(item => {
-    innerFields(item, ['recordId', 'revision', 'kind', 'evidenceState', 'payload']);
+    innerFields(item, ['recordId', 'revision', 'kind', 'evidenceState', 'derivation', 'derivationReasons', 'payload'],
+      ['recordId', 'revision', 'kind', 'evidenceState', 'payload']);
     if (!INNER_EVIDENCE_STATES.includes(item.evidenceState as InnerEvidenceState)) innerFail('INVALID_INNER_INPUT', 'Invalid body evidence state');
     return {
       recordId: innerId(item.recordId, 'recordId'), revision: innerInteger(item.revision, 'revision'),
       kind: innerToken(item.kind, 'record kind'), evidenceState: item.evidenceState as InnerEvidenceState,
+      derivation: innerDerivationOf(item.derivation), derivationReasons: innerDerivationReasons(item.derivationReasons),
       payload: innerPayload(item.payload) as Record<string, unknown>,
     };
   });
@@ -680,6 +731,8 @@ export interface InnerWriteReceipt<T extends Record<string, unknown> = Record<st
 
 export interface RelationshipCommands {
   'relationship.status': { input: Record<string, never>; output: InnerDomainStatus };
+  'relationship.recompute': { input: { requestId: string }; output: InnerRecomputeReceipt };
+  'relationship.derivations': { input: Record<string, never>; output: InnerDerivationsView };
   'relationship.registerSubject': { input: { requestId: string; account: InnerAccount; entityKind: RelationshipEntityKind; displayName: string }; output: InnerWriteReceipt<{ entityId: string; bindingId: string; canonicalEntityId: string; created: boolean }> };
   'relationship.assert': { input: { requestId: string; conversationId: string; subjectId: string; predicate: RelationshipPredicate; objectId?: string; value?: string; saidBy?: string; validFrom?: string; validUntil?: string; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ assertionId: string; recordId: string; revision: number; status: string }> };
   'relationship.reviseAssertion': { input: { requestId: string; conversationId: string; assertionId: string; expectedRevision: number; predicate: RelationshipPredicate; objectId?: string; value?: string; saidBy?: string; validFrom?: string; validUntil?: string; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ assertionId: string; recordId: string; revision: number; status: string }> };
@@ -695,6 +748,8 @@ export type RelationshipDomainRequest = { [K in keyof RelationshipCommands]: { c
 
 export interface EmotionCommands {
   'emotion.status': { input: Record<string, never>; output: InnerDomainStatus };
+  'emotion.recompute': { input: { requestId: string }; output: InnerRecomputeReceipt };
+  'emotion.derivations': { input: Record<string, never>; output: InnerDerivationsView };
   'emotion.observe': { input: { requestId: string; conversationId: string; valenceBps: number; arousalBps: number; label: EmotionLabel; observedAt?: string; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ recordId: string; revision: number; status: string }> };
   'emotion.review': { input: { requestId: string; conversationId: string; recordIds: string[]; conclusion: (typeof EMOTION_REVIEW_CONCLUSIONS)[number]; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ reviewRecordId: string; reviewedRecordIds: string[] }> };
   'emotion.regulate': { input: { requestId: string; conversationId: string; guidance: EmotionGuidance; expiresAt?: string; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ recordId: string; revision: number }> };
@@ -708,6 +763,8 @@ export type EmotionDomainRequest = { [K in keyof EmotionCommands]: { command: K;
 
 export interface CognitionCommands {
   'cognition.status': { input: Record<string, never>; output: InnerDomainStatus };
+  'cognition.recompute': { input: { requestId: string }; output: InnerRecomputeReceipt };
+  'cognition.derivations': { input: Record<string, never>; output: InnerDerivationsView };
   'cognition.propose': { input: { requestId: string; conversationId: string; claimType: CognitionClaimType; subjectIds: string[]; predicate: string; proposition: string; confidenceBps: number; validFrom?: string; validUntil?: string; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ claimId: string; recordId: string; revision: number; status: string; conflictId?: string }> };
   'cognition.revise': { input: { requestId: string; conversationId: string; claimId: string; expectedRevision: number; proposition: string; confidenceBps: number; validFrom?: string; validUntil?: string; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ claimId: string; recordId: string; revision: number; status: string }> };
   'cognition.review': { input: { requestId: string; conversationId: string; claimIds: string[]; conclusion: (typeof COGNITION_REVIEW_CONCLUSIONS)[number]; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ reviewId: string; recordId: string; revision: number }> };
@@ -732,6 +789,8 @@ export interface PersonalitySnapshot {
 }
 export interface PersonalityCommands {
   'personality.status': { input: Record<string, never>; output: InnerDomainStatus };
+  'personality.recompute': { input: { requestId: string }; output: InnerRecomputeReceipt };
+  'personality.derivations': { input: Record<string, never>; output: InnerDerivationsView };
   'personality.snapshot': { input: { conversationId: string }; output: PersonalitySnapshot };
   'personality.propose': { input: { requestId: string; conversationId: string; expectedProfileVersion: number; sourceKind: (typeof PERSONALITY_SOURCE_KINDS)[number]; displayName?: string; language?: (typeof PERSONALITY_LANGUAGES)[number]; style?: Partial<PersonaStyle>; principles?: (typeof PERSONALITY_PRINCIPLES)[number][]; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ candidateId: string; recordId: string; revision: number; status: string }> };
   'personality.review': { input: { requestId: string; conversationId: string; candidateId: string; expectedRevision: number; decision: 'approve' | 'reject'; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ candidateId: string; recordId: string; profileVersion: number; status: string }> };

@@ -457,6 +457,28 @@ function innerConversationFacts(conversationId: string): InnerConversationFacts 
     throw error;
   }
 }
+let innerEvidenceDepth = 0;
+/** Cyclic cross-domain citations fail closed instead of recursing without bound. */
+function withInnerEvidenceDepth<T>(fn: () => T): T | undefined {
+  if (innerEvidenceDepth >= 4) return undefined;
+  innerEvidenceDepth++;
+  try { return fn(); } finally { innerEvidenceDepth--; }
+}
+/**
+ * Bounded deterministic recompute of the four derived ledgers inside the current
+ * outer transaction. Only an actually changed derivation digest bumps authority.
+ */
+function recomputeInnerDomains(): void {
+  const instances: [InnerDomain, { recompute(input: { requestId: string }): unknown } | undefined][] = [
+    ['relationship', relationship], ['emotion', emotion], ['cognition', cognition], ['personality', personality]];
+  for (const [domain, instance] of instances) if (instance) instance.recompute({ requestId: `recompute-${domain}-${randomUUID()}` });
+}
+const INNER_READ_SUFFIXES = new Set(['status', 'captureForView', 'validateForView', 'readBodies', 'recompute', 'derivations',
+  'resolveSubject', 'state', 'snapshot']);
+function isInnerWrite(command: string): boolean {
+  const dot = command.indexOf('.');
+  return dot > 0 && !INNER_READ_SUFFIXES.has(command.slice(dot + 1));
+}
 /** Trusted same-Worker evidence read: memory operation readback or a succeeded local Task. */
 function innerEvidence(ref: InnerSourceRef): InnerEvidenceFacts | undefined {
   const codeOf = (error: unknown): string => isObject(error) && typeof error.code === 'string' ? error.code : '';
@@ -471,8 +493,13 @@ function innerEvidence(ref: InnerSourceRef): InnerEvidenceFacts | undefined {
     }
     const conversation = innerConversationFacts(entry.conversationId);
     if (!conversation) return undefined;
-    return { valid: Boolean(entry.reference) && entry.operation.status === 'applied' && entry.source.revision === ref.revision,
-      audience: conversation.audience, revision: entry.source.revision };
+    if (entry.source.consent.state === 'withdrawn') {
+      return { valid: false, audience: conversation.audience, revision: entry.source.revision, state: 'invalid', reason: 'record_withdrawn' };
+    }
+    const current = Boolean(entry.reference) && entry.operation.status === 'applied' && entry.source.revision === ref.revision;
+    return { valid: current, audience: conversation.audience, revision: entry.source.revision,
+      state: current ? 'current' : 'version_changed',
+      ...(current ? {} : { reason: 'version_changed' }) };
   }
   if (ref.kind === 'task-receipt') {
     if (!tasks) return undefined;
@@ -483,7 +510,17 @@ function innerEvidence(ref: InnerSourceRef): InnerEvidenceFacts | undefined {
       if (code === 'UNKNOWN_TASK' || code === 'NOT_FOUND') return undefined;
       throw error;
     }
-    return { valid: detail.task.state === 'succeeded', audience: structuredClone(OWNER_INNER_AUDIENCE), revision: detail.task.version };
+    return { valid: detail.task.state === 'succeeded', audience: structuredClone(OWNER_INNER_AUDIENCE), revision: detail.task.version,
+      state: detail.task.state === 'succeeded' ? 'current' : 'invalid' };
+  }
+  if (ref.kind === 'relationship-record') {
+    return relationship ? withInnerEvidenceDepth(() => relationship!.sourceReference(ref.sourceId, ref.revision)) : undefined;
+  }
+  if (ref.kind === 'emotion-record') {
+    return emotion ? withInnerEvidenceDepth(() => emotion!.sourceReference(ref.sourceId, ref.revision)) : undefined;
+  }
+  if (ref.kind === 'personality-profile') {
+    return personality ? withInnerEvidenceDepth(() => personality!.sourceReference(ref.sourceId, ref.revision)) : undefined;
   }
   return undefined;
 }
@@ -565,25 +602,32 @@ function execute(request: StoreRequest): unknown {
   }
   const innerStatus = (instance: unknown, error: string | undefined) => ({
     configured: Boolean(options.runtimeIdentity), ready: Boolean(instance), ...(error ? { errorCode: error } : {}) });
+  // Inner mutations and their cross-domain derivation recompute commit in one
+  // same-connection transaction, so invalidation signals never lag the write.
+  const runInner = <T>(instance: T | undefined, error: string | undefined, unavailable: string, action: () => unknown): unknown => {
+    if (!instance) return fail(error ?? unavailable, 'Inner domain is unavailable.');
+    if (!isInnerWrite(request.command)) return action();
+    return transaction(() => { const result = action(); recomputeInnerDomains(); return result; });
+  };
   if (request.command.startsWith('relationship.')) {
     if (request.command === 'relationship.status') return innerStatus(relationship, relationshipError);
-    if (!relationship) return fail(relationshipError ?? 'RELATIONSHIP_UNAVAILABLE', 'Relationship domain is unavailable.');
-    return relationship.execute({ command: request.command, args: request.args } as RelationshipDomainRequest);
+    return runInner(relationship, relationshipError, 'RELATIONSHIP_UNAVAILABLE',
+      () => relationship!.execute({ command: request.command, args: request.args } as RelationshipDomainRequest));
   }
   if (request.command.startsWith('emotion.')) {
     if (request.command === 'emotion.status') return innerStatus(emotion, emotionError);
-    if (!emotion) return fail(emotionError ?? 'EMOTION_UNAVAILABLE', 'Emotion domain is unavailable.');
-    return emotion.execute({ command: request.command, args: request.args } as EmotionDomainRequest);
+    return runInner(emotion, emotionError, 'EMOTION_UNAVAILABLE',
+      () => emotion!.execute({ command: request.command, args: request.args } as EmotionDomainRequest));
   }
   if (request.command.startsWith('cognition.')) {
     if (request.command === 'cognition.status') return innerStatus(cognition, cognitionError);
-    if (!cognition) return fail(cognitionError ?? 'COGNITION_UNAVAILABLE', 'Cognition domain is unavailable.');
-    return cognition.execute({ command: request.command, args: request.args } as CognitionDomainRequest);
+    return runInner(cognition, cognitionError, 'COGNITION_UNAVAILABLE',
+      () => cognition!.execute({ command: request.command, args: request.args } as CognitionDomainRequest));
   }
   if (request.command.startsWith('personality.')) {
     if (request.command === 'personality.status') return innerStatus(personality, personalityError);
-    if (!personality) return fail(personalityError ?? 'PERSONALITY_UNAVAILABLE', 'Personality domain is unavailable.');
-    return personality.execute({ command: request.command, args: request.args } as PersonalityDomainRequest);
+    return runInner(personality, personalityError, 'PERSONALITY_UNAVAILABLE',
+      () => personality!.execute({ command: request.command, args: request.args } as PersonalityDomainRequest));
   }
   if (request.command === 'memory.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memories), ...(memoryError ? { errorCode: memoryError } : {}) };
   if (request.command === 'memory.index.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memoryIndex), ...(memoryIndexError || memoryError ? { errorCode: memoryIndexError ?? memoryError } : {}) };
@@ -593,6 +637,9 @@ function execute(request: StoreRequest): unknown {
   }
   if (request.command.startsWith('memory.')) {
     if (!memories) return fail(memoryError ?? 'MEMORY_UNCONFIGURED', 'Memory control domain is unavailable.');
+    if (request.command === 'memory.withdrawLocal' || request.command === 'memory.forgetLocal') {
+      return transaction(() => { const result = memories!.execute(request as MemoryDomainRequest); recomputeInnerDomains(); return result; });
+    }
     return memories.execute(request as MemoryDomainRequest);
   }
   if (request.command.startsWith('view.')) {

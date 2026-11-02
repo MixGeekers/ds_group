@@ -9,6 +9,7 @@ import {
 } from '../../contracts/inner.js';
 export type { RelationshipDomainRequest } from '../../contracts/inner.js';
 import { InnerDomainBase, type InnerDomainBaseOptions, type StoredInnerRecord } from './inner-domain.js';
+import type { InnerDerivationReason } from '../../contracts/inner.js';
 import { SqliteTransactions } from './transaction.js';
 
 /** Relationship rules version; changing them requires an explicit migration. */
@@ -45,6 +46,15 @@ export class RelationshipDomain extends InnerDomainBase {
     if (record.kind === 'identity-binding' && record.status !== 'active') innerFail('CORRUPT_INNER_DOMAIN', 'A binding keeps its original active revision');
   }
 
+  /** Merge/split and corrections move record status; dependants must re-review. */
+  protected sourceCurrent(record: StoredInnerRecord): { current: boolean; reason?: InnerDerivationReason } {
+    if (record.kind === 'entity') return record.status === 'active'
+      ? { current: true } : { current: false, reason: record.status === 'merged' ? 'source_merged' : 'source_not_current' };
+    if (record.kind === 'assertion') return record.status === 'active' ? { current: true } : { current: false, reason: 'source_not_current' };
+    if (record.kind === 'identity-binding') return record.status === 'active' ? { current: true } : { current: false, reason: 'source_not_current' };
+    if (record.kind === 'merge') return record.status === 'active' ? { current: true } : { current: false, reason: 'source_not_current' };
+    return { current: false, reason: 'source_not_current' };
+  }
   private entity(entityId: string): StoredInnerRecord {
     const record = this.latest(`entity:${innerId(entityId, 'entityId')}`);
     if (!record || record.kind !== 'entity') innerFail('UNKNOWN_INNER_RECORD', 'No known relationship entity has this identity');
@@ -270,6 +280,8 @@ export class RelationshipDomain extends InnerDomainBase {
       case 'relationship.captureForView': return this.captureForView(request.args);
       case 'relationship.validateForView': return this.validateForView(request.args);
       case 'relationship.readBodies': return this.readBodies(request.args);
+      case 'relationship.recompute': return this.recompute(request.args);
+      case 'relationship.derivations': innerFields(request.args, []); return this.derivations();
       default: return innerFail('INVALID_INNER_INPUT', 'Unknown relationship command');
     }
   }
