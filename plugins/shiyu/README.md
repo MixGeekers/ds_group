@@ -2,7 +2,7 @@
 
 `@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地任务链路；本地 embedding 尚未连接记忆业务。
 
-**状态：当前全量检查 304/304 模块测试、64/64 模拟宿主 UI 通过；原生 Goal 的零推理 create/pause/resume/complete 已在真实 DSH 验证。** 阶段 2 `1e1bdd2` 的受限本地任务也已有真实成功记录，首次用量失败 unknown 保留。阶段 3 的 Conversation、MemoryOperation、ReadView 和 Ombre 薄适配虽已合成验证，仍为未运行接入的独立模块。core 自主规划、六部分内层业务、正式记忆后端和真实渠道未接入。分批结果见[实施记录](<实施记录.md>)与[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
+**状态：修复后全量 348/348 模块、83/83 模拟宿主 UI 通过；历史 Goal 零推理证据保留。** 当前增量已将本地 Conversation/Topic 绑定、Task 关联和持久背景标记接入 Runtime，并新增对话页与提交水位；修复后 348/348 模块、83/83 UI 通过，限定宿主关联、刷新及修复后重载幂等核对已有证据。阶段 2 `1e1bdd2` 的受限本地任务已有真实成功记录，首次用量失败 unknown 保留。MemoryOperation、ReadView 和 Ombre 薄适配仍为未运行接入的独立模块。core 自主规划、六部分内层业务、正式记忆后端和真实渠道未接入。分批结果见[实施记录](<实施记录.md>)与[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
 
 本包不依赖 Lab 引擎或资料工作台作为运行能力。`lab/` 继续作为独立被测环境，`plugins/shiyu-workbench/` 完整保留。
 
@@ -16,11 +16,12 @@
 | 任务与 worker | 本地 owner 创建 Task/Assignment，原生 worker 使用受控单工具写固定产物；绑定先持久化，资格按宿主/安装世代、fence、租约及授权复查 | 修复后第二个有界真实任务通过；首轮结算失败保留 unknown；没有 core 自主派工或通用文件/设备权限 |
 | 授权、效果与核验 | Mandate/CAS、原子预算预留、Effect 领取/回执/不确定性、独立产物 SHA256 核验；完成状态与完成事件同事务 | 目前只接固定本地合成任务；取消不假称效果回滚，旧实例及 unknown 不自动重派，多用户与外部设备尚未接入 |
 | 原生 Goal 生命周期 | 原生 Goal 适配、SQLite 绑定/CAS/命令历史、独立完成证明及显式 `goal.verify-lifecycle` 诊断已接 Runtime；真实四步零推理验证通过 | 原生日志拥有 Goal 状态；本地仅存绑定和命令事实，未启用 core/续接循环；一次生命周期通过不代表完整恢复/持续规划验收 |
+| 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、已有 Task 关联、可信完成事件背景投影、后台有界扫描与对话页 | 固定 local-owner 范围，不创建或注入原生 Session；事件落库确认不等于上下文已加载，ReadView 未开放 |
 | 事件与订阅 | 类型目录、发布、订阅增删改查、有限回放、投递领取/确认/失败、重试和统计；事件与匹配投递同事务提交 | live 路径为可信组件消费和 Agent background 引用；Agent 事件工具工厂已实现并合成验证，但尚未挂载到原生 Session，未自动续接 |
 | 本地状态与数据库 | 单实例运行锁、暂停与 Session 绑定保存；SQLite 独立 WorkerThread，事件、Task/Assignment、Mandate/预算及 Effect 共用连接与事务 | 尚无原生 inbox/请求结果完整对账；正常重载、事务/文件故障注入和限定子进程退出不代替完整断电/灾难恢复 |
 | embedding | 固定 Harrier Q8_0 文件身份、1024 维向量、query 前缀、归一化、显式 loopback HTTP 适配 | 本地真实冒烟通过；未接记忆、索引或检索业务，未安装常驻 embedding 服务 |
 
-仪表盘查看/刷新只读取状态，不自动创建 Session、发布事件或调用模型。可见时每 10 秒刷新，页面隐藏时停止轮询；读取失败保留上次快照并标记状态未确认。显式“检查会话接入”执行零推理探针，“验证模型与会话复用”发送两轮合成输入，“运行本地任务验证”受理固定合成任务并交后台执行。暂停关闭新操作并取消在途模型，不声称回滚已经发生的效果。
+仪表盘查看/刷新只读取状态，不自动创建 Session、发布事件或调用模型。可见时每 10 秒刷新，页面隐藏时停止轮询；读取失败保留上次快照并标记状态未确认。显式“检查会话接入”执行零推理探针，“验证模型与会话复用”发送两轮合成输入，“运行本地任务验证”受理固定合成任务并交后台执行。暂停关闭新操作并取消在途模型，不声称回滚已经发生的效果；可信任务完成的纯背景标记仍可落库，不会因此请求模型、续接 Session 或发送消息。
 
 “检查原生 Goal 生命周期”使用已成功的本地任务重新读取产物和可信回执，依次检查 create/pause/resume/complete。它不请求模型推理；原生旁路是否确实为零另以宿主事件核对。已有 Goal 绑定或执行中断时要求显式核对，按钮不会自动重放整个序列。
 
@@ -47,7 +48,7 @@ npm run test:ui
 | 入口 | 用途 |
 |---|---|
 | `GET /api/shiyu/state` | 只读运行快照；与 `shiyu_status` 使用同一服务 |
-| `POST /api/shiyu/commands` | 显式 `runtime.pause`、`runtime.resume`、`session.probe`、`session.verify-model`、`reply.generate`、`task.createLocal`、`task.cancel` 或 `goal.verify-lifecycle`；JSON 正文上限 64 KiB |
+| `POST /api/shiyu/commands` | 显式 `runtime.pause`、`runtime.resume`、`session.probe`、`session.verify-model`、`reply.generate`、`task.createLocal`、`task.cancel`、`goal.verify-lifecycle` 或 `conversation.linkLocalTask`；JSON 正文上限 64 KiB |
 
 `reply.generate` 是当前本地 owner 范围的开发入口：传入业务标识及文本，返回 `status=draft`、`sent=false`。它会发起模型请求，界面刷新和会话探针不会。当前没有多用户授权管理、渠道收发或外部 Effect 派发，不能将这个入口当作完整聊天产品或通用任务执行工具。
 
@@ -80,7 +81,7 @@ npm run test:ui
 ```text
 <dataDir>/
 ├── runtime-state.json       暂停状态、Session 绑定、最近探针/模型/Goal 验证结果
-├── control/events.sqlite    事件、订阅、Task/Assignment、Mandate/预算、Effect/Receipt、Goal 绑定与命令历史
+├── control/events.sqlite    事件、订阅、Task/Assignment、Mandate/预算、Effect/Receipt、Goal/Conversation 绑定、背景标记及提交水位
 └── workspaces/
     └── <taskId>/artifacts/note.txt  当前受限任务的固定产物；其余为受限 Session 工作目录
 ```
@@ -107,16 +108,27 @@ node --import tsx scripts/embedding-smoke.ts /path/model.gguf /path/llama-server
 
 本轮真实诊断以阶段 2 成功任务为独立依据，原生 Goal 在同一 Session 完成 4 次变更，revision 连续为 1–4、roundsStarted=0。精确原生日志中 request/header、assistant、标题 LLM 与压缩均为 0；控制库有 4 个 confirmed 命令回执，metadataVersion=8。有序重载后 Session 字节与哈希、绑定及命令历史一致，历史验证保留且未重放。证据见[原生 Goal 验证](<artifacts/goal-validation.json>)；该结果证明受控生命周期接缝，不代表已开启自主 Goal 规划或通过崩溃恢复验收。
 
-以下模块已独立实现并有定向合成验证，**尚未接入 Runtime 或真实后端**：
+ConversationStore 的本地任务背景路径已继续接入，范围见下节；分支/合并/分离及回复资格仍只在独立模块中验证。以下模块有定向合成验证，**尚未接入 Runtime 或真实后端**：
 
 | 模块 | 实现范围 | 尚缺的运行接缝 |
 |---|---|---|
-| ConversationStore | 稳定 Conversation/Topic/Session 引用、分支/合并/分离关系、受众边界、来源背景版本与草稿 generation 校验；不复制消息历史 | 渠道与身份适配、原生上下文注入、事件消费及发送 Effect；跨 scope 话题合并拒绝 |
 | MemoryOperationLedger | 复用 EffectLedger 的批准、派发、回执、unknown、删除水位与依赖传播；只存操作/来源元数据 | 真实记忆后端的操作证明、CAS、物理清除与恢复；没有第二套记忆正文库 |
 | ReadViewService | 按可信角色/受众/资源/字段和当前来源权限生成只读视图；独立组件版本、删除/撤权水位、TTL 与使用前复查 | 可信 authority、真实组件读端口、replyer 与最终发送资格接线；不把各组件读数当全局原子快照 |
 | Ombre 薄 MCP 适配 | 固定 3.6.14 公共参数，注入 transport，提供有界 search/readFeel/readI，输出为未可信后端文本 | 未安装、未启动、未连接真实 Ombre；无自动写入/删除、无通用 CAS/操作幂等证明，不直接给 replyer 使用 |
 
 Ombre 的 domain/tag 不是多受众 ACL，“读取”也可能触发原生日志、decay 或通知消费；当前接口不自动获得纯只读保证。具体静态证据与后续真实接入门槛见[核查目录](<../../research/2026-11-02-Ombre接入/目录.md>)。这些独立模块不能据此标成六部分内层或长期记忆已经运行。
+
+## 本地对话与后台标记
+
+对话页的“关联本地任务”只关联现有 Task，不要求任务已经成功；可信运行层固定 `local-owner` 身份与受众，不从请求接收授权主体。默认本地对话标识取 Task ID，重复关联复用稳定 Conversation/Topic/回复绑定；最多 64 个本地绑定。这里只保存控制引用，不创建聊天正文、第二个 inbox 或原生 Session。
+
+每个 Task 复用一条 `task.succeeded` 订阅。消费者重新检查持久 claim、事件来源、scope 与真实 Task 成功状态，再在同一 SQLite 事务提交背景来源标记和 Event ack。领取次数单独持久化，失败保留投递重试资格；来源版本 1 表示一次不可变的已核验成功事实，不取全局事件序号或 Task 总修订号。一个 Task 可以关联多个本地对话；晚建绑定仍需首次加载来源，不能因旧投递已确认就显示已同步。
+
+后台扫描在启动、任务结算、关联后唤醒，并每 5 秒补扫；每批最多 20 条，每次唤醒最多 4 批，卸载等待在途扫描结束。暂停允许纯背景落库；持久 failed 投递使整体状态保持 degraded，不能被后续空扫描消除。GET 与仪表盘刷新不消费投递，也不调用 `ackContext`；Event ack 只确认背景标记已落库，不能证明上下文已注入 Session。本切片不开放原生上下文注入、回复/发送或 ReadView。
+
+控制库另提供持久 `commitSeq`，有效行或支持的 schema 变化在同一外层提交中计一次；纯读、无变化和回滚不增加。旧库首次启用建立独立基线，不回填旧历史，只有相同 baselineId 的序号可以比较。它不是事件序号、Task 版本或内层组合投影的 `stateVersion`，不能用它宣布 ReadView 权威已建立。实际限制见[控制库说明](<src/adapters/control-store/README.md>)；修复后全量 348/348 模块、83/83 UI 通过，限定宿主关联、刷新及修复后重载幂等核对已有证据。
+
+真实 DSH 中，首次关联成功 Task 后只有 1 条 acked 投递，pending=1、needsSync=true，尚无来源确认游标或原生回复 Session 绑定。修复前一次刷新保持 commitSeq 9→9；事务修补后重载并重复关联，commitSeq 17→17，绑定与业务摘要保持一致。两次源码证据分别保留，最终宿主复验限于已有绑定的幂等关联；3 个精确自有工作目录内的 6 个 Session 均未新增或改变，不代表宿主其他流量。详情见[对话背景验证](<artifacts/conversation-validation.json>)。
 
 ## 实际源码入口
 
@@ -130,11 +142,14 @@ src/control/policy/mandates.ts        可信授权、预算预留与结算
 src/control/effects/                 Effect 账本、回执、执行资格与 unknown
 src/control/task-runner.ts           原生 worker 与本地产物任务编排
 src/control/goal-lifecycle.ts         以真实 Task/产物/回执验证原生 Goal 生命周期
-src/control/conversations/           独立业务绑定/背景版本，尚未运行接入
+src/control/conversations/           稳定业务绑定与背景版本；本地 Task 路径已接入
+src/control/background-pump.ts       有界后台投递扫描与唤醒
 src/control/memory/                  独立记忆操作控制账本，尚未运行接入
 src/views/                           独立只读裁剪服务，尚未运行接入
 src/adapters/control-store/          SQLite Worker、协议与主线程代理
 src/adapters/control-store/goal-bindings.ts  原生 Goal 引用与命令回执 CAS
+src/adapters/control-store/conversation-domain.ts  可信本地关联、背景投影与原子 ack
+src/adapters/control-store/commit-watermark.ts     控制库持久提交水位与基线
 src/adapters/dsh/sessions.ts          受限原生 replyer Session 适配
 src/adapters/dsh/workers.ts           受限原生 worker、工具与执行资格
 src/adapters/dsh/goals.ts             原生 Goal 生命周期薄适配
@@ -156,8 +171,9 @@ artifacts/model-validation.json      后续两轮真实生成、Session 复用�
 artifacts/task-validation.json       本地任务实际成败、独立产物、回执与原生用量
 artifacts/phase2-offline-validation.json  阶段 2 限定测试批次、命令及测试源码摘要
 artifacts/goal-validation.json       原生 Goal 四步零推理、独立证明及有序重载证据
+artifacts/conversation-validation.json  背景关联/刷新/重载、修复前后分段及幂等证据
 vendor/dsh-superagent/               未修改的上游证据基线，独立于运行时适配
 licenses/                           随发布包保留的第三方完整许可
 ```
 
-第三方来源与本地修改由[来源说明](<THIRD_PARTY_NOTICES.md>)维护。阶段 2 `1e1bdd2` 的限定 **16 文件、198/198 模块**及 **39/39 UI** 保留为已验快照。当前新增 Goal 接线、取消修补及独立模块后的 `npm run check` 为 **304/304**，类型检查/构建/Client 语法检查通过；完整 UI 为 **64/64**。两批均包含旧用例，不能相加成新增数量。模块与 UI 夹具不替代真实 Goal/记忆后端验收，独立模块合成通过也不表示已运行接入。完整规划树仍见[本体文件树规划](<../../架构与设计/识雨本体文件树规划.md>)。
+第三方来源与本地修改由[来源说明](<THIRD_PARTY_NOTICES.md>)维护。阶段 2 `1e1bdd2` 的限定 **16 文件、198/198 模块**及 **39/39 UI** 保留为已验快照。已同步 `0f946f4` 的 Goal 接线、取消修补及独立模块批次 `npm run check` 为 **304/304**，类型检查/构建/Client 语法检查通过；完整 UI 为 **64/64**。本地对话/后台标记与水位的修复前全量检查为 **345/345 模块、83/83 UI**；事务边界修补后全量为 **348/348 模块**，类型检查/构建/Client 语法通过。UI 文件未变，沿用本切片 **83/83** 结果；两次源码与宿主证据分别记录。各批包含旧用例，不能相加成新增数量。模块与 UI 夹具不替代真实 Goal/记忆后端验收，独立模块合成通过也不表示已运行接入。完整规划树仍见[本体文件树规划](<../../架构与设计/识雨本体文件树规划.md>)。

@@ -3,7 +3,8 @@
  * src/app/store.ts, commit 6337fc823ce20251c8de8085948165c81aaa701e, lines 134–161.
  * Local changes: explicit outer BEGIN IMMEDIATE; synchronous-only callbacks;
  * stack updates after successful SAVEPOINT; failure aggregation and connection
- * quarantine; notification failures cannot change an already committed result.
+ * quarantine; notification failures cannot change an already committed result;
+ * synchronous outer-transaction hooks for the same-database commit watermark.
  *
  * MIT License — Copyright (c) 2026 DeepSeek Harness Team
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -56,6 +57,11 @@ export interface TransactionOptions {
   /** A synchronous diagnostic sink, never a durable dispatcher. Its failures are retained too. */
   onNotificationFailure?: (failure: PostCommitNotificationFailure) => void;
 }
+/** Trusted same-connection bookkeeping, never external I/O or a dispatcher. */
+export interface TransactionHooks {
+  afterBegin(): void;
+  beforeCommit(): void;
+}
 
 function rejectThenable(value: unknown): void {
   // Check native Promises before reading their possibly overridden `then`.
@@ -88,12 +94,23 @@ export class SqliteTransactions {
   private quarantined = false;
   private fault: unknown;
   private notificationFailure?: PostCommitNotificationFailure;
+  private hooks?: TransactionHooks;
+  private controlling = false;
 
   constructor(private readonly db: TransactionConnection, private readonly options: TransactionOptions = {}) {}
   /** Exact identity check for composing repositories and effect records on one connection. */
   owns(connection: TransactionConnection): boolean { return this.db === connection; }
   get depth(): number { return this.frames.length; }
   get poisoned(): boolean { return this.quarantined; }
+  /** Only the connection authorizer uses this to reject foreign transaction SQL. */
+  get controlsTransaction(): boolean { return this.controlling; }
+  installHooks(hooks: TransactionHooks): void {
+    this.assertUsable(); this.assertExpectedState(false);
+    if (this.frames.length || this.hooks) throw new Error('Transaction hooks are already installed or a transaction is active');
+    if (typeof hooks.afterBegin !== 'function' || typeof hooks.beforeCommit !== 'function'
+      || isAsyncFunction(hooks.afterBegin) || isAsyncFunction(hooks.beforeCommit)) throw new SynchronousTransactionRequired();
+    this.hooks = Object.freeze({ afterBegin: hooks.afterBegin, beforeCommit: hooks.beforeCommit });
+  }
   /** Most recent notification failure, retained even when its diagnostic sink throws. */
   get lastNotificationFailure(): PostCommitNotificationFailure | undefined { return this.notificationFailure; }
   assertUsable(): void { if (this.quarantined) throw new TransactionPoisonedError(this.fault); }
@@ -108,6 +125,10 @@ export class SqliteTransactions {
       this.poison(error); throw error;
     }
   }
+  private control(sql: string): void {
+    this.controlling = true;
+    try { this.db.exec(sql); } finally { this.controlling = false; }
+  }
 
   atomic<T>(operation: () => T & Synchronous<T>): T {
     this.assertUsable();
@@ -117,7 +138,7 @@ export class SqliteTransactions {
     if (isAsyncFunction(operation)) throw new SynchronousTransactionRequired();
     const frame: Frame = { name: this.frames.length ? `shiyu_atomic_${++this.sequence}` : null, notifications: [] };
     try {
-      this.db.exec(frame.name ? `SAVEPOINT ${frame.name}` : 'BEGIN IMMEDIATE');
+      this.control(frame.name ? `SAVEPOINT ${frame.name}` : 'BEGIN IMMEDIATE');
       this.assertExpectedState(true);
     } catch (error) {
       // A failed outer BEGIN with no open transaction has acquired no ownership
@@ -135,6 +156,9 @@ export class SqliteTransactions {
     let phase: Phase = 'operation';
     let value: T;
     try {
+      if (!frame.name && this.hooks) {
+        try { rejectThenable(this.hooks.afterBegin()); } catch (error) { this.poison(error); throw error; }
+      }
       value = operation();
       rejectThenable(value);
       // An inner failure may have been caught by domain code. Quarantine still
@@ -143,7 +167,8 @@ export class SqliteTransactions {
       this.assertExpectedState(true);
       phase = 'commit';
       try {
-        this.db.exec(frame.name ? `RELEASE SAVEPOINT ${frame.name}` : 'COMMIT');
+        if (!frame.name && this.hooks) rejectThenable(this.hooks.beforeCommit());
+        this.control(frame.name ? `RELEASE SAVEPOINT ${frame.name}` : 'COMMIT');
         this.assertExpectedState(frame.name !== null);
       } catch (error) { this.poison(error); throw error; }
     } catch (error) {
@@ -179,7 +204,7 @@ export class SqliteTransactions {
     }
     const statements = frame.name ? [`ROLLBACK TO SAVEPOINT ${frame.name}`, `RELEASE SAVEPOINT ${frame.name}`] : ['ROLLBACK'];
     for (const statement of statements) {
-      try { this.db.exec(statement); }
+      try { this.control(statement); }
       catch (error) { errors.push(error); this.poison(error); }
     }
     try { this.assertExpectedState(frame.name !== null); }

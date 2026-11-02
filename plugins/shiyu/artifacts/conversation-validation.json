@@ -1,0 +1,726 @@
+{
+  "schemaVersion": 2,
+  "date": "2026-11-02",
+  "timezone": "America/Caracas",
+  "host": {
+    "version": "0.2.1-rc.5",
+    "runtimeSqliteVersion": "3.53.4",
+    "runtimeSqliteVersionEvidence": "root native runtime UI",
+    "auditSqliteVersion": "3.53.3"
+  },
+  "taskId": "0908b666529d90685193fb27c6913040",
+  "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+  "bindingId": "8c753183-be8a-4f96-8c40-c5b059657cb0",
+  "topicId": "local-topic:2529e39892d11a95e7e8ee5f2346c9f29febd07c582aea167ae4eb3bfd329b47",
+  "sourceEventId": "c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+  "latestStage": "post-fix-idempotent-association",
+  "latestResult": {
+    "accepted": true,
+    "idempotentAssociation": true,
+    "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+    "bindingId": "8c753183-be8a-4f96-8c40-c5b059657cb0",
+    "topicId": "local-topic:2529e39892d11a95e7e8ee5f2346c9f29febd07c582aea167ae4eb3bfd329b47",
+    "sourceEventId": "c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+    "businessSnapshotSha256": "4c1eeede1c9c11c63de4eaa5899d157d1f3d8b715be40cddbdb5c627fcf624a9",
+    "matchesPreFixLinkedAndRefreshedBusinessSnapshot": true,
+    "contextVersion": 1,
+    "pendingBackgroundCount": 1,
+    "sourceCursorCount": 0,
+    "nativeReplySessionBindingCount": 0,
+    "deliveryCount": 1,
+    "deliveryStatuses": [
+      "acked"
+    ],
+    "deliveryAttempts": [
+      1
+    ],
+    "needsSync": true,
+    "contextLoadedIntoSession": false,
+    "inferenceRequested": false
+  },
+  "repair": {
+    "reason": "Independent review reproduced transaction/watermark bypass after caught INSERT OR ROLLBACK automatically ended the SQLite transaction; cached schema statements were also capable of execution-time bypass.",
+    "source": "root independent review and isolated regression report; these bypasses were not exercised against the owned runtime DB",
+    "resolution": "Require the actual db.isTransaction state in write/schema guard branches; permit schema changes only through the controlled synchronous db.exec channel and reject prepared schema statements.",
+    "targetedValidationReportedByRoot": {
+      "watermarkTests": 23,
+      "transactionTests": 16,
+      "conversationTests": 11,
+      "passed": 50
+    },
+    "provenance": "The original 345-module/83-UI positive native association was observed before this repair. It is retained without replacing its source/build hashes. The post-fix 348-module check and native idempotency observation have separate hashes below."
+  },
+  "attempts": [
+    {
+      "stage": "pre-fix-original-association-refresh-reload",
+      "knownLimitation": "This stage predates the independently found rollback/schema watermark bypass; it does not validate that fault boundary.",
+      "evidence": {
+        "schemaVersion": 1,
+        "evidenceLevel": "current-run-native-DSH-UI-plus-read-only-owned-control-ledger-and-three-exact-owned-Session-roots",
+        "date": "2026-11-02",
+        "timezone": "America/Caracas",
+        "host": {
+          "version": "0.2.1-rc.5",
+          "runtimeSqliteVersion": "3.53.4",
+          "runtimeSqliteVersionEvidence": "root native runtime UI",
+          "auditSqliteVersion": "3.53.3"
+        },
+        "taskId": "0908b666529d90685193fb27c6913040",
+        "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+        "bindingId": "8c753183-be8a-4f96-8c40-c5b059657cb0",
+        "topicId": "local-topic:2529e39892d11a95e7e8ee5f2346c9f29febd07c582aea167ae4eb3bfd329b47",
+        "sourceEventId": "c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+        "result": {
+          "accepted": true,
+          "backgroundDeliveryAcknowledged": true,
+          "contextLoadedIntoSession": false,
+          "needsSync": true,
+          "pendingBackgroundCount": 1,
+          "nativeReplySessionBindingCount": 0,
+          "inferenceRequested": false
+        },
+        "uiActions": {
+          "source": "root nativeUI observations; SQL and Session evidence independently read below",
+          "initialRuntimeReloadAtLocal": "2026-11-02 03:07:53 America/Caracas",
+          "linkClicks": 1,
+          "linkAtLocal": "2026-11-02 03:08:42 America/Caracas",
+          "refreshClicksAfterLink": 1,
+          "refreshAtLocal": "2026-11-02 03:10:04 America/Caracas",
+          "orderedRuntimeReloadAtLocal": "2026-11-02 03:11:15 America/Caracas",
+          "afterReload": {
+            "openedConversationDetail": true,
+            "sameConversationBindingAndTopic": true,
+            "workingCount": 0,
+            "runtimeState": "idle",
+            "runtimeLifecycle": "ready",
+            "allThreePluginsEnabled": true,
+            "latestScannerBatch": {
+              "claimed": 0,
+              "processed": 0,
+              "failed": 0
+            }
+          },
+          "associationRepeated": false,
+          "modelTaskGoalDiagnosticActionsTriggered": false
+        },
+        "checkpoints": {
+          "before": {
+            "capturedAt": "2026-11-02T07:07:19.941Z",
+            "taskCount": 2,
+            "goalBindingCount": 1,
+            "goalCommandCount": 4,
+            "localConversationCount": 0,
+            "sessionBindingCount": 2,
+            "ownedNativeSessionCount": 6
+          },
+          "linked": {
+            "capturedAt": "2026-11-02T07:10:03.250Z",
+            "commitSeq": 9,
+            "baselineId": "95882c76-6134-4437-b360-5c3d41e2f618",
+            "businessSnapshotSha256": "4c1eeede1c9c11c63de4eaa5899d157d1f3d8b715be40cddbdb5c627fcf624a9"
+          },
+          "refreshed": {
+            "schemaVersion": 1,
+            "capturedAt": "2026-11-02T07:10:55.452Z",
+            "uiRefreshAtLocal": "2026-11-02 03:10:04 America/Caracas",
+            "uiObservationSource": "root native UI",
+            "commitSeq": 9,
+            "baselineId": "95882c76-6134-4437-b360-5c3d41e2f618",
+            "businessSnapshotSha256": "4c1eeede1c9c11c63de4eaa5899d157d1f3d8b715be40cddbdb5c627fcf624a9",
+            "matchesLinkedBusinessSnapshot": true,
+            "pendingCount": 1,
+            "sourceCount": 1,
+            "contextVersion": 1,
+            "syncedContextVersion": 0,
+            "syncedRoutingRevision": 0,
+            "sourceCursorCount": 0,
+            "nativeSessionBindingCount": 0,
+            "deliveryCount": 1,
+            "deliveryStatuses": [
+              "acked"
+            ]
+          },
+          "after": {
+            "capturedAt": "2026-11-02T07:13:05.998Z",
+            "commitSeq": 13,
+            "baselineId": "95882c76-6134-4437-b360-5c3d41e2f618",
+            "businessSnapshotSha256": "4c1eeede1c9c11c63de4eaa5899d157d1f3d8b715be40cddbdb5c627fcf624a9",
+            "matchesLinkedBusinessSnapshot": true,
+            "taskCount": 2,
+            "goalBindingCount": 1,
+            "goalCommandCount": 4,
+            "localConversationCount": 1,
+            "sessionBindingCount": 2,
+            "ownedNativeSessionCount": 6
+          }
+        },
+        "conversation": {
+          "conversation": {
+            "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+            "key": {
+              "connectionId": "local-synthetic",
+              "platformConversationId": "0908b666529d90685193fb27c6913040",
+              "kind": "direct",
+              "scope": "local-owner"
+            },
+            "revision": 3,
+            "audienceVersion": 1,
+            "conversationGeneration": 3,
+            "archived": false,
+            "createdAt": "2026-11-02T07:08:42.491Z",
+            "updatedAt": "2026-11-02T07:08:42.492Z"
+          },
+          "binding": {
+            "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+            "topicId": "local-topic:2529e39892d11a95e7e8ee5f2346c9f29febd07c582aea167ae4eb3bfd329b47",
+            "sessionEpoch": 1,
+            "bindingId": "8c753183-be8a-4f96-8c40-c5b059657cb0",
+            "scope": "local-owner",
+            "revision": 3,
+            "routingRevision": 2,
+            "contextVersion": 1,
+            "syncedContextVersion": 0,
+            "syncedRoutingRevision": 0,
+            "businessId": "conversation:075ffe7a-528d-4f42-b5e5-047a98468b49:reply:62f6edee2d39b3115035c5ec9ca32ccbb58b14d77639bcd4157827914f1bc998",
+            "createdAt": "2026-11-02T07:08:42.492Z",
+            "updatedAt": "2026-11-02T07:08:42.503Z"
+          },
+          "pending": [
+            {
+              "contextVersion": 1,
+              "eventId": "c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+              "reference": {
+                "kind": "task",
+                "id": "0908b666529d90685193fb27c6913040"
+              },
+              "sourceVersion": 1,
+              "evidenceRef": "event:c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+              "gap": false
+            }
+          ],
+          "sources": [
+            {
+              "reference": {
+                "kind": "task",
+                "id": "0908b666529d90685193fb27c6913040"
+              },
+              "sourceVersion": 1,
+              "eventId": "c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+              "evidenceRef": "event:c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+              "gap": false
+            }
+          ],
+          "contextSourceCursors": [],
+          "nativeSessionBindings": [],
+          "backgroundReceipt": {
+            "eventId": "c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+            "scope": "local-owner",
+            "status": "recorded",
+            "affectedBindingIds": [
+              "8c753183-be8a-4f96-8c40-c5b059657cb0"
+            ]
+          },
+          "subscription": {
+            "id": "conversation-task-success:0908b666529d90685193fb27c6913040",
+            "status": "active",
+            "spec": {
+              "deliveryMode": "component",
+              "filter": {
+                "taskId": "0908b666529d90685193fb27c6913040"
+              },
+              "maxAttempts": 5,
+              "scope": "local-owner",
+              "target": {
+                "handlerRef": "conversation.background",
+                "kind": "component"
+              },
+              "types": [
+                "task.succeeded"
+              ]
+            }
+          },
+          "deliveries": [
+            {
+              "id": "df2c72fb397f012c9967b04f73ade08171781463c3d1e326050e94c7955e1db4",
+              "event_id": "c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+              "subscription_id": "conversation-task-success:0908b666529d90685193fb27c6913040",
+              "status": "acked",
+              "attempts": 1,
+              "acknowledged_at": "2026-11-02T07:08:42.503Z"
+            }
+          ]
+        },
+        "commitWatermark": {
+          "baselineId": "95882c76-6134-4437-b360-5c3d41e2f618",
+          "startedAt": "2026-11-02T07:07:53.546Z",
+          "history": "since-installation",
+          "installationDoesNotReconstructPastCommits": true,
+          "linkedCommitSeq": 9,
+          "refreshedCommitSeq": 9,
+          "afterOrderedReloadCommitSeq": 13,
+          "refreshChangedBusinessData": false,
+          "refreshAdvancedCommitSeq": false,
+          "reloadBusinessSnapshotUnchanged": true,
+          "lifecycleAfterLink": [
+            {
+              "eventId": "f57f1693-198f-47e9-9a5b-cf6623d419de",
+              "receivedAt": "2026-11-02T07:11:15.706Z",
+              "correlationId": "a4631e20-0f60-40ae-b8a3-1a8ede90e81f",
+              "payload": {
+                "message": "识雨本体基础已装载",
+                "status": "ready"
+              }
+            }
+          ],
+          "reloadIncludesLegitimateInitializationAndLifecycleWrites": true
+        },
+        "scopedNativeSessionEvidence": {
+          "method": "Only the three exact owned workspace roots from the before baseline were enumerated. Only shiyu-* Session logs were read; all concatenated zstd frames decoded via engine.bytesWritten. File metadata stable during each read; no prompt/body content retained.",
+          "roots": [
+            {
+              "workspace": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/workspaces",
+              "root": "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--",
+              "managedSessionCount": 3,
+              "unchangedFromBaseline": true,
+              "sessions": [
+                {
+                  "sessionId": "shiyu-replyer-28e27e7c-641d-463e-897b-de7e482918b0",
+                  "bytes": 380,
+                  "sha256": "3f6fed22d3e86b2252f17054223dbc3b4375742303d88978f9be508488174989",
+                  "mtime": "2026-11-02T05:29:39.606Z",
+                  "frames": 2,
+                  "rows": 4,
+                  "events": 3,
+                  "counts": {
+                    "permission/preset": 1,
+                    "sandbox/mode": 1,
+                    "approval/policy": 1
+                  },
+                  "inferenceCounts": {
+                    "userMessages": 0,
+                    "requestEvents": 0,
+                    "assistantEvents": 0,
+                    "titleLlmRequests": 0,
+                    "compactionEvents": 0
+                  },
+                  "baselineCapturedAt": "2026-11-02T07:07:19.941Z",
+                  "afterCapturedAt": "2026-11-02T07:13:05.998Z",
+                  "bytesHashMtimeAndCountsUnchanged": true
+                },
+                {
+                  "sessionId": "shiyu-replyer-8226ec6f-a103-4a9c-a122-4978d97628b2",
+                  "bytes": 379,
+                  "sha256": "b20de3e480d609397a9d08d1d69001dfffa6dfd196004a6a5b1e0808d2cc2d41",
+                  "mtime": "2026-11-02T05:27:12.895Z",
+                  "frames": 2,
+                  "rows": 4,
+                  "events": 3,
+                  "counts": {
+                    "permission/preset": 1,
+                    "sandbox/mode": 1,
+                    "approval/policy": 1
+                  },
+                  "inferenceCounts": {
+                    "userMessages": 0,
+                    "requestEvents": 0,
+                    "assistantEvents": 0,
+                    "titleLlmRequests": 0,
+                    "compactionEvents": 0
+                  },
+                  "baselineCapturedAt": "2026-11-02T07:07:19.941Z",
+                  "afterCapturedAt": "2026-11-02T07:13:05.998Z",
+                  "bytesHashMtimeAndCountsUnchanged": true
+                },
+                {
+                  "sessionId": "shiyu-replyer-d47cba2a-a154-489f-ac03-8108be78e7e6",
+                  "bytes": 5406,
+                  "sha256": "3de11357c83728afd1103f8b3552797cd851e1f5cf592f879adcda1872c2c6e7",
+                  "mtime": "2026-11-02T05:39:05.651Z",
+                  "frames": 10,
+                  "rows": 27,
+                  "events": 26,
+                  "counts": {
+                    "permission/preset": 1,
+                    "sandbox/mode": 1,
+                    "approval/policy": 1,
+                    "agent/inbox/spliced": 4,
+                    "turn/start": 2,
+                    "step/start": 2,
+                    "system/message": 1,
+                    "user/message": 3,
+                    "request/header": 1,
+                    "request/context": 1,
+                    "session/title": 1,
+                    "session/title-llm-request": 2,
+                    "assistant/message": 2,
+                    "step/end": 2,
+                    "turn/end": 2
+                  },
+                  "inferenceCounts": {
+                    "userMessages": 3,
+                    "requestEvents": 2,
+                    "assistantEvents": 2,
+                    "titleLlmRequests": 2,
+                    "compactionEvents": 0
+                  },
+                  "baselineCapturedAt": "2026-11-02T07:07:19.941Z",
+                  "afterCapturedAt": "2026-11-02T07:13:05.998Z",
+                  "bytesHashMtimeAndCountsUnchanged": true
+                }
+              ]
+            },
+            {
+              "workspace": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/workspaces/59d5273427236380e39601be13d99809",
+              "root": "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-59d5273427236380e39601be13d99809--",
+              "managedSessionCount": 1,
+              "unchangedFromBaseline": true,
+              "sessions": [
+                {
+                  "sessionId": "shiyu-worker-b4de5f1e1b0e3c83bd1495e94c9e3e3108ab45122a9e70a0954edaa4f6adb194-b346e136-a62c-4c50-ad6b-c59fe699ecec",
+                  "bytes": 7077,
+                  "sha256": "39a2d3fea463d848aa52650901d4610813f8e0e9abcfcc27ad7f146db465fdab",
+                  "mtime": "2026-11-02T06:04:00.114Z",
+                  "frames": 9,
+                  "rows": 24,
+                  "events": 23,
+                  "counts": {
+                    "permission/preset": 1,
+                    "sandbox/mode": 1,
+                    "approval/policy": 1,
+                    "agent/inbox/spliced": 2,
+                    "turn/start": 1,
+                    "step/start": 2,
+                    "system/message": 1,
+                    "user/message": 2,
+                    "request/header": 2,
+                    "request/context": 1,
+                    "session/title": 1,
+                    "session/title-llm-request": 1,
+                    "assistant/message": 2,
+                    "tool/call": 1,
+                    "tool/result": 1,
+                    "step/end": 2,
+                    "turn/end": 1
+                  },
+                  "inferenceCounts": {
+                    "userMessages": 2,
+                    "requestEvents": 3,
+                    "assistantEvents": 2,
+                    "titleLlmRequests": 1,
+                    "compactionEvents": 0
+                  },
+                  "baselineCapturedAt": "2026-11-02T07:07:19.941Z",
+                  "afterCapturedAt": "2026-11-02T07:13:05.998Z",
+                  "bytesHashMtimeAndCountsUnchanged": true
+                }
+              ]
+            },
+            {
+              "workspace": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/workspaces/0908b666529d90685193fb27c6913040",
+              "root": "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-0908b666529d90685193fb27c6913040--",
+              "managedSessionCount": 2,
+              "unchangedFromBaseline": true,
+              "sessions": [
+                {
+                  "sessionId": "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+                  "bytes": 2276,
+                  "sha256": "6c8e01f894f1751c2ed10944c569402779ffd170164d0b56c9204aea227d1af4",
+                  "mtime": "2026-11-02T06:41:02.515Z",
+                  "frames": 10,
+                  "rows": 12,
+                  "events": 11,
+                  "counts": {
+                    "permission/preset": 1,
+                    "sandbox/mode": 1,
+                    "approval/policy": 1,
+                    "session/title": 1,
+                    "goal/change": 4,
+                    "session/end-seed": 3
+                  },
+                  "inferenceCounts": {
+                    "userMessages": 0,
+                    "requestEvents": 0,
+                    "assistantEvents": 0,
+                    "titleLlmRequests": 0,
+                    "compactionEvents": 0
+                  },
+                  "baselineCapturedAt": "2026-11-02T07:07:19.941Z",
+                  "afterCapturedAt": "2026-11-02T07:13:05.998Z",
+                  "bytesHashMtimeAndCountsUnchanged": true
+                },
+                {
+                  "sessionId": "shiyu-worker-33f1df8ae6b2484de1d4e1ec3b5972d6a20aed39144c71a1c4220016df6ecc77-a915021b-6f14-4417-837b-9ad1847e88ad",
+                  "bytes": 6235,
+                  "sha256": "fd7c54e4aad65b960b4a561238f8d3b2eadc5091330d589c74e4a1e62edd3e1d",
+                  "mtime": "2026-11-02T06:18:18.829Z",
+                  "frames": 10,
+                  "rows": 23,
+                  "events": 22,
+                  "counts": {
+                    "permission/preset": 1,
+                    "sandbox/mode": 1,
+                    "approval/policy": 1,
+                    "session/title": 1,
+                    "agent/inbox/spliced": 2,
+                    "turn/start": 1,
+                    "step/start": 2,
+                    "system/message": 1,
+                    "user/message": 2,
+                    "request/header": 2,
+                    "request/context": 1,
+                    "assistant/message": 2,
+                    "tool/call": 1,
+                    "tool/result": 1,
+                    "step/end": 2,
+                    "turn/end": 1
+                  },
+                  "inferenceCounts": {
+                    "userMessages": 2,
+                    "requestEvents": 3,
+                    "assistantEvents": 2,
+                    "titleLlmRequests": 0,
+                    "compactionEvents": 0
+                  },
+                  "baselineCapturedAt": "2026-11-02T07:07:19.941Z",
+                  "afterCapturedAt": "2026-11-02T07:13:05.998Z",
+                  "bytesHashMtimeAndCountsUnchanged": true
+                }
+              ]
+            }
+          ],
+          "newSessionCount": 0,
+          "newNativeRequestEvents": 0,
+          "newAssistantEvents": 0,
+          "newTitleLlmRequests": 0,
+          "newCompactionEvents": 0,
+          "sessionBindingsUnchanged": true,
+          "lastGoalVerificationPreserved": true,
+          "goalBindingAndGoalCommandCountUnchanged": true
+        },
+        "checks": {
+          "module": {
+            "command": "npm run check",
+            "passed": 345,
+            "failed": 0,
+            "typecheck": "passed",
+            "build": "passed",
+            "clientSyntax": "passed",
+            "log": ".local/phase3b-check.log",
+            "sha256": "7dd95538447693811969bee0f713f680503affaecef32328d286b7ef5279f101",
+            "mtime": "2026-11-02T07:07:19.703Z"
+          },
+          "ui": {
+            "command": "npm run test:ui",
+            "passed": 83,
+            "failed": 0,
+            "durationSeconds": 43.6,
+            "log": ".local/phase3b-ui.log",
+            "sha256": "215b66cea39a6e98fef0d694304d5af6e8be1e16de6071215f34a005fb894723",
+            "mtime": "2026-11-02T07:07:43.411Z"
+          }
+        },
+        "sourceSha256": {
+          "src/runtime.ts": "28c0dd499960f66db273c2a494c4f31c504a13bef10fc60ffa233fc425029450",
+          "src/control/background-pump.ts": "51990afac4af2623a2cf68125a06d8674b879c2ac9bc6cd2e2593f35b36290ac",
+          "src/control/conversations/index.ts": "22b536426015221c369931b87f209ca95581953ffa217507509edbf7621a65dd",
+          "src/adapters/control-store/conversation-domain.ts": "da2cbc67a3f0cf9dc4c0beaae009c75e2dba7131844871e758af538b2e1e13d2",
+          "src/adapters/control-store/worker.ts": "6d93c27d557d14f5d97650fabb665ab93b7276a3e5d0525bced28e353e214662",
+          "src/adapters/control-store/protocol.ts": "2527fdc86aaa0db23d637349c494b835fb401247e204971a821574a39ac39a2f",
+          "src/adapters/control-store/commit-watermark.ts": "b26fc311cd98996c17efb927082f85334de376be852b6e4931dd9297191c1b48",
+          "src/adapters/control-store/transaction.ts": "d6204e69a293a1e66924606667bba6aa83c2d08773f70cb5174917c314df0c46",
+          "src/adapters/control-store/task-domain.ts": "f783181e4a2b1f8b6691d44e6fb2f6e1b4a89cdb0ce8f0d08c2699974131a322"
+        },
+        "buildSha256": {
+          "dist/runtime.js": "daba5fcf44838751684c24913b9c3ab66bf4cf29de3bafc3e737f128d2195ca7",
+          "dist/control/background-pump.js": "2f397ead9c74892110c6b567dd1d24ad6a576a17f7c6dfa09575e3df0ab3b72d",
+          "dist/control/conversations/index.js": "ce131f002207fe81ed5aef14edc2af844bb35901a5b520ea3df128d7ff5632b1",
+          "dist/adapters/control-store/conversation-domain.js": "ad24800cce884d7611d70b3f8559388030e8941c7fdd9df005770e961c9c72c3",
+          "dist/adapters/control-store/worker.js": "c91852199ab24bcdcafc900b71fd3661645bea9a75af30a89e5f3ff5e55368c3",
+          "dist/adapters/control-store/protocol.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+          "dist/adapters/control-store/commit-watermark.js": "6c5bc6a83253fea3864b91cb1b7a9597bf173c910f554f2d4c173f325b431b6d",
+          "dist/adapters/control-store/transaction.js": "c5843ea7ac230b13eeed640433ae58c442d76012aa1cbea77b3e0d5277e3b107",
+          "dist/adapters/control-store/task-domain.js": "fd1f8300fc8f9228de33c608473b31af004f20141de8f2d02bd8b4fc683acfa2"
+        },
+        "clientSha256": {
+          "client/index.js": "49527a1bcd797d7789691e947d20cddc6fd201d0d6b5fed91092a4818a6cc3e8",
+          "locale/zh.json": "14140b1c8949127fd85a44d4d780b07a4df65d16eff4762a089a8e8c4255ae3a",
+          "locale/en.json": "d2902331005477758a0d8700435b1d83592efb6fa324b399ec5ba3f3ed6993cc"
+        },
+        "limitations": [
+          "This validates one local synthetic Task-to-Conversation background association, not an external chat channel or full reply generation loop.",
+          "An acknowledged Event delivery means the internal background projection committed; pending=1, needsSync=true and empty source cursors show it was not acknowledged as loaded by a native Session.",
+          "Zero new Session/model/title/compaction events is scoped to the three exact owned workspace roots and unchanged existing bindings; unrelated host/model traffic was not inspected.",
+          "The before baseline includes historical phase-1/2 model requests. Their counts remain unchanged; they are not claimed to be zero.",
+          "One orderly runtime-plugin reload was tested, not process crash or arbitrary fault recovery.",
+          "Commit watermark starts at explicit installation baseline; read-only UI refresh stayed at 9. Reload may advance it through legitimate initialization and lifecycle writes while Conversation business data stays identical.",
+          "No new Task, Goal, native Session, model request, external account, device action or message delivery was initiated by this association/background workflow."
+        ]
+      }
+    },
+    {
+      "stage": "post-fix-idempotent-association",
+      "evidenceLevel": "current-run-native-DSH-UI-plus-read-only-owned-control-ledger-and-three-exact-owned-Session-roots",
+      "capturedAt": "2026-11-02T07:22:51.927Z",
+      "uiActions": {
+        "source": "root native UI / AX observations and pre-action read-only SQL",
+        "runtimeReloadAtLocal": "2026-11-02 03:18:40 America/Caracas",
+        "sameSuccessfulTaskSelected": true,
+        "additionalAssociationClicks": 1,
+        "acceptedReceiptObserved": true,
+        "sameConversationIdAndBindingIdObserved": true,
+        "pendingUpdateCount": 1,
+        "modelTaskGoalDiagnosticActionsTriggered": false
+      },
+      "result": {
+        "accepted": true,
+        "idempotentAssociation": true,
+        "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+        "bindingId": "8c753183-be8a-4f96-8c40-c5b059657cb0",
+        "topicId": "local-topic:2529e39892d11a95e7e8ee5f2346c9f29febd07c582aea167ae4eb3bfd329b47",
+        "sourceEventId": "c8739ec9-ef01-4328-bac9-84e8fdb61df0",
+        "businessSnapshotSha256": "4c1eeede1c9c11c63de4eaa5899d157d1f3d8b715be40cddbdb5c627fcf624a9",
+        "matchesPreFixLinkedAndRefreshedBusinessSnapshot": true,
+        "contextVersion": 1,
+        "pendingBackgroundCount": 1,
+        "sourceCursorCount": 0,
+        "nativeReplySessionBindingCount": 0,
+        "deliveryCount": 1,
+        "deliveryStatuses": [
+          "acked"
+        ],
+        "deliveryAttempts": [
+          1
+        ],
+        "needsSync": true,
+        "contextLoadedIntoSession": false,
+        "inferenceRequested": false
+      },
+      "commitWatermark": {
+        "baselineId": "95882c76-6134-4437-b360-5c3d41e2f618",
+        "startedAt": "2026-11-02T07:07:53.546Z",
+        "history": "since-installation",
+        "beforeDuplicateAssociation": {
+          "commitSeq": 17,
+          "source": "root read-only SQL immediately before explicit duplicate association"
+        },
+        "afterDuplicateAssociation": {
+          "commitSeq": 17,
+          "source": "this read-only exact owned control DB snapshot"
+        },
+        "dirtyMarkerCount": 0,
+        "duplicateAssociationAdvancedCommitSeq": false,
+        "reloadMayAdvanceSequenceThroughInitializationAndLifecycleWrites": true
+      },
+      "controlCounts": {
+        "taskCount": 2,
+        "goalBindingCount": 1,
+        "goalCommandCount": 4,
+        "localConversationCount": 1,
+        "nativeReplySessionBindingCount": 0
+      },
+      "sessionBindingCount": 2,
+      "scopedNativeSessionEvidence": {
+        "comparedWithBaselineAt": "2026-11-02T07:07:19.941Z",
+        "comparedAfterAt": "2026-11-02T07:22:51.927Z",
+        "exactWorkspaceRoots": [
+          "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--",
+          "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-59d5273427236380e39601be13d99809--",
+          "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-0908b666529d90685193fb27c6913040--"
+        ],
+        "sessionCount": 6,
+        "allSessionIdsBytesSha256MtimeAndDecodedCountsUnchanged": true,
+        "sessionIds": [
+          "shiyu-replyer-28e27e7c-641d-463e-897b-de7e482918b0",
+          "shiyu-replyer-8226ec6f-a103-4a9c-a122-4978d97628b2",
+          "shiyu-replyer-d47cba2a-a154-489f-ac03-8108be78e7e6",
+          "shiyu-worker-b4de5f1e1b0e3c83bd1495e94c9e3e3108ab45122a9e70a0954edaa4f6adb194-b346e136-a62c-4c50-ad6b-c59fe699ecec",
+          "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+          "shiyu-worker-33f1df8ae6b2484de1d4e1ec3b5972d6a20aed39144c71a1c4220016df6ecc77-a915021b-6f14-4417-837b-9ad1847e88ad"
+        ],
+        "newNativeSessions": 0,
+        "newRequestEvents": 0,
+        "newAssistantEvents": 0,
+        "newTitleLlmRequests": 0,
+        "newCompactionEvents": 0,
+        "referenceForUnchangedPerSessionHashesAndCounts": "attempts[0].evidence.scopedNativeSessionEvidence.roots"
+      },
+      "checks": {
+        "module": {
+          "command": "npm run check",
+          "passed": 348,
+          "failed": 0,
+          "typecheck": "passed",
+          "build": "passed",
+          "clientSyntax": "passed",
+          "log": ".local/phase3b-check-after-fix.log",
+          "sha256": "07f4e2745fc5b12a08c9b4f8b4a7d76938955575d8ae09c4aef815d7485b7677",
+          "mtime": "2026-11-02T07:17:51.100Z"
+        },
+        "ui": {
+          "command": "npm run test:ui",
+          "passed": 83,
+          "failed": 0,
+          "durationSeconds": 43.6,
+          "log": ".local/phase3b-ui.log",
+          "sha256": "215b66cea39a6e98fef0d694304d5af6e8be1e16de6071215f34a005fb894723",
+          "mtime": "2026-11-02T07:07:43.411Z",
+          "executionStage": "pre-fix; not rerun after backend watermark repair",
+          "reuseBasis": {
+            "clientAndLocaleHashesUnchanged": true,
+            "uiFilesUnchangedReportedBy": "root; no client/locale/UI edits during watermark repair"
+          },
+          "currentClientAndLocaleHashes": {
+            "client/index.js": "49527a1bcd797d7789691e947d20cddc6fd201d0d6b5fed91092a4818a6cc3e8",
+            "locale/zh.json": "14140b1c8949127fd85a44d4d780b07a4df65d16eff4762a089a8e8c4255ae3a",
+            "locale/en.json": "d2902331005477758a0d8700435b1d83592efb6fa324b399ec5ba3f3ed6993cc"
+          }
+        }
+      },
+      "sourceSha256": {
+        "src/runtime.ts": "28c0dd499960f66db273c2a494c4f31c504a13bef10fc60ffa233fc425029450",
+        "src/control/background-pump.ts": "51990afac4af2623a2cf68125a06d8674b879c2ac9bc6cd2e2593f35b36290ac",
+        "src/control/conversations/index.ts": "22b536426015221c369931b87f209ca95581953ffa217507509edbf7621a65dd",
+        "src/adapters/control-store/conversation-domain.ts": "da2cbc67a3f0cf9dc4c0beaae009c75e2dba7131844871e758af538b2e1e13d2",
+        "src/adapters/control-store/worker.ts": "6d93c27d557d14f5d97650fabb665ab93b7276a3e5d0525bced28e353e214662",
+        "src/adapters/control-store/protocol.ts": "2527fdc86aaa0db23d637349c494b835fb401247e204971a821574a39ac39a2f",
+        "src/adapters/control-store/commit-watermark.ts": "d508a8bc930478989e2581626ebdeb7eb0696d43fc226026177be77745d7aa0d",
+        "src/adapters/control-store/transaction.ts": "d6204e69a293a1e66924606667bba6aa83c2d08773f70cb5174917c314df0c46",
+        "src/adapters/control-store/task-domain.ts": "f783181e4a2b1f8b6691d44e6fb2f6e1b4a89cdb0ce8f0d08c2699974131a322"
+      },
+      "buildSha256": {
+        "dist/runtime.js": "daba5fcf44838751684c24913b9c3ab66bf4cf29de3bafc3e737f128d2195ca7",
+        "dist/control/background-pump.js": "2f397ead9c74892110c6b567dd1d24ad6a576a17f7c6dfa09575e3df0ab3b72d",
+        "dist/control/conversations/index.js": "ce131f002207fe81ed5aef14edc2af844bb35901a5b520ea3df128d7ff5632b1",
+        "dist/adapters/control-store/conversation-domain.js": "ad24800cce884d7611d70b3f8559388030e8941c7fdd9df005770e961c9c72c3",
+        "dist/adapters/control-store/worker.js": "c91852199ab24bcdcafc900b71fd3661645bea9a75af30a89e5f3ff5e55368c3",
+        "dist/adapters/control-store/protocol.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+        "dist/adapters/control-store/commit-watermark.js": "93022b349e222da51d96fb5beb22ce1a5f0e612889f7ac2c95055bffd410027e",
+        "dist/adapters/control-store/transaction.js": "c5843ea7ac230b13eeed640433ae58c442d76012aa1cbea77b3e0d5277e3b107",
+        "dist/adapters/control-store/task-domain.js": "fd1f8300fc8f9228de33c608473b31af004f20141de8f2d02bd8b4fc683acfa2"
+      },
+      "clientSha256": {
+        "client/index.js": "49527a1bcd797d7789691e947d20cddc6fd201d0d6b5fed91092a4818a6cc3e8",
+        "locale/zh.json": "14140b1c8949127fd85a44d4d780b07a4df65d16eff4762a089a8e8c4255ae3a",
+        "locale/en.json": "d2902331005477758a0d8700435b1d83592efb6fa324b399ec5ba3f3ed6993cc"
+      },
+      "changedSourcesFromPreFix": [
+        "src/adapters/control-store/commit-watermark.ts"
+      ],
+      "changedBuildsFromPreFix": [
+        "dist/adapters/control-store/commit-watermark.js"
+      ]
+    }
+  ],
+  "limitations": [
+    "This validates one local synthetic Task-to-Conversation background association, not an external chat channel or full reply generation loop.",
+    "An acknowledged Event delivery means the internal background projection committed; pending=1, needsSync=true and empty source cursors show it was not acknowledged as loaded by a native Session.",
+    "Zero new Session/model/title/compaction events is scoped to the three exact owned workspace roots and unchanged existing bindings; unrelated host/model traffic was not inspected.",
+    "The before baseline includes historical phase-1/2 model requests. Their counts remain unchanged; they are not claimed to be zero.",
+    "Ordered runtime-plugin reload evidence is recorded separately: the pre-fix association/refresh/reload attempt and the post-fix build reload/idempotent-association attempt. Neither validates process crash or arbitrary fault recovery.",
+    "Commit watermark starts at explicit installation baseline; read-only UI refresh stayed at 9. Reload may advance it through legitimate initialization and lifecycle writes while Conversation business data stays identical.",
+    "No new Task, Goal, native Session, model request, external account, device action or message delivery was initiated by this association/background workflow.",
+    "The post-fix native check exercised idempotent re-association of the existing Task, not a fresh first association under the repaired build. Fresh admission and rollback/schema boundaries are covered by the separately reported offline tests.",
+    "83 UI tests were not rerun after the backend repair; exact client/locale hashes match the original UI-tested build, and root reports no UI source changes.",
+    "No claim is made that the original native host observations used the repaired source."
+  ]
+}

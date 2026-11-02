@@ -112,3 +112,27 @@ export function makeGoalVerificationReceipt(taskId) {
     operations: ['create', 'pause', 'resume', 'complete'], synthetic: true,
   };
 }
+
+// Local Conversation control projection only; intentionally contains no body.
+export function makeConversation(overrides = {}) {
+  const taskId = 'test-local-task-1';
+  return {
+    conversationId: 'test-conversation-1', localConversationKey: 'test-local-conversation',
+    topicId: 'test-topic-1', bindingId: 'test-binding-1', scope: 'local-owner',
+    audienceVersion: 1, conversationGeneration: 2, routingRevision: 3, sessionEpoch: 1,
+    contextVersion: 7, needsSync: true,
+    sources: [{ reference: { kind: 'task', id: taskId }, sourceVersion: 4 }],
+    pending: [{ contextVersion: 7, eventId: 'test-background-event-1', reference: { kind: 'task', id: taskId }, sourceVersion: 4, evidenceRef: 'synthetic:evidence/task-version-4', gap: true }],
+    taskRefs: [{ taskId, state: 'running', version: 4 }],
+    subscriptionRefs: [{ id: 'test-background-subscription-1', taskId, status: 'active', replayTruncated: false, replayedCount: 0, startSequence: 1 }],
+    ...overrides,
+  };
+}
+
+export function makeConversationBackground(overrides = {}) {
+  return {
+    subscriptions: 1, pending: 0, claimed: 0, acknowledged: 9, failed: 0, cancelled: 0,
+    state: 'idle', lastScanAt: new Date().toISOString(), lastBatch: { claimed: 1, processed: 1, failed: 0 },
+    ...overrides,
+  };
+}

@@ -1,6 +1,6 @@
 # Conversation 业务绑定与背景版本
 
-2026-11-02：阶段 3 独立模块，已完成真实 SQLite 合成测试，尚未接入 runtime、DB Worker、渠道或模型。依据已确认的 [多频道话题与后台协作](../../../../../架构与设计/A方案全景/多频道话题与后台协作.md)、[统一事件接口与发布订阅](../../../../../架构与设计/A方案全景/统一事件接口与发布订阅.md) 和 [跨模块契约](../../../../../架构与设计/A方案全景/跨模块契约.md)。
+2026-11-02：阶段 3，业务模块及本地 Task 背景投影已接入同一 DB Worker；Runtime 通过受控本地入口和有界扫描驱动。尚未接真实渠道、原生 Session 上下文注入或完整 ReadView 权威，不请求模型。依据已确认的 [多频道话题与后台协作](../../../../../架构与设计/A方案全景/多频道话题与后台协作.md)、[统一事件接口与发布订阅](../../../../../架构与设计/A方案全景/统一事件接口与发布订阅.md) 和 [跨模块契约](../../../../../架构与设计/A方案全景/跨模块契约.md)。
 
 ## 创建与可信边界
 
@@ -58,6 +58,30 @@ const conversations = new ConversationStore(db, transactions, {
 3. ReadView 可以通过只读适配层取得 `version()`。策略版本、auth epoch 和删除水位仍由其所属服务提供；背景 `contextVersion` 不应默认作为所有视图/草稿的强失效条件。
 4. 原生 Session 创建/恢复、异步上下文注入及渠道发送均在 DB 同步事务外完成。发生部分完成或回执不明时，沿用宿主与 Effect 的恢复机制，本模块不自行重放模型请求。
 
+## 当前本地接线
+
+`adapters/control-store/conversation-domain.ts` 使用固定 `local-owner` 受众和可信组件 `shiyu-conversation-background`，注册 handler 为 `conversation.background`。模型与公共参数不能指定 actor、scope、事件正文或来源版本。Worker 提供：
+
+| 命令 | 行为 |
+| --- | --- |
+| `conversation.ensureLocalTask({taskId, localConversationKey?})` | 只关联已有本地 Task；key 默认为 Task ID，允许 1–100 个字母、数字、下划线或连字符，最多 64 个本地对话。相同 key 复用 Conversation/Topic/binding，同 Task 可关联不同 key。 |
+| `conversation.consumeBackground({limit?})` | 每批 1–20 条，仅消费现有 Event 队列里的可信 `task.succeeded`。 |
+| `conversation.snapshotLocal({conversationId?})` | 返回业务引用、Task 状态、背景版本、待同步标记和订阅回放缺口；只读，不领取投递或确认上下文。它是控制状态投影，不声称是完整 ReadView。 |
+
+Task 仍由原 `task.verify` 在同一事务中提交独立核验成功状态和 `task.succeeded` 事件。每个 Task 只建立一个固定组件订阅，按 taskId 过滤并有界回放；`replayTruncated` 保留在返回状态中，不能用“订阅建立成功”代替历史完整性。
+
+消费者先领取投递、持久化 attempts，再逐条在共享事务中复验 claim、读取存储的 envelope、检查真实 Task 已 succeeded、写入背景标记并 Event ack。背景写入或 ack 失败时二者共同回滚，随后用原 Event `fail` 记录重试；不新建 inbox。`duplicate` 计入 `acknowledged`，正常批次返回满足 `acknowledged + failed === claimed`；failed 是消费失败次数，返回的 delivery status 另行区分 retrying、failed 和 stale。无法证明事务结果时整批命令抛错，保持隔离状态。
+
+当前 v1 事件只有 taskId，因此来源版本 1 明确表示该 Task 的一次性成功事实，不是全局 Event sequence，也不是 Task 聚合 revision。Task 状态的真实 revision 单独返回为 `taskRefs[].version`。将来增加其他状态事件时需要明确来源版本契约，不能悄改已登记的事件 v1。
+
+同 Task 的多个既有绑定会一起增加背景版本。若 A 已消费成功事件后才创建 B，B 可以是 `pending=[]`、`contextVersion=0`，但仍具有 `sources=[Task 成功事实 v1]` 和 `needsSync=true`，表示首次来源加载未完成；不伪造一条新事件补 pending。界面必须依据 `needsSync`，不能仅依据 pending 数量判断是否同步。
+
+Event ack 只表示背景标记已持久化，本切片不调用 `ackContext`。查看 UI、成功消费事件以及模型暂停都不意味着原生上下文已加载。原生 Session、Goal 和模型验证不由这些命令启动。`control.watermark` 只读暴露真实控制写提交水位及其安装基线；它不替代尚未接入的组合投影 stateVersion 或 ReadView 权威。
+
 ## 本轮验证
 
-`node --import tsx --test tests/conversations.test.ts`：17/17 通过。使用真实临时 SQLite，覆盖重开恢复、默认绑定身份、私聊隔离、能力授权、部分/旧确认、版本缺口、依赖草稿失效、分支/合并/分离、受众轮换、归档、事件回执原子提交和发送前检查。`tsc --noEmit --pretty false` 通过。未调用模型、未创建原生 Session、未发消息；这些结果不代表渠道或运行时集成已验收。
+独立业务模块的 `tests/conversations.test.ts` 为既有 17 项基线，覆盖重开恢复、默认绑定身份、私聊隔离、能力授权、部分/旧确认、版本缺口、依赖草稿失效、分支/合并/分离、受众轮换、归档、事件回执原子提交和发送前检查。
+
+新增 `tests/conversation-store-integration.test.ts` 使用临时 SQLite 和真实 Worker IPC 验证上述本地接线；故障案例使用真实 SQLite 加同步合成 EventPort，在 ack 写入后抛错验证共同回滚。测试中的 Task 完成证据为显式合成观察，不访问真实产物、宿主、模型或渠道。完整验收结果由本轮实施记录列明，不将这些合成结果算作真实渠道验收。
+
+本轮命令 `node --import tsx --test tests/conversation-store-integration.test.ts tests/conversations.test.ts`：28/28 通过（新增集成 11 项、原领域 17 项）；全包 `tsc --noEmit --pretty false` 通过。集成测试还核对真实 `commitSeq`：claim 与背景投影加 ack 各计一次写提交，多个绑定和嵌套 savepoint 不多计；重复 ensure、空消费和只读 snapshot 不增加水位。

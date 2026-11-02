@@ -55,6 +55,25 @@ window.__ModuleLoader__.load({
       goalVerifyNeedsTask: '请先完成本地任务验证', goalVerifyTask: '检查依据任务', goalVerifyDone: '原生 Goal 生命周期检查通过：创建、暂停、恢复和完成已确认，未请求模型推理。',
       goalVerifyUnconfirmed: '原生 Goal 检查回执未完整确认任务、目标、会话、完成状态、零推理及四步操作链；结果未确认。',
       goalVerifyReceipt: '本次 Goal 检查回执', goalId: '识雨目标 ID', nativeGoalId: '原生 Goal ID', nativePhase: '原生阶段', goalOperations: '已确认操作链', inferenceRequested: '模型推理请求', noInferenceRequested: '未请求',
+      conversations: '对话', conversationsHint: '查看本地对话的控制记录、任务关联和背景来源版本。这里不展示聊天或记忆正文。',
+      conversationsUnavailable: '对话视图尚未接入', noConversations: '暂无本地对话记录', conversationDetails: '对话详情', conversationSelect: '选择一条对话查看详情', viewConversation: '查看对话 {id}',
+      conversationId: 'Conversation ID', topicId: 'Topic ID', replyBindingId: '绑定 ID', localConversationKey: '本地对话标识', conversationScope: '固定受众范围',
+      conversationScopeUnknown: '快照包含范围未确认的对话记录；未展示该记录。', conversationNotInSnapshot: '当前快照尚未包含回执对应的对话绑定；关联状态仍待核对。',
+      contextVersion: '背景版本', audienceVersion: '受众版本', conversationGeneration: '对话代次', routingRevision: '路由版本', sessionEpoch: 'Session 代次',
+      contextNeedsLoad: '背景信息待加载', contextNoPending: '当前未标记待加载', contextUnknown: '背景加载状态未确认',
+      conversationReadOnly: '查看或刷新不会加载、消费或确认背景信息，也不代表已同步到 Session。',
+      linkedTasks: '已关联任务', noLinkedTasks: '暂无已关联任务', linkedTasksUnknown: '尚未提供任务关联', recordVersion: '记录版本',
+      contextSources: '当前来源版本', noContextSources: '暂无来源记录', sourcesUnknown: '尚未提供来源记录', sourceReference: '来源引用', sourceVersion: '来源版本',
+      pendingSources: '待加载的背景更新', noPendingSources: '暂无背景增量记录；当前来源仍可能尚未加载。', pendingSourcesUnknown: '尚未提供待加载来源记录',
+      backgroundEventId: '背景事件 ID', sourceGap: '来源版本缺口', gapPresent: '存在缺口，待核对', gapAbsent: '未记录缺口',
+      conversationLinkTitle: '本地任务关联', conversationLink: '关联本地任务', conversationLinking: '正在受理关联…',
+      conversationLinkHint: '选择本地任务，关联到固定 local-owner 范围的对话，默认选中最近更新的任务。只记录控制关系，不创建 Session、不调用模型或发送消息。',
+      conversationLinkNeedsTask: '请先运行本地任务验证；任务无需已完成。', conversationLinkTask: '本次关联任务', conversationLinkTaskMissing: '选定任务不在当前快照中，请重新选择。',
+      conversationLinkAccepted: '任务关联请求已受理（{id}）；关联记录以读取到的对话快照为准，尚不表示背景已加载。',
+      conversationLinkUnconfirmed: '关联回执未完整确认本次任务、Conversation 和绑定；结果未确认。请刷新核对，不会自动重试。',
+      backgroundDelivery: '后台标记投递', backgroundDeliveryHint: '这里的待投递与已落库计数属于后台投递，不代表来源已加载到 Session；暂停时仍可接收后台标记。',
+      backgroundUnavailable: '后台投递状态尚未接入', backgroundState: '扫描状态', backgroundPending: '待投递', backgroundClaimed: '已认领', backgroundAcknowledged: '已落库确认', backgroundCancelled: '已取消投递',
+      backgroundLastScan: '最近扫描', backgroundLastFailure: '最近失败', backgroundBatch: '最近扫描批次', backgroundProcessed: '已处理', status_stopped: '已停止',
       commandFailed: '操作未完成', commandUncertain: '操作结果未确认，请先刷新状态再决定下一步。', requestFailed: '请求失败',
       controlPending: '正在处理请求…', close: '关闭详情', phase: '阶段', checked: '最近检查', source: '来自运行快照',
     };
@@ -109,6 +128,25 @@ window.__ModuleLoader__.load({
       goalVerifyNeedsTask: 'Complete local task validation first', goalVerifyTask: 'Task used for this check', goalVerifyDone: 'Native Goal lifecycle checked: creation, pause, resume, and completion confirmed, with no model inference requested.',
       goalVerifyUnconfirmed: 'The Goal receipt does not fully confirm the task, Goal, Session, completion, no inference, and the four-step operation sequence. The result is unconfirmed.',
       goalVerifyReceipt: 'Goal check receipt', goalId: 'Shiyu Goal ID', nativeGoalId: 'Native Goal ID', nativePhase: 'Native phase', goalOperations: 'Confirmed operation sequence', inferenceRequested: 'Model inference requested', noInferenceRequested: 'Not requested',
+      conversations: 'Conversations', conversationsHint: 'Inspect local conversation control records, task links, and background source versions. Chat and memory content are not displayed.',
+      conversationsUnavailable: 'Conversation view is not connected yet', noConversations: 'No local conversations yet', conversationDetails: 'Conversation details', conversationSelect: 'Select a conversation to inspect it', viewConversation: 'View conversation {id}',
+      conversationId: 'Conversation ID', topicId: 'Topic ID', replyBindingId: 'Binding ID', localConversationKey: 'Local conversation key', conversationScope: 'Fixed audience scope',
+      conversationScopeUnknown: 'The snapshot contains a conversation with an unconfirmed scope. That record is not displayed.', conversationNotInSnapshot: 'The receipt’s conversation binding is not in the current snapshot. The link still needs confirmation.',
+      contextVersion: 'Context version', audienceVersion: 'Audience version', conversationGeneration: 'Conversation generation', routingRevision: 'Routing revision', sessionEpoch: 'Session epoch',
+      contextNeedsLoad: 'Background context awaiting load', contextNoPending: 'No pending load marked', contextUnknown: 'Context load state unconfirmed',
+      conversationReadOnly: 'Viewing or refreshing does not load, consume, or acknowledge context, and does not confirm synchronization to a Session.',
+      linkedTasks: 'Linked tasks', noLinkedTasks: 'No linked tasks', linkedTasksUnknown: 'Task links not reported', recordVersion: 'Record version',
+      contextSources: 'Current source versions', noContextSources: 'No source records', sourcesUnknown: 'Source records not reported', sourceReference: 'Source reference', sourceVersion: 'Source version',
+      pendingSources: 'Background updates awaiting load', noPendingSources: 'No background update records. Current sources may still be awaiting their first load.', pendingSourcesUnknown: 'Pending source records not reported',
+      backgroundEventId: 'Background event ID', sourceGap: 'Source version gap', gapPresent: 'Gap recorded; review required', gapAbsent: 'No gap recorded',
+      conversationLinkTitle: 'Local task link', conversationLink: 'Link local task', conversationLinking: 'Admitting task link…',
+      conversationLinkHint: 'Choose a local task to link to a conversation in the fixed local-owner scope. Defaults to the most recently updated task. Records control relationships only, without creating a Session, calling a model, or sending a message.',
+      conversationLinkNeedsTask: 'Run local task validation first. The task need not be complete.', conversationLinkTask: 'Task to link', conversationLinkTaskMissing: 'The selected task is not in the current snapshot. Select a task again.',
+      conversationLinkAccepted: 'Task link request accepted ({id}). Check the conversation snapshot for the link; this does not confirm that background context was loaded.',
+      conversationLinkUnconfirmed: 'The receipt does not fully confirm this task, Conversation, and binding. The result is unconfirmed. Refresh to inspect it; no automatic retry will occur.',
+      backgroundDelivery: 'Background marker delivery', backgroundDeliveryHint: 'Pending and acknowledged delivery counts do not confirm that sources were loaded into a Session. Background markers may still arrive while paused.',
+      backgroundUnavailable: 'Background delivery status is not connected yet', backgroundState: 'Scanner state', backgroundPending: 'Awaiting delivery', backgroundClaimed: 'Claimed', backgroundAcknowledged: 'Recorded acknowledgements', backgroundCancelled: 'Cancelled deliveries',
+      backgroundLastScan: 'Last scan', backgroundLastFailure: 'Last failure', backgroundBatch: 'Last scan batch', backgroundProcessed: 'Processed', status_stopped: 'Stopped',
       commandFailed: 'Operation did not complete', commandUncertain: 'The result is unconfirmed. Refresh the state before deciding what to do next.', requestFailed: 'Request failed',
       controlPending: 'Processing request…', close: 'Close details', phase: 'Phase', checked: 'Last checked', source: 'From the runtime snapshot',
     };
@@ -121,7 +159,9 @@ window.__ModuleLoader__.load({
 @media(max-width:820px){.syr-wrap{padding:22px 22px 32px}.syr-columns,.syr-session-layout{grid-template-columns:1fr}.syr-system-row{grid-template-columns:minmax(0,1fr) auto;gap:7px 16px}.syr-system-row p{grid-column:1/-1}.syr-state-info{display:none}}
 @media(max-width:480px){.syr-wrap{padding:18px 16px 26px}.syr-header{align-items:flex-start;flex-wrap:wrap;gap:12px}.syr h1{font-size:21px}.syr-header>.syr-actions{margin-left:37px}.syr-tabs{gap:22px;margin-bottom:18px}.syr-box{padding:16px}.syr-state{padding:17px}.syr-state-main{font-size:22px}.syr-timeline li{grid-template-columns:1fr auto;gap:4px 12px}.syr-timeline time{grid-column:1/-1}.syr-facts{grid-template-columns:94px minmax(0,1fr);gap:9px 12px}.syr-diagnostic-head{align-items:flex-start;flex-direction:column}.syr-diagnostic-head .syr-btn{max-width:100%}.syr-footer{flex-direction:column;gap:4px}}
 .syr-task-layout{display:grid;grid-template-columns:minmax(240px,.75fr) minmax(0,1.4fr);gap:24px;align-items:start}.syr-task-label{font-weight:500;overflow-wrap:anywhere}.syr-task-list-row{align-items:flex-start;flex-wrap:wrap}.syr-task-caption{display:block;margin-top:5px;font-size:11px;color:var(--sr-muted)}.syr-task-detail{min-width:0}.syr-task-detail>.syr-section-title{align-items:flex-start}.syr-task-detail .syr-alert{margin-top:16px}.syr-task-check{border-top:1px solid var(--sr-line);padding:14px 0}.syr-task-check:last-child{padding-bottom:0}.syr-task-check>h3,.syr-task-check>.syr-row{margin-bottom:10px}.syr-evidence{margin:6px 0 0;padding-left:18px;font-size:11px;overflow-wrap:anywhere}.syr-evidence li{padding:3px 0}.syr-evidence code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.syr-task-result{margin-top:16px;padding-top:16px;border-top:1px solid var(--sr-line)}.syr-task-result .syr-small{margin-top:8px}
+.syr-link-controls{min-width:0;flex:1 1 280px}.syr-select-label{display:flex;flex-direction:column;gap:5px;margin-top:12px;max-width:100%;font-size:12px}.syr-select{font:inherit;color:var(--sr-text);background:var(--sr-bg);border:1px solid var(--sr-line);border-radius:7px;min-height:34px;padding:6px 8px;width:100%;max-width:480px;min-width:0}.syr-select:disabled{opacity:.5}
 @media(max-width:820px){.syr-task-layout{grid-template-columns:1fr}.syr-task-detail .syr-facts{grid-template-columns:100px minmax(0,1fr)}}
+@media(max-width:480px){.syr-link-controls{flex:initial;width:100%}}
 `;
     function Icon({ name = 'rain', size = 18 }) {
       const paths = {
@@ -185,6 +225,8 @@ window.__ModuleLoader__.load({
           const [tab, setTab] = useState('overview');
           const [selectedSession, setSelectedSession] = useState(null);
           const [selectedTask, setSelectedTask] = useState(null);
+          const [selectedConversation, setSelectedConversation] = useState(null);
+          const [linkTaskId, setLinkTaskId] = useState(null);
           const [command, setCommand] = useState('');
           const [commandError, setCommandError] = useState('');
           const [commandNotice, setCommandNotice] = useState('');
@@ -237,6 +279,8 @@ window.__ModuleLoader__.load({
                 if (action === 'session.probe' && (result?.ready !== true || result?.noModelCalled !== true || result?.released !== true || result?.archived !== true)) throw new Error(t('probeUnconfirmed'));
                 if (action === 'session.verify-model' && (result?.verified !== true || result?.calls !== 2 || result?.sameSession !== true || result?.sent !== false)) throw new Error(t('modelVerifyUnconfirmed'));
                 if (action === 'task.createLocal' && (result?.accepted !== true || typeof result?.task?.taskId !== 'string' || !result.task.taskId.trim())) throw new Error(t('localTaskUnconfirmed'));
+                if (action === 'conversation.linkLocalTask' && (result?.accepted !== true || result?.taskId !== payload.taskId
+                  || !['conversationId', 'bindingId'].every(key => typeof result?.[key] === 'string' && Boolean(result[key].trim())))) throw new Error(t('conversationLinkUnconfirmed'));
                 if (action === 'goal.verify-lifecycle' && (result?.verified !== true || result?.taskId !== payload.taskId
                   || !['goalId', 'nativeGoalId', 'sessionId'].every(key => typeof result?.[key] === 'string' && Boolean(result[key].trim()))
                   || result?.nativePhase !== 'complete' || result?.inferenceRequested !== false
@@ -253,8 +297,13 @@ window.__ModuleLoader__.load({
                     nativePhase: result.nativePhase, inferenceRequested: result.inferenceRequested, operations: [...result.operations] });
                   setNotice(t('goalVerifyDone'));
                 }
+                if (action === 'conversation.linkLocalTask') {
+                  // A receipt selects a binding; only a subsequent GET supplies its projection.
+                  setNotice(t('conversationLinkAccepted', { id: result.taskId }));
+                  setSelectedConversation({ conversationId: result.conversationId, bindingId: result.bindingId, taskId: result.taskId }); setTab('conversations');
+                }
                 const refreshed = await refresh(true);
-                if (alive && !disposed && refreshed && action !== 'task.createLocal' && action !== 'goal.verify-lifecycle') setNotice(t(action === 'session.probe' ? 'probeDone' : action === 'session.verify-model' ? 'modelVerifyDone' : action === 'runtime.pause' ? 'pausedDone' : 'resumedDone'));
+                if (alive && !disposed && refreshed && !['task.createLocal', 'goal.verify-lifecycle', 'conversation.linkLocalTask'].includes(action)) setNotice(t(action === 'session.probe' ? 'probeDone' : action === 'session.verify-model' ? 'modelVerifyDone' : action === 'runtime.pause' ? 'pausedDone' : 'resumedDone'));
               } catch (error) {
                 if (alive && !disposed) { setError(timedOut && action === 'session.verify-model' ? t('modelVerifyTimeout') : controller.signal.aborted ? t('commandUncertain') : error.message || t('commandFailed')); await refresh(true); }
               } finally {
@@ -300,6 +349,18 @@ window.__ModuleLoader__.load({
           const goalTask = tasks.filter(item => item.state === 'succeeded' && typeof item.taskId === 'string' && Boolean(item.taskId.trim())
             && arr(item.inputRefs).includes(`local-input:${item.taskId}`) && Number.isFinite(Date.parse(item.updatedAt)))
             .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt) || a.taskId.localeCompare(b.taskId))[0];
+          const localTasks = tasks.filter(item => typeof item.taskId === 'string' && Boolean(item.taskId.trim())
+            && arr(item.inputRefs).includes(`local-input:${item.taskId}`) && Number.isFinite(Date.parse(item.updatedAt)))
+            .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt) || a.taskId.localeCompare(b.taskId));
+          const localTask = linkTaskId === null ? localTasks[0] : localTasks.find(item => item.taskId === linkTaskId);
+          const conversationsConnected = Array.isArray(snapshot?.conversations);
+          const conversations = arr(snapshot?.conversations).filter(item => item?.scope === 'local-owner');
+          const foreignConversations = conversations.length !== arr(snapshot?.conversations).length;
+          const conversation = selectedConversation ? conversations.find(item => item.bindingId === selectedConversation.bindingId && item.conversationId === selectedConversation.conversationId
+            && (!selectedConversation.taskId || arr(item.taskRefs).some(ref => ref.taskId === selectedConversation.taskId))) : undefined;
+          const background = snapshot?.background && typeof snapshot.background === 'object' && !Array.isArray(snapshot.background) ? snapshot.background : null;
+          const contextLabel = item => t(item?.needsSync === true ? 'contextNeedsLoad' : item?.needsSync === false ? 'contextNoPending' : 'contextUnknown');
+          const sourceRef = value => typeof value?.kind === 'string' && typeof value?.id === 'string' ? `${value.kind}:${value.id}` : t('unknownValue');
           const task = tasks.find(item => item.taskId === selectedTask);
           const selected = sessions.find(session => session.id === selectedSession);
           const hostState = session => ['idle', 'running', 'not_attached'].includes(session.hostStatus) ? session.hostStatus : 'unknown';
@@ -365,6 +426,51 @@ window.__ModuleLoader__.load({
                       arr(verification.checks).length ? verification.checks.map(check => h('div', { className: 'syr-task-check', key: check.checkId }, h('div', { className: 'syr-row syr-between' }, h('h3', { className: 'syr-code' }, text(check.checkId)), h(Status, { value: check.status })), h('p', { className: 'syr-small syr-muted' }, t('evidenceRefs')), h(Evidence, { values: check.evidenceRefs }))) : h(Empty, null, t('noVerificationChecks')))
                       : h(Empty, null, t('noVerification')))) : h(Empty, null, t(selectedTask ? 'taskNotInSnapshot' : 'taskSelect'))));
           }
+          function conversationContent() {
+            const canLink = canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && conversationsConnected && Boolean(localTask);
+            return h('div', { className: 'syr-stack' },
+              h('section', null, h('div', { className: 'syr-system-heading' }, h(Title, { count: conversationsConnected && !foreignConversations ? conversations.length : undefined }, t('conversations')), h('p', null, t('conversationsHint'))),
+                h('div', { className: 'syr-box syr-diagnostic-head', 'data-testid': 'conversation-link' },
+                  h('div', { className: 'syr-link-controls' }, h('h2', null, t('conversationLinkTitle')), h('p', { className: 'syr-small syr-muted' }, t('conversationLinkHint')),
+                    localTasks.length > 0 && h('label', { className: 'syr-select-label' }, h('span', null, t('conversationLinkTask')),
+                      h('select', { className: 'syr-select', 'aria-label': t('conversationLinkTask'), 'data-testid': 'conversation-task-select', value: localTask?.taskId || '', disabled: Boolean(command || controlCommand), onChange: event => setLinkTaskId(event.target.value) },
+                        !localTask && h('option', { value: '', disabled: true }, t('conversationLinkTaskMissing')),
+                        ...localTasks.map(item => h('option', { key: item.taskId, value: item.taskId }, `${text(item.title)} (${item.taskId}) · ${label(item.state)}`)))),
+                    localTask ? h('p', { className: 'syr-small syr-break' }, `${t('conversationLinkTask')} · ${text(localTask.title)} (${localTask.taskId}) · ${label(localTask.state)}`) : h('p', { className: 'syr-small syr-muted' }, t(linkTaskId === null ? 'conversationLinkNeedsTask' : 'conversationLinkTaskMissing'))),
+                  h(Button, { disabled: !canLink, onClick: () => { if (canLink) void operations.current.command('conversation.linkLocalTask', { taskId: localTask.taskId }); } }, t(command === 'conversation.linkLocalTask' ? 'conversationLinking' : 'conversationLink')))),
+              h('section', { 'data-testid': 'conversation-records' },
+                foreignConversations && h('p', { className: 'syr-alert', role: 'alert' }, t('conversationScopeUnknown')),
+                !conversationsConnected ? h(Empty, null, t('conversationsUnavailable')) : !conversations.length ? h(React.Fragment, null, h(Empty, null, t('noConversations')), selectedConversation && h('p', { className: 'syr-small syr-muted' }, t('conversationNotInSnapshot'))) : h('div', { className: 'syr-task-layout' },
+                  h('div', { className: 'syr-session-list', 'data-testid': 'conversation-list' }, ...conversations.map(item => h('button', { type: 'button', key: item.bindingId, className: 'syr-session-button', 'aria-label': t('viewConversation', { id: item.bindingId }), 'aria-pressed': conversation?.bindingId === item.bindingId,
+                    onClick: () => setSelectedConversation({ conversationId: item.conversationId, bindingId: item.bindingId }) },
+                    h('span', { className: 'syr-task-label' }, text(item.localConversationKey) || text(item.conversationId)),
+                    h('span', { className: 'syr-task-caption' }, contextLabel(item)),
+                    h('span', { className: 'syr-task-caption' }, `${t('contextVersion')} · ${numeric(item.contextVersion)}`), h('span', { className: 'syr-id' }, item.bindingId)))),
+                  conversation ? h('section', { className: 'syr-box syr-task-detail', 'aria-label': t('conversationDetails'), 'data-testid': 'conversation-detail' },
+                    h('div', { className: 'syr-section-title' }, h('h2', null, t('conversationDetails')), h(Button, { icon: 'close', className: 'syr-btn syr-subtle', 'aria-label': t('close'), onClick: () => setSelectedConversation(null) })),
+                    h('p', { className: 'syr-notice syr-small', 'data-level': conversation.needsSync === true ? 'warning' : 'info', 'data-testid': 'conversation-load-state' }, contextLabel(conversation)),
+                    h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('conversationReadOnly')),
+                    h('div', { className: 'syr-section-gap' }, h(Facts, { rows: [
+                      ['conversationId', conversation.conversationId, true], ['topicId', conversation.topicId, true], ['replyBindingId', conversation.bindingId, true], ['localConversationKey', conversation.localConversationKey, true], ['conversationScope', conversation.scope, true],
+                      ['contextVersion', numeric(conversation.contextVersion)], ['audienceVersion', numeric(conversation.audienceVersion)], ['conversationGeneration', numeric(conversation.conversationGeneration)], ['routingRevision', numeric(conversation.routingRevision)], ['sessionEpoch', numeric(conversation.sessionEpoch)],
+                    ] })),
+                    h('section', { className: 'syr-task-result', 'aria-label': t('linkedTasks') }, h(Title, null, t('linkedTasks')),
+                      !Array.isArray(conversation.taskRefs) ? h(Empty, null, t('linkedTasksUnknown')) : !conversation.taskRefs.length ? h(Empty, null, t('noLinkedTasks')) : conversation.taskRefs.map(ref => h('div', { key: ref.taskId, className: 'syr-task-check' },
+                        h('h3', { className: 'syr-code' }, text(ref.taskId)), h(Facts, { rows: [['taskState', label(ref.state)], ['recordVersion', numeric(ref.version)]] })))),
+                    h('section', { className: 'syr-task-result', 'aria-label': t('contextSources'), 'data-testid': 'conversation-sources' }, h(Title, null, t('contextSources')),
+                      !Array.isArray(conversation.sources) ? h(Empty, null, t('sourcesUnknown')) : !conversation.sources.length ? h(Empty, null, t('noContextSources')) : conversation.sources.map((source, index) => h('div', { key: index, className: 'syr-task-check' },
+                        h(Facts, { rows: [['sourceReference', sourceRef(source.reference), true], ['sourceVersion', numeric(source.sourceVersion)]] })))),
+                    h('section', { className: 'syr-task-result', 'aria-label': t('pendingSources'), 'data-testid': 'conversation-pending' }, h(Title, { count: Array.isArray(conversation.pending) ? conversation.pending.length : undefined }, t('pendingSources')),
+                      !Array.isArray(conversation.pending) ? h(Empty, null, t('pendingSourcesUnknown')) : !conversation.pending.length ? h(Empty, null, t('noPendingSources')) : conversation.pending.map((source, index) => h('div', { key: index, className: 'syr-task-check' },
+                        h(Facts, { rows: [['sourceReference', sourceRef(source.reference), true], ['sourceVersion', numeric(source.sourceVersion)], ['contextVersion', numeric(source.contextVersion)], ['backgroundEventId', text(source.eventId), true], ['sourceGap', t(source.gap === true ? 'gapPresent' : source.gap === false ? 'gapAbsent' : 'unknownValue')]] }),
+                        h('p', { className: 'syr-small syr-muted' }, t('evidenceRefs')), h(Evidence, { values: typeof source.evidenceRef === 'string' ? [source.evidenceRef] : [] }))))) : h(Empty, null, t(selectedConversation ? 'conversationNotInSnapshot' : 'conversationSelect')))),
+              h('section', { className: 'syr-box', 'aria-label': t('backgroundDelivery'), 'data-testid': 'conversation-background' }, h(Title, null, t('backgroundDelivery')), h('p', { className: 'syr-small syr-muted' }, t('backgroundDeliveryHint')),
+                !background ? h(Empty, null, t('backgroundUnavailable')) : h('div', { className: 'syr-section-gap' },
+                  h(Facts, { rows: [['backgroundState', label(['idle', 'running', 'degraded', 'stopped'].includes(background.state) ? background.state : 'unknown')], ['backgroundLastScan', dateTime(background.lastScanAt, locale)],
+                    ['subscriptions', numeric(background.subscriptions)], ['backgroundPending', numeric(background.pending)], ['backgroundClaimed', numeric(background.claimed)], ['backgroundAcknowledged', numeric(background.acknowledged)], ['failed', numeric(background.failed)], ['backgroundCancelled', numeric(background.cancelled)]] }),
+                  typeof background.lastFailure === 'string' && background.lastFailure && h('p', { className: 'syr-alert syr-section-gap', 'data-testid': 'conversation-background-failure' }, h('strong', null, t('backgroundLastFailure')), background.lastFailure),
+                  background.lastBatch && h('section', { className: 'syr-task-result' }, h(Title, null, t('backgroundBatch')), h(Facts, { rows: [['backgroundClaimed', numeric(background.lastBatch.claimed)], ['backgroundProcessed', numeric(background.lastBatch.processed)], ['failed', numeric(background.lastBatch.failed)]] })))));
+          }
           function diagnostics() {
             return h('div', { className: 'syr-stack' },
               h('section', { className: 'syr-box syr-diagnostic-head' }, h('div', null, h('h2', null, t('diagnostics')), h('p', { className: 'syr-small syr-muted' }, t('probeHint'))), h(Button, { disabled: !canStartCommand, onClick: () => void operations.current.command('session.probe') }, t(command === 'session.probe' ? 'probing' : 'probe'))),
@@ -386,7 +492,7 @@ window.__ModuleLoader__.load({
           return h('div', { className: 'syr', ref: rootRef }, h('style', null, css), h('div', { className: 'syr-wrap' },
             h('header', { className: 'syr-header' }, h('div', { className: 'syr-brand' }, h(Icon, { size: 27 }), h('div', null, h('h1', null, t('title')), h('div', { className: 'syr-meta' }, snapshot && h('span', null, `v${snapshot.version}`), h('span', null, t('source'))))),
               h('div', { className: 'syr-actions' }, snapshot && h(Button, { icon: state === 'paused' ? 'play' : 'pause', disabled: !canControl, onClick: () => void operations.current.command(state === 'paused' ? 'runtime.resume' : 'runtime.pause') }, t(state === 'paused' ? 'resume' : 'pause')), h(Button, { icon: 'refresh', disabled: loading, onClick: () => void operations.current.refresh(), 'aria-label': t('refresh'), 'aria-busy': loading }, t(loading ? 'refreshing' : 'refresh')))),
-            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'tasks', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => setTab(id) }, t(id)))),
+            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'tasks', 'conversations', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => setTab(id) }, t(id)))),
             stale && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'snapshot-stale' }, h('strong', null, t(snapshot ? 'staleTitle' : 'loadFailed')), h('p', null, readError || t('snapshotOld')), snapshot && h('p', null, t('staleHint'))),
             commandError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), commandError),
             controlError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), controlError),
@@ -394,7 +500,7 @@ window.__ModuleLoader__.load({
             controlNotice && h('p', { className: 'syr-feedback', role: 'status' }, controlNotice),
             command && h('p', { className: 'syr-feedback', role: 'status' }, t(command === 'session.verify-model' ? 'modelVerifyPending' : 'controlPending')),
             controlCommand && h('p', { className: 'syr-feedback', role: 'status' }, t('controlPending')),
-            snapshot ? (tab === 'overview' ? overview() : tab === 'tasks' ? taskContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
+            snapshot ? (tab === 'overview' ? overview() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
             h('footer', { className: 'syr-footer' }, h('span', null, lastRead ? `${t('lastRead')} · ${dateTime(lastRead, locale)}` : t('unknownHint')), h('span', null, t('autoRefresh')))));
         }
         ctx.effect(() => {

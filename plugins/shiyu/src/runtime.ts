@@ -16,6 +16,7 @@ import { LocalTaskRunner } from './control/task-runner.js';
 import type { TaskWorkerDriver } from './control/task-runner.js';
 import { LocalGoalLifecycleService } from './control/goal-lifecycle.js';
 import type { GoalLifecycleOptions, GoalLifecycleResult, GoalLifecycleRunOptions } from './control/goal-lifecycle.js';
+import { BackgroundPump } from './control/background-pump.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
@@ -64,11 +65,12 @@ export class RuntimeService {
   artifacts!: LocalArtifactStore;
   tasks!: LocalTaskRunner;
   goals!: GoalLifecycleDriver;
+  background!: BackgroundPump;
   private closed = false;
   private closing?: Promise<void>;
   private controlTail: Promise<void> = Promise.resolve();
   private controlRevision = 0;
-  private pendingTaskAdmissions = 0;
+  private pendingAdmissions = 0;
   private readonly admissions = new Set<Promise<void>>();
   private readonly attemptedTasks = new Set<string>();
   private pauseRequested = false;
@@ -90,7 +92,7 @@ export class RuntimeService {
       if (!this.state.state.installationGeneration) await this.state.update(state => { state.installationGeneration = randomUUID(); });
       await mkdir(path.join(this.dataDir, 'control'), { recursive: true, mode: 0o700 });
       await mkdir(path.join(this.dataDir, 'workspaces'), { recursive: true, mode: 0o700 });
-      this.store = await ControlStore.open({ filename: path.join(this.dataDir, 'control', 'events.sqlite'), eventTypes: catalog, componentHandlers: ['runtime.activity'], runtimeIdentity: { hostEpoch: this.instanceId, installationGeneration: this.state.state.installationGeneration! } });
+      this.store = await ControlStore.open({ filename: path.join(this.dataDir, 'control', 'events.sqlite'), eventTypes: catalog, componentHandlers: ['runtime.activity', 'conversation.background'], runtimeIdentity: { hostEpoch: this.instanceId, installationGeneration: this.state.state.installationGeneration! } });
       this.events = new EventService(this.store);
       this.sessions = this.options.sessionFactory?.(this.ctx, this.state, path.join(this.dataDir, 'workspaces')) ?? new ShiyuSessionAdapter({
         ctx: this.ctx, cwd: path.join(this.dataDir, 'workspaces'),
@@ -125,7 +127,13 @@ export class RuntimeService {
       });
       else if (JSON.stringify(activitySubscription.types) !== JSON.stringify(ownTypes)) await this.events.update(principal, activitySubscription.id, activitySubscription.revision, { types: ownTypes });
       await this.record('runtime.lifecycle.changed', '识雨本体基础已装载', this.pauseRequested ? 'paused' : 'ready');
+      this.background = new BackgroundPump({ batchSize: 20, consume: async limit => {
+        const result = await this.store.request('conversation.consumeBackground', { limit });
+        return { claimed: result.claimed, processed: result.acknowledged, failed: result.failed };
+      } });
+      await this.background.start();
     } catch (error) {
+      await this.background?.close().catch(() => undefined);
       await this.goals?.close().catch(() => undefined);
       await this.workers?.close().catch(() => undefined);
       await this.artifacts?.close().catch(() => undefined);
@@ -176,21 +184,25 @@ export class RuntimeService {
   }
   async snapshot() {
     this.ensureOpen();
-    const [info, stats, recent, subscriptions, sessions, tasks] = await Promise.all([
+    const [info, stats, recent, subscriptions, sessions, tasks, conversations] = await Promise.all([
       this.store.info(), this.events.stats(principal), this.events.listEvents(principal, { limit: 40 }),
       this.events.listSubscriptions(principal), this.sessions.getStatus(),
       this.store.request('task.list', {}),
+      this.store.request('conversation.snapshotLocal', {}),
     ]);
     const at = new Date().toISOString();
     const probe = this.state.state.lastProbe;
     const verification = this.state.state.lastModelVerification;
     const goalVerification = this.state.state.lastGoalVerification;
+    const backgroundState = this.background.snapshot();
     return {
       schemaVersion: 1, version: VERSION, instanceId: this.instanceId, startedAt: this.startedAt, observedAt: at,
-      lifecycle: this.lastFailure ? 'degraded' : 'ready',
+      lifecycle: this.lastFailure || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
       state: this.pauseRequested ? 'paused' : this.operations.size ? 'busy' : 'idle',
       systems: structuredClone(systems),
       tasks,
+      conversations: conversations.conversations,
+      background: { ...conversations.background, ...backgroundState },
       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
       sessions: sessions.map(s => ({ id: s.sessionId, role: s.role, businessId: s.businessId, status: s.status, hostStatus: s.hostStatus,
@@ -211,9 +223,11 @@ export class RuntimeService {
       // rather than summing only the measured requests and presenting a false zero.
       usage: { calls: null, inputTokens: null, outputTokens: null, cacheReadTokens: null },
       notices: [
-        { id: 'scope', level: 'info', message: '已接入原生会话、事件和受限本地产物任务；持续目标、内层状态及外部渠道仍待接入。' },
+        { id: 'scope', level: 'info', message: '已接入原生会话、事件、受限本地任务和对话背景标记；持续规划、内层状态及外部渠道仍待接入。' },
         ...(this.pauseRequested ? [{ id: 'paused', level: 'info', message: '已暂停新的模型操作；已发生效果不会因暂停回滚。' }] : []),
         ...(this.lastFailure ? [{ id: 'operation', level: 'warning', message: this.lastFailure }] : []),
+        ...(backgroundState.lastFailure ? [{ id: 'background', level: 'warning', message: `对话背景处理待核对：${backgroundState.lastFailure}` }] : []),
+        ...(conversations.background.failed > 0 ? [{ id: 'background-failed', level: 'warning', message: `${conversations.background.failed} 条背景事件投递已停止重试，需要核对；空闲扫描不会清除失败记录。` }] : []),
       ],
     };
   }
@@ -224,11 +238,29 @@ export class RuntimeService {
     const action = value.action;
     if (action === 'runtime.pause') return this.setPaused(true);
     if (action === 'runtime.resume') return this.setPaused(false);
+    if (action === 'conversation.linkLocalTask') {
+      this.ensureCanRun(); signal?.throwIfAborted();
+      if (Object.keys(value).some(key => !['action', 'taskId', 'localConversationKey'].includes(key))
+        || typeof value.taskId !== 'string' || !/^[a-f0-9]{32}$/.test(value.taskId)
+        || (value.localConversationKey !== undefined && (typeof value.localConversationKey !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(value.localConversationKey)))) throw new Error('Invalid local conversation input');
+      if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+      this.pendingAdmissions++;
+      let finishAdmission!: () => void;
+      const admission = new Promise<void>(resolve => { finishAdmission = resolve; });
+      this.admissions.add(admission);
+      try {
+        const entry = await this.store.request('conversation.ensureLocalTask', { taskId: value.taskId, ...(value.localConversationKey === undefined ? {} : { localConversationKey: value.localConversationKey as string }) });
+        // Once committed, the association belongs to the runtime, not this HTTP
+        // request. Its pending Event delivery survives pause, close and restart.
+        if (!this.closed && !this.closing) void this.background.wake();
+        return { accepted: true, taskId: value.taskId, conversationId: entry.conversationId, bindingId: entry.bindingId };
+      } finally { this.pendingAdmissions--; this.admissions.delete(admission); finishAdmission(); }
+    }
     if (action === 'task.createLocal') {
       this.ensureCanRun(); signal?.throwIfAborted();
-      if (this.operations.size + this.pendingTaskAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+      if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
       if (typeof value.requestId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(value.requestId) || typeof value.title !== 'string' || typeof value.content !== 'string') throw new Error('Invalid local task input');
-      this.pendingTaskAdmissions++;
+      this.pendingAdmissions++;
       let finishAdmission!: () => void;
       const admission = new Promise<void>(resolve => { finishAdmission = resolve; });
       this.admissions.add(admission);
@@ -238,7 +270,7 @@ export class RuntimeService {
         // transaction was in flight. Only dispatch is deferred.
         if (!this.closed && !this.closing && !this.pauseRequested && detail.task.state === 'queued' && !this.operations.has(detail.task.taskId)) this.startTask(detail.task.taskId, detail.task.title);
         return { accepted: true, task: detail.task };
-      } finally { this.pendingTaskAdmissions--; this.admissions.delete(admission); finishAdmission(); }
+      } finally { this.pendingAdmissions--; this.admissions.delete(admission); finishAdmission(); }
     }
     if (action === 'task.cancel') {
       if (typeof value.taskId !== 'string') throw new Error('Invalid task identity');
@@ -248,7 +280,7 @@ export class RuntimeService {
     }
     if (action !== 'session.probe' && action !== 'reply.generate' && action !== 'session.verify-model' && action !== 'goal.verify-lifecycle') throw new Error('Unsupported runtime command');
     this.ensureCanRun(); signal?.throwIfAborted();
-    if (this.operations.size + this.pendingTaskAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
     if (action === 'reply.generate' && (typeof value.businessId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(value.businessId) || typeof value.prompt !== 'string' || !value.prompt.trim() || value.prompt.length > 16000)) throw new Error('Invalid reply input');
     if (action === 'goal.verify-lifecycle' && (typeof value.taskId !== 'string' || !/^[a-f0-9]{32}$/.test(value.taskId) || Object.keys(value).some(key => !['action', 'taskId'].includes(key)))) throw new Error('Invalid Goal validation input');
     let finish!: () => void;
@@ -316,6 +348,7 @@ export class RuntimeService {
       .catch(error => { this.lastFailure = error instanceof Error ? error.message : String(error); })
       .finally(() => {
         this.operations.delete(taskId); op.finish();
+        if (!this.closed && !this.closing) void this.background.wake();
         void this.scheduleQueuedTasks().catch(error => { this.lastFailure = error instanceof Error ? error.message : String(error); });
       });
   }
@@ -323,7 +356,7 @@ export class RuntimeService {
     if (this.closed || this.closing || this.pauseRequested) return;
     const queued = (await this.store.request('task.list', {})).filter(task => task.state === 'queued').sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     for (const task of queued) {
-      if (this.closed || this.closing || this.pauseRequested || this.operations.size + this.pendingTaskAdmissions >= 2) return;
+      if (this.closed || this.closing || this.pauseRequested || this.operations.size + this.pendingAdmissions >= 2) return;
       // Never turn a failed claim into a retry loop. Recovery/retry is explicit.
       if (!this.operations.has(task.taskId) && !this.attemptedTasks.has(task.taskId)) this.startTask(task.taskId, task.title);
     }
@@ -331,11 +364,13 @@ export class RuntimeService {
   async close(): Promise<void> {
     if (this.closing) return this.closing;
     this.closed = true;
+    const backgroundClosing = this.background?.close();
     this.closing = (async () => {
       for (const op of this.operations.values()) op.controller.abort();
       try {
         await this.controlTail;
         await Promise.allSettled([...this.admissions]);
+        await backgroundClosing;
         try {
           const results = await Promise.allSettled([this.sessions?.close(), this.workers?.close(), this.goals?.close()]);
           const failures = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);

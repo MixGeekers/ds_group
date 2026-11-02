@@ -1,8 +1,8 @@
 export const systems = [
-  { id: 'conversation', name: '接入与对话', status: 'partial', summary: '受限回复入口已接线；渠道、多人话题和发送回执待接入。' },
-  { id: 'events', name: '事件与订阅', status: 'partial', summary: '持久事件、订阅和组件消费；外部来源与 Agent 自动续接待接入。' },
+  { id: 'conversation', name: '接入与对话', status: 'partial', summary: '受限回复与本地对话/任务关联、背景待同步标记；渠道、上下文加载和发送回执待接入。' },
+  { id: 'events', name: '事件与订阅', status: 'partial', summary: '持久订阅、任务完成与对话背景原子消费；外部来源与 Agent 自动续接待接入。' },
   { id: 'core', name: '核心判断与规划', status: 'planned', summary: '尚未接入决策与计划流程。' },
-  { id: 'tasks', name: '目标、任务与执行', status: 'partial', summary: '受限本地产物任务、原生 worker、效果账本与独立核验；持续 Goal 和外部执行待接入。' },
+  { id: 'tasks', name: '目标、任务与执行', status: 'partial', summary: '受限本地任务、原生 worker、独立核验及 Goal 生命周期；持续规划和外部执行待接入。' },
   { id: 'inner', name: '内层六部分状态', status: 'planned', summary: '记忆、关系、情绪、认知、人格、能力尚未接入。' },
   { id: 'sessions', name: '模型与 Session', status: 'partial', summary: '原生 replyer / worker 会话、模型路由与受限工具；压缩和长期缓存效果待验证。' },
   { id: 'policy', name: '权限与控制', status: 'partial', summary: '本地任务 Mandate、预算预留、执行资格与暂停；多用户及外部能力授权待接入。' },

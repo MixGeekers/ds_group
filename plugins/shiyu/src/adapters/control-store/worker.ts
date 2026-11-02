@@ -14,6 +14,8 @@ import type { ControlStoreOptions, StoreRequest, StoreResponse } from "./protoco
 import { SqliteTransactions } from './transaction.js';
 import { TaskDomain, type TaskDomainRequest } from './task-domain.js';
 import { SQLiteGoalBindingStore } from './goal-bindings.js';
+import { ConversationDomain, conversationEventPrincipal, type ConversationDomainRequest } from './conversation-domain.js';
+import { installCommitWatermark, type CommitWatermarkReader } from './commit-watermark.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -25,6 +27,8 @@ let info!: StoreInfo;
 let transactions!: SqliteTransactions;
 let tasks: TaskDomain | undefined;
 let goalBindings: SQLiteGoalBindingStore | undefined;
+let conversations: ConversationDomain | undefined;
+let commitWatermark: CommitWatermarkReader;
 const fail = (code: string, message: string): never => { throw new EventServiceError(code, message); };
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
 function string(value: unknown, name: string, max = 256): asserts value is string {
@@ -393,12 +397,17 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
 
 function execute(request: StoreRequest): unknown {
   if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
+  if (request.command.startsWith('conversation.')) {
+    if (!conversations) return fail('CONVERSATIONS_UNAVAILABLE', 'Local conversations require a trusted runtime identity.');
+    return conversations.execute(request as ConversationDomainRequest);
+  }
   if (request.command.startsWith('task.')) {
     if (!tasks) return fail('TASKS_UNAVAILABLE', 'Task commands require a trusted runtime identity at store initialization.');
     return tasks.execute(request as TaskDomainRequest);
   }
   if (request.command.startsWith('goal.binding.') && !goalBindings) return fail('GOALS_UNAVAILABLE', 'Goal bindings require a trusted runtime identity.');
   switch (request.command) {
+    case 'control.watermark': return commitWatermark.read();
     case 'goal.binding.load': return goalBindings!.load(request.args.goalId);
     case 'goal.binding.loadCommand': return goalBindings!.loadCommand(request.args.goalId, request.args.commandId);
     case 'goal.binding.compareAndSet': return goalBindings!.compareAndSet(request.args.expectedMetadataVersion, request.args.binding);
@@ -453,6 +462,8 @@ function initialize(): void {
   const walSafe = major > 3 || (major === 3 && (minor > 51 || (minor === 51 && patch >= 3)));
   const journalMode = String(one(`PRAGMA journal_mode=${walSafe ? "WAL" : "DELETE"}`)!.journal_mode);
   db.exec("PRAGMA synchronous=FULL;");
+  // Register guards before any persisted repository trigger can run on reopen.
+  commitWatermark = installCommitWatermark(db, transactions);
   info = { sqliteVersion, journalMode, journalReason: walSafe ? "SQLite meets the workspace WAL-reset fix baseline (>=3.51.3)." : "SQLite is below the verified WAL-reset fix baseline; DELETE is required.",
     synchronous: Number(one("PRAGMA synchronous")!.synchronous), foreignKeys: Number(one("PRAGMA foreign_keys")!.foreign_keys) === 1,
     busyTimeoutMs: Number(one("PRAGMA busy_timeout")!.timeout), workerThreadId: threadId };
@@ -490,6 +501,19 @@ function initialize(): void {
       publish({ principalId: 'task-service', kind: 'component', scopes: ['local-owner'], publishTypes: ['task.succeeded'], subscribeTypes: [], targetRefs: [] },
         { type: 'task.succeeded', scope: 'local-owner', payload: { taskId }, idempotencyKey: `task-succeeded:${taskId}` });
     } });
+    const actor = conversationEventPrincipal();
+    conversations = new ConversationDomain(db, transactions, {
+      getTask: taskId => tasks!.get(taskId).task,
+      events: {
+        subscribe: input => subscribe(actor, input), listSubscriptions: () => listSubscriptions(actor), stats: () => stats(actor),
+        claim: input => claim(actor, input),
+        inspectClaim: input => {
+          const row = claimForReceipt(actor, input);
+          return { delivery: delivery(row), event: JSON.parse(String(row.envelope)) as StoredEvent };
+        },
+        ack: input => ack(actor, input), fail: input => failDelivery(actor, input),
+      },
+    });
   }
 }
 

@@ -10,6 +10,7 @@ import type { DshContext, ReplyRequest, ReplyResult } from '../src/adapters/dsh/
 import { readCommand, serveCommand, serveState } from '../src/index.js';
 import type { WorkerRunRequest, WorkerRunResult } from '../src/adapters/dsh/workers.js';
 import type { GoalLifecycleResult, GoalLifecycleRunOptions } from '../src/control/goal-lifecycle.js';
+import { conversationEventPrincipal, CONVERSATION_BACKGROUND_HANDLER } from '../src/adapters/control-store/conversation-domain.js';
 
 class FakeGoals {
   calls = 0;
@@ -54,6 +55,116 @@ function syntheticReply(request: ReplyRequest, text: string): ReplyResult {
   return { text, usage: { status: 'unknown' }, binding: { key: sessionBindingKey('replyer', request.businessId, request.scope), role: 'replyer', businessId: request.businessId, scope: request.scope, sessionId: 'shiyu-replyer-synthetic-model-check', model: defaultModel('replyer'), status: 'idle', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), usage: { status: 'unknown' } } };
 }
 
+test('task completion reaches local conversations in the background, while reads preserve unconsumed Session context', async t => {
+  const { runtime, workers, fake, goals } = await fixture(t);
+  const content = 'Synthetic conversation background completion';
+  let entered!: () => void, release!: () => void;
+  const began = new Promise<void>(resolve => { entered = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  workers.run = async request => {
+    workers.calls++;
+    const binding = { taskId: request.taskId, assignmentId: request.assignmentId, scope: request.scope, sessionId: 'shiyu-worker-synthetic-conversation' };
+    const identity = { ...binding, hostEpoch: request.permit.hostEpoch, installationGeneration: request.permit.installationGeneration, fencingToken: request.permit.fencingToken, leaseExpiresAt: request.permit.leaseExpiresAt };
+    await request.onBound(binding); entered(); await gate;
+    await request.tools![0].execute({ content }, { ...binding, permit: identity, signal: request.signal!, assertPermit: async () => { await request.permit.check({ ...identity, phase: 'tool' }); } });
+    return { ...binding, candidate: { summary: 'Synthetic candidate', evidenceRequests: [] }, usage: { status: 'reported', inputTokens: 20, outputTokens: 10, totalTokens: 30 }, steps: 2, modelCalls: 2, nativeObservations: [], verified: false };
+  };
+  const accepted: any = await runtime.command({ action: 'task.createLocal', requestId: 'conversation-background-test', title: 'Conversation background fixture', content });
+  await began;
+  const linked: any = await runtime.command({ action: 'conversation.linkLocalTask', taskId: accepted.task.taskId, localConversationKey: 'conversation-a' });
+  assert.equal(linked.accepted, true); assert.equal(linked.taskId, accepted.task.taskId);
+  const before = (await runtime.snapshot()).conversations[0];
+  release(); await Promise.all([...runtime.operations.values()].map(op => op.done));
+  await runtime.background.wake();
+  let snapshot = await runtime.snapshot(); const first = snapshot.conversations[0];
+  assert.equal(first.conversationId, linked.conversationId); assert.equal(first.bindingId, linked.bindingId);
+  assert.equal(first.pending.length, 1); assert.equal(first.pending[0].sourceVersion, 1);
+  assert.equal(first.contextVersion, before.contextVersion + 1);
+  assert.equal(first.conversationGeneration, before.conversationGeneration);
+  assert.equal(first.needsSync, true); assert.equal(snapshot.background.pending, 0); assert.equal(snapshot.background.acknowledged, 1);
+  // A late subscriber uses the current known source, even if the original event
+  // is globally deduplicated. No page read may acknowledge native Session input.
+  const late: any = await runtime.command({ action: 'conversation.linkLocalTask', taskId: accepted.task.taskId, localConversationKey: 'conversation-b' });
+  await runtime.background.wake();
+  const commitBeforeReads = await runtime.store.request('control.watermark', {});
+  for (let i = 0; i < 20; i++) snapshot = await runtime.snapshot();
+  assert.deepEqual(await runtime.store.request('control.watermark', {}), commitBeforeReads);
+  assert.equal(snapshot.conversations.length, 2);
+  const second = snapshot.conversations.find(item => item.conversationId === late.conversationId)!;
+  assert.equal(second.needsSync, true); assert.equal(second.sources[0].sourceVersion, 1);
+  assert.equal(snapshot.conversations.find(item => item.conversationId === first.conversationId)!.pending.length, 1);
+  assert.equal(fake.generations, 0); assert.equal(fake.probes, 0); assert.equal(goals.calls, 0); assert.equal(workers.calls, 1);
+});
+
+test('local association rejects caller authority and paused admission without starting any Session', async t => {
+  const { runtime, fake, workers, goals } = await fixture(t);
+  const detail = await runtime.store.request('task.createLocal', { requestId: 'conversation-admission', title: 'Local fixture', content: 'Synthetic input' });
+  await assert.rejects(runtime.command({ action: 'conversation.linkLocalTask', taskId: detail.task.taskId, scope: 'another-audience' }), /Invalid local conversation/);
+  await assert.rejects(runtime.command({ action: 'conversation.linkLocalTask', taskId: detail.task.taskId, localConversationKey: '../escape' }), /Invalid local conversation/);
+  await runtime.command({ action: 'runtime.pause' });
+  await assert.rejects(runtime.command({ action: 'conversation.linkLocalTask', taskId: detail.task.taskId }), /paused/);
+  assert.equal((await runtime.snapshot()).conversations.length, 0);
+  assert.equal(fake.generations + fake.probes + workers.calls + goals.calls, 0);
+});
+
+test('background failures appear in runtime health and a state read cannot retry the consumer', async t => {
+  const { runtime } = await fixture(t);
+  const original = runtime.store.request.bind(runtime.store); let failures = 0;
+  runtime.store.request = (async (command: any, args: any) => {
+    if (command === 'conversation.consumeBackground') { failures++; throw new Error('Synthetic background worker fault'); }
+    return original(command, args);
+  }) as typeof runtime.store.request;
+  await runtime.background.wake();
+  const state = await runtime.snapshot();
+  assert.equal(state.lifecycle, 'degraded'); assert.equal(state.background.state, 'degraded');
+  assert.ok(state.notices.some(notice => notice.id === 'background' && notice.message.includes('Synthetic background worker fault')));
+  await serveState(runtime); await runtime.snapshot(); assert.equal(failures, 1);
+  runtime.store.request = original; await runtime.background.wake();
+  assert.equal((await runtime.snapshot()).background.state, 'idle');
+});
+
+test('an empty scan cannot hide a terminal durable background delivery failure', async t => {
+  const { runtime, fake, workers } = await fixture(t);
+  const actor = conversationEventPrincipal();
+  await runtime.events.subscribe(actor, { id: 'synthetic-terminal-background-failure', types: ['task.succeeded'], scope: 'local-owner',
+    target: { kind: 'component', handlerRef: CONVERSATION_BACKGROUND_HANDLER }, deliveryMode: 'component', start: { kind: 'from_now' }, maxAttempts: 1 });
+  // Simulate a bug in a trusted publisher: a reserved event is still insufficient
+  // evidence for a nonexistent Task, so the durable consumer must refuse it.
+  await runtime.events.publish({ principalId: 'task-service', kind: 'component', scopes: ['local-owner'], publishTypes: ['task.succeeded'], subscribeTypes: [], targetRefs: [] },
+    { type: 'task.succeeded', scope: 'local-owner', payload: { taskId: 'e'.repeat(32) }, idempotencyKey: 'synthetic-missing-task', correlationId: 'synthetic-background-test' });
+  await runtime.background.wake();
+  assert.equal((await runtime.snapshot()).background.failed, 1);
+  await runtime.background.wake();
+  const snapshot = await runtime.snapshot();
+  assert.equal(snapshot.background.lastBatch?.claimed, 0); assert.equal(snapshot.background.state, 'idle');
+  assert.equal(snapshot.background.failed, 1); assert.equal(snapshot.lifecycle, 'degraded');
+  assert.ok(snapshot.notices.some(notice => notice.id === 'background-failed'));
+  assert.equal(fake.generations + fake.probes + workers.calls, 0);
+});
+
+test('committed conversation admission survives unload and never wakes a consumer after close', async t => {
+  const { runtime, fake, workers, create } = await fixture(t);
+  const detail = await runtime.store.request('task.createLocal', { requestId: 'conversation-close', title: 'Local fixture', content: 'Synthetic input' });
+  const original = runtime.store.request.bind(runtime.store);
+  let reached!: () => void, release!: () => void, scans = 0;
+  const committed = new Promise<void>(resolve => { reached = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  runtime.store.request = (async (command: any, args: any) => {
+    if (command === 'conversation.consumeBackground') scans++;
+    const value = await original(command, args);
+    if (command === 'conversation.ensureLocalTask') { reached(); await gate; }
+    return value;
+  }) as typeof runtime.store.request;
+  const pending = runtime.command({ action: 'conversation.linkLocalTask', taskId: detail.task.taskId });
+  await committed; let closed = false; const closing = runtime.close().then(() => { closed = true; });
+  await new Promise(resolve => setImmediate(resolve)); assert.equal(closed, false);
+  release(); assert.equal((await pending as any).accepted, true); await closing;
+  assert.equal(scans, 0); assert.equal(runtime.background.snapshot().state, 'stopped');
+  const fresh = create(); await fresh.init();
+  try { assert.equal((await fresh.snapshot()).conversations.length, 1); assert.equal(fake.generations + fake.probes + workers.calls, 0); }
+  finally { await fresh.close(); }
+});
+
 test('explicit Goal verification reports native evidence without inference and becomes historical on reload', async t => {
   const { runtime, goals, fake, workers, create } = await fixture(t);
   const taskId = 'a'.repeat(32);
@@ -80,8 +191,9 @@ test('Goal validation rejects public authority fields and respects immediate run
   const began = new Promise<void>(resolve => { started = resolve; });
   goals.run = async (_id, options) => { goals.calls++; started(); return new Promise((_resolve, reject) => { options.signal.addEventListener('abort', () => reject(new Error('Goal verification cancelled')), { once: true }); }); };
   const running = runtime.command({ action: 'goal.verify-lifecycle', taskId });
+  const cancelled = assert.rejects(running, /cancelled/);
   await began; await runtime.command({ action: 'runtime.pause' });
-  await assert.rejects(running, /cancelled/);
+  await cancelled;
   assert.equal(runtime.state.state.lastGoalVerification?.ok, false);
   await assert.rejects(runtime.command({ action: 'goal.verify-lifecycle', taskId }), /paused/);
   assert.equal(goals.calls, 1); assert.equal(runtime.operations.size, 0);

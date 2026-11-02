@@ -5,6 +5,8 @@ import type {
 } from "../../contracts/events.js";
 import type { TaskCommands, TaskRuntimeIdentity } from './task-domain.js';
 import type { GoalBinding, GoalCommandReceipt } from '../dsh/goals.js';
+import type { ConversationCommands } from './conversation-domain.js';
+import type { CommitWatermark } from './commit-watermark.js';
 
 export interface ControlStoreOptions {
   filename: string;
@@ -15,7 +17,9 @@ export interface ControlStoreOptions {
 }
 
 type WithPrincipal<T = unknown> = { principal: EventPrincipal } & T;
-export interface StoreCommands extends TaskCommands {
+export interface StoreCommands extends TaskCommands, ConversationCommands {
+  /** Trusted read-only control write-commit watermark; not the Event sequence or a ReadView stateVersion. */
+  'control.watermark': { input: Record<string, never>; output: CommitWatermark };
   /** Trusted host-to-worker bookkeeping only; never exposed as public/model commands. */
   'goal.binding.load': { input: { goalId: string }; output: GoalBinding | undefined };
   'goal.binding.loadCommand': { input: { goalId: string; commandId: string }; output: GoalCommandReceipt | undefined };

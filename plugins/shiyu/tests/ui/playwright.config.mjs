@@ -7,7 +7,7 @@ const chrome = process.env.SHIYU_CHROME_PATH ?? '/Applications/Google Chrome.app
 const port = Number(process.env.SHIYU_UI_PORT ?? 4341);
 
 export default defineConfig({
-  testDir: '.', testMatch: ['client.spec.js', 'model-verification.spec.js', 'tasks.spec.js', 'task-validation.spec.js', 'goal-verification.spec.js'], fullyParallel: false, workers: 1,
+  testDir: '.', testMatch: ['client.spec.js', 'model-verification.spec.js', 'tasks.spec.js', 'task-validation.spec.js', 'goal-verification.spec.js', 'conversations.spec.js'], fullyParallel: false, workers: 1,
   timeout: 30000, expect: { timeout: 10000 }, retries: 0, reporter: 'list',
   outputDir: '../../.local/ui/results',
   use: {

@@ -17,3 +17,5 @@ npx playwright test --config tests/ui/playwright.config.mjs
 `task.createLocal` 只在测试服务内存中按 `requestId` 保留合成任务。可延迟或丢失受理回执，任务仍能由合成 GET 快照读取；不会创建 `note.txt`、执行 worker 或调用模型。定向运行该交互检查：`npm run test:ui -- task-validation.spec.js`。
 
 `goal.verify-lifecycle` 仅返回合成的任务／Goal／Session 标识和四步回执，不创建真实 Goal、Session 或 Task。相关测试核对最近成功本地任务的选择、严格回执字段及独立暂停通道：`npm run test:ui -- goal-verification.spec.js`。
+
+`conversation.linkLocalTask` 仅在内存中关联合成任务和对话控制投影。回执可延迟、缺字段或与 GET 不匹配；测试核对受理与快照分离、固定 local-owner 范围、背景来源只读且刷新不确认消费，以及独立暂停通道。不会创建真实 Conversation、Session 或调用模型。定向运行：`npm run test:ui -- conversations.spec.js`。
