@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { pinOwnedSessionTitle } from './session-title.js';
 
 export type SessionRole = 'core' | 'worker' | 'replyer';
 export type ReasoningEffort = 'low' | 'high' | 'max';
@@ -94,6 +95,7 @@ export interface ReplyRequest {
   scope: string;
   prompt: string;
   signal?: AbortSignal;
+  maxTokens?: number;
 }
 export interface SessionStatus extends SessionBinding {
   hostStatus: 'idle' | 'running' | 'not_attached';
@@ -162,6 +164,7 @@ interface LiveSession {
   observedEvents?: SessionEvent[];
   steps: number;
   turnError?: string;
+  operationMaxTokens?: number;
   closing?: Promise<void>;
 }
 
@@ -250,7 +253,7 @@ export class ShiyuSessionAdapter {
     state.disposers.push(ctx.systemPrompt.suppressRuntimeContext());
     state.disposers.push(ctx.systemPrompt.section({ name: 'shiyu:replyer', order: 0, complete: true, text: READ_ONLY_PROMPT }));
     state.disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: [] })));
-    state.disposers.push(ctx.on('agent/request', async (_payload, next) => ({ ...await next(), ...state.binding.model, maxTokens: this.maxTokens })));
+    state.disposers.push(ctx.on('agent/request', async (_payload, next) => ({ ...await next(), ...state.binding.model, maxTokens: state.operationMaxTokens ?? this.maxTokens })));
     state.disposers.push(ctx.on('agent/pre-step', async (_payload, next) => {
       if (this.closed || state.closing || !state.operation || state.operation.signal.aborted || ++state.steps > 1) return { kind: 'reject' };
       return next();
@@ -356,13 +359,14 @@ export class ShiyuSessionAdapter {
   }
   async generateReply(request: ReplyRequest): Promise<ReplyResult> {
     if (typeof request.prompt !== 'string' || !request.prompt.trim() || request.prompt.length > 100000) throw new Error('Invalid reply prompt');
+    const maxTokens = positive(request.maxTokens, this.maxTokens, this.maxTokens, 'reply maxTokens');
     const key = sessionBindingKey('replyer', request.businessId, request.scope);
     return this.inOrder(key, async () => {
       throwIfAborted(request.signal);
       const state = await this.attach(key, request.businessId, request.scope, request.signal);
       this.assertOpen(); throwIfAborted(request.signal);
       const operation = new AbortController();
-      state.operation = operation; state.steps = 0; state.turnError = undefined; state.observedEvents = [];
+      state.operation = operation; state.steps = 0; state.turnError = undefined; state.observedEvents = []; state.operationMaxTokens = maxTokens;
       const abort = () => operation.abort(request.signal?.reason ?? abortError());
       request.signal?.addEventListener('abort', abort, { once: true });
       const agent = state.handle!.agent;
@@ -371,6 +375,8 @@ export class ShiyuSessionAdapter {
       if (request.signal?.aborted) abort();
       const timer = setTimeout(() => operation.abort(new Error('Reply generation timed out')), this.timeoutMs);
       try {
+        // Suppress automatic title inference only for this managed Session.
+        await pinOwnedSessionTitle(this.options.ctx, agent.session, '识雨 · 受限回复');
         await this.update(state, { status: 'running' });
         this.assertOpen(); throwIfAborted(operation.signal);
         agent.followup({ content: [{ type: 'text', text: request.prompt }], source: { kind: 'user' } });
@@ -392,7 +398,7 @@ export class ShiyuSessionAdapter {
         clearTimeout(timer);
         request.signal?.removeEventListener('abort', abort);
         operation.signal.removeEventListener('abort', cancel);
-        if (state.operation === operation) { state.operation = undefined; state.observedEvents = undefined; }
+        if (state.operation === operation) { state.operation = undefined; state.observedEvents = undefined; state.operationMaxTokens = undefined; }
       }
     });
   }

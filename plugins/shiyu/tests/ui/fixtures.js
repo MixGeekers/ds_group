@@ -46,3 +46,53 @@ export function makeSession(at = new Date().toISOString()) {
     usage: { inputTokens: null, outputTokens: null, cacheReadTokens: null },
   };
 }
+
+// Fabricated receipt for client behavior only. No provider is contacted.
+export function makeVerificationReceipt() {
+  return {
+    verified: true, calls: 2, sameSession: true, sessionId: 'test-model-session-1', sent: false,
+    model: { provider: 'opencode-go', model: 'deepseek-v4.1-flash', reasoningEffort: 'low' },
+    usage: [
+      { inputTokens: 8, outputTokens: 2, cacheReadTokens: null },
+      { inputTokens: 12, outputTokens: 2, cacheReadTokens: null },
+    ],
+    synthetic: true,
+  };
+}
+
+// TaskView examples remain UI fixtures, never live tasks or execution requests.
+export function makeTask(overrides = {}) {
+  const at = new Date().toISOString();
+  return {
+    taskId: 'test-task-1', title: '合成任务：核对测试产物', state: 'waiting', waitReason: 'completion_verification',
+    version: 1, goalId: 'test-goal-1', mandateId: 'test-mandate-1', mandateVersion: 1,
+    completionSpec: { version: 1, checks: [
+      { checkId: 'test-check-artifact', type: 'artifact_exists', targetRef: 'synthetic:artifact/report.txt', evidenceRequired: true },
+      { checkId: 'test-check-effect', type: 'effect_verified', targetRef: 'synthetic:effect/result', evidenceRequired: true },
+    ] },
+    originEventIds: ['test-origin-event'], inputRefs: ['synthetic:input/request'],
+    activeAssignmentId: 'test-assignment-1', latestAssignmentId: 'test-assignment-1', attempt: 1,
+    result: { resultHash: 'synthetic-result-hash', artifactRefs: ['synthetic:artifact/report.txt'], effectRefs: ['synthetic:effect/result'] },
+    stopRequested: false, createdAt: at, updatedAt: at,
+    ...overrides,
+  };
+}
+
+export function makeTaskVerification(overrides = {}) {
+  return {
+    taskId: 'test-task-1', assignmentId: 'test-assignment-1', completionSpecVersion: 1,
+    resultHash: 'synthetic-result-hash', verifierVersion: 'synthetic-verifier-v1', verifiedAt: new Date().toISOString(),
+    checks: [
+      { checkId: 'test-check-artifact', status: 'pass', evidenceRefs: ['synthetic:evidence/artifact'] },
+      { checkId: 'test-check-effect', status: 'pass', evidenceRefs: ['synthetic:evidence/effect'] },
+    ],
+    ...overrides,
+  };
+}
+
+export function makeLocalTask(taskId = 'test-local-task-1') {
+  return makeTask({
+    taskId, title: '本地任务链路验证', state: 'queued', waitReason: undefined,
+    activeAssignmentId: undefined, latestAssignmentId: undefined, attempt: 0, result: undefined,
+  });
+}

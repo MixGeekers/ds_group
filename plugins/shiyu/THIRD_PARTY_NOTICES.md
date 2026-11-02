@@ -18,21 +18,33 @@ documentation workbench as runtime dependencies.
 
 Existing workspace plugin examples informed the DSH integration.
 
-DSH-Superagent prototype source materials have been copied into
-`vendor/dsh-superagent/` from `deepseek-ai/dsh-superagent-prototype`, fixed commit
-`6337fc823ce20251c8de8085948165c81aaa701e`. This import contains the 13-file task
-domain core, its in-memory test repository and barrel, eight related tests,
-upstream package metadata, and the complete upstream MIT license (Copyright (c)
-2026 DeepSeek Harness Team). Source files retain their original paths and bytes;
-no upstream source patches were applied by this import. It does not connect the
-upstream Engine to the Shiyu runtime.
+The Shiyu runtime includes source derived from
+`deepseek-ai/dsh-superagent-prototype`, fixed commit
+`6337fc823ce20251c8de8085948165c81aaa701e`, under the MIT license:
+Copyright (c) 2026 DeepSeek Harness Team.
 
-The full license is preserved at `vendor/dsh-superagent/LICENSE`. Fixed source
-URLs, Git blob SHAs, original/local SHA256 values, scope, and modification history
-are recorded in `vendor/dsh-superagent/SOURCE_MANIFEST.json`. Local provenance,
-dependency audit and validation files are separately identified there. The
-original core baseline tests are distinct from Shiyu integration acceptance;
-see `vendor/dsh-superagent/README.local.md`.
+The 13-file task-domain core in `src/control/tasks/upstream/` is compiled into
+`dist/control/tasks/upstream/` and used through Shiyu's TaskFacade. Relative module
+specifiers were adapted for NodeNext output. Local policy hooks prevent implicit
+revival of ended tasks and require replacement of stopped execution instances
+after verified recovery; the upstream defaults remain compatible. Exact source
+URLs, Git blob SHAs, original/local SHA256 values and patches are recorded in
+`src/control/tasks/upstream/SOURCE_MANIFEST.json` and `LOCAL_PATCHES.diff` in the
+source repository. The SQLite transaction and task repository adapters in
+`src/adapters/control-store/` also adapt the upstream Store transaction logic and
+repository semantics; their source headers describe the scope and local changes.
+
+The complete upstream copyright and MIT permission notice is distributed with
+this package at `licenses/dsh-superagent-MIT.txt`. That file is an unmodified copy
+of the license at the fixed upstream commit and is explicitly included by the
+package's files list.
+
+For source review, `vendor/dsh-superagent/` preserves an unmodified snapshot of
+the core, test repository and barrel, eight related tests, upstream package
+metadata and license. Its separate `SOURCE_MANIFEST.json` records the snapshot's
+hashes and provenance. Vendor test fixtures are not production dependencies.
+Original upstream tests and Shiyu integration tests provide separate evidence;
+neither alone is a full-product acceptance claim.
 
 ## proper-lockfile 4.1.2 license
 

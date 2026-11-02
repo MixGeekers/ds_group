@@ -35,6 +35,10 @@ function fakeHost() {
   const presets = new Set<string>();
   const archived = new Set<string>(), flushed = new Set<string>();
   const lifecycle: string[] = [];
+  const requests: any[] = [];
+  const titles = new Map<string, { title: string; source: { kind: string } }>();
+  let failTitle = false;
+  let titleRequests = 0;
   let createCount = 0, resumeCount = 0, followupCount = 0, disposeCount = 0, presetRegistrations = 0, hookRegistrations = 0, cancellations = 0;
   let slowGeneration = false;
   let createGate: Promise<void> | undefined;
@@ -70,10 +74,12 @@ function fakeHost() {
     agent = {
       id, session, ctx, hooks: localHooks, events, guards, status: 'idle', cancelled: 0,
       followup(input) {
+        if (titles.get(id)?.source.kind !== 'user') titleRequests++;
         followupCount++; agent.status = 'running';
         idle = (async () => {
           const decision = await localHooks.waterfall('agent/pre-step', [{}], async () => ({ kind: 'enter' }));
           if (decision.kind === 'reject') { agent.status = 'idle'; return; }
+          requests.push(await localHooks.waterfall('agent/request', [{}], async () => ({ maxTokens: 999999 })));
           events.push({ type: 'user/message', data: input });
           if (slowGeneration) await new Promise<void>(resolve => { settleSlow = resolve; });
           if (!agent.cancelled) {
@@ -99,6 +105,10 @@ function fakeHost() {
     get(name) {
       if (name === 'agentPresets') return { async register({ id }: { id: string }) { presetRegistrations++; if (presets.has(id)) throw new Error('duplicate preset'); presets.add(id); return () => { presets.delete(id); }; } };
       if (name === 'sessionPersistence') return {};
+      if (name === 'sessionTitle') return {
+        rename(session: DshSession, title: string) { if (failTitle) throw new Error('Native title unavailable'); assert.equal(live.get(session.id)?.session, session); const value = { title, source: { kind: 'user' } }; titles.set(session.id, value); return structuredClone(value); },
+        get(session: DshSession) { return structuredClone(titles.get(session.id)); },
+      };
       if (name === 'sessions') return { async flush(session: DshSession) { assert.ok(live.has(session.id)); flushed.add(session.id); lifecycle.push(`flush:${session.id}`); return true; } };
       if (name === 'workspaceRegistry') return { async archiveSession(id: string) {
         if (archiveGate) await archiveGate;
@@ -111,13 +121,15 @@ function fakeHost() {
     agents: { create: options => make(options, false), resume: options => make(options, true), list: () => [...live.values()] },
   };
   return {
-    host, live, persisted, presets, archived, lifecycle,
+    host, live, persisted, presets, archived, lifecycle, requests, titles,
+    titleRequests: () => titleRequests,
     counts: () => ({ createCount, resumeCount, followupCount, disposeCount, presetRegistrations, hookRegistrations, cancellations }),
     setSlow(value: boolean) { slowGeneration = value; },
     setCreateGate(value: Promise<void>) { createGate = value; },
     setArchiveGate(value: Promise<void>) { archiveGate = value; },
     failModel() { failModel = true; },
     failArchive() { failArchive = true; },
+    failTitle() { failTitle = true; },
     async uiResume(id: string) {
       const stored = persisted.get(id)!;
       if (!presets.has(stored.header.agentPreset as string)) throw new Error('Unknown agent preset');
@@ -126,6 +138,36 @@ function fakeHost() {
   };
 }
 const pause = () => new Promise<void>(resolve => setImmediate(resolve));
+
+test('managed replies pin a native title before every turn and fail closed without its receipt', async () => {
+  const fake = fakeHost();
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp' });
+  const request = { businessId: 'title-suppression', scope: 'test', prompt: 'synthetic input' };
+  const first = await adapter.generateReply(request);
+  assert.equal(fake.titleRequests(), 0);
+  assert.equal(fake.titles.get(first.binding.sessionId)?.source.kind, 'user');
+  // A native refresh between turns cannot silently re-enable auto-title.
+  fake.titles.set(first.binding.sessionId, { title: 'Changed', source: { kind: 'llm' } });
+  await adapter.generateReply(request);
+  assert.equal(fake.titleRequests(), 0);
+  fake.failTitle();
+  fake.titles.set(first.binding.sessionId, { title: 'Changed again', source: { kind: 'llm' } });
+  await assert.rejects(adapter.generateReply(request), /Native title unavailable/);
+  assert.equal(fake.counts().followupCount, 2);
+  assert.equal(fake.live.size, 0);
+  await adapter.close();
+});
+
+test('a per-turn token cap cannot exceed the configured ceiling and resets for later turns', async () => {
+  const fake = fakeHost(), bindings = new BindingStore();
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings, cwd: '/tmp' });
+  await assert.rejects(adapter.generateReply({ businessId: 'caps', scope: 'test', prompt: 'hello', maxTokens: 4097 }), /maxTokens/);
+  assert.equal(fake.counts().createCount, 0);
+  await adapter.generateReply({ businessId: 'caps', scope: 'test', prompt: 'one', maxTokens: 1024 });
+  await adapter.generateReply({ businessId: 'caps', scope: 'test', prompt: 'two' });
+  assert.equal(fake.requests[0].maxTokens, 1024); assert.equal(fake.requests[1].maxTokens, 4096);
+  await adapter.close();
+});
 
 test('binding keys include role, business and scope; effort defaults are supported', () => {
   assert.notEqual(sessionBindingKey('replyer', 'same', 'a'), sessionBindingKey('replyer', 'same', 'b'));

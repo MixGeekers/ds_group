@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "repository": "https://github.com/deepseek-ai/dsh-superagent-prototype",
+  "commit": "6337fc823ce20251c8de8085948165c81aaa701e",
+  "importedAtLocalDate": "2026-11-02",
+  "license": {
+    "spdx": "MIT",
+    "path": "LICENSE",
+    "copyright": "Copyright (c) 2026 DeepSeek Harness Team"
+  },
+  "scope": "13-file task-domain runtime closure; MemoryRepositories and barrel are not copied into production",
+  "sourceSnapshot": "../../../../vendor/dsh-superagent",
+  "mechanicalTransform": "Only quoted relative ./... .ts import/export/type-import specifiers changed to .js for NodeNext emission.",
+  "semanticPatchDiff": "LOCAL_PATCHES.diff",
+  "facadePolicy": {
+    "canResume": false,
+    "restartInterruptedAssignments": true,
+    "recoveryEntry": "Only through TaskFacade.recover after evidence and current-policy checks; no automatic Engine recovery at startup."
+  },
+  "files": [
+    {
+      "path": "assignments.ts",
+      "upstreamPath": "src/core/assignments.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/assignments.ts",
+      "upstreamGitBlobSha": "2264b42b047bcf0035314b7dc4f0e4b32b4da59a",
+      "upstreamSha256": "6acf4b858b35d95c875680e39b1e3c41557bbe6d39f65031bb26927289327065",
+      "localSha256": "83cf44315f09b0b849b50674e69c72b1b50aec6463a6808e370126861413ac85",
+      "localByteLength": 9005,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 7
+      },
+      "semanticPatches": [
+        "When restartInterruptedAssignments is true, recover through the existing Tickets.restart path even for settled reports; prevents reauthorizing a stopped old Assignment."
+      ]
+    },
+    {
+      "path": "engine.ts",
+      "upstreamPath": "src/core/engine.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts",
+      "upstreamGitBlobSha": "c2198adf9c7a10837bec5f4789129bf576e39395",
+      "upstreamSha256": "bd9a4caff834859877d1a08ccddebc990d0e1ca568674b80f9d59ce5adcac827",
+      "localSha256": "329635ad9a92b0a3338ee99aa49f2bc8b85193026394d65e2b6fa9af94256458",
+      "localByteLength": 16310,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 15
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "errors.ts",
+      "upstreamPath": "src/core/errors.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/errors.ts",
+      "upstreamGitBlobSha": "9c7096aff7e2a278bb1496f2df60eca6d32f0ae6",
+      "upstreamSha256": "aa7532a2d1f8c443608683ef1231bf3d81b842f67a87d9b77742b5c76d515009",
+      "localSha256": "aa7532a2d1f8c443608683ef1231bf3d81b842f67a87d9b77742b5c76d515009",
+      "localByteLength": 5722,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 0
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "evals.ts",
+      "upstreamPath": "src/core/evals.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/evals.ts",
+      "upstreamGitBlobSha": "35de470e2c241e2b945c955fccc3877f443092f7",
+      "upstreamSha256": "38916de24ec6e1a27118dd5d7a7efa67bf7a2dfdbab26fb59d377516269e2fc8",
+      "localSha256": "bea3fcd8e9c18a27dd679455752a8a65c55300e11ce7aeb76485d6f71e9e129d",
+      "localByteLength": 21810,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 8
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "ids.ts",
+      "upstreamPath": "src/core/ids.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/ids.ts",
+      "upstreamGitBlobSha": "f3aeab4c86e213ad49703ebae43a87affb432d4c",
+      "upstreamSha256": "bc4bc6fd43ea1377087ff2815706c57f0200666aeb4a7711a40489c377f141ab",
+      "localSha256": "bc4bc6fd43ea1377087ff2815706c57f0200666aeb4a7711a40489c377f141ab",
+      "localByteLength": 266,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 0
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "intake.ts",
+      "upstreamPath": "src/core/intake.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/intake.ts",
+      "upstreamGitBlobSha": "145c72192087afb10c150649780cf0a97ccb3983",
+      "upstreamSha256": "323aadefea69436ba23ed2de3bdbaad673d61915be9e239f3233ecf551a74179",
+      "localSha256": "54f27f0f99861e0b82c91291939237f854bb9fbe067e807bdd6181b862bc875b",
+      "localByteLength": 3868,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 5
+      },
+      "semanticPatches": [
+        "Exclude ended tickets from fanout when canResume rejects them, allowing the input to reach evaluation."
+      ]
+    },
+    {
+      "path": "model.ts",
+      "upstreamPath": "src/core/model.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/model.ts",
+      "upstreamGitBlobSha": "577831217329b9bfef404e9ec3492e94ce3e5649",
+      "upstreamSha256": "982155fe6a03c887a7ac4475c6d1592d12aa23c5fe3698403c93bbfd6469d44a",
+      "localSha256": "0dce8942e6aabd0f16cc5db27552feee227b1ed68692ab0e3f60bf4b59e11a98",
+      "localByteLength": 19758,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 1
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "part.ts",
+      "upstreamPath": "src/core/part.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/part.ts",
+      "upstreamGitBlobSha": "14d5c6d47b5ec90f9c40a762ae91f4565e4e255d",
+      "upstreamSha256": "437c4f4bcc05e836c056cdb45bbf451e55242d62b602b489f4df902be112e73e",
+      "localSha256": "c7a5502d8d8d28243a02c5e37bfd988e8525021aa9cd0ab9cdde23f72c9a799b",
+      "localByteLength": 5005,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 4
+      },
+      "semanticPatches": [
+        "Declare optional canResume policy gate; undefined preserves upstream continuation.",
+        "Declare optional restartInterruptedAssignments; undefined preserves settled-session recovery."
+      ]
+    },
+    {
+      "path": "ports.ts",
+      "upstreamPath": "src/core/ports.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/ports.ts",
+      "upstreamGitBlobSha": "08c7a1cccfc69f68178306babf67e4a51fae36f8",
+      "upstreamSha256": "0b44f1cd716d64776b0e3ea74a158cf0effd92e763b1b13c7705e766e9225a43",
+      "localSha256": "fde70a8bb7c77dd1030bb737bc9cb4bd2452f1174373e6c33f60279e67d8ed52",
+      "localByteLength": 7260,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 4
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "reasons.ts",
+      "upstreamPath": "src/core/reasons.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/reasons.ts",
+      "upstreamGitBlobSha": "59604812de05acc35e8fb3a96557cfaea71aa183",
+      "upstreamSha256": "dc29e0c3c52e4ffd6e8f27a618cbe704a83fdbd9c5a1b99a1e0c4184d5c33af4",
+      "localSha256": "dc29e0c3c52e4ffd6e8f27a618cbe704a83fdbd9c5a1b99a1e0c4184d5c33af4",
+      "localByteLength": 2233,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 0
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "replies.ts",
+      "upstreamPath": "src/core/replies.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/replies.ts",
+      "upstreamGitBlobSha": "ee5790a21f19bcb2b90f1dfe184f9f33c9f9555b",
+      "upstreamSha256": "5a8821a1b9d951d2255709543e0be762c6d3204bca07a77ff17c7bfe82ba66f4",
+      "localSha256": "436051e9529de0aa6725cc3ebb4c2dce30f863d4e5754b39c1508ec0587f64f3",
+      "localByteLength": 6772,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 6
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "stage.ts",
+      "upstreamPath": "src/core/stage.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/stage.ts",
+      "upstreamGitBlobSha": "62bc9e9d54ad80de3156f81585bcf94111cd9b3e",
+      "upstreamSha256": "b935012a654d2a68ca20cb27909ddc8dceafb704b56a16a23a08036a546141df",
+      "localSha256": "4d446fd1bc0546139539961f124c7d37b71edaa99e4251234eaaf0e8244654dd",
+      "localByteLength": 1684,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 1
+      },
+      "semanticPatches": []
+    },
+    {
+      "path": "tickets.ts",
+      "upstreamPath": "src/core/tickets.ts",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/tickets.ts",
+      "upstreamGitBlobSha": "21376e17fc896af45fa2c06f7a7d6aa17d6e8aa2",
+      "upstreamSha256": "1d9f964ad34b54cbb0403bde16af58851e5e80111177ce73a27b6034e9af940e",
+      "localSha256": "ef078e9964dbb0ed3faafb65e2271b7c2fbda7cdaacaf2a4a3545705d0cf2b75",
+      "localByteLength": 27184,
+      "mechanicalChanges": {
+        "relativeTsToJsSpecifierCount": 8
+      },
+      "semanticPatches": [
+        "Reject attach to an ended ticket when canResume rejects it.",
+        "Do not wake an ended ticket when canResume rejects it, including clock-delayed wake."
+      ]
+    },
+    {
+      "path": "LICENSE",
+      "upstreamPath": "LICENSE",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/LICENSE",
+      "upstreamGitBlobSha": "df5ef0e6d9cf2989975742db0a13ad15050ee89b",
+      "upstreamSha256": "6d66f91815b720e18cfb2b3552043a0359236aec9a1a6917787900546f6ce550",
+      "localSha256": "6d66f91815b720e18cfb2b3552043a0359236aec9a1a6917787900546f6ce550",
+      "localByteLength": 1078,
+      "mechanicalChanges": {},
+      "semanticPatches": []
+    }
+  ],
+  "locallyAuthoredFilesOutsideUpstream": [
+    "../index.ts",
+    "../types.ts",
+    "../README.md"
+  ],
+  "validation": {
+    "command": "node --import tsx --test tests/tasks.test.ts",
+    "passedTests": 13,
+    "typecheck": "tsc --noEmit passed",
+    "evidenceLevel": "synthetic domain/SQLite integration tests; no model/device calls"
+  }
+}

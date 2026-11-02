@@ -15,6 +15,7 @@
     "client",
     "locale",
     "assets",
+    "licenses",
     "cordis.patch.yml",
     "README.md",
     "THIRD_PARTY_NOTICES.md"

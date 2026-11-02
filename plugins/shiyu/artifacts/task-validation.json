@@ -1,0 +1,243 @@
+{
+  "schemaVersion": 1,
+  "evidenceLevel": "current-run-native-DSH-UI-and-own-runtime-ledger",
+  "date": "2026-11-02",
+  "timezone": "America/Caracas",
+  "host": {
+    "version": "0.2.1-rc.5",
+    "sqliteVersion": "3.53.4"
+  },
+  "model": {
+    "providerId": "opencode-go",
+    "modelId": "deepseek-v4.1-flash",
+    "reasoningEffort": "high"
+  },
+  "limits": {
+    "maxStepsPerTask": 2,
+    "totalOutputTokensPerTask": 1024,
+    "timeoutMs": 120000,
+    "maxArtifactBytes": 1024,
+    "modelAdapterRetries": 0,
+    "transportRetries": "not independently observed"
+  },
+  "attempts": [
+    {
+      "taskId": "59d5273427236380e39601be13d99809",
+      "assignmentId": "0989b56b474cbae214b6ea5424007d8b",
+      "sessionId": "shiyu-worker-b4de5f1e1b0e3c83bd1495e94c9e3e3108ab45122a9e70a0954edaa4f6adb194-b346e136-a62c-4c50-ad6b-c59fe699ecec",
+      "instanceId": "3a25e771-6dc4-4e13-92ec-5f7190ea56fc",
+      "startedAt": "2026-11-02T06:03:55.420Z",
+      "finishedAt": "2026-11-02T06:04:00.122Z",
+      "result": "unknown",
+      "reason": "Token observations disagree",
+      "artifact": {
+        "byteLength": 92,
+        "sha256": "f7c069590eb77aa87a3a13ae2c827d1c21f596f2819e3d173f2f6ab0419812cd",
+        "matchesCompletionSpec": true
+      },
+      "effect": {
+        "status": "succeeded",
+        "attempts": 1,
+        "receiptId": "d41ec466-b312-419a-9323-19501793ee57",
+        "observedAt": "2026-11-02T06:03:57.493Z",
+        "observedSha256": "f7c069590eb77aa87a3a13ae2c827d1c21f596f2819e3d173f2f6ab0419812cd",
+        "observedBytes": 92
+      },
+      "usage": {
+        "status": "partial",
+        "observations": [
+          {
+            "seq": 14,
+            "type": "assistant/message",
+            "usage": {
+              "inputTokens": 609,
+              "outputTokens": 63,
+              "totalTokens": 672
+            }
+          },
+          {
+            "seq": 20,
+            "type": "assistant/message",
+            "usage": {
+              "inputTokens": 247,
+              "outputTokens": 251,
+              "totalTokens": 1010,
+              "cacheReadTokens": 512
+            }
+          }
+        ],
+        "reportedMainTotals": {
+          "inputTokens": 856,
+          "outputTokens": 314,
+          "totalTokens": 1682
+        },
+        "cacheReadKnownLowerBound": 512,
+        "cacheReadTotal": null,
+        "ancillaryTitleRequests": 1,
+        "ancillaryTitleUsage": "not reported",
+        "fullSessionTotalTokens": null
+      },
+      "sourceSha256": {
+        "dist/runtime.js": "018707fedf7562427c93ca7e3b2ecb8007f4fce3a14133da3733cc5c359b98b8",
+        "dist/control/task-runner.js": "aa92d4a61726a318a74540787c2efbd5fd0e41d38716dec692c91263e227cfd2",
+        "dist/adapters/dsh/workers.js": "f0a4dbc8d9e1458ba70985667d8a5f6d2d133e2f9b42a80e6ef69e2673f997d7",
+        "dist/adapters/control-store/task-domain.js": "4a118814772cd9ff958115211498b425810120590029070881be019e1ec8ba8d",
+        "dist/adapters/artifacts/index.js": "89d185a310bc38860a3f26fa3f06134278f6262bb80fe5049e622c278668aac1",
+        "client/index.js": "c246c81d66d4519bda446e36b1ba3010ab77d99a58dac4b3a826ed09cdfed0d5"
+      },
+      "nativeSessionEvidence": {
+        "bytes": 7077,
+        "frames": 9,
+        "sha256": "39a2d3fea463d848aa52650901d4610813f8e0e9abcfcc27ad7f146db465fdab",
+        "method": "read-only exact owned Session; all concatenated zstd frames decoded",
+        "events": 23
+      },
+      "nativeCounts": {
+        "request/header": 2,
+        "assistant/message": 2,
+        "assistant/attempt": 0,
+        "compaction/summary": 0,
+        "session/title-llm-request": 1
+      }
+    },
+    {
+      "taskId": "0908b666529d90685193fb27c6913040",
+      "assignmentId": "9eebf6bdb35c88153a646b496720ea3d",
+      "sessionId": "shiyu-worker-33f1df8ae6b2484de1d4e1ec3b5972d6a20aed39144c71a1c4220016df6ecc77-a915021b-6f14-4417-837b-9ad1847e88ad",
+      "instanceId": "53841449-360d-4899-9b6b-c430770c08f7",
+      "startedAt": "2026-11-02T06:18:13.793Z",
+      "finishedAt": "2026-11-02T06:18:18.849Z",
+      "result": "succeeded",
+      "artifact": {
+        "byteLength": 92,
+        "sha256": "f7c069590eb77aa87a3a13ae2c827d1c21f596f2819e3d173f2f6ab0419812cd",
+        "matchesCompletionSpec": true
+      },
+      "effect": {
+        "status": "succeeded",
+        "attempts": 1,
+        "receiptId": "dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+        "observedAt": "2026-11-02T06:18:15.966Z",
+        "observedSha256": "f7c069590eb77aa87a3a13ae2c827d1c21f596f2819e3d173f2f6ab0419812cd",
+        "observedBytes": 92
+      },
+      "verification": {
+        "assignmentId": "9eebf6bdb35c88153a646b496720ea3d",
+        "checks": [
+          {
+            "checkId": "artifact-sha256",
+            "evidenceRefs": [
+              "artifact-observation:dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+              "artifact:0908b666529d90685193fb27c6913040"
+            ],
+            "status": "pass"
+          }
+        ],
+        "completionSpecVersion": 1,
+        "resultHash": "f7c069590eb77aa87a3a13ae2c827d1c21f596f2819e3d173f2f6ab0419812cd",
+        "taskId": "0908b666529d90685193fb27c6913040",
+        "verifiedAt": "2026-11-02T06:18:18.849Z",
+        "verifierVersion": "local-artifact-sha256-v1"
+      },
+      "usage": {
+        "observation": {
+          "usage": {
+            "status": "reported",
+            "inputTokens": 358,
+            "outputTokens": 317,
+            "totalTokens": 1699,
+            "cacheReadTokens": 1024
+          },
+          "calls": 2,
+          "effects": 1,
+          "nativeObservations": [
+            {
+              "type": "assistant/message",
+              "seq": 13,
+              "usage": {
+                "inputTokens": 97,
+                "outputTokens": 78,
+                "totalTokens": 687,
+                "cacheReadTokens": 512
+              }
+            },
+            {
+              "type": "assistant/message",
+              "seq": 19,
+              "usage": {
+                "inputTokens": 261,
+                "outputTokens": 239,
+                "totalTokens": 1012,
+                "cacheReadTokens": 512
+              }
+            }
+          ]
+        },
+        "reservation": {
+          "state": "settled",
+          "observed": {
+            "tokens": 1699,
+            "calls": 2,
+            "effects": 1
+          },
+          "overrun": false
+        },
+        "accounting": {
+          "basis": "host_total",
+          "tokens": 1699
+        }
+      },
+      "nativeCounts": {
+        "request/header": 2,
+        "assistant/message": 2,
+        "assistant/attempt": 0,
+        "compaction/summary": 0,
+        "session/title-llm-request": 0
+      },
+      "nativeTitle": [
+        {
+          "seq": 3,
+          "source": {
+            "kind": "user"
+          },
+          "title": "识雨受限执行"
+        }
+      ],
+      "nativeSessionEvidence": {
+        "bytes": 6235,
+        "frames": 10,
+        "sha256": "fd7c54e4aad65b960b4a561238f8d3b2eadc5091330d589c74e4a1e62edd3e1d",
+        "method": "read-only exact owned Session; all concatenated zstd frames decoded",
+        "events": 22
+      },
+      "sourceSha256": {
+        "src/runtime.ts": "d9d60b5608eed9fcf1b9572b2175aab5d99c5158a105c98cd98f80e4a0d70202",
+        "src/control/task-runner.ts": "78c81846fb7390cf0edd2a6f843e63bcbb682633e7838047a3cf2910ba9a1687",
+        "src/adapters/dsh/workers.ts": "cbcee9e46c5453d55f0382b14c5cd68a52eba059dc8781cc1b1590290ed91599",
+        "src/adapters/dsh/session-title.ts": "624039d6d2bb927d7648826d991795875422f1a09197735d5a0e6ef77dc0d052",
+        "src/adapters/control-store/task-domain.ts": "0e6e274b5887a6a2786c36ffe6b744fc82963bb08ab01dbbe292b35951ba70e1",
+        "src/adapters/artifacts/index.ts": "1570e0b5e49500e1a3d60a4e2b5edf6ba780622471dd6ad3e0bf204f5fafbf54",
+        "dist/runtime.js": "018707fedf7562427c93ca7e3b2ecb8007f4fce3a14133da3733cc5c359b98b8",
+        "dist/control/task-runner.js": "8829429c09b775e30546544680d4fac0c0be41f23e7ad65b0bb02029995da1e6",
+        "dist/adapters/dsh/workers.js": "c69081e06e3c895c577ce36836a8ad62d971c4abcaf98aa97fa3faa08f2dc2e5",
+        "dist/adapters/dsh/session-title.js": "def0cfc7c50ca2ef2aa5d39e58b84ea2620e8d86773c5698a3ec5b62bcdf9d62",
+        "dist/adapters/control-store/task-domain.js": "27501f831a972d55de4e45c87e13a9858d56f83c65aedc90868f3160e1508cfd",
+        "dist/adapters/artifacts/index.js": "89d185a310bc38860a3f26fa3f06134278f6262bb80fe5049e622c278668aac1",
+        "client/index.js": "c246c81d66d4519bda446e36b1ba3010ab77d99a58dac4b3a826ed09cdfed0d5"
+      }
+    }
+  ],
+  "checks": {
+    "moduleTestsPassed": 198,
+    "uiTestsPassed": 39,
+    "evidence": "phase2-offline-validation.json"
+  },
+  "limitations": [
+    "This is one bounded synthetic task path, not full V10–V12/V24/V25 acceptance.",
+    "First attempt kept unknown after the real artifact succeeded; the usage rejection is preserved as a failure.",
+    "No real external channel, account, device or message delivery was used.",
+    "The first attempt had one native automatic-title request outside the two main Agent steps; title usage was not reported, so its full Session total remains unknown.",
+    "The second attempt confirms no native automatic-title request and no compaction in this exact bounded Session; provider transport retries remain outside the observable native-call count."
+  ],
+  "latestResult": "succeeded"
+}

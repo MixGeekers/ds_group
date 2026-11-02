@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-02",
+  "evidenceLevel": "current-run-local-tests",
+  "node": "v24.19.0",
+  "phase2": {
+    "typecheck": "passed (whole current source tree)",
+    "moduleTestsPassed": 198,
+    "moduleTestsFailed": 0,
+    "command": "node --import tsx --test --test-concurrency=1 tests/artifacts.test.ts tests/effects.test.ts tests/embedding.test.ts tests/event-tools.test.ts tests/events.test.ts tests/local-state.test.ts tests/mandates.test.ts tests/runtime.test.ts tests/sessions.test.ts tests/store.test.ts tests/task-domain.test.ts tests/task-repositories.test.ts tests/task-runner.test.ts tests/tasks.test.ts tests/transaction.test.ts tests/workers.test.ts",
+    "build": "passed",
+    "clientSyntax": "passed",
+    "uiTestsPassed": 39,
+    "uiEvidence": "earlier full Playwright run in this implementation slice; no later client change"
+  },
+  "phase3Excluded": [
+    "conversations",
+    "goals",
+    "memory",
+    "ombre",
+    "views"
+  ],
+  "sourceSha256": {
+    "tests/artifacts.test.ts": "3861e0fd3686e326d12213170ecab5426a155ab76563a223dd3d5ddb309bd137",
+    "tests/effects.test.ts": "3813255f761f3b7613ec6cb775fa1efad425caeb57d20a1d4617890db2b6214d",
+    "tests/embedding.test.ts": "db832d580bea3fa916ea85f14a964396e2f66dd3bb5ef49c1182dc33c94edb11",
+    "tests/event-tools.test.ts": "ce7bc1bf40a7bf41ef9b667936a0a9de69347fa6e8c715d7066b25a377803fd6",
+    "tests/events.test.ts": "2d78d7a0ba3f5ef7369d585f899bc867cdc77319644efed7017d2ee115ae7e34",
+    "tests/local-state.test.ts": "2282fe30fd78304394d9cfabe1893be4a42958691f88802be1b469b689760c27",
+    "tests/mandates.test.ts": "ceafce99f5629de0cdcf5d290d8d6920cb9963306056387cd2a7c40012fcf0c5",
+    "tests/runtime.test.ts": "f034992ea13936e1265227e4eddad4568a45620b9c90b571dfdb2604e82e9dd6",
+    "tests/sessions.test.ts": "849f60a7b38bb2afa7232b7268707c076d050b17c60c0b9c6701161f1b1eb7c8",
+    "tests/store.test.ts": "099c1da9b16d521de8403ac60e3d3486b62667aa81618c3512146fc9683dabc0",
+    "tests/task-domain.test.ts": "266fce898874727c5508a815162926361eaf4655159bf493747b1704f36dd381",
+    "tests/task-repositories.test.ts": "129c0277894b113150dc183477a0fa94ddf3e66f6f8f0cd33888b8b3b14eed25",
+    "tests/task-runner.test.ts": "71458d6b596cdb8e540087ce8231122f09ff746412d433547cd79f01ee12aa2f",
+    "tests/tasks.test.ts": "03da860a318b403c27510d349138870a76351c5107d27e4b94765676b407de53",
+    "tests/transaction.test.ts": "5fc6dfda7c3a16a16c2c6d91df35069fb62b11fa706d8da1dce43afd719559e4",
+    "tests/workers.test.ts": "66e6055260fe9f12071a310b047750a015f7642ba8137fc234573c300a195fb0"
+  },
+  "limitations": [
+    "The module suite uses native Session/LLM fixtures; actual DSH task verification is recorded separately.",
+    "Whole-tree build may emit unconnected phase3 modules; none is imported by the phase2 runtime."
+  ]
+}

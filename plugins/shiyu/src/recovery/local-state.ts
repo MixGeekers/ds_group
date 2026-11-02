@@ -3,12 +3,15 @@ import { lstat, mkdir, open, readFile, realpath, rename, rm } from 'node:fs/prom
 import path from 'node:path';
 import lockfile from 'proper-lockfile';
 import type { SessionBinding } from '../adapters/dsh/sessions.js';
+import type { ModelUsage } from '../adapters/dsh/sessions.js';
 
 export interface LocalState {
   schemaVersion: 1;
   paused: boolean;
+  installationGeneration?: string;
   bindings: SessionBinding[];
   lastProbe?: { at: string; ok: boolean; message: string; instanceId?: string };
+  lastModelVerification?: { at: string; ok: boolean; message: string; instanceId: string; calls: number; sessionId?: string; usage: ModelUsage[] };
 }
 
 /** Business bindings only. Model history and compaction remain in DSH. */

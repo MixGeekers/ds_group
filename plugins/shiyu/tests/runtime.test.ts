@@ -5,9 +5,17 @@ import os from 'node:os';
 import path from 'node:path';
 import { RuntimeService } from '../src/runtime.js';
 import type { SessionDriver } from '../src/runtime.js';
-import { defaultModel } from '../src/adapters/dsh/sessions.js';
+import { defaultModel, sessionBindingKey } from '../src/adapters/dsh/sessions.js';
 import type { DshContext, ReplyRequest, ReplyResult } from '../src/adapters/dsh/sessions.js';
 import { readCommand, serveCommand, serveState } from '../src/index.js';
+import type { WorkerRunRequest, WorkerRunResult } from '../src/adapters/dsh/workers.js';
+
+class FakeWorkers {
+  calls = 0;
+  async initialize() {}
+  async run(_request: WorkerRunRequest): Promise<WorkerRunResult> { this.calls++; throw new Error('Synthetic worker was not configured'); }
+  async close() {}
+}
 
 class FakeSessions implements SessionDriver {
   probes = 0; generations = 0; closed = false;
@@ -27,11 +35,119 @@ class FakeSessions implements SessionDriver {
 async function fixture(t: any, allowCloseFailure = false) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'shiyu-runtime-test-'));
   const fake = new FakeSessions();
-  const create = () => new RuntimeService({} as DshContext, { dataDir: directory }, { sessionFactory: () => fake });
+  const workers = new FakeWorkers();
+  const create = () => new RuntimeService({} as DshContext, { dataDir: directory }, { sessionFactory: () => fake, workerFactory: () => workers });
   const runtime = create(); await runtime.init();
   t.after(async () => { try { await runtime.close(); } catch (error) { if (!allowCloseFailure) throw error; } finally { await rm(directory, { recursive: true, force: true }); } });
-  return { directory, fake, runtime, create };
+  return { directory, fake, workers, runtime, create };
 }
+function syntheticReply(request: ReplyRequest, text: string): ReplyResult {
+  return { text, usage: { status: 'unknown' }, binding: { key: sessionBindingKey('replyer', request.businessId, request.scope), role: 'replyer', businessId: request.businessId, scope: request.scope, sessionId: 'shiyu-replyer-synthetic-model-check', model: defaultModel('replyer'), status: 'idle', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), usage: { status: 'unknown' } } };
+}
+
+test('explicit model verification uses exactly two bounded turns and one Session without sending', async t => {
+  const { runtime, fake } = await fixture(t);
+  let marker = ''; const requests: ReplyRequest[] = [];
+  fake.generateReply = async request => {
+    requests.push(request); fake.generations++;
+    if (requests.length === 1) { marker = request.prompt.match(/SHIYU_[a-f0-9]+/)![0]; return syntheticReply(request, '已记住'); }
+    return syntheticReply(request, marker);
+  };
+  const result: any = await runtime.command({ action: 'session.verify-model' });
+  assert.equal(result.verified, true); assert.equal(result.calls, 2); assert.equal(result.sameSession, true); assert.equal(result.sent, false);
+  assert.equal(requests.length, 2); assert.ok(requests.every(r => r.maxTokens === 1024));
+  assert.equal(requests[0].businessId, requests[1].businessId); assert.equal(requests[1].prompt.includes(marker), false);
+  assert.equal(runtime.state.state.lastModelVerification?.calls, 2);
+  assert.equal((await runtime.snapshot()).dependencies.find(d => d.id === 'model')?.status, 'available');
+  await runtime.snapshot(); await runtime.snapshot(); assert.equal(fake.generations, 2);
+});
+
+test('model verification does not retry a failed first turn or a wrong second answer', async t => {
+  const { runtime, fake } = await fixture(t);
+  fake.generateReply = async () => { fake.generations++; throw new Error('Synthetic provider unavailable'); };
+  await assert.rejects(runtime.command({ action: 'session.verify-model' }), /Synthetic provider unavailable/);
+  assert.equal(fake.generations, 1); assert.equal(runtime.state.state.lastModelVerification?.calls, 1);
+  fake.generateReply = async request => { fake.generations++; return syntheticReply(request, 'incorrect'); };
+  await assert.rejects(runtime.command({ action: 'session.verify-model' }), /did not confirm/);
+  assert.equal(fake.generations, 3);
+  assert.equal((await runtime.snapshot()).dependencies.find(d => d.id === 'model')?.status, 'unavailable');
+});
+
+test('an accepted local task outlives its HTTP request and completes only after independent verification', async t => {
+  const { runtime, workers } = await fixture(t);
+  const content = 'Synthetic background task';
+  workers.run = async request => {
+    const binding = { taskId: request.taskId, assignmentId: request.assignmentId, scope: request.scope, sessionId: 'shiyu-worker-synthetic-background' };
+    const identity = { ...binding, hostEpoch: request.permit.hostEpoch, installationGeneration: request.permit.installationGeneration, fencingToken: request.permit.fencingToken, leaseExpiresAt: request.permit.leaseExpiresAt };
+    await request.onBound(binding);
+    await request.tools![0].execute({ content }, { ...binding, permit: identity, signal: request.signal!, assertPermit: async () => { await request.permit.check({ ...identity, phase: 'tool' }); } });
+    return { ...binding, candidate: { summary: 'Synthetic candidate', evidenceRequests: [] }, usage: { status: 'reported', inputTokens: 20, outputTokens: 10, totalTokens: 30 }, steps: 2, modelCalls: 2, nativeObservations: [], verified: false };
+  };
+  const request = new AbortController();
+  const accepted: any = await runtime.command({ action: 'task.createLocal', requestId: 'background-test', title: 'Background fixture', content }, request.signal);
+  assert.equal(accepted.accepted, true); assert.equal(accepted.task.state, 'queued');
+  request.abort();
+  await Promise.all([...runtime.operations.values()].map(operation => operation.done));
+  const snapshot = await runtime.snapshot();
+  assert.equal(snapshot.tasks.find(task => task.taskId === accepted.task.taskId)?.state, 'succeeded');
+  assert.equal(snapshot.activeWork.length, 0);
+});
+
+test('pause after durable admission preserves its accepted receipt and resume schedules it once', async t => {
+  const { runtime, workers } = await fixture(t);
+  const original = runtime.store.request.bind(runtime.store);
+  let reached!: () => void, release!: () => void;
+  const committed = new Promise<void>(resolve => { reached = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  runtime.store.request = (async (command: any, args: any) => {
+    const value = await original(command, args);
+    if (command === 'task.createLocal') { reached(); await gate; }
+    return value;
+  }) as typeof runtime.store.request;
+  const pending = runtime.command({ action: 'task.createLocal', requestId: 'pause-admission', title: 'Pause fixture', content: 'Synthetic input' });
+  await committed; await runtime.command({ action: 'runtime.pause' }); release();
+  const accepted: any = await pending;
+  assert.equal(accepted.accepted, true); assert.equal(accepted.task.state, 'queued'); assert.equal(workers.calls, 0);
+  await runtime.command({ action: 'runtime.resume' });
+  await Promise.all([...runtime.operations.values()].map(operation => operation.done));
+  assert.equal(workers.calls, 1);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(workers.calls, 1);
+});
+
+test('unload drains a committed admission without changing its receipt or starting a late worker', async t => {
+  const { runtime, workers, create } = await fixture(t);
+  const original = runtime.store.request.bind(runtime.store);
+  let reached!: () => void, release!: () => void;
+  const committed = new Promise<void>(resolve => { reached = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  runtime.store.request = (async (command: any, args: any) => {
+    const value = await original(command, args);
+    if (command === 'task.createLocal') { reached(); await gate; }
+    return value;
+  }) as typeof runtime.store.request;
+  const pending = runtime.command({ action: 'task.createLocal', requestId: 'unload-admission', title: 'Unload fixture', content: 'Synthetic input' });
+  await committed;
+  let closed = false; const close = runtime.close().then(() => { closed = true; });
+  await new Promise(resolve => setImmediate(resolve)); assert.equal(closed, false);
+  release(); assert.equal((await pending as any).accepted, true); await close; assert.equal(workers.calls, 0);
+  const fresh = create(); await fresh.init();
+  try { assert.equal((await fresh.snapshot()).tasks.length, 1); assert.equal(workers.calls, 0); } finally { await fresh.close(); }
+});
+
+test('a failed domain resume keeps the persistent pause across a new runtime instance', async t => {
+  const { runtime, create } = await fixture(t);
+  await runtime.command({ action: 'runtime.pause' });
+  const original = runtime.store.request.bind(runtime.store);
+  runtime.store.request = (async (command: any, args: any) => {
+    if (command === 'task.setPaused' && args.paused === false) throw new Error('Synthetic resume storage failure');
+    return original(command, args);
+  }) as typeof runtime.store.request;
+  await assert.rejects(runtime.command({ action: 'runtime.resume' }), /Synthetic resume storage failure/);
+  assert.equal(runtime.state.state.paused, true);
+  await runtime.close(); const fresh = create(); await fresh.init();
+  try { assert.equal((await fresh.snapshot()).state, 'paused'); } finally { await fresh.close(); }
+});
 
 test('dashboard reads never publish, create Sessions or infer; planned systems remain explicit', async t => {
   const { runtime, fake } = await fixture(t);
@@ -119,7 +235,7 @@ test('a failed Session close still waits for outstanding operations before relea
   fake.generateReply = async () => { await new Promise<void>(resolve => { finish = resolve; }); throw new Error('Synthetic operation ended'); };
   fake.close = async () => { throw new Error('Synthetic dispose failed'); };
   const pending = assert.rejects(runtime.command({ action: 'reply.generate', businessId: 'demo', prompt: 'test' }), /Synthetic operation ended/);
-  const closed = assert.rejects(runtime.close(), /Synthetic dispose failed/);
+  const closed = assert.rejects(runtime.close(), (error: unknown) => error instanceof AggregateError && error.errors.some(e => e.message === 'Synthetic dispose failed'));
   await assert.rejects(create().init(), /lock|locked/i);
   finish(); await pending; await closed;
   const fresh = create(); await fresh.init();

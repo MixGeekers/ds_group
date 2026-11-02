@@ -11,6 +11,8 @@ import {
   type StoreInfo, type SubscribeInput, type SubscriptionPatch,
 } from "../../contracts/events.js";
 import type { ControlStoreOptions, StoreRequest, StoreResponse } from "./protocol.js";
+import { SqliteTransactions } from './transaction.js';
+import { TaskDomain, type TaskDomainRequest } from './task-domain.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -19,7 +21,8 @@ const options = workerData as ControlStoreOptions;
 const catalog = new Map<string, EventTypeDefinition>();
 let db: DatabaseSync;
 let info!: StoreInfo;
-let isolated = false;
+let transactions!: SqliteTransactions;
+let tasks: TaskDomain | undefined;
 const fail = (code: string, message: string): never => { throw new EventServiceError(code, message); };
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
 function string(value: unknown, name: string, max = 256): asserts value is string {
@@ -53,20 +56,7 @@ const watermark = () => Number(one("SELECT COALESCE(MAX(sequence), 0) AS value F
 
 /** No asynchronous operation or callback enters a SQLite transaction. */
 function transaction<T>(operation: () => T): T {
-  if (isolated) return fail("STORE_ISOLATED", "Control store transaction state is unknown.");
-  db.exec("BEGIN IMMEDIATE");
-  try {
-    const result = operation();
-    db.exec("COMMIT");
-    return result;
-  } catch (error) {
-    try { if (db.isTransaction) db.exec("ROLLBACK"); }
-    catch (cleanupError) {
-      isolated = true;
-      throw new EventServiceError("STORE_ISOLATED", `Transaction failed: ${String(error)}; rollback failed: ${String(cleanupError)}`);
-    }
-    throw error;
-  }
+  return transactions.atomic<T>(operation as () => T & (T extends PromiseLike<unknown> ? never : T));
 }
 
 function principal(value: EventPrincipal): void {
@@ -400,7 +390,11 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
 }
 
 function execute(request: StoreRequest): unknown {
-  if (isolated && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
+  if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
+  if (request.command.startsWith('task.')) {
+    if (!tasks) return fail('TASKS_UNAVAILABLE', 'Task commands require a trusted runtime identity at store initialization.');
+    return tasks.execute(request as TaskDomainRequest);
+  }
   switch (request.command) {
     case "info": return info;
     case "types": {
@@ -445,6 +439,7 @@ function initialize(): void {
   }
   if (options.filename !== ":memory:") mkdirSync(dirname(options.filename), { recursive: true, mode: 0o700 });
   db = new DatabaseSync(options.filename);
+  transactions = new SqliteTransactions(db);
   db.exec("PRAGMA busy_timeout=5000; PRAGMA foreign_keys=ON;");
   const sqliteVersion = String(one("SELECT sqlite_version() AS version")!.version);
   const [major = 0, minor = 0, patch = 0] = sqliteVersion.split(".").map(Number);
@@ -481,10 +476,18 @@ function initialize(): void {
       run("INSERT OR IGNORE INTO event_catalog(type,schema_version,fingerprint) VALUES(?,?,?)", definition.type, definition.schemaVersion, fingerprint);
     }
   });
+  if (options.runtimeIdentity) {
+    tasks = new TaskDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, onSucceeded: taskId => {
+      // Completion facts share the Task transaction; no observer can see a half-committed success.
+      publish({ principalId: 'task-service', kind: 'component', scopes: ['local-owner'], publishTypes: ['task.succeeded'], subscribeTypes: [], targetRefs: [] },
+        { type: 'task.succeeded', scope: 'local-owner', payload: { taskId }, idempotencyKey: `task-succeeded:${taskId}` });
+    } });
+  }
 }
 
 function errorShape(error: unknown): { code: string; message: string } {
-  return { code: error instanceof EventServiceError ? error.code : "STORE_ERROR", message: error instanceof Error ? error.message : String(error) };
+  const code = isObject(error) && typeof error.code === 'string' ? error.code : transactions?.poisoned ? 'STORE_ISOLATED' : 'STORE_ERROR';
+  return { code, message: error instanceof Error ? error.message : String(error) };
 }
 try {
   initialize();

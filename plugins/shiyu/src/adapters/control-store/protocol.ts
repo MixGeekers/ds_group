@@ -3,15 +3,18 @@ import type {
   FailInput, PublishEventInput, PublishReceipt, StoredDelivery, StoredEvent,
   StoredSubscription, StoreInfo, SubscribeInput, SubscriptionPatch,
 } from "../../contracts/events.js";
+import type { TaskCommands, TaskRuntimeIdentity } from './task-domain.js';
 
 export interface ControlStoreOptions {
   filename: string;
   eventTypes: EventTypeDefinition[];
   componentHandlers: string[];
+  /** Required for Task commands; omitted keeps an event-only store. Host-owned identity, never UI input. */
+  runtimeIdentity?: TaskRuntimeIdentity;
 }
 
 type WithPrincipal<T = unknown> = { principal: EventPrincipal } & T;
-export interface StoreCommands {
+export interface StoreCommands extends TaskCommands {
   info: { input: Record<string, never>; output: StoreInfo };
   types: { input: WithPrincipal; output: EventTypeDefinition[] };
   publish: { input: WithPrincipal<{ input: PublishEventInput }>; output: PublishReceipt };

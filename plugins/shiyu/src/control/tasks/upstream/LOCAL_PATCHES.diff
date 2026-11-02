@@ -1,0 +1,52 @@
+--- mechanical/src/core/assignments.ts
++++ local/assignments.ts
+@@ -87,7 +87,7 @@
+     const report = running.report
+     const busy = !!running.deliveredAt && !!report && running.deliveredAt >= report.at
+     const settled = !!report && ['waiting', 'ready', 'blocked', 'failed'].includes(report.state) && !busy
+-    if (!settled) this.tickets.restart(ticket, running, 'hostRestarted', RECOVERY_NOTE)
++    if (!settled || this.options.restartInterruptedAssignments) this.tickets.restart(ticket, running, 'hostRestarted', RECOVERY_NOTE)
+     else if (ticket.undelivered.length) this.options.executor.deliver(ticket, running)
+   }
+   /**
+--- mechanical/src/core/intake.ts
++++ local/intake.ts
+@@ -41,6 +41,7 @@
+         // threads when it resumes), and a human-stopped ticket receives nothing because its Mandate was withdrawn.
+         const followed = !!thread.context?.includes(ticketId)
+         const resumes = trigger.human && ticket?.ended?.by !== 'human' && !followed
++          && (!ticket || this.options.canResume?.(ticket) !== false)
+         if (!ticket || (!liveTicket(ticket) && !resumes)) continue
+         reached.set(ticketId, { ticket, context: followed && (reached.get(ticketId)?.context ?? true) })
+       }
+--- mechanical/src/core/part.ts
++++ local/part.ts
+@@ -12,6 +12,10 @@
+   assessor: Assessor
+   executor: Executor
+   outbox: Outbox
++  /** Local policy hook. Undefined preserves upstream ended-ticket continuation. */
++  canResume?: (ticket: Ticket) => boolean
++  /** Local recovery policy; default preserves upstream's settled-session reuse. */
++  restartInterruptedAssignments?: boolean
+   prepareTicket?: (ticket: Ticket, outcome: Extract<AssessmentOutcome, { kind: 'accept' }>) => Ticket
+   now?: () => string
+   emit?: (event: DomainEvent) => void
+--- mechanical/src/core/tickets.ts
++++ local/tickets.ts
+@@ -109,6 +109,7 @@
+     // A follow-up that reached a ticket goes elsewhere only once the workers that decide it hand it back.
+     this.leftToWorkers(trigger)
+     const current = this.require(ticketId)
++    if (!liveTicket(current) && this.options.canResume?.(current) === false) throw new UserError('ticketEnded')
+     if (current.ended?.by === 'human') throw new UserError('ticketStopped')
+     if (!liveTicket(current) && !this.policy().revalidate(current.mandate)) throw new UserError('mandateRevoked')
+     return trigger
+@@ -252,6 +253,7 @@
+   wake(ticketId: string): void {
+     const ticket = this.repo.tickets.get(ticketId)
+     if (!ticket || liveTicket(ticket) || ticket.ended?.by === 'human' || !ticket.undelivered.length) return
++    if (this.options.canResume?.(ticket) === false) return
+     const policy = this.policy()
+     if (policy.paused) return
+     if (!policy.revalidate(ticket.mandate)) { this.refuse(ticket); return }

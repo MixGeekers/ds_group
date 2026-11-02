@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "evidenceLevel": "current-run-native-DSH-generative-inference",
+  "date": "2026-11-02",
+  "timezone": "America/Caracas",
+  "hostVersion": "0.2.1-rc.5",
+  "result": {
+    "at": "2026-11-02T05:39:05.662Z",
+    "ok": true,
+    "instanceId": "8e1d4a64-f47b-4c2e-a38e-6b45ff68b822",
+    "calls": 2,
+    "sessionId": "shiyu-replyer-d47cba2a-a154-489f-ac03-8108be78e7e6",
+    "usage": [
+      {
+        "status": "reported",
+        "inputTokens": 166,
+        "outputTokens": 36,
+        "totalTokens": 202
+      },
+      {
+        "status": "reported",
+        "inputTokens": 185,
+        "outputTokens": 14,
+        "totalTokens": 199
+      }
+    ],
+    "message": "两轮合成输入验证通过；同一原生 Session 保留代号，opencode-go / deepseek-v4.1-flash / low。缓存数据仅按宿主实际报告显示。"
+  },
+  "model": {
+    "provider": "opencode-go",
+    "model": "deepseek-v4.1-flash",
+    "reasoningEffort": "low"
+  },
+  "scope": {
+    "syntheticTurns": 2,
+    "maxOutputTokensPerTurn": 1024,
+    "nativeSessionReused": true,
+    "adapterAutomaticRetries": 0,
+    "sentToExternalChannel": false,
+    "toolsAvailable": []
+  },
+  "reportedUsage": {
+    "inputTokens": 351,
+    "outputTokens": 50,
+    "totalTokens": 401,
+    "cacheReadTokens": null,
+    "cacheWriteTokens": null
+  },
+  "uiObservation": {
+    "successReceiptVerified": true,
+    "secondTurn": {
+      "inputTokens": 185,
+      "outputTokens": 14,
+      "cacheReadTokens": "not reported"
+    },
+    "events": 8,
+    "pendingDeliveries": 0,
+    "failedDeliveries": 0
+  },
+  "limitations": [
+    "Two short synthetic turns validate native Session reuse, not long-context compaction or full semantic quality.",
+    "The adapter did not record cache fields for this run; no hit rate can be concluded.",
+    "Native provider transport retry count was not separately observed.",
+    "No business data, external channel send or device action was used.",
+    "A later exact Session audit found two native automatic-title requests, with no title usage reported. result.calls=2 is the explicit main-turn count, not total Session inference calls."
+  ],
+  "sourceSha256": {
+    "src/runtime.ts": "39366b6bde9a0dbec74a2df5fc189fb38012ebbb19fdaeea29901a3d510605b1",
+    "src/adapters/dsh/sessions.ts": "b1b23719ed4cf46e75a24340bf544168ef5e763a006efa067923fd0a08a532c7",
+    "src/recovery/local-state.ts": "f02fbc56eb891cbba716a66f05d0fee09ab000f9b924c0856a3d7eb2329c6969",
+    "client/index.js": "c380e33e85d11e1de59ae21edab69e94e9a06e4ae55ecfeacf25a0d1fe701792"
+  },
+  "usageScope": "The reported 401 tokens cover the two main Agent responses only; full Session usage is unknown.",
+  "supplementalAudit": {
+    "date": "2026-11-02",
+    "method": "read-only exact synthetic validation Session; all concatenated zstd frames",
+    "sessionBytes": 5406,
+    "zstdFrames": 10,
+    "eventCount": 26,
+    "sessionSha256": "3de11357c83728afd1103f8b3552797cd851e1f5cf592f879adcda1872c2c6e7",
+    "mainResponseSeqs": [
+      14,
+      23
+    ],
+    "titleRequestSeqs": [
+      13,
+      22
+    ],
+    "titleRequests": 2,
+    "titleUsage": null,
+    "fullSessionTokens": null
+  }
+}
