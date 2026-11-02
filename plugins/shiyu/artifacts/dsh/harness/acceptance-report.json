@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.acceptance-report",
-  "generatedAt": "2026-11-02T22:46:44.767Z",
+  "generatedAt": "2026-11-02T23:35:28.216Z",
   "registryVersion": "1.0.0",
   "inputs": {
-    "pluginRoot": "/private/tmp/h7r3-clean/plugins/shiyu",
-    "workspaceRoot": "/private/tmp/h7r3-clean",
-    "traceabilitySha256": "7416e3490cca2e2d24777439655504a7b4134e82d8f900ecd1a97c940131530d",
-    "selfproofSha256": "8af56a2e10f31580c21f3efc7413650722f7ab06359fef52820b399d5039ab31",
-    "manifestSha256": "ba6e4786e3428568a458c75ffa8d4dc57747dca0f3d39d67fc52347296daa6f4",
-    "coverageSha256": "c601286411a4df28a2cd7d293a986096de33b576f8cb813e95606a078ce78fd8",
-    "frozenHead": "c2bb475e67c11f12334c1b4339284e6084c5630a",
+    "pluginRoot": "/private/tmp/h7r4-clean/plugins/shiyu",
+    "workspaceRoot": "/private/tmp/h7r4-clean",
+    "traceabilitySha256": "d208ceb02401f61b8415233ebdf4ba95445569450fd4058f6ba43f8eaa41f061",
+    "selfproofSha256": "408f93b452818375342d24990391f3830527e3df6b34c34d4cebc580fac99ee8",
+    "manifestSha256": "c32b773453e64eaccfd67c94e467ddb2a3f0567f18b98da8528fe2aa567d432a",
+    "coverageSha256": "9d392a357fb88a02131db31e75017884071f0a335ed950d0abbc43d88acb28c7",
+    "frozenHead": "af201fecea06c13dbfbc23e5f4e66d2aa29350b1",
     "selfproofPassed": true,
     "manifestDirty": false
   },
@@ -253,7 +253,9 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h2a-events",
-        "h2a-probe"
+        "h2a-probe",
+        "h2b-subscriptions-time",
+        "round3-host-zero-model"
       ],
       "evidenceRefs": [
         {
@@ -299,6 +301,68 @@
               "sha256": "ec72562a1ee544f431b4bfe47fe71aedbc455c0a491e55abd2ea121bc479f24e"
             }
           ]
+        },
+        {
+          "sourceId": "h2b-subscriptions-time",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2b-subscriptions-time.json",
+              "sha256": "632130e8f3975a3ec23615e00cdade7d5b77f039e0d88a44aab7229cddaa5d80"
+            }
+          ]
+        },
+        {
+          "sourceId": "round3-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3-joint-zero-model.json",
+              "sha256": "e3152ca4445a8618d39ab2ef7c00a60816c590a7d0d420fc562a3db582c51252"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-before.json",
+              "sha256": "fefafea41e7e69579b26849083cd07ec2ae7b0606b97a581e499a6fbdb6185fd"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after-disable.json",
+              "sha256": "88bf9169ae86ce79c335b7044c7aeb81834f3bc7e54be2ec976ee7c0885492fd"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-pre-reload2.json",
+              "sha256": "950718f26a64d55016cf6322641aeb86bf10e8d5496bdfb2ecb7ad24d4bad2d6"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after.json",
+              "sha256": "2b2619e47ce9adcb4133dfc77f35624b718d8731feaf7fbf3877457946e96ff7"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after-tools.json",
+              "sha256": "47d147ccdf29be9fcd6ee01051a47e89f0bf3abe0f541961b9e73a7b48fe9f91"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/status-after-probes.json",
+              "sha256": "6bf1faceecbac579818a2a20bc1a2213e81a37670288c209a46d73b347fad5c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/status-after-reload.json",
+              "sha256": "361339cf4668d061ec008014dcbb481294b6acbb62ccb0348d7d1ca516720c7c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/core-event-tool-probe.json",
+              "sha256": "976fa65d5294401a9ea00c41c022106cc31f02629a882cbda15715a081e88909"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/worker-tool-probe.json",
+              "sha256": "7f54854635ebca79c4c5a44b727874dfb5278a34d0766b23653cd4d68235478c"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -332,15 +396,23 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H2a 离线+零模型探针；时间/外部触发、fan-out/配额未验",
+        "H2a 离线+零模型探针；H2b 离线订阅生命周期/插件时间源；round-3 宿主仅零模型 timeSource idle；时间/外部触发、fan-out/配额未验",
         "Offline module/integration with synthetic native DSH double and independent effect ledger; not fixed-host model behaviour.",
         "Real core Goal continuation wiring, time/condition triggers, anti-loop/fanout quota matrices and event-catalog extension remain untested.",
         "No model actually called an event tool; provider budgets/cache and real task/Goal continuation are unproven.",
         "Zero-model probe only: proves restricted mounting, non-forgeable tool parameters and release — not that a model called an event tool.",
-        "Not Task/Goal continuation, not provider budget/cache/cost, not business acceptance."
+        "Not Task/Goal continuation, not provider budget/cache/cost, not business acceptance.",
+        "G1/G2 offline only: no fixed host, model, embedding, channel, device or real effect endpoint; notification Effect and observations are synthetic doubles.",
+        "Runtime wiring (catalog, rule store/lifecycle, time pump, diagnostics) was integrated by Lead under e400fcc; fixed-host/zero-model probe is separate round-3 host evidence.",
+        "Agent-facing declarative-condition tools are not mounted; dedupe across reconnect is proven only across process/rule-store restart, not real platform redelivery.",
+        "No IANA tz/DST database: daily schedules take injected zoneOffsetMinutes. Budget bounding is structural; monetary/model cost is out of scope.",
+        "Zero-model evidence only: activation/upgrade/publication/probes/diagnostics are proven, not real model tool invocation, provider budgets, real plan quality or channel traffic.",
+        "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was NOT executed on the host.",
+        "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts; probes are zero-model.",
+        "One ordered reload and four tool calls only; no real task/Goal continuation under a model, no channel/Lab business loop and no device/long-run evidence."
       ],
       "notes": [
-        "H2a 离线+零模型探针；时间/外部触发、fan-out/配额未验"
+        "H2a 离线+零模型探针；H2b 离线订阅生命周期/插件时间源；round-3 宿主仅零模型 timeSource idle；时间/外部触发、fan-out/配额未验"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/01-输入与事件/03-外部事件/README.md",
@@ -509,7 +581,8 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h2a-events"
+        "h2a-events",
+        "h2b-subscriptions-time"
       ],
       "evidenceRefs": [
         {
@@ -537,6 +610,19 @@
               "sha256": "20014eae2c7332600c3428dc172dce7ff66159773991905dd9c45a98fe3b7c9e"
             }
           ]
+        },
+        {
+          "sourceId": "h2b-subscriptions-time",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2b-subscriptions-time.json",
+              "sha256": "632130e8f3975a3ec23615e00cdade7d5b77f039e0d88a44aab7229cddaa5d80"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -562,13 +648,17 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "无 V05 的 20 会话/1000 消息/20 种子公平与 P95 证据",
+        "H2a/H2b 离线事件/订阅基础；无 V05 的 20 会话/1000 消息/20 种子公平与 P95 证据",
         "Offline module/integration with synthetic native DSH double and independent effect ledger; not fixed-host model behaviour.",
         "Real core Goal continuation wiring, time/condition triggers, anti-loop/fanout quota matrices and event-catalog extension remain untested.",
-        "No model actually called an event tool; provider budgets/cache and real task/Goal continuation are unproven."
+        "No model actually called an event tool; provider budgets/cache and real task/Goal continuation are unproven.",
+        "G1/G2 offline only: no fixed host, model, embedding, channel, device or real effect endpoint; notification Effect and observations are synthetic doubles.",
+        "Runtime wiring (catalog, rule store/lifecycle, time pump, diagnostics) was integrated by Lead under e400fcc; fixed-host/zero-model probe is separate round-3 host evidence.",
+        "Agent-facing declarative-condition tools are not mounted; dedupe across reconnect is proven only across process/rule-store restart, not real platform redelivery.",
+        "No IANA tz/DST database: daily schedules take injected zoneOffsetMinutes. Budget bounding is structural; monetary/model cost is out of scope."
       ],
       "notes": [
-        "无 V05 的 20 会话/1000 消息/20 种子公平与 P95 证据"
+        "H2a/H2b 离线事件/订阅基础；无 V05 的 20 会话/1000 消息/20 种子公平与 P95 证据"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/01-外层-对话与表达/02-串行与并行队列/README.md",
@@ -688,7 +778,8 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h3-core-planning"
+        "h3-core-planning",
+        "h4e-lifecycle-recompute"
       ],
       "evidenceRefs": [
         {
@@ -710,6 +801,19 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h3-verify.json",
               "sha256": "738d8133b1cb4c9a0a3965e1681f6a7d1b1aa13a2448dfbf76b9cf27681ba1a9"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-lifecycle-recompute",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4e-lifecycle-recompute.json",
+              "sha256": "0b99a5c6f294553e57d69cfa8b86ca2a4832fd237f426ffed05d58be0b959052"
             }
           ]
         }
@@ -750,12 +854,16 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H3 离线受控计划/重规划；无真实宿主/模型 plan 验收",
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态；无真实宿主/模型 plan 验收",
         "G1 module/property + real temporary SQLite/Worker only; no real DSH host/native Goal rounds, real model plan JSON, cost/cache or slot behaviour.",
-        "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission."
+        "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission.",
+        "G1 module/property with real temporary SQLite/Worker IPC only: no model, embedding, real Ombre body, host reload, real channel or business acceptance.",
+        "Retention is explicit logical lifecycle (owner-controlled, no automatic expiry, no physical erase); background retention cleanup and backup deletion propagation are not implemented.",
+        "Recompute is a same-DB bounded deterministic scan; cross-component trust is only explicit unknown, not an atomic snapshot; derivation gates current-evidence use without rewriting bodies.",
+        "Old records without derivation fields normalize to current: that means \"never computed\", not a re-proof of history; no model self-asserted status upgrade is allowed."
       ],
       "notes": [
-        "H3 离线受控计划/重规划；无真实宿主/模型 plan 验收"
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态；无真实宿主/模型 plan 验收"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/00-core-主动判断/README.md",
@@ -774,7 +882,9 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "historical-memory",
-        "h4-inner-offline"
+        "h4-inner-offline",
+        "h4e-lifecycle-recompute",
+        "h4e-migration-hotfix"
       ],
       "evidenceRefs": [
         {
@@ -816,6 +926,36 @@
               "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
             }
           ]
+        },
+        {
+          "sourceId": "h4e-lifecycle-recompute",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4e-lifecycle-recompute.json",
+              "sha256": "0b99a5c6f294553e57d69cfa8b86ca2a4832fd237f426ffed05d58be0b959052"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-migration-hotfix",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4e-migration-fix-verify.json",
+              "sha256": "f9f85cade6e7f3c1b29b3f7ab7f808dec6a580a71ad79843fbaadf052b4b630d"
+            },
+            {
+              "path": "plugins/shiyu/tests/inner-upgrade.test.ts",
+              "sha256": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -853,14 +993,21 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "历史限定 save/read/withdraw + H4 离线内层删除屏障；无当前 HEAD 真实后端 V07/V16",
+        "历史限定 save/read/withdraw + H4 离线内层删除屏障 + H4e G1 生命周期/派生失效/加法迁移；无当前 HEAD 真实后端 V07/V16，无物理擦除/备份删除传播",
         "Not current-HEAD, not full six domains, not physical deletion/cross-domain propagation or recall quality; host embedding usage incomplete/unknown.",
         "Historical samples cannot be upgraded to V07/V16/V25 or S/FL pass.",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
-        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
+        "G1 module/property with real temporary SQLite/Worker IPC only: no model, embedding, real Ombre body, host reload, real channel or business acceptance.",
+        "Retention is explicit logical lifecycle (owner-controlled, no automatic expiry, no physical erase); background retention cleanup and backup deletion propagation are not implemented.",
+        "Recompute is a same-DB bounded deterministic scan; cross-component trust is only explicit unknown, not an atomic snapshot; derivation gates current-evidence use without rewriting bodies.",
+        "Old records without derivation fields normalize to current: that means \"never computed\", not a re-proof of history; no model self-asserted status upgrade is allowed.",
+        "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
+        "Covers the old-DB upgrade path and derivation-authority separation only; it does not prove every future migration, physical deletion or backup retention.",
+        "No model, embedding, channel, device or business acceptance."
       ],
       "notes": [
-        "历史限定 save/read/withdraw + H4 离线内层删除屏障；无当前 HEAD 真实后端 V07/V16"
+        "历史限定 save/read/withdraw + H4 离线内层删除屏障 + H4e G1 生命周期/派生失效/加法迁移；无当前 HEAD 真实后端 V07/V16，无物理擦除/备份删除传播"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/01-记忆/README.md",
@@ -878,7 +1025,9 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h4-inner-offline"
+        "h4-inner-offline",
+        "h4e-lifecycle-recompute",
+        "h4e-migration-hotfix"
       ],
       "evidenceRefs": [
         {
@@ -900,6 +1049,36 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
               "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-lifecycle-recompute",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4e-lifecycle-recompute.json",
+              "sha256": "0b99a5c6f294553e57d69cfa8b86ca2a4832fd237f426ffed05d58be0b959052"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-migration-hotfix",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4e-migration-fix-verify.json",
+              "sha256": "f9f85cade6e7f3c1b29b3f7ab7f808dec6a580a71ad79843fbaadf052b4b630d"
+            },
+            {
+              "path": "plugins/shiyu/tests/inner-upgrade.test.ts",
+              "sha256": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d"
             }
           ]
         }
@@ -922,12 +1101,19 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H4 离线域模块；无真实身份/受众矩阵与跨域重算",
+        "H4 离线域模块 + H4e G1 跨域派生重算/失效（同库有界扫描）；无真实身份/受众矩阵，无跨服务原子快照",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
-        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
+        "G1 module/property with real temporary SQLite/Worker IPC only: no model, embedding, real Ombre body, host reload, real channel or business acceptance.",
+        "Retention is explicit logical lifecycle (owner-controlled, no automatic expiry, no physical erase); background retention cleanup and backup deletion propagation are not implemented.",
+        "Recompute is a same-DB bounded deterministic scan; cross-component trust is only explicit unknown, not an atomic snapshot; derivation gates current-evidence use without rewriting bodies.",
+        "Old records without derivation fields normalize to current: that means \"never computed\", not a re-proof of history; no model self-asserted status upgrade is allowed.",
+        "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
+        "Covers the old-DB upgrade path and derivation-authority separation only; it does not prove every future migration, physical deletion or backup retention.",
+        "No model, embedding, channel, device or business acceptance."
       ],
       "notes": [
-        "H4 离线域模块；无真实身份/受众矩阵与跨域重算"
+        "H4 离线域模块 + H4e G1 跨域派生重算/失效（同库有界扫描）；无真实身份/受众矩阵，无跨服务原子快照"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/02-关系/README.md",
@@ -945,7 +1131,9 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h4-inner-offline"
+        "h4-inner-offline",
+        "h4e-lifecycle-recompute",
+        "h4e-migration-hotfix"
       ],
       "evidenceRefs": [
         {
@@ -967,6 +1155,36 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
               "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-lifecycle-recompute",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4e-lifecycle-recompute.json",
+              "sha256": "0b99a5c6f294553e57d69cfa8b86ca2a4832fd237f426ffed05d58be0b959052"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-migration-hotfix",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4e-migration-fix-verify.json",
+              "sha256": "f9f85cade6e7f3c1b29b3f7ab7f808dec6a580a71ad79843fbaadf052b4b630d"
+            },
+            {
+              "path": "plugins/shiyu/tests/inner-upgrade.test.ts",
+              "sha256": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d"
             }
           ]
         }
@@ -989,12 +1207,19 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H4 离线域模块；无真实模型使用/质量证据",
+        "H4 离线域模块 + H4e 离线派生失效；无真实模型使用/质量证据",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
-        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
+        "G1 module/property with real temporary SQLite/Worker IPC only: no model, embedding, real Ombre body, host reload, real channel or business acceptance.",
+        "Retention is explicit logical lifecycle (owner-controlled, no automatic expiry, no physical erase); background retention cleanup and backup deletion propagation are not implemented.",
+        "Recompute is a same-DB bounded deterministic scan; cross-component trust is only explicit unknown, not an atomic snapshot; derivation gates current-evidence use without rewriting bodies.",
+        "Old records without derivation fields normalize to current: that means \"never computed\", not a re-proof of history; no model self-asserted status upgrade is allowed.",
+        "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
+        "Covers the old-DB upgrade path and derivation-authority separation only; it does not prove every future migration, physical deletion or backup retention.",
+        "No model, embedding, channel, device or business acceptance."
       ],
       "notes": [
-        "H4 离线域模块；无真实模型使用/质量证据"
+        "H4 离线域模块 + H4e 离线派生失效；无真实模型使用/质量证据"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/03-情绪/README.md",
@@ -1012,7 +1237,9 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h4-inner-offline"
+        "h4-inner-offline",
+        "h4e-lifecycle-recompute",
+        "h4e-migration-hotfix"
       ],
       "evidenceRefs": [
         {
@@ -1034,6 +1261,36 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
               "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-lifecycle-recompute",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4e-lifecycle-recompute.json",
+              "sha256": "0b99a5c6f294553e57d69cfa8b86ca2a4832fd237f426ffed05d58be0b959052"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-migration-hotfix",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4e-migration-fix-verify.json",
+              "sha256": "f9f85cade6e7f3c1b29b3f7ab7f808dec6a580a71ad79843fbaadf052b4b630d"
+            },
+            {
+              "path": "plugins/shiyu/tests/inner-upgrade.test.ts",
+              "sha256": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d"
             }
           ]
         }
@@ -1056,12 +1313,19 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H4 离线域模块；无跨域结论撤回/复盘业务证据",
+        "H4 离线域模块 + H4e 同库确定性派生重算；无跨域结论撤回/复盘业务证据，无原子跨服务快照",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
-        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
+        "G1 module/property with real temporary SQLite/Worker IPC only: no model, embedding, real Ombre body, host reload, real channel or business acceptance.",
+        "Retention is explicit logical lifecycle (owner-controlled, no automatic expiry, no physical erase); background retention cleanup and backup deletion propagation are not implemented.",
+        "Recompute is a same-DB bounded deterministic scan; cross-component trust is only explicit unknown, not an atomic snapshot; derivation gates current-evidence use without rewriting bodies.",
+        "Old records without derivation fields normalize to current: that means \"never computed\", not a re-proof of history; no model self-asserted status upgrade is allowed.",
+        "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
+        "Covers the old-DB upgrade path and derivation-authority separation only; it does not prove every future migration, physical deletion or backup retention.",
+        "No model, embedding, channel, device or business acceptance."
       ],
       "notes": [
-        "H4 离线域模块；无跨域结论撤回/复盘业务证据"
+        "H4 离线域模块 + H4e 同库确定性派生重算；无跨域结论撤回/复盘业务证据，无原子跨服务快照"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/04-认知/README.md",
@@ -1079,7 +1343,9 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h4-inner-offline"
+        "h4-inner-offline",
+        "h4e-lifecycle-recompute",
+        "h4e-migration-hotfix"
       ],
       "evidenceRefs": [
         {
@@ -1103,6 +1369,36 @@
               "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
             }
           ]
+        },
+        {
+          "sourceId": "h4e-lifecycle-recompute",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4e-lifecycle-recompute.json",
+              "sha256": "0b99a5c6f294553e57d69cfa8b86ca2a4832fd237f426ffed05d58be0b959052"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-migration-hotfix",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4e-migration-fix-verify.json",
+              "sha256": "f9f85cade6e7f3c1b29b3f7ab7f808dec6a580a71ad79843fbaadf052b4b630d"
+            },
+            {
+              "path": "plugins/shiyu/tests/inner-upgrade.test.ts",
+              "sha256": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -1123,12 +1419,19 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H4 离线域模块；无 100 轮稳定/V08 证据",
+        "H4 离线域模块 + H4e 派生失效/加法迁移；无 100 轮稳定/V08 证据",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
-        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
+        "G1 module/property with real temporary SQLite/Worker IPC only: no model, embedding, real Ombre body, host reload, real channel or business acceptance.",
+        "Retention is explicit logical lifecycle (owner-controlled, no automatic expiry, no physical erase); background retention cleanup and backup deletion propagation are not implemented.",
+        "Recompute is a same-DB bounded deterministic scan; cross-component trust is only explicit unknown, not an atomic snapshot; derivation gates current-evidence use without rewriting bodies.",
+        "Old records without derivation fields normalize to current: that means \"never computed\", not a re-proof of history; no model self-asserted status upgrade is allowed.",
+        "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
+        "Covers the old-DB upgrade path and derivation-authority separation only; it does not prove every future migration, physical deletion or backup retention.",
+        "No model, embedding, channel, device or business acceptance."
       ],
       "notes": [
-        "H4 离线域模块；无 100 轮稳定/V08 证据"
+        "H4 离线域模块 + H4e 派生失效/加法迁移；无 100 轮稳定/V08 证据"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/05-人格/README.md",
@@ -1256,6 +1559,8 @@
       "evidenceSourceIds": [
         "h4b-composition",
         "h4-host",
+        "h6c-channel-projection-ui",
+        "round3-host-zero-model",
         "h4c-replyer-inner"
       ],
       "evidenceRefs": [
@@ -1296,6 +1601,69 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/h4/shiyu-status-schema4-host.json",
               "sha256": "33772db64a32b6eb1174c5a4a7ffa408ee6dd8342bc2b3033b68e12fdd7c03fe"
+            }
+          ]
+        },
+        {
+          "sourceId": "h6c-channel-projection-ui",
+          "status": "verified",
+          "levels": [
+            "synthetic-ui",
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h6/h6c-ui.json",
+              "sha256": "5aa52e903fa08400b32826ee6e395a1df02e063ea396db302fa8cccfa738a4f7"
+            }
+          ]
+        },
+        {
+          "sourceId": "round3-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3-joint-zero-model.json",
+              "sha256": "e3152ca4445a8618d39ab2ef7c00a60816c590a7d0d420fc562a3db582c51252"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-before.json",
+              "sha256": "fefafea41e7e69579b26849083cd07ec2ae7b0606b97a581e499a6fbdb6185fd"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after-disable.json",
+              "sha256": "88bf9169ae86ce79c335b7044c7aeb81834f3bc7e54be2ec976ee7c0885492fd"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-pre-reload2.json",
+              "sha256": "950718f26a64d55016cf6322641aeb86bf10e8d5496bdfb2ecb7ad24d4bad2d6"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after.json",
+              "sha256": "2b2619e47ce9adcb4133dfc77f35624b718d8731feaf7fbf3877457946e96ff7"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after-tools.json",
+              "sha256": "47d147ccdf29be9fcd6ee01051a47e89f0bf3abe0f541961b9e73a7b48fe9f91"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/status-after-probes.json",
+              "sha256": "6bf1faceecbac579818a2a20bc1a2213e81a37670288c209a46d73b347fad5c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/status-after-reload.json",
+              "sha256": "361339cf4668d061ec008014dcbb481294b6acbb62ccb0348d7d1ca516720c7c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/core-event-tool-probe.json",
+              "sha256": "976fa65d5294401a9ea00c41c022106cc31f02629a882cbda15715a081e88909"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/worker-tool-probe.json",
+              "sha256": "7f54854635ebca79c4c5a44b727874dfb5278a34d0766b23653cd4d68235478c"
             }
           ]
         },
@@ -1361,16 +1729,23 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "离线 ReadView + 合成 UI + 零模型宿主；真实浏览器/DOM 未验",
+        "离线 ReadView + H4b/H6c 合成 UI（Chromium/Playwright）+ round-3 零模型宿主投影可见性；真实 DSH DOM/injection、业务数据未验",
         "UI is validated against synthetic host fixtures (209 cases), not a real browser against real DSH host data.",
         "No real model generation, no real inner body content, no real business data.",
         "Startup/publication/status visibility only; no real dashboard DOM, no model/embedding/channel/business action, no real inner bodies.",
         "Single host instance; not a V24 lifecycle matrix and not host business acceptance.",
+        "Synthetic host page/ModuleLoader/slots/locale only: not real DSH native-client injection/DOM, not a production bundle under a live profile and not real theme switching.",
+        "Projection renders synthetic bindings/connections; no live channel adapters/platform snapshot, no model, embedding, Lab room or business acceptance.",
+        "The 214 synthetic UI cases never upgrade V05/V24/S/FL or any product module to pass; real-browser DOM evidence remains absent.",
+        "Zero-model evidence only: activation/upgrade/publication/probes/diagnostics are proven, not real model tool invocation, provider budgets, real plan quality or channel traffic.",
+        "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was NOT executed on the host.",
+        "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts; probes are zero-model.",
+        "One ordered reload and four tool calls only; no real task/Goal continuation under a model, no channel/Lab business loop and no device/long-run evidence.",
         "Real model generation, how a model uses the inner block, provider cache/cost and quality impact are NOT measured.",
         "conversation.reply.prepare contract not extended with explicit inner-source fields; Lab reply capture does not request inner domains."
       ],
       "notes": [
-        "离线 ReadView + 合成 UI + 零模型宿主；真实浏览器/DOM 未验"
+        "离线 ReadView + H4b/H6c 合成 UI（Chromium/Playwright）+ round-3 零模型宿主投影可见性；真实 DSH DOM/injection、业务数据未验"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/07-只读状态视图/README.md",
@@ -2028,9 +2403,25 @@
       "systems": [
         "2"
       ],
-      "status": "not_covered",
-      "evidenceSourceIds": [],
-      "evidenceRefs": [],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h2b-subscriptions-time"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h2b-subscriptions-time",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2b-subscriptions-time.json",
+              "sha256": "632130e8f3975a3ec23615e00cdade7d5b77f039e0d88a44aab7229cddaa5d80"
+            }
+          ]
+        }
+      ],
       "codePaths": [
         {
           "path": "src/control/events/index.ts",
@@ -2050,10 +2441,14 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "DSH Schedule ingress/时间触发未实现，无已提交证据"
+        "H2b 插件自有时间源（注入 zoneOffset）离线 G1；DSH Schedule ingress/IANA DST/真实触发未实现，host 仅零模型 cooperative tick idle",
+        "G1/G2 offline only: no fixed host, model, embedding, channel, device or real effect endpoint; notification Effect and observations are synthetic doubles.",
+        "Runtime wiring (catalog, rule store/lifecycle, time pump, diagnostics) was integrated by Lead under e400fcc; fixed-host/zero-model probe is separate round-3 host evidence.",
+        "Agent-facing declarative-condition tools are not mounted; dedupe across reconnect is proven only across process/rule-store restart, not real platform redelivery.",
+        "No IANA tz/DST database: daily schedules take injected zoneOffsetMinutes. Budget bounding is structural; monetary/model cost is out of scope."
       ],
       "notes": [
-        "DSH Schedule ingress/时间触发未实现，无已提交证据"
+        "H2b 插件自有时间源（注入 zoneOffset）离线 G1；DSH Schedule ingress/IANA DST/真实触发未实现，host 仅零模型 cooperative tick idle"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/03-事件与定时/README.md",
@@ -2072,6 +2467,8 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h5-g1-module",
+        "h4e-migration-hotfix",
+        "h5b-runtime-integration",
         "h4-inner-offline"
       ],
       "evidenceRefs": [
@@ -2098,6 +2495,36 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
               "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-migration-hotfix",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4e-migration-fix-verify.json",
+              "sha256": "f9f85cade6e7f3c1b29b3f7ab7f808dec6a580a71ad79843fbaadf052b4b630d"
+            },
+            {
+              "path": "plugins/shiyu/tests/inner-upgrade.test.ts",
+              "sha256": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d"
+            }
+          ]
+        },
+        {
+          "sourceId": "h5b-runtime-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5b-runtime-integration.json",
+              "sha256": "2b608a26e77694245b22de4506ac7752986f90f32ce36ab034cf864629abfb02"
             }
           ]
         },
@@ -2155,14 +2582,20 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "真实临时 SQLite 模块 + H5 G1；无当前 HEAD 崩溃/满盘/迁移矩阵",
+        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance.",
+        "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
+        "Covers the old-DB upgrade path and derivation-authority separation only; it does not prove every future migration, physical deletion or backup retention.",
+        "No model, embedding, channel, device or business acceptance.",
+        "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
+        "G1+ offline composition only: no live data root/native Session/control-DB writes, no real Ombre backend, no model/channel/device, no production host readiness.",
+        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven.",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
         "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
       ],
       "notes": [
-        "真实临时 SQLite 模块 + H5 G1；无当前 HEAD 崩溃/满盘/迁移矩阵"
+        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/04-持久化接口/README.md",
@@ -2182,6 +2615,8 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h4b-host",
+        "round3-lead-integration",
+        "round3-host-zero-model",
         "joint-host-zero-model"
       ],
       "evidenceRefs": [
@@ -2199,6 +2634,69 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/h4/shiyu-status-h4b-host.json",
               "sha256": "b3a6e8f006b43d24c918b49cee8db78df744b519fc48fe706527be6f851c0753"
+            }
+          ]
+        },
+        {
+          "sourceId": "round3-lead-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round3-lead-integration.json",
+              "sha256": "0373a151bb87e49b8d444f2acf7ed46b33057797649c191825cc211f7a8e893a"
+            }
+          ]
+        },
+        {
+          "sourceId": "round3-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3-joint-zero-model.json",
+              "sha256": "e3152ca4445a8618d39ab2ef7c00a60816c590a7d0d420fc562a3db582c51252"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-before.json",
+              "sha256": "fefafea41e7e69579b26849083cd07ec2ae7b0606b97a581e499a6fbdb6185fd"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after-disable.json",
+              "sha256": "88bf9169ae86ce79c335b7044c7aeb81834f3bc7e54be2ec976ee7c0885492fd"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-pre-reload2.json",
+              "sha256": "950718f26a64d55016cf6322641aeb86bf10e8d5496bdfb2ecb7ad24d4bad2d6"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after.json",
+              "sha256": "2b2619e47ce9adcb4133dfc77f35624b718d8731feaf7fbf3877457946e96ff7"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after-tools.json",
+              "sha256": "47d147ccdf29be9fcd6ee01051a47e89f0bf3abe0f541961b9e73a7b48fe9f91"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/status-after-probes.json",
+              "sha256": "6bf1faceecbac579818a2a20bc1a2213e81a37670288c209a46d73b347fad5c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/status-after-reload.json",
+              "sha256": "361339cf4668d061ec008014dcbb481294b6acbb62ccb0348d7d1ca516720c7c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/core-event-tool-probe.json",
+              "sha256": "976fa65d5294401a9ea00c41c022106cc31f02629a882cbda15715a081e88909"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round3/worker-tool-probe.json",
+              "sha256": "7f54854635ebca79c4c5a44b727874dfb5278a34d0766b23653cd4d68235478c"
             }
           ]
         },
@@ -2254,14 +2752,21 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型有序重载/启停；无 V14 20 次生命周期与 drain 实测",
+        "零模型有序重载/启停 + round-3 集成与 H4e hotfix 恢复激活；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
         "No real dashboard rendering (browser DOM) and no real business data; one host instance, zero model calls.",
         "Not V24 UI acceptance, not generation or lifecycle evidence.",
+        "G1 integration + isolated full check only; fixed-host validation is recorded separately in round3-host-zero-model.",
+        "The checkpoint command stays explicitly unavailable while trusted checkpointStagingRoot/checkpointRuntimeManifest are not supplied; no host execution is claimed.",
+        "H2b uses plugin-owned rules only, no DSH schedule, no real observation/notification Effect ports and no agent-facing subscription tools; no real model/channel calls.",
+        "Zero-model evidence only: activation/upgrade/publication/probes/diagnostics are proven, not real model tool invocation, provider budgets, real plan quality or channel traffic.",
+        "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was NOT executed on the host.",
+        "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts; probes are zero-model.",
+        "One ordered reload and four tool calls only; no real task/Goal continuation under a model, no channel/Lab business loop and no device/long-run evidence.",
         "Zero-model evidence only: no model-generated reply, no event-tool model invocation, no provider budget/cache/cost, no real task/Goal continuation under a model.",
         "One ordered reload and two tool calls; no real browser DOM, channel, Lab business loop, device, long-run or independent fault domain."
       ],
       "notes": [
-        "零模型有序重载/启停；无 V14 20 次生命周期与 drain 实测"
+        "零模型有序重载/启停 + round-3 集成与 H4e hotfix 恢复激活；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/05-插件生命周期/README.md",
@@ -2426,7 +2931,8 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h5-g1-module"
+        "h5-g1-module",
+        "h5b-runtime-integration"
       ],
       "evidenceRefs": [
         {
@@ -2452,6 +2958,19 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
               "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        },
+        {
+          "sourceId": "h5b-runtime-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5b-runtime-integration.json",
+              "sha256": "2b608a26e77694245b22de4506ac7752986f90f32ce36ab034cf864629abfb02"
             }
           ]
         }
@@ -2483,12 +3002,15 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H5 G1 隔离恢复模块；未接 Runtime/supervisor，无真实恢复演练",
+        "H5 G1 隔离恢复 + H5b 离线 runtime composition；未接 supervisor，无真实恢复演练/RPO-RTO",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
-        "Synthetic ports and temporary local roots; not host or business acceptance."
+        "Synthetic ports and temporary local roots; not host or business acceptance.",
+        "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
+        "G1+ offline composition only: no live data root/native Session/control-DB writes, no real Ombre backend, no model/channel/device, no production host readiness.",
+        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven."
       ],
       "notes": [
-        "H5 G1 隔离恢复模块；未接 Runtime/supervisor，无真实恢复演练"
+        "H5 G1 隔离恢复 + H5b 离线 runtime composition；未接 supervisor，无真实恢复演练/RPO-RTO"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/05-宿主外恢复/02-恢复入口/README.md",
@@ -2507,6 +3029,7 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h4-inner-offline",
+        "h4e-migration-hotfix",
         "h5-g1-module"
       ],
       "evidenceRefs": [
@@ -2529,6 +3052,23 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
               "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4e-migration-hotfix",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4e-migration-fix-verify.json",
+              "sha256": "f9f85cade6e7f3c1b29b3f7ab7f808dec6a580a71ad79843fbaadf052b4b630d"
+            },
+            {
+              "path": "plugins/shiyu/tests/inner-upgrade.test.ts",
+              "sha256": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d"
             }
           ]
         },
@@ -2586,14 +3126,17 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "schema4 发布与离线状态；无完整删除/恢复水位生产证据",
+        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；无完整删除/恢复水位生产证据",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
         "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
+        "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
+        "Covers the old-DB upgrade path and derivation-authority separation only; it does not prove every future migration, physical deletion or backup retention.",
+        "No model, embedding, channel, device or business acceptance.",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance."
       ],
       "notes": [
-        "schema4 发布与离线状态；无完整删除/恢复水位生产证据"
+        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；无完整删除/恢复水位生产证据"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/06-预留空间/01-内部权威状态/README.md",
@@ -3023,7 +3566,8 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h5-g1-module"
+        "h5-g1-module",
+        "h5b-runtime-integration"
       ],
       "evidenceRefs": [
         {
@@ -3049,6 +3593,19 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
               "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        },
+        {
+          "sourceId": "h5b-runtime-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5b-runtime-integration.json",
+              "sha256": "2b608a26e77694245b22de4506ac7752986f90f32ce36ab034cf864629abfb02"
             }
           ]
         }
@@ -3084,12 +3641,15 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H5 G1 检查点模块；未接 Runtime/无真实 Goal Session flush",
+        "H5 G1 检查点 + H5b 离线 runtime composition；生产 capture 明确 unavailable（trusted staging/manifest 缺失），未在宿主执行",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
-        "Synthetic ports and temporary local roots; not host or business acceptance."
+        "Synthetic ports and temporary local roots; not host or business acceptance.",
+        "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
+        "G1+ offline composition only: no live data root/native Session/control-DB writes, no real Ombre backend, no model/channel/device, no production host readiness.",
+        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven."
       ],
       "notes": [
-        "H5 G1 检查点模块；未接 Runtime/无真实 Goal Session flush"
+        "H5 G1 检查点 + H5b 离线 runtime composition；生产 capture 明确 unavailable（trusted staging/manifest 缺失），未在宿主执行"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/06-预留空间/08-本地检查点/README.md",
@@ -3107,7 +3667,8 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h5-g1-module"
+        "h5-g1-module",
+        "h5b-runtime-integration"
       ],
       "evidenceRefs": [
         {
@@ -3135,6 +3696,19 @@
               "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
             }
           ]
+        },
+        {
+          "sourceId": "h5b-runtime-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5b-runtime-integration.json",
+              "sha256": "2b608a26e77694245b22de4506ac7752986f90f32ce36ab034cf864629abfb02"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -3160,12 +3734,15 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "仅本地 bundle 捕获/校验；同盘副本不构成独立故障域，无 V27",
+        "H5 G1 + H5b 离线 composition；同盘副本不构成独立故障域，生产 capture blocked，无 V27",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
-        "Synthetic ports and temporary local roots; not host or business acceptance."
+        "Synthetic ports and temporary local roots; not host or business acceptance.",
+        "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
+        "G1+ offline composition only: no live data root/native Session/control-DB writes, no real Ombre backend, no model/channel/device, no production host readiness.",
+        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven."
       ],
       "notes": [
-        "仅本地 bundle 捕获/校验；同盘副本不构成独立故障域，无 V27"
+        "H5 G1 + H5b 离线 composition；同盘副本不构成独立故障域，生产 capture blocked，无 V27"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/07-独立备份/01-独立域备份/README.md",
@@ -3297,6 +3874,7 @@
       "evidenceLevels": [
         "offline-module",
         "slice-verification",
+        "synthetic-ui",
         "historical-limited",
         "bounded-real-model",
         "fixed-host-zero-model"
@@ -3304,11 +3882,13 @@
       "evidenceSourceIds": [
         "h6a-channel-ingress",
         "h4c-replyer-inner",
+        "h6c-channel-projection-ui",
         "historical-lab-3hc",
         "joint-host-zero-model"
       ],
       "limitations": [
         "No real platform adapter, sending Effect, native draft delivery or multi-channel conversation business loop on current HEAD.",
+        "H6c UI runs Chromium against a synthetic host page only: no real DSH client DOM/injection, no live projection or business acceptance.",
         "Historical Lab loop is three text messages; not V05/V23/V25 or S/FL acceptance."
       ],
       "gaps": [
@@ -3357,11 +3937,15 @@
       "evidenceSourceIds": [
         "h2a-events",
         "h2a-probe",
+        "h2b-subscriptions-time",
+        "round3-lead-integration",
+        "round3-host-zero-model",
         "joint-host-zero-model"
       ],
       "limitations": [
-        "No model actually invoked an event tool; real core Goal continuation, time/condition triggers, quotas/fanout/anti-loop and catalog extension remain untested.",
-        "Fixed-host evidence is zero-model only; not V03/V14/V24 acceptance."
+        "No model actually invoked an event tool; real core Goal continuation, declarative-condition tools, platform redelivery and quotas/fanout remain untested.",
+        "H2b is G1/G2 offline with synthetic clock/observation/Effect doubles; no DSH schedule/IANA tz database and no monetary/model cost bounding.",
+        "Fixed-host evidence is zero-model only (cooperative tick idle, schedules=0, notifications disabled); not V03/V14/V24 acceptance."
       ],
       "gaps": [
         "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
@@ -3535,6 +4119,8 @@
       ],
       "evidenceSourceIds": [
         "h4-inner-offline",
+        "h4e-lifecycle-recompute",
+        "h4e-migration-hotfix",
         "h4-host",
         "h4b-composition",
         "h4b-host",
@@ -3543,7 +4129,8 @@
         "h4h5-independent-review"
       ],
       "limitations": [
-        "No real model use of inner state, no real inner bodies/Ombre content, no real browser DOM against real data, no cross-domain recomputation.",
+        "No real model use of inner state, no real inner bodies/Ombre content, no real browser DOM against real data.",
+        "H4e recompute is same-DB bounded deterministic scan; logical retention only (no automatic expiry/physical erase/backup deletion propagation); migration hotfix is offline regression plus separate zero-model host recovery.",
         "Historical memory samples are earlier-build limited; deletion propagation/physical erasure not proven."
       ],
       "gaps": [
@@ -3724,14 +4311,20 @@
       "evidenceLevels": [
         "offline-module",
         "slice-verification",
+        "fixed-host-zero-model",
         "independent-verification"
       ],
       "evidenceSourceIds": [
         "h5-g1-module",
+        "h5b-runtime-integration",
+        "h4e-migration-hotfix",
+        "round3-lead-integration",
+        "round3-host-zero-model",
         "h4h5-independent-review"
       ],
       "limitations": [
-        "G1 modules only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/erasure, independent fault domain/V27, RPO/RTO, OS power loss or multi-process single-writer.",
+        "G1 modules/composition only: H5b production capture is blocked (GOAL_SESSION_EXPORT_UNAVAILABLE, trusted staging/manifest missing) and no production restore drill exists.",
+        "Round-3 host evidence is zero-model only; checkpoint capture command explicitly unavailable and not executed on host; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
       ],
       "gaps": [
@@ -3781,11 +4374,14 @@
       "evidenceSourceIds": [
         "h4b-composition",
         "h4b-host",
+        "h6c-channel-projection-ui",
+        "round3-host-zero-model",
         "joint-host-zero-model",
         "h0-baseline"
       ],
       "limitations": [
-        "No real browser DOM against real host data, no real user interactions beyond read-only status/tool calls, no UI lifecycle or long-list/old-response matrix.",
+        "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
+        "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3 host projection remains zero-model.",
         "Zero-model host checks are not V05/V24 dashboard acceptance; no sensitive-value sweep over real UI."
       ],
       "gaps": [
@@ -4200,10 +4796,12 @@
       "evidenceSourceIds": [
         "historical-task-goal",
         "joint-host-zero-model",
-        "h2a-probe"
+        "h2a-probe",
+        "h2b-subscriptions-time",
+        "round3-host-zero-model"
       ],
       "limitations": [
-        "No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; zero-model only."
+        "No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; zero-model only; H2b time source is plugin-owned with synthetic clock, no DSH schedule/DST."
       ],
       "blockedResourceIds": [],
       "sourceHeadingPresent": true
@@ -4394,10 +4992,15 @@
       "evidenceLevels": [
         "offline-module",
         "slice-verification",
+        "fixed-host-zero-model",
         "independent-verification"
       ],
       "evidenceSourceIds": [
         "h5-g1-module",
+        "h5b-runtime-integration",
+        "h4e-migration-hotfix",
+        "round3-lead-integration",
+        "round3-host-zero-model",
         "h4h5-independent-review"
       ],
       "limitations": [
@@ -4470,11 +5073,13 @@
         "h0b-harness",
         "h4-host",
         "h4b-host",
+        "round3-host-zero-model",
         "joint-host-zero-model",
         "historical-capability-3i"
       ],
       "limitations": [
         "Zero-model only: no generation, compression, long-history cold recovery, 20-lifecycle matrix, real UI interactions or allowed-network audit.",
+        "Round-3 host had one ordered reload and four zero-model tool calls; checkpoint capture unavailable; lifecycle=degraded reflects retained historical facts.",
         "Installed builds were isolated verified builds of their slices, not current-HEAD generation acceptance."
       ],
       "blockedResourceIds": [
