@@ -86,8 +86,10 @@
       "durationMs": 240990,
       "arithmetic": "1288 baseline + 37 new tests = 1325",
       "log": {
-        "path": "plugins/shiyu/.local/slice-verify-h6a.log",
-        "sha256": "74c2859f…"
+        "path": "artifacts/dsh/h6/h6a-isolated-check.log",
+        "sha256": "74c2859ff59ba171e8ca692b77a7d727bfa30e8d52ba044ad79012ea4094178b",
+        "bytes": 144652,
+        "note": "committed copy of the implementer isolated full-check log"
       }
     },
     "leadIndependentSliceCheck": {
@@ -102,7 +104,11 @@
         "skipped": 0
       },
       "durationMs": 230493,
-      "log": "plugins/shiyu/.local/slice-verify-h6a.log",
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h6a.log",
+        "sha256": "2c2e6135af99f5aebe2a30daf466d6b4d77f3f6bba5e5a93ffe7ab7af9453844",
+        "note": "Lead independent 1336 run (overwrote the implementer log path)"
+      },
       "arithmetic": "1299 baseline + 37 new tests = 1336"
     },
     "targeted": {

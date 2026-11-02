@@ -61,7 +61,9 @@
       "fail": 0,
       "skipped": 0,
       "evidence": "artifacts/dsh/slices/h2a-probe-verify.json",
-      "arithmetic": "1288 baseline + 9 probe tests = 1297"
+      "arithmetic": "1288 baseline + 9 probe tests = 1297",
+      "superseded": true,
+      "note": "intermediate 1297 run before the Lead tool wrapper was added; the final 1299 run is authoritative"
     },
     "finalCheck": {
       "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD d7dd731 + the 5 probe files + Lead index.ts tool wrapper + tool test)",

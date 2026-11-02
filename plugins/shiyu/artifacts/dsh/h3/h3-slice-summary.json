@@ -66,7 +66,9 @@
       "arithmetic": "1264 committed baseline + 17 new tests = 1281",
       "log": {
         "path": "plugins/shiyu/.local/slice-verify-h3.log",
-        "sha256": "f3fd98d8…"
+        "sha256": "3fdbc26e84d48f8a0189a56dd7c3e6fb13861fe59db3a9dbc23ab546ac88f595",
+        "status": "superseded-by-lead-run",
+        "note": "the implementer 1281 full-check log was overwritten by the Lead 1288 independent re-run; count 1281 preserved as historical, retained log is the Lead run"
       }
     },
     "leadIndependentSliceCheck": {

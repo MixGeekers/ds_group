@@ -330,11 +330,15 @@
   "evidenceFiles": [
     {
       "path": "artifacts/dsh/slices/h3-verify.json",
-      "sha256": "dc7c1c681c6788c8267064a2e5a352050c247559a54b0b109abdcb1d0efe659d"
+      "sha256": "738d8133b1cb4c9a0a3965e1681f6a7d1b1aa13a2448dfbf76b9cf27681ba1a9",
+      "supersededSha256": "dc7c1c681c6788c8267064a2e5a352050c247559a54b0b109abdcb1d0efe659d",
+      "note": "re-bound to the Lead independent 1288 run (the evidence file was regenerated after the implementer closed the slice)"
     },
     {
       "path": "plugins/shiyu/.local/slice-verify-h3.log",
-      "sha256": "f3fd98d82bead0d2a4bca8413a591788b29795911780671e7c15f9c9e76865ce"
+      "sha256": "3fdbc26e84d48f8a0189a56dd7c3e6fb13861fe59db3a9dbc23ab546ac88f595",
+      "supersededSha256": "f3fd98d82bead0d2a4bca8413a591788b29795911780671e7c15f9c9e76865ce",
+      "note": "the implementer 1281 full log was overwritten by the Lead 1288 re-run; the 1281 count is preserved as historical"
     },
     {
       "path": "plugins/shiyu/.local/h3/focused-core-plan.log",
@@ -390,6 +394,14 @@
         "cancelled": 0,
         "skipped": 0
       }
+    }
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "G1",
+      "at": "2026-11-02T20:27:24.932Z",
+      "finding": "stale evidence file/log hashes after the Lead independent run",
+      "resolution": "slice-verify evidence and log hashes re-bound to the retained Lead 1288 run; the original implementer 1281 run is marked superseded (its log was overwritten and is not retained)"
     }
   ]
 }

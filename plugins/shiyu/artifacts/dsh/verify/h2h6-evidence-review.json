@@ -1,0 +1,949 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-18)",
+  "reviewedAt": "2026-11-02T20:35:00Z",
+  "subject": "H2a-probe / H3 / H4c / H6a / H0c and the joint fixed-host zero-model evidence",
+  "head": "a68eeb2e61bdd9d7836dfe9f55c08cf0ca3e2581",
+  "commits": {
+    "H2a-probe": {
+      "sha": "6f600f4",
+      "title": "feat(shiyu): add zero-model worker tool mounting probe and diagnostic tool (H2a)"
+    },
+    "H2a-probe-evidence-refresh": {
+      "sha": "3b25e1b",
+      "title": "test(shiyu): refresh H2a isolated evidence after the zero-model probe slice"
+    },
+    "H3": {
+      "sha": "d7dd731",
+      "title": "feat(shiyu): add controlled multi-step core planning and replanning (H3)"
+    },
+    "H4c": {
+      "sha": "c00c6a9",
+      "title": "feat(shiyu): feed bounded inner-domain references into replyer generation (H4c)"
+    },
+    "H6a": {
+      "sha": "8b34d66",
+      "title": "feat(shiyu): add generic channel ingress identity, dedup, audience and revisions (H6a)"
+    },
+    "H0c": {
+      "sha": "7bd962c",
+      "title": "test(shiyu): add S/FL business test-set skeleton with independent answers (H0c)"
+    },
+    "joint-host": {
+      "sha": "a68eeb2",
+      "title": "test(shiyu): run the final joint fixed-host zero-model validation"
+    }
+  },
+  "method": [
+    "read-only review of committed git blobs, product/test source, artifacts/dsh/{h2,h3,h4,h6,h0,host,slices,harness} and .local logs; no real host/model/embedding run",
+    "recomputed evidence-declared file/log SHA256+bytes+counts against the commit/claim they belong to",
+    "rebuilt dist from committed tree 3b25e1b via git archive + tsc in /tmp and recomputed the host-audit dist digest; rebuilt/imported capability-identity at 00fb75b and 3b25e1b to reproduce the definitionDigest transition; deleted temp trees",
+    "deep-diffed committed before/after/after-tools host audits; compared committed host audits against .local originals; inspected committed host payloads against audits and evidence claims",
+    "static test-quality scan (skip/only/tautology) and negative-assertion sampling for every new test file; verified H0c self-proof counts from the committed TAP",
+    "read-only state check of traceability/handoff and of the current working tree (post-HEAD WIP recorded, not reviewed)"
+  ],
+  "counts": {
+    "H2a-probe": {
+      "baseline": 1288,
+      "slice": 1299,
+      "impl": null,
+      "lead": 1299,
+      "leadLog": {
+        "path": ".local/slice-verify-h2a-probe.log",
+        "sha256": "a5a3b4c528b13b778b274521b68c9a76c375d387f6b89b2c0fdcfc6a70886712",
+        "bytes": 141826
+      }
+    },
+    "H3": {
+      "baseline": 1271,
+      "impl": 1281,
+      "lead": 1288,
+      "implLog": {
+        "path": ".local/slice-verify-h3.log",
+        "claimed": "f3fd98d8…",
+        "actualAtHead": "3fdbc26e84d48f8a0189a56dd7c3e6fb13861fe59db3a9dbc23ab546ac88f595"
+      },
+      "leadLog": {
+        "path": ".local/slice-verify-h3.log",
+        "sha256": "3fdbc26e84d48f8a0189a56dd7c3e6fb13861fe59db3a9dbc23ab546ac88f595",
+        "bytes": 140606
+      }
+    },
+    "H4c": {
+      "baseline": 1264,
+      "implFinal": 1271,
+      "lead": 1271,
+      "implRuns": {
+        "instructedHead_00fb75b": 1213,
+        "h2aIntegration_a80c33d": 1256,
+        "final_c6a3f05": 1271
+      },
+      "leadLog": {
+        "path": ".local/slice-verify-h4c.log",
+        "sha256": "e6f2e3de437425d3e9044ef508b19f5f9f5522b516099b12001673a29d6fc34e",
+        "bytes": 138618
+      }
+    },
+    "H6a": {
+      "baseline": 1299,
+      "impl": 1325,
+      "lead": 1336,
+      "implLogArtifact": {
+        "path": "artifacts/dsh/h6/h6a-isolated-check.log",
+        "sha256": "74c2859ff59ba171e8ca692b77a7d727bfa30e8d52ba044ad79012ea4094178b",
+        "bytes": 144652
+      },
+      "leadLog": {
+        "path": ".local/slice-verify-h6a.log",
+        "sha256": "2c2e6135af99f5aebe2a30daf466d6b4d77f3f6bba5e5a93ffe7ab7af9453844",
+        "bytes": 145767
+      }
+    },
+    "H0c": {
+      "baseline": 1249,
+      "impl_superseded": 1216,
+      "lead": 1264,
+      "implLogTransient": "/tmp/h0c-check.log (sha 1771a15a…, bytes 132654, present but ephemeral)",
+      "leadLog": {
+        "path": ".local/slice-verify-h0c.log",
+        "sha256": "b506c898fa330525c5e8e9c48fa9258abf1dd396ed33b82dc99fd227ebdd7157",
+        "bytes": 137820
+      }
+    }
+  },
+  "fileChecks": {
+    "H2a-probe-summary": {
+      "checked": 7,
+      "mismatch": 0
+    },
+    "H3-summary": {
+      "checked": 7,
+      "mismatch": 0
+    },
+    "H4c-summary": {
+      "checked": 2,
+      "mismatch": 0
+    },
+    "H6a-summary": {
+      "checked": 11,
+      "mismatch": 0
+    },
+    "H2a-probe-slice-artifact": {
+      "checked": 7,
+      "mismatch": 0
+    },
+    "H3-slice-artifact": {
+      "checked": 7,
+      "mismatch": 0
+    },
+    "H4c-slice-artifact": {
+      "checked": 2,
+      "mismatch": 0
+    },
+    "H6a-slice-artifact": {
+      "checked": 11,
+      "mismatch": 0
+    },
+    "H0c-slice-artifact": {
+      "checked": 58,
+      "mismatch": 0
+    },
+    "H0c-refreshed-harness-artifacts": {
+      "checked": 58,
+      "mismatch": 0
+    },
+    "H6a-focused-logs": {
+      "checked": 8,
+      "mismatch": 0
+    },
+    "H4c-implementation-files": {
+      "checked": 2,
+      "mismatch": 0
+    },
+    "H3-evidenceFiles": {
+      "checked": 7,
+      "mismatch": 2,
+      "detail": "stale references, see G1"
+    }
+  },
+  "logChecks": {
+    "h2a-probe-slice-log": "sha/bytes/1299 match",
+    "h3-slice-log": "sha/bytes/1288 match",
+    "h4c-slice-log": "sha/bytes/1271 match",
+    "h6a-slice-log": "sha/bytes/1336 match",
+    "h0c-slice-log": "sha/bytes/1264 match",
+    "h3-focused-logs": "5/5 hashes match (G1 covers overwritten implementer full-run log)",
+    "h6a-focused+regression+isolated": "8/8 hashes/counts match",
+    "h4c-implementer-logs": "3/3 sha/bytes/counts match",
+    "h0c-tmp-logs": "both present, hashes match claims; G4 durability"
+  },
+  "hostChain": {
+    "commitSeq": [
+      308,
+      315,
+      315
+    ],
+    "events": [
+      38,
+      39,
+      39
+    ],
+    "deliveries": [
+      37,
+      38,
+      38
+    ],
+    "stateVersion": [
+      6,
+      6,
+      6
+    ],
+    "capabilityRevision": [
+      12,
+      14,
+      14
+    ],
+    "capabilityHostEpoch": [
+      "b10a41c5-47a4-42ed-90fe-5510e8627bcd",
+      "18322852-c137-44f9-8dea-f5fbba4fb08c",
+      "18322852-c137-44f9-8dea-f5fbba4fb08c"
+    ],
+    "sessions": [
+      17,
+      17,
+      18
+    ],
+    "sessionsDigest": [
+      "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979",
+      "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979",
+      "9d17937f88bc3daa686916ef8c308e3c9b415b092cef9d3d63bc430a11b99711"
+    ],
+    "known17SessionsUnchanged": true,
+    "addedSessionFiles": [
+      "--Users-caja-.dsh-profiles-desktop--/shiyu-worker-probe-940b80a0-1966-4441-a2e5-300148c86f95/session.v4.jsonl.zstd"
+    ],
+    "probeSessionIdMatchesAddedFile": true,
+    "businessFacts": [
+      "tasks 2 succeeded + 1 unknown (counts/states unchanged)",
+      "coreGoals 2",
+      "lab connections 3 disconnected",
+      "budget 21 settled/3 unknown",
+      "effects 13 succeeded",
+      "state file sha unchanged across tools run"
+    ],
+    "toolCallsReadOnly": true,
+    "taskMetadata": {
+      "unknownTaskVersion": "26 -> 27",
+      "updatedAt": "2026-11-02T20:12:48.893Z",
+      "disclosed": false
+    },
+    "definitionDigest": {
+      "before": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f",
+      "after": "5a591515147e63ccd956f4ed85b95ccf7df8b29770f4c13ac0ef11d3636c652e",
+      "reproducedByBuild": true,
+      "reason": "fixed implementation identity includes ./dsh/workers changed by H2a-probe"
+    },
+    "dist": {
+      "files": 101,
+      "digest": "ce295911b6c064f93c76cf28ff81ca8d89697e2e85835e1fdd3983c4d14ddf37",
+      "reproducedByBuild": true
+    },
+    "statusPayload": {
+      "bytes": 54096,
+      "sha256": "5ff56a8a477eed4e2de9a5b21f44c48113ec2051786f536abc808dd56a94b6c5",
+      "claimBytes": 51276,
+      "claimBytesIsCharacterCount": true
+    },
+    "diagnosisPayload": {
+      "bytes": 2411,
+      "sha256": "13e9e4e9a3e727dc35955caa3c27a0cdba37c68f151e81453603a152b7c79fe2",
+      "claimMatches": true
+    },
+    "committedRawAuditsVsLocalOriginals": "only dataDir/sessions.root redacted to <home>; rest byte-identical (G8)",
+    "encodedHomePathFiles": [
+      "artifacts/dsh/host/final-joint-zero-model.json",
+      "artifacts/dsh/host/final-host-before.json",
+      "artifacts/dsh/host/final-host-after.json",
+      "artifacts/dsh/host/final-host-after-tools.json"
+    ],
+    "absoluteHomePathsInNewEvidence": 0,
+    "secretPatternHits": 0
+  },
+  "evidenceLevels": [
+    {
+      "slice": "H2a-probe",
+      "offline": "G1 module + synthetic native host (probe assembly/authority/counters/release, 1299 check)",
+      "fixedHost": "limited zero-model joint host: shiyu_diagnose_worker_tools receipt + one archived probe Session; no model tool call",
+      "untested": "real model tool invocation, provider budget/cache, native continuation dispatch, business semantics"
+    },
+    {
+      "slice": "H3",
+      "offline": "G1 module/property + real temporary SQLite/Worker domain (1288)",
+      "fixedHost": "not executed",
+      "untested": "real DSH host/Goal rounds, real model plan JSON, caching/usage, dashboard integration, many authorized capabilities"
+    },
+    {
+      "slice": "H4c",
+      "offline": "G1 module + real temporary SQLite/Worker + prompt determinism assertions (1271)",
+      "fixedHost": "not executed for H4c (H4b host remains prior evidence)",
+      "untested": "real model/cache/cost, how model uses inner block, prepare-contract extension, Lab inner unavailable path documented"
+    },
+    {
+      "slice": "H6a",
+      "offline": "G1 module/property + real temporary SQLite + real ControlStore Worker IPC (1336)",
+      "fixedHost": "not executed",
+      "untested": "real platform adapter/credentials/receipt, sending/Effect, native Session/draft consumption, dashboard, crash/migration"
+    },
+    {
+      "slice": "H0c",
+      "offline": "G1 tooling self-verification + synthetic fixtures/answers (1264)",
+      "fixedHost": "none",
+      "untested": "zero product/host/model/Lab/channel execution; 16 scenarios synthetic-fixture-only-not-run, HOLDOUT unmaterialized, 27 design steps uncovered"
+    },
+    {
+      "slice": "joint-host",
+      "offline": "n/a",
+      "fixedHost": "fixed DSH 0.2.1-rc.5 limited zero-model: ordered reload + shiyu_status + diagnose tool; no product model/embedding",
+      "untested": "real model generation, provider budget/cache, real browser DOM, V24/V25/V26/V27, long-run"
+    }
+  ],
+  "traceability": {
+    "artifact": "artifacts/dsh/harness/traceability.json",
+    "generatedAt": "2026-11-02T19:25:29.130Z",
+    "sha256": "457f403b037e4a2b8a64156cfff417c73f70a58375547d58a32d179db9dc4eaa",
+    "rows": 103,
+    "productTotal": 79,
+    "productCovered": 0,
+    "productNotCovered": 79,
+    "toolingReady": 8,
+    "notCovered": 82,
+    "selfProven": 13,
+    "handoff": "unchanged H0b rule: tooling_ready is not a pass; product rows only updated by actual slice evidence",
+    "h0cRefreshClaim": "H0c refreshed the H0b artifact set; product rows remain 79/79 not_covered; covered=0",
+    "oracleCountNote": "traceability.oracles.total=15 (H0b corpus) while tool-selfproof now has 22 oracles (15 H0b + 7 H0c business); README says H0c business oracles are recorded in tool-selfproof.json; no product-row upgrade. Info only; avoid reading 15 as a missing-oracle failure.",
+    "round2CommitsDidNotModifyTraceability": true
+  },
+  "h0c": {
+    "status": "offline-verified-tooling",
+    "coverageSummary": {
+      "scenarios": 16,
+      "materializedSteps": 65,
+      "designSteps": 80,
+      "uncoveredDesignSteps": 27,
+      "fixtures": 16,
+      "answers": 16,
+      "splits": {
+        "DEV": 16,
+        "REG": 0,
+        "HOLDOUT": 0
+      },
+      "runEvidence": 0,
+      "holdoutMaterialized": 0,
+      "annotatorScores": 0,
+      "realModelCalls": 0,
+      "realEmbeddingCalls": 0,
+      "labRooms": 0,
+      "hostOperations": 0
+    },
+    "cannotUseForBusinessAcceptance": true,
+    "selfProof": {
+      "harnessSuite": "57/57 (H0b 42 + H0c 15)",
+      "oracles": "22 total in tool-selfproof (15 H0b + 7 H0c); H0c knownVerdicts 43 = 12 accept + 31 reject (verified from committed TAP)",
+      "committedTapParse": "22 oracle lines, 53 known-accept-pass + 135 known-reject-caught = 188 total"
+    }
+  },
+  "findings": [
+    {
+      "id": "G1",
+      "severity": "minor-evidence-reference",
+      "title": "H3 evidence references a stale slice artifact and an overwritten implementer log",
+      "files": [
+        "artifacts/dsh/h3/h3-core-planning-offline.json#evidenceFiles[0]",
+        "artifacts/dsh/h3/h3-core-planning-offline.json#evidenceFiles[1]",
+        "artifacts/dsh/h3/h3-slice-summary.json#verification.implementerIsolatedCheck.log"
+      ],
+      "evidence": "declared h3-verify.json sha dc7c1c68… but committed/actual sha 738d8133… (h3-verify capturedAt 19:52:58 is later than H3 evidence capturedAt 19:47:54); declared .local/slice-verify-h3.log sha f3fd98d8… but the file was overwritten by the Lead re-run (actual sha 3fdbc26e…, 1288); the implementer log sha is also truncated in h3-slice-summary",
+      "impact": "implementer 1281 full-run log is not retained; evidence contains stale hash references. The Lead slice re-run (1288) independently validates the same build/tests, so no false result, but the H3 evidence manifest is not internally reproducible as written",
+      "recommendation": "refresh H3 evidence after the final slice-verify artifact/log (or label the first run superseded); use immutable per-run log names and full sha256",
+      "owner": "inner-domains / Lead"
+    },
+    {
+      "id": "G2",
+      "severity": "minor-evidence-reference",
+      "title": "H6a summary points its implementer log at the Lead run path and truncates the hash",
+      "files": [
+        "artifacts/dsh/h6/h6a-slice-summary.json#verification.implementerIsolatedCheck.log"
+      ],
+      "evidence": "claims path .local/slice-verify-h6a.log with sha '74c2859f…'; the actual retained implementer log is artifacts/dsh/h6/h6a-isolated-check.log (full sha 74c2859ff59ba171e8ca692b77a7d727bfa30e8d52ba044ad79012ea4094178b, 144652 bytes); .local/slice-verify-h6a.log now holds the Lead 1336 run (sha 2c2e6135…)",
+      "impact": "summary field is wrong/misattributed; detailed h6a-channel-ingress.json has the correct path+full sha, and the implementer log is retained. No false result",
+      "recommendation": "correct summary path and full sha",
+      "owner": "inner-domains"
+    },
+    {
+      "id": "G3",
+      "severity": "minor-stale-record",
+      "title": "H2a-probe summary keeps a superseded 1297 lead run referencing the final 1299 evidence",
+      "files": [
+        "artifacts/dsh/h2/h2a-probe-slice-summary.json#verification.leadProbeSliceCheck",
+        ".../verification.finalCheck"
+      ],
+      "evidence": "leadProbeSliceCheck records 1297 (1288+9) referencing artifacts/dsh/slices/h2a-probe-verify.json, which now records 1299 (1288+9+2); no log is attached to the 1297 record; finalCheck 1299 matches the artifact and the task's expected 1299",
+      "impact": "stale intermediate record; no false result",
+      "recommendation": "label/remove the 1297 pre-tool-wrapper run or attach its log; keep only final 1299 as the current claim",
+      "owner": "inner-domains / Lead"
+    },
+    {
+      "id": "G4",
+      "severity": "minor-durability",
+      "title": "H0c implementer check is a superseded first attempt whose logs live only in /tmp",
+      "files": [
+        "artifacts/dsh/h0/h0c-business-scenarios.json#verification.implementerIsolatedCheck",
+        "/tmp/h0c-check.log",
+        "/tmp/h0c-pipeline.log"
+      ],
+      "evidence": "implementerIsolatedCheck records 1216 tests at 'HEAD feecf86 + only H0c files' (baseline 1201+15) while the baseline field and Lead slice check are 1249→1264 at a80c33d; logs are '(ephemeral) /tmp/h0c-check.log' (sha 1771a15a…, present now) and /tmp pipeline (sha a5ff12ab…). Both currently match their claims but are not durable and the 1216 run is superseded",
+      "impact": "first-attempt denominator is stale and its logs are non-durable; final 1264 denominator is verified by Lead slice log. No false result",
+      "recommendation": "label first attempt superseded; archive logs under .local/h0c-verify (gitignored) with sha like H5 F6, or remove the superseded record",
+      "owner": "test-harness / Lead"
+    },
+    {
+      "id": "G5",
+      "severity": "minor-arithmetic",
+      "title": "H4c summary misdescribes its test delta (says 26 existing + 6 new; actual 25 + 7)",
+      "files": [
+        "artifacts/dsh/h4/h4c-slice-summary.json#verification.implementerIsolatedRuns.targeted.localReplySuite"
+      ],
+      "evidence": "parent 41c496b tests/local-reply.test.ts has 25 tests; H4c adds 7 test() cases (no removals) -> 32; the claim '32/32（26 既有 + 6 新增）' does not match the commit",
+      "impact": "final total 32 and all isolated run counts 1271/1213/1256 are correct and verified; only the delta description is wrong",
+      "recommendation": "fix to '25 既有 + 7 新增 = 32'",
+      "owner": "inner-domains"
+    },
+    {
+      "id": "G6",
+      "severity": "minor-metadata",
+      "title": "Joint host statusTool.payloadBytes is a character count, not the file byte size",
+      "files": [
+        "artifacts/dsh/host/final-joint-zero-model.json#statusTool"
+      ],
+      "evidence": "claim payloadBytes=51276 = JS character count; actual committed shiyu-status-final-build.json is 54096 UTF-8 bytes (sha256 5ff56a8a… matches the file). This repeats the earlier H4/H4b payload.bytes issue",
+      "impact": "sha and content are correct; only the byte accounting is wrong",
+      "recommendation": "set payloadBytes to 54096 with bytesSemantics, like the H4/H4b fix",
+      "owner": "Lead"
+    },
+    {
+      "id": "G7",
+      "severity": "minor-disclosure",
+      "title": "Joint host evidence does not disclose the startup refresh of the retained unknown Task metadata",
+      "files": [
+        "artifacts/dsh/host/final-joint-zero-model.json#deltas.classification",
+        "artifacts/dsh/host/final-host-before.json",
+        "artifacts/dsh/host/final-host-after.json"
+      ],
+      "evidence": "new audit snapshots record tasks.metadata version 26 -> 27 with updatedAt=2026-11-02T20:12:48.893Z at reload (state remains unknown, no retry/success); the deltas/classification only says '+7 commitSeq: expected startup lifecycle writes' and does not mention this record write",
+      "impact": "aggregate states/counts and business facts are unchanged, so the classification is not false, but the pre-existing H4 precedent discloses this write and the H4b evidence did not; joint evidence should disclose/classify it now that the audit captures it",
+      "recommendation": "add a deltaClassification line (unknown Task version 26→27, documented recovery metadata, no retry/success)",
+      "owner": "Lead"
+    },
+    {
+      "id": "G8",
+      "severity": "minor-disclosure",
+      "title": "Committed host raw audits are sanitized copies of the .local originals but this is not documented",
+      "files": [
+        "artifacts/dsh/host/final-host-before.json",
+        "artifacts/dsh/host/final-host-after.json",
+        "artifacts/dsh/host/final-host-after-tools.json"
+      ],
+      "evidence": "committed vs .local JSON differ only in dataDir and sessions.root (absolute paths replaced by <home>); all other fields byte-identical; final-joint/plan do not mention the redaction",
+      "impact": "honest hygiene transformation, but a reviewer comparing committed evidence to the original audit would see a byte mismatch; no content/claim change",
+      "recommendation": "document the redaction (e.g. 'committed copies redact dataDir/sessions.root to <home>; originals in .local') or re-export from the beginning with the sanitizer",
+      "owner": "Lead"
+    },
+    {
+      "id": "G9",
+      "severity": "minor-hygiene",
+      "title": "New joint host evidence keeps encoded home path in session names",
+      "files": [
+        "artifacts/dsh/host/final-joint-zero-model.json#deltas.toolsRun.addedSessionFiles",
+        "artifacts/dsh/host/final-host-before.json",
+        "artifacts/dsh/host/final-host-after.json",
+        "artifacts/dsh/host/final-host-after-tools.json"
+      ],
+      "evidence": "added session file/relativePath values begin '--Users-caja-.dsh-profiles-desktop--/…'; no absolute /Users path; same encoded convention exists in H0/H4/H4b host audits (base HEAD 08995d1), but these are newly added files and the task explicitly asks to check new host evidence",
+      "impact": "username/profile fragment exposed in evidence; no message bodies or credentials",
+      "recommendation": "redact sessions.files[].relativePath and addedSessionFiles to e.g. <workspace-root>/<session>/session.v4.jsonl.zstd in future exports; optionally re-export this artifact",
+      "owner": "Lead"
+    },
+    {
+      "id": "G10",
+      "severity": "info-unobserved",
+      "title": "Host-level eventToolProbe cache is not observed",
+      "files": [
+        "artifacts/dsh/host/final-joint-zero-model.json#statusTool.diagnostics",
+        "artifacts/dsh/host/shiyu-status-final-build.json"
+      ],
+      "evidence": "the captured shiyu_status ran before the diagnosis tool, so diagnostics.eventToolProbe=null; no post-diagnosis status payload was captured. The cache exists in code (runtime.lastEventToolProbe set by probe, exposed in snapshot) and is covered by offline tests (events-runtime-probe.test.ts), but host-level cache behavior is unobserved",
+      "impact": "bounded observation; evidence does not overclaim host-level caching",
+      "recommendation": "optionally capture a second shiyu_status after the diagnosis tool in a future zero-model run",
+      "owner": "Lead"
+    },
+    {
+      "id": "G11",
+      "severity": "info-traceability",
+      "title": "Traceability oracle count differs from tool-selfproof after H0c",
+      "files": [
+        "artifacts/dsh/harness/traceability.json#oracles",
+        "artifacts/dsh/harness/tool-selfproof.json"
+      ],
+      "evidence": "traceability.oracles.total=15 while tool-selfproof now has 22 oracles (15 H0b + 7 H0c business); README states H0c business oracles are recorded in tool-selfproof.json; product rows remain 79/79 not_covered and covered=0",
+      "impact": "no product-row upgrade; potential misreading that 7 oracles are missing. Info only",
+      "recommendation": "optionally add a note/field so traceability states it covers the H0b oracle corpus only",
+      "owner": "test-harness / Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Independent re-execution of the H2a-probe/H3/H4c/H6a/H0c test suites",
+      "reason": "read-only review; verified through committed logs/hashes/counts + code/assertion sampling (plus Lead slice-verify secondary executions), not by re-running the suites",
+      "impact": "test outcomes are verified at the evidence level, not re-executed independently by this review"
+    },
+    {
+      "item": "Implementer full-run logs for H3 (1281) and H6a (1325) in their claimed paths",
+      "reason": "H3 log overwritten by Lead run and not retained; H6a summary path wrong while the committed isolated log exists",
+      "impact": "see G1/G2; Lead slice runs validate the same builds"
+    },
+    {
+      "item": "Joint host provider/model/network absence beyond control-DB and counter deltas",
+      "reason": "no provider trace in evidence; zero-model claim supported by plan scope, event/counter deltas, unchanged state/usage and probe counters, not by network logs",
+      "impact": "bounded to fixed-host zero-model limited claim"
+    },
+    {
+      "item": "Host-level eventToolProbe cache and real browser DOM",
+      "reason": "G10; no post-probe status captured; dashboard not rendered",
+      "impact": "UI/caching remain unobserved at host layer"
+    },
+    {
+      "item": "H3 real model plan JSON/caching, H4c real model use of inner block, H6a real platform adapters",
+      "reason": "not executed by design in these slices",
+      "impact": "declared untested; no overclaim"
+    },
+    {
+      "item": "H0c product/host/business acceptance",
+      "reason": "synthetic fixtures only; scenarios synthetic-fixture-only-not-run, HOLDOUT unmaterialized",
+      "impact": "tooling-only evidence, not business acceptance"
+    },
+    {
+      "item": "Post-HEAD working-tree WIP",
+      "reason": "working tree is dirty after HEAD a68eeb2 (conversation/ingress/local-reply-domain, event-tools, goals, src/control/channels, tests/harness/evidence.ts); not part of any reviewed commit",
+      "impact": "out of scope; review bound to committed HEAD blobs"
+    }
+  ],
+  "hygiene": {
+    "absoluteHomePathsInNewRound2Evidence": 0,
+    "encodedHomePathHits": 14,
+    "encodedHomeClassification": "4 H0 historical host audits (base HEAD 08995d1 convention), 6 H4/H4b older host audits (previous review F2), 4 new joint-host files (G9)",
+    "secretPatternHits": 0,
+    "realBusinessBodies": "No message bodies/credentials found; host payloads are status/diagnostics summaries; raw audits are metadata/digests only (host-state-audit.mjs reads no bodies)",
+    "sanitization": "New slice evidence explicitly notes no absolute home paths (H4c evidenceHygiene); host raw audits are committed as redacted copies (G8)"
+  },
+  "overallVerdict": "Authentic with minor evidence-quality findings: every claimed file/log hash, slice count, host audit delta, dist digest and capability-definitionDigest transition matched (definitionDigest and dist independently reproduced). No fabricated, silently skipped or unreported-pass evidence was found. G1-G9 are stale-reference/disclosure/arithmetic/hygiene items that should be corrected or documented; none changes the slice results or evidence-level claims.",
+  "results": [
+    {
+      "id": "R01",
+      "area": "file identity",
+      "claim": "All evidence-declared slice/summary files match the commit they claim (H2a-probe 7+7, H3 7+7, H4c 2+2, H6a 11+11, H0c 58+58; H6a focused logs 8)",
+      "evidence": [
+        "artifacts/dsh/h2/h2a-probe-slice-summary.json",
+        "artifacts/dsh/h3/h3-slice-summary.json",
+        "artifacts/dsh/h4/h4c-slice-summary.json",
+        "artifacts/dsh/h6/h6a-slice-summary.json",
+        "artifacts/dsh/h0/h0c-business-scenarios.json",
+        "artifacts/dsh/slices/{h2a-probe,h3,h4c,h6a,h0c}-verify.json"
+      ],
+      "method": "git show <commit>:<path> SHA256 vs declared; fallbacks only when a later identical blob is used",
+      "result": "verified",
+      "detail": "0 mismatches in all declared file lists except G1 (H3 evidenceFiles stale references, see findings)"
+    },
+    {
+      "id": "R02",
+      "area": "isolated counts",
+      "claim": "Slice-verify counts/log hashes match: H2a-probe 1299, H3 1288, H4c 1271, H6a 1336, H0c 1264, all 0 fail/0 skip",
+      "evidence": [
+        ".local/slice-verify-{h2a-probe,h3,h4c,h6a,h0c}.log",
+        "artifacts/dsh/slices/*-verify.json#check/log"
+      ],
+      "method": "sha256/bytes/summary parse vs claims",
+      "result": "verified",
+      "detail": "H2a-probe a5a3b4c5…/141826, H3 3fdbc26e…/140606, H4c e6f2e3de…/138618, H6a 2c2e6135…/145767, H0c b506c898…/137820; all totals match"
+    },
+    {
+      "id": "R03",
+      "area": "H2a-probe arithmetic",
+      "claim": "1288 baseline + 11 new (9 probe + 2 tool) = 1299; finalCheck matches evidence artifact; stale 1297 record is superseded",
+      "evidence": [
+        "artifacts/dsh/h2/h2a-probe-slice-summary.json",
+        "artifacts/dsh/slices/h2a-probe-verify.json",
+        "6f600f4 tests files"
+      ],
+      "method": "test counts at commit + JSON compare",
+      "result": "verified-with-finding",
+      "detail": "probe tests 3+6 + tool tests 2 = 11; 1299 matches artifact/log; leadProbeSliceCheck 1297 (no log, same evidence path) is stale (G3)"
+    },
+    {
+      "id": "R04",
+      "area": "H3 arithmetic/style",
+      "claim": "1264+17=1281 implementer; 1271+17=1288 Lead; tests real (CAS/stale/stop/unknown)",
+      "evidence": [
+        "artifacts/dsh/h3/h3-slice-summary.json",
+        "artifacts/dsh/h3/h3-core-planning-offline.json",
+        "d7dd731 tests/core-plan.test.ts"
+      ],
+      "method": "counts + test-name/assertion sampling",
+      "result": "verified-with-finding",
+      "detail": "17 new = core-plan 12 + core-pump +1 + local-core +4; assertions check CORE_PLAN_STALE/CORE_PLAN_STRUCTURE_INVALID/plan_stopped_*/task_unknown; evidence stale refs (G1)"
+    },
+    {
+      "id": "R05",
+      "area": "H4c arithmetic",
+      "claim": "baseline 1264, final 1271 (1264+7); instructed head 1213; a80c33d 1256; lead 1271",
+      "evidence": [
+        "artifacts/dsh/h4/h4c-slice-summary.json",
+        "artifacts/dsh/slices/h4c-verify.json",
+        ".local/h4c-check*.log"
+      ],
+      "method": "git test counts + log sha/bytes/counts",
+      "result": "verified-with-finding",
+      "detail": "all run counts and logs verify; targeted description says 26+6 instead of 25+7 (G5)"
+    },
+    {
+      "id": "R06",
+      "area": "H6a arithmetic/style",
+      "claim": "1288+37=1325 implementer; 1299+37=1336 Lead; 37 new tests across identity 9/ingress 12/audience 8/conversation 4/worker 4",
+      "evidence": [
+        "artifacts/dsh/h6/h6a-slice-summary.json",
+        "artifacts/dsh/h6/h6a-channel-ingress.json",
+        "8b34d66 tests/channel-*.test.ts"
+      ],
+      "method": "counts + log hashes + test-name sampling",
+      "result": "verified-with-reference-finding",
+      "detail": "counts/tests real (dedupe/revision/tombstone/audience negative cases); implementer log summary path wrong/truncated (G2); committed isolated log sha 74c2859f… matches"
+    },
+    {
+      "id": "R07",
+      "area": "H0c arithmetic/scope",
+      "claim": "baseline 1249 at a80c33d, lead 1264 (1249+15); implementer 1216 at feecf86 superseded; /tmp logs currently match claims",
+      "evidence": [
+        "artifacts/dsh/h0/h0c-business-scenarios.json",
+        "/tmp/h0c-check.log",
+        "/tmp/h0c-pipeline.log"
+      ],
+      "method": "counts + log sha/bytes + summary parse",
+      "result": "verified-with-finding",
+      "detail": "/tmp check 1216 and pipeline hash match claims; both ephemeral and 1216 record superseded (G4)"
+    },
+    {
+      "id": "R08",
+      "area": "test truth (global)",
+      "claim": "No .skip/.only/assert.ok(true) in new round-2 test files; negative cases assert real rejection codes",
+      "evidence": [
+        "6f600f4/d7dd731/c00c6a9/8b34d66/7bd962c test files"
+      ],
+      "method": "grep + assertion sampling",
+      "result": "verified",
+      "detail": "scan hits 0; sampled negative assertions show expected error codes/status transitions, not tautologies"
+    },
+    {
+      "id": "R09",
+      "area": "H3 feature claims",
+      "claim": "Plan CAS/idempotency, stop conditions and unknown-round no-retry are real tests",
+      "evidence": [
+        "d7dd731 tests/core-plan.test.ts",
+        "tests/core-pump.test.ts",
+        "tests/local-core.test.ts"
+      ],
+      "method": "test-name + assertion inspection",
+      "result": "verified",
+      "detail": "tests cover stale base version, structure/dependency/fact/limit rejection, stopped_* reasons, unknown rounds across lease/reopen, core.plan read-only, prompt determinism fields"
+    },
+    {
+      "id": "R10",
+      "area": "H4c feature claims",
+      "claim": "Prompt determinism, audience trimming and withdrawal omission are real tests",
+      "evidence": [
+        "c00c6a9 tests/local-reply.test.ts"
+      ],
+      "method": "test-name + diff assertion inspection",
+      "result": "verified",
+      "detail": "tests assert byte-identical inner block across executions, cross-audience records trimmed before body read/prompt, withdrawn/degraded omitted, capture tamper refused, unavailable explicit"
+    },
+    {
+      "id": "R11",
+      "area": "H6a feature claims",
+      "claim": "Dedup/revision/tombstone/audience are real tests",
+      "evidence": [
+        "8b34d66 tests/channel-identity/ingress/audience/conversation-integration/ingress-worker"
+      ],
+      "method": "test-name + assertion inspection",
+      "result": "verified",
+      "detail": "negative assertions cover changed-payload duplicate rejection, stale revision cannot overwrite, tombstone clears refs/watermark/no-revive, cross-audience capture rejection, invalidation rollback, worker restart persistence"
+    },
+    {
+      "id": "R12",
+      "area": "H2a-probe review surface",
+      "claim": "Zero-model counters/authorityFields/release and host receipt are real",
+      "evidence": [
+        "6f600f4 tests/events-zero-model-probe.test.ts/tests/events-runtime-probe.test.ts/tests/host-diagnostics-tool.test.ts",
+        "a68eeb2 worker-tools-diagnosis-final-build.json"
+      ],
+      "method": "assertion inspection + host payload compare",
+      "result": "verified",
+      "detail": "tests assert tools exactly placeholder+2 event, authority forbidden names absent, all counters 0, released+disposed, no followups/business events; host diagnosis payload matches expected receipt and adds one archived probe Session"
+    },
+    {
+      "id": "R13",
+      "area": "H0c self-proof",
+      "claim": "Committed self-proof corpus supports H0c claims: 57/57 tests (42+15), 7 H0c oracles, 43 known verdicts (12 accept/31 reject)",
+      "evidence": [
+        "artifacts/dsh/harness/tool-selfproof.json/.tap (HEAD)",
+        "artifacts/dsh/h0/h0c-business-scenarios.json"
+      ],
+      "method": "TAP parse + counts",
+      "result": "verified",
+      "detail": "7 files/57 pass; TAP has 22 oracle lines, 53 accept-pass + 135 reject-caught = 188; H0c subset 7 lines = 12 accept + 31 reject (43)"
+    },
+    {
+      "id": "R14",
+      "area": "H0c boundary",
+      "claim": "H0c evidence is tooling-only; scenarios synthetic-fixture-only-not-run; no product/host/model acceptance",
+      "evidence": [
+        "artifacts/dsh/harness/fl-scenarios/coverage.json",
+        "h0c-business-scenarios.json#failedUnknownUntested"
+      ],
+      "method": "coverage summary + boundary fields",
+      "result": "verified",
+      "detail": "coverage: 16 scenarios/65 materialized steps/27 uncovered, runEvidence 0, cannotUseForBusinessAcceptance=true; evidence says zero product/host/model/Lab/channel execution; HOLDOUT not materialized"
+    },
+    {
+      "id": "R15",
+      "area": "traceability/handoff",
+      "claim": "Product rows not upgraded by H0c/H6a/H3/H4c/H2a-probe; tooling_ready not passed off as product",
+      "evidence": [
+        "artifacts/dsh/harness/traceability.json (HEAD)"
+      ],
+      "method": "summary + git log review",
+      "result": "verified",
+      "detail": "103 rows, product 79/79 not_covered, covered 0, tooling_ready 8 (TV rows), self_proven 13; handoff rule intact; only 7bd962c/eef00d3 touched traceability"
+    },
+    {
+      "id": "R16",
+      "area": "H0c refreshed artifacts",
+      "claim": "H0c refreshed harness artifact hashes match committed HEAD",
+      "evidence": [
+        "h0c-business-scenarios.json#files",
+        "artifacts/dsh/harness/**"
+      ],
+      "method": "git show HEAD SHA256 vs claims",
+      "result": "verified",
+      "detail": "58/58 files match 7bd962c/HEAD, including fl-scenarios answers/fixtures/coverage, traceability (457f403b…), tool-selfproof, manifest"
+    },
+    {
+      "id": "R17",
+      "area": "host audit chain",
+      "claim": "commitSeq 308→315→315, events 38→39→39, deliveries 37→38→38, stateVersion 6/6/6, capability 12→14/14 match raw audits and evidence deltas",
+      "evidence": [
+        "artifacts/dsh/host/final-host-{before,after,after-tools}.json",
+        "final-joint-zero-model.json#deltas"
+      ],
+      "method": "deep diff + claim recompute",
+      "result": "verified",
+      "detail": "all raw fields match declared arrays; reload adds one lifecycle event; tools keep ledger unchanged"
+    },
+    {
+      "id": "R18",
+      "area": "host sessions/probe",
+      "claim": "Sessions 17→17→18; known 17 files unchanged; added file is the probe Session matching diagnosis probeSessionId",
+      "evidence": [
+        "final-host-*.json#sessions",
+        "worker-tools-diagnosis-final-build.json"
+      ],
+      "method": "session set/digest compare",
+      "result": "verified",
+      "detail": "known 17 sha unchanged across all three; exactly one added file 'shiyu-worker-probe-940b80a0…'; digest changes only after tool call; 17 reload digest unchanged"
+    },
+    {
+      "id": "R19",
+      "area": "host business facts/read-only",
+      "claim": "Tasks states/counts, goals, lab, budget, effects, state-file hash unchanged; both tool calls do not write the control ledger",
+      "evidence": [
+        "final-host-*.json#control"
+      ],
+      "method": "deep diff",
+      "result": "verified",
+      "detail": "2 succeeded+1 unknown, goals 2, lab 3 disconnected, budget 21/3, effects 13 unchanged; commitSeq/events/stateFileHash identical after tools"
+    },
+    {
+      "id": "R20",
+      "area": "capability definitionDigest",
+      "claim": "definitionDigest 1f9c5911→5a591515 is explained by the fixed implementation identity covering changed worker execution surface",
+      "evidence": [
+        ".local/dsh-final-host-execution-plan.json",
+        "src/adapters/capability-identity.ts",
+        "raw capability bindingDigest"
+      ],
+      "method": "independent rebuild+import capability-identity at 00fb75b and 3b25e1b",
+      "result": "verified",
+      "detail": "computed 1f9c5911… at 00fb75b and 5a591515… at 3b25e1b from dist (.js) inputs; LOCAL_NOTE_IMPLEMENTATION_FILES includes './dsh/workers' changed by H2a-probe; explanation is accurate; enabled/available, proof unknown unchanged"
+    },
+    {
+      "id": "R21",
+      "area": "host dist provenance",
+      "claim": "dist ce295911…/101 files was built from the claimed committed HEAD",
+      "evidence": [
+        "final-joint-zero-model.json#code.dist",
+        "final-host-*.json#dist"
+      ],
+      "method": "git archive 3b25e1b -> tsc -> recompute digest",
+      "result": "verified",
+      "detail": "rebuilt 101 files digest ce295911b6c064f93c76cf28ff81ca8d89697e2e85835e1fdd3983c4d14ddf37 exactly; temp tree deleted"
+    },
+    {
+      "id": "R22",
+      "area": "host status payload",
+      "claim": "status tool payload sha matches and payloadBytes is the file size",
+      "evidence": [
+        "shiyu-status-final-build.json",
+        "final-joint-zero-model.json#statusTool"
+      ],
+      "method": "sha/byte recompute",
+      "result": "finding",
+      "detail": "sha 5ff56a8a… matches; payloadBytes 51276 is the JS character count, actual file is 54096 bytes (G6)"
+    },
+    {
+      "id": "R23",
+      "area": "host diagnosis payload",
+      "claim": "diagnosis payload receipt/tools/authority/counters/release match audit side effects",
+      "evidence": [
+        "worker-tools-diagnosis-final-build.json",
+        "final-joint-zero-model.json#diagnosisTool",
+        "final-host-after-tools.json"
+      ],
+      "method": "JSON compare + audit cross-check",
+      "result": "verified",
+      "detail": "sha 13e9e4e9… matches; tools exactly placeholder+2 event tools; authorityFields=[]; model/stream/message/tool/usage counters 0; released=disposed=true; exactly one archived probe Session appears, no other change; expectedSurface is a derived true flag"
+    },
+    {
+      "id": "R24",
+      "area": "host committed vs captured audits",
+      "claim": "Committed raw audits are the captured originals",
+      "evidence": [
+        "artifacts/dsh/host/final-host-*.json",
+        ".local/final-host-*.json"
+      ],
+      "method": "JSON diff",
+      "result": "finding",
+      "detail": "identical except dataDir and sessions.root redacted to <home>; redaction is not documented (G8)"
+    },
+    {
+      "id": "R25",
+      "area": "host hygiene",
+      "claim": "New host evidence has no secrets/absolute home paths/message bodies",
+      "evidence": [
+        "artifacts/dsh/host/*"
+      ],
+      "method": "pattern scan + path scan",
+      "result": "verified-with-finding",
+      "detail": "0 secret hits; 0 absolute /Users paths; 4 new files retain encoded 'Users-caja-…' session paths (G9); payloads are status/diagnostic summaries, no message bodies"
+    },
+    {
+      "id": "R26",
+      "area": "host task metadata",
+      "claim": "No business fact changed except the expected lifecycle writes",
+      "evidence": [
+        "final-host-*.json#control.tasks.metadata"
+      ],
+      "method": "metadata diff",
+      "result": "finding",
+      "detail": "unknown Task version 26→27 at reload (state unknown, no retry) is a record write not disclosed in deltas/classification (G7)"
+    },
+    {
+      "id": "R27",
+      "area": "host eventToolProbe cache",
+      "claim": "diagnostics.eventToolProbe cache works at host level",
+      "evidence": [
+        "status payload diagnostics",
+        "runtime snapshot code",
+        "tests/events-runtime-probe.test.ts"
+      ],
+      "method": "payload + code/test review",
+      "result": "unobserved",
+      "detail": "captured status precedes diagnosis (null); no post-probe status; cache exists in code/offline tests only (G10)"
+    },
+    {
+      "id": "R28",
+      "area": "stale refs/log collisions",
+      "claim": "Implementer run records point to retained immutable logs",
+      "evidence": [
+        "h2a-probe-slice-summary.leadProbeSliceCheck",
+        "h3-slice-summary.implementerIsolatedCheck.log",
+        "h3-core-planning-offline.evidenceFiles",
+        "h6a-slice-summary.implementerIsolatedCheck.log",
+        "h0c implementerIsolatedCheck"
+      ],
+      "method": "hash/path cross-check",
+      "result": "finding",
+      "detail": "G1 H3 stale artifact hash + overwritten log; G2 H6a summary wrong path/truncated hash; G3 stale 1297 H2a-probe; G4 H0c superseded ephemeral run"
+    },
+    {
+      "id": "R29",
+      "area": "traceability oracle scope",
+      "claim": "H0c refresh kept traceability truthful",
+      "evidence": [
+        "artifacts/dsh/harness/traceability.json#oracles",
+        "tool-selfproof.json"
+      ],
+      "method": "counts compare",
+      "result": "note",
+      "detail": "traceability.oracles=15 (H0b corpus) vs tool-selfproof 22 (15+7 business); README says H0c oracles recorded in tool-selfproof; product rows unchanged; info G11"
+    },
+    {
+      "id": "R30",
+      "area": "commit scope",
+      "claim": "Reviewed commits stay within their slice scopes",
+      "evidence": [
+        "git show --stat per commit"
+      ],
+      "method": "file-list review",
+      "result": "verified",
+      "detail": "H2a-probe: workers/event tools/runtime/index/probe tests; H3: core domain/contracts/pump/local-core + tests; H4c: local-reply.ts + test; H6a: control-store ingress/channel contracts/tests; H0c: harness business + fl artifacts; joint host: host artifacts + record only"
+    },
+    {
+      "id": "R31",
+      "area": "review boundary",
+      "claim": "Review is bound to committed HEAD a68eeb2",
+      "evidence": [
+        "git status"
+      ],
+      "method": "state check",
+      "result": "note",
+      "detail": "post-HEAD working-tree WIP exists (conversation/ingress/local-reply-domain, event-tools, goals, src/control/channels, tests/harness/evidence.ts); not reviewed, not modified"
+    },
+    {
+      "id": "R32",
+      "area": "overall authenticity",
+      "claim": "No fabricated/overclaimed evidence in the reviewed commits",
+      "evidence": [
+        "all of the above"
+      ],
+      "method": "integration of checks",
+      "result": "verified",
+      "detail": "all hashes/counts/deltas reproducible; boundaries honest; findings are evidence-quality/disclosure items, not falsification"
+    }
+  ],
+  "summary": {
+    "checks": 32,
+    "verified": 25,
+    "findings": 11,
+    "unobservedResults": 1,
+    "note": "result categories include verified-with-finding/reference-finding where a minor evidence-quality issue coexists with otherwise verified facts"
+  }
+}

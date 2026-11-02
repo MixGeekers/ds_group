@@ -588,3 +588,27 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/channel-
 2. 真实浏览器 DOM 渲染未由 JSON 观察证明；合成宿主 UI 是独立证据层。
 3. 诊断探针每次调用会创建并释放一个原生诊断 Session 文件（预期副作用，不可作为业务路径）；17 个已知业务 Session 未变。
 4. lifecycle=degraded 仍来自保留的历史 unknown/暂停业务事实，不是本轮新失败。
+
+## 17. 第二轮独立复核与证据修正（H2a-probe/H3/H4c/H6a/H0c/联合宿主）
+
+2026-11-02，独立验证员对提交 `6f600f4`(H2a-probe)、`3b25e1b`、`d7dd731`(H3)、`c00c6a9`(H4c)、`8b34d66`(H6a)、`7bd962c`(H0c)、`a68eeb2`(联合宿主) 做了只读复核（task-18）：**证据真实性通过，未发现伪造、静默跳过、未跑写通过；边界陈述诚实**。32 项逐项检查结论、计数/日志表、联合宿主审计链与 G1–G11 findings 见 [H2-H6-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/H2-H6-EVIDENCE-REVIEW.md>) 与 [h2h6-evidence-review.json](<artifacts/dsh/verify/h2h6-evidence-review.json>)。
+
+复核复算要点：H2a-probe 1299、H3 1288、H4c 1271、H6a 1336、H0c 1264 的隔离日志 sha/bytes/计数全部匹配；H0c committed TAP 57 tests/188 known verdicts、7 oracles/43 verdicts 与声明一致；traceability 产品行 79/79 not_covered 未被误升级；联合宿主 commitSeq 308→315→315、events 38→39→39、deliveries 37→38→38、stateVersion 6/6/6、capability 12→14、hostEpoch 重绑、17 个已知 Session 完全不变、仅新增一个已释放 probe Session；dist `ce295911…`（101 文件）与 definitionDigest `1f9c5911…`→`5a591515…` 均由复核者独立重建复现。
+
+findings 处理（均 minor，不推翻结论）：
+
+| ID | 处理 |
+|---|---|
+| G1 H3 证据引用 stale（slice/log 哈希与保留日志不一致） | 已修：`h3-core-planning-offline.json` 的 evidenceFiles 重新绑定到保留的 Lead 1288 运行哈希；实现者 1281 全量日志被覆盖，标记 superseded（计数保留为历史）；`h3-slice-summary` 同步注明 |
+| G2 H6a summary 实现者日志路径/哈希错误（截断） | 已修：指向 committed `artifacts/dsh/h6/h6a-isolated-check.log` 完整 SHA（`74c2859f…`/144652B）；Lead 日志独立记录（`2c2e6135…`） |
+| G3 H2a-probe 保留 stale 1297 中间记录 | 已修：标记 superseded（最终 1299 为权威） |
+| G4 H0c 1216 首跑 superseded 且日志仅 /tmp | 已修：标记 superseded；两份日志归档到 gitignored `.local/h0c/` 并记录完整 SHA/bytes（`1771a15a…`/132654、`a5ff12ab…`/1894） |
+| G5 H4c 测试算术 “26+6” | 已修：改为 25 既有 + 7 新增（32 总数不变） |
+| G6 联合宿主 payloadBytes 为字符数 | 已修：改为实际文件字节 54,096 并注明 bytesSemantics |
+| G7 未披露 unknown Task 元数据启动刷新 | 已补：version 27、updatedAt=20:12:48.893Z、state 仍 unknown、无重试/无成功声明 |
+| G8 committed raw audits 的脱敏未说明 | 已补：与 .local 原件唯一差异是 home/data-root → `<home>` |
+| G9 编码 session relativePath | 已补披露：无绝对路径/无正文/无秘密，沿用既有 host 证据惯例；后续导出脱敏 |
+| G10 host 级 eventToolProbe 缓存未观测 | 记为 unobserved：捕获的 status 在 diagnosis 之前；代码+离线测试覆盖，待未来零模型 host 批次补 post-probe status |
+| G11 traceability oracle 口径 15 vs 22 | H7-prep（task-17）在 traceability 注明 oracle corpus 口径（H0b 15 + H0c business 7） |
+
+未观察项：未独立重跑五套件（以日志/哈希/计数+断言审阅+Lead slice-verify 二次执行为证）；host 无 provider 网络 trace；H3 真实模型 plan、H4c 真实模型消费、H6a 真实平台、H0c 业务验收均未测，证据已声明。

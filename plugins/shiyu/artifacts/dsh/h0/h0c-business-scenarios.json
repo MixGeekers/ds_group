@@ -319,13 +319,29 @@
       "skipped": 0,
       "log": {
         "path": "(ephemeral) /tmp/h0c-check.log",
-        "sha256": "1771a15af831f70292de3474b61945c7a0bbbe042e12a31cd105412e3ed33bce"
+        "sha256": "1771a15af831f70292de3474b61945c7a0bbbe042e12a31cd105412e3ed33bce",
+        "status": "superseded",
+        "note": "ephemeral /tmp copies archived into gitignored .local/h0c with matching hashes"
       },
       "pipeline": {
         "command": "manifest -> selfproof -> traceability --strict -> fl-scenarios --require-selfproof",
         "exitCode": 0,
         "logSha256": "a5ff12abb18c7331a37257a90b478854e3e3910ae7a07587fc46416ea5ebf197"
-      }
+      },
+      "superseded": true,
+      "note": "the implementer 1216 run was on the feecf86-era baseline; the Lead independent 1264 run is authoritative. The two check logs are archived below.",
+      "archivedCopies": [
+        {
+          "path": "plugins/shiyu/.local/h0c/h0c-check.log",
+          "sha256": "1771a15af831f70292de3474b61945c7a0bbbe042e12a31cd105412e3ed33bce",
+          "bytes": 132654
+        },
+        {
+          "path": "plugins/shiyu/.local/h0c/h0c-pipeline.log",
+          "sha256": "a5ff12abb18c7331a37257a90b478854e3e3910ae7a07587fc46416ea5ebf197",
+          "bytes": 1894
+        }
+      ]
     },
     "leadIndependentSliceCheck": {
       "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD a80c33d + only the 58 H0c files; node_modules + pinned Python symlinked)",

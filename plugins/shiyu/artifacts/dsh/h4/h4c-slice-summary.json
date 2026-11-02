@@ -125,7 +125,8 @@
         "fail": 0,
         "cancelled": 0,
         "skipped": 0
-      }
+      },
+      "note": "committed local-reply.test.ts had 25 tests; the slice adds 7 (32 total)"
     },
     "deterministicPrompt": "two executions from identical state produce byte-identical inner blocks; the policy caps and omissions are asserted.",
     "negativeCases": "cross-audience private assertions never enter a DM block; withdrawn evidence yields omitted.revoked>=1 and no body; degraded/inactive/over-limit are explicit; tampered or missing-authority captures are rejected; unavailable domains report not_requested and personality-domain initialization damage still lets the reply complete with inner explicitly unavailable."

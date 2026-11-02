@@ -28,7 +28,7 @@
     "call": "shiyu_status",
     "isError": false,
     "readOnly": true,
-    "payloadBytes": 51276,
+    "payloadBytes": 54096,
     "payloadSha256": "5ff56a8a477eed4e2de9a5b21f44c48113ec2051786f536abc808dd56a94b6c5",
     "schemaVersion": 1,
     "lifecycle": "degraded",
@@ -105,7 +105,8 @@
       "availability": "available",
       "verification": "unknown",
       "definitionDigest": "5a591515147e63ccd956f4ed85b95ccf7df8b29770f4c13ac0ef11d3636c652e"
-    }
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8); an earlier value recorded the character count instead"
   },
   "diagnosisTool": {
     "call": "shiyu_diagnose_worker_tools",
@@ -273,7 +274,8 @@
       "publication": "stateVersion stays 6: schema4 manifest and authority ids unchanged; all six domains available.",
       "capability": "revision 12 -> 14 (+2 hostEpoch rebind + availability observation). definitionDigest changed from 1f9c5911... to 5a591515... because the stable implementation identity intentionally covers the changed worker execution surface (shared mount extraction/probe code); enabled/availability stay true/available and verification stays unknown - no success proof is fabricated.",
       "toolsRun": "commitSeq stays 315, events stay 39, deliveries stay 38, stateVersion/capability revision unchanged, runtime-state file hash unchanged: both tool calls are read-only with respect to the control ledger. Exactly one new owned Session file appears (the released/archived shiyu-worker-probe-* diagnostic Session); all 17 previously known Session files are byte-identical.",
-      "probe": "receipt: ok, zeroModel, readOnly, sent=false; tools exactly the placeholder task tool + two restricted event tools; authorityFields empty; all model counters 0; released=disposed=true; the host-side tool list is reported but none of those host tools were mounted into the restricted surface."
+      "probe": "receipt: ok, zeroModel, readOnly, sent=false; tools exactly the placeholder task tool + two restricted event tools; authorityFields empty; all model counters 0; released=disposed=true; the host-side tool list is reported but none of those host tools were mounted into the restricted surface.",
+      "unknownTaskMetadata": "The retained unknown Task uncertainty metadata was refreshed at startup (version 27, updatedAt=2026-11-02T20:12:48.893Z); state remains unknown, there is no retry, no new assignment and no success claim."
     }
   },
   "findings": [
@@ -298,11 +300,17 @@
     "afterAudit": "artifacts/dsh/host/final-host-after.json",
     "afterToolsAudit": "artifacts/dsh/host/final-host-after-tools.json",
     "statusPayload": "artifacts/dsh/host/shiyu-status-final-build.json",
-    "diagnosisPayload": "artifacts/dsh/host/worker-tools-diagnosis-final-build.json"
+    "diagnosisPayload": "artifacts/dsh/host/worker-tools-diagnosis-final-build.json",
+    "sanitizedAudits": "The committed final-host-*.json audit files differ from the .local originals only by replacing the local home/data-root path with <home>; no other field was altered.",
+    "relativePathEncoding": "Session relative paths retain the host-encoded project directory name (e.g. --Users-caja-...--); they contain no absolute path, no message body and no secret, and follow the same convention as earlier host evidence."
   },
   "limitations": [
     "Zero-model evidence only: the probe proves restricted mounting, non-forgeable tool parameters and release. It does not prove a model actually called an event tool, provider budgets/cache, real task/Goal continuation or H3 plan execution under a real model.",
     "Real browser DOM rendering of the dashboard is not proven by these JSON observations; synthetic-host UI tests remain a separate evidence layer.",
     "lifecycle=degraded continues to reflect retained historical unknown/paused facts, not a new failure."
+  ],
+  "unobserved": [
+    "host-level diagnostics.eventToolProbe cache was not observed after the probe (the captured status was taken before the diagnosis call); the cache path has code and offline tests but no post-probe host snapshot yet.",
+    "real model tool invocation, provider budget/cache, real task/Goal continuation and browser DOM rendering remain untested."
   ]
 }
