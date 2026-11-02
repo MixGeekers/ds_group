@@ -10,25 +10,32 @@ const message = text => ({ content: [{ type: 'text', text }], source: { kind: 'u
 
 export class GymAgentDriver {
   constructor(ctx, service, config) { this.ctx = ctx; this.service = service; this.config = config; this.live = new Map(); this.composed = new WeakSet(); this.closed = false; }
-  bind(role, runId) {
-    const binding = { runId, role, sessionId: `gym-${role}-${randomUUID()}`, status: 'starting', startedAt: new Date().toISOString(), model: this.service.model() };
+  bind(role, runId, model = this.service.model(role)) {
+    const binding = { runId, role, sessionId: `gym-${role}-${randomUUID()}`, status: 'starting', startedAt: new Date().toISOString(), model: structuredClone(model) };
     this.service.state.bindings.push(binding); this.service.persist(); return binding;
   }
   async startTarget(runId) { return this.start('target', runId); }
   async startJudge(runId) { return this.start('judge', runId); }
   async start(role, runId) {
     if (this.closed) throw new Error('Agent 接入已关闭');
-    if (!this.service.capabilities().dshAgent) throw new Error('宿主没有可用的模型配置');
+    if (!this.service.capabilities()[role === 'judge' ? 'judge' : 'dshAgent']) throw new Error('宿主没有可用的模型配置');
     const packet = role === 'judge' ? await this.service.packet(runId) : undefined;
+    const resolution = this.service.resolveModel(role);
     const binding = this.bind(role, runId);
     const state = { binding, handle: undefined, packet, busy: false, dirty: true, submitted: false, steps: 0, nudges: 0, disposers: [], closing: undefined };
     this.live.set(binding.sessionId, state);
     try {
+      const model = await resolution;
+      if (this.closed || !active(binding) || (role === 'target' && terminal(this.service.engine.getRun(runId).status))) {
+        await this.retire(state, 'cancelled', '模型配置解析期间实验已结束'); return { ...binding };
+      }
+      this.service.updateBinding(binding, { model });
       const cwd = role === 'target' ? path.join(this.service.engine.runDir(runId), 'workspace') : path.join(this.service.runtimeDir, 'judge-workspaces', binding.sessionId);
       await mkdir(cwd, { recursive: true });
+      if (this.closed || !active(binding)) { await this.retire(state, binding.status); return { ...binding }; }
       state.creation = this.ctx.agents.create({
         sessionId: binding.sessionId, meta: { cwd },
-        agentOptions: { ...this.service.model(), maxTokens: 8192 },
+        agentOptions: { ...binding.model, maxTokens: 8192 },
         setup: (agentCtx, agent) => this.compose(state, agentCtx, agent),
       });
       state.handle = await state.creation;
@@ -64,7 +71,11 @@ export class GymAgentDriver {
         ...(role === 'judge' ? reviewSchema : targetSchema), output: jsonOutput, timeoutMs: 30000, isConcurrencySafe: false,
         execute: async (args, exec) => {
           if (!active(state.binding) || state.closing) throw new Error('此模型角色已结束，请新建训练或评分');
-          if (role !== 'judge') return this.service.targetCall(state.binding.runId, args, exec.signal);
+          if (role !== 'judge') {
+            this.service.updateBinding(state.binding, { phase: 'using_tool', lastAction: args.action === 'act' ? String(args.operation?.type ?? 'act') : String(args.action) });
+            try { return await this.service.targetCall(state.binding.runId, args, exec.signal); }
+            finally { if (active(state.binding) && !state.closing) this.service.updateBinding(state.binding, { phase: state.busy ? 'thinking' : 'waiting_input' }); }
+          }
           if (args.action === 'overview') {
             const p = state.packet;
             return { runId: p.runId, instructions: p.instructions, facts: p.facts, tasks: p.tasks, fileIndex: p.fileIndex ?? p.artifacts, evidenceReferences: [...new Set([...p.evidence.map(e => e.ref), ...p.events.map(e => e.id), ...p.facts.assertions.map(a => a.id)])], omittedEventCount: Math.max(0, this.service.engine.getRun(p.runId).events.length - p.events.length) };
@@ -97,6 +108,7 @@ export class GymAgentDriver {
         if (++state.steps > (role === 'judge' ? this.config.maxJudgeSteps : this.config.maxTargetSteps)) {
           queueMicrotask(() => { void this.retire(state, 'error', '达到模型步骤预算；没有补造分数或成功结果。'); }); return { kind: 'reject' };
         }
+        if (role === 'target') this.service.updateBinding(state.binding, { phase: 'thinking' });
         return next();
       }));
       cleanup.push(agentCtx.on('session/event', (_session, event) => {
@@ -123,12 +135,14 @@ export class GymAgentDriver {
   wake(state, firstPrompt) {
     if (!state.handle || state.busy || state.closing || !active(state.binding) || (!state.dirty && !firstPrompt)) return;
     state.dirty = false; state.busy = true;
+    if (state.binding.role === 'target') this.service.updateBinding(state.binding, { phase: 'thinking' });
     try { state.handle.agent.followup(message(firstPrompt ?? '有新的公司输入到达。请使用 inputs 游标读取并继续处理未完成的业务。')); }
     catch (error) { state.busy = false; void this.retire(state, 'error', error.message); return; }
     state.turn = (async () => {
       try {
         await state.handle.agent.whenIdle(); state.busy = false;
         if (state.closing || !active(state.binding)) return;
+        if (state.binding.role === 'target') this.service.updateBinding(state.binding, { phase: 'waiting_input' });
         if (state.turnError) { await this.retire(state, 'error', state.turnError); return; }
         if (state.binding.role === 'judge') {
           await this.retire(state, state.submitted ? 'completed' : 'error', state.submitted ? undefined : '模型结束但未提交有效评分；没有默认分数。'); return;
@@ -144,7 +158,7 @@ export class GymAgentDriver {
   }
   async retire(state, status, error) {
     if (state.closing) return state.closing;
-    this.service.updateBinding(state.binding, { status, finishedAt: new Date().toISOString(), stepsStarted: state.steps, ...(error ? { error: String(error).slice(0, 1500) } : {}) });
+    this.service.updateBinding(state.binding, { status, phase: status, finishedAt: new Date().toISOString(), stepsStarted: state.steps, ...(error ? { error: String(error).slice(0, 1500) } : {}) });
     state.closing = (async () => {
       clearTimeout(state.timer);
       try {
@@ -164,25 +178,35 @@ export class GymAgentDriver {
     for (const state of [...this.live.values()].filter(s => s.binding.runId === runId && s.binding.role === role)) await this.retire(state, 'cancelled', '用户停止了此模型角色');
   }
   async probe() {
+    if (this.closed || this.service.closed) throw new Error('Agent 接入已关闭');
     if (!this.service.capabilities().dshAgent) throw new Error('宿主未配置模型');
-    const binding = this.bind('probe', '__probe');
+    const model = await this.service.resolveModel('target');
+    if (this.closed || this.service.closed) throw new Error('Agent 接入已关闭');
+    const binding = this.bind('probe', '__probe', model);
     const state = { binding, steps: 0, disposers: [] };
-    let handle;
+    this.live.set(binding.sessionId, state);
     try {
-      const cwd = path.join(this.service.runtimeDir, 'probes', binding.sessionId); await mkdir(cwd, { recursive: true });
+      const cwd = path.join(this.service.runtimeDir, 'probes', binding.sessionId);
       const meter = this.ctx.get('tokenMeter');
       const estimate = assembly => meter ? meter.estimateMessage({ id: randomUUID(), role: 'system', source: { kind: 'system-prompt' }, content: [{ type: 'text', text: JSON.stringify({ sections: assembly.sections, contexts: assembly.contexts, tools: assembly.tools }) }] }) : null;
-      handle = await this.ctx.agents.create({ sessionId: binding.sessionId, meta: { cwd }, agentOptions: { ...this.service.model(), maxTokens: 512 }, setup: async (c, a) => {
-        state.beforeTokens = estimate(await c.systemPrompt.assemble({ scope: a }));
-        this.compose(state, c, a);
-      } });
+      state.creation = (async () => {
+        await mkdir(cwd, { recursive: true });
+        if (this.closed || !active(binding)) throw new Error('Agent 接入已关闭');
+        return this.ctx.agents.create({ sessionId: binding.sessionId, meta: { cwd }, agentOptions: { ...binding.model, maxTokens: 512 }, setup: async (c, a) => {
+          state.beforeTokens = estimate(await c.systemPrompt.assemble({ scope: a }));
+          this.compose(state, c, a);
+        } });
+      })();
+      const handle = state.handle = await state.creation;
+      if (this.closed || !active(binding)) throw new Error('Agent 接入已关闭');
       const tools = handle.agent.ctx.tools.schemas(handle.agent).map(t => t.name);
       const assembly = await handle.agent.ctx.systemPrompt.assemble({ scope: handle.agent });
+      if (this.closed || !active(binding)) throw new Error('Agent 接入已关闭');
       if (tools.some(name => name !== targetSchema.name) || !tools.includes(targetSchema.name)) throw new Error('角色工具隔离未生效');
       this.service.updateBinding(binding, { status: 'completed', finishedAt: new Date().toISOString() });
       return { ready: true, noModelCalled: true, node: process.version, sessionId: binding.sessionId, tools, promptCharacters: assembly.sections.reduce((n, s) => n + s.text.length, 0), promptTokenEstimate: { before: state.beforeTokens, after: estimate(assembly), method: 'DSH heuristic over serialized prompt sections, contexts and tool schemas; not provider billing' }, note: '已创建真实宿主 Session、挂载受限工具并释放；未 followup，未发送模型请求。' };
-    } catch (error) { this.service.updateBinding(binding, { status: 'error', error: error.message, finishedAt: new Date().toISOString() }); throw error; }
-    finally { await handle?.dispose(); for (const fn of state.disposers.reverse()) await fn(); }
+    } catch (error) { if (active(binding)) this.service.updateBinding(binding, { status: 'error', error: error.message, finishedAt: new Date().toISOString() }); throw error; }
+    finally { await this.retire(state, binding.status); }
   }
   async close() { this.closed = true; await Promise.allSettled([...this.live.values()].map(s => this.retire(s, 'interrupted', '健身房插件卸载，未自动续跑'))); }
 }

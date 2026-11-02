@@ -1,5 +1,6 @@
 import { GymService } from './service.js';
 import { managementTool } from './tools.js';
+import { readFile } from 'node:fs/promises';
 
 export const inject = ['connection', 'tools', 'agents', 'systemPrompt'];
 const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
@@ -19,15 +20,30 @@ export async function serveTarget(service, request) {
   try {
     const body = await readJSON(request);
     if (!service.engine.authorizeTarget(body.runId, body.targetToken)) return failure(new Error('无效运行令牌'), 403);
-    return Response.json(await service.targetCall(body.runId, body.request, request.signal), { headers });
+    return Response.json(await service.collaboration.externalCall(body.runId, body.targetToken, body.request, request.signal), { headers });
   } catch (error) { return failure(error); }
 }
 export async function serveDownload(service, request, kind) {
   try {
     const query = new URL(request.url).searchParams, runId = query.get('runId');
     if (kind === 'evidence') return new Response(JSON.stringify(await service.packet(runId), null, 2), { headers: { ...headers, 'Content-Type': 'application/json; charset=utf-8', 'Content-Disposition': `attachment; filename="${encodeURIComponent(runId)}-evidence.json"` } });
-    const { bytes, name } = await service.artifact(runId, query.get('path'));
+    const { bytes, name } = kind === 'workspace'
+      ? await service.collaboration.workspaceFile(runId, query.get('path'))
+      : await service.artifact(runId, query.get('path'));
     return new Response(bytes, { headers: { ...headers, 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename*=UTF-8''${encodeURIComponent(name)}` } });
+  } catch (error) { return failure(error, 404); }
+}
+const assets = new Map([
+  ['icons.css', 'text/css; charset=utf-8'],
+  ['tabler-icons.core.woff2', 'font/woff2'],
+  ['tabler-icons.devices-1.woff2', 'font/woff2'],
+  ['LICENSE', 'text/plain; charset=utf-8'],
+]);
+export async function serveAsset(name) {
+  if (!assets.has(name)) return failure(new Error('资源不存在'), 404);
+  try {
+    const bytes = await readFile(new URL(`../dist/gym/assets/${name}`, import.meta.url));
+    return new Response(bytes, { headers: { ...headers, 'Content-Type': assets.get(name) } });
   } catch (error) { return failure(error, 404); }
 }
 export async function apply(ctx, config = {}) {
@@ -44,6 +60,11 @@ export async function apply(ctx, config = {}) {
     ['/api/shiyu-gym', ['POST'], request => serveRequest(service, request)],
     ['/api/shiyu-gym/target', ['POST'], request => serveTarget(service, request)],
     ['/api/shiyu-gym/artifact', ['GET'], request => serveDownload(service, request, 'artifact')],
+    ['/api/shiyu-gym/workspace', ['GET'], request => serveDownload(service, request, 'workspace')],
     ['/api/shiyu-gym/evidence', ['GET'], request => serveDownload(service, request, 'evidence')],
-  ]) ctx.effect(() => ctx.connection.fetch.register({ path: url, methods, ...(methods.includes('POST') ? { requestBody: 'buffered' } : {}), fetch: handler }));
+    ...[...assets.keys()].map(name => [`/api/shiyu-gym/assets/${name}`, ['GET'], () => serveAsset(name)]),
+  // DSH's HTTP bridge has no default for an exact route's requestBody. An
+  // omitted value takes the streaming branch, which attaches an illegal body
+  // to GET Requests before the handler runs. Declare buffered for every route.
+  ]) ctx.effect(() => ctx.connection.fetch.register({ path: url, methods, requestBody: 'buffered', fetch: handler }));
 }

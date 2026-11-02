@@ -1,0 +1,170 @@
+{
+  "date": "2026-11-01",
+  "timezone": "America/Caracas",
+  "completedAt": "2026-11-02T02:37:37Z",
+  "pluginVersion": "0.3.0",
+  "evidenceLevel": "本轮实测：当前已安装的真实 DSH 桌面应用；另列自动化回归，不混用历史证据",
+  "host": {
+    "name": "DeepSeek Harness",
+    "version": "0.2.1-rc.5",
+    "profile": "desktop",
+    "installation": "link: workspace lab",
+    "originalWorkbenchPreserved": true
+  },
+  "automated": {
+    "core": {
+      "passed": 102,
+      "failed": 0
+    },
+    "plugin": {
+      "passed": 31,
+      "failed": 0
+    },
+    "browser": {
+      "passed": 6,
+      "failed": 0,
+      "details": "gym-ui-validation.json"
+    },
+    "build": "passed",
+    "pluginSyntax": "passed",
+    "package": {
+      "files": 37,
+      "runtimeAndCredentialsExcluded": true
+    }
+  },
+  "nativeChecks": {
+    "createFreeChat": {
+      "passed": true,
+      "runId": "run-mvymlb79-ef92cb19"
+    },
+    "sendMessage": true,
+    "uploadPreviewShare": true,
+    "createAndSaveCustomScenario": true,
+    "downloadUploadedText": {
+      "passed": true,
+      "bytes": 132,
+      "sha256": "8a0056aae3f567a112b277597c99d937ecc07517d2b707af27550640748142f9"
+    },
+    "exportEvidence": {
+      "passed": true,
+      "bytes": 22710,
+      "runId": "run-mvymrj51-e210c752",
+      "validJSON": true
+    },
+    "pluginDisableEnableReload": {
+      "settingsPreserved": true,
+      "roomHistoryMessagesAndFilesPreserved": true,
+      "globalHostModelUnchanged": true
+    },
+    "nativeVisualInspection": {
+      "settingsPage": true,
+      "navigationAndActionIcons": true,
+      "note": "Native desktop screenshot visually inspected; committed screenshots are the separate synthetic browser harness."
+    },
+    "noInferenceHostProbe": {
+      "passed": true,
+      "tools": [
+        "gym_target"
+      ],
+      "model": {
+        "provider": "opencode-go",
+        "model": "deepseek-v4.1-flash",
+        "reasoningEffort": "max"
+      },
+      "modelSteps": 0
+    }
+  },
+  "savedSettings": {
+    "selectedBy": "user",
+    "revision": 1,
+    "settings": {
+      "target": {
+        "mode": "explicit",
+        "model": {
+          "provider": "opencode-go",
+          "model": "deepseek-v4.1-flash",
+          "reasoningEffort": "max"
+        }
+      },
+      "judge": {
+        "mode": "explicit",
+        "model": {
+          "provider": "opencode-go",
+          "model": "deepseek-v4.1-flash",
+          "reasoningEffort": "max"
+        }
+      }
+    },
+    "reloadedInNativeUI": true,
+    "appliesTo": "new_sessions"
+  },
+  "authorizedModelAcceptance": {
+    "scope": "一次真实任务加一次独立评分；执行时使用当时 DSH 默认模型，早于用户新选 OpenCode 模型",
+    "runId": "run-mvymrj51-e210c752",
+    "task": "合成数量核对：12 + 8 = 20 件，正式正文交付",
+    "bindings": [
+      {
+        "role": "target",
+        "status": "completed",
+        "stepsStarted": 6,
+        "model": {
+          "provider": "sub",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "max"
+        },
+        "startedAt": "2026-11-02T02:19:08.613Z",
+        "finishedAt": "2026-11-02T02:20:08.633Z",
+        "error": null
+      },
+      {
+        "role": "judge",
+        "status": "completed",
+        "stepsStarted": 3,
+        "model": {
+          "provider": "sub",
+          "model": "gpt-6-astra",
+          "reasoningEffort": "max"
+        },
+        "startedAt": "2026-11-02T02:20:50.757Z",
+        "finishedAt": "2026-11-02T02:21:51.024Z",
+        "error": null
+      }
+    ],
+    "submitted": 1,
+    "tasksTotal": 1,
+    "independentlyBusinessPassed": 0,
+    "review": {
+      "id": "review-f5c5edfb-0c14-4abc-b7ca-01193abd4f32",
+      "status": "completed",
+      "scores": [
+        {
+          "name": "T-6ecb0faf-039 业务正确性",
+          "score": 5
+        },
+        {
+          "name": "T-6ecb0faf-039 完整性与交付可用性",
+          "score": 5
+        },
+        {
+          "name": "总体协作",
+          "score": 5
+        }
+      ]
+    },
+    "historicalRoomStatus": "interrupted",
+    "statusNote": "任务在约30秒正式交付，目标和Judge均无错误。该历史房间仍保留修复前的统一截止中断状态；新实现仅在输入结束、无在途工作且所有任务有真实交付时按已完成封存，回归覆盖已通过，未改写历史。",
+    "actualProviderCost": "not_measured; consult DSH Session billing records"
+  },
+  "fixes": [
+    "旧服务/新客户端版本不一致时明确提示重载并阻止新版写操作",
+    "DSH HTTP bridge 的 GET 路由显式 buffered，修复下载及字体400；认证 fetch 后以 Blob 具名下载",
+    "自定义剧本校验与快照、分享可见性、最终回执、重试前置条件和卸载竞态修复",
+    "模型目录与思考强度复用 DSH 公共服务；Lab 独立持久化设置并按角色固定新 Session 快照"
+  ],
+  "limits": [
+    "OpenCode deepseek-v4.1-flash 已保存并通过无推理会话接入检查，未额外运行模型任务或评分。",
+    "一次简单任务不构成复杂能力或真实识雨内核基准。",
+    "真实模型历史房间状态仍为 interrupted；新版截止完成语义通过自动化回归，未另耗模型额度重跑。",
+    "截图和运行资料均使用合成业务数据；凭据、连接口令及完整运行状态未纳入此摘要。"
+  ]
+}

@@ -1,9 +1,11 @@
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, lstat, readFile, readdir, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { decodeInputContent, validateInputPath } from './scenarios.ts';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ExcelJS from 'exceljs';
 import { Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
-import type { ActionResult, Scenario, ServiceState, TargetAction, WorkContext } from './types.js';
+import type { ActionResult, InputAsset, Scenario, ServiceState, TargetAction, WorkContext } from './types.js';
 
 const fixtureDir = fileURLToPath(new URL('../fixtures/', import.meta.url));
 export const initialServiceState: ServiceState = {
@@ -15,14 +17,30 @@ export const initialServiceState: ServiceState = {
 };
 
 /** A fresh run receives independent copies; no mutable source fixture is shared. */
-export async function seedWorkspace(runDir: string, _scenario: Scenario): Promise<void> {
+export async function seedWorkspace(runDir: string, scenario: Scenario): Promise<InputAsset[]> {
+  const supplied = (scenario.assets ?? []).map(asset => ({ path: validateInputPath(asset.path), bytes: decodeInputContent(asset) }));
   const workspace = path.join(runDir, 'workspace');
   await mkdir(path.join(workspace, 'inputs'), { recursive: true });
   await mkdir(path.join(workspace, 'outputs'), { recursive: true });
+  if ((await lstat(workspace)).isSymbolicLink() || (await lstat(path.join(workspace, 'inputs'))).isSymbolicLink()) throw new Error('运行工作区不能是符号链接');
+  const result: InputAsset[] = [];
+  const put = async (relative: string, bytes: Buffer, source: InputAsset['source']) => {
+    const parts = validateInputPath(relative).split('/');
+    let directory = workspace;
+    for (const part of parts.slice(0, -1)) {
+      directory = path.join(directory, part);
+      try { const info = await lstat(directory); if (!info.isDirectory() || info.isSymbolicLink()) throw new Error('输入目录不是普通目录'); }
+      catch (error) { if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error; await mkdir(directory); }
+    }
+    await writeFile(path.join(workspace, relative), bytes, { flag: 'wx', mode: 0o600 });
+    result.push({ path: relative, bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex'), source });
+  };
   for (const name of await readdir(fixtureDir)) {
-    if (name.endsWith('.json')) await writeFile(path.join(workspace, 'inputs', name), await readFile(path.join(fixtureDir, name)));
+    if (name.endsWith('.json')) await put(`inputs/${name}`, await readFile(path.join(fixtureDir, name)), 'fixture');
   }
-  await writeFile(path.join(workspace, 'service.json'), JSON.stringify(initialServiceState, null, 2));
+  for (const asset of supplied) await put(asset.path, asset.bytes, 'scenario');
+  await writeFile(path.join(workspace, 'service.json'), JSON.stringify(initialServiceState, null, 2), { flag: 'wx', mode: 0o600 });
+  return result;
 }
 
 function ensureActive(ctx: WorkContext): void {

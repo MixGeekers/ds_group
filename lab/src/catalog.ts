@@ -1,4 +1,4 @@
-import type { Actor, Catalog, Channel, EvaluationMode, Scenario, ScheduledInput, Subject, TaskSpec } from './types.js';
+import type { Actor, Catalog, Channel, CompanySnapshot, EvaluationMode, Scenario, ScheduledInput, Subject, TaskSpec } from './types.js';
 
 const people: Array<[string, string, string, string, string]> = [
   ['E01', '林岳', '管理与项目', '公司负责人', '#627ad9'],
@@ -78,6 +78,19 @@ const scenarios: Scenario[] = [
 ];
 
 export const catalog: Catalog = { actors, channels, subjects, scenarios };
+export const HUMAN_ACTOR: Actor = { id: 'HUMAN', name: '你', department: '真实参与者', title: '用户', color: '#a17a58' };
+export const SHIYU_ACTOR: Actor = { id: 'SHIYU', name: '识雨', department: '被测对象', title: '工作助手', color: '#3e9d92' };
+export const freeChatScenario: Scenario = { id: 'free-chat', name: '自由会话', description: '直接与识雨聊天、分享资料或发布自己的工作任务；没有预设必做任务。', durationMs: 1000, focus: ['真人参与', '共享工作资料', '自由交流'], actors: [], channels: [], tasks: [], inputs: [] };
+export function scenarioCompany(scenario: Pick<Scenario, 'actors' | 'channels'>): CompanySnapshot {
+  const people = structuredClone(scenario.actors ?? actors).filter(actor => !['HUMAN', 'SHIYU'].includes(actor.id));
+  people.push({ ...HUMAN_ACTOR }, { ...SHIYU_ACTOR });
+  const rooms = structuredClone(scenario.channels ?? channels).filter(channel => channel.id !== 'D-SHIYU').map(channel => ({
+    ...channel,
+    memberIds: [...new Set(channel.kind === 'direct' ? [...channel.memberIds.filter(id => id !== 'HUMAN'), 'SHIYU'] : [...channel.memberIds, 'HUMAN', 'SHIYU'])],
+  }));
+  rooms.push({ id: 'D-SHIYU', name: '你与识雨', kind: 'direct', memberIds: ['HUMAN', 'SHIYU'] });
+  return { actors: people, channels: rooms };
+}
 const businessGoals: Record<string, string[]> = {
   report: ['根据给定统计期间说明本周经营情况，给出销售额、退款、净收入和产品明细，并指出值得关注的异常。', '订单按身份去重，排除取消及期间外订单，退货抵减对应产品；说明统计口径。', '交付一份可继续使用的报表文件，格式、名称和制作方法自选；同时向负责人说明主要结论。'],
   reconciliation: ['核对采购、到货和发票，给出可追溯的差异清单与正常项。', '区分重复发票、金额差异、到货不足与缺票，指出对应单据，不把正常项误报。'],
@@ -112,7 +125,7 @@ export const outcomeCatalog: Catalog = {
 };
 export function getScenario(id: string, mode: EvaluationMode = 'protocol'): Scenario {
   if (!['protocol', 'outcome'].includes(mode)) throw new Error('未知验收模式');
-  const scenario = (mode === 'outcome' ? outcomeCatalog.scenarios : scenarios).find(item => item.id === id);
+  const scenario = id === 'free-chat' ? freeChatScenario : (mode === 'outcome' ? outcomeCatalog.scenarios : scenarios).find(item => item.id === id);
   if (!scenario) throw new Error(`未知场景：${id}`);
   return structuredClone(scenario);
 }

@@ -6,11 +6,14 @@ import { inflateRawSync } from 'node:zlib';
 import ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph } from 'docx';
 import { LabEngine } from '../dist/gym/core/engine.js';
+import { ScenarioLibrary } from '../dist/gym/core/scenarios.js';
+import { GymCollaboration, collaborationActions } from './collaboration.js';
 import { buildEvidencePacket, readEvidenceFile } from '../dist/gym/core/evaluation.js';
 import { importReview } from '../dist/gym/core/judge.js';
 import { catalog, outcomeCatalog } from '../dist/gym/core/catalog.js';
 import { protocol } from '../dist/gym/core/protocol.js';
 import { GymAgentDriver } from './agent-driver.js';
+import { GymSettings } from './settings.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const terminal = status => ['completed', 'stopped', 'interrupted', 'failed'].includes(status);
@@ -28,7 +31,10 @@ export class GymService {
     this.ctx = ctx;
     this.runtimeDir = path.resolve(root, config.runtimeDir ?? 'runtime/gym');
     if (!this.runtimeDir.startsWith(path.join(root, 'runtime') + path.sep)) throw new Error('健身房运行目录必须在 lab/runtime/ 内');
-    this.engine = new LabEngine({ runtimeDir: this.runtimeDir });
+    this.library = new ScenarioLibrary(this.runtimeDir);
+    this.engine = new LabEngine({ runtimeDir: this.runtimeDir, scenarioResolver: (id, mode) => this.library.get(id, mode).scenario });
+    this.collaboration = new GymCollaboration(this);
+    this.settings = new GymSettings(this);
     this.driver = new GymAgentDriver(ctx, this, {
       maxTargetSteps: integer(config.maxTargetSteps, 80, 1, 200),
       maxJudgeSteps: integer(config.maxJudgeSteps, 24, 1, 80),
@@ -63,6 +69,7 @@ export class GymService {
         this.state = value;
       }
       for (const binding of this.state.bindings.filter(activeBinding)) Object.assign(binding, { status: 'interrupted', finishedAt: new Date().toISOString(), error: '宿主退出，未自动恢复模型调用或重放业务效果。' });
+      this.library.init(); this.settings.initialize(); this.collaboration.initialize();
       await this.engine.init(); this.persist();
     } catch (error) { await this.engine.close(); this.releaseLock(); throw error; }
   }
@@ -74,20 +81,22 @@ export class GymService {
   }
   bindings(runId) { return this.state.bindings.filter(b => !runId || b.runId === runId).map(clone); }
   updateBinding(binding, values) { Object.assign(binding, values); this.persist(); }
-  model() { const selection = this.ctx.get('agentDefaultModel')?.currentSelection(); return selection?.provider && selection?.model ? { provider: selection.provider, model: selection.model, ...(selection.reasoningEffort ? { reasoningEffort: selection.reasoningEffort } : {}) } : undefined; }
-  capabilities() { const model = this.model(); const available = Boolean(this.ctx.get('agents') && model); return { dshAgent: available, judge: available, model: model ?? null, noAutomaticModelCalls: true, isolation: 'tool-scoped; not an operating-system sandbox' }; }
+  model(role = 'target') { return this.settings.selection(role); }
+  resolveModel(role = 'target', signal) { return this.settings.resolve(role, signal); }
+  capabilities() { const agents = Boolean(this.ctx.get('agents')); return { dshAgent: agents && this.settings.available('target'), judge: agents && this.settings.available('judge'), model: this.model('target') ?? null, judgeModel: this.model('judge') ?? null, noAutomaticModelCalls: true, isolation: 'tool-scoped; not an operating-system sandbox' }; }
   snapshot() {
     const runs = this.engine.listRuns();
-    return { version: '0.2.0', runtimeDir: this.runtimeDir, catalog, outcomeCatalog, runs: runs.slice(0, 100), totalRuns: runs.length, truncated: runs.length > 100, capabilities: this.capabilities(), bindings: this.bindings().slice(-100), limitations: ['真实识雨内核尚未实现；DSH训练是普通宿主模型基线。', '本机工具隔离不等于跨用户/容器盲测。'] };
+    const scenarios = this.library.list();
+    return { version: '0.3.0', runtimeDir: this.runtimeDir, catalog: { ...catalog, scenarios }, outcomeCatalog: { ...outcomeCatalog, scenarios }, scenarios, runs: runs.slice(0, 100), totalRuns: runs.length, truncated: runs.length > 100, capabilities: this.capabilities(), bindings: this.bindings().slice(-100), limitations: ['DSH 测试 Agent 不是已经实现的识雨内核。', '工具隔离不等于操作系统盲测。'] };
   }
   get(runId, after = 0, limit = 50) {
     const run = this.engine.getRun(runId);
     after = integer(after, 0, 0, Number.MAX_SAFE_INTEGER); limit = integer(limit, 50, 1, 200);
     const pending = run.events.filter(e => e.seq > after); const events = pending.slice(0, limit);
     const binding = this.bindings(runId).findLast(b => b.role === 'target');
-    return { run: { ...run, events: run.events.slice(-100) }, eventPage: { events, nextAfter: events.at(-1)?.seq ?? after, hasMore: pending.length > events.length }, ...(binding ? { binding } : {}) };
+    return { run: { ...run, company: this.collaboration.company(run), events: run.events.slice(-100) }, eventPage: { events, nextAfter: events.at(-1)?.seq ?? after, hasMore: pending.length > events.length }, participants: this.collaboration.participants(runId), ...(binding ? { binding } : {}) };
   }
-  async once(action, key, request, fn) {
+  async once(action, key, request, fn, preflight) {
     if (typeof key !== 'string' || !/^[\w-]{1,100}$/.test(key)) throw new Error('create/judge 需要有效的 idempotencyKey');
     const id = `${action}:${key}`, digest = hash(stable(request));
     const old = this.state.requests[id];
@@ -101,6 +110,9 @@ export class GymService {
       throw new Error(old.error ?? '先前请求结果未知，未重复执行；请核查已有运行');
     }
     if (Object.keys(this.state.requests).length >= 10000) throw new Error('请求账本达到原型上限，请封存运行目录后配置新的目录');
+    // A rejected prerequisite has not started an operation. Let the same button
+    // retry after configuration changes, while retaining receipts once work begins.
+    preflight?.();
     this.state.requests[id] = { hash: digest, status: 'pending' }; this.persist();
     const promise = (async () => {
       try {
@@ -112,20 +124,23 @@ export class GymService {
     })();
     this.pending.set(id, promise); return promise;
   }
-  async dispatch(args, signal) {
+  async dispatch(args, signal, caller) {
     signal?.throwIfAborted();
     if (this.closed) throw new Error('健身房正在关闭');
     if (!object(args)) throw new Error('请求必须是对象');
+    this.collaboration.assertCaller(args, caller);
+    if (collaborationActions.has(args.action)) return this.collaboration.dispatch(args, signal, caller);
     switch (args.action) {
       case 'snapshot': return this.snapshot();
+      case 'settings_get': return this.settings.snapshot();
+      case 'settings_save': return this.settings.save(args, signal);
       case 'get': return this.get(args.runId, args.after, args.limit);
       case 'create': return this.once('create', args.idempotencyKey, { driver: args.driver ?? 'reference', config: args.config ?? {} }, async () => {
         const driver = args.driver ?? 'reference';
         if (!['reference', 'dsh', 'external'].includes(driver)) throw new Error('未知执行对象');
         if (args.config !== undefined && !object(args.config)) throw new Error('config 必须是对象');
-        const allowed = ['scenarioId', 'evaluationMode', 'seed', 'noiseCount', 'speed', 'workerConcurrency', 'taskDelayMs', 'fault', 'maxDurationMs'];
+        const allowed = ['scenarioId', 'evaluationMode', 'seed', 'noiseCount', 'speed', 'workerConcurrency', 'taskDelayMs', 'fault', 'maxDurationMs', 'keepOpen'];
         if (Object.keys(args.config ?? {}).some(k => !allowed.includes(k))) throw new Error('config 包含不支持的参数');
-        if (driver === 'dsh' && !this.capabilities().dshAgent) throw new Error('宿主尚未配置可用模型');
         const config = { ...(driver === 'dsh' ? { speed: 1, maxDurationMs: 300000, noiseCount: 20, evaluationMode: 'outcome' } : {}), ...args.config, target: driver === 'reference' ? 'reference' : 'external' };
         if (driver === 'dsh' && config.evaluationMode !== 'outcome') throw new Error('DSH 训练使用业务成果模式；协议自检请选择参考执行器');
         const created = await this.engine.createRun(config);
@@ -133,19 +148,30 @@ export class GymService {
         try { if (driver === 'dsh') binding = await this.driver.startTarget(created.run.id); }
         catch (error) { await this.engine.controlRun(created.run.id, 'stop'); throw error; }
         return { run: this.get(created.run.id).run, ...(binding ? { binding } : {}), ...(driver === 'external' ? { targetToken: created.targetToken, endpoint: '/api/shiyu-gym/target', connectionNote: '需 DSH 已认证连接；正文携带 targetToken。' } : {}) };
-      });
+      }, () => { if (args.driver === 'dsh' && !this.capabilities().dshAgent) throw new Error('宿主尚未配置可用模型'); });
       case 'control': {
         if (!['drain', 'stop'].includes(args.command)) throw new Error('未知控制动作');
-        if (args.command === 'stop') await this.driver.cancel(args.runId, 'target');
+        if (args.command === 'stop') { await this.driver.cancel(args.runId, 'target'); this.collaboration.disconnect(args.runId); }
         await this.engine.controlRun(args.runId, args.command); return { run: this.get(args.runId).run };
       }
       case 'judge': return this.once('judge', args.idempotencyKey, { runId: args.runId }, async () => {
-        if (this.judgeStarts.has(args.runId) || this.bindings(args.runId).some(b => b.role === 'judge' && activeBinding(b))) throw new Error('此实验已有正在运行的评分');
         this.judgeStarts.add(args.runId);
         try { await this.packet(args.runId); return { binding: await this.driver.startJudge(args.runId) }; }
         finally { this.judgeStarts.delete(args.runId); }
+      }, () => {
+        if (!this.capabilities().judge) throw new Error('宿主尚未配置可用模型');
+        if (this.judgeStarts.has(args.runId) || this.bindings(args.runId).some(b => b.role === 'judge' && activeBinding(b))) throw new Error('此实验已有正在运行的评分');
+        const run = this.engine.getRun(args.runId);
+        if (!terminal(run.status) || !run.factReport) throw new Error('运行尚未完成封存与独立验收');
       });
-      case 'cancel_agent': if (!['target', 'judge'].includes(args.role)) throw new Error('未知角色'); await this.driver.cancel(args.runId, args.role); return { bindings: this.bindings(args.runId) };
+      case 'cancel_agent': {
+        if (!['target', 'judge'].includes(args.role)) throw new Error('未知角色');
+        await this.driver.cancel(args.runId, args.role);
+        if (args.role === 'target') {
+          this.collaboration.disconnect(args.runId);
+        }
+        return { bindings: this.bindings(args.runId), participants: this.collaboration.participants(args.runId) };
+      }
       case 'preview': return this.preview(args.runId, args.path, 0, false);
       case 'evidence': { const packet = await this.packet(args.runId); return { runId: args.runId, facts: packet.facts, tasks: packet.tasks, files: packet.fileIndex ?? packet.artifacts, instructions: packet.instructions, downloadPath: `api/shiyu-gym/evidence?runId=${encodeURIComponent(args.runId)}` }; }
       case 'import_review': { const review = importReview(await this.packet(args.runId), args.review); await this.engine.saveReview(args.runId, review); return { review }; }
@@ -160,7 +186,9 @@ export class GymService {
   }
   targetView(runId) {
     const run = this.engine.getRun(runId);
-    return { runId, status: run.status, evaluationMode: run.config.evaluationMode ?? 'protocol', actors: catalog.actors, channels: catalog.channels, tasks: run.tasks.filter(t => t.introduced), readableFiles: [...new Set([...run.tasks.filter(t => t.introduced).flatMap(t => t.inputs), ...run.artifacts.map(a => a.path)])], protocol: { actions: protocol.actions }, instructions: '只读已到达输入，按业务任务交付；状态声明不是独立证明。' };
+    const company = this.collaboration.company(run);
+    const shared = run.events.filter(event => event.type.startsWith('input.') && Array.isArray(event.data?.attachments)).flatMap(event => event.data.attachments);
+    return { runId, status: run.status, self: { actorId: 'SHIYU' }, evaluationMode: run.config.evaluationMode ?? 'protocol', actors: company.actors, channels: company.channels, tasks: run.tasks.filter(t => t.introduced), readableFiles: [...new Set([...run.tasks.filter(t => t.introduced).flatMap(t => t.inputs), ...run.artifacts.map(a => a.path), ...shared])], protocol: { actions: protocol.actions }, instructions: '通过 message.send 在原会话中实际发言，附件引用已登记成果；普通最终回复不会自动投递到模拟聊天室。' };
   }
   async targetCall(runId, args, signal) {
     signal?.throwIfAborted();
@@ -228,8 +256,11 @@ export class GymService {
     return { bytes, name: path.basename(relative) };
   }
   async preview(runId, relative, offset = 0, allowInputs = false) {
-    offset = integer(offset, 0, 0, 4000000);
     const { bytes } = await this.artifact(runId, relative, allowInputs);
+    return this.formatPreview(relative, bytes, offset);
+  }
+  async formatPreview(relative, bytes, offset = 0) {
+    offset = integer(offset, 0, 0, 4000000);
     let content, binary = false;
     if (/\.(json|csv|md|txt|log)$/i.test(relative)) content = bytes.toString('utf8');
     else if (/\.xlsx$/i.test(relative)) {
@@ -251,7 +282,7 @@ export class GymService {
   }
   async close() {
     if (this.closed) return; this.closed = true;
-    try { await this.driver.close(); await Promise.allSettled([...this.pending.values()]); await this.engine.close(); this.persist(); }
+    try { await this.driver.close(); await this.settings.close(); await this.collaboration.close(); await Promise.allSettled([...this.pending.values()]); await this.engine.close(); this.persist(); }
     finally { this.releaseLock(); }
   }
 }

@@ -1,0 +1,203 @@
+import { test, expect } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
+
+const artifact = name => fileURLToPath(new URL(`../../artifacts/${name}`, import.meta.url));
+const post = async (request, body, endpoint = '/api/shiyu-gym') => {
+  const response = await request.post(endpoint, { data: body });
+  const result = await response.json();
+  expect(response.ok(), JSON.stringify(result)).toBe(true);
+  return result;
+};
+const actionResponse = (page, action) => page.waitForResponse(response => response.url().endsWith('/api/shiyu-gym') && response.request().postDataJSON()?.action === action);
+const downloadBytes = async download => {
+  const chunks = []; for await (const chunk of await download.createReadStream()) chunks.push(chunk);
+  return Buffer.concat(chunks);
+};
+
+test('native client supports real room messages, files, target delivery and sealed review', async ({ page, request }) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: '创建', exact: true })).toBeEnabled();
+  const created = actionResponse(page, 'create');
+  await page.getByRole('button', { name: '创建', exact: true }).click();
+  const { run, targetToken } = await (await created).json();
+  await expect(page.getByRole('textbox', { name: '发送消息', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: '启动 DSH 测试 Agent' })).toBeDisabled();
+  await page.getByRole('textbox', { name: '发送消息', exact: true }).fill('请核对这份合成数据。');
+  await page.getByRole('button', { name: '发送', exact: true }).click();
+  await expect(page.getByRole('log')).toContainText('请核对这份合成数据。');
+  await expect(page.getByRole('textbox', { name: '发送消息', exact: true })).toHaveValue('');
+
+  const workspace = page.getByRole('complementary', { name: '工作区' });
+  await workspace.locator('input[type=file]').setInputFiles({ name: '合成数据.txt', mimeType: 'text/plain', buffer: Buffer.from('数量 12；单价 3；总额 36。') });
+  await expect(workspace.locator('.syg-preview')).toContainText('总额 36');
+  const downloaded = page.waitForEvent('download');
+  await workspace.getByRole('link', { name: '下载', exact: true }).click();
+  const download = await downloaded;
+  expect(download.suggestedFilename()).toBe('合成数据.txt');
+  expect(download.url()).toMatch(/^blob:/);
+  expect((await downloadBytes(download)).toString('utf8')).toBe('数量 12；单价 3；总额 36。');
+  expect(new URL(page.url()).pathname).toBe('/');
+  await workspace.getByRole('button', { name: '分享到会话' }).click();
+  await expect(page.getByRole('log').getByRole('button', { name: '查看文件 合成数据.txt' })).toBeVisible();
+  await page.getByRole('button', { name: '任务', exact: true }).click();
+  await page.getByRole('textbox', { name: '任务标题', exact: true }).fill('核对合成金额');
+  await page.getByRole('textbox', { name: '任务要求', exact: true }).fill('核对附件中的数量与金额，返回核对结论。');
+  const published = actionResponse(page, 'publish_task');
+  await page.getByRole('button', { name: '发布任务', exact: true }).click();
+  const taskResult = await (await published).json();
+  const taskId = taskResult.task?.id ?? taskResult.taskId;
+  expect(taskId).toBeTruthy();
+  await post(request, { runId: run.id, targetToken, request: { action: 'connect', clientName: '合成目标 Agent' } }, '/api/shiyu-gym/target');
+  await post(request, { runId: run.id, targetToken, request: { action: 'act', operationId: 'ui-delivery', operation: { type: 'task.deliver', taskId, paths: [], text: '已核对：12 × 3 = 36，金额一致。' } } }, '/api/shiyu-gym/target');
+  await expect(page.getByRole('log')).toContainText('12 × 3 = 36');
+  await expect(page.getByRole('button', { name: '断开外部连接' })).toBeVisible();
+  await page.evaluate(() => document.fonts.ready);
+  const icon = await page.locator('.ti-message').first().evaluate(element => ({ content: getComputedStyle(element, '::before').content, family: getComputedStyle(element).fontFamily, loaded: document.fonts.check('16px "shiyu-gym-icons"', getComputedStyle(element, '::before').content.replaceAll('"', '')) }));
+  expect(icon.content).not.toBe('none'); expect(icon.family).toContain('shiyu-gym-icons'); expect(icon.loaded).toBe(true);
+  await page.screenshot({ path: artifact('gym-room-light.png') });
+  await page.locator('#theme').click();
+  await page.screenshot({ path: artifact('gym-room-dark.png') });
+  await page.locator('#locale').click();
+  await expect(page.getByRole('heading', { name: 'Shiyu Gym' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Disconnect external Agent' })).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: artifact('gym-room-mobile.png'), fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator('#locale').click();
+  await page.getByRole('button', { name: '断开外部连接' }).click();
+  await expect(page.getByRole('button', { name: '启动 DSH 测试 Agent' })).toBeVisible();
+  await page.getByText('房间设置', { exact: true }).click();
+  await expect(page.getByRole('button', { name: '检查宿主接入（不调用模型）' })).toBeDisabled();
+  await page.getByRole('button', { name: '结束房间' }).click();
+  await expect(page.getByRole('textbox', { name: '发送消息', exact: true })).toBeDisabled();
+  await page.getByText('验收与评分', { exact: true }).click();
+  await expect(page.getByRole('link', { name: '导出证据' })).toBeVisible();
+  const evidenceDownload = page.waitForEvent('download');
+  await page.getByRole('link', { name: '导出证据' }).click();
+  const evidence = await evidenceDownload;
+  expect(evidence.suggestedFilename()).toBe(`${run.id}-evidence.json`);
+  expect(evidence.url()).toMatch(/^blob:/);
+  expect(JSON.parse((await downloadBytes(evidence)).toString('utf8')).runId).toBe(run.id);
+  await expect(page.getByRole('button', { name: '启动独立评分' })).toBeDisabled();
+  expect(errors).toEqual([]);
+});
+
+test('script editor saves a new actor and task then preserves revisions on reopen', async ({ page }) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await page.getByRole('button', { name: '剧本', exact: true }).click();
+  await page.locator('.syg-sidebar').getByRole('button', { name: '新建剧本', exact: true }).click();
+  await expect(page.getByRole('button', { name: '保存', exact: true })).toBeEnabled();
+  await page.getByRole('textbox', { name: '名称', exact: true }).first().fill('浏览器合成剧本');
+  await page.getByRole('button', { name: '添加任务', exact: true }).click();
+  await page.getByText('公司', { exact: true }).click();
+  await page.getByRole('button', { name: '添加角色', exact: true }).click();
+  const saved = actionResponse(page, 'scenario_save');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  const response = await saved, result = await response.json();
+  expect(response.ok(), JSON.stringify(result)).toBe(true);
+  expect(result.revision).toBe(1); expect(result.scenario.actors).toHaveLength(3);
+  await expect(page.getByText('版本 1', { exact: true })).toBeVisible();
+  await page.getByRole('textbox', { name: '描述', exact: true }).fill('浏览器往返验证，不调用模型。');
+  const changed = actionResponse(page, 'scenario_save');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  expect((await (await changed).json()).revision).toBe(2);
+  await page.getByRole('button', { name: '自由会话 内置', exact: true }).click();
+  await page.getByRole('button', { name: '浏览器合成剧本 自定义', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: '描述', exact: true })).toHaveValue('浏览器往返验证，不调用模型。');
+  await expect(page.getByText('版本 2', { exact: true })).toBeVisible();
+  const scriptDownload = page.waitForEvent('download');
+  await page.getByRole('link', { name: '导出 JSON' }).click();
+  const exportedScript = await scriptDownload;
+  expect(exportedScript.suggestedFilename()).toBe(`${result.scenario.id}.json`);
+  expect(exportedScript.url()).toMatch(/^blob:/);
+  expect(JSON.parse((await downloadBytes(exportedScript)).toString('utf8')).description).toBe('浏览器往返验证，不调用模型。');
+  await page.screenshot({ path: artifact('gym-script-editor.png') });
+  expect(errors).toEqual([]);
+});
+
+test('a stale 0.2 service shows a reload instruction without permitting room writes', async ({ page }) => {
+  let writes = 0;
+  await page.route('**/api/shiyu-gym', async route => {
+    const body = route.request().postDataJSON();
+    if (body.action === 'snapshot') { const response = await route.fetch(); const json = await response.json(); return route.fulfill({ response, json: { ...json, version: '0.2.0' } }); }
+    if (['create', 'scenario_save', 'send_message'].includes(body.action)) writes++;
+    return route.continue();
+  });
+  await page.goto('/');
+  await expect(page.getByRole('alert')).toContainText('服务仍为 0.2.0');
+  await expect(page.getByRole('button', { name: '创建', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '剧本', exact: true }).click();
+  await expect(page.getByRole('button', { name: '保存', exact: true })).toHaveCount(0);
+  expect(writes).toBe(0);
+});
+
+test('a delayed script save does not replace a later editor selection', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: '剧本', exact: true }).click();
+  await page.locator('.syg-sidebar').getByRole('button', { name: '新建剧本', exact: true }).click();
+  await expect(page.getByRole('button', { name: '保存', exact: true })).toBeEnabled();
+  await page.getByRole('textbox', { name: '名称', exact: true }).first().fill('延迟保存剧本');
+  let finishSave, saveReached;
+  const release = new Promise(resolve => { finishSave = resolve; });
+  const reached = new Promise(resolve => { saveReached = resolve; });
+  await page.route('**/api/shiyu-gym', async route => {
+    if (route.request().postDataJSON().action !== 'scenario_save') return route.continue();
+    const response = await route.fetch(); saveReached(); await release; return route.fulfill({ response });
+  });
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await reached;
+  await page.getByRole('button', { name: '多部门工作日 内置', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: '名称', exact: true }).first()).toHaveValue('多部门工作日');
+  const finished = actionResponse(page, 'scenario_save'); finishSave(); await finished;
+  await expect(page.getByRole('textbox', { name: '名称', exact: true }).first()).toHaveValue('多部门工作日');
+  await expect(page.getByRole('button', { name: '复制并编辑' })).toBeVisible();
+});
+
+test('Gym model settings use Host catalog efforts and persist each role independently', async ({ page, request }) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await page.getByRole('button', { name: '设置', exact: true }).click();
+  const target = page.getByRole('region', { name: '被测 Agent', exact: true });
+  const judge = page.getByRole('region', { name: '独立评分 Agent', exact: true });
+  await expect(target.getByRole('combobox', { name: '模型来源' })).toHaveValue('follow_host');
+  await target.getByRole('combobox', { name: '模型来源' }).selectOption('explicit');
+  await expect(target.getByRole('combobox', { name: '思考强度' })).toHaveValue('');
+  await target.getByRole('combobox', { name: '思考强度' }).selectOption('deep');
+  await judge.getByRole('combobox', { name: '模型来源' }).selectOption('explicit');
+  await judge.getByRole('combobox', { name: '模型', exact: true }).selectOption(JSON.stringify(['synthetic', 'plain']));
+  await expect(judge.getByRole('combobox', { name: '思考强度' })).toHaveCount(0);
+  await expect(judge).toContainText('此模型未提供可选思考强度');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('健身房设置已保存');
+  const saved = await post(request, { action: 'settings_get' });
+  expect(saved.settings.target).toEqual({ mode: 'explicit', model: { provider: 'synthetic', model: 'reasoner', reasoningEffort: 'deep' } });
+  expect(saved.settings.judge).toEqual({ mode: 'explicit', model: { provider: 'synthetic', model: 'plain' } });
+  expect(saved.hostModel).toBeNull();
+  await page.screenshot({ path: artifact('gym-model-settings.png') });
+  await page.reload();
+  await page.getByRole('button', { name: '设置', exact: true }).click();
+  await expect(target.getByRole('combobox', { name: '思考强度' })).toHaveValue('deep');
+  await expect(judge.getByRole('combobox', { name: '模型', exact: true })).toHaveValue(JSON.stringify(['synthetic', 'plain']));
+  await page.locator('#locale').click();
+  await expect(page.getByRole('heading', { name: 'Gym settings' })).toBeVisible();
+  await page.locator('#locale').click();
+  await target.getByRole('combobox', { name: '模型来源' }).selectOption('follow_host');
+  await judge.getByRole('combobox', { name: '模型来源' }).selectOption('follow_host');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('健身房设置已保存');
+  expect((await post(request, { action: 'settings_get' })).settings).toEqual({ target: { mode: 'follow_host' }, judge: { mode: 'follow_host' } });
+  expect(errors).toEqual([]);
+});
+
+test('unavailable Host model catalog keeps follow-Host settings usable', async ({ page }) => {
+  await page.goto('/?catalog-fail=1');
+  await page.getByRole('button', { name: '设置', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('DSH 模型目录暂不可用');
+  const target = page.getByRole('region', { name: '被测 Agent', exact: true });
+  await expect(target.getByRole('combobox', { name: '模型来源' })).toHaveValue('follow_host');
+  await expect(target.getByRole('option', { name: '为健身房单独选择' })).toHaveAttribute('disabled', '');
+  await expect(page.getByRole('button', { name: '重新读取设置与模型目录' })).toBeEnabled();
+});

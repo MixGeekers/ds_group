@@ -251,11 +251,16 @@ export async function evaluateOutcomeTasks(detail: RunDetail, reader: OutcomeEvi
     try {
       // Read the original, scoped inputs even if no parser can judge their semantics.
       const sources = new Map<string, Json>();
+      const numericalInput = ({ report: 'inputs/orders.json', comparison: 'inputs/suppliers.json', reconciliation: 'inputs/reconciliation.json', planning: 'inputs/delivery.json' } as Record<string, string>)[task.subjectId];
       for (const input of task.inputs) {
         const bytes = await reader.read(input); refs.add(`artifact:${input}`);
-        if (input.endsWith('.json')) sources.set(input, object(JSON.parse(bytes.toString('utf8'))));
+        // Arbitrary user JSON may be an array or scalar. Its business schema is
+        // unknown; only the explicit built-in source contract uses this parser.
+        if (input === numericalInput) sources.set(input, object(JSON.parse(bytes.toString('utf8'))));
       }
-      if (task.subjectId === 'report') {
+      if (numericalInput && !sources.has(numericalInput)) {
+        assertions.push({ id: `outcome:${task.id}:numbers`, name: `${task.title} · 可确定数值`, taskId: task.id, status: 'inconclusive', detail: '本任务使用自定义输入，未匹配内置数值验收契约；已核对输入文件完整性，业务内容需 Judge 按实际资料核验。', evidenceRefs: [...refs] });
+      } else if (task.subjectId === 'report') {
         const expected = reportTotals(sources.get('inputs/orders.json')!);
         const claims = explicitTotals(delivered.texts);
         const wrong = claims.filter(claim => Math.abs(claim.value - expected[claim.key]) > 0.000001);

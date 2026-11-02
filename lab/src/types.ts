@@ -19,9 +19,15 @@ export interface ScheduledInput {
   kind: 'message' | 'request' | 'query' | 'correction' | 'cancel' | 'memory';
   taskId?: string; data?: Record<string, unknown>;
 }
+export interface ScenarioAsset { path: string; content: string; encoding?: 'utf8' | 'base64'; }
+export interface CompanySnapshot { actors: Actor[]; channels: Channel[]; }
+export interface InputAsset { path: string; bytes: number; sha256: string; source?: 'fixture' | 'scenario' | 'user'; }
+export interface HumanMessage { channelId: string; text: string; attachments?: string[]; }
+export interface HumanTask { title: string; channelId: string; instructions: string; inputs?: string[]; dueAtMs?: number; }
 export interface Scenario {
   id: string; name: string; description: string; durationMs: number;
   focus: string[]; tasks: TaskSpec[]; inputs: ScheduledInput[];
+  actors?: Actor[]; channels?: Channel[]; assets?: ScenarioAsset[];
 }
 export interface Catalog { actors: Actor[]; channels: Channel[]; subjects: Subject[]; scenarios: Scenario[]; }
 export interface RunConfig {
@@ -30,6 +36,7 @@ export interface RunConfig {
   fault: 'none' | 'tool-once' | 'lost-receipt'; maxDurationMs: number;
   /** Omission preserves the original fixed-contract self-test. */
   evaluationMode?: EvaluationMode;
+  keepOpen?: boolean;
 }
 export interface LabEvent {
   id: string; seq: number; runId: string; at: string; elapsedMs: number; businessMs: number;
@@ -83,6 +90,7 @@ export interface RunDetail extends RunSummary {
   tasks: TaskRecord[]; events: LabEvent[]; artifacts: Artifact[]; reviews: ReviewResult[];
   service: ServiceState; memory: Record<string, unknown>;
   manifest: Record<string, unknown>;
+  company?: CompanySnapshot;
 }
 export interface TargetInput {
   seq: number; event: LabEvent; task?: TaskSpec; evaluationMode?: EvaluationMode;
@@ -92,7 +100,7 @@ export type TargetAction =
   | { type: 'task.update'; taskId: string; status: TaskStatus; detail?: string }
   | { type: 'file.read'; path: string }
   | { type: 'file.write'; taskId: string; path: string; content: string; encoding?: 'utf8' | 'base64' }
-  | { type: 'message.send'; channelId: string; text: string; taskId?: string; toActorId?: string }
+  | { type: 'message.send'; channelId: string; text: string; taskId?: string; toActorId?: string; attachments?: string[] }
   | { type: 'service.inspect'; taskId?: string }
   | { type: 'service.configure'; taskId: string; maxConnections: number; maintenance: boolean }
   | { type: 'state.record'; domain: 'memory' | 'relationship' | 'cognition' | 'emotion' | 'personality' | 'capability'; key: string; value: unknown; sourceRefs: string[] }
@@ -102,6 +110,7 @@ export interface EvidencePacket {
   schemaVersion: 1; runId: string; scope: FactReport['scope']; rubricVersion: string;
   instructions: string; events: LabEvent[]; tasks: TaskRecord[]; artifacts: Artifact[];
   facts: FactReport; evidence: Array<{ ref: string; text: string }>;
+  company?: CompanySnapshot;
   evaluationMode?: EvaluationMode;
   fileIndex?: Array<{ ref: string; path: string; kind: 'input' | 'artifact' | 'service'; bytes: number; sha256: string; taskId?: string }>;
 }

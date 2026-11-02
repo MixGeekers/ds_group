@@ -20,6 +20,7 @@
 | [技术候选](<技术候选/目录.md>) | 候选项目、能力依据、限制与采用状态 |
 | research/ | 官方资料、源码证据快照与调研记录，按主题记录来源 |
 | [测试](<测试/README.md>) | 测试设计、合成样本、隔离实验及可复核结果 |
+| [识雨健身房 · Lab](<lab/README.md>) | 已授权实施的 DSH 测试插件：房间协作、剧本、成果验收与独立评分；实现和验证状态单独记录 |
 | [识雨工作台](<plugins/shiyu-workbench/README.md>) | 现有资料阅读插件及原有测试，完整保留 |
 | [技术探索 skill](<.agents/skills/shiyu-tech-exploration/SKILL.md>) | 工作区技术探索流程 |
 

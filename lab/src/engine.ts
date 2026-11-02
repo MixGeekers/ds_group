@@ -2,12 +2,13 @@ import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypt
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, resolve, sep } from 'node:path';
 import { performance } from 'node:perf_hooks';
-import { catalog, getScenario } from './catalog.ts';
+import { catalog, getScenario, scenarioCompany } from './catalog.ts';
+import { decodeInputContent, validateInputPath, validateScenario } from './scenarios.ts';
 import { seedWorkspace, executeWork } from './workloads.ts';
 import { evaluateRun } from './evaluation.ts';
 import { LabStore } from './store.ts';
 import { isAcknowledgementOnly } from './outcome.ts';
-import type { ActionResult, Artifact, LabEvent, ReviewResult, Role, RunConfig, RunDetail, RunSummary, ScheduledInput, ServiceState, TargetAction, TargetInput, TaskRecord, TaskSpec, TaskStatus } from './types.ts';
+import type { ActionResult, Artifact, CompanySnapshot, EvaluationMode, HumanMessage, HumanTask, InputAsset, LabEvent, ReviewResult, Role, RunConfig, RunDetail, RunSummary, Scenario, ScenarioAsset, ScheduledInput, ServiceState, TargetAction, TargetInput, TaskRecord, TaskSpec, TaskStatus } from './types.ts';
 
 export const DEFAULT_CONFIG: RunConfig = {
   scenarioId: 'mixed-office', target: 'reference', seed: 42, noiseCount: 40,
@@ -18,7 +19,7 @@ type Runtime = {
   run: RunDetail; start: number; timers: Set<ReturnType<typeof setTimeout>>;
   actorTimers: Set<ReturnType<typeof setTimeout>>; actorCounts: Map<string, number>;
   deadline?: ReturnType<typeof setTimeout>; active: Map<string, AbortController>;
-  injectionDone: boolean; finishing: boolean; faultConsumed: boolean;
+  injectionDone: boolean; drainRequested: boolean; finishing: boolean; faultConsumed: boolean;
   listeners: Set<(event: LabEvent) => void>;
   workPromises: Set<Promise<void>>;
   finalization?: Promise<void>;
@@ -40,9 +41,9 @@ function stable(value: unknown): string {
 }
 
 function configFor(input: Partial<RunConfig>): RunConfig {
-  const config = { ...DEFAULT_CONFIG, ...input, evaluationMode: input.evaluationMode ?? 'protocol' };
+  const config = { ...DEFAULT_CONFIG, ...input, evaluationMode: input.evaluationMode ?? 'protocol', keepOpen: input.keepOpen ?? false };
+  if (input.keepOpen !== undefined && typeof input.keepOpen !== 'boolean') throw new Error('keepOpen 必须为布尔值');
   if (!['protocol', 'outcome'].includes(config.evaluationMode)) throw new Error('未知验收模式');
-  getScenario(config.scenarioId, config.evaluationMode);
   if (!['reference', 'external'].includes(config.target)) throw new Error('未知被测对象');
   if (config.evaluationMode === 'outcome' && config.target === 'reference') throw new Error('业务成果模式仅支持 external；参考执行器只用于 protocol 自检');
   if (!['none', 'tool-once', 'lost-receipt'].includes(config.fault)) throw new Error('未知故障配置');
@@ -58,11 +59,11 @@ function configFor(input: Partial<RunConfig>): RunConfig {
 }
 
 /** Stable input schedule: the producer never awaits the target or a worker. */
-export function generateNoise(seed: number, count: number, durationMs: number): ScheduledInput[] {
+export function generateNoise(seed: number, count: number, durationMs: number, company: CompanySnapshot = catalog): ScheduledInput[] {
   let state = seed >>> 0;
   const random = () => { state = (Math.imul(state, 1664525) + 1013904223) >>> 0; return state / 0x1_0000_0000; };
   const messages = ['午餐有人一起吗？', '会议室里的转接头找到了。', '这张窗外的照片很好看。', '咖啡机旁边有新茶包。', '收到，谢谢大家。', '今天下午茶改到三点。', '我晚五分钟到会议室。', '这周推荐的书已放在共享区。', '楼下新开的店味道还不错。', '刚看到消息，稍后回复。'];
-  const channels = catalog.channels.filter(c => c.kind === 'group' && c.memberIds.length);
+  const channels = company.channels.filter(c => c.kind === 'group').map(c => ({ ...c, memberIds: c.memberIds.filter(id => id !== 'HUMAN' && id !== 'SHIYU') })).filter(c => c.memberIds.length);
   if (!channels.length) return [];
   return Array.from({ length: count }, (_, index) => {
     const channel = channels[Math.floor(random() * channels.length)];
@@ -78,7 +79,11 @@ export class LabEngine {
   private closed = false;
   private creating = 0;
 
-  constructor(options: { runtimeDir: string }) { this.store = new LabStore(resolve(options.runtimeDir)); }
+  private readonly scenarioResolver: (id: string, mode: EvaluationMode) => Scenario;
+  constructor(options: { runtimeDir: string; scenarioResolver?: (id: string, mode: EvaluationMode) => Scenario }) {
+    this.store = new LabStore(resolve(options.runtimeDir));
+    this.scenarioResolver = options.scenarioResolver ?? getScenario;
+  }
 
   async init(): Promise<void> {
     this.store.init();
@@ -112,7 +117,7 @@ export class LabEngine {
   }
 
   private runtime(run: RunDetail): Runtime {
-    return { run, start: performance.now() - run.metrics.elapsedMs, timers: new Set(), actorTimers: new Set(), actorCounts: new Map(), active: new Map(), injectionDone: terminalStatuses.has(run.status), finishing: false, faultConsumed: false, listeners: new Set(), workPromises: new Set() };
+    return { run, start: performance.now() - run.metrics.elapsedMs, timers: new Set(), actorTimers: new Set(), actorCounts: new Map(), active: new Map(), injectionDone: terminalStatuses.has(run.status), drainRequested: false, finishing: false, faultConsumed: false, listeners: new Set(), workPromises: new Set() };
   }
 
   private find(id: string): Runtime {
@@ -133,34 +138,151 @@ export class LabEngine {
 
   getRun(id: string): RunDetail { const rt = this.find(id); this.refreshMetrics(rt); return clone(rt.run); }
 
+  runCompany(id: string): CompanySnapshot { return clone(this.find(id).run.company ?? scenarioCompany({})); }
+
+  readableFiles(id: string): string[] {
+    const run = this.find(id).run;
+    const shared = run.events.filter(event => event.role === 'world' && event.type.startsWith('input.') && Array.isArray(event.data?.attachments)).flatMap(event => (event.data!.attachments as unknown[]).filter((file): file is string => typeof file === 'string'));
+    return [...new Set([...run.tasks.filter(task => task.introduced).flatMap(task => task.inputs), ...shared, ...run.artifacts.map(artifact => artifact.path)])];
+  }
+
+  rotateTargetToken(id: string): string {
+    const rt = this.find(id);
+    if (this.closed || rt.finishing || terminalStatuses.has(rt.run.status) || rt.run.config.target !== 'external') throw new Error('只有活动 external 运行可以重新生成接入令牌');
+    const token = randomBytes(32).toString('base64url');
+    this.store.saveToken(id, hash(token));
+    this.emit(rt, 'target.token_rotated', 'lab', '已重新生成本次运行的接入令牌；旧令牌立即失效。');
+    return token;
+  }
+
+  private registeredFile(rt: Runtime, relative: string, outputOnly = false): { path: string; bytes: number; sha256: string } {
+    if (typeof relative !== 'string' || relative.length > 512) throw new Error('附件路径无效');
+    const inputs = Array.isArray(rt.run.manifest.inputAssets) ? rt.run.manifest.inputAssets as InputAsset[] : [];
+    const sources = inputs.filter(asset => asset.path === relative);
+    const artifacts = rt.run.artifacts.filter(artifact => artifact.path === relative);
+    if (artifacts.length + (outputOnly ? 0 : sources.length) !== 1) throw new Error('附件必须是本运行实际登记的输入或成果文件');
+    const record = artifacts[0] ?? sources[0];
+    if (outputOnly && !artifacts.length) throw new Error('目标附件只能引用本运行已登记成果');
+    const bytes = readFileSync(this.safePath(rt.run.id, relative, false));
+    if (bytes.length > 4 * 1024 * 1024 || record.bytes !== bytes.length || record.sha256 !== hash(bytes)) throw new Error('附件与登记的字节数或摘要不符');
+    if (artifacts.length) {
+      const artifact = artifacts[0];
+      const write = rt.run.events.filter(event => event.role === 'world' && event.type === 'file.written' && event.data?.path === relative).at(-1);
+      if (!artifact.taskId || !relative.startsWith(`outputs/${artifact.taskId}/`) || !rt.run.tasks.some(task => task.id === artifact.taskId && task.introduced) || !write || write.taskId !== artifact.taskId || write.data?.bytes !== record.bytes || write.data?.sha256 !== record.sha256) throw new Error('成果附件缺少所属任务或真实写入证据');
+    } else validateInputPath(relative);
+    return { path: relative, bytes: record.bytes, sha256: record.sha256 };
+  }
+
+  private attachments(rt: Runtime, value: unknown, outputOnly = false): Array<{ path: string; bytes: number; sha256: string }> {
+    const files = value ?? [];
+    if (!Array.isArray(files) || files.length > 32 || new Set(files).size !== files.length || files.some(file => typeof file !== 'string')) throw new Error('附件必须为最多32项的不重复路径数组');
+    return files.map(file => this.registeredFile(rt, file, outputOnly));
+  }
+
+  private humanOperation(id: string, type: string, payload: unknown, operationId: string, apply: (rt: Runtime, meta: Record<string, unknown>) => ActionResult): ActionResult {
+    const rt = this.find(id);
+    if (this.closed) return { ok: false, error: 'Lab 已关闭' };
+    if (typeof operationId !== 'string' || !/^[a-zA-Z0-9_.:-]{1,160}$/.test(operationId)) return { ok: false, error: '无效 operationId' };
+    const key = `human/${operationId}`, requestHash = hash(stable({ type, payload }));
+    const old = this.store.getOperation(id, key);
+    if (old) return old.requestHash === requestHash ? clone(old.result) : { ok: false, error: '同一 operationId 的内容不可改变' };
+    const occurred = rt.run.events.find(event => event.data?.humanOperationKey === key);
+    if (occurred) {
+      if (occurred.data?.requestHash !== requestHash || occurred.data?.operationType !== type) return { ok: false, error: '同一 operationId 的内容不可改变' };
+      const result: ActionResult = type === 'human.message' ? { ok: true, data: { event: clone(occurred) } } : type === 'human.task' ? { ok: true, data: { task: clone(occurred.data?.taskSnapshot), event: clone(occurred) } } : { ok: true, data: { path: occurred.data?.path, bytes: occurred.data?.bytes, sha256: occurred.data?.sha256 } };
+      this.store.saveOperation(id, key, requestHash, result);
+      return result;
+    }
+    if (terminalStatuses.has(rt.run.status) || rt.finishing) return { ok: false, error: '运行已封存，不再接收新的真人操作' };
+    if (rt.drainRequested) return { ok: false, error: '运行已进入用户请求的排空阶段，不再接收新输入' };
+    let result: ActionResult;
+    try { result = apply(rt, { source: 'human', operationId, humanOperationKey: key, operationType: type, requestHash }); }
+    catch (error) { result = { ok: false, error: error instanceof Error ? error.message : String(error) }; }
+    this.store.saveOperation(id, key, requestHash, result);
+    this.refreshMetrics(rt); this.store.saveRun(rt.run); this.maybeFinish(rt);
+    return clone(result);
+  }
+
+  async postMessage(id: string, input: HumanMessage, operationId: string): Promise<ActionResult> {
+    return this.humanOperation(id, 'human.message', input, operationId, (rt, meta) => {
+      if (!input || typeof input !== 'object') throw new Error('消息无效');
+      const channel = this.runCompany(id).channels.find(channel => channel.id === input.channelId);
+      if (!channel?.memberIds.includes('HUMAN')) throw new Error('HUMAN 不是该会话成员；职员私聊仅可观察');
+      if (typeof input.text !== 'string' || input.text.length > 10000) throw new Error('消息正文无效或超过10000字符');
+      const attachments = this.attachments(rt, input.attachments);
+      if (!input.text.trim() && !attachments.length) throw new Error('消息与附件不能同时为空');
+      if (rt.run.events.filter(event => event.type.startsWith('input.') && event.data?.source === 'human').length >= 2048) throw new Error('本运行真人输入已达到2048条上限');
+      rt.run.metrics.scheduledInputs++; rt.run.metrics.injectedInputs++;
+      const event = this.emit(rt, 'input.message', 'world', input.text.trim() || `分享了 ${attachments.length} 份资料。`, { actorId: 'HUMAN', channelId: input.channelId, data: { ...meta, attachments: attachments.map(asset => asset.path), attachmentAssets: attachments } });
+      return { ok: true, data: { event } };
+    });
+  }
+
+  async publishTask(id: string, input: HumanTask, operationId: string): Promise<ActionResult> {
+    return this.humanOperation(id, 'human.task', input, operationId, (rt, meta) => {
+      if (rt.run.config.evaluationMode !== 'outcome' || rt.run.config.target !== 'external') throw new Error('手动发布任务只用于 external/outcome 运行');
+      if (!input || typeof input !== 'object' || typeof input.title !== 'string' || !input.title.trim() || input.title.length > 200 || typeof input.instructions !== 'string' || !input.instructions.trim() || input.instructions.length > 12000) throw new Error('任务名称或要求无效');
+      if (!this.runCompany(id).channels.find(channel => channel.id === input.channelId)?.memberIds.includes('HUMAN')) throw new Error('HUMAN 不是任务会话成员');
+      if (rt.run.tasks.filter(task => task.ownerId === 'HUMAN' && task.id.startsWith('U')).length >= 32 || rt.run.tasks.length >= 64) throw new Error('手动任务数达到上限');
+      const files = this.attachments(rt, input.inputs);
+      const dueAtMs = input.dueAtMs ?? Math.round((performance.now() - rt.start) * rt.run.config.speed) + 60000;
+      if (typeof dueAtMs !== 'number' || !Number.isFinite(dueAtMs) || dueAtMs < 0 || dueAtMs > Number.MAX_SAFE_INTEGER) throw new Error('任务截止时间无效');
+      const task: TaskRecord = { id: `U${randomUUID().replaceAll('-', '')}`, subjectId: 'generic', title: input.title.trim(), ownerId: 'HUMAN', channelId: input.channelId, instructions: input.instructions.trim(), inputs: files.map(file => file.path), deliverables: [], dependencies: [], workMs: 0, dueAtMs, evaluationMode: 'outcome', businessRequirements: [input.instructions.trim()], deliveryPolicy: { allowText: true, minFiles: 0 }, status: 'queued', introduced: true, artifactPaths: [] };
+      rt.run.tasks.push(task); rt.run.metrics.scheduledInputs++; rt.run.metrics.injectedInputs++;
+      const event = this.emit(rt, 'input.request', 'world', `${task.title}\n${task.instructions}`, { actorId: 'HUMAN', channelId: task.channelId, taskId: task.id, data: { ...meta, attachments: files.map(file => file.path), attachmentAssets: files, taskSnapshot: clone(task) } });
+      return { ok: true, data: { task: clone(task), event } };
+    });
+  }
+
+  async addInputFile(id: string, input: ScenarioAsset, operationId: string): Promise<ActionResult> {
+    return this.humanOperation(id, 'human.input', input, operationId, (rt, meta) => {
+      if (!input || typeof input !== 'object') throw new Error('输入文件无效');
+      const relative = validateInputPath(input.path);
+      if (!relative.startsWith('inputs/user/')) throw new Error('用户上传文件只能位于 inputs/user/');
+      const bytes = decodeInputContent(input);
+      const assets = (rt.run.manifest.inputAssets ?? []) as InputAsset[];
+      const uploaded = assets.filter(asset => asset.source === 'user');
+      if (uploaded.length >= 64 || uploaded.reduce((sum, asset) => sum + asset.bytes, 0) + bytes.length > 16 * 1024 * 1024) throw new Error('用户上传超过64份或16 MiB总量上限');
+      if (assets.some(asset => asset.path === relative) || rt.run.artifacts.some(artifact => artifact.path === relative)) throw new Error('输入文件已登记，不允许覆盖');
+      const filename = this.safePath(id, relative, true);
+      if (existsSync(filename)) throw new Error('输入文件已经存在，不允许覆盖');
+      writeFileSync(filename, bytes, { flag: 'wx', mode: 0o600 });
+      const asset: InputAsset = { path: relative, bytes: bytes.length, sha256: hash(bytes), source: 'user' };
+      rt.run.manifest.inputAssets = [...assets, asset];
+      this.emit(rt, 'workspace.input_added', 'world', `已添加输入文件 ${relative}；尚未通过消息或任务分享给被测对象。`, { actorId: 'HUMAN', data: { ...meta, ...asset, source: 'human' } });
+      return { ok: true, data: { path: asset.path, bytes: asset.bytes, sha256: asset.sha256 } };
+    });
+  }
+
   async createRun(input: Partial<RunConfig>): Promise<{ run: RunDetail; targetToken?: string }> {
     if (this.closed) throw new Error('Lab 已关闭');
     if (this.creating + [...this.runtimes.values()].filter(rt => !terminalStatuses.has(rt.run.status)).length >= 4) throw Object.assign(new Error('最多同时运行 4 个实验'), { statusCode: 409 });
     const config = configFor(input);
-    const scenario = getScenario(config.scenarioId, config.evaluationMode);
+    const scenario = validateScenario(this.scenarioResolver(config.scenarioId, config.evaluationMode!), config.evaluationMode);
+    if (scenario.id !== config.scenarioId) throw new Error('剧本 resolver 返回了不同场景，已拒绝启动');
+    const company = scenarioCompany(scenario);
     this.creating++;
     try {
     const id = `run-${Date.now().toString(36)}-${randomBytes(4).toString('hex')}`;
     const runDir = this.store.runDir(id);
     mkdirSync(runDir, { recursive: true });
-    await seedWorkspace(runDir, scenario);
+    const inputAssets = await seedWorkspace(runDir, scenario);
+    writeFileSync(join(runDir, 'scenario.json'), JSON.stringify(scenario, null, 2), { flag: 'wx', mode: 0o600 });
     const servicePath = join(runDir, 'workspace', 'service.json');
     const defaultService: ServiceState = { name: '蓝桥订单服务', config: { maxConnections: 8, requiredConnections: 32, maintenance: false }, healthy: false, revision: 1, logs: ['connection pool exhausted: required=32 configured=8'] };
     const service: ServiceState = existsSync(servicePath) ? JSON.parse(readFileSync(servicePath, 'utf8')) : defaultService;
-    const schedule = [...scenario.inputs, ...generateNoise(config.seed, config.noiseCount, scenario.durationMs)].sort((a, b) => a.atMs - b.atMs || a.id.localeCompare(b.id));
+    const schedule = [...scenario.inputs, ...generateNoise(config.seed, config.noiseCount, scenario.durationMs, company)].sort((a, b) => a.atMs - b.atMs || a.id.localeCompare(b.id));
     const run: RunDetail = {
       id, name: scenario.name, status: 'prepared', createdAt: new Date().toISOString(), config,
       targetLabel: config.target === 'reference' ? '参考执行器 · Lab 自检' : '外部 Agent · 待测对象',
       metrics: { scheduledInputs: schedule.length, injectedInputs: 0, replies: 0, toolCalls: 0, completedTasks: 0, failedTasks: 0, pendingTasks: 0, maxInjectionLagMs: 0, elapsedMs: 0 },
       tasks: scenario.tasks.map(task => ({ ...clone(task), status: 'queued', introduced: false, artifactPaths: [] })),
-      events: [], artifacts: [], reviews: [], service, memory: {},
+      events: [], artifacts: [], reviews: [], service, memory: {}, company: clone(company),
       manifest: {
         schemaVersion: 1, scenarioId: scenario.id, scenarioDigest: hash(stable(scenario)), scheduleDigest: hash(stable(schedule)),
         createdAt: new Date().toISOString(), seed: config.seed, config: clone(config), evaluationMode: config.evaluationMode,
-        ...(config.evaluationMode === 'outcome' ? { inputAssets: [...new Set(scenario.tasks.flatMap(task => task.inputs))].map(path => {
-          const bytes = readFileSync(join(runDir, 'workspace', path));
-          return { path, bytes: bytes.length, sha256: hash(bytes) };
-        }) } : {}),
+        inputAssets: clone(inputAssets),
+        scenarioSnapshot: { path: 'scenario.json', sha256: hash(JSON.stringify(scenario, null, 2)) },
         scope: config.target === 'reference' ? 'lab_self_test' : 'target_evaluation',
         components: { inputDriver: 'real', world: 'stateful_test_double', worker: config.target === 'reference' ? 'deterministic_reference' : 'external', core: config.target === 'reference' ? 'scripted_reference' : 'external', memory: 'target_reported_observation', evaluator: 'independent_files_and_effects' },
         clock: { business: 'scaled-scenario-time', performance: 'monotonic-wall-time', speed: config.speed },
@@ -181,14 +303,23 @@ export class LabEngine {
     }
     this.schedule(rt, scenario.durationMs / config.speed, () => {
       rt.injectionDone = true;
-      if (run.status === 'running') run.status = 'draining';
-      this.emit(rt, 'run.draining', 'lab', '外生输入已结束，等待已接纳工作结束。');
+      if (!run.config.keepOpen || rt.drainRequested) {
+        if (run.status === 'running') run.status = 'draining';
+        this.emit(rt, 'run.draining', 'lab', '外生输入已结束，等待已接纳工作结束。');
+      } else this.emit(rt, 'run.inputs_finished', 'lab', '剧本输入已结束；聊天室仍开放，可继续发言、分享资料和发布任务。');
       this.pump(rt);
       this.maybeFinish(rt);
     });
     rt.deadline = setTimeout(() => {
-      if (terminalStatuses.has(run.status)) return;
-      run.error = '达到运行时限；未完成工作保留为未完成，未声明取消外部已发生效果。';
+      if (rt.finishing || terminalStatuses.has(run.status)) return;
+      const delivered = run.config.keepOpen && rt.injectionDone && !rt.active.size && !rt.workPromises.size && !rt.actorTimers.size
+        && run.tasks.filter(task => task.introduced).every(task => task.status === 'completed' && this.hasDelivery(rt, task));
+      if (delivered) {
+        this.emit(rt, 'run.deadline_reached', 'lab', '房间时限已到；已引入任务均有实际交付（或没有任务），正常封存。运行结束不代表业务质量已通过，仍以独立验收与评分为准。', { data: { reason: 'time_budget_after_delivery' } });
+        void this.finish(rt, 'completed');
+        return;
+      }
+      run.error = '达到运行时限；仍有未结束输入、待交付任务或引擎工作，运行标为中断。已经交付的成果和独立验收记录仍保留，不受此状态覆盖。';
       void this.finish(rt, 'interrupted');
     }, config.maxDurationMs);
     return { run: this.getRun(id), ...(config.target === 'external' ? { targetToken: token } : {}) };
@@ -214,7 +345,7 @@ export class LabEngine {
     if (input.kind === 'request' && task) task.introduced = true;
     const event = this.emit(rt, `input.${input.kind}`, 'world', input.text, {
       actorId: input.actorId, channelId: input.channelId, taskId: input.taskId,
-      data: { ...clone(input.data ?? {}), inputId: input.id, scheduledAtMs: input.atMs, injectionLagMs: Math.round(lag * 100) / 100 },
+      data: { ...clone(input.data ?? {}), source: reactive ? 'scripted_actor' : 'scenario', inputId: input.id, scheduledAtMs: input.atMs, injectionLagMs: Math.round(lag * 100) / 100 },
     });
     if (rt.run.config.target !== 'reference') return;
     if (input.kind === 'request' && task) {
@@ -289,24 +420,25 @@ export class LabEngine {
     }
   }
 
+  private hasDelivery(rt: Runtime, task: TaskRecord): boolean {
+    // Reuse the real delivery handshake for automatic completion and expiry;
+    // a completed status alone cannot turn a budget interruption into success.
+    if (rt.run.config.evaluationMode === 'outcome') {
+      const submitted = rt.run.events.find(event => event.type === 'task.delivered' && event.role === 'world' && event.taskId === task.id);
+      return Boolean(submitted && rt.run.events.some(event => event.type === 'message.delivered' && event.role === 'world' && event.taskId === task.id && event.causeId === submitted.id && event.seq > submitted.seq && event.channelId === task.channelId && event.data?.toActorId === task.ownerId));
+    }
+    if (!task.deliverables.length || !task.deliverables.every(path => rt.run.artifacts.some(artifact => artifact.taskId === task.id && artifact.path === path))) return false;
+    const writes = rt.run.events.filter(event => event.type === 'file.written' && event.role === 'world' && event.taskId === task.id && task.deliverables.includes(String(event.data?.path)));
+    const latestWrite = Math.max(0, ...writes.map(event => event.seq));
+    return task.deliverables.every(path => writes.some(event => event.data?.path === path))
+      && rt.run.events.some(event => event.type === 'message.delivered' && event.role === 'world' && event.taskId === task.id && event.channelId === task.channelId && event.seq > latestWrite && (!event.data?.toActorId || event.data.toActorId === task.ownerId));
+  }
+
   private maybeFinish(rt: Runtime): void {
+    if (rt.run.config.keepOpen && !rt.drainRequested) return;
     if (rt.finishing || terminalStatuses.has(rt.run.status) || !rt.injectionDone || rt.active.size || rt.actorTimers.size) return;
     if (rt.run.tasks.some(task => task.introduced && !terminalTasks.has(task.status))) return;
-    if (rt.run.config.target === 'external') {
-      // A completion claim is not the final delivery handshake. Wait for the
-      // current deliverables and an actual message after their latest write.
-      for (const task of rt.run.tasks.filter(item => item.introduced && item.status === 'completed')) {
-        if (rt.run.config.evaluationMode === 'outcome') {
-          const submitted = rt.run.events.find(event => event.type === 'task.delivered' && event.role === 'world' && event.taskId === task.id);
-          if (!submitted || !rt.run.events.some(event => event.type === 'message.delivered' && event.role === 'world' && event.taskId === task.id && event.causeId === submitted.id && event.seq > submitted.seq && event.channelId === task.channelId && event.data?.toActorId === task.ownerId)) return;
-          continue;
-        }
-        if (!task.deliverables.every(path => rt.run.artifacts.some(artifact => artifact.taskId === task.id && artifact.path === path))) return;
-        const writes = rt.run.events.filter(event => event.type === 'file.written' && event.taskId === task.id && task.deliverables.includes(String(event.data?.path)));
-        const latestWrite = Math.max(0, ...writes.map(event => event.seq));
-        if (!rt.run.events.some(event => event.type === 'message.delivered' && event.taskId === task.id && event.channelId === task.channelId && event.seq > latestWrite)) return;
-      }
-    }
+    if (rt.run.config.target === 'external' && rt.run.tasks.some(task => task.introduced && task.status === 'completed' && !this.hasDelivery(rt, task))) return;
     void this.finish(rt, 'completed');
   }
 
@@ -316,7 +448,7 @@ export class LabEngine {
     if (terminalStatuses.has(rt.run.status)) return this.getRun(id);
     if (command === 'stop') await this.finish(rt, 'stopped');
     else {
-      this.clearInjection(rt); rt.injectionDone = true; rt.run.status = 'draining';
+      this.clearInjection(rt); rt.injectionDone = true; rt.drainRequested = true; rt.run.status = 'draining';
       this.emit(rt, 'run.draining', 'lab', '已停止新增输入，继续处理已接纳的工作。');
       this.pump(rt); this.maybeFinish(rt);
     }
@@ -463,13 +595,13 @@ export class LabEngine {
           if (artifact.bytes !== bytes.length || artifact.sha256 !== sha256 || !write || write.taskId !== task.id || write.data?.sha256 !== sha256 || write.data?.bytes !== bytes.length) throw new Error(`交付文件损坏或与实际写入记录不符：${path}`);
           return { path, bytes: bytes.length, sha256 };
         });
-        if (!catalog.channels.find(channel => channel.id === task.channelId)?.memberIds.includes(task.ownerId)) throw new Error('任务交付对象不在任务会话中');
+        if (!this.runCompany(run.id).channels.find(channel => channel.id === task.channelId)?.memberIds.includes(task.ownerId)) throw new Error('任务交付对象不在任务会话中');
         const text = [action.text.trim(), ...(action.paths.length ? [`交付产物：${action.paths.join('、')}`] : [])].filter(Boolean).join('\n');
         const data = { operationId, source: 'explicit_submission', toActorId: task.ownerId, paths: [...action.paths], text: action.text, artifacts };
         task.status = 'completed'; task.finishedAt = new Date().toISOString(); task.detail = '实际成果已显式提交，业务质量等待独立验收与 Judge。';
-        const submitted = this.emit(rt, 'task.delivered', 'world', text, { taskId: task.id, channelId: task.channelId, data });
+        const submitted = this.emit(rt, 'task.delivered', 'world', text, { actorId: 'SHIYU', taskId: task.id, channelId: task.channelId, data });
         run.metrics.replies++;
-        const delivered = this.emit(rt, 'message.delivered', 'world', text, { taskId: task.id, channelId: task.channelId, causeId: submitted.id, data: { ...data, deliveryEventId: submitted.id } });
+        const delivered = this.emit(rt, 'message.delivered', 'world', text, { actorId: 'SHIYU', taskId: task.id, channelId: task.channelId, causeId: submitted.id, data: { ...data, source: run.config.target === 'reference' ? 'reference' : 'target', attachments: [...action.paths], deliveryEventId: submitted.id } });
         task.delivery = { operationId, eventId: submitted.id, messageEventId: delivered.id, submittedAt: submitted.at, paths: [...action.paths], text: action.text };
         return { ok: true, data: { submitted: true, status: task.status, ...task.delivery, channelId: task.channelId, toActorId: task.ownerId, needsJudge: true } };
       }
@@ -484,12 +616,12 @@ export class LabEngine {
         return { ok: true, data: { status: task.status } };
       }
       case 'file.read': {
-        const available = run.tasks.filter(item => item.introduced).some(item => item.inputs.includes(action.path)) || run.artifacts.some(artifact => artifact.path === action.path);
+        const available = this.readableFiles(run.id).includes(action.path);
         if (!available) throw new Error('文件不在当前已接纳任务的可读资产中');
         const file = this.safePath(run.id, action.path, false);
         const bytes = readFileSync(file);
         if (bytes.length > 5 * 1024 * 1024) throw new Error('文件超过单次读取上限');
-        if (run.config.evaluationMode === 'outcome') {
+        if (run.config.evaluationMode === 'outcome' || Array.isArray(run.manifest.inputAssets)) {
           const source = (run.manifest.inputAssets as Array<{ path: string; bytes: number; sha256: string }> | undefined)?.find(asset => asset.path === action.path);
           const artifact = run.artifacts.find(artifact => artifact.path === action.path);
           const expected = source ?? artifact;
@@ -516,13 +648,16 @@ export class LabEngine {
         return { ok: true, data: artifact };
       }
       case 'message.send': {
-        if (!catalog.channels.some(channel => channel.id === action.channelId)) throw new Error('未知会话');
-        if (typeof action.text !== 'string' || !action.text.trim() || action.text.length > 10000) throw new Error('消息为空或过长');
-        if (action.toActorId && !catalog.channels.find(channel => channel.id === action.channelId)?.memberIds.includes(action.toActorId)) throw new Error('接收人不在该会话内');
+        const channel = this.runCompany(run.id).channels.find(channel => channel.id === action.channelId);
+        if (!channel?.memberIds.includes('SHIYU')) throw new Error('SHIYU 不是此会话成员');
+        if (typeof action.text !== 'string' || action.text.length > 10000) throw new Error('消息正文无效或过长');
+        const attachments = this.attachments(rt, action.attachments, true);
+        if (!action.text.trim() && !attachments.length) throw new Error('消息与附件不能同时为空');
+        if (action.toActorId && !channel.memberIds.includes(action.toActorId)) throw new Error('接收人不在该会话内');
         run.metrics.replies++;
-        this.emit(rt, 'message.delivered', 'world', action.text, { channelId: action.channelId, taskId: action.taskId, data: { operationId, ...(action.toActorId ? { toActorId: action.toActorId } : {}) } });
+        const event = this.emit(rt, 'message.delivered', 'world', action.text.trim() || `发送了 ${attachments.length} 份成果。`, { actorId: 'SHIYU', channelId: action.channelId, taskId: action.taskId, data: { operationId, source: run.config.target === 'reference' ? 'reference' : 'target', attachments: attachments.map(asset => asset.path), attachmentAssets: attachments, ...(action.toActorId ? { toActorId: action.toActorId } : {}) } });
         this.actorResponse(rt, action, operationId);
-        return { ok: true, data: { delivered: true, channelId: action.channelId } };
+        return { ok: true, data: { delivered: true, channelId: action.channelId, eventId: event.id, attachments: attachments.map(asset => asset.path) } };
       }
       case 'service.inspect': {
         if (run.config.evaluationMode === 'outcome' && (task ? !['inspection', 'maintenance'].includes(task.subjectId) : !run.tasks.some(item => item.introduced && ['inspection', 'maintenance'].includes(item.subjectId)))) throw new Error('服务资产尚未由相关任务引入');
@@ -566,8 +701,9 @@ export class LabEngine {
     if (!action.taskId || terminalStatuses.has(rt.run.status) || rt.finishing) return;
     const task = rt.run.tasks.find(item => item.id === action.taskId && item.introduced);
     if (!task) return;
-    const channel = catalog.channels.find(item => item.id === action.channelId);
+    const channel = this.runCompany(rt.run.id).channels.find(item => item.id === action.channelId);
     const actorId = action.toActorId ?? task.ownerId;
+    if (actorId === 'HUMAN' || actorId === 'SHIYU') return;
     if (actorId !== task.ownerId || !channel?.memberIds.includes(actorId)) return;
     const asks = /[？?]|请.*(?:提供|补充|确认|告知)/.test(action.text);
     const asksAssets = asks && /资料|材料|文件|附件|输入|数据.*(?:哪里|提供|位置)/.test(action.text);
@@ -601,7 +737,7 @@ export class LabEngine {
   }
 
   private safePath(runId: string, relative: string, writing: boolean): string {
-    if (typeof relative !== 'string' || relative.length > 300 || isAbsolute(relative) || relative.includes('\\') || relative.includes('\0')) throw new Error('无效工作文件路径');
+    if (typeof relative !== 'string' || relative.length > 512 || isAbsolute(relative) || relative.includes('\\') || relative.includes('\0')) throw new Error('无效工作文件路径');
     const parts = relative.split('/');
     if (parts.some(part => !part || part === '.' || part === '..') || !['inputs', 'outputs'].includes(parts[0])) throw new Error('文件路径不在工作区');
     const root = join(this.store.runDir(runId), 'workspace');
