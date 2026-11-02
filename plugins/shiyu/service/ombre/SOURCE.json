@@ -1,0 +1,15 @@
+{
+  "upstream": "https://github.com/P0luz/Ombre-Brain",
+  "version": "3.6.14",
+  "commit": "115d831d979bf67efc7150f976e2cb34c333c935",
+  "archiveSha256": "7b81efc6f78f8ef2e9c0c8591d429f0dba3907362e0e00c4c88f1b78efa1a177",
+  "pythonSourceFiles": 172,
+  "pythonTreeSha256": "3db5f7ed6552c7c4c92f03008b9af35ce53d0ce02bd8b19246b83def9cd6f1b3",
+  "requirementsLockSha256": "ae0255bd41e5ceb45694244017a9b0b2dc1e4c445ab027cec1f7183ad969700a",
+  "licenseSha256": "2c1ba2fc863528b42e0d904205792f538ecf01c7555c0a7ed2080897362b41b6",
+  "license": "MIT",
+  "licenseBytes": 1087,
+  "licenseLineEndings": "CRLF",
+  "runtimePython": "CPython 3.12.16",
+  "scope": "Thin controlled stdio extension; upstream source unmodified"
+}

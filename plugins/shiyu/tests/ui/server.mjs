@@ -2,7 +2,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createServer } from 'vite';
-import { makeContextVerificationReceipt, makeContextVerificationRecord, makeConversation, makeConversationBackground, makeGoalVerificationReceipt, makeLocalTask, makeSession, makeSnapshot, makeVerificationReceipt } from './fixtures.js';
+import { makeContextVerificationReceipt, makeContextVerificationRecord, makeConversation, makeConversationBackground, makeGoalVerificationReceipt, makeLocalTask, makeMemoryEntry, makeSession, makeSnapshot, makeVerificationReceipt } from './fixtures.js';
 
 const packageRoot = fileURLToPath(new URL('../../', import.meta.url));
 const port = Number(process.env.SHIYU_UI_PORT ?? 4341);
@@ -17,6 +17,8 @@ let conversationLink = {}, conversationLinkAborts = 0;
 const linkedConversations = new Map(), pendingConversationLinks = new Map();
 let contextVerification = {}, contextVerificationAborts = 0;
 const pendingContextVerifications = new Map();
+let memoryRemember = {}, memoryRead = {}, memoryWithdraw = {}, memoryReadAborts = 0;
+const rememberedMemory = new Map(), memoryBodies = new Map(), pendingMemoryRequests = new Map();
 const json = (res, status, value) => { res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); res.end(JSON.stringify(value)); };
 const readJson = async req => { const chunks = []; for await (const chunk of req) chunks.push(chunk); return JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}'); };
 const server = http.createServer(async (req, res) => {
@@ -35,12 +37,15 @@ const server = http.createServer(async (req, res) => {
         pendingConversationLinks.clear(); linkedConversations.clear();
         for (const pending of pendingContextVerifications.values()) pending.cancel();
         pendingContextVerifications.clear();
+        for (const pending of pendingMemoryRequests.values()) pending.cancel();
+        pendingMemoryRequests.clear(); rememberedMemory.clear(); memoryBodies.clear();
         snapshot = makeSnapshot(body); stateReads = 0; commands = []; failReads = false;
         verification = {}; verificationAborts = 0;
         taskAdmission = {}; admissionAborts = 0;
         goalVerification = {}; goalVerificationAborts = 0;
         conversationLink = {}; conversationLinkAborts = 0;
         contextVerification = {}; contextVerificationAborts = 0;
+        memoryRemember = {}; memoryRead = {}; memoryWithdraw = {}; memoryReadAborts = 0;
       }
       if (Object.hasOwn(body, 'failReads')) failReads = Boolean(body.failReads);
       if (body.snapshot) snapshot = body.snapshot;
@@ -54,9 +59,15 @@ const server = http.createServer(async (req, res) => {
       if (body.releaseConversationLink) for (const pending of [...pendingConversationLinks.values()]) pending.finish();
       if (body.contextVerification) contextVerification = { ...body.contextVerification };
       if (body.releaseContextVerification) for (const pending of [...pendingContextVerifications.values()]) pending.finish();
+      if (body.memoryRemember) memoryRemember = { ...body.memoryRemember };
+      if (body.memoryRead) memoryRead = { ...body.memoryRead };
+      if (body.memoryWithdraw) memoryWithdraw = { ...body.memoryWithdraw };
+      for (const [key, action] of [['releaseMemoryRemember', 'memory.rememberLocal'], ['releaseMemoryRead', 'memory.readLocal'], ['releaseMemoryWithdraw', 'memory.withdrawLocal']]) {
+        if (body[key]) for (const pending of [...pendingMemoryRequests.values()]) if (pending.action === action) pending.finish();
+      }
       return json(res, 200, { ok: true });
     }
-    if (url.pathname === '/__test/stats' && req.method === 'GET') return json(res, 200, { stateReads, commands, pendingVerifications: pendingVerifications.size, verificationAborts, taskAdmissions: admittedTasks.size, pendingTaskAdmissions: pendingTaskAdmissions.size, admissionAborts, pendingGoalVerifications: pendingGoalVerifications.size, goalVerificationAborts, linkedConversations: linkedConversations.size, pendingConversationLinks: pendingConversationLinks.size, conversationLinkAborts, pendingContextVerifications: pendingContextVerifications.size, contextVerificationAborts });
+    if (url.pathname === '/__test/stats' && req.method === 'GET') return json(res, 200, { stateReads, commands, pendingVerifications: pendingVerifications.size, verificationAborts, taskAdmissions: admittedTasks.size, pendingTaskAdmissions: pendingTaskAdmissions.size, admissionAborts, pendingGoalVerifications: pendingGoalVerifications.size, goalVerificationAborts, linkedConversations: linkedConversations.size, pendingConversationLinks: pendingConversationLinks.size, conversationLinkAborts, pendingContextVerifications: pendingContextVerifications.size, contextVerificationAborts, rememberedMemory: rememberedMemory.size, pendingMemoryReads: [...pendingMemoryRequests.values()].filter(item => item.action === 'memory.readLocal').length, pendingMemoryRemembers: [...pendingMemoryRequests.values()].filter(item => item.action === 'memory.rememberLocal').length, pendingMemoryWithdrawals: [...pendingMemoryRequests.values()].filter(item => item.action === 'memory.withdrawLocal').length, memoryReadAborts });
     if (url.pathname === '/api/shiyu/state') {
       if (req.method !== 'GET') return json(res, 405, { error: 'Only GET is supported.' });
       stateReads++;
@@ -65,8 +76,48 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === '/api/shiyu/commands') {
       if (req.method !== 'POST') return json(res, 405, { error: 'Only POST is supported.' });
       const body = await readJson(req);
-      if (!['session.probe', 'session.verify-model', 'task.createLocal', 'goal.verify-lifecycle', 'conversation.linkLocalTask', 'conversation.verifyContext', 'runtime.pause', 'runtime.resume'].includes(body.action)) return json(res, 400, { error: 'Unknown synthetic command.' });
+      if (!['session.probe', 'session.verify-model', 'task.createLocal', 'goal.verify-lifecycle', 'conversation.linkLocalTask', 'conversation.verifyContext', 'memory.rememberLocal', 'memory.readLocal', 'memory.withdrawLocal', 'runtime.pause', 'runtime.resume'].includes(body.action)) return json(res, 400, { error: 'Unknown synthetic command.' });
       commands.push(body);
+      if (body.action.startsWith('memory.')) {
+        const options = { ...({ 'memory.rememberLocal': memoryRemember, 'memory.readLocal': memoryRead, 'memory.withdrawLocal': memoryWithdraw }[body.action]) };
+        const responseId = `test-memory-response-${commands.length}`;
+        let result;
+        if (body.action === 'memory.rememberLocal') {
+          const previous = rememberedMemory.get(body.requestId);
+          if (previous && (previous.text !== body.text || previous.entry.conversationId !== body.conversationId)) return json(res, 409, { error: { message: 'Synthetic idempotency input mismatch.' } });
+          const entry = previous?.entry ?? makeMemoryEntry({ operationId: `test-saved-memory-${rememberedMemory.size + 1}`, requestId: body.requestId, conversationId: body.conversationId, bodyBytes: Buffer.byteLength(body.text || '', 'utf8') });
+          if (!previous) { rememberedMemory.set(body.requestId, { entry, text: body.text }); memoryBodies.set(entry.operationId, body.text); }
+          if (options.publish !== false && !snapshot.memory?.entries?.some(item => item.operationId === entry.operationId)) snapshot = { ...snapshot, memory: { ...snapshot.memory, entries: [...snapshot.memory?.entries || [], entry] } };
+          result = { duplicate: Boolean(previous), entry: structuredClone(entry) };
+        } else {
+          const current = snapshot.memory?.entries?.find(item => item.operationId === body.operationId);
+          if (!current) return json(res, 404, { error: { message: 'Synthetic memory operation is absent.' } });
+          if (body.action === 'memory.withdrawLocal') {
+            const entry = { ...current, version: current.version + 1, consent: 'withdrawn', canRead: false, blocked: true };
+            if (options.publish !== false) snapshot = { ...snapshot, memory: { ...snapshot.memory, entries: snapshot.memory.entries.map(item => item.operationId === entry.operationId ? entry : item) } };
+            result = structuredClone(entry);
+          } else {
+            // Capture stale metadata and body now, not at release: a late read
+            // must remain capable of exposing a client-side withdrawal race.
+            result = { entry: structuredClone(current), body: options.body ?? memoryBodies.get(body.operationId) ?? '合成测试记忆正文：仅用于显式读取。' };
+          }
+        }
+        let finished = false;
+        const finish = () => {
+          if (finished) return;
+          finished = true; pendingMemoryRequests.delete(responseId);
+          if (options.error) return json(res, 503, { error: { message: '合成测试：记忆操作结果未确认。' } });
+          for (const key of options.omit || []) delete result[key];
+          if (result.entry) Object.assign(result.entry, options.entryOverrides || {});
+          else if (body.action === 'memory.withdrawLocal') Object.assign(result, options.entryOverrides || {});
+          Object.assign(result, options.overrides || {});
+          return json(res, 200, result);
+        };
+        const cancel = () => { if (finished) return; finished = true; pendingMemoryRequests.delete(responseId); json(res, 409, { error: { message: 'Synthetic test reset.' } }); };
+        res.once('close', () => { if (finished) return; finished = true; pendingMemoryRequests.delete(responseId); if (body.action === 'memory.readLocal') memoryReadAborts++; });
+        if (options.defer) pendingMemoryRequests.set(responseId, { action: body.action, finish, cancel }); else finish();
+        return;
+      }
       if (body.action === 'conversation.verifyContext') {
         const responseId = `test-context-response-${commands.length}`, options = { ...contextVerification };
         const bindingId = snapshot.conversations?.find(entry => entry.conversationId === body.conversationId)?.bindingId;

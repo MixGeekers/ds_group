@@ -26,8 +26,9 @@ documentation workbench as runtime dependencies.
   LF Projects, LLC. This records the supplied materials rather than treating the
   manifest label as the complete license inventory. No SDK code or documentation
   is copied into this distribution. This is the split 2.2.0 client package,
-  not the older `@modelcontextprotocol/sdk` import path. This adapter does not
-  provide or redistribute an MCP server, Ombre installation or model provider.
+  not the older `@modelcontextprotocol/sdk` import path. This TypeScript client
+  does not itself implement an MCP server or include an Ombre installation or
+  model provider. The separately packaged Python service is described below.
 - Node.js `node:sqlite`: provided by the host runtime; the actual SQLite version
   and journal mode are measured when the control-store worker starts.
 - The native client obtains React from the host. React is MIT-licensed.
@@ -39,6 +40,41 @@ documentation workbench as runtime dependencies.
   pinned versions and transitive packages are recorded in package-lock.json.
 
 Existing workspace plugin examples informed the DSH integration.
+
+## Controlled Ombre service
+
+`service/ombre/` contains Shiyu-written private stdio service code, an operation
+metadata journal and a Harrier embedding-profile extension. It uses the
+unmodified Ombre Brain 3.6.14 source at commit
+`115d831d979bf67efc7150f976e2cb34c333c935`, licensed under MIT, Copyright (c) 2026
+P0lar1zzZ. The original license is distributed at `service/ombre/LICENSE`;
+`SOURCE.json` in that directory records the archive, 172-file Python source tree,
+dependency lock and license hashes. The original license is 1087 bytes with CRLF
+line endings; the earlier research copy uses LF. A file-specific `-text` Git
+attribute preserves this license's original bytes and recorded hash. The upstream source, installed
+Python environment and model weights are not distributed in the npm package.
+The explicit preparation script installs fixed source and dependencies under
+the ignored `.local/ombre/` directory, without modifying the downloaded source.
+
+Python dependencies use the upstream `requirements.lock.txt` with pinned versions
+and package hashes. The tested environment includes MCP Python SDK `mcp` 1.29.0
+(MIT), HTTPX 0.28.1 (BSD-3-Clause), python-frontmatter 1.3.0 (MIT) and
+pydantic-settings 2.14.2 (MIT). This Python dependency set is separate from the
+TypeScript MCP 2.2.0 client above. Upstream dependencies present in the lock,
+including OpenAI packages, do not imply that the controlled service enables
+cloud generation or registers upstream server tools.
+
+The Harrier extension subclasses the native EmbeddingEngine, retaining its
+SQLite storage and ranking path while adding query/document prefixes, profile
+identity, 1024-dimensional finite-vector/L2 checks and bounded loopback HTTP.
+This Ombre profile truncates to the first 2000 Unicode code points before adding
+prefixes; the independent TypeScript adapter rejects oversized input instead.
+Model weights and llama-server identity require separate trusted-launcher
+verification. The profile tests use controlled HTTP responses, and the current
+Managed Runtime configuration disables embedding. Neither the tests nor the
+dependency inventory establish real semantic retrieval or model-quality results.
+
+## Superagent task core
 
 The Shiyu runtime includes source derived from
 `deepseek-ai/dsh-superagent-prototype`, fixed commit

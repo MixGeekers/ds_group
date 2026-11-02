@@ -156,3 +156,23 @@ export function makeContextVerificationRecord(overrides = {}) {
     ...overrides,
   };
 }
+
+// Ordinary-memory metadata only. Bodies belong to explicit synthetic read
+// responses, never to makeMemory() or the runtime snapshot fixture.
+export function makeMemoryEntry(overrides = {}) {
+  return {
+    operationId: 'test-memory-operation-1', requestId: 'test-memory-request-1',
+    conversationId: 'test-conversation-1', version: 1, status: 'applied', blocked: false,
+    bodyBytes: 42, consent: 'active', canRead: true,
+    nativeId: 'test-native-memory-1', createdAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+export function makeMemory(overrides = {}) {
+  return {
+    configured: true, ready: true,
+    backend: { state: 'ready', backendId: 'test-memory-backend', deploymentId: 'test-memory-deployment', scope: 'local-owner', embedding: 'disabled', toolCount: 3 },
+    entries: [makeMemoryEntry()], ...overrides,
+  };
+}

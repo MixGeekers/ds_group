@@ -16,6 +16,11 @@
     "locale",
     "assets",
     "licenses",
+    "service/ombre/*.py",
+    "service/ombre/*.json",
+    "service/ombre/*.txt",
+    "service/ombre/*.md",
+    "service/ombre/LICENSE",
     "cordis.patch.yml",
     "README.md",
     "THIRD_PARTY_NOTICES.md"

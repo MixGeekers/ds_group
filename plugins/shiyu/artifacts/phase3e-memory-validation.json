@@ -1,0 +1,894 @@
+{
+  "schemaVersion": 1,
+  "attempts": [
+    {
+      "schemaVersion": 1,
+      "evidenceLevel": "current-run-real-controlled-Ombre-MCP-ControlStore-local-memory-service",
+      "startedAt": "2026-11-02T09:29:13.191Z",
+      "runDirectory": ".local/phase3e-memory-UkcwG7",
+      "plan": "service/ombre/LIVE_VALIDATION.md",
+      "syntheticOnly": true,
+      "sourceSha256Before": {
+        "tests/ombre-live-smoke.ts": "00322e2b752d2a572380dacb6ffefa17a97cb894745a8efb5128356222859461",
+        "service/ombre/LIVE_VALIDATION.md": "4ad4846b183ed3d21391377453b06a20c29bce90c5067c0b1f35faa4a80fa59b",
+        "service/ombre/service.py": "5bcbbd52f727f61af33a545b28d86c11d1eacd14a04c6fd7fdd0b2a5df509bc6",
+        "service/ombre/controlled_store.py": "ad18778ab9772cb102456c0b1583880be677fb72b9e5fc8c127ed8b7d7714010",
+        "service/ombre/protocol.py": "095b4850ddda207a085b5ccf2d7bf18a8e9e90d8f00a15c056053ce9ad6237c6",
+        "service/ombre/SOURCE.json": "6e80bfbdced48ac98a9d3c5da2a457a65f4822fd92b7e2b7f030f5b727c4f163",
+        "src/adapters/ombre/managed.ts": "45322965424d0da45b4c7171e35d5f7cbc345fc7e0c20b88656f8ba009141048",
+        "src/adapters/ombre/controlled.ts": "fe6d66aeff7e2f9b4bcb6160642d9f971d91bee99450297e406f44ced4144516",
+        "src/adapters/mcp/index.ts": "8998a3497169ea552b32acbcc31dad901a443a25239a0c3022ce99c21f908083",
+        "src/control/local-memory.ts": "cdf85489ee76a5d2ddaa2530442c8bdd61e1275741ba3c79ec3da9b9e1e95a26",
+        "src/adapters/control-store/index.ts": "f069ad2ac725abd7a522c5edc89994008d1910dfaa247b4145fb9e4cd9c75d5a",
+        "src/adapters/control-store/worker.ts": "8e9ff503166df5719bc207532bb30c91531ef2e9c5b9486b325f7f2592d223c9",
+        "src/adapters/control-store/protocol.ts": "d5eaec9245b143d0af158ec867c51a947f73c69b3c43346072f6c73e94a233a2",
+        "src/adapters/control-store/memory-domain.ts": "e556cb66658fd649cd0f8835d916c623fb172124487b1aee5c6412e154253b37",
+        "src/adapters/control-store/authority.ts": "1ad4242c3b6a1bdd485d1b858eb8280273ff2f5b39084bf1f961bfaa7a012650",
+        "src/adapters/control-store/conversation-domain.ts": "89f9a6442e61b9825d84d5ea070a3ef03b7edcf74c0d43608041afedc67f0533",
+        "src/adapters/control-store/task-domain.ts": "157d686b470673ca9a2fa842cd5225b8de6d4b5ae0f42120bc8801dc06afb091",
+        "src/adapters/control-store/transaction.ts": "d6204e69a293a1e66924606667bba6aa83c2d08773f70cb5174917c314df0c46",
+        "src/adapters/control-store/commit-watermark.ts": "d508a8bc930478989e2581626ebdeb7eb0696d43fc226026177be77745d7aa0d",
+        "src/control/memory/index.ts": "721de8706d7dae856623272071b8347bf623d6a14470adf79107e42ae363d1ad",
+        "src/control/memory/contracts.ts": "52d8be92164b85ac8319e137657d9bc3376027446a5e4b5bc277075a829c7667",
+        "src/control/effects/index.ts": "1d32a3fd667aba8b35979dcaef7697fab8edca746f124ed0912ca7de24d30a73",
+        "src/control/policy/mandates.ts": "db606adf8489f71127a84ba79066b85c51cc38b659cd2e017330616056c242da",
+        "src/contracts/memory.ts": "5cc6269533c77a1263b60b85cad4fefafe3653dfa7b437ba0db876b077e8827e"
+      },
+      "binding": {
+        "backendId": "smoke-ombre-1f5a5c42-30cd-470a-906b-8733ce0f2926",
+        "deploymentId": "smoke-deploy-ea63f1da-dd78-42d6-a166-148a6eb9a880",
+        "scope": "local-owner",
+        "installationGeneration": "smoke-install-760f894a-be61-459a-9871-f2d98b230a8e"
+      },
+      "node": "v24.19.0",
+      "platform": "darwin",
+      "embedding": "disabled",
+      "semanticReady": false,
+      "limits": {
+        "managedStarts": 2,
+        "memoryCreateCalls": 1,
+        "perBusinessOperationMs": 30000,
+        "overallMs": 120000,
+        "automaticWriteRetries": 0
+      },
+      "body": {
+        "sha256": "d5a1d379cbb0092e17c0a368437b61b1bd02473e3545e8970946fb850bdf8012",
+        "bytes": 107,
+        "provenance": "fixed synthetic ordinary memory; no user/business body"
+      },
+      "task": {
+        "taskId": "88bc9d1cdb407f374634a6e7e3e0669f",
+        "state": "queued",
+        "workerDispatched": false
+      },
+      "conversationId": "f4aaa9d3-6878-4337-9680-70f16210e04f",
+      "saved": {
+        "operationId": "e7dae6e9-733c-4cce-95fd-79ed21b2b575",
+        "nativeId": "shiyu_c95aa2df631d4470812a5ad1c780793f",
+        "receiptRef": "strict-memory-receipt:receipt_4e256f941b9e425e5ab27f05bb0dc478ddbff31d469122b50ae5b082ad35c9a9",
+        "componentVersion": "sha256:e40b03ffb29c583e4d2ae37366d93306d22901ef4b6d226f79de1fd73704e06e",
+        "status": "applied",
+        "effectState": "succeeded",
+        "reservation": {
+          "state": "settled",
+          "observed": {
+            "tokens": 0,
+            "calls": 0,
+            "effects": 1
+          }
+        },
+        "sourceRevision": 1,
+        "indexState": "disabled"
+      },
+      "duplicate": {
+        "duplicate": true,
+        "sameOperationAndNativeId": true,
+        "rpcBefore": 6,
+        "rpcAfter": 6,
+        "commitSeqBefore": 20,
+        "commitSeqAfter": 20,
+        "baselineId": "95298905-2f2c-4906-9000-7cc8fd48a5fd"
+      },
+      "native": {
+        "count": 1,
+        "relativePath": "buckets/dynamic/shiyu/2026-11-02 05-29-13_shiyu_c95aa2df631d4470812a5ad1c780793f.md",
+        "bytes": 475,
+        "sha256": "e40b03ffb29c583e4d2ae37366d93306d22901ef4b6d226f79de1fd73704e06e",
+        "type": "dynamic",
+        "sourceTool": "shiyu_strict_create",
+        "testProvenance": false
+      },
+      "firstControlIsolation": {
+        "tables": [
+          {
+            "name": "deliveries",
+            "rows": 0
+          },
+          {
+            "name": "event_catalog",
+            "rows": 4
+          },
+          {
+            "name": "events",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_background_events",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_background_pending",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_background_sources",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_budget_receipts",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_budget_reservations",
+            "rows": 2
+          },
+          {
+            "name": "shiyu_commit_dirty",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_commit_watermark",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_component_schema",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_conversation_generations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_conversation_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_conversations",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_effect_attempts",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_effect_receipts",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_effect_schema",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_effects",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_goal_binding_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_goal_bindings",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_goal_commands",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_local_conversations",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_memory_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_memory_operations",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_memory_sources",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_memory_withdrawals",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_local_read_safety",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_read_withdrawals",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_local_reply_inputs",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_mandates",
+            "rows": 2
+          },
+          {
+            "name": "shiyu_memory_deletions",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_memory_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_memory_operations",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_memory_publications",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_memory_receipts",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_memory_tombstones",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_policy_catalog",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_policy_catalog_migrations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_policy_catalog_state",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_policy_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_reply_bindings",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_reply_drafts",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_reply_sessions",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_reply_source_cursors",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_state_publication_commands",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_state_publication_head",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_state_publication_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_artifact_observations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_task_artifact_payloads",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_task_aux_intents",
+            "rows": 2
+          },
+          {
+            "name": "shiyu_task_decision",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_disposition",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_domain_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_local_inputs",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_record",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_runs",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_thread",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_ticket",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_trigger",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_trigger_thread",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_usage_observations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_task_usage_reconciliations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_topic_links",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_topic_references",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_topic_relations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_topics",
+            "rows": 1
+          },
+          {
+            "name": "subscriptions",
+            "rows": 1
+          }
+        ],
+        "fileChecks": [
+          {
+            "suffix": "main",
+            "bytes": 770048,
+            "sha256": "3481dd93f95733fdc6c1f9c2381fd03dd5a83f756473d0f32453c2e89a2319e7",
+            "bodyPresent": false
+          },
+          {
+            "suffix": "-wal",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bodyPresent": false
+          },
+          {
+            "suffix": "-shm",
+            "bytes": 32768,
+            "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+            "bodyPresent": false
+          }
+        ],
+        "bodyPresent": false
+      },
+      "reopen": {
+        "sameInstallationAndDeployment": true,
+        "changedHostEpoch": true,
+        "sameNativeIdAndReceipt": true,
+        "bodySha256": "d5a1d379cbb0092e17c0a368437b61b1bd02473e3545e8970946fb850bdf8012",
+        "status": "applied"
+      },
+      "withdrawal": {
+        "consent": "withdrawn",
+        "sourceRevision": 2,
+        "blocked": true,
+        "historicalStatus": "applied",
+        "historicalEffectState": "succeeded",
+        "effectsStillAccounted": 1,
+        "readDeniedCode": "MEMORY_READ_FORBIDDEN",
+        "backendCallsAdded": 0,
+        "nativeFileUnchanged": true,
+        "physicalPurge": false
+      },
+      "finalControlIsolation": {
+        "tables": [
+          {
+            "name": "deliveries",
+            "rows": 0
+          },
+          {
+            "name": "event_catalog",
+            "rows": 4
+          },
+          {
+            "name": "events",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_background_events",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_background_pending",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_background_sources",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_budget_receipts",
+            "rows": 2
+          },
+          {
+            "name": "shiyu_budget_reservations",
+            "rows": 2
+          },
+          {
+            "name": "shiyu_commit_dirty",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_commit_watermark",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_component_schema",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_conversation_generations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_conversation_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_conversations",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_effect_attempts",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_effect_receipts",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_effect_schema",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_effects",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_goal_binding_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_goal_bindings",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_goal_commands",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_local_conversations",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_memory_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_memory_operations",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_memory_sources",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_memory_withdrawals",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_read_safety",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_local_read_withdrawals",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_local_reply_inputs",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_mandates",
+            "rows": 2
+          },
+          {
+            "name": "shiyu_memory_deletions",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_memory_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_memory_operations",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_memory_publications",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_memory_receipts",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_memory_tombstones",
+            "rows": 2
+          },
+          {
+            "name": "shiyu_policy_catalog",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_policy_catalog_migrations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_policy_catalog_state",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_policy_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_reply_bindings",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_reply_drafts",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_reply_sessions",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_reply_source_cursors",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_state_publication_commands",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_state_publication_head",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_state_publication_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_artifact_observations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_task_artifact_payloads",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_task_aux_intents",
+            "rows": 3
+          },
+          {
+            "name": "shiyu_task_decision",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_disposition",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_domain_meta",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_local_inputs",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_record",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_runs",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_thread",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_ticket",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_trigger",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_trigger_thread",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_task_usage_observations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_task_usage_reconciliations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_topic_links",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_topic_references",
+            "rows": 1
+          },
+          {
+            "name": "shiyu_topic_relations",
+            "rows": 0
+          },
+          {
+            "name": "shiyu_topics",
+            "rows": 1
+          },
+          {
+            "name": "subscriptions",
+            "rows": 1
+          }
+        ],
+        "fileChecks": [
+          {
+            "suffix": "main",
+            "bytes": 770048,
+            "sha256": "94d0866d4eb2edabf2e9bfd407d98755b62dff97bf40f2ca9872006268f0062c",
+            "bodyPresent": false
+          },
+          {
+            "suffix": "-wal",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bodyPresent": false
+          },
+          {
+            "suffix": "-shm",
+            "bytes": 32768,
+            "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+            "bodyPresent": false
+          }
+        ],
+        "bodyPresent": false
+      },
+      "backendJournalIsolation": {
+        "tables": [
+          {
+            "name": "installation",
+            "rows": 1
+          },
+          {
+            "name": "operations",
+            "rows": 1
+          }
+        ],
+        "fileChecks": [
+          {
+            "suffix": "main",
+            "bytes": 20480,
+            "sha256": "e2254a8b856ec2f75881dc1a5ea4fbf9da4caae0b178e3cb161e1a949dd5c4cb",
+            "bodyPresent": false
+          },
+          {
+            "suffix": "-wal",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "bodyPresent": false
+          },
+          {
+            "suffix": "-shm",
+            "bytes": 32768,
+            "sha256": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+            "bodyPresent": false
+          }
+        ],
+        "bodyPresent": false
+      },
+      "backendJournalOperations": 1,
+      "sourceSha256After": {
+        "tests/ombre-live-smoke.ts": "00322e2b752d2a572380dacb6ffefa17a97cb894745a8efb5128356222859461",
+        "service/ombre/LIVE_VALIDATION.md": "4ad4846b183ed3d21391377453b06a20c29bce90c5067c0b1f35faa4a80fa59b",
+        "service/ombre/service.py": "5bcbbd52f727f61af33a545b28d86c11d1eacd14a04c6fd7fdd0b2a5df509bc6",
+        "service/ombre/controlled_store.py": "ad18778ab9772cb102456c0b1583880be677fb72b9e5fc8c127ed8b7d7714010",
+        "service/ombre/protocol.py": "095b4850ddda207a085b5ccf2d7bf18a8e9e90d8f00a15c056053ce9ad6237c6",
+        "service/ombre/SOURCE.json": "6e80bfbdced48ac98a9d3c5da2a457a65f4822fd92b7e2b7f030f5b727c4f163",
+        "src/adapters/ombre/managed.ts": "45322965424d0da45b4c7171e35d5f7cbc345fc7e0c20b88656f8ba009141048",
+        "src/adapters/ombre/controlled.ts": "fe6d66aeff7e2f9b4bcb6160642d9f971d91bee99450297e406f44ced4144516",
+        "src/adapters/mcp/index.ts": "8998a3497169ea552b32acbcc31dad901a443a25239a0c3022ce99c21f908083",
+        "src/control/local-memory.ts": "cdf85489ee76a5d2ddaa2530442c8bdd61e1275741ba3c79ec3da9b9e1e95a26",
+        "src/adapters/control-store/index.ts": "f069ad2ac725abd7a522c5edc89994008d1910dfaa247b4145fb9e4cd9c75d5a",
+        "src/adapters/control-store/worker.ts": "8e9ff503166df5719bc207532bb30c91531ef2e9c5b9486b325f7f2592d223c9",
+        "src/adapters/control-store/protocol.ts": "d5eaec9245b143d0af158ec867c51a947f73c69b3c43346072f6c73e94a233a2",
+        "src/adapters/control-store/memory-domain.ts": "e556cb66658fd649cd0f8835d916c623fb172124487b1aee5c6412e154253b37",
+        "src/adapters/control-store/authority.ts": "1ad4242c3b6a1bdd485d1b858eb8280273ff2f5b39084bf1f961bfaa7a012650",
+        "src/adapters/control-store/conversation-domain.ts": "89f9a6442e61b9825d84d5ea070a3ef03b7edcf74c0d43608041afedc67f0533",
+        "src/adapters/control-store/task-domain.ts": "157d686b470673ca9a2fa842cd5225b8de6d4b5ae0f42120bc8801dc06afb091",
+        "src/adapters/control-store/transaction.ts": "d6204e69a293a1e66924606667bba6aa83c2d08773f70cb5174917c314df0c46",
+        "src/adapters/control-store/commit-watermark.ts": "d508a8bc930478989e2581626ebdeb7eb0696d43fc226026177be77745d7aa0d",
+        "src/control/memory/index.ts": "721de8706d7dae856623272071b8347bf623d6a14470adf79107e42ae363d1ad",
+        "src/control/memory/contracts.ts": "52d8be92164b85ac8319e137657d9bc3376027446a5e4b5bc277075a829c7667",
+        "src/control/effects/index.ts": "1d32a3fd667aba8b35979dcaef7697fab8edca746f124ed0912ca7de24d30a73",
+        "src/control/policy/mandates.ts": "db606adf8489f71127a84ba79066b85c51cc38b659cd2e017330616056c242da",
+        "src/contracts/memory.ts": "5cc6269533c77a1263b60b85cad4fefafe3653dfa7b437ba0db876b077e8827e"
+      },
+      "result": "passed",
+      "finishedAt": "2026-11-02T09:29:14.634Z",
+      "durationMs": 1443,
+      "processes": [
+        {
+          "phase": "initial-open",
+          "pid": 46402,
+          "closeObserved": true,
+          "state": "closed"
+        },
+        {
+          "phase": "reopen",
+          "pid": 46413,
+          "closeObserved": true,
+          "state": "closed"
+        }
+      ],
+      "mcp": {
+        "calls": 9,
+        "byTool": {
+          "shiyu_memory_create": 1,
+          "shiyu_memory_get": 3,
+          "shiyu_memory_operation_status": 5
+        },
+        "trace": [
+          {
+            "phase": "initial-open",
+            "tool": "shiyu_memory_operation_status",
+            "at": "2026-11-02T09:29:13.876Z",
+            "state": "absent"
+          },
+          {
+            "phase": "save",
+            "tool": "shiyu_memory_create",
+            "at": "2026-11-02T09:29:13.931Z",
+            "state": "applied",
+            "indexState": "disabled",
+            "receiptId": "receipt_4e256f941b9e425e5ab27f05bb0dc478ddbff31d469122b50ae5b082ad35c9a9"
+          },
+          {
+            "phase": "save",
+            "tool": "shiyu_memory_operation_status",
+            "at": "2026-11-02T09:29:13.938Z",
+            "state": "applied",
+            "indexState": "disabled",
+            "receiptId": "receipt_4e256f941b9e425e5ab27f05bb0dc478ddbff31d469122b50ae5b082ad35c9a9"
+          },
+          {
+            "phase": "save",
+            "tool": "shiyu_memory_get",
+            "at": "2026-11-02T09:29:13.939Z",
+            "state": "found",
+            "indexState": "disabled",
+            "receiptId": "receipt_4e256f941b9e425e5ab27f05bb0dc478ddbff31d469122b50ae5b082ad35c9a9"
+          },
+          {
+            "phase": "read",
+            "tool": "shiyu_memory_operation_status",
+            "at": "2026-11-02T09:29:13.960Z",
+            "state": "applied",
+            "indexState": "disabled",
+            "receiptId": "receipt_4e256f941b9e425e5ab27f05bb0dc478ddbff31d469122b50ae5b082ad35c9a9"
+          },
+          {
+            "phase": "read",
+            "tool": "shiyu_memory_get",
+            "at": "2026-11-02T09:29:13.962Z",
+            "state": "found",
+            "indexState": "disabled",
+            "receiptId": "receipt_4e256f941b9e425e5ab27f05bb0dc478ddbff31d469122b50ae5b082ad35c9a9"
+          },
+          {
+            "phase": "reopen",
+            "tool": "shiyu_memory_operation_status",
+            "at": "2026-11-02T09:29:14.559Z",
+            "state": "absent"
+          },
+          {
+            "phase": "reopen",
+            "tool": "shiyu_memory_operation_status",
+            "at": "2026-11-02T09:29:14.566Z",
+            "state": "applied",
+            "indexState": "disabled",
+            "receiptId": "receipt_4e256f941b9e425e5ab27f05bb0dc478ddbff31d469122b50ae5b082ad35c9a9"
+          },
+          {
+            "phase": "reopen",
+            "tool": "shiyu_memory_get",
+            "at": "2026-11-02T09:29:14.568Z",
+            "state": "found",
+            "indexState": "disabled",
+            "receiptId": "receipt_4e256f941b9e425e5ab27f05bb0dc478ddbff31d469122b50ae5b082ad35c9a9"
+          }
+        ]
+      },
+      "noModelOrEmbeddingEvidence": {
+        "agentOrSessionConstructed": false,
+        "nativeWorkerTaskDispatched": false,
+        "configuredEmbedding": "disabled",
+        "launchFlag": "--without-embedding",
+        "observedReceiptIndexStates": [
+          "disabled"
+        ],
+        "observedScope": "only this harness and its two owned controlled service children; not machine-wide traffic"
+      },
+      "limitations": [
+        "No DSH UI/Runtime activation was exercised.",
+        "Orderly close/reopen only; no crash or power-loss test.",
+        "Local consent withdrawal is not native physical deletion.",
+        "No embedding, semantic retrieval, or six-component inner publication was tested."
+      ]
+    }
+  ],
+  "latestResult": "passed",
+  "evidenceVersionNote": {
+    "status": "successful bounded CLI run retained before a subsequent dispatch-gate ordering repair",
+    "executedAttempt": 0,
+    "changedSource": "src/control/local-memory.ts",
+    "executedSha256": "cdf85489ee76a5d2ddaa2530442c8bdd61e1275741ba3c79ec3da9b9e1e95a26",
+    "subsequentSha256": "3e5d35483187dea030a07824e38e5f8aae03da7a150540ca82bc88df7d93d93e",
+    "changeSummary": "The parent agent subsequently reordered the asynchronous runtime gate before the final Worker dispatch authorization and kept only a synchronous cancellation/deadline check immediately before backend create.",
+    "verificationBoundary": "This artifact proves the recorded pre-repair source hashes only. The gate-order repair has separate offline tests and is to be checked by the parent in the later DSH host path; no second CLI memory write was performed."
+  },
+  "scriptTypecheck": {
+    "command": "npx tsc --ignoreConfig --noEmit --target ES2023 --module NodeNext --moduleResolution NodeNext --strict --skipLibCheck --types node tests/ombre-live-smoke.ts",
+    "exitCode": 0,
+    "modelOrBackendCalls": 0
+  }
+}

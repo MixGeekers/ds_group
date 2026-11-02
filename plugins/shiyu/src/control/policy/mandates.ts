@@ -37,8 +37,19 @@ export interface ReconcileInput {
 }
 export interface MandateStoreOptions {
   ownerIds: string[]; reconcilerIds?: string[]; dispatcherIds?: string[]; now?: () => Date;
+  /** When supplied, every configured service has an exact action allowlist. */
+  dispatcherActions?: Record<string, string[]>; reconcilerActions?: Record<string, string[]>;
   /** Trusted per-invocation minima; e.g. an effect requires effects>=1, a model call calls>=1. */
   actionCosts: Record<string, Budget>;
+}
+export interface PolicyCatalogState { revision: number; policyHash: string }
+export interface PolicyCatalogMigration {
+  migrationId: string; expectedRevision: number; expectedPolicyHash: string;
+  target: MandateStoreOptions; now?: () => Date;
+}
+export interface PolicyCatalogMigrationReceipt {
+  migrationId: string; fromRevision: number; fromPolicyHash: string; toRevision: number;
+  toPolicyHash: string; authEpoch: number; migratedAt: string;
 }
 export class MandateError extends Error {
   constructor(readonly code: string, message: string) { super(message); this.name = 'MandateError'; }
@@ -88,6 +99,73 @@ function request(value: PermitRequest): PermitRequest {
 function digest(value: unknown): string { return createHash('sha256').update(JSON.stringify(value)).digest('hex'); }
 function same(a: unknown, b: unknown): boolean { return JSON.stringify(a) === JSON.stringify(b); }
 
+interface CatalogDefinition {
+  owners: string[]; reconcilers: string[]; dispatchers: string[]; costs: [string, Budget][];
+  dispatcherActions?: Record<string, string[]>; reconcilerActions?: Record<string, string[]>;
+}
+function catalogDefinition(options: MandateStoreOptions): CatalogDefinition {
+  const optionalIds = (value: string[] | undefined, label: string) => value === undefined || (Array.isArray(value) && value.length === 0) ? [] : list(value, label);
+  const owners = list(options.ownerIds, 'ownerIds'), reconcilers = optionalIds(options.reconcilerIds, 'reconcilerIds'), dispatchers = optionalIds(options.dispatcherIds, 'dispatcherIds');
+  if (!options.actionCosts || typeof options.actionCosts !== 'object' || Array.isArray(options.actionCosts) || !Object.keys(options.actionCosts).length || Object.keys(options.actionCosts).length > 128) fail('INVALID_SCHEMA', 'A trusted bounded action cost catalog is required');
+  const costs: [string, Budget][] = Object.entries(options.actionCosts).sort(([a], [b]) => a.localeCompare(b)).map(([action, minimum]) => [text(action, 'action'), budget(minimum)]);
+  const actionSet = new Set(costs.map(([action]) => action));
+  const permissions = (value: Record<string, string[]> | undefined, ids: string[], label: string) => {
+    if (value === undefined) return undefined;
+    object(value, ids);
+    return Object.fromEntries(ids.map(id => {
+      const actions = list(value[id], label);
+      if (actions.some(action => !actionSet.has(action))) fail('UNKNOWN_ACTION', 'Service action restrictions reference an unregistered action');
+      return [id, actions];
+    }));
+  };
+  const dispatcherActions = permissions(options.dispatcherActions, dispatchers, 'dispatcherActions'), reconcilerActions = permissions(options.reconcilerActions, reconcilers, 'reconcilerActions');
+  // Preserve the exact legacy hash shape when no role-action restrictions exist.
+  return { owners, reconcilers, dispatchers, costs, ...(dispatcherActions === undefined ? {} : { dispatcherActions }), ...(reconcilerActions === undefined ? {} : { reconcilerActions }) };
+}
+export function policyCatalogHash(options: MandateStoreOptions): string { return digest(catalogDefinition(options)); }
+function currentCatalog(db: DatabaseSync): PolicyCatalogState {
+  const row = db.prepare('SELECT revision,policy_hash,definition_json FROM shiyu_policy_catalog_state WHERE id=1').get();
+  const catalog = db.prepare('SELECT policy_hash FROM shiyu_policy_catalog WHERE id=1').get();
+  if (!row || !catalog || !Number.isSafeInteger(row.revision) || Number(row.revision) < 1 || typeof row.policy_hash !== 'string'
+    || row.policy_hash !== catalog.policy_hash || typeof row.definition_json !== 'string') fail('CORRUPT_POLICY', 'Policy catalog authority is incomplete');
+  let definition: unknown;
+  try { definition = JSON.parse(String(row!.definition_json)); } catch { return fail('CORRUPT_POLICY', 'Invalid catalog definition'); }
+  if (digest(definition) !== row!.policy_hash) fail('CORRUPT_POLICY', 'Catalog definition differs from its trusted hash');
+  return { revision: Number(row!.revision), policyHash: String(row!.policy_hash) };
+}
+/**
+ * Trusted composition/migration API only, never an Agent or dashboard command.
+ * The caller must pin a reviewed source hash/revision and target declaration.
+ * Existing grants and accounting records are deliberately not rewritten.
+ */
+export function migrateMandateCatalog(db: DatabaseSync, transactions: Tx, migration: PolicyCatalogMigration): PolicyCatalogMigrationReceipt {
+  if (!transactions.owns(db)) fail('TRANSACTION_MISMATCH', 'Catalog migration requires the shared transaction connection');
+  object(migration, ['migrationId', 'expectedRevision', 'expectedPolicyHash', 'target', 'now'], ['migrationId', 'expectedRevision', 'expectedPolicyHash', 'target']);
+  const migrationId = text(migration.migrationId, 'migrationId'), expectedRevision = integer(migration.expectedRevision, 'catalog revision', 1, Number.MAX_SAFE_INTEGER - 1);
+  const expectedPolicyHash = text(migration.expectedPolicyHash, 'expected policy hash'), target = catalogDefinition(migration.target), targetHash = digest(target);
+  if (!/^[a-f0-9]{64}$/u.test(expectedPolicyHash)) fail('INVALID_SCHEMA', 'Expected a fixed policy hash');
+  const intentHash = digest({ migrationId, expectedRevision, expectedPolicyHash, target });
+  return transactions.atomic(() => {
+    const current = currentCatalog(db);
+    const prior = db.prepare('SELECT intent_hash,record_json FROM shiyu_policy_catalog_migrations WHERE migration_id=?').get(migrationId);
+    if (prior) {
+      if (prior.intent_hash !== intentHash) fail('IDEMPOTENCY_CONFLICT', 'Migration identity already names another declaration');
+      return JSON.parse(String(prior.record_json)) as PolicyCatalogMigrationReceipt;
+    }
+    if (current.revision !== expectedRevision || current.policyHash !== expectedPolicyHash) fail('CATALOG_CONFLICT', 'Catalog does not match the reviewed source revision/hash');
+    if (targetHash === expectedPolicyHash) fail('INVALID_MIGRATION', 'A migration must change the catalog declaration');
+    const meta = db.prepare('SELECT auth_epoch FROM shiyu_policy_meta WHERE id=1').get();
+    const epoch = integer(meta?.auth_epoch, 'stored authEpoch', 0, Number.MAX_SAFE_INTEGER - 1) + 1;
+    const result: PolicyCatalogMigrationReceipt = { migrationId, fromRevision: current.revision, fromPolicyHash: current.policyHash,
+      toRevision: current.revision + 1, toPolicyHash: targetHash, authEpoch: epoch, migratedAt: time((migration.now?.() ?? new Date()).toISOString(), 'migration time') };
+    if (db.prepare('UPDATE shiyu_policy_catalog SET policy_hash=? WHERE id=1 AND policy_hash=?').run(targetHash, expectedPolicyHash).changes !== 1
+      || db.prepare('UPDATE shiyu_policy_catalog_state SET revision=?,policy_hash=?,definition_json=? WHERE id=1 AND revision=? AND policy_hash=?').run(result.toRevision, targetHash, JSON.stringify(target), current.revision, current.policyHash).changes !== 1) fail('CATALOG_CONFLICT', 'Catalog changed during migration');
+    db.prepare('UPDATE shiyu_policy_meta SET auth_epoch=? WHERE id=1').run(epoch);
+    db.prepare('INSERT INTO shiyu_policy_catalog_migrations VALUES(?,?,?)').run(migrationId, intentHash, JSON.stringify(result));
+    return clone(result);
+  });
+}
+
 /**
  * Trusted policy facts and budget accounting on the existing control DB Worker.
  * This is not a Goal state machine or an authorization parser for natural text.
@@ -100,30 +178,61 @@ export class MandateStore {
   private readonly reconcilers: ReadonlySet<string>;
   private readonly dispatchers: ReadonlySet<string>;
   private readonly costs: ReadonlyMap<string, Budget>;
+  private readonly policyHash: string;
+  private readonly catalogRevision: number;
+  private readonly dispatcherActions?: Record<string, string[]>;
+  private readonly reconcilerActions?: Record<string, string[]>;
   constructor(private readonly db: DatabaseSync, private readonly transactions: Tx, private readonly options: MandateStoreOptions) {
     if (!transactions.owns(db)) fail('TRANSACTION_MISMATCH', 'Policy and transaction must own the same SQLite connection');
-    this.owners = new Set(list(options.ownerIds, 'ownerIds'));
-    this.reconcilers = new Set(options.reconcilerIds?.map(id => text(id, 'reconcilerId')) ?? []);
-    this.dispatchers = new Set(options.dispatcherIds?.map(id => text(id, 'dispatcherId')) ?? []);
-    if (!options.actionCosts || typeof options.actionCosts !== 'object' || Array.isArray(options.actionCosts) || !Object.keys(options.actionCosts).length || Object.keys(options.actionCosts).length > 128) fail('INVALID_SCHEMA', 'A trusted bounded action cost catalog is required');
-    this.costs = new Map(Object.entries(options.actionCosts).sort(([a], [b]) => a.localeCompare(b)).map(([action, minimum]) => [text(action, 'action'), budget(minimum)]));
-    const policyHash = digest({ owners: [...this.owners].sort(), reconcilers: [...this.reconcilers].sort(), dispatchers: [...this.dispatchers].sort(), costs: [...this.costs] });
-    transactions.atomic(() => {
+    const definition = catalogDefinition(options);
+    this.owners = new Set(definition.owners); this.reconcilers = new Set(definition.reconcilers); this.dispatchers = new Set(definition.dispatchers);
+    this.costs = new Map(definition.costs); this.dispatcherActions = definition.dispatcherActions; this.reconcilerActions = definition.reconcilerActions;
+    this.policyHash = digest(definition);
+    const policyHash = this.policyHash;
+    this.catalogRevision = transactions.atomic(() => {
       db.exec(`CREATE TABLE IF NOT EXISTS shiyu_policy_meta (id INTEGER PRIMARY KEY CHECK(id=1), schema_version INTEGER NOT NULL, auth_epoch INTEGER NOT NULL, frozen INTEGER NOT NULL, reason TEXT);
         INSERT OR IGNORE INTO shiyu_policy_meta VALUES(1,1,0,0,NULL);`);
       if (this.row('SELECT schema_version FROM shiyu_policy_meta WHERE id=1')?.schema_version !== 1) fail('INCOMPATIBLE_VERSION', 'Unsupported policy schema');
       db.exec('CREATE TABLE IF NOT EXISTS shiyu_policy_catalog (id INTEGER PRIMARY KEY CHECK(id=1), policy_hash TEXT NOT NULL)');
       db.prepare('INSERT OR IGNORE INTO shiyu_policy_catalog VALUES(1,?)').run(policyHash);
       if (this.row('SELECT policy_hash FROM shiyu_policy_catalog WHERE id=1')?.policy_hash !== policyHash) fail('INCOMPATIBLE_POLICY', 'Trusted policy configuration changed; explicit authority migration is required');
+      const tracking = db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name IN ('shiyu_policy_catalog_state','shiyu_policy_catalog_migrations')").all();
+      if (tracking.length === 1) fail('CORRUPT_POLICY', 'Catalog revision tracking is incomplete');
+      if (tracking.length === 0) {
+        db.exec(`CREATE TABLE shiyu_policy_catalog_state(id INTEGER PRIMARY KEY CHECK(id=1),revision INTEGER NOT NULL,policy_hash TEXT NOT NULL,definition_json TEXT NOT NULL CHECK(json_valid(definition_json)));
+          CREATE TABLE shiyu_policy_catalog_migrations(migration_id TEXT PRIMARY KEY,intent_hash TEXT NOT NULL,record_json TEXT NOT NULL CHECK(json_valid(record_json)));`);
+        db.prepare('INSERT INTO shiyu_policy_catalog_state VALUES(1,1,?,?)').run(policyHash, JSON.stringify(definition));
+      }
+      const state = currentCatalog(db);
       db.exec(`CREATE TABLE IF NOT EXISTS shiyu_mandates (id TEXT PRIMARY KEY, intent_hash TEXT NOT NULL, version INTEGER NOT NULL, auth_epoch INTEGER NOT NULL, record_json TEXT NOT NULL CHECK(json_valid(record_json)));
         CREATE TABLE IF NOT EXISTS shiyu_budget_reservations (id TEXT PRIMARY KEY, mandate_id TEXT NOT NULL REFERENCES shiyu_mandates(id), intent_hash TEXT NOT NULL, version INTEGER NOT NULL, record_json TEXT NOT NULL CHECK(json_valid(record_json)));
         CREATE INDEX IF NOT EXISTS shiyu_reservations_mandate ON shiyu_budget_reservations(mandate_id);
         CREATE TABLE IF NOT EXISTS shiyu_budget_receipts (id TEXT PRIMARY KEY, reservation_id TEXT NOT NULL REFERENCES shiyu_budget_reservations(id), receipt_hash TEXT NOT NULL, result_json TEXT NOT NULL CHECK(json_valid(result_json)));`);
+      return state.revision;
     });
+  }
+  private assertCatalog(): PolicyCatalogState {
+    this.transactions.assertUsable(); const current = currentCatalog(this.db);
+    if (current.policyHash !== this.policyHash || current.revision !== this.catalogRevision) fail('STALE_CATALOG', 'This authority instance uses an obsolete policy catalog');
+    return current;
+  }
+  catalog(): PolicyCatalogState { return this.transactions.atomic(() => this.assertCatalog()); }
+  private serviceAction(kind: 'dispatcher' | 'reconciler', principalId: string, action: string): boolean {
+    const ids = kind === 'dispatcher' ? this.dispatchers : this.reconcilers;
+    const map = kind === 'dispatcher' ? this.dispatcherActions : this.reconcilerActions;
+    return ids.has(principalId) && (map === undefined || map[principalId]?.includes(action) === true);
+  }
+  private subjectAction(actor: TrustedPolicyActor, action: string): void {
+    // Being named a grant subject must not bypass a configured service role's
+    // action boundary through the reserved-principal shortcut in checkedPermit.
+    if (actor.kind !== 'component') return;
+    if ((this.dispatcherActions && this.dispatchers.has(actor.principalId) && !this.serviceAction('dispatcher', actor.principalId, action))
+      || (this.reconcilerActions && this.reconcilers.has(actor.principalId) && !this.serviceAction('reconciler', actor.principalId, action))) fail('FORBIDDEN', 'Action is outside this trusted service role');
   }
   private now(): string { return time((this.options.now?.() ?? new Date()).toISOString(), 'now'); }
   private row(sql: string, ...params: SQLInputValue[]): Row | undefined { this.transactions.assertUsable(); return this.db.prepare(sql).get(...params) as Row | undefined; }
   private actor(actor: TrustedPolicyActor, scope: string): void {
+    this.assertCatalog();
     text(actor?.principalId, 'principalId');
     if (!['owner', 'agent', 'component'].includes(actor.kind) || !Array.isArray(actor.scopes) || !actor.scopes.includes(scope)) fail('FORBIDDEN', 'Trusted caller does not have this scope');
   }
@@ -131,12 +240,13 @@ export class MandateStore {
     this.actor(actor, scope);
     if (actor.kind !== 'owner' || !this.owners.has(actor.principalId)) fail('FORBIDDEN', 'A configured trusted owner is required');
   }
-  private trustedReconciler(actor: TrustedPolicyActor, scope: string): void {
+  private trustedReconciler(actor: TrustedPolicyActor, scope: string, action: string): void {
     this.actor(actor, scope);
-    if (!(actor.kind === 'owner' && this.owners.has(actor.principalId)) && !(actor.kind === 'component' && this.reconcilers.has(actor.principalId))) fail('FORBIDDEN', 'Only a trusted usage observer may reconcile budget');
+    if (!(actor.kind === 'owner' && this.owners.has(actor.principalId)) && !(actor.kind === 'component' && this.serviceAction('reconciler', actor.principalId, action))) fail('FORBIDDEN', 'Only a trusted usage observer may reconcile budget');
   }
   private unfreezeRequired(): void { if (this.health().frozen) fail('BUDGET_OVERRUN', 'Usage overrun has frozen new authority and dispatch; reconcile through owner recovery'); }
   health(): { frozen: boolean; authEpoch: number; reason?: string } {
+    this.assertCatalog();
     const row = this.row('SELECT auth_epoch,frozen,reason FROM shiyu_policy_meta WHERE id=1')!;
     if (!row || (row.frozen !== 0 && row.frozen !== 1) || !Number.isSafeInteger(row.auth_epoch) || (row.auth_epoch as number) < 0) fail('CORRUPT_POLICY', 'Invalid policy control state');
     return { frozen: row.frozen === 1, authEpoch: Number(row.auth_epoch), ...(row.reason ? { reason: String(row.reason) } : {}) };
@@ -146,6 +256,7 @@ export class MandateStore {
     this.db.prepare('UPDATE shiyu_policy_meta SET auth_epoch=? WHERE id=1').run(current + 1); return current + 1;
   }
   private read(id: string): Mandate {
+    this.assertCatalog();
     const row = this.row('SELECT * FROM shiyu_mandates WHERE id=?', text(id, 'mandateId'));
     if (!row) fail('NOT_FOUND', 'Mandate not found');
     const value = JSON.parse(String(row!.record_json)) as Mandate;
@@ -155,6 +266,7 @@ export class MandateStore {
     return value;
   }
   private reservation(id: string): BudgetReservation {
+    this.assertCatalog();
     const row = this.row('SELECT * FROM shiyu_budget_reservations WHERE id=?', text(id, 'reservationId'));
     if (!row) fail('NOT_FOUND', 'Budget reservation not found');
     const value = JSON.parse(String(row!.record_json)) as BudgetReservation;
@@ -171,7 +283,7 @@ export class MandateStore {
   }
   private readable(actor: TrustedPolicyActor, mandate: Mandate): void {
     this.actor(actor, mandate.scope);
-    if (!(actor.kind === 'owner' && this.owners.has(actor.principalId)) && !mandate.subjectIds.includes(actor.principalId) && !(actor.kind === 'component' && (this.reconcilers.has(actor.principalId) || this.dispatchers.has(actor.principalId)))) fail('FORBIDDEN', 'Mandate is not visible to this principal');
+    if (!(actor.kind === 'owner' && this.owners.has(actor.principalId)) && !mandate.subjectIds.includes(actor.principalId) && !(actor.kind === 'component' && mandate.allowedActions.every(action => this.serviceAction('reconciler', actor.principalId, action) || this.serviceAction('dispatcher', actor.principalId, action)))) fail('FORBIDDEN', 'Mandate is not visible to this principal');
   }
   get(actor: TrustedPolicyActor, id: string): Mandate {
     const value = this.read(id); this.readable(actor, value);
@@ -180,7 +292,7 @@ export class MandateStore {
   }
   getReservation(actor: TrustedPolicyActor, id: string): BudgetReservation {
     const value = this.reservation(id); const mandate = this.read(value.mandateId); this.readable(actor, mandate);
-    const observer = (actor.kind === 'owner' && this.owners.has(actor.principalId)) || (actor.kind === 'component' && (this.reconcilers.has(actor.principalId) || this.dispatchers.has(actor.principalId)));
+    const observer = (actor.kind === 'owner' && this.owners.has(actor.principalId)) || (actor.kind === 'component' && mandate.allowedActions.every(action => this.serviceAction('reconciler', actor.principalId, action) || this.serviceAction('dispatcher', actor.principalId, action)));
     if (actor.principalId !== value.principalId && !observer) fail('FORBIDDEN', 'Reservation belongs to another principal');
     return clone(value);
   }
@@ -257,6 +369,7 @@ export class MandateStore {
     this.actor(actor, identity.scope);
     return this.transactions.atomic(() => {
       const mandate = this.read(identity.mandateId); this.active(mandate, identity);
+      this.subjectAction(actor, identity.action);
       if (!mandate.subjectIds.includes(actor.principalId)) fail('FORBIDDEN', 'Principal is not a grant subject');
       const hash = digest({ ...identity, principalId: actor.principalId, amount, leaseMs });
       const old = this.row('SELECT intent_hash FROM shiyu_budget_reservations WHERE id=?', identity.reservationId);
@@ -277,9 +390,10 @@ export class MandateStore {
   }
   private checkedPermit(actor: TrustedPolicyActor, identity: PermitRequest): Permit {
     const reservation = this.reservation(identity.reservationId); this.active(this.read(identity.mandateId), identity);
+    this.subjectAction(actor, identity.action);
     this.minimum(identity.action, reservation.amount);
     if (!same(request(reservation), identity)) fail('STALE_AUTHORITY', 'Permit does not match its reservation');
-    if (actor.principalId !== reservation.principalId && !(actor.kind === 'component' && this.dispatchers.has(actor.principalId))) fail('FORBIDDEN', 'Only the reserved principal or trusted dispatcher may use a permit');
+    if (actor.principalId !== reservation.principalId && !(actor.kind === 'component' && this.serviceAction('dispatcher', actor.principalId, identity.action))) fail('FORBIDDEN', 'Only the reserved principal or trusted dispatcher may use a permit');
     if (reservation.state !== 'reserved') fail('BUDGET_UNAVAILABLE', 'Unknown or settled reservations cannot authorize another invocation');
     if (this.now() >= reservation.leaseExpiresAt) fail('EXPIRED', 'Reservation lease expired; retained budget needs reconciliation');
     return { ...identity, principalId: reservation.principalId, reservationVersion: reservation.version, leaseExpiresAt: reservation.leaseExpiresAt, maxTokens: reservation.amount.tokens, budget: clone(reservation.amount) };
@@ -292,7 +406,7 @@ export class MandateStore {
     for (const axis of axes) if (raw[axis] !== undefined && raw[axis] !== null) usage[axis] = integer(raw[axis], axis);
     if (input.complete && axes.some(axis => usage[axis] === undefined)) fail('INCOMPLETE_USAGE', 'Complete settlement requires every usage dimension');
     return this.transactions.atomic(() => {
-      const reservation = this.reservation(input.reservationId); const mandate = this.read(reservation.mandateId); this.trustedReconciler(actor, mandate.scope);
+      const reservation = this.reservation(input.reservationId); const mandate = this.read(reservation.mandateId); this.trustedReconciler(actor, mandate.scope, reservation.action);
       const hash = digest({ receiptId: input.receiptId, reservationId: input.reservationId, expectedVersion: input.expectedVersion,
         complete: input.complete, usage, evidenceRef: input.evidenceRef, observer: actor.principalId });
       const prior = this.row('SELECT receipt_hash,result_json FROM shiyu_budget_receipts WHERE id=?', input.receiptId);

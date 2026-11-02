@@ -24,3 +24,4 @@
 research/** -text
 测试/**/artifacts/** -text
 测试/归档/** -text
+plugins/shiyu/service/ombre/LICENSE -text

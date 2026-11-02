@@ -21,3 +21,5 @@ npx playwright test --config tests/ui/playwright.config.mjs
 `conversation.linkLocalTask` 仅在内存中关联合成任务和对话控制投影。回执可延迟、缺字段或与 GET 不匹配；测试核对受理与快照分离、固定 local-owner 范围、背景来源只读且刷新不确认消费，以及独立暂停通道。不会创建真实 Conversation、Session 或调用模型。定向运行：`npm run test:ui -- conversations.spec.js`。
 
 `conversation.verifyContext` 返回合成的背景持久化、每轮草稿放行核验及同 Session 两轮检查回执。GET 的 pending 投影和保存记录可独立设定，不因回执成功自动清空；可模拟延迟、错误和篡改字段。测试覆盖显式请求、对话／绑定一致性、切换详情、历史记录、暂停通道及 95 秒客户端等待上限；不加载真实背景或调用模型。定向运行：`npm run test:ui -- context-verification.spec.js`。
+
+`memory.rememberLocal`、`memory.readLocal` 和 `memory.withdrawLocal` 仅操作合成服务内存。保存按 requestId 幂等；读取延迟回执保留发起时的旧元信息和正文，以覆盖选择、版本及读取许可变化；撤回只改变合成许可，不删除后台正文。快照只提供元信息，正文只经显式读取返回。定向运行：`npm run test:ui -- memory.spec.mjs`。

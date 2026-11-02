@@ -8,6 +8,7 @@ import type { GoalBinding, GoalCommandReceipt } from '../dsh/goals.js';
 import type { ConversationCommands } from './conversation-domain.js';
 import type { CommitWatermark } from './commit-watermark.js';
 import type { ViewCommands } from './view-domain.js';
+import type { MemoryCommands } from './memory-domain.js';
 
 export interface ControlStoreOptions {
   filename: string;
@@ -15,10 +16,13 @@ export interface ControlStoreOptions {
   componentHandlers: string[];
   /** Required for Task commands; omitted keeps an event-only store. Host-owned identity, never UI input. */
   runtimeIdentity?: TaskRuntimeIdentity;
+  /** Host-owned deployment binding, never supplied by a public remember command. */
+  memoryBackend?: { backendId: string; deploymentId: string };
 }
 
 type WithPrincipal<T = unknown> = { principal: EventPrincipal } & T;
-export interface StoreCommands extends TaskCommands, ConversationCommands, ViewCommands {
+export interface StoreCommands extends TaskCommands, ConversationCommands, ViewCommands, MemoryCommands {
+  'memory.status': { input: Record<string, never>; output: { configured: boolean; ready: boolean; errorCode?: string } };
   /** Trusted read-only control write-commit watermark; not the Event sequence or a ReadView stateVersion. */
   'control.watermark': { input: Record<string, never>; output: CommitWatermark };
   /** Trusted host-to-worker bookkeeping only; never exposed as public/model commands. */

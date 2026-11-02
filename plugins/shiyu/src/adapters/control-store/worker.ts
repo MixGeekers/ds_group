@@ -19,6 +19,7 @@ import { installCommitWatermark, type CommitWatermarkReader } from './commit-wat
 import { ViewDomain, type ViewDomainRequest } from './view-domain.js';
 import { StatePublicationStore, createStatePublisher, initialStateManifest } from '../../state/publication.js';
 import { LocalReadSafetyStore } from '../../state/safety.js';
+import { MemoryDomain, type MemoryDomainRequest } from './memory-domain.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -32,6 +33,8 @@ let tasks: TaskDomain | undefined;
 let goalBindings: SQLiteGoalBindingStore | undefined;
 let conversations: ConversationDomain | undefined;
 let views: ViewDomain | undefined;
+let memories: MemoryDomain | undefined;
+let memoryError: string | undefined;
 let commitWatermark: CommitWatermarkReader;
 const fail = (code: string, message: string): never => { throw new EventServiceError(code, message); };
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -401,6 +404,11 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
 
 function execute(request: StoreRequest): unknown {
   if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
+  if (request.command === 'memory.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memories), ...(memoryError ? { errorCode: memoryError } : {}) };
+  if (request.command.startsWith('memory.')) {
+    if (!memories) return fail(memoryError ?? 'MEMORY_UNCONFIGURED', 'Memory control domain is unavailable.');
+    return memories.execute(request as MemoryDomainRequest);
+  }
   if (request.command.startsWith('view.')) {
     if (!views) return fail('VIEWS_UNAVAILABLE', 'Local views require the trusted runtime identity.');
     return views.execute(request as ViewDomainRequest);
@@ -529,6 +537,15 @@ function initialize(): void {
     views = new ViewDomain(db, transactions, { publication, safety, watermark: commitWatermark,
       context: conversationId => conversations!.replyContext(conversationId), getTask: taskId => tasks!.get(taskId).task });
     conversations.setReplyAuthority({ validateCapture: (captureId, phase) => views!.validateReplyCapture(captureId, { for: phase }) });
+    if (options.memoryBackend) {
+      try {
+        memories = new MemoryDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity,
+          ...options.memoryBackend, getConversation: conversationId => conversations!.getLocalConversation(conversationId) });
+      } catch (error) {
+        // A damaged/incompatible memory authority stays closed; the dashboard and unrelated domains remain inspectable.
+        memoryError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'MEMORY_INITIALIZATION_FAILED';
+      }
+    }
   }
 }
 

@@ -2,7 +2,7 @@
 
 `@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地任务链路；本地 embedding 尚未连接记忆业务。
 
-**状态：3C 基线 `9115e35` 已提交并推送；3D 已完成 Worker 完整消息、记忆恢复/仅本地重新发布与私有 MCP 客户端，461/461 模块、类型检查与构建通过。** 原版 Ombre 的单合成测试桶存取、正常重启、导出、归档恢复与清除已实测；产品客户端另完成一次空库 stdio 读取。临时服务和依赖已清理。正式 Runtime 的记忆与六部分内层仍 unavailable，core 自主规划和真实渠道未接入。已有同 Session 原生上下文回复与受限本地任务证据保留，首次 unknown 未重跑。分批结果、首轮实验脚本错误与实际边界见[实施记录](<实施记录.md>)及[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
+**状态：3E 受控普通记忆路径已接入，并完成限定 DSH 保存、精确读回、有序重载和本地撤回验证。** MemoryDomain、共享授权、受控原生 Ombre 服务、Managed 后端与显式本地保存/精确读取/撤回界面已在代码接线。正文只存原生普通桶，控制库与后端 journal 只存元信息；撤回不代表物理删除。Harrier profile 有独立夹具验证，Runtime 当前禁用 embedding，语义检索与六部分 ReadView 仍 unavailable。3D 的 461/461 模块、原版单测试桶与空库 stdio 证据保留；已有 Task、Goal 和同 Session 上下文证据不升级为新路径验收。分批结果、失败与未覆盖范围见[实施记录](<实施记录.md>)及[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
 
 本包不依赖 Lab 引擎或资料工作台作为运行能力。`lab/` 继续作为独立被测环境，`plugins/shiyu-workbench/` 完整保留。
 
@@ -11,16 +11,16 @@
 | 部分 | 已实现范围 | 当前边界 |
 |---|---|---|
 | Host 与运行状态 | DSH 插件入口、只读状态路由、`shiyu_status` 工具、显式运行命令与卸载清理 | 原生安装与限定禁用/启用验证已有证据；无独立 Web 服务，不等于完整生命周期压力验收 |
-| 运行仪表盘 | 总览、当前工作、活动、九系统状态、事件/订阅、Session、任务完成条件与独立核验详情、显式诊断；中英文、主题及窄屏布局 | 使用结构化运行快照；受理不显示为成功，unknown 与停止请求独立显示；缺失用量保留未知 |
+| 运行仪表盘 | 总览、当前工作、活动、九系统状态、事件/订阅、Session、任务完成条件与独立核验详情、显式诊断、本地记忆操作；中英文、主题及窄屏布局 | 使用结构化运行快照；受理不显示为成功，unknown 与停止请求独立显示；缺失用量保留未知 |
 | replyer Session | 专用原生 preset、创建/恢复前模型校验、空工具与执行 guard、稳定业务/scope 绑定、取消与释放；显式两轮真实模型验证入口 | 零推理探针和两轮代号回忆已测；业务恢复/压缩及完整缓存收益仍待验，没有渠道外发 |
 | 任务与 worker | 本地 owner 创建 Task/Assignment，原生 worker 使用受控单工具写固定产物；绑定先持久化，资格按宿主/安装世代、fence、租约及授权复查 | 修复后第二个有界真实任务通过；首轮结算失败保留 unknown；没有 core 自主派工或通用文件/设备权限 |
-| 授权、效果与核验 | Mandate/CAS、原子预算预留、Effect 领取/回执/不确定性、独立产物 SHA256 核验；完成状态与完成事件同事务 | 目前只接固定本地合成任务；取消不假称效果回滚，旧实例及 unknown 不自动重派，多用户与外部设备尚未接入 |
+| 授权、效果与核验 | Mandate/CAS、原子预算预留、Effect 领取/回执/不确定性、独立产物 SHA256 核验；完成状态与完成事件同事务 | 目前接固定本地合成任务与显式普通记忆保存；取消不假称效果回滚，旧实例及 unknown 不自动重派，多用户与外部设备尚未接入 |
 | 原生 Goal 生命周期 | 原生 Goal 适配、SQLite 绑定/CAS/命令历史、独立完成证明及显式 `goal.verify-lifecycle` 诊断已接 Runtime；真实四步零推理验证通过 | 原生日志拥有 Goal 状态；本地仅存绑定和命令事实，未启用 core/续接循环；一次生命周期通过不代表完整恢复/持续规划验收 |
 | 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、Task 关联、可信完成事件投影、有界扫描；显式本地上下文回复与验证 | 背景消费者不调用模型；Event ack 不等于加载，显式回复须原生持久回执才 ackContext；无渠道发送 |
 | 发布与受限视图 | 六 unavailable 的真实 publication/stateVersion；同 Worker capture、本地读取策略/撤回权威与 localTask ReadView；草稿最终双校验 | 不提供内层正文或记忆写入；30 秒 capture，过期/来源/受众变化拒绝旧视图；版本不与 commitSeq 混用 |
 | 事件与订阅 | 类型目录、发布、订阅增删改查、有限回放、投递领取/确认/失败、重试和统计；事件与匹配投递同事务提交 | live 路径为可信组件消费和 Agent background 引用；Agent 事件工具工厂已实现并合成验证，但尚未挂载到原生 Session，未自动续接 |
 | 本地状态与数据库 | 单实例运行锁、暂停与 Session 绑定保存；SQLite 独立 WorkerThread，事件、Task/Assignment、Mandate/预算及 Effect 共用连接与事务 | 尚无原生 inbox/请求结果完整对账；正常重载、事务/文件故障注入和限定子进程退出不代替完整断电/灾难恢复 |
-| 记忆控制与后端接缝 | MemoryOperation schema2 删除基线/恢复核对、仅本地重新发布；私有 MCP stdio 客户端；原版 Ombre 限定合成服务实测 | 尚未接 Runtime；普通记忆严格写、持久操作回执、CAS/清除、Harrier 前缀/profile 和受众视图仍待适配 |
+| 记忆控制与后端接缝 | MemoryOperation schema2、共享 Mandate/Effect、来源保存同意、受控普通桶创建/独立 status＋get 核验、显式本地读取与资格撤回已在 Runtime 代码接线 | 535 项全量模块、37 项 Python 及限定宿主证据已记录；不自动选取聊天正文，无语义搜索、普通删除/CAS、六域发布或自主整理 |
 | embedding | 固定 Harrier Q8_0 文件身份、1024 维向量、query 前缀、归一化、显式 loopback HTTP 适配 | 本地真实冒烟通过；未接记忆、索引或检索业务，未安装常驻 embedding 服务 |
 
 仪表盘查看/刷新只读取状态，不自动创建 Session、发布事件或调用模型。可见时每 10 秒刷新，页面隐藏时停止轮询；读取失败保留上次快照并标记状态未确认。显式“检查会话接入”执行零推理探针，“验证模型与会话复用”发送两轮合成输入，“运行本地任务验证”受理固定合成任务并交后台执行。暂停关闭新操作并取消在途模型，不声称回滚已经发生的效果；可信任务完成的纯背景标记仍可落库，不会因此请求模型、续接 Session 或发送消息。
@@ -50,7 +50,7 @@ npm run test:ui
 | 入口 | 用途 |
 |---|---|
 | `GET /api/shiyu/state` | 只读运行快照；与 `shiyu_status` 使用同一服务 |
-| `POST /api/shiyu/commands` | 显式 `runtime.pause`、`runtime.resume`、`session.probe`、`session.verify-model`、`reply.generate`、`task.createLocal`、`task.cancel`、`goal.verify-lifecycle`、`conversation.linkLocalTask`、`conversation.replyLocal` 或 `conversation.verifyContext`；JSON 正文上限 64 KiB |
+| `POST /api/shiyu/commands` | 显式 `runtime.pause`、`runtime.resume`、`session.probe`、`session.verify-model`、`reply.generate`、`task.createLocal`、`task.cancel`、`goal.verify-lifecycle`、`conversation.linkLocalTask`、`conversation.replyLocal`、`conversation.verifyContext`、`memory.rememberLocal`、`memory.readLocal` 或 `memory.withdrawLocal`；JSON 正文上限 64 KiB |
 
 `reply.generate` 是当前本地 owner 范围的开发入口：传入业务标识及文本，返回 `status=draft`、`sent=false`。它会发起模型请求，界面刷新和会话探针不会。当前没有多用户授权管理、渠道收发或外部 Effect 派发，不能将这个入口当作完整聊天产品或通用任务执行工具。
 
@@ -83,7 +83,8 @@ npm run test:ui
 ```text
 <dataDir>/
 ├── runtime-state.json       暂停状态、Session 绑定、最近探针/模型/Goal/上下文验证结果
-├── control/events.sqlite    事件、Task/授权/Effect、Goal/Conversation、背景与回复元记录、发布/读取权威及提交水位
+├── control/events.sqlite    事件、Task/授权/Effect、Goal/Conversation、背景/回复/记忆元记录、发布/读取权威及提交水位
+├── memory/backend.json      可选的可信私有后端配置；缺失时不安装或启动服务
 └── workspaces/
     └── <taskId>/artifacts/note.txt  当前受限任务的固定产物；其余为受限 Session 工作目录
 ```
@@ -110,14 +111,14 @@ node --import tsx scripts/embedding-smoke.ts /path/model.gguf /path/llama-server
 
 本轮真实诊断以阶段 2 成功任务为独立依据，原生 Goal 在同一 Session 完成 4 次变更，revision 连续为 1–4、roundsStarted=0。精确原生日志中 request/header、assistant、标题 LLM 与压缩均为 0；控制库有 4 个 confirmed 命令回执，metadataVersion=8。有序重载后 Session 字节与哈希、绑定及命令历史一致，历史验证保留且未重放。证据见[原生 Goal 验证](<artifacts/goal-validation.json>)；该结果证明受控生命周期接缝，不代表已开启自主 Goal 规划或通过崩溃恢复验收。
 
-ConversationStore 的本地任务背景路径与 3C 本地回复资格、localTask ReadView 已接入，范围见下节；分支/合并/分离和实际渠道路由仍未运行接入。以下模块有定向合成验证，**尚未接入 Runtime 或真实后端**：
+ConversationStore 的本地任务背景路径与 3C 本地回复资格、localTask ReadView 已接入，范围见下节；分支/合并/分离和实际渠道路由仍未运行接入。记忆模块的原独立边界与 3E 新接线分开：
 
 | 模块 | 实现范围 | 尚缺的运行接缝 |
 |---|---|---|
-| MemoryOperationLedger | 复用 EffectLedger 的批准、派发、回执、unknown、删除水位与依赖传播；只存操作/来源元数据 | 真实记忆后端的操作证明、CAS、物理清除与恢复；没有第二套记忆正文库 |
-| Ombre 薄 MCP 适配 | 固定 3.6.14 公共参数，注入 transport，提供有界 search/readFeel/readI，输出为未可信后端文本 | 未安装、未启动、未连接真实 Ombre；无自动写入/删除、无通用 CAS/操作幂等证明，不直接给 replyer 使用 |
+| MemoryOperationLedger | 复用 EffectLedger 的批准、派发、回执、unknown、删除水位与依赖传播；3E 通过 MemoryDomain 接入显式普通记忆操作 | schema1 仍需显式迁移；普通记忆物理清除、跨组件恢复与六域发布未完成；没有第二套记忆正文库 |
+| Ombre 薄 MCP 适配 | 原 search/readFeel/readI 薄适配保留；3D 有原版限定实测；3E 另有受控 create/status/get 服务与 Managed 接线 | 原语义搜索不直接给 replyer 使用；受控路径无更新、删除、通用 CAS 或自主整理，限定宿主证据见下节 |
 
-Ombre 的 domain/tag 不是多受众 ACL，“读取”也可能触发原生日志、decay 或通知消费；当前接口不自动获得纯只读保证。具体静态证据与后续真实接入门槛见[核查目录](<../../research/2026-11-02-Ombre接入/目录.md>)。这些独立模块不能据此标成六部分内层或长期记忆已经运行。
+Ombre 的 domain/tag 不是多受众 ACL，“读取”也可能触发原生日志、decay 或通知消费；当前接口不自动获得纯只读保证。具体静态证据与后续真实接入门槛见[核查目录](<../../research/2026-11-02-Ombre接入/目录.md>)。这些路径不能据此标成完整六部分内层或语义检索已经运行。
 
 ## 本地对话与后台标记（3B 已验范围）
 
@@ -143,6 +144,16 @@ Ombre 的 domain/tag 不是多受众 ACL，“读取”也可能触发原生日�
 
 原生冷投影最多读取 2048 个完整连续事件，未知 inbox、缺段或超限拒绝恢复，不能静默 dispose 清掉未知输入。已确认加载可独立于生成失败保留；Task 版本、受众/路由/世代、策略、撤回或 TTL 失效仍阻止旧草稿。此切片尚未验证长上下文、压缩后恢复或真实渠道。
 
+## 3E：显式普通记忆（限定路径已验）
+
+`memory.rememberLocal` 只接受已有本地对话、稳定 requestId 与用户明确输入的正文。可信控制域登记来源版本和保存同意，以共享 Mandate 预留 1 个 Effect，再派发受控普通 `dynamic` 桶创建；正文不经控制库 IPC 存储。相同请求和内容只返回已存元回执，unknown 不自动重发。独立 `operation_status` 与精确 `get` 同时核对命令、deployment、原生 ID、正文摘要与文件指纹后，才能确认 applied、结算效果并形成当前本地读取资格。
+
+`memory.readLocal` 在后端精确读取前后核查授权、来源、会话、撤回屏障和版本；正文仅在本次响应返回。`memory.withdrawLocal` 在暂停或后端不可用时仍可撤回本地保存同意、使本地引用失效，**原生文件仍保留，不是普通记忆删除或索引/备份清除**。这里的本地资格不发布六域 stateVersion，也不加入 replyer ReadView。
+
+可信 `<dataDir>/memory/backend.json` 指定固定 backend/deployment、Python、上游源码和独占 vault；配置不存在时不安装、不启动进程。Managed 后端只装载三个私有工具，使用 `env -i` 和 Python `-I` 隔离环境，不连接模型、渠道或原生 Session。运行配置只允许 `embedding: disabled`，显示 `semanticReady=false`。服务和 Harrier profile 的依赖、构建及启动边界见[受控服务说明](<service/ombre/README.md>)与[协议](<service/ombre/PROTOCOL.md>)；Python 37 项、全量 TS 535 项通过，后增 gate 回归合批 16 项通过；未重跑完整 537 项。模拟宿主 UI 首轮 141/142，唯一旧 Task 断言修补后相关 3 项通过，记忆页 29 项已通过；未重跑完整 142 项。
+
+真实 DSH 仅显式保存一段 97 字节合成普通记忆；控制回执、后端回执、原生 ID 与正文/文件 hash 独立一致，按 0 生成 tokens/0 生成 calls/1 effect 结算。有序重载后仍读回同一 ID/回执，无写重放；随后撤回本地同意与授权，原生文件保留且 hash 不变。7 个限定自有 Session 的字节/hash/mtime 和清单全程未变，最后只读刷新 commitSeq 60→60；不据此宣称全机零模型流量。见[真实宿主证据](<artifacts/memory-host-validation.json>)；此前[隔离真实服务链路](<artifacts/phase3e-memory-validation.json>)保留修补前源码快照。当前受控后端作为已启用插件依赖运行，embedding 仍关闭；没有语义搜索、普通物理删除或六域 ReadView。
+
 ## 实际源码入口
 
 ```text
@@ -158,7 +169,9 @@ src/control/goal-lifecycle.ts         以真实 Task/产物/回执验证原生 G
 src/control/conversations/           稳定业务绑定与背景版本；本地 Task 路径已接入
 src/control/background-pump.ts       有界后台投递扫描与唤醒
 src/control/local-reply.ts           localTask 视图、原生加载回执与草稿双校验编排
-src/control/memory/                  独立记忆操作控制账本，尚未运行接入
+src/control/memory/                  记忆操作控制账本、恢复与本地重新发布
+src/control/local-memory.ts          显式保存、独立回执核验和精确读取编排
+src/contracts/memory.ts              跨 TypeScript/Python 的严格命令与正文摘要契约
 src/state/                           六 unavailable 发布清单与本地读取权威
 src/views/                           只读裁剪服务；localTask 捕获已接入
 src/adapters/control-store/          SQLite Worker、协议与主线程代理
@@ -167,6 +180,8 @@ src/adapters/control-store/conversation-domain.ts  可信本地关联、背景�
 src/adapters/control-store/commit-watermark.ts     控制库持久提交水位与基线
 src/adapters/control-store/view-domain.ts         同 Worker 可信捕获与新鲜度校验
 src/adapters/control-store/local-reply-domain.ts  输入元记录、原生加载确认与草稿资格
+src/adapters/control-store/authority.ts           Task/Memory 共用授权目录与显式迁移
+src/adapters/control-store/memory-domain.ts       来源同意、记忆操作/效果/预算与本地撤回
 src/adapters/dsh/sessions.ts          受限原生 replyer Session 适配
 src/adapters/dsh/native-message.ts    官方完整 user message 与身份/哈希核对
 src/adapters/dsh/native-context.ts    精确原生回读与冷 inbox 投影
@@ -177,7 +192,8 @@ src/adapters/dsh/session-title.ts     识雨自有 Session 的固定标题与旁
 src/adapters/dsh/event-tools.ts       Agent 事件工具工厂，尚未挂载运行 Session
 src/adapters/artifacts/              固定路径产物写入与独立读取
 src/adapters/embedding/index.ts       本地 Harrier 适配
-src/adapters/ombre/                  独立注入式 MCP 边界，尚未连接真实后端
+src/adapters/ombre/                  原薄读取适配、受控协议核验与 Managed 子进程
+service/ombre/                       固定上游的薄服务、metadata journal 与 Harrier profile
 src/recovery/local-state.ts          运行状态锁与持久绑定
 src/health/systems.ts                九系统实际接入状态
 client/index.js                      原生仪表盘
@@ -192,6 +208,8 @@ artifacts/phase2-offline-validation.json  阶段 2 限定测试批次、命令�
 artifacts/goal-validation.json       原生 Goal 四步零推理、独立证明及有序重载证据
 artifacts/conversation-validation.json  背景关联/刷新/重载、修复前后分段及幂等证据
 artifacts/context-validation.json    本地视图、原生加载、两轮草稿/用量及有序重载证据
+artifacts/phase3e-memory-validation.json  修补前隔离真实普通记忆链路
+artifacts/memory-host-validation.json    修补后真实 DSH 保存/读回/撤回及重载证据
 vendor/dsh-superagent/               未修改的上游证据基线，独立于运行时适配
 licenses/                           随发布包保留的第三方完整许可
 ```

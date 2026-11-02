@@ -6,6 +6,7 @@ import { TaskFacade, TaskError, type CancellationProof, type RecoveryProof, type
 import { key } from '../../control/tasks/upstream/ids.js';
 import { SQLiteTaskRepositories } from './task-repositories.js';
 import { SqliteTransactions } from './transaction.js';
+import { createControlAuthority } from './authority.js';
 
 export interface TaskRuntimeIdentity { hostEpoch: string; installationGeneration: string }
 /** Opaque trusted runtime capability. Never accepted from public UI/model arguments. */
@@ -191,10 +192,7 @@ export class TaskDomain {
     text(options.runtimeIdentity.hostEpoch, 'hostEpoch'); text(options.runtimeIdentity.installationGeneration, 'installationGeneration');
     this.repositories = new SQLiteTaskRepositories(db, tx);
     this.effects = new EffectLedger(db, tx, { now: () => this.date() });
-    this.mandates = new MandateStore(db, tx, {
-      ownerIds: [OWNER.principalId], reconcilerIds: [VERIFIER.principalId], dispatcherIds: [DISPATCHER.principalId],
-      actionCosts: { 'artifact.write': { tokens: 0, calls: 0, effects: 1 }, 'task.local-note.execute': { tokens: 1, calls: 1, effects: 1 } }, now: () => this.date(),
-    });
+    this.mandates = createControlAuthority(db, tx, { now: () => this.date() });
     tx.atomic(() => {
       db.exec(`CREATE TABLE IF NOT EXISTS shiyu_task_domain_meta(id INTEGER PRIMARY KEY CHECK(id=1),version INTEGER NOT NULL,fence INTEGER NOT NULL,paused INTEGER NOT NULL);
         INSERT OR IGNORE INTO shiyu_task_domain_meta VALUES(1,1,0,0);`);

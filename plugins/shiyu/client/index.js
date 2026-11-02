@@ -11,7 +11,7 @@ window.__ModuleLoader__.load({
       runtimeState: '当前状态', currentWork: '当前工作', attention: '需要处理', activities: '最近活动', noWork: '当前没有正在处理的工作',
       noAttention: '暂无需要处理的事项', noActivities: '还没有活动记录', noSessions: '还没有会话记录', noSystems: '尚未收到系统实现状态',
       status_idle: '空闲', status_busy: '处理中', status_waiting: '等待中', status_paused: '已暂停', status_unknown: '未知',
-      status_ready: '就绪', status_stopping: '正在停止', status_degraded: '受限运行', status_implemented: '已实现', status_partial: '部分实现',
+      status_ready: '就绪', status_opening: '正在启动', status_closing: '正在关闭', status_stopping: '正在停止', status_degraded: '受限运行', status_implemented: '已实现', status_partial: '部分实现',
       status_planned: '待实现', status_blocked: '受阻', status_available: '可用', status_unavailable: '不可用', status_unconfigured: '未配置',
       status_running: '运行中', status_created: '已创建', status_completed: '已完成', status_failed: '失败', status_cancelled: '已取消',
       status_pending: '待处理', status_active: '有效', status_closed: '已关闭', status_passed: '通过', status_succeeded: '成功',
@@ -85,6 +85,17 @@ window.__ModuleLoader__.load({
       contextVerifyHistory: '已保存的背景检查记录', contextVerifyHistoryHint: '这是该次检查的持久记录，不能确认当前背景状态，也不代表本次操作通过。', diagnosticMessage: '记录说明',
       contextSafetyUnavailable: '原生背景加载尚不可用，请查看诊断中的依赖状态。', contextSafetyMissing: '原生背景加载就绪检查尚未接入。',
       contextAttemptedRounds: '尝试轮数', contextAttemptedRoundsHint: '读取视图或模型派发前失败，也可能计入尝试轮数。实际模型调用以 Session 观察记录为准；此计数不代表完整计费用量。',
+      memory: '记忆', memoryHint: '显式保存本地记忆片段，按记录读取已保存内容。',
+      memoryUnconfigured: '本地记忆尚未配置', memoryReady: '精确记忆存取可用', memoryWaiting: '记忆服务尚未就绪', memoryUnavailable: '记忆服务不可用', memoryWaitingHint: '服务可能尚未启动；以当前依赖状态为准。',
+      memorySemanticDisabled: '语义检索尚未启用', memoryBackend: '记忆后端', backendId: '后端 ID', deploymentId: '部署 ID', memoryScope: '记忆范围', memoryEmbedding: '语义检索', errorCode: '错误代码',
+      memorySaveTitle: '保存片段', memorySave: '保存片段', memorySaving: '正在保存片段…', memoryConversation: '关联对话', memoryChooseConversation: '请选择已有本地对话', memorySnippet: '记忆片段',
+      memorySaveHint: '明确点击后保存；同一未修改片段保持请求 ID，刷新不会重新提交，结果未知时不会自动重试。', memoryNoConversation: '请先关联一个本地对话。', memoryBodyLimit: '片段最多 16,384 UTF-8 字节。',
+      memorySaved: '保存请求已有回执；记录状态以最新快照为准。', memoryDuplicate: '该请求已存在，未作为新保存请求提交；请核对快照中的状态。', memoryUnconfirmed: '记忆操作回执不完整，结果未确认；不会自动重试。',
+      memoryEntries: '记忆记录', memoryEntriesUnknown: '尚未提供记忆记录', memoryEmpty: '暂无记忆记录', memoryDetails: '记忆详情', memorySelect: '选择记录查看元信息', memoryView: '查看记忆 {id}',
+      memoryOperationId: '操作 ID', memoryRequestId: '保存请求 ID', memoryNativeId: '后端记录 ID', memoryBytes: '正文字节数', memoryConsent: '读取许可', memoryConsentActive: '有效', memoryConsentWithdrawn: '已撤回', memoryBlocked: '是否受阻', memoryNotBlocked: '未受阻', memoryCreated: '创建时间',
+      memoryRead: '读取正文', memoryReading: '正在读取正文…', memoryBodyTitle: '本次读取的正文', memoryBodyHint: '正文仅在本页临时显示；切换记录、许可失效或撤回后清除。', memoryReadChanged: '读取期间所选记录或读取许可已变化，正文未显示。请重新核对。',
+      memoryWithdraw: '撤回读取许可', memoryWithdrawing: '正在撤回读取许可…', memoryWithdrawHint: '撤回后停止读取此片段；这不表示后端正文已被物理删除。暂停时仍可撤回。', memoryWithdrawn: '读取许可已撤回，临时正文已清除；不代表物理删除。', memoryWithdrawUnconfirmed: '撤回结果未确认，临时正文已清除；请刷新核对，不会自动重试。',
+      memoryBusy: '记忆请求正在处理，请等待回执；不会自动重试。', memoryNotInSnapshot: '当前快照尚未包含选中的记忆记录。', status_applied: '已应用', status_dispatching: '派发中', status_prepared: '已准备', status_proposed: '已提出',
       commandFailed: '操作未完成', commandUncertain: '操作结果未确认，请先刷新状态再决定下一步。', requestFailed: '请求失败',
       controlPending: '正在处理请求…', close: '关闭详情', phase: '阶段', checked: '最近检查', source: '来自运行快照',
     };
@@ -94,7 +105,7 @@ window.__ModuleLoader__.load({
       runtimeState: 'Current state', currentWork: 'Current work', attention: 'Needs attention', activities: 'Recent activity', noWork: 'No work is currently running',
       noAttention: 'Nothing needs attention', noActivities: 'No activity recorded yet', noSessions: 'No sessions recorded yet', noSystems: 'No implementation status received yet',
       status_idle: 'Idle', status_busy: 'Busy', status_waiting: 'Waiting', status_paused: 'Paused', status_unknown: 'Unknown',
-      status_ready: 'Ready', status_stopping: 'Stopping', status_degraded: 'Degraded', status_implemented: 'Implemented', status_partial: 'Partial',
+      status_ready: 'Ready', status_opening: 'Opening', status_closing: 'Closing', status_stopping: 'Stopping', status_degraded: 'Degraded', status_implemented: 'Implemented', status_partial: 'Partial',
       status_planned: 'Planned', status_blocked: 'Blocked', status_available: 'Available', status_unavailable: 'Unavailable', status_unconfigured: 'Not configured',
       status_running: 'Running', status_created: 'Created', status_completed: 'Completed', status_failed: 'Failed', status_cancelled: 'Cancelled',
       status_pending: 'Pending', status_active: 'Active', status_closed: 'Closed', status_passed: 'Passed', status_succeeded: 'Succeeded',
@@ -169,6 +180,17 @@ window.__ModuleLoader__.load({
       contextVerifyHistory: 'Saved context check record', contextVerifyHistoryHint: 'This persisted record describes that check. It does not confirm the current context state or a pass for this operation.', diagnosticMessage: 'Record message',
       contextSafetyUnavailable: 'Native context loading is unavailable. See dependency status in Diagnostics.', contextSafetyMissing: 'The native context readiness check is not connected yet.',
       contextAttemptedRounds: 'Attempted turns', contextAttemptedRoundsHint: 'Failures while reading a view or before model dispatch may still count as attempted turns. Use Session observations for actual model calls; this is not a complete billing measure.',
+      memory: 'Memory', memoryHint: 'Explicitly save local memory snippets and read saved content by record.',
+      memoryUnconfigured: 'Local memory is not configured', memoryReady: 'Exact memory storage is available', memoryWaiting: 'Memory service is not ready', memoryUnavailable: 'Memory service is unavailable', memoryWaitingHint: 'The service may not have started. Check the current dependency state.',
+      memorySemanticDisabled: 'Semantic search is not enabled', memoryBackend: 'Memory backend', backendId: 'Backend ID', deploymentId: 'Deployment ID', memoryScope: 'Memory scope', memoryEmbedding: 'Semantic search', errorCode: 'Error code',
+      memorySaveTitle: 'Save snippet', memorySave: 'Save snippet', memorySaving: 'Saving snippet…', memoryConversation: 'Linked conversation', memoryChooseConversation: 'Choose an existing local conversation', memorySnippet: 'Memory snippet',
+      memorySaveHint: 'Saves only after an explicit click. An unchanged snippet keeps its request ID. Refreshing never resubmits, and uncertain results are not retried automatically.', memoryNoConversation: 'Link a local conversation first.', memoryBodyLimit: 'At most 16,384 UTF-8 bytes per snippet.',
+      memorySaved: 'A save receipt was received. Use the latest snapshot to check the record state.', memoryDuplicate: 'This request already exists and was not submitted as a new save. Check its state in the snapshot.', memoryUnconfirmed: 'The memory receipt is incomplete. The result is unconfirmed; no automatic retry will occur.',
+      memoryEntries: 'Memory records', memoryEntriesUnknown: 'Memory records are not reported', memoryEmpty: 'No memory records', memoryDetails: 'Memory details', memorySelect: 'Select a record to inspect its metadata', memoryView: 'View memory {id}',
+      memoryOperationId: 'Operation ID', memoryRequestId: 'Save request ID', memoryNativeId: 'Backend record ID', memoryBytes: 'Body bytes', memoryConsent: 'Read consent', memoryConsentActive: 'Active', memoryConsentWithdrawn: 'Withdrawn', memoryBlocked: 'Blocked', memoryNotBlocked: 'Not blocked', memoryCreated: 'Created',
+      memoryRead: 'Read body', memoryReading: 'Reading body…', memoryBodyTitle: 'Body from this read', memoryBodyHint: 'The body is shown only temporarily in this page. Selecting another record, losing access, or withdrawing consent clears it.', memoryReadChanged: 'The selection or read permission changed during this read. The body was not displayed. Inspect the current record again.',
+      memoryWithdraw: 'Withdraw read consent', memoryWithdrawing: 'Withdrawing read consent…', memoryWithdrawHint: 'Withdrawal stops reads of this snippet. It does not mean the backend body was physically deleted. Withdrawal remains available while paused.', memoryWithdrawn: 'Read consent was withdrawn and the temporary body was cleared. This does not confirm physical deletion.', memoryWithdrawUnconfirmed: 'Withdrawal is unconfirmed and the temporary body was cleared. Refresh to inspect it; no automatic retry will occur.',
+      memoryBusy: 'A memory request is running. Waiting for its receipt; no automatic retry will occur.', memoryNotInSnapshot: 'The selected memory record is not in the current snapshot.', status_applied: 'Applied', status_dispatching: 'Dispatching', status_prepared: 'Prepared', status_proposed: 'Proposed',
       commandFailed: 'Operation did not complete', commandUncertain: 'The result is unconfirmed. Refresh the state before deciding what to do next.', requestFailed: 'Request failed',
       controlPending: 'Processing request…', close: 'Close details', phase: 'Phase', checked: 'Last checked', source: 'From the runtime snapshot',
     };
@@ -182,6 +204,7 @@ window.__ModuleLoader__.load({
 @media(max-width:480px){.syr-wrap{padding:18px 16px 26px}.syr-header{align-items:flex-start;flex-wrap:wrap;gap:12px}.syr h1{font-size:21px}.syr-header>.syr-actions{margin-left:37px}.syr-tabs{gap:22px;margin-bottom:18px}.syr-box{padding:16px}.syr-state{padding:17px}.syr-state-main{font-size:22px}.syr-timeline li{grid-template-columns:1fr auto;gap:4px 12px}.syr-timeline time{grid-column:1/-1}.syr-facts{grid-template-columns:94px minmax(0,1fr);gap:9px 12px}.syr-diagnostic-head{align-items:flex-start;flex-direction:column}.syr-diagnostic-head .syr-btn{max-width:100%}.syr-footer{flex-direction:column;gap:4px}}
 .syr-task-layout{display:grid;grid-template-columns:minmax(240px,.75fr) minmax(0,1.4fr);gap:24px;align-items:start}.syr-task-label{font-weight:500;overflow-wrap:anywhere}.syr-task-list-row{align-items:flex-start;flex-wrap:wrap}.syr-task-caption{display:block;margin-top:5px;font-size:11px;color:var(--sr-muted)}.syr-task-detail{min-width:0}.syr-task-detail>.syr-section-title{align-items:flex-start}.syr-task-detail .syr-alert{margin-top:16px}.syr-task-check{border-top:1px solid var(--sr-line);padding:14px 0}.syr-task-check:last-child{padding-bottom:0}.syr-task-check>h3,.syr-task-check>.syr-row{margin-bottom:10px}.syr-evidence{margin:6px 0 0;padding-left:18px;font-size:11px;overflow-wrap:anywhere}.syr-evidence li{padding:3px 0}.syr-evidence code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre-wrap}.syr-task-result{margin-top:16px;padding-top:16px;border-top:1px solid var(--sr-line)}.syr-task-result .syr-small{margin-top:8px}
 .syr-link-controls{min-width:0;flex:1 1 280px}.syr-select-label{display:flex;flex-direction:column;gap:5px;margin-top:12px;max-width:100%;font-size:12px}.syr-select{font:inherit;color:var(--sr-text);background:var(--sr-bg);border:1px solid var(--sr-line);border-radius:7px;min-height:34px;padding:6px 8px;width:100%;max-width:480px;min-width:0}.syr-select:disabled{opacity:.5}
+.syr-textarea{font:inherit;color:var(--sr-text);background:var(--sr-bg);border:1px solid var(--sr-line);border-radius:7px;min-height:120px;width:100%;padding:9px 10px;resize:vertical}.syr-table-wrap{max-width:100%;overflow-x:auto}.syr-table{width:100%;border-collapse:collapse;font-size:12px}.syr-table th,.syr-table td{text-align:left;padding:11px 10px;border-bottom:1px solid var(--sr-line);vertical-align:top}.syr-table th{font-weight:500;color:var(--sr-muted)}.syr-table td:first-child{min-width:140px;max-width:320px;overflow-wrap:anywhere}.syr-table .syr-btn{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;overflow-wrap:anywhere;text-align:left}.syr-memory-body{margin:12px 0 0;white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:inherit;font-size:12px}.syr-memory-form>.syr-actions{margin-top:14px}
 @media(max-width:820px){.syr-task-layout{grid-template-columns:1fr}.syr-task-detail .syr-facts{grid-template-columns:100px minmax(0,1fr)}}
 @media(max-width:480px){.syr-link-controls{flex:initial;width:100%}}
 `;
@@ -210,6 +233,10 @@ window.__ModuleLoader__.load({
           return key ? t(key) : text(value) || t('unknownValue');
         };
         const expectedValue = value => typeof value === 'string' ? value : JSON.stringify(value) ?? t('unknownValue');
+        const memoryEntryValid = entry => entry && typeof entry === 'object' && !Array.isArray(entry)
+          && ['operationId', 'requestId', 'conversationId', 'status'].every(key => typeof entry[key] === 'string' && Boolean(entry[key].trim()))
+          && Number.isSafeInteger(entry.version) && entry.version >= 1 && typeof entry.blocked === 'boolean'
+          && Number.isSafeInteger(entry.bodyBytes) && entry.bodyBytes >= 0 && ['active', 'withdrawn'].includes(entry.consent) && typeof entry.canRead === 'boolean';
         function dateTime(value, locale) {
           if (!value) return t('unknownValue');
           const date = new Date(value);
@@ -258,11 +285,29 @@ window.__ModuleLoader__.load({
           const [goalReceipt, setGoalReceipt] = useState(null);
           const [contextReceipt, setContextReceipt] = useState(null);
           const [contextAttempt, setContextAttempt] = useState(null);
+          const [memorySelected, setMemorySelected] = useState(null);
+          const [memoryConversationId, setMemoryConversationId] = useState('');
+          const [memoryText, setMemoryText] = useState('');
+          const [memoryBody, setMemoryBody] = useState(null);
+          const [memoryWithdrawing, setMemoryWithdrawing] = useState('');
+          const [memoryError, setMemoryError] = useState('');
+          const [memoryNotice, setMemoryNotice] = useState('');
+          const memoryDraftId = useRef(null), memoryWithdrawIds = useRef(new Map());
+          const memoryGuard = useRef({ snapshot: null, fresh: false, selected: null, revision: 0, body: null, revoked: new Set() });
+          function clearMemoryBody() { memoryGuard.current.revision++; memoryGuard.current.body = null; setMemoryBody(null); }
+          function chooseMemory(operationId) { clearMemoryBody(); memoryGuard.current.selected = operationId; setMemorySelected(operationId); }
+          function memoryCanRead(operationId) {
+            const guard = memoryGuard.current, current = guard.snapshot;
+            const entry = arr(current?.memory?.entries).find(item => item?.operationId === operationId);
+            return guard.fresh && Number.isFinite(Date.parse(current?.observedAt)) && Date.now() - Date.parse(current.observedAt) <= 30000
+              && current.memory?.configured === true && current.memory?.ready === true && ['idle', 'busy', 'waiting'].includes(current.state)
+              && current.lifecycle !== 'stopping' && !guard.revoked.has(operationId) && memoryEntryValid(entry) && entry.canRead === true && entry.consent === 'active' && !entry.blocked;
+          }
           const rootRef = useRef(null);
-          const operations = useRef({ refresh: () => {}, command: () => {} });
+          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {} });
           useEffect(() => {
             if (disposed) return;
-            let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false;
+            let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false, withdrawalInFlight = false;
             const writes = new Set(), deadlines = new Set();
             const canRead = () => alive && !disposed && panelVisible && document.visibilityState !== 'hidden';
             async function refresh(force = false) {
@@ -275,10 +320,17 @@ window.__ModuleLoader__.load({
                 const next = await api('state', { signal: controller.signal });
                 if (next?.schemaVersion !== 1 || !Array.isArray(next.systems) || !Array.isArray(next.sessions) || !next.observedAt || !['idle', 'busy', 'waiting', 'paused', 'unknown'].includes(next.state)) throw new Error(t('invalidSnapshot'));
                 if (!alive || disposed || reading !== controller) return false;
+                const guard = memoryGuard.current;
+                const previousEntry = arr(guard.snapshot?.memory?.entries).find(item => item?.operationId === guard.selected);
+                const nextEntry = arr(next.memory?.entries).find(item => item?.operationId === guard.selected);
+                const instanceChanged = guard.snapshot && guard.snapshot.instanceId !== next.instanceId;
+                guard.snapshot = next; guard.fresh = true;
+                if (instanceChanged || (guard.selected && (!memoryCanRead(guard.selected) || !previousEntry || !nextEntry || previousEntry.version !== nextEntry.version
+                  || previousEntry.requestId !== nextEntry.requestId || previousEntry.conversationId !== nextEntry.conversationId || previousEntry.nativeId !== nextEntry.nativeId))) clearMemoryBody();
                 setSnapshot(next); setLastRead(new Date().toISOString()); setReadError(''); setClock(Date.now());
                 return true;
               } catch (error) {
-                if (alive && !disposed && reading === controller) setReadError(controller.signal.aborted ? t('loadFailed') : error.message || t('loadFailed'));
+                if (alive && !disposed && reading === controller) { memoryGuard.current.fresh = false; clearMemoryBody(); setReadError(controller.signal.aborted ? t('loadFailed') : error.message || t('loadFailed')); }
                 return false;
               } finally {
                 clearTimeout(timeout);
@@ -287,12 +339,13 @@ window.__ModuleLoader__.load({
             }
             async function issue(action, payload = {}, expected = {}) {
               const isControl = action === 'runtime.pause' || action === 'runtime.resume';
-              if (!alive || disposed || (isControl ? controlInFlight || (action === 'runtime.resume' && commandInFlight) : commandInFlight || controlInFlight)) return;
+              if (!alive || disposed || (isControl ? controlInFlight || (action === 'runtime.resume' && commandInFlight) : commandInFlight || controlInFlight || withdrawalInFlight)) return;
               const setPending = isControl ? setControlCommand : setCommand;
               const setError = isControl ? setControlError : setCommandError;
               const setNotice = isControl ? setControlNotice : setCommandNotice;
               if (isControl) controlInFlight = true; else commandInFlight = true;
               setPending(action); setError(''); setNotice('');
+              if (action === 'runtime.pause') clearMemoryBody();
               if (action === 'goal.verify-lifecycle') setGoalReceipt(null);
               if (action === 'conversation.verifyContext') { setContextReceipt(null); setContextAttempt({ conversationId: payload.conversationId, bindingId: expected.bindingId }); }
               const controller = new AbortController(); writes.add(controller);
@@ -351,7 +404,53 @@ window.__ModuleLoader__.load({
                 if (alive && !disposed) { setPending(''); if (action === 'conversation.verifyContext') setContextAttempt(null); }
               }
             }
-            operations.current = { refresh: () => refresh(true), command: issue };
+            async function issueMemory(action, payload) {
+              const withdraw = action === 'memory.withdrawLocal';
+              if (!alive || disposed || (withdraw ? withdrawalInFlight : commandInFlight || controlInFlight || withdrawalInFlight)) return;
+              const guard = memoryGuard.current, current = guard.snapshot;
+              const currentEntry = arr(current?.memory?.entries).find(item => item?.operationId === payload.operationId);
+              if (withdraw) {
+                if (!memoryEntryValid(currentEntry) || currentEntry.consent !== 'active' || current?.lifecycle === 'stopping') return;
+                withdrawalInFlight = true; setMemoryWithdrawing(payload.operationId); guard.revoked.add(payload.operationId); clearMemoryBody();
+              } else {
+                const fresh = guard.fresh && Number.isFinite(Date.parse(current?.observedAt)) && Date.now() - Date.parse(current.observedAt) <= 30000;
+                if (!fresh || current?.memory?.configured !== true || current.memory.ready !== true || !['idle', 'busy', 'waiting'].includes(current.state) || current.lifecycle === 'stopping') return;
+                if (action === 'memory.readLocal' && (!memoryCanRead(payload.operationId) || guard.selected !== payload.operationId)) return;
+                commandInFlight = true; setCommand(action);
+                if (action === 'memory.readLocal') clearMemoryBody();
+              }
+              const readRevision = guard.revision, readVersion = currentEntry?.version, instanceId = current?.instanceId;
+              setMemoryError(''); setMemoryNotice('');
+              const controller = new AbortController(); writes.add(controller);
+              const timeout = setTimeout(() => controller.abort(), 70000); deadlines.add(timeout);
+              try {
+                const result = await api('commands', { action, payload, signal: controller.signal });
+                if (!alive || disposed) return;
+                if (action === 'memory.rememberLocal') {
+                  if (typeof result?.duplicate !== 'boolean' || !memoryEntryValid(result?.entry) || result.entry.requestId !== payload.requestId || result.entry.conversationId !== payload.conversationId) throw new Error(t('memoryUnconfirmed'));
+                  chooseMemory(result.entry.operationId); setMemoryNotice(t(result.duplicate ? 'memoryDuplicate' : 'memorySaved'));
+                  // A receipt selects an ID, never inserts returned metadata/body into the snapshot.
+                } else if (action === 'memory.readLocal') {
+                  const latest = arr(guard.snapshot?.memory?.entries).find(item => item?.operationId === payload.operationId);
+                  if (!memoryEntryValid(result?.entry) || result.entry.operationId !== payload.operationId || result.entry.version !== readVersion || result.entry.canRead !== true || result.entry.consent !== 'active' || result.entry.blocked || typeof result.body !== 'string') throw new Error(t('memoryUnconfirmed'));
+                  if (guard.revision !== readRevision || guard.selected !== payload.operationId || guard.snapshot?.instanceId !== instanceId || !memoryCanRead(payload.operationId)
+                    || latest.version !== result.entry.version || latest.requestId !== result.entry.requestId || latest.conversationId !== result.entry.conversationId || latest.nativeId !== result.entry.nativeId) throw new Error(t('memoryReadChanged'));
+                  const body = { operationId: payload.operationId, version: result.entry.version, instanceId, body: result.body };
+                  guard.body = body; setMemoryBody(body);
+                } else {
+                  if (!memoryEntryValid(result) || result.operationId !== payload.operationId || result.consent !== 'withdrawn' || result.canRead !== false) throw new Error(t('memoryWithdrawUnconfirmed'));
+                  setMemoryNotice(t('memoryWithdrawn'));
+                }
+                await refresh(true);
+              } catch (error) {
+                if (alive && !disposed) { setMemoryError(withdraw ? t('memoryWithdrawUnconfirmed') : controller.signal.aborted ? t('memoryUnconfirmed') : error.message || t('memoryUnconfirmed')); await refresh(true); }
+              } finally {
+                clearTimeout(timeout); deadlines.delete(timeout); writes.delete(controller);
+                if (withdraw) { withdrawalInFlight = false; if (alive && !disposed) setMemoryWithdrawing(''); }
+                else { commandInFlight = false; if (alive && !disposed) setCommand(''); }
+              }
+            }
+            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory };
             const onVisibility = () => { setClock(Date.now()); if (canRead()) void refresh(); };
             document.addEventListener('visibilitychange', onVisibility);
             const timer = setInterval(() => { if (canRead()) { setClock(Date.now()); void refresh(); } }, 10000);
@@ -365,8 +464,9 @@ window.__ModuleLoader__.load({
               if (!alive) return; alive = false;
               reading?.abort(); for (const controller of writes) controller.abort(); for (const timeout of deadlines) clearTimeout(timeout);
               writes.clear(); deadlines.clear(); clearInterval(timer); observer?.disconnect();
+              memoryGuard.current.fresh = false; memoryGuard.current.body = null; memoryGuard.current.revision++;
               document.removeEventListener('visibilitychange', onVisibility);
-              operations.current = { refresh: () => {}, command: () => {} };
+              operations.current = { refresh: () => {}, command: () => {}, memory: () => {} };
               panelDisposers.delete(cleanup);
             };
             panelDisposers.add(cleanup);
@@ -376,7 +476,7 @@ window.__ModuleLoader__.load({
           const aged = Boolean(snapshot && (!Number.isFinite(observedMs) || clock - observedMs > 30000));
           const stale = Boolean(readError || aged);
           const state = snapshot?.state || 'unknown';
-          const canCommand = Boolean(snapshot && !stale && snapshot.lifecycle !== 'stopping' && !command && !controlCommand);
+          const canCommand = Boolean(snapshot && !stale && snapshot.lifecycle !== 'stopping' && !command && !controlCommand && !memoryWithdrawing);
           const canStartCommand = canCommand && state !== 'paused';
           const canCreateLocalTask = canStartCommand && typeof snapshot?.instanceId === 'string' && Boolean(snapshot.instanceId.trim());
           // Pausing has its own request lane, including while a long check is waiting.
@@ -400,6 +500,13 @@ window.__ModuleLoader__.load({
           const background = snapshot?.background && typeof snapshot.background === 'object' && !Array.isArray(snapshot.background) ? snapshot.background : null;
           const contextLabel = item => t(item?.needsSync === true ? 'contextNeedsLoad' : item?.needsSync === false ? 'contextNoPending' : 'contextUnknown');
           const sourceRef = value => typeof value?.kind === 'string' && typeof value?.id === 'string' ? `${value.kind}:${value.id}` : t('unknownValue');
+          const memoryConfigured = snapshot?.memory?.configured === true, memoryReady = memoryConfigured && snapshot?.memory?.ready === true;
+          const memoryEntries = arr(snapshot?.memory?.entries), memoryEntry = memoryEntries.find(item => item?.operationId === memorySelected);
+          const memoryBodyVisible = memoryBody && memoryBody.operationId === memorySelected && memoryBody.instanceId === snapshot?.instanceId
+            && memoryBody.version === memoryEntry?.version && !stale && memoryCanRead(memorySelected);
+          useEffect(() => {
+            if (stale || tab !== 'memory' || state === 'paused' || !memoryReady) clearMemoryBody();
+          }, [stale, tab, state, memoryReady]);
           const task = tasks.find(item => item.taskId === selectedTask);
           const selected = sessions.find(session => session.id === selectedSession);
           const hostState = session => ['idle', 'running', 'not_attached'].includes(session.hostStatus) ? session.hostStatus : 'unknown';
@@ -536,6 +643,55 @@ window.__ModuleLoader__.load({
                 h('p', { className: 'syr-small syr-muted' }, t('contextAttemptedRoundsHint')),
                 h('div', { className: 'syr-section-gap' }, h(Facts, { rows: [['checked', dateTime(history.at, locale)], ['status', label(history.ok === true ? 'passed' : history.ok === false ? 'failed' : 'unknown')], ['instance', history.instanceId, true], ['contextAttemptedRounds', numeric(history.calls)], ['conversationId', history.conversationId, true], ['sessionId', history.sessionId, true], ['diagnosticMessage', typeof history.message === 'string' ? history.message : t('unknownValue')]] }))));
           }
+          function memoryContent() {
+            const backend = snapshot.memory?.backend, errorCode = snapshot.memory?.errorCode;
+            const statusKey = !memoryConfigured ? 'memoryUnconfigured' : memoryReady ? 'memoryReady' : errorCode ? 'memoryUnavailable' : 'memoryWaiting';
+            const snippetBytes = new TextEncoder().encode(memoryText.trim()).length;
+            const conversationKnown = conversations.some(item => item.conversationId === memoryConversationId);
+            const canSave = canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && memoryReady && conversationKnown && snippetBytes > 0 && snippetBytes <= 16384;
+            const readable = memoryEntry?.canRead === true && memoryEntry?.consent === 'active' && !memoryEntry?.blocked && !memoryGuard.current.revoked.has(memorySelected);
+            const canRead = canStartCommand && memoryReady && readable && memoryCanRead(memorySelected);
+            const canWithdraw = memoryEntryValid(memoryEntry) && memoryEntry.consent === 'active' && snapshot.lifecycle !== 'stopping' && !memoryWithdrawing;
+            const consentLabel = value => t(value === 'active' ? 'memoryConsentActive' : value === 'withdrawn' ? 'memoryConsentWithdrawn' : 'unknownValue');
+            return h('div', { className: 'syr-stack' },
+              h('section', null, h('div', { className: 'syr-system-heading' }, h('h2', null, t('memory')), h('p', null, t('memoryHint'))),
+                h('div', { className: 'syr-box', 'data-testid': 'memory-state' }, h(Title, null, t(statusKey)),
+                  memoryConfigured && !memoryReady && !errorCode && h('p', { className: 'syr-small syr-muted' }, t('memoryWaitingHint')),
+                  backend && h(Facts, { rows: [['status', label(backend.state)], ['backendId', text(backend.backendId), true], ['deploymentId', text(backend.deploymentId), true], ['memoryScope', text(backend.scope), true], ['memoryEmbedding', backend.embedding === 'disabled' ? t('memorySemanticDisabled') : t('unknownValue')]] }),
+                  errorCode && h('p', { className: 'syr-small syr-code syr-section-gap' }, `${t('errorCode')} · ${text(errorCode)}`))),
+              h('section', { className: 'syr-box syr-memory-form', 'aria-label': t('memorySaveTitle'), 'data-testid': 'memory-form' }, h(Title, null, t('memorySaveTitle')),
+                h('p', { className: 'syr-small syr-muted' }, t('memorySaveHint')),
+                h('label', { className: 'syr-select-label' }, h('span', null, t('memoryConversation')), h('select', { className: 'syr-select', 'aria-label': t('memoryConversation'), value: memoryConversationId, disabled: Boolean(command || controlCommand || memoryWithdrawing), onChange: event => { memoryDraftId.current = null; setMemoryConversationId(event.target.value); } },
+                  h('option', { value: '' }, t('memoryChooseConversation')), ...conversations.map(item => h('option', { key: item.bindingId, value: item.conversationId }, `${item.localConversationKey || item.conversationId} (${item.conversationId})`)))),
+                !conversations.length && h('p', { className: 'syr-small syr-muted' }, t('memoryNoConversation')),
+                h('label', { className: 'syr-select-label' }, h('span', null, t('memorySnippet')), h('textarea', { className: 'syr-textarea', 'aria-label': t('memorySnippet'), value: memoryText, maxLength: 20000, disabled: Boolean(command || controlCommand || memoryWithdrawing), onChange: event => { memoryDraftId.current = null; setMemoryText(event.target.value); } })),
+                h('p', { className: 'syr-small syr-muted' }, t('memoryBodyLimit')),
+                h('div', { className: 'syr-actions' }, h(Button, { disabled: !canSave, onClick: () => {
+                  if (!canSave) return;
+                  memoryDraftId.current ||= `memory-${crypto.randomUUID()}`;
+                  void operations.current.memory('memory.rememberLocal', { requestId: memoryDraftId.current, conversationId: memoryConversationId, text: memoryText });
+                } }, t(command === 'memory.rememberLocal' ? 'memorySaving' : 'memorySave')))),
+              memoryError && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'memory-error' }, memoryError),
+              memoryNotice && h('p', { className: 'syr-feedback', role: 'status' }, memoryNotice),
+              (command.startsWith('memory.') || memoryWithdrawing) && h('p', { className: 'syr-feedback', role: 'status' }, t(memoryWithdrawing ? 'memoryWithdrawing' : 'memoryBusy')),
+              h('section', null, h(Title, { count: Array.isArray(snapshot.memory?.entries) ? memoryEntries.length : undefined }, t('memoryEntries')),
+                !Array.isArray(snapshot.memory?.entries) ? h(Empty, null, t('memoryEntriesUnknown')) : !memoryEntries.length ? h(Empty, null, t('memoryEmpty')) : h('div', { className: 'syr-table-wrap', 'data-testid': 'memory-list' },
+                  h('table', { className: 'syr-table' }, h('thead', null, h('tr', null, ...['memoryOperationId', 'status', 'memoryConsent', 'memoryBytes'].map(key => h('th', { key, scope: 'col' }, t(key))))),
+                    h('tbody', null, ...memoryEntries.map(item => h('tr', { key: item.operationId },
+                      h('td', null, h(Button, { 'aria-label': t('memoryView', { id: item.operationId }), 'aria-pressed': memorySelected === item.operationId, onClick: () => chooseMemory(item.operationId) }, text(item.operationId))),
+                      h('td', null, h(Status, { value: item.status })), h('td', null, consentLabel(item.consent)), h('td', null, numeric(item.bodyBytes)))))))),
+              memoryEntry ? h('section', { className: 'syr-box', 'aria-label': t('memoryDetails'), 'data-testid': 'memory-detail' }, h(Title, null, t('memoryDetails')),
+                h(Facts, { rows: [['memoryOperationId', text(memoryEntry.operationId), true], ['memoryRequestId', text(memoryEntry.requestId), true], ['conversationId', text(memoryEntry.conversationId), true], ['recordVersion', numeric(memoryEntry.version)], ['status', label(memoryEntry.status)], ['memoryConsent', consentLabel(memoryEntry.consent)], ['memoryBlocked', memoryEntry.blocked === true ? t('status_blocked') : memoryEntry.blocked === false ? t('memoryNotBlocked') : t('unknownValue')], ['memoryBytes', numeric(memoryEntry.bodyBytes)], ['memoryNativeId', memoryEntry.nativeId, true], ['memoryCreated', dateTime(memoryEntry.createdAt, locale)]] }),
+                h('div', { className: 'syr-actions syr-section-gap' }, readable && h(Button, { disabled: !canRead, onClick: () => { if (canRead) void operations.current.memory('memory.readLocal', { operationId: memoryEntry.operationId }); } }, t(command === 'memory.readLocal' ? 'memoryReading' : 'memoryRead')),
+                  memoryEntry.consent === 'active' && h(Button, { disabled: !canWithdraw, onClick: () => {
+                    if (!canWithdraw) return;
+                    if (!memoryWithdrawIds.current.has(memoryEntry.operationId)) memoryWithdrawIds.current.set(memoryEntry.operationId, `memory-withdraw-${crypto.randomUUID()}`);
+                    void operations.current.memory('memory.withdrawLocal', { requestId: memoryWithdrawIds.current.get(memoryEntry.operationId), operationId: memoryEntry.operationId });
+                  } }, t(memoryWithdrawing === memoryEntry.operationId ? 'memoryWithdrawing' : 'memoryWithdraw'))),
+                h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('memoryWithdrawHint')),
+                memoryBodyVisible && h('section', { className: 'syr-task-result', 'aria-label': t('memoryBodyTitle'), 'data-testid': 'memory-body' }, h(Title, null, t('memoryBodyTitle')), h('p', { className: 'syr-small syr-muted' }, t('memoryBodyHint')), h('pre', { className: 'syr-memory-body' }, memoryBody.body)))
+                : h(Empty, null, t(memorySelected ? 'memoryNotInSnapshot' : 'memorySelect')));
+          }
           function diagnostics() {
             return h('div', { className: 'syr-stack' },
               h('section', { className: 'syr-box syr-diagnostic-head' }, h('div', null, h('h2', null, t('diagnostics')), h('p', { className: 'syr-small syr-muted' }, t('probeHint'))), h(Button, { disabled: !canStartCommand, onClick: () => void operations.current.command('session.probe') }, t(command === 'session.probe' ? 'probing' : 'probe'))),
@@ -557,7 +713,7 @@ window.__ModuleLoader__.load({
           return h('div', { className: 'syr', ref: rootRef }, h('style', null, css), h('div', { className: 'syr-wrap' },
             h('header', { className: 'syr-header' }, h('div', { className: 'syr-brand' }, h(Icon, { size: 27 }), h('div', null, h('h1', null, t('title')), h('div', { className: 'syr-meta' }, snapshot && h('span', null, `v${snapshot.version}`), h('span', null, t('source'))))),
               h('div', { className: 'syr-actions' }, snapshot && h(Button, { icon: state === 'paused' ? 'play' : 'pause', disabled: !canControl, onClick: () => void operations.current.command(state === 'paused' ? 'runtime.resume' : 'runtime.pause') }, t(state === 'paused' ? 'resume' : 'pause')), h(Button, { icon: 'refresh', disabled: loading, onClick: () => void operations.current.refresh(), 'aria-label': t('refresh'), 'aria-busy': loading }, t(loading ? 'refreshing' : 'refresh')))),
-            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'tasks', 'conversations', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => setTab(id) }, t(id)))),
+            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'tasks', 'conversations', 'memory', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => setTab(id) }, t(id)))),
             stale && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'snapshot-stale' }, h('strong', null, t(snapshot ? 'staleTitle' : 'loadFailed')), h('p', null, readError || t('snapshotOld')), snapshot && h('p', null, t('staleHint'))),
             commandError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), commandError),
             controlError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), controlError),
@@ -565,7 +721,7 @@ window.__ModuleLoader__.load({
             controlNotice && h('p', { className: 'syr-feedback', role: 'status' }, controlNotice),
             command && h('p', { className: 'syr-feedback', role: 'status' }, t(command === 'session.verify-model' ? 'modelVerifyPending' : command === 'conversation.verifyContext' ? 'contextVerifyPending' : 'controlPending', { id: contextAttempt?.conversationId || t('unknownValue') })),
             controlCommand && h('p', { className: 'syr-feedback', role: 'status' }, t('controlPending')),
-            snapshot ? (tab === 'overview' ? overview() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
+            snapshot ? (tab === 'overview' ? overview() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'memory' ? memoryContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
             h('footer', { className: 'syr-footer' }, h('span', null, lastRead ? `${t('lastRead')} · ${dateTime(lastRead, locale)}` : t('unknownHint')), h('span', null, t('autoRefresh')))));
         }
         ctx.effect(() => {

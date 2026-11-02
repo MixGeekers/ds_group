@@ -18,6 +18,9 @@ import { LocalGoalLifecycleService } from './control/goal-lifecycle.js';
 import type { GoalLifecycleOptions, GoalLifecycleResult, GoalLifecycleRunOptions } from './control/goal-lifecycle.js';
 import { BackgroundPump } from './control/background-pump.js';
 import { LocalReplyService } from './control/local-reply.js';
+import { LocalMemoryService } from './control/local-memory.js';
+import { ManagedOmbreBackend, loadManagedOmbreConfig, type ManagedOmbreConfig } from './adapters/ombre/managed.js';
+import type { LocalMemoryEntry } from './adapters/control-store/memory-domain.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
@@ -51,6 +54,14 @@ export interface RuntimeOptions {
   sessionFactory?: (ctx: DshContext, state: LocalStateFile, cwd: string) => SessionDriver;
   workerFactory?: (ctx: DshContext) => TaskWorkerDriver;
   goalFactory?: (options: GoalLifecycleOptions) => GoalLifecycleDriver;
+  /** Trusted fixture/composition only; never accepted from command JSON. */
+  memoryFactory?: (config: ManagedOmbreConfig) => Pick<ManagedOmbreBackend, 'adapter' | 'open' | 'status' | 'close'>;
+}
+function memoryEntry(entry: LocalMemoryEntry) {
+  return { operationId: entry.operation.operationId, version: entry.operation.version, requestId: entry.requestId,
+    conversationId: entry.conversationId, status: entry.operation.status, blocked: entry.operation.blocked,
+    bodyBytes: entry.source.bodyBytes, consent: entry.source.consent.state, canRead: Boolean(entry.reference),
+    ...(entry.reference ? { nativeId: entry.reference.nativeId } : {}), createdAt: entry.operation.createdAt };
 }
 interface ActiveOperation { id: string; title: string; phase: string; status: string; controller: AbortController; done: Promise<void>; finish: () => void }
 
@@ -69,6 +80,10 @@ export class RuntimeService {
   goals!: GoalLifecycleDriver;
   background!: BackgroundPump;
   localReplies!: LocalReplyService;
+  private localMemories?: LocalMemoryService;
+  private memoryBackend?: Pick<ManagedOmbreBackend, 'adapter' | 'open' | 'status' | 'close'>;
+  private memoryConfig?: Readonly<ManagedOmbreConfig>;
+  private memoryFailure?: string;
   private closed = false;
   private closing?: Promise<void>;
   private controlTail: Promise<void> = Promise.resolve();
@@ -94,9 +109,23 @@ export class RuntimeService {
     this.pauseRequested = this.state.state.paused;
     try {
       if (!this.state.state.installationGeneration) await this.state.update(state => { state.installationGeneration = randomUUID(); });
+      try { this.memoryConfig = await loadManagedOmbreConfig(this.dataDir); }
+      catch { this.memoryFailure = 'MEMORY_CONFIGURATION_INVALID'; }
       await mkdir(path.join(this.dataDir, 'control'), { recursive: true, mode: 0o700 });
       await mkdir(path.join(this.dataDir, 'workspaces'), { recursive: true, mode: 0o700 });
-      this.store = await ControlStore.open({ filename: path.join(this.dataDir, 'control', 'events.sqlite'), eventTypes: catalog, componentHandlers: ['runtime.activity', 'conversation.background'], runtimeIdentity: { hostEpoch: this.instanceId, installationGeneration: this.state.state.installationGeneration! } });
+      this.store = await ControlStore.open({ filename: path.join(this.dataDir, 'control', 'events.sqlite'), eventTypes: catalog, componentHandlers: ['runtime.activity', 'conversation.background'], runtimeIdentity: { hostEpoch: this.instanceId, installationGeneration: this.state.state.installationGeneration! },
+        ...(this.memoryConfig ? { memoryBackend: { backendId: this.memoryConfig.backendId, deploymentId: this.memoryConfig.deploymentId } } : {}) });
+      if (this.memoryConfig) {
+        const domain = await this.store.request('memory.status', {});
+        if (!domain.ready) this.memoryFailure = domain.errorCode ?? 'MEMORY_DOMAIN_UNAVAILABLE';
+        else {
+          try {
+            this.memoryBackend = this.options.memoryFactory?.(this.memoryConfig) ?? new ManagedOmbreBackend(this.memoryConfig);
+            if (!this.pauseRequested) await this.memoryBackend.open();
+            this.localMemories = new LocalMemoryService({ store: this.store, backend: this.memoryBackend.adapter, assertRuntimeAllowed: () => this.ensureCanRun() });
+          } catch { this.memoryFailure = 'MEMORY_BACKEND_UNAVAILABLE'; await this.memoryBackend?.close().catch(() => undefined); }
+        }
+      }
       this.events = new EventService(this.store);
       this.sessions = this.options.sessionFactory?.(this.ctx, this.state, path.join(this.dataDir, 'workspaces')) ?? new ShiyuSessionAdapter({
         ctx: this.ctx, cwd: path.join(this.dataDir, 'workspaces'),
@@ -142,6 +171,8 @@ export class RuntimeService {
       } });
       await this.background.start();
     } catch (error) {
+      await this.localMemories?.close().catch(() => undefined);
+      await this.memoryBackend?.close().catch(() => undefined);
       await this.background?.close().catch(() => undefined);
       await this.localReplies?.close().catch(() => undefined);
       await this.goals?.close().catch(() => undefined);
@@ -176,6 +207,10 @@ export class RuntimeService {
         await this.state.update(state => { state.paused = false; });
       }
       if (!paused && revision === this.controlRevision && !this.closed) this.pauseRequested = false;
+      if (!paused && revision === this.controlRevision && !this.closed && this.memoryBackend?.status().state === 'idle') {
+        try { await this.memoryBackend.open(); }
+        catch { this.memoryFailure = 'MEMORY_BACKEND_UNAVAILABLE'; await this.memoryBackend.close().catch(() => undefined); }
+      }
       if (paused) for (const binding of await this.sessions.getStatus()) if (binding.status === 'running') await this.sessions.cancel(binding.key);
       await this.record('runtime.lifecycle.changed', paused ? '已暂停新的模型操作' : '已恢复接纳新的模型操作', paused ? 'paused' : 'ready');
       if (!paused) await this.scheduleQueuedTasks();
@@ -206,14 +241,24 @@ export class RuntimeService {
     const verification = this.state.state.lastModelVerification;
     const goalVerification = this.state.state.lastGoalVerification;
     const backgroundState = this.background.snapshot();
+    const memoryBackend = this.memoryBackend?.status();
+    let memoryError = this.memoryFailure;
+    let memoryEntries: ReturnType<typeof memoryEntry>[] = [];
+    if (this.memoryConfig) {
+      try { memoryEntries = (await this.store.request('memory.list', {})).map(memoryEntry); }
+      catch { memoryError ??= 'MEMORY_DOMAIN_UNAVAILABLE'; }
+    }
+    const memoryReady = Boolean(this.localMemories && memoryBackend?.state === 'ready' && !memoryError);
     return {
       schemaVersion: 1, version: VERSION, instanceId: this.instanceId, startedAt: this.startedAt, observedAt: at,
-      lifecycle: this.lastFailure || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
+      lifecycle: this.lastFailure || memoryError || memoryBackend?.state === 'failed' || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
       state: this.pauseRequested ? 'paused' : this.operations.size ? 'busy' : 'idle',
       systems: structuredClone(systems),
       tasks,
       conversations: conversations.conversations,
       innerProjection: innerProjection ?? null,
+      memory: { configured: Boolean(this.memoryConfig) || Boolean(this.memoryFailure), ready: memoryReady,
+        ...(memoryError ? { errorCode: memoryError } : {}), ...(memoryBackend ? { backend: memoryBackend } : {}), entries: memoryEntries },
       diagnostics: { contextVerification: this.state.state.lastContextVerification ? structuredClone(this.state.state.lastContextVerification) : null,
         contextSafety: structuredClone(this.contextSafety) },
       background: { ...conversations.background, ...backgroundState },
@@ -231,7 +276,8 @@ export class RuntimeService {
         { id: 'model', name: '生成模型', status: verification?.instanceId === this.instanceId ? (verification.ok ? 'available' : 'unavailable') : 'unknown', summary: verification ? `${verification.instanceId === this.instanceId ? '' : '上次运行的验证记录：'}${verification.message}` : '配置为 opencode-go / deepseek-v4.1-flash；连接检查不代表推理可用。', checkedAt: verification?.at },
         { id: 'native-goal', name: 'DSH 原生 Goal', status: goalVerification?.instanceId === this.instanceId ? (goalVerification.ok ? 'available' : 'unavailable') : 'unknown', summary: goalVerification ? `${goalVerification.instanceId === this.instanceId ? '' : '上次运行的验证记录：'}${goalVerification.message}` : '尚未验证原生 Goal 生命周期；查看页面不会创建或恢复目标会话。', checkedAt: goalVerification?.at },
         { id: 'native-context', name: '原生上下文接线', status: this.contextSafety.ready ? 'available' : 'unavailable', summary: this.contextSafety.ready ? '消息工厂与原生持久化接口已加载；不代表上下文已实际加载或模型已验证。' : this.contextSafety.error ?? '上下文接线尚未准备', checkedAt: this.startedAt },
-        { id: 'memory', name: '长期记忆与语义检索', status: 'unconfigured', summary: '尚未接入' },
+        { id: 'memory', name: '长期记忆', status: memoryReady ? 'available' : this.memoryConfig || memoryError ? 'unavailable' : 'unconfigured',
+          summary: memoryReady ? '受控原生存取已连接；仅显式保存与精确读取，语义检索和内层 ReadView 尚未接入。' : memoryError ?? (this.memoryConfig ? '受控记忆等待启动或连接核对' : '尚未配置受控记忆服务') },
         { id: 'channels', name: '外部频道与设备', status: 'unconfigured', summary: '尚未接入' },
       ],
       // Session-level records are shown above. An incomplete aggregate is unknown,
@@ -251,6 +297,7 @@ export class RuntimeService {
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Expected command object');
     const value = input as Record<string, unknown>;
     const action = value.action;
+    if (action === 'memory.rememberLocal' || action === 'memory.readLocal' || action === 'memory.withdrawLocal') return this.commandLocalMemory(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
     if (action === 'runtime.resume') return this.setPaused(false);
     if (action === 'conversation.linkLocalTask') {
@@ -351,6 +398,43 @@ export class RuntimeService {
       if (action === 'goal.verify-lifecycle') await this.state.update(state => { state.lastGoalVerification = { at: new Date().toISOString(), ok: false, message: this.lastFailure!, instanceId: this.instanceId }; });
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
+  private async commandLocalMemory(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    const save = value.action === 'memory.rememberLocal', withdraw = value.action === 'memory.withdrawLocal';
+    const keys = save ? ['action', 'requestId', 'conversationId', 'text'] : withdraw ? ['action', 'requestId', 'operationId'] : ['action', 'operationId'];
+    const fields = Object.getOwnPropertyDescriptors(value);
+    const identity = (item: unknown): item is string => typeof item === 'string' && /^[A-Za-z0-9][A-Za-z0-9:._\/-]{0,149}$/.test(item);
+    if (![Object.prototype, null].includes(Object.getPrototypeOf(value)) || Object.keys(fields).some(key => !keys.includes(key))
+      || keys.some(key => !Object.hasOwn(fields, key)) || Object.values(fields).some(field => !Object.hasOwn(field, 'value'))
+      || ((save || withdraw) && !identity(value.requestId)) || (save ? !identity(value.conversationId) || typeof value.text !== 'string' : !identity(value.operationId))) throw new Error('Invalid local memory input');
+    signal?.throwIfAborted();
+    if (withdraw) {
+      // Withdrawal must remain available while paused or while a backend read is in flight.
+      if (this.pendingAdmissions >= 32) throw new Error('Runtime admission capacity reached');
+      this.pendingAdmissions++;
+      let finish!: () => void;
+      const admission = new Promise<void>(resolve => { finish = resolve; });
+      this.admissions.add(admission);
+      try { return memoryEntry(await this.store.request('memory.withdrawLocal', { requestId: value.requestId as string, operationId: value.operationId as string })); }
+      finally { this.pendingAdmissions--; this.admissions.delete(admission); finish(); }
+    }
+    this.ensureCanRun();
+    if (!this.localMemories || this.memoryBackend?.status().state !== 'ready') throw new Error('Controlled memory backend is unavailable');
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: save ? '保存显式记忆' : '读取已保存记忆',
+      phase: save ? '核对授权与原生保存回执' : '核对当前读取资格与原生正文', status: 'running', controller: new AbortController(), done, finish };
+    const abort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', abort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      const result = save
+        ? await this.localMemories.remember({ requestId: value.requestId as string, conversationId: value.conversationId as string, text: value.text as string, signal: op.controller.signal })
+        : await this.localMemories.read({ operationId: value.operationId as string, signal: op.controller.signal });
+      this.ensureCanRun(); op.controller.signal.throwIfAborted();
+      return 'body' in result ? { entry: memoryEntry(result.entry), body: result.body } : { duplicate: result.duplicate, entry: memoryEntry(result.entry) };
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', abort); }
   }
   private async commandLocalReply(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
     this.ensureCanRun(); signal?.throwIfAborted();
@@ -456,6 +540,12 @@ export class RuntimeService {
     this.closed = true;
     const backgroundClosing = this.background?.close();
     const replyClosing = this.localReplies?.close();
+    const memoryClosing = this.localMemories?.close();
+    // Resume may be waiting for open on controlTail. Cancel that owned startup
+    // now; waiting for controlTail before closing it would invert the dependency.
+    // An already-ready backend stays alive until pending fact verification drains.
+    const openingMemoryClose = this.memoryBackend?.status().state === 'opening' ? this.memoryBackend.close() : undefined;
+    void openingMemoryClose?.catch(() => undefined);
     this.closing = (async () => {
       for (const op of this.operations.values()) op.controller.abort();
       try {
@@ -469,7 +559,11 @@ export class RuntimeService {
         }
         finally { await Promise.allSettled([...this.operations.values()].map(op => op.done)); await replyClosing; }
       }
-      finally { try { await this.artifacts?.close(); } finally { try { await this.store?.close(); } finally { await this.state?.close(); } } }
+      finally {
+        try { await memoryClosing; }
+        finally { try { await (openingMemoryClose ?? this.memoryBackend?.close()); }
+          finally { try { await this.artifacts?.close(); } finally { try { await this.store?.close(); } finally { await this.state?.close(); } } } }
+      }
     })();
     return this.closing;
   }

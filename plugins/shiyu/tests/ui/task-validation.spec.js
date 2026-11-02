@@ -71,10 +71,10 @@ test('double activation has one in-flight POST and later explicit activation reu
   await expect(page.getByRole('button', { name: pendingName, exact: true })).toBeDisabled();
   expect((await stats(request)).commands).toEqual([expectedCommand]);
   await control(request, { releaseTaskAdmission: true, taskAdmission: {} });
-  await expect(page.getByRole('status')).toContainText('本地任务已受理');
+  await expect(page.getByRole('status').filter({ hasText: '本地任务已受理' })).toBeVisible();
   await page.getByRole('button', { name: '诊断', exact: true }).click();
   await page.getByRole('button', { name: runName, exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('本地任务已受理');
+  await expect(page.getByRole('status').filter({ hasText: '本地任务已受理' })).toBeVisible();
   await expect.poll(async () => (await stats(request)).commands.length).toBe(2);
   expect((await stats(request)).commands).toEqual([expectedCommand, expectedCommand]);
   expect((await stats(request)).taskAdmissions).toBe(1);

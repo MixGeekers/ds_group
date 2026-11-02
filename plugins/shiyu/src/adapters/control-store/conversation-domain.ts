@@ -109,6 +109,14 @@ export class ConversationDomain {
   }
   /** Trusted same-Worker view authority is installed once; no public command can replace it. */
   setReplyAuthority(authority: LocalReplyAuthority): void { this.replies.setAuthority(authority); }
+  /** Same-Worker owner authority for source consent; never accepts an actor or remote scope. */
+  getLocalConversation(conversationId: string) {
+    return this.tx.atomic(() => {
+      text(conversationId, 'conversationId');
+      if (!this.bindings(conversationId).length) fail('UNKNOWN_CONVERSATION', 'No local conversation has this identity');
+      return this.conversations.getConversation(OWNER, conversationId);
+    });
+  }
   replyContext(conversationId: string): ContextSnapshot & { businessId: string; sessionId?: string } {
     return this.tx.atomic(() => {
       const binding = this.localReplyBinding(conversationId);
