@@ -25,7 +25,7 @@
     "startedAt": "2026-11-02T21:00:05.785Z"
   },
   "statusAfterReload": {
-    "payloadBytes": 51990,
+    "payloadBytes": 54828,
     "payloadSha256": "8bea2ebb42400b0185a85412c213b39b7cbcdff1048f843af74c78c368e87f55",
     "schemaVersion": 1,
     "lifecycle": "degraded",
@@ -120,6 +120,12 @@
       "labConnections": 3,
       "sessions": 10,
       "activeWork": 0
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8); an earlier value recorded the character count",
+    "payload": {
+      "file": "artifacts/dsh/host/round2/status-after-reload.json",
+      "bytes": 54828,
+      "sha256": "8bea2ebb42400b0185a85412c213b39b7cbcdff1048f843af74c78c368e87f55"
     }
   },
   "workerProbe": {
@@ -157,7 +163,15 @@
     },
     "released": true,
     "disposed": true,
-    "expected": true
+    "expected": true,
+    "payload": {
+      "file": "artifacts/dsh/host/round2/worker-tool-probe.json",
+      "bytes": 2445,
+      "sha256": "ea2e697c3564262017baacc56f1ecbe5f131d2d211db68122f71e8295a5a499a"
+    },
+    "ok": true,
+    "preset": "shiyu-runtime-worker-v1",
+    "scope": "local-owner"
   },
   "coreProbe": {
     "call": "shiyu_diagnose_core_event_tools",
@@ -202,15 +216,29 @@
     },
     "released": true,
     "disposed": true,
-    "expected": true
+    "expected": true,
+    "payload": {
+      "file": "artifacts/dsh/host/round2/core-event-tool-probe.json",
+      "bytes": 2584,
+      "sha256": "a3cccb5d70d3db214add4011fd47fb9b5dc26a899f69961eb4d5c6779b5a9624"
+    },
+    "ok": true,
+    "scope": "local-owner"
   },
   "statusAfterProbes": {
-    "payloadBytes": 56833,
+    "payloadBytes": 59755,
     "payloadSha256": "cc599d12d631d9e58a3a031b044d9cd729f263c7acfef48c3295cbcbdf11c320",
     "eventToolProbeCached": true,
     "coreEventToolProbeCached": true,
     "channelsSameEmpty": true,
-    "innerPublicationSame": true
+    "innerPublicationSame": true,
+    "bytesSemantics": "actual committed file bytes (UTF-8); an earlier value recorded the character count",
+    "payload": {
+      "file": "artifacts/dsh/host/round2/status-after-probes.json",
+      "bytes": 59755,
+      "sha256": "cc599d12d631d9e58a3a031b044d9cd729f263c7acfef48c3295cbcbdf11c320"
+    },
+    "diagnosticsCacheBinding": "diagnostics.eventToolProbe/coreEventToolProbe are the raw probe receipts plus the wrapper zeroModel/readOnly/sent flags; their probeSessionId matches the raw probe payload files whose hashes are recorded here."
   },
   "deltas": {
     "reload": {
@@ -358,11 +386,21 @@
     "statusAfterReload": "artifacts/dsh/host/round2/status-after-reload.json",
     "statusAfterProbes": "artifacts/dsh/host/round2/status-after-probes.json",
     "workerProbe": "artifacts/dsh/host/round2/worker-tool-probe.json",
-    "coreProbe": "artifacts/dsh/host/round2/core-event-tool-probe.json"
+    "coreProbe": "artifacts/dsh/host/round2/core-event-tool-probe.json",
+    "sanitizedAudits": "The committed round2-host-*.json audits differ from their .local originals only by replacing the local home/data-root path with <home>; no other field was altered.",
+    "relativePathEncoding": "Session relative paths retain the host-encoded project directory name (e.g. --Users-caja-...--); they contain no absolute path, no message body and no secret, and follow the same convention as earlier host evidence."
   },
   "limitations": [
     "Zero-model evidence only: the probes prove restricted mounting, non-forgeable fields, release and the diagnostics cache path; they do not prove a real model invoked event tools, provider budgets/cache, real core plan execution or real channel traffic.",
     "The channels projection is empty because no adapter is connected; real audience/binding/invalidation behavior is covered by offline integration tests only.",
     "Real browser DOM rendering of the new projections remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F-R2..R5",
+      "at": "2026-11-02T21:10:53.913Z",
+      "finding": "payload byte semantics, sanitized-audit/relativePath disclosure and probe payload hash binding were missing",
+      "resolution": "bytes corrected with semantics; sanitized/relativePath notes added; probe and status payload files now carry sha256/bytes; diagnostics cache binding documented"
+    }
   ]
 }

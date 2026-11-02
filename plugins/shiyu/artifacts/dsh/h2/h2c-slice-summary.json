@@ -60,8 +60,12 @@
       "arithmetic": "1345 baseline + 14 new tests = 1359",
       "log": {
         "path": "plugins/shiyu/.local/slice-verify-h2c.log",
-        "sha256": "17efc888…"
-      }
+        "sha256": "6c52a1f5722a6840b74a4eaee2ccf1226ff811c2b1270803e7b2a2bba907dc42",
+        "status": "overwritten-by-lead-run",
+        "note": "retained log is the Lead 1375 independent run"
+      },
+      "superseded": true,
+      "note": "the implementer 1359 full-check log was overwritten by the Lead 1375 run at the same .local path; it is not retained. The committed h2c-core-event-tools.json is bound to the Lead 1375 run."
     },
     "leadIndependentSliceCheck": {
       "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD dfbf93d + only these 6 files; node_modules + pinned Python symlinked)",
@@ -98,5 +102,13 @@
     "embeddingCalls": 0,
     "hostReloads": 0
   },
-  "evidenceLevel": "G1 module/integration + real temporary SQLite/Worker + synthetic provider loop; host probe and real model usage not claimed."
+  "evidenceLevel": "G1 module/integration + real temporary SQLite/Worker + synthetic provider loop; host probe and real model usage not claimed.",
+  "evidenceCorrections": [
+    {
+      "id": "F-R1",
+      "at": "2026-11-02T21:10:53.909Z",
+      "finding": "implementer log path overwritten by the Lead independent run",
+      "resolution": "implementer run marked superseded; artifact and slice evidence bound to the Lead 1375 run, retained log hash recorded"
+    }
+  ]
 }

@@ -59,7 +59,8 @@
       "arithmetic": "1375 baseline + 1 tool-definition test = 1376"
     },
     "targeted": "145/145 across runtime, host-status (lossless snapshot with the new channels key), host diagnostics, channel bridge (host+worker), core event tools, core plan/local-core, events worker mount/paths; 0 fail/0 skip.",
-    "note": "The slice check is a full npm run check in an isolated worktree; the shared tree full check is not used because other slices may be in progress."
+    "note": "The slice check is a full npm run check in an isolated worktree; the shared tree full check is not used because other slices may be in progress.",
+    "targetedNote": "The 145-test targeted batch was run interactively and its log was not retained; the full isolated 1376/1376 check log is the retained evidence (plugins/shiyu/.local/slice-verify-h6b-h2c-integration.log)."
   },
   "knownLimitations": [
     "ChannelRuntimeProjection.pending.unapplied uses the global minimum applied watermark, so with multiple bindings at different watermarks it can over-report; per-binding idempotency is enforced by bridgePending. Documented for a future projection refinement.",

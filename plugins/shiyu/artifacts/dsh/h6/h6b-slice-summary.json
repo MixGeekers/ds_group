@@ -61,7 +61,8 @@
       "arithmetic": "1336 baseline + 16 new tests = 1352",
       "log": {
         "path": "artifacts/dsh/h6/h6b-isolated-check.log",
-        "sha256": "db2e0f2f…"
+        "sha256": "db2e0f2fcc9cb19288257bbf81cb39d907bd913c4485457c30fcaf974caca5a8",
+        "bytes": 147714
       }
     },
     "leadIndependentSliceCheck": {
@@ -103,5 +104,13 @@
     "labRooms": 0,
     "hostReloads": 0
   },
-  "evidenceLevel": "G1 offline module/integration + real temporary SQLite/Worker IPC; runtime assembly and host acceptance not claimed."
+  "evidenceLevel": "G1 offline module/integration + real temporary SQLite/Worker IPC; runtime assembly and host acceptance not claimed.",
+  "evidenceCorrections": [
+    {
+      "id": "F-R7",
+      "at": "2026-11-02T21:10:53.913Z",
+      "finding": "implementer log hash was truncated in the summary",
+      "resolution": "full sha256 and bytes recorded; committed log matches"
+    }
+  ]
 }
