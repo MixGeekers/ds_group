@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "kind": "h2a-events-offline",
   "slice": "H2a 持久事件接入 Agent/组件路径",
-  "capturedAt": "2026-11-02T19:31:15.313Z",
+  "capturedAt": "2026-11-02T19:31:39.800Z",
   "repository": {
     "headAtCapture": "00fb75b25a89006b9c69a569c9203a57043855f2",
     "headNote": "Isolated worktree = current shared HEAD at verification time + only this slice files. H0b/H1独立验证/H4/H4b host-evidence commits are already in HEAD; H2a does not modify core decision/goals/sessions.",
@@ -68,8 +68,8 @@
   "targetedRuns": {
     "allEventRelated": {
       "commandIndex": 0,
-      "tests": 66,
-      "pass": 66,
+      "tests": 67,
+      "pass": 67,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0,
