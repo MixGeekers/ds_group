@@ -1,0 +1,247 @@
+{
+  "scenarioId": "FL06",
+  "familyId": "F-FL06",
+  "split": "DEV",
+  "steps": [
+    {
+      "stepId": "FL06.1",
+      "attention": {
+        "required": [
+          "uncertain_keep_pending"
+        ],
+        "allowed": [
+          "uncertain_keep_pending"
+        ],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "preserve_unknown"
+        ],
+        "allowed": [
+          "degrade_health_only"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_state_uncertainty"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": [
+          "must_not_claim_completion"
+        ]
+      },
+      "action": {
+        "required": [
+          "limited_retry_once"
+        ],
+        "allowed": [
+          "read_authorized_scope"
+        ],
+        "forbidden": []
+      },
+      "routes": [
+        "P",
+        "R"
+      ],
+      "counts": {
+        "modelCalls": 0,
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "timeout-keeps-pending-not-unrelated",
+          "note": "超时保留 pending/uncertain，不冒充无关"
+        }
+      ],
+      "milestones": [
+        "M.FL06.timeout-uncertain"
+      ],
+      "hDimensions": [
+        "H3",
+        "H7"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "answer:uncertainty-not-unrelated"
+      ]
+    },
+    {
+      "stepId": "FL06.2",
+      "attention": {
+        "required": [
+          "uncertain_keep_pending"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "preserve_unknown"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_state_uncertainty"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": [
+          "must_not_claim_completion"
+        ]
+      },
+      "action": {
+        "required": [
+          "limited_retry_once"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "routes": [
+        "C",
+        "P"
+      ],
+      "counts": {
+        "modelCalls": 1,
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "invalid-structure-is-not-processed-as-fact",
+          "note": "非法输出不得被当事实或成功"
+        }
+      ],
+      "milestones": [
+        "M.FL06.invalid-structure-uncertain"
+      ],
+      "hDimensions": [
+        "H3"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "answer:invalid-output"
+      ]
+    },
+    {
+      "stepId": "FL06.3",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "preserve_unknown"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_state_uncertainty",
+          "must_not_overclaim"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "action": {
+        "required": [
+          "limited_clarification"
+        ],
+        "allowed": [
+          "read_authorized_scope"
+        ],
+        "forbidden": []
+      },
+      "routes": [
+        "P",
+        "R"
+      ],
+      "counts": {
+        "modelCalls": 0,
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "unparsable-attachment-uncertain",
+          "note": "附件不可解析时不能冒充无关或已读"
+        }
+      ],
+      "milestones": [
+        "M.FL06.attachment-uncertain"
+      ],
+      "hDimensions": [
+        "H7"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "answer:attachment-uncertain"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M.FL06.timeout-uncertain",
+      "scenarioId": "FL06",
+      "description": "超时保留不确定，不冒充无关",
+      "functional": true,
+      "evidenceHints": [
+        "FL06.1"
+      ]
+    },
+    {
+      "id": "M.FL06.invalid-structure-uncertain",
+      "scenarioId": "FL06",
+      "description": "非法结构不当作事实或成功",
+      "functional": true,
+      "evidenceHints": [
+        "FL06.2"
+      ]
+    },
+    {
+      "id": "M.FL06.attachment-uncertain",
+      "scenarioId": "FL06",
+      "description": "附件不可解析时明确不确定",
+      "functional": true,
+      "evidenceHints": [
+        "FL06.3"
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "id": "FL06.noise-or-rename",
+      "kind": "noise",
+      "expectation": "same_allowed_answers",
+      "description": "非法输出/附件的错误文案换表述，判定语义不变",
+      "materialised": false,
+      "reason": "H0c 只物化主线代表轨迹；噪音/改名变体待后续切片生成并逐条审查"
+    },
+    {
+      "id": "FL06.structure-change",
+      "kind": "correction",
+      "expectation": "changed_allowed_answers",
+      "description": "附件可解析但文字转写有误：转写正确不证明音频解析通过",
+      "materialised": false,
+      "reason": "需要新的因果结构；不能只改词或换种子冒充新样本"
+    }
+  ],
+  "source": {
+    "sourcePath": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+    "kind": "matrix-only",
+    "existingStepCount": 0,
+    "machineReadableAnswers": false,
+    "statusAtSource": "design-doc-only-unrun"
+  }
+}

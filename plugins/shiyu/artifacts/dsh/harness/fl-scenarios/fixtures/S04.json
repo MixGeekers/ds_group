@@ -1,0 +1,149 @@
+{
+  "scenarioId": "S04",
+  "familyId": "F-S04",
+  "split": "DEV",
+  "fixtureSalt": "a91f5927f1fd",
+  "title": "一边做事，一边聊天",
+  "preconditions": {
+    "worldRef": "fixture://world/personal-dev",
+    "clockBase": "2026-11-01T09:00:00-04:00",
+    "timeZone": "America/Caracas",
+    "actors": {
+      "U": "principal-u",
+      "P": "acct-work-q",
+      "Q": "acct-social-q"
+    },
+    "channels": {
+      "priv": "C-priv",
+      "group": "C-group",
+      "other": "C-other"
+    },
+    "devices": [
+      "DEV-A",
+      "DEV-B"
+    ],
+    "profile": "Profile-P1",
+    "memoryBackend": "fixture://memory/synthetic-single-authority",
+    "replyPolicy": "replyer has no tools; single local synthetic send effect",
+    "hiddenEvaluationFactsInPublicFixture": false,
+    "materials": {
+      "A": "fixture://docs/A",
+      "B": "fixture://docs/B-v1",
+      "B-r2": "fixture://docs/B-r2"
+    },
+    "taskSlots": {
+      "totalModelSlots": 3,
+      "backgroundSlotsMax": 2,
+      "dialogueReserved": 1
+    },
+    "relevantDoc": "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md"
+  },
+  "steps": [
+    {
+      "stepId": "S04.1",
+      "index": 1,
+      "title": "比较两份材料（故意误分快路）",
+      "event": {
+        "actor": "U",
+        "audience": "C-priv",
+        "channel": "C-priv",
+        "text": "比较 A、B 两份方案，给我一张成本和退订条件表。",
+        "occurredAt": "2026-11-01T09:00:00-04:00",
+        "receivedAt": "2026-11-01T09:00:00-04:00",
+        "sourceKey": "evt-s04-1@a91f5927f1fd"
+      },
+      "visibleHistory": [],
+      "availableCapabilities": [
+        "ReadView.local",
+        "Worker.fake",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    },
+    {
+      "stepId": "S04.3",
+      "index": 2,
+      "title": "后台工作中插入解释性提问",
+      "event": {
+        "actor": "U",
+        "audience": "C-priv",
+        "channel": "C-priv",
+        "text": "先解释一下“退订窗口”是什么意思。",
+        "occurredAt": "2026-11-01T09:02:00-04:00",
+        "receivedAt": "2026-11-01T09:02:00-04:00",
+        "sourceKey": "evt-s04-3@a91f5927f1fd"
+      },
+      "visibleHistory": [
+        "S04.1"
+      ],
+      "availableCapabilities": [
+        "ReadView.local",
+        "Worker.fake",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ],
+      "faults": [
+        {
+          "at": "before_send",
+          "kind": "dispatch_paused",
+          "label": "hold-draft-before-send"
+        }
+      ]
+    },
+    {
+      "stepId": "S04.4",
+      "index": 3,
+      "title": "旧草稿发出前用户要求一句话",
+      "event": {
+        "actor": "U",
+        "audience": "C-priv",
+        "channel": "C-priv",
+        "text": "一句话就好。",
+        "occurredAt": "2026-11-01T09:02:20-04:00",
+        "receivedAt": "2026-11-01T09:02:20-04:00",
+        "sourceKey": "evt-s04-4@a91f5927f1fd"
+      },
+      "visibleHistory": [
+        "S04.1",
+        "S04.3"
+      ],
+      "availableCapabilities": [
+        "ReadView.local",
+        "Worker.fake",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ],
+      "faults": [
+        {
+          "at": "before_send",
+          "kind": "receipt_lost",
+          "label": "old-generator-ignores-abort-late-return"
+        }
+      ]
+    },
+    {
+      "stepId": "S04.5",
+      "index": 4,
+      "title": "worker 交回无证据的“完成”且用户查询进度",
+      "event": {
+        "actor": "worker-fixture",
+        "audience": "C-priv",
+        "channel": "C-priv",
+        "text": "比较已完成。（无 A 来源、无成本证据）",
+        "occurredAt": "2026-11-01T09:05:00-04:00",
+        "receivedAt": "2026-11-01T09:05:00-04:00",
+        "sourceKey": "evt-s04-5-worker@a91f5927f1fd"
+      },
+      "visibleHistory": [
+        "S04.1",
+        "S04.3",
+        "S04.4"
+      ],
+      "availableCapabilities": [
+        "ReadView.local",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    }
+  ]
+}

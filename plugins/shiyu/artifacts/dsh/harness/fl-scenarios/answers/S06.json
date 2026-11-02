@@ -1,0 +1,406 @@
+{
+  "scenarioId": "S06",
+  "familyId": "F-S06",
+  "split": "DEV",
+  "steps": [
+    {
+      "stepId": "S06.1",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "record_delete_barrier",
+          "mark_component_awaiting_clear"
+        ],
+        "allowed": [
+          "preserve_unknown"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_answer_actor",
+          "must_report_partial_clear"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": [],
+        "allowedAudiences": [
+          "C-priv"
+        ]
+      },
+      "action": {
+        "required": [
+          "read_authorized_scope"
+        ],
+        "allowed": [
+          "query_state_within_scope"
+        ],
+        "forbidden": []
+      },
+      "routes": [
+        "K",
+        "C",
+        "R"
+      ],
+      "counts": {
+        "backendWrites": 1,
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "canary-absent",
+          "surface": "view"
+        },
+        {
+          "kind": "custom",
+          "code": "delete-barrier-before-new-reads",
+          "note": "屏障后视图/草稿/待发效果不可用"
+        }
+      ],
+      "milestones": [
+        "M.S06.barrier-observable"
+      ],
+      "hDimensions": [
+        "H5"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+        "answer:barrier-not-physical-delete"
+      ]
+    },
+    {
+      "stepId": "S06.2",
+      "attention": {
+        "required": [
+          "no_business_attention"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "no_internal_write"
+        ],
+        "allowed": [
+          "no_internal_write"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "no_expression"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "must_answer_actor"
+        ]
+      },
+      "action": {
+        "required": [
+          "no_external_effect"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "must_not_revive_deleted_source",
+          "single_authorized_send"
+        ]
+      },
+      "routes": [
+        "P"
+      ],
+      "counts": {
+        "modelCalls": 0,
+        "externalSends": 0,
+        "backendWrites": 0
+      },
+      "oracleChecks": [
+        {
+          "kind": "canary-absent",
+          "surface": "model-input"
+        },
+        {
+          "kind": "no-unauthorized-write",
+          "scope": "deleted-source"
+        }
+      ],
+      "milestones": [
+        "M.S06.deleted-derived-content-rejected"
+      ],
+      "hDimensions": [
+        "H4",
+        "H5"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+        "answer:stale-proposals-rejected"
+      ]
+    },
+    {
+      "stepId": "S06.3",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "no_internal_write"
+        ],
+        "allowed": [
+          "no_internal_write"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_answer_actor"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": [],
+        "allowedAudiences": [
+          "C-priv"
+        ]
+      },
+      "action": {
+        "required": [
+          "read_authorized_scope"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "routes": [
+        "R"
+      ],
+      "counts": {
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "canary-absent",
+          "surface": "model-input"
+        },
+        {
+          "kind": "canary-absent",
+          "surface": "external-send"
+        }
+      ],
+      "milestones": [
+        "M.S06.no-content-via-summary-or-hint"
+      ],
+      "hDimensions": [
+        "H5"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+        "answer:no-recontruction-after-delete"
+      ]
+    },
+    {
+      "stepId": "S06.6",
+      "attention": {
+        "required": [
+          "no_business_attention"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "mark_component_awaiting_clear",
+          "preserve_unknown"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "no_expression"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "must_answer_actor"
+        ]
+      },
+      "action": {
+        "required": [
+          "no_external_effect"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "read_authorized_scope"
+        ]
+      },
+      "routes": [
+        "P"
+      ],
+      "counts": {
+        "modelCalls": 0,
+        "externalSends": 0,
+        "backendWrites": 0
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "recovery-lock-without-latest-deletion-ledger",
+          "note": "缺少最新删除账本时先 maintenance，不开放业务读取"
+        }
+      ],
+      "milestones": [
+        "M.S06.recovery-lock-without-ledger"
+      ],
+      "hDimensions": [
+        "H4",
+        "H5"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+        "answer:no-open-before-tombstone"
+      ]
+    },
+    {
+      "stepId": "S06.7",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "update_current_fact"
+        ],
+        "allowed": [
+          "record_source_claim"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "no_expression"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": []
+      },
+      "action": {
+        "required": [
+          "read_authorized_scope"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "must_not_revive_deleted_source"
+        ]
+      },
+      "routes": [
+        "P"
+      ],
+      "counts": {
+        "backendWrites": 0,
+        "externalSends": 0
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "trusted-ledger-limited-restore-keeps-unrelated-facts",
+          "note": "有可信账本时可恢复获准读取，但 Z 不复活、Goal 不 arm"
+        }
+      ],
+      "milestones": [
+        "M.S06.trusted-ledger-limited-restore"
+      ],
+      "hDimensions": [
+        "H4",
+        "H5"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+        "answer:restore-after-barrier"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M.S06.barrier-observable",
+      "scenarioId": "S06",
+      "description": "删除屏障立即可观察，归档不等于清除",
+      "functional": true,
+      "evidenceHints": [
+        "S06.1"
+      ]
+    },
+    {
+      "id": "M.S06.deleted-derived-content-rejected",
+      "scenarioId": "S06",
+      "description": "旧提案/旧草稿不可复活已删内容",
+      "functional": true,
+      "evidenceHints": [
+        "S06.2"
+      ]
+    },
+    {
+      "id": "M.S06.no-content-via-summary-or-hint",
+      "scenarioId": "S06",
+      "description": "删除后回读不泄露正文、摘要或暗示",
+      "functional": true,
+      "evidenceHints": [
+        "S06.3"
+      ]
+    },
+    {
+      "id": "M.S06.recovery-lock-without-ledger",
+      "scenarioId": "S06",
+      "description": "缺最新删除账本时保持恢复锁",
+      "functional": true,
+      "evidenceHints": [
+        "S06.6"
+      ]
+    },
+    {
+      "id": "M.S06.trusted-ledger-limited-restore",
+      "scenarioId": "S06",
+      "description": "有可信账本时恢复获准读取但不复活已删内容",
+      "functional": true,
+      "evidenceHints": [
+        "S06.7"
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "id": "S06.noise-or-rename",
+      "kind": "noise",
+      "expectation": "same_allowed_answers",
+      "description": "对同一删除请求换措辞/翻译，删除范围不变",
+      "materialised": false,
+      "reason": "H0c 只物化主线代表轨迹；噪音/改名变体待后续切片生成并逐条审查"
+    },
+    {
+      "id": "S06.structure-change",
+      "kind": "correction",
+      "expectation": "changed_allowed_answers",
+      "description": "提供可信最新删除账本 vs 缺失账本改变恢复门控",
+      "materialised": false,
+      "reason": "需要新的因果结构；不能只改词或换种子冒充新样本"
+    }
+  ],
+  "source": {
+    "sourcePath": "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+    "kind": "case-doc",
+    "existingStepCount": 7,
+    "machineReadableAnswers": false,
+    "statusAtSource": "design-doc-only-unrun"
+  }
+}

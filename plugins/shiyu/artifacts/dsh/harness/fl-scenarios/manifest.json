@@ -1,0 +1,385 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.business.manifest",
+  "generatedAt": "2026-11-02T19:25:29.217Z",
+  "seed": 20261101,
+  "catalogVersion": "1.0.0",
+  "catalogDigest": "bc01a4878c3982176208ceda8906c941112ce46f603bde2ad84d94119ebf7c43",
+  "sourceHashes": {
+    "tests/harness/business/types.ts": "67c45259b84e8ec2670d6b5833b1cecda1dbde47d0fb0ca81f623d59cd7370e7",
+    "tests/harness/business/catalog-support.ts": "ac5452d70d21efaf1de6ce3e3029d5433ed435e56442568e7f0ecf06610c6eab",
+    "tests/harness/business/catalog-s.ts": "8ae63f798561ed6d6dcce35544f3ab3e3a523f108e78dc2416a2bb5b52979f7b",
+    "tests/harness/business/catalog-fl.ts": "4a5a31dadaa0f51800cbcbe4997aa43d212ff5a0e40603897d6a550dc8b0aa0e",
+    "tests/harness/business/catalog.ts": "1a2d099f4f6e38855ae315eb7f29fdb4058970f27059fb4fb7c68fccbf3fa847",
+    "tests/harness-business.test.ts": "cd305fa16fa21e032a1ed3088303ab73bc2a2bec7bc89f5ba421d057cf667f69",
+    "tests/harness/fl-scenarios.ts": "4a52a4a06ce5353094224a4fea3dcb5a31b3a28a4ca432650f854bd288218caf"
+  },
+  "fixtures": {
+    "count": 16,
+    "digest": "5f50fd0aaa43598b7b20cf22b613243486555087b08a9e2ba9ca928dc73104e1",
+    "files": [
+      {
+        "scenarioId": "S01",
+        "path": "fixtures/S01.json",
+        "sha256": "5470b5bbd99d7bff1cf9741ef1483dca5b66f3c4de69c9b5515b068a2efb200d",
+        "bytes": 3785
+      },
+      {
+        "scenarioId": "S02",
+        "path": "fixtures/S02.json",
+        "sha256": "a27affe889cf1457cffe52a372a6130f9e20a63893630b9f5f201473bd8ac103",
+        "bytes": 3762
+      },
+      {
+        "scenarioId": "S03",
+        "path": "fixtures/S03.json",
+        "sha256": "498461009f2ca02bc71728fee5ebc2602803d4f5726affa909a56dac7076fd70",
+        "bytes": 5303
+      },
+      {
+        "scenarioId": "S04",
+        "path": "fixtures/S04.json",
+        "sha256": "ae85773ce9fba1932504a9e2501f49873a132d4fdeebcb3ec486e24d2d8ed515",
+        "bytes": 4038
+      },
+      {
+        "scenarioId": "S05",
+        "path": "fixtures/S05.json",
+        "sha256": "dafed42ee5929156e7dbac00285ad2a297090e8b2387e08b3ab33f5916f93baa",
+        "bytes": 4597
+      },
+      {
+        "scenarioId": "S06",
+        "path": "fixtures/S06.json",
+        "sha256": "8710fe47af6f55e01804f463e407b5e430b67372f8cd764dd07af4e4dd80b881",
+        "bytes": 4803
+      },
+      {
+        "scenarioId": "S07",
+        "path": "fixtures/S07.json",
+        "sha256": "7879b8c4f4c21e6bf7c810c7b56fe353c4553e0bd1b2d402541cee984ca534bf",
+        "bytes": 3887
+      },
+      {
+        "scenarioId": "S08",
+        "path": "fixtures/S08.json",
+        "sha256": "2bdefc79f40d408944fb07f333f9851038e681f5708bf08df779b1b589fb9431",
+        "bytes": 5048
+      },
+      {
+        "scenarioId": "FL01",
+        "path": "fixtures/FL01.json",
+        "sha256": "4771b8157327d7a60211b727a894491c162d217576f919ae0939bd72f4aecfb6",
+        "bytes": 5742
+      },
+      {
+        "scenarioId": "FL02",
+        "path": "fixtures/FL02.json",
+        "sha256": "715bc630dbb6a665440ecc1af4f2803a43a983165fa4d87c03098fc7687ef83d",
+        "bytes": 4834
+      },
+      {
+        "scenarioId": "FL03",
+        "path": "fixtures/FL03.json",
+        "sha256": "7987b09d1c715a80d961dbfd0cf2316729d513b6af82d4d78a83414c431913c7",
+        "bytes": 6799
+      },
+      {
+        "scenarioId": "FL04",
+        "path": "fixtures/FL04.json",
+        "sha256": "7147216ebcaf42cdbdbd7428b9509ddaeffd5fded93d42ab307bf0f9469c145e",
+        "bytes": 5804
+      },
+      {
+        "scenarioId": "FL05",
+        "path": "fixtures/FL05.json",
+        "sha256": "af5311e53c17c9e48c37a2bc9418fcb5e54cbfd5cacebddfe6cfbab93dc3ae83",
+        "bytes": 5699
+      },
+      {
+        "scenarioId": "FL06",
+        "path": "fixtures/FL06.json",
+        "sha256": "3f01042b42950459598d0515645e7df85dcf837205ff89b859e50c19f1db12df",
+        "bytes": 5071
+      },
+      {
+        "scenarioId": "FL07",
+        "path": "fixtures/FL07.json",
+        "sha256": "ac945ff8ee5146e71b06790cec68908e8f38a3e1417fcf202da6b2f5b19658b0",
+        "bytes": 5151
+      },
+      {
+        "scenarioId": "FL08",
+        "path": "fixtures/FL08.json",
+        "sha256": "881e88fad36071ef4f11edd1ab1a49039b73de42b0d93da33bfe03bec3073955",
+        "bytes": 5082
+      }
+    ]
+  },
+  "answers": {
+    "count": 16,
+    "semanticDigest": "3eea901e2c27717aa73bd7b2748ccf86e15f4924feb82c4e8ddaf6bc7b468982",
+    "packDigest": "01d174ebba9fcae6e6aab51774aeb2cfa7e0451a6d5ea72f492de768f5f20c86",
+    "files": [
+      {
+        "scenarioId": "S01",
+        "path": "answers/S01.json",
+        "sha256": "93e2ed756c3da1f00230420cd4d414430770839cfa7e64e41251f919d142b906",
+        "bytes": 8860
+      },
+      {
+        "scenarioId": "S02",
+        "path": "answers/S02.json",
+        "sha256": "9b47f4322b3c04ab5d6ab0a23d68561bec9f83124436c92f1e1aa0271630184f",
+        "bytes": 8572
+      },
+      {
+        "scenarioId": "S03",
+        "path": "answers/S03.json",
+        "sha256": "2a8ef48c11f3af9029914fd8325be8e69c7a1c7f893f5d560833c359f308849c",
+        "bytes": 10210
+      },
+      {
+        "scenarioId": "S04",
+        "path": "answers/S04.json",
+        "sha256": "4d10cb46e06261603bafe739e8c24eb1e2e3486632a138e86e8a42ca71ff7d79",
+        "bytes": 8131
+      },
+      {
+        "scenarioId": "S05",
+        "path": "answers/S05.json",
+        "sha256": "68a017f4a927f9d62d4cd9e46da87bcd298f9b35b8149decd81ee94734b5ec72",
+        "bytes": 9646
+      },
+      {
+        "scenarioId": "S06",
+        "path": "answers/S06.json",
+        "sha256": "7e5a12dc3410909aacea447b20e94bb7030c7001b5ba70121090262a099bb855",
+        "bytes": 9304
+      },
+      {
+        "scenarioId": "S07",
+        "path": "answers/S07.json",
+        "sha256": "424c301bba14a513e44d3ead9ba91f0cc78624172fbf5e582ccd26eaa3913ee4",
+        "bytes": 7722
+      },
+      {
+        "scenarioId": "S08",
+        "path": "answers/S08.json",
+        "sha256": "acd2d1cfba0413bd12d12df8dd6d187c95b24773446073e5d10c4d43f8dfa93b",
+        "bytes": 10394
+      },
+      {
+        "scenarioId": "FL01",
+        "path": "answers/FL01.json",
+        "sha256": "815e4250262d79e9b414b4736b1a3958e86f0c43dd381c80d74efedce3d39e79",
+        "bytes": 8836
+      },
+      {
+        "scenarioId": "FL02",
+        "path": "answers/FL02.json",
+        "sha256": "2a3cf254271d1bd745bee72d45850fc6876923412c688e61bc2bd474be49731e",
+        "bytes": 5687
+      },
+      {
+        "scenarioId": "FL03",
+        "path": "answers/FL03.json",
+        "sha256": "845a7840c852ca8bbbfc131ea918e52236a1f04c200293fea003ea2faab0edbc",
+        "bytes": 10286
+      },
+      {
+        "scenarioId": "FL04",
+        "path": "answers/FL04.json",
+        "sha256": "e4a21233d5a0ed2f922a1d092498aafd40cc01d1cad27ee00245ca35f1ce7624",
+        "bytes": 8622
+      },
+      {
+        "scenarioId": "FL05",
+        "path": "answers/FL05.json",
+        "sha256": "f11d516797cb4d95622dc9797be10e6fd91254f6c3436586be58a5b61c2979ba",
+        "bytes": 9168
+      },
+      {
+        "scenarioId": "FL06",
+        "path": "answers/FL06.json",
+        "sha256": "0e99504c095a4a5aa4a3e0156f525f3c1b2d47d72604cc0cbdfc5c8c44702092",
+        "bytes": 5685
+      },
+      {
+        "scenarioId": "FL07",
+        "path": "answers/FL07.json",
+        "sha256": "029c21b5018068685fef08738614f7f2fcacaaf997c0a2b0d085c5ec6d205527",
+        "bytes": 5921
+      },
+      {
+        "scenarioId": "FL08",
+        "path": "answers/FL08.json",
+        "sha256": "ee73e127149258629a76ded39eee3a5a37ae4763f21fee641be745ce4beed96e",
+        "bytes": 6134
+      }
+    ],
+    "freeze": {
+      "frozenAt": "2026-11-02T00:00:00.000Z",
+      "frozenBy": "h0c-authoring",
+      "derivedFromProductOutput": false,
+      "historicalSamplesReused": false,
+      "sourceRefs": [
+        "测试/2026-11-01-测试集设计/判分与数据拆分.md",
+        "测试/2026-11-01-测试集设计/实验计划.md",
+        "测试/2026-11-01-信息流Lab/合成公司与标注约定.md",
+        "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md"
+      ],
+      "revision": 1
+    }
+  },
+  "oracleSelfProofs": [
+    {
+      "name": "business-catalog",
+      "version": "1.0.0",
+      "module": "tests/harness/business/catalog.ts",
+      "testName": "business-oracle:business-catalog",
+      "verified": true
+    },
+    {
+      "name": "business-fixture-isolation",
+      "version": "1.0.0",
+      "module": "tests/harness/business/fixtures.ts",
+      "testName": "business-oracle:business-fixture-isolation",
+      "verified": true
+    },
+    {
+      "name": "four-class-answers",
+      "version": "1.0.0",
+      "module": "tests/harness/business/answers.ts",
+      "testName": "business-oracle:four-class-answers",
+      "verified": true
+    },
+    {
+      "name": "answer-provenance",
+      "version": "1.0.0",
+      "module": "tests/harness/business/answers.ts",
+      "testName": "business-oracle:answer-provenance",
+      "verified": true
+    },
+    {
+      "name": "business-aggregation",
+      "version": "1.0.0",
+      "module": "tests/harness/business/scoring.ts",
+      "testName": "business-oracle:business-aggregation",
+      "verified": true
+    },
+    {
+      "name": "split-policy",
+      "version": "1.0.0",
+      "module": "tests/harness/business/splits.ts",
+      "testName": "business-oracle:split-policy",
+      "verified": true
+    },
+    {
+      "name": "business-coverage",
+      "version": "1.0.0",
+      "module": "tests/harness/business/coverage.ts",
+      "testName": "business-oracle:business-coverage",
+      "verified": true
+    }
+  ],
+  "verification": {
+    "status": "synthetic-fixture-only-not-run",
+    "canBeUsedForBusinessAcceptance": false,
+    "runEvidence": 0,
+    "selfProof": {
+      "path": "artifacts/dsh/harness/tool-selfproof.json",
+      "present": true,
+      "sha256": "5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+      "fresh": true,
+      "issues": [],
+      "requiredTests": [
+        "business-oracle:business-catalog",
+        "business-oracle:business-fixture-isolation",
+        "business-oracle:four-class-answers",
+        "business-oracle:answer-provenance",
+        "business-oracle:business-aggregation",
+        "business-oracle:split-policy",
+        "business-oracle:business-coverage",
+        "business:fixture-determinism",
+        "business:answers-independent-of-seed",
+        "business:isolation-and-driver-boundary",
+        "business:no-product-or-lab-imports",
+        "business:coverage-index",
+        "business:aggregation-honesty",
+        "business:cli-artifacts",
+        "business:docs-contract"
+      ]
+    }
+  },
+  "isolation": {
+    "fixtureRoot": "fixtures",
+    "answersRoot": "answers",
+    "result": "pass",
+    "fixtureContainsAnswers": false,
+    "canariesEvaluationSideOnly": true,
+    "sameMachineDirectoriesNotSecretIsolation": true
+  },
+  "split": {
+    "DEV": 16,
+    "REG": 0,
+    "HOLDOUT": 0,
+    "holdoutState": "reserved_not_materialised",
+    "rules": [
+      "本切片所有 S/FL 场景均为公开 DEV；改名/翻译/加噪/换种子/重排不得变成 HOLDOUT",
+      "同一 family 的所有变体必须与 family 同属一个集合",
+      "REG 只在冻结故事与已修复失败上按来源登记（含 bug 引用），不得由 DEV 改名复制",
+      "HOLDOUT 尚未制作：需独立作者、答案先冻结、真实权限与流程隔离；目录名不构成秘密隔离",
+      "历史有限样本（phase3h/3i 等）不得升级为 HOLDOUT 或已验证业务证据",
+      "同机/同用户目录不是秘密隔离；开发 agent 拥有工作区读取权限时不能自称对 HOLDOUT 盲测"
+    ],
+    "historicalSamplesUpgraded": false
+  },
+  "zeroRemote": {
+    "modelCalls": 0,
+    "embeddingCalls": 0,
+    "labRooms": 0,
+    "hostCalls": 0,
+    "channelSends": 0
+  },
+  "coverage": {
+    "path": "coverage.json",
+    "markdown": "coverage.md",
+    "scenarios": 16,
+    "materializedSteps": 65,
+    "designSteps": 80,
+    "uncoveredDesignSteps": 27,
+    "missingAssets": 10
+  },
+  "scoring": {
+    "planPath": "scoring-plan.json",
+    "emptyReportPath": "scoring-empty-report.json",
+    "planSha256": "381a993c42420d4adca41928c5b1abc4f96fd3043117adade4ab74aeb4cc7be3",
+    "emptyReportSha256": "b7632cc66fbc0bc417519ebae402b23c7e54127ca37cbcfd1abf07e506f5a31a",
+    "hardGate": "undecidable",
+    "businessAcceptance": "not_claimed",
+    "totalScorePresent": false
+  },
+  "checks": {
+    "catalog": "pass",
+    "fixtureIsolation": "pass",
+    "splitPolicy": "pass",
+    "coverage": "pass",
+    "coverageHonesty": "pass",
+    "aggregationHonesty": "pass",
+    "driverBoundary": "pass",
+    "selfProofVerified": true
+  },
+  "failures": [],
+  "cannotClaim": [
+    "没有任何产品/宿主/模型/Lab/渠道运行；所有场景状态是 synthetic-fixture-only-not-run",
+    "不是 HOLDOUT，也没有双人盲评或相处质量分数",
+    "不能用于业务验收、V01–V27 或九系统整体通过的任何声明"
+  ],
+  "commands": [
+    "node scripts/harness/fl-scenarios.mjs --require-selfproof",
+    "node scripts/harness/manifest.mjs",
+    "node scripts/harness/selfproof.mjs",
+    "node scripts/harness/traceability.mjs --strict"
+  ]
+}

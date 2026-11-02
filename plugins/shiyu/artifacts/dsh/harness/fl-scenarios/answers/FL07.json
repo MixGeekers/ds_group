@@ -1,0 +1,260 @@
+{
+  "scenarioId": "FL07",
+  "familyId": "F-FL07",
+  "split": "DEV",
+  "steps": [
+    {
+      "stepId": "FL07.1",
+      "attention": {
+        "required": [
+          "background_only"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "must_process_as_business"
+        ]
+      },
+      "internal": {
+        "required": [
+          "no_internal_write"
+        ],
+        "allowed": [
+          "no_internal_write"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "no_expression"
+        ],
+        "allowed": [
+          "must_not_repeat_acknowledgement"
+        ],
+        "forbidden": [
+          "must_answer_actor"
+        ]
+      },
+      "action": {
+        "required": [
+          "no_external_effect"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "single_authorized_send"
+        ]
+      },
+      "routes": [
+        "P"
+      ],
+      "counts": {
+        "modelCalls": 0,
+        "externalSends": 0,
+        "backendWrites": 0
+      },
+      "oracleChecks": [
+        {
+          "kind": "harness-oracle",
+          "oracle": "counts",
+          "expectation": {
+            "deduped": 1,
+            "externalSends": 0,
+            "backendWrites": 0
+          }
+        }
+      ],
+      "milestones": [
+        "M.FL07.replay-deduped"
+      ],
+      "hDimensions": [
+        "H3"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "answer:replay-deduped"
+      ]
+    },
+    {
+      "stepId": "FL07.2",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "preserve_unknown"
+        ],
+        "allowed": [
+          "record_source_claim"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "no_expression"
+        ],
+        "allowed": [
+          "must_state_uncertainty"
+        ],
+        "forbidden": [
+          "must_not_claim_completion"
+        ]
+      },
+      "action": {
+        "required": [
+          "limited_retry_once"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "single_authorized_send"
+        ]
+      },
+      "routes": [
+        "P",
+        "C"
+      ],
+      "counts": {
+        "modelCalls": 1,
+        "externalSends": 0
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "interrupted-classification-retried-once-not-twice",
+          "note": "分类中断后最多一次获准重试，不无限升级"
+        }
+      ],
+      "milestones": [
+        "M.FL07.retry-bounded"
+      ],
+      "hDimensions": [
+        "H3"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "answer:retry-once"
+      ]
+    },
+    {
+      "stepId": "FL07.3",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "record_effect_unknown"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_distinguish_effect_states",
+          "must_not_claim_completion"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": []
+      },
+      "action": {
+        "required": [
+          "verify_effect_before_success"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "single_authorized_send"
+        ]
+      },
+      "routes": [
+        "P",
+        "R"
+      ],
+      "counts": {
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "harness-oracle",
+          "oracle": "causal",
+          "expectation": {
+            "externalEffects": 1,
+            "receipts": 0,
+            "duplicateSends": 0,
+            "productKnowledge": "unknown"
+          }
+        }
+      ],
+      "milestones": [
+        "M.FL07.lost-receipt-not-success"
+      ],
+      "hDimensions": [
+        "H3"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "answer:lost-receipt-unknown"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M.FL07.replay-deduped",
+      "scenarioId": "FL07",
+      "description": "重送不产生第二次效果",
+      "functional": true,
+      "evidenceHints": [
+        "FL07.1"
+      ]
+    },
+    {
+      "id": "M.FL07.retry-bounded",
+      "scenarioId": "FL07",
+      "description": "分类中断后最多一次获准重试",
+      "functional": true,
+      "evidenceHints": [
+        "FL07.2"
+      ]
+    },
+    {
+      "id": "M.FL07.lost-receipt-not-success",
+      "scenarioId": "FL07",
+      "description": "发送后丢回执保持 unknown 且不重复发送",
+      "functional": true,
+      "evidenceHints": [
+        "FL07.3"
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "id": "FL07.noise-or-rename",
+      "kind": "noise",
+      "expectation": "same_allowed_answers",
+      "description": "更换传输乱序种子，合法效果次数不增",
+      "materialised": false,
+      "reason": "H0c 只物化主线代表轨迹；噪音/改名变体待后续切片生成并逐条审查"
+    },
+    {
+      "id": "FL07.structure-change",
+      "kind": "correction",
+      "expectation": "changed_allowed_answers",
+      "description": "发送前丢回执 vs 发送后丢回执：账本状态与用户表述应不同",
+      "materialised": false,
+      "reason": "需要新的因果结构；不能只改词或换种子冒充新样本"
+    }
+  ],
+  "source": {
+    "sourcePath": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+    "kind": "matrix-only",
+    "existingStepCount": 0,
+    "machineReadableAnswers": false,
+    "statusAtSource": "design-doc-only-unrun"
+  }
+}

@@ -1,0 +1,210 @@
+{
+  "scenarioId": "FL04",
+  "familyId": "F-FL04",
+  "split": "DEV",
+  "fixtureSalt": "54dfaca22ce5",
+  "title": "单源洪峰",
+  "preconditions": {
+    "worldRef": "fixture://company/lanqiao",
+    "clockBase": "2026-11-01T09:00:00-04:00",
+    "timeZone": "America/Caracas",
+    "actors": {
+      "E01": "fixture-principal-e01",
+      "E02": "fixture-principal-e02",
+      "E03": "fixture-principal-e03",
+      "E04": "fixture-principal-e04",
+      "E05": "fixture-principal-e05",
+      "E06": "fixture-principal-e06",
+      "E07": "fixture-principal-e07",
+      "E08": "fixture-principal-e08",
+      "E09": "fixture-principal-e09",
+      "E10": "fixture-principal-e10-same-display-name-as-e03"
+    },
+    "channels": {
+      "C02": "PA internal",
+      "C05": "SA supplier group nativeGroupId=g1",
+      "C06": "SB supplier group nativeGroupId=g1",
+      "C08": "SA+SB mixed group",
+      "C10": "E02 DM",
+      "C11": "E03 DM",
+      "C17": "E09 DM"
+    },
+    "orders": {
+      "O-A1": "PA/SA due 2026-11-02T17:00-04:00",
+      "O-A2": "PA/SB due 2026-11-04T17:00-04:00",
+      "O-B1": "PB/SC due 2026-11-05T17:00-04:00"
+    },
+    "authorizationModel": "explicit fixture grants; titles and message text add no authority",
+    "hiddenCanariesPolicy": "evaluation-side only; never in public fixture",
+    "teamSlotModel": {
+      "totalModelSlots": 3,
+      "backgroundMax": 2,
+      "dialogueReserved": 1,
+      "coreEvaluationMax": 1
+    },
+    "sources": [
+      "fixture://order/O-A1",
+      "fixture://quote/Q-A",
+      "fixture://quote/Q-B",
+      "fixture://ci/qingzhou"
+    ],
+    "grants": {
+      "grants": [
+        {
+          "subject": "fixture-principal-e03",
+          "actions": [
+            "order.read.pa",
+            "risk.record",
+            "draft.internal",
+            "supplier.ask.fact"
+          ],
+          "resources": [
+            "O-A1",
+            "Q-A"
+          ]
+        },
+        {
+          "subject": "fixture-principal-e02",
+          "actions": [
+            "conflict.decide.pa",
+            "order.read.pa",
+            "supplier.ask.fact"
+          ],
+          "resources": [
+            "O-A1",
+            "O-A2"
+          ]
+        },
+        {
+          "subject": "fixture-principal-e09",
+          "actions": [
+            "order.read.pb",
+            "quote.read.sb"
+          ],
+          "resources": [
+            "O-B1",
+            "Q-B"
+          ]
+        },
+        {
+          "subject": "fixture-principal-e04",
+          "actions": [
+            "production.read.pa",
+            "production.suggest.pa"
+          ],
+          "resources": [
+            "O-A1"
+          ]
+        }
+      ],
+      "forbiddenGlobal": [
+        "payment.execute",
+        "order.cancel.supplier",
+        "price.commit",
+        "schedule.commit.company",
+        "cross-scope.read"
+      ]
+    },
+    "loadProfile": "P0: 20 sessions, 1000 messages, 10/s, fake model 100ms; single-source skew 80% is a separate configuration",
+    "relevantDoc": "测试/2026-11-01-信息流Lab/cases/FL04-洪峰与公平.md"
+  },
+  "steps": [
+    {
+      "stepId": "FL04.1",
+      "index": 1,
+      "title": "两个已授权长任务启动",
+      "event": {
+        "actor": "E02",
+        "audience": "C02",
+        "channel": "C02",
+        "text": "按计划处理 PA/PB 合成资料，各 40 个固定工作步骤。",
+        "occurredAt": "2026-11-01T09:00:00-04:00",
+        "receivedAt": "2026-11-01T09:00:00-04:00",
+        "sourceKey": "fl04.1@54dfaca22ce5"
+      },
+      "visibleHistory": [],
+      "availableCapabilities": [
+        "ReadView.audience",
+        "Worker.fake",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    },
+    {
+      "stepId": "FL04.3",
+      "index": 2,
+      "title": "洪峰中 PB 小会话查询进度",
+      "event": {
+        "actor": "E09",
+        "audience": "C17",
+        "channel": "C17",
+        "text": "O-B1 现在到哪一步？",
+        "occurredAt": "2026-11-01T09:00:30-04:00",
+        "receivedAt": "2026-11-01T09:00:30-04:00",
+        "sourceKey": "fl04.3@54dfaca22ce5"
+      },
+      "visibleHistory": [
+        "FL04.1"
+      ],
+      "availableCapabilities": [
+        "ReadView.audience",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ],
+      "note": "洪峰输入由负载切片另行注入；本骨架只含该查询事件。"
+    },
+    {
+      "stepId": "FL04.5",
+      "index": 3,
+      "title": "可信停止 PA 任务（新 Effect 前）",
+      "event": {
+        "actor": "E02",
+        "audience": "C10",
+        "channel": "C10",
+        "text": "停止 PA 任务（taskId 见授权回执）。",
+        "occurredAt": "2026-11-01T09:01:00-04:00",
+        "receivedAt": "2026-11-01T09:01:00-04:00",
+        "sourceKey": "fl04.5@54dfaca22ce5"
+      },
+      "visibleHistory": [
+        "FL04.1"
+      ],
+      "availableCapabilities": [
+        "TrustedControl.local",
+        "Worker.fake",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ],
+      "faults": [
+        {
+          "at": "before_dispatch",
+          "kind": "trusted_stop",
+          "label": "stop-before-new-effect"
+        }
+      ]
+    },
+    {
+      "stepId": "FL04.6",
+      "index": 4,
+      "title": "停止新增输入并观察排空",
+      "event": {
+        "actor": "fixture-load",
+        "audience": "system",
+        "channel": "fixture://load/p0",
+        "text": "injection complete; drain window",
+        "occurredAt": "2026-11-01T09:02:00-04:00",
+        "receivedAt": "2026-11-01T09:02:00-04:00",
+        "sourceKey": "fl04.6@54dfaca22ce5"
+      },
+      "visibleHistory": [
+        "FL04.1",
+        "FL04.3",
+        "FL04.5"
+      ],
+      "availableCapabilities": [
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    }
+  ]
+}

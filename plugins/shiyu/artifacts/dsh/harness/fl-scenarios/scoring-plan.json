@@ -1,0 +1,160 @@
+{
+  "planId": "h0c-skeleton-plan",
+  "freezeRef": "catalog:bc01a4878c3982176208ceda8906c941112ce46f603bde2ad84d94119ebf7c43",
+  "cases": [
+    {
+      "caseId": "S01-representative",
+      "scenarioId": "S01",
+      "requiredMilestones": [
+        "M.S01.save-source-separation",
+        "M.S01.corrected-fact-current",
+        "M.S01.uncertainty-distinguished"
+      ]
+    },
+    {
+      "caseId": "S02-representative",
+      "scenarioId": "S02",
+      "requiredMilestones": [
+        "M.S02.identity-not-self-asserted",
+        "M.S02.private-facts-not-in-group",
+        "M.S02.split-restores-sources",
+        "M.S02.authorized-send-once"
+      ]
+    },
+    {
+      "caseId": "S03-representative",
+      "scenarioId": "S03",
+      "requiredMilestones": [
+        "M.S03.subscription-created",
+        "M.S03.change-triggers-once",
+        "M.S03.stop-before-second-notification"
+      ]
+    },
+    {
+      "caseId": "S04-representative",
+      "scenarioId": "S04",
+      "requiredMilestones": [
+        "M.S04.route-upgrade-once",
+        "M.S04.chat-not-blocked-by-worker",
+        "M.S04.stale-draft-blocked",
+        "M.S04.unverified-result-not-completed"
+      ]
+    },
+    {
+      "caseId": "S05-representative",
+      "scenarioId": "S05",
+      "requiredMilestones": [
+        "M.S05.task-and-memory-states-separated",
+        "M.S05.unknown-send-not-resent",
+        "M.S05.status-query-available",
+        "M.S05.partial-convergence-from-evidence",
+        "M.S05.no-auto-resume"
+      ]
+    },
+    {
+      "caseId": "S06-representative",
+      "scenarioId": "S06",
+      "requiredMilestones": [
+        "M.S06.barrier-observable",
+        "M.S06.deleted-derived-content-rejected",
+        "M.S06.no-content-via-summary-or-hint",
+        "M.S06.recovery-lock-without-ledger",
+        "M.S06.trusted-ledger-limited-restore"
+      ]
+    },
+    {
+      "caseId": "S07-representative",
+      "scenarioId": "S07",
+      "requiredMilestones": [
+        "M.S07.experience-with-source",
+        "M.S07.quoted-text-not-authority"
+      ]
+    },
+    {
+      "caseId": "S08-representative",
+      "scenarioId": "S08",
+      "requiredMilestones": [
+        "M.S08.daily-report-at-occurrence",
+        "M.S08.missed-cycles-latest-only",
+        "M.S08.timeout-degraded",
+        "M.S08.forged-control-rejected",
+        "M.S08.budget-status-once"
+      ]
+    },
+    {
+      "caseId": "FL01-representative",
+      "scenarioId": "FL01",
+      "requiredMilestones": [
+        "M.FL01.capture-business-without-at",
+        "M.FL01.two-dates-distinct",
+        "M.FL01.owner-handling-avoids-repeat-ping",
+        "M.FL01.answer-current-question"
+      ]
+    },
+    {
+      "caseId": "FL02-representative",
+      "scenarioId": "FL02",
+      "requiredMilestones": [
+        "M.FL02.context-changes-answer"
+      ]
+    },
+    {
+      "caseId": "FL03-representative",
+      "scenarioId": "FL03",
+      "requiredMilestones": [
+        "M.FL03.draft-with-snapshot",
+        "M.FL03.irrelevant-noise-does-not-invalidate",
+        "M.FL03.correction-invalidates-old-draft",
+        "M.FL03.retraction-blocks-stale-price",
+        "M.FL03.audience-change-invalidates"
+      ]
+    },
+    {
+      "caseId": "FL04-representative",
+      "scenarioId": "FL04",
+      "requiredMilestones": [
+        "M.FL04.two-long-tasks-start",
+        "M.FL04.small-session-query-answered",
+        "M.FL04.trusted-stop-before-effect",
+        "M.FL04.drain-honest"
+      ]
+    },
+    {
+      "caseId": "FL05-representative",
+      "scenarioId": "FL05",
+      "requiredMilestones": [
+        "M.FL05.conflict-does-not-override-authority",
+        "M.FL05.same-name-not-authority",
+        "M.FL05.mixed-group-scope-kept",
+        "M.FL05.short-id-isolation"
+      ]
+    },
+    {
+      "caseId": "FL06-representative",
+      "scenarioId": "FL06",
+      "requiredMilestones": [
+        "M.FL06.timeout-uncertain",
+        "M.FL06.invalid-structure-uncertain",
+        "M.FL06.attachment-uncertain"
+      ]
+    },
+    {
+      "caseId": "FL07-representative",
+      "scenarioId": "FL07",
+      "requiredMilestones": [
+        "M.FL07.replay-deduped",
+        "M.FL07.retry-bounded",
+        "M.FL07.lost-receipt-not-success"
+      ]
+    },
+    {
+      "caseId": "FL08-representative",
+      "scenarioId": "FL08",
+      "requiredMilestones": [
+        "M.FL08.no-change-quiet",
+        "M.FL08.change-wakes-once",
+        "M.FL08.no-revival-after-restart"
+      ]
+    }
+  ]
+}

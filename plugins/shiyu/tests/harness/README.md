@@ -24,6 +24,8 @@
 | `selfproof.ts` | 自证执行器：真实运行 `tests/harness-*.test.ts`，解析 TAP，冻结 artifact，校验 stale/伪通过 |
 | `traceability.ts` | 覆盖追踪生成器：来源核验→证据计算→JSON+Markdown→诚实性门 |
 | `fixtures/crash-child.ts` | 真实子进程崩溃夹具（临时 SQLite + 观察账本 + 命名崩溃断点） |
+| `business/` | H0c S/FL 业务骨架：catalog、fixture/答案生成器、四类允许结果 oracle、H1–H8 + 功能/质量聚合、DEV/REG/HOLDOUT 拆分、覆盖索引 |
+| `fl-scenarios.ts` | H0c CLI 实现：生成 `artifacts/dsh/harness/fl-scenarios/` 的 fixtures/answers/manifest/coverage/scoring 骨架 |
 | `../../tests/harness-*.test.ts` | 根级主 glob 测试：全部 oracle 自证、故障/时钟、观察器/崩溃、manifest、追踪、自证 artifact 校验 |
 
 工具实现在本目录（被测试 import，因此 `npx tsc --noEmit` 会传递检查）。`scripts/harness/*.mjs` 只是薄启动器，方便从插件根运行 TypeScript 实现。
@@ -45,7 +47,10 @@ node scripts/harness/selfproof.mjs
 # 4) 生成覆盖追踪 JSON + Markdown；--strict 在 H0 能力未全部 self_proven 时退出码 3
 node scripts/harness/traceability.mjs --strict
 
-# 5) 全量检查（typecheck + 主 glob 全部测试 + build + client 语法）
+# 5) H0c S/FL 业务骨架（离线合成；0 模型/embedding/Lab/宿主/渠道）
+node scripts/harness/fl-scenarios.mjs --require-selfproof
+
+# 6) 全量检查（typecheck + 主 glob 全部测试 + build + client 语法）
 npm run check
 ```
 
@@ -59,6 +64,19 @@ npm run check
 
 重新生成顺序固定为 manifest → selfproof → traceability；selfproof 之后源文件若变化，traceability 会把自证标为 stale 而不是继续绿。
 
+## H0c S/FL 业务测试集骨架（离线，不冒充业务验收）
+
+`business/` 按 02 §1/§4/§8 物化 S01–S08、FL01–FL08 的合成 fixture 与独立答案集骨架：
+
+- **公开 fixture**（`artifacts/dsh/harness/fl-scenarios/fixtures/*.json`）：只含驱动输入、受众、授权事实、故障触发与更早可见历史；不含答案、H 标签、里程碑、质量标签、期望计数或未来步骤。
+- **独立答案集**（`answers/*.json`）：四类允许结果（A 是否关注 / S 允许的内层变化 / E 是否向谁表达 / X 允许动作）+ 路由、计数、oracle 期望、里程碑与质量配对；在答案侧冻结（`derivedFromProductOutput=false`），早于任何运行，语义摘要稳定；评估 canary 只存在答案侧。
+- **拆分规则**：本切片 16 个场景全部是公开 DEV；REG 只在冻结失败上按来源登记；**HOLDOUT 未制作、仅保留规则**，改名/翻译/加噪/换种子/重排同故事不能跨集合伪装新样本，历史有限样本不得升级。
+- **判定与聚合**：H1–H8 硬约束零容忍；功能里程碑与相处质量分开报告，不压总分；输出 planned/executed/passed/failed/unknown/skipped/not-run/not-applicable 分母与“不能用于业务验收”的明确措辞。
+- **覆盖索引**：`fl-scenarios/coverage.json` + `coverage.md`，逐场景列出物化/历史步数、未物化步骤、变体、来源核验与缺口（FL02/06/07/08 无历史 case 文档、噪音/负载轨迹、HOLDOUT、双人盲评、运行证据等）。
+- **状态口径**：所有场景只能是 `synthetic-fixture-only-not-run`，`canUseForBusinessAcceptance=false`；0 真实模型/embedding/Lab/宿主/渠道调用。**还不能用于业务验收。**
+
+H0c 的 7 个自证 oracle（catalog / fixture isolation / four-class answers / answer provenance / aggregation / split policy / coverage）由 `tests/harness-business.test.ts` 用与 H0b 相同的 known-accept + known-reject 框架执行，并记录进 `tool-selfproof.json`；`fl-scenarios --require-selfproof` 只有在当前源码 hash 与通过测试都匹配时才通过。
+
 ## 自证如何工作（判定器先验真）
 
 - 每个 oracle 导出一个 `OracleSelfProof`：`samples`（同步输入）和/或 `scenarios`（真实文件/SQLite/子进程/时钟），每条都声明 `expect: accept|reject`；reject 必须声明预期 violation codes。
@@ -66,9 +84,11 @@ npm run check
 - `selfproof:framework-rejects-accepting-oracle` 额外注入一个“永远接受”的假 oracle，证明框架本身会让它失败——防止“判定器只证明自己会对正确样本返回 true”。
 - `selfproof.ts` 把这些真实 TAP 结果冻结成 artifact；`checkSelfProofArtifact` 拒绝 `passed:true` 与失败并存、缺 oracle 测试、缺测试文件、源码 hash 与当前树不一致（stale）的 artifact。
 
-## 如何接入后续切片
+## 如何接入后续切片（H0c 之后）
 
 > **H0b 交接规则（机器可读字段即 traceability JSON 的 `handoff`）**：H0b 之后产品行由后续切片按其实际证据更新；禁止后续切片复用 H0 的 `tooling_ready` 冒充产品通过，也不得用 H0 oracle 自证或历史有限证据覆盖 `not_covered`。`tooling_ready` 只表示“判定器已自证、产品场景未运行”。
+>
+> **H0c 交接规则**：`fl-scenarios` 的 fixture/答案/覆盖索引只是“骨架已物化”；状态 `synthetic-fixture-only-not-run` 与 `canUseForBusinessAcceptance=false` 必须保留，直到后续切片在受控运行中产生独立效果账本、宿主/业务证据并更新覆盖索引。禁止把 H0c 的合成答案、历史有限样本或变体规格写成已验证/HOLDOUT。
 
 1. **新增 oracle**：在 `tests/harness/` 新模块实现 `checkXxx(...): CheckResult`（不要 throw），导出 `OracleSelfProof`（必须 ≥1 known-accept、≥1 known-reject），在 `index.ts` 注册进 `ALL_SELF_PROOFS`；主 glob 的 oracle 测试会自动执行它并计入 artifact。
 2. **新增场景/组合/故障用例**：放在根级 `tests/harness-<topic>.test.ts`（主 glob `tests/*.test.ts` 会包含），测试名用唯一前缀（例如 `channel:pause-mid-dispatch`），不要依赖 sleep 猜竞态；用 `FaultInjector` 命名断点与 `BusinessClock` 显式推进。

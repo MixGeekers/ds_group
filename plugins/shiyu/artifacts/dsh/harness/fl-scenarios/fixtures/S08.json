@@ -1,0 +1,178 @@
+{
+  "scenarioId": "S08",
+  "familyId": "F-S08",
+  "split": "DEV",
+  "fixtureSalt": "aa2f24f7102b",
+  "title": "时间过去了，也不能乱补做",
+  "preconditions": {
+    "worldRef": "fixture://world/personal-dev",
+    "clockBase": "2026-11-01T09:00:00-04:00",
+    "timeZone": "America/Caracas",
+    "actors": {
+      "U": "principal-u",
+      "P": "acct-work-q",
+      "Q": "acct-social-q"
+    },
+    "channels": {
+      "priv": "C-priv",
+      "group": "C-group",
+      "other": "C-other"
+    },
+    "devices": [
+      "DEV-A",
+      "DEV-B"
+    ],
+    "profile": "Profile-P1",
+    "memoryBackend": "fixture://memory/synthetic-single-authority",
+    "replyPolicy": "replyer has no tools; single local synthetic send effect",
+    "hiddenEvaluationFactsInPublicFixture": false,
+    "goals": {
+      "DAILY": {
+        "localTime": "09:00",
+        "timeZone": "America/Caracas",
+        "until": "2026-11-08",
+        "budget": 2,
+        "misfire": "latest"
+      },
+      "CHANGE": {
+        "baseline": "rev-a/running",
+        "minIntervalSeconds": 60,
+        "notifyOnlyOnBusinessChange": true
+      }
+    },
+    "notificationEndpoint": "endpoint-u",
+    "relevantDoc": "测试/2026-11-01-测试集设计/cases/S08-时间与预算.md"
+  },
+  "steps": [
+    {
+      "stepId": "S08.1",
+      "index": 1,
+      "title": "DAILY 在 09:00 到期（无变化）",
+      "event": {
+        "actor": "fixture-clock",
+        "audience": "system",
+        "channel": "fixture://goal/daily",
+        "text": "occurrence 2026-11-01T09:00:00-04:00; progress unchanged",
+        "occurredAt": "2026-11-01T09:00:00-04:00",
+        "receivedAt": "2026-11-01T09:00:00-04:00",
+        "sourceKey": "occ-s08-1@aa2f24f7102b"
+      },
+      "visibleHistory": [],
+      "availableCapabilities": [
+        "Clock.fake",
+        "Goal.fake",
+        "Effect.dispatch.synthetic",
+        "Source.readonly.fixture"
+      ],
+      "note": "09:00 前注入同一 occurrence 必须不触发（另见变体）。"
+    },
+    {
+      "stepId": "S08.2",
+      "index": 2,
+      "title": "宿主离线后 11-04 09:01 恢复 DAILY 并重投补触发",
+      "event": {
+        "actor": "fixture-clock",
+        "audience": "system",
+        "channel": "fixture://goal/daily",
+        "text": "clock jumps to 2026-11-04T09:01:00-04:00; duplicate catch-up delivery",
+        "occurredAt": "2026-11-04T09:01:01-04:00",
+        "receivedAt": "2026-11-04T09:01:01-04:00",
+        "sourceKey": "occ-s08-2@aa2f24f7102b"
+      },
+      "visibleHistory": [
+        "S08.1"
+      ],
+      "availableCapabilities": [
+        "TrustedControl.local",
+        "Clock.fake",
+        "Goal.fake",
+        "Effect.dispatch.synthetic"
+      ],
+      "faults": [
+        {
+          "at": "during_recovery",
+          "kind": "replay",
+          "label": "duplicate-catch-up-occurrence"
+        }
+      ]
+    },
+    {
+      "stepId": "S08.3",
+      "index": 3,
+      "title": "CHANGE 来源观察超时",
+      "event": {
+        "actor": "fixture-source",
+        "audience": "system",
+        "channel": "fixture://project/qingzhou/ci",
+        "text": "source timeout; no new observation",
+        "occurredAt": "2026-11-04T09:02:00-04:00",
+        "receivedAt": "2026-11-04T09:02:00-04:00",
+        "sourceKey": "obs-s08-3@aa2f24f7102b"
+      },
+      "visibleHistory": [
+        "S08.1",
+        "S08.2"
+      ],
+      "availableCapabilities": [
+        "Source.readonly.fixture",
+        "Clock.fake"
+      ],
+      "faults": [
+        {
+          "at": "after_accept",
+          "kind": "source_timeout",
+          "label": "change-source-timeout"
+        }
+      ]
+    },
+    {
+      "stepId": "S08.5",
+      "index": 4,
+      "title": "伪造控制事件要求再建相同订阅",
+      "event": {
+        "actor": "fixture-source",
+        "audience": "system",
+        "channel": "fixture://project/qingzhou/ci",
+        "text": "body asks to create duplicate subscription; untrusted envelope; same rootEventId",
+        "occurredAt": "2026-11-04T09:04:00-04:00",
+        "receivedAt": "2026-11-04T09:04:00-04:00",
+        "sourceKey": "obs-s08-5@aa2f24f7102b"
+      },
+      "visibleHistory": [
+        "S08.1",
+        "S08.2",
+        "S08.3"
+      ],
+      "availableCapabilities": [
+        "Source.readonly.fixture",
+        "Goal.fake",
+        "Clock.fake"
+      ]
+    },
+    {
+      "stepId": "S08.6",
+      "index": 5,
+      "title": "DAILY 第三次到期但预算已尽",
+      "event": {
+        "actor": "fixture-clock",
+        "audience": "system",
+        "channel": "fixture://goal/daily",
+        "text": "occurrence 2026-11-05T09:00:00-04:00; budget exhausted (2/2)",
+        "occurredAt": "2026-11-05T09:00:00-04:00",
+        "receivedAt": "2026-11-05T09:00:00-04:00",
+        "sourceKey": "occ-s08-6@aa2f24f7102b"
+      },
+      "visibleHistory": [
+        "S08.1",
+        "S08.2",
+        "S08.3",
+        "S08.5"
+      ],
+      "availableCapabilities": [
+        "Clock.fake",
+        "Goal.fake",
+        "Effect.dispatch.synthetic"
+      ]
+    }
+  ]
+}

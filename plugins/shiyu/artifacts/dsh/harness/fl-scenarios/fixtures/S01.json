@@ -1,0 +1,128 @@
+{
+  "scenarioId": "S01",
+  "familyId": "F-S01",
+  "split": "DEV",
+  "fixtureSalt": "0f6c7f06157d",
+  "title": "记得准，也改得过来",
+  "preconditions": {
+    "worldRef": "fixture://world/personal-dev",
+    "clockBase": "2026-11-01T09:00:00-04:00",
+    "timeZone": "America/Caracas",
+    "actors": {
+      "U": "principal-u",
+      "P": "acct-work-q",
+      "Q": "acct-social-q"
+    },
+    "channels": {
+      "priv": "C-priv",
+      "group": "C-group",
+      "other": "C-other"
+    },
+    "devices": [
+      "DEV-A",
+      "DEV-B"
+    ],
+    "profile": "Profile-P1",
+    "memoryBackend": "fixture://memory/synthetic-single-authority",
+    "replyPolicy": "replyer has no tools; single local synthetic send effect",
+    "hiddenEvaluationFactsInPublicFixture": false,
+    "relevantDoc": "测试/2026-11-01-测试集设计/cases/S01-记忆与纠正.md",
+    "seedNote": "same story family; variants stay in DEV"
+  },
+  "steps": [
+    {
+      "stepId": "S01.1",
+      "index": 1,
+      "title": "明确请求保存经历、关系与偏好",
+      "event": {
+        "actor": "U",
+        "audience": "C-priv",
+        "channel": "C-priv",
+        "text": "乔是我同事。今天评审他说这版不能交，我听成他不认可我，有点委屈。帮我记住这件事；以后我说不开心时，先听我说完，再问我要不要建议。",
+        "occurredAt": "2026-11-01T09:00:00-04:00",
+        "receivedAt": "2026-11-01T09:00:00-04:00",
+        "sourceKey": "evt-s01-1@0f6c7f06157d",
+        "sourceRevision": "r1"
+      },
+      "visibleHistory": [],
+      "availableCapabilities": [
+        "MemoryBackend.synthetic",
+        "ReadView.local",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    },
+    {
+      "stepId": "S01.2",
+      "index": 2,
+      "title": "同一事件重投",
+      "event": {
+        "actor": "fixture-ingress",
+        "audience": "C-priv",
+        "channel": "C-priv",
+        "text": "(replay of evt-s01-1)",
+        "occurredAt": "2026-11-01T09:00:01-04:00",
+        "receivedAt": "2026-11-01T09:00:01-04:00",
+        "sourceKey": "evt-s01-1@0f6c7f06157d",
+        "sourceRevision": "r1"
+      },
+      "visibleHistory": [
+        "S01.1"
+      ],
+      "availableCapabilities": [
+        "Dedup.local",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    },
+    {
+      "stepId": "S01.4",
+      "index": 3,
+      "title": "用户澄清并纠正旧解释",
+      "event": {
+        "actor": "U",
+        "audience": "C-priv",
+        "channel": "C-priv",
+        "text": "我刚问清楚了，他说的是文稿缺数据，不是我不行。补充到刚才的记忆里，别再把那句话理解成他否定我。",
+        "occurredAt": "2026-11-01T09:05:00-04:00",
+        "receivedAt": "2026-11-01T09:05:00-04:00",
+        "sourceKey": "evt-s01-4@0f6c7f06157d",
+        "sourceRevision": "r1"
+      },
+      "visibleHistory": [
+        "S01.1",
+        "S01.2"
+      ],
+      "availableCapabilities": [
+        "MemoryBackend.synthetic",
+        "ReadView.local",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    },
+    {
+      "stepId": "S01.7",
+      "index": 4,
+      "title": "询问关于他人长期评价的证据问题",
+      "event": {
+        "actor": "U",
+        "audience": "C-priv",
+        "channel": "C-priv",
+        "text": "所以，乔是不是平时就总看不起我？",
+        "occurredAt": "2026-11-01T09:07:00-04:00",
+        "receivedAt": "2026-11-01T09:07:00-04:00",
+        "sourceKey": "evt-s01-7@0f6c7f06157d"
+      },
+      "visibleHistory": [
+        "S01.1",
+        "S01.2",
+        "S01.4"
+      ],
+      "availableCapabilities": [
+        "ReadView.local",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    }
+  ]
+}

@@ -110,7 +110,7 @@ Error: tool "shiyu_status" returned invalid output: value is not lossless JSON
 
 | 切片 | 目标 | 当前状态 |
 |---|---|---|
-| H0 接管与测试基线 | 基线、环境/宿主/SDK 身份、测试工具自证、草稿保存 | **固定宿主限定通过**（本文 §0/§1）；测试工具已交付并经离线自证（§8，1201/1201） |
+| H0 接管与测试基线 | 基线、环境/宿主/SDK 身份、测试工具自证、草稿保存 | **固定宿主限定通过**（本文 §0/§1）；测试工具已交付并经离线自证（§8）；S/FL 业务测试集骨架离线通过（§11，1264/1264，合成未运行） |
 | H1 原生会话长期复用 | 3J 长历史冷恢复、恢复基准、布局竞态、后续压缩/恢复/缓存计量 | **离线通过**（G1 模块+组合，1058/1058，见 §5）；固定宿主/压缩/缓存/有界真实长对话仍未验 |
 | H2 持久事件与多对话协作 | Agent 工具真实接线、四类发布/订阅组合、时间/外部源、背景唤醒、话题关联/受众安全 | **H2a 离线通过**（worker 事件工具+四类路径+可信协调器，1249/1249，见 §10）；固定宿主探针、时间/条件源、链深/背压与 core 工具（H2c）未完成 |
 | H3 core 与目标任务扩展 | 受控计划、依赖任务、修正/重规划、更多已授权能力、独立核验 | 待建立 |
@@ -376,4 +376,43 @@ cd plugins/shiyu && npm run test:ui
 ```
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h2a-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/events-*.test.ts tests/event-tools.test.ts
+```
+
+## 11. H0c 切片：S/FL 业务测试集骨架
+
+状态：**离线通过（G1 工具自证 + 合成 fixture/答案集骨架）**；0 产品/宿主/模型/Lab/渠道运行，**不能用于业务验收**，也不是 HOLDOUT。2026-11-02 完成并审阅。
+
+### 11.1 交付（14 新文件 + 2 README 更新 + 42 artifact）
+
+- `tests/harness/business/`（11 模块）：S01–S08/FL01–FL08 场景目录、fixture 生成、独立答案集、四类允许结果、DEV/REG/HOLDOUT 拆分策略、H1–H8 判定与聚合、覆盖索引。
+- `tests/harness/fl-scenarios.ts`、`scripts/harness/fl-scenarios.mjs`（启动器/CLI）、`tests/harness-business.test.ts`（主 glob 15 项）；更新两个 harness README。
+- `artifacts/dsh/harness/fl-scenarios/` 37 文件：16 个公开 DEV fixture、16 份独立答案集（答案侧冻结、`derivedFromProductOutput=false`、`historicalSamplesReused=false`、评估 canary 只在答案侧）、manifest/coverage/scoring 骨架；同时刷新 H0b 5 件 artifact（新 harness 文件使旧 self-proof stale）。
+- 关键事实：16/16 场景物化、65 个代表步骤；历史设计 80 步中 27 步未物化并逐条列出；12 份历史 case 文档步骤计数逐项核对（54/26）；FL02/06/07/08 标 `matrix-only` 并新写 3 步代表轨迹。DEV=16、REG=0、**HOLDOUT=0（reserved_not_materialised）**，历史有限样本禁止升级。
+- 判定：H1–H8 零容忍不可平均；功能里程碑按场景报 achieved/applicable（零分母 ratio=null 不冒充满分）；相处质量 5 维分别保留、无总分；输出 planned/executed/passed/failed/unknown/skipped/notRun/notApplicable；空运行骨架 `undecidable`、`businessAcceptance=not_claimed`、`totalScorePresent=false`。
+- 覆盖索引：16 行 + 10 项缺失资产（FL02–08 case、未物化步骤、变体、噪音/1,000 负载、HOLDOUT、双人标注、运行证据、附件语料、B0/R1 映射、canary 实面），`cannotUseForBusinessAcceptance=true`。
+
+### 11.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `feecf86` + 仅 H0c）`npm run check` | exit 0；**1216/1216 通过，0 失败/跳过**；`manifest→selfproof→traceability --strict→fl-scenarios --require-selfproof` 链 exit 0 |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `a80c33d` + 仅 58 个 H0c 文件） | exit 0；**1264/1264 通过，0 失败/跳过**（= 1249 已提交基线 + 15）；证据 `artifacts/dsh/slices/h0c-verify.json` |
+| 自证 | harness 套件 **57/57**（H0b 42 + H0c 15），0 skip；H0c 7 个 oracle 共 43 known-verdict（12 accept / 31 reject）；负例自证覆盖隐藏硬违规、unknown/skip 计通过、质量抵消功能失败、伪造分母、零分母满分、总分、历史样本升级 |
+| 覆盖追踪 | 产品行仍 79/79 **not_covered**；`tooling_ready` 不冒充通过；H0c 场景状态 `synthetic-fixture-only-not-run` |
+
+### 11.3 失败 / unknown / 未测
+
+1. **不能用于业务验收**：0 产品/宿主/模型/Lab/渠道运行；不是 HOLDOUT、无盲评、无质量分。
+2. 27 个历史设计步骤未物化；65 代表步骤不是 80 步全量，也不是 80 个独立统计样本。
+3. FL02/06/07/08 无历史 case，其 3 步为新写代表轨迹；变体只冻结规格未生成；噪音 0/16/76、1,000 负载、附件语料、B0/R1 映射未生成。
+4. 答案冻结/反回填是“可观察形态”守卫，不证明作者从未看过输出（需真实流程隔离）；同机目录不是秘密隔离。
+5. H0b 刷新件在 `feecf86 + 未提交 overlay` 的隔离 worktree 生成（vcs dirty=true 如实记录）；clean-VCS 重生成可留作后续增量。
+
+### 11.4 复现
+
+```
+cd plugins/shiyu
+node scripts/harness/fl-scenarios.mjs --require-selfproof
+node --import tsx --test --test-concurrency=1 tests/harness-business.test.ts
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h0c-manifest.json>
 ```

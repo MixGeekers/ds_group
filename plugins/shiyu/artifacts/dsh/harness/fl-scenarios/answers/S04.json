@@ -1,0 +1,355 @@
+{
+  "scenarioId": "S04",
+  "familyId": "F-S04",
+  "split": "DEV",
+  "steps": [
+    {
+      "stepId": "S04.1",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "create_goal_binding"
+        ],
+        "allowed": [
+          "record_source_claim"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_answer_actor"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": [],
+        "allowedAudiences": [
+          "C-priv"
+        ]
+      },
+      "action": {
+        "required": [
+          "create_task_within_mandate",
+          "read_authorized_scope"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "routes": [
+        "R",
+        "C",
+        "W"
+      ],
+      "counts": {
+        "modelCalls": 1,
+        "workerSteps": 1,
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "effect-once",
+          "effectToken": "task-S04.1-comparison",
+          "idempotent": true
+        },
+        {
+          "kind": "custom",
+          "code": "misroute-upgrade-once-no-second-task",
+          "note": "needs_core 升级不得制造第二个 Task"
+        }
+      ],
+      "milestones": [
+        "M.S04.route-upgrade-once"
+      ],
+      "hDimensions": [
+        "H1",
+        "H3"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+        "answer:upgrade-without-duplicate-task"
+      ]
+    },
+    {
+      "stepId": "S04.3",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "no_internal_write"
+        ],
+        "allowed": [
+          "no_internal_write"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_answer_actor"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": [],
+        "allowedAudiences": [
+          "C-priv"
+        ]
+      },
+      "action": {
+        "required": [
+          "read_authorized_scope"
+        ],
+        "allowed": [
+          "query_state_within_scope"
+        ],
+        "forbidden": []
+      },
+      "routes": [
+        "R"
+      ],
+      "counts": {
+        "modelCalls": 1,
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "chat-does-not-cancel-background-task",
+          "note": "后台 Task 继续，不因闲聊取消"
+        }
+      ],
+      "milestones": [
+        "M.S04.chat-not-blocked-by-worker"
+      ],
+      "hDimensions": [
+        "H4"
+      ],
+      "quality": {
+        "applicable": [
+          "situational_understanding"
+        ]
+      },
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+        "answer:chat-while-task"
+      ]
+    },
+    {
+      "stepId": "S04.4",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "invalidate_draft"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_answer_actor"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": [],
+        "allowedAudiences": [
+          "C-priv"
+        ]
+      },
+      "action": {
+        "required": [
+          "verify_before_send"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "single_authorized_send"
+        ]
+      },
+      "routes": [
+        "R"
+      ],
+      "counts": {
+        "modelCalls": 1,
+        "externalSends": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "harness-oracle",
+          "oracle": "version",
+          "expectation": {
+            "generation": "increased",
+            "sessionEpoch": "unchanged"
+          }
+        },
+        {
+          "kind": "custom",
+          "code": "stale-long-draft-send-is-zero",
+          "note": "旧长文发送=0，新一句话发1次"
+        }
+      ],
+      "milestones": [
+        "M.S04.stale-draft-blocked"
+      ],
+      "hDimensions": [
+        "H4"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+        "answer:generation-check-before-send"
+      ]
+    },
+    {
+      "stepId": "S04.5",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "preserve_unknown"
+        ],
+        "allowed": [
+          "no_internal_write"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_answer_actor",
+          "must_state_uncertainty",
+          "must_not_claim_completion"
+        ],
+        "allowed": [],
+        "forbidden": [],
+        "allowedAudiences": [
+          "C-priv"
+        ]
+      },
+      "action": {
+        "required": [
+          "verify_effect_before_success"
+        ],
+        "allowed": [
+          "query_state_within_scope"
+        ],
+        "forbidden": []
+      },
+      "routes": [
+        "P",
+        "R"
+      ],
+      "counts": {
+        "externalSends": 1,
+        "modelCalls": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "harness-oracle",
+          "oracle": "causal",
+          "expectation": {
+            "task": "not-succeeded",
+            "completionSpec": "missing-source-and-cost"
+          }
+        },
+        {
+          "kind": "custom",
+          "code": "worker-self-report-is-not-success",
+          "note": "worker 自述不替代独立核验"
+        }
+      ],
+      "milestones": [
+        "M.S04.unverified-result-not-completed"
+      ],
+      "hDimensions": [
+        "H3",
+        "H7"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+        "answer:worker-claim-not-completion"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M.S04.route-upgrade-once",
+      "scenarioId": "S04",
+      "description": "误分快路安全升级且只接单一次",
+      "functional": true,
+      "evidenceHints": [
+        "S04.1"
+      ]
+    },
+    {
+      "id": "M.S04.chat-not-blocked-by-worker",
+      "scenarioId": "S04",
+      "description": "普通聊天不取消后台任务",
+      "functional": true,
+      "evidenceHints": [
+        "S04.3"
+      ]
+    },
+    {
+      "id": "M.S04.stale-draft-blocked",
+      "scenarioId": "S04",
+      "description": "发送前代次检查拦截旧长文",
+      "functional": true,
+      "evidenceHints": [
+        "S04.4"
+      ]
+    },
+    {
+      "id": "M.S04.unverified-result-not-completed",
+      "scenarioId": "S04",
+      "description": "无证据 worker 结果不判完成",
+      "functional": true,
+      "evidenceHints": [
+        "S04.5"
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "id": "S04.noise-or-rename",
+      "kind": "noise",
+      "expectation": "same_allowed_answers",
+      "description": "相同输入换口语/语序，任务与路由语义不变",
+      "materialised": false,
+      "reason": "H0c 只物化主线代表轨迹；噪音/改名变体待后续切片生成并逐条审查"
+    },
+    {
+      "id": "S04.structure-change",
+      "kind": "correction",
+      "expectation": "changed_allowed_answers",
+      "description": "相关补充材料使旧结果失效并触发任务输入版本更新",
+      "materialised": false,
+      "reason": "需要新的因果结构；不能只改词或换种子冒充新样本"
+    }
+  ],
+  "source": {
+    "sourcePath": "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+    "kind": "case-doc",
+    "existingStepCount": 6,
+    "machineReadableAnswers": false,
+    "statusAtSource": "design-doc-only-unrun"
+  }
+}

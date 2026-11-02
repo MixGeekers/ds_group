@@ -1,0 +1,300 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.business.aggregation",
+  "planId": "h0c-skeleton-plan",
+  "planFreezeRef": "catalog:bc01a4878c3982176208ceda8906c941112ce46f603bde2ad84d94119ebf7c43",
+  "denominators": {
+    "planned": 16,
+    "executed": 0,
+    "passed": 0,
+    "failed": 0,
+    "unknown": 0,
+    "skipped": 0,
+    "notRun": 16,
+    "notApplicable": 0
+  },
+  "hardConstraints": {
+    "zeroTolerance": true,
+    "gate": "undecidable",
+    "casesWithViolations": 0,
+    "violationsByDimension": {},
+    "details": []
+  },
+  "functional": {
+    "byScenario": [
+      {
+        "scenarioId": "FL01",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 4,
+        "missingMilestones": [
+          "M.FL01.capture-business-without-at",
+          "M.FL01.two-dates-distinct",
+          "M.FL01.owner-handling-avoids-repeat-ping",
+          "M.FL01.answer-current-question"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "FL02",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 1,
+        "missingMilestones": [
+          "M.FL02.context-changes-answer"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "FL03",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 5,
+        "missingMilestones": [
+          "M.FL03.draft-with-snapshot",
+          "M.FL03.irrelevant-noise-does-not-invalidate",
+          "M.FL03.correction-invalidates-old-draft",
+          "M.FL03.retraction-blocks-stale-price",
+          "M.FL03.audience-change-invalidates"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "FL04",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 4,
+        "missingMilestones": [
+          "M.FL04.two-long-tasks-start",
+          "M.FL04.small-session-query-answered",
+          "M.FL04.trusted-stop-before-effect",
+          "M.FL04.drain-honest"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "FL05",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 4,
+        "missingMilestones": [
+          "M.FL05.conflict-does-not-override-authority",
+          "M.FL05.same-name-not-authority",
+          "M.FL05.mixed-group-scope-kept",
+          "M.FL05.short-id-isolation"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "FL06",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 3,
+        "missingMilestones": [
+          "M.FL06.timeout-uncertain",
+          "M.FL06.invalid-structure-uncertain",
+          "M.FL06.attachment-uncertain"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "FL07",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 3,
+        "missingMilestones": [
+          "M.FL07.replay-deduped",
+          "M.FL07.retry-bounded",
+          "M.FL07.lost-receipt-not-success"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "FL08",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 3,
+        "missingMilestones": [
+          "M.FL08.no-change-quiet",
+          "M.FL08.change-wakes-once",
+          "M.FL08.no-revival-after-restart"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "S01",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 3,
+        "missingMilestones": [
+          "M.S01.save-source-separation",
+          "M.S01.corrected-fact-current",
+          "M.S01.uncertainty-distinguished"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "S02",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 4,
+        "missingMilestones": [
+          "M.S02.identity-not-self-asserted",
+          "M.S02.private-facts-not-in-group",
+          "M.S02.split-restores-sources",
+          "M.S02.authorized-send-once"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "S03",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 3,
+        "missingMilestones": [
+          "M.S03.subscription-created",
+          "M.S03.change-triggers-once",
+          "M.S03.stop-before-second-notification"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "S04",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 4,
+        "missingMilestones": [
+          "M.S04.route-upgrade-once",
+          "M.S04.chat-not-blocked-by-worker",
+          "M.S04.stale-draft-blocked",
+          "M.S04.unverified-result-not-completed"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "S05",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 5,
+        "missingMilestones": [
+          "M.S05.task-and-memory-states-separated",
+          "M.S05.unknown-send-not-resent",
+          "M.S05.status-query-available",
+          "M.S05.partial-convergence-from-evidence",
+          "M.S05.no-auto-resume"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "S06",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 5,
+        "missingMilestones": [
+          "M.S06.barrier-observable",
+          "M.S06.deleted-derived-content-rejected",
+          "M.S06.no-content-via-summary-or-hint",
+          "M.S06.recovery-lock-without-ledger",
+          "M.S06.trusted-ledger-limited-restore"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "S07",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 2,
+        "missingMilestones": [
+          "M.S07.experience-with-source",
+          "M.S07.quoted-text-not-authority"
+        ],
+        "ratio": 0
+      },
+      {
+        "scenarioId": "S08",
+        "cases": 1,
+        "milestonesAchieved": 0,
+        "milestonesApplicable": 5,
+        "missingMilestones": [
+          "M.S08.daily-report-at-occurrence",
+          "M.S08.missed-cycles-latest-only",
+          "M.S08.timeout-degraded",
+          "M.S08.forged-control-rejected",
+          "M.S08.budget-status-once"
+        ],
+        "ratio": 0
+      }
+    ],
+    "overall": {
+      "milestonesAchieved": 0,
+      "milestonesApplicable": 58,
+      "ratio": 0
+    }
+  },
+  "quality": {
+    "byDimension": [
+      {
+        "dimension": "situational_understanding",
+        "title": "情境理解",
+        "annotations": 0,
+        "scoredCases": 0,
+        "median": null,
+        "annotatorDisagreements": 0,
+        "notApplicableCases": 0
+      },
+      {
+        "dimension": "memory_helpfulness",
+        "title": "记忆带来的帮助",
+        "annotations": 0,
+        "scoredCases": 0,
+        "median": null,
+        "annotatorDisagreements": 0,
+        "notApplicableCases": 0
+      },
+      {
+        "dimension": "emotional_fit",
+        "title": "情绪回应分寸",
+        "annotations": 0,
+        "scoredCases": 0,
+        "median": null,
+        "annotatorDisagreements": 0,
+        "notApplicableCases": 0
+      },
+      {
+        "dimension": "personality_continuity",
+        "title": "人格连续性",
+        "annotations": 0,
+        "scoredCases": 0,
+        "median": null,
+        "annotatorDisagreements": 0,
+        "notApplicableCases": 0
+      },
+      {
+        "dimension": "initiative_and_intrusion",
+        "title": "主动与打扰",
+        "annotations": 0,
+        "scoredCases": 0,
+        "median": null,
+        "annotatorDisagreements": 0,
+        "notApplicableCases": 0
+      }
+    ],
+    "annotatorPairs": 0,
+    "note": "人工 1–5 分逐维保留；无适用内容标不适用；讨论门槛（中位数≥4）尚未冻结，不并入功能或硬约束。"
+  },
+  "separation": {
+    "functionalAndQualitySeparate": true,
+    "totalScorePresent": false,
+    "qualityCannotCompensateFunction": true
+  },
+  "claims": {
+    "businessAcceptance": "not_claimed",
+    "basis": "H0c 只生成合成 fixture 与独立答案；没有任何运行结果，因此不声称业务验收。"
+  },
+  "cannotClaim": [
+    "存在未运行/未知/跳过/不适用用例 16/16，不能用于业务验收",
+    "硬约束门不可判定：缺少已执行用例或覆盖不完整",
+    "当前只有 H0c 合成骨架 fixture，没有任何产品/宿主/模型运行证据",
+    "相处质量分数为人工 1–5 分维度，不参与功能/硬约束判定，也不汇总为总分"
+  ]
+}

@@ -1,6 +1,6 @@
 # H0 测试工具覆盖追踪报告
 
-生成时间：2026-11-02T18:52:35.801Z；harness 0.1.0；self-proof corpus `h0-selfproof-1`。
+生成时间：2026-11-02T19:25:29.130Z；harness 0.1.0；self-proof corpus `h0-selfproof-1`。
 
 > 本清单只证明需求已登记、来源可核验，以及 H0 测试工具在 manifest/selfproof 冻结的文件身份下完成自证。产品 V01–V27、九个系统与 S/FL 场景均未由 H0 运行或验收；not_covered 不得被读作通过，历史有限证据不计入状态。
 
@@ -23,20 +23,20 @@
 
 | 产物 | 存在 | SHA256 | 生成时间 | 说明 |
 | --- | --- | --- | --- | --- |
-| selfproof | true | 681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5 | 2026-11-02T18:52:35.693Z | self-proof passed |
-| manifest | true | c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e | 2026-11-02T18:52:34.025Z | manifest files match the current tree |
+| selfproof | true | 5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | 2026-11-02T19:25:29.013Z | self-proof passed |
+| manifest | true | a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a | 2026-11-02T19:25:26.577Z | manifest files match the current tree |
 
 ## 3. H0 工具能力（可 self_proven 的唯一一类）
 
 | ID | 状态 | 能力 | 测试通过/要求 | oracle 通过 | 证据 | 依据/缺口 |
 | --- | --- | --- | --- | --- | --- | --- |
-| H0.ORACLE | H0 自证通过 | 判定器套件：无损 JSON/结构/CAS/状态机/计数/因… | 3/3 | 10/10 | artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5 | self-proof artifact + manifest verified: tests 3/3, oracles… |
-| H0.SELFCHECK | H0 自证通过 | 工具验真执行器：真实运行全部 known-pass/kno… | 5/5 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5 | self-proof artifact + manifest verified: tests 5/5, oracles… |
-| H0.FAULTS | H0 自证通过 | 驱动/时钟/故障控制：绝对期限、假业务时钟、确定性断点 | 6/6 | 3/3 | artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5 | self-proof artifact + manifest verified: tests 6/6, oracles… |
-| H0.OBSERVER | H0 自证通过 | 独立观察器与效果账本：崩溃后可取证的 append-onl… | 4/4 | 2/2 | artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5 | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.MANIFEST | H0 自证通过 | manifest/证据包：源码/构建/环境/fixture… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5 | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.TRACEABILITY | H0 自证通过 | 覆盖追踪：需求→代码→测试ID→oracle→证据→状态/… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5 | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.DOCS | H0 自证通过 | 使用说明：运行、接入后续切片、证据复核方法 | 1/1 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5 | self-proof artifact + manifest verified: tests 1/1, oracles… |
+| H0.ORACLE | H0 自证通过 | 判定器套件：无损 JSON/结构/CAS/状态机/计数/因… | 3/3 | 10/10 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 3/3, oracles… |
+| H0.SELFCHECK | H0 自证通过 | 工具验真执行器：真实运行全部 known-pass/kno… | 5/5 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 5/5, oracles… |
+| H0.FAULTS | H0 自证通过 | 驱动/时钟/故障控制：绝对期限、假业务时钟、确定性断点 | 6/6 | 3/3 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 6/6, oracles… |
+| H0.OBSERVER | H0 自证通过 | 独立观察器与效果账本：崩溃后可取证的 append-onl… | 4/4 | 2/2 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.MANIFEST | H0 自证通过 | manifest/证据包：源码/构建/环境/fixture… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.TRACEABILITY | H0 自证通过 | 覆盖追踪：需求→代码→测试ID→oracle→证据→状态/… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.DOCS | H0 自证通过 | 使用说明：运行、接入后续切片、证据复核方法 | 1/1 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 1/1, oracles… |
 
 ## 4. 02 §1 必须资产（H0 范围与缺口）
 

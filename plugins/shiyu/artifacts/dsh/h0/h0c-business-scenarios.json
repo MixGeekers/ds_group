@@ -1,0 +1,372 @@
+{
+  "schemaVersion": 1,
+  "phase": "H0c",
+  "slice": "S/FL business test-set skeleton: synthetic fixtures, independent answers, scoring and coverage",
+  "capturedAt": "2026-11-02T19:36:24.302Z",
+  "status": "offline-verified-tooling",
+  "purpose": "Materialize the public S/FL business scenarios as synthetic fixtures with independent answer sets, four-class allowed-result oracles, DEV/REG/HOLDOUT split policy, honest aggregation and a coverage index. This is test infrastructure only: it does not run the product and cannot be used as business acceptance.",
+  "baseline": {
+    "head": "a80c33d",
+    "note": "H0/H0b/H1/H1-verify/H4/H4-host/H4b/H4b-host/H5/H2a committed; 1249 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/business/answers.ts",
+      "bytes": 22871,
+      "sha256": "1fc1aeb137f97e14afc148f06752d39fc5ccccc0e2c31de54b49d5102e28cf3f"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/catalog-fl.ts",
+      "bytes": 50506,
+      "sha256": "4a5a31dadaa0f51800cbcbe4997aa43d212ff5a0e40603897d6a550dc8b0aa0e"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/catalog-s.ts",
+      "bytes": 60925,
+      "sha256": "8ae63f798561ed6d6dcce35544f3ab3e3a523f108e78dc2416a2bb5b52979f7b"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/catalog-support.ts",
+      "bytes": 7103,
+      "sha256": "ac5452d70d21efaf1de6ce3e3029d5433ed435e56442568e7f0ecf06610c6eab"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/catalog.ts",
+      "bytes": 18696,
+      "sha256": "1a2d099f4f6e38855ae315eb7f29fdb4058970f27059fb4fb7c68fccbf3fa847"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/coverage.ts",
+      "bytes": 27310,
+      "sha256": "088c53517f3da1792975370732985b8151bb41fb768817cdfc2bc4ef6acd9003"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/fixtures.ts",
+      "bytes": 17081,
+      "sha256": "1a9b70c35e1cfe4ca461906ab8e45726bf72e10643dc61d52a638bde5415184a"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/index.ts",
+      "bytes": 2081,
+      "sha256": "cfb1f5bf46b2412ecd8e4a81f9fb1951866a7bef87d4e74e25878ceb69f32700"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/scoring.ts",
+      "bytes": 28069,
+      "sha256": "34fa6014fbfb6b3c5a295e92b135c7999686cd75c79aa4d04826f205df86f835"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/splits.ts",
+      "bytes": 9918,
+      "sha256": "711ee262863cb0bb6e8922734e2405833c4caa4f8bff49fc575d568fa99ea911"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/business/types.ts",
+      "bytes": 15378,
+      "sha256": "67c45259b84e8ec2670d6b5833b1cecda1dbde47d0fb0ca81f623d59cd7370e7"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/fl-scenarios.ts",
+      "bytes": 17848,
+      "sha256": "4a52a4a06ce5353094224a4fea3dcb5a31b3a28a4ca432650f854bd288218caf"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-business.test.ts",
+      "bytes": 19074,
+      "sha256": "cd305fa16fa21e032a1ed3088303ab73bc2a2bec7bc89f5ba421d057cf667f69"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/fl-scenarios.mjs",
+      "bytes": 1138,
+      "sha256": "835e914d2ecde6ab6da28b5f3d8e915fdd7934032678957027a8263992bba1d9"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/README.md",
+      "bytes": 14298,
+      "sha256": "ba3ab3fdc1a1c996b7a038cba4ffe100d38a837255bf33361f140b63c4b49abd"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/README.md",
+      "bytes": 1600,
+      "sha256": "e111ba23ea2f14f3513f3392f0df9555d88ca4031bdf6893b4f4385e12ca2ce1"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/FL01.json",
+      "bytes": 8836,
+      "sha256": "815e4250262d79e9b414b4736b1a3958e86f0c43dd381c80d74efedce3d39e79"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/FL02.json",
+      "bytes": 5687,
+      "sha256": "2a3cf254271d1bd745bee72d45850fc6876923412c688e61bc2bd474be49731e"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/FL03.json",
+      "bytes": 10286,
+      "sha256": "845a7840c852ca8bbbfc131ea918e52236a1f04c200293fea003ea2faab0edbc"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/FL04.json",
+      "bytes": 8622,
+      "sha256": "e4a21233d5a0ed2f922a1d092498aafd40cc01d1cad27ee00245ca35f1ce7624"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/FL05.json",
+      "bytes": 9168,
+      "sha256": "f11d516797cb4d95622dc9797be10e6fd91254f6c3436586be58a5b61c2979ba"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/FL06.json",
+      "bytes": 5685,
+      "sha256": "0e99504c095a4a5aa4a3e0156f525f3c1b2d47d72604cc0cbdfc5c8c44702092"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/FL07.json",
+      "bytes": 5921,
+      "sha256": "029c21b5018068685fef08738614f7f2fcacaaf997c0a2b0d085c5ec6d205527"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/FL08.json",
+      "bytes": 6134,
+      "sha256": "ee73e127149258629a76ded39eee3a5a37ae4763f21fee641be745ce4beed96e"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/S01.json",
+      "bytes": 8860,
+      "sha256": "93e2ed756c3da1f00230420cd4d414430770839cfa7e64e41251f919d142b906"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/S02.json",
+      "bytes": 8572,
+      "sha256": "9b47f4322b3c04ab5d6ab0a23d68561bec9f83124436c92f1e1aa0271630184f"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/S03.json",
+      "bytes": 10210,
+      "sha256": "2a8ef48c11f3af9029914fd8325be8e69c7a1c7f893f5d560833c359f308849c"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/S04.json",
+      "bytes": 8131,
+      "sha256": "4d10cb46e06261603bafe739e8c24eb1e2e3486632a138e86e8a42ca71ff7d79"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/S05.json",
+      "bytes": 9646,
+      "sha256": "68a017f4a927f9d62d4cd9e46da87bcd298f9b35b8149decd81ee94734b5ec72"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/S06.json",
+      "bytes": 9304,
+      "sha256": "7e5a12dc3410909aacea447b20e94bb7030c7001b5ba70121090262a099bb855"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/S07.json",
+      "bytes": 7722,
+      "sha256": "424c301bba14a513e44d3ead9ba91f0cc78624172fbf5e582ccd26eaa3913ee4"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/answers/S08.json",
+      "bytes": 10394,
+      "sha256": "acd2d1cfba0413bd12d12df8dd6d187c95b24773446073e5d10c4d43f8dfa93b"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/coverage.json",
+      "bytes": 52559,
+      "sha256": "d31218ba6ee5a9497da6ab55166abfc4ba4cb7e88d35dca38d4e2d02f3c6a56a"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/coverage.md",
+      "bytes": 9308,
+      "sha256": "73ba4e7f53bdd4c9db90c992fbd55d0efb10b320b070df2ee8f0995e3a918a5f"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/FL01.json",
+      "bytes": 5742,
+      "sha256": "4771b8157327d7a60211b727a894491c162d217576f919ae0939bd72f4aecfb6"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/FL02.json",
+      "bytes": 4834,
+      "sha256": "715bc630dbb6a665440ecc1af4f2803a43a983165fa4d87c03098fc7687ef83d"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/FL03.json",
+      "bytes": 6799,
+      "sha256": "7987b09d1c715a80d961dbfd0cf2316729d513b6af82d4d78a83414c431913c7"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/FL04.json",
+      "bytes": 5804,
+      "sha256": "7147216ebcaf42cdbdbd7428b9509ddaeffd5fded93d42ab307bf0f9469c145e"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/FL05.json",
+      "bytes": 5699,
+      "sha256": "af5311e53c17c9e48c37a2bc9418fcb5e54cbfd5cacebddfe6cfbab93dc3ae83"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/FL06.json",
+      "bytes": 5071,
+      "sha256": "3f01042b42950459598d0515645e7df85dcf837205ff89b859e50c19f1db12df"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/FL07.json",
+      "bytes": 5151,
+      "sha256": "ac945ff8ee5146e71b06790cec68908e8f38a3e1417fcf202da6b2f5b19658b0"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/FL08.json",
+      "bytes": 5082,
+      "sha256": "881e88fad36071ef4f11edd1ab1a49039b73de42b0d93da33bfe03bec3073955"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/S01.json",
+      "bytes": 3785,
+      "sha256": "5470b5bbd99d7bff1cf9741ef1483dca5b66f3c4de69c9b5515b068a2efb200d"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/S02.json",
+      "bytes": 3762,
+      "sha256": "a27affe889cf1457cffe52a372a6130f9e20a63893630b9f5f201473bd8ac103"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/S03.json",
+      "bytes": 5303,
+      "sha256": "498461009f2ca02bc71728fee5ebc2602803d4f5726affa909a56dac7076fd70"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/S04.json",
+      "bytes": 4038,
+      "sha256": "ae85773ce9fba1932504a9e2501f49873a132d4fdeebcb3ec486e24d2d8ed515"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/S05.json",
+      "bytes": 4597,
+      "sha256": "dafed42ee5929156e7dbac00285ad2a297090e8b2387e08b3ab33f5916f93baa"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/S06.json",
+      "bytes": 4803,
+      "sha256": "8710fe47af6f55e01804f463e407b5e430b67372f8cd764dd07af4e4dd80b881"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/S07.json",
+      "bytes": 3887,
+      "sha256": "7879b8c4f4c21e6bf7c810c7b56fe353c4553e0bd1b2d402541cee984ca534bf"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/fixtures/S08.json",
+      "bytes": 5048,
+      "sha256": "2bdefc79f40d408944fb07f333f9851038e681f5708bf08df779b1b589fb9431"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/manifest.json",
+      "bytes": 13154,
+      "sha256": "d4697e49b416c2ce3a90010ca27f81ec0c6da3ceae79d265ae56fbc2449df549"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/scoring-empty-report.json",
+      "bytes": 8509,
+      "sha256": "b7632cc66fbc0bc417519ebae402b23c7e54127ca37cbcfd1abf07e506f5a31a"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/fl-scenarios/scoring-plan.json",
+      "bytes": 4438,
+      "sha256": "381a993c42420d4adca41928c5b1abc4f96fd3043117adade4ab74aeb4cc7be3"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
+      "bytes": 75071,
+      "sha256": "a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/tool-selfproof.json",
+      "bytes": 14562,
+      "sha256": "5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/tool-selfproof.tap",
+      "bytes": 11839,
+      "sha256": "3d92699110e423fe4ac5d7d7efeec89eb63feb1f2f3223aee1f7126dc4a6737e"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
+      "bytes": 144003,
+      "sha256": "457f403b037e4a2b8a64156cfff417c73f70a58375547d58a32d179db9dc4eaa"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/traceability.md",
+      "bytes": 24800,
+      "sha256": "509ee8b8c20eb20334ec698bdc68ccdbe87838c6374b4c332b5a433a2f9c90de"
+    }
+  ],
+  "implementation": {
+    "catalogs": "S01-S08 and FL01-FL08 are materialized as 16 public DEV fixtures with 65 representative steps; the 27 unmaterialized historical design steps are listed per scenario; FL02/06/07/08 have no historical case and are marked matrix-only with three newly written representative steps.",
+    "answers": "each step has four-class allowed results (attention / allowed inner change / expression and audience / allowed action) plus routing, expected counts, oracle expectations, functional milestones, H-dimension scores, quality pairing and policyPending; answer metadata freezes provenance (derivedFromProductOutput=false, historicalSamplesReused=false) and evaluation canaries exist only on the answer side (public fixture scan finds 0 leaks).",
+    "isolation": "fixtures and answers are separate trees with a serialization scan for answer fields/tokens/milestones/quality/canary/future steps; the single-step driver input contains only the current and earlier visible history; all 16 scenarios are public DEV, REG=0, HOLDOUT=0 (reserved, not materialized), and renaming/translation/noise/seed/shuffle can never promote historical samples or cross-set membership.",
+    "scoring": "H1-H8 zero-tolerance gates can never be averaged away; functional milestones are reported per scenario as achieved/applicable (zero denominator yields ratio=null, never a full score); quality is five dimensions 1-5 with disagreements preserved and no aggregate score; outputs planned/executed/passed/failed/unknown/skipped/notRun/notApplicable; an empty skeleton run is undecidable with businessAcceptance=not_claimed and totalScorePresent=false.",
+    "coverage": "16 rows with source, split, materialization and historical step counts, unmaterialized steps, milestones, H dimensions, quality and gaps; 10 missing assets (additional FL cases, unmaterialized steps, variants, noise/load runs, HOLDOUT, double annotation, run evidence, attachments, B0/R1 contract mapping, canary surface) are listed and cannotUseForBusinessAcceptance=true."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "/tmp/h0c-verify (ephemeral; HEAD feecf86 + only H0c files; node_modules + pinned Python symlinked)",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1216,
+      "pass": 1216,
+      "fail": 0,
+      "skipped": 0,
+      "log": {
+        "path": "(ephemeral) /tmp/h0c-check.log",
+        "sha256": "1771a15af831f70292de3474b61945c7a0bbbe042e12a31cd105412e3ed33bce"
+      },
+      "pipeline": {
+        "command": "manifest -> selfproof -> traceability --strict -> fl-scenarios --require-selfproof",
+        "exitCode": 0,
+        "logSha256": "a5ff12abb18c7331a37257a90b478854e3e3910ae7a07587fc46416ea5ebf197"
+      }
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD a80c33d + only the 58 H0c files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h0c-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1264,
+        "pass": 1264,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 225562,
+      "log": "plugins/shiyu/.local/slice-verify-h0c.log",
+      "arithmetic": "1249 committed baseline + 15 H0c tests = 1264"
+    },
+    "selfProof": {
+      "harnessSuite": "57/57 pass, 0 skip (H0b 42 + H0c 15)",
+      "h0cOracles": 7,
+      "knownVerdicts": 43,
+      "accept": 12,
+      "reject": 31,
+      "fail": 0,
+      "note": "the answer-isolation/four-class/aggregation/split/coverage oracles each execute known-accept and known-reject samples; negative self-checks cover hidden hard violations, unknown/skip counted as pass, quality masking functional failure, forged denominators, zero-denominator full score, aggregate score and historical-sample promotion."
+    },
+    "refreshedArtifacts": "H0b artifact set was regenerated because the new harness files made the previous self-proof stale; traceability still reports 79/79 product rows not_covered and tooling_ready is never a pass."
+  },
+  "failedUnknownUntested": [
+    "Zero product/host/model/Lab/channel execution: every scenario is synthetic-fixture-only-not-run and cannot be used for business acceptance; it is not a HOLDOUT and has no double annotation or quality score.",
+    "27 historical design steps remain unmaterialized; 65 representative steps are not the 80-step full set and not 80 independent statistical samples.",
+    "FL02/06/07/08 have no historical case; their three steps are new representative trajectories.",
+    "Variants are frozen only as specifications; noise 0/16/76 runs, 1,000-message load, attachment corpus and B0/R1 contract mapping are not generated.",
+    "HOLDOUT is reserved but not materialized; same-machine directories are not secret isolation; answer freezing/reverse-backfill guards are observable-shape guards, not proof the author never saw output.",
+    "H0b artifacts refreshed here were generated on an uncommitted-file overlay (vcs dirty=true, head=feecf86); a clean-VCS regeneration can be a later incremental commit."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "labOperations": 0,
+    "channelCalls": 0
+  },
+  "evidenceLevel": "G1 tooling self-verification and synthetic fixtures; product behavior remains not covered."
+}

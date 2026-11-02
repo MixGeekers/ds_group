@@ -1,0 +1,1932 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.business.coverage",
+  "generatedAt": "2026-11-02T19:25:29.217Z",
+  "catalogVersion": "1.0.0",
+  "seed": 20261101,
+  "sources": [
+    {
+      "scenarioId": "S01",
+      "sourcePath": "测试/2026-11-01-测试集设计/cases/S01-记忆与纠正.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 7,
+      "observedStepCount": 7,
+      "observedStepIds": [
+        "S01.1",
+        "S01.2",
+        "S01.3",
+        "S01.4",
+        "S01.5",
+        "S01.6",
+        "S01.7"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "S02",
+      "sourcePath": "测试/2026-11-01-测试集设计/cases/S02-身份与群隐私.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 7,
+      "observedStepCount": 7,
+      "observedStepIds": [
+        "S02.1",
+        "S02.2",
+        "S02.3",
+        "S02.4",
+        "S02.5",
+        "S02.6",
+        "S02.7"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "S03",
+      "sourcePath": "测试/2026-11-01-测试集设计/cases/S03-订阅与主动任务.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 8,
+      "observedStepCount": 8,
+      "observedStepIds": [
+        "S03.1",
+        "S03.2",
+        "S03.3",
+        "S03.4",
+        "S03.5",
+        "S03.6",
+        "S03.7",
+        "S03.8"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "S04",
+      "sourcePath": "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 6,
+      "observedStepCount": 6,
+      "observedStepIds": [
+        "S04.1",
+        "S04.2",
+        "S04.3",
+        "S04.4",
+        "S04.5",
+        "S04.6"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "S05",
+      "sourcePath": "测试/2026-11-01-测试集设计/cases/S05-未知效果与恢复.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 7,
+      "observedStepCount": 7,
+      "observedStepIds": [
+        "S05.1",
+        "S05.2",
+        "S05.3",
+        "S05.4",
+        "S05.5",
+        "S05.6",
+        "S05.7"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "S06",
+      "sourcePath": "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 7,
+      "observedStepCount": 7,
+      "observedStepIds": [
+        "S06.1",
+        "S06.2",
+        "S06.3",
+        "S06.4",
+        "S06.5",
+        "S06.6",
+        "S06.7"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "S07",
+      "sourcePath": "测试/2026-11-01-测试集设计/cases/S07-情绪与人格.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 6,
+      "observedStepCount": 6,
+      "observedStepIds": [
+        "S07.1",
+        "S07.2",
+        "S07.3",
+        "S07.4",
+        "S07.5",
+        "S07.6"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "S08",
+      "sourcePath": "测试/2026-11-01-测试集设计/cases/S08-时间与预算.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 6,
+      "observedStepCount": 6,
+      "observedStepIds": [
+        "S08.1",
+        "S08.2",
+        "S08.3",
+        "S08.4",
+        "S08.5",
+        "S08.6"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "FL01",
+      "sourcePath": "测试/2026-11-01-信息流Lab/cases/FL01-闲聊中的延期.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 6,
+      "observedStepCount": 6,
+      "observedStepIds": [
+        "FL01.1",
+        "FL01.2",
+        "FL01.3",
+        "FL01.4",
+        "FL01.5",
+        "FL01.6"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "FL02",
+      "sourcePath": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+      "kind": "matrix-only",
+      "exists": true,
+      "expectedStepCount": 0,
+      "observedStepCount": 0,
+      "observedStepIds": [],
+      "matrixMentionsScenario": true,
+      "issues": []
+    },
+    {
+      "scenarioId": "FL03",
+      "sourcePath": "测试/2026-11-01-信息流Lab/cases/FL03-相关变化与旧回复.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 7,
+      "observedStepCount": 7,
+      "observedStepIds": [
+        "FL03.1",
+        "FL03.2",
+        "FL03.3",
+        "FL03.4",
+        "FL03.5",
+        "FL03.6",
+        "FL03.7"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "FL04",
+      "sourcePath": "测试/2026-11-01-信息流Lab/cases/FL04-洪峰与公平.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 6,
+      "observedStepCount": 6,
+      "observedStepIds": [
+        "FL04.1",
+        "FL04.2",
+        "FL04.3",
+        "FL04.4",
+        "FL04.5",
+        "FL04.6"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "FL05",
+      "sourcePath": "测试/2026-11-01-信息流Lab/cases/FL05-多人冲突与隔离.md",
+      "kind": "case-doc",
+      "exists": true,
+      "expectedStepCount": 7,
+      "observedStepCount": 7,
+      "observedStepIds": [
+        "FL05.1",
+        "FL05.2",
+        "FL05.3",
+        "FL05.4",
+        "FL05.5",
+        "FL05.6",
+        "FL05.7"
+      ],
+      "matrixMentionsScenario": null,
+      "issues": []
+    },
+    {
+      "scenarioId": "FL06",
+      "sourcePath": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+      "kind": "matrix-only",
+      "exists": true,
+      "expectedStepCount": 0,
+      "observedStepCount": 0,
+      "observedStepIds": [],
+      "matrixMentionsScenario": true,
+      "issues": []
+    },
+    {
+      "scenarioId": "FL07",
+      "sourcePath": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+      "kind": "matrix-only",
+      "exists": true,
+      "expectedStepCount": 0,
+      "observedStepCount": 0,
+      "observedStepIds": [],
+      "matrixMentionsScenario": true,
+      "issues": []
+    },
+    {
+      "scenarioId": "FL08",
+      "sourcePath": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+      "kind": "matrix-only",
+      "exists": true,
+      "expectedStepCount": 0,
+      "observedStepCount": 0,
+      "observedStepIds": [],
+      "matrixMentionsScenario": true,
+      "issues": []
+    }
+  ],
+  "summary": {
+    "scenarios": 16,
+    "materializedSteps": 65,
+    "designSteps": 80,
+    "uncoveredDesignSteps": 27,
+    "fixtures": 16,
+    "answers": 16,
+    "splits": {
+      "DEV": 16,
+      "REG": 0,
+      "HOLDOUT": 0
+    },
+    "runEvidence": 0,
+    "holdoutMaterialized": 0,
+    "annotatorScores": 0,
+    "realModelCalls": 0,
+    "realEmbeddingCalls": 0,
+    "labRooms": 0,
+    "hostOperations": 0
+  },
+  "rows": [
+    {
+      "scenarioId": "S01",
+      "familyId": "F-S01",
+      "title": "记得准，也改得过来",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-测试集设计/cases/S01-记忆与纠正.md",
+        "kind": "case-doc",
+        "existingStepCount": 7
+      },
+      "relatedV": [
+        "V03",
+        "V04",
+        "V07",
+        "V08",
+        "V25"
+      ],
+      "hDimensions": [
+        "H1",
+        "H2",
+        "H3",
+        "H7",
+        "H8"
+      ],
+      "milestones": 3,
+      "materializedSteps": 4,
+      "designSteps": 7,
+      "uncoveredDesignStepIds": [
+        "S01.3",
+        "S01.5",
+        "S01.6"
+      ],
+      "steps": [
+        {
+          "stepId": "S01.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 3,
+          "materialized": true
+        },
+        {
+          "stepId": "S01.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 4,
+          "milestones": 0,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S01.4",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S01.7",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "S01.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "S01.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [
+        "S01.7"
+      ],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：S01.3, S01.5, S01.6",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "S02",
+      "familyId": "F-S02",
+      "title": "认识一个人，不等于共享所有私聊",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-测试集设计/cases/S02-身份与群隐私.md",
+        "kind": "case-doc",
+        "existingStepCount": 7
+      },
+      "relatedV": [
+        "V02",
+        "V04",
+        "V05",
+        "V07",
+        "V16"
+      ],
+      "hDimensions": [
+        "H1",
+        "H2",
+        "H4"
+      ],
+      "milestones": 4,
+      "materializedSteps": 4,
+      "designSteps": 7,
+      "uncoveredDesignStepIds": [
+        "S02.2",
+        "S02.4",
+        "S02.7"
+      ],
+      "steps": [
+        {
+          "stepId": "S02.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S02.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 1,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S02.5",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S02.6",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "S02.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "S02.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：S02.2, S02.4, S02.7",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "S03",
+      "familyId": "F-S03",
+      "title": "自主订阅，变化才做事",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-测试集设计/cases/S03-订阅与主动任务.md",
+        "kind": "case-doc",
+        "existingStepCount": 8
+      },
+      "relatedV": [
+        "V02",
+        "V03",
+        "V10",
+        "V12",
+        "V14",
+        "V23"
+      ],
+      "hDimensions": [
+        "H1",
+        "H3",
+        "H4",
+        "H6"
+      ],
+      "milestones": 3,
+      "materializedSteps": 5,
+      "designSteps": 8,
+      "uncoveredDesignStepIds": [
+        "S03.5",
+        "S03.6",
+        "S03.8"
+      ],
+      "steps": [
+        {
+          "stepId": "S03.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S03.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 4,
+          "milestones": 0,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S03.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S03.4",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 0,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S03.7",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "S03.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "S03.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：S03.5, S03.6, S03.8",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "S04",
+      "familyId": "F-S04",
+      "title": "一边做事，一边聊天",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-测试集设计/cases/S04-聊天与任务.md",
+        "kind": "case-doc",
+        "existingStepCount": 6
+      },
+      "relatedV": [
+        "V04",
+        "V05",
+        "V10",
+        "V11",
+        "V23"
+      ],
+      "hDimensions": [
+        "H1",
+        "H3",
+        "H4",
+        "H7"
+      ],
+      "milestones": 4,
+      "materializedSteps": 4,
+      "designSteps": 6,
+      "uncoveredDesignStepIds": [
+        "S04.2",
+        "S04.6"
+      ],
+      "steps": [
+        {
+          "stepId": "S04.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S04.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S04.4",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S04.5",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "S04.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "S04.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [
+        "S04.3"
+      ],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：S04.2, S04.6",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "S05",
+      "familyId": "F-S05",
+      "title": "做没做成，要分开说清",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-测试集设计/cases/S05-未知效果与恢复.md",
+        "kind": "case-doc",
+        "existingStepCount": 7
+      },
+      "relatedV": [
+        "V10",
+        "V11",
+        "V12",
+        "V21",
+        "V23"
+      ],
+      "hDimensions": [
+        "H1",
+        "H3",
+        "H4",
+        "H7"
+      ],
+      "milestones": 5,
+      "materializedSteps": 5,
+      "designSteps": 7,
+      "uncoveredDesignStepIds": [
+        "S05.3",
+        "S05.5"
+      ],
+      "steps": [
+        {
+          "stepId": "S05.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S05.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 1,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S05.4",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 1,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S05.6",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S05.7",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 1,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "S05.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "S05.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：S05.3, S05.5",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "S06",
+      "familyId": "F-S06",
+      "title": "删掉以后，不再回来",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-测试集设计/cases/S06-删除与旧备份.md",
+        "kind": "case-doc",
+        "existingStepCount": 7
+      },
+      "relatedV": [
+        "V07",
+        "V16",
+        "V21",
+        "V22",
+        "V23"
+      ],
+      "hDimensions": [
+        "H4",
+        "H5"
+      ],
+      "milestones": 5,
+      "materializedSteps": 5,
+      "designSteps": 7,
+      "uncoveredDesignStepIds": [
+        "S06.4",
+        "S06.5"
+      ],
+      "steps": [
+        {
+          "stepId": "S06.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S06.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S06.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 1,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S06.6",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S06.7",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "S06.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "S06.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：S06.4, S06.5",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "S07",
+      "familyId": "F-S07",
+      "title": "相处有连续性，人格不随风变",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-测试集设计/cases/S07-情绪与人格.md",
+        "kind": "case-doc",
+        "existingStepCount": 6
+      },
+      "relatedV": [
+        "V04",
+        "V07",
+        "V08",
+        "V25"
+      ],
+      "hDimensions": [
+        "H1",
+        "H7",
+        "H8"
+      ],
+      "milestones": 2,
+      "materializedSteps": 4,
+      "designSteps": 6,
+      "uncoveredDesignStepIds": [
+        "S07.4",
+        "S07.6"
+      ],
+      "steps": [
+        {
+          "stepId": "S07.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S07.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 0,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S07.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 0,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S07.5",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 3,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "S07.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "S07.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [
+        "S07.2",
+        "S07.3",
+        "S07.5"
+      ],
+      "pairingIds": [
+        "S07.listen-vs-advice",
+        "S07.directness"
+      ],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：S07.4, S07.6",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "S08",
+      "familyId": "F-S08",
+      "title": "时间过去了，也不能乱补做",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-测试集设计/cases/S08-时间与预算.md",
+        "kind": "case-doc",
+        "existingStepCount": 6
+      },
+      "relatedV": [
+        "V03",
+        "V10",
+        "V13",
+        "V14",
+        "V21"
+      ],
+      "hDimensions": [
+        "H1",
+        "H3",
+        "H4",
+        "H6"
+      ],
+      "milestones": 5,
+      "materializedSteps": 5,
+      "designSteps": 6,
+      "uncoveredDesignStepIds": [
+        "S08.4"
+      ],
+      "steps": [
+        {
+          "stepId": "S08.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S08.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S08.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "S08.5",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 4,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "S08.6",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "S08.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "S08.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：S08.4",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "FL01",
+      "familyId": "F-FL01",
+      "title": "业务藏在闲聊中",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-信息流Lab/cases/FL01-闲聊中的延期.md",
+        "kind": "case-doc",
+        "existingStepCount": 6
+      },
+      "relatedV": [
+        "V05",
+        "V07",
+        "V25"
+      ],
+      "hDimensions": [
+        "H1",
+        "H6",
+        "H7"
+      ],
+      "milestones": 4,
+      "materializedSteps": 4,
+      "designSteps": 6,
+      "uncoveredDesignStepIds": [
+        "FL01.4",
+        "FL01.6"
+      ],
+      "steps": [
+        {
+          "stepId": "FL01.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 1,
+          "milestones": 1,
+          "hDimensions": 3,
+          "materialized": true
+        },
+        {
+          "stepId": "FL01.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 1,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL01.3A",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 4,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL01.5",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "FL01.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "FL01.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：FL01.4, FL01.6",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "FL02",
+      "familyId": "F-FL02",
+      "title": "语境改变答案",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "kind": "matrix-only",
+        "existingStepCount": 0
+      },
+      "relatedV": [
+        "V07",
+        "V25"
+      ],
+      "hDimensions": [
+        "H7"
+      ],
+      "milestones": 1,
+      "materializedSteps": 3,
+      "designSteps": 0,
+      "uncoveredDesignStepIds": [],
+      "steps": [
+        {
+          "stepId": "FL02.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL02.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL02.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "FL02.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "FL02.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [
+        "FL02.3"
+      ],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史无 case 文档/答案，仅有矩阵要求；本骨架为新写代表轨迹",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "FL03",
+      "familyId": "F-FL03",
+      "title": "刷屏与纠正",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-信息流Lab/cases/FL03-相关变化与旧回复.md",
+        "kind": "case-doc",
+        "existingStepCount": 7
+      },
+      "relatedV": [
+        "V03",
+        "V05",
+        "V10"
+      ],
+      "hDimensions": [
+        "H2",
+        "H3",
+        "H4",
+        "H6",
+        "H7"
+      ],
+      "milestones": 5,
+      "materializedSteps": 5,
+      "designSteps": 7,
+      "uncoveredDesignStepIds": [
+        "FL03.3",
+        "FL03.5"
+      ],
+      "steps": [
+        {
+          "stepId": "FL03.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "FL03.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL03.4",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 3,
+          "materialized": true
+        },
+        {
+          "stepId": "FL03.6",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "FL03.7",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "FL03.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "FL03.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：FL03.3, FL03.5",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "FL04",
+      "familyId": "F-FL04",
+      "title": "单源洪峰",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-信息流Lab/cases/FL04-洪峰与公平.md",
+        "kind": "case-doc",
+        "existingStepCount": 6
+      },
+      "relatedV": [
+        "V05",
+        "V10",
+        "V23"
+      ],
+      "hDimensions": [
+        "H1",
+        "H4",
+        "H6"
+      ],
+      "milestones": 4,
+      "materializedSteps": 4,
+      "designSteps": 6,
+      "uncoveredDesignStepIds": [
+        "FL04.2",
+        "FL04.4"
+      ],
+      "steps": [
+        {
+          "stepId": "FL04.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "FL04.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL04.5",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "FL04.6",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "FL04.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "FL04.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：FL04.2, FL04.4",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "FL05",
+      "familyId": "F-FL05",
+      "title": "多人跨供应商",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-信息流Lab/cases/FL05-多人冲突与隔离.md",
+        "kind": "case-doc",
+        "existingStepCount": 7
+      },
+      "relatedV": [
+        "V02",
+        "V04",
+        "V10",
+        "V13"
+      ],
+      "hDimensions": [
+        "H1",
+        "H2",
+        "H7"
+      ],
+      "milestones": 4,
+      "materializedSteps": 4,
+      "designSteps": 7,
+      "uncoveredDesignStepIds": [
+        "FL05.1",
+        "FL05.4",
+        "FL05.7"
+      ],
+      "steps": [
+        {
+          "stepId": "FL05.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 3,
+          "materialized": true
+        },
+        {
+          "stepId": "FL05.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "FL05.5",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 3,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL05.6",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "FL05.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "FL05.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史设计步骤未物化：FL05.1, FL05.4, FL05.7",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "FL06",
+      "familyId": "F-FL06",
+      "title": "不确定与附件",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "kind": "matrix-only",
+        "existingStepCount": 0
+      },
+      "relatedV": [
+        "V09",
+        "V13",
+        "V25"
+      ],
+      "hDimensions": [
+        "H3",
+        "H7"
+      ],
+      "milestones": 3,
+      "materializedSteps": 3,
+      "designSteps": 0,
+      "uncoveredDesignStepIds": [],
+      "steps": [
+        {
+          "stepId": "FL06.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "FL06.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL06.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "FL06.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "FL06.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史无 case 文档/答案，仅有矩阵要求；本骨架为新写代表轨迹",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "FL07",
+      "familyId": "F-FL07",
+      "title": "重放与恢复",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "kind": "matrix-only",
+        "existingStepCount": 0
+      },
+      "relatedV": [
+        "V03",
+        "V12",
+        "V21"
+      ],
+      "hDimensions": [
+        "H3"
+      ],
+      "milestones": 3,
+      "materializedSteps": 3,
+      "designSteps": 0,
+      "uncoveredDesignStepIds": [],
+      "steps": [
+        {
+          "stepId": "FL07.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL07.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL07.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 1,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "FL07.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "FL07.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史无 case 文档/答案，仅有矩阵要求；本骨架为新写代表轨迹",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    },
+    {
+      "scenarioId": "FL08",
+      "familyId": "F-FL08",
+      "title": "订阅与长期业务",
+      "split": "DEV",
+      "source": {
+        "path": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md",
+        "kind": "matrix-only",
+        "existingStepCount": 0
+      },
+      "relatedV": [
+        "V10",
+        "V14",
+        "V23"
+      ],
+      "hDimensions": [
+        "H3",
+        "H4",
+        "H6"
+      ],
+      "milestones": 3,
+      "materializedSteps": 3,
+      "designSteps": 0,
+      "uncoveredDesignStepIds": [],
+      "steps": [
+        {
+          "stepId": "FL08.1",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 1,
+          "materialized": true
+        },
+        {
+          "stepId": "FL08.2",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 1,
+          "frozenCounts": 2,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        },
+        {
+          "stepId": "FL08.3",
+          "publicEvent": true,
+          "fourClassAnswers": true,
+          "oracleChecks": 2,
+          "frozenCounts": 3,
+          "milestones": 1,
+          "hDimensions": 2,
+          "materialized": true
+        }
+      ],
+      "variants": [
+        {
+          "id": "FL08.noise-or-rename",
+          "expectation": "same_allowed_answers",
+          "materialised": false
+        },
+        {
+          "id": "FL08.structure-change",
+          "expectation": "changed_allowed_answers",
+          "materialised": false
+        }
+      ],
+      "qualitySteps": [],
+      "pairingIds": [],
+      "verificationStatus": "synthetic-fixture-only-not-run",
+      "runEvidence": 0,
+      "holdout": "not_materialised",
+      "historicalSampleUpgraded": false,
+      "cannotUseForBusinessAcceptance": true,
+      "gaps": [
+        "历史无 case 文档/答案，仅有矩阵要求；本骨架为新写代表轨迹",
+        "无任何运行证据（模型/宿主/Lab/渠道=0）",
+        "变体未物化：改名/翻译/加噪/换种子/重排已声明但未生成",
+        "无双人盲评与相处质量分数（annotatorScores=0）"
+      ]
+    }
+  ],
+  "splitPolicy": {
+    "rules": [
+      "本切片所有 S/FL 场景均为公开 DEV；改名/翻译/加噪/换种子/重排不得变成 HOLDOUT",
+      "同一 family 的所有变体必须与 family 同属一个集合",
+      "REG 只在冻结故事与已修复失败上按来源登记（含 bug 引用），不得由 DEV 改名复制",
+      "HOLDOUT 尚未制作：需独立作者、答案先冻结、真实权限与流程隔离；目录名不构成秘密隔离",
+      "历史有限样本（phase3h/3i 等）不得升级为 HOLDOUT 或已验证业务证据",
+      "同机/同用户目录不是秘密隔离；开发 agent 拥有工作区读取权限时不能自称对 HOLDOUT 盲测"
+    ],
+    "state": "reserved_not_materialised",
+    "result": "pass"
+  },
+  "missingAssets": [
+    {
+      "id": "MISSING.FL02-06-07-08-cases",
+      "description": "FL02/FL06/FL07/FL08 没有历史 case 文档与历史答案，只有矩阵要求；本骨架只新写 3 步代表轨迹",
+      "blocksBusinessAcceptance": true,
+      "owner": "H0c+"
+    },
+    {
+      "id": "MISSING.design-steps",
+      "description": "S 54 步与 FL01/03/04/05 26 步中未物化的历史步骤（见各行 uncovered）",
+      "blocksBusinessAcceptance": true,
+      "owner": "H0c+"
+    },
+    {
+      "id": "MISSING.variants",
+      "description": "每个场景的答案不变/答案改变变体只冻结规格，未生成输入轨迹",
+      "blocksBusinessAcceptance": true,
+      "owner": "H0c+"
+    },
+    {
+      "id": "MISSING.noise-trajectories",
+      "description": "FL01 的 0/16/76 条噪音轨迹、FL04 的 1,000 条负载计划未生成",
+      "blocksBusinessAcceptance": true,
+      "owner": "H1+/Lab 切片"
+    },
+    {
+      "id": "MISSING.holdout",
+      "description": "HOLDOUT 保留集未制作：需独立作者、答案冻结后保管、真实权限/流程隔离；当前 0 条",
+      "blocksBusinessAcceptance": true,
+      "owner": "独立作者/流程"
+    },
+    {
+      "id": "MISSING.annotators",
+      "description": "相处质量 1–5 分无人工双标注与分歧记录；讨论门槛未冻结",
+      "blocksBusinessAcceptance": true,
+      "owner": "人工评审"
+    },
+    {
+      "id": "MISSING.run-evidence",
+      "description": "0 真实模型/embedding/Lab 房间/宿主/渠道运行；所有场景状态只能是 synthetic-fixture-only-not-run",
+      "blocksBusinessAcceptance": true,
+      "owner": "H1+ 运行切片"
+    },
+    {
+      "id": "MISSING.attachment-corpus",
+      "description": "FL06 附件/转写语料未物化，附件不可解析分支仅有 1 个合成事件",
+      "blocksBusinessAcceptance": true,
+      "owner": "H0c+"
+    },
+    {
+      "id": "MISSING.b0-r1-contract",
+      "description": "B0/R1 回复失效与 core 容量配置差异仍是并列契约，尚未映射到公共 API",
+      "blocksBusinessAcceptance": true,
+      "owner": "H1+/架构切片"
+    },
+    {
+      "id": "MISSING.canary-surfaces",
+      "description": "评估侧 canary 仅存在于答案包；尚未在实际视图/模型输入/发送面上运行扫描",
+      "blocksBusinessAcceptance": true,
+      "owner": "H1+ 运行切片"
+    }
+  ],
+  "cannotUseForBusinessAcceptance": true,
+  "disclaimer": "本索引只说明 S/FL 合成 fixture 与独立答案集骨架已物化、来源步骤计数已核对。没有任何产品/宿主/模型/Lab/渠道运行，所有场景状态为 synthetic-fixture-only-not-run；它不能用于业务验收，也不能被后续切片当作已验证证据或 HOLDOUT。",
+  "commands": [
+    "node scripts/harness/fl-scenarios.mjs",
+    "node --import tsx --test --test-concurrency=1 tests/harness-business.test.ts",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts"
+  ]
+}

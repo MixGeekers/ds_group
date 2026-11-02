@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.traceability",
-  "generatedAt": "2026-11-02T18:52:35.801Z",
+  "generatedAt": "2026-11-02T19:25:29.130Z",
   "harnessVersion": "0.1.0",
   "selfProofCorpus": "h0-selfproof-1",
   "sources": [
@@ -145,15 +145,15 @@
     "selfproof": {
       "path": "artifacts/dsh/harness/tool-selfproof.json",
       "present": true,
-      "sha256": "681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-      "generatedAt": "2026-11-02T18:52:35.693Z",
+      "sha256": "5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+      "generatedAt": "2026-11-02T19:25:29.013Z",
       "note": "self-proof passed"
     },
     "manifest": {
       "path": "artifacts/dsh/harness/manifest.json",
       "present": true,
-      "sha256": "c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
-      "generatedAt": "2026-11-02T18:52:34.025Z",
+      "sha256": "a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
+      "generatedAt": "2026-11-02T19:25:26.577Z",
       "note": "manifest files match the current tree"
     }
   },
@@ -316,8 +316,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -379,8 +379,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -466,8 +466,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -542,8 +542,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -608,8 +608,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -675,8 +675,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -736,8 +736,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -792,8 +792,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -826,8 +826,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -882,8 +882,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -938,8 +938,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -991,8 +991,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1025,8 +1025,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1084,8 +1084,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1134,8 +1134,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1192,8 +1192,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1250,8 +1250,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1314,8 +1314,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1378,8 +1378,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1424,8 +1424,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1470,8 +1470,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1516,8 +1516,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1548,8 +1548,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },
@@ -1606,8 +1606,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5",
-        "manifest": "artifacts/dsh/harness/manifest.json@c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128",
+        "manifest": "artifacts/dsh/harness/manifest.json@a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a",
         "historical": null
       }
     },

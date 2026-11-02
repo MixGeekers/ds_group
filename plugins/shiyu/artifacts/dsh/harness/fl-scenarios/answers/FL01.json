@@ -1,0 +1,372 @@
+{
+  "scenarioId": "FL01",
+  "familyId": "F-FL01",
+  "split": "DEV",
+  "steps": [
+    {
+      "stepId": "FL01.1",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [
+          "must_process_as_business"
+        ],
+        "forbidden": [
+          "no_business_attention"
+        ]
+      },
+      "internal": {
+        "required": [
+          "record_source_claim"
+        ],
+        "allowed": [
+          "record_source_claim",
+          "proposal_only_unpublished"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [],
+        "allowed": [
+          "may_express",
+          "must_state_uncertainty"
+        ],
+        "forbidden": [
+          "must_not_commit_company_terms"
+        ],
+        "allowedAudiences": [
+          "C05",
+          "C11"
+        ]
+      },
+      "action": {
+        "required": [
+          "read_authorized_scope"
+        ],
+        "allowed": [
+          "query_state_within_scope",
+          "limited_clarification",
+          "single_authorized_send"
+        ],
+        "forbidden": [
+          "no_payment",
+          "no_price_or_schedule_commitment"
+        ]
+      },
+      "routes": [
+        "P",
+        "C"
+      ],
+      "counts": {
+        "sourceReads": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "no-at-mention-does-not-mean-chatter",
+          "note": "无 @ 的业务消息仍必须捕获"
+        },
+        {
+          "kind": "custom",
+          "code": "send-within-allowed-strategy",
+          "note": "等待/询问/提示/@ 均属允许策略；未发生的步骤不补判"
+        }
+      ],
+      "milestones": [
+        "M.FL01.capture-business-without-at"
+      ],
+      "hDimensions": [
+        "H1",
+        "H6",
+        "H7"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/cases/FL01-闲聊中的延期.md",
+        "测试/2026-11-01-信息流Lab/合成公司与标注约定.md",
+        "answer:business-in-chatter"
+      ]
+    },
+    {
+      "stepId": "FL01.2",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "update_current_fact"
+        ],
+        "allowed": [
+          "record_source_claim"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_not_overclaim"
+        ],
+        "allowed": [
+          "may_express"
+        ],
+        "forbidden": [
+          "must_not_commit_company_terms"
+        ],
+        "allowedAudiences": [
+          "C05",
+          "C11"
+        ]
+      },
+      "action": {
+        "required": [
+          "read_authorized_scope"
+        ],
+        "allowed": [
+          "query_state_within_scope",
+          "limited_clarification"
+        ],
+        "forbidden": [
+          "no_price_or_schedule_commitment"
+        ]
+      },
+      "routes": [
+        "C",
+        "R"
+      ],
+      "counts": {
+        "sourceReads": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "supplier-estimate-vs-company-commitment-distinct",
+          "note": "供应商预计 11-03 17:00 不得改写公司确认 11-02 17:00"
+        }
+      ],
+      "milestones": [
+        "M.FL01.two-dates-distinct"
+      ],
+      "hDimensions": [
+        "H7"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/cases/FL01-闲聊中的延期.md",
+        "answer:two-dates-separate"
+      ]
+    },
+    {
+      "stepId": "FL01.3A",
+      "attention": {
+        "required": [
+          "background_only"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "must_process_as_business"
+        ]
+      },
+      "internal": {
+        "required": [
+          "no_internal_write"
+        ],
+        "allowed": [
+          "no_internal_write"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "no_expression"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "must_answer_actor",
+          "notify_authorized_endpoint"
+        ]
+      },
+      "action": {
+        "required": [
+          "no_external_effect"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "single_authorized_send",
+          "limited_clarification"
+        ]
+      },
+      "routes": [
+        "P",
+        "C"
+      ],
+      "counts": {
+        "modelCalls": 0,
+        "externalSends": 0,
+        "backendWrites": 0,
+        "sourceReads": 0
+      },
+      "oracleChecks": [
+        {
+          "kind": "harness-oracle",
+          "oracle": "quiet-window",
+          "expectation": {
+            "modelCalls": 0,
+            "newTasks": 0,
+            "newEffects": 0
+          }
+        },
+        {
+          "kind": "custom",
+          "code": "owner-already-handling-means-no-repeat-ping",
+          "note": "负责人已承接后重复催办=0"
+        }
+      ],
+      "milestones": [
+        "M.FL01.owner-handling-avoids-repeat-ping"
+      ],
+      "hDimensions": [
+        "H6"
+      ],
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/cases/FL01-闲聊中的延期.md",
+        "测试/2026-11-01-信息流Lab/合成公司与标注约定.md",
+        "answer:owner-handling-silence"
+      ]
+    },
+    {
+      "stepId": "FL01.5",
+      "attention": {
+        "required": [
+          "must_process_as_business"
+        ],
+        "allowed": [],
+        "forbidden": []
+      },
+      "internal": {
+        "required": [
+          "no_internal_write"
+        ],
+        "allowed": [
+          "no_internal_write"
+        ],
+        "forbidden": []
+      },
+      "expression": {
+        "required": [
+          "must_answer_actor",
+          "must_not_overclaim"
+        ],
+        "allowed": [],
+        "forbidden": [
+          "must_not_commit_company_terms"
+        ],
+        "allowedAudiences": [
+          "C05"
+        ]
+      },
+      "action": {
+        "required": [
+          "read_authorized_scope"
+        ],
+        "allowed": [
+          "query_state_within_scope"
+        ],
+        "forbidden": [
+          "no_price_or_schedule_commitment"
+        ]
+      },
+      "routes": [
+        "R"
+      ],
+      "counts": {
+        "externalSends": 1,
+        "modelCalls": 1
+      },
+      "oracleChecks": [
+        {
+          "kind": "custom",
+          "code": "answer-original-and-supplier-dates-clearly",
+          "note": "回答原确认时间与当前预计，并标明后者未确认"
+        }
+      ],
+      "milestones": [
+        "M.FL01.answer-current-question"
+      ],
+      "hDimensions": [
+        "H7"
+      ],
+      "quality": {
+        "applicable": []
+      },
+      "evidenceRefs": [
+        "测试/2026-11-01-信息流Lab/cases/FL01-闲聊中的延期.md",
+        "answer:answer-b4-facts"
+      ]
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M.FL01.capture-business-without-at",
+      "scenarioId": "FL01",
+      "description": "无 @ 业务消息仍被捕获",
+      "functional": true,
+      "evidenceHints": [
+        "FL01.1"
+      ]
+    },
+    {
+      "id": "M.FL01.two-dates-distinct",
+      "scenarioId": "FL01",
+      "description": "供应商预计与公司确认交期分开",
+      "functional": true,
+      "evidenceHints": [
+        "FL01.2"
+      ]
+    },
+    {
+      "id": "M.FL01.owner-handling-avoids-repeat-ping",
+      "scenarioId": "FL01",
+      "description": "负责人已承接时不重复催办",
+      "functional": true,
+      "evidenceHints": [
+        "FL01.3A"
+      ]
+    },
+    {
+      "id": "M.FL01.answer-current-question",
+      "scenarioId": "FL01",
+      "description": "准确回答负责人询问的两个时间",
+      "functional": true,
+      "evidenceHints": [
+        "FL01.5"
+      ]
+    }
+  ],
+  "variants": [
+    {
+      "id": "FL01.noise-or-rename",
+      "kind": "noise",
+      "expectation": "same_allowed_answers",
+      "description": "加入 0/16/76 条逐条审定噪音，四条业务内容与到达时刻不变",
+      "materialised": false,
+      "reason": "H0c 只物化主线代表轨迹；噪音/改名变体待后续切片生成并逐条审查"
+    },
+    {
+      "id": "FL01.structure-change",
+      "kind": "correction",
+      "expectation": "changed_allowed_answers",
+      "description": "B3 从“负责人已承接”改为“无人承接”，允许表达集合应改变",
+      "materialised": false,
+      "reason": "需要新的因果结构；不能只改词或换种子冒充新样本"
+    }
+  ],
+  "source": {
+    "sourcePath": "测试/2026-11-01-信息流Lab/cases/FL01-闲聊中的延期.md",
+    "kind": "case-doc",
+    "existingStepCount": 6,
+    "machineReadableAnswers": false,
+    "statusAtSource": "design-doc-only-unrun"
+  }
+}

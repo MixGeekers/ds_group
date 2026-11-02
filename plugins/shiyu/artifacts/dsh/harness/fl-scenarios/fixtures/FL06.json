@@ -1,0 +1,186 @@
+{
+  "scenarioId": "FL06",
+  "familyId": "F-FL06",
+  "split": "DEV",
+  "fixtureSalt": "5f8533af85fd",
+  "title": "不确定与附件",
+  "preconditions": {
+    "worldRef": "fixture://company/lanqiao",
+    "clockBase": "2026-11-01T09:00:00-04:00",
+    "timeZone": "America/Caracas",
+    "actors": {
+      "E01": "fixture-principal-e01",
+      "E02": "fixture-principal-e02",
+      "E03": "fixture-principal-e03",
+      "E04": "fixture-principal-e04",
+      "E05": "fixture-principal-e05",
+      "E06": "fixture-principal-e06",
+      "E07": "fixture-principal-e07",
+      "E08": "fixture-principal-e08",
+      "E09": "fixture-principal-e09",
+      "E10": "fixture-principal-e10-same-display-name-as-e03"
+    },
+    "channels": {
+      "C02": "PA internal",
+      "C05": "SA supplier group nativeGroupId=g1",
+      "C06": "SB supplier group nativeGroupId=g1",
+      "C08": "SA+SB mixed group",
+      "C10": "E02 DM",
+      "C11": "E03 DM",
+      "C17": "E09 DM"
+    },
+    "orders": {
+      "O-A1": "PA/SA due 2026-11-02T17:00-04:00",
+      "O-A2": "PA/SB due 2026-11-04T17:00-04:00",
+      "O-B1": "PB/SC due 2026-11-05T17:00-04:00"
+    },
+    "authorizationModel": "explicit fixture grants; titles and message text add no authority",
+    "hiddenCanariesPolicy": "evaluation-side only; never in public fixture",
+    "teamSlotModel": {
+      "totalModelSlots": 3,
+      "backgroundMax": 2,
+      "dialogueReserved": 1,
+      "coreEvaluationMax": 1
+    },
+    "sources": [
+      "fixture://order/O-A1",
+      "fixture://quote/Q-A",
+      "fixture://quote/Q-B",
+      "fixture://ci/qingzhou"
+    ],
+    "grants": {
+      "grants": [
+        {
+          "subject": "fixture-principal-e03",
+          "actions": [
+            "order.read.pa",
+            "risk.record",
+            "draft.internal",
+            "supplier.ask.fact"
+          ],
+          "resources": [
+            "O-A1",
+            "Q-A"
+          ]
+        },
+        {
+          "subject": "fixture-principal-e02",
+          "actions": [
+            "conflict.decide.pa",
+            "order.read.pa",
+            "supplier.ask.fact"
+          ],
+          "resources": [
+            "O-A1",
+            "O-A2"
+          ]
+        },
+        {
+          "subject": "fixture-principal-e09",
+          "actions": [
+            "order.read.pb",
+            "quote.read.sb"
+          ],
+          "resources": [
+            "O-B1",
+            "Q-B"
+          ]
+        },
+        {
+          "subject": "fixture-principal-e04",
+          "actions": [
+            "production.read.pa",
+            "production.suggest.pa"
+          ],
+          "resources": [
+            "O-A1"
+          ]
+        }
+      ],
+      "forbiddenGlobal": [
+        "payment.execute",
+        "order.cancel.supplier",
+        "price.commit",
+        "schedule.commit.company",
+        "cross-scope.read"
+      ]
+    },
+    "uncertaintyPolicy": "timeout/invalid output/unparsable attachment keep pending/uncertain; at most one authorized retry",
+    "relevantDoc": "测试/2026-11-01-信息流Lab/覆盖与拟验契约.md"
+  },
+  "steps": [
+    {
+      "stepId": "FL06.1",
+      "index": 1,
+      "title": "来源超时",
+      "event": {
+        "actor": "fixture-source",
+        "audience": "system",
+        "channel": "fixture://docs/attachment",
+        "text": "source timeout",
+        "occurredAt": "2026-11-01T09:00:00-04:00",
+        "receivedAt": "2026-11-01T09:00:00-04:00",
+        "sourceKey": "fl06.1@5f8533af85fd"
+      },
+      "visibleHistory": [],
+      "availableCapabilities": [
+        "Source.readonly.fixture",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ],
+      "faults": [
+        {
+          "at": "after_accept",
+          "kind": "source_timeout",
+          "label": "source-timeout"
+        }
+      ]
+    },
+    {
+      "stepId": "FL06.2",
+      "index": 2,
+      "title": "模型/工具返回非法结构",
+      "event": {
+        "actor": "fixture-model",
+        "audience": "system",
+        "channel": "fixture://model/synthetic",
+        "text": "invalid output structure",
+        "occurredAt": "2026-11-01T09:01:00-04:00",
+        "receivedAt": "2026-11-01T09:01:00-04:00",
+        "sourceKey": "fl06.2@5f8533af85fd"
+      },
+      "visibleHistory": [
+        "FL06.1"
+      ],
+      "availableCapabilities": [
+        "Model.fake",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    },
+    {
+      "stepId": "FL06.3",
+      "index": 3,
+      "title": "附件不可解析",
+      "event": {
+        "actor": "E03",
+        "audience": "C02",
+        "channel": "C02",
+        "text": "(附件：损坏的 CSV，无法解析) 帮我看看这个。",
+        "occurredAt": "2026-11-01T09:02:00-04:00",
+        "receivedAt": "2026-11-01T09:02:00-04:00",
+        "sourceKey": "fl06.3@5f8533af85fd",
+        "attachmentState": "unparsable"
+      },
+      "visibleHistory": [
+        "FL06.1",
+        "FL06.2"
+      ],
+      "availableCapabilities": [
+        "ReadView.audience",
+        "Effect.dispatch.synthetic",
+        "Clock.fake"
+      ]
+    }
+  ]
+}
