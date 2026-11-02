@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-02T05:22:24.007Z",
+  "status": "passed",
+  "evidenceLevel": "current-run-local-inference",
+  "profile": {
+    "id": "harrier-oss-v1-0.6b-q8_0-1024-v1",
+    "model": "shiyu-harrier-0.6b-q8_0",
+    "upstream": "microsoft/harrier-oss-v1-0.6b",
+    "upstreamRevision": "f9b9dc8d367d443f2479d27aa5d8d2850c0774ee",
+    "artifactSha256": "b017b8fceae7c77864652c63d07af51480088b078771a89cafe1a467b069ea75",
+    "artifactBytes": 639447904,
+    "dimensions": 1024,
+    "pooling": "last",
+    "normalization": "l2",
+    "queryPrefix": "Instruct: Given a user query about personal chat memories, retrieve the most relevant memory entries that answer the query\nQuery: ",
+    "documentPrefix": ""
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "scope": {
+    "syntheticDocuments": 3,
+    "syntheticQueries": 2,
+    "repeatDocuments": 1,
+    "maxDurationSeconds": 120,
+    "paidModelCalls": 0,
+    "externalNetworkCalls": 0
+  },
+  "limitations": [
+    "Small synthetic wiring and vector sanity check; not a rerun of the 102-query benchmark.",
+    "No long-running service installed; plugin runtime must receive an explicitly configured loopback endpoint."
+  ],
+  "artifact": {
+    "sha256": "b017b8fceae7c77864652c63d07af51480088b078771a89cafe1a467b069ea75",
+    "bytes": 639447904,
+    "format": "GGUF",
+    "version": 3,
+    "tensorCount": 310
+  },
+  "server": {
+    "binarySha256": "0e142035f2622a23ff6a04f51a0c4594dce87acf0389a4e839e4714c953bdac8",
+    "version": "version: 0.8.0-dev (build 1, commit c3df4b7)\nbuilt with AppleClang 21.0.0.21000101 for Darwin arm64",
+    "configuration": {
+      "loopbackOnly": true,
+      "pooling": "last",
+      "gpuLayers": 999,
+      "context": 4096,
+      "batch": 512,
+      "microBatch": 512,
+      "threads": 4,
+      "flashAttention": false
+    },
+    "exit": {
+      "code": 0,
+      "signal": null
+    }
+  },
+  "results": {
+    "requestCount": 3,
+    "vectorCount": 6,
+    "elapsedMs": 231,
+    "vectors": [
+      {
+        "dimensions": 1024,
+        "finite": true,
+        "norm": 1
+      },
+      {
+        "dimensions": 1024,
+        "finite": true,
+        "norm": 0.9999999999999988
+      },
+      {
+        "dimensions": 1024,
+        "finite": true,
+        "norm": 1
+      },
+      {
+        "dimensions": 1024,
+        "finite": true,
+        "norm": 0.9999999999999996
+      },
+      {
+        "dimensions": 1024,
+        "finite": true,
+        "norm": 0.9999999999999997
+      },
+      {
+        "dimensions": 1024,
+        "finite": true,
+        "norm": 1.0000000000000004
+      }
+    ],
+    "queryTopDocumentIndices": [
+      0,
+      1
+    ],
+    "similarity": [
+      [
+        0.7367643596502114,
+        0.22837573712754383,
+        0.19007209598300878
+      ],
+      [
+        0.23418970260339575,
+        0.6955662741419893,
+        0.32861921520123233
+      ]
+    ],
+    "repeatCosine": 0.9999997527742607,
+    "differentDocumentCosine": 0.3364257970979742
+  },
+  "cleanup": {
+    "ownedProcessStarted": true,
+    "ownedProcessExited": true,
+    "persistentServiceInstalled": false
+  },
+  "finishedAt": "2026-11-02T05:22:25.170Z"
+}

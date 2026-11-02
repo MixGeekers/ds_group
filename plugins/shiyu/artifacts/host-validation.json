@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "evidenceLevel": "current-run-native-DSH-UI",
+  "date": "2026-11-02",
+  "timezone": "America/Caracas",
+  "host": {
+    "application": "DeepSeek Harness",
+    "version": "0.2.1-rc.5",
+    "versionEvidence": "installed host package static audit",
+    "sqliteVersion": "3.53.4",
+    "sqliteEvidence": "runtime worker read; observed in native dashboard",
+    "journalMode": "wal"
+  },
+  "plugin": {
+    "id": "@shiyu/runtime",
+    "version": "0.1.0",
+    "source": "plugins/shiyu",
+    "installMethod": "native plugin manager local-directory install and enable"
+  },
+  "observations": [
+    {
+      "at": "01:26:59",
+      "action": "initial activation",
+      "result": "ready, idle, events=1, pending=0, failed=0",
+      "instanceId": "6713a3b2-2f96-4622-9831-4e39caa34a5e"
+    },
+    {
+      "at": "01:27:12",
+      "action": "explicit no-inference Session probe",
+      "result": "ready, noModelCalled, released and archived receipts verified by client; events=2"
+    },
+    {
+      "at": "01:28:07",
+      "action": "pause",
+      "result": "paused; events=3"
+    },
+    {
+      "at": "01:29:17",
+      "action": "disable and enable plugin after rebuild",
+      "result": "new instance loaded paused; event history preserved; one runtime.activity subscription; events=4",
+      "instanceId": "337f4c7f-e471-4bee-85ec-b72a44b6c2ed"
+    },
+    {
+      "at": "01:29:20",
+      "action": "inspect dependencies",
+      "result": "previous probe shown as historical; current native Session availability unknown"
+    },
+    {
+      "at": "01:29:31",
+      "action": "attempt Session probe while paused",
+      "result": "Runtime is paused; events remain 4"
+    },
+    {
+      "at": "01:29:36",
+      "action": "resume",
+      "result": "accepted; events=5"
+    },
+    {
+      "at": "01:29:39",
+      "action": "repeat no-inference Session probe after reload",
+      "result": "ready/noModelCalled/released/archived verified; current availability available; events=6,pending=0,failed=0"
+    }
+  ],
+  "retainedPlugins": [
+    "识雨 · 工作台",
+    "识雨健身房"
+  ],
+  "modelInferenceCalls": 0,
+  "checks": {
+    "npmRunCheck": {
+      "passed": true,
+      "moduleTestsPassed": 51,
+      "includes": [
+        "typecheck",
+        "module tests",
+        "build",
+        "client syntax"
+      ]
+    },
+    "clientUI": {
+      "passed": 11,
+      "host": "synthetic native client host; Playwright"
+    },
+    "vendorCore": {
+      "passed": 144,
+      "files": 2,
+      "runner": "Vitest 4.1.8",
+      "scope": "unmodified upstream baseline, not Shiyu task acceptance"
+    }
+  },
+  "limitations": [
+    "Native UI evidence covers two probes and one disable/enable cycle, not the complete V24 lifecycle suite.",
+    "No real generative model response, cache reuse measurement or compaction verified.",
+    "No production channel, device, task engine or inner-state integration in this slice.",
+    "Archived probe sessions are retained by DSH and can be explicitly unarchived by the owner."
+  ],
+  "sourceSha256": {
+    "src/index.ts": "2b99cdb6ccc8024a1b7358738df4c8c7fbf0ff84352f92f2b8cd14aed242d5ec",
+    "src/runtime.ts": "4282dfc59b65f0e097dc9bc273e35210982f4f7da0a2f0b63a20492966247dd4",
+    "src/recovery/local-state.ts": "5b446109c709673b07777e03295c567d59dd836602df214333cec56a57552bc5",
+    "src/adapters/dsh/sessions.ts": "e53ecafe38e82d97d08e8e5c961adcf37a68b7ab8329f956e204eba7e2c2e35a",
+    "src/adapters/control-store/index.ts": "f069ad2ac725abd7a522c5edc89994008d1910dfaa247b4145fb9e4cd9c75d5a",
+    "src/adapters/control-store/worker.ts": "e83cfcac4a0feda28734a3c4d6b854fa535b6d4be4b1e160d2a72db1348a4ed3",
+    "src/contracts/events.ts": "3731f2f6530278549d246f40b39fad7707b504ba0bce6a1686f98bf5a31fcb65",
+    "src/control/events/index.ts": "8a913564f741e8ddbdd3a7654b92f38886b1204ae68c1779d33e358d3a26db67",
+    "client/index.js": "49123f90d6af4d5e82e27d4caf730b77b27c26284af2eee95fd2ba1d17df40dd",
+    "dist/index.js": "e318b9fb061f07fa7e3639d3f92df80882235e0ce41b0cfad04fa42838672936",
+    "dist/runtime.js": "5342b824a93cb41e4f118850697cf62b27e3a926125202a111f075b4879b6b6b",
+    "dist/adapters/dsh/sessions.js": "5319560f83cff352315e84eb71112defdab5a8b9e5c1739a881234ae3117cb58",
+    "dist/adapters/control-store/worker.js": "d03ddc09336adca00e56bcd65db9e1d6e87b6701fccf7e077f0865cb7c34d953"
+  }
+}

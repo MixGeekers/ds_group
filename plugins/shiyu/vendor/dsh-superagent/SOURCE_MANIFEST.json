@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "upstream": {
+    "repository": "https://github.com/deepseek-ai/dsh-superagent-prototype",
+    "commit": "6337fc823ce20251c8de8085948165c81aaa701e",
+    "treeSha": "6337fc823ce20251c8de8085948165c81aaa701e",
+    "treeTruncated": false
+  },
+  "retrievedAtLocalDate": "2026-11-02",
+  "timezone": "America/Caracas",
+  "retrievalMethod": "GitHub connector fetch_file at exact commit; Git blob hashes cross-checked with recursive tree",
+  "license": {
+    "spdx": "MIT",
+    "path": "LICENSE",
+    "copyright": "Copyright (c) 2026 DeepSeek Harness Team"
+  },
+  "scope": {
+    "coreFileCount": 13,
+    "testSupportFileCount": 2,
+    "testFileCount": 8,
+    "upstreamFileCount": 25,
+    "runtimeIntegration": "not integrated by this import"
+  },
+  "localArtifacts": [
+    {
+      "path": "README.local.md",
+      "purpose": "Snapshot scope, limitations and original core test plan"
+    },
+    {
+      "path": "DEPENDENCY_AUDIT.json",
+      "purpose": "Static import and closure verification snapshot"
+    },
+    {
+      "path": "verify_snapshot.py",
+      "purpose": "Offline byte-integrity and dependency-audit verifier"
+    },
+    {
+      "path": "SOURCE_MANIFEST.json",
+      "purpose": "Provenance and per-file hashes; self hash intentionally omitted"
+    }
+  ],
+  "files": [
+    {
+      "path": "LICENSE",
+      "role": "license",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/LICENSE",
+      "upstreamGitBlobSha": "df5ef0e6d9cf2989975742db0a13ad15050ee89b",
+      "upstreamSha256": "6d66f91815b720e18cfb2b3552043a0359236aec9a1a6917787900546f6ce550",
+      "localSha256": "6d66f91815b720e18cfb2b3552043a0359236aec9a1a6917787900546f6ce550",
+      "byteLength": 1078,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/engine.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/engine.ts",
+      "upstreamGitBlobSha": "c2198adf9c7a10837bec5f4789129bf576e39395",
+      "upstreamSha256": "bd9a4caff834859877d1a08ccddebc990d0e1ca568674b80f9d59ce5adcac827",
+      "localSha256": "bd9a4caff834859877d1a08ccddebc990d0e1ca568674b80f9d59ce5adcac827",
+      "byteLength": 16310,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/part.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/part.ts",
+      "upstreamGitBlobSha": "14d5c6d47b5ec90f9c40a762ae91f4565e4e255d",
+      "upstreamSha256": "437c4f4bcc05e836c056cdb45bbf451e55242d62b602b489f4df902be112e73e",
+      "localSha256": "437c4f4bcc05e836c056cdb45bbf451e55242d62b602b489f4df902be112e73e",
+      "byteLength": 4753,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/model.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/model.ts",
+      "upstreamGitBlobSha": "577831217329b9bfef404e9ec3492e94ce3e5649",
+      "upstreamSha256": "982155fe6a03c887a7ac4475c6d1592d12aa23c5fe3698403c93bbfd6469d44a",
+      "localSha256": "982155fe6a03c887a7ac4475c6d1592d12aa23c5fe3698403c93bbfd6469d44a",
+      "byteLength": 19758,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/ports.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/ports.ts",
+      "upstreamGitBlobSha": "08c7a1cccfc69f68178306babf67e4a51fae36f8",
+      "upstreamSha256": "0b44f1cd716d64776b0e3ea74a158cf0effd92e763b1b13c7705e766e9225a43",
+      "localSha256": "0b44f1cd716d64776b0e3ea74a158cf0effd92e763b1b13c7705e766e9225a43",
+      "byteLength": 7260,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/ids.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/ids.ts",
+      "upstreamGitBlobSha": "f3aeab4c86e213ad49703ebae43a87affb432d4c",
+      "upstreamSha256": "bc4bc6fd43ea1377087ff2815706c57f0200666aeb4a7711a40489c377f141ab",
+      "localSha256": "bc4bc6fd43ea1377087ff2815706c57f0200666aeb4a7711a40489c377f141ab",
+      "byteLength": 266,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/errors.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/errors.ts",
+      "upstreamGitBlobSha": "9c7096aff7e2a278bb1496f2df60eca6d32f0ae6",
+      "upstreamSha256": "aa7532a2d1f8c443608683ef1231bf3d81b842f67a87d9b77742b5c76d515009",
+      "localSha256": "aa7532a2d1f8c443608683ef1231bf3d81b842f67a87d9b77742b5c76d515009",
+      "byteLength": 5722,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/reasons.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/reasons.ts",
+      "upstreamGitBlobSha": "59604812de05acc35e8fb3a96557cfaea71aa183",
+      "upstreamSha256": "dc29e0c3c52e4ffd6e8f27a618cbe704a83fdbd9c5a1b99a1e0c4184d5c33af4",
+      "localSha256": "dc29e0c3c52e4ffd6e8f27a618cbe704a83fdbd9c5a1b99a1e0c4184d5c33af4",
+      "byteLength": 2233,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/intake.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/intake.ts",
+      "upstreamGitBlobSha": "145c72192087afb10c150649780cf0a97ccb3983",
+      "upstreamSha256": "323aadefea69436ba23ed2de3bdbaad673d61915be9e239f3233ecf551a74179",
+      "localSha256": "323aadefea69436ba23ed2de3bdbaad673d61915be9e239f3233ecf551a74179",
+      "byteLength": 3799,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/evals.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/evals.ts",
+      "upstreamGitBlobSha": "35de470e2c241e2b945c955fccc3877f443092f7",
+      "upstreamSha256": "38916de24ec6e1a27118dd5d7a7efa67bf7a2dfdbab26fb59d377516269e2fc8",
+      "localSha256": "38916de24ec6e1a27118dd5d7a7efa67bf7a2dfdbab26fb59d377516269e2fc8",
+      "byteLength": 21810,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/tickets.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/tickets.ts",
+      "upstreamGitBlobSha": "21376e17fc896af45fa2c06f7a7d6aa17d6e8aa2",
+      "upstreamSha256": "1d9f964ad34b54cbb0403bde16af58851e5e80111177ce73a27b6034e9af940e",
+      "localSha256": "1d9f964ad34b54cbb0403bde16af58851e5e80111177ce73a27b6034e9af940e",
+      "byteLength": 27013,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/assignments.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/assignments.ts",
+      "upstreamGitBlobSha": "2264b42b047bcf0035314b7dc4f0e4b32b4da59a",
+      "upstreamSha256": "6acf4b858b35d95c875680e39b1e3c41557bbe6d39f65031bb26927289327065",
+      "localSha256": "6acf4b858b35d95c875680e39b1e3c41557bbe6d39f65031bb26927289327065",
+      "byteLength": 8959,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/replies.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/replies.ts",
+      "upstreamGitBlobSha": "ee5790a21f19bcb2b90f1dfe184f9f33c9f9555b",
+      "upstreamSha256": "5a8821a1b9d951d2255709543e0be762c6d3204bca07a77ff17c7bfe82ba66f4",
+      "localSha256": "5a8821a1b9d951d2255709543e0be762c6d3204bca07a77ff17c7bfe82ba66f4",
+      "byteLength": 6772,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/stage.ts",
+      "role": "core",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/stage.ts",
+      "upstreamGitBlobSha": "62bc9e9d54ad80de3156f81585bcf94111cd9b3e",
+      "upstreamSha256": "b935012a654d2a68ca20cb27909ddc8dceafb704b56a16a23a08036a546141df",
+      "localSha256": "b935012a654d2a68ca20cb27909ddc8dceafb704b56a16a23a08036a546141df",
+      "byteLength": 1684,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/memory.ts",
+      "role": "test-support",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/memory.ts",
+      "upstreamGitBlobSha": "114e8c7140c984152a1e87cffe80c60b28f18819",
+      "upstreamSha256": "36cefca987a4e533369a414e52e3fb4754945ae942bb021f8e5cf23c186cf536",
+      "localSha256": "36cefca987a4e533369a414e52e3fb4754945ae942bb021f8e5cf23c186cf536",
+      "byteLength": 2863,
+      "localModifications": []
+    },
+    {
+      "path": "src/core/index.ts",
+      "role": "test-support",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/src/core/index.ts",
+      "upstreamGitBlobSha": "143058bca0490722880a41823890a5f90dd2638c",
+      "upstreamSha256": "a5a1cf43f02eafaf520a5bfaf5e76b71ba521d04ee648cfcf12b3843cc474a3e",
+      "localSha256": "a5a1cf43f02eafaf520a5bfaf5e76b71ba521d04ee648cfcf12b3843cc474a3e",
+      "byteLength": 713,
+      "localModifications": []
+    },
+    {
+      "path": "tests/core-engine.spec.ts",
+      "role": "test",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/core-engine.spec.ts",
+      "upstreamGitBlobSha": "733d134a7d60f150a9b53897994a678571859c52",
+      "upstreamSha256": "e29358c139a2dbb1a2877e980e043f34cf39bca1905fb10ee14e0b4866bc1a6b",
+      "localSha256": "e29358c139a2dbb1a2877e980e043f34cf39bca1905fb10ee14e0b4866bc1a6b",
+      "byteLength": 106908,
+      "localModifications": []
+    },
+    {
+      "path": "tests/followups.spec.ts",
+      "role": "test",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/followups.spec.ts",
+      "upstreamGitBlobSha": "b4d04c8fb9a3e979109510a7eea8d4b4aef51bdd",
+      "upstreamSha256": "22e8ba70885a70a1673a1ddfd9f17d491308dc6a586b3a0e114b1106de9e093d",
+      "localSha256": "22e8ba70885a70a1673a1ddfd9f17d491308dc6a586b3a0e114b1106de9e093d",
+      "byteLength": 20258,
+      "localModifications": []
+    },
+    {
+      "path": "tests/stage.spec.ts",
+      "role": "test",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/stage.spec.ts",
+      "upstreamGitBlobSha": "ab49b09c95a2fe621fa3cdcf21ac4c609a7b6f91",
+      "upstreamSha256": "3df130eae87d70643f0c924caf66fbca8cb27ced50467e0c7283dee0a39436be",
+      "localSha256": "3df130eae87d70643f0c924caf66fbca8cb27ced50467e0c7283dee0a39436be",
+      "byteLength": 5625,
+      "localModifications": []
+    },
+    {
+      "path": "tests/effects.spec.ts",
+      "role": "test",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/effects.spec.ts",
+      "upstreamGitBlobSha": "c022237c9c36976fb900521d5692914a412a6029",
+      "upstreamSha256": "2f43ec3af1da76c933aba941f4bf6525c973308646cd0ea9811bb9cc5b0ffb3b",
+      "localSha256": "2f43ec3af1da76c933aba941f4bf6525c973308646cd0ea9811bb9cc5b0ffb3b",
+      "byteLength": 10307,
+      "localModifications": []
+    },
+    {
+      "path": "tests/outbox.spec.ts",
+      "role": "test",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/outbox.spec.ts",
+      "upstreamGitBlobSha": "bc00f9315658830eaf425084354e79f9dc874888",
+      "upstreamSha256": "a06314b88277b6db5d24debc38dca291a73641945b1b4e931c0d700db42a1973",
+      "localSha256": "a06314b88277b6db5d24debc38dca291a73641945b1b4e931c0d700db42a1973",
+      "byteLength": 2435,
+      "localModifications": []
+    },
+    {
+      "path": "tests/store.spec.ts",
+      "role": "test",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/store.spec.ts",
+      "upstreamGitBlobSha": "057e20b77efec820acc708af9cff81af15cee5cd",
+      "upstreamSha256": "525d1b144c8e395917008043d68723933900f9ddbc661ff6f744c8c88f37494f",
+      "localSha256": "525d1b144c8e395917008043d68723933900f9ddbc661ff6f744c8c88f37494f",
+      "byteLength": 18169,
+      "localModifications": []
+    },
+    {
+      "path": "tests/policy.spec.ts",
+      "role": "test",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/policy.spec.ts",
+      "upstreamGitBlobSha": "4a25b144cfeb6d32923b5a13c41be2f5b541da13",
+      "upstreamSha256": "a558a71492d90c200cc9dd59926ab6255894816c7e29f2eb177bdcf9d7654214",
+      "localSha256": "a558a71492d90c200cc9dd59926ab6255894816c7e29f2eb177bdcf9d7654214",
+      "byteLength": 44984,
+      "localModifications": []
+    },
+    {
+      "path": "tests/runtime-concurrency.spec.ts",
+      "role": "test",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/tests/runtime-concurrency.spec.ts",
+      "upstreamGitBlobSha": "1a7eac3548217bd15f110b2a078a994fa61e5617",
+      "upstreamSha256": "c29f5528381a30f27d9ee9bbf4af451dd32eeed8b2e66ab049137d87a02c0d2a",
+      "localSha256": "c29f5528381a30f27d9ee9bbf4af451dd32eeed8b2e66ab049137d87a02c0d2a",
+      "byteLength": 63997,
+      "localModifications": []
+    },
+    {
+      "path": "package.json",
+      "role": "upstream-package-metadata",
+      "sourceUrl": "https://github.com/deepseek-ai/dsh-superagent-prototype/blob/6337fc823ce20251c8de8085948165c81aaa701e/package.json",
+      "upstreamGitBlobSha": "6afd24bce2aebd6858e37d00aab4505a070bfce3",
+      "upstreamSha256": "f5170d812137dd370c568decb481e19f4da9a3d1fd7bad341a0f07942020a559",
+      "localSha256": "f5170d812137dd370c568decb481e19f4da9a3d1fd7bad341a0f07942020a559",
+      "byteLength": 4693,
+      "localModifications": []
+    }
+  ]
+}

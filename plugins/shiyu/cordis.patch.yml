@@ -1,0 +1,4 @@
+- insert:
+    - id: shiyu-runtime
+      name: '@shiyu/runtime'
+      config: {}

@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "checkedAtLocalDate": "2026-11-02",
+  "sourceCommit": "6337fc823ce20251c8de8085948165c81aaa701e",
+  "evidenceLevel": "static-import-audit-and-original-core-test-baseline",
+  "method": "Lexical scan of static import/export declarations and literal import() references, including type-only references, followed recursively from engine.ts. Missing dependencies of reference tests are direct imports only; no recursive external application closure is claimed.",
+  "sourceBytesVerifiedAgainst": "SOURCE_MANIFEST.json upstreamGitBlobSha",
+  "coreClosure": {
+    "entry": "src/core/engine.ts",
+    "fileCount": 13,
+    "files": [
+      "src/core/assignments.ts",
+      "src/core/engine.ts",
+      "src/core/errors.ts",
+      "src/core/evals.ts",
+      "src/core/ids.ts",
+      "src/core/intake.ts",
+      "src/core/model.ts",
+      "src/core/part.ts",
+      "src/core/ports.ts",
+      "src/core/reasons.ts",
+      "src/core/replies.ts",
+      "src/core/stage.ts",
+      "src/core/tickets.ts"
+    ],
+    "externalImports": [
+      "node:crypto"
+    ],
+    "missingRelativeImports": [],
+    "thirdPartyRuntimePackages": []
+  },
+  "originalCoreTestPlan": {
+    "files": [
+      "tests/core-engine.spec.ts",
+      "tests/stage.spec.ts"
+    ],
+    "requiredRunner": {
+      "package": "vitest",
+      "version": "4.1.8",
+      "evidence": "package.json devDependencies.vitest"
+    },
+    "upstreamNodeRange": "^22.19.0 || >=24.0.0",
+    "inspectedNodeVersion": "v24.19.0",
+    "requiresDshHost": false,
+    "requiresModelCalls": false,
+    "requiresCredentials": false,
+    "executed": true,
+    "commandFromProductRoot": "./node_modules/.bin/vitest run --root vendor/dsh-superagent tests/core-engine.spec.ts tests/stage.spec.ts",
+    "result": {
+      "executedAtLocalDate": "2026-11-02",
+      "executedBy": "parent agent /root in this implementation session",
+      "exitCode": 0,
+      "passedFiles": 2,
+      "passedTests": 144,
+      "reportedDurationMs": 243,
+      "meaning": "Original upstream behavior baseline only; not Shiyu integration acceptance"
+    }
+  },
+  "tests": [
+    {
+      "path": "tests/core-engine.spec.ts",
+      "status": "source-closure-complete-runner-required",
+      "directExternalImports": [
+        "vitest"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "tests/effects.spec.ts",
+      "status": "reference-only-incomplete-application-closure",
+      "directExternalImports": [
+        "node:fs",
+        "node:os",
+        "node:path",
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/effects.ts",
+        "src/app/store.ts",
+        "src/infra/health.ts",
+        "tests/fixtures/async.ts"
+      ]
+    },
+    {
+      "path": "tests/followups.spec.ts",
+      "status": "reference-only-incomplete-application-closure",
+      "directExternalImports": [
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/links.ts",
+        "src/executor/dsh.ts",
+        "tests/fixtures/host.ts"
+      ]
+    },
+    {
+      "path": "tests/outbox.spec.ts",
+      "status": "reference-only-incomplete-application-closure",
+      "directExternalImports": [
+        "vitest",
+        "zod"
+      ],
+      "missingRelativeImports": [
+        "src/infra/commands.ts",
+        "src/sources/kind.ts",
+        "tests/fixtures/host.ts"
+      ]
+    },
+    {
+      "path": "tests/policy.spec.ts",
+      "status": "reference-only-incomplete-application-closure",
+      "directExternalImports": [
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/migration.ts",
+        "src/policy.ts",
+        "src/sources/feishu.ts",
+        "src/sources/github.ts",
+        "src/sources/registry.ts"
+      ]
+    },
+    {
+      "path": "tests/runtime-concurrency.spec.ts",
+      "status": "reference-only-incomplete-application-closure",
+      "directExternalImports": [
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/effects.ts",
+        "src/app/notices.ts",
+        "src/executor/dsh.ts",
+        "src/infra/commands.ts",
+        "src/policy.ts",
+        "tests/fixtures/async.ts",
+        "tests/fixtures/host.ts"
+      ]
+    },
+    {
+      "path": "tests/stage.spec.ts",
+      "status": "source-closure-complete-runner-required",
+      "directExternalImports": [
+        "vitest"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "tests/store.spec.ts",
+      "status": "reference-only-incomplete-application-closure",
+      "directExternalImports": [
+        "node:fs",
+        "node:os",
+        "node:path",
+        "node:sqlite",
+        "node:url",
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/store.ts",
+        "src/app/views/records.ts",
+        "src/kv.ts",
+        "src/policy.ts"
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "src/core/assignments.ts",
+      "imports": [
+        "./errors.ts",
+        "./ids.ts",
+        "./model.ts",
+        "./part.ts",
+        "./replies.ts",
+        "./tickets.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/engine.ts",
+      "imports": [
+        "./assignments.ts",
+        "./errors.ts",
+        "./evals.ts",
+        "./intake.ts",
+        "./model.ts",
+        "./part.ts",
+        "./ports.ts",
+        "./replies.ts",
+        "./tickets.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/errors.ts",
+      "imports": [],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/evals.ts",
+      "imports": [
+        "./errors.ts",
+        "./ids.ts",
+        "./model.ts",
+        "./part.ts",
+        "./ports.ts",
+        "./reasons.ts",
+        "./tickets.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/ids.ts",
+      "imports": [
+        "node:crypto"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/index.ts",
+      "imports": [
+        "./engine.ts",
+        "./errors.ts",
+        "./ids.ts",
+        "./memory.ts",
+        "./model.ts",
+        "./ports.ts",
+        "./reasons.ts",
+        "./stage.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/intake.ts",
+      "imports": [
+        "./ids.ts",
+        "./model.ts",
+        "./part.ts",
+        "./tickets.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/memory.ts",
+      "imports": [
+        "./model.ts",
+        "./ports.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/model.ts",
+      "imports": [
+        "./reasons.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/part.ts",
+      "imports": [
+        "./errors.ts",
+        "./model.ts",
+        "./ports.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/ports.ts",
+      "imports": [
+        "./model.ts",
+        "./reasons.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/reasons.ts",
+      "imports": [],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/replies.ts",
+      "imports": [
+        "./errors.ts",
+        "./ids.ts",
+        "./model.ts",
+        "./part.ts",
+        "./ports.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/stage.ts",
+      "imports": [
+        "./model.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "src/core/tickets.ts",
+      "imports": [
+        "./errors.ts",
+        "./ids.ts",
+        "./model.ts",
+        "./part.ts",
+        "./ports.ts",
+        "./replies.ts",
+        "./stage.ts"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "tests/core-engine.spec.ts",
+      "imports": [
+        "../src/core/index.ts",
+        "vitest"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "tests/effects.spec.ts",
+      "imports": [
+        "../src/app/effects.ts",
+        "../src/app/store.ts",
+        "../src/infra/health.ts",
+        "./fixtures/async.ts",
+        "node:fs",
+        "node:os",
+        "node:path",
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/effects.ts",
+        "src/app/store.ts",
+        "src/infra/health.ts",
+        "tests/fixtures/async.ts"
+      ]
+    },
+    {
+      "path": "tests/followups.spec.ts",
+      "imports": [
+        "../src/app/links.ts",
+        "../src/executor/dsh.ts",
+        "./fixtures/host.ts",
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/links.ts",
+        "src/executor/dsh.ts",
+        "tests/fixtures/host.ts"
+      ]
+    },
+    {
+      "path": "tests/outbox.spec.ts",
+      "imports": [
+        "../src/core/index.ts",
+        "../src/infra/commands.ts",
+        "../src/sources/kind.ts",
+        "./fixtures/host.ts",
+        "vitest",
+        "zod"
+      ],
+      "missingRelativeImports": [
+        "src/infra/commands.ts",
+        "src/sources/kind.ts",
+        "tests/fixtures/host.ts"
+      ]
+    },
+    {
+      "path": "tests/policy.spec.ts",
+      "imports": [
+        "../src/app/migration.ts",
+        "../src/core/index.ts",
+        "../src/policy.ts",
+        "../src/sources/feishu.ts",
+        "../src/sources/github.ts",
+        "../src/sources/registry.ts",
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/migration.ts",
+        "src/policy.ts",
+        "src/sources/feishu.ts",
+        "src/sources/github.ts",
+        "src/sources/registry.ts"
+      ]
+    },
+    {
+      "path": "tests/runtime-concurrency.spec.ts",
+      "imports": [
+        "../src/app/effects.ts",
+        "../src/app/notices.ts",
+        "../src/core/index.ts",
+        "../src/executor/dsh.ts",
+        "../src/infra/commands.ts",
+        "../src/policy.ts",
+        "./fixtures/async.ts",
+        "./fixtures/host.ts",
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/effects.ts",
+        "src/app/notices.ts",
+        "src/executor/dsh.ts",
+        "src/infra/commands.ts",
+        "src/policy.ts",
+        "tests/fixtures/async.ts",
+        "tests/fixtures/host.ts"
+      ]
+    },
+    {
+      "path": "tests/stage.spec.ts",
+      "imports": [
+        "../src/core/index.ts",
+        "vitest"
+      ],
+      "missingRelativeImports": []
+    },
+    {
+      "path": "tests/store.spec.ts",
+      "imports": [
+        "../src/app/store.ts",
+        "../src/app/views/records.ts",
+        "../src/core/index.ts",
+        "../src/kv.ts",
+        "../src/policy.ts",
+        "node:fs",
+        "node:os",
+        "node:path",
+        "node:sqlite",
+        "node:url",
+        "vitest"
+      ],
+      "missingRelativeImports": [
+        "src/app/store.ts",
+        "src/app/views/records.ts",
+        "src/kv.ts",
+        "src/policy.ts"
+      ]
+    }
+  ]
+}
