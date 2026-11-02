@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "phase": "H0",
+  "capturedAt": "2026-11-02T18:09:06.952Z",
+  "purpose": "H0 takeover baseline: repository identity, environment, fixed SDK identity and offline test baseline before further implementation slices.",
+  "repository": {
+    "head": "d9d14a54fc103f902c5dcdb941162cabd4d1c694",
+    "branch": "codex/start-shiyu-implementation",
+    "remotes": [
+      "origin\thttps://github.com/MixGeekers/shiyu.git (fetch)",
+      "origin\thttps://github.com/MixGeekers/shiyu.git (push)"
+    ],
+    "worktreeStatusAtBaselineRun": "clean except a preserved untracked 3J draft saved outside the tree; native-context.ts restored to HEAD before the run"
+  },
+  "environment": {
+    "localNode": "v24.19.0",
+    "npm": "11.17.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "dshDesktopVersion": "0.2.1-rc.5",
+    "dshBundledRuntimeNode": "24.21.0",
+    "hostReportedSqlite": "3.53.4 (from live shiyu_status dependencies; wal, dedicated thread)",
+    "localSqliteCli": "3.51.0"
+  },
+  "fixedSdkStaticIdentity": {
+    "method": "read-only extraction from installed app.asar with scripts/read-dsh-asar.mjs; hashes cross-checked against the 3J handoff static report",
+    "packages": {
+      "dsh-session": {
+        "sha256": "2f5dd07cb5c744a29abbb8003a8a4cefd9e582c6e2538074ca299a0ddd02a3bf",
+        "bytes": 94982,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-session/lib/index.js"
+      },
+      "dsh-session-persistence": {
+        "sha256": "cc0b6d3a224133af611b428d5a49020e300f86c3b4ba28037aeb219029bde3eb",
+        "bytes": 12920,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-session-persistence/lib/index.js"
+      },
+      "dsh-session-persistence-jsonl": {
+        "sha256": "973dd78679b2661d6f492343bc22b124ae958aa597d3b36c698a2c650f909984",
+        "bytes": 147273,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js"
+      },
+      "dsh-session-projection": {
+        "sha256": "7dc2b212819baf4fc292751054d30b97afcbdee0a4733230abf92c6722e6550c",
+        "bytes": 19981,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-session-projection/lib/index.js"
+      },
+      "dsh-agent-loop": {
+        "sha256": "cf57e3ecd487ac5c2553455aaa5cef2c6fb41e6bd61be5aa455675d1d7193033",
+        "bytes": 74599,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js"
+      },
+      "dsh-agent": {
+        "sha256": "7b59cf82c2784c25bdce4e3e24e5e5303b02b9f1003efacf50255492d17baf8b",
+        "bytes": 28257,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-agent/lib/index.js"
+      },
+      "dsh-tools": {
+        "sha256": "1e53932e7c4213ea24a7d87f06960b7a7702cb21f8a5741c97242b4a470a442a",
+        "bytes": 162201,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-tools/lib/index.js"
+      },
+      "dsh-util-values": {
+        "sha256": "4322a2aacdfe38476d2bbc62338120beea1e1660346d7db5b6c1e1f927a26b7c",
+        "bytes": 29627,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-util-values/lib/index.js"
+      },
+      "dsh-llm": {
+        "sha256": "d18d8ae4c8d961e628708c1e4698e09716a0ebb80e55a672e0bde1029bec1155",
+        "bytes": 105272,
+        "path": "dsh/node_modules/@deepseek-ai/dsh-llm/lib/index.js"
+      }
+    }
+  },
+  "offlineBaseline": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax check)",
+    "exitCode": 0,
+    "tests": 1021,
+    "pass": 1021,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 108648.052,
+    "log": {
+      "path": "plugins/shiyu/.local/h0-baseline-check.log",
+      "bytes": 111998,
+      "sha256": "a95f4e0380c78fb683990df01aab667c857cb398e16880122e6c062fe91cb764"
+    },
+    "note": "Baseline ran on committed HEAD d9d14a5 with the unverified 3J draft removed from the tree (preserved in .local/3j-draft). Test count 1021 matches the 3I historical offline baseline."
+  },
+  "unverifiedDraftPreserved": {
+    "path": "plugins/shiyu/.local/3j-draft/native-context.draft.ts",
+    "bytes": 15263,
+    "sha256": "fb178ebc31e6358dd1cacd53852f2295b674cfb38cd6244e0604688c46995292",
+    "note": "SHA256 matches the handoff identity fb178ebc31e6358dd1cacd53852f2295b674cfb38cd6244e0604688c46995292"
+  },
+  "h0ChangeVerifiedInIsolatedWorktree": {
+    "worktreePath": "/tmp/shiyu-h0-verify (git worktree at d9d14a5 + H0 patch)",
+    "command": "npm run check",
+    "exitCode": 0,
+    "tests": 1025,
+    "pass": 1025,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+      "path": "(isolated worktree, not tracked) .local-h0-verify.log",
+      "bytes": 112379,
+      "sha256": "c8ce21bacd6a8d2cdf0f6b8cb12d40ee1e77b08d8fac7489dfe06b9a4d71fe47"
+    },
+    "note": "A Python/Ombre fixture dependency was linked into the isolated worktree so no test was skipped; the run had zero skips."
+  },
+  "h0Files": {
+    "src/runtime.ts": {
+      "bytes": 75115,
+      "sha256": "23d27d3092b9fe7940ba8140bf157e6fff44445ca203a71784d280528e7c5a24"
+    },
+    "src/control/lab.ts": {
+      "bytes": 32293,
+      "sha256": "124031ac2985f4f34cc07f9f77cb8bced41242908de343ef59bb79d9834e4a5b"
+    },
+    "tests/host-status.test.ts": {
+      "bytes": 10569,
+      "sha256": "aa90da6abc9ecc141bc1ecb0dc29d7687a00fed1780d46465bd4d27eea395939"
+    },
+    "scripts/read-dsh-asar.mjs": {
+      "bytes": 5515,
+      "sha256": "76b037d9b2fa4c63e7c0d7ae875288fa53ccada634abe24615bfe1ad9726848a"
+    },
+    "scripts/host-state-audit.mjs": {
+      "bytes": 10476,
+      "sha256": "562606af409e58dfc34c633c9e2a039fe43872965d95d8115ae306584fc33ad6"
+    }
+  },
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "liveDatabaseWrites": 0,
+    "hostReloadsInBaseline": 0,
+    "labOperations": 0
+  },
+  "limitations": [
+    "Offline module tests use synthetic drivers and temporary real SQLite; they are not fixed-host acceptance.",
+    "The isolated worktree build is the artifact installed for the H0 host check; it was built from d9d14a5 + the two H0 product fixes only.",
+    "Baseline test counts are not summed with later slices or with the fixed-host observations."
+  ]
+}

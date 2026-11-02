@@ -57,11 +57,12 @@ function control(input: LabOwnerControlInput, reconcile = false): void {
   check(input && Object.keys(input).sort().join(',') === (reconcile ? 'connectionId,expectedVersion,sendId' : 'connectionId,expectedVersion')
     && identity(input.connectionId) && Number.isSafeInteger(input.expectedVersion) && input.expectedVersion >= 1, 'LAB_INVALID_INPUT');
 }
-function publicConnection(detail: LabConnectionDetail, live: boolean, mayObserve: (channelId: string) => boolean = () => live): LabPublicConnection {
+export function publicConnection(detail: LabConnectionDetail, live: boolean, mayObserve: (channelId: string) => boolean = () => live): LabPublicConnection {
   return structuredClone({ connectionId: detail.connectionId, requestId: detail.requestId, runId: detail.runId, version: detail.version, epoch: detail.epoch,
     status: detail.status, expiresAt: detail.expiresAt, budget: detail.budget, balance: detail.balance, live,
     channels: detail.channels.map(({ channelId, kind, membersDigest, conversationId, inputVersion, cursor, latestInput, pendingInputs }) => ({ channelId, kind, membersDigest, conversationId, inputVersion, cursor, latestInput, pendingCount: pendingInputs.length })),
-    replies: detail.replies.map(({ replyId, channelId, anchorEventId, status, reasonCode, sendId, reservation }) => ({ replyId, channelId, anchorEventId, status, reasonCode, sendId,
+    replies: detail.replies.map(({ replyId, channelId, anchorEventId, status, reasonCode, sendId, reservation }) => ({ replyId, channelId, anchorEventId, status,
+      ...(reasonCode !== undefined ? { reasonCode } : {}), ...(sendId !== undefined ? { sendId } : {}),
       reservation: { state: reservation.state, amount: reservation.amount, observed: reservation.observed } })),
     sends: detail.sends.map(({ opId, channelId, replyId, draftOperationId, bodyHash, bodyBytes, observation, effect, canReconcile }) => ({ sendId: opId, channelId, replyId, draftOperationId, bodyHash, bodyBytes, observation, status: effect.status, canReconcile: mayObserve(channelId) && canReconcile })) });
 }

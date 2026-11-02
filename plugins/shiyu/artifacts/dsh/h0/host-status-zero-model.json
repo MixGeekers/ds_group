@@ -1,0 +1,645 @@
+{
+  "schemaVersion": 1,
+  "phase": "H0",
+  "capturedAt": "2026-11-02T18:09:19.894Z",
+  "status": "verified-with-scoped-evidence",
+  "purpose": "Verify that the H0 lossless-JSON fix makes shiyu_status a valid tool output on the fixed installed host, with one ordered zero-model plugin reload and no business side effects.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-h0-host-execution-plan.json",
+    "sha256": "ac8a59873bd8bdc85ff3374d8ef15860f65e4eeeb723655bc836f53602db7d70"
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "reload": "ordered plugin_manager set_plugin disable then enable (both applied)",
+    "newRuntimeInstanceId": "69650eab-4008-4778-bd6f-0b4fe9c6e688",
+    "toolObservedAt": "2026-11-02T18:07:32.246Z"
+  },
+  "change": {
+    "description": "RuntimeService.snapshot() omitted dependency checkedAt when no real timestamp existed; public Lab reply projection emitted explicit undefined reasonCode/sendId. Both were rejected by DSH lossless-JSON tool output validation.",
+    "files": [
+      "src/runtime.ts",
+      "src/control/lab.ts"
+    ],
+    "tests": [
+      "tests/host-status.test.ts"
+    ],
+    "verifiedBuild": "isolated worktree at d9d14a5 + H0 patch; npm run check 1025/1025 pass, 0 skip"
+  },
+  "before": {
+    "capturedAt": "2026-11-02T18:05:45.084Z",
+    "paused": false,
+    "installationGeneration": "f4778c18-a78b-4a78-a137-c7574ce27db4",
+    "bindings": 10,
+    "bindingsByStatus": {
+      "archived": 1,
+      "released": 9
+    },
+    "commitSeq": 285,
+    "watermarkBaseline": "95882c76-6134-4437-b360-5c3d41e2f618",
+    "publication": {
+      "stateVersion": 5,
+      "manifestHash": "fd3fc22e39717b1a9a476c608d3dd72835c22f19ec30ff21d10288b0150858bf",
+      "publishedAt": "2026-11-02T17:07:08.104Z",
+      "domains": {
+        "memory": {
+          "status": "available",
+          "reason": null
+        },
+        "relationship": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "emotion": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "cognition": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "personality": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "ability": {
+          "status": "available",
+          "reason": null
+        }
+      }
+    },
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "taskRuns": {
+      "reported": 2,
+      "unknown": 1
+    },
+    "coreGoals": {
+      "count": 2,
+      "cancelled": 1,
+      "paused": 2,
+      "nativePhases": {
+        "complete": 1,
+        "paused": 1
+      },
+      "evaluations": {
+        "count": 3,
+        "states": {
+          "committed": 2,
+          "unknown": 1
+        }
+      }
+    },
+    "lab": {
+      "connections": {
+        "disconnected": 3
+      },
+      "count": 3,
+      "replies": 8,
+      "sends": 7
+    },
+    "budgetReservations": {
+      "count": 24,
+      "states": {
+        "settled": 21,
+        "unknown": 3
+      }
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "deliveries": {
+      "acked": 34
+    },
+    "events": 35,
+    "capability": {
+      "schemaVersion": 1,
+      "revision": 6,
+      "safetyRevision": 6,
+      "capabilityId": "task.local-note.execute",
+      "enabled": true,
+      "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+      "bindingDigest": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f",
+      "observation": {
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "availability": "available",
+        "proof": null
+      }
+    },
+    "sessions": {
+      "count": 17,
+      "digest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    },
+    "dist": {
+      "files": 82,
+      "digest": "b902e395505059c6dde20936bdb3c71ce25120fded201aca1245ee43edbb357e"
+    }
+  },
+  "installed": {
+    "capturedAt": "2026-11-02T18:06:57.178Z",
+    "paused": false,
+    "installationGeneration": "f4778c18-a78b-4a78-a137-c7574ce27db4",
+    "bindings": 10,
+    "bindingsByStatus": {
+      "archived": 1,
+      "released": 9
+    },
+    "commitSeq": 285,
+    "watermarkBaseline": "95882c76-6134-4437-b360-5c3d41e2f618",
+    "publication": {
+      "stateVersion": 5,
+      "manifestHash": "fd3fc22e39717b1a9a476c608d3dd72835c22f19ec30ff21d10288b0150858bf",
+      "publishedAt": "2026-11-02T17:07:08.104Z",
+      "domains": {
+        "memory": {
+          "status": "available",
+          "reason": null
+        },
+        "relationship": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "emotion": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "cognition": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "personality": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "ability": {
+          "status": "available",
+          "reason": null
+        }
+      }
+    },
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "taskRuns": {
+      "reported": 2,
+      "unknown": 1
+    },
+    "coreGoals": {
+      "count": 2,
+      "cancelled": 1,
+      "paused": 2,
+      "nativePhases": {
+        "complete": 1,
+        "paused": 1
+      },
+      "evaluations": {
+        "count": 3,
+        "states": {
+          "committed": 2,
+          "unknown": 1
+        }
+      }
+    },
+    "lab": {
+      "connections": {
+        "disconnected": 3
+      },
+      "count": 3,
+      "replies": 8,
+      "sends": 7
+    },
+    "budgetReservations": {
+      "count": 24,
+      "states": {
+        "settled": 21,
+        "unknown": 3
+      }
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "deliveries": {
+      "acked": 34
+    },
+    "events": 35,
+    "capability": {
+      "schemaVersion": 1,
+      "revision": 6,
+      "safetyRevision": 6,
+      "capabilityId": "task.local-note.execute",
+      "enabled": true,
+      "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+      "bindingDigest": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f",
+      "observation": {
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "availability": "available",
+        "proof": null
+      }
+    },
+    "sessions": {
+      "count": 17,
+      "digest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    },
+    "dist": {
+      "files": 82,
+      "digest": "4ce980e6a5ad887ca283dcce67795260ba16ca8cf7161560a6a9a1f89b90ee14"
+    }
+  },
+  "after": {
+    "capturedAt": "2026-11-02T18:07:15.957Z",
+    "paused": false,
+    "installationGeneration": "f4778c18-a78b-4a78-a137-c7574ce27db4",
+    "bindings": 10,
+    "bindingsByStatus": {
+      "archived": 1,
+      "released": 9
+    },
+    "commitSeq": 291,
+    "watermarkBaseline": "95882c76-6134-4437-b360-5c3d41e2f618",
+    "publication": {
+      "stateVersion": 5,
+      "manifestHash": "fd3fc22e39717b1a9a476c608d3dd72835c22f19ec30ff21d10288b0150858bf",
+      "publishedAt": "2026-11-02T17:07:08.104Z",
+      "domains": {
+        "memory": {
+          "status": "available",
+          "reason": null
+        },
+        "relationship": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "emotion": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "cognition": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "personality": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "ability": {
+          "status": "available",
+          "reason": null
+        }
+      }
+    },
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "taskRuns": {
+      "reported": 2,
+      "unknown": 1
+    },
+    "coreGoals": {
+      "count": 2,
+      "cancelled": 1,
+      "paused": 2,
+      "nativePhases": {
+        "complete": 1,
+        "paused": 1
+      },
+      "evaluations": {
+        "count": 3,
+        "states": {
+          "committed": 2,
+          "unknown": 1
+        }
+      }
+    },
+    "lab": {
+      "connections": {
+        "disconnected": 3
+      },
+      "count": 3,
+      "replies": 8,
+      "sends": 7
+    },
+    "budgetReservations": {
+      "count": 24,
+      "states": {
+        "settled": 21,
+        "unknown": 3
+      }
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "deliveries": {
+      "acked": 35
+    },
+    "events": 36,
+    "capability": {
+      "schemaVersion": 1,
+      "revision": 8,
+      "safetyRevision": 8,
+      "capabilityId": "task.local-note.execute",
+      "enabled": true,
+      "hostEpoch": "69650eab-4008-4778-bd6f-0b4fe9c6e688",
+      "bindingDigest": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f",
+      "observation": {
+        "hostEpoch": "69650eab-4008-4778-bd6f-0b4fe9c6e688",
+        "availability": "available",
+        "proof": null
+      }
+    },
+    "sessions": {
+      "count": 17,
+      "digest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    },
+    "dist": {
+      "files": 82,
+      "digest": "4ce980e6a5ad887ca283dcce67795260ba16ca8cf7161560a6a9a1f89b90ee14"
+    }
+  },
+  "afterToolCall": {
+    "capturedAt": "2026-11-02T18:07:41.611Z",
+    "paused": false,
+    "installationGeneration": "f4778c18-a78b-4a78-a137-c7574ce27db4",
+    "bindings": 10,
+    "bindingsByStatus": {
+      "archived": 1,
+      "released": 9
+    },
+    "commitSeq": 291,
+    "watermarkBaseline": "95882c76-6134-4437-b360-5c3d41e2f618",
+    "publication": {
+      "stateVersion": 5,
+      "manifestHash": "fd3fc22e39717b1a9a476c608d3dd72835c22f19ec30ff21d10288b0150858bf",
+      "publishedAt": "2026-11-02T17:07:08.104Z",
+      "domains": {
+        "memory": {
+          "status": "available",
+          "reason": null
+        },
+        "relationship": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "emotion": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "cognition": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "personality": {
+          "status": "unavailable",
+          "reason": "not_connected"
+        },
+        "ability": {
+          "status": "available",
+          "reason": null
+        }
+      }
+    },
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "taskRuns": {
+      "reported": 2,
+      "unknown": 1
+    },
+    "coreGoals": {
+      "count": 2,
+      "cancelled": 1,
+      "paused": 2,
+      "nativePhases": {
+        "complete": 1,
+        "paused": 1
+      },
+      "evaluations": {
+        "count": 3,
+        "states": {
+          "committed": 2,
+          "unknown": 1
+        }
+      }
+    },
+    "lab": {
+      "connections": {
+        "disconnected": 3
+      },
+      "count": 3,
+      "replies": 8,
+      "sends": 7
+    },
+    "budgetReservations": {
+      "count": 24,
+      "states": {
+        "settled": 21,
+        "unknown": 3
+      }
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "deliveries": {
+      "acked": 35
+    },
+    "events": 36,
+    "capability": {
+      "schemaVersion": 1,
+      "revision": 8,
+      "safetyRevision": 8,
+      "capabilityId": "task.local-note.execute",
+      "enabled": true,
+      "hostEpoch": "69650eab-4008-4778-bd6f-0b4fe9c6e688",
+      "bindingDigest": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f",
+      "observation": {
+        "hostEpoch": "69650eab-4008-4778-bd6f-0b4fe9c6e688",
+        "availability": "available",
+        "proof": null
+      }
+    },
+    "sessions": {
+      "count": 17,
+      "digest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    },
+    "dist": {
+      "files": 82,
+      "digest": "4ce980e6a5ad887ca283dcce67795260ba16ca8cf7161560a6a9a1f89b90ee14"
+    }
+  },
+  "deltas": {
+    "commitSeq": [
+      285,
+      291
+    ],
+    "stateVersion": [
+      5,
+      5
+    ],
+    "publicationManifest": [
+      "fd3fc22e39717b1a9a476c608d3dd72835c22f19ec30ff21d10288b0150858bf",
+      "fd3fc22e39717b1a9a476c608d3dd72835c22f19ec30ff21d10288b0150858bf"
+    ],
+    "tasks": [
+      {
+        "succeeded": 2,
+        "unknown": 1
+      },
+      {
+        "succeeded": 2,
+        "unknown": 1
+      }
+    ],
+    "taskRuns": [
+      {
+        "reported": 2,
+        "unknown": 1
+      },
+      {
+        "reported": 2,
+        "unknown": 1
+      }
+    ],
+    "coreGoals": [
+      {
+        "count": 2,
+        "cancelled": 1,
+        "paused": 2,
+        "nativePhases": {
+          "complete": 1,
+          "paused": 1
+        },
+        "evaluations": {
+          "count": 3,
+          "states": {
+            "committed": 2,
+            "unknown": 1
+          }
+        }
+      },
+      {
+        "count": 2,
+        "cancelled": 1,
+        "paused": 2,
+        "nativePhases": {
+          "complete": 1,
+          "paused": 1
+        },
+        "evaluations": {
+          "count": 3,
+          "states": {
+            "committed": 2,
+            "unknown": 1
+          }
+        }
+      }
+    ],
+    "lab": [
+      {
+        "connections": {
+          "disconnected": 3
+        },
+        "count": 3,
+        "replies": 8,
+        "sends": 7
+      },
+      {
+        "connections": {
+          "disconnected": 3
+        },
+        "count": 3,
+        "replies": 8,
+        "sends": 7
+      }
+    ],
+    "budget": [
+      {
+        "count": 24,
+        "states": {
+          "settled": 21,
+          "unknown": 3
+        }
+      },
+      {
+        "count": 24,
+        "states": {
+          "settled": 21,
+          "unknown": 3
+        }
+      }
+    ],
+    "effects": [
+      {
+        "succeeded": 13
+      },
+      {
+        "succeeded": 13
+      }
+    ],
+    "deliveries": [
+      {
+        "acked": 34
+      },
+      {
+        "acked": 35
+      }
+    ],
+    "events": [
+      35,
+      36
+    ],
+    "capabilityRevision": [
+      6,
+      8
+    ],
+    "capabilityHostEpoch": [
+      "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+      "69650eab-4008-4778-bd6f-0b4fe9c6e688"
+    ],
+    "sessionsDigest": [
+      "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979",
+      "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    ],
+    "distDigest": [
+      "b902e395505059c6dde20936bdb3c71ce25120fded201aca1245ee43edbb357e",
+      "4ce980e6a5ad887ca283dcce67795260ba16ca8cf7161560a6a9a1f89b90ee14"
+    ],
+    "classification": {
+      "commitSeq": "+6 startup lifecycle writes from the ordered reload (runtime.lifecycle.changed event and delivery); expected host initialization, not business work.",
+      "events": "+1 runtime.lifecycle.changed event, +1 ack delivery of that event; no task/goal/lab/model event.",
+      "capabilityRevision": "6→8 and hostEpoch rebind: RuntimeService init re-observed the fixed local-note dependency for the new host instance (able.observeLocalNote); enabled stays true, binding digest unchanged, availability available, success proof still unknown.",
+      "deliveryCounts": "no new external effect or lab delivery; only the runtime activity subscription delivery.",
+      "toolCallSideEffects": "none: before-tool and after-tool audits are identical on commitSeq, events, deliveries, capability revision, tasks, sessions digest and runtime-state file hash."
+    }
+  },
+  "evidence": {
+    "toolObservation": "artifacts/dsh/h0/host-status-tool-observation.json",
+    "audits": {
+      "before": "artifacts/dsh/h0/host-audit-before.json",
+      "installed": "artifacts/dsh/h0/host-audit-installed.json",
+      "after": "artifacts/dsh/h0/host-audit-after.json",
+      "afterToolCall": "artifacts/dsh/h0/host-audit-after-tool.json"
+    }
+  },
+  "scope": {
+    "orderedReloads": 1,
+    "toolCalls": 1,
+    "modelCalls": 0,
+    "embeddingCalls": 0,
+    "taskCreates": 0,
+    "goalOperations": 0,
+    "sessionProbes": 0,
+    "labInputs": 0,
+    "labConnects": 0,
+    "labPluginReloads": 0,
+    "workbenchPluginReloads": 0
+  },
+  "limitations": [
+    "This verifies the status tool output contract and read-only nature; it is not V24 lifecycle acceptance, generation, compression or long-history evidence.",
+    "The installed dist is the H0 build (from an isolated verified worktree), not the in-progress H1 source tree. A later verified build must replace it before claiming H1 host evidence.",
+    "lifecycle=degraded in the returned snapshot reflects retained historical unknown/paused business facts (A-round unknown budget, unresolved core evaluation), not a new failure; no new unknown was created in this check."
+  ]
+}
