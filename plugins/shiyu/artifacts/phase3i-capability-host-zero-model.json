@@ -1,0 +1,1245 @@
+{
+  "schemaVersion": 1,
+  "slice": "3I-fixed-local-note-capability-host-zero-model",
+  "recordedAt": "2026-11-02T17:15:02.939923+00:00",
+  "sourceCommit": "2402ca8de783599716f1319b509e73b532ce2fed",
+  "status": "bounded-host-lifecycle-metadata-verified",
+  "evidenceLevel": "fixed-real-host-checkpoints-reviewed-offline-without-native-decode",
+  "scope": {
+    "capabilityId": "task.local-note.execute",
+    "verificationPolicy": "informational",
+    "newCapabilityExecutionTested": false,
+    "orderedShiyuReloads": 2,
+    "ownerDisableCommands": 1,
+    "ownerEnableCommands": 1,
+    "globalPauseAndRestore": true,
+    "newTasks": 0,
+    "newCoreGoals": 0,
+    "newCoreEvaluations": 0,
+    "sessionProbes": 0,
+    "newLabInputsOrConnections": 0,
+    "labOrWorkbenchReloads": 0,
+    "nativeDecodes": 0,
+    "completeV09": false,
+    "completeNineSystems": false
+  },
+  "sourceAndBuild": {
+    "offlineEvidence": {
+      "path": "artifacts/phase3i-capability-offline.json",
+      "bytes": 21477,
+      "sha256": "e5e2c3fb39b479f6780d8bd1d476e641cf144fcb08b5bd2812b1fcd3e2b93a60"
+    },
+    "sourceAndTestFilesMatched": 45,
+    "compiledFilesMatched": 17,
+    "allMatchFrozenOfflineFingerprints": true,
+    "hostObservedDefinitionDigest": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f",
+    "matchesCompiledOfflineDefinitionDigest": true,
+    "staticPreflightProductFilesMatched": 6
+  },
+  "chronology": {
+    "preflightAt": "2026-11-02T16:57:33.752Z",
+    "baselineAt": "2026-11-02T17:02:50.630115+00:00",
+    "planFrozenAt": "2026-11-02T17:03:47.274888+00:00",
+    "firstMutationObservedAt": "2026-11-02T17:04:15.513Z",
+    "note": "Read-only baseline preceded the frozen plan; the plan pins its exact hash. Every observed mutation followed plan freeze. This is not a claim that plan freeze preceded baseline collection.",
+    "finalFullSnapshotAt": "2026-11-02T17:09:22.726442+00:00",
+    "lastSupplementAt": "2026-11-02T17:10:25.579484+00:00",
+    "checkpoints": [
+      {
+        "checkpoint": "baseline",
+        "checkedAt": "2026-11-02T17:02:50.630115+00:00",
+        "globalPaused": false,
+        "taskDispatchPaused": false,
+        "commitSeq": 258,
+        "stateVersion": 2,
+        "manifestSchema": 2,
+        "memoryReadAvailability": "available",
+        "capabilityPresent": false
+      },
+      {
+        "checkpoint": "paused",
+        "checkedAt": "2026-11-02T17:04:20.499291+00:00",
+        "globalPaused": true,
+        "taskDispatchPaused": true,
+        "commitSeq": 262,
+        "stateVersion": 2,
+        "manifestSchema": 2,
+        "memoryReadAvailability": "available",
+        "capabilityPresent": false
+      },
+      {
+        "checkpoint": "reload1",
+        "checkedAt": "2026-11-02T17:05:10.048203+00:00",
+        "globalPaused": true,
+        "taskDispatchPaused": true,
+        "commitSeq": 271,
+        "stateVersion": 4,
+        "manifestSchema": 3,
+        "memoryReadAvailability": "unavailable",
+        "capabilityPresent": true,
+        "enabled": true,
+        "revision": 2,
+        "safetyRevision": 2,
+        "hostEpoch": "aad911b1-dafd-4c43-9044-2f0ccc453179",
+        "availability": "available",
+        "verification": "unknown",
+        "evidenceRefs": [],
+        "capabilityCommandCount": 1
+      },
+      {
+        "checkpoint": "disabled",
+        "checkedAt": "2026-11-02T17:05:46.936012+00:00",
+        "globalPaused": true,
+        "taskDispatchPaused": true,
+        "commitSeq": 272,
+        "stateVersion": 4,
+        "manifestSchema": 3,
+        "memoryReadAvailability": "unavailable",
+        "capabilityPresent": true,
+        "enabled": false,
+        "revision": 3,
+        "safetyRevision": 3,
+        "hostEpoch": "aad911b1-dafd-4c43-9044-2f0ccc453179",
+        "availability": "available",
+        "verification": "unknown",
+        "evidenceRefs": [],
+        "capabilityCommandCount": 2
+      },
+      {
+        "checkpoint": "reload2",
+        "checkedAt": "2026-11-02T17:06:15.856853+00:00",
+        "globalPaused": true,
+        "taskDispatchPaused": true,
+        "commitSeq": 279,
+        "stateVersion": 4,
+        "manifestSchema": 3,
+        "memoryReadAvailability": "unavailable",
+        "capabilityPresent": true,
+        "enabled": false,
+        "revision": 5,
+        "safetyRevision": 5,
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "availability": "available",
+        "verification": "unknown",
+        "evidenceRefs": [],
+        "capabilityCommandCount": 3
+      },
+      {
+        "checkpoint": "enabled-paused",
+        "checkedAt": "2026-11-02T17:06:43.291035+00:00",
+        "globalPaused": true,
+        "taskDispatchPaused": true,
+        "commitSeq": 280,
+        "stateVersion": 4,
+        "manifestSchema": 3,
+        "memoryReadAvailability": "unavailable",
+        "capabilityPresent": true,
+        "enabled": true,
+        "revision": 6,
+        "safetyRevision": 6,
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "availability": "available",
+        "verification": "unknown",
+        "evidenceRefs": [],
+        "capabilityCommandCount": 4
+      },
+      {
+        "checkpoint": "refresh",
+        "checkedAt": "2026-11-02T17:06:58.881850+00:00",
+        "globalPaused": true,
+        "taskDispatchPaused": true,
+        "commitSeq": 280,
+        "stateVersion": 4,
+        "manifestSchema": 3,
+        "memoryReadAvailability": "unavailable",
+        "capabilityPresent": true,
+        "enabled": true,
+        "revision": 6,
+        "safetyRevision": 6,
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "availability": "available",
+        "verification": "unknown",
+        "evidenceRefs": [],
+        "capabilityCommandCount": 4
+      },
+      {
+        "checkpoint": "restored",
+        "checkedAt": "2026-11-02T17:07:27.881229+00:00",
+        "globalPaused": false,
+        "taskDispatchPaused": false,
+        "commitSeq": 285,
+        "stateVersion": 5,
+        "manifestSchema": 3,
+        "memoryReadAvailability": "available",
+        "capabilityPresent": true,
+        "enabled": true,
+        "revision": 6,
+        "safetyRevision": 6,
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "availability": "available",
+        "verification": "unknown",
+        "evidenceRefs": [],
+        "capabilityCommandCount": 4
+      },
+      {
+        "checkpoint": "final",
+        "checkedAt": "2026-11-02T17:09:22.726442+00:00",
+        "globalPaused": false,
+        "taskDispatchPaused": false,
+        "commitSeq": 285,
+        "stateVersion": 5,
+        "manifestSchema": 3,
+        "memoryReadAvailability": "available",
+        "capabilityPresent": true,
+        "enabled": true,
+        "revision": 6,
+        "safetyRevision": 6,
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "availability": "available",
+        "verification": "unknown",
+        "evidenceRefs": [],
+        "capabilityCommandCount": 4
+      }
+    ],
+    "lifecycleEvents": [
+      {
+        "sequence": 32,
+        "eventId": "028b704c-7ca2-49da-9c1a-6269f509f8ca",
+        "type": "runtime.lifecycle.changed",
+        "receivedAt": "2026-11-02T17:04:15.513Z",
+        "hostEpoch": "cfb7faaf-6015-49ed-9a0b-ca0fca69fab7",
+        "status": "paused",
+        "observedTransition": "global-pause"
+      },
+      {
+        "sequence": 33,
+        "eventId": "1a7ab848-9a9b-4450-b764-3072be5f67ee",
+        "type": "runtime.lifecycle.changed",
+        "receivedAt": "2026-11-02T17:04:51.466Z",
+        "hostEpoch": "aad911b1-dafd-4c43-9044-2f0ccc453179",
+        "status": "paused",
+        "observedTransition": "first-ordered-reload-ready-paused"
+      },
+      {
+        "sequence": 34,
+        "eventId": "e7c61efa-089c-43ee-b1b6-5547b5111416",
+        "type": "runtime.lifecycle.changed",
+        "receivedAt": "2026-11-02T17:06:11.052Z",
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "status": "paused",
+        "observedTransition": "second-ordered-reload-ready-paused"
+      },
+      {
+        "sequence": 35,
+        "eventId": "d1b2a69f-1049-428a-8a05-7887943f63d5",
+        "type": "runtime.lifecycle.changed",
+        "receivedAt": "2026-11-02T17:07:08.108Z",
+        "hostEpoch": "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e",
+        "status": "ready",
+        "observedTransition": "restore-global-unpaused"
+      }
+    ]
+  },
+  "capabilityOracle": {
+    "passed": true,
+    "authorityId": "ability:5b4ec125-4de4-4a97-a2db-266b57b28770",
+    "binding": {
+      "definitionDigest": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f",
+      "installationGeneration": "f4778c18-a78b-4a78-a137-c7574ce27db4",
+      "environmentFingerprint": "5d91aad832f202865416461e38f2fe4882786b422c65c426d3ca496c7238062e"
+    },
+    "stableAcrossBothReloads": true,
+    "observedHostEpochs": [
+      "aad911b1-dafd-4c43-9044-2f0ccc453179",
+      "7339ceb3-8c21-4ad5-9fc1-6b680c710f3e"
+    ],
+    "enabledSequence": [
+      true,
+      false,
+      false,
+      true
+    ],
+    "sequenceCheckpoints": [
+      "reload1",
+      "disabled",
+      "reload2",
+      "enabled-paused"
+    ],
+    "disableSurvivesOrderedReload": true,
+    "finalRevision": 6,
+    "finalSafetyRevision": 6,
+    "dependencyObservation": "available",
+    "dependencyObservationReason": "LOCAL_NOTE_PREREQUISITES_READY",
+    "dependencyObservationMeaning": "The trusted startup preflight loaded the official message factory and inspected configured dependencies/artifact root without creating a Session or invoking inference; it is not model-provider health or tool-execution proof.",
+    "verification": "unknown",
+    "evidenceRefs": [],
+    "lastSuccessPresent": false,
+    "historicalTaskAdmissions": [
+      {
+        "taskId": "59d5273427236380e39601be13d99809",
+        "hasCapabilityRef": false,
+        "rawRecordSha256": "473952c0fe3d30c72c31694a1f435421473ef2f4e78b9d04673a0bc3d6dd21c9"
+      },
+      {
+        "taskId": "0908b666529d90685193fb27c6913040",
+        "hasCapabilityRef": false,
+        "rawRecordSha256": "b2cf844693f0d36dac133779dbea4478786698069ae3d400a65916c61ce511ff"
+      },
+      {
+        "taskId": "dad25b231a0b55933302d59f724c77d4",
+        "hasCapabilityRef": false,
+        "rawRecordSha256": "2ba240b182eb89b4a5ad3097c14de290c48069d1b86e6e496f03ea0a6fe43b63"
+      }
+    ],
+    "historicalTaskCapabilityRefsRetrofitted": false,
+    "historicalAdmissionEvidence": "Final white-listed local_inputs inspection finds no capabilityRef in all three admissions; the complete local_inputs table hash is identical across all checkpoints. Absence is not inferred from task_record."
+  },
+  "publicationAndRefresh": {
+    "passed": true,
+    "manifestSchema": 3,
+    "finalStateVersion": 5,
+    "finalCommitSeq": 285,
+    "ability": {
+      "status": "available",
+      "backendId": "control-ability",
+      "authorityId": "ability:5b4ec125-4de4-4a97-a2db-266b57b28770",
+      "capabilities": [
+        "state_read"
+      ]
+    },
+    "otherFourDomains": "unavailable",
+    "memoryCapabilitiesRestored": [
+      "exact_read",
+      "semantic_search"
+    ],
+    "refresh": {
+      "fromCheckpoint": "enabled-paused",
+      "toCheckpoint": "refresh",
+      "commitSeqBefore": 280,
+      "commitSeqAfter": 280,
+      "stateVersionBefore": 4,
+      "stateVersionAfter": 4,
+      "capabilityStateUnchanged": true,
+      "allSelectedBusinessTablesUnchanged": true
+    },
+    "restore": {
+      "globalPaused": false,
+      "taskDispatchPaused": false,
+      "enabled": true,
+      "memoryReadAvailability": "available",
+      "restoredToFinalMetadataUnchanged": true,
+      "stateVersionChangeExplanation": "Resume republished actual memory read availability; ability identity/read descriptor remained unchanged. Refresh invariance is the paused 280/state4 interval, not the later resume write."
+    }
+  },
+  "nativeMetadata": {
+    "passed": true,
+    "exactOwnedFiles": 17,
+    "bytesSha256MtimeUnchangedAcrossAllCheckpoints": true,
+    "allAlsoMatchSnapshotHistorical3HCBaseline": true,
+    "files": [
+      {
+        "sessionId": "shiyu-replyer-28e27e7c-641d-463e-897b-de7e482918b0",
+        "bytes": 380,
+        "sha256": "3f6fed22d3e86b2252f17054223dbc3b4375742303d88978f9be508488174989",
+        "mtimeNs": "1793597379605709856"
+      },
+      {
+        "sessionId": "shiyu-replyer-8226ec6f-a103-4a9c-a122-4978d97628b2",
+        "bytes": 379,
+        "sha256": "b20de3e480d609397a9d08d1d69001dfffa6dfd196004a6a5b1e0808d2cc2d41",
+        "mtimeNs": "1793597232894813601"
+      },
+      {
+        "sessionId": "shiyu-replyer-c6aff1f7-8bcb-4c10-a576-1be1f4317a78",
+        "bytes": 8692,
+        "sha256": "8f1859af6623acde0757152333af3d2b5381cf1de736eac1c495f61362b9361c",
+        "mtimeNs": "1793615350498148916"
+      },
+      {
+        "sessionId": "shiyu-replyer-d47cba2a-a154-489f-ac03-8108be78e7e6",
+        "bytes": 5406,
+        "sha256": "3de11357c83728afd1103f8b3552797cd851e1f5cf592f879adcda1872c2c6e7",
+        "mtimeNs": "1793597945650893633"
+      },
+      {
+        "sessionId": "shiyu-worker-b4de5f1e1b0e3c83bd1495e94c9e3e3108ab45122a9e70a0954edaa4f6adb194-b346e136-a62c-4c50-ad6b-c59fe699ecec",
+        "bytes": 7077,
+        "sha256": "39a2d3fea463d848aa52650901d4610813f8e0e9abcfcc27ad7f146db465fdab",
+        "mtimeNs": "1793599440114367914"
+      },
+      {
+        "sessionId": "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+        "bytes": 2276,
+        "sha256": "6c8e01f894f1751c2ed10944c569402779ffd170164d0b56c9204aea227d1af4",
+        "mtimeNs": "1793601662514540869"
+      },
+      {
+        "sessionId": "shiyu-worker-33f1df8ae6b2484de1d4e1ec3b5972d6a20aed39144c71a1c4220016df6ecc77-a915021b-6f14-4417-837b-9ad1847e88ad",
+        "bytes": 6235,
+        "sha256": "fd7c54e4aad65b960b4a561238f8d3b2eadc5091330d589c74e4a1e62edd3e1d",
+        "mtimeNs": "1793600298829149635"
+      },
+      {
+        "sessionId": "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a",
+        "bytes": 1312,
+        "sha256": "0303791a911bf7b1be82763801ce13946d5e264be73fc8f3635fd8af3e45d1ed",
+        "mtimeNs": "1793615491893779251"
+      },
+      {
+        "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a",
+        "bytes": 2829,
+        "sha256": "09dcdc1b0cf6762df2066811a8998b9bacc2ebe885ef6afdaa21f254e26b5d3b",
+        "mtimeNs": "1793620888978266000"
+      },
+      {
+        "sessionId": "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac",
+        "bytes": 10165,
+        "sha256": "c7ced082381a33833c18b3dbf374ff6a7e9c09cc9c8ccc959c7bda82f2ab30c4",
+        "mtimeNs": "1793623476774216828"
+      },
+      {
+        "sessionId": "shiyu-worker-366048f9e6a8cc591f92d06b2151611c53adc7d001e93cd3b93a4889f5550906-d79d0cd4-8a42-4a8e-9bcd-2d8712089e12",
+        "bytes": 6679,
+        "sha256": "b72219fcccd31bf9ca9bea7bb6aec9de9e83ef48a5adcf7aa71ff12280b7c009",
+        "mtimeNs": "1793623473974101121"
+      },
+      {
+        "sessionId": "shiyu-replyer-3cc667f1-c2b7-4c37-a0c2-adb8df6ef72c",
+        "bytes": 4178,
+        "sha256": "5633dec0142c672b8fce8d652252c50400049893b845d8f0a724f978bd9062ba",
+        "mtimeNs": "1793630269260610805"
+      },
+      {
+        "sessionId": "shiyu-replyer-7ad8c4d1-2433-4a0c-884c-39f638df7f8a",
+        "bytes": 3733,
+        "sha256": "9bcad5f4e2c4fbfb5acab880c1e02d0b6a8b306b8d843104277918786e0ed78b",
+        "mtimeNs": "1793630212531228406"
+      },
+      {
+        "sessionId": "shiyu-replyer-846ed16e-c889-4214-adf3-87cd18e5f846",
+        "bytes": 7254,
+        "sha256": "66f04565f958904e5753d7ed410a4be63a7cc9233ea8b075863a1a2cae802626",
+        "mtimeNs": "1793633096957326789"
+      },
+      {
+        "sessionId": "shiyu-replyer-898515fa-df3c-4c34-ab07-bc8609e87d15",
+        "bytes": 5114,
+        "sha256": "789664735eda7314e9400db20fec226c165af6a14bb35173a675abed7b344c80",
+        "mtimeNs": "1793633036565181713"
+      },
+      {
+        "sessionId": "shiyu-replyer-02ff25ed-c2b2-4927-8642-bee2f3230f05",
+        "bytes": 7149,
+        "sha256": "9e09d8428e571702de752a6435dcc9cb771729b45e0168f45ff7e0407d976345",
+        "mtimeNs": "1793634943622637352"
+      },
+      {
+        "sessionId": "shiyu-replyer-3aeefd95-4529-439d-bae2-00fc47cf3ffc",
+        "bytes": 3923,
+        "sha256": "f449da18f81c6f12d47235f563e4e1b076dd4b549f1384f4a06b3e587db546eb",
+        "mtimeNs": "1793634900061115855"
+      }
+    ],
+    "initialDirectoryInventory": {
+      "authorizedParentRootsEnumerated": 1,
+      "directoryCount": 11,
+      "unchangedAcrossAllCheckpoints": true,
+      "unexpectedDirectories": []
+    },
+    "supplementaryFinalDirectoryInventory": {
+      "checkedAt": "2026-11-02T17:09:03.368946+00:00",
+      "authorizedParentRootsEnumerated": 6,
+      "expectedDirectories": 17,
+      "observedDirectories": 17,
+      "unexpectedDirectories": [],
+      "missingDirectories": [],
+      "groups": [
+        {
+          "rootOrdinal": 1,
+          "expectedIds": [
+            "shiyu-replyer-02ff25ed-c2b2-4927-8642-bee2f3230f05",
+            "shiyu-replyer-28e27e7c-641d-463e-897b-de7e482918b0",
+            "shiyu-replyer-3aeefd95-4529-439d-bae2-00fc47cf3ffc",
+            "shiyu-replyer-3cc667f1-c2b7-4c37-a0c2-adb8df6ef72c",
+            "shiyu-replyer-7ad8c4d1-2433-4a0c-884c-39f638df7f8a",
+            "shiyu-replyer-8226ec6f-a103-4a9c-a122-4978d97628b2",
+            "shiyu-replyer-846ed16e-c889-4214-adf3-87cd18e5f846",
+            "shiyu-replyer-898515fa-df3c-4c34-ab07-bc8609e87d15",
+            "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a",
+            "shiyu-replyer-c6aff1f7-8bcb-4c10-a576-1be1f4317a78",
+            "shiyu-replyer-d47cba2a-a154-489f-ac03-8108be78e7e6"
+          ],
+          "directoryIds": [
+            "shiyu-replyer-02ff25ed-c2b2-4927-8642-bee2f3230f05",
+            "shiyu-replyer-28e27e7c-641d-463e-897b-de7e482918b0",
+            "shiyu-replyer-3aeefd95-4529-439d-bae2-00fc47cf3ffc",
+            "shiyu-replyer-3cc667f1-c2b7-4c37-a0c2-adb8df6ef72c",
+            "shiyu-replyer-7ad8c4d1-2433-4a0c-884c-39f638df7f8a",
+            "shiyu-replyer-8226ec6f-a103-4a9c-a122-4978d97628b2",
+            "shiyu-replyer-846ed16e-c889-4214-adf3-87cd18e5f846",
+            "shiyu-replyer-898515fa-df3c-4c34-ab07-bc8609e87d15",
+            "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a",
+            "shiyu-replyer-c6aff1f7-8bcb-4c10-a576-1be1f4317a78",
+            "shiyu-replyer-d47cba2a-a154-489f-ac03-8108be78e7e6"
+          ]
+        },
+        {
+          "rootOrdinal": 2,
+          "expectedIds": [
+            "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+            "shiyu-worker-33f1df8ae6b2484de1d4e1ec3b5972d6a20aed39144c71a1c4220016df6ecc77-a915021b-6f14-4417-837b-9ad1847e88ad"
+          ],
+          "directoryIds": [
+            "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+            "shiyu-worker-33f1df8ae6b2484de1d4e1ec3b5972d6a20aed39144c71a1c4220016df6ecc77-a915021b-6f14-4417-837b-9ad1847e88ad"
+          ]
+        },
+        {
+          "rootOrdinal": 3,
+          "expectedIds": [
+            "shiyu-worker-b4de5f1e1b0e3c83bd1495e94c9e3e3108ab45122a9e70a0954edaa4f6adb194-b346e136-a62c-4c50-ad6b-c59fe699ecec"
+          ],
+          "directoryIds": [
+            "shiyu-worker-b4de5f1e1b0e3c83bd1495e94c9e3e3108ab45122a9e70a0954edaa4f6adb194-b346e136-a62c-4c50-ad6b-c59fe699ecec"
+          ]
+        },
+        {
+          "rootOrdinal": 4,
+          "expectedIds": [
+            "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a"
+          ],
+          "directoryIds": [
+            "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a"
+          ]
+        },
+        {
+          "rootOrdinal": 5,
+          "expectedIds": [
+            "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac"
+          ],
+          "directoryIds": [
+            "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac"
+          ]
+        },
+        {
+          "rootOrdinal": 6,
+          "expectedIds": [
+            "shiyu-worker-366048f9e6a8cc591f92d06b2151611c53adc7d001e93cd3b93a4889f5550906-d79d0cd4-8a42-4a8e-9bcd-2d8712089e12"
+          ],
+          "directoryIds": [
+            "shiyu-worker-366048f9e6a8cc591f92d06b2151611c53adc7d001e93cd3b93a4889f5550906-d79d0cd4-8a42-4a8e-9bcd-2d8712089e12"
+          ]
+        }
+      ]
+    },
+    "coverageLimit": "All 17 fixed files were hashed at every checkpoint. Only one parent directory was enumerated initially; all six authorized parents were enumerated at the end. The final six-root inventory is not a retroactive baseline or host-global Session inventory."
+  },
+  "businessMetadata": {
+    "passed": true,
+    "taskCount": 3,
+    "taskStatesFinal": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "coreGoalCount": 2,
+    "coreEvaluationCount": 3,
+    "coreEvaluationStatusesFinal": {
+      "unknown": 1,
+      "committed": 2
+    },
+    "unconsumedCoreFacts": 0,
+    "reservationCount": 24,
+    "reservationStatesFinal": {
+      "unknown": 3,
+      "settled": 21
+    },
+    "allReservationRecordsUnchanged": true,
+    "effectCount": 13,
+    "effectStatesFinal": {
+      "succeeded": 13
+    },
+    "effectRowsAttemptsAndReceiptsUnchanged": true,
+    "tableDigests": [
+      {
+        "table": "shiyu_task_ticket",
+        "baseline": {
+          "count": 3,
+          "sha256": "6f32d01cc5c8bdfe9e8c5d22b1b748badfc7d8a66e7919a95d7f1254c5906ee3"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "6f32d01cc5c8bdfe9e8c5d22b1b748badfc7d8a66e7919a95d7f1254c5906ee3"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_task_record",
+        "baseline": {
+          "count": 3,
+          "sha256": "f38aa6cbce784912ebbc2d34d4324f45c82947a476fdc6e3cfdf89f74a3ea69b"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "8bb906f572fd1959aa3cf27f905763ace18c4584d2b77778f1372a39b19a6bab"
+        },
+        "unchangedAcrossAllCheckpoints": false
+      },
+      {
+        "table": "shiyu_task_runs",
+        "baseline": {
+          "count": 3,
+          "sha256": "e1dc541580500993bcd0604675f3feb7f1c01c01e221f967efbacdb12a4b23a7"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "e1dc541580500993bcd0604675f3feb7f1c01c01e221f967efbacdb12a4b23a7"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_task_local_inputs",
+        "baseline": {
+          "count": 3,
+          "sha256": "62d2a0930b35529067a20ca31ddb17012272c98617013182a1e796f912a1887a"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "62d2a0930b35529067a20ca31ddb17012272c98617013182a1e796f912a1887a"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_task_aux_intents",
+        "baseline": {
+          "count": 9,
+          "sha256": "a23b6db667c2a95379c0c88cae4df2b5fb47394921cfd33e109bd2b36b63640a"
+        },
+        "final": {
+          "count": 9,
+          "sha256": "a23b6db667c2a95379c0c88cae4df2b5fb47394921cfd33e109bd2b36b63640a"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_core_goals",
+        "baseline": {
+          "count": 2,
+          "sha256": "8b3b06e272cf53d84a74b974601881ffd142a661d9666e6ad9bcd558d7fd344a"
+        },
+        "final": {
+          "count": 2,
+          "sha256": "eaec5f201df162916671da1c3534ff343417cd6ca4a8b229987ad04476b58b5a"
+        },
+        "unchangedAcrossAllCheckpoints": false
+      },
+      {
+        "table": "shiyu_core_evaluations",
+        "baseline": {
+          "count": 3,
+          "sha256": "11e1006ce16b346b4b281af53e2e11bc2cac3dbfd27406b272ac23666a2dcdd7"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "414c30e34c80c71d9caa25d8c283eb9b441e38ea11ab1c3cf920eba2631f03e6"
+        },
+        "unchangedAcrossAllCheckpoints": false
+      },
+      {
+        "table": "shiyu_core_facts",
+        "baseline": {
+          "count": 3,
+          "sha256": "ed32cf48d32ee9e72fb5796c1036870ad76dc9bb6cc87ff4c43f2e34da3355d6"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "ed32cf48d32ee9e72fb5796c1036870ad76dc9bb6cc87ff4c43f2e34da3355d6"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_core_accounting",
+        "baseline": {
+          "count": 3,
+          "sha256": "f41da87b2925d595e403f27a257795203b3e0be33dfe24e13d54bde14ca4967e"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "f41da87b2925d595e403f27a257795203b3e0be33dfe24e13d54bde14ca4967e"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_budget_reservations",
+        "baseline": {
+          "count": 24,
+          "sha256": "48744e8746ccb1bbedc4d6068534376a994d118da0dd2fcee7d19cbd201b62ba"
+        },
+        "final": {
+          "count": 24,
+          "sha256": "48744e8746ccb1bbedc4d6068534376a994d118da0dd2fcee7d19cbd201b62ba"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_budget_receipts",
+        "baseline": {
+          "count": 24,
+          "sha256": "8c6b05cc7768e080770ed1d35762ac54c4315601cd83428b19c64c4ab7a3a742"
+        },
+        "final": {
+          "count": 24,
+          "sha256": "8c6b05cc7768e080770ed1d35762ac54c4315601cd83428b19c64c4ab7a3a742"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_effects",
+        "baseline": {
+          "count": 13,
+          "sha256": "92ee5d52b4e107e5369ac1250fb9b589a07b77a24df5775c7c0457e3a4f34ae8"
+        },
+        "final": {
+          "count": 13,
+          "sha256": "92ee5d52b4e107e5369ac1250fb9b589a07b77a24df5775c7c0457e3a4f34ae8"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_effect_attempts",
+        "baseline": {
+          "count": 13,
+          "sha256": "9916f18587bb49ebd9b682574451f25eb9e772f9ff443ed2cb1a1331de0c0f70"
+        },
+        "final": {
+          "count": 13,
+          "sha256": "9916f18587bb49ebd9b682574451f25eb9e772f9ff443ed2cb1a1331de0c0f70"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_effect_receipts",
+        "baseline": {
+          "count": 13,
+          "sha256": "c3f80d40bafa7b014632ae123e595e4f3a171a812b8b85dd6ed8999ec1050362"
+        },
+        "final": {
+          "count": 13,
+          "sha256": "c3f80d40bafa7b014632ae123e595e4f3a171a812b8b85dd6ed8999ec1050362"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_goal_bindings",
+        "baseline": {
+          "count": 3,
+          "sha256": "3afe7b795bb8e566071533e65da8deed2ae9b4b4e744e59884b434961e18c837"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "3afe7b795bb8e566071533e65da8deed2ae9b4b4e744e59884b434961e18c837"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_lab_connections",
+        "baseline": {
+          "count": 3,
+          "sha256": "465fbb7707f218cc6cc79e7385a69f3f511906499a23e3323adec211e79fbe57"
+        },
+        "final": {
+          "count": 3,
+          "sha256": "465fbb7707f218cc6cc79e7385a69f3f511906499a23e3323adec211e79fbe57"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_lab_inputs",
+        "baseline": {
+          "count": 8,
+          "sha256": "d946d493a3d022f348b3c39084428268627433af1bab31e9f73e7d88dbe70b9d"
+        },
+        "final": {
+          "count": 8,
+          "sha256": "d946d493a3d022f348b3c39084428268627433af1bab31e9f73e7d88dbe70b9d"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_lab_replies",
+        "baseline": {
+          "count": 8,
+          "sha256": "06acd3bcf9c18daac533e24b95f2a470f3e1e5119fd7213121c3240e13356c97"
+        },
+        "final": {
+          "count": 8,
+          "sha256": "06acd3bcf9c18daac533e24b95f2a470f3e1e5119fd7213121c3240e13356c97"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_lab_sends",
+        "baseline": {
+          "count": 7,
+          "sha256": "a3d8e8ae508c3deb4f269cd036fb8b1a9d2ac11256bf4537623c99058820553a"
+        },
+        "final": {
+          "count": 7,
+          "sha256": "a3d8e8ae508c3deb4f269cd036fb8b1a9d2ac11256bf4537623c99058820553a"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_local_memory_operations",
+        "baseline": {
+          "count": 2,
+          "sha256": "aeeafe8dab52d7c85e088ea53b3a0414633ed0821fcfee5328b0efbbae1c9591"
+        },
+        "final": {
+          "count": 2,
+          "sha256": "aeeafe8dab52d7c85e088ea53b3a0414633ed0821fcfee5328b0efbbae1c9591"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_memory_index_operations",
+        "baseline": {
+          "count": 1,
+          "sha256": "1a9ad1eb93a92022560e05dc5ea8932b1ba5118c59dc331732660417448c2ba6"
+        },
+        "final": {
+          "count": 1,
+          "sha256": "1a9ad1eb93a92022560e05dc5ea8932b1ba5118c59dc331732660417448c2ba6"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_memory_index_receipts",
+        "baseline": {
+          "count": 1,
+          "sha256": "ac97c3004cc642a0e68155190490033d0445b59cdcb40afeb849680d9f0be064"
+        },
+        "final": {
+          "count": 1,
+          "sha256": "ac97c3004cc642a0e68155190490033d0445b59cdcb40afeb849680d9f0be064"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      },
+      {
+        "table": "shiyu_local_reply_inputs",
+        "baseline": {
+          "count": 12,
+          "sha256": "259d63832a1a196a18c40a054104a52f06c632a30ac82a687e7532ab9dd07e4d"
+        },
+        "final": {
+          "count": 12,
+          "sha256": "259d63832a1a196a18c40a054104a52f06c632a30ac82a687e7532ab9dd07e4d"
+        },
+        "unchangedAcrossAllCheckpoints": true
+      }
+    ],
+    "changedSelectedTables": [
+      "shiyu_task_record",
+      "shiyu_core_goals",
+      "shiyu_core_evaluations"
+    ],
+    "expectedMetadataChanges": {
+      "taskReopen": {
+        "taskId": "59d5273427236380e39601be13d99809",
+        "checkpoints": [
+          "baseline",
+          "reload1",
+          "reload2",
+          "final"
+        ],
+        "versions": [
+          21,
+          22,
+          23,
+          23
+        ],
+        "uncertaintyPreserved": true,
+        "reason": "runtime_reopened_requires_reconciliation",
+        "source": "src/adapters/control-store/task-domain.ts#recoverOnOpen"
+      },
+      "corePauseFence": {
+        "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+        "evaluationId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+        "checkpoints": [
+          "baseline",
+          "paused",
+          "reload1",
+          "reload2",
+          "final"
+        ],
+        "goalVersions": [
+          5,
+          6,
+          7,
+          8,
+          8
+        ],
+        "evaluationStatus": "unknown",
+        "reasonCodeBefore": "owner_cancelled",
+        "reasonCodeAfter": "global_control_paused",
+        "noNewEvaluationIdentity": true,
+        "originalReservationStillUnknownAndUnchanged": true,
+        "source": "src/adapters/control-store/core-domain.ts#constructor-setCorePauseObserver",
+        "interpretation": "Observed projected changes agree with the existing global-pause fence on an already-unknown active evaluation; no new native result or budget accounting is established by these changes.",
+        "limit": "The initial snapshot hashes complete rows but exports only selected fields. A full field-by-field before/after comparison of changed Core JSON was not collected."
+      }
+    },
+    "wholeDatabaseUnchangedClaim": false
+  },
+  "labMetadata": {
+    "passed": true,
+    "runs": [
+      {
+        "id": "run-mvy6my22-37dca7f7",
+        "status": "completed"
+      },
+      {
+        "id": "run-mvyb49av-22fe9349",
+        "status": "completed"
+      },
+      {
+        "id": "run-mvymlb79-ef92cb19",
+        "status": "completed"
+      },
+      {
+        "id": "run-mvymrj51-e210c752",
+        "status": "interrupted"
+      },
+      {
+        "id": "run-mvyniqun-9df2b3d9",
+        "status": "stopped"
+      },
+      {
+        "id": "run-mvynnvi2-875cdcfe",
+        "status": "completed"
+      },
+      {
+        "id": "run-mvzcwl61-ee725230",
+        "status": "stopped"
+      },
+      {
+        "id": "run-mvzepcrx-32b15531",
+        "status": "stopped"
+      },
+      {
+        "id": "run-mvzfsovl-5355e002",
+        "status": "stopped"
+      }
+    ],
+    "terminalRunCount": 9,
+    "connections": [
+      {
+        "connectionId": "lab-e4795c3e96472800e1189baa18a8604d1e607fd2",
+        "runId": "run-mvzcwl61-ee725230",
+        "status": "disconnected",
+        "version": 8,
+        "epoch": 3
+      },
+      {
+        "connectionId": "lab-bc6cd763d07d9f79eaae3228cf95b9253961509a",
+        "runId": "run-mvzepcrx-32b15531",
+        "status": "disconnected",
+        "version": 12,
+        "epoch": 3
+      },
+      {
+        "connectionId": "lab-6e22c6f4faa72d0179f044f8401f4bc2b82e7e2a",
+        "runId": "run-mvzfsovl-5355e002",
+        "status": "disconnected",
+        "version": 12,
+        "epoch": 3
+      }
+    ],
+    "disconnectedConnectionCount": 3,
+    "connectionsInputsRepliesSendsTablesUnchanged": true,
+    "eventFiles": [
+      {
+        "runId": "run-mvy6my22-37dca7f7",
+        "bytes": 78975,
+        "sha256": "75107becc17071a4978135d050807f5ad31d9ca205939d45188446f46774d95d",
+        "mtimeNs": "1793558865000126612"
+      },
+      {
+        "runId": "run-mvyb49av-22fe9349",
+        "bytes": 85446,
+        "sha256": "5832332cf701a3f80f84653bdd1aa0e4402abdd5ae0f9d7e737ad596f901e472",
+        "mtimeNs": "1793566392057942348"
+      },
+      {
+        "runId": "run-mvymlb79-ef92cb19",
+        "bytes": 3473,
+        "sha256": "3c8c26807e520e3c30062c5abddaa7de2e05de6f32fb30f21149b905fab5e1c7",
+        "mtimeNs": "1793585826774962243"
+      },
+      {
+        "runId": "run-mvymrj51-e210c752",
+        "bytes": 4717,
+        "sha256": "af1dee6805923c3e907ab5b75dd3535193657c619e26e03a0aa5d0249498126c",
+        "mtimeNs": "1793586008637670740"
+      },
+      {
+        "runId": "run-mvyniqun-9df2b3d9",
+        "bytes": 1957,
+        "sha256": "52f1bb99625a626eb558de9077c9bffa9e6f1fa2b0d165bc467778e904f2344b",
+        "mtimeNs": "1793587443217764961"
+      },
+      {
+        "runId": "run-mvynnvi2-875cdcfe",
+        "bytes": 8459,
+        "sha256": "97ccef2e8777b8156cdbd42f0161d016f352ee2c421bfd20f190f8917880f032",
+        "mtimeNs": "1793588057622569033"
+      },
+      {
+        "runId": "run-mvzcwl61-ee725230",
+        "bytes": 3591,
+        "sha256": "a6e6754533ff3289b39fe10f3f6bd2f16be86d907e8c8b7289e01750c3bd155f",
+        "mtimeNs": "1793630329079447905"
+      },
+      {
+        "runId": "run-mvzepcrx-32b15531",
+        "bytes": 6718,
+        "sha256": "8b695acbfa49b10cc256db6bb907c25f513ff6a53268eb812c875d3a8b5e794a",
+        "mtimeNs": "1793633171896566229"
+      },
+      {
+        "runId": "run-mvzfsovl-5355e002",
+        "bytes": 6457,
+        "sha256": "a286384401f3e714d6661ff57398d3b702543b96edbc927d238fb9377783c9a2",
+        "mtimeNs": "1793635053452792041"
+      }
+    ],
+    "eventBytesSha256MtimeUnchangedAcrossAllCheckpoints": true
+  },
+  "sdkStaticPreflight": {
+    "evidenceLevel": "current-installed-SDK-and-product-static-preflight-only",
+    "checkedAt": "2026-11-02T16:57:33.752Z",
+    "matched": 12,
+    "total": 12,
+    "result": "sdk-static-match",
+    "logicalFiles": [
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 74599,
+        "sha256": "cf57e3ecd487ac5c2553455aaa5cef2c6fb41e6bd61be5aa455675d1d7193033",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-llm/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 105272,
+        "sha256": "d18d8ae4c8d961e628708c1e4698e09716a0ebb80e55a672e0bde1029bec1155",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-goal/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 36744,
+        "sha256": "8ec52107ead3d31f4d8ca95894c851046a2cbbd1b2033a0ea22fedf17c043ae4",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-session/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 94982,
+        "sha256": "2f5dd07cb5c744a29abbb8003a8a4cefd9e582c6e2538074ca299a0ddd02a3bf",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-session-title/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 27183,
+        "sha256": "eb814490ca3d0aaabf8f6ddc705a031f99a98709c484c1502c5f28f101cf0eeb",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-compaction-basic/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 49452,
+        "sha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-token-meter/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 35095,
+        "sha256": "b76a27f84d1f733c4a760e36fcc0491f807b32d51055703feb0fed1643cc2e05",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 125589,
+        "sha256": "99b5c20830a52f69641df8a18a39206079b0c725201958cce2c4a934f1d4f7cd",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-agent/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 28257,
+        "sha256": "7b59cf82c2784c25bdce4e3e24e5e5303b02b9f1003efacf50255492d17baf8b",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/cordis/lib/index.js",
+        "packageVersion": "4.0.5",
+        "bytes": 60361,
+        "sha256": "6a9394c0877ff45218818c6e815edd038f8057e1a1deb390a8d43ec81c57691e",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-working-directory/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 6916,
+        "sha256": "af5bb7f33c52efe018da19c39c54e07b5a3ac804fff83f8a68e341f411ecf703",
+        "matchesHistoricalFingerprint": true
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 19817,
+        "sha256": "7be9f7aafbf345d01ddcc12fd297b16e9a1d41283a6a04073b867becca0bf020",
+        "matchesHistoricalFingerprint": true
+      }
+    ],
+    "wholeInstallationAttested": false,
+    "limitations": [
+      "Static comparison does not prove the active plugin loaded this build or that native dependency preflight succeeds at runtime.",
+      "Only the twelve scoped SDK logical sources and package metadata are compared; no whole-installation attestation.",
+      "Provider credentials, subscription, transport retries and billing were not inspected.",
+      "The new filesystem-backed dependency fingerprint is not runtime-validated by this static preflight. Only the exported message path is read from package metadata here; its file is not added to the twelve-file historical equality comparison."
+    ]
+  },
+  "auditMethodCorrections": [
+    {
+      "issue": "Initial directory enumeration covered only the first native parent.",
+      "correction": "Final read-only inventory covers all six authorized parents; all 17 exact files were already hashed throughout.",
+      "notClaimed": "No invented six-parent baseline and no host-global Session absence."
+    },
+    {
+      "issue": "The first final supplement queried nonexistent runtime.activity and returned an empty array.",
+      "correction": "The subsequent supplement queries runtime.lifecycle.changed and records four real lifecycle events.",
+      "notClaimed": "The empty earlier array is not evidence of no activity."
+    },
+    {
+      "issue": "CapabilityRef belongs to shiyu_task_local_inputs, not shiyu_task_record.",
+      "correction": "Final white-listed admission inspection and unchanged whole-table hashes establish no historical proof retrofit."
+    }
+  ],
+  "callAndCostLimits": {
+    "ownedProcedureModelCallsRequested": 0,
+    "ownedProcedureEmbeddingCallsRequested": 0,
+    "basis": "The bounded operator procedure requested only startup/control/refresh transitions; tracked native bytes, Task/Core/Lab identities, effect/accounting rows and all reservations remained consistent with no owned inference. Startup/resume dependency and memory-health preflight may run.",
+    "hostGlobalModelTelemetryInspected": false,
+    "hostGlobalEmbeddingTelemetryInspected": false,
+    "providerRequestsOrInternalRetriesDecoded": false,
+    "providerCosts": null,
+    "cacheAccounting": null,
+    "fullSessionFeesKnown": false,
+    "historicalUnknownReservationCountPreserved": 3,
+    "productToolExecutionUnder3IProven": false
+  },
+  "historicalOfflineEvidence": {
+    "path": "artifacts/phase3i-capability-offline.json",
+    "sha256": "e5e2c3fb39b479f6780d8bd1d476e641cf144fcb08b5bd2812b1fcd3e2b93a60",
+    "moduleTestsPassed": 1021,
+    "simulatedUiFullPassed": 204,
+    "subsequentWordingTestsPassed": 14,
+    "rerunDuringThisHostValidation": false,
+    "notAddedToHostTestCounts": true
+  },
+  "independentReview": {
+    "method": "Read only the frozen ignored JSON checkpoints, snapshot reader source, published offline evidence and product source/build bytes; compare metadata and hashes without opening any live database, native file, UI, SDK service or model.",
+    "liveAccessByReviewer": false,
+    "nativeDecodeByReviewer": 0,
+    "testsRerunByReviewer": 0,
+    "sourceOrRuntimeModifiedByReviewer": false,
+    "scopeLimit": "No new business Task, model response, embedding result, crash recovery, in-flight cancellation, long-history compaction, dynamic tools, full V09 or complete nine-system acceptance is claimed."
+  },
+  "privateEvidence": [
+    {
+      "path": ".local/phase3i-host-baseline.json",
+      "bytes": 30804,
+      "sha256": "8ef7461484a5fd2ffad03a6605eed662873344198ee2b316a99ba08216bf521f"
+    },
+    {
+      "path": ".local/phase3i-host-disabled.json",
+      "bytes": 35484,
+      "sha256": "10e73874d95c549642e3aeaf66695220934edf3c4d54a6b13654b57b6bb427eb"
+    },
+    {
+      "path": ".local/phase3i-host-enabled-paused.json",
+      "bytes": 38766,
+      "sha256": "85d934f2e141bc2e5dd86bf948a2197e6c77d144f30dc19a843788328d9c6692"
+    },
+    {
+      "path": ".local/phase3i-host-execution-plan.json",
+      "bytes": 3052,
+      "sha256": "470993d96ae3bc4e01f07399730802c9de2b781631804e95805f809173d3bfec"
+    },
+    {
+      "path": ".local/phase3i-host-final-supplement.json",
+      "bytes": 5805,
+      "sha256": "74d710716fefbd4c2f4f0334cc8ebbea2457ea1656616deb5efae8a44309cd82"
+    },
+    {
+      "path": ".local/phase3i-host-final.json",
+      "bytes": 39037,
+      "sha256": "e4104e088e5b189afa9c8948211b6dc5cb2d5917d770b885520e7a4a013318ec"
+    },
+    {
+      "path": ".local/phase3i-host-lifecycle-events.json",
+      "bytes": 2230,
+      "sha256": "d5c708b5beaa6da784d6bf0770a77db745b29468fa8d66aa756084200da50b82"
+    },
+    {
+      "path": ".local/phase3i-host-native-roots-final.json",
+      "bytes": 4627,
+      "sha256": "4b1916aa7cda5e4246ea59e11a0a6ed6af3b3fa28b853f91b1d1459da1cb4128"
+    },
+    {
+      "path": ".local/phase3i-host-paused.json",
+      "bytes": 30809,
+      "sha256": "d5ae5362959d7672d397117e0a0b7ee5ae7a64113ebaa28f8bcf13889080b7f8"
+    },
+    {
+      "path": ".local/phase3i-host-refresh.json",
+      "bytes": 38766,
+      "sha256": "76dbae917db4b05c49db096b766477353ec29e334b1f328d29dcdd04fd54b310"
+    },
+    {
+      "path": ".local/phase3i-host-reload1.json",
+      "bytes": 33857,
+      "sha256": "bdbf182aaa76a1d7df9520b99259bc88a8e9bd6535000baabde42f80c7238c06"
+    },
+    {
+      "path": ".local/phase3i-host-reload2.json",
+      "bytes": 37132,
+      "sha256": "1f68de5d7b4f634a1b3f579630943b30a60da9983c0a0f1ad426a0a3eacd1567"
+    },
+    {
+      "path": ".local/phase3i-host-restored.json",
+      "bytes": 39037,
+      "sha256": "fb261eec68cdb79d27d3683f4c80c9b3e6d2ff8cf046af07353b82bfaba24ec7"
+    },
+    {
+      "path": ".local/phase3i-host-sdk-preflight.json",
+      "bytes": 14594,
+      "sha256": "b0d80d415e9899eb17ca7c185e8c76876652dde269762728578b4aae6f7775c0"
+    },
+    {
+      "path": ".local/phase3i-host-task-supplement.json",
+      "bytes": 1721,
+      "sha256": "fc7c72e672cdcb9cf059c06bf06ef63d0b5a2213fb32ef2ca4226e4f85051bf2"
+    },
+    {
+      "path": ".local/phase3i-host-snapshot.py",
+      "bytes": 5946,
+      "sha256": "03c28da08efb461586c5047f8bb29c710e68efe7f2678b22b04b1e3e08c19ce4"
+    }
+  ]
+}

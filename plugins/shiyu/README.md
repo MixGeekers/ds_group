@@ -2,7 +2,9 @@
 
 `@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 core/replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地目标、任务与记忆链路。
 
-**当前状态：3H C 轮限定双频道文本闭环通过，严格对话验收3/3。** 群聊两轮复用同一原生Session且正确回忆前文，私聊使用独立Session并遵从限定字段；三次生成/账目/独立送达对应，已知主用量1852 tokens。停止后一次有序重载未重放，旧15个及新2个Session文件不变。实际生成均不足30秒，缓存和完整费用仍未知；这不是完整S/FL、长历史恢复/压缩或九系统整体验收。见 [C轮成功证据](<artifacts/phase3h-c-lab-host-validation.json>)；[B轮失败](<artifacts/phase3h-b-lab-host-validation.json>)与[A轮unknown](<artifacts/phase3h-lab-host-validation.json>)独立保留。
+**当前状态：3I 固定本地便签能力已完成限定宿主零模型验证。** 在 `2402ca8` 上两次仅重载识雨，owner 停用选择跨第二次重载保留；同一能力权威与实现绑定、新宿主代次，经真实启动依赖观察恢复 available。收尾恢复启用及原全局运行状态，成功证据仍为 unknown，未补历史 proof；schema3 已发布 ability 只读能力。此结果不代表新任务执行或模型推理已验证，见[3I 宿主证据](<artifacts/phase3i-capability-host-zero-model.json>)及下方说明。
+
+**3H 历史验证：C 轮限定双频道文本闭环通过，严格对话验收3/3。** 群聊两轮复用同一原生Session且正确回忆前文，私聊使用独立Session并遵从限定字段；三次生成/账目/独立送达对应，已知主用量1852 tokens。停止后一次有序重载未重放，旧15个及新2个Session文件不变。实际生成均不足30秒，缓存和完整费用仍未知；这不是完整S/FL、长历史恢复/压缩或九系统整体验收。见 [C轮成功证据](<artifacts/phase3h-c-lab-host-validation.json>)；[B轮失败](<artifacts/phase3h-b-lab-host-validation.json>)与[A轮unknown](<artifacts/phase3h-lab-host-validation.json>)独立保留。
 
 **3G 历史验证：已通过一个真实合成便签闭环及完成后重载核对。** owner 明确指定范围、共享预算与期限后，core 提出候选，控制域接纳 Task，worker 执行，独立核验后完成原生 Goal。两轮 Core 复用同一 Session；主模型记录合计 3813 reported tokens、4 次调用、1 次效果，完成后无剩余预留。首次失败 A 的取消与 unknown 保留，新样本 B 不改写其结果。见[成功证据](<artifacts/phase3g-core-host-success.json>)、[首次失败](<artifacts/phase3g-core-host-validation.json>)、[兼容修复](<artifacts/phase3g-required-context-fix.json>)及下方 [3G 说明](#3g有界-core-与本地目标)。这仍是有限授权事项推进，不是开放式规划或九系统整体验收。
 
@@ -25,7 +27,8 @@
 | 原生 Goal 生命周期 | 原生 Goal 绑定/CAS/命令历史、独立完成证明；历史零推理诊断保留，3G 另用专用 Goal Session 执行有界判断 | 原生日志拥有 phase/revision；普通判断 followup 不计为原生 Goal driver round；旧观察不覆盖 pending/unknown 命令事实 |
 | 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、Task 关联、可信完成事件投影、有界扫描；显式本地上下文回复与验证 | 背景消费者不调用模型；Event ack 不等于加载，显式回复须原生持久回执才 ackContext；无渠道发送 |
 | Lab 连续对话 | 最多 20 个获准群聊/私聊、原生 Session、输入去重与纠正失效、共享容量、预算、Effect 发送及只读回执核对 | 仅文本message.send；C轮双频道3条严格oracle/独立送达通过，A/B失败保留；文件、Office、任务完成、管理操作及跨对话记忆注入未开放 |
-| 发布与受限视图 | schema2 按实际依赖发布 memory 读取能力，其余五域 unavailable；Task 与 native-memory ReadView、独立删除屏障及最终双校验 | 普通读取/回复/load-only 为 30 秒；可信 Lab 生成按具体原操作固定最多 120 秒，并取原授权更早截止。正文读取及返回前仍重核，版本不与 commitSeq 或索引水位混用 |
+| 固定能力状态 | local-note 声明、owner 启停 CAS、当前依赖观察、成功证据及 core/Task 执行门 | 3I 限定宿主验证停用选择跨重载保留及零模型可用性观察；当前 proof 仍 unknown，没有新增 3I 业务 Task 或动态工具/技能验收 |
+| 发布与受限视图 | schema3 按实际依赖保留 memory，并发布 ability state_read，其余四域 unavailable；Task、native-memory 与 core 能力 ReadView 保留独立权威及最终核对 | 普通读取/回复/load-only 为 30 秒；可信 Lab 生成按具体原操作固定最多 120 秒，并取原授权更早截止。正文读取及返回前仍重核，版本不与 commitSeq 或索引水位混用 |
 | 事件与订阅 | 类型目录、发布、订阅增删改查、有限回放、投递领取/确认/失败、重试和统计；事件与匹配投递同事务提交 | live 路径为可信组件消费和 Agent background 引用；Agent 事件工具工厂已实现并合成验证，但尚未挂载到原生 Session，未自动续接 |
 | 本地状态与数据库 | 单实例运行锁、暂停与 Session 绑定保存；SQLite 独立 WorkerThread，事件、Task/Assignment、Mandate/预算及 Effect 共用连接与事务 | 尚无原生 inbox/请求结果完整对账；正常重载、事务/文件故障注入和限定子进程退出不代替完整断电/灾难恢复 |
 | 记忆控制与后端接缝 | 普通桶保存/精确读、共享授权与 Effect、独立索引回执、候选先授权后排序、可能暴露来源登记及撤回失效传播 | 同 Conversation、local-owner；不自动选取聊天正文，无普通物理删除/CAS、自主整理或跨对话分享 |
@@ -185,7 +188,7 @@ src/control/local-memory.ts          显式保存、独立回执核验和精确�
 src/control/local-memory-search.ts   显式索引、候选授权、语义搜索与最终整集复核
 src/contracts/semantic-memory.ts     索引证明、profile/水位与搜索协议
 src/contracts/memory.ts              跨 TypeScript/Python 的严格命令与正文摘要契约
-src/state/                           memory 能力发布、其余五域 unavailable 与读取权威
+src/state/                           schema3 memory/ability 发布、其余四域 unavailable 与读取权威
 src/views/                           localTask/native-memory 裁剪、独立安全向量与精确读取
 src/adapters/control-store/          SQLite Worker、协议与主线程代理
 src/adapters/control-store/goal-bindings.ts  原生 Goal 引用与命令回执 CAS
@@ -313,8 +316,14 @@ licenses/                           随发布包保留的第三方完整许可
 三个capture为120秒，但实际ready只有2.556/1.366/7.909秒；不声明超过30秒生成、完整请求体、缓存命中或完整费用已验。A unknown及B失败保留；本次通过只覆盖两频道三条文本和一次停止后重载，不代表在途崩溃恢复、长历史压缩或完整S/FL。[C轮完整证据](<artifacts/phase3h-c-lab-host-validation.json>)。
 
 
-### 3I 固定能力状态（离线接线通过）
+### 3I 固定能力状态（离线接线及限定宿主零模型验证）
 
 运行仪表盘“系统”页新增本地便签能力区块：分别查看固定声明、启停、当前依赖观察及成功证据，owner可启用/停用。能力可用不代表已授Mandate；未知成功证据不阻止已有授权下的首次普通便签任务。停用保留已完成产物与账目，未知执行不重放。成功证据证明独立核验的产物/效果，不代表完整费用或当前模型服务可用。
 
-core读取原ReadView中的能力状态，Task在入场和最终发布前重核；同实现/环境重启可保留原成功证明，新host仍需零模型依赖观察。六域发布保留memory、增加ability读取描述，其余四域仍未接入。当前1021项模块检查、204项全量模拟UI及其后文案14项复验通过；未执行3I真实宿主验收或模型验证。[实施与验证证据](<artifacts/phase3i-capability-offline.json>)。
+core读取原ReadView中的能力状态，Task在入场和最终发布前重核；同实现/环境重启可保留原成功证明，新host仍需零模型依赖观察。六域发布保留memory、增加ability读取描述，其余四域仍未接入。此前离线批次1021项模块检查、204项全量模拟UI及其后文案14项复验通过；当时未进行3I真实宿主或模型验证，这些测试本次未重跑。[离线证据](<artifacts/phase3i-capability-offline.json>)。
+
+随后在固定宿主、`2402ca8` 构建上完成两次仅识雨的有序重载。12项SDK身份匹配，新的真实启动预检观察为available；owner停用选择跨第二次重载保留，authority及实现/环境binding不变、hostEpoch更新。收尾恢复启用及全局暂停=false，active=0；verification始终unknown，未把旧成功Task补成当前proof。schema3的ability提供state_read，其余四域unavailable；memory按实际依赖恢复available。
+
+限定的17个原生Session文件bytes/hash/mtime与旧24项预算预留保持不变，unknown继续保留，未解码Session。Task仍为3项（2成功、1unknown），Goal2项、判断3项；3个Lab连接disconnected、9个房间终态，原事件文件不变。手动刷新保持commitSeq280/stateVersion4，最终依赖恢复后为285/5；后者不是刷新写入。初始仅枚举首个原生父根的11个目录，最后另做只读补查，6个预期根的17个目录与预期清单一致；这是最终完整清点，不倒填初始目录基线。
+
+本次无新增模型、embedding、Task、Goal、Session、会话探针、Lab业务或Judge操作，工作台与Lab未重载。证据只覆盖上述自有路径及停止状态，不扩展为provider完整遥测、3I新任务成功proof、长期恢复或完整V09通过。[限定宿主证据](<artifacts/phase3i-capability-host-zero-model.json>)。
