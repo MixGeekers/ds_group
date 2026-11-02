@@ -74,6 +74,67 @@ export interface WorkerRunRequest {
 export interface WorkerEventToolSource {
   tools(input: Readonly<{ binding: Readonly<WorkerBinding>; identity: Readonly<WorkerPermitIdentity> }>): readonly WorkerTool[];
 }
+export const WORKER_PROBE_SESSION_PREFIX = 'shiyu-worker-probe-';
+export const WORKER_PROBE_TASK_TOOL = 'shiyu_worker_probe_task';
+const PROBE_PROMPT = '识雨 worker 事件工具零模型挂载探针。不得请求模型、调用任何工具、创建业务 Task 或产生外部效果；只允许装配与释放。';
+const PROBE_AUTHORITY_FIELDS = new Set(['actor', 'principal', 'principalId', 'kind', 'permit', 'scope', 'taskId', 'assignmentId',
+  'hostEpoch', 'installationGeneration', 'fencingToken', 'leaseExpiresAt', 'authorization', 'authorized', 'ownerId', 'grant',
+  'mandate', 'mandateId', 'verification', 'verificationReceipt', 'accounting', 'budget', 'subscriptionId', 'targetRefs']);
+const PROBE_MODEL_EVENT = /^(?:user\/message|assistant\/|tool\/|turn\/|request\/|compaction\/|session\/title-llm-request)/u;
+
+export interface WorkerEventToolProbeOptions {
+  signal?: AbortSignal;
+  /** Absolute normalized cwd for the disposable probe Session. */
+  cwd?: string;
+  /** Assignment scope exposed to the trusted event grant; defaults to local-owner. */
+  scope?: string;
+  /** Trusted override for tests/composition; production defaults to the attached source. */
+  eventTools?: WorkerEventToolSource;
+  /** Restricted task-tool placeholder; defaults to a fixed non-executable placeholder. */
+  taskTool?: WorkerTool;
+}
+export interface WorkerEventToolProbeSurface {
+  name: string;
+  description: string;
+  parameters: Record<string, unknown>;
+  source: 'assignment' | 'event';
+}
+export interface WorkerEventToolProbeResult {
+  ok: true;
+  preset: string;
+  probeSessionId: string;
+  scope: string;
+  tools: WorkerEventToolProbeSurface[];
+  assignmentTools: string[];
+  eventTools: string[];
+  /** Host tools that existed before the worker restriction was applied. */
+  hostTools: string[];
+  authorityFields: string[];
+  counters: { modelRequests: number; modelStreams: number; assistantMessages: number; userMessages: number; toolEvents: number; usageEvents: number };
+  released: true;
+  disposed: true;
+  observedAt: string;
+}
+function probeTaskTool(): WorkerTool {
+  return { name: WORKER_PROBE_TASK_TOOL,
+    description: '受限任务工具占位：仅用于证明 worker 工具预算与事件工具共同装配，探针中不可执行。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    execute: () => { throw new Error('Zero-model event tool probe task tool must not execute'); } };
+}
+function schemaAuthorityFields(value: unknown, found = new Set<string>()): Set<string> {
+  if (!value || typeof value !== 'object') return found;
+  if (Array.isArray(value)) { for (const item of value) schemaAuthorityFields(item, found); return found; }
+  const source = value as Record<string, unknown>;
+  if (jsonObject(source.properties)) {
+    for (const [key, item] of Object.entries(source.properties)) {
+      if (PROBE_AUTHORITY_FIELDS.has(key)) found.add(key);
+      schemaAuthorityFields(item, found);
+    }
+  }
+  for (const key of ['items', 'additionalProperties', 'oneOf', 'anyOf', 'allOf'] as const) if (source[key] !== undefined) schemaAuthorityFields(source[key], found);
+  return found;
+}
+
 export interface WorkerRunResult extends WorkerBinding {
   candidate: WorkerCandidate;
   usage: ModelUsage;
@@ -163,6 +224,42 @@ function preparedTools(tools: readonly WorkerTool[] = []): WorkerTool[] {
     return { name: tool.name, description: tool.description, parameters, execute: tool.execute };
   });
 }
+interface RestrictedSurface {
+  tools: readonly WorkerTool[];
+  prompt: string;
+  timeoutMs: number;
+  guard(call: { name: string }): string | undefined;
+  executeTool(tool: WorkerTool, args: unknown, execution: { signal: AbortSignal }): Promise<unknown>;
+}
+/**
+ * Mount the one restricted worker tool surface used by both real runs and the
+ * zero-model probe: no inherited host tools, only the trusted injected schemas,
+ * a fixed system-prompt section and the exact controlled handlers.
+ */
+function mountRestrictedSurface(ctx: DshAgentContext, agent: DshAgent, disposers: Disposer[], surface: RestrictedSurface): void {
+  const registry = ctx.tools as ToolRegistry;
+  const allowed = new Set(surface.tools.map(tool => tool.name));
+  const inherited = registry.schemas(agent).map(tool => tool.name);
+  if (inherited.some(name => allowed.has(name))) throw new Error('Controlled worker tool collides with a host tool');
+  disposers.push(registry.presentAs('native'));
+  const denied = inherited.filter(name => name !== 'run_code');
+  if (denied.length) disposers.push(registry.restrict({ deny: denied }));
+  disposers.push(registry.guard(call => surface.guard(call)));
+  disposers.push(ctx.systemPrompt.suppressRuntimeContext());
+  disposers.push(ctx.systemPrompt.section({ name: 'shiyu:worker', order: 0, complete: true, text: surface.prompt }));
+  for (const tool of surface.tools) {
+    if (typeof registry.register !== 'function') throw new Error('Native controlled tool registration is unavailable');
+    disposers.push(registry.register({
+      name: tool.name, description: tool.description, parameters: tool.parameters, timeoutMs: surface.timeoutMs, isConcurrencySafe: false,
+      output: { schema: {}, render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }] },
+      execute: (args: Record<string, unknown>, execution: { signal: AbortSignal }) => surface.executeTool(tool, args, execution),
+    }));
+  }
+  // Use only the trusted injected schemas, never the full host assembly.
+  disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(),
+    tools: surface.tools.map(({ name, description, parameters }) => ({ name, description, parameters })) })));
+}
+
 function candidateFrom(events: SessionEvent[]): WorkerCandidate {
   const last = events.filter(event => event.type === 'assistant/message' && !event.data?.interrupted).at(-1);
   const value = last?.data?.message?.content?.filter((block: any) => block.type === 'text').map((block: any) => block.text).join('\n');
@@ -240,6 +337,120 @@ export class WorkerSessionDriver {
     if (this.eventToolSource !== undefined && this.eventToolSource !== source) throw new Error('A different worker event tool source is already attached');
     this.eventToolSource = source;
   }
+
+  /**
+   * Zero-model mount probe. Creates one disposable worker Agent through the same
+   * restricted construction path as a real run (no followup, no model request,
+   * no business Task/binding side effect), reads the actually assembled tool
+   * surface, then cancels/disposes it. Any assembly, authority-field, model
+   * activity or cleanup failure rejects explicitly; nothing is retried.
+   */
+  async probeEventTools(options: WorkerEventToolProbeOptions = {}): Promise<WorkerEventToolProbeResult> {
+    this.assertOpen();
+    if (!options || typeof options !== 'object') throw new Error('Invalid event tool probe options');
+    const signal = options.signal;
+    if (signal?.aborted) signal.throwIfAborted();
+    const source = options.eventTools ?? this.eventToolSource;
+    if (!source) throw new Error('Event tool probe unavailable: no trusted worker event tool source is attached');
+    await this.initialize();
+    signal?.throwIfAborted();
+    const cwd = options.cwd === undefined ? resolve(process.cwd()) : options.cwd;
+    if (!isAbsolute(cwd) || resolve(cwd) !== cwd) throw new Error('Event tool probe cwd must be a normalized absolute path');
+    const scope = options.scope ?? 'local-owner';
+    if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/.test(scope)) throw new Error('Invalid event tool probe scope');
+    const probeSessionId = `${WORKER_PROBE_SESSION_PREFIX}${randomUUID()}`;
+    const templateBinding = Object.freeze({ taskId: `probe-${probeSessionId.slice(-12)}`, assignmentId: `probe-${randomUUID()}`, scope, sessionId: probeSessionId });
+    const templateIdentity = Object.freeze({ taskId: templateBinding.taskId, assignmentId: templateBinding.assignmentId, scope,
+      hostEpoch: 'probe', installationGeneration: 'probe', fencingToken: 1, leaseExpiresAt: new Date(Date.now() + 60000).toISOString() });
+    let provided: readonly WorkerTool[];
+    try { provided = source.tools(Object.freeze({ binding: templateBinding, identity: templateIdentity })); }
+    catch (error) { throw new Error(`Event tool probe event source failed: ${error instanceof Error ? error.message : String(error)}`); }
+    if (!Array.isArray(provided) || provided.length < 1 || provided.length > 2) throw new Error('Event tool probe requires a bounded event tool set (1–2 tools)');
+    const eventToolNames = provided.map(tool => tool?.name);
+    if (eventToolNames.some(name => typeof name !== 'string' || !/^shiyu_worker_event_[a-z0-9_]{1,40}$/.test(name)) || new Set(eventToolNames).size !== eventToolNames.length) {
+      throw new Error('Event tool probe event tool names are invalid or duplicated');
+    }
+    const assignmentTool = options.taskTool ?? probeTaskTool();
+    const tools = preparedTools([assignmentTool, ...provided]);
+    if (tools.length !== 1 + provided.length) throw new Error('Event tool probe tool set is inconsistent');
+    const observed: { type: string; usage: boolean }[] = [];
+    let requests = 0, streams = 0, disposed = false;
+    let handle: DshAgentHandle | undefined;
+    let hostTools: string[] = [];
+    const disposers: Disposer[] = [];
+    let failure: unknown, cleanupFailure: unknown, result: WorkerEventToolProbeResult | undefined;
+    const listener = this.options.ctx.on('session/event', (session: DshSession, event: SessionEvent) => {
+      if (!session || session.id !== probeSessionId) return;
+      if (observed.length >= 256) return;
+      observed.push({ type: typeof event?.type === 'string' ? event.type : 'unknown', usage: event?.data?.usage !== undefined });
+    });
+    const streamListener = this.options.ctx.on('llm/stream', (request: { sessionId?: unknown } | undefined, next: () => unknown) => {
+      if (request?.sessionId !== probeSessionId) return next();
+      streams++; throw new Error('Zero-model event tool probe must not open a model stream');
+    });
+    const disposeListener = () => { try { listener(); } catch (error) { cleanupFailure ??= error; } try { streamListener(); } catch (error) { cleanupFailure ??= error; } };
+    try {
+      const shared = { agentOptions: { ...MODEL, maxTokens: 1 }, ...(signal ? { signal } : {}),
+        setup: (ctx: DshAgentContext, agent: DshAgent) => {
+          if (agent.session.header.agentPreset !== WORKER_PRESET_ID || agent.id !== probeSessionId || agent.session.header.cwd !== cwd) throw new Error('Event tool probe Session identity mismatch');
+          // Same lifecycle ownership marker as a real managed worker: shutdown of
+          // this probe is owned by the driver, not by a user-initiated activation.
+          this.composed.add(agent);
+          hostTools = (ctx.tools as ToolRegistry).schemas(agent).map(tool => tool.name);
+          mountRestrictedSurface(ctx, agent, disposers, { tools, prompt: PROBE_PROMPT, timeoutMs: 1000,
+            guard: () => 'Zero-model event tool probe Sessions cannot execute tools.',
+            executeTool: () => { throw new Error('Zero-model event tool probe must not execute a tool'); } });
+          disposers.push(ctx.on('agent/request', async () => { requests++; throw new Error('Zero-model event tool probe must not issue a model request'); }));
+        } };
+      const creation = this.options.ctx.agents.create({ ...shared, sessionId: probeSessionId, meta: { cwd, agentPreset: WORKER_PRESET_ID } });
+      handle = await creation;
+      if (signal?.aborted) throw signal.reason ?? new Error('Event tool probe cancelled');
+      const assembly = await handle.agent.ctx.systemPrompt.assemble({ scope: handle.agent });
+      if (!assembly || !Array.isArray(assembly.tools)) throw new Error('Event tool probe could not read the assembled tool surface');
+      const assembled = assembly.tools.map((tool: { name?: unknown }) => tool?.name);
+      const expected = tools.map(tool => tool.name);
+      if (assembled.length !== expected.length || new Set(assembled).size !== assembled.length
+        || expected.some(name => !assembled.includes(name))) throw new Error('Event tool probe assembled tool surface does not match the restricted worker set');
+      const authority = new Set<string>();
+      for (const tool of tools) for (const field of schemaAuthorityFields(tool.parameters)) authority.add(field);
+      if (authority.size) throw new Error(`Event tool probe tool parameters expose authority fields: ${[...authority].sort().join(',')}`);
+      const counters = {
+        modelRequests: 0, modelStreams: 0, assistantMessages: 0, userMessages: 0, toolEvents: 0, usageEvents: 0,
+      };
+      for (const event of observed) {
+        if (event.type === 'assistant/message' || event.type === 'assistant/attempt') counters.assistantMessages++;
+        if (event.type === 'user/message') counters.userMessages++;
+        if (event.type.startsWith('tool/')) counters.toolEvents++;
+        if (event.usage) counters.usageEvents++;
+        if (PROBE_MODEL_EVENT.test(event.type) || event.usage) throw new Error(`Event tool probe observed model activity: ${event.type}`);
+      }
+      if (requests || streams) throw new Error('Event tool probe observed a model request');
+      result = { ok: true, preset: WORKER_PRESET_ID, probeSessionId, scope,
+        tools: tools.map((tool, index) => ({ name: tool.name, description: tool.description,
+          parameters: structuredClone(tool.parameters), source: index === 0 ? 'assignment' : 'event' })),
+        assignmentTools: [assignmentTool.name], eventTools: [...eventToolNames] as string[],
+        hostTools: hostTools.filter(name => !expected.includes(name)), authorityFields: [], counters, released: true, disposed: true,
+        observedAt: new Date().toISOString() };
+      if (result.tools.some(tool => Buffer.byteLength(JSON.stringify(tool.parameters)) > 16384)) throw new Error('Event tool probe tool schema is oversized');
+    } catch (error) { failure = error; }
+    finally {
+      disposeListener();
+      if (handle) {
+        try { handle.agent.cancel({ kind: 'hook', reason: 'Zero-model event tool probe released' }); }
+        catch (error) { cleanupFailure ??= error; }
+        try { await handle.dispose(); disposed = true; }
+        catch (error) { cleanupFailure ??= error; }
+      }
+      if (disposed) for (const dispose of disposers.splice(0).reverse()) { try { await dispose(); } catch (error) { cleanupFailure ??= error; } }
+    }
+    if (cleanupFailure) {
+      const cause = failure === undefined ? cleanupFailure : new AggregateError([failure, cleanupFailure], 'Event tool probe failed and its cleanup also failed');
+      throw new Error('Event tool probe cleanup failed; the disposable probe Session may remain and must be inspected', { cause });
+    }
+    if (failure) throw failure;
+    if (!result) throw new Error('Event tool probe produced no receipt');
+    return result;
+  }
   private now(): number { return this.options.now?.() ?? Date.now(); }
   private assertOpen(): void { if (this.closed) throw new Error('Worker driver is closed'); }
   async initialize(): Promise<void> {
@@ -300,43 +511,28 @@ export class WorkerSessionDriver {
   private compose(state: RunState, ctx: DshAgentContext, agent: DshAgent): void {
     if (agent.session.header.agentPreset !== WORKER_PRESET_ID || agent.session.header.cwd !== state.cwd || agent.id !== state.binding.sessionId) throw new Error('Native worker Session binding mismatch');
     this.composed.add(agent);
-    const registry = ctx.tools as ToolRegistry;
-    const allowed = new Set(state.tools.map(tool => tool.name));
-    const inherited = registry.schemas(agent).map(tool => tool.name);
-    if (inherited.some(name => allowed.has(name))) throw new Error('Controlled worker tool collides with a host tool');
-    state.disposers.push(registry.presentAs('native'));
-    const denied = inherited.filter(name => name !== 'run_code');
-    if (denied.length) state.disposers.push(registry.restrict({ deny: denied }));
-    state.disposers.push(registry.guard(call => {
-      try { this.synchronousGate(state); } catch (error) { this.stop(state, error); return 'Worker permit is inactive.'; }
-      return allowed.has(call.name) ? undefined : 'Worker can only call its registered controlled tools.';
-    }));
-    state.disposers.push(ctx.systemPrompt.suppressRuntimeContext());
-    state.disposers.push(ctx.systemPrompt.section({ name: 'shiyu:worker', order: 0, complete: true, text: PROMPT }));
-    for (const tool of state.tools) {
-      if (typeof registry.register !== 'function') throw new Error('Native controlled tool registration is unavailable');
-      state.disposers.push(registry.register({
-        name: tool.name, description: tool.description, parameters: tool.parameters, timeoutMs: Math.min(30000, Math.max(1, state.deadline - this.now())), isConcurrencySafe: false,
-        output: { schema: {}, render: (_args, value) => [{ type: 'text', text: JSON.stringify(value) }] },
-        execute: async (args, execution) => {
-          await this.gate(state, 'tool', tool.name);
-          if (!jsonObject(args) || Object.keys(args).some(key => AUTHORITY_KEYS.has(key))) throw new Error('Model tool arguments cannot supply execution authority');
-          const signal = AbortSignal.any([state.controller.signal, execution.signal]); signal.throwIfAborted();
-          const value = await abortable(Promise.resolve().then(() => {
-            signal.throwIfAborted();
-            return tool.execute(Object.freeze(structuredClone(args)), {
-              ...state.binding, permit: state.identity, signal, assertPermit: () => this.gate(state, 'tool', tool.name),
-            });
-          }), signal);
-          await this.gate(state, 'tool-result', tool.name); signal.throwIfAborted();
-          const encoded = JSON.stringify(value);
-          if (encoded === undefined || encoded.length > 64000) throw new Error('Controlled worker tool returned an invalid or oversized result');
-          return JSON.parse(encoded);
-        },
-      }));
-    }
-    // Use only the trusted injected schemas, never the full host assembly.
-    state.disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: state.tools.map(({ name, description, parameters }) => ({ name, description, parameters })) })));
+    mountRestrictedSurface(ctx, agent, state.disposers, {
+      tools: state.tools, prompt: PROMPT, timeoutMs: Math.min(30000, Math.max(1, state.deadline - this.now())),
+      guard: call => {
+        try { this.synchronousGate(state); } catch (error) { this.stop(state, error); return 'Worker permit is inactive.'; }
+        return state.tools.some(tool => tool.name === call.name) ? undefined : 'Worker can only call its registered controlled tools.';
+      },
+      executeTool: async (tool, args, execution) => {
+        await this.gate(state, 'tool', tool.name);
+        if (!jsonObject(args) || Object.keys(args).some(key => AUTHORITY_KEYS.has(key))) throw new Error('Model tool arguments cannot supply execution authority');
+        const signal = AbortSignal.any([state.controller.signal, execution.signal]); signal.throwIfAborted();
+        const value = await abortable(Promise.resolve().then(() => {
+          signal.throwIfAborted();
+          return tool.execute(Object.freeze(structuredClone(args)), {
+            ...state.binding, permit: state.identity, signal, assertPermit: () => this.gate(state, 'tool', tool.name),
+          });
+        }), signal);
+        await this.gate(state, 'tool-result', tool.name); signal.throwIfAborted();
+        const encoded = JSON.stringify(value);
+        if (encoded === undefined || encoded.length > 64000) throw new Error('Controlled worker tool returned an invalid or oversized result');
+        return JSON.parse(encoded);
+      },
+    });
     state.disposers.push(ctx.on('agent/pre-step', async (_payload, next) => {
       try {
         await this.gate(state, 'pre-step');

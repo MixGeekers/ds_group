@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "phase": "H2a-probe",
+  "slice": "zero-model worker tool mounting diagnosis and host-invocable diagnostic tool",
+  "capturedAt": "2026-11-02T20:04:02.356Z",
+  "status": "offline-verified-zero-model-probe",
+  "purpose": "Add a zero-model probe that creates and immediately releases one restricted worker Session to prove the mounted tool surface, and expose it through a separate diagnostic tool so the fixed host can run the probe without a model call or a business task.",
+  "baseline": {
+    "head": "d7dd731",
+    "note": "H0/H0b/H0c/H1/H2a/H3/H4/H4b/H4c/H5 committed; 1288 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/workers.ts",
+      "bytes": 43250,
+      "sha256": "669d4f0c9c2dd9c5f8e17797540d6fc0367a52a4564ce9957884833dd91aa8d3"
+    },
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 78923,
+      "sha256": "b6f220cdf1ffdc15f4221cf23adf7f9869789fb9774d2bf760b5c1dbc9e1a466"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 4384,
+      "sha256": "e6f6a6c13ffee8e1d9e719ce699ff9e8447de9c2f5f4e2c667cb94739c726c0b"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-fixtures.ts",
+      "bytes": 18876,
+      "sha256": "8777095f05619364d7ea09391a453d1fb8f1a18a053f99b484bd0baad2927f58"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-zero-model-probe.test.ts",
+      "bytes": 10490,
+      "sha256": "5df31beef9d56cd4bf6d49e6762eb789dd67430570964bd6ca6a65d76a42d5e3"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-runtime-probe.test.ts",
+      "bytes": 7651,
+      "sha256": "f482c19e7aad07797a74e3b40a9c3d82a40aebd9c916aed8e7ae72d38009e661"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 2112,
+      "sha256": "b87c7f8c99b3559f875f8379d9c13329c085344576b447f2ffa6eaba3c5c3730"
+    }
+  ],
+  "implementation": {
+    "probe": "WorkerSessionDriver.probeEventTools() shares mountRestrictedSurface() with the real worker compose path; it creates one dedicated shiyu-worker-probe-<uuid> Session with a fixed placeholder task tool plus the attached event tool source, reads the actually assembled tools (name/description/parameter summary/source), recursively rejects authority field names (actor/permit/scope/taskId/assignmentId/principalId/authorization/ownerId/budget), detects model activity through session/event + agent/request + llm/stream and requires all counters to be 0, cancels and disposes late handles, and fails explicitly (no retry) on creation/source/malformed-tool/model-activity/release errors.",
+    "runtime": "runtime.probe-event-tools is an owner/local-control zero-model read-only command with the same admission semantics as session.probe (refused while globally paused, shared operation slot, abortable, no retry); the receipt is cached in snapshot().diagnostics.eventToolProbe and nothing is published or written to business tables.",
+    "leadTool": "index.ts exports the status and diagnosis tool definitions for unit testing and registers shiyu_diagnose_worker_tools (parameterless, non-concurrency-safe) which executes exactly that command; the description states zero-model diagnosis, no task execution, no sending and no business writes.",
+    "tests": "6 probe tests (positive assembly/authority fields/no model events/does not disturb a later real run/source missing or malformed/creation-release-request failures/abort and late handle/model activity injection) + 3 runtime probe tests + 2 tool-definition tests."
+  },
+  "verification": {
+    "leadProbeSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD d7dd731 + the 5 probe files; node_modules + pinned Python symlinked)",
+      "exitCode": 0,
+      "tests": 1297,
+      "pass": 1297,
+      "fail": 0,
+      "skipped": 0,
+      "evidence": "artifacts/dsh/slices/h2a-probe-verify.json",
+      "arithmetic": "1288 baseline + 9 probe tests = 1297"
+    },
+    "finalCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD d7dd731 + the 5 probe files + Lead index.ts tool wrapper + tool test)",
+      "exitCode": 0,
+      "tests": 1299,
+      "pass": 1299,
+      "fail": 0,
+      "skipped": 0,
+      "evidence": "artifacts/dsh/slices/h2a-probe-verify.json",
+      "arithmetic": "1288 baseline + 9 probe tests + 2 tool-definition tests = 1299"
+    },
+    "expectedHostReceipt": "ok=true; tools exactly [shiyu_worker_probe_task, shiyu_worker_event_types, shiyu_worker_event_report]; assignment/event tools separated; authorityFields=[]; counters all 0; released/disposed true; probeSessionId prefix shiyu-worker-probe-; no business Task/Goal/Lab/event/delivery change.",
+    "limitations": "The probe proves restricted mounting, non-forgeable fields and release only. It cannot prove a model actually called a tool, provider budgets, or core native continuation dispatch; those remain G4/H2c gaps."
+  },
+  "failedUnknownUntested": [
+    "Fixed-host invocation of runtime.probe-event-tools / shiyu_diagnose_worker_tools is executed by the Lead in the joint zero-model reload after this commit; until then the host-level mount proof is pending.",
+    "Real model tool invocation, provider budget/cache and core native continuation dispatch are not tested (G4/H2c).",
+    "The probe creates one short-lived native Session per call; a host call is therefore a diagnostic side effect (released/archived) and must not be used as a business path.",
+    "No real model/embedding/business task/Lab input occurred."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "labInputs": 0
+  },
+  "evidenceLevel": "G1 module + synthetic native host; host probe invocation pending Lead verification."
+}

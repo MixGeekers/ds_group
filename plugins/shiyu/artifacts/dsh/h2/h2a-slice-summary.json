@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "phase": "H2a",
   "slice": "agent event tools real mounting and four publish/subscribe paths",
-  "capturedAt": "2026-11-02T19:31:25.512Z",
-  "status": "offline-verified-integration",
+  "capturedAt": "2026-11-02T19:47:25.513Z",
+  "status": "offline-verified-zero-model-probe",
   "purpose": "Mount restricted event tools on real worker sessions and coordinate component/Agent delivery paths with ack vs context-loaded separation, while keeping the H1 core decision zero-tool/single-request invariant.",
   "baseline": {
     "head": "00fb75b",
@@ -17,8 +17,8 @@
     },
     {
       "path": "plugins/shiyu/src/adapters/dsh/workers.ts",
-      "bytes": 30463,
-      "sha256": "52e5e2eae3236e01a90026ab9552d595f8d379a0500140fe37370d532d7e36fd"
+      "bytes": 43250,
+      "sha256": "669d4f0c9c2dd9c5f8e17797540d6fc0367a52a4564ce9957884833dd91aa8d3"
     },
     {
       "path": "plugins/shiyu/src/control/events/index.ts",
@@ -26,19 +26,9 @@
       "sha256": "fde58b85404989cdd2e02e9c9a55acf3f0b1b33b396bd1f900b820a7b7cfc580"
     },
     {
-      "path": "plugins/shiyu/src/control/task-runner.ts",
-      "bytes": 6719,
-      "sha256": "35872adaa8e2074980ede8097351abd41450063d1e7a4314b91395422a04d342"
-    },
-    {
-      "path": "plugins/shiyu/src/runtime.ts",
-      "bytes": 76754,
-      "sha256": "4965c3ea0f10933e47e7fa88c64f5d44d34c28f2bc56ff08ff98c09489324eb1"
-    },
-    {
       "path": "plugins/shiyu/tests/events-fixtures.ts",
-      "bytes": 18103,
-      "sha256": "f5458076a10048a67293785c2ef2add240730084dc04eb3c0e94c0ae0ce647ec"
+      "bytes": 18876,
+      "sha256": "8777095f05619364d7ea09391a453d1fb8f1a18a053f99b484bd0baad2927f58"
     },
     {
       "path": "plugins/shiyu/tests/events-worker-mount.test.ts",
@@ -59,28 +49,50 @@
       "path": "plugins/shiyu/tests/events-core-continuation.test.ts",
       "bytes": 16367,
       "sha256": "6b815ce040ebf83ed20e7f8757728b230da61f38c1b40a850d88dd1a21c16708"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2a-manifest.json",
+      "bytes": 664,
+      "sha256": "524e6f89f5428f708b728a706e2973a9295b0e2223bf6e69df4fb4c26f9c383a"
+    },
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 78923,
+      "sha256": "b6f220cdf1ffdc15f4221cf23adf7f9869789fb9774d2bf760b5c1dbc9e1a466"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-zero-model-probe.test.ts",
+      "bytes": 10490,
+      "sha256": "5df31beef9d56cd4bf6d49e6762eb789dd67430570964bd6ca6a65d76a42d5e3"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-runtime-probe.test.ts",
+      "bytes": 7651,
+      "sha256": "f482c19e7aad07797a74e3b40a9c3d82a40aebd9c916aed8e7ae72d38009e661"
     }
   ],
   "implementation": {
     "workerTools": "event-tools.ts adds two restricted worker tools (types/report); publishTypes limited to agent.observation.reported and worker.result.reported; actor/scope/type injected by trusted host principal, arguments may not carry actor/permit/scope/taskId; task.succeeded and unregistered types are rejected.",
     "mounting": "workers.ts attachEventTools(source) accepts one trusted source; each run merges the event tools into the original 3-tool budget and rejects >4 tools before any native Session creation; permit/gate/single-request/authority-key semantics unchanged.",
     "coordinator": "control/events/index.ts adds EventDeliveryCoordinator: component handlers and Agent background references are zero-model; continuation requires a trusted gate; ack and context-loaded are separate; slow/bad consumers are bounded; at-least-once uses deliveryId idempotency; registerAgentTarget/retireAgentTarget prevent retired bindings from regaining qualifications; CoreGoalContinuationTarget re-reads Goal phase/authEpoch/instance/budget and checks the H1 baseline before dispatch, with a confirmed context receipt separate from ack.",
-    "leadIntegration": "Lead applied the exact integration diff: TaskWorkerDriver gains an optional attachEventTools; runtime.ts attaches the per-Assignment worker event source right after the durable EventService and before any task can run (failure degrades to lastFailure and event-free workers); runtime.ts creates the empty trusted coordinator and merges its scan into the single existing BackgroundPump consume loop (processed+failed===claimed preserved; no second loop)."
+    "leadIntegration": "Lead applied the exact integration diff: TaskWorkerDriver gains an optional attachEventTools; runtime.ts attaches the per-Assignment worker event source right after the durable EventService and before any task can run (failure degrades to lastFailure and event-free workers); runtime.ts creates the empty trusted coordinator and merges its scan into the single existing BackgroundPump consume loop (processed+failed===claimed preserved; no second loop).",
+    "zeroModelProbe": "workers.ts probeEventTools() reuses mountRestrictedSurface (same restriction path as a real run), creates a disposable shiyu-worker-probe-<uuid> Session with a placeholder task tool + attached event tools, assembles the tool surface without followup/model, scans authority fields and model-activity counters, cancels/disposes with explicit cleanup failure, and never creates a business Task/binding/event. runtime.ts adds the owner command runtime.probe-event-tools with session.probe admission semantics and caches the receipt only in snapshot().diagnostics.eventToolProbe."
   },
   "verification": {
     "implementerIsolatedCheck": {
-      "worktree": "/tmp shiyu-h2a (ephemeral; HEAD feecf86 + 9 slice files)",
-      "command": "npm run check",
+      "worktree": "ephemeral; HEAD 41c496b + this slice manifest (12 files)",
+      "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
       "exitCode": 0,
-      "tests": 1243,
-      "pass": 1243,
+      "tests": 1273,
+      "pass": 1273,
       "fail": 0,
       "skipped": 0,
-      "durationMs": 220882,
+      "durationMs": 208354,
       "log": {
         "path": "plugins/shiyu/.local/slice-verify-h2a-events.log",
-        "sha256": "921ffa16…"
-      }
+        "sha256": "8633d035bd4a923b8154ca735c61bc430fa8b546d792dc77fd1648dbc9c42334"
+      },
+      "arithmetic": "HEAD already contains the first H2a commit; this verification adds 9 zero-model-probe tests (measured 1273)."
     },
     "leadIndependentSliceCheck": {
       "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 00fb75b + 10 slice/integration files; node_modules + pinned Python symlinked)",
@@ -99,16 +111,16 @@
     },
     "targeted": {
       "allEventRelated": {
-        "tests": 66,
-        "pass": 66,
+        "tests": 76,
+        "pass": 76,
         "fail": 0,
-        "note": "H2a 43 new + existing events/event-tools/background-pump regression"
+        "note": "H2a 52 tests (43 committed + 9 probe) + existing events/event-tools/background-pump regression."
       },
-      "runtimeIntegrationTargeted": {
-        "tests": 99,
-        "pass": 99,
+      "zeroModelProbe": {
+        "tests": 9,
+        "pass": 9,
         "fail": 0,
-        "note": "events suites + workers/task-runner/background-pump after Lead integration"
+        "note": "6 worker-driver probe + 3 runtime command tests."
       }
     },
     "fourPaths": {
@@ -117,14 +129,20 @@
       "componentToAgent": "background mode stores a zero-model reference and acks (wake=0, no context receipt); continuation mode dispatches only after the trusted gate (PAUSED/REVOKED/AUTH_CHANGED/STALE_SESSION/STALE_INSTANCE/BUDGET_EXHAUSTED leave only a background reference and ack without waking); resume never revives old deliveries.",
       "agentToAgent": "real worker report -> bound Agent target passes Goal/auth/instance/budget gate -> exactly one native context receipt; worker cannot publish task.succeeded, verification receipts, owner authorization or accounting facts."
     },
-    "negativeMatrix": "one-shot/expiry/pause/unsubscribe old deliveries, revocation between gate and dispatch (zero dispatch), ack lost after effect (no duplicate business effect on restart), lost context ack (no duplicate native append), two-store concurrent claim exactly one winner, slow consumer timeout isolation, unregistered handler/binding fail-closed, cross-scope/forged authority/authority-key rejection, pause does not revive."
+    "negativeMatrix": "one-shot/expiry/pause/unsubscribe old deliveries, revocation between gate and dispatch (zero dispatch), ack lost after effect (no duplicate business effect on restart), lost context ack (no duplicate native append), two-store concurrent claim exactly one winner, slow consumer timeout isolation, unregistered handler/binding fail-closed, cross-scope/forged authority/authority-key rejection, pause does not revive.",
+    "hostZeroModelProbe": {
+      "status": "entrypoint delivered and offline-tested; fixed-host invocation NOT executed",
+      "command": "POST /api/shiyu/commands { action: 'runtime.probe-event-tools' }",
+      "evidenceChannel": "snapshot().diagnostics.eventToolProbe",
+      "boundaries": "Mount/restrictions/release only; real model tool invocation, budget and continuation remain future G4/H2c gaps."
+    }
   },
   "failedUnknownUntested": [
-    "Fixed-host zero-model probe was NOT executed in this slice; all Agent evidence is a synthetic native-protocol double. The Lead integration must be exercised on the fixed host before claiming host-level mounting.",
     "Real core Goal continuation wiring (durable background command + native dispatch into a core session) is not done: only the port contract is verified offline; core model-invocable event tools are the explicit H2c gap (depends on H3).",
     "Time/condition triggers (DSH Schedule ingress), chain-depth/anti-loop enforcement, quota/backpressure matrices and event catalog extension are not in this slice and remain untested.",
     "Worker event grant is currently assigned per Assignment scope/identity; per-task allowlist refinement is a follow-up integration.",
-    "No real model, embedding, channel, device or business action occurred."
+    "No real model, embedding, channel, device or business action occurred.",
+    "Fixed-host zero-model invocation of runtime.probe-event-tools is delivered as an entrypoint but NOT executed here; Lead performs it in the joint reload after H3/H4c. A real model calling the event tool, provider budgeting and native continuation dispatch remain explicit G4/H2c gaps."
   ],
   "scope": {
     "realModelCalls": 0,

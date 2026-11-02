@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "kind": "h2a-events-offline",
   "slice": "H2a 持久事件接入 Agent/组件路径",
-  "capturedAt": "2026-11-02T19:31:39.800Z",
+  "capturedAt": "2026-11-02T19:47:25.510Z",
   "repository": {
-    "headAtCapture": "00fb75b25a89006b9c69a569c9203a57043855f2",
-    "headNote": "Isolated worktree = current shared HEAD at verification time + only this slice files. H0b/H1独立验证/H4/H4b host-evidence commits are already in HEAD; H2a does not modify core decision/goals/sessions.",
+    "headAtCapture": "41c496b0f48ee0e923cab8f4858c615098635a8f",
+    "headNote": "Isolated worktree = current shared HEAD at verification time + only this H2a slice files (including runtime.ts probe command). The first H2a slice is committed; this verification adds the zero-model mount probe on top.",
     "sharedTreeDirtyNote": "The shared working tree also contains independent H3/H4b WIP. It is excluded from the isolated verification by construction."
   },
   "environment": {
@@ -21,8 +21,8 @@
     },
     {
       "path": "plugins/shiyu/src/adapters/dsh/workers.ts",
-      "bytes": 30463,
-      "sha256": "52e5e2eae3236e01a90026ab9552d595f8d379a0500140fe37370d532d7e36fd"
+      "bytes": 43250,
+      "sha256": "669d4f0c9c2dd9c5f8e17797540d6fc0367a52a4564ce9957884833dd91aa8d3"
     },
     {
       "path": "plugins/shiyu/src/control/events/index.ts",
@@ -31,8 +31,8 @@
     },
     {
       "path": "plugins/shiyu/tests/events-fixtures.ts",
-      "bytes": 18103,
-      "sha256": "f5458076a10048a67293785c2ef2add240730084dc04eb3c0e94c0ae0ce647ec"
+      "bytes": 18876,
+      "sha256": "8777095f05619364d7ea09391a453d1fb8f1a18a053f99b484bd0baad2927f58"
     },
     {
       "path": "plugins/shiyu/tests/events-worker-mount.test.ts",
@@ -56,8 +56,23 @@
     },
     {
       "path": "plugins/shiyu/artifacts/dsh/h2/h2a-manifest.json",
-      "bytes": 513,
-      "sha256": "03e10296074269fc0ee27af2562e1e462880c408a9d416ebc404e5f650fbeb8a"
+      "bytes": 664,
+      "sha256": "524e6f89f5428f708b728a706e2973a9295b0e2223bf6e69df4fb4c26f9c383a"
+    },
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 78923,
+      "sha256": "b6f220cdf1ffdc15f4221cf23adf7f9869789fb9774d2bf760b5c1dbc9e1a466"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-zero-model-probe.test.ts",
+      "bytes": 10490,
+      "sha256": "5df31beef9d56cd4bf6d49e6762eb789dd67430570964bd6ca6a65d76a42d5e3"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-runtime-probe.test.ts",
+      "bytes": 7651,
+      "sha256": "f482c19e7aad07797a74e3b40a9c3d82a40aebd9c916aed8e7ae72d38009e661"
     }
   ],
   "commands": [
@@ -68,26 +83,27 @@
   "targetedRuns": {
     "allEventRelated": {
       "commandIndex": 0,
-      "tests": 67,
-      "pass": 67,
+      "tests": 76,
+      "pass": 76,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0,
       "log": {
         "path": "plugins/shiyu/.local/h2a-events-targeted.log",
-        "sha256": "a3930082daca96f7a07337f24fe6723ff5382192c38846ad67c490cd35fd5d77"
+        "sha256": "d2cd9e38121c924fa10fe421d212c15599b2e7456faed71622c47e3ef0053459"
       }
     },
     "newTestsOnly": {
-      "commandIndex": 1,
-      "tests": 43,
-      "pass": 43,
+      "tests": 52,
+      "pass": 52,
       "fail": 0,
       "breakdown": {
         "workerMount": 10,
         "fourPaths": 7,
         "lifecycleAndNegatives": 16,
-        "coreContinuation": 10
+        "coreContinuation": 10,
+        "zeroModelProbe": 6,
+        "runtimeProbeCommand": 3
       }
     },
     "regressionOfExistingEventModules": {
@@ -99,23 +115,23 @@
   },
   "isolatedFullCheck": {
     "evidencePath": "plugins/shiyu/artifacts/dsh/slices/h2a-events-verify.json",
-    "evidenceSha256": "5bed636aa0f2170c76dc4928dec30863536ef66dd5284603b61335a62784bc21",
-    "head": "00fb75b25a89006b9c69a569c9203a57043855f2",
+    "evidenceSha256": "20014eae2c7332600c3428dc172dce7ff66159773991905dd9c45a98fe3b7c9e",
+    "head": "41c496b0f48ee0e923cab8f4858c615098635a8f",
     "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
-    "tests": 1249,
-    "pass": 1249,
+    "tests": 1273,
+    "pass": 1273,
     "fail": 0,
-    "baselineTestsWithoutSlice": 1206,
+    "baselineTestsWithoutCurrentVerification": 1264,
+    "baselineNote": "Shared HEAD already contains the first H2a commit (43 tests). This verification adds 9 zero-model-probe tests, so it measures HEAD+9.",
     "cancelled": 0,
     "skipped": 0,
     "exitCode": 0,
-    "durationMs": 225715,
+    "durationMs": 208354,
     "log": {
       "path": "plugins/shiyu/.local/slice-verify-h2a-events.log",
-      "bytes": 136183,
-      "sha256": "25dbaa60bd54aaa8ee398c660a04d034fa3a3cf0298d5f822cdc5ebb619d5c58"
+      "bytes": 138856,
+      "sha256": "8633d035bd4a923b8154ca735c61bc430fa8b546d792dc77fd1648dbc9c42334"
     },
-    "baselineNote": "HEAD baseline without this slice (isolated count minus the 43 slice tests) is reported here for traceability; this slice adds exactly 43 tests.",
     "verdict": "pass"
   },
   "coverage": {
@@ -188,22 +204,24 @@
   "integrationPoints": [
     {
       "file": "plugins/shiyu/src/control/task-runner.ts",
+      "status": "committed in a80c33d",
       "purpose": "TaskWorkerDriver gains the optional trusted event-tool attachment point (no behavior change when absent).",
-      "precondition": "None; optional interface method. Existing drivers/tests stay valid.",
-      "diff": "--- a/plugins/shiyu/src/control/task-runner.ts\n+++ b/plugins/shiyu/src/control/task-runner.ts\n@@ -4,7 +4,9 @@\n import type { TaskView } from './tasks/index.js';\n-import type { WorkerRunRequest, WorkerRunResult } from '../adapters/dsh/workers.js';\n+import type { WorkerEventToolSource, WorkerRunRequest, WorkerRunResult } from '../adapters/dsh/workers.js';\n import type { LocalArtifactStore } from '../adapters/artifacts/index.js';\n@@ export interface TaskWorkerDriver {\n   initialize(): Promise<void>;\n+  /** H2a: trusted per-Assignment event tool source; absent keeps workers event-free. */\n+  attachEventTools?(source: WorkerEventToolSource): void;\n   /** Trusted zero-model dependency preflight; absent drivers cannot claim capability availability. */\n   prepareLocalNote?(): Promise<{ dependencyFingerprint: string }>;"
+      "diff": "--- a/plugins/shiyu/src/control/task-runner.ts\n+++ b/plugins/shiyu/src/control/task-runner.ts\n@@ export interface TaskWorkerDriver {\n   initialize(): Promise<void>;\n+  /** H2a: trusted per-Assignment event tool source; absent keeps workers event-free. */\n+  attachEventTools?(source: WorkerEventToolSource): void;\n   prepareLocalNote?(): Promise<{ dependencyFingerprint: string }>;"
     },
     {
-      "file": "plugins/shiyu/src/runtime.ts",
-      "purpose": "Mount the per-Assignment worker event surface after the durable EventService exists, and merge agent-target deliveries into the single existing BackgroundPump scan.",
-      "precondition": "Place the attach block immediately after `this.events = new EventService(this.store);` (currently runtime.ts:200), i.e. after WorkerSessionDriver.initialize (line 160) and before any task can run. Create the coordinator immediately before `this.background = new BackgroundPump(...)` (currently line 273). No core-decision/goals edit: H1 zero-tool core decision invariant stays untouched.",
-      "failureDegradation": "A rejected event grant/attachment is recorded in `lastFailure` and leaves workers event-free; publishing never becomes a silent no-op and worker execution continues under its original restrictions. Coordinator failures surface through BackgroundPump degraded state (existing dashboard path); no second loop is started.",
-      "diff": "--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ -13,6 +13,8 @@\n import { WorkerSessionDriver } from './adapters/dsh/workers.js';\n+import type { WorkerEventToolSource } from './adapters/dsh/workers.js';\n+import { createWorkerEventToolSource } from './adapters/dsh/event-tools.js';\n+import { EventDeliveryCoordinator } from './control/events/index.js';\n@@ export class RuntimeService {\n   store!: ControlStore;\n   events!: EventService;\n+  eventDeliveries?: EventDeliveryCoordinator;\n@@ line 200\n       this.events = new EventService(this.store);\n+      // H2a: per-Assignment restricted event tools. The grant callback is trusted\n+      // composition; the model never selects/attaches/reconfigures this surface.\n+      try {\n+        this.workers.attachEventTools?.(createWorkerEventToolSource({\n+          service: this.events,\n+          grant: ({ binding }) => ({ principalId: `worker:${binding.assignmentId}`, scope: binding.scope,\n+            publishTypes: ['agent.observation.reported', 'worker.result.reported'] }),\n+          onPublished: () => { void this.background?.wake(); },\n+        }));\n+      } catch (error) { this.lastFailure = error instanceof Error ? error.message : String(error); }\n@@ line 273\n-      this.background = new BackgroundPump({ batchSize: 20, consume: async limit => {\n-        const result = await this.store.request('conversation.consumeBackground', { limit });\n-        return { claimed: result.claimed, processed: result.acknowledged, failed: result.failed };\n-      } });\n+      this.eventDeliveries = new EventDeliveryCoordinator({\n+        events: this.events,\n+        principal: { principalId: 'shiyu-runtime-delivery', kind: 'component', scopes: ['local-owner'],\n+          publishTypes: [], subscribeTypes: SHIYU_EVENT_TYPES.map(type => type.type), targetRefs: [] },\n+        handlers: [],\n+        agentTargets: [],\n+        consumerId: 'shiyu-runtime-delivery',\n+      });\n+      // One scan, two durable consumers: existing conversation projection plus\n+      // agent-target deliveries. scan() keeps processed+failed===claimed for the pump.\n+      this.background = new BackgroundPump({ batchSize: 20, consume: async limit => {\n+        const projection = await this.store.request('conversation.consumeBackground', { limit });\n+        const agent = await this.eventDeliveries!.scan(limit);\n+        return { claimed: projection.claimed + agent.claimed,\n+          processed: projection.acknowledged + agent.processed, failed: projection.failed + agent.failed };\n+      } });"
+      "file": "plugins/shiyu/src/runtime.ts (worker mount + single delivery loop)",
+      "status": "committed in a80c33d",
+      "purpose": "Attach the per-Assignment worker event source after the durable EventService exists and merge agent-target deliveries into the one existing BackgroundPump scan.",
+      "precondition": "Placement after `this.events = new EventService(this.store)` and before any worker run; coordinator created immediately before `this.background = new BackgroundPump(...)`; no second delivery loop.",
+      "failureDegradation": "A rejected attach/grant is recorded in lastFailure and leaves workers event-free; coordinator failures surface through the existing BackgroundPump degraded state.",
+      "diff": "    try {\n      this.workers.attachEventTools?.(createWorkerEventToolSource({\n        service: this.events,\n        grant: ({ binding }) => ({ principalId: `worker:${binding.assignmentId}`, scope: binding.scope,\n          publishTypes: ['agent.observation.reported', 'worker.result.reported'] }),\n        onPublished: () => { void this.background?.wake(); },\n      }));\n    } catch (error) { this.lastFailure = error instanceof Error ? error.message : String(error); }\n...\n    this.eventDeliveries = new EventDeliveryCoordinator({ events: this.events,\n      principal: { principalId: 'shiyu-runtime-delivery', kind: 'component', scopes: ['local-owner'],\n        publishTypes: [], subscribeTypes: SHIYU_EVENT_TYPES.map(type => type.type), targetRefs: [] },\n      handlers: [], agentTargets: [], consumerId: 'shiyu-runtime-delivery' });\n    this.background = new BackgroundPump({ batchSize: 20, consume: async limit => {\n      const projection = await this.store.request('conversation.consumeBackground', { limit });\n      const agent = await this.eventDeliveries!.scan(limit);\n      return { claimed: projection.claimed + agent.claimed,\n        processed: projection.acknowledged + agent.processed, failed: projection.failed + agent.failed };\n    } });"
     },
     {
-      "file": "plugins/shiyu/src/runtime.ts (H2c/H3 continuation registration; NOT for H2a activation)",
-      "purpose": "Where the future trusted core Goal binding registry attaches a CoreGoalContinuationTarget; kept out of H2a because real native dispatch requires H3 reworked core planning/rounds.",
-      "precondition": "Only after H3 provides a trusted continuation round and durable background-reference command. Register when a Goal binding is admitted/loaded: eventDeliveries.registerAgentTarget(new CoreGoalContinuationTarget({ bindingId: `core-goal:${goalId}`, goalId, expectedSessionId: binding.sessionId, expectedAuthorizationEpoch: <trusted authEpoch>, readState, assertNativeBaseline: <H1 cold-baseline check>, background: <durable marker command>, dispatch: <H3 native append+flush+readback> })). Retire on pause/cancel/revoke: eventDeliveries.retireAgentTarget(bindingId).",
-      "diff": "/// H2c/H3 integration point — no runtime line is landed in H2a. ////"
+      "file": "plugins/shiyu/src/runtime.ts (zero-model probe command)",
+      "status": "direct edit per Lead authorization in this verification (small diff below); committed by Lead with the probe commit",
+      "purpose": "Owner-accessible, read-only, zero-model diagnostic that returns the worker driver probe receipt; result cached at snapshot().diagnostics.eventToolProbe only.",
+      "precondition": "Uses the same admission semantics as the existing session.probe: rejected while globally paused (ensureCanRun), one shared operation slot (capacity 2), abortable; no retry, no Task/Goal/Lab/model/embedding.",
+      "diff": "diff --git a/plugins/shiyu/src/runtime.ts b/plugins/shiyu/src/runtime.ts\nindex e2779e3..73ee0dd 100644\n--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ -10,7 +10,7 @@ import { ShiyuSessionAdapter } from './adapters/dsh/sessions.js';\n import type { DshContext, SessionStatus, ProbeResult, ReplyRequest, ReplyResult, ReplyDraftReadRequest, ReplyDraftReadResult, ContextLoadRequest, ContextLoadResult } from './adapters/dsh/sessions.js';\n import { LocalStateFile } from './recovery/local-state.js';\n import { systems } from './health/systems.js';\n-import { WorkerSessionDriver } from './adapters/dsh/workers.js';\n+import { WorkerSessionDriver, type WorkerEventToolProbeResult } from './adapters/dsh/workers.js';\n import { createWorkerEventToolSource } from './adapters/dsh/event-tools.js';\n import { EventDeliveryCoordinator } from './control/events/index.js';\n import { LocalArtifactStore } from './adapters/artifacts/index.js';\n@@ -116,6 +116,7 @@ export class RuntimeService {\n   tasks!: LocalTaskRunner;\n   goals!: GoalLifecycleDriver;\n   background!: BackgroundPump;\n+  private lastEventToolProbe?: WorkerEventToolProbeResult;\n   private core?: CoreDriver;\n   private corePump?: CorePump;\n   private coreFailure?: string;\n@@ -403,6 +404,33 @@ export class RuntimeService {\n     this.controlTail = command.then(() => undefined, error => { this.lastFailure = error instanceof Error ? error.message : String(error); });\n     return command;\n   }\n+  /** Zero-model, read-only worker event-tool mount diagnostic (same admission\n+   * semantics as session.probe: unavailable while globally paused). */\n+  private async commandEventToolProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {\n+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid event tool probe input');\n+    this.ensureCanRun(); signal?.throwIfAborted();\n+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');\n+    let finish!: () => void;\n+    const done = new Promise<void>(resolve => { finish = resolve; });\n+    const op: ActiveOperation = { id: randomUUID(), title: '检查 worker 事件工具受限挂载', phase: '零模型装配与释放',\n+      status: 'running', controller: new AbortController(), done, finish };\n+    const onAbort = () => op.controller.abort(signal?.reason);\n+    signal?.addEventListener('abort', onAbort, { once: true });\n+    this.operations.set(op.id, op);\n+    try {\n+      type WorkerEventToolProbe = (options: { signal?: AbortSignal }) => Promise<WorkerEventToolProbeResult>;\n+      const probe = (this.workers as { probeEventTools?: WorkerEventToolProbe }).probeEventTools;\n+      if (typeof probe !== 'function') throw new Error('WORKER_EVENT_TOOL_PROBE_UNAVAILABLE');\n+      const result = await probe.call(this.workers, { signal: op.controller.signal });\n+      this.ensureCanRun(); op.controller.signal.throwIfAborted();\n+      this.lastEventToolProbe = structuredClone(result);\n+      this.lastFailure = undefined;\n+      return { ...result, zeroModel: true, readOnly: true, sent: false };\n+    } catch (error) {\n+      this.lastFailure = error instanceof Error ? error.message : String(error);\n+      throw error;\n+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }\n+  }\n   private async record(type: string, message: string, status: string): Promise<void> {\n     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });\n     // This component's only effect is a readable event-backed activity projection.\n@@ -514,7 +542,8 @@ export class RuntimeService {\n         ...(this.lastSemanticOperation ? { lastSemanticOperation: structuredClone(this.lastSemanticOperation) } : {}),\n         ...(memoryError ? { errorCode: memoryError } : {}), ...(memoryBackend ? { backend: memoryBackend } : {}), entries: memoryEntries },\n       diagnostics: { contextVerification: this.state.state.lastContextVerification ? structuredClone(this.state.state.lastContextVerification) : null,\n-        contextSafety: structuredClone(this.contextSafety) },\n+        contextSafety: structuredClone(this.contextSafety),\n+        eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null },\n       background: { ...conversations.background, ...backgroundState },\n       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),\n       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),\n@@ -559,6 +588,7 @@ export class RuntimeService {\n     if (action === 'core.create' || action === 'core.pause' || action === 'core.resume' || action === 'core.cancel') return this.commandCore(value, signal);\n     if (action === 'memory.rememberLocal' || action === 'memory.readLocal' || action === 'memory.withdrawLocal') return this.commandLocalMemory(value, signal);\n     if (action === 'memory.indexLocal' || action === 'memory.searchLocal') return this.commandSemanticMemory(value, signal);\n+    if (action === 'runtime.probe-event-tools') return this.commandEventToolProbe(value, signal);\n     if (action === 'runtime.pause') return this.setPaused(true);\n     if (action === 'runtime.resume') return this.setPaused(false);\n     if (action === 'conversation.linkLocalTask') {"
     }
   ],
   "h2cGap": [
@@ -213,12 +231,12 @@
     "host-level proof that the mounted worker event tools appear in a real native Session and cannot forge identity (Lead fixed-host zero-model probe after integration)"
   ],
   "failuresUntested": [
-    "fixed-host zero-model reload probe not executed in this slice (Lead performs after runtime integration)",
-    "no real model inference, embedding, real channel or real DSH Agent loop was invoked; all Agent protocol evidence uses the synthetic native double",
-    "real Goal/Assignment continuation dispatch and background-reference durability are not wired into runtime; only the offline port contract is proven",
-    "time/condition triggered subscriptions, DSH Schedule ingress and missed-occurrence policy are not part of H2a",
-    "event catalog additions (new registered types) are out of scope; only existing SHIYU_EVENT_TYPES are exercised",
-    "worker tool grant policy is scope/identity based in this slice; per-task allowlists and capability budgets remain integration work"
+    "Fixed-host invocation of runtime.probe-event-tools is NOT executed in this batch; the Lead performs it in the joint zero-model reload after H3/H4c.",
+    "Real model actually calling a worker event tool (and provider budget accounting) is not proven: zero-model probe only assembles/releases; bounded real-model G4 run remains.",
+    "Real core Goal continuation wiring (durable background command + native dispatch into a core session) is not done: only the port contract is verified offline; core model-callable event tools are the explicit H2c gap (depends on H3).",
+    "No real model inference, embedding, real channel or real DSH Agent loop was invoked; all Agent protocol evidence uses the synthetic native double.",
+    "Time/condition triggered subscriptions, DSH Schedule ingress, chain-depth/anti-loop enforcement and quota/backpressure matrices are not in H2a.",
+    "Worker tool grant policy is scope/identity based in this slice; per-task allowlists and capability budgets remain integration work."
   ],
   "evidenceBoundaries": [
     "G1/G2 offline level: real temp SQLite through the ControlStore worker thread + synthetic native DSH protocol double.",
@@ -226,40 +244,79 @@
     "Test counts 66 targeted and 1243 isolated are this slice snapshot only and are not comparable to other slices."
   ],
   "hostProbeChecklist": {
-    "status": "NOT executed by this slice; prepared for the Lead fixed-host zero-model reload after runtime integration.",
-    "preconditions": [
-      "Land the two integration diffs (task-runner.ts optional attach + runtime.ts attach/coordinator blocks) and rebuild the plugin (npm run build).",
-      "Confirm no in-flight tasks/operations and no paused/locked recovery state before ordered reload.",
-      "Freeze a zero-model scope: one ordered disable/enable of the shiyu runtime plugin plus read-only status/assembly observations; no model, embedding, Lab input, Task or Goal command."
+    "status": "Prepared for Lead execution. This batch delivers the zero-model diagnostic entrypoint; the fixed-host invocation itself is NOT executed here.",
+    "precondition": [
+      "H3/H4c slices are landed and the plugin builds; ordered disable/enable reload of the shiyu runtime plugin is the only host mutation.",
+      "Freeze a zero-model window: no model, embedding, real channel, Task command, Goal command or Lab input. Record before/after scripts/host-state-audit.mjs snapshots.",
+      "Confirm no in-flight task/operation; if the runtime is paused, decide explicitly whether to resume first because the probe follows session.probe admission semantics (rejected while paused)."
     ],
-    "observations": [
-      "Managed worker Session assembly contains exactly its controlled task tool plus the two mounted event tools (shiyu_worker_event_types/shiyu_worker_event_report) and no host tools (shell/run_code/network).",
-      "Event tool parameter schemas contain no actor/permit/scope/taskId authority fields; the driver authority-key gate and worker principal resolver still reject forged identity before dispatch.",
-      "Core Goal decision Session assembly remains tool-free (H1 invariant unchanged; no event tools mounted there in H2a).",
-      "Replyer Session assembly remains tool-free.",
-      "Read-only status tool output stays lossless JSON and the reload has no business replay; before/after host audit shows no new Task/Goal/Session/model/embedding and unchanged event/delivery counts except runtime lifecycle records."
+    "observe": [
+      "POST {action:'runtime.probe-event-tools'} returns ok=true with tool names exactly [shiyu_worker_probe_task, shiyu_worker_event_types, shiyu_worker_event_report], assignmentTools/eventTools split, authorityFields=[], hostTools not overlapping, counters all 0, released=true disposed=true, probeSessionId prefixed shiyu-worker-probe-.",
+      "GET /api/shiyu/state shows diagnostics.eventToolProbe equal to that receipt and no activeWork/tasks added.",
+      "Before/after audit: no new Task/Goal/business Session, no model/embedding, event/delivery counts unchanged; the disposable probe Session is released/archived and does not enter the business binding list.",
+      "The command rejects while paused (session.probe semantics) and does not create a business fallback path."
     ],
-    "limitation": "A zero-model host probe proves mount/restriction only. It cannot prove a model actually called the tool, that provider budgets were honoured, or real continuation dispatch; those require a later bounded real-model/G4 run and H3/H2c work."
+    "stopConditions": [
+      "Any non-zero model/embedding/usage observation, any business Task/Goal/Lab mutation, any tool-surface mismatch, any authority field, any cleanup failure, or any reload that is not the frozen ordered one => stop, preserve logs, do not retry.",
+      "Probe session that remains live after the command returns is a failure; do not delete it manually before preserving evidence."
+    ],
+    "limitation": "A zero-model host probe proves mount/restrictions/release only. It cannot prove a real model called the event tool, provider budgets were honoured, or native continuation dispatched. Those need a later bounded real-model/G4 run (and H2c for core tool-callable events); keep the earlier checklist items for that run."
   },
   "reviewNotes": [
     "Only the declared task-7 write scope changed: src/adapters/dsh/{event-tools,workers}.ts, src/control/events/index.ts, tests/events-* and artifacts/dsh/h2/. No runtime.ts/index.ts/sessions.ts/goals.ts/core-decision.ts/control-store edits.",
-    "The shared working tree also contains independent H3/H4b WIP; the isolated verification worktree contains only HEAD feecf86 plus this slice manifest files.",
+    "Only the declared task-7 write scope changed: src/adapters/dsh/{event-tools,workers}.ts, src/control/events/index.ts, src/runtime.ts (probe command with Lead authorization), tests/events-* and artifacts/dsh/h2/. No sessions/goals/core-decision/control-store edits.",
+    "The shared working tree also contains independent H3/H4b/H0c WIP; the isolated verification worktree contains only HEAD plus this slice manifest files.",
     "Evidence counts are snapshot-specific and must not be summed with other slices or reused after source changes."
   ],
   "artifacts": {
     "manifest": {
       "path": "plugins/shiyu/artifacts/dsh/h2/h2a-manifest.json",
-      "bytes": 513,
-      "sha256": "03e10296074269fc0ee27af2562e1e462880c408a9d416ebc404e5f650fbeb8a"
+      "bytes": 664,
+      "sha256": "524e6f89f5428f708b728a706e2973a9295b0e2223bf6e69df4fb4c26f9c383a"
     },
     "isolatedCheck": {
       "path": "plugins/shiyu/artifacts/dsh/slices/h2a-events-verify.json",
-      "bytes": 2791,
-      "sha256": "5bed636aa0f2170c76dc4928dec30863536ef66dd5284603b61335a62784bc21"
+      "bytes": 3281,
+      "sha256": "20014eae2c7332600c3428dc172dce7ff66159773991905dd9c45a98fe3b7c9e"
+    },
+    "probeDesign": {
+      "section": "zeroModelProbeDesign",
+      "tests": [
+        "plugins/shiyu/tests/events-zero-model-probe.test.ts",
+        "plugins/shiyu/tests/events-runtime-probe.test.ts"
+      ]
     },
     "thisEvidence": {
       "path": "plugins/shiyu/artifacts/dsh/h2/h2a-events-offline.json",
       "note": "self hash omitted (written after computing other hashes)"
     }
+  },
+  "zeroModelProbeDesign": {
+    "purpose": "Prove, without a model call, that a managed worker Session is actually mounted with the restricted task slot plus exactly the two trusted event tools, that event tool parameters cannot carry authority, and that the probe/release path leaves no business or inference residue.",
+    "entrypoints": {
+      "workerDriver": "WorkerSessionDriver.probeEventTools(options) in src/adapters/dsh/workers.ts; dedicated disposable Session id shiyu-worker-probe-<uuid> with WORKER_PRESET_ID and an absolute cwd.",
+      "runtimeCommand": "POST /api/shiyu/commands { action: 'runtime.probe-event-tools' } -> RuntimeService.commandEventToolProbe; receipt cached read-only under snapshot().diagnostics.eventToolProbe; zeroModel/readOnly/sent fields make the guarantee explicit."
+    },
+    "constructionPath": "Same mountRestrictedSurface helper as a real run: native tool presentation, deny every inherited host tool, fixed worker system-prompt section, registered placeholder task tool (shiyu_worker_probe_task) plus the attached event tools, and tool schemas assembled only from the trusted declarations. No followup, no model request, no business Task/binding/event. cancel+dispose in finally; late handles after abort are disposed; assembly/authority/model-activity/cleanup failures reject explicitly and are never retried.",
+    "checks": [
+      "assembled tool names exactly equal assignment placeholder + 2 event tools; host tools (shell/read_file/network/run_code/...) never survive; duplicate names impossible at driver layer",
+      "authority scan over every declared parameter property name (actor/permit/scope/taskId/assignmentId/principalId/hostEpoch/installationGeneration/fencingToken/leaseExpiresAt/authorization/ownerId/grant/mandate/verification/accounting/budget/...)",
+      "model activity detection via session/event, agent/request and llm/stream; counters must stay all 0",
+      "release/dispose must complete; creation failure, malformed source, source without tools, authority fields, model activity, abort-late handle and disposal failure are all explicit failures",
+      "receipt is read-only diagnostics: no accepted Event, no Task/Goal/Lab side effect; repeated calls may probe again but accumulate no business state"
+    ],
+    "admissionSemantics": "Same class as the existing session.probe: unavailable while globally paused, consumes one shared runtime operation slot (capacity 2), abortable, no retries. This is documented rather than inventing a pause exception.",
+    "offlineTests": {
+      "driverProbe": {
+        "file": "plugins/shiyu/tests/events-zero-model-probe.test.ts",
+        "tests": 6
+      },
+      "runtimeCommand": {
+        "file": "plugins/shiyu/tests/events-runtime-probe.test.ts",
+        "tests": 3
+      },
+      "invariants": "core decision remains zero-tool/single-request and replyer remains zero-tool: neither adapter was edited; the H1 core-goal-sessions and replyer isolation tests are part of the same isolated full check."
+    },
+    "boundaries": "Offline synthetic native protocol only in this batch. On the fixed host the Lead invokes the command during the joint reload. The probe proves mount + restrictions + release, not that a real model actually called the tool, provider budgets, or continuation dispatch (G4 and H2c remain future gaps)."
   }
 }

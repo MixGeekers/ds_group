@@ -10,7 +10,7 @@ import { ShiyuSessionAdapter } from './adapters/dsh/sessions.js';
 import type { DshContext, SessionStatus, ProbeResult, ReplyRequest, ReplyResult, ReplyDraftReadRequest, ReplyDraftReadResult, ContextLoadRequest, ContextLoadResult } from './adapters/dsh/sessions.js';
 import { LocalStateFile } from './recovery/local-state.js';
 import { systems } from './health/systems.js';
-import { WorkerSessionDriver } from './adapters/dsh/workers.js';
+import { WorkerSessionDriver, type WorkerEventToolProbeResult } from './adapters/dsh/workers.js';
 import { createWorkerEventToolSource } from './adapters/dsh/event-tools.js';
 import { EventDeliveryCoordinator } from './control/events/index.js';
 import { LocalArtifactStore } from './adapters/artifacts/index.js';
@@ -116,6 +116,7 @@ export class RuntimeService {
   tasks!: LocalTaskRunner;
   goals!: GoalLifecycleDriver;
   background!: BackgroundPump;
+  private lastEventToolProbe?: WorkerEventToolProbeResult;
   private core?: CoreDriver;
   private corePump?: CorePump;
   private coreFailure?: string;
@@ -403,6 +404,33 @@ export class RuntimeService {
     this.controlTail = command.then(() => undefined, error => { this.lastFailure = error instanceof Error ? error.message : String(error); });
     return command;
   }
+  /** Zero-model, read-only worker event-tool mount diagnostic (same admission
+   * semantics as session.probe: unavailable while globally paused). */
+  private async commandEventToolProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid event tool probe input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '检查 worker 事件工具受限挂载', phase: '零模型装配与释放',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      type WorkerEventToolProbe = (options: { signal?: AbortSignal }) => Promise<WorkerEventToolProbeResult>;
+      const probe = (this.workers as { probeEventTools?: WorkerEventToolProbe }).probeEventTools;
+      if (typeof probe !== 'function') throw new Error('WORKER_EVENT_TOOL_PROBE_UNAVAILABLE');
+      const result = await probe.call(this.workers, { signal: op.controller.signal });
+      this.ensureCanRun(); op.controller.signal.throwIfAborted();
+      this.lastEventToolProbe = structuredClone(result);
+      this.lastFailure = undefined;
+      return { ...result, zeroModel: true, readOnly: true, sent: false };
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private async record(type: string, message: string, status: string): Promise<void> {
     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });
     // This component's only effect is a readable event-backed activity projection.
@@ -514,7 +542,8 @@ export class RuntimeService {
         ...(this.lastSemanticOperation ? { lastSemanticOperation: structuredClone(this.lastSemanticOperation) } : {}),
         ...(memoryError ? { errorCode: memoryError } : {}), ...(memoryBackend ? { backend: memoryBackend } : {}), entries: memoryEntries },
       diagnostics: { contextVerification: this.state.state.lastContextVerification ? structuredClone(this.state.state.lastContextVerification) : null,
-        contextSafety: structuredClone(this.contextSafety) },
+        contextSafety: structuredClone(this.contextSafety),
+        eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null },
       background: { ...conversations.background, ...backgroundState },
       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
@@ -559,6 +588,7 @@ export class RuntimeService {
     if (action === 'core.create' || action === 'core.pause' || action === 'core.resume' || action === 'core.cancel') return this.commandCore(value, signal);
     if (action === 'memory.rememberLocal' || action === 'memory.readLocal' || action === 'memory.withdrawLocal') return this.commandLocalMemory(value, signal);
     if (action === 'memory.indexLocal' || action === 'memory.searchLocal') return this.commandSemanticMemory(value, signal);
+    if (action === 'runtime.probe-event-tools') return this.commandEventToolProbe(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
     if (action === 'runtime.resume') return this.setPaused(false);
     if (action === 'conversation.linkLocalTask') {

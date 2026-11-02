@@ -365,7 +365,7 @@ cd plugins/shiyu && npm run test:ui
 
 ### 10.3 失败 / unknown / 未测
 
-1. 固定宿主零模型探针未执行（需 Lead 集成后另行冻结范围）；所有 Agent 证据为合成原生协议替身。
+1. 固定宿主零模型探针：已补零模型探针命令与独立诊断工具（§10.5），宿主调用由 Lead 在联合 reload 执行；此前所有 Agent 证据为合成原生协议替身。
 2. 真实 core Goal 续接连线（durable background command + native dispatch 到 core Session）未做；**core 模型可调用事件工具 = H2c 缺口**（依赖 H3 重设计 core 规划/计量）。
 3. 时间/条件触发（DSH Schedule ingress）、链深/防循环、配额/背压矩阵、事件目录扩展不在本切片，仍为未测。
 4. worker grant 目前按 Assignment scope/身份挂载，每任务 allowlist 细化留后续集成。
@@ -377,6 +377,15 @@ cd plugins/shiyu && npm run test:ui
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h2a-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/events-*.test.ts tests/event-tools.test.ts
 ```
+
+### 10.5 补充：零模型 worker 工具挂载探针（H2a-probe）
+
+- `workers.ts`：抽出与真实 run 共用的 `mountRestrictedSurface()`，新增 `WorkerSessionDriver.probeEventTools()`——创建一次性 `shiyu-worker-probe-<uuid>` 受限 Session（`WORKER_PRESET_ID`、固定占位任务工具 + 受信事件工具源），读取真实装配的 tools 摘要（name/description/parameters/source），递归拒绝 actor/permit/scope/taskId/assignmentId/principalId/authorization/ownerId/budget 等授权字段，通过 session/event + agent/request + llm/stream 三重检测模型活动并要求全部计数为 0；不 followup、不请求模型、不建业务 Task/binding/event；abort/迟到 handle 均 cancel+dispose，创建/source 畸形/模型活动/释放失败显式失败不重试。
+- `runtime.ts`：新增 `runtime.probe-event-tools` 零模型只读命令（准入与 `session.probe` 一致：全局暂停拒绝、共享操作槽、可中止、不重试）；回执缓存到 `snapshot().diagnostics.eventToolProbe`，不发布事件、不写业务库。
+- `index.ts`（Lead 集成）：抽出并导出 `statusTool`/`workerToolDiagnosisTool` 供单测，注册独立诊断工具 `shiyu_diagnose_worker_tools`（无参数、非并发安全），执行且仅执行 `runtime.probe-event-tools`；描述明确“零模型诊断、不执行任务、不发送、不写业务库”。
+- 测试：`events-zero-model-probe` 6 + `events-runtime-probe` 3 + `host-diagnostics-tool` 2。
+- 验证：Lead 隔离 worktree（HEAD `d7dd731` + 5 探针文件）**1297/1297 通过、0 跳过**（1288 + 9）；随后加入 Lead 工具封装（+2）再次隔离验证（证据 `artifacts/dsh/slices/h2a-probe-final-verify.json`）。
+- 宿主调用规格与期望回执、停止条件、不能外推的结论见 `artifacts/dsh/h2/h2a-probe-slice-summary.json` 与 `h2a-events-offline.json` 的 `zeroModelProbeDesign`/`hostProbeChecklist`；固定宿主调用本身在联合零模型重载中执行或明确保留为未测。
 
 ## 11. H0c 切片：S/FL 业务测试集骨架
 

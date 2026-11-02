@@ -85,14 +85,20 @@ export function fakeWorkerHost() {
   let call: { name: string; args: Record<string, unknown> } | undefined;
   let lastAgent: FakeAgent | undefined;
   let failDispose = false, creates = 0, resumes = 0, disposals = 0, followups = 0;
+  let createFault: Error | undefined;
+  let createGate: Promise<void> | undefined, creationAttempts = 0;
+  let setupHook: ((agent: FakeAgent, helpers: { emit(event: SessionEvent): Promise<void>; request(): Promise<unknown> }) => Promise<void>) | undefined;
   const make = async (options: any, resume: boolean) => {
+    creationAttempts++;
+    if (createGate) await createGate;
+    if (createFault) throw createFault;
     const id = resume ? options.resumeSessionId : options.sessionId;
     const stored: { header: DshSession['header']; events: SessionEvent[] } | undefined = resume ? persisted.get(id) : { header: options.meta, events: [] };
     if (!stored) throw new Error('Session not found');
     const local = new Hooks(), registered = new Map<string, any>(), guards: Hook[] = [];
     const session: DshSession = { id, header: stored.header };
     let idle = Promise.resolve();
-    const emit = async (event: SessionEvent) => { stored.events.push(event); await local.emit('session/event', session, event); };
+    const emit = async (event: SessionEvent) => { stored.events.push(event); await local.emit('session/event', session, event); await hooks.emit('session/event', session, event); };
     const ctx = {
       on: (name: string, handler: Hook) => local.on(name, handler),
       tools: {
@@ -144,7 +150,9 @@ export function fakeWorkerHost() {
       cancel() { agent.cancelled = true; },
     };
     lastAgent = agent;
-    await options.setup(ctx, agent); await hooks.emit('agent/created', { agent });
+    await options.setup(ctx, agent);
+    if (setupHook) await setupHook(agent as FakeAgent, { emit, request: () => local.waterfall('agent/request', [{}], async () => ({})) });
+    await hooks.emit('agent/created', { agent });
     persisted.set(id, stored); live.set(id, agent);
     if (resume) resumes++; else creates++;
     return { agent, async dispose() { disposals++; trace.push('dispose'); agent.cancel({ kind: 'hook', reason: 'disposed' }); try { await idle; } catch { /* run error is reported by the driver */ } live.delete(id); if (failDispose) throw new Error('Native dispose failed'); } };
@@ -169,11 +177,14 @@ export function fakeWorkerHost() {
   return {
     ctx, live, persisted, presets, trace, requests, assemblies, titles, factory, messages,
     agent: () => lastAgent!,
-    counts: () => ({ creates, resumes, disposals, followups }),
+    counts: () => ({ creates, resumes, disposals, followups, attempts: creationAttempts }),
     setSteps(value: number) { steps = value; },
     setCandidate(value: unknown) { candidate = value; },
     setUsage(value: number | undefined) { outputTokens = value; },
     failDispose() { failDispose = true; },
+    setCreateFault(error: Error) { createFault = error; },
+    setCreateGate(promise: Promise<void>) { createGate = promise; },
+    setSetupHook(hook: typeof setupHook) { setupHook = hook; },
     /** Simulate the model's tool call for this turn (the native loop executes it). */
     toolCall(name: string, args: Record<string, unknown>) { call = { name, args }; },
     async uiResume(id: string) { const stored = persisted.get(id)!; if (!presets.has(stored.header.agentPreset as string)) throw new Error('Unknown agent preset'); return make({ resumeSessionId: id, setup: () => {} }, true); },
