@@ -47,6 +47,19 @@ export function statusTool(service: { snapshot(): Promise<unknown> }) {
  * receipt in status diagnostics. It does not run a task, request a model, send
  * anything, or write business state.
  */
+export function coreToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_diagnose_core_event_tools',
+    description: '零模型诊断：创建并立即释放一个受限 core 决策会话，核验事件工具挂载与无模型活动；不执行 Goal/Task、不发送、不写业务库。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-core-event-tools' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  };
+}
 export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_diagnose_worker_tools',
@@ -74,4 +87,5 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   // Explicit zero-model diagnosis of the restricted worker tool surface; the
   // product never calls a model here and the probe Session is released at once.
   ctx.effect(() => ctx.tools.register(workerToolDiagnosisTool(service)));
+  ctx.effect(() => ctx.tools.register(coreToolDiagnosisTool(service)));
 }

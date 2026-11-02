@@ -719,3 +719,34 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/channel-
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h2c-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts tests/core-goal-sessions.test.ts
 ```
+
+## 21. Lead 集成：H6b 渠道桥与 H2c core 事件工具接入 Runtime/Worker
+
+状态：**离线集成通过（G1：隔离全量 check + 定向）**；固定宿主新投影/core 探针未验。2026-11-02 完成并审阅。
+
+### 21.1 集成内容
+
+- `worker.ts`：ConversationDomain 构造后安装 `ingress.setInvalidationSink(...)`，把 `channelRef/reasonRef/sourceWatermark` 在同一事务内转给 `ConversationDomain.bridgeChannelInvalidation`；绑定出现后回填引用。这样 H6b 的失效桥在生产 Worker 真正生效（此前只有离线单测）。
+- `runtime.ts`：
+  - 在 ControlStore 打开后构造 `ChannelRuntimeBridge`，`snapshot()` 增加只读、无正文的 `channels` 投影；
+  - 在 EventService 后构造受信 per-Goal `CoreDecisionEventToolFactory` 并传入 `LocalCoreOptions.eventTools`（不接工厂时保持 H1 历史零工具/单请求路径）；
+  - 新增 owner-only 零模型 `runtime.probe-core-event-tools`（沿用 session.probe 准入；回执写入 `snapshot().diagnostics.coreEventToolProbe`）；
+  - H2a 的 worker 探针命令保持。
+- `index.ts`：导出并注册 `shiyu_diagnose_core_event_tools`（无参数、非并发安全），执行且仅执行 `runtime.probe-core-event-tools`。
+- 测试：`channel-bridge-worker` 适配“Worker 已内置同事务 sink”的新行为（pull 路径用绑定后仍有 pending 的频道覆盖）；`host-diagnostics-tool` 增加 core 诊断命令契约。
+
+### 21.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| Lead `scripts/slice-verify.mjs`（HEAD `26bda0e` + 仅 5 个集成文件） | exit 0；**1376/1376 通过，0 失败/跳过**（= 1375 + 1 tool-definition test）；证据 `artifacts/dsh/slices/h6b-h2c-integration-verify.json` |
+| 定向 | 145/145：runtime、host-status（新增 channels key 后快照仍无损）、host diagnostics、channel bridge（host+worker）、core event tools、core plan/local-core、events worker mount/paths；0 失败/0 跳过 |
+| 已知限制 | `ChannelRuntimeProjection.pending.unapplied` 使用全局最小 applied watermark，多绑定不同水位时会偏大（逐绑定幂等由 `bridgePending` 保证）；记录为后续投影细化项 |
+| 证据级别 | G1 集成 + 隔离全量 check；固定宿主新投影/core 探针下一步验证 |
+
+### 21.3 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <integration-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.test.ts tests/channel-bridge*.test.ts tests/host-diagnostics-tool.test.ts
+```

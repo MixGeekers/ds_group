@@ -11,7 +11,9 @@ import type { DshContext, SessionStatus, ProbeResult, ReplyRequest, ReplyResult,
 import { LocalStateFile } from './recovery/local-state.js';
 import { systems } from './health/systems.js';
 import { WorkerSessionDriver, type WorkerEventToolProbeResult } from './adapters/dsh/workers.js';
-import { createWorkerEventToolSource } from './adapters/dsh/event-tools.js';
+import { createCoreEventTools, createWorkerEventToolSource } from './adapters/dsh/event-tools.js';
+import type { CoreDecisionEventToolFactory, CoreDecisionEventToolProbeResult } from './adapters/dsh/goals.js';
+import { ChannelRuntimeBridge } from './control/channels/index.js';
 import { EventDeliveryCoordinator } from './control/events/index.js';
 import { LocalArtifactStore } from './adapters/artifacts/index.js';
 import { LocalTaskRunner } from './control/task-runner.js';
@@ -70,6 +72,8 @@ export interface CoreDriver {
   evaluatePending(input?: { signal?: AbortSignal }): Promise<CoreEvaluationResult>;
   cancelGoal(goalId: string, reason?: unknown): void;
   cancelAll(reason?: unknown): void;
+  /** H2c trusted zero-model core event-tool mount diagnostic; absent = unsupported. */
+  probeCoreEventTools?(options: { signal?: AbortSignal; cwd?: string; scope?: string }): Promise<CoreDecisionEventToolProbeResult>;
   close(): Promise<void>;
 }
 export interface RuntimeOptions {
@@ -110,6 +114,8 @@ export class RuntimeService {
   events!: EventService;
   /** H2a: durable delivery coordination for trusted Agent/component targets. */
   eventDeliveries?: EventDeliveryCoordinator;
+  /** H6b: channel bindings, invalidation bridge and read-only projection. */
+  channels!: ChannelRuntimeBridge;
   sessions!: SessionDriver;
   workers!: TaskWorkerDriver;
   artifacts!: LocalArtifactStore;
@@ -117,6 +123,7 @@ export class RuntimeService {
   goals!: GoalLifecycleDriver;
   background!: BackgroundPump;
   private lastEventToolProbe?: WorkerEventToolProbeResult;
+  private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
   private core?: CoreDriver;
   private corePump?: CorePump;
   private coreFailure?: string;
@@ -180,6 +187,7 @@ export class RuntimeService {
       this.store = await ControlStore.open({ filename: path.join(this.dataDir, 'control', 'events.sqlite'), eventTypes: catalog, componentHandlers: ['runtime.activity', 'conversation.background'], runtimeIdentity: { hostEpoch: this.instanceId, installationGeneration: this.state.state.installationGeneration! },
         localNoteBinding,
         ...(this.memoryConfig ? { memoryBackend: { backendId: this.memoryConfig.backendId, deploymentId: this.memoryConfig.deploymentId } } : {}) });
+      this.channels = new ChannelRuntimeBridge(this.store);
       try {
         const initialAbility = await this.store.request('ability.snapshot', {});
         await this.store.request('ability.observeLocalNote', { requestId: `ability-startup-${this.instanceId}`, expectedRevision: initialAbility.revision,
@@ -213,6 +221,16 @@ export class RuntimeService {
           onPublished: () => { void this.background?.wake(); },
         }));
       } catch (error) { this.lastFailure = error instanceof Error ? error.message : String(error); }
+      // H2c: trusted per-Goal core event tools. Absent factory keeps the historical
+      // single-request zero-tool core decision path unchanged.
+      const coreEventTools: CoreDecisionEventToolFactory = binding => createCoreEventTools({
+        service: this.events,
+        reportTypes: ['agent.observation.reported'],
+        principal: { principalId: `core:${binding.goalId}`, kind: 'agent', scopes: [binding.scope],
+          publishTypes: ['agent.observation.reported'],
+          subscribeTypes: SHIYU_EVENT_TYPES.map(type => type.type), targetRefs: [] },
+        onPublished: () => { void this.background?.wake(); },
+      });
       this.sessions = this.options.sessionFactory?.(this.ctx, this.state, path.join(this.dataDir, 'workspaces')) ?? new ShiyuSessionAdapter({
         ctx: this.ctx, cwd: path.join(this.dataDir, 'workspaces'),
         bindings: { load: async () => structuredClone(this.state.state.bindings), save: bindings => this.state.update(state => { state.bindings = structuredClone(bindings); }) },
@@ -261,6 +279,7 @@ export class RuntimeService {
         try {
           const coreOptions: LocalCoreOptions = { ctx: this.ctx, store: this.store, bindings: goalOptions.bindings, artifacts: this.artifacts,
             assertRuntimeAllowed: () => this.ensureCanRun(), hasCapacity: () => this.operations.size + this.pendingAdmissions <= 2,
+            eventTools: coreEventTools,
             onGoalStopped: goal => {
               for (const { taskId } of goal.taskRefs) this.operations.get(taskId)?.controller.abort(new Error('Owner stopped the task Goal'));
             } };
@@ -431,6 +450,33 @@ export class RuntimeService {
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
+  /** Zero-model, read-only core event-tool mount diagnostic (same admission
+   * semantics as session.probe: unavailable while globally paused). */
+  private async commandCoreEventToolProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core event tool probe input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '检查 core 事件工具受限挂载', phase: '零模型装配与释放',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      if (typeof this.core?.probeCoreEventTools !== 'function') throw new Error('CORE_EVENT_TOOL_PROBE_UNAVAILABLE');
+      const core = this.core;
+      const result = await core.probeCoreEventTools!({ signal: op.controller.signal,
+        cwd: path.join(this.dataDir, 'workspaces'), scope: 'local-owner' });
+      this.ensureCanRun(); op.controller.signal.throwIfAborted();
+      this.lastCoreEventToolProbe = structuredClone(result);
+      this.lastFailure = undefined;
+      return { ...result, zeroModel: true, readOnly: true, sent: false };
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private async record(type: string, message: string, status: string): Promise<void> {
     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });
     // This component's only effect is a readable event-backed activity projection.
@@ -502,7 +548,7 @@ export class RuntimeService {
   }
   async snapshot() {
     this.ensureOpen();
-    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection, core, lab, ability] = await Promise.all([
+    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection, core, lab, ability, channelProjection] = await Promise.all([
       this.store.info(), this.events.stats(principal), this.events.listEvents(principal, { limit: 40 }),
       this.events.listSubscriptions(principal), this.sessions.getStatus(),
       this.store.request('task.list', {}),
@@ -511,6 +557,7 @@ export class RuntimeService {
       this.coreSnapshot(),
       this.labSnapshot(),
       this.abilitySnapshot(),
+      this.channels.snapshot(),
     ]);
     const at = new Date().toISOString();
     const probe = this.state.state.lastProbe;
@@ -534,6 +581,7 @@ export class RuntimeService {
       core,
       lab,
       ability,
+      channels: channelProjection,
       conversations: conversations.conversations,
       innerProjection: innerProjection ?? null,
       memory: { configured: Boolean(this.memoryConfig) || Boolean(this.memoryFailure), ready: memoryReady,
@@ -543,7 +591,8 @@ export class RuntimeService {
         ...(memoryError ? { errorCode: memoryError } : {}), ...(memoryBackend ? { backend: memoryBackend } : {}), entries: memoryEntries },
       diagnostics: { contextVerification: this.state.state.lastContextVerification ? structuredClone(this.state.state.lastContextVerification) : null,
         contextSafety: structuredClone(this.contextSafety),
-        eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null },
+        eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,
+        coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null },
       background: { ...conversations.background, ...backgroundState },
       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
@@ -589,6 +638,7 @@ export class RuntimeService {
     if (action === 'memory.rememberLocal' || action === 'memory.readLocal' || action === 'memory.withdrawLocal') return this.commandLocalMemory(value, signal);
     if (action === 'memory.indexLocal' || action === 'memory.searchLocal') return this.commandSemanticMemory(value, signal);
     if (action === 'runtime.probe-event-tools') return this.commandEventToolProbe(value, signal);
+    if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
     if (action === 'runtime.resume') return this.setPaused(false);
     if (action === 'conversation.linkLocalTask') {

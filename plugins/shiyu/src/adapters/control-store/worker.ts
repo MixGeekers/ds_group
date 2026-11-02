@@ -25,6 +25,7 @@ import { CoreDomain } from './core-domain.js';
 import type { CoreDomainRequest } from '../../contracts/core.js';
 import { LabDomain } from './lab-domain.js';
 import { IngressDomain } from './ingress-domain.js';
+import { channelBridgeReason } from '../../control/channels/bridge.js';
 import type { ChannelDomainRequest } from '../../contracts/channel.js';
 import type { LocalReplyOperation } from './local-reply-domain.js';
 import type { LabDomainRequest } from '../../contracts/lab.js';
@@ -741,6 +742,12 @@ function initialize(): void {
         },
         ack: input => ack(actor, input), fail: input => failDelivery(actor, input),
       },
+    });
+    // H6b: channel invalidations must land in the conversation store inside the
+    // same transaction as the channel audience change so drafts cannot survive.
+    if (ingress) ingress.setInvalidationSink(signal => {
+      conversations!.bridgeChannelInvalidation({ channelRef: signal.conversationRef,
+        reasonRef: channelBridgeReason(signal), sourceWatermark: signal.watermark });
     });
     publication = new StatePublicationStore(db, transactions, { publisherIds: ['shiyu-state-service'] });
     statePublisher = createStatePublisher('shiyu-state-service');

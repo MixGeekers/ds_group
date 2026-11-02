@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h6b-h2c-integration",
+  "capturedAt": "2026-11-02T20:59:07.951Z",
+  "head": "d4408c8ad6f58890d8d9e81d4fb83edd4c4a3882",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h6b-h2c-integration-1793652882024",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 82378,
+      "sha256": "301228a24d3c3a68eea0b6cb61d61730715200bb6d669e653663d93085a17659"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+      "bytes": 61999,
+      "sha256": "db03a77cbd8423f6ded92ceea68b2f07b0b2b51f79852c26a29c4c7d60452969"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 5186,
+      "sha256": "3ad97876306a1b06cb018aa62463cfb4d04b7ba1c0ceec2c2e2b2933f9c89abd"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-bridge-worker.test.ts",
+      "bytes": 20192,
+      "sha256": "950d34f2db2af75821ef62060d624ea009b9a26642322b05f03648306127da92"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 3073,
+      "sha256": "707c02b55482f1297265cf85d54e35af6335a8ece7e31e30ddd317120c940b6b"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 265535,
+    "bytes": 150291,
+    "sha256": "68fb9d8c8679f8e5bb532467749021e87942ec57973c1c0aeb44f213cf358995",
+    "tests": {
+      "tests": 1376,
+      "pass": 1376,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 264537.421542",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h6b-h2c-integration.log",
+    "bytes": 150291,
+    "sha256": "68fb9d8c8679f8e5bb532467749021e87942ec57973c1c0aeb44f213cf358995"
+  },
+  "verdict": "pass"
+}

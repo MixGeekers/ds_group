@@ -72,8 +72,13 @@ test('real Worker IPC persists an idempotent channel binding and applies invalid
   assert.equal((await f.store.request('conversation.channelBindings', {})).length, 1);
   await f.store.request('channel.updateAudience', { conversationRef: channel.conversationRef,
     participants: [{ nativeParticipantId: 'u1', kind: 'human' }], reasonRef: 'synthetic:worker-members', expectedAudienceVersion: 0 });
+  // The integrated Worker installs the invalidation sink, so the audience change
+  // already reached the conversation store inside the same transaction.
+  const viaSink = (await f.bridge.bindings())[0]!;
+  assert.equal(viaSink.appliedInvalidationWatermark, 1);
+  assert.equal(viaSink.conversation.audienceVersion, 2);
   const applied = await f.bridge.invalidate({ channelRef: channel.conversationRef, reasonRef: 'synthetic:worker-invalidate', sourceWatermark: 1 });
-  assert.equal(applied.applied, true); assert.equal(applied.binding.appliedInvalidationWatermark, 1);
+  assert.equal(applied.applied, false); assert.equal(applied.binding.appliedInvalidationWatermark, 1);
   assert.equal(applied.binding.conversation.audienceVersion, 2);
   const replay = await f.bridge.invalidate({ channelRef: channel.conversationRef, reasonRef: 'synthetic:worker-replay', sourceWatermark: 1 });
   assert.equal(replay.applied, false); assert.equal(replay.binding.conversation.audienceVersion, 2);
@@ -87,7 +92,7 @@ test('real Worker IPC persists an idempotent channel binding and applies invalid
   await assert.rejects(() => f.bridge.bind({ channelRef: channel.conversationRef, scope: 'local-owner', conversationId: first.conversationId, expectedBindingVersion: 0 }), code('VERSION_CONFLICT'));
 });
 
-test('the host bridge applies pending invalidations after a restart without duplicate conversation changes', async t => {
+test('the worker sink applies invalidations in-transaction and the pull bridge stays idempotent across restart', async t => {
   const f = await fixture(t);
   const alpha = await f.store.request('channel.registerConnection', registration('acct-alpha'));
   const group = conversation('worker-pending-group', 'group');
@@ -98,32 +103,40 @@ test('the host bridge applies pending invalidations after a restart without dupl
   await f.store.request('channel.ingest', { connectionId: alpha.connectionId, conversation: group, events: [createEvent('pending-message')] });
   const deletion = await f.store.request('channel.ingest', { connectionId: alpha.connectionId, conversation: group, events: [tombstoneEvent('pending-message', 2, 'message.retract')] });
   assert.equal(deletion.results[0]!.status, 'accepted');
-  // The Worker does not yet have the sink wired (Lead integration): the pull
-  // bridge sees two pending invalidations and applies both exactly once.
-  const pendingBefore = await f.bridge.bindings();
-  assert.equal(pendingBefore[0]!.appliedInvalidationWatermark, 0);
-  const snapshotBefore = await f.bridge.snapshot();
-  assert.equal(snapshotBefore.pending.unapplied, 2);
-  assert.equal(snapshotBefore.pending.unbound, 0);
-  const applied = await f.bridge.bridgePending();
-  assert.deepEqual([applied.scanned, applied.applied, applied.skippedUnbound], [2, 2, 0]);
-  const after = (await f.bridge.bindings())[0]!;
-  assert.equal(after.appliedInvalidationWatermark, 2);
-  assert.equal(after.conversation.audienceVersion, 3, 'one audience change plus one deletion invalidation');
+  // The integrated Worker sink applies both invalidations inside their transactions.
+  const viaSink = (await f.bridge.bindings())[0]!;
+  assert.equal(viaSink.appliedInvalidationWatermark, 2);
+  assert.equal(viaSink.conversation.audienceVersion, 3, 'one audience change plus one deletion invalidation');
   assert.equal((await f.bridge.snapshot()).pending.unapplied, 0);
   const noop = await f.bridge.bridgePending();
-  assert.equal(noop.applied, 0);
+  assert.deepEqual([noop.scanned, noop.applied], [0, 0]);
+  // Pull path: a channel invalidated before its binding still receives the
+  // pending watermark exactly once when the binding appears.
+  const groupB = conversation('worker-pending-group-b', 'group');
+  const channelB = await f.store.request('channel.ensureConversation', { connectionId: alpha.connectionId, conversation: groupB, reasonRef: 'synthetic:pending-b' });
+  await f.store.request('channel.updateAudience', { conversationRef: channelB.conversationRef,
+    participants: [{ nativeParticipantId: 'u2', kind: 'human' }], reasonRef: 'synthetic:pending-b-join', expectedAudienceVersion: 0 });
+  await f.bridge.bind({ channelRef: channelB.conversationRef, scope: 'local-owner' });
+  const pendingB = await f.bridge.snapshot();
+  // The projection's pending.unapplied uses the global minimum applied watermark
+  // (binding A applied 1-2, binding B starts at 0), so it lists all three ledger
+  // rows; the per-binding idempotency is applied by bridgePending below.
+  assert.equal(pendingB.pending.unapplied, 3); assert.equal(pendingB.pending.unbound, 0);
+  const pulled = await f.bridge.bridgePending();
+  assert.deepEqual([pulled.scanned, pulled.applied, pulled.skippedUnbound], [3, 1, 0]);
+  assert.equal((await f.bridge.bridgePending()).applied, 0);
   // Restart: binding identity/version/watermark and conversation audience persist.
   await f.store.close();
   const store = await f.open();
   const bridge = new ChannelRuntimeBridge(store);
   const reopened = await bridge.bindings();
-  assert.equal(reopened.length, 1); assert.equal(reopened[0]!.conversationId, binding.conversationId);
-  assert.equal(reopened[0]!.version, 1); assert.equal(reopened[0]!.appliedInvalidationWatermark, 2);
-  assert.equal(reopened[0]!.conversation.audienceVersion, 3);
+  assert.equal(reopened.length, 2);
+  const reopenedA = reopened.find(value => value.channelRef === channel.conversationRef)!;
+  assert.equal(reopenedA.conversationId, binding.conversationId);
+  assert.equal(reopenedA.version, 1); assert.equal(reopenedA.appliedInvalidationWatermark, 2);
+  assert.equal(reopenedA.conversation.audienceVersion, 3);
   assert.equal((await bridge.bind({ channelRef: channel.conversationRef, scope: 'local-owner' })).duplicate, true);
   assert.equal((await bridge.bridgePending()).applied, 0);
-  assert.equal((await bridge.snapshot()).pending.unapplied, 0);
 });
 
 test('the projection is bounded, lossless JSON and strictly read-only across the real Worker', async t => {
@@ -209,11 +222,12 @@ test('two-phase content and cross-audience refusal hold through the Worker after
   await f.store.request('channel.updateAudience', { conversationRef: a.conversationRef, participants: [{ nativeParticipantId: 'u1', kind: 'human' }],
     reasonRef: 'synthetic:content-members', expectedAudienceVersion: 0 });
   await assert.rejects(f.store.request('channel.readContentRefs', { captureId: capture.captureId, messageIds: [aMessage.messageId!] }), code('STALE_AUDIENCE'));
-  const pending = await f.bridge.bridgePending();
-  assert.equal(pending.applied, 1);
+  // The integrated sink already applied the audience invalidation in-transaction.
   const binding = (await f.bridge.bindings())[0]!;
   assert.equal(binding.appliedInvalidationWatermark, 1);
   assert.equal(binding.conversation.audienceVersion, 2);
+  const pending = await f.bridge.bridgePending();
+  assert.equal(pending.applied, 0);
 });
 
 test('rejected bridge operations leave the real durable state untouched', async t => {
