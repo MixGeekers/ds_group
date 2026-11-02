@@ -1,0 +1,389 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.selfproof",
+  "generatedAt": "2026-11-02T18:52:35.693Z",
+  "harnessVersion": "0.1.0",
+  "selfProofCorpus": "h0-selfproof-1",
+  "pluginRoot": "<plugin-root>",
+  "command": [
+    "node",
+    "--import",
+    "tsx",
+    "scripts/harness/selfproof.mjs"
+  ],
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "expectedFiles": [
+    "tests/harness-faults.test.ts",
+    "tests/harness-manifest.test.ts",
+    "tests/harness-observer.test.ts",
+    "tests/harness-oracles.test.ts",
+    "tests/harness-selfproof.test.ts",
+    "tests/harness-traceability.test.ts"
+  ],
+  "files": [
+    {
+      "path": "tests/harness-faults.test.ts",
+      "sha256": "60c629cafa17dead70a795d686303ad376f23979bb41c31164ce72c8a0587aab",
+      "exitCode": 0,
+      "ok": true,
+      "tests": [
+        {
+          "name": "faults:deadline-real-timer",
+          "ok": true
+        },
+        {
+          "name": "faults:deadline-manual-and-combined-signals",
+          "ok": true
+        },
+        {
+          "name": "faults:fault-injector-deterministic-plan",
+          "ok": true
+        },
+        {
+          "name": "faults:fault-injector-abort-and-guards",
+          "ok": true
+        },
+        {
+          "name": "faults:business-clock-utc-recurrence",
+          "ok": true
+        },
+        {
+          "name": "faults:business-clock-deterministic-timer-queue",
+          "ok": true
+        }
+      ],
+      "pass": 6,
+      "fail": 0,
+      "durationMs": 111,
+      "tapSha256": "680b420e7d0364c95ffb28fe09f6e72ba3b494d64a85dc050452ed2e2adbdc0e"
+    },
+    {
+      "path": "tests/harness-manifest.test.ts",
+      "sha256": "106615e54f0e87a7c6c39ae0d59de4f5fca350e9b285a1e385c1662380a97476",
+      "exitCode": 0,
+      "ok": true,
+      "tests": [
+        {
+          "name": "manifest:builds-hashed-sanitized-evidence",
+          "ok": true
+        },
+        {
+          "name": "manifest:sanitizer-rejects-leaks",
+          "ok": true
+        },
+        {
+          "name": "manifest:cli-temp-root-and-atomic-write",
+          "ok": true
+        },
+        {
+          "name": "manifest:verify-detects-drift",
+          "ok": true
+        }
+      ],
+      "pass": 4,
+      "fail": 0,
+      "durationMs": 519,
+      "tapSha256": "f63fcb83b0400eee57f3af3d529a13d2ad11eb1b2bbfeab6b8d0e628ff839813"
+    },
+    {
+      "path": "tests/harness-observer.test.ts",
+      "sha256": "6a8d602684e39bc26f1f0347ed5288f14e20fad2dbb3c5e48e98f5dbd21c6606",
+      "exitCode": 0,
+      "ok": true,
+      "tests": [
+        {
+          "name": "observer:ledger-append-read-roundtrip",
+          "ok": true
+        },
+        {
+          "name": "observer:ledger-real-sqlite-child-crash-survives",
+          "ok": true
+        },
+        {
+          "name": "observer:effect-ledger-lost-receipt",
+          "ok": true
+        },
+        {
+          "name": "observer:observer-independence-and-alignment",
+          "ok": true
+        },
+        {
+          "name": "observer:ledger-tamper-evidence",
+          "ok": true
+        }
+      ],
+      "pass": 5,
+      "fail": 0,
+      "durationMs": 217,
+      "tapSha256": "61063c5b5eb38df887784c14fbca683188c41572840e7fa4997c6a5b617cb287"
+    },
+    {
+      "path": "tests/harness-oracles.test.ts",
+      "sha256": "fcab2bd31d87dd8945213a536cf65034488212223869f49b648557e9364b7268",
+      "exitCode": 0,
+      "ok": true,
+      "tests": [
+        {
+          "name": "oracle-manifest:contract",
+          "ok": true
+        },
+        {
+          "name": "oracle:lossless-json",
+          "ok": true
+        },
+        {
+          "name": "oracle:json-text",
+          "ok": true
+        },
+        {
+          "name": "oracle:schema",
+          "ok": true
+        },
+        {
+          "name": "oracle:cas",
+          "ok": true
+        },
+        {
+          "name": "oracle:state-machine",
+          "ok": true
+        },
+        {
+          "name": "oracle:counts",
+          "ok": true
+        },
+        {
+          "name": "oracle:causal",
+          "ok": true
+        },
+        {
+          "name": "oracle:version",
+          "ok": true
+        },
+        {
+          "name": "oracle:authority",
+          "ok": true
+        },
+        {
+          "name": "oracle:canary",
+          "ok": true
+        },
+        {
+          "name": "oracle:deadline",
+          "ok": true
+        },
+        {
+          "name": "oracle:business-clock",
+          "ok": true
+        },
+        {
+          "name": "oracle:fault-injection",
+          "ok": true
+        },
+        {
+          "name": "oracle:observer-ledger",
+          "ok": true
+        },
+        {
+          "name": "oracle:observer-counter",
+          "ok": true
+        },
+        {
+          "name": "oracle-selfproof:aggregate",
+          "ok": true
+        },
+        {
+          "name": "selfproof:framework-rejects-accepting-oracle",
+          "ok": true
+        },
+        {
+          "name": "selfproof:lossless-json-detects-host-snapshot-defect",
+          "ok": true
+        }
+      ],
+      "pass": 19,
+      "fail": 0,
+      "durationMs": 223,
+      "tapSha256": "ac496c3881954ced31cb95aa1eb2f794fed159c71a5d5bd76ba241d6e1392186"
+    },
+    {
+      "path": "tests/harness-selfproof.test.ts",
+      "sha256": "9df4342bc2cbfdb3703f38bc28512ac10f4b50cf89ad6c995e45403fb482e2e6",
+      "exitCode": 0,
+      "ok": true,
+      "tests": [
+        {
+          "name": "selfproof:tap-parser",
+          "ok": true
+        },
+        {
+          "name": "selfproof:artifact-honesty-validation",
+          "ok": true
+        },
+        {
+          "name": "selfproof:artifact-staleness-detection",
+          "ok": true
+        },
+        {
+          "name": "docs:readme-contract",
+          "ok": true
+        }
+      ],
+      "pass": 4,
+      "fail": 0,
+      "durationMs": 126,
+      "tapSha256": "a2e636a9233d913aab66ba8a8bef8dbef6d9128cb19c1b2c586bb5fb18b0bd3a"
+    },
+    {
+      "path": "tests/harness-traceability.test.ts",
+      "sha256": "3ee40aa48835c6aeecc929b8861c6b01be9f8824cb80fdceb5711110b5a9d40f",
+      "exitCode": 0,
+      "ok": true,
+      "tests": [
+        {
+          "name": "traceability:registry-complete-and-sourced",
+          "ok": true
+        },
+        {
+          "name": "traceability:statuses-are-evidence-derived",
+          "ok": true
+        },
+        {
+          "name": "traceability:cli-generates-json-and-markdown",
+          "ok": true
+        },
+        {
+          "name": "traceability:rejects-unsupported-pass-claims",
+          "ok": true
+        }
+      ],
+      "pass": 4,
+      "fail": 0,
+      "durationMs": 391,
+      "tapSha256": "df5d3d9efba644f45dd4a2b7ad24ca7a367477a245626dbec36c18c290965549"
+    }
+  ],
+  "totals": {
+    "pass": 42,
+    "fail": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "todo": 0,
+    "files": 6
+  },
+  "passed": true,
+  "failures": [],
+  "oracleSelfProofs": [
+    {
+      "name": "lossless-json",
+      "testName": "oracle:lossless-json",
+      "verified": true
+    },
+    {
+      "name": "json-text",
+      "testName": "oracle:json-text",
+      "verified": true
+    },
+    {
+      "name": "schema",
+      "testName": "oracle:schema",
+      "verified": true
+    },
+    {
+      "name": "cas",
+      "testName": "oracle:cas",
+      "verified": true
+    },
+    {
+      "name": "state-machine",
+      "testName": "oracle:state-machine",
+      "verified": true
+    },
+    {
+      "name": "counts",
+      "testName": "oracle:counts",
+      "verified": true
+    },
+    {
+      "name": "causal",
+      "testName": "oracle:causal",
+      "verified": true
+    },
+    {
+      "name": "version",
+      "testName": "oracle:version",
+      "verified": true
+    },
+    {
+      "name": "authority",
+      "testName": "oracle:authority",
+      "verified": true
+    },
+    {
+      "name": "canary",
+      "testName": "oracle:canary",
+      "verified": true
+    },
+    {
+      "name": "deadline",
+      "testName": "oracle:deadline",
+      "verified": true
+    },
+    {
+      "name": "business-clock",
+      "testName": "oracle:business-clock",
+      "verified": true
+    },
+    {
+      "name": "fault-injection",
+      "testName": "oracle:fault-injection",
+      "verified": true
+    },
+    {
+      "name": "observer-ledger",
+      "testName": "oracle:observer-ledger",
+      "verified": true
+    },
+    {
+      "name": "observer-counter",
+      "testName": "oracle:observer-counter",
+      "verified": true
+    }
+  ],
+  "sourceHashes": {
+    "tests/harness/authority.ts": "ebd847d7bc39f895ae06782de5756134d7c1b3fad694227068b427f43310db37",
+    "tests/harness/cas.ts": "193b125c78abb6ea1c55e5e9b973003a966c0dcc6d85890419699bcf753b8871",
+    "tests/harness/causal.ts": "e20489f3fe613ecfeb468210bbd8a942c6cb3cd92b3c2cd514f862ae2765b887",
+    "tests/harness/counts.ts": "11d07f1f8722d7b37d5478b902346fbfbf142211ac1071459167e32d614848a8",
+    "tests/harness/faults.ts": "81c4fe15eabe638670d05e0c105d5f7d4d81d7f8a3f07530d006cbe24ab0fa21",
+    "tests/harness/fixtures/crash-child.ts": "a3c701bfdb12efc5313853b3da535fa9aa43b01576bc90fdd9966b49325a11c4",
+    "tests/harness/index.ts": "9c9fba753d8c77d74b9766b081d8c3873d22e735bad669fad3bb752e56f7f4e2",
+    "tests/harness/invariant.ts": "ce0e8d7fe22647d2c0455cd09e94086a235debf87ff11e9fbe9253cb69431a42",
+    "tests/harness/json.ts": "316edb66abac36530cac28e53e7b78a7652c5f343c212232e9444a24a6474c38",
+    "tests/harness/manifest.ts": "c3f918c8b6542167bc1a249fcefe91d97983b3e7b1e28d2daff5bb25d2e8cc9e",
+    "tests/harness/observer.ts": "c3fe0e8b5827e7b0100b81e96b08df828a1515225ac811e57e541a07466f0f43",
+    "tests/harness/README.md": "fdabe0858fe112d0202d26fc8be320d5faefe51f227ce5e0c85bcfc825bacd51",
+    "tests/harness/schema.ts": "4974d7a4ecf5ec016e1bd1a065b609c70693ef2083f834ca2ebc724e915b638e",
+    "tests/harness/selfproof.ts": "5a1afb2fe14f920d62e92409e154f9d0e2edb047ad291973c2863dc1fccea8d1",
+    "tests/harness/state-machine.ts": "6e161961326f2c9cc7663b1d8ce9209ac1a9957d67abe1e4f99be38959d4dabd",
+    "tests/harness/traceability-registry.ts": "c5b702cf67a4d4e8c87ffd3649460b0da14f1ea2386b4653aebaefd8e518e5fd",
+    "tests/harness/traceability-types.ts": "704462048a6c53eeb6817230c21e3f5e2b25db932e2d205054ac340ebb6576d1",
+    "tests/harness/traceability.ts": "b1296784c636b350815bf91bf9b903609e885d9b7c027388d4f21f4521671a93",
+    "tests/harness/version-domains.ts": "aea470dbed7fb6c2f2e9f25bfabaa748e225b17a1a7952ff8d0d1c8bdf8f5b5a",
+    "tests/harness/version.ts": "e2efad9e53741dcb2e51d5fe093e0f2f5e3b8021f815db446894e7d6e7f540cd",
+    "tests/harness-faults.test.ts": "60c629cafa17dead70a795d686303ad376f23979bb41c31164ce72c8a0587aab",
+    "tests/harness-manifest.test.ts": "106615e54f0e87a7c6c39ae0d59de4f5fca350e9b285a1e385c1662380a97476",
+    "tests/harness-observer.test.ts": "6a8d602684e39bc26f1f0347ed5288f14e20fad2dbb3c5e48e98f5dbd21c6606",
+    "tests/harness-oracles.test.ts": "fcab2bd31d87dd8945213a536cf65034488212223869f49b648557e9364b7268",
+    "tests/harness-selfproof.test.ts": "9df4342bc2cbfdb3703f38bc28512ac10f4b50cf89ad6c995e45403fb482e2e6",
+    "tests/harness-traceability.test.ts": "3ee40aa48835c6aeecc929b8861c6b01be9f8824cb80fdceb5711110b5a9d40f"
+  },
+  "rawTap": {
+    "path": "tool-selfproof.tap",
+    "sha256": "6a8e13642870b33442b401ea3a50773d44f9eff879107746a211155a589f7859",
+    "bytes": 8765
+  }
+}

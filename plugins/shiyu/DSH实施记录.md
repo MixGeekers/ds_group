@@ -110,7 +110,7 @@ Error: tool "shiyu_status" returned invalid output: value is not lossless JSON
 
 | 切片 | 目标 | 当前状态 |
 |---|---|---|
-| H0 接管与测试基线 | 基线、环境/宿主/SDK 身份、测试工具自证、草稿保存 | **固定宿主限定通过**（本文 §0/§1）；测试工具仍在扩展（task-2） |
+| H0 接管与测试基线 | 基线、环境/宿主/SDK 身份、测试工具自证、草稿保存 | **固定宿主限定通过**（本文 §0/§1）；测试工具已交付并经离线自证（§8，1201/1201） |
 | H1 原生会话长期复用 | 3J 长历史冷恢复、恢复基准、布局竞态、后续压缩/恢复/缓存计量 | **离线通过**（G1 模块+组合，1058/1058，见 §5）；固定宿主/压缩/缓存/有界真实长对话仍未验 |
 | H2 持久事件与多对话协作 | Agent 工具真实接线、四类发布/订阅组合、时间/外部源、背景唤醒、话题关联/受众安全 | 待 H1 后建立切片 |
 | H3 core 与目标任务扩展 | 受控计划、依赖任务、修正/重规划、更多已授权能力、独立核验 | 待建立 |
@@ -263,4 +263,40 @@ node --import tsx --test --test-concurrency=1 tests/recovery-*.test.ts
 ```
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-*.test.ts
+```
+
+## 8. H0b 切片：测试工具、判定器自证与覆盖追踪
+
+状态：**离线通过（G1 工具自证）**；只证明测试基础设施本身，产品 V/S/FL/九系统/宿主/模型语义/费用仍未运行（traceability 产品行 not_covered）。2026-11-02 完成并审阅。
+
+### 8.1 交付（35 文件）
+
+- `tests/harness/`（20 文件）：`invariant.ts`（CheckResult 契约 + 自证框架）、`json.ts`（无损 JSON / JSON 文本判定）、`schema.ts`、`cas.ts`（含 100 同版本恰 1 胜、写偏斜）、`state-machine.ts`、`counts.ts`（缺失计数≠0、90/100 不得宣称完成、调用数含压缩/重试、周期遗漏、静默窗口 0 模型调用）、`causal.ts`（效果账本对齐/因果链）、`version-domains.ts`、`version.ts`（版本域不得混同/只读不得推进 stateVersion）、`authority.ts`（权限/canary/正文冒充控制）、`faults.ts`（AbsoluteDeadline+AbortSignal、BusinessClock 含 DST 跳过/重复与 latest-only、命名断点 FaultInjector）、`observer.ts`（fsync append-only JSONL + 序号 + SHA256 链；截断尾/篡改可检出；执行一次丢回执=1 次效果且产品 unknown）、`manifest.ts`、`selfproof.ts`、`traceability*.ts`、`fixtures/crash-child.ts`、`index.ts`、`README.md`。
+- 根级主 glob 自证测试 6 文件 42 项（`tests/harness-*.test.ts`）；启动器 `scripts/harness/{manifest,selfproof,traceability}.mjs`；证据 `artifacts/dsh/harness/{manifest,tool-selfproof,traceability}.json` 等。
+- 判定器自证：15 个 oracle 共 145 个 known-verdict（41 accept / 104 reject）全部按预期；元测试注入“永远接受”的假 oracle 被框架判失败；`lossless-json` 能复现并拒绝 H0 修复前的宿主缺陷形态。
+- 覆盖追踪：103 行（九系统 9 + 02 §5 矩阵 9 + V01–V27 27 + S01–S08 8 + FL01–FL08 8 + H1–H8 8 + 02 §6.1–6.10 10 = 产品行 79 **全部 not_covered**；H0 侧 7 项 harness 能力 self_proven、8 项 tooling_ready、3 项未覆盖）。机器可读 `handoff` 规则：H0b 之后产品行由后续切片按其实际证据更新，禁止 tooling_ready 冒充通过。
+
+### 8.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| `tests/harness-*.test.ts` | **42/42 通过，0 失败/跳过**；145 known-verdict 全部符合预期 |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `2e04eb2` + 仅 35 个 H0b 文件，symlink node_modules 与 pinned Python） | exit 0；**1201/1201 通过，0 失败/跳过**（= 已提交基线 1159 + 42 harness）；证据 `artifacts/dsh/slices/h0b-verify.json`、日志 `.local/slice-verify-h0b.log` |
+| 实现者隔离 worktree（`92c857f` + H0b overlay） | exit 0；1100/1100（= H1 基线 1058 + 42），0 跳过；manifest/selfproof/traceability `--strict` 链生成 exit 0 |
+| 证据级别 | G1 工具自证；产品证据保持 not_covered，不把工具通过写成产品通过 |
+
+### 8.3 失败 / unknown / 未测
+
+1. 只证明工具本身；产品 V/S/FL/九系统/宿主/模型语义/费用未运行（traceability 产品行 79/79 not_covered）。
+2. 哈希链是完整性检测而非签名；同机同用户两个目录不是秘密隔离；假时钟是截止/发生边界，不替代真实 7 天运行；观察器未知项不填 0。
+3. manifest artifact 生成于 `92c857f + 未提交 H0b overlay` 的隔离树（vcs.dirty=true，dirtyEntries=9 如实记录）；提交后可在干净基线重生成 clean-VCS manifest 作为增量，不改变工具语义。
+
+### 8.4 复现
+
+```
+cd plugins/shiyu
+node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts
+node scripts/harness/manifest.mjs --out artifacts/dsh/harness/manifest.json
+node scripts/harness/selfproof.mjs --out artifacts/dsh/harness/tool-selfproof.json
+node scripts/harness/traceability.mjs --strict --out artifacts/dsh/harness/traceability.json
 ```

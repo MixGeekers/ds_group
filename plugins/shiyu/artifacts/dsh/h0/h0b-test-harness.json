@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "phase": "H0b",
+  "slice": "H0 test harness, oracle self-proof, manifest and traceability tooling",
+  "capturedAt": "2026-11-02T19:00:42.189Z",
+  "status": "offline-verified-tooling",
+  "purpose": "Deliver runnable test infrastructure per handoff 02 §1-§4: independent oracles that prove they reject known-wrong samples, fault injection, observer/effect ledger, manifest/evidence packaging, and requirement-to-test traceability that reports product rows as not covered instead of faking passes.",
+  "baseline": {
+    "head": "2e04eb2",
+    "note": "H0+H1+H5+H4 committed; 1159 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/README.md",
+      "bytes": 11293,
+      "sha256": "fdabe0858fe112d0202d26fc8be320d5faefe51f227ce5e0c85bcfc825bacd51"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/authority.ts",
+      "bytes": 18582,
+      "sha256": "ebd847d7bc39f895ae06782de5756134d7c1b3fad694227068b427f43310db37"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/cas.ts",
+      "bytes": 12823,
+      "sha256": "193b125c78abb6ea1c55e5e9b973003a966c0dcc6d85890419699bcf753b8871"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/causal.ts",
+      "bytes": 20141,
+      "sha256": "e20489f3fe613ecfeb468210bbd8a942c6cb3cd92b3c2cd514f862ae2765b887"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/counts.ts",
+      "bytes": 21322,
+      "sha256": "11d07f1f8722d7b37d5478b902346fbfbf142211ac1071459167e32d614848a8"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/faults.ts",
+      "bytes": 37238,
+      "sha256": "81c4fe15eabe638670d05e0c105d5f7d4d81d7f8a3f07530d006cbe24ab0fa21"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/fixtures/crash-child.ts",
+      "bytes": 4721,
+      "sha256": "a3c701bfdb12efc5313853b3da535fa9aa43b01576bc90fdd9966b49325a11c4"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/index.ts",
+      "bytes": 2146,
+      "sha256": "9c9fba753d8c77d74b9766b081d8c3873d22e735bad669fad3bb752e56f7f4e2"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/invariant.ts",
+      "bytes": 12269,
+      "sha256": "ce0e8d7fe22647d2c0455cd09e94086a235debf87ff11e9fbe9253cb69431a42"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/json.ts",
+      "bytes": 28071,
+      "sha256": "316edb66abac36530cac28e53e7b78a7652c5f343c212232e9444a24a6474c38"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/manifest.ts",
+      "bytes": 22444,
+      "sha256": "c3f918c8b6542167bc1a249fcefe91d97983b3e7b1e28d2daff5bb25d2e8cc9e"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/observer.ts",
+      "bytes": 39840,
+      "sha256": "c3fe0e8b5827e7b0100b81e96b08df828a1515225ac811e57e541a07466f0f43"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/schema.ts",
+      "bytes": 16455,
+      "sha256": "4974d7a4ecf5ec016e1bd1a065b609c70693ef2083f834ca2ebc724e915b638e"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/selfproof.ts",
+      "bytes": 17266,
+      "sha256": "5a1afb2fe14f920d62e92409e154f9d0e2edb047ad291973c2863dc1fccea8d1"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/state-machine.ts",
+      "bytes": 12134,
+      "sha256": "6e161961326f2c9cc7663b1d8ce9209ac1a9957d67abe1e4f99be38959d4dabd"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/traceability-registry.ts",
+      "bytes": 34736,
+      "sha256": "c5b702cf67a4d4e8c87ffd3649460b0da14f1ea2386b4653aebaefd8e518e5fd"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/traceability-types.ts",
+      "bytes": 1016,
+      "sha256": "704462048a6c53eeb6817230c21e3f5e2b25db932e2d205054ac340ebb6576d1"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/traceability.ts",
+      "bytes": 46429,
+      "sha256": "b1296784c636b350815bf91bf9b903609e885d9b7c027388d4f21f4521671a93"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/version-domains.ts",
+      "bytes": 14306,
+      "sha256": "aea470dbed7fb6c2f2e9f25bfabaa748e225b17a1a7952ff8d0d1c8bdf8f5b5a"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/version.ts",
+      "bytes": 664,
+      "sha256": "e2efad9e53741dcb2e51d5fe093e0f2f5e3b8021f815db446894e7d6e7f540cd"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-faults.test.ts",
+      "bytes": 8123,
+      "sha256": "60c629cafa17dead70a795d686303ad376f23979bb41c31164ce72c8a0587aab"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-manifest.test.ts",
+      "bytes": 11167,
+      "sha256": "106615e54f0e87a7c6c39ae0d59de4f5fca350e9b285a1e385c1662380a97476"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-observer.test.ts",
+      "bytes": 13072,
+      "sha256": "6a8d602684e39bc26f1f0347ed5288f14e20fad2dbb3c5e48e98f5dbd21c6606"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-oracles.test.ts",
+      "bytes": 7759,
+      "sha256": "fcab2bd31d87dd8945213a536cf65034488212223869f49b648557e9364b7268"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-selfproof.test.ts",
+      "bytes": 8321,
+      "sha256": "9df4342bc2cbfdb3703f38bc28512ac10f4b50cf89ad6c995e45403fb482e2e6"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-traceability.test.ts",
+      "bytes": 16149,
+      "sha256": "3ee40aa48835c6aeecc929b8861c6b01be9f8824cb80fdceb5711110b5a9d40f"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/README.md",
+      "bytes": 1061,
+      "sha256": "18e4d6035eac6600ee2832c61739001bbff06a348e670330f849b58e119b3751"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/manifest.mjs",
+      "bytes": 1111,
+      "sha256": "9fe29c98a9c4646cb40899b8d018c018f62d6f07ef8830358db344a55e789548"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/selfproof.mjs",
+      "bytes": 1026,
+      "sha256": "f61143249322319cb9ac0868f8d2704d75b0f28c30a98c296c6c5bf0cd7d1191"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/traceability.mjs",
+      "bytes": 976,
+      "sha256": "e08a818bb3c8554317e97a7471373c9cb58769420e14a412eeb8f60ac7131a8b"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
+      "bytes": 63481,
+      "sha256": "c806ec531fcf650d26af739c108fbbbe7f98254956ff175b8bb17580ad8c242e"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/tool-selfproof.json",
+      "bytes": 11319,
+      "sha256": "681e625ccfb6185581fc5e05143c6406cd32dab3aad57d1c04bf3336a33032a5"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/tool-selfproof.tap",
+      "bytes": 8765,
+      "sha256": "6a8e13642870b33442b401ea3a50773d44f9eff879107746a211155a589f7859"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
+      "bytes": 144003,
+      "sha256": "f110b12845ce0f954551de25cc62e9f1537345ab75cb916c9804e5486a8d0041"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/traceability.md",
+      "bytes": 24800,
+      "sha256": "da261c8759b81cd6414808e7c03b0e0a625f3fcfbf194ab9bc528f24df1d0050"
+    }
+  ],
+  "verification": {
+    "selfProofSuite": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+      "tests": 42,
+      "pass": 42,
+      "fail": 0,
+      "skipped": 0,
+      "knownVerdicts": 145,
+      "accept": 41,
+      "reject": 104,
+      "oracles": 15,
+      "note": "every oracle executes known-accept and known-reject samples; a meta-test injects an always-accepting fake oracle and the framework rejects it"
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 2e04eb2 + only these 35 files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h0b-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1201,
+        "pass": 1201,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "arithmetic": "1159 committed baseline + 42 harness tests = 1201",
+      "log": "plugins/shiyu/.local/slice-verify-h0b.log"
+    },
+    "implementerEvidence": {
+      "manifest": "artifacts/dsh/harness/manifest.json",
+      "toolSelfProof": "artifacts/dsh/harness/tool-selfproof.json",
+      "traceability": "artifacts/dsh/harness/traceability.json",
+      "note": "generated in an isolated 92c857f+H0b worktree; manifest vcs dirty=true reflects the uncommitted tool overlay and is documented as such"
+    },
+    "traceability": {
+      "rows": 103,
+      "productRuns": 79,
+      "productCovered": 0,
+      "h0CapabilitiesSelfProven": 7,
+      "toolingReady": 8,
+      "notCovered": 3,
+      "note": "product rows intentionally not_covered; tooling_ready means judges are self-proven and product scenarios have not run, never a pass"
+    }
+  },
+  "failedUnknownUntested": [
+    "H0b proves tooling only: no product V/S/FL/nine-system/host/model/semantic/fee evidence is claimed; traceability product rows remain not_covered by design.",
+    "Hash chains are integrity detection, not signatures; two directories on the same machine/user are not secret isolation; the fake clock is a deadline/occurrence boundary, not a real 7-day run.",
+    "The manifest artifact was generated on an uncommitted-file overlay (vcs.dirty=true); a clean-VCS refresh can be committed after this commit without changing tool semantics."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "networkListeners": 0
+  },
+  "evidenceLevel": "G1 tooling self-verification; product evidence remains not covered."
+}
