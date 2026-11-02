@@ -14,6 +14,7 @@
  * the H0 tool capabilities are self-proven at a given file identity. It does
  * not prove any product V/S/FL behaviour, host integration or model quality.
  */
+import { spawnSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,11 +34,26 @@ import {
 import { ALLOWED_STATUSES, type RequirementStatus } from './traceability-types.js';
 import { SELF_PROOF_ARTIFACT, checkSelfProofArtifact, type SelfProofArtifact } from './selfproof.js';
 import { MANIFEST_KIND, verifyManifestFiles, type HarnessManifest } from './manifest.js';
+import {
+  H7_EVIDENCE_VERSION,
+  buildSystemEvidenceSummaries,
+  checkEvidenceMappingHonesty,
+  evaluateEvidenceMapping,
+  mappingForRow,
+  renderH7MappingMarkdown,
+  verifyEvidenceSources,
+  type EvaluatedRowEvidence,
+  type EvidenceLevel,
+  type EvidenceState,
+  type EvidenceVerificationReport,
+  type SystemEvidenceSummary,
+} from './evidence.js';
 
 export const TRACEABILITY_SCHEMA_VERSION = 1;
 export const TRACEABILITY_KIND = 'shiyu.harness.traceability';
 export const TRACEABILITY_JSON = 'traceability.json';
 export const TRACEABILITY_MARKDOWN = 'traceability.md';
+export const H7_MAPPING_MARKDOWN = 'h7-traceability-mapping.md';
 export const MANIFEST_ARTIFACT = 'manifest.json';
 
 export interface SourceDocumentState {
@@ -80,6 +96,12 @@ export interface EvaluatedRequirement extends RequirementRow {
   readonly oracleStatus: readonly { readonly name: string; readonly verified: boolean }[];
   readonly artifactChecks: readonly { readonly artifact: string; readonly present: boolean; readonly valid: boolean }[];
   readonly evidence: Readonly<Record<string, string | null>>;
+  /** H7-prep derived evidence layers (product rows stay not_covered). */
+  readonly evidenceLevels?: readonly EvidenceLevel[];
+  readonly evidenceState?: EvidenceState;
+  readonly evidenceSources?: readonly { readonly id: string; readonly status: 'verified' | 'unknown'; readonly levels: readonly EvidenceLevel[] }[];
+  readonly limitations?: readonly string[];
+  readonly partialSubscenarios?: readonly string[];
 }
 
 export interface TraceabilitySummary {
@@ -89,6 +111,13 @@ export interface TraceabilitySummary {
   readonly product: { readonly total: number; readonly covered: number; readonly notCovered: number };
   readonly harnessCurated: { readonly total: number; readonly selfProven: number; readonly partial: number; readonly notCovered: number };
   readonly oracles: { readonly total: number; readonly verified: number };
+  readonly evidence: {
+    readonly mappedProductRows: number;
+    readonly limitedOnly: number;
+    readonly unknown: number;
+    readonly verifiedSources: number;
+    readonly unknownSources: number;
+  };
 }
 
 export interface TraceabilityMatrix {
@@ -103,6 +132,13 @@ export interface TraceabilityMatrix {
   readonly summary: TraceabilitySummary;
   readonly rows: readonly EvaluatedRequirement[];
   readonly oracles: readonly { readonly name: string; readonly version: string; readonly module: string; readonly samples: number; readonly scenarios: number; readonly verified: boolean }[];
+  /** Scope note: traceability rows bind the H0b oracle corpus; H0c business oracles are counted from the self-proof artifact. */
+  readonly oracleCorpus: {
+    readonly h0b: number;
+    readonly h0cBusiness: number;
+    readonly totalOracleTests: number;
+    readonly note: string;
+  };
   readonly historicalEvidence: readonly { readonly path: string; readonly present: boolean; readonly sha256: string | null; readonly scope: string; readonly refs: readonly string[] }[];
   readonly issues: readonly EvidenceIssue[];
   readonly gaps: readonly string[];
@@ -114,6 +150,22 @@ export interface TraceabilityMatrix {
     readonly productRowSource: string;
     readonly toolingReadyMeaning: string;
     readonly forbidden: readonly string[];
+  };
+  /** H7-prep evidence-layer mapping derived from committed files in a frozen HEAD. */
+  readonly evidenceMapping: {
+    readonly version: string;
+    readonly frozenHead: string;
+    readonly frozenHeadSource: string;
+    readonly generatedAt: string;
+    readonly counts: EvidenceVerificationReport['counts'];
+    readonly sources: EvidenceVerificationReport['sources'];
+    readonly unknownSourceIds: readonly string[];
+    readonly issues: readonly { readonly code: string; readonly sourceId: string; readonly message: string }[];
+    readonly warnings: readonly { readonly code: string; readonly sourceId: string; readonly message: string }[];
+    readonly rows: readonly EvaluatedRowEvidence[];
+    readonly systemSummaries: readonly SystemEvidenceSummary[];
+    readonly productRowsMapped: number;
+    readonly cannotUseForAcceptance: string;
   };
   readonly commands: readonly string[];
 }
@@ -410,11 +462,28 @@ function evaluateHarnessRow(
   return { status, entries, basis, verifiedTests, missingTests, oracleStatus, artifactChecks };
 }
 
+export interface FrozenHeadState {
+  readonly frozenHead: string;
+  readonly source: string;
+}
+
+/** Resolve the committed HEAD used to bind evidence files (read-only git call). */
+export function resolveFrozenHead(workspaceRoot: string): FrozenHeadState {
+  const result = spawnSync('git', ['-C', resolve(workspaceRoot), 'rev-parse', 'HEAD'], { encoding: 'utf8', timeout: 30_000 });
+  if (result.error === undefined && result.status === 0) {
+    const frozenHead = `${result.stdout}`.trim();
+    if (/^[0-9a-f]{40}$/.test(frozenHead)) return { frozenHead, source: 'git rev-parse HEAD' };
+  }
+  return { frozenHead: 'unavailable', source: 'git rev-parse HEAD failed' };
+}
+
 export interface EvaluateOptions {
   readonly pluginRoot: string;
   readonly workspaceRoot: string;
   readonly bundle: ArtifactBundle;
   readonly generatedAt?: Date;
+  /** Frozen committed HEAD for evidence binding; defaults to workspace HEAD. */
+  readonly frozenHead?: string;
 }
 
 export async function evaluateTraceability(options: EvaluateOptions): Promise<TraceabilityMatrix> {
@@ -438,6 +507,21 @@ export async function evaluateTraceability(options: EvaluateOptions): Promise<Tr
   if (options.bundle.manifestCheck !== null) {
     for (const issue of options.bundle.manifestCheck.issues) issues.push({ code: 'manifest_artifact_issue', message: issue });
   }
+  // H7-prep: bind evidence layers to committed files in a frozen HEAD. Missing
+  // or mismatched files keep the row's evidence level `unknown`; no guess.
+  const headState: FrozenHeadState =
+    options.frozenHead === undefined ? resolveFrozenHead(options.workspaceRoot) : { frozenHead: options.frozenHead, source: 'explicit --frozen-head' };
+  const evidenceVerification = await verifyEvidenceSources(options.workspaceRoot, headState.frozenHead);
+  const evidenceMapping = evaluateEvidenceMapping(evidenceVerification.report);
+  const evidenceRowById = new Map(evidenceMapping.rows.map(mapped => [mapped.rowId, mapped]));
+  for (const evidenceIssue of evidenceMapping.issues) {
+    issues.push({ code: `evidence_mapping_${evidenceIssue.code}`, ...(evidenceIssue.rowId === undefined ? {} : { rowId: evidenceIssue.rowId }), message: evidenceIssue.message });
+  }
+  if (!evidenceVerification.result.ok) {
+    for (const sourceIssue of evidenceVerification.report.issues) {
+      issues.push({ code: `evidence_source_${sourceIssue.code}`, message: `${sourceIssue.sourceId}: ${sourceIssue.message}` });
+    }
+  }
 
   const rows: EvaluatedRequirement[] = [];
   for (const row of ALL_REQUIREMENT_ROWS) {
@@ -448,9 +532,28 @@ export async function evaluateTraceability(options: EvaluateOptions): Promise<Tr
     let missingTests: string[] = [];
     let oracleStatus: { name: string; verified: boolean }[] = [];
     let artifactChecks: { artifact: string; present: boolean; valid: boolean }[] = [];
+    let rowEvidenceLevels: readonly EvidenceLevel[] | undefined;
+    let rowEvidenceState: EvidenceState | undefined;
+    let rowEvidenceSources: readonly { readonly id: string; readonly status: 'verified' | 'unknown'; readonly levels: readonly EvidenceLevel[] }[] | undefined;
+    let rowLimitations: readonly string[] | undefined;
+    let rowPartialSubscenarios: readonly string[] | undefined;
     if (PRODUCT_KINDS.includes(row.kind)) {
       status = 'not_covered';
-      statusBasis = 'H0 只登记需求，未运行/未实现对应产品验证；历史有限证据不计入状态';
+      const mapped = mappingForRow(row.id);
+      const evaluatedEvidence = mapped === undefined ? undefined : evidenceRowById.get(row.id) ?? evidenceRowById.get(mapped.rowId);
+      if (evaluatedEvidence === undefined) {
+        statusBasis = 'H0 只登记需求，未运行/未实现对应产品验证；未发现同系统/场景的已提交切片证据层';
+      } else {
+        rowEvidenceLevels = evaluatedEvidence.levels;
+        rowEvidenceState = evaluatedEvidence.state;
+        rowEvidenceSources = evaluatedEvidence.sources.map(source => ({ id: source.id, status: source.status, levels: source.levels }));
+        rowLimitations = evaluatedEvidence.limitations;
+        rowPartialSubscenarios = evaluatedEvidence.partialSubscenarios;
+        statusBasis =
+          `H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=${evaluatedEvidence.state} ` +
+          `[${evaluatedEvidence.levels.join(',')}]，来源 ${evaluatedEvidence.sources.length} 个` +
+          (evaluatedEvidence.sources.some(source => source.status === 'unknown') ? '（含 unknown 来源，见 limitations）' : '');
+      }
     } else {
       const evaluated = evaluateHarnessRow(row, options.bundle, sourceVerified);
       status = evaluated.status;
@@ -479,6 +582,11 @@ export async function evaluateTraceability(options: EvaluateOptions): Promise<Tr
       oracleStatus,
       artifactChecks,
       evidence,
+      ...(rowEvidenceLevels === undefined ? {} : { evidenceLevels: rowEvidenceLevels }),
+      ...(rowEvidenceState === undefined ? {} : { evidenceState: rowEvidenceState }),
+      ...(rowEvidenceSources === undefined ? {} : { evidenceSources: rowEvidenceSources }),
+      ...(rowLimitations === undefined ? {} : { limitations: rowLimitations }),
+      ...(rowPartialSubscenarios === undefined ? {} : { partialSubscenarios: rowPartialSubscenarios }),
     });
   }
   const productRows = rows.filter(row => PRODUCT_KINDS.includes(row.kind));
@@ -499,6 +607,16 @@ export async function evaluateTraceability(options: EvaluateOptions): Promise<Tr
     scenarios: (proof.scenarios ?? []).length,
     verified: options.bundle.selfproofCheck?.passingTests.has(oracleTestName(proof.name)) ?? false,
   }));
+  const passingTestNames = options.bundle.selfproofCheck?.passingTests ?? new Set<string>();
+  const h0cBusinessOracleCount = [...passingTestNames].filter(name => name.startsWith('business-oracle:')).length;
+  const oracleCorpus = {
+    h0b: oracles.length,
+    h0cBusiness: h0cBusinessOracleCount,
+    totalOracleTests: oracles.length + h0cBusinessOracleCount,
+    note:
+      'traceability.json#oracles 覆盖 H0b corpus（ALL_SELF_PROOFS）；H0c business oracles 另见 tool-selfproof.json 的 business-oracle:* 测试。' +
+      '两者合计才是当前工具自证 oracle 总数，不是缺少 7 个 oracle。',
+  };
   const historicalEvidence = await Promise.all(
     HISTORICAL_EVIDENCE.map(async item => {
       try {
@@ -512,6 +630,7 @@ export async function evaluateTraceability(options: EvaluateOptions): Promise<Tr
   for (const evidence of historicalEvidence) {
     if (!evidence.present) issues.push({ code: 'historical_evidence_missing', message: `historical evidence ${evidence.path} is absent` });
   }
+  const generatedAt = (options.generatedAt ?? new Date()).toISOString();
   const gaps = buildGaps(rows, options.bundle);
   const summary: TraceabilitySummary = {
     rows: rows.length,
@@ -525,6 +644,13 @@ export async function evaluateTraceability(options: EvaluateOptions): Promise<Tr
       notCovered: harnessRows.filter(row => row.status === 'not_covered').length,
     },
     oracles: { total: oracles.length, verified: oracles.filter(oracle => oracle.verified).length },
+    evidence: {
+      mappedProductRows: evidenceMapping.rows.length,
+      limitedOnly: evidenceMapping.rows.filter(row => row.state === 'limited-only').length,
+      unknown: evidenceMapping.rows.filter(row => row.state === 'unknown').length,
+      verifiedSources: evidenceVerification.report.counts.verified,
+      unknownSources: evidenceVerification.report.counts.unknown,
+    },
   };
   const artifacts: Record<string, ArtifactState> = {
     selfproof: options.bundle.selfproofState,
@@ -533,7 +659,7 @@ export async function evaluateTraceability(options: EvaluateOptions): Promise<Tr
   return {
     schemaVersion: TRACEABILITY_SCHEMA_VERSION,
     kind: TRACEABILITY_KIND,
-    generatedAt: (options.generatedAt ?? new Date()).toISOString(),
+    generatedAt,
     harnessVersion: HARNESS_VERSION,
     selfProofCorpus: SELF_PROOF_CORPUS,
     sources: [...documents.values()],
@@ -559,6 +685,24 @@ export async function evaluateTraceability(options: EvaluateOptions): Promise<Tr
         '用历史有限证据（phase3h/3i 等）覆盖 not_covered',
         '在 WIP 未提交时把共享树结果写成切片证据',
       ],
+    },
+    oracleCorpus,
+    evidenceMapping: {
+      version: H7_EVIDENCE_VERSION,
+      frozenHead: headState.frozenHead,
+      frozenHeadSource: headState.source,
+      generatedAt,
+      counts: evidenceVerification.report.counts,
+      sources: evidenceVerification.report.sources,
+      unknownSourceIds: evidenceVerification.report.unknownSourceIds,
+      issues: evidenceVerification.report.issues,
+      warnings: evidenceVerification.report.warnings,
+      rows: evidenceMapping.rows,
+      systemSummaries: buildSystemEvidenceSummaries(evidenceMapping.rows),
+      productRowsMapped: evidenceMapping.rows.length,
+      cannotUseForAcceptance:
+        '已提交切片证据层只表示该切片实际跑过的层级（离线模块/独立验证/固定宿主零模型/合成 UI/历史限定等）；' +
+        '产品行状态仍全部 not_covered，不能用于业务验收或 V/S/FL 通过声明。',
     },
     commands: [
       'node scripts/harness/manifest.mjs',
@@ -598,7 +742,7 @@ function buildGaps(rows: readonly EvaluatedRequirement[], bundle: ArtifactBundle
  * `self_proven` row needs verified tests and artifacts; unknown statuses or
  * `tooling_ready` without verified oracles fail.
  */
-export function checkHonestStatuses(rows: readonly EvaluatedRequirement[]): CheckResult {
+export function checkHonestStatuses(rows: readonly EvaluatedRequirement[], evidenceRows?: readonly EvaluatedRowEvidence[]): CheckResult {
   const violations: Violation[] = [];
   for (const row of rows) {
     if (!ALLOWED_STATUSES.includes(row.status)) {
@@ -629,14 +773,29 @@ export function checkHonestStatuses(rows: readonly EvaluatedRequirement[]): Chec
       violations.push(violation('row_source_unverified', `$["rows"][${JSON.stringify(row.id)}]`, `row ${row.id} has no verified source reference`));
     }
   }
+  const productRowIds = rows.filter(row => PRODUCT_KINDS.includes(row.kind)).map(row => row.id);
+  if (evidenceRows !== undefined) {
+    const evidenceCheck = checkEvidenceMappingHonesty(evidenceRows, productRowIds);
+    violations.push(...evidenceCheck.violations);
+    // A product row may carry evidence layers but must never gain a pass status.
+    for (const row of rows) {
+      if (!PRODUCT_KINDS.includes(row.kind)) continue;
+      if (row.evidenceLevels !== undefined && row.status !== 'not_covered') {
+        violations.push(violation('product_evidence_upgraded', `$["rows"][${JSON.stringify(row.id)}]`, `product row ${row.id} has evidence layers but status ${row.status}; evidence layers must not upgrade not_covered`));
+      }
+      if (row.evidenceLevels !== undefined && (row.limitations ?? []).length === 0) {
+        violations.push(violation('evidence_missing_limitations', `$["rows"][${JSON.stringify(row.id)}]`, `product row ${row.id} lists evidence levels without limitations`));
+      }
+    }
+  }
   return finish(
     {
       oracle: 'traceability',
       version: '1.0.0',
-      boundary: '核对追踪表状态诚实性：产品行只能是 not_covered；self_proven 必须有通过测试/经受的 artifact；tooling_ready 必须有自证 oracle；来源不可核验即拒绝。',
+      boundary: '核对追踪表状态诚实性：产品行只能是 not_covered；self_proven 必须有通过测试/经受的 artifact；tooling_ready 必须有自证 oracle；证据层不得升级产品行且必须带 limitations；来源不可核验即拒绝。',
       scope: 'traceability-honesty',
     },
-    rows.length,
+    rows.length + (evidenceRows?.length ?? 0),
     violations,
   );
 }
@@ -757,6 +916,11 @@ export function renderMarkdown(matrix: TraceabilityMatrix): string {
     ),
   );
   lines.push('');
+  lines.push(
+    `> **oracle corpus 范围**：本表覆盖 H0b corpus（${matrix.oracleCorpus.h0b} 个）；H0c business oracles 另有 ${matrix.oracleCorpus.h0cBusiness} 个（\`business-oracle:*\`），` +
+      `合计 ${matrix.oracleCorpus.totalOracleTests} 个，均记录在 tool-selfproof.json。${matrix.oracleCorpus.note}`,
+  );
+  lines.push('');
   const productGroups: readonly [RequirementKind, string][] = [
     ['nine-system', '九系统（01）'],
     ['system-matrix', '02 §5 验收矩阵'],
@@ -787,7 +951,29 @@ export function renderMarkdown(matrix: TraceabilityMatrix): string {
     );
     lines.push('');
   }
-  lines.push('## 8. 来源可核验性');
+  lines.push('## 8. H7 证据层映射（产品行仍 not_covered，只读派生）');
+  lines.push('');
+  lines.push(
+    `> frozen HEAD \`${matrix.evidenceMapping.frozenHead}\`；证据来源 ${matrix.evidenceMapping.counts.sources} 个（verified=${matrix.evidenceMapping.counts.verified}，unknown=${matrix.evidenceMapping.counts.unknown}），` +
+      `产品行映射 ${matrix.evidenceMapping.productRowsMapped} 行。${matrix.evidenceMapping.cannotUseForAcceptance}`,
+  );
+  lines.push('');
+  lines.push(
+    table(
+      ['系统', '状态', '证据层', '部分子场景', '限定/缺口'],
+      matrix.evidenceMapping.systemSummaries.map(system => [
+        system.systemId,
+        'not_covered',
+        system.verifiedLevels.join(', ') || '—',
+        system.partialSubscenarios.join('；') || '—',
+        [...system.limitations.slice(0, 3), ...system.gaps].join('；'),
+      ]),
+    ),
+  );
+  lines.push('');
+  lines.push('完整逐系统“证据→状态→缺口”与来源明细见 `h7-traceability-mapping.md`；V/S/FL 有限映射只列证据层，状态仍 not_covered。');
+  lines.push('');
+  lines.push('## 9. 来源可核验性');
   lines.push('');
   lines.push(
     table(
@@ -803,7 +989,7 @@ export function renderMarkdown(matrix: TraceabilityMatrix): string {
   lines.push('');
   lines.push(`九系统计划 §5 的 V01–V27 索引核验：${matrix.planIndexVerified ? '通过' : '失败'}。`);
   lines.push('');
-  lines.push('## 9. 历史有限证据（单独列出，不计入任何状态）');
+  lines.push('## 10. 历史有限证据（单独列出，不计入任何状态）');
   lines.push('');
   lines.push(
     table(
@@ -812,11 +998,11 @@ export function renderMarkdown(matrix: TraceabilityMatrix): string {
     ),
   );
   lines.push('');
-  lines.push('## 10. 未覆盖与下一步');
+  lines.push('## 11. 未覆盖与下一步');
   lines.push('');
   for (const gap of matrix.gaps) lines.push(`- ${gap}`);
   lines.push('');
-  lines.push('## 11. 复核与再生命令');
+  lines.push('## 12. 复核与再生命令');
   lines.push('');
   for (const command of matrix.commands) lines.push(`- \`${command}\``);
   lines.push('');
@@ -829,7 +1015,7 @@ export function renderMarkdown(matrix: TraceabilityMatrix): string {
   lines.push('5. 任何产品 V/S/FL 结论请查 02 §9 与 `not_covered` 行——本报告不提供产品通过结论。');
   lines.push('');
   if (matrix.issues.length > 0) {
-    lines.push('## 12. 生成期问题（必须处理）');
+    lines.push('## 13. 生成期问题（必须处理）');
     lines.push('');
     for (const issue of matrix.issues) lines.push(`- \`${issue.code}\`${issue.rowId === undefined ? '' : ` (${issue.rowId})`}: ${issue.message}`);
     lines.push('');
@@ -855,6 +1041,7 @@ export async function runTraceabilityCli(argv: readonly string[]): Promise<Trace
   let outDir = join(pluginRoot, 'artifacts/dsh/harness');
   let selfproofPath: string | undefined;
   let manifestPath: string | undefined;
+  let frozenHeadArgument: string | undefined;
   let strict = false;
   for (let index = 0; index < argv.length; index++) {
     const argument = argv[index];
@@ -863,25 +1050,41 @@ export async function runTraceabilityCli(argv: readonly string[]): Promise<Trace
     else if (argument === '--out-dir') outDir = resolve(argv[++index] ?? outDir);
     else if (argument === '--selfproof') selfproofPath = resolve(argv[++index] ?? '');
     else if (argument === '--manifest') manifestPath = resolve(argv[++index] ?? '');
+    else if (argument === '--frozen-head') frozenHeadArgument = String(argv[++index] ?? '');
     else if (argument === '--strict') strict = true;
-    else if (argument === '--help') return { exitCode: 0, summary: 'usage: node --import tsx tests/harness/traceability.ts [--plugin-root d] [--workspace-root d] [--out-dir d] [--selfproof f] [--manifest f] [--strict]' };
+    else if (argument === '--help') return { exitCode: 0, summary: 'usage: node --import tsx tests/harness/traceability.ts [--plugin-root d] [--workspace-root d] [--out-dir d] [--selfproof f] [--manifest f] [--frozen-head sha] [--strict]' };
     else return { exitCode: 1, summary: `unknown argument ${argument}` };
   }
   try {
     const bundle = await loadArtifacts({ pluginRoot, outputDir: outDir, selfproofPath, manifestPath });
-    const matrix = await evaluateTraceability({ pluginRoot, workspaceRoot, bundle });
-    const honesty = checkHonestStatuses(matrix.rows);
+    const headState = frozenHeadArgument === undefined ? resolveFrozenHead(workspaceRoot) : { frozenHead: frozenHeadArgument, source: 'explicit --frozen-head' };
+    if (!/^[0-9a-f]{40}$/.test(headState.frozenHead)) return { exitCode: 1, summary: `invalid frozen HEAD ${headState.frozenHead}` };
+    const matrix = await evaluateTraceability({ pluginRoot, workspaceRoot, bundle, frozenHead: headState.frozenHead });
+    const honesty = checkHonestStatuses(matrix.rows, matrix.evidenceMapping.rows);
     if (!honesty.ok) {
       return { exitCode: 2, summary: `traceability honesty gate failed:\n${honesty.violations.map(item => `  - ${item.code} (${item.path}): ${item.message}`).join('\n')}`, matrix };
     }
     const hardIssues = matrix.issues.filter(issue => issue.code !== 'selfproof_artifact_issue' && issue.code !== 'manifest_artifact_issue');
+    const evidenceReport: EvidenceVerificationReport = {
+      version: matrix.evidenceMapping.version,
+      frozenHead: matrix.evidenceMapping.frozenHead,
+      sources: matrix.evidenceMapping.sources,
+      issues: [...matrix.evidenceMapping.issues],
+      warnings: [...matrix.evidenceMapping.warnings],
+      unknownSourceIds: matrix.evidenceMapping.unknownSourceIds,
+      counts: matrix.evidenceMapping.counts,
+    };
+    const h7Markdown = renderH7MappingMarkdown(evidenceReport, matrix.evidenceMapping.rows, matrix.evidenceMapping.frozenHead, matrix.generatedAt);
     await import('node:fs/promises').then(async fs => {
       await fs.mkdir(outDir, { recursive: true });
       await fs.writeFile(join(outDir, TRACEABILITY_JSON), `${JSON.stringify(matrix, null, 2)}\n`, 'utf8');
       await fs.writeFile(join(outDir, TRACEABILITY_MARKDOWN), `${renderMarkdown(matrix)}\n`, 'utf8');
+      await fs.writeFile(join(outDir, H7_MAPPING_MARKDOWN), `${h7Markdown}\n`, 'utf8');
     });
     const summaryLines = [
-      `traceability written: ${relative(workspaceRoot, join(outDir, TRACEABILITY_JSON))} + ${TRACEABILITY_MARKDOWN}`,
+      `traceability written: ${relative(workspaceRoot, join(outDir, TRACEABILITY_JSON))} + ${TRACEABILITY_MARKDOWN} + ${H7_MAPPING_MARKDOWN}`,
+      `  frozenHead=${matrix.evidenceMapping.frozenHead} (${matrix.evidenceMapping.frozenHeadSource})`,
+      `  evidence sources verified=${matrix.evidenceMapping.counts.verified}/${matrix.evidenceMapping.counts.sources} unknown=${matrix.evidenceMapping.counts.unknown} mappedProductRows=${matrix.evidenceMapping.productRowsMapped} (all rows stay not_covered)`,
       `  rows=${matrix.summary.rows} kinds=${Object.keys(matrix.summary.byKind).length}`,
       `  product not_covered=${matrix.summary.product.notCovered}/${matrix.summary.product.total} (0 claimed covered)`,
       `  H0 self_proven=${matrix.summary.harnessCurated.selfProven}/${matrix.summary.harnessCurated.total} partial=${matrix.summary.harnessCurated.partial} not_covered=${matrix.summary.harnessCurated.notCovered}`,

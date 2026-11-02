@@ -22,7 +22,8 @@
 | `manifest.ts` | 运行 manifest 冻结与脱敏（源码/构建/环境/fixture/oracle/VCS 摘要） |
 | `traceability-registry.ts` | 需求注册表：01 九系统、02 §1/§3.2/§5/§6/§8、计划 V01–V27 与 S/FL/H 维度 |
 | `selfproof.ts` | 自证执行器：真实运行 `tests/harness-*.test.ts`，解析 TAP，冻结 artifact，校验 stale/伪通过 |
-| `traceability.ts` | 覆盖追踪生成器：来源核验→证据计算→JSON+Markdown→诚实性门 |
+| `traceability.ts` | 覆盖追踪生成器：来源核验→证据计算→JSON+Markdown→诚实性门；输出 H7 证据层映射（`h7-traceability-mapping.md`） |
+| `evidence.ts` | H7-prep 证据层映射：已提交切片证据（路径+frozen HEAD blob SHA256+切片 commit 祖先）→ 产品行的 evidenceLevel/evidenceRefs/limitations/partialSubscenarios；产品行状态仍 not_covered |
 | `fixtures/crash-child.ts` | 真实子进程崩溃夹具（临时 SQLite + 观察账本 + 命名崩溃断点） |
 | `business/` | H0c S/FL 业务骨架：catalog、fixture/答案生成器、四类允许结果 oracle、H1–H8 + 功能/质量聚合、DEV/REG/HOLDOUT 拆分、覆盖索引 |
 | `fl-scenarios.ts` | H0c CLI 实现：生成 `artifacts/dsh/harness/fl-scenarios/` 的 fixtures/answers/manifest/coverage/scoring 骨架 |
@@ -50,7 +51,9 @@ node scripts/harness/traceability.mjs --strict
 # 5) H0c S/FL 业务骨架（离线合成；0 模型/embedding/Lab/宿主/渠道）
 node scripts/harness/fl-scenarios.mjs --require-selfproof
 
-# 6) 全量检查（typecheck + 主 glob 全部测试 + build + client 语法）
+# 6) H7-prep 证据层映射随 traceability 生成（h7-traceability-mapping.md）
+
+# 7) 全量检查（typecheck + 主 glob 全部测试 + build + client 语法）
 npm run check
 ```
 
@@ -76,6 +79,16 @@ npm run check
 - **状态口径**：所有场景只能是 `synthetic-fixture-only-not-run`，`canUseForBusinessAcceptance=false`；0 真实模型/embedding/Lab/宿主/渠道调用。**还不能用于业务验收。**
 
 H0c 的 7 个自证 oracle（catalog / fixture isolation / four-class answers / answer provenance / aggregation / split policy / coverage）由 `tests/harness-business.test.ts` 用与 H0b 相同的 known-accept + known-reject 框架执行，并记录进 `tool-selfproof.json`；`fl-scenarios --require-selfproof` 只有在当前源码 hash 与通过测试都匹配时才通过。
+
+## H7-prep 证据层映射（只读派生，不升级产品行）
+
+`evidence.ts` 把已提交切片证据（H0/H0b/H0c/H1+H1-verify/H2a+H2a-probe/H3/H4/H4b/H4c/H5/H6a/联合宿主/独立复核/历史限定）按系统和场景绑定到 traceability 产品行：
+
+- 每个证据文件必须存在于 frozen HEAD 提交树，磁盘 SHA256 与 `git show HEAD:path` blob 一致，声明的切片 commit 存在且为 HEAD 祖先；缺失/不一致/JSON 不可解析 → 该来源 `unknown`，引用行不得声称该证据层。
+- 产品行状态**仍全部 `not_covered`**；新增只读字段 `evidenceLevels`/`evidenceState`/`evidenceSources`/`limitations`/`partialSubscenarios`。证据等级只允许 `offline-module / slice-verification / independent-verification / fixed-host-zero-model / synthetic-ui / bounded-real-model / historical-limited / environment-baseline`；禁止 complete/verified/passed 等结论词。
+- 边界必须写在 limitations：H5 仅 G1 模块、H4b 仅合成 UI+零模型宿主、H2a/H2a-probe 零模型探针、H1 独立验证为离线 oracle、历史限定样本不升级、固定宿主证据一律零模型、无真实浏览器 DOM/真实业务。
+- `traceability.md` §8 渲染逐系统“证据→状态→缺口”；`artifacts/dsh/harness/h7-traceability-mapping.md` 给出完整逐系统/逐来源明细与复核方法。
+- oracle corpus 范围：`traceability.json#oracles` 覆盖 H0b corpus（15 个）；H0c business oracles（7 个 `business-oracle:*`）在 `tool-selfproof.json` 与 `oracleCorpus` 字段中计数，合计 22，不是缺少 7 个 oracle。
 
 ## 自证如何工作（判定器先验真）
 

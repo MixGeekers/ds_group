@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h7-prep",
+  "capturedAt": "2026-11-02T21:06:13.794Z",
+  "head": "0fb0c594b5fe1cf1ca0d575dab7a8f92eb51a7f3",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h7-prep-1793653297127",
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "bytes": 67677,
+      "sha256": "8bf3de038ee000e8ded9649e7c148ea8c81da0112c61cd62902e3db816fc6ed1"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+      "bytes": 13131,
+      "sha256": "34d65b65e06b02c8bb9f4d781d576ea76c282f29e4ece164b2ca903cd18c4b06"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/traceability.ts",
+      "bytes": 58568,
+      "sha256": "b590790ae977fd054694725e3750c8177a8063d9184c01ea5971fdf51cb7fd36"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-traceability.test.ts",
+      "bytes": 16142,
+      "sha256": "6a8794c8f605e3dd1a3dbd1c39c9354773d017bfdec973fdf7b6f341b0b8f0c9"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/README.md",
+      "bytes": 16278,
+      "sha256": "5bd974a5b4b73487d30e8ef56493c889908f6786974185be7581e14b9bf32757"
+    },
+    {
+      "path": "plugins/shiyu/scripts/harness/README.md",
+      "bytes": 1679,
+      "sha256": "db2363799378163d2f2650975c8e80c6e409db479a5657da3baf80e4eff8b3ad"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 276280,
+    "bytes": 150583,
+    "sha256": "1d2c044a71687ee2df878d1db0f920e52f90ccbb93cf82f90c95c441bacecd5c",
+    "tests": {
+      "tests": 1382,
+      "pass": 1382,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 275181.493458",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h7-prep.log",
+    "bytes": 150583,
+    "sha256": "1d2c044a71687ee2df878d1db0f920e52f90ccbb93cf82f90c95c441bacecd5c"
+  },
+  "verdict": "pass"
+}

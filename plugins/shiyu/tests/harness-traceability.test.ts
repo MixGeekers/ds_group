@@ -255,7 +255,7 @@ test('traceability:cli-generates-json-and-markdown', async () => {
     const markdown = await readFile(join(outDir, 'traceability.md'), 'utf8');
     assert.ok(markdown.includes('# H0 测试工具覆盖追踪报告'));
     assert.ok(markdown.includes('## 3. H0 工具能力'));
-    assert.ok(markdown.includes('## 10. 未覆盖与下一步'));
+    assert.ok(markdown.includes('未覆盖与下一步'));
     assert.ok(markdown.includes('产品需求'));
     // Missing self-proof artifact: strict generation exits 3 and reports the
     // uncovered H0 denominator instead of pretending green.
