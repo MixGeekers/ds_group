@@ -24,6 +24,7 @@ import { MemoryIndexDomain, type MemoryIndexRequest } from './memory-index-domai
 import { CoreDomain } from './core-domain.js';
 import type { CoreDomainRequest } from '../../contracts/core.js';
 import { LabDomain } from './lab-domain.js';
+import type { LocalReplyOperation } from './local-reply-domain.js';
 import type { LabDomainRequest } from '../../contracts/lab.js';
 
 type Row = Record<string, unknown>;
@@ -606,6 +607,11 @@ function initialize(): void {
     }
     const safety = new LocalReadSafetyStore(db, transactions, { getAuthEpoch: () => tasks!.mandates.health().authEpoch });
     views = new ViewDomain(db, transactions, { publication, safety, watermark: commitWatermark, ...(memories ? { memory: memories } : {}),
+      authorizeLabReply: (input, phase) => {
+        if (!lab) return fail(labError ?? 'LAB_UNAVAILABLE', 'Lab reply capture authority is unavailable.');
+        const operation = conversations!.execute({ command: 'conversation.reply.get', args: { operationId: input.operationId } }) as LocalReplyOperation;
+        return lab.authorizeReplyCapture(input.permit, operation, phase);
+      },
       context: conversationId => conversations!.replyContext(conversationId), getTask: taskId => tasks!.get(taskId).task });
     conversations.setReplyAuthority({ validateCapture: (captureId, phase) => views!.validateReplyCapture(captureId, { for: phase }),
       assertMemorySourcesCurrent: sources => {

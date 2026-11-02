@@ -99,6 +99,22 @@ test('input identity is content-bound, duplicates do not advance generation, and
   assert.equal(h.db.prepare('SELECT COUNT(*) AS n FROM shiyu_local_reply_inputs').get()!.n, 1);
 });
 
+test('legacy mode-less loaded and unknown outcomes remain immutable duplicates while explicit modes conflict', t => {
+  const h = fixture(t);
+  for (const status of ['loaded', 'unknown'] as const) {
+    const first = h.admit(`legacy-${status}`), legacy = { ...first.operation, status };
+    delete legacy.mode;
+    h.tx.atomic(() => h.db.prepare('UPDATE shiyu_local_reply_inputs SET record_json=? WHERE operation_id=?').run(JSON.stringify(legacy), legacy.operationId));
+    const before = h.watermark.read();
+    const duplicate = h.domain.admit({ conversationId: h.conversation.conversationId, inputId: legacy.inputId, inputHash: legacy.inputHash, mode: 'load' });
+    assert.deepEqual(duplicate, { duplicate: true, operation: legacy });
+    assert.deepEqual(h.watermark.read(), before);
+    assert.throws(() => h.domain.bind({ binding: { ...h.native(legacy), contextTokenId: hash('synthetic-legacy-context') } }), code('REPLY_ALREADY_DISPATCHED'));
+  }
+  const explicit = h.domain.admit({ conversationId: h.conversation.conversationId, inputId: 'explicit-load', inputHash: hash('load'), mode: 'load' }).operation;
+  assert.throws(() => h.domain.admit({ conversationId: h.conversation.conversationId, inputId: explicit.inputId, inputHash: explicit.inputHash, mode: 'reply' }), code('IDEMPOTENCY_CONFLICT'));
+});
+
 test('prepare cannot attach an old capture to a newer admitted generation or unrelated loaded source', t => {
   const h = fixture(t), old = h.admit('old').operation, oldCapture = h.capture();
   const current = h.admit('new').operation, currentCapture = h.capture();

@@ -19,6 +19,7 @@ function fields(value: unknown, allowed: string[], required = allowed): void {
 }
 export interface LocalReplyCapture {
   captureId: string; expiresAt: string;
+  replyExecution?: { kind: 'lab-reply-v1'; operationId: string; replyId: string; connectionId: string };
   context: ContextSnapshot & { businessId: string; sessionId?: string };
   memory?: MemoryViewSnapshot;
 }
@@ -47,6 +48,8 @@ export interface LocalReplyOperation {
   status: 'admitted' | 'prepared' | 'dispatching' | 'loaded' | 'ready' | 'failed' | 'cancelled' | 'unknown';
   durability: 'unconfirmed' | 'confirmed';
   token: ContextToken; createdAt: string; updatedAt: string;
+  /** Legacy records predate mode; new records explicitly distinguish load-only. */
+  mode?: 'reply' | 'load';
   expectedSessionId?: string; captureId?: string; viewId?: string; contextTokenId?: string; expiresAt?: string;
   sources?: SourceVersion[]; draftId?: string; nativeBinding?: LocalReplyNativeBinding;
   memorySources?: MemoryViewSource[];
@@ -55,7 +58,7 @@ export interface LocalReplyOperation {
   textSha256?: string;
 }
 export interface LocalReplyCommands {
-  'conversation.reply.admit': { input: { conversationId: string; inputId: string; inputHash: string }; output: { duplicate: boolean; operation: LocalReplyOperation } };
+  'conversation.reply.admit': { input: { conversationId: string; inputId: string; inputHash: string; mode?: 'reply' | 'load' }; output: { duplicate: boolean; operation: LocalReplyOperation } };
   'conversation.reply.prepare': { input: { operationId: string; captureId: string; viewId: string; loadedTaskIds: string[]; loadedMemoryOperationIds?: string[] }; output: LocalReplyOperation };
   'conversation.reply.bind': { input: { binding: LocalReplyNativeBinding }; output: LocalReplyOperation };
   'conversation.reply.authorize': { input: { operationId: string; phase: 'dispatch' | 'ack' | 'ready' }; output: LocalReplyOperation };
@@ -142,22 +145,27 @@ export class LocalReplyDomain {
     return capture;
   }
   admit(input: LocalReplyCommands['conversation.reply.admit']['input']): LocalReplyCommands['conversation.reply.admit']['output'] {
-    fields(input, ['conversationId', 'inputId', 'inputHash']);
+    fields(input, ['conversationId', 'inputId', 'inputHash', 'mode'], ['conversationId', 'inputId', 'inputHash']);
     if (!id(input.conversationId) || !id(input.inputId) || !sha(input.inputHash)) fail('INVALID_SCHEMA', 'Invalid reply input reference');
+    if (input.mode !== undefined && !['reply', 'load'].includes(input.mode)) fail('INVALID_SCHEMA', 'Invalid local reply mode');
     return this.tx.atomic(() => {
       const binding = this.options.bindingFor(input.conversationId);
       this.options.conversations.version(OWNER, binding.bindingId); // Active audience/binding before admitting any input.
       const previous = this.db.prepare('SELECT input_hash,record_json FROM shiyu_local_reply_inputs WHERE conversation_id=? AND input_id=?').get(input.conversationId, input.inputId);
       if (previous) {
         if (previous.input_hash !== input.inputHash) fail('IDEMPOTENCY_CONFLICT', 'Reply input identity already names different text');
-        return { duplicate: true, operation: JSON.parse(String(previous.record_json)) as LocalReplyOperation };
+        const operation = JSON.parse(String(previous.record_json)) as LocalReplyOperation;
+        // Legacy outcomes remain immutable duplicate facts. Their absent mode
+        // never grants a new dispatch or the longer Lab execution profile.
+        if (operation.mode !== undefined && operation.mode !== (input.mode ?? 'reply')) fail('IDEMPOTENCY_CONFLICT', 'Reply input identity already names a different mode');
+        return { duplicate: true, operation };
       }
       this.assertEpochSources(binding);
       if (Number(this.db.prepare('SELECT COUNT(*) AS n FROM shiyu_local_reply_inputs').get()!.n) >= 4096) fail('REPLY_CAPACITY', 'Local reply control capacity reached');
       const conversation = this.options.conversations.getConversation(OWNER, input.conversationId);
       const operationId = randomUUID();
       this.options.conversations.advanceGeneration(OWNER, { conversationId: input.conversationId, expectedRevision: conversation.revision, eventId: `reply-input:${operationId}`, reason: 'input' });
-      const operation: LocalReplyOperation = { ...input, operationId, bindingId: binding.bindingId, businessId: binding.businessId, scope: 'local-owner', sessionEpoch: binding.sessionEpoch,
+      const operation: LocalReplyOperation = { ...input, mode: input.mode ?? 'reply', operationId, bindingId: binding.bindingId, businessId: binding.businessId, scope: 'local-owner', sessionEpoch: binding.sessionEpoch,
         status: 'admitted', durability: 'unconfirmed', token: this.options.conversations.version(OWNER, binding.bindingId), createdAt: this.now(), updatedAt: this.now(),
         ...(binding.sessionId ? { expectedSessionId: binding.sessionId } : {}) };
       this.db.prepare('INSERT INTO shiyu_local_reply_inputs VALUES(?,?,?,?,?)').run(operationId, input.conversationId, input.inputId, input.inputHash, JSON.stringify(operation));
@@ -175,6 +183,8 @@ export class LocalReplyDomain {
       if (operation.status !== 'admitted') fail('REPLY_ALREADY_PREPARED', 'Reply input cannot be dispatched again');
       if (!this.authority) fail('AUTHORITY_UNAVAILABLE', 'Reply context authority is unavailable');
       const capture = this.authority!.validateCapture(input.captureId, 'prepare');
+      if (capture.replyExecution && (capture.replyExecution.kind !== 'lab-reply-v1' || operation.mode === 'load'
+        || capture.replyExecution.operationId !== operation.operationId || capture.replyExecution.replyId !== operation.inputId)) fail('LAB_CAPTURE_SCOPE', 'Lab capture belongs to another generation operation');
       if (!this.sameToken(operation.token, capture.context.token) || capture.context.businessId !== operation.businessId
         || (operation.expectedSessionId && capture.context.sessionId !== operation.expectedSessionId)) fail('STALE_CONTEXT', 'Capture does not match the admitted input');
       const loaded = new Set(input.loadedTaskIds);

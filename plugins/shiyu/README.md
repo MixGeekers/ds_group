@@ -2,7 +2,7 @@
 
 `@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 core/replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地目标、任务与记忆链路。
 
-**当前状态：3H A 轮真实 Lab 尝试已停止，整轮未完成验收。** 首条群聊实际送达并匹配 oracle，第二条私聊在 30 秒 ReadView 到期后中断，未知用量继续占用预算；第三条未发送，同频道连续 Session 复用与成功后重载未验证。见[3H 宿主记录](<artifacts/phase3h-lab-host-validation.json>)及下方 [3H 说明](#3hlab-连续对话与回执)。
+**当前状态：3H A 轮真实 Lab 尝试已停止，整轮未完成验收。** 首条群聊实际送达并匹配 oracle，第二条私聊在 30 秒 ReadView 到期后中断，未知用量继续占用预算；第三条未发送，同频道连续 Session 复用与成功后重载未验证。相关期限耦合已完成离线修复，928/928 模块通过，尚未重载或真实复验。见[3H 宿主记录](<artifacts/phase3h-lab-host-validation.json>)、[期限修复](<artifacts/phase3h-reply-deadline-fix.json>)及下方 [3H 说明](#3hlab-连续对话与回执)。
 
 **3G 历史验证：已通过一个真实合成便签闭环及完成后重载核对。** owner 明确指定范围、共享预算与期限后，core 提出候选，控制域接纳 Task，worker 执行，独立核验后完成原生 Goal。两轮 Core 复用同一 Session；主模型记录合计 3813 reported tokens、4 次调用、1 次效果，完成后无剩余预留。首次失败 A 的取消与 unknown 保留，新样本 B 不改写其结果。见[成功证据](<artifacts/phase3g-core-host-success.json>)、[首次失败](<artifacts/phase3g-core-host-validation.json>)、[兼容修复](<artifacts/phase3g-required-context-fix.json>)及下方 [3G 说明](#3g有界-core-与本地目标)。这仍是有限授权事项推进，不是开放式规划或九系统整体验收。
 
@@ -25,7 +25,7 @@
 | 原生 Goal 生命周期 | 原生 Goal 绑定/CAS/命令历史、独立完成证明；历史零推理诊断保留，3G 另用专用 Goal Session 执行有界判断 | 原生日志拥有 phase/revision；普通判断 followup 不计为原生 Goal driver round；旧观察不覆盖 pending/unknown 命令事实 |
 | 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、Task 关联、可信完成事件投影、有界扫描；显式本地上下文回复与验证 | 背景消费者不调用模型；Event ack 不等于加载，显式回复须原生持久回执才 ackContext；无渠道发送 |
 | Lab 连续对话 | 最多 20 个获准群聊/私聊、原生 Session、输入去重与纠正失效、共享容量、预算、Effect 发送及只读回执核对 | 仅文本 message.send；A 轮群聊送达已核验、私聊中断，整轮未完成；不开放文件、Office、任务完成或管理操作，不自动注入跨对话记忆 |
-| 发布与受限视图 | schema2 按实际依赖发布 memory 读取能力，其余五域 unavailable；Task 与 native-memory ReadView、独立删除屏障及最终双校验 | 30 秒 capture，正文异步精确读取前后重核；只读接口不保存记忆，版本不与 commitSeq 或索引水位混用 |
+| 发布与受限视图 | schema2 按实际依赖发布 memory 读取能力，其余五域 unavailable；Task 与 native-memory ReadView、独立删除屏障及最终双校验 | 普通读取/回复/load-only 为 30 秒；可信 Lab 生成按具体原操作固定最多 120 秒，并取原授权更早截止。正文读取及返回前仍重核，版本不与 commitSeq 或索引水位混用 |
 | 事件与订阅 | 类型目录、发布、订阅增删改查、有限回放、投递领取/确认/失败、重试和统计；事件与匹配投递同事务提交 | live 路径为可信组件消费和 Agent background 引用；Agent 事件工具工厂已实现并合成验证，但尚未挂载到原生 Session，未自动续接 |
 | 本地状态与数据库 | 单实例运行锁、暂停与 Session 绑定保存；SQLite 独立 WorkerThread，事件、Task/Assignment、Mandate/预算及 Effect 共用连接与事务 | 尚无原生 inbox/请求结果完整对账；正常重载、事务/文件故障注入和限定子进程退出不代替完整断电/灾难恢复 |
 | 记忆控制与后端接缝 | 普通桶保存/精确读、共享授权与 Effect、独立索引回执、候选先授权后排序、可能暴露来源登记及撤回失效传播 | 同 Conversation、local-owner；不自动选取聊天正文，无普通物理删除/CAS、自主整理或跨对话分享 |
@@ -289,4 +289,9 @@ licenses/                           随发布包保留的第三方完整许可
 | 停止与独立核对 | 14:38:28 UTC 连接暂停至 epoch=2，14:38:49 UTC 房间停止，处于 600 秒限期内；审计读取本轮两个精确原生文件，结果 `consistent-incomplete`、issues=0，首条送达链核对成功 |
 | 收尾 | 第三条未发送，未执行仅限成功后的重载；14:42:56 UTC 只读复核时旧 11 个自有原生文件的字节数、哈希与 mtime 未变，本轮两个文件自独立审计后也未变，Task 仍为 3、commitSeq=173 |
 
-证据见[3H 宿主记录](<artifacts/phase3h-lab-host-validation.json>)。`consistent-incomplete` 仅说明已观察记录未发现矛盾，不表示整轮通过；本轮未验证同频道连续 Session 复用、成功后重载不重放、业务压缩、缓存命中率或完整双频道/S/FL 场景。首条未提供 cache 字段，第二条无 usage，不补零或推算命中率。ReadView 期限兼容修复及另次真实复验待完成，unknown 占用不因停止或文档收尾而结算。运行后发现的 Lab UI 空数组问题另有 5/5 离线修复验证，该修复不在本次真实运行构建内。
+证据见[3H 宿主记录](<artifacts/phase3h-lab-host-validation.json>)。`consistent-incomplete` 仅说明已观察记录未发现矛盾，不表示整轮通过；本轮未验证同频道连续 Session 复用、成功后重载不重放、业务压缩、缓存命中率或完整双频道/S/FL 场景。首条未提供 cache 字段，第二条无 usage，不补零或推算命中率。ReadView 期限修复已通过下述离线验证，另次真实复验仍待完成；unknown 占用不因停止或文档收尾而结算。运行后发现的 Lab UI 空数组问题另有 5/5 离线修复验证，该修复不在本次真实运行构建内。
+
+
+3H 期限兼容修复（离线已验、宿主待验）：新增内部 `view.captureLabReply`，Worker 以原 Lab permit 与已接纳的具体 reply operation 发行固定最长 120 秒 capture，受原连接、claim lease 与 Mandate 更早期限约束；原生 adapter 仍可更早超时。公开参数不能选 TTL，不续租、不在生成中换资料。普通读取、普通回复和 load-only 继续 30 秒。权限、来源版本、撤回、会话代次、native 回执及实际发送前检查全部保留；旧无 mode 记录只返回原事实，不能领取长 capture，旧 unknown 不重放。
+
+统一 `npm run check` **928/928，85.311 秒**，类型检查/构建/Client 语法通过；定向 90 项包含在其中，不重复相加。31 秒完成与精确 120 秒/更早截止使用合成时钟；真实临时 SQLite/Worker 验证原 permit/operation 绑定及正常 ready→accounted→sent 只读核对。没有新真实模型、房间操作或宿主重载，仍须另次有界真实复验；见[修补证据](<artifacts/phase3h-reply-deadline-fix.json>)。

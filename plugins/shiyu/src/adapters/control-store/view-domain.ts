@@ -8,6 +8,7 @@ import type { ComponentSnapshot, TrustedViewActor, ViewAccess } from '../../view
 import type { CommitWatermark, CommitWatermarkReader } from './commit-watermark.js';
 import { SqliteTransactions } from './transaction.js';
 import type { MemoryDomain, MemoryViewSnapshot } from './memory-domain.js';
+import type { LabReplyPermit } from '../../contracts/lab.js';
 
 export type { MemoryViewSnapshot, MemoryViewSource } from './memory-domain.js';
 export const MEMORY_VIEW_BACKEND = 'native-memory';
@@ -16,6 +17,11 @@ export const MEMORY_VIEW_FIELDS = ['text'] as const;
 export type LocalViewPurpose = 'reply_context' | 'task_status';
 export type LocalViewPhase = 'prepare' | 'ack' | 'ready';
 export type LocalTaskProjection = Pick<TaskView, 'taskId' | 'title' | 'state' | 'version' | 'updatedAt' | 'stopRequested'>;
+export interface LabReplyExecutionBinding { kind: 'lab-reply-v1'; operationId: string; replyId: string; connectionId: string }
+export interface LabReplyCaptureRequest { operationId: string; permit: LabReplyPermit; memoryOperationIds?: string[] }
+export interface LabReplyCaptureAuthority {
+  conversationId: string; expiresAt: string; binding: LabReplyExecutionBinding;
+}
 export interface LocalViewCapture {
   schemaVersion: 1; captureId: string; capturedAt: string; expiresAt: string;
   actor: TrustedViewActor; access: ViewAccess; publication: PublishedState; control: CommitWatermark;
@@ -24,9 +30,12 @@ export interface LocalViewCapture {
   tasks: LocalTaskProjection[]; component: ComponentSnapshot;
   /** Selected, freshly authorized references only; never native memory bodies. */
   memory?: MemoryViewSnapshot;
+  /** Metadata only. Its exact permit remains private in this Worker. */
+  replyExecution?: LabReplyExecutionBinding;
 }
 export interface ViewCommands {
   'view.captureLocal': { input: { conversationId: string; purpose: LocalViewPurpose; memoryOperationIds?: string[] }; output: LocalViewCapture };
+  'view.captureLabReply': { input: LabReplyCaptureRequest; output: LocalViewCapture };
   'view.validateCapture': { input: { captureId: string; phase?: LocalViewPhase }; output: LocalViewCapture };
   'view.state': { input: Record<string, never>; output: PublishedState | undefined };
 }
@@ -37,6 +46,8 @@ interface Options {
   context(conversationId: string): LocalViewCapture['context'];
   getTask(taskId: string): TaskView;
   memory?: Pick<MemoryDomain, 'captureForView' | 'validateForView'>;
+  /** Exact same-Worker Lab permit + local operation check, never a caller profile. */
+  authorizeLabReply?(request: LabReplyCaptureRequest, phase: 'capture' | 'validate'): LabReplyCaptureAuthority;
   now?: () => Date; ttlMs?: number; maxCaptures?: number;
 }
 export class LocalViewError extends Error {
@@ -64,6 +75,8 @@ function sourceVersions(context: ContextSnapshot): string {
  */
 export class ViewDomain {
   private readonly captures = new Map<string, LocalViewCapture>();
+  private readonly labPermits = new Map<string, LabReplyCaptureRequest>();
+  private readonly issuedLabOperations = new Set<string>();
   private readonly ttl: number;
   private readonly bound: number;
   constructor(db: DatabaseSync, private readonly tx: SqliteTransactions, private readonly options: Options) {
@@ -74,10 +87,25 @@ export class ViewDomain {
   private now(): Date {
     const value = this.options.now?.() ?? new Date(); if (!Number.isFinite(value.getTime())) fail('INVALID_CLOCK', 'Invalid capture clock'); return value;
   }
-  private prune(): void { const now = this.now().getTime(); for (const [key, value] of this.captures) if (Date.parse(value.expiresAt) <= now) this.captures.delete(key); }
+  private prune(): void { const now = this.now().getTime(); for (const [key, value] of this.captures) if (Date.parse(value.expiresAt) <= now) { this.captures.delete(key); this.labPermits.delete(key); } }
   captureLocal(input: ViewCommands['view.captureLocal']['input']): LocalViewCapture {
+    return this.capture(input);
+  }
+  captureLabReply(request: LabReplyCaptureRequest): LocalViewCapture {
+    fields(request, ['operationId', 'permit', 'memoryOperationIds'], ['operationId', 'permit']);
+    if (!id(request.operationId) || !this.options.authorizeLabReply) fail('LAB_CAPTURE_UNAVAILABLE', 'A trusted Lab reply authority is required');
+    if (this.issuedLabOperations.has(request.operationId)) fail('LAB_CAPTURE_ALREADY_ISSUED', 'The original reply capture cannot be renewed');
+    if (this.issuedLabOperations.size >= 4096) fail('VIEW_CAPACITY', 'Too many issued Lab reply captures');
+    const saved = clone(request);
+    const capture = this.capture(undefined, saved);
+    this.labPermits.set(capture.captureId, saved); this.issuedLabOperations.add(request.operationId);
+    return capture;
+  }
+  private capture(localInput?: ViewCommands['view.captureLocal']['input'], labRequest?: LabReplyCaptureRequest): LocalViewCapture {
+    // The callback is re-run inside the same transaction as the source capture.
+    const input = localInput ?? { conversationId: '', purpose: 'reply_context' as const, ...(labRequest?.memoryOperationIds ? { memoryOperationIds: labRequest.memoryOperationIds } : {}) };
     fields(input, ['conversationId', 'purpose', 'memoryOperationIds'], ['conversationId', 'purpose']);
-    if (!id(input.conversationId) || !['reply_context', 'task_status'].includes(input.purpose)) fail('INVALID_SCHEMA', 'Invalid local conversation view');
+    if ((!labRequest && !id(input.conversationId)) || !['reply_context', 'task_status'].includes(input.purpose)) fail('INVALID_SCHEMA', 'Invalid local conversation view');
     if (input.memoryOperationIds !== undefined && (input.purpose !== 'reply_context' || !Array.isArray(input.memoryOperationIds)
       || input.memoryOperationIds.length > 20 || input.memoryOperationIds.some(value => !id(value))
       || new Set(input.memoryOperationIds).size !== input.memoryOperationIds.length)) fail('INVALID_SCHEMA', 'Invalid bounded memory selection');
@@ -85,6 +113,8 @@ export class ViewDomain {
     if (this.tx.depth !== 0) fail('TRANSACTION_BOUNDARY', 'Capture must start at the Worker read boundary');
     this.prune(); if (this.captures.size >= this.bound) fail('VIEW_CAPACITY', 'Too many live captures');
     const capture = this.tx.atomic(() => {
+      const execution = labRequest ? this.options.authorizeLabReply!(clone(labRequest), 'capture') : undefined;
+      if (execution) input.conversationId = execution.conversationId;
       const publication = this.options.publication.get() ?? fail('STATE_UNPUBLISHED', 'Inner availability manifest has not been explicitly published');
       const safety = this.options.safety.snapshot();
       if (!safety.enabled) fail('FORBIDDEN', 'Local Task reads are disabled by their owner');
@@ -109,7 +139,12 @@ export class ViewDomain {
           || memory.authority.authorizationEpoch !== safety.authEpoch
           || memory.authority.backendId !== published.backendId || memory.authority.deploymentId !== published.deploymentId) fail('MEMORY_UNAVAILABLE', 'Selected memory provenance is incomplete or belongs to another published backend');
       }
-      const now = this.now(), capturedAt = now.toISOString(), expiresAt = new Date(now.getTime() + this.ttl).toISOString();
+      const now = this.now(), capturedAt = now.toISOString();
+      const expires = execution ? Date.parse(execution.expiresAt) : now.getTime() + this.ttl;
+      if (!Number.isFinite(expires) || expires <= now.getTime() || (execution && (expires > now.getTime() + 120000
+        || execution.binding.kind !== 'lab-reply-v1' || execution.binding.operationId !== labRequest!.operationId
+        || execution.binding.replyId !== labRequest!.permit.replyId || execution.binding.connectionId !== labRequest!.permit.connectionId))) fail('INVALID_LAB_CAPTURE', 'Invalid fixed Lab reply deadline or binding');
+      const expiresAt = new Date(expires).toISOString();
       const control = this.options.watermark.read();
       const actor: TrustedViewActor = { principalId: 'local-replyer', role: 'replyer', scopes: ['local-owner'] };
       const appliedSafety = { authEpoch: safety.authEpoch, tombstoneWatermark: safety.tombstoneWatermark };
@@ -126,7 +161,8 @@ export class ViewDomain {
           sourceRefs: [{ sourceId: `task:${task.taskId}`, revision: task.version, observedAt: capturedAt, trustClass: 'trusted-control-ledger' }],
           aggregateVersion: { aggregateType: 'task', aggregateId: task.taskId, version: task.version } })) };
       return { schemaVersion: 1 as const, captureId: randomUUID(), capturedAt, expiresAt, actor, access, publication, control, safety,
-        index: { mode: 'not-used' as const, watermark: 0 as const }, context, tasks, component, ...(memory ? { memory: clone(memory) } : {}) };
+        index: { mode: 'not-used' as const, watermark: 0 as const }, context, tasks, component, ...(memory ? { memory: clone(memory) } : {}),
+        ...(execution ? { replyExecution: clone(execution.binding) } : {}) };
     });
     this.captures.set(capture.captureId, clone(capture)); return clone(capture);
   }
@@ -138,6 +174,13 @@ export class ViewDomain {
       // BEGIN can wait on another managed connection. Admission before that wait
       // is not proof that the fixed lease is still live inside the transaction.
       if (this.now().getTime() >= Date.parse(capture.expiresAt)) fail('EXPIRED', 'Capture expired while acquiring the read transaction');
+      if (capture.replyExecution) {
+        const permit = this.labPermits.get(captureId);
+        if (!permit || !this.options.authorizeLabReply) fail('LAB_CAPTURE_UNAVAILABLE', 'Original Lab capture authority is unavailable');
+        const checked = this.options.authorizeLabReply(clone(permit), 'validate');
+        if (checked.conversationId !== capture.context.token.conversationId || checked.expiresAt !== capture.expiresAt
+          || hash(checked.binding) !== hash(capture.replyExecution)) fail('VIEW_INVALIDATED', 'Original Lab reply execution authority changed');
+      }
       const safety = this.options.safety.snapshot();
       if (safetyKeys.some(key => safety[key] !== capture.safety[key]) || !safety.enabled) fail('VIEW_INVALIDATED', 'Local read authority changed');
       const publication = this.options.publication.get();
@@ -164,6 +207,7 @@ export class ViewDomain {
   execute(request: ViewDomainRequest): unknown {
     switch (request.command) {
       case 'view.captureLocal': return this.captureLocal(request.args);
+      case 'view.captureLabReply': return this.captureLabReply(request.args);
       case 'view.validateCapture': fields(request.args, ['captureId', 'phase'], ['captureId']); return this.validateReplyCapture(request.args.captureId, { for: request.args.phase ?? 'ready' });
       case 'view.state': fields(request.args, []); return this.options.publication.get();
     }

@@ -9,14 +9,15 @@ import { SqliteTransactions } from '../src/adapters/control-store/transaction.js
 import { installCommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
 import { StatePublicationStore, createStatePublisher, initialStateManifest } from '../src/state/publication.js';
 import { LocalReadSafetyStore, createLocalReadOwner } from '../src/state/safety.js';
-import { ViewDomain, type LocalViewCapture } from '../src/adapters/control-store/view-domain.js';
+import { ViewDomain, type LocalViewCapture, type LabReplyCaptureRequest } from '../src/adapters/control-store/view-domain.js';
 import { createLocalReadView } from '../src/views/local.js';
 import type { TaskView } from '../src/control/tasks/index.js';
 
 const code = (...codes: string[]) => (error: unknown) => error instanceof Error && 'code' in error && codes.includes(String(error.code));
-async function fixture(t: TestContext, config: { publish?: boolean; ttlMs?: number; maxCaptures?: number; busyTimeoutMs?: number } = {}) {
+async function fixture(t: TestContext, config: { publish?: boolean; ttlMs?: number; maxCaptures?: number; busyTimeoutMs?: number; labDeadlineMs?: number } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'shiyu-local-views-')), filename = join(directory, 'control.sqlite');
   let now = new Date('2026-11-02T10:00:00.000Z');
+  const labExpiresAt = new Date(now.getTime() + (config.labDeadlineMs ?? 120000)).toISOString();
   const connections: DatabaseSync[] = [];
   const open = () => {
     const db = new DatabaseSync(filename); connections.push(db); db.exec(`PRAGMA busy_timeout=${config.busyTimeoutMs ?? 25};`);
@@ -31,7 +32,9 @@ async function fixture(t: TestContext, config: { publish?: boolean; ttlMs?: numb
     const safety = new LocalReadSafetyStore(db, tx, { getAuthEpoch: () => Number(db.prepare('SELECT value FROM synthetic_epoch WHERE id=1').get()!.value), now: () => now });
     const get = <T>(id: string): T => JSON.parse(String(db.prepare('SELECT value FROM synthetic_sources WHERE id=?').get(id)!.value)) as T;
     const save = (id: string, value: unknown) => tx.atomic(() => { db.prepare('INSERT INTO synthetic_sources VALUES(?,?) ON CONFLICT(id) DO UPDATE SET value=excluded.value').run(id, JSON.stringify(value)); });
-    const views = new ViewDomain(db, tx, { publication, safety, watermark, context: () => get('context'), getTask: id => get<TaskView>(id), now: () => now, ttlMs: config.ttlMs, maxCaptures: config.maxCaptures });
+    const views = new ViewDomain(db, tx, { publication, safety, watermark, context: () => get('context'), getTask: id => get<TaskView>(id), now: () => now, ttlMs: config.ttlMs, maxCaptures: config.maxCaptures,
+      ...(config.labDeadlineMs === undefined ? {} : { authorizeLabReply: (request: LabReplyCaptureRequest) => ({ conversationId: 'conversation-one', expiresAt: labExpiresAt,
+        binding: { kind: 'lab-reply-v1' as const, operationId: request.operationId, replyId: request.permit.replyId, connectionId: request.permit.connectionId } }) }) });
     return { db, tx, watermark, publication, publisher, safety, views, get, save, owner: createLocalReadOwner() };
   };
   const f = open();
@@ -44,6 +47,44 @@ async function fixture(t: TestContext, config: { publish?: boolean; ttlMs?: numb
     capture: () => f.views.captureLocal({ conversationId: 'conversation-one', purpose: 'reply_context' }),
     validate: async (id: string) => f.views.validateReplyCapture(id, { for: 'ready' }) };
 }
+
+// This unit fixture supplies only the trusted authority result. Exact Lab
+// permit/operation authentication is covered separately with the real Worker.
+const labCaptureRequest: LabReplyCaptureRequest = { operationId: 'operation-one', permit: {
+  replyId: 'reply-one', connectionId: 'connection-one', connectionEpoch: 1, channelId: 'channel-one', inputVersion: 1,
+  anchorEventId: 'event-one', claimToken: 'synthetic-claim', installationGeneration: 'install-one', hostEpoch: 'host-one',
+  authorization: { reservationId: 'reservation-one', mandateId: 'mandate-one', mandateVersion: 1, authEpoch: 1, action: 'lab.reply', scope: 'local-owner', resourceScopes: ['channel-one'] },
+  leaseExpiresAt: '2026-11-02T10:10:00.000Z' } };
+
+test('fixed Lab capture stays current at 31s and expires exactly at 120s without renewal', async t => {
+  const f = await fixture(t, { labDeadlineMs: 120000 }), capture = f.views.captureLabReply(labCaptureRequest);
+  const ordinary = f.capture(), local = createLocalReadView(capture, { validate: f.validate, now: f.now }); t.after(() => local.close());
+  const view = await local.read(); assert.equal(view.expiresAt, capture.expiresAt);
+  f.advance(31000); await local.assertCurrent(view.viewId); assert.deepEqual(await f.validate(capture.captureId), capture);
+  assert.throws(() => f.views.validateReplyCapture(ordinary.captureId, { for: 'ready' }), code('UNKNOWN_CAPTURE'));
+  assert.throws(() => f.views.captureLabReply(labCaptureRequest), code('LAB_CAPTURE_ALREADY_ISSUED'));
+  f.advance(88999); await local.assertCurrent(view.viewId);
+  f.advance(1); await assert.rejects(local.assertCurrent(view.viewId));
+  assert.throws(() => f.views.validateReplyCapture(capture.captureId, { for: 'ack' }), code('UNKNOWN_CAPTURE'));
+  assert.throws(() => f.views.captureLabReply(labCaptureRequest), code('LAB_CAPTURE_ALREADY_ISSUED'));
+});
+
+test('earlier trusted deadline and source withdrawal/version changes still invalidate extended Lab captures', async t => {
+  const earlier = await fixture(t, { labDeadlineMs: 45000 }), captured = earlier.views.captureLabReply(labCaptureRequest);
+  const local = createLocalReadView(captured, { validate: earlier.validate, now: earlier.now }); t.after(() => local.close());
+  const view = await local.read(); earlier.advance(44999); await local.assertCurrent(view.viewId);
+  earlier.advance(1); await assert.rejects(local.assertCurrent(view.viewId));
+  for (const change of ['task', 'withdraw', 'generation'] as const) {
+    const f = await fixture(t, { labDeadlineMs: 120000 }), capture = f.views.captureLabReply(labCaptureRequest);
+    const read = createLocalReadView(capture, { validate: f.validate, now: f.now }); t.after(() => read.close());
+    const current = await read.read(); f.advance(31000);
+    if (change === 'task') f.save('task-one', { ...f.get<TaskView>('task-one'), version: 4 });
+    else if (change === 'withdraw') {
+      const safety = f.safety.snapshot(); f.safety.withdrawTask(f.owner, { taskId: 'task-one', expectedDeletionAuthorityId: safety.deletionAuthorityId, expectedTombstoneWatermark: safety.tombstoneWatermark });
+    } else { const context = f.get<LocalViewCapture['context']>('context'); context.token.conversationGeneration++; f.save('context', context); }
+    await assert.rejects(read.assertCurrent(current.viewId));
+  }
+});
 
 test('capture is one bounded pure read with real publication, scoped safety and Task aggregate provenance', async t => {
   const f = await fixture(t), before = f.watermark.read(), context = f.get('context');

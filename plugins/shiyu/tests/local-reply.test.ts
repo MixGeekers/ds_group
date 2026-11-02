@@ -84,6 +84,93 @@ async function labFixture(t: TestContext, options: Partial<Pick<LocalReplyOption
   return { store, native, service, conversation, channel, run, filename };
 }
 
+async function labProfileFixture(t: TestContext, grantMs = 600000) {
+  const directory = await mkdtemp(join(tmpdir(), 'shiyu-lab-reply-profile-'));
+  const store = await ControlStore.open({ filename: join(directory, 'control.sqlite'), eventTypes: SHIYU_EVENT_TYPES, componentHandlers: ['conversation.background'],
+    runtimeIdentity: { hostEpoch: 'profile-host', installationGeneration: 'profile-install' } });
+  const channelId = 'profile-channel', expiresAt = new Date(Date.now() + grantMs).toISOString();
+  const connection = await store.request('lab.connect', { requestId: 'profile-connect', runId: 'profile-run',
+    channels: [{ channelId, kind: 'direct', membersDigest: sha('profile-members') }], budget: { tokens: 32768, calls: 2, effects: 2 }, expiresAt });
+  const event = (seq: number) => ({ eventId: `profile-input-${seq}`, channelId, actorId: 'HUMAN', type: 'input.message', seq, bodyHash: sha(TEXT), bodyBytes: Buffer.byteLength(TEXT) });
+  await store.request('lab.ingest', { connectionId: connection.connectionId, events: [event(1)] });
+  const claim = (await store.request('lab.claimReply', { connectionId: connection.connectionId, channelId }))!;
+  const native = new NativeFixture(); let elapsed = 0, captureCalls = 0;
+  const service = new LocalReplyService({ store, sessions: native, now: () => new Date(Date.now() + elapsed), allowEmptyContext: true,
+    assertRuntimeAllowed() {}, authorize: async () => { await store.request('lab.assertReply', { permit: claim.permit }); },
+    captureLabReply: input => { captureCalls++; return store.request('view.captureLabReply', { operationId: input.operationId, permit: claim.permit }); } });
+  t.after(async () => { await service.close(); await store.close(); await rm(directory, { recursive: true, force: true }); });
+  const input = { conversationId: claim.conversationId, inputId: claim.replyId, text: TEXT, maxTokens: 512 };
+  return { store, native, service, claim, connection, input, expiresAt, run: () => service.run(input),
+    advance(ms: number) { elapsed += ms; }, captures: () => captureCalls, nextInput: () => store.request('lab.ingest', { connectionId: connection.connectionId, events: [event(2)] }) };
+}
+
+test('trusted Lab generation can finish after 31s with one low-effort 512-token request and unchanged capture', async t => {
+  const f = await labProfileFixture(t);
+  f.native.afterLoad = async () => { f.advance(31000); };
+  const result = await f.run();
+  assert.equal(result.operation.status, 'ready'); assert.equal(f.captures(), 1); assert.equal(f.native.modelSteps, 1);
+  assert.equal(f.native.requests.length, 1); assert.equal(f.native.requests[0]!.maxTokens, 512);
+  assert.equal(result.reply!.binding.model.reasoningEffort, 'low');
+  assert.equal(Date.parse(result.operation.expiresAt!) - Date.parse(result.operation.createdAt), 120000);
+  assert.equal(result.view!.expiresAt, result.operation.expiresAt);
+  assert.equal(f.native.requests[0]!.deadlineMs, Date.parse(result.operation.expiresAt!));
+  assert.equal((await f.run()).duplicate, true); assert.equal(f.native.requests.length, 1); assert.equal(f.captures(), 1);
+});
+
+test('trusted Lab profile still stops at fixed 120s or earlier authority expiry without redispatch', async t => {
+  for (const [grantMs, elapsed] of [[600000, 120000], [60000, 61000]]) {
+    const f = await labProfileFixture(t, grantMs);
+    f.native.afterLoad = async () => { f.advance(elapsed!); };
+    await assert.rejects(f.run()); assert.equal(f.native.requests.length, 1); assert.equal(f.captures(), 1);
+    const operation = await f.store.request('conversation.reply.get', { operationId: f.native.requests[0]!.context.operationId });
+    assert.notEqual(operation.status, 'ready');
+    assert.equal(operation.expiresAt, grantMs === 60000 ? f.expiresAt : new Date(Date.parse(operation.createdAt) + 120000).toISOString());
+    const duplicate = await f.run(); assert.equal(duplicate.duplicate, true); assert.equal(duplicate.reply, undefined);
+    assert.equal(f.native.modelSteps, 1); assert.equal(f.captures(), 1);
+  }
+});
+
+test('trusted Lab profile rejects new input, connection pause and runtime pause after 31s', async t => {
+  for (const change of ['input', 'connection', 'runtime'] as const) {
+    const f = await labProfileFixture(t);
+    f.native.afterLoad = async () => {
+      f.advance(31000);
+      if (change === 'input') await f.nextInput();
+      else if (change === 'connection') await f.store.request('lab.pause', { connectionId: f.connection.connectionId });
+      else await f.store.request('task.setPaused', { paused: true });
+    };
+    await assert.rejects(f.run()); assert.equal(f.native.modelSteps, 1);
+    const operation = await f.store.request('conversation.reply.get', { operationId: f.native.requests[0]!.context.operationId });
+    assert.notEqual(operation.status, 'ready');
+  }
+});
+
+test('Lab load-only uses the ordinary 30s capture even when the trusted generation callback exists', async t => {
+  const f = await labProfileFixture(t);
+  const result = await f.service.load(f.input);
+  assert.equal(result.operation.status, 'loaded'); assert.equal(result.operation.mode, 'load');
+  assert.equal(f.captures(), 0); assert.equal(f.native.requests.length, 0); assert.equal(f.native.loads.length, 1);
+  assert.ok(Date.parse(result.operation.expiresAt!) - Date.parse(result.operation.createdAt) < 31000);
+  await assert.rejects(f.store.request('view.captureLabReply', { operationId: result.operation.operationId, permit: f.claim.permit }));
+  await assert.rejects(f.run()); assert.equal(f.native.requests.length, 0);
+});
+
+test('legacy loaded and unknown duplicate loads never dispatch or obtain a new capture', async () => {
+  for (const status of ['loaded', 'unknown'] as const) {
+    const operation = { operationId: 'legacy-operation', conversationId: 'legacy-conversation', inputId: 'legacy-input', status };
+    const commands: string[] = []; let nativeCalls = 0, captures = 0;
+    const service = new LocalReplyService({ assertRuntimeAllowed() {},
+      store: { request: async (command: string) => { commands.push(command); assert.equal(command, 'conversation.reply.admit'); return { duplicate: true, operation }; } } as unknown as ControlStore,
+      sessions: { generateReply: async () => { nativeCalls++; throw new Error('Unexpected generation'); }, loadContextOnly: async () => { nativeCalls++; throw new Error('Unexpected load'); } },
+      captureLabReply: async () => { captures++; throw new Error('Unexpected renewed capture'); } });
+    try {
+      const result = await service.load({ conversationId: operation.conversationId, inputId: operation.inputId, text: TEXT });
+      assert.equal(result.duplicate, true); assert.deepEqual(result.operation, operation);
+      assert.deepEqual(commands, ['conversation.reply.admit']); assert.equal(nativeCalls, 0); assert.equal(captures, 0);
+    } finally { await service.close(); }
+  }
+});
+
 test('Lab empty context is trusted opt-in only and keeps one native Session for ordinary messages', async t => {
   const denied = await labFixture(t);
   await assert.rejects(denied.run()); assert.equal(denied.native.requests.length, 0);

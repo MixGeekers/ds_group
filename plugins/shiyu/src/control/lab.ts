@@ -88,6 +88,13 @@ export class LabService {
     check(Number.isSafeInteger(this.interval) && this.interval >= 10 && this.interval <= 30000, 'LAB_INVALID_CONFIGURATION');
     this.replies = (options.replyFactory ?? (value => new LocalReplyService(value)))({ store: options.store, sessions: options.sessions,
       assertRuntimeAllowed: options.assertRuntimeAllowed, now: options.now, allowEmptyContext: true, maxInputBytes: 32768,
+      captureLabReply: input => {
+        const running = this.active.get(input.inputId);
+        check(running && running.reply.conversationId === input.conversationId && this.live === running.live, 'LAB_REPLY_NOT_CURRENT');
+        running.signal.throwIfAborted(); this.open(running.signal);
+        return this.options.store.request('view.captureLabReply', { operationId: input.operationId, permit: running.reply.permit,
+          ...(input.memoryOperationIds ? { memoryOperationIds: input.memoryOperationIds } : {}) });
+      },
       authorize: check => this.authorize(check) });
   }
   private now(): Date { return this.options.now?.() ?? new Date(); }

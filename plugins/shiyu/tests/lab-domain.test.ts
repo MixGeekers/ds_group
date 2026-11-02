@@ -9,6 +9,7 @@ import { LabDomain, type LabDomainOptions } from '../src/adapters/control-store/
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
 import { createControlAuthority } from '../src/adapters/control-store/authority.js';
 import type { LabConnectInput, LabReply, LabSendPlan } from '../src/contracts/lab.js';
+import type { LocalReplyOperation } from '../src/adapters/control-store/local-reply-domain.js';
 const hash = (s: string) => createHash('sha256').update(s).digest('hex');
 const initial = '2026-11-02T12:00:00.000Z';
 function fixture(t: TestContext) {
@@ -54,6 +55,25 @@ test('owner approval creates at most twenty exact channels and one shared budget
   assert.throws(() => f.domain.connect({ ...f.input(21), requestId: 'other' }), { code: 'INVALID_LAB_INPUT' });
   assert.throws(() => f.domain.connect({ ...f.input(), requestId: 'other' }), { code: 'LAB_CONNECTION_ACTIVE' });
   assert.throws(() => f.ingest(first.connectionId, 1, 'unapproved'), { code: 'LAB_CHANNEL_DENIED' });
+});
+
+test('Lab capture authority fixes the original deadline and clips an aging permit without extending it', t => {
+  const f = fixture(t), connection = f.domain.connect(f.input()); f.ingest(connection.connectionId);
+  const reply = f.domain.claimReply({ connectionId: connection.connectionId, channelId: 'channel-0' })!;
+  const operation: LocalReplyOperation = { operationId: 'synthetic-operation', conversationId: reply.conversationId, inputId: reply.replyId, inputHash: hash('input'),
+    bindingId: 'binding', businessId: 'business', scope: 'local-owner', sessionEpoch: 1, mode: 'reply', status: 'admitted', durability: 'unconfirmed', createdAt: initial, updatedAt: initial,
+    token: { bindingId: 'binding', conversationId: reply.conversationId, scope: 'local-owner', audienceVersion: 1, conversationGeneration: 1, routingRevision: 1, sessionEpoch: 1, contextVersion: 1 } };
+  const capture = f.domain.authorizeReplyCapture(reply.permit, operation, 'capture');
+  assert.equal(capture.expiresAt, '2026-11-02T12:02:00.000Z');
+  f.clock('2026-11-02T12:00:31.000Z');
+  assert.deepEqual(f.domain.authorizeReplyCapture(reply.permit, { ...operation, status: 'dispatching' }, 'validate'), capture);
+  f.clock('2026-11-02T12:02:00.000Z'); assert.throws(() => f.domain.authorizeReplyCapture(reply.permit, operation, 'validate'), { code: 'LAB_EXPIRED' });
+  f.clock('2026-11-02T12:09:00.000Z');
+  const lateOperation = { ...operation, createdAt: '2026-11-02T12:09:00.000Z' };
+  assert.equal(f.domain.authorizeReplyCapture(reply.permit, lateOperation, 'capture').expiresAt, reply.permit.leaseExpiresAt);
+  assert.equal(reply.permit.leaseExpiresAt, '2026-11-02T12:10:00.000Z');
+  const legacy = { ...lateOperation }; delete legacy.mode;
+  assert.throws(() => f.domain.authorizeReplyCapture(reply.permit, legacy, 'capture'), { code: 'LAB_CAPTURE_SCOPE' });
 });
 
 test('durable event dedupe validates full hash and sequence and rolls back conversation fences with batch failure', t => {

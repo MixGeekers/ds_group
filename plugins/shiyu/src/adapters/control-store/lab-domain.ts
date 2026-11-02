@@ -6,6 +6,8 @@ import { EffectLedger, type EffectClaim, type DispatchVerdict } from '../../cont
 import type { MandateStore, PermitRequest, TrustedPolicyActor } from '../../control/policy/mandates.js';
 import { createControlAuthority, LAB_DISPATCHER, LAB_VERIFIER } from './authority.js';
 import type { SqliteTransactions } from './transaction.js';
+import type { LocalReplyOperation } from './local-reply-domain.js';
+import type { LabReplyCaptureAuthority } from './view-domain.js';
 export type { LabCommands, LabDomainRequest } from '../../contracts/lab.js';
 export interface LabDomainOptions {
   runtimeIdentity: { installationGeneration: string; hostEpoch: string };
@@ -89,10 +91,10 @@ export class LabDomain {
     if (c.expiresAt <= this.now()) fail('LAB_EXPIRED', 'Lab authority expired');
   }
   private samePermit(p: LabReplyPermit): LabReply { const r = this.reply(p.replyId); if (canonical(p) !== canonical(r.permit)) fail('STALE_LAB_PERMIT', 'Lab claim changed'); return r; }
-  private current(r: LabReply, allowSettled: boolean): Connection {
+  private current(r: LabReply, allowSettled: boolean, allowSent = false): Connection {
     const c = this.connection(r.connectionId); this.active(c); const ch = this.channel(c, r.channelId), p = r.permit;
     if (p.connectionEpoch !== c.epoch || p.hostEpoch !== this.identity.hostEpoch || p.installationGeneration !== this.identity.installationGeneration || ch.inputVersion !== p.inputVersion || ch.latestInput?.eventId !== p.anchorEventId || p.leaseExpiresAt <= this.now()) fail('STALE_LAB_INPUT', 'Lab input or connection fence changed');
-    if (r.status === 'unknown' || r.status === 'sent') fail('LAB_REPLY_UNAVAILABLE', 'Anchor cannot run again');
+    if (r.status === 'unknown' || (r.status === 'sent' && !allowSent)) fail('LAB_REPLY_UNAVAILABLE', 'Anchor cannot run again');
     if (allowSettled && r.reservation.state === 'settled' && !r.reservation.overrun) this.originalAuthority(p.authorization, p.leaseExpiresAt); else this.authority.assertPermit(LAB_DISPATCHER, p.authorization);
     return c;
   }
@@ -174,6 +176,24 @@ export class LabDomain {
     });
   }
   assertReply(input: LabCommands['lab.assertReply']['input']): LabReply { fields(input, ['permit']); return this.tx.atomic(() => { const r = this.samePermit(input.permit); this.current(r, true); return r; }); }
+  /** Same-Worker read authority only; absent from LabCommands and public routes.
+   * Validation of an already issued capture is not permission to generate again. */
+  authorizeReplyCapture(permit: LabReplyPermit, operation: LocalReplyOperation, phase: 'capture' | 'validate'): LabReplyCaptureAuthority {
+    return this.tx.atomic(() => {
+      const reply = this.samePermit(permit), connection = this.current(reply, true, phase === 'validate');
+      if (operation.inputId !== reply.replyId || operation.conversationId !== reply.conversationId || operation.scope !== 'local-owner'
+        || operation.mode !== 'reply' || !['admitted', 'prepared', 'dispatching', 'ready'].includes(operation.status)
+        || (phase === 'capture' && (operation.status !== 'admitted' || reply.status !== 'claimed' || reply.reservation.state !== 'reserved'))) {
+        fail('LAB_CAPTURE_SCOPE', 'Only the original admitted Lab generation can obtain this capture');
+      }
+      const mandate = this.authority.get(OWNER, permit.authorization.mandateId);
+      const expires = Math.min(Date.parse(operation.createdAt) + 120000, Date.parse(connection.expiresAt),
+        Date.parse(permit.leaseExpiresAt), Date.parse(mandate.expiresAt));
+      if (!Number.isFinite(expires) || expires <= Date.parse(this.now())) fail('LAB_EXPIRED', 'The fixed Lab reply execution deadline expired');
+      return { conversationId: reply.conversationId, expiresAt: new Date(expires).toISOString(),
+        binding: { kind: 'lab-reply-v1', operationId: operation.operationId, replyId: reply.replyId, connectionId: reply.connectionId } };
+    });
+  }
   recordReplyAccounting(input: LabCommands['lab.recordReplyAccounting']['input']): LabReply {
     fields(input, ['permit', 'receiptId', 'complete', 'tokens', 'calls', 'evidenceRef'], ['permit', 'receiptId', 'complete', 'evidenceRef']);
     return this.tx.atomic(() => {

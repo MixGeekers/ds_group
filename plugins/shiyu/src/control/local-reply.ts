@@ -5,6 +5,7 @@ import type { ReplyRequest, ReplyResult, ReplyDraftReadRequest, ReplyDraftReadRe
 import type { ContextLoadRequest, ContextLoadResult } from '../adapters/dsh/sessions.js';
 import type { MemoryViewSource } from '../adapters/control-store/memory-domain.js';
 import type { MemoryBackendObservation } from '../contracts/memory.js';
+import type { LocalViewCapture } from '../adapters/control-store/view-domain.js';
 import { createLocalReadView } from '../views/local.js';
 import type { ReadView } from '../views/index.js';
 
@@ -37,6 +38,9 @@ export interface LocalReplyOptions {
   maxInputBytes?: number;
   /** Additional trusted connection/input/budget authority, refreshed at every gate. */
   authorize?(check: Readonly<LocalReplyGateCheck>): void | Promise<void>;
+  /** Trusted Lab composition only. Worker independently binds the original
+   * permit to this admitted operation; public run/load input cannot select it. */
+  captureLabReply?(input: { operationId: string; conversationId: string; inputId: string; memoryOperationIds?: string[] }): Promise<LocalViewCapture>;
   now?: () => Date;
   memory?: LocalReplyMemoryPort;
 }
@@ -143,7 +147,7 @@ export class LocalReplyService {
     try {
       await gate('start');
       if (mode === 'load' && !this.options.sessions.loadContextOnly) throw new Error('Native load-only context capability is unavailable');
-      const admitted = await this.options.store.request('conversation.reply.admit', { conversationId: input.conversationId, inputId: input.inputId, inputHash: digest(input.text) });
+      const admitted = await this.options.store.request('conversation.reply.admit', { conversationId: input.conversationId, inputId: input.inputId, inputHash: digest(input.text), mode });
       operation = admitted.operation;
       if (admitted.duplicate) { await gate('start'); return { duplicate: true, operation }; }
       // The new persisted generation invalidates old drafts. Abort the matching
@@ -155,8 +159,12 @@ export class LocalReplyService {
       if (selected && (!Array.isArray(selected.operationIds) || selected.operationIds.length > 20 || selected.operationIds.some(value => typeof value !== 'string')
         || new Set(selected.operationIds).size !== selected.operationIds.length)) throw new Error('Invalid bounded memory selection');
       await gate('prepare');
-      const capture = await this.options.store.request('view.captureLocal', { conversationId: input.conversationId, purpose: 'reply_context',
-        ...(selected ? { memoryOperationIds: selected.operationIds } : {}) });
+      const memorySelection = selected ? { memoryOperationIds: selected.operationIds } : {};
+      const capture = mode === 'reply' && this.options.captureLabReply
+        ? await this.options.captureLabReply({ operationId: operation.operationId, conversationId: input.conversationId, inputId: input.inputId, ...memorySelection })
+        : await this.options.store.request('view.captureLocal', { conversationId: input.conversationId, purpose: 'reply_context', ...memorySelection });
+      if (capture.replyExecution && (mode !== 'reply' || !this.options.captureLabReply || capture.replyExecution.operationId !== operation.operationId
+        || capture.replyExecution.replyId !== input.inputId)) throw new Error('Lab execution capture does not match this reply operation');
       views = createLocalReadView(capture, { validate: captureId => this.options.store.request('view.validateCapture', { captureId }), now: this.options.now,
         ...(selected?.index ? { memoryIndex: selected.index } : {}),
         ...(this.options.memory ? { memoryRead: (source: MemoryViewSource, signal?: AbortSignal) => this.options.memory!.read(source,

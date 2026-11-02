@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "phase": "3H-reply-deadline-fix",
+  "recordedAt": "2026-11-02T15:03:23.998054+00:00",
+  "baseCommit": "5ac3f89",
+  "evidenceLevel": "static-review-and-offline-synthetic-tests",
+  "status": "offline-verified-not-loaded-into-real-host",
+  "relatedHostEvidence": {
+    "path": "plugins/shiyu/artifacts/phase3h-lab-host-validation.json",
+    "bytes": 27619,
+    "sha256": "6122765d21738178ba8d6a00df7d866c43dba65e753cd2727ae11cc72646ee19"
+  },
+  "problem": "A 30-second ReadView lifetime also limited the entire Lab model generation, cancelling the second real-host turn before text or usage was available.",
+  "implementation": {
+    "trustedCommand": "view.captureLabReply",
+    "input": "exact original LabReplyPermit and admitted LocalReplyOperation identity; no caller TTL or profile string",
+    "maximumMilliseconds": 120000,
+    "deadlineBasis": "min(operation.createdAt+120000, original connection expiresAt, permit leaseExpiresAt, original mandate expiresAt); native adapter retains its own earlier timeout",
+    "ordinaryReadAndReplyMilliseconds": 30000,
+    "loadOnlyMilliseconds": 30000,
+    "renewal": false,
+    "recaptureDuringGeneration": false,
+    "binding": [
+      "operationId",
+      "replyId",
+      "connectionId"
+    ],
+    "validation": [
+      "exact same Worker permit and operation, explicitly mode=reply",
+      "same current connection/input/audience/installation/host epoch",
+      "original mandate authority and budget",
+      "source versions, publication, policy and deletion barriers",
+      "native cwd, single-request/empty-tool profile",
+      "ready/draft and immediate actual-send gates"
+    ],
+    "legacy": "Missing-mode records remain unchanged duplicate facts; they cannot acquire a new longer capture. Explicit new modes conflict when reused across load/reply.",
+    "normalTransitions": "Existing capture may be validated after accounting or sent state without granting generation or send eligibility again."
+  },
+  "verification": {
+    "unified": {
+      "command": "npm run check",
+      "cwd": "plugins/shiyu",
+      "exitCode": 0,
+      "moduleTests": 928,
+      "passed": 928,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 85311.063916,
+      "typecheck": true,
+      "build": true,
+      "clientSyntax": true,
+      "log": {
+        "path": "plugins/shiyu/.local/phase3h-reply-deadline-check.log",
+        "bytes": 101376,
+        "sha256": "61707d5c30c2d9b917370e48ae626ad10dd3589257037e0a6ddfe281aefb45e6"
+      }
+    },
+    "targeted": {
+      "files": 5,
+      "passed": 90,
+      "failed": 0,
+      "durationSeconds": 11.43,
+      "log": {
+        "path": "plugins/shiyu/.local/phase3h-reply-profile-final-tests.log",
+        "bytes": 10031,
+        "sha256": "9caf3936c062e1fe92b7078065a278599d8c90d469568bb3615fef19ad47291b"
+      },
+      "includedInUnified": true
+    },
+    "firstTargetedAttempt": {
+      "files": 13,
+      "tests": 224,
+      "passed": 223,
+      "failed": 1,
+      "cause": "New legacy test fixture omitted a required contextTokenId, causing earlier schema rejection; fixture corrected, retained within the final targeted and unified passes.",
+      "productRegressionFoundByThatFailure": false
+    },
+    "coverage": [
+      "Clock-advanced 31-second generation returns one verified draft from one request with low/512 configuration",
+      "Clock reaches exact 120-second or earlier original grant expiry and result is refused without redispatch",
+      "Source change, source withdrawal, newer input, connection pause and runtime pause prevent release",
+      "Exact real temporary SQLite/Worker permit/operation matching and caller TTL/forged permit refusal",
+      "Ordinary/read/load-only retain 30-second bound",
+      "Original ready/accounted/sent capture validation remains read-only and cannot start another generation/effect",
+      "Legacy loaded/unknown duplicates unchanged and non-dispatching"
+    ],
+    "nativeProfile": "Existing DSH adapter and model configuration unchanged; native timeout tests included in unified suite.",
+    "shiyuUI": "No Client changes in this fix; existing 190-test offline UI snapshot not rerun or claimed as new evidence.",
+    "newRealModelRequests": 0,
+    "newEmbeddingRequests": 0,
+    "newRealRoomOperations": 0,
+    "newHostReloads": 0
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/lab-domain.ts",
+      "bytes": 40292,
+      "sha256": "c58ca55cd4b7328685a0ae7930f47ebe4710f42ca876ba572300a090a1b5b55d"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/local-reply-domain.ts",
+      "bytes": 32174,
+      "sha256": "264a61d974e66bd0b4c4dcf15da16b08b05993d31ad21c07108a05679b7d517f"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/view-domain.ts",
+      "bytes": 18330,
+      "sha256": "00cb8c759da294525510bf6d433de82baff0f48590137f7185589b1aab6f18b9"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+      "bytes": 49417,
+      "sha256": "d3a311fb53af55b5c6a5c2b083d9a01bbd31ee2b51cf0c2193d7a6a29a3f31c8"
+    },
+    {
+      "path": "plugins/shiyu/src/control/lab.ts",
+      "bytes": 32202,
+      "sha256": "12519688e1e79b5a50e2413486455a7eeb920965b12729c0c3d296f19ab34075"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-reply.ts",
+      "bytes": 22033,
+      "sha256": "305bdc014cd649803954c199e5296b1770ef4bcc00a31689760afe653049d8da"
+    },
+    {
+      "path": "plugins/shiyu/src/views/index.ts",
+      "bytes": 31825,
+      "sha256": "f8f894f05fd57f68a7db9ff552e60984bd896000cd22677ca5fdfd518d4578e0"
+    },
+    {
+      "path": "plugins/shiyu/src/views/local.ts",
+      "bytes": 7590,
+      "sha256": "f1ee67290cfbe0f5ae02543336929ad21508bd17eb7dc13375392b23d65ea307"
+    },
+    {
+      "path": "plugins/shiyu/tests/lab-domain.test.ts",
+      "bytes": 30569,
+      "sha256": "70609a824ddfe73177633971f494ab8d2adf5e87f058b669a7841694437dcc96"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply-domain.test.ts",
+      "bytes": 21598,
+      "sha256": "b58183034b0551fce61edd88e11bc0dbb7381fdb9859eba1d4bbf41050692854"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply.test.ts",
+      "bytes": 32909,
+      "sha256": "f4f1919b359df8917680b750300dcf5fcd6163721835213e9b15cbcdc0d365e7"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-views.test.ts",
+      "bytes": 19672,
+      "sha256": "f3d604031925ad1c65a2e56199f1d7f3d130b54d60f4afa1d2ff3f001856bcf4"
+    },
+    {
+      "path": "plugins/shiyu/tests/lab-reply-capture.test.ts",
+      "bytes": 14468,
+      "sha256": "5ce87d23e3775927d5fc8adadda58475b9464fd84e39055a8119c35b306ec284"
+    },
+    {
+      "path": "plugins/shiyu/dist/adapters/control-store/lab-domain.js",
+      "bytes": 40433,
+      "sha256": "b58f4f12204b49809b3f0634dd309773854cc12d24162cced20d426ae5fe5b5a"
+    },
+    {
+      "path": "plugins/shiyu/dist/adapters/control-store/local-reply-domain.js",
+      "bytes": 28634,
+      "sha256": "932470a6ab3e0b637b0266846a6d088f16f27d720fbbd29caa638554e26f56a1"
+    },
+    {
+      "path": "plugins/shiyu/dist/adapters/control-store/view-domain.js",
+      "bytes": 15928,
+      "sha256": "8f2e38bcd5cea430107d03a2c83e26c2c0c51305d6373ff140478f3631238e21"
+    },
+    {
+      "path": "plugins/shiyu/dist/adapters/control-store/worker.js",
+      "bytes": 49281,
+      "sha256": "d950662730dbcb52c9d6e2287d3bcafb1df2b5ba3dbd5e0dd896c6614d2c2863"
+    },
+    {
+      "path": "plugins/shiyu/dist/control/lab.js",
+      "bytes": 30221,
+      "sha256": "e2233343105b92fe9d52745825c98127b1fd0e22d756b57219b5cfbb3ca24bce"
+    },
+    {
+      "path": "plugins/shiyu/dist/control/local-reply.js",
+      "bytes": 18704,
+      "sha256": "ac9d97be073c44ba9e17f8a7787e4a7f12a47c0a2bce9dc3f71c461715d38539"
+    },
+    {
+      "path": "plugins/shiyu/dist/views/index.js",
+      "bytes": 26281,
+      "sha256": "a23b0d8b21b7d029cba7d33bd18587d29ab2146ba36a7be4c55cd94e8f547da9"
+    },
+    {
+      "path": "plugins/shiyu/dist/views/local.js",
+      "bytes": 7259,
+      "sha256": "52585b39274ed9cac718c3e9650a32708b6a3b7314da044eb1e3b889f83c5ad7"
+    }
+  ],
+  "limitations": [
+    "The failed 3H A run and its 16384-token/1-call unknown hold remain unchanged.",
+    "No live verification of this 120-second fix yet; no third input, retry or replacement room in this execution.",
+    "A provider response can still exceed the bounded window, in which case unknown is retained.",
+    "No claim of full nine-system, S/FL, multi-round cache or disaster-recovery completion."
+  ],
+  "bodyIncluded": false,
+  "credentialsIncluded": false
+}

@@ -89,6 +89,9 @@ export interface ReadView {
   truncated: { items: boolean; bytes: boolean };
 }
 export interface ReadViewOptions {
+  /** Constructor-only profile. Its authority must bind a specific admitted Lab
+   * reply; this is deliberately absent from the public ViewRequest. */
+  executionProfile?: 'lab-reply-v1';
   authority: ReadViewAuthorityPort; components: readonly ReadViewComponentPort[];
   now?: () => Date; newId?: () => string; maxOutstandingViews?: number; componentTimeoutMs?: number;
 }
@@ -181,6 +184,7 @@ export class ReadViewService {
   private readonly pending = new Set<AbortController>();
   private closed = false;
   constructor(private readonly options: ReadViewOptions) {
+    if (options.executionProfile !== undefined && options.executionProfile !== 'lab-reply-v1') fail('INVALID_SCHEMA', 'Invalid trusted execution profile');
     this.authority = { resolve: options.authority.resolve.bind(options.authority), checkSources: options.authority.checkSources.bind(options.authority) };
     this.maxOutstanding = options.maxOutstandingViews ?? 256;
     if (!integer(this.maxOutstanding) || this.maxOutstanding < 1 || this.maxOutstanding > 4096) fail('INVALID_SCHEMA', 'Invalid view metadata bound');
@@ -258,7 +262,8 @@ export class ReadViewService {
     const access = await this.access(actor, request);
     const initialSecurity = securityHash(actor, request, access);
     if (!safetyMatches(access.appliedSafety, access)) fail('SECURITY_STATE_UNAVAILABLE', 'Authorization and deletion barriers are not current');
-    const generated = this.now(), expiresAt = new Date(Math.min(generated.getTime() + 30000, Date.parse(access.expiresAt))).toISOString();
+    const lifetime = this.options.executionProfile === 'lab-reply-v1' && request.purpose === 'reply_context' && actor.role === 'replyer' ? 120000 : 30000;
+    const generated = this.now(), expiresAt = new Date(Math.min(generated.getTime() + lifetime, Date.parse(access.expiresAt))).toISOString();
     const view: ReadView = {
       viewId: this.options.newId?.() ?? randomUUID(), schemaVersion: 1, scopeHash: scopeHash(actor, request, access),
       issuedTo: { principalId: actor.principalId, role: actor.role }, purpose: request.purpose,

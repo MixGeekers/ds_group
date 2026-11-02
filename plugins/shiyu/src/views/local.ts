@@ -46,7 +46,7 @@ export function createLocalReadView(input: LocalViewCapture, options: LocalReadV
     const checked = await options.validate(capture.captureId);
     if (fingerprint(checked) !== expected) throw new ReadViewError('VIEW_INVALIDATED', 'Worker capture identity or bytes changed');
   };
-  const service = new ReadViewService({ now: options.now,
+  const service = new ReadViewService({ now: options.now, ...(capture.replyExecution ? { executionProfile: 'lab-reply-v1' as const } : {}),
     authority: {
       resolve: async (actor, request) => {
         if (actor.principalId !== capture.actor.principalId || actor.role !== capture.actor.role || request.purpose !== capture.access.purpose

@@ -4,7 +4,7 @@
 
 **当前阶段：开始实现。** 2026-11-01（America/Caracas），用户批准构建识雨本体；2026-11-02 确认九大子系统及 Goal 持续推进。本体位于 `plugins/shiyu/`，已有运行仪表盘、持久事件、本地对话背景、授权预算、任务核验和原生 Session 接线。语义记忆已接入受控 Harrier 与 Ombre，并有限定加载、撤回和 Session 换代证据。
 
-**最新进展：3H 离线验收通过后，A 轮真实 Lab 验证已停止，整轮未完成。** 首条群聊实际送达并核对一致；第二条私聊因 30 秒 ReadView 到期中断，保留未知用量占用，第三条未发送。两个频道使用独立原生 Session，同频道连续复用及成功后重载本轮未验证；见[真实结果](<plugins/shiyu/artifacts/phase3h-lab-host-validation.json>)。此前受控 Core → worker → 独立核验 → 原生 Goal 完成已通过一个真实合成便签样本，两轮 Core 复用同一 DSH Session，重载未重放；[成功证据](<plugins/shiyu/artifacts/phase3g-core-host-success.json>)与首次失败及 unknown 预算分别保留。开放式规划、其余五个内层域、真实外部渠道及完整恢复/压缩仍未完成，九系统 Goal 持续推进。各批测试与边界见[实施记录](<plugins/shiyu/实施记录.md>)。资料工作台完整保留，健身房维持独立产品，仅补充安全核对所需的公共只读回执接口；Lab 历史结果不代替本体验收。
+**最新进展：3H 离线验收通过后，A 轮真实 Lab 验证已停止，整轮未完成。** 首条群聊实际送达并核对一致；第二条私聊因 30 秒 ReadView 到期中断，保留未知用量占用，第三条未发送。两个频道使用独立原生 Session，同频道连续复用及成功后重载本轮未验证；见[真实结果](<plugins/shiyu/artifacts/phase3h-lab-host-validation.json>)。相关期限耦合已[离线修复](<plugins/shiyu/artifacts/phase3h-reply-deadline-fix.json>)，928/928 模块通过，尚未重载或真实复验。此前受控 Core → worker → 独立核验 → 原生 Goal 完成已通过一个真实合成便签样本，两轮 Core 复用同一 DSH Session，重载未重放；[成功证据](<plugins/shiyu/artifacts/phase3g-core-host-success.json>)与首次失败及 unknown 预算分别保留。开放式规划、其余五个内层域、真实外部渠道及完整恢复/压缩仍未完成，九系统 Goal 持续推进。各批测试与边界见[实施记录](<plugins/shiyu/实施记录.md>)。资料工作台完整保留，健身房维持独立产品，仅补充安全核对所需的公共只读回执接口；Lab 历史结果不代替本体验收。
 
 ## 从这里开始
 
