@@ -1,0 +1,12 @@
+✔ the same short ids in two accounts become two distinct relationship subjects with one stable binding each (14.232375ms)
+✔ an audience change invalidates the real ConversationStore audience and stale draft in the same transaction (4.6055ms)
+✔ a message deletion also emits a trusted invalidation that retires the current draft (3.94325ms)
+✔ a downstream invalidation failure rolls both the channel audience and the ConversationStore write back (4.384125ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 85.266917

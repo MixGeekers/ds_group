@@ -1,0 +1,20 @@
+✔ registration is reconnect-stable and two accounts never merge the same short ids (8.781208ms)
+✔ persistent dedupe accepts one business fact per source event and rejects changed payloads (3.682667ms)
+✔ edit revisions advance monotonically; a stale revision can never overwrite a newer one (2.898708ms)
+✔ retract/delete tombstones clear content references, advance the deletion watermark and cannot resurrect (8.059292ms)
+✔ edits before the create and unsupported adapter capabilities are rejected without changing state (3.141708ms)
+✔ trusted actor kind is durable; body claims and kind changes cannot escalate a participant (2.343417ms)
+✔ out-of-order and late-arriving messages remain distinct intake facts with recorded source order (2.040792ms)
+✔ a malformed envelope rejects the whole batch; defensive limits refuse without partial writes (5.773209ms)
+✔ unknown connections, chats and missing references fail closed (2.807791ms)
+✔ restart persists identity, dedupe, revisions and watermarks; no replay creates a second fact (3.842833ms)
+✔ attachments are bounded trusted references exposed only by the second-phase read (2.637833ms)
+✔ one hundred unique events replayed ten times interleaved keep one business fact each (68.25125ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 179.540167

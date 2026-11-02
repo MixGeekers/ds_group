@@ -1,0 +1,16 @@
+✔ DM audience is exactly one fixed counterpart while group membership is a versioned replaceable set (5.981667ms)
+✔ multi-member removals keep one audience version but one revocation watermark per participant (2.309167ms)
+✔ explicit revocation fences participant and whole-conversation access and blocks new intake (4.724417ms)
+✔ two-phase capture exposes content references only after re-validating audience and snapshot (3.910042ms)
+✔ capture expiry and defensive capture capacity prune only expired snapshots (2.220541ms)
+✔ invalidation/deletion/revocation queries are monotonic, ordered and bounded (2.895458ms)
+✔ trusted invalidation signals fire in the same transaction and a sink failure rolls the change back (3.0995ms)
+✔ read-only channel queries never write (21.531792ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 145.588083

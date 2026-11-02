@@ -1,0 +1,12 @@
+✔ real ControlStore Worker exposes the channel ingress ports with durable dedupe and two-phase content reads (700.985291ms)
+✔ Worker restart preserves intake identity, watermarks and persisted captures without replay (155.700417ms)
+✔ persisted channel state holds no message body text and a tombstone clears the summary reference (81.696542ms)
+✔ concurrent Worker deliveries of one source event yield exactly one accepted fact and one audience CAS winner (89.363375ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1084.921292

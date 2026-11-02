@@ -116,7 +116,7 @@ Error: tool "shiyu_status" returned invalid output: value is not lossless JSON
 | H3 core 与目标任务扩展 | 受控计划、依赖任务、修正/重规划、更多已授权能力、独立核验 | **离线通过**（受控计划/多步任务/重规划，1288/1288，见 §14）；真实宿主/模型、更多能力与 dashboard 投影待接 |
 | H4 六部分状态闭环 | 记忆生命周期完善、关系/情绪/认知/人格接入、能力清单与受限 ReadView | **四域基础离线通过**（H4，1159/1159，见 §7）；replyer 组合、仪表盘面板与固定宿主证据待接线；记忆生命周期完善待继续 |
 | H5 运行保障与恢复 | 配额/迁移、宿主关闭恢复、检查点、删除/撤权屏障、独立备份 | **离线模块通过**（H5-B1 检查点/隔离恢复，1096/1096，见 §6）；未接 Runtime；宿主/独立故障域/V22/V27 未验 |
-| H6 渠道、设备与 Lab 完整业务 | 明确资源范围内接实际平台/设备，本体经公共协议完成 S/FL | 待建立（真实资源范围需另有决定） |
+| H6 渠道、设备与 Lab 完整业务 | 明确资源范围内接实际平台/设备，本体经公共协议完成 S/FL | **H6a 通用渠道接入基础离线通过**（身份/去重/受众/修订，1336/1336，见 §15）；真实平台/设备与完整 S/FL 仍缺资源范围 |
 | H7 整体验收与交付 | 九系统、40 模块、V01–V27、S/FL、部署剖面与失败清单逐项证明 | 待建立 |
 
 ## 3. 本轮证据索引与复现
@@ -518,4 +518,47 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-re
 ```
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h3-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/core-plan.test.ts tests/local-core.test.ts tests/core-pump.test.ts
+```
+
+## 15. H6a 切片：通用渠道接入基础（身份/去重/受众/修订）
+
+状态：**离线通过（G1 模块/集成 + 真实临时 SQLite/Worker IPC）**；真实平台/账号/设备/发送与完整 Lab/S/FL 未验。2026-11-02 完成并审阅。
+
+### 15.1 交付（11 文件）
+
+- `src/contracts/channel.ts`：15 个 `channel.*` IPC 命令类型、可信视图、水位与失效信号类型；明确“可信信封 vs 不可信正文”。
+- `src/control/ingress/index.ts`：纯规范化/校验——connection/conversation/participant/message 身份派生、sourceEventId 组合去重键、revision 决策、`InnerAccount`/`ConversationKey` 映射、严格白名单与防御上限。
+- `src/adapters/control-store/ingress-domain.ts`：真实 SQLite 持久账本（连接/参与者/会话/受众/消息/修订/接纳/冲突/失效/删除/撤权/两段式捕获），共享既有 `SqliteTransactions` 单连接单事务。
+- `worker.ts`/`protocol.ts`：仅增量接线（+18 行），既有命令语义不变。
+- 测试 5 文件 + fixture（37 项）：identity 9、ingress 12、audience 8、conversation/relationship 集成 4、真实 Worker IPC 4。
+- 证据：`artifacts/dsh/h6/h6a-channel-ingress.json`、`h6a-slice-summary.json`、`h6a-slice-verify.json`（实现者放置于 h6/）、`artifacts/dsh/slices/h6a-verify.json`（Lead 独立）。
+
+### 15.2 关键设计
+
+- **身份**：全部由注册时可信适配器元数据派生；显示名/正文声明不参与；跨账号同短 ID 永不合并，同名可并存；正文只允许 contentHash/bodyRef/≤512B summary/≤8 attachment refs，不能增加信封字段或角色。
+- **去重/修订**：唯一键 `(namespace, account, conversationRef, sourceEventId)`；同键同指纹=duplicate 返回原 intakeSeq，同键异指纹=持久冲突拒绝；显式 nativeEventId 跨会话复用=`SOURCE_EVENT_CONFLICT`；revision 严格递增才 apply，旧 revision stale 不覆盖；撤回/删除为终态墓碑（清正文引用、留 digest/来源/revision、推进删除水位与失效信号，不可复活）；100 事件×10 重送交错=100 facts/900 duplicate。
+- **受众**：DM 固定单一 counterpart；group/channel 可替换成员集合 + audienceVersion CAS；成员移除逐人撤权水位；`revokeAccess(participant|conversation)`；同步 `onInvalidation` sink + 拉取式 `invalidationsAfter`；sink 抛错与受众变更同事务回滚（用真实 ConversationStore 验证旧 draft 变 STALE_CONTEXT）。
+- **正文两段式**：`captureAudience` 只出 metadata；`readContentRefs` 重校验 capture 过期、当前 audienceVersion、快照 revision、终态后才返回可信引用；跨受众 messageId 一律 `CROSS_AUDIENCE`；控制库不存正文。
+
+### 15.3 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `d7dd731` + 11 文件）`npm run check` | exit 0；**1325/1325 通过，0 失败/取消/跳过**（= 1288 + 37） |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `6f600f4` + 仅 11 文件） | exit 0；**1336/1336 通过，0 失败/跳过**（= 1299 + 37）；证据 `artifacts/dsh/slices/h6a-verify.json` |
+| 定向 | identity 9 + ingress 12 + audience 8 + conversation 集成 4 + worker IPC 4 = 37/37；既有 ControlStore 回归 77/77 |
+| 负例 | 伪造 envelope/正文提权、跨账号短 ID、旧 revision 覆盖、删除复活、跨受众捕获、capability=false 假删除、CAS 冲突、批次原子性、上限背压、sink 失败回滚 |
+| 证据级别 | G1 离线合成 SQLite + 真实 Worker IPC；不是真实平台/宿主/业务验收 |
+
+### 15.4 失败 / unknown / 未测
+
+1. 真实平台适配/凭据/回执、发送与 Effect、原生 Session/草稿消费、仪表盘/HTTP/UI、Lab 房间复用、长跑/崩溃窗口/迁移均未做；真实平台与完整 S/FL 仍缺用户资源范围。
+2. Runtime 集成点（Lead）：持久 `channelRef→conversationId` 绑定、把 `onInvalidation` 桥接进 ConversationDomain、仪表盘只读投影、`toConversationKey`/`toInnerAccount` 映射到 Conversation/Lab/Relationship。
+3. 仅离线合成 SQLite + 真实 Worker IPC；无真实渠道、模型或 embedding 调用。
+
+### 15.5 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h6a-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/channel-*.test.ts tests/ingress-worker.test.ts
 ```

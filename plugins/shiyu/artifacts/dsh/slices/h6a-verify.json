@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h6a",
+  "capturedAt": "2026-11-02T20:11:42.945Z",
+  "head": "6f600f448ae635bd80e14460e3080d68d6cf5efb",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h6a-1793650072247",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/contracts/channel.ts",
+      "bytes": 13101,
+      "sha256": "dafb19f28f051ab96c0fa2469922455346cd6e8f5aa0609dd5bc2ef9f187f2fd"
+    },
+    {
+      "path": "plugins/shiyu/src/control/ingress/index.ts",
+      "bytes": 21604,
+      "sha256": "1179bf038eab48061ef93b41e56d1a36a9c67debc5d02bf5c80186057be627b2"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/ingress-domain.ts",
+      "bytes": 60581,
+      "sha256": "c07ddbb6d98b32420af0ec0af23517b844cb4a9a9842bf068e3ea6d105872991"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+      "bytes": 61529,
+      "sha256": "ed594e559319635c2a55b18c7c97e8d7690ea2d462ead271507253573654d531"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/protocol.ts",
+      "bytes": 5223,
+      "sha256": "6a63acc413bc67e0733a8d29c21f4d40973dfe605dd94872067eff06f51cc17b"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-identity.test.ts",
+      "bytes": 15766,
+      "sha256": "c1e91da6e92c04eef74d1f1709633c2ef951cf11173d27d4d7a63edb84e010a0"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-ingress.test.ts",
+      "bytes": 23983,
+      "sha256": "a2058b67c90e949991ba39eccc18800799c09cf6664b165a04c132c956198756"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-audience.test.ts",
+      "bytes": 19899,
+      "sha256": "6f687148b6eed6db6d5a7fecfe342b22d37cf2f09b00815495ee388c118c7357"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-conversation-integration.test.ts",
+      "bytes": 12398,
+      "sha256": "3f1c14a9c3ad3e681604d139e12520bd719efd0d465f5f7787db4d2888bc7db0"
+    },
+    {
+      "path": "plugins/shiyu/tests/ingress-worker.test.ts",
+      "bytes": 11791,
+      "sha256": "78958522ee553fafc651b965c552eb66a6270bff78fa99522fe1a03b0843a348"
+    },
+    {
+      "path": "plugins/shiyu/tests/fixtures/channel.ts",
+      "bytes": 6773,
+      "sha256": "6cd98279d84708a3b9ff78cdd9e11ed1e9c74f4905d08a9aea951cbb16b6cc49"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 230493,
+    "bytes": 145767,
+    "sha256": "2c2e6135af99f5aebe2a30daf466d6b4d77f3f6bba5e5a93ffe7ab7af9453844",
+    "tests": {
+      "tests": 1336,
+      "pass": 1336,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 229482.175125",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h6a.log",
+    "bytes": 145767,
+    "sha256": "2c2e6135af99f5aebe2a30daf466d6b4d77f3f6bba5e5a93ffe7ab7af9453844"
+  },
+  "verdict": "pass"
+}

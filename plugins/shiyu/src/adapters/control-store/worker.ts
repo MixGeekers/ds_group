@@ -24,6 +24,8 @@ import { MemoryIndexDomain, type MemoryIndexRequest } from './memory-index-domai
 import { CoreDomain } from './core-domain.js';
 import type { CoreDomainRequest } from '../../contracts/core.js';
 import { LabDomain } from './lab-domain.js';
+import { IngressDomain } from './ingress-domain.js';
+import type { ChannelDomainRequest } from '../../contracts/channel.js';
 import type { LocalReplyOperation } from './local-reply-domain.js';
 import type { LabDomainRequest } from '../../contracts/lab.js';
 import { CapabilityDomain } from './capability-domain.js';
@@ -61,6 +63,8 @@ let ability: CapabilityDomain | undefined;
 let abilityError: string | undefined;
 let lab: LabDomain | undefined;
 let labError: string | undefined;
+let ingress: IngressDomain | undefined;
+let ingressError: string | undefined;
 let relationship: RelationshipDomain | undefined;
 let relationshipError: string | undefined;
 let emotion: EmotionDomain | undefined;
@@ -540,6 +544,14 @@ function execute(request: StoreRequest): unknown {
     });
   }
   if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
+  if (request.command === 'channel.status') {
+    if (!ingress) return { ready: false, schemaVersion: 0, ...(ingressError ? { errorCode: ingressError } : {}) };
+    return ingress.execute(request as ChannelDomainRequest);
+  }
+  if (request.command.startsWith('channel.')) {
+    if (!ingress) return fail(ingressError ?? 'CHANNEL_UNAVAILABLE', 'Channel ingress domain is unavailable.');
+    return ingress.execute(request as ChannelDomainRequest);
+  }
   if (request.command === 'lab.status') return { ready: Boolean(lab), ...(labError ? { errorCode: labError } : {}) };
   if (request.command.startsWith('lab.')) {
     if (!lab) return fail(labError ?? 'LAB_UNAVAILABLE', 'Lab control domain is unavailable.');
@@ -704,6 +716,10 @@ function initialize(): void {
       run("INSERT OR IGNORE INTO event_catalog(type,schema_version,fingerprint) VALUES(?,?,?)", definition.type, definition.schemaVersion, fingerprint);
     }
   });
+  // The generic channel ingress ledger needs no native identity; it is available
+  // in event-only stores as well as the full runtime store.
+  try { ingress = new IngressDomain(db, transactions); }
+  catch (error) { ingressError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'CHANNEL_INGRESS_INITIALIZATION_FAILED'; }
   if (options.runtimeIdentity) {
     goalBindings = new SQLiteGoalBindingStore(db, transactions);
     tasks = new TaskDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, onSucceeded: taskId => {

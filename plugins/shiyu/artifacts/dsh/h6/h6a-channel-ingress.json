@@ -1,0 +1,546 @@
+{
+  "schemaVersion": 1,
+  "kind": "h6a-channel-ingress-offline",
+  "slice": "h6a",
+  "capturedAt": "2026-11-02T20:05:43.823Z",
+  "status": "offline-passed (G1 module/property + real temporary SQLite + real ControlStore Worker IPC; real platform/account/device/model/embedding/Lab room not exercised)",
+  "purpose": "H6a generic channel-ingress foundation: normalized platform/account/channel/thread/message/revision identity from trusted adapter metadata only; persistent intake/dedupe; edit/retract/delete revisions with source and version; versioned DM/group audience with trusted invalidation signals and deletion/revocation watermarks; two-phase metadata/content exposure. No send path, no second chat-history authority.",
+  "verdict": {
+    "isolatedFullCheck": "pass",
+    "counts": {
+      "tests": 1325,
+      "pass": 1325,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "zeroFailureZeroSkip": true,
+    "authoritativeDenominator": "isolated git worktree HEAD d7dd731 + only the h6a slice files; the shared working tree contains unrelated parallel WIP and is not authoritative",
+    "focusedTestTotal": 37,
+    "netNewTests": 37
+  },
+  "baseline": {
+    "head": "d7dd731646fe6d33e4db3a8a842c955cfb8c4221",
+    "headNote": "HEAD at materialization (c6a3f05 repo baseline plus the already-committed H3 slice); slice files copied on top of that commit only",
+    "previousOfflineBaseline": "H3 isolated HEAD+slice 1288/1288 (per d7dd731 evidence); this run 1325/1325 = 1288 + 37"
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "npm": "npm 11.17.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sqlite": "3.53.3",
+    "osRelease": "25.6.0",
+    "pluginPackage": "0.1.0",
+    "commands": {
+      "isolated": "node plugins/shiyu/scripts/slice-verify.mjs --slice h6a --manifest plugins/shiyu/.local/h6a-slice-manifest.json --timeout-ms 900000",
+      "typecheck": "npx tsc --noEmit (package root)",
+      "focused": "node --import tsx --test --test-concurrency=1 tests/<name>.test.ts",
+      "regression": "node --import tsx --test --test-concurrency=1 tests/store.test.ts tests/events.test.ts tests/task-domain.test.ts tests/conversation-store-integration.test.ts tests/inner-view.test.ts tests/local-view-store.test.ts tests/lab-integration.test.ts"
+    }
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/contracts/channel.ts",
+      "bytes": 13101,
+      "sha256": "dafb19f28f051ab96c0fa2469922455346cd6e8f5aa0609dd5bc2ef9f187f2fd"
+    },
+    {
+      "path": "plugins/shiyu/src/control/ingress/index.ts",
+      "bytes": 21604,
+      "sha256": "1179bf038eab48061ef93b41e56d1a36a9c67debc5d02bf5c80186057be627b2"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/ingress-domain.ts",
+      "bytes": 60581,
+      "sha256": "c07ddbb6d98b32420af0ec0af23517b844cb4a9a9842bf068e3ea6d105872991"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+      "bytes": 61529,
+      "sha256": "ed594e559319635c2a55b18c7c97e8d7690ea2d462ead271507253573654d531"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/protocol.ts",
+      "bytes": 5223,
+      "sha256": "6a63acc413bc67e0733a8d29c21f4d40973dfe605dd94872067eff06f51cc17b"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-identity.test.ts",
+      "bytes": 15766,
+      "sha256": "c1e91da6e92c04eef74d1f1709633c2ef951cf11173d27d4d7a63edb84e010a0"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-ingress.test.ts",
+      "bytes": 23983,
+      "sha256": "a2058b67c90e949991ba39eccc18800799c09cf6664b165a04c132c956198756"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-audience.test.ts",
+      "bytes": 19899,
+      "sha256": "6f687148b6eed6db6d5a7fecfe342b22d37cf2f09b00815495ee388c118c7357"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-conversation-integration.test.ts",
+      "bytes": 12398,
+      "sha256": "3f1c14a9c3ad3e681604d139e12520bd719efd0d465f5f7787db4d2888bc7db0"
+    },
+    {
+      "path": "plugins/shiyu/tests/ingress-worker.test.ts",
+      "bytes": 11791,
+      "sha256": "78958522ee553fafc651b965c552eb66a6270bff78fa99522fe1a03b0843a348"
+    },
+    {
+      "path": "plugins/shiyu/tests/fixtures/channel.ts",
+      "bytes": 6773,
+      "sha256": "6cd98279d84708a3b9ff78cdd9e11ed1e9c74f4905d08a9aea951cbb16b6cc49"
+    }
+  ],
+  "focused": [
+    {
+      "name": "channel-identity",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/focused-channel-identity.log",
+      "bytes": 1061,
+      "sha256": "dcc16b45a5f79745312857d42b1e3a58018e3f95bafeee58fafb2321efb31fa6",
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "connection identity derives only from the trusted source tuple and ignores reconnect noise",
+        "conversation/participant/message identity separates accounts, modes and native threads",
+        "display names, claimed roles and body text never enter participant identity",
+        "source event identity composes native message identity, revision and kind with an explicit-id override",
+        "content cannot add envelope fields, identity claims or oversized references",
+        "revision decision matrix protects newer and terminal state from late or duplicate revisions",
+        "audience digest is order insensitive, mode sensitive and capability gates follow declarations",
+        "cross-domain mappings validate against the real inner identity and conversation key contracts",
+        "canonicalization is insertion-order independent and agrees with the independent oracle"
+      ]
+    },
+    {
+      "name": "channel-ingress",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/focused-channel-ingress.log",
+      "bytes": 1380,
+      "sha256": "82f6ff046865bace2d67513195132594e59af1804bf8721e145fc66a92016028",
+      "counts": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "registration is reconnect-stable and two accounts never merge the same short ids",
+        "persistent dedupe accepts one business fact per source event and rejects changed payloads",
+        "edit revisions advance monotonically; a stale revision can never overwrite a newer one",
+        "retract/delete tombstones clear content references, advance the deletion watermark and cannot resurrect",
+        "edits before the create and unsupported adapter capabilities are rejected without changing state",
+        "trusted actor kind is durable; body claims and kind changes cannot escalate a participant",
+        "out-of-order and late-arriving messages remain distinct intake facts with recorded source order",
+        "a malformed envelope rejects the whole batch; defensive limits refuse without partial writes",
+        "unknown connections, chats and missing references fail closed",
+        "restart persists identity, dedupe, revisions and watermarks; no replay creates a second fact",
+        "attachments are bounded trusted references exposed only by the second-phase read",
+        "one hundred unique events replayed ten times interleaved keep one business fact each"
+      ]
+    },
+    {
+      "name": "channel-audience",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/focused-channel-audience.log",
+      "bytes": 913,
+      "sha256": "96e35930aa87eb72ed5abbe79ad0b00ebc93f944dbad93c66a6c6d5a47932206",
+      "counts": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "DM audience is exactly one fixed counterpart while group membership is a versioned replaceable set",
+        "multi-member removals keep one audience version but one revocation watermark per participant",
+        "explicit revocation fences participant and whole-conversation access and blocks new intake",
+        "two-phase capture exposes content references only after re-validating audience and snapshot",
+        "capture expiry and defensive capture capacity prune only expired snapshots",
+        "invalidation/deletion/revocation queries are monotonic, ordered and bounded",
+        "trusted invalidation signals fire in the same transaction and a sink failure rolls the change back",
+        "read-only channel queries never write"
+      ]
+    },
+    {
+      "name": "channel-conversation-integration",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/focused-channel-conversation-integration.log",
+      "bytes": 580,
+      "sha256": "726256aaeaf97006020870a5c49bf23e5ad8f459e1339e15cd3fa220316dc867",
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "the same short ids in two accounts become two distinct relationship subjects with one stable binding each",
+        "an audience change invalidates the real ConversationStore audience and stale draft in the same transaction",
+        "a message deletion also emits a trusted invalidation that retires the current draft",
+        "a downstream invalidation failure rolls both the channel audience and the ConversationStore write back"
+      ]
+    },
+    {
+      "name": "ingress-worker",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/focused-ingress-worker.log",
+      "bytes": 593,
+      "sha256": "c68175ce15bcaffae0f6334280561280b65ac455b4c4a86388b2a7185005d996",
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "real ControlStore Worker exposes the channel ingress ports with durable dedupe and two-phase content reads",
+        "Worker restart preserves intake identity, watermarks and persisted captures without replay",
+        "persisted channel state holds no message body text and a tombstone clears the summary reference",
+        "concurrent Worker deliveries of one source event yield exactly one accepted fact and one audience CAS winner"
+      ]
+    }
+  ],
+  "regression": {
+    "path": "plugins/shiyu/artifacts/dsh/h6/logs/regression-control-store.log",
+    "bytes": 8477,
+    "sha256": "0e792d0dcc59a83aa4e6491f5aa398622a99a24d0891136b021ff477b1283028",
+    "counts": {
+      "tests": 77,
+      "pass": 77,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "testNames": [
+      "one verified completion fans out to two local contexts and one event receipt without model work",
+      "ensure is stable, takes only local keys and does not create tasks or duplicate subscriptions",
+      "a completion accepted before the first local association is replayed with visible bounded replay metadata",
+      "a new binding after another consumed the event retains initial source synchronization even with no pending increment",
+      "redelivery of the same stored event acknowledges another delivery without another context increment",
+      "an envelope claiming success cannot project a Task that has not independently succeeded",
+      "expired claimed work survives Worker reopening and old tokens cannot acknowledge the recovered delivery",
+      "a cancelled subscription claim cannot mutate a context and snapshot reads leave all synchronization markers untouched",
+      "the 64-conversation limit rejects a new binding atomically while allowing existing bindings",
+      "a missing registered handler rolls back all business binding writes",
+      "an injected failure after the ack write rolls back both contexts and ack, while preserving claim attempts",
+      "typed publication rejects forged authority and cross-scope access",
+      "publish and subscription IDs retain stable identity across restart",
+      "two SQLite workers serialize publication and subscription establishment without a lost completion",
+      "concurrent claims have one winner and expired tokens cannot acknowledge a new attempt",
+      "background targets remain durable references and are never returned to the component dispatcher",
+      "pause fences claims; resume preserves dedup and only accepts new matches",
+      "limited replay declares a gap and from_now never backfills old events",
+      "one event fans out; a failed consumer neither blocks another nor gains unlimited attempts",
+      "filters, one-shot subscriptions, and current authorization are enforced at consumption",
+      "expiry is rechecked when a handler acknowledges, not only when it claims",
+      "the real Worker publishes schema4 only for domains it actually instantiated",
+      "real Worker captures inner metadata, validates freshly and reads bodies only on a second call",
+      "inner-domain views are read-only: neither captures nor body reads advance the control watermark",
+      "inner-domain capture selection is bounded, reply-context-only and never accepts caller authority",
+      "a direct-message inner fact never enters a group capture and cannot be body-read through it",
+      "withdrawing a memory source that supported an inner fact degrades the view instead of silently keeping it",
+      "a failed domain initialization is published as unavailable and its commands fail explicitly",
+      "an event-only store exposes no inner-domain read capability at all",
+      "restart keeps domain reads and publication but never revives a Worker capture",
+      "the replyer local read view composes captured inner domains and reads bodies only after trimming",
+      "an inner-domain capture without an exact body reader is an explicit unavailable component",
+      "a tampered or authority-less inner capture is refused before any body read",
+      "a corrected inner record invalidates a pinned local view instead of returning the old body",
+      "a group local view never reveals a direct-message inner fact through the composed reader",
+      "twenty DM/group channels traverse the real Worker, native reply contract and public Lab adapter without cross-talk",
+      "input redelivery and repeated polling never regenerate or deliver again; one thousand snapshots stay read-only",
+      "different actors in one channel retain per-input provenance and cannot rewrite an accepted event identity",
+      "a newer channel input invalidates an older in-flight draft but does not disturb another channel",
+      "pause during model work prevents any public Lab send",
+      "disconnect during model work prevents any public Lab send",
+      "service-replaced during model work prevents any public Lab send",
+      "missing primary-call accounting preserves the reservation and refuses message delivery",
+      "read-only receipt reconciliation resolves after loss without another act or delivery",
+      "read-only receipt reconciliation resolves afterEffect loss without another act or delivery",
+      "a receipt query that finds no delivery leaves unknown held and never executes the missing effect",
+      "ambiguous remote delivery evidence never becomes local success or releases the effect hold",
+      "expiry blocks fresh work but still permits a strictly read-only observation of an already delivered effect",
+      "a completed Lab room retains read-only receipt access while refusing all further generation",
+      "the last asynchronous Lab preflight cannot bypass a newly persisted runtime pause",
+      "reopening the real Worker fences the old connection and preserves unknown effects without live replay",
+      "explicit same-run reconnect observes the old unknown without replay, then fresh input continues the same native Session",
+      "ordinary pause and explicit reconnect preserve same-audience Session identity and do not replay old inputs",
+      "real Worker initializes one honest manifest and serves Task-only ReadView without ack or writes",
+      "capture/validation commands never accept a caller-selected principal, scope, fields or source versions",
+      "concurrent IPC reads share coherent captures, while an actual Task change stales only its old captures",
+      "unrelated event commit preserves the fixed capture and publication across validation",
+      "reopen preserves publication/safety baselines but never revives an old capture",
+      "event-only stores expose no local read authority or implicit publication",
+      "SQLite uses a dedicated worker and reports actual runtime durability settings",
+      "durable unacknowledged claim survives a worker restart and old receipt is fenced",
+      "schema drift on restart fails closed instead of reinterpreting persisted event types",
+      "an accepted publication can be retried after a catalog schema upgrade",
+      "close drains an already full command queue before terminating its worker",
+      "task IPC is disabled without an explicit trusted runtime identity",
+      "owner admission is bounded, idempotent and atomically reserves the compound task budget",
+      "only independent artifact evidence followed by verification publishes a task success",
+      "native totals take precedence; absent totals require every disjoint pi component and known calls",
+      "independent usage reconciliation retains unknown dimensions until a complete native observation arrives",
+      "malformed native counters cannot settle a budget; reported totals still enforce its limit",
+      "bounded native observations preserve partial per-call cache evidence without changing aggregate accounting",
+      "task completion and its durable event roll back together if the completion event cannot be accepted",
+      "reload preserves unknown execution and effect facts without granting another dispatch",
+      "pause fences the old assignment even after resume; a fresh queued task keeps its original identity",
+      "partial usage stays held while same-assignment result facts can still be verified",
+      "cancellation invalidates pending intents and cannot claim that unknown effects were cancelled",
+      "an owner can explicitly recover a never-started old assignment only after independent zero-usage reconciliation"
+    ]
+  },
+  "isolated": {
+    "evidence": {
+      "path": "plugins/shiyu/artifacts/dsh/h6/h6a-slice-verify.json",
+      "bytes": 3112,
+      "sha256": "ba650dfeb024836e9e66e2be9357921509692f9046433b4ae5ef8d09a694c82a"
+    },
+    "log": {
+      "path": "plugins/shiyu/artifacts/dsh/h6/h6a-isolated-check.log",
+      "bytes": 144652,
+      "sha256": "74c2859ff59ba171e8ca692b77a7d727bfa30e8d52ba044ad79012ea4094178b"
+    },
+    "check": {
+      "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 240992,
+      "bytes": 144652,
+      "sha256": "74c2859ff59ba171e8ca692b77a7d727bfa30e8d52ba044ad79012ea4094178b",
+      "tests": {
+        "tests": 1325,
+        "pass": 1325,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "tail": [
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 239977.3575",
+        "> @shiyu/runtime@0.1.0 build",
+        "> tsc -p tsconfig.build.json"
+      ]
+    }
+  },
+  "identityModel": {
+    "connectionId": "chconn-<sha256(sourceNamespace, platform.provider, platform.deployment, accountId, nativeAccountId, accountKind)[:32]>",
+    "conversationRef": "chconv-<sha256(connectionId, nativeConversationId, threadId|null, audienceMode)[:32]>; audienceMode is part of the identity so DM/group/thread never merge",
+    "participantRef": "chpart-<sha256(sourceNamespace, accountId, nativeParticipantId)[:32]>; display names, aliases, roles and body text never participate; cross-account same short id stays distinct",
+    "messageId": "chmsg-<sha256(sourceNamespace, accountId, conversationRef, nativeMessageId)[:40]>",
+    "sourceEventId": "explicit nativeEventId, otherwise composed as nativeMessageId#r<revision>#<kind>; dedupe key adds sourceNamespace+accountId+resource(conversationRef)",
+    "trustBoundary": "identity/routing fields are a strict validated envelope supplied by the registered trusted adapter; content (digest, opaque bodyRef, bounded summary, attachment refs) is data and cannot add envelope fields, roles or scopes; an explicit native event id reused under another conversation label is refused as SOURCE_EVENT_CONFLICT",
+    "crossDomain": "toInnerAccount() validates against the H4 InnerAccount contract (identityNamespace = <sourceNamespace>:<accountId>, externalSubjectId = nativeParticipantId, identityType = channel-<kind>); toConversationKey() maps the channel audience to the existing ConversationStore key shape"
+  },
+  "dedupeModel": {
+    "key": "(sourceNamespace, accountId, conversationRef, sourceEventId) persisted unique; payload fingerprint over the validated envelope without the dedupe id",
+    "duplicate": "same key + same fingerprint returns the stored receipt (accepted becomes duplicate) with the original intakeSeq and identity; no row is written",
+    "conflict": "same key + different fingerprint is persisted as an intake conflict and returned as rejected IDEMPOTENCY_CONFLICT; replayed conflicts keep the same intake sequence",
+    "crossChannel": "explicit native event ids are unique per account; reuse under another conversation is rejected SOURCE_EVENT_CONFLICT, composed ids remain conversation scoped",
+    "ordering": "native message revision gates edits/retract/delete (strictly greater applies; equal/lower is a persisted stale receipt); trusted per-conversation sequence is recorded as evidence, received order is never rewritten",
+    "batch": "one SQLite transaction per ingest batch; a malformed envelope rejects the whole batch, business rejections return per-event receipts, defensive limits fail without partial writes"
+  },
+  "revisionModel": {
+    "state": "messages keep status active|edited|retracted|deleted, our monotonic revision count, native revision, last event kind and first/last intake sequence",
+    "provenance": "every accepted revision row keeps kind, sourceEventId, native revision, participant, privacy class, content hash/bodyRef/summary/attachment refs and source sequence; terminal revisions keep kind/source/native revision but no content references",
+    "terminal": "retract and delete are terminal tombstones: content references (message row, every revision row) are cleared, the digest/provenance stays, a deletion watermark and typed invalidation are appended, later edit/delete/create cannot resurrect",
+    "stale": "a late lower native revision is recorded as stale and cannot overwrite the current content; old revision references remain provenance only"
+  },
+  "audienceModel": {
+    "direct": "exactly one counterpart participant for the conversation lifetime; a different or additional counterpart fails AUDIENCE_MODE_CONFLICT, explicit revokeAccess is required",
+    "groupChannel": "replaceable member set with a monotonic audienceVersion; order-insensitive equality is idempotent; removals append participant revocations (one revocation watermark each) and an audience_changed invalidation in the same transaction",
+    "cas": "every audience mutation takes expectedAudienceVersion and fails VERSION_CONFLICT on a stale reader",
+    "revocation": "revokeAccess(scope participant|conversation) bumps the audience version, appends a revocation row/watermark and a typed invalidation; revoked participants cannot be re-added and a revoked conversation refuses capture and new intake",
+    "invalidationSignal": "a synchronous same-Worker sink receives the persisted invalidation (audience_changed|participant_revoked|conversation_access_revoked|message_deleted) with watermark, removedParticipants and reason; a sink throw rolls the acceptance and ledger back together; a pull ledger (invalidationsAfter) is also queryable",
+    "exposure": "captureAudience returns metadata only (no summary/bodyRef/attachment refs); readContentRefs re-validates capture expiry, current audienceVersion, captured conversation, captured per-message revision and terminal state before returning content references; cross-audience/foreign message ids fail CROSS_AUDIENCE"
+  },
+  "watermarks": {
+    "intakeSeq": "one per persisted intake fact (accepted/stale/rejected/conflict); redeliveries return the original value",
+    "invalidationWatermark": "one per audience change / participant or conversation revocation / message deletion",
+    "deletionWatermark": "one per accepted retract/delete tombstone; deletion ledger rows keep message revision, native revision, kind, sourceEventId and reasonRef",
+    "revocationWatermark": "one per removed or explicitly revoked participant or revoked conversation",
+    "queries": "channel.watermark, channel.invalidationsAfter, channel.deletionsAfter, channel.revocationsAfter (monotonic, ordered, bounded 1..200)"
+  },
+  "integrationPoints": [
+    {
+      "target": "control-store Worker",
+      "status": "wired in this slice",
+      "detail": "IngressDomain is constructed under the existing SqliteTransactions connection inside worker.ts and dispatched through named `channel.*` IPC commands in protocol.ts; available for event-only and full runtime stores"
+    },
+    {
+      "target": "ConversationStore audience/draft invalidation",
+      "status": "proven by integration test, Lead wiring pending",
+      "detail": "the onInvalidation sink is synchronous and transactional; the test wires it to conversationRef -> conversationId mapping plus ConversationStore.invalidateAudience, proving stale drafts are retired and that a downstream throw rolls both stores back. Lead should add a ConversationDomain bridge method (invalidateAudience is currently private to ConversationStore usage inside ConversationDomain) and install the sink in worker.initialize once a persistent channelRef->conversationId mapping exists"
+    },
+    {
+      "target": "H4 RelationshipDomain",
+      "status": "proven by integration test",
+      "detail": "channel.getParticipant().innerAccount feeds relationship.registerSubject; the same short id in two accounts produces two distinct entityIds while the same account tuple is idempotent"
+    },
+    {
+      "target": "ConversationKey identity",
+      "status": "mapping helper provided",
+      "detail": "toConversationKey() emits the exact {connectionId, platformConversationId, threadId?, kind, scope} shape; the current single-owner deployment should pass scope `local-owner` and later multi-audience deployments need a scope per audience"
+    },
+    {
+      "target": "Lab adapter identity",
+      "status": "compatible, not wired",
+      "detail": "LabDomain.ensureChannel expects {connectionId, runId, channelId, kind, membersDigest}; the ingress connectionId and audienceDigest(mode, participantRefs) can feed it without a second identity scheme. H6a does not open or modify Lab rooms"
+    },
+    {
+      "target": "runtime.ts/index.ts/client",
+      "status": "not modified (Lead scope)",
+      "detail": "no dashboard projection, HTTP route or client change in this slice; channel.snapshot/status are ready for a later read-only projection"
+    },
+    {
+      "target": "replyer/draft content path",
+      "status": "port ready, not wired",
+      "detail": "two-phase capture/read mirrors the existing read-view discipline; bodies stay with the channel/native Session via contentHash+bodyRef, so the control store never becomes a second chat history"
+    }
+  ],
+  "requirementMatrix": [
+    {
+      "requirement": "A normalized platform/account/channel/thread/message/revision identity from trusted adapter metadata only",
+      "tests": [
+        "channel-identity.test.ts: connection identity derives only from the trusted source tuple and ignores reconnect noise",
+        "channel-identity.test.ts: conversation/participant/message identity separates accounts, modes and native threads",
+        "channel-ingress.test.ts: registration is reconnect-stable and two accounts never merge the same short ids"
+      ],
+      "negative": [
+        "display names, claimed roles and body text never enter participant identity",
+        "content cannot add envelope fields, identity claims or oversized references"
+      ]
+    },
+    {
+      "requirement": "A DM/group audiences separated; group member-set version and DM participants",
+      "tests": [
+        "channel-audience.test.ts: DM audience is exactly one fixed counterpart while group membership is a versioned replaceable set",
+        "channel-audience.test.ts: multi-member removals keep one audience version but one revocation watermark per participant"
+      ]
+    },
+    {
+      "requirement": "A body identity/authorization claims cannot escalate",
+      "tests": [
+        "channel-ingress.test.ts: trusted actor kind is durable; body claims and kind changes cannot escalate a participant",
+        "channel-identity.test.ts: display names, claimed roles and body text never enter participant identity"
+      ]
+    },
+    {
+      "requirement": "B persistent idempotent intake by sourceNamespace+account/resource+nativeEventId",
+      "tests": [
+        "channel-ingress.test.ts: persistent dedupe accepts one business fact per source event and rejects changed payloads",
+        "channel-ingress.test.ts: one hundred unique events replayed ten times interleaved keep one business fact each",
+        "ingress-worker.test.ts: concurrent Worker deliveries of one source event yield exactly one accepted fact and one audience CAS winner"
+      ]
+    },
+    {
+      "requirement": "B resend/reconnect/out-of-order/late create no second business fact",
+      "tests": [
+        "channel-ingress.test.ts: edit revisions advance monotonically; a stale revision can never overwrite a newer one",
+        "channel-ingress.test.ts: out-of-order and late-arriving messages remain distinct intake facts with recorded source order",
+        "ingress-worker.test.ts: Worker restart preserves intake identity, watermarks and persisted captures without replay"
+      ]
+    },
+    {
+      "requirement": "B edit/retract/delete revisions keep source and version; old revisions cannot overwrite",
+      "tests": [
+        "channel-ingress.test.ts: retract/delete tombstones clear content references, advance the deletion watermark and cannot resurrect",
+        "channel-ingress.test.ts: attachments are bounded trusted references exposed only by the second-phase read"
+      ]
+    },
+    {
+      "requirement": "B deletion/revocation watermarks queryable",
+      "tests": [
+        "channel-audience.test.ts: invalidation/deletion/revocation queries are monotonic, ordered and bounded",
+        "channel-audience.test.ts: explicit revocation fences participant and whole-conversation access and blocks new intake"
+      ]
+    },
+    {
+      "requirement": "B summary+trusted-reference only; no second chat body history",
+      "tests": [
+        "ingress-worker.test.ts: persisted channel state holds no message body text and a tombstone clears the summary reference",
+        "channel-audience.test.ts: two-phase capture exposes content references only after re-validating audience and snapshot"
+      ]
+    },
+    {
+      "requirement": "C audience versioned; cross-audience trimming before body exposure; trusted invalidation signal",
+      "tests": [
+        "channel-audience.test.ts: trusted invalidation signals fire in the same transaction and a sink failure rolls the change back",
+        "channel-audience.test.ts: capture expiry and defensive capture capacity prune only expired snapshots",
+        "channel-audience.test.ts: read-only channel queries never write"
+      ]
+    },
+    {
+      "requirement": "D same Worker + SqliteTransactions; new IPC commands; real temporary SQLite",
+      "tests": [
+        "ingress-worker.test.ts: real ControlStore Worker exposes the channel ingress ports with durable dedupe and two-phase content reads",
+        "ingress-worker.test.ts: Worker restart preserves intake identity, watermarks and persisted captures without replay"
+      ]
+    },
+    {
+      "requirement": "D composition with existing conversation/lab identity semantics and explicit integration points",
+      "tests": [
+        "channel-conversation-integration.test.ts: the same short ids in two accounts become two distinct relationship subjects with one stable binding each",
+        "channel-conversation-integration.test.ts: an audience change invalidates the real ConversationStore audience and stale draft in the same transaction",
+        "channel-conversation-integration.test.ts: a message deletion also emits a trusted invalidation that retires the current draft",
+        "channel-conversation-integration.test.ts: a downstream invalidation failure rolls both the channel audience and the ConversationStore write back"
+      ]
+    },
+    {
+      "requirement": "E negative: forged metadata/duplicate/old revision/cross-audience/limits",
+      "tests": [
+        "channel-ingress.test.ts: a malformed envelope rejects the whole batch; defensive limits refuse without partial writes",
+        "channel-ingress.test.ts: unknown connections, chats and missing references fail closed",
+        "channel-ingress.test.ts: edits before the create and unsupported adapter capabilities are rejected without changing state"
+      ]
+    },
+    {
+      "requirement": "E persistence/restart/CAS/idempotency",
+      "tests": [
+        "channel-ingress.test.ts: restart persists identity, dedupe, revisions and watermarks; no replay creates a second fact",
+        "channel-audience.test.ts: DM audience ... (CAS and idempotent set replace)",
+        "ingress-worker.test.ts: concurrent Worker deliveries ... CAS winner"
+      ]
+    }
+  ],
+  "boundaries": {
+    "realPlatforms": 0,
+    "realAccounts": 0,
+    "realDevices": 0,
+    "modelCalls": 0,
+    "embeddingCalls": 0,
+    "labRooms": 0,
+    "hostReloads": 0,
+    "gitCommits": 0,
+    "note": "All identities, channels, actors, messages and bodies are synthetic. No platform SDK, network call, native DSH Session, model, embedding, Lab room or device was used; no git commit/branch/reset was performed."
+  },
+  "failures": [],
+  "untested": [
+    "No real platform adapter, credential, rate limit/reconnect semantics or provider edit/delete/read-receipt behavior (H6 activation requires separate scope).",
+    "No send/delivery path, Effect, draft generation or native Session binding (explicitly out of H6a; invalidation signal only).",
+    "ConversationDomain bridge method + worker sink installation is Lead integration; only the direct (same Worker) wiring is proven by test.",
+    "Dashboard/HTTP/UI projection of channel state is Lead/client scope and not implemented here.",
+    "Lab room reuse of channel identities is designed but not executed (no Lab room opened).",
+    "Long-run/throughput, disk-full/SIGKILL crash windows, migration/old-DB upgrade and multi-writer behavior are not measured; single-writer Worker plus WAL/DELETE selection stays inherited from the control store.",
+    "No long-lived OS/live-control-store evidence: all evidence comes from temporary synthetic SQLite files and a real Worker thread."
+  ],
+  "next": [
+    "Lead: wire the invalidation sink to ConversationDomain (add a trusted bridge for invalidateAudience) once a persistent channelRef->conversationId binding exists; keep the same transaction.",
+    "H6b: real platform adapter activation with explicit platform/account/payload/credential scope and delivery receipts.",
+    "Later: replyer/draft consumption of capture/readContentRefs, dashboard projection, Lab identity reuse, long-run and crash-window matrices."
+  ]
+}
