@@ -441,7 +441,7 @@
   "coreNoGoals": "No recorded goals.",
   "coreView": "View goal {id}",
   "coreDetails": "Goal details",
-  "coreAuthorization": "Local authorization state",
+  "coreAuthorization": "Goal state",
   "coreExpiresAt": "Authorization expires",
   "coreEvaluations": "Evaluations started / limit",
   "coreActiveEvaluation": "Current evaluation ID",

@@ -1,0 +1,717 @@
+{
+  "schemaVersion": 1,
+  "phase": "3G-B",
+  "recordedAt": "2026-11-02T12:59:34.982520+00:00",
+  "status": "bounded-local-note-host-complete-verified",
+  "acceptance": {
+    "boundedGoalClosedLoop": true,
+    "orderedCompletedGoalReloadWithoutReplay": true,
+    "nineSystemsComplete": false,
+    "fullV24OrV25Accepted": false
+  },
+  "runId": "shiyu-core-live-20261102-b",
+  "executedRuntimeCommit": "c86f49e36796ca65c7447f2868e7d4161c82882f",
+  "priorEvidencePreserved": [
+    {
+      "path": "artifacts/phase3g-core-host-validation.json",
+      "bytes": 43294,
+      "sha256": "29ce3d7fb2fd537572910f7d400741c5c54568f649253b0338e30d9c3fe41cc7"
+    },
+    {
+      "path": "artifacts/phase3g-required-context-fix.json",
+      "bytes": 8948,
+      "sha256": "80c52e1fe78fb36559ebf67ee444d107a945e246531784e48f6ed9fb53f0c671"
+    }
+  ],
+  "preconditions": {
+    "sdkFingerprintsMatched": 12,
+    "fixedSourceTestBuildFingerprintsMatched": 7,
+    "independentAuditTests": {
+      "passed": 12,
+      "failed": 0
+    },
+    "priorAStillCancelledUnknown": true
+  },
+  "frozenExecution": {
+    "planSha256": "a9a839d61d82f43bdf3718ed91a4a1dfa2b4fe3041d74590cdd866d2475ba1fd",
+    "objectiveSha256": "cb9382076a8138aa214e50dc79a315014bc0e5090040bb9e457474bbb589e3f3",
+    "deliverables": [
+      {
+        "id": "note-1",
+        "bytes": 99,
+        "sha256": "4141fb41a85b7dc20c8cddc4d07021e315fff094e7d17caf4645088b3c522de4"
+      }
+    ],
+    "budget": {
+      "tokens": 65536,
+      "calls": 6,
+      "effects": 1
+    },
+    "maxEvaluations": 2,
+    "expiryMinutes": 30,
+    "manualStopAfterSeconds": 600,
+    "actualNewGoals": 1,
+    "actualNewTasks": 1,
+    "orderedPluginReloads": 2,
+    "embeddingOperations": 0,
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "coreEffort": "high",
+    "workerEffort": "high",
+    "boundsNotWholeProviderBillingCaps": true
+  },
+  "identity": {
+    "goalId": "core-ace79cb1ad7e84c9fd85c5c21bcad69775e226d6",
+    "requestId": "core-c002bbf5-eea0-4b9c-8870-45ab7b2d0025",
+    "nativeGoalId": "goal-2d344cf8-a658-4aa0-ad3b-bb2c6fcc444d",
+    "coreSessionId": "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac",
+    "taskId": "dad25b231a0b55933302d59f724c77d4",
+    "workerSessionId": "shiyu-worker-366048f9e6a8cc591f92d06b2151611c53adc7d001e93cd3b93a4889f5550906-d79d0cd4-8a42-4a8e-9bcd-2d8712089e12"
+  },
+  "timeline": {
+    "initialRuntimeReadyUTC": "2026-11-02T12:43:09Z",
+    "createdAt": "2026-11-02T12:44:25.167Z",
+    "completedObservedAt": "2026-11-02T12:44:36.785Z",
+    "postCompletionAuditAt": "2026-11-02T12:45:12.826Z",
+    "reloadedRuntimeReadyUTC": "2026-11-02T12:46:42Z",
+    "reloadAuditAt": "2026-11-02T12:47:19.762055+00:00",
+    "watermarks": {
+      "beforeReload": 107,
+      "preSubmit": 111,
+      "afterCompletedGoalReload": 146
+    }
+  },
+  "goal": {
+    "version": 7,
+    "nativePhase": "complete",
+    "nativeRevision": 2,
+    "localAdmissionPaused": true,
+    "cancelled": false,
+    "completionCommandStatus": "confirmed",
+    "completionVerifier": "shiyu-core-artifact-verifier-v1"
+  },
+  "evaluations": [
+    {
+      "evaluationId": "evaluation:core-ace79cb1ad7e84c9fd85c5c21bcad69775e226d6:1",
+      "status": "committed",
+      "candidateKind": "task_intent",
+      "triggerRefs": [
+        "owner:core-ace79cb1ad7e84c9fd85c5c21bcad69775e226d6"
+      ],
+      "reservationId": "reservation:evaluation:core-ace79cb1ad7e84c9fd85c5c21bcad69775e226d6:1",
+      "settled": "settled",
+      "usage": {
+        "tokens": 660,
+        "calls": 1,
+        "effects": 0
+      },
+      "inputRef": {
+        "sessionId": "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac",
+        "eventSeq": 11,
+        "messageId": "9a171b9a-37f7-477d-8131-50a74b2e61ee",
+        "messageHash": "b5b1ff57fe301961c3ae1e57dbdd37241ed4b4c0240a26f5ef9e5268d7e1d8b8",
+        "durability": "confirmed"
+      },
+      "assistantRef": {
+        "sessionId": "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac",
+        "eventSeq": 15,
+        "messageId": "595a5fb2-5435-4656-a898-2d1ee5244ea5",
+        "messageHash": "b3cc7f6cc55a8a597a7130d10ffc69d9e73833f9ecc9aedf61fdd6a61f0661fd",
+        "durability": "confirmed"
+      }
+    },
+    {
+      "evaluationId": "evaluation:core-ace79cb1ad7e84c9fd85c5c21bcad69775e226d6:2",
+      "status": "committed",
+      "candidateKind": "complete_candidate",
+      "triggerRefs": [
+        "task:dad25b231a0b55933302d59f724c77d4:6"
+      ],
+      "reservationId": "reservation:evaluation:core-ace79cb1ad7e84c9fd85c5c21bcad69775e226d6:2",
+      "settled": "settled",
+      "usage": {
+        "tokens": 1144,
+        "calls": 1,
+        "effects": 0
+      },
+      "inputRef": {
+        "sessionId": "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac",
+        "eventSeq": 23,
+        "messageId": "d0944a18-4747-4ff5-8bfa-60041b6df41b",
+        "messageHash": "9faa143fb5b69e373904f78ca0cbdf4103f9536e0af3155d5c58838e1c9948cb",
+        "durability": "confirmed"
+      },
+      "assistantRef": {
+        "sessionId": "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac",
+        "eventSeq": 25,
+        "messageId": "f3dbdc35-18bc-4ec3-872d-4fe6960eeeea",
+        "messageHash": "d29548dccb789154d02de1b888d83b31b9ac839e4492a589348342c262da9a44",
+        "durability": "confirmed"
+      }
+    }
+  ],
+  "nativeContextProofs": [
+    {
+      "evaluationId": "evaluation:core-ace79cb1ad7e84c9fd85c5c21bcad69775e226d6:1",
+      "nativeCwdContextVerified": true,
+      "controlContextReceiptAvailable": false,
+      "userMessageSeqs": [
+        11,
+        12
+      ],
+      "runtimeContextSeq": 12,
+      "runtimeContextReused": false,
+      "runtimeContextMessageHash": "61b67fbaa558c485101e89ffcddb57014af0d709ff4714fce298bd0d9bff014d",
+      "boundCwdSha256": "fd0d34416d4e07df075324ae5fcfeb2658e925004abbba4cb99a23c52a877666",
+      "exactNativeInputAndAssistant": true
+    },
+    {
+      "evaluationId": "evaluation:core-ace79cb1ad7e84c9fd85c5c21bcad69775e226d6:2",
+      "nativeCwdContextVerified": true,
+      "controlContextReceiptAvailable": false,
+      "userMessageSeqs": [
+        23
+      ],
+      "runtimeContextSeq": 12,
+      "runtimeContextReused": true,
+      "runtimeContextMessageHash": "61b67fbaa558c485101e89ffcddb57014af0d709ff4714fce298bd0d9bff014d",
+      "boundCwdSha256": "fd0d34416d4e07df075324ae5fcfeb2658e925004abbba4cb99a23c52a877666",
+      "exactNativeInputAndAssistant": true
+    }
+  ],
+  "taskAndEffectProofs": [
+    {
+      "taskId": "dad25b231a0b55933302d59f724c77d4",
+      "savedWorkerAccountingEventsMatch": true,
+      "workerInputExactReceiptAvailable": false
+    },
+    {
+      "taskId": "dad25b231a0b55933302d59f724c77d4",
+      "independentArtifactAndEffect": true
+    }
+  ],
+  "artifacts": [
+    {
+      "taskId": "dad25b231a0b55933302d59f724c77d4",
+      "artifactRef": "artifact:dad25b231a0b55933302d59f724c77d4",
+      "present": true,
+      "bytes": 99,
+      "sha256": "4141fb41a85b7dc20c8cddc4d07021e315fff094e7d17caf4645088b3c522de4",
+      "mtimeNs": "1793623471089300955",
+      "matches": true
+    }
+  ],
+  "budget": {
+    "limits": {
+      "tokens": 65536,
+      "calls": 6,
+      "effects": 1
+    },
+    "spent": {
+      "tokens": 3813,
+      "calls": 4,
+      "effects": 1
+    },
+    "held": {
+      "tokens": 0,
+      "calls": 0,
+      "effects": 0
+    },
+    "available": {
+      "tokens": 61723,
+      "calls": 2,
+      "effects": 0
+    },
+    "allReservationsSettled": true,
+    "wholeProviderBillingComplete": false
+  },
+  "nativeFiles": [
+    {
+      "role": "core",
+      "sessionId": "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac",
+      "bytes": 10165,
+      "sha256": "c7ced082381a33833c18b3dbf374ff6a7e9c09cc9c8ccc959c7bda82f2ab30c4",
+      "mtimeNs": "1793623476774216828",
+      "eventCounts": {
+        "agent/inbox/spliced": 4,
+        "approval/policy": 1,
+        "assistant/message": 2,
+        "goal/change": 2,
+        "permission/preset": 1,
+        "request/context": 1,
+        "request/header": 2,
+        "sandbox/mode": 1,
+        "session/end-seed": 3,
+        "session/title": 1,
+        "step/end": 2,
+        "step/start": 2,
+        "system/message": 1,
+        "turn/end": 2,
+        "turn/start": 2,
+        "user/message": 3
+      }
+    },
+    {
+      "role": "worker",
+      "sessionId": "shiyu-worker-366048f9e6a8cc591f92d06b2151611c53adc7d001e93cd3b93a4889f5550906-d79d0cd4-8a42-4a8e-9bcd-2d8712089e12",
+      "bytes": 6679,
+      "sha256": "b72219fcccd31bf9ca9bea7bb6aec9de9e83ef48a5adcf7aa71ff12280b7c009",
+      "mtimeNs": "1793623473974101121",
+      "eventCounts": {
+        "agent/inbox/spliced": 2,
+        "approval/policy": 1,
+        "assistant/message": 2,
+        "permission/preset": 1,
+        "request/context": 1,
+        "request/header": 2,
+        "sandbox/mode": 1,
+        "session/title": 1,
+        "step/end": 2,
+        "step/start": 2,
+        "system/message": 1,
+        "tool/call": 1,
+        "tool/result": 1,
+        "turn/end": 1,
+        "turn/start": 1,
+        "user/message": 2
+      }
+    }
+  ],
+  "reload": {
+    "at": "2026-11-02T12:47:19.762055+00:00",
+    "readyLocal": "2026-11-02 08:46:42 America/Caracas",
+    "watermark": 146,
+    "oldOwnedFiles": [
+      {
+        "sessionId": "shiyu-replyer-28e27e7c-641d-463e-897b-de7e482918b0",
+        "bytes": 380,
+        "sha256": "3f6fed22d3e86b2252f17054223dbc3b4375742303d88978f9be508488174989",
+        "mtimeNs": "1793597379605709856",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-replyer-8226ec6f-a103-4a9c-a122-4978d97628b2",
+        "bytes": 379,
+        "sha256": "b20de3e480d609397a9d08d1d69001dfffa6dfd196004a6a5b1e0808d2cc2d41",
+        "mtimeNs": "1793597232894813601",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-replyer-c6aff1f7-8bcb-4c10-a576-1be1f4317a78",
+        "bytes": 8692,
+        "sha256": "8f1859af6623acde0757152333af3d2b5381cf1de736eac1c495f61362b9361c",
+        "mtimeNs": "1793615350498148916",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-replyer-d47cba2a-a154-489f-ac03-8108be78e7e6",
+        "bytes": 5406,
+        "sha256": "3de11357c83728afd1103f8b3552797cd851e1f5cf592f879adcda1872c2c6e7",
+        "mtimeNs": "1793597945650893633",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-worker-b4de5f1e1b0e3c83bd1495e94c9e3e3108ab45122a9e70a0954edaa4f6adb194-b346e136-a62c-4c50-ad6b-c59fe699ecec",
+        "bytes": 7077,
+        "sha256": "39a2d3fea463d848aa52650901d4610813f8e0e9abcfcc27ad7f146db465fdab",
+        "mtimeNs": "1793599440114367914",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+        "bytes": 2276,
+        "sha256": "6c8e01f894f1751c2ed10944c569402779ffd170164d0b56c9204aea227d1af4",
+        "mtimeNs": "1793601662514540869",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-worker-33f1df8ae6b2484de1d4e1ec3b5972d6a20aed39144c71a1c4220016df6ecc77-a915021b-6f14-4417-837b-9ad1847e88ad",
+        "bytes": 6235,
+        "sha256": "fd7c54e4aad65b960b4a561238f8d3b2eadc5091330d589c74e4a1e62edd3e1d",
+        "mtimeNs": "1793600298829149635",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a",
+        "bytes": 1312,
+        "sha256": "0303791a911bf7b1be82763801ce13946d5e264be73fc8f3635fd8af3e45d1ed",
+        "mtimeNs": "1793615491893779251",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a",
+        "bytes": 2829,
+        "sha256": "09dcdc1b0cf6762df2066811a8998b9bacc2ebe885ef6afdaa21f254e26b5d3b",
+        "mtimeNs": "1793620888978266000",
+        "unchanged": true
+      }
+    ],
+    "newOwnedFiles": [
+      {
+        "sessionId": "shiyu-core-goal-6a15821f10e3f37af22d79c1335f5d2534ad451a1787ec3513489e94632a2aac",
+        "unchanged": true
+      },
+      {
+        "sessionId": "shiyu-worker-366048f9e6a8cc591f92d06b2151611c53adc7d001e93cd3b93a4889f5550906-d79d0cd4-8a42-4a8e-9bcd-2d8712089e12",
+        "unchanged": true
+      }
+    ],
+    "controlProofUnchanged": true,
+    "taskProofUnchanged": true,
+    "budgetUnchanged": true,
+    "artifactUnchanged": true,
+    "totalTaskCount": 3,
+    "coreGoalCount": 2,
+    "priorA": {
+      "version": 5,
+      "cancelled": true,
+      "unknownStatus": "unknown",
+      "unknownReservationUnchanged": true
+    },
+    "completionVerified": true,
+    "uiObservedCurrentActivities": 0
+  },
+  "independentAuditor": {
+    "path": "scripts/audit-core-host.py",
+    "bytes": 40246,
+    "sha256": "16ced99ab99f84ce9f9ba8786cdc596b8f04252b3fe4f7b05439a7dabce84785"
+  },
+  "auditorTests": {
+    "path": "tests/test_audit_core_host.py",
+    "bytes": 36233,
+    "sha256": "987f66795e62d0fed9a71bc31773008f215c3c107b03d5d7edd6f690718c02b8"
+  },
+  "rawEvidence": [
+    {
+      "path": ".local/phase3g-b-core-execution-plan.json",
+      "bytes": 3960,
+      "sha256": "a9a839d61d82f43bdf3718ed91a4a1dfa2b4fe3041d74590cdd866d2475ba1fd"
+    },
+    {
+      "path": ".local/phase3g-b-core-host-baseline.json",
+      "bytes": 6596,
+      "sha256": "64c79071a9f0dbdf663aedfb0168e0e72095434efbb8c10be0749239b00eee83"
+    },
+    {
+      "path": ".local/phase3g-b-core-host-pre-submit.json",
+      "bytes": 5789,
+      "sha256": "3cac4545b8bd931add6bdfa473853c9e646abe4787a2fc04fc3fbefebe113f5f"
+    },
+    {
+      "path": ".local/phase3g-b-core-inventory-plan.json",
+      "bytes": 1206,
+      "sha256": "502f4a3dad1bcd8b589cb59047b87ab4194b2e8a56ec6f889b88834c7792d835"
+    },
+    {
+      "path": ".local/phase3g-b-core-inventory.json",
+      "bytes": 38022,
+      "sha256": "23592cc7584b39e384ffd695b62bec524558b8488454104dda49c15ff8b5b391"
+    },
+    {
+      "path": ".local/phase3g-b-core-audit-plan.json",
+      "bytes": 1861,
+      "sha256": "d1e95b077bc0b72a4220eb97996724524a04c4f869c67c0a75db14f3c2a2a60f"
+    },
+    {
+      "path": ".local/phase3g-b-core-host-completed.json",
+      "bytes": 55218,
+      "sha256": "06b492badcb017b3376a3dde522088acf6a5ac1fe22ae14a1f0601e916d0d5b6"
+    },
+    {
+      "path": ".local/phase3g-b-core-host-completed-audit-run.json",
+      "bytes": 422,
+      "sha256": "690f67e6921228324bb43bfce6e68f4eed1891bb745f17d568c5d563ea0bb1d7"
+    },
+    {
+      "path": ".local/phase3g-b-core-host-reloaded.json",
+      "bytes": 55218,
+      "sha256": "43ed1b478617cf857ae79c5a78c330d37cc39564c24a0e46cc608aabeba7a854"
+    },
+    {
+      "path": ".local/phase3g-b-core-host-reloaded-audit-run.json",
+      "bytes": 422,
+      "sha256": "d5def91bef12104085752313add3dbb21261529fe1ed51927af7a04244e153b7"
+    },
+    {
+      "path": ".local/phase3g-b-core-reload-comparison.json",
+      "bytes": 3324,
+      "sha256": "f9d3c973cbc8c0db87066ec80e363f4970805cc4e942594a480716ebed8dc845"
+    },
+    {
+      "path": ".local/phase3g-b-core-ui-observations.json",
+      "bytes": 1321,
+      "sha256": "ff993fc1aa7273bc22e8578a8f8e07f1ebd634c1e2ca7ac7ac38ab6e62734c05"
+    },
+    {
+      "path": ".local/phase3g-b-core-audit-tests.log",
+      "bytes": 2569,
+      "sha256": "68c4c335d6ccbb681957c49c65fca13cca9a4d753563606ada1ecca324108b3a"
+    }
+  ],
+  "presentationDefect": {
+    "observed": "Native completion was displayed as a local paused admission fence and Resume remained enabled. Server native-phase guard rejects resume.",
+    "hostSampleIncludesUiFix": false,
+    "fixValidation": "26 related synthetic-host UI tests passed; no third real host reload or model call",
+    "changes": [
+      "native complete observation determines completed presentation",
+      "pause/resume/cancel disabled and request dispatch rechecks completed state",
+      "candidate/Task success never infers native completion",
+      "normal paused Goal remains resumable"
+    ]
+  },
+  "limitations": [
+    "One synthetic authorized note is not open-ended planning, external channels, remaining inner domains or full Lab business acceptance.",
+    "Core primary calls and worker primary steps have independent native evidence; provider transport retries and account-wide billing remain unknown.",
+    "Native Goal driver roundsStarted remain zero for controlled ordinary followups; two core evaluations are not two autonomous native Goal rounds.",
+    "No long-history compaction, crash recovery or active-Goal restart inference was tested.",
+    "Independent cwd proof is from exact native files; runtimeContextRefs are not separately persisted in the control result receipt.",
+    "Worker input lacks a separate exact-message durability receipt; its binding, model accounting events and artifact/effect proof are independently checked.",
+    "Prior A unknown reservation remains held and is not included in B spent/available amounts.",
+    "Runtime memory dependencies remain under the configured Runtime lifecycle; no embedding operation was requested in B."
+  ],
+  "independentNativeReviews": {
+    "core": {
+      "evidence": {
+        "path": ".local/phase3g-b-core-independent-native-review.json",
+        "bytes": 16431,
+        "sha256": "202850b1353d1ca5c923fa68739baf90e2057d5cd9a696a415b2b2d3a8c4c2dc"
+      },
+      "status": "verified",
+      "usage": {
+        "perMainRound": [
+          {
+            "inputTokens": 492,
+            "outputTokens": 168,
+            "totalTokens": 660
+          },
+          {
+            "inputTokens": 611,
+            "outputTokens": 149,
+            "totalTokens": 1144,
+            "cacheReadTokens": 384
+          }
+        ],
+        "aggregate": {
+          "inputTokens": {
+            "knownSum": 1103,
+            "observedRounds": 2,
+            "completeAcrossMainRounds": true
+          },
+          "outputTokens": {
+            "knownSum": 317,
+            "observedRounds": 2,
+            "completeAcrossMainRounds": true
+          },
+          "totalTokens": {
+            "knownSum": 1804,
+            "observedRounds": 2,
+            "completeAcrossMainRounds": true
+          },
+          "cacheReadTokens": {
+            "knownSum": 384,
+            "observedRounds": 1,
+            "completeAcrossMainRounds": false
+          },
+          "cacheWriteTokens": {
+            "knownSum": null,
+            "observedRounds": 0,
+            "completeAcrossMainRounds": false
+          }
+        },
+        "basis": "reported native assistant/message usage; absent fields remain unknown; reported total preferred over input+output"
+      },
+      "nativeFilesDecoded": 1,
+      "otherSessionFilesRead": 0,
+      "headerModelEffortConfirmed": true,
+      "sameSessionAndCwdReuseConfirmed": true
+    },
+    "worker": {
+      "evidence": {
+        "path": ".local/phase3g-b-worker-independent-native-review.json",
+        "bytes": 12667,
+        "sha256": "ee99df20cd3f68f6341d4858818ae61ea5e18aa14c3ed4a3e929a0904433ef07"
+      },
+      "status": "verified-with-stated-limits",
+      "usage": {
+        "inputTokens": 1047,
+        "outputTokens": 450,
+        "totalTokens": 2009,
+        "reportedCacheReadTokens": 512,
+        "cacheReadMissingAtAssistantSeqs": [
+          13
+        ],
+        "cacheWriteMissingAtAssistantSeqs": [
+          13,
+          19
+        ],
+        "reportedCacheReadTokensCoverage": "reported-fields-only; absent fields are unknown, not zero",
+        "rawTotalExceedsInputPlusOutputBy": 512,
+        "rawTotalDifferenceEqualsReportedCacheRead": true,
+        "completedAccounting": {
+          "reservationState": "settled",
+          "reserved": {
+            "tokens": 16384,
+            "calls": 2,
+            "effects": 1
+          },
+          "observed": {
+            "tokens": 2009,
+            "calls": 2,
+            "effects": 1
+          },
+          "overrun": false,
+          "accountedTokens": 2009,
+          "usage": {
+            "status": "reported",
+            "inputTokens": 1047,
+            "outputTokens": 450,
+            "totalTokens": 2009
+          },
+          "calls": 2,
+          "effects": 1
+        },
+        "matchesCompletedTotals": true,
+        "monetaryCost": null,
+        "billingCoverage": "not independently verified; no provider billing/retry trace was read"
+      },
+      "nativeFilesDecoded": 1,
+      "otherSessionFilesRead": 0,
+      "headerModelEffortConfirmed": true,
+      "fixedWriteToolCalls": 1
+    },
+    "observedMainCalls": 4,
+    "reportedMainTotalTokens": 3813,
+    "reportedCacheReadKnownSum": 896,
+    "completeCacheReadCoverage": false,
+    "cacheWriteTokens": null,
+    "providerRetryCount": null,
+    "wholeProviderMonetaryCost": null
+  },
+  "postHostOfflineValidation": {
+    "historicalFullModuleSnapshot": {
+      "commit": "c86f49e",
+      "passed": 776,
+      "rerunInThisSlice": false
+    },
+    "typecheck": {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    "build": {
+      "command": "npm run build",
+      "exitCode": 0
+    },
+    "clientSyntax": {
+      "command": "node --check client/index.js",
+      "exitCode": 0
+    },
+    "runtimeInitial": {
+      "passed": 27,
+      "failed": 1,
+      "toolSessionId": 96288,
+      "finalOutputChunk": "adcf05",
+      "failure": "Old implementation-summary text assertion; read-only and no-model assertions preserved."
+    },
+    "runtimeFinal": {
+      "command": "node --import tsx --test tests/runtime.test.ts",
+      "passed": 28,
+      "failed": 0,
+      "exitCode": 0,
+      "durationMs": 8302.115208,
+      "log": {
+        "path": ".local/phase3g-b-runtime-tests.log",
+        "bytes": 3094,
+        "sha256": "c7db64d691ee81319100195d509aa3e6169db64a7f2483354319863fd2b0b51f"
+      }
+    },
+    "ui": {
+      "command": "SHIYU_UI_PORT=4356 npx playwright test --config tests/ui/playwright.config.mjs tests/ui/core.spec.mjs tests/ui/client.spec.js --output=.local/ui/completed-goal-results",
+      "passed": 26,
+      "failed": 0,
+      "durationSeconds": 18.4,
+      "exitCode": 0,
+      "toolSessionId": 55375,
+      "finalOutputChunk": "67fbb2",
+      "stdoutLogSaved": false,
+      "fullUiSuiteRerun": false
+    },
+    "audit": {
+      "command": "PYTHONDONTWRITEBYTECODE=1 .local/ombre/.venv/bin/python -m unittest discover -s tests -p test_audit_core_host.py -q",
+      "passed": 12,
+      "failed": 0,
+      "exitCode": 0,
+      "rootOutputChunk": "5c4a26",
+      "durationSeconds": 3.167
+    },
+    "pack": {
+      "command": "npm pack --dry-run --json",
+      "exitCode": 0,
+      "files": 170,
+      "fileSizesMatch": true,
+      "includesRuntimeOrDependencyData": false,
+      "log": {
+        "path": ".local/phase3g-b-pack.json",
+        "bytes": 19414,
+        "sha256": "2d11948ebc31d0d3c968c570a7fa8201e9947c62cb60cb0ba79ae53f31bc1c0b"
+      }
+    }
+  },
+  "postHostModifiedCodeFingerprints": [
+    {
+      "path": "client/index.js",
+      "bytes": 175478,
+      "sha256": "66b5afab11292982d8635c0e4eb25e2926768949bd45c369ccd143f186d17c32"
+    },
+    {
+      "path": "locale/en.json",
+      "bytes": 29403,
+      "sha256": "433534143bba7a5f9b758fad6c04e64c05efc568b70511f0044c969f1dcd64d5"
+    },
+    {
+      "path": "locale/zh.json",
+      "bytes": 27228,
+      "sha256": "c46d40f2c43ec1e0223b496660ea602759743cec11ceb51dccf85bd4868ac5f2"
+    },
+    {
+      "path": "src/health/systems.ts",
+      "bytes": 1840,
+      "sha256": "be247934e832e2a5b3f178962b779386edc738b3d7a1ffa5d6aa2d08981a777a"
+    },
+    {
+      "path": "tests/runtime.test.ts",
+      "bytes": 36179,
+      "sha256": "fe24df219e620695e37ccdcab8ec62f89e690664f0fb0bf7a26b70bae78ca7cc"
+    },
+    {
+      "path": "tests/ui/core.spec.mjs",
+      "bytes": 26238,
+      "sha256": "184a916d3d28bc6ade06c593b42fb96728f0a14d01be963074e28d990a4035b4"
+    },
+    {
+      "path": "scripts/audit-core-host.py",
+      "bytes": 40246,
+      "sha256": "16ced99ab99f84ce9f9ba8786cdc596b8f04252b3fe4f7b05439a7dabce84785"
+    },
+    {
+      "path": "tests/test_audit_core_host.py",
+      "bytes": 36233,
+      "sha256": "987f66795e62d0fed9a71bc31773008f215c3c107b03d5d7edd6f690718c02b8"
+    },
+    {
+      "path": "dist/health/systems.js",
+      "bytes": 1849,
+      "sha256": "a2d8ce8002833132c1c34018c68724279e1bfc2176bc539c5fd3e0a631cc0981"
+    }
+  ],
+  "finalRead": {
+    "evidence": {
+      "path": ".local/phase3g-b-core-host-final-read.json",
+      "bytes": 3299,
+      "sha256": "be45a4db42b73b003e62aff4b68dec509e5c3e9c77a8a1f54de5a94f2e5df4fc"
+    },
+    "at": "2026-11-02T12:59:34.978915+00:00",
+    "watermark": 146,
+    "all11OwnedFilesUnchanged": true,
+    "totalTaskCount": 3,
+    "coreGoalCount": 2
+  }
+}

@@ -180,6 +180,32 @@ test('candidate, accepted Task, native phase and unknown usage remain distinct f
   await refresh(page); expect(posts).toEqual([]);
 });
 
+test('an observed complete Goal overrides its paused fence and disables all controls in both locales', async ({ page, request }) => {
+  const posts = await intercept(page), base = makeGoal();
+  const goal = makeGoal({ paused: true, version: 7,
+    native: { ...base.native, goalRef: { ...base.native.goalRef, revision: 4 }, phase: 'complete' },
+    nativeCommand: { commandId: 'synthetic-confirmed-complete', operation: 'complete', status: 'confirmed' } });
+  await control(request, { snapshot: snapshot([goal]) }); await open(page); await select(page);
+  const locales = [
+    { state: '目标状态', complete: '已完成', view: `查看目标 ${goalId}`, controls: ['暂停目标', '恢复目标', '取消目标'], refresh: '刷新', confirmed: '已确认' },
+    { state: 'Goal state', complete: 'Complete', view: `View goal ${goalId}`, controls: ['Pause goal', 'Resume goal', 'Cancel goal'], refresh: 'Refresh', confirmed: 'Confirmed' },
+  ];
+  for (const [index, locale] of locales.entries()) {
+    if (index) await page.locator('#locale').click();
+    const detailState = page.getByTestId('core-detail').getByText(locale.state, { exact: true }).locator('xpath=following-sibling::dd[1]');
+    await expect(detailState).toHaveText(locale.complete);
+    await expect(page.getByTestId('core-list').getByRole('button', { name: locale.view, exact: true })).toContainText(locale.complete);
+    await expect(page.getByTestId('core-native').getByText(locale.complete, { exact: true })).toBeVisible();
+    await expect(page.getByTestId('core-native-command').getByText(locale.confirmed, { exact: true })).toBeVisible();
+    for (const name of locale.controls) await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
+    const refreshButton = page.getByRole('button', { name: locale.refresh, exact: true });
+    await refreshButton.click(); await expect(refreshButton).toBeEnabled();
+    await expect(detailState).toHaveText(locale.complete);
+    for (const name of locale.controls) await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
+    expect(posts).toEqual([]);
+  }
+});
+
 test('owner pause and cancel remain available while Runtime is paused; Goal resume does not', async ({ page, request }) => {
   const posts = await intercept(page, input => mutation(input));
   await control(request, { snapshot: snapshot([makeGoal()], { state: 'paused' }) }); await open(page); await select(page);
@@ -207,7 +233,11 @@ test('a pending create does not block the independent Goal pause lane and neithe
 
 test('resume requires a fresh authorized unexpired noncancelled Goal and an active Runtime', async ({ page, request }) => {
   const posts = await intercept(page, input => mutation(input));
-  const paused = makeGoal({ paused: true }); await control(request, { snapshot: snapshot([paused]) }); await open(page); await select(page);
+  const base = makeGoal(), paused = makeGoal({ paused: true, native: { ...base.native, phase: 'paused' },
+    nativeCommand: { commandId: 'synthetic-confirmed-pause', operation: 'pause', status: 'confirmed' } });
+  await control(request, { snapshot: snapshot([paused]) }); await open(page); await select(page);
+  await expect(page.getByTestId('core-detail').getByText('目标状态', { exact: true }).locator('xpath=following-sibling::dd[1]')).toHaveText('已暂停');
+  await expect(page.getByRole('button', { name: '恢复目标', exact: true })).toBeEnabled();
   for (const goal of [makeGoal({ paused: true, authorized: false }), makeGoal({ paused: true, cancelled: true }), makeGoal({ paused: true, expiresAt: new Date(Date.now() - 1000).toISOString() })]) {
     await control(request, { snapshot: snapshot([goal]) }); await refresh(page);
     const resume = page.getByRole('button', { name: '恢复目标', exact: true });
@@ -278,6 +308,8 @@ test('pending and unknown native commands do not inherit confirmation from the l
         usage: { complete: true, tokens: 17, calls: 1 } }] });
     await control(request, { snapshot: snapshot([goal]) }); await open(page); await select(page);
     await expect(page.getByTestId('core-native')).toContainText('有效');
+    await expect(page.getByTestId('core-list').getByText('已完成', { exact: true })).toHaveCount(0);
+    await expect(page.getByTestId('core-detail').getByText('目标状态', { exact: true }).locator('xpath=following-sibling::dd[1]')).toHaveText('已暂停');
     await expect(page.getByTestId('core-native-command')).toContainText('native-complete-command');
     await expect(page.getByTestId('core-native-command')).toContainText('原生命令尚未确认');
     await expect(page.getByTestId('core-native-command').getByText(status === 'pending' ? '待处理' : '未知', { exact: true })).toBeVisible();

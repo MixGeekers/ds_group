@@ -48,7 +48,7 @@ class Fixture(unittest.TestCase):
     def write_session(self, session_id, rows):
         path = self.session_root / session_id / "session.v4.jsonl.zstd"
         path.parent.mkdir(exist_ok=True)
-        path.write_bytes(encode([{"format": 4, "privateHeader": BODY}] + rows))
+        path.write_bytes(encode([{"format": 4, "cwd": str(self.root), "privateHeader": BODY}] + rows))
         return path
 
     def put(self, table, key, value, record, column="value"):
@@ -63,7 +63,7 @@ class Fixture(unittest.TestCase):
             "maxEvaluations": 2, "taskRefs": [], "completionCriteria": BODY, "completionCriteriaHash": "d" * 64,
             "native": {"goalRef": self.goal_ref, "sessionId": self.session_id, "phase": "active"}}
         self.binding = {"goalId": self.goal_id, "ownerId": "local-owner", "scope": "local-owner", "sessionId": self.session_id,
-            "goalRef": self.goal_ref, "completionCriteriaHash": self.goal["completionCriteriaHash"], "metadataVersion": 2,
+            "goalRef": self.goal_ref, "cwd": str(self.root), "completionCriteriaHash": self.goal["completionCriteriaHash"], "metadataVersion": 2,
             "receipt": {"commandId": "create-1", "operation": "create", "status": "confirmed", "observedRef": self.goal_ref,
                         "postconditionHash": "e" * 64, "reason": ASCII_BODY}}
         with sqlite3.connect(self.database) as db:
@@ -84,6 +84,12 @@ class Fixture(unittest.TestCase):
         self.native_rows = [{"seq": 0, "type": "goal/change", "data": {"goal": self.native_goal, "roundsStarted": 0}}]
         self.native_path = self.write_session(self.session_id, self.native_rows)
 
+    def runtime_context(self, cwd=None):
+        directory_text = "Current working directory: " + audit.canonical(str(self.root) if cwd is None else cwd) + "."
+        return {"id": "11111111-2222-4333-8444-555555555555", "role": "user",
+                "content": [{"type": "text", "text": "Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n" + directory_text}],
+                "source": {"kind": "runtime-context", "form": "snapshot", "sections": [{"name": "working-directory:current", "text": directory_text}]}}
+
     def add_evaluation(self, kind="no_action"):
         self.goal["mandateId"] = "mandate-1"
         self.goal["evaluations"] = 1
@@ -97,10 +103,11 @@ class Fixture(unittest.TestCase):
         user = {"id": "input-1", "role": "user", "content": [{"type": "text", "text": BODY}], "source": {"kind": "user"}}
         assistant = {"id": "assistant-1", "role": "assistant", "content": [{"type": "text", "text": text}]}
         self.native_rows.extend([{"seq": 1, "type": "user/message", "data": user},
-                                 {"seq": 2, "type": "assistant/message", "data": {"message": assistant}}])
+                                 {"seq": 2, "type": "user/message", "data": self.runtime_context()},
+                                 {"seq": 3, "type": "assistant/message", "data": {"message": assistant}}])
         self.write_session(self.session_id, self.native_rows)
         input_ref = {"sessionId": self.session_id, "eventSeq": 1, "messageId": user["id"], "messageHash": audit.native_message_hash(user), "durability": "confirmed"}
-        assistant_ref = {"sessionId": self.session_id, "eventSeq": 2, "messageId": assistant["id"], "messageHash": audit.native_message_hash(assistant), "durability": "confirmed"}
+        assistant_ref = {"sessionId": self.session_id, "eventSeq": 3, "messageId": assistant["id"], "messageHash": audit.native_message_hash(assistant), "durability": "confirmed"}
         self.evaluation = {"evaluationId": "evaluation-1", "goalId": self.goal_id, "status": "committed", "triggerRefs": [], "candidate": candidate,
             "permit": {"goalId": self.goal_id, "goalRef": self.goal_ref, "mandateId": "mandate-1", "reservationId": "reservation-1"},
             "dispatch": {"goalId": self.goal_id, "goalRef": self.goal_ref, "roundId": "evaluation-1", "sessionId": self.session_id,
@@ -108,6 +115,148 @@ class Fixture(unittest.TestCase):
             "nativeReceipt": {"roundId": "evaluation-1", "sessionId": self.session_id, "messageId": user["id"], "messageHash": input_ref["messageHash"],
                               "inputRef": input_ref, "assistantRef": assistant_ref, "outputHash": audit.sha(text.encode())}}
         self.put("shiyu_core_evaluations", "goal_id", self.goal_id, self.evaluation)
+
+    def replace_round_contexts(self, messages):
+        assistant = copy.deepcopy(next(row for row in self.native_rows if row["type"] == "assistant/message"))
+        self.native_rows = self.native_rows[:2] + [{"seq": index + 2, "type": "user/message", "data": message} for index, message in enumerate(messages)]
+        assistant["seq"] = len(self.native_rows)
+        self.native_rows.append(assistant)
+        self.evaluation["nativeReceipt"]["assistantRef"]["eventSeq"] = assistant["seq"]
+        self.put("shiyu_core_evaluations", "goal_id", self.goal_id, self.evaluation)
+        self.write_session(self.session_id, self.native_rows)
+
+    def add_second_evaluation_without_context(self):
+        original = copy.deepcopy(self.evaluation)
+        user = {"id": "input-2", "role": "user", "content": [{"type": "text", "text": BODY}], "source": {"kind": "user"}}
+        text = audit.canonical({"kind": "no_action", "reason": ASCII_BODY})
+        assistant = {"id": "assistant-2", "role": "assistant", "content": [{"type": "text", "text": text}]}
+        input_seq = len(self.native_rows)
+        self.native_rows.extend([{"seq": input_seq, "type": "user/message", "data": user},
+                                 {"seq": input_seq + 1, "type": "assistant/message", "data": {"message": assistant}}])
+        self.write_session(self.session_id, self.native_rows)
+        input_ref = {"sessionId": self.session_id, "eventSeq": input_seq, "messageId": user["id"], "messageHash": audit.native_message_hash(user), "durability": "confirmed"}
+        assistant_ref = {"sessionId": self.session_id, "eventSeq": input_seq + 1, "messageId": assistant["id"], "messageHash": audit.native_message_hash(assistant), "durability": "confirmed"}
+        second = {**original, "evaluationId": "evaluation-2", "permit": {**original["permit"], "reservationId": "reservation-2"},
+            "dispatch": {**original["dispatch"], "roundId": "evaluation-2", "messageId": user["id"], "messageHash": input_ref["messageHash"]},
+            "nativeReceipt": {"roundId": "evaluation-2", "sessionId": self.session_id, "messageId": user["id"], "messageHash": input_ref["messageHash"],
+                              "inputRef": input_ref, "assistantRef": assistant_ref, "outputHash": audit.sha(text.encode())}}
+        self.goal["evaluations"] = 2
+        self.put("shiyu_core_goals", "goal_id", self.goal_id, self.goal)
+        with sqlite3.connect(self.database) as db:
+            db.execute("INSERT INTO shiyu_core_evaluations VALUES(?,?)", (self.goal_id, audit.canonical(second)))
+            db.execute("INSERT INTO shiyu_budget_reservations VALUES(?,?)", ("mandate-1", audit.canonical({**self.reservation, "reservationId": "reservation-2"})))
+        return second
+
+    def test_runtime_cwd_context_is_independently_verified_then_reused_without_fabricated_control_receipt(self):
+        self.collection_fixture()
+        self.add_evaluation()
+        second = self.add_second_evaluation_without_context()
+        result = audit.collect(self.plan)
+        self.assertEqual(result["issues"], [])
+        self.assertEqual(len(result["proofs"]), 2)
+        for proof in result["proofs"]:
+            self.assertTrue(proof["nativeCwdContextVerified"])
+            self.assertTrue(proof["exactNativeInputAndAssistant"])
+            self.assertFalse(proof["controlContextReceiptAvailable"])
+            self.assertEqual(proof["runtimeContextSeq"], 2)
+        self.assertEqual([proof["runtimeContextReused"] for proof in result["proofs"]], [False, True])
+        self.assertEqual([proof["userMessageSeqs"] for proof in result["proofs"]], [[1, 2], [4]])
+        events = result["native"][0]["events"]
+        context = next(row for row in events if row.get("sourceKind") == "runtime-context")
+        self.assertEqual(context["messageRole"], "user")
+        self.assertTrue(context["runtimeContextValidBoundCwd"])
+        self.assertEqual(result["native"][0]["headerCwdSha256"], audit.sha(str(self.root).encode()))
+        for evaluation in result["control"]["evaluations"]:
+            self.assertNotIn("runtimeContextRefs", evaluation["metadata"]["nativeReceipt"])
+        self.assertNotIn(str(self.root), json.dumps(result, ensure_ascii=False))
+        # Returning to the bound cwd does not erase an intervening directory
+        # change from the reused context's history.
+        self.native_rows[4:4] = [{"type": "working-directory/change", "data": {"cwd": str(self.root / "foreign")}},
+                                  {"type": "working-directory/change", "data": {"cwd": str(self.root)}}]
+        for seq, row in enumerate(self.native_rows): row["seq"] = seq
+        second["nativeReceipt"]["inputRef"]["eventSeq"] = 6
+        second["nativeReceipt"]["assistantRef"]["eventSeq"] = 7
+        with sqlite3.connect(self.database) as db:
+            db.execute("UPDATE shiyu_core_evaluations SET value=? WHERE json_extract(value,'$.evaluationId')='evaluation-2'", (audit.canonical(second),))
+        self.write_session(self.session_id, self.native_rows)
+        changed = audit.collect(self.plan)
+        self.assertTrue(changed["proofs"][0]["exactNativeInputAndAssistant"])
+        self.assertFalse(changed["proofs"][1]["nativeCwdContextVerified"])
+        self.assertFalse(changed["proofs"][1]["exactNativeInputAndAssistant"])
+
+    def test_runtime_context_rejects_extra_inputs_schema_uuid_hash_foreign_cwd_and_duplicates(self):
+        self.collection_fixture()
+        self.add_evaluation()
+        context = self.runtime_context()
+        cases = []
+        for name, change in (
+            ("uuid", lambda value: value.update(id="not-an-official-uuid")),
+            ("uuid-version", lambda value: value.update(id="11111111-2222-1333-8444-555555555555")),
+            ("role", lambda value: value.update(role="assistant")),
+            ("extra-field-hash", lambda value: value.update(extra=ASCII_BODY)),
+            ("content-hash", lambda value: value["content"][0].update(text=ASCII_BODY)),
+            ("form", lambda value: value["source"].update(form="delta")),
+            ("extra-section", lambda value: value["source"]["sections"].append({"name": "unauthorized", "text": BODY})),
+        ):
+            changed = copy.deepcopy(context)
+            change(changed)
+            cases.append((name, [changed]))
+        cases.extend([
+            ("foreign-cwd", [self.runtime_context(str(self.root / "foreign"))]),
+            ("duplicate-context", [context, context]),
+            ("extra-owner", [{"id": "extra-input", "role": "user", "content": [{"type": "text", "text": BODY}], "source": {"kind": "user"}}]),
+            ("no-context-history", []),
+        ])
+        for name, messages in cases:
+            with self.subTest(case=name):
+                self.replace_round_contexts(copy.deepcopy(messages))
+                result = audit.collect(self.plan)
+                self.assertFalse(result["proofs"][0]["nativeCwdContextVerified"])
+                self.assertFalse(result["proofs"][0]["exactNativeInputAndAssistant"])
+                for secret in (BODY, ASCII_BODY, str(self.root)):
+                    self.assertNotIn(secret, json.dumps(result, ensure_ascii=False))
+
+    def test_header_and_directory_changes_must_establish_bound_cwd_before_and_during_the_input_window(self):
+        self.collection_fixture()
+        self.add_evaluation()
+        original_rows = copy.deepcopy(self.native_rows)
+        for name, header, change in (
+            ("header-foreign", {"cwd": str(self.root / "foreign")}, None),
+            ("header-missing", {}, None),
+            ("directory-foreign", {"cwd": str(self.root)}, {"cwd": str(self.root / "foreign")}),
+            ("directory-unknown", {"cwd": str(self.root)}, {}),
+        ):
+            with self.subTest(case=name):
+                rows = copy.deepcopy(original_rows)
+                if change is not None:
+                    rows.insert(2, {"type": "working-directory/change", "data": change})
+                for seq, row in enumerate(rows): row["seq"] = seq
+                self.evaluation["nativeReceipt"]["assistantRef"]["eventSeq"] = len(rows) - 1
+                self.put("shiyu_core_evaluations", "goal_id", self.goal_id, self.evaluation)
+                self.native_path.write_bytes(encode([{"format": 4, **header}] + rows))
+                result = audit.collect(self.plan)
+                self.assertFalse(result["proofs"][0]["nativeCwdContextVerified"])
+                self.assertFalse(result["proofs"][0]["exactNativeInputAndAssistant"])
+                self.assertNotIn(str(self.root), json.dumps(result, ensure_ascii=False))
+        matching = copy.deepcopy(original_rows)
+        matching.insert(2, {"type": "working-directory/change", "data": {"cwd": str(self.root)}})
+        for seq, row in enumerate(matching): row["seq"] = seq
+        self.evaluation["nativeReceipt"]["assistantRef"]["eventSeq"] = len(matching) - 1
+        self.put("shiyu_core_evaluations", "goal_id", self.goal_id, self.evaluation)
+        self.write_session(self.session_id, matching)
+        self.assertTrue(audit.collect(self.plan)["proofs"][0]["nativeCwdContextVerified"])
+        corrected = copy.deepcopy(original_rows)
+        corrected.insert(1, {"type": "working-directory/change", "data": {"cwd": str(self.root)}})
+        for seq, row in enumerate(corrected): row["seq"] = seq
+        self.evaluation["nativeReceipt"]["inputRef"]["eventSeq"] = 2
+        self.evaluation["nativeReceipt"]["assistantRef"]["eventSeq"] = 4
+        self.put("shiyu_core_evaluations", "goal_id", self.goal_id, self.evaluation)
+        self.native_path.write_bytes(encode([{"cwd": str(self.root / "initial-directory")}] + corrected))
+        self.assertTrue(audit.collect(self.plan)["proofs"][0]["exactNativeInputAndAssistant"])
+        decoded = audit.native_events(encode([{"cwd": str(self.root)}, {"seq": 0, "type": "working-directory/change", "data": {"cwd": str(self.root)}}]), self.plan["limits"], str(self.root))
+        self.assertEqual(decoded["headerCwdSha256"], audit.sha(str(self.root).encode()))
+        self.assertEqual(decoded["events"][0]["cwdSha256"], audit.sha(str(self.root).encode()))
+        self.assertNotIn(str(self.root), json.dumps(decoded, ensure_ascii=False))
 
     def add_completed_task(self):
         task_id, effect_id, assignment_id = "d" * 32, "effect-1", "assignment-1"
@@ -155,7 +304,7 @@ class Fixture(unittest.TestCase):
         artifact = self.workspace_root / task_id / "artifacts" / "note.txt"
         artifact.parent.mkdir(parents=True)
         artifact.write_text(BODY)
-        self.native_rows.append({"seq": 3, "type": "goal/change", "data": {"goal": {**self.native_goal, "revision": 2, "phase": "complete"}, "roundsStarted": 0}})
+        self.native_rows.append({"seq": len(self.native_rows), "type": "goal/change", "data": {"goal": {**self.native_goal, "revision": 2, "phase": "complete"}, "roundsStarted": 0}})
         self.write_session(self.session_id, self.native_rows)
         self.write_session(worker_id, [])
         self.plan["sessions"].append({"role": "worker", "sessionId": worker_id, "taskId": task_id, "assignmentId": assignment_id})

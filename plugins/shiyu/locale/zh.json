@@ -441,7 +441,7 @@
   "coreNoGoals": "暂无已登记目标。",
   "coreView": "查看目标 {id}",
   "coreDetails": "目标详情",
-  "coreAuthorization": "本地授权状态",
+  "coreAuthorization": "目标状态",
   "coreExpiresAt": "授权期限",
   "coreEvaluations": "已开始判断 / 上限",
   "coreActiveEvaluation": "当前判断 ID",

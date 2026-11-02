@@ -417,7 +417,7 @@ test('dashboard reads never publish, create Sessions or infer; partial systems r
     assert.equal(snapshot.usage.cacheReadTokens, null);
     assert.equal(snapshot.systems.length, 9);
     assert.equal(snapshot.systems.find(s => s.id === 'core')?.status, 'partial');
-    assert.match(snapshot.systems.find(s => s.id === 'core')?.summary ?? '', /开放式分解和长期规划待验证或实现/);
+    assert.match(snapshot.systems.find(s => s.id === 'core')?.summary ?? '', /开放式分解和长期规划待接入/);
     assert.equal(snapshot.dependencies.find(d => d.id === 'native-session')?.status, 'unknown');
   }
   assert.equal(fake.probes, 0); assert.equal(fake.generations, 0);

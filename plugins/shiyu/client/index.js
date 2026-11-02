@@ -320,7 +320,7 @@ window.__ModuleLoader__.load({
       "coreNoGoals": "暂无已登记目标。",
       "coreView": "查看目标 {id}",
       "coreDetails": "目标详情",
-      "coreAuthorization": "本地授权状态",
+      "coreAuthorization": "目标状态",
       "coreExpiresAt": "授权期限",
       "coreEvaluations": "已开始判断 / 上限",
       "coreActiveEvaluation": "当前判断 ID",
@@ -401,7 +401,7 @@ window.__ModuleLoader__.load({
       "coreNoGoals": "No recorded goals.",
       "coreView": "View goal {id}",
       "coreDetails": "Goal details",
-      "coreAuthorization": "Local authorization state",
+      "coreAuthorization": "Goal state",
       "coreExpiresAt": "Authorization expires",
       "coreEvaluations": "Evaluations started / limit",
       "coreActiveEvaluation": "Current evaluation ID",
@@ -511,6 +511,9 @@ window.__ModuleLoader__.load({
           return key ? t(key) : text(value) || t('unknownValue');
         };
         const expectedValue = value => typeof value === 'string' ? value : JSON.stringify(value) ?? t('unknownValue');
+        // Native observation is authoritative; a candidate or successful Task
+        // cannot turn the local dispatch pause into Goal completion.
+        const coreGoalComplete = goal => goal?.native?.phase === 'complete';
         const memoryEntryValid = entry => entry && typeof entry === 'object' && !Array.isArray(entry)
           && ['operationId', 'requestId', 'conversationId', 'status'].every(key => typeof entry[key] === 'string' && Boolean(entry[key].trim()))
           && Number.isSafeInteger(entry.version) && entry.version >= 1 && typeof entry.blocked === 'boolean'
@@ -829,7 +832,7 @@ window.__ModuleLoader__.load({
               const goal = arr(current?.core?.goals).find(item => item.goalId === payload.goalId);
               if (!fresh || current?.core?.ready !== true || current.lifecycle === 'stopping') return;
               if (!stop && !['idle', 'busy', 'waiting'].includes(current.state)) return;
-              if (!create && (!goal || goal.version !== payload.expectedVersion || coreSelection.current.id !== goal.goalId || goal.cancelled === true)) return;
+              if (!create && (!goal || goal.version !== payload.expectedVersion || coreSelection.current.id !== goal.goalId || goal.cancelled === true || coreGoalComplete(goal))) return;
               if (action === 'core.resume' && (goal.authorized !== true || goal.paused !== true || Date.parse(goal.expiresAt) <= Date.now()
                 || ['pending', 'unknown'].includes(goal.nativeCommand?.status))) return;
               if (create) { commandInFlight = true; setCommand(action); } else { coreControlInFlight = true; setCoreControl(action); }
@@ -982,10 +985,10 @@ window.__ModuleLoader__.load({
               && Number.isSafeInteger(maxEvaluations) && maxEvaluations >= 1 && maxEvaluations <= 100;
             const expiredDraft = coreDraft.current.payload && Date.parse(coreDraft.current.payload.expiresAt) <= clock;
             const canCreate = ready && canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && formValid && !expiredDraft;
-            const canStop = ready && !stale && snapshot.lifecycle !== 'stopping' && !coreControl && !controlCommand && goal && goal.cancelled === false;
+            const canStop = ready && !stale && snapshot.lifecycle !== 'stopping' && !coreControl && !controlCommand && goal && goal.cancelled === false && !coreGoalComplete(goal);
             const canResume = canStop && canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && goal.authorized === true && goal.paused === true
               && Number.isFinite(Date.parse(goal.expiresAt)) && Date.parse(goal.expiresAt) > clock && !['pending', 'unknown'].includes(goal.nativeCommand?.status);
-            const status = item => item.cancelled === true ? 'cancelled' : item.authorized === false ? 'unapproved' : item.paused === true ? 'paused'
+            const status = item => coreGoalComplete(item) ? 'complete' : item.cancelled === true ? 'cancelled' : item.authorized === false ? 'unapproved' : item.paused === true ? 'paused'
               : Number.isFinite(Date.parse(item.expiresAt)) && Date.parse(item.expiresAt) <= clock ? 'expired' : item.authorized === true ? 'authorized' : 'unknown';
             const editNote = (index, key, value) => { changeCoreDraft(); setCoreNotes(current => current.map((note, at) => at === index ? { ...note, [key]: value } : note)); };
             const field = (name, value, onChange, options = {}) => h('label', { className: 'syr-select-label' }, h('span', null, name), h('input', {

@@ -259,7 +259,19 @@ def control_records(plan):
     return read_db(plan["paths"]["controlDb"], query)
 
 
-def native_events(raw, limits):
+def cwd_digest(value):
+    # Cwd is inspected only in memory; reports contain no directory plaintext.
+    return sha(value.encode()) if isinstance(value, str) and value.startswith("/") and "\0" not in value else None
+
+
+def expected_cwd_message(message_id, cwd):
+    directory = "Current working directory: " + json.dumps(cwd, ensure_ascii=False, separators=(",", ":")) + "."
+    return {"id": message_id, "role": "user", "content": [{"type": "text", "text":
+        "Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n" + directory}],
+        "source": {"kind": "runtime-context", "form": "snapshot", "sections": [{"name": "working-directory:current", "text": directory}]}}
+
+
+def native_events(raw, limits, bound_cwd=None):
     import zstandard
     with zstandard.ZstdDecompressor().stream_reader(io.BytesIO(raw), read_across_frames=True) as reader:
         decoded = reader.read(limits["decodedSessionBytes"] + 1)
@@ -267,7 +279,9 @@ def native_events(raw, limits):
     lines = decoded.splitlines()
     require(1 <= len(lines) <= limits["nativeEventRows"] + 1, "NATIVE_ROW_BOUND")
     events, messages, message_rows, counts = [], [], [], Counter()
+    expected_contexts, context_rows = [], []
     require(len(lines[0]) <= MAX_JSON and isinstance(json.loads(lines[0]), dict) and "seq" not in json.loads(lines[0]), "NATIVE_HEADER")
+    header = json.loads(lines[0])
     for line in lines[1:]:
         require(len(line) <= MAX_JSON, "NATIVE_LINE_BOUND")
         value = json.loads(line)
@@ -278,11 +292,23 @@ def native_events(raw, limits):
         message = data if kind == "user/message" else data.get("message") if kind == "assistant/message" and isinstance(data, dict) else None
         if isinstance(message, dict):
             item["messageId"] = safe_id(message.get("id"))
+            item["messageRole"] = message.get("role") if message.get("role") in ("user", "assistant") else "other"
+            source_kind = message.get("source", {}).get("kind") if isinstance(message.get("source"), dict) else None
+            item["sourceKind"] = source_kind if source_kind in ("user", "runtime-context") else "other"
             parts = message.get("content", [])
             text = "\n".join(p["text"] for p in parts if isinstance(p, dict) and p.get("type") == "text" and isinstance(p.get("text"), str))
             item["textSha256"] = sha(text.encode())
             item["interrupted"] = bool(data.get("interrupted")) if kind == "assistant/message" else False
             messages.append(message); message_rows.append(item)
+            if kind == "user/message" and source_kind == "runtime-context":
+                item["runtimeContextValidBoundCwd"] = False
+                official_id = re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}", item["messageId"], re.I)
+                if official_id and cwd_digest(bound_cwd):
+                    expected_contexts.append(expected_cwd_message(item["messageId"], bound_cwd)); context_rows.append(item)
+        if kind == "working-directory/change":
+            # Fixed dsh-working-directory 0.2.1-rc.5: header.cwd seeds the
+            # projection; change data is exactly {cwd}, never path/current.
+            item["cwdSha256"] = cwd_digest(data.get("cwd")) if isinstance(data, dict) and set(data) == {"cwd"} else None
         if kind == "goal/change" and isinstance(data, dict) and isinstance(data.get("goal"), dict):
             goal = data["goal"]
             item["goal"] = {key: goal[key] for key in ("id", "revision", "phase", "roundsStarted", "maxGoalRounds") if key in goal}
@@ -299,8 +325,54 @@ def native_events(raw, limits):
         events.append(item); counts[kind] += 1
     for item, value in zip(message_rows, native_hashes(messages)):
         item["messageHash"] = value
-    return {"headerHash": sha(lines[0]), "events": events, "eventCounts": dict(sorted(counts.items())),
+    for item, expected_hash in zip(context_rows, native_hashes(expected_contexts)):
+        item["runtimeContextExpectedHash"] = expected_hash
+        item["runtimeContextValidBoundCwd"] = item["messageHash"] == expected_hash
+    return {"headerHash": sha(lines[0]), "headerCwdSha256": cwd_digest(header.get("cwd")),
+            "events": events, "eventCounts": dict(sorted(counts.items())),
             "decodedBytes": len(decoded), "decodedRows": len(lines), "messageBodyIncluded": False}
+
+
+def native_input_window(core, receipt, bound_cwd):
+    """Inspect the entire committed input interval, never just matching endpoints.
+
+    Zero new cwd messages is proven only by a preceding exact retained snapshot.
+    This is an independent file proof, not an invented control-store receipt.
+    """
+    result = {"nativeCwdContextVerified": False, "controlContextReceiptAvailable": False,
+              "userMessageSeqs": [], "runtimeContextSeq": None, "runtimeContextReused": False}
+    if not core or not cwd_digest(bound_cwd):
+        return result
+    first, last = receipt["inputRef"].get("eventSeq"), receipt["assistantRef"].get("eventSeq")
+    events, expected_cwd = core["events"], cwd_digest(bound_cwd)
+    if type(first) is not int or type(last) is not int or not 0 <= first < last < len(events):
+        return result
+    window = events[first:last + 1]
+    inputs = [e for e in window if e["type"] == "user/message"]
+    result["userMessageSeqs"] = [e["seq"] for e in inputs]
+    if not 1 <= len(inputs) <= 2 or inputs[0]["seq"] != first or inputs[0].get("sourceKind") != "user" or inputs[0].get("messageRole") != "user":
+        return result
+    # A second assistant/attempt would make this more than the one admitted call.
+    if [e["seq"] for e in window if e["type"] == "assistant/message"] != [last] or any(e["type"] == "assistant/attempt" or e["type"].startswith("compaction/") or e["type"] == "session/title-llm-request" for e in window):
+        return result
+    current_cwd = core.get("headerCwdSha256")
+    for event in events[:first + 1]:
+        if event["type"] == "working-directory/change": current_cwd = event.get("cwdSha256")
+    if current_cwd != expected_cwd or any(e.get("cwdSha256") != expected_cwd for e in window if e["type"] == "working-directory/change"):
+        return result
+    if len(inputs) == 2:
+        context = inputs[1]
+    else:
+        contexts = [e for e in events[:first] if e["type"] == "user/message" and e.get("sourceKind") == "runtime-context"]
+        context = contexts[-1] if contexts else None
+        result["runtimeContextReused"] = context is not None
+    if not context or not context.get("runtimeContextValidBoundCwd") or context.get("messageHash") != context.get("runtimeContextExpectedHash") or context.get("messageId") == inputs[0].get("messageId"):
+        return result
+    if any(e.get("cwdSha256") != expected_cwd for e in events[context["seq"]:last + 1] if e["type"] == "working-directory/change"):
+        return result
+    result.update(nativeCwdContextVerified=True, runtimeContextSeq=context["seq"],
+                  runtimeContextMessageHash=context["messageHash"], boundCwdSha256=expected_cwd)
+    return result
 
 
 def collect(plan, mode="audit", expectation="observe"):
@@ -400,7 +472,7 @@ def collect(plan, mode="audit", expectation="observe"):
         found = [p for p in paths if p.exists()]
         require(len(found) == 1, "EXACT_SESSION_FILE")
         raw, fingerprint = stable_read(found[0], plan["limits"]["compressedSessionBytes"])
-        result["native"].append({**session, **fingerprint, **native_events(raw, plan["limits"])})
+        result["native"].append({**session, **fingerprint, **native_events(raw, plan["limits"], binding.get("cwd") if session["role"] == "core" else None)})
     native = {s["sessionId"]: s for s in result["native"]}
     core = native.get(binding["sessionId"]) if binding else None
     for evaluation in evaluations:
@@ -430,7 +502,10 @@ def collect(plan, mode="audit", expectation="observe"):
         valid = valid and receipt["inputRef"]["eventSeq"] < receipt["assistantRef"]["eventSeq"]
         changes = [e["goal"] for e in core["events"][:receipt["inputRef"]["eventSeq"]] if "goal" in e] if core else []
         valid = valid and bool(changes and {k: changes[-1].get(k) for k in ("id", "revision")} == evaluation["permit"]["goalRef"] and changes[-1].get("phase") == "active")
-        result["proofs"].append({"evaluationId": evaluation["evaluationId"], "exactNativeInputAndAssistant": check(valid, "NATIVE_MESSAGE_PROOF", evaluation["evaluationId"])})
+        context_proof = native_input_window(core, receipt, binding.get("cwd") if binding else None)
+        valid = valid and context_proof["nativeCwdContextVerified"]
+        result["proofs"].append({"evaluationId": evaluation["evaluationId"], **context_proof,
+                                 "exactNativeInputAndAssistant": check(valid, "NATIVE_MESSAGE_PROOF", evaluation["evaluationId"])})
     artifacts_complete = len(control["tasks"]) == len(plan["deliverables"])
     for task in control["tasks"]:
         tid, local, record_task = task["ref"]["taskId"], task["local"], task["task"]

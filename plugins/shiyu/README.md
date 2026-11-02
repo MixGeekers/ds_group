@@ -2,7 +2,7 @@
 
 `@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 core/replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地目标、任务与记忆链路。
 
-**状态：3G 已接线；首次真实宿主目标未通过，完整闭环仍待复测。** owner 明确指定本地便签范围、共享预算与期限后，core 才能提出范围内候选，由控制域核对并接纳 Task；原生 Goal Session 承载生命周期与有界判断。首次宿主判断在 pre-step 中止，已显式取消且保留 unknown 预算，没有创建 worker。随后离线复现并修复了 DSH 必需工作目录上下文的不兼容，776 项模块检查通过；修复尚未在真实宿主重试。见[失败验收](<artifacts/phase3g-core-host-validation.json>)、[修复证据](<artifacts/phase3g-required-context-fix.json>)及下方 [3G 说明](#3g有界-core-与本地目标)。
+**状态：3G 已通过一个真实合成便签闭环及完成后重载核对。** owner 明确指定范围、共享预算与期限后，core 提出候选，控制域接纳 Task，worker 执行，独立核验后完成原生 Goal。两轮 Core 复用同一 Session；主模型记录合计 3813 reported tokens、4 次调用、1 次效果，完成后无剩余预留。首次失败 A 的取消与 unknown 保留，新样本 B 不改写其结果。见[成功证据](<artifacts/phase3g-core-host-success.json>)、[首次失败](<artifacts/phase3g-core-host-validation.json>)、[兼容修复](<artifacts/phase3g-required-context-fix.json>)及下方 [3G 说明](#3g有界-core-与本地目标)。这仍是有限授权事项推进，不是开放式规划或九系统整体验收。
 
 **3F 历史验证：** 3E 已完成限定 DSH 保存、精确读回、有序重载和本地撤回；3F 新增受控 Harrier 生命周期、单独授权的索引操作、同对话语义检索、原生记忆 ReadView 与零推理背景加载。记忆已进入 Session 后，撤回会封存旧绑定并切换安全代次；正常消息继续复用 Session。记忆正文只存原生普通桶，控制库与后端 journal 只存其元信息，撤回不代表物理删除。schema1 配置继续关闭 embedding，schema2 才显式启用受控 Harrier；其余五个内层域仍 unavailable。3F 当时 676 模块、59 Python、154 UI 通过；真实隔离 Harrier 20 次 embedding，宿主两次零推理加载确认了撤回前复用与撤回后新 Session 不含撤回正文。固定标题及恢复标记另作解释，宿主内部查询完整用量未知；分批结果、失败与未覆盖范围见[实施记录](<实施记录.md>)及[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
 
@@ -14,9 +14,9 @@
 |---|---|---|
 | Host 与运行状态 | DSH 插件入口、只读状态路由、`shiyu_status` 工具、显式运行命令与卸载清理 | 原生安装与限定禁用/启用验证已有证据；无独立 Web 服务，不等于完整生命周期压力验收 |
 | 运行仪表盘 | 总览、目标与判断、当前工作、活动、九系统状态、事件/订阅、Session、任务核验、显式诊断和记忆操作；中英文、主题及窄屏布局 | 目标候选、接纳任务、原生观察及命令回执分别显示；受理不显示为成功，unknown 与缺失用量保留未知 |
-| 有界 core | owner 明确登记 local-note 范围、依赖、预算与期限；可信触发、判断预留、原生候选、同事务 Task 接纳和独立完成证明 | 首次宿主判断失败已取消，修复后真实闭环待验；模型只能选择已授权便签 ID，没有任意任务、记忆写入、设备或外部渠道权限 |
+| 有界 core | owner 明确登记 local-note 范围、依赖、预算与期限；可信触发、判断预留、原生候选、同事务 Task 接纳和独立完成证明 | 一个真实便签闭环及重载不重放已验；模型只能选择已授权便签 ID，没有任意任务、记忆写入、设备或外部渠道权限 |
 | replyer Session | 专用原生 preset、创建/恢复前模型校验、空工具与执行 guard、稳定业务/scope 绑定、取消与释放；显式两轮真实模型验证入口 | 零推理探针和两轮代号回忆已测；业务恢复/压缩及完整缓存收益仍待验，没有渠道外发 |
-| 任务与 worker | owner 本地任务及 3G 已授权便签委托复用 Task/Assignment；原生 worker 只写固定产物，派发资格持续复查 | 历史第二个有界真实任务通过、首轮 unknown 保留；3G core 派工仅离线验证，没有通用文件或设备权限 |
+| 任务与 worker | owner 本地任务及 3G 已授权便签委托复用 Task/Assignment；原生 worker 只写固定产物，派发资格持续复查 | 历史有界任务及 3G core 派工各有限定真实成功证据，首次 unknown 保留；没有通用文件或设备权限 |
 | 授权、效果与核验 | Mandate/CAS、原子预留、Effect 与独立产物核验；3G 判断与派生 Task 共用同一 Goal 授权及预算 | 不以模型候选或 `task.createLocal` 代替 owner 授权；取消不回滚已发生效果，旧实例与 unknown 不自动重派 |
 | 原生 Goal 生命周期 | 原生 Goal 绑定/CAS/命令历史、独立完成证明；历史零推理诊断保留，3G 另用专用 Goal Session 执行有界判断 | 原生日志拥有 phase/revision；普通判断 followup 不计为原生 Goal driver round；旧观察不覆盖 pending/unknown 命令事实 |
 | 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、Task 关联、可信完成事件投影、有界扫描；显式本地上下文回复与验证 | 背景消费者不调用模型；Event ack 不等于加载，显式回复须原生持久回执才 ackContext；无渠道发送 |
@@ -254,6 +254,8 @@ licenses/                           随发布包保留的第三方完整许可
 | `core.resume` | `{ goalId, expectedVersion }` → `{ goal }`；只接受 owner 显式恢复，重核期限、授权和原生命令状态；不默认恢复 unknown 执行 |
 | `GET /api/shiyu/state` 的 `core` | `{ ready, errorCode?, pump?, goals, ... }`；每个 Goal 的 `deliverables` 去掉正文，只返回 `bodyBytes` 等范围元信息，另含 `evaluationsLog`、可用时的 `balance` 和 `nativeCommand` |
 
-“目标与判断”页提供 1–3 条便签表单，每条正文最多 1024 UTF-8 字节；依赖只能引用本目标中其他 ID，不能成环。默认可编辑预留为 131072 tokens、12 calls、3 effects、最多 4 次判断，有效期可选 30 分钟或 1 小时；这些默认值不代表实际调用数或完成保证。Goal 详情分别显示本地授权状态、最后一次原生观察及时间、原生命令 pending/unknown/confirmed/rejected、触发引用、候选、接纳 Task 和用量完整性。pending/unknown 原生命令禁用恢复，暂停与取消仍可关闭本地范围；取消不删除原生日志或撤销已发生效果。请求回执不会乐观替换快照，切换目标、运行实例变化或不匹配的新版本会拒绝旧响应。
+“目标与判断”页提供 1–3 条便签表单，每条正文最多 1024 UTF-8 字节；依赖只能引用本目标中其他 ID，不能成环。默认可编辑预留为 131072 tokens、12 calls、3 effects、最多 4 次判断，有效期可选 30 分钟或 1 小时；这些默认值不代表实际调用数或完成保证。Goal 详情分别显示目标状态、最后一次原生观察及时间、原生命令 pending/unknown/confirmed/rejected、触发引用、候选、接纳 Task 和用量完整性。pending/unknown 原生命令禁用恢复，暂停与取消仍可关闭本地范围；取消不删除原生日志或撤销已发生效果。请求回执不会乐观替换快照，切换目标、运行实例变化或不匹配的新版本会拒绝旧响应。
 
-本轮仪表盘完整离线回归 **168/168** 通过；随后只调整上述默认预算与预算边界文案，相关表单、创建请求及中英文窄屏 **3/3** 复验通过，未在这次最终文案修改后再跑完整 168 项。首轮旧 Goal 诊断用例遇到成功提示与等待提示同时出现的定位竞争，限定到成功提示后完成上述全量复验，未改变诊断行为。新增界面用例见[core.spec.mjs](<tests/ui/core.spec.mjs>)；领域、编排、调度和原生接缝分别见[CoreDomain 测试](<tests/core-domain.test.ts>)、[LocalCore 测试](<tests/local-core.test.ts>)、[CorePump 测试](<tests/core-pump.test.ts>)及[原生 Goal Session 替身测试](<tests/core-goal-sessions.test.ts>)。系统全量检查结果以[实施记录](<实施记录.md>)最终汇总为准，不将不同批次累加。本轮没有真实宿主、生成模型或 embedding 验收；没有通用任务规划、跨对话记忆读取、外部设备/频道操作或完整自主恢复能力。
+本轮仪表盘完整离线回归 **168/168** 通过；随后只调整上述默认预算与预算边界文案，相关表单、创建请求及中英文窄屏 **3/3** 复验通过，未在这次最终文案修改后再跑完整 168 项。首轮旧 Goal 诊断用例遇到成功提示与等待提示同时出现的定位竞争，限定到成功提示后完成上述全量复验，未改变诊断行为。新增界面用例见[core.spec.mjs](<tests/ui/core.spec.mjs>)；领域、编排、调度和原生接缝分别见[CoreDomain 测试](<tests/core-domain.test.ts>)、[LocalCore 测试](<tests/local-core.test.ts>)、[CorePump 测试](<tests/core-pump.test.ts>)及[原生 Goal Session 替身测试](<tests/core-goal-sessions.test.ts>)。系统全量检查结果以[实施记录](<实施记录.md>)最终汇总为准，不将不同批次累加。上述是 755c7f4 离线批次，当时没有真实宿主、生成模型或 embedding 验收；没有通用任务规划、跨对话记忆读取、外部设备/频道操作或完整自主恢复能力。
+
+修复后 B 样本的两轮 Core、worker 执行、独立产物核验和原生 Goal 完成已有[限定真实证据](<artifacts/phase3g-core-host-success.json>)；完成后有序重载保持日志、预算和事实不变，A 失败记录继续保留。完成态显示修补仅有本轮相关 26/26 UI 回归，未再重载宿主。原生 complete 优先显示为已完成并关闭三个目标控制按钮；本地 paused 字段只是停止派发的屏障，不能当作可恢复的原生暂停。详细分批检查与局限见[实施记录](<实施记录.md>)。
