@@ -4,7 +4,7 @@
   "slice": "h2a-integration",
   "capturedAt": "2026-11-02T19:35:43.388Z",
   "head": "a80c33d15e6bc961eeeb3cd0becef615a7616877",
-  "worktree": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-integration-1793647918879",
+  "worktree": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-integration-1793647918879",
   "files": [
     {
       "path": "plugins/shiyu/src/adapters/dsh/event-tools.ts",
@@ -87,7 +87,7 @@
     ]
   },
   "log": {
-    "path": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-integration.log",
+    "path": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-integration.log",
     "bytes": 136223,
     "sha256": "ca0dfcf7567c251184df9f84906e5efc89d86c3a89c30b58890b59cde97d9fef"
   },

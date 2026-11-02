@@ -4,7 +4,7 @@
   "slice": "h0b",
   "capturedAt": "2026-11-02T19:00:30.791Z",
   "head": "2e04eb20eda5f958f0b15177bca0f5bdab21cc00",
-  "worktree": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h0b-1793645853737",
+  "worktree": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h0b-1793645853737",
   "files": [
     {
       "path": "plugins/shiyu/tests/harness/README.md",
@@ -207,7 +207,7 @@
     ]
   },
   "log": {
-    "path": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h0b.log",
+    "path": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h0b.log",
     "bytes": 130885,
     "sha256": "5d37d10030cdb2483c18fe53284a2669df8f1d3fa0b8362fe8c4769c20cccf17"
   },

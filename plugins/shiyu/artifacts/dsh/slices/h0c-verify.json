@@ -4,7 +4,7 @@
   "slice": "h0c",
   "capturedAt": "2026-11-02T19:35:51.769Z",
   "head": "a80c33d15e6bc961eeeb3cd0becef615a7616877",
-  "worktree": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h0c-1793647925920",
+  "worktree": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h0c-1793647925920",
   "files": [
     {
       "path": "plugins/shiyu/tests/harness/business/answers.ts",
@@ -322,7 +322,7 @@
     ]
   },
   "log": {
-    "path": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h0c.log",
+    "path": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h0c.log",
     "bytes": 137820,
     "sha256": "b506c898fa330525c5e8e9c48fa9258abf1dd396ed33b82dc99fd227ebdd7157"
   },

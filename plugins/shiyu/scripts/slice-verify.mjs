@@ -49,6 +49,9 @@ function parseArgs(argv) {
 }
 
 const sha256 = (buffer) => createHash('sha256').update(buffer).digest('hex');
+const homedir = process.env.HOME ?? '';
+/** Evidence hygiene: committed artifacts must not leak absolute home paths. */
+const sanitizePath = (value) => String(value).replaceAll(repoRoot, '<repo>').replaceAll(homedir, '<home>');
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
 
 function materialize(options) {
@@ -117,10 +120,10 @@ async function main() {
     slice: materialized.slice,
     capturedAt: new Date().toISOString(),
     head: materialized.head,
-    worktree: materialized.worktree,
+    worktree: sanitizePath(materialized.worktree),
     files: materialized.files.map((path) => ({ path, bytes: readFileSync(join(repoRoot, path)).length, sha256: sha256(readFileSync(join(repoRoot, path))) })),
     check: { command: 'npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)', ...result },
-    log: { path: logPath, bytes: result.bytes, sha256: result.sha256 },
+    log: { path: sanitizePath(logPath), bytes: result.bytes, sha256: result.sha256 },
     verdict: result.exitCode === 0 && result.tests?.fail === 0 && result.tests?.skipped === 0 ? 'pass' : (result.timedOut ? 'timeout' : 'fail'),
   };
   const evidencePath = join(packageDir, 'artifacts', 'dsh', 'slices', `${materialized.slice}-verify.json`);

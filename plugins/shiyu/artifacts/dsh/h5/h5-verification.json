@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "slice": "H5-B1",
   "title": "本地检查点与隔离恢复模块：隔离 worktree 全量验证记录",
-  "generatedAt": "2026-11-02T18:47:30.889089Z",
+  "generatedAt": "2026-11-02T19:38:56.615068Z",
   "baseline": {
     "commit": "08995d182d2ae5ecda69ae81992a636af37f6399",
     "note": "HEAD 08995d1；隔离 worktree 仅加入 task-6 切片文件，未提交"
@@ -32,7 +32,14 @@
       },
       "skippedReasons": [
         "﹣ real private SDK and Python v2 agree on seven tools, isolated indexing, receipts and authorized candidates without a model (1.503208ms) # Pinned local Python/Ombre dependency is absent; this test never installs it"
-      ]
+      ],
+      "archivedCopy": {
+        "path": ".local/h5-verify/h5-check-final.log",
+        "sha256": "abeb16069ae86fea570b80b903227795a6534eadfec30ee0a763094832dc09ac",
+        "bytes": 116265,
+        "gitIgnored": true,
+        "matchesTransientLog": true
+      }
     },
     "run2_final": {
       "path": "/tmp/h5-check-final2.log",
@@ -51,7 +58,14 @@
       },
       "skippedReasons": [
         "﹣ real private SDK and Python v2 agree on seven tools, isolated indexing, receipts and authorized candidates without a model (1.455542ms) # Pinned local Python/Ombre dependency is absent; this test never installs it"
-      ]
+      ],
+      "archivedCopy": {
+        "path": ".local/h5-verify/h5-check-final2.log",
+        "sha256": "fcf7d8d6cb6f77b425a182b0406d47aae4dae6d10b58730c11974c78b8518990",
+        "bytes": 116278,
+        "gitIgnored": true,
+        "matchesTransientLog": true
+      }
     },
     "run3_final_repeat": {
       "path": "/tmp/h5-check-final3.log",
@@ -67,6 +81,13 @@
         "skipped": 1,
         "todo": 0,
         "duration_ms": 150209.973667
+      },
+      "archivedCopy": {
+        "path": ".local/h5-verify/h5-check-final3.log",
+        "sha256": "8c764019fa4a7ab9e94d025ebbd8e7a7883308dcc7eac9d1e2f7275e01458b36",
+        "bytes": 116224,
+        "gitIgnored": true,
+        "matchesTransientLog": true
       }
     }
   },
@@ -186,6 +207,15 @@
     "三次全量 npm run check：run2/run3 为同一最终 worktree 内容，计数完全一致（1063 tests / 1062 pass / 0 fail / 1 pre-existing environment skip），exit 0；run1 为最终代码前一条仅新增日志路径校验的版本，计数相同。",
     "1 skip 为基线既有 Python/Ombre 夹具依赖缺失，非本切片；未安装依赖。",
     "evidence JSON 在隔离 worktree 内由测试生成（source/build/test 指纹取 worktree HEAD 08995d1 + 未提交切片），随后原样复制回主树 artifacts/dsh/h5。",
-    "隔离 worktree 只加入 src/recovery、tests/recovery-*、artifacts/dsh/h5；node_modules 为符号链接（未安装依赖）；未 git 提交、未切分支。"
-  ]
+    "隔离 worktree 只加入 src/recovery、tests/recovery-*、artifacts/dsh/h5；node_modules 为符号链接（未安装依赖）；未 git 提交、未切分支。",
+    "F6 修正（独立复核后）：实现者 /tmp 日志已复制到本包 gitignored 的 .local/h5-verify/，逐文件 SHA256/bytes 与 transient 原件一致；本 JSON 的 runs[*].archivedCopy 与 logDurability 记录该归档与“原件 transient”事实。"
+  ],
+  "logDurability": {
+    "implementerRunPathsWereTransient": true,
+    "transientPathNote": "实现者原始日志位于 /tmp/h5-check-final{,2,3}.log，/tmp 非持久；计数/sha 已由三次独立全量运行留证。",
+    "archivedCopiesUnderGitignoredLocal": true,
+    "archiveDirectory": ".local/h5-verify/",
+    "whyGitignored": "日志为原始运行输出，可能含环境信息且体积较大；按本包既有约定放 .local/（gitignored），证据 JSON 只记录路径/哈希/计数，提交不包含日志正文。",
+    "reproducibility": "重新创建隔离 worktree（HEAD 08995d1 + 切片文件）并运行 npm run check 可重新产生等价分母；/tmp 日志丢失不影响计数与哈希已记录的事实。"
+  }
 }

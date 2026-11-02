@@ -4,7 +4,7 @@
   "slice": "h2a-events",
   "capturedAt": "2026-11-02T19:31:03.327Z",
   "head": "00fb75b25a89006b9c69a569c9203a57043855f2",
-  "worktree": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-events-1793647637288",
+  "worktree": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-events-1793647637288",
   "files": [
     {
       "path": "plugins/shiyu/src/adapters/dsh/event-tools.ts",
@@ -77,7 +77,7 @@
     ]
   },
   "log": {
-    "path": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-events.log",
+    "path": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-events.log",
     "bytes": 136183,
     "sha256": "25dbaa60bd54aaa8ee398c660a04d034fa3a3cf0298d5f822cdc5ebb619d5c58"
   },

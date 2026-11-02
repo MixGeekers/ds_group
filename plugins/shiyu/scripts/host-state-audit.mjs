@@ -110,7 +110,12 @@ function readControl(dataDir) {
       capability: capabilitySummary,
       tasks: { count: taskRecords.length,
         states: tally(taskRecords.map((task) => task.terminal?.state ?? (task.uncertainty ? 'unknown' : 'open'))),
-        ids: taskRecords.map((task) => task.taskId).sort() },
+        ids: taskRecords.map((task) => task.taskId).sort(),
+        // Explicit per-task version/update metadata, so recovery-time metadata
+        // refreshes are visible in the audit snapshot instead of needing a live DB read.
+        metadata: taskRecords.map((task) => ({ taskId: task.taskId, version: task.version ?? null,
+          updatedAt: task.updatedAt ?? null, state: task.terminal?.state ?? (task.uncertainty ? 'unknown' : 'open'),
+          uncertaintyReason: task.uncertainty?.reason ?? null })) },
       taskRuns: { count: taskRuns.length, states: tally(taskRuns.map((run) => run.state ?? 'unknown')) },
       coreGoals: { count: coreGoals.length, cancelled: coreGoals.filter((goal) => goal.cancelled === true).length,
         paused: coreGoals.filter((goal) => goal.paused === true).length,

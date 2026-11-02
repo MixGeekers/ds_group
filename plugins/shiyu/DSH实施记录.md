@@ -416,3 +416,25 @@ node scripts/harness/fl-scenarios.mjs --require-selfproof
 node --import tsx --test --test-concurrency=1 tests/harness-business.test.ts
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h0c-manifest.json>
 ```
+
+## 12. 证据卫生与 H4/H4b/H5 已提交证据独立复核
+
+2026-11-02，独立验证员对已提交的 H4/H4b/H5/H4-host/H4b-host/H0b 证据做了只读复核（task-13）：**真实性通过，未发现伪造、静默跳过、把实现当 oracle 或未跑写通过**。完整报告见 [H4H5-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/H4H5-EVIDENCE-REVIEW.md>) 与 [h4h5-evidence-review.json](<artifacts/dsh/verify/h4h5-evidence-review.json>)：30 项检查 29 verified / 1 finding / 0 rejected，10 条 findings、7 条未观察项。
+
+复核要点：
+- 文件/日志 SHA256 全部与对应 commit blob、声明计数一致（H4 21 文件 1088/1088、H4b 7 文件 1206/1206 + UI 209/209、H5 18/19 文件 1063/1062/1 既有 pinned-Python 条件 skip、H5 slice 1096/1096、H0b slice 1201/1201、H0b TAP 145 known-verdict 41/104）。
+- 宿主审计链一致：两轮 reload 的 commitSeq 291→302→308、stateVersion 5→6→6、capability 8→10→12、hostEpoch 重绑；Task/Goal/Lab/预算/Effect/17 Session/state 文件不变；after-tool 仅 capturedAt 变化；events 36/37/38 都是对应 reload 的 `runtime.lifecycle.changed`。dist provenance 用 `git archive` 独立重建两轮 digest（`647aaa7f…`、`bff93a84…`）一致。
+- H5 边界未被夸大（G1 离线+合成端口、未接 Runtime/宿主、V22 仅子场景、V27 未尝试、RPO/RTO/独立故障域未验）；traceability 产品行仍 79/79 not_covered。
+
+findings 处理：
+| ID | 处理 |
+|---|---|
+| F1 新增证据含绝对 home 路径 | 已修：`scripts/slice-verify.mjs` 从生成处脱敏 `<home>/<repo>`；11 个已提交 slice/证据文件内 `/Users/caja` 统一替换 `<home>`；H4 手写 reproduce 命令同期脱敏 |
+| F2 host audit `sessions.files[].relativePath` 含编码 home 片段 | 接受为既有惯例（无绝对路径、无正文）；后续导出会脱敏 relativePath |
+| F3 两轮 host 证据 `payload.bytes` 是字符数而非字节数 | 已修：改为实际文件字节数并注明语义（sha256 原本正确） |
+| F4 H4b 未披露 unknown Task 元数据启动刷新 | 已补披露：version 25→26、updatedAt=本次 reload；状态/计数/不重试/不宣告成功不变 |
+| F5 host 审计缺 task version/updated 摘要 | 已修工具：`scripts/host-state-audit.mjs` 现输出逐 Task version/updatedAt/state/uncertaintyReason，后续证据可直接核对 |
+| F6/F7 实现者日志仅在 /tmp、H4b 日志未声明 sha/bytes | 记录为已知限制；证据 JSON 已冻结日志 hash，临时日志不作为长期证据；后续切片日志统一复制到 `.local` 并声明 sha/bytes |
+| F8/F9/F10 matrix observed 叙述、oldDist 语义、H0b dirty overlay | info 级披露；H0b/H0c artifacts 可在最终批次干净 HEAD 上重生成 clean-VCS 指纹 |
+
+说明：F6/F7 的日志仅 /tmp 属于可审计性不足而非证据造假；本记录保留该限制，不把临时日志当作首选证据。

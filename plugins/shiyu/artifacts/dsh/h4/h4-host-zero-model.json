@@ -174,8 +174,9 @@
   },
   "payload": {
     "file": "artifacts/dsh/h4/shiyu-status-schema4-host.json",
-    "bytes": 50630,
-    "sha256": "33772db64a32b6eb1174c5a4a7ffa408ee6dd8342bc2b3033b68e12fdd7c03fe"
+    "bytes": 53320,
+    "sha256": "33772db64a32b6eb1174c5a4a7ffa408ee6dd8342bc2b3033b68e12fdd7c03fe",
+    "bytesSemantics": "actual committed file bytes (UTF-8); earlier drafts recorded the character count instead"
   },
   "deltaClassification": {
     "commitSeq": "291 -> 302 (+11): expected host initialization writes (runtime lifecycle event, capability hostEpoch observation, state publication schema4).",

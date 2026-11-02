@@ -1,0 +1,656 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-13)",
+  "reviewedAt": "2026-11-02T19:38:00Z",
+  "subject": "H4 / H4b / H5 / H4b-host committed product, test and host evidence",
+  "head": "00fb75b25a89006b9c69a569c9203a57043855f2",
+  "commits": {
+    "H4": {
+      "sha": "2e04eb2",
+      "title": "feat(shiyu): add the four remaining inner domains with schema4 publication (H4)"
+    },
+    "H4b": {
+      "sha": "f2f9d42",
+      "title": "feat(shiyu): wire inner domains into replyer read view and dashboard (H4b)"
+    },
+    "H5": {
+      "sha": "5a7bc9e",
+      "title": "feat(shiyu): add offline checkpoint and isolated restore module (H5-B1)"
+    },
+    "H4-host": {
+      "sha": "feecf86",
+      "title": "test(shiyu): verify schema4 inner publication on the fixed host (zero model)"
+    },
+    "H4b-host": {
+      "sha": "00fb75b",
+      "title": "test(shiyu): confirm corrected inner summary on the fixed host (zero model)"
+    },
+    "H0b": {
+      "sha": "eef00d3",
+      "title": "test(shiyu): add self-proving test harness, evidence manifest and traceability (H0b)"
+    }
+  },
+  "method": [
+    "read-only review of committed git blobs, product/test source, artifacts/dsh/{h4,h5,slices,h0,harness} and .local logs; no real host/model/embedding run",
+    "recomputed SHA256 of every evidence-declared file against the commit that claims it; recomputed log SHA256/bytes/summary counts against declarations",
+    "rebuilt dist from the exact committed trees 3b3b69f and f2f9d42 via git archive in /tmp (tsc only), recomputed the host-audit dist digest, then deleted the temp trees",
+    "parsed committed before/after/after-tool host audit JSON and deep-diffed them to classify every changed field; read-only SQLite queries against .local/runtime/control/events.sqlite for event history",
+    "static scan of newly added evidence files for secrets/home paths; verified H0b known-verdict counts from the committed self-proof TAP"
+  ],
+  "results": [
+    {
+      "id": "C01",
+      "area": "commit/file identity",
+      "claim": "H4 evidence declares 21 slice files; H4 commit 2e04eb2 contains them with identical SHA256",
+      "evidence": [
+        "artifacts/dsh/h4/h4-inner-domains-offline.json#implementation.added/modified/updated files",
+        "artifacts/dsh/h4/h4-slice-summary.json#files"
+      ],
+      "method": "git show 2e04eb2:<path> SHA256 vs declared",
+      "result": "verified",
+      "detail": "21/21 hash match; H4 commit also contains 3 evidence JSONs + DSH record beyond the 21 declared files"
+    },
+    {
+      "id": "C02",
+      "area": "commit/file identity",
+      "claim": "H4b declares 7 slice files and H4b commit f2f9d42 contains them identically",
+      "evidence": [
+        "artifacts/dsh/h4/h4b-integration.json#files",
+        "artifacts/dsh/h4/h4b-slice-summary.json#files"
+      ],
+      "method": "git show f2f9d42:<path> SHA256 vs declared",
+      "result": "verified",
+      "detail": "7/7 hash match; new UI spec files/ui/inner.spec.mjs hash matches"
+    },
+    {
+      "id": "C03",
+      "area": "commit/file identity",
+      "claim": "H5 declares 18/19 slice files and commit 5a7bc9e contains them identically; matrix fingerprints (12 module files, 7 test files, build files) match",
+      "evidence": [
+        "artifacts/dsh/h5/h5-slice-summary.json#files",
+        "artifacts/dsh/h5/h5-verification.json#sliceFiles",
+        "artifacts/dsh/h5/h5-recovery-matrix.json#fingerprints"
+      ],
+      "method": "git show 5a7bc9e SHA256 compare",
+      "result": "verified",
+      "detail": "18/18 and 19/19 match; 12 module + 7 test file fingerprints match; tsconfig.build/package.json/package-lock hashes match current files"
+    },
+    {
+      "id": "C04",
+      "area": "commit/file identity",
+      "claim": "Lead slice-verify artifacts for H1/H0b/H4/H4b/H5 describe the exact committed slice files",
+      "evidence": [
+        "artifacts/dsh/slices/{h1,h0b,h4,h4b,h5}-verify.json"
+      ],
+      "method": "git show <head>:<path> sha256",
+      "result": "verified",
+      "detail": "9/9, 35/35, 21/21, 7/7, 18/18 declared files match their heads (31af227, eef00d3, 2e04eb2, f2f9d42, 5a7bc9e)"
+    },
+    {
+      "id": "C05",
+      "area": "H4 isolated check",
+      "claim": "H4 implementer isolated worktree npm run check = 1088/1088, 0 fail, 0 skip, exit 0; log sha f43ac02c…",
+      "evidence": [
+        ".local/h4-check-final.log",
+        "artifacts/dsh/h4/h4-slice-summary.json#verification.implementerIsolatedCheck"
+      ],
+      "method": "sha256/bytes/summary parse",
+      "result": "verified",
+      "detail": "sha/bytes match; summary 1088 tests/1088 pass/0 fail/0 skipped; arithmetic 1025+63=1088 closes"
+    },
+    {
+      "id": "C06",
+      "area": "H4 Lead slice check",
+      "claim": "Lead slice verification at HEAD 31af227 + 21 files = 1159/1159, 0 skip; log 0bffd689…",
+      "evidence": [
+        ".local/slice-verify-h4.log",
+        "artifacts/dsh/slices/h4-verify.json"
+      ],
+      "method": "sha256/bytes/summary parse",
+      "result": "verified",
+      "detail": "1159/1159/0/0; 1096 baseline + 63 = 1159"
+    },
+    {
+      "id": "C07",
+      "area": "H4 test truth",
+      "claim": "63 new inner tests are real assertions with per-file counts (8/10/9/7/8/12/9) and no skips/tautologies",
+      "evidence": [
+        "2e04eb2 tests/inner-*.test.ts",
+        "artifacts/dsh/h4/h4-inner-domains-offline.json#implementation.addedTestFiles"
+      ],
+      "method": "git show + grep '^test(' + assertion sampling + anti-pattern scan",
+      "result": "verified",
+      "detail": "sum=63 at 2e04eb2 (inner-view=9 at H4, later 14 after H4b +5); assertions check exact account tuples/audience/body separation/CAS/withdrawal; no .skip/.only/assert.ok(true)"
+    },
+    {
+      "id": "C08",
+      "area": "H4 baseline-test edits",
+      "claim": "Three baseline tests updated only for schema4/version/shape, not weakened",
+      "evidence": [
+        "2e04eb2 tests/local-view-store.test.ts, tests/memory-view-store.test.ts, tests/runtime-capability.test.ts"
+      ],
+      "method": "git diff review",
+      "result": "verified",
+      "detail": "+8/-5 lines: version 2→3, schema3→4 and added four-domain availability assertions; no deleted assertions"
+    },
+    {
+      "id": "C09",
+      "area": "H4b isolated checks",
+      "claim": "H4b implementer npm run check = 1206/1206, UI 209/209; Lead reran UI independently 209/209",
+      "evidence": [
+        ".local/h4b-check-final.log",
+        ".local/h4b-ui-final.log",
+        ".local/h4b-lead-ui.log",
+        "artifacts/dsh/h4/h4b-slice-summary.json#verification.implementerIsolatedCheck"
+      ],
+      "method": "summary/UI passed parse + run identity check",
+      "result": "verified",
+      "detail": "check log 1206/1206/0/0; both UI logs show 'Running 209 tests' and '209 passed'; distinct PIDs/durations (2.1m vs 2.2m) = independent runs; Lead slice check 1206/1206 log 4ec58080… matches"
+    },
+    {
+      "id": "C10",
+      "area": "H4b test truth",
+      "claim": "inner-view +5 tests and inner.spec.mjs +5 UI cases are substantive; 209 = 204+5",
+      "evidence": [
+        "f2f9d42 tests/inner-view.test.ts",
+        "f2f9d42 tests/ui/inner.spec.mjs"
+      ],
+      "method": "diff review + assertion sampling",
+      "result": "verified",
+      "detail": "inner-view 9→14; new UI spec 5 tests assert six domains, read-only capability wording, unavailable reasons, missing-manifest explicit state, refresh commands==[] and stateReads increasing; watermark unchanged assertions in inner-view"
+    },
+    {
+      "id": "C11",
+      "area": "H5 isolated checks",
+      "claim": "H5 implementer isolated npm run check x3 = 1063 tests/1062 pass/0 fail/1 pre-existing conditional skip; logs sha/bytes match",
+      "evidence": [
+        "/tmp/h5-check-final.log",
+        "/tmp/h5-check-final2.log",
+        "/tmp/h5-check-final3.log",
+        "artifacts/dsh/h5/h5-verification.json#runs"
+      ],
+      "method": "sha256/bytes/summary parse",
+      "result": "verified",
+      "detail": "all three hashes/bytes match; skip identified in log as 'real private SDK and Python v2 …' with 'Pinned local Python/Ombre dependency is absent' - matches knownEnvironmentSkip; no other skip"
+    },
+    {
+      "id": "C12",
+      "area": "H5 Lead slice check",
+      "claim": "H5 Lead slice verification at HEAD 92c857f + 18 files = 1096/1096, 0 skip; log f0ea3313…",
+      "evidence": [
+        ".local/slice-verify-h5.log",
+        "artifacts/dsh/slices/h5-verify.json"
+      ],
+      "method": "sha256/bytes/summary parse",
+      "result": "verified",
+      "detail": "1096/1096/0/0; 1058 baseline + 38 = 1096"
+    },
+    {
+      "id": "C13",
+      "area": "H5 matrix",
+      "claim": "30/30 fault-matrix cases executed and passed; each has injection point/expected/observed; required families present",
+      "evidence": [
+        "artifacts/dsh/h5/h5-recovery-matrix.json",
+        "5a7bc9e tests/recovery-matrix.ts",
+        "tests/recovery-fault-matrix.test.ts"
+      ],
+      "method": "JSON counts + required-case list + assertion sampling",
+      "result": "verified",
+      "detail": "30 unique caseIds, all pass, denominators 30/30; required cases include ready, incomplete/failure/no-ready, lastGood preservation, deletion-ledger locked/replayed, tombstones, tampered bundle, root/lock guards; assertions are hardcoded comparisons, not product-output-derived"
+    },
+    {
+      "id": "C14",
+      "area": "H5 validator self-proof",
+      "claim": "18/18 self-proof cases: good bundle/report accepted, 17 known-bad variants rejected by expected code",
+      "evidence": [
+        "artifacts/dsh/h5/h5-recovery-validator-selftest.json",
+        "5a7bc9e tests/recovery-matrix.ts#runValidatorSelfProof"
+      ],
+      "method": "JSON counts + code inspection",
+      "result": "verified",
+      "detail": "18 unique cases, all pass, 1 accepted + 17 rejected with expected violation codes; mutations hand-built and independent of validator output"
+    },
+    {
+      "id": "C15",
+      "area": "H5 boundaries honesty",
+      "claim": "H5 evidence explicitly G1 offline/synthetic; no V22/V27/live-host claim",
+      "evidence": [
+        "artifacts/dsh/h5/h5-recovery-matrix.json#boundaries",
+        "artifacts/dsh/h5/h5-slice-summary.json",
+        "plugins/shiyu/DSH实施记录.md §6"
+      ],
+      "method": "boundary field review",
+      "result": "verified",
+      "detail": "offlineModuleOnly=true, wiredIntoRuntime=false, live*Touched=false, crossComponentCommonSection=false, independentFaultDomain=false, RPO/RTO=false, v22 sub-scenarios only, v27 not attempted, fullHostAcceptance=false; record §6 states 未接 Runtime/宿主, 未做独立故障域或 V22/V27"
+    },
+    {
+      "id": "C16",
+      "area": "H4 host audit chain",
+      "claim": "H4 zero-model reload: before/after/after-tool raw audit fields match the summary and the deltas are exactly the classified lifecycle writes",
+      "evidence": [
+        "artifacts/dsh/h4/h4-host-zero-model.json",
+        "artifacts/dsh/h4/host-{before,after,after-tool}.json"
+      ],
+      "method": "deep diff + claim recompute",
+      "result": "verified",
+      "detail": "commitSeq 291→302, stateVersion 5→6, publication schema3→4 with four domains unavailable→available, capability revision 8→10 with hostEpoch rebind to new instanceId 7dddbb6c…, events 36→37, deliveries 35→36; tool call leaves every audited field unchanged except capturedAt"
+    },
+    {
+      "id": "C17",
+      "area": "H4 host business facts",
+      "claim": "No Task/Goal/Lab/budget/effect/Session business facts changed by the reload",
+      "evidence": [
+        "host-before.json",
+        "host-after.json"
+      ],
+      "method": "deep diff of control counters, task states, lab, budget states, effects, 17 session files digest, state-file hash",
+      "result": "verified",
+      "detail": "all aggregates identical; sessions list identical (17 files, digest 21cab6fa…); following H4 evidence finding, retained unknown Task uncertainty metadata was refreshed (see F4/F5)"
+    },
+    {
+      "id": "C18",
+      "area": "H4b host audit chain",
+      "claim": "H4b zero-model reload: 302→308, stateVersion 6→6, publication unchanged, capability 10→12, no business fact change, tool call read-only",
+      "evidence": [
+        "artifacts/dsh/h4/h4b-host-visible.json",
+        "artifacts/dsh/h4/h4b-host-{before,after,after-tool}.json"
+      ],
+      "method": "deep diff + claim recompute",
+      "result": "verified",
+      "detail": "publication/manifestHash 8e9f0530… and authority ids identical to H4 run; only events+1/deliveries+1/capability+2/watermark; tool call identical except capturedAt"
+    },
+    {
+      "id": "C19",
+      "area": "H4b host visible summary",
+      "claim": "systems[].inner.summary corrected; stale H4 wording gone; innerProjection six domains still available with same authority ids",
+      "evidence": [
+        "artifacts/dsh/h4/shiyu-status-schema4-host.json",
+        "artifacts/dsh/h4/shiyu-status-h4b-host.json",
+        "h4b-host-visible.json#findings"
+      ],
+      "method": "payload diff",
+      "result": "verified",
+      "detail": "H4 payload says four domains pending; H4b payload has six-domain truthful text; innerProjection manifestHash/stateVersion/authorityId/capabilities identical across reloads"
+    },
+    {
+      "id": "C20",
+      "area": "host dist provenance",
+      "claim": "dist installed for each host run was actually built from the claimed committed HEAD",
+      "evidence": [
+        "h4-host-zero-model.json#code.dist",
+        "h4b-host-visible.json#code.dist",
+        "host snapshots #dist"
+      ],
+      "method": "git archive 3b3b69f / f2f9d42 -> npm run build -> recompute host-audit dist digest in /tmp",
+      "result": "verified",
+      "detail": "3b3b69f build digest = 647aaa7f… exactly the H4 evidence/snapshot digest; f2f9d42 build digest = bff93a84… exactly the H4b evidence/snapshot digest; temp trees deleted"
+    },
+    {
+      "id": "C21",
+      "area": "event history",
+      "claim": "Only startup lifecycle writes occurred; no new task/goal/model/lab events",
+      "evidence": [
+        ".local/runtime/control/events.sqlite (read-only query)"
+      ],
+      "method": "read-only SQLite SELECT of events ordered by sequence / watermark",
+      "result": "verified",
+      "detail": "events 36..38 are runtime.lifecycle.changed with correlationId = 69650eab (H0 reload), 7dddbb6c (H4 reload), b10a41c5 (H4b reload); watermark commit_seq 308; no new task/goal/model/lab event rows"
+    },
+    {
+      "id": "C22",
+      "area": "stateVersion/capability explanation",
+      "claim": "stateVersion 5→6 then 6→6 and capability revision +2 per reload are explained by the implementation path",
+      "evidence": [
+        "src/runtime.ts:179-190",
+        "src/state/publication.ts:299-313",
+        "src/adapters/control-store/capability-domain.ts:75-85,195-215"
+      ],
+      "method": "code-path reading",
+      "result": "verified",
+      "detail": "Runtime init opens ControlStore with new hostEpoch; capability constructor rebind advances revision (+1, safety), observeLocalNote advances revision again (+1) = +2; stateVersion increments only when a new publication manifest is published (first reload schema4 changes it; second identical manifest -> 6→6)"
+    },
+    {
+      "id": "C23",
+      "area": "H0b self-proof",
+      "claim": "H0b self-proof corpus is real: 42 tests/42 pass, 15 oracles, 145 known verdicts (41 accept / 104 reject), 0 leaks",
+      "evidence": [
+        "artifacts/dsh/harness/tool-selfproof.json",
+        "artifacts/dsh/harness/tool-selfproof.tap",
+        "artifacts/dsh/harness/manifest.json",
+        "artifacts/dsh/h0/h0b-test-harness.json"
+      ],
+      "method": "committed TAP parse + sha/bytes + file hash check vs eef00d3",
+      "result": "verified",
+      "detail": "TAP sha 6a8e1364… matches rawTap claim; 6 files/42 tests; oracle lines sum 41 accept-pass + 104 reject-caught = 145; manifest sanitization leaks=0; h0b evidence 35/35 file hashes match eef00d3; slice log 5d37d100…/1201 matches"
+    },
+    {
+      "id": "C24",
+      "area": "traceability/handoff",
+      "claim": "Product rows remain not_covered; tooling_ready not upgraded; handoff rules intact",
+      "evidence": [
+        "artifacts/dsh/harness/traceability.json (HEAD=eef00d3 only)",
+        "h0b-test-harness.json#verification.traceability"
+      ],
+      "method": "committed artifact review + git log",
+      "result": "verified",
+      "detail": "103 rows: product 79/79 not_covered, covered 0; tooling_ready 8 = TV.1-7,9 only; handoff explicitly forbids upgrading tooling_ready to pass; H4/H5/H4b commits did not modify traceability.json"
+    },
+    {
+      "id": "C25",
+      "area": "commit scope discipline",
+      "claim": "Reviewed commits do not touch forbidden files (src/runtime.ts, src/index.ts, dsh adapters workers/event-tools) and stay in expected scopes",
+      "evidence": [
+        "git show --name-only 2e04eb2 f2f9d42 5a7bc9e feecf86 00fb75b"
+      ],
+      "method": "file-list review",
+      "result": "verified",
+      "detail": "H4: src/{contracts,adapters/control-store,state,views}+tests; H4b: src/views/local.ts, src/health/systems.ts, client/index.js + tests (Lead-authorized); H5: src/recovery + tests + evidence; host commits: artifacts + DSH record only"
+    },
+    {
+      "id": "C26",
+      "area": "host evidence integrity",
+      "claim": "Committed host snapshots/payloads are the originals captured during the run",
+      "evidence": [
+        "artifacts/dsh/h4/host-*.json",
+        "artifacts/dsh/h4/shiyu-status-*.json",
+        ".local/h1h4h5-host-*.json",
+        ".local/h4b-host-*.json"
+      ],
+      "method": "byte compare committed blobs vs .local originals + payload bytes/sha recompute",
+      "result": "verified",
+      "detail": "all 10 host evidence files byte-identical to .local originals; payload sha256 matches committed file content (bytes field mismatch see F3)"
+    },
+    {
+      "id": "C27",
+      "area": "H5 boundary detail",
+      "claim": "ready/failed/incomplete, lastGood, old deletion ledger assertions really exist",
+      "evidence": [
+        "5a7bc9e tests/recovery-matrix.ts",
+        "tests/recovery-capture.test.ts",
+        "tests/recovery-restore.test.ts"
+      ],
+      "method": "case inspection",
+      "result": "verified",
+      "detail": "capture.ready asserts ready+4 components+lastGood pointer+bundle re-verify; incomplete cases assert no ready/no lastGood; failure-preserves-lastgood; restore.old-deletion-ledger-{locked,replayed}/barrier/tampered/root/lock cases assert status/visibility/resurrection; H4-like assertion depth"
+    },
+    {
+      "id": "C28",
+      "area": "hygiene-secrets",
+      "claim": "New evidence contains no credentials/secrets/real message bodies",
+      "evidence": [
+        "29 new evidence/doc files in reviewed commits",
+        "host audit tool source"
+      ],
+      "method": "pattern scan (AWS/GitHub/OpenAI/private key/bearer/password/api-key) + audit tool review",
+      "result": "verified",
+      "detail": "0 pattern hits; host-state-audit.mjs explicitly reads only metadata/digests (never message bodies); .credentials.yaml not referenced; payloads are status summaries without conversation bodies"
+    },
+    {
+      "id": "C29",
+      "area": "hygiene-paths",
+      "claim": "New H4/H5 evidence should not add unredacted local paths",
+      "evidence": [
+        "artifacts/dsh/h4/h4-inner-domains-offline.json lines 283/286",
+        "artifacts/dsh/slices/{h4,h4b,h5,h0b,h1}-verify.json",
+        "artifacts/dsh/h4/{host,h4b-host}-*.json"
+      ],
+      "method": "scan for <home> and encoded 'Users-caja'",
+      "result": "finding",
+      "detail": "absolute home paths in new artifacts (F1); encoded session dir names in 6 new raw host snapshots (F2); H4/H4b host evidence absolute roots otherwise redacted as <home>"
+    },
+    {
+      "id": "C30",
+      "area": "evidence-level wording",
+      "claim": "H4/H4b/H5/DSH record do not overclaim host/model/business acceptance",
+      "evidence": [
+        "h4-slice-summary.json",
+        "h4b-slice-summary.json",
+        "h5-slice-summary.json",
+        "DSH实施记录.md §6/§7/§9"
+      ],
+      "method": "status/evidenceLevel/boundary review",
+      "result": "verified",
+      "detail": "statuses offline-verified-module / offline-verified-integration / offline-verified-module; host evidence marked fixed-host-zero-model-limited not V24; DSH record explicitly 未接 Runtime/宿主, 未做独立故障域或 V22/V27; H4b says real rendering pending then separate host evidence confirms"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F1",
+      "severity": "minor-hygiene",
+      "title": "Absolute home paths in newly added slice/implementer evidence",
+      "files": [
+        "artifacts/dsh/h4/h4-inner-domains-offline.json:283,286 (reproduce commands)",
+        "artifacts/dsh/slices/h4-verify.json (worktree, log.path)",
+        "artifacts/dsh/slices/h4b-verify.json",
+        "artifacts/dsh/slices/h5-verify.json",
+        "artifacts/dsh/slices/h0b-verify.json",
+        "artifacts/dsh/slices/h1-verify.json"
+      ],
+      "evidence": "grep <home> in committed HEAD blobs; lines e.g. reproduce 'git -C <home>/Documents/识雨 worktree add …' and slice-verify 'worktree':'<home>/Documents/识雨/plugins/shiyu/.local/…'",
+      "rootCause": "scripts/slice-verify.mjs writes absolute worktree/log paths into evidence; H4 evidence reproduce block handwritten absolute",
+      "classification": "new (not historical)",
+      "recommendation": "sanitize slice-verify.mjs output (worktree relative to repo or <home>) and fix H4 reproduce commands; regenerate artifacts; H1/H0b same class if batch-regenerated",
+      "owner": "lead (tool) / inner-domains + recovery-checkpoint (their committed evidence)"
+    },
+    {
+      "id": "F2",
+      "severity": "minor-hygiene",
+      "title": "Encoded home path in new host audit snapshots (sessions.files[].relativePath)",
+      "files": [
+        "artifacts/dsh/h4/host-before.json",
+        "artifacts/dsh/h4/host-after.json",
+        "artifacts/dsh/h4/host-after-tool.json",
+        "artifacts/dsh/h4/h4b-host-before.json",
+        "artifacts/dsh/h4/h4b-host-after.json",
+        "artifacts/dsh/h4/h4b-host-after-tool.json"
+      ],
+      "evidence": "relativePath values begin '--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/…'",
+      "rootCause": "host-state-audit.mjs redacts dataDir/sessions.root as <home> but emits raw relativePath (encoded cwd segment)",
+      "classification": "follows existing H0 host-audit convention (base HEAD 08995d1 already had h0 host-audit files with the same class), but these are newly added files; no absolute <home> and no message bodies",
+      "recommendation": "redact relativePath in future exports (e.g. <workspace-root>/session.v4.jsonl.zstd) or accept as documented historical convention for host-audit metadata",
+      "owner": "lead (host evidence/tool)"
+    },
+    {
+      "id": "F3",
+      "severity": "minor-metadata",
+      "title": "payload.bytes does not match the committed payload file size (sha does match)",
+      "files": [
+        "artifacts/dsh/h4/h4-host-zero-model.json#payload",
+        "artifacts/dsh/h4/h4b-host-visible.json#payload"
+      ],
+      "evidence": "declared 50630 vs actual 53320 bytes (H4); 50971 vs 53773 (H4b); sha256 equals committed file content in both",
+      "rootCause": "bytes likely recorded from the original tool-response string length before the payload was pretty-printed/committed",
+      "recommendation": "correct the bytes fields or document that they refer to the original tool output; sha and content are consistent",
+      "owner": "lead (host evidence)"
+    },
+    {
+      "id": "F4",
+      "severity": "minor-disclosure",
+      "title": "H4b host evidence does not disclose the startup refresh of the retained unknown Task uncertainty metadata",
+      "files": [
+        "artifacts/dsh/h4/h4b-host-visible.json#deltaClassification",
+        "artifacts/dsh/h4/h4-host-zero-model.json#findings[2]"
+      ],
+      "evidence": "H4 evidence discloses version 24->25 at 19:02 reload; read-only DB shows retained unknown Task version=26, uncertainty.updatedAt=2026-11-02T19:24:28.897Z (H4b reload start) while counts/states unchanged; H4b deltaClassification only says businessFacts unchanged",
+      "impact": "aggregate facts (unknown preserved, no retry/success/assignment) unchanged, so the classification is not false, but the write is not disclosed in the H4b artifact",
+      "recommendation": "add the metadata-refresh disclosure (as H4 did) and/or capture task version/update digests in the audit snapshot",
+      "owner": "lead (host evidence)"
+    },
+    {
+      "id": "F5",
+      "severity": "minor-auditability",
+      "title": "H4 claim of unknown Task version 24->25 is not observable from the committed audit snapshots",
+      "files": [
+        "artifacts/dsh/h4/h4-host-zero-model.json#findings[2]",
+        "artifacts/dsh/h4/host-*.json"
+      ],
+      "evidence": "audit snapshots record tasks count/states/ids only (no record versions); current read-only DB shows version 26 with H4b reload timestamp, consistent with H4 refresh but not proving 24->25",
+      "recommendation": "include task record version/last-updated digest (metadata only) in host-state-audit output",
+      "owner": "lead (host evidence/tool)"
+    },
+    {
+      "id": "F6",
+      "severity": "minor-durability",
+      "title": "H5 implementer run logs referenced only under /tmp",
+      "files": [
+        "artifacts/dsh/h5/h5-verification.json#runs"
+      ],
+      "evidence": "paths /tmp/h5-check-final{,2,3}.log currently exist and hashes/bytes match declarations, but /tmp is not durable and the repo keeps only the hashes",
+      "recommendation": "copy the three logs into plugins/shiyu/.local (gitignored) or artifacts and record their hashes, or explicitly note transient evidence",
+      "owner": "recovery-checkpoint/lead"
+    },
+    {
+      "id": "F7",
+      "severity": "info",
+      "title": "H4b evidence logs have no SHA/bytes claims",
+      "files": [
+        "artifacts/dsh/h4/h4b-slice-summary.json#verification.implementerIsolatedCheck.logs"
+      ],
+      "evidence": "logs listed as plain .local paths; current logs show 1206/1206 and 209 passed; Lead reran UI (209) independently",
+      "recommendation": "add sha/bytes claims like H4/H5 for attribution/durability",
+      "owner": "inner-domains/lead"
+    },
+    {
+      "id": "F8",
+      "severity": "info",
+      "title": "H5 matrix JSON 'observed' strings are hand-authored narrative",
+      "files": [
+        "artifacts/dsh/h5/h5-recovery-matrix.json#cases"
+      ],
+      "evidence": "runner asserts via expect(...) but writes fixed observed strings; tests assert every case pass; not a fake-pass path",
+      "recommendation": "derive observed from measured variables where feasible to avoid future drift",
+      "owner": "recovery-checkpoint"
+    },
+    {
+      "id": "F9",
+      "severity": "info",
+      "title": "H4 plan code.oldDist digest equals the newly built 3b3b69f digest; backup provenance ambiguous",
+      "files": [
+        ".local/dsh-h1h4h5-host-execution-plan.json#code.oldDist",
+        "artifacts/dsh/h4/h4-host-zero-model.json#code.dist"
+      ],
+      "evidence": "independent rebuild of 3b3b69f -> 647aaa7f… = both values; dist-backup/h0 (created 15:01) also has this digest",
+      "impact": "installed-build claim is independently confirmed; only the oldDist label is ambiguous",
+      "recommendation": "clarify/rename oldDist if the backup was taken after the new build; keep dist digest evidence",
+      "owner": "lead"
+    },
+    {
+      "id": "F10",
+      "severity": "info",
+      "title": "H0b harness manifest was generated on a dirty overlay (vcs head 92c857f, dirty=true)",
+      "files": [
+        "artifacts/dsh/harness/manifest.json#vcs",
+        "artifacts/dsh/h0/h0b-test-harness.json#failedUnknownUntested"
+      ],
+      "evidence": "committed manifest vcs.dirty=true; evidence explicitly documents the overlay and says a clean-VCS refresh can be committed after H0b without changing tool semantics",
+      "impact": "artifact is self-consistent and sanitized(leaks=0), but not byte-reproducible from the commit tree alone",
+      "recommendation": "optional clean refresh in a later tooling slice; keep the disclosure",
+      "owner": "test-harness/lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Independent rerun of H4/H4b/H5 test suites by the reviewer",
+      "reason": "task is read-only review; no product/test execution was performed (only one offline dist rebuild from git archive in /tmp for digest verification)",
+      "impact": "test outcomes are verified at the level of committed logs, hashes, counts and code/assertion inspection, not by independent execution; Lead slice-verify runs provide a second execution for H4/H4b/H5/H0b/H1"
+    },
+    {
+      "item": "Provider/model/network absence beyond control DB + usage + plan scope",
+      "reason": "host evidence has no provider trace; zero-model claim is supported by plan scope, event/counter deltas, unchanged lastModelVerification and no task/goal/session changes, but no packet/provider log",
+      "impact": "bounded to fixed-host zero-model limited claim, matching evidence wording"
+    },
+    {
+      "item": "Real DSH host rendering/screenshot of the H4b dashboard panel",
+      "reason": "UI evidence is synthetic Playwright host; H4b host evidence only verifies shiyu_status JSON summary, not rendered DOM",
+      "impact": "H4b host evidence correctly says it verifies visible JSON/summary; real rendering remains unverified"
+    },
+    {
+      "item": "H5 V22/V27/live host/RPO/RTO/independent fault domain",
+      "reason": "not attempted by the slice; evidence explicitly disclaims",
+      "impact": "no overclaim; remains blocked/pending as declared"
+    },
+    {
+      "item": "H4b replyer production generation path consuming inner domains (H4c)",
+      "reason": "out of H4b scope, declared boundary",
+      "impact": "local read-view composition tested; generation path not wired"
+    },
+    {
+      "item": "H4 Task version 24->25 exact transition",
+      "reason": "not captured in audit metadata; current read-only DB shows version 26/updatedAt=H4b reload, consistent but not proof of the exact H4 delta",
+      "impact": "see F5"
+    },
+    {
+      "item": "H4b host task-uncertainty refresh write disclosure",
+      "reason": "not in H4b artifact; observed via read-only DB current state",
+      "impact": "see F4"
+    }
+  ],
+  "hygiene": {
+    "secrets": "no credential/secret patterns found in the 29 reviewed new evidence/doc files; .credentials.yaml untouched and unreferenced",
+    "homePaths": {
+      "absoluteNew": "F1",
+      "encodedConvention": "F2",
+      "absoluteInH4HostEvidence": "none (redacted to <home>)"
+    },
+    "realBusinessData": "host evidence audits a package-local isolated runtime (.local/runtime) and metadata-only digests of 17 'shiyu-' managed session files under the user sessions root; no message bodies, prompts, credentials or real business content are present"
+  },
+  "traceability": {
+    "artifact": "artifacts/dsh/harness/traceability.json (only eef00d3 commit)",
+    "rows": 103,
+    "product": 79,
+    "productCovered": 0,
+    "toolingReady": 8,
+    "toolingReadyRows": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "notCovered": 82,
+    "selfProven": 13,
+    "handoffRule": "H0b 之后产品行由后续切片按其实际证据更新；禁止后续切片复用 H0 的 tooling_ready 冒充产品通过",
+    "verdict": "not upgraded; H4/H5/H4b did not modify traceability"
+  },
+  "evidenceFilesHashes": {
+    ".local/h4-check-final.log": "f43ac02c7734a91be34537be20942347560880bc2e12b7f805a1601cfea43c50",
+    ".local/slice-verify-h4.log": "0bffd689189cb072dcd9c5e5009b59046065cd8193eaf61dffde9ac977d92171",
+    ".local/h4b-check-final.log": "4821590f4ceef738c1d221530803643ebb8bc036803379db911ec964bc0ff1ea",
+    ".local/h4b-ui-final.log": "18b35e135f160bfad3b48fd7b9117036ba01193a99f08101ac1b27f620dbbc7d",
+    ".local/h4b-lead-ui.log": "0a9042ec906ccb167b84439aa60a657302a61b186ca76bd06947632dfdaebd64",
+    ".local/slice-verify-h4b.log": "4ec580808db18562adf0ddfaaf2748d75b105267814a45466263c31e8565df99",
+    ".local/slice-verify-h5.log": "f0ea331378eea3f16c9f04b2f9bc64cee16a694dc472a70a5d229fefcd6122b7",
+    ".local/slice-verify-h0b.log": "5d37d10030cdb2483c18fe53284a2669df8f1d3fa0b8362fe8c4769c20cccf17",
+    "/tmp/h5-check-final.log": "abeb16069ae86fea570b80b903227795a6534eadfec30ee0a763094832dc09ac",
+    "/tmp/h5-check-final2.log": "fcf7d8d6cb6f77b425a182b0406d47aae4dae6d10b58730c11974c78b8518990",
+    "/tmp/h5-check-final3.log": "8c764019fa4a7ab9e94d025ebbd8e7a7883308dcc7eac9d1e2f7275e01458b36",
+    "artifacts/dsh/h4/h4-host-zero-model.json": "c29fd4099c137ba6d88f16fbbcb0013dea8d9664b75f8a9ffa40926a57f05e49",
+    "artifacts/dsh/h4/h4b-host-visible.json": "22760b75f4921b839bb7119bc6e881db348375d3a0e38aac710545cac120ac43",
+    "artifacts/dsh/h4/h4-inner-domains-offline.json": "3c2731afd977cab4cf92fe8dc9bd0b3e1c4c63694cfbb6ff40fe06061da23742",
+    "artifacts/dsh/h4/h4b-integration.json": "abb2c6e2429093368c889aa1f68ca6339f7d2f11ba8fe8ca7f0ad31e909193b8",
+    "artifacts/dsh/h4/h4b-slice-summary.json": "ce09df93a011cc96b609d424c430371c2cbfea91fc2c748a5cf51fa717fbda2c",
+    "artifacts/dsh/h4/h4-slice-summary.json": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960",
+    "artifacts/dsh/h5/h5-recovery-matrix.json": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59",
+    "artifacts/dsh/h5/h5-recovery-validator-selftest.json": "76070b507c96242cf6a0ea237d7d5ac6f6d06f17d2c52e5579f3eb55ab559b7b",
+    "artifacts/dsh/h5/h5-verification.json": "2cdf4265ae148ec952d6be2e13782b50c4e9a8bbee9f4687cb8d000cb92f2b6c",
+    "artifacts/dsh/h5/h5-slice-summary.json": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4",
+    "artifacts/dsh/slices/h4-verify.json": "2e46357e75879a11caad221a788c43da2742b7bce014d180d4ae0a9ce8946a99",
+    "artifacts/dsh/slices/h4b-verify.json": "678d376037e6d1a11d6ec58956a6ea87ee727e81449824f249023249e5534225",
+    "artifacts/dsh/slices/h5-verify.json": "2e9d838350a0014603ddad4efa2ea47dbe64d3735c893a65900462317b9f33dd",
+    "artifacts/dsh/slices/h0b-verify.json": "64d8660ee00e707dde6682cc338cd429304f539d9d8eaa0843cd6eb778317f27",
+    "artifacts/dsh/h0/h0b-test-harness.json": "e6eb22efb6260ea1452141f7abcf3587059dc829ba6d160650cb0ac7dd06ab68"
+  },
+  "overallVerdict": "authentic with minor hygiene/auditability findings: no fabricated evidence found; all claimed file/log hashes, counts, matrix/self-proof denominators and host audit deltas match; installed-build provenance independently reproduced; H5/H4/H4b boundaries are honestly scoped to G1 offline/synthetic + one limited fixed-host zero-model reload. Findings F1/F2 (paths), F3 (bytes metadata), F4/F5 (task metadata disclosure/auditability) should be corrected or documented; none changes the evidence conclusions.",
+  "summary": {
+    "checks": 30,
+    "verified": 29,
+    "findingResults": 1,
+    "rejected": 0,
+    "findings": 10,
+    "unobserved": 7
+  }
+}

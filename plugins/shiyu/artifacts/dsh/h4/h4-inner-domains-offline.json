@@ -280,9 +280,9 @@
     }
   ],
   "reproduce": [
-    "git -C /Users/caja/Documents/识雨 worktree add --detach /tmp/shiyu-h4 08995d1",
+    "git -C <home>/Documents/识雨 worktree add --detach /tmp/shiyu-h4 08995d1",
     "复制本切片 21 个文件到 worktree（路径同上）；ln -s 主树 plugins/shiyu/node_modules；ln -s 主树 plugins/shiyu/.local/ombre（固定 Python/Ombre 夹具，仅既有 semantic-memory-stdio 测试使用）",
     "cd /tmp/shiyu-h4/plugins/shiyu && npm run check  # 期望 typecheck+1088/1088+build+client syntax 通过",
-    "cd /Users/caja/Documents/识雨/plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-*.test.ts  # 63/63"
+    "cd <home>/Documents/识雨/plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-*.test.ts  # 63/63"
   ]
 }
