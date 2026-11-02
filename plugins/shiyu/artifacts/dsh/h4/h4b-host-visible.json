@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "phase": "H4b",
+  "slice": "fixed-host zero-model reload of the H4b build (inner summary + six-domain availability visible)",
+  "capturedAt": "2026-11-02T19:24:55.763Z",
+  "status": "fixed-host-zero-model-limited",
+  "purpose": "Reload the verified H4b build and confirm the corrected systems.inner summary and the six-domain schema4 availability data are visible through shiyu_status with no model/embedding/business side effects.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-h4b-host-execution-plan.json",
+    "sha256": "6fab0fb117e0cc0cc9b7d3d918571048670eb50dfc84944fb56e13a6ddc3bbb3"
+  },
+  "code": {
+    "head": "f2f9d42",
+    "dist": {
+      "files": 98,
+      "digest": "bff93a84e76e4738f30818d7d2aa04d6be710db13cd1d302545330cd2d5b0ec1"
+    },
+    "note": "dist built from an isolated worktree at the committed HEAD and installed after digest comparison"
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "reloads": 1,
+    "newInstanceId": "b10a41c5-47a4-42ed-90fe-5510e8627bcd",
+    "startedAt": "2026-11-02T19:24:28.793Z",
+    "toolObservedAt": "2026-11-02T19:24:43.308Z"
+  },
+  "before": {
+    "commitSeq": 302,
+    "stateVersion": 6,
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "goals": 2,
+    "lab": {
+      "disconnected": 3
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "events": 37,
+    "capabilityRevision": 10,
+    "sessions": {
+      "count": 17,
+      "digest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    },
+    "paused": false
+  },
+  "after": {
+    "commitSeq": 308,
+    "stateVersion": 6,
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "goals": 2,
+    "lab": {
+      "disconnected": 3
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "events": 38,
+    "capabilityRevision": 12,
+    "sessions": {
+      "count": 17,
+      "digest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979"
+    },
+    "paused": false
+  },
+  "afterToolCall": {
+    "commitSeq": 308,
+    "events": 38,
+    "stateVersion": 6,
+    "capabilityRevision": 12,
+    "sessionsDigest": "21cab6fa114ae9dc38672821abe08c25bff6ee9ed8c966957a2a32e83efe6979",
+    "stateFileHash": "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+  },
+  "snapshot": {
+    "instanceId": "b10a41c5-47a4-42ed-90fe-5510e8627bcd",
+    "state": "idle",
+    "lifecycle": "degraded",
+    "innerSummary": "记忆、关系、情绪、认知、人格与能力六域已在本机控制库接线：各域保留权威、版本、来源与撤回/删除屏障，只读视图按受众裁剪并分离元数据与正文；available 只是已发布的读取能力声明，不等于授权或业务验收，真实生成路径与跨域重算仍待推进。",
+    "innerSummaryCorrected": true,
+    "innerPublication": {
+      "schemaVersion": 4,
+      "stateVersion": 6,
+      "manifestHash": "8e9f0530d2c4cc175ccaf9be5447833eada1eef42a62a03dbaf7d12bb49324fd",
+      "domains": {
+        "memory": {
+          "status": "available",
+          "backendId": "ombre-local",
+          "authorityId": null,
+          "capabilities": [
+            "exact_read",
+            "semantic_search"
+          ]
+        },
+        "relationship": {
+          "status": "available",
+          "backendId": "control-relationship",
+          "authorityId": "2577a813-422f-486b-aae4-0be630b0b829",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "emotion": {
+          "status": "available",
+          "backendId": "control-emotion",
+          "authorityId": "6371fc97-c1db-4e77-80aa-2f0e3693b4e0",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "cognition": {
+          "status": "available",
+          "backendId": "control-cognition",
+          "authorityId": "29ec77a9-99c1-4530-9a23-d72c71c20b4c",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "personality": {
+          "status": "available",
+          "backendId": "control-personality",
+          "authorityId": "a30f24d3-8d4a-474a-9ec8-1b3c2a0528d3",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "ability": {
+          "status": "available",
+          "backendId": "control-ability",
+          "authorityId": "ability:5b4ec125-4de4-4a97-a2db-266b57b28770",
+          "capabilities": [
+            "state_read"
+          ]
+        }
+      }
+    },
+    "counts": {
+      "tasks": 3,
+      "coreGoals": 2,
+      "labConnections": 3,
+      "sessions": 10,
+      "activeWork": 0
+    }
+  },
+  "payload": {
+    "file": "artifacts/dsh/h4/shiyu-status-h4b-host.json",
+    "bytes": 50971,
+    "sha256": "b3a6e8f006b43d24c918b49cee8db78df744b519fc48fe706527be6f851c0753"
+  },
+  "deltaClassification": {
+    "commitSeq": "302 -> 308 (+6): expected host initialization lifecycle writes.",
+    "stateVersion": "6 -> 6: no re-publication needed; the schema4 manifest and authority ids are unchanged from the previous reload.",
+    "events": "37 -> 38 (+1 runtime.lifecycle.changed) with its delivery ack.",
+    "capability": "revision 10 -> 12 and hostEpoch rebind: Runtime init re-observed the fixed local-note dependency for the new instance; enabled/availability unchanged and success proof stays unknown.",
+    "businessFacts": "tasks (2 succeeded / 1 unknown), goals (2), lab (3 disconnected), budget (21 settled / 3 unknown), effects (13 succeeded) and the 17 owned native Session file digest are unchanged.",
+    "toolCall": "strictly read-only: audits before and after the tool call are identical on commitSeq (308), events (38), stateVersion, capability revision, sessions digest and runtime-state hash."
+  },
+  "findings": [
+    "shiyu_status.systems[].inner.summary is now truthful: it describes the six wired domains with authority/version/source/withdrawal and audience-cropped read views and states that available is only a read-capability declaration. The previous stale wording found in the first H4 reload is gone.",
+    "innerProjection schema4 still reports all six domains available with the same backend/authority ids and capabilities.",
+    "Minor remaining copy: the top-level scope notice still says some inner states are pending; it is not a manifest contradiction (memory lifecycle and cross-domain recomputation are still unfinished) but can be refreshed in a later slice."
+  ],
+  "scope": {
+    "orderedReloads": 1,
+    "toolCalls": 1,
+    "modelCalls": 0,
+    "embeddingCalls": 0,
+    "taskCreates": 0,
+    "goalOperations": 0,
+    "sessionProbes": 0,
+    "labInputs": 0,
+    "labPluginReloads": 0,
+    "workbenchPluginReloads": 0
+  },
+  "evidence": {
+    "beforeAudit": "artifacts/dsh/h4/h4b-host-before.json",
+    "afterAudit": "artifacts/dsh/h4/h4b-host-after.json",
+    "afterToolAudit": "artifacts/dsh/h4/h4b-host-after-tool.json",
+    "payload": "artifacts/dsh/h4/shiyu-status-h4b-host.json"
+  },
+  "limitations": [
+    "This verifies startup/publication/summary visibility and read-only behavior on one fixed host instance; real dashboard rendering (browser DOM) and real business data are still not proven by this check.",
+    "No model, embedding, channel, device or business action was exercised; lifecycle=degraded still reflects retained historical unknown/paused facts."
+  ]
+}

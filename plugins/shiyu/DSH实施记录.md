@@ -313,7 +313,7 @@ node scripts/harness/traceability.mjs --strict --out artifacts/dsh/harness/trace
 - `client/index.js`：新增“内层状态”标签页，读取 `runtime.snapshot().innerProjection`（schema4 manifest），available 展示 backendId/authorityId/capabilities，unavailable 展示 reason（五类已翻译），并明确 available 只是读取能力声明、不授权、非业务验收；缺 manifest 显式提示；中英双语。
 - `src/health/systems.ts`：修复固定宿主零模型 reload 发现的陈旧文案（inner summary 原写“关系、情绪、认知、人格待接入”，与 schema4 manifest 不符），改为如实描述六域接线与 available 语义。
 - 测试：`tests/inner-view.test.ts` +4（真实 Worker capture→local view 正例；缺 body reader 显式 unavailable；篡改/无 authority 构造期拒绝；纠正后重验拒绝旧正文；群聊视图不含私聊事实）；新增 `tests/ui/inner.spec.mjs` 5 项 + UI 夹具调整。
-- 证据：`artifacts/dsh/h4/h4b-integration.json`、`h4b-slice-summary.json`、`artifacts/dsh/slices/h4b-verify.json`。
+- 证据：`artifacts/dsh/h4/h4b-integration.json`、`h4b-slice-summary.json`、`artifacts/dsh/slices/h4b-verify.json`；提交后固定宿主零模型 reload 证据 `artifacts/dsh/h4/h4b-host-visible.json` / `shiyu-status-h4b-host.json`。
 
 ### 9.2 验证（实际运行）
 
@@ -323,13 +323,16 @@ node scripts/harness/traceability.mjs --strict --out artifacts/dsh/harness/trace
 | 实现者隔离 worktree `npm run test:ui` | exit 0；**209/209 通过**（既有 204 + 新增 5：中文默认、英文+390px、全 unavailable 原因、缺 manifest 显式提示、刷新只读 `commands==[]`） |
 | Lead 独立 `scripts/slice-verify.mjs`（HEAD `feecf86` + 仅 7 文件） | exit 0；**1206/1206 通过，0 跳过**；证据 `artifacts/dsh/slices/h4b-verify.json` |
 | Lead 复跑 `npm run test:ui`（共享树） | exit 0；**209/209 通过**（2.2 分钟）；日志 `.local/h4b-lead-ui.log` |
-| 证据级别 | G1 模块 + 真实 WorkerThread + 合成宿主 UI；真实 DSH 宿主渲染与真实数据一致性待提交后零模型 reload 核对 |
+| **提交后固定宿主零模型重载（H4b 构建）** | `shiyu_status.systems[].inner.summary` 已更新为如实描述（旧文案清除）；`innerProjection` schema4 六域 available、authority/backend/capabilities 不变；commitSeq 302→308 为启动生命周期写入；Task/Goal/Lab/预算/Effect/17 个 Session 文件不变；工具调用前后 commitSeq 308→308（严格只读）；无模型/embedding/Task/Goal/Session 探针/Lab 输入；证据 `artifacts/dsh/h4/h4b-host-visible.json` |
+| 证据级别 | G1 模块 + 真实 WorkerThread + 合成宿主 UI；外加一次固定宿主零模型 reload 确认 schema4 数据与内层文案可见（真实浏览器 DOM 渲染与真实业务数据仍未验） |
 
 ### 9.3 失败 / unknown / 未测
 
 1. replyer 上游 `src/control/local-reply.ts` 尚未在 `view.captureLocal` 请求 `innerDomains`，也未把内层行纳入 prompt / `conversation.reply.prepare` 合同——生产 replyer 生成路径本轮**不会**消费四域正文；这是显式 H4c 集成项，不把 local.ts 两段式就绪写成生成闭环。
 2. 仪表盘为 client JS 面板，合成宿主 209 项 UI 通过不等于真实 DSH 宿主渲染验收；真实数据一致性未验。
 3. 未新增 IPC 命令或权限；无宿主、模型、embedding 调用。
+4. 固定宿主零模型 reload 后 `systems[].inner.summary` 已如实、`innerProjection` schema4 六域可见（`artifacts/dsh/h4/h4b-host-visible.json`）；但真实浏览器 DOM 渲染未由本检查证明（合成宿主 UI 209 项是独立证据层），真实数据一致性未验。
+5. 顶层 scope notice 仍写“其余内层状态待接入”；与 manifest 不矛盾（memory 生命周期、跨域重算仍待推进），留待后续切片刷新。
 
 ### 9.4 复现
 
