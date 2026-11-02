@@ -142,7 +142,9 @@
     "log": {
       "path": "plugins/shiyu/.local/slice-verify-h2b.log",
       "bytes": 153193,
-      "sha256": "1c150f344865073f28963bac5e9422f18bf1ca523566f87bf86a9bb4c1b940b0"
+      "sha256": "33177e355b6d4d9cd4a2d13108dc1d6f872a1bde108cc3b9a7cc6f7f2a0d31a5",
+      "status": "overwritten-by-lead-run",
+      "note": "the implementer log was overwritten by the Lead independent 1404 run; the retained log and hash are the Lead run; the count 1404 is preserved"
     },
     "verdict": "pass"
   },
@@ -197,6 +199,11 @@
       "id": "F3-R1",
       "finding": "H2b implementer log path overwritten by the Lead run",
       "resolution": "implementer log entry marked superseded and re-bound to the retained Lead run; count 1404 preserved, no conclusion change"
+    },
+    {
+      "id": "F3-R1r",
+      "finding": "the detail evidence log field still carried the overwritten implementer hash after the summary rebind",
+      "resolution": "detail log field rebound to the retained Lead run hash with superseded status; no conclusion change"
     }
   ]
 }

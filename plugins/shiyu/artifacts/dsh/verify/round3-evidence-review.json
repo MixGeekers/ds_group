@@ -1,0 +1,787 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-25)",
+  "reviewedAt": "2026-11-03T00:05:00Z",
+  "subject": "Round-3: H6c/H2b/H4e/H5b/H7-acceptance/integration/H4e migration hotfix + round-3 host draft + pending X+1",
+  "head": "50af4a261fd8a9050a6b84881fe8dc922c3fa6b0",
+  "commits": {
+    "H6c": "5062485",
+    "H2b": "479ad43",
+    "H4e": "69d725f",
+    "H5b": "5eede56",
+    "H7-acceptance": "09cf6d9",
+    "integration": "e400fcc",
+    "H4e-migration-hotfix (X)": "c2bb475e67c11f12334c1b4339284e6084c5630a",
+    "H7 X+1": "3a0f73139533813b674f1dac24f11ffc05cd075c",
+    "host-round3": "50af4a261fd8a9050a6b84881fe8dc922c3fa6b0"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "hotfix files",
+      "claim": "c2bb475 blobs match migration-fix evidence: inner-domain.ts 7052b0c6…/45823, inner-upgrade.test.ts 977a06d6…/4454, slice artifact files; h4e-lifecycle-recompute/h4e-slice-summary updated files all match",
+      "evidence": [
+        "c2bb475 commit blobs",
+        "artifacts/dsh/slices/h4e-migration-fix-verify.json",
+        "artifacts/dsh/h4/h4e-slice-summary.json"
+      ],
+      "method": "git show sha256/bytes vs declared",
+      "result": "verified",
+      "detail": "0 mismatches; inner-domain 69d725f 2834bad8…/44973 -> c2bb475 7052b0c6…/45823"
+    },
+    {
+      "id": "R02",
+      "area": "hotfix ALTER removal",
+      "claim": "inner-domain.ts has no ALTER on tracked meta tables; derivation authority moved to additive <domain>_derivation_meta",
+      "evidence": [
+        "HEAD src/adapters/control-store/inner-domain.ts",
+        "c2bb475 diff"
+      ],
+      "method": "grep + diff review",
+      "result": "verified",
+      "detail": "only comment mentions ALTER; tables() adds derivation_meta; required excludes derivations/derivation_meta; meta() joins derivation_meta; saveMeta updates both rows; fresh install creates derivation_meta"
+    },
+    {
+      "id": "R03",
+      "area": "hotfix regression test",
+      "claim": "inner-upgrade.test.ts truly builds pre-H4e on-disk schema, opens current store (additive upgrade), asserts meta columns unchanged/derivation 0-empty, reopens",
+      "evidence": [
+        "c2bb475 tests/inner-upgrade.test.ts"
+      ],
+      "method": "code review + independent run in /tmp git archive",
+      "result": "verified",
+      "detail": "test creates shiyu_relationship_{meta,records,bodies,evidence_tombstones,record_tombstones,commands} without derivations/derivation_meta; opens ControlStore twice; asserts watermark commitSeq>=1, exact 9 meta columns [id,schema_version,authority_id,installation_generation,policy_version,revision,tombstone_watermark,baseline_id,installed_at], derivation row {0,''}; independent run passed 1/1, 0 skip"
+    },
+    {
+      "id": "R04",
+      "area": "live DB vs migrationFix",
+      "claim": "migrationFix statement matches live DB: 9-column inner meta, derivation_meta 0/empty, watermark 341",
+      "evidence": [
+        ".local/runtime/control/events.sqlite (read-only)"
+      ],
+      "method": "read-only SQLite queries",
+      "result": "verified",
+      "detail": "relationship/emotion/cognition/personality meta each exactly 9 pre-H4e columns; each derivation_meta has row {id:1,derived_revision:0,derivation_digest:''}; watermark commit_seq=341; 393 triggers; other domains have no derivation_meta"
+    },
+    {
+      "id": "R05",
+      "area": "hotfix counts/log",
+      "claim": "hotfix isolated 1435/1435, 0 fail/0 skip, log fd93f335…/155811; H4e original 1389/1411 logs match",
+      "evidence": [
+        ".local/slice-verify-h4e-migration-fix.log",
+        ".local/h4e-check-final.log",
+        ".local/slice-verify-h4e.log"
+      ],
+      "method": "sha/bytes/summary",
+      "result": "verified",
+      "detail": "1435/1435/0/0; h4e impl 53775528…/151665 1389; lead 5298d15e…/153708 1411; hotfix slice artifact tree e400fcc+2 files"
+    },
+    {
+      "id": "R06",
+      "area": "round-3 counts",
+      "claim": "H6c 1382, H2b 1404, H4e 1389/1411, H5b 1426, H7acc 1434, integration 1434, hotfix 1435 match logs",
+      "evidence": [
+        ".local/slice-verify-{h6c,h2b,h4e,h5b,h7-acceptance,h2b-h5b-integration,h4e-migration-fix}.log",
+        ".local/h5b-verify/*"
+      ],
+      "method": "sha/bytes/summary vs declarations",
+      "result": "verified",
+      "detail": "all 0 fail/0 skip; arithmetic 1382+22=1404, +7=1411, +15=1426, +8=1434, +0=1434, +1=1435; H5b impl/trial 1397 twice"
+    },
+    {
+      "id": "R07",
+      "area": "round-3 file hashes",
+      "claim": "All evidence-declared files match their commits: H6c 6+6, H2b 7+8, H4e 10+10, H5b 16+17, H7acc 7+6, integration 2, migration-fix 2, slice artifacts",
+      "evidence": [
+        "commit blobs per slice"
+      ],
+      "method": "git show sha256/bytes vs declarations",
+      "result": "verified",
+      "detail": "0 mismatches across all lists"
+    },
+    {
+      "id": "R08",
+      "area": "round-3 test truth",
+      "claim": "No skip/only/tautology; real negative assertions in H6c UI 5, H2b 22, H4e 7+inner-upgrade 1, H5b 15 matrix, H7acc 8, integration +0, hotfix 1",
+      "evidence": [
+        "5062485/479ad43/69d725f/5eede56/09cf6d9/c2bb475 tests"
+      ],
+      "method": "grep + test-name/assertion sampling",
+      "result": "verified",
+      "detail": "H6c channels spec covers ready/empty/missing/incompatible/degraded/unknown, locale/390px, read-only refresh; H2b subscriptions/time/notifications negative lifecycle/DST-baseline/dedupe/bounds/cycles; H4e withdrawal/merge-split/recompute/restart; H5b 15/15 matrix real temp SQLite+Worker; H7acc registry/gate/negative upgrade; hotfix upgrade regression; scan hits 0"
+    },
+    {
+      "id": "R09",
+      "area": "H6c UI evidence",
+      "claim": "H6c check 1382 (log bae4278c…/150855), UI isolated/full 214/214, focused 5/5 match committed logs/hashes",
+      "evidence": [
+        "artifacts/dsh/h6/h6c-ui.json",
+        "artifacts/dsh/h6/logs/h6c-ui-*.log"
+      ],
+      "method": "sha/bytes/counts + file hashes",
+      "result": "verified",
+      "detail": "isolated UI 7ae6f8e3…/214 passed; full a6b67cd2…/214; focused 45d99790…/5; panel/read-only/truthful-copy assertions real; files 6/6 match commit"
+    },
+    {
+      "id": "R10",
+      "area": "H2b evidence/log",
+      "claim": "H2b 22 new tests, targeted 98 (log 7948d8b2…), isolated 1404, runtime integration honest",
+      "evidence": [
+        "artifacts/dsh/h2/h2b-slice-summary.json",
+        "h2b-subscriptions-time.json",
+        ".local/h2b-targeted.log"
+      ],
+      "method": "counts/hashes + log review",
+      "result": "verified-with-finding",
+      "detail": "targeted log matches; implementer isolated log claim (sha 1c150f34…/153193 at .local/slice-verify-h2b.log) is overwritten by Lead run (33177e35…/152915) and not retained; Lead run validates same 1404 build (F3-R1)"
+    },
+    {
+      "id": "R11",
+      "area": "H4e evidence",
+      "claim": "H4e lifecycle/derivation evidence + migrationFix consistent; 7 lifecycle tests; boundaries honest",
+      "evidence": [
+        "artifacts/dsh/h4/h4e-{slice-summary,lifecycle-recompute}.json"
+      ],
+      "method": "JSON/fields + test sampling",
+      "result": "verified",
+      "detail": "derivation states current/needs_review/degraded/source_invalid/revoked, cross-domain sources, restart persistence, old captures rejected; migrationFix symptom/rootCause/fix/regressionTest/evidence present"
+    },
+    {
+      "id": "R12",
+      "area": "H5b evidence",
+      "claim": "H5b 15-case matrix all pass, host-ports capture composition honest about production unavailability, logs match",
+      "evidence": [
+        "artifacts/dsh/h5/h5b-runtime-integration.json",
+        "h5b-slice-summary.json"
+      ],
+      "method": "matrix/summary + hash/log check",
+      "result": "verified",
+      "detail": "matrix total 15/passed 15; trial+final 1397/1397 logs e1eac93c…/71b1bce6…; boundaries runtimeWiredInThisSlice=false, productionHostReady=false; Lead slice 1426/1426"
+    },
+    {
+      "id": "R13",
+      "area": "H7 acceptance",
+      "claim": "H7acc 8 tests/1434, gate incomplete executed=0 passed=0, no product upgrade; archived logs match",
+      "evidence": [
+        "artifacts/dsh/harness/h7-acceptance-slice{,-summary}.json",
+        ".local/h7-acceptance/*"
+      ],
+      "method": "JSON + log hashes",
+      "result": "verified",
+      "detail": "acceptancePreview gate=incomplete, completeNineSystems=false, executed=0 passed=0, modules 30 limited/5 blocked/5 not_covered, honesty pass; known flaky lab-integration timeout disclosed; 8 archived copies sha/bytes match; full report pending clean HEAD (X+1)"
+    },
+    {
+      "id": "R14",
+      "area": "integration evidence",
+      "claim": "Integration 1434/1434 +0 new, 72 targeted, known limitations disclosed",
+      "evidence": [
+        "artifacts/dsh/integration/round3-lead-integration.json",
+        "slices/h2b-h5b-integration-verify.json"
+      ],
+      "method": "counts/log + wording",
+      "result": "verified-with-note",
+      "detail": "1434 slice log matches; targeted 72/72 self-reported without separate log; integration hostValidationPending at commit, later round3 host draft covers limited probes"
+    },
+    {
+      "id": "R15",
+      "area": "host raw chain",
+      "claim": "Round-3 host draft before/failed/pre/after/tools: commitSeq 322/325/335/341/341, events 40/40/41/42/42, sessions 20/20/20/20/22, known 20 unchanged, two probes, after→tools only capturedAt/sessions",
+      "evidence": [
+        "artifacts/dsh/host/round3/round3-host-*.json (untracked)"
+      ],
+      "method": "deep diff all five audits",
+      "result": "verified-with-findings",
+      "detail": "all raw numbers match joint deltas; probes session ids match; diagnostics caches both with counters 0; timeSource idle schedules=0/notifications false; status payload shas match; payloadBytes char-count mismatch (F3-R2); failure→repair commitSeq 325→335 unexplained (F3-R3); task metadata v28→29→30→31 only v31 disclosed (F3-R4); failed build dist 982e5b provenance not explicit (F3-R5); encoded session paths (F3-R6)"
+    },
+    {
+      "id": "R16",
+      "area": "host dist/definition",
+      "claim": "Both builds reproducible: e400fcc dist 982e5b…/109, c2bb475 dist 342fa7ab…/109; definitionDigest 5a591515… unchanged",
+      "evidence": [
+        "round3 joint code/incident; raw dist digests"
+      ],
+      "method": "git archive + tsc + digest + import capability-identity",
+      "result": "verified",
+      "detail": "rebuilt both digests exactly; definitionDigest identical across both; hotfix build is the installed repaired dist"
+    },
+    {
+      "id": "R17",
+      "area": "host plan",
+      "claim": "Frozen plan matches evidence",
+      "evidence": [
+        ".local/dsh-round3-host-execution-plan.json"
+      ],
+      "method": "sha256",
+      "result": "verified",
+      "detail": "08cdecc7…/2467 matches joint plan.sha256; plan status frozen-before-execution, code c2bb475/342fa7ab, stop conditions include unclassified delta"
+    },
+    {
+      "id": "R18",
+      "area": "traceability",
+      "claim": "Product rows not upgraded by round-3/H7 acceptance code",
+      "evidence": [
+        "HEAD artifacts/dsh/harness/traceability.json"
+      ],
+      "method": "summary rows",
+      "result": "verified",
+      "detail": "product 79/79 not_covered, covered 0, issues []; clean acceptance report/artifacts pending X+1"
+    },
+    {
+      "id": "R19",
+      "area": "commit scopes",
+      "claim": "Round-3 commits stay in slice scopes (15/12/14/20/10/5/6 files), no unrelated files",
+      "evidence": [
+        "git show --name-only per commit"
+      ],
+      "method": "file-list review",
+      "result": "verified",
+      "detail": "H6c client/health/UI; H2b events modules; H4e inner domains/contracts/views/worker; H5b recovery; H7acc harness/scripts/tests; integration runtime+test; hotfix inner-domain+test+evidence; all include declared evidence/doc files"
+    },
+    {
+      "id": "R20",
+      "area": "pending items",
+      "claim": "Host round-3 evidence committed + H7 X+1 clean artifacts (manifest head=X dirty=false; acceptance gate incomplete/executed=passed=0) verified",
+      "evidence": [
+        "3a0f731",
+        "50af4a2"
+      ],
+      "method": "n/a",
+      "result": "verified",
+      "detail": "X+1=3a0f731 (11 artifacts) and host commit 50af4a2 verified after final commit"
+    },
+    {
+      "id": "R21",
+      "area": "X+1 identity",
+      "claim": "X=c2bb475, X+1=3a0f731 (parent X): 11 artifacts only; src/client/tests/scripts diff 0",
+      "evidence": [
+        "git diff c2bb475..3a0f731 --name-status",
+        "git diff c2bb475..3a0f731 -- src client tests scripts"
+      ],
+      "method": "committed git objects",
+      "result": "verified",
+      "detail": "11 files: 9 M + acceptance-report.json/.md A; code/tests/scripts diff = 0; HEAD now 50af4a2 and c2bb475..HEAD code/tests/scripts still 0"
+    },
+    {
+      "id": "R22",
+      "area": "X+1 manifest",
+      "claim": "manifest.vcs head=X, dirty=false, dirtyEntries=0; generatedAt 22:46:21.061Z; leaks=0; aggregates 392/6,592,842/7cf5b7e5…",
+      "evidence": [
+        "3a0f731 artifacts/dsh/harness/manifest.json"
+      ],
+      "method": "git-show parse",
+      "result": "verified",
+      "detail": "vcs={head:c2bb475…,branch:HEAD,dirty:false,dirtyEntries:0}; sanitization.leaks=0; manifest has no artifacts/dsh paths (roots stable)"
+    },
+    {
+      "id": "R23",
+      "area": "X+1 artifacts",
+      "claim": "11 artifact SHA256/bytes match declared package",
+      "evidence": [
+        "3a0f731 artifacts/dsh/harness/**"
+      ],
+      "method": "git-show sha256/bytes",
+      "result": "verified",
+      "detail": "manifest ba6e4786…/82018, selfproof 8af56a2e…/17284, tap b8412350…/14183, traceability 7416e349…/524899, md 13d2cfc1…/31057, h7 mapping 16b932d8…/28413, acceptance json 6e481307…/167324, md 6a4fd7d5…/26415, fl manifest a72d8a33…/13154, coverage c6012864…/52559, coverage md c84488f6…/9308"
+    },
+    {
+      "id": "R24",
+      "area": "clean X check",
+      "claim": "clean-X npm run check 1435/1435, 0 fail/0 skip; pipeline honesty=pass, gate=incomplete executed=passed=0; archives match",
+      "evidence": [
+        ".local/h7-verify/round3-clean-c2bb475-*.log",
+        "archive-manifest"
+      ],
+      "method": "sha/bytes/summary + content",
+      "result": "verified",
+      "detail": "check 3dea5464…/155781 1435/1435/0/0; pipeline 9caf088d…/2578 (honesty=pass, gate=incomplete completeNineSystems=false executed=passed=0, buildIssues=0); archive 8ac5cd30…/904 frozenHead=c2bb475 + lifetimeNote; distinct from round-2 archive"
+    },
+    {
+      "id": "R25",
+      "area": "selfproof/oracleCorpus",
+      "claim": "selfproof 9 files/71 pass/0 skip; oracle 15/7/22; H0b 42 + H0c 15 + H7 evidence 6 + acceptance 8 = 71",
+      "evidence": [
+        "tool-selfproof.json/.tap",
+        "traceability.json#oracleCorpus"
+      ],
+      "method": "name/TAP parse",
+      "result": "verified",
+      "detail": "oracle:*=15, business-oracle:*=7, evidence:*=6, acceptance:*=8; totals 71/71; oracleCorpus {15,7,22}; not mixed with H0c 1216/1264"
+    },
+    {
+      "id": "R26",
+      "area": "acceptance report",
+      "claim": "gate=incomplete, completeNineSystems=false, executed=passed=failed=0; planned 92/blocked 19/notRun 73; modules 32 limited/3 not_covered/5 blocked; systems 9 limited-evidence-only; V 12 limited/14 blocked/1 not_covered; S/FL 16 synthetic + canUse=false; honesty=pass",
+      "evidence": [
+        "acceptance-report.json/.md",
+        ".local pipeline log"
+      ],
+      "method": "JSON/md parse",
+      "result": "verified",
+      "detail": "all numbers match; issues=0; honesty=pass recorded in pipeline log/MD section (JSON has no honesty field); inputs include /private/tmp/h7r3-clean temp path (F3-R9 info)"
+    },
+    {
+      "id": "R27",
+      "area": "X+1 product/traceability",
+      "claim": "product 79/79 not_covered, covered=0, tooling_ready 8 TV.1-7/9; mapped 41/103 limited-only; 0 unknown sources",
+      "evidence": [
+        "traceability.json"
+      ],
+      "method": "summary/rows",
+      "result": "verified",
+      "detail": "product not upgraded; frozenHead=c2bb475; 22/22 sources verified 54 files; issues=[]"
+    },
+    {
+      "id": "R28",
+      "area": "host commit fixes",
+      "claim": "50af4a2 fixes F3-R1..R6: payloadBytes actual+semantics; repairActivation 325→335 classified; unknown Task versions 28/29/30/31; failedBuild e400fcc/982e5b09; relativePath/sanitizedAudits notes",
+      "evidence": [
+        "50af4a2 host/joint + h2b files"
+      ],
+      "method": "git-show diff + re-verification",
+      "result": "verified-with-residual",
+      "detail": "all payload bytes now equal actual (55853/60780/2445/2584), sha match; repairActivation +10 classified (not enumerated per commit); task versions per window disclosed; failedBuild recorded; notes present"
+    },
+    {
+      "id": "R29",
+      "area": "host commit scope/hygiene",
+      "claim": "50af4a2 only artifacts/doc; raw audits unchanged vs draft except <home> redaction; no absolute/secrets/bodies",
+      "evidence": [
+        "50af4a2 stat",
+        "round3 audits"
+      ],
+      "method": "file-list + scan + diff",
+      "result": "verified",
+      "detail": "13 files (doc + host artifacts + h2b fixes), no code/tests/scripts; raw audits committed; sanitize diff only dataDir/sessions.root; encoded Users-caja remains with relativePathEncoding note (F3-R6 disposition); no absolute /Users/secret/body"
+    },
+    {
+      "id": "R30",
+      "area": "residual",
+      "claim": "F3-R1 fully fixed in both H2b evidence files",
+      "evidence": [
+        "h2b-slice-summary.json",
+        "h2b-subscriptions-time.json"
+      ],
+      "method": "field check",
+      "result": "finding",
+      "detail": "slice-summary re-bound to Lead 33177e35… + superseded/note; detail isolatedFullCheck.log still carries overwritten 1c150f34…/153193 despite evidenceCorrections; residual F3-R1r (minor)"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F3-R1",
+      "severity": "minor-evidence-reference",
+      "title": "H2b implementer isolated log overwritten/not retained",
+      "files": [
+        "artifacts/dsh/h2/h2b-slice-summary.json#verification.implementerIsolatedCheck.log",
+        "artifacts/dsh/h2/h2b-subscriptions-time.json#isolatedFullCheck.log"
+      ],
+      "evidence": "claims .local/slice-verify-h2b.log sha 1c150f34…/153193 for implementer run at d160756; current file is Lead run 33177e35…/152915 (1404); implementer log not retained",
+      "impact": "implementer 1404 log not independently verifiable; Lead 1404 run validates same build",
+      "recommendation": "re-bind/mark superseded (like prior rounds) or archive immutable copy",
+      "owner": "inner-domains / Lead",
+      "disposition": {
+        "status": "partially-fixed-in-50af4a2",
+        "verified": true,
+        "note": "slice-summary fixed; detail isolatedFullCheck.log still stale (F3-R1r)"
+      }
+    },
+    {
+      "id": "F3-R2",
+      "severity": "minor-metadata",
+      "title": "Round-3 host payloadBytes are character counts, not file bytes",
+      "files": [
+        "artifacts/dsh/host/round3-joint-zero-model.json#statusAfterReload/statusAfterProbes/workerProbe/coreProbe"
+      ],
+      "evidence": "claims 52869/57712/2369/2576 vs actual 55853/60780/2445/2584 bytes; sha256 matches actual files in all four",
+      "impact": "sha/content correct; byte accounting wrong (recurring class)",
+      "recommendation": "set actual bytes + bytesSemantics before committing host evidence",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-50af4a2",
+        "verified": true,
+        "commit": "50af4a261fd8a9050a6b84881fe8dc922c3fa6b0"
+      }
+    },
+    {
+      "id": "F3-R3",
+      "severity": "minor-audit-chain",
+      "title": "Failure→repair commitSeq gap 325→335 not explained",
+      "files": [
+        "artifacts/dsh/host/round3-joint-zero-model.json#deltas.classification",
+        "round3-host-after-disable.json",
+        "round3-host-pre-reload2.json"
+      ],
+      "evidence": "joint deltas describe failureWindow 322→325 and repairedReload 335→341; raw failed snapshot 325 and pre-reload2 335 leave +10 commitSeq unclassified; host.failedAttempts=2 and failureWindow note wording conflates failed activations with repaired activation",
+      "impact": "audit chain has an unexplained transition; stopConditions require unclassified deltas be explained",
+      "recommendation": "add retry/boot-window delta 325→335 (or explicitly explain same), fix failureWindow wording; only then commit host evidence",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-50af4a2",
+        "verified": true,
+        "commit": "50af4a261fd8a9050a6b84881fe8dc922c3fa6b0"
+      }
+    },
+    {
+      "id": "F3-R4",
+      "severity": "minor-disclosure",
+      "title": "Unknown Task metadata versions 28→29→30→31 not fully disclosed",
+      "files": [
+        "artifacts/dsh/host/round3/round3-host-{before,after-disable,pre-reload2,after}.json",
+        "round3-joint-zero-model.json#deltas.classification"
+      ],
+      "evidence": "metadata versions v28 (before) → v29 (failed) → v30 (pre-reload2) → v31 (repaired); only repaired v31 is disclosed; state stays unknown with no retry/success",
+      "impact": "aggregate facts/states unchanged, but three boot/failure-window refreshes are undisclosed",
+      "recommendation": "disclose per-window Task metadata refresh (state unknown, no retry/success)",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-50af4a2",
+        "verified": true,
+        "commit": "50af4a261fd8a9050a6b84881fe8dc922c3fa6b0"
+      }
+    },
+    {
+      "id": "F3-R5",
+      "severity": "minor-disclosure",
+      "title": "Failed build provenance (dist 982e5b) not explicit in joint evidence",
+      "files": [
+        "artifacts/dsh/host/round3/round3-host-before.json",
+        "round3-host-after-disable.json",
+        "round3-joint-zero-model.json#code/incident"
+      ],
+      "evidence": "failure-window audits carry dist 982e5b…/109 (rebuilt = e400fcc integration build); joint code section records only hotfix dist 342fa7ab…/109; incident describes the failure but not the broken build digest",
+      "impact": "failure-window evidence provenance is inferable but not recorded; I independently reproduced 982e5b from e400fcc",
+      "recommendation": "record failedBuild head/dist digest next to the repaired build",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-50af4a2",
+        "verified": true,
+        "commit": "50af4a261fd8a9050a6b84881fe8dc922c3fa6b0"
+      }
+    },
+    {
+      "id": "F3-R6",
+      "severity": "minor-hygiene",
+      "title": "Round-3 host evidence keeps encoded home path in session names",
+      "files": [
+        "artifacts/dsh/host/round3/round3-host-*.json",
+        "round3-joint-zero-model.json#deltas.probes.addedSessionFiles"
+      ],
+      "evidence": "5 raw audits + addedSessionFiles contain encoded 'Users-caja-…' paths; no absolute /Users path, secret or message body",
+      "impact": "username/profile fragment in new evidence; same convention as prior rounds",
+      "recommendation": "redact relativePath/addedSessionFiles to <workspace-root>/… or document the convention before commit",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-50af4a2",
+        "verified": true,
+        "commit": "50af4a261fd8a9050a6b84881fe8dc922c3fa6b0"
+      }
+    },
+    {
+      "id": "F3-R7",
+      "severity": "info",
+      "title": "Integration 72/72 targeted claim has no retained log",
+      "files": [
+        "artifacts/dsh/integration/round3-lead-integration.json#verification.targeted"
+      ],
+      "evidence": "targeted run recorded as a claim; full isolated 1434 log retained",
+      "impact": "targeted sub-claim self-reported; full check covers runtime build",
+      "recommendation": "retain targeted log or mark self-reported",
+      "owner": "Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true
+      }
+    },
+    {
+      "id": "F3-R8",
+      "severity": "pending",
+      "title": "Host round-3 evidence and H7 X+1 not yet committed/verified",
+      "files": [
+        "artifacts/dsh/host/round3* (untracked)",
+        "pending X+1"
+      ],
+      "evidence": "host evidence is untracked at HEAD c2bb475; X+1 (clean artifacts/acceptance report) not yet committed",
+      "impact": "task-25 cannot complete until committed host evidence and X+1 are provided and checked (manifest.vcs head=c2bb475 dirty=false, X..X+1 artifacts only, gate incomplete/executed=passed=0)",
+      "recommendation": "fix F3-R2..R6 before committing host evidence; provide X/X+1 SHAs and artifact hashes",
+      "owner": "Lead / test-harness",
+      "disposition": {
+        "status": "resolved-by-3a0f731-and-50af4a2",
+        "verified": true
+      }
+    },
+    {
+      "id": "F3-R1r",
+      "severity": "minor-residual",
+      "title": "H2b detail evidence still carries the overwritten implementer log hash",
+      "files": [
+        "artifacts/dsh/h2/h2b-subscriptions-time.json#isolatedFullCheck.log"
+      ],
+      "evidence": "50af4a2 fixed h2b-slice-summary (Lead run 33177e35… + superseded) but isolatedFullCheck.log still shows 1c150f34…/153193 with no superseded marker; evidenceCorrections claims re-binding",
+      "impact": "detail claim remains stale even though the slice-summary/Lead run are authoritative; no conclusion change",
+      "recommendation": "re-bind/annotate the detail log field like the summary (single-line evidence fix)",
+      "owner": "Lead/inner-domains",
+      "disposition": {
+        "status": "residual-minor",
+        "verified": true,
+        "note": "single-field evidence fix recommended in next batch; does not change result"
+      }
+    },
+    {
+      "id": "F3-R9",
+      "severity": "info-hygiene",
+      "title": "acceptance-report inputs contain the clean generation temp root",
+      "files": [
+        "artifacts/dsh/harness/acceptance-report.json#inputs"
+      ],
+      "evidence": "pluginRoot=/private/tmp/h7r3-clean/plugins/shiyu, workspaceRoot=/private/tmp/h7r3-clean; no home/user path, non-product temp path, disclosed in commit note",
+      "impact": "no product data/home leak; future code could redact to <plugin-root>/<workspace-root>",
+      "recommendation": "future acceptance generator redaction (non-blocking)",
+      "owner": "test-harness/Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true,
+        "note": "temp generation path disclosed; future acceptance generator redaction recommended"
+      }
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "H7 X+1 clean artifacts + acceptance-report",
+      "reason": "not yet committed; clean refresh pending"
+    },
+    {
+      "item": "Round-3 host evidence commit",
+      "reason": "currently untracked; reviewed as draft only; final blob hashes/counts pending commit"
+    },
+    {
+      "item": "Independent re-execution of full suites",
+      "reason": "read-only review; hotfix upgrade test was run independently in /tmp archive; other suites verified via retained logs/hashes/counts + Lead slice-verify"
+    },
+    {
+      "item": "Real host/model/channel/DOM/long-run behavior",
+      "reason": "round-3 host is zero-model limited; H5b production readiness blocked; H7acc executed=0"
+    }
+  ],
+  "hotfix": {
+    "commit": "c2bb475e67c11f12334c1b4339284e6084c5630a",
+    "files": {
+      "inner-domain.ts": "7052b0c6f64af235356fc849f934b13ab65c57b23281be2fc97e2a74034f403d/45823",
+      "inner-upgrade.test.ts": "977a06d66b23f230e85e90d031305076d310af3fc3e2bb7ba6bee5d3eaeb208d/4454"
+    },
+    "noAlterOnTrackedMeta": true,
+    "additiveDerivationMeta": true,
+    "regressionConstructsPreH4eSchema": true,
+    "independentTestRun": "pass 1/1, 0 skip",
+    "liveDb": {
+      "innerMetaColumns": 9,
+      "derivationRows": [
+        {
+          "id": 1,
+          "derived_revision": 0,
+          "derivation_digest": ""
+        }
+      ],
+      "derivationDomains": [
+        "relationship",
+        "emotion",
+        "cognition",
+        "personality"
+      ],
+      "watermark": 341,
+      "triggers": 393
+    },
+    "counts": {
+      "isolated": 1435,
+      "impl": 1389,
+      "lead": 1411
+    },
+    "verdict": "verified"
+  },
+  "counts": {
+    "H6c": 1382,
+    "H2b": {
+      "lead": 1404,
+      "impl": 1404
+    },
+    "H4e": {
+      "impl": 1389,
+      "lead": 1411
+    },
+    "H5b": {
+      "impl_trial": 1397,
+      "impl_final": 1397,
+      "lead": 1426
+    },
+    "H7acc": 1434,
+    "integration": 1434,
+    "hotfix": 1435
+  },
+  "hostDraft": {
+    "status": "committed-50af4a2",
+    "audits": [
+      "round3-host-before(322)",
+      "round3-host-after-disable(325)",
+      "round3-host-pre-reload2(335)",
+      "round3-host-after(341)",
+      "round3-host-after-tools(341/22 sessions)"
+    ],
+    "deltas": {
+      "failureWindow": [
+        322,
+        325
+      ],
+      "repairActivation": [
+        325,
+        335
+      ],
+      "repairedReload": [
+        335,
+        341
+      ],
+      "probes": [
+        341,
+        341
+      ]
+    },
+    "dist": {
+      "failed": "982e5b096145ec768eb11f800349129052c563e755adc4625b467c39bc800e96/109 (e400fcc)",
+      "repaired": "342fa7ababb497f343a5a8928c8bfbeb0c78805db672228345ba0000fd23aa0a/109 (c2bb475)"
+    },
+    "definitionDigest": "5a591515147e63ccd956f4ed85b95ccf7df8b29770f4c13ac0ef11d3636c652e",
+    "probes": {
+      "worker": "c5a9b9f6…",
+      "core": "ec0dac67…"
+    },
+    "timeSource": "idle/schedules=0",
+    "notifications": "disabled",
+    "knownSessionsUnchanged": 20,
+    "payloadBytesActual": true,
+    "payloadShaMatches": true,
+    "taskVersions": "28→29→30→31 per window",
+    "failedBuildRecorded": true
+  },
+  "traceability": {
+    "headArtifact": "artifacts/dsh/harness/traceability.json",
+    "rows": 103,
+    "product": 79,
+    "productNotCovered": 79,
+    "productCovered": 0,
+    "issues": 0,
+    "note": "round-3 acceptance/H6c/H2b/H4e did not upgrade product rows; clean acceptance report pending X+1 (gate expected incomplete/executed=passed=0)",
+    "frozenHead": "c2bb475e67c11f12334c1b4339284e6084c5630a",
+    "toolingReady": 8,
+    "mappedProductRows": 41
+  },
+  "evidenceLevels": [
+    {
+      "slice": "H6c",
+      "level": "G1 synthetic-host UI + real Chromium (214 UI, 1382 check)",
+      "host": "not real DSH client/DOM"
+    },
+    {
+      "slice": "H2b",
+      "level": "G1 module/integration + real temp SQLite + synthetic clock",
+      "host": "runtime integration by Lead, host limited probes only"
+    },
+    {
+      "slice": "H4e",
+      "level": "G1 module/integration + real temp SQLite/Worker IPC",
+      "host": "live migration failure/repair chain in round-3 host (zero-model)"
+    },
+    {
+      "slice": "H5b",
+      "level": "G1+ offline runtime composition + synthetic seams; production readiness blocked",
+      "host": "checkpoint command not executed (unavailable by design)"
+    },
+    {
+      "slice": "H7acc",
+      "level": "G1 tooling/evidence layer; executed=0/passed=0",
+      "host": "n/a"
+    },
+    {
+      "slice": "hotfix",
+      "level": "G1 regression + real live-DB copy/host activation",
+      "host": "fixed-host zero-model limited"
+    },
+    {
+      "slice": "host-round3",
+      "level": "fixed-host zero-model limited (committed 50af4a2)",
+      "host": "no real model/channel/business"
+    }
+  ],
+  "overallVerdict": "Round-3 is authentic and complete: all slice file/log hashes and counts match, tests are real with negative cases, the H4e migration hotfix is correctly additive (no tracked-table ALTER; independent upgrade regression run passes; live DB matches: 9-column meta, derivation rows 0/empty, watermark 341), the round-3 host failure→diagnosis→repair→probes chain matches raw audits and is now committed with F3-R2..R6 fixes (payload bytes actual, repairActivation 325→335 classified, per-window Task versions, failedBuild recorded, relative-path/sanitization notes), and X+1 clean artifacts satisfy the invariants (manifest head=X dirty=false; 11 artifact-only files; code/tests/scripts unchanged; acceptance gate=incomplete/executed=passed=0; selfproof 71; oracleCorpus 15/7/22; product rows 79/79 not_covered). Residual F3-R1r: the H2b detail log field still carries the overwritten implementer hash (minor single-field fix); F3-R9: acceptance inputs contain the disclosed clean temp root (future redaction).",
+  "xPlusOne": {
+    "X": "c2bb475e67c11f12334c1b4339284e6084c5630a",
+    "X+1": "3a0f73139533813b674f1dac24f11ffc05cd075c",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "c2bb475e67c11f12334c1b4339284e6084c5630a",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-02T22:46:21.061Z",
+    "sanitizationLeaks": 0,
+    "cleanCheck": {
+      "tests": 1435,
+      "pass": 1435,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "3dea5464b3fb50374ba4fcbca55983a558807fcc80e14ffe5c0a053d2648e132",
+      "bytes": 155781
+    },
+    "pipeline": {
+      "sha256": "9caf088d88fb06eb24516a1d8f0146dc6415ca61a8b92f886a623890cbacbb04",
+      "bytes": 2578,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73,
+      "modules": {
+        "limitedOnly": 32,
+        "notCovered": 3,
+        "blocked": 5
+      },
+      "systems": "9 limited-evidence-only",
+      "vItems": {
+        "limited": 12,
+        "blocked": 14,
+        "notCovered": 1
+      },
+      "scenarios": "16 synthetic-fixture-only-not-run",
+      "canUseForBusinessAcceptance": false,
+      "issues": 0
+    },
+    "artifactHashes": {
+      "manifest.json": "ba6e4786…/82018",
+      "tool-selfproof.json": "8af56a2e…/17284",
+      "tool-selfproof.tap": "b8412350…/14183",
+      "traceability.json": "7416e349…/524899",
+      "traceability.md": "13d2cfc1…/31057",
+      "h7-traceability-mapping.md": "16b932d8…/28413",
+      "acceptance-report.json": "6e481307…/167324",
+      "acceptance-report.md": "6a4fd7d5…/26415",
+      "fl-scenarios/manifest.json": "a72d8a33…/13154",
+      "fl-scenarios/coverage.json": "c6012864…/52559",
+      "fl-scenarios/coverage.md": "c84488f6…/9308"
+    },
+    "notes": [
+      "acceptance inputs.pluginRoot/workspaceRoot=/private/tmp/h7r3-clean (temp generation path, no home path); future code could redact (F3-R9 info)",
+      "JSON acceptance report has no honesty field; honesty=pass comes from pipeline log/MD",
+      "manifest checks 1435 is the clean-X check log, not a manifest field"
+    ]
+  }
+}

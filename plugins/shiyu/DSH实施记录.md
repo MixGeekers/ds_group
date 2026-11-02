@@ -1074,3 +1074,42 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 2. `runtime.checkpoint.capture` 因 trusted staging/manifest composition 缺省而显式 unavailable，未在宿主执行。
 3. 真实浏览器 DOM 渲染未证明；lifecycle=degraded 仍来自保留的历史 unknown/暂停事实。
 4. 失败尝试的诊断是在 live DB 副本上复现的；修复后宿主成功激活是本轮 live 证据，但未对失败激活做宿主内重放。
+
+## 32. 第三轮独立复核与 F3 处置（round-3 收尾）
+
+2026-11-02，独立验证员对 round-3 全部提交与证据做只读复核（task-25）：**30 项检查完成，10 条 findings 全部 fixed/resolved/info，未发现需要阻断的问题**。报告：[ROUND3-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND3-EVIDENCE-REVIEW.md>)、[round3-evidence-review.json](<artifacts/dsh/verify/round3-evidence-review.json>)。
+
+### 32.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| H6c `5062485` | 1382 unit + 214 UI + 5 focused；日志/哈希一致；已知负载敏感 flake 已披露 |
+| H2b `479ad43` | 1404（impl/lead）、22 new、targeted 98；日志匹配 |
+| H4e `69d725f` | 1389/1411；迁移修复链见下 |
+| H5b `5eede56` | 1426（15/15 matrix；impl 1397×2）；文件哈希 0 mismatch |
+| H7-acceptance `09cf6d9` | 1434（8 tests；gate=incomplete/executed=passed=0） |
+| 集成 `e400fcc` | 1434（+0；targeted 72/72） |
+| **热修复 `c2bb475`** | **通过**：`inner-domain.ts` 已无 ALTER 受追踪表；`inner-upgrade.test.ts` 真构造 pre-H4e schema 并在 /tmp 独立复跑 1/1；live DB 四域 meta 9 列、derivation_meta `{0,''}`、watermark 341 与证据一致；1435/1435、0 skip |
+| 宿主 `50af4a2` | 链 322→325→repairActivation 325→335(+10 已分类)→341→341；events 40/40/41/42；sessions 20/20/20/20/22；20 已知 Session 不变；两探针/缓存/timeSource idle/notifications disabled；dist 独立重建（e400fcc `982e5b…`、c2bb475 `342fa7ab…`）；definitionDigest `5a591515…` 不变 |
+| X+1 `3a0f731` | 11 artifacts only；manifest.vcs head=X,dirty=false,leaks=0；src/client/tests/scripts diff=0；11 件 SHA/bytes 全匹配；selfproof 71、oracleCorpus 15/7/22、产品 79/79 not_covered；acceptance gate=incomplete/executed=passed=0/planned92 |
+
+### 32.2 F3 findings 处置
+
+| ID | 处置 |
+|---|---|
+| F3-R1 / F3-R1r（H2b） | summary 与 detail 的实现者日志均标 superseded 并重绑到保留的 Lead 1404 日志（`33177e35…`）；计数与结论不变 |
+| F3-R2（host payloadBytes） | 已改为实际字节（55853/60780/2445/2584）+ bytesSemantics；sha 原本正确 |
+| F3-R3（host 325→335 未解释） | 新增 `repairActivation` 窗口：+10 = additive migration schema commit + 正常启动写入 + 一次 lifecycle 事件/投递/ack；未逐条枚举但已说明无业务事实变化 |
+| F3-R4（unknown Task 版本） | 逐窗口披露 28→29→30→31；state 仍 unknown、无重试/成功声明/预算变化 |
+| F3-R5（故障构建身份） | 记录 `failedBuild` e400fcc / dist `982e5b09…`/109 |
+| F3-R6（encoded relativePath） | 已说明惯例：无绝对路径/正文/秘密，future 导出 redact |
+| F3-R7（集成 targeted 无独立日志） | info 接受（完整隔离 1434 有日志） |
+| F3-R8（旧 findings 状态） | resolved |
+| F3-R9（acceptance temp path） | info 接受：`/private/tmp/h7r3-clean` 为生成 worktree 路径（无 home/非产品数据），future redact code 小改 |
+| F3-R10（informational） | 接受，不改变结论 |
+
+### 32.3 边界
+
+1. round-3 新增能力（H2b 时间源、H4e 派生/生命周期、H5b 检查点组合、H6c 仪表盘）均为 **G1 离线/合成宿主**；固定宿主仅零模型验证。
+2. 产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0；九系统整体验收未完成。
+3. 真实模型调用、真实渠道/设备、真实 Ombre 导出、独立故障域/V27、生产浏览器 DOM 与长期运行仍未验证。
