@@ -1,0 +1,572 @@
+{
+  "schemaVersion": 1,
+  "slice": "3I-fixed-local-note-capability",
+  "recordedAt": "2026-11-02T16:49:08.058370+00:00",
+  "baselineCommit": "5874cc82c48323d4f17a1df94c54615552479f22",
+  "status": "offline-validated-host-not-exercised",
+  "evidenceLevel": "real-temporary-SQLite-and-filesystem-with-synthetic-DSH-and-browser-fixtures",
+  "scope": {
+    "capabilityId": "task.local-note.execute",
+    "toolName": "shiyu_worker_write_note",
+    "verificationPolicy": "informational",
+    "firstAuthorizedUseWithoutPriorSuccess": true,
+    "originalMandateBudgetTaskEffectGatesRetained": true,
+    "capabilityStateTables": 2,
+    "capabilityCommands": 3,
+    "publicWriteCommands": [
+      "ability.setEnabled"
+    ],
+    "privateObservationCommand": "ability.observeLocalNote",
+    "publicProofSubmission": false,
+    "newExecutorOrRegistry": false,
+    "newModelType": false,
+    "sessionLifecycleOwner": "DSH",
+    "publicationManifestSchema": 3,
+    "otherFourInnerDomains": "unavailable"
+  },
+  "verification": {
+    "moduleCheck": {
+      "command": "npm run check",
+      "exitCode": 0,
+      "typecheck": true,
+      "tests": 1021,
+      "passed": 1021,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 106711.559667,
+      "build": true,
+      "clientSyntax": true,
+      "lateReviewRegressionIncludedInFullRun": "a lost zero-call rejection response is read back as rejected rather than reported unknown"
+    },
+    "ui": {
+      "fullSuite": {
+        "passed": 204,
+        "failed": 0,
+        "reportedDuration": "1.9m"
+      },
+      "subsequentHintClarification": {
+        "passed": 14,
+        "failed": 0,
+        "reportedDurationSeconds": 9.7
+      },
+      "fullSuiteRepeatedAfterWordingOnlyChange": false,
+      "nativeHostUi": false
+    },
+    "matrix": {
+      "combinations": 24,
+      "axes": [
+        "enabled:2",
+        "availability:3",
+        "successEvidence:2",
+        "originalMandate:2"
+      ],
+      "actualTaskClaimGate": true,
+      "proofInMatrix": "trusted synthetic metadata reader; actual ledger proof covered separately"
+    },
+    "runtime": {
+      "firstOrdinaryTaskProducesIndependentProof": true,
+      "sameBindingRestartPreservesProofWithoutReplay": true,
+      "snapshotReads": 1000,
+      "snapshotWrites": 0,
+      "snapshotModelDispatches": 0,
+      "missingPrerequisitesDenied": true,
+      "oldDisableReceiptDoesNotReapply": true,
+      "disabledActiveWorkerRetainsUnknown": true
+    },
+    "core": {
+      "readViewAuthorityIndependent": true,
+      "unavailablePlanningRetainsFactsWithoutCalls": true,
+      "completionAllowedWhileDisabled": true,
+      "knownAccountedCapabilityRejectionRestoresFacts": true,
+      "undispatchedReadViewFailureZeroSettled": true,
+      "dispatchedUnknownAndOldHostCannotZeroSettle": true,
+      "evaluationLimitNotDecremented": true
+    },
+    "compiledWorkerSmoke": {
+      "schemaVersion": 1,
+      "evidenceLevel": "compiled-local-worker-with-synthetic-dependency",
+      "passed": true,
+      "nativeHostInspected": false,
+      "realModelCalls": 0,
+      "embeddingCalls": 0,
+      "taskCount": 0,
+      "manifestSchema": 3,
+      "initialAvailability": "unknown",
+      "afterTrustedFixtureObservation": "available",
+      "verification": "unknown",
+      "compiledDefinitionDigest": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f"
+    }
+  },
+  "failuresAndCorrections": [
+    {
+      "phase": "early-offline-integration",
+      "issue": "Worker forwarded IPC id into closed capability domain envelope",
+      "correction": "pass only command and args; keep strict schema",
+      "logs": [
+        ".local/phase3i-fixture-tests.log",
+        ".local/phase3i-task-tests.log"
+      ]
+    },
+    {
+      "phase": "early-offline-core-integration",
+      "issue": "source commit watermark captured after uncommitted reservation writes",
+      "correction": "capture committed source watermark earlier in same claim transaction",
+      "initialFixtureTests": {
+        "tests": 125,
+        "passed": 122,
+        "failed": 3
+      },
+      "affectedRerun": {
+        "tests": 16,
+        "passed": 16
+      },
+      "supersededByFull1021Pass": true
+    },
+    {
+      "phase": "independent-review",
+      "issue": "undispatched view rejection retained unknown hold; lost committed rejection response mislabeled unknown",
+      "correction": "narrow existing rejection path for current claimed/no dispatch/no native receipt, exact zero settlement and readback; preserve all dispatched uncertainty"
+    },
+    {
+      "phase": "UI-harness",
+      "issue": "sandbox EPERM on temporary loopback listener",
+      "correction": "approved offline loopback test execution; no native host access"
+    },
+    {
+      "phase": "compiled-smoke-invocation",
+      "issue": "stdin --input-type=module inherited by file-based Worker, ERR_INPUT_TYPE_NOT_ALLOWED",
+      "correction": "run an ordinary ignored .mjs file; unchanged product build passed"
+    }
+  ],
+  "identity": {
+    "stableProof": [
+      "definitionDigest",
+      "installationGeneration",
+      "environmentFingerprint"
+    ],
+    "hostEpoch": "live execution identity only",
+    "relatedImplementationBytesAndActualWorkerModelProfileHashed": true,
+    "nativeDependencyFingerprintCoverage": "two official dsh-llm public entry files and owning package metadata, Node version/platform/architecture, fixed artifact-root policy; not a proof of the entire SDK dependency graph",
+    "realHostIdentityRevalidatedThisSlice": false,
+    "compiledDefinitionDigest": "1f9c591103a185e4fddf12021428eb27beef02175361e5c8ef6c2943ca0b4f4f"
+  },
+  "limits": {
+    "completeNineSystems": false,
+    "completeV09": false,
+    "dynamicToolsSkillsDevicesImplemented": false,
+    "openEndedPlanning": false,
+    "successProofMeans": "independently verified local artifact/effect success, not complete usage accounting or current model service health",
+    "fsDbAtomicity": "final gate narrows the publication race; SQLite and filesystem are not a joint transaction; in-flight effects remain subject to unknown/reconciliation",
+    "nativeHostModelCallsRequestedByThisWork": 0,
+    "embeddingCallsRequestedByThisWork": 0,
+    "hostReloadsPerformedByThisWork": 0,
+    "liveDatabaseAccessByThisWork": false,
+    "hostGlobalCounters": "not inspected",
+    "historicalSuccessImportedAsCurrentProof": false,
+    "historical3HAAndBFailuresAndUnknown": "retained unchanged"
+  },
+  "files": {
+    "sourceAndTests": [
+      {
+        "path": "plugins/shiyu/client/index.js",
+        "bytes": 223983,
+        "sha256": "50d121ea2c16e582bd6698c127c85b4c3683be2d1900af45f398935d35ba170e"
+      },
+      {
+        "path": "plugins/shiyu/locale/en.json",
+        "bytes": 38025,
+        "sha256": "56f17d006c03e6f301762437a2ab63145c5bb724c3357c8f0ee4a3e31af0a875"
+      },
+      {
+        "path": "plugins/shiyu/locale/zh.json",
+        "bytes": 34775,
+        "sha256": "b38a2327304e2fe557d5b4d5f1bc406db79cba9d846a31aa1433e6d94c3cce27"
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/artifacts/index.ts",
+        "bytes": 20580,
+        "sha256": "7841d4305562e247ac1a58cceb0cee37a761e43601cf764b0842cddb2058bad3"
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/capability-identity.ts",
+        "bytes": 3995,
+        "sha256": "1bae34ef9fa01a7f8c3c06e59b6bedbcfa9c20a34479967fc6cf90c66de0baef"
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/capability-domain.ts",
+        "bytes": 17323,
+        "sha256": "518b7e591d49d73f0cd7af303ebecbf15c70edc07d54dad777ac5fe5ad39edca"
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+        "bytes": 55712,
+        "sha256": "065fa6febf80e043ef2830fe47fb2a150fd9f4db04f833dd61aa5f9334321c98"
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/protocol.ts",
+        "bytes": 4930,
+        "sha256": "7a968c486ee6734f82590ed492433eb8ef622b92390620b7b9826e2b331edba4"
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/task-domain.ts",
+        "bytes": 64555,
+        "sha256": "08d7531db29fc2917c29f4a4ea58f29c0875acf3933147be9982eadcf99c130d"
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+        "bytes": 51910,
+        "sha256": "95bdfdbce08db60188438766ba753591f2b9caaeab4af20f6e30283067cf1d28"
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/dsh/workers.ts",
+        "bytes": 28727,
+        "sha256": "092d7aba66bd84ea045310707f4f8f565b90b88a3b551ae4e00490dae73fd760"
+      },
+      {
+        "path": "plugins/shiyu/src/contracts/capability.ts",
+        "bytes": 10730,
+        "sha256": "113a0751d2ccc0a285d46568c3184490dc827fa40f4000d224fb177e58341b4b"
+      },
+      {
+        "path": "plugins/shiyu/src/contracts/core.ts",
+        "bytes": 8183,
+        "sha256": "e8824c06acf2ed9e0aa6b17e6dd3333219b1cdbf718ec555576588d920183c6b"
+      },
+      {
+        "path": "plugins/shiyu/src/control/local-core.ts",
+        "bytes": 31821,
+        "sha256": "4839744920d3bfedc1b83f398e96d9dc491dbd1748017f20f68819e4e4032833"
+      },
+      {
+        "path": "plugins/shiyu/src/control/task-runner.ts",
+        "bytes": 6549,
+        "sha256": "5516862607fe262cb6b73ec13f002b901ffbfcf7e52535eadd85f3a30283acdf"
+      },
+      {
+        "path": "plugins/shiyu/src/health/systems.ts",
+        "bytes": 1913,
+        "sha256": "50a6a13acffaa387cb8591f2ba683e7d6e6d85ab54425eba5003f99524d46563"
+      },
+      {
+        "path": "plugins/shiyu/src/runtime.ts",
+        "bytes": 75022,
+        "sha256": "6fb76065b8c6e37906a5fbfa219b993e6a93071e84dde4b9acb0398a2597df0c"
+      },
+      {
+        "path": "plugins/shiyu/src/state/publication.ts",
+        "bytes": 22253,
+        "sha256": "32b85f5b93bf62640e64f3825291733fb715450f83b98620276acf9f0ae162c5"
+      },
+      {
+        "path": "plugins/shiyu/src/views/core.ts",
+        "bytes": 2804,
+        "sha256": "0839a199ba8b4d63e5c08760dd3224403479f94049f358bc71557c0837a7ebb7"
+      },
+      {
+        "path": "plugins/shiyu/src/views/index.ts",
+        "bytes": 33721,
+        "sha256": "637e67eb23980f71a3212f164864c78cbb618b0845f7b6bea171423c31c29636"
+      },
+      {
+        "path": "plugins/shiyu/tests/artifacts.test.ts",
+        "bytes": 25982,
+        "sha256": "d9efe3ecb9cab2294f30fcb5d38da6326e34649e138f58ffd3e3627730e63305"
+      },
+      {
+        "path": "plugins/shiyu/tests/capability-domain.test.ts",
+        "bytes": 21616,
+        "sha256": "4791ee34d05860af27f867adc2ec8d1bcb84bc64c174d39c02c8a7b3411ac755"
+      },
+      {
+        "path": "plugins/shiyu/tests/capability-identity.test.ts",
+        "bytes": 2548,
+        "sha256": "409602ec99be0d100f3602aaaee60f63f3ce8ea35d87b06777f1484299f72f59"
+      },
+      {
+        "path": "plugins/shiyu/tests/capability-matrix.test.ts",
+        "bytes": 7064,
+        "sha256": "5364a4a6d93796f478dbb6ebdea59c018b8b2e0a67e355a613d1f936b6336232"
+      },
+      {
+        "path": "plugins/shiyu/tests/capability-task.test.ts",
+        "bytes": 14777,
+        "sha256": "54f241ec6ce1b64c86ffb35a7f7e702c67dd855edf77e762cc7df1387cbd4fbb"
+      },
+      {
+        "path": "plugins/shiyu/tests/conversation-store-integration.test.ts",
+        "bytes": 20383,
+        "sha256": "75c0621da38c87cf0c68addf2f1e04b1dc072e56423d9b4d49b829cca9db3840"
+      },
+      {
+        "path": "plugins/shiyu/tests/core-domain.test.ts",
+        "bytes": 37061,
+        "sha256": "4764ffd2c5e3a68068bbd67b02277cb49627477aefd074b52fa0c01aeac5c389"
+      },
+      {
+        "path": "plugins/shiyu/tests/goal-lifecycle.test.ts",
+        "bytes": 17298,
+        "sha256": "4b5fc52265f81181b0c50e097d5c2ee50c7785dc9f96e1e98cd9046d61e63576"
+      },
+      {
+        "path": "plugins/shiyu/tests/helpers/capability.ts",
+        "bytes": 1857,
+        "sha256": "5f1fa88e4134ca453ab5f87c6b3462a29f7ceb3f579a931a2f5747bdbac4e379"
+      },
+      {
+        "path": "plugins/shiyu/tests/helpers/core-capability.ts",
+        "bytes": 2578,
+        "sha256": "62c3bf7b90eb4a2f29c60947b911544a0df044182fb4cd1d87e55da7f44d5be7"
+      },
+      {
+        "path": "plugins/shiyu/tests/local-core.test.ts",
+        "bytes": 46276,
+        "sha256": "c2b13c8e1b1ec9492bc1426c994ccdccdeecc5e5d34f8c7f15b42f698db58215"
+      },
+      {
+        "path": "plugins/shiyu/tests/local-reply.test.ts",
+        "bytes": 33610,
+        "sha256": "43d53d4a86888be5317d29859cb20cdf76ab940eeea91861d758b4ecbe10d11e"
+      },
+      {
+        "path": "plugins/shiyu/tests/local-view-store.test.ts",
+        "bytes": 9061,
+        "sha256": "9172e579a7fcbce59b339157a0af41782b3da7d1320f5c867c72cfcd3e77a1d0"
+      },
+      {
+        "path": "plugins/shiyu/tests/memory-view-store.test.ts",
+        "bytes": 17355,
+        "sha256": "a67733f5677175d3bc9dffb4d4cb96f59d5611f1136755743863aaa0d5924ae3"
+      },
+      {
+        "path": "plugins/shiyu/tests/runtime-capability.test.ts",
+        "bytes": 10593,
+        "sha256": "9b2a041d10f8aea924e9e15033aeca43d400a4bd3b944b1a896d2a4bb9a87114"
+      },
+      {
+        "path": "plugins/shiyu/tests/runtime-core.test.ts",
+        "bytes": 31625,
+        "sha256": "19f868a2500660f2a99f81885df01fc45672957592cdf5556f0aefbd939b2656"
+      },
+      {
+        "path": "plugins/shiyu/tests/runtime-memory.test.ts",
+        "bytes": 21446,
+        "sha256": "ebdd169caa15068c72a3994bcd24eed7c8cc3b064fd77cbbafe6a4755ec66801"
+      },
+      {
+        "path": "plugins/shiyu/tests/runtime-semantic-memory.test.ts",
+        "bytes": 27183,
+        "sha256": "116f9b88138159f726d73406b80ff9cd53754f93288436558986511698e81a94"
+      },
+      {
+        "path": "plugins/shiyu/tests/runtime.test.ts",
+        "bytes": 36296,
+        "sha256": "9f8d14ccb5848cb0c1eff54e4e4c60e71736b7a55259c7e86860a098ef154fa4"
+      },
+      {
+        "path": "plugins/shiyu/tests/state-publication.test.ts",
+        "bytes": 36080,
+        "sha256": "1fa9df950882590e553456b22b7e5b279824decb67d4aed5ac0d29f27f276737"
+      },
+      {
+        "path": "plugins/shiyu/tests/task-domain.test.ts",
+        "bytes": 25620,
+        "sha256": "16469126c0afa4c143adf703a08c0769613a0d223b19297bfd511f0af24ac275"
+      },
+      {
+        "path": "plugins/shiyu/tests/task-runner.test.ts",
+        "bytes": 8500,
+        "sha256": "6b28249300f3418787651b7179efa5e6c90b2999a58774094dfea3bd8f944936"
+      },
+      {
+        "path": "plugins/shiyu/tests/ui/capability.spec.mjs",
+        "bytes": 16666,
+        "sha256": "ca5483253a4d1daa0e9d8f02c9cf5bf324780938033d4df570e6a635ae57cce3"
+      },
+      {
+        "path": "plugins/shiyu/tests/ui/playwright.config.mjs",
+        "bytes": 1379,
+        "sha256": "004b4456cb7bf5b7874704e49232b9d9eb34f543d585be5d5cce3ad54cb201ef"
+      },
+      {
+        "path": "plugins/shiyu/tests/views.test.ts",
+        "bytes": 24087,
+        "sha256": "ba455574d2185805be59d9b8ab1887866e504b574f8a2837a522ad75b5286fd7"
+      }
+    ],
+    "compiledFiles": [
+      {
+        "path": "plugins/shiyu/dist/adapters/artifacts/index.js",
+        "bytes": 22391,
+        "sha256": "06483de169ce7d42b6cd968566ce8ace3114192ee716d49c0ff8885fb7002d5b"
+      },
+      {
+        "path": "plugins/shiyu/dist/adapters/capability-identity.js",
+        "bytes": 4111,
+        "sha256": "4d81d102dc6bd1d3a2111a2fcc2ff08b1e698c8fbbc86e2cb2fc0c7d9b81427a"
+      },
+      {
+        "path": "plugins/shiyu/dist/adapters/control-store/capability-domain.js",
+        "bytes": 16773,
+        "sha256": "c96152faa01746cf9ef5c704a0437738a4ab7e5e42625f5d8aac4d5d1c340f89"
+      },
+      {
+        "path": "plugins/shiyu/dist/adapters/control-store/core-domain.js",
+        "bytes": 58166,
+        "sha256": "ce8ebbb2a78633ee266bd2d89de885166fad84dba446c4e4162e83035dceb145"
+      },
+      {
+        "path": "plugins/shiyu/dist/adapters/control-store/protocol.js",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "plugins/shiyu/dist/adapters/control-store/task-domain.js",
+        "bytes": 60692,
+        "sha256": "c6481953f10c72d37b93175b77bfb8395273a0759c5d1dd3c3124b09e8367a27"
+      },
+      {
+        "path": "plugins/shiyu/dist/adapters/control-store/worker.js",
+        "bytes": 51848,
+        "sha256": "c9aacc8810c95a6e4030c19e24b1830f5aa92f82d0dd46a475f95ad1145b00d4"
+      },
+      {
+        "path": "plugins/shiyu/dist/adapters/dsh/workers.js",
+        "bytes": 25912,
+        "sha256": "11ab849369bb68c7de2579deb949d1236b2ff46aee9a8c92ebb3e90e06871744"
+      },
+      {
+        "path": "plugins/shiyu/dist/contracts/capability.js",
+        "bytes": 8044,
+        "sha256": "659bf767311c0a5d6e19d799bed979dcfbe9f7bea62729e15af5edfc8a7e3ca8"
+      },
+      {
+        "path": "plugins/shiyu/dist/contracts/core.js",
+        "bytes": 11,
+        "sha256": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881"
+      },
+      {
+        "path": "plugins/shiyu/dist/control/local-core.js",
+        "bytes": 31446,
+        "sha256": "c63bfa0b6e4e5d65b6262a4e8a03c72ff114e9a7f5b5194bb534aee36e6a8a3f"
+      },
+      {
+        "path": "plugins/shiyu/dist/control/task-runner.js",
+        "bytes": 6903,
+        "sha256": "e647fa3f6666eb47b5fe077e86560cdff29c198975dfacc8ebf7dfb025c9b01d"
+      },
+      {
+        "path": "plugins/shiyu/dist/health/systems.js",
+        "bytes": 1922,
+        "sha256": "1ad6b4a621f0d81c7fb547ac05dc6069c76836adbcc88f5684cf9c251a47aa93"
+      },
+      {
+        "path": "plugins/shiyu/dist/runtime.js",
+        "bytes": 77652,
+        "sha256": "828cfabce9c9d9f4a5bc2fe9f35e2c877567a117cf5dc7cc72f4922cb2619185"
+      },
+      {
+        "path": "plugins/shiyu/dist/state/publication.js",
+        "bytes": 18933,
+        "sha256": "d6cc5d7bab3b96570700512ab0007c051b267850ad3f4a357ca32cfa18468f0c"
+      },
+      {
+        "path": "plugins/shiyu/dist/views/core.js",
+        "bytes": 2797,
+        "sha256": "533b715fd5a7499627c4e8ac906598dc18605b4e9f9d0941490409defd78f7e9"
+      },
+      {
+        "path": "plugins/shiyu/dist/views/index.js",
+        "bytes": 27731,
+        "sha256": "66d60f7968132418d81e750de93699ef9388554b3e560254c4ef2e945db12113"
+      }
+    ],
+    "privateEvidence": [
+      {
+        "path": "plugins/shiyu/.local/phase3i-build-smoke.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-capability-ui-wording.log",
+        "bytes": 2734,
+        "sha256": "45f09235134a11979b11bead22db1ea6f75f5b7fc71cba55627bde4fa797d6f3"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-capability-ui.log",
+        "bytes": 4242,
+        "sha256": "25bdb62646b6afe8300f62db1ad27faf54cc06a1795de238a33b7a2be5ab7fca"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-check.log",
+        "bytes": 111991,
+        "sha256": "ac37c53c84571ab7b5f8d7aee71c60541236ce1bdbc150abfd6fd1f75c2d1bf6"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-core-tests.log",
+        "bytes": 8307,
+        "sha256": "bd824b790a59e53a045f26607cf091a1fef8fb746ed532fead55b8d8cef4a47f"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-core-typecheck.log",
+        "bytes": 198,
+        "sha256": "7efee84297b01495e8378371112450c35d2695ffea0b79dd45ff2f05f2aa8113"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-fixture-tests-after-ipc.log",
+        "bytes": 15945,
+        "sha256": "aa564f09c2279379d733f235c4b7323114c6eb4ccfabb132f4800d8b0767fdca"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-fixture-tests.log",
+        "bytes": 10100,
+        "sha256": "9813ec2fb0f6de2aca54ae1099fb8d175bde51809bd3e5725cd24b3ebebdc782"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-runtime-capability.log",
+        "bytes": 793,
+        "sha256": "821d416f1496839e305e48ecd9085f79e9608cd485422791506cd36d51cc5094"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-runtime-core-after-watermark.log",
+        "bytes": 1887,
+        "sha256": "76734ff2d554c4e84f26e03003c103e4f70e1d245e09c5a30c4a892761746907"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-task-tests-final.log",
+        "bytes": 6002,
+        "sha256": "fa31330d9077a22a22934c8aed72ab3c6b00308dcd29c5e0f0e4429a57b87fff"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-task-tests.log",
+        "bytes": 13771,
+        "sha256": "d429f53287df3fe4b8f44ebc0580ab95b6fd16d5f3391a9a8866262b70ab991f"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-task-typecheck-final.log",
+        "bytes": 183,
+        "sha256": "4ba471565aa8c43969b9e0cdd6a91ef3a8d121bfc95065fb436eb9cb94b49288"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-task-typecheck.log",
+        "bytes": 1520,
+        "sha256": "b84af8e3b73d7bd72cd3214d263f57993343159063d7140e4cf260f0f3ca9cc5"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-ui-full.log",
+        "bytes": 29237,
+        "sha256": "a8377ed214a9bd493d1b53368d021f2b20e2435576fc674c4e3ca8ec95b5cbd8"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-build-smoke.mjs",
+        "bytes": 2336,
+        "sha256": "9113fb30abf94dca83ea7350b6f6789bb8bb8635ddb925cc258fa4639fe332fa"
+      },
+      {
+        "path": "plugins/shiyu/.local/phase3i-build-smoke.json",
+        "bytes": 444,
+        "sha256": "1ee6a34e3db9c1b4e7a30555c7d1e1eb660d443a845606a0277ff84f4c408181"
+      }
+    ]
+  }
+}

@@ -2,9 +2,17 @@
 
 [所属区域](<../README.md>) · [完整目录](<../../../../目录.md>) · [证据与选型](<../../../../../../research/2026-11-01-复用核查/情绪人格能力.md>)
 
-- 更新：2026-11-01（America/Caracas）。模块 ID：`ability`。
+- 更新：2026-11-02（America/Caracas）。模块 ID：`ability`。
 - 设计状态：复用 DSH 工具、MCP 与 Agent Skills 的建议基线，准备验证。
-- 实现状态：未实现、未接入设备；没有安装工具、技能或训练服务。
+- 实现状态：3I 已接线固定本地便签的声明、当前可用性与成功证据，1021项模块和204项模拟UI通过（后续文案14项复验）；未接入动态工具、技能或设备。结果以[本体实施记录](<../../../../../../plugins/shiyu/实施记录.md>)为准。
+
+## 3I 固定本地便签的实施范围
+
+本页下方的严格验证、发布、TTL 与 bootstrap 是新候选及动态扩展的建议基线。2026-11-02 实施切片对**已经部署的固定 `task.local-note.execute`**采用明确的 `verificationPolicy: informational`：固定批准定义及当前实现绑定匹配、enabled、当前依赖观察可用，且原有 owner/Goal Mandate、预算、Task/Assignment 和 Effect gate 全部通过时，允许普通任务首次调用。成功证据 unknown/stale 本身不取消原有授权；它也不能授予授权。
+
+成功证据仅由同 Worker 内部重读已独立核验的 Task、Assignment、Effect 与 artifact receipt 产生，绑定该任务持久保存的实现身份。旧历史成功不补当前 proof。稳定身份为相关实际代码摘要、installationGeneration 与环境指纹；hostEpoch 单独约束当前实例，普通有序重载不必销毁同一实现的旧证据。启动只做零模型依赖观察，不宣称工具已实际执行或模型已经可用。下线/停用不抹掉既发生效果和费用；最终文件发布前仍重新核查执行资格。
+
+此例外不推广到新发现工具、动态技能、额外安装、权限扩大或真实设备；不新增验证 Task、验证按钮、探针循环、第二执行器或独立预算账本。六域 publication schema3 只增加 ability 读取描述并保留 memory，其他四域仍 unavailable。当前切片先完成离线集成及模拟 UI；尚未进行 3I 真实宿主或模型验收，不将其标为完整 V09 通过。
 
 ## 1. 主方案与复用取舍
 

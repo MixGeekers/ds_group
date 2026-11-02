@@ -12,6 +12,8 @@ import { SqliteTransactions } from '../src/adapters/control-store/transaction.js
 import { installCommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
 import type { CoreCandidate, CoreCommands, CoreEvaluation, CoreGoal, CoreNativeResultReceipt, CorePrepareInput } from '../src/contracts/core.js';
 import type { GoalBinding } from '../src/adapters/dsh/goals.js';
+import { installCoreCapabilityFixture } from './helpers/core-capability.js';
+import { createCoreReadView } from '../src/views/core.js';
 
 const sha = (value: string) => createHash('sha256').update(value).digest('hex');
 const identity = { hostEpoch: 'core-host', installationGeneration: 'core-install' };
@@ -26,7 +28,8 @@ function fixture(t: TestContext) {
     const tx = new SqliteTransactions(db), watermark = installCommitWatermark(db, tx);
     const tasks = new TaskDomain(db, tx, { runtimeIdentity: { ...identity, hostEpoch }, now });
     const goals = new SQLiteGoalBindingStore(db, tx);
-    const core = new CoreDomain(db, tx, { runtimeIdentity: { ...identity, hostEpoch }, tasks, goals, now });
+    const reads = installCoreCapabilityFixture(db, tx, tasks, { ...identity, hostEpoch }, watermark, now);
+    const core = new CoreDomain(db, tx, { runtimeIdentity: { ...identity, hostEpoch }, tasks, goals, now, ...reads });
     const call = <K extends keyof CoreCommands>(command: K, args: CoreCommands[K]['input']): CoreCommands[K]['output'] => core.execute({ command, args } as never) as CoreCommands[K]['output'];
     const task = <K extends keyof TaskCommands>(command: K, args: TaskCommands[K]['input']): TaskCommands[K]['output'] => tasks.execute({ command, args } as never) as TaskCommands[K]['output'];
     const prepare = (extra: Partial<CorePrepareInput> = {}) => call('core.prepareGoal', { requestId: 'owner-one', objective: 'Write the explicitly supplied notes',
@@ -85,7 +88,7 @@ function fixture(t: TestContext) {
           observedSha256: detail.artifact.expectedSha256, observedBytes: detail.artifact.byteLength, receiptId: 'independent-filesystem-readback', observedAt: now().toISOString() }] };
       return { detail, input, proof: call('core.verifyCompletion', input) };
     };
-    return { db, tx, watermark, tasks, goals, core, call, task, prepare, native, authorize, dispatched, result, admit, finish, complete,
+    return { db, tx, watermark, tasks, goals, core, call, task, prepare, native, authorize, dispatched, result, admit, finish, complete, reads,
       close() { db.close(); connections.delete(db); } };
   };
   t.after(() => { for (const db of connections) db.close(); rmSync(directory, { recursive: true, force: true }); });
@@ -102,6 +105,129 @@ test('owner capability preparation is bounded, idempotent, and GET/pending never
   assert.throws(() => f.prepare({ requestId: 'cyclic', deliverables: [{ id: 'a', title: 'A', content: 'a', dependsOn: ['b'] }, { id: 'b', title: 'B', content: 'b', dependsOn: ['a'] }] }), code('INVALID_CORE_INPUT'));
   assert.throws(() => f.prepare({ requestId: 'too-large', deliverables: [{ id: 'a', title: 'A', content: '雨'.repeat(342) }] }), code('INVALID_CORE_INPUT'));
   assert.throws(() => f.call('core.authorizeGoal', { goalId: goal.goalId, expectedVersion: goal.version }), code('STALE_NATIVE_GOAL'));
+});
+
+test('disabled capability retains pending owner facts without reserving or spinning a Core evaluation', t => {
+  const f = fixture(t), goal = f.authorize(), cap = f.reads.capability;
+  cap.setEnabled({ requestId: 'disable-before-claim', expectedRevision: cap.snapshot().revision, enabled: false });
+  const before = f.watermark.read(), facts = f.db.prepare('SELECT fact_id,consumed_by FROM shiyu_core_facts').all();
+  for (let index = 0; index < 1000; index++) {
+    assert.deepEqual(f.call('core.pending', {}), { goalIds: [] });
+    assert.equal(f.call('core.snapshot', {})[0]!.planning!.reasonCode, 'capability_unavailable');
+  }
+  assert.equal(f.call('core.claim', { goalId: goal.goalId }), undefined);
+  assert.deepEqual(f.db.prepare('SELECT fact_id,consumed_by FROM shiyu_core_facts').all(), facts);
+  assert.deepEqual(f.watermark.read(), before); assert.equal(f.call('core.get', { goalId: goal.goalId }).evaluations, 0);
+  assert.deepEqual(f.call('core.balance', { goalId: goal.goalId })!.held, { tokens: 0, calls: 0, effects: 0 });
+  cap.setEnabled({ requestId: 'enable-before-claim', expectedRevision: cap.snapshot().revision, enabled: true });
+  assert.deepEqual(f.call('core.pending', {}).goalIds, [goal.goalId]);
+  assert.ok(f.call('core.claim', { goalId: goal.goalId }));
+});
+
+test('Core capture uses the real ability row through ReadView without requiring a prior success proof', async t => {
+  const f = fixture(t), goal = f.authorize(), evaluation = f.call('core.claim', { goalId: goal.goalId })!;
+  const capture = evaluation.readCapture!;
+  assert.equal(capture.capability.record.verification, 'unknown');
+  assert.equal(capture.capability.record.usableForAuthorizedTask, true);
+  const before = f.watermark.read(), views = createCoreReadView(capture, {
+    now: f.now, validate: async () => f.call('core.readView', { permit: evaluation.permit }),
+  });
+  try {
+    const view = await views.read();
+    assert.deepEqual(view.data[0]!.fields.capability, capture.capability.record);
+    assert.deepEqual(view.authority!.ability, { backendId: 'control-ability', ...capture.capability.ref });
+    assert.equal(view.aggregateVersions[0]!.version, capture.capability.revision);
+    assert.equal(view.sourceRefs[0]!.sourceId, 'capability:task.local-note.execute');
+    assert.equal(view.commitSeq, capture.control.commitSeq); assert.equal(view.stateVersion, capture.publication.stateVersion);
+    await views.assertCurrent(view.viewId); assert.deepEqual(f.watermark.read(), before);
+    const malicious = structuredClone(capture); malicious.component.records[0]!.fields = { capability: { usableForAuthorizedTask: true } };
+    const changed = createCoreReadView(malicious, { now: f.now, validate: async () => f.call('core.readView', { permit: evaluation.permit }) });
+    try { await assert.rejects(changed.read()); } finally { changed.dispose(); }
+  } finally { views.dispose(); }
+});
+
+test('a disabled captured binding rejects a fully accounted intent while completion facts remain valid', t => {
+  const f = fixture(t), goal = f.authorize(), cap = f.reads.capability;
+  const evaluation = f.call('core.claim', { goalId: goal.goalId })!;
+  const result = f.result(evaluation, { kind: 'task_intent', deliverableId: 'a', reason: 'Use the owner-authorized note' });
+  cap.setEnabled({ requestId: 'disable-after-model', expectedRevision: cap.snapshot().revision, enabled: false });
+  assert.throws(() => f.call('core.commitCandidate', result), code('CORE_CAPABILITY_CHANGED'));
+  const rejected = f.call('core.rejectEvaluation', { permit: evaluation.permit, reasonCode: 'CORE_CAPABILITY_CHANGED' });
+  assert.equal(rejected.status, 'rejected'); assert.equal(f.call('core.get', { goalId: goal.goalId }).activeEvaluationId, undefined);
+  assert.equal(f.call('core.get', { goalId: goal.goalId }).taskRefs.length, 0);
+  assert.deepEqual(f.call('core.balance', { goalId: goal.goalId })!.held, { tokens: 0, calls: 0, effects: 0 });
+  assert.deepEqual(f.call('core.pending', {}).goalIds, []);
+  assert.equal(f.db.prepare('SELECT consumed_by FROM shiyu_core_facts WHERE goal_id=?').get(goal.goalId)!.consumed_by, null);
+
+  const completedGoal = f.authorize({ requestId: 'already-completed' });
+  cap.setEnabled({ requestId: 'enable-to-execute', expectedRevision: cap.snapshot().revision, enabled: true });
+  assert.ok(f.call('core.pending', {}).goalIds.includes(goal.goalId));
+  const admitted = f.admit(completedGoal); f.finish(admitted.taskId!);
+  cap.setEnabled({ requestId: 'disable-after-task', expectedRevision: cap.snapshot().revision, enabled: false });
+  const completion = f.call('core.claim', { goalId: completedGoal.goalId })!; assert.ok(completion);
+  assert.equal(completion.readCapture!.capability.record.enabled, false);
+  assert.equal(f.call('core.commitCandidate', f.result(completion, { kind: 'complete_candidate', reason: 'Independently completed earlier task' })).kind, 'complete_candidate');
+});
+
+test('capability recovery cannot bypass an exhausted evaluation limit or release an unknown round', t => {
+  const f = fixture(t), goal = f.authorize({ maxEvaluations: 1 }), cap = f.reads.capability;
+  const evaluation = f.call('core.claim', { goalId: goal.goalId })!;
+  const result = f.result(evaluation, { kind: 'task_intent', deliverableId: 'a', reason: 'Original authorized input' });
+  cap.setEnabled({ requestId: 'bounded-disable', expectedRevision: cap.snapshot().revision, enabled: false });
+  assert.throws(() => f.call('core.commitCandidate', result), code('CORE_CAPABILITY_CHANGED'));
+  f.call('core.rejectEvaluation', { permit: evaluation.permit, reasonCode: 'CORE_CAPABILITY_CHANGED' });
+  cap.setEnabled({ requestId: 'bounded-enable', expectedRevision: cap.snapshot().revision, enabled: true });
+  assert.deepEqual(f.call('core.pending', {}).goalIds, []);
+  assert.equal(f.call('core.snapshot', {})[0]!.planning!.reasonCode, 'evaluation_limit');
+
+  const unknownGoal = f.authorize({ requestId: 'unknown-stays-held' });
+  const unknown = f.call('core.claim', { goalId: unknownGoal.goalId })!;
+  f.dispatched(unknown); f.call('core.markUnknown', { permit: unknown.permit, reasonCode: 'synthetic-missing-native-result' });
+  const before = f.call('core.balance', { goalId: unknownGoal.goalId });
+  cap.setEnabled({ requestId: 'unknown-disable', expectedRevision: cap.snapshot().revision, enabled: false });
+  cap.setEnabled({ requestId: 'unknown-enable', expectedRevision: cap.snapshot().revision, enabled: true });
+  assert.deepEqual(f.call('core.pending', {}).goalIds, []);
+  assert.deepEqual(f.call('core.balance', { goalId: unknownGoal.goalId }), before);
+  assert.equal(f.call('core.evaluations', { goalId: unknownGoal.goalId })[0]!.status, 'unknown');
+  assert.throws(() => f.call('core.rejectEvaluation', { permit: unknown.permit, reasonCode: 'CORE_CAPABILITY_CHANGED' }), code('CORE_RECONCILIATION_REQUIRED'));
+});
+
+test('a proven pre-native view rejection settles zero and restores only its original facts without refunding the evaluation count', t => {
+  const f = fixture(t), goal = f.authorize(), evaluation = f.call('core.claim', { goalId: goal.goalId })!;
+  const rejected = f.call('core.rejectEvaluation', { permit: evaluation.permit, reasonCode: 'CORE_VIEW_UNAVAILABLE' });
+  assert.equal(rejected.status, 'rejected'); assert.equal(rejected.reservation.state, 'settled');
+  const balance = f.call('core.balance', { goalId: goal.goalId })!;
+  assert.deepEqual(balance.spent, { tokens: 0, calls: 0, effects: 0 }); assert.deepEqual(balance.held, balance.spent);
+  assert.equal(f.call('core.get', { goalId: goal.goalId }).evaluations, 1);
+  assert.equal(f.db.prepare('SELECT consumed_by FROM shiyu_core_facts WHERE goal_id=?').get(goal.goalId)!.consumed_by, null);
+  const before = f.watermark.read();
+  assert.deepEqual(f.call('core.rejectEvaluation', { permit: evaluation.permit, reasonCode: 'CORE_VIEW_UNAVAILABLE' }), rejected);
+  assert.deepEqual(f.watermark.read(), before);
+  const next = f.call('core.claim', { goalId: goal.goalId })!;
+  assert.notEqual(next.evaluationId, evaluation.evaluationId); assert.equal(next.goal.evaluations, 2);
+});
+
+for (const scenario of ['dispatched', 'unknown', 'old-host'] as const) test(`${scenario} evaluation cannot use a view failure to release an uncertain hold`, t => {
+  const f = fixture(t), goal = f.authorize(), evaluation = f.call('core.claim', { goalId: goal.goalId })!;
+  if (scenario === 'dispatched') f.dispatched(evaluation);
+  if (scenario === 'unknown') f.call('core.markUnknown', { permit: evaluation.permit, reasonCode: 'synthetic-uncertain' });
+  const store = scenario === 'old-host' ? f.open('replacement-core-host') : f;
+  const before = store.call('core.balance', { goalId: goal.goalId });
+  assert.throws(() => store.call('core.rejectEvaluation', { permit: evaluation.permit, reasonCode: 'CORE_VIEW_UNAVAILABLE' }), code('CORE_RECONCILIATION_REQUIRED'));
+  assert.deepEqual(store.call('core.balance', { goalId: goal.goalId }), before);
+  assert.notEqual(store.call('core.evaluations', { goalId: goal.goalId })[0]!.status, 'rejected');
+});
+
+test('new informational success evidence leaves a captured intent binding usable', t => {
+  const f = fixture(t), separate = f.task('task.createLocal', { requestId: 'separate', title: 'Independent note', content: 'separate synthetic note' });
+  f.finish(separate.task.taskId);
+  const goal = f.authorize(), evaluation = f.call('core.claim', { goalId: goal.goalId })!, ref = evaluation.readCapture!.capability.ref;
+  const proof = f.reads.capability.recordSuccessfulTask(separate.task.taskId);
+  assert.equal(proof.snapshot.verification, 'verified');
+  assert.deepEqual(f.reads.capability.captureForCore().ref, ref);
+  assert.ok(f.call('core.readView', { permit: evaluation.permit }));
+  const admitted = f.call('core.commitCandidate', f.result(evaluation, { kind: 'task_intent', deliverableId: 'a', reason: 'Proof is informational' }));
+  assert.equal(admitted.status, 'committed');
 });
 
 test('native durable result and complete usage precede admission; one shared grant creates one non-human Task', t => {

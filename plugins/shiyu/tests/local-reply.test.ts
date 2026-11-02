@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
 import { ControlStore } from '../src/adapters/control-store/index.js';
+import { syntheticLocalNoteBinding, observeSyntheticLocalNote } from './helpers/capability.js';
 import { defaultModel, sessionBindingKey } from '../src/adapters/dsh/sessions.js';
 import type { ContextLoadRequest, ContextLoadResult } from '../src/adapters/dsh/sessions.js';
 import { SHIYU_EVENT_TYPES } from '../src/contracts/events.js';
@@ -62,7 +63,9 @@ class NativeFixture implements LocalReplySessionDriver {
 async function fixture(t: TestContext, options: { now?: () => Date } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'shiyu-local-reply-service-'));
   const filename = join(directory, 'control.sqlite');
-  const store = await ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: ['conversation.background'], runtimeIdentity: { hostEpoch: 'reply-host', installationGeneration: 'reply-install' } });
+  const store = await ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: ['conversation.background'], runtimeIdentity: { hostEpoch: 'reply-host', installationGeneration: 'reply-install' }, localNoteBinding: syntheticLocalNoteBinding('reply-install') });
+  try { await observeSyntheticLocalNote(store, { hostEpoch: 'reply-host', installationGeneration: 'reply-install' }); }
+  catch (error) { await store.close(); await rm(directory, { recursive: true, force: true }); throw error; }
   const task = (await store.request('task.createLocal', { requestId: 'reply-source', title: 'Synthetic task', content: 'Synthetic local content' })).task;
   const conversation = await store.request('conversation.ensureLocalTask', { taskId: task.taskId });
   const native = new NativeFixture(); let paused = false;
@@ -75,7 +78,7 @@ async function fixture(t: TestContext, options: { now?: () => Date } = {}) {
 
 async function labFixture(t: TestContext, options: Partial<Pick<LocalReplyOptions, 'allowEmptyContext' | 'authorize' | 'maxInputBytes'>> = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'shiyu-lab-reply-')), filename = join(directory, 'control.sqlite');
-  const store = await ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: ['conversation.background'], runtimeIdentity: { hostEpoch: 'lab-reply-host', installationGeneration: 'lab-reply-install' } });
+  const store = await ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: ['conversation.background'], runtimeIdentity: { hostEpoch: 'lab-reply-host', installationGeneration: 'lab-reply-install' }, localNoteBinding: syntheticLocalNoteBinding('lab-reply-install') });
   const channel = { connectionId: 'lab-test', runId: 'run-one', channelId: 'channel-one', kind: 'direct' as const, membersDigest: sha('synthetic members') };
   const conversation = await store.request('conversation.ensureLabChannel', channel), native = new NativeFixture();
   const service = new LocalReplyService({ store, sessions: native, assertRuntimeAllowed() {}, ...options });
@@ -211,6 +214,7 @@ test('Lab membership change after native loading prevents release and starts a n
 
 test('a local Task key matching a Lab display key creates an independent source binding', async t => {
   const f = await labFixture(t, { allowEmptyContext: true });
+  await observeSyntheticLocalNote(f.store, { hostEpoch: 'lab-reply-host', installationGeneration: 'lab-reply-install' });
   const task = (await f.store.request('task.createLocal', { requestId: 'lab-key-collision', title: 'Synthetic task', content: 'Independent synthetic content' })).task;
   const local = await f.store.request('conversation.ensureLocalTask', { taskId: task.taskId, localConversationKey: f.conversation.localConversationKey });
   assert.notEqual(local.conversationId, f.conversation.conversationId); assert.notEqual(local.bindingId, f.conversation.bindingId);

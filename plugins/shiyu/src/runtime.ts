@@ -27,6 +27,8 @@ import type { AvailableMemoryDomain, UnavailableDomain } from './state/publicati
 import { CorePump, type CoreEvaluationResult } from './control/core-pump.js';
 import { LocalCoreService, type LocalCoreOptions } from './control/local-core.js';
 import type { CoreGoal, CorePrepareInput } from './contracts/core.js';
+import type { CapabilityBinding, CapabilityCommandReceipt } from './contracts/capability.js';
+import { localNoteDefinitionDigest, localNoteEnvironmentFingerprint, UNAVAILABLE_WORKER_DEPENDENCY } from './adapters/capability-identity.js';
 import { LabTargetAdapter } from './adapters/lab/index.js';
 import { LabService, type LabServiceOptions, type LabOwnerConnectInput, type LabOwnerControlInput, type LabOwnerReconcileInput, type LabActivity } from './control/lab.js';
 
@@ -154,8 +156,31 @@ export class RuntimeService {
       catch { this.memoryFailure = 'MEMORY_CONFIGURATION_INVALID'; }
       await mkdir(path.join(this.dataDir, 'control'), { recursive: true, mode: 0o700 });
       await mkdir(path.join(this.dataDir, 'workspaces'), { recursive: true, mode: 0o700 });
+      this.workers = this.options.workerFactory?.(this.ctx) ?? new WorkerSessionDriver({ ctx: this.ctx });
+      await this.workers.initialize();
+      this.artifacts = await LocalArtifactStore.open(path.join(this.dataDir, 'workspaces'));
+      let dependencyFingerprint = UNAVAILABLE_WORKER_DEPENDENCY;
+      let abilityAvailable = false;
+      try {
+        if (!this.workers.prepareLocalNote) throw new Error('Worker prerequisite observation is unavailable');
+        const prerequisites = await this.workers.prepareLocalNote();
+        await this.artifacts.inspectRoot();
+        // Validate the observation before accepting availability, including injected fixtures.
+        localNoteEnvironmentFingerprint(prerequisites.dependencyFingerprint);
+        dependencyFingerprint = prerequisites.dependencyFingerprint;
+        abilityAvailable = true;
+      } catch { /* The domain remains readable; missing prerequisites never become an implicit usable capability. */ }
+      const localNoteBinding: CapabilityBinding = { definitionDigest: localNoteDefinitionDigest(),
+        installationGeneration: this.state.state.installationGeneration!, environmentFingerprint: localNoteEnvironmentFingerprint(dependencyFingerprint) };
       this.store = await ControlStore.open({ filename: path.join(this.dataDir, 'control', 'events.sqlite'), eventTypes: catalog, componentHandlers: ['runtime.activity', 'conversation.background'], runtimeIdentity: { hostEpoch: this.instanceId, installationGeneration: this.state.state.installationGeneration! },
+        localNoteBinding,
         ...(this.memoryConfig ? { memoryBackend: { backendId: this.memoryConfig.backendId, deploymentId: this.memoryConfig.deploymentId } } : {}) });
+      try {
+        const initialAbility = await this.store.request('ability.snapshot', {});
+        await this.store.request('ability.observeLocalNote', { requestId: `ability-startup-${this.instanceId}`, expectedRevision: initialAbility.revision,
+          hostEpoch: this.instanceId, binding: localNoteBinding, status: abilityAvailable ? 'available' : 'unavailable',
+          reasonCode: abilityAvailable ? 'LOCAL_NOTE_PREREQUISITES_READY' : 'LOCAL_NOTE_PREREQUISITES_UNAVAILABLE' });
+      } catch { /* A corrupt capability authority stays closed while unrelated read paths remain available. */ }
       if (this.memoryConfig) {
         const domain = await this.store.request('memory.status', {});
         if (!domain.ready) this.memoryFailure = domain.errorCode ?? 'MEMORY_DOMAIN_UNAVAILABLE';
@@ -185,9 +210,6 @@ export class RuntimeService {
       this.localReplies = new LocalReplyService({ store: this.store, sessions: this.sessions, assertRuntimeAllowed: () => this.ensureCanRun(),
         ...(this.memorySearch ? { memory: this.memorySearch } : {}) });
       await this.publishMemoryAvailability();
-      this.workers = this.options.workerFactory?.(this.ctx) ?? new WorkerSessionDriver({ ctx: this.ctx });
-      await this.workers.initialize();
-      this.artifacts = await LocalArtifactStore.open(path.join(this.dataDir, 'workspaces'));
       this.tasks = new LocalTaskRunner(this.store, this.workers, this.artifacts);
       const goalOptions: GoalLifecycleOptions = {
         ctx: this.ctx,
@@ -391,9 +413,42 @@ export class RuntimeService {
     try { return await this.lab.snapshot(); }
     catch { return { ready: false, errorCode: 'LAB_SNAPSHOT_UNAVAILABLE', connections: [] }; }
   }
+  private async abilitySnapshot() {
+    try { return { ready: true as const, snapshot: await this.store.request('ability.snapshot', {}) }; }
+    catch { return { ready: false as const, errorCode: 'CAPABILITY_STATE_UNAVAILABLE' }; }
+  }
+  private commandAbility(value: Record<string, unknown>, signal?: AbortSignal): Promise<CapabilityCommandReceipt> {
+    if (Object.keys(value).some(key => !['action', 'requestId', 'expectedRevision', 'enabled'].includes(key))
+      || typeof value.requestId !== 'string' || !/^[A-Za-z0-9_-]{1,100}$/.test(value.requestId)
+      || !Number.isSafeInteger(value.expectedRevision) || Number(value.expectedRevision) < 1 || typeof value.enabled !== 'boolean') {
+      throw new Error('Invalid capability control command');
+    }
+    signal?.throwIfAborted();
+    const command = this.controlTail.then(async () => {
+      this.ensureOpen(); signal?.throwIfAborted();
+      const receipt = await this.store.request('ability.setEnabled', { requestId: value.requestId as string,
+        expectedRevision: value.expectedRevision as number, enabled: value.enabled as boolean });
+      // An idempotent receipt may describe an older revision. Never apply its old
+      // state to the current runtime; only the current committed barrier controls dispatch.
+      const current = await this.store.request('ability.snapshot', {});
+      if (!current.enabled) {
+        const tasks = await this.store.request('task.list', {});
+        for (const task of tasks) this.operations.get(task.taskId)?.controller.abort(new Error('Local-note capability disabled'));
+      } else if (receipt.changed && receipt.snapshot.revision === current.revision && !this.pauseRequested) {
+        // A fresh owner enable may release never-dispatched queued tasks. Unknown
+        // or completed work is excluded and remains under the recovery protocol.
+        for (const task of await this.store.request('task.list', {})) if (task.state === 'queued') this.attemptedTasks.delete(task.taskId);
+        await this.scheduleQueuedTasks();
+        void this.corePump?.wake();
+      }
+      return receipt;
+    });
+    this.controlTail = command.then(() => undefined, () => undefined);
+    return command;
+  }
   async snapshot() {
     this.ensureOpen();
-    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection, core, lab] = await Promise.all([
+    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection, core, lab, ability] = await Promise.all([
       this.store.info(), this.events.stats(principal), this.events.listEvents(principal, { limit: 40 }),
       this.events.listSubscriptions(principal), this.sessions.getStatus(),
       this.store.request('task.list', {}),
@@ -401,6 +456,7 @@ export class RuntimeService {
       this.store.request('view.state', {}),
       this.coreSnapshot(),
       this.labSnapshot(),
+      this.abilitySnapshot(),
     ]);
     const at = new Date().toISOString();
     const probe = this.state.state.lastProbe;
@@ -423,6 +479,7 @@ export class RuntimeService {
       tasks,
       core,
       lab,
+      ability,
       conversations: conversations.conversations,
       innerProjection: innerProjection ?? null,
       memory: { configured: Boolean(this.memoryConfig) || Boolean(this.memoryFailure), ready: memoryReady,
@@ -471,6 +528,7 @@ export class RuntimeService {
     const fields = Object.getOwnPropertyDescriptors(value);
     if (![Object.prototype, null].includes(Object.getPrototypeOf(value)) || Object.values(fields).some(field => !Object.hasOwn(field, 'value'))) throw new Error('Expected command data fields');
     const action = fields.action?.value;
+    if (action === 'ability.setEnabled') return this.commandAbility(value, signal);
     if (action === 'lab.connect' || action === 'lab.pause' || action === 'lab.disconnect' || action === 'lab.reconcile') return this.commandLab(value, signal);
     if (action === 'core.create' || action === 'core.pause' || action === 'core.resume' || action === 'core.cancel') return this.commandCore(value, signal);
     if (action === 'memory.rememberLocal' || action === 'memory.readLocal' || action === 'memory.withdrawLocal') return this.commandLocalMemory(value, signal);
@@ -841,6 +899,8 @@ export class RuntimeService {
   }
   private async scheduleQueuedTasks(): Promise<void> {
     if (this.closed || this.closing || this.pauseRequested) return;
+    const ability = await this.abilitySnapshot();
+    if (!ability.ready || !ability.snapshot.usableForAuthorizedTask) return;
     const queued = (await this.store.request('task.list', {})).filter(task => task.state === 'queued').sort((a, b) => a.createdAt.localeCompare(b.createdAt));
     for (const task of queued) {
       if (this.closed || this.closing || this.pauseRequested || this.operations.size + this.pendingAdmissions >= 2) return;

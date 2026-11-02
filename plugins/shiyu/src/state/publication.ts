@@ -20,12 +20,28 @@ export interface MemoryStateManifest {
   schemaVersion: 2;
   domains: Record<Exclude<StateDomain, 'memory'>, UnavailableDomain> & { memory: UnavailableDomain | AvailableMemoryDomain };
 }
-export type StateManifest = LegacyStateManifest | MemoryStateManifest;
+/** Read availability only. This never declares a tool enabled, executable or verified. */
+export interface AvailableAbilityDomain {
+  status: 'available'; backendId: 'control-ability'; authorityId: string; capabilities: ['state_read'];
+}
+export type MemoryAvailability = UnavailableDomain | AvailableMemoryDomain;
+export type AbilityAvailability = UnavailableDomain | AvailableAbilityDomain;
+export interface AbilityStateManifest {
+  schemaVersion: 3;
+  domains: Record<Exclude<StateDomain, 'memory' | 'ability'>, UnavailableDomain> & { memory: MemoryAvailability; ability: AbilityAvailability };
+}
+export type StateManifest = LegacyStateManifest | MemoryStateManifest | AbilityStateManifest;
 export interface PublishedState {
   schemaVersion: 1; baselineId: string; stateVersion: number; manifest: StateManifest;
   manifestHash: string; publishedAt: string; publisherId: string;
 }
 export interface StatePublishCommand { requestId: string; expectedStateVersion?: number; expectedBaselineId?: string; manifest: StateManifest }
+export interface MemoryAvailabilityPublishCommand {
+  requestId: string; expectedStateVersion: number; expectedBaselineId: string; availability: MemoryAvailability;
+}
+export interface AbilityAvailabilityPublishCommand {
+  requestId: string; expectedStateVersion: number; expectedBaselineId: string; availability: AbilityAvailability;
+}
 export interface StatePublicationReceipt {
   requestId: string; publisherId: string; status: 'published' | 'unchanged'; recordedAt: string;
   /** The publication observed by this command, not a pointer to a subsequently changed head. */
@@ -80,20 +96,42 @@ function availableMemory(value: unknown): AvailableMemoryDomain {
     capabilities: semantic ? ['exact_read', 'semantic_search'] : ['exact_read'],
     ...(semantic ? { profileFingerprint: item.profileFingerprint as string } : {}) };
 }
+function availableAbility(value: unknown): AvailableAbilityDomain {
+  const item = plain(value, ['status', 'backendId', 'authorityId', 'capabilities']);
+  if (item.status !== 'available' || item.backendId !== 'control-ability' || typeof item.authorityId !== 'string'
+    || !/^[A-Za-z0-9][A-Za-z0-9:._\/-]{0,199}$/.test(item.authorityId)
+    || !Array.isArray(item.capabilities) || item.capabilities.length !== 1 || item.capabilities[0] !== 'state_read') fail('INVALID_MANIFEST', 'Invalid ability read authority or capabilities');
+  return { status: 'available', backendId: 'control-ability', authorityId: item.authorityId, capabilities: ['state_read'] };
+}
 function manifest(value: unknown): StateManifest {
   const root = plain(value, ['schemaVersion', 'domains']);
-  if (root.schemaVersion !== 1 && root.schemaVersion !== 2) fail('INCOMPATIBLE_VERSION', 'Unsupported state manifest schema');
+  if (root.schemaVersion !== 1 && root.schemaVersion !== 2 && root.schemaVersion !== 3) fail('INCOMPATIBLE_VERSION', 'Unsupported state manifest schema');
   const domains = plain(root.domains, STATE_DOMAINS);
-  const result = {} as MemoryStateManifest['domains'];
+  const result = {} as AbilityStateManifest['domains'];
   for (const domain of STATE_DOMAINS) {
-    if (root.schemaVersion === 2 && domain === 'memory' && plain(domains.memory, ['status', 'reason', 'backendId', 'deploymentId', 'capabilities', 'profileFingerprint'], ['status']).status === 'available') {
+    if (root.schemaVersion >= 2 && domain === 'memory' && plain(domains.memory, ['status', 'reason', 'backendId', 'deploymentId', 'capabilities', 'profileFingerprint'], ['status']).status === 'available') {
       result.memory = availableMemory(domains.memory); continue;
     }
+    if (root.schemaVersion === 3 && domain === 'ability' && plain(domains.ability, ['status', 'reason', 'backendId', 'authorityId', 'capabilities'], ['status']).status === 'available') {
+      result.ability = availableAbility(domains.ability); continue;
+    }
     const item = plain(domains[domain], ['status', 'reason']);
-    if (item.status !== 'unavailable' || !UNAVAILABLE_REASONS.includes(item.reason as UnavailableReason)) fail('INVALID_MANIFEST', 'Only schema2 memory can be available; other domains require a registered unavailable reason');
+    if (item.status !== 'unavailable' || !UNAVAILABLE_REASONS.includes(item.reason as UnavailableReason)) fail('INVALID_MANIFEST', 'Only schema2+ memory and schema3 ability reads can be available; other domains require a registered unavailable reason');
     result[domain] = { status: 'unavailable', reason: item.reason as UnavailableReason };
   }
-  return root.schemaVersion === 1 ? { schemaVersion: 1, domains: result as LegacyStateManifest['domains'] } : { schemaVersion: 2, domains: result };
+  if (root.schemaVersion === 1) return { schemaVersion: 1, domains: result as LegacyStateManifest['domains'] };
+  if (root.schemaVersion === 2) return { schemaVersion: 2, domains: result as MemoryStateManifest['domains'] };
+  return { schemaVersion: 3, domains: result };
+}
+/** Pure composition. Preserve every unrelated domain and never downgrade schema3. */
+export function manifestWithMemoryAvailability(current: StateManifest, availability: MemoryAvailability): MemoryStateManifest | AbilityStateManifest {
+  const source = manifest(current);
+  return manifest({ schemaVersion: source.schemaVersion === 3 ? 3 : 2, domains: { ...source.domains, memory: availability } }) as MemoryStateManifest | AbilityStateManifest;
+}
+/** Pure composition; publishing still requires the original StatePublisher and CAS. */
+export function manifestWithAbilityAvailability(current: StateManifest, availability: AbilityAvailability): AbilityStateManifest {
+  const source = manifest(current);
+  return manifest({ schemaVersion: 3, domains: { ...source.domains, ability: availability } }) as AbilityStateManifest;
 }
 /** Trusted composition only: never expose this factory as a model or UI command. */
 export function createStatePublisher(principalId: string): StatePublisher {
@@ -175,9 +213,33 @@ export class StatePublicationStore {
   }
   /** No publication exists before the first committed publish; reads never initialize version zero. */
   get(): PublishedState | undefined { return this.tx.atomic(() => { this.metadata(); return this.current(); }); }
-  publish(actor: StatePublisher, command: StatePublishCommand): StatePublicationReceipt {
+  private publisher(actor: StatePublisher): string {
     const publisherId = actor && typeof actor === 'object' ? publishers.get(actor) : undefined;
     if (!publisherId || !this.publisherIds.has(publisherId)) fail('FORBIDDEN', 'An original trusted publisher capability is required');
+    return publisherId;
+  }
+  /** A retry must use its historical manifest as the composition base. Using
+   * today's head would change a schema2 command's intent after schema3 adoption.
+   * publish() below still checks the entire original intent and returns its exact
+   * receipt; no new command table or second idempotency authority is introduced. */
+  private availabilityBase(requestId: string): StateManifest {
+    const old = this.row('SELECT intent_hash FROM shiyu_state_publication_commands WHERE request_id=?', requestId);
+    return old ? this.prior(requestId, String(old.intent_hash))!.publication.manifest : this.current()?.manifest ?? initialStateManifest();
+  }
+  publishMemoryAvailability(actor: StatePublisher, command: MemoryAvailabilityPublishCommand): StatePublicationReceipt {
+    this.publisher(actor); plain(command, ['requestId', 'expectedStateVersion', 'expectedBaselineId', 'availability']);
+    const requestId = text(command.requestId, 'publication requestId');
+    return this.tx.atomic(() => this.publish(actor, { requestId, expectedStateVersion: command.expectedStateVersion, expectedBaselineId: command.expectedBaselineId,
+      manifest: manifestWithMemoryAvailability(this.availabilityBase(requestId), command.availability) }));
+  }
+  publishAbilityAvailability(actor: StatePublisher, command: AbilityAvailabilityPublishCommand): StatePublicationReceipt {
+    this.publisher(actor); plain(command, ['requestId', 'expectedStateVersion', 'expectedBaselineId', 'availability']);
+    const requestId = text(command.requestId, 'publication requestId');
+    return this.tx.atomic(() => this.publish(actor, { requestId, expectedStateVersion: command.expectedStateVersion, expectedBaselineId: command.expectedBaselineId,
+      manifest: manifestWithAbilityAvailability(this.availabilityBase(requestId), command.availability) }));
+  }
+  publish(actor: StatePublisher, command: StatePublishCommand): StatePublicationReceipt {
+    const publisherId = this.publisher(actor);
     plain(command, ['requestId', 'expectedStateVersion', 'expectedBaselineId', 'manifest'], ['requestId', 'manifest']);
     const requestId = text(command.requestId, 'publication requestId');
     const expected = command.expectedStateVersion === undefined ? undefined : positive(command.expectedStateVersion);
@@ -191,7 +253,7 @@ export class StatePublicationStore {
       if (current?.stateVersion !== expected || current?.baselineId !== expectedBaseline) fail('VERSION_CONFLICT', 'Published state changed; use its current baseline and version');
       // Historical schema1 commands remain replayable above. A new command must
       // not silently remove the meaning of an already adopted manifest schema.
-      if (current?.manifest.schemaVersion === 2 && body.schemaVersion === 1) fail('SCHEMA_DOWNGRADE', 'Use a schema2 unavailable declaration instead of downgrading the manifest');
+      if (current && body.schemaVersion < current.manifest.schemaVersion) fail('SCHEMA_DOWNGRADE', 'Use an unavailable declaration in the current manifest schema instead of downgrading');
       const recordedAt = instant((this.options.now?.() ?? new Date()).toISOString());
       const unchanged = current !== undefined && canonical(current.manifest) === canonical(body);
       let publication = current;

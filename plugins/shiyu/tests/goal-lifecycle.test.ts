@@ -4,6 +4,7 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { ControlStore } from '../src/adapters/control-store/index.js';
+import { syntheticLocalNoteBinding, observeSyntheticLocalNote } from './helpers/capability.js';
 import { LocalArtifactStore } from '../src/adapters/artifacts/index.js';
 import { GoalOperationUnknownError } from '../src/adapters/dsh/goals.js';
 import type { GoalAdapterOptions, GoalAuthorityContext, GoalBinding, GoalBindingPort, GoalCreateRequest, GoalMutationRequest, GoalReadResult, NativeGoalView } from '../src/adapters/dsh/goals.js';
@@ -74,7 +75,9 @@ class FixtureGoalAdapter implements GoalLifecycleAdapter {
 }
 async function setup(t: any) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'shiyu-goal-lifecycle-'));
-  const store = await ControlStore.open({ filename: path.join(root, 'control.sqlite'), eventTypes: SHIYU_EVENT_TYPES, componentHandlers: [], runtimeIdentity: { hostEpoch: 'historical-host', installationGeneration: 'historical-install' } });
+  const store = await ControlStore.open({ filename: path.join(root, 'control.sqlite'), eventTypes: SHIYU_EVENT_TYPES, componentHandlers: [], runtimeIdentity: { hostEpoch: 'historical-host', installationGeneration: 'historical-install' }, localNoteBinding: syntheticLocalNoteBinding('historical-install') });
+  try { await observeSyntheticLocalNote(store, { hostEpoch: 'historical-host', installationGeneration: 'historical-install' }); }
+  catch (error) { await store.close(); await rm(root, { recursive: true, force: true }); throw error; }
   const artifacts = await LocalArtifactStore.open(path.join(root, 'workspaces'));
   const worker: TaskWorkerDriver = { async initialize() {}, async close() {}, async run(request) {
     const binding = { taskId: request.taskId, assignmentId: request.assignmentId, scope: request.scope, sessionId: 'synthetic-task-session' };

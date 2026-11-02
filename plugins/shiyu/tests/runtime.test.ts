@@ -1,3 +1,4 @@
+import { prepareSyntheticLocalNote } from './helpers/capability.js';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
@@ -21,6 +22,7 @@ class FakeGoals {
 
 class FakeWorkers {
   calls = 0;
+  prepareLocalNote = prepareSyntheticLocalNote;
   async initialize() {}
   async run(_request: WorkerRunRequest): Promise<WorkerRunResult> { this.calls++; throw new Error('Synthetic worker was not configured'); }
   async close() {}

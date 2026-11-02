@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
 import { ControlStore } from '../src/adapters/control-store/index.js';
+import { syntheticLocalNoteBinding, observeSyntheticLocalNote } from './helpers/capability.js';
 import { CONVERSATION_BACKGROUND_HANDLER } from '../src/adapters/control-store/conversation-domain.js';
 import { SHIYU_EVENT_TYPES } from '../src/contracts/events.js';
 import { createLocalReadView } from '../src/views/local.js';
@@ -14,7 +15,10 @@ async function fixture(t: TestContext, withIdentity = true) {
   const directory = await mkdtemp(join(tmpdir(), 'shiyu-local-view-store-')), filename = join(directory, 'control.sqlite'), stores: ControlStore[] = [];
   const open = async () => {
     const store = await ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: [CONVERSATION_BACKGROUND_HANDLER],
-      ...(withIdentity ? { runtimeIdentity: { hostEpoch: 'synthetic-host', installationGeneration: 'synthetic-install' } } : {}) }); stores.push(store); return store;
+      ...(withIdentity ? { runtimeIdentity: { hostEpoch: 'synthetic-host', installationGeneration: 'synthetic-install' }, localNoteBinding: syntheticLocalNoteBinding('synthetic-install') } : {}) });
+    stores.push(store);
+    if (withIdentity) await observeSyntheticLocalNote(store, { hostEpoch: 'synthetic-host', installationGeneration: 'synthetic-install' });
+    return store;
   };
   t.after(async () => { await Promise.all(stores.map(store => store.close())); await rm(directory, { recursive: true, force: true }); });
   return { store: await open(), open, filename };
@@ -26,7 +30,8 @@ async function associated(store: ControlStore) {
 
 test('real Worker initializes one honest manifest and serves Task-only ReadView without ack or writes', async t => {
   const { store, filename } = await fixture(t), initial = await store.request('view.state', {});
-  assert.equal(initial!.stateVersion, 1); assert.equal(Object.keys(initial!.manifest.domains).length, 6);
+  assert.equal(initial!.stateVersion, 2); assert.equal(initial!.manifest.schemaVersion, 3);
+  assert.equal(initial!.manifest.domains.ability.status, 'available'); assert.equal(Object.keys(initial!.manifest.domains).length, 6);
   const { task, entry } = await associated(store), before = await store.request('control.watermark', {});
   const capture = await store.request('view.captureLocal', { conversationId: entry.conversationId, purpose: 'reply_context' });
   const local = createLocalReadView(capture, { validate: captureId => store.request('view.validateCapture', { captureId }) }); t.after(() => local.close());
@@ -64,7 +69,7 @@ test('concurrent IPC reads share coherent captures, while an actual Task change 
   }
   assert.deepEqual(await store.request('control.watermark', {}), before);
   const changed = await store.request('task.cancel', { taskId: task.taskId, reason: 'synthetic cancellation' });
-  assert.ok(changed.version > task.version); assert.equal((await store.request('view.state', {}))!.stateVersion, 1);
+  assert.ok(changed.version > task.version); assert.equal((await store.request('view.state', {}))!.stateVersion, captures[0].publication.stateVersion);
   await assert.rejects(store.request('view.validateCapture', { captureId: captures[0].captureId }), code('STALE_SOURCE'));
   assert.equal((await store.request('view.validateCapture', { captureId: captures[0].captureId, phase: 'ack' })).tasks[0].version, task.version);
   const next = await store.request('view.captureLocal', { conversationId: entry.conversationId, purpose: 'task_status' }); assert.equal(next.tasks[0].version, changed.version);

@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
 import { ControlStore } from '../src/adapters/control-store/index.js';
+import { syntheticLocalNoteBinding, observeSyntheticLocalNote } from './helpers/capability.js';
 import { CONVERSATION_BACKGROUND_HANDLER } from '../src/adapters/control-store/conversation-domain.js';
 import type { LocalReplyNativeBinding } from '../src/adapters/control-store/local-reply-domain.js';
 import { sessionBindingKey } from '../src/adapters/dsh/sessions.js';
@@ -28,8 +29,10 @@ async function fixture(t: TestContext, configured = true) {
   const directory = await mkdtemp(join(tmpdir(), 'shiyu-memory-view-store-')), filename = join(directory, 'control.sqlite'), stores: ControlStore[] = [];
   const open = async (memory = configured, hostEpoch = 'host-a') => {
     const store = await ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: [CONVERSATION_BACKGROUND_HANDLER],
-      runtimeIdentity: { hostEpoch, installationGeneration: 'install-a' }, ...(memory ? { memoryBackend: { backendId: 'ombre-local', deploymentId: 'deployment-a' } } : {}) });
-    stores.push(store); return store;
+      runtimeIdentity: { hostEpoch, installationGeneration: 'install-a' }, localNoteBinding: syntheticLocalNoteBinding('install-a'), ...(memory ? { memoryBackend: { backendId: 'ombre-local', deploymentId: 'deployment-a' } } : {}) });
+    stores.push(store);
+    await observeSyntheticLocalNote(store, { hostEpoch, installationGeneration: 'install-a' });
+    return store;
   };
   t.after(async () => { await Promise.all(stores.map(store => store.close())); await rm(directory, { recursive: true, force: true }); });
   const store = await open();
@@ -65,7 +68,8 @@ async function fixture(t: TestContext, configured = true) {
 
 test('Worker availability publishing is private, deployment bound, CAS protected and separate from reads', async t => {
   const f = await fixture(t), initial = (await f.store.request('view.state', {}))!, before = await f.store.request('control.watermark', {});
-  assert.equal(initial.manifest.schemaVersion, 1); assert.equal(initial.stateVersion, 1);
+  assert.equal(initial.manifest.schemaVersion, 3); assert.equal(initial.stateVersion, 2);
+  assert.equal(initial.manifest.domains.ability.status, 'available');
   assert.deepEqual(await f.store.request('memory.status', {}), { configured: true, ready: true });
   assert.deepEqual(await f.store.request('memory.index.status', {}), { configured: true, ready: true });
   for (let i = 0; i < 3; i++) await f.store.request('view.state', {});
@@ -76,12 +80,13 @@ test('Worker availability publishing is private, deployment bound, CAS protected
   }
   await assert.rejects(f.publish({ ...availability(), deploymentId: 'foreign' }), code('MEMORY_DEPLOYMENT_MISMATCH'));
   const published = await f.store.request('state.publishMemoryAvailability', command);
-  assert.equal(published.publication.stateVersion, 2); assert.equal(published.publication.manifest.schemaVersion, 2);
-  assert.ok(Object.entries(published.publication.manifest.domains).filter(([name]) => name !== 'memory').every(([, value]) => value.status === 'unavailable'));
+  assert.equal(published.publication.stateVersion, initial.stateVersion + 1); assert.equal(published.publication.manifest.schemaVersion, 3);
+  assert.deepEqual(published.publication.manifest.domains.ability, initial.manifest.domains.ability);
+  assert.ok(Object.entries(published.publication.manifest.domains).filter(([name]) => !['memory', 'ability'].includes(name)).every(([, value]) => value.status === 'unavailable'));
   assert.deepEqual(await f.store.request('state.publishMemoryAvailability', command), published);
   await assert.rejects(f.store.request('state.publishMemoryAvailability', { ...command, requestId: 'stale' }), code('VERSION_CONFLICT'));
-  const semantic = await f.publish(availability(true)); assert.equal(semantic.publication.stateVersion, 3);
-  const stopped = await f.publish({ status: 'unavailable', reason: 'source_unavailable' }); assert.equal(stopped.publication.stateVersion, 4);
+  const semantic = await f.publish(availability(true)); assert.equal(semantic.publication.stateVersion, initial.stateVersion + 2);
+  const stopped = await f.publish({ status: 'unavailable', reason: 'source_unavailable' }); assert.equal(stopped.publication.stateVersion, initial.stateVersion + 3);
   assert.deepEqual(await f.store.request('state.publishMemoryAvailability', command), published);
   const unconfigured = await fixture(t, false);
   await assert.rejects(unconfigured.publish(availability()), code('MEMORY_UNCONFIGURED'));

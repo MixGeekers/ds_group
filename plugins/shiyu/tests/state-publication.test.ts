@@ -7,8 +7,8 @@ import test, { type TestContext } from 'node:test';
 import { Worker } from 'node:worker_threads';
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
 import { installCommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
-import { StatePublicationError, StatePublicationStore, createStatePublisher, initialStateManifest } from '../src/state/publication.js';
-import type { MemoryStateManifest, PublishedState, StateManifest, StatePublishCommand, StatePublisher } from '../src/state/publication.js';
+import { StatePublicationError, StatePublicationStore, createStatePublisher, initialStateManifest, manifestWithMemoryAvailability, manifestWithAbilityAvailability } from '../src/state/publication.js';
+import type { MemoryStateManifest, PublishedState, StateManifest, StatePublishCommand, StatePublisher, AvailableAbilityDomain } from '../src/state/publication.js';
 
 const actor = createStatePublisher('state-service');
 const code = (expected: string) => (error: unknown) => error instanceof StatePublicationError && error.code === expected;
@@ -22,6 +22,8 @@ function memoryManifest(semantic = false): MemoryStateManifest {
       capabilities: semantic ? ['exact_read', 'semantic_search'] : ['exact_read'],
       ...(semantic ? { profileFingerprint: 'a'.repeat(64) } : {}) } } };
 }
+const abilityRead = (authorityId = 'ability-authority-one'): AvailableAbilityDomain => ({ status: 'available', backendId: 'control-ability', authorityId, capabilities: ['state_read'] });
+const expected = (publication: PublishedState, requestId: string) => ({ requestId, expectedStateVersion: publication.stateVersion, expectedBaselineId: publication.baselineId });
 function fixture(t: TestContext, tracked = false) {
   const directory = mkdtempSync(path.join(tmpdir(), 'shiyu-state-publication-'));
   const filename = path.join(directory, 'control.sqlite'); const connections: DatabaseSync[] = [];
@@ -288,4 +290,125 @@ test('a failed memory availability receipt rolls back schema upgrade and leaves 
   const memory = f.store.publish(actor, next(initial.publication, 'memory', memoryManifest(true)));
   const current = f.open(); assert.deepEqual(current.store.get(), memory.publication);
   assert.equal(count(current.db), 2);
+});
+
+test('schema3 adds only ability read availability while preserving schema1/2 publication and exact receipts', t => {
+  const f = fixture(t), legacyCommand = { requestId: 'legacy', manifest: initialStateManifest() };
+  const legacy = f.store.publish(actor, legacyCommand), memoryCommand = next(legacy.publication, 'memory', memoryManifest(true));
+  const memory = f.store.publish(actor, memoryCommand);
+  const priorRows = f.db.prepare('SELECT * FROM shiyu_state_publication_commands ORDER BY rowid').all();
+  const metadata = f.db.prepare('SELECT * FROM shiyu_state_publication_meta').get();
+  const command = { ...expected(memory.publication, 'ability'), availability: abilityRead() };
+  const ability = f.store.publishAbilityAvailability(actor, command);
+  assert.equal(ability.publication.manifest.schemaVersion, 3); assert.equal(ability.publication.stateVersion, 3);
+  assert.equal(ability.publication.baselineId, legacy.publication.baselineId);
+  assert.deepEqual(ability.publication.manifest.domains.memory, memory.publication.manifest.domains.memory);
+  assert.deepEqual(ability.publication.manifest.domains.ability, abilityRead());
+  for (const domain of ['relationship', 'emotion', 'cognition', 'personality'] as const) assert.deepEqual(ability.publication.manifest.domains[domain], legacy.publication.manifest.domains[domain]);
+  assert.deepEqual(f.db.prepare('SELECT * FROM shiyu_state_publication_commands ORDER BY rowid LIMIT 2').all(), priorRows);
+  assert.deepEqual(f.db.prepare('SELECT * FROM shiyu_state_publication_meta').get(), metadata);
+  f.db.close(); const reopened = f.open();
+  assert.deepEqual(reopened.store.get(), ability.publication);
+  assert.deepEqual(reopened.store.publish(actor, legacyCommand), legacy);
+  assert.deepEqual(reopened.store.publish(actor, memoryCommand), memory);
+  assert.deepEqual(reopened.store.publishMemoryAvailability(actor, { ...expected(legacy.publication, 'memory'), availability: memoryManifest(true).domains.memory }), memory);
+  assert.deepEqual(reopened.store.publishAbilityAvailability(actor, command), ability);
+  assert.equal(count(reopened.db), 3);
+  assert.throws(() => reopened.store.publish(actor, next(ability.publication, 'downgrade2', memoryManifest())), code('SCHEMA_DOWNGRADE'));
+  assert.throws(() => reopened.store.publish(actor, next(ability.publication, 'downgrade1')), code('SCHEMA_DOWNGRADE'));
+});
+
+test('availability helpers preserve the other domain and retry historical intents instead of rebuilding them from the current head', t => {
+  const f = fixture(t, true), legacy = f.store.publish(actor, { requestId: 'legacy', manifest: initialStateManifest() });
+  // The original memory command predates the helper and schema3 entirely.
+  const oldMemoryCommand = next(legacy.publication, 'old-memory', memoryManifest(true));
+  const oldMemory = f.store.publish(actor, oldMemoryCommand);
+  const firstAbilityCommand = { ...expected(oldMemory.publication, 'first-ability'), availability: abilityRead() };
+  const firstAbility = f.store.publishAbilityAvailability(actor, firstAbilityCommand);
+  const stopped = f.store.publishMemoryAvailability(actor, { ...expected(firstAbility.publication, 'memory-stop'), availability: { status: 'unavailable', reason: 'source_unavailable' } });
+  assert.equal(stopped.publication.manifest.schemaVersion, 3);
+  assert.deepEqual(stopped.publication.manifest.domains.ability, abilityRead());
+  const changedAbility = f.store.publishAbilityAvailability(actor, { ...expected(stopped.publication, 'new-authority'), availability: abilityRead('ability-authority-two') });
+  assert.deepEqual(changedAbility.publication.manifest.domains.memory, stopped.publication.manifest.domains.memory);
+  const before = f.watermark!.read(), rows = count(f.db);
+  const replay = { ...expected(legacy.publication, 'old-memory'), availability: memoryManifest(true).domains.memory };
+  assert.deepEqual(f.store.publishMemoryAvailability(actor, replay), oldMemory);
+  assert.deepEqual(f.store.publishAbilityAvailability(actor, firstAbilityCommand), firstAbility);
+  assert.deepEqual(f.store.get(), changedAbility.publication); assert.deepEqual(f.watermark!.read(), before); assert.equal(count(f.db), rows);
+  for (const modified of [ { ...replay, availability: memoryManifest().domains.memory },
+    { ...replay, expectedStateVersion: replay.expectedStateVersion + 1 }, { ...replay, expectedBaselineId: 'another-baseline' } ]) {
+    assert.throws(() => f.store.publishMemoryAvailability(actor, modified), code('IDEMPOTENCY_CONFLICT'));
+  }
+  assert.throws(() => f.store.publishMemoryAvailability(createStatePublisher('another-publisher'), replay), code('IDEMPOTENCY_CONFLICT'));
+  assert.throws(() => f.store.publishAbilityAvailability(actor, { ...firstAbilityCommand, availability: abilityRead('different-authority') }), code('IDEMPOTENCY_CONFLICT'));
+  assert.deepEqual(f.watermark!.read(), before);
+});
+
+test('schema3 ability metadata is a closed read description, never registration, permission, health or verification', t => {
+  const f = fixture(t), initial = f.store.publish(actor, { requestId: 'initial', manifest: initialStateManifest() }).publication;
+  const invalid: unknown[] = [ {}, { status: 'available' }, { ...abilityRead(), backendId: 'dsh-tools' },
+    { ...abilityRead(), authorityId: '' }, { ...abilityRead(), authorityId: 'private authority' },
+    { ...abilityRead(), capabilities: [] }, { ...abilityRead(), capabilities: ['execute'] }, { ...abilityRead(), capabilities: ['state_read', 'state_read'] },
+    { ...abilityRead(), capabilities: ['state_read', 'write'] }, { ...abilityRead(), enabled: true }, { ...abilityRead(), verification: 'verified' },
+    { ...abilityRead(), body: 'native tool source' }, { ...abilityRead(), safetyRevision: 1 }, { ...abilityRead(), definitionDigest: 'a'.repeat(64) },
+    { ...abilityRead(), reason: 'not_connected' } ];
+  for (const availability of invalid) assert.throws(() => f.store.publishAbilityAvailability(actor, { ...expected(initial, 'bad'), availability } as never), StatePublicationError);
+  let accessed = false; const getter = abilityRead(); Object.defineProperty(getter, 'authorityId', { enumerable: true, get: () => { accessed = true; return 'forged'; } });
+  assert.throws(() => f.store.publishAbilityAvailability(actor, { ...expected(initial, 'getter'), availability: getter }), code('INVALID_SCHEMA')); assert.equal(accessed, false);
+  const schema3 = manifestWithAbilityAvailability(initial.manifest, abilityRead());
+  for (const domain of ['relationship', 'emotion', 'cognition', 'personality'] as const) {
+    const body = structuredClone(schema3); (body.domains as Record<string, unknown>)[domain] = abilityRead();
+    assert.throws(() => f.store.publish(actor, next(initial, `bad-${domain}`, body)), StatePublicationError);
+  }
+  assert.throws(() => f.store.publish(actor, next(initial, 'disguised-schema2', { ...schema3, schemaVersion: 2 } as StateManifest)), StatePublicationError);
+  for (const forged of [structuredClone(actor), { principalId: actor.principalId }] as StatePublisher[]) {
+    assert.throws(() => f.store.publishAbilityAvailability(forged, { ...expected(initial, 'forged'), availability: abilityRead() }), code('FORBIDDEN'));
+    assert.throws(() => f.store.publishMemoryAvailability(forged, { ...expected(initial, 'forged'), availability: memoryManifest().domains.memory }), code('FORBIDDEN'));
+  }
+  assert.equal(count(f.db), 1); assert.deepEqual(f.store.get(), initial);
+});
+
+test('pure composition and 1000 schema3 reads never publish or change control watermarks', t => {
+  const f = fixture(t, true), initial = f.store.publish(actor, { requestId: 'initial', manifest: initialStateManifest() }).publication;
+  const source = memoryManifest(true), original = structuredClone(source), available = abilityRead(), originalAbility = structuredClone(available);
+  const combined = manifestWithAbilityAvailability(source, available), updated = manifestWithMemoryAvailability(combined, { status: 'unavailable', reason: 'not_connected' });
+  assert.equal(updated.schemaVersion, 3); assert.deepEqual(updated.domains.ability, available);
+  assert.deepEqual(source, original); assert.deepEqual(available, originalAbility);
+  available.authorityId = 'changed-after-composition'; assert.deepEqual(combined.domains.ability, originalAbility);
+  assert.equal(count(f.db), 1); assert.deepEqual(f.store.get(), initial);
+  const publication = f.store.publish(actor, next(initial, 'combined', combined)).publication;
+  const before = f.watermark!.read(), changes = f.db.prepare('SELECT total_changes() AS n').get()!.n;
+  for (let i = 0; i < 1000; i++) assert.deepEqual(f.store.get(), publication);
+  assert.deepEqual(f.watermark!.read(), before); assert.equal(f.db.prepare('SELECT total_changes() AS n').get()!.n, changes); assert.equal(count(f.db), 2);
+});
+
+test('ability availability withdrawal keeps schema3 and preserved memory while noop and stale-CAS rules remain unchanged', t => {
+  const f = fixture(t), initial = f.store.publish(actor, { requestId: 'initial', manifest: initialStateManifest() }).publication;
+  const memory = f.store.publishMemoryAvailability(actor, { ...expected(initial, 'memory'), availability: memoryManifest(true).domains.memory }).publication;
+  const ability = f.store.publishAbilityAvailability(actor, { ...expected(memory, 'ability'), availability: abilityRead() }).publication;
+  const second = f.open(), stale = second.store.get()!;
+  const sameCommand = { ...expected(ability, 'same'), availability: abilityRead() };
+  const same = f.store.publishAbilityAvailability(actor, sameCommand);
+  assert.equal(same.status, 'unchanged'); assert.deepEqual(same.publication, ability);
+  const stopped = f.store.publishAbilityAvailability(actor, { ...expected(ability, 'stop'), availability: { status: 'unavailable', reason: 'source_unavailable' } });
+  assert.equal(stopped.publication.manifest.schemaVersion, 3); assert.deepEqual(stopped.publication.manifest.domains.memory, memory.manifest.domains.memory);
+  assert.throws(() => second.store.publishMemoryAvailability(actor, { ...expected(stale, 'stale-memory'), availability: { status: 'unavailable', reason: 'source_unavailable' } }), code('VERSION_CONFLICT'));
+  assert.deepEqual(second.store.get(), stopped.publication);
+  const rowCount = count(second.db);
+  assert.deepEqual(second.store.publishAbilityAvailability(actor, sameCommand), same);
+  assert.deepEqual(second.store.get(), stopped.publication); assert.equal(count(second.db), rowCount);
+});
+
+test('schema3 receipt failure atomically rolls back the upgrade and cannot initialize a newer schema implicitly', t => {
+  const f = fixture(t);
+  assert.throws(() => f.store.publish(actor, { requestId: 'skip-initial', manifest: manifestWithAbilityAvailability(initialStateManifest(), abilityRead()) }), code('INVALID_INITIAL_MANIFEST'));
+  assert.equal(f.store.get(), undefined); assert.equal(count(f.db), 0);
+  const initial = f.store.publish(actor, { requestId: 'initial', manifest: initialStateManifest() }).publication;
+  const memory = f.store.publishMemoryAvailability(actor, { ...expected(initial, 'memory'), availability: memoryManifest(true).domains.memory }).publication;
+  const command = { ...expected(memory, 'ability'), availability: abilityRead() };
+  f.db.exec("CREATE TRIGGER deny_ability_receipt BEFORE INSERT ON shiyu_state_publication_commands BEGIN SELECT RAISE(ABORT,'synthetic ability publication failure'); END");
+  assert.throws(() => f.store.publishAbilityAvailability(actor, command), /synthetic ability publication failure/);
+  assert.deepEqual(f.store.get(), memory); assert.equal(count(f.db), 2);
+  f.db.exec('DROP TRIGGER deny_ability_receipt');
+  assert.equal(f.store.publishAbilityAvailability(actor, command).publication.manifest.schemaVersion, 3);
 });

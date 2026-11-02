@@ -6,6 +6,8 @@ import type { LocalArtifactStore } from '../adapters/artifacts/index.js';
 
 export interface TaskWorkerDriver {
   initialize(): Promise<void>;
+  /** Trusted zero-model dependency preflight; absent drivers cannot claim capability availability. */
+  prepareLocalNote?(): Promise<{ dependencyFingerprint: string }>;
   run(request: WorkerRunRequest): Promise<WorkerRunResult>;
   close(): Promise<void>;
 }
@@ -54,7 +56,13 @@ export class LocalTaskRunner {
             await tool.assertPermit(); tool.signal.throwIfAborted();
             const dispatch = await this.store.request('task.assertEffect', { permit, claim });
             options.progress('写入本体专属产物并独立读取核对');
-            await this.artifacts.write({ taskId, content: dispatch.payload.content, expectedSha256: dispatch.payload.sha256, signal: tool.signal });
+            await this.artifacts.write({ taskId, content: dispatch.payload.content, expectedSha256: dispatch.payload.sha256, signal: tool.signal,
+              beforePublish: async () => {
+                // The temporary file is durable, but the named effect is not yet published.
+                // Recheck the original durable claim immediately before the no-overwrite link.
+                await this.store.request('task.assertEffect', { permit, claim });
+                tool.signal.throwIfAborted(); options.signal.throwIfAborted();
+              } });
             // Read again independently. A tool's own success message is not proof.
             const observed = await this.artifacts.inspect({ taskId, expectedSha256: dispatch.payload.sha256 });
             if (!observed) throw new Error('Artifact disappeared before independent verification');

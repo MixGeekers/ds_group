@@ -14,6 +14,10 @@ export interface ArtifactWrite {
   content: string;
   expectedSha256: string;
   signal?: AbortSignal;
+  /** Trusted execution gate after temporary-file fsync, before any new publication.
+   * Not called for an already-present same-content artifact. No DB transaction
+   * may remain open across this asynchronous filesystem operation. */
+  beforePublish?: () => Promise<void> | void;
 }
 export interface ArtifactInspect { taskId: string; expectedSha256?: string }
 export class ArtifactError extends Error {
@@ -200,6 +204,14 @@ export class LocalArtifactStore {
     await unlink(temp.path);
     await durable(anchors.at(-1)!.handle, artifactRef);
   }
+  /** Read-only preflight of the already-held private root; creates no paths. */
+  inspectRoot(): Promise<void> {
+    return this.run(async () => {
+      cancelled(this.shutdown.signal, 'artifact:root');
+      await this.verify(this.rootAnchor);
+      cancelled(this.shutdown.signal, 'artifact:root');
+    });
+  }
   /** Creates only the verified task directory, suitable as a native DSH cwd. */
   prepareWorkspace(id: string): Promise<string> {
     return this.run(async () => {
@@ -225,11 +237,13 @@ export class LocalArtifactStore {
   }
   write(input: ArtifactWrite): Promise<ArtifactObservation> {
     return this.run(async () => {
-      checkInput(input, ['taskId', 'content', 'expectedSha256', 'signal']); const id = taskId(input.taskId); const expected = hash(input.expectedSha256);
+      checkInput(input, ['taskId', 'content', 'expectedSha256', 'signal', 'beforePublish']); const id = taskId(input.taskId); const expected = hash(input.expectedSha256);
       if (typeof input.content !== 'string' || Buffer.byteLength(input.content, 'utf8') > bytesLimit) throw new ArtifactError('INVALID_INPUT', 'Artifact content must be at most 1024 UTF-8 bytes.');
       const content = Buffer.from(input.content, 'utf8');
       if (sha256(content) !== expected) throw new ArtifactError('INVALID_INPUT', 'Expected SHA-256 does not match the supplied content.');
       if (input.signal !== undefined && !(input.signal instanceof AbortSignal)) throw new ArtifactError('INVALID_INPUT', 'Invalid cancellation signal.');
+      const beforePublish = input.beforePublish;
+      if (beforePublish !== undefined && typeof beforePublish !== 'function') throw new ArtifactError('INVALID_INPUT', 'Invalid publication gate.');
       const signal = input.signal ? AbortSignal.any([input.signal, this.shutdown.signal]) : this.shutdown.signal;
       const artifactRef = ref(id); cancelled(signal, artifactRef);
       let anchors: DirectoryAnchor[] = []; let temp: OwnedTemporary | undefined; let published = false; let observed = false;
@@ -253,10 +267,22 @@ export class LocalArtifactStore {
             await handle.writeFile(content); await durable(handle, artifactRef);
           } finally { await handle.close(); }
           await this.verifyAll(anchors); cancelled(signal, artifactRef);
-          try {
-            await link(temp.path, path.join(anchors.at(-1)!.path, 'note.txt')); published = true;
-          } catch (error) {
-            if (!isCode(error, 'EEXIST')) throw new ArtifactUnknownError(artifactRef, 'Artifact publication result could not be confirmed.', error);
+          if (beforePublish) {
+            try { await beforePublish(); }
+            catch (error) { throw new ArtifactError('PUBLICATION_DENIED', 'Artifact publication gate rejected the operation.', 'not_written', { cause: error }); }
+          }
+          cancelled(signal, artifactRef);
+          // The gate can await trusted control-store facts. Recheck filesystem
+          // identities and any target created meanwhile before attempting link.
+          const appeared = await this.observe(id, anchors, expected, true);
+          cancelled(signal, artifactRef, Boolean(appeared));
+          if (appeared) observed = true;
+          else {
+            try {
+              await link(temp.path, path.join(anchors.at(-1)!.path, 'note.txt')); published = true;
+            } catch (error) {
+              if (!isCode(error, 'EEXIST')) throw new ArtifactUnknownError(artifactRef, 'Artifact publication result could not be confirmed.', error);
+            }
           }
           await this.verifyAll(anchors);
           await durable(anchors.at(-1)!.handle, artifactRef);

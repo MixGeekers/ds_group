@@ -17,6 +17,7 @@ import { GoalOperationUnknownError, type GoalAdapterOptions, type GoalAuthorityC
   type CoreDecisionRequest, type CoreDecisionResult } from '../src/adapters/dsh/goals.js';
 import type { DshContext } from '../src/adapters/dsh/sessions.js';
 import type { CoreCommands, CoreDomainRequest, CoreGoal, CorePrepareInput } from '../src/contracts/core.js';
+import { installCoreCapabilityFixture } from './helpers/core-capability.js';
 
 // Real Core/Task/Goal-binding/authorization SQLite domains and actual bounded
 // artifact files; only native lifecycle and model output are test doubles.
@@ -149,8 +150,9 @@ async function setup(t: TestContext) {
   const tx = new SqliteTransactions(db), runtimeIdentity = { hostEpoch: 'fixture-core-host', installationGeneration: 'fixture-core-install' };
   let allowed = true, capacity = true, inspections = 0, onGoalStopped: ((goal: CoreGoal) => void) | undefined;
   const tasks = new TaskDomain(db, tx, { runtimeIdentity }), bindings = new SQLiteGoalBindingStore(db, tx);
-  const core = new CoreDomain(db, tx, { runtimeIdentity, tasks, goals: bindings, isPaused: () => !allowed });
-  const watermark = installCommitWatermark(db, tx), artifacts = await LocalArtifactStore.open(join(directory, 'workspaces'));
+  const watermark = installCommitWatermark(db, tx), reads = installCoreCapabilityFixture(db, tx, tasks, runtimeIdentity, watermark);
+  const core = new CoreDomain(db, tx, { runtimeIdentity, tasks, goals: bindings, isPaused: () => !allowed, ...reads });
+  const artifacts = await LocalArtifactStore.open(join(directory, 'workspaces'));
   const trace: string[] = [], errors: { command: string; message: string; code?: string }[] = [];
   const store = { async request<K extends keyof Commands>(command: K, args: Commands[K]['input']): Promise<Commands[K]['output']> {
     trace.push(command);
@@ -189,7 +191,7 @@ async function setup(t: TestContext) {
     await store.request('task.verify', { taskId }); core.enqueueTaskFact({ taskId, eventId: `fixture-completion:${taskId}` });
     return plan;
   };
-  return { service, store, tasks, core, bindings, artifacts, directory, db, watermark, trace, errors, input, completeTask,
+  return { service, store, tasks, core, bindings, artifacts, directory, db, watermark, trace, errors, input, completeTask, reads,
     get native() { return native; }, get inspections() { return inspections; }, setAllowed(value: boolean) { allowed = value; }, setCapacity(value: boolean) { capacity = value; },
     setStopHook(hook: (goal: CoreGoal) => void) { onGoalStopped = hook; },
     get(goalId: string): Promise<CoreGoal> { return store.request('core.get', { goalId }); } };
@@ -202,6 +204,88 @@ test('owner creation binds one native Goal and duplicate requests never replay c
   const before = f.watermark.read(), calls = [...f.native.calls];
   await f.get(goal.goalId); await f.store.request('core.snapshot', {}); assert.deepEqual(f.watermark.read(), before); assert.deepEqual(f.native.calls, calls);
   await assert.rejects(f.service.create({ ...input, objective: 'Changed intent' }), /same|idempot|different/i);
+});
+
+test('capability unavailability is a zero-model pending state and the actual read-only view enters the later prompt', async t => {
+  const f = await setup(t), goal = await f.service.create(f.input()), cap = f.reads.capability;
+  cap.setEnabled({ requestId: 'pause-ability', expectedRevision: cap.snapshot().revision, enabled: false });
+  const before = f.watermark.read();
+  assert.equal((await f.service.evaluatePending()).status, 'idle');
+  assert.equal(f.native.decisions.length, 0); assert.deepEqual(f.watermark.read(), before);
+  cap.setEnabled({ requestId: 'resume-ability', expectedRevision: cap.snapshot().revision, enabled: true });
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated');
+  assert.equal(f.native.decisions.length, 1);
+  const text = f.native.decisions[0]!.prompt;
+  const payload = JSON.parse(text.split('\n获准资料：')[1]!.split('\n能力资料')[0]!);
+  assert.equal(payload.goalId, goal.goalId);
+  assert.equal(payload.capabilityView.purpose, 'core_decision');
+  assert.equal(payload.capabilityView.data[0].fields.capability.verification, 'unknown');
+  assert.equal(payload.capabilityView.data[0].fields.capability.usableForAuthorizedTask, true);
+  assert.equal(payload.capabilityView.authority.ability.authorityId, cap.snapshot().authorityId);
+  assert.equal(payload.capabilityView.sourceRefs[0].sourceId, 'capability:task.local-note.execute');
+  assert.ok(f.trace.includes('core.readView'));
+});
+
+test('capability revocation after a known model result rejects the intent instead of creating a permanent unknown', async t => {
+  const f = await setup(t), goal = await f.service.create(f.input()), cap = f.reads.capability;
+  f.native.beforeAccounting = () => { cap.setEnabled({ requestId: 'disable-during-model', expectedRevision: cap.snapshot().revision, enabled: false }); };
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated');
+  const evaluation = (await f.store.request('core.evaluations', { goalId: goal.goalId }))[0]!;
+  assert.equal(evaluation.status, 'rejected'); assert.equal(evaluation.reasonCode, 'CORE_CAPABILITY_CHANGED');
+  const current = await f.get(goal.goalId);
+  assert.equal(current.activeEvaluationId, undefined); assert.deepEqual(current.taskRefs, []);
+  const balance = await f.store.request('core.balance', { goalId: goal.goalId });
+  assert.deepEqual(balance!.held, { tokens: 0, calls: 0, effects: 0 });
+  assert.equal((await f.service.evaluatePending()).status, 'idle'); assert.equal(f.native.decisions.length, 1);
+  f.native.beforeAccounting = undefined;
+  cap.setEnabled({ requestId: 'enable-after-known-rejection', expectedRevision: cap.snapshot().revision, enabled: true });
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated'); assert.equal(f.native.decisions.length, 2);
+  assert.equal((await f.get(goal.goalId)).taskRefs.length, 1);
+  const rounds = await f.store.request('core.evaluations', { goalId: goal.goalId });
+  assert.equal(rounds[0]!.status, 'rejected'); assert.equal(rounds[1]!.status, 'committed');
+  assert.notEqual(rounds[0]!.evaluationId, rounds[1]!.evaluationId);
+});
+
+test('capability disable between claim and ReadView makes zero native rounds and can later start a new bounded evaluation', async t => {
+  const f = await setup(t), goal = await f.service.create(f.input()), cap = f.reads.capability;
+  const request = f.store.request.bind(f.store); let disabled = false;
+  f.store.request = async <K extends keyof Commands>(command: K, args: Commands[K]['input']): Promise<Commands[K]['output']> => {
+    if (command === 'core.readView' && !disabled) {
+      disabled = true; cap.setEnabled({ requestId: 'disable-before-view', expectedRevision: cap.snapshot().revision, enabled: false });
+    }
+    return request(command, args);
+  };
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated'); assert.equal(f.native.decisions.length, 0);
+  const first = (await f.store.request('core.evaluations', { goalId: goal.goalId }))[0]!;
+  assert.equal(first.status, 'rejected'); assert.equal(first.reasonCode, 'CORE_VIEW_UNAVAILABLE');
+  const balance = (await f.store.request('core.balance', { goalId: goal.goalId }))!;
+  assert.deepEqual(balance.spent, { tokens: 0, calls: 0, effects: 0 }); assert.deepEqual(balance.held, balance.spent);
+  assert.equal((await f.get(goal.goalId)).evaluations, 1);
+  assert.equal((await f.service.evaluatePending()).status, 'idle'); assert.equal(f.native.decisions.length, 0);
+  cap.setEnabled({ requestId: 'enable-after-view-failure', expectedRevision: cap.snapshot().revision, enabled: true });
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated'); assert.equal(f.native.decisions.length, 1);
+  const rounds = await f.store.request('core.evaluations', { goalId: goal.goalId });
+  assert.equal(rounds[0]!.status, 'rejected'); assert.equal(rounds[1]!.status, 'committed');
+  assert.notEqual(rounds[0]!.evaluationId, rounds[1]!.evaluationId); assert.equal((await f.get(goal.goalId)).evaluations, 2);
+});
+
+test('a lost zero-call rejection response is read back as rejected rather than reported unknown', async t => {
+  const f = await setup(t), goal = await f.service.create(f.input()), cap = f.reads.capability;
+  const request = f.store.request.bind(f.store); let disabled = false, lost = false;
+  f.store.request = async <K extends keyof Commands>(command: K, args: Commands[K]['input']): Promise<Commands[K]['output']> => {
+    if (command === 'core.readView' && !disabled) {
+      disabled = true; cap.setEnabled({ requestId: 'lost-response-disable', expectedRevision: cap.snapshot().revision, enabled: false });
+    }
+    const result = await request(command, args);
+    if (command === 'core.rejectEvaluation' && !lost) { lost = true; throw new Error('Synthetic lost committed rejection response'); }
+    return result;
+  };
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated');
+  assert.equal(lost, true); assert.equal(f.native.decisions.length, 0); assert.ok(f.trace.includes('core.markUnknown'));
+  const evaluation = (await f.store.request('core.evaluations', { goalId: goal.goalId }))[0]!;
+  assert.equal(evaluation.status, 'rejected'); assert.equal(evaluation.reasonCode, 'CORE_VIEW_UNAVAILABLE');
+  const balance = (await f.store.request('core.balance', { goalId: goal.goalId }))!;
+  assert.deepEqual(balance.spent, { tokens: 0, calls: 0, effects: 0 }); assert.deepEqual(balance.held, balance.spent);
 });
 
 test('model JSON and expired operation capabilities cannot impersonate owner authority', async t => {

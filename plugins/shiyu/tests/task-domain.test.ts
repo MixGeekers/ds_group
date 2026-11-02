@@ -7,6 +7,7 @@ import test, { type TestContext } from 'node:test';
 import { ControlStore } from '../src/adapters/control-store/index.js';
 import { SHIYU_EVENT_TYPES, type EventPrincipal, type EventTypeDefinition } from '../src/contracts/events.js';
 import type { TaskExecutionPlan, TaskRuntimeIdentity, TaskUsageObservation } from '../src/adapters/control-store/task-domain.js';
+import { syntheticLocalNoteBinding, observeSyntheticLocalNote } from './helpers/capability.js';
 
 const identity: TaskRuntimeIdentity = { hostEpoch: 'synthetic-host-1', installationGeneration: 'synthetic-install-1' };
 const observer: EventPrincipal = { principalId: 'local-owner-observer', kind: 'component', scopes: ['local-owner'], publishTypes: [], subscribeTypes: ['task.succeeded'], targetRefs: [] };
@@ -16,8 +17,10 @@ async function fixture(t: TestContext, config: { identity?: TaskRuntimeIdentity 
   const stores: ControlStore[] = [];
   const open = async (runtimeIdentity: TaskRuntimeIdentity | null = config.identity === undefined ? identity : config.identity) => {
     const store = await ControlStore.open({ filename: join(directory, 'control.sqlite'), eventTypes: config.types ?? SHIYU_EVENT_TYPES,
-      componentHandlers: [], ...(runtimeIdentity ? { runtimeIdentity } : {}) });
-    stores.push(store); return store;
+      componentHandlers: [], ...(runtimeIdentity ? { runtimeIdentity, localNoteBinding: syntheticLocalNoteBinding(runtimeIdentity.installationGeneration) } : {}) });
+    stores.push(store);
+    if (runtimeIdentity) await observeSyntheticLocalNote(store, runtimeIdentity);
+    return store;
   };
   t.after(async () => { await Promise.all(stores.map(store => store.close())); await rm(directory, { recursive: true, force: true }); });
   return { store: await open(), open, filename: join(directory, 'control.sqlite') };

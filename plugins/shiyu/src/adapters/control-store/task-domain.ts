@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { types } from 'node:util';
 import type { DatabaseSync } from 'node:sqlite';
 import { EffectLedger, type EffectClaim, type EffectRecord, type EffectReceipt, type DispatchVerdict } from '../../control/effects/index.js';
 import { MandateStore, type BudgetReservation, type TrustedPolicyActor } from '../../control/policy/mandates.js';
@@ -8,6 +9,8 @@ import { SQLiteTaskRepositories } from './task-repositories.js';
 import { SqliteTransactions } from './transaction.js';
 import { createControlAuthority } from './authority.js';
 import type { CoreTaskDelegation } from '../../contracts/core.js';
+import { validateCapabilityRef, type CapabilityAuthorityPort, type CapabilityRef, type CapabilityTaskEvidence } from '../../contracts/capability.js';
+import { inspectTaskEvidence, GoalLifecycleEvidenceError } from '../../control/goal-lifecycle.js';
 
 export interface TaskRuntimeIdentity { hostEpoch: string; installationGeneration: string }
 /** Opaque trusted runtime capability. Never accepted from public UI/model arguments. */
@@ -48,6 +51,8 @@ export interface TaskExecutionSummary {
 }
 export interface TaskDetail {
   task: TaskView;
+  /** Admission binding, absent only on legacy records; never a caller-provided grant. */
+  capabilityRef?: CapabilityRef;
   artifact: { artifactRef: string; expectedSha256: string; byteLength: number };
   execution?: TaskExecutionSummary;
   effects: EffectRecord[];
@@ -107,7 +112,8 @@ export type TaskDomainRequest = { [K in keyof TaskCommands]: { command: K; args:
 interface LocalInput {
   taskId: string; requestId: string; title: string; content: string; expectedSha256: string;
   byteLength: number; artifactRef: string; mandateId: string; createdAt: string;
-  delegation?: { goalId: string; deliverableId: string; resourceRef: string; subjectId: string };
+  delegation?: { goalId: string; deliverableId: string; resourceRef: string; subjectId: string; sourceRefs?: string[] };
+  capabilityRef?: CapabilityRef;
 }
 interface Execution extends TaskExecutionSummary { taskId: string; reservationId: string; permit?: TaskExecutionPermit }
 interface DomainOptions {
@@ -191,6 +197,7 @@ export class TaskDomain {
   private coreAuthority?: (goalId: string, deliverableId: string) => CoreTaskDelegation;
   private delegatedAdmission?: CoreTaskDelegation;
   private corePauseObserver?: () => void;
+  private capabilityAuthority?: Pick<CapabilityAuthorityPort, 'requireCurrent' | 'assertCurrent'>;
 
   constructor(private readonly db: DatabaseSync, private readonly tx: SqliteTransactions, private readonly options: DomainOptions) {
     if (!tx.owns(db)) fail('TRANSACTION_MISMATCH', 'Task domain and transaction owner must share one connection');
@@ -254,6 +261,46 @@ export class TaskDomain {
   private paused(): boolean { this.tx.assertUsable(); return this.db.prepare('SELECT paused FROM shiyu_task_domain_meta WHERE id=1').get()!.paused === 1; }
   /** Same-Worker read-only pause gate shared with delegated Core admission. */
   isPaused(): boolean { return this.paused(); }
+  /** Same-Worker synchronous authority, installed once; no public command can install it. */
+  setCapabilityAuthority(authority: Pick<CapabilityAuthorityPort, 'requireCurrent' | 'assertCurrent'>): void {
+    if (this.capabilityAuthority) fail('CAPABILITY_AUTHORITY_INSTALLED', 'Task capability authority is immutable');
+    if (!authority || ['requireCurrent', 'assertCurrent'].some(name => {
+      const method = authority[name as keyof typeof authority];
+      return typeof method !== 'function' || types.isAsyncFunction(method);
+    })) fail('CAPABILITY_AUTHORITY_REQUIRED', 'Task capability authority must be synchronous');
+    this.capabilityAuthority = { requireCurrent: authority.requireCurrent.bind(authority), assertCurrent: authority.assertCurrent.bind(authority) };
+  }
+  private synchronous<T>(value: T): T {
+    if (value && (typeof value === 'object' || typeof value === 'function') && 'then' in value) {
+      if (types.isPromise(value)) Promise.prototype.then.call(value, undefined, () => {});
+      fail('CAPABILITY_AUTHORITY_REQUIRED', 'Task capability authority cannot perform asynchronous I/O');
+    }
+    return value;
+  }
+  private requireCapability(): CapabilityRef {
+    if (!this.capabilityAuthority) fail('CAPABILITY_AUTHORITY_REQUIRED', 'Current trusted capability authority is unavailable');
+    const ref = validateCapabilityRef(this.synchronous(this.capabilityAuthority!.requireCurrent()));
+    if (ref.installationGeneration !== this.options.runtimeIdentity.installationGeneration) fail('STALE_CAPABILITY', 'Task capability belongs to another installation');
+    return ref;
+  }
+  private assertCapability(ref: CapabilityRef | undefined): void {
+    if (!ref || !this.capabilityAuthority) fail('CAPABILITY_AUTHORITY_REQUIRED', 'Current trusted capability binding is unavailable');
+    const checked = validateCapabilityRef(ref!);
+    if (checked.installationGeneration !== this.options.runtimeIdentity.installationGeneration) fail('STALE_CAPABILITY', 'Task capability belongs to another installation');
+    this.synchronous(this.capabilityAuthority!.assertCurrent(checked));
+  }
+  /** Only an assignment that provably never dispatched may refresh its safety revision.
+   * Definition/environment changes require a new explicit admission, not an implicit upgrade. */
+  private capturePendingCapability(local: LocalInput): void {
+    const current = this.requireCapability(), old = local.capabilityRef;
+    if (old && (['capabilityId', 'authorityId', 'definitionDigest', 'installationGeneration', 'environmentFingerprint'] as const)
+      .some(key => old[key] !== current[key])) fail('STALE_CAPABILITY', 'Pending task capability implementation or environment changed');
+    this.assertCapability(current);
+    if (!old || digest(old) !== digest(current)) {
+      local.capabilityRef = current;
+      this.db.prepare('UPDATE shiyu_task_local_inputs SET value=? WHERE task_id=?').run(JSON.stringify(local), local.taskId);
+    }
+  }
   /** Same-Worker notification; joins the durable global pause transaction. */
   setCorePauseObserver(observer: () => void): void {
     if (this.corePauseObserver) fail('CORE_AUTHORITY_INSTALLED', 'Core pause observer is immutable');
@@ -286,6 +333,7 @@ export class TaskDomain {
           || local.delegation?.resourceRef !== delegation.resourceRef) fail('IDEMPOTENCY_CONFLICT', 'Core deliverable identity changed');
         return this.get(local.taskId);
       }
+      this.assertCapability(delegation.capabilityRef);
       const grant = this.mandates.get(OWNER, delegation.mandateId);
       if (grant.state !== 'active' || grant.version !== delegation.mandateVersion || grant.authEpoch !== delegation.authEpoch
         || !grant.subjectIds.includes(delegation.subjectId) || !grant.allowedResources.includes(delegation.resourceRef)
@@ -303,8 +351,8 @@ export class TaskDomain {
       const taskId = key('ticket', candidate.evalId), artifactRef = `artifact:${taskId}`;
       const local: LocalInput = { taskId, requestId, title: delegation.title, content: delegation.content,
         expectedSha256: sha256(delegation.content), byteLength: Buffer.byteLength(delegation.content), artifactRef,
-        mandateId: grant.mandateId, createdAt: at, delegation: { goalId: input.goalId, deliverableId: input.deliverableId,
-          resourceRef: delegation.resourceRef, subjectId: delegation.subjectId } };
+        mandateId: grant.mandateId, createdAt: at, capabilityRef: clone(delegation.capabilityRef!), delegation: { goalId: input.goalId, deliverableId: input.deliverableId,
+          resourceRef: delegation.resourceRef, subjectId: delegation.subjectId, sourceRefs: clone(delegation.sourceRefs) } };
       this.db.prepare('INSERT INTO shiyu_task_local_inputs VALUES(?,?,?,?)').run(taskId, requestId, requestHash, JSON.stringify(local));
       this.ownerOperation = true;
       try {
@@ -395,7 +443,10 @@ export class TaskDomain {
     const run = this.matchPermit(permit), task = this.facade.get(permit.taskId);
     if (permit.leaseExpiresAt <= this.now() || ['unknown', 'stopped', 'reported'].includes(run.state)
       || task.latestAssignmentId !== permit.assignmentId || task.stopRequested || ['unknown', 'succeeded', 'failed', 'cancelled'].includes(task.state)) fail('STALE_FENCE', 'Assignment is expired, stopped or awaiting reconciliation');
-    if (dispatch) this.mandates.assertPermit(DISPATCHER, this.permitRequest(permit));
+    if (dispatch) {
+      this.assertCapability(this.local(permit.taskId).capabilityRef);
+      this.mandates.assertPermit(DISPATCHER, this.permitRequest(permit));
+    }
     else {
       const grant = this.mandates.get(OWNER, permit.mandateId);
       if (grant.state !== 'active' || grant.version !== permit.mandateVersion || grant.authEpoch !== permit.authEpoch) fail('STALE_AUTHORITY', 'Result callback no longer has current task authority');
@@ -428,6 +479,8 @@ export class TaskDomain {
         return this.get(String(old.task_id));
       }
       this.assertRunning();
+      const capabilityRef = this.requireCapability();
+      this.assertCapability(capabilityRef);
       const at = this.now(), triggerId = `local:${sha256(input.requestId)}`;
       this.facade.receive({ id: triggerId, source: 'shiyu-owner', threads: [{ source: 'shiyu-owner', id: input.requestId }],
         actor: { source: 'shiyu-owner', id: OWNER.principalId }, human: true, addressed: 'direct', at,
@@ -435,7 +488,7 @@ export class TaskDomain {
       this.facade.evaluateDue();
       const candidate = this.facade.candidate(triggerId) ?? fail('MISSING_CANDIDATE', 'Local Task did not enter evaluation');
       const taskId = key('ticket', candidate.evalId), artifactRef = `artifact:${taskId}`, mandateId = `mandate:${taskId}`;
-      const local: LocalInput = { taskId, requestId: input.requestId, title: input.title, content: input.content, expectedSha256: sha256(input.content), byteLength: Buffer.byteLength(input.content, 'utf8'), artifactRef, mandateId, createdAt: at };
+      const local: LocalInput = { taskId, requestId: input.requestId, title: input.title, content: input.content, expectedSha256: sha256(input.content), byteLength: Buffer.byteLength(input.content, 'utf8'), artifactRef, mandateId, createdAt: at, capabilityRef };
       this.db.prepare('INSERT INTO shiyu_task_local_inputs(task_id,request_id,request_hash,value) VALUES(?,?,?,?)').run(taskId, input.requestId, requestHash, JSON.stringify(local));
       const grant = this.mandates.grant(OWNER, { id: mandateId, scope: 'local-owner', subjectIds: [this.worker(taskId).principalId], allowedActions: ['task.local-note.execute', 'artifact.write'], allowedResources: [artifactRef],
         limits: BUDGET, basisRef: triggerId, expiresAt: new Date(this.date().getTime() + 3600000).toISOString() });
@@ -456,9 +509,36 @@ export class TaskDomain {
     const effects = this.effectsForTask(taskId);
     const execution = task.latestAssignmentId ? this.run(task.latestAssignmentId) : undefined;
     const summary = execution ? (({ taskId: _task, reservationId: _reservation, permit: _permit, ...value }) => value)(execution) : undefined;
-    return { task, artifact: { artifactRef: local.artifactRef, expectedSha256: local.expectedSha256, byteLength: local.byteLength },
+    return { task, ...(local.capabilityRef ? { capabilityRef: clone(local.capabilityRef) } : {}), artifact: { artifactRef: local.artifactRef, expectedSha256: local.expectedSha256, byteLength: local.byteLength },
       ...(summary ? { execution: summary } : {}), effects, effectReceipts: effects.flatMap(effect => this.effects.receipts(effect.effectId)),
       ...(execution ? { reservation: this.mandates.getReservation(OWNER, execution.reservationId) } : {}) };
+  }
+  /** Existing independently verified ledger facts only. No adapter/file/model I/O,
+   * current dispatch authority, or retrofit proof for a legacy task is inferred. */
+  inspectCapabilityEvidence(taskId: string): CapabilityTaskEvidence | undefined {
+    this.tx.assertUsable(); text(taskId, 'taskId');
+    if (!this.db.prepare('SELECT task_id FROM shiyu_task_local_inputs WHERE task_id=?').get(taskId)) return undefined;
+    const local = this.local(taskId), detail = this.get(taskId);
+    if (!local.capabilityRef || detail.task.state !== 'succeeded' || !detail.execution
+      || local.capabilityRef.installationGeneration !== detail.execution.installationGeneration
+      || local.delegation && !local.delegation.sourceRefs) return undefined;
+    try {
+      inspectTaskEvidence(detail, taskId, local.delegation ? { goalId: local.delegation.goalId,
+        mandateId: local.mandateId, resourceRef: local.delegation.resourceRef,
+        inputRefs: [`local-input:${taskId}`, ...local.delegation.sourceRefs!], now: this.date().getTime() } : undefined);
+    } catch (error) {
+      if (error instanceof GoalLifecycleEvidenceError) return undefined;
+      throw error;
+    }
+    const effect = detail.effects.find(value => value.effectId === detail.task.result!.effectRefs[0])!;
+    const receipt = detail.effectReceipts.find(value => value.receiptId === effect.receiptId)!;
+    const row = this.db.prepare('SELECT value FROM shiyu_task_artifact_observations WHERE receipt_id=? AND effect_id=?').get(receipt.receiptId, effect.effectId);
+    const observed = row ? JSON.parse(String(row.value)) as TaskArtifactObservation & { taskId: string; matched: boolean; artifactRef: string } : undefined;
+    if (!observed || observed.taskId !== taskId || observed.matched !== true || observed.artifactRef !== local.artifactRef
+      || observed.observedSha256 !== local.expectedSha256 || observed.observedBytes !== local.byteLength
+      || observed.observedAt !== receipt.observedAt || digest(observed.claim) !== digest(receipt.claim)) return undefined;
+    return { taskId, taskVersion: detail.task.version, assignmentId: detail.execution.assignmentId,
+      effectId: effect.effectId, receiptId: receipt.receiptId, observedAt: receipt.observedAt, capabilityRef: clone(local.capabilityRef) };
   }
   private claimAssignment(input: TaskCommands['task.claimAssignment']['input']): TaskExecutionPlan {
     object(input, ['taskId', 'leaseMs'], ['taskId']);
@@ -467,6 +547,9 @@ export class TaskDomain {
       if (detail.task.state !== 'queued' || !detail.task.activeAssignmentId) fail('TASK_NOT_DISPATCHABLE', 'Only a fresh queued assignment may be claimed');
       const run = this.run(detail.task.activeAssignmentId!);
       if (run.state !== 'pending') fail('ASSIGNMENT_CLAIMED', 'Assignment already has an execution claim; it cannot be automatically retried');
+      if (run.permit || run.sessionId || this.effectsForTask(local.taskId).some(effect => effect.origin.kind === 'task' && effect.origin.assignmentId === run.assignmentId))
+        fail('RECONCILIATION_REQUIRED', 'A pending capability may only be refreshed before this assignment executes');
+      this.capturePendingCapability(local);
       const reservation = this.mandates.getReservation(OWNER, run.reservationId);
       const grant = this.mandates.get(OWNER, local.mandateId);
       this.mandates.assertPermit(DISPATCHER, { reservationId: run.reservationId, mandateId: grant.mandateId, mandateVersion: grant.version, authEpoch: grant.authEpoch, scope: 'local-owner', action: 'task.local-note.execute', resourceScopes: [this.authorizationResource(local)] });

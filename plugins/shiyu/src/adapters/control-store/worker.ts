@@ -17,7 +17,7 @@ import { SQLiteGoalBindingStore } from './goal-bindings.js';
 import { ConversationDomain, conversationEventPrincipal, type ConversationDomainRequest } from './conversation-domain.js';
 import { installCommitWatermark, type CommitWatermarkReader } from './commit-watermark.js';
 import { ViewDomain, type ViewDomainRequest } from './view-domain.js';
-import { StatePublicationStore, createStatePublisher, initialStateManifest, type MemoryStateManifest, type StatePublisher } from '../../state/publication.js';
+import { StatePublicationStore, createStatePublisher, initialStateManifest, type StatePublisher } from '../../state/publication.js';
 import { LocalReadSafetyStore } from '../../state/safety.js';
 import { MemoryDomain, type MemoryDomainRequest } from './memory-domain.js';
 import { MemoryIndexDomain, type MemoryIndexRequest } from './memory-index-domain.js';
@@ -26,6 +26,9 @@ import type { CoreDomainRequest } from '../../contracts/core.js';
 import { LabDomain } from './lab-domain.js';
 import type { LocalReplyOperation } from './local-reply-domain.js';
 import type { LabDomainRequest } from '../../contracts/lab.js';
+import { CapabilityDomain } from './capability-domain.js';
+import type { CapabilityDomainRequest } from '../../contracts/capability.js';
+import { localNoteDefinitionDigest } from '../capability-identity.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -45,6 +48,8 @@ let memoryIndex: MemoryIndexDomain | undefined;
 let memoryIndexError: string | undefined;
 let core: CoreDomain | undefined;
 let coreError: string | undefined;
+let ability: CapabilityDomain | undefined;
+let abilityError: string | undefined;
 let lab: LabDomain | undefined;
 let labError: string | undefined;
 let publication: StatePublicationStore | undefined;
@@ -416,7 +421,28 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
     .filter((sub) => actor.scopes.includes(sub.scope) && sub.types.every((type) => actor.subscribeTypes.includes(type)) && actor.targetRefs.includes(targetRef(sub.target)));
 }
 
+function publishAbilityReadability(): void {
+  if (!publication || !statePublisher) return;
+  const current = publication.get();
+  if (!current) return fail('VIEWS_UNAVAILABLE', 'Inner state publication is unavailable.');
+  if (!ability && current.manifest.schemaVersion !== 3) return;
+  const availability = ability ? { status: 'available' as const, backendId: 'control-ability' as const,
+    authorityId: ability.snapshot().authorityId, capabilities: ['state_read'] as ['state_read'] }
+    : { status: 'unavailable' as const, reason: 'source_unavailable' as const };
+  if (canonical(current.manifest.domains.ability) === canonical(availability)) return;
+  publication.publishAbilityAvailability(statePublisher, { requestId: `ability-readability-${randomUUID()}`,
+    expectedBaselineId: current.baselineId, expectedStateVersion: current.stateVersion, availability });
+}
 function execute(request: StoreRequest): unknown {
+  if (request.command.startsWith('ability.')) {
+    if (!ability) return fail(abilityError ?? 'CAPABILITY_UNAVAILABLE', 'Local-note capability state is unavailable.');
+    if (request.command === 'ability.snapshot') return ability.execute({ command: request.command, args: request.args } as CapabilityDomainRequest);
+    return transaction(() => {
+      const result = ability!.execute({ command: request.command, args: request.args } as CapabilityDomainRequest);
+      publishAbilityReadability();
+      return result;
+    });
+  }
   if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
   if (request.command === 'lab.status') return { ready: Boolean(lab), ...(labError ? { errorCode: labError } : {}) };
   if (request.command.startsWith('lab.')) {
@@ -470,8 +496,8 @@ function execute(request: StoreRequest): unknown {
       }
       // The Worker retains the process-local publishing capability. This private
       // command carries verified capability metadata, never a public manifest or actor.
-      const manifest: MemoryStateManifest = { schemaVersion: 2, domains: { ...initialStateManifest().domains, memory: input.availability } };
-      return publication.publish(statePublisher, { requestId: input.requestId, expectedBaselineId: input.expectedBaselineId, expectedStateVersion: input.expectedStateVersion, manifest });
+      return publication.publishMemoryAvailability(statePublisher, { requestId: input.requestId, expectedBaselineId: input.expectedBaselineId,
+        expectedStateVersion: input.expectedStateVersion, availability: input.availability });
     }
     case 'control.watermark': return commitWatermark.read();
     case 'goal.binding.load': return goalBindings!.load(request.args.goalId);
@@ -567,13 +593,8 @@ function initialize(): void {
       const receipt = publish({ principalId: 'task-service', kind: 'component', scopes: ['local-owner'], publishTypes: ['task.succeeded'], subscribeTypes: [], targetRefs: [] },
         { type: 'task.succeeded', scope: 'local-owner', payload: { taskId }, idempotencyKey: `task-succeeded:${taskId}` });
       core?.enqueueTaskFact({ taskId, eventId: receipt.eventId });
+      ability?.recordSuccessfulTask(taskId);
     } });
-    try { core = new CoreDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, tasks, goals: goalBindings }); }
-    catch (error) {
-      // Failed core initialization cannot grant delegated Tasks a new authority.
-      // Other existing read paths remain usable for inspection and recovery.
-      coreError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'CORE_INITIALIZATION_FAILED';
-    }
     const actor = conversationEventPrincipal();
     conversations = new ConversationDomain(db, transactions, {
       getTask: taskId => tasks!.get(taskId).task,
@@ -591,6 +612,19 @@ function initialize(): void {
     statePublisher = createStatePublisher('shiyu-state-service');
     // Explicit initialization publication, not a GET side effect or a Task version mapping.
     if (!publication.get()) publication.publish(statePublisher, { requestId: 'initial-inner-availability-v1', manifest: initialStateManifest() });
+    if (options.localNoteBinding) {
+      try {
+        if (options.localNoteBinding.definitionDigest !== localNoteDefinitionDigest()) fail('CAPABILITY_BINDING_MISMATCH', 'Installed local-note implementation differs from its trusted binding.');
+        ability = new CapabilityDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, binding: options.localNoteBinding,
+          taskEvidence: taskId => tasks!.inspectCapabilityEvidence(taskId) });
+        publishAbilityReadability();
+        tasks.setCapabilityAuthority(ability);
+      } catch (error) {
+        ability = undefined;
+        abilityError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'CAPABILITY_INITIALIZATION_FAILED';
+      }
+    }
+    if (!ability) publishAbilityReadability();
     if (options.memoryBackend) {
       try {
         memories = new MemoryDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity,
@@ -606,6 +640,14 @@ function initialize(): void {
       }
     }
     const safety = new LocalReadSafetyStore(db, transactions, { getAuthEpoch: () => tasks!.mandates.health().authEpoch });
+    try {
+      if (!ability) fail(abilityError ?? 'CAPABILITY_UNAVAILABLE', 'Core planning requires readable capability authority.');
+      core = new CoreDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, tasks, goals: goalBindings,
+        capability: ability!, publication, safety, watermark: commitWatermark });
+    }
+    catch (error) {
+      coreError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'CORE_INITIALIZATION_FAILED';
+    }
     views = new ViewDomain(db, transactions, { publication, safety, watermark: commitWatermark, ...(memories ? { memory: memories } : {}),
       authorizeLabReply: (input, phase) => {
         if (!lab) return fail(labError ?? 'LAB_UNAVAILABLE', 'Lab reply capture authority is unavailable.');

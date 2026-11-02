@@ -1,3 +1,4 @@
+import { prepareSyntheticLocalNote } from './helpers/capability.js';
 import assert from 'node:assert/strict';
 import test, { type TestContext } from 'node:test';
 import { createHash } from 'node:crypto';
@@ -109,7 +110,7 @@ async function fixture(t: TestContext, options: { configured?: boolean; descript
   const backends: SyntheticManaged[] = [];
   const runtime = new RuntimeService({} as DshContext, { dataDir: directory }, {
     sessionFactory: () => sessions,
-    workerFactory: () => ({ async initialize() {}, async close() {}, async run() { nativeCalls.workers++; throw new Error('Native worker forbidden in this fixture'); } }),
+    workerFactory: () => ({ prepareLocalNote: prepareSyntheticLocalNote, async initialize() {}, async close() {}, async run() { nativeCalls.workers++; throw new Error('Native worker forbidden in this fixture'); } }),
     goalFactory: () => ({ async initialize() {}, async close() {}, async run() { nativeCalls.goals++; throw new Error('Native Goal forbidden in this fixture'); } }),
     memoryFactory(binding) { const managed = new SyntheticManaged(binding, options.failOpen); backends.push(managed); return managed; },
   });

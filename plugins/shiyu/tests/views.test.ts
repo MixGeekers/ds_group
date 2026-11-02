@@ -60,6 +60,50 @@ function fixture() {
   return { service, state, port, authority, setTime(value: string) { now = new Date(value); }, stats: () => ({ reads, checks, writes, authorityCalls }) };
 }
 
+function abilityFixture() {
+  const f = fixture();
+  const ability = { backendId: 'control', capabilityId: 'task.local-note.execute', authorityId: 'capability-authority',
+    definitionDigest: 'a'.repeat(64), installationGeneration: 'cap-install', environmentFingerprint: 'b'.repeat(64), safetyRevision: 17 };
+  f.state.access.authority = { publicationBaselineId: 'published', policyAuthorityId: 'policy', deletionAuthorityId: 'task-deletion',
+    deletionScope: 'local-task-source', indexMode: 'not-used', ability };
+  f.state.access.components[0]!.authority = 'ability';
+  f.state.component.abilityAuthority = structuredClone(ability);
+  return f;
+}
+
+test('ability authority remains independent of Task safety watermarks and metadata reads never write', async () => {
+  const f = abilityFixture();
+  const view = await f.service.read(actor, request);
+  assert.equal(view.authority!.ability!.safetyRevision, 17);
+  assert.equal(view.authEpoch, 4); assert.equal(view.tombstoneWatermark, 6);
+  assert.equal(view.data.length, 1); assert.equal(f.stats().writes, 0);
+  await f.service.assertCurrent(actor, view.viewId, use);
+  assert.equal(f.stats().writes, 0);
+});
+
+test('ability components require their exact independent authority and explicit grant', async () => {
+  for (const key of ['backendId', 'capabilityId', 'authorityId', 'definitionDigest', 'installationGeneration', 'environmentFingerprint', 'safetyRevision'] as const) {
+    const f = abilityFixture(), value = f.state.component.abilityAuthority!;
+    if (key === 'safetyRevision') value[key]++;
+    else value[key] = key === 'definitionDigest' || key === 'environmentFingerprint' ? 'c'.repeat(64) : `${value[key]}-other`;
+    await assert.rejects(f.service.read(actor, request), code('SECURITY_STATE_UNAVAILABLE'));
+  }
+  const absent = abilityFixture(); delete absent.state.component.abilityAuthority;
+  await assert.rejects(absent.service.read(actor, request), code('SECURITY_STATE_UNAVAILABLE'));
+  const ungranted = abilityFixture(); delete ungranted.state.access.components[0]!.authority;
+  await assert.rejects(ungranted.service.read(actor, request), code('SECURITY_STATE_UNAVAILABLE'));
+  const wrongBackend = abilityFixture(); wrongBackend.state.access.authority!.ability!.backendId = 'another-backend';
+  await assert.rejects(wrongBackend.service.read(actor, request), code('DEPENDENCY_UNAVAILABLE'));
+});
+
+test('an ability binding change invalidates an issued view without changing Task watermarks', async () => {
+  const f = abilityFixture(), view = await f.service.read(actor, request);
+  f.state.access.authority!.ability!.safetyRevision++;
+  f.state.component.abilityAuthority!.safetyRevision++;
+  assert.equal(f.state.access.authEpoch, 4); assert.equal(f.state.access.tombstoneWatermark, 6);
+  await assert.rejects(f.service.assertCurrent(actor, view.viewId, use), code('VIEW_INVALIDATED'));
+});
+
 test('trusted scope, whole audience and exact resources clip both fields and private metadata', async () => {
   const f = fixture();
   f.state.component.records = [record(),

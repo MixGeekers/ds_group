@@ -2,7 +2,11 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import type { CoreAccounting, CoreCandidate, CoreCommands, CoreCommitReceipt, CoreCompletionRequest, CoreDispatchBinding,
   CoreDomainRequest, CoreEvaluation, CoreEvaluationPermit, CoreGoal, CoreNativeObservation, CoreNativeResultReceipt,
-  CorePrepareInput, CoreTaskDelegation } from '../../contracts/core.js';
+  CorePrepareInput, CoreTaskDelegation, CoreReadCapture } from '../../contracts/core.js';
+import type { CapabilityAuthorityPort, CapabilityCapture } from '../../contracts/capability.js';
+import type { StatePublicationStore } from '../../state/publication.js';
+import type { LocalReadSafetyStore } from '../../state/safety.js';
+import type { CommitWatermarkReader } from './commit-watermark.js';
 import type { GoalCompletionProof } from '../dsh/goals.js';
 import type { BudgetReservation, TrustedPolicyActor } from '../../control/policy/mandates.js';
 import { CORE_DISPATCHER, CORE_VERIFIER, createControlAuthority } from './authority.js';
@@ -41,6 +45,7 @@ function nativeRef(value: CoreNativeObservation['goalRef']): void {
 }
 interface Options {
   runtimeIdentity: TaskRuntimeIdentity; tasks: TaskDomain; goals: Pick<SQLiteGoalBindingStore, 'load'>;
+  capability: CapabilityAuthorityPort; publication: StatePublicationStore; safety: LocalReadSafetyStore; watermark: CommitWatermarkReader;
   now?: () => Date; isPaused?: () => boolean;
 }
 interface StoredEvaluation extends CoreEvaluation { proposalHash?: string }
@@ -137,6 +142,50 @@ export class CoreDomain {
       const task = this.options.tasks.get(ref.taskId);
       return { ...ref, version: task.task.version, state: task.task.state,
         effectVersions: task.effects.map(effect => ({ effectId: effect.effectId, version: effect.version, status: effect.status })) };
+    });
+  }
+  private needsNewNote(goal: CoreGoal): boolean {
+    return goal.deliverables.some(item => !goal.taskRefs.some(ref => ref.deliverableId === item.id));
+  }
+  private captureRead(goal: CoreGoal, evaluationId: string, expiresAt: string, capability: CapabilityCapture): CoreReadCapture {
+    const publication = this.options.publication.get() ?? fail('CORE_VIEW_UNAVAILABLE', 'Capability read metadata is not published');
+    const ability = publication.manifest.domains.ability, safety = this.options.safety.snapshot(), control = this.options.watermark.read();
+    if (ability.status !== 'available' || ability.backendId !== 'control-ability' || ability.authorityId !== capability.ref.authorityId || !safety.enabled) {
+      fail('CORE_VIEW_UNAVAILABLE', 'A current explicitly published capability read authority is required');
+    }
+    const capturedAt = this.at(), actor = { principalId: `core:${goal.goalId}`, role: 'core' as const, scopes: ['local-owner'] };
+    const appliedSafety = { authEpoch: safety.authEpoch, tombstoneWatermark: safety.tombstoneWatermark };
+    const authority = { backendId: 'control-ability', ...clone(capability.ref) };
+    const resourceRefs = [`goal:${goal.goalId}`, `capability:${capability.ref.capabilityId}`];
+    const source = { sourceId: `capability:${capability.ref.capabilityId}`, revision: capability.revision,
+      contentHash: digest(capability.record), observedAt: capability.capturedAt, trustClass: 'trusted-capability-ledger' };
+    return { schemaVersion: 1, evaluationId, goalId: goal.goalId, capturedAt, expiresAt, capability: clone(capability), actor, publication, control, safety,
+      access: { principalId: actor.principalId, purpose: 'core_decision', scope: 'local-owner', audienceIds: ['local-owner'], resourceRefs,
+        components: [{ backendId: 'control-ability', fields: ['capability'], authority: 'ability' }], expiresAt,
+        policyVersion: safety.policyVersion, authEpoch: safety.authEpoch, tombstoneWatermark: safety.tombstoneWatermark,
+        appliedSafety, commitSeq: control.commitSeq, stateVersion: publication.stateVersion, indexWatermark: 0,
+        authority: { publicationBaselineId: publication.baselineId, policyAuthorityId: safety.policyAuthorityId,
+          deletionAuthorityId: safety.deletionAuthorityId, deletionScope: safety.deletionScope, indexMode: 'not-used', ability: authority } },
+      component: { capturedAt: capability.capturedAt, componentRevision: capability.revision, verifiedSourceHash: source.contentHash,
+        freshness: { status: 'current' }, appliedSafety, expiresAt, abilityAuthority: authority,
+        records: [{ recordId: capability.ref.capabilityId, scope: 'local-owner', audienceIds: ['local-owner'], resourceRefs,
+          fields: { capability: JSON.parse(JSON.stringify(capability.record)) }, sourceRefs: [source],
+          aggregateVersion: { aggregateType: 'ability', aggregateId: capability.ref.capabilityId, version: capability.revision } }] } };
+  }
+  /** Revalidate the persisted read capture, never create a replacement binding. */
+  private readView(permit: CoreEvaluationPermit): CoreReadCapture {
+    return this.tx.atomic(() => {
+      const evaluation = this.current(permit, false), capture = evaluation.readCapture ?? fail('CORE_VIEW_UNAVAILABLE', 'This evaluation has no capability capture');
+      if (capture.evaluationId !== evaluation.evaluationId || capture.goalId !== evaluation.goalId
+        || capture.expiresAt <= this.at()) fail('CORE_VIEW_UNAVAILABLE', 'This evaluation has no current capability capture');
+      const current = this.options.capability.captureForCore(), publication = this.options.publication.get(), safety = this.options.safety.snapshot();
+      if (canonical(current.ref) !== canonical(capture.capability.ref)
+        || !publication || publication.baselineId !== capture.publication.baselineId
+        || canonical(publication.manifest.domains.ability) !== canonical(capture.publication.manifest.domains.ability)
+        || canonical(safety) !== canonical(capture.safety)) fail('CORE_VIEW_UNAVAILABLE', 'Capability read authority changed since capture');
+      // A newer informational success proof does not revoke the immutable
+      // captured observation or the unchanged execution binding.
+      return clone(capture);
     });
   }
   private permitIdentity(permit: CoreEvaluationPermit) {
@@ -242,6 +291,10 @@ export class CoreDomain {
           : goal.taskRefs.some(ref => this.options.tasks.get(ref.taskId).task.state === 'unknown') ? 'task_unknown'
             : goal.nextEligibleAt && goal.nextEligibleAt > this.at() ? 'cooldown' : '';
     if (!reasonCode && this.mandates.health().frozen) reasonCode = 'budget_frozen';
+    if (!reasonCode && this.needsNewNote(goal)) {
+      try { if (!this.options.capability.captureForCore().record.usableForAuthorizedTask) reasonCode = 'capability_unavailable'; }
+      catch { reasonCode = 'capability_unavailable'; }
+    }
     if (!reasonCode) {
       const grant = this.mandates.get(OWNER, goal.mandateId!);
       if (grant.state !== 'active' || grant.expiresAt <= this.at()) reasonCode = 'authority_unavailable';
@@ -258,7 +311,13 @@ export class CoreDomain {
     return this.tx.atomic(() => {
       const goal = this.read(goalId); this.running(goal);
       if (!this.eligible(goal)) return undefined;
+      const capability = this.options.capability.captureForCore();
+      if (this.needsNewNote(goal)) this.options.capability.assertCurrent(capability.ref);
       const grant = this.mandates.get(OWNER, goal.mandateId!), evaluationId = `evaluation:${goalId}:${goal.evaluations + 1}`;
+      // Read the committed source watermark before this transaction creates
+      // the evaluation/reservation; it must never claim uncommitted writes.
+      const readCapture = this.captureRead(goal, evaluationId,
+        new Date(Math.min(this.now().getTime() + 180000, Date.parse(goal.expiresAt))).toISOString(), capability);
       const reservation = this.mandates.reserve({ principalId: `core:${goalId}`, kind: 'agent', scopes: ['local-owner'] }, {
         reservationId: `reservation:${evaluationId}`, mandateId: grant.mandateId, mandateVersion: grant.version, authEpoch: grant.authEpoch,
         scope: 'local-owner', action: 'core.evaluate', resourceScopes: [`goal:${goalId}`], amount: CORE_EVALUATION_BUDGET, leaseMs: 180000 });
@@ -268,7 +327,8 @@ export class CoreDomain {
         controlEpoch: goal.controlEpoch, scopeVersion: goal.version, goalRef: clone(goal.native!.goalRef), reservationId: reservation.reservationId,
         mandateId: grant.mandateId, mandateVersion: grant.version, authEpoch: grant.authEpoch, leaseExpiresAt: reservation.leaseExpiresAt };
       const triggerRefs = this.db.prepare('SELECT fact_id FROM shiyu_core_facts WHERE goal_id=? AND consumed_by IS NULL ORDER BY rowid').all(goalId).map(row => String(row.fact_id));
-      const evaluation: StoredEvaluation = { evaluationId, goalId, status: 'claimed', permit, goal: clone(goal), tasks: this.captureTasks(goal), triggerRefs, reservation };
+      const evaluation: StoredEvaluation = { evaluationId, goalId, status: 'claimed', permit, goal: clone(goal), tasks: this.captureTasks(goal), triggerRefs, reservation,
+        readCapture };
       this.db.prepare('INSERT INTO shiyu_core_evaluations VALUES(?,?,?)').run(evaluationId, goalId, JSON.stringify(evaluation));
       this.db.prepare('UPDATE shiyu_core_facts SET consumed_by=? WHERE goal_id=? AND consumed_by IS NULL').run(evaluationId, goalId);
       return clone(evaluation);
@@ -344,9 +404,18 @@ export class CoreDomain {
       this.verifiedDeliverable(goal, goal.deliverables.find(item => item.id === dependency)!);
     }
     const grant = this.mandates.get(OWNER, goal.mandateId!);
+    const evaluation = this.evaluations(goalId).find(value => value.evaluationId === goal.activeEvaluationId);
+    const capabilityRef = evaluation?.readCapture?.capability.ref ?? fail('CORE_CAPABILITY_CHANGED', 'The admitted evaluation has no captured capability binding');
+    try { this.options.capability.assertCurrent(capabilityRef); }
+    catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && ['CAPABILITY_CHANGED', 'CAPABILITY_UNAVAILABLE'].includes(String(error.code))) {
+        fail('CORE_CAPABILITY_CHANGED', 'The captured local-note execution binding is no longer usable');
+      }
+      throw error;
+    }
     return { goalId, deliverableId, title: deliverable.title, content: deliverable.content, resourceRef: `deliverable:${goalId}:${deliverableId}`,
       subjectId: `goal-worker:${goalId}`, mandateId: grant.mandateId, mandateVersion: grant.version, authEpoch: grant.authEpoch,
-      sourceRefs: [grant.basisRef, ...(this.evaluations(goalId).find(value => value.evaluationId === goal.activeEvaluationId)?.triggerRefs ?? [])] };
+      capabilityRef: clone(capabilityRef), sourceRefs: [grant.basisRef, ...(evaluation?.triggerRefs ?? [])] };
   }
   private commit(input: CoreCommands['core.commitCandidate']['input']): CoreCommitReceipt {
     object(input, ['permit', 'proposalId', 'candidateText']); text(input.proposalId, 'proposalId');
@@ -388,16 +457,30 @@ export class CoreDomain {
   private reject(permit: CoreEvaluationPermit, reasonCode: string): CoreEvaluation {
     if (!['INVALID_CORE_CANDIDATE', 'INVALID_CORE_INPUT', 'CORE_SCOPE_DENIED', 'CORE_DEPENDENCY_PENDING', 'CORE_DELIVERABLE_OWNED',
       'CORE_SOURCE_CONFLICT', 'STALE_CORE_PERMIT', 'STALE_AUTHORITY', 'CORE_PAUSED', 'CORE_EXPIRED', 'BUDGET_EXCEEDED',
-      'NATIVE_GOAL_NOT_ACTIVE', 'STALE_NATIVE_GOAL', 'CORE_COMPLETION_UNPROVEN'].includes(reasonCode)) fail('INVALID_CORE_INPUT', 'Only a known deterministic rejection may settle an evaluation');
+      'NATIVE_GOAL_NOT_ACTIVE', 'STALE_NATIVE_GOAL', 'CORE_COMPLETION_UNPROVEN', 'CORE_CAPABILITY_CHANGED', 'CORE_VIEW_UNAVAILABLE'].includes(reasonCode)) fail('INVALID_CORE_INPUT', 'Only a known deterministic rejection may settle an evaluation');
     return this.tx.atomic(() => {
-      const evaluation = this.evaluation(permit), reservation = this.mandates.getReservation(OWNER, permit.reservationId);
+      const evaluation = this.evaluation(permit), goal = this.read(permit.goalId);
+      let reservation = this.mandates.getReservation(OWNER, permit.reservationId);
       if (evaluation.status === 'committed') fail('CORE_ALREADY_COMMITTED', 'An admitted proposal cannot become rejected');
       if (evaluation.status === 'rejected') {
         if (evaluation.reasonCode !== reasonCode) fail('IDEMPOTENCY_CONFLICT', 'Evaluation rejection reason changed'); return clone(evaluation);
       }
-      if (!evaluation.dispatch || !evaluation.nativeReceipt || reservation.state !== 'settled' || reservation.overrun) fail('CORE_RECONCILIATION_REQUIRED', 'Deterministic rejection requires the exact known native result and complete accounting');
+      if (reasonCode === 'CORE_VIEW_UNAVAILABLE') {
+        if (evaluation.status !== 'claimed' || evaluation.dispatch || evaluation.nativeReceipt || reservation.state !== 'reserved'
+          || permit.hostEpoch !== this.options.runtimeIdentity.hostEpoch || permit.installationGeneration !== this.options.runtimeIdentity.installationGeneration
+          || goal.activeEvaluationId !== evaluation.evaluationId) fail('CORE_RECONCILIATION_REQUIRED', 'Only the current undispatched claim can settle as zero inference');
+        reservation = this.mandates.reconcile(CORE_VERIFIER, { receiptId: `core-undispatched:${permit.evaluationId}`,
+          reservationId: reservation.reservationId, expectedVersion: reservation.version, complete: true,
+          usage: { tokens: 0, calls: 0, effects: 0 }, evidenceRef: `core-view-before-native:${permit.evaluationId}` });
+      } else if (!evaluation.dispatch || !evaluation.nativeReceipt || reservation.state !== 'settled' || reservation.overrun) {
+        fail('CORE_RECONCILIATION_REQUIRED', 'Deterministic rejection requires the exact known native result and complete accounting');
+      }
       evaluation.status = 'rejected'; evaluation.reasonCode = reasonCode; evaluation.reservation = reservation; this.saveEvaluation(evaluation);
-      const goal = this.read(permit.goalId);
+      if (reasonCode === 'CORE_CAPABILITY_CHANGED' || reasonCode === 'CORE_VIEW_UNAVAILABLE') {
+        // A known accounted rejection or a proven pre-native failure may make
+        // its original facts eligible again, never an unknown/native replay.
+        this.db.prepare('UPDATE shiyu_core_facts SET consumed_by=NULL WHERE goal_id=? AND consumed_by=?').run(permit.goalId, permit.evaluationId);
+      }
       if (goal.activeEvaluationId === evaluation.evaluationId) { delete goal.activeEvaluationId; this.save(goal); }
       return clone(evaluation);
     });
@@ -525,6 +608,7 @@ export class CoreDomain {
         return { goalIds: this.options.tasks.isPaused() || this.options.isPaused?.() ? [] : ordered.filter(goal => this.eligible(goal)).slice(0, limit).map(goal => goal.goalId) };
       }
       case 'core.claim': return this.claim(request.args.goalId);
+      case 'core.readView': return this.readView(request.args.permit);
       case 'core.assertDispatch': return this.tx.atomic(() => this.current(request.args.permit, true));
       case 'core.assertCurrent': return this.tx.atomic(() => this.current(request.args.permit, false));
       case 'core.recordDispatch': return this.recordDispatch(request.args.permit, request.args.binding);

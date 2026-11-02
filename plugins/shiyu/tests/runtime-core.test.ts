@@ -1,3 +1,4 @@
+import { prepareSyntheticLocalNote } from './helpers/capability.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -83,6 +84,7 @@ async function fixture(t: TestContext, options: { failFactory?: boolean; allowCl
   const forbidden = { probe: 0, generation: 0, goal: 0 }, workerCalls: WorkerRunRequest[] = [];
   let factoryCalls = 0;
   const workers = {
+    prepareLocalNote: prepareSyntheticLocalNote,
     async initialize() {}, async close() { trace.push('workers.close'); },
     async run(request: WorkerRunRequest): Promise<WorkerRunResult> { workerCalls.push(request); return workers.execute(request); },
     async execute(_request: WorkerRunRequest): Promise<WorkerRunResult> { throw new Error('Synthetic worker boundary is not configured'); },

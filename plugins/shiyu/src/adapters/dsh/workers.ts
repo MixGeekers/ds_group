@@ -3,6 +3,7 @@ import { isAbsolute, resolve } from 'node:path';
 import { defaultModel } from './sessions.js';
 import { pinOwnedSessionTitle } from './session-title.js';
 import { checkedNativeUserMessage, loadNativeMessageFactory, type NativeMessageFactory } from './native-message.js';
+import { nativeWorkerDependencyFingerprint } from '../capability-identity.js';
 import type { DshAgent, DshAgentContext, DshAgentHandle, DshContext, DshSession, ModelUsage, SessionEvent } from './sessions.js';
 
 type Disposer = () => void | Promise<void>;
@@ -227,6 +228,20 @@ export class WorkerSessionDriver {
       this.createdDispose = this.options.ctx.on('agent/created', ({ agent }: { agent: DshAgent }) => this.protectResumed(agent));
       for (const agent of this.options.ctx.agents.list()) this.protectResumed(agent);
     })();
+  }
+  /** Prerequisite observation only: no Agent, Session, message or inference is created. */
+  async prepareLocalNote(): Promise<{ dependencyFingerprint: string }> {
+    await this.initialize(); this.assertOpen();
+    const sessions = this.options.ctx.get('sessions'), titles = this.options.ctx.get('sessionTitle');
+    if (typeof sessions?.flush !== 'function' || typeof titles?.get !== 'function' || typeof titles?.rename !== 'function') {
+      throw new Error('Native worker title and durability prerequisites are unavailable');
+    }
+    await loadNativeMessageFactory();
+    const dependencyFingerprint = nativeWorkerDependencyFingerprint([
+      import.meta.resolve('@deepseek-ai/dsh-llm/message'), import.meta.resolve('@deepseek-ai/dsh-llm'),
+    ]);
+    this.assertOpen();
+    return { dependencyFingerprint };
   }
   private protectResumed(agent: DshAgent): void {
     if (this.composed.has(agent) || (!agent.id.startsWith(PREFIX) && agent.session.header.agentPreset !== WORKER_PRESET_ID)) return;

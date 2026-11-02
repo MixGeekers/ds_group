@@ -6,6 +6,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { setTimeout as delay } from 'node:timers/promises';
 import test, { type TestContext } from 'node:test';
 import { ControlStore } from '../src/adapters/control-store/index.js';
+import { syntheticLocalNoteBinding, observeSyntheticLocalNote } from './helpers/capability.js';
 import { ConversationDomain, CONVERSATION_BACKGROUND_HANDLER, conversationEventPrincipal, type ConversationEventPort } from '../src/adapters/control-store/conversation-domain.js';
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
 import type { TaskView } from '../src/control/tasks/index.js';
@@ -21,8 +22,11 @@ async function fixture(t: TestContext, handlers = [CONVERSATION_BACKGROUND_HANDL
   const stores: ControlStore[] = [];
   const open = async () => {
     const store = await ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: handlers,
-      runtimeIdentity: { hostEpoch: 'synthetic-host', installationGeneration: 'synthetic-installation' } });
-    stores.push(store); return { store, events: new EventService(store) };
+      runtimeIdentity: { hostEpoch: 'synthetic-host', installationGeneration: 'synthetic-installation' },
+      localNoteBinding: syntheticLocalNoteBinding('synthetic-installation') });
+    stores.push(store);
+    await observeSyntheticLocalNote(store, { hostEpoch: 'synthetic-host', installationGeneration: 'synthetic-installation' });
+    return { store, events: new EventService(store) };
   };
   t.after(async () => { await Promise.all(stores.map(store => store.close())); await rm(directory, { recursive: true, force: true }); });
   return { ...await open(), open, filename };

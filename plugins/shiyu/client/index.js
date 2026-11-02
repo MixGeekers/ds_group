@@ -638,6 +638,76 @@ window.__ModuleLoader__.load({
       "labGroupTooLarge": "The pending input group is too large. Original inputs are retained and reply processing for the affected channel is paused; other permitted channels can continue. Older inputs are not skipped to process only the latest few.",
       "labInputBackpressure": "The pending input backlog exceeds its limit. Original inputs are retained and reply processing for the affected channel is paused; other permitted channels can continue. Inputs are not silently discarded or skipped."
     });
+    Object.assign(zh, {
+      "abilityTitle": "本地便签执行能力",
+      "abilityHint": "声明、启停、可用性与成功证据分别记录；当前可用性来自启动时的受信依赖观察，不代表工具已执行或推理已验证。",
+      "abilityUnavailable": "能力状态当前不可确认；未据此推断为停用或从未成功。",
+      "abilityId": "能力 ID",
+      "abilityDeclaration": "固定声明",
+      "abilityDeclared": "已声明",
+      "abilityUndeclared": "未声明",
+      "abilityEnabled": "启用状态",
+      "abilityOn": "已启用",
+      "abilityOff": "已停用",
+      "abilityAvailability": "当前可用性",
+      "abilityVerification": "成功证据",
+      "abilityVerification_unknown": "尚无当前成功证据",
+      "abilityVerification_verified": "有当前匹配的成功证据",
+      "abilityVerification_stale": "历史成功证据当前不适用或不可核对",
+      "abilityVerificationHint": "成功证据来自产物与效果核验，不代表费用完整或模型服务当前可调用。未知或历史证据不单独阻止已授权任务的首次执行。",
+      "abilityUsable": "可供已授权任务使用",
+      "abilityUsableYes": "满足当前能力条件",
+      "abilityUsableNo": "当前能力条件不满足",
+      "abilityAuthorityHint": "满足能力条件不代表已取得 Mandate；任务仍须通过原授权、预算、执行资格和效果检查。",
+      "abilityDefinitionVersion": "声明版本",
+      "abilityAuthority": "能力状态基线",
+      "abilitySafetyRevision": "安全版本",
+      "abilityReason": "状态原因",
+      "abilityEvidence": "成功证据引用",
+      "abilityNoEvidence": "尚无成功证据引用。",
+      "abilityEnable": "启用本地便签能力",
+      "abilityDisable": "停用本地便签能力",
+      "abilityControlHint": "只修改这项固定能力的启用状态。全局暂停仍阻止派发；停用不删除既有成功证据或已完成任务。",
+      "abilityPending": "正在提交能力启停请求…",
+      "abilityAccepted": "能力启停请求已有回执；当前状态以刷新后的记录为准。",
+      "abilityUnconfirmed": "能力启停结果未确认，请刷新核对；不会自动重试。",
+      "abilityChanged": "处理期间能力身份、版本或运行实例变化，旧回执未采用。"
+    });
+    Object.assign(en, {
+      "abilityTitle": "Local note execution capability",
+      "abilityHint": "Declaration, enabled state, availability and success evidence are separate. Availability reflects trusted dependency observations at startup, not tool execution or verified inference.",
+      "abilityUnavailable": "Capability state is currently unconfirmed. This does not establish that it is disabled or has never succeeded.",
+      "abilityId": "Capability ID",
+      "abilityDeclaration": "Fixed declaration",
+      "abilityDeclared": "Declared",
+      "abilityUndeclared": "Not declared",
+      "abilityEnabled": "Enabled state",
+      "abilityOn": "Enabled",
+      "abilityOff": "Disabled",
+      "abilityAvailability": "Current availability",
+      "abilityVerification": "Success evidence",
+      "abilityVerification_unknown": "No current success evidence",
+      "abilityVerification_verified": "Matching success evidence recorded",
+      "abilityVerification_stale": "Historical success evidence is currently inapplicable or cannot be checked",
+      "abilityVerificationHint": "Success evidence comes from artifact and effect checks; it does not establish complete cost accounting or current model service availability. Unknown or historical evidence alone does not block an authorized first execution.",
+      "abilityUsable": "Usable for an authorized task",
+      "abilityUsableYes": "Current capability conditions met",
+      "abilityUsableNo": "Current capability conditions not met",
+      "abilityAuthorityHint": "Meeting capability conditions does not grant a Mandate. Tasks still require the original authorization, budget, execution eligibility and effect checks.",
+      "abilityDefinitionVersion": "Declaration version",
+      "abilityAuthority": "Capability authority",
+      "abilitySafetyRevision": "Safety revision",
+      "abilityReason": "State reason",
+      "abilityEvidence": "Success evidence references",
+      "abilityNoEvidence": "No success evidence references.",
+      "abilityEnable": "Enable local note capability",
+      "abilityDisable": "Disable local note capability",
+      "abilityControlHint": "Only changes this fixed capability’s enabled state. Global pause still blocks dispatch. Disabling does not remove previous success evidence or completed tasks.",
+      "abilityPending": "Submitting capability state change…",
+      "abilityAccepted": "Capability change receipt received. Refreshed records determine the current state.",
+      "abilityUnconfirmed": "The capability change is unconfirmed. Refresh to inspect it; no automatic retry.",
+      "abilityChanged": "The capability identity, revision or runtime instance changed; the old receipt was not applied."
+    });
     const knownStates = new Set(Object.keys(en).filter(key => key.startsWith('status_')).map(key => key.slice(7)));
     const css = `
 .syr{--sr-bg:var(--dsw-alias-bg-base,#fff);--sr-layer:var(--dsw-alias-bg-layer-1,#fafafa);--sr-hover:var(--dsw-alias-bg-layer-2,#f2f3f5);--sr-text:var(--dsw-alias-label-primary,#202124);--sr-muted:var(--dsw-alias-label-secondary,#71757c);--sr-line:var(--dsw-alias-border-l1,#e6e8eb);--sr-accent:var(--dsw-alias-brand-primary,#4b62d8);--sr-error:var(--dsw-alias-state-error-primary,#b93b3b);--sr-ok:var(--dsw-alias-state-success-primary,#2f7d68);height:100%;min-height:0;min-width:0;overflow:auto;color:var(--sr-text);background:var(--sr-bg);font-size:13px;line-height:1.6;font-family:inherit}
@@ -678,6 +748,17 @@ window.__ModuleLoader__.load({
         // Native observation is authoritative; a candidate or successful Task
         // cannot turn the local dispatch pause into Goal completion.
         const coreGoalComplete = goal => goal?.native?.phase === 'complete';
+        const abilityRecordValid = record => record?.schemaVersion === 1 && typeof record.authorityId === 'string' && Boolean(record.authorityId.trim())
+          && Number.isSafeInteger(record.revision) && record.revision >= 1 && Number.isSafeInteger(record.safetyRevision) && record.safetyRevision >= 1 && typeof record.enabled === 'boolean'
+          && record.definition?.capabilityId === 'task.local-note.execute' && record.definition.version === 'local-note-v1'
+          && record.definition.providerRef === 'dsh:shiyu-worker-local-note' && record.definition.toolName === 'shiyu_worker_write_note'
+          && record.definition.scope === 'local-owner' && record.definition.verificationPolicy === 'informational'
+          && /^[a-f0-9]{64}$/.test(record.definition.definitionDigest) && record.binding?.definitionDigest === record.definition.definitionDigest
+          && typeof record.binding.installationGeneration === 'string' && Boolean(record.binding.installationGeneration.trim()) && /^[a-f0-9]{64}$/.test(record.binding.environmentFingerprint);
+        // Proof freshness and live host epochs are not this identity. A proof
+        // update changes revision; only the server classifies verified/stale.
+        const abilityIdentity = record => abilityRecordValid(record) ? JSON.stringify([record.authorityId, record.definition.definitionDigest,
+          record.binding.installationGeneration, record.binding.environmentFingerprint]) : null;
         const labConnectionValid = connection => connection && typeof connection.connectionId === 'string' && connection.connectionId.trim()
           && typeof connection.runId === 'string' && connection.runId.trim() && Number.isSafeInteger(connection.version) && connection.version >= 1
           && ['connected', 'paused', 'disconnected', 'needs_reconnect'].includes(connection.status) && Array.isArray(connection.channels);
@@ -759,6 +840,10 @@ window.__ModuleLoader__.load({
           // The retry identity holds only public grant metadata, never the token.
           const labDraft = useRef({ revision: 0, payload: null });
           const labSelection = useRef({ id: null, revision: 0 });
+          const [abilityPending, setAbilityPending] = useState(false);
+          const [abilityError, setAbilityError] = useState('');
+          const [abilityNotice, setAbilityNotice] = useState('');
+          const abilityGuard = useRef({ epoch: 0, requests: new Map() });
           const [selectedConversation, setSelectedConversation] = useState(null);
           const [linkTaskId, setLinkTaskId] = useState(null);
           const [command, setCommand] = useState('');
@@ -800,10 +885,10 @@ window.__ModuleLoader__.load({
               && current.lifecycle !== 'stopping' && !guard.revoked.has(operationId) && memoryEntryValid(entry) && entry.canRead === true && entry.consent === 'active' && !entry.blocked;
           }
           const rootRef = useRef(null);
-          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {}, lab: () => {} });
+          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {}, lab: () => {}, ability: () => {} });
           useEffect(() => {
             if (disposed) return;
-            let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false, withdrawalInFlight = false, coreControlInFlight = false, labControlInFlight = false;
+            let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false, withdrawalInFlight = false, coreControlInFlight = false, labControlInFlight = false, abilityInFlight = false;
             const writes = new Set(), deadlines = new Set();
             const canRead = () => alive && !disposed && panelVisible && document.visibilityState !== 'hidden';
             async function refresh(force = false) {
@@ -827,6 +912,9 @@ window.__ModuleLoader__.load({
                   contextLoadGuard.current++; contextLoadDraftId.current = null; setContextLoadReceipt(null);
                 }
                 if (instanceChanged) { coreSelection.current.revision++; labSelection.current.revision++; changeLabDraft(); setLabToken(''); setLabNotice(''); }
+                if (instanceChanged || abilityIdentity(guard.snapshot?.ability?.snapshot) !== abilityIdentity(next.ability?.snapshot)) {
+                  abilityGuard.current.epoch++; abilityGuard.current.requests.clear(); setAbilityNotice('');
+                }
                 guard.snapshot = next; guard.fresh = true;
                 if (instanceChanged || (guard.selected && (!memoryCanRead(guard.selected) || !previousEntry || !nextEntry || previousEntry.version !== nextEntry.version
                   || previousEntry.requestId !== nextEntry.requestId || previousEntry.conversationId !== nextEntry.conversationId || previousEntry.nativeId !== nextEntry.nativeId))) clearMemoryBody();
@@ -1144,7 +1232,44 @@ window.__ModuleLoader__.load({
                 if (alive && !disposed) { if (stop) setLabControl(''); else setCommand(''); }
               }
             }
-            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory, semantic: issueSemantic, core: issueCore, lab: issueLab };
+            async function issueAbility(enabled) {
+              // Owner metadata controls have their own lane. Runtime pause and
+              // unrelated model work do not prevent enabling or disabling it.
+              if (!alive || disposed || abilityInFlight || typeof enabled !== 'boolean') return;
+              const guard = memoryGuard.current, current = guard.snapshot, record = current?.ability?.snapshot;
+              const fresh = guard.fresh && Number.isFinite(Date.parse(current?.observedAt)) && Date.now() - Date.parse(current.observedAt) <= 30000;
+              if (!fresh || current?.ability?.ready !== true || current.lifecycle === 'stopping' || !abilityRecordValid(record) || record.enabled === enabled) return;
+              const identity = abilityIdentity(record), epoch = abilityGuard.current.epoch, instanceId = current.instanceId;
+              const key = JSON.stringify([identity, record.revision, enabled]), requests = abilityGuard.current.requests;
+              if (!requests.has(key)) {
+                if (requests.size >= 32) requests.delete(requests.keys().next().value);
+                requests.set(key, `ability-${crypto.randomUUID()}`);
+              }
+              const payload = { requestId: requests.get(key), expectedRevision: record.revision, enabled };
+              abilityInFlight = true; setAbilityPending(true); setAbilityError(''); setAbilityNotice('');
+              const controller = new AbortController(); writes.add(controller);
+              const timeout = setTimeout(() => controller.abort(), 30000); deadlines.add(timeout);
+              let changed = false;
+              try {
+                const result = await api('commands', { action: 'ability.setEnabled', payload, signal: controller.signal });
+                if (!alive || disposed) return;
+                const latest = guard.snapshot, observed = latest?.ability?.snapshot, returned = result?.snapshot;
+                changed = !guard.fresh || latest?.instanceId !== instanceId || abilityGuard.current.epoch !== epoch || latest?.ability?.ready !== true || abilityIdentity(observed) !== identity;
+                if (changed) throw new Error();
+                if (result?.requestId !== payload.requestId || typeof result.changed !== 'boolean' || !abilityRecordValid(returned) || abilityIdentity(returned) !== identity
+                  || returned.enabled !== enabled || returned.revision < payload.expectedRevision) throw new Error();
+                changed = ![payload.expectedRevision, returned.revision].includes(observed.revision);
+                if (changed) throw new Error();
+                setAbilityNotice(t('abilityAccepted'));
+                await refresh(true);
+              } catch {
+                if (alive && !disposed) { setAbilityError(t(changed ? 'abilityChanged' : 'abilityUnconfirmed')); await refresh(true); }
+              } finally {
+                clearTimeout(timeout); deadlines.delete(timeout); writes.delete(controller); abilityInFlight = false;
+                if (alive && !disposed) setAbilityPending(false);
+              }
+            }
+            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory, semantic: issueSemantic, core: issueCore, lab: issueLab, ability: issueAbility };
             const onVisibility = () => { setClock(Date.now()); if (canRead()) void refresh(); };
             document.addEventListener('visibilitychange', onVisibility);
             const timer = setInterval(() => { if (canRead()) { setClock(Date.now()); void refresh(); } }, 10000);
@@ -1160,7 +1285,8 @@ window.__ModuleLoader__.load({
               writes.clear(); deadlines.clear(); clearInterval(timer); observer?.disconnect();
               memoryGuard.current.fresh = false; memoryGuard.current.body = null; memoryGuard.current.revision++;
               document.removeEventListener('visibilitychange', onVisibility);
-              operations.current = { refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {}, lab: () => {} };
+              abilityGuard.current.epoch++; abilityGuard.current.requests.clear();
+              operations.current = { refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {}, lab: () => {}, ability: () => {} };
               panelDisposers.delete(cleanup);
             };
             panelDisposers.add(cleanup);
@@ -1400,9 +1526,37 @@ window.__ModuleLoader__.load({
                           !labCanReconcile(snapshot, connection, send) && h('p', { className: 'syr-small syr-muted' }, t('labReconcileBlocked')))))))
                     : h(Empty, null, t(selectedLabConnection ? 'labNotInSnapshot' : 'labSelect')))));
           }
+          function abilityContent() {
+            const projection = snapshot.ability, record = abilityRecordValid(projection?.snapshot) ? projection.snapshot : null;
+            const ready = projection?.ready === true && Boolean(record);
+            const canSet = ready && !stale && snapshot.lifecycle !== 'stopping' && !abilityPending;
+            const availability = ['available', 'unavailable', 'unknown'].includes(record?.availability) ? record.availability : 'unknown';
+            const verification = ['unknown', 'verified', 'stale'].includes(record?.verification) ? t(`abilityVerification_${record.verification}`) : t('unknownValue');
+            const evidence = arr(record?.evidenceRefs).filter(value => typeof value === 'string');
+            return h('section', { className: 'syr-box syr-section-gap', 'data-testid': 'ability-state', 'aria-label': t('abilityTitle') },
+              h(Title, null, t('abilityTitle')), h('p', { className: 'syr-small syr-muted' }, t('abilityHint')),
+              !ready && h('p', { className: 'syr-alert', 'data-testid': 'ability-unavailable' }, t('abilityUnavailable')),
+              h(Facts, { rows: [['abilityId', 'task.local-note.execute', true],
+                ['abilityDeclaration', record?.declared === true ? t('abilityDeclared') : record?.declared === false ? t('abilityUndeclared') : t('unknownValue')],
+                ['abilityEnabled', record ? t(record.enabled ? 'abilityOn' : 'abilityOff') : t('unknownValue')],
+                ['abilityAvailability', label(availability)], ['abilityVerification', verification],
+                ['abilityUsable', record?.usableForAuthorizedTask === true ? t('abilityUsableYes') : record?.usableForAuthorizedTask === false ? t('abilityUsableNo') : t('unknownValue')],
+                ['abilityDefinitionVersion', record?.definition.version], ['recordVersion', numeric(record?.revision)], ['abilitySafetyRevision', numeric(record?.safetyRevision)],
+                ['abilityReason', record?.reasonCode, true], ['observed', dateTime(record?.observedAt, locale)]] }),
+              h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('abilityAuthorityHint')),
+              h('div', { className: 'syr-actions syr-section-gap' }, h(Button, { disabled: !canSet || record?.enabled !== false, onClick: () => void operations.current.ability(true) }, t('abilityEnable')),
+                h(Button, { disabled: !canSet || record?.enabled !== true, onClick: () => void operations.current.ability(false) }, t('abilityDisable'))),
+              h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('abilityControlHint')),
+              abilityPending && h('p', { className: 'syr-feedback', role: 'status', 'data-testid': 'ability-pending' }, t('abilityPending')),
+              abilityError && h('p', { className: 'syr-alert', role: 'alert', 'data-testid': 'ability-error' }, abilityError),
+              abilityNotice && h('p', { className: 'syr-feedback', role: 'status', 'data-testid': 'ability-notice' }, abilityNotice),
+              h('section', { className: 'syr-task-result', 'data-testid': 'ability-evidence' }, h(Title, null, t('abilityEvidence')),
+                evidence.length ? h(Evidence, { values: evidence }) : h('p', { className: 'syr-small syr-muted' }, t('abilityNoEvidence')),
+                h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('abilityVerificationHint'))));
+          }
           function systemContent() {
             return h('section', null, h('div', { className: 'syr-system-heading' }, h('h2', null, t('implementation')), h('p', null, t('implementationHint'))),
-              h('div', { className: 'syr-system-list', 'data-testid': 'system-list' }, systems.length ? systems.map(item => h('article', { key: item.id, className: 'syr-system-row' }, h('h3', null, item.name), h(Status, { value: item.status }), h('p', null, item.summary))) : h(Empty, null, t('noSystems'))));
+              h('div', { className: 'syr-system-list', 'data-testid': 'system-list' }, systems.length ? systems.map(item => h('article', { key: item.id, className: 'syr-system-row' }, h('h3', null, item.name), h(Status, { value: item.status }), h('p', null, item.summary))) : h(Empty, null, t('noSystems'))), abilityContent());
           }
           function sessionContent() {
             return h('section', null, h('div', { className: 'syr-system-heading' }, h('h2', null, t('sessions')), h('p', null, t('sessionHint'))),

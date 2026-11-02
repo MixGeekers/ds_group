@@ -1,3 +1,4 @@
+import { prepareSyntheticLocalNote } from './helpers/capability.js';
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
@@ -117,7 +118,7 @@ async function fixture(t: TestContext, options: { paused?: boolean; loadOnly?: b
   const open = async () => {
     const runtime = new RuntimeService({} as DshContext, { dataDir: directory }, {
       sessionFactory: () => sessions,
-      workerFactory: () => ({ async initialize() {}, async close() {}, async run() { nativeCalls.worker++; throw new Error('Worker generation forbidden'); } }),
+      workerFactory: () => ({ prepareLocalNote: prepareSyntheticLocalNote, async initialize() {}, async close() {}, async run() { nativeCalls.worker++; throw new Error('Worker generation forbidden'); } }),
       goalFactory: () => ({ async initialize() {}, async close() {}, async run() { nativeCalls.goal++; throw new Error('Goal forbidden'); } }),
       memoryFactory(binding) { const backend = new SyntheticManaged(binding, rows); backends.push(backend); return backend; },
     });

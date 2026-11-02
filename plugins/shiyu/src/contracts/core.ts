@@ -1,6 +1,11 @@
 import type { Budget, BudgetReservation } from '../control/policy/mandates.js';
 import type { NativeGoalRef, GoalCompletionProof } from '../adapters/dsh/goals.js';
 import type { TaskDetail, TaskRuntimeIdentity } from '../adapters/control-store/task-domain.js';
+import type { CapabilityCapture, CapabilityRef } from './capability.js';
+import type { PublishedState } from '../state/publication.js';
+import type { LocalReadSafety } from '../state/safety.js';
+import type { CommitWatermark } from '../adapters/control-store/commit-watermark.js';
+import type { ComponentSnapshot, TrustedViewActor, ViewAccess } from '../views/index.js';
 
 /** Owner-specified capabilities. Model output may select an id, never redefine its body or authority. */
 export interface CoreDeliverable { id: string; title: string; content: string; dependsOn?: string[] }
@@ -45,6 +50,13 @@ export interface CoreEvaluation {
   triggerRefs: string[]; reservation: BudgetReservation;
   candidate?: CoreCandidate; receipt?: CoreCommitReceipt; reasonCode?: string;
   dispatch?: CoreDispatchBinding; nativeReceipt?: CoreNativeResultReceipt;
+  /** Absent only on historical evaluations; new claims capture it atomically. */
+  readCapture?: CoreReadCapture;
+}
+export interface CoreReadCapture {
+  schemaVersion: 1; evaluationId: string; goalId: string; capturedAt: string; expiresAt: string;
+  capability: CapabilityCapture; actor: TrustedViewActor; access: ViewAccess; component: ComponentSnapshot;
+  publication: PublishedState; control: CommitWatermark; safety: LocalReadSafety;
 }
 export interface CoreDispatchBinding {
   goalId: string; goalRef: NativeGoalRef; roundId: string; sessionId: string; messageId: string; messageHash: string;
@@ -79,6 +91,7 @@ export interface CoreCommands {
   'core.snapshot': { input: Record<string, never>; output: CoreGoal[] };
   'core.pending': { input: { limit?: number; afterGoalId?: string }; output: { goalIds: string[] } };
   'core.claim': { input: { goalId: string }; output: CoreEvaluation | undefined };
+  'core.readView': { input: { permit: CoreEvaluationPermit }; output: CoreReadCapture };
   'core.assertDispatch': { input: { permit: CoreEvaluationPermit }; output: CoreEvaluation };
   'core.assertCurrent': { input: { permit: CoreEvaluationPermit }; output: CoreEvaluation };
   'core.recordDispatch': { input: { permit: CoreEvaluationPermit; binding: CoreDispatchBinding }; output: CoreEvaluation };
@@ -99,6 +112,8 @@ export interface CoreTaskDelegation {
   goalId: string; deliverableId: string; title: string; content: string; resourceRef: string;
   subjectId: string; mandateId: string; mandateVersion: number; authEpoch: number;
   sourceRefs: string[];
+  /** The evaluation's persisted binding; old completed records may predate it. */
+  capabilityRef?: CapabilityRef;
 }
 export interface CoreTaskPort {
   setCoreAuthority(authority: (goalId: string, deliverableId: string) => CoreTaskDelegation): void;

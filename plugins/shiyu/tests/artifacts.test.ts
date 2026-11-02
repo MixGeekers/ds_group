@@ -74,6 +74,7 @@ test('task IDs, content size, fields and hashes are validated before any task di
   await assert.rejects(store.write({ ...input(), expectedSha256: 'INVALID' }), hasCode('INVALID_INPUT'));
   await assert.rejects(store.write(input('too-large', '雨'.repeat(342))), hasCode('INVALID_INPUT'));
   await assert.rejects(store.write({ ...input(), path: '/not-a-supported-command' } as any), hasCode('INVALID_INPUT'));
+  await assert.rejects(store.write({ ...input(), beforePublish: true } as any), hasCode('INVALID_INPUT'));
   assert.deepEqual(await readdir(root), []);
   assert.equal((await store.write(input('utf8-limit', '雨'.repeat(341)))).byteLength, 1023);
   assert.equal((await store.write(input('byte-limit', 'a'.repeat(1024)))).byteLength, 1024);
@@ -87,6 +88,20 @@ test('inspect is read-only when an artifact or its directories are absent', asyn
   assert.equal(cwd, join(root, 'prepared')); assert.deepEqual(await readdir(cwd), []);
   assert.equal(await store.inspect({ taskId: 'prepared' }), undefined);
   assert.deepEqual(await readdir(cwd), []);
+});
+
+test('root inspection performs no writes and rejects replacement or closed anchors', async t => {
+  const { directory, store, root } = await fixture(t);
+  const before = await lstat(root, { bigint: true });
+  await store.inspectRoot();
+  const after = await lstat(root, { bigint: true });
+  assert.equal(after.ino, before.ino); assert.equal(after.mtimeNs, before.mtimeNs); assert.equal(after.ctimeNs, before.ctimeNs);
+  assert.deepEqual(await readdir(root), []);
+  await rename(root, join(directory, 'original-workspaces')); await mkdir(root, { mode: 0o700 });
+  await assert.rejects(store.inspectRoot(), hasCode('FORBIDDEN_PATH'));
+  assert.deepEqual(await readdir(root), []);
+  assert.deepEqual(await readdir(join(directory, 'original-workspaces')), []);
+  await store.close(); await assert.rejects(store.inspectRoot(), hasCode('CLOSED'));
 });
 
 test('root and child symlinks cannot redirect artifacts outside the controlled directory', async t => {
@@ -149,6 +164,98 @@ test('cancellation before writing or before atomic publication leaves no note an
   finally { restore(); }
   assert.equal(await store.inspect({ taskId: 'task-a' }), undefined);
   assert.deepEqual(await readdir(join(root, 'task-a', 'artifacts')), []);
+});
+
+test('publication gate runs once after temporary-file fsync while the target is still absent', async t => {
+  const { store, root, target } = await fixture(t); const note = input();
+  let synced = false; let calls = 0;
+  let enter!: () => void; const entered = new Promise<void>(resolve => { enter = resolve; });
+  let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; });
+  const restore = interceptOpen((file, handle) => file.startsWith(root) && file.endsWith('.tmp') ? withSync(handle, async () => { await handle.sync(); synced = true; }) : handle);
+  const writing = store.write({ ...note, beforePublish: async () => {
+    calls++; assert.equal(synced, true);
+    const names = await readdir(join(root, 'task-a', 'artifacts'));
+    assert.equal(names.length, 1); assert.ok(names[0].endsWith('.tmp'));
+    assert.equal(await readFile(join(root, 'task-a', 'artifacts', names[0]), 'utf8'), note.content);
+    await assert.rejects(lstat(target()), { code: 'ENOENT' });
+    enter(); await gate;
+  } });
+  try {
+    await Promise.race([entered, writing]);
+    await assert.rejects(lstat(target()), { code: 'ENOENT' });
+    release(); assert.equal((await writing).sha256, note.expectedSha256);
+  } finally { release(); restore(); await writing; }
+  assert.equal(calls, 1);
+  assert.deepEqual(await readdir(join(root, 'task-a', 'artifacts')), ['note.txt']);
+});
+
+test('a rejected publication gate leaves no note and cleans its private temporary file', async t => {
+  const { store, root, target } = await fixture(t); const denied = new Error('synthetic withdrawn authority');
+  let calls = 0;
+  await assert.rejects(store.write({ ...input(), beforePublish: async () => {
+    calls++; await assert.rejects(lstat(target()), { code: 'ENOENT' }); throw denied;
+  } }), error => error instanceof ArtifactError && error.code === 'PUBLICATION_DENIED' && error.outcome === 'not_written' && error.cause === denied);
+  assert.equal(calls, 1);
+  assert.equal(await store.inspect({ taskId: 'task-a' }), undefined);
+  assert.deepEqual(await readdir(join(root, 'task-a', 'artifacts')), []);
+});
+
+test('cancellation while the publication gate awaits prevents publication after it returns', async t => {
+  const { store, root, target } = await fixture(t); const controller = new AbortController();
+  let enter!: () => void; const entered = new Promise<void>(resolve => { enter = resolve; });
+  let release!: () => void; const gate = new Promise<void>(resolve => { release = resolve; });
+  let calls = 0;
+  const writing = store.write({ ...input(), signal: controller.signal, beforePublish: async () => { calls++; enter(); await gate; } });
+  const rejected = assert.rejects(writing, error => error instanceof ArtifactError && error.code === 'CANCELLED' && error.outcome === 'not_written');
+  try {
+    await Promise.race([entered, writing]); controller.abort();
+    await assert.rejects(lstat(target()), { code: 'ENOENT' });
+  } finally { release(); await rejected; }
+  assert.equal(calls, 1);
+  assert.equal(await store.inspect({ taskId: 'task-a' }), undefined);
+  assert.deepEqual(await readdir(join(root, 'task-a', 'artifacts')), []);
+});
+
+test('already-present same-content artifacts do not request a new publication gate', async t => {
+  const { store, target } = await fixture(t); const note = input(); await store.write(note);
+  const identity = await lstat(target(), { bigint: true }); let calls = 0;
+  const result = await store.write({ ...note, beforePublish: () => { calls++; throw new Error('no new publication is authorized'); } });
+  assert.equal(calls, 0); assert.equal(result.sha256, note.expectedSha256);
+  assert.equal((await lstat(target(), { bigint: true })).ino, identity.ino);
+});
+
+test('a target created while the publication gate awaits is checked before any link attempt', async t => {
+  const { directory, store, root, target } = await fixture(t);
+  const outside = join(directory, 'outside.txt'); await writeFile(outside, 'outside-sentinel', { mode: 0o600 });
+  let linkCalls = 0;
+  const restore = interceptLink(async (original, source, destination) => { linkCalls++; await original(source, destination); });
+  try {
+    const sameContent = input('same-content');
+    assert.equal((await store.write({ ...sameContent, beforePublish: async () => { await writeFile(target(sameContent.taskId), sameContent.content, { mode: 0o600, flag: 'wx' }); } })).sha256, sameContent.expectedSha256);
+    await assert.rejects(store.write({ ...input('conflicting'), beforePublish: async () => { await writeFile(target('conflicting'), 'competing-content', { mode: 0o600, flag: 'wx' }); } }), hasCode('CONTENT_CONFLICT'));
+    await assert.rejects(store.write({ ...input('symbolic'), beforePublish: async () => { await symlink(outside, target('symbolic')); } }), hasCode('FORBIDDEN_PATH'));
+  } finally { restore(); }
+  assert.equal(linkCalls, 0);
+  assert.equal(await readFile(target('conflicting'), 'utf8'), 'competing-content');
+  assert.equal(await readFile(outside, 'utf8'), 'outside-sentinel');
+  for (const id of ['same-content', 'conflicting', 'symbolic']) assert.deepEqual(await readdir(join(root, id, 'artifacts')), ['note.txt']);
+});
+
+test('directory replacement during the publication gate is rejected without linking into its replacement', async t => {
+  const { directory, store, root } = await fixture(t);
+  const outside = join(directory, 'outside'); await mkdir(outside, { mode: 0o700 });
+  await writeFile(join(outside, 'note.txt'), 'outside-sentinel', { mode: 0o600 });
+  let linkCalls = 0;
+  const restore = interceptLink(async (original, source, destination) => { linkCalls++; await original(source, destination); });
+  try {
+    await assert.rejects(store.write({ ...input(), beforePublish: async () => {
+      await rename(join(root, 'task-a'), join(root, 'moved-task')); await symlink(outside, join(root, 'task-a'));
+    } }), error => error instanceof ArtifactUnknownError && error.outcome === 'unknown');
+  } finally { restore(); }
+  assert.equal(linkCalls, 0);
+  assert.equal(await readFile(join(outside, 'note.txt'), 'utf8'), 'outside-sentinel');
+  const names = await readdir(join(root, 'moved-task', 'artifacts'));
+  assert.equal(names.length, 1); assert.ok(names[0].endsWith('.tmp'));
 });
 
 test('cancellation after publication reports unknown and retains the independently inspectable artifact', async t => {
