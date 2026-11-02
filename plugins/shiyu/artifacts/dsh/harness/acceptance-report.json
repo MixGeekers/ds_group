@@ -1,0 +1,5835 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.acceptance-report",
+  "generatedAt": "2026-11-02T22:46:44.767Z",
+  "registryVersion": "1.0.0",
+  "inputs": {
+    "pluginRoot": "/private/tmp/h7r3-clean/plugins/shiyu",
+    "workspaceRoot": "/private/tmp/h7r3-clean",
+    "traceabilitySha256": "7416e3490cca2e2d24777439655504a7b4134e82d8f900ecd1a97c940131530d",
+    "selfproofSha256": "8af56a2e10f31580c21f3efc7413650722f7ab06359fef52820b399d5039ab31",
+    "manifestSha256": "ba6e4786e3428568a458c75ffa8d4dc57747dca0f3d39d67fc52347296daa6f4",
+    "coverageSha256": "c601286411a4df28a2cd7d293a986096de33b576f8cb813e95606a078ce78fd8",
+    "frozenHead": "c2bb475e67c11f12334c1b4339284e6084c5630a",
+    "selfproofPassed": true,
+    "manifestDirty": false
+  },
+  "summary": {
+    "areas": 12,
+    "modules": 40,
+    "systems": 9,
+    "vItems": 27,
+    "scenarios": 16,
+    "denominators": {
+      "planned": 92,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "unknown": 0,
+      "blocked": 19,
+      "skipped": 0,
+      "notRun": 73,
+      "notApplicable": 0
+    },
+    "byScope": {
+      "modules": {
+        "planned": 40,
+        "executed": 0,
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0,
+        "blocked": 5,
+        "skipped": 0,
+        "notRun": 35,
+        "notApplicable": 0
+      },
+      "systems": {
+        "planned": 9,
+        "executed": 0,
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0,
+        "blocked": 0,
+        "skipped": 0,
+        "notRun": 9,
+        "notApplicable": 0
+      },
+      "vItems": {
+        "planned": 27,
+        "executed": 0,
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0,
+        "blocked": 14,
+        "skipped": 0,
+        "notRun": 13,
+        "notApplicable": 0
+      },
+      "scenarios": {
+        "planned": 16,
+        "executed": 0,
+        "passed": 0,
+        "failed": 0,
+        "unknown": 0,
+        "blocked": 0,
+        "skipped": 0,
+        "notRun": 16,
+        "notApplicable": 0
+      }
+    }
+  },
+  "modules": [
+    {
+      "id": "MOD.user",
+      "title": "用户与目标",
+      "areaId": "A.sources",
+      "graphId": "user",
+      "systems": [
+        "1",
+        "3"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-task-goal"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-task-goal",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/task-validation.json",
+              "sha256": "9043e1bc22168cbc4d8097e0de0ed82a9a362ebe6b4bc4e2dfd39bcfe491fe0d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/goal-validation.json",
+              "sha256": "bda0d0de152cdd8a10df4d11a7390c8ac629e214dbea7972c28a7d3c7755b385"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3g-core-host-success.json",
+              "sha256": "bafe7c6be8a363250209d361c2aff91927ebed81b6c36fdcdf5b982f5c3fb100"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/dsh/goals.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/goals.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/goal-bindings.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "authority",
+        "state-machine"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "原生 Goal 生命周期仅历史限定证据；用户/目标口径未做完整 V02 矩阵",
+        "Historical limited samples on earlier builds; they do not prove the current HEAD, general Task/Goal behaviour or V10–V12.",
+        "The first task usage failure and A-round failures remain unknown; bounded model calls are not full Session fees."
+      ],
+      "notes": [
+        "原生 Goal 生命周期仅历史限定证据；用户/目标口径未做完整 V02 矩阵"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/01-输入与事件/01-用户与目标/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.channels",
+      "title": "对话渠道",
+      "areaId": "A.sources",
+      "graphId": "channels",
+      "systems": [
+        "1",
+        "2",
+        "7"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h6a-channel-ingress"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h6a-channel-ingress",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h6/h6a-channel-ingress.json",
+              "sha256": "b74d67c483448386154e760ad16c54fb025cc1aab738b7d888b50d38ce30983c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h6/h6a-slice-summary.json",
+              "sha256": "8cb0874da24e27c362a8ea5ac864fcf3f60c0cc57485bc0e3f9958ad20a06dd4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h6a-verify.json",
+              "sha256": "91e8b93e3141f6268dd4d491a89fd4992dda073c33d534eb8606a18dd7546148"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/channels/index.ts",
+          "exists": true
+        },
+        {
+          "path": "src/control/channels/bridge.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/ingress-domain.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/channel-ingress.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/channel-identity.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/channel-audience.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/channel-bridge.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "authority",
+        "canary",
+        "causal"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H6a 为离线归一化/去重/受众基础；无真实平台/账号/发送 Effect",
+        "No real platform adapter/credential/receipt, sending/Effect, native Session/draft consumption, dashboard/HTTP UI, Lab room reuse, long-run/crash windows or migration.",
+        "Runtime integration points (channelRef bindings, onInvalidation bridge, dashboard read views) remain for later slices."
+      ],
+      "notes": [
+        "H6a 为离线归一化/去重/受众基础；无真实平台/账号/发送 Effect"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/01-输入与事件/02-对话渠道/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.events",
+      "title": "外部事件",
+      "areaId": "A.sources",
+      "graphId": "events",
+      "systems": [
+        "2"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h2a-events",
+        "h2a-probe"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h2a-events",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2a-events-offline.json",
+              "sha256": "364d63f1907429cc23dac0e8f6c899743bd207f3fb2f0db28bcf6211db166a1e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2a-slice-summary.json",
+              "sha256": "e1a2272a3014f6e6f1d1a8b384d700ff80e4de05b10a8a94922cbc567a452343"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2a-verify.json",
+              "sha256": "89e5640765c280f9751f6dc21963db7b7668789ddf50c78ffcb49f0c0b8f230d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2a-events-verify.json",
+              "sha256": "20014eae2c7332600c3428dc172dce7ff66159773991905dd9c45a98fe3b7c9e"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2a-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2a-probe-slice-summary.json",
+              "sha256": "62f4806af50713b36b320e20a78778e67c8d44fce29bfc1386e669b7164b1e37"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2a-probe-verify.json",
+              "sha256": "ec72562a1ee544f431b4bfe47fe71aedbc455c0a491e55abd2ea121bc479f24e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/events/index.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/protocol.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/events.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/event-tools.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/events-paths.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "counts",
+        "causal",
+        "state-machine"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H2a 离线+零模型探针；时间/外部触发、fan-out/配额未验",
+        "Offline module/integration with synthetic native DSH double and independent effect ledger; not fixed-host model behaviour.",
+        "Real core Goal continuation wiring, time/condition triggers, anti-loop/fanout quota matrices and event-catalog extension remain untested.",
+        "No model actually called an event tool; provider budgets/cache and real task/Goal continuation are unproven.",
+        "Zero-model probe only: proves restricted mounting, non-forgeable tool parameters and release — not that a model called an event tool.",
+        "Not Task/Goal continuation, not provider budget/cache/cost, not business acceptance."
+      ],
+      "notes": [
+        "H2a 离线+零模型探针；时间/外部触发、fan-out/配额未验"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/01-输入与事件/03-外部事件/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.providers",
+      "title": "模型与服务",
+      "areaId": "A.dependencies",
+      "graphId": "providers",
+      "systems": [
+        "6",
+        "7"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-model-context"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-model-context",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/model-validation.json",
+              "sha256": "ccf61a6ef54a81713943794a2d1359d1f72f2e744c77c5f0a19140e737fa8808"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/context-validation.json",
+              "sha256": "79043e2212021ab7e07d295dd0b9e9d643886a8e21e665cb1d959e3e6afcb423"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/embedding/index.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/ombre/managed.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/dsh/sessions.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/embedding.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/ombre-managed.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/ombre.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "json-text",
+        "schema",
+        "counts"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "历史有界真实模型/embedding 样本；非当前 HEAD 完整 provider 费用/缓存证据",
+        "Not current-HEAD model acceptance; 2–3 main calls only, no long history/compaction/cache/provider retries or complete fees.",
+        "Cannot be reused as V24/V25 or business evidence."
+      ],
+      "notes": [
+        "历史有界真实模型/embedding 样本；非当前 HEAD 完整 provider 费用/缓存证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/02-外部依赖/01-模型与服务/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.links",
+      "title": "渠道链接",
+      "areaId": "A.outer",
+      "graphId": "links",
+      "systems": [
+        "1",
+        "2",
+        "4"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h6a-channel-ingress"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h6a-channel-ingress",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h6/h6a-channel-ingress.json",
+              "sha256": "b74d67c483448386154e760ad16c54fb025cc1aab738b7d888b50d38ce30983c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h6/h6a-slice-summary.json",
+              "sha256": "8cb0874da24e27c362a8ea5ac864fcf3f60c0cc57485bc0e3f9958ad20a06dd4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h6a-verify.json",
+              "sha256": "91e8b93e3141f6268dd4d491a89fd4992dda073c33d534eb8606a18dd7546148"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/channels/bridge.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/channel-conversation-integration.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "authority",
+        "causal"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "运行时 channelRef→Conversation 绑定接线仍待后续切片",
+        "No real platform adapter/credential/receipt, sending/Effect, native Session/draft consumption, dashboard/HTTP UI, Lab room reuse, long-run/crash windows or migration.",
+        "Runtime integration points (channelRef bindings, onInvalidation bridge, dashboard read views) remain for later slices."
+      ],
+      "notes": [
+        "运行时 channelRef→Conversation 绑定接线仍待后续切片"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/01-外层-对话与表达/01-渠道链接/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.dialogue-queue",
+      "title": "串行与并行队列",
+      "areaId": "A.outer",
+      "graphId": "dialogue-queue",
+      "systems": [
+        "1",
+        "2"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h2a-events"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h2a-events",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2a-events-offline.json",
+              "sha256": "364d63f1907429cc23dac0e8f6c899743bd207f3fb2f0db28bcf6211db166a1e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2a-slice-summary.json",
+              "sha256": "e1a2272a3014f6e6f1d1a8b384d700ff80e4de05b10a8a94922cbc567a452343"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2a-verify.json",
+              "sha256": "89e5640765c280f9751f6dc21963db7b7668789ddf50c78ffcb49f0c0b8f230d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2a-events-verify.json",
+              "sha256": "20014eae2c7332600c3428dc172dce7ff66159773991905dd9c45a98fe3b7c9e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/background-pump.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/background-pump.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/events-lifecycle.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "counts",
+        "quiet-window",
+        "causal"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "无 V05 的 20 会话/1000 消息/20 种子公平与 P95 证据",
+        "Offline module/integration with synthetic native DSH double and independent effect ledger; not fixed-host model behaviour.",
+        "Real core Goal continuation wiring, time/condition triggers, anti-loop/fanout quota matrices and event-catalog extension remain untested.",
+        "No model actually called an event tool; provider budgets/cache and real task/Goal continuation are unproven."
+      ],
+      "notes": [
+        "无 V05 的 20 会话/1000 消息/20 种子公平与 P95 证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/01-外层-对话与表达/02-串行与并行队列/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.replyer",
+      "title": "replyer-表现",
+      "areaId": "A.outer",
+      "graphId": "replyer",
+      "systems": [
+        "1",
+        "6"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4c-replyer-inner",
+        "historical-model-context"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4c-replyer-inner",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4c-replyer-inner-context.json",
+              "sha256": "e8a529e8ed76a2c4270ae1b503bfede6cd559350360c9f1b87e25e3a2f0270ef"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4c-slice-summary.json",
+              "sha256": "5e8d995de5e0b9097225526859834da24e15ee594fa0cb9e108e8075395d7e55"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4c-verify.json",
+              "sha256": "df8655e834f3f0f7b77c1ee68dc9e07a61278f8870d83ec3421475ccdd937011"
+            }
+          ]
+        },
+        {
+          "sourceId": "historical-model-context",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/model-validation.json",
+              "sha256": "ccf61a6ef54a81713943794a2d1359d1f72f2e744c77c5f0a19140e737fa8808"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/context-validation.json",
+              "sha256": "79043e2212021ab7e07d295dd0b9e9d643886a8e21e665cb1d959e3e6afcb423"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/local-reply.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/dsh/sessions.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/local-reply.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/local-reply-memory.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/sessions.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "json-text",
+        "counts",
+        "canary"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H4c 离线有界内层参考；真实生成/质量/费用未验",
+        "Real model generation, how a model uses the inner block, provider cache/cost and quality impact are NOT measured.",
+        "conversation.reply.prepare contract not extended with explicit inner-source fields; Lab reply capture does not request inner domains.",
+        "Not current-HEAD model acceptance; 2–3 main calls only, no long history/compaction/cache/provider retries or complete fees.",
+        "Cannot be reused as V24/V25 or business evidence."
+      ],
+      "notes": [
+        "H4c 离线有界内层参考；真实生成/质量/费用未验"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/01-外层-对话与表达/03-replyer-表现/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.core",
+      "title": "core-主动判断",
+      "areaId": "A.inner",
+      "graphId": "core",
+      "systems": [
+        "3"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h3-core-planning"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h3-core-planning",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-core-planning-offline.json",
+              "sha256": "a0e592b03ae8132ac1c802ac31d951336d5b835525055b238ed651074f5f906c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-slice-summary.json",
+              "sha256": "478536a9e46829d1219a41de1c62f6fd70caf75dfd532a5c4057ac8d3672c104"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-verify.json",
+              "sha256": "738d8133b1cb4c9a0a3965e1681f6a7d1b1aa13a2448dfbf76b9cf27681ba1a9"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/local-core.ts",
+          "exists": true
+        },
+        {
+          "path": "src/control/core-pump.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/dsh/core-decision.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/local-core.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/core-plan.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/core-pump.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "schema",
+        "cas",
+        "state-machine",
+        "counts"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H3 离线受控计划/重规划；无真实宿主/模型 plan 验收",
+        "G1 module/property + real temporary SQLite/Worker only; no real DSH host/native Goal rounds, real model plan JSON, cost/cache or slot behaviour.",
+        "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission."
+      ],
+      "notes": [
+        "H3 离线受控计划/重规划；无真实宿主/模型 plan 验收"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/00-core-主动判断/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.memory",
+      "title": "记忆",
+      "areaId": "A.inner",
+      "graphId": "memory",
+      "systems": [
+        "5"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-memory",
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-memory",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/phase3e-memory-validation.json",
+              "sha256": "1a243dc31812d90ab2c1aa420ed17b1fb4cc79b01ea7180f20c1ef26c55d2651"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3f-memory-host-validation.json",
+              "sha256": "09b86432fdff4c29058abc9316ea7f77009320c3b21d6de95f872aeb8e169c2d"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/local-memory.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/memory-domain.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/memory-index-domain.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/local-memory.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/local-memory-search.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/memory-domain.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "causal",
+        "canary",
+        "counts"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "历史限定 save/read/withdraw + H4 离线内层删除屏障；无当前 HEAD 真实后端 V07/V16",
+        "Not current-HEAD, not full six domains, not physical deletion/cross-domain propagation or recall quality; host embedding usage incomplete/unknown.",
+        "Historical samples cannot be upgraded to V07/V16/V25 or S/FL pass.",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "历史限定 save/read/withdraw + H4 离线内层删除屏障；无当前 HEAD 真实后端 V07/V16"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/01-记忆/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.relationship",
+      "title": "关系",
+      "areaId": "A.inner",
+      "graphId": "relationship",
+      "systems": [
+        "5"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/control-store/relationship-domain.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/inner-relationship.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "authority",
+        "schema"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H4 离线域模块；无真实身份/受众矩阵与跨域重算",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "H4 离线域模块；无真实身份/受众矩阵与跨域重算"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/02-关系/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.emotion",
+      "title": "情绪",
+      "areaId": "A.inner",
+      "graphId": "emotion",
+      "systems": [
+        "5"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/control-store/emotion-domain.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/inner-emotion.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "schema",
+        "version"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H4 离线域模块；无真实模型使用/质量证据",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "H4 离线域模块；无真实模型使用/质量证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/03-情绪/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.cognition",
+      "title": "认知",
+      "areaId": "A.inner",
+      "graphId": "cognition",
+      "systems": [
+        "5"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/control-store/cognition-domain.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/inner-cognition.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "causal",
+        "version"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H4 离线域模块；无跨域结论撤回/复盘业务证据",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "H4 离线域模块；无跨域结论撤回/复盘业务证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/04-认知/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.personality",
+      "title": "人格",
+      "areaId": "A.inner",
+      "graphId": "personality",
+      "systems": [
+        "5"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/control-store/personality-domain.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/inner-personality.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "version",
+        "authority"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H4 离线域模块；无 100 轮稳定/V08 证据",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "H4 离线域模块；无 100 轮稳定/V08 证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/05-人格/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.ability",
+      "title": "能力",
+      "areaId": "A.inner",
+      "graphId": "ability",
+      "systems": [
+        "5",
+        "7"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-capability-3i",
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-capability-3i",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "offline-module",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/phase3i-capability-offline.json",
+              "sha256": "e5e2c3fb39b479f6780d8bd1d476e641cf144fcb08b5bd2812b1fcd3e2b93a60"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3i-capability-host-zero-model.json",
+              "sha256": "d84eeec1352b4adce42385c920131b6428ea1e3b8ea46bbbe2fd658cc10dd915"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/control-store/capability-domain.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/capability-identity.ts",
+          "exists": true
+        },
+        {
+          "path": "src/contracts/capability.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/capability-domain.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/capability-matrix.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/capability-task.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "authority",
+        "version",
+        "schema"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "历史固定能力启停/零模型重载；新绑定 proof 与动态技能未验",
+        "Historical fixed capability only; new-binding real task proof, dynamic candidate/skill matrix, complete V09 and other five domains remain untested.",
+        "Zero-model host reloads are not generation or business evidence.",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "历史固定能力启停/零模型重载；新绑定 proof 与动态技能未验"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/06-能力/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.views",
+      "title": "只读状态视图",
+      "areaId": "A.inner",
+      "graphId": "views",
+      "systems": [
+        "5",
+        "9"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4b-composition",
+        "h4-host",
+        "h4c-replyer-inner"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4b-composition",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "synthetic-ui",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4b-integration.json",
+              "sha256": "abb2c6e2429093368c889aa1f68ca6339f7d2f11ba8fe8ca7f0ad31e909193b8"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4b-slice-summary.json",
+              "sha256": "ce09df93a011cc96b609d424c430371c2cbfea91fc2c748a5cf51fa717fbda2c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4b-verify.json",
+              "sha256": "963df2671b31134176c1da493d49f980a1d866b4f88c49400ed722b69f6a2b79"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4-host",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-host-zero-model.json",
+              "sha256": "67a9ccb233b573823154f8219928dc3d577663409bec7d400ac81b0d5ff0fa59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/shiyu-status-schema4-host.json",
+              "sha256": "33772db64a32b6eb1174c5a4a7ffa408ee6dd8342bc2b3033b68e12fdd7c03fe"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4c-replyer-inner",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4c-replyer-inner-context.json",
+              "sha256": "e8a529e8ed76a2c4270ae1b503bfede6cd559350360c9f1b87e25e3a2f0270ef"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4c-slice-summary.json",
+              "sha256": "5e8d995de5e0b9097225526859834da24e15ee594fa0cb9e108e8075395d7e55"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4c-verify.json",
+              "sha256": "df8655e834f3f0f7b77c1ee68dc9e07a61278f8870d83ec3421475ccdd937011"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/views/index.ts",
+          "exists": true
+        },
+        {
+          "path": "src/views/local.ts",
+          "exists": true
+        },
+        {
+          "path": "src/views/core.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/view-domain.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/views.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/inner-readview.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/local-views.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "schema",
+        "canary",
+        "authority"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "离线 ReadView + 合成 UI + 零模型宿主；真实浏览器/DOM 未验",
+        "UI is validated against synthetic host fixtures (209 cases), not a real browser against real DSH host data.",
+        "No real model generation, no real inner body content, no real business data.",
+        "Startup/publication/status visibility only; no real dashboard DOM, no model/embedding/channel/business action, no real inner bodies.",
+        "Single host instance; not a V24 lifecycle matrix and not host business acceptance.",
+        "Real model generation, how a model uses the inner block, provider cache/cost and quality impact are NOT measured.",
+        "conversation.reply.prepare contract not extended with explicit inner-source fields; Lab reply capture does not request inner domains."
+      ],
+      "notes": [
+        "离线 ReadView + 合成 UI + 零模型宿主；真实浏览器/DOM 未验"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/07-只读状态视图/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.mandate",
+      "title": "任务授权与范围",
+      "areaId": "A.execution",
+      "graphId": "mandate",
+      "systems": [
+        "4",
+        "7"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h2a-events"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-task-goal",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/task-validation.json",
+              "sha256": "9043e1bc22168cbc4d8097e0de0ed82a9a362ebe6b4bc4e2dfd39bcfe491fe0d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/goal-validation.json",
+              "sha256": "bda0d0de152cdd8a10df4d11a7390c8ac629e214dbea7972c28a7d3c7755b385"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3g-core-host-success.json",
+              "sha256": "bafe7c6be8a363250209d361c2aff91927ebed81b6c36fdcdf5b982f5c3fb100"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2a-events",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2a-events-offline.json",
+              "sha256": "364d63f1907429cc23dac0e8f6c899743bd207f3fb2f0db28bcf6211db166a1e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2a-slice-summary.json",
+              "sha256": "e1a2272a3014f6e6f1d1a8b384d700ff80e4de05b10a8a94922cbc567a452343"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2a-verify.json",
+              "sha256": "89e5640765c280f9751f6dc21963db7b7668789ddf50c78ffcb49f0c0b8f230d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2a-events-verify.json",
+              "sha256": "20014eae2c7332600c3428dc172dce7ff66159773991905dd9c45a98fe3b7c9e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/policy/mandates.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/authority.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/mandates.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/mandates-catalog.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "authority",
+        "version",
+        "counts"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "历史 Task/Goal 预算/暂停样本；无当前 HEAD 32 授权组合矩阵",
+        "Historical limited samples on earlier builds; they do not prove the current HEAD, general Task/Goal behaviour or V10–V12.",
+        "The first task usage failure and A-round failures remain unknown; bounded model calls are not full Session fees.",
+        "Offline module/integration with synthetic native DSH double and independent effect ledger; not fixed-host model behaviour.",
+        "Real core Goal continuation wiring, time/condition triggers, anti-loop/fanout quota matrices and event-catalog extension remain untested.",
+        "No model actually called an event tool; provider budgets/cache and real task/Goal continuation are unproven."
+      ],
+      "notes": [
+        "历史 Task/Goal 预算/暂停样本；无当前 HEAD 32 授权组合矩阵"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/03-任务与执行/01-任务授权与范围/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.tasks",
+      "title": "任务与执行实例",
+      "areaId": "A.execution",
+      "graphId": "tasks",
+      "systems": [
+        "4"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h3-core-planning"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-task-goal",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/task-validation.json",
+              "sha256": "9043e1bc22168cbc4d8097e0de0ed82a9a362ebe6b4bc4e2dfd39bcfe491fe0d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/goal-validation.json",
+              "sha256": "bda0d0de152cdd8a10df4d11a7390c8ac629e214dbea7972c28a7d3c7755b385"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3g-core-host-success.json",
+              "sha256": "bafe7c6be8a363250209d361c2aff91927ebed81b6c36fdcdf5b982f5c3fb100"
+            }
+          ]
+        },
+        {
+          "sourceId": "h3-core-planning",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-core-planning-offline.json",
+              "sha256": "a0e592b03ae8132ac1c802ac31d951336d5b835525055b238ed651074f5f906c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-slice-summary.json",
+              "sha256": "478536a9e46829d1219a41de1c62f6fd70caf75dfd532a5c4057ac8d3672c104"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-verify.json",
+              "sha256": "738d8133b1cb4c9a0a3965e1681f6a7d1b1aa13a2448dfbf76b9cf27681ba1a9"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/tasks/index.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/task-domain.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/task-repositories.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/tasks.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/task-domain.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/task-repositories.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "cas",
+        "state-machine",
+        "causal"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "历史单任务 + H3 离线准入；无 50 worker 竞争/取消/迟到矩阵",
+        "Historical limited samples on earlier builds; they do not prove the current HEAD, general Task/Goal behaviour or V10–V12.",
+        "The first task usage failure and A-round failures remain unknown; bounded model calls are not full Session fees.",
+        "G1 module/property + real temporary SQLite/Worker only; no real DSH host/native Goal rounds, real model plan JSON, cost/cache or slot behaviour.",
+        "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission."
+      ],
+      "notes": [
+        "历史单任务 + H3 离线准入；无 50 worker 竞争/取消/迟到矩阵"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/03-任务与执行/02-任务与执行实例/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.worker",
+      "title": "worker-任务执行",
+      "areaId": "A.execution",
+      "graphId": "worker",
+      "systems": [
+        "4"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h3-core-planning"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-task-goal",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/task-validation.json",
+              "sha256": "9043e1bc22168cbc4d8097e0de0ed82a9a362ebe6b4bc4e2dfd39bcfe491fe0d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/goal-validation.json",
+              "sha256": "bda0d0de152cdd8a10df4d11a7390c8ac629e214dbea7972c28a7d3c7755b385"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3g-core-host-success.json",
+              "sha256": "bafe7c6be8a363250209d361c2aff91927ebed81b6c36fdcdf5b982f5c3fb100"
+            }
+          ]
+        },
+        {
+          "sourceId": "h3-core-planning",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-core-planning-offline.json",
+              "sha256": "a0e592b03ae8132ac1c802ac31d951336d5b835525055b238ed651074f5f906c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-slice-summary.json",
+              "sha256": "478536a9e46829d1219a41de1c62f6fd70caf75dfd532a5c4057ac8d3672c104"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-verify.json",
+              "sha256": "738d8133b1cb4c9a0a3965e1681f6a7d1b1aa13a2448dfbf76b9cf27681ba1a9"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/dsh/workers.ts",
+          "exists": true
+        },
+        {
+          "path": "src/control/task-runner.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/workers.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/task-runner.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "counts",
+        "causal",
+        "state-machine"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "worker 真实并行/槽位/旧实例迟到未验",
+        "Historical limited samples on earlier builds; they do not prove the current HEAD, general Task/Goal behaviour or V10–V12.",
+        "The first task usage failure and A-round failures remain unknown; bounded model calls are not full Session fees.",
+        "G1 module/property + real temporary SQLite/Worker only; no real DSH host/native Goal rounds, real model plan JSON, cost/cache or slot behaviour.",
+        "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission."
+      ],
+      "notes": [
+        "worker 真实并行/槽位/旧实例迟到未验"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/03-任务与执行/03-worker-任务执行/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.verify",
+      "title": "结果核验与回执",
+      "areaId": "A.execution",
+      "graphId": "verify",
+      "systems": [
+        "4"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h5-g1-module"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-task-goal",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/task-validation.json",
+              "sha256": "9043e1bc22168cbc4d8097e0de0ed82a9a362ebe6b4bc4e2dfd39bcfe491fe0d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/goal-validation.json",
+              "sha256": "bda0d0de152cdd8a10df4d11a7390c8ac629e214dbea7972c28a7d3c7755b385"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3g-core-host-success.json",
+              "sha256": "bafe7c6be8a363250209d361c2aff91927ebed81b6c36fdcdf5b982f5c3fb100"
+            }
+          ]
+        },
+        {
+          "sourceId": "h5-g1-module",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-recovery-matrix.json",
+              "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-verification.json",
+              "sha256": "51454bfd16031f8f2deda882beee25905c5db776d495cbdd45ab0a55319d28ea"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-slice-summary.json",
+              "sha256": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
+              "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/effects/index.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/artifacts/index.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/effects.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/artifacts.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "causal",
+        "counts",
+        "json-text"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "历史独立产物/Effect 核验 + H5 G1；无跨服务 unknown 矩阵",
+        "Historical limited samples on earlier builds; they do not prove the current HEAD, general Task/Goal behaviour or V10–V12.",
+        "The first task usage failure and A-round failures remain unknown; bounded model calls are not full Session fees.",
+        "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "Synthetic ports and temporary local roots; not host or business acceptance."
+      ],
+      "notes": [
+        "历史独立产物/Effect 核验 + H5 G1；无跨服务 unknown 矩阵"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/03-任务与执行/04-结果核验与回执/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.model-session",
+      "title": "模型与会话",
+      "areaId": "A.foundation",
+      "graphId": "model-session",
+      "systems": [
+        "6"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h1-native-history",
+        "h1-independent-run",
+        "historical-model-context"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h1-native-history",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification",
+            "independent-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h1/h1-verification.json",
+              "sha256": "bea025df1a695f497c935ca09ec217ad2915519cdea05ca492259e0d8ea62517"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h1-verify.json",
+              "sha256": "1b7dd9a51f8659af979128e404da485b1a129e6bf581f077ab286d0e33f282dd"
+            }
+          ]
+        },
+        {
+          "sourceId": "h1-independent-run",
+          "status": "verified",
+          "levels": [
+            "independent-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/manifest.json",
+              "sha256": "b0c266a293b10e7f50274bb08f5ec94b300aadfa737ab17d7b0a2730a9997d2a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/results.json",
+              "sha256": "d1de1c9acc7b108a4cb1a33c23648600e1e2c4cf72edfa34cccf7e9bb09dd97d"
+            }
+          ]
+        },
+        {
+          "sourceId": "historical-model-context",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/model-validation.json",
+              "sha256": "ccf61a6ef54a81713943794a2d1359d1f72f2e744c77c5f0a19140e737fa8808"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/context-validation.json",
+              "sha256": "79043e2212021ab7e07d295dd0b9e9d643886a8e21e665cb1d959e3e6afcb423"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/dsh/sessions.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/dsh/native-context.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/dsh/native-message.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/dsh/session-title.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/sessions.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/native-history.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/native-context.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "json-text",
+        "counts",
+        "version"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H1 离线+独立验证；无固定宿主长历史/压缩/完整费用",
+        "No fixed-host long-history cold recovery, live native Session operations, generation, compression or cache/cost measurement.",
+        "Two matching read passes are stable append-only observation, not an atomic snapshot under arbitrary external writers.",
+        "Independent suite is an offline oracle bound to 92c857f; it is not host/business acceptance.",
+        "Offline independent verification only; no host/model/business execution and no product status upgrade.",
+        "Not current-HEAD model acceptance; 2–3 main calls only, no long history/compaction/cache/provider retries or complete fees.",
+        "Cannot be reused as V24/V25 or business evidence."
+      ],
+      "notes": [
+        "H1 离线+独立验证；无固定宿主长历史/压缩/完整费用"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/01-模型与会话/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.tool-policy",
+      "title": "工具与权限",
+      "areaId": "A.foundation",
+      "graphId": "tool-policy",
+      "systems": [
+        "7"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h2a-probe",
+        "historical-capability-3i"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h2a-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2a-probe-slice-summary.json",
+              "sha256": "62f4806af50713b36b320e20a78778e67c8d44fce29bfc1386e669b7164b1e37"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2a-probe-verify.json",
+              "sha256": "ec72562a1ee544f431b4bfe47fe71aedbc455c0a491e55abd2ea121bc479f24e"
+            }
+          ]
+        },
+        {
+          "sourceId": "historical-capability-3i",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "offline-module",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/phase3i-capability-offline.json",
+              "sha256": "e5e2c3fb39b479f6780d8bd1d476e641cf144fcb08b5bd2812b1fcd3e2b93a60"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3i-capability-host-zero-model.json",
+              "sha256": "d84eeec1352b4adce42385c920131b6428ea1e3b8ea46bbbe2fd658cc10dd915"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/dsh/event-tools.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/event-tools.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/events-worker-mount.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "authority",
+        "schema",
+        "canary"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "零模型工具挂载探针；模型实际调用/权限矩阵未验",
+        "Zero-model probe only: proves restricted mounting, non-forgeable tool parameters and release — not that a model called an event tool.",
+        "Not Task/Goal continuation, not provider budget/cache/cost, not business acceptance.",
+        "Historical fixed capability only; new-binding real task proof, dynamic candidate/skill matrix, complete V09 and other five domains remain untested.",
+        "Zero-model host reloads are not generation or business evidence."
+      ],
+      "notes": [
+        "零模型工具挂载探针；模型实际调用/权限矩阵未验"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/02-工具与权限/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.event-schedule",
+      "title": "事件与定时",
+      "areaId": "A.foundation",
+      "graphId": "event-schedule",
+      "systems": [
+        "2"
+      ],
+      "status": "not_covered",
+      "evidenceSourceIds": [],
+      "evidenceRefs": [],
+      "codePaths": [
+        {
+          "path": "src/control/events/index.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/events-lifecycle.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "counts",
+        "quiet-window",
+        "business-clock"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "DSH Schedule ingress/时间触发未实现，无已提交证据"
+      ],
+      "notes": [
+        "DSH Schedule ingress/时间触发未实现，无已提交证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/03-事件与定时/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.persistence",
+      "title": "持久化接口",
+      "areaId": "A.foundation",
+      "graphId": "persistence",
+      "systems": [
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h5-g1-module",
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h5-g1-module",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-recovery-matrix.json",
+              "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-verification.json",
+              "sha256": "51454bfd16031f8f2deda882beee25905c5db776d495cbdd45ab0a55319d28ea"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-slice-summary.json",
+              "sha256": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
+              "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/control-store/transaction.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/index.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/worker.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/transaction.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/store.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "cas",
+        "schema",
+        "version"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "真实临时 SQLite 模块 + H5 G1；无当前 HEAD 崩溃/满盘/迁移矩阵",
+        "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "Synthetic ports and temporary local roots; not host or business acceptance.",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "真实临时 SQLite 模块 + H5 G1；无当前 HEAD 崩溃/满盘/迁移矩阵"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/04-持久化接口/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.lifecycle",
+      "title": "插件生命周期",
+      "areaId": "A.foundation",
+      "graphId": "lifecycle",
+      "systems": [
+        "8",
+        "6"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4b-host",
+        "joint-host-zero-model"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4b-host",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4b-host-visible.json",
+              "sha256": "b779ff6919977a2454de0f37d7406d741a8bc6b9d5526b0122d2c9b7bd0a6690"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/shiyu-status-h4b-host.json",
+              "sha256": "b3a6e8f006b43d24c918b49cee8db78df744b519fc48fe706527be6f851c0753"
+            }
+          ]
+        },
+        {
+          "sourceId": "joint-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/final-joint-zero-model.json",
+              "sha256": "1b497714e886e2be7445aa4c4282d5d3323b07cca62cd60c10cfc3ef67276e86"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/final-host-before.json",
+              "sha256": "4d2c4db945aa7d858712906b4a86feb767c00e5125359caae37b84cce66768d0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/final-host-after.json",
+              "sha256": "e16cbd698e55fb00b4cd7c8112ceabb1a3ba30b144f085e3d64558cf617c77da"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/final-host-after-tools.json",
+              "sha256": "729fdbadc2e7c280c06607dd9b7eb414038e45bb2d9d0423886039b407017b3c"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/runtime.ts",
+          "exists": true
+        },
+        {
+          "path": "src/index.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/runtime.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/runtime-capability.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "state-machine",
+        "counts"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "零模型有序重载/启停；无 V14 20 次生命周期与 drain 实测",
+        "No real dashboard rendering (browser DOM) and no real business data; one host instance, zero model calls.",
+        "Not V24 UI acceptance, not generation or lifecycle evidence.",
+        "Zero-model evidence only: no model-generated reply, no event-tool model invocation, no provider budget/cache/cost, no real task/Goal continuation under a model.",
+        "One ordered reload and two tool calls; no real browser DOM, channel, Lab business loop, device, long-run or independent fault domain."
+      ],
+      "notes": [
+        "零模型有序重载/启停；无 V14 20 次生命周期与 drain 实测"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/05-插件生命周期/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.device-gateway",
+      "title": "设备能力接口",
+      "areaId": "A.devices",
+      "graphId": "device-gateway",
+      "systems": [
+        "4",
+        "7"
+      ],
+      "status": "blocked",
+      "evidenceSourceIds": [],
+      "evidenceRefs": [],
+      "codePaths": [],
+      "testIds": [],
+      "oracles": [],
+      "blockedResourceIds": [
+        "real-device-authorization"
+      ],
+      "limitations": [
+        "无设备能力接口实现与真实设备证据"
+      ],
+      "notes": [
+        "无设备能力接口实现与真实设备证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/04-设备执行面/01-设备能力接口/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.desktop-device",
+      "title": "桌面设备",
+      "areaId": "A.devices",
+      "graphId": "desktop-device",
+      "systems": [
+        "4",
+        "7"
+      ],
+      "status": "blocked",
+      "evidenceSourceIds": [],
+      "evidenceRefs": [],
+      "codePaths": [],
+      "testIds": [],
+      "oracles": [],
+      "blockedResourceIds": [
+        "real-device-authorization"
+      ],
+      "limitations": [
+        "无真实桌面设备/动作路径/停止证据"
+      ],
+      "notes": [
+        "无真实桌面设备/动作路径/停止证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/04-设备执行面/02-桌面设备/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.other-device",
+      "title": "其他终端",
+      "areaId": "A.devices",
+      "graphId": "other-device",
+      "systems": [
+        "4",
+        "7"
+      ],
+      "status": "blocked",
+      "evidenceSourceIds": [],
+      "evidenceRefs": [],
+      "codePaths": [],
+      "testIds": [],
+      "oracles": [],
+      "blockedResourceIds": [
+        "real-device-authorization"
+      ],
+      "limitations": [
+        "无真实其他终端证据"
+      ],
+      "notes": [
+        "无真实其他终端证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/04-设备执行面/03-其他终端/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.robot",
+      "title": "机器人",
+      "areaId": "A.devices",
+      "graphId": "robot",
+      "systems": [
+        "4",
+        "7"
+      ],
+      "status": "blocked",
+      "evidenceSourceIds": [],
+      "evidenceRefs": [],
+      "codePaths": [],
+      "testIds": [],
+      "oracles": [],
+      "blockedResourceIds": [
+        "real-device-authorization"
+      ],
+      "limitations": [
+        "软件替身不能替代机器人物理安全/本地停止验收"
+      ],
+      "notes": [
+        "软件替身不能替代机器人物理安全/本地停止验收"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/04-设备执行面/04-机器人/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.supervisor",
+      "title": "进程监督",
+      "areaId": "A.recovery",
+      "graphId": "supervisor",
+      "systems": [
+        "8"
+      ],
+      "status": "not_covered",
+      "evidenceSourceIds": [],
+      "evidenceRefs": [],
+      "codePaths": [],
+      "testIds": [],
+      "oracles": [],
+      "blockedResourceIds": [],
+      "limitations": [
+        "外部监督器属宿主外组件，无实现/证据；不得建立第二核心"
+      ],
+      "notes": [
+        "外部监督器属宿主外组件，无实现/证据；不得建立第二核心"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/05-宿主外恢复/01-进程监督/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.recovery-entry",
+      "title": "恢复入口",
+      "areaId": "A.recovery",
+      "graphId": "recovery-entry",
+      "systems": [
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h5-g1-module"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h5-g1-module",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-recovery-matrix.json",
+              "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-verification.json",
+              "sha256": "51454bfd16031f8f2deda882beee25905c5db776d495cbdd45ab0a55319d28ea"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-slice-summary.json",
+              "sha256": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
+              "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/recovery/restore.ts",
+          "exists": true
+        },
+        {
+          "path": "src/recovery/capture.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/recovery-restore.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/recovery-capture.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "state-machine",
+        "schema",
+        "version"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H5 G1 隔离恢复模块；未接 Runtime/supervisor，无真实恢复演练",
+        "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "Synthetic ports and temporary local roots; not host or business acceptance."
+      ],
+      "notes": [
+        "H5 G1 隔离恢复模块；未接 Runtime/supervisor，无真实恢复演练"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/05-宿主外恢复/02-恢复入口/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.state",
+      "title": "内部权威状态",
+      "areaId": "A.data",
+      "graphId": "state",
+      "systems": [
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4-inner-offline",
+        "h5-g1-module"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        },
+        {
+          "sourceId": "h5-g1-module",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-recovery-matrix.json",
+              "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-verification.json",
+              "sha256": "51454bfd16031f8f2deda882beee25905c5db776d495cbdd45ab0a55319d28ea"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-slice-summary.json",
+              "sha256": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
+              "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/state/publication.ts",
+          "exists": true
+        },
+        {
+          "path": "src/state/safety.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/state-publication.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/local-state.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "version",
+        "schema",
+        "cas"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "schema4 发布与离线状态；无完整删除/恢复水位生产证据",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
+        "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "Synthetic ports and temporary local roots; not host or business acceptance."
+      ],
+      "notes": [
+        "schema4 发布与离线状态；无完整删除/恢复水位生产证据"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/06-预留空间/01-内部权威状态/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.task-store",
+      "title": "目标与授权及任务",
+      "areaId": "A.data",
+      "graphId": "task-store",
+      "systems": [
+        "4",
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-task-goal",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/task-validation.json",
+              "sha256": "9043e1bc22168cbc4d8097e0de0ed82a9a362ebe6b4bc4e2dfd39bcfe491fe0d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/goal-validation.json",
+              "sha256": "bda0d0de152cdd8a10df4d11a7390c8ac629e214dbea7972c28a7d3c7755b385"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3g-core-host-success.json",
+              "sha256": "bafe7c6be8a363250209d361c2aff91927ebed81b6c36fdcdf5b982f5c3fb100"
+            }
+          ]
+        },
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/control-store/task-domain.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/task-repositories.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/goal-bindings.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/task-domain.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/goal-store-integration.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "cas",
+        "version",
+        "state-machine"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "历史单任务与本地绑定；无当前 HEAD 全任务/授权存储矩阵",
+        "Historical limited samples on earlier builds; they do not prove the current HEAD, general Task/Goal behaviour or V10–V12.",
+        "The first task usage failure and A-round failures remain unknown; bounded model calls are not full Session fees.",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "历史单任务与本地绑定；无当前 HEAD 全任务/授权存储矩阵"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/06-预留空间/02-目标与授权及任务/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.evidence",
+      "title": "经历与证据及回执",
+      "areaId": "A.data",
+      "graphId": "evidence",
+      "systems": [
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h5-g1-module"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-task-goal",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/task-validation.json",
+              "sha256": "9043e1bc22168cbc4d8097e0de0ed82a9a362ebe6b4bc4e2dfd39bcfe491fe0d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/goal-validation.json",
+              "sha256": "bda0d0de152cdd8a10df4d11a7390c8ac629e214dbea7972c28a7d3c7755b385"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3g-core-host-success.json",
+              "sha256": "bafe7c6be8a363250209d361c2aff91927ebed81b6c36fdcdf5b982f5c3fb100"
+            }
+          ]
+        },
+        {
+          "sourceId": "h5-g1-module",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-recovery-matrix.json",
+              "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-verification.json",
+              "sha256": "51454bfd16031f8f2deda882beee25905c5db776d495cbdd45ab0a55319d28ea"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-slice-summary.json",
+              "sha256": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
+              "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/control/effects/index.ts",
+          "exists": true
+        },
+        {
+          "path": "src/adapters/control-store/commit-watermark.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/effects.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/commit-watermark.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "causal",
+        "counts",
+        "schema"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "独立 Effect/回执模块 + H5 G1；无跨服务真实回执矩阵",
+        "Historical limited samples on earlier builds; they do not prove the current HEAD, general Task/Goal behaviour or V10–V12.",
+        "The first task usage failure and A-round failures remain unknown; bounded model calls are not full Session fees.",
+        "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "Synthetic ports and temporary local roots; not host or business acceptance."
+      ],
+      "notes": [
+        "独立 Effect/回执模块 + H5 G1；无跨服务真实回执矩阵"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/06-预留空间/03-经历与证据及回执/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.artifacts",
+      "title": "工作文件与产物",
+      "areaId": "A.data",
+      "graphId": "artifacts",
+      "systems": [
+        "4",
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "historical-task-goal"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "historical-task-goal",
+          "status": "verified",
+          "levels": [
+            "historical-limited",
+            "bounded-real-model",
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/task-validation.json",
+              "sha256": "9043e1bc22168cbc4d8097e0de0ed82a9a362ebe6b4bc4e2dfd39bcfe491fe0d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/goal-validation.json",
+              "sha256": "bda0d0de152cdd8a10df4d11a7390c8ac629e214dbea7972c28a7d3c7755b385"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/phase3g-core-host-success.json",
+              "sha256": "bafe7c6be8a363250209d361c2aff91927ebed81b6c36fdcdf5b982f5c3fb100"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/adapters/artifacts/index.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/artifacts.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "json-text",
+        "schema",
+        "counts"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "产物模块有离线测试与历史任务产物核验；无当前 HEAD 真实产物/设备写入",
+        "Historical limited samples on earlier builds; they do not prove the current HEAD, general Task/Goal behaviour or V10–V12.",
+        "The first task usage failure and A-round failures remain unknown; bounded model calls are not full Session fees."
+      ],
+      "notes": [
+        "产物模块有离线测试与历史任务产物核验；无当前 HEAD 真实产物/设备写入"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/06-预留空间/04-工作文件与产物/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.cache",
+      "title": "索引与缓存",
+      "areaId": "A.data",
+      "graphId": "cache",
+      "systems": [
+        "6",
+        "8"
+      ],
+      "status": "not_covered",
+      "evidenceSourceIds": [],
+      "evidenceRefs": [],
+      "codePaths": [],
+      "testIds": [],
+      "oracles": [],
+      "blockedResourceIds": [],
+      "limitations": [
+        "无独立缓存模块实现/证据；缓存命中不得由 tokens 推算"
+      ],
+      "notes": [
+        "无独立缓存模块实现/证据；缓存命中不得由 tokens 推算"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/06-预留空间/05-索引与缓存/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.config",
+      "title": "配置与版本清单",
+      "areaId": "A.data",
+      "graphId": "config",
+      "systems": [
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h4-inner-offline"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h4-inner-offline",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-inner-domains-offline.json",
+              "sha256": "a8caab10cacc7ce3db9e4948c8c0affcce06b2e0a897298ef8589df07a87ea17"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h4/h4-slice-summary.json",
+              "sha256": "8261145b4d90b8f3275884e887bb212ea1ceda4b454564a8a0a8162a29b93960"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h4-verify.json",
+              "sha256": "5b26051ccf05e5d510aeb0cab59e227bf866180c0d29b57d59004221e21ef16d"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/state/publication.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/state-publication.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/inner-publication.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "version",
+        "schema"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "发布清单 schema4 离线证据；无完整组件版本/迁移清单",
+        "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
+        "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
+      ],
+      "notes": [
+        "发布清单 schema4 离线证据；无完整组件版本/迁移清单"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/06-预留空间/06-配置与版本清单/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.credentials",
+      "title": "凭据引用",
+      "areaId": "A.data",
+      "graphId": "credentials",
+      "systems": [
+        "7",
+        "8"
+      ],
+      "status": "blocked",
+      "evidenceSourceIds": [],
+      "evidenceRefs": [],
+      "codePaths": [],
+      "testIds": [],
+      "oracles": [],
+      "blockedResourceIds": [
+        "real-credential-source"
+      ],
+      "limitations": [
+        "凭据引用仅设计；无真实凭据轮换/脱敏验收"
+      ],
+      "notes": [
+        "凭据引用仅设计；无真实凭据轮换/脱敏验收"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/06-预留空间/07-凭据引用/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.checkpoint",
+      "title": "本地检查点",
+      "areaId": "A.data",
+      "graphId": "checkpoint",
+      "systems": [
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h5-g1-module"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h5-g1-module",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-recovery-matrix.json",
+              "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-verification.json",
+              "sha256": "51454bfd16031f8f2deda882beee25905c5db776d495cbdd45ab0a55319d28ea"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-slice-summary.json",
+              "sha256": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
+              "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/recovery/capture.ts",
+          "exists": true
+        },
+        {
+          "path": "src/recovery/schema.ts",
+          "exists": true
+        },
+        {
+          "path": "src/recovery/verify.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/recovery-capture.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/recovery-schema.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "schema",
+        "version",
+        "counts"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H5 G1 检查点模块；未接 Runtime/无真实 Goal Session flush",
+        "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "Synthetic ports and temporary local roots; not host or business acceptance."
+      ],
+      "notes": [
+        "H5 G1 检查点模块；未接 Runtime/无真实 Goal Session flush"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/06-预留空间/08-本地检查点/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.backup-copy",
+      "title": "独立域备份",
+      "areaId": "A.backup",
+      "graphId": "backup-copy",
+      "systems": [
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h5-g1-module"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h5-g1-module",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-recovery-matrix.json",
+              "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-verification.json",
+              "sha256": "51454bfd16031f8f2deda882beee25905c5db776d495cbdd45ab0a55319d28ea"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-slice-summary.json",
+              "sha256": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
+              "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/recovery/capture.ts",
+          "exists": true
+        },
+        {
+          "path": "src/recovery/files.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/recovery-capture.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "schema",
+        "version",
+        "causal"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "仅本地 bundle 捕获/校验；同盘副本不构成独立故障域，无 V27",
+        "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "Synthetic ports and temporary local roots; not host or business acceptance."
+      ],
+      "notes": [
+        "仅本地 bundle 捕获/校验；同盘副本不构成独立故障域，无 V27"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/07-独立备份/01-独立域备份/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    },
+    {
+      "id": "MOD.restore-test",
+      "title": "恢复演练",
+      "areaId": "A.backup",
+      "graphId": "restore-test",
+      "systems": [
+        "8"
+      ],
+      "status": "limited-only",
+      "evidenceSourceIds": [
+        "h5-g1-module"
+      ],
+      "evidenceRefs": [
+        {
+          "sourceId": "h5-g1-module",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-recovery-matrix.json",
+              "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-verification.json",
+              "sha256": "51454bfd16031f8f2deda882beee25905c5db776d495cbdd45ab0a55319d28ea"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5-slice-summary.json",
+              "sha256": "32f9df0e4f2fc54f5b452fd0cf144431b405e818b8a457fbdf91be23d5502df4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h5-verify.json",
+              "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
+            }
+          ]
+        }
+      ],
+      "codePaths": [
+        {
+          "path": "src/recovery/restore.ts",
+          "exists": true
+        },
+        {
+          "path": "src/recovery/control-facts.ts",
+          "exists": true
+        }
+      ],
+      "testIds": [
+        {
+          "id": "tests/recovery-restore.test.ts",
+          "exists": true
+        },
+        {
+          "id": "tests/recovery-fault-matrix.test.ts",
+          "exists": true
+        }
+      ],
+      "oracles": [
+        "state-machine",
+        "version",
+        "counts"
+      ],
+      "blockedResourceIds": [],
+      "limitations": [
+        "H5 G1 隔离恢复/故障矩阵；无真实 RPO/RTO 恢复演练",
+        "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "Synthetic ports and temporary local roots; not host or business acceptance."
+      ],
+      "notes": [
+        "H5 G1 隔离恢复/故障矩阵；无真实 RPO/RTO 恢复演练"
+      ],
+      "source": {
+        "docPath": "架构与设计/A方案全景/07-独立备份/02-恢复演练/README.md",
+        "docRowPresent": true,
+        "readmePresent": true
+      }
+    }
+  ],
+  "systems": [
+    {
+      "id": "SYS.1",
+      "title": "接入、对话与话题协作",
+      "modules": [
+        "MOD.user",
+        "MOD.channels",
+        "MOD.links",
+        "MOD.dialogue-queue",
+        "MOD.replyer"
+      ],
+      "vRefs": [
+        "V02",
+        "V03",
+        "V04",
+        "V05",
+        "V13",
+        "V23",
+        "V24",
+        "V25"
+      ],
+      "scenarioRefs": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL01",
+        "FL02",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL07",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "h6a-channel-ingress",
+        "h4c-replyer-inner",
+        "historical-lab-3hc",
+        "joint-host-zero-model"
+      ],
+      "limitations": [
+        "No real platform adapter, sending Effect, native draft delivery or multi-channel conversation business loop on current HEAD.",
+        "Historical Lab loop is three text messages; not V05/V23/V25 or S/FL acceptance."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    },
+    {
+      "id": "SYS.2",
+      "title": "Agent 与组件共用事件系统",
+      "modules": [
+        "MOD.channels",
+        "MOD.events",
+        "MOD.links",
+        "MOD.dialogue-queue",
+        "MOD.event-schedule"
+      ],
+      "vRefs": [
+        "V03",
+        "V04",
+        "V10",
+        "V12",
+        "V14",
+        "V21",
+        "V23",
+        "V24"
+      ],
+      "scenarioRefs": [
+        "S01",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S08",
+        "FL03",
+        "FL04",
+        "FL07",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "h2a-events",
+        "h2a-probe",
+        "joint-host-zero-model"
+      ],
+      "limitations": [
+        "No model actually invoked an event tool; real core Goal continuation, time/condition triggers, quotas/fanout/anti-loop and catalog extension remain untested.",
+        "Fixed-host evidence is zero-model only; not V03/V14/V24 acceptance."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    },
+    {
+      "id": "SYS.3",
+      "title": "core 判断与持续规划",
+      "modules": [
+        "MOD.user",
+        "MOD.core"
+      ],
+      "vRefs": [
+        "V02",
+        "V06",
+        "V09",
+        "V10",
+        "V13",
+        "V23",
+        "V24",
+        "V25"
+      ],
+      "scenarioRefs": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL01",
+        "FL02",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "h3-core-planning",
+        "historical-task-goal"
+      ],
+      "limitations": [
+        "No real DSH host/native Goal rounds under current HEAD, no real model plan JSON/cost/cache; only fixed local-note capability binding.",
+        "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    },
+    {
+      "id": "SYS.4",
+      "title": "目标、任务、worker 与外部效果",
+      "modules": [
+        "MOD.links",
+        "MOD.mandate",
+        "MOD.tasks",
+        "MOD.worker",
+        "MOD.verify",
+        "MOD.device-gateway",
+        "MOD.desktop-device",
+        "MOD.other-device",
+        "MOD.robot",
+        "MOD.task-store",
+        "MOD.artifacts"
+      ],
+      "vRefs": [
+        "V10",
+        "V11",
+        "V12",
+        "V18",
+        "V19",
+        "V20",
+        "V21",
+        "V22",
+        "V23",
+        "V24",
+        "V26"
+      ],
+      "scenarioRefs": [
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S08",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL07",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model",
+        "offline-module",
+        "slice-verification",
+        "independent-verification"
+      ],
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h3-core-planning",
+        "h4h5-independent-review"
+      ],
+      "limitations": [
+        "Historical one-task samples and G1 modules only; no current-HEAD concurrent worker/lease/cancel/late-result matrix or cross-assignment fencing.",
+        "Independent review only checked evidence authenticity, not product behaviour."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    },
+    {
+      "id": "SYS.5",
+      "title": "六部分内层与只读视图",
+      "modules": [
+        "MOD.memory",
+        "MOD.relationship",
+        "MOD.emotion",
+        "MOD.cognition",
+        "MOD.personality",
+        "MOD.ability",
+        "MOD.views"
+      ],
+      "vRefs": [
+        "V06",
+        "V07",
+        "V08",
+        "V09",
+        "V16",
+        "V23",
+        "V24",
+        "V25"
+      ],
+      "scenarioRefs": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "FL01",
+        "FL02",
+        "FL04",
+        "FL06",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "fixed-host-zero-model",
+        "synthetic-ui",
+        "historical-limited",
+        "bounded-real-model",
+        "independent-verification"
+      ],
+      "evidenceSourceIds": [
+        "h4-inner-offline",
+        "h4-host",
+        "h4b-composition",
+        "h4b-host",
+        "h4c-replyer-inner",
+        "historical-memory",
+        "h4h5-independent-review"
+      ],
+      "limitations": [
+        "No real model use of inner state, no real inner bodies/Ombre content, no real browser DOM against real data, no cross-domain recomputation.",
+        "Historical memory samples are earlier-build limited; deletion propagation/physical erasure not proven."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    },
+    {
+      "id": "SYS.6",
+      "title": "模型、Session、上下文与缓存",
+      "modules": [
+        "MOD.providers",
+        "MOD.replyer",
+        "MOD.model-session",
+        "MOD.lifecycle",
+        "MOD.cache"
+      ],
+      "vRefs": [
+        "V04",
+        "V13",
+        "V14",
+        "V24",
+        "V25"
+      ],
+      "scenarioRefs": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL01",
+        "FL02",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "independent-verification",
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "h1-native-history",
+        "h1-independent-run",
+        "historical-model-context",
+        "joint-host-zero-model"
+      ],
+      "limitations": [
+        "No fixed-host long-history cold recovery/compaction under current HEAD, no real generation/usage/cache measurement, no full provider fees.",
+        "Independent verifier is offline; historical real-model samples are earlier builds and very small."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    },
+    {
+      "id": "SYS.7",
+      "title": "身份、授权、预算与控制",
+      "modules": [
+        "MOD.channels",
+        "MOD.providers",
+        "MOD.ability",
+        "MOD.mandate",
+        "MOD.tool-policy",
+        "MOD.device-gateway",
+        "MOD.desktop-device",
+        "MOD.other-device",
+        "MOD.robot",
+        "MOD.credentials"
+      ],
+      "vRefs": [
+        "V02",
+        "V04",
+        "V10",
+        "V13",
+        "V16",
+        "V17",
+        "V18",
+        "V19",
+        "V20",
+        "V24",
+        "V26"
+      ],
+      "scenarioRefs": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "h6a-channel-ingress",
+        "historical-task-goal",
+        "historical-capability-3i",
+        "historical-lab-3hc",
+        "joint-host-zero-model"
+      ],
+      "limitations": [
+        "No current-HEAD full Mandate/budget/pause/revoke matrix, no real channel credentials/receipts, no security canary sweep of model inputs or real device fences.",
+        "Historical policy/budget samples cannot be reused as V10/V17/V18–V20 acceptance."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    },
+    {
+      "id": "SYS.8",
+      "title": "数据、生命周期、恢复与备份",
+      "modules": [
+        "MOD.persistence",
+        "MOD.lifecycle",
+        "MOD.supervisor",
+        "MOD.recovery-entry",
+        "MOD.state",
+        "MOD.task-store",
+        "MOD.evidence",
+        "MOD.artifacts",
+        "MOD.cache",
+        "MOD.config",
+        "MOD.credentials",
+        "MOD.checkpoint",
+        "MOD.backup-copy",
+        "MOD.restore-test"
+      ],
+      "vRefs": [
+        "V01",
+        "V06",
+        "V12",
+        "V14",
+        "V15",
+        "V16",
+        "V17",
+        "V19",
+        "V21",
+        "V22",
+        "V23",
+        "V24",
+        "V27"
+      ],
+      "scenarioRefs": [
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S08",
+        "FL04",
+        "FL07",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "independent-verification"
+      ],
+      "evidenceSourceIds": [
+        "h5-g1-module",
+        "h4h5-independent-review"
+      ],
+      "limitations": [
+        "G1 modules only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/erasure, independent fault domain/V27, RPO/RTO, OS power loss or multi-process single-writer.",
+        "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    },
+    {
+      "id": "SYS.9",
+      "title": "运行仪表盘",
+      "modules": [
+        "MOD.views"
+      ],
+      "vRefs": [
+        "V04",
+        "V05",
+        "V09",
+        "V13",
+        "V14",
+        "V23",
+        "V24"
+      ],
+      "scenarioRefs": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL01",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL08"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "synthetic-ui",
+        "slice-verification",
+        "fixed-host-zero-model",
+        "environment-baseline"
+      ],
+      "evidenceSourceIds": [
+        "h4b-composition",
+        "h4b-host",
+        "joint-host-zero-model",
+        "h0-baseline"
+      ],
+      "limitations": [
+        "No real browser DOM against real host data, no real user interactions beyond read-only status/tool calls, no UI lifecycle or long-list/old-response matrix.",
+        "Zero-model host checks are not V05/V24 dashboard acceptance; no sensitive-value sweep over real UI."
+      ],
+      "gaps": [
+        "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
+        "仅有限工具/模块证据，不是完整系统验收"
+      ]
+    }
+  ],
+  "vItems": [
+    {
+      "id": "V01",
+      "title": "契约覆盖、版本和事务能力门槛",
+      "systems": [
+        "8"
+      ],
+      "thresholds": [
+        "40/40 模块",
+        "实际 SQLite 构建能力",
+        "关键契约冲突已处理"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "environment-baseline",
+        "fixed-host-zero-model",
+        "offline-module"
+      ],
+      "evidenceSourceIds": [
+        "h0-baseline",
+        "h0b-harness"
+      ],
+      "limitations": [
+        "Not 40/40 module responsibility/contract acceptance; no current-HEAD 40-module ownership audit."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V02",
+      "title": "输入、主体、目标与可信控制来源",
+      "systems": [
+        "1",
+        "3",
+        "7"
+      ],
+      "thresholds": [
+        "40 身份/控制组合",
+        "同名误合并=0",
+        "正文伪造授权=0",
+        "原生 Goal 与本地绑定分别核对"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "h6a-channel-ingress",
+        "historical-lab-3hc"
+      ],
+      "limitations": [
+        "No current-HEAD 40 identity/control combination matrix; no real platform accounts/namespaces; historical Lab sample is small."
+      ],
+      "blockedResourceIds": [
+        "real-channel-account"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V03",
+      "title": "事件重放、乱序和接收回执",
+      "systems": [
+        "2",
+        "1"
+      ],
+      "thresholds": [
+        "100 唯一事件×10 重送",
+        "20 乱序种子",
+        "同键异内容拒绝",
+        "接纳/处理/提交分开"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "h2a-events"
+      ],
+      "limitations": [
+        "No 100 unique×10 replay/20 out-of-order seed matrix, no fixed-host subscription lifecycle, no model business context load."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V04",
+      "title": "外层只读、注册准入与执行授权",
+      "systems": [
+        "7",
+        "1",
+        "6",
+        "9"
+      ],
+      "thresholds": [
+        "≥30 越权路径零成功",
+        "1000 次读取纯度",
+        "工具创建/恢复/执行检查"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "h6a-channel-ingress",
+        "h4c-replyer-inner",
+        "joint-host-zero-model"
+      ],
+      "limitations": [
+        "No ≥30 unauthorized-path matrix and 1000-read purity benchmark on current HEAD; zero-model status calls only."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V05",
+      "title": "对话队列、过时回复与发送状态",
+      "systems": [
+        "1",
+        "9"
+      ],
+      "thresholds": [
+        "20 会话/1000 消息/20 种子",
+        "接纳 p95≤500ms",
+        "停止失效 p95≤1s",
+        "旧回复发送=0"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "h6a-channel-ingress",
+        "historical-lab-3hc"
+      ],
+      "limitations": [
+        "No 20-session/1000-message/20-seed fairness or P95 queue/stop targets; historical loop is 3 messages."
+      ],
+      "blockedResourceIds": [
+        "real-channel-account",
+        "bounded-real-model-budget"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V06",
+      "title": "core 提案、readSet/CAS 与领域原子提交",
+      "systems": [
+        "3",
+        "5",
+        "8"
+      ],
+      "thresholds": [
+        "100 提案竞争恰 1 成功",
+        "100 独立聚合可分别提交",
+        "适用断点×20"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "h3-core-planning",
+        "h0b-harness"
+      ],
+      "limitations": [
+        "No 100-proposal same-version race or 20-breakpoint atomicity matrix; plan binding is fixed local-note only."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V07",
+      "title": "记忆、关系与认知的证据语义",
+      "systems": [
+        "5"
+      ],
+      "thresholds": [
+        "40 oracle 全匹配",
+        "10,000 记录 / ≥200 查询",
+        "本地 p95≤200ms",
+        "真实后端与检索语义另报"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model"
+      ],
+      "evidenceSourceIds": [
+        "historical-memory"
+      ],
+      "limitations": [
+        "No 40-oracle/10,000-record/200-query benchmark or current-HEAD backend; 10k scale and quality metrics untested."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V08",
+      "title": "情绪记忆、自我认识与人格稳定性",
+      "systems": [
+        "5"
+      ],
+      "thresholds": [
+        "100 轮无合法变更不漂移",
+        "1000 读取不写",
+        "来源/回顾/删除可归因"
+      ],
+      "status": "not-covered",
+      "evidenceLevels": [],
+      "evidenceSourceIds": [],
+      "limitations": [],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V09",
+      "title": "能力声明、实际可用与技能变更",
+      "systems": [
+        "5",
+        "7",
+        "9"
+      ],
+      "thresholds": [
+        "≥24 能力组合",
+        "声明/健康/验证分开",
+        "过期/撤销/错环境阻止新效果"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "historical-limited",
+        "offline-module",
+        "fixed-host-zero-model",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "historical-capability-3i",
+        "h4-inner-offline"
+      ],
+      "limitations": [
+        "No ≥24 live capability combination matrix, no dynamic skill/candidate verification or new-binding real task proof."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V10",
+      "title": "Mandate、预算、暂停和撤权",
+      "systems": [
+        "7",
+        "3",
+        "4"
+      ],
+      "thresholds": [
+        "≥32 授权/预算/暂停组合",
+        "无越界动作",
+        "派发前复查",
+        "暂停跨重启"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model",
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "historical-capability-3i",
+        "h2a-events"
+      ],
+      "limitations": [
+        "No current-HEAD 32授权/预算/暂停组合 matrix, no real execution-point recheck under model, unknown budgets not settled."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V11",
+      "title": "任务、Assignment、租约与迟到结果",
+      "systems": [
+        "4"
+      ],
+      "thresholds": [
+        "50 worker 竞争最多一个有效资格",
+        "各竞态×20 零旧结果覆盖",
+        "unknown 不降为可重派"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model",
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h3-core-planning"
+      ],
+      "limitations": [
+        "No 50-worker contention or 20-per-race late-result matrix; unknown resource policies untested."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V12",
+      "title": "事务 outbox、跨服务未知结果与回执",
+      "systems": [
+        "4",
+        "2",
+        "8"
+      ],
+      "thresholds": [
+        "适用断点×20",
+        "幂等每 effect 至多一次",
+        "非幂等 unknown 自动重放=0"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model",
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "h5-g1-module"
+      ],
+      "limitations": [
+        "No 20-per-breakpoint idempotency/unknown matrix, no wired Runtime recovery or real backend receipts."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V13",
+      "title": "模型/工具数据注入、路由与外发控制",
+      "systems": [
+        "6",
+        "7"
+      ],
+      "thresholds": [
+        "≥80 边界输入零未允许动作",
+        "fallback 不扩权",
+        "用量缺失不记零"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model",
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "historical-lab-3hc",
+        "historical-model-context",
+        "h4c-replyer-inner"
+      ],
+      "limitations": [
+        "No ≥80 injection/routing/usage edge matrix; provider cache/retry/fee visibility incomplete."
+      ],
+      "blockedResourceIds": [
+        "bounded-real-model-budget"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V14",
+      "title": "DSH 接口替身、事件定时与生命周期",
+      "systems": [
+        "2",
+        "6",
+        "8",
+        "9"
+      ],
+      "thresholds": [
+        "20 次装载/卸载",
+        "一份订阅/定时器",
+        "drain≤4s"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model",
+        "offline-module"
+      ],
+      "evidenceSourceIds": [
+        "historical-task-goal",
+        "joint-host-zero-model",
+        "h2a-probe"
+      ],
+      "limitations": [
+        "No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; zero-model only."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V15",
+      "title": "数据空间、磁盘满、写锁与迁移",
+      "systems": [
+        "8"
+      ],
+      "thresholds": [
+        "12 适用断点×20",
+        "单 writer/唯一有效根",
+        "锁等待不阻塞停止"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "h5-g1-module"
+      ],
+      "limitations": [
+        "G1 module only; no 12-breakpoint×20 capacity/migration matrix, no real disk-full/lock/volume or single-writer host evidence."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V16",
+      "title": "保留、删除、派生传播与恢复防复活",
+      "systems": [
+        "5",
+        "7",
+        "8"
+      ],
+      "thresholds": [
+        "20 主体/事实",
+        "7/30/90/180 天边界",
+        "最新删除水位无法证明则恢复锁"
+      ],
+      "status": "limited-evidence-only",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model",
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "historical-memory",
+        "h4-inner-offline"
+      ],
+      "limitations": [
+        "No 20-subject/7-30-90-180-day propagation matrix, no real backend physical erasure or old-backup restore scan."
+      ],
+      "blockedResourceIds": [],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V17",
+      "title": "凭据引用、轮换与诊断脱敏",
+      "systems": [
+        "7",
+        "8"
+      ],
+      "thresholds": [
+        "20 异常分支",
+        "明文 canary=0",
+        "不可解析凭据=不可用"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [],
+      "evidenceSourceIds": [],
+      "limitations": [],
+      "blockedResourceIds": [
+        "real-credential-source"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V18",
+      "title": "设备配对、能力版本与资源身份",
+      "systems": [
+        "4",
+        "7"
+      ],
+      "thresholds": [
+        "100 同路径访问",
+        "≥30 授权组合",
+        "direct/gated 分别证明"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [],
+      "evidenceSourceIds": [],
+      "limitations": [],
+      "blockedResourceIds": [
+        "real-device-authorization"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V19",
+      "title": "掉线、取消、撤权与重新接入",
+      "systems": [
+        "4",
+        "7",
+        "8"
+      ],
+      "thresholds": [
+        "适用断点×20",
+        "5 类异常各 100",
+        "unknown 不自动重放/改派"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [],
+      "evidenceSourceIds": [],
+      "limitations": [],
+      "blockedResourceIds": [
+        "real-device-authorization"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V20",
+      "title": "平台能力差异与机器人本地停止",
+      "systems": [
+        "4",
+        "7"
+      ],
+      "thresholds": [
+        "网页 20 场景/机器人协议 10 类",
+        "重复 effect 100 次最多一个活动 goal"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [],
+      "evidenceSourceIds": [],
+      "limitations": [],
+      "blockedResourceIds": [
+        "real-device-authorization"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V21",
+      "title": "暂停、进程退出与宿主外恢复",
+      "systems": [
+        "8",
+        "2",
+        "4"
+      ],
+      "thresholds": [
+        "paused/stopped 自动拉起=0",
+        "≥20 次恢复 ready≤120s",
+        "恢复先核对"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "evidenceSourceIds": [
+        "h5-g1-module"
+      ],
+      "limitations": [
+        "Not wired to Runtime; no ≥20 recovery-ready≤120 s host runs, no supervisor restart budget or paused-not-auto-start host evidence."
+      ],
+      "blockedResourceIds": [
+        "real-host-acceptance-window"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V22",
+      "title": "一致检查点、备份与合成恢复",
+      "systems": [
+        "8",
+        "4",
+        "5"
+      ],
+      "thresholds": [
+        "20 故障场景组件可核验",
+        "1GiB/1000 Task/100 unknown",
+        "RTO≤30min",
+        "unknown 保持"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [
+        "offline-module",
+        "slice-verification",
+        "independent-verification"
+      ],
+      "evidenceSourceIds": [
+        "h5-g1-module",
+        "h4h5-independent-review"
+      ],
+      "limitations": [
+        "No 20-fault recovery matrix, 1 GiB/1000-task benchmark, Goal Session log completeness or RTO≤30 min host drill."
+      ],
+      "blockedResourceIds": [
+        "real-host-acceptance-window",
+        "independent-backup-destination"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V23",
+      "title": "合成端到端与最终观察一致性",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "thresholds": [
+        "E1/E2/E3 各 20 种子",
+        "40 模块主断言有证据",
+        "全因果链可追"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [],
+      "evidenceSourceIds": [],
+      "limitations": [],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V24",
+      "title": "固定 DSH、实际 SQLite 与 profile 适配",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "thresholds": [
+        "实际版本/API/持久事实",
+        "20 生命周期",
+        "drain≤4s",
+        "零读副作用"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [
+        "environment-baseline",
+        "fixed-host-zero-model",
+        "offline-module",
+        "historical-limited"
+      ],
+      "evidenceSourceIds": [
+        "h0-baseline",
+        "h0b-harness",
+        "h4-host",
+        "h4b-host",
+        "joint-host-zero-model",
+        "historical-capability-3i"
+      ],
+      "limitations": [
+        "Zero-model only: no generation, compression, long-history cold recovery, 20-lifecycle matrix, real UI interactions or allowed-network audit.",
+        "Installed builds were isolated verified builds of their slices, not current-HEAD generation acceptance."
+      ],
+      "blockedResourceIds": [
+        "real-host-acceptance-window",
+        "bounded-real-model-budget"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V25",
+      "title": "真实模型的有界语义评测",
+      "systems": [
+        "1",
+        "3",
+        "5",
+        "6"
+      ],
+      "thresholds": [
+        "≥300 段对话/120 保存候选/200 检索问句/≥80 注入",
+        "3 轮或如实报告截断",
+        "保存 P≥.95/R≥.80，Recall@10≥.85，误报≤.05"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [
+        "historical-limited",
+        "bounded-real-model",
+        "fixed-host-zero-model"
+      ],
+      "evidenceSourceIds": [
+        "historical-lab-3hc",
+        "historical-model-context"
+      ],
+      "limitations": [
+        "No 300-dialogue/200-query/80-injection scale, no precision/recall/Recall@10 thresholds, no double annotation or current-HEAD model routing."
+      ],
+      "blockedResourceIds": [
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V26",
+      "title": "获准真实设备的能力切片",
+      "systems": [
+        "4",
+        "7"
+      ],
+      "thresholds": [
+        "明确设备/动作/测试根",
+        "20 同任务请求",
+        "多设备结论需≥2 实际设备"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [],
+      "evidenceSourceIds": [],
+      "limitations": [],
+      "blockedResourceIds": [
+        "real-device-authorization"
+      ],
+      "sourceHeadingPresent": true
+    },
+    {
+      "id": "V27",
+      "title": "独立故障域备份与恢复演练",
+      "systems": [
+        "8"
+      ],
+      "thresholds": [
+        "实际目的地/故障域可证明",
+        "1GiB 基准 capture age≤15min",
+        "RTO≤30min",
+        "3 次独立恢复"
+      ],
+      "status": "blocked",
+      "evidenceLevels": [],
+      "evidenceSourceIds": [],
+      "limitations": [],
+      "blockedResourceIds": [
+        "independent-backup-destination"
+      ],
+      "sourceHeadingPresent": true
+    }
+  ],
+  "scenarios": [
+    {
+      "id": "S01",
+      "kind": "S",
+      "title": "记得准，也改得过来",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "5",
+        "6",
+        "7",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "5",
+        "6",
+        "7",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "S02",
+      "kind": "S",
+      "title": "认识一个人，不等于共享所有私聊",
+      "systems": [
+        "1",
+        "3",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "3",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "S03",
+      "kind": "S",
+      "title": "自主订阅，变化才做事",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "S04",
+      "kind": "S",
+      "title": "一边做事，一边聊天",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "S05",
+      "kind": "S",
+      "title": "做没做成，要分开说清",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "S06",
+      "kind": "S",
+      "title": "删掉以后，不再回来",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "S07",
+      "kind": "S",
+      "title": "相处有连续性，人格不随风变",
+      "systems": [
+        "1",
+        "3",
+        "5",
+        "6",
+        "7",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "3",
+        "5",
+        "6",
+        "7",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "S08",
+      "kind": "S",
+      "title": "时间过去了，也不能乱补做",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "FL01",
+      "kind": "FL",
+      "title": "业务藏在闲聊中",
+      "systems": [
+        "1",
+        "3",
+        "5",
+        "6",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "3",
+        "5",
+        "6",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "FL02",
+      "kind": "FL",
+      "title": "语境改变答案",
+      "systems": [
+        "1",
+        "3",
+        "5",
+        "6"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "3",
+        "5",
+        "6"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "FL03",
+      "kind": "FL",
+      "title": "刷屏与纠正",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "7",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "7",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "FL04",
+      "kind": "FL",
+      "title": "单源洪峰",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "FL05",
+      "kind": "FL",
+      "title": "多人跨供应商",
+      "systems": [
+        "1",
+        "3",
+        "4",
+        "6",
+        "7",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "3",
+        "4",
+        "6",
+        "7",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "FL06",
+      "kind": "FL",
+      "title": "不确定与附件",
+      "systems": [
+        "1",
+        "3",
+        "5",
+        "6",
+        "7",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "3",
+        "5",
+        "6",
+        "7",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "FL07",
+      "kind": "FL",
+      "title": "重放与恢复",
+      "systems": [
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "4",
+        "8"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    },
+    {
+      "id": "FL08",
+      "kind": "FL",
+      "title": "订阅与长期业务",
+      "systems": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "status": "synthetic-fixture-only-not-run",
+      "syntheticFixtureOnlyNotRun": true,
+      "canUseForBusinessAcceptance": false,
+      "coverageFlagsPropagated": true,
+      "systemsMappedFromV": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9"
+      ],
+      "blockedResourceIds": [
+        "lab-business-run",
+        "bounded-real-model-budget",
+        "holdout-isolation",
+        "double-annotation"
+      ],
+      "gaps": [
+        "H0c 仅为合成 fixture/答案骨架：synthetic-fixture-only-not-run",
+        "不是 HOLDOUT、无双人盲评、无真实业务运行"
+      ]
+    }
+  ],
+  "mapping": {
+    "systemToModules": {
+      "1": [
+        "MOD.user",
+        "MOD.channels",
+        "MOD.links",
+        "MOD.dialogue-queue",
+        "MOD.replyer"
+      ],
+      "2": [
+        "MOD.channels",
+        "MOD.events",
+        "MOD.links",
+        "MOD.dialogue-queue",
+        "MOD.event-schedule"
+      ],
+      "3": [
+        "MOD.user",
+        "MOD.core"
+      ],
+      "4": [
+        "MOD.links",
+        "MOD.mandate",
+        "MOD.tasks",
+        "MOD.worker",
+        "MOD.verify",
+        "MOD.device-gateway",
+        "MOD.desktop-device",
+        "MOD.other-device",
+        "MOD.robot",
+        "MOD.task-store",
+        "MOD.artifacts"
+      ],
+      "5": [
+        "MOD.memory",
+        "MOD.relationship",
+        "MOD.emotion",
+        "MOD.cognition",
+        "MOD.personality",
+        "MOD.ability",
+        "MOD.views"
+      ],
+      "6": [
+        "MOD.providers",
+        "MOD.replyer",
+        "MOD.model-session",
+        "MOD.lifecycle",
+        "MOD.cache"
+      ],
+      "7": [
+        "MOD.channels",
+        "MOD.providers",
+        "MOD.ability",
+        "MOD.mandate",
+        "MOD.tool-policy",
+        "MOD.device-gateway",
+        "MOD.desktop-device",
+        "MOD.other-device",
+        "MOD.robot",
+        "MOD.credentials"
+      ],
+      "8": [
+        "MOD.persistence",
+        "MOD.lifecycle",
+        "MOD.supervisor",
+        "MOD.recovery-entry",
+        "MOD.state",
+        "MOD.task-store",
+        "MOD.evidence",
+        "MOD.artifacts",
+        "MOD.cache",
+        "MOD.config",
+        "MOD.credentials",
+        "MOD.checkpoint",
+        "MOD.backup-copy",
+        "MOD.restore-test"
+      ],
+      "9": [
+        "MOD.views"
+      ]
+    },
+    "moduleToSystems": {
+      "MOD.user": [
+        "1",
+        "3"
+      ],
+      "MOD.channels": [
+        "1",
+        "2",
+        "7"
+      ],
+      "MOD.events": [
+        "2"
+      ],
+      "MOD.providers": [
+        "6",
+        "7"
+      ],
+      "MOD.links": [
+        "1",
+        "2",
+        "4"
+      ],
+      "MOD.dialogue-queue": [
+        "1",
+        "2"
+      ],
+      "MOD.replyer": [
+        "1",
+        "6"
+      ],
+      "MOD.core": [
+        "3"
+      ],
+      "MOD.memory": [
+        "5"
+      ],
+      "MOD.relationship": [
+        "5"
+      ],
+      "MOD.emotion": [
+        "5"
+      ],
+      "MOD.cognition": [
+        "5"
+      ],
+      "MOD.personality": [
+        "5"
+      ],
+      "MOD.ability": [
+        "5",
+        "7"
+      ],
+      "MOD.views": [
+        "5",
+        "9"
+      ],
+      "MOD.mandate": [
+        "4",
+        "7"
+      ],
+      "MOD.tasks": [
+        "4"
+      ],
+      "MOD.worker": [
+        "4"
+      ],
+      "MOD.verify": [
+        "4"
+      ],
+      "MOD.model-session": [
+        "6"
+      ],
+      "MOD.tool-policy": [
+        "7"
+      ],
+      "MOD.event-schedule": [
+        "2"
+      ],
+      "MOD.persistence": [
+        "8"
+      ],
+      "MOD.lifecycle": [
+        "8",
+        "6"
+      ],
+      "MOD.device-gateway": [
+        "4",
+        "7"
+      ],
+      "MOD.desktop-device": [
+        "4",
+        "7"
+      ],
+      "MOD.other-device": [
+        "4",
+        "7"
+      ],
+      "MOD.robot": [
+        "4",
+        "7"
+      ],
+      "MOD.supervisor": [
+        "8"
+      ],
+      "MOD.recovery-entry": [
+        "8"
+      ],
+      "MOD.state": [
+        "8"
+      ],
+      "MOD.task-store": [
+        "4",
+        "8"
+      ],
+      "MOD.evidence": [
+        "8"
+      ],
+      "MOD.artifacts": [
+        "4",
+        "8"
+      ],
+      "MOD.cache": [
+        "6",
+        "8"
+      ],
+      "MOD.config": [
+        "8"
+      ],
+      "MOD.credentials": [
+        "7",
+        "8"
+      ],
+      "MOD.checkpoint": [
+        "8"
+      ],
+      "MOD.backup-copy": [
+        "8"
+      ],
+      "MOD.restore-test": [
+        "8"
+      ]
+    },
+    "systemToV": {
+      "1": [
+        "V02",
+        "V03",
+        "V04",
+        "V05",
+        "V23",
+        "V24",
+        "V25"
+      ],
+      "2": [
+        "V03",
+        "V12",
+        "V14",
+        "V21",
+        "V23",
+        "V24"
+      ],
+      "3": [
+        "V02",
+        "V06",
+        "V10",
+        "V23",
+        "V24",
+        "V25"
+      ],
+      "4": [
+        "V10",
+        "V11",
+        "V12",
+        "V18",
+        "V19",
+        "V20",
+        "V21",
+        "V22",
+        "V23",
+        "V24",
+        "V26"
+      ],
+      "5": [
+        "V06",
+        "V07",
+        "V08",
+        "V09",
+        "V16",
+        "V22",
+        "V23",
+        "V24",
+        "V25"
+      ],
+      "6": [
+        "V04",
+        "V13",
+        "V14",
+        "V23",
+        "V24",
+        "V25"
+      ],
+      "7": [
+        "V02",
+        "V04",
+        "V09",
+        "V10",
+        "V13",
+        "V16",
+        "V17",
+        "V18",
+        "V19",
+        "V20",
+        "V23",
+        "V24",
+        "V26"
+      ],
+      "8": [
+        "V01",
+        "V06",
+        "V12",
+        "V14",
+        "V15",
+        "V16",
+        "V17",
+        "V19",
+        "V21",
+        "V22",
+        "V23",
+        "V24",
+        "V27"
+      ],
+      "9": [
+        "V04",
+        "V05",
+        "V09",
+        "V14",
+        "V23",
+        "V24"
+      ]
+    },
+    "systemToScenarios": {
+      "1": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL01",
+        "FL02",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL07",
+        "FL08"
+      ],
+      "2": [
+        "S01",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S08",
+        "FL03",
+        "FL04",
+        "FL07",
+        "FL08"
+      ],
+      "3": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL01",
+        "FL02",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL08"
+      ],
+      "4": [
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S08",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL07",
+        "FL08"
+      ],
+      "5": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "FL01",
+        "FL02",
+        "FL04",
+        "FL06",
+        "FL08"
+      ],
+      "6": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL01",
+        "FL02",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL08"
+      ],
+      "7": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL08"
+      ],
+      "8": [
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S08",
+        "FL04",
+        "FL07",
+        "FL08"
+      ],
+      "9": [
+        "S01",
+        "S02",
+        "S03",
+        "S04",
+        "S05",
+        "S06",
+        "S07",
+        "S08",
+        "FL01",
+        "FL03",
+        "FL04",
+        "FL05",
+        "FL06",
+        "FL08"
+      ]
+    },
+    "moduleCountByArea": {
+      "A.sources": 3,
+      "A.dependencies": 1,
+      "A.host": 0,
+      "A.plugin": 0,
+      "A.outer": 3,
+      "A.inner": 8,
+      "A.execution": 4,
+      "A.foundation": 5,
+      "A.devices": 4,
+      "A.recovery": 2,
+      "A.data": 8,
+      "A.backup": 2
+    },
+    "missingMappings": []
+  },
+  "gate": {
+    "overall": "incomplete",
+    "completeNineSystems": false,
+    "completedDimensions": [],
+    "reasons": [
+      "H7-prep 没有执行任何产品/宿主/模型/业务验收：所有维度 executed=0、passed=0",
+      "产品行仍全部 not_covered；仅有有限工具/模块证据层（limited-only/unknown/blocked）",
+      "H0c S/FL 仍为 synthetic-fixture-only-not-run 且 cannotUseForBusinessAcceptance=false",
+      "40 模块中部分模块无可提交证据、部分被真实设备/凭据等资源阻塞",
+      "完整九系统/40模块/V01–V27/S/FL 总体验收未完成，不得声明完成"
+    ],
+    "cannotClaim": [
+      "不得声明完整九系统完成",
+      "不得声明任何 V 项整体通过",
+      "不得把 tooling_ready/limited-only/unknown/blocked 计为 pass",
+      "不得把 H0c synthetic fixture 当业务验收或 HOLDOUT",
+      "不得把历史限定样本升级为当前 HEAD 或完整门槛通过"
+    ],
+    "blockedResources": [
+      {
+        "id": "real-device-authorization",
+        "title": "真实设备授权与可信停止范围",
+        "prerequisite": "明确设备ID、允许动作/路径、可信停止与物理保护；替身/软件机器人不能替代",
+        "blocks": "V18/V19/V20/V26、device-gateway/desktop-device/other-device/robot 模块",
+        "blocksModules": [
+          "MOD.device-gateway",
+          "MOD.desktop-device",
+          "MOD.other-device",
+          "MOD.robot"
+        ],
+        "blocksVItems": [
+          "V18",
+          "V19",
+          "V20",
+          "V26"
+        ],
+        "blocksScenarios": []
+      },
+      {
+        "id": "real-channel-account",
+        "title": "真实渠道账号、受众与外发权限",
+        "prerequisite": "平台/account/channel 范围、凭据来源、收件方与外发权、删除/送达语义",
+        "blocks": "V02/V05 完整门槛、SYS.1/SYS.7 完整验收、S 系列真实渠道业务",
+        "blocksModules": [],
+        "blocksVItems": [
+          "V02",
+          "V05"
+        ],
+        "blocksScenarios": []
+      },
+      {
+        "id": "real-credential-source",
+        "title": "真实凭据引用与轮换来源",
+        "prerequisite": "可解析的凭据引用、轮换/失效流程与 canary 使用范围",
+        "blocks": "V17 真实凭据分支、credentials 模块",
+        "blocksModules": [
+          "MOD.credentials"
+        ],
+        "blocksVItems": [
+          "V17"
+        ],
+        "blocksScenarios": []
+      },
+      {
+        "id": "bounded-real-model-budget",
+        "title": "有界真实模型验收额度",
+        "prerequisite": "模型/数据、calls/tokens/时间/重试/并发/费用上限与硬停止条件",
+        "blocks": "V25、V13/V23 真实模型分支、S/FL 业务语义评测",
+        "blocksModules": [],
+        "blocksVItems": [
+          "V05",
+          "V13",
+          "V23",
+          "V24",
+          "V25"
+        ],
+        "blocksScenarios": [
+          "S01",
+          "S02",
+          "S03",
+          "S04",
+          "S05",
+          "S06",
+          "S07",
+          "S08",
+          "FL01",
+          "FL02",
+          "FL03",
+          "FL04",
+          "FL05",
+          "FL06",
+          "FL07",
+          "FL08"
+        ]
+      },
+      {
+        "id": "lab-business-run",
+        "title": "Lab 本体业务运行与独立 Judge",
+        "prerequisite": "冻结剧本、被测本体版本、Lab 公共协议接入、独立效果/业务 oracle 与评分",
+        "blocks": "V23 E1–E3、S01–S08/FL01–FL08 业务验收",
+        "blocksModules": [],
+        "blocksVItems": [
+          "V23"
+        ],
+        "blocksScenarios": [
+          "S01",
+          "S02",
+          "S03",
+          "S04",
+          "S05",
+          "S06",
+          "S07",
+          "S08",
+          "FL01",
+          "FL02",
+          "FL03",
+          "FL04",
+          "FL05",
+          "FL06",
+          "FL07",
+          "FL08"
+        ]
+      },
+      {
+        "id": "real-host-acceptance-window",
+        "title": "固定宿主长生命周期/压缩/长期运行窗口",
+        "prerequisite": "冻结宿主版本与实际 profile、长时间窗口、压测资源与停止方案",
+        "blocks": "V21/V22/V24 完整生命周期与长期门槛",
+        "blocksModules": [],
+        "blocksVItems": [
+          "V21",
+          "V22",
+          "V24"
+        ],
+        "blocksScenarios": []
+      },
+      {
+        "id": "independent-backup-destination",
+        "title": "真正独立故障域备份目的地",
+        "prerequisite": "独立目的地与故障域、加密/密钥恢复、保留策略与实际演练",
+        "blocks": "V27、backup-copy 完整门槛",
+        "blocksModules": [],
+        "blocksVItems": [
+          "V22",
+          "V27"
+        ],
+        "blocksScenarios": []
+      },
+      {
+        "id": "holdout-isolation",
+        "title": "HOLDOUT 独立保管与流程隔离",
+        "prerequisite": "独立作者、答案先冻结、真实权限/流程隔离；同机目录不构成秘密隔离",
+        "blocks": "V25/S 系列的盲测与 HOLDOUT 结论",
+        "blocksModules": [],
+        "blocksVItems": [
+          "V25"
+        ],
+        "blocksScenarios": [
+          "S01",
+          "S02",
+          "S03",
+          "S04",
+          "S05",
+          "S06",
+          "S07",
+          "S08",
+          "FL01",
+          "FL02",
+          "FL03",
+          "FL04",
+          "FL05",
+          "FL06",
+          "FL07",
+          "FL08"
+        ]
+      },
+      {
+        "id": "double-annotation",
+        "title": "相处质量双人独立盲评",
+        "prerequisite": "两名独立标注者、盲化输出、原始分歧与校准记录",
+        "blocks": "V25/S07 相处质量结论",
+        "blocksModules": [],
+        "blocksVItems": [
+          "V25"
+        ],
+        "blocksScenarios": [
+          "S01",
+          "S02",
+          "S03",
+          "S04",
+          "S05",
+          "S06",
+          "S07",
+          "S08",
+          "FL01",
+          "FL02",
+          "FL03",
+          "FL04",
+          "FL05",
+          "FL06",
+          "FL07",
+          "FL08"
+        ]
+      }
+    ]
+  },
+  "issues": []
+}
