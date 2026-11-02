@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "kind": "h2b-host-time-probe-offline",
+  "slice": "H2b 宿主零模型时间源探针（独立 in-memory 隔离 + 集成 diff）",
+  "capturedAt": "2026-11-02T23:04:07.796Z",
+  "repository": {
+    "headAtVerification": "50e347de6798165c17e9c2cec5a6ba4944c20820",
+    "note": "Isolated worktree = shared HEAD at verification time + only this probe slice files. H2b runtime integration is already committed in HEAD; this slice adds the isolated probe implementation and the Lead-owned diagnostic integration diff."
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin/arm64"
+  },
+  "changedFiles": [
+    {
+      "path": "plugins/shiyu/src/control/events/probe.ts",
+      "bytes": 16069,
+      "sha256": "d213f8f222de5ef46b29efb66923c203028ac74a0903e9cc409444414e82b86c"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/time-source.ts",
+      "bytes": 28133,
+      "sha256": "a5872e67d77c8aa5a3bcbce047e76e6108037bef625be54719d0275399d1922f"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-time-probe.test.ts",
+      "bytes": 8515,
+      "sha256": "3528c7919b7adddfc26a2d515ceccc7f77f9205f73e2a0593b1600aa88c2bb61"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-time-probe-manifest.json",
+      "bytes": 273,
+      "sha256": "fbead183a709e740676c15691fd82d1bdfe293075f35f3288eb000c1c26a4176"
+    }
+  ],
+  "commands": [
+    "node --import tsx --test --test-concurrency=1 tests/events-time-probe.test.ts tests/events-subscriptions.test.ts tests/events-time-source.test.ts tests/events-notifications.test.ts tests/events*.test.ts tests/event-tools.test.ts tests/background-pump.test.ts",
+    "node plugins/shiyu/scripts/slice-verify.mjs --slice h2b-time-probe --manifest plugins/shiyu/artifacts/dsh/h2/h2b-time-probe-manifest.json"
+  ],
+  "targetedRuns": {
+    "all": {
+      "tests": 107,
+      "pass": 107,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "log": {
+        "path": "plugins/shiyu/.local/h2b-probe-targeted.log",
+        "sha256": "d46c557a4d3be43466648373acf46dd495ab78360f7d3eb28c6b2390adafb53a"
+      }
+    },
+    "newTests": {
+      "file": "plugins/shiyu/tests/events-time-probe.test.ts",
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "topics": [
+        "fully in-memory probe leaves an independent live store untouched",
+        "one canonical once identity across two ticks + repeated probe determinism",
+        "latest-only merged occurrence",
+        "paused rule no trigger/no replay",
+        "clock rollback gap",
+        "zero model/embedding/task/effect + once-wait match",
+        "cleanup across repeated probes",
+        "abort rejects and later cleanup",
+        "lossless bounded JSON receipt"
+      ]
+    },
+    "historicalRegression": {
+      "note": "Existing H2a/H2b event suites and event-tools/background-pump regression ran in the same batch; no existing test file was modified."
+    }
+  },
+  "isolatedFullCheck": {
+    "evidencePath": "plugins/shiyu/artifacts/dsh/slices/h2b-time-probe-verify.json",
+    "evidenceSha256": "65ecd8d99c2b76d9165daaab8337b17e3b496576318486f3591ef90daec9c6ee",
+    "head": "50e347de6798165c17e9c2cec5a6ba4944c20820",
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "tests": 1444,
+    "pass": 1444,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 351324,
+    "baselineTestsWithoutSlice": 1435,
+    "log": {
+      "path": "plugins/shiyu/.local/slice-verify-h2b-time-probe.log",
+      "bytes": 156756,
+      "sha256": "d4c8f6b8c1104c0932148870c10ddcfb4fc967f1e7795d384bf537f22874d5fc"
+    },
+    "verdict": "pass"
+  },
+  "probeDesign": {
+    "isolation": "One ControlStore opened with filename \":memory:\" (the worker explicitly supports it) plus one mkdtemp plugin rule file. No live dataDir, live control DB, Session, Task, Effect, model or embedding is touched.",
+    "scenario": "Deterministic base clock (2026-01-01T00:00:00Z): (1) once rule at base+5000 -> baseline tick establishes history, tick at +4000 is not due, tick at +5000 accepts exactly one time.occurred, repeated tick creates no second event; (2) interval latest-only rule -> after 3.5 periods exactly one merged occurrence with canonical scheduledFor; (3) paused once rule -> due while paused produces nothing and resume does not revive the missed occurrence; (4) clock rollback -> visible CLOCK_ROLLBACK gap, no event; (5) once-wait subscription -> matching background event is claimed and matched through the trusted allowed gate, zero model; (6) receipt checks all entries and cleanup closes store + removes temp directory.",
+    "identity": "Time event payload carries {subscriptionId, ruleRevision, occurrence, scheduledFor}; receipt.identity records subscriptionId, ruleRevision, occurrence (once:<revision>:<ISO>), scheduledFor, idempotencyKeyHash (sha256 of time:<sub>:<rev>:<occurrence>) and eventIdHash. Two probe runs with the same base yield identical identity hashes (event ids are random and only hashed).",
+    "receipt": "Lossless JSON, <16 KiB offline: toolName/zeroModel/zeroEmbedding/zeroTaskOrEffect/store in-memory flag/catalog/clock steps/ticks/events summary+identity/onceWait/checks/released+disposed/diagnostics(close+temp cleanup+duration+catalog types).",
+    "noModel": "The probe module imports only ControlStore, EventService, H2b rule/lifecycle/time-source modules, fs/os/path/crypto. There is no model, embedding, Task, Lab or Effect port in the dependency graph, and the receipt declares the zero guarantees explicitly."
+  },
+  "hostProbeProtocol": {
+    "tool": "shiyu_diagnose_time_source (no parameters, isConcurrencySafe=false)",
+    "command": "POST /api/shiyu/commands { action: 'runtime.probe-time-source' }",
+    "admission": "Same as session.probe: rejected while globally paused (ensureCanRun), consumes one shared runtime operation slot (capacity 2), abortable, no retry, no model/embedding/Task/Goal/Lab/Effect.",
+    "receiptChannel": "Cached only read-only at snapshot().diagnostics.timeSourceProbe; the tool returns the same receipt. No business-event or delivery counts change.",
+    "expected": [
+      "ok=true, zeroModel/zeroEmbedding/zeroTaskOrEffect=true, released=disposed=true, diagnostics cleanup all true",
+      "events.identity.subscriptionId=probe-once, ruleRevision=1, scheduledFor=2026-01-01T00:00:05.000Z, occurrence=once:1:2026-01-01T00:00:05.000Z",
+      "ticks: once-due accepted=1/eventsAfter=1, repeat-same-identity accepted=0/eventsAfter=1, latest-multi-period accepted=1, paused-due eventsAfter unchanged",
+      "checks: once_single_occurrence, repeat_tick_no_second_event, latest_only_single_merged_occurrence, paused_not_triggered_no_replay, clock_rollback_gap_no_trigger, once_wait_matched_zero_model, cleanup_complete all ok=true",
+      "GET /api/shiyu/state diagnostics.timeSourceProbe equals the tool receipt; task/Goal/Lab/event/delivery counts and runtime-state file unchanged except the diagnostic record location (no publication)."
+    ],
+    "stop": [
+      "Any failed receipt check, any non-zero model/embedding/task/effect observation, any business write, any cleanup failure, or a non-frozen reload => stop, preserve logs, do not retry."
+    ],
+    "limitation": "The isolated probe proves the plugin-owned deterministic time-source semantics and cleanup offline. It does not prove that the live runtime TimeSourcePump fires schedules, that real host clocks/timezones behave as configured, or that real downstream notifications/effects occur. The live idle tick was separately observed; a real-model/real-host schedule firing remains G4."
+  },
+  "integrationDiffs": [
+    {
+      "file": "plugins/shiyu/src/runtime.ts + plugins/shiyu/src/index.ts",
+      "status": "Lead lands; not edited by this slice",
+      "diff": "--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ imports (next to the other probe imports)\n+import { probeTimeSource, type TimeSourceProbeResult } from './control/events/probe.js';\n@@ class RuntimeService private probe receipts (next to lastCoreEventToolProbe)\n   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;\n+  private lastTimeSourceProbe?: TimeSourceProbeResult;\n@@ command dispatch (after 'runtime.probe-core-event-tools')\n     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);\n+    if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);\n@@ add next to commandCoreEventToolProbe (same admissions as session.probe)\n+  /** Zero-model, read-only isolated time-source diagnostic (same admission\n+   * semantics as session.probe: unavailable while globally paused). */\n+  private async commandTimeSourceProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {\n+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid time source probe input');\n+    this.ensureCanRun(); signal?.throwIfAborted();\n+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');\n+    let finish!: () => void;\n+    const done = new Promise<void>(resolve => { finish = resolve; });\n+    const op: ActiveOperation = { id: randomUUID(), title: '检查时间源零模型触发', phase: '隔离内存探针',\n+      status: 'running', controller: new AbortController(), done, finish };\n+    const onAbort = () => op.controller.abort(signal?.reason);\n+    signal?.addEventListener('abort', onAbort, { once: true });\n+    this.operations.set(op.id, op);\n+    try {\n+      const result = await probeTimeSource({ signal: op.controller.signal });\n+      this.ensureCanRun(); op.controller.signal.throwIfAborted();\n+      this.lastTimeSourceProbe = structuredClone(result);\n+      this.lastFailure = undefined;\n+      return { ...result, zeroModel: true, readOnly: true, sent: false };\n+    } catch (error) {\n+      this.lastFailure = error instanceof Error ? error.message : String(error);\n+      throw error;\n+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }\n+  }\n@@ snapshot().diagnostics (after coreEventToolProbe; read-only projection only)\n         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,\n+        timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,\n--- a/plugins/shiyu/src/index.ts\n+++ b/plugins/shiyu/src/index.ts\n@@ exported tool factories (after coreToolDiagnosisTool())\n+export function timeSourceDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {\n+  return {\n+    name: 'shiyu_diagnose_time_source',\n+    description: '零模型诊断：在独立内存控制库+临时规则文件中构造确定性时间规则并 tick，核验规范时间事件、重复幂等、暂停/回滚 gap 与清理；不写业务库、不执行 Task、不发送、不调用模型。',\n+    parameters: { type: 'object', properties: {}, additionalProperties: false },\n+    isConcurrencySafe: false,\n+    execute: async () => service.command({ action: 'runtime.probe-time-source' }),\n+    output: { schema: { type: 'object', additionalProperties: true },\n+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }] },\n+  };\n+}\n@@ apply() registration (next to the other diagnosis tools)\n+  ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));\n"
+    }
+  ],
+  "gapsAndUntested": [
+    "runtime.ts/index.ts integration (diagnostic command + shiyu_diagnose_time_source + diagnostics.timeSourceProbe) is delivered as a diff and not live.",
+    "Fixed-host invocation of the probe is NOT executed here; Lead runs it in the joint zero-model reload.",
+    "The probe uses the deterministic probe clock for the declarative time source while the control store subscription expiry/claim use the real wall clock; the once-wait deadline is therefore real-time based. This is intentional for isolation but is a probe-specific detail, not a product clock contract.",
+    "No real model/embedding/Task/Effect/channel/device was used. The probe does not prove the live runtime pump actually fires a due rule, nor real notification delivery, nor IANA DST handling (H2b uses injected offsets).",
+    "The in-memory control store exercises the real SQL event domain but no on-disk durability/restart of the probe store itself; H2b restart semantics are covered by the separate offline suite."
+  ],
+  "evidenceBoundaries": [
+    "G1 offline: real in-memory SQLite through the ControlStore worker thread + real plugin rule file in a temp directory + synthetic deterministic clock. Not fixed-host or business acceptance."
+  ],
+  "artifacts": {
+    "manifest": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-time-probe-manifest.json",
+      "bytes": 273,
+      "sha256": "fbead183a709e740676c15691fd82d1bdfe293075f35f3288eb000c1c26a4176"
+    },
+    "isolatedCheck": {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h2b-time-probe-verify.json",
+      "bytes": 1874,
+      "sha256": "65ecd8d99c2b76d9165daaab8337b17e3b496576318486f3591ef90daec9c6ee"
+    },
+    "thisEvidence": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-host-time-probe.json",
+      "note": "self hash omitted"
+    }
+  }
+}

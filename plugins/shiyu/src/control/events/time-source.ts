@@ -187,9 +187,8 @@ export class TimeSourceService {
         if (state.lastOccurrence && Date.parse(state.lastOccurrence) === at) { await skip('OCCURRENCE_ALREADY_HANDLED'); continue; }
         if (at <= (state.lastEvaluatedAt ?? evaluatedAt)) { await skip('MISSED_BEFORE_BASELINE'); continue; }
         if (at > evaluatedAt) { await skip('NOT_DUE_YET'); continue; }
-        const occurrence = String(at);
-        const occurrenceRef = `once:${schedule.ruleRevision}:${occurrence}`;
-        if (await this.fire(subscription, rule, schedule, occurrenceRef, at, evaluatedAt, receipt, state)) { await skip('', 'accepted'); }
+        const occurrence = `once:${schedule.ruleRevision}:${iso(at)}`;
+        if (await this.fire(subscription, rule, schedule, occurrence, at, evaluatedAt, receipt, state)) { await skip('', 'accepted'); }
         await this.rules.putTimeState(schedule.subscriptionId, { ...state, lastEvaluatedAt: evaluatedAt, lastOccurrence: iso(at), gaps: state.gaps.slice(-32) });
         continue;
       }

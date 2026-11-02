@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h2b-time-probe",
+  "capturedAt": "2026-11-02T23:04:03.276Z",
+  "head": "50e347de6798165c17e9c2cec5a6ba4944c20820",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h2b-time-probe-1793660291542",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/events/probe.ts",
+      "bytes": 16069,
+      "sha256": "d213f8f222de5ef46b29efb66923c203028ac74a0903e9cc409444414e82b86c"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/time-source.ts",
+      "bytes": 28133,
+      "sha256": "a5872e67d77c8aa5a3bcbce047e76e6108037bef625be54719d0275399d1922f"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-time-probe.test.ts",
+      "bytes": 8515,
+      "sha256": "3528c7919b7adddfc26a2d515ceccc7f77f9205f73e2a0593b1600aa88c2bb61"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-time-probe-manifest.json",
+      "bytes": 273,
+      "sha256": "fbead183a709e740676c15691fd82d1bdfe293075f35f3288eb000c1c26a4176"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 351324,
+    "bytes": 156756,
+    "sha256": "d4c8f6b8c1104c0932148870c10ddcfb4fc967f1e7795d384bf537f22874d5fc",
+    "tests": {
+      "tests": 1444,
+      "pass": 1444,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 350188.774209",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h2b-time-probe.log",
+    "bytes": 156756,
+    "sha256": "d4c8f6b8c1104c0932148870c10ddcfb4fc967f1e7795d384bf537f22874d5fc"
+  },
+  "verdict": "pass"
+}

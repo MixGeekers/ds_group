@@ -1,0 +1,9 @@
+{
+  "slice": "h2b-time-probe",
+  "files": [
+    "plugins/shiyu/src/control/events/probe.ts",
+    "plugins/shiyu/src/control/events/time-source.ts",
+    "plugins/shiyu/tests/events-time-probe.test.ts",
+    "plugins/shiyu/artifacts/dsh/h2/h2b-time-probe-manifest.json"
+  ]
+}
