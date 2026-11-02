@@ -7,7 +7,7 @@ import { EventService } from './control/events/index.js';
 import { SHIYU_EVENT_TYPES } from './contracts/events.js';
 import type { EventPrincipal, EventTypeDefinition } from './contracts/events.js';
 import { ShiyuSessionAdapter } from './adapters/dsh/sessions.js';
-import type { DshContext, SessionStatus, ProbeResult, ReplyRequest, ReplyResult } from './adapters/dsh/sessions.js';
+import type { DshContext, SessionStatus, ProbeResult, ReplyRequest, ReplyResult, ContextLoadRequest, ContextLoadResult } from './adapters/dsh/sessions.js';
 import { LocalStateFile } from './recovery/local-state.js';
 import { systems } from './health/systems.js';
 import { WorkerSessionDriver } from './adapters/dsh/workers.js';
@@ -19,8 +19,11 @@ import type { GoalLifecycleOptions, GoalLifecycleResult, GoalLifecycleRunOptions
 import { BackgroundPump } from './control/background-pump.js';
 import { LocalReplyService } from './control/local-reply.js';
 import { LocalMemoryService } from './control/local-memory.js';
+import { LocalMemorySearchService } from './control/local-memory-search.js';
 import { ManagedOmbreBackend, loadManagedOmbreConfig, type ManagedOmbreConfig } from './adapters/ombre/managed.js';
 import type { LocalMemoryEntry } from './adapters/control-store/memory-domain.js';
+import type { MemoryIndexEntry } from './adapters/control-store/memory-index-domain.js';
+import type { AvailableMemoryDomain, UnavailableDomain } from './state/publication.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
@@ -40,6 +43,7 @@ export interface SessionDriver {
   prepareContextSafety?(): Promise<{ ready: true; messageFactory: 'official' | 'injected'; nativeReadback: true; coldProjection: true }>;
   probe(): Promise<ProbeResult>;
   generateReply(request: ReplyRequest): Promise<ReplyResult>;
+  loadContextOnly?(request: ContextLoadRequest): Promise<ContextLoadResult>;
   getStatus(): Promise<SessionStatus[]>;
   cancel(key: string): Promise<void>;
   close(): Promise<void>;
@@ -63,6 +67,10 @@ function memoryEntry(entry: LocalMemoryEntry) {
     bodyBytes: entry.source.bodyBytes, consent: entry.source.consent.state, canRead: Boolean(entry.reference),
     ...(entry.reference ? { nativeId: entry.reference.nativeId } : {}), createdAt: entry.operation.createdAt };
 }
+function memoryIndexEntry(entry: MemoryIndexEntry) {
+  return { indexOperationId: entry.indexOperationId, memoryOperationId: entry.command.memoryOperationId,
+    status: entry.effect.status, publishable: entry.publishable, embeddingUsage: structuredClone(entry.embeddingUsage) };
+}
 interface ActiveOperation { id: string; title: string; phase: string; status: string; controller: AbortController; done: Promise<void>; finish: () => void }
 
 export class RuntimeService {
@@ -81,9 +89,14 @@ export class RuntimeService {
   background!: BackgroundPump;
   localReplies!: LocalReplyService;
   private localMemories?: LocalMemoryService;
+  private memorySearch?: LocalMemorySearchService;
   private memoryBackend?: Pick<ManagedOmbreBackend, 'adapter' | 'open' | 'status' | 'close'>;
   private memoryConfig?: Readonly<ManagedOmbreConfig>;
   private memoryFailure?: string;
+  private semanticFailure?: string;
+  private lastSemanticOperation?: { kind: 'index' | 'search'; status: 'completed' | 'failed' | 'existing'; at: string;
+    outcome?: MemoryIndexEntry['effect']['status'];
+    embeddingUsage: { calls: number | null; complete: boolean } };
   private closed = false;
   private closing?: Promise<void>;
   private controlTail: Promise<void> = Promise.resolve();
@@ -123,6 +136,11 @@ export class RuntimeService {
             this.memoryBackend = this.options.memoryFactory?.(this.memoryConfig) ?? new ManagedOmbreBackend(this.memoryConfig);
             if (!this.pauseRequested) await this.memoryBackend.open();
             this.localMemories = new LocalMemoryService({ store: this.store, backend: this.memoryBackend.adapter, assertRuntimeAllowed: () => this.ensureCanRun() });
+            if (this.memoryConfig.schemaVersion === 2) {
+              const indexDomain = await this.store.request('memory.index.status', {});
+              if (indexDomain.ready) this.memorySearch = new LocalMemorySearchService({ store: this.store, backend: this.memoryBackend.adapter, assertRuntimeAllowed: () => this.ensureCanRun() });
+              else this.semanticFailure = indexDomain.errorCode ?? 'MEMORY_INDEX_UNAVAILABLE';
+            }
           } catch { this.memoryFailure = 'MEMORY_BACKEND_UNAVAILABLE'; await this.memoryBackend?.close().catch(() => undefined); }
         }
       }
@@ -136,7 +154,9 @@ export class RuntimeService {
         if (!this.sessions.prepareContextSafety) throw new Error('Session driver has no native context safety preparation');
         this.contextSafety = await this.sessions.prepareContextSafety();
       } catch (error) { this.contextSafety = { ready: false, error: error instanceof Error ? error.message : String(error) }; }
-      this.localReplies = new LocalReplyService({ store: this.store, sessions: this.sessions, assertRuntimeAllowed: () => this.ensureCanRun() });
+      this.localReplies = new LocalReplyService({ store: this.store, sessions: this.sessions, assertRuntimeAllowed: () => this.ensureCanRun(),
+        ...(this.memorySearch ? { memory: this.memorySearch } : {}) });
+      await this.publishMemoryAvailability();
       this.workers = this.options.workerFactory?.(this.ctx) ?? new WorkerSessionDriver({ ctx: this.ctx });
       await this.workers.initialize();
       this.artifacts = await LocalArtifactStore.open(path.join(this.dataDir, 'workspaces'));
@@ -171,6 +191,7 @@ export class RuntimeService {
       } });
       await this.background.start();
     } catch (error) {
+      await this.memorySearch?.close().catch(() => undefined);
       await this.localMemories?.close().catch(() => undefined);
       await this.memoryBackend?.close().catch(() => undefined);
       await this.background?.close().catch(() => undefined);
@@ -188,6 +209,24 @@ export class RuntimeService {
     this.state.assertHealthy();
   }
   private ensureCanRun(): void { this.ensureOpen(); if (this.pauseRequested) throw new Error('Runtime is paused'); }
+  /** Trusted lifecycle publication. Dashboard reads never publish or probe a backend. */
+  private async publishMemoryAvailability(): Promise<void> {
+    const current = await this.store.request('view.state', {});
+    if (!current) throw new Error('Inner state publication is unavailable');
+    const backend = this.memoryBackend?.status();
+    let availability: UnavailableDomain | AvailableMemoryDomain = { status: 'unavailable',
+      reason: this.memoryConfig ? 'source_unavailable' : this.memoryFailure ? 'incompatible_version' : 'not_connected' };
+    if (this.localMemories && backend?.state === 'ready' && backend.bindingVerified && !this.memoryFailure) {
+      const semantic = Boolean(this.memorySearch && backend.semantic?.profileCompatible);
+      availability = { status: 'available', backendId: backend.backendId, deploymentId: backend.deploymentId,
+        capabilities: semantic ? ['exact_read', 'semantic_search'] : ['exact_read'],
+        ...(semantic ? { profileFingerprint: backend.semantic!.profileFingerprint! } : {}) };
+    }
+    // No receipt churn for a lifecycle reconciliation whose state is already published.
+    if (JSON.stringify(current.manifest.domains.memory) === JSON.stringify(availability)) return;
+    await this.store.request('state.publishMemoryAvailability', { requestId: `memory-availability-${this.instanceId}-${randomUUID()}`,
+      expectedBaselineId: current.baselineId, expectedStateVersion: current.stateVersion, availability });
+  }
   private setPaused(paused: boolean): Promise<unknown> {
     const revision = ++this.controlRevision;
     // A later pause fences work immediately, even while an earlier resume is
@@ -211,6 +250,7 @@ export class RuntimeService {
         try { await this.memoryBackend.open(); }
         catch { this.memoryFailure = 'MEMORY_BACKEND_UNAVAILABLE'; await this.memoryBackend.close().catch(() => undefined); }
       }
+      if (!this.closed) await this.publishMemoryAvailability();
       if (paused) for (const binding of await this.sessions.getStatus()) if (binding.status === 'running') await this.sessions.cancel(binding.key);
       await this.record('runtime.lifecycle.changed', paused ? '已暂停新的模型操作' : '已恢复接纳新的模型操作', paused ? 'paused' : 'ready');
       if (!paused) await this.scheduleQueuedTasks();
@@ -251,13 +291,16 @@ export class RuntimeService {
     const memoryReady = Boolean(this.localMemories && memoryBackend?.state === 'ready' && !memoryError);
     return {
       schemaVersion: 1, version: VERSION, instanceId: this.instanceId, startedAt: this.startedAt, observedAt: at,
-      lifecycle: this.lastFailure || memoryError || memoryBackend?.state === 'failed' || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
+      lifecycle: this.lastFailure || memoryError || this.semanticFailure || memoryBackend?.state === 'failed' || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
       state: this.pauseRequested ? 'paused' : this.operations.size ? 'busy' : 'idle',
       systems: structuredClone(systems),
       tasks,
       conversations: conversations.conversations,
       innerProjection: innerProjection ?? null,
       memory: { configured: Boolean(this.memoryConfig) || Boolean(this.memoryFailure), ready: memoryReady,
+        semanticConfigured: Boolean(this.memorySearch),
+        ...(this.semanticFailure ? { semanticErrorCode: this.semanticFailure } : {}),
+        ...(this.lastSemanticOperation ? { lastSemanticOperation: structuredClone(this.lastSemanticOperation) } : {}),
         ...(memoryError ? { errorCode: memoryError } : {}), ...(memoryBackend ? { backend: memoryBackend } : {}), entries: memoryEntries },
       diagnostics: { contextVerification: this.state.state.lastContextVerification ? structuredClone(this.state.state.lastContextVerification) : null,
         contextSafety: structuredClone(this.contextSafety) },
@@ -277,14 +320,14 @@ export class RuntimeService {
         { id: 'native-goal', name: 'DSH 原生 Goal', status: goalVerification?.instanceId === this.instanceId ? (goalVerification.ok ? 'available' : 'unavailable') : 'unknown', summary: goalVerification ? `${goalVerification.instanceId === this.instanceId ? '' : '上次运行的验证记录：'}${goalVerification.message}` : '尚未验证原生 Goal 生命周期；查看页面不会创建或恢复目标会话。', checkedAt: goalVerification?.at },
         { id: 'native-context', name: '原生上下文接线', status: this.contextSafety.ready ? 'available' : 'unavailable', summary: this.contextSafety.ready ? '消息工厂与原生持久化接口已加载；不代表上下文已实际加载或模型已验证。' : this.contextSafety.error ?? '上下文接线尚未准备', checkedAt: this.startedAt },
         { id: 'memory', name: '长期记忆', status: memoryReady ? 'available' : this.memoryConfig || memoryError ? 'unavailable' : 'unconfigured',
-          summary: memoryReady ? '受控原生存取已连接；仅显式保存与精确读取，语义检索和内层 ReadView 尚未接入。' : memoryError ?? (this.memoryConfig ? '受控记忆等待启动或连接核对' : '尚未配置受控记忆服务') },
+          summary: memoryReady ? this.memorySearch ? '受控存取、独立索引与同会话语义读取已接线；embedding 实测及索引覆盖按实际回执显示。' : '受控原生存取与精确读取已连接；语义检索未配置。' : memoryError ?? (this.memoryConfig ? '受控记忆等待启动或连接核对' : '尚未配置受控记忆服务') },
         { id: 'channels', name: '外部频道与设备', status: 'unconfigured', summary: '尚未接入' },
       ],
       // Session-level records are shown above. An incomplete aggregate is unknown,
       // rather than summing only the measured requests and presenting a false zero.
       usage: { calls: null, inputTokens: null, outputTokens: null, cacheReadTokens: null },
       notices: [
-        { id: 'scope', level: 'info', message: '已接入原生会话、事件、受限本地任务和对话背景标记；持续规划、内层状态及外部渠道仍待接入。' },
+        { id: 'scope', level: 'info', message: '已接入原生会话、事件、受限本地任务与记忆读取链路；持续规划、其余内层状态及外部渠道仍待接入。' },
         ...(this.pauseRequested ? [{ id: 'paused', level: 'info', message: '已暂停新的模型操作；已发生效果不会因暂停回滚。' }] : []),
         ...(this.lastFailure ? [{ id: 'operation', level: 'warning', message: this.lastFailure }] : []),
         ...(backgroundState.lastFailure ? [{ id: 'background', level: 'warning', message: `对话背景处理待核对：${backgroundState.lastFailure}` }] : []),
@@ -298,6 +341,7 @@ export class RuntimeService {
     const value = input as Record<string, unknown>;
     const action = value.action;
     if (action === 'memory.rememberLocal' || action === 'memory.readLocal' || action === 'memory.withdrawLocal') return this.commandLocalMemory(value, signal);
+    if (action === 'memory.indexLocal' || action === 'memory.searchLocal') return this.commandSemanticMemory(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
     if (action === 'runtime.resume') return this.setPaused(false);
     if (action === 'conversation.linkLocalTask') {
@@ -340,7 +384,7 @@ export class RuntimeService {
       this.operations.get(value.taskId)?.controller.abort();
       return { accepted: true, task };
     }
-    if (action === 'conversation.replyLocal' || action === 'conversation.verifyContext') return this.commandLocalReply(value, signal);
+    if (action === 'conversation.replyLocal' || action === 'conversation.verifyContext' || action === 'conversation.loadContext') return this.commandLocalReply(value, signal);
     if (action !== 'session.probe' && action !== 'reply.generate' && action !== 'session.verify-model' && action !== 'goal.verify-lifecycle') throw new Error('Unsupported runtime command');
     this.ensureCanRun(); signal?.throwIfAborted();
     if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
@@ -415,7 +459,13 @@ export class RuntimeService {
       let finish!: () => void;
       const admission = new Promise<void>(resolve => { finish = resolve; });
       this.admissions.add(admission);
-      try { return memoryEntry(await this.store.request('memory.withdrawLocal', { requestId: value.requestId as string, operationId: value.operationId as string })); }
+      try {
+        const entry = await this.store.request('memory.withdrawLocal', { requestId: value.requestId as string, operationId: value.operationId as string });
+        // The same-transaction epoch fence is authoritative, even if this process
+        // dies before cancelling an already running native attempt.
+        if (entry.contextInvalidation?.conversationIds.length) await this.localReplies.cancelConversations(entry.contextInvalidation.conversationIds);
+        return { ...memoryEntry(entry), ...(entry.contextInvalidation ? { contextInvalidation: entry.contextInvalidation } : {}) };
+      }
       finally { this.pendingAdmissions--; this.admissions.delete(admission); finish(); }
     }
     this.ensureCanRun();
@@ -436,10 +486,53 @@ export class RuntimeService {
       return 'body' in result ? { entry: memoryEntry(result.entry), body: result.body } : { duplicate: result.duplicate, entry: memoryEntry(result.entry) };
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', abort); }
   }
+  private async commandSemanticMemory(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    this.ensureCanRun(); signal?.throwIfAborted();
+    const index = value.action === 'memory.indexLocal';
+    const keys = index ? ['action', 'requestId', 'operationId'] : ['action', 'conversationId', 'query'];
+    const fields = Object.getOwnPropertyDescriptors(value);
+    const identity = (item: unknown): item is string => typeof item === 'string' && /^[A-Za-z0-9][A-Za-z0-9:._\/-]{0,149}$/.test(item);
+    if (![Object.prototype, null].includes(Object.getPrototypeOf(value)) || Object.keys(fields).some(key => !keys.includes(key))
+      || keys.some(key => !Object.hasOwn(fields, key)) || Object.values(fields).some(field => !Object.hasOwn(field, 'value'))
+      || (index ? !identity(value.requestId) || !identity(value.operationId) : !identity(value.conversationId)
+        || typeof value.query !== 'string' || !value.query.trim() || Buffer.byteLength(value.query, 'utf8') > 8192)) throw new Error('Invalid semantic memory input');
+    if (!this.memorySearch || this.memoryBackend?.status().state !== 'ready') throw new Error('Semantic memory backend is unavailable');
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: index ? '构建单条记忆索引' : '检索当前对话记忆',
+      phase: index ? '核对授权与独立索引回执' : '核对可读集合与语义结果', status: 'running', controller: new AbortController(), done, finish };
+    const abort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', abort, { once: true }); this.operations.set(op.id, op);
+    const kind = index ? 'index' as const : 'search' as const;
+    try {
+      if (index) {
+        const result = await this.memorySearch.index({ requestId: value.requestId as string, operationId: value.operationId as string, signal: op.controller.signal });
+        this.lastSemanticOperation = { kind, status: result.duplicate ? 'existing' : 'completed', outcome: result.entry.effect.status,
+          at: new Date().toISOString(), embeddingUsage: result.entry.embeddingUsage };
+        this.ensureCanRun(); op.controller.signal.throwIfAborted();
+        return { duplicate: result.duplicate, entry: memoryIndexEntry(result.entry) };
+      }
+      const result = await this.memorySearch.search({ conversationId: value.conversationId as string, text: value.query as string, signal: op.controller.signal });
+      this.lastSemanticOperation = { kind, status: 'completed', at: new Date().toISOString(), embeddingUsage: result.embeddingUsage };
+      this.ensureCanRun(); op.controller.signal.throwIfAborted();
+      return { state: result.state, matches: result.matches, coverage: result.coverage, index: result.index,
+        embeddingCalls: result.embeddingUsage.calls, usageComplete: result.embeddingUsage.complete };
+    } catch (error) {
+      const usage = error && typeof error === 'object' && 'embeddingUsage' in error ? error.embeddingUsage : undefined;
+      this.lastSemanticOperation = { kind, status: 'failed', at: new Date().toISOString(),
+        embeddingUsage: usage && typeof usage === 'object' && 'calls' in usage && 'complete' in usage
+          && (usage.calls === null || Number.isSafeInteger(usage.calls)) && typeof usage.complete === 'boolean'
+          ? { calls: usage.calls as number | null, complete: usage.complete } : { calls: null, complete: false } };
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', abort); }
+  }
   private async commandLocalReply(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
     this.ensureCanRun(); signal?.throwIfAborted();
     if (!this.contextSafety.ready) throw new Error('Native context safety is unavailable; no model request was admitted');
     const diagnostic = value.action === 'conversation.verifyContext';
+    const loadOnly = value.action === 'conversation.loadContext';
+    if (loadOnly && !this.sessions.loadContextOnly) throw new Error('Native load-only capability is unavailable');
     const allowed = diagnostic ? ['action', 'conversationId'] : ['action', 'conversationId', 'inputId', 'text'];
     if (Object.keys(value).some(key => !allowed.includes(key))
       || typeof value.conversationId !== 'string' || !/^[a-f0-9-]{36}$/.test(value.conversationId)
@@ -449,13 +542,19 @@ export class RuntimeService {
     if (diagnostic && [...this.operations.values()].some(op => op.phase.startsWith('上下文验证'))) throw new Error('Context verification is already running');
     let finish!: () => void;
     const done = new Promise<void>(resolve => { finish = resolve; });
-    const op: ActiveOperation = { id: randomUUID(), title: diagnostic ? '检查背景加载与原生会话复用' : '生成本地业务只读草稿',
+    const op: ActiveOperation = { id: randomUUID(), title: diagnostic ? '检查背景加载与原生会话复用' : loadOnly ? '加载背景，不请求回复' : '生成本地业务只读草稿',
       phase: diagnostic ? '上下文验证：检查本地任务来源' : '取得只读业务视图', status: 'running', controller: new AbortController(), done, finish };
     const onAbort = () => op.controller.abort(signal?.reason);
     signal?.addEventListener('abort', onAbort, { once: true });
     this.operations.set(op.id, op);
     let requestedRounds = 0;
     try {
+      if (loadOnly) {
+        const result = await this.localReplies.load({ conversationId: value.conversationId as string, inputId: value.inputId as string, text: value.text as string, signal: op.controller.signal });
+        this.ensureCanRun(); op.controller.signal.throwIfAborted();
+        this.lastFailure = undefined;
+        return { ...result, status: result.duplicate ? 'existing' : 'loaded', inferenceRequested: false, followupRequested: false, sent: false };
+      }
       if (!diagnostic) {
         const result = await this.localReplies.run({ conversationId: value.conversationId, inputId: value.inputId as string, text: value.text as string, signal: op.controller.signal, maxTokens: 512 });
         this.ensureCanRun(); op.controller.signal.throwIfAborted();
@@ -541,6 +640,7 @@ export class RuntimeService {
     const backgroundClosing = this.background?.close();
     const replyClosing = this.localReplies?.close();
     const memoryClosing = this.localMemories?.close();
+    const searchClosing = this.memorySearch?.close();
     // Resume may be waiting for open on controlTail. Cancel that owned startup
     // now; waiting for controlTail before closing it would invert the dependency.
     // An already-ready backend stays alive until pending fact verification drains.
@@ -560,7 +660,7 @@ export class RuntimeService {
         finally { await Promise.allSettled([...this.operations.values()].map(op => op.done)); await replyClosing; }
       }
       finally {
-        try { await memoryClosing; }
+        try { await Promise.all([memoryClosing, searchClosing]); }
         finally { try { await (openingMemoryClose ?? this.memoryBackend?.close()); }
           finally { try { await this.artifacts?.close(); } finally { try { await this.store?.close(); } finally { await this.state?.close(); } } } }
       }

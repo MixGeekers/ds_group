@@ -109,6 +109,8 @@ export class ConversationDomain {
   }
   /** Trusted same-Worker view authority is installed once; no public command can replace it. */
   setReplyAuthority(authority: LocalReplyAuthority): void { this.replies.setAuthority(authority); }
+  /** Same-Worker withdrawal callback, intentionally absent from public IPC. */
+  invalidateMemorySources(input: Parameters<LocalReplyDomain['invalidateMemorySources']>[0]) { return this.replies.invalidateMemorySources(input); }
   /** Same-Worker owner authority for source consent; never accepts an actor or remote scope. */
   getLocalConversation(conversationId: string) {
     return this.tx.atomic(() => {

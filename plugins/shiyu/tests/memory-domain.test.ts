@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
-import { MemoryDomain, type MemoryBackendObservation, type LocalMemoryEntry, type MemoryDomainOptions } from '../src/adapters/control-store/memory-domain.js';
+import { MemoryDomain, MAX_MEMORY_VIEW_CANDIDATES, type MemoryBackendObservation, type LocalMemoryEntry, type MemoryDomainOptions, type MemoryContextInvalidation } from '../src/adapters/control-store/memory-domain.js';
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
 import { createControlAuthority, MEMORY_DISPATCHER } from '../src/adapters/control-store/authority.js';
 import { ConversationStore } from '../src/control/conversations/index.js';
@@ -26,7 +26,7 @@ function observation(entry: LocalMemoryEntry, patch: Partial<MemoryBackendObserv
     componentVersion: `sha256:${sha(`native-markdown:${entry.command.bodyDigest}`)}`, bodyDigest: entry.command.bodyDigest, bodyBytes: entry.command.bodyBytes,
     sourceRefs: structuredClone(entry.command.sourceRefs), observedAt: start, ...patch };
 }
-async function fixture(t: TestContext) {
+async function fixture(t: TestContext, initialOptions: Partial<MemoryDomainOptions> = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'shiyu-memory-domain-')); const filename = join(directory, 'control.sqlite');
   let clock = Date.parse(start); const connections = new Set<DatabaseSync>();
   const open = (patch: Partial<MemoryDomainOptions> = {}) => {
@@ -40,7 +40,11 @@ async function fixture(t: TestContext) {
     return { db, tx, conversations, conversationId: conversation.conversationId, domain, authority, effects, prepare, close: () => { if (connections.delete(db)) db.close(); } };
   };
   t.after(async () => { for (const db of connections) db.close(); await rm(directory, { recursive: true, force: true }); });
-  return { ...open(), open, advance: (ms: number) => { clock += ms; } };
+  return { ...open(initialOptions), open, advance: (ms: number) => { clock += ms; } };
+}
+function apply(domain: MemoryDomain, entry: LocalMemoryEntry): LocalMemoryEntry {
+  const operationId = entry.operation.operationId, plan = domain.claim({ operationId })!;
+  return domain.recordVerifiedReceipt({ operationId, claim: plan.claim, observation: observation(entry), reconciliation: false });
 }
 
 test('explicit owner preparation records only bounded source metadata and one atomic grant/reservation/Effect', async t => {
@@ -234,4 +238,120 @@ test('the command digest uses the shared strict schema and the frozen cross-lang
   const command = { schemaVersion: 1, kind: 'create', operationId: 'op-1', backendId: 'ombre-local', scope: 'local-owner', targetRef: 'target-1', ...data, sourceRefs: [{ sourceId: 'source-1', revision: 1 }] } as const;
   assert.equal(memoryCommandDigest({ ...command, sourceRefs: [...command.sourceRefs] }), 'e69a2de3b025b7256112be410c09b0868328b035aef723e072f2a78903583ede');
   assert.equal(canonicalMemoryCommand({ ...command, sourceRefs: [...command.sourceRefs] }).includes('合成记忆'), false);
+});
+
+test('memory view candidates are exact-conversation metadata, never a similarity or caller-scope permission', async t => {
+  const f = await fixture(t); const accepted = apply(f.domain, f.prepare()); const pending = f.prepare('pending');
+  const foreign = f.conversations.ensureConversation(OWNER, { connectionId: 'local-synthetic', platformConversationId: 'another-private', kind: 'direct', scope: 'local-owner' });
+  const text = memoryBodyDigest('另一私聊的合成记忆');
+  const another = apply(f.domain, f.domain.prepareLocal({ requestId: 'another-save', conversationId: foreign.conversationId, bodyDigest: text.bodyDigest, bytes: text.bodyBytes }));
+  const before = f.db.prepare('SELECT total_changes() AS n').get()!.n;
+  const snapshot = f.domain.listEligibleForView({ conversationId: f.conversationId });
+  assert.equal(snapshot.sources.length, 1); assert.equal(snapshot.sources[0].operationId, accepted.operation.operationId);
+  assert.equal(snapshot.sources[0].sourceId, accepted.source.sourceId); assert.equal(snapshot.authority.deletionScope, 'local-memory-source');
+  assert.equal(snapshot.sources[0].commandDigest, accepted.operation.commandDigest); assert.equal(JSON.stringify(snapshot).includes(body), false);
+  assert.deepEqual(f.domain.validateForView(snapshot), snapshot); assert.equal(f.db.prepare('SELECT total_changes() AS n').get()!.n, before);
+  assert.throws(() => f.domain.captureForView({ conversationId: f.conversationId, operationIds: [pending.operation.operationId] }), code('MEMORY_READ_FORBIDDEN'));
+  assert.throws(() => f.domain.captureForView({ conversationId: f.conversationId, operationIds: [another.operation.operationId] }), code('MEMORY_VIEW_FORBIDDEN'));
+  for (const extra of [{ scope: 'other' }, { similarity: 1 }, { query: 'grant permission' }]) assert.throws(() => f.domain.captureForView({ conversationId: f.conversationId, ...extra } as any), code('INVALID_MEMORY_INPUT'));
+  assert.equal(f.domain.readLocal({ operationId: accepted.operation.operationId }).bodyReceiptId, observation(accepted).receiptId);
+});
+
+test('empty and nonempty captures carry independent deletion authority even when the write grant was already revoked', async t => {
+  const f = await fixture(t); const entry = apply(f.domain, f.prepare()), operationId = entry.operation.operationId;
+  const grant = f.authority.get(OWNER, entry.operation.mandateRef.mandateId); f.authority.revoke(OWNER, { mandateId: grant.mandateId, expectedVersion: grant.version });
+  const empty = f.domain.captureForView({ conversationId: f.conversationId, operationIds: [] });
+  const selected = f.domain.captureForView({ conversationId: f.conversationId, operationIds: [operationId] });
+  assert.equal(empty.sources.length, 0); assert.deepEqual(empty.authority, selected.authority);
+  const epoch = f.authority.health().authEpoch;
+  f.domain.withdrawLocal({ requestId: 'already-revoked-withdrawal', operationId });
+  assert.equal(f.authority.health().authEpoch, epoch);
+  const after = f.domain.captureForView({ conversationId: f.conversationId, operationIds: [] });
+  assert.equal(after.authority.deletionBaselineId, empty.authority.deletionBaselineId);
+  assert.equal(after.authority.tombstoneWatermark, empty.authority.tombstoneWatermark + 1);
+  assert.throws(() => f.domain.validateForView(empty), code('MEMORY_VIEW_INVALIDATED'));
+  assert.throws(() => f.domain.validateForView(selected), code('MEMORY_VIEW_INVALIDATED'));
+});
+
+test('fixed selected sources do not change when a different admitted memory is later published', async t => {
+  const f = await fixture(t); const first = apply(f.domain, f.prepare()), second = f.prepare('second-save');
+  // Both grants already exist: this changes the eligible pool, not authority.
+  const selected = f.domain.captureForView({ conversationId: f.conversationId, operationIds: [first.operation.operationId] });
+  const empty = f.domain.captureForView({ conversationId: f.conversationId, operationIds: [] });
+  apply(f.domain, second);
+  const pool = f.domain.listEligibleForView({ conversationId: f.conversationId });
+  assert.equal(pool.sources.length, 2); assert.notEqual(pool.collectionHash, selected.collectionHash);
+  assert.deepEqual(f.domain.validateForView(selected), selected); assert.deepEqual(f.domain.validateForView(empty), empty);
+  const selectedNow = f.domain.captureForView({ conversationId: f.conversationId, operationIds: [first.operation.operationId] });
+  assert.equal(selectedNow.snapshotHash, selected.snapshotHash); assert.notEqual(selectedNow.collectionHash, selected.collectionHash);
+});
+
+test('capture identity and selected source versions cannot be refreshed or forged into authority', async t => {
+  const f = await fixture(t); const entry = apply(f.domain, f.prepare()), snapshot = f.domain.captureForView({ conversationId: f.conversationId, operationIds: [entry.operation.operationId] });
+  const tampered = structuredClone(snapshot); tampered.sources[0].readToken.sourceRevision++;
+  assert.throws(() => f.domain.validateForView(tampered), code('MEMORY_VIEW_INVALIDATED'));
+  const conversation = f.conversations.getConversation(OWNER, f.conversationId);
+  f.conversations.invalidateAudience(OWNER, { conversationId: f.conversationId, expectedRevision: conversation.revision, reasonRef: 'view-audience-changed' });
+  assert.throws(() => f.domain.validateForView(snapshot), code('MEMORY_READ_FORBIDDEN'));
+  assert.throws(() => f.domain.captureForView({ conversationId: f.conversationId, operationIds: ['duplicate', 'duplicate'] }), code('INVALID_MEMORY_INPUT'));
+  assert.throws(() => f.domain.captureForView({ conversationId: f.conversationId, operationIds: Array.from({ length: MAX_MEMORY_VIEW_CANDIDATES + 1 }, (_, i) => `source-${i}`) }), code('INVALID_MEMORY_INPUT'));
+});
+
+test('native exposure reuse checks fresh individual permission without pinning unrelated global counters forever', async t => {
+  const f = await fixture(t); const entry = apply(f.domain, f.prepare()), snapshot = f.domain.captureForView({ conversationId: f.conversationId });
+  f.domain.validateExposedSources(snapshot.sources);
+  const other = apply(f.domain, f.prepare('unrelated'));
+  assert.throws(() => f.domain.validateForView(snapshot), code('MEMORY_VIEW_INVALIDATED')); // short capture epoch is strong
+  f.domain.validateExposedSources(snapshot.sources);
+  f.domain.withdrawLocal({ requestId: 'withdraw-unrelated', operationId: other.operation.operationId });
+  f.domain.validateExposedSources(snapshot.sources);
+  const grant = f.authority.get(OWNER, entry.operation.mandateRef.mandateId); f.authority.revoke(OWNER, { mandateId: grant.mandateId, expectedVersion: grant.version });
+  f.domain.validateExposedSources(snapshot.sources); // save grant is not ongoing read consent
+  const changed = structuredClone(snapshot.sources); changed[0].nativeId = `shiyu_${'f'.repeat(32)}`;
+  assert.throws(() => f.domain.validateExposedSources(changed), code('MEMORY_VIEW_INVALIDATED'));
+  f.domain.withdrawLocal({ requestId: 'withdraw-exposed', operationId: entry.operation.operationId });
+  assert.throws(() => f.domain.validateExposedSources(snapshot.sources), code('MEMORY_READ_FORBIDDEN'));
+});
+
+test('withdrawal and same-Worker context fences commit atomically, while duplicate withdrawal never resets again', async t => {
+  let db: DatabaseSync; let count = 0; let shouldFail = true;
+  const notification: MemoryContextInvalidation = { conversationIds: [], retiredSessions: [{ bindingId: 'binding-a', sessionEpoch: 1, sessionId: 'native-old', businessId: 'business-old' }] };
+  const f = await fixture(t, { onWithdrawSources: input => {
+    assert.equal(db.isTransaction, true); assert.equal(Object.isFrozen(input.sourceIds), true); assert.equal(input.sourceIds.length, 1);
+    count++; db.prepare('INSERT INTO synthetic_context_retirements VALUES(?,?)').run(input.withdrawalId, input.sourceIds[0]);
+    if (shouldFail) throw new Error('synthetic context reset failure');
+    return notification;
+  } }); db = f.db;
+  db.exec('CREATE TABLE synthetic_context_retirements(withdrawal_id TEXT PRIMARY KEY,source_id TEXT NOT NULL)');
+  const entry = apply(f.domain, f.prepare()); notification.conversationIds.push(f.conversationId);
+  const snapshot = f.domain.captureForView({ conversationId: f.conversationId }); const epoch = f.authority.health().authEpoch;
+  assert.throws(() => f.domain.withdrawLocal({ requestId: 'atomic-withdrawal', operationId: entry.operation.operationId }), /synthetic context reset failure/);
+  assert.equal(f.authority.health().authEpoch, epoch); assert.equal(f.domain.get(entry.operation.operationId).source.consent.state, 'active');
+  assert.equal(db.prepare('SELECT count(*) AS n FROM synthetic_context_retirements').get()!.n, 0); assert.deepEqual(f.domain.validateForView(snapshot), snapshot);
+  shouldFail = false;
+  const withdrawn = f.domain.withdrawLocal({ requestId: 'atomic-withdrawal', operationId: entry.operation.operationId });
+  assert.deepEqual(withdrawn.contextInvalidation, notification); assert.equal(db.prepare('SELECT count(*) AS n FROM synthetic_context_retirements').get()!.n, 1);
+  assert.equal(f.domain.get(entry.operation.operationId).source.consent.state, 'withdrawn'); assert.throws(() => f.domain.validateForView(snapshot), code('MEMORY_VIEW_INVALIDATED'));
+  const duplicate = f.domain.withdrawLocal({ requestId: 'atomic-withdrawal', operationId: entry.operation.operationId });
+  assert.equal(duplicate.contextInvalidation, undefined); assert.equal(count, 2);
+});
+
+test('async/thenable retirement hooks fail before context authority can escape its transaction', async t => {
+  let thenCalls = 0; let result: unknown = { then() { thenCalls++; } };
+  const f = await fixture(t, { onWithdrawSources: (() => result) as any }); const entry = apply(f.domain, f.prepare());
+  let asyncCalls = 0;
+  assert.throws(() => new MemoryDomain(f.db, f.tx, { runtimeIdentity: identity, backendId: 'ombre-local', deploymentId: 'deployment-a', getConversation: (id: string) => f.conversations.getConversation(OWNER, id), onWithdrawSources: async () => { asyncCalls++; } } as any), code('INVALID_MEMORY_CONFIGURATION'));
+  assert.throws(() => f.domain.withdrawLocal({ requestId: 'thenable-reset', operationId: entry.operation.operationId }), code('ASYNC_MEMORY_INVALIDATION'));
+  result = Promise.reject(new Error('synthetic promised reset failure'));
+  assert.throws(() => f.domain.withdrawLocal({ requestId: 'promised-reset', operationId: entry.operation.operationId }), code('ASYNC_MEMORY_INVALIDATION'));
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(asyncCalls, 0); assert.equal(thenCalls, 0); assert.equal(f.domain.get(entry.operation.operationId).source.consent.state, 'active');
+});
+
+test('candidate pool returns at most 200 authorized metadata records and reports truncation', async t => {
+  const f = await fixture(t);
+  for (let i = 0; i <= MAX_MEMORY_VIEW_CANDIDATES; i++) apply(f.domain, f.prepare(`bounded-${i}`));
+  const pool = f.domain.listEligibleForView({ conversationId: f.conversationId });
+  assert.equal(pool.sources.length, MAX_MEMORY_VIEW_CANDIDATES); assert.equal(pool.truncated, true);
+  assert.equal(new Set(pool.sources.map(source => source.operationId)).size, MAX_MEMORY_VIEW_CANDIDATES);
 });

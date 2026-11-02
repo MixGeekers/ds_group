@@ -321,6 +321,19 @@ export class ConversationStore {
     });
   }
   getReplyBinding(actor: ConversationActor, bindingId: string): ReplyBinding { return this.scopedBinding(actor, bindingId, "read"); }
+  /** Retire a context that may contain withdrawn data. This changes native
+   * identity only for an explicit safety barrier, never for ordinary input.
+   * Historical native IDs remain in shiyu_reply_sessions and cannot be reused. */
+  resetNativeSession(actor: ConversationActor, input: { bindingId: string; expectedSessionEpoch: number; reasonRef: string }): ReplyBinding {
+    fields(input, ["bindingId", "expectedSessionEpoch", "reasonRef"]); text(input.reasonRef, "reasonRef"); integer(input.expectedSessionEpoch, "expectedSessionEpoch", 1);
+    return this.tx.atomic(() => {
+      // Withdrawal must fence old contexts even when the conversation is archived.
+      const binding = this.scopedBinding(actor, input.bindingId, "manage");
+      if (binding.sessionEpoch !== input.expectedSessionEpoch) fail("STALE_CONTEXT", "Native Session epoch changed before safety reset");
+      if (binding.sessionEpoch === Number.MAX_SAFE_INTEGER) fail("VERSION_EXHAUSTED", "Native Session epoch exhausted");
+      this.changeRouting([binding], true); return clone(binding);
+    });
+  }
   bindSession(actor: ConversationActor, input: { bindingId: string; expectedRevision: number; sessionEpoch: number; sessionId: string }): ReplyBinding {
     fields(input, ["bindingId", "expectedRevision", "sessionEpoch", "sessionId"]); text(input.sessionId, "sessionId");
     return this.tx.atomic(() => {

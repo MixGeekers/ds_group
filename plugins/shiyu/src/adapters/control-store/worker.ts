@@ -17,9 +17,10 @@ import { SQLiteGoalBindingStore } from './goal-bindings.js';
 import { ConversationDomain, conversationEventPrincipal, type ConversationDomainRequest } from './conversation-domain.js';
 import { installCommitWatermark, type CommitWatermarkReader } from './commit-watermark.js';
 import { ViewDomain, type ViewDomainRequest } from './view-domain.js';
-import { StatePublicationStore, createStatePublisher, initialStateManifest } from '../../state/publication.js';
+import { StatePublicationStore, createStatePublisher, initialStateManifest, type MemoryStateManifest, type StatePublisher } from '../../state/publication.js';
 import { LocalReadSafetyStore } from '../../state/safety.js';
 import { MemoryDomain, type MemoryDomainRequest } from './memory-domain.js';
+import { MemoryIndexDomain, type MemoryIndexRequest } from './memory-index-domain.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -35,6 +36,10 @@ let conversations: ConversationDomain | undefined;
 let views: ViewDomain | undefined;
 let memories: MemoryDomain | undefined;
 let memoryError: string | undefined;
+let memoryIndex: MemoryIndexDomain | undefined;
+let memoryIndexError: string | undefined;
+let publication: StatePublicationStore | undefined;
+let statePublisher: StatePublisher | undefined;
 let commitWatermark: CommitWatermarkReader;
 const fail = (code: string, message: string): never => { throw new EventServiceError(code, message); };
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -405,6 +410,11 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
 function execute(request: StoreRequest): unknown {
   if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
   if (request.command === 'memory.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memories), ...(memoryError ? { errorCode: memoryError } : {}) };
+  if (request.command === 'memory.index.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memoryIndex), ...(memoryIndexError || memoryError ? { errorCode: memoryIndexError ?? memoryError } : {}) };
+  if (request.command.startsWith('memory.index.')) {
+    if (!memoryIndex) return fail(memoryIndexError ?? memoryError ?? 'MEMORY_INDEX_UNCONFIGURED', 'Memory index control domain is unavailable.');
+    return memoryIndex.execute(request as MemoryIndexRequest);
+  }
   if (request.command.startsWith('memory.')) {
     if (!memories) return fail(memoryError ?? 'MEMORY_UNCONFIGURED', 'Memory control domain is unavailable.');
     return memories.execute(request as MemoryDomainRequest);
@@ -423,6 +433,22 @@ function execute(request: StoreRequest): unknown {
   }
   if (request.command.startsWith('goal.binding.') && !goalBindings) return fail('GOALS_UNAVAILABLE', 'Goal bindings require a trusted runtime identity.');
   switch (request.command) {
+    case 'state.publishMemoryAvailability': {
+      if (!publication || !statePublisher) return fail('VIEWS_UNAVAILABLE', 'Publication requires the trusted runtime identity.');
+      const input = request.args;
+      if (!isObject(input) || Object.keys(input).some(key => !['requestId', 'expectedBaselineId', 'expectedStateVersion', 'availability'].includes(key))
+        || !['requestId', 'expectedBaselineId', 'expectedStateVersion', 'availability'].every(key => Object.hasOwn(input, key))
+        || !isObject(input.availability)) return fail('INVALID_SCHEMA', 'Invalid trusted memory availability command.');
+      if (input.availability.status === 'available') {
+        if (!memories || !options.memoryBackend) return fail(memoryError ?? 'MEMORY_UNCONFIGURED', 'Memory control domain cannot publish availability.');
+        if (input.availability.backendId !== options.memoryBackend.backendId || input.availability.deploymentId !== options.memoryBackend.deploymentId) return fail('MEMORY_DEPLOYMENT_MISMATCH', 'Publication must match the configured memory deployment.');
+        if (Array.isArray(input.availability.capabilities) && input.availability.capabilities.some(capability => capability === 'semantic_search') && !memoryIndex) return fail(memoryIndexError ?? 'MEMORY_INDEX_UNCONFIGURED', 'Semantic availability requires the index control domain.');
+      }
+      // The Worker retains the process-local publishing capability. This private
+      // command carries verified capability metadata, never a public manifest or actor.
+      const manifest: MemoryStateManifest = { schemaVersion: 2, domains: { ...initialStateManifest().domains, memory: input.availability } };
+      return publication.publish(statePublisher, { requestId: input.requestId, expectedBaselineId: input.expectedBaselineId, expectedStateVersion: input.expectedStateVersion, manifest });
+    }
     case 'control.watermark': return commitWatermark.read();
     case 'goal.binding.load': return goalBindings!.load(request.args.goalId);
     case 'goal.binding.loadCommand': return goalBindings!.loadCommand(request.args.goalId, request.args.commandId);
@@ -530,22 +556,32 @@ function initialize(): void {
         ack: input => ack(actor, input), fail: input => failDelivery(actor, input),
       },
     });
-    const publication = new StatePublicationStore(db, transactions, { publisherIds: ['shiyu-state-service'] });
+    publication = new StatePublicationStore(db, transactions, { publisherIds: ['shiyu-state-service'] });
+    statePublisher = createStatePublisher('shiyu-state-service');
     // Explicit initialization publication, not a GET side effect or a Task version mapping.
-    if (!publication.get()) publication.publish(createStatePublisher('shiyu-state-service'), { requestId: 'initial-inner-availability-v1', manifest: initialStateManifest() });
-    const safety = new LocalReadSafetyStore(db, transactions, { getAuthEpoch: () => tasks!.mandates.health().authEpoch });
-    views = new ViewDomain(db, transactions, { publication, safety, watermark: commitWatermark,
-      context: conversationId => conversations!.replyContext(conversationId), getTask: taskId => tasks!.get(taskId).task });
-    conversations.setReplyAuthority({ validateCapture: (captureId, phase) => views!.validateReplyCapture(captureId, { for: phase }) });
+    if (!publication.get()) publication.publish(statePublisher, { requestId: 'initial-inner-availability-v1', manifest: initialStateManifest() });
     if (options.memoryBackend) {
       try {
         memories = new MemoryDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity,
-          ...options.memoryBackend, getConversation: conversationId => conversations!.getLocalConversation(conversationId) });
+          ...options.memoryBackend, getConversation: conversationId => conversations!.getLocalConversation(conversationId),
+          onWithdrawSources: input => conversations!.invalidateMemorySources(input) });
       } catch (error) {
         // A damaged/incompatible memory authority stays closed; the dashboard and unrelated domains remain inspectable.
         memoryError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'MEMORY_INITIALIZATION_FAILED';
       }
+      if (memories) {
+        try { memoryIndex = new MemoryIndexDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, ...options.memoryBackend, memory: memories }); }
+        catch (error) { memoryIndexError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'MEMORY_INDEX_INITIALIZATION_FAILED'; }
+      }
     }
+    const safety = new LocalReadSafetyStore(db, transactions, { getAuthEpoch: () => tasks!.mandates.health().authEpoch });
+    views = new ViewDomain(db, transactions, { publication, safety, watermark: commitWatermark, ...(memories ? { memory: memories } : {}),
+      context: conversationId => conversations!.replyContext(conversationId), getTask: taskId => tasks!.get(taskId).task });
+    conversations.setReplyAuthority({ validateCapture: (captureId, phase) => views!.validateReplyCapture(captureId, { for: phase }),
+      assertMemorySourcesCurrent: sources => {
+        if (!memories) return fail(memoryError ?? 'MEMORY_UNCONFIGURED', 'Previously exposed memory cannot be revalidated.');
+        memories.validateExposedSources(sources);
+      } });
   }
 }
 

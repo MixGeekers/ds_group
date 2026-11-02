@@ -9,7 +9,7 @@ import { SqliteTransactions } from '../src/adapters/control-store/transaction.js
 import { installCommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
 import { MandateStore, MandateError, migrateMandateCatalog, policyCatalogHash } from '../src/control/policy/mandates.js';
 import type { Mandate, MandateInput, MandateStoreOptions, PermitRequest, ReserveInput, TrustedPolicyActor } from '../src/control/policy/mandates.js';
-import { TASK_AUTHORITY_V1, CONTROL_AUTHORITY_V2, createControlAuthority } from '../src/adapters/control-store/authority.js';
+import { TASK_AUTHORITY_V1, CONTROL_AUTHORITY_V2, CONTROL_AUTHORITY_V3, createControlAuthority } from '../src/adapters/control-store/authority.js';
 
 const instant = '2026-11-02T12:00:00.000Z', expires = '2026-11-02T13:00:00.000Z';
 const clock = () => new Date(instant);
@@ -89,13 +89,13 @@ test('the fixed Task catalog preserves its legacy hash and catalog hashing is ca
 
 test('a fresh shared authority has the current catalog and repeated factory reads do not write', t => {
   const f = fixture(t), authority = createControlAuthority(f.db, f.tx, { now: clock });
-  assert.deepEqual(authority.catalog(), { revision: 1, policyHash: policyCatalogHash(CONTROL_AUTHORITY_V2) });
+  assert.deepEqual(authority.catalog(), { revision: 1, policyHash: policyCatalogHash(CONTROL_AUTHORITY_V3) });
   const before = f.watermark.read();
   assert.equal(createControlAuthority(f.db, f.tx, { now: clock }), authority);
-  assert.deepEqual(authority.catalog(), { revision: 1, policyHash: policyCatalogHash(CONTROL_AUTHORITY_V2) });
+  assert.deepEqual(authority.catalog(), { revision: 1, policyHash: policyCatalogHash(CONTROL_AUTHORITY_V3) });
   assert.deepEqual(f.watermark.read(), before); assert.equal(migrationRows(f.db).length, 0);
   f.db.close(); const reopened = f.open(), next = createControlAuthority(reopened.db, reopened.tx, { now: clock });
-  assert.deepEqual(next.catalog(), { revision: 1, policyHash: policyCatalogHash(CONTROL_AUTHORITY_V2) });
+  assert.deepEqual(next.catalog(), { revision: 1, policyHash: policyCatalogHash(CONTROL_AUTHORITY_V3) });
   assert.deepEqual(reopened.watermark.read(), before);
 });
 
@@ -140,7 +140,7 @@ test('catalog migration preserves an overrun freeze and all already held or spen
   const health = old.store.health(), bytes = dataBytes(f.db), balance = old.store.balance(owner, old.mandate.mandateId);
   assert.equal(health.frozen, true); migrate(f, old.store);
   const store = createControlAuthority(f.db, f.tx, { now: clock });
-  assert.deepEqual(store.health(), { ...health, authEpoch: health.authEpoch + 1 });
+  assert.deepEqual(store.health(), { ...health, authEpoch: health.authEpoch + 2 });
   assert.deepEqual(dataBytes(f.db), bytes); assert.deepEqual(store.balance(owner, old.mandate.mandateId), balance);
   assert.throws(() => store.grant(owner, grantInput({ id: 'frozen-new-grant' })), code('BUDGET_OVERRUN'));
 });
@@ -239,7 +239,7 @@ for (const domain of ['task', 'memory'] as const) test(`a registered service can
 test('the shared factory migrates only the fixed historical Task declaration and reuses one object per connection and owner', t => {
   const f = fixture(t), old = seed(f), bytes = dataBytes(f.db), before = f.watermark.read();
   const store = createControlAuthority(f.db, f.tx, { now: clock });
-  assert.equal(store.catalog().policyHash, policyCatalogHash(CONTROL_AUTHORITY_V2)); assert.equal(store.catalog().revision, 2);
+  assert.equal(store.catalog().policyHash, policyCatalogHash(CONTROL_AUTHORITY_V3)); assert.equal(store.catalog().revision, 3);
   assert.equal(f.watermark.read().commitSeq, before.commitSeq + 1); assert.deepEqual(dataBytes(f.db), bytes);
   const after = f.watermark.read(); assert.equal(createControlAuthority(f.db, f.tx, { now: clock }), store); assert.deepEqual(f.watermark.read(), after);
   assert.throws(() => old.store.catalog(), code('STALE_CATALOG'));
@@ -257,6 +257,22 @@ test('first factory assembly cannot escape an outer rollback, while a committed 
   assert.equal(f.tx.atomic(() => createControlAuthority(f.db, f.tx, { now: clock })), store);
   assert.throws(() => f.tx.atomic(() => { assert.equal(createControlAuthority(f.db, f.tx, { now: clock }), store); throw new Error('cached read rollback'); }), /cached read rollback/);
   assert.equal(createControlAuthority(f.db, f.tx, { now: clock }), store); assert.deepEqual(f.watermark.read(), committed);
+});
+
+test('memory v2 migrates to the index catalog without widening an existing saving grant', t => {
+  const f = fixture(t), prior = new MandateStore(f.db, f.tx, { ...CONTROL_AUTHORITY_V2, now: clock });
+  const grant = prior.grant(owner, { id: 'existing-memory-save', scope: 'local-owner', subjectIds: [memoryDispatcher().principalId],
+    allowedActions: ['memory.write'], allowedResources: ['memory:local-owner:old-record'],
+    limits: { tokens: 0, calls: 0, effects: 1 }, basisRef: 'owner-explicit-save', expiresAt: new Date(Date.parse(instant) + 600000).toISOString() });
+  const before = dataBytes(f.db), epoch = prior.health().authEpoch;
+  const current = createControlAuthority(f.db, f.tx, { now: clock });
+  assert.equal(current.catalog().policyHash, policyCatalogHash(CONTROL_AUTHORITY_V3));
+  assert.equal(current.catalog().revision, 2); assert.equal(current.health().authEpoch, epoch + 1);
+  assert.deepEqual(dataBytes(f.db), before); assert.deepEqual(current.get(owner, grant.mandateId).allowedActions, ['memory.write']);
+  assert.throws(() => current.reserve(memoryDispatcher(), { reservationId: 'index-under-old-save', mandateId: grant.mandateId,
+    mandateVersion: grant.version, authEpoch: grant.authEpoch, scope: 'local-owner', action: 'memory.index',
+    resourceScopes: ['memory:local-owner:old-record'], amount: { tokens: 0, calls: 0, effects: 1 }, leaseMs: 30000 }), code('FORBIDDEN'));
+  assert.equal(migrationRows(f.db).length, 1);
 });
 
 test('unknown catalogs are refused by the factory and a changed constructor never implicitly migrates', t => {
@@ -281,7 +297,7 @@ test('genuine legacy two-column catalog gains explicit tracking and migration wi
   });
   const originalSql = f.db.prepare("SELECT sql FROM sqlite_schema WHERE name='shiyu_policy_catalog'").get()!.sql, before = f.watermark.read();
   const store = createControlAuthority(f.db, f.tx, { now: clock });
-  assert.equal(store.catalog().revision, 2); assert.equal(store.catalog().policyHash, policyCatalogHash(CONTROL_AUTHORITY_V2));
+  assert.equal(store.catalog().revision, 3); assert.equal(store.catalog().policyHash, policyCatalogHash(CONTROL_AUTHORITY_V3));
   assert.equal(f.db.prepare("SELECT sql FROM sqlite_schema WHERE name='shiyu_policy_catalog'").get()!.sql, originalSql);
-  assert.equal(migrationRows(f.db).length, 1); assert.equal(f.watermark.read().commitSeq, before.commitSeq + 1);
+  assert.equal(migrationRows(f.db).length, 2); assert.equal(f.watermark.read().commitSeq, before.commitSeq + 1);
 });

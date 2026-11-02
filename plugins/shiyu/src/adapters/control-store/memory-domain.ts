@@ -27,6 +27,31 @@ export interface LocalMemoryEntry {
   canPublish: boolean;
 }
 export interface PreparedLocalMemory extends LocalMemoryEntry { duplicate: boolean }
+export const MAX_MEMORY_VIEW_CANDIDATES = 200;
+export interface MemoryViewAuthority {
+  backendId: string; deploymentId: string; installationGeneration: string; authorizationEpoch: number;
+  deletionBaselineId: string; deletionScope: 'local-memory-source'; tombstoneWatermark: number; installedAt: string;
+}
+/** Per-record authorization metadata, never a backend body or similarity-derived grant. */
+export interface MemoryViewSource {
+  operationId: string; operationVersion: number; sourceId: string; sourceRevision: number; conversationId: string;
+  targetRef: string; nativeId: string; componentVersion: string; command: MemoryCreateCommand; commandDigest: string; readToken: MemoryReadToken;
+}
+export interface MemoryViewSnapshot {
+  schemaVersion: 1; conversationId: string; authority: MemoryViewAuthority; sources: MemoryViewSource[];
+  /** Fixed selection/security identity. Does not change when an unrelated candidate is published. */
+  snapshotHash: string;
+  /** Observed bounded eligible pool only; not a backend revision, CAS or read permission. */
+  collectionHash: string; truncated: boolean;
+}
+export interface MemoryContextInvalidation {
+  conversationIds: string[];
+  retiredSessions: { bindingId: string; sessionEpoch: number; sessionId?: string; businessId: string }[];
+}
+export interface WithdrawLocalMemoryResult extends LocalMemoryEntry {
+  /** Best-effort wakeup/cancellation routing. Durable Conversation fences are authoritative. */
+  contextInvalidation?: MemoryContextInvalidation;
+}
 /** A short-lived comparison vector, not authority that may be cached or reused. */
 export interface MemoryReadToken {
   operationId: string; operationVersion: number; sourceId: string; sourceRevision: number; audienceVersion: number;
@@ -43,17 +68,23 @@ export interface MemoryCommands {
   'memory.assertDispatch': { input: { operationId: string; claim: EffectClaim }; output: MemoryDispatchPlan };
   'memory.recordVerifiedReceipt': { input: MemoryVerifiedReceiptInput; output: LocalMemoryEntry };
   'memory.markUnknown': { input: { operationId: string; claim: EffectClaim; reasonCode: string }; output: LocalMemoryEntry };
-  'memory.withdrawLocal': { input: { requestId: string; operationId: string }; output: LocalMemoryEntry };
+  'memory.withdrawLocal': { input: { requestId: string; operationId: string }; output: WithdrawLocalMemoryResult };
   'memory.publishLocal': { input: { operationId: string; expectedVersion: number; receiptId: string }; output: LocalMemoryEntry };
   'memory.get': { input: { operationId: string }; output: LocalMemoryEntry };
-  'memory.readLocal': { input: { operationId: string }; output: { entry: LocalMemoryEntry; readToken: MemoryReadToken } };
+  'memory.readLocal': { input: { operationId: string }; output: { entry: LocalMemoryEntry; readToken: MemoryReadToken; bodyReceiptId: string } };
   'memory.list': { input: { conversationId?: string }; output: LocalMemoryEntry[] };
+  'memory.listEligibleForView': { input: { conversationId: string }; output: MemoryViewSnapshot };
+  'memory.captureForView': { input: { conversationId: string; operationIds?: readonly string[] }; output: MemoryViewSnapshot };
+  'memory.validateForView': { input: { snapshot: MemoryViewSnapshot }; output: MemoryViewSnapshot };
+  'memory.validateExposedSources': { input: { sources: readonly MemoryViewSource[] }; output: { valid: true } };
 }
 export type MemoryDomainRequest = { [K in keyof MemoryCommands]: { command: K; args: MemoryCommands[K]['input'] } }[keyof MemoryCommands];
 export interface MemoryDomainOptions {
   runtimeIdentity: MemoryRuntimeIdentity; backendId: string; deploymentId: string;
   /** Same-Worker read from the existing Conversation domain, including local binding ownership. */
   getConversation(conversationId: string): ConversationRecord;
+  /** Same-transaction durable context retirement only. Never Session/model/backend I/O. */
+  onWithdrawSources?(input: { withdrawalId: string; sourceIds: readonly string[] }): MemoryContextInvalidation | void;
   now?: () => Date;
 }
 interface LocalOperation {
@@ -111,6 +142,7 @@ export class MemoryDomain {
   constructor(private readonly db: DatabaseSync, private readonly tx: SqliteTransactions, private readonly options: MemoryDomainOptions) {
     if (!tx.owns(db)) fail('TRANSACTION_MISMATCH', 'Memory domain must share the control connection');
     if (typeof options.getConversation !== 'function' || isAsyncFunction(options.getConversation)) fail('INVALID_MEMORY_CONFIGURATION', 'Conversation authority must be a synchronous existing-domain read');
+    if (options.onWithdrawSources !== undefined && (typeof options.onWithdrawSources !== 'function' || isAsyncFunction(options.onWithdrawSources))) fail('INVALID_MEMORY_CONFIGURATION', 'Context retirement must be a synchronous same-transaction hook');
     fields(options.runtimeIdentity, ['hostEpoch', 'installationGeneration']);
     this.identity = { hostEpoch: id(options.runtimeIdentity.hostEpoch, 'hostEpoch'), installationGeneration: id(options.runtimeIdentity.installationGeneration, 'installationGeneration') };
     this.backendId = id(options.backendId, 'backendId'); this.deploymentId = id(options.deploymentId, 'deploymentId');
@@ -302,7 +334,7 @@ export class MemoryDomain {
       this.ledger.markUnknown(MEMORY_DISPATCHER, local.operationId, operation.version, input.claim, input.reasonCode); this.unknownBudget(local); return this.get(local.operationId);
     });
   }
-  withdrawLocal(input: MemoryCommands['memory.withdrawLocal']['input']): LocalMemoryEntry {
+  withdrawLocal(input: MemoryCommands['memory.withdrawLocal']['input']): WithdrawLocalMemoryResult {
     fields(input, ['requestId', 'operationId']); id(input.requestId, 'requestId'); id(input.operationId, 'operationId', 150);
     return this.tx.atomic(() => {
       const local = this.local(input.operationId), source = this.source(local.sourceId);
@@ -312,6 +344,7 @@ export class MemoryDomain {
       if (source.scope !== SCOPE || source.conversationId !== local.conversationId) fail('MEMORY_CONVERSATION_FORBIDDEN', 'Source is not owned by this local-owner conversation');
       const old = this.row('SELECT operation_id,intent_hash FROM shiyu_local_memory_withdrawals WHERE request_id=?', input.requestId);
       if (old) { if (old.intent_hash !== digest(input)) fail('IDEMPOTENCY_CONFLICT', 'Withdrawal identity changed'); return this.get(local.operationId); }
+      let contextInvalidation: MemoryContextInvalidation | undefined;
       if (source.consent.state === 'active') {
         source.consent.state = 'withdrawn'; source.consent.withdrawnAt = this.now(); source.revision++;
         this.db.prepare('UPDATE shiyu_local_memory_sources SET record_json=? WHERE source_id=?').run(JSON.stringify(source), source.sourceId);
@@ -320,9 +353,13 @@ export class MemoryDomain {
         const effect = this.effects.get(this.operation(local).effectId)!;
         if (effect.status === 'cancelled') this.settleBudget(local, 0, `memory-unused:${local.operationId}`, `memory-withdrawal:${input.requestId}`);
         else if (effect.status === 'unknown' || effect.status === 'dispatching') this.unknownBudget(local);
+        // This is deliberately inside the consent/tombstone transaction. Native
+        // cancellation is a later notification; durable context fences must
+        // commit atomically even when that notification never arrives.
+        if (this.options.onWithdrawSources) contextInvalidation = this.withdrawContext(`memory-withdrawal:${digest(input)}`, [source.sourceId]);
       }
       this.db.prepare('INSERT INTO shiyu_local_memory_withdrawals VALUES(?,?,?)').run(input.requestId, local.operationId, digest(input));
-      return this.get(local.operationId);
+      return { ...this.get(local.operationId), ...(contextInvalidation ? { contextInvalidation } : {}) };
     });
   }
   publishLocal(input: MemoryCommands['memory.publishLocal']['input']): LocalMemoryEntry {
@@ -361,11 +398,128 @@ export class MemoryDomain {
       const entry = this.get(input.operationId), reference = entry.reference;
       if (!reference) fail('MEMORY_READ_FORBIDDEN', 'No currently readable verified local memory reference');
       const deletion = this.ledger.deletionState(), grant = this.mandates.get(OWNER, this.local(input.operationId).mandateId);
-      return { entry, readToken: { operationId: entry.operation.operationId, operationVersion: entry.operation.version, sourceId: entry.source.sourceId,
+      const bodyReceiptId = this.effects.get(entry.operation.effectId)?.receiptId;
+      if (!bodyReceiptId || !/^receipt_[a-f0-9]{64}$/.test(bodyReceiptId) || entry.operation.backendReceiptRef !== `strict-memory-receipt:${bodyReceiptId}`) fail('CORRUPT_MEMORY_DOMAIN', 'Readable memory is missing its fixed verified backend receipt');
+      return { entry, bodyReceiptId: bodyReceiptId!, readToken: { operationId: entry.operation.operationId, operationVersion: entry.operation.version, sourceId: entry.source.sourceId,
         sourceRevision: entry.source.revision, audienceVersion: entry.source.audienceVersion, authorizationEpoch: this.mandates.health().authEpoch,
         saveMandateVersion: grant.version, deletionBaselineId: deletion.baselineId, tombstoneWatermark: deletion.tombstoneWatermark,
         installationGeneration: this.identity.installationGeneration, backendId: this.backendId, deploymentId: this.deploymentId,
         nativeId: reference!.nativeId, componentVersion: reference!.componentVersion } };
+    });
+  }
+  private withdrawContext(withdrawalId: string, sourceIds: readonly string[]): MemoryContextInvalidation | undefined {
+    const hook = this.options.onWithdrawSources;
+    if (typeof hook !== 'function' || isAsyncFunction(hook)) fail('ASYNC_MEMORY_INVALIDATION', 'Context retirement must stay a synchronous local hook');
+    const result = hook!({ withdrawalId, sourceIds: Object.freeze([...sourceIds]) });
+    if (isPromise(result)) { void Promise.prototype.then.call(result, undefined, () => undefined); fail('ASYNC_MEMORY_INVALIDATION', 'Context retirement cannot return a Promise'); }
+    if (result && typeof (result as unknown as { then?: unknown }).then === 'function') fail('ASYNC_MEMORY_INVALIDATION', 'Context retirement thenable rejected without invoking it');
+    if (result === undefined) return undefined;
+    fields(result, ['conversationIds', 'retiredSessions']);
+    if (!Array.isArray(result.conversationIds) || !Array.isArray(result.retiredSessions) || result.conversationIds.length > 4096 || result.retiredSessions.length > 4096) fail('INVALID_MEMORY_INVALIDATION', 'Invalid bounded context retirement result');
+    const conversationIds = result.conversationIds.map(value => id(value, 'retired conversationId'));
+    if (new Set(conversationIds).size !== conversationIds.length) fail('INVALID_MEMORY_INVALIDATION', 'Repeated retired conversation identity');
+    const retiredSessions = result.retiredSessions.map(value => {
+      fields(value, ['bindingId', 'sessionEpoch', 'sessionId', 'businessId'], ['bindingId', 'sessionEpoch', 'businessId']);
+      return { bindingId: id(value.bindingId, 'bindingId'), sessionEpoch: integer(value.sessionEpoch, 'sessionEpoch'), businessId: id(value.businessId, 'businessId'), ...(value.sessionId === undefined ? {} : { sessionId: id(value.sessionId, 'sessionId') }) };
+    });
+    return { conversationIds, retiredSessions };
+  }
+  private viewAuthority(): MemoryViewAuthority {
+    const deletion = this.ledger.deletionState();
+    return { backendId: this.backendId, deploymentId: this.deploymentId, installationGeneration: this.identity.installationGeneration,
+      authorizationEpoch: this.mandates.health().authEpoch, deletionBaselineId: deletion.baselineId,
+      deletionScope: 'local-memory-source', tombstoneWatermark: deletion.tombstoneWatermark, installedAt: deletion.installedAt };
+  }
+  private viewSource(operationId: string, conversationId: string): MemoryViewSource {
+    const { entry, readToken } = this.readLocal({ operationId });
+    // A private-owner scope alone is not a cross-conversation sharing grant.
+    // This first view slice only uses memory from its exact source conversation.
+    if (entry.conversationId !== conversationId) fail('MEMORY_VIEW_FORBIDDEN', 'Memory source belongs to another conversation');
+    const command = validateMemoryCreateCommand(entry.command), commandDigest = memoryCommandDigest(command), reference = entry.reference!;
+    if (entry.operation.commandDigest !== commandDigest || command.sourceRefs.length !== 1 || command.sourceRefs[0]!.sourceId !== entry.source.sourceId
+      || command.sourceRefs[0]!.revision !== entry.source.revision || command.backendId !== reference.backendId || command.scope !== SCOPE || command.targetRef !== reference.targetRef) fail('CORRUPT_MEMORY_DOMAIN', 'Memory reference and approved command disagree');
+    return { operationId: entry.operation.operationId, operationVersion: entry.operation.version, sourceId: entry.source.sourceId, sourceRevision: entry.source.revision,
+      conversationId, targetRef: reference.targetRef, nativeId: reference.nativeId, componentVersion: reference.componentVersion, command, commandDigest, readToken };
+  }
+  private eligibleViewSources(conversationId: string): { sources: MemoryViewSource[]; truncated: boolean; collectionHash: string } {
+    const sources: MemoryViewSource[] = []; let truncated = false;
+    // Local references only. Pending/unknown/withdrawn records never become
+    // candidates merely because a search backend happens to return their IDs.
+    for (const item of this.db.prepare('SELECT operation_id FROM shiyu_local_memory_operations WHERE conversation_id=? ORDER BY rowid').all(conversationId) as Row[]) {
+      let source: MemoryViewSource;
+      try { source = this.viewSource(String(item.operation_id), conversationId); }
+      catch (error) { if (error && typeof error === 'object' && 'code' in error && error.code === 'MEMORY_READ_FORBIDDEN') continue; throw error; }
+      if (sources.length === MAX_MEMORY_VIEW_CANDIDATES) { truncated = true; break; }
+      sources.push(source);
+    }
+    return { sources, truncated, collectionHash: digest({ conversationId, sources, truncated }) };
+  }
+  private selectionHash(snapshot: Pick<MemoryViewSnapshot, 'schemaVersion' | 'conversationId' | 'authority' | 'sources'>): string {
+    return digest({ schemaVersion: snapshot.schemaVersion, conversationId: snapshot.conversationId, authority: snapshot.authority, sources: snapshot.sources });
+  }
+  /** An allowlist for trusted semantic retrieval. Query text/scores are not authority inputs. */
+  listEligibleForView(input: MemoryCommands['memory.listEligibleForView']['input']): MemoryViewSnapshot {
+    fields(input, ['conversationId']); return this.captureForView(input);
+  }
+  /** Same-Worker capture: source metadata only, no body read, save or publication side effect. */
+  captureForView(input: MemoryCommands['memory.captureForView']['input']): MemoryViewSnapshot {
+    fields(input, ['conversationId', 'operationIds'], ['conversationId']); id(input.conversationId, 'conversationId');
+    if (input.operationIds !== undefined && (!Array.isArray(input.operationIds) || input.operationIds.length > MAX_MEMORY_VIEW_CANDIDATES)) fail('INVALID_MEMORY_INPUT', 'Memory view selection exceeds its bound');
+    const operationIds = input.operationIds?.map(value => id(value, 'operationId', 150));
+    if (operationIds && new Set(operationIds).size !== operationIds.length) fail('INVALID_MEMORY_INPUT', 'Duplicate memory view selection');
+    return this.tx.atomic(() => {
+      this.conversation(input.conversationId);
+      const authority = this.viewAuthority(), pool = this.eligibleViewSources(input.conversationId);
+      const sources = operationIds === undefined ? pool.sources : operationIds.map(operationId => this.viewSource(operationId, input.conversationId));
+      const snapshot = { schemaVersion: 1 as const, conversationId: input.conversationId, authority, sources,
+        collectionHash: pool.collectionHash, truncated: operationIds === undefined && pool.truncated };
+      return { ...snapshot, snapshotHash: this.selectionHash(snapshot) };
+    });
+  }
+  private checkedViewSource(value: MemoryViewSource): void {
+    fields(value, ['operationId', 'operationVersion', 'sourceId', 'sourceRevision', 'conversationId', 'targetRef', 'nativeId', 'componentVersion', 'command', 'commandDigest', 'readToken']);
+    id(value.operationId, 'operationId', 150); integer(value.operationVersion, 'operationVersion'); id(value.sourceId, 'sourceId'); integer(value.sourceRevision, 'sourceRevision'); id(value.conversationId, 'conversationId');
+    id(value.targetRef, 'targetRef'); id(value.nativeId, 'nativeId'); hash(value.commandDigest);
+    if (typeof value.componentVersion !== 'string' || !/^sha256:[a-f0-9]{64}$/.test(value.componentVersion)) fail('INVALID_MEMORY_INPUT', 'Invalid native memory fingerprint');
+    validateMemoryCreateCommand(value.command);
+    fields(value.readToken, ['operationId', 'operationVersion', 'sourceId', 'sourceRevision', 'audienceVersion', 'authorizationEpoch', 'saveMandateVersion', 'deletionBaselineId', 'tombstoneWatermark', 'installationGeneration', 'backendId', 'deploymentId', 'nativeId', 'componentVersion']);
+  }
+  /** Exact short-lived capture validation: deletion is strong even during context acknowledgement. */
+  validateForView(snapshot: MemoryViewSnapshot): MemoryViewSnapshot {
+    fields(snapshot, ['schemaVersion', 'conversationId', 'authority', 'sources', 'snapshotHash', 'collectionHash', 'truncated']);
+    if (snapshot.schemaVersion !== 1 || !Array.isArray(snapshot.sources) || snapshot.sources.length > MAX_MEMORY_VIEW_CANDIDATES || typeof snapshot.truncated !== 'boolean') fail('INVALID_MEMORY_INPUT', 'Invalid bounded memory capture');
+    id(snapshot.conversationId, 'conversationId'); hash(snapshot.snapshotHash); hash(snapshot.collectionHash);
+    fields(snapshot.authority, ['backendId', 'deploymentId', 'installationGeneration', 'authorizationEpoch', 'deletionBaselineId', 'deletionScope', 'tombstoneWatermark', 'installedAt']);
+    for (const source of snapshot.sources) this.checkedViewSource(source);
+    if (new Set(snapshot.sources.map(source => source.operationId)).size !== snapshot.sources.length || this.selectionHash(snapshot) !== snapshot.snapshotHash) fail('MEMORY_VIEW_INVALIDATED', 'Memory selection identity changed');
+    return this.tx.atomic(() => {
+      this.conversation(snapshot.conversationId);
+      if (canonical(this.viewAuthority()) !== canonical(snapshot.authority)) fail('MEMORY_VIEW_INVALIDATED', 'Memory authorization or independent deletion authority changed');
+      for (const source of snapshot.sources) {
+        const current = this.viewSource(source.operationId, snapshot.conversationId);
+        if (canonical(current) !== canonical(source)) fail('MEMORY_VIEW_INVALIDATED', 'A selected memory source changed or lost permission');
+      }
+      // Do not refresh a pinned capture or invalidate it because a different
+      // eligible result was published. Selection and pool observation differ.
+      return clone(snapshot);
+    });
+  }
+  /**
+   * Native history reuse needs fresh per-source authority, not immortal capture
+   * tokens. Unrelated grants/deletions may change global counters; they do not
+   * permanently disable an otherwise unchanged, still authorized source.
+   */
+  validateExposedSources(sources: readonly MemoryViewSource[]): void {
+    if (!Array.isArray(sources) || sources.length > MAX_MEMORY_VIEW_CANDIDATES) fail('INVALID_MEMORY_INPUT', 'Invalid bounded memory exposure set');
+    if (new Set(sources.map(source => source.operationId)).size !== sources.length) fail('INVALID_MEMORY_INPUT', 'Duplicate memory exposure identity');
+    for (const source of sources) this.checkedViewSource(source);
+    const stable = (source: MemoryViewSource) => {
+      const { authorizationEpoch: _epoch, saveMandateVersion: _save, tombstoneWatermark: _watermark, ...readToken } = source.readToken;
+      return { ...source, readToken };
+    };
+    this.tx.atomic(() => {
+      this.viewAuthority(); // A missing/corrupt deletion authority always fails closed.
+      for (const source of sources) if (canonical(stable(this.viewSource(source.operationId, source.conversationId))) !== canonical(stable(source))) fail('MEMORY_VIEW_INVALIDATED', 'Exposed source identity, audience or current permission changed');
     });
   }
   execute(request: MemoryDomainRequest): MemoryCommands[keyof MemoryCommands]['output'] {
@@ -380,6 +534,10 @@ export class MemoryDomain {
       case 'memory.get': fields(request.args, ['operationId']); return this.get(request.args.operationId);
       case 'memory.readLocal': return this.readLocal(request.args);
       case 'memory.list': return this.list(request.args);
+      case 'memory.listEligibleForView': return this.listEligibleForView(request.args);
+      case 'memory.captureForView': return this.captureForView(request.args);
+      case 'memory.validateForView': fields(request.args, ['snapshot']); return this.validateForView(request.args.snapshot);
+      case 'memory.validateExposedSources': fields(request.args, ['sources']); this.validateExposedSources(request.args.sources); return { valid: true };
       default: return fail('UNKNOWN_MEMORY_COMMAND', 'Unknown memory domain command');
     }
   }

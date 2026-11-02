@@ -196,6 +196,98 @@ window.__ModuleLoader__.load({
     };
     const arr = value => Array.isArray(value) ? value : [];
     const text = value => value == null ? '' : String(value);
+    Object.assign(zh, {
+      "memorySemanticReady": "语义检索已验证",
+      "memorySemanticUnverified": "已配置，向量调用尚未验证",
+      "memorySemanticUnavailable": "语义检索暂不可用",
+      "memoryIndex": "建立语义索引",
+      "memoryIndexing": "正在建立索引…",
+      "memoryIndexHint": "保存与建索引分开操作；建索引会显式调用本地 embedding，刷新不会触发。",
+      "memoryIndexReceipt": "本次索引回执",
+      "memoryIndexPublishable": "索引核验",
+      "memoryIndexUsageHint": "调用数属于该索引操作的累计记录；重复请求不代表新增调用。",
+      "memoryIndexed": "索引已有独立核验回执。",
+      "memoryIndexDuplicate": "索引请求已存在，未自动重新执行；显示该操作累计记录。",
+      "memoryIndexUnconfirmed": "索引结果尚未确认，请核对状态；不会自动重试。",
+      "memorySearchTitle": "语义搜索",
+      "memorySearch": "搜索记忆",
+      "memorySearching": "正在搜索…",
+      "memoryQuery": "搜索内容",
+      "memorySearchHint": "只搜索上方关联对话内获准的记忆，返回记录引用；不会自动读取正文或保存查询。",
+      "memorySearchNeedsIndex": "需先建立索引；覆盖不完整，不能判断是否命中。",
+      "memorySearchNoMatch": "已核对索引覆盖，本次没有匹配记录。",
+      "memorySearchMatches": "本次匹配记录；点击只选择记录，正文需另行读取。",
+      "memoryEligibleCount": "获准记录",
+      "memoryIndexedCount": "已有索引",
+      "memoryMissingCount": "缺少索引",
+      "memorySimilarity": "相似度",
+      "embeddingCalls": "Embedding 调用数",
+      "embeddingUsageCompleteness": "用量完整性",
+      "usageComplete": "已完整观察",
+      "usageIncomplete": "尚不完整",
+      "memoryLastSemantic": "最近语义操作（索引为累计用量）",
+      "memorySemanticOutcome": "已记录结果",
+      "memorySemanticError": "语义检索错误",
+      "status_existing": "已有操作",
+      "semanticUnconfirmed": "语义操作回执不完整，结果未确认；不会自动重试。",
+      "semanticResultChanged": "处理期间对话、许可或运行实例变化，结果未显示。",
+      "contextLoadTitle": "只读上下文加载诊断",
+      "contextLoadInput": "加载诊断输入",
+      "contextLoadOnly": "加载只读上下文（不生成）",
+      "contextLoadingOnly": "正在加载上下文…",
+      "contextLoadHint": "显式读取获准资料并持久加载到原生 Session，不生成草稿、不发送消息。若启用语义检索，会使用本地 embedding。",
+      "contextLoaded": "原生上下文已持久核对；未请求生成或 followup，不代表模型回答验收。",
+      "contextLoadDuplicate": "该输入已有操作记录，未重新加载或生成。",
+      "contextLoadUnconfirmed": "原生加载回执未完整确认本次输入及 Session，结果未确认。",
+      "nativeUserMessageSeq": "原生消息序号",
+      "status_loaded": "已加载"
+    });
+    Object.assign(en, {
+      "memorySemanticReady": "Semantic retrieval verified",
+      "memorySemanticUnverified": "Configured; embedding call not yet verified",
+      "memorySemanticUnavailable": "Semantic retrieval unavailable",
+      "memoryIndex": "Build semantic index",
+      "memoryIndexing": "Building index…",
+      "memoryIndexHint": "Saving and indexing are separate actions. Indexing explicitly calls local embeddings; refreshing does not.",
+      "memoryIndexReceipt": "Index receipt",
+      "memoryIndexPublishable": "Index verification",
+      "memoryIndexUsageHint": "Calls are cumulative for this index operation. A repeated request does not imply new calls.",
+      "memoryIndexed": "The index has an independently verified receipt.",
+      "memoryIndexDuplicate": "This index request already exists; it was not rerun. Showing cumulative operation evidence.",
+      "memoryIndexUnconfirmed": "Index outcome is not confirmed. Check its status; no automatic retry.",
+      "memorySearchTitle": "Semantic search",
+      "memorySearch": "Search memories",
+      "memorySearching": "Searching…",
+      "memoryQuery": "Search query",
+      "memorySearchHint": "Search only permitted memories in the conversation selected above. Results are references; no body is read and no query is saved automatically.",
+      "memorySearchNeedsIndex": "Build the missing indexes first. Incomplete coverage cannot establish a match or no match.",
+      "memorySearchNoMatch": "Index coverage was checked; no matching records were found.",
+      "memorySearchMatches": "Matching references. Selecting one does not read its body.",
+      "memoryEligibleCount": "Permitted records",
+      "memoryIndexedCount": "Indexed records",
+      "memoryMissingCount": "Missing indexes",
+      "memorySimilarity": "Similarity",
+      "embeddingCalls": "Embedding calls",
+      "embeddingUsageCompleteness": "Usage completeness",
+      "usageComplete": "Fully observed",
+      "usageIncomplete": "Incomplete",
+      "memoryLastSemantic": "Latest semantic operation (index usage is cumulative)",
+      "memorySemanticOutcome": "Recorded outcome",
+      "memorySemanticError": "Semantic retrieval error",
+      "status_existing": "Existing operation",
+      "semanticUnconfirmed": "The semantic receipt is incomplete; outcome unconfirmed. No automatic retry.",
+      "semanticResultChanged": "Conversation, access or runtime identity changed; the result was not displayed.",
+      "contextLoadTitle": "Read-only context load diagnostic",
+      "contextLoadInput": "Load diagnostic input",
+      "contextLoadOnly": "Load context without generation",
+      "contextLoadingOnly": "Loading context…",
+      "contextLoadHint": "Explicitly read permitted context and persist it in the native Session. No draft or outgoing message. Semantic retrieval, when enabled, uses local embeddings.",
+      "contextLoaded": "Native context durability verified. No generation or followup requested; this does not verify a model answer.",
+      "contextLoadDuplicate": "This input already has an operation record. It was not loaded or generated again.",
+      "contextLoadUnconfirmed": "The native load receipt did not fully confirm this input and Session. Outcome unconfirmed.",
+      "nativeUserMessageSeq": "Native message sequence",
+      "status_loaded": "Loaded"
+    });
     const knownStates = new Set(Object.keys(en).filter(key => key.startsWith('status_')).map(key => key.slice(7)));
     const css = `
 .syr{--sr-bg:var(--dsw-alias-bg-base,#fff);--sr-layer:var(--dsw-alias-bg-layer-1,#fafafa);--sr-hover:var(--dsw-alias-bg-layer-2,#f2f3f5);--sr-text:var(--dsw-alias-label-primary,#202124);--sr-muted:var(--dsw-alias-label-secondary,#71757c);--sr-line:var(--dsw-alias-border-l1,#e6e8eb);--sr-accent:var(--dsw-alias-brand-primary,#4b62d8);--sr-error:var(--dsw-alias-state-error-primary,#b93b3b);--sr-ok:var(--dsw-alias-state-success-primary,#2f7d68);height:100%;min-height:0;min-width:0;overflow:auto;color:var(--sr-text);background:var(--sr-bg);font-size:13px;line-height:1.6;font-family:inherit}
@@ -292,10 +384,17 @@ window.__ModuleLoader__.load({
           const [memoryWithdrawing, setMemoryWithdrawing] = useState('');
           const [memoryError, setMemoryError] = useState('');
           const [memoryNotice, setMemoryNotice] = useState('');
+          const [memoryQuery, setMemoryQuery] = useState('');
+          const [memorySearch, setMemorySearch] = useState(null);
+          const [memoryIndexReceipt, setMemoryIndexReceipt] = useState(null);
+          const [contextLoadText, setContextLoadText] = useState('');
+          const [contextLoadReceipt, setContextLoadReceipt] = useState(null);
           const memoryDraftId = useRef(null), memoryWithdrawIds = useRef(new Map());
+          const memoryIndexIds = useRef(new Map()), memorySearchGuard = useRef(0), contextLoadGuard = useRef(0), contextLoadDraftId = useRef(null), contextLoadSelection = useRef(null);
           const memoryGuard = useRef({ snapshot: null, fresh: false, selected: null, revision: 0, body: null, revoked: new Set() });
           function clearMemoryBody() { memoryGuard.current.revision++; memoryGuard.current.body = null; setMemoryBody(null); }
           function chooseMemory(operationId) { clearMemoryBody(); memoryGuard.current.selected = operationId; setMemorySelected(operationId); }
+          function chooseConversation(value) { contextLoadGuard.current++; contextLoadDraftId.current = null; contextLoadSelection.current = value; setContextLoadReceipt(null); setSelectedConversation(value); }
           function memoryCanRead(operationId) {
             const guard = memoryGuard.current, current = guard.snapshot;
             const entry = arr(current?.memory?.entries).find(item => item?.operationId === operationId);
@@ -304,7 +403,7 @@ window.__ModuleLoader__.load({
               && current.lifecycle !== 'stopping' && !guard.revoked.has(operationId) && memoryEntryValid(entry) && entry.canRead === true && entry.consent === 'active' && !entry.blocked;
           }
           const rootRef = useRef(null);
-          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {} });
+          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {} });
           useEffect(() => {
             if (disposed) return;
             let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false, withdrawalInFlight = false;
@@ -324,6 +423,12 @@ window.__ModuleLoader__.load({
                 const previousEntry = arr(guard.snapshot?.memory?.entries).find(item => item?.operationId === guard.selected);
                 const nextEntry = arr(next.memory?.entries).find(item => item?.operationId === guard.selected);
                 const instanceChanged = guard.snapshot && guard.snapshot.instanceId !== next.instanceId;
+                const selection = contextLoadSelection.current;
+                const selectedBinding = item => item?.bindingId === selection?.bindingId && item?.conversationId === selection?.conversationId;
+                const priorConversation = arr(guard.snapshot?.conversations).find(selectedBinding), nextConversation = arr(next.conversations).find(selectedBinding);
+                if (selection && (instanceChanged || priorConversation?.sessionEpoch !== nextConversation?.sessionEpoch)) {
+                  contextLoadGuard.current++; contextLoadDraftId.current = null; setContextLoadReceipt(null);
+                }
                 guard.snapshot = next; guard.fresh = true;
                 if (instanceChanged || (guard.selected && (!memoryCanRead(guard.selected) || !previousEntry || !nextEntry || previousEntry.version !== nextEntry.version
                   || previousEntry.requestId !== nextEntry.requestId || previousEntry.conversationId !== nextEntry.conversationId || previousEntry.nativeId !== nextEntry.nativeId))) clearMemoryBody();
@@ -382,7 +487,7 @@ window.__ModuleLoader__.load({
                 if (action === 'conversation.linkLocalTask') {
                   // A receipt selects a binding; only a subsequent GET supplies its projection.
                   setNotice(t('conversationLinkAccepted', { id: result.taskId }));
-                  setSelectedConversation({ conversationId: result.conversationId, bindingId: result.bindingId, taskId: result.taskId }); setTab('conversations');
+                  chooseConversation({ conversationId: result.conversationId, bindingId: result.bindingId, taskId: result.taskId }); setTab('conversations');
                 }
                 if (action === 'conversation.verifyContext') {
                   // Only receipt metadata is retained. Binding identity is local
@@ -450,7 +555,74 @@ window.__ModuleLoader__.load({
                 else { commandInFlight = false; if (alive && !disposed) setCommand(''); }
               }
             }
-            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory };
+            async function issueSemantic(action, payload, expected = {}) {
+              if (!alive || disposed || commandInFlight || controlInFlight || withdrawalInFlight) return;
+              const guard = memoryGuard.current, current = guard.snapshot, load = action === 'conversation.loadContext';
+              const fresh = guard.fresh && Number.isFinite(Date.parse(current?.observedAt)) && Date.now() - Date.parse(current.observedAt) <= 30000;
+              const semantic = current?.memory?.backend?.semantic;
+              if (!fresh || !['idle', 'busy', 'waiting'].includes(current?.state) || current.lifecycle === 'stopping') return;
+              if (load ? current.diagnostics?.contextSafety?.ready !== true : current.memory?.semanticConfigured !== true || current.memory?.ready !== true
+                || semantic?.profileCompatible !== true || !['unverified', 'ready'].includes(semantic.state)) return;
+              if (action === 'memory.indexLocal' && (!memoryCanRead(payload.operationId) || guard.selected !== payload.operationId)) return;
+              commandInFlight = true; setCommand(action); setMemoryError(''); setMemoryNotice('');
+              const instanceId = current.instanceId, searchRevision = memorySearchGuard.current, loadRevision = contextLoadGuard.current;
+              if (action === 'memory.searchLocal') setMemorySearch(null);
+              if (load) setContextLoadReceipt(null);
+              const controller = new AbortController(); writes.add(controller);
+              const timeout = setTimeout(() => controller.abort(), 70000); deadlines.add(timeout);
+              const usageValid = value => value && typeof value.complete === 'boolean' && (value.calls === null ? value.complete === false : Number.isSafeInteger(value.calls) && value.calls >= 0);
+              try {
+                const result = await api('commands', { action, payload, signal: controller.signal });
+                if (!alive || disposed) return;
+                const latest = guard.snapshot;
+                if (latest?.instanceId !== instanceId || latest.state === 'paused' || !guard.fresh) throw new Error(t('semanticResultChanged'));
+                if (action === 'memory.indexLocal') {
+                  const entry = result?.entry;
+                  if (typeof result?.duplicate !== 'boolean' || entry?.memoryOperationId !== payload.operationId || typeof entry.indexOperationId !== 'string' || !entry.indexOperationId
+                    || typeof entry.status !== 'string' || typeof entry.publishable !== 'boolean' || !usageValid(entry.embeddingUsage)) throw new Error(t('semanticUnconfirmed'));
+                  if (!memoryCanRead(payload.operationId)) throw new Error(t('semanticResultChanged'));
+                  setMemoryIndexReceipt({ operationId: payload.operationId, instanceId, duplicate: result.duplicate, indexOperationId: entry.indexOperationId,
+                    status: entry.status, publishable: entry.publishable, embeddingUsage: { calls: entry.embeddingUsage.calls, complete: entry.embeddingUsage.complete } });
+                  setMemoryNotice(t(result.duplicate ? 'memoryIndexDuplicate' : entry.publishable ? 'memoryIndexed' : 'memoryIndexUnconfirmed'));
+                } else if (action === 'memory.searchLocal') {
+                  const coverage = result?.coverage;
+                  if (!['ok', 'index_required'].includes(result?.state) || !Array.isArray(result.matches) || result.matches.length > 10
+                    || result.matches.some(item => typeof item?.operationId !== 'string' || !item.operationId || typeof item.score !== 'number' || !Number.isFinite(item.score))
+                    || new Set(result.matches.map(item => item.operationId)).size !== result.matches.length
+                    || !coverage || !['eligibleCount', 'indexedCount', 'missingCount'].every(key => Number.isSafeInteger(coverage[key]) && coverage[key] >= 0)
+                    || coverage.indexedCount + coverage.missingCount !== coverage.eligibleCount || (result.state === 'index_required' && !coverage.missingCount)
+                    || (result.state === 'index_required' && result.matches.length) || (result.state === 'ok' && coverage.missingCount)
+                    || !usageValid({ calls: result.embeddingCalls, complete: result.usageComplete })) throw new Error(t('semanticUnconfirmed'));
+                  if (searchRevision !== memorySearchGuard.current || !arr(latest.conversations).some(item => item.conversationId === payload.conversationId && item.scope === 'local-owner')
+                    || result.matches.some(item => !memoryCanRead(item.operationId) || arr(latest.memory.entries).find(entry => entry.operationId === item.operationId)?.conversationId !== payload.conversationId)) throw new Error(t('semanticResultChanged'));
+                  setMemorySearch({ instanceId, conversationId: payload.conversationId, revision: searchRevision, state: result.state,
+                    matches: result.matches.map(({ operationId, score }) => ({ operationId, score })), coverage: { eligibleCount: coverage.eligibleCount, indexedCount: coverage.indexedCount, missingCount: coverage.missingCount },
+                    embeddingCalls: result.embeddingCalls, usageComplete: result.usageComplete });
+                } else {
+                  const operation = result?.operation, receipt = result?.load?.contextReceipt;
+                  if (typeof result?.duplicate !== 'boolean' || operation?.conversationId !== payload.conversationId || operation.inputId !== payload.inputId
+                    || operation.bindingId !== expected.bindingId || operation.sessionEpoch !== expected.sessionEpoch || typeof operation.operationId !== 'string' || !operation.operationId) throw new Error(t('contextLoadUnconfirmed'));
+                  if (!result.duplicate && (result.status !== 'loaded' || operation.status !== 'loaded' || operation.durability !== 'confirmed' || result.load?.mode !== 'load-only'
+                    || result.load.inferenceRequested !== false || result.load.followupRequested !== false || receipt?.durability !== 'confirmed'
+                    || receipt.operationId !== operation.operationId || receipt.sessionEpoch !== operation.sessionEpoch || receipt.sessionId !== result.load.binding?.sessionId
+                    || typeof receipt.sessionId !== 'string' || !receipt.sessionId || !Number.isSafeInteger(receipt.userMessageSeq) || receipt.userMessageSeq < 1
+                    || typeof receipt.messageId !== 'string' || !receipt.messageId || !/^[a-f0-9]{64}$/.test(receipt.messageHash))) throw new Error(t('contextLoadUnconfirmed'));
+                  const currentConversation = arr(latest.conversations).find(item => item.conversationId === payload.conversationId && item.bindingId === expected.bindingId);
+                  if (loadRevision !== contextLoadGuard.current || currentConversation?.sessionEpoch !== expected.sessionEpoch) throw new Error(t('semanticResultChanged'));
+                  setContextLoadReceipt({ instanceId, conversationId: payload.conversationId, bindingId: expected.bindingId, sessionEpoch: operation.sessionEpoch,
+                    operationId: operation.operationId, duplicate: result.duplicate, status: operation.status,
+                    ...(!result.duplicate ? { sessionId: receipt.sessionId, userMessageSeq: receipt.userMessageSeq } : {}) });
+                  setMemoryNotice(t(result.duplicate ? 'contextLoadDuplicate' : 'contextLoaded'));
+                }
+                await refresh(true);
+              } catch (error) {
+                if (alive && !disposed) { setMemoryError(controller.signal.aborted ? t('semanticUnconfirmed') : error.message || t('semanticUnconfirmed')); await refresh(true); }
+              } finally {
+                clearTimeout(timeout); deadlines.delete(timeout); writes.delete(controller); commandInFlight = false;
+                if (alive && !disposed) setCommand('');
+              }
+            }
+            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory, semantic: issueSemantic };
             const onVisibility = () => { setClock(Date.now()); if (canRead()) void refresh(); };
             document.addEventListener('visibilitychange', onVisibility);
             const timer = setInterval(() => { if (canRead()) { setClock(Date.now()); void refresh(); } }, 10000);
@@ -466,7 +638,7 @@ window.__ModuleLoader__.load({
               writes.clear(); deadlines.clear(); clearInterval(timer); observer?.disconnect();
               memoryGuard.current.fresh = false; memoryGuard.current.body = null; memoryGuard.current.revision++;
               document.removeEventListener('visibilitychange', onVisibility);
-              operations.current = { refresh: () => {}, command: () => {}, memory: () => {} };
+              operations.current = { refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {} };
               panelDisposers.delete(cleanup);
             };
             panelDisposers.add(cleanup);
@@ -501,6 +673,8 @@ window.__ModuleLoader__.load({
           const contextLabel = item => t(item?.needsSync === true ? 'contextNeedsLoad' : item?.needsSync === false ? 'contextNoPending' : 'contextUnknown');
           const sourceRef = value => typeof value?.kind === 'string' && typeof value?.id === 'string' ? `${value.kind}:${value.id}` : t('unknownValue');
           const memoryConfigured = snapshot?.memory?.configured === true, memoryReady = memoryConfigured && snapshot?.memory?.ready === true;
+          const semanticStatus = snapshot?.memory?.backend?.semantic;
+          const semanticAvailable = memoryReady && snapshot?.memory?.semanticConfigured === true && semanticStatus?.profileCompatible === true && ['unverified', 'ready'].includes(semanticStatus.state);
           const memoryEntries = arr(snapshot?.memory?.entries), memoryEntry = memoryEntries.find(item => item?.operationId === memorySelected);
           const memoryBodyVisible = memoryBody && memoryBody.operationId === memorySelected && memoryBody.instanceId === snapshot?.instanceId
             && memoryBody.version === memoryEntry?.version && !stale && memoryCanRead(memorySelected);
@@ -588,15 +762,16 @@ window.__ModuleLoader__.load({
                 foreignConversations && h('p', { className: 'syr-alert', role: 'alert' }, t('conversationScopeUnknown')),
                 !conversationsConnected ? h(Empty, null, t('conversationsUnavailable')) : !conversations.length ? h(React.Fragment, null, h(Empty, null, t('noConversations')), selectedConversation && h('p', { className: 'syr-small syr-muted' }, t('conversationNotInSnapshot'))) : h('div', { className: 'syr-task-layout' },
                   h('div', { className: 'syr-session-list', 'data-testid': 'conversation-list' }, ...conversations.map(item => h('button', { type: 'button', key: item.bindingId, className: 'syr-session-button', 'aria-label': t('viewConversation', { id: item.bindingId }), 'aria-pressed': conversation?.bindingId === item.bindingId,
-                    onClick: () => setSelectedConversation({ conversationId: item.conversationId, bindingId: item.bindingId }) },
+                    onClick: () => chooseConversation({ conversationId: item.conversationId, bindingId: item.bindingId }) },
                     h('span', { className: 'syr-task-label' }, text(item.localConversationKey) || text(item.conversationId)),
                     h('span', { className: 'syr-task-caption' }, contextLabel(item)),
                     h('span', { className: 'syr-task-caption' }, `${t('contextVersion')} · ${numeric(item.contextVersion)}`), h('span', { className: 'syr-id' }, item.bindingId)))),
                   conversation ? h('section', { className: 'syr-box syr-task-detail', 'aria-label': t('conversationDetails'), 'data-testid': 'conversation-detail' },
-                    h('div', { className: 'syr-section-title' }, h('h2', null, t('conversationDetails')), h(Button, { icon: 'close', className: 'syr-btn syr-subtle', 'aria-label': t('close'), onClick: () => setSelectedConversation(null) })),
+                    h('div', { className: 'syr-section-title' }, h('h2', null, t('conversationDetails')), h(Button, { icon: 'close', className: 'syr-btn syr-subtle', 'aria-label': t('close'), onClick: () => chooseConversation(null) })),
                     h('p', { className: 'syr-notice syr-small', 'data-level': conversation.needsSync === true ? 'warning' : 'info', 'data-testid': 'conversation-load-state' }, contextLabel(conversation)),
                     h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('conversationReadOnly')),
                     contextVerificationContent(),
+                    contextLoadContent(),
                     h('div', { className: 'syr-section-gap' }, h(Facts, { rows: [
                       ['conversationId', conversation.conversationId, true], ['topicId', conversation.topicId, true], ['replyBindingId', conversation.bindingId, true], ['localConversationKey', conversation.localConversationKey, true], ['conversationScope', conversation.scope, true],
                       ['contextVersion', numeric(conversation.contextVersion)], ['audienceVersion', numeric(conversation.audienceVersion)], ['conversationGeneration', numeric(conversation.conversationGeneration)], ['routingRevision', numeric(conversation.routingRevision)], ['sessionEpoch', numeric(conversation.sessionEpoch)],
@@ -651,17 +826,28 @@ window.__ModuleLoader__.load({
             const canSave = canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && memoryReady && conversationKnown && snippetBytes > 0 && snippetBytes <= 16384;
             const readable = memoryEntry?.canRead === true && memoryEntry?.consent === 'active' && !memoryEntry?.blocked && !memoryGuard.current.revoked.has(memorySelected);
             const canRead = canStartCommand && memoryReady && readable && memoryCanRead(memorySelected);
+            const canIndex = canRead && semanticAvailable;
+            const canSearch = canStartCommand && semanticAvailable && conversationKnown && Boolean(memoryQuery.trim()) && memoryQuery.length <= 4096;
+            const searchCurrent = memorySearch && memorySearch.instanceId === snapshot.instanceId && memorySearch.conversationId === memoryConversationId
+              && memorySearch.revision === memorySearchGuard.current && !stale && state !== 'paused'
+              && memorySearch.matches.every(item => memoryCanRead(item.operationId));
+            const indexReceipt = memoryIndexReceipt?.operationId === memorySelected && memoryIndexReceipt?.instanceId === snapshot.instanceId ? memoryIndexReceipt : null;
+            const semanticLabel = snapshot.memory?.semanticErrorCode ? 'memorySemanticUnavailable' : snapshot.memory?.semanticConfigured !== true ? 'memorySemanticDisabled' : semanticStatus?.state === 'ready' ? 'memorySemanticReady'
+              : semanticStatus?.state === 'unverified' && semanticStatus.profileCompatible ? 'memorySemanticUnverified' : 'memorySemanticUnavailable';
             const canWithdraw = memoryEntryValid(memoryEntry) && memoryEntry.consent === 'active' && snapshot.lifecycle !== 'stopping' && !memoryWithdrawing;
             const consentLabel = value => t(value === 'active' ? 'memoryConsentActive' : value === 'withdrawn' ? 'memoryConsentWithdrawn' : 'unknownValue');
             return h('div', { className: 'syr-stack' },
               h('section', null, h('div', { className: 'syr-system-heading' }, h('h2', null, t('memory')), h('p', null, t('memoryHint'))),
                 h('div', { className: 'syr-box', 'data-testid': 'memory-state' }, h(Title, null, t(statusKey)),
                   memoryConfigured && !memoryReady && !errorCode && h('p', { className: 'syr-small syr-muted' }, t('memoryWaitingHint')),
-                  backend && h(Facts, { rows: [['status', label(backend.state)], ['backendId', text(backend.backendId), true], ['deploymentId', text(backend.deploymentId), true], ['memoryScope', text(backend.scope), true], ['memoryEmbedding', backend.embedding === 'disabled' ? t('memorySemanticDisabled') : t('unknownValue')]] }),
+                  backend && h(Facts, { rows: [['status', label(backend.state)], ['backendId', text(backend.backendId), true], ['deploymentId', text(backend.deploymentId), true], ['memoryScope', text(backend.scope), true], ['memoryEmbedding', t(semanticLabel)]] }),
+                  snapshot.memory?.lastSemanticOperation && h('p', { className: 'syr-small syr-muted syr-section-gap', 'data-testid': 'memory-last-semantic' },
+                    `${t('memoryLastSemantic')} · ${label(snapshot.memory.lastSemanticOperation.status)}${snapshot.memory.lastSemanticOperation.outcome ? ` · ${t('memorySemanticOutcome')} ${label(snapshot.memory.lastSemanticOperation.outcome)}` : ''} · ${t('embeddingCalls')} ${numeric(snapshot.memory.lastSemanticOperation.embeddingUsage?.calls)} · ${t(snapshot.memory.lastSemanticOperation.embeddingUsage?.complete === true ? 'usageComplete' : 'usageIncomplete')}`),
+                  snapshot.memory?.semanticErrorCode && h('p', { className: 'syr-small syr-code syr-section-gap' }, `${t('memorySemanticError')} · ${text(snapshot.memory.semanticErrorCode)}`),
                   errorCode && h('p', { className: 'syr-small syr-code syr-section-gap' }, `${t('errorCode')} · ${text(errorCode)}`))),
               h('section', { className: 'syr-box syr-memory-form', 'aria-label': t('memorySaveTitle'), 'data-testid': 'memory-form' }, h(Title, null, t('memorySaveTitle')),
                 h('p', { className: 'syr-small syr-muted' }, t('memorySaveHint')),
-                h('label', { className: 'syr-select-label' }, h('span', null, t('memoryConversation')), h('select', { className: 'syr-select', 'aria-label': t('memoryConversation'), value: memoryConversationId, disabled: Boolean(command || controlCommand || memoryWithdrawing), onChange: event => { memoryDraftId.current = null; setMemoryConversationId(event.target.value); } },
+                h('label', { className: 'syr-select-label' }, h('span', null, t('memoryConversation')), h('select', { className: 'syr-select', 'aria-label': t('memoryConversation'), value: memoryConversationId, disabled: Boolean(command || controlCommand || memoryWithdrawing), onChange: event => { memoryDraftId.current = null; memorySearchGuard.current++; setMemorySearch(null); setMemoryConversationId(event.target.value); } },
                   h('option', { value: '' }, t('memoryChooseConversation')), ...conversations.map(item => h('option', { key: item.bindingId, value: item.conversationId }, `${item.localConversationKey || item.conversationId} (${item.conversationId})`)))),
                 !conversations.length && h('p', { className: 'syr-small syr-muted' }, t('memoryNoConversation')),
                 h('label', { className: 'syr-select-label' }, h('span', null, t('memorySnippet')), h('textarea', { className: 'syr-textarea', 'aria-label': t('memorySnippet'), value: memoryText, maxLength: 20000, disabled: Boolean(command || controlCommand || memoryWithdrawing), onChange: event => { memoryDraftId.current = null; setMemoryText(event.target.value); } })),
@@ -671,6 +857,19 @@ window.__ModuleLoader__.load({
                   memoryDraftId.current ||= `memory-${crypto.randomUUID()}`;
                   void operations.current.memory('memory.rememberLocal', { requestId: memoryDraftId.current, conversationId: memoryConversationId, text: memoryText });
                 } }, t(command === 'memory.rememberLocal' ? 'memorySaving' : 'memorySave')))),
+              h('section', { className: 'syr-box syr-memory-form', 'aria-label': t('memorySearchTitle'), 'data-testid': 'memory-search' }, h(Title, null, t('memorySearchTitle')),
+                h('p', { className: 'syr-small syr-muted' }, t('memorySearchHint')),
+                !semanticAvailable && h('p', { className: 'syr-small syr-muted' }, t(semanticLabel)),
+                h('label', { className: 'syr-select-label' }, h('span', null, t('memoryQuery')), h('input', { className: 'syr-select', 'aria-label': t('memoryQuery'), value: memoryQuery, maxLength: 4096,
+                  disabled: Boolean(command || controlCommand || memoryWithdrawing), onChange: event => { memorySearchGuard.current++; setMemorySearch(null); setMemoryQuery(event.target.value); } })),
+                h('div', { className: 'syr-actions' }, h(Button, { disabled: !canSearch, onClick: () => { if (canSearch) void operations.current.semantic('memory.searchLocal', { conversationId: memoryConversationId, query: memoryQuery }); } },
+                  t(command === 'memory.searchLocal' ? 'memorySearching' : 'memorySearch'))),
+                searchCurrent && h('section', { className: 'syr-task-result', 'data-testid': 'memory-search-result' },
+                  h('p', { className: 'syr-small' }, t(memorySearch.state === 'index_required' ? 'memorySearchNeedsIndex' : memorySearch.matches.length ? 'memorySearchMatches' : 'memorySearchNoMatch')),
+                  h(Facts, { rows: [['memoryEligibleCount', numeric(memorySearch.coverage.eligibleCount)], ['memoryIndexedCount', numeric(memorySearch.coverage.indexedCount)], ['memoryMissingCount', numeric(memorySearch.coverage.missingCount)],
+                    ['embeddingCalls', numeric(memorySearch.embeddingCalls)], ['embeddingUsageCompleteness', t(memorySearch.usageComplete ? 'usageComplete' : 'usageIncomplete')]] }),
+                  memorySearch.matches.length > 0 && h('ul', { className: 'syr-evidence' }, ...memorySearch.matches.map(item => h('li', { key: item.operationId },
+                    h(Button, { onClick: () => chooseMemory(item.operationId) }, text(item.operationId)), ` · ${t('memorySimilarity')} ${numeric(item.score)}`))))),
               memoryError && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'memory-error' }, memoryError),
               memoryNotice && h('p', { className: 'syr-feedback', role: 'status' }, memoryNotice),
               (command.startsWith('memory.') || memoryWithdrawing) && h('p', { className: 'syr-feedback', role: 'status' }, t(memoryWithdrawing ? 'memoryWithdrawing' : 'memoryBusy')),
@@ -683,14 +882,41 @@ window.__ModuleLoader__.load({
               memoryEntry ? h('section', { className: 'syr-box', 'aria-label': t('memoryDetails'), 'data-testid': 'memory-detail' }, h(Title, null, t('memoryDetails')),
                 h(Facts, { rows: [['memoryOperationId', text(memoryEntry.operationId), true], ['memoryRequestId', text(memoryEntry.requestId), true], ['conversationId', text(memoryEntry.conversationId), true], ['recordVersion', numeric(memoryEntry.version)], ['status', label(memoryEntry.status)], ['memoryConsent', consentLabel(memoryEntry.consent)], ['memoryBlocked', memoryEntry.blocked === true ? t('status_blocked') : memoryEntry.blocked === false ? t('memoryNotBlocked') : t('unknownValue')], ['memoryBytes', numeric(memoryEntry.bodyBytes)], ['memoryNativeId', memoryEntry.nativeId, true], ['memoryCreated', dateTime(memoryEntry.createdAt, locale)]] }),
                 h('div', { className: 'syr-actions syr-section-gap' }, readable && h(Button, { disabled: !canRead, onClick: () => { if (canRead) void operations.current.memory('memory.readLocal', { operationId: memoryEntry.operationId }); } }, t(command === 'memory.readLocal' ? 'memoryReading' : 'memoryRead')),
+                  readable && h(Button, { disabled: !canIndex, onClick: () => {
+                    if (!canIndex) return;
+                    if (!memoryIndexIds.current.has(memoryEntry.operationId)) memoryIndexIds.current.set(memoryEntry.operationId, `memory-index-${crypto.randomUUID()}`);
+                    void operations.current.semantic('memory.indexLocal', { requestId: memoryIndexIds.current.get(memoryEntry.operationId), operationId: memoryEntry.operationId });
+                  } }, t(command === 'memory.indexLocal' ? 'memoryIndexing' : 'memoryIndex')),
                   memoryEntry.consent === 'active' && h(Button, { disabled: !canWithdraw, onClick: () => {
                     if (!canWithdraw) return;
                     if (!memoryWithdrawIds.current.has(memoryEntry.operationId)) memoryWithdrawIds.current.set(memoryEntry.operationId, `memory-withdraw-${crypto.randomUUID()}`);
                     void operations.current.memory('memory.withdrawLocal', { requestId: memoryWithdrawIds.current.get(memoryEntry.operationId), operationId: memoryEntry.operationId });
                   } }, t(memoryWithdrawing === memoryEntry.operationId ? 'memoryWithdrawing' : 'memoryWithdraw'))),
                 h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('memoryWithdrawHint')),
+                h('p', { className: 'syr-small syr-muted' }, t('memoryIndexHint')),
+                indexReceipt && h('section', { className: 'syr-task-result', 'data-testid': 'memory-index-receipt' }, h(Title, null, t('memoryIndexReceipt')),
+                  h('p', { className: 'syr-small syr-muted' }, t('memoryIndexUsageHint')), h(Facts, { rows: [['status', label(indexReceipt.status)], ['memoryIndexPublishable', t(indexReceipt.publishable ? 'confirmed' : 'unknownValue')],
+                    ['embeddingCalls', numeric(indexReceipt.embeddingUsage.calls)], ['embeddingUsageCompleteness', t(indexReceipt.embeddingUsage.complete ? 'usageComplete' : 'usageIncomplete')]] })),
                 memoryBodyVisible && h('section', { className: 'syr-task-result', 'aria-label': t('memoryBodyTitle'), 'data-testid': 'memory-body' }, h(Title, null, t('memoryBodyTitle')), h('p', { className: 'syr-small syr-muted' }, t('memoryBodyHint')), h('pre', { className: 'syr-memory-body' }, memoryBody.body)))
                 : h(Empty, null, t(memorySelected ? 'memoryNotInSnapshot' : 'memorySelect')));
+          }
+          function contextLoadContent() {
+            const enabled = canStartCommand && snapshot.diagnostics?.contextSafety?.ready === true && Boolean(contextLoadText.trim()) && contextLoadText.length <= 16000;
+            const receipt = contextLoadReceipt?.conversationId === conversation.conversationId && contextLoadReceipt?.bindingId === conversation.bindingId
+              && contextLoadReceipt?.sessionEpoch === conversation.sessionEpoch && contextLoadReceipt?.instanceId === snapshot.instanceId && !stale ? contextLoadReceipt : null;
+            return h('section', { className: 'syr-task-result syr-memory-form', 'aria-label': t('contextLoadTitle'), 'data-testid': 'context-load-only' }, h(Title, null, t('contextLoadTitle')),
+              h('p', { className: 'syr-small syr-muted' }, t('contextLoadHint')),
+              h('label', { className: 'syr-select-label' }, h('span', null, t('contextLoadInput')), h('textarea', { className: 'syr-textarea', 'aria-label': t('contextLoadInput'), value: contextLoadText,
+                disabled: Boolean(command || controlCommand), maxLength: 16000, onChange: event => { contextLoadGuard.current++; contextLoadDraftId.current = null; setContextLoadReceipt(null); setContextLoadText(event.target.value); } })),
+              h('div', { className: 'syr-actions' }, h(Button, { disabled: !enabled, onClick: () => {
+                if (!enabled) return; contextLoadDraftId.current ||= `context-load-${crypto.randomUUID()}`;
+                void operations.current.semantic('conversation.loadContext', { conversationId: conversation.conversationId, inputId: contextLoadDraftId.current, text: contextLoadText },
+                  { bindingId: conversation.bindingId, sessionEpoch: conversation.sessionEpoch });
+              } }, t(command === 'conversation.loadContext' ? 'contextLoadingOnly' : 'contextLoadOnly'))),
+              memoryError && h('p', { className: 'syr-alert', role: 'alert' }, memoryError),
+              receipt && h('section', { className: 'syr-task-result', 'data-testid': 'context-load-receipt' },
+                h('p', { className: 'syr-small' }, t(receipt.duplicate ? 'contextLoadDuplicate' : 'contextLoaded')),
+                h(Facts, { rows: [['memoryOperationId', receipt.operationId, true], ['status', label(receipt.status)], ['sessionId', receipt.sessionId, true], ['nativeUserMessageSeq', numeric(receipt.userMessageSeq)]] })));
           }
           function diagnostics() {
             return h('div', { className: 'syr-stack' },

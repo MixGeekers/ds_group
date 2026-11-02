@@ -17,11 +17,17 @@ export interface ViewConversationVersion {
   conversationGeneration: number; routingRevision: number; sessionEpoch: number; contextVersion: number;
 }
 export interface SafetyWatermarks { authEpoch: number | null; tombstoneWatermark: number | null }
-export interface ComponentGrant { backendId: string; fields: readonly string[] }
+export interface ComponentGrant { backendId: string; fields: readonly string[]; authority?: 'memory' }
+/** Independent memory deletion/installation authority. Never collapse it into the Task watermark. */
+export interface ViewMemoryAuthority {
+  backendId: string; deploymentId: string; installationGeneration: string; authorizationEpoch: number;
+  deletionBaselineId: string; deletionScope: 'local-memory-source'; tombstoneWatermark: number; installedAt: string;
+}
 /** Baseline identities make scoped zero watermarks distinguishable from unavailable backends. */
 export interface ViewAuthorityIdentity {
   publicationBaselineId: string; policyAuthorityId: string; deletionAuthorityId: string;
   deletionScope: 'local-task-source'; indexMode: 'not-used';
+  memory?: ViewMemoryAuthority;
 }
 /** Produced only by the current policy/deletion authority and authenticated conversation adapter. */
 export interface ViewAccess {
@@ -54,6 +60,7 @@ export interface ComponentSnapshot {
   capturedAt: string | null; componentRevision?: Revision; verifiedSourceHash?: string; indexVersion?: Revision;
   freshness: ViewFreshness; appliedSafety: SafetyWatermarks | null; records: readonly ViewRecord[];
   expiresAt?: string;
+  memoryAuthority?: ViewMemoryAuthority;
 }
 export interface ComponentReadRequest {
   purpose: ViewPurpose; scope: string; audienceIds: readonly string[]; resourceRefs: readonly string[];
@@ -115,7 +122,7 @@ function uniqueSources(refs: readonly ViewSourceRef[]): ViewSourceRef[] { return
 function scopeHash(actor: TrustedViewActor, request: ViewRequest, access: ViewAccess): string {
   return hash({ principalId: actor.principalId, role: actor.role, purpose: request.purpose, scope: access.scope,
     audienceIds: [...access.audienceIds].sort(), resourceRefs: [...access.resourceRefs].sort(),
-    components: access.components.map(item => ({ backendId: item.backendId, fields: [...item.fields].sort() })).sort((a, b) => a.backendId.localeCompare(b.backendId)),
+    components: access.components.map(item => ({ backendId: item.backendId, fields: [...item.fields].sort(), ...(item.authority ? { authority: item.authority } : {}) })).sort((a, b) => a.backendId.localeCompare(b.backendId)),
     conversationId: request.conversationId, taskId: request.taskId });
 }
 function securityHash(actor: TrustedViewActor, request: ViewRequest, access: ViewAccess): string {
@@ -128,6 +135,16 @@ function securityHash(actor: TrustedViewActor, request: ViewRequest, access: Vie
 }
 function safetyMatches(actual: SafetyWatermarks | null | undefined, access: ViewAccess): boolean {
   return actual?.authEpoch === access.authEpoch && actual?.tombstoneWatermark === access.tombstoneWatermark;
+}
+function memoryAuthority(value: ViewMemoryAuthority | undefined): boolean {
+  return Boolean(value && name(value.backendId) && name(value.deploymentId) && name(value.installationGeneration)
+    && integer(value.authorizationEpoch) && name(value.deletionBaselineId) && value.deletionScope === 'local-memory-source'
+    && integer(value.tombstoneWatermark) && timestamp(value.installedAt));
+}
+function sameMemoryAuthority(actual: ViewMemoryAuthority | undefined, expected: ViewMemoryAuthority | undefined): boolean {
+  return memoryAuthority(actual) && memoryAuthority(expected)
+    && (['backendId', 'deploymentId', 'installationGeneration', 'authorizationEpoch', 'deletionBaselineId', 'deletionScope', 'tombstoneWatermark', 'installedAt'] as const)
+      .every(key => actual![key] === expected![key]);
 }
 function jsonValue(value: unknown, depth = 0): JsonValue {
   if (depth > 16) fail('INVALID_COMPONENT', 'Component data is too deeply nested');
@@ -194,10 +211,13 @@ export class ReadViewService {
     if (!list(access.audienceIds) || !access.audienceIds.length || !list(access.resourceRefs)
       || !Array.isArray(access.components) || access.components.length > 16
       || new Set(access.components.map(item => item.backendId)).size !== access.components.length
-      || access.components.some(item => !name(item.backendId) || item.backendId === 'conversation' || !list(item.fields, 64) || item.fields.some((field: string) => ['__proto__', 'constructor', 'prototype'].includes(field)))
+      || access.components.some(item => !name(item.backendId) || item.backendId === 'conversation' || (item.authority !== undefined && item.authority !== 'memory')
+        || !list(item.fields, 64) || item.fields.some((field: string) => ['__proto__', 'constructor', 'prototype'].includes(field)))
       || !timestamp(access.expiresAt) || ![access.policyVersion, access.authEpoch, access.tombstoneWatermark, access.commitSeq, access.stateVersion, access.indexWatermark].every(integer)) fail('DEPENDENCY_UNAVAILABLE', 'Current view authority is incomplete');
     if (access.authority && (!name(access.authority.publicationBaselineId) || !name(access.authority.policyAuthorityId)
       || !name(access.authority.deletionAuthorityId) || access.authority.deletionScope !== 'local-task-source' || access.authority.indexMode !== 'not-used')) fail('DEPENDENCY_UNAVAILABLE', 'View authority baseline is incomplete');
+    if ((access.authority?.memory && (!memoryAuthority(access.authority.memory) || access.authority.memory.authorizationEpoch !== access.authEpoch))
+      || access.components.some(item => item.authority === 'memory' && !access.authority?.memory)) fail('DEPENDENCY_UNAVAILABLE', 'Memory view authority is incomplete');
     if (Date.parse(access.expiresAt) <= this.now().getTime()) fail('EXPIRED', 'View authority has expired');
     if (request.taskId && !access.resourceRefs.includes(`task:${request.taskId}`)) fail('FORBIDDEN', 'View access is not permitted');
     if (request.conversationId) {
@@ -271,6 +291,7 @@ export class ReadViewService {
       if (snapshot.freshness.status === 'unavailable') { unavailable('source_unavailable'); continue; }
       if (!timestamp(snapshot.capturedAt) || (!revision(snapshot.componentRevision) && !name(snapshot.verifiedSourceHash))) { unavailable('version_unknown'); continue; }
       if (!safetyMatches(snapshot.appliedSafety, access)) fail('SECURITY_STATE_UNAVAILABLE', 'A component has not applied current authorization and deletion barriers');
+      if (grant.authority === 'memory' && !sameMemoryAuthority(snapshot.memoryAuthority, access.authority?.memory)) fail('SECURITY_STATE_UNAVAILABLE', 'The memory component has not applied its independent authority vector');
       // Adapter diagnostics are not a second, unredacted path into the view.
       const freshness: ViewFreshness = snapshot.freshness.status === 'stale'
         ? { status: 'stale', reason: 'source_reported_stale' } : { status: 'current' };

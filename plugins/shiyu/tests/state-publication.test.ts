@@ -8,14 +8,20 @@ import { Worker } from 'node:worker_threads';
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
 import { installCommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
 import { StatePublicationError, StatePublicationStore, createStatePublisher, initialStateManifest } from '../src/state/publication.js';
-import type { PublishedState, StateManifest, StatePublishCommand, StatePublisher } from '../src/state/publication.js';
+import type { MemoryStateManifest, PublishedState, StateManifest, StatePublishCommand, StatePublisher } from '../src/state/publication.js';
 
 const actor = createStatePublisher('state-service');
 const code = (expected: string) => (error: unknown) => error instanceof StatePublicationError && error.code === expected;
-const next = (publication: PublishedState, requestId: string, manifest = initialStateManifest()): StatePublishCommand => ({
+const next = (publication: PublishedState, requestId: string, manifest: StateManifest = initialStateManifest()): StatePublishCommand => ({
   requestId, expectedStateVersion: publication.stateVersion, expectedBaselineId: publication.baselineId, manifest,
 });
 function changed(): StateManifest { const value = initialStateManifest(); value.domains.memory.reason = 'source_unavailable'; return value; }
+function memoryManifest(semantic = false): MemoryStateManifest {
+  return { schemaVersion: 2, domains: { ...initialStateManifest().domains,
+    memory: { status: 'available', backendId: 'ombre-local', deploymentId: 'memory-deployment',
+      capabilities: semantic ? ['exact_read', 'semantic_search'] : ['exact_read'],
+      ...(semantic ? { profileFingerprint: 'a'.repeat(64) } : {}) } } };
+}
 function fixture(t: TestContext, tracked = false) {
   const directory = mkdtempSync(path.join(tmpdir(), 'shiyu-state-publication-'));
   const filename = path.join(directory, 'control.sqlite'); const connections: DatabaseSync[] = [];
@@ -39,8 +45,9 @@ test('an explicit first publication starts at one; get does not invent or publis
   const result = store.publish(actor, { requestId: 'initial', manifest: initialStateManifest() });
   assert.equal(result.status, 'published'); assert.equal(result.publication.stateVersion, 1);
   assert.match(result.publication.baselineId, /^[a-f0-9-]{36}$/); assert.deepEqual(store.get(), result.publication);
-  result.publication.manifest.domains.memory.reason = 'source_unavailable';
-  assert.equal(store.get()!.manifest.domains.memory.reason, 'not_connected');
+  assert.equal(result.publication.manifest.domains.memory.status, 'unavailable');
+  if (result.publication.manifest.domains.memory.status === 'unavailable') result.publication.manifest.domains.memory.reason = 'source_unavailable';
+  assert.deepEqual(store.get()!.manifest.domains.memory, { status: 'unavailable', reason: 'not_connected' });
 });
 
 test('publisher authority requires the original process-local capability and a configured identity', t => {
@@ -183,4 +190,102 @@ test('different transaction owners, changed publisher configuration and damaged 
   published.db.exec('DELETE FROM shiyu_state_publication_head');
   assert.throws(() => published.store.get(), code('CORRUPT_STATE'));
   assert.throws(() => published.open(), code('CORRUPT_STATE'));
+});
+
+test('schema2 upgrades only memory availability and retains exact legacy history across reopen', t => {
+  const f = fixture(t), initialCommand = { requestId: 'legacy', manifest: initialStateManifest() };
+  const legacy = f.store.publish(actor, initialCommand);
+  const legacyRow = f.db.prepare('SELECT * FROM shiyu_state_publication_commands WHERE request_id=?').get('legacy');
+  const metadata = f.db.prepare('SELECT * FROM shiyu_state_publication_meta').get();
+  assert.throws(() => f.store.publish(structuredClone(actor), next(legacy.publication, 'forged', memoryManifest())), code('FORBIDDEN'));
+  const upgraded = f.store.publish(actor, next(legacy.publication, 'memory-read', memoryManifest()));
+  assert.equal(upgraded.publication.schemaVersion, 1); assert.equal(upgraded.publication.manifest.schemaVersion, 2);
+  assert.equal(upgraded.publication.stateVersion, 2); assert.equal(upgraded.publication.baselineId, legacy.publication.baselineId);
+  assert.deepEqual(f.db.prepare('SELECT * FROM shiyu_state_publication_meta').get(), metadata);
+  assert.deepEqual(f.db.prepare('SELECT * FROM shiyu_state_publication_commands WHERE request_id=?').get('legacy'), legacyRow);
+  f.db.close(); const reopened = f.open();
+  assert.deepEqual(reopened.store.get(), upgraded.publication);
+  assert.deepEqual(reopened.store.publish(actor, initialCommand), legacy);
+  assert.deepEqual(reopened.db.prepare('SELECT * FROM shiyu_state_publication_commands WHERE request_id=?').get('legacy'), legacyRow);
+  assert.equal(count(reopened.db), 2);
+});
+
+test('memory availability metadata is closed, bound to deployment and never substitutes for index proof', t => {
+  const f = fixture(t);
+  assert.throws(() => f.store.publish(actor, { requestId: 'skip-legacy', manifest: memoryManifest() }), code('INVALID_INITIAL_MANIFEST'));
+  const initial = f.store.publish(actor, { requestId: 'legacy', manifest: initialStateManifest() }).publication;
+  const invalid = [
+    { status: 'available' },
+    { ...memoryManifest().domains.memory, body: 'must stay in native memory' },
+    { ...memoryManifest().domains.memory, sourceRefs: [] },
+    { ...memoryManifest().domains.memory, indexWatermark: 1 },
+    { ...memoryManifest().domains.memory, backendId: 'wrong scope whitespace' },
+    { ...memoryManifest().domains.memory, deploymentId: '' },
+    { ...memoryManifest().domains.memory, capabilities: ['semantic_search'] },
+    { ...memoryManifest().domains.memory, capabilities: ['semantic_search', 'exact_read'] },
+    { ...memoryManifest().domains.memory, capabilities: ['exact_read', 'exact_read'] },
+    { ...memoryManifest().domains.memory, capabilities: ['exact_read', 'write'] },
+    { ...memoryManifest().domains.memory, capabilities: ['exact_read', 'semantic_search'] },
+    { ...memoryManifest().domains.memory, profileFingerprint: 'a'.repeat(64) },
+    { ...memoryManifest().domains.memory, profileFingerprint: undefined },
+    { ...memoryManifest(true).domains.memory, profileFingerprint: 'unknown' },
+    { ...memoryManifest(true).domains.memory, profileFingerprint: 'A'.repeat(64) },
+  ];
+  for (const memory of invalid) {
+    const value = { ...memoryManifest(), domains: { ...memoryManifest().domains, memory } } as StateManifest;
+    assert.throws(() => f.store.publish(actor, next(initial, 'invalid', value)), StatePublicationError);
+  }
+  for (const domain of ['relationship', 'emotion', 'cognition', 'personality', 'ability']) {
+    const value = memoryManifest(); (value.domains as Record<string, unknown>)[domain] = structuredClone(value.domains.memory);
+    assert.throws(() => f.store.publish(actor, next(initial, `invalid-${domain}`, value)), StatePublicationError);
+  }
+  const disguisedLegacy = { schemaVersion: 1, domains: memoryManifest().domains } as StateManifest;
+  assert.throws(() => f.store.publish(actor, next(initial, 'legacy-available', disguisedLegacy)), StatePublicationError);
+  let invoked = false;
+  const accessor = memoryManifest(); Object.defineProperty(accessor.domains.memory, 'backendId', { enumerable: true, get: () => { invoked = true; return 'ombre-local'; } });
+  assert.throws(() => f.store.publish(actor, next(initial, 'accessor', accessor)), code('INVALID_SCHEMA'));
+  assert.equal(invoked, false); assert.equal(count(f.db), 1); assert.deepEqual(f.store.get(), initial);
+});
+
+test('schema2 exact and semantic publications use CAS while equivalent metadata does not claim new progress', t => {
+  const f = fixture(t, true), initial = f.store.publish(actor, { requestId: 'legacy', manifest: initialStateManifest() }).publication;
+  const exact = f.store.publish(actor, next(initial, 'exact', memoryManifest())); f.advance();
+  const same = f.store.publish(actor, next(exact.publication, 'same', memoryManifest()));
+  assert.equal(same.status, 'unchanged'); assert.deepEqual(same.publication, exact.publication);
+  const semantic = f.store.publish(actor, next(exact.publication, 'semantic', memoryManifest(true)));
+  assert.equal(semantic.publication.stateVersion, 3); assert.equal(semantic.publication.manifest.domains.memory.status, 'available');
+  assert.throws(() => f.store.publish(actor, next(exact.publication, 'stale-profile', memoryManifest(true))), code('VERSION_CONFLICT'));
+  const before = f.watermark!.read().commitSeq;
+  const rows = f.db.prepare('SELECT total_changes() AS n').get()!.n;
+  for (let i = 0; i < 3; i++) assert.deepEqual(f.store.get(), semantic.publication);
+  assert.equal(f.watermark!.read().commitSeq, before); assert.equal(f.db.prepare('SELECT total_changes() AS n').get()!.n, rows);
+  const changedProfile = memoryManifest(true);
+  if (changedProfile.domains.memory.status === 'available') changedProfile.domains.memory.profileFingerprint = 'b'.repeat(64);
+  const changed = f.store.publish(actor, next(semantic.publication, 'new-profile', changedProfile));
+  assert.equal(changed.publication.stateVersion, 4);
+  assert.deepEqual(f.store.publish(actor, next(initial, 'exact', memoryManifest())), exact);
+});
+
+test('availability can be withdrawn under schema2 without downgrading or rewriting old commands', t => {
+  const f = fixture(t), legacyCommand = { requestId: 'legacy', manifest: initialStateManifest() };
+  const initial = f.store.publish(actor, legacyCommand);
+  const available = f.store.publish(actor, next(initial.publication, 'available', memoryManifest()));
+  assert.throws(() => f.store.publish(actor, next(available.publication, 'downgrade')), code('SCHEMA_DOWNGRADE'));
+  const unavailable: MemoryStateManifest = { schemaVersion: 2, domains: { ...initialStateManifest().domains, memory: { status: 'unavailable', reason: 'source_unavailable' } } };
+  const stopped = f.store.publish(actor, next(available.publication, 'stopped', unavailable));
+  assert.equal(stopped.publication.stateVersion, 3); assert.deepEqual(stopped.publication.manifest.domains.memory, unavailable.domains.memory);
+  assert.deepEqual(f.store.publish(actor, legacyCommand), initial);
+  const resumed = f.store.publish(actor, next(stopped.publication, 'reconnected', memoryManifest()));
+  assert.equal(resumed.publication.stateVersion, 4); assert.equal(count(f.db), 4);
+});
+
+test('a failed memory availability receipt rolls back schema upgrade and leaves legacy publication recoverable', t => {
+  const f = fixture(t), initial = f.store.publish(actor, { requestId: 'legacy', manifest: initialStateManifest() });
+  f.db.exec("CREATE TRIGGER deny_memory_receipt BEFORE INSERT ON shiyu_state_publication_commands BEGIN SELECT RAISE(ABORT,'synthetic memory publication failure'); END");
+  assert.throws(() => f.store.publish(actor, next(initial.publication, 'memory', memoryManifest(true))), /synthetic memory publication failure/);
+  assert.deepEqual(f.store.get(), initial.publication); assert.equal(count(f.db), 1);
+  f.db.exec('DROP TRIGGER deny_memory_receipt');
+  const memory = f.store.publish(actor, next(initial.publication, 'memory', memoryManifest(true)));
+  const current = f.open(); assert.deepEqual(current.store.get(), memory.publication);
+  assert.equal(count(current.db), 2);
 });

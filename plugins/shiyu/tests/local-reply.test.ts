@@ -7,6 +7,7 @@ import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
 import { ControlStore } from '../src/adapters/control-store/index.js';
 import { defaultModel, sessionBindingKey } from '../src/adapters/dsh/sessions.js';
+import type { ContextLoadRequest, ContextLoadResult } from '../src/adapters/dsh/sessions.js';
 import { SHIYU_EVENT_TYPES } from '../src/contracts/events.js';
 import { LocalReplyService, type LocalReplySessionDriver } from '../src/control/local-reply.js';
 
@@ -15,10 +16,29 @@ const sha = (value: string) => createHash('sha256').update(value).digest('hex');
 type Request = Parameters<LocalReplySessionDriver['generateReply']>[0];
 class NativeFixture implements LocalReplySessionDriver {
   readonly requests: Request[] = [];
+  readonly loads: ContextLoadRequest[] = [];
   modelSteps = 0;
   beforeBind?: (request: Request) => Promise<void>;
   afterBind?: (request: Request) => Promise<void>;
   afterLoad?: (request: Request) => Promise<void>;
+  afterLoadOnly?: (request: ContextLoadRequest) => Promise<void>;
+  beforeLoadOnlyReceipt?: (request: ContextLoadRequest) => Promise<void>;
+  async loadContextOnly(request: ContextLoadRequest): Promise<ContextLoadResult> {
+    this.loads.push(request);
+    const sessionId = request.context.expectedSessionId ?? 'shiyu-replyer-synthetic-load';
+    const native = { operationId: request.context.operationId, contextTokenId: request.context.contextTokenId, sessionEpoch: request.context.sessionEpoch,
+      key: sessionBindingKey('replyer', request.businessId, request.scope), businessId: request.businessId, scope: request.scope, sessionId,
+      messageId: `load-message-${request.context.operationId}`, messageHash: sha(request.prompt) };
+    await request.context.authorize({ phase: 'admission', ...native });
+    await request.context.onBound(native); await request.context.authorize({ phase: 'append', ...native });
+    await this.beforeLoadOnlyReceipt?.(request);
+    const contextReceipt = { ...native, userMessageSeq: this.loads.length * 10 + 1, confirmedAt: new Date().toISOString(), durability: 'confirmed' as const };
+    await request.context.authorize({ phase: 'context_ack', ...native }); await request.context.onContextDurable(contextReceipt);
+    await this.afterLoadOnly?.(request); await request.context.authorize({ phase: 'release', ...native });
+    return { mode: 'load-only', inferenceRequested: false, followupRequested: false, contextReceipt,
+      binding: { key: native.key, role: 'replyer', businessId: request.businessId, scope: request.scope, sessionId,
+        model: defaultModel('replyer'), status: 'released', createdAt: contextReceipt.confirmedAt, updatedAt: contextReceipt.confirmedAt, usage: { status: 'unknown' } } };
+  }
   async generateReply(request: Request) {
     this.requests.push(request);
     await request.context.authorize({ phase: 'admission' });
@@ -67,6 +87,51 @@ test('two local inputs use real captures and one stable native binding; duplicat
   const row = new DatabaseSync(f.filename, { readOnly: true });
   try { const records = JSON.stringify(row.prepare('SELECT record_json FROM shiyu_local_reply_inputs').all()); assert.ok(!records.includes(TEXT)); assert.ok(!records.includes('Synthetic current task answer')); }
   finally { row.close(); }
+});
+
+test('load-only confirms native context independently, reuses its Session and never creates a ready assistant draft', async t => {
+  const f = await fixture(t);
+  const first = await f.service.load({ conversationId: f.conversation.conversationId, inputId: 'load-one', text: TEXT });
+  assert.equal(first.operation.status, 'loaded'); assert.equal(first.operation.durability, 'confirmed');
+  assert.equal(first.operation.assistantRef, undefined); assert.equal(first.operation.draftRef, undefined);
+  assert.equal(first.load!.inferenceRequested, false); assert.equal(first.load!.followupRequested, false);
+  const duplicate = await f.service.load({ conversationId: f.conversation.conversationId, inputId: 'load-one', text: TEXT });
+  assert.equal(duplicate.duplicate, true); assert.equal(duplicate.load, undefined); assert.equal(duplicate.view, undefined);
+  const second = await f.service.load({ conversationId: f.conversation.conversationId, inputId: 'load-two', text: TEXT });
+  assert.equal(second.operation.status, 'loaded'); assert.equal(second.load!.binding.sessionId, first.load!.binding.sessionId);
+  assert.equal(second.operation.sessionEpoch, first.operation.sessionEpoch); assert.equal(f.native.loads.length, 2);
+  assert.equal(f.native.requests.length, 0); assert.equal(f.native.modelSteps, 0);
+  const db = new DatabaseSync(f.filename, { readOnly: true });
+  try {
+    const rows = JSON.stringify(db.prepare('SELECT record_json FROM shiyu_local_reply_inputs').all());
+    assert.equal(rows.includes(TEXT), false);
+    for (const row of db.prepare('SELECT record_json FROM shiyu_reply_drafts').all()) assert.equal(JSON.parse(String(row.record_json)).status, 'abandoned');
+  } finally { db.close(); }
+});
+
+test('load-only failure before receipt stays unknown and an identical retry never appends again', async t => {
+  const f = await fixture(t); f.native.beforeLoadOnlyReceipt = async () => { throw new Error('Synthetic lost native append outcome'); };
+  const input = { conversationId: f.conversation.conversationId, inputId: 'unknown-load', text: TEXT };
+  await assert.rejects(f.service.load(input)); assert.equal((await f.latest()).latestReply!.status, 'unknown');
+  const duplicate = await f.service.load(input); assert.equal(duplicate.duplicate, true); assert.equal(duplicate.operation.durability, 'unconfirmed');
+  assert.equal(f.native.loads.length, 1); assert.equal(f.native.requests.length, 0);
+});
+
+test('load-only release failure preserves the exact confirmed loading fact without claiming a completed diagnostic', async t => {
+  const f = await fixture(t); f.native.afterLoadOnly = async () => { throw new Error('Synthetic native release failure'); };
+  await assert.rejects(f.service.load({ conversationId: f.conversation.conversationId, inputId: 'loaded-but-failed', text: TEXT }));
+  const operation = (await f.latest()).latestReply!;
+  assert.equal(operation.status, 'failed'); assert.equal(operation.durability, 'confirmed'); assert.equal(operation.assistantEventSeq, undefined);
+  assert.equal(f.native.requests.length, 0); assert.equal(f.native.modelSteps, 0);
+});
+
+test('withdrawal cancellation notification stops an in-flight load without dispatching any generation', async t => {
+  const f = await fixture(t); let entered!: () => void;
+  const began = new Promise<void>(resolve => { entered = resolve; });
+  f.native.beforeLoadOnlyReceipt = async request => { entered(); await new Promise<void>((_resolve, reject) => request.signal!.addEventListener('abort', () => reject(request.signal!.reason), { once: true })); };
+  const loading = f.service.load({ conversationId: f.conversation.conversationId, inputId: 'withdraw-load', text: TEXT });
+  const rejected = assert.rejects(loading); await began; f.service.cancelConversations([f.conversation.conversationId]); await rejected;
+  assert.equal((await f.latest()).latestReply!.status, 'cancelled'); assert.equal(f.native.requests.length, 0);
 });
 
 test('unknown native dispatch is retained and an identical retry does not dispatch or consume background', async t => {

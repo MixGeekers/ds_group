@@ -1,8 +1,17 @@
 import { assertMemoryBody, canonicalMemoryCommand, memoryBodyDigest, memoryCommandDigest, validateMemoryCreateCommand,
   type MemoryBackendObservation, type MemoryCreateCommand } from '../../contracts/memory.js';
+import { memoryIndexCommandDigest, validateMemoryIndexCommand, validateMemoryIndexObservation, validateMemorySearchRequest,
+  validateMemorySearchResult, validateSemanticBackendStatus, type MemoryIndexCommand, type MemoryIndexObservation,
+  type MemorySearchRequest, type MemorySearchResult, type SemanticBackendStatus } from '../../contracts/semantic-memory.js';
 
 export interface ControlledOmbreBinding { backendId: string; deploymentId: string; scope: 'local-owner' }
 export interface MemoryCallOptions { signal?: AbortSignal; timeoutMs?: number }
+export interface ControlledOmbreOptions {
+  /** Trusted protocol selection, never inferred from a remote response. */
+  semanticApi?: boolean;
+  now?: () => number;
+  onSemanticObservation?(observation: SemanticBackendStatus | MemoryIndexObservation | MemorySearchResult): void;
+}
 export interface ControlledMemoryTransport {
   callTool(request: { name: string; arguments: Readonly<Record<string, unknown>> }, options?: MemoryCallOptions): Promise<unknown>;
 }
@@ -17,7 +26,7 @@ export interface MemoryOperationObservation {
   plannedNativeId: string | null; nativeId: string | null; receipt: NativeMemoryReceipt | null; reason: string | null;
 }
 export class ControlledOmbreError extends Error {
-  constructor(readonly code: 'INVALID_BINDING' | 'INVALID_RESPONSE' | 'TOOL_ERROR' | 'IDENTITY_MISMATCH' | 'UNSETTLED_OPERATION' | 'NATIVE_MISMATCH') {
+  constructor(readonly code: 'INVALID_BINDING' | 'INVALID_RESPONSE' | 'TOOL_ERROR' | 'IDENTITY_MISMATCH' | 'UNSETTLED_OPERATION' | 'NATIVE_MISMATCH' | 'SEMANTIC_DISABLED' | 'DEADLINE_EXCEEDED') {
     super(`Controlled memory ${code}`); this.name = 'ControlledOmbreError';
   }
 }
@@ -40,9 +49,12 @@ const validReason = (value: unknown) => value === null || (typeof value === 'str
 /** Private typed service extension. No raw grow/hold, fallback, retry, or implicit connection. */
 export class ControlledOmbreAdapter {
   readonly binding: Readonly<ControlledOmbreBinding>;
-  constructor(private readonly transport: ControlledMemoryTransport, binding: ControlledOmbreBinding) {
+  private readonly semanticApi: boolean;
+  constructor(private readonly transport: ControlledMemoryTransport, binding: ControlledOmbreBinding, private readonly options: ControlledOmbreOptions = {}) {
     if (!binding || binding.scope !== 'local-owner' || [binding.backendId, binding.deploymentId].some(value => typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._\/-]{0,199}$/.test(value))) fail('INVALID_BINDING');
     this.binding = Object.freeze({ backendId: binding.backendId, deploymentId: binding.deploymentId, scope: binding.scope });
+    if (options.semanticApi !== undefined && typeof options.semanticApi !== 'boolean') fail('INVALID_BINDING');
+    this.semanticApi = options.semanticApi === true;
   }
   private identity(raw: Record<string, unknown>): void {
     if (raw.schemaVersion !== 1 || raw.backendId !== this.binding.backendId || raw.deploymentId !== this.binding.deploymentId || raw.scope !== this.binding.scope) fail('IDENTITY_MISMATCH');
@@ -128,5 +140,47 @@ export class ControlledOmbreAdapter {
       nativeId: receipt.nativeId, receiptId: receipt.receiptId, componentVersion: receipt.componentVersion,
       ...body, sourceRefs: structuredClone(approved.sourceRefs), observedAt: receipt.observedAt,
     } };
+  }
+  private semantic(): void { if (!this.semanticApi) fail('SEMANTIC_DISABLED'); }
+  private deadline(deadlineAtMs: number, options: MemoryCallOptions): MemoryCallOptions {
+    const remaining = deadlineAtMs - (this.options.now?.() ?? Date.now());
+    if (!Number.isSafeInteger(deadlineAtMs) || remaining <= 0 || remaining > 60000) fail('DEADLINE_EXCEEDED');
+    if (options.timeoutMs !== undefined && (!Number.isSafeInteger(options.timeoutMs) || options.timeoutMs < 1 || options.timeoutMs > 60000)) fail('INVALID_RESPONSE');
+    options.signal?.throwIfAborted();
+    return { ...options, timeoutMs: Math.max(1, Math.min(Math.floor(remaining), options.timeoutMs ?? 60000)) };
+  }
+  private indexCommand(value: MemoryIndexCommand): MemoryIndexCommand {
+    const command = validateMemoryIndexCommand(value);
+    if (command.backendId !== this.binding.backendId || command.deploymentId !== this.binding.deploymentId || command.scope !== this.binding.scope) fail('IDENTITY_MISMATCH');
+    return command;
+  }
+  /** Pure backend read; configured/profile-compatible is not a successful inference probe. */
+  async backendStatus(options: MemoryCallOptions = {}): Promise<SemanticBackendStatus> {
+    this.semantic();
+    const result = validateSemanticBackendStatus(await this.call('shiyu_memory_backend_status', { scope: this.binding.scope }, options), this.binding);
+    this.options.onSemanticObservation?.(result); return result;
+  }
+  /** One explicitly authorized indexing attempt. Independent indexStatus is required before control-ledger confirmation. */
+  async ensureIndex(value: MemoryIndexCommand, options: MemoryCallOptions = {}): Promise<MemoryIndexObservation> {
+    this.semantic(); const command = this.indexCommand(value);
+    const raw = await this.call('shiyu_memory_index_ensure', { command, commandDigest: memoryIndexCommandDigest(command) }, this.deadline(command.deadlineAtMs, options));
+    this.deadline(command.deadlineAtMs, options);
+    const result = validateMemoryIndexObservation(raw, command);
+    this.options.onSemanticObservation?.(result); return result;
+  }
+  /** Historical command deadlines do not prohibit an explicit, read-only outcome reconciliation. */
+  async indexStatus(value: MemoryIndexCommand, options: MemoryCallOptions = {}): Promise<MemoryIndexObservation> {
+    this.semantic(); const command = this.indexCommand(value);
+    const result = validateMemoryIndexObservation(await this.call('shiyu_memory_index_status', { indexOperationId: command.indexOperationId, scope: this.binding.scope }, options), command);
+    this.options.onSemanticObservation?.(result); return result;
+  }
+  /** Candidate metadata only; no returned ID grants authority to read a body. */
+  async searchCandidates(value: MemorySearchRequest, options: MemoryCallOptions = {}): Promise<MemorySearchResult> {
+    this.semantic(); const request = validateMemorySearchRequest(value);
+    if (request.scope !== this.binding.scope) fail('IDENTITY_MISMATCH');
+    const raw = await this.call('shiyu_memory_search_candidates', { ...request }, this.deadline(request.deadlineAtMs, options));
+    this.deadline(request.deadlineAtMs, options);
+    const result = validateMemorySearchResult(raw, request, this.binding);
+    this.options.onSemanticObservation?.(result); return result;
   }
 }

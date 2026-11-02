@@ -30,6 +30,13 @@ export const CONTROL_AUTHORITY_V2: MandateStoreOptions = freeze({
     'memory.erase': { tokens: 0, calls: 0, effects: 1 },
   },
 });
+/** Indexing is an explicitly budgeted derived write, separate from saving a body. */
+export const CONTROL_AUTHORITY_V3: MandateStoreOptions = freeze({
+  ...CONTROL_AUTHORITY_V2,
+  dispatcherActions: { ...CONTROL_AUTHORITY_V2.dispatcherActions, [MEMORY_DISPATCHER.principalId]: [...memoryActions, 'memory.index'] },
+  reconcilerActions: { ...CONTROL_AUTHORITY_V2.reconcilerActions, [MEMORY_VERIFIER.principalId]: [...memoryActions, 'memory.index'] },
+  actionCosts: { ...CONTROL_AUTHORITY_V2.actionCosts, 'memory.index': { tokens: 0, calls: 0, effects: 1 } },
+});
 const MIGRATION_ID = 'shiyu-control-authority-task-v1-memory-v2';
 const instances = new WeakMap<DatabaseSync, { transactions: SqliteTransactions; store: MandateStore }>();
 
@@ -50,16 +57,24 @@ export function createControlAuthority(db: DatabaseSync, transactions: SqliteTra
   const store = transactions.atomic(() => {
     const catalogExists = db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='shiyu_policy_catalog'").get();
     if (catalogExists) {
-      const currentHash = db.prepare('SELECT policy_hash FROM shiyu_policy_catalog WHERE id=1').get()?.policy_hash;
+      let currentHash = db.prepare('SELECT policy_hash FROM shiyu_policy_catalog WHERE id=1').get()?.policy_hash;
       if (currentHash === policyCatalogHash(TASK_AUTHORITY_V1)) {
         const legacy = new MandateStore(db, transactions, { ...TASK_AUTHORITY_V1, ...options });
         migrateMandateCatalog(db, transactions, { migrationId: MIGRATION_ID, expectedRevision: 1,
           expectedPolicyHash: legacy.catalog().policyHash, target: CONTROL_AUTHORITY_V2, ...options });
-      } else if (currentHash !== policyCatalogHash(CONTROL_AUTHORITY_V2)) {
-        throw new MandateError('INCOMPATIBLE_POLICY', 'Control authority only migrates the reviewed Task v1 declaration');
+        currentHash = policyCatalogHash(CONTROL_AUTHORITY_V2);
+      }
+      if (currentHash === policyCatalogHash(CONTROL_AUTHORITY_V2)) {
+        const legacy = new MandateStore(db, transactions, { ...CONTROL_AUTHORITY_V2, ...options });
+        const previous = legacy.catalog();
+        if (![1, 2].includes(previous.revision)) throw new MandateError('INCOMPATIBLE_POLICY', 'Unexpected memory v2 catalog history');
+        migrateMandateCatalog(db, transactions, { migrationId: 'shiyu-control-authority-memory-v2-index-v3',
+          expectedRevision: previous.revision, expectedPolicyHash: previous.policyHash, target: CONTROL_AUTHORITY_V3, ...options });
+      } else if (currentHash !== policyCatalogHash(CONTROL_AUTHORITY_V3)) {
+        throw new MandateError('INCOMPATIBLE_POLICY', 'Control authority only migrates reviewed Task v1 and memory v2 declarations');
       }
     }
-    return new MandateStore(db, transactions, { ...CONTROL_AUTHORITY_V2, ...options });
+    return new MandateStore(db, transactions, { ...CONTROL_AUTHORITY_V3, ...options });
   });
   instances.set(db, { transactions, store });
   return store;

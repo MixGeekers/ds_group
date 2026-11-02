@@ -7,6 +7,11 @@ import { StatePublicationStore, type PublishedState } from '../../state/publicat
 import type { ComponentSnapshot, TrustedViewActor, ViewAccess } from '../../views/index.js';
 import type { CommitWatermark, CommitWatermarkReader } from './commit-watermark.js';
 import { SqliteTransactions } from './transaction.js';
+import type { MemoryDomain, MemoryViewSnapshot } from './memory-domain.js';
+
+export type { MemoryViewSnapshot, MemoryViewSource } from './memory-domain.js';
+export const MEMORY_VIEW_BACKEND = 'native-memory';
+export const MEMORY_VIEW_FIELDS = ['text'] as const;
 
 export type LocalViewPurpose = 'reply_context' | 'task_status';
 export type LocalViewPhase = 'prepare' | 'ack' | 'ready';
@@ -17,9 +22,11 @@ export interface LocalViewCapture {
   safety: LocalReadSafety; index: { mode: 'not-used'; watermark: 0 };
   context: ContextSnapshot & { businessId: string; sessionId?: string };
   tasks: LocalTaskProjection[]; component: ComponentSnapshot;
+  /** Selected, freshly authorized references only; never native memory bodies. */
+  memory?: MemoryViewSnapshot;
 }
 export interface ViewCommands {
-  'view.captureLocal': { input: { conversationId: string; purpose: LocalViewPurpose }; output: LocalViewCapture };
+  'view.captureLocal': { input: { conversationId: string; purpose: LocalViewPurpose; memoryOperationIds?: string[] }; output: LocalViewCapture };
   'view.validateCapture': { input: { captureId: string; phase?: LocalViewPhase }; output: LocalViewCapture };
   'view.state': { input: Record<string, never>; output: PublishedState | undefined };
 }
@@ -29,12 +36,13 @@ interface Options {
   /** Same Worker/connection synchronous reads; no network, session, model, or other external I/O. */
   context(conversationId: string): LocalViewCapture['context'];
   getTask(taskId: string): TaskView;
+  memory?: Pick<MemoryDomain, 'captureForView' | 'validateForView'>;
   now?: () => Date; ttlMs?: number; maxCaptures?: number;
 }
 export class LocalViewError extends Error {
   constructor(readonly code: string, message: string) { super(message); this.name = 'LocalViewError'; }
 }
-const fail = (code: string, message: string): never => { throw new LocalViewError(code, message); };
+function fail(code: string, message: string): never { throw new LocalViewError(code, message); }
 const id = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9_-]{1,200}$/.test(value);
 const clone = <T>(value: T): T => structuredClone(value);
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -68,8 +76,11 @@ export class ViewDomain {
   }
   private prune(): void { const now = this.now().getTime(); for (const [key, value] of this.captures) if (Date.parse(value.expiresAt) <= now) this.captures.delete(key); }
   captureLocal(input: ViewCommands['view.captureLocal']['input']): LocalViewCapture {
-    fields(input, ['conversationId', 'purpose']);
+    fields(input, ['conversationId', 'purpose', 'memoryOperationIds'], ['conversationId', 'purpose']);
     if (!id(input.conversationId) || !['reply_context', 'task_status'].includes(input.purpose)) fail('INVALID_SCHEMA', 'Invalid local conversation view');
+    if (input.memoryOperationIds !== undefined && (input.purpose !== 'reply_context' || !Array.isArray(input.memoryOperationIds)
+      || input.memoryOperationIds.length > 20 || input.memoryOperationIds.some(value => !id(value))
+      || new Set(input.memoryOperationIds).size !== input.memoryOperationIds.length)) fail('INVALID_SCHEMA', 'Invalid bounded memory selection');
     // Never let a caller export a capture whose enclosing transaction may roll back.
     if (this.tx.depth !== 0) fail('TRANSACTION_BOUNDARY', 'Capture must start at the Worker read boundary');
     this.prune(); if (this.captures.size >= this.bound) fail('VIEW_CAPACITY', 'Too many live captures');
@@ -88,23 +99,34 @@ export class ViewDomain {
         if (task.taskId !== taskId || !Number.isSafeInteger(task.version) || task.version < 1) fail('SOURCE_UNAVAILABLE', 'Task aggregate version is unavailable');
         return { taskId: task.taskId, title: task.title, state: task.state, version: task.version, updatedAt: task.updatedAt, stopRequested: task.stopRequested };
       });
+      let memory: MemoryViewSnapshot | undefined;
+      if (input.memoryOperationIds !== undefined) {
+        const published = publication.manifest.domains.memory;
+        if (published.status !== 'available' || !this.options.memory) fail('MEMORY_UNAVAILABLE', 'Memory has no published read capability');
+        memory = this.options.memory.captureForView({ conversationId: input.conversationId, operationIds: input.memoryOperationIds });
+        if (memory.truncated || memory.conversationId !== input.conversationId || memory.sources.length !== input.memoryOperationIds.length
+          || memory.sources.some(source => !input.memoryOperationIds!.includes(source.operationId))
+          || memory.authority.authorizationEpoch !== safety.authEpoch
+          || memory.authority.backendId !== published.backendId || memory.authority.deploymentId !== published.deploymentId) fail('MEMORY_UNAVAILABLE', 'Selected memory provenance is incomplete or belongs to another published backend');
+      }
       const now = this.now(), capturedAt = now.toISOString(), expiresAt = new Date(now.getTime() + this.ttl).toISOString();
       const control = this.options.watermark.read();
       const actor: TrustedViewActor = { principalId: 'local-replyer', role: 'replyer', scopes: ['local-owner'] };
       const appliedSafety = { authEpoch: safety.authEpoch, tombstoneWatermark: safety.tombstoneWatermark };
       const access: ViewAccess = { principalId: actor.principalId, purpose: input.purpose, scope: 'local-owner', audienceIds: ['local-owner'],
-        resourceRefs: [`conversation:${input.conversationId}`, ...tasks.map(task => `task:${task.taskId}`)],
-        components: [{ backendId: 'control-task', fields: [...LOCAL_TASK_FIELDS] }], expiresAt,
+        resourceRefs: [`conversation:${input.conversationId}`, ...tasks.map(task => `task:${task.taskId}`), ...(memory?.sources.map(source => `memory:${source.operationId}`) ?? [])],
+        components: [{ backendId: 'control-task', fields: [...LOCAL_TASK_FIELDS] }, ...(memory ? [{ backendId: MEMORY_VIEW_BACKEND, fields: [...MEMORY_VIEW_FIELDS], authority: 'memory' as const }] : [])], expiresAt,
         policyVersion: safety.policyVersion, authEpoch: safety.authEpoch, tombstoneWatermark: safety.tombstoneWatermark, appliedSafety,
         commitSeq: control.commitSeq, stateVersion: publication.stateVersion, indexWatermark: 0, conversation: clone(context.token),
         authority: { publicationBaselineId: publication.baselineId, policyAuthorityId: safety.policyAuthorityId,
-          deletionAuthorityId: safety.deletionAuthorityId, deletionScope: 'local-task-source', indexMode: 'not-used' } };
+          deletionAuthorityId: safety.deletionAuthorityId, deletionScope: 'local-task-source', indexMode: 'not-used',
+          ...(memory ? { memory: clone(memory.authority) } : {}) } };
       const component: ComponentSnapshot = { capturedAt, verifiedSourceHash: hash(tasks), freshness: { status: 'current' }, appliedSafety, expiresAt,
         records: tasks.map(task => ({ recordId: task.taskId, scope: 'local-owner', audienceIds: ['local-owner'], resourceRefs: [`task:${task.taskId}`], fields: { ...task },
           sourceRefs: [{ sourceId: `task:${task.taskId}`, revision: task.version, observedAt: capturedAt, trustClass: 'trusted-control-ledger' }],
           aggregateVersion: { aggregateType: 'task', aggregateId: task.taskId, version: task.version } })) };
       return { schemaVersion: 1 as const, captureId: randomUUID(), capturedAt, expiresAt, actor, access, publication, control, safety,
-        index: { mode: 'not-used' as const, watermark: 0 as const }, context, tasks, component };
+        index: { mode: 'not-used' as const, watermark: 0 as const }, context, tasks, component, ...(memory ? { memory: clone(memory) } : {}) };
     });
     this.captures.set(capture.captureId, clone(capture)); return clone(capture);
   }
@@ -120,6 +142,11 @@ export class ViewDomain {
       if (safetyKeys.some(key => safety[key] !== capture.safety[key]) || !safety.enabled) fail('VIEW_INVALIDATED', 'Local read authority changed');
       const publication = this.options.publication.get();
       if (!publication || publication.baselineId !== capture.publication.baselineId || publication.stateVersion !== capture.publication.stateVersion) fail('VIEW_INVALIDATED', 'Published inner availability manifest changed');
+      if (capture.memory) {
+        if (!this.options.memory) fail('MEMORY_UNAVAILABLE', 'Memory authority is no longer connected');
+        const checked = this.options.memory.validateForView(capture.memory);
+        if (hash(checked) !== hash(capture.memory)) fail('VIEW_INVALIDATED', 'Memory authorization snapshot changed');
+      }
       const current = this.options.context(capture.context.token.conversationId);
       if (strongKeys.some(key => current.token[key] !== capture.context.token[key]) || current.businessId !== capture.context.businessId
         || (capture.context.sessionId !== undefined && current.sessionId !== capture.context.sessionId)) fail('STALE_CONTEXT', 'Conversation audience, generation, routing or Session binding changed');

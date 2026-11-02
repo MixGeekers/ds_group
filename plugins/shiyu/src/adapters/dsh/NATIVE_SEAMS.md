@@ -2,6 +2,20 @@
 
 2026-11-02，静态核查本机 `/Applications/DeepSeek Harness.app/Contents/Resources/app.asar` 中 DSH `0.2.1-rc.5`。下列行号指 ASAR 内对应 npm 包的 `lib/index.js`，不是其他版本的兼容承诺。实现调用宿主公开服务，没有复制宿主源码或自建模型循环。
 
+## 3F：显式 load-only 原生维护接缝
+
+同一固定宿主重新只读核查：`@deepseek-ai/dsh-agent-loop:906–922` 先 claim inbox 再 pre-step，`1052–1073` 通过 prepareRequest 后才 append `user/message`，`1084–1085` 调用 stream 后才检查 abort。因而在 user/message 监听器中 cancel **不能**证明零 stream；已将测试替身的 user append 移到 pre-step/request 之后，拒绝输入不再伪造加载回执。生成调用已开始后失败，仍可独立证明此前加载。
+
+`loadContextOnly(ContextLoadRequest)` 是独立接口，返回 `ContextLoadResult {mode:'load-only',binding,contextReceipt,inferenceRequested:false,followupRequested:false}`，没有 text/assistantRef/usage 或草稿完成含义。可信回调 phases 为 admission、append、context_ack、release；onBound 持久化身份后才可能追加，receipt 只在 exact full-message seq/hash/surface metadata、flush 与冷读全部确认后提交。调用前后及每次 await 后复核取消与授权；任何 pending inbox 均拒绝，不顺手移除过期项。相同业务 binding 复用原生 Session，每次成功前释放 handle，失败释放不放行成功，已提交的加载回执不因此消失。
+
+原生接缝：`dsh-agent-loop:790–791,822–844` 的 `runMaintenance(job(signal))` 要求真正 idle phase、与其他活动互斥，本身不 wake；maintenance 的公开 status 仍是 idle，因此不能只靠 status 判断独占。并发外来 followup 可能 latch wake（`854–868`），适配器同时保持 load-only/无活动/关闭状态下的 pre-step 与 request 拒绝，任何未知 inbox 都阻止 ack/处置。`dsh-session:1481–1537` 的公开 append 返回不可变完整事件，调用 `append('user/message', officialMessage, {surfaceOp:'append'})`，没有 followup/inject/wake。固定用户标题先于追加，避免 `dsh-session-title:380–383` 自动标题；不 import 或调用压缩模型。
+
+`dsh-session-persistence-jsonl:63–90` 的 read `eventState` 是 aliasing 标记（如 `detached`），**不是**总事件数。冷读仍用官方 projector，最多 2048 连续事件，并用同 handle 的 `read(prefix.length,1)` 确认 EOF；不自造 `eventState.count`。未知输入清理的每次 async 等待后以及 cancel/dispose 前均复核；无法安全处置时保留 handle 和拒绝钩子，不能清掉别人输入。宿主 dispose 内部行为仍属于公共 API 边界，没有另写 teardown 或历史日志。
+
+本轮静态证据的原始包 SHA256：agent-loop `cf57e3ecd487ac5c2553455aaa5cef2c6fb41e6bd61be5aa455675d1d7193033`；session `2f5dd07cb5c744a29abbb8003a8a4cefd9e582c6e2538074ca299a0ddd02a3bf`；session-title `eb814490ca3d0aaabf8f6ddc705a031f99a98709c484c1502c5f28f101cf0eeb`。本轮 `sessions.test.ts` 47 项、`native-context.test.ts` 6 项，共 **53/53** 替身测试；日志 `.local/phase3f-native-context-tests.log`。包括原生顺序、maintenance/late creation、取消、精确冷读、不同 surface、未知输入与清理竞态、同 Session 恢复、回执后失败和丢返回不重发。整包类型检查与集成验收随本切片其他并行模块统一记录，不由这 53 项定向测试代替。
+
+没有调用真实 DSH 或模型。`inferenceRequested:false` 只指此方法没有主动请求生成；真正宿主验收须从 create/resume 起核对完整限定会话事件及标题/压缩旁路，不能把 attach 后局部事件监听当作全宿主费用证明。
+
 ## Replyer 上下文加载与草稿引用
 
 本节接缝依据同一 DSH `0.2.1-rc.5` 的本机源码静态核查。`sessions.ts` 的业务请求通过显式 `context` 安全模式接入；原有 probe 与诊断路径保持独立，不能把普通回复成功当作上下文持久加载证明。

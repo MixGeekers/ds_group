@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { pinOwnedSessionTitle } from './session-title.js';
 import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
-import { coldNativeInbox, flushNative, nativeContextServices, nativeInboxReferences, verifyNativeEvent } from './native-context.js';
+import { appendNativeContextMessage, assertNativeMaintenance, coldNativeInbox, flushNative, nativeContextServices, nativeInboxReferences, verifyNativeEvent } from './native-context.js';
 
 export type SessionRole = 'core' | 'worker' | 'replyer';
 export type ReasoningEffort = 'low' | 'high' | 'max';
@@ -41,10 +41,12 @@ export interface SessionEvent {
   data: any;
   seq?: number;
   time?: number;
+  surfaceOp?: string;
 }
 export interface DshSession {
   id: string;
   header: { agentPreset?: string; [key: string]: unknown };
+  append?(type: 'user/message', data: NativeUserMessage, options: { surfaceOp: 'append' }): SessionEvent;
 }
 export interface DshAgent {
   id: string;
@@ -53,6 +55,7 @@ export interface DshAgent {
   ctx: DshAgentContext;
   followup(message: NativeUserMessage): void;
   whenIdle(): Promise<void>;
+  runMaintenance?<T>(job: (signal: AbortSignal) => T | Promise<T>): Promise<T>;
   cancel(cause: { kind: 'hook'; reason: string }, options?: { keepInbox?: boolean }): void;
   inbox?: { readonly nextTurn: readonly NativeUserMessage[]; readonly nextStep: readonly NativeUserMessage[]; remove(messageId: string): boolean };
 }
@@ -149,6 +152,27 @@ export interface ReplyResult {
   contextReceipt?: ReplyContextReceipt;
   assistantRef?: NativeAssistantRef;
 }
+export type ContextLoadAuthorizationPhase = 'admission' | 'append' | 'context_ack' | 'release';
+export type ContextLoadAuthorizationCheck = Omit<ReplyAuthorizationCheck, 'phase'> & { phase: ContextLoadAuthorizationPhase };
+export interface ContextLoadSafety extends Omit<ReplyContextSafety, 'authorize' | 'staleInbox'> {
+  authorize(check: Readonly<ContextLoadAuthorizationCheck>): void | Promise<void>;
+}
+/** A trusted explicit load, not a reply request or a model prompt dispatch. */
+export interface ContextLoadRequest {
+  businessId: string;
+  scope: string;
+  prompt: string;
+  deadlineMs: number;
+  signal?: AbortSignal;
+  context: ContextLoadSafety;
+}
+export interface ContextLoadResult {
+  mode: 'load-only';
+  binding: SessionBinding;
+  contextReceipt: ReplyContextReceipt;
+  inferenceRequested: false;
+  followupRequested: false;
+}
 export interface ProbeResult {
   ready: true;
   noModelCalled: true;
@@ -222,6 +246,13 @@ interface LiveSession {
   protectInbox?: boolean;
   unknownNativeInput?: boolean;
   inboxEvents?: SessionEvent[];
+  loadOnly?: boolean;
+  loadRun?: {
+    safety: ContextLoadSafety;
+    binding: ReplyContextBinding;
+    event?: SessionEvent;
+    violation?: Error;
+  };
   contextRun?: {
     safety: ReplyContextSafety;
     binding: ReplyContextBinding;
@@ -327,14 +358,22 @@ export class ShiyuSessionAdapter {
     state.disposers.push(ctx.systemPrompt.section({ name: 'shiyu:replyer', order: 0, complete: true, text: READ_ONLY_PROMPT }));
     state.disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: [] })));
     state.disposers.push(ctx.on('agent/request', async (_payload, next) => {
+      const operation = state.operation;
+      const allow = () => {
+        if (state.loadOnly || this.closed || state.closing || !operation || operation !== state.operation || operation.signal.aborted) throw new Error('Managed Session request is not authorized');
+      };
+      allow();
       if (state.contextRun) {
         await state.contextRun.safety.authorize(Object.freeze({ ...state.contextRun.binding, phase: 'pre_step' }));
         this.assertOpen(); throwIfAborted(state.operation?.signal);
       }
-      return { ...await next(), ...state.binding.model, maxTokens: state.operationMaxTokens ?? this.maxTokens };
+      allow();
+      const request = await next();
+      allow();
+      return { ...request, ...state.binding.model, maxTokens: state.operationMaxTokens ?? this.maxTokens };
     }));
     state.disposers.push(ctx.on('agent/pre-step', async (payload, next) => {
-      if (this.closed || state.closing || !state.operation || state.operation.signal.aborted || ++state.steps > 1) return { kind: 'reject' };
+      if (state.loadOnly || this.closed || state.closing || !state.operation || state.operation.signal.aborted || ++state.steps > 1) return { kind: 'reject' };
       if (state.contextRun) {
         try {
           const messages = payload?.messages;
@@ -354,7 +393,7 @@ export class ShiyuSessionAdapter {
     state.disposers.push(ctx.on('agent/inbox/inserted', (payload: { message?: unknown }) => {
       if (!state.protectInbox) return;
       const incoming = payload?.message as { id?: unknown } | undefined;
-      if (!state.contextRun || incoming?.id !== state.contextRun.binding.messageId || nativeMessageHash(incoming) !== state.contextRun.binding.messageHash) {
+      if (state.loadOnly || !state.contextRun || incoming?.id !== state.contextRun.binding.messageId || nativeMessageHash(incoming) !== state.contextRun.binding.messageHash) {
         state.unknownNativeInput = true;
         state.operation?.abort(new Error('Unknown native input arrived during a managed context operation'));
       }
@@ -365,19 +404,24 @@ export class ShiyuSessionAdapter {
         state.inboxEvents ??= []; state.inboxEvents.push(structuredClone(event));
         if (state.inboxEvents.length > 256) state.inboxEvents.shift();
       }
+      if (state.loadRun && /^(?:turn\/|step\/|assistant\/|request\/|compaction\/|session\/title-llm-request)/u.test(event.type)) {
+        state.loadRun.violation = new Error('Unexpected native generation activity during load-only maintenance');
+        state.operation?.abort(state.loadRun.violation);
+      }
       if (!state.operation) return;
       if (state.contextRun && ['user/message', 'assistant/message', 'turn/end'].includes(event.type)) state.contextRun.events.push(structuredClone(event));
       if (event.type === 'assistant/message' || event.type === 'compaction/summary') state.observedEvents?.push(event);
       if (event.type === 'turn/end' && event.data?.reason?.kind !== 'completed') state.turnError = `Model turn ended: ${event.data?.reason?.kind ?? 'unknown'}`;
     }));
   }
-  private async attach(key: string, businessId: string, scope: string, signal?: AbortSignal, fresh = false, expectedSessionId?: string, protectInbox = false): Promise<LiveSession> {
+  private async attach(key: string, businessId: string, scope: string, signal?: AbortSignal, fresh = false, expectedSessionId?: string, protectInbox = false, loadOnly = false): Promise<LiveSession> {
     await this.init();
     this.assertOpen(); throwIfAborted(signal);
     const current = this.live.get(key);
     if (current && !current.closing) {
       if (expectedSessionId && current.binding.sessionId !== expectedSessionId) throw new Error('Expected native Session identity does not match the live binding');
       if (protectInbox) current.protectInbox = true;
+      current.loadOnly = loadOnly;
       if (!fresh) return current;
       await this.release(current);
     }
@@ -394,7 +438,7 @@ export class ShiyuSessionAdapter {
       binding = { key, role: 'replyer', businessId, scope, sessionId: expectedSessionId ?? `${SESSION_PREFIX}${randomUUID()}`, model: resolved, status: 'creating', createdAt: this.timestamp(), updatedAt: this.timestamp(), usage: { status: 'unknown' } };
       this.bindings.set(key, binding);
     }
-    const state: LiveSession = { binding, disposers: [], steps: 0, protectInbox };
+    const state: LiveSession = { binding, disposers: [], steps: 0, protectInbox, loadOnly };
     this.live.set(key, state);
     try {
       await this.update(state, { status: 'creating' });
@@ -432,8 +476,10 @@ export class ShiyuSessionAdapter {
           // Refuse teardown when it could silently erase an unregistered input.
           const known = state.contextRun ? [{ messageId: state.contextRun.binding.messageId, messageHash: state.contextRun.binding.messageHash }, ...state.contextRun.safety.staleInbox ?? []] : [];
           await this.clearKnownInbox(state, known);
+          if (state.unknownNativeInput || nativeInboxReferences(handle.agent.inbox).length) throw new Error('Native inbox changed before managed disposal');
         }
         handle?.agent.cancel({ kind: 'hook', reason: error ?? 'Managed Session released' }, state.protectInbox ? { keepInbox: true } : undefined);
+        if (handle && state.protectInbox && (state.unknownNativeInput || nativeInboxReferences(handle.agent.inbox).length)) throw new Error('Native inbox changed during managed cancellation');
         await handle?.dispose();
       } catch (failure) { disposed = false; errors.push(failure); }
       // If the host fails to dispose, retain the deny hooks on the remaining Agent.
@@ -456,6 +502,9 @@ export class ShiyuSessionAdapter {
       throw new Error('Unknown native input blocks continuation and safe disposal');
     }
     const allowed = new Map(known.map(item => [item.messageId, item.messageHash]));
+    const rejectUnknown = () => {
+      if (state.unknownNativeInput) throw new Error('Unknown native input blocks continuation and safe disposal');
+    };
     const pending = nativeInboxReferences(agent.inbox);
     if (new Set(pending.map(item => item.messageId)).size !== pending.length || pending.some(item => allowed.get(item.messageId) !== item.messageHash)) {
       throw new Error('Unknown native inbox input blocks continuation and safe disposal');
@@ -470,9 +519,13 @@ export class ShiyuSessionAdapter {
         && value.data?.start === current.index && value.data?.removedCount === 1 && Array.isArray(value.data?.inserted) && value.data.inserted.length === 0 && value.data?.outcome === 'canceled');
       if (!event) throw new Error('Native inbox removal has no exact event receipt');
       await flushNative(this.options.ctx, agent.session, signal);
+      rejectUnknown();
       await verifyNativeEvent(this.options.ctx, agent.session.id, event, signal);
+      rejectUnknown();
     }
     if (pending.length && (await coldNativeInbox(this.options.ctx, agent.session.id, REPLYER_PRESET_ID, signal)).length) throw new Error('Native inbox removal was not confirmed by its durable projection');
+    rejectUnknown();
+    if (nativeInboxReferences(agent.inbox).length) throw new Error('Native inbox changed during precise removal');
   }
   private async confirmContext(state: LiveSession, signal: AbortSignal): Promise<ReplyContextReceipt | undefined> {
     if (state.unknownNativeInput) throw new Error('Unknown native input cannot acknowledge a managed context');
@@ -592,6 +645,111 @@ export class ShiyuSessionAdapter {
         }
       }), callerCancellation.signal);
     } finally { clearTimeout(timer); request.signal?.removeEventListener('abort', abort); callerCancellation.signal.removeEventListener('abort', stopOperation); }
+  }
+  /** Explicit zero-generation loading using the host maintenance phase and native history only. */
+  async loadContextOnly(request: ContextLoadRequest): Promise<ContextLoadResult> {
+    const prompt = request.prompt, businessId = request.businessId, scope = request.scope, callerSignal = request.signal;
+    if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 100000) throw new Error('Invalid load-only context body');
+    const provided = request.context;
+    if (!provided || typeof provided.onBound !== 'function' || typeof provided.authorize !== 'function' || typeof provided.onContextDurable !== 'function'
+      || !Number.isSafeInteger(provided.sessionEpoch) || provided.sessionEpoch < 1) throw new Error('Load-only context requires trusted binding, authorization and durability callbacks');
+    for (const value of [provided.operationId, provided.contextTokenId]) {
+      if (typeof value !== 'string' || !value.trim() || value.length > 300) throw new Error('Invalid load-only operation identity');
+    }
+    if (provided.expectedSessionId !== undefined && (typeof provided.expectedSessionId !== 'string' || !provided.expectedSessionId.startsWith(SESSION_PREFIX) || provided.expectedSessionId.length > 300)) throw new Error('Invalid expected native Session identity');
+    if ('staleInbox' in provided) throw new Error('Load-only context cannot remove pending native inputs');
+    const safety: ContextLoadSafety = Object.freeze({ ...provided });
+    const key = sessionBindingKey('replyer', businessId, scope);
+    if (!Number.isSafeInteger(request.deadlineMs)) throw new Error('Load-only context requires an absolute deadlineMs');
+    const remaining = request.deadlineMs - (this.options.now?.() ?? new Date()).getTime();
+    if (remaining <= 0) throw new Error('Load-only context deadline expired');
+    nativeContextServices(this.options.ctx);
+    const operation = new AbortController(), callerCancellation = new AbortController();
+    const stop = () => operation.abort(callerCancellation.signal.reason ?? abortError());
+    const abort = () => callerCancellation.abort(callerSignal?.reason ?? abortError());
+    callerCancellation.signal.addEventListener('abort', stop, { once: true });
+    callerSignal?.addEventListener('abort', abort, { once: true });
+    if (callerSignal?.aborted) abort();
+    const timer = setTimeout(() => callerCancellation.abort(new Error('Load-only context deadline expired')), Math.min(remaining, this.timeoutMs));
+    const base = Object.freeze({ operationId: safety.operationId, contextTokenId: safety.contextTokenId, sessionEpoch: safety.sessionEpoch, key, businessId, scope });
+    const check = (signal: AbortSignal = operation.signal) => { this.assertOpen(); throwIfAborted(operation.signal); throwIfAborted(signal); };
+    const emptyInbox = (items: ReturnType<typeof nativeInboxReferences>) => { if (items.length) throw new Error('Pending native inbox blocks load-only context'); };
+    try {
+      return await untilCancelled<ContextLoadResult>(this.inOrder(key, async () => {
+        check();
+        await safety.authorize(Object.freeze({ ...base, phase: 'admission' })); check();
+        await this.init(); check();
+        const existing = this.bindings.get(key), expected = safety.expectedSessionId;
+        if (expected && existing && existing.sessionId !== expected) throw new Error('Expected native Session identity does not match the managed binding');
+        if (existing?.status === 'archived') throw new Error('Archived native Session cannot serve a business context');
+        const live = this.live.get(key);
+        if (live) {
+          live.protectInbox = true;
+          if (live.handle) emptyInbox(nativeInboxReferences(live.handle.agent.inbox));
+        }
+        const previousId = expected ?? existing?.sessionId;
+        if (previousId) emptyInbox(await coldNativeInbox(this.options.ctx, previousId, REPLYER_PRESET_ID, operation.signal));
+        await this.prepareContextSafety(); check();
+        const userMessage = checkedNativeUserMessage(await this.messageFactory!({ content: [{ type: 'text', text: prompt }], source: { kind: 'user' } }), prompt);
+        check();
+        // Recheck after factory/read waits and before creating or restoring a Session.
+        await safety.authorize(Object.freeze({ ...base, phase: 'admission' })); check();
+        const state = await this.attach(key, businessId, scope, operation.signal, false, expected, true, true);
+        state.operation = operation; state.steps = 0; state.observedEvents = [];
+        const binding: ReplyContextBinding = { ...base, sessionId: state.binding.sessionId, messageId: userMessage.id, messageHash: nativeMessageHash(userMessage) };
+        state.loadRun = { safety, binding };
+        const agent = state.handle!.agent;
+        try {
+          assertNativeMaintenance(agent); check();
+          emptyInbox(nativeInboxReferences(agent.inbox));
+          await safety.authorize(Object.freeze({ ...binding, phase: 'admission' })); check();
+          await safety.onBound(Object.freeze({ ...binding })); check();
+          // No followup, inject, wake or generate call. The host itself rejects
+          // non-idle/reentrant maintenance even though its public status is idle.
+          const receipt = await agent.runMaintenance!(async nativeSignal => {
+            const signal = AbortSignal.any([operation.signal, nativeSignal]);
+            check(signal);
+            emptyInbox(nativeInboxReferences(agent.inbox));
+            await pinOwnedSessionTitle(this.options.ctx, agent.session, '识雨 · 受限回复'); check(signal);
+            await safety.authorize(Object.freeze({ ...binding, phase: 'append' })); check(signal);
+            emptyInbox(nativeInboxReferences(agent.inbox));
+            if (state.unknownNativeInput || state.loadRun?.violation) throw new Error('Unknown native activity blocks load-only context');
+            const event = appendNativeContextMessage(agent.session, userMessage);
+            state.loadRun!.event = event;
+            check(signal);
+            await flushNative(this.options.ctx, agent.session, signal);
+            await verifyNativeEvent(this.options.ctx, binding.sessionId, event, signal);
+            emptyInbox(await coldNativeInbox(this.options.ctx, binding.sessionId, REPLYER_PRESET_ID, signal));
+            check(signal);
+            if (state.unknownNativeInput || state.loadRun?.violation) throw new Error('Unknown native activity blocks context acknowledgement');
+            await safety.authorize(Object.freeze({ ...binding, phase: 'context_ack' })); check(signal);
+            const durable: ReplyContextReceipt = { ...binding, userMessageSeq: event.seq!, confirmedAt: this.timestamp(), durability: 'confirmed' };
+            await safety.onContextDurable(Object.freeze(durable)); check(signal);
+            return durable;
+          });
+          check();
+          if (state.unknownNativeInput || state.loadRun.violation) throw new Error('Unknown native activity prevents a load-only result');
+          emptyInbox(nativeInboxReferences(agent.inbox));
+          await safety.authorize(Object.freeze({ ...binding, phase: 'release' })); check();
+          // A durable loading receipt remains valid if later release fails.
+          // No successful result escapes while an owned handle cannot dispose.
+          state.operation = undefined;
+          await this.release(state);
+          check();
+          if (state.unknownNativeInput || state.loadRun.violation) throw new Error('Unexpected native activity during load-only release');
+          return { mode: 'load-only', binding: structuredClone(state.binding), contextReceipt: receipt, inferenceRequested: false, followupRequested: false };
+        } catch (error) {
+          try { await this.release(state, operation.signal.aborted ? 'cancelled' : 'error', message(error)); }
+          catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Load-only context failed and native cleanup could not be confirmed'); }
+          throw error;
+        } finally {
+          if (state.operation === operation) state.operation = undefined;
+          state.loadRun = undefined; state.observedEvents = undefined;
+          // If disposal failed, retain the unconditional generation deny state.
+          if (!this.live.has(key)) state.loadOnly = false;
+        }
+      }), callerCancellation.signal);
+    } finally { clearTimeout(timer); callerSignal?.removeEventListener('abort', abort); callerCancellation.signal.removeEventListener('abort', stop); }
   }
   async probe(): Promise<ProbeResult> {
     const key = sessionBindingKey('replyer', PROBE_BUSINESS_ID, PROBE_SCOPE);

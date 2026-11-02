@@ -21,8 +21,20 @@ SOURCE_TOOL = "shiyu_strict_create"
 _planned_id = ContextVar("shiyu_planned_native_id", default=None)
 
 
-def strict_manager_class(upstream_class):
+def strict_manager_class(upstream_class, *, enqueue_only=False):
     class StrictBucketManager(upstream_class):
+        async def _index_after_write(self, bucket_id, content):
+            if not enqueue_only:
+                return await super()._index_after_write(bucket_id, content)
+            if self.embedding_outbox is not None:
+                self.embedding_outbox.enqueue(bucket_id, content)
+
+        async def _sync_meaning_embedding(self, bucket_id, meaning_list):
+            if not enqueue_only:
+                return await super()._sync_meaning_embedding(bucket_id, meaning_list)
+            if self.embedding_outbox is not None:
+                self.embedding_outbox.enqueue_meaning(bucket_id, meaning_list[-1] if meaning_list else "")
+
         @asynccontextmanager
         async def _bucket_turn(self, bucket_id):
             expected = _planned_id.get()
@@ -68,6 +80,7 @@ class ControlledStore:
         self._closed = False
         self._mutex = asyncio.Lock()
         self.embedding_enabled = embedding_enabled
+        self.semantic = None
         self.manager = None
         try:
             try:
@@ -268,6 +281,8 @@ class ControlledStore:
 
     def _dispose(self):
         self._closed = True
+        if self.semantic is not None:
+            self.semantic.close()
         if self._db is not None:
             self._db.close()
             self._db = None

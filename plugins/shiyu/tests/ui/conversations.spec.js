@@ -71,7 +71,9 @@ test('control metadata remains read-only across refresh, polling and bilingual n
   await expect(pending).toContainText('javascript:alert("synthetic-only")');
   await expect(pending).toContainText('file:///synthetic/private/note.txt');
   await expect(pending.locator('a,button')).toHaveCount(0);
-  await expect(detail.locator('input,textarea,[contenteditable="true"]')).toHaveCount(0);
+  // Control metadata stays read-only; the explicit load-only diagnostic has its own input.
+  await expect(detail.locator('input,textarea,[contenteditable="true"]')).toHaveCount(1);
+  await expect(detail.getByTestId('context-load-only').locator('input,textarea,[contenteditable="true"]')).toHaveCount(1);
   await expect(page.getByTestId('conversation-link').locator('input,textarea,[contenteditable="true"]')).toHaveCount(0);
   await expect(value(background, '待投递')).toHaveText('0');
   await expect(value(background, '已落库确认')).toHaveText('9');

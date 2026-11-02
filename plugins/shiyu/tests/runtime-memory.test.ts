@@ -131,7 +131,7 @@ test('unconfigured memory remains visible but unavailable and snapshots never in
   const f = await fixture(t, { configured: false });
   for (let i = 0; i < 3; i++) {
     const snapshot = await f.runtime.snapshot();
-    assert.deepEqual(snapshot.memory, { configured: false, ready: false, entries: [] });
+    assert.deepEqual(snapshot.memory, { configured: false, ready: false, semanticConfigured: false, entries: [] });
     assert.equal(snapshot.dependencies.find(row => row.id === 'memory')?.status, 'unconfigured');
   }
   await assert.rejects(f.save('synthetic-conversation'), /backend is unavailable/);

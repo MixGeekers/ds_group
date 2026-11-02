@@ -1,8 +1,8 @@
 # 识雨本体
 
-`@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地任务链路；本地 embedding 尚未连接记忆业务。
+`@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地任务与记忆链路。
 
-**状态：3E 受控普通记忆路径已接入，并完成限定 DSH 保存、精确读回、有序重载和本地撤回验证。** MemoryDomain、共享授权、受控原生 Ombre 服务、Managed 后端与显式本地保存/精确读取/撤回界面已在代码接线。正文只存原生普通桶，控制库与后端 journal 只存元信息；撤回不代表物理删除。Harrier profile 有独立夹具验证，Runtime 当前禁用 embedding，语义检索与六部分 ReadView 仍 unavailable。3D 的 461/461 模块、原版单测试桶与空库 stdio 证据保留；已有 Task、Goal 和同 Session 上下文证据不升级为新路径验收。分批结果、失败与未覆盖范围见[实施记录](<实施记录.md>)及[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
+**状态：3F 语义记忆与原生上下文已接入，限定本地模型和宿主链路已验证。** 3E 已完成限定 DSH 保存、精确读回、有序重载和本地撤回；3F 新增受控 Harrier 生命周期、单独授权的索引操作、同对话语义检索、原生记忆 ReadView 与零推理背景加载。记忆已进入 Session 后，撤回会封存旧绑定并切换安全代次；正常消息继续复用 Session。正文只存原生普通桶，控制库与后端 journal 只存元信息，撤回不代表物理删除。schema1 配置继续关闭 embedding，schema2 才显式启用受控 Harrier；其余五个内层域仍 unavailable。本轮 676 模块、59 Python、154 UI 通过；真实隔离 Harrier 20 次 embedding，宿主两次零推理加载确认了撤回前复用与撤回后新 Session 不含撤回正文。固定标题及恢复标记另作解释，宿主内部查询完整用量未知；分批结果、失败与未覆盖范围见[实施记录](<实施记录.md>)及[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
 
 本包不依赖 Lab 引擎或资料工作台作为运行能力。`lab/` 继续作为独立被测环境，`plugins/shiyu-workbench/` 完整保留。
 
@@ -17,11 +17,11 @@
 | 授权、效果与核验 | Mandate/CAS、原子预算预留、Effect 领取/回执/不确定性、独立产物 SHA256 核验；完成状态与完成事件同事务 | 目前接固定本地合成任务与显式普通记忆保存；取消不假称效果回滚，旧实例及 unknown 不自动重派，多用户与外部设备尚未接入 |
 | 原生 Goal 生命周期 | 原生 Goal 适配、SQLite 绑定/CAS/命令历史、独立完成证明及显式 `goal.verify-lifecycle` 诊断已接 Runtime；真实四步零推理验证通过 | 原生日志拥有 Goal 状态；本地仅存绑定和命令事实，未启用 core/续接循环；一次生命周期通过不代表完整恢复/持续规划验收 |
 | 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、Task 关联、可信完成事件投影、有界扫描；显式本地上下文回复与验证 | 背景消费者不调用模型；Event ack 不等于加载，显式回复须原生持久回执才 ackContext；无渠道发送 |
-| 发布与受限视图 | 六 unavailable 的真实 publication/stateVersion；同 Worker capture、本地读取策略/撤回权威与 localTask ReadView；草稿最终双校验 | 不提供内层正文或记忆写入；30 秒 capture，过期/来源/受众变化拒绝旧视图；版本不与 commitSeq 混用 |
+| 发布与受限视图 | schema2 按实际依赖发布 memory 读取能力，其余五域 unavailable；Task 与 native-memory ReadView、独立删除屏障及最终双校验 | 30 秒 capture，正文异步精确读取前后重核；只读接口不保存记忆，版本不与 commitSeq 或索引水位混用 |
 | 事件与订阅 | 类型目录、发布、订阅增删改查、有限回放、投递领取/确认/失败、重试和统计；事件与匹配投递同事务提交 | live 路径为可信组件消费和 Agent background 引用；Agent 事件工具工厂已实现并合成验证，但尚未挂载到原生 Session，未自动续接 |
 | 本地状态与数据库 | 单实例运行锁、暂停与 Session 绑定保存；SQLite 独立 WorkerThread，事件、Task/Assignment、Mandate/预算及 Effect 共用连接与事务 | 尚无原生 inbox/请求结果完整对账；正常重载、事务/文件故障注入和限定子进程退出不代替完整断电/灾难恢复 |
-| 记忆控制与后端接缝 | MemoryOperation schema2、共享 Mandate/Effect、来源保存同意、受控普通桶创建/独立 status＋get 核验、显式本地读取与资格撤回已在 Runtime 代码接线 | 535 项全量模块、37 项 Python 及限定宿主证据已记录；不自动选取聊天正文，无语义搜索、普通删除/CAS、六域发布或自主整理 |
-| embedding | 固定 Harrier Q8_0 文件身份、1024 维向量、query 前缀、归一化、显式 loopback HTTP 适配 | 本地真实冒烟通过；未接记忆、索引或检索业务，未安装常驻 embedding 服务 |
+| 记忆控制与后端接缝 | 普通桶保存/精确读、共享授权与 Effect、独立索引回执、候选先授权后排序、可能暴露来源登记及撤回失效传播 | 同 Conversation、local-owner；不自动选取聊天正文，无普通物理删除/CAS、自主整理或跨对话分享 |
+| embedding | 固定 Harrier Q8_0、主程序与动态库身份、1024 维/head2000 profile；受控随机 loopback、临时鉴权、随 Runtime 清理 | 显式索引与搜索才请求向量，保存/状态刷新零 embedding；启动健康与 profile 核对不冒称模型实测或全量索引完成 |
 
 仪表盘查看/刷新只读取状态，不自动创建 Session、发布事件或调用模型。可见时每 10 秒刷新，页面隐藏时停止轮询；读取失败保留上次快照并标记状态未确认。显式“检查会话接入”执行零推理探针，“验证模型与会话复用”发送两轮合成输入，“运行本地任务验证”受理固定合成任务并交后台执行。暂停关闭新操作并取消在途模型，不声称回滚已经发生的效果；可信任务完成的纯背景标记仍可落库，不会因此请求模型、续接 Session 或发送消息。
 
@@ -144,7 +144,7 @@ Ombre 的 domain/tag 不是多受众 ACL，“读取”也可能触发原生日�
 
 原生冷投影最多读取 2048 个完整连续事件，未知 inbox、缺段或超限拒绝恢复，不能静默 dispose 清掉未知输入。已确认加载可独立于生成失败保留；Task 版本、受众/路由/世代、策略、撤回或 TTL 失效仍阻止旧草稿。此切片尚未验证长上下文、压缩后恢复或真实渠道。
 
-## 3E：显式普通记忆（限定路径已验）
+## 3E：显式普通记忆（历史限定路径已验）
 
 `memory.rememberLocal` 只接受已有本地对话、稳定 requestId 与用户明确输入的正文。可信控制域登记来源版本和保存同意，以共享 Mandate 预留 1 个 Effect，再派发受控普通 `dynamic` 桶创建；正文不经控制库 IPC 存储。相同请求和内容只返回已存元回执，unknown 不自动重发。独立 `operation_status` 与精确 `get` 同时核对命令、deployment、原生 ID、正文摘要与文件指纹后，才能确认 applied、结算效果并形成当前本地读取资格。
 
@@ -152,7 +152,7 @@ Ombre 的 domain/tag 不是多受众 ACL，“读取”也可能触发原生日�
 
 可信 `<dataDir>/memory/backend.json` 指定固定 backend/deployment、Python、上游源码和独占 vault；配置不存在时不安装、不启动进程。Managed 后端只装载三个私有工具，使用 `env -i` 和 Python `-I` 隔离环境，不连接模型、渠道或原生 Session。运行配置只允许 `embedding: disabled`，显示 `semanticReady=false`。服务和 Harrier profile 的依赖、构建及启动边界见[受控服务说明](<service/ombre/README.md>)与[协议](<service/ombre/PROTOCOL.md>)；Python 37 项、全量 TS 535 项通过，后增 gate 回归合批 16 项通过；未重跑完整 537 项。模拟宿主 UI 首轮 141/142，唯一旧 Task 断言修补后相关 3 项通过，记忆页 29 项已通过；未重跑完整 142 项。
 
-真实 DSH 仅显式保存一段 97 字节合成普通记忆；控制回执、后端回执、原生 ID 与正文/文件 hash 独立一致，按 0 生成 tokens/0 生成 calls/1 effect 结算。有序重载后仍读回同一 ID/回执，无写重放；随后撤回本地同意与授权，原生文件保留且 hash 不变。7 个限定自有 Session 的字节/hash/mtime 和清单全程未变，最后只读刷新 commitSeq 60→60；不据此宣称全机零模型流量。见[真实宿主证据](<artifacts/memory-host-validation.json>)；此前[隔离真实服务链路](<artifacts/phase3e-memory-validation.json>)保留修补前源码快照。当前受控后端作为已启用插件依赖运行，embedding 仍关闭；没有语义搜索、普通物理删除或六域 ReadView。
+真实 DSH 仅显式保存一段 97 字节合成普通记忆；控制回执、后端回执、原生 ID 与正文/文件 hash 独立一致，按 0 生成 tokens/0 生成 calls/1 effect 结算。有序重载后仍读回同一 ID/回执，无写重放；随后撤回本地同意与授权，原生文件保留且 hash 不变。7 个限定自有 Session 的字节/hash/mtime 和清单全程未变，最后只读刷新 commitSeq 60→60；不据此宣称全机零模型流量。见[真实宿主证据](<artifacts/memory-host-validation.json>)；此前[隔离真实服务链路](<artifacts/phase3e-memory-validation.json>)保留修补前源码快照。以上为 3E 当时的 disabled 配置与限定证据；3F 已将受控依赖升级为语义配置，见下节。普通物理删除和完整六域仍未完成。
 
 ## 实际源码入口
 
@@ -168,12 +168,14 @@ src/control/task-runner.ts           原生 worker 与本地产物任务编排
 src/control/goal-lifecycle.ts         以真实 Task/产物/回执验证原生 Goal 生命周期
 src/control/conversations/           稳定业务绑定与背景版本；本地 Task 路径已接入
 src/control/background-pump.ts       有界后台投递扫描与唤醒
-src/control/local-reply.ts           localTask 视图、原生加载回执与草稿双校验编排
+src/control/local-reply.ts           Task/记忆视图、生成/零推理加载与撤回失效编排
 src/control/memory/                  记忆操作控制账本、恢复与本地重新发布
 src/control/local-memory.ts          显式保存、独立回执核验和精确读取编排
+src/control/local-memory-search.ts   显式索引、候选授权、语义搜索与最终整集复核
+src/contracts/semantic-memory.ts     索引证明、profile/水位与搜索协议
 src/contracts/memory.ts              跨 TypeScript/Python 的严格命令与正文摘要契约
-src/state/                           六 unavailable 发布清单与本地读取权威
-src/views/                           只读裁剪服务；localTask 捕获已接入
+src/state/                           memory 能力发布、其余五域 unavailable 与读取权威
+src/views/                           localTask/native-memory 裁剪、独立安全向量与精确读取
 src/adapters/control-store/          SQLite Worker、协议与主线程代理
 src/adapters/control-store/goal-bindings.ts  原生 Goal 引用与命令回执 CAS
 src/adapters/control-store/conversation-domain.ts  可信本地关联、背景投影与原子 ack
@@ -181,7 +183,8 @@ src/adapters/control-store/commit-watermark.ts     控制库持久提交水位�
 src/adapters/control-store/view-domain.ts         同 Worker 可信捕获与新鲜度校验
 src/adapters/control-store/local-reply-domain.ts  输入元记录、原生加载确认与草稿资格
 src/adapters/control-store/authority.ts           Task/Memory 共用授权目录与显式迁移
-src/adapters/control-store/memory-domain.ts       来源同意、记忆操作/效果/预算与本地撤回
+src/adapters/control-store/memory-domain.ts       来源同意、独立删除屏障与本地撤回
+src/adapters/control-store/memory-index-domain.ts 显式索引授权/预算/效果及独立事实核验
 src/adapters/dsh/sessions.ts          受限原生 replyer Session 适配
 src/adapters/dsh/native-message.ts    官方完整 user message 与身份/哈希核对
 src/adapters/dsh/native-context.ts    精确原生回读与冷 inbox 投影
@@ -215,3 +218,11 @@ licenses/                           随发布包保留的第三方完整许可
 ```
 
 第三方来源与本地修改由[来源说明](<THIRD_PARTY_NOTICES.md>)维护。阶段 2 `1e1bdd2` 的限定 **16 文件、198/198 模块**及 **39/39 UI** 保留为已验快照。已同步 `0f946f4` 的 Goal 接线、取消修补及独立模块批次 `npm run check` 为 **304/304**，类型检查/构建/Client 语法检查通过；完整 UI 为 **64/64**。本地对话/后台标记与水位的修复前全量检查为 **345/345 模块、83/83 UI**；事务边界修补后全量为 **348/348 模块**，类型检查/构建/Client 语法通过。UI 文件未变，沿用本切片 **83/83** 结果；两次源码与宿主证据分别记录。3C 全量模块 **421/421**、完整 UI **112/112**，后续上下文尝试轮数显示修补的相关 UI **30/30**；当前登记 113 个 UI 用例，未运行完整 113 项。各批包含旧用例，不能相加成新增数量。模块与 UI 夹具不替代真实 Goal/记忆后端验收，独立模块合成通过也不表示已运行接入。完整规划树仍见[本体文件树规划](<../../架构与设计/识雨本体文件树规划.md>)。
+
+## 3F：语义记忆与安全上下文
+
+在可信 `memory/backend.json` 使用 schema2（完整字段见[适配器配置说明](<src/adapters/ombre/README.md>)）后，Runtime 显式 open 才启动固定 Harrier 与私有 Ombre。`memory.indexLocal` 仅对已保存、仍可读的单条记忆建索引；`memory.searchLocal` 只在同 Conversation 的获准集合内检索，最多 128 个候选、5 个结果。缺索引明确返回 `index_required`，不自动补建。来源、删除屏障或索引水位变化会拒绝在途结果。
+
+`conversation.loadContext` 与普通 `conversation.replyLocal` 共用获准视图和原生加载回执；前者只加载，不 followup 或生成草稿。已暴露来源撤回后，旧 Session 历史保留、绑定失效，下一次输入使用新安全代次。显式保存、索引、搜索与加载分开操作，刷新不触发它们。
+
+离线与真实证据：[实施记录](<实施记录.md>)、[隔离 Harrier](<artifacts/phase3f-semantic-memory-validation.json>)、[限定宿主路径](<artifacts/phase3f-memory-host-validation.json>)。没有跨对话分享、自动记忆抽取、物理删除、自主整理或完整六内层能力。

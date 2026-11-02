@@ -49,19 +49,23 @@ export function validateLocalEmbeddingEndpoint(endpoint: string): URL {
 }
 
 /** This checks the local file; the HTTP API itself cannot attest the server's loaded weights. */
-export async function verifyHarrierArtifact(filePath: string) {
+export async function verifyHarrierArtifact(filePath: string, options: { signal?: AbortSignal } = {}) {
+  options.signal?.throwIfAborted();
   const info = await stat(filePath);
+  options.signal?.throwIfAborted();
   if (!info.isFile() || info.size !== HARRIER_PROFILE.artifactBytes) {
     throw new EmbeddingError('ARTIFACT_MISMATCH', 'Harrier artifact size does not match the pinned Q8_0 file');
   }
   const file = await open(filePath, 'r');
   const header = Buffer.alloc(24);
-  try { await file.read(header, 0, header.length, 0); } finally { await file.close(); }
+  try { options.signal?.throwIfAborted(); await file.read(header, 0, header.length, 0); options.signal?.throwIfAborted(); } finally { await file.close(); }
+  options.signal?.throwIfAborted();
   if (header.toString('ascii', 0, 4) !== 'GGUF' || header.readUInt32LE(4) !== 3 || header.readBigUInt64LE(8) !== 310n) {
     throw new EmbeddingError('ARTIFACT_FORMAT', 'Harrier artifact must be the expected GGUF v3 with 310 tensors');
   }
   const digest = createHash('sha256');
-  for await (const chunk of createReadStream(filePath)) digest.update(chunk);
+  for await (const chunk of createReadStream(filePath, { signal: options.signal })) { options.signal?.throwIfAborted(); digest.update(chunk); }
+  options.signal?.throwIfAborted();
   const sha256 = digest.digest('hex');
   if (sha256 !== HARRIER_PROFILE.artifactSha256) throw new EmbeddingError('ARTIFACT_MISMATCH', 'Harrier artifact SHA256 does not match the pinned evaluation artifact');
   return { sha256, bytes: info.size, format: 'GGUF', version: 3, tensorCount: 310 } as const;

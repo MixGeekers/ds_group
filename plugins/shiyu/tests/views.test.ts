@@ -122,6 +122,28 @@ test('local and component authorization/deletion barriers fail closed before bus
   assert.equal(f.stats().checks, 0);
 });
 
+test('memory has its own baseline and deletion vector even when Task barriers match', async () => {
+  const memory = { backendId: 'ombre-local', deploymentId: 'deployment-a', installationGeneration: 'install-a', authorizationEpoch: 4,
+    deletionBaselineId: 'memory-baseline', deletionScope: 'local-memory-source' as const, tombstoneWatermark: 2, installedAt: start };
+  const setup = () => {
+    const f = fixture();
+    f.state.access.authority = { publicationBaselineId: 'state-baseline', policyAuthorityId: 'policy-baseline',
+      deletionAuthorityId: 'task-baseline', deletionScope: 'local-task-source', indexMode: 'not-used', memory: structuredClone(memory) };
+    f.state.access.components[0].authority = 'memory'; f.state.component.memoryAuthority = structuredClone(memory); return f;
+  };
+  for (const patch of [undefined, { ...memory, tombstoneWatermark: 6 }, { ...memory, deletionBaselineId: 'other' },
+    { ...memory, installationGeneration: 'other' }, { ...memory, deploymentId: 'other' }, { ...memory, authorizationEpoch: 3 }]) {
+    const f = setup(); f.state.component.memoryAuthority = patch;
+    await assert.rejects(f.service.read(actor, request), code('SECURITY_STATE_UNAVAILABLE')); assert.equal(f.stats().checks, 0);
+  }
+  const missing = setup(); delete missing.state.access.authority!.memory;
+  await assert.rejects(missing.service.read(actor, request), code('DEPENDENCY_UNAVAILABLE'));
+  const f = setup(), view = await f.service.read(actor, request);
+  assert.equal(view.data.length, 1); assert.equal(view.tombstoneWatermark, 6); assert.equal(view.authority!.memory!.tombstoneWatermark, 2);
+  f.state.access.authority!.memory!.tombstoneWatermark++;
+  await assert.rejects(f.service.assertCurrent(actor, view.viewId, use), code('VIEW_INVALIDATED'));
+});
+
 test('component versions and freshness remain independent; unavailable sources never recover old summaries', async () => {
   const f = fixture();
   // ReadView access is readonly at the service boundary; the synthetic authority owns this update.

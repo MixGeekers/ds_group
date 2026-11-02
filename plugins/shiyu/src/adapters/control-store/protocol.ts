@@ -9,6 +9,8 @@ import type { ConversationCommands } from './conversation-domain.js';
 import type { CommitWatermark } from './commit-watermark.js';
 import type { ViewCommands } from './view-domain.js';
 import type { MemoryCommands } from './memory-domain.js';
+import type { MemoryIndexCommands } from './memory-index-domain.js';
+import type { AvailableMemoryDomain, UnavailableDomain, StatePublicationReceipt } from '../../state/publication.js';
 
 export interface ControlStoreOptions {
   filename: string;
@@ -21,8 +23,12 @@ export interface ControlStoreOptions {
 }
 
 type WithPrincipal<T = unknown> = { principal: EventPrincipal } & T;
-export interface StoreCommands extends TaskCommands, ConversationCommands, ViewCommands, MemoryCommands {
+export interface StoreCommands extends TaskCommands, ConversationCommands, ViewCommands, MemoryCommands, MemoryIndexCommands {
   'memory.status': { input: Record<string, never>; output: { configured: boolean; ready: boolean; errorCode?: string } };
+  'memory.index.status': { input: Record<string, never>; output: { configured: boolean; ready: boolean; errorCode?: string } };
+  /** Trusted startup/reconciliation only. Never forward public JSON to this command or accept a caller publisher/manifest. */
+  'state.publishMemoryAvailability': { input: { requestId: string; expectedBaselineId: string; expectedStateVersion: number;
+    availability: UnavailableDomain | AvailableMemoryDomain }; output: StatePublicationReceipt };
   /** Trusted read-only control write-commit watermark; not the Event sequence or a ReadView stateVersion. */
   'control.watermark': { input: Record<string, never>; output: CommitWatermark };
   /** Trusted host-to-worker bookkeeping only; never exposed as public/model commands. */

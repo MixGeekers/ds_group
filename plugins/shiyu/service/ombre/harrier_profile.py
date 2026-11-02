@@ -96,9 +96,16 @@ def prepare_input(text: str, role: str) -> str:
 
 
 class _LocalBackend:
-    def __init__(self, endpoint: str, timeout_seconds: float):
+    def __init__(self, endpoint: str, timeout_seconds: float, api_key: str | None = None):
         self.endpoint = endpoint
         self.timeout_seconds = timeout_seconds
+        self._api_key = api_key
+        self._request_count = 0
+
+    @property
+    def request_count(self) -> int:
+        """Started HTTP attempts, including failures but excluding cache hits."""
+        return self._request_count
 
     def model_name(self) -> str:
         return HARRIER_PROFILE["model"]
@@ -116,13 +123,17 @@ class _LocalBackend:
 
     async def generate_async(self, prepared_text: str) -> list[float]:
         payload = {"model": self.model_name(), "input": [prepared_text], "encoding_format": "float"}
+        headers = {"Accept": "application/json"}
+        if self._api_key is not None:
+            headers["Authorization"] = "Bearer " + self._api_key
         try:
             # HTTPX transport defaults to zero retries. No SDK, proxy environment,
-            # redirects, authentication secrets or persistent owned connection.
+            # redirects, ambient credentials or persistent owned connection.
             async with asyncio.timeout(self.timeout_seconds), httpx.AsyncClient(
                     timeout=self.timeout_seconds, trust_env=False, follow_redirects=False) as client:
+                self._request_count += 1
                 async with client.stream("POST", self.endpoint, json=payload,
-                                         headers={"Accept": "application/json"}) as response:
+                                         headers=headers) as response:
                     if response.status_code != 200:
                         raise HarrierProfileError("ENDPOINT_FAILURE", "Embedding endpoint rejected the request")
                     if "application/json" not in response.headers.get("content-type", "").lower():
@@ -149,7 +160,7 @@ class _LocalBackend:
 
 
 def create_harrier_engine_class(upstream_module, *, endpoint: str, profile=None,
-                                timeout_seconds: float = 15.0):
+                                timeout_seconds: float = 15.0, api_key: str | None = None):
     """Return a trusted, explicitly configured upstream engine subclass.
 
     The caller loads only the pinned upstream embedding module, then constructs
@@ -157,6 +168,8 @@ def create_harrier_engine_class(upstream_module, *, endpoint: str, profile=None,
     expose upstream provider/migration/Ollama management routes. ``profile`` is
     a consistency assertion, not model-controlled configuration. A nonempty
     legacy/incompatible index raises REINDEX_REQUIRED without rewriting vectors.
+    ``api_key`` is an optional trusted local endpoint credential, never loaded
+    from environment or included in index identity, status, or diagnostics.
     """
     endpoint = validate_endpoint(endpoint)
     if profile is not None and profile != dict(HARRIER_PROFILE):
@@ -164,6 +177,9 @@ def create_harrier_engine_class(upstream_module, *, endpoint: str, profile=None,
     if (isinstance(timeout_seconds, bool) or not isinstance(timeout_seconds, (int, float))
             or not math.isfinite(timeout_seconds) or not 0 < timeout_seconds <= 60):
         raise HarrierProfileError("INVALID_CONFIG", "Timeout must be positive and at most 60 seconds")
+    if api_key is not None and (not isinstance(api_key, str) or not 1 <= len(api_key) <= 256
+                                or any(not "!" <= character <= "~" for character in api_key)):
+        raise HarrierProfileError("INVALID_CONFIG", "Local API key must contain 1 to 256 visible ASCII characters without whitespace")
     base_class = upstream_module.EmbeddingEngine
 
     class HarrierEmbeddingEngine(base_class):
@@ -185,7 +201,7 @@ def create_harrier_engine_class(upstream_module, *, endpoint: str, profile=None,
             # Disabled parent initialization creates upstream tables without ever
             # constructing its cloud/Ollama providers or mutating caller config.
             super().__init__({**config, "embedding": {**embedding, "enabled": False}})
-            self._backend = _LocalBackend(endpoint, float(timeout_seconds))
+            self._backend = _LocalBackend(endpoint, float(timeout_seconds), api_key)
             self.backend = "shiyu_harrier"
             self.api_format = "shiyu_harrier"
             self.model = HARRIER_PROFILE["model"]

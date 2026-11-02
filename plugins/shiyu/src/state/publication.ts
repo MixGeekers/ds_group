@@ -7,8 +7,20 @@ export type StateDomain = typeof STATE_DOMAINS[number];
 export const UNAVAILABLE_REASONS = ['not_connected', 'not_implemented', 'source_unavailable', 'verification_pending', 'incompatible_version'] as const;
 export type UnavailableReason = typeof UNAVAILABLE_REASONS[number];
 export interface UnavailableDomain { status: 'unavailable'; reason: UnavailableReason }
-/** References to availability only. This first slice accepts no domain body or current-state claim. */
-export interface StateManifest { schemaVersion: 1; domains: Record<StateDomain, UnavailableDomain> }
+/** Frozen 3C schema: every domain is explicitly unavailable. */
+export interface LegacyStateManifest { schemaVersion: 1; domains: Record<StateDomain, UnavailableDomain> }
+export interface AvailableMemoryDomain {
+  status: 'available'; backendId: string; deploymentId: string;
+  capabilities: ['exact_read'] | ['exact_read', 'semantic_search'];
+  /** Identifies a verified semantic profile, never an index completion watermark. */
+  profileFingerprint?: string;
+}
+/** Availability metadata only; memory bodies, safety vectors and index receipts stay with their authorities. */
+export interface MemoryStateManifest {
+  schemaVersion: 2;
+  domains: Record<Exclude<StateDomain, 'memory'>, UnavailableDomain> & { memory: UnavailableDomain | AvailableMemoryDomain };
+}
+export type StateManifest = LegacyStateManifest | MemoryStateManifest;
 export interface PublishedState {
   schemaVersion: 1; baselineId: string; stateVersion: number; manifest: StateManifest;
   manifestHash: string; publishedAt: string; publisherId: string;
@@ -36,7 +48,9 @@ function text(value: unknown, label: string): string {
 }
 function plain(value: unknown, keys: readonly string[], required = keys): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value) || ![Object.prototype, null].includes(Object.getPrototypeOf(value))) fail('INVALID_SCHEMA', 'Expected bounded plain publication metadata');
-  if (Object.keys(value).some(key => !keys.includes(key)) || required.some(key => !Object.hasOwn(value, key))) fail('INVALID_SCHEMA', 'Unknown or missing publication fields');
+  const fields = Object.getOwnPropertyDescriptors(value);
+  if (Object.keys(fields).some(key => !keys.includes(key)) || required.some(key => !Object.hasOwn(fields, key))
+    || Object.values(fields).some(field => !Object.hasOwn(field, 'value'))) fail('INVALID_SCHEMA', 'Unknown, accessor or missing publication fields');
   return value as Record<string, unknown>;
 }
 function positive(value: unknown): number {
@@ -53,17 +67,33 @@ function canonical(value: unknown): string {
   return JSON.stringify(value);
 }
 const digest = (value: unknown): string => createHash('sha256').update(canonical(value)).digest('hex');
+function availableMemory(value: unknown): AvailableMemoryDomain {
+  const item = plain(value, ['status', 'backendId', 'deploymentId', 'capabilities', 'profileFingerprint'], ['status', 'backendId', 'deploymentId', 'capabilities']);
+  const identity = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9:._\/-]{0,199}$/.test(value);
+  if (item.status !== 'available' || !identity(item.backendId) || !identity(item.deploymentId)
+    || !Array.isArray(item.capabilities) || ![1, 2].includes(item.capabilities.length)
+    || item.capabilities[0] !== 'exact_read' || (item.capabilities.length === 2 && item.capabilities[1] !== 'semantic_search')) fail('INVALID_MANIFEST', 'Invalid available memory identity or capabilities');
+  const semantic = item.capabilities.length === 2;
+  if (semantic ? typeof item.profileFingerprint !== 'string' || !/^[a-f0-9]{64}$/.test(item.profileFingerprint)
+    : Object.hasOwn(item, 'profileFingerprint')) fail('INVALID_MANIFEST', 'Semantic memory requires its exact profile fingerprint; exact-only memory has no profile');
+  return { status: 'available', backendId: item.backendId, deploymentId: item.deploymentId,
+    capabilities: semantic ? ['exact_read', 'semantic_search'] : ['exact_read'],
+    ...(semantic ? { profileFingerprint: item.profileFingerprint as string } : {}) };
+}
 function manifest(value: unknown): StateManifest {
   const root = plain(value, ['schemaVersion', 'domains']);
-  if (root.schemaVersion !== 1) fail('INCOMPATIBLE_VERSION', 'Unsupported state manifest schema');
+  if (root.schemaVersion !== 1 && root.schemaVersion !== 2) fail('INCOMPATIBLE_VERSION', 'Unsupported state manifest schema');
   const domains = plain(root.domains, STATE_DOMAINS);
-  const result = {} as Record<StateDomain, UnavailableDomain>;
+  const result = {} as MemoryStateManifest['domains'];
   for (const domain of STATE_DOMAINS) {
+    if (root.schemaVersion === 2 && domain === 'memory' && plain(domains.memory, ['status', 'reason', 'backendId', 'deploymentId', 'capabilities', 'profileFingerprint'], ['status']).status === 'available') {
+      result.memory = availableMemory(domains.memory); continue;
+    }
     const item = plain(domains[domain], ['status', 'reason']);
-    if (item.status !== 'unavailable' || !UNAVAILABLE_REASONS.includes(item.reason as UnavailableReason)) fail('INVALID_MANIFEST', 'This slice accepts only explicit unavailable domains with a registered reason');
+    if (item.status !== 'unavailable' || !UNAVAILABLE_REASONS.includes(item.reason as UnavailableReason)) fail('INVALID_MANIFEST', 'Only schema2 memory can be available; other domains require a registered unavailable reason');
     result[domain] = { status: 'unavailable', reason: item.reason as UnavailableReason };
   }
-  return { schemaVersion: 1, domains: result };
+  return root.schemaVersion === 1 ? { schemaVersion: 1, domains: result as LegacyStateManifest['domains'] } : { schemaVersion: 2, domains: result };
 }
 /** Trusted composition only: never expose this factory as a model or UI command. */
 export function createStatePublisher(principalId: string): StatePublisher {
@@ -72,7 +102,7 @@ export function createStatePublisher(principalId: string): StatePublisher {
   publishers.set(capability, id);
   return capability;
 }
-export function initialStateManifest(): StateManifest {
+export function initialStateManifest(): LegacyStateManifest {
   return { schemaVersion: 1, domains: Object.fromEntries(STATE_DOMAINS.map(domain => [domain, { status: 'unavailable', reason: 'not_connected' }])) as Record<StateDomain, UnavailableDomain> };
 }
 
@@ -159,11 +189,14 @@ export class StatePublicationStore {
       const duplicate = this.prior(requestId, intentHash); if (duplicate) return clone(duplicate);
       const current = this.current();
       if (current?.stateVersion !== expected || current?.baselineId !== expectedBaseline) fail('VERSION_CONFLICT', 'Published state changed; use its current baseline and version');
+      // Historical schema1 commands remain replayable above. A new command must
+      // not silently remove the meaning of an already adopted manifest schema.
+      if (current?.manifest.schemaVersion === 2 && body.schemaVersion === 1) fail('SCHEMA_DOWNGRADE', 'Use a schema2 unavailable declaration instead of downgrading the manifest');
       const recordedAt = instant((this.options.now?.() ?? new Date()).toISOString());
       const unchanged = current !== undefined && canonical(current.manifest) === canonical(body);
       let publication = current;
       if (!unchanged) {
-        if (!current && STATE_DOMAINS.some(domain => body.domains[domain].reason !== 'not_connected')) fail('INVALID_INITIAL_MANIFEST', 'The initial publication must explicitly leave all six domains not connected');
+        if (!current && (body.schemaVersion !== 1 || STATE_DOMAINS.some(domain => body.domains[domain].reason !== 'not_connected'))) fail('INVALID_INITIAL_MANIFEST', 'The initial publication must explicitly leave all six domains not connected under schema1');
         if (current?.stateVersion === Number.MAX_SAFE_INTEGER) fail('VERSION_EXHAUSTED', 'Published state version is exhausted');
         publication = { schemaVersion: 1, baselineId: String(this.metadata().baseline_id), stateVersion: (current?.stateVersion ?? 0) + 1,
           manifest: body, manifestHash: digest(body), publishedAt: recordedAt, publisherId };

@@ -125,6 +125,79 @@ class HarrierTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await engine.get_embedding("synthetic-a")), unit_vector(1))
         self.assertEqual(engine.status()["profile_fingerprint"], PROFILE_FINGERPRINT)
 
+    async def test_only_explicit_local_api_key_is_sent_and_environment_is_ignored(self):
+        key = "synthetic-local-key_0123456789"
+        environment_key = "synthetic-ambient-key-must-not-be-used"
+        with patch.dict("os.environ", {"OPENAI_API_KEY": environment_key, "LLAMA_API_KEY": environment_key,
+                                       "OMBRE_EMBED_API_KEY": environment_key,
+                                       "OMBRE_OLLAMA_URL": "https://example.invalid/v1"}):
+            for configured_key in (None, key):
+                engine = self.engine(api_key=configured_key)
+                self.assertEqual(engine._backend.request_count, 0)
+                await engine._generate_async("synthetic authenticated document")
+                call = self.fixture.calls[-1]
+                self.assertEqual(call["authorization"], None if configured_key is None else "Bearer " + key)
+                self.assertEqual(call["path"], "/v1/embeddings")
+                self.assertNotIn(key, json.dumps(call["body"]))
+                self.assertEqual(engine.profile_fingerprint, PROFILE_FINGERPRINT)
+                self.assertEqual(dict(engine.profile), dict(HARRIER_PROFILE))
+                self.assertNotIn(key, json.dumps(engine.status()))
+                self.assertNotIn(key, json.dumps(self.query_db("SELECT key,value FROM embeddings_meta")))
+        self.assertEqual(len(self.fixture.calls), 2)
+
+    async def test_api_key_not_leaked_by_errors_logs_or_redirects(self):
+        key = "synthetic-private-endpoint-key"
+        engine = self.engine(api_key=key)
+        self.fixture.status = 500
+        self.fixture.response = {"secret": key}
+        with self.assertLogs("ombre_brain.embedding", level="WARNING") as captured:
+            self.assertFalse(await engine.generate_and_store("synthetic-failure", "synthetic document"))
+        self.assertNotIn(key, "\n".join(captured.output))
+        self.assertNotIn(key, json.dumps(engine.status()))
+        self.assertEqual(engine._backend.request_count, 1)
+        redirected = Fixture()
+        self.addCleanup(redirected.close)
+        self.fixture.status = 302
+        self.fixture.redirect = redirected.endpoint
+        with self.assertRaises(HarrierProfileError) as caught:
+            await engine._generate_async("synthetic redirected document")
+        self.assertEqual(caught.exception.code, "ENDPOINT_FAILURE")
+        self.assertNotIn(key, str(caught.exception))
+        self.assertEqual(engine._backend.request_count, 2)
+        self.assertEqual(len(self.fixture.calls), 2)
+        self.assertEqual(redirected.calls, [])
+
+    async def test_request_counter_is_read_only_and_counts_attempts_not_cache_hits(self):
+        engine = self.engine()
+        self.assertEqual(engine._backend.request_count, 0)
+        with self.assertRaises(AttributeError):
+            engine._backend.request_count = 7
+        with self.assertRaisesRegex(HarrierProfileError, "INVALID_INPUT"):
+            await engine._generate_async(" ")
+        self.assertEqual(engine._backend.request_count, 0)
+        await engine._generate_async("same", role="document")
+        await engine._generate_async("same", role="document")
+        self.assertEqual(engine._backend.request_count, 1)
+        await engine._generate_async("same", role="query")
+        self.assertEqual(engine._backend.request_count, 2)
+        self.fixture.status = 500
+        for expected_count in (3, 4):
+            with self.assertRaisesRegex(HarrierProfileError, "ENDPOINT_FAILURE"):
+                await engine._generate_async("failed request")
+            self.assertEqual(engine._backend.request_count, expected_count)
+        await engine._generate_async("same", role="document")
+        self.assertEqual(engine._backend.request_count, 4)
+        self.assertEqual(len(self.fixture.calls), 4)
+
+    def test_api_key_requires_bounded_visible_ascii_without_whitespace(self):
+        for key in ("", "a" * 257, "with space", "a\tb", "a\nb", "a\rb", "a\0b", "a\x7fb", "中文", 1, True, b"key"):
+            with self.subTest(key_type=type(key).__name__), self.assertRaisesRegex(HarrierProfileError, "INVALID_CONFIG"):
+                self.engine(api_key=key)
+        for key in ("!", "~" * 256):
+            engine = self.engine(api_key=key)
+            self.assertEqual(engine._backend.request_count, 0)
+        self.assertEqual(self.fixture.calls, [])
+
     async def test_head2000_before_prefix_and_only_actual_input_is_cached(self):
         engine = self.engine()
         prefix = "语" * 2000
@@ -146,6 +219,7 @@ class HarrierTests(unittest.IsolatedAsyncioTestCase):
         inputs = sorted(call["body"]["input"][0] for call in self.fixture.calls)
         self.assertEqual(inputs, sorted([HARRIER_PROFILE["query_prefix"] + "same", "same", "other"]))
         self.assertEqual(engine._input_role.get(), "document")
+        self.assertEqual(engine._backend.request_count, 3)
 
     async def test_empty_index_initializes_and_nonempty_profile_is_required(self):
         engine = self.engine()
@@ -217,6 +291,7 @@ class HarrierTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(self.fixture.calls), 1)
         self.assertEqual(engine._input_role.get(), "document")
         self.assertEqual(engine.status()["last_error_code"], "ENDPOINT_FAILURE")
+        self.assertEqual(engine._backend.request_count, 1)
 
     async def test_total_deadline_bounds_slow_trickling_response(self):
         engine = self.engine(timeout_seconds=0.05)

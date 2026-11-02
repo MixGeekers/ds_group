@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "description": "预先冻结的中文合成验收集；不是用户资料，也不是模型生成的评测答案。",
+  "documents": [
+    { "id": "tea", "conversation": "primary", "body": "林雨在下午休息时最喜欢喝不加糖的桂花乌龙茶，通常使用白色陶瓷杯。" },
+    { "id": "commute", "conversation": "primary", "body": "陈舟每天骑蓝色折叠自行车去工作室，单程大约二十分钟；下雨时改乘地铁。" },
+    { "id": "cat", "conversation": "primary", "body": "许然养的橘猫叫南瓜，每天傍晚六点吃晚饭，最爱追逐羽毛玩具。" },
+    { "id": "observatory", "conversation": "primary", "body": "白沙天文馆每周六上午九点开放，望远镜体验需要提前一天在线预约。" },
+    { "id": "bread", "conversation": "primary", "body": "周宁烤酸面包时会在面团里加入迷迭香和核桃，烤箱提前预热到二百二十摄氏度。" },
+    { "id": "parcel", "conversation": "primary", "body": "顾禾把网购包裹统一寄到北门蓝色快递柜，取件后会把纸箱放进楼下回收箱。" },
+    { "id": "music", "conversation": "primary", "body": "沈安每周三晚上七点在社区活动室练习大提琴，周末则去公园听爵士乐。" },
+    { "id": "plants", "conversation": "primary", "body": "温梨把多肉植物摆在朝南阳台的木架上，每隔两周的周日早晨浇一次水。" },
+    { "id": "foreign_tea", "conversation": "foreign", "body": "另一独立对话中的陆岚只喝热茉莉花茶，从不选择乌龙茶，她的专用杯是绿色玻璃杯。" },
+    { "id": "foreign_cat", "conversation": "foreign", "body": "另一独立对话中的方牧养了一只名叫雪球的白猫，猫咪每天早上八点在厨房吃早餐。" }
+  ],
+  "oracles": [
+    { "id": "q_tea", "text": "林雨下午休息时喜欢喝哪一种茶？", "expectedDocumentId": "tea" },
+    { "id": "q_commute", "text": "陈舟晴天通常怎样去工作室？", "expectedDocumentId": "commute" },
+    { "id": "q_cat", "text": "许然家橘猫叫什么名字，几点吃晚饭？", "expectedDocumentId": "cat" },
+    { "id": "q_observatory", "text": "周六去白沙天文馆，开放时间和望远镜预约有什么要求？", "expectedDocumentId": "observatory" },
+    { "id": "q_bread", "text": "周宁的酸面包里放哪些配料，烤箱要预热到几度？", "expectedDocumentId": "bread" },
+    { "id": "q_parcel", "text": "顾禾在哪里收网购快递，纸箱怎么处理？", "expectedDocumentId": "parcel" },
+    { "id": "q_music", "text": "沈安什么时候在哪儿练大提琴？", "expectedDocumentId": "music" },
+    { "id": "q_plants", "text": "温梨的多肉放在哪里，多长时间浇水一次？", "expectedDocumentId": "plants" }
+  ],
+  "filterQuery": "陆岚专用的杯子是什么颜色，她只喝哪种茶？",
+  "withdrawQuery": "林雨在下午休息时偏爱哪种饮品？",
+  "withdrawDocumentId": "tea",
+  "passCriteria": { "recallAt3Minimum": 0.875, "sameConversationOnly": true, "withdrawnCandidateAbsent": true, "independentNativeBodyProof": true }
+}

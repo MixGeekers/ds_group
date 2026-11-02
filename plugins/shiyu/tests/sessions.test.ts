@@ -5,6 +5,7 @@ import {
   type DshAgent, type DshAgentContext, type DshContext, type DshSession,
   type SessionBinding, type SessionBindingPort, type SessionEvent,
   type ReplyRequest, type ReplyContextReceipt, type ReplyContextBinding, type ReplyAuthorizationCheck,
+  type ContextLoadRequest, type ContextLoadAuthorizationCheck,
 } from '../src/adapters/dsh/sessions.js';
 import { nativeMessageHash, type NativeMessageInput, type NativeUserMessage } from '../src/adapters/dsh/native-message.js';
 
@@ -286,8 +287,8 @@ test('same binding reuses history, stable identity and unknown missing cache met
   const agent = fake.live.get(first.binding.sessionId)!;
   assert.equal(agent.events.filter(event => event.type === 'user/message').length, 2);
   assert.ok(agent.guards.every(guard => typeof guard({ name: 'new-tool' }) === 'string'));
-  const actualRequest = await agent.hooks.waterfall('agent/request', [{}], async () => ({ provider: 'wrong', model: 'wrong', reasoningEffort: 'max', maxTokens: 999999 }));
-  assert.deepEqual(actualRequest, { ...defaultModel('replyer'), maxTokens: 4096 });
+  assert.deepEqual(fake.requests.at(-1), { ...defaultModel('replyer'), maxTokens: 4096 });
+  await assert.rejects(agent.hooks.waterfall('agent/request', [{}], async () => ({ provider: 'wrong', model: 'wrong' })), /not authorized/);
   assert.equal((await agent.hooks.waterfall('agent/pre-step', [{}], async () => ({ kind: 'enter' }))).kind, 'reject');
   await adapter.close();
   const resumed = new ShiyuSessionAdapter({ createUserMessage: fake.factory, ctx: fake.host, bindings: store, cwd: '/tmp' });
@@ -384,12 +385,13 @@ function contextHost() {
   type NativeRecord = { header: DshSession['header']; events: SessionEvent[]; durable: SessionEvent[]; inbox: NativeUserMessage[] };
   const records = new Map<string, NativeRecord>(), live = new Map<string, DshAgent>(), hooks = new Hooks();
   const localHooks = new Map<string, Hooks>(), titles = new Set<string>();
-  const counts = { creates: 0, resumes: 0, followups: 0, requests: 0, disposes: 0, reads: 0, closes: 0, factories: 0, flushes: 0, removes: 0 };
-  let flushFalse = false, skipFlush = false, corruptRead = false, failGeneration = false, foreignClaim = false;
-  let slow = false, createGate: Promise<void> | undefined, beforeFlush: (() => void) | undefined;
+  const counts = { creates: 0, resumes: 0, followups: 0, requests: 0, disposes: 0, opens: 0, reads: 0, closes: 0, factories: 0, flushes: 0, removes: 0, maintenances: 0, directAppends: 0 };
+  let flushFalse = false, skipFlush = false, corruptRead = false, failGeneration = false, foreignClaim = false, failRequest = false;
+  let missingMaintenance = false, appendFailure = false, disposeFailure = false, corruptSurface = false;
+  let slow = false, createGate: Promise<void> | undefined, maintenanceGate: Promise<void> | undefined, beforeFlush: (() => void) | undefined;
   const waiters = new Map<string, () => void>();
-  const append = (id: string, type: string, data: unknown) => {
-    const record = records.get(id)!; const event = { type, data: structuredClone(data), seq: record.events.length, time: Date.now() };
+  const append = (id: string, type: string, data: unknown, surface?: { surfaceOp: string }) => {
+    const record = records.get(id)!; const event = { type, data: structuredClone(data), seq: record.events.length, time: Date.now(), ...surface };
     record.events.push(event); const agent = live.get(id);
     if (agent) void localHooks.get(id)!.emit('session/event', agent.session, event);
     return event;
@@ -411,8 +413,13 @@ function contextHost() {
     const id = resume ? options.resumeSessionId : options.sessionId;
     if (!resume) seed(id); if (!records.has(id)) throw new Error('Expected native Session is missing');
     const record = records.get(id)!, local = new Hooks(); localHooks.set(id, local);
-    let idle = Promise.resolve(), cancelled = false;
-    const session = { id, header: record.header };
+    let idle = Promise.resolve(), cancelled = false, maintenance: AbortController | undefined;
+    const session: DshSession = { id, header: record.header, append(type, data, options) {
+      assert.ok(maintenance, 'Direct append must run inside exclusive native maintenance'); counts.directAppends++;
+      const event = append(id, type, data, options);
+      if (appendFailure) throw new Error('Native append response lost after commit');
+      return event;
+    } };
     const ctx: DshAgentContext = {
       on: (name, fn) => local.on(name, fn),
       tools: { presentAs: () => () => {}, schemas: () => [], restrict: () => () => {}, guard: () => () => {} },
@@ -420,6 +427,16 @@ function contextHost() {
     };
     const agent: DshAgent = {
       id, session, ctx, status: 'idle',
+      async runMaintenance<T>(job: (signal: AbortSignal) => T | Promise<T>): Promise<T> {
+        if (maintenance || agent.status !== 'idle') throw new Error('Native Agent already has active work');
+        counts.maintenances++; maintenance = new AbortController(); const controller = maintenance;
+        const work = (async () => {
+          try { if (maintenanceGate) await maintenanceGate; return await job(controller.signal); }
+          finally { maintenance = undefined; }
+        })();
+        idle = work.then(() => {}, () => {});
+        return work;
+      },
       inbox: { get nextTurn() { return record.inbox; }, nextStep: [], remove(messageId) {
         const index = record.inbox.findIndex(value => value.id === messageId); if (index < 0) return false;
         record.inbox.splice(index, 1); counts.removes++;
@@ -429,27 +446,30 @@ function contextHost() {
         counts.followups++; cancelled = false; agent.status = 'running'; inject(id, value as NativeUserMessage);
         idle = (async () => {
           const messages = record.inbox.splice(0); append(id, 'agent/inbox/spliced', { target: 'next-turn', start: 0, removedCount: messages.length, inserted: [], outcome: 'consumed' });
-          for (const message of messages) append(id, 'user/message', message);
           const claimed = foreignClaim ? [{ ...messages[0], id: 'unknown-claimed-input' }] : messages;
           const decision = await local.waterfall('agent/pre-step', [{ messages: claimed }], async () => ({ kind: 'enter' }));
-          if (decision.kind === 'reject') { append(id, 'turn/end', { reason: { kind: 'rejected' } }); agent.status = 'idle'; return; }
-          await local.waterfall('agent/request', [{}], async () => ({})); counts.requests++;
+          if (decision.kind === 'reject') { append(id, 'turn/end', { reason: { kind: 'blocked' } }); agent.status = 'idle'; return; }
+          await local.waterfall('agent/request', [{}], async () => { if (failRequest) throw new Error('Native prepareRequest rejected'); return {}; });
+          for (const message of messages) append(id, 'user/message', message, { surfaceOp: 'append' });
+          counts.requests++;
           if (slow) await new Promise<void>(resolve => waiters.set(id, resolve));
           if (failGeneration) { append(id, 'turn/end', { reason: { kind: 'error' } }); agent.status = 'idle'; return; }
           if (!cancelled) append(id, 'assistant/message', { message: { id: `native-assistant-${counts.requests}`, role: 'assistant', content: [{ type: 'text', text: `scoped:${messages[0].content[0].text}` }] }, usage: { inputTokens: 2, outputTokens: 3, totalTokens: 5 } });
           append(id, 'turn/end', { reason: { kind: cancelled ? 'cancelled' : 'completed' } }); agent.status = 'idle';
-        })();
+        })().catch(() => { append(id, 'turn/end', { reason: { kind: 'error' } }); }).finally(() => { agent.status = 'idle'; });
       },
       whenIdle: () => idle,
       cancel(_cause, options) {
         cancelled = true;
+        maintenance?.abort(new Error('Native maintenance cancelled'));
         if (!options?.keepInbox && record.inbox.length) { const removedCount = record.inbox.length; record.inbox.splice(0); append(id, 'agent/inbox/spliced', { target: 'next-turn', start: 0, removedCount, inserted: [], outcome: 'canceled' }); }
         waiters.get(id)?.(); waiters.delete(id);
       },
     };
+    if (missingMaintenance) delete agent.runMaintenance;
     live.set(id, agent); await options.setup(ctx, agent); await hooks.emit('agent/created', { agent });
     if (resume) counts.resumes++; else counts.creates++;
-    return { agent, async dispose() { counts.disposes++; agent.cancel({ kind: 'hook', reason: 'disposed' }); await idle; live.delete(id); record.durable = structuredClone(record.events); } };
+    return { agent, async dispose() { counts.disposes++; if (disposeFailure) throw new Error('Native dispose failed'); agent.cancel({ kind: 'hook', reason: 'disposed' }); await idle; live.delete(id); record.durable = structuredClone(record.events); } };
   };
   const host: DshContext = {
     on: (name, fn) => hooks.on(name, fn),
@@ -460,10 +480,12 @@ function contextHost() {
       if (name === 'sessions') return { async flush(session: DshSession) { counts.flushes++; beforeFlush?.(); if (flushFalse && records.get(session.id)!.events.some(event => event.type === 'user/message')) return false; if (!skipFlush) records.get(session.id)!.durable = structuredClone(records.get(session.id)!.events); return true; } };
       if (name === 'sessionPersistence') return { async open(id: string, mode: string, options: { signal?: AbortSignal }) {
         options.signal?.throwIfAborted(); assert.equal(mode, 'read'); const record = records.get(id); if (!record) throw new Error('Expected native Session is missing');
+        counts.opens++;
         return { header: record.header, inheritedEventCount: 0, async read(offset: number, length: number) {
           counts.reads++; let events = structuredClone(record.durable.slice(offset, offset + length));
           if (corruptRead && length === 1 && events[0]?.type === 'user/message') events = [{ ...events[0], data: { ...events[0].data, id: 'wrong-message' } }];
-          return { eventState: { count: record.durable.length }, events };
+          if (corruptSurface && length === 1 && events[0]?.type === 'user/message') events = [{ ...events[0], surfaceOp: 'replace' }];
+          return { eventState: 'detached', events };
         }, async close() { counts.closes++; } };
       } };
       if (name === 'sessionProjections') return { restore(_initial: unknown, events: SessionEvent[]) {
@@ -474,10 +496,13 @@ function contextHost() {
     },
     agents: { create: options => make(options, false), resume: options => make(options, true), list: () => [...live.values()] },
   };
-  return { host, counts, factory, records, live, seed, inject,
+  return { host, counts, factory, records, live, seed, inject, localHooks,
     setFlushFalse() { flushFalse = true; }, setSkipFlush() { skipFlush = true; }, setCorruptRead() { corruptRead = true; },
     setFailure() { failGeneration = true; }, setForeignClaim() { foreignClaim = true; }, setSlow() { slow = true; },
     setCreateGate(gate: Promise<void>) { createGate = gate; }, setBeforeFlush(fn: () => void) { beforeFlush = fn; },
+    setMaintenanceGate(gate: Promise<void>) { maintenanceGate = gate; }, setMissingMaintenance() { missingMaintenance = true; },
+    setAppendFailure() { appendFailure = true; }, setDisposeFailure() { disposeFailure = true; },
+    setCorruptSurface() { corruptSurface = true; }, setRequestFailure() { failRequest = true; },
   };
 }
 function contextRequest(overrides: Partial<ReplyRequest> = {}) {
@@ -512,7 +537,7 @@ test('context-safe replies persist binding before followup and confirm exact nat
   assert.equal(nativeMessageHash(stored.durable[result.contextReceipt!.userMessageSeq].data), result.contextReceipt!.messageHash);
   assert.equal(stored.durable[result.assistantRef!.eventSeq].data.message.id, result.assistantRef!.messageId);
   assert.ok(fixture.phases.includes('admission')); assert.ok(fixture.phases.includes('pre_step')); assert.ok(fixture.phases.includes('context_ack')); assert.ok(fixture.phases.includes('release'));
-  assert.equal(fake.counts.reads, fake.counts.closes); await adapter.close();
+  assert.equal(fake.counts.opens, fake.counts.closes); await adapter.close();
 });
 
 test('generation changes reuse native Session identity and reopening resumes the expected ID', async () => {
@@ -556,7 +581,7 @@ test('flush participation and matching public readback are both required before 
     const fake = contextHost(); if (failure === 'listener') fake.setFlushFalse(); if (failure === 'writer') fake.setSkipFlush(); if (failure === 'readback') fake.setCorruptRead();
     const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
     const fixture = contextRequest(); await assert.rejects(adapter.generateReply(fixture.request), /durability listener|readback/);
-    assert.equal(fixture.receipts.length, 0); assert.equal(fake.counts.reads, fake.counts.closes); await adapter.close();
+    assert.equal(fixture.receipts.length, 0); assert.equal(fake.counts.opens, fake.counts.closes); await adapter.close();
   }
 });
 
@@ -633,4 +658,187 @@ test('deadline rejects queued requests without starting them and waits for late 
   await Promise.all([a, b]); assert.equal(fake.counts.followups, 0);
   let closed = false; const closing = adapter.close().then(() => { closed = true; }); await pause(); assert.equal(closed, false);
   finishCreate(); await closing; assert.equal(fake.counts.creates, 1); assert.equal(fake.counts.disposes, 1); assert.equal(fake.live.size, 0);
+});
+
+function loadRequest(overrides: Partial<ContextLoadRequest> = {}) {
+  const bound: ReplyContextBinding[] = [], receipts: ReplyContextReceipt[] = [], phases: ContextLoadAuthorizationCheck['phase'][] = [];
+  const request: ContextLoadRequest = { businessId: 'context-load-business', scope: 'local-owner', prompt: 'Authorized immutable ReadView data', deadlineMs: Date.now() + 5000,
+    context: { operationId: 'load-1', contextTokenId: 'load-capture-hash', sessionEpoch: 1,
+      onBound(binding) { bound.push(structuredClone(binding)); }, authorize(check) { phases.push(check.phase); },
+      onContextDurable(receipt) { receipts.push(structuredClone(receipt)); } }, ...overrides };
+  return { request, bound, receipts, phases };
+}
+
+test('pre-step and prepareRequest denials append no native user message and acknowledge no context', async () => {
+  for (const failure of ['pre-step', 'request-hook', 'prepare-request'] as const) {
+    const fake = contextHost(); if (failure === 'prepare-request') fake.setRequestFailure();
+    const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+    const fixture = contextRequest(); let checks = 0;
+    fixture.request.context!.authorize = check => {
+      if (check.phase === 'pre_step' && ++checks === (failure === 'pre-step' ? 1 : failure === 'request-hook' ? 2 : 999)) throw new Error('Admission denied');
+    };
+    await assert.rejects(adapter.generateReply(fixture.request), /Admission denied|Model turn ended: error/);
+    assert.equal([...fake.records.values()].flatMap(record => record.events).filter(event => event.type === 'user/message').length, 0);
+    assert.equal(fixture.receipts.length, 0); assert.equal(fake.counts.requests, 0); await adapter.close();
+  }
+});
+
+test('load-only uses exclusive maintenance with exact durable surface event and never followup or stream', async () => {
+  const fake = contextHost(), store = new BindingStore();
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: store, cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = loadRequest();
+  const onBound = fixture.request.context.onBound;
+  fixture.request.context.onBound = binding => { assert.equal(fake.counts.directAppends, 0); assert.equal(store.rows[0].sessionId, binding.sessionId); return onBound(binding); };
+  fixture.request.context.authorize = async check => {
+    fixture.phases.push(check.phase);
+    if (check.phase === 'append') {
+      const hooks = fake.localHooks.get(check.sessionId!)!;
+      assert.equal((await hooks.waterfall('agent/pre-step', [{ messages: [] }], async () => { assert.fail('Load-only pre-step reached terminal'); })).kind, 'reject');
+      await assert.rejects(hooks.waterfall('agent/request', [{}], async () => { assert.fail('Load-only request reached terminal'); }), /not authorized/);
+    }
+  };
+  const result = await adapter.loadContextOnly(fixture.request);
+  assert.equal(result.mode, 'load-only'); assert.equal(result.inferenceRequested, false); assert.equal(result.followupRequested, false);
+  assert.equal('text' in result, false); assert.equal('assistantRef' in result, false); assert.equal('usage' in result, false);
+  assert.equal(result.binding.status, 'released'); assert.equal(fake.live.size, 0);
+  assert.equal(fake.counts.maintenances, 1); assert.equal(fake.counts.directAppends, 1);
+  assert.equal(fake.counts.followups, 0); assert.equal(fake.counts.requests, 0);
+  assert.deepEqual(fixture.receipts, [result.contextReceipt]);
+  const event = fake.records.get(result.binding.sessionId)!.durable[result.contextReceipt.userMessageSeq];
+  assert.equal(event.surfaceOp, 'append'); assert.equal(nativeMessageHash(event.data), result.contextReceipt.messageHash);
+  assert.deepEqual(new Set(fixture.phases), new Set(['admission', 'append', 'context_ack', 'release']));
+  assert.equal(fake.counts.opens, fake.counts.closes); await adapter.close();
+});
+
+test('load-only repeated explicit inputs and adapter restart retain the exact native Session identity', async () => {
+  const fake = contextHost(), store = new BindingStore();
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: store, cwd: '/tmp', createUserMessage: fake.factory });
+  const first = await adapter.loadContextOnly(loadRequest().request); const second = loadRequest();
+  second.request.context.operationId = 'load-2'; second.request.context.expectedSessionId = first.binding.sessionId;
+  const next = await adapter.loadContextOnly(second.request); assert.equal(next.binding.sessionId, first.binding.sessionId);
+  assert.notEqual(first.contextReceipt.messageId, next.contextReceipt.messageId); await adapter.close();
+  const reopened = new ShiyuSessionAdapter({ ctx: fake.host, bindings: store, cwd: '/tmp', createUserMessage: fake.factory });
+  const third = loadRequest(); third.request.context.operationId = 'load-3'; third.request.context.expectedSessionId = first.binding.sessionId;
+  assert.equal((await reopened.loadContextOnly(third.request)).binding.sessionId, first.binding.sessionId);
+  assert.equal(fake.counts.creates, 1); assert.equal(fake.counts.resumes, 2); assert.equal(fake.counts.followups, 0); assert.equal(fake.counts.requests, 0);
+  assert.equal(fake.records.get(first.binding.sessionId)!.durable.filter(event => event.type === 'user/message').length, 3); await reopened.close();
+});
+
+test('load-only rejects failed binding, missing maintenance and revoked append authorization before user append', async () => {
+  for (const failure of ['binding', 'maintenance', 'permit'] as const) {
+    const fake = contextHost(); if (failure === 'maintenance') fake.setMissingMaintenance();
+    const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+    const fixture = loadRequest();
+    if (failure === 'binding') fixture.request.context.onBound = () => { throw new Error('Binding rejected'); };
+    if (failure === 'permit') fixture.request.context.authorize = check => { if (check.phase === 'append') throw new Error('Permit revoked'); };
+    await assert.rejects(adapter.loadContextOnly(fixture.request), /Binding rejected|maintenance|Permit revoked/);
+    assert.equal(fake.counts.directAppends, 0); assert.equal(fixture.receipts.length, 0); assert.equal(fake.live.size, 0);
+    assert.equal(fake.counts.followups, 0); assert.equal(fake.counts.requests, 0); await adapter.close();
+  }
+});
+
+test('load-only denies durable acknowledgement on flush, writer, exact event or surface mismatch', async () => {
+  for (const failure of ['flush', 'writer', 'event', 'surface'] as const) {
+    const fake = contextHost(); if (failure === 'flush') fake.setFlushFalse(); if (failure === 'writer') fake.setSkipFlush();
+    if (failure === 'event') fake.setCorruptRead(); if (failure === 'surface') fake.setCorruptSurface();
+    const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+    const fixture = loadRequest(); await assert.rejects(adapter.loadContextOnly(fixture.request), /durability listener|readback/);
+    assert.equal(fake.counts.directAppends, 1); assert.equal(fixture.receipts.length, 0); assert.equal(fake.counts.requests, 0);
+    assert.equal(fake.counts.opens, fake.counts.closes); await adapter.close();
+  }
+});
+
+test('load-only cancellation in a late native maintenance callback cannot append or acknowledge', async () => {
+  const fake = contextHost(); let finish!: () => void;
+  fake.setMaintenanceGate(new Promise<void>(resolve => { finish = resolve; }));
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = loadRequest({ deadlineMs: Date.now() + 15 });
+  await assert.rejects(adapter.loadContextOnly(fixture.request), /deadline expired/);
+  assert.equal(fake.counts.maintenances, 1); assert.equal(fake.counts.directAppends, 0);
+  let closed = false; const closing = adapter.close().then(() => { closed = true; }); await pause(); assert.equal(closed, false);
+  finish(); await closing; assert.equal(fake.counts.directAppends, 0); assert.equal(fixture.receipts.length, 0); assert.equal(fake.live.size, 0);
+});
+
+test('load-only preserves a durable loading receipt when later release authorization fails', async () => {
+  const fake = contextHost(), adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = loadRequest(); fixture.request.context.authorize = check => { if (check.phase === 'release') throw new Error('Source changed after load'); };
+  await assert.rejects(adapter.loadContextOnly(fixture.request), /Source changed after load/);
+  assert.equal(fixture.receipts.length, 1); assert.equal(fake.counts.directAppends, 1); assert.equal(fake.counts.requests, 0); assert.equal(fake.live.size, 0); await adapter.close();
+});
+
+test('load-only disposal failure never returns success and retains request-deny hooks', async () => {
+  const fake = contextHost(); fake.setDisposeFailure();
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = loadRequest(); await assert.rejects(adapter.loadContextOnly(fixture.request), /cleanup could not be confirmed/);
+  assert.equal(fixture.receipts.length, 1); assert.equal(fake.live.size, 1);
+  const hooks = fake.localHooks.get(fixture.bound[0].sessionId)!;
+  await assert.rejects(hooks.waterfall('agent/request', [{}], async () => ({})), /not authorized/);
+  await assert.rejects(adapter.close(), /cleanup failed/);
+});
+
+test('load-only refuses unknown cold inbox without resume or loss and rejects racing live inputs', async () => {
+  const fake = contextHost(), id = 'shiyu-replyer-pending-load';
+  const foreign = fake.factory({ content: [{ type: 'text', text: 'Unregistered pending' }], source: { kind: 'user' } }); fake.seed(id, [foreign]);
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = loadRequest(); fixture.request.context.expectedSessionId = id;
+  await assert.rejects(adapter.loadContextOnly(fixture.request), /Pending native inbox/); assert.equal(fake.counts.resumes, 0); assert.equal(fake.counts.disposes, 0);
+  assert.equal(fake.records.get(id)!.inbox[0].id, foreign.id); await adapter.close();
+  const liveFake = contextHost(), liveAdapter = new ShiyuSessionAdapter({ ctx: liveFake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: liveFake.factory });
+  const liveFixture = loadRequest(); liveFixture.request.context.authorize = check => {
+    if (check.phase === 'append') liveFake.inject(check.sessionId!, foreign, true);
+  };
+  await assert.rejects(liveAdapter.loadContextOnly(liveFixture.request), /Unknown native|cleanup/);
+  assert.equal(liveFake.counts.directAppends, 0); assert.equal(liveFake.counts.disposes, 0); assert.equal(liveFixture.receipts.length, 0);
+  await assert.rejects(liveAdapter.close(), /cleanup failed/);
+});
+
+test('foreign inbox insertion during asynchronous cleanup is preserved instead of disposed', async () => {
+  const fake = contextHost(), id = 'shiyu-replyer-cleanup-race';
+  const old = fake.factory({ content: [{ type: 'text', text: 'Known obsolete' }], source: { kind: 'user' } }); fake.seed(id, [old]);
+  const foreign = fake.factory({ content: [{ type: 'text', text: 'New foreign input during flush' }], source: { kind: 'user' } });
+  let inserted = false; fake.setBeforeFlush(() => { if (!inserted && fake.counts.removes) { inserted = true; fake.inject(id, foreign, true); } });
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = contextRequest(); fixture.request.context!.expectedSessionId = id; fixture.request.context!.staleInbox = [{ messageId: old.id, messageHash: nativeMessageHash(old) }];
+  await assert.rejects(adapter.generateReply(fixture.request), /cleanup|Unknown native/);
+  assert.equal(fake.counts.disposes, 0); assert.equal(fake.records.get(id)!.inbox[0].id, foreign.id); assert.equal(fake.counts.requests, 0);
+  await assert.rejects(adapter.close(), /cleanup failed/);
+});
+
+test('load-only deadline covers late native creation and close retains ownership until release', async () => {
+  const fake = contextHost(); let finish!: () => void;
+  fake.setCreateGate(new Promise<void>(resolve => { finish = resolve; }));
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = loadRequest({ deadlineMs: Date.now() + 15 });
+  await assert.rejects(adapter.loadContextOnly(fixture.request), /deadline expired/);
+  let closed = false; const closing = adapter.close().then(() => { closed = true; }); await pause(); assert.equal(closed, false);
+  finish(); await closing; assert.equal(fake.counts.creates, 1); assert.equal(fake.counts.disposes, 1);
+  assert.equal(fake.counts.directAppends, 0); assert.equal(fake.counts.followups, 0); assert.equal(fake.counts.requests, 0); assert.equal(fixture.bound.length, 0);
+});
+
+test('load-only cancellation during post-append flush cannot acknowledge or release success', async () => {
+  const fake = contextHost(), controller = new AbortController();
+  fake.setBeforeFlush(() => { if (fake.counts.directAppends) controller.abort(new Error('Owner stopped loading')); });
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = loadRequest({ signal: controller.signal });
+  await assert.rejects(adapter.loadContextOnly(fixture.request), /Owner stopped loading/);
+  await adapter.close(); assert.equal(fake.counts.directAppends, 1); assert.equal(fixture.receipts.length, 0);
+  assert.equal(fake.counts.followups, 0); assert.equal(fake.counts.requests, 0); assert.equal(fake.live.size, 0);
+});
+
+test('a late load-only message factory cannot create a Session after its deadline', async () => {
+  const fake = contextHost(); let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: async value => { await gate; return fake.factory(value); } });
+  const fixture = loadRequest({ deadlineMs: Date.now() + 15 });
+  await assert.rejects(adapter.loadContextOnly(fixture.request), /deadline expired/); assert.equal(fake.counts.creates, 0);
+  finish(); await adapter.close(); assert.equal(fake.counts.creates, 0); assert.equal(fake.counts.directAppends, 0);
+});
+
+test('load-only never internally replays an append whose committed response is lost', async () => {
+  const fake = contextHost(); fake.setAppendFailure();
+  const adapter = new ShiyuSessionAdapter({ ctx: fake.host, bindings: new BindingStore(), cwd: '/tmp', createUserMessage: fake.factory });
+  const fixture = loadRequest(); await assert.rejects(adapter.loadContextOnly(fixture.request), /append response lost/);
+  assert.equal(fake.counts.directAppends, 1); assert.equal(fixture.receipts.length, 0);
+  assert.equal([...fake.records.values()].flatMap(record => record.events).filter(event => event.type === 'user/message').length, 1);
+  assert.equal(fake.counts.followups, 0); assert.equal(fake.counts.requests, 0); await adapter.close();
 });

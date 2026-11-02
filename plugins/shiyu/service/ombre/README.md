@@ -47,3 +47,9 @@ PYTHONDONTWRITEBYTECODE=1 .local/ombre/.venv/bin/python -m unittest discover -s 
 ## 许可与边界
 
 上游 MIT 许可保留 [LICENSE](LICENSE)，原 archive 为 1087 bytes / CRLF，SHA256 `2c1ba2fc863528b42e0d904205792f538ecf01c7555c0a7ed2080897362b41b6`。既有 research 快照为 1066 bytes / LF；CRLF→LF 后一致，字节 hash 差异不是来源污染。上游声明和本次实测分别记录；此受控切片不声称完整 Ombre 自主能力已接入。
+
+## 3F 语义协议补充
+
+以上原三工具与可选 inline embedding 是历史 v1 接缝。Runtime schema2 使用 `--semantic-api`，严格七工具；普通保存强制不执行 inline embedding，另由 `shiyu_memory_index_ensure` 建索引，并以独立 status 回执验证 content/meaning 向量。新增 journal 只存命令、摘要、向量证明和用量，不复制正文。
+
+查询显式传入获准 native ID 集合，原生严格搜索先过滤再排序；空集与缺索引不请求向量，不运行 BM25、后台索引或自动重试。固定 profile、key-file 与完整协议见[PROTOCOL.md](PROTOCOL.md)。本轮 59 项 Python 测试使用合成向量；另外的真实 Harrier 与 DSH 结果见[本体实施记录](<../../实施记录.md>)，不混称同一证据。
