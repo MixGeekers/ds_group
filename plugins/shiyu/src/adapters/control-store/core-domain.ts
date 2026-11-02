@@ -2,7 +2,9 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import type { CoreAccounting, CoreCandidate, CoreCommands, CoreCommitReceipt, CoreCompletionRequest, CoreDispatchBinding,
   CoreDomainRequest, CoreEvaluation, CoreEvaluationPermit, CoreGoal, CoreNativeObservation, CoreNativeResultReceipt,
-  CorePrepareInput, CoreTaskDelegation, CoreReadCapture } from '../../contracts/core.js';
+  CorePrepareInput, CoreTaskDelegation, CoreReadCapture, CorePlanDraft, CorePlanFactRef, CorePlanFactStatus, CorePlanSnapshot,
+  CorePlanStep, CorePlanStepView, CorePlanStopConditions, CorePlanVersion, CorePlanView } from '../../contracts/core.js';
+import { CORE_KNOWN_REJECTIONS } from '../../contracts/core.js';
 import type { CapabilityAuthorityPort, CapabilityCapture } from '../../contracts/capability.js';
 import type { StatePublicationStore } from '../../state/publication.js';
 import type { LocalReadSafetyStore } from '../../state/safety.js';
@@ -21,6 +23,17 @@ export class CoreDomainError extends Error {
 const fail = (code: string, message: string): never => { throw new CoreDomainError(code, message); };
 const OWNER: TrustedPolicyActor = { principalId: 'local-owner', kind: 'owner', scopes: ['local-owner'] };
 export const CORE_EVALUATION_BUDGET = Object.freeze({ tokens: 16384, calls: 2, effects: 0 });
+/** Bounded plan surface. Limits cover every model-supplied collection and the
+ * replayable revision history; all are enforced before any durable effect. */
+export const CORE_PLAN_LIMITS = Object.freeze({ steps: 16, dependencies: 16, factsPerStep: 8,
+  reasoningRefs: 32, history: 16, parallelDefault: 2 });
+const PLAN_FACT_KINDS = Object.freeze(['owner_basis', 'trigger', 'task', 'capability'] as const);
+const PLAN_VERIFIER = Object.freeze({ kind: 'local-note' as const, verifier: 'artifact.sha256.v1' as const });
+const FACT_REF = /^[A-Za-z0-9][A-Za-z0-9:._/-]{0,199}$/;
+const STEP_ID = /^[A-Za-z0-9_-]{1,40}$/;
+/** The single accepted artifact verifier is bound by the owner-authorized capability. */
+const sameArtifact = (value: unknown): boolean => !!value && typeof value === 'object' && !Array.isArray(value)
+  && canonical(value) === canonical(PLAN_VERIFIER);
 const hash = (value: string) => createHash('sha256').update(value).digest('hex');
 const canonical = (value: unknown): string => JSON.stringify(value, (_key, item: unknown) => item && typeof item === 'object' && !Array.isArray(item)
   ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
@@ -58,7 +71,7 @@ interface StoredEvaluation extends CoreEvaluation { proposalHash?: string }
  */
 export class CoreDomain {
   private readonly mandates;
-  private admitting?: { goalId: string; deliverableId: string };
+  private admitting?: { goalId: string; deliverableId: string; kind: 'task_intent' | 'step_intent'; stepId?: string; planVersion?: number };
   constructor(private readonly db: DatabaseSync, private readonly tx: SqliteTransactions, private readonly options: Options) {
     if (!tx.owns(db)) fail('TRANSACTION_MISMATCH', 'Core and Task must use the shared transaction connection');
     text(options.runtimeIdentity.hostEpoch, 'host epoch'); text(options.runtimeIdentity.installationGeneration, 'installation generation');
@@ -95,7 +108,11 @@ export class CoreDomain {
     this.tx.assertUsable(); text(goalId, 'goalId');
     const row = this.db.prepare('SELECT value FROM shiyu_core_goals WHERE goal_id=?').get(goalId);
     if (!row) return fail('UNKNOWN_CORE_GOAL', 'Owner Core capability is absent');
-    return JSON.parse(String(row.value)) as CoreGoal;
+    const goal = JSON.parse(String(row.value)) as CoreGoal;
+    // Legacy rows predate the plan surface; planVersion has one durable meaning:
+    // zero accepted revisions. No read writes or upgrades persisted rows.
+    if (!Number.isSafeInteger(goal.planVersion) || goal.planVersion < 0) goal.planVersion = 0;
+    return goal;
   }
   get(goalId: string): CoreGoal { return clone(this.read(goalId)); }
   private save(goal: CoreGoal, changed = true): void {
@@ -143,6 +160,280 @@ export class CoreDomain {
       return { ...ref, version: task.task.version, state: task.task.state,
         effectVersions: task.effects.map(effect => ({ effectId: effect.effectId, version: effect.version, status: effect.status })) };
     });
+  }
+  /** Current accepted plan revision. 0 means the legacy unplanned single-step path. */
+  private currentPlan(goal: CoreGoal): CorePlanVersion | undefined {
+    const plans = goal.plans;
+    if (!Array.isArray(plans) || !plans.length) return undefined;
+    const current = plans.at(-1)!;
+    return current.planVersion === goal.planVersion ? current : undefined;
+  }
+  private remainingDeliverables(goal: CoreGoal): CoreGoal['deliverables'] {
+    return goal.deliverables.filter(item => !goal.taskRefs.some(ref => ref.deliverableId === item.id));
+  }
+  private planTaskStates(goal: CoreGoal): { failed: number; unknown: boolean } {
+    let failed = 0, unknown = false;
+    for (const ref of goal.taskRefs) {
+      const state = this.options.tasks.get(ref.taskId).task.state;
+      if (state === 'unknown') unknown = true;
+      if (state === 'failed' || state === 'cancelled') failed++;
+    }
+    return { failed, unknown };
+  }
+  /** Trusted fact catalog for one Goal. Identifiers come from the control ledger,
+   * the current ability authority and the persisted evaluation triggers only. */
+  private planFactCatalog(goal: CoreGoal): Map<string, CorePlanFactStatus> {
+    const catalog = new Map<string, CorePlanFactStatus>();
+    const add = (kind: CorePlanFactRef['kind'], ref: string, state: CorePlanFactStatus['state'], digestValue?: string,
+      observedAt?: string, reasonCode?: string): void => {
+      const key = `${kind}\u0000${ref}`;
+      if (catalog.has(key)) return;
+      catalog.set(key, { kind, ref, state, ...(digestValue ? { digest: digestValue } : {}),
+        ...(observedAt ? { observedAt } : {}), ...(reasonCode ? { reasonCode } : {}) });
+    };
+    add('owner_basis', `owner-core-request:${goal.requestId}`, 'resolved', digest(goal.requestId), goal.createdAt);
+    for (const row of this.db.prepare('SELECT fact_id,value FROM shiyu_core_facts WHERE goal_id=? ORDER BY rowid').all(goal.goalId)) {
+      add('trigger', String(row.fact_id), 'resolved', digest(JSON.parse(String(row.value))));
+    }
+    for (const ref of goal.taskRefs) {
+      const detail = this.options.tasks.get(ref.taskId);
+      const state = detail.task.state;
+      const observedAt = detail.task.updatedAt;
+      const source = digest({ taskId: ref.taskId, version: detail.task.version, state, artifactRef: detail.artifact.artifactRef,
+        expectedSha256: detail.artifact.expectedSha256 });
+      if (state === 'succeeded') add('task', ref.taskId, 'resolved', source, observedAt);
+      else if (state === 'failed' || state === 'cancelled') add('task', ref.taskId, 'conflict', source, observedAt, 'task_terminal_non_success');
+      else if (state === 'unknown') add('task', ref.taskId, 'unknown', source, observedAt, 'task_result_unknown');
+      else add('task', ref.taskId, 'pending', source, observedAt);
+    }
+    try {
+      const capability = this.options.capability.captureForCore();
+      const usable = capability.record.enabled === true && capability.record.usableForAuthorizedTask === true;
+      add('capability', capability.ref.capabilityId, usable ? 'resolved' : 'conflict', digest(capability.record), capability.capturedAt,
+        usable ? undefined : 'capability_not_usable');
+    } catch { /* No captured ability authority means no citable capability fact. */ }
+    return catalog;
+  }
+  private factKey(kind: CorePlanFactRef['kind'], ref: string): string { return `${kind}\u0000${ref}`; }
+  /** Resolve model-cited facts. Missing sources stay explicit `unsourced`; they
+   * are never replaced with an optimistic default. */
+  private resolvePlanFacts(goal: CoreGoal, refs: readonly CorePlanFactRef[]): CorePlanFactStatus[] {
+    const catalog = this.planFactCatalog(goal), resolved: CorePlanFactStatus[] = [];
+    const seen = new Set<string>();
+    for (const ref of refs) {
+      const key = this.factKey(ref.kind, ref.ref);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      resolved.push(catalog.get(key) ?? { kind: ref.kind, ref: ref.ref, state: 'unsourced', reasonCode: 'fact_source_missing' });
+    }
+    return resolved;
+  }
+  private planStepViews(goal: CoreGoal, plan: CorePlanVersion, facts: readonly CorePlanFactStatus[]): CorePlanStepView[] {
+    const byStep = new Map(plan.steps.map(step => [step.stepId, step]));
+    const taskFor = (deliverableId: string) => goal.taskRefs.find(ref => ref.deliverableId === deliverableId);
+    const factStates = new Map(facts.map(item => [this.factKey(item.kind, item.ref), item.state]));
+    const memo = new Map<string, CorePlanStepView['state']>();
+    const stepState = (step: CorePlanStep): CorePlanStepView['state'] => {
+      const known = memo.get(step.stepId); if (known) return known;
+      const ref = taskFor(step.deliverableId);
+      let state: CorePlanStepView['state'];
+      if (ref) {
+        const taskState = this.options.tasks.get(ref.taskId).task.state;
+        state = taskState === 'succeeded' ? 'done' : taskState === 'failed' || taskState === 'cancelled' ? 'failed'
+          : taskState === 'unknown' ? 'unknown' : 'active';
+      } else {
+        const deliverable = goal.deliverables.find(item => item.id === step.deliverableId)!;
+        const dependencyBlocked = (deliverable.dependsOn ?? []).some(dependency => {
+          const dependencyTask = taskFor(dependency);
+          return !dependencyTask || this.options.tasks.get(dependencyTask.taskId).task.state !== 'succeeded';
+        });
+        const planBlocked = step.dependsOn.some(dependency => stepState(byStep.get(dependency)!) !== 'done');
+        const factsResolved = step.requiredFacts.every(item => factStates.get(this.factKey(item.kind, item.ref)) === 'resolved');
+        state = dependencyBlocked || planBlocked ? 'blocked_dependency' : !factsResolved ? 'blocked_fact' : 'ready';
+      }
+      memo.set(step.stepId, state); return state;
+    };
+    return plan.steps.map(step => {
+      const ref = taskFor(step.deliverableId);
+      return { ...clone(step), state: stepState(step),
+        ...(ref ? { taskId: ref.taskId, taskState: this.options.tasks.get(ref.taskId).task.state } : {}) };
+    });
+  }
+  /** Bounded stop policy over admitted work and current required facts. It can
+   * only stop or hold; it never enlarges owner budget, expiry or authority. */
+  private planStopped(goal: CoreGoal, plan: CorePlanVersion, facts: readonly CorePlanFactStatus[],
+    steps: readonly CorePlanStepView[]): string | undefined {
+    const { failed } = this.planTaskStates(goal);
+    const tolerated = plan.stopConditions.onStepFailure === 'stop' ? 0 : plan.stopConditions.maxFailedSteps;
+    if (failed) {
+      if (plan.stopConditions.onStepFailure === 'stop' || failed > tolerated) {
+        return plan.stopConditions.onStepFailure === 'stop' ? 'plan_stopped_step_failed' : 'plan_stopped_failure_limit';
+      }
+    }
+    if (plan.stopConditions.onFactConflict === 'stop' && facts.some(item => item.state === 'conflict')) return 'plan_stopped_fact_conflict';
+    return undefined;
+  }
+  private planSnapshot(goal: CoreGoal, plan: CorePlanVersion, capturedAt: string): CorePlanSnapshot {
+    const facts = this.resolvePlanFacts(goal, plan.steps.flatMap(step => step.requiredFacts));
+    const steps = this.planStepViews(goal, plan, facts);
+    const stopped = this.planStopped(goal, plan, facts, steps);
+    const catalog = this.planFactCatalog(goal);
+    return { schemaVersion: 2, goalId: goal.goalId, planVersion: plan.planVersion, capturedAt,
+      current: clone(plan), steps, facts,
+      availableFacts: [...catalog.values()].map(item => ({ kind: item.kind, ref: item.ref })),
+      ...(stopped ? { stopped: { reasonCode: stopped } } : {}) };
+  }
+  private allowedReasoningRefs(goal: CoreGoal, evaluation?: CoreEvaluation): Set<string> {
+    const allowed = new Set<string>([goal.goalId, `goal:${goal.goalId}`, `owner-core-request:${goal.requestId}`]);
+    const catalog = this.planFactCatalog(goal);
+    for (const item of catalog.values()) { allowed.add(item.ref); allowed.add(`${item.kind}:${item.ref}`); }
+    if (goal.planVersion) allowed.add(`plan:${goal.goalId}:${goal.planVersion}`);
+    for (const ref of evaluation?.triggerRefs ?? []) allowed.add(ref);
+    return allowed;
+  }
+  /** Strict structural parse of the model-owned plan candidate. Trusted material
+   * (hashes, verifier target, budget, mandate, tool identity) has no fields here. */
+  private planDraft(value: unknown): CorePlanDraft {
+    object(value, ['basePlanVersion', 'steps', 'stopConditions', 'reasoningRefs', 'summary']);
+    const draft = value as Record<string, any>;
+    number(draft.basePlanVersion, 'basePlanVersion', 0, CORE_PLAN_LIMITS.history * 1000);
+    text(draft.summary, 'plan summary', 1000);
+    if (!Array.isArray(draft.reasoningRefs) || !draft.reasoningRefs.length || draft.reasoningRefs.length > CORE_PLAN_LIMITS.reasoningRefs
+      || new Set(draft.reasoningRefs).size !== draft.reasoningRefs.length) fail('INVALID_CORE_CANDIDATE', 'Invalid plan reasoning references');
+    for (const ref of draft.reasoningRefs as unknown[]) { if (typeof ref !== 'string' || !FACT_REF.test(ref)) fail('INVALID_CORE_CANDIDATE', 'Invalid plan reasoning reference'); }
+    if (!Array.isArray(draft.steps) || !draft.steps.length || draft.steps.length > CORE_PLAN_LIMITS.steps) fail('INVALID_CORE_CANDIDATE', 'Invalid plan step count');
+    const stepIds = new Set<string>(), deliverableIds = new Set<string>(), steps: CorePlanStep[] = [];
+    for (const rawStep of draft.steps as unknown[]) {
+      object(rawStep, ['stepId', 'deliverableId', 'dependsOn', 'requiredFacts', 'expectedArtifact']);
+      const step = rawStep as Record<string, any>;
+      if (typeof step.stepId !== 'string' || !STEP_ID.test(step.stepId) || stepIds.has(step.stepId)) fail('INVALID_CORE_CANDIDATE', 'Invalid plan step identity');
+      stepIds.add(step.stepId);
+      if (typeof step.deliverableId !== 'string' || !step.deliverableId || step.deliverableId.length > 80 || deliverableIds.has(step.deliverableId)) {
+        fail('INVALID_CORE_CANDIDATE', 'Invalid plan deliverable selection');
+      }
+      deliverableIds.add(step.deliverableId);
+      if (!Array.isArray(step.dependsOn) || step.dependsOn.length > CORE_PLAN_LIMITS.dependencies
+        || new Set(step.dependsOn).size !== step.dependsOn.length) fail('INVALID_CORE_CANDIDATE', 'Invalid plan dependency list');
+      for (const dependency of step.dependsOn as unknown[]) { if (typeof dependency !== 'string' || !STEP_ID.test(dependency)) fail('INVALID_CORE_CANDIDATE', 'Invalid plan dependency identity'); }
+      if (!Array.isArray(step.requiredFacts) || step.requiredFacts.length > CORE_PLAN_LIMITS.factsPerStep) fail('INVALID_CORE_CANDIDATE', 'Invalid plan fact list');
+      const requiredFacts: CorePlanFactRef[] = [];
+      for (const rawFact of step.requiredFacts as unknown[]) {
+        object(rawFact, ['kind', 'ref']);
+        const fact = rawFact as Record<string, any>;
+        if (!PLAN_FACT_KINDS.includes(fact.kind)) fail('INVALID_CORE_CANDIDATE', 'Unsupported plan fact kind');
+        if (typeof fact.ref !== 'string' || !FACT_REF.test(fact.ref)) fail('INVALID_CORE_CANDIDATE', 'Invalid plan fact reference');
+        requiredFacts.push({ kind: fact.kind, ref: fact.ref });
+      }
+      if (!sameArtifact(step.expectedArtifact)) fail('INVALID_CORE_CANDIDATE', 'Unsupported plan artifact verifier');
+      steps.push({ stepId: step.stepId, deliverableId: step.deliverableId, dependsOn: [...step.dependsOn],
+        requiredFacts, expectedArtifact: { ...PLAN_VERIFIER } });
+    }
+    for (const step of steps) for (const dependency of step.dependsOn) {
+      if (!stepIds.has(dependency)) fail('CORE_PLAN_STRUCTURE_INVALID', 'Plan dependency names no declared step');
+    }
+    const visiting = new Set<string>(), visited = new Set<string>();
+    const byStep = new Map(steps.map(step => [step.stepId, step]));
+    const visit = (id: string): void => {
+      if (visiting.has(id)) fail('CORE_PLAN_STRUCTURE_INVALID', 'Plan step dependency cycle');
+      if (visited.has(id)) return;
+      visiting.add(id);
+      for (const dependency of byStep.get(id)!.dependsOn) visit(dependency);
+      visiting.delete(id); visited.add(id);
+    };
+    for (const id of stepIds) visit(id);
+    object(draft.stopConditions, ['onStepFailure', 'maxFailedSteps', 'onFactConflict', 'maxParallelSteps']);
+    const stops = draft.stopConditions as Record<string, any>;
+    if (!['stop', 'continue_independent'].includes(stops.onStepFailure)) fail('INVALID_CORE_CANDIDATE', 'Unsupported plan failure policy');
+    if (!['wait', 'stop'].includes(stops.onFactConflict)) fail('INVALID_CORE_CANDIDATE', 'Unsupported plan fact policy');
+    number(stops.maxFailedSteps, 'maxFailedSteps', 0, 3);
+    number(stops.maxParallelSteps, 'maxParallelSteps', 1, CORE_PLAN_LIMITS.parallelDefault);
+    if (stops.maxFailedSteps > steps.length && stops.onStepFailure === 'continue_independent') fail('INVALID_CORE_CANDIDATE', 'Failure allowance exceeds plan step count');
+    return clone({ basePlanVersion: draft.basePlanVersion, steps,
+      stopConditions: { onStepFailure: stops.onStepFailure, maxFailedSteps: stops.maxFailedSteps,
+        onFactConflict: stops.onFactConflict, maxParallelSteps: stops.maxParallelSteps },
+      reasoningRefs: [...draft.reasoningRefs], summary: draft.summary }) as CorePlanDraft;
+  }
+  /** Validate one candidate plan against current owner authority, trusted facts
+   * and the existing Task/Mandate machinery. It never grants new authority. */
+  private validatePlan(goal: CoreGoal, evaluation: CoreEvaluation, draft: CorePlanDraft): {
+    version: CorePlanVersion; facts: CorePlanFactStatus[] } {
+    if (draft.basePlanVersion !== goal.planVersion) fail('CORE_PLAN_STALE', 'Plan candidate targets another revision');
+    if ((goal.plans?.length ?? 0) >= CORE_PLAN_LIMITS.history) fail('CORE_PLAN_LIMIT', 'Plan revision history is exhausted');
+    const remaining = this.remainingDeliverables(goal);
+    if (!remaining.length) fail('CORE_PLAN_INCOMPLETE', 'No unowned owner deliverable needs a new plan revision');
+    const deliverableIds = new Set(remaining.map(item => item.id));
+    for (const step of draft.steps) {
+      const deliverable = goal.deliverables.find(item => item.id === step.deliverableId);
+      if (!deliverable) fail('CORE_SCOPE_DENIED', 'Plan selects an ungranted owner deliverable');
+      if (goal.taskRefs.some(ref => ref.deliverableId === step.deliverableId)) fail('CORE_DELIVERABLE_OWNED', 'Plan reselects an already owned deliverable');
+      if (!deliverableIds.has(step.deliverableId)) fail('CORE_PLAN_INCOMPLETE', 'Plan selects a deliverable outside the remaining scope');
+      if (!sameArtifact(step.expectedArtifact)) fail('CORE_PLAN_VERIFIER_DENIED', 'Plan cannot choose another artifact verifier');
+    }
+    if (draft.steps.length !== remaining.length) fail('CORE_PLAN_INCOMPLETE', 'Plan must cover every unowned owner deliverable once');
+    const byDeliverable = new Map(draft.steps.map(step => [step.deliverableId, step]));
+    const byStep = new Map(draft.steps.map(step => [step.stepId, step]));
+    for (const step of draft.steps) {
+      const deliverable = goal.deliverables.find(item => item.id === step.deliverableId)!;
+      for (const dependencyId of deliverable.dependsOn ?? []) {
+        const dependencyDeliverable = goal.deliverables.find(item => item.id === dependencyId)!;
+        const owned = goal.taskRefs.find(ref => ref.deliverableId === dependencyId);
+        if (owned) {
+          const state = this.options.tasks.get(owned.taskId).task.state;
+          // A running dependency can be waited on; a terminal non-success or
+          // an uncertain dependency cannot back a new plan revision.
+          if (state === 'failed' || state === 'cancelled' || state === 'unknown') {
+            fail('CORE_PLAN_DEPENDENCY_CONFLICT', 'An owner dependency is terminally non-successful or uncertain');
+          }
+          continue;
+        }
+        const dependencyStep = byDeliverable.get(dependencyDeliverable.id);
+        if (!dependencyStep) fail('CORE_PLAN_INCOMPLETE', 'Plan omits an unowned owner dependency');
+        // Every declared owner dependency must be a transitive plan prerequisite.
+        const reachable = new Set<string>(); const stack = [...step.dependsOn];
+        while (stack.length) { const id = stack.pop()!; if (reachable.has(id)) continue; reachable.add(id); stack.push(...(byStep.get(id)?.dependsOn ?? [])); }
+        if (!reachable.has(dependencyStep!.stepId)) fail('CORE_PLAN_DEPENDENCY_ORDER_INVALID', 'Plan does not order an owner dependency first');
+      }
+    }
+    const facts = this.resolvePlanFacts(goal, draft.steps.flatMap(step => step.requiredFacts));
+    if (facts.some(item => item.state === 'unsourced')) fail('CORE_PLAN_FACT_UNSOURCED', 'Plan requires a fact with no trusted source');
+    const allowed = this.allowedReasoningRefs(goal, evaluation);
+    for (const ref of draft.reasoningRefs) if (!allowed.has(ref)) fail('CORE_PLAN_REF_UNSOURCED', 'Plan reasoning cites an untrusted reference');
+    if (!draft.reasoningRefs.length) fail('CORE_PLAN_REF_UNSOURCED', 'Plan reasoning needs a trusted basis');
+    const planVersion = goal.planVersion + 1;
+    const steps = draft.steps.map(step => {
+      const deliverable = goal.deliverables.find(item => item.id === step.deliverableId)!;
+      return { ...clone(step), expectedSha256: hash(deliverable.content), byteLength: Buffer.byteLength(deliverable.content) };
+    });
+    const body = { schemaVersion: 2 as const, goalId: goal.goalId, planVersion, basePlanVersion: draft.basePlanVersion,
+      evaluationId: evaluation.evaluationId, proposalId: `proposal:${evaluation.evaluationId}`, acceptedAt: this.at(),
+      summary: draft.summary, reasoningRefs: clone(draft.reasoningRefs), triggerRefs: clone(evaluation.triggerRefs),
+      stopConditions: clone(draft.stopConditions), steps, facts };
+    const version: CorePlanVersion = { ...body, planHash: digest(body) };
+    return { version, facts };
+  }
+  /** Deterministically admit the currently ready plan steps up to the plan's
+   * bounded parallelism. Every admission reuses the existing Task/Mandate path. */
+  private admitPlanSteps(goal: CoreGoal, plan: CorePlanVersion, evaluation: CoreEvaluation): { stepId: string; taskId: string }[] {
+    const snapshot = this.planSnapshot(goal, plan, this.at());
+    if (snapshot.stopped) fail(snapshot.stopped.reasonCode, 'The plan stop policy already holds further work');
+    const admitted: { stepId: string; taskId: string }[] = [];
+    let active = 0;
+    for (const ref of goal.taskRefs) {
+      const state = this.options.tasks.get(ref.taskId).task.state;
+      if (!['succeeded', 'failed', 'cancelled', 'unknown'].includes(state)) active++;
+    }
+    for (const step of snapshot.steps) {
+      if (admitted.length + active >= plan.stopConditions.maxParallelSteps) break;
+      if (step.state !== 'ready') continue;
+      if (this.admitting) fail('CORE_REENTRANT', 'Nested Core admissions are not allowed');
+      this.admitting = { goalId: goal.goalId, deliverableId: step.deliverableId, kind: 'step_intent', stepId: step.stepId, planVersion: plan.planVersion };
+      try {
+        const task = this.options.tasks.admitCoreIntent({ goalId: goal.goalId, deliverableId: step.deliverableId, proposalId: `proposal:${evaluation.evaluationId}` });
+        goal.taskRefs.push({ deliverableId: step.deliverableId, taskId: task.task.taskId });
+        admitted.push({ stepId: step.stepId, taskId: task.task.taskId });
+      } finally { this.admitting = undefined; }
+    }
+    return admitted;
   }
   private needsNewNote(goal: CoreGoal): boolean {
     return goal.deliverables.some(item => !goal.taskRefs.some(ref => ref.deliverableId === item.id));
@@ -245,7 +536,8 @@ export class CoreDomain {
       const completionCriteria = canonical({ schemaVersion: 1, kind: 'all-local-note-artifacts', goalId,
         deliverables: input.deliverables.map(item => ({ id: item.id, sha256: hash(item.content), bytes: Buffer.byteLength(item.content) })) });
       const goal: CoreGoal = { schemaVersion: 1, goalId, ...normalized, completionCriteria, completionCriteriaHash: hash(completionCriteria),
-        version: 1, authorized: false, paused: true, cancelled: false, controlEpoch: 1, taskRefs: [], evaluations: 0, createdAt: this.at(), updatedAt: this.at() };
+        version: 1, authorized: false, paused: true, cancelled: false, controlEpoch: 1, taskRefs: [], planVersion: 0, evaluations: 0,
+        createdAt: this.at(), updatedAt: this.at() };
       this.db.prepare('INSERT INTO shiyu_core_goals VALUES(?,?,?,?)').run(goalId, input.requestId, inputHash, JSON.stringify(goal)); return clone(goal);
     });
   }
@@ -284,12 +576,24 @@ export class CoreDomain {
       this.fact(goal.goalId, `owner:${goal.goalId}`, { kind: 'owner_request', requestId: goal.requestId }); return clone(goal);
     });
   }
+  /** Pure-read planning eligibility and diagnostic state. Distinct reason codes
+   * keep cancelled, paused, exhausted, unknown, unavailable, stale-plan, stop
+   * condition and no-change states observable without any model call. */
   private planning(goal: CoreGoal): { eligible: boolean; reasonCode: string } {
     let reasonCode = !goal.authorized ? 'not_authorized' : goal.cancelled ? 'cancelled' : goal.paused ? 'paused'
-      : this.options.tasks.isPaused() || this.options.isPaused?.() ? 'global_paused' : goal.activeEvaluationId ? 'evaluation_active_or_unknown'
-        : goal.evaluations >= goal.maxEvaluations ? 'evaluation_limit' : goal.expiresAt <= this.at() ? 'expired'
-          : goal.taskRefs.some(ref => this.options.tasks.get(ref.taskId).task.state === 'unknown') ? 'task_unknown'
-            : goal.nextEligibleAt && goal.nextEligibleAt > this.at() ? 'cooldown' : '';
+      : this.options.tasks.isPaused() || this.options.isPaused?.() ? 'global_paused'
+        : goal.activeEvaluationId ? (this.evaluationState(goal) === 'unknown' ? 'evaluation_unknown' : 'evaluation_active')
+          : goal.evaluations >= goal.maxEvaluations ? 'evaluation_limit' : goal.expiresAt <= this.at() ? 'expired' : '';
+    let toleratedFailure: string | undefined;
+    const plan = this.currentPlan(goal);
+    const taskStates = this.planTaskStates(goal);
+    if (!reasonCode && taskStates.unknown) reasonCode = 'task_unknown';
+    if (!reasonCode && plan) {
+      const snapshot = this.planSnapshot(goal, plan, this.at());
+      if (snapshot.stopped) reasonCode = snapshot.stopped.reasonCode;
+      else if (taskStates.failed) toleratedFailure = 'plan_tolerated_failure';
+    } else if (!reasonCode && taskStates.failed) reasonCode = 'task_failed';
+    if (!reasonCode && goal.nextEligibleAt && goal.nextEligibleAt > this.at()) reasonCode = 'cooldown';
     if (!reasonCode && this.mandates.health().frozen) reasonCode = 'budget_frozen';
     if (!reasonCode && this.needsNewNote(goal)) {
       try { if (!this.options.capability.captureForCore().record.usableForAuthorizedTask) reasonCode = 'capability_unavailable'; }
@@ -303,8 +607,16 @@ export class CoreDomain {
         if (available.tokens < CORE_EVALUATION_BUDGET.tokens || available.calls < CORE_EVALUATION_BUDGET.calls) reasonCode = 'budget_exhausted';
       }
     }
-    if (!reasonCode && !goal.nextEligibleAt && !this.db.prepare('SELECT 1 FROM shiyu_core_facts WHERE goal_id=? AND consumed_by IS NULL LIMIT 1').get(goal.goalId)) reasonCode = 'awaiting_fact';
+    if (!reasonCode && !goal.nextEligibleAt) {
+      const unconsumed = this.db.prepare('SELECT 1 FROM shiyu_core_facts WHERE goal_id=? AND consumed_by IS NULL LIMIT 1').get(goal.goalId);
+      const planWaitingFacts = plan && this.planSnapshot(goal, plan, this.at()).steps.some(step => step.state === 'blocked_fact');
+      if (!unconsumed) reasonCode = toleratedFailure ?? (planWaitingFacts ? 'plan_waiting_fact' : 'awaiting_fact');
+    }
     return { eligible: !reasonCode, reasonCode: reasonCode || 'ready' };
+  }
+  private evaluationState(goal: CoreGoal): string | undefined {
+    if (!goal.activeEvaluationId) return undefined;
+    return this.evaluations(goal.goalId).find(item => item.evaluationId === goal.activeEvaluationId)?.status;
   }
   private eligible(goal: CoreGoal): boolean { return this.planning(goal).eligible; }
   private claim(goalId: string): CoreEvaluation | undefined {
@@ -327,8 +639,9 @@ export class CoreDomain {
         controlEpoch: goal.controlEpoch, scopeVersion: goal.version, goalRef: clone(goal.native!.goalRef), reservationId: reservation.reservationId,
         mandateId: grant.mandateId, mandateVersion: grant.version, authEpoch: grant.authEpoch, leaseExpiresAt: reservation.leaseExpiresAt };
       const triggerRefs = this.db.prepare('SELECT fact_id FROM shiyu_core_facts WHERE goal_id=? AND consumed_by IS NULL ORDER BY rowid').all(goalId).map(row => String(row.fact_id));
+      const plan = this.currentPlan(goal);
       const evaluation: StoredEvaluation = { evaluationId, goalId, status: 'claimed', permit, goal: clone(goal), tasks: this.captureTasks(goal), triggerRefs, reservation,
-        readCapture };
+        readCapture, ...(plan ? { plan: this.planSnapshot(goal, plan, this.at()) } : {}) };
       this.db.prepare('INSERT INTO shiyu_core_evaluations VALUES(?,?,?)').run(evaluationId, goalId, JSON.stringify(evaluation));
       this.db.prepare('UPDATE shiyu_core_facts SET consumed_by=? WHERE goal_id=? AND consumed_by IS NULL').run(evaluationId, goalId);
       return clone(evaluation);
@@ -384,19 +697,40 @@ export class CoreDomain {
     });
   }
   private candidate(textValue: string): CoreCandidate {
-    text(textValue, 'candidateText', 16000); let candidate: CoreCandidate;
-    try { candidate = JSON.parse(textValue) as CoreCandidate; } catch { return fail('INVALID_CORE_CANDIDATE', 'Core output must be one JSON object'); }
-    if (!candidate || !['task_intent', 'defer', 'no_action', 'complete_candidate'].includes(candidate.kind)) fail('INVALID_CORE_CANDIDATE', 'Unsupported Core candidate kind');
+    text(textValue, 'candidateText', 16000); let parsed: unknown;
+    try { parsed = JSON.parse(textValue); } catch { return fail('INVALID_CORE_CANDIDATE', 'Core output must be one JSON object'); }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) fail('INVALID_CORE_CANDIDATE', 'Core output must be one JSON object');
+    const candidate = parsed as Record<string, unknown>;
+    if (!['plan_candidate', 'task_intent', 'defer', 'no_action', 'complete_candidate'].includes(candidate.kind as string)) {
+      fail('INVALID_CORE_CANDIDATE', 'Unsupported Core candidate kind');
+    }
+    if (candidate.kind === 'plan_candidate') {
+      object(candidate, ['kind', 'plan']);
+      const plan = this.planDraft(candidate.plan);
+      return { kind: 'plan_candidate', plan };
+    }
     object(candidate, candidate.kind === 'task_intent' ? ['kind', 'deliverableId', 'reason'] : candidate.kind === 'defer' ? ['kind', 'reason', 'retryAfterMs'] : ['kind', 'reason']);
     text(candidate.reason, 'structured reason', 1000);
-    if (candidate.kind === 'task_intent') text(candidate.deliverableId, 'deliverableId', 80);
-    if (candidate.kind === 'defer') number(candidate.retryAfterMs, 'retryAfterMs', 1000, 86400000);
-    return candidate;
+    if (candidate.kind === 'task_intent') { text(candidate.deliverableId, 'deliverableId', 80); return { kind: 'task_intent', deliverableId: candidate.deliverableId, reason: candidate.reason }; }
+    if (candidate.kind === 'defer') { number(candidate.retryAfterMs, 'retryAfterMs', 1000, 86400000); return { kind: 'defer', reason: candidate.reason, retryAfterMs: candidate.retryAfterMs }; }
+    if (candidate.kind === 'complete_candidate') return { kind: 'complete_candidate', reason: candidate.reason };
+    return { kind: 'no_action', reason: candidate.reason };
   }
   private delegation(goalId: string, deliverableId: string): CoreTaskDelegation {
-    if (this.admitting?.goalId !== goalId || this.admitting.deliverableId !== deliverableId) fail('CORE_ADMISSION_REQUIRED', 'Task delegation is only available inside validated Core commit');
+    const admitted = this.admitting;
+    const validAdmission = admitted !== undefined && admitted.goalId === goalId && admitted.deliverableId === deliverableId;
+    if (!validAdmission) fail('CORE_ADMISSION_REQUIRED', 'Task delegation is only available inside validated Core commit');
     const goal = this.read(goalId); this.running(goal, false);
     const deliverable = goal.deliverables.find(item => item.id === deliverableId) ?? fail('CORE_SCOPE_DENIED', 'Model selected an ungranted deliverable');
+    const plan = this.currentPlan(goal);
+    if (goal.planVersion) {
+      // Once a plan is accepted, only its validated ready steps can receive Tasks.
+      if (admitted!.kind !== 'step_intent' || admitted!.planVersion !== goal.planVersion) fail('CORE_PLAN_REQUIRED', 'Planned Goals admit only validated plan steps');
+      if (!plan) fail('CORE_PLAN_MISSING', 'The accepted plan revision is unavailable');
+      const step = plan!.steps.find(item => item.stepId === admitted!.stepId && item.deliverableId === deliverableId) ?? fail('CORE_PLAN_STRUCTURE_INVALID', 'Admitted step is absent from the current plan');
+      const view = this.planSnapshot(goal, plan!, this.at()).steps.find(item => item.stepId === step.stepId);
+      if (!view || view.state !== 'ready') fail('CORE_PLAN_STRUCTURE_INVALID', 'Only a ready plan step can be admitted');
+    } else if (admitted!.kind !== 'task_intent') fail('CORE_PLAN_MISSING', 'Unplanned admission requires the legacy owner deliverable intent');
     if (goal.taskRefs.some(ref => ref.deliverableId === deliverableId)) fail('CORE_DELIVERABLE_OWNED', 'This owner deliverable already belongs to a Task');
     for (const dependency of deliverable.dependsOn ?? []) {
       const ref = goal.taskRefs.find(item => item.deliverableId === dependency);
@@ -430,12 +764,24 @@ export class CoreDomain {
       const goal = this.read(input.permit.goalId);
       const receipt: CoreCommitReceipt = { evaluationId: evaluation.evaluationId, proposalId: input.proposalId, status: 'committed', kind: candidate.kind, reasonCode: candidate.kind };
       if (candidate.kind === 'task_intent') {
+        // A planned Goal cannot fall back to arbitrary single-step selection.
+        if (goal.planVersion) fail('CORE_PLAN_REQUIRED', 'A planned Goal admits work only through plan revisions');
         if (this.admitting) fail('CORE_REENTRANT', 'Nested Core admissions are not allowed');
-        this.admitting = { goalId: goal.goalId, deliverableId: candidate.deliverableId };
+        this.admitting = { goalId: goal.goalId, deliverableId: candidate.deliverableId, kind: 'task_intent' };
         try {
-          const task = this.options.tasks.admitCoreIntent({ ...this.admitting, proposalId: input.proposalId });
+          const task = this.options.tasks.admitCoreIntent({ goalId: goal.goalId, deliverableId: candidate.deliverableId, proposalId: input.proposalId });
           goal.taskRefs.push({ deliverableId: candidate.deliverableId, taskId: task.task.taskId }); receipt.taskId = task.task.taskId;
         } finally { this.admitting = undefined; }
+      } else if (candidate.kind === 'plan_candidate') {
+        const validated = this.validatePlan(goal, evaluation, candidate.plan);
+        goal.plans = [...(goal.plans ?? []), validated.version];
+        goal.planVersion = validated.version.planVersion;
+        // The accepted revision must be visible to the same-transaction Task
+        // delegation authority before any admitted step obtains a Task identity.
+        this.save(goal);
+        receipt.planVersion = validated.version.planVersion;
+        const stepRefs = this.admitPlanSteps(goal, validated.version, evaluation);
+        if (stepRefs.length) receipt.stepRefs = stepRefs;
       } else if (candidate.kind === 'defer') goal.nextEligibleAt = new Date(this.now().getTime() + candidate.retryAfterMs).toISOString();
       else if (candidate.kind === 'complete_candidate') this.completedTasks(goal);
       delete goal.activeEvaluationId; this.save(goal);
@@ -455,9 +801,7 @@ export class CoreDomain {
     });
   }
   private reject(permit: CoreEvaluationPermit, reasonCode: string): CoreEvaluation {
-    if (!['INVALID_CORE_CANDIDATE', 'INVALID_CORE_INPUT', 'CORE_SCOPE_DENIED', 'CORE_DEPENDENCY_PENDING', 'CORE_DELIVERABLE_OWNED',
-      'CORE_SOURCE_CONFLICT', 'STALE_CORE_PERMIT', 'STALE_AUTHORITY', 'CORE_PAUSED', 'CORE_EXPIRED', 'BUDGET_EXCEEDED',
-      'NATIVE_GOAL_NOT_ACTIVE', 'STALE_NATIVE_GOAL', 'CORE_COMPLETION_UNPROVEN', 'CORE_CAPABILITY_CHANGED', 'CORE_VIEW_UNAVAILABLE'].includes(reasonCode)) fail('INVALID_CORE_INPUT', 'Only a known deterministic rejection may settle an evaluation');
+    if (!(CORE_KNOWN_REJECTIONS as readonly string[]).includes(reasonCode)) fail('INVALID_CORE_INPUT', 'Only a known deterministic rejection may settle an evaluation');
     return this.tx.atomic(() => {
       const evaluation = this.evaluation(permit), goal = this.read(permit.goalId);
       let reservation = this.mandates.getReservation(OWNER, permit.reservationId);
@@ -546,7 +890,9 @@ export class CoreDomain {
   private verifiedDeliverable(goal: CoreGoal, item: CoreGoal['deliverables'][number]) {
       const ref = goal.taskRefs.find(value => value.deliverableId === item.id) ?? fail('CORE_COMPLETION_UNPROVEN', 'Deliverable Task ownership is missing');
       const detail = this.options.tasks.get(ref.taskId);
-      const admission = this.evaluations(goal.goalId).find(value => value.receipt?.taskId === ref.taskId && value.candidate?.kind === 'task_intent' && value.candidate.deliverableId === item.id);
+      const admission = this.evaluations(goal.goalId).find(value =>
+        (value.receipt?.taskId === ref.taskId && value.candidate?.kind === 'task_intent' && value.candidate.deliverableId === item.id)
+        || (value.candidate?.kind === 'plan_candidate' && !!value.receipt?.stepRefs?.some(step => step.taskId === ref.taskId)));
       if (!admission || !goal.mandateId) fail('CORE_COMPLETION_UNPROVEN', 'Task lacks its committed same-Goal admission');
       const grant = this.mandates.get(OWNER, goal.mandateId!);
       try { inspectTaskEvidence(detail, ref.taskId, { goalId: goal.goalId, mandateId: grant.mandateId, resourceRef: `deliverable:${goal.goalId}:${item.id}`,
@@ -586,6 +932,13 @@ export class CoreDomain {
       return proof;
     });
   }
+  /** Read-only current plan, bounded history and recomputed trusted snapshot. */
+  private planView(goalId: string): CorePlanView {
+    text(goalId, 'goalId');
+    const goal = this.read(goalId), plan = this.currentPlan(goal);
+    return { goalId, planVersion: goal.planVersion, history: clone(goal.plans ?? []),
+      ...(plan ? { current: clone(plan), snapshot: this.planSnapshot(goal, plan, this.at()) } : {}) };
+  }
   execute(request: CoreDomainRequest): unknown {
     this.tx.assertUsable();
     switch (request.command) {
@@ -596,6 +949,7 @@ export class CoreDomain {
       case 'core.balance': { const goal = this.read(request.args.goalId); return goal.mandateId ? this.mandates.balance(OWNER, goal.mandateId) : undefined; }
       case 'core.snapshot': return this.all().map(goal => ({ ...goal, planning: this.planning(goal) }));
       case 'core.evaluations': return this.evaluations(request.args.goalId);
+      case 'core.plan': return this.planView(request.args.goalId);
       case 'core.pending': {
         object(request.args, ['limit', 'afterGoalId'], []);
         const limit = request.args.limit ?? 10; number(limit, 'limit', 1, 100);
@@ -621,6 +975,10 @@ export class CoreDomain {
       case 'core.resume': return this.control(request.args, 'resume');
       case 'core.cancel': return this.control(request.args, 'cancel');
       case 'core.verifyCompletion': return this.verify(request.args);
+      default: {
+        const unknown = (request as { command?: unknown }).command;
+        return fail('UNKNOWN_CORE_COMMAND', `Unsupported Core command: ${typeof unknown === 'string' ? unknown.slice(0, 80) : 'invalid'}`);
+      }
     }
   }
 }

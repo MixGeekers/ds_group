@@ -18,6 +18,8 @@ import { GoalOperationUnknownError, type GoalAdapterOptions, type GoalAuthorityC
 import type { DshContext } from '../src/adapters/dsh/sessions.js';
 import type { CoreCommands, CoreDomainRequest, CoreGoal, CorePrepareInput } from '../src/contracts/core.js';
 import { installCoreCapabilityFixture } from './helpers/core-capability.js';
+import { coreDecisionPrompt } from '../src/control/local-core.js';
+import { createCoreReadView } from '../src/views/core.js';
 
 // Real Core/Task/Goal-binding/authorization SQLite domains and actual bounded
 // artifact files; only native lifecycle and model output are test doubles.
@@ -51,6 +53,7 @@ class NativeFixture implements LocalCoreAdapter {
   readGoalIds: string[] = [];
   readFailures = new Map<string, Error>();
   decisions: CoreDecisionRequest[] = [];
+  outputs: string[] = [];
   contexts: GoalAuthorityContext[] = [];
   proofs: unknown[] = [];
   natives = new Map<string, NativeGoalView>();
@@ -117,6 +120,7 @@ class NativeFixture implements LocalCoreAdapter {
   }
   async decisionRound(request: CoreDecisionRequest): Promise<CoreDecisionResult> {
     this.calls.push('decision'); this.decisions.push(request); this.lastCapability = request.capability;
+    const text = this.outputs.length ? this.outputs.shift()! : this.output;
     const binding = await this.options.bindings.load(request.goalId); assert.ok(binding);
     const base = { ...this.context(binding, 'decision'), expectedRef: request.expectedRef, roundId: request.roundId };
     for (const phase of ['start', 'dispatch'] as const) {
@@ -136,8 +140,8 @@ class NativeFixture implements LocalCoreAdapter {
     const resultGrant = await this.options.authority.authorize(request.capability, { ...base, phase: 'result' }); assert.equal(resultGrant.allowed, true);
     const inputRef = { sessionId: binding.sessionId, eventSeq: 10, messageId: dispatch.messageId, messageHash: dispatch.messageHash, durability: 'confirmed' as const };
     await request.onContextDurable?.(inputRef);
-    return { binding: dispatch, text: this.output, inputRef,
-      assistantRef: { sessionId: binding.sessionId, eventSeq: 11, messageId: `assistant:${request.roundId}`, messageHash: hash(this.output), durability: 'confirmed' },
+    return { binding: dispatch, text, inputRef,
+      assistantRef: { sessionId: binding.sessionId, eventSeq: 11, messageId: `assistant:${request.roundId}`, messageHash: hash(text), durability: 'confirmed' },
       usage: { status: 'reported', totalTokens: 23, inputTokens: 17, outputTokens: 6 }, modelCalls: 1,
       nativeObservations: [{ type: 'assistant/message', seq: 11, usage: { totalTokens: 23 } }], verified: false,
       nativeRoundsStarted: { before: 0, after: 0 }, nativeGoalRound: false };
@@ -564,4 +568,111 @@ test('one service evaluation owns dispatch and close aborts but drains late acco
     assert.equal(f.native.closed, true); assert.equal((await f.get(goal.goalId)).taskRefs.length, 0);
     assert.equal(f.db.prepare('SELECT count(*) AS n FROM shiyu_core_accounting').get()!.n, 1);
   } finally { release.resolve(); await f.service.close(); }
+});
+
+// ---- H3 controlled plan / multi-step core extension (synthetic model records) ----
+const PLAN_CONTENT = { first: 'Synthetic plan note one: collect the owner facts.', second: 'Synthetic plan note two: write the approved summary.' };
+function multiInput(requestId: string): CorePrepareInput {
+  return { requestId, objective: 'Plan and complete the two owner supplied synthetic notes',
+    deliverables: [{ id: 'first', title: 'Collect facts', content: PLAN_CONTENT.first },
+      { id: 'second', title: 'Write summary', content: PLAN_CONTENT.second, dependsOn: ['first'] }],
+    budget: { tokens: 400000, calls: 40, effects: 8 }, expiresAt: new Date(Date.now() + 3600000).toISOString(), maxEvaluations: 8 };
+}
+function planText(goal: CoreGoal, stepIds: Record<string, string>, options: { basePlanVersion?: number } = {}): string {
+  const steps = goal.deliverables.map(deliverable => ({ stepId: stepIds[deliverable.id]!, deliverableId: deliverable.id,
+    dependsOn: (deliverable.dependsOn ?? []).map(dependency => stepIds[dependency]!), requiredFacts: [] as { kind: string; ref: string }[],
+    expectedArtifact: { kind: 'local-note', verifier: 'artifact.sha256.v1' } }));
+  return JSON.stringify({ kind: 'plan_candidate', plan: { basePlanVersion: options.basePlanVersion ?? goal.planVersion, steps,
+    stopConditions: { onStepFailure: 'stop', maxFailedSteps: 0, onFactConflict: 'wait', maxParallelSteps: 2 },
+    reasoningRefs: [`goal:${goal.goalId}`, `owner-core-request:${goal.requestId}`], summary: 'Synthetic controlled plan' } });
+}
+function revisionText(goal: CoreGoal, stepId: string, deliverableId: string, taskId: string, basePlanVersion: number): string {
+  return JSON.stringify({ kind: 'plan_candidate', plan: { basePlanVersion,
+    steps: [{ stepId, deliverableId, dependsOn: [], requiredFacts: [{ kind: 'task', ref: taskId }],
+      expectedArtifact: { kind: 'local-note', verifier: 'artifact.sha256.v1' } }],
+    stopConditions: { onStepFailure: 'stop', maxFailedSteps: 0, onFactConflict: 'wait', maxParallelSteps: 2 },
+    reasoningRefs: [`goal:${goal.goalId}`, taskId], summary: 'Continue after the verified dependency result' } });
+}
+
+test('a synthetic model plan admits only the dependency-ready owner Task, revises after its result and completes independently', async t => {
+  const f = await setup(t), goal = await f.service.create(multiInput('synthetic-plan-flow'));
+  f.native.outputs.push(planText(goal, { first: 's1', second: 's2' }));
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated');
+  let current = await f.get(goal.goalId);
+  assert.equal(current.planVersion, 1);
+  assert.deepEqual(current.taskRefs.map(ref => ref.deliverableId), ['first']);
+  const plan = await f.store.request('core.plan', { goalId: goal.goalId });
+  assert.equal(plan.planVersion, 1); assert.equal(plan.history.length, 1);
+  assert.deepEqual(plan.snapshot!.steps.map(step => step.state), ['active', 'blocked_dependency']);
+  assert.equal(f.native.decisions.length, 1);
+  assert.match(f.native.decisions[0]!.prompt, /计划与事实目录摘要：sha256:[a-f0-9]{64}$/);
+  assert.equal(f.native.decisions[0]!.prompt.includes('"plan":null'), true);
+  const firstTask = current.taskRefs[0]!.taskId;
+  await f.completeTask(firstTask);
+  const firstEvaluation = (await f.store.request('core.evaluations', { goalId: goal.goalId }))[0]!;
+  assert.equal(firstEvaluation.status, 'committed');
+  f.native.outputs.push(revisionText(goal, 's2r', 'second', firstTask, 1));
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated');
+  current = await f.get(goal.goalId);
+  assert.equal(current.planVersion, 2);
+  assert.deepEqual(current.taskRefs.map(ref => ref.deliverableId), ['first', 'second']);
+  const revisedPlan = await f.store.request('core.plan', { goalId: goal.goalId });
+  assert.equal(revisedPlan.history.length, 2); assert.equal(revisedPlan.history[0]!.planVersion, 1);
+  assert.deepEqual(revisedPlan.current!.facts.map(fact => [fact.kind, fact.ref, fact.state]), [['task', firstTask, 'resolved']]);
+  assert.equal(f.native.decisions.length, 2);
+  assert.equal(f.native.decisions[1]!.prompt.includes('"planVersion":1'), true);
+  await f.completeTask(current.taskRefs[1]!.taskId);
+  f.native.outputs.push(JSON.stringify({ kind: 'complete_candidate', reason: 'Both independently verified artifacts exist' }));
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated');
+  assert.equal(f.native.natives.get(goal.goalId)!.phase, 'complete');
+  assert.equal(f.native.calls.filter(call => call === 'complete').length, 1);
+  assert.equal(f.native.proofs.length, 2);
+  const completed = (await f.store.request('core.evaluations', { goalId: goal.goalId })).at(-1)!;
+  assert.equal(completed.status, 'committed'); assert.equal(completed.receipt!.kind, 'complete_candidate');
+});
+
+test('an invalid plan response settles as one deterministic rejection and never replays an unknown or second model call', async t => {
+  const f = await setup(t), goal = await f.service.create(multiInput('synthetic-plan-reject'));
+  f.native.outputs.push('{"kind":"plan_candidate","plan":');
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated');
+  const evaluations = await f.store.request('core.evaluations', { goalId: goal.goalId });
+  assert.equal(evaluations.length, 1); assert.equal(evaluations[0]!.status, 'rejected');
+  assert.equal(evaluations[0]!.reasonCode, 'INVALID_CORE_CANDIDATE');
+  const current = await f.get(goal.goalId);
+  assert.equal(current.planVersion, 0); assert.deepEqual(current.taskRefs, []);
+  assert.equal((await f.store.request('task.list', {})).length, 0);
+  for (let count = 0; count < 5; count++) assert.ok(['idle', 'deferred'].includes((await f.service.evaluatePending()).status));
+  assert.equal(f.native.decisions.length, 1);
+  assert.equal((await f.store.request('core.evaluations', { goalId: goal.goalId })).length, 1);
+});
+
+test('the Core prompt is deterministic over one captured state and omits volatile view identity', async t => {
+  const f = await setup(t), goal = await f.service.create(multiInput('synthetic-plan-prompt'));
+  const evaluation = await f.store.request('core.claim', { goalId: goal.goalId });
+  assert.ok(evaluation?.readCapture);
+  const readView = async () => {
+    const views = createCoreReadView(evaluation!.readCapture!, { validate: async () => f.store.request('core.readView', { permit: evaluation!.permit }) });
+    try { return await views.read(); } finally { views.dispose(); }
+  };
+  const first = await readView(), second = await readView();
+  const promptA = coreDecisionPrompt(evaluation!, first), promptB = coreDecisionPrompt(evaluation!, second);
+  assert.equal(promptA, promptB);
+  assert.equal(promptA.includes('generatedAt'), false);
+  assert.equal(promptA.includes('viewId'), false);
+  assert.match(promptA, /获准资料：/);
+  assert.match(promptA, /计划与事实目录摘要：sha256:[a-f0-9]{64}$/);
+  assert.equal(promptA.includes('"planVersion":0'), true);
+  assert.equal(promptA.includes('"plan":null'), true);
+});
+
+test('a planned Goal with no new fact performs no extra model round or plan revision', async t => {
+  const f = await setup(t), goal = await f.service.create(multiInput('synthetic-plan-quiet'));
+  f.native.outputs.push(planText(goal, { first: 's1', second: 's2' }));
+  assert.equal((await f.service.evaluatePending()).status, 'evaluated');
+  const decisions = f.native.decisions.length;
+  for (let count = 0; count < 10; count++) assert.ok(['idle', 'deferred'].includes((await f.service.evaluatePending()).status));
+  assert.equal(f.native.decisions.length, decisions);
+  assert.equal((await f.store.request('core.evaluations', { goalId: goal.goalId })).length, 1);
+  assert.equal((await f.get(goal.goalId)).planVersion, 1);
+  assert.equal((await f.store.request('core.plan', { goalId: goal.goalId })).history.length, 1);
 });

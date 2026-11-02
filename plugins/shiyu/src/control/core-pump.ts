@@ -5,6 +5,8 @@ export interface CoreEvaluationResult {
   status: 'evaluated' | 'idle' | 'deferred' | 'unknown';
   goalId?: string;
   decisionId?: string;
+  /** Accepted plan revision when this evaluation committed a plan or step intent. */
+  planVersion?: number;
   /** Observation only; never permission to retry an unknown round. */
   retryAt?: string;
 }
@@ -42,8 +44,9 @@ const integer = (value: number, min: number, max: number) => Number.isSafeIntege
 const failure = (error: unknown) => (error instanceof Error ? error.message : String(error)).slice(0, 500);
 function evaluation(value: CoreEvaluationResult): CoreEvaluationResult {
   if (!value || typeof value !== 'object' || Array.isArray(value)
-    || Object.keys(value).some(key => !['status', 'goalId', 'decisionId', 'retryAt'].includes(key))
+    || Object.keys(value).some(key => !['status', 'goalId', 'decisionId', 'planVersion', 'retryAt'].includes(key))
     || !['evaluated', 'idle', 'deferred', 'unknown'].includes(value.status)
+    || (value.planVersion !== undefined && (!Number.isSafeInteger(value.planVersion) || value.planVersion < 1))
     || [value.goalId, value.decisionId].some(id => id !== undefined && (typeof id !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,199}$/.test(id)))
     || (value.retryAt !== undefined && (typeof value.retryAt !== 'string' || !Number.isFinite(Date.parse(value.retryAt)) || new Date(value.retryAt).toISOString() !== value.retryAt))) throw new Error('Invalid core evaluation receipt');
   return structuredClone(value);

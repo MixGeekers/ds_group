@@ -1,0 +1,395 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-core-planning-offline",
+  "slice": "h3",
+  "capturedAt": "2026-11-02T19:47:54.325Z",
+  "status": "offline-passed (G1 module/property + real temporary SQLite/Worker domains; real host/model not exercised)",
+  "verdict": {
+    "isolatedFullCheck": "pass",
+    "counts": {
+      "tests": 1281,
+      "pass": 1281,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "zeroFailureZeroSkip": true,
+    "authoritativeDenominator": "isolated worktree HEAD 41c496b0f48ee0e923cab8f4858c615098635a8f + only this slice files; the shared main tree additionally contains unrelated parallel WIP and is not authoritative"
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "platform": "darwin/arm64",
+    "osRelease": "Darwin 25.6.0",
+    "sqlite": "3.53.3",
+    "dshBaseline": "feecf86 slice baseline; isolated run binds to current HEAD at materialization (H0/H0b/H0c/H1/H1-verify/H2a/H4/H4b/H4-host/H5 committed)",
+    "isolatedHead": "41c496b0f48ee0e923cab8f4858c615098635a8f",
+    "repoHeadAtVerification": "41c496b0f48ee0e923cab8f4858c615098635a8f",
+    "pluginPackage": "0.1.0",
+    "commands": {
+      "isolated": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3 --manifest plugins/shiyu/.local/h3-slice-manifest.json",
+      "focused": "node --import tsx --test --test-concurrency=1 tests/<name>.test.ts"
+    }
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/contracts/core.ts",
+      "bytes": 13098,
+      "sha256": "b9f0def2207a51dd05dc9fc41d04b1b9fa3d04b38b94fc64ee5c46fb06997b6d"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+      "bytes": 81344,
+      "sha256": "dff258442b6f9d02a239ca5f7a7e9adae0e42606b3da2249ecfb1a8eb02c4865"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-core.ts",
+      "bytes": 35497,
+      "sha256": "d8bb2bcee0737453beca7035f0b5fb9adb0ff001bd0876319bc978b768adab59"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-pump.ts",
+      "bytes": 10397,
+      "sha256": "16099bb9fdd57abd63434f51b39d0727fd7b330356dac93dc6b42cf797702722"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-plan.test.ts",
+      "bytes": 49163,
+      "sha256": "3d9910732955b604b2a1052cdd95f6e724ba938fdcbae08315097b4b022ae0da"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-core.test.ts",
+      "bytes": 54360,
+      "sha256": "89db1025056c0f5b1d197a73645e463de7bb6770d3b5fcdadc7f988965326948"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-pump.test.ts",
+      "bytes": 13928,
+      "sha256": "d2d7b7409f6da11dcc708e020c590aa172854c5262422477b2816411110c0b09"
+    }
+  ],
+  "regression": {
+    "baselineHeadFeecf86": 1201,
+    "isolatedBaselineAtHead": 1264,
+    "netNewTests": 17,
+    "newTestBreakdown": {
+      "tests/core-plan.test.ts": 12,
+      "tests/local-core.test.ts": 4,
+      "tests/core-pump.test.ts": 1
+    },
+    "isolatedCheck": {
+      "exitCode": 0,
+      "tests": {
+        "tests": 1281,
+        "pass": 1281,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 215162,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h3.log",
+        "bytes": 139913,
+        "sha256": "f3fd98d82bead0d2a4bca8413a591788b29795911780671e7c15f9c9e76865ce"
+      },
+      "evidence": {
+        "path": "artifacts/dsh/slices/h3-verify.json",
+        "sha256": "dc7c1c681c6788c8267064a2e5a352050c247559a54b0b109abdcb1d0efe659d"
+      },
+      "tail": [
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 214123.349583",
+        "> @shiyu/runtime@0.1.0 build",
+        "> tsc -p tsconfig.build.json"
+      ]
+    },
+    "focused": [
+      {
+        "name": "core-plan",
+        "log": "plugins/shiyu/.local/h3/focused-core-plan.log",
+        "sha256": "b3079de493b24ea437dc5563ddff39f503ee1aa37226484b7c38b6f7fb2b9e46",
+        "bytes": 1539,
+        "tests": {
+          "tests": 12,
+          "pass": 12,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "local-core",
+        "log": "plugins/shiyu/.local/h3/focused-local-core.log",
+        "sha256": "79d02505254e545b7a0d42bdaeddc269523cf10723eaf10b8667cc131c7678ba",
+        "bytes": 3666,
+        "tests": {
+          "tests": 31,
+          "pass": 31,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "core-pump",
+        "log": "plugins/shiyu/.local/h3/focused-core-pump.log",
+        "sha256": "6617431c5c4c6004cb83fc39df8d084fb3bb4a439421762113a6147d9c7fcfb7",
+        "bytes": 1899,
+        "tests": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "core-domain",
+        "log": "plugins/shiyu/.local/h3/focused-core-domain.log",
+        "sha256": "2461608f8285da1c1b8c30ffb9ebe5bf5955f50dcb044e784d3f34d78ee7eec6",
+        "bytes": 3293,
+        "tests": {
+          "tests": 29,
+          "pass": 29,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      },
+      {
+        "name": "runtime-core",
+        "log": "plugins/shiyu/.local/h3/focused-runtime-core.log",
+        "sha256": "ea2f005fdeccdb8fd5ba653486eeeecf5942cfc2967535a1d7da2c258ec5c2b0",
+        "bytes": 1886,
+        "tests": {
+          "tests": 16,
+          "pass": 16,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0
+        }
+      }
+    ],
+    "mainTreeNonAuthoritative": {
+      "note": "run while concurrent H4b/H2a WIP files were uncommitted in the shared tree; one failure belonged to tests/local-reply.ts outside this slice",
+      "tail": [
+        "ℹ tests 1287",
+        "ℹ pass 1286",
+        "ℹ fail 1",
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0"
+      ],
+      "log": {
+        "path": "plugins/shiyu/.local/h3/full-tests.log",
+        "bytes": 141332,
+        "sha256": "cb8ab6508924aa08e59f157365ce5698d195d330a9efc51888f443abc6588a61"
+      }
+    }
+  },
+  "planSchema": {
+    "candidateKinds": [
+      "plan_candidate",
+      "task_intent (only before any accepted plan)",
+      "defer",
+      "no_action",
+      "complete_candidate"
+    ],
+    "planDraft": {
+      "basePlanVersion": "integer CAS against CoreGoal.planVersion",
+      "steps": "1..16 {stepId, deliverableId, dependsOn[], requiredFacts[], expectedArtifact}",
+      "stopConditions": "{onStepFailure: stop|continue_independent, maxFailedSteps: 0..3, onFactConflict: wait|stop, maxParallelSteps: 1..2}",
+      "reasoningRefs": "1..32 trusted catalog identifiers",
+      "summary": "1..1000 chars"
+    },
+    "bounds": {
+      "steps": 16,
+      "dependenciesPerStep": 16,
+      "factsPerStep": 8,
+      "reasoningRefs": 32,
+      "historyVersions": 16,
+      "parallelDefault": 2
+    },
+    "trustedMaterial": {
+      "expectedSha256": "derived from owner deliverable content",
+      "byteLength": "derived",
+      "verifier": "fixed artifact.sha256.v1 / local-note",
+      "mandate": "never model supplied",
+      "budgetAndExpiry": "owner facts only"
+    },
+    "factKinds": [
+      "owner_basis",
+      "trigger",
+      "task",
+      "capability"
+    ],
+    "factStates": [
+      "resolved",
+      "pending",
+      "conflict",
+      "unknown",
+      "unsourced"
+    ],
+    "acceptance": "structure parsed strictly -> scope/dependency/fact/reasoning validation -> plan version CAS/persisted -> deterministic admission of ready steps through existing TaskFacade/Mandate path; rollback on any failure",
+    "traceability": [
+      "CorePlanVersion {goalId, planVersion, basePlanVersion, evaluationId, proposalId, acceptedAt, triggerRefs, reasoningRefs, facts, steps, planHash}",
+      "CoreGoal.plans history (bounded 16)",
+      "core.plan read-only command returns current/history/recomputed snapshot"
+    ]
+  },
+  "stateMachine": {
+    "candidateCommit": [
+      "committed",
+      "rejected (deterministic code, native result + complete accounting required)",
+      "conflict (stale permit/source conflict)",
+      "unknown (dispatch/accounting uncertainty, never replayed)"
+    ],
+    "planningReasonCodesAdded": [
+      "evaluation_active",
+      "evaluation_unknown",
+      "plan_waiting_fact",
+      "plan_tolerated_failure",
+      "plan_stopped_step_failed",
+      "plan_stopped_failure_limit",
+      "plan_stopped_fact_conflict",
+      "task_failed"
+    ],
+    "planningReasonCodesPreserved": [
+      "not_authorized",
+      "cancelled",
+      "paused",
+      "global_paused",
+      "evaluation_limit",
+      "expired",
+      "task_unknown",
+      "cooldown",
+      "budget_frozen",
+      "capability_unavailable",
+      "authority_unavailable",
+      "budget_exhausted",
+      "awaiting_fact",
+      "ready"
+    ],
+    "deterministicRejectCodesAdded": [
+      "CORE_PLAN_MISSING",
+      "CORE_PLAN_STALE",
+      "CORE_PLAN_INCOMPLETE",
+      "CORE_PLAN_STRUCTURE_INVALID",
+      "CORE_PLAN_DEPENDENCY_CONFLICT",
+      "CORE_PLAN_DEPENDENCY_ORDER_INVALID",
+      "CORE_PLAN_FACT_UNSOURCED",
+      "CORE_PLAN_REF_UNSOURCED",
+      "CORE_PLAN_VERIFIER_DENIED",
+      "CORE_PLAN_LIMIT",
+      "CORE_PLAN_REQUIRED",
+      "CORE_PLAN_STOPPED",
+      "CORE_PLAN_PARALLEL_LIMIT",
+      "CORE_PLAN_ADMISSION_FAILED"
+    ],
+    "unknownRoundPolicy": "claimed/dispatching at reopen becomes unknown; unknown round keeps activeEvaluationId and its held budget; lease expiry, wake, periodic scan and reopen never re-claim it; only explicit reconciliation can settle it",
+    "completionPolicy": "complete_candidate is a candidate: native Goal complete requires existing core.verifyCompletion with fresh independent Task/Effect/artifact readback; no second Goal lifecycle"
+  },
+  "positiveEvidence": [
+    "multi-step plan: dependency root admitted, dependent step blocked_dependency, revision after trusted Task result admits the next Task, completion only after independent readback",
+    "parallel independent steps admitted in deterministic candidate order up to stopConditions.maxParallelSteps (2)",
+    "fact pending -> resolved across a trusted Task result; blocked_fact step waits and records the pending state in the accepted plan revision",
+    "fact conflict and step failure produce distinct plan_stopped_* reasons; tolerated failure has its own state",
+    "legacy unplanned task_intent still works only before a plan is accepted; planned Goals refuse ad-hoc selection (CORE_PLAN_REQUIRED)",
+    "plan revision CAS/idempotent replay; stale base version cannot overwrite accepted plan; duplicate requestId returns same Goal; duplicate task fact queues once",
+    "pause/cancel/unknown/lease-expiry/budget-exhaustion/capability-unavailable states are distinct and generate no model call or new claim",
+    "1000x core.plan reads leave commit watermark, Goal version, Task list and evaluations unchanged; unknown command returns UNKNOWN_CORE_COMMAND",
+    "deterministic prompt over one captured state (volatile viewId/generatedAt excluded; plan and fact catalog digest included)"
+  ],
+  "negativeEvidence": [
+    "invalid JSON, unknown candidate kind, extra tool/budget/mandate fields, unknown deliverable, incomplete coverage, unknown dependency, dependency cycle, unordered owner dependency, unsourced fact, unsourced reasoning, stale base plan version, excess parallelism/failure allowance, wrong verifier, oversized plan: all rejected with zero Tasks, zero plan versions, zero retained budget",
+    "worker artifact with wrong hash leaves Task unverified and a model completion claim rejected CORE_COMPLETION_UNPROVEN; native Goal stays active",
+    "late old evaluation/task permits cannot re-bind or report after unknown/cancel (STALE_CORE_PERMIT / STALE_FENCE)",
+    "capability disabled between claim and commit rejects plan admission (CORE_CAPABILITY_CHANGED via existing path) and planning exposes capability_unavailable",
+    "repeated failure beyond tolerant allowance stops the plan (plan_stopped_failure_limit); unknown task preserves task_unknown and never restarts"
+  ],
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real DSH host, native Session/Goal round, model or embedding execution in this slice; plan candidates come from the synthetic model boundary",
+    "real dsv4.1f behavior (valid plan JSON rate, refusal style, prompt cache effect) unknown",
+    "no runtime.ts/goals.ts/core-decision.ts edits: dashboard rendering of plan detail and host integration are Lead integration points; new goal metadata is already spread by publicCoreGoal but not UI-reviewed",
+    "plan steps admit only the currently bound fixed local-note capability; adding further authorized capabilities needs separate fixed adapters/contracts and host verification",
+    "real worker parallel execution of several plan Tasks with Runtime slots not exercised here (existing Task worker tests cover the executor separately)",
+    "fact sources are the current trusted catalog (evaluation triggers, same-Goal Task results, capability authority, owner basis); general event-source facts await H2 integration",
+    "no compression/long-history interaction with plan revisions; no plan history archival/cleanup policy beyond the hard 16-version refusal",
+    "multi-Goal plan concurrency and real deadline/lease timer behavior only covered by existing core tests at the scheduler level"
+  ],
+  "integrationPoints": {
+    "runtimeTs": "No code change required to compile or run the slice. publicCoreGoal already spreads goal.planVersion/plans and coreSnapshot maps evaluation.candidate; Lead may add an explicit plan projection/dashboard panel and should not change authorization semantics.",
+    "dshGoalsAndCoreDecision": "No change: the plan candidate is one structured text response within the already verified single step/request/stream, zero-tool core round; no second model loop or Goal lifecycle.",
+    "workerProtocol": "No change: worker.ts already routes any core.* command to CoreDomain.execute; new core.plan is read-only and unknown commands now fail with UNKNOWN_CORE_COMMAND.",
+    "h2cTask11": "Reuse CorePlanDraft/CorePlanVersion/CorePlanSnapshot types and the planning reason-code list; H2c event tools must remain zero-tool until its own slice re-declares metering, so plan parsing must stay inside the existing single-assistant-response boundary.",
+    "docs": "DSH实施记录.md H3 section and artifact index are Lead-owned; this report supplies the content."
+  },
+  "evidenceFiles": [
+    {
+      "path": "artifacts/dsh/slices/h3-verify.json",
+      "sha256": "dc7c1c681c6788c8267064a2e5a352050c247559a54b0b109abdcb1d0efe659d"
+    },
+    {
+      "path": "plugins/shiyu/.local/slice-verify-h3.log",
+      "sha256": "f3fd98d82bead0d2a4bca8413a591788b29795911780671e7c15f9c9e76865ce"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/focused-core-plan.log",
+      "sha256": "b3079de493b24ea437dc5563ddff39f503ee1aa37226484b7c38b6f7fb2b9e46",
+      "tests": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/focused-local-core.log",
+      "sha256": "79d02505254e545b7a0d42bdaeddc269523cf10723eaf10b8667cc131c7678ba",
+      "tests": {
+        "tests": 31,
+        "pass": 31,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/focused-core-pump.log",
+      "sha256": "6617431c5c4c6004cb83fc39df8d084fb3bb4a439421762113a6147d9c7fcfb7",
+      "tests": {
+        "tests": 16,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/focused-core-domain.log",
+      "sha256": "2461608f8285da1c1b8c30ffb9ebe5bf5955f50dcb044e784d3f34d78ee7eec6",
+      "tests": {
+        "tests": 29,
+        "pass": 29,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/focused-runtime-core.log",
+      "sha256": "ea2f005fdeccdb8fd5ba653486eeeecf5942cfc2967535a1d7da2c258ec5c2b0",
+      "tests": {
+        "tests": 16,
+        "pass": 16,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    }
+  ]
+}

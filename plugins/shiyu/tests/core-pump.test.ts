@@ -178,3 +178,24 @@ test('configuration bounds reject spinning intervals and invalid batch ceilings'
     assert.throws(() => new CorePump({ pending: async () => false, evaluatePending: async () => ({ status: 'idle' }), ...patch }), /Invalid bounded/);
   }
 });
+
+test('a plan revision receipt is surfaced only with a positive bounded revision and invalid values degrade the pump', async () => {
+  let evaluations = 0;
+  const pump = new CorePump({ ...quiet, pending: async () => true,
+    evaluatePending: async () => { evaluations++; return { status: 'evaluated', goalId: 'core-goal', decisionId: 'proposal:route', planVersion: 3 }; } });
+  try {
+    await pump.start();
+    assert.equal(evaluations, 1);
+    assert.equal(pump.snapshot().lastEvaluation!.planVersion, 3);
+    assert.equal(pump.snapshot().state, 'idle');
+  } finally { await pump.close(); }
+  let invalidEvaluations = 0;
+  const invalid = new CorePump({ ...quiet, pending: async () => true,
+    evaluatePending: async () => { invalidEvaluations++; return { status: 'evaluated', planVersion: 0 } as never; } });
+  try {
+    await invalid.start();
+    assert.equal(invalidEvaluations, 1);
+    assert.equal(invalid.snapshot().state, 'degraded');
+    assert.match(invalid.snapshot().lastFailure!, /Invalid core evaluation receipt/);
+  } finally { await invalid.close(); }
+});

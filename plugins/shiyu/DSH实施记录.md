@@ -113,7 +113,7 @@ Error: tool "shiyu_status" returned invalid output: value is not lossless JSON
 | H0 接管与测试基线 | 基线、环境/宿主/SDK 身份、测试工具自证、草稿保存 | **固定宿主限定通过**（本文 §0/§1）；测试工具已交付并经离线自证（§8）；S/FL 业务测试集骨架离线通过（§11，1264/1264，合成未运行） |
 | H1 原生会话长期复用 | 3J 长历史冷恢复、恢复基准、布局竞态、后续压缩/恢复/缓存计量 | **离线通过**（G1 模块+组合，1058/1058，见 §5）；固定宿主/压缩/缓存/有界真实长对话仍未验 |
 | H2 持久事件与多对话协作 | Agent 工具真实接线、四类发布/订阅组合、时间/外部源、背景唤醒、话题关联/受众安全 | **H2a 离线通过**（worker 事件工具+四类路径+可信协调器，1249/1249，见 §10）；固定宿主探针、时间/条件源、链深/背压与 core 工具（H2c）未完成 |
-| H3 core 与目标任务扩展 | 受控计划、依赖任务、修正/重规划、更多已授权能力、独立核验 | 待建立 |
+| H3 core 与目标任务扩展 | 受控计划、依赖任务、修正/重规划、更多已授权能力、独立核验 | **离线通过**（受控计划/多步任务/重规划，1288/1288，见 §14）；真实宿主/模型、更多能力与 dashboard 投影待接 |
 | H4 六部分状态闭环 | 记忆生命周期完善、关系/情绪/认知/人格接入、能力清单与受限 ReadView | **四域基础离线通过**（H4，1159/1159，见 §7）；replyer 组合、仪表盘面板与固定宿主证据待接线；记忆生命周期完善待继续 |
 | H5 运行保障与恢复 | 配额/迁移、宿主关闭恢复、检查点、删除/撤权屏障、独立备份 | **离线模块通过**（H5-B1 检查点/隔离恢复，1096/1096，见 §6）；未接 Runtime；宿主/独立故障域/V22/V27 未验 |
 | H6 渠道、设备与 Lab 完整业务 | 明确资源范围内接实际平台/设备，本体经公共协议完成 S/FL | 待建立（真实资源范围需另有决定） |
@@ -471,4 +471,42 @@ findings 处理：
 ```
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4c-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-reply.test.ts
+```
+
+## 14. H3 切片：core 受控规划、多步任务与重规划
+
+状态：**离线通过（G1 模块/属性 + 真实临时 SQLite/Worker 域）**；真实宿主/模型、更多已授权能力、dashboard 投影未验。2026-11-02 完成并审阅。
+
+### 14.1 交付（7 文件）
+
+- `src/contracts/core.ts`：`CorePlanDraft/Version/Snapshot/StepView/StopConditions/PlanFactRef|Status`、`plan_candidate` 候选、`CoreGoal.planVersion+plans`（≤16）、`CoreEvaluation.plan`、回执 `planVersion/stepRefs`、只读 `core.plan` 命令、共享 `CORE_KNOWN_REJECTIONS`。
+- `src/adapters/control-store/core-domain.ts`：计划结构/范围/依赖/事实/核验器/停止条件严格校验；`basePlanVersion` CAS + proposal 幂等 + 旧候选 `CORE_PLAN_STALE`；计划版本含 evaluationId/proposalId/triggerRefs/reasoningRefs/facts/planHash 可追溯；facts 为 resolved/pending/conflict/unknown/unsourced，命名不存在的事实/推理引用整候选拒绝；ready 步骤按依赖与 `maxParallelSteps≤2` 确定性 admit（同事务，失败整体回滚，沿用 Task/Mandate/fence）；失败/冲突/容忍失败进入 `plan_stopped_*` / `plan_waiting_fact` / `plan_tolerated_failure`；`evaluation_unknown` 与 `evaluation_active` 拆分；未知 round 跨租约/唤醒/重开不重跑；legacy `task_intent` 仅在未接纳计划前可用（否则 `CORE_PLAN_REQUIRED`）；`core.plan` 纯读；未知命令显式 `UNKNOWN_CORE_COMMAND`。
+- `src/control/local-core.ts`：确定性 prompt（固定字段顺序/递归排序、排除 volatile viewId/generatedAt、计划+事实目录 sha256 摘要、计划 schema；保留既有“获准资料/能力资料”解析），计划候选仍在 H1 单 step/request/stream + 零工具边界内完成。
+- `src/control/core-pump.ts`：`planVersion` 观察与校验（非法值 degraded，不触发第二次评估）。
+- 测试：`tests/core-plan.test.ts` 12、`tests/local-core.test.ts` +4、`tests/core-pump.test.ts` +1（净增 17）。
+- 无 runtime.ts/goals.ts/core-decision.ts/worker.ts 强制改动；`core.*` 泛化分发自动覆盖 `core.plan`。
+
+### 14.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `41c496b` + 7 文件）`npm run check` | exit 0；**1281/1281 通过，0 失败/取消/跳过**（= 1264 + 17） |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `c00c6a9` + 仅 7 文件） | exit 0；**1288/1288 通过，0 失败/跳过**（= 1271 + 17）；证据 `artifacts/dsh/slices/h3-verify.json` |
+| 正例 | 依赖顺序、并行独立步、Task 结果后修订续跑、停止条件下完成、pending→resolved 事实跨 Task 结果、1000× `core.plan` 不写库、同状态 prompt 字节一致 |
+| 负例 | 非法 JSON/结构、越权字段（tool/budget/mandate）、未授权/漏覆盖交付项、未知/环依赖、owner 依赖乱序、未来源事实/引用、旧计划 CAS、超额并行/失败额度、错误 verifier、超限计划；worker 错误产物+自述完成被 `CORE_COMPLETION_UNPROVEN` 拒绝且 native Goal 未完成；迟到旧 evaluation/task permit 无法重获资格；撤销/禁用能力阻断；未知 round 租约到期/重开不重跑；安静期 0 模型调用、重复触发不产第二计划/第二次调用 |
+| 证据级别 | G1 模块/属性 + 真实临时 SQLite/Worker 域；不是宿主/模型/业务验收 |
+
+### 14.3 失败 / unknown / 未测
+
+1. 真实 DSH 宿主/native Session/Goal round、真实模型（dsv4.1f 产计划 JSON 的稳定性/拒绝行为/prompt cache）、embedding 均未执行。
+2. 无 runtime/dashboard 集成；建议 Lead 显式投影 `planVersion`/最近计划摘要（不要把 plans 全史放进 snapshot）。
+3. 计划步骤当前只绑定现有固定 local-note 能力；更多已授权能力需各自固定 adapter 准入。
+4. 真实 worker 并行执行/槽位、事件源事实（待 H2）、压缩/长历史交互、计划历史归档策略、多 Goal 真实定时器并发均未测。
+5. H2c（core 事件工具）复用本切片计划契约/状态机，但需重新声明单轮计量边界。
+
+### 14.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h3-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/core-plan.test.ts tests/local-core.test.ts tests/core-pump.test.ts
 ```
