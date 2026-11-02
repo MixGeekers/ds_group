@@ -48,6 +48,8 @@ type Counter = 'intake_seq' | 'invalidation_watermark' | 'deletion_watermark' | 
 export class IngressDomain {
   private readonly options: IngressDomainOptions;
   private readonly limits: ChannelIngressLimits;
+  /** Trusted same-Worker bridge sink (H6b); installed once, after the conversation domain exists. */
+  private invalidationSink?: (signal: ChannelInvalidationSignal) => void;
   constructor(private readonly db: DatabaseSync, private readonly tx: SqliteTransactions, options: IngressDomainOptions = {}) {
     if (!tx.owns(db)) fail('TRANSACTION_MISMATCH', 'Channel ingress requires the shared control connection');
     if (options === null || typeof options !== 'object' || Array.isArray(options)) fail('INVALID_CONFIG', 'Invalid ingress options');
@@ -160,9 +162,21 @@ export class IngressDomain {
     this.run(`UPDATE shiyu_channel_meta SET ${column}=? WHERE id=1`, current + 1);
     return current + 1;
   }
+  /**
+   * Install the trusted same-Worker invalidation sink once (H6b bridge). It runs
+   * inside the accepting transaction, so a sink failure rolls the audience
+   * change/deletion and its invalidation ledger back together.
+   */
+  setInvalidationSink(sink: (signal: ChannelInvalidationSignal) => void): void {
+    this.tx.assertUsable();
+    if (this.invalidationSink) fail('INVALID_CONFIG', 'A channel invalidation sink is already installed');
+    if (typeof sink !== 'function' || isAsyncFunction(sink)) fail('INVALID_CONFIG', 'The channel invalidation sink must be a synchronous callback');
+    this.invalidationSink = sink.bind(undefined);
+  }
   private emit(signal: ChannelInvalidationSignal): void {
     // Deliberately the last step of the same transaction: a sink throw rolls the
     // acceptance and its invalidation ledger back together.
+    if (this.invalidationSink) this.invalidationSink(signal);
     if (this.options.onInvalidation) this.options.onInvalidation(signal);
   }
   private cas(expected: unknown, actual: number, label = 'expectedAudienceVersion'): void {

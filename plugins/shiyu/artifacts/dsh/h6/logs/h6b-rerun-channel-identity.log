@@ -1,0 +1,17 @@
+✔ connection identity derives only from the trusted source tuple and ignores reconnect noise (0.94375ms)
+✔ conversation/participant/message identity separates accounts, modes and native threads (0.442708ms)
+✔ display names, claimed roles and body text never enter participant identity (1.080667ms)
+✔ source event identity composes native message identity, revision and kind with an explicit-id override (0.409333ms)
+✔ content cannot add envelope fields, identity claims or oversized references (0.306084ms)
+✔ revision decision matrix protects newer and terminal state from late or duplicate revisions (0.387584ms)
+✔ audience digest is order insensitive, mode sensitive and capability gates follow declarations (0.104541ms)
+✔ cross-domain mappings validate against the real inner identity and conversation key contracts (0.265708ms)
+✔ canonicalization is insertion-order independent and agrees with the independent oracle (0.158625ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 68.480292

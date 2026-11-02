@@ -1,0 +1,525 @@
+{
+  "schemaVersion": 1,
+  "kind": "h6b-channel-runtime-bridge-offline",
+  "slice": "h6b",
+  "capturedAt": "2026-11-02T20:36:38.061Z",
+  "status": "offline-passed (G1 module/property + real temporary SQLite + real ControlStore Worker IPC + real ConversationStore/RelationshipDomain integration; production Runtime/Worker wiring is a Lead edit and is not installed in this slice; no real platform/model/embedding/Lab room)",
+  "purpose": "H6b bridges the H6a channel ledger into Runtime/dialogue paths: a durable channelRef -> ConversationStore conversation binding (idempotent/CAS/restart-persistent), a same-transaction audience-invalidation bridge from channel signals to ConversationStore.invalidateAudience, exact toConversationKey/toInnerAccount mappings, and one bounded read-only projection (channel snapshot style) for the Lead to mount in runtime.snapshot(). No sending, no second conversation log, no model call.",
+  "verdict": {
+    "isolatedFullCheck": "pass",
+    "counts": {
+      "tests": 1352,
+      "pass": 1352,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "zeroFailureZeroSkip": true,
+    "authoritativeDenominator": "isolated git worktree HEAD 7f354ac + only the six h6b slice files; the shared working tree contains unrelated parallel WIP and is not authoritative",
+    "focusedTestTotal": 53,
+    "newTests": 16,
+    "h6aAndWorkerRegressionTests": 37,
+    "existingControlStoreRegressionTests": 97
+  },
+  "baseline": {
+    "head": "7f354ac4f5176796c1e48ef7cf0a864149106fe1",
+    "headNote": "HEAD at materialization (7f354ac, after H6a 8b34d66 and the independent evidence review); slice files copied on top of that commit only",
+    "previousOfflineBaseline": "H6a committed isolated HEAD+slice count 1336/1336; this run 1352/1352 = 1336 + 16 new H6b tests"
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "npm": "npm 11.17.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "sqlite": "3.53.3",
+    "osRelease": "25.6.0",
+    "pluginPackage": "0.1.0",
+    "commands": {
+      "isolated": "node plugins/shiyu/scripts/slice-verify.mjs --slice h6b --manifest plugins/shiyu/.local/h6b-slice-manifest.json --timeout-ms 900000",
+      "typecheck": "npx tsc --noEmit (package root; internal working tree)",
+      "focused": "node --import tsx --test --test-concurrency=1 tests/<name>.test.ts",
+      "regression": "node --import tsx --test --test-concurrency=1 tests/store.test.ts tests/events.test.ts tests/task-domain.test.ts tests/conversation-store-integration.test.ts tests/inner-view.test.ts tests/local-view-store.test.ts tests/lab-integration.test.ts tests/local-reply-domain.test.ts"
+    }
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/channels/bridge.ts",
+      "bytes": 19434,
+      "sha256": "87ca1d53476d6b05dd097cfb33c3b41d336665b1d37295ad81445991bbdb6eb5"
+    },
+    {
+      "path": "plugins/shiyu/src/control/channels/index.ts",
+      "bytes": 29,
+      "sha256": "0f213d73945e854fe520056f800e3792868b8c7bcdffbe421646e47f684447b0"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/conversation-domain.ts",
+      "bytes": 38365,
+      "sha256": "36c54731fec59178cc58b20cf199ac3e315d75132789295e82751d3f1e2e8203"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/ingress-domain.ts",
+      "bytes": 61472,
+      "sha256": "2d61e880dde6db81baf69d0d4b19590072487abb931b609da526fde8cf15819a"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-bridge.test.ts",
+      "bytes": 24679,
+      "sha256": "4fabdef342aa1b9de2cffa5e1f0de08d52c5c4d50451e517583381f83a5c0b81"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-bridge-worker.test.ts",
+      "bytes": 18957,
+      "sha256": "583dfa7d6e1627339a23d24422a4906960598fa47f4394c3dd22535d3705a797"
+    }
+  ],
+  "focused": [
+    {
+      "name": "channel-bridge",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/focused-channel-bridge.log",
+      "bytes": 1140,
+      "sha256": "95ac8a410aa6c966be511ac2a0d934d416d93bc726f4bf05eaf46cd9c4a6fc52",
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "binding creates the exact ConversationStore conversation and repeated delivery/binding stays idempotent",
+        "audience change, member removal and message deletion each retire old drafts through the same-transaction sink",
+        "a sink failure rolls the channel audience change and the ConversationStore write back together",
+        "unbound channel invalidations stay in the channel ledger and a later binding catches up explicitly",
+        "explicit rebind is CAS-versioned; invalid targets and stale readers never overwrite a newer binding",
+        "cross-scope conversations and revoked channel audiences are refused",
+        "two accounts with identical short ids map to distinct conversation bindings and distinct relationship subjects",
+        "restart preserves bindings, applied watermarks and lets the next invalidation retire an old draft",
+        "two-phase content capture remains scoped after binding; cross-audience ids are refused"
+      ]
+    },
+    {
+      "name": "channel-bridge-worker",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/focused-channel-bridge-worker.log",
+      "bytes": 881,
+      "sha256": "60b5f846588f0ae8247c74eb8af9403a6373c180b8f77da03e38931f3b229c78",
+      "counts": {
+        "tests": 7,
+        "pass": 7,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "real Worker IPC persists an idempotent channel binding and applies invalidation watermarks once",
+        "the host bridge applies pending invalidations after a restart without duplicate conversation changes",
+        "the projection is bounded, lossless JSON and strictly read-only across the real Worker",
+        "a store without the conversation domain still yields an honest degraded projection",
+        "identity mapping through the real Worker yields distinct subjects for two accounts and one idempotent subject per tuple",
+        "two-phase content and cross-audience refusal hold through the Worker after binding",
+        "rejected bridge operations leave the real durable state untouched"
+      ]
+    },
+    {
+      "name": "channel-identity",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/h6b-rerun-channel-identity.log",
+      "bytes": 1066,
+      "sha256": "9279c58a6acbc6b046496a3d1b9b2d7e9d87eebdf2e618c2bbe038ff769425ec",
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "connection identity derives only from the trusted source tuple and ignores reconnect noise",
+        "conversation/participant/message identity separates accounts, modes and native threads",
+        "display names, claimed roles and body text never enter participant identity",
+        "source event identity composes native message identity, revision and kind with an explicit-id override",
+        "content cannot add envelope fields, identity claims or oversized references",
+        "revision decision matrix protects newer and terminal state from late or duplicate revisions",
+        "audience digest is order insensitive, mode sensitive and capability gates follow declarations",
+        "cross-domain mappings validate against the real inner identity and conversation key contracts",
+        "canonicalization is insertion-order independent and agrees with the independent oracle"
+      ]
+    },
+    {
+      "name": "channel-ingress",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/h6b-rerun-channel-ingress.log",
+      "bytes": 1376,
+      "sha256": "aef07ca829f71290997cd7c25ba519ed62be5ac474a35e2955ef17da947f3b13",
+      "counts": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "registration is reconnect-stable and two accounts never merge the same short ids",
+        "persistent dedupe accepts one business fact per source event and rejects changed payloads",
+        "edit revisions advance monotonically; a stale revision can never overwrite a newer one",
+        "retract/delete tombstones clear content references, advance the deletion watermark and cannot resurrect",
+        "edits before the create and unsupported adapter capabilities are rejected without changing state",
+        "trusted actor kind is durable; body claims and kind changes cannot escalate a participant",
+        "out-of-order and late-arriving messages remain distinct intake facts with recorded source order",
+        "a malformed envelope rejects the whole batch; defensive limits refuse without partial writes",
+        "unknown connections, chats and missing references fail closed",
+        "restart persists identity, dedupe, revisions and watermarks; no replay creates a second fact",
+        "attachments are bounded trusted references exposed only by the second-phase read",
+        "one hundred unique events replayed ten times interleaved keep one business fact each"
+      ]
+    },
+    {
+      "name": "channel-audience",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/h6b-rerun-channel-audience.log",
+      "bytes": 910,
+      "sha256": "9b05bd575fe1e200a0285f6a7f93e0ac647c2881533d810bc4899085c4951695",
+      "counts": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "DM audience is exactly one fixed counterpart while group membership is a versioned replaceable set",
+        "multi-member removals keep one audience version but one revocation watermark per participant",
+        "explicit revocation fences participant and whole-conversation access and blocks new intake",
+        "two-phase capture exposes content references only after re-validating audience and snapshot",
+        "capture expiry and defensive capture capacity prune only expired snapshots",
+        "invalidation/deletion/revocation queries are monotonic, ordered and bounded",
+        "trusted invalidation signals fire in the same transaction and a sink failure rolls the change back",
+        "read-only channel queries never write"
+      ]
+    },
+    {
+      "name": "channel-conversation-integration",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/h6b-rerun-channel-conversation-integration.log",
+      "bytes": 582,
+      "sha256": "4aef2b0b3d0d81bb43e02a4f28108fab1fed73586c454a3791642c7df35c9513",
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "the same short ids in two accounts become two distinct relationship subjects with one stable binding each",
+        "an audience change invalidates the real ConversationStore audience and stale draft in the same transaction",
+        "a message deletion also emits a trusted invalidation that retires the current draft",
+        "a downstream invalidation failure rolls both the channel audience and the ConversationStore write back"
+      ]
+    },
+    {
+      "name": "ingress-worker",
+      "path": "plugins/shiyu/artifacts/dsh/h6/logs/h6b-rerun-ingress-worker.log",
+      "bytes": 592,
+      "sha256": "99b9671594b794a27d329c88ed171d93aa20bfc60ae1af9b39991a1c2e8bb634",
+      "counts": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "testNames": [
+        "real ControlStore Worker exposes the channel ingress ports with durable dedupe and two-phase content reads",
+        "Worker restart preserves intake identity, watermarks and persisted captures without replay",
+        "persisted channel state holds no message body text and a tombstone clears the summary reference",
+        "concurrent Worker deliveries of one source event yield exactly one accepted fact and one audience CAS winner"
+      ]
+    }
+  ],
+  "regression": {
+    "path": "plugins/shiyu/artifacts/dsh/h6/logs/h6b-regression-control-store.log",
+    "bytes": 10771,
+    "sha256": "172a8c1eda30dd344cab430741888bc3fe49f91c7c6f4b03931e75975aee7722",
+    "counts": {
+      "tests": 97,
+      "pass": 97,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "testNames": [
+      "one verified completion fans out to two local contexts and one event receipt without model work",
+      "ensure is stable, takes only local keys and does not create tasks or duplicate subscriptions",
+      "a completion accepted before the first local association is replayed with visible bounded replay metadata",
+      "a new binding after another consumed the event retains initial source synchronization even with no pending increment",
+      "redelivery of the same stored event acknowledges another delivery without another context increment",
+      "an envelope claiming success cannot project a Task that has not independently succeeded",
+      "expired claimed work survives Worker reopening and old tokens cannot acknowledge the recovered delivery",
+      "a cancelled subscription claim cannot mutate a context and snapshot reads leave all synchronization markers untouched",
+      "the 64-conversation limit rejects a new binding atomically while allowing existing bindings",
+      "a missing registered handler rolls back all business binding writes",
+      "an injected failure after the ack write rolls back both contexts and ack, while preserving claim attempts",
+      "typed publication rejects forged authority and cross-scope access",
+      "publish and subscription IDs retain stable identity across restart",
+      "two SQLite workers serialize publication and subscription establishment without a lost completion",
+      "concurrent claims have one winner and expired tokens cannot acknowledge a new attempt",
+      "background targets remain durable references and are never returned to the component dispatcher",
+      "pause fences claims; resume preserves dedup and only accepts new matches",
+      "limited replay declares a gap and from_now never backfills old events",
+      "one event fans out; a failed consumer neither blocks another nor gains unlimited attempts",
+      "filters, one-shot subscriptions, and current authorization are enforced at consumption",
+      "expiry is rechecked when a handler acknowledges, not only when it claims",
+      "the real Worker publishes schema4 only for domains it actually instantiated",
+      "real Worker captures inner metadata, validates freshly and reads bodies only on a second call",
+      "inner-domain views are read-only: neither captures nor body reads advance the control watermark",
+      "inner-domain capture selection is bounded, reply-context-only and never accepts caller authority",
+      "a direct-message inner fact never enters a group capture and cannot be body-read through it",
+      "withdrawing a memory source that supported an inner fact degrades the view instead of silently keeping it",
+      "a failed domain initialization is published as unavailable and its commands fail explicitly",
+      "an event-only store exposes no inner-domain read capability at all",
+      "restart keeps domain reads and publication but never revives a Worker capture",
+      "the replyer local read view composes captured inner domains and reads bodies only after trimming",
+      "an inner-domain capture without an exact body reader is an explicit unavailable component",
+      "a tampered or authority-less inner capture is refused before any body read",
+      "a corrected inner record invalidates a pinned local view instead of returning the old body",
+      "a group local view never reveals a direct-message inner fact through the composed reader",
+      "twenty DM/group channels traverse the real Worker, native reply contract and public Lab adapter without cross-talk",
+      "input redelivery and repeated polling never regenerate or deliver again; one thousand snapshots stay read-only",
+      "different actors in one channel retain per-input provenance and cannot rewrite an accepted event identity",
+      "a newer channel input invalidates an older in-flight draft but does not disturb another channel",
+      "pause during model work prevents any public Lab send",
+      "disconnect during model work prevents any public Lab send",
+      "service-replaced during model work prevents any public Lab send",
+      "missing primary-call accounting preserves the reservation and refuses message delivery",
+      "read-only receipt reconciliation resolves after loss without another act or delivery",
+      "read-only receipt reconciliation resolves afterEffect loss without another act or delivery",
+      "a receipt query that finds no delivery leaves unknown held and never executes the missing effect",
+      "ambiguous remote delivery evidence never becomes local success or releases the effect hold",
+      "expiry blocks fresh work but still permits a strictly read-only observation of an already delivered effect",
+      "a completed Lab room retains read-only receipt access while refusing all further generation",
+      "the last asynchronous Lab preflight cannot bypass a newly persisted runtime pause",
+      "reopening the real Worker fences the old connection and preserves unknown effects without live replay",
+      "explicit same-run reconnect observes the old unknown without replay, then fresh input continues the same native Session",
+      "ordinary pause and explicit reconnect preserve same-audience Session identity and do not replay old inputs",
+      "input identity is content-bound, duplicates do not advance generation, and archived inputs are refused",
+      "legacy mode-less loaded and unknown outcomes remain immutable duplicates while explicit modes conflict",
+      "prepare cannot attach an old capture to a newer admitted generation or unrelated loaded source",
+      "background binding revisions do not replace a stable native Session and a new input only advances generation",
+      "durable old context confirms only captured sources and preserves newer pending background",
+      "context receipts reject forged scope, mismatched native evidence, new generation and changed audience",
+      "current Task revision and view expiry block release independently of a confirmed context load",
+      "late receipt persistence failure rolls back source acknowledgement and its commit watermark together",
+      "model failure preserves independent durable context evidence while terminal cancellation rejects late acknowledgements",
+      "ready and receipt duplicates are pure reads and a late caller failure cannot downgrade a ready draft",
+      "reopened unknown input retains stable native identity and cannot be prepared or dispatched again",
+      "trusted ready draft publication checks exact receipt/hash and stays read-only",
+      "trusted ready draft gate rejects legacy, changed sources, expired captures and altered durable evidence",
+      "prepare persists body-free inner provenance and returns it on readback and reopen",
+      "prepare replay is idempotent in effect while a second prepare stays refused and changes nothing",
+      "legacy callers without inner provenance stay compatible and read back as not_provided",
+      "inner provenance is closed: bodies, grants, bad order, bad digests and mismatch are refused before persistence",
+      "a revoked inner capture is refused at prepare time and its record change is refused before dispatch",
+      "a Lab reply tolerates only the inner read-snapshot time bound, not changed provenance",
+      "inner provenance from another conversation or another domain authority is refused",
+      "real Worker initializes one honest manifest and serves Task-only ReadView without ack or writes",
+      "capture/validation commands never accept a caller-selected principal, scope, fields or source versions",
+      "concurrent IPC reads share coherent captures, while an actual Task change stales only its old captures",
+      "unrelated event commit preserves the fixed capture and publication across validation",
+      "reopen preserves publication/safety baselines but never revives an old capture",
+      "event-only stores expose no local read authority or implicit publication",
+      "SQLite uses a dedicated worker and reports actual runtime durability settings",
+      "durable unacknowledged claim survives a worker restart and old receipt is fenced",
+      "schema drift on restart fails closed instead of reinterpreting persisted event types",
+      "an accepted publication can be retried after a catalog schema upgrade",
+      "close drains an already full command queue before terminating its worker",
+      "task IPC is disabled without an explicit trusted runtime identity",
+      "owner admission is bounded, idempotent and atomically reserves the compound task budget",
+      "only independent artifact evidence followed by verification publishes a task success",
+      "native totals take precedence; absent totals require every disjoint pi component and known calls",
+      "independent usage reconciliation retains unknown dimensions until a complete native observation arrives",
+      "malformed native counters cannot settle a budget; reported totals still enforce its limit",
+      "bounded native observations preserve partial per-call cache evidence without changing aggregate accounting",
+      "task completion and its durable event roll back together if the completion event cannot be accepted",
+      "reload preserves unknown execution and effect facts without granting another dispatch",
+      "pause fences the old assignment even after resume; a fresh queued task keeps its original identity",
+      "partial usage stays held while same-assignment result facts can still be verified",
+      "cancellation invalidates pending intents and cannot claim that unknown effects were cancelled",
+      "an owner can explicitly recover a never-started old assignment only after independent zero-usage reconciliation"
+    ]
+  },
+  "isolated": {
+    "evidence": {
+      "path": "plugins/shiyu/artifacts/dsh/h6/h6b-slice-verify.json",
+      "bytes": 2220,
+      "sha256": "86228a8cf4264f1b9fa9d4ae1b66eda28aba4e6d2e28c1d49a50c28ad145471b"
+    },
+    "log": {
+      "path": "plugins/shiyu/artifacts/dsh/h6/h6b-isolated-check.log",
+      "bytes": 147714,
+      "sha256": "db2e0f2fcc9cb19288257bbf81cb39d907bd913c4485457c30fcaf974caca5a8"
+    },
+    "check": {
+      "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+      "exitCode": 0,
+      "signal": null,
+      "timedOut": false,
+      "durationMs": 264407,
+      "bytes": 147714,
+      "sha256": "db2e0f2fcc9cb19288257bbf81cb39d907bd913c4485457c30fcaf974caca5a8",
+      "tests": {
+        "tests": 1352,
+        "pass": 1352,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "tail": [
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 263261.172875",
+        "> @shiyu/runtime@0.1.0 build",
+        "> tsc -p tsconfig.build.json"
+      ]
+    }
+  },
+  "bridgeModel": {
+    "binding": {
+      "command": "conversation.channelBind / conversation.channelBindings",
+      "storage": "control SQLite table shiyu_channel_conversation_bindings (channel_ref PK, conversation_id UNIQUE, scope, version, applied_invalidation_watermark, last invalidation metadata, timestamps) on the single SqliteTransactions connection",
+      "creation": "default target = ConversationStore.ensureConversation(from toConversationKey(channel audience, scope)), so the binding and the conversation are written in one transaction and repeated delivery/binding never creates a second conversation; an explicit existing conversationId may be supplied instead (must be owned, same scope, active)",
+      "idempotency": "same channelRef+conversation produces a stable duplicate result without version bump; concurrent duplicate binds still produce exactly one durable row",
+      "cas": "rebinding to another conversation requires expectedBindingVersion == current version; an older reader gets VERSION_CONFLICT and can never overwrite the newer binding; bindings without a version are refused (BINDING_VERSION_REQUIRED) and conversation_id is globally unique (BINDING_CONFLICT)",
+      "refusals": "forged channelRef (UNKNOWN_CHANNEL_CONVERSATION/INVALID_SCHEMA), revoked channel audience (CHANNEL_AUDIENCE_REVOKED), scope the owner cannot manage (UNAUTHORIZED_BINDING), binding-scope change (CROSS_SCOPE_BINDING), foreign/other-scope conversation (CROSS_SCOPE_BINDING), missing conversation (INVALID_CONVERSATION), archived conversation (INACTIVE_CONVERSATION), capacity 128 (BINDING_CAPACITY)",
+      "restart": "bindings, versions and applied invalidation watermarks are durable and survive a Worker restart (covered by the real Worker test); a restarted bind replays as duplicate with the same conversationId"
+    },
+    "invalidationBridge": {
+      "sinkPath": "IngressDomain.setInvalidationSink(signal => ConversationDomain.bridgeChannelInvalidation(...)) runs synchronously inside the accepting channel transaction; ConversationDomain calls ConversationStore.invalidateAudience (audienceVersion++, reply-binding sessionEpoch++/routingRevision++ in the same writer transaction); unbound channel conversations are a deliberate no-op",
+      "atomicity": "a sink/bridge failure rolls the channel audience change (including its invalidation ledger and deletion watermark) together with the ConversationStore write back; this is proven by a real ConversationStore draft becoming STALE_CONTEXT after audience change/member removal/deletion and by an injected sink-failure rollback test",
+      "draftEffect": "old drafts retire via ConversationStore token checks: assertDraftCurrent throws STALE_CONTEXT after an audience change, member removal and message deletion respectively; the binding projection exposes conversationAudienceVersion and replySessionEpoch so the Runtime can display the same fact",
+      "pullPath": "ChannelRuntimeBridge.bridgePending() reads channel.invalidationsAfter and applies each still-pending signal to its bound conversation through conversation.channelInvalidate; per-binding applied_invalidation_watermark makes retries/host restarts idempotent (a second page/run applies 0 additional changes); unbound signals stay pending and are reported",
+      "lateBinding": "invalidations emitted before a binding stay in the channel ledger; after binding, bridgePending() applies them (conservative whole-audience invalidation), so a restart/pending window cannot silently reuse a stale draft"
+    },
+    "projection": {
+      "shape": "ChannelRuntimeProjection {schemaVersion:1, source:\"channel-ingress\", capturedAt, status{ready,schemaVersion?,errorCode?}, watermark{intakeSeq,invalidationWatermark,deletionWatermark,revocationWatermark}, bindings[{channelRef,conversationId,scope,version,appliedInvalidationWatermark,conversationAudienceVersion,replySessionEpoch,lastInvalidationAt?}], connections[{connectionId,sourceNamespace,provider,deployment,accountId,revision}], conversations[{conversationRef,connectionId,nativeConversationId,threadId?,mode,audienceVersion,audienceStatus,participantCount}], pending{invalidationWatermark,appliedThrough,unapplied,unbound,truncated}, degraded[]}",
+      "readOnly": "three bounded reads only (channel.status, channel.snapshot, conversation.channelBindings + bounded invalidations page); 100 real Worker refreshes leave control commitSeq unchanged; no capture/creation/write",
+      "lossless": "plain JSON with no explicit undefined, NaN/Infinity/-0, sparse arrays, accessors or symbol keys; an independent lossless checker + JSON round-trip runs against the real Worker projection (required before embedding into a DSH tool/snapshot)",
+      "honestDegraded": "channel ingress unavailable or conversation domain unavailable produce status/degraded markers instead of empty success; bindings/pending/watermarks remain inspectable where their sources exist",
+      "safety": "no message bodies, summaries or body references in the projection; participants are reduced to counts; no authority/Mandate/credential is exposed"
+    },
+    "identityMapping": {
+      "conversationKey": "ChannelRuntimeBridge.conversationKey()/channelConversationKey() produce the exact existing ConversationKey {connectionId, platformConversationId:nativeConversationId, threadId?, kind:mode, scope}; the binding test proves the derived conversationId equals the ConversationStore.ensureConversation result for that key",
+      "innerAccount": "channel.getParticipant().innerAccount is re-validated by channelParticipantAccount() against the H4 InnerAccount contract; the bridge registers it via relationship.registerSubject",
+      "noMerge": "two accounts with identical short participant ids/message ids and identical display names produce distinct InnerAccount tuples and distinct relationship entityIds; the same tuple re-registers idempotently (created=false)"
+    }
+  },
+  "requirementMatrix": [
+    {
+      "requirement": "a) durable channelRef->conversationId binding, idempotent/CAS, cross-scope refusal, restart persistence",
+      "tests": [
+        "channel-bridge.test.ts: binding creates the exact ConversationStore conversation and repeated delivery/binding stays idempotent",
+        "channel-bridge.test.ts: explicit rebind is CAS-versioned; invalid targets and stale readers never overwrite a newer binding",
+        "channel-bridge.test.ts: cross-scope conversations and revoked channel audiences are refused",
+        "channel-bridge.test.ts: restart preserves bindings, applied watermarks and lets the next invalidation retire an old draft",
+        "channel-bridge-worker.test.ts: real Worker IPC persists an idempotent channel binding and applies invalidation watermarks once"
+      ]
+    },
+    {
+      "requirement": "b) onInvalidation/invalidationsAfter bridged to ConversationDomain audience invalidation",
+      "tests": [
+        "channel-bridge.test.ts: audience change, member removal and message deletion each retire old drafts through the same-transaction sink",
+        "channel-bridge.test.ts: a sink failure rolls the channel audience change and the ConversationStore write back together",
+        "channel-bridge.test.ts: unbound channel invalidations stay in the channel ledger and a later binding catches up explicitly",
+        "channel-bridge-worker.test.ts: the host bridge applies pending invalidations after a restart without duplicate conversation changes"
+      ]
+    },
+    {
+      "requirement": "c) toConversationKey->ConversationStore and toInnerAccount->RelationshipDomain mapping",
+      "tests": [
+        "channel-bridge.test.ts: binding creates the exact ConversationStore conversation ... (exact key match)",
+        "channel-bridge.test.ts: two accounts with identical short ids map to distinct conversation bindings and distinct relationship subjects",
+        "channel-bridge-worker.test.ts: identity mapping through the real Worker yields distinct subjects for two accounts and one idempotent subject per tuple"
+      ]
+    },
+    {
+      "requirement": "d) channel.snapshot style read-only projection for runtime.snapshot",
+      "tests": [
+        "channel-bridge-worker.test.ts: the projection is bounded, lossless JSON and strictly read-only across the real Worker",
+        "channel-bridge-worker.test.ts: a store without the conversation domain still yields an honest degraded projection"
+      ]
+    },
+    {
+      "requirement": "two-phase content capture / cross-audience refusal after binding",
+      "tests": [
+        "channel-bridge.test.ts: two-phase content capture remains scoped after binding; cross-audience ids are refused",
+        "channel-bridge-worker.test.ts: two-phase content and cross-audience refusal hold through the Worker after binding"
+      ]
+    },
+    {
+      "requirement": "negatives: forged channelRef, cross scope, old revision, invalid conversationId, unauthorized binding, cross-audience read, duplicate delivery/binding",
+      "tests": [
+        "channel-bridge.test.ts: explicit rebind is CAS-versioned; invalid targets and stale readers never overwrite a newer binding",
+        "channel-bridge.test.ts: cross-scope conversations and revoked channel audiences are refused",
+        "channel-bridge-worker.test.ts: rejected bridge operations leave the real durable state untouched",
+        "channel-bridge-worker.test.ts: real Worker IPC persists an idempotent channel binding ..."
+      ]
+    }
+  ],
+  "integrationPoints": [
+    {
+      "target": "Worker-side invalidation sink (Lead edit: src/adapters/control-store/worker.ts)",
+      "status": "not applied in this slice (worker.ts outside task-15 write scope); exact snippet below, add `import { channelBridgeReason } from \"../../control/channels/index.js\";` next to the IngressDomain import",
+      "anchor": "worker.ts:744 (immediately after the `conversations = new ConversationDomain(db, transactions, {...});` block, inside the `if (options.runtimeIdentity)` branch)",
+      "snippet": "    // H6b: trusted same-Worker bridge. The sink runs inside the channel\n    // count/audience/deletion transaction, so a failure rolls both sides back.\n    if (ingress) ingress.setInvalidationSink(signal => {\n      conversations!.bridgeChannelInvalidation({\n        channelRef: signal.conversationRef, reasonRef: channelBridgeReason(signal), sourceWatermark: signal.watermark,\n      });\n    });",
+      "note": "Keep the sink synchronous; it runs inside the channel transaction. Do not catch-and-swallow inside the sink: a throw must abort the channel change (that is the tested rollback contract). Optional: call ChannelRuntimeBridge.bridgePending() once from a trusted startup reconciliation step (not from GET/snapshot) to apply signals recorded before the binding existed."
+    },
+    {
+      "target": "Runtime read-only projection (Lead edit: src/runtime.ts)",
+      "status": "not applied in this slice; exact line-level suggestions below (anchors at HEAD 7f354ac)",
+      "anchors": [
+        "runtime.ts:125 — add the field after `localReplies!: LocalReplyService;`",
+        "runtime.ts:186 — after the `this.store = await ControlStore.open({...});` statement ends (`}));`), construct the bridge",
+        "runtime.ts:505 + 513 — extend the snapshot `Promise.all` destructuring and array with `this.channels.snapshot()`",
+        "runtime.ts:536 — add `channels: channelProjection` to the returned object (after `ability,`)"
+      ],
+      "importSnippet": "import { ChannelRuntimeBridge } from './control/channels/index.js';",
+      "fieldSnippet": "  /** H6b: read-only channel bridge projection for runtime.snapshot(); no send, no model. */\n  channels!: ChannelRuntimeBridge;",
+      "initSnippet": "      // H6b: host-side trusted bridge over the existing channel.* and conversation.channel* ports.\n      this.channels = new ChannelRuntimeBridge(this.store);",
+      "snapshotSnippet": "    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection, core, lab, ability, channelProjection] = await Promise.all([\n      ...\n      this.abilitySnapshot(),\n      this.channels.snapshot(),\n    ]);",
+      "returnSnippet": "      ability,\n      channels: channelProjection,\n      conversations: conversations.conversations,",
+      "note": "The projection is plain lossless JSON and read-only; adding a new `channels` key does not change existing snapshot keys. Client/dashboard rendering is a separate client change (not in this slice). Optionally add a `dependencies` entry `{id:\"channel-bridge\", name:\"渠道桥接\", status: channelProjection.status.ready ? \"available\" : \"unavailable\", summary:\"…\", checkedAt: at}` after the existing dependencies list if the dashboard should surface it immediately; keep the wording non-authoritative."
+    },
+    {
+      "target": "Existing ConversationStore/RelationshipDomain",
+      "status": "wired in this slice (no core conversation semantics changed)",
+      "detail": "ConversationDomain gained three bridge commands and one same-Worker method that delegate to the existing ConversationStore.ensureConversation/getConversation/invalidateAudience; RelationshipDomain is untouched and consumes channel.getParticipant().innerAccount."
+    },
+    {
+      "target": "channel ingress domain",
+      "status": "minimal increment",
+      "detail": "IngressDomain gained only setInvalidationSink() and one sink call site inside its existing atomic emit; all H6a commands, dedupe/revision/tombstone/audience semantics and limits are unchanged (all 37 H6a tests still pass on this slice)."
+    }
+  ],
+  "boundaries": {
+    "realPlatforms": 0,
+    "realAccounts": 0,
+    "realDevices": 0,
+    "modelCalls": 0,
+    "embeddingCalls": 0,
+    "labRooms": 0,
+    "hostReloads": 0,
+    "gitCommits": 0,
+    "note": "All identities, channels, actors, messages, drafts and bodies are synthetic. No platform SDK, network call, native DSH Session, model, embedding, Lab room, device or live runtime store was used; no git commit/branch/reset was performed. The real Worker runs in a separate thread on a temporary SQLite file; ConversationStore/RelationshipDomain run on the same connection as the H6a/H6b fixtures."
+  },
+  "failures": [],
+  "untested": [
+    "Production Worker sink installation and runtime.snapshot projection wiring are Lead edits; this slice proves the exact bridge calls but not the final runtime.ts/worker.ts assembly (the direct fixture is byte-for-byte the wiring snippet above).",
+    "No fixed-host/Runtime verification: runtime.snapshot() with the new `channels` key, dashboard/client rendering, and tool lossless output inside the DSH host are not exercised here.",
+    "No real platform adapter, credential, reconnect/rate-limit, provider edit/delete/receipt semantics, sending/Effect or delivery.",
+    "No native Session/draft generation consumption of the channel content references; the two-phase content path is only proven at the channel domain level.",
+    "No Lab room reuse, no long-run/crash-window/disk-full/migration or multi-writer evidence; single-writer Worker + WAL/DELETE stays inherited from the control store.",
+    "bridgePending historical catch-up is conservative: after an explicit rebind the newly bound conversation may receive already-recorded whole-audience invalidations; it is safe (extra invalidation) but loses no correctness proof for cache reuse."
+  ],
+  "next": [
+    "Lead: apply the two snippets (worker.ts sink; runtime.ts field/init/snapshot/return) and re-run the isolated check before any fixed-host reload.",
+    "H6c/later: replyer/draft consumption of channel capture/readContentRefs, dashboard panel for projection, real platform adapter activation with explicit scope and receipts.",
+    "Long-run: apply-then-idle window with bridgePending, restart between invalidation ledger write and conversation invalidation (simulated crash window), and retrieval of invalidated drafts."
+  ]
+}

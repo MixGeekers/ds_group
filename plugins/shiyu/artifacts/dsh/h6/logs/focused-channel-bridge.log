@@ -1,0 +1,17 @@
+✔ binding creates the exact ConversationStore conversation and repeated delivery/binding stays idempotent (16.153125ms)
+✔ audience change, member removal and message deletion each retire old drafts through the same-transaction sink (8.406625ms)
+✔ a sink failure rolls the channel audience change and the ConversationStore write back together (4.848834ms)
+✔ unbound channel invalidations stay in the channel ledger and a later binding catches up explicitly (5.249083ms)
+✔ explicit rebind is CAS-versioned; invalid targets and stale readers never overwrite a newer binding (4.966708ms)
+✔ cross-scope conversations and revoked channel audiences are refused (4.974166ms)
+✔ two accounts with identical short ids map to distinct conversation bindings and distinct relationship subjects (8.62125ms)
+✔ restart preserves bindings, applied watermarks and lets the next invalidation retire an old draft (6.399542ms)
+✔ two-phase content capture remains scoped after binding; cross-audience ids are refused (6.905084ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 137.641125

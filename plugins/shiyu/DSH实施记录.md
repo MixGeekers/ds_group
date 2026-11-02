@@ -646,3 +646,39 @@ findings 处理（均 minor，不推翻结论）：
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4d-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-reply-domain.test.ts tests/local-reply.test.ts
 ```
+
+## 19. H6b 切片：渠道域→Runtime 桥接（绑定/失效/投影）
+
+状态：**离线通过（G1 模块/集成 + 真实临时 SQLite/Worker IPC）**；Runtime/worker 生产装配与固定宿主快照未落地（Lead 集成），真实平台/发送未验。2026-11-02 完成并审阅。
+
+### 19.1 交付（6 文件 + 证据）
+
+- 新增 `src/control/channels/{bridge,index}.ts`：`ChannelRuntimeBridge`（host 侧）提供 `bindChannel`（`conversation.channelBind`：幂等、并发单行、`expectedBindingVersion` CAS 改绑、跨 scope/未授权/伪造 ref/无效或归档 conversation 拒绝）、`bindings` 读取、`bridgePending`（`channel.invalidationsAfter` + applied watermark 幂等，重启/重跑不重复）、只读 `ChannelRuntimeProjection`（status/watermark/bindings/connections/conversations/pending/degraded；无正文/summary/bodyRef/参与者文本；lossless JSON；100 次刷新 commitSeq 不变；conversation 域缺失显式 degraded 而非空成功）。
+- `conversation-domain.ts`（+174）：新表 `shiyu_channel_conversation_bindings`、3 个 `conversation.channel*` IPC 命令、同 Worker `bridgeChannelInvalidation`。
+- `ingress-domain.ts`（+14）：仅 `setInvalidationSink` 与 emit 一次调用，H6a 语义/命令不变。
+- 失效桥：sink 在受众/删除变更**同一事务**内调用；经 `ConversationStore.invalidateAudience`（audienceVersion++、reply sessionEpoch++）使真实旧 draft `STALE_CONTEXT`；sink 抛错时 channel 变更+失效账本+conversation store 一起回滚；未绑定频道 no-op。
+- 身份映射：`channelConversationKey`/`toConversationKey` 产出既有 ConversationKey 精确形状并与绑定同事务 `ensureConversation`；`channelParticipantAccount`/InnerAccount 经契约校验后喂 `relationship.registerSubject`（跨账号同短 ID/同显示名→两个 entity，同 tuple 幂等）。
+- 测试：`tests/channel-bridge.test.ts` 9 + `tests/channel-bridge-worker.test.ts` 7（真实 Worker IPC）。
+- 证据：`artifacts/dsh/h6/h6b-channel-runtime-bridge.json`、`h6b-slice-summary.json`、`h6b-isolated-check.log`、`artifacts/dsh/slices/h6b-verify.json`。
+
+### 19.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `7f354ac` + 仅 6 文件）`npm run check` | exit 0；**1352/1352 通过，0 失败/取消/跳过**（= 1336 + 16）；日志 `artifacts/dsh/h6/h6b-isolated-check.log` |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `11d0c73` + 仅 6 文件） | exit 0；**1361/1361 通过，0 跳过**（= 1345 + 16）；证据 `artifacts/dsh/slices/h6b-verify.json` |
+| 定向 | H6b 16/16、H6a 全量 37/37 复跑、既有 ControlStore 回归 97/97 |
+| 证据级别 | G1 离线模块/集成 + 真实临时 SQLite/Worker IPC；非宿主/真实平台验收 |
+
+### 19.3 失败 / unknown / 未测
+
+1. Runtime/worker 生产装配未落地：Lead 需在 `worker.ts` 的 ConversationDomain 构造后接 `ingress.setInvalidationSink(...)`，在 `runtime.ts` 构造 `ChannelRuntimeBridge` 并把 `snapshot().channels` 投影接入（可选启动 `bridgePending()` reconciliation）；集成后需另做固定宿主零模型核对。
+2. 固定宿主 `snapshot()` 实际输出与 dashboard、真实平台适配/凭据/回执、发送/Effect、原生 Session/草稿消费、Lab 复用、长跑/崩溃窗口/迁移/多 writer 均未验。
+3. 仅离线合成 SQLite + 真实 Worker IPC；无真实平台、模型或 embedding 调用。
+
+### 19.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h6b-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/channel-bridge.test.ts tests/channel-bridge-worker.test.ts
+```

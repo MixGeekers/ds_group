@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h6b",
+  "capturedAt": "2026-11-02T20:35:03.414Z",
+  "head": "7f354ac4f5176796c1e48ef7cf0a864149106fe1",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h6b-1793651438603",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/channels/bridge.ts",
+      "bytes": 19434,
+      "sha256": "87ca1d53476d6b05dd097cfb33c3b41d336665b1d37295ad81445991bbdb6eb5"
+    },
+    {
+      "path": "plugins/shiyu/src/control/channels/index.ts",
+      "bytes": 29,
+      "sha256": "0f213d73945e854fe520056f800e3792868b8c7bcdffbe421646e47f684447b0"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/conversation-domain.ts",
+      "bytes": 38365,
+      "sha256": "36c54731fec59178cc58b20cf199ac3e315d75132789295e82751d3f1e2e8203"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/ingress-domain.ts",
+      "bytes": 61472,
+      "sha256": "2d61e880dde6db81baf69d0d4b19590072487abb931b609da526fde8cf15819a"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-bridge.test.ts",
+      "bytes": 24679,
+      "sha256": "4fabdef342aa1b9de2cffa5e1f0de08d52c5c4d50451e517583381f83a5c0b81"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-bridge-worker.test.ts",
+      "bytes": 18957,
+      "sha256": "583dfa7d6e1627339a23d24422a4906960598fa47f4394c3dd22535d3705a797"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 264407,
+    "bytes": 147714,
+    "sha256": "db2e0f2fcc9cb19288257bbf81cb39d907bd913c4485457c30fcaf974caca5a8",
+    "tests": {
+      "tests": 1352,
+      "pass": 1352,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 263261.172875",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h6b.log",
+    "bytes": 147714,
+    "sha256": "db2e0f2fcc9cb19288257bbf81cb39d907bd913c4485457c30fcaf974caca5a8"
+  },
+  "verdict": "pass"
+}

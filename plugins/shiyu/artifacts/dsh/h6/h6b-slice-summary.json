@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "phase": "H6b",
+  "slice": "channel domain to runtime bridge: persistent bindings, invalidation bridge and read-only projection",
+  "capturedAt": "2026-11-02T20:45:47.980Z",
+  "status": "offline-verified-integration",
+  "purpose": "Bridge the H6a channel domain into the conversation/runtime path: persistent channelRef->conversationId bindings with CAS, same-transaction invalidation into ConversationDomain (audience version/session epoch), pull-based pending bridge, identity mapping into ConversationStore/RelationshipDomain, and a body-free read-only projection for the runtime snapshot.",
+  "baseline": {
+    "head": "11d0c73",
+    "note": "H0..H6a/H4d including H4d follow-up committed; 1345 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/channels/bridge.ts",
+      "bytes": 19434,
+      "sha256": "87ca1d53476d6b05dd097cfb33c3b41d336665b1d37295ad81445991bbdb6eb5"
+    },
+    {
+      "path": "plugins/shiyu/src/control/channels/index.ts",
+      "bytes": 29,
+      "sha256": "0f213d73945e854fe520056f800e3792868b8c7bcdffbe421646e47f684447b0"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/conversation-domain.ts",
+      "bytes": 38365,
+      "sha256": "36c54731fec59178cc58b20cf199ac3e315d75132789295e82751d3f1e2e8203"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/ingress-domain.ts",
+      "bytes": 61472,
+      "sha256": "2d61e880dde6db81baf69d0d4b19590072487abb931b609da526fde8cf15819a"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-bridge.test.ts",
+      "bytes": 24679,
+      "sha256": "4fabdef342aa1b9de2cffa5e1f0de08d52c5c4d50451e517583381f83a5c0b81"
+    },
+    {
+      "path": "plugins/shiyu/tests/channel-bridge-worker.test.ts",
+      "bytes": 18957,
+      "sha256": "583dfa7d6e1627339a23d24422a4906960598fa47f4394c3dd22535d3705a797"
+    }
+  ],
+  "implementation": {
+    "bridge": "new ChannelRuntimeBridge (host side): bindChannel via conversation.channelBind (idempotent, concurrent single row, CAS on expectedBindingVersion, cross-scope/unauthorized/forged/archived/invalid conversation rejected), bindings read, bridgePending over channel.invalidationsAfter with applied watermark idempotency, and a read-only ChannelRuntimeProjection (status/watermark/bindings/connections/conversations/pending/degraded; no bodies/summary/bodyRef/participant text; lossless JSON; 100 refreshes leave commitSeq unchanged; missing conversation domain is explicit degraded).",
+    "invalidation": "IngressDomain.setInvalidationSink called inside the same transaction as audience/deletion changes; ConversationDomain.bridgeChannelInvalidation -> ConversationStore.invalidateAudience (audienceVersion++, reply sessionEpoch++), so an old draft becomes STALE_CONTEXT; a throwing sink rolls back channel change + ledger + conversation store together; unbound channels are a no-op.",
+    "identity": "channelConversationKey/toConversationKey produces the exact existing ConversationKey shape and ensureConversation runs in the same transaction as the binding; channelParticipantAccount/InnerAccount is validated and fed to relationship.registerSubject: same short id/display name in two accounts yields two entity ids and the same tuple is idempotent.",
+    "workerIncrements": "conversation-domain.ts adds the shiyu_channel_conversation_bindings table, three channel IPC commands and the same-Worker bridge method; ingress-domain.ts only adds the sink hook; protocol/worker/contracts untouched.",
+    "leadIntegrationPoint": "Lead wires worker.ts (conversations domain creation -> ingress.setInvalidationSink(conversation bridge call)) and runtime.ts (channels field/constructor/snapshot projection; optional startup bridgePending reconciliation). Exact lines and code are in the teammate evidence."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "ephemeral worktree at HEAD 7f354ac + only 6 H6b files",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1352,
+      "pass": 1352,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "arithmetic": "1336 baseline + 16 new tests = 1352",
+      "log": {
+        "path": "artifacts/dsh/h6/h6b-isolated-check.log",
+        "sha256": "db2e0f2f…"
+      }
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 11d0c73 + only these 6 files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h6b-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1361,
+        "pass": 1361,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 248288,
+      "log": "plugins/shiyu/.local/slice-verify-h6b.log",
+      "arithmetic": "1345 baseline + 16 new tests = 1361"
+    },
+    "targeted": {
+      "channelBridge": 9,
+      "channelBridgeWorker": 7,
+      "h6aRerun": 37,
+      "controlStoreRegression": 97,
+      "total": 53,
+      "note": "H6a 37/37 rerun with the new sink; existing ControlStore regression batch 97/97"
+    },
+    "negative": "forged channelRef/scope, unauthorized or cross-scope bindings, stale binding revision overwrite, invalid/archived/occupied conversation, invalidation sink throw rollback, missing conversation domain degraded, cross-audience content not projected, 100 refresh read-only.",
+    "positive": "concurrent binding single row, rebind CAS, restart persistence, audience/member/deletion invalidation -> STALE_CONTEXT on real drafts, pull bridge idempotent across worker restarts, identity mapping into conversation/relationship domains."
+  },
+  "failedUnknownUntested": [
+    "Runtime/worker production assembly is not landed by this slice; the exact Lead integration diff is provided and must be applied and verified separately.",
+    "Fixed-host snapshot/projection output, real channel adapter/credentials/receipts, sending/Effect, native Session/draft consumption, Lab reuse, long-run/crash windows/migration/multi-writer are untested.",
+    "Only offline synthetic SQLite + real Worker IPC; no real platform, model or embedding call."
+  ],
+  "scope": {
+    "realPlatformCalls": 0,
+    "realAccountAccess": 0,
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "labRooms": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 offline module/integration + real temporary SQLite/Worker IPC; runtime assembly and host acceptance not claimed."
+}

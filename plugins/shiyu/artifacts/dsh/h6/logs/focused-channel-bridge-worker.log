@@ -1,0 +1,15 @@
+✔ real Worker IPC persists an idempotent channel binding and applies invalidation watermarks once (381.194625ms)
+✔ the host bridge applies pending invalidations after a restart without duplicate conversation changes (720.740667ms)
+✔ the projection is bounded, lossless JSON and strictly read-only across the real Worker (2358.587ms)
+✔ a store without the conversation domain still yields an honest degraded projection (101.789333ms)
+✔ identity mapping through the real Worker yields distinct subjects for two accounts and one idempotent subject per tuple (334.3585ms)
+✔ two-phase content and cross-audience refusal hold through the Worker after binding (343.603916ms)
+✔ rejected bridge operations leave the real durable state untouched (284.033333ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4595.140958

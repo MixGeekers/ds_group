@@ -1,11 +1,19 @@
 import { createHash } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import { ConversationError, ConversationStore, type BackgroundReceipt, type PendingBackground, type SourceVersion, type ContextSnapshot } from '../../control/conversations/index.js';
+import { ConversationError, ConversationStore, type BackgroundReceipt, type PendingBackground, type SourceVersion, type ContextSnapshot, type ConversationRecord } from '../../control/conversations/index.js';
 import type { TaskView } from '../../control/tasks/index.js';
 import type { TrustedPolicyActor } from '../../control/policy/mandates.js';
 import type { AckInput, ClaimedDelivery, ClaimInput, EventPrincipal, EventStats, FailInput, StoredDelivery, StoredEvent, StoredSubscription, SubscribeInput } from '../../contracts/events.js';
 import { SqliteTransactions } from './transaction.js';
 import { LocalReplyDomain, type LocalReplyAuthority, type LocalReplyCommands, type LocalReplyDomainRequest, type LocalReplyOperation } from './local-reply-domain.js';
+import type {
+  ChannelBindingInput, ChannelConversationBinding, ChannelInvalidateInput, ChannelInvalidateOutcome,
+} from '../../control/channels/bridge.js';
+import {
+  CHANNEL_BINDING_LIMIT, channelConversationKey, normalizeBridgeConversationId, normalizeBridgeReason, normalizeBridgeScope,
+  readChannelConversationForBridge,
+} from '../../control/channels/bridge.js';
+import { channelRef as channelRefIdentity } from '../../control/ingress/index.js';
 
 export const CONVERSATION_BACKGROUND_HANDLER = 'conversation.background';
 export const LOCAL_CONVERSATION_KEY_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
@@ -66,14 +74,25 @@ export interface ConversationCommands extends LocalReplyCommands {
   'conversation.ensureLabChannel': { input: LabChannelInput; output: LocalConversationEntry };
   'conversation.consumeBackground': { input: { limit?: number }; output: BackgroundConsumptionResult };
   'conversation.snapshotLocal': { input: { conversationId?: string }; output: LocalConversationSnapshot };
+  /** H6b trusted bridge: persist the channel conversation -> ConversationStore conversation binding. */
+  'conversation.channelBind': { input: ChannelBindingInput; output: ChannelConversationBinding & { duplicate: boolean } };
+  /** H6b trusted bridge read: bindings with their live ConversationStore audience/revision context. */
+  'conversation.channelBindings': { input: { channelRef?: string; conversationId?: string }; output: ChannelConversationBinding[] };
+  /** H6b trusted bridge: apply a channel invalidation watermark to the bound conversation audience (idempotent). */
+  'conversation.channelInvalidate': { input: ChannelInvalidateInput; output: ChannelInvalidateOutcome };
 }
 export type ConversationDomainRequest = { [K in keyof ConversationCommands]: { command: K; args: ConversationCommands[K]['input'] } }[keyof ConversationCommands];
+type Row = Record<string, unknown>;
 interface LocalBinding { localKey: string; conversationId: string; topicId: string; bindingId: string }
 export interface LabChannelKey { connectionId: string; runId: string; channelId: string }
 export interface LabChannelInput extends LabChannelKey { kind: 'direct' | 'group' | 'channel'; membersDigest: string }
 interface LabBinding extends LocalBinding, LabChannelInput { retired: number }
 interface Options { events: ConversationEventPort; getTask(taskId: string): TaskView }
 const fail = (code: string, message: string): never => { throw new ConversationError(code, message); };
+function bridgeInteger(value: unknown, label: string, min = 0): number {
+  if (!Number.isSafeInteger(value) || Number(value) < min) fail('INVALID_SCHEMA', `Invalid ${label}`);
+  return Number(value);
+}
 function fields(value: unknown, allowed: string[], required = allowed): void {
   if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).some(key => !allowed.includes(key))
     || required.some(key => !Object.hasOwn(value, key))) fail('INVALID_SCHEMA', 'Unknown or missing local conversation fields');
@@ -103,6 +122,10 @@ export class ConversationDomain {
     });
     tx.atomic(() => db.exec(`CREATE TABLE IF NOT EXISTS shiyu_local_conversations (
       local_key TEXT PRIMARY KEY,conversation_id TEXT NOT NULL UNIQUE,topic_id TEXT NOT NULL UNIQUE,binding_id TEXT NOT NULL UNIQUE
+    ); CREATE TABLE IF NOT EXISTS shiyu_channel_conversation_bindings (
+      channel_ref TEXT PRIMARY KEY,conversation_id TEXT NOT NULL UNIQUE,scope TEXT NOT NULL,version INTEGER NOT NULL,
+      applied_invalidation_watermark INTEGER NOT NULL,last_invalidation_reason TEXT,last_invalidation_at TEXT,
+      created_at TEXT NOT NULL,updated_at TEXT NOT NULL
     ); CREATE TABLE IF NOT EXISTS shiyu_lab_conversations (
       connection_id TEXT NOT NULL,run_id TEXT NOT NULL,channel_id TEXT NOT NULL,kind TEXT NOT NULL,members_digest TEXT NOT NULL,retired INTEGER NOT NULL,
       conversation_id TEXT NOT NULL UNIQUE,topic_id TEXT NOT NULL UNIQUE,binding_id TEXT NOT NULL UNIQUE,
@@ -130,6 +153,152 @@ export class ConversationDomain {
       return this.conversations.getConversation(OWNER, conversationId);
     });
   }
+  /* ---------------------- H6b: trusted channel bridge --------------------- */
+
+  private channelBindingRow(channelRef: string): Row | undefined {
+    this.tx.assertUsable();
+    return this.db.prepare('SELECT * FROM shiyu_channel_conversation_bindings WHERE channel_ref=?').get(channelRef) as Row | undefined;
+  }
+  private channelBinding(row: Row): ChannelConversationBinding {
+    const conversationId = String(row.conversation_id);
+    let conversation: ConversationRecord;
+    try { conversation = this.conversations.getConversation(OWNER, conversationId); }
+    catch (error) {
+      const code = errorCode(error);
+      if (code === 'NOT_FOUND' || code === 'FORBIDDEN') fail('CHANNEL_BINDING_STALE', 'The bound conversation is no longer readable by the runtime owner');
+      throw error;
+    }
+    const epochs = this.db.prepare("SELECT COALESCE(MAX(json_extract(record_json,'$.sessionEpoch')),0) AS epoch FROM shiyu_reply_bindings WHERE conversation_id=?")
+      .get(conversationId) as { epoch: number };
+    return {
+      channelRef: String(row.channel_ref), conversationId, scope: String(row.scope), version: Number(row.version),
+      appliedInvalidationWatermark: Number(row.applied_invalidation_watermark),
+      createdAt: String(row.created_at), updatedAt: String(row.updated_at),
+      ...(row.last_invalidation_reason === null || row.last_invalidation_reason === undefined ? {} : {
+        lastInvalidationReason: String(row.last_invalidation_reason), lastInvalidationAt: String(row.last_invalidation_at),
+        lastInvalidationSourceWatermark: Number(row.applied_invalidation_watermark),
+      }),
+      conversation: { audienceVersion: conversation.audienceVersion, revision: conversation.revision, archived: conversation.archived,
+        replySessionEpoch: Number(epochs.epoch) },
+    };
+  }
+  /** Explicit binding target must be an existing, active, owner-managed conversation in the same scope. */
+  private boundConversation(conversationId: string, scope: string): ConversationRecord {
+    let record: ConversationRecord;
+    try { record = this.conversations.getConversation(OWNER, conversationId); }
+    catch (error) {
+      const code = errorCode(error);
+      if (code === 'NOT_FOUND') fail('INVALID_CONVERSATION', 'No existing conversation has this identity');
+      if (code === 'FORBIDDEN') fail('CROSS_SCOPE_BINDING', 'Conversation belongs to an audience scope the runtime owner cannot manage');
+      throw error;
+    }
+    if (record.key.scope !== scope) fail('CROSS_SCOPE_BINDING', 'Conversation belongs to another audience scope');
+    if (record.archived) fail('INACTIVE_CONVERSATION', 'An archived conversation cannot be used as a query binding');
+    return record;
+  }
+  channelBind(input: ChannelBindingInput): ChannelConversationBinding & { duplicate: boolean } {
+    fields(input, ['channelRef', 'scope', 'conversationId', 'expectedBindingVersion'], ['channelRef', 'scope']);
+    const channelRef = channelRefIdentity(input.channelRef, 'conversation');
+    const scope = normalizeBridgeScope(input.scope);
+    if (!OWNER.scopes.includes(scope)) fail('UNAUTHORIZED_BINDING', 'The runtime owner cannot manage this conversation scope');
+    const explicit = input.conversationId === undefined ? undefined : normalizeBridgeConversationId(input.conversationId);
+    const expectedVersion = input.expectedBindingVersion === undefined ? undefined
+      : bridgeInteger(input.expectedBindingVersion, 'expectedBindingVersion', 0);
+    return this.tx.atomic(() => {
+      const channel = readChannelConversationForBridge(this.db, channelRef)
+        ?? fail('UNKNOWN_CHANNEL_CONVERSATION', 'No channel conversation has this identity');
+      if (channel.audienceStatus === 'revoked') fail('CHANNEL_AUDIENCE_REVOKED', 'A revoked channel audience cannot be bound');
+      const existing = this.channelBindingRow(channelRef);
+      if (existing && String(existing.scope) !== scope) {
+        fail('CROSS_SCOPE_BINDING', 'A channel conversation cannot change its binding scope');
+      }
+      const record = explicit === undefined
+        ? this.conversations.ensureConversation(OWNER, channelConversationKey(channel, scope))
+        : this.boundConversation(explicit, scope);
+      if (existing) {
+        if (String(existing.conversation_id) === record.conversationId) {
+          if (expectedVersion !== undefined && Number(existing.version) !== expectedVersion) {
+            fail('VERSION_CONFLICT', 'Channel binding revision changed; read the current binding');
+          }
+          return { ...this.channelBinding(existing), duplicate: true };
+        }
+        // Rebinding to another existing conversation is an explicit, versioned
+        // operation; a stale reader can never overwrite the newer binding.
+        if (expectedVersion === undefined) fail('BINDING_VERSION_REQUIRED', 'An explicit rebind requires expectedBindingVersion');
+        if (Number(existing.version) !== expectedVersion) fail('VERSION_CONFLICT', 'Channel binding revision changed; read the current binding');
+        if (this.db.prepare('SELECT channel_ref FROM shiyu_channel_conversation_bindings WHERE conversation_id=?').get(record.conversationId)) {
+          fail('BINDING_CONFLICT', 'That conversation is already bound to another channel conversation');
+        }
+        const now = this.now();
+        this.db.prepare('UPDATE shiyu_channel_conversation_bindings SET conversation_id=?,version=version+1,updated_at=? WHERE channel_ref=?')
+          .run(record.conversationId, now, channelRef);
+        return { ...this.channelBinding(this.channelBindingRow(channelRef)!), duplicate: false };
+      }
+      if (this.db.prepare('SELECT channel_ref FROM shiyu_channel_conversation_bindings WHERE conversation_id=?').get(record.conversationId)) {
+        fail('BINDING_CONFLICT', 'That conversation is already bound to another channel conversation');
+      }
+      if (Number(this.db.prepare('SELECT COUNT(*) AS n FROM shiyu_channel_conversation_bindings').get()!.n) >= CHANNEL_BINDING_LIMIT) {
+        fail('BINDING_CAPACITY', 'Channel conversation binding capacity reached');
+      }
+      const now = this.now();
+      this.db.prepare(`INSERT INTO shiyu_channel_conversation_bindings
+        (channel_ref,conversation_id,scope,version,applied_invalidation_watermark,created_at,updated_at) VALUES(?,?,?,1,0,?,?)`)
+        .run(channelRef, record.conversationId, scope, now, now);
+      return { ...this.channelBinding(this.channelBindingRow(channelRef)!), duplicate: false };
+    });
+  }
+  channelBindings(input: ConversationCommands['conversation.channelBindings']['input']): ChannelConversationBinding[] {
+    fields(input, ['channelRef', 'conversationId'], []);
+    const channelRef = input.channelRef === undefined ? undefined : channelRefIdentity(input.channelRef, 'conversation');
+    const conversationId = input.conversationId === undefined ? undefined : normalizeBridgeConversationId(input.conversationId);
+    return this.tx.atomic(() => {
+      const rows = channelRef !== undefined
+        ? this.db.prepare('SELECT * FROM shiyu_channel_conversation_bindings WHERE channel_ref=?').all(channelRef)
+        : conversationId !== undefined
+          ? this.db.prepare('SELECT * FROM shiyu_channel_conversation_bindings WHERE conversation_id=?').all(conversationId)
+          : this.db.prepare('SELECT * FROM shiyu_channel_conversation_bindings ORDER BY channel_ref').all();
+      return (rows as Row[]).map(row => this.channelBinding(row));
+    });
+  }
+  channelInvalidate(input: ChannelInvalidateInput): ChannelInvalidateOutcome {
+    fields(input, ['channelRef', 'reasonRef', 'sourceWatermark', 'expectedConversationAudienceVersion'],
+      ['channelRef', 'reasonRef', 'sourceWatermark']);
+    const channelRef = channelRefIdentity(input.channelRef, 'conversation');
+    const reasonRef = normalizeBridgeReason(input.reasonRef);
+    const sourceWatermark = bridgeInteger(input.sourceWatermark, 'sourceWatermark', 1);
+    const expectedAudienceVersion = input.expectedConversationAudienceVersion === undefined ? undefined
+      : bridgeInteger(input.expectedConversationAudienceVersion, 'expectedConversationAudienceVersion', 1);
+    return this.tx.atomic(() => {
+      const row = this.channelBindingRow(channelRef) ?? fail('UNKNOWN_CHANNEL_BINDING', 'No conversation binding exists for this channel conversation');
+      // Idempotent watermark application: a retried page/host restart never
+      // amplifies one channel invalidation into a second conversation change.
+      if (Number(row.applied_invalidation_watermark) >= sourceWatermark) return { binding: this.channelBinding(row), applied: false };
+      const conversationId = String(row.conversation_id);
+      let record: ConversationRecord;
+      try { record = this.conversations.getConversation(OWNER, conversationId); }
+      catch (error) {
+        if (errorCode(error) === 'NOT_FOUND') fail('CHANNEL_BINDING_STALE', 'The bound conversation no longer exists');
+        throw error;
+      }
+      if (expectedAudienceVersion !== undefined && record.audienceVersion !== expectedAudienceVersion) {
+        fail('VERSION_CONFLICT', 'Conversation audience version changed; read the current projection');
+      }
+      this.conversations.invalidateAudience(OWNER, { conversationId, expectedRevision: record.revision, reasonRef });
+      const now = this.now();
+      this.db.prepare(`UPDATE shiyu_channel_conversation_bindings
+        SET applied_invalidation_watermark=?,last_invalidation_reason=?,last_invalidation_at=?,updated_at=? WHERE channel_ref=?`)
+        .run(sourceWatermark, reasonRef, now, now, channelRef);
+      return { binding: this.channelBinding(this.channelBindingRow(channelRef)!), applied: true };
+    });
+  }
+  /** Trusted same-Worker sink installed by the control Worker; unbound channels are a no-op. */
+  bridgeChannelInvalidation(input: { channelRef: string; reasonRef: string; sourceWatermark: number }): ChannelInvalidateOutcome | undefined {
+    const channelRef = channelRefIdentity(input.channelRef, 'conversation');
+    if (!this.channelBindingRow(channelRef)) return undefined;
+    return this.channelInvalidate({ channelRef, reasonRef: input.reasonRef, sourceWatermark: input.sourceWatermark });
+  }
+  private now(): string { return new Date().toISOString(); }
+
   replyContext(conversationId: string): ContextSnapshot & { businessId: string; sessionId?: string } {
     return this.tx.atomic(() => {
       const binding = this.localReplyBinding(conversationId);
@@ -323,6 +492,9 @@ export class ConversationDomain {
       case 'conversation.ensureLabChannel': return this.ensureLabChannel(request.args);
       case 'conversation.consumeBackground': return this.consumeBackground(request.args);
       case 'conversation.snapshotLocal': return this.snapshotLocal(request.args);
+      case 'conversation.channelBind': return this.channelBind(request.args);
+      case 'conversation.channelBindings': return this.channelBindings(request.args);
+      case 'conversation.channelInvalidate': return this.channelInvalidate(request.args);
     }
   }
 }
