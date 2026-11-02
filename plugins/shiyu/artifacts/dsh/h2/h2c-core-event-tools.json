@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "kind": "h2c-core-event-tools-offline",
   "slice": "H2c core 受限事件工具挂载（受控决策内最多一次只读事件工具往返）",
-  "capturedAt": "2026-11-02T20:46:50.817Z",
+  "capturedAt": "2026-11-02T20:51:16.937Z",
   "repository": {
-    "headAtVerification": "11d0c736bc6b6664c6777542160e9c5e5b2140b1",
+    "headAtVerification": "dfbf93d44d5ee224b1d70e0ea858d60bcbf8ba36",
     "note": "Isolated worktree = current shared HEAD at verification time + only this H2c slice files (node_modules and pinned .local/ombre symlinked). H1/H3/H6 files outside the slice are unchanged.",
     "h1HistoricalBoundary": "H1 evidence for core decisions (single pre-step/request/stream, zero model tools) is preserved as historical and remains the behavior whenever no trusted event-tool factory is supplied. Existing tests/core-goal-sessions.test.ts and tests/local-core.test.ts were NOT modified and remain green."
   },
@@ -95,21 +95,21 @@
   },
   "isolatedFullCheck": {
     "evidencePath": "plugins/shiyu/artifacts/dsh/slices/h2c-verify.json",
-    "evidenceSha256": "566254b6ead4aba900d619eafe106b118e5bfddf214b68e266f6b1330f9cfc47",
-    "head": "11d0c736bc6b6664c6777542160e9c5e5b2140b1",
+    "evidenceSha256": "ac7934b36ba3beefc7a35e56f88bab94fcb4d5346b2423ea8c59a5f7fa9defd0",
+    "head": "dfbf93d44d5ee224b1d70e0ea858d60bcbf8ba36",
     "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
     "exitCode": 0,
-    "tests": 1359,
-    "pass": 1359,
+    "tests": 1375,
+    "pass": 1375,
     "fail": 0,
     "cancelled": 0,
     "skipped": 0,
-    "durationMs": 245311,
-    "baselineTestsWithoutSlice": 1345,
+    "durationMs": 253765,
+    "baselineTestsWithoutSlice": 1361,
     "log": {
       "path": "plugins/shiyu/.local/slice-verify-h2c.log",
-      "bytes": 148437,
-      "sha256": "f2850e2f64e62ee38d7df53a405b22039cf158e9fe6462758d1137be8542faeb"
+      "bytes": 150184,
+      "sha256": "6c52a1f5722a6840b74a4eaee2ccf1226ff811c2b1270803e7b2a2bba907dc42"
     },
     "verdict": "pass"
   },
@@ -190,7 +190,7 @@
     "isolatedCheck": {
       "path": "plugins/shiyu/artifacts/dsh/slices/h2c-verify.json",
       "bytes": 2366,
-      "sha256": "566254b6ead4aba900d619eafe106b118e5bfddf214b68e266f6b1330f9cfc47"
+      "sha256": "ac7934b36ba3beefc7a35e56f88bab94fcb4d5346b2423ea8c59a5f7fa9defd0"
     },
     "thisEvidence": {
       "path": "plugins/shiyu/artifacts/dsh/h2/h2c-core-event-tools.json",
