@@ -48,7 +48,7 @@ connectionId 是持久连接绑定，关联 provider、tenant/app 与服务账�
 
 ## Session 与账本分工
 
-DSH Session 是模型交互历史的日志和呈现投影；识雨 inbox、Goal、Task、Effect 的权威性由领域账本维护。界面刷新、Session 压缩或开启新段不得重新接受同一业务事件。先登记 IntakeReceipt 再向受限 replyer Session 投影，不能用 onMessage 旁路把已执行的通用 Agent 事后改成只读。
+DSH 原生 Session 管理模型历史、inbox、恢复与压缩，Goal 生命周期以其专用 Session 日志为权威；识雨控制账本保存 GoalBinding、业务接纳与原生请求映射、授权、Task 和 Effect。两者按稳定标识恢复对账，不复制第二套待答队列或 Goal 生命周期。界面刷新、Session 压缩或开启新段不得重新接受同一业务事件。先登记 IntakeReceipt，再向受限 replyer Session 追加输入，不能用 onMessage 旁路把已执行的通用 Agent 事后改成只读。当前路线见[运行仪表盘与 Session 复用](<../../../运行仪表盘与Session复用.md>)。
 
 DSH 已有日志可能保存正文，因此外层的短期上下文保留期不能覆盖或假定控制了宿主日志。验证时应使用独立测试 profile，显式盘点 Session 日志、模型请求记录、会话日志贡献与平台留存；删除完成回执按各层实际结果分别说明。
 

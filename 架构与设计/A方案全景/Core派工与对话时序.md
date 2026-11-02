@@ -14,7 +14,7 @@
 | core 判断 | CoreCoordinator + ModelAssessor + PolicyGate | 在目标、状态与预算内选择任务、内部提案、澄清、暂缓或不行动 | 模型不直接发设备命令、改数据库或抢占对话发送槽 |
 | TaskEngine 派工 | TaskService 适配 Superagent Engine；同一个控制账本 | 输入 ownership、Task / Assignment 迁移、能力匹配、预算 / 资源准入与执行资格 | 不凭任务完成自行改记忆或人格；不是另一个决策模型 |
 | worker 执行 | DSH Agent / Session + 受限 Broker | 在 WorkOrder 内完成实际检索、计算与工具工作，交回证据 | 不自行扩大 Mandate、宣布权威 succeeded、抢答用户或重开终态任务 |
-| replyer 表达 | ConversationService + 零工具 replyer | 依据当前受众的 ReadView 与输入生成可发送草稿 | 不派工、不改六域、不把自己的完成措辞当回执 |
+| replyer 表达 | ConversationService + 受限原生 DSH Session，默认零工具 | 依据当前受众的 ReadView 与输入生成可发送草稿 | 不派工、不改六域、不把自己的完成措辞当回执 |
 | Effect 发送 | EffectDispatcher + 渠道 / 设备适配 | 复核权限与世代，投递已入账的效果并核对回执 | 不把发送超时当“肯定没发”，不凭有 outbox 就跳过授权 |
 
 `TaskEngine` 是本文用于画图的简称，指现有 TaskService / Superagent Engine，不新增服务。CoreCommitService 是程序化的逻辑准入与本地事务入口，名字里有 core，也不意味着它每次提交都启动一个模型。
@@ -112,13 +112,13 @@ sequenceDiagram
 |---|---|---|
 | 输入接纳 | Ingress inbox 与来源去重 | 接纳器保证同事件身份与顺序；不等模型完成才确认受理 |
 | 判断与任务执行 | Superagent Engine / 控制任务账本 / WorkerSlots | core 按需判断；TaskService 管 ownership / Assignment；无冲突任务可并行 |
-| 对话生成 | ConversationService + p-queue；完整 Agent 路线用 DSH inbox | 每 conversationKey 一个生成，跨会话公平共享槽位；不叠加第二套 Agent pending-list |
+| 对话生成 | ConversationService + 原生 DSH Session / inbox；旁路 p-queue 仅作条件备选 | 每 conversationKey 一个生成，跨会话公平共享槽位；不叠加第二套 Agent pending-list |
 | 实际发送 / 动作 | 统一 Effect outbox 与回执 | 派发器按当前资格和资源约束执行；会话发送严格有序，任务按依赖关系 |
 
 这是对现有组件的逻辑分工，不是部署四个队列产品。**长任务不会占着聊天队列等待完成。** 对话 turn 只等待本次受理说明、澄清或已有状态的草稿；worker 后台处理，后续结果作为新的事件进入表达流程。
 
 - 串行键 `ConversationKey` 由稳定 `connectionId + platformConversationId + threadId? + 会话类型 / 受众范围` 规范化组成，不能用临时运行实例身份分隔队列。connectionId 表示识雨登录连接配置的稳定身份，重连保持不变；connectorAccountRef 指向本方登录账号，对方账号使用 accountId。内部 conversationId 关联这一稳定会话键，事件接纳分配 conversationSeq。250 ms 合并仅限同会话、同主体、同受众的未处理文本，并保留各 eventId。
-- 新输入增加 conversationGeneration，取消或作废未发送的旧草稿；**普通聊天打断不等于取消后台 Task**。只有明确任务取消 / 授权变更才修改任务资格。
+- 新输入增加 conversationGeneration，取消或作废未发送的旧草稿；generation 不改变原生 Session 绑定，不因每条消息重建上下文。**普通聊天打断不等于取消后台 Task**。只有明确任务取消 / 授权变更才修改任务资格；群聊中无关噪音是否推进 generation 按[群聊注意力补充](<公司多人协作与群聊注意力.md>)处理。
 - `TaskInput.kind=context/followup/cancel/scope_change` 沿用任务契约；现有 ownership 决定哪些输入交 worker。工作范围改变由 core 重评，不能让新对话无声扩展旧 Mandate。
 - 初始验证参数保持全局模型并发 3，core / worker 共用后台最多 2，显式对话预留 1；core 评估并发 1，活动 worker Assignment 最多 2，并受独占设备限制。这些是上限，不能相加成 5 个模型调用。
 - 认证控制命令走独立有界入口，暂停 / 撤权 / 删除不排在长模型调用之后。目标不明的自然语言停止请求仍需判定或澄清，不能把“已识别停止意图”直接写成“设备已停止”。

@@ -12,6 +12,8 @@
 
 ViewService 是对话和内部执行共享的受限读取入口，不要求每次先让 core 模型审阅。普通问答直接取 reply_context；任务进度读 task_status，不等待 worker 完工或另写一段解释；健康查询读 health_summary。后台结果事件只提示刷新视图，不能把 worker 原始输出直接当可发送正文。core_decision 用于判断与委派，不能因名字含 core 就扩大数据范围。路径和职责见[Core派工与对话时序](<../../../../Core派工与对话时序.md>)。
 
+用户已确认本体界面为[运行仪表盘](<../../../../../运行仪表盘与Session复用.md>)。它组合现有受限状态/健康视图及获准的原生 Session 事件，展示当前工作阶段、来源与更新时间；页面刷新不触发模型、记忆写入或任务派发。无证据的状态与缺失缓存统计标未知，不能将模型生成说明或最后一次旧状态当作当前运行事实。需要新增视图 purpose 时先同步公共契约与权限验证。
+
 直接复用 DSH Session.snapshotEvents / deriveMessages 与 agentCtx.systemPrompt.context，scope 生命周期由宿主负责；不新造会话快照、context 注册表或通用投影框架。业务数据通过控制 SQLite 与 Ombre 等领域组件的只读接口投影，不要求所有后端同库。视图不是数据库副本、操作权限令牌或长期记忆。读取不触发记忆强化、feel / dream、I 晋升或 them recall 的写副作用；Ombre 后台衰减与归档另记维护来源及组件变化，不是视图读取行为。
 
 DS-Bot 的 trimToolBoundary + callIds 作为局部源码复用候选，闭包仅数组 / Set / 字符串检查，用于丢弃尚缺工具结果的历史尾部。其 snapshotOf 的 header、toolHistory 和完整主会话不能直接作为 ReadView；仅取已授权会话的冻结快照和必要锚点，不继承工具权限。无需携带历史时只注入裁剪后的业务视图，省去该助手函数。
