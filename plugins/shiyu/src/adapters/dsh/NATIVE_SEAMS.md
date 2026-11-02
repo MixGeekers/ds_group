@@ -98,3 +98,15 @@ recover 只恢复原 Session 并对账；不存在、读取失败或无法确认
 `deadlineAtMs` 是贯穿排队、授权、恢复、派发与回读的绝对期限，过期会撤销本轮并向原生 cancel/AbortSignal 传播；晚到的原生 handle 仍受管并释放。若宿主 create/whenIdle 或耐久回调不返回，适配器继续保有所有权等待 drain，**不承诺在期限内硬终止进程或立即返回**。未知 inbox 保留并阻止处置；释放失败保留拒绝钩子，封闭再次挂载，close 明确失败。冷 inbox 复用现有 2048 连续事件/EOF 限制，超限拒绝；本切片没有自动压缩或超长会话恢复接线。
 
 本轮离线验证为 **56/56**：core 原生替身 14 项、既有 Goal 21 项、真实 SQLite binding 9 项、生命周期组合 12 项；另整包类型检查及本次差异检查通过。新增用例包括同 Session/重启复用、准确消息回读、先登记后派发、记账期间串行与 close drain、过期/撤权、晚创建、取消、未知 inbox 保留、清理失败后禁续跑，以及重试/旁路/未标记请求/历史工具/额外或篡改输入零 provider-next。14 项独立日志为 `.local/phase3g-core-goal-sessions.log`；56 项组合结果来自本轮执行回执，未另存完整 stdout 文件。它们均不代替后续固定宿主与有界真实模型验收。
+
+### 3G 首次真实失败后的 required context 修复
+
+上面的 56 项验证及 `phase3g-native-contract.json` 保留为修复前历史。首次限定真实 core Session 在 inbox claim 后、`step/start` 前结束，只有通用取消原因 `Core decision cancelled`；没有 user/message、request、assistant、标题模型或压缩事件，也没有 usage 事件。该原生记录没有保留内部异常，不能仅从通用取消文本反推出唯一原因。之后用固定 SDK 的默认 required context 结构离线复现了相同事件差量，实际抛错为 `Core prepared step changed the registered input`；旧替身仅返回 claimed owner 消息，遗漏了原生必需 cwd 上下文。首次 unknown/cancelled 记录没有重写为成功，本轮修复没有进行真实重试。
+
+新增固定来源：`@deepseek-ai/dsh-working-directory/lib/index.js:30–46,76–78,121–122` 从 Session 的 workingDirectory 投影读取 cwd（初值为 header.cwd），注册 `required:true` 的 `working-directory:current`。`@deepseek-ai/dsh-system-prompt/lib/index.js:394,400–404` 明确保留 required 项，即使已调用 suppressRuntimeContext；`136–155` 给出固定 snapshot 文本与具名 section 结构。两份文件的版本、字节数、完整 SHA256 及本次复现/修复代码和测试日志指纹见 [phase3g-required-context-fix.json](../../../artifacts/phase3g-required-context-fix.json)，不替换旧证据的来源 hash。
+
+`dsh-agent-loop:334–348,914–918,1053–1073` 会在 pre-step 生成待用 runtime-context 消息，request 准备后刷新并重新生成最终消息，再作为 `user/message` 追加。两次 UUID 不必相同；已保留同样文本时 `337` 返回 undefined，不重复追加。修复仍要求 claimed inbox 恰好一个已登记 owner 输入、ID/hash 原样不变且处于首位；只额外允许零或一个完整 UUIDv4 user 消息，source 必须恰为 runtime-context/snapshot，sections 恰好一项 working-directory:current，section 及完整 snapshot 正文精确对应绑定 cwd。每个 live gate 还读取公开 `workingDirectory.get(exactSession)` 确认当前 cwd 未变。任何其他来源、cwd、section、附加文本、重复上下文或额外用户消息均拒绝。
+
+最终 stream 前再次检查所有本轮已提交 user 消息，execute 分别 flush、按精确 seq/hash 冷读 owner 与每个允许的 context 后才接受后续 assistant。可选 `runtimeContextRefs` 仅提供新追加快照的耐久证明，不改变领域 owner input receipt；返回空数组表示本轮未新增快照，不表示历史里没有上下文。输入/上下文校验与相关冷读失败分别给安全固定 code `CORE_NATIVE_INPUT_REJECTED` / `CORE_NATIVE_CONTEXT_REJECTED`，不保存上下文正文或原始 SDK 异常。空工具、单主请求、授权复核、未知 inbox 保留和原有预算/取消边界均保留。
+
+修复后 **59/59** 定向测试通过（core 17、旧 Goal 21、binding 9、生命周期组合 12），日志 `.local/phase3g-required-context-combined.log`；整包类型检查及本次差异检查通过。默认替身已包含 required cwd snapshot、预备/最终不同 UUID 和同 Session 后续零新增快照；另覆盖准备与提交两个阶段的非法上下文、context 冷读失配及实时 cwd 变化。原始失败复现日志 `.local/phase3g-required-context-repro.log` 独立保留。上述通过只属于离线修复证据，不是修复后的真实宿主或模型验收。

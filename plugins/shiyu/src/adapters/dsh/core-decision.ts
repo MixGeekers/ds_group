@@ -20,6 +20,8 @@ export interface CoreDecisionRequest {
 }
 export interface CoreDecisionResult {
   binding: CoreDecisionBinding; text: string; inputRef: CoreDecisionMessageRef; assistantRef: CoreDecisionMessageRef;
+  /** Independently cold-read native cwd snapshots; never owner input authority. */
+  runtimeContextRefs?: CoreDecisionMessageRef[];
   /** Observable native middleware calls, not provider-internal transport retries. */
   usage: ModelUsage; modelCalls: number | null; nativeObservations: CoreModelObservation[]; verified: false;
   /** Ordinary official user followups do not increment the native Goal driver's round counter. */
@@ -37,6 +39,9 @@ const MODEL = Object.freeze(defaultModel('core'));
 const USAGE_KEYS = ['inputTokens', 'outputTokens', 'totalTokens', 'cacheReadTokens', 'cacheWriteTokens'] as const;
 const OBSERVED_TYPES = new Set(['assistant/message', 'assistant/attempt', 'session/title-llm-request']);
 const sameRef = (a: NativeGoalRef | undefined, b: NativeGoalRef): boolean => a?.id === b.id && a.revision === b.revision;
+function nativeRejected(code: 'CORE_NATIVE_INPUT_REJECTED' | 'CORE_NATIVE_CONTEXT_REJECTED', message: string): Error & { code: string } {
+  return Object.assign(new Error(message), { code });
+}
 export function validateCoreDecisionRequest(value: CoreDecisionRequest, now: number): CoreDecisionRequest {
   if (!value || typeof value.goalId !== 'string' || !value.goalId.trim() || value.goalId.length > 2048
     || !/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,149}$/.test(value.roundId)
@@ -103,7 +108,38 @@ export class CoreDecisionRun {
       this.timer = setTimeout(() => this.stop(new Error('Core decision authority expired')), Math.max(1, expires - this.options.now()));
     }
     this.assertCurrent();
-    if (this.agent && !this.released) this.goal();
+    if (this.agent && !this.released) { this.goal(); this.assertNativeCwd(); }
+  }
+  private assertNativeCwd(): void {
+    let current: unknown;
+    try {
+      const directories = this.options.ctx.get('workingDirectory');
+      if (typeof directories?.get === 'function') current = directories.get(this.agent!.session);
+    } catch { /* Native details are not safe diagnostic payloads. */ }
+    if (current !== this.binding?.cwd) {
+      throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native working directory differs from its trusted binding');
+    }
+  }
+  /** Only the fixed SDK's required cwd snapshot is admitted beside owner input. */
+  private validateInputs(messages: unknown): void {
+    if (!Array.isArray(messages) || messages.length < 1 || messages.length > 2 || messages[0]?.id !== this.expected?.messageId
+      || nativeMessageHash(messages[0]) !== this.expected!.messageHash) throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core owner input is missing, changed or accompanied by unregistered input');
+    if (messages.length === 1) return;
+    const context = messages[1];
+    if (!context || typeof context.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(context.id)
+      || context.id === this.expected!.messageId) throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native context has no distinct official message identity');
+    const directoryText = `Current working directory: ${JSON.stringify(this.binding!.cwd)}.`;
+    const expected = { id: context.id, role: 'user', content: [{ type: 'text', text: `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n${directoryText}` }],
+      source: { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'working-directory:current', text: directoryText }] } };
+    if (nativeMessageHash(context) !== nativeMessageHash(expected)) throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native context does not match the exact bound working-directory snapshot');
+  }
+  private committedInputs(): SessionEvent[] {
+    const inputs = this.events.filter(event => event.type === 'user/message');
+    this.validateInputs(inputs.map(event => event.data));
+    if (inputs.some((event, index) => !Number.isSafeInteger(event.seq) || event.seq! < 0 || (index > 0 && event.seq! <= inputs[index - 1]!.seq!))) {
+      throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core native input event ordering is invalid');
+    }
+    return inputs;
   }
   private goal(): NativeGoalView {
     const native = this.options.readGoal(this.agent!);
@@ -117,6 +153,7 @@ export class CoreDecisionRun {
     await this.gate('start');
     const llm = this.options.ctx.get('llm');
     if (typeof llm?.resolveCallConfig !== 'function') throw new Error('Native model resolver is unavailable');
+    if (typeof this.options.ctx.get('workingDirectory')?.get !== 'function') throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Native working-directory service is unavailable');
     const resolved = await llm.resolveCallConfig(MODEL, this.signal);
     if (resolved?.provider !== MODEL.provider || resolved?.model !== MODEL.model || resolved?.reasoningEffort !== MODEL.reasoningEffort) throw new Error('Native Core model profile changed');
     await this.gate('start');
@@ -140,11 +177,11 @@ export class CoreDecisionRun {
       try {
         await this.gate('pre-step');
         if (!this.dispatchAttempted || this.released || this.steps++ !== 0 || !Array.isArray(payload?.messages) || payload.messages.length !== 1
-          || payload.messages[0]?.id !== this.expected?.messageId || nativeMessageHash(payload.messages[0]) !== this.expected!.messageHash) throw new Error('Core step is not this one registered input');
+          || payload.messages[0]?.id !== this.expected?.messageId || nativeMessageHash(payload.messages[0]) !== this.expected!.messageHash) throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core step is not this one registered owner input');
         const decision = await next();
         await this.gate('pre-step');
-        if (decision?.kind !== 'enter' || !Array.isArray(decision.messages) || decision.messages.length !== 1
-          || nativeMessageHash(decision.messages[0]) !== this.expected!.messageHash) throw new Error('Core prepared step changed the registered input');
+        if (decision?.kind !== 'enter') throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core prepared step did not enter');
+        this.validateInputs(decision.messages);
         return decision;
       } catch (error) { this.stop(error); return { kind: 'reject' }; }
     }));
@@ -185,22 +222,27 @@ export class CoreDecisionRun {
         const history = request.toolHistory;
         if (history !== undefined && (!Array.isArray(history?.tools) || history.tools.length || !Array.isArray(history?.updates)
           || history.updates.some((update: any) => !Array.isArray(update?.additions) || update.additions.length))) throw new Error('Core historical tool declarations are forbidden');
-        // Outer pre-step hooks may append messages after our hook returns. The
-        // native loop commits final user inputs before calling this middleware.
-        const committed = self.events.filter(event => event.type === 'user/message');
-        if (committed.length !== 1 || committed[0]!.data?.id !== self.expected?.messageId
-          || nativeMessageHash(committed[0]!.data) !== self.expected!.messageHash) throw new Error('Core final native input differs from the durable dispatch registration');
+        // Outer hooks and the loop's refreshed required context can change the
+        // final messages. Recheck exact owner input plus only the allowed cwd
+        // snapshot; its newly generated UUID need not equal the pre-step UUID.
+        self.committedInputs();
         self.streams++;
         yield* next();
       } catch (error) { throw self.stop(error); }
     })();
   }
   private async exact(event: SessionEvent, assistant = false): Promise<CoreDecisionMessageRef> {
-    await flushNative(this.options.ctx, this.agent!.session, this.signal);
-    await verifyNativeEvent(this.options.ctx, this.binding!.sessionId, event, this.signal);
-    const message = assistant ? event.data?.message : event.data;
-    if (typeof message?.id !== 'string' || !message.id || message.role !== (assistant ? 'assistant' : 'user')) throw new Error('Native complete message identity is unavailable');
-    return { sessionId: this.binding!.sessionId, eventSeq: event.seq!, messageId: message.id, messageHash: nativeMessageHash(message), durability: 'confirmed' };
+    try {
+      await flushNative(this.options.ctx, this.agent!.session, this.signal);
+      await verifyNativeEvent(this.options.ctx, this.binding!.sessionId, event, this.signal);
+      const message = assistant ? event.data?.message : event.data;
+      if (typeof message?.id !== 'string' || !message.id || message.role !== (assistant ? 'assistant' : 'user')) throw new Error('Native complete message identity is unavailable');
+      return { sessionId: this.binding!.sessionId, eventSeq: event.seq!, messageId: message.id, messageHash: nativeMessageHash(message), durability: 'confirmed' };
+    } catch (error) {
+      this.signal.throwIfAborted();
+      if (assistant) throw error;
+      throw nativeRejected(event.data?.source?.kind === 'runtime-context' ? 'CORE_NATIVE_CONTEXT_REJECTED' : 'CORE_NATIVE_INPUT_REJECTED', 'Core native input durability could not be confirmed');
+    }
   }
   async execute(agent: DshAgent): Promise<CoreDecisionResult> {
     this.agent = agent; await this.gate('bound'); const before = this.goal().roundsStarted;
@@ -212,15 +254,16 @@ export class CoreDecisionRun {
     // Native cancellation owns the loop; do not race disposal against a still-running native stream.
     await agent.whenIdle();
     this.signal.throwIfAborted();
-    const inputs = this.events.filter(event => event.type === 'user/message');
-    if (inputs.length !== 1 || inputs[0]!.data?.id !== this.expected!.messageId || nativeMessageHash(inputs[0]!.data) !== this.expected!.messageHash) throw new Error('Core input event is missing or ambiguous');
+    const inputs = this.committedInputs();
     const inputRef = await this.exact(inputs[0]!);
+    const runtimeContextRefs: CoreDecisionMessageRef[] = [];
+    for (const event of inputs.slice(1)) runtimeContextRefs.push(await this.exact(event));
     // A failed model turn may still have durably loaded the exact registered input.
     await this.gateForContext(); await this.options.request.onContextDurable?.(Object.freeze({ ...inputRef }));
     this.assertCurrent();
     const assistants = this.events.filter(event => event.type === 'assistant/message');
     const assistant = assistants[0];
-    if (assistants.length !== 1 || assistant?.data?.interrupted || assistant!.seq! <= inputRef.eventSeq
+    if (assistants.length !== 1 || assistant?.data?.interrupted || assistant!.seq! <= inputs.at(-1)!.seq!
       || this.steps !== 1 || this.requests !== 1 || this.streams !== 1) throw new Error('Core has no single complete native candidate');
     const assistantRef = await this.exact(assistant!, true);
     const content = assistant!.data.message.content;
@@ -231,13 +274,13 @@ export class CoreDecisionRun {
     if (!text.trim() || Buffer.byteLength(text) > 64000) throw new Error('Native Core candidate is not bounded text');
     await this.gate('result'); const after = this.goal().roundsStarted;
     if (before !== after) throw new Error('Native Goal driver ran outside the controlled decision');
-    return { binding: structuredClone(this.expected!), text, inputRef, assistantRef, ...this.observations(), verified: false, nativeRoundsStarted: { before, after }, nativeGoalRound: false };
+    return { binding: structuredClone(this.expected!), text, inputRef, assistantRef, runtimeContextRefs, ...this.observations(), verified: false, nativeRoundsStarted: { before, after }, nativeGoalRound: false };
   }
   private async gateForContext(): Promise<void> {
     // Generation failure does not undo a successful input append; authorization still must be fresh.
     this.signal.throwIfAborted();
     await this.options.authorize(this.binding!, 'context');
-    this.signal.throwIfAborted(); this.goal();
+    this.signal.throwIfAborted(); this.goal(); this.assertNativeCwd();
     if (this.options.now() >= this.deadline || this.unknownInbox) throw new Error('Core context receipt admission expired');
   }
   private observations(): Pick<CoreDecisionResult, 'usage' | 'modelCalls' | 'nativeObservations'> {

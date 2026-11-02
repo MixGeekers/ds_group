@@ -1,7 +1,7 @@
 import { RuntimeService } from './runtime.js';
 import type { RuntimeConfig } from './runtime.js';
 
-export const inject = ['connection', 'tools', 'agents', 'agentPresets', 'systemPrompt', 'sessions', 'sessionPersistence', 'sessionProjections', 'workspaceRegistry'];
+export const inject = ['connection', 'tools', 'agents', 'agentPresets', 'systemPrompt', 'sessions', 'sessionPersistence', 'sessionProjections', 'workspaceRegistry', 'workingDirectory'];
 const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
 const errorResponse = (error: unknown, status = 400) => Response.json({ error: { message: error instanceof Error ? error.message : String(error) } }, { status, headers });
 

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
 import test from 'node:test';
 import { GoalSessionAdapter, CORE_GOAL_PRESET_ID, GOAL_PRESET_ID, goalCommandIdentity,
   type GoalAuthorityContext, type GoalAuthorityVerdict, type GoalBinding, type GoalBindingPort,
@@ -33,6 +34,10 @@ interface Stored {
   inbox: NativeUserMessage[];
 }
 interface FakeAgent extends DshAgent { hooks: Hooks; guards: Hook[]; activation: 'armed' | 'disarmed'; cancelled: boolean }
+type RuntimeContextMessage = { id: string; role: string; content: { type: string; text: string }[];
+  source: { kind: string; form: string; sections: { name: string; text: string }[] } };
+type ContextFault = 'wrong-cwd' | 'extra-section' | 'forged-kind' | 'duplicate' | 'invalid-uuid' | 'uuid-v1' | 'wrong-form' | 'wrong-wrapper';
+const RUNTIME_CONTEXT_PREFIX = 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.';
 function fixture() {
   const global = new Hooks(), stored = new Map<string, Stored>(), live = new Map<string, FakeAgent>(), presets = new Set<string>();
   const bindings = new Map<string, GoalBinding>(), commands = new Map<string, GoalCommandReceipt>();
@@ -40,12 +45,41 @@ function fixture() {
   const admittedStreams: Record<string, unknown>[] = [];
   const nativeRequests = new WeakSet<object>();
   let allowed = true, expiredGrant = false, createGate: Promise<void> | undefined, streamGate: Promise<void> | undefined;
-  let failDispose = false, failFlush = false, readFault: 'throw' | 'user-hash' | 'assistant-seq' | undefined;
+  let failDispose = false, failFlush = false, readFault: 'throw' | 'user-hash' | 'assistant-seq' | 'context-hash' | undefined;
+  let contextFault: { stage: 'prepared' | 'committed'; kind: ContextFault } | undefined;
+  let workingDirectory: string | undefined, workingDirectoryAvailable = true;
+  const preparedContexts: RuntimeContextMessage[] = [], committedContexts: RuntimeContextMessage[] = [];
   let beforeAuthorize: ((context: GoalAuthorityContext) => void) | undefined;
   let mode: 'normal' | 'retry' | 'compaction' | 'title' | 'anonymous' | 'history' | 'history-update' | 'changed-prestep' | 'mutated-user' | 'extra-user' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
   let messageNumber = 0, creates = 0, resumes = 0, followups = 0, disposals = 0, streams = 0, autoRounds = 0, opens = 0, closes = 0;
   let lastAgent: FakeAgent | undefined;
   const exact = (agent: DshAgent) => { assert.equal(live.get(agent.id), agent); return stored.get(agent.id)!; };
+  const currentDirectory = (session: DshSession): string => {
+    const value = workingDirectory ?? stored.get(session.id)!.header.cwd; assert.equal(typeof value, 'string'); return value as string;
+  };
+  const contextMessages = (session: DshSession, stage: 'prepared' | 'committed'): RuntimeContextMessage[] => {
+    const record = stored.get(session.id)!, directoryText = `Current working directory: ${JSON.stringify(currentDirectory(session))}.`;
+    // The SDK projects again during prepareRequest: only a retained matching
+    // snapshot suppresses emission, not the ephemeral pre-step projection.
+    const retained = record.events.findLast(event => event.type === 'user/message' && event.data?.source?.kind === 'runtime-context');
+    if (retained?.data.source.sections?.length === 1 && retained.data.source.sections[0]?.text === directoryText) return [];
+    const message: RuntimeContextMessage = { id: randomUUID(), role: 'user', content: [{ type: 'text', text: `${RUNTIME_CONTEXT_PREFIX}\n\n${directoryText}` }],
+      source: { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'working-directory:current', text: directoryText }] } };
+    const selected = contextFault?.stage === stage ? contextFault.kind : undefined;
+    if (selected === 'wrong-cwd') {
+      message.source.sections[0]!.text = 'Current working directory: "/synthetic/foreign".';
+      message.content[0]!.text = `${RUNTIME_CONTEXT_PREFIX}\n\n${message.source.sections[0]!.text}`;
+    }
+    if (selected === 'extra-section') message.source.sections.push({ name: 'unregistered:secret', text: 'Unapproved runtime context' });
+    if (selected === 'forged-kind') message.source.kind = 'user';
+    if (selected === 'invalid-uuid') message.id = 'native-required-context';
+    if (selected === 'uuid-v1') message.id = '11111111-1111-1111-8111-111111111111';
+    if (selected === 'wrong-form') message.source.form = 'delta';
+    if (selected === 'wrong-wrapper') message.content[0]!.text = directoryText;
+    const messages = selected === 'duplicate' ? [message, { ...structuredClone(message), id: randomUUID() }] : [message];
+    (stage === 'prepared' ? preparedContexts : committedContexts).push(...structuredClone(messages));
+    return messages;
+  };
   const append = (agent: FakeAgent, type: string, data: unknown, surfaceOp?: string) => {
     const record = exact(agent), event: SessionEvent = { seq: record.events.length, type, data: structuredClone(data), time: Date.now(), ...(surfaceOp ? { surfaceOp } : {}) };
     record.events.push(event); agent.hooks.emit('session/event', agent.session, event); global.emit('session/event', agent.session, event); return event;
@@ -104,20 +138,25 @@ function fixture() {
       } },
       followup(message) {
         followups++; trace.push('followup'); record.inbox.push(structuredClone(message));
-        append(agent, 'agent/inbox/spliced', { target: 'next-turn', start: record.inbox.length - 1, removedCount: 0, inserted: [message] });
+        append(agent, 'agent/inbox/spliced', { target: 'next-turn', start: record.inbox.length - 1, inserted: [message] });
         hooks.emit('agent/inbox/inserted', { message }); agent.status = 'running';
         idle = (async () => {
           try {
+            append(agent, 'turn/start', { turn: 1 });
             const claimed = structuredClone(record.inbox); record.inbox.length = 0;
-            append(agent, 'agent/inbox/spliced', { target: 'next-turn', start: 0, removedCount: claimed.length, inserted: [], outcome: 'consumed' });
-            const step = await hooks.waterfall('agent/pre-step', [{ messages: claimed }], () => ({ kind: 'enter', messages: mode === 'changed-prestep' ? [] : claimed }));
-            if (step.kind === 'reject') { append(agent, 'turn/end', { reason: { kind: 'blocked' } }); return; }
+            append(agent, 'agent/inbox/spliced', { target: 'next-turn', start: 0, removedCount: claimed.length, inserted: [] });
+            // Fixed SDK: working-directory context is required and survives
+            // suppressRuntimeContext(); loop preStep appends this snapshot.
+            const step = await hooks.waterfall('agent/pre-step', [{ messages: claimed }], () => ({ kind: 'enter', messages: mode === 'changed-prestep' ? [] : [...claimed, ...contextMessages(session, 'prepared')] }));
+            if (step.kind === 'reject') { append(agent, 'turn/end', { reason: agent.cancelled
+              ? { kind: 'aborted', reason: { kind: 'hook', reason: 'Core decision cancelled' } } : { kind: 'blocked' } }); return; }
             const assembly = await local.systemPrompt.assemble({ scope: agent }); assert.deepEqual(assembly.tools, []);
             const request = await hooks.waterfall('agent/request', [{}], () => ({ ...options.agentOptions, maxTokens: 99999 }));
             const appended = structuredClone(message);
             if (mode === 'mutated-user') appended.content[0]!.text = 'Outer native hook replaced the approved input';
             append(agent, 'user/message', appended, 'append');
             if (mode === 'extra-user') append(agent, 'user/message', { ...structuredClone(message), id: 'unregistered-outer-notice' }, 'append');
+            for (const snapshot of contextMessages(session, 'committed')) append(agent, 'user/message', snapshot, 'append');
             const main = { ...request, sessionId: id, messages: claimed }; nativeRequests.add(main);
             if (mode === 'compaction' || mode === 'title') {
               const purpose = mode === 'title' ? 'session-title' : 'compaction';
@@ -148,6 +187,7 @@ function fixture() {
     on: (name, handler) => global.on(name, handler), agents: { create: options => make(options, false), resume: options => make(options, true), list: () => [...live.values()] },
     get(name) {
       if (name === 'goals') return goals;
+      if (name === 'workingDirectory') return workingDirectoryAvailable ? { get: currentDirectory } : undefined;
       if (name === 'llm') return { resolveCallConfig: async (value: unknown) => structuredClone(value), stream };
       if (name === 'agentPresets') return { register(value: { id: string }) { assert.equal(presets.has(value.id), false); presets.add(value.id); return () => { presets.delete(value.id); }; } };
       if (name === 'sessions') return { async flush(session: DshSession) { trace.push('flush'); if (failFlush) throw new Error('Native flush failed'); const record = stored.get(session.id)!; record.durable = structuredClone(record.events); return true; } };
@@ -159,6 +199,7 @@ function fixture() {
           if (readFault === 'throw') throw new Error('Native read failed');
           const events = structuredClone(record.durable.slice(offset, offset + count));
           if (count === 1 && events[0]?.type === 'user/message' && readFault === 'user-hash') events[0].data.content[0].text = 'changed durable body';
+          if (count === 1 && events[0]?.type === 'user/message' && events[0].data.source?.kind === 'runtime-context' && readFault === 'context-hash') events[0].data.content[0].text = 'changed durable context';
           if (count === 1 && events[0]?.type === 'assistant/message' && readFault === 'assistant-seq') events[0].seq = events[0].seq! + 1;
           return { events, eventState: 'detached' };
         }, async close() { closes++; } };
@@ -194,12 +235,14 @@ function fixture() {
     roundId: `decision-${accounting.length + 1}`, capability, prompt: 'Only propose the next check for the synthetic goal.', deadlineAtMs: Date.now() + 30000, maxTokens: 512,
     async onDispatch() { trace.push('dispatch-receipt'); }, async onContextDurable() { trace.push('context-receipt'); },
     async onAccounting(value) { accounting.push(structuredClone(value)); }, ...patch });
-  return { ctx, stored, live, presets, bindings, checks, accounting, trace, capability, create, decision, adapter, stream, admittedStreams,
+  return { ctx, stored, live, presets, bindings, checks, accounting, trace, capability, create, decision, adapter, stream, admittedStreams, preparedContexts, committedContexts,
     counts: () => ({ creates, resumes, followups, disposals, streams, autoRounds, opens, closes }), agent: () => lastAgent!,
     setAllowed(value: boolean) { allowed = value; }, setExpired(value: boolean) { expiredGrant = value; }, setMode(value: typeof mode) { mode = value; },
     setOutput(value: string) { output = value; }, setReadFault(value: typeof readFault) { readFault = value; }, setFlushFault(value: boolean) { failFlush = value; },
     setDisposeFault(value: boolean) { failDispose = value; }, setCreateGate(value: Promise<void> | undefined) { createGate = value; }, setStreamGate(value: Promise<void>) { streamGate = value; },
     beforeAuthorize(value: typeof beforeAuthorize) { beforeAuthorize = value; },
+    setContextFault(stage: 'prepared' | 'committed', kind: ContextFault) { contextFault = { stage, kind }; },
+    setWorkingDirectory(value: string | undefined) { workingDirectory = value; }, setWorkingDirectoryAvailable(value: boolean) { workingDirectoryAvailable = value; },
     insertForeign(sessionId: string, durable = true) {
       const record = stored.get(sessionId)!, message: NativeUserMessage = { id: 'foreign-message', role: 'user', content: [{ type: 'text', text: 'Unregistered input' }], source: { kind: 'user' } };
       record.inbox.push(message); const event: SessionEvent = { type: 'agent/inbox/spliced', seq: record.events.length, data: { target: 'next-turn', start: record.inbox.length - 1, removedCount: 0, inserted: [message] } };
@@ -240,7 +283,9 @@ test('explicit decisions reuse the native Goal Session across rounds and adapter
     assert.equal(f.counts().creates, 1); assert.equal(f.counts().followups, 3); assert.equal(f.counts().streams, 3);
     const record = f.stored.get(created.binding.sessionId)!;
     assert.equal(record.native!.roundsStarted, 0); assert.equal(record.native!.revision, expected.revision);
-    assert.equal(record.events.filter(event => event.type === 'user/message').length, 3);
+    assert.equal(record.events.filter(event => event.type === 'user/message').length, 4);
+    assert.equal(a.runtimeContextRefs?.length, 1); assert.deepEqual(b.runtimeContextRefs, []); assert.deepEqual(c.runtimeContextRefs, []);
+    assert.equal(f.preparedContexts.length, 1); assert.equal(f.committedContexts.length, 1);
     assert.equal(new Set([a.binding.messageId, b.binding.messageId, c.binding.messageId]).size, 3);
     assert.equal(f.live.size, 0);
   } finally { await next.close(); }
@@ -282,6 +327,14 @@ test('exact input and assistant references are independently cold-read with nati
       const message = type === 'user/message' ? event.data : event.data.message;
       assert.equal(reference.messageId, message.id); assert.equal(reference.messageHash, nativeMessageHash(message));
     }
+    assert.equal(result.runtimeContextRefs?.length, 1);
+    for (const reference of result.runtimeContextRefs!) {
+      const event = events.find(event => event.seq === reference.eventSeq)!;
+      assert.equal(event.type, 'user/message'); assert.equal(event.data.source.kind, 'runtime-context');
+      assert.equal(reference.durability, 'confirmed'); assert.equal(reference.sessionId, result.binding.sessionId);
+      assert.equal(reference.messageId, event.data.id); assert.equal(reference.messageHash, nativeMessageHash(event.data));
+      assert.ok(reference.eventSeq > result.inputRef.eventSeq); assert.ok(reference.eventSeq < result.assistantRef.eventSeq);
+    }
     assert.ok(result.assistantRef.eventSeq > result.inputRef.eventSeq); assert.equal(f.counts().opens, f.counts().closes);
     assert.ok(f.trace.indexOf('dispatch-receipt') < f.trace.indexOf('followup')); assert.ok(f.trace.includes('context-receipt'));
     assert.deepEqual(result.usage, { status: 'reported', inputTokens: 11, outputTokens: 7, totalTokens: 18 });
@@ -289,14 +342,15 @@ test('exact input and assistant references are independently cold-read with nati
 });
 
 test('flush failure or precise native readback mismatch cannot release a candidate', async () => {
-  for (const fault of ['throw', 'user-hash', 'assistant-seq', 'flush'] as const) {
+  for (const fault of ['throw', 'user-hash', 'assistant-seq', 'context-hash', 'flush'] as const) {
     const f = fixture(), driver = f.adapter();
     try {
       const created = await driver.create(f.create);
       if (fault === 'flush') f.setFlushFault(true); else f.setReadFault(fault);
-      await assert.rejects(driver.decisionRound(f.decision(ref(created.native))));
+      await assert.rejects(driver.decisionRound(f.decision(ref(created.native))), (error: Error & { code?: string }) => fault === 'context-hash'
+        ? error.code === 'CORE_NATIVE_CONTEXT_REJECTED' : fault === 'user-hash' ? error.code === 'CORE_NATIVE_INPUT_REJECTED' : error instanceof Error);
       assert.equal(f.counts().opens, f.counts().closes); assert.equal(f.accounting.length, 1);
-      if (fault === 'user-hash' || fault === 'assistant-seq') assert.equal(f.counts().streams, 1);
+      if (fault === 'user-hash' || fault === 'assistant-seq' || fault === 'context-hash') assert.equal(f.counts().streams, 1);
     } finally { f.setFlushFault(false); f.setReadFault(undefined); await driver.close(); }
   }
 });
@@ -373,6 +427,62 @@ test('global stream gate denies retries, auxiliary calls, unmarked requests and 
       assert.equal(f.accounting.length, 1); assert.equal(f.accounting[0]!.dispatchAttempted, true);
       if (mode === 'retry') assert.ok(f.accounting[0]!.nativeObservations.some(event => event.type === 'assistant/attempt'));
     } finally { await driver.close(); }
+  }
+});
+
+test('required native cwd snapshot survives suppression with a fresh commit UUID and independent durable proof', async () => {
+  const f = fixture(), driver = f.adapter();
+  try {
+    const created = await driver.create(f.create), record = f.stored.get(created.binding.sessionId)!;
+    const before = record.events.length, result = await driver.decisionRound(f.decision(ref(created.native)));
+    assert.deepEqual(record.events.slice(before).map(event => event.type), ['agent/inbox/spliced', 'turn/start', 'agent/inbox/spliced', 'user/message', 'user/message', 'assistant/message', 'turn/end']);
+    assert.equal(f.preparedContexts.length, 1); assert.equal(f.committedContexts.length, 1);
+    assert.notEqual(f.preparedContexts[0]!.id, f.committedContexts[0]!.id);
+    for (const message of [f.preparedContexts[0]!, f.committedContexts[0]!]) {
+      assert.match(message.id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      const directoryText = `Current working directory: ${JSON.stringify(f.create.cwd)}.`;
+      assert.deepEqual(message.source, { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'working-directory:current', text: directoryText }] });
+      assert.deepEqual(message.content, [{ type: 'text', text: `${RUNTIME_CONTEXT_PREFIX}\n\n${directoryText}` }]);
+    }
+    assert.equal(result.runtimeContextRefs?.[0]?.messageId, f.committedContexts[0]!.id);
+    assert.equal(result.runtimeContextRefs?.[0]?.messageHash, nativeMessageHash(f.committedContexts[0]!));
+    assert.equal(f.counts().streams, 1); assert.equal(f.accounting[0]!.outcome, 'observed');
+  } finally { await driver.close(); }
+});
+
+test('prepared and committed runtime snapshots reject wrong directories, forged structure, duplicate contexts and non-v4 identities', async () => {
+  for (const stage of ['prepared', 'committed'] as const) {
+    for (const kind of ['wrong-cwd', 'extra-section', 'forged-kind', 'duplicate', 'invalid-uuid', 'uuid-v1', 'wrong-form', 'wrong-wrapper'] as const) {
+      const f = fixture(), driver = f.adapter();
+      try {
+        const created = await driver.create(f.create); f.setContextFault(stage, kind);
+        await assert.rejects(driver.decisionRound(f.decision(ref(created.native))), { code: kind === 'duplicate' ? 'CORE_NATIVE_INPUT_REJECTED' : 'CORE_NATIVE_CONTEXT_REJECTED' }, `${stage}:${kind}`);
+        assert.equal(f.counts().streams, 0, `${stage}:${kind}`);
+        assert.equal(f.accounting.length, 1); assert.equal(f.accounting[0]!.outcome, 'unknown');
+        assert.equal(f.trace.includes('context-receipt'), false);
+        if (stage === 'prepared') assert.equal(f.stored.get(created.binding.sessionId)!.events.filter(event => event.type === 'user/message').length, 0);
+      } finally { await driver.close(); }
+    }
+  }
+});
+
+test('working-directory service is required and its live value is checked again through candidate release', async () => {
+  const absent = fixture(), absentDriver = absent.adapter();
+  try {
+    const created = await absentDriver.create(absent.create); absent.setWorkingDirectoryAvailable(false);
+    const before = absent.counts().resumes;
+    await assert.rejects(absentDriver.decisionRound(absent.decision(ref(created.native))));
+    assert.equal(absent.counts().resumes, before); assert.equal(absent.counts().followups, 0); assert.equal(absent.counts().streams, 0);
+  } finally { await absentDriver.close(); }
+  for (const phase of ['bound', 'dispatch', 'pre-step', 'request', 'stream', 'context', 'result'] as const) {
+    const f = fixture(), driver = f.adapter();
+    try {
+      const created = await driver.create(f.create);
+      f.beforeAuthorize(context => { if (context.operation === 'decision' && context.phase === phase) f.setWorkingDirectory('/synthetic/foreign'); });
+      await assert.rejects(driver.decisionRound(f.decision(ref(created.native))), phase);
+      assert.equal(f.counts().streams, phase === 'context' || phase === 'result' ? 1 : 0, phase);
+      assert.equal(f.accounting.length, 1); assert.equal(f.accounting[0]!.outcome, 'unknown');
+    } finally { f.setWorkingDirectory(undefined); await driver.close(); }
   }
 });
 

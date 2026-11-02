@@ -1,0 +1,245 @@
+{
+  "schemaVersion": 1,
+  "phase": "3G required native context compatibility fix",
+  "recordedAt": "2026-11-02T12:25:37.793Z",
+  "priorEvidencePreserved": "artifacts/phase3g-native-contract.json (pre-fix static/synthetic evidence; unchanged)",
+  "additionalFixedSources": {
+    "archive": "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar",
+    "files": [
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-working-directory/lib/index.js",
+        "version": "0.2.1-rc.5",
+        "bytes": 6916,
+        "sha256": "af5bb7f33c52efe018da19c39c54e07b5a3ac804fff83f8a68e341f411ecf703",
+        "lineRanges": [
+          "30-46",
+          "48-65",
+          "76-78",
+          "87-101",
+          "121-122"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-system-prompt/lib/index.js",
+        "version": "0.2.1-rc.5",
+        "bytes": 19817,
+        "sha256": "7be9f7aafbf345d01ddcc12fd297b16e9a1d41283a6a04073b867becca0bf020",
+        "lineRanges": [
+          "136-155",
+          "284-290",
+          "356-405"
+        ]
+      }
+    ],
+    "existingAgentLoopLines": [
+      "298-348",
+      "906-918",
+      "1053-1073"
+    ],
+    "agentLoopSourceRef": "phase3g-native-contract.json"
+  },
+  "liveFailureObservation": {
+    "scope": "Only the explicitly authorized first core Session; no other Session read",
+    "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a",
+    "fileBytes": 2829,
+    "sha256": "09dcdc1b0cf6762df2066811a8998b9bacc2ebe885ef6afdaa21f254e26b5d3b",
+    "decodedRows": 13,
+    "decodedBytes": 3700,
+    "failureTrace": [
+      {
+        "seq": 6,
+        "type": "agent/inbox/spliced",
+        "inserted": 1
+      },
+      {
+        "seq": 7,
+        "type": "turn/start"
+      },
+      {
+        "seq": 8,
+        "type": "agent/inbox/spliced",
+        "removedCount": 1
+      },
+      {
+        "seq": 9,
+        "type": "turn/end",
+        "reason": {
+          "kind": "aborted",
+          "reason": {
+            "kind": "hook",
+            "reason": "Core decision cancelled"
+          }
+        }
+      }
+    ],
+    "observedEventCounts": {
+      "step/start": 0,
+      "user/message": 0,
+      "request/*": 0,
+      "assistant/*": 0,
+      "session/title-llm-request": 0,
+      "compaction/*": 0
+    },
+    "usageEventCount": 0,
+    "limitation": "The live Session preserved only the generic cancellation cause, not the internal exception. The default required-context incompatibility was independently reproduced offline; no actual provider billing or whole-host traffic is inferred."
+  },
+  "offlineReproduction": {
+    "passed": 1,
+    "purpose": "Before changing runtime code, reproduce failure with the fixed SDK required working-directory message shape",
+    "error": "Core prepared step changed the registered input",
+    "nativeProviderNextCount": 0,
+    "eventTraceMatchesLive": true,
+    "accounting": {
+      "outcome": "unknown",
+      "usageStatus": "unknown",
+      "modelCalls": null
+    },
+    "log": {
+      "path": ".local/phase3g-required-context-repro.log",
+      "bytes": 232,
+      "sha256": "d6db81436e3320fa8fd57b54f1e5a2842c66a4f4a2308d60d576bb1ec66ad61e"
+    },
+    "testSourceHashAtReproduction": "not captured; test subsequently changed to the corrected default native shape"
+  },
+  "fix": {
+    "files": [
+      {
+        "path": "src/adapters/dsh/core-decision.ts",
+        "bytes": 23240,
+        "sha256": "21bd88b158030ac4fa717e5764f2beebd4920f9a74f63966af78d393c4479fb0"
+      },
+      {
+        "path": "tests/core-goal-sessions.test.ts",
+        "bytes": 42074,
+        "sha256": "be5f291c262845231faf4193b1c73c70a69f20655a06bac07940c04394f06658"
+      },
+      {
+        "path": "src/index.ts",
+        "bytes": 2918,
+        "sha256": "14284aef37beceef05ce9fae7541ea4291abe734101b76ecd82fcd3007456a4d"
+      }
+    ],
+    "ownerInput": "Exactly one registered message in claimed inbox; first in prepared and committed input; unchanged id and full hash",
+    "allowedExtraInput": "Zero or one complete official-shaped UUIDv4 runtime-context snapshot containing only working-directory:current with exact bound-cwd text and fixed native wrapper",
+    "liveWorkingDirectory": "workingDirectory.get(exactSession) must equal durable Goal binding cwd at every live gate",
+    "contextIdentity": "Pre-step and final projection may generate different UUIDs; content/source must independently match exact allowed semantics",
+    "durability": "Owner and every newly appended context are separately flushed and exact-seq/full-hash cold-read before candidate release",
+    "result": "Optional runtimeContextRefs contains only new independently confirmed snapshots; an empty array does not mean historical context is absent",
+    "stableErrorCodes": [
+      "CORE_NATIVE_INPUT_REJECTED",
+      "CORE_NATIVE_CONTEXT_REJECTED"
+    ],
+    "retainedRestrictions": [
+      "opaque capability and Goal revision/phase fencing",
+      "unknown inbox preservation",
+      "one admitted primary native request and stream",
+      "empty current and historical tools",
+      "fixed user title",
+      "provider-internal retry accounting remains unknown",
+      "no hard total-token billing-cap claim"
+    ],
+    "declaredDependency": "workingDirectory added to plugin inject so the native cwd provider participates in readiness and lifetime"
+  },
+  "validation": {
+    "combined": {
+      "command": "node --import tsx --test tests/core-goal-sessions.test.ts tests/goals.test.ts tests/goal-lifecycle.test.ts tests/goal-bindings.test.ts",
+      "passed": 59,
+      "failed": 0,
+      "durationMs": 2787.382084,
+      "groups": {
+        "coreGoalSessions": 17,
+        "legacyGoals": 21,
+        "sqliteBindings": 9,
+        "lifecycleCombination": 12
+      },
+      "log": {
+        "path": ".local/phase3g-required-context-combined.log",
+        "bytes": 6607,
+        "sha256": "44c102c759c086dc2961ba71d1b72af4cb8671869894ff6d85b75f8709840c8b"
+      }
+    },
+    "typecheck": {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0
+    },
+    "diffCheckPassed": true,
+    "realHostRetryPerformed": false,
+    "generationModelInvokedForFix": false,
+    "finalPackageCheck": {
+      "command": "npm run check",
+      "exitCode": 0,
+      "exitCodeEvidence": "root observed session58195 completion, chunk044824",
+      "tests": 776,
+      "passed": 776,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 58802.09,
+      "typecheck": true,
+      "build": true,
+      "clientSyntax": true,
+      "log": {
+        "path": ".local/phase3g-required-context-check.log",
+        "bytes": 84953,
+        "sha256": "ac6196198e21f9017d9bd874e46e070fa95810a6bad44cf15ab9c6393399a551"
+      },
+      "includesTargeted59": true
+    },
+    "packaging": {
+      "command": "npm pack --dry-run --json",
+      "exitCode": 0,
+      "files": 170,
+      "report": {
+        "path": ".local/phase3g-required-context-pack-final.json",
+        "bytes": 19414,
+        "sha256": "d53e67b9142a15297536f5393e656d15a2c2e8dcbddf945a4b14addd9aaeb04f"
+      },
+      "requiredChangedModulesPresent": true,
+      "noRuntimeOrDependencyFiles": true,
+      "preDocumentationReport": {
+        "path": ".local/phase3g-required-context-pack.json",
+        "bytes": 19414,
+        "sha256": "09774b0ac3948cae0d5beb512de1b4179eb3717abf7e4e16afcabe8b34b9adcc"
+      }
+    },
+    "builtChangedModules": [
+      {
+        "path": "dist/adapters/dsh/core-decision.d.ts",
+        "bytes": 4458,
+        "sha256": "338e631a44b527ac497d7ffd0a25e79a511587ddeb5306f8d8fde862dbb277ea"
+      },
+      {
+        "path": "dist/adapters/dsh/core-decision.js",
+        "bytes": 21587,
+        "sha256": "a5f439630b44a06e307e0cb2093312eea6f25c70c81a750adccd7a74a8f520ab"
+      },
+      {
+        "path": "dist/index.d.ts",
+        "bytes": 470,
+        "sha256": "ff95bdc4f01bad150fd458e1a2783220415765c76cc8a61649c7179934d062a5"
+      },
+      {
+        "path": "dist/index.js",
+        "bytes": 2945,
+        "sha256": "e5023023d5e939ba737009bc35ca0e67c1b45905bb0d552d0fea78c5686b409c"
+      }
+    ],
+    "ui": "Unchanged in this fix; no new UI run. The preceding full168 and final-copy3 runs remain separate historical evidence.",
+    "auditScriptTests": {
+      "passed": 9,
+      "failed": 0,
+      "log": {
+        "path": ".local/phase3g-core-audit-tests.log",
+        "bytes": 1898,
+        "sha256": "a2e8d2283825a83e95ba248af5e21223b408c7d987e3df09fc26a8e2ba9fde8c"
+      },
+      "separateFromTypeScript776": true
+    }
+  },
+  "limitations": [
+    "The live failure remains unknown/cancelled and is not rewritten as success.",
+    "No post-fix real host or model acceptance was performed in this task.",
+    "Other required native sections are deliberately rejected until explicitly reviewed.",
+    "The fake now includes the default required cwd context; its successful synthetic result is not a real host result."
+  ]
+}

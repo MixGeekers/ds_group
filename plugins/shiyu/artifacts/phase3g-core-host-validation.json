@@ -1,0 +1,1074 @@
+{
+  "schemaVersion": 1,
+  "phase": "3G",
+  "runId": "shiyu-core-live-20261102-a",
+  "status": "failed",
+  "acceptancePassed": false,
+  "completionVerified": false,
+  "recordedAt": "2026-11-02T12:12:07.977Z",
+  "evidenceLevel": "One bounded real-host attempt observed by root through CUA and scoped read-only snapshots; this artifact author read only already-saved plans/snapshots/source, not live SQLite or native Session files.",
+  "summary": "The first Core evaluation reached a durable dispatch intent, then became unknown before an exact persisted input/assistant result was available. Owner cancellation revoked local authority and confirmed native pause. No Task, worker Session or note effect was reached. Host business acceptance failed; audit consistency is not completion.",
+  "sourceCommit": "755c7f4",
+  "diagnosis": {
+    "status": "required-context-incompatibility-reproduced-and-fixed-offline",
+    "initialReasonCode": "CORE_EXECUTION_UNCONFIRMED",
+    "initialEvidence": {
+      "path": ".local/phase3g-core-ui-observations.json",
+      "bytes": 1741,
+      "sha256": "c9432238421218a5831c788fc7a8abad1236b93b0709c0c69a5107df1978563b"
+    },
+    "stopReasonAfterCancel": "owner_cancelled",
+    "stopReasonEvidenceLevel": "Saved final scoped read-only snapshot; see checkpoints.finalPostCancellationRead.",
+    "rootCauseConfirmed": false,
+    "fixReference": {
+      "path": "artifacts/phase3g-required-context-fix.json",
+      "bytes": 8948,
+      "sha256": "80c52e1fe78fb36559ebf67ee444d107a945e246531784e48f6ed9fb53f0c671"
+    },
+    "realHostRerunAfterFix": false,
+    "note": "The live Session retained only generic cancellation. A deterministic default required-context incompatibility was reproduced with the fixed SDK message shape and fixed offline. This does not prove the exact uncaptured live exception or make the failed attempt pass.",
+    "staticHypothesis": {
+      "evidenceLevel": "agent-reported static inference, not a successful real-host rerun",
+      "source": "/root relaying /root/dsh_effort_audit investigation",
+      "description": "The installed DSH pre-step path adds required working-directory runtime context, while the Core adapter assumed an exact one-message prepared step and rejected it.",
+      "productFixStatus": "implemented and verified offline; not reloaded into this host",
+      "regressionComplete": true,
+      "hostRerunPerformed": false
+    }
+  },
+  "scope": {
+    "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+    "requestId": "core-a37e28b9-02fd-4918-b107-bba21fadf9d7",
+    "mandateId": "core-mandate:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+    "evaluationId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+    "nativeGoalRefAtDispatch": {
+      "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+      "revision": 1
+    },
+    "nativeGoalRefAfterStop": {
+      "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+      "revision": 2
+    },
+    "ownedNativeSessions": [
+      {
+        "role": "core",
+        "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a"
+      }
+    ],
+    "workerSessionsCreatedForGoal": 0,
+    "tasksCreatedForGoal": 0,
+    "artifactsObservedForGoal": 0,
+    "newGoalsSubmitted": 1,
+    "additionalGoalCreated": false,
+    "retryOrResumePerformed": false,
+    "unrelatedSessionContentsRead": false,
+    "modelProfile": "opencode-go/deepseek-v4.1-flash",
+    "coreEffort": "high"
+  },
+  "executionPlan": {
+    "source": {
+      "path": ".local/phase3g-core-execution-plan.json",
+      "bytes": 3107,
+      "sha256": "3e63dbadcad5485c54c8ae945788abf9a26054e189d27f750db0b0cdc969f0c0"
+    },
+    "immutable": true,
+    "frozenBeforeSubmit": true,
+    "value": {
+      "schemaVersion": 1,
+      "phase": "3G",
+      "runId": "shiyu-core-live-20261102-a",
+      "status": "frozen-before-runtime-reload-and-owner-submit",
+      "createdAtUTC": "2026-11-02 11:57:26 UTC",
+      "sourceCommit": "755c7f4",
+      "previousTurn": "progress: code, tests and offline evidence committed and pushed",
+      "input": {
+        "objective": "完成本轮唯一已授权的合成便签；选择 note-1 执行，只有独立核验全部成功后才提出完成候选。",
+        "deliverables": [
+          {
+            "id": "note-1",
+            "title": "3G 真实目标闭环",
+            "content": "SHIYU_CORE_LIVE_20261102_A\nAuthorized synthetic note; completion requires independent verification."
+          }
+        ],
+        "budget": {
+          "tokens": 65536,
+          "calls": 6,
+          "effects": 1
+        },
+        "maxEvaluations": 2,
+        "uiExpiryChoiceMinutes": 30
+      },
+      "limits": {
+        "newGoals": 1,
+        "newTasks": 1,
+        "coreEvaluations": 2,
+        "corePrimaryRequestsPerEvaluation": 1,
+        "workerPrimaryStepsMaximum": 2,
+        "plannedPrimaryRequestsMaximum": 4,
+        "embeddingRequests": 0,
+        "noteEffects": 1,
+        "orderedPluginReloadsMaximum": 2,
+        "manualStopAfterSeconds": 600,
+        "unknownAutomaticallyReplayed": false,
+        "providerTransportRetryCount": "unknown",
+        "totalTokenHardBillingCap": false
+      },
+      "control": {
+        "scope": "one explicit local-owner synthetic local-note",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "coreEffort": "high",
+        "workerEffort": "high",
+        "stopOnObserved": [
+          "unknown",
+          "overrun",
+          "missing accounting",
+          "rejected",
+          "unexpected defer/no_action",
+          "native preflight failure",
+          "deadline"
+        ],
+        "stopAction": "core.cancel with latest observed goal version; no automatic retry, resume, recover or replacement Goal",
+        "deadlineIsCancellationInitiationNotHardDrain": true
+      },
+      "paths": {
+        "controlDb": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/control/events.sqlite",
+        "runtimeState": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/runtime-state.json",
+        "workspaceRoot": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/workspaces"
+      },
+      "proof": {
+        "ownerRequestId": "generated by client; bind from new matching Goal",
+        "expectedCoreSessions": 1,
+        "expectedWorkerSessions": 1,
+        "success": [
+          "two core decisions share one native Goal Session",
+          "task admitted under shared Mandate",
+          "exact synthetic artifact and full Task/Effect proof",
+          "native Goal complete from independent proof",
+          "actual model usage separately recorded from unknown provider retries",
+          "ordered completed-Goal reload does not infer/replay"
+        ],
+        "existingOwnedSessions": "metadata and hash only from exact earlier artifact paths; no unrelated Session contents"
+      },
+      "limitations": [
+        "Token budget is reservation/accounting and overrun freeze, not a hard pre-call billing ceiling.",
+        "Worker primary-step limit does not prove whole-provider request count.",
+        "No external channel, real business memory, device takeover or account change."
+      ]
+    }
+  },
+  "checkpoints": {
+    "baseline": {
+      "source": {
+        "path": ".local/phase3g-core-host-baseline.json",
+        "bytes": 4795,
+        "sha256": "142d44a50641f4332688464e67b884b921b5211f17402c88f5e27258a81ee36a"
+      },
+      "at": "2026-11-02T11:57:57.298164+00:00",
+      "coreTables": [],
+      "watermark": {
+        "id": 1,
+        "version": 1,
+        "commit_seq": 87,
+        "baseline_id": "95882c76-6134-4437-b360-5c3d41e2f618",
+        "started_at": "2026-11-02T07:07:53.546Z",
+        "schema_hash": "c68561c51f04ae652da99c1349f208b058c1e5cfb19e7c041230ea3624ec4aa1"
+      },
+      "existingOwnedTaskCount": 2,
+      "runtime": {
+        "paused": false,
+        "installationGeneration": "f4778c18-a78b-4a78-a137-c7574ce27db4"
+      },
+      "ownedSessionFileCount": 8
+    },
+    "preSubmit": {
+      "source": {
+        "path": ".local/phase3g-core-host-pre-submit.json",
+        "bytes": 4044,
+        "sha256": "9d28640ebcd60541f267e467541abcdecb5ed2d869659c1fd9127019addfdc7b"
+      },
+      "at": "2026-11-02T12:00:12.218524+00:00",
+      "verifiedFrozenImplementationFiles": 320,
+      "commitWatermark": 93,
+      "coreGoals": 0,
+      "uiObservation": "3G ready; empty goal list; frozen form values confirmed; not yet submitted",
+      "oldSessionFilesUnchanged": true
+    },
+    "inventory": {
+      "plan": {
+        "source": {
+          "path": ".local/phase3g-core-inventory-plan.json",
+          "bytes": 1206,
+          "sha256": "4540b7f55d41506644e65103b45c938f0ff5de87b7c62b3397b4ec4445f299bf"
+        },
+        "value": {
+          "schemaVersion": 1,
+          "phase": "3G",
+          "runId": "shiyu-core-live-20261102-a",
+          "executionPlanSha256": "3e63dbadcad5485c54c8ae945788abf9a26054e189d27f750db0b0cdc969f0c0",
+          "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "requestId": "core-a37e28b9-02fd-4918-b107-bba21fadf9d7",
+          "objectiveSha256": "cb9382076a8138aa214e50dc79a315014bc0e5090040bb9e457474bbb589e3f3",
+          "deliverables": [
+            {
+              "id": "note-1",
+              "sha256": "13ec376280ce4662f4b8a7f29297f42c7e92a2c8705fa3cb33e566799f0fe61d",
+              "bytes": 99
+            }
+          ],
+          "budget": {
+            "tokens": 65536,
+            "calls": 6,
+            "effects": 1
+          },
+          "maxEvaluations": 2,
+          "paths": {
+            "controlDb": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/control/events.sqlite",
+            "workspaceRoot": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/workspaces",
+            "sessionRoots": [
+              "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-79cd9f882f31ad7741ee7558d630568f--"
+            ]
+          },
+          "sessions": [],
+          "limits": {
+            "coreRounds": 2,
+            "workers": 1,
+            "compressedSessionBytes": 16777216,
+            "decodedSessionBytes": 67108864,
+            "nativeEventRows": 4096
+          }
+        }
+      },
+      "source": {
+        "path": ".local/phase3g-core-inventory.json",
+        "bytes": 12409,
+        "sha256": "9d5d2c91d2238a87cc2fa295cfb8097532c5310f6006304246c0478e487bd74e"
+      },
+      "capturedAt": "2026-11-02T12:04:10.081Z",
+      "status": "inventory-only",
+      "nativeFilesRead": 0,
+      "requiredSessions": [
+        {
+          "role": "core",
+          "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a"
+        }
+      ],
+      "completionVerified": false
+    },
+    "auditPlan": {
+      "source": {
+        "path": ".local/phase3g-core-audit-plan.json",
+        "bytes": 1434,
+        "sha256": "dfdb5c688f31dd19bcef07725b48659f520b8190a19f2657adbbfa1ff0e36535"
+      },
+      "value": {
+        "schemaVersion": 1,
+        "phase": "3G",
+        "runId": "shiyu-core-live-20261102-a",
+        "executionPlanSha256": "3e63dbadcad5485c54c8ae945788abf9a26054e189d27f750db0b0cdc969f0c0",
+        "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+        "requestId": "core-a37e28b9-02fd-4918-b107-bba21fadf9d7",
+        "objectiveSha256": "cb9382076a8138aa214e50dc79a315014bc0e5090040bb9e457474bbb589e3f3",
+        "deliverables": [
+          {
+            "id": "note-1",
+            "sha256": "13ec376280ce4662f4b8a7f29297f42c7e92a2c8705fa3cb33e566799f0fe61d",
+            "bytes": 99
+          }
+        ],
+        "budget": {
+          "tokens": 65536,
+          "calls": 6,
+          "effects": 1
+        },
+        "maxEvaluations": 2,
+        "paths": {
+          "controlDb": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/control/events.sqlite",
+          "workspaceRoot": "/Users/caja/Documents/识雨/plugins/shiyu/.local/runtime/workspaces",
+          "sessionRoots": [
+            "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-79cd9f882f31ad7741ee7558d630568f--"
+          ]
+        },
+        "sessions": [
+          {
+            "role": "core",
+            "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a"
+          }
+        ],
+        "limits": {
+          "coreRounds": 2,
+          "workers": 1,
+          "compressedSessionBytes": 16777216,
+          "decodedSessionBytes": 67108864,
+          "nativeEventRows": 4096
+        },
+        "inventorySha256": "9d5d2c91d2238a87cc2fa295cfb8097532c5310f6006304246c0478e487bd74e"
+      },
+      "explicitFrozenSessionCount": 1,
+      "goalAndSessionsWereNotDiscoveredByScanningUnrelatedNativeFiles": true
+    },
+    "initialAudit": {
+      "source": {
+        "path": ".local/phase3g-core-host-stopped.json",
+        "bytes": 16282,
+        "sha256": "1756ab38b54528ac14d24f3bf71e4b8a5a1e14c0d7d79d0d9c65b040a1ca81e1"
+      },
+      "executionRecord": {
+        "path": ".local/phase3g-core-host-stopped-audit-run.json",
+        "bytes": 569,
+        "sha256": "df9cb57ba101536e99048adc267315b004edccaf703e9c131838f6f5bc6d5348"
+      },
+      "execution": {
+        "scriptSha256Before": "fe6bb192c19c72e8c0150ba77051d2fcb986399f6bd631aee236418af7575243",
+        "scriptSha256After": "fe6bb192c19c72e8c0150ba77051d2fcb986399f6bd631aee236418af7575243",
+        "scriptUnchanged": true,
+        "planSha256": "dfdb5c688f31dd19bcef07725b48659f520b8190a19f2657adbbfa1ff0e36535",
+        "exitCode": 1,
+        "stdout": "{\"status\": \"mismatch\", \"completionVerified\": false, \"nativeFilesRead\": 1, \"issueCodes\": [\"UNEXPECTED_NATIVE_GOAL_ROUND\"]}\n",
+        "stderr": "",
+        "snapshotSha256": "1756ab38b54528ac14d24f3bf71e4b8a5a1e14c0d7d79d0d9c65b040a1ca81e1"
+      },
+      "status": "mismatch",
+      "completionVerified": false,
+      "issues": [
+        {
+          "code": "UNEXPECTED_NATIVE_GOAL_ROUND"
+        }
+      ],
+      "classification": "audit-parser defect, separate from the real Core failure",
+      "cause": "The installed host persists roundsStarted on goal/change event.data. The first auditor looked only inside data.goal and treated the missing counter as a nonzero round.",
+      "preserved": true,
+      "overwritten": false
+    },
+    "correctedAudit": {
+      "source": {
+        "path": ".local/phase3g-core-host-stopped-verified.json",
+        "bytes": 16299,
+        "sha256": "c852ad73acb2d26a1a343d431e89949d4e7e902b7107297e43333963b602836b"
+      },
+      "executionRecord": {
+        "path": ".local/phase3g-core-host-stopped-verified-audit-run.json",
+        "bytes": 550,
+        "sha256": "aae570a6efbdf9f9ae44e5bcf8d67f58de5bdf71ce7cfc7b0e1e2fcfc8bd70c5"
+      },
+      "execution": {
+        "scriptSha256Before": "4d6a87813cbd3d9c883a6107e66fc9887040280b1b85c53602c271047ef75d78",
+        "scriptSha256After": "4d6a87813cbd3d9c883a6107e66fc9887040280b1b85c53602c271047ef75d78",
+        "scriptUnchanged": true,
+        "planSha256": "dfdb5c688f31dd19bcef07725b48659f520b8190a19f2657adbbfa1ff0e36535",
+        "exitCode": 0,
+        "stdout": "{\"status\": \"consistent-incomplete\", \"completionVerified\": false, \"nativeFilesRead\": 1, \"issueCodes\": []}\n",
+        "stderr": "",
+        "snapshotSha256": "c852ad73acb2d26a1a343d431e89949d4e7e902b7107297e43333963b602836b"
+      },
+      "status": "consistent-incomplete",
+      "completionVerified": false,
+      "expectation": "observe",
+      "capturedAt": "2026-11-02T12:08:15.634Z",
+      "nativeFilesRead": 1,
+      "issues": [],
+      "meaning": "Read-only observations are mutually consistent but the Goal did not complete. Exit 0 here is audit execution/consistency, not host acceptance."
+    },
+    "finalPostCancellationRead": {
+      "source": {
+        "path": ".local/phase3g-core-host-final-read.json",
+        "bytes": 4564,
+        "sha256": "652881d8b629c15896e116167eb2c6f12357f736630732e7ae0007e4a9a1b7e3"
+      },
+      "at": "2026-11-02T12:12:11.531915+00:00",
+      "watermark": 107,
+      "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+      "goalVersion": 5,
+      "cancelled": true,
+      "taskRefs": [],
+      "evaluations": [
+        {
+          "evaluationId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+          "status": "unknown",
+          "reasonCode": "owner_cancelled"
+        }
+      ],
+      "totalTaskCount": 2,
+      "oldOwnedSessionFilesUnchangedFromBaseline": true,
+      "exactNewCoreSession": {
+        "bytes": 2829,
+        "sha256": "09dcdc1b0cf6762df2066811a8998b9bacc2ebe885ef6afdaa21f254e26b5d3b",
+        "mtimeNs": "1793620888978266000"
+      },
+      "newCoreSessionUnchangedFromPostCancelAudit": true,
+      "operation": "UI GET refresh followed by exact read-only metadata/hash check"
+    }
+  },
+  "uiObservations": {
+    "source": {
+      "path": ".local/phase3g-core-ui-observations.json",
+      "bytes": 1741,
+      "sha256": "c9432238421218a5831c788fc7a8abad1236b93b0709c0c69a5107df1978563b"
+    },
+    "evidenceQualification": "root CUA observations and scoped read-only SQLite query in this turn; not an exported network trace",
+    "actions": [
+      {
+        "observedLocalTime": "2026-11-02 07:59:00",
+        "action": "ordered off/on plugin reload",
+        "observed": "new Runtime ready at 07:59:02; prior 8 exact Session files unchanged"
+      },
+      {
+        "observedLocalTime": "2026-11-02 08:00:32",
+        "action": "core.create via goal form",
+        "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+        "observed": "authorized v2, native active revision1, no tasks"
+      },
+      {
+        "observedLocalTime": "2026-11-02 08:01:17",
+        "action": "refresh",
+        "observed": "evaluation unknown; no accepted task; token/call usage not provided"
+      },
+      {
+        "observedLocalTime": "2026-11-02 08:01:28",
+        "action": "core.cancel via selected Goal",
+        "observed": "local cancelled v5, native paused revision2, command confirmed; unknown reservation retained"
+      }
+    ],
+    "firstScopedSqlObservation": {
+      "toolChunk": "feee48",
+      "goalVersion": 3,
+      "evaluationId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+      "status": "unknown",
+      "reasonCodeBeforeOwnerCancel": "CORE_EXECUTION_UNCONFIRMED",
+      "reservationCreatedAt": "2026-11-02T12:00:33.180Z",
+      "reservationUpdatedAt": "2026-11-02T12:00:33.272Z",
+      "taskRefs": [],
+      "dispatchMessageId": "39938593-5eea-42c9-aede-dee5e58bc19c",
+      "dispatchMessageHash": "85ed5e1b37a71674cb57570b2427677c664781fa9f78665ecea20c6cbdb7a30f"
+    },
+    "timestampNote": "UI times are preserved exactly as recorded local times; native/control timestamps are explicit UTC. No inferred timezone conversion was added."
+  },
+  "oldOwnedSessionComparison": {
+    "baselineSource": {
+      "path": ".local/phase3g-core-host-baseline.json",
+      "bytes": 4795,
+      "sha256": "142d44a50641f4332688464e67b884b921b5211f17402c88f5e27258a81ee36a"
+    },
+    "afterSource": {
+      "path": ".local/phase3g-core-host-final-read.json",
+      "bytes": 4564,
+      "sha256": "652881d8b629c15896e116167eb2c6f12357f736630732e7ae0007e4a9a1b7e3"
+    },
+    "interval": "Before reload/Goal submission through the final post-cancellation read at 2026-11-02T12:12:11.531915+00:00",
+    "allEightHashesAndMetadataUnchanged": true,
+    "files": [
+      {
+        "sessionId": "shiyu-replyer-28e27e7c-641d-463e-897b-de7e482918b0",
+        "bytes": 380,
+        "sha256": "3f6fed22d3e86b2252f17054223dbc3b4375742303d88978f9be508488174989",
+        "mtimeNs": "1793597379605709856",
+        "unchangedAcrossRecordedInterval": true
+      },
+      {
+        "sessionId": "shiyu-replyer-8226ec6f-a103-4a9c-a122-4978d97628b2",
+        "bytes": 379,
+        "sha256": "b20de3e480d609397a9d08d1d69001dfffa6dfd196004a6a5b1e0808d2cc2d41",
+        "mtimeNs": "1793597232894813601",
+        "unchangedAcrossRecordedInterval": true
+      },
+      {
+        "sessionId": "shiyu-replyer-c6aff1f7-8bcb-4c10-a576-1be1f4317a78",
+        "bytes": 8692,
+        "sha256": "8f1859af6623acde0757152333af3d2b5381cf1de736eac1c495f61362b9361c",
+        "mtimeNs": "1793615350498148916",
+        "unchangedAcrossRecordedInterval": true
+      },
+      {
+        "sessionId": "shiyu-replyer-d47cba2a-a154-489f-ac03-8108be78e7e6",
+        "bytes": 5406,
+        "sha256": "3de11357c83728afd1103f8b3552797cd851e1f5cf592f879adcda1872c2c6e7",
+        "mtimeNs": "1793597945650893633",
+        "unchangedAcrossRecordedInterval": true
+      },
+      {
+        "sessionId": "shiyu-worker-b4de5f1e1b0e3c83bd1495e94c9e3e3108ab45122a9e70a0954edaa4f6adb194-b346e136-a62c-4c50-ad6b-c59fe699ecec",
+        "bytes": 7077,
+        "sha256": "39a2d3fea463d848aa52650901d4610813f8e0e9abcfcc27ad7f146db465fdab",
+        "mtimeNs": "1793599440114367914",
+        "unchangedAcrossRecordedInterval": true
+      },
+      {
+        "sessionId": "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+        "bytes": 2276,
+        "sha256": "6c8e01f894f1751c2ed10944c569402779ffd170164d0b56c9204aea227d1af4",
+        "mtimeNs": "1793601662514540869",
+        "unchangedAcrossRecordedInterval": true
+      },
+      {
+        "sessionId": "shiyu-worker-33f1df8ae6b2484de1d4e1ec3b5972d6a20aed39144c71a1c4220016df6ecc77-a915021b-6f14-4417-837b-9ad1847e88ad",
+        "bytes": 6235,
+        "sha256": "fd7c54e4aad65b960b4a561238f8d3b2eadc5091330d589c74e4a1e62edd3e1d",
+        "mtimeNs": "1793600298829149635",
+        "unchangedAcrossRecordedInterval": true
+      },
+      {
+        "sessionId": "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a",
+        "bytes": 1312,
+        "sha256": "0303791a911bf7b1be82763801ce13946d5e264be73fc8f3635fd8af3e45d1ed",
+        "mtimeNs": "1793615491893779251",
+        "unchangedAcrossRecordedInterval": true
+      }
+    ],
+    "afterCancellationHashComparisonAvailable": true,
+    "limitation": "Root compared only the eight exact previously owned file identities and metadata/hashes. Their contents were not decoded by this artifact author; unrelated Session contents were not read.",
+    "preSubmitSource": {
+      "path": ".local/phase3g-core-host-pre-submit.json",
+      "bytes": 4044,
+      "sha256": "9d28640ebcd60541f267e467541abcdecb5ed2d869659c1fd9127019addfdc7b"
+    }
+  },
+  "result": {
+    "localGoal": {
+      "recordSha256": "481dd399ac143871a94e603e1c844df0db24966764a8c1639172812e742094e2",
+      "metadata": {
+        "schemaVersion": 1,
+        "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+        "requestId": "core-a37e28b9-02fd-4918-b107-bba21fadf9d7",
+        "expiresAt": "2026-11-02T12:30:32.338Z",
+        "maxEvaluations": 2,
+        "completionCriteriaHash": "1b7ee042b9836fecce0079cdfac0e9b54c5787695de8e921c879301401dddaa2",
+        "version": 5,
+        "authorized": true,
+        "paused": true,
+        "cancelled": true,
+        "controlEpoch": 4,
+        "taskRefs": [],
+        "evaluations": 1,
+        "createdAt": "2026-11-02T12:00:32.355Z",
+        "updatedAt": "2026-11-02T12:01:28.992Z",
+        "mandateId": "core-mandate:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+        "activeEvaluationId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1"
+      }
+    },
+    "binding": {
+      "recordSha256": "5fc25c7fdd41e68cab2fd89e5c6fe3028f04f39ead69a1bd9fd03e33a859eb9c",
+      "metadata": {
+        "completionCriteriaHash": "1b7ee042b9836fecce0079cdfac0e9b54c5787695de8e921c879301401dddaa2",
+        "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+        "goalRef": {
+          "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+          "revision": 2
+        },
+        "metadataVersion": 4,
+        "ownerId": "local-owner",
+        "receipt": {
+          "commandId": "core-pause:core-e565d790c86099b141e16cc45d1ac7d4277eb855:3",
+          "expectedRef": {
+            "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+            "revision": 1
+          },
+          "observedRef": {
+            "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+            "revision": 2
+          },
+          "operation": "pause",
+          "postconditionHash": "08b8c84963775238c29f20f090f576d6f4a2c836727711f57b6e2bf0796b079e",
+          "status": "confirmed"
+        },
+        "scope": "local-owner",
+        "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a"
+      }
+    },
+    "nativeCommands": [
+      {
+        "recordSha256": "b06397eca37e66f7a0a53b0cf86109662073b94c177e77c47111e6fbde449beb",
+        "metadata": {
+          "commandId": "core-create:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "observedRef": {
+            "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+            "revision": 1
+          },
+          "operation": "create",
+          "postconditionHash": "3cc0e6f33c7a0f71ef203dd2508bd871a78ff9f9875ac431046352579ff6ce78",
+          "status": "confirmed"
+        }
+      },
+      {
+        "recordSha256": "522b630c0eefc81a7bf8573257f600c675a3168e84e53dc5288a85699a5a7c76",
+        "metadata": {
+          "commandId": "core-pause:core-e565d790c86099b141e16cc45d1ac7d4277eb855:3",
+          "expectedRef": {
+            "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+            "revision": 1
+          },
+          "observedRef": {
+            "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+            "revision": 2
+          },
+          "operation": "pause",
+          "postconditionHash": "08b8c84963775238c29f20f090f576d6f4a2c836727711f57b6e2bf0796b079e",
+          "status": "confirmed"
+        }
+      }
+    ],
+    "evaluations": [
+      {
+        "recordSha256": "e462197f107c8868a41052a02829b471d21b2ad39db89b44378be93f4c84dedc",
+        "metadata": {
+          "evaluationId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+          "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "status": "unknown",
+          "permit": {
+            "hostEpoch": "467c0964-17a3-4b14-87b8-fe3f1da0da92",
+            "installationGeneration": "f4778c18-a78b-4a78-a137-c7574ce27db4",
+            "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+            "evaluationId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+            "fencingToken": 1,
+            "controlEpoch": 2,
+            "scopeVersion": 3,
+            "goalRef": {
+              "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+              "revision": 1
+            },
+            "reservationId": "reservation:evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+            "mandateId": "core-mandate:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+            "mandateVersion": 1,
+            "authEpoch": 11,
+            "leaseExpiresAt": "2026-11-02T12:03:33.180Z"
+          },
+          "tasks": [],
+          "triggerRefs": [
+            "owner:core-e565d790c86099b141e16cc45d1ac7d4277eb855"
+          ],
+          "reservation": {
+            "reservationId": "reservation:evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+            "mandateId": "core-mandate:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+            "mandateVersion": 1,
+            "authEpoch": 11,
+            "scope": "local-owner",
+            "action": "core.evaluate",
+            "resourceScopes": [
+              "goal:core-e565d790c86099b141e16cc45d1ac7d4277eb855"
+            ],
+            "schemaVersion": 1,
+            "principalId": "core:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+            "amount": {
+              "tokens": 16384,
+              "calls": 2,
+              "effects": 0
+            },
+            "version": 2,
+            "state": "unknown",
+            "observed": {
+              "effects": 0
+            },
+            "overrun": false,
+            "leaseExpiresAt": "2026-11-02T12:03:33.180Z",
+            "createdAt": "2026-11-02T12:00:33.180Z",
+            "updatedAt": "2026-11-02T12:00:33.272Z"
+          },
+          "dispatch": {
+            "goalId": "core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+            "goalRef": {
+              "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+              "revision": 1
+            },
+            "roundId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+            "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a",
+            "messageId": "39938593-5eea-42c9-aede-dee5e58bc19c",
+            "messageHash": "85ed5e1b37a71674cb57570b2427677c664781fa9f78665ecea20c6cbdb7a30f"
+          }
+        }
+      }
+    ],
+    "triggerFacts": [
+      {
+        "recordSha256": "6e25b636dfcf3fd102955d6ef8172c7d4ed7316d271b28f5ded371244e5480e4",
+        "metadata": {
+          "factId": "owner:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "consumedBy": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+          "kind": "owner_request",
+          "requestId": "core-a37e28b9-02fd-4918-b107-bba21fadf9d7"
+        }
+      }
+    ],
+    "sharedMandate": {
+      "recordSha256": "7e5fa5b274b81e5d3061b1c968450e4f52da4106824ad9e1e4baee8b2dac29f6",
+      "metadata": {
+        "mandateId": "core-mandate:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+        "scope": "local-owner",
+        "issuer": "local-owner",
+        "subjectIds": [
+          "core:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "goal-worker:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "shiyu-artifact-verifier",
+          "shiyu-core-dispatcher",
+          "shiyu-core-verifier",
+          "shiyu-task-dispatcher"
+        ],
+        "allowedActions": [
+          "artifact.write",
+          "core.evaluate",
+          "task.local-note.execute"
+        ],
+        "allowedResources": [
+          "deliverable:core-e565d790c86099b141e16cc45d1ac7d4277eb855:note-1",
+          "goal:core-e565d790c86099b141e16cc45d1ac7d4277eb855"
+        ],
+        "limits": {
+          "tokens": 65536,
+          "calls": 6,
+          "effects": 1
+        },
+        "validFrom": "2026-11-02T12:00:32.430Z",
+        "expiresAt": "2026-11-02T12:30:32.338Z",
+        "maxExpiresAt": "2026-11-02T12:30:32.338Z",
+        "schemaVersion": 1,
+        "policyVersion": 1,
+        "version": 2,
+        "authEpoch": 12,
+        "state": "revoked",
+        "createdAt": "2026-11-02T12:00:32.430Z",
+        "updatedAt": "2026-11-02T12:01:28.947Z"
+      }
+    },
+    "reservations": [
+      {
+        "recordSha256": "b630c802166efeee17a2334a546b11e91e81d017d78a39622d36ad8de6103ebf",
+        "metadata": {
+          "reservationId": "reservation:evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+          "mandateId": "core-mandate:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "mandateVersion": 1,
+          "authEpoch": 11,
+          "scope": "local-owner",
+          "action": "core.evaluate",
+          "resourceScopes": [
+            "goal:core-e565d790c86099b141e16cc45d1ac7d4277eb855"
+          ],
+          "schemaVersion": 1,
+          "principalId": "core:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "amount": {
+            "tokens": 16384,
+            "calls": 2,
+            "effects": 0
+          },
+          "version": 2,
+          "state": "unknown",
+          "observed": {
+            "effects": 0
+          },
+          "overrun": false,
+          "leaseExpiresAt": "2026-11-02T12:03:33.180Z",
+          "createdAt": "2026-11-02T12:00:33.180Z",
+          "updatedAt": "2026-11-02T12:00:33.272Z"
+        }
+      }
+    ],
+    "budgetReceipts": [
+      {
+        "recordSha256": "b630c802166efeee17a2334a546b11e91e81d017d78a39622d36ad8de6103ebf",
+        "metadata": {
+          "reservationId": "reservation:evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+          "mandateId": "core-mandate:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "mandateVersion": 1,
+          "authEpoch": 11,
+          "scope": "local-owner",
+          "action": "core.evaluate",
+          "resourceScopes": [
+            "goal:core-e565d790c86099b141e16cc45d1ac7d4277eb855"
+          ],
+          "schemaVersion": 1,
+          "principalId": "core:core-e565d790c86099b141e16cc45d1ac7d4277eb855",
+          "amount": {
+            "tokens": 16384,
+            "calls": 2,
+            "effects": 0
+          },
+          "version": 2,
+          "state": "unknown",
+          "observed": {
+            "effects": 0
+          },
+          "overrun": false,
+          "leaseExpiresAt": "2026-11-02T12:03:33.180Z",
+          "createdAt": "2026-11-02T12:00:33.180Z",
+          "updatedAt": "2026-11-02T12:00:33.272Z"
+        }
+      }
+    ],
+    "taskCompletionEvents": [],
+    "tasks": [],
+    "artifacts": [],
+    "proofs": [
+      {
+        "evaluationId": "evaluation:core-e565d790c86099b141e16cc45d1ac7d4277eb855:1",
+        "nativeReceiptPresent": false,
+        "dispatchInputObservedAtSeqs": [],
+        "exactNativeInputAndAssistant": false
+      }
+    ],
+    "hasUncertainty": true,
+    "evaluationStatusCounts": {
+      "unknown": 1
+    },
+    "cancelledDoesNotReconcileUnknown": true
+  },
+  "nativeEvidence": {
+    "scope": "Only the frozen new Core Goal Session, read by root audit; no original Session body is copied here.",
+    "files": [
+      {
+        "role": "core",
+        "sessionId": "shiyu-core-goal-b2011043194b0de7fc72e75edde7d6e963d3ffe59c0b4c8aac7e917455cb0b5a",
+        "bytes": 2829,
+        "sha256": "09dcdc1b0cf6762df2066811a8998b9bacc2ebe885ef6afdaa21f254e26b5d3b",
+        "mtimeNs": "1793620888978266000",
+        "headerHash": "3ac01eea0ad034ee755e0b6d6c99eb354f9ec9f05418360ea41290a124da594d",
+        "events": [
+          {
+            "seq": 0,
+            "type": "permission/preset",
+            "eventHash": "4d612d6675d7ad7ff90abd887928096210fb3042f6cbe4501241b668cdc0311b"
+          },
+          {
+            "seq": 1,
+            "type": "sandbox/mode",
+            "eventHash": "817c02cf956c929d1038fe48a09d0d65546309e5aa2ecf2c1e5768a610bafbe4"
+          },
+          {
+            "seq": 2,
+            "type": "approval/policy",
+            "eventHash": "1d8471e3572897704b72203e76e15248892bf5ee4ecb7f18b8686b0fc6bcca0d"
+          },
+          {
+            "seq": 3,
+            "type": "session/title",
+            "eventHash": "8f034c010ba62df785f816c049e29b0ae91084552da24c1791b8c101c9c06aae"
+          },
+          {
+            "seq": 4,
+            "type": "goal/change",
+            "eventHash": "9b4fcf89aa19ed4d2ac0444748ffcfeb22b1db688ade5908ef7269aa5bafaed8",
+            "goal": {
+              "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+              "revision": 1,
+              "phase": "active",
+              "maxGoalRounds": 2,
+              "roundsStarted": 0,
+              "objectiveSha256": "cb9382076a8138aa214e50dc79a315014bc0e5090040bb9e457474bbb589e3f3"
+            }
+          },
+          {
+            "seq": 5,
+            "type": "session/end-seed",
+            "eventHash": "6f394fdbf7bdc355ee437d04fb78ff8d33a68c28a7bf1c0f2d83fb040de998f1"
+          },
+          {
+            "seq": 6,
+            "type": "agent/inbox/spliced",
+            "eventHash": "6c9061d22d2444fafadc06a33bc1e72e6f374f9d608caa887c7762abf83f36ba"
+          },
+          {
+            "seq": 7,
+            "type": "turn/start",
+            "eventHash": "0183731d651b7a1d7dabacc08996c2501440b01393a17927d6b506904eab186e"
+          },
+          {
+            "seq": 8,
+            "type": "agent/inbox/spliced",
+            "eventHash": "147ef1fe828f4eda0bebaf7a503722a8fc94f88bc885d346abbbdf643a5005bb"
+          },
+          {
+            "seq": 9,
+            "type": "turn/end",
+            "eventHash": "92ef7609bd7cc059bf9257d115dbeb21f86789175a98cdf06f03158263aa576d"
+          },
+          {
+            "seq": 10,
+            "type": "session/end-seed",
+            "eventHash": "3fc7fc8631e67bff44b47c263a2b1572ddcfc4784442e490cac4d06d6e15118d"
+          },
+          {
+            "seq": 11,
+            "type": "goal/change",
+            "eventHash": "2a0efe332f074ba9b090dc56eb83c79c9d89b139b2e0238a6989c0bcd1d3cf0f",
+            "goal": {
+              "id": "goal-96fccc3a-6953-4ba7-99ed-65c0323faae4",
+              "revision": 2,
+              "phase": "paused",
+              "maxGoalRounds": 2,
+              "roundsStarted": 0,
+              "objectiveSha256": "cb9382076a8138aa214e50dc79a315014bc0e5090040bb9e457474bbb589e3f3"
+            }
+          }
+        ],
+        "eventCounts": {
+          "agent/inbox/spliced": 2,
+          "approval/policy": 1,
+          "goal/change": 2,
+          "permission/preset": 1,
+          "sandbox/mode": 1,
+          "session/end-seed": 2,
+          "session/title": 1,
+          "turn/end": 1,
+          "turn/start": 1
+        },
+        "decodedBytes": 3700,
+        "decodedRows": 13,
+        "messageBodyIncluded": false
+      }
+    ],
+    "observedEventCount": 12,
+    "formalInputEvents": 0,
+    "assistantMessageEvents": 0,
+    "requestEvents": 0,
+    "assistantAttemptEvents": 0,
+    "titleModelRequestEvents": 0,
+    "compactionEvents": 0,
+    "nativeGoalRoundsStarted": [
+      0,
+      0
+    ],
+    "exactPersistedInputAndAssistantReceiptAvailable": false,
+    "dispatchInputFoundInFormalUserMessageEvents": false,
+    "interpretation": "A durable dispatch intent and inbox/turn events do not establish a completed provider request or formal durable input/result pair. Absence of request/assistant/usage events is not an account-wide billing proof."
+  },
+  "accounting": {
+    "ledgerBudget": {
+      "limits": {
+        "tokens": 65536,
+        "calls": 6,
+        "effects": 1
+      },
+      "spent": {
+        "tokens": 0,
+        "calls": 0,
+        "effects": 0
+      },
+      "held": {
+        "tokens": 16384,
+        "calls": 2,
+        "effects": 0
+      },
+      "available": {
+        "tokens": 49152,
+        "calls": 4,
+        "effects": 1
+      },
+      "allReservationsSettled": false,
+      "wholeProviderBillingComplete": false
+    },
+    "reservedEvaluation": {
+      "tokens": 16384,
+      "calls": 2,
+      "effects": 0
+    },
+    "knownObservedUsage": {
+      "effects": 0
+    },
+    "tokensObserved": null,
+    "modelCallsObserved": null,
+    "providerRequestCount": null,
+    "providerInternalTransportRetries": null,
+    "providerBillingComplete": false,
+    "actualCost": null,
+    "settledZeroIsNotActualZero": true,
+    "unknownBudgetRetainedAfterCancellation": true,
+    "leaseExpiryDoesNotReleaseOrAuthorizeReplay": true,
+    "embeddingOperations": 0,
+    "embeddingEvidence": {
+      "source": {
+        "path": ".local/phase3g-core-ui-observations.json",
+        "bytes": 1741,
+        "sha256": "c9432238421218a5831c788fc7a8abad1236b93b0709c0c69a5107df1978563b"
+      },
+      "field": "embeddingOperationPerformed",
+      "value": false
+    },
+    "note": "Ledger spent=0 means no fully settled invocation charge. Tokens/calls were not provided; the unknown hold of 16,384 tokens and 2 calls remains. Cancellation stops authority without proving zero incurred usage."
+  },
+  "auditorValidation": {
+    "kind": "synthetic auditor tests, not real-host acceptance",
+    "passed": 9,
+    "failed": 0,
+    "log": {
+      "path": ".local/phase3g-core-audit-tests.log",
+      "bytes": 1898,
+      "sha256": "a2e8d2283825a83e95ba248af5e21223b408c7d987e3df09fc26a8e2ba9fde8c"
+    },
+    "script": {
+      "path": "scripts/audit-core-host.py",
+      "bytes": 35061,
+      "sha256": "4d6a87813cbd3d9c883a6107e66fc9887040280b1b85c53602c271047ef75d78"
+    },
+    "test": {
+      "path": "tests/test_audit_core_host.py",
+      "bytes": 25295,
+      "sha256": "dce29f4389b8b578ecd690c943d35b1bb383f5632f96723d98ec2c38f0898e71"
+    },
+    "coverage": [
+      "URI mode=ro, query_only and SQLite authorizer; missing DB not created",
+      "Exact frozen Session selection; adjacent unapproved files not opened",
+      "Digest-only output including ASCII/Unicode body sentinels",
+      "Exact JavaScript native-message hash semantics",
+      "Concatenated zstd frames, bounds, sequence and official top-level roundsStarted",
+      "Goal/dispatch/ref/session/message proof mismatches rejected",
+      "A complete synthetic positive fixture becomes incomplete after artifact damage, unknown evaluation, unknown completion command or unknown usage",
+      "Exclusive output and symlink refusal"
+    ],
+    "notAddedToPrior773ModuleTests": true
+  },
+  "safetyAndCleanup": {
+    "ownerCancelConfirmed": true,
+    "localMandateState": "revoked",
+    "nativePhaseAfterStop": "paused",
+    "nativeRevisionAfterStop": 2,
+    "nativeUnknownRoundDataPreserved": true,
+    "newGoalOrRetryPerformed": false,
+    "hostDatabaseModifiedByAuditor": false,
+    "additionalHostReadsByArtifactAuthor": false,
+    "unknownReservationManuallyReleased": false,
+    "nativeHistoryDeleted": false
+  },
+  "acceptanceCriteria": [
+    {
+      "criterion": "Two successful Core decisions reuse one native Goal Session",
+      "met": false,
+      "observed": "One attempted evaluation remains unknown; no exact durable candidate receipt."
+    },
+    {
+      "criterion": "Task admitted under the shared Goal Mandate",
+      "met": false,
+      "observed": "No Task was admitted."
+    },
+    {
+      "criterion": "Worker executes the exact approved note and independent Task/Effect/actual-file proof passes",
+      "met": false,
+      "observed": "No worker or note effect was reached."
+    },
+    {
+      "criterion": "Native Goal completes only after independent proof",
+      "met": false,
+      "observed": "Owner cancellation confirmed native pause; no complete command."
+    },
+    {
+      "criterion": "Complete known invocation usage is reconciled",
+      "met": false,
+      "observed": "Tokens/calls unknown; reservation remains held."
+    },
+    {
+      "criterion": "Completed-Goal reload preserves completion and does not replay inference",
+      "met": false,
+      "observed": "No completed Goal was available; this step was not performed."
+    }
+  ],
+  "limitations": [
+    "This is a failed bounded real-host acceptance attempt. Synthetic tests, parser correction and consistent audit output do not upgrade its result.",
+    "The default required-context compatibility defect has a completed offline regression and fix reference; the exact live internal exception was not preserved, and no post-fix real-host rerun occurred.",
+    "Only already-saved snapshots were assembled here. Separate SQLite and native-file captures are not a distributed atomic snapshot.",
+    "No complete provider transport, retry, cost, cache or whole-Session billing audit was performed.",
+    "No replacement Goal, additional model attempt, worker run, real memory write or embedding operation was performed to hide the failure.",
+    "Ignored raw snapshots may not exist in a fresh clone; their hashes and the material metadata are preserved in this committed artifact."
+  ],
+  "rootReview": {
+    "fileHashRecordsRecheckedBeforeFixReference": 20,
+    "acceptancePassed": false,
+    "completionVerified": false,
+    "unknownReservationRetained": true,
+    "noAutomaticRetryOrReplacementGoal": true,
+    "postFixHostReload": false
+  }
+}
