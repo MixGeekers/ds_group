@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "slice": "H5-B1",
+  "title": "本地检查点与隔离恢复模块：隔离 worktree 全量验证记录",
+  "generatedAt": "2026-11-02T18:47:30.889089Z",
+  "baseline": {
+    "commit": "08995d182d2ae5ecda69ae81992a636af37f6399",
+    "note": "HEAD 08995d1；隔离 worktree 仅加入 task-6 切片文件，未提交"
+  },
+  "worktree": {
+    "path": "/tmp/shiyu-h5-verify/plugins/shiyu",
+    "method": "git worktree add --detach HEAD + 仅复制 src/recovery、tests/recovery-*、artifacts/dsh/h5；node_modules 以符号链接复用（未安装依赖）"
+  },
+  "commands": [
+    "npm run check  # typecheck && node --import tsx --test --test-concurrency=1 tests/*.test.ts && build && node --check client/index.js"
+  ],
+  "runs": {
+    "run1": {
+      "path": "/tmp/h5-check-final.log",
+      "sha256": "abeb16069ae86fea570b80b903227795a6534eadfec30ee0a763094832dc09ac",
+      "bytes": 116265,
+      "exitCode": 0,
+      "tests": {
+        "tests": 1063,
+        "suites": 0,
+        "pass": 1062,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "duration_ms": 140925.565292
+      },
+      "skippedReasons": [
+        "﹣ real private SDK and Python v2 agree on seven tools, isolated indexing, receipts and authorized candidates without a model (1.503208ms) # Pinned local Python/Ombre dependency is absent; this test never installs it"
+      ]
+    },
+    "run2_final": {
+      "path": "/tmp/h5-check-final2.log",
+      "sha256": "fcf7d8d6cb6f77b425a182b0406d47aae4dae6d10b58730c11974c78b8518990",
+      "bytes": 116278,
+      "exitCode": 0,
+      "tests": {
+        "tests": 1063,
+        "suites": 0,
+        "pass": 1062,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "duration_ms": 157117.182833
+      },
+      "skippedReasons": [
+        "﹣ real private SDK and Python v2 agree on seven tools, isolated indexing, receipts and authorized candidates without a model (1.455542ms) # Pinned local Python/Ombre dependency is absent; this test never installs it"
+      ]
+    },
+    "run3_final_repeat": {
+      "path": "/tmp/h5-check-final3.log",
+      "sha256": "8c764019fa4a7ab9e94d025ebbd8e7a7883308dcc7eac9d1e2f7275e01458b36",
+      "bytes": 116224,
+      "exitCode": 0,
+      "tests": {
+        "tests": 1063,
+        "suites": 0,
+        "pass": 1062,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 1,
+        "todo": 0,
+        "duration_ms": 150209.973667
+      }
+    }
+  },
+  "repeatedTargetedRuns": {
+    "command": "node --import tsx --test tests/recovery-schema.test.ts tests/recovery-capture.test.ts tests/recovery-restore.test.ts tests/recovery-fault-matrix.test.ts",
+    "iterations": 3,
+    "each": {
+      "tests": 36,
+      "pass": 36,
+      "fail": 0,
+      "skipped": 0
+    }
+  },
+  "sliceFiles": [
+    {
+      "path": "src/recovery/README.md",
+      "sha256": "5cd8f76031af27ea5e93517596a1373031576d5bc37043a9d86c692bdc7bfcd0"
+    },
+    {
+      "path": "src/recovery/capture.ts",
+      "sha256": "5903bc29adfa015909ac225d8ac543c6f213a2733149c2c23d3500e1d4aa9554"
+    },
+    {
+      "path": "src/recovery/control-facts.ts",
+      "sha256": "c1f73a4b80e9405df070e13268513063943140629fdb80168afa61f8ceb2de2b"
+    },
+    {
+      "path": "src/recovery/errors.ts",
+      "sha256": "4a9754784fe8fc992cc5b586c472fccf7145829fda1ae3a14b457263de80af82"
+    },
+    {
+      "path": "src/recovery/files.ts",
+      "sha256": "9e40ff972539028a7c9c6b618ae9b0d0347e7a1d38c2b492b312e3c0180db8fa"
+    },
+    {
+      "path": "src/recovery/index.ts",
+      "sha256": "a399794b5cf0339a554d14584b9f99ef18afab82d7f193fc147bb5fcf66be38b"
+    },
+    {
+      "path": "src/recovery/local-state.ts",
+      "sha256": "8913888b90ea52090883bc8ad3c420d850e3419b2552db272db94e3b1edfefa1"
+    },
+    {
+      "path": "src/recovery/ports.ts",
+      "sha256": "5cd8b6a2e870a116ce5bd352dab0b56cb83380093242f8362af2843b761d9118"
+    },
+    {
+      "path": "src/recovery/restore.ts",
+      "sha256": "644bdf92ae121e8ac0335be4ac9917f0318c3c4247f5ccff16e3d7bf121211d9"
+    },
+    {
+      "path": "src/recovery/schema.ts",
+      "sha256": "d0c3068f2177aa3a0e2a7a09de574485f816a4728fc4f6be0beaae52c4a5359b"
+    },
+    {
+      "path": "src/recovery/types.ts",
+      "sha256": "7ab1990a6305cae130bbd07bbf47848b614083c0da4e7f294cf1e7db86830af0"
+    },
+    {
+      "path": "src/recovery/verify.ts",
+      "sha256": "dda88c963a07dec61a591569a2395a87e708f9c991df99eda33666e6b40de8ef"
+    },
+    {
+      "path": "tests/recovery-capture.test.ts",
+      "sha256": "45093658d4987546de0bc035df3313b51bef9a32ef4e663e17f6935b813c14bd"
+    },
+    {
+      "path": "tests/recovery-evidence.test.ts",
+      "sha256": "640f17d42626f05881c3327a0a8cc6dea4acb633ed125124d2954cf106beeeec"
+    },
+    {
+      "path": "tests/recovery-fault-matrix.test.ts",
+      "sha256": "a8b85eae65e66249712c14ca05d5fdd83490a42071850caa481f681f1f471f97"
+    },
+    {
+      "path": "tests/recovery-matrix.ts",
+      "sha256": "e829c5435f3cf2257b56fe7b9c798c66e7b7e4a1ca420149483b51e004e67923"
+    },
+    {
+      "path": "tests/recovery-restore.test.ts",
+      "sha256": "45beceb72e0ec26666ea528e45a59577053ddcc331412ff0bfe323afd366d42d"
+    },
+    {
+      "path": "tests/recovery-schema.test.ts",
+      "sha256": "6b5c2f87c266e64774375d88971eeb73b648a0f788a5812abc75b8a045372298"
+    },
+    {
+      "path": "tests/recovery-support.ts",
+      "sha256": "a4cd152f88686beb79811cbadbcbd1a5b82332685b3fb8c264a54af9383b397c"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "artifacts/dsh/h5/h5-recovery-matrix.json",
+      "sha256": "4e3891f5457b7da0b02996457c9f04fc2ff8eba25daf741bcda775616dd8cd59"
+    },
+    {
+      "path": "artifacts/dsh/h5/h5-recovery-validator-selftest.json",
+      "sha256": "76070b507c96242cf6a0ea237d7d5ac6f6d06f17d2c52e5579f3eb55ab559b7b"
+    }
+  ],
+  "boundaries": {
+    "liveDataRootTouched": false,
+    "liveNativeSessionTouched": false,
+    "liveControlDatabaseTouched": false,
+    "modelCalls": 0,
+    "gitCommitMade": false,
+    "gitBranchSwitched": false,
+    "dependenciesInstalled": false
+  },
+  "knownEnvironmentSkip": {
+    "test": "real private SDK and Python v2 agree on seven tools, isolated indexing, receipts and authorized candidates without a model",
+    "reason": "Pinned local Python/Ombre dependency is absent; this test never installs it",
+    "preExisting": true
+  },
+  "notes": [
+    "三次全量 npm run check：run2/run3 为同一最终 worktree 内容，计数完全一致（1063 tests / 1062 pass / 0 fail / 1 pre-existing environment skip），exit 0；run1 为最终代码前一条仅新增日志路径校验的版本，计数相同。",
+    "1 skip 为基线既有 Python/Ombre 夹具依赖缺失，非本切片；未安装依赖。",
+    "evidence JSON 在隔离 worktree 内由测试生成（source/build/test 指纹取 worktree HEAD 08995d1 + 未提交切片），随后原样复制回主树 artifacts/dsh/h5。",
+    "隔离 worktree 只加入 src/recovery、tests/recovery-*、artifacts/dsh/h5；node_modules 为符号链接（未安装依赖）；未 git 提交、未切分支。"
+  ]
+}

@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h5",
+  "capturedAt": "2026-11-02T18:51:45.956Z",
+  "head": "92c857fcfe5d823836b48ea9c9df09fcdeb14981",
+  "worktree": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h5-1793645359281",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/recovery/README.md",
+      "bytes": 19497,
+      "sha256": "5cd8f76031af27ea5e93517596a1373031576d5bc37043a9d86c692bdc7bfcd0"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/capture.ts",
+      "bytes": 45550,
+      "sha256": "5903bc29adfa015909ac225d8ac543c6f213a2733149c2c23d3500e1d4aa9554"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/control-facts.ts",
+      "bytes": 14365,
+      "sha256": "c1f73a4b80e9405df070e13268513063943140629fdb80168afa61f8ceb2de2b"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/errors.ts",
+      "bytes": 1328,
+      "sha256": "4a9754784fe8fc992cc5b586c472fccf7145829fda1ae3a14b457263de80af82"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/files.ts",
+      "bytes": 8166,
+      "sha256": "9e40ff972539028a7c9c6b618ae9b0d0347e7a1d38c2b492b312e3c0180db8fa"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/index.ts",
+      "bytes": 2458,
+      "sha256": "a399794b5cf0339a554d14584b9f99ef18afab82d7f193fc147bb5fcf66be38b"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/ports.ts",
+      "bytes": 5806,
+      "sha256": "5cd8b6a2e870a116ce5bd352dab0b56cb83380093242f8362af2843b761d9118"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/restore.ts",
+      "bytes": 41955,
+      "sha256": "644bdf92ae121e8ac0335be4ac9917f0318c3c4247f5ccff16e3d7bf121211d9"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/schema.ts",
+      "bytes": 65114,
+      "sha256": "d0c3068f2177aa3a0e2a7a09de574485f816a4728fc4f6be0beaae52c4a5359b"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/types.ts",
+      "bytes": 15846,
+      "sha256": "7ab1990a6305cae130bbd07bbf47848b614083c0da4e7f294cf1e7db86830af0"
+    },
+    {
+      "path": "plugins/shiyu/src/recovery/verify.ts",
+      "bytes": 32367,
+      "sha256": "dda88c963a07dec61a591569a2395a87e708f9c991df99eda33666e6b40de8ef"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-support.ts",
+      "bytes": 31554,
+      "sha256": "a4cd152f88686beb79811cbadbcbd1a5b82332685b3fb8c264a54af9383b397c"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-matrix.ts",
+      "bytes": 51911,
+      "sha256": "e829c5435f3cf2257b56fe7b9c798c66e7b7e4a1ca420149483b51e004e67923"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-schema.test.ts",
+      "bytes": 17046,
+      "sha256": "6b5c2f87c266e64774375d88971eeb73b648a0f788a5812abc75b8a045372298"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-capture.test.ts",
+      "bytes": 19421,
+      "sha256": "45093658d4987546de0bc035df3313b51bef9a32ef4e663e17f6935b813c14bd"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-restore.test.ts",
+      "bytes": 20960,
+      "sha256": "45beceb72e0ec26666ea528e45a59577053ddcc331412ff0bfe323afd366d42d"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-fault-matrix.test.ts",
+      "bytes": 3829,
+      "sha256": "a8b85eae65e66249712c14ca05d5fdd83490a42071850caa481f681f1f471f97"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-evidence.test.ts",
+      "bytes": 13505,
+      "sha256": "640f17d42626f05881c3327a0a8cc6dea4acb633ed125124d2954cf106beeeec"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 146328,
+    "bytes": 120023,
+    "sha256": "f0ea331378eea3f16c9f04b2f9bc64cee16a694dc472a70a5d229fefcd6122b7",
+    "tests": {
+      "tests": 1096,
+      "pass": 1096,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 145408.448625",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h5.log",
+    "bytes": 120023,
+    "sha256": "f0ea331378eea3f16c9f04b2f9bc64cee16a694dc472a70a5d229fefcd6122b7"
+  },
+  "verdict": "pass"
+}

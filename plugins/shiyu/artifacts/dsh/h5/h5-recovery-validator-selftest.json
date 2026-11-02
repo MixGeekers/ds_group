@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "slice": "H5-B1",
+  "title": "校验器自证：已知正确样本接受、已知错误样本拒绝",
+  "generatedAt": "2026-11-02T18:41:40.939Z",
+  "fingerprints": {
+    "source": {
+      "git": {
+        "head": "08995d182d2ae5ecda69ae81992a636af37f6399",
+        "trackedChanges": 0,
+        "untracked": 19
+      },
+      "moduleFiles": [
+        {
+          "path": "src/recovery/README.md",
+          "sha256": "5cd8f76031af27ea5e93517596a1373031576d5bc37043a9d86c692bdc7bfcd0"
+        },
+        {
+          "path": "src/recovery/capture.ts",
+          "sha256": "5903bc29adfa015909ac225d8ac543c6f213a2733149c2c23d3500e1d4aa9554"
+        },
+        {
+          "path": "src/recovery/control-facts.ts",
+          "sha256": "c1f73a4b80e9405df070e13268513063943140629fdb80168afa61f8ceb2de2b"
+        },
+        {
+          "path": "src/recovery/errors.ts",
+          "sha256": "4a9754784fe8fc992cc5b586c472fccf7145829fda1ae3a14b457263de80af82"
+        },
+        {
+          "path": "src/recovery/files.ts",
+          "sha256": "9e40ff972539028a7c9c6b618ae9b0d0347e7a1d38c2b492b312e3c0180db8fa"
+        },
+        {
+          "path": "src/recovery/index.ts",
+          "sha256": "a399794b5cf0339a554d14584b9f99ef18afab82d7f193fc147bb5fcf66be38b"
+        },
+        {
+          "path": "src/recovery/local-state.ts",
+          "sha256": "8913888b90ea52090883bc8ad3c420d850e3419b2552db272db94e3b1edfefa1"
+        },
+        {
+          "path": "src/recovery/ports.ts",
+          "sha256": "5cd8b6a2e870a116ce5bd352dab0b56cb83380093242f8362af2843b761d9118"
+        },
+        {
+          "path": "src/recovery/restore.ts",
+          "sha256": "644bdf92ae121e8ac0335be4ac9917f0318c3c4247f5ccff16e3d7bf121211d9"
+        },
+        {
+          "path": "src/recovery/schema.ts",
+          "sha256": "d0c3068f2177aa3a0e2a7a09de574485f816a4728fc4f6be0beaae52c4a5359b"
+        },
+        {
+          "path": "src/recovery/types.ts",
+          "sha256": "7ab1990a6305cae130bbd07bbf47848b614083c0da4e7f294cf1e7db86830af0"
+        },
+        {
+          "path": "src/recovery/verify.ts",
+          "sha256": "dda88c963a07dec61a591569a2395a87e708f9c991df99eda33666e6b40de8ef"
+        }
+      ]
+    },
+    "build": {
+      "buildCommand": "npm run check -> tsc --noEmit && node --import tsx --test tests/*.test.ts && tsc -p tsconfig.build.json && node --check client/index.js",
+      "typescriptVersion": "7.0.2",
+      "tsxVersion": "4.23.15",
+      "tsconfigBuildSha256": "54b6d705480e307e263aa78965b318c0921d5b94fa346b385ca68cbd8318137a",
+      "packageJsonSha256": "7eb06a89562c77d7f6f674b630011764d9350528a81d316786470c4afdcf4700",
+      "packageLockSha256": "3897d1556dd268721ae9f67f1be4ebfc2d31d666d2c622240994c0aa93506dec"
+    },
+    "environment": {
+      "node": "v24.19.0",
+      "platform": "darwin",
+      "arch": "arm64",
+      "sqliteVersion": "3.53.3",
+      "os": null,
+      "tsxVersion": "4.23.15"
+    }
+  },
+  "summary": {
+    "total": 18,
+    "passed": 18
+  },
+  "cases": [
+    {
+      "caseId": "bundle.good",
+      "expected": "accepted",
+      "observed": "accepted",
+      "rejected": false,
+      "pass": true
+    },
+    {
+      "caseId": "bundle.hash-format",
+      "expected": "rejected",
+      "observed": "range",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "bundle.missing-component",
+      "expected": "rejected",
+      "observed": "required-component-missing,semantics",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "bundle.reader-version",
+      "expected": "rejected",
+      "observed": "incompatible",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "bundle.ready-with-failure",
+      "expected": "rejected",
+      "observed": "semantics",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "bundle.unknown-field",
+      "expected": "rejected",
+      "observed": "unknown-field",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "bundle.common-section-claim",
+      "expected": "rejected",
+      "observed": "false-common-section",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "bundle.reconcile-false",
+      "expected": "rejected",
+      "observed": "semantics",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "bundle.null-control",
+      "expected": "rejected",
+      "observed": "missing-field",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "goal-session.missing-tail-sequence",
+      "expected": "rejected",
+      "observed": "semantics,semantics,semantics,semantics",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "deletion-ledger.gap",
+      "expected": "rejected",
+      "observed": "ledger-gap,ledger-gap",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "recovery-lock.enabled-dispatch",
+      "expected": "rejected",
+      "observed": "value",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "restore-report.resurrection-accepted",
+      "expected": "rejected",
+      "observed": "semantics",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "restore-report.activated",
+      "expected": "rejected",
+      "observed": "value",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "restore-report.dispatch-enabled",
+      "expected": "rejected",
+      "observed": "value",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "restore-report.readview-closed",
+      "expected": "rejected",
+      "observed": "semantics",
+      "rejected": true,
+      "pass": true
+    },
+    {
+      "caseId": "restore-report.good",
+      "expected": "accepted",
+      "observed": "accepted",
+      "rejected": false,
+      "pass": true
+    },
+    {
+      "caseId": "generation.same-as-previous",
+      "expected": "rejected",
+      "observed": "semantics",
+      "rejected": true,
+      "pass": true
+    }
+  ],
+  "boundary": "按声明式 schema/语义判定；文件 hash/closure 由 verifyBundleDirectory 从真实字节复核。不能证明业务正确、授权有效或完整采集。"
+}

@@ -1,0 +1,615 @@
+{
+  "schemaVersion": 1,
+  "slice": "H5-B1",
+  "title": "本地检查点与隔离恢复模块：离线故障/边界矩阵",
+  "generatedAt": "2026-11-02T18:41:40.939Z",
+  "evidenceLevel": "G1 offline module + synthetic ports (real temporary SQLite/files)",
+  "fingerprints": {
+    "source": {
+      "git": {
+        "head": "08995d182d2ae5ecda69ae81992a636af37f6399",
+        "trackedChanges": 0,
+        "untracked": 19
+      },
+      "moduleFiles": [
+        {
+          "path": "src/recovery/README.md",
+          "sha256": "5cd8f76031af27ea5e93517596a1373031576d5bc37043a9d86c692bdc7bfcd0"
+        },
+        {
+          "path": "src/recovery/capture.ts",
+          "sha256": "5903bc29adfa015909ac225d8ac543c6f213a2733149c2c23d3500e1d4aa9554"
+        },
+        {
+          "path": "src/recovery/control-facts.ts",
+          "sha256": "c1f73a4b80e9405df070e13268513063943140629fdb80168afa61f8ceb2de2b"
+        },
+        {
+          "path": "src/recovery/errors.ts",
+          "sha256": "4a9754784fe8fc992cc5b586c472fccf7145829fda1ae3a14b457263de80af82"
+        },
+        {
+          "path": "src/recovery/files.ts",
+          "sha256": "9e40ff972539028a7c9c6b618ae9b0d0347e7a1d38c2b492b312e3c0180db8fa"
+        },
+        {
+          "path": "src/recovery/index.ts",
+          "sha256": "a399794b5cf0339a554d14584b9f99ef18afab82d7f193fc147bb5fcf66be38b"
+        },
+        {
+          "path": "src/recovery/local-state.ts",
+          "sha256": "8913888b90ea52090883bc8ad3c420d850e3419b2552db272db94e3b1edfefa1"
+        },
+        {
+          "path": "src/recovery/ports.ts",
+          "sha256": "5cd8b6a2e870a116ce5bd352dab0b56cb83380093242f8362af2843b761d9118"
+        },
+        {
+          "path": "src/recovery/restore.ts",
+          "sha256": "644bdf92ae121e8ac0335be4ac9917f0318c3c4247f5ccff16e3d7bf121211d9"
+        },
+        {
+          "path": "src/recovery/schema.ts",
+          "sha256": "d0c3068f2177aa3a0e2a7a09de574485f816a4728fc4f6be0beaae52c4a5359b"
+        },
+        {
+          "path": "src/recovery/types.ts",
+          "sha256": "7ab1990a6305cae130bbd07bbf47848b614083c0da4e7f294cf1e7db86830af0"
+        },
+        {
+          "path": "src/recovery/verify.ts",
+          "sha256": "dda88c963a07dec61a591569a2395a87e708f9c991df99eda33666e6b40de8ef"
+        }
+      ]
+    },
+    "build": {
+      "buildCommand": "npm run check -> tsc --noEmit && node --import tsx --test tests/*.test.ts && tsc -p tsconfig.build.json && node --check client/index.js",
+      "typescriptVersion": "7.0.2",
+      "tsxVersion": "4.23.15",
+      "tsconfigBuildSha256": "54b6d705480e307e263aa78965b318c0921d5b94fa346b385ca68cbd8318137a",
+      "packageJsonSha256": "7eb06a89562c77d7f6f674b630011764d9350528a81d316786470c4afdcf4700",
+      "packageLockSha256": "3897d1556dd268721ae9f67f1be4ebfc2d31d666d2c622240994c0aa93506dec"
+    },
+    "tests": {
+      "files": [
+        {
+          "path": "tests/recovery-capture.test.ts",
+          "sha256": "45093658d4987546de0bc035df3313b51bef9a32ef4e663e17f6935b813c14bd"
+        },
+        {
+          "path": "tests/recovery-evidence.test.ts",
+          "sha256": "640f17d42626f05881c3327a0a8cc6dea4acb633ed125124d2954cf106beeeec"
+        },
+        {
+          "path": "tests/recovery-fault-matrix.test.ts",
+          "sha256": "a8b85eae65e66249712c14ca05d5fdd83490a42071850caa481f681f1f471f97"
+        },
+        {
+          "path": "tests/recovery-matrix.ts",
+          "sha256": "e829c5435f3cf2257b56fe7b9c798c66e7b7e4a1ca420149483b51e004e67923"
+        },
+        {
+          "path": "tests/recovery-restore.test.ts",
+          "sha256": "45beceb72e0ec26666ea528e45a59577053ddcc331412ff0bfe323afd366d42d"
+        },
+        {
+          "path": "tests/recovery-schema.test.ts",
+          "sha256": "6b5c2f87c266e64774375d88971eeb73b648a0f788a5812abc75b8a045372298"
+        },
+        {
+          "path": "tests/recovery-support.ts",
+          "sha256": "a4cd152f88686beb79811cbadbcbd1a5b82332685b3fb8c264a54af9383b397c"
+        }
+      ],
+      "command": "node --import tsx --test tests/recovery-*.test.ts"
+    },
+    "environment": {
+      "node": "v24.19.0",
+      "platform": "darwin",
+      "arch": "arm64",
+      "sqliteVersion": "3.53.3",
+      "os": null,
+      "tsxVersion": "4.23.15"
+    }
+  },
+  "denominators": {
+    "planned": 30,
+    "executed": 30,
+    "passed": 30,
+    "failed": 0,
+    "skipped": 0,
+    "unknown": 0,
+    "notApplicable": 0,
+    "selfProof": {
+      "planned": 18,
+      "executed": 18,
+      "passed": 18,
+      "failed": 0
+    }
+  },
+  "boundaries": {
+    "evidenceLayer": "G1 offline module + synthetic ports",
+    "offlineModuleOnly": true,
+    "syntheticBackends": true,
+    "wiredIntoRuntime": false,
+    "liveDataRootTouched": false,
+    "liveNativeSessionTouched": false,
+    "liveControlDatabaseTouched": false,
+    "modelCalls": 0,
+    "realChannelOrDeviceCalls": 0,
+    "crossComponentCommonSectionClaimed": false,
+    "independentFaultDomain": false,
+    "rpoRtoClaimed": false,
+    "v22Claim": "sub-scenarios only; full V22 requires fixed-host/fault-domain evidence",
+    "v27Claim": "not attempted; requires an independent failure domain and offline recovery credentials",
+    "fullHostAcceptance": false,
+    "independentFaultDomainAcceptance": false
+  },
+  "coverage": {
+    "breakpointFamilies": {
+      "controlCommittedComponentExecutedLocalUnconfirmed": "capture.unknown-breakpoints",
+      "stagingInterruptedBeforePublish": "capture.staging-interrupted",
+      "stagingFailureNotReady": "capture.staging-failed-not-ready",
+      "missingGoalSessionOrProjection": [
+        "capture.missing-goal-session",
+        "capture.missing-projection"
+      ],
+      "hashMismatch": [
+        "capture.hash-mismatch",
+        "capture.goal-tail-mismatch",
+        "restore.tampered-bundle-rejected"
+      ],
+      "oldDeletionLedger": [
+        "restore.old-deletion-ledger-locked",
+        "restore.old-deletion-ledger-replayed"
+      ],
+      "restorePositive": "restore.verified-positive",
+      "v15Like": [
+        "capture.staging-interrupted",
+        "capture.failure-preserves-lastgood",
+        "capture.capacity-insufficient"
+      ],
+      "v22Like": [
+        "capture.ready",
+        "capture.concurrent-writer-boundary",
+        "restore.control-tombstone-replay",
+        "restore.armed-goal-disarmed",
+        "restore.unknown-breakpoints"
+      ]
+    },
+    "notCovered": [
+      "live DSH host / native Goal Session service integration",
+      "real Ombre export archive and its own manifest/hash/closure",
+      "independent backup repository, encryption, offline credentials (V27)",
+      "RPO/RTO measurement from a completed independent backup",
+      "crash at OS level during fsync/rename (only deterministic staging interruptions)",
+      "multi-process double-writer at the OS level (only recovery-lock exclusivity)",
+      "migration of an older bundle schema by a newer reader"
+    ]
+  },
+  "summary": {
+    "total": 30,
+    "passed": 30,
+    "failed": 0,
+    "selfProofTotal": 18,
+    "selfProofPassed": 18
+  },
+  "cases": [
+    {
+      "caseId": "capture.ready",
+      "scenario": "合成控制库、Goal Session 日志、记忆导出与共享对象在临时根完成一次 ready capture",
+      "requirement": "task-6-B",
+      "injectionPoint": "真实临时 SQLite 控制库 + 合成 JSONL Goal Session + 合成 memory export + 内存共享对象；无注入",
+      "expected": "ready，全部必需组件可核验，lastGood 更新",
+      "observed": "ready; 4 components complete; lastGood published; bundle directory re-verified from bytes",
+      "pass": true,
+      "evidence": {
+        "manifestSha256": "a6223a8f43aeb059275858fbf7d65380c618e544c6a90b9cc816d2dd59dbf85c",
+        "objectCount": 1
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.concurrent-writer-boundary",
+      "scenario": "capture 期间 live 控制库仍可写入；Bundle 不冒称跨组件共同截面",
+      "requirement": "task-6-B/V22",
+      "injectionPoint": "capture 完成后由另一连接提交 commit_seq+1（live 继续写入，已发布清单不得回流）",
+      "expected": "每组件独立水位；captureTime 取最早组件时间；完成后 live 变更不回流到已发布清单",
+      "observed": "snapshot commitSeq retained; bundle declarations remain per-component; live later write did not alter manifest",
+      "pass": true,
+      "evidence": {
+        "captureTime": "2026-11-02T18:00:04.000Z",
+        "completedAt": "2026-11-02T18:00:14.000Z",
+        "commonSection": false
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.unknown-breakpoints",
+      "scenario": "控制已提交、组件可能已执行但本地未确认（unknown effect、pending Goal command、unknown reservation、unknown MemoryOperation）",
+      "requirement": "task-6-B/D",
+      "injectionPoint": "控制库行：unknown effect / pending Goal command / unknown reservation / unknown MemoryOperation",
+      "expected": "全部 unknown 进入 control 清单；恢复后状态保持 unknown 且不重放",
+      "observed": "4 in-flight/unknown operations captured and preserved; replay count is 0",
+      "pass": true,
+      "evidence": {
+        "inFlight": [
+          "budget-reservation:unknown",
+          "effect:unknown",
+          "goal-command:pending",
+          "memory-operation:unknown"
+        ]
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.staging-interrupted",
+      "scenario": "staging 完成前模拟进程中断（控制快照之后）",
+      "requirement": "task-6-B/V15",
+      "injectionPoint": "inject fault after-control-snapshot: interrupt（不发布，保留 partial journal）",
+      "expected": "状态 incomplete；partial 保留；没有 ready Bundle；不更新 lastGood；同 id 不静默恢复",
+      "observed": "incomplete with retained partial journal; same id stayed incomplete; fresh id became ready",
+      "pass": true,
+      "evidence": {
+        "partialPhase": "control-snapshot",
+        "retryStatus": "ready"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.staging-failed-not-ready",
+      "scenario": "在 Goal Session 抓取后注入失败",
+      "requirement": "task-6-B/V15",
+      "injectionPoint": "inject fault after-goal-sessions: fail（只发布 failed 清单）",
+      "expected": "failed/incomplete 清单可发布但绝不 ready；lastGood 不变；恢复拒绝",
+      "observed": "failed bundle recorded, not ready, lastGood unchanged, restore rejected",
+      "pass": true,
+      "evidence": {
+        "code": "INJECTED_FAILURE"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.missing-commit-watermark",
+      "scenario": "控制快照缺少必需水位 {\"commit\":true}",
+      "requirement": "task-6-B",
+      "injectionPoint": "控制快照缺少 shiyu_commit_watermark 行",
+      "expected": "incomplete MISSING_WATERMARK；不得 ready",
+      "observed": "incomplete MISSING_WATERMARK; no lastGood",
+      "pass": true,
+      "evidence": {
+        "missing": {
+          "commit": true
+        }
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.missing-publication-watermark",
+      "scenario": "控制快照缺少必需水位 {\"publication\":true}",
+      "requirement": "task-6-B",
+      "injectionPoint": "控制快照缺少 shiyu_state_publication_head 行",
+      "expected": "incomplete MISSING_WATERMARK；不得 ready",
+      "observed": "incomplete MISSING_WATERMARK; no lastGood",
+      "pass": true,
+      "evidence": {
+        "missing": {
+          "publication": true
+        }
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.missing-authorization-watermark",
+      "scenario": "控制快照缺少必需水位 {\"policy\":true}",
+      "requirement": "task-6-B",
+      "injectionPoint": "控制快照缺少 shiyu_policy_meta 行",
+      "expected": "incomplete MISSING_WATERMARK；不得 ready",
+      "observed": "incomplete MISSING_WATERMARK; no lastGood",
+      "pass": true,
+      "evidence": {
+        "missing": {
+          "policy": true
+        }
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.missing-deletion-watermark",
+      "scenario": "控制快照缺少必需水位 {\"deletion\":true}",
+      "requirement": "task-6-B",
+      "injectionPoint": "控制快照缺少 shiyu_memory_meta 行",
+      "expected": "incomplete MISSING_WATERMARK；不得 ready",
+      "observed": "incomplete MISSING_WATERMARK; no lastGood",
+      "pass": true,
+      "evidence": {
+        "missing": {
+          "deletion": true
+        }
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.missing-goal-session",
+      "scenario": "GoalBinding 存在但权威 Goal Session 日志缺失",
+      "requirement": "task-6-B",
+      "injectionPoint": "GoalSessionPort 省略 GoalBinding 对应的 Session 日志",
+      "expected": "incomplete MISSING_GOAL_SESSION；不得 ready",
+      "observed": "incomplete MISSING_GOAL_SESSION",
+      "pass": true,
+      "evidence": {
+        "failure": "MISSING_GOAL_SESSION"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.missing-projection",
+      "scenario": "Goal Session 日志存在但 projection 定义 digest 不符",
+      "requirement": "task-6-B",
+      "injectionPoint": "GoalSessionPort 返回的 projection digest 与定义字节不符",
+      "expected": "incomplete MISSING_PROJECTION；不得 ready",
+      "observed": "incomplete MISSING_PROJECTION",
+      "pass": true,
+      "evidence": {
+        "failure": "MISSING_PROJECTION"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.object-closure-incomplete",
+      "scenario": "记忆导出引用的共享对象在对象源不可读",
+      "requirement": "task-6-B",
+      "injectionPoint": "MemoryExportPort 声明 objectRefs=[artifact-missing]，SharedObjectPort 返回 undefined",
+      "expected": "incomplete OBJECT_CLOSURE_INCOMPLETE；不得 ready",
+      "observed": "incomplete OBJECT_CLOSURE_INCOMPLETE",
+      "pass": true,
+      "evidence": {
+        "failure": "OBJECT_CLOSURE_INCOMPLETE"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.hash-mismatch",
+      "scenario": "记忆导出端口返回的 archive 摘要与实际字节不符",
+      "requirement": "task-6-B",
+      "injectionPoint": "MemoryExportPort 的 archive 摘要与实际写入字节不符",
+      "expected": "fail/incomplete HASH_MISMATCH；不得 ready",
+      "observed": "failed HASH_MISMATCH; not ready",
+      "pass": true,
+      "evidence": {
+        "failure": "HASH_MISMATCH"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.version-incompatible",
+      "scenario": "运行清单要求更新的恢复 reader",
+      "requirement": "task-6-B",
+      "injectionPoint": "runtimeManifest 的 projection minimumReaderVersion=2",
+      "expected": "fail/incomplete INCOMPATIBLE_VERSION；不得 ready",
+      "observed": "failed INCOMPATIBLE_VERSION",
+      "pass": true,
+      "evidence": {
+        "failure": "INCOMPATIBLE_VERSION"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.capacity-insufficient",
+      "scenario": "捕获前可用空间低于估算需求",
+      "requirement": "task-6-B/V15",
+      "injectionPoint": "CapacityProbe 返回 1 KiB（低于估算需求）",
+      "expected": "failed CAPACITY_INSUFFICIENT；不得 ready；不更新 lastGood",
+      "observed": "failed CAPACITY_INSUFFICIENT",
+      "pass": true,
+      "evidence": {
+        "failure": "CAPACITY_INSUFFICIENT"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.failure-preserves-lastgood",
+      "scenario": "已有 ready lastGood 后新的捕获失败",
+      "requirement": "task-6-B/V15",
+      "injectionPoint": "首次 ready 后 CapacityProbe 返回低值（第二次捕获失败）",
+      "expected": "失败不替换 lastGood",
+      "observed": "lastGood unchanged after failure",
+      "pass": true,
+      "evidence": {
+        "pointerSnapshot": "matrix-lastgood-first"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.old-deletion-ledger-locked",
+      "scenario": "从删除前 Bundle 恢复但最新删除水位已前进且没有账本",
+      "requirement": "task-6-C/V22",
+      "injectionPoint": "barrier 删除水位 3→5 且请求不提供 deletionLedger",
+      "expected": "status locked；readView closed；恢复锁保留",
+      "observed": "locked with closed read view; lock retained",
+      "pass": true,
+      "evidence": {
+        "relation": "advanced-unreplayed"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.old-deletion-ledger-replayed",
+      "scenario": "从删除前 Bundle 恢复并应用较新删除账本",
+      "requirement": "task-6-C/V22",
+      "injectionPoint": "barrier 删除水位 3→5 + sealDeletionLedger 连续账本（ref=memory-visible-2）",
+      "expected": "verified；被删引用不可见；不复活",
+      "observed": "verified; deleted ref absent; ledger applied",
+      "pass": true,
+      "evidence": {
+        "removedRefs": 1,
+        "visibleRefs": 2
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.control-tombstone-replay",
+      "scenario": "控制库删除水位领先记忆导出，恢复使用控制快照内墓碑补齐",
+      "requirement": "task-6-C/V22",
+      "injectionPoint": "控制库 tombstone_watermark=5 且 shiyu_memory_tombstones(watermark=5)，memory export watermark=3",
+      "expected": "verified；被删记忆不可见，不依赖外部账本",
+      "observed": "verified; internal control tombstones replayed before the read view opened",
+      "pass": true,
+      "evidence": {
+        "removedRefs": 1,
+        "appliedEntries": 1
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.barrier-unavailable-locked",
+      "scenario": "宿主外 barrier 不可用（未提供）",
+      "requirement": "task-6-C/V22",
+      "injectionPoint": "restore 请求 barrier=undefined",
+      "expected": "status locked；readView closed；不得猜测最新删除水位",
+      "observed": "locked; read view closed",
+      "pass": true,
+      "evidence": {
+        "completeness": "unavailable"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.verified-positive",
+      "scenario": "正常隔离恢复：组件 hash/完整性/引用可读，目标 disarmed，unknown 保留",
+      "requirement": "task-6-C",
+      "injectionPoint": "无注入正例：完整 ready Bundle + 完整 barrier",
+      "expected": "status verified；readView read-only；dispatch blocked；旧根未动；新 generation 记录",
+      "observed": "verified read-only, maintenance, disarmed; copied bytes re-verified; live root untouched",
+      "pass": true,
+      "evidence": {
+        "checks": 15,
+        "generation": "efb1a051-1883-4534-9f34-969133ae4ff2"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.armed-goal-disarmed",
+      "scenario": "Bundle 内原生 Goal 为 armed，恢复只读",
+      "requirement": "task-6-C/V22",
+      "injectionPoint": "GoalSessionPort 捕获到 activation=armed 的 Goal 状态",
+      "expected": "恢复后 effectiveActivation=disarmed；不自动重 arm；dispatch blocked",
+      "observed": "captured armed; effective disarmed; dispatch blocked",
+      "pass": true,
+      "evidence": {
+        "goals": 1
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.tampered-bundle-rejected",
+      "scenario": "恢复前 Bundle 对象字节被翻转",
+      "requirement": "task-6-C/V22",
+      "injectionPoint": "capture 后向 shared object 文件追加字节",
+      "expected": "status failed；readView closed；恢复锁保留；旧根未动",
+      "observed": "failed; lock retained; no live-root write",
+      "pass": true,
+      "evidence": {
+        "failures": [
+          "HASH_MISMATCH"
+        ]
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.live-root-protected",
+      "scenario": "尝试把恢复目标指向 live 数据根",
+      "requirement": "task-6-C",
+      "injectionPoint": "restore targetRoot=live 数据根",
+      "expected": "LIVE_ROOT_PROTECTED；不写入 live 根",
+      "observed": "LIVE_ROOT_PROTECTED; live root untouched",
+      "pass": true,
+      "evidence": {
+        "code": "LIVE_ROOT_PROTECTED"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.target-not-isolated",
+      "scenario": "恢复目标位于隔离根之外",
+      "requirement": "task-6-C",
+      "injectionPoint": "restore targetRoot 位于 isolatedRoot 之外",
+      "expected": "TARGET_NOT_ISOLATED；不创建目标",
+      "observed": "TARGET_NOT_ISOLATED",
+      "pass": true,
+      "evidence": {
+        "code": "TARGET_NOT_ISOLATED"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.recovery-lock-exclusive",
+      "scenario": "目标根已存在 recovery lock 时再次恢复",
+      "requirement": "task-6-C",
+      "injectionPoint": "预置 targetRoot/.recovery/recovery-lock.json",
+      "expected": "RECOVERY_LOCKED；不产生第二个 writer",
+      "observed": "RECOVERY_LOCKED; only one recovery writer",
+      "pass": true,
+      "evidence": {
+        "code": "RECOVERY_LOCKED"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.goal-tail-mismatch",
+      "scenario": "Goal Session 端口返回的字节与独立期望不符",
+      "requirement": "task-6-B",
+      "injectionPoint": "GoalSessionPort 返回字节追加内容，expected/durableTail 保持原值",
+      "expected": "fail/incomplete HASH_MISMATCH；不得 ready",
+      "observed": "failed HASH_MISMATCH",
+      "pass": true,
+      "evidence": {
+        "failure": "HASH_MISMATCH"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "capture.empty-goal-set",
+      "scenario": "快照没有 GoalBinding",
+      "requirement": "task-6-B",
+      "injectionPoint": "控制库无 GoalBinding（dsh-goal-sessions 组件为空但完整）",
+      "expected": "ready，dsh-goal-sessions 组件存在但 Session 列表为空",
+      "observed": "ready with an explicitly empty dsh-goal-sessions component",
+      "pass": true,
+      "evidence": {
+        "sessions": 0
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.bundle-not-ready",
+      "scenario": "恢复一个 only-failed Bundle",
+      "requirement": "task-6-C",
+      "injectionPoint": "对 failed Bundle 发起恢复（capture 在 after-control-snapshot 注入 fail）",
+      "expected": "BUNDLE_NOT_READY；不复制任何组件",
+      "observed": "BUNDLE_NOT_READY",
+      "pass": true,
+      "evidence": {
+        "code": "BUNDLE_NOT_READY"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    },
+    {
+      "caseId": "restore.missing-component-manifest",
+      "scenario": "Bundle 清单缺少必需组件（内存组件被删除）",
+      "requirement": "task-6-C",
+      "injectionPoint": "手工从 bundle.json 删除 memory 组件后恢复",
+      "expected": "BUNDLE_NOT_READY；拒绝恢复",
+      "observed": "BUNDLE_NOT_READY",
+      "pass": true,
+      "evidence": {
+        "code": "BUNDLE_NOT_READY"
+      },
+      "evidenceLayer": "G1-offline-synthetic"
+    }
+  ],
+  "regeneration": {
+    "command": "SHIYU_WRITE_EVIDENCE=1 node --import tsx --test tests/recovery-evidence.test.ts",
+    "sourceOfTruth": "tests/recovery-matrix.ts (the same runner the fault-matrix test asserts)"
+  }
+}

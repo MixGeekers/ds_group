@@ -1,0 +1,50 @@
+/** Stable failure codes for the H5-B1 offline checkpoint/restore module. */
+export type RecoveryErrorCode =
+  | 'INVALID_SCHEMA'
+  | 'INCOMPATIBLE_VERSION'
+  | 'REQUIRED_COMPONENT_MISSING'
+  | 'COMPONENT_FAILED'
+  | 'MISSING_WATERMARK'
+  | 'MISSING_GOAL_SESSION'
+  | 'UNDECLARED_GOAL_SESSION'
+  | 'MISSING_PROJECTION'
+  | 'MISSING_LOG_TAIL'
+  | 'GOAL_REF_MISMATCH'
+  | 'HASH_MISMATCH'
+  | 'BYTES_MISMATCH'
+  | 'INTEGRITY_CHECK_FAILED'
+  | 'OBJECT_CLOSURE_INCOMPLETE'
+  | 'OBJECT_CONFLICT'
+  | 'CAPACITY_INSUFFICIENT'
+  | 'STAGING_INTERRUPTED'
+  | 'STAGING_CONFLICT'
+  | 'PUBLISH_CONFLICT'
+  | 'BUNDLE_NOT_READY'
+  | 'ROOT_MISMATCH'
+  | 'SNAPSHOT_MISMATCH'
+  | 'TARGET_NOT_FRESH'
+  | 'TARGET_NOT_ISOLATED'
+  | 'LIVE_ROOT_PROTECTED'
+  | 'RECOVERY_LOCKED'
+  | 'BARRIER_UNAVAILABLE'
+  | 'DELETION_BASELINE_MISMATCH'
+  | 'DELETION_WATERMARK_STALE'
+  | 'DELETION_LEDGER_INVALID'
+  | 'ACTIVATION_NOT_ALLOWED'
+  | 'GENERATION_INVALID'
+  | 'CONTROL_UNAVAILABLE'
+  | 'SELF_CHECK_FAILED'
+  | 'INJECTED_FAILURE';
+
+export class RecoveryError extends Error {
+  constructor(
+    readonly code: RecoveryErrorCode,
+    message: string,
+    readonly componentId?: string,
+  ) {
+    super(message);
+    this.name = 'RecoveryError';
+  }
+}
+
+export const isRecoveryError = (value: unknown): value is RecoveryError => value instanceof RecoveryError;
