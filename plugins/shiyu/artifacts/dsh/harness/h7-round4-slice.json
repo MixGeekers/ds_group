@@ -1,0 +1,257 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.h7-round4-slice-evidence",
+  "phase": "H7-round4",
+  "capturedAt": "2026-11-02T23:05:21.952Z",
+  "baselineHead": "50e347de6798165c17e9c2cec5a6ba4944c20820",
+  "status": "code-tests-delivered-not-clean-refresh",
+  "purpose": "Bind the eight round-3 delivered slices (H6c/H2b/H4e/H4e-hotfix/H5b/H7-acceptance/Lead-integration/round3-host) into evidence.ts mapping and the acceptance index with hash/ancestry verification, fail-closed unknown, and no pass upgrades. Full harness artifacts are regenerated at the round-end clean HEAD and committed separately.",
+  "round3Sources": [
+    {
+      "id": "h6c-channel-projection-ui",
+      "commits": [
+        "5062485"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/h6/h6c-ui.json"
+      ],
+      "levels": [
+        "synthetic-ui",
+        "offline-module"
+      ]
+    },
+    {
+      "id": "h2b-subscriptions-time",
+      "commits": [
+        "479ad43"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/h2/h2b-subscriptions-time.json"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "h4e-lifecycle-recompute",
+      "commits": [
+        "69d725f",
+        "c2bb475"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/h4/h4e-lifecycle-recompute.json"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "h4e-migration-hotfix",
+      "commits": [
+        "c2bb475"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/slices/h4e-migration-fix-verify.json",
+        "plugins/shiyu/tests/inner-upgrade.test.ts"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "h5b-runtime-integration",
+      "commits": [
+        "5eede56"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/h5/h5b-runtime-integration.json"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "h7-acceptance-slice",
+      "commits": [
+        "09cf6d9"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/harness/h7-acceptance-slice.json"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "round3-lead-integration",
+      "commits": [
+        "e400fcc"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/integration/round3-lead-integration.json"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ]
+    },
+    {
+      "id": "round3-host-zero-model",
+      "commits": [
+        "50af4a2"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/host/round3-joint-zero-model.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/round3-host-before.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after-disable.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/round3-host-pre-reload2.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/round3-host-after-tools.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/status-after-probes.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/status-after-reload.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/core-event-tool-probe.json",
+        "plugins/shiyu/artifacts/dsh/host/round3/worker-tool-probe.json"
+      ],
+      "levels": [
+        "fixed-host-zero-model"
+      ]
+    }
+  ],
+  "sourceCounts": {
+    "sources": 30,
+    "files": 72
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "sha256": "cfc238b6304c0c131e1fa7fc540eb867c3e637a666862c0125507d573795fa2b",
+      "bytes": 79944
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "sha256": "b3a230cd8eec0744a4adf996cbcff80ac6558d07b7ba7c13e72599a20c33db33",
+      "bytes": 33425
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+      "sha256": "a7e60965e1adb36339ad4bcd06cd7eaf2eae5f4e56a871a3e245d19dc996efac",
+      "bytes": 13156
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-acceptance.test.ts",
+      "sha256": "937bea7ea12e25066932f25886492b0cdc93be1d3b586290bfeaf2db2237c16f",
+      "bytes": 22447
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "sha256": "acdff9ed0fd3b3a5c522ef299265a787c0ecf4b27d026b84af2c14fea245aed5",
+      "bytes": 17900
+    }
+  ],
+  "commands": [
+    "npx tsc --noEmit",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+    "npm run check (isolated worktree 50e347d + only slice files + slice evidence json)",
+    "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+    "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+  ],
+  "checks": {
+    "sharedTree": {
+      "tsc": {
+        "exitCode": 0
+      },
+      "harness": {
+        "tests": 77,
+        "pass": 77,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round4-50e347d-shared-harness.log",
+          "sha256": "011cb254135d473b25c5dc9c36018fe1e43d12e7ae58423b3163febfcf275392",
+          "bytes": 7167
+        }
+      }
+    },
+    "isolatedWorktree": {
+      "head": "50e347de6798165c17e9c2cec5a6ba4944c20820",
+      "worktree": "/tmp/round4-verify (ephemeral; 50e347d + only slice files; node_modules + .local/ombre symlinked)",
+      "tsc": {
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round4-50e347d-isolated-tsc.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      },
+      "harness": {
+        "tests": 77,
+        "pass": 77,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round4-50e347d-isolated-harness.log",
+          "sha256": "65db0df32bb1b8dde631b0ae14f5670caa993e72d1c2676a53ed0d3e6f951474",
+          "bytes": 7170
+        }
+      },
+      "fullCheck": {
+        "tests": 1441,
+        "pass": 1441,
+        "fail": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round4-50e347d-check.log",
+          "sha256": "8b30dca36761eee8b6e43b8aed79600ed5c2a23bdabc9993aa9d2ecd674fe7e4",
+          "bytes": 156244
+        }
+      }
+    },
+    "acceptanceReportInputs": "round-end clean HEAD will regenerate acceptance-report.json/md with traceability frozen at that HEAD; current committed artifact still frozen at previous clean X and is only an input-detection reference."
+  },
+  "productRows": {
+    "total": 79,
+    "notCovered": 79,
+    "covered": 0
+  },
+  "toolingReady": [
+    "TV.1",
+    "TV.2",
+    "TV.3",
+    "TV.4",
+    "TV.5",
+    "TV.6",
+    "TV.7",
+    "TV.9"
+  ],
+  "acceptanceGate": "incomplete",
+  "archivedCopies": [
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round4-50e347d-check.log",
+      "sha256": "8b30dca36761eee8b6e43b8aed79600ed5c2a23bdabc9993aa9d2ecd674fe7e4",
+      "bytes": 156244
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round4-50e347d-isolated-harness.log",
+      "sha256": "65db0df32bb1b8dde631b0ae14f5670caa993e72d1c2676a53ed0d3e6f951474",
+      "bytes": 7170
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round4-50e347d-shared-harness.log",
+      "sha256": "011cb254135d473b25c5dc9c36018fe1e43d12e7ae58423b3163febfcf275392",
+      "bytes": 7167
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round4-50e347d-isolated-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ],
+  "lifetimeNote": "Logs are gitignored machine-local copies under plugins/shiyu/.local/h7-verify/round4-50e347d-* for review of this slice; they are ephemeral and may be cleaned after review. Committed artifacts/evidence are authoritative.",
+  "uncovered": [
+    "Full harness artifacts (traceability/h7 mapping/acceptance-report) are NOT regenerated in this slice; round-end clean HEAD will run the full pipeline and Lead commits artifacts separately.",
+    "H7-round4 does not execute product/host/model/business acceptance: all product rows remain not_covered and the acceptance gate stays incomplete.",
+    "New sources are limited-only: H5b stays production-blocked (GOAL_SESSION_EXPORT_UNAVAILABLE, capture unavailable/not host-executed); H2b/H4e/H6c are G1/offline or synthetic-host UI; round3 host is zero-model only.",
+    "V/S/FL and 40 modules are not upgraded to pass; V14/V22/V24 gain only limited evidence references, scenarios stay synthetic-fixture-only-not-run."
+  ]
+}

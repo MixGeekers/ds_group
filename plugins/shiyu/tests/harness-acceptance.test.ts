@@ -202,8 +202,8 @@ test('acceptance:evidence-derived-statuses', async () => {
     if (module.status === 'not_covered') assert.equal(module.evidenceSourceIds.length, 0, `${module.id} not_covered must not cite evidence`);
   }
   assert.equal(report.modules.filter(module => module.status === 'blocked').length, 5);
-  assert.equal(report.modules.filter(module => module.status === 'limited-only').length, 32);
-  assert.equal(report.modules.filter(module => module.status === 'not_covered').length, 3);
+  assert.equal(report.modules.filter(module => module.status === 'limited-only').length, 33);
+  assert.equal(report.modules.filter(module => module.status === 'not_covered').length, 2);
   for (const system of report.systems) {
     assert.equal(system.status, 'limited-evidence-only', `${system.id} has limited evidence only`);
     assert.ok(system.modules.length > 0);
