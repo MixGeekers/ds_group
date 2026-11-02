@@ -1183,3 +1183,41 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 2. 真实模型单轮失败，无 provider 用量/缓存/费用证据；不得据此声称 H2c 真实模型工具调用通过。
 3. 失败原因（host agent loop 对探针 Session 的 blocked turn）未进一步深挖；后续需单独修复探针输入投递路径后再做一次有界验证（另留证据，不重试本次失败）。
 4. 真实浏览器 DOM、真实渠道/设备、V27 独立故障域等仍未验。
+
+## 35. 第四轮独立复核与 F4 处置（round-4 收尾）
+
+2026-11-02，独立验证员对 round-4 提交与宿主证据做只读复核（task-30）：**25 项检查完成，10 条 findings 全部 fixed/resolved/info**。报告：[ROUND4-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND4-EVIDENCE-REVIEW.md>)、[round4-evidence-review.json](<artifacts/dsh/verify/round4-evidence-review.json>)。
+
+### 35.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| H2b 时间源探针 `8cc6762` | 9 tests；1444/1444；15 checks 全 true（in-memory/identity/幂等/latest-only/paused/clock rollback/cleanup）；哈希匹配 |
+| H2c 真实模型探针 `d2da9c7` | 9 tests（14→23）；1444/1444；MAX_MAIN_REQUESTS=2/MAX_TOOL_CALLS=1 未变、复用 `validateCoreEventToolMount`；实现者未执行真实模型 |
+| H5b 检查点探针 `dab6d5b` | 10 tests、7/7 matrix；trial/final 1445；readOnly/captureAttempted=false/resolverInvoked=false/filesWritten=0；active bindings=3 |
+| H7-round4 `e273aa7` | 6 tests；slice 1441、harness 77；30 sources/72 files；产品行 79/79 not_covered、仅 limited 证据 |
+| 集成 `1f74180` | 1472/1472；files 4/4 |
+| 热修复 `af201fe` | 代码/宿主通过；独立 local-core 32/32；clean-X **1473/1473**（=1472+1 委托回归，日志 `e64f43d4…`/159480）；宿主 attempt1 UNAVAILABLE（0 模型）、attempt2 PROTOCOL_VIOLATION（counters 全 0、usage unknown、archived/released/cleanup、不重试、无业务写入）一致 |
+| 宿主 `bd81270` | 失败窗口 341→347 与修复窗口 347→353 分类；events 42→43→44；sessions 22→22→24→27（两构建共 5 个探针 Session）；已知 22 个 Session 不变；time 15/15；checkpoint flags；4 receipts 缓存；timeSource idle/schedules=0；notifications disabled；dist 独立重建 `ebf257e6…`（失败构建）/`04d4a435…`（修复构建）；definitionDigest 不变 |
+| X+1 `dfe4372` | 11 artifacts only；manifest.vcs head=af201fe,dirty=false,leaks=0；src/client/tests/scripts diff=0；11 件 SHA/bytes 全匹配；1473/1473；selfproof 77；30/30 verified；产品 79/79；acceptance gate=incomplete/executed=passed=0 |
+
+### 35.2 F4 findings 处置
+
+| ID | 处置 |
+|---|---|
+| F4-R1（hotfix 计数） | 已修正为 clean-X 1473/1473 + 保留日志 sha；并引用复核者独立 local-core 32/32；不再声明 1435 |
+| F4-R2（payloadBytes） | 已改实际字节 + bytesSemantics（55906/2549/2688/826/69781 等；sha 原本正确） |
+| F4-R3（失败构建窗口） | 新增 `deltas.failedBuildWindow`（341→347/events42→43/sessions22→22/cap21→23/dist `ebf257e6…`）并引用 round4-host-before/after audits |
+| F4-R4（探针 Session 数） | 改为按 build 披露：失败构建 2 + 修复构建 3 = 5；已知 22 个 Session 逐字节不变 |
+| F4-R5（unknown Task 版本） | v31→v32→v33 按窗口披露；state 仍 unknown、无重试/成功声明/预算变化 |
+| F4-R6（编码路径） | 已注明历史惯例：无绝对路径/正文/秘密，future 导出 redact |
+| F4-R7（集成 targeted 无日志） | info 接受（完整隔离 1472 有日志） |
+| F4-R8（attempt2 归档事件仅 receipt/status 可核） | info 接受（zstd 未解码；本次由 Lead 直接解码该 Session 得到 in-flight turn blocked 事件链，已在 §34 记录） |
+| F4-R9（host/X+1 pending） | resolved（`bd81270`/`dfe4372` 已提交并复核） |
+| F4-R10（acceptance temp path） | info 接受（`/private/tmp/h7r4-clean` 生成路径，无 home/产品数据，future redact） |
+
+### 35.3 边界
+
+1. round-4 探针均为 G1/零模型诊断；**真实模型工具往返仍是诚实失败**（0 main requests/streams/tool calls、usage unknown、未重试），不得记为通过或升级为业务/九系统验收。
+2. 零模型只证挂载/时间源隔离行为/检查点阻断清单/诊断缓存；live 时间规则触发、capture 就绪、真实 Session/Ombre 导出、真实 DOM、真实渠道/设备与 V27 仍未验。
+3. 产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0；真实模型尝试的根因（host agent loop blocked turn）未进一步修复。
