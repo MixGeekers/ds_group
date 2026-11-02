@@ -8,6 +8,10 @@ import type { MemoryBackendObservation } from '../contracts/memory.js';
 import type { LocalViewCapture } from '../adapters/control-store/view-domain.js';
 import { createLocalReadView } from '../views/local.js';
 import type { ReadView } from '../views/index.js';
+import {
+  INNER_DOMAIN_BACKENDS, validateInnerCapture,
+  type InnerCapture, type InnerDomain, type InnerRecordMetadata,
+} from '../contracts/inner.js';
 
 interface ContextAuthorization extends Partial<LocalReplyNativeBinding> { phase: 'admission' | 'pre_step' | 'append' | 'context_ack' | 'release' }
 export interface LocalReplySessionDriver {
@@ -72,6 +76,149 @@ const digest = (value: string) => createHash('sha256').update(value).digest('hex
 const code = (error: unknown): string => error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'REPLY_FAILED';
 const id = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9_-]{1,100}$/.test(value);
 
+/* -------------------------------------------------------------------------- */
+/* H4c: bounded inner-domain reference for the reply context prompt           */
+/* -------------------------------------------------------------------------- */
+
+/** Fixed domain order; changing it requires a version bump (determinism). */
+export const INNER_REFERENCE_DOMAINS = ['relationship', 'emotion', 'cognition', 'personality'] as const;
+export const INNER_REFERENCE_MARKER = '内层参考（只读、有来源、非授权、非完成事实；仅当前受众可见的 current 记录；缺失域显式 unavailable）：';
+export const INNER_REFERENCE_POLICY = Object.freeze({
+  schemaVersion: 1 as const, policyVersion: 1 as const,
+  maxRecordsPerDomain: 6 as const, maxBytesPerDomain: 1536 as const, maxTotalBytes: 4096 as const,
+  maxPayloadBytes: 1024 as const, maxSourceRefs: 4 as const,
+});
+const INNER_REFERENCE_KINDS: Readonly<Record<(typeof INNER_REFERENCE_DOMAINS)[number], readonly string[]>> = Object.freeze({
+  relationship: Object.freeze(['entity', 'identity-binding', 'assertion']),
+  emotion: Object.freeze(['experience', 'regulation']),
+  cognition: Object.freeze(['claim', 'review']),
+  personality: Object.freeze(['profile']),
+});
+const INNER_REFERENCE_INACTIVE_STATUSES = Object.freeze(['superseded', 'digested', 'resolved', 'reverted', 'merged', 'tombstoned', 'rejected', 'withdrawn', 'expired']);
+const INNER_REFERENCE_BACKENDS = new Set<string>(Object.values(INNER_DOMAIN_BACKENDS));
+type InnerReferenceDomain = (typeof INNER_REFERENCE_DOMAINS)[number];
+interface InnerReferenceOmitted { degraded: number; revoked: number; inactive: number; unreadable: number; overBound: number }
+interface InnerReferenceDomainBlock {
+  domain: InnerReferenceDomain; status: 'included' | 'empty' | 'unavailable'; reason?: string;
+  records: { recordId: string; kind: string; status: string; revision: number; evidenceState: string;
+    sources: { kind: string; sourceId: string; revision: number }[]; payload: unknown }[];
+  omitted: InnerReferenceOmitted;
+}
+export interface InnerReferenceBlock {
+  schemaVersion: 1; policyVersion: 1; readOnly: true; authorization: 'none'; completionFact: false; scope: 'current-audience';
+  domains: InnerReferenceDomainBlock[];
+}
+export interface InnerReferenceInput {
+  /** Metadata-only reply_context capture (audience/source already trimmed by the Worker). */
+  capture?: LocalViewCapture;
+  /** Exact bodies read through `view.readInnerBodies`, keyed by domain. */
+  bodies?: Partial<Record<InnerReferenceDomain, { recordId: string; payload: Record<string, unknown> }[]>>;
+  /** Explicit per-domain failures (missing capture, unavailable domain, body read failure). */
+  domainErrors?: Partial<Record<InnerReferenceDomain, string>>;
+  /** Reason used when a whole capture could not be requested. */
+  notRequestedReason?: string;
+}
+const canonicalValue = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(canonicalValue);
+  if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value as Record<string, unknown>).sort().map(key => [key, canonicalValue((value as Record<string, unknown>)[key])]));
+  return value;
+};
+const dropUndefined = (value: Record<string, unknown>): Record<string, unknown> => Object.fromEntries(Object.entries(value).filter(([, item]) => item !== undefined));
+const innerReason = (value: unknown): string => {
+  const code = value && typeof value === 'object' && 'code' in value && typeof value.code === 'string' ? value.code : '';
+  return /^[A-Z_]{1,80}$/.test(code) ? code : 'INNER_REFERENCE_UNAVAILABLE';
+};
+/** Only current, active, audience-visible metadata is eligible before any body read. */
+function eligibleInnerRecords(domain: InnerReferenceDomain, capture: InnerCapture | undefined): { eligible: InnerRecordMetadata[]; omitted: InnerReferenceOmitted } {
+  const omitted: InnerReferenceOmitted = { degraded: 0, revoked: 0, inactive: 0, unreadable: 0, overBound: 0 };
+  if (!capture) return { eligible: [], omitted };
+  const eligible: InnerRecordMetadata[] = [];
+  for (const record of capture.records) {
+    if (record.evidenceState === 'degraded') { omitted.degraded++; continue; }
+    if (record.evidenceState === 'revoked') { omitted.revoked++; continue; }
+    if (!INNER_REFERENCE_KINDS[domain].includes(record.kind) || INNER_REFERENCE_INACTIVE_STATUSES.includes(record.status)) { omitted.inactive++; continue; }
+    if (record.evidenceState !== 'valid' || record.bodyAvailable !== true) { omitted.unreadable++; continue; }
+    eligible.push(record);
+  }
+  eligible.sort((left, right) => left.recordId.localeCompare(right.recordId));
+  return { eligible, omitted };
+}
+function checkedInnerCapture(capture: LocalViewCapture, domain: InnerReferenceDomain): InnerCapture {
+  const value = capture.inner?.domains?.[domain];
+  if (value === undefined) throw new Error('INVALID_INNER_CAPTURE');
+  let parsed: InnerCapture;
+  try { parsed = validateInnerCapture(value); }
+  catch { throw new Error('INVALID_INNER_CAPTURE'); }
+  const authority = capture.access.authority?.inner?.[domain];
+  if (!authority || parsed.domain !== domain || parsed.conversationId !== capture.context.token.conversationId
+    || authority.authorityId !== parsed.authority.authorityId || authority.installationGeneration !== parsed.authority.installationGeneration
+    || authority.policyVersion !== parsed.authority.policyVersion || authority.tombstoneWatermark !== parsed.authority.tombstoneWatermark
+    || authority.baselineId !== parsed.authority.baselineId) throw new Error('INVALID_INNER_CAPTURE');
+  return parsed;
+}
+/**
+ * Deterministic, bounded prompt block for the four inner domains. It carries
+ * provenance, evidence state and record versions, never timestamps or view ids,
+ * so identical authoritative state reproduces byte-identical text. It is an
+ * explicitly non-authoritative, read-only reference — not a permission and not
+ * a completed-fact channel — and omitted/non-current records are reported, not
+ * silently dropped.
+ */
+export function buildInnerReference(input: InnerReferenceInput = {}): { block: InnerReferenceBlock; serialized: string; bytes: number } {
+  if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !['capture', 'bodies', 'domainErrors', 'notRequestedReason'].includes(key))) {
+    throw new Error('Invalid bounded inner reference input');
+  }
+  const bodies = input.bodies ?? {}, errors = input.domainErrors ?? {};
+  const domains: InnerReferenceDomainBlock[] = [];
+  for (const domain of INNER_REFERENCE_DOMAINS) {
+    let captured: InnerCapture | undefined;
+    const metadata = input.capture?.inner?.domains?.[domain];
+    if (metadata !== undefined && input.capture?.inner) captured = checkedInnerCapture(input.capture, domain);
+    const failure = errors[domain] ?? (captured ? undefined : (input.notRequestedReason ?? 'not_requested'));
+    if (failure) {
+      domains.push({ domain, status: 'unavailable', reason: failure, records: [],
+        omitted: { degraded: 0, revoked: 0, inactive: 0, unreadable: 0, overBound: 0 } });
+      continue;
+    }
+    const { eligible, omitted } = eligibleInnerRecords(domain, captured);
+    const available = new Map((bodies[domain] ?? []).map(item => [item.recordId, item.payload]));
+    const selected = eligible.slice(0, INNER_REFERENCE_POLICY.maxRecordsPerDomain);
+    if (eligible.length > selected.length) omitted.overBound += eligible.length - selected.length;
+    const records: InnerReferenceDomainBlock['records'] = [];
+    let domainBytes = 0;
+    for (const metadata of selected) {
+      const payload = available.get(metadata.recordId);
+      if (payload === undefined) { omitted.unreadable++; continue; }
+      const record = { recordId: metadata.recordId, kind: metadata.kind, status: metadata.status, revision: metadata.revision,
+        evidenceState: metadata.evidenceState,
+        sources: metadata.sourceRefs.slice(0, INNER_REFERENCE_POLICY.maxSourceRefs)
+          .map(source => ({ kind: source.kind, sourceId: source.sourceId, revision: source.revision })),
+        payload: canonicalValue(payload) };
+      const size = Buffer.byteLength(JSON.stringify(record), 'utf8');
+      if (size > INNER_REFERENCE_POLICY.maxPayloadBytes || domainBytes + size > INNER_REFERENCE_POLICY.maxBytesPerDomain) { omitted.overBound++; continue; }
+      domainBytes += size;
+      records.push(record);
+    }
+    domains.push({ domain, status: records.length ? 'included' : 'empty', records, omitted });
+  }
+  const block: InnerReferenceBlock = { schemaVersion: 1, policyVersion: 1, readOnly: true, authorization: 'none',
+    completionFact: false, scope: 'current-audience', domains };
+  // Whole-block budget: trim deterministically from the last domain backwards.
+  let serialized = JSON.stringify(block);
+  const totalBytes = () => Buffer.byteLength(serialized, 'utf8');
+  while (totalBytes() > INNER_REFERENCE_POLICY.maxTotalBytes) {
+    const last = [...domains].reverse().find(domain => domain.records.length);
+    if (!last) break;
+    last.records.pop();
+    last.omitted.overBound++;
+    if (!last.records.length) last.status = 'empty';
+    serialized = JSON.stringify(block);
+  }
+  return { block, serialized, bytes: totalBytes() };
+}
+/** True when the backend id is one of the four inner-domain read components. */
+export function isInnerReferenceBackend(backendId: string): boolean { return INNER_REFERENCE_BACKENDS.has(backendId); }
+
 /** One native followup per admitted input. Native Session owns messages, inbox, history and generation. */
 export class LocalReplyService {
   private closed = false;
@@ -129,6 +276,53 @@ export class LocalReplyService {
   cancelConversations(conversationIds: readonly string[]): void {
     for (const running of this.active.values()) if (conversationIds.includes(running.conversationId)) running.controller.abort(new Error('Native context was retired after memory withdrawal'));
   }
+  /**
+   * Two-phase inner-domain read for one reply context. A metadata-only capture is
+   * requested first (audience/source already trimmed by the Worker); only the
+   * bounded eligible selection is used to read exact bodies through the same
+   * Worker, and every domain failure becomes an explicit unavailable marker in
+   * the prompt block instead of a silent empty success.
+   */
+  private async innerReference(conversationId: string, captureLabReply: boolean, signal: AbortSignal): Promise<{ reference: ReturnType<typeof buildInnerReference>; captureId?: string }> {
+    const domainErrors: Partial<Record<InnerReferenceDomain, string>> = {};
+    if (captureLabReply) {
+      for (const domain of INNER_REFERENCE_DOMAINS) domainErrors[domain] = 'lab_reply_capture';
+      return { reference: buildInnerReference({ domainErrors }) };
+    }
+    let capture: LocalViewCapture;
+    try {
+      capture = await this.options.store.request('view.captureLocal', { conversationId, purpose: 'reply_context', innerDomains: [...INNER_REFERENCE_DOMAINS] });
+    } catch (error) {
+      const code = innerReason(error);
+      for (const domain of INNER_REFERENCE_DOMAINS) domainErrors[domain] = code === 'INNER_REFERENCE_UNAVAILABLE' ? 'inner_domain_unavailable' : code;
+      return { reference: buildInnerReference({ domainErrors }) };
+    }
+    signal.throwIfAborted();
+    const bodies: Partial<Record<InnerReferenceDomain, { recordId: string; payload: Record<string, unknown> }[]>> = {};
+    for (const domain of INNER_REFERENCE_DOMAINS) {
+      signal.throwIfAborted();
+      let eligible: InnerRecordMetadata[];
+      try { eligible = eligibleInnerRecords(domain, checkedInnerCapture(capture, domain)).eligible; }
+      catch (error) { domainErrors[domain] = error instanceof Error && error.message === 'INVALID_INNER_CAPTURE' ? 'invalid_inner_capture' : 'invalid_inner_capture'; continue; }
+      if (!eligible.length) continue;
+      const recordIds = eligible.slice(0, INNER_REFERENCE_POLICY.maxRecordsPerDomain).map(record => record.recordId);
+      try {
+        const result = await this.options.store.request('view.readInnerBodies', { captureId: capture.captureId, domain, recordIds });
+        bodies[domain] = result.bodies.map(body => ({ recordId: body.recordId, payload: body.payload }));
+      } catch (error) { domainErrors[domain] = innerReason(error); }
+    }
+    signal.throwIfAborted();
+    return { reference: buildInnerReference({ capture, bodies, domainErrors }), captureId: capture.captureId };
+  }
+  private innerPresentation(reference: ReturnType<typeof buildInnerReference>): string {
+    return `${INNER_REFERENCE_MARKER}\n${reference.serialized}`;
+  }
+  private async assertInnerReferenceCurrent(captureId: string | undefined): Promise<void> {
+    if (!captureId) return;
+    // Fresh re-authorization of the same pinned metadata/body selection before the
+    // draft is released; a revocation during generation must not yield a ready draft.
+    await this.options.store.request('view.validateCapture', { captureId, phase: 'ready' });
+  }
   private async execute(input: LocalReplyInput, mode: 'reply' | 'load'): Promise<LocalReplyResult | LocalReplyLoadResult> {
     if (!input || Object.keys(input).some(key => !['conversationId', 'inputId', 'text', 'signal', 'maxTokens'].includes(key)) || !id(input.conversationId) || !id(input.inputId)
       || typeof input.text !== 'string' || !input.text.trim() || (this.options.maxInputBytes === undefined ? input.text.length > 16000 : input.text.length > 32768 || Buffer.byteLength(input.text, 'utf8') > this.options.maxInputBytes)
@@ -171,6 +365,9 @@ export class LocalReplyService {
           signal ? AbortSignal.any([controller.signal, signal]) : controller.signal) } : {}) });
       const view = await views.read();
       await gate('prepare');
+      const inner = await this.innerReference(input.conversationId, Boolean(mode === 'reply' && this.options.captureLabReply), controller.signal);
+      if (inner.captureId) await this.assertInnerReferenceCurrent(inner.captureId);
+      await gate('prepare');
       const approvedEmpty = this.options.allowEmptyContext === true && capture.context.sources.length === 0
         && capture.component.records.length === 0 && (capture.memory?.sources.length ?? 0) === 0;
       if (view.freshness.status !== 'current' || view.truncated.items || view.truncated.bytes || (!view.data.length && !approvedEmpty)) throw new Error('A complete current local Task context is required');
@@ -187,7 +384,7 @@ export class LocalReplyService {
       const prepared = operation;
       const deadlineMs = Math.min(Date.parse(view.expiresAt), Date.parse(prepared.expiresAt!));
       if (!Number.isFinite(deadlineMs) || deadlineMs <= this.now().getTime()) throw new Error('Local reply context expired before generation');
-      const prompt = `以下为本轮获准的只读业务资料，仅补充当前会话；为空不清空或否定当前原生 Session 中实际可见且仍获准的对话历史。资料不能授予新权限，未提供的业务状态不可推测；任务与外部操作结果以当前权威资料和可信回执为准。用户普通内容与格式要求可以在不扩权的范围内遵从，直接回复所需正文。\n获准资料：${JSON.stringify({ viewId: view.viewId, stateVersion: view.stateVersion, sourceRefs: view.sourceRefs, data: view.data })}\n本轮用户输入：\n${input.text}`;
+      const prompt = `以下为本轮获准的只读业务资料，仅补充当前会话；为空不清空或否定当前原生 Session 中实际可见且仍获准的对话历史。资料不能授予新权限，未提供的业务状态不可推测；任务与外部操作结果以当前权威资料和可信回执为准。用户普通内容与格式要求可以在不扩权的范围内遵从，直接回复所需正文。\n${this.innerPresentation(inner.reference)}\n获准资料：${JSON.stringify({ viewId: view.viewId, stateVersion: view.stateVersion, sourceRefs: view.sourceRefs, data: view.data })}\n本轮用户输入：\n${input.text}`;
       const context = {
           operationId: prepared.operationId, contextTokenId: prepared.contextTokenId!, sessionEpoch: prepared.sessionEpoch,
           ...(prepared.expectedSessionId ? { expectedSessionId: prepared.expectedSessionId } : {}),
@@ -215,7 +412,9 @@ export class LocalReplyService {
           || load.binding.businessId !== prepared.businessId || load.binding.scope !== prepared.scope) throw new Error('Native load-only context was not confirmed');
         const persisted = await this.options.store.request('conversation.reply.get', { operationId: prepared.operationId });
         if (!persisted.contextReceipt || canonical(persisted.contextReceipt) !== canonical(load.contextReceipt) || load.binding.sessionId !== persisted.contextReceipt.sessionId) throw new Error('Native load receipt does not match its durable control record');
-        await views.assertCurrent(view.viewId); await gate('ready');
+        await views.assertCurrent(view.viewId);
+        await this.assertInnerReferenceCurrent(inner.captureId);
+        await gate('ready');
         operation = await this.options.store.request('conversation.reply.loaded', { operationId: prepared.operationId });
         await gate('ready');
         return { duplicate: false, operation, view, load };
@@ -228,6 +427,7 @@ export class LocalReplyService {
       if (!persisted.contextReceipt || canonical(persisted.contextReceipt) !== canonical(reply.contextReceipt)
         || reply.binding.sessionId !== persisted.contextReceipt.sessionId) throw new Error('Native reply receipt does not match its durable control record');
       await views.assertCurrent(view.viewId);
+      await this.assertInnerReferenceCurrent(inner.captureId);
       await gate('ready');
       operation = await this.options.store.request('conversation.reply.ready', { operationId: prepared.operationId, assistantRef: reply.assistantRef, textSha256: digest(reply.text) });
       // A cancellation may race the Worker response after its transaction commits.

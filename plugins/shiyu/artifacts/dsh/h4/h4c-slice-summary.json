@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "phase": "H4c",
+  "slice": "replyer upstream generation path consumes bounded inner-domain references",
+  "capturedAt": "2026-11-02T19:49:09.232Z",
+  "status": "offline-verified-integration",
+  "purpose": "Wire the H4b inner ReadView into the replyer upstream generation path: a second metadata-only reply_context capture, bounded eligible record selection, two-stage body reads and a deterministic bounded inner-reference prompt block, without changing session reuse, zero-tool, single-request, budget/deadline, double-validation or draft-freshness invariants.",
+  "baseline": {
+    "head": "41c496b",
+    "note": "H0/H0b/H0c/H1/H2a/H4/H4b/H5 committed; 1264 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/local-reply.ts",
+      "bytes": 35339,
+      "sha256": "b5db5c6f666354e9f0dbd6d10ba6ef99dc9d975ca5fdcf8f5f8c0d25aaf96fe0"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply.test.ts",
+      "bytes": 49437,
+      "sha256": "a8b36019ebadb7be3a974fa77ad529eac02330760cb168e3a3a43b34a0055376"
+    }
+  ],
+  "implementation": {
+    "capture": "local-reply issues a second purpose=reply_context metadata-only capture with innerDomains [relationship,emotion,cognition,personality] (same Worker/session/audience) in addition to the primary task/memory capture; it selects bounded eligible recordIds (per-domain <=6, kind allowlist, evidenceState=valid and bodyAvailable, excluding superseded/digested/resolved/reverted/merged/tombstoned/rejected states) and reads bodies only through view.readInnerBodies for those ids.",
+    "freshness": "view.validateCapture(phase=ready) is re-run before building the prompt and again before ready/loaded, so withdrawn/degraded/tampered sources cannot return old content; a missing/unavailable domain is explicit (reason), never silent empty success.",
+    "prompt": "buildInnerReference emits a deterministic, bounded block: fixed domain order relationship->emotion->cognition->personality, fixed record key order, recursively sorted payload, no timestamps/viewIds; caps 6/domain, 1024B/record, 1536B/domain, 4096B/block, 4 sources; readOnly=true, authorization=none, completionFact=false, scope=current-audience; explicit omitted counts for degraded/revoked/inactive/unreadable/overBound; the existing user delimiter and inputHash(sha256(original user text)) are unchanged and the block is placed before the existing authorized-material section.",
+    "invariants": "same native Session reuse, zero tools, single main call, maxTokens/budget/deadline, ReadView + Conversation double validation and draft freshness are unchanged; no new model or embedding call; Lab capture contract has no innerDomains so the Lab path reports inner unavailable reason=lab_reply_capture and Lab behavior is unchanged."
+  },
+  "verification": {
+    "implementerIsolatedRuns": {
+      "finalWorktree": {
+        "path": "/tmp/shiyu-h4c-final",
+        "head": "c6a3f05",
+        "method": "git worktree --detach c6a3f05 + 仅 local-reply.ts/local-reply.test.ts；node_modules 与 .local/ombre symlink",
+        "command": "cd /tmp/shiyu-h4c-final/plugins/shiyu && npm run check",
+        "exitCode": 0,
+        "typecheck": "pass",
+        "tests": 1271,
+        "pass": 1271,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "build": "pass",
+        "clientSyntax": "pass",
+        "log": {
+          "path": ".local/h4c-check-final.log",
+          "sha256": "3a1e8bcb9877f634ae98f55bad8b46a0070fc43411b3599d4245b3c0099e7f49",
+          "bytes": 138628
+        }
+      },
+      "instructedHeadWorktree": {
+        "path": "/tmp/shiyu-h4c",
+        "head": "00fb75b",
+        "command": "npm run check",
+        "exitCode": 0,
+        "tests": 1213,
+        "pass": 1213,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": ".local/h4c-check.log",
+          "sha256": "967a09e0608de109a0be9eee0ddc215e7edcde886a2fef2309d69095b62d33b2",
+          "bytes": 132229
+        }
+      },
+      "h2aIntegrationWorktree": {
+        "path": "/tmp/shiyu-h4c-h2a",
+        "head": "a80c33d",
+        "command": "npm run check",
+        "exitCode": 0,
+        "tests": 1256,
+        "pass": 1256,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": ".local/h4c-check-on-h2a.log",
+          "sha256": "f12ce45e13178f7f59065d4fbae25195cfd8c8379cd0331363c470e904d46b5c",
+          "bytes": 136899
+        }
+      },
+      "targeted": {
+        "localReplySuite": "tests/local-reply.test.ts -> 32/32（26 既有 + 6 新增）",
+        "replyAdjacent": "local-reply*.test.ts + lab-reply*.test.ts + inner-view.test.ts -> 86/86",
+        "runtimeLab": "runtime-lab + runtime-core + lab-integration + lab-reply-capture -> 50/50",
+        "labAndSemantic": "lab-service + runtime-semantic-memory -> 31/31",
+        "typecheck": "主树 npx tsc --noEmit 对本切片文件无错误（主树其余并行 WIP 报错未计入）"
+      },
+      "newTestCoverage": [
+        "正例：四域真实来源记录进入固定顺序块；来源/证据态/版本/readOnly/authorization/completionFact 断言；既有获准资料块与用户定界符不变；单主调用 1 次。",
+        "确定性：两次执行（不同 inputId，同一权威状态）抽取内层块逐字节相等；同一 capture+bodies 两次 buildInnerReference 序列化相等。",
+        "跨受众：群聊 conversation 的模式记录不出现在 DM replyer 块/正文中。",
+        "撤回：cognition 证据撤销后，块 omitted.revoked≥1 且 prompt 不含该命题正文。",
+        "降级/非当前/超限：degraded/revoked/superseded 不进入 records 且计入 omitted；9 条同域记录只取 6 条、overBound 显式、总字节≤4096。",
+        "篡改/缺 authority：recordDigest 变更或 access.authority.inner 缺失 → INVALID_INNER_CAPTURE；无 capture → 四域 unavailable not_requested 且序列化稳定。",
+        "不可用域：personality 初始化损坏的 store 仍完成回复，内层块四域显式 unavailable（personality reason=INNER_DOMAIN_UNAVAILABLE），单主调用 1 次。"
+      ],
+      "uiRegressionNote": "本切片未改 client/UI 文件，H4b 的 209/209 UI 结果不受影响，未重跑。",
+      "logEvidence": {
+        "note": "三份全量 check 日志的 sha256/bytes 由此声明；日志本体在 plugins/shiyu/.local/（gitignore），可由 Worktree+slice 文件按 reproduce 重建。"
+      }
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 41c496b + only these 2 files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h4c-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1271,
+        "pass": 1271,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 205128,
+      "log": "plugins/shiyu/.local/slice-verify-h4c.log"
+    },
+    "testDelta": {
+      "committedLocalReplyTests": 25,
+      "sliceLocalReplyTests": 32,
+      "added": 7,
+      "base": 1264,
+      "total": {
+        "tests": 1271,
+        "pass": 1271,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "deterministicPrompt": "two executions from identical state produce byte-identical inner blocks; the policy caps and omissions are asserted.",
+    "negativeCases": "cross-audience private assertions never enter a DM block; withdrawn evidence yields omitted.revoked>=1 and no body; degraded/inactive/over-limit are explicit; tampered or missing-authority captures are rejected; unavailable domains report not_requested and personality-domain initialization damage still lets the reply complete with inner explicitly unavailable."
+  },
+  "failedUnknownUntested": [
+    "Real model generation, provider cache/cost and how a model actually uses the inner block were NOT measured; this is G1 module + real temporary SQLite/Worker evidence only.",
+    "conversation.reply.prepare JSON contract was not extended with explicit inner-source fields (it lives in control-store); the implementation binds freshness through the two captures plus validateCapture(phase=ready). A later H4d could extend the prepare contract and ReadView authority subject.",
+    "Lab reply capture contract does not request innerDomains, so Lab replies explicitly report inner unavailable.",
+    "The quality impact of the 6-record/4096-byte caps is not evaluated; tombstoned identities disappear from the capture so they cannot be counted as omitted (degraded/revoked are countable).",
+    "No host reload or real channel/device action; H4b host visibility remains the prior fixed-host evidence."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "channelCalls": 0
+  },
+  "evidenceLevel": "G1 module + real temporary SQLite/Worker IPC + deterministic assertions; real generation is explicitly untested."
+}

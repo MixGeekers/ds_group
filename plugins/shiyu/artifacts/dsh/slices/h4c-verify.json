@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h4c",
+  "capturedAt": "2026-11-02T19:48:38.541Z",
+  "head": "41c496b0f48ee0e923cab8f4858c615098635a8f",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h4c-1793648713153",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/local-reply.ts",
+      "bytes": 35339,
+      "sha256": "b5db5c6f666354e9f0dbd6d10ba6ef99dc9d975ca5fdcf8f5f8c0d25aaf96fe0"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply.test.ts",
+      "bytes": 49437,
+      "sha256": "a8b36019ebadb7be3a974fa77ad529eac02330760cb168e3a3a43b34a0055376"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 205128,
+    "bytes": 138618,
+    "sha256": "e6f2e3de437425d3e9044ef508b19f5f9f5522b516099b12001673a29d6fc34e",
+    "tests": {
+      "tests": 1271,
+      "pass": 1271,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 204127.421417",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h4c.log",
+    "bytes": 138618,
+    "sha256": "e6f2e3de437425d3e9044ef508b19f5f9f5522b516099b12001673a29d6fc34e"
+  },
+  "verdict": "pass"
+}

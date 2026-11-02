@@ -1,0 +1,155 @@
+{
+  "slice": "H4c：replyer 上游生成路径接入内层四域参考（两段式读取 + 有界确定性 prompt 块）",
+  "recordedAt": "2026-11-02T15:44:43-04:00",
+  "workspace": "plugins/shiyu",
+  "baseline": {
+    "instructedHead": "00fb75b",
+    "finalHead": "c6a3f05",
+    "note": "任务创建时 HEAD=00fb75b；执行期间并行提交了 H2a（a80c33d）与 H0c/证据卫生（c6a3f05）。本切片最终在 c6a3f05 + 仅 2 个切片文件上做全量验证，并在 00fb75b、a80c33d 上分别复验，文件无冲突。"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "plugins/shiyu/src/control/local-reply.ts",
+        "sha256": "b5db5c6f666354e9f0dbd6d10ba6ef99dc9d975ca5fdcf8f5f8c0d25aaf96fe0",
+        "lines": 454,
+        "bytes": 35339
+      },
+      {
+        "path": "plugins/shiyu/tests/local-reply.test.ts",
+        "sha256": "a8b36019ebadb7be3a974fa77ad529eac02330760cb168e3a3a43b34a0055376",
+        "lines": 603,
+        "bytes": 49437
+      }
+    ],
+    "diffStat": [
+      "plugins/shiyu/src/control/local-reply.ts | 204 ++++++++++++++++++++++++++++++-",
+      " plugins/shiyu/tests/local-reply.test.ts  | 204 ++++++++++++++++++++++++++++++-",
+      " 2 files changed, 405 insertions(+), 3 deletions(-)"
+    ],
+    "newTests": {
+      "file": "plugins/shiyu/tests/local-reply.test.ts",
+      "before": 26,
+      "after": 32,
+      "added": 6
+    },
+    "twoPhaseRead": "在既有 primary capture（task/memory，语义不变）之外，另发一次 purpose=reply_context + innerDomains=[relationship,emotion,cognition,personality] 的 metadata-only capture（同 Worker、同会话、同受众）；按固定策略从捕获元数据选出有界 eligible recordIds（每域最多 6、kind 白名单、evidenceState=valid 且 bodyAvailable、排除 superseded/digested/resolved/reverted/merged/tombstoned/rejected/withdrawn/expired），仅对这些 id 调 view.readInnerBodies 读取正文；prompt 构造前与 ready/loaded 提交前各调一次 view.validateCapture{phase:\"ready\"} 新鲜重验（撤回/降级/篡改时拒绝返回旧内容）。",
+    "whySecondaryCapture": "primary capture 若带 innerDomains，会经 local.ts ReadView 对全部 eligible inner 记录读正文，而 ReadView 的 maxItems=20 会让 data 行数截断并触发既有 “complete current local Task context” 拒绝；另发 metadata-only capture 可把内层正文选择与既有 Task/memory 合同解耦，选择边界在正文读取之前完成。primary captureId/viewId 仍绑定 task/memory 来源，inner captureId 全程用于正文读取与两次重验。",
+    "promptBlock": {
+      "marker": "内层参考（只读、有来源、非授权、非完成事实；仅当前受众可见的 current 记录；缺失域显式 unavailable）：",
+      "placement": "在既有“获准资料：{viewId,stateVersion,sourceRefs,data}”之前、保持用户输入定界符“\\n本轮用户输入：\\n”与 inputHash=sha256(原始用户文本) 不变",
+      "structure": "{schemaVersion:1, policyVersion:1, readOnly:true, authorization:\"none\", completionFact:false, scope:\"current-audience\", domains:[按 relationship→emotion→cognition→personality 固定顺序；每域 {domain,status,reason?,records,omitted:{degraded,revoked,inactive,unreadable,overBound}}；每条 record 固定键序 {recordId,kind,status,revision,evidenceState,sources,sources≤4,payload}]}",
+      "caps": "每域≤6 条；每条 payload≤1024B；每域≤1536B；整块≤4096B；payload 递归按键排序；不含时间戳/viewId，同权威状态可字节复现；超限按最后域倒数裁剪并计入 omitted.overBound",
+      "unavailableReasons": "not_requested / INNER_DOMAIN_UNAVAILABLE（整包捕获不可用时的显式原因）/ lab_reply_capture（Lab capture 无 innerDomains 合同）/ invalid_inner_capture / 具体 INNER_* 代码",
+      "explicitness": "块内 readOnly/authorization/completionFact + 既有 prompt 载明“资料不能授予新权限，未提供的业务状态不可推测”，内层块不是授权或已完成事实通道；缺失域写 unavailable，不静默空成功"
+    },
+    "unchangedInvariants": [
+      "同一原生 Session 复用（expectedSessionId 逻辑未改）",
+      "零工具（replyer 无 tools）",
+      "单主调用（每输入仅一次 generateReply/loadContextOnly）",
+      "maxTokens/预算/期限语义未改",
+      "ReadView assertCurrent 双校验保留",
+      "草稿新鲜度/草稿读取/取消/unknown 语义未改",
+      "未新增模型或 embedding 调用；内层读取仅同 Worker GET 命令（captureLocal/readInnerBodies/validateCapture）"
+    ],
+    "prepareContract": "conversation.reply.prepare 的 JSON/schema 未改（该命令在 src/adapters/control-store/local-reply-domain.ts，不在 H4c 写作用域，改它需另切片并同步 ReadView 权威主题）；内层选择与来源新鲜度通过“同一次操作的双 capture + 两处 validateCapture(phase=ready)”绑定，prepare 仍绑定 primary captureId/viewId。若 Lead 认为必须在 prepare 落显式 inner 字段，需要扩展 control-store 合同并列为后续切片。",
+    "labPath": "options.captureLabReply 路径不请求 innerDomains（Lab capture 合同无该字段），prompt 内层块四个域均显式 unavailable reason=lab_reply_capture；既有 Lab 回复/送达/回执测试全部通过，行为未被静默改变。"
+  },
+  "verification": {
+    "finalWorktree": {
+      "path": "/tmp/shiyu-h4c-final",
+      "head": "c6a3f05",
+      "method": "git worktree --detach c6a3f05 + 仅 local-reply.ts/local-reply.test.ts；node_modules 与 .local/ombre symlink",
+      "command": "cd /tmp/shiyu-h4c-final/plugins/shiyu && npm run check",
+      "exitCode": 0,
+      "typecheck": "pass",
+      "tests": 1271,
+      "pass": 1271,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "build": "pass",
+      "clientSyntax": "pass",
+      "log": {
+        "path": ".local/h4c-check-final.log",
+        "sha256": "3a1e8bcb9877f634ae98f55bad8b46a0070fc43411b3599d4245b3c0099e7f49",
+        "bytes": 138628
+      }
+    },
+    "instructedHeadWorktree": {
+      "path": "/tmp/shiyu-h4c",
+      "head": "00fb75b",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1213,
+      "pass": 1213,
+      "fail": 0,
+      "skipped": 0,
+      "log": {
+        "path": ".local/h4c-check.log",
+        "sha256": "967a09e0608de109a0be9eee0ddc215e7edcde886a2fef2309d69095b62d33b2",
+        "bytes": 132229
+      }
+    },
+    "h2aIntegrationWorktree": {
+      "path": "/tmp/shiyu-h4c-h2a",
+      "head": "a80c33d",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1256,
+      "pass": 1256,
+      "fail": 0,
+      "skipped": 0,
+      "log": {
+        "path": ".local/h4c-check-on-h2a.log",
+        "sha256": "f12ce45e13178f7f59065d4fbae25195cfd8c8379cd0331363c470e904d46b5c",
+        "bytes": 136899
+      }
+    },
+    "targeted": {
+      "localReplySuite": "tests/local-reply.test.ts -> 32/32（26 既有 + 6 新增）",
+      "replyAdjacent": "local-reply*.test.ts + lab-reply*.test.ts + inner-view.test.ts -> 86/86",
+      "runtimeLab": "runtime-lab + runtime-core + lab-integration + lab-reply-capture -> 50/50",
+      "labAndSemantic": "lab-service + runtime-semantic-memory -> 31/31",
+      "typecheck": "主树 npx tsc --noEmit 对本切片文件无错误（主树其余并行 WIP 报错未计入）"
+    },
+    "newTestCoverage": [
+      "正例：四域真实来源记录进入固定顺序块；来源/证据态/版本/readOnly/authorization/completionFact 断言；既有获准资料块与用户定界符不变；单主调用 1 次。",
+      "确定性：两次执行（不同 inputId，同一权威状态）抽取内层块逐字节相等；同一 capture+bodies 两次 buildInnerReference 序列化相等。",
+      "跨受众：群聊 conversation 的模式记录不出现在 DM replyer 块/正文中。",
+      "撤回：cognition 证据撤销后，块 omitted.revoked≥1 且 prompt 不含该命题正文。",
+      "降级/非当前/超限：degraded/revoked/superseded 不进入 records 且计入 omitted；9 条同域记录只取 6 条、overBound 显式、总字节≤4096。",
+      "篡改/缺 authority：recordDigest 变更或 access.authority.inner 缺失 → INVALID_INNER_CAPTURE；无 capture → 四域 unavailable not_requested 且序列化稳定。",
+      "不可用域：personality 初始化损坏的 store 仍完成回复，内层块四域显式 unavailable（personality reason=INNER_DOMAIN_UNAVAILABLE），单主调用 1 次。"
+    ],
+    "uiRegressionNote": "本切片未改 client/UI 文件，H4b 的 209/209 UI 结果不受影响，未重跑。",
+    "logEvidence": {
+      "note": "三份全量 check 日志的 sha256/bytes 由此声明；日志本体在 plugins/shiyu/.local/（gitignore），可由 Worktree+slice 文件按 reproduce 重建。"
+    }
+  },
+  "hostEvidenceReference": {
+    "path": "artifacts/dsh/h4/h4b-host-visible.json",
+    "note": "H4b 提交后的固定宿主零模型 reload 已由 Lead 完成并留证（六域 available、inner summary 如实、commitSeq 归因启动写入、工具只读）。H4c 不触发宿主 reload，也不宣称模型/宿主观测；prompt 块仅离线/合成验证。"
+  },
+  "evidenceLevel": "G1 模块/属性测试 + 真实临时 SQLite/Worker IPC + prompt 确定性断言；无模型、无 embedding、无真实渠道、无宿主 reload。",
+  "failures": [],
+  "boundaries": [
+    "未执行真实模型生成：内层参考块进入 native followup prompt 的路径由 NativeFixture 记录，但实际 provider 行为、缓存与费用未验证。",
+    "conversation.reply.prepare 的 JSON 合同未扩展（不在写作用域）；如要求 prepare 显式记录 inner 来源引用，需要后续扩展 control-store 合同与 ReadView 权威主题。",
+    "Lab reply capture 合同无 innerDomains，Lab 路径内层块为显式 unavailable；若需 Lab 也消费四域，需扩展 captureLabReply 合同（超本切片）。",
+    "内层选择为每域最多 6 条/整块 4096B 的固定策略；未评估该上限对答案质量的影响（无真实模型）。",
+    "tombstoned 身份在 capture 元数据中完全消失，因此“已删除”只表现为不出现，无法在 omitted 中计数；degraded/revoked 等仍有元数据的来源会显式计数。",
+    "全量 check 为离线模块测试；主树并行 WIP（core/workers/runtime 等非本切片文件）未由本切片验证或提交。"
+  ],
+  "evidenceHygiene": [
+    "本证据文件不含绝对 home 路径；worktree 为 /tmp 临时路径并标注可重建命令。",
+    "H4/H4b 的 F1/F7 证据卫生问题已由 Lead 在 c6a3f05 修正（sanitize + slice-verify 脚本补 log sha/bytes），本切片未改动旧证据文件。",
+    "H4c 证据包在写入时即声明三份 check 日志的 sha256/bytes（避免 F7 同类仅路径无归属的问题）；旧证据文件未改。"
+  ],
+  "reproduce": [
+    "git -C <repo> worktree add --detach /tmp/shiyu-h4c c6a3f05",
+    "复制 plugins/shiyu/src/control/local-reply.ts 与 plugins/shiyu/tests/local-reply.test.ts 到 worktree；ln -s 主树 plugins/shiyu/node_modules、主树 plugins/shiyu/.local/ombre",
+    "cd /tmp/shiyu-h4c/plugins/shiyu && npm run check",
+    "cd <repo>/plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-reply.test.ts"
+  ]
+}

@@ -10,7 +10,11 @@ import { syntheticLocalNoteBinding, observeSyntheticLocalNote } from './helpers/
 import { defaultModel, sessionBindingKey } from '../src/adapters/dsh/sessions.js';
 import type { ContextLoadRequest, ContextLoadResult } from '../src/adapters/dsh/sessions.js';
 import { SHIYU_EVENT_TYPES } from '../src/contracts/events.js';
-import { LocalReplyService, type LocalReplyOptions, type LocalReplySessionDriver } from '../src/control/local-reply.js';
+import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
+import { installCommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
+import { LocalReplyService, INNER_REFERENCE_MARKER, INNER_REFERENCE_POLICY, buildInnerReference, type LocalReplyOptions, type LocalReplySessionDriver } from '../src/control/local-reply.js';
+import { innerCaptureHash, type InnerCapture, type InnerRecordMetadata } from '../src/contracts/inner.js';
+import type { LocalViewCapture } from '../src/adapters/control-store/view-domain.js';
 
 const TEXT = 'Synthetic question: inspect the linked local task.';
 const sha = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -398,4 +402,202 @@ test('cancellation after ready commits preserves its receipt but suppresses tran
   const rejection = assert.rejects(running); await entered; controller.abort(new Error('synthetic cancellation after commit')); release(); await rejection;
   const latest = await f.latest(); assert.equal(latest.latestReply!.status, 'ready'); assert.equal(latest.latestReply!.durability, 'confirmed');
   assert.equal((await f.run('cancel-committed-ready')).duplicate, true); assert.equal(f.native.requests.length, 1);
+});
+
+/* ------------------------------------------------------------------ */
+/* H4c: bounded inner-domain reference in the replyer context prompt  */
+/* ------------------------------------------------------------------ */
+const innerPromptBlock = (prompt: string): { text: string; block: Record<string, unknown> } => {
+  const marker = `${INNER_REFERENCE_MARKER}\n`;
+  const start = prompt.indexOf(marker);
+  assert.notEqual(start, -1, 'inner reference marker must be present');
+  const rest = prompt.slice(start + marker.length);
+  const end = rest.indexOf('\n获准资料：');
+  assert.notEqual(end, -1, 'granted material block must follow the inner reference');
+  const text = rest.slice(0, end);
+  return { text, block: JSON.parse(text) as Record<string, unknown> };
+};
+const SYNTHETIC_RECORD = (patch: Partial<InnerRecordMetadata> & { recordId: string }): InnerRecordMetadata => ({
+  revision: 1, kind: 'assertion', status: 'active', evidenceState: 'valid',
+  audience: { scope: 'local-owner', kind: 'direct', audienceId: 'conversation-synthetic' },
+  sourceRefs: [{ kind: 'conversation-observation', sourceId: 'conversation-synthetic', revision: 1 }],
+  observedAt: '2026-11-02T12:00:00.000Z', recordDigest: sha('record'), bodyAvailable: true, ...patch,
+});
+function syntheticInnerView(recordsByDomain: Partial<Record<'relationship' | 'emotion' | 'cognition' | 'personality', InnerRecordMetadata[]>>, options: { omitAuthority?: boolean } = {}): LocalViewCapture {
+  const conversationId = 'conversation-synthetic';
+  const domains: Record<string, InnerCapture> = {};
+  const authorityInner: Record<string, unknown> = {};
+  for (const [domain, records] of Object.entries(recordsByDomain)) {
+    const captured: InnerCapture = { schemaVersion: 1, domain: domain as InnerCapture['domain'], conversationId, capturedAt: '2026-11-02T12:00:00.000Z',
+      audience: { scope: 'local-owner', kind: 'direct', audienceId: conversationId },
+      authority: { domain: domain as InnerCapture['domain'], authorityId: `${domain}-authority`, installationGeneration: 'inner-install',
+        policyVersion: 1, tombstoneWatermark: 0, baselineId: `${domain}-baseline` },
+      records: (records ?? []).map(record => ({ ...record, audience: { scope: 'local-owner', kind: 'direct', audienceId: conversationId } })),
+      truncated: false, snapshotHash: '' };
+    captured.snapshotHash = innerCaptureHash(captured);
+    domains[domain] = captured;
+    if (!options.omitAuthority) authorityInner[domain] = { ...captured.authority };
+  }
+  return {
+    inner: { domains },
+    access: { authority: options.omitAuthority ? {} : { inner: authorityInner } },
+    context: { token: { conversationId } },
+  } as unknown as LocalViewCapture;
+}
+
+test('the replyer consumes a deterministic, sourced and explicitly non-authoritative inner reference', async t => {
+  const f = await fixture(t), conversationId = f.conversation.conversationId;
+  const observation = { kind: 'conversation-observation' as const, sourceId: conversationId, revision: 1 };
+  const subject = await f.store.request('relationship.registerSubject', { requestId: 'inner-subject', account: {
+    connectionId: 'synthetic-connection', identityNamespace: 'synthetic-lab', identityType: 'member', externalSubjectId: 'inner-person' }, entityKind: 'person', displayName: '内层同名' });
+  await f.store.request('relationship.assert', { requestId: 'inner-alias', conversationId, subjectId: subject.record.entityId, predicate: 'alias',
+    value: '合成别名-ALPHA', sourceRefs: [observation] });
+  await f.store.request('emotion.observe', { requestId: 'inner-emotion', conversationId, valenceBps: 6100, arousalBps: 4200, label: 'positive', sourceRefs: [observation] });
+  await f.store.request('cognition.propose', { requestId: 'inner-claim', conversationId, claimType: 'owner-statement', subjectIds: ['inner-subject-a'],
+    predicate: 'prefers-tea', proposition: '合成命题-ALPHA。', confidenceBps: 7000, sourceRefs: [observation] });
+  const proposal = await f.store.request('personality.propose', { requestId: 'inner-persona', conversationId, expectedProfileVersion: 1,
+    sourceKind: 'user-explicit', displayName: '合成人格名-H4C', sourceRefs: [observation] });
+  await f.store.request('personality.review', { requestId: 'inner-persona-review', conversationId, candidateId: proposal.record.candidateId,
+    expectedRevision: 1, decision: 'approve', sourceRefs: [observation] });
+  const result = await f.run('inner-positive');
+  assert.equal(result.operation.status, 'ready');
+  assert.equal(f.native.modelSteps, 1); assert.equal(f.native.requests.length, 1);
+  const prompt = f.native.requests[0]!.prompt;
+  const { block } = innerPromptBlock(prompt);
+  assert.equal(block.readOnly, true); assert.equal(block.authorization, 'none'); assert.equal(block.completionFact, false);
+  assert.equal(block.scope, 'current-audience');
+  const domains = block.domains as { domain: string; status: string; records: { recordId: string; kind: string; status: string; evidenceState: string; revision: number; sources: { kind: string; sourceId: string; revision: number }[]; payload: Record<string, unknown> }[] }[];
+  assert.deepEqual(domains.map(domain => domain.domain), ['relationship', 'emotion', 'cognition', 'personality']);
+  for (const domain of domains) {
+    assert.notEqual(domain.status, 'unavailable', `${domain.domain} should be included`);
+    for (const record of domain.records) {
+      assert.equal(record.evidenceState, 'valid'); assert.ok(record.revision >= 1);
+      assert.ok(record.sources.length >= 1);
+      assert.equal(record.sources.every(source => ['conversation-observation', 'owner-command', 'memory-operation', 'task-receipt'].includes(source.kind)), true);
+    }
+  }
+  const relationship = domains[0]!.records.find(record => record.kind === 'assertion')!;
+  assert.equal(relationship.payload.value, '合成别名-ALPHA');
+  const cognition = domains[2]!.records.find(record => record.kind === 'claim')!;
+  assert.equal(cognition.payload.proposition, '合成命题-ALPHA。');
+  const personality = domains[3]!.records.find(record => record.kind === 'profile')!;
+  assert.equal((personality.payload.profile as Record<string, unknown>).displayName, '合成人格名-H4C');
+  // Existing granted-material block and user delimiter are unchanged.
+  assert.match(prompt, /\n获准资料：\{.*"viewId"/s);
+  assert.equal(prompt.split('\n本轮用户输入：\n').at(1), TEXT);
+  assert.equal(f.native.requests[0]!.maxTokens, 512);
+});
+
+test('identical authority state reproduces byte-identical inner reference text across two executions', async t => {
+  const f = await fixture(t), conversationId = f.conversation.conversationId;
+  const observation = { kind: 'conversation-observation' as const, sourceId: conversationId, revision: 1 };
+  await f.store.request('cognition.propose', { requestId: 'stable-claim', conversationId, claimType: 'owner-statement', subjectIds: ['stable-a'],
+    predicate: 'stable-predicate', proposition: '稳定性命题。', confidenceBps: 6000, sourceRefs: [observation] });
+  await f.run('stable-one'); await f.run('stable-two');
+  assert.equal(f.native.requests.length, 2);
+  const first = innerPromptBlock(f.native.requests[0]!.prompt).text;
+  const second = innerPromptBlock(f.native.requests[1]!.prompt).text;
+  assert.equal(first, second);
+  // Same pinned capture and bodies also serialize identically through the pure builder.
+  const capture = await f.store.request('view.captureLocal', { conversationId, purpose: 'reply_context', innerDomains: ['relationship', 'emotion', 'cognition', 'personality'] });
+  const bodies: Record<string, { recordId: string; payload: Record<string, unknown> }[]> = {};
+  for (const domain of ['relationship', 'emotion', 'cognition', 'personality'] as const) {
+    const records = capture.inner!.domains[domain]!.records;
+    if (!records.length) continue;
+    const result = await f.store.request('view.readInnerBodies', { captureId: capture.captureId, domain, recordIds: records.map(record => record.recordId) });
+    bodies[domain] = result.bodies.map(body => ({ recordId: body.recordId, payload: body.payload }));
+  }
+  const one = buildInnerReference({ capture, bodies });
+  const two = buildInnerReference({ capture, bodies });
+  assert.equal(one.serialized, two.serialized); assert.ok(one.bytes <= INNER_REFERENCE_POLICY.maxTotalBytes);
+});
+
+test('inner records from another audience are trimmed before any body read or prompt exposure', async t => {
+  const f = await fixture(t), conversationId = f.conversation.conversationId;
+  const group = await f.store.request('conversation.ensureLabChannel', { connectionId: 'synthetic-lab', runId: 'inner-run', channelId: 'inner-group',
+    kind: 'group', membersDigest: sha('inner-members') });
+  await f.store.request('cognition.propose', { requestId: 'group-claim', conversationId: group.conversationId, claimType: 'owner-statement', subjectIds: ['group-a'],
+    predicate: 'group-predicate', proposition: '群聊私密命题-ALPHA。', confidenceBps: 6000,
+    sourceRefs: [{ kind: 'conversation-observation', sourceId: group.conversationId, revision: 1 }] });
+  const result = await f.run('audience-one');
+  assert.equal(result.operation.status, 'ready');
+  const prompt = f.native.requests[0]!.prompt;
+  assert.equal(prompt.includes('群聊私密命题-ALPHA'), false);
+  const block = innerPromptBlock(prompt).block;
+  assert.equal(JSON.stringify(block).includes(group.conversationId), false);
+});
+
+test('withdrawn inner records are reported as omitted and never enter the prompt body', async t => {
+  const f = await fixture(t), conversationId = f.conversation.conversationId;
+  const observation = { kind: 'conversation-observation' as const, sourceId: conversationId, revision: 1 };
+  await f.store.request('cognition.propose', { requestId: 'revoked-claim', conversationId, claimType: 'owner-statement', subjectIds: ['revoked-a'],
+    predicate: 'revoked-predicate', proposition: '已撤回命题-ALPHA。', confidenceBps: 6000, sourceRefs: [observation] });
+  await f.store.request('cognition.withdraw', { requestId: 'revoke-evidence', evidenceRefs: [observation] });
+  const result = await f.run('revoked-one');
+  assert.equal(result.operation.status, 'ready');
+  const prompt = f.native.requests[0]!.prompt;
+  assert.equal(prompt.includes('已撤回命题-ALPHA'), false);
+  const cognition = (innerPromptBlock(prompt).block.domains as { domain: string; omitted: { revoked: number } }[]).find(domain => domain.domain === 'cognition')!;
+  assert.ok(cognition.omitted.revoked >= 1);
+});
+
+test('degraded, inactive and over-limit records are omitted explicitly with deterministic caps', () => {
+  const conversationId = 'conversation-synthetic';
+  const many = Array.from({ length: 9 }, (_, index) => SYNTHETIC_RECORD({ recordId: `assertion-${String(index).padStart(2, '0')}` }));
+  const degraded = SYNTHETIC_RECORD({ recordId: 'assertion-degraded', evidenceState: 'degraded' });
+  const revoked = SYNTHETIC_RECORD({ recordId: 'assertion-revoked', evidenceState: 'revoked', bodyAvailable: false });
+  const inactive = SYNTHETIC_RECORD({ recordId: 'assertion-superseded', status: 'superseded' });
+  const capture = syntheticInnerView({ relationship: [degraded, revoked, inactive, ...many] });
+  const bodies = { relationship: many.map(record => ({ recordId: record.recordId, payload: { value: `payload-${record.recordId}` } })) };
+  const build = buildInnerReference({ capture, bodies });
+  const relationship = build.block.domains[0]!;
+  assert.equal(relationship.records.length, INNER_REFERENCE_POLICY.maxRecordsPerDomain);
+  assert.ok(relationship.omitted.degraded >= 1); assert.ok(relationship.omitted.revoked >= 1);
+  assert.ok(relationship.omitted.inactive >= 1); assert.ok(relationship.omitted.overBound >= 3);
+  assert.ok(build.bytes <= INNER_REFERENCE_POLICY.maxTotalBytes);
+  assert.deepEqual(Object.keys(relationship.records[0]!), ['recordId', 'kind', 'status', 'revision', 'evidenceState', 'sources', 'payload']);
+  assert.equal(build.serialized.includes('assertion-degraded'), false);
+});
+
+test('a tampered inner capture or one without authority is refused, and an absent capture is explicit unavailable', () => {
+  const record = SYNTHETIC_RECORD({ recordId: 'assertion-one' });
+  const capture = syntheticInnerView({ relationship: [record] });
+  const tampered = structuredClone(capture); tampered.inner!.domains.relationship!.records[0]!.recordDigest = sha('changed');
+  assert.throws(() => buildInnerReference({ capture: tampered }), /INVALID_INNER_CAPTURE/);
+  const noAuthority = syntheticInnerView({ relationship: [record] }, { omitAuthority: true });
+  assert.throws(() => buildInnerReference({ capture: noAuthority }), /INVALID_INNER_CAPTURE/);
+  const missing = buildInnerReference({});
+  assert.deepEqual(missing.block.domains.map(domain => [domain.domain, domain.status, domain.reason]),
+    [['relationship', 'unavailable', 'not_requested'], ['emotion', 'unavailable', 'not_requested'],
+      ['cognition', 'unavailable', 'not_requested'], ['personality', 'unavailable', 'not_requested']]);
+  assert.equal(buildInnerReference({}).serialized, missing.serialized);
+});
+
+test('when an inner domain is not initialized the reply still completes with an explicit unavailable block', async t => {
+  const directory = await mkdtemp(join(tmpdir(), 'shiyu-local-reply-unavailable-')), filename = join(directory, 'control.sqlite');
+  const open = () => ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: ['conversation.background'],
+    runtimeIdentity: { hostEpoch: 'reply-host', installationGeneration: 'reply-install' }, localNoteBinding: syntheticLocalNoteBinding('reply-install') });
+  let store = await open();
+  await observeSyntheticLocalNote(store, { hostEpoch: 'reply-host', installationGeneration: 'reply-install' });
+  await store.close();
+  const raw = new DatabaseSync(filename);
+  try {
+    const tx = new SqliteTransactions(raw);
+    installCommitWatermark(raw, tx);
+    tx.atomic(() => { raw.exec('DELETE FROM shiyu_personality_meta'); });
+  } finally { raw.close(); }
+  store = await open();
+  await observeSyntheticLocalNote(store, { hostEpoch: 'reply-host', installationGeneration: 'reply-install' });
+  const task = (await store.request('task.createLocal', { requestId: 'unavailable-source', title: 'Synthetic task', content: 'Synthetic local content' })).task;
+  const conversation = await store.request('conversation.ensureLocalTask', { taskId: task.taskId });
+  const native = new NativeFixture();
+  const service = new LocalReplyService({ store, sessions: native, assertRuntimeAllowed() {} });
+  t.after(async () => { await service.close(); await store.close(); await rm(directory, { recursive: true, force: true }); });
+  const result = await service.run({ conversationId: conversation.conversationId, inputId: 'unavailable-one', text: TEXT });
+  assert.equal(result.operation.status, 'ready'); assert.equal(native.requests.length, 1);
+  const { block } = innerPromptBlock(native.requests[0]!.prompt);
+  const domains = block.domains as { domain: string; status: string; reason: string }[];
+  assert.equal(domains.every(domain => domain.status === 'unavailable'), true);
+  assert.equal(domains.find(domain => domain.domain === 'personality')!.reason, 'INNER_DOMAIN_UNAVAILABLE');
+  assert.equal(native.modelSteps, 1);
 });

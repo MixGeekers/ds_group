@@ -305,7 +305,7 @@ node scripts/harness/traceability.mjs --strict --out artifacts/dsh/harness/trace
 
 ## 9. H4b 切片：内层四域 replyer 只读组合与仪表盘面板
 
-状态：**离线通过（G1 模块 + 真实 Worker + 合成宿主 UI）**；H4c（replyer 上游生成路径）与 H4b 提交后的固定宿主渲染核对另行推进。2026-11-02 完成并审阅。
+状态：**离线通过（G1 模块 + 真实 Worker + 合成宿主 UI）**；H4c 已把内层参考接入 replyer 上游生成路径（§13），H4b 宿主可见性已由零模型 reload 核对（§9.2）。2026-11-02 完成并审阅。
 
 ### 9.1 交付（7 文件）
 
@@ -328,7 +328,7 @@ node scripts/harness/traceability.mjs --strict --out artifacts/dsh/harness/trace
 
 ### 9.3 失败 / unknown / 未测
 
-1. replyer 上游 `src/control/local-reply.ts` 尚未在 `view.captureLocal` 请求 `innerDomains`，也未把内层行纳入 prompt / `conversation.reply.prepare` 合同——生产 replyer 生成路径本轮**不会**消费四域正文；这是显式 H4c 集成项，不把 local.ts 两段式就绪写成生成闭环。
+1. replyer 上游已由 H4c 接入四域参考（§13）；但 `conversation.reply.prepare` JSON 合同未扩展显式 inner 来源字段，Lab capture 路径仍显式 unavailable，真实模型如何使用内层块未验。
 2. 仪表盘为 client JS 面板，合成宿主 209 项 UI 通过不等于真实 DSH 宿主渲染验收；真实数据一致性未验。
 3. 未新增 IPC 命令或权限；无宿主、模型、embedding 调用。
 4. 固定宿主零模型 reload 后 `systems[].inner.summary` 已如实、`innerProjection` schema4 六域可见（`artifacts/dsh/h4/h4b-host-visible.json`）；但真实浏览器 DOM 渲染未由本检查证明（合成宿主 UI 209 项是独立证据层），真实数据一致性未验。
@@ -438,3 +438,37 @@ findings 处理：
 | F8/F9/F10 matrix observed 叙述、oldDist 语义、H0b dirty overlay | info 级披露；H0b/H0c artifacts 可在最终批次干净 HEAD 上重生成 clean-VCS 指纹 |
 
 说明：F6 已修复并复核通过；F7 属于可审计性不足而非证据造假，本记录保留该限制，不把临时日志当作首选证据。独立复核员随后在 `H4H5-EVIDENCE-REVIEW.md`/`h4h5-evidence-review.json` 增加了 §7“复核快照边界”、§8“F1–F6 修正验证”与逐 finding 的 `postReviewStatus`，作为 F1–F6 处置的持久记录。
+
+## 13. H4c 切片：replyer 上游生成路径接入内层四域参考
+
+状态：**离线通过（G1 模块 + 真实临时 SQLite/Worker IPC + 确定性断言）**；真实模型/生成质量/宿主与 Lab 内层路径未验。2026-11-02 完成并审阅。
+
+### 13.1 交付（2 文件）
+
+- `src/control/local-reply.ts`：在既有 primary capture 之外另发一次 `purpose:'reply_context'` + `innerDomains:[relationship,emotion,cognition,personality]` 的 **metadata-only capture**（同 Worker/会话/受众）；按固定策略选出有界 eligible recordIds（每域 ≤6、kind 白名单、evidenceState=valid 且 bodyAvailable，排除 superseded/digested/resolved/reverted/merged/tombstoned/rejected 等），仅对这些 id 调 `view.readInnerBodies` 读正文；prompt 前与 ready/loaded 前各一次 `validateCapture(phase:'ready')` 新鲜重验。
+- `INNER_REFERENCE_POLICY` / `INNER_REFERENCE_MARKER` / `buildInnerReference`：固定域序（relationship→emotion→cognition→personality）、固定 record 键序、payload 递归排序、无时间戳/viewId（同状态字节可复现）；caps 6/域、1024B/条、1536B/域、4096B/块、sources≤4；`readOnly:true, authorization:'none', completionFact:false, scope:'current-audience'`；`omitted` 显式计数 degraded/revoked/inactive/unreadable/overBound；缺失/不可用域显式 reason（Lab 路径 `lab_reply_capture`，不静默）。块放在既有“获准资料：”之前；`\n本轮用户输入：\n` 定界符与 `inputHash=sha256(原始用户文本)` 不变。
+- 既有生成路径不变式保持：同 Session 复用、零工具、单主调用、maxTokens/预算/期限、ReadView+Conversation 双校验、草稿新鲜度均未变；无新增模型/embedding 调用。
+- 测试：`tests/local-reply.test.ts` 25→32（+7）：正例、确定性（两次执行字节相等）、跨受众裁剪、撤回/降级、超限（9→6、overBound、总字节 ≤4096）、篡改/缺 authority、不可用域、personality 域损坏仍完成回复且显式 unavailable。
+
+### 13.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `00fb75b` / `a80c33d` / `c6a3f05` + 2 文件） | 分别 1213/1213、1256/1256、1271/1271，0 失败/跳过 |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `41c496b` + 仅 2 文件） | exit 0；**1271/1271 通过，0 失败/跳过**（基线 1264 + 7）；证据 `artifacts/dsh/slices/h4c-verify.json` |
+| 证据级别 | G1 离线模块 + 真实临时 SQLite/Worker IPC；真实模型与生成质量未验 |
+
+### 13.3 失败 / unknown / 未测
+
+1. 真实模型生成、provider 缓存/费用、模型实际如何使用内层块未测；6 条/域与 4096B 上限对答案质量的影响未评估。
+2. `conversation.reply.prepare` JSON 合同未扩展显式 inner 来源字段（该命令在 control-store）；当前以双 capture + 两处 `validateCapture(phase:'ready')` 绑定新鲜度。若需显式字段，另开 H4d 扩展 control-store 合同与 ReadView authority。
+3. Lab reply capture 合同不请求 `innerDomains`，Lab 路径显式 inner unavailable（行为未改变）。
+4. tombstoned 身份在 capture 元数据中消失，不能计入 omitted（degraded/revoked 可计数）。
+5. 无宿主 reload、真实频道/设备；H4b 宿主可见性证据不由此切片新增。
+
+### 13.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4c-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-reply.test.ts
+```
