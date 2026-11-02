@@ -750,3 +750,29 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/core-eve
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <integration-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.test.ts tests/channel-bridge*.test.ts tests/host-diagnostics-tool.test.ts
 ```
+
+## 22. 第二轮联合固定宿主零模型验证（H4d/H6b/H2c/集成构建）
+
+状态：**固定宿主零模型限定通过**（启动/发布/新投影/worker 探针/core 探针/诊断缓存/无重放）；不是 V24、真实模型或业务验收。代码 HEAD `021bdc6`，dist 由该 HEAD 的隔离 worktree 构建（103 文件，digest `7b70471a…`），一次有序 disable→enable。
+
+### 22.1 观察结果
+
+| 项 | 实际 |
+|---|---|
+| 插件启动 | 新实例 `68b67720…`，启动 `2026-11-02T21:00:05.785Z`；paused=false；schema4 六域 available（manifestHash `8e9f0530…` 与上轮一致）；inner 文案如实 |
+| `channels` 新投影 | schemaVersion 1、source=channel-ingress、status ready、watermark 全 0、bindings/connections/conversations 为空、pending 全 0、degraded 空；仅元数据、无正文；因当前 live 无渠道适配器，显式为空且 ready（不是业务验收） |
+| worker 探针 | ok/zeroModel/readOnly/sent=false；工具恰为占位任务工具 + 2 事件工具（assignment/event 分离）；authorityFields=[]；counters 全 0；released=disposed=true；probe session `shiyu-worker-probe-a91427aa…` |
+| core 探针（本轮新增） | ok/zeroModel/readOnly/sent=false；工具恰为 3 个 core 事件工具；authorityFields=[]；counters 全 0；released=disposed=true；probe session `shiyu-core-probe-bd923a83…`；preset `shiyu-runtime-core-goal-v1` |
+| 诊断缓存（关闭上轮 G10） | 探针后的只读 `shiyu_status` 中 `diagnostics.eventToolProbe` 与 `diagnostics.coreEventToolProbe` 均缓存完整回执；快照仍无损 JSON |
+| 重载增量 | commitSeq `315→322`（+7 启动生命周期/能力观察写入）；events `39→40`（+1 lifecycle 及投递 ack）；stateVersion 保持 6；capability revision `14→16`（hostEpoch 重绑+观察），definitionDigest 与 binding 不变、verification 仍 unknown；unknown Task 元数据 version 27→28（启动恢复刷新，无重试/无成功声明） |
+| 探针副作用 | 两探针前后：commitSeq/events/deliveries/stateVersion/capability revision/runtime-state 文件哈希全不变；唯一新增 = 两个已释放/归档探针 Session（worker + core）；18 个已知业务 Session 逐字节不变 |
+| 探针后状态调用 | commitSeq/events/sessions/state 文件/capability revision 全不变（严格只读） |
+| 模型/外部动作 | 产品 0 模型/0 embedding/0 Task/0 Goal/0 渠道输入/0 Lab 输入 |
+
+证据：[round2-joint-zero-model.json](<artifacts/dsh/host/round2-joint-zero-model.json>) 及同目录 before/after/after-tools/after-status2 审计、status-after-reload/status-after-probes、worker/core 探针回执原文。
+
+### 22.2 边界与未测
+
+1. 零模型证据只证启动、发布、新投影、受限挂载/不可伪造字段/释放与诊断缓存；不证真实模型调用事件工具、provider 预算/缓存、真实 core 计划执行或真实渠道流量。
+2. `channels` 投影在 live 为空（尚无渠道适配器）；真实 audience/binding/invalidation 行为仅有离线集成证据。
+3. 真实浏览器 DOM 渲染未证明；lifecycle=degraded 仍来自保留的历史 unknown/暂停事实。

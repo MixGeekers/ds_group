@@ -1,0 +1,368 @@
+{
+  "schemaVersion": 1,
+  "phase": "round2-host",
+  "slice": "fixed-host zero-model validation of the round-2 build (H4d/H6b/H2c/Lead integration)",
+  "capturedAt": "2026-11-02T21:01:19.939Z",
+  "status": "fixed-host-zero-model-limited",
+  "purpose": "Reload the verified round-2 build on the fixed host and verify: startup; schema4 publication; lossless status with the new channels projection; worker tool probe; core event tool probe; post-probe cached diagnostics; preserved business facts; and no unclassified side effects.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-round2-host-execution-plan.json",
+    "sha256": "182821597a763858bde0efe3abd178015bace1ab54bcbddaa54c52bc4a9d0c00"
+  },
+  "code": {
+    "head": "021bdc6",
+    "dist": {
+      "files": 103,
+      "digest": "7b70471a91e79d46031cff9f54a09f68e099f8877a67fb8115080b290426b1c7"
+    },
+    "note": "dist built from an isolated worktree at the committed HEAD and installed after digest comparison"
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "reloads": 1,
+    "newInstanceId": "68b67720-d83c-4845-bda1-3e6364895c62",
+    "startedAt": "2026-11-02T21:00:05.785Z"
+  },
+  "statusAfterReload": {
+    "payloadBytes": 51990,
+    "payloadSha256": "8bea2ebb42400b0185a85412c213b39b7cbcdff1048f843af74c78c368e87f55",
+    "schemaVersion": 1,
+    "lifecycle": "degraded",
+    "state": "idle",
+    "innerPublication": {
+      "schemaVersion": 4,
+      "stateVersion": 6,
+      "manifestHash": "8e9f0530d2c4cc175ccaf9be5447833eada1eef42a62a03dbaf7d12bb49324fd",
+      "domains": {
+        "memory": {
+          "status": "available",
+          "backendId": "ombre-local",
+          "capabilities": [
+            "exact_read",
+            "semantic_search"
+          ]
+        },
+        "relationship": {
+          "status": "available",
+          "backendId": "control-relationship",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "emotion": {
+          "status": "available",
+          "backendId": "control-emotion",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "cognition": {
+          "status": "available",
+          "backendId": "control-cognition",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "personality": {
+          "status": "available",
+          "backendId": "control-personality",
+          "capabilities": [
+            "metadata_read",
+            "content_read"
+          ]
+        },
+        "ability": {
+          "status": "available",
+          "backendId": "control-ability",
+          "capabilities": [
+            "state_read"
+          ]
+        }
+      }
+    },
+    "innerSummaryTruthful": true,
+    "channels": {
+      "source": "channel-ingress",
+      "status": {
+        "ready": true,
+        "schemaVersion": 1
+      },
+      "watermark": {
+        "intakeSeq": 0,
+        "invalidationWatermark": 0,
+        "deletionWatermark": 0,
+        "revocationWatermark": 0
+      },
+      "bindings": 0,
+      "connections": 0,
+      "conversations": 0,
+      "pending": {
+        "invalidationWatermark": 0,
+        "appliedThrough": 0,
+        "unapplied": 0,
+        "unbound": 0,
+        "truncated": false
+      },
+      "degraded": [],
+      "note": "the live data has no channel adapter registered yet, so the projection is explicitly empty and ready; it is body-free and lossless"
+    },
+    "diagnosticsBeforeProbes": {
+      "eventToolProbe": null,
+      "coreEventToolProbe": null
+    },
+    "counts": {
+      "tasks": 3,
+      "coreGoals": 2,
+      "labConnections": 3,
+      "sessions": 10,
+      "activeWork": 0
+    }
+  },
+  "workerProbe": {
+    "call": "shiyu_diagnose_worker_tools",
+    "isError": false,
+    "zeroModel": true,
+    "readOnly": true,
+    "sent": false,
+    "probeSessionId": "shiyu-worker-probe-a91427aa-005c-479e-9390-e5876e977cb5",
+    "tools": [
+      {
+        "name": "shiyu_worker_probe_task",
+        "source": "assignment",
+        "additionalProperties": false
+      },
+      {
+        "name": "shiyu_worker_event_types",
+        "source": "event",
+        "additionalProperties": false
+      },
+      {
+        "name": "shiyu_worker_event_report",
+        "source": "event",
+        "additionalProperties": false
+      }
+    ],
+    "authorityFields": [],
+    "counters": {
+      "modelRequests": 0,
+      "modelStreams": 0,
+      "assistantMessages": 0,
+      "userMessages": 0,
+      "toolEvents": 0,
+      "usageEvents": 0
+    },
+    "released": true,
+    "disposed": true,
+    "expected": true
+  },
+  "coreProbe": {
+    "call": "shiyu_diagnose_core_event_tools",
+    "isError": false,
+    "zeroModel": true,
+    "readOnly": true,
+    "sent": false,
+    "probeSessionId": "shiyu-core-probe-bd923a83-c326-4e80-b38a-dd9636d32abe",
+    "preset": "shiyu-runtime-core-goal-v1",
+    "tools": [
+      {
+        "name": "shiyu_core_event_types",
+        "parameterKeys": [],
+        "additionalProperties": false
+      },
+      {
+        "name": "shiyu_core_event_subscriptions",
+        "parameterKeys": [
+          "limit"
+        ],
+        "additionalProperties": false
+      },
+      {
+        "name": "shiyu_core_event_report",
+        "parameterKeys": [
+          "type",
+          "payload",
+          "idempotencyKey",
+          "correlationId"
+        ],
+        "additionalProperties": false
+      }
+    ],
+    "authorityFields": [],
+    "counters": {
+      "modelRequests": 0,
+      "modelStreams": 0,
+      "assistantMessages": 0,
+      "userMessages": 0,
+      "toolEvents": 0,
+      "usageEvents": 0
+    },
+    "released": true,
+    "disposed": true,
+    "expected": true
+  },
+  "statusAfterProbes": {
+    "payloadBytes": 56833,
+    "payloadSha256": "cc599d12d631d9e58a3a031b044d9cd729f263c7acfef48c3295cbcbdf11c320",
+    "eventToolProbeCached": true,
+    "coreEventToolProbeCached": true,
+    "channelsSameEmpty": true,
+    "innerPublicationSame": true
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        315,
+        322
+      ],
+      "events": [
+        39,
+        40
+      ],
+      "deliveries": [
+        {
+          "acked": 38
+        },
+        {
+          "acked": 39
+        }
+      ],
+      "stateVersion": [
+        6,
+        6
+      ],
+      "capabilityRevision": [
+        14,
+        16
+      ],
+      "sessions": [
+        18,
+        18
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ]
+    },
+    "probes": {
+      "commitSeq": [
+        322,
+        322
+      ],
+      "events": [
+        40,
+        40
+      ],
+      "deliveries": [
+        {
+          "acked": 39
+        },
+        {
+          "acked": 39
+        }
+      ],
+      "stateVersion": [
+        6,
+        6
+      ],
+      "capabilityRevision": [
+        16,
+        16
+      ],
+      "sessions": [
+        18,
+        20
+      ],
+      "addedSessionFiles": [
+        "--Users-caja-.dsh-profiles-desktop--/shiyu-worker-probe-a91427aa-005c-479e-9390-e5876e977cb5/session.v4.jsonl.zstd",
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-probe-bd923a83-c326-4e80-b38a-dd9636d32abe/session.v4.jsonl.zstd"
+      ],
+      "changedKnownSessionFiles": []
+    },
+    "postProbeStatus": {
+      "commitSeq": [
+        322,
+        322
+      ],
+      "events": [
+        40,
+        40
+      ],
+      "sessions": [
+        20,
+        20
+      ],
+      "stateFileHash": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "capabilityRevision": [
+        16,
+        16
+      ]
+    },
+    "classification": {
+      "reload": "+7 commitSeq: expected startup lifecycle/capability observation writes; +1 event = runtime.lifecycle.changed and its delivery ack; stateVersion unchanged at 6; capability revision 14->16 (hostEpoch rebind + availability observation) with the same definitionDigest as the previous round build; unknown Task uncertainty metadata refreshed to version 28 at startup (state unknown, no retry, no success claim).",
+      "probes": "commitSeq/events/deliveries/stateVersion/capability revision and the runtime-state file hash are unchanged across both probes; the only session change is exactly two new released/archived probe Session files (worker + core); all 18 previously known Session files are byte-identical.",
+      "postProbeStatus": "the read-only status call after the probes is also side-effect free: commitSeq/events/sessions/state file/capability revision unchanged; it returns both cached probe receipts (diagnostics.eventToolProbe and diagnostics.coreEventToolProbe), closing the earlier G10 observation gap."
+    }
+  },
+  "findings": [
+    "Both zero-model diagnostics mount exactly their expected restricted tool surface (worker: placeholder task + 2 event tools; core: 3 core event tools), with no authority fields, all model counters zero, released/disposed, and explicit probe session prefixes.",
+    "The channels projection is ready and explicitly empty in the current live data because no channel adapter is registered yet; the projection is body-free and does not claim business acceptance.",
+    "DefinitionDigest and schema4 manifest hash are unchanged from the previous verified build except the startup publication; no success proof was fabricated.",
+    "Post-probe status proves the in-memory diagnostics cache path and that the tool output stays lossless with the cached receipts."
+  ],
+  "scope": {
+    "orderedReloads": 1,
+    "toolCalls": 4,
+    "productModelCalls": 0,
+    "embeddingCalls": 0,
+    "taskCreates": 0,
+    "goalOperations": 0,
+    "channelInputs": 0,
+    "labInputs": 0
+  },
+  "evidence": {
+    "beforeAudit": "artifacts/dsh/host/round2/round2-host-before.json",
+    "afterAudit": "artifacts/dsh/host/round2/round2-host-after.json",
+    "afterToolsAudit": "artifacts/dsh/host/round2/round2-host-after-tools.json",
+    "afterPostStatusAudit": "artifacts/dsh/host/round2/round2-host-after-status2.json",
+    "statusAfterReload": "artifacts/dsh/host/round2/status-after-reload.json",
+    "statusAfterProbes": "artifacts/dsh/host/round2/status-after-probes.json",
+    "workerProbe": "artifacts/dsh/host/round2/worker-tool-probe.json",
+    "coreProbe": "artifacts/dsh/host/round2/core-event-tool-probe.json"
+  },
+  "limitations": [
+    "Zero-model evidence only: the probes prove restricted mounting, non-forgeable fields, release and the diagnostics cache path; they do not prove a real model invoked event tools, provider budgets/cache, real core plan execution or real channel traffic.",
+    "The channels projection is empty because no adapter is connected; real audience/binding/invalidation behavior is covered by offline integration tests only.",
+    "Real browser DOM rendering of the new projections remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts."
+  ]
+}
