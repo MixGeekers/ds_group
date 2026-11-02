@@ -1,0 +1,25 @@
+{
+  "productBaselineCommit": "8c66737abb930ae0389c426bd985be7f4fa28580",
+  "runtimeCodeBaselineCommit": "2402ca8de783599716f1319b509e73b532ce2fed",
+  "status": "paused-unfinished-unvalidated-source-draft",
+  "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+  "baseline": {
+    "bytes": 7549,
+    "sha256": "487221f85323e3687f4b2ffe7ca99002fbd9f28ef82cb6f179669191a4ad2ed7"
+  },
+  "workingDraft": {
+    "bytes": 15263,
+    "sha256": "fb178ebc31e6358dd1cacd53852f2295b674cfb38cd6244e0604688c46995292"
+  },
+  "patch": {
+    "path": "3J-native-context-未验证草稿.diff.txt",
+    "bytes": 12305,
+    "sha256": "9b3a8cd74a419d43a32f185ca2699fccefd4176910f8f53f0e75f43be33f3fe0",
+    "format": "git diff --unified=0; reference text only, do not automatically apply"
+  },
+  "typecheckRun": false,
+  "testsRun": false,
+  "buildRun": false,
+  "hostReloaded": false,
+  "callersAndTestsUpdated": false
+}

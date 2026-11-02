@@ -4,11 +4,15 @@
 
 **当前阶段：开始实现。** 2026-11-01（America/Caracas），用户批准构建识雨本体；2026-11-02 确认九大子系统及 Goal 持续推进。本体位于 `plugins/shiyu/`，已有运行仪表盘、持久事件、本地对话背景、授权预算、任务核验和原生 Session 接线。语义记忆已接入受控 Harrier 与 Ombre，并有限定加载、撤回和 Session 换代证据。
 
-**最新进展：3H C 轮限定双频道文本闭环通过，严格对话验收 3/3。** 两频道分别绑定原生 Session；群聊第二轮在未重述代号时正确回忆前文。三次生成、账目和独立送达对应，已知主用量1852 tokens/3calls/3effects；停止后一次有序重载没有重放。见 [C 轮成功证据](<plugins/shiyu/artifacts/phase3h-c-lab-host-validation.json>)。此前 [B 轮格式/回忆失败](<plugins/shiyu/artifacts/phase3h-b-lab-host-validation.json>)及 [A 轮中断/unknown](<plugins/shiyu/artifacts/phase3h-lab-host-validation.json>)独立保留。3G受控Core→worker→独立核验→原生Goal完成已有一个[真实合成便签样本](<plugins/shiyu/artifacts/phase3g-core-host-success.json>)。这些限定通过不代表开放式规划、完整内层、通用渠道、长期恢复/压缩、完整S/FL或九系统整体完成。缓存和完整费用仍未知，Goal继续推进。实际边界见[实施记录](<plugins/shiyu/实施记录.md>)；资料工作台完整保留，健身房维持独立产品。
+**3H 历史进展：3H C 轮限定双频道文本闭环通过，严格对话验收 3/3。** 两频道分别绑定原生 Session；群聊第二轮在未重述代号时正确回忆前文。三次生成、账目和独立送达对应，已知主用量1852 tokens/3calls/3effects；停止后一次有序重载没有重放。见 [C 轮成功证据](<plugins/shiyu/artifacts/phase3h-c-lab-host-validation.json>)。此前 [B 轮格式/回忆失败](<plugins/shiyu/artifacts/phase3h-b-lab-host-validation.json>)及 [A 轮中断/unknown](<plugins/shiyu/artifacts/phase3h-lab-host-validation.json>)独立保留。3G受控Core→worker→独立核验→原生Goal完成已有一个[真实合成便签样本](<plugins/shiyu/artifacts/phase3g-core-host-success.json>)。这些限定通过不代表开放式规划、完整内层、通用渠道、长期恢复/压缩、完整S/FL或九系统整体完成。缓存和完整费用仍未知，后续状态见下述交接入口。实际边界见[实施记录](<plugins/shiyu/实施记录.md>)；资料工作台完整保留，健身房维持独立产品。
 
 会话历史与长期Memory的[提示修补](<plugins/shiyu/artifacts/phase3h-history-prompt-fix.json>)此前离线929/929及构建通过，本轮C在该固定版本上实测；新成功不覆盖旧失败，也不把历史离线测试重计为本轮。
 
+**当前协作方式（2026-11-02）：后续实现及测试工具/集合交由 DeepSeek Harness 完成；Codex 原实施 Goal 已暂停。** 已提交基线为 `8c66737`（3I 固定宿主零模型验收），本机另有未完成未测试的3J源码草稿，按交接说明接管。
+
 ## 从这里开始
+
+- **[DSH 交接入口与实施路线](<架构与设计/DSH交接/00-交接入口与实施路线.md>)**：九系统剩余目标、测试与验收设计、执行围栏及3J草稿，不包含本轮新测试工具或新验收成绩。
 
 - [总体架构](<架构与设计/总体架构.md>)与[完整方案](<架构与设计/A方案全景/完整架构方案.md>)。
 - [识雨本体](<plugins/shiyu/README.md>)与[实施记录](<plugins/shiyu/实施记录.md>)：实际代码、数据位置、分批测试、失败与限定真实宿主证据。

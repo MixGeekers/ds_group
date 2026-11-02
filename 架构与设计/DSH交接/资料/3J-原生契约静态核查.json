@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "phase": "3J",
+  "checkedAt": "2026-11-02T17:24:31.993Z",
+  "evidenceLevel": "fixed-installed-SDK-static-source-review-only",
+  "headAtRead": "8c66737abb930ae0389c426bd985be7f4fa28580",
+  "archive": {
+    "path": "<installed DSH app>/Contents/Resources/app.asar",
+    "bytes": 182804145,
+    "mtimeNs": "1793324866000000000",
+    "stableDuringSelectedReads": true,
+    "wholeArchiveHashComputed": false
+  },
+  "sources": [
+    {
+      "path": "dsh/node_modules/@deepseek-ai/dsh-session/lib/index.js",
+      "packageVersion": "0.2.1-rc.5",
+      "bytes": 94982,
+      "sha256": "2f5dd07cb5c744a29abbb8003a8a4cefd9e582c6e2538074ca299a0ddd02a3bf",
+      "packageJsonPath": "dsh/node_modules/@deepseek-ai/dsh-session/package.json",
+      "packageJsonBytes": 1576,
+      "packageJsonSha256": "c8355a542c9cd2be07746445ba49c54b0bba0baf195fd39f95632d9dc8b7fa41",
+      "sourceLineRanges": {
+        "liveHeader": [
+          1332,
+          1345
+        ],
+        "forkAndResumeCut": [
+          1399,
+          1428
+        ],
+        "seq": [
+          1468,
+          1478
+        ],
+        "append": [
+          1517,
+          1537
+        ],
+        "flush": [
+          1938,
+          1973
+        ],
+        "headerValidation": [
+          1040,
+          1075
+        ],
+        "sequenceBrands": [
+          21,
+          32
+        ]
+      }
+    },
+    {
+      "path": "dsh/node_modules/@deepseek-ai/dsh-session-persistence/lib/index.js",
+      "packageVersion": "0.2.1-rc.5",
+      "bytes": 12920,
+      "sha256": "cc0b6d3a224133af611b428d5a49020e300f86c3b4ba28037aeb219029bde3eb",
+      "packageJsonPath": "dsh/node_modules/@deepseek-ai/dsh-session-persistence/package.json",
+      "packageJsonBytes": 1270,
+      "packageJsonSha256": "810896b62e44def524751e3131223d225aeb2c3509c2d57690806956a98be2e6",
+      "sourceLineRanges": {
+        "storageSemantics": [
+          242,
+          263
+        ]
+      }
+    },
+    {
+      "path": "dsh/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/lib/index.js",
+      "packageVersion": "0.2.1-rc.5",
+      "bytes": 147273,
+      "sha256": "973dd78679b2661d6f492343bc22b124ae958aa597d3b36c698a2c650f909984",
+      "packageJsonPath": "dsh/node_modules/@deepseek-ai/dsh-session-persistence-jsonl/package.json",
+      "packageJsonBytes": 1601,
+      "packageJsonSha256": "70299a81743572acbe3347cf54fce58e5b40f4905a9ba1546840ead6c97a978b",
+      "sourceLineRanges": {
+        "handleMetadata": [
+          22,
+          54
+        ],
+        "pagedRead": [
+          56,
+          110
+        ],
+        "openRead": [
+          2481,
+          2518
+        ],
+        "stat": [
+          2563,
+          2596
+        ]
+      }
+    },
+    {
+      "path": "dsh/node_modules/@deepseek-ai/dsh-session-projection/lib/index.js",
+      "packageVersion": "0.2.1-rc.5",
+      "bytes": 19981,
+      "sha256": "7dc2b212819baf4fc292751054d30b97afcbdee0a4733230abf92c6722e6550c",
+      "packageJsonPath": "dsh/node_modules/@deepseek-ai/dsh-session-projection/package.json",
+      "packageJsonBytes": 1309,
+      "packageJsonSha256": "74392ffc986007a579dfd30d84107d537c119a7b7f88372bf12d1020705f4017",
+      "sourceLineRanges": {
+        "liveSnapshot": [
+          141,
+          154
+        ],
+        "cachedSnapshot": [
+          157,
+          178
+        ],
+        "restore": [
+          274,
+          318
+        ]
+      }
+    },
+    {
+      "path": "dsh/node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js",
+      "packageVersion": "0.2.1-rc.5",
+      "bytes": 74599,
+      "sha256": "cf57e3ecd487ac5c2553455aaa5cef2c6fb41e6bd61be5aa455675d1d7193033",
+      "packageJsonPath": "dsh/node_modules/@deepseek-ai/dsh-agent-loop/package.json",
+      "packageJsonBytes": 1986,
+      "packageJsonSha256": "e103d718f1bc8693e449676e65b3527d984d657795a5fc4fcc7b14fe3ff72cf5",
+      "sourceLineRanges": {
+        "publish": [
+          1786,
+          1799
+        ],
+        "setup": [
+          1914,
+          1955
+        ],
+        "resume": [
+          1963,
+          2015
+        ]
+      }
+    },
+    {
+      "path": "dsh/node_modules/@deepseek-ai/dsh-agent/lib/index.js",
+      "packageVersion": "0.2.1-rc.5",
+      "bytes": 28257,
+      "sha256": "7b59cf82c2784c25bdce4e3e24e5e5303b02b9f1003efacf50255492d17baf8b",
+      "packageJsonPath": "dsh/node_modules/@deepseek-ai/dsh-agent/package.json",
+      "packageJsonBytes": 1978,
+      "packageJsonSha256": "ce5841f6b3e481dea24983385ac088cff7aff27d29fefa625f7b19aed6f6cbf2",
+      "sourceLineRanges": {
+        "resumePublic": [
+          459,
+          470
+        ]
+      }
+    }
+  ],
+  "contracts": {
+    "liveSeq": "session.seq is the public next-event sequence number and log length. N events means seq=N, last included sequence=N-1; empty session seq=0.",
+    "projectionWatermark": "restore({}, completeEvents, 0, header, inheritedEventCount).snapshot.asOfSeq is inclusive: completeEvents.length-1, including -1 for empty. restore is synchronous and only describes the supplied prefix. cachedSnapshot is not an up-to-date proof.",
+    "header": "session.id derives from deeply frozen header.id; header.agentPreset is optional in SDK and must be required/equal to the owned expected preset by the caller. inheritedEventCount is a separate session/handle property, never inferred from header or defaulted when absent.",
+    "inheritedPrefix": "Require safe integer 0<=inheritedEventCount<=eventCount and reject negative zero; unseeded headers require 0. Full canonical reads start at seq0 and include inherited events without offset adjustment. SDK constructor validates the fork marker relationship; projection.restore only forwards metadata and does not validate it.",
+    "readHandle": "JSONL read(offset,length) slices the logical event sequence and returns {eventState,events}; every read may observe a later append. It is not a fixed snapshot; short page or EOF describes only that read. eventState is detached/shared-frozen aliasing ownership, not a count.",
+    "metadataFreshness": "JSONL handle header/inheritedEventCount are captured at open. readCurrent re-reads events but does not refresh those fields; monotonic length checks detect shrink, not arbitrary same-length mutation.",
+    "stat": "sessionPersistence.stat(id) exposes header, opaque revision and optional sizeBytes. Comparing before/after can detect a changed observed generation but is neither a lock nor an event count.",
+    "resume": "Native resume write-opens, reads history, may append interruptedTurnClosers, prepares restored Session (may append session/end-seed), persists the unstored suffix, then runs setup under maintenance, persists setup suffix, and announces the live session/agent. Resume is not a pure read and extra lifecycle events cannot be inferred from one fixed +1 delta.",
+    "durability": "Live append is synchronous; persistence observers buffer asynchronously. ctx.sessions.flush(session) is the awaited durability checkpoint, returns whether at least one listener participated, and is not a pause/append lock."
+  },
+  "minimumCallerChecks": [
+    "Bind exact owned session id, preset, cwd/header hash, inheritedEventCount and the live Session object; reject absent/invalid metadata. Preserve explicit total-page/event/byte limits, abort signal and one absolute deadline.",
+    "For a live/resumed Session, finish native setup under existing deny gates, establish the live nextSeq, await ctx.sessions.flush(session), and verify the live identity and nextSeq still match before the bounded cold read.",
+    "Page from logical offset 0; validate every seq is contiguous, every page does not exceed the requested length, and collect through explicit EOF. Restore the official inbox projection from the complete prefix with baseSeq=0 and exact handle metadata.",
+    "Require snapshot.asOfSeq===eventCount-1 and the expected projection unit. The agreed implementation uses two complete bounded sequential passes, comparing per-page seq/hash and explicit EOF, and returns a historyDigest. Any growth/change/timeout/close failure is unconfirmed, never silently truncated. This is stable observation, not an atomic snapshot.",
+    "Before accepting or mutating, synchronously recheck live Session identity/header/inheritedEventCount and live.seq===eventCount, plus current permit. Recheck after every subsequent await before a related mutation. Prefer a final synchronous check immediately adjacent to the owned synchronous mutation."
+  ],
+  "limits": [
+    "No public method inspected supplies a cross-await immutable Session snapshot or compare-and-append transaction spanning the control DB and native Session. Checks establish a point-in-time matching prefix, not absence of future writes.",
+    "Read handles do not reserve write ownership. Two equal full passes strengthen content observation but do not lock the source or prove no change after the final check; the official backend contract remains append-only.",
+    "Projection asOfSeq proves only the supplied prefix, not flush success, complete billing, no model calls or future quiescence.",
+    "Provider-neutral interface declarations advertised by package.json were not present at the two exact dsh-session .d.ts paths attempted; conclusions above use shipped executable source read as text."
+  ],
+  "scope": {
+    "liveSessionsRead": 0,
+    "businessDatabasesRead": 0,
+    "hostApiCalls": 0,
+    "sdkExecuted": false,
+    "modelCalls": 0,
+    "testsRun": 0,
+    "productOrDocsModified": false,
+    "handoffCopy": "Sanitized static metadata; no host/API/model execution and not a runtime validation."
+  }
+}

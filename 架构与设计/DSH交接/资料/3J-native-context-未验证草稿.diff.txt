@@ -1,0 +1,196 @@
+diff --git a/plugins/shiyu/src/adapters/dsh/native-context.ts b/plugins/shiyu/src/adapters/dsh/native-context.ts
+index ce1f3b9..aaec568 100644
+--- a/plugins/shiyu/src/adapters/dsh/native-context.ts
++++ b/plugins/shiyu/src/adapters/dsh/native-context.ts
+@@ -0,0 +1 @@
++import { createHash } from 'node:crypto';
+@@ -5 +6,39 @@ export interface NativeInboxReference { messageId: string; messageHash: string;
+-const EVENT_CAP = 2048;
++/** Trusted recovery bounds, not an unlimited history or a host memory limit. */
++export const NATIVE_HISTORY_LIMITS = Object.freeze({ pageEvents: 512, maxEvents: 32_768, maxBytes: 32 * 1024 * 1024, maxReads: 256, timeoutMs: 10_000 });
++export type NativeHistoryErrorCode = 'NATIVE_HISTORY_SERVICES' | 'NATIVE_HISTORY_HEADER' | 'NATIVE_HISTORY_SEQUENCE'
++  | 'NATIVE_HISTORY_LIMIT' | 'NATIVE_HISTORY_CHANGED' | 'NATIVE_HISTORY_PROJECTION' | 'NATIVE_HISTORY_CANCELLED'
++  | 'NATIVE_HISTORY_DEADLINE' | 'NATIVE_HISTORY_READ' | 'NATIVE_HISTORY_CLOSE';
++const historyErrors: Record<NativeHistoryErrorCode, string> = {
++  NATIVE_HISTORY_SERVICES: 'Native history services are unavailable',
++  NATIVE_HISTORY_HEADER: 'Native history identity or inherited metadata does not match',
++  NATIVE_HISTORY_SEQUENCE: 'Native cold projection has an incomplete event sequence',
++  NATIVE_HISTORY_LIMIT: 'Native cold projection history exceeds the safe read bound',
++  NATIVE_HISTORY_CHANGED: 'Native history changed after its observed EOF',
++  NATIVE_HISTORY_PROJECTION: 'Native inbox projection or its sequence watermark is invalid',
++  NATIVE_HISTORY_CANCELLED: 'Native history recovery was cancelled',
++  NATIVE_HISTORY_DEADLINE: 'Native history recovery exceeded its deadline',
++  NATIVE_HISTORY_READ: 'Native history read failed',
++  NATIVE_HISTORY_CLOSE: 'Native history handle release failed',
++};
++/** No native error, event body, or provider text is attached to this public failure. */
++export class NativeHistoryError extends Error {
++  constructor(readonly code: NativeHistoryErrorCode) { super(historyErrors[code]); this.name = 'NativeHistoryError'; }
++}
++export interface NativeColdInboxSnapshot {
++  references: NativeInboxReference[];
++  /** Inclusive native event sequence; -1 for an empty log. Not a control-store watermark. */
++  asOfSeq: number;
++  /** Also the next native event sequence at this observed cut. */
++  eventCount: number;
++  sessionId: string;
++  preset: string;
++  headerHash: string;
++  inheritedEventCount: number;
++  historyBytes: number;
++  /** SHA-256 over ordered, canonical event hashes from both matching read passes. */
++  historyDigest: string;
++  readPages: number;
++  tailEventHash?: string;
++}
++export interface NativeColdHistoryOptions { /** Can only shorten the fixed recovery timeout. */ deadlineMs?: number }
++
+@@ -34,4 +73,27 @@ export function appendNativeContextMessage(session: DshSession, message: NativeU
+-/** Use the registered native projector without creating an Agent or storing another history/checkpoint. */
+-export async function coldNativeInbox(ctx: DshContext, sessionId: string, preset: string, signal?: AbortSignal): Promise<NativeInboxReference[]> {
+-  nativeContextServices(ctx); signal?.throwIfAborted();
+-  const handle = await ctx.get('sessionPersistence').open(sessionId, 'read', { signal });
++/**
++ * The official reader's offset is a logical seq, not a byte offset. Read from zero
++ * through explicit EOF, then use the registered projector once over that full cut.
++ * No history/checkpoint is persisted here. The fixed backend may decode the whole
++ * log before slicing, so these bounds do not promise a host memory/IO ceiling.
++ *
++ * The public handle is not a snapshot lock: it relies on the native append-only
++ * contract. A second complete pass verifies the first cut, including same-length
++ * changes observed between passes. Neither pass provides an atomic snapshot under
++ * an arbitrary external writer. Callers must also check the live native watermark
++ * and inbox before any mutation after resume.
++ */
++export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string, preset: string, signal?: AbortSignal,
++  options: NativeColdHistoryOptions = {}): Promise<NativeColdInboxSnapshot> {
++  const fail = (code: NativeHistoryErrorCode): never => { throw new NativeHistoryError(code); };
++  const startedAt = Date.now();
++  if (options.deadlineMs !== undefined && !Number.isSafeInteger(options.deadlineMs)) fail('NATIVE_HISTORY_DEADLINE');
++  const deadline = Math.min(startedAt + NATIVE_HISTORY_LIMITS.timeoutMs, options.deadlineMs ?? Infinity);
++  const timeout = new AbortController();
++  const readSignal = signal ? AbortSignal.any([signal, timeout.signal]) : timeout.signal;
++  const checkTime = () => {
++    if (signal?.aborted) fail('NATIVE_HISTORY_CANCELLED');
++    if (timeout.signal.aborted || Date.now() >= deadline) fail('NATIVE_HISTORY_DEADLINE');
++  };
++  const timer = setTimeout(() => timeout.abort(), Math.max(0, deadline - startedAt));
++  timer.unref();
++  let handle: any;
+@@ -39,16 +101,100 @@ export async function coldNativeInbox(ctx: DshContext, sessionId: string, preset
+-    if (handle.header?.agentPreset !== preset) throw new Error('Native Session preset does not match the managed binding');
+-    const result = await handle.read(0, EVENT_CAP + 1, { signal });
+-    if (!Array.isArray(result?.events) || result.events.length > EVENT_CAP) throw new Error('Native cold projection history exceeds the safe read bound');
+-    // A truncated native prefix must never be interpreted as an empty current inbox.
+-    if (result.events.some((event: SessionEvent, index: number) => event.seq !== index)) throw new Error('Native cold projection has an incomplete event sequence');
+-    // Public eventState describes aliasing (e.g. "detached"), not a total count.
+-    // Confirm the observed EOF through the same public reader instead of
+-    // inventing eventState.count or trusting a short prefix as complete history.
+-    const tail = await handle.read(result.events.length, 1, { signal });
+-    if (!Array.isArray(tail?.events) || tail.events.length !== 0) throw new Error('Native cold projection has an incomplete event tail');
+-    const restored = await ctx.get('sessionProjections').restore({}, result.events, 0, handle.header, handle.inheritedEventCount);
+-    const inbox = restored?.snapshot?.values?.inbox;
+-    if (!inbox) throw new Error('Registered native inbox projection is unavailable');
+-    signal?.throwIfAborted();
+-    return [...references(inbox['next-turn'], 'next-turn'), ...references(inbox['next-step'], 'next-step')];
+-  } finally { await handle.close(); }
++    checkTime();
++    try { nativeContextServices(ctx); } catch { fail('NATIVE_HISTORY_SERVICES'); }
++    handle = await ctx.get('sessionPersistence').open(sessionId, 'read', { signal: readSignal });
++    checkTime();
++    if (!handle || typeof handle.read !== 'function' || typeof handle.close !== 'function') fail('NATIVE_HISTORY_SERVICES');
++    const header = structuredClone(handle.header);
++    const inheritedEventCount = handle.inheritedEventCount;
++    if (!header || header.id !== sessionId || header.agentPreset !== preset
++      || !Number.isSafeInteger(inheritedEventCount) || inheritedEventCount < 0) fail('NATIVE_HISTORY_HEADER');
++    const headerHash = nativeMessageHash(header);
++    const checkMetadata = () => {
++      if (nativeMessageHash(handle.header) !== headerHash || handle.inheritedEventCount !== inheritedEventCount) fail('NATIVE_HISTORY_CHANGED');
++    };
++    let readPages = 0;
++    const read = async (offset: number, length: number): Promise<SessionEvent[]> => {
++      checkTime(); checkMetadata();
++      if (++readPages > NATIVE_HISTORY_LIMITS.maxReads) fail('NATIVE_HISTORY_LIMIT');
++      const result = await handle.read(offset, length, { signal: readSignal });
++      checkTime(); checkMetadata();
++      if (!Array.isArray(result?.events) || result.events.length > length) fail('NATIVE_HISTORY_SEQUENCE');
++      return result.events;
++    };
++    const events: SessionEvent[] = [];
++    const eventHashes: string[] = [];
++    const digest = createHash('sha256');
++    let historyBytes = 0;
++    for (;;) {
++      // One event beyond the cap distinguishes exact-cap EOF from an oversized log.
++      const page = await read(events.length, Math.min(NATIVE_HISTORY_LIMITS.pageEvents, NATIVE_HISTORY_LIMITS.maxEvents - events.length + 1));
++      if (page.length === 0) break;
++      for (const event of page) {
++        checkTime();
++        if (!event || event.seq !== events.length || typeof event.type !== 'string' || !event.type) fail('NATIVE_HISTORY_SEQUENCE');
++        if (events.length === NATIVE_HISTORY_LIMITS.maxEvents) fail('NATIVE_HISTORY_LIMIT');
++        const encoded = JSON.stringify(event);
++        historyBytes += Buffer.byteLength(encoded, 'utf8');
++        if (historyBytes > NATIVE_HISTORY_LIMITS.maxBytes) fail('NATIVE_HISTORY_LIMIT');
++        const eventHash = nativeMessageHash(event);
++        eventHashes.push(eventHash); digest.update(eventHash + '\n');
++        events.push(structuredClone(event));
++      }
++      // A short page is not EOF. A fresh read must explicitly establish the end.
++    }
++    if (inheritedEventCount > events.length) fail('NATIVE_HISTORY_HEADER');
++    const asOfSeq = events.length - 1;
++    const tailEventHash = eventHashes.at(-1);
++    const historyDigest = digest.digest('hex');
++    let restored: any;
++    try { restored = await ctx.get('sessionProjections').restore({}, events, 0, header, inheritedEventCount); }
++    catch { checkTime(); fail('NATIVE_HISTORY_PROJECTION'); }
++    checkTime(); checkMetadata();
++    if (restored?.snapshot?.asOfSeq !== asOfSeq) fail('NATIVE_HISTORY_PROJECTION');
++    const inbox = restored.snapshot.values?.inbox;
++    let inboxReferences: NativeInboxReference[];
++    try { inboxReferences = [...references(inbox?.['next-turn'], 'next-turn'), ...references(inbox?.['next-step'], 'next-step')]; }
++    catch { fail('NATIVE_HISTORY_PROJECTION'); }
++    // Re-observe the entire cut without retaining a second copy. Native read
++    // handles have no immutable revision token, so tail-only checks are weaker.
++    let verified = 0;
++    const verifiedDigest = createHash('sha256');
++    for (;;) {
++      const page = await read(verified, Math.min(NATIVE_HISTORY_LIMITS.pageEvents, events.length - verified + 1));
++      if (page.length === 0) {
++        if (verified !== events.length) fail('NATIVE_HISTORY_CHANGED');
++        break;
++      }
++      for (const event of page) {
++        checkTime();
++        if (!event || event.seq !== verified || verified === events.length) fail('NATIVE_HISTORY_CHANGED');
++        const eventHash = nativeMessageHash(event);
++        if (eventHash !== eventHashes[verified]) fail('NATIVE_HISTORY_CHANGED');
++        verifiedDigest.update(eventHash + '\n'); verified++;
++      }
++    }
++    if (verifiedDigest.digest('hex') !== historyDigest) fail('NATIVE_HISTORY_CHANGED');
++    if (events.length) {
++      const anchor = await read(asOfSeq, 1);
++      if (anchor.length !== 1 || anchor[0]?.seq !== asOfSeq || nativeMessageHash(anchor[0]) !== tailEventHash) fail('NATIVE_HISTORY_CHANGED');
++    }
++    if ((await read(events.length, 1)).length !== 0) fail('NATIVE_HISTORY_CHANGED');
++    checkTime();
++    return { references: inboxReferences, asOfSeq, eventCount: events.length, sessionId, preset, headerHash,
++      inheritedEventCount, historyBytes, historyDigest, readPages, ...(tailEventHash ? { tailEventHash } : {}) };
++  } catch (error) {
++    if (error instanceof NativeHistoryError) throw error;
++    checkTime();
++    throw new NativeHistoryError('NATIVE_HISTORY_READ');
++  } finally {
++    try {
++      if (typeof handle?.close === 'function') {
++        try { await handle.close(); } catch { throw new NativeHistoryError('NATIVE_HISTORY_CLOSE'); }
++      }
++      checkTime();
++    } finally { clearTimeout(timer); }
++  }
++}
++/** Compatibility helper for checks that only consume the projected inbox. */
++export async function coldNativeInbox(ctx: DshContext, sessionId: string, preset: string, signal?: AbortSignal,
++  options?: NativeColdHistoryOptions): Promise<NativeInboxReference[]> {
++  return (await coldNativeInboxSnapshot(ctx, sessionId, preset, signal, options)).references;
