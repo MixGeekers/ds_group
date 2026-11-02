@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the H2b time-source probe, H2c real-model core probe and H5b checkpoint availability probe into Runtime and tools",
+  "capturedAt": "2026-11-02T23:22:33.544Z",
+  "status": "offline-verified-integration",
+  "purpose": "Land the three verified integration surfaces: owner-only zero-model time-source probe, owner-only bounded real-model core event-tool probe, owner-only read-only checkpoint availability probe; each receipt is cached only in snapshot diagnostics and no business state is written.",
+  "baseline": {
+    "head": "50e347d",
+    "note": "previous round HEAD; round-4 slices committed on top"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 97479,
+      "sha256": "d7ffb409f7eb1d311407ff39bea38aa0b3111221619074b73b43b60fa6904105"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 8704,
+      "sha256": "d735484019ad96cf783410af54e2e16a1520ff89885c636a59e705ae0a495ca4"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-core.ts",
+      "bytes": 39312,
+      "sha256": "0c18e126b4d013b06f1621aa26ebf840418e2e461fea9921c7af39b97b3abffd"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 5415,
+      "sha256": "11844a5b02f24f5c56a78ff18e328d4a008b0a19a68474a9e71e46f931f20c84"
+    }
+  ],
+  "changes": {
+    "runtimeH2b": "imports probeTimeSource/TimeSourceProbeResult, adds lastTimeSourceProbe, dispatches runtime.probe-time-source and implements commandTimeSourceProbe with session.probe admission (paused rejection, shared capacity, abortable, no retry, no model/Task/Effect); snapshot diagnostics exposes timeSourceProbe.",
+    "runtimeH2c": "adds CoreDriver.probeCoreEventToolModelRound, lastCoreModelToolProbe, runtime.probe-core-model-tools command (single-flight phase guard, paused admission, 60s timeout, maxTokens 256, honest receipt including failed/unknown/cancelled, no retry) and diagnostics.coreModelToolProbe.",
+    "runtimeH5b": "applies the checkpoint probe diff: owner-only runtime.checkpoint.probe dispatched before ensureCanRun (paused readable), RuntimeCheckpointProbeCommand with validated receipt and diagnostics.checkpointProbe; capture command remains explicitly unavailable without trusted composition.",
+    "indexTools": "registers three owner-facing diagnostic tools: shiyu_diagnose_time_source, shiyu_diagnose_core_model_tools, shiyu_diagnose_checkpoint_availability (all parameterless, non-concurrency-safe, no model/replyer/worker restricted mounting); existing status/worker/core tools unchanged.",
+    "localCoreSeam": "adds the thin LocalCoreService delegation probeCoreEventToolModelRound to the core adapter so the Runtime CoreDriver path can reach it (the adapter owns behavior; the seam adds no policy).",
+    "tests": "host-diagnostics-tool tests assert each new tool executes exactly its owner command with closed parameters; the round integrated isolated check covers all round-4 slices plus this integration."
+  },
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 50e347d + all round-4 slice files and the integration files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/round4-integrated-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1472,
+        "pass": 1472,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 338326,
+      "log": "plugins/shiyu/.local/slice-verify-round4-integrated.log",
+      "arithmetic": "1435 baseline + 9 H2b + 9 H2c + 10 H5b + 6 H7 + 3 tool-definition tests = 1472"
+    },
+    "perSliceAuthorChecks": {
+      "h2b": "1444/1444 (baseline + 9)",
+      "h2c": "1444/1444 (baseline + 9)",
+      "h5b": "1445/1445 twice (baseline + 10)",
+      "h7": "1441/1441 slice plus harness 77/77"
+    },
+    "targeted": "76/76 runtime/host-diagnostics/events-time-probe/recovery-checkpoint-probe/core-event-tools targeted batch after integration",
+    "hostValidationPending": "fixed-host zero-model probes and the single bounded real-model core tool probe are executed next and committed separately."
+  },
+  "knownLimitations": [
+    "All three probes are diagnostics only; they do not prove production time triggering, real Session log export, Ombre export readiness or real plan quality.",
+    "The real-model core probe depends on provider behavior and usage reporting; a failed/unknown outcome must be recorded honestly and must not be retried automatically.",
+    "The checkpoint capture command remains explicitly unavailable without trusted staging/manifest composition."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; fixed-host validation pending."
+}

@@ -1113,3 +1113,38 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. round-3 新增能力（H2b 时间源、H4e 派生/生命周期、H5b 检查点组合、H6c 仪表盘）均为 **G1 离线/合成宿主**；固定宿主仅零模型验证。
 2. 产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0；九系统整体验收未完成。
 3. 真实模型调用、真实渠道/设备、真实 Ombre 导出、独立故障域/V27、生产浏览器 DOM 与长期运行仍未验证。
+
+## 33. 第四轮：H2b/H2c/H5b 诊断探针与 H7 证据映射（round-4 离线切片）
+
+状态：**G1 离线/集成通过**；宿主执行与真实模型单轮未验（下一步）。2026-11-02 完成并审阅。
+
+### 33.1 H2b 时间源零模型探针
+
+- `src/control/events/probe.ts`：`probeTimeSource` 在**独立 `:memory:` ControlStore + EventService + 临时 EventRuleStore** 内运行（不触 live 控制库）：确定性 due 一次性规则 tick 两次恰好 1 个 `time.occurred`（identity=subscription+conditionRevision+规范发生时刻）、重复 tick 静默、interval latest-only 合并、paused 不触发且恢复不重放、时钟回拨记 gap 不重触发、once-wait 匹配一次、cleanup/关闭、无损有界回执。
+- 顺带修复 time-source 的 once occurrence 重复前缀 bug（`once:<rev>:<ISO>`）。
+- 测试 9 项；作者隔离 1444/1444、Lead 集成隔离 1472/1472，0 skip。
+
+### 33.2 H2c 真实模型单轮工具探针
+
+- `probeCoreEventToolModelRound`：专用 `shiyu-core-model-probe-*` Session，走与 core 决策相同的受限 3 工具装配（宿主注入 actor/scope、参数禁授权字段）、固定不可变 prompt（先调用一次 `shiyu_core_event_types`，再返回单行 JSON）、≤2 主请求/2 stream、1 工具往返、总输出 ≤256 tokens、0 重试；仅记录 provider 实际 usage（缺失=unknown），工具名/参数 sha/结果交叉校验；flush→release→dispose→archive；**不创建 Goal/Task/Effect/budget/业务事实**，失败/unknown/cancelled 如实返回。
+- 测试 9 项；作者隔离 1444/1444、Lead 集成 1472/1472。
+- 集成 patch `artifacts/dsh/h2/h2c-real-model-probe-integration.patch`（local-core 薄接缝 + runtime 命令 + 工具）由 Lead 应用。
+
+### 33.3 H5b 检查点可用性只读探针
+
+- `probeCheckpointAvailability`：只读枚举 active GoalBindings（ControlStore `goal.binding.list`）、staging 配置/围栏、resolver/native-state/flush/projection 仅 presence、memory 生产显式 `MEMORY_EXPORT_UNAVAILABLE` + required scope、workspace 只读 lstat/readdir；固定 `ready:false`/`expectedReady:false`/`readOnly:true`/`captureAttempted:false`/`resolverInvoked:false`/`filesWritten:0`，blockers 与组件一一对应。
+- `RuntimeCheckpointProbeCommand`：owner-only `runtime.checkpoint.probe`，严格字段、paused 只读、不 capture/不写文件、坏回执拒绝后才缓存 diagnostics。
+- 测试 10 项 + 7 条矩阵；作者隔离两次 1445/1445、Lead 集成 1472/1472。
+
+### 33.4 H7-round4 证据映射与验收索引
+
+- 增加 8 个 round-3 证据来源（18 文件，总 30 来源/72 文件）：H6c、H2b、H4e、H4e 热修复、H5b、H7-acceptance、Lead 集成、round-3 宿主；逐文件 `git show <commit>:<path>` blob SHA + ancestry 校验，失败 fail-closed→unknown。
+- 九系统/40 模块/V 只增加 limited 证据引用：产品行仍 **79/79 not_covered、covered=0**、tooling_ready 仍 8（TV.1–7/9）、V 不升级；event-schedule 从 not_covered→limited-only（非验收）。
+- 新增 6 测试；harness 77/77、tsc 通过；作者隔离全量 1441/1441。
+
+### 33.5 Lead 集成与验证
+
+- `runtime.ts`：接入三条 owner 命令（`runtime.probe-time-source`、`runtime.probe-core-model-tools`、`runtime.checkpoint.probe`）与 diagnostics（`timeSourceProbe`、`coreModelToolProbe`、`checkpointProbe`）；`index.ts` 注册三个无参数、非并发安全的诊断工具（`shiyu_diagnose_time_source`/`shiyu_diagnose_core_model_tools`/`shiyu_diagnose_checkpoint_availability`）；`local-core.ts` 仅薄委托。
+- **Lead 集成隔离验证**（HEAD `50e347d` + 全部 round-4 切片与集成文件）：**1472/1472 通过，0 失败/0 跳过**（= 1435 + 9 + 9 + 10 + 6 + 3）；证据 `artifacts/dsh/slices/round4-integrated-verify.json`。
+- 定向 76/76（runtime、host diagnostics、时间探针、检查点探针、core 事件工具）。
+- 证据级别：G1 集成；宿主命令执行、真实模型单轮、真实 Session/Ombre 导出仍未验。

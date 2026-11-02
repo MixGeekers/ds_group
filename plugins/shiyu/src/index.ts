@@ -24,6 +24,11 @@ export async function serveState(service: RuntimeService): Promise<Response> {
   try { return Response.json(await service.snapshot(), { headers }); }
   catch (error) { return errorResponse(error, 503); }
 }
+/**
+ * Owner command route. Owner-only commands (including runtime.checkpoint.probe)
+ * travel through here from the trusted control surface; they are never exposed
+ * as model tools or GET endpoints.
+ */
 export async function serveCommand(service: RuntimeService, request: Request): Promise<Response> {
   try { return Response.json(await service.command(await readCommand(request), request.signal), { headers }); }
   catch (error) { return errorResponse(error); }
@@ -60,6 +65,56 @@ export function coreToolDiagnosisTool(service: { command(input: unknown): Promis
     },
   };
 }
+/**
+ * Owner-triggered bounded real-model probe of the restricted core event tool
+ * surface. It runs exactly one synthetic probe turn (fixed prompt, at most one
+ * read-only tool round and two main requests), records only provider-reported
+ * usage, releases and archives the disposable Session, and returns an honest
+ * failed/unknown/cancelled receipt instead of retrying. It never creates a
+ * Goal/Task/Effect or writes business state. Only the owner-facing runtime
+ * command surface can reach the underlying operation.
+ */
+export function coreModelToolProbeTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_diagnose_core_model_tools',
+    description: '有界真实模型单轮事件工具探针：专用受限 core 会话发送固定不可变提示，要求先调用一次 shiyu_core_event_types 再返回单行 JSON；最多 1 次工具往返、≤2 次主请求，usage 仅按 provider 实际报告（缺失为 unknown），会话释放并归档；不创建 Goal/Task/Effect、不写业务库、不重试。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-core-model-tools' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  };
+}
+/** Zero-model isolated time-source diagnostic tool (no parameters). */
+export function timeSourceDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_diagnose_time_source',
+    description: '零模型诊断：在独立 in-memory 控制库中验证时间源触发身份/重复幂等/暂停门控/零副作用，并立即释放；不写 live 业务库、不调模型。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-time-source' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  };
+}
+/** Zero-model read-only checkpoint availability diagnostic tool (no parameters). */
+export function checkpointAvailabilityTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_diagnose_checkpoint_availability',
+    description: '零模型只读诊断：枚举检查点所需组件与阻断原因（staging/Goal Session 导出/记忆导出/工作区），不 capture、不写文件、不调 resolver、不调模型。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.checkpoint.probe' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  };
+}
 export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_diagnose_worker_tools',
@@ -88,4 +143,7 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   // product never calls a model here and the probe Session is released at once.
   ctx.effect(() => ctx.tools.register(workerToolDiagnosisTool(service)));
   ctx.effect(() => ctx.tools.register(coreToolDiagnosisTool(service)));
+  ctx.effect(() => ctx.tools.register(coreModelToolProbeTool(service)));
+  ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));
+  ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));
 }

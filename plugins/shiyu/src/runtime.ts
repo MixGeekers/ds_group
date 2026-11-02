@@ -16,8 +16,9 @@ import { LocalStateFile } from './recovery/local-state.js';
 import { systems } from './health/systems.js';
 import { WorkerSessionDriver, type WorkerEventToolProbeResult } from './adapters/dsh/workers.js';
 import { createCoreEventTools, createWorkerEventToolSource } from './adapters/dsh/event-tools.js';
-import type { CoreDecisionEventToolFactory, CoreDecisionEventToolProbeResult } from './adapters/dsh/goals.js';
+import type { CoreDecisionEventToolFactory, CoreDecisionEventToolProbeResult, CoreEventToolModelProbeResult } from './adapters/dsh/goals.js';
 import { ChannelRuntimeBridge } from './control/channels/index.js';
+import { probeTimeSource, type TimeSourceProbeResult } from './control/events/probe.js';
 import { EventDeliveryCoordinator } from './control/events/index.js';
 import { LocalArtifactStore } from './adapters/artifacts/index.js';
 import { LocalTaskRunner } from './control/task-runner.js';
@@ -44,8 +45,9 @@ import {
   detectSessionPersistenceLogResolver,
   type RuntimeCheckpointComposition,
 } from './recovery/host-ports.js';
-import { RuntimeCheckpointCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
-import type { RuntimeManifest } from './recovery/types.js';
+import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
+import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
+import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
@@ -85,6 +87,8 @@ export interface CoreDriver {
   cancelAll(reason?: unknown): void;
   /** H2c trusted zero-model core event-tool mount diagnostic; absent = unsupported. */
   probeCoreEventTools?(options: { signal?: AbortSignal; cwd?: string; scope?: string }): Promise<CoreDecisionEventToolProbeResult>;
+  /** H2c bounded real-model single-round core event-tool probe; absent = unsupported. */
+  probeCoreEventToolModelRound?(options: { signal?: AbortSignal; cwd?: string; scope?: string; timeoutMs?: number; maxTokens?: number }): Promise<CoreEventToolModelProbeResult>;
   close(): Promise<void>;
 }
 export interface RuntimeOptions {
@@ -159,6 +163,8 @@ export class RuntimeService {
   background!: BackgroundPump;
   private lastEventToolProbe?: WorkerEventToolProbeResult;
   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
+  private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
+  private lastTimeSourceProbe?: TimeSourceProbeResult;
   private core?: CoreDriver;
   private corePump?: CorePump;
   private coreFailure?: string;
@@ -190,6 +196,10 @@ export class RuntimeService {
   private checkpoint?: RuntimeCheckpointComposition;
   /** Last explicit checkpoint diagnostic code; used for degrade visibility, never for auto retry. */
   private checkpointFailure?: string;
+  /** H5b-probe owner-only read-only availability command. */
+  private checkpointProbeCommand?: RuntimeCheckpointProbeCommand;
+  /** Last validated probe receipt; the only place it is stored (snapshot diagnostics). */
+  private checkpointProbeReceipt?: CheckpointProbeResult;
   constructor(private readonly ctx: DshContext, config: RuntimeConfig = {}, private readonly options: RuntimeOptions = {}) {
     const defaultDirectory = fileURLToPath(new URL('../.local/runtime/', import.meta.url));
     if (config.dataDir !== undefined && (typeof config.dataDir !== 'string' || !path.isAbsolute(config.dataDir))) throw new Error('dataDir must be an absolute path');
@@ -331,6 +341,31 @@ export class RuntimeService {
         isOpen: () => !this.closed && !this.closing,
         isPaused: () => this.pauseRequested,
         onDiagnostic: entry => { this.checkpointFailure = entry.code ?? undefined; },
+      });
+      // H5b-probe: read-only availability probe. The closure only runs inside the
+      // explicit owner command; it never captures, writes files, calls a resolver
+      // or changes pause state. The validated receipt is kept for diagnostics.
+      this.checkpointProbeCommand = new RuntimeCheckpointProbeCommand({
+        probe: () => probeCheckpointAvailability({
+          stagingRoot: this.options.checkpointStagingRoot,
+          dataDir: this.dataDir,
+          paused: this.pauseRequested,
+          controlStore: this.store,
+          ownerId: 'local-owner',
+          scope: 'local-owner',
+          sessionLogResolver: typeof this.ctx.get('sessionPersistence')?.resolveCurrentLog === 'function'
+            ? { candidate: 'jsonl-internal-diagnostic' }
+            : undefined,
+          goalSeams: {
+            nativeState: false,
+            flush: typeof this.ctx.get('sessions')?.flush === 'function',
+            projection: false,
+          },
+          workspaceRoot: path.join(this.dataDir, 'workspaces'),
+        }),
+        isOpen: () => !this.closed && !this.closing,
+        isPaused: () => this.pauseRequested,
+        onReceipt: receipt => { this.checkpointProbeReceipt = receipt; },
       });
       const labStatus = await this.store.request('lab.status', {});
       if (labStatus.ready) {
@@ -549,6 +584,62 @@ export class RuntimeService {
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
+  /**
+   * Owner-only bounded real-model single-round core event-tool probe. It uses
+   * the same paused admission, one-slot capacity and abortable operation
+   * semantics as session.probe; a probe turn is issued once and never retried.
+   * The honest receipt (including failed/unknown/cancelled outcomes) is cached
+   * only in snapshot diagnostics; no business state or event is written.
+   */
+  private async commandCoreModelToolProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core model tool probe input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (typeof this.core?.probeCoreEventToolModelRound !== 'function') throw new Error('CORE_MODEL_TOOL_PROBE_UNAVAILABLE');
+    if ([...this.operations.values()].some(op => op.phase === 'single-round core model tool probe')) throw new Error('Core model tool probe is already running');
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '有界真实模型单轮事件工具探针', phase: 'single-round core model tool probe',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      const core = this.core;
+      const result = await core.probeCoreEventToolModelRound!({ signal: op.controller.signal, cwd: path.join(this.dataDir, 'workspaces'),
+        scope: 'local-owner', timeoutMs: 60000, maxTokens: 256 });
+      this.lastCoreModelToolProbe = structuredClone(result);
+      if (result.status === 'passed') this.lastFailure = undefined;
+      return { ...result, sent: false, productionStateWrites: 0 };
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
+  /** Zero-model, read-only isolated time-source diagnostic (same admission
+   * semantics as session.probe: unavailable while globally paused). */
+  private async commandTimeSourceProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid time source probe input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '检查时间源零模型触发', phase: '隔离内存探针',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      const result = await probeTimeSource({ signal: op.controller.signal });
+      this.ensureCanRun(); op.controller.signal.throwIfAborted();
+      this.lastTimeSourceProbe = structuredClone(result);
+      this.lastFailure = undefined;
+      return { ...result, zeroModel: true, readOnly: true, sent: false };
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private async record(type: string, message: string, status: string): Promise<void> {
     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });
     // This component's only effect is a readable event-backed activity projection.
@@ -665,8 +756,11 @@ export class RuntimeService {
         contextSafety: structuredClone(this.contextSafety),
         eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,
         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
+        coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
         timeSource: this.timePump ? this.timePump.snapshot() : null,
-        notifications: this.notificationRouter ? { enabled: true } : { enabled: false } },
+        timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,
+        notifications: this.notificationRouter ? { enabled: true } : { enabled: false },
+        checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null },
       background: { ...conversations.background, ...backgroundState },
       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
@@ -713,6 +807,8 @@ export class RuntimeService {
     if (action === 'memory.indexLocal' || action === 'memory.searchLocal') return this.commandSemanticMemory(value, signal);
     if (action === 'runtime.probe-event-tools') return this.commandEventToolProbe(value, signal);
     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
+    if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);
+    if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
     if (action === 'runtime.resume') return this.setPaused(false);
     // H5b: owner-only local checkpoint. Dispatched before ensureCanRun() so a
@@ -720,6 +816,9 @@ export class RuntimeService {
     // effects); the handler validates the exact fields, is single-flight and
     // performs at most one capture attempt per explicit command.
     if (action === 'runtime.checkpoint.capture') return this.commandCheckpoint(value, signal);
+    // H5b-probe: read-only availability receipt, dispatched before ensureCanRun()
+    // so a paused runtime can still be diagnosed without model/dispatch effects.
+    if (action === 'runtime.checkpoint.probe') return this.commandCheckpointProbe(value, signal);
     if (action === 'conversation.linkLocalTask') {
       this.ensureCanRun(); signal?.throwIfAborted();
       if (Object.keys(value).some(key => !['action', 'taskId', 'localConversationKey'].includes(key))
@@ -865,6 +964,13 @@ export class RuntimeService {
     this.ensureOpen();
     if (!this.checkpointCommand) throw new Error('CHECKPOINT_UNAVAILABLE');
     return this.checkpointCommand.handle(value, signal);
+  }
+
+  /** Owner-only read-only checkpoint availability command. */
+  private async commandCheckpointProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<CheckpointProbeResult> {
+    this.ensureOpen();
+    if (!this.checkpointProbeCommand) throw new Error('CHECKPOINT_UNAVAILABLE');
+    return this.checkpointProbeCommand.handle(value, signal);
   }
 
   private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {

@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { coreToolDiagnosisTool, statusTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreModelToolProbeTool, coreToolDiagnosisTool, statusTool, timeSourceDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
   const snapshot = { schemaVersion: 1, instanceId: 'synthetic', state: 'idle' };
@@ -47,4 +47,40 @@ test('core tool diagnosis executes exactly the zero-model core probe command', a
   assert.deepEqual(calls, [{ action: 'runtime.probe-core-event-tools' }]);
   const rendered = tool.output.render({}, receipt) as Array<{ text: string }>;
   assert.deepEqual(JSON.parse(rendered[0]!.text), receipt);
+});
+
+test('time source diagnosis tool executes exactly the zero-model probe command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, zeroModel: true, readOnly: true, sent: false, toolName: 'shiyu_diagnose_time_source', released: true, disposed: true };
+  const tool = timeSourceDiagnosisTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_diagnose_time_source');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /零模型诊断/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-time-source' }]);
+});
+
+test('checkpoint availability tool executes exactly the read-only probe command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ready: false, expectedReady: false, readOnly: true, captureAttempted: false, filesWritten: 0, blockers: [] };
+  const tool = checkpointAvailabilityTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_diagnose_checkpoint_availability');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /只读诊断/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.checkpoint.probe' }]);
+});
+
+test('core model tool probe executes exactly the bounded real-model command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: false, status: 'unknown', sent: false, usage: { status: 'unknown' } };
+  const tool = coreModelToolProbeTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_diagnose_core_model_tools');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /不重试/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-core-model-tools' }]);
 });
