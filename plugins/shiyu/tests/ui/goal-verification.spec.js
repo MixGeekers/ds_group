@@ -33,7 +33,7 @@ test('Goal check is one explicit POST and displays only the confirmed receipt, w
   await refresh(page);
   expect((await stats(request)).commands).toEqual([]);
   await page.getByRole('button', { name: runName, exact: true }).click();
-  await expect(page.getByRole('status')).toContainText(success);
+  await expect(page.getByRole('status').filter({ hasText: success })).toBeVisible();
   const receipt = page.getByRole('region', { name: '本次 Goal 检查回执', exact: true });
   for (const value of [selectedId, 'test-goal-binding-1', 'test-native-goal-1', 'test-goal-session-1', 'complete', 'create → pause → resume → complete', '未请求']) await expect(receipt).toContainText(value);
   expect((await stats(request)).commands).toEqual([command]);
@@ -61,7 +61,7 @@ test('Goal check selects the latest valid succeeded local task by its exact inpu
   await diagnostics(page);
   await expect(page.getByTestId('goal-verification')).toContainText('(local-latest)');
   await page.getByRole('button', { name: runName, exact: true }).click();
-  await expect(page.getByRole('status')).toContainText(success);
+  await expect(page.getByRole('status').filter({ hasText: success })).toBeVisible();
   expect((await stats(request)).commands).toEqual([{ action: 'goal.verify-lifecycle', taskId: 'local-latest' }]);
 });
 

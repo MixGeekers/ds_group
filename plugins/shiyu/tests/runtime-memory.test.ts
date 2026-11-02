@@ -275,7 +275,7 @@ test('public memory commands reject extra authority/receipt fields and malformed
     await assert.rejects(f.runtime.command(input), /Invalid local memory input/);
   }
   const accessor = { ...save }; Object.defineProperty(accessor, 'text', { get() { throw new Error('Untrusted accessor ran'); }, enumerable: true });
-  await assert.rejects(f.runtime.command(accessor), /Invalid local memory input/);
-  await assert.rejects(f.runtime.command(Object.assign(Object.create({ inherited: true }), save)), /Invalid local memory input/);
+  await assert.rejects(f.runtime.command(accessor), /Expected command data fields/);
+  await assert.rejects(f.runtime.command(Object.assign(Object.create({ inherited: true }), save)), /Expected command data fields/);
   assert.deepEqual(managed.transport.calls, []); assert.deepEqual(await f.runtime.store.request('memory.list', {}), []);
 });

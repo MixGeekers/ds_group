@@ -58,3 +58,19 @@ capture 最长 30 秒，最多 256 个，Worker 重启全部失效；GET 不写 
 `ack` 只核对当前强安全向量和固定期限，允许后台在加载期间继续增长；Conversation 同事务回执只确认实际加载的捕获来源，后续 pending 仍保留。`prepare/ready` 另核对捕获来源与 Task.version。初次原生 Session 绑定可填入同 epoch 的 sessionId；已有 sessionId、generation、audience、routing 或安全权威变化均拒绝旧 capture。确认原生持久接收与源 cursor 的写入由 Conversation reply 控制域承担，读取接口本身不宣称已加载。
 
 3C 本轮定向批次（2026-11-02）：新 publication 13 项、local capture 12 项、真实 Worker view 6 项、ReadView 14 项、原 Conversation Worker 11 项，共 **56/56 通过**，全包类型检查通过。包括 50 个并发 capture 不写水位、重开保留基线、纯读不发布/不 ack、真正 Task 版本变化、无关事件提交仍可使用、政策/全局 epoch/本地来源屏障独立失效、异步读期间来源变化拒绝输出。只读复核另外复现了“BEGIN 等锁跨过 TTL”边界：验证进入前尚有效、等待第二连接后已过期仍返回；已加入事务内前后期限检查，真实双连接持锁回归通过。所有数据库和来源均为临时合成数据，没有运行真实 DSH 宿主、付费模型或 Ombre。
+
+## 3G：有界 Core 判断到既有 Task 准入
+
+`core-domain.ts` 只保存 owner 明确授权的 local-note deliverables、规划触发、调用资格、结构化决定和原生回执。DSH 仍拥有 Goal phase、rounds 和 Session；`authorized/paused/controlEpoch` 是本地授权控制，不是另一套 Goal 状态。当前模型只能选择一个已授权事项、defer、no_action 或提出完成候选，不具备任意拆解任务、扩大正文/资源或自行签发授权的能力。首轮上下文仅含 owner 目标、同 Goal Task/Effect 元信息，不读取可撤回 Memory 正文。
+
+`core.prepareGoal` 先保存不可变 owner 范围；受信宿主确认原生绑定后，显式 `core.authorizeGoal` 只签发一份共享 Mandate。Core 每轮账本预留为 16384 tokens / 2 generation calls / 0 effects，Task 为 16384 / 2 / 1；两者从同一总额扣留。token 预留不是调用前的精确计费硬上限：按观测用量对账，超额后冻结后续准入，无法撤销已经产生的用量；原生请求次数与输出上限另行限制。`authority.ts` 的 V4 是固定 V3 的显式目录迁移，只新增固定 Core dispatcher/verifier 的 `core.evaluate`，不扩大旧 grant。没有每 Task 新增额度、自动释放未知用量或复制预算上限。
+
+模型 I/O 在事务外。`recordDispatch` 在 native followup 前持久绑定 round/session/message；独立持久回读形成 `recordNativeResult`，包含精确输入与 assistant 消息引用和输出原文哈希。`commitCandidate` 在短事务中瞬态解析原文，复核哈希、schema、共享预算结算、原生引用、controlEpoch、同目标 Task/Effect 版本、依赖和唯一归属。TaskFacade 仍是唯一 Task 状态机：非人类 `shiyu-core` Trigger 使用原 owner 委派 basis，Task/Assignment、共享预留、start intent、Goal 的 Task 关联和 proposal receipt 同库原子提交。无关 control commit 不使 read set 失效。
+
+只有全覆盖原生用量才释放规划差额。未知调用/用量在重开后仍 unknown，不自动重派；已知原生结果和完整用量对应的确定性拒绝可经 `rejectEvaluation` 终结本轮，但不产生新触发。纯读 pending 过滤冻结、过期、额度不足、冷却和轮数上限；snapshot 的 planning 诊断不写预算账。已派发 round 由原生适配器每次 gate 实查 Goal，并受固定 lease 约束，不因开始前观察超过 60 秒就错误否定合法的 90 秒调用；首次进入仍必须新鲜确认。
+
+全局暂停在 Task 同一事务中使活跃 Core round 失效。Goal 暂停先 suspend 共享授权；已 claim 的 Task 进入 unknown，必须独立核对。只有证明从未 claim、绑定 Session 或产生 Effect 的排队 Task，才可在 owner 明确恢复且获得新的 confirmed native resume 后，把旧未用预留按零用量结清，并在同一总额下重新预留。暂停后旧资格不能因恢复而复活。
+
+可信 Task 成功事件与 `enqueueTaskFact({taskId,eventId})` 可在同一 Worker 事务中提交，保留统一事件因果；没有第二消费队列。完成候选要求所有 deliverables 的完整 Task/Effect/receipt 证据，并由宿主逐项重新检查实际文件。Core 与原 Goal 生命周期诊断共用 `inspectTaskEvidence`；pending native complete 只允许其精确既存 proof 的第二次独立核验，unknown 不允许重发。
+
+2026-11-02 本轮模块证据：Core 控制域 **19/19**，同批原 Task 13、Goal 生命周期 12、授权目录 26，共 **70/70** 通过，类型检查及 diff 检查通过。覆盖真实临时 SQLite 和 commit watermark、准入回滚、共同预算、非人类来源、旧轮失效、暂停恢复、重开、未知用量、来源冲突、无关提交和篡改完成回执；Native 回执是明确的合成替身，未调用真实 DSH 宿主或模型，不能视为业务宿主验收。

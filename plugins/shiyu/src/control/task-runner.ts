@@ -35,10 +35,10 @@ export class LocalTaskRunner {
           await this.store.request('task.assignmentStarted', { permit });
           options.progress('受限 worker 正在处理本地任务');
         },
-        prompt: `完成这项本地合成任务：${plan.title}\n请调用 shiyu_worker_write_note，content 参数严格使用下列 JSON 字符串的内容，不增删任何字符：\n${JSON.stringify(plan.content)}\n工具返回后，以规定 JSON 格式给出候选摘要；evidenceRequests 可引用 ${plan.artifactRef}。任务成功由独立核验决定。`,
+        prompt: `完成这项已授权本地任务：${plan.title}\n请调用 shiyu_worker_write_note，content 参数严格使用下列 JSON 字符串的内容，不增删任何字符：\n${JSON.stringify(plan.content)}\n工具返回后，以规定 JSON 格式给出候选摘要；evidenceRequests 可引用 ${plan.artifactRef}。任务成功由独立核验决定。`,
         tools: [{
           name: 'shiyu_worker_write_note',
-          description: '将本任务获准的合成正文写入本体专属产物目录。正文必须与本任务预登记值一致；无任意路径或文件权限。',
+          description: '将本任务预授权正文写入本体专属产物目录。正文必须与本任务预登记值一致；无任意路径或文件权限。',
           parameters: { type: 'object', properties: { content: { type: 'string', description: '预登记正文，最多 1024 UTF-8 bytes。' } }, required: ['content'], additionalProperties: false },
           execute: async (args, tool) => {
             if (Object.keys(args).some(key => key !== 'content') || typeof args.content !== 'string') throw new Error('Invalid local artifact arguments');

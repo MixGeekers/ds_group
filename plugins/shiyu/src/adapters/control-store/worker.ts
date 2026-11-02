@@ -21,6 +21,8 @@ import { StatePublicationStore, createStatePublisher, initialStateManifest, type
 import { LocalReadSafetyStore } from '../../state/safety.js';
 import { MemoryDomain, type MemoryDomainRequest } from './memory-domain.js';
 import { MemoryIndexDomain, type MemoryIndexRequest } from './memory-index-domain.js';
+import { CoreDomain } from './core-domain.js';
+import type { CoreDomainRequest } from '../../contracts/core.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -38,6 +40,8 @@ let memories: MemoryDomain | undefined;
 let memoryError: string | undefined;
 let memoryIndex: MemoryIndexDomain | undefined;
 let memoryIndexError: string | undefined;
+let core: CoreDomain | undefined;
+let coreError: string | undefined;
 let publication: StatePublicationStore | undefined;
 let statePublisher: StatePublisher | undefined;
 let commitWatermark: CommitWatermarkReader;
@@ -409,6 +413,11 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
 
 function execute(request: StoreRequest): unknown {
   if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
+  if (request.command === 'core.status') return { ready: Boolean(core), ...(coreError ? { errorCode: coreError } : {}) };
+  if (request.command.startsWith('core.')) {
+    if (!core) return fail(coreError ?? 'CORE_UNAVAILABLE', 'Core control domain is unavailable.');
+    return core.execute(request as CoreDomainRequest);
+  }
   if (request.command === 'memory.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memories), ...(memoryError ? { errorCode: memoryError } : {}) };
   if (request.command === 'memory.index.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memoryIndex), ...(memoryIndexError || memoryError ? { errorCode: memoryIndexError ?? memoryError } : {}) };
   if (request.command.startsWith('memory.index.')) {
@@ -540,9 +549,16 @@ function initialize(): void {
     goalBindings = new SQLiteGoalBindingStore(db, transactions);
     tasks = new TaskDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, onSucceeded: taskId => {
       // Completion facts share the Task transaction; no observer can see a half-committed success.
-      publish({ principalId: 'task-service', kind: 'component', scopes: ['local-owner'], publishTypes: ['task.succeeded'], subscribeTypes: [], targetRefs: [] },
+      const receipt = publish({ principalId: 'task-service', kind: 'component', scopes: ['local-owner'], publishTypes: ['task.succeeded'], subscribeTypes: [], targetRefs: [] },
         { type: 'task.succeeded', scope: 'local-owner', payload: { taskId }, idempotencyKey: `task-succeeded:${taskId}` });
+      core?.enqueueTaskFact({ taskId, eventId: receipt.eventId });
     } });
+    try { core = new CoreDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, tasks, goals: goalBindings }); }
+    catch (error) {
+      // Failed core initialization cannot grant delegated Tasks a new authority.
+      // Other existing read paths remain usable for inspection and recovery.
+      coreError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'CORE_INITIALIZATION_FAILED';
+    }
     const actor = conversationEventPrincipal();
     conversations = new ConversationDomain(db, transactions, {
       getTask: taskId => tasks!.get(taskId).task,

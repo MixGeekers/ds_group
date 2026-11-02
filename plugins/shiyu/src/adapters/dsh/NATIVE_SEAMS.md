@@ -74,3 +74,27 @@ recover 只恢复原 Session 并对账；不存在、读取失败或无法确认
 插件卸载后 preset 缺失会阻止普通 UI restore；已加载时 created/pre-step/工具 guard 同样拒绝非识雨挂载。原生 UI 对未开始 turn 的空会话允许 owner 显式重新选择其他 preset，这个边界未伪装成永久封印。
 
 验证层级：`tests/goals.test.ts` 当前 21 项通过，包括原生替身+真实 SQLiteGoalBindingStore 的 unknown 恢复及完整生命周期组合。`tests/goal-lifecycle.test.ts` 12 项通过，使用真实 ControlStore、LocalTaskRunner、LocalArtifactStore 和 Goal binding IPC/SQLite，仅 worker 与原生 Goal adapter 为替身。本模块实现/测试没有调用真实 Goal API、创建真实 Goal Session 或调用模型；真实宿主诊断由主实施记录另行留证，不由上述替身结果替代。
+
+## 3G：同一原生 Goal Session 的受限判断接缝
+
+2026-11-02 追加。上节“尚未接 core 计划循环”保留为先前生命周期切片的历史；本节记录新增 SDK 接口与离线验证，不把它们称为真实 core 模型验收。固定来源仍是上述 DSH `0.2.1-rc.5`。各原始文件的完整 SHA256、准确包内路径及测试层级见 [phase3g-native-contract.json](../../../artifacts/phase3g-native-contract.json)。本次没有执行宿主 API、创建真实 Session 或调用模型。
+
+`GoalSessionAdapter({namespace:'core'})` 同时拥有本 namespace 的生命周期和 `decisionRound`，同一 Goal 的操作与用量回执共用串行锁；不能再用另一个同 namespace adapter 争用同一 Session。core 使用 `shiyu-runtime-core-goal-v1` / `shiyu-core-goal-`，默认生命周期诊断继续使用 `shiyu-runtime-goal-v1` / `shiyu-goal-` 并拒绝全部推理。两者身份分离；core 内多轮及重建 adapter 后恢复同一个原生 Goal Session。原生仍权威管理 Goal phase/revision/objective 与历史，本地 binding 不存第二份 Goal 状态或消息日志。
+
+新增公开接缝的静态依据如下，行号均指相应包的 `lib/index.js`：
+
+- `@deepseek-ai/dsh-agent-loop:103–110,204–206,906–918,1052–1085,1148–1162`：claim/pre-step 传完整消息，inbox inserted 为 `{message}`；request 准备通过后才追加完整 user 消息，再调用 stream；assistant 事件包含完整 `data.message` 与可选 usage。`@deepseek-ai/dsh-agent:193–204` 的外层 pre-step 钩子可能追加模型切换提示，因此适配器除检查进入/返回的消息外，还在 stream 前检查最终已提交的唯一 user 消息 ID/hash，额外或篡改输入不能进入 provider。
+- `@deepseek-ai/dsh-agent-loop:1274–1287`：请求包含 `session.deriveMessages()` 的完整保留 surface，包括历史、system 和本轮输入，并由 `markAgentLoopRequest` 标记。`@deepseek-ai/dsh-llm:377–387,2249–2257,2393–2397,2429`：公开根包导出 WeakSet 身份谓词 `isAgentLoopRequest`；prepared call 同样经过 `llm/stream`。`@deepseek-ai/cordis:258–263,317–324` 保留参数对象身份。生产使用公开谓词，不能仅以缺省 `purpose` 或形状相似认作主 Agent 请求。
+- `@deepseek-ai/dsh-llm:759–770,2335–2349`：stream middleware 后仍可能从历史更新重建工具声明。适配器同时拒绝当前工具、`toolHistory.tools` 和 `updates[].additions` 非空，并保留执行 guard。`@deepseek-ai/dsh-session:658–680,696–714` 的无工具初态为 `{tools:[],updates:[]}`；恢复不能仅凭当前 preset 推断历史无工具。
+- `@deepseek-ai/dsh-compaction-basic:292–323,839–861` 的压缩可绕过 `agent/request` 直接 stream；固定用户标题之外，core 专属 `llm/stream` gate 也拒绝 title/compaction、未标记请求及第二次 stream。其他 namespace 的流量不受此 gate 干预。该 gate 不构成对全宿主流量的审计。
+- `@deepseek-ai/dsh-goal:163–166,273–278` 只对合法 `source.kind='goal'` 消息推进 `roundsStarted`。本接口通过官方工厂创建 `source.kind='user'` 的普通 followup，没有伪造 Goal 来源或调用私有 round API；结果明确 `nativeGoalRound:false`，记录前后原生计数不变。控制层另有 evaluation/round 预算，不以原生 `roundsStarted` 代替。
+
+每轮固定 `opencode-go/deepseek-v4.1-flash/high`，只准入一个 pre-step、一个 native request 和一个可观察的主 stream，不自写模型循环或自动修复重试。`onDispatch` 耐久登记消息身份后才 followup；输入与 assistant 分别 flush、按精确 seq 冷读并核对完整消息 hash。返回的是有界原始候选文本、引用及 `verified:false`，结构/权限/Task/完成证据仍由控制层检查。每个执行阶段重验 opaque capability、绑定的 roundId/expectedRef、有效期与当前原生 Goal；释放后不读已处置 Agent，而是再次进行 authority 检查。失败仍调用 `onAccounting` 保留已知观察，缺用量为 unknown、缺调用计数为 null，不补零；记账失败不能返回候选成功。
+
+调用数、输出参数、时间与 token 预留是不同边界。当前业务每次 evaluation 预留 **16,384 total tokens**，请求 `maxTokens=1,024`；SDK 允许可信调用者设置 1–4,096 的输出参数。`maxTokens` 是传给原生/provider 的输出控制，不能限制已有历史输入。`modelCalls` 计量本适配器可观察的 native middleware 派发；provider 内部 transport 重试未知，不能把一次主 stream 宣称为完整计费请求数。
+
+**16,384 是预留、实际用量对账和超额冻结依据，不是请求前硬计费上限。** `@deepseek-ai/dsh-token-meter:15–16,39–75` 明确采用 `CHARS_PER_TOKEN=4`；`722–764` 的 `measure()` 使用上次 usage 锚点加启发式 surface 增量，`778–784` 的 `estimateMessage()` 也只是估算。`@deepseek-ai/dsh-llm:2111–2140` 只提供模型容量等元数据，没有精确计数或可信 token 上界；`2335–2349` 与 `@deepseek-ai/dsh-llm-pi-ai:1971–1986` 此后仍进行路由/provider 输入转换。16 个交付项、4,000 字目标、单请求、输出参数以及历史长度限制均不能证明总 token 必定低于预留。现接口未新增未经证实的计数器，也未把压力估算升级为硬预算保证；真实用量超额后的冻结无法撤销已发生费用。
+
+`deadlineAtMs` 是贯穿排队、授权、恢复、派发与回读的绝对期限，过期会撤销本轮并向原生 cancel/AbortSignal 传播；晚到的原生 handle 仍受管并释放。若宿主 create/whenIdle 或耐久回调不返回，适配器继续保有所有权等待 drain，**不承诺在期限内硬终止进程或立即返回**。未知 inbox 保留并阻止处置；释放失败保留拒绝钩子，封闭再次挂载，close 明确失败。冷 inbox 复用现有 2048 连续事件/EOF 限制，超限拒绝；本切片没有自动压缩或超长会话恢复接线。
+
+本轮离线验证为 **56/56**：core 原生替身 14 项、既有 Goal 21 项、真实 SQLite binding 9 项、生命周期组合 12 项；另整包类型检查及本次差异检查通过。新增用例包括同 Session/重启复用、准确消息回读、先登记后派发、记账期间串行与 close drain、过期/撤权、晚创建、取消、未知 inbox 保留、清理失败后禁续跑，以及重试/旁路/未标记请求/历史工具/额外或篡改输入零 provider-next。14 项独立日志为 `.local/phase3g-core-goal-sessions.log`；56 项组合结果来自本轮执行回执，未另存完整 stdout 文件。它们均不代替后续固定宿主与有界真实模型验收。

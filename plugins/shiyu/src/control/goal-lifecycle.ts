@@ -48,6 +48,9 @@ export class GoalLifecycleEvidenceError extends Error {
   constructor(message: string) { super(message); this.name = 'GoalLifecycleEvidenceError'; }
 }
 interface Evidence { criteriaHash: string; identityHash: string; evidenceRefs: string[] }
+export interface DelegatedTaskEvidence {
+  goalId: string; mandateId: string; resourceRef: string; inputRefs: string[]; now: number;
+}
 interface RunPermit {
   taskId: string;
   goalId: string;
@@ -68,15 +71,18 @@ const sameRef = (left?: NativeGoalRef, right?: NativeGoalRef): boolean => Boolea
 const timestamp = (value: unknown): boolean => typeof value === 'string' && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value && Date.parse(value) <= Date.now();
 
 /** Only the explicitly implemented single local-note completion contract is accepted. */
-function inspectTaskEvidence(detail: TaskDetail, taskId: string): Evidence {
+export function inspectTaskEvidence(detail: TaskDetail, taskId: string, delegated?: DelegatedTaskEvidence): Evidence {
   const { task, artifact, execution, reservation } = detail;
+  const authorityMatches = (version: number) => delegated ? version >= task.mandateVersion : version === task.mandateVersion;
+  const timestamp = (value: unknown): boolean => typeof value === 'string' && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value && Date.parse(value) <= (delegated?.now ?? Date.now());
   if (!task || task.taskId !== taskId || task.state !== 'succeeded' || task.stopRequested || task.uncertainty || task.activeAssignmentId
-    || !exact(task.inputRefs, [`local-input:${taskId}`])) fail('Only a completed, unambiguous local artifact Task is eligible');
+    || !exact(task.inputRefs, delegated?.inputRefs ?? [`local-input:${taskId}`])
+    || delegated && (task.goalId !== delegated.goalId || task.mandateId !== delegated.mandateId)) fail('Only a completed, unambiguous local artifact Task is eligible');
   const artifactRef = `artifact:${taskId}`, result = task.result, verification = task.verification;
   if (!artifact || artifact.artifactRef !== artifactRef || !/^[a-f0-9]{64}$/.test(artifact.expectedSha256) || !Number.isSafeInteger(artifact.byteLength) || artifact.byteLength < 1 || artifact.byteLength > 1024) fail('Task artifact identity or expected content is invalid');
   if (!execution || execution.assignmentId !== task.latestAssignmentId || execution.state !== 'reported'
     || !reservation || reservation.scope !== OWNER || reservation.action !== 'task.local-note.execute'
-    || reservation.mandateId !== task.mandateId || reservation.mandateVersion !== task.mandateVersion || !exact(reservation.resourceScopes, [artifactRef])) fail('Task is not bound to the trusted local-owner execution');
+    || reservation.mandateId !== task.mandateId || !authorityMatches(reservation.mandateVersion) || !exact(reservation.resourceScopes, [delegated?.resourceRef ?? artifactRef])) fail('Task is not bound to the trusted local-owner execution');
   const check = task.completionSpec?.checks?.[0];
   if (task.completionSpec?.version !== 1 || task.completionSpec.checks.length !== 1 || check?.checkId !== 'artifact-sha256'
     || check.type !== 'artifact.sha256' || check.targetRef !== artifactRef || check.expected !== artifact.expectedSha256 || check.evidenceRequired !== true
@@ -88,7 +94,7 @@ function inspectTaskEvidence(detail: TaskDetail, taskId: string): Evidence {
   if (effect.schemaVersion !== 1 || effect.effectId !== result.effectRefs[0] || effect.effectId !== reservation.reservationId || effect.status !== 'succeeded'
     || effect.action !== 'artifact.write' || effect.origin.kind !== 'task' || effect.origin.taskId !== taskId || effect.origin.assignmentId !== task.latestAssignmentId
     || !exact(effect.resourceScopes, [artifactRef]) || effect.cancelRequestedAt || !effect.receiptId || !/^[a-f0-9]{64}$/.test(effect.payloadHash)
-    || effect.authorization.mandateId !== task.mandateId || effect.authorization.mandateVersion !== task.mandateVersion
+    || effect.authorization.mandateId !== task.mandateId || effect.authorization.mandateVersion !== reservation.mandateVersion
     || effect.authorization.authEpoch !== reservation.authEpoch || effect.authorization.installationGeneration !== execution.installationGeneration) fail('Artifact Effect identity, authorization or outcome does not match the Task');
   if (!Array.isArray(detail.effectReceipts)) fail('The verified Effect receipt must be available from the trusted ledger');
   const receipts = detail.effectReceipts.filter(receipt => receipt.receiptId === effect.receiptId || receipt.effectId === effect.effectId);

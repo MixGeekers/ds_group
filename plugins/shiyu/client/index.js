@@ -288,6 +288,192 @@ window.__ModuleLoader__.load({
       "nativeUserMessageSeq": "Native message sequence",
       "status_loaded": "Loaded"
     });
+    Object.assign(zh, {
+      "core": "目标与判断",
+      "coreHint": "查看明确授权的本地目标、判断记录与已接纳任务。",
+      "coreUnavailable": "目标与判断尚未接入。",
+      "coreNotReady": "目标服务尚未就绪。",
+      "coreScope": "当前能力：仅按授权正文创建本地便签（local-note）。",
+      "coreCreateTitle": "授权一个本地目标",
+      "coreCreateHint": "点击后授权识雨在下列范围、总预算和期限内判断并执行。模型只能选择便签 ID，不能修改正文或扩大权限。",
+      "coreObjective": "目标说明",
+      "coreNoteNumber": "便签 {number}",
+      "coreNoteId": "便签 {number} ID",
+      "coreNoteTitle": "便签 {number} 标题",
+      "coreNoteBody": "便签 {number} 正文",
+      "coreNoteDepends": "便签 {number} 依赖",
+      "coreDependenciesHint": "正文最多 1,024 UTF-8 字节。依赖填写其他便签 ID，以逗号或空格分隔；不允许循环。",
+      "coreAddNote": "添加便签",
+      "coreRemoveNote": "移除便签",
+      "coreLimit_tokens": "总 Token 上限",
+      "coreLimit_calls": "总调用上限",
+      "coreLimit_effects": "总效果上限",
+      "coreLimit_maxEvaluations": "最多判断次数",
+      "coreBudgetHint": "Token 用于预留和对账，实际用量可能超额，核实后停止。原生调用次数与输出长度另有限制。预算不代表实际费用或完成保证；未核清用量继续占用额度，不自动重试。",
+      "coreLifetime": "有效期",
+      "core30Minutes": "30 分钟",
+      "core1Hour": "1 小时",
+      "coreInvalidForm": "请填写有效目标和便签，核对 ID、依赖与正整数预算；正文须符合字节上限。",
+      "coreExpiredDraft": "此请求的期限已过；修改表单后可创建新授权请求。",
+      "coreCreate": "创建并授权本地目标",
+      "coreGoals": "已登记目标",
+      "coreNoGoals": "暂无已登记目标。",
+      "coreView": "查看目标 {id}",
+      "coreDetails": "目标详情",
+      "coreAuthorization": "本地授权状态",
+      "coreExpiresAt": "授权期限",
+      "coreEvaluations": "已开始判断 / 上限",
+      "coreActiveEvaluation": "当前判断 ID",
+      "coreNextEligible": "下次允许判断",
+      "corePause": "暂停目标",
+      "coreResume": "恢复目标",
+      "coreCancel": "取消目标",
+      "coreControlHint": "这里只控制所选目标；暂停或取消不会撤销已发生的效果。恢复须由你明确发起。",
+      "coreNative": "原生 Goal 观察",
+      "coreNativeHint": "这是原生 Goal 的已观察状态；任务接纳或完成不会由界面推算成 Goal 完成。",
+      "coreBudget": "授权预算与账本余额",
+      "coreBudgetAxes": "数值依次为：Token / 调用 / 效果。未知不视为零。",
+      "coreBudgetLimit": "总上限",
+      "coreBudgetSpent": "已结算",
+      "coreBudgetHeld": "仍占用",
+      "coreBudgetAvailable": "可用额度",
+      "coreApprovedNotes": "已授权便签范围",
+      "coreDeliverable": "便签 ID",
+      "coreDepends": "依赖便签",
+      "coreNone": "无",
+      "coreAcceptedTasks": "已接纳任务",
+      "coreNoAcceptedTasks": "尚无已接纳任务；判断候选不代表执行授权。",
+      "coreDecisions": "判断记录",
+      "coreNoDecisions": "尚无判断记录。",
+      "coreTriggers": "触发来源",
+      "coreCandidate": "模型候选",
+      "coreCandidateHint": "候选仅供控制域核对；接纳结果另行记录。",
+      "coreDecisionReceipt": "判断接纳回执",
+      "coreReasonCode": "结果代码",
+      "coreObservedTokens": "已观察 Token",
+      "coreUnknown": "本次判断结果或用量尚未核清；不会默认重放，也不表示任务已完成。",
+      "coreNotInSnapshot": "当前快照尚未包含选中的目标。",
+      "coreSelect": "选择一个目标查看详情。",
+      "corePump": "判断调度",
+      "coreUnconfirmed": "目标操作回执未完整确认；请刷新核对，不会自动重试。",
+      "coreChanged": "处理期间目标、版本或运行实例变化，旧回执未采用。",
+      "coreAccepted": "目标请求已接收；授权与运行状态以刷新后的账本为准。",
+      "coreDuplicate": "该目标请求已有记录，未重新授权；请核对当前状态。",
+      "coreControlAccepted": "控制请求已有回执；当前目标状态以刷新后的账本为准。",
+      "status_authorized": "已授权",
+      "status_unapproved": "待授权",
+      "status_expired": "已过期",
+      "status_committed": "已提交",
+      "status_claimed": "已领取",
+      "status_rejected": "已拒绝",
+      "status_conflict": "版本冲突",
+      "status_complete": "已完成"
+    });
+    Object.assign(en, {
+      "core": "Goals & decisions",
+      "coreHint": "Inspect explicitly authorized local goals, decisions and accepted tasks.",
+      "coreUnavailable": "Goals and decisions are not connected.",
+      "coreNotReady": "Goal service is not ready.",
+      "coreScope": "Current capability: create local notes using only the authorized text (local-note).",
+      "coreCreateTitle": "Authorize a local goal",
+      "coreCreateHint": "This action authorizes decisions and execution within the notes, total budget and expiry below. The model may select note IDs; it cannot change their text or expand access.",
+      "coreObjective": "Goal objective",
+      "coreNoteNumber": "Note {number}",
+      "coreNoteId": "Note {number} ID",
+      "coreNoteTitle": "Note {number} title",
+      "coreNoteBody": "Note {number} text",
+      "coreNoteDepends": "Note {number} dependencies",
+      "coreDependenciesHint": "Text is limited to 1,024 UTF-8 bytes. Separate other note IDs with commas or spaces; cycles are not allowed.",
+      "coreAddNote": "Add note",
+      "coreRemoveNote": "Remove note",
+      "coreLimit_tokens": "Total token limit",
+      "coreLimit_calls": "Total call limit",
+      "coreLimit_effects": "Total effect limit",
+      "coreLimit_maxEvaluations": "Maximum evaluations",
+      "coreBudgetHint": "Tokens are a reservation and accounting limit. Actual usage may exceed it; confirmed overruns stop further work. Native call and output limits are separate. Budget is not measured cost or a completion guarantee. Unreconciled usage stays held, without automatic retry.",
+      "coreLifetime": "Valid for",
+      "core30Minutes": "30 minutes",
+      "core1Hour": "1 hour",
+      "coreInvalidForm": "Complete the objective and notes, and check IDs, dependencies and positive integer budgets. Note text must fit the byte limit.",
+      "coreExpiredDraft": "This request has expired. Edit the form to create a new authorization request.",
+      "coreCreate": "Create and authorize local goal",
+      "coreGoals": "Recorded goals",
+      "coreNoGoals": "No recorded goals.",
+      "coreView": "View goal {id}",
+      "coreDetails": "Goal details",
+      "coreAuthorization": "Local authorization state",
+      "coreExpiresAt": "Authorization expires",
+      "coreEvaluations": "Evaluations started / limit",
+      "coreActiveEvaluation": "Current evaluation ID",
+      "coreNextEligible": "Next eligible evaluation",
+      "corePause": "Pause goal",
+      "coreResume": "Resume goal",
+      "coreCancel": "Cancel goal",
+      "coreControlHint": "These controls apply only to the selected goal. Pausing or cancelling does not undo effects that already occurred. Resume requires your explicit action.",
+      "coreNative": "Native Goal observation",
+      "coreNativeHint": "This is the observed native Goal state. The UI does not infer Goal completion from task acceptance or completion.",
+      "coreBudget": "Authorized budget and ledger balance",
+      "coreBudgetAxes": "Values are: tokens / calls / effects. Unknown is not zero.",
+      "coreBudgetLimit": "Total limit",
+      "coreBudgetSpent": "Settled",
+      "coreBudgetHeld": "Held",
+      "coreBudgetAvailable": "Available",
+      "coreApprovedNotes": "Authorized note scope",
+      "coreDeliverable": "Note ID",
+      "coreDepends": "Dependencies",
+      "coreNone": "None",
+      "coreAcceptedTasks": "Accepted tasks",
+      "coreNoAcceptedTasks": "No accepted tasks. A decision candidate is not execution authorization.",
+      "coreDecisions": "Decision records",
+      "coreNoDecisions": "No decision records.",
+      "coreTriggers": "Trigger references",
+      "coreCandidate": "Model candidate",
+      "coreCandidateHint": "The control domain checks this candidate. Acceptance is recorded separately.",
+      "coreDecisionReceipt": "Decision commit receipt",
+      "coreReasonCode": "Result code",
+      "coreObservedTokens": "Observed tokens",
+      "coreUnknown": "This evaluation or its usage remains unreconciled. It is not replayed automatically and does not establish task completion.",
+      "coreNotInSnapshot": "The selected goal is not in the current snapshot.",
+      "coreSelect": "Select a goal to inspect it.",
+      "corePump": "Evaluation scheduler",
+      "coreUnconfirmed": "The goal operation receipt is unconfirmed. Refresh to inspect it; no automatic retry.",
+      "coreChanged": "The goal, revision or runtime instance changed; the old receipt was not applied.",
+      "coreAccepted": "Goal request received. Refreshed ledger state determines authorization and execution status.",
+      "coreDuplicate": "This goal request already exists and was not authorized again. Inspect its current state.",
+      "coreControlAccepted": "Control receipt received. The refreshed ledger determines the current goal state.",
+      "status_authorized": "Authorized",
+      "status_unapproved": "Awaiting authorization",
+      "status_expired": "Expired",
+      "status_committed": "Committed",
+      "status_claimed": "Claimed",
+      "status_rejected": "Rejected",
+      "status_conflict": "Revision conflict",
+      "status_complete": "Complete"
+    });
+    Object.assign(zh, {
+      "coreNativeCommand": "最近原生命令",
+      "coreNativeCommandId": "原生命令 ID",
+      "coreNativeCommandOperation": "请求操作",
+      "coreNativeOperation_create": "创建目标",
+      "coreNativeOperation_update": "更新目标",
+      "coreNativeOperation_pause": "暂停目标",
+      "coreNativeOperation_resume": "恢复目标",
+      "coreNativeOperation_complete": "完成目标",
+      "coreNativeUnconfirmed": "原生命令尚未确认；已观察阶段不能证明本次命令完成。恢复暂不可用，仍可暂停或取消。",
+      "status_confirmed": "已确认"
+    });
+    Object.assign(en, {
+      "coreNativeCommand": "Latest native command",
+      "coreNativeCommandId": "Native command ID",
+      "coreNativeCommandOperation": "Requested operation",
+      "coreNativeOperation_create": "Create goal",
+      "coreNativeOperation_update": "Update goal",
+      "coreNativeOperation_pause": "Pause goal",
+      "coreNativeOperation_resume": "Resume goal",
+      "coreNativeOperation_complete": "Complete goal",
+      "coreNativeUnconfirmed": "The native command is unconfirmed. The last observed phase does not establish its completion. Resume is unavailable; pause and cancel remain possible.",
+      "status_confirmed": "Confirmed"
+    });
     const knownStates = new Set(Object.keys(en).filter(key => key.startsWith('status_')).map(key => key.slice(7)));
     const css = `
 .syr{--sr-bg:var(--dsw-alias-bg-base,#fff);--sr-layer:var(--dsw-alias-bg-layer-1,#fafafa);--sr-hover:var(--dsw-alias-bg-layer-2,#f2f3f5);--sr-text:var(--dsw-alias-label-primary,#202124);--sr-muted:var(--dsw-alias-label-secondary,#71757c);--sr-line:var(--dsw-alias-border-l1,#e6e8eb);--sr-accent:var(--dsw-alias-brand-primary,#4b62d8);--sr-error:var(--dsw-alias-state-error-primary,#b93b3b);--sr-ok:var(--dsw-alias-state-success-primary,#2f7d68);height:100%;min-height:0;min-width:0;overflow:auto;color:var(--sr-text);background:var(--sr-bg);font-size:13px;line-height:1.6;font-family:inherit}
@@ -366,6 +552,16 @@ window.__ModuleLoader__.load({
           const [tab, setTab] = useState('overview');
           const [selectedSession, setSelectedSession] = useState(null);
           const [selectedTask, setSelectedTask] = useState(null);
+          const [selectedCoreGoal, setSelectedCoreGoal] = useState(null);
+          const [coreObjective, setCoreObjective] = useState('');
+          const [coreNotes, setCoreNotes] = useState([{ id: 'note-1', title: '', content: '', dependencies: '' }]);
+          const [coreBudget, setCoreBudget] = useState({ tokens: '131072', calls: '12', effects: '3', maxEvaluations: '4' });
+          const [coreLifetime, setCoreLifetime] = useState('30');
+          const [coreControl, setCoreControl] = useState('');
+          const [coreError, setCoreError] = useState('');
+          const [coreNotice, setCoreNotice] = useState('');
+          const coreDraft = useRef({ revision: 0, payload: null });
+          const coreSelection = useRef({ id: null, revision: 0 });
           const [selectedConversation, setSelectedConversation] = useState(null);
           const [linkTaskId, setLinkTaskId] = useState(null);
           const [command, setCommand] = useState('');
@@ -394,6 +590,8 @@ window.__ModuleLoader__.load({
           const memoryGuard = useRef({ snapshot: null, fresh: false, selected: null, revision: 0, body: null, revoked: new Set() });
           function clearMemoryBody() { memoryGuard.current.revision++; memoryGuard.current.body = null; setMemoryBody(null); }
           function chooseMemory(operationId) { clearMemoryBody(); memoryGuard.current.selected = operationId; setMemorySelected(operationId); }
+          function changeCoreDraft() { coreDraft.current.revision++; coreDraft.current.payload = null; setCoreNotice(''); }
+          function chooseCoreGoal(goalId) { coreSelection.current = { id: goalId, revision: coreSelection.current.revision + 1 }; setSelectedCoreGoal(goalId); setCoreError(''); setCoreNotice(''); }
           function chooseConversation(value) { contextLoadGuard.current++; contextLoadDraftId.current = null; contextLoadSelection.current = value; setContextLoadReceipt(null); setSelectedConversation(value); }
           function memoryCanRead(operationId) {
             const guard = memoryGuard.current, current = guard.snapshot;
@@ -403,10 +601,10 @@ window.__ModuleLoader__.load({
               && current.lifecycle !== 'stopping' && !guard.revoked.has(operationId) && memoryEntryValid(entry) && entry.canRead === true && entry.consent === 'active' && !entry.blocked;
           }
           const rootRef = useRef(null);
-          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {} });
+          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {} });
           useEffect(() => {
             if (disposed) return;
-            let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false, withdrawalInFlight = false;
+            let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false, withdrawalInFlight = false, coreControlInFlight = false;
             const writes = new Set(), deadlines = new Set();
             const canRead = () => alive && !disposed && panelVisible && document.visibilityState !== 'hidden';
             async function refresh(force = false) {
@@ -429,6 +627,7 @@ window.__ModuleLoader__.load({
                 if (selection && (instanceChanged || priorConversation?.sessionEpoch !== nextConversation?.sessionEpoch)) {
                   contextLoadGuard.current++; contextLoadDraftId.current = null; setContextLoadReceipt(null);
                 }
+                if (instanceChanged) coreSelection.current.revision++;
                 guard.snapshot = next; guard.fresh = true;
                 if (instanceChanged || (guard.selected && (!memoryCanRead(guard.selected) || !previousEntry || !nextEntry || previousEntry.version !== nextEntry.version
                   || previousEntry.requestId !== nextEntry.requestId || previousEntry.conversationId !== nextEntry.conversationId || previousEntry.nativeId !== nextEntry.nativeId))) clearMemoryBody();
@@ -444,7 +643,7 @@ window.__ModuleLoader__.load({
             }
             async function issue(action, payload = {}, expected = {}) {
               const isControl = action === 'runtime.pause' || action === 'runtime.resume';
-              if (!alive || disposed || (isControl ? controlInFlight || (action === 'runtime.resume' && commandInFlight) : commandInFlight || controlInFlight || withdrawalInFlight)) return;
+              if (!alive || disposed || (isControl ? controlInFlight || (action === 'runtime.resume' && commandInFlight) : commandInFlight || controlInFlight || withdrawalInFlight || coreControlInFlight)) return;
               const setPending = isControl ? setControlCommand : setCommand;
               const setError = isControl ? setControlError : setCommandError;
               const setNotice = isControl ? setControlNotice : setCommandNotice;
@@ -622,7 +821,59 @@ window.__ModuleLoader__.load({
                 if (alive && !disposed) setCommand('');
               }
             }
-            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory, semantic: issueSemantic };
+            async function issueCore(action, payload) {
+              const create = action === 'core.create', stop = action === 'core.pause' || action === 'core.cancel';
+              if (!alive || disposed || coreControlInFlight || controlInFlight || (!stop && (commandInFlight || withdrawalInFlight))) return;
+              const guard = memoryGuard.current, current = guard.snapshot;
+              const fresh = guard.fresh && Number.isFinite(Date.parse(current?.observedAt)) && Date.now() - Date.parse(current.observedAt) <= 30000;
+              const goal = arr(current?.core?.goals).find(item => item.goalId === payload.goalId);
+              if (!fresh || current?.core?.ready !== true || current.lifecycle === 'stopping') return;
+              if (!stop && !['idle', 'busy', 'waiting'].includes(current.state)) return;
+              if (!create && (!goal || goal.version !== payload.expectedVersion || coreSelection.current.id !== goal.goalId || goal.cancelled === true)) return;
+              if (action === 'core.resume' && (goal.authorized !== true || goal.paused !== true || Date.parse(goal.expiresAt) <= Date.now()
+                || ['pending', 'unknown'].includes(goal.nativeCommand?.status))) return;
+              if (create) { commandInFlight = true; setCommand(action); } else { coreControlInFlight = true; setCoreControl(action); }
+              setCoreError(''); setCoreNotice('');
+              const instanceId = current.instanceId, selectionRevision = coreSelection.current.revision, draftRevision = coreDraft.current.revision;
+              const controller = new AbortController(); writes.add(controller);
+              const timeout = setTimeout(() => controller.abort(), 70000); deadlines.add(timeout);
+              try {
+                const result = await api('commands', { action, payload, signal: controller.signal }), returned = result?.goal;
+                if (!alive || disposed) return;
+                if (!returned || typeof returned.goalId !== 'string' || !returned.goalId.trim() || !Number.isSafeInteger(returned.version) || returned.version < 1
+                  || !['authorized', 'paused', 'cancelled'].every(key => typeof returned[key] === 'boolean')) throw new Error(t('coreUnconfirmed'));
+                const latest = guard.snapshot;
+                if (!guard.fresh || latest?.instanceId !== instanceId || selectionRevision !== coreSelection.current.revision
+                  || (create && draftRevision !== coreDraft.current.revision)) throw new Error(t('coreChanged'));
+                if (create) {
+                  const delivered = arr(returned.deliverables);
+                  if ((result.duplicate !== undefined && typeof result.duplicate !== 'boolean') || returned.requestId !== payload.requestId || returned.objective !== payload.objective
+                    || returned.expiresAt !== payload.expiresAt || returned.maxEvaluations !== payload.maxEvaluations
+                    || !['tokens', 'calls', 'effects'].every(key => returned.budget?.[key] === payload.budget[key]) || delivered.length !== payload.deliverables.length
+                    || payload.deliverables.some(note => { const actual = delivered.find(item => item.id === note.id); return !actual || actual.title !== note.title
+                      || actual.bodyBytes !== new TextEncoder().encode(note.content).length || JSON.stringify(arr(actual.dependsOn).slice().sort()) !== JSON.stringify(arr(note.dependsOn).slice().sort()); })) throw new Error(t('coreUnconfirmed'));
+                  chooseCoreGoal(returned.goalId); setCoreNotice(t(result.duplicate ? 'coreDuplicate' : 'coreAccepted'));
+                } else {
+                  const observed = arr(latest.core?.goals).find(item => item.goalId === payload.goalId);
+                  // A stop is persisted before its native call returns. The GET
+                  // may already show this receipt's version; a different newer
+                  // revision must not be overwritten by a late response.
+                  if (!observed || ![payload.expectedVersion, returned.version].includes(observed.version)) throw new Error(t('coreChanged'));
+                  if (returned.goalId !== payload.goalId || returned.version < payload.expectedVersion
+                    || (action === 'core.pause' && returned.paused !== true) || (action === 'core.cancel' && returned.cancelled !== true)
+                    || (action === 'core.resume' && (returned.paused !== false || returned.cancelled !== false))) throw new Error(t('coreUnconfirmed'));
+                  setCoreNotice(t('coreControlAccepted'));
+                }
+                await refresh(true);
+              } catch (error) {
+                if (alive && !disposed) { setCoreError(controller.signal.aborted ? t('coreUnconfirmed') : error.message || t('coreUnconfirmed')); await refresh(true); }
+              } finally {
+                clearTimeout(timeout); deadlines.delete(timeout); writes.delete(controller);
+                if (create) commandInFlight = false; else coreControlInFlight = false;
+                if (alive && !disposed) { if (create) setCommand(''); else setCoreControl(''); }
+              }
+            }
+            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory, semantic: issueSemantic, core: issueCore };
             const onVisibility = () => { setClock(Date.now()); if (canRead()) void refresh(); };
             document.addEventListener('visibilitychange', onVisibility);
             const timer = setInterval(() => { if (canRead()) { setClock(Date.now()); void refresh(); } }, 10000);
@@ -638,7 +889,7 @@ window.__ModuleLoader__.load({
               writes.clear(); deadlines.clear(); clearInterval(timer); observer?.disconnect();
               memoryGuard.current.fresh = false; memoryGuard.current.body = null; memoryGuard.current.revision++;
               document.removeEventListener('visibilitychange', onVisibility);
-              operations.current = { refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {} };
+              operations.current = { refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {} };
               panelDisposers.delete(cleanup);
             };
             panelDisposers.add(cleanup);
@@ -648,7 +899,7 @@ window.__ModuleLoader__.load({
           const aged = Boolean(snapshot && (!Number.isFinite(observedMs) || clock - observedMs > 30000));
           const stale = Boolean(readError || aged);
           const state = snapshot?.state || 'unknown';
-          const canCommand = Boolean(snapshot && !stale && snapshot.lifecycle !== 'stopping' && !command && !controlCommand && !memoryWithdrawing);
+          const canCommand = Boolean(snapshot && !stale && snapshot.lifecycle !== 'stopping' && !command && !controlCommand && !memoryWithdrawing && !coreControl);
           const canStartCommand = canCommand && state !== 'paused';
           const canCreateLocalTask = canStartCommand && typeof snapshot?.instanceId === 'string' && Boolean(snapshot.instanceId.trim());
           // Pausing has its own request lane, including while a long check is waiting.
@@ -708,6 +959,99 @@ window.__ModuleLoader__.load({
               h('section', { 'data-testid': 'activities', 'aria-label': t('activities') }, h(Title, null, t('activities')),
                 activities.length ? h('ol', { className: 'syr-timeline' }, ...activities.map(item => h('li', { key: item.id }, h('time', { dateTime: item.at }, dateTime(item.at, locale)), h('span', { className: 'syr-break' }, item.title), h(Status, { value: item.status })))) : h(Empty, null, t('noActivities'))),
               h('section', { className: 'syr-box' }, h(Title, null, t('events')), eventMetrics()));
+          }
+          function coreContent() {
+            const projection = snapshot.core, goals = arr(projection?.goals), connected = projection && Array.isArray(projection.goals);
+            const goal = goals.find(item => item.goalId === selectedCoreGoal), ready = projection?.ready === true;
+            const bytes = value => new TextEncoder().encode(value).length;
+            const notes = coreNotes.map(note => ({ id: note.id.trim(), title: note.title.trim(), content: note.content,
+              dependsOn: note.dependencies.trim().split(/[\s,]+/).filter(Boolean) }));
+            const ids = notes.map(note => note.id), budget = { tokens: Number(coreBudget.tokens), calls: Number(coreBudget.calls), effects: Number(coreBudget.effects) };
+            const maxEvaluations = Number(coreBudget.maxEvaluations), objective = coreObjective.trim();
+            const acyclic = () => {
+              const visited = new Set(), visiting = new Set();
+              const visit = id => { if (visiting.has(id)) return false; if (visited.has(id)) return true; visiting.add(id);
+                if (!arr(notes.find(note => note.id === id)?.dependsOn).every(visit)) return false; visiting.delete(id); visited.add(id); return true; };
+              return ids.every(visit);
+            };
+            const formValid = objective.length > 0 && objective.length <= 4000 && !objective.includes('\0') && objective.isWellFormed() && notes.length >= 1 && notes.length <= 3
+              && new Set(ids).size === ids.length && notes.every(note => /^[A-Za-z0-9_-]{1,80}$/.test(note.id) && note.title.length > 0 && note.title.length <= 160
+                && !note.title.includes('\0') && note.title.isWellFormed() && note.content.trim().length > 0 && !note.content.includes('\0') && note.content.isWellFormed() && bytes(note.content) <= 1024
+                && arr(note.dependsOn).every(id => ids.includes(id) && id !== note.id) && new Set(arr(note.dependsOn)).size === arr(note.dependsOn).length)
+              && acyclic() && Object.entries(budget).every(([key, value]) => Number.isSafeInteger(value) && value > 0 && value <= (key === 'tokens' ? 100000000 : 1000))
+              && Number.isSafeInteger(maxEvaluations) && maxEvaluations >= 1 && maxEvaluations <= 100;
+            const expiredDraft = coreDraft.current.payload && Date.parse(coreDraft.current.payload.expiresAt) <= clock;
+            const canCreate = ready && canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && formValid && !expiredDraft;
+            const canStop = ready && !stale && snapshot.lifecycle !== 'stopping' && !coreControl && !controlCommand && goal && goal.cancelled === false;
+            const canResume = canStop && canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && goal.authorized === true && goal.paused === true
+              && Number.isFinite(Date.parse(goal.expiresAt)) && Date.parse(goal.expiresAt) > clock && !['pending', 'unknown'].includes(goal.nativeCommand?.status);
+            const status = item => item.cancelled === true ? 'cancelled' : item.authorized === false ? 'unapproved' : item.paused === true ? 'paused'
+              : Number.isFinite(Date.parse(item.expiresAt)) && Date.parse(item.expiresAt) <= clock ? 'expired' : item.authorized === true ? 'authorized' : 'unknown';
+            const editNote = (index, key, value) => { changeCoreDraft(); setCoreNotes(current => current.map((note, at) => at === index ? { ...note, [key]: value } : note)); };
+            const field = (name, value, onChange, options = {}) => h('label', { className: 'syr-select-label' }, h('span', null, name), h('input', {
+              className: 'syr-select', 'aria-label': name, value, disabled: Boolean(command || coreControl || controlCommand), onChange: event => onChange(event.target.value), ...options }));
+            const budgetFields = value => `${numeric(value?.tokens)} / ${numeric(value?.calls)} / ${numeric(value?.effects)}`;
+            return h('div', { className: 'syr-stack' },
+              h('section', { 'data-testid': 'core-state' }, h('div', { className: 'syr-system-heading' }, h(Title, { count: connected ? goals.length : undefined }, t('core')), h('p', null, t('coreHint'))),
+                !connected ? h(Empty, null, t('coreUnavailable')) : !ready ? h('p', { className: 'syr-alert' }, `${t('coreNotReady')} ${text(projection.errorCode)}`) : h('p', { className: 'syr-small syr-muted' }, t('coreScope')),
+                projection?.pump && h(Facts, { rows: [['corePump', label(projection.pump.state)], ['phase', text(projection.pump.phase) || t('unknownValue')], ['checked', dateTime(projection.pump.lastScanAt, locale)]] })),
+              h('section', { className: 'syr-box syr-memory-form', 'data-testid': 'core-form', 'aria-label': t('coreCreateTitle') }, h(Title, null, t('coreCreateTitle')),
+                h('p', { className: 'syr-small syr-muted' }, t('coreCreateHint')),
+                h('label', { className: 'syr-select-label' }, h('span', null, t('coreObjective')), h('textarea', { className: 'syr-textarea', 'aria-label': t('coreObjective'), value: coreObjective,
+                  maxLength: 4000, disabled: Boolean(command || coreControl || controlCommand), onChange: event => { changeCoreDraft(); setCoreObjective(event.target.value); } })),
+                ...coreNotes.map((note, index) => h('section', { className: 'syr-task-result', key: index }, h('h3', null, t('coreNoteNumber', { number: index + 1 })),
+                  field(t('coreNoteId', { number: index + 1 }), note.id, value => editNote(index, 'id', value), { maxLength: 80 }),
+                  field(t('coreNoteTitle', { number: index + 1 }), note.title, value => editNote(index, 'title', value), { maxLength: 160 }),
+                  h('label', { className: 'syr-select-label' }, h('span', null, t('coreNoteBody', { number: index + 1 })), h('textarea', { className: 'syr-textarea', 'aria-label': t('coreNoteBody', { number: index + 1 }), value: note.content,
+                    maxLength: 1024, disabled: Boolean(command || coreControl || controlCommand), onChange: event => editNote(index, 'content', event.target.value) })),
+                  field(t('coreNoteDepends', { number: index + 1 }), note.dependencies, value => editNote(index, 'dependencies', value), { maxLength: 200 }),
+                  coreNotes.length > 1 && h(Button, { disabled: Boolean(command || coreControl || controlCommand), onClick: () => { changeCoreDraft(); setCoreNotes(current => current.filter((_, at) => at !== index)); } }, t('coreRemoveNote')))),
+                h('p', { className: 'syr-small syr-muted' }, t('coreDependenciesHint')),
+                h(Button, { disabled: coreNotes.length >= 3 || Boolean(command || coreControl || controlCommand), onClick: () => { changeCoreDraft(); setCoreNotes(current => [...current, { id: `note-${current.length + 1}`, title: '', content: '', dependencies: '' }]); } }, t('coreAddNote')),
+                h('div', { className: 'syr-columns syr-section-gap' }, ...['tokens', 'calls', 'effects', 'maxEvaluations'].map(key => field(t(`coreLimit_${key}`), coreBudget[key], value => { changeCoreDraft(); setCoreBudget(current => ({ ...current, [key]: value })); }, { type: 'number', min: 1, step: 1 }))),
+                h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('coreBudgetHint')),
+                h('label', { className: 'syr-select-label' }, h('span', null, t('coreLifetime')), h('select', { className: 'syr-select', 'aria-label': t('coreLifetime'), value: coreLifetime, disabled: Boolean(command || coreControl || controlCommand),
+                  onChange: event => { changeCoreDraft(); setCoreLifetime(event.target.value); } }, h('option', { value: '30' }, t('core30Minutes')), h('option', { value: '60' }, t('core1Hour')))),
+                !formValid && (coreObjective || coreNotes.some(note => note.title || note.content || note.dependencies)) && h('p', { className: 'syr-small syr-muted' }, t('coreInvalidForm')),
+                expiredDraft && h('p', { className: 'syr-small syr-muted' }, t('coreExpiredDraft')),
+                h('div', { className: 'syr-actions syr-section-gap' }, h(Button, { disabled: !canCreate, onClick: () => {
+                  if (!canCreate) return; coreDraft.current.payload ||= { requestId: `core-${crypto.randomUUID()}`, objective, deliverables: notes, budget,
+                    expiresAt: new Date(Date.now() + Number(coreLifetime) * 60000).toISOString(), maxEvaluations };
+                  void operations.current.core('core.create', coreDraft.current.payload);
+                } }, t('coreCreate')))),
+              coreError && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'core-error' }, coreError),
+              coreNotice && h('p', { className: 'syr-feedback', role: 'status', 'data-testid': 'core-notice' }, coreNotice),
+              coreControl && h('p', { className: 'syr-feedback', role: 'status' }, t('controlPending')),
+              h('section', null, h(Title, null, t('coreGoals')), !connected ? h(Empty, null, t('coreUnavailable')) : !goals.length ? h(Empty, null, t('coreNoGoals')) : h('div', { className: 'syr-task-layout' },
+                h('div', { className: 'syr-session-list', 'data-testid': 'core-list' }, ...goals.map(item => h('button', { type: 'button', key: item.goalId, className: 'syr-session-button', 'aria-label': t('coreView', { id: item.goalId }),
+                  'aria-pressed': item.goalId === selectedCoreGoal, onClick: () => chooseCoreGoal(item.goalId) }, h('span', { className: 'syr-task-label' }, text(item.objective)), h('span', { className: 'syr-id' }, text(item.goalId)), h(Status, { value: status(item) })))),
+                goal ? h('section', { className: 'syr-box syr-task-detail', 'data-testid': 'core-detail' }, h(Title, null, t('coreDetails')),
+                  h('p', { className: 'syr-break' }, text(goal.objective)), h(Facts, { rows: [['goalId', goal.goalId, true], ['recordVersion', numeric(goal.version)], ['coreAuthorization', label(status(goal))], ['coreExpiresAt', dateTime(goal.expiresAt, locale)],
+                    ['coreEvaluations', `${numeric(goal.evaluations)} / ${numeric(goal.maxEvaluations)}`], ['coreActiveEvaluation', goal.activeEvaluationId, true], ['coreNextEligible', dateTime(goal.nextEligibleAt, locale)]] }),
+                  h('div', { className: 'syr-actions syr-section-gap' }, h(Button, { disabled: !canStop || goal.paused === true, onClick: () => void operations.current.core('core.pause', { goalId: goal.goalId, expectedVersion: goal.version }) }, t('corePause')),
+                    h(Button, { disabled: !canResume, onClick: () => void operations.current.core('core.resume', { goalId: goal.goalId, expectedVersion: goal.version }) }, t('coreResume')),
+                    h(Button, { disabled: !canStop, onClick: () => void operations.current.core('core.cancel', { goalId: goal.goalId, expectedVersion: goal.version }) }, t('coreCancel'))),
+                  h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('coreControlHint')),
+                  h('section', { className: 'syr-task-result', 'data-testid': 'core-native' }, h(Title, null, t('coreNative')), h(Facts, { rows: [['nativeGoalId', goal.native?.goalRef?.id, true], ['recordVersion', numeric(goal.native?.goalRef?.revision)],
+                    ['sessionId', goal.native?.sessionId, true], ['nativePhase', goal.native?.phase ? label(goal.native.phase) : t('unknownValue')], ['observed', dateTime(goal.native?.observedAt, locale)]] }), h('p', { className: 'syr-small syr-muted' }, t('coreNativeHint'))),
+                  h('section', { className: 'syr-task-result', 'data-testid': 'core-native-command' }, h(Title, null, t('coreNativeCommand')), h(Facts, { rows: [['coreNativeCommandId', goal.nativeCommand?.commandId, true],
+                    ['coreNativeCommandOperation', ['create', 'update', 'pause', 'resume', 'complete'].includes(goal.nativeCommand?.operation) ? t(`coreNativeOperation_${goal.nativeCommand.operation}`) : t('unknownValue')],
+                    ['status', goal.nativeCommand?.status ? label(goal.nativeCommand.status) : t('unknownValue')]] }), ['pending', 'unknown'].includes(goal.nativeCommand?.status) && h('p', { className: 'syr-alert' }, t('coreNativeUnconfirmed'))),
+                  h('section', { className: 'syr-task-result', 'data-testid': 'core-budget' }, h(Title, null, t('coreBudget')), h('p', { className: 'syr-small syr-muted' }, t('coreBudgetAxes')),
+                    h(Facts, { rows: [['coreBudgetLimit', budgetFields(goal.balance?.limits ?? goal.budget)], ['coreBudgetSpent', budgetFields(goal.balance?.spent)], ['coreBudgetHeld', budgetFields(goal.balance?.held)], ['coreBudgetAvailable', budgetFields(goal.balance?.available)]] }), h('p', { className: 'syr-small syr-muted' }, t('coreBudgetHint'))),
+                  h('section', { className: 'syr-task-result' }, h(Title, null, t('coreApprovedNotes')), ...arr(goal.deliverables).map(note => h('div', { className: 'syr-entry', key: note.id }, h('h3', null, text(note.title)),
+                    h(Facts, { rows: [['coreDeliverable', note.id, true], ['memoryBytes', numeric(note.bodyBytes)], ['coreDepends', arr(note.dependsOn).join(', ') || t('coreNone')]] })))),
+                  h('section', { className: 'syr-task-result', 'data-testid': 'core-accepted-tasks' }, h(Title, null, t('coreAcceptedTasks')), !arr(goal.taskRefs).length ? h(Empty, null, t('coreNoAcceptedTasks')) : arr(goal.taskRefs).map(ref => {
+                    const linkedTask = tasks.find(item => item.taskId === ref.taskId && item.goalId === goal.goalId);
+                    return h('div', { className: 'syr-entry', key: ref.taskId }, h('p', null, text(ref.deliverableId)), h(Button, { onClick: () => { setSelectedTask(ref.taskId); setTab('tasks'); } }, text(ref.taskId)), h('p', null, label(linkedTask?.state || 'unknown')));
+                  })),
+                  h('section', { className: 'syr-task-result', 'data-testid': 'core-evaluations' }, h(Title, null, t('coreDecisions')), !arr(goal.evaluationsLog).length ? h(Empty, null, t('coreNoDecisions')) : arr(goal.evaluationsLog).map(evaluation => h('article', { className: 'syr-entry', key: evaluation.evaluationId },
+                    h('h3', { className: 'syr-code' }, text(evaluation.evaluationId)), h(Status, { value: evaluation.status }), h('p', { className: 'syr-small syr-muted' }, t('coreTriggers')), h(Evidence, { values: evaluation.triggerRefs }),
+                    evaluation.candidate && h('section', { className: 'syr-section-gap' }, h('h3', null, t('coreCandidate')), h('p', null, text(evaluation.candidate.kind)), h('p', null, text(evaluation.candidate.reason)),
+                      evaluation.candidate.deliverableId && h('p', { className: 'syr-code' }, text(evaluation.candidate.deliverableId)), h('p', { className: 'syr-small syr-muted' }, t('coreCandidateHint'))),
+                    h(Facts, { rows: [['coreDecisionReceipt', evaluation.receipt ? label(evaluation.receipt.status) : t('unknownValue')], ['coreReasonCode', evaluation.receipt?.reasonCode ?? evaluation.reasonCode, true], ['taskId', evaluation.receipt?.taskId, true],
+                      ['coreObservedTokens', numeric(evaluation.usage?.tokens)], ['calls', numeric(evaluation.usage?.calls)], ['embeddingUsageCompleteness', t(evaluation.usage?.complete === true ? 'usageComplete' : 'usageIncomplete')], ['sessionId', evaluation.sessionId, true]] }),
+                    evaluation.status === 'unknown' && h('p', { className: 'syr-alert' }, t('coreUnknown')))))) : h(Empty, null, t(selectedCoreGoal ? 'coreNotInSnapshot' : 'coreSelect')))));
           }
           function systemContent() {
             return h('section', null, h('div', { className: 'syr-system-heading' }, h('h2', null, t('implementation')), h('p', null, t('implementationHint'))),
@@ -939,7 +1283,7 @@ window.__ModuleLoader__.load({
           return h('div', { className: 'syr', ref: rootRef }, h('style', null, css), h('div', { className: 'syr-wrap' },
             h('header', { className: 'syr-header' }, h('div', { className: 'syr-brand' }, h(Icon, { size: 27 }), h('div', null, h('h1', null, t('title')), h('div', { className: 'syr-meta' }, snapshot && h('span', null, `v${snapshot.version}`), h('span', null, t('source'))))),
               h('div', { className: 'syr-actions' }, snapshot && h(Button, { icon: state === 'paused' ? 'play' : 'pause', disabled: !canControl, onClick: () => void operations.current.command(state === 'paused' ? 'runtime.resume' : 'runtime.pause') }, t(state === 'paused' ? 'resume' : 'pause')), h(Button, { icon: 'refresh', disabled: loading, onClick: () => void operations.current.refresh(), 'aria-label': t('refresh'), 'aria-busy': loading }, t(loading ? 'refreshing' : 'refresh')))),
-            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'tasks', 'conversations', 'memory', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => setTab(id) }, t(id)))),
+            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'core', 'tasks', 'conversations', 'memory', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => setTab(id) }, t(id)))),
             stale && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'snapshot-stale' }, h('strong', null, t(snapshot ? 'staleTitle' : 'loadFailed')), h('p', null, readError || t('snapshotOld')), snapshot && h('p', null, t('staleHint'))),
             commandError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), commandError),
             controlError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), controlError),
@@ -947,7 +1291,7 @@ window.__ModuleLoader__.load({
             controlNotice && h('p', { className: 'syr-feedback', role: 'status' }, controlNotice),
             command && h('p', { className: 'syr-feedback', role: 'status' }, t(command === 'session.verify-model' ? 'modelVerifyPending' : command === 'conversation.verifyContext' ? 'contextVerifyPending' : 'controlPending', { id: contextAttempt?.conversationId || t('unknownValue') })),
             controlCommand && h('p', { className: 'syr-feedback', role: 'status' }, t('controlPending')),
-            snapshot ? (tab === 'overview' ? overview() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'memory' ? memoryContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
+            snapshot ? (tab === 'overview' ? overview() : tab === 'core' ? coreContent() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'memory' ? memoryContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
             h('footer', { className: 'syr-footer' }, h('span', null, lastRead ? `${t('lastRead')} · ${dateTime(lastRead, locale)}` : t('unknownHint')), h('span', null, t('autoRefresh')))));
         }
         ctx.effect(() => {

@@ -405,7 +405,7 @@ test('a failed domain resume keeps the persistent pause across a new runtime ins
   try { assert.equal((await fresh.snapshot()).state, 'paused'); } finally { await fresh.close(); }
 });
 
-test('dashboard reads never publish, create Sessions or infer; planned systems remain explicit', async t => {
+test('dashboard reads never publish, create Sessions or infer; partial systems remain explicit', async t => {
   const { runtime, fake } = await fixture(t);
   const first = await runtime.snapshot();
   for (let i = 0; i < 12; i++) {
@@ -416,7 +416,8 @@ test('dashboard reads never publish, create Sessions or infer; planned systems r
     assert.equal(snapshot.usage.inputTokens, null);
     assert.equal(snapshot.usage.cacheReadTokens, null);
     assert.equal(snapshot.systems.length, 9);
-    assert.equal(snapshot.systems.find(s => s.id === 'core')?.status, 'planned');
+    assert.equal(snapshot.systems.find(s => s.id === 'core')?.status, 'partial');
+    assert.match(snapshot.systems.find(s => s.id === 'core')?.summary ?? '', /开放式分解和长期规划待验证或实现/);
     assert.equal(snapshot.dependencies.find(d => d.id === 'native-session')?.status, 'unknown');
   }
   assert.equal(fake.probes, 0); assert.equal(fake.generations, 0);

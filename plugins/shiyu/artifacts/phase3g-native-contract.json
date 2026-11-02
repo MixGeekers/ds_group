@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "phase": "3G",
+  "recordedAt": "2026-11-02T11:23:09.020Z",
+  "evidenceLevel": "fixed installed SDK static inspection plus synthetic module tests",
+  "runtimeValidation": {
+    "hostApiInvoked": false,
+    "nativeSessionCreated": false,
+    "generationModelInvoked": false,
+    "providerTrafficObserved": false,
+    "claim": "No real core model or host acceptance is asserted by this artifact."
+  },
+  "source": {
+    "archive": "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar",
+    "method": "Read-only ASAR header/index and exact package sources; no credentials or unrelated Session histories read.",
+    "files": [
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-agent-loop/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 74599,
+        "sha256": "cf57e3ecd487ac5c2553455aaa5cef2c6fb41e6bd61be5aa455675d1d7193033",
+        "reviewedLineRanges": [
+          "103-110",
+          "204-206",
+          "800-820",
+          "906-918",
+          "1052-1085",
+          "1148-1162",
+          "1274-1287"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-llm/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 105272,
+        "sha256": "d18d8ae4c8d961e628708c1e4698e09716a0ebb80e55a672e0bde1029bec1155",
+        "reviewedLineRanges": [
+          "377-387",
+          "759-770",
+          "2111-2140",
+          "2249-2257",
+          "2335-2349",
+          "2393-2397",
+          "2429"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-goal/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 36744,
+        "sha256": "8ec52107ead3d31f4d8ca95894c851046a2cbbd1b2033a0ea22fedf17c043ae4",
+        "reviewedLineRanges": [
+          "163-166",
+          "273-278",
+          "594-626",
+          "635-711",
+          "760-785"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-session/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 94982,
+        "sha256": "2f5dd07cb5c744a29abbb8003a8a4cefd9e582c6e2538074ca299a0ddd02a3bf",
+        "reviewedLineRanges": [
+          "658-680",
+          "696-714",
+          "1938-1967"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-session-title/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 27183,
+        "sha256": "eb814490ca3d0aaabf8f6ddc705a031f99a98709c484c1502c5f28f101cf0eeb",
+        "reviewedLineRanges": [
+          "281-310",
+          "380-383"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-compaction-basic/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 49452,
+        "sha256": "b7ac52f20a36430cf01a66b3a36f23a48ffdb22708d714dbe1fff541b5df4ec5",
+        "reviewedLineRanges": [
+          "292-323",
+          "839-861"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-token-meter/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 35095,
+        "sha256": "b76a27f84d1f733c4a760e36fcc0491f807b32d51055703feb0fed1643cc2e05",
+        "reviewedLineRanges": [
+          "15-16",
+          "39-75",
+          "722-764",
+          "778-784"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-llm-pi-ai/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 125589,
+        "sha256": "99b5c20830a52f69641df8a18a39206079b0c725201958cce2c4a934f1d4f7cd",
+        "reviewedLineRanges": [
+          "1971-1986"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/dsh-agent/lib/index.js",
+        "packageVersion": "0.2.1-rc.5",
+        "bytes": 28257,
+        "sha256": "7b59cf82c2784c25bdce4e3e24e5e5303b02b9f1003efacf50255492d17baf8b",
+        "reviewedLineRanges": [
+          "193-204"
+        ]
+      },
+      {
+        "path": "dsh/node_modules/@deepseek-ai/cordis/lib/index.js",
+        "packageVersion": "4.0.5",
+        "bytes": 60361,
+        "sha256": "6a9394c0877ff45218818c6e815edd038f8057e1a1deb390a8d43ec81c57691e",
+        "reviewedLineRanges": [
+          "258-263",
+          "317-324"
+        ]
+      }
+    ]
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "src/adapters/dsh/goals.ts",
+        "bytes": 34198,
+        "sha256": "dca7347a7e6e7884339ea29135605802fced33c63be1b04f4878da4c95b2d62a"
+      },
+      {
+        "path": "src/adapters/dsh/core-decision.ts",
+        "bytes": 20291,
+        "sha256": "edb55782388c92351bb47624021abec9bb2c34d88e98dd77123b90c35184904d"
+      },
+      {
+        "path": "src/adapters/dsh/native-context.ts",
+        "bytes": 5889,
+        "sha256": "63e7973dc2b7a3480c7c0e3d18d7d5600e6b0eeb564ad5f1f3e03cfd9b9b5b48"
+      },
+      {
+        "path": "src/adapters/dsh/native-message.ts",
+        "bytes": 1927,
+        "sha256": "41211c6646e7c3f999976cb330fd1c6f2ffbcd2e5c5f92906787391525337d72"
+      },
+      {
+        "path": "src/adapters/dsh/session-title.ts",
+        "bytes": 1624,
+        "sha256": "624039d6d2bb927d7648826d991795875422f1a09197735d5a0e6ef77dc0d052"
+      }
+    ],
+    "namespaces": {
+      "lifecycle": {
+        "preset": "shiyu-runtime-goal-v1",
+        "sessionPrefix": "shiyu-goal-",
+        "defaultInferenceAdmission": "deny"
+      },
+      "core": {
+        "preset": "shiyu-runtime-core-goal-v1",
+        "sessionPrefix": "shiyu-core-goal-",
+        "ownership": "one adapter owns lifecycle and decisions for the same Goal Session"
+      }
+    },
+    "model": {
+      "provider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "reasoningEffort": "high"
+    },
+    "decision": {
+      "nativeStepsMaximum": 1,
+      "nativeRequestAdmissionsMaximum": 1,
+      "observablePrimaryStreamDispatchesMaximum": 1,
+      "tools": [],
+      "fixedTitle": "识雨 · 受限目标规划",
+      "officialAgentRequestIdentityRequired": true,
+      "historicalToolsForbidden": true,
+      "dispatchReceiptBeforeFollowup": true,
+      "independentInputAndAssistantColdRead": true,
+      "rawCandidateVerified": false,
+      "nativeGoalRound": false,
+      "nativeSourceKind": "user",
+      "nativeRoundsStartedExpected": "unchanged",
+      "accountingInsideGoalSerialLock": true
+    }
+  },
+  "budgetSemantics": {
+    "evaluationReservedTotalTokens": 16384,
+    "evaluationReservedCalls": 2,
+    "currentServiceMaxOutputTokens": 1024,
+    "adapterMaxOutputTokensRange": [
+      1,
+      4096
+    ],
+    "hardTotalTokenBillingCap": false,
+    "preDispatchExactTokenCountAvailable": false,
+    "tokenMeterKind": "fixed-density heuristic; may anchor on prior usage but future surface deltas remain heuristic",
+    "accounting": "reservation, actual observed usage reconciliation and overage freeze; cannot undo already incurred usage",
+    "modelCallsScope": "native middleware dispatches visible to this adapter",
+    "providerInternalTransportRetries": "unknown",
+    "fullProviderBillingCoverageClaimed": false
+  },
+  "cancellation": {
+    "deadlineField": "deadlineAtMs",
+    "absolute": true,
+    "maximumRequestedDeadlineOffsetMs": 120000,
+    "lateNativeHandleOwnershipRetained": true,
+    "hardProcessTerminationByDeadline": false,
+    "boundedDrainGuaranteed": false,
+    "limitation": "If native create/whenIdle or a durable callback does not settle, retain ownership and wait for drain; no detached background create or automatic replay."
+  },
+  "otherLimitations": [
+    "Unknown inbox is preserved and blocks activation/disposal.",
+    "Failed native release retains deny guards and forbids another core activation in that adapter.",
+    "Cold inbox projection is bounded to 2048 continuous events with EOF confirmation.",
+    "No automatic compaction or long-history recovery was implemented in this slice.",
+    "Native Goal phase/revision/rounds remain authoritative; local evaluation counts are separate.",
+    "Namespace and preset restrictions do not claim an irreversible seal against an explicit owner reconfiguration.",
+    "No whole-host traffic or complete provider billing audit is claimed."
+  ],
+  "validation": {
+    "combined": {
+      "command": "node --import tsx --test tests/core-goal-sessions.test.ts tests/goals.test.ts tests/goal-lifecycle.test.ts tests/goal-bindings.test.ts",
+      "passed": 56,
+      "failed": 0,
+      "durationMs": 2605.513208,
+      "evidence": "Observed exec_command completion in this turn (chunk 24d3be, exit 0); complete stdout was not separately saved.",
+      "groups": {
+        "coreGoalNativeDoubles": 14,
+        "legacyGoalAdapter": 21,
+        "sqliteGoalBindings": 9,
+        "goalLifecycleCombination": 12
+      }
+    },
+    "coreIndependentLog": {
+      "path": ".local/phase3g-core-goal-sessions.log",
+      "bytes": 1619,
+      "sha256": "f88a590d2c883c283ff0190b530854f43d1583d6b199e14d6f69c2c1acf310e1"
+    },
+    "testFiles": [
+      {
+        "path": "tests/core-goal-sessions.test.ts",
+        "bytes": 32648,
+        "sha256": "75f573e1720d526d051f284d571cde86148c920c84e494c911ec7fbaa8e49272"
+      },
+      {
+        "path": "tests/goals.test.ts",
+        "bytes": 29710,
+        "sha256": "0e901f0e60883ee440a234178f1861d72c2dea75f7885143dd79e8a9308b02ef"
+      },
+      {
+        "path": "tests/goal-lifecycle.test.ts",
+        "bytes": 16901,
+        "sha256": "66661c4383112c3f428fcfb868013dd785776b3872a8193b6d895317a6e3f5af"
+      },
+      {
+        "path": "tests/goal-bindings.test.ts",
+        "bytes": 16870,
+        "sha256": "b7b4451e759bf8c51ea95be4fdd1c70f9e5626c802de95671a6a99dacb16e827"
+      }
+    ],
+    "typecheck": {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "scope": "whole product package at the observed execution; not a later full acceptance run"
+    },
+    "diffCheck": {
+      "passed": true,
+      "scope": "owned adapter source and core test at the observed execution"
+    },
+    "classification": "Native API/model interactions are doubles. Binding/lifecycle combinations also use real isolated SQLite and local artifact components; this does not make them real DSH/model tests."
+  }
+}

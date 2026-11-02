@@ -24,6 +24,9 @@ import { ManagedOmbreBackend, loadManagedOmbreConfig, type ManagedOmbreConfig } 
 import type { LocalMemoryEntry } from './adapters/control-store/memory-domain.js';
 import type { MemoryIndexEntry } from './adapters/control-store/memory-index-domain.js';
 import type { AvailableMemoryDomain, UnavailableDomain } from './state/publication.js';
+import { CorePump, type CoreEvaluationResult } from './control/core-pump.js';
+import { LocalCoreService, type LocalCoreOptions } from './control/local-core.js';
+import type { CoreGoal, CorePrepareInput } from './contracts/core.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
@@ -54,10 +57,20 @@ export interface GoalLifecycleDriver {
   run(taskId: string, options: GoalLifecycleRunOptions): Promise<GoalLifecycleResult>;
   close(): Promise<void>;
 }
+export interface CoreDriver {
+  create(input: CorePrepareInput, signal?: AbortSignal): Promise<CoreGoal>;
+  control(kind: 'pause' | 'cancel' | 'resume', input: { goalId: string; expectedVersion: number }, signal?: AbortSignal): Promise<CoreGoal>;
+  evaluatePending(input?: { signal?: AbortSignal }): Promise<CoreEvaluationResult>;
+  cancelGoal(goalId: string, reason?: unknown): void;
+  cancelAll(reason?: unknown): void;
+  close(): Promise<void>;
+}
 export interface RuntimeOptions {
   sessionFactory?: (ctx: DshContext, state: LocalStateFile, cwd: string) => SessionDriver;
   workerFactory?: (ctx: DshContext) => TaskWorkerDriver;
   goalFactory?: (options: GoalLifecycleOptions) => GoalLifecycleDriver;
+  /** Trusted composition only; public commands cannot supply a planner or authority. */
+  coreFactory?: (options: LocalCoreOptions) => CoreDriver;
   /** Trusted fixture/composition only; never accepted from command JSON. */
   memoryFactory?: (config: ManagedOmbreConfig) => Pick<ManagedOmbreBackend, 'adapter' | 'open' | 'status' | 'close'>;
 }
@@ -70,6 +83,10 @@ function memoryEntry(entry: LocalMemoryEntry) {
 function memoryIndexEntry(entry: MemoryIndexEntry) {
   return { indexOperationId: entry.indexOperationId, memoryOperationId: entry.command.memoryOperationId,
     status: entry.effect.status, publishable: entry.publishable, embeddingUsage: structuredClone(entry.embeddingUsage) };
+}
+function publicCoreGoal(goal: CoreGoal) {
+  const { deliverables, ...metadata } = goal;
+  return { ...metadata, deliverables: deliverables.map(({ content, ...item }) => ({ ...item, bodyBytes: Buffer.byteLength(content, 'utf8') })) };
 }
 interface ActiveOperation { id: string; title: string; phase: string; status: string; controller: AbortController; done: Promise<void>; finish: () => void }
 
@@ -87,6 +104,9 @@ export class RuntimeService {
   tasks!: LocalTaskRunner;
   goals!: GoalLifecycleDriver;
   background!: BackgroundPump;
+  private core?: CoreDriver;
+  private corePump?: CorePump;
+  private coreFailure?: string;
   localReplies!: LocalReplyService;
   private localMemories?: LocalMemoryService;
   private memorySearch?: LocalMemorySearchService;
@@ -177,6 +197,27 @@ export class RuntimeService {
       this.goals = this.options.goalFactory?.(goalOptions) ?? new LocalGoalLifecycleService(goalOptions);
       await this.goals.initialize();
       await this.store.request('task.setPaused', { paused: this.pauseRequested });
+      const coreStatus = await this.store.request('core.status', {});
+      if (coreStatus.ready) {
+        try {
+          const coreOptions: LocalCoreOptions = { ctx: this.ctx, store: this.store, bindings: goalOptions.bindings, artifacts: this.artifacts,
+            assertRuntimeAllowed: () => this.ensureCanRun(), hasCapacity: () => this.operations.size + this.pendingAdmissions <= 2,
+            onGoalStopped: goal => {
+              for (const { taskId } of goal.taskRefs) this.operations.get(taskId)?.controller.abort(new Error('Owner stopped the task Goal'));
+            } };
+          this.core = this.options.coreFactory?.(coreOptions) ?? new LocalCoreService(coreOptions);
+          this.corePump = new CorePump({
+            pending: async () => {
+              if (this.closed || this.closing || this.pauseRequested || this.operations.size + this.pendingAdmissions >= 2) return false;
+              return (await this.store.request('core.pending', { limit: 1 })).goalIds.length > 0;
+            },
+            evaluatePending: input => this.evaluateCore(input.signal),
+          });
+        } catch {
+          await this.core?.close().catch(() => undefined); this.core = undefined; this.corePump = undefined;
+          this.coreFailure = 'CORE_INITIALIZATION_FAILED';
+        }
+      } else this.coreFailure = coreStatus.errorCode ?? 'CORE_UNAVAILABLE';
       const existing = await this.events.listSubscriptions(principal);
       const activitySubscription = existing.find(s => s.id === 'runtime-activity');
       if (!activitySubscription) await this.events.subscribe(principal, {
@@ -190,7 +231,15 @@ export class RuntimeService {
         return { claimed: result.claimed, processed: result.acknowledged, failed: result.failed };
       } });
       await this.background.start();
+      // Existing authorized work may need a native request on startup. Keep the
+      // dashboard and pause controls available while the pump owns that work;
+      // close() still aborts and drains its in-flight evaluation before the DB.
+      void this.corePump?.start().catch(error => {
+        this.lastFailure = error instanceof Error ? error.message : String(error);
+      });
     } catch (error) {
+      await this.corePump?.close().catch(() => undefined);
+      await this.core?.close().catch(() => undefined);
       await this.memorySearch?.close().catch(() => undefined);
       await this.localMemories?.close().catch(() => undefined);
       await this.memoryBackend?.close().catch(() => undefined);
@@ -233,6 +282,8 @@ export class RuntimeService {
     // waiting for its durable write. Only the latest successful resume opens it.
     if (paused) {
       this.pauseRequested = true;
+      this.corePump?.cancelEvaluation(new Error('Runtime paused'));
+      this.core?.cancelAll(new Error('Runtime paused'));
       for (const op of this.operations.values()) op.controller.abort();
     }
     const command = this.controlTail.then(async () => {
@@ -253,7 +304,7 @@ export class RuntimeService {
       if (!this.closed) await this.publishMemoryAvailability();
       if (paused) for (const binding of await this.sessions.getStatus()) if (binding.status === 'running') await this.sessions.cancel(binding.key);
       await this.record('runtime.lifecycle.changed', paused ? '已暂停新的模型操作' : '已恢复接纳新的模型操作', paused ? 'paused' : 'ready');
-      if (!paused) await this.scheduleQueuedTasks();
+      if (!paused) { await this.scheduleQueuedTasks(); void this.corePump?.wake(); }
       return { accepted: true, paused };
     });
     this.controlTail = command.then(() => undefined, error => { this.lastFailure = error instanceof Error ? error.message : String(error); });
@@ -267,14 +318,38 @@ export class RuntimeService {
       await this.events.ack(principal, { deliveryId: delivery.deliveryId, claimToken: delivery.claimToken });
     }
   }
+  private async coreSnapshot() {
+    if (!this.core) return { ready: false, errorCode: this.coreFailure ?? 'CORE_UNAVAILABLE', goals: [] };
+    try {
+      const goals = await this.store.request('core.snapshot', {});
+      const entries = await Promise.all(goals.map(async goal => {
+        const [evaluations, balance, binding] = await Promise.all([
+          this.store.request('core.evaluations', { goalId: goal.goalId }), this.store.request('core.balance', { goalId: goal.goalId }),
+          this.store.request('goal.binding.load', { goalId: goal.goalId }),
+        ]);
+        return { ...publicCoreGoal(goal), ...(balance ? { balance } : {}),
+          ...(binding?.receipt ? { nativeCommand: { commandId: binding.receipt.commandId, operation: binding.receipt.operation, status: binding.receipt.status } } : {}),
+          evaluationsLog: evaluations.map(item => ({
+          evaluationId: item.evaluationId, status: item.status, triggerRefs: item.triggerRefs,
+          ...(item.candidate ? { candidate: item.candidate } : {}), ...(item.receipt ? { receipt: item.receipt } : {}),
+          ...(item.reasonCode ? { reasonCode: item.reasonCode } : {}), ...(item.dispatch ? { sessionId: item.dispatch.sessionId } : {}),
+          usage: { complete: item.reservation.state === 'settled', tokens: item.reservation.observed.tokens ?? null, calls: item.reservation.observed.calls ?? null },
+        })) };
+      }));
+      return { ready: true, unresolved: entries.filter(goal => goal.nativeCommand?.status === 'unknown' || goal.nativeCommand?.status === 'pending'
+        || goal.evaluationsLog.some(item => item.status === 'unknown')).length,
+        ...(this.corePump ? { pump: this.corePump.snapshot() } : {}), goals: entries };
+    } catch { return { ready: false, errorCode: 'CORE_SNAPSHOT_UNAVAILABLE', goals: [] }; }
+  }
   async snapshot() {
     this.ensureOpen();
-    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection] = await Promise.all([
+    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection, core] = await Promise.all([
       this.store.info(), this.events.stats(principal), this.events.listEvents(principal, { limit: 40 }),
       this.events.listSubscriptions(principal), this.sessions.getStatus(),
       this.store.request('task.list', {}),
       this.store.request('conversation.snapshotLocal', {}),
       this.store.request('view.state', {}),
+      this.coreSnapshot(),
     ]);
     const at = new Date().toISOString();
     const probe = this.state.state.lastProbe;
@@ -291,10 +366,11 @@ export class RuntimeService {
     const memoryReady = Boolean(this.localMemories && memoryBackend?.state === 'ready' && !memoryError);
     return {
       schemaVersion: 1, version: VERSION, instanceId: this.instanceId, startedAt: this.startedAt, observedAt: at,
-      lifecycle: this.lastFailure || memoryError || this.semanticFailure || memoryBackend?.state === 'failed' || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
+      lifecycle: this.lastFailure || memoryError || this.semanticFailure || !core.ready || ('unresolved' in core && core.unresolved) || ('pump' in core && core.pump?.state === 'degraded') || memoryBackend?.state === 'failed' || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
       state: this.pauseRequested ? 'paused' : this.operations.size ? 'busy' : 'idle',
       systems: structuredClone(systems),
       tasks,
+      core,
       conversations: conversations.conversations,
       innerProjection: innerProjection ?? null,
       memory: { configured: Boolean(this.memoryConfig) || Boolean(this.memoryFailure), ready: memoryReady,
@@ -327,7 +403,7 @@ export class RuntimeService {
       // rather than summing only the measured requests and presenting a false zero.
       usage: { calls: null, inputTokens: null, outputTokens: null, cacheReadTokens: null },
       notices: [
-        { id: 'scope', level: 'info', message: '已接入原生会话、事件、受限本地任务与记忆读取链路；持续规划、其余内层状态及外部渠道仍待接入。' },
+        { id: 'scope', level: 'info', message: '已接入原生会话、事件、本地任务与记忆读取；core 仅在显式目标范围和共享预算内选择已授权事项，开放式规划、其余内层状态及外部渠道仍待接入。' },
         ...(this.pauseRequested ? [{ id: 'paused', level: 'info', message: '已暂停新的模型操作；已发生效果不会因暂停回滚。' }] : []),
         ...(this.lastFailure ? [{ id: 'operation', level: 'warning', message: this.lastFailure }] : []),
         ...(backgroundState.lastFailure ? [{ id: 'background', level: 'warning', message: `对话背景处理待核对：${backgroundState.lastFailure}` }] : []),
@@ -339,7 +415,10 @@ export class RuntimeService {
     this.ensureOpen();
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Expected command object');
     const value = input as Record<string, unknown>;
-    const action = value.action;
+    const fields = Object.getOwnPropertyDescriptors(value);
+    if (![Object.prototype, null].includes(Object.getPrototypeOf(value)) || Object.values(fields).some(field => !Object.hasOwn(field, 'value'))) throw new Error('Expected command data fields');
+    const action = fields.action?.value;
+    if (action === 'core.create' || action === 'core.pause' || action === 'core.resume' || action === 'core.cancel') return this.commandCore(value, signal);
     if (action === 'memory.rememberLocal' || action === 'memory.readLocal' || action === 'memory.withdrawLocal') return this.commandLocalMemory(value, signal);
     if (action === 'memory.indexLocal' || action === 'memory.searchLocal') return this.commandSemanticMemory(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
@@ -442,6 +521,58 @@ export class RuntimeService {
       if (action === 'goal.verify-lifecycle') await this.state.update(state => { state.lastGoalVerification = { at: new Date().toISOString(), ok: false, message: this.lastFailure!, instanceId: this.instanceId }; });
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
+  private async commandCore(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (!this.core) throw new Error('Core control is unavailable');
+    signal?.throwIfAborted();
+    const create = value.action === 'core.create';
+    const kind = create ? undefined : String(value.action).slice('core.'.length) as 'pause' | 'cancel' | 'resume';
+    const keys = create ? ['action', 'requestId', 'objective', 'deliverables', 'budget', 'expiresAt', 'maxEvaluations'] : ['action', 'goalId', 'expectedVersion'];
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    if (![Object.prototype, null].includes(Object.getPrototypeOf(value)) || Object.keys(descriptors).some(key => !keys.includes(key))
+      || Object.values(descriptors).some(field => !Object.hasOwn(field, 'value'))
+      || (!create && (typeof value.goalId !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,149}$/.test(value.goalId)
+        || !Number.isSafeInteger(value.expectedVersion) || Number(value.expectedVersion) < 1))) throw new Error('Invalid core owner command');
+    const stop = kind === 'pause' || kind === 'cancel';
+    if (!stop) {
+      this.ensureCanRun();
+      if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    } else if (this.operations.size >= 32) throw new Error('Runtime control capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: create ? '建立有范围的持续目标' : kind === 'resume' ? '恢复目标授权' : kind === 'cancel' ? '停止目标' : '暂停目标',
+      phase: create ? '登记范围并核对原生 Goal' : '更新停止屏障并核对原生状态', status: 'running', controller: new AbortController(), done, finish };
+    const abort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', abort, { once: true }); this.operations.set(op.id, op);
+    try {
+      let goal: CoreGoal;
+      if (create) {
+        const { action: _action, ...input } = value;
+        goal = await this.core.create(structuredClone(input) as unknown as CorePrepareInput, op.controller.signal);
+      } else goal = await this.core.control(kind!, { goalId: value.goalId as string, expectedVersion: value.expectedVersion as number }, op.controller.signal);
+      return { goal: publicCoreGoal(goal) };
+    } finally {
+      this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', abort);
+      if (!this.closed && !this.closing && !this.pauseRequested) {
+        void this.corePump?.wake();
+        void this.scheduleQueuedTasks().catch(error => { this.lastFailure = error instanceof Error ? error.message : String(error); });
+      }
+    }
+  }
+  private async evaluateCore(signal: AbortSignal): Promise<CoreEvaluationResult> {
+    if (!this.core || this.closed || this.closing || this.pauseRequested || this.operations.size + this.pendingAdmissions >= 2) return { status: 'idle' };
+    this.ensureCanRun(); signal.throwIfAborted();
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: `core-${randomUUID()}`, title: '判断目标的下一步', phase: '复核目标、触发与共享预算', status: 'running',
+      controller: new AbortController(), done, finish };
+    const abort = () => op.controller.abort(signal.reason);
+    signal.addEventListener('abort', abort, { once: true }); this.operations.set(op.id, op);
+    try { return await this.core.evaluatePending({ signal: op.controller.signal }); }
+    finally {
+      this.operations.delete(op.id); op.finish(); signal.removeEventListener('abort', abort);
+      if (!this.closed && !this.closing) await this.scheduleQueuedTasks();
+    }
   }
   private async commandLocalMemory(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
     const save = value.action === 'memory.rememberLocal', withdraw = value.action === 'memory.withdrawLocal';
@@ -622,6 +753,7 @@ export class RuntimeService {
       .finally(() => {
         this.operations.delete(taskId); op.finish();
         if (!this.closed && !this.closing) void this.background.wake();
+        if (!this.closed && !this.closing) void this.corePump?.wake();
         void this.scheduleQueuedTasks().catch(error => { this.lastFailure = error instanceof Error ? error.message : String(error); });
       });
   }
@@ -637,6 +769,9 @@ export class RuntimeService {
   async close(): Promise<void> {
     if (this.closing) return this.closing;
     this.closed = true;
+    const corePumpClosing = this.corePump?.close();
+    const coreClosing = this.core?.close();
+    void coreClosing?.catch(() => undefined);
     const backgroundClosing = this.background?.close();
     const replyClosing = this.localReplies?.close();
     const memoryClosing = this.localMemories?.close();
@@ -651,10 +786,13 @@ export class RuntimeService {
       try {
         await this.controlTail;
         await Promise.allSettled([...this.admissions]);
-        await backgroundClosing;
+        // A failed native close does not prove a concurrent evaluation stopped.
+        // Drain every owner before closing the store used by late fact records.
+        const stopped = await Promise.allSettled([backgroundClosing, corePumpClosing, coreClosing]);
+        const failures = stopped.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
         try {
           const results = await Promise.allSettled([this.sessions?.close(), this.workers?.close(), this.goals?.close()]);
-          const failures = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
+          failures.push(...results.flatMap(result => result.status === 'rejected' ? [result.reason] : []));
           if (failures.length) throw new AggregateError(failures, 'Native Session cleanup failed');
         }
         finally { await Promise.allSettled([...this.operations.values()].map(op => op.done)); await replyClosing; }

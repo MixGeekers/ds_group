@@ -1,8 +1,10 @@
 # 识雨本体
 
-`@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地任务与记忆链路。
+`@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 core/replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地目标、任务与记忆链路。
 
-**状态：3F 语义记忆与原生上下文已接入，限定本地模型和宿主链路已验证。** 3E 已完成限定 DSH 保存、精确读回、有序重载和本地撤回；3F 新增受控 Harrier 生命周期、单独授权的索引操作、同对话语义检索、原生记忆 ReadView 与零推理背景加载。记忆已进入 Session 后，撤回会封存旧绑定并切换安全代次；正常消息继续复用 Session。正文只存原生普通桶，控制库与后端 journal 只存元信息，撤回不代表物理删除。schema1 配置继续关闭 embedding，schema2 才显式启用受控 Harrier；其余五个内层域仍 unavailable。本轮 676 模块、59 Python、154 UI 通过；真实隔离 Harrier 20 次 embedding，宿主两次零推理加载确认了撤回前复用与撤回后新 Session 不含撤回正文。固定标题及恢复标记另作解释，宿主内部查询完整用量未知；分批结果、失败与未覆盖范围见[实施记录](<实施记录.md>)及[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
+**状态：3G 有界 core 与“目标与判断”仪表盘已接线，本轮仅进行离线验证。** owner 明确指定本地便签范围、共享预算与期限后，core 才能提出范围内候选，由控制域核对并接纳 Task；原生 Goal Session 承载生命周期与有界判断。本轮未进行真实 DSH 宿主、生成模型或 embedding 验收，不能沿用旧样本宣布 core 已经通过真实业务验收。范围及公共接口见下方 [3G 说明](#3g有界-core-与本地目标)。
+
+**3F 历史验证：** 3E 已完成限定 DSH 保存、精确读回、有序重载和本地撤回；3F 新增受控 Harrier 生命周期、单独授权的索引操作、同对话语义检索、原生记忆 ReadView 与零推理背景加载。记忆已进入 Session 后，撤回会封存旧绑定并切换安全代次；正常消息继续复用 Session。记忆正文只存原生普通桶，控制库与后端 journal 只存其元信息，撤回不代表物理删除。schema1 配置继续关闭 embedding，schema2 才显式启用受控 Harrier；其余五个内层域仍 unavailable。3F 当时 676 模块、59 Python、154 UI 通过；真实隔离 Harrier 20 次 embedding，宿主两次零推理加载确认了撤回前复用与撤回后新 Session 不含撤回正文。固定标题及恢复标记另作解释，宿主内部查询完整用量未知；分批结果、失败与未覆盖范围见[实施记录](<实施记录.md>)及[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
 
 本包不依赖 Lab 引擎或资料工作台作为运行能力。`lab/` 继续作为独立被测环境，`plugins/shiyu-workbench/` 完整保留。
 
@@ -11,11 +13,12 @@
 | 部分 | 已实现范围 | 当前边界 |
 |---|---|---|
 | Host 与运行状态 | DSH 插件入口、只读状态路由、`shiyu_status` 工具、显式运行命令与卸载清理 | 原生安装与限定禁用/启用验证已有证据；无独立 Web 服务，不等于完整生命周期压力验收 |
-| 运行仪表盘 | 总览、当前工作、活动、九系统状态、事件/订阅、Session、任务完成条件与独立核验详情、显式诊断、本地记忆操作；中英文、主题及窄屏布局 | 使用结构化运行快照；受理不显示为成功，unknown 与停止请求独立显示；缺失用量保留未知 |
+| 运行仪表盘 | 总览、目标与判断、当前工作、活动、九系统状态、事件/订阅、Session、任务核验、显式诊断和记忆操作；中英文、主题及窄屏布局 | 目标候选、接纳任务、原生观察及命令回执分别显示；受理不显示为成功，unknown 与缺失用量保留未知 |
+| 有界 core | owner 明确登记 local-note 范围、依赖、预算与期限；可信触发、判断预留、原生候选、同事务 Task 接纳和独立完成证明 | 3G 仅离线验证；模型只能选择已授权便签 ID，没有任意任务、记忆写入、设备或外部渠道权限 |
 | replyer Session | 专用原生 preset、创建/恢复前模型校验、空工具与执行 guard、稳定业务/scope 绑定、取消与释放；显式两轮真实模型验证入口 | 零推理探针和两轮代号回忆已测；业务恢复/压缩及完整缓存收益仍待验，没有渠道外发 |
-| 任务与 worker | 本地 owner 创建 Task/Assignment，原生 worker 使用受控单工具写固定产物；绑定先持久化，资格按宿主/安装世代、fence、租约及授权复查 | 修复后第二个有界真实任务通过；首轮结算失败保留 unknown；没有 core 自主派工或通用文件/设备权限 |
-| 授权、效果与核验 | Mandate/CAS、原子预算预留、Effect 领取/回执/不确定性、独立产物 SHA256 核验；完成状态与完成事件同事务 | 目前接固定本地合成任务与显式普通记忆保存；取消不假称效果回滚，旧实例及 unknown 不自动重派，多用户与外部设备尚未接入 |
-| 原生 Goal 生命周期 | 原生 Goal 适配、SQLite 绑定/CAS/命令历史、独立完成证明及显式 `goal.verify-lifecycle` 诊断已接 Runtime；真实四步零推理验证通过 | 原生日志拥有 Goal 状态；本地仅存绑定和命令事实，未启用 core/续接循环；一次生命周期通过不代表完整恢复/持续规划验收 |
+| 任务与 worker | owner 本地任务及 3G 已授权便签委托复用 Task/Assignment；原生 worker 只写固定产物，派发资格持续复查 | 历史第二个有界真实任务通过、首轮 unknown 保留；3G core 派工仅离线验证，没有通用文件或设备权限 |
+| 授权、效果与核验 | Mandate/CAS、原子预留、Effect 与独立产物核验；3G 判断与派生 Task 共用同一 Goal 授权及预算 | 不以模型候选或 `task.createLocal` 代替 owner 授权；取消不回滚已发生效果，旧实例与 unknown 不自动重派 |
+| 原生 Goal 生命周期 | 原生 Goal 绑定/CAS/命令历史、独立完成证明；历史零推理诊断保留，3G 另用专用 Goal Session 执行有界判断 | 原生日志拥有 phase/revision；普通判断 followup 不计为原生 Goal driver round；旧观察不覆盖 pending/unknown 命令事实 |
 | 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、Task 关联、可信完成事件投影、有界扫描；显式本地上下文回复与验证 | 背景消费者不调用模型；Event ack 不等于加载，显式回复须原生持久回执才 ackContext；无渠道发送 |
 | 发布与受限视图 | schema2 按实际依赖发布 memory 读取能力，其余五域 unavailable；Task 与 native-memory ReadView、独立删除屏障及最终双校验 | 30 秒 capture，正文异步精确读取前后重核；只读接口不保存记忆，版本不与 commitSeq 或索引水位混用 |
 | 事件与订阅 | 类型目录、发布、订阅增删改查、有限回放、投递领取/确认/失败、重试和统计；事件与匹配投递同事务提交 | live 路径为可信组件消费和 Agent background 引用；Agent 事件工具工厂已实现并合成验证，但尚未挂载到原生 Session，未自动续接 |
@@ -23,7 +26,7 @@
 | 记忆控制与后端接缝 | 普通桶保存/精确读、共享授权与 Effect、独立索引回执、候选先授权后排序、可能暴露来源登记及撤回失效传播 | 同 Conversation、local-owner；不自动选取聊天正文，无普通物理删除/CAS、自主整理或跨对话分享 |
 | embedding | 固定 Harrier Q8_0、主程序与动态库身份、1024 维/head2000 profile；受控随机 loopback、临时鉴权、随 Runtime 清理 | 显式索引与搜索才请求向量，保存/状态刷新零 embedding；启动健康与 profile 核对不冒称模型实测或全量索引完成 |
 
-仪表盘查看/刷新只读取状态，不自动创建 Session、发布事件或调用模型。可见时每 10 秒刷新，页面隐藏时停止轮询；读取失败保留上次快照并标记状态未确认。显式“检查会话接入”执行零推理探针，“验证模型与会话复用”发送两轮合成输入，“运行本地任务验证”受理固定合成任务并交后台执行。暂停关闭新操作并取消在途模型，不声称回滚已经发生的效果；可信任务完成的纯背景标记仍可落库，不会因此请求模型、续接 Session 或发送消息。
+仪表盘查看/刷新只读取状态，不自动创建 Session、发布事件或调用模型。可见时每 10 秒刷新，页面隐藏时停止轮询；读取失败保留上次快照并标记状态未确认。显式“检查会话接入”执行零推理探针，“验证模型与会话复用”发送两轮合成输入，“运行本地任务验证”受理固定合成任务并交后台执行。暂停关闭新操作并取消在途模型，不声称回滚已经发生的效果。Conversation 的纯背景标记仍可落库，本身不请求模型或发送消息；3G core 另在已有 owner 授权内消费可信触发并进行有界判断，页面轮询不驱动这条链路。
 
 “检查原生 Goal 生命周期”使用已成功的本地任务重新读取产物和可信回执，依次检查 create/pause/resume/complete。它不请求模型推理；原生旁路是否确实为零另以宿主事件核对。已有 Goal 绑定或执行中断时要求显式核对，按钮不会自动重放整个序列。
 
@@ -50,13 +53,13 @@ npm run test:ui
 | 入口 | 用途 |
 |---|---|
 | `GET /api/shiyu/state` | 只读运行快照；与 `shiyu_status` 使用同一服务 |
-| `POST /api/shiyu/commands` | 显式 `runtime.pause`、`runtime.resume`、`session.probe`、`session.verify-model`、`reply.generate`、`task.createLocal`、`task.cancel`、`goal.verify-lifecycle`、`conversation.linkLocalTask`、`conversation.replyLocal`、`conversation.verifyContext`、`memory.rememberLocal`、`memory.readLocal` 或 `memory.withdrawLocal`；JSON 正文上限 64 KiB |
+| `POST /api/shiyu/commands` | 显式 `runtime.pause`、`runtime.resume`、`session.probe`、`session.verify-model`、`reply.generate`、`task.createLocal`、`task.cancel`、`goal.verify-lifecycle`、`conversation.linkLocalTask`、`conversation.replyLocal`、`conversation.verifyContext`、`conversation.loadContext`、`memory.rememberLocal`、`memory.readLocal`、`memory.withdrawLocal`、`memory.indexLocal`、`memory.searchLocal` 及下方四个 `core.*` 命令；JSON 正文上限 64 KiB |
 
 `reply.generate` 是当前本地 owner 范围的开发入口：传入业务标识及文本，返回 `status=draft`、`sent=false`。它会发起模型请求，界面刷新和会话探针不会。当前没有多用户授权管理、渠道收发或外部 Effect 派发，不能将这个入口当作完整聊天产品或通用任务执行工具。
 
 ## Session 与模型
 
-默认路由为用户现有 `opencode-go / deepseek-v4.1-flash`，replyer effort 为 `low`，受限本地 worker 为 `high`；模型配置先经宿主解析。当前适配支持 `low/high/max`，不增加另一套凭据或修改宿主全局模型。core 的默认选择仍是后续配置，当前没有 core 模型运行链。
+默认路由为用户现有 `opencode-go / deepseek-v4.1-flash`，replyer effort 为 `low`，受限本地 worker 与 3G core 为 `high`；模型配置先经宿主解析。当前适配支持 `low/high/max`，不增加另一套凭据或修改宿主全局模型。core 的该固定路由已接代码，但本轮未调用真实生成模型。
 
 绑定键包含 role、businessId、scope；同一 replyer 绑定串行复用原生会话，不在本地复制模型历史。原生 Session 日志与压缩由 DSH 管理，当前实现只记录业务绑定和本轮观察结果。完整 conversationGeneration、发送门禁、原生压缩和缓存复用效果仍待后续验收。
 
@@ -83,13 +86,13 @@ npm run test:ui
 ```text
 <dataDir>/
 ├── runtime-state.json       暂停状态、Session 绑定、最近探针/模型/Goal/上下文验证结果
-├── control/events.sqlite    事件、Task/授权/Effect、Goal/Conversation、背景/回复/记忆元记录、发布/读取权威及提交水位
+├── control/events.sqlite    事件、Task/授权/Effect、Goal 范围与判断记录、Conversation/记忆元记录、发布/读取权威及提交水位
 ├── memory/backend.json      可选的可信私有后端配置；缺失时不安装或启动服务
 └── workspaces/
     └── <taskId>/artifacts/note.txt  当前受限任务的固定产物；其余为受限 Session 工作目录
 ```
 
-本地仅保存业务绑定、控制元记录与验证回执，不复制 Session 正文历史。DSH 的模型历史仍在宿主原生持久层。本地开发数据、依赖、构建、UI 输出由[.gitignore](<.gitignore>)排除；正式数据目录按部署配置另行登记。当前没有完整检查点、独立备份或旧备份恢复入口。
+本地保存业务绑定、控制元记录、验证回执，以及 owner 明确登记的 Task/Goal 便签正文；记忆正文仍由原生记忆后端持有。这里不复制 Session 聊天历史，DSH 的模型历史仍在宿主原生持久层。本地开发数据、依赖、构建、UI 输出由[.gitignore](<.gitignore>)排除；正式数据目录按部署配置另行登记。当前没有完整检查点、独立备份或旧备份恢复入口。
 
 ## 本地 embedding
 
@@ -105,7 +108,7 @@ node --import tsx scripts/embedding-smoke.ts /path/model.gguf /path/llama-server
 
 ## 阶段 3 接线与独立模块
 
-原生 Goal 的生命周期是当前新增的运行接线。专用 Session 使用空工具与执行 guard，create/resume 后同步 disarm，拒绝模型步骤和自动续接。SQLite 保存稳定绑定、native ref/revision、命令 CAS 与 pending/unknown/confirmed/rejected 回执；Goal phase、objective 和轮次仍只以原生日志为权威。原生变更后必须 flush、回读并持久确认，无法确认时不自动重放。
+阶段 3 初期接入原生 Goal 生命周期诊断。该诊断专用 Session 使用空工具与执行 guard，create/resume 后同步 disarm，拒绝模型步骤和自动续接；3G core 使用另一个 preset，见下节。SQLite 保存稳定绑定、native ref/revision、命令 CAS 与 pending/unknown/confirmed/rejected 回执；Goal phase、objective 和轮次仍只以原生日志为权威。原生变更后必须 flush、回读并持久确认，无法确认时不自动重放。
 
 诊断只接受已成功的本地 Task ID。可信服务重新读取 Task 完成条件、Assignment、完整 EffectReceipt 和实际产物，在完成前复核同一证据身份，并将证明绑定到精确 Goal revision。模型或 HTTP 参数不能提供完成证明或 owner capability。`read/recover` 会短暂恢复受限 Agent，因此不用于仪表盘轮询；普通快照只显示已保存的检查事实及其所属实例。
 
@@ -160,7 +163,10 @@ Ombre 的 domain/tag 不是多受众 ACL，“读取”也可能触发原生日�
 src/index.ts                         Host 路由、状态工具、装载/卸载
 src/runtime.ts                       运行快照、显式命令与服务组装
 src/contracts/events.ts              事件、订阅、回执与可信主体契约
+src/contracts/core.ts                owner Goal 范围、判断资格、候选与完成证明契约
 src/control/events/index.ts          组件共用事件服务
+src/control/local-core.ts            共享授权下的 Goal 生命周期、判断、Task 接纳与完成编排
+src/control/core-pump.ts             有界事实消费和判断调度，不实现第二个模型循环
 src/control/tasks/                   TaskFacade 与局部复用的 Superagent 任务核心
 src/control/policy/mandates.ts        可信授权、预算预留与结算
 src/control/effects/                 Effect 账本、回执、执行资格与 unknown
@@ -178,11 +184,13 @@ src/state/                           memory 能力发布、其余五域 unavaila
 src/views/                           localTask/native-memory 裁剪、独立安全向量与精确读取
 src/adapters/control-store/          SQLite Worker、协议与主线程代理
 src/adapters/control-store/goal-bindings.ts  原生 Goal 引用与命令回执 CAS
+src/adapters/control-store/core-domain.ts    Goal 范围、事实触发、判断与共享预算控制域
+src/adapters/control-store/task-domain.ts    owner Task 与可信 core 委托的共用执行接缝
 src/adapters/control-store/conversation-domain.ts  可信本地关联、背景投影与原子 ack
 src/adapters/control-store/commit-watermark.ts     控制库持久提交水位与基线
 src/adapters/control-store/view-domain.ts         同 Worker 可信捕获与新鲜度校验
 src/adapters/control-store/local-reply-domain.ts  输入元记录、原生加载确认与草稿资格
-src/adapters/control-store/authority.ts           Task/Memory 共用授权目录与显式迁移
+src/adapters/control-store/authority.ts           Task/Memory/Core 共用授权目录与显式迁移
 src/adapters/control-store/memory-domain.ts       来源同意、独立删除屏障与本地撤回
 src/adapters/control-store/memory-index-domain.ts 显式索引授权/预算/效果及独立事实核验
 src/adapters/dsh/sessions.ts          受限原生 replyer Session 适配
@@ -190,6 +198,7 @@ src/adapters/dsh/native-message.ts    官方完整 user message 与身份/哈希
 src/adapters/dsh/native-context.ts    精确原生回读与冷 inbox 投影
 src/adapters/dsh/workers.ts           受限原生 worker、工具与执行资格
 src/adapters/dsh/goals.ts             原生 Goal 生命周期薄适配
+src/adapters/dsh/core-decision.ts     同 Goal Session 内的一次受限原生判断及独立回读
 src/adapters/dsh/NATIVE_SEAMS.md      固定宿主接缝、持久性和未覆盖边界
 src/adapters/dsh/session-title.ts     识雨自有 Session 的固定标题与旁路限制
 src/adapters/dsh/event-tools.ts       Agent 事件工具工厂，尚未挂载运行 Session
@@ -211,6 +220,7 @@ artifacts/phase2-offline-validation.json  阶段 2 限定测试批次、命令�
 artifacts/goal-validation.json       原生 Goal 四步零推理、独立证明及有序重载证据
 artifacts/conversation-validation.json  背景关联/刷新/重载、修复前后分段及幂等证据
 artifacts/context-validation.json    本地视图、原生加载、两轮草稿/用量及有序重载证据
+artifacts/phase3g-native-contract.json  3G 固定 SDK 静态接缝与离线原生替身测试证据
 artifacts/phase3e-memory-validation.json  修补前隔离真实普通记忆链路
 artifacts/memory-host-validation.json    修补后真实 DSH 保存/读回/撤回及重载证据
 vendor/dsh-superagent/               未修改的上游证据基线，独立于运行时适配
@@ -226,3 +236,24 @@ licenses/                           随发布包保留的第三方完整许可
 `conversation.loadContext` 与普通 `conversation.replyLocal` 共用获准视图和原生加载回执；前者只加载，不 followup 或生成草稿。已暴露来源撤回后，旧 Session 历史保留、绑定失效，下一次输入使用新安全代次。显式保存、索引、搜索与加载分开操作，刷新不触发它们。
 
 离线与真实证据：[实施记录](<实施记录.md>)、[隔离 Harrier](<artifacts/phase3f-semantic-memory-validation.json>)、[限定宿主路径](<artifacts/phase3f-memory-host-validation.json>)。没有跨对话分享、自动记忆抽取、物理删除、自主整理或完整六内层能力。
+
+## 3G：有界 core 与本地目标
+
+本轮只开放 `local-note`：owner 显式提供目标、不可由模型修改的便签正文及依赖、总预算和期限。控制域保存该范围，原生 Goal 建立并独立确认后才产生授权。core 只能返回 `task_intent`、`defer`、`no_action` 或 `complete_candidate`；模型候选本身没有授权、派发或完成权。接纳 Task 前核对原生输入/输出持久引用、同 Goal 的 Task/Effect 版本、依赖完成证据、当前授权与已结算判断用量，随后在同一控制事务中记录判断回执和 Task。core 委托通过可信 `admitCoreIntent` 使用原 Goal 的 Mandate 与预算，不调用 `task.createLocal` 换取新的 owner 授权。实现见[契约](<src/contracts/core.ts>)、[CoreDomain](<src/adapters/control-store/core-domain.ts>)及[TaskDomain](<src/adapters/control-store/task-domain.ts>)。
+
+[LocalCoreService](<src/control/local-core.ts>)复用同一原生 Goal Session 处理生命周期和判断，[CorePump](<src/control/core-pump.ts>)只负责有界调度。诊断 preset 与 core preset 分离；core Session 仍为空工具、禁止直接执行，并保持原生 Goal 自动续接 disarmed。每次判断通过官方完整 user message 发起一次普通 followup，本地 `evaluations` 与原生 Goal driver 的 `roundsStarted` 分开记录，不能将前者伪装为原生 Goal 轮次。当前服务每次最多一个原生主请求、1024 输出 tokens，绝对取消期限不超过 120 秒及授权剩余期限；不自建模型循环、历史或 inbox。稳定 Session、完整消息、资格复查和冷回读接缝见[Goal 适配](<src/adapters/dsh/goals.ts>)、[判断适配](<src/adapters/dsh/core-decision.ts>)与[固定 SDK 静态证据](<artifacts/phase3g-native-contract.json>)。取消期限不保证底层调用按时返回或进程硬退出；未知 inbox、未结算调用或释放失败保留所有权并阻止重放，长期会话压缩及恢复仍未验收。
+
+判断和派生 worker 从同一总授权预留额度：每次判断预留 16384 tokens、2 calls、0 effects；每个便签 Task 预留 16384 tokens、2 calls、1 effect。实际可观察用量另行结算，unknown 保留占用，超额后停止后续工作。SDK 的请求前 Token 估计是启发式，因此 **Token 限额是预留与对账限额，不是实际计费的硬上限**；原生请求次数与输出长度限制独立，provider 内部重试及完整计费覆盖仍未知。完成候选还须重新读取全部便签产物与可信 Task/Effect 回执，经独立证明才能请求原生 complete；候选已提交但原生命令 unknown 时，保留两个独立事实。
+
+公共命令均经 `POST /api/shiyu/commands` 的严格字段校验进入可信 Runtime；caller 不能提交 actor、Mandate、模型配置、工具权限或完成证明：
+
+| action | 公共输入与回执 |
+|---|---|
+| `core.create` | `{ requestId, objective, deliverables: [{ id, title, content, dependsOn? }], budget: { tokens, calls, effects }, expiresAt, maxEvaluations? }` → `{ goal, duplicate? }`；相同请求不重新授权或重放未知原生命令 |
+| `core.pause` / `core.cancel` | `{ goalId, expectedVersion }` → `{ goal }`；先落本地停止屏障，再处理原生生命周期，不等待在途模型才停止授权；Runtime 暂停时仍可提交 |
+| `core.resume` | `{ goalId, expectedVersion }` → `{ goal }`；只接受 owner 显式恢复，重核期限、授权和原生命令状态；不默认恢复 unknown 执行 |
+| `GET /api/shiyu/state` 的 `core` | `{ ready, errorCode?, pump?, goals, ... }`；每个 Goal 的 `deliverables` 去掉正文，只返回 `bodyBytes` 等范围元信息，另含 `evaluationsLog`、可用时的 `balance` 和 `nativeCommand` |
+
+“目标与判断”页提供 1–3 条便签表单，每条正文最多 1024 UTF-8 字节；依赖只能引用本目标中其他 ID，不能成环。默认可编辑预留为 131072 tokens、12 calls、3 effects、最多 4 次判断，有效期可选 30 分钟或 1 小时；这些默认值不代表实际调用数或完成保证。Goal 详情分别显示本地授权状态、最后一次原生观察及时间、原生命令 pending/unknown/confirmed/rejected、触发引用、候选、接纳 Task 和用量完整性。pending/unknown 原生命令禁用恢复，暂停与取消仍可关闭本地范围；取消不删除原生日志或撤销已发生效果。请求回执不会乐观替换快照，切换目标、运行实例变化或不匹配的新版本会拒绝旧响应。
+
+本轮仪表盘完整离线回归 **168/168** 通过；随后只调整上述默认预算与预算边界文案，相关表单、创建请求及中英文窄屏 **3/3** 复验通过，未在这次最终文案修改后再跑完整 168 项。首轮旧 Goal 诊断用例遇到成功提示与等待提示同时出现的定位竞争，限定到成功提示后完成上述全量复验，未改变诊断行为。新增界面用例见[core.spec.mjs](<tests/ui/core.spec.mjs>)；领域、编排、调度和原生接缝分别见[CoreDomain 测试](<tests/core-domain.test.ts>)、[LocalCore 测试](<tests/local-core.test.ts>)、[CorePump 测试](<tests/core-pump.test.ts>)及[原生 Goal Session 替身测试](<tests/core-goal-sessions.test.ts>)。系统全量检查结果以[实施记录](<实施记录.md>)最终汇总为准，不将不同批次累加。本轮没有真实宿主、生成模型或 embedding 验收；没有通用任务规划、跨对话记忆读取、外部设备/频道操作或完整自主恢复能力。

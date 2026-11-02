@@ -7,6 +7,7 @@ import { key } from '../../control/tasks/upstream/ids.js';
 import { SQLiteTaskRepositories } from './task-repositories.js';
 import { SqliteTransactions } from './transaction.js';
 import { createControlAuthority } from './authority.js';
+import type { CoreTaskDelegation } from '../../contracts/core.js';
 
 export interface TaskRuntimeIdentity { hostEpoch: string; installationGeneration: string }
 /** Opaque trusted runtime capability. Never accepted from public UI/model arguments. */
@@ -106,6 +107,7 @@ export type TaskDomainRequest = { [K in keyof TaskCommands]: { command: K; args:
 interface LocalInput {
   taskId: string; requestId: string; title: string; content: string; expectedSha256: string;
   byteLength: number; artifactRef: string; mandateId: string; createdAt: string;
+  delegation?: { goalId: string; deliverableId: string; resourceRef: string; subjectId: string };
 }
 interface Execution extends TaskExecutionSummary { taskId: string; reservationId: string; permit?: TaskExecutionPermit }
 interface DomainOptions {
@@ -186,6 +188,9 @@ export class TaskDomain {
   readonly mandates: MandateStore;
   readonly facade: TaskFacade;
   private ownerOperation = false;
+  private coreAuthority?: (goalId: string, deliverableId: string) => CoreTaskDelegation;
+  private delegatedAdmission?: CoreTaskDelegation;
+  private corePauseObserver?: () => void;
 
   constructor(private readonly db: DatabaseSync, private readonly tx: SqliteTransactions, private readonly options: DomainOptions) {
     if (!tx.owns(db)) fail('TRANSACTION_MISMATCH', 'Task domain and transaction owner must share one connection');
@@ -211,11 +216,18 @@ export class TaskDomain {
       policy: () => ({ version: 'local-owner-artifact-v1', paused: this.paused(), evalTimeoutMs: 60000,
         gate: trigger => trigger.source === 'shiyu-owner' && trigger.actor.id === OWNER.principalId
           ? { admissible: true, strength: 'explicit', basis: { via: 'addressed', addressed: 'direct', sender: OWNER.principalId } }
+          : trigger.source === 'shiyu-core' && !trigger.human && this.delegatedAdmission
+            && trigger.actor.source === 'shiyu-core' && trigger.actor.id === `core:${this.delegatedAdmission.goalId}`
+            && trigger.meta.delegatedGoalId === this.delegatedAdmission.goalId
+            ? { admissible: true, strength: 'explicit', basis: { via: 'listed', authority: this.delegatedAdmission.mandateId, sender: trigger.actor.id, rules: ['owner-delegated-local-note'] } }
           : { admissible: false, reason: 'local_owner_required' },
-        revalidate: mandate => mandate.scope === 'local-owner' && mandate.actor.id === OWNER.principalId,
+        revalidate: mandate => mandate.scope === 'local-owner' && (mandate.actor.id === OWNER.principalId
+          || this.ownerOperation && mandate.actor.source === 'shiyu-core' && mandate.basis.via === 'listed' && !!mandate.basis.authority
+            && this.mandates.get(OWNER, mandate.basis.authority).state === 'active'),
         admitsInferred: () => false,
       }),
-      scope: { scope: input => input.source === 'shiyu-owner' ? { listened: true, observed: false } : { listened: false, reason: 'unsupported_source' } },
+      scope: { scope: input => input.source === 'shiyu-owner' || input.source === 'shiyu-core' && !!this.delegatedAdmission
+        ? { listened: true, observed: false } : { listened: false, reason: 'unsupported_source' } },
       assessor: {
         request: candidate => this.intent(`assessment:${candidate.evalId}`, 'assessment', candidate),
         release: evalId => { this.db.prepare("UPDATE shiyu_task_aux_intents SET status='settled' WHERE id=?").run(`assessment:${evalId}`); },
@@ -240,8 +252,98 @@ export class TaskDomain {
   private date(): Date { return this.options.now?.() ?? new Date(); }
   private now(): string { return this.date().toISOString(); }
   private paused(): boolean { this.tx.assertUsable(); return this.db.prepare('SELECT paused FROM shiyu_task_domain_meta WHERE id=1').get()!.paused === 1; }
+  /** Same-Worker read-only pause gate shared with delegated Core admission. */
+  isPaused(): boolean { return this.paused(); }
+  /** Same-Worker notification; joins the durable global pause transaction. */
+  setCorePauseObserver(observer: () => void): void {
+    if (this.corePauseObserver) fail('CORE_AUTHORITY_INSTALLED', 'Core pause observer is immutable');
+    this.corePauseObserver = observer;
+  }
   private assertRunning(): void { if (this.paused()) fail('TASK_PAUSED', 'Task dispatch is paused'); }
   private worker(taskId: string): TrustedPolicyActor { return { principalId: `worker:${taskId}`, kind: 'agent', scopes: ['local-owner'] }; }
+  private taskSubject(local: LocalInput): TrustedPolicyActor {
+    return local.delegation ? { principalId: local.delegation.subjectId, kind: 'agent', scopes: ['local-owner'] } : this.worker(local.taskId);
+  }
+  private authorizationResource(local: LocalInput): string { return local.delegation?.resourceRef ?? local.artifactRef; }
+  /** Installed only by the same-Worker Core domain. A model cannot supply a delegation object. */
+  setCoreAuthority(authority: (goalId: string, deliverableId: string) => CoreTaskDelegation): void {
+    if (this.coreAuthority) fail('CORE_AUTHORITY_INSTALLED', 'Core Task admission authority is immutable');
+    this.coreAuthority = authority;
+  }
+  /** Reuses the TaskFacade and shared Goal allowance; it never issues a new grant. */
+  admitCoreIntent(input: { goalId: string; deliverableId: string; proposalId: string }): TaskDetail {
+    object(input, ['goalId', 'deliverableId', 'proposalId']);
+    return this.tx.atomic(() => {
+      const delegation = this.coreAuthority?.(input.goalId, input.deliverableId) ?? fail('CORE_AUTHORITY_REQUIRED', 'Core admission needs current trusted scope validation');
+      this.assertRunning();
+      const requestId = `core:${sha256(JSON.stringify([input.goalId, input.deliverableId]))}`;
+      const requestHash = digest(delegation);
+      const old = this.db.prepare('SELECT task_id,request_hash FROM shiyu_task_local_inputs WHERE request_id=?').get(requestId);
+      if (old) {
+        // Authority may receive a newer version, but an already-owned deliverable is never minted again.
+        const local = this.local(String(old.task_id));
+        if (local.title !== delegation.title || local.content !== delegation.content || local.mandateId !== delegation.mandateId
+          || local.delegation?.resourceRef !== delegation.resourceRef) fail('IDEMPOTENCY_CONFLICT', 'Core deliverable identity changed');
+        return this.get(local.taskId);
+      }
+      const grant = this.mandates.get(OWNER, delegation.mandateId);
+      if (grant.state !== 'active' || grant.version !== delegation.mandateVersion || grant.authEpoch !== delegation.authEpoch
+        || !grant.subjectIds.includes(delegation.subjectId) || !grant.allowedResources.includes(delegation.resourceRef)
+        || !['task.local-note.execute', 'artifact.write'].every(action => grant.allowedActions.includes(action))) fail('STALE_AUTHORITY', 'Core delegation no longer matches its shared mandate');
+      const at = this.now(), triggerId = `local:${sha256(requestId)}`;
+      if (this.delegatedAdmission) fail('CORE_REENTRANT', 'Delegated Task admission is not reentrant');
+      this.delegatedAdmission = delegation;
+      try {
+      this.facade.receive({ id: triggerId, source: 'shiyu-core', threads: [{ source: 'shiyu-core', id: requestId }],
+        actor: { source: 'shiyu-core', id: `core:${delegation.goalId}` }, human: false, addressed: 'direct', at, text: delegation.title,
+        meta: { requestScope: 'local-owner', contentHash: sha256(delegation.content), delegatedGoalId: input.goalId, proposalId: input.proposalId,
+          ownerBasisRef: grant.basisRef, sourceRefs: delegation.sourceRefs } });
+      this.facade.evaluateDue();
+      const candidate = this.facade.candidate(triggerId) ?? fail('MISSING_CANDIDATE', 'Delegated Task did not enter evaluation');
+      const taskId = key('ticket', candidate.evalId), artifactRef = `artifact:${taskId}`;
+      const local: LocalInput = { taskId, requestId, title: delegation.title, content: delegation.content,
+        expectedSha256: sha256(delegation.content), byteLength: Buffer.byteLength(delegation.content), artifactRef,
+        mandateId: grant.mandateId, createdAt: at, delegation: { goalId: input.goalId, deliverableId: input.deliverableId,
+          resourceRef: delegation.resourceRef, subjectId: delegation.subjectId } };
+      this.db.prepare('INSERT INTO shiyu_task_local_inputs VALUES(?,?,?,?)').run(taskId, requestId, requestHash, JSON.stringify(local));
+      this.ownerOperation = true;
+      try {
+        const decision = this.facade.decide(triggerId, { kind: 'accept', title: local.title, scope: 'local-owner', reason: 'owner_delegated_core_intent', evalId: candidate.evalId }, {
+          goalId: input.goalId, mandateId: grant.mandateId, mandateVersion: grant.version, requestScope: 'local-owner', requestId, payloadHash: requestHash,
+          completionSpec: { version: 1, checks: [{ checkId: 'artifact-sha256', type: 'artifact.sha256', targetRef: artifactRef, expected: local.expectedSha256, evidenceRequired: true }] }, inputRefs: [`local-input:${taskId}`, ...delegation.sourceRefs],
+        });
+        if (decision.ticketId !== taskId) fail('TASK_ID_MISMATCH', 'Delegated Task identity changed');
+      } finally { this.ownerOperation = false; }
+      return this.get(taskId);
+      } finally { this.delegatedAdmission = undefined; }
+    });
+  }
+  /** Owner Goal resume only: never-launched Tasks may exchange an unused hold for the current authority. */
+  resumeCorePending(goalId: string): string[] {
+    return this.tx.atomic(() => {
+      const resumed: string[] = [];
+      for (const task of this.facade.list()) {
+        const local = this.local(task.taskId);
+        if (local.delegation?.goalId !== goalId || !task.latestAssignmentId || task.state !== 'queued') continue;
+        const run = this.run(task.latestAssignmentId);
+        // A native binding, claim, or Effect defeats the proof of zero dispatch.
+        if (run.state !== 'pending' || run.permit || run.sessionId || this.effectsForTask(task.taskId).length) fail('RECONCILIATION_REQUIRED', 'Delegated work may already have dispatched');
+        const grant = this.mandates.get(OWNER, local.mandateId), old = this.mandates.getReservation(OWNER, run.reservationId);
+        if (grant.state !== 'active') fail('STALE_AUTHORITY', 'Goal resume needs an active shared grant');
+        if (old.mandateVersion === grant.version && old.authEpoch === grant.authEpoch) continue;
+        if (old.state !== 'reserved') fail('RECONCILIATION_REQUIRED', 'Only a provably unused reservation can be exchanged');
+        this.mandates.reconcile(VERIFIER, { receiptId: `core-unused:${old.reservationId}`, reservationId: old.reservationId,
+          expectedVersion: old.version, complete: true, usage: { tokens: 0, calls: 0, effects: 0 }, evidenceRef: `never-claimed-assignment:${run.assignmentId}` });
+        const reservationId = `reservation:${task.taskId}:${run.assignmentId}:authority:${grant.version}`;
+        this.mandates.reserve(this.taskSubject(local), { reservationId, mandateId: grant.mandateId, mandateVersion: grant.version, authEpoch: grant.authEpoch,
+          scope: 'local-owner', action: 'task.local-note.execute', resourceScopes: [this.authorizationResource(local)], amount: BUDGET, leaseMs: 600000 });
+        this.saveRun({ ...run, reservationId });
+        this.db.prepare("UPDATE shiyu_task_aux_intents SET value=? WHERE id=? AND status='pending'").run(JSON.stringify({ taskId: task.taskId, assignmentId: run.assignmentId, reservationId }), `start:${run.assignmentId}`);
+        resumed.push(task.taskId);
+      }
+      return resumed;
+    });
+  }
   private local(taskId: string): LocalInput {
     this.tx.assertUsable(); text(taskId, 'taskId');
     const row = this.db.prepare('SELECT value FROM shiyu_task_local_inputs WHERE task_id=?').get(taskId);
@@ -270,14 +372,14 @@ export class TaskDomain {
     const local = this.local(ticket.id);
     const mandate = this.mandates.get(OWNER, local.mandateId);
     const reservationId = `reservation:${ticket.id}:${assignment.id}`;
-    this.mandates.reserve(this.worker(ticket.id), { reservationId, mandateId: mandate.mandateId, mandateVersion: mandate.version, authEpoch: mandate.authEpoch,
-      scope: 'local-owner', action: 'task.local-note.execute', resourceScopes: [local.artifactRef], amount: BUDGET, leaseMs: 600000 });
+    this.mandates.reserve(this.taskSubject(local), { reservationId, mandateId: mandate.mandateId, mandateVersion: mandate.version, authEpoch: mandate.authEpoch,
+      scope: 'local-owner', action: 'task.local-note.execute', resourceScopes: [this.authorizationResource(local)], amount: BUDGET, leaseMs: 600000 });
     this.saveRun({ taskId: ticket.id, assignmentId: assignment.id, reservationId, state: 'pending', ...this.options.runtimeIdentity });
     this.intent(`start:${assignment.id}`, 'start', { taskId: ticket.id, assignmentId: assignment.id, reservationId });
   }
   private permitRequest(permit: TaskExecutionPermit) {
     return { reservationId: permit.reservationId, mandateId: permit.mandateId, mandateVersion: permit.mandateVersion, authEpoch: permit.authEpoch,
-      scope: 'local-owner', action: 'task.local-note.execute', resourceScopes: [this.local(permit.taskId).artifactRef] };
+      scope: 'local-owner', action: 'task.local-note.execute', resourceScopes: [this.authorizationResource(this.local(permit.taskId))] };
   }
   private matchPermit(permit: TaskExecutionPermit): Execution {
     const fields = ['taskId', 'assignmentId', 'scope', 'hostEpoch', 'installationGeneration', 'fencingToken', 'leaseExpiresAt', 'claimToken', 'reservationId', 'mandateId', 'mandateVersion', 'authEpoch'];
@@ -306,6 +408,7 @@ export class TaskDomain {
     const mandate = this.mandates.get(OWNER, permit.mandateId);
     if (effect.origin.kind !== 'task' || effect.origin.taskId !== permit.taskId || effect.origin.assignmentId !== permit.assignmentId
       || effect.effectId !== permit.reservationId || effect.action !== 'artifact.write' || !mandate.allowedActions.includes('artifact.write')
+      || !mandate.allowedResources.includes(this.authorizationResource(local))
       || effect.resourceScopes.length !== 1 || effect.resourceScopes[0] !== local.artifactRef) return { allowed: false, reasonCode: 'wrong_task_effect' };
     return { allowed: true, hostEpoch: permit.hostEpoch, installationGeneration: permit.installationGeneration, fencingToken: permit.fencingToken,
       mandateId: permit.mandateId, mandateVersion: permit.mandateVersion, authEpoch: permit.authEpoch };
@@ -366,7 +469,7 @@ export class TaskDomain {
       if (run.state !== 'pending') fail('ASSIGNMENT_CLAIMED', 'Assignment already has an execution claim; it cannot be automatically retried');
       const reservation = this.mandates.getReservation(OWNER, run.reservationId);
       const grant = this.mandates.get(OWNER, local.mandateId);
-      this.mandates.assertPermit(DISPATCHER, { reservationId: run.reservationId, mandateId: grant.mandateId, mandateVersion: grant.version, authEpoch: grant.authEpoch, scope: 'local-owner', action: 'task.local-note.execute', resourceScopes: [local.artifactRef] });
+      this.mandates.assertPermit(DISPATCHER, { reservationId: run.reservationId, mandateId: grant.mandateId, mandateVersion: grant.version, authEpoch: grant.authEpoch, scope: 'local-owner', action: 'task.local-note.execute', resourceScopes: [this.authorizationResource(local)] });
       const currentFence = Number(this.db.prepare('SELECT fence FROM shiyu_task_domain_meta WHERE id=1').get()!.fence);
       integer(currentFence, 'stored fence', 0, Number.MAX_SAFE_INTEGER - 1);
       const fencingToken = currentFence + 1; this.db.prepare('UPDATE shiyu_task_domain_meta SET fence=? WHERE id=1').run(fencingToken);
@@ -616,6 +719,7 @@ export class TaskDomain {
           const run = this.run(task.latestAssignmentId);
           if (['claimed', 'bound', 'running'].includes(run.state)) this.markUnknown(task.taskId, 'paused_execution_requires_reconciliation');
         }
+        if (request.args.paused) this.corePauseObserver?.();
         return { paused: request.args.paused };
       });
     }
