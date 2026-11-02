@@ -1,0 +1,129 @@
+{
+  "schemaVersion": 1,
+  "phase": "3D",
+  "recordedAt": "2026-11-02T08:40:07.834871+00:00",
+  "status": "scoped-evidence-passed-memory-runtime-not-connected",
+  "baselineCommit": "9115e35",
+  "modules": {
+    "command": "npm run check",
+    "tests": 461,
+    "passed": 461,
+    "failed": 0,
+    "skipped": 0,
+    "cancelled": 0,
+    "durationMs": 21493.790958,
+    "typecheck": true,
+    "build": true,
+    "clientSyntax": true,
+    "logSha256": "d013d34c4f30a6a6e5f938685c58f084eeed9a5e1af92b2ede94e05ad2a634e7"
+  },
+  "targeted": {
+    "memoryOperationsAndRecovery": 49,
+    "privateMcpRealSdkSyntheticProcess": 8,
+    "workerNativeMessageFactory": 27,
+    "includedInFullModuleCount": true
+  },
+  "ui": {
+    "changed": false,
+    "rerun": false,
+    "previousEvidence": "artifacts/context-validation.json"
+  },
+  "nativeDsh": {
+    "rerun": false,
+    "modelCallsRequested": 0,
+    "privatePeerMapping": "static-only; actual standalone Node+Python connection is separate"
+  },
+  "backend": {
+    "evidenceDirectory": "../../测试/2026-11-02-Ombre服务验证/artifacts/",
+    "httpSummary": "summary.json",
+    "preservedFirstHarnessFailure": "attempt-1.json",
+    "continuation": "run.json",
+    "stdio": "stdio-run.json",
+    "singleGrow": 1,
+    "publicApiLifecycle": "create/exact-read/orderly-restart/authenticated-export/archive/restore/test-data-hard-delete/404",
+    "generationRequestsAtConfiguredProxy": 0,
+    "localEmbeddingRequests": 3,
+    "initialEmbeddingDimensionObservation": "encoded string length was mislabeled; preserved without rewriting",
+    "continuationEmbeddingDimensions": 1024,
+    "stdioProductAdapterCalls": 1,
+    "stdioEmptyIRead": true,
+    "stdioOwnedChildExited": true
+  },
+  "files": [
+    {
+      "path": "package.json",
+      "sha256": "2114db7d9af1727429748497f536161bd5e655f8925dc7526ebbac872854fc78"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "3897d1556dd268721ae9f67f1be4ebfc2d31d666d2c622240994c0aa93506dec"
+    },
+    {
+      "path": "src/adapters/dsh/workers.ts",
+      "sha256": "e48e19b27d541de6ad62f0f8001e241331f582db910f288e3628cc22bdbcd4be"
+    },
+    {
+      "path": "src/adapters/dsh/sessions.ts",
+      "sha256": "01e115f1db561b52a14846e5a104863ba9fbc2850fb534ae1a649b841761f9fb"
+    },
+    {
+      "path": "src/adapters/dsh/native-message.ts",
+      "sha256": "41211c6646e7c3f999976cb330fd1c6f2ffbcd2e5c5f92906787391525337d72"
+    },
+    {
+      "path": "src/adapters/mcp/index.ts",
+      "sha256": "8998a3497169ea552b32acbcc31dad901a443a25239a0c3022ce99c21f908083"
+    },
+    {
+      "path": "src/adapters/ombre/index.ts",
+      "sha256": "70441d36ee793063bfba7d50eb99604834f070018a310a0616be826f08858fe3"
+    },
+    {
+      "path": "src/control/memory/index.ts",
+      "sha256": "721de8706d7dae856623272071b8347bf623d6a14470adf79107e42ae363d1ad"
+    },
+    {
+      "path": "src/control/memory/contracts.ts",
+      "sha256": "52d8be92164b85ac8319e137657d9bc3376027446a5e4b5bc277075a829c7667"
+    },
+    {
+      "path": "tests/workers.test.ts",
+      "sha256": "8f753d1e1307b43f0924dd9ba3e9bb64821460cd99c8b3b57e230c334e39ed3d"
+    },
+    {
+      "path": "tests/mcp.test.ts",
+      "sha256": "b00954ba333db5b44942668a9941084d68b4ca8e23110f43462f6ebb1542be55"
+    },
+    {
+      "path": "tests/memory-operations.test.ts",
+      "sha256": "a7ec3d36ba25db19edc352373d8e81bc79fd9b7162c83993b5e090e13fdfdf24"
+    },
+    {
+      "path": "tests/memory-recovery.test.ts",
+      "sha256": "745ebdcdd63686c9f95c3bf82ef2183312fa49eacbe03e2a1930bcc881218573"
+    },
+    {
+      "path": "dist/adapters/mcp/index.js",
+      "sha256": "e9a9e3ee0c30b81370d0d59a755ff5608f1a0f79bce533dc6539af7b5d08e213"
+    },
+    {
+      "path": "dist/adapters/ombre/index.js",
+      "sha256": "2f0232e621d989b35b3df8934551fd30a29b812de15291daea8b3f512852f08a"
+    },
+    {
+      "path": "dist/adapters/dsh/workers.js",
+      "sha256": "ccd61e584bd8e988ed5936a8e2841039b1976003d2a838a98c497e6344eef24b"
+    },
+    {
+      "path": "dist/control/memory/index.js",
+      "sha256": "820e14ff7c31a89b5e1d9a5672c969c0634153f301a6fffb6fff29b39825c802"
+    }
+  ],
+  "limitations": [
+    "Memory ledger and private MCP transport remain independent modules; Runtime memory domain unavailable.",
+    "No ordinary-memory strict-create/CAS/durable operation receipt/complete erasure proof.",
+    "No Harrier query/document prefix or quality parity in unpatched Ombre.",
+    "No actual DSH peer loading, new Worker model task, crash recovery, backup restore or channel operation in this slice.",
+    "A successful SDK call and search match do not grant memory publication."
+  ]
+}

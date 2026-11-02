@@ -19,7 +19,13 @@ Conversation generation 变化由业务 token 令旧草稿失效，不单独换 
 
 本轮 `tests/sessions.test.ts` **33/33** 与类型检查通过：公共服务替身覆盖完整消息工厂、绑定先于 followup、exact user/assistant 回读、失败生成与独立加载、取消/flush 假成功、来源变更、未知 inbox 和未观察到 inserted 时的实际 claimed 输入、已知过期项精确移除，以及初始化/排队/晚创建期限。测试未连接真实宿主或模型。真实 zero-prep、原生加载及有限模型轮次的证据由主实施记录单列。
 
-后续事项：`workers.ts` 的历史 followup 仍传 partial message，本轮未改 Worker 冻结路径；后续 Worker 原生接缝演进应复用同一公开工厂。此静态契约风险不推翻此前实际 Worker 成功证据，也不冒称本轮已修复。
+## Worker 完整消息契约补齐
+
+2026-11-02，基于 `9115e35` 的独立修复已将 `workers.ts` 的历史 partial followup 改为复用 `native-message.ts` 的同一公开工厂。默认由宿主 peer 提供 `@deepseek-ai/dsh-llm/message`；可信测试可注入 `WorkerDriverOptions.createUserMessage`，没有自建 ID/role 的生产兜底。公共 `DshAgent.followup` 参数类型同时收紧为完整 `NativeUserMessage`。
+
+每次获准 run 在原生 create/resume 前只构造一次消息，校验 ID、user role、source 与原 prompt，工厂返回后再次核对 permit。缺工厂、工厂抛错或消息不符时，不创建/恢复 Agent、不提交 onBound、不 followup；工厂等待受现有取消、deadline、lease 与卸载控制，晚返回不触发派发。原生 creation 仍保留既有所有权，取消/close 等晚到 handle 清理，不把它改为脱离管理的取消竞速。`onBound → 固定标题/flush → dispatch gate → followup`、候选 `verified:false`、用量/预算、Task/Mandate/Effect 与独立核验路径保持不变；未新增重试或 unknown 重放。
+
+本轮 `tests/workers.test.ts` **27/27** 与类型检查通过，全部使用原生服务替身。新增覆盖公共工厂缺失、错误消息、工厂等待期间取消/超时/卸载和授权撤销；正常派发断言工厂只调用一次且完整 ID/role/prompt 原样进入原生 user message，resume 使用原 Session 与新的消息 ID，既有晚创建回归确认零派发并释放晚到 handle。没有调用真实 Worker、模型或宿主 API。这次静态契约修复不推翻此前实际 Worker 成功证据，也不把上述零模型测试当作新的真实 Worker 验收。
 
 ## 固定标题与用量
 

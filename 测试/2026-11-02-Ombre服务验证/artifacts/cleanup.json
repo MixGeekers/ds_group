@@ -1,0 +1,50 @@
+{
+  "completedAt": "2026-11-02T08:38:26.886972+00:00",
+  "processesConfirmedAbsent": [
+    28585,
+    28612,
+    29890,
+    29894,
+    30311
+  ],
+  "removed": [
+    {
+      "path": "/Users/caja/Documents/识雨/测试/2026-11-02-Ombre服务验证/vendor",
+      "removed": true
+    },
+    {
+      "path": "/Users/caja/Documents/识雨/测试/2026-11-02-Ombre服务验证/.venv",
+      "removed": true
+    },
+    {
+      "path": "/Users/caja/Documents/识雨/测试/2026-11-02-Ombre服务验证/cache",
+      "removed": true
+    },
+    {
+      "path": "/Users/caja/Documents/识雨/测试/2026-11-02-Ombre服务验证/tmp",
+      "removed": true
+    },
+    {
+      "path": "/Users/caja/Documents/识雨/测试/2026-11-02-Ombre服务验证/runtime",
+      "removed": true
+    },
+    {
+      "path": "/Users/caja/Documents/识雨/测试/2026-11-02-Ombre服务验证/runtime-stdio",
+      "removed": true
+    },
+    {
+      "path": "/Users/caja/Documents/识雨/测试/2026-11-02-Ombre服务验证/src/__pycache__",
+      "removed": true,
+      "reason": "Rebuildable syntax-check bytecode; listed immediately before deletion"
+    }
+  ],
+  "preserved": [
+    "src/",
+    "artifacts/",
+    "requirements.lock.txt",
+    "实验计划.md",
+    "续跑计划.md",
+    "结果.md",
+    "existing DFY Python/Harrier GGUF/llama-server assets"
+  ]
+}

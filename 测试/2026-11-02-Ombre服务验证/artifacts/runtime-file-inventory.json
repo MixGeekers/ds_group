@@ -1,0 +1,66 @@
+[
+  {
+    "path": "config.yaml",
+    "bytes": 650
+  },
+  {
+    "path": "ombre_first.log",
+    "bytes": 6728
+  },
+  {
+    "path": "harrier.log",
+    "bytes": 1691
+  },
+  {
+    "path": "ombre_restart.log",
+    "bytes": 10891
+  },
+  {
+    "path": "harrier_continuation.log",
+    "bytes": 1413
+  },
+  {
+    "path": "logs/server.log",
+    "bytes": 14178
+  },
+  {
+    "path": "vault/.embedding_outbox.json",
+    "bytes": 79
+  },
+  {
+    "path": "vault/embeddings.db",
+    "bytes": 24576
+  },
+  {
+    "path": "vault/.dashboard_sessions.json",
+    "bytes": 132
+  },
+  {
+    "path": "vault/.embedding_outbox.lock",
+    "bytes": 1
+  },
+  {
+    "path": "vault/dehydration_cache.db",
+    "bytes": 12288
+  },
+  {
+    "path": "vault/.locks/5d0a1f494c64cadb275c0a93be15a4443a4b5a3e57688b6649f554740caeda7a.lock",
+    "bytes": 124
+  },
+  {
+    "path": "vault/.locks/447caa4abd2694259022378f1f69c72ae03c00243f1c5b8423b3945a00c39e24.lock",
+    "bytes": 124
+  },
+  {
+    "path": "vault/.locks/ebc7557b56df49bb0001ffb1b3afd59a3b9b3b3af4776eda9116b77fb1bb1bb8.lock",
+    "bytes": 123
+  },
+  {
+    "path": "vault/.locks/2f201a2d3c8b8d73ca4f8276aefc556470166a84af27797915acf2c995daff77.lock",
+    "bytes": 124
+  },
+  {
+    "path": "vault/_ledger/events.jsonl",
+    "bytes": 3146
+  }
+]

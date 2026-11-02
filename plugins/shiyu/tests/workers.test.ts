@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { registerHooks } from 'node:module';
 import { WorkerSessionDriver, WORKER_PRESET_ID } from '../src/adapters/dsh/workers.js';
 import type { WorkerRunRequest, WorkerPermitContext, WorkerPermitIdentity, WorkerToolContext } from '../src/adapters/dsh/workers.js';
 import type { DshAgent, DshAgentContext, DshContext, DshSession, SessionEvent } from '../src/adapters/dsh/sessions.js';
+import type { NativeMessageInput, NativeUserMessage } from '../src/adapters/dsh/native-message.js';
 
 type Hook = (...args: any[]) => any;
 class Hooks {
@@ -22,6 +24,11 @@ function fakeHost() {
   const hooks = new Hooks(), live = new Map<string, FakeAgent>(), presets = new Set<string>();
   const persisted = new Map<string, { header: DshSession['header']; events: SessionEvent[] }>();
   const trace: string[] = [], requests: any[] = [], assemblies: any[] = [];
+  const messages: NativeUserMessage[] = [];
+  const factory = (input: NativeMessageInput): NativeUserMessage => {
+    const message: NativeUserMessage = { ...structuredClone(input), role: 'user', id: `worker-fixture-${messages.length + 1}` };
+    messages.push(message); return message;
+  };
   let creates = 0, resumes = 0, disposals = 0, followups = 0, cancellations = 0;
   let steps = 1, outputTokens: number | undefined = 5, candidate: unknown = { summary: 'candidate only', evidenceRequests: ['artifact:one'] };
   let compaction: 'success' | 'failed' | undefined;
@@ -55,6 +62,8 @@ function fakeHost() {
     const agent: FakeAgent = {
       id, session, ctx, hooks: local, guards, registered, status: 'idle', cancelled: false,
       followup(input) {
+        assert.equal(input.role, 'user'); assert.match(input.id, /^worker-fixture-/);
+        assert.deepEqual(input, messages.find(message => message.id === input.id));
         followups++; trace.push('followup'); agent.status = 'running';
         idle = (async () => {
           try {
@@ -117,7 +126,7 @@ function fakeHost() {
     agents: { create: options => make(options, false), resume: options => make(options, true), list: () => [...live.values()] },
   };
   return {
-    ctx, live, persisted, presets, trace, requests, assemblies, titles,
+    ctx, live, persisted, presets, trace, requests, assemblies, titles, factory, messages,
     titleCalls: () => titleCalls,
     failTitle(value: typeof titleFault) { titleFault = value; },
     forceTitleRequest() { forceTitle = true; },
@@ -145,8 +154,8 @@ function request(overrides: Partial<WorkerRunRequest> = {}) {
 }
 
 test('zero-tool native worker returns an unverified candidate after durable binding and release', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request();
-  r.input.onBound = async binding => { assert.equal(fake.counts().followups, 0); fake.trace.push('bound'); assert.equal(binding.assignmentId, r.input.assignmentId); };
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request();
+  r.input.onBound = async binding => { assert.equal(fake.counts().followups, 0); assert.equal(fake.messages.length, 1); fake.trace.push('bound'); assert.equal(binding.assignmentId, r.input.assignmentId); };
   const result = await driver.run(r.input);
   assert.equal(result.verified, false); assert.equal(result.candidate.summary, 'candidate only');
   assert.deepEqual(fake.trace, ['bound', 'title', 'flush', 'followup', 'dispose']); assert.deepEqual(fake.assemblies[0].tools, []);
@@ -155,13 +164,17 @@ test('zero-tool native worker returns an unverified candidate after durable bind
   assert.equal(fake.live.size, 0); assert.equal(result.steps, 1);
   assert.equal(result.modelCalls, 1);
   assert.equal(fake.persisted.get(result.sessionId)?.header.agentPreset, WORKER_PRESET_ID);
+  assert.equal(fake.messages.length, 1);
+  assert.deepEqual(fake.persisted.get(result.sessionId)?.events.find(event => event.type === 'user/message')?.data, {
+    id: 'worker-fixture-1', role: 'user', content: [{ type: 'text', text: r.input.prompt }], source: { kind: 'user' },
+  });
   await assert.rejects(fake.uiResume(result.sessionId), /resumed by Shiyu/);
   await driver.close(); await assert.rejects(fake.uiResume(result.sessionId), /Unknown agent preset/);
 });
 
 test('native compaction success or failure makes calls unknown instead of reusing the step count', async () => {
   for (const mode of ['success', 'failed'] as const) {
-    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }); fake.setCompaction(mode);
+    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }); fake.setCompaction(mode);
     const result = await driver.run(request().input);
     assert.equal(result.steps, 1); assert.equal(result.modelCalls, null);
     assert.deepEqual(result.usage, { status: 'unknown', inputTokens: mode === 'success' ? 30 : 10, outputTokens: mode === 'success' ? 12 : 5, totalTokens: mode === 'success' ? 42 : 15 }); assert.equal(fake.requests.length, 1);
@@ -171,7 +184,7 @@ test('native compaction success or failure makes calls unknown instead of reusin
 });
 
 test('managed title is durably pinned before every dispatch and suppresses both new and resumed automatic titles', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request();
   const first = await driver.run(r.input);
   assert.equal(fake.titleCalls(), 0);
   assert.ok(fake.trace.indexOf('title') < fake.trace.indexOf('flush'));
@@ -184,7 +197,7 @@ test('managed title is durably pinned before every dispatch and suppresses both 
 
 test('missing title service, failed rename/readback or failed flush prevents any worker followup', async () => {
   for (const fault of ['missing', 'rename', 'readback', 'flush'] as const) {
-    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }); fake.failTitle(fault);
+    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }); fake.failTitle(fault);
     await assert.rejects(driver.run(request().input), /[Tt]itle/);
     assert.equal(fake.counts().followups, 0); assert.equal(fake.requests.length, 0); assert.equal(fake.live.size, 0);
     await driver.close();
@@ -192,7 +205,7 @@ test('missing title service, failed rename/readback or failed flush prevents any
 });
 
 test('unexpected auxiliary title event keeps calls and total accounting unresolved without losing main usage', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }); fake.forceTitleRequest();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }); fake.forceTitleRequest();
   const result = await driver.run(request().input);
   assert.equal(result.modelCalls, null);
   assert.deepEqual(result.usage, { status: 'unknown', inputTokens: 10, outputTokens: 5, totalTokens: 15 });
@@ -205,20 +218,21 @@ test('unexpected auxiliary title event keeps calls and total accounting unresolv
 });
 
 test('one Assignment reuses native history; a new driver can resume only the bound identity', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request();
   const first = await driver.run(r.input), second = await driver.run(r.input);
   assert.equal(first.sessionId, second.sessionId); assert.equal(fake.counts().creates, 1); assert.equal(fake.counts().resumes, 1);
   await driver.close();
-  const resumed = new WorkerSessionDriver({ ctx: fake.ctx });
+  const resumed = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory });
   await assert.rejects(resumed.run({ ...r.input, scope: 'other-scope', sessionId: first.sessionId }), /does not belong/);
   const third = await resumed.run({ ...r.input, sessionId: first.sessionId });
   assert.equal(third.sessionId, first.sessionId); assert.equal(fake.counts().resumes, 2);
   assert.equal(fake.persisted.get(first.sessionId)?.events.filter(event => event.type === 'user/message').length, 3);
+  assert.equal(fake.messages.length, 3); assert.equal(new Set(fake.messages.map(message => message.id)).size, 3);
   await resumed.close();
 });
 
 test('controlled tool schemas hide host capabilities and receive only trusted binding authority', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request();
   let called = 0, received!: WorkerToolContext;
   r.input.tools = [{ name: 'shiyu_worker_read', description: 'Read a synthetic artifact.', parameters: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] },
     async execute(args, context) { called++; received = context; assert.deepEqual(args, { ref: 'artifact:one' }); await context.assertPermit(); return { value: 'synthetic' }; } }];
@@ -235,14 +249,14 @@ test('controlled tool schemas hide host capabilities and receive only trusted bi
 
 test('host and future tool names remain denied by the execution guard', async () => {
   for (const name of ['shell', 'run_code', 'dynamic_future_tool']) {
-    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }); fake.toolCall(name, {});
+    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }); fake.toolCall(name, {});
     await assert.rejects(driver.run(request().input), /blocked/);
     assert.equal(fake.live.size, 0); await driver.close();
   }
 });
 
 test('model tool args cannot supply Assignment authority', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request(); let calls = 0;
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request(); let calls = 0;
   r.input.tools = [{ name: 'shiyu_worker_read', description: 'Synthetic', parameters: { type: 'object', properties: {} }, execute: () => { calls++; return {}; } }];
   fake.toolCall('shiyu_worker_read', { assignmentId: 'other' });
   await assert.rejects(driver.run(r.input), /blocked/); assert.equal(calls, 0); await driver.close();
@@ -250,7 +264,7 @@ test('model tool args cannot supply Assignment authority', async () => {
 
 test('revoked start, bound, dispatch and pre-step permits cannot issue a model request', async () => {
   for (const phase of ['start', 'bound', 'dispatch', 'pre-step', 'request']) {
-    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request(); r.policy.revokeAt = phase;
+    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request(); r.policy.revokeAt = phase;
     await assert.rejects(driver.run(r.input), /permit revoked/);
     assert.equal(fake.requests.length, 0); assert.equal(fake.live.size, 0);
     if (phase === 'start') assert.equal(fake.counts().creates, 0);
@@ -259,55 +273,55 @@ test('revoked start, bound, dispatch and pre-step permits cannot issue a model r
 });
 
 test('revocation during a controlled tool and during native release suppresses all late results', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request(), gate = deferred(); let entered = false;
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request(), gate = deferred(); let entered = false;
   r.input.tools = [{ name: 'shiyu_worker_read', description: 'Synthetic', parameters: { type: 'object', properties: {} }, async execute() { entered = true; await gate.promise; return { evidence: 'late' }; } }];
   fake.toolCall('shiyu_worker_read', {});
   const run = driver.run(r.input), rejected = assert.rejects(run, /permit revoked/);
   while (!entered) await pause(); r.policy.allowed = false; gate.resolve();
   await rejected; assert.equal(fake.live.size, 0); await driver.close();
-  const next = fakeHost(), nextDriver = new WorkerSessionDriver({ ctx: next.ctx }), r2 = request();
+  const next = fakeHost(), nextDriver = new WorkerSessionDriver({ ctx: next.ctx, createUserMessage: next.factory }), r2 = request();
   next.afterDispose(() => { r2.policy.allowed = false; });
   await assert.rejects(nextDriver.run(r2.input), /permit revoked/); assert.equal(next.live.size, 0); await nextDriver.close();
 });
 
 test('old host epoch, installation generation or fencing token is rejected independently', async () => {
   for (const override of [{ hostEpoch: 'old-host' }, { installationGeneration: 'old-installation' }, { fencingToken: 2 }]) {
-    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request(); r.policy.override = override;
+    const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request(); r.policy.override = override;
     await assert.rejects(driver.run(r.input), /Stale worker permit/); assert.equal(fake.requests.length, 0); await driver.close();
   }
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request();
   fake.afterRequest(() => { r.policy.override.fencingToken = 2; });
   await assert.rejects(driver.run(r.input), /Stale worker permit: fencingToken/);
   assert.equal(fake.requests.length, 1); assert.equal(fake.live.size, 0); await driver.close();
 });
 
 test('tool permit revocation prevents execution; result revocation suppresses a completed model report', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request(); let calls = 0;
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request(); let calls = 0;
   r.input.tools = [{ name: 'shiyu_worker_read', description: 'Synthetic', parameters: { type: 'object', properties: {} }, execute: () => { calls++; return {}; } }];
   fake.toolCall('shiyu_worker_read', {}); r.policy.revokeAt = 'tool';
   await assert.rejects(driver.run(r.input), /permit revoked/); assert.equal(calls, 0); await driver.close();
-  const second = fakeHost(), next = new WorkerSessionDriver({ ctx: second.ctx }), r2 = request();
+  const second = fakeHost(), next = new WorkerSessionDriver({ ctx: second.ctx, createUserMessage: second.factory }), r2 = request();
   second.afterAssistant(() => { r2.policy.allowed = false; });
   await assert.rejects(next.run(r2.input), /permit revoked/); assert.equal(second.live.size, 0); await next.close();
 });
 
 test('step and output ceilings are enforced by native hooks without a custom model loop', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }); fake.setSteps(3);
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }); fake.setSteps(3);
   await assert.rejects(driver.run(request({ maxSteps: 2, maxTokens: 100 }).input), /step budget/);
   assert.equal(fake.requests.length, 2); assert.deepEqual(fake.requests.map(request => request.maxTokens), [100, 95]);
   await driver.close();
-  const unknown = fakeHost(), noUsage = new WorkerSessionDriver({ ctx: unknown.ctx }); unknown.setSteps(2); unknown.setUsage(undefined);
+  const unknown = fakeHost(), noUsage = new WorkerSessionDriver({ ctx: unknown.ctx, createUserMessage: unknown.factory }); unknown.setSteps(2); unknown.setUsage(undefined);
   await assert.rejects(noUsage.run(request().input), /output budget/); assert.equal(unknown.requests.length, 1); await noUsage.close();
 });
 
 test('a lease expiry actively cancels an in-flight native turn', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request(); fake.holdModel();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request(); fake.holdModel();
   const expires = new Date(Date.now() + 30).toISOString(); r.identity.leaseExpiresAt = expires; r.input.permit.leaseExpiresAt = expires;
   await assert.rejects(driver.run(r.input), /expired/); assert.ok(fake.counts().cancellations > 0); assert.equal(fake.live.size, 0); await driver.close();
 });
 
 test('explicit cancellation rejects the result and releases the native handle', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request(); fake.holdModel();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request(); fake.holdModel();
   const run = driver.run(r.input), rejected = assert.rejects(run, /cancelled/);
   while (!fake.requests.length) await pause();
   await driver.cancel(r.input.assignmentId); await rejected;
@@ -315,7 +329,7 @@ test('explicit cancellation rejects the result and releases the native handle', 
 });
 
 test('concurrent dispatch for the same Assignment is refused instead of opening a second Agent', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request(); fake.holdModel();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request(); fake.holdModel();
   const run = driver.run(r.input), rejected = assert.rejects(run, /cancelled/);
   while (!fake.requests.length) await pause();
   await assert.rejects(driver.run(r.input), /already running/);
@@ -323,27 +337,84 @@ test('concurrent dispatch for the same Assignment is refused instead of opening 
 });
 
 test('an already-cancelled dispatch does not initialize or create a worker', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx });
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory });
   await assert.rejects(driver.run(request({ signal: AbortSignal.abort(new Error('caller cancelled')) }).input), /caller cancelled/);
-  assert.equal(fake.presets.size, 0); assert.equal(fake.counts().creates, 0); await driver.close();
+  assert.equal(fake.messages.length, 0); assert.equal(fake.presets.size, 0); assert.equal(fake.counts().creates, 0); await driver.close();
 });
 
 test('unload during late native creation waits, releases it, and never dispatches', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), gate = deferred(); fake.setCreateGate(gate.promise);
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), gate = deferred(); fake.setCreateGate(gate.promise);
   const run = driver.run(request().input), rejected = assert.rejects(run, /closed/);
   await pause(); const closing = driver.close(); gate.resolve();
   await Promise.all([closing, rejected]);
+  assert.equal(fake.messages.length, 1); assert.equal(fake.counts().creates, 1); assert.equal(fake.counts().disposals, 1);
   assert.equal(fake.counts().followups, 0); assert.equal(fake.live.size, 0); assert.equal(fake.presets.size, 0);
 });
 
-test('a failed durable binding callback never starts inference', async () => {
+test('a missing official host message factory rejects before native creation or dispatch', async () => {
+  let lookups = 0, bound = 0;
+  const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
+    if (specifier === '@deepseek-ai/dsh-llm/message') { lookups++; throw new Error('Official host message factory unavailable'); }
+    return nextResolve(specifier, context);
+  } });
   const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx });
+  try {
+    await assert.rejects(driver.run(request({ onBound: () => { bound++; } }).input), /Official host message factory unavailable/);
+    assert.equal(lookups, 1); assert.equal(bound, 0); assert.equal(fake.counts().creates, 0); assert.equal(fake.counts().resumes, 0);
+    assert.equal(fake.counts().followups, 0); assert.equal(fake.requests.length, 0); assert.equal(fake.messages.length, 0);
+  } finally { hooks.deregister(); await driver.close(); }
+});
+
+test('a failed or malformed message factory cannot bind or dispatch a Worker', async () => {
+  for (const fault of ['failed', 'id', 'role', 'content'] as const) {
+    const fake = fakeHost(); let calls = 0, bound = 0;
+    const driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage(input) {
+      calls++; if (fault === 'failed') throw new Error('Message factory failed');
+      const message = fake.factory(input);
+      return { ...message, ...(fault === 'id' ? { id: '' } : fault === 'role' ? { role: 'assistant' } : { content: [{ type: 'text', text: 'altered prompt' }] }) } as NativeUserMessage;
+    } });
+    await assert.rejects(driver.run(request({ onBound: () => { bound++; } }).input), /factory.*(failed|invalid)/);
+    assert.equal(calls, 1); assert.equal(bound, 0); assert.equal(fake.counts().creates, 0); assert.equal(fake.counts().resumes, 0);
+    assert.equal(fake.counts().followups, 0); assert.equal(fake.requests.length, 0); await driver.close();
+  }
+});
+
+test('cancellation, timeout and unload while awaiting the factory cannot dispatch its late result', async () => {
+  for (const action of ['cancel', 'timeout', 'close'] as const) {
+    const fake = fakeHost(), entered = deferred(), factoryGate = deferred(), controller = new AbortController(); let calls = 0;
+    const driver = new WorkerSessionDriver({ ctx: fake.ctx, async createUserMessage(input) {
+      calls++; entered.resolve(); await factoryGate.promise; return fake.factory(input);
+    } });
+    const run = driver.run(request({ signal: controller.signal, timeoutMs: action === 'timeout' ? 20 : 1000 }).input);
+    const rejected = assert.rejects(run, /cancelled|expired|closed/);
+    await entered.promise;
+    if (action === 'cancel') controller.abort(new Error('caller cancelled'));
+    if (action === 'close') await driver.close();
+    await rejected;
+    assert.equal(calls, 1); assert.equal(fake.counts().creates, 0); assert.equal(fake.counts().followups, 0);
+    factoryGate.resolve(); await pause();
+    assert.equal(fake.counts().creates, 0); assert.equal(fake.counts().resumes, 0); assert.equal(fake.requests.length, 0); await driver.close();
+  }
+});
+
+test('a permit revoked during factory creation is rechecked before opening a native Session', async () => {
+  const fake = fakeHost(), entered = deferred(), factoryGate = deferred(), r = request();
+  const driver = new WorkerSessionDriver({ ctx: fake.ctx, async createUserMessage(input) {
+    entered.resolve(); await factoryGate.promise; return fake.factory(input);
+  } });
+  const rejected = assert.rejects(driver.run(r.input), /permit revoked/);
+  await entered.promise; r.policy.allowed = false; factoryGate.resolve(); await rejected;
+  assert.equal(fake.messages.length, 1); assert.equal(fake.counts().creates, 0); assert.equal(fake.counts().followups, 0); await driver.close();
+});
+
+test('a failed durable binding callback never starts inference', async () => {
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory });
   await assert.rejects(driver.run(request({ onBound: async () => { throw new Error('Binding store failed'); } }).input), /Binding store failed/);
   assert.equal(fake.requests.length, 0); assert.equal(fake.counts().followups, 0); assert.equal(fake.live.size, 0); await driver.close();
 });
 
 test('native disposal failure cannot release a successful candidate or remove the deny hooks', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }); fake.failDispose();
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }); fake.failDispose();
   await assert.rejects(driver.run(request().input), /Native dispose failed/);
   assert.ok(fake.agent().guards.length > 0); assert.ok(fake.agent().guards.every(guard => typeof guard({ name: 'shell' }) === 'string'));
   await assert.rejects(driver.run(request().input), /cleanup is unresolved/);
@@ -351,14 +422,14 @@ test('native disposal failure cannot release a successful candidate or remove th
 });
 
 test('a hung asynchronous permit check is bounded and cannot create an Agent after timeout', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx }), r = request({ timeoutMs: 10 });
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory }), r = request({ timeoutMs: 10 });
   r.input.permit.check = () => new Promise(() => {});
   await assert.rejects(driver.run(r.input), /expired/);
   assert.equal(fake.counts().creates, 0); assert.equal(fake.requests.length, 0); await driver.close();
 });
 
 test('invalid candidate authority fields and oversized runtime budgets are refused', async () => {
-  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx });
+  const fake = fakeHost(), driver = new WorkerSessionDriver({ ctx: fake.ctx, createUserMessage: fake.factory });
   fake.setCandidate({ summary: 'done', evidenceRequests: [], assignmentId: 'fake', succeeded: true });
   await assert.rejects(driver.run(request().input), /unsupported fields/);
   for (const limits of [{ maxSteps: 9 }, { timeoutMs: 120001 }, { maxTokens: 4097 }]) await assert.rejects(driver.run(request(limits).input), /maximum/);

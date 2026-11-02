@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "kind": "ombre-brain-backup",
+  "created_at": "2026-11-02T04:34:17",
+  "version": "3.6.14",
+  "file_count": 3,
+  "total_bytes": 25563,
+  "files": [
+    {
+      "path": "buckets/dynamic/shiyu-test/2026-11-02 04-30-19 识雨单桶合成验证 20261102_b5f8d3bc4c85.md",
+      "size": 585,
+      "sha256": "64debac3d8060912394d759cfcf38019a4a0d47467e18045e11389460f9b5d88"
+    },
+    {
+      "path": "embeddings.db",
+      "size": 24576,
+      "sha256": "ab7912497bce69cb2cc5fdf24fa53bdd1b850e9a455ba700143ce61418e33d01"
+    },
+    {
+      "path": "export_meta.json",
+      "size": 402,
+      "sha256": "bee8606ee5b8217daade33fa213313983592cbc3a1882e49fb28d43521be15b6"
+    }
+  ]
+}

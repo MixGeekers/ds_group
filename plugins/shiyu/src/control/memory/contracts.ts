@@ -55,6 +55,13 @@ export type MemoryReceiptVerdict = { verified: false; reasonCode: string } | {
 };
 /** Local facts produced by an adapter after its I/O, never a network call in this hook. */
 export type MemoryReceiptVerifier = (operation: Readonly<MemoryOperation>, receipt: Readonly<MemoryBackendReceipt>) => MemoryReceiptVerdict;
+export interface MemoryDeletionState { schemaVersion: 2; baselineId: string; installedAt: string; tombstoneWatermark: number }
+export interface MemoryPublicationRequest { operationId: string; expectedVersion: number; receiptId: string }
+/** Fresh local permission to publish an already verified result, not permission to execute it again. */
+export type MemoryPublicationVerdict = { allowed: false; reasonCode: string } | {
+  allowed: true; authorization: EffectAuthorization; sourcesVerified: boolean; dependenciesVerified: boolean;
+};
+export type MemoryPublicationAuthorizer = (operation: Readonly<MemoryOperation>, receipt: Readonly<MemoryReceiptRecord>, actor: Readonly<TrustedPolicyActor>) => MemoryPublicationVerdict;
 export interface MemoryReceiptRecord extends MemoryBackendReceipt {
   effectId: string; claim: EffectClaim; receivedAt: string;
   mode: 'completion' | 'reconciliation'; published: boolean;

@@ -1,0 +1,66 @@
+[
+  {
+    "file": "ombre_first.log",
+    "line": "[2026-11-02 04:30:19] ombre_brain.decay INFO: Decay engine started, interval: 24h / 衰减引擎已启动，检查间隔: 24 小时"
+  },
+  {
+    "file": "ombre_first.log",
+    "line": "[2026-11-02 04:30:19] ombre_brain INFO: op=grow phase=entry content_len=0 items=1 test_data=1"
+  },
+  {
+    "file": "ombre_first.log",
+    "line": "[2026-11-02 04:30:19] ombre_brain INFO: op=grow phase=ok bytes=55"
+  },
+  {
+    "file": "ombre_first.log",
+    "line": "[2026-11-02 04:30:19] ombre_brain.decay INFO: Decay engine stopped / 衰减引擎已停止"
+  },
+  {
+    "file": "ombre_first.log",
+    "line": "INFO:     Application shutdown complete."
+  },
+  {
+    "file": "ombre_first.log",
+    "line": "INFO:     Finished server process [28612]"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "[2026-11-02 04:34:17] ombre_brain.decay INFO: Decay engine started, interval: 24h / 衰减引擎已启动，检查间隔: 24 小时"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "[2026-11-02 04:34:17] ombre_brain INFO: op=trace phase=entry bucket_id=str_len:12 name=str_len:0 title=str_len:0 domain=str_len:0 valence=-1 arousal=-1 importance=-1 tags=str_len:0 resolved=-1 pinned=-1 protected=-1 digested=-1 content_len=0 delete=1 status=str_len:0 hard_delete=0 restore=0 delete_reason_len=0 old_str_len=0 new_str_len=0 weight=-1 dont_surface=-1 why_len=0 meaning_append_len=0 meaning_replace_count=0 media_append_count=0 media_replace_count=0 unlink=str_len:0 relink=str_len:0 relation_type=str_len:0 quotes_replace_count=-1 reinforce=0"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "[2026-11-02 04:34:17] ombre_brain INFO: op=trace phase=ok bytes=35"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "[2026-11-02 04:34:17] ombre_brain INFO: op=trace phase=entry bucket_id=str_len:12 name=str_len:0 title=str_len:0 domain=str_len:0 valence=-1 arousal=-1 importance=-1 tags=str_len:0 resolved=-1 pinned=-1 protected=-1 digested=-1 content_len=0 delete=0 status=str_len:0 hard_delete=0 restore=1 delete_reason_len=0 old_str_len=0 new_str_len=0 weight=-1 dont_surface=-1 why_len=0 meaning_append_len=0 meaning_replace_count=0 media_append_count=0 media_replace_count=0 unlink=str_len:0 relink=str_len:0 relation_type=str_len:0 quotes_replace_count=-1 reinforce=0"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "[2026-11-02 04:34:18] ombre_brain INFO: op=trace phase=ok bytes=25"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "[2026-11-02 04:34:18] ombre_brain INFO: op=trace phase=entry bucket_id=str_len:12 name=str_len:0 title=str_len:0 domain=str_len:0 valence=-1 arousal=-1 importance=-1 tags=str_len:0 resolved=-1 pinned=-1 protected=-1 digested=-1 content_len=0 delete=0 status=str_len:0 hard_delete=1 restore=0 delete_reason_len=67 old_str_len=0 new_str_len=0 weight=-1 dont_surface=-1 why_len=0 meaning_append_len=0 meaning_replace_count=0 media_append_count=0 media_replace_count=0 unlink=str_len:0 relink=str_len:0 relation_type=str_len:0 quotes_replace_count=-1 reinforce=0"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "[2026-11-02 04:34:18] ombre_brain INFO: op=trace phase=ok bytes=22"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "[2026-11-02 04:34:18] ombre_brain.decay INFO: Decay engine stopped / 衰减引擎已停止"
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "INFO:     Application shutdown complete."
+  },
+  {
+    "file": "ombre_restart.log",
+    "line": "INFO:     Finished server process [29894]"
+  }
+]

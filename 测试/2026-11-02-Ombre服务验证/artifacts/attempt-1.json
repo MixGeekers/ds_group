@@ -1,0 +1,351 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-02T08:30:16.248605+00:00",
+  "status": "failed",
+  "scope": "one synthetic test-data bucket; public API only; no DSH or real material",
+  "calls": [
+    {
+      "label": "create_once",
+      "name": "grow",
+      "arguments": {
+        "content": "",
+        "items": [
+          {
+            "content": "SHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。",
+            "title": "识雨单桶合成验证 20261102",
+            "tags": [
+              "shiyu-synthetic"
+            ],
+            "domain": [
+              "shiyu-test"
+            ],
+            "valence": 0.5,
+            "arousal": 0.3,
+            "importance": 5
+          }
+        ],
+        "test_data": true
+      },
+      "durationMs": 505,
+      "isError": false,
+      "responseSha256": "8c4ab67eea0d1a2a88db8b2f8e913c0f7b232d034dc8e380a34f01b155994b0f",
+      "responseText": "1条(预拆分·逐字)|新1合0 batch:g_810aec9a3517\n📝识雨单桶合成验证 20261102"
+    },
+    {
+      "label": "discover_created_id",
+      "name": "breath_advanced",
+      "arguments": {
+        "query": "SHIYU_OMBRE_SYNTHETIC_20261102",
+        "max_results": 5,
+        "max_tokens": 4000,
+        "mode": "manual",
+        "with_ids": true
+      },
+      "durationMs": 28,
+      "isError": false,
+      "responseSha256": "5b9ec02613d9c838f9e74192e32c36d6a4c94f78e3766ff8de1b40b880861914",
+      "responseText": "[bucket_id:b5f8d3bc4c85]\nSHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。\n👣 Footprint：LLM经grow创建\n\n=== ombre:result-ids ===\n```json\n{\"bucket_ids\": [\"b5f8d3bc4c85\"], \"count\": 1, \"mode\": \"manual\", \"omitted_by_policy\": 0, \"schema\": 1}\n```"
+    },
+    {
+      "label": "read_after_create",
+      "name": "breath_advanced",
+      "arguments": {
+        "query": "b5f8d3bc4c85",
+        "max_results": 1,
+        "max_tokens": 4000,
+        "mode": "manual",
+        "with_ids": true
+      },
+      "durationMs": 111,
+      "isError": false,
+      "responseSha256": "577b8091f492a817303b619ea2f87d838f5800ad5c428de72133de25aad7965e",
+      "responseText": "[exact_bucket_id:true] [bucket_id:b5f8d3bc4c85]\nSHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。\n👣 Footprint：LLM经grow创建"
+    }
+  ],
+  "processes": [
+    {
+      "name": "harrier",
+      "pid": 28585,
+      "startedAt": "2026-11-02T08:30:16.560576+00:00",
+      "owned": true,
+      "stopSignal": "SIGTERM",
+      "exitCode": 0,
+      "stoppedAt": "2026-11-02T08:30:20.058487+00:00",
+      "alive": false
+    },
+    {
+      "name": "ombre_first",
+      "pid": 28612,
+      "startedAt": "2026-11-02T08:30:17.131101+00:00",
+      "owned": true,
+      "stopSignal": "SIGTERM",
+      "exitCode": -15,
+      "stoppedAt": "2026-11-02T08:30:20.018725+00:00",
+      "alive": false
+    }
+  ],
+  "embeddingRequests": [
+    {
+      "path": "/v1/embeddings",
+      "model": "shiyu-harrier-0.6b-q8_0",
+      "textHashes": [
+        "ee3d2c4da89dfd0a8aecc94a391e294ce516fef033e1f51daf8cf7acea86585e"
+      ],
+      "inputLengths": [
+        64
+      ],
+      "status": 200,
+      "dimensions": [
+        5464
+      ]
+    },
+    {
+      "path": "/v1/embeddings",
+      "model": "shiyu-harrier-0.6b-q8_0",
+      "textHashes": [
+        "0529ca9437fd3131d33cd1609942ca69b27101eee10a08d5b514383da9923e31"
+      ],
+      "inputLengths": [
+        30
+      ],
+      "status": 200,
+      "dimensions": [
+        5464
+      ]
+    }
+  ],
+  "generationRequests": [],
+  "otherProxyRequests": [],
+  "checks": {
+    "fresh_vault": {
+      "passed": true
+    },
+    "pinned_harrier": {
+      "passed": true
+    },
+    "pinned_llama": {
+      "passed": true
+    },
+    "public_tools_present": {
+      "passed": true
+    },
+    "relations_tools_disabled": {
+      "passed": true,
+      "details": [
+        "breath",
+        "breath_search",
+        "breath_advanced",
+        "hold",
+        "grow",
+        "trace",
+        "dream",
+        "anchor",
+        "release",
+        "pulse",
+        "plan",
+        "letter_write",
+        "letter_lock_update",
+        "letter_read",
+        "feel",
+        "I"
+      ]
+    },
+    "create_once_protocol_ok": {
+      "passed": true
+    },
+    "create_once_no_runtime_error_text": {
+      "passed": true
+    },
+    "create_no_metadata_fallback": {
+      "passed": true
+    },
+    "discover_created_id_protocol_ok": {
+      "passed": true
+    },
+    "discover_created_id_no_runtime_error_text": {
+      "passed": true
+    },
+    "id_manifest_present": {
+      "passed": true
+    },
+    "exactly_one_created_bucket": {
+      "passed": true
+    },
+    "read_after_create_protocol_ok": {
+      "passed": true
+    },
+    "read_after_create_no_runtime_error_text": {
+      "passed": true
+    },
+    "read_after_create_id_bound": {
+      "passed": true
+    },
+    "read_after_create_fixed_content": {
+      "passed": true
+    },
+    "read_after_create_exact_marker": {
+      "passed": true
+    },
+    "first_normal_exit": {
+      "passed": false
+    },
+    "final_zero_generation_requests": {
+      "passed": true
+    },
+    "final_no_other_proxy_requests": {
+      "passed": true
+    },
+    "final_embeddings_valid": {
+      "passed": false
+    }
+  },
+  "stages": [
+    {
+      "name": "harrier_ready",
+      "at": "2026-11-02T08:30:17.128742+00:00"
+    },
+    {
+      "name": "ombre_first_ready",
+      "at": "2026-11-02T08:30:19.172896+00:00"
+    },
+    {
+      "name": "create_once",
+      "at": "2026-11-02T08:30:19.185864+00:00"
+    },
+    {
+      "name": "discover_created_id",
+      "at": "2026-11-02T08:30:19.690445+00:00"
+    },
+    {
+      "name": "read_after_create",
+      "at": "2026-11-02T08:30:19.718668+00:00"
+    },
+    {
+      "name": "normal_restart",
+      "at": "2026-11-02T08:30:19.829934+00:00"
+    }
+  ],
+  "environment": {
+    "python": "3.12.16 (main, Oct 26 2026, 13:59:40) [Clang 23.1.3 ]",
+    "platform": "darwin",
+    "machine": "arm64",
+    "packages": {
+      "threadpoolctl": "3.6.0",
+      "starlette": "1.3.1",
+      "rpds-py": "2026.6.3",
+      "openai": "2.52.0",
+      "pydantic_core": "2.46.4",
+      "rank-bm25": "0.2.2",
+      "click": "8.4.2",
+      "mcp": "1.29.0",
+      "jsonschema-specifications": "2025.9.1",
+      "narwhals": "2.24.0",
+      "python-frontmatter": "1.3.0",
+      "PyJWT": "2.13.0",
+      "scikit-learn": "1.9.0",
+      "jsonschema": "4.26.0",
+      "sse-starlette": "3.4.6",
+      "uvicorn": "0.52.0",
+      "tzdata": "2026.3",
+      "zstandard": "0.25.0",
+      "httpcore": "1.0.9",
+      "jieba": "0.42.1",
+      "RapidFuzz": "3.14.5",
+      "anyio": "4.14.2",
+      "numpy": "2.5.1",
+      "jiter": "0.16.0",
+      "python-dotenv": "1.2.2",
+      "h11": "0.16.0",
+      "sniffio": "1.3.1",
+      "pycparser": "3.0",
+      "types-PyYAML": "6.0.12.20260724",
+      "python-multipart": "0.0.32",
+      "PyYAML": "6.0.3",
+      "certifi": "2026.7.22",
+      "joblib": "1.5.3",
+      "scipy": "1.18.0",
+      "annotated-types": "0.8.0",
+      "referencing": "0.37.0",
+      "pydantic-settings": "2.14.2",
+      "distro": "1.9.0",
+      "tqdm": "4.70.0",
+      "attrs": "26.1.0",
+      "pydantic": "2.13.4",
+      "httpx": "0.28.1",
+      "typing_extensions": "4.16.0",
+      "cffi": "2.1.0",
+      "idna": "3.18",
+      "typing-inspection": "0.4.2",
+      "httpx-sse": "0.4.3",
+      "cryptography": "50.0.0"
+    }
+  },
+  "source": {
+    "commit": "115d831d979bf67efc7150f976e2cb34c333c935",
+    "version": "3.6.14",
+    "archiveSha256": "7b81efc6f78f8ef2e9c0c8591d429f0dba3907362e0e00c4c88f1b78efa1a177",
+    "sourceFiles": {
+      "VERSION": "050b1be586f238ff4c9b66a45397a4df7bd9de6a8809205f4f7dba0234d93790",
+      "requirements.lock.txt": "ae0255bd41e5ceb45694244017a9b0b2dc1e4c445ab027cec1f7183ad969700a",
+      "LICENSE": "2c1ba2fc863528b42e0d904205792f538ecf01c7555c0a7ed2080897362b41b6",
+      "src/server.py": "02107c88da366840c08b98bf8493910c57fb01f7cede781d431d187c914b83ed",
+      "src/embedding_engine.py": "d95665d5594a648ed6d4d40e0cffe9754c21f00cff66ec759a78a98ba6547143"
+    }
+  },
+  "configuration": {
+    "transport": "streamable-http",
+    "loopbackOnly": true,
+    "generationApiKeyEmpty": true,
+    "generationRequestsRejectedAtLoopback": true,
+    "embeddingBackgroundIndexing": false,
+    "embeddingQueryDocumentPrefixApplied": false,
+    "githubAutoIntervalMinutes": 0,
+    "hookSkip": true,
+    "newEmptyVault": true,
+    "dashboardCredential": "ephemeral-in-memory-only",
+    "mcpCredential": "ephemeral-in-memory-only",
+    "configSha256": "f25abd6fb62a7441de77688da37344a8e311f3f0250723d374ecaa6c4eae08e3",
+    "environmentNames": [
+      "LANG",
+      "NO_PROXY",
+      "OMBRE_BIND_ADDRESS",
+      "OMBRE_BIND_HOST",
+      "OMBRE_BUCKETS_DIR",
+      "OMBRE_CONFIG_PATH",
+      "OMBRE_DASHBOARD_PASSWORD",
+      "OMBRE_HOOK_SKIP",
+      "OMBRE_LOG_DIR",
+      "OMBRE_MCP_TOKEN",
+      "OMBRE_MEDIA_DIR",
+      "OMBRE_PORT",
+      "OMBRE_VAULT_DIR",
+      "PATH",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONUNBUFFERED",
+      "TMPDIR"
+    ]
+  },
+  "serverInfo": [
+    {
+      "name": "Ombre Brain",
+      "title": null,
+      "version": "1.29.0",
+      "websiteUrl": null,
+      "icons": null
+    }
+  ],
+  "bucketId": "b5f8d3bc4c85",
+  "failure": {
+    "type": "AssertionError",
+    "detail": "first_normal_exit"
+  },
+  "finishedAt": "2026-11-02T08:30:20.195850+00:00",
+  "allOwnedChildrenStopped": true,
+  "finalCountsAfterOwnedProcessesAndProxyStopped": {
+    "embeddingRequests": 2,
+    "generationRequests": 0,
+    "otherProxyRequests": 0
+  },
+  "scriptSha256": "9e8e75507a7979e857cc017d0d01bc8ae08ec007c3f1eb927c63e23e57bf5656",
+  "planSha256": "21535e0de32cde07ca00bd2d6f4597df9de1c078cfacb9c26607ec6d0a33d0c5"
+}

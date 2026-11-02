@@ -1,0 +1,20 @@
+{
+  "commit": "115d831d979bf67efc7150f976e2cb34c333c935",
+  "version": "3.6.14",
+  "archiveSha256": "7b81efc6f78f8ef2e9c0c8591d429f0dba3907362e0e00c4c88f1b78efa1a177",
+  "sourceFiles": {
+    "VERSION": "050b1be586f238ff4c9b66a45397a4df7bd9de6a8809205f4f7dba0234d93790",
+    "requirements.lock.txt": "ae0255bd41e5ceb45694244017a9b0b2dc1e4c445ab027cec1f7183ad969700a",
+    "LICENSE": "2c1ba2fc863528b42e0d904205792f538ecf01c7555c0a7ed2080897362b41b6",
+    "src/server.py": "02107c88da366840c08b98bf8493910c57fb01f7cede781d431d187c914b83ed",
+    "src/embedding_engine.py": "d95665d5594a648ed6d4d40e0cffe9754c21f00cff66ec759a78a98ba6547143"
+  },
+  "licenseLineEndings": {
+    "archiveBytes": 1087,
+    "archiveCRLFCount": 21,
+    "archiveSha256": "2c1ba2fc863528b42e0d904205792f538ecf01c7555c0a7ed2080897362b41b6",
+    "researchBytes": 1066,
+    "researchSha256": "a029354503e0b136f97b2ea283cd13a9699c0393c40a9fa1cf68d59f273e302b",
+    "equalAfterCrlfToLf": true
+  }
+}

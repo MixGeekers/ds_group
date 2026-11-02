@@ -1,0 +1,35 @@
+{
+  "id": "b5f8d3bc4c85",
+  "metadata": {
+    "activation_count": 0,
+    "arousal": 0.3,
+    "created": "2026-11-02T04:30:19-04:00",
+    "domain": [
+      "shiyu-test"
+    ],
+    "first_of_kind": true,
+    "grow_batch_id": "g_810aec9a3517",
+    "id": "b5f8d3bc4c85",
+    "importance": 5,
+    "last_active": "2026-11-02T04:30:19-04:00",
+    "name": "2026-11-02 04-30-19 识雨单桶合成验证 20261102",
+    "provenance": {
+      "created_by": "grow",
+      "erasable": true,
+      "kind": "test"
+    },
+    "source_tool": "grow",
+    "tags": [
+      "shiyu-synthetic"
+    ],
+    "title": "识雨单桶合成验证 20261102",
+    "type": "dynamic",
+    "valence": 0.5
+  },
+  "content": "SHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。",
+  "display_content": "SHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。",
+  "score": 8.8523,
+  "triggered_feels": [],
+  "letter_locked": false,
+  "deletion_request": null
+}

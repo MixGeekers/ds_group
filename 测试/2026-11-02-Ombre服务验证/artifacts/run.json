@@ -1,0 +1,424 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-02T08:34:15.971632+00:00",
+  "status": "passed",
+  "scope": "continuation of the one confirmed existing test bucket; never create again",
+  "calls": [
+    {
+      "label": "read_after_restart",
+      "name": "breath_advanced",
+      "arguments": {
+        "query": "b5f8d3bc4c85",
+        "max_results": 1,
+        "max_tokens": 4000,
+        "mode": "manual",
+        "with_ids": true
+      },
+      "status": "responded",
+      "durationMs": 8,
+      "isError": false,
+      "responseSha256": "577b8091f492a817303b619ea2f87d838f5800ad5c428de72133de25aad7965e",
+      "responseText": "[exact_bucket_id:true] [bucket_id:b5f8d3bc4c85]\nSHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。\n👣 Footprint：LLM经grow创建"
+    },
+    {
+      "label": "archive",
+      "name": "trace",
+      "arguments": {
+        "bucket_id": "b5f8d3bc4c85",
+        "delete": true
+      },
+      "status": "responded",
+      "durationMs": 4,
+      "isError": false,
+      "responseSha256": "1a99707e1821982a7255ee49f63a6777ca931b91d796d25c5d26c1373d82faf3",
+      "responseText": "已将记忆桶存入档案（不可在日常召回中浮现）: b5f8d3bc4c85"
+    },
+    {
+      "label": "read_archive",
+      "name": "breath_advanced",
+      "arguments": {
+        "query": "b5f8d3bc4c85",
+        "max_results": 1,
+        "max_tokens": 4000,
+        "mode": "manual",
+        "with_ids": true
+      },
+      "status": "responded",
+      "durationMs": 3,
+      "isError": false,
+      "responseSha256": "f2e7f1ebe4bc4cdbd9aa2a652267981b32df81463753b4c604edc3a1b02a5763",
+      "responseText": "[query 命中·已删除到档案] [bucket_id:b5f8d3bc4c85] [状态:已退出日常记忆，原文仍保留]\nSHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。\n👣 Footprint：LLM经grow创建 → 删除到档案\n[反思：这条记忆对当下的我有帮助吗？它值得被再次回忆吗？]\n[若决定恢复：trace(bucket_id=\"b5f8d3bc4c85\", restore=True)]"
+    },
+    {
+      "label": "restore",
+      "name": "trace",
+      "arguments": {
+        "bucket_id": "b5f8d3bc4c85",
+        "restore": true
+      },
+      "status": "responded",
+      "durationMs": 320,
+      "isError": false,
+      "responseSha256": "0fe6f7bbc4bc8f48c846232386382f0138c136549812d74cda6f2e4b73c33a2f",
+      "responseText": "已重新回忆并恢复记忆桶: b5f8d3bc4c85"
+    },
+    {
+      "label": "read_restored",
+      "name": "breath_advanced",
+      "arguments": {
+        "query": "b5f8d3bc4c85",
+        "max_results": 1,
+        "max_tokens": 4000,
+        "mode": "manual",
+        "with_ids": true
+      },
+      "status": "responded",
+      "durationMs": 3,
+      "isError": false,
+      "responseSha256": "728b8d6d053304c0d77bfe8fdf063e50971829215178c180dbadb705e30210fd",
+      "responseText": "[exact_bucket_id:true] [bucket_id:b5f8d3bc4c85]\nSHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。\n👣 Footprint：LLM经grow创建 → 删除到档案 → 重新回忆"
+    },
+    {
+      "label": "hard_delete",
+      "name": "trace",
+      "arguments": {
+        "bucket_id": "b5f8d3bc4c85",
+        "hard_delete": true,
+        "delete_reason": "Cleanup of the single explicitly synthetic Shiyu feasibility bucket"
+      },
+      "status": "responded",
+      "durationMs": 3,
+      "isError": false,
+      "responseSha256": "be24799828d877fd03804eb922d12de175dc88f9fc67b39209e823e071d6317b",
+      "responseText": "已永久删除测试桶: b5f8d3bc4c85"
+    },
+    {
+      "label": "read_missing_after_delete",
+      "name": "breath_advanced",
+      "arguments": {
+        "query": "b5f8d3bc4c85",
+        "max_results": 5,
+        "max_tokens": 4000,
+        "mode": "manual",
+        "with_ids": true
+      },
+      "status": "responded",
+      "durationMs": 4,
+      "isError": false,
+      "responseSha256": "d84b28422dc482ee349e163dd134add3e59b9f77f9906b258d2541a13be0267a",
+      "responseText": "没有匹配到「b5f8d3bc4c85」相关的记忆。\n可以换个关键词试试，或用 breath() 看当下权重池；feel 用 breath_advanced(domain=\"feel\")，信件用 letter_read。\n\n=== ombre:result-ids ===\n```json\n{\"bucket_ids\": [], \"count\": 0, \"mode\": \"manual\", \"omitted_by_policy\": 0, \"schema\": 1}\n```"
+    }
+  ],
+  "processes": [
+    {
+      "name": "harrier_continuation",
+      "pid": 29890,
+      "startedAt": "2026-11-02T08:34:16.219682+00:00",
+      "owned": true,
+      "stopSignal": "SIGTERM",
+      "exitCode": 0,
+      "stoppedAt": "2026-11-02T08:34:18.604721+00:00",
+      "alive": false
+    },
+    {
+      "name": "ombre_restart",
+      "pid": 29894,
+      "startedAt": "2026-11-02T08:34:16.750417+00:00",
+      "owned": true,
+      "stopSignal": "SIGTERM",
+      "exitCode": -15,
+      "stoppedAt": "2026-11-02T08:34:18.522109+00:00",
+      "alive": false,
+      "gracefulShutdownObserved": true
+    }
+  ],
+  "embeddingRequests": [
+    {
+      "path": "/v1/embeddings",
+      "model": "shiyu-harrier-0.6b-q8_0",
+      "textHashes": [
+        "ee3d2c4da89dfd0a8aecc94a391e294ce516fef033e1f51daf8cf7acea86585e"
+      ],
+      "inputLengths": [
+        64
+      ],
+      "status": 200,
+      "dimensions": [
+        1024
+      ],
+      "finite": [
+        true
+      ],
+      "encodings": [
+        "base64-float32-le"
+      ]
+    }
+  ],
+  "generationRequests": [],
+  "otherProxyRequests": [],
+  "checks": {
+    "existing_confirmed_bucket": {
+      "passed": true
+    },
+    "prior_graceful_shutdown_verified": {
+      "passed": true
+    },
+    "pinned_harrier": {
+      "passed": true
+    },
+    "pinned_llama": {
+      "passed": true
+    },
+    "read_after_restart_protocol_ok": {
+      "passed": true
+    },
+    "read_after_restart_no_runtime_error_text": {
+      "passed": true
+    },
+    "read_after_restart_id_bound": {
+      "passed": true
+    },
+    "read_after_restart_fixed_content": {
+      "passed": true
+    },
+    "read_after_restart_exact_marker": {
+      "passed": true
+    },
+    "dashboard_login": {
+      "passed": true
+    },
+    "public_raw_read": {
+      "passed": true,
+      "details": {
+        "status": 200,
+        "keys": [
+          "id",
+          "metadata",
+          "content",
+          "display_content",
+          "score",
+          "triggered_feels",
+          "letter_locked",
+          "deletion_request"
+        ]
+      }
+    },
+    "export_http": {
+      "passed": true,
+      "details": {
+        "status": 200
+      }
+    },
+    "export_manifest_structure": {
+      "passed": true
+    },
+    "export_manifest": {
+      "passed": true
+    },
+    "export_metadata": {
+      "passed": true
+    },
+    "export_no_configuration": {
+      "passed": true
+    },
+    "export_contains_synthetic_bucket": {
+      "passed": true
+    },
+    "archive_protocol_ok": {
+      "passed": true
+    },
+    "archive_no_runtime_error_text": {
+      "passed": true
+    },
+    "read_archive_protocol_ok": {
+      "passed": true
+    },
+    "read_archive_no_runtime_error_text": {
+      "passed": true
+    },
+    "read_archive_id_bound": {
+      "passed": true
+    },
+    "read_archive_fixed_content": {
+      "passed": true
+    },
+    "archive_explicit": {
+      "passed": true
+    },
+    "restore_protocol_ok": {
+      "passed": true
+    },
+    "restore_no_runtime_error_text": {
+      "passed": true
+    },
+    "read_restored_protocol_ok": {
+      "passed": true
+    },
+    "read_restored_no_runtime_error_text": {
+      "passed": true
+    },
+    "read_restored_id_bound": {
+      "passed": true
+    },
+    "read_restored_fixed_content": {
+      "passed": true
+    },
+    "read_restored_exact_marker": {
+      "passed": true
+    },
+    "hard_delete_protocol_ok": {
+      "passed": true
+    },
+    "hard_delete_no_runtime_error_text": {
+      "passed": true
+    },
+    "read_missing_after_delete_protocol_ok": {
+      "passed": true
+    },
+    "read_missing_after_delete_no_runtime_error_text": {
+      "passed": true
+    },
+    "deleted_id_not_returned": {
+      "passed": true
+    },
+    "deleted_public_404": {
+      "passed": true,
+      "details": {
+        "status": 404
+      }
+    },
+    "final_zero_generation_requests": {
+      "passed": true
+    },
+    "final_no_other_proxy_requests": {
+      "passed": true
+    },
+    "final_embeddings_valid": {
+      "passed": true
+    }
+  },
+  "stages": [
+    {
+      "name": "normal_restart_ready",
+      "at": "2026-11-02T08:34:17.770011+00:00"
+    },
+    {
+      "name": "read_after_restart",
+      "at": "2026-11-02T08:34:17.776751+00:00"
+    },
+    {
+      "name": "native_export",
+      "at": "2026-11-02T08:34:17.790364+00:00"
+    },
+    {
+      "name": "archive",
+      "at": "2026-11-02T08:34:17.794720+00:00"
+    },
+    {
+      "name": "read_archive",
+      "at": "2026-11-02T08:34:17.799068+00:00"
+    },
+    {
+      "name": "restore",
+      "at": "2026-11-02T08:34:17.801818+00:00"
+    },
+    {
+      "name": "read_restored",
+      "at": "2026-11-02T08:34:18.121947+00:00"
+    },
+    {
+      "name": "hard_delete",
+      "at": "2026-11-02T08:34:18.124929+00:00"
+    },
+    {
+      "name": "read_missing_after_delete",
+      "at": "2026-11-02T08:34:18.128294+00:00"
+    }
+  ],
+  "priorAttempt": {
+    "file": "artifacts/attempt-1.json",
+    "sha256": "5e4b0abfc4a1b8d4fbb79454e6454b741c48c2d44e3585e6bdd3873e0d7d54f9",
+    "status": "failed",
+    "failure": {
+      "type": "AssertionError",
+      "detail": "first_normal_exit"
+    }
+  },
+  "bucketId": "b5f8d3bc4c85",
+  "configuration": {
+    "configSha256": "2834b55a3d90892d5f174b834051adb9b1f9ae3091ad19a5440f86796da35afd",
+    "sameVault": true,
+    "environmentNames": [
+      "LANG",
+      "NO_PROXY",
+      "OMBRE_BIND_ADDRESS",
+      "OMBRE_BIND_HOST",
+      "OMBRE_BUCKETS_DIR",
+      "OMBRE_CONFIG_PATH",
+      "OMBRE_DASHBOARD_PASSWORD",
+      "OMBRE_HOOK_SKIP",
+      "OMBRE_LOG_DIR",
+      "OMBRE_MCP_TOKEN",
+      "OMBRE_MEDIA_DIR",
+      "OMBRE_PORT",
+      "OMBRE_VAULT_DIR",
+      "PATH",
+      "PYTHONDONTWRITEBYTECODE",
+      "PYTHONUNBUFFERED",
+      "TMPDIR"
+    ],
+    "generationApiKeyEmpty": true,
+    "generationBaseIsDenyProxy": true,
+    "embeddingBackgroundIndexing": false
+  },
+  "serverInfo": [
+    {
+      "name": "Ombre Brain",
+      "title": null,
+      "version": "1.29.0",
+      "websiteUrl": null,
+      "icons": null
+    }
+  ],
+  "export": {
+    "bytes": 6284,
+    "sha256": "f951bb7fdf06cf41774a70311e7bf205ef42df266bfc5481cb60d645aa0f70ea",
+    "manifest": {
+      "schema_version": 1,
+      "kind": "ombre-brain-backup",
+      "created_at": "2026-11-02T04:34:17",
+      "version": "3.6.14",
+      "file_count": 3,
+      "total_bytes": 25563,
+      "files": [
+        {
+          "path": "buckets/dynamic/shiyu-test/2026-11-02 04-30-19 识雨单桶合成验证 20261102_b5f8d3bc4c85.md",
+          "size": 585,
+          "sha256": "64debac3d8060912394d759cfcf38019a4a0d47467e18045e11389460f9b5d88"
+        },
+        {
+          "path": "embeddings.db",
+          "size": 24576,
+          "sha256": "ab7912497bce69cb2cc5fdf24fa53bdd1b850e9a455ba700143ce61418e33d01"
+        },
+        {
+          "path": "export_meta.json",
+          "size": 402,
+          "sha256": "bee8606ee5b8217daade33fa213313983592cbc3a1882e49fb28d43521be15b6"
+        }
+      ]
+    },
+    "responseVerifiedHeader": "true"
+  },
+  "continuationScriptSha256": "829c61dec1b6b8ddee780e939f1b61fabfbb1df3f1ac018acce10c2132244e40",
+  "continuationPlanSha256": "cc7236f851bc5c1dddfec863db81f9a2b5fa319b66d3f4a39169143d738f1215",
+  "finishedAt": "2026-11-02T08:34:19.079620+00:00",
+  "allOwnedChildrenStopped": true,
+  "finalCountsAfterOwnedProcessesAndProxyStopped": {
+    "embeddingRequests": 1,
+    "generationRequests": 0,
+    "otherProxyRequests": 0
+  },
+  "scriptSha256": "3aa464f6a23246109311096c5a8bcde484d9c61a9b74e1b7668109b36cbd4c04",
+  "planSha256": "0d1a78ff7247fb411476204b4ce15391007663ee19fb82981b2d32ab986d0082"
+}

@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-02T08:35:31.644Z",
+  "status": "passed",
+  "scope": "one empty isolated vault, one readI; no embedding/generation/DSH/record writes",
+  "runtime": {
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "calls": 1,
+  "productFiles": [
+    {
+      "path": "plugins/shiyu/dist/adapters/mcp/index.js",
+      "sha256": "e9a9e3ee0c30b81370d0d59a755ff5608f1a0f79bce533dc6539af7b5d08e213"
+    },
+    {
+      "path": "plugins/shiyu/dist/adapters/ombre/index.js",
+      "sha256": "2f0232e621d989b35b3df8934551fd30a29b812de15291daea8b3f512852f08a"
+    },
+    {
+      "path": "plugins/shiyu/package.json",
+      "sha256": "2114db7d9af1727429748497f536161bd5e655f8925dc7526ebbac872854fc78"
+    },
+    {
+      "path": "plugins/shiyu/package-lock.json",
+      "sha256": "3897d1556dd268721ae9f67f1be4ebfc2d31d666d2c622240994c0aa93506dec"
+    }
+  ],
+  "source": {
+    "commit": "115d831d979bf67efc7150f976e2cb34c333c935",
+    "version": "3.6.14",
+    "archiveSha256": "7b81efc6f78f8ef2e9c0c8591d429f0dba3907362e0e00c4c88f1b78efa1a177",
+    "sourceFiles": {
+      "VERSION": "050b1be586f238ff4c9b66a45397a4df7bd9de6a8809205f4f7dba0234d93790",
+      "requirements.lock.txt": "ae0255bd41e5ceb45694244017a9b0b2dc1e4c445ab027cec1f7183ad969700a",
+      "LICENSE": "2c1ba2fc863528b42e0d904205792f538ecf01c7555c0a7ed2080897362b41b6",
+      "src/server.py": "02107c88da366840c08b98bf8493910c57fb01f7cede781d431d187c914b83ed",
+      "src/embedding_engine.py": "d95665d5594a648ed6d4d40e0cffe9754c21f00cff66ec759a78a98ba6547143"
+    }
+  },
+  "serverSha256": "02107c88da366840c08b98bf8493910c57fb01f7cede781d431d187c914b83ed",
+  "configSha256": "a48e9ba63ec02b0498d10df4f6bc5d6ab082c6eb00ec20a96232870278cd80de",
+  "environmentNames": [
+    "LANG",
+    "NO_PROXY",
+    "OMBRE_BIND_HOST",
+    "OMBRE_BUCKETS_DIR",
+    "OMBRE_CONFIG_PATH",
+    "OMBRE_HOOK_SKIP",
+    "OMBRE_LOG_DIR",
+    "OMBRE_MEDIA_DIR",
+    "OMBRE_VAULT_DIR",
+    "PATH",
+    "PYTHONDONTWRITEBYTECODE",
+    "PYTHONUNBUFFERED",
+    "TMPDIR"
+  ],
+  "beforeConnect": {
+    "state": "idle",
+    "pid": null,
+    "toolCount": 0,
+    "stderrBytes": 0,
+    "stderrTruncated": false
+  },
+  "connected": {
+    "state": "ready",
+    "pid": 30311,
+    "toolCount": 16,
+    "stderrBytes": 1236,
+    "stderrTruncated": false
+  },
+  "tools": [
+    "breath",
+    "breath_search",
+    "breath_advanced",
+    "hold",
+    "grow",
+    "trace",
+    "dream",
+    "anchor",
+    "release",
+    "pulse",
+    "plan",
+    "letter_write",
+    "letter_lock_update",
+    "letter_read",
+    "feel",
+    "I"
+  ],
+  "observation": {
+    "kind": "unverified-backend-text",
+    "backendId": "stdio-probe-empty-ombre",
+    "vaultScope": "synthetic-empty-owner",
+    "tool": "I",
+    "text": "还没有任何自我认知记录，也没有正在沉淀的候选。",
+    "reportsBackendError": false,
+    "resultIds": {
+      "status": "absent",
+      "nativeIds": []
+    }
+  },
+  "closed": {
+    "state": "closed",
+    "pid": null,
+    "toolCount": 0,
+    "stderrBytes": 1880,
+    "stderrTruncated": false
+  },
+  "ownedPidExited": true,
+  "finishedAt": "2026-11-02T08:35:32.610Z"
+}

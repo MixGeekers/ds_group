@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
 import { isAsyncFunction, isPromise } from 'node:util/types';
 import type { SqliteTransactions } from '../../adapters/control-store/transaction.js';
@@ -10,6 +10,7 @@ import type {
   MemoryApprover, MemoryBackendReceipt, MemoryClaimRequest, MemoryDispatchAuthorizer,
   MemoryLedgerOptions, MemoryOperation, MemoryOperationInput, MemoryReceiptRecord,
   MemoryReceiptVerifier, MemoryReceiptVerdict, MemorySourceRef, MemoryTombstone, MemoryTombstoneInput,
+  MemoryDeletionState, MemoryPublicationRequest, MemoryPublicationAuthorizer,
 } from './contracts.js';
 export * from './contracts.js';
 
@@ -20,6 +21,8 @@ interface StoredOperation {
   localVersion: number; blockedAtWatermark?: number; publishedReceiptId?: string; lastReceiptId?: string;
   publicationBlockReason?: 'PUBLICATION_NOT_AUTHORIZED' | 'DEPENDENCY_NOT_APPLIED';
 }
+const TABLES = ['shiyu_memory_meta', 'shiyu_memory_operations', 'shiyu_memory_receipts', 'shiyu_memory_deletions', 'shiyu_memory_tombstones', 'shiyu_memory_publications'] as const;
+const LEGACY_TABLES = TABLES.slice(0, 5);
 type Role = 'approverIds' | 'dispatcherIds' | 'verifierIds' | 'eraserIds';
 const fail = (code: string, message: string): never => { throw new MemoryOperationError(code, message); };
 const clone = <T>(value: T): T => structuredClone(value);
@@ -119,28 +122,96 @@ export function memoryResource(scope: string, backendId: string, targetRef: stri
 export class MemoryOperationLedger {
   private readonly effects: EffectLedger;
   private readonly config: Record<Role | 'backendIds', ReadonlySet<string>>;
+  private readonly policyHash: string;
+  private baselineId?: string;
+  private isolated = false;
   constructor(private readonly db: DatabaseSync, private readonly tx: Tx, private readonly options: MemoryLedgerOptions) {
     if (!tx.owns(db)) fail('TRANSACTION_MISMATCH', 'Memory ledger must share its transaction connection');
     this.config = {
       backendIds: new Set(list(options.backendIds, 'backendIds')), approverIds: new Set(list(options.approverIds, 'approverIds')),
       dispatcherIds: new Set(list(options.dispatcherIds, 'dispatcherIds')), verifierIds: new Set(list(options.verifierIds, 'verifierIds')), eraserIds: new Set(list(options.eraserIds, 'eraserIds')),
     };
-    this.effects = new EffectLedger(db, tx, { now: options.now });
-    tx.atomic(() => {
-      db.exec(`CREATE TABLE IF NOT EXISTS shiyu_memory_meta (id INTEGER PRIMARY KEY CHECK(id=1), schema_version INTEGER NOT NULL, policy_hash TEXT NOT NULL, tombstone_watermark INTEGER NOT NULL);
-        CREATE TABLE IF NOT EXISTS shiyu_memory_operations (operation_id TEXT PRIMARY KEY, effect_id TEXT NOT NULL UNIQUE REFERENCES shiyu_effects(effect_id), scope TEXT NOT NULL, intent_hash TEXT NOT NULL, local_version INTEGER NOT NULL, record_json TEXT NOT NULL CHECK(json_valid(record_json)));
-        CREATE TABLE IF NOT EXISTS shiyu_memory_receipts (receipt_id TEXT PRIMARY KEY, operation_id TEXT NOT NULL REFERENCES shiyu_memory_operations(operation_id), intent_hash TEXT NOT NULL, record_json TEXT NOT NULL CHECK(json_valid(record_json)));
-        CREATE TABLE IF NOT EXISTS shiyu_memory_deletions (deletion_id TEXT PRIMARY KEY, intent_hash TEXT NOT NULL, record_json TEXT NOT NULL CHECK(json_valid(record_json)));
-        CREATE TABLE IF NOT EXISTS shiyu_memory_tombstones (scope TEXT NOT NULL, ref TEXT NOT NULL, watermark INTEGER NOT NULL, PRIMARY KEY(scope,ref));
-        CREATE INDEX IF NOT EXISTS shiyu_memory_scope ON shiyu_memory_operations(scope);`);
-      const policyHash = digest(Object.fromEntries(Object.entries(this.config).map(([key, values]) => [key, [...values].sort()])));
-      db.prepare('INSERT OR IGNORE INTO shiyu_memory_meta VALUES(1,1,?,0)').run(policyHash);
-      const meta = this.row('SELECT * FROM shiyu_memory_meta WHERE id=1')!;
-      if (meta.schema_version !== 1) fail('INCOMPATIBLE_VERSION', 'Unsupported MemoryOperation schema');
-      if (meta.policy_hash !== policyHash) fail('INCOMPATIBLE_POLICY', 'Changing trusted memory roles/backends requires an explicit migration');
+    this.policyHash = digest(Object.fromEntries(Object.entries(this.config).map(([key, values]) => [key, [...values].sort()])));
+    this.effects = tx.atomic(() => {
+      const present = new Set((db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name LIKE 'shiyu_memory_%'").all() as Row[]).map(row => String(row.name)));
+      if (present.size > 0) {
+        if (LEGACY_TABLES.some(table => !present.has(table))) fail('CORRUPT_LEDGER', 'Existing memory installation is missing a required table');
+        const rows = db.prepare('SELECT * FROM shiyu_memory_meta').all() as Row[];
+        if (rows.length !== 1 || rows[0]!.id !== 1) fail('CORRUPT_LEDGER', 'Existing memory installation is missing its authority metadata');
+        if (rows[0]!.schema_version === 1) fail('MIGRATION_REQUIRED', 'Memory schema 1 has no deletion integrity baseline; an explicit verified migration is required');
+        if (TABLES.some(table => !present.has(table))) fail('CORRUPT_LEDGER', 'Existing memory installation is incomplete');
+      }
+      const effects = new EffectLedger(db, tx, { now: options.now });
+      if (present.size === 0) {
+        if (db.prepare("SELECT effect_id FROM shiyu_effects WHERE json_extract(record_json,'$.action')='memory.write' LIMIT 1").get()) fail('CORRUPT_LEDGER', 'Memory tables are absent but memory execution history remains');
+        db.exec(`CREATE TABLE shiyu_memory_meta (id INTEGER PRIMARY KEY CHECK(id=1), schema_version INTEGER NOT NULL, policy_hash TEXT NOT NULL, tombstone_watermark INTEGER NOT NULL,
+          baseline_id TEXT NOT NULL,installed_at TEXT NOT NULL,history_hash TEXT NOT NULL,barrier_hash TEXT NOT NULL);
+          CREATE TABLE shiyu_memory_operations (operation_id TEXT PRIMARY KEY, effect_id TEXT NOT NULL UNIQUE REFERENCES shiyu_effects(effect_id), scope TEXT NOT NULL, intent_hash TEXT NOT NULL, local_version INTEGER NOT NULL, record_json TEXT NOT NULL CHECK(json_valid(record_json)));
+          CREATE TABLE shiyu_memory_receipts (receipt_id TEXT PRIMARY KEY, operation_id TEXT NOT NULL REFERENCES shiyu_memory_operations(operation_id), intent_hash TEXT NOT NULL, record_json TEXT NOT NULL CHECK(json_valid(record_json)));
+          CREATE TABLE shiyu_memory_deletions (deletion_id TEXT PRIMARY KEY, intent_hash TEXT NOT NULL, record_json TEXT NOT NULL CHECK(json_valid(record_json)), closure_json TEXT NOT NULL CHECK(json_valid(closure_json)));
+          CREATE TABLE shiyu_memory_tombstones (scope TEXT NOT NULL, ref TEXT NOT NULL, watermark INTEGER NOT NULL, PRIMARY KEY(scope,ref));
+          CREATE TABLE shiyu_memory_publications (operation_id TEXT NOT NULL REFERENCES shiyu_memory_operations(operation_id),local_version INTEGER NOT NULL,receipt_id TEXT NOT NULL REFERENCES shiyu_memory_receipts(receipt_id),record_json TEXT NOT NULL CHECK(json_valid(record_json)),PRIMARY KEY(operation_id,local_version));
+          CREATE INDEX shiyu_memory_scope ON shiyu_memory_operations(scope);`);
+        const baselineId = randomUUID();
+        db.prepare('INSERT INTO shiyu_memory_meta VALUES(1,2,?,0,?,?,?,?)').run(this.policyHash, baselineId, this.now(), digest([baselineId, []]), digest([baselineId, []]));
+      }
+      const state = this.integrity(); this.baselineId = state.baselineId;
+      return effects;
     });
   }
   private row(sql: string, ...args: SQLInputValue[]): Row | undefined { this.tx.assertUsable(); return this.db.prepare(sql).get(...args) as Row | undefined; }
+  private deletionRows(): Row[] { return this.db.prepare('SELECT deletion_id,intent_hash,record_json,closure_json FROM shiyu_memory_deletions ORDER BY deletion_id').all() as Row[]; }
+  private barrierRows(): Row[] { return this.db.prepare('SELECT scope,ref,watermark FROM shiyu_memory_tombstones ORDER BY scope,ref').all() as Row[]; }
+  /** Missing/corrupt barriers isolate this instance; never repair uncertain history. */
+  private integrity(): MemoryDeletionState {
+    if (this.isolated) fail('CORRUPT_LEDGER', 'Memory ledger is isolated after an integrity failure');
+    this.tx.assertUsable();
+    try {
+      const present = new Set((this.db.prepare("SELECT name FROM sqlite_schema WHERE type='table' AND name LIKE 'shiyu_memory_%'").all() as Row[]).map(row => String(row.name)));
+      if (TABLES.some(table => !present.has(table))) fail('CORRUPT_LEDGER', 'Memory authority table is missing');
+      const metadata = this.db.prepare('SELECT * FROM shiyu_memory_meta').all() as Row[];
+      if (metadata.length !== 1 || metadata[0]!.id !== 1) fail('CORRUPT_LEDGER', 'Memory authority metadata is missing or duplicated');
+      const meta = metadata[0]!;
+      if (meta.schema_version !== 2) fail('CORRUPT_LEDGER', 'Memory authority schema changed');
+      if (meta.policy_hash !== this.policyHash) fail('INCOMPATIBLE_POLICY', 'Changing trusted memory roles/backends requires an explicit migration');
+      const baselineId = text(meta.baseline_id, 'deletion baseline');
+      if (!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/u.test(baselineId)
+        || (this.baselineId !== undefined && baselineId !== this.baselineId)) fail('CORRUPT_LEDGER', 'Memory deletion authority identity changed');
+      const watermark = integer(meta.tombstone_watermark, 'persisted deletion watermark'), installedAt = timestamp(meta.installed_at);
+      const history = this.deletionRows(), barriers = this.barrierRows();
+      if (meta.history_hash !== digest([baselineId, history]) || meta.barrier_hash !== digest([baselineId, barriers])) fail('CORRUPT_LEDGER', 'Deletion history or barrier differs from its committed integrity baseline');
+      if (history.length !== watermark) fail('CORRUPT_LEDGER', 'Deletion history does not cover its committed watermark');
+      const seen = new Set<number>(), expected = new Map<string, number>();
+      for (const row of history) {
+        const value = JSON.parse(String(row.record_json)) as MemoryTombstone;
+        object(value, ['deletionId', 'scope', 'refs', 'expectedWatermark', 'reasonCode', 'watermark', 'acceptedAt', 'acceptedBy']);
+        const intent: MemoryTombstoneInput = { deletionId: text(value.deletionId, 'deletionId'), scope: text(value.scope, 'scope'), refs: list(value.refs, 'deleted refs'),
+          expectedWatermark: integer(value.expectedWatermark, 'expectedWatermark'), reasonCode: text(value.reasonCode, 'reasonCode', 100) };
+        const version = integer(value.watermark, 'deletion watermark', 1); timestamp(value.acceptedAt); text(value.acceptedBy, 'eraser identity');
+        if (row.deletion_id !== intent.deletionId || row.intent_hash !== digest(intent) || version !== intent.expectedWatermark + 1 || version > watermark || seen.has(version)) fail('CORRUPT_LEDGER', 'Invalid committed deletion record');
+        seen.add(version);
+        const closure = JSON.parse(String(row.closure_json)) as unknown;
+        if (!Array.isArray(closure) || !closure.length || closure.some(ref => typeof ref !== 'string') || new Set(closure).size !== closure.length
+          || !same(closure, [...closure].sort()) || intent.refs.some(ref => !closure.includes(ref))) fail('CORRUPT_LEDGER', 'Committed deletion closure is incomplete');
+        for (const value of closure as string[]) {
+          const ref = text(value, 'deleted closure reference'), key = JSON.stringify([intent.scope, ref]);
+          expected.set(key, Math.max(expected.get(key) ?? 0, version));
+        }
+      }
+      if (barriers.length !== expected.size || barriers.some(row => expected.get(JSON.stringify([row.scope, row.ref])) !== row.watermark)) fail('CORRUPT_LEDGER', 'Deletion barrier does not match its committed source/derivation closure');
+      return { schemaVersion: 2, baselineId, installedAt, tombstoneWatermark: watermark };
+    } catch (error) {
+      if (error instanceof MemoryOperationError && error.code === 'INCOMPATIBLE_POLICY') throw error;
+      this.isolated = true;
+      if (error instanceof MemoryOperationError && error.code === 'CORRUPT_LEDGER') throw error;
+      return fail('CORRUPT_LEDGER', 'Memory deletion authority cannot be verified');
+    }
+  }
+  private sealDeletionHistory(): void {
+    const meta = this.row('SELECT baseline_id FROM shiyu_memory_meta WHERE id=1')!;
+    this.db.prepare('UPDATE shiyu_memory_meta SET history_hash=?,barrier_hash=? WHERE id=1').run(digest([meta.baseline_id, this.deletionRows()]), digest([meta.baseline_id, this.barrierRows()]));
+  }
+  deletionState(): MemoryDeletionState { return this.tx.atomic(() => this.integrity()); }
   private now(): string { return timestamp((this.options.now?.() ?? new Date()).toISOString()); }
   private actor(actor: TrustedPolicyActor, role: Role, scope?: string): TrustedPolicyActor {
     object(actor, ['principalId', 'kind', 'scopes']);
@@ -218,16 +289,17 @@ export class MemoryOperationLedger {
   private knownDependencies(operation: MemoryOperationInput): void {
     if (!this.knownDependenciesAvailable(operation)) fail('DEPENDENCY_NOT_APPLIED', 'A known memory dependency is not available as a verified applied result');
   }
-  get(operationId: string): MemoryOperation | undefined { const row = this.stored(operationId); return row ? this.project(row) : undefined; }
-  watermark(): number { return Number(this.row('SELECT tombstone_watermark FROM shiyu_memory_meta WHERE id=1')!.tombstone_watermark); }
+  get(operationId: string): MemoryOperation | undefined { return this.tx.atomic(() => { this.integrity(); const row = this.stored(operationId); return row ? this.project(row) : undefined; }); }
+  watermark(): number { return this.deletionState().tombstoneWatermark; }
   receipts(operationId: string): MemoryReceiptRecord[] {
-    this.tx.assertUsable(); text(operationId, 'operationId', 150);
-    return (this.db.prepare('SELECT record_json FROM shiyu_memory_receipts WHERE operation_id=? ORDER BY rowid').all(operationId) as Row[]).map(row => JSON.parse(String(row.record_json)) as MemoryReceiptRecord);
+    text(operationId, 'operationId', 150);
+    return this.tx.atomic(() => { this.integrity(); return (this.db.prepare('SELECT record_json FROM shiyu_memory_receipts WHERE operation_id=? ORDER BY rowid').all(operationId) as Row[]).map(row => JSON.parse(String(row.record_json)) as MemoryReceiptRecord); });
   }
   approve(actor: TrustedPolicyActor, value: MemoryOperationInput, authorize: MemoryApprover): MemoryOperation {
     const intent = input(value); const trusted = this.actor(actor, 'approverIds', intent.scope);
     if (!this.config.backendIds.has(intent.backendId)) fail('FORBIDDEN_BACKEND', 'Backend deployment is not registered');
     return this.tx.atomic(() => {
+      this.integrity();
       const old = this.row('SELECT intent_hash FROM shiyu_memory_operations WHERE operation_id=?', intent.operationId);
       if (old) {
         if (old.intent_hash !== digest(intent)) fail('IDEMPOTENCY_CONFLICT', 'operationId already names different memory intent');
@@ -253,8 +325,10 @@ export class MemoryOperationLedger {
   }
   claim(actor: TrustedPolicyActor, request: MemoryClaimRequest, authorize: MemoryDispatchAuthorizer): EffectClaim | undefined {
     object(request, ['operationId', 'expectedVersion', 'ownerId', 'hostEpoch', 'installationGeneration', 'fencingToken', 'leaseMs']);
+    this.deletionState();
     const initial = this.required(request.operationId); const trusted = this.actor(actor, 'dispatcherIds', initial.input.scope);
     return this.effects.claim({ effectId: initial.effectId, ownerId: request.ownerId, hostEpoch: request.hostEpoch, installationGeneration: request.installationGeneration, fencingToken: request.fencingToken, leaseMs: request.leaseMs }, () => {
+      this.integrity();
       const row = this.required(request.operationId); const operation = this.cas(row, request.expectedVersion); this.notBlocked(row); this.knownDependencies(row.input);
       const verdict = syncCall(authorize, operation, clone(trusted));
       if (!verdict || verdict.allowed !== true) return fail('FORBIDDEN', 'Memory dispatch is not currently allowed');
@@ -263,8 +337,10 @@ export class MemoryOperationLedger {
     });
   }
   assertDispatch(actor: TrustedPolicyActor, operationId: string, claim: EffectClaim, authorize: MemoryDispatchAuthorizer): MemoryOperation {
+    this.deletionState();
     const row = this.required(operationId); const trusted = this.actor(actor, 'dispatcherIds', row.input.scope); this.match(row, claim);
     this.effects.assertDispatch(claim, () => {
+      this.integrity();
       const current = this.required(operationId); this.notBlocked(current); this.knownDependencies(current.input);
       const verdict = syncCall(authorize, this.project(current), clone(trusted));
       if (!verdict || verdict.allowed !== true) return fail('FORBIDDEN', 'Memory execution authorization was withdrawn');
@@ -276,12 +352,14 @@ export class MemoryOperationLedger {
   private match(row: StoredOperation, claim: EffectClaim): void { if (claim?.effectId !== row.effectId) fail('CLAIM_MISMATCH', 'Claim belongs to another MemoryOperation'); }
   markUnknown(actor: TrustedPolicyActor, operationId: string, expectedVersion: number, claim: EffectClaim, reasonCode: string): MemoryOperation {
     return this.tx.atomic(() => {
+      this.integrity();
       const row = this.required(operationId); this.actor(actor, 'dispatcherIds', row.input.scope); this.cas(row, expectedVersion); this.match(row, claim);
       this.effects.markUnknown(claim, reasonCode); return this.project(row);
     });
   }
   reject(actor: TrustedPolicyActor, operationId: string, expectedVersion: number, reasonCode: string): MemoryOperation {
     return this.tx.atomic(() => {
+      this.integrity();
       const row = this.required(operationId); this.actor(actor, 'approverIds', row.input.scope); this.cas(row, expectedVersion);
       const effect = this.effect(row);
       if (effect.status !== 'pending') fail('INVALID_STATE', 'A dispatched operation cannot be declared not applied without backend evidence');
@@ -294,9 +372,59 @@ export class MemoryOperationLedger {
   reconcile(actor: TrustedPolicyActor, operationId: string, expectedVersion: number, claim: EffectClaim, result: MemoryBackendReceipt, verify: MemoryReceiptVerifier): MemoryOperation {
     return this.recordReceipt(actor, operationId, expectedVersion, claim, result, verify, 'reconciliation');
   }
+  /**
+   * Reopen publication only, using the exact already verified durable receipt.
+   * The hook checks current local publication permission/source consent; it must
+   * not query a backend. No Effect, attempt, backend receipt or deletion changes.
+   */
+  recheckPublication(actor: TrustedPolicyActor, value: MemoryPublicationRequest, authorize: MemoryPublicationAuthorizer): MemoryOperation {
+    object(value, ['operationId', 'expectedVersion', 'receiptId']);
+    const operationId = text(value.operationId, 'operationId', 150), receiptId = text(value.receiptId, 'receiptId');
+    return this.tx.atomic(() => {
+      this.integrity();
+      const row = this.required(operationId), trusted = this.actor(actor, 'verifierIds', row.input.scope);
+      const operation = this.cas(row, value.expectedVersion); this.notBlocked(row);
+      const effect = this.effect(row);
+      if (effect.status !== 'succeeded' || effect.receiptId !== receiptId || row.lastReceiptId !== receiptId) fail('RESULT_NOT_SETTLED', 'Publication requires the fixed verified successful backend receipt');
+      const stored = this.row('SELECT intent_hash,record_json FROM shiyu_memory_receipts WHERE receipt_id=?', receiptId);
+      if (!stored) fail('CORRUPT_LEDGER', 'The verified backend receipt is missing');
+      const record = JSON.parse(String(stored!.record_json)) as MemoryReceiptRecord;
+      const { effectId, claim, receivedAt, mode, published, verification, ...rawResult } = record;
+      const result = receipt(rawResult); timestamp(receivedAt);
+      if (effectId !== row.effectId || !same(claim, effect.currentClaim) || typeof published !== 'boolean' || !['completion', 'reconciliation'].includes(mode)
+        || result.receiptId !== receiptId || result.operationId !== operationId || result.backendId !== row.input.backendId
+        || result.commandDigest !== row.input.commandDigest || result.outcome !== 'applied'
+        || stored!.intent_hash !== digest({ result, claim, mode })) fail('CORRUPT_LEDGER', 'Stored memory receipt does not match its approved operation');
+      this.verifyReceipt(operation, result, verification, mode);
+      const effectReceipt = this.effects.receipts(effect.effectId).find(item => item.receiptId === receiptId);
+      if (!effectReceipt || effectReceipt.outcome !== 'succeeded' || effectReceipt.payloadHash !== result.commandDigest
+        || effectReceipt.serviceId !== result.backendId || effectReceipt.externalOperationId !== result.externalOperationId
+        || !same(effectReceipt.claim, claim) || !same(effectReceipt.evidenceRefs, result.evidenceRefs)) fail('CORRUPT_LEDGER', 'Memory receipt is not backed by the fixed Effect receipt');
+      const verdict = syncCall(authorize, clone(operation), clone(record), clone(trusted));
+      if (!verdict || verdict.allowed !== true) return fail('FORBIDDEN', 'Current policy does not allow publishing the settled result');
+      object(verdict, ['allowed', 'authorization', 'sourcesVerified', 'dependenciesVerified']);
+      const currentAuthorization = authorization(verdict.authorization);
+      if (currentAuthorization.installationGeneration !== operation.mandateRef.installationGeneration) fail('STALE_AUTHORIZATION', 'Publication permission belongs to another installation');
+      if (verdict.sourcesVerified !== true) fail('UNVERIFIED_SOURCES', 'Current source revision, scope and consent must be verified');
+      if (verdict.dependenciesVerified !== true) fail('UNVERIFIED_DEPENDENCIES', 'Current dependency scope and availability must be verified');
+      // A trusted hook may compose other local work; check again before publishing.
+      this.integrity(); this.cas(this.required(operationId), value.expectedVersion); this.notBlocked(row); this.knownDependencies(row.input);
+      if (row.publishedReceiptId === receiptId) return this.project(row);
+      row.publishedReceiptId = receiptId; delete row.publicationBlockReason;
+      this.save(row);
+      const updated = this.project(row);
+      this.db.prepare('INSERT INTO shiyu_memory_publications VALUES(?,?,?,?)').run(operationId, row.localVersion, receiptId, JSON.stringify({
+        schemaVersion: 1, operationId, receiptId, version: updated.version, previousVersion: operation.version,
+        checkedBy: trusted.principalId, checkedAt: this.now(), authorization: currentAuthorization,
+        sourceRefs: row.input.sourceRefs, deletionState: this.integrity(),
+      }));
+      return updated;
+    });
+  }
   private recordReceipt(actor: TrustedPolicyActor, operationId: string, expectedVersion: number, claim: EffectClaim, value: MemoryBackendReceipt, verify: MemoryReceiptVerifier, mode: MemoryReceiptRecord['mode']): MemoryOperation {
     const result = receipt(value);
     return this.tx.atomic(() => {
+      this.integrity();
       const row = this.required(operationId); this.actor(actor, 'verifierIds', row.input.scope); this.match(row, claim);
       if (result.operationId !== operationId || result.backendId !== row.input.backendId || result.commandDigest !== row.input.commandDigest) fail('RECEIPT_MISMATCH', 'Receipt does not describe the approved memory operation');
       const receiptHash = digest({ result, claim, mode });
@@ -345,13 +473,12 @@ export class MemoryOperationLedger {
     const intent: MemoryTombstoneInput = { deletionId: text(value.deletionId, 'deletionId'), scope: text(value.scope, 'scope'), refs: list(value.refs, 'deleted refs'), expectedWatermark: integer(value.expectedWatermark, 'expectedWatermark'), reasonCode: text(value.reasonCode, 'reasonCode', 100) };
     const trusted = this.actor(actor, 'eraserIds', intent.scope);
     return this.tx.atomic(() => {
+      this.integrity();
       const old = this.row('SELECT * FROM shiyu_memory_deletions WHERE deletion_id=?', intent.deletionId);
       if (old) { if (old.intent_hash !== digest(intent)) fail('IDEMPOTENCY_CONFLICT', 'Deletion identity changed'); return JSON.parse(String(old.record_json)) as MemoryTombstone; }
       if (intent.expectedWatermark !== this.watermark()) fail('STALE_WATERMARK', 'Deletion watermark changed');
       const watermark = integer(intent.expectedWatermark + 1, 'watermark', 1);
       const result: MemoryTombstone = { ...intent, watermark, acceptedAt: this.now(), acceptedBy: trusted.principalId };
-      this.db.prepare('UPDATE shiyu_memory_meta SET tombstone_watermark=? WHERE id=1').run(watermark);
-      this.db.prepare('INSERT INTO shiyu_memory_deletions VALUES(?,?,?)').run(intent.deletionId, digest(intent), JSON.stringify(result));
       // Close the recorded dependency graph before updating any operation: a
       // derivation through another target must be blocked in this transaction.
       const rows = (this.db.prepare('SELECT operation_id FROM shiyu_memory_operations WHERE scope=?').all(intent.scope) as Row[]).map(item => this.required(String(item.operation_id)));
@@ -363,6 +490,8 @@ export class MemoryOperationLedger {
           affected.add(row); erased.add(row.input.targetRef); changed = true;
         }
       }
+      this.db.prepare('UPDATE shiyu_memory_meta SET tombstone_watermark=? WHERE id=1').run(watermark);
+      this.db.prepare('INSERT INTO shiyu_memory_deletions VALUES(?,?,?,?)').run(intent.deletionId, digest(intent), JSON.stringify(result), JSON.stringify([...erased].sort()));
       for (const ref of erased) this.db.prepare('INSERT INTO shiyu_memory_tombstones VALUES(?,?,?) ON CONFLICT(scope,ref) DO UPDATE SET watermark=excluded.watermark').run(intent.scope, ref, watermark);
       for (const row of affected) {
         row.blockedAtWatermark = watermark;
@@ -373,6 +502,8 @@ export class MemoryOperationLedger {
         }
         this.save(row);
       }
+      this.sealDeletionHistory();
+      this.integrity();
       return result;
     });
   }
@@ -381,6 +512,7 @@ export class MemoryOperationLedger {
     object(current, ['installationGeneration', 'hostEpoch']); text(current.installationGeneration, 'installationGeneration'); text(current.hostEpoch, 'hostEpoch');
     const trusted = this.actor(actor, 'dispatcherIds');
     return this.tx.atomic(() => {
+      this.integrity();
       const changed: MemoryOperation[] = []; const now = this.now();
       for (const item of this.db.prepare('SELECT operation_id FROM shiyu_memory_operations').all() as Row[]) {
         const row = this.required(String(item.operation_id)); if (!trusted.scopes.includes(row.input.scope)) continue;

@@ -51,7 +51,7 @@ export interface DshAgent {
   status: 'idle' | 'running';
   session: DshSession;
   ctx: DshAgentContext;
-  followup(message: { content: { type: 'text'; text: string }[]; source: { kind: 'user' } }): void;
+  followup(message: NativeUserMessage): void;
   whenIdle(): Promise<void>;
   cancel(cause: { kind: 'hook'; reason: string }, options?: { keepInbox?: boolean }): void;
   inbox?: { readonly nextTurn: readonly NativeUserMessage[]; readonly nextStep: readonly NativeUserMessage[]; remove(messageId: string): boolean };

@@ -11,6 +11,23 @@ documentation workbench as runtime dependencies.
   The optional peer flag keeps offline development independent of a host SDK
   installation; native context operations still require the actual factory.
   No SDK source is copied or distributed in this package.
+- `@modelcontextprotocol/client` 2.2.0 is a host-supplied
+  optional peer for the private control-domain stdio MCP adapter. The public
+  root and `./stdio` exports are used without copying or bundling SDK code.
+  DSH 0.2.1-rc.5 includes this exact package in its installation dependency
+  closure and maps declared linked-plugin peers. The same exact package is
+  installed as a development dependency for real-SDK/synthetic-process tests;
+  its dependency closure is pinned in package-lock.json, including
+  `@modelcontextprotocol/core` 2.2.0. Both package manifests label the license MIT,
+  while their shipped LICENSE describes an MIT-to-Apache-2.0 transition:
+  consented and new code is Apache-2.0; older contributions without relicensing
+  consent retain MIT; non-specification documentation is CC-BY-4.0. The MIT
+  portion names Copyright (c) 2024-2025 Model Context Protocol a Series of
+  LF Projects, LLC. This records the supplied materials rather than treating the
+  manifest label as the complete license inventory. No SDK code or documentation
+  is copied into this distribution. This is the split 2.2.0 client package,
+  not the older `@modelcontextprotocol/sdk` import path. This adapter does not
+  provide or redistribute an MCP server, Ombre installation or model provider.
 - Node.js `node:sqlite`: provided by the host runtime; the actual SQLite version
   and journal mode are measured when the control-store worker starts.
 - The native client obtains React from the host. React is MIT-licensed.

@@ -1,0 +1,17 @@
+{
+  "paths": [
+    "/Users/caja/Documents/\u8bc6\u96e8/\u6d4b\u8bd5/2026-11-02-Ombre\u670d\u52a1\u9a8c\u8bc1/vendor",
+    "/Users/caja/Documents/\u8bc6\u96e8/\u6d4b\u8bd5/2026-11-02-Ombre\u670d\u52a1\u9a8c\u8bc1/.venv",
+    "/Users/caja/Documents/\u8bc6\u96e8/\u6d4b\u8bd5/2026-11-02-Ombre\u670d\u52a1\u9a8c\u8bc1/cache",
+    "/Users/caja/Documents/\u8bc6\u96e8/\u6d4b\u8bd5/2026-11-02-Ombre\u670d\u52a1\u9a8c\u8bc1/tmp",
+    "/Users/caja/Documents/\u8bc6\u96e8/\u6d4b\u8bd5/2026-11-02-Ombre\u670d\u52a1\u9a8c\u8bc1/runtime",
+    "/Users/caja/Documents/\u8bc6\u96e8/\u6d4b\u8bd5/2026-11-02-Ombre\u670d\u52a1\u9a8c\u8bc1/runtime-stdio"
+  ],
+  "ownedPidsVerifiedAbsent": [
+    28585,
+    28612,
+    29890,
+    29894,
+    30311
+  ]
+}

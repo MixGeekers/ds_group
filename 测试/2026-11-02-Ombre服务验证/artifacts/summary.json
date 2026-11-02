@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 1,
+  "status": "bounded-public-api-flow-passed-with-preserved-harness-failure",
+  "commit": "115d831d979bf67efc7150f976e2cb34c333c935",
+  "version": "3.6.14",
+  "bucketId": "b5f8d3bc4c85",
+  "singleGrowCallCount": 1,
+  "attempts": [
+    {
+      "artifact": "attempt-1.json",
+      "status": "failed",
+      "failure": {
+        "type": "AssertionError",
+        "detail": "first_normal_exit"
+      },
+      "note": "Creation and public exact read passed; harness stopped after graceful shutdown because it incorrectly required exit 0. Base64 lengths were also incorrectly labeled dimensions."
+    },
+    {
+      "artifact": "run.json",
+      "status": "passed",
+      "note": "Continued the same confirmed bucket without grow; finished the one restart and remaining steps."
+    }
+  ],
+  "publicApiChecks": [
+    "MCP initialize/list-tools",
+    "grow once with full metadata and test_data",
+    "unique returned ID manifest",
+    "exact ID and fixed-content read",
+    "one normal server restart and exact read",
+    "Dashboard authenticated raw GET",
+    "authenticated native ZIP export and independent full manifest verification",
+    "archive and archived ID/content read",
+    "restore and exact ID/content read",
+    "hard-delete test bucket",
+    "MCP missing target and authenticated raw GET 404"
+  ],
+  "embeddingRequests": {
+    "firstAttempt": 2,
+    "continuation": 1,
+    "total": 3,
+    "firstAttemptDimensions": "not independently decoded; erroneous encoded-string length retained in attempt-1",
+    "continuationDecodedDimensions": [
+      1024
+    ],
+    "continuationAllFinite": true,
+    "qualityBenchmarkReproduced": false
+  },
+  "generationRequests": {
+    "firstAttempt": 0,
+    "continuation": 0,
+    "total": 0,
+    "scope": "POST requests at the configured local refusal proxy; corroborated by empty generation key and clean subprocess environment, not whole-machine packet capture"
+  },
+  "allOwnedPidsStopped": true,
+  "pids": [
+    28585,
+    28612,
+    29890,
+    29894
+  ],
+  "export": {
+    "bytes": 6284,
+    "sha256": "f951bb7fdf06cf41774a70311e7bf205ef42df266bfc5481cb60d645aa0f70ea",
+    "responseVerifiedHeader": "true"
+  },
+  "cleanup": {
+    "status": "completed",
+    "evidence": "cleanup.json",
+    "allOwnedHttpAndStdioPidsStopped": true,
+    "existingModelAssetsUntouched": true
+  },
+  "limitations": [
+    "No general write CAS or durable operation-ID receipt; search and readback are narrow experiment verification only.",
+    "No general undo: restore undoes archive, hard-delete is irreversible and does not erase external evidence/export/audit copies.",
+    "Decay and logs remain native side effects; disabling embedding worker is not zero background activity.",
+    "No external channel, DSH production integration, inference after crash, or backup restore was tested."
+  ],
+  "stdioProbe": {
+    "artifact": "stdio-run.json",
+    "status": "passed",
+    "owner": "root agent",
+    "separateEmptyVault": true,
+    "listTools": 16,
+    "readICalls": 1,
+    "ownedPidExited": true,
+    "embeddingAndGenerationDisabled": true
+  }
+}

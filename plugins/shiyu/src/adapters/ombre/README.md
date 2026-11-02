@@ -1,12 +1,12 @@
 # Ombre 公共 API 薄适配边界
 
-实施范围（2026-11-02）：`index.ts` 仅实现注入式 MCP 调用边界和合成契约测试，不是已经安装或联通的 Ombre 服务。没有 Python 依赖、daemon、记忆正文数据库、第二套检索、自动 fallback 或模型调用。
+实施范围（2026-11-02）：`index.ts` 实现注入式 MCP 调用边界。合成契约测试之后，已由产品私有 stdio 客户端在独立空 vault 对固定原版服务完成一次 readI 探针，进程关闭已核对；正式 Runtime 记忆业务仍未连接。本模块不拥有 Python 依赖、daemon、记忆正文数据库、第二套检索、自动 fallback 或模型调用。
 
 上游为 [P0luz/Ombre-Brain](https://github.com/P0luz/Ombre-Brain/tree/115d831d979bf67efc7150f976e2cb34c333c935)，固定 3.6.14 / `115d831d979bf67efc7150f976e2cb34c333c935`，MIT（Copyright 2026 P0lar1zzZ）。本实现按公共参数契约独立编写，没有复制上游算法代码。[本轮核查与来源摘录](../../../../../research/2026-11-02-Ombre接入/目录.md)保留许可和具体行号。
 
 ## 接入方式
 
-受信 host 用 `new OmbrePublicApiAdapter(transport, binding, options?)` 构造。`transport.callTool({name,arguments})` 对接现有 MCP 客户端；认证、连接、deadline、取消属于该客户端，必须关闭自动重试。适配器不拥有该连接，因而不擅自 close。固定宿主的具体 MCP client 公共导出尚未核实，未修改 runtime 接线。
+受信 host 用 `new OmbrePublicApiAdapter(transport, binding, options?)` 构造。`transport.callTool({name,arguments})` 对接现有 MCP 客户端；认证、连接、deadline、取消属于该客户端，必须关闭自动重试。适配器不拥有该连接，因而不擅自 close。固定宿主没有公开 raw MCP service；已核实并实现 [私有 stdio 客户端](../mcp/README.md)，复用公开 client2.2.0。未修改 Runtime 接线，DSH 内 peer 实际装载仍未实测。
 
 `binding` 绑定 backendId、vaultScope、deploymentEvidenceRef、固定版本/提交，以及已关闭 You/Them 和允许原生生命周期副作用的受信配置。它不构成在线版本证明，也不执行部署验证。真实启用前，host 必须用安装清单与配置读回验证这些断言；模型正文不得创建 binding。构造器只检查声明符合此版边界。
 
@@ -31,3 +31,5 @@
 - MCP 返回成功不等于保存成功：上游将多数运行异常格式化为 `isError=false` 的普通文本。MemoryOperationLedger 必须要求独立可信回执；不能把正文 hash、搜索相似或 schema-valid ID 当作后端 CAS/操作证明。
 
 验证命令：`node --import tsx --test tests/ombre.test.ts`，本轮 9/9；fake transport 只验证参数、范围、结果处理和失败不重试，不构成真实后端或宿主验收。
+
+同日实际接线另见[stdio-run.json](../../../../../测试/2026-11-02-Ombre服务验证/artifacts/stdio-run.json)：一轮 connect/listTools、一次 readI、关闭自有 PID 成功；只有空库读取，不证明 MemoryOperation 回执、普通写入或 DSH 宿主业务集成。

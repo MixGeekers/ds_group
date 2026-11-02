@@ -1,0 +1,14 @@
+{
+  "content": "SHIYU_OMBRE_SYNTHETIC_20261102：这是唯一的合成测试记忆。青色纸鹤放在实验桌左侧，约定明天十点检查。",
+  "title": "识雨单桶合成验证 20261102",
+  "tags": [
+    "shiyu-synthetic"
+  ],
+  "domain": [
+    "shiyu-test"
+  ],
+  "valence": 0.5,
+  "arousal": 0.3,
+  "importance": 5,
+  "test_data": true
+}

@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { isAbsolute, resolve } from 'node:path';
 import { defaultModel } from './sessions.js';
 import { pinOwnedSessionTitle } from './session-title.js';
+import { checkedNativeUserMessage, loadNativeMessageFactory, type NativeMessageFactory } from './native-message.js';
 import type { DshAgent, DshAgentContext, DshAgentHandle, DshContext, DshSession, ModelUsage, SessionEvent } from './sessions.js';
 
 type Disposer = () => void | Promise<void>;
@@ -75,7 +76,12 @@ export interface WorkerRunResult extends WorkerBinding {
   /** The result is a candidate; only TaskService's verifier can declare completion. */
   verified: false;
 }
-export interface WorkerDriverOptions { ctx: DshContext; now?: () => number }
+export interface WorkerDriverOptions {
+  ctx: DshContext;
+  now?: () => number;
+  /** Trusted injection for tests; production uses the official host peer export. */
+  createUserMessage?: NativeMessageFactory;
+}
 interface RegisteredTool {
   name: string;
   description: string;
@@ -365,6 +371,13 @@ export class WorkerSessionDriver {
       const resolved = await abortable(Promise.resolve(this.options.ctx.get('llm').resolveCallConfig(MODEL, state.controller.signal)), state.controller.signal);
       if (resolved.provider !== MODEL.provider || resolved.model !== MODEL.model || resolved.reasoningEffort !== MODEL.reasoningEffort) throw new Error('Host changed the worker model profile');
       await this.gate(state, 'start');
+      const factory = this.options.createUserMessage ?? await abortable(loadNativeMessageFactory(), state.controller.signal);
+      const userMessage = checkedNativeUserMessage(await abortable(Promise.resolve().then(() => {
+        this.synchronousGate(state);
+        return factory({ content: [{ type: 'text', text: prompt }], source: { kind: 'user' } });
+      }), state.controller.signal), prompt);
+      // Factory resolution can await; revoked/cancelled Assignments must not create a native Agent afterwards.
+      await this.gate(state, 'start');
       const shared = { agentOptions: { ...MODEL, maxTokens: state.maxTokens }, signal: state.controller.signal, setup: (ctx: DshAgentContext, agent: DshAgent) => this.compose(state, ctx, agent) };
       state.creation = resume ? this.options.ctx.agents.resume({ ...shared, resumeSessionId: state.binding.sessionId }) : this.options.ctx.agents.create({ ...shared, sessionId: state.binding.sessionId, meta: { cwd: state.cwd, agentPreset: WORKER_PRESET_ID } });
       state.handle = await state.creation;
@@ -374,7 +387,7 @@ export class WorkerSessionDriver {
       await this.gate(state, 'dispatch');
       await abortable(pinOwnedSessionTitle(this.options.ctx, state.handle.agent.session, '识雨受限执行'), state.controller.signal);
       await this.gate(state, 'dispatch');
-      state.handle.agent.followup({ content: [{ type: 'text', text: prompt }], source: { kind: 'user' } });
+      state.handle.agent.followup(userMessage);
       await abortable(state.handle.agent.whenIdle(), state.controller.signal);
       await this.gate(state, 'result');
       if (state.failure) throw state.failure;
