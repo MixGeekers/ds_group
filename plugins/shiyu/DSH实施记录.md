@@ -682,3 +682,40 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/local-re
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h6b-manifest.json>
 cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/channel-bridge.test.ts tests/channel-bridge-worker.test.ts
 ```
+
+## 20. H2c 切片：core 受限事件工具与显式单工具轮边界
+
+状态：**离线通过（G1 模块/集成 + 真实临时 SQLite/Worker + 合成 provider loop）**；runtime 集成与固定宿主零模型探针未落地，真实模型/预算/计划质量未验。2026-11-02 完成并审阅。
+
+### 20.1 交付（6 文件 + 证据）
+
+- `event-tools.ts`：`createCoreEventTools` 三个工具——`shiyu_core_event_types`（类型/schema/字段/版本/scope/canPublish/canSubscribe 发现）、`shiyu_core_event_subscriptions`（只读自有订阅与最近投递）、`shiyu_core_event_report`（仅 `agent.observation.reported`）。actor/scope/来源等级/可发类型由宿主注入 principal；参数不得携带 actor/permit/scope/taskId/ownerId 等授权字段；`task.succeeded`、component-only、publisherIds 程序事件拒绝；回执明确“不代表完成/核验/授权/账目/送达”。
+- `core-decision.ts`：**显式声明新边界**——无工厂时 H1 历史单 request/stream/零工具路径逐字节不变；有工厂时最多 **1 次事件工具调用、≤2 main request/stream**：request1 → 唯一 tool-call → 精确匹配的 tool/result（callId/name/原始 arguments/原生 message hash）→ request2 → 单一最终文本 JSON 候选。request2 maxTokens = maxTokens − 首次 assistant outputTokens；首次 usage/outputTokens 缺失直接以 unknown 拒绝（不猜、不补零）。重复 tool-call/第二轮/缺失结果/越权参数/暂停撤权显式失败；工具结果只进入模型上下文，不成为 Task/Goal 事实或授权。
+- `goals.ts`：受信 `CoreDecisionEventToolFactory` 选项与 core compose 挂载；新增 `probeCoreDecisionEventTools` 零模型探针（专用 `shiyu-core-probe-*` Session、同一受限装配路径、无 followup/模型/Goal 命令、装配读取+authority 扫描+释放/清理显式失败）。
+- `local-core.ts`：`eventTools` 选项、确定性 prompt 说明（默认无工具；有挂载时最多一次并需同一轮最终 JSON 候选）、`summarizeCoreDecisionAccounting`（complete 规则、tokens/calls 不补零、`evidenceRef=native-core-usage:<id>:main=<n>:streams=<n>:tools=<n>:results=<n>`）与 `probeCoreEventTools`（沿用 pause 准入语义）。
+- 计量可观察：新增 mainModelRequests/mainModelStreams/toolCalls/toolResults/eventToolCalls/toolNames；`modelCalls` 仅在完整覆盖时非 null，否则 null；usage 仅全部主调用完整时 reported，未知时 complete=false 且 tokens/calls 缺省；持久 `core.recordAccounting.calls` 仍是主模型调用数，tool 数编码进 evidenceRef，控制契约不变。
+- 测试：`tests/core-event-tools.test.ts` 14 项（provider 契约/宿主身份/只读性、accounting 正反例、types→plan_candidate（2/2、maxTokens [512,505]、汇总 38 tokens、tool 1/1）、无工具路径、report observation、重复/第二轮/未知用量/暂停撤权/越权参数/保留类型/坏 schema/探针清理负例）。
+- 证据：`artifacts/dsh/h2/h2c-core-event-tools.json`、`h2c-slice-summary.json`、`artifacts/dsh/slices/h2c-verify.json`。
+
+### 20.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `66a9428` + 仅本切片）`npm run check` | exit 0；**1359/1359 通过，0 失败/取消/跳过**（= 1345 + 14） |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `dfbf93d` + 仅 6 文件） | exit 0；**1375/1375 通过，0 跳过**（= 1361 + 14）；证据 `artifacts/dsh/slices/h2c-verify.json` |
+| 定向 | 169/169（新 core-event-tools + 既有 core-goal-sessions/local-core/core-plan/core-pump + events/event-tools/background-pump）；H1/H3 既有测试未改（仅对保留的零工具路径加可观察断言） |
+| 证据级别 | G1 离线模块/集成 + 真实临时 SQLite/Worker + 合成 provider loop；非宿主/真实模型验收 |
+
+### 20.3 失败 / unknown / 未测
+
+1. Runtime 集成未落地：Lead 需在 `runtime.ts` 于 EventService 后构造受信 per-Goal factory、传入 `LocalCoreOptions`、新增 owner-only 零模型 `runtime.probe-core-event-tools` 命令与 `snapshot().diagnostics.coreEventToolProbe`（可选诊断工具封装）；不接 factory 时保持 H1 零工具退路。精确 diff 见队友证据 `runtimeIntegration`。
+2. 固定宿主零模型探针未执行；真实模型/embedding/host Agent loop、provider 预算/缓存、真实计划质量、第二次 main request 的真实计量未验。
+3. core 自建声明式订阅/时间触发（H2b）、链深/配额/背压不在本切片；工具结果只进模型上下文，永不作为权威事实。
+4. 仅离线合成 provider loop + 真实临时 SQLite/Worker；无真实模型/embedding/宿主。
+
+### 20.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h2c-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts tests/core-goal-sessions.test.ts
+```

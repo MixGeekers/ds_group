@@ -290,6 +290,14 @@ test('core and lifecycle namespaces coexist and non-core streams pass through un
     assert.equal(f.counts().streams, 1); assert.equal(f.counts().autoRounds, 0);
     const result = await core.decisionRound(f.decision(ref(first.native)));
     assert.equal(result.binding.sessionId, first.binding.sessionId); assert.equal(result.verified, false); assert.equal(result.modelCalls, 1);
+    // H2c observability on the preserved H1 zero-tool path: one main request and
+    // one stream, no tool round, and no fabricated tool counts.
+    assert.equal(result.mainModelRequests, 1); assert.equal(result.mainModelStreams, 1);
+    assert.equal(result.toolCalls, 0); assert.equal(result.toolResults, 0);
+    const accounting = f.accounting.at(-1)!;
+    assert.equal(accounting.mainModelRequests, 1); assert.equal(accounting.mainModelStreams, 1);
+    assert.equal(accounting.toolCalls, 0); assert.equal(accounting.toolResults, 0);
+    assert.equal(accounting.modelCalls, 1); assert.equal(accounting.usage.status, 'reported');
     const { tools, ...admitted } = f.admittedStreams.at(-1)!;
     assert.deepEqual(admitted, { sessionId: first.binding.sessionId, provider: 'opencode-go', model: 'deepseek-v4.1-flash', reasoningEffort: 'high', maxTokens: 512 });
     assert.ok(tools === undefined || (Array.isArray(tools) && tools.length === 0));

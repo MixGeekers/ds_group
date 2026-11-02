@@ -486,3 +486,155 @@ export function createWorkerEventToolSource(options: {
     },
   };
 }
+
+// ---------------------------------------------------------------------------
+// Core decision event tools (H2c).
+//
+// The permitted core decision Session may call at most one of these read-only
+// event tools in one bounded round trip, then it must still return one final
+// JSON candidate. Actor, scope, source trust level and publishable types are
+// injected by trusted host composition; model arguments may never carry
+// authority. `task.succeeded`, independent verification receipts, owner
+// authorization and accounting facts are not publishable through this surface.
+// Tool results are ordinary data for the final candidate; the program still
+// validates and commits the candidate and owns every Task/Goal fact.
+// ---------------------------------------------------------------------------
+
+export const CORE_EVENT_TOOL_NAMES: readonly string[] = Object.freeze([
+  'shiyu_core_event_types', 'shiyu_core_event_subscriptions', 'shiyu_core_event_report',
+]);
+export const CORE_EVENT_ALLOWED_REPORT_TYPES: readonly string[] = Object.freeze(['agent.observation.reported']);
+const CORE_EVENT_INPUT_LIMIT = 16384;
+const CORE_EVENT_TOOL_AUTHORITY_FIELDS = new Set(['actor', 'principal', 'principalId', 'kind', 'permit', 'scope', 'taskId', 'assignmentId',
+  'hostEpoch', 'installationGeneration', 'fencingToken', 'leaseExpiresAt', 'authorization', 'ownerId', 'grant', 'mandate', 'budget', 'targetRefs']);
+
+export interface CoreEventToolSchema { name: string; description: string; parameters: Record<string, unknown> }
+export interface CoreEventToolExecution {
+  signal: AbortSignal;
+  goalId: string;
+  sessionId: string;
+  roundId: string;
+}
+/** Trusted provider mounted into one core decision round; never model-supplied. */
+export interface CoreEventToolProvider {
+  names(): readonly string[];
+  schemas(): readonly CoreEventToolSchema[];
+  execute(name: string, args: unknown, context: CoreEventToolExecution): Promise<Record<string, unknown>>;
+}
+export interface CoreEventToolOptions {
+  service: EventService;
+  /** Host-injected core Agent identity; exactly one assignment scope, no target refs. */
+  principal: EventPrincipal;
+  /** Trusted subset of CORE_EVENT_ALLOWED_REPORT_TYPES the host grants this round. */
+  reportTypes?: readonly string[];
+  /** Trusted wake hint after durable acceptance; cannot alter the receipt. */
+  onPublished?(receipt: { eventId: string; sequence: number; status: 'accepted' | 'duplicate' }): void;
+}
+function coreEventInput(value: unknown, keys: string[]): Record<string, unknown> {
+  const source = object(value, keys);
+  const cloned = json(source) as Record<string, unknown>;
+  if (Buffer.byteLength(JSON.stringify(cloned)) > CORE_EVENT_INPUT_LIMIT) return failure('INVALID_INPUT', 'Core event tool input exceeds 16 KiB.');
+  return cloned;
+}
+function coreEventPrincipal(value: EventPrincipal, reportTypes: readonly string[]): { principal: EventPrincipal; publishTypes: string[] } {
+  const actor = principalSnapshot(value);
+  if (actor.kind !== 'agent') return failure('FORBIDDEN', 'A core event tool principal must be a trusted Agent identity.');
+  if (actor.scopes.length !== 1) return failure('FORBIDDEN', 'A core event tool principal must carry exactly its Goal scope.');
+  if (actor.targetRefs.length) return failure('FORBIDDEN', 'Core event tools cannot hold subscription target authority.');
+  if (actor.publishTypes.some(type => !reportTypes.includes(type) || !CORE_EVENT_ALLOWED_REPORT_TYPES.includes(type) || blockedPublishTypes.has(type))) {
+    return failure('FORBIDDEN', 'Core event tool grant includes a reserved or non-observation report type.');
+  }
+  const publishTypes = actor.publishTypes.filter(type => reportTypes.includes(type));
+  return { principal: Object.freeze({ ...actor, publishTypes: Object.freeze([...publishTypes]) as unknown as string[] }), publishTypes };
+}
+/**
+ * Create the three restricted core event tools. All bound checks live here, so
+ * the decision adapter only has to enforce the one-round-trip budget and the
+ * final-candidate contract.
+ */
+export function createCoreEventTools(options: CoreEventToolOptions): CoreEventToolProvider {
+  if (!options || typeof options.service !== 'object' || !options.principal) throw new Error('Core event tools require the durable event service and a trusted principal');
+  const requested = options.reportTypes ?? CORE_EVENT_ALLOWED_REPORT_TYPES;
+  if (!Array.isArray(requested) || requested.some(type => typeof type !== 'string' || !CORE_EVENT_ALLOWED_REPORT_TYPES.includes(type))) {
+    throw new Error('Core event report types must be a bounded subset of the registered observation types');
+  }
+  const { principal, publishTypes } = coreEventPrincipal(options.principal, requested);
+  if (options.onPublished !== undefined && typeof options.onPublished !== 'function') throw new Error('onPublished must be a function');
+  const allowedName = (name: unknown): string => { const value = text(name, 'name'); if (!CORE_EVENT_TOOL_NAMES.includes(value)) return failure('FORBIDDEN', 'Unknown core event tool'); return value; };
+  const schemas: readonly CoreEventToolSchema[] = Object.freeze([
+    { name: 'shiyu_core_event_types',
+      description: 'Read-only: list currently visible event types with schema version, payload fields, filterable fields, scope and whether this round may publish or subscribe. This grants no authority. At most one event-tool call is allowed this round; you must still return one final JSON candidate.',
+      parameters: objectSchema({}) },
+    { name: 'shiyu_core_event_subscriptions',
+      description: 'Read-only: list this core Agent identity’s existing event subscriptions, their owner-scope revisions/activation generations and recent delivery references. Creating or changing subscriptions is not available in this round.',
+      parameters: objectSchema({ limit: integerSchema('Optional recent delivery reference count, 1–20; default 10.') }) },
+    { name: 'shiyu_core_event_report',
+      description: 'Publish one scoped observation for this goal as untrusted reported data. Actor, scope, source trust level and allowed type are injected by the trusted runtime and cannot be supplied in arguments. Reserved success facts, verification receipts, owner authorization and accounting facts are rejected. Acceptance is not task completion. At most one event-tool call is allowed this round; you must still return one final JSON candidate.',
+      parameters: objectSchema({
+        type: { type: 'string', enum: [...publishTypes.length ? publishTypes : CORE_EVENT_ALLOWED_REPORT_TYPES] , description: 'A granted observation event type.' },
+        payload: { type: 'object', additionalProperties: true, description: 'Exactly the registered payload fields; bounded JSON.' },
+        idempotencyKey: stringSchema('Stable identity for this logical observation, 1–256 characters; keep unchanged across retries.'),
+        correlationId: stringSchema('Optional bounded correlation identity, 1–256 characters.'),
+      }, ['type', 'payload', 'idempotencyKey']) },
+  ]);
+  return {
+    names: () => Object.freeze([...CORE_EVENT_TOOL_NAMES]),
+    schemas: () => schemas,
+    async execute(rawName, rawArgs, context) {
+      const name = allowedName(rawName);
+      if (!context || typeof context.goalId !== 'string' || !context.goalId || typeof context.sessionId !== 'string' || !context.sessionId
+        || typeof context.roundId !== 'string' || !context.roundId) throw new EventServiceError('INVALID_INPUT', 'Core event tool context is invalid.');
+      context.signal.throwIfAborted();
+      if (name === 'shiyu_core_event_types') {
+        coreEventInput(rawArgs, []);
+        const types = (await options.service.types(principal)).map(definition => ({
+          type: definition.type, schemaVersion: definition.schemaVersion, description: definition.description.slice(0, 1000),
+          canPublish: !blockedPublishTypes.has(definition.type) && !definition.publisherIds && publishTypes.includes(definition.type)
+            && definition.publisherKinds.includes(principal.kind),
+          canSubscribe: principal.subscribeTypes.includes(definition.type),
+          payloadFields: definition.payloadSchema.properties, requiredFields: definition.payloadSchema.required,
+          filterableFields: definition.filterableFields,
+        }));
+        context.signal.throwIfAborted();
+        return { scope: principal.scopes[0], canPublish: [...publishTypes], canSubscribe: [...principal.subscribeTypes],
+          toolsEnabled: true, wakeSupported: false, types,
+          boundary: 'At most one event-tool call per core decision round; results are data, the final JSON candidate is still committed by the program.' };
+      }
+      if (name === 'shiyu_core_event_subscriptions') {
+        const args = coreEventInput(rawArgs, ['limit']);
+        const limit = args.limit === undefined ? 10 : integer(args.limit, 'limit', 1, 20);
+        const [subscriptions, deliveries, stats] = await Promise.all([
+          options.service.listSubscriptions(principal),
+          options.service.listDeliveries(principal, { limit }),
+          options.service.stats(principal),
+        ]);
+        context.signal.throwIfAborted();
+        return { scope: principal.scopes[0], subscriptions: subscriptions.slice(0, 20).map(sub => ({
+          id: sub.id, status: sub.status, scope: sub.scope, target: sub.target, deliveryMode: sub.deliveryMode,
+          types: sub.types, once: sub.once ?? false, revision: sub.revision, ruleRevision: sub.ruleRevision,
+          activationGeneration: sub.activationGeneration, expiresAt: sub.expiresAt ?? null,
+          startSequence: sub.startSequence, replayedCount: sub.replayedCount, replayTruncated: sub.replayTruncated,
+        })), deliveries: deliveries.map(delivery => ({ deliveryId: delivery.deliveryId, eventId: delivery.eventId,
+          subscriptionId: delivery.subscriptionId, deliveryMode: delivery.deliveryMode, status: delivery.status,
+          attempts: delivery.attempts, availableAt: delivery.availableAt })),
+          counts: stats, readOnly: true,
+          note: 'Listing is a read. It neither acknowledges deliveries nor creates/changes subscriptions.' };
+      }
+      const args = coreEventInput(rawArgs, ['type', 'payload', 'idempotencyKey', 'correlationId']);
+      const type = text(args.type, 'type');
+      if (blockedPublishTypes.has(type) || type === 'task.succeeded') return failure('FORBIDDEN', 'Reserved outcome event');
+      if (!CORE_EVENT_ALLOWED_REPORT_TYPES.includes(type)) return failure('FORBIDDEN', 'Core event reports are limited to registered observation types.');
+      if (!publishTypes.includes(type)) return failure('FORBIDDEN', 'Event type is not granted for this core round.');
+      const definition = (await options.service.types(principal)).find(item => item.type === type);
+      if (!definition || definition.publisherIds || !definition.publisherKinds.includes('agent')) return failure('FORBIDDEN', 'Program-owned event types cannot be published from core.');
+      context.signal.throwIfAborted();
+      const receipt = await options.service.publish(principal, { type, scope: principal.scopes[0]!,
+        payload: object(args.payload) as EventPayload, idempotencyKey: text(args.idempotencyKey, 'idempotencyKey'),
+        correlationId: text(args.correlationId ?? `core:${context.goalId}`, 'correlationId') });
+      context.signal.throwIfAborted();
+      if (options.onPublished) { try { options.onPublished({ eventId: receipt.eventId, sequence: receipt.sequence, status: receipt.status }); } catch { /* wake hints cannot alter an accepted receipt */ } }
+      return { ...receipt, scope: principal.scopes[0],
+        meaning: 'Reported observation accepted; not task completion, independent verification, authorization, accounting or delivery.' };
+    },
+  };
+}

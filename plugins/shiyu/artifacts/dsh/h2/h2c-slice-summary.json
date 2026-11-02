@@ -1,0 +1,102 @@
+{
+  "schemaVersion": 1,
+  "phase": "H2c",
+  "slice": "restricted core event tools with an explicitly declared single tool round-trip",
+  "capturedAt": "2026-11-02T20:50:36.215Z",
+  "status": "offline-verified-integration",
+  "purpose": "Mount restricted, read-only event tools into the approved core decision session under a newly declared bounded tool policy: no factory keeps the historical H1 zero-tool/single-request path; with a factory at most one event tool call and two main requests/streams, with accounting that never fabricates zero/tool counts or usage.",
+  "baseline": {
+    "head": "dfbf93d",
+    "note": "H0..H6b/H4d committed; 1361 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/event-tools.ts",
+      "bytes": 49902,
+      "sha256": "e8cd1b0a8a5357cb2e0b6f05b40c92cd170db34cec8627b81dc34b77ac2d4ef3"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 45672,
+      "sha256": "d9c9aaf41cbdf4ac37a0b97d0bc54021d2988583f4f941e0f349d9df0339d4df"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 49814,
+      "sha256": "b682b2472a58bd4239df015f163fecda5fd255b12f17c274f8144441d5ca1406"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-core.ts",
+      "bytes": 39312,
+      "sha256": "0c18e126b4d013b06f1621aa26ebf840418e2e461fea9921c7af39b97b3abffd"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 59253,
+      "sha256": "45214438874cd8050620707190dc7dfb2f56576b52d36d8191a86582bd94a98b"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-goal-sessions.test.ts",
+      "bytes": 48070,
+      "sha256": "68d37cf7f4244b7c6d465eebc9e31b1ab54a9d9c26901f04bbb648d2b6e60772"
+    }
+  ],
+  "implementation": {
+    "tools": "createCoreEventTools adds three tools: shiyu_core_event_types (discovery with schema/scope/canPublish/canSubscribe), shiyu_core_event_subscriptions (read-only own subscriptions and recent deliveries), shiyu_core_event_report (only agent.observation.reported). Actor/scope/source trust/allowed types come from the host-injected principal; arguments may not carry actor/permit/scope/taskId/ownerId; task.succeeded, component-only and publisherIds facts are rejected; receipts explicitly state they do not mean completion/verification/authorization/accounting/delivery.",
+    "decision": "CoreDecisionRun declares the new boundary: without a factory the H1 historical single request/stream zero-tool path is byte-identical; with a factory at most one event tool call and at most two main requests/streams: request1 -> exactly one tool call -> matching tool/result (callId/name/raw arguments/native message hash checked) -> request2 -> one final text candidate. request2 maxTokens = maxTokens - first assistant output tokens; missing first usage/outputTokens is rejected as unknown, never guessed. Duplicate tool calls, a second tool round, missing results, unauthorized arguments, pause/revocation fail explicitly; tool results stay in the model context and never become Task/Goal facts or authorization.",
+    "accounting": "new observable counters (mainModelRequests/mainModelStreams/toolCalls/toolResults/eventToolCalls/toolNames); modelCalls is non-null only on complete coverage, otherwise null; usage is reported only when every main call has complete usage, otherwise complete=false without fabricated tokens; persistent core.recordAccounting.calls remains the main-model call count and tool counts are encoded in evidenceRef, so the control contract is unchanged.",
+    "probe": "goals.ts accepts a trusted CoreDecisionEventToolFactory, mounts it in the core compose, and adds probeCoreDecisionEventTools (dedicated shiyu-core-probe-* Session through the same restricted assembly path, no followup/model/Goal command, authority-field scan, explicit release/cleanup failures); local-core exposes eventTools, a deterministic prompt note, summarizeCoreDecisionAccounting and probeCoreEventTools with session.probe admission semantics."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "ephemeral worktree at HEAD 66a9428 + only 6 H2c files",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1359,
+      "pass": 1359,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "arithmetic": "1345 baseline + 14 new tests = 1359",
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h2c.log",
+        "sha256": "17efc888…"
+      }
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD dfbf93d + only these 6 files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h2c-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1375,
+        "pass": 1375,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 254267,
+      "log": "plugins/shiyu/.local/slice-verify-h2c.log",
+      "arithmetic": "1361 baseline + 14 new tests = 1375"
+    },
+    "targeted": {
+      "tests": 169,
+      "pass": 169,
+      "fail": 0,
+      "skipped": 0,
+      "note": "core-event-tools + existing core-goal-sessions/local-core/core-plan/core-pump + events/event-tools/background-pump; H1/H3 existing tests unmodified except additive observability assertions on the preserved zero-tool path"
+    },
+    "negative": "duplicate tool call/second round/missing tool result, unknown first usage (unknown, not zero), unauthorized argument fields, reserved task.succeeded/component-only facts, bad provider schema, pause/revocation, probe/cleanup failures, tool result injected as Task/Goal fact.",
+    "positive": "types discovery -> final plan_candidate (2 requests/2 streams, exact token budgeting, tool counts 1/1), no-tool path (1/1, complete accounting), report observation (actor=core:<goal>, local-owner scope, no task.succeeded), H1 zero-tool path unchanged with additive counters."
+  },
+  "failedUnknownUntested": [
+    "runtime.ts integration is not landed: the Lead must create the trusted per-Goal factory after the EventService, pass it to LocalCoreOptions, add the owner-only runtime.probe-core-event-tools command/diagnostics, and (optionally) a diagnostic tool wrapper; exact diff text is in the teammate evidence.",
+    "Fixed-host zero-model probe is not executed yet; no real model/embedding/host Agent loop, provider budget/cache, real plan quality or second-request accounting under a real provider.",
+    "Core self-declared subscriptions/time triggers (H2b), chain depth and quotas/backpressure are out of this slice; tool results are model context only and never authoritative facts."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 module/integration + real temporary SQLite/Worker + synthetic provider loop; host probe and real model usage not claimed."
+}

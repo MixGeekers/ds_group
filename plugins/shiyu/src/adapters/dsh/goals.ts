@@ -1,8 +1,8 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { isAbsolute, resolve } from 'node:path';
 import { defaultModel } from './sessions.js';
 import { pinOwnedSessionTitle } from './session-title.js';
-import type { DshAgent, DshAgentContext, DshAgentHandle, DshContext } from './sessions.js';
+import type { DshAgent, DshAgentContext, DshAgentHandle, DshContext, DshSession, SessionEvent } from './sessions.js';
 import type { NativeMessageFactory } from './native-message.js';
 import { coldNativeInboxSnapshot, extendNativeHistorySnapshot, nativeInboxReferences, observeNativeBaseline, assertNativeLiveHistory, type NativeColdInboxSnapshot } from './native-context.js';
 import { CoreDecisionRun, validateCoreDecisionRequest, type CoreDecisionRequest, type CoreDecisionResult, type CoreDecisionPhase } from './core-decision.js';
@@ -121,8 +121,32 @@ interface NativeGoals {
   disarm(agent: DshAgent): NativeGoalView | undefined;
 }
 interface SessionOwner { creation?: Promise<DshAgentHandle>; handle?: DshAgentHandle; disposers: Disposer[]; release?: Promise<void>; decision?: CoreDecisionRun }
+export interface CoreDecisionEventToolSchema { name: string; description: string; parameters: Record<string, unknown> }
+export interface CoreDecisionEventToolContext { signal: AbortSignal; goalId: string; sessionId: string; roundId: string }
+/** Trusted read-only event tool surface for one core decision round. */
+export interface CoreDecisionEventTools {
+  names(): readonly string[];
+  schemas(): readonly CoreDecisionEventToolSchema[];
+  execute(name: string, args: unknown, context: CoreDecisionEventToolContext): Promise<Record<string, unknown>>;
+}
+/** Host composition only; never reachable from a public/model command. */
+export type CoreDecisionEventToolFactory = (binding: GoalBinding) => CoreDecisionEventTools | undefined;
+export const CORE_DECISION_PROBE_PREFIX = 'shiyu-core-probe-';
+export const CORE_DECISION_PROBE_AUTHORITY_FIELDS: readonly string[] = Object.freeze(['actor', 'principal', 'principalId', 'kind', 'permit',
+  'scope', 'taskId', 'assignmentId', 'hostEpoch', 'installationGeneration', 'fencingToken', 'leaseExpiresAt', 'authorization', 'ownerId',
+  'grant', 'mandate', 'budget', 'targetRefs', 'verification', 'verificationReceipt', 'accounting']);
+export interface CoreDecisionEventToolProbeOptions { signal?: AbortSignal; cwd?: string; scope?: string; timeoutMs?: number }
+export interface CoreDecisionEventToolProbeResult {
+  ok: true; preset: string; probeSessionId: string; scope: string;
+  tools: { name: string; description: string; parameters: Record<string, unknown> }[];
+  hostTools: string[]; authorityFields: string[];
+  counters: { modelRequests: number; modelStreams: number; assistantMessages: number; userMessages: number; toolEvents: number; usageEvents: number };
+  released: true; disposed: true; observedAt: string;
+}
 export interface GoalAdapterOptions {
   ctx: DshContext; bindings: GoalBindingPort; authority: GoalAuthority; now?: () => number;
+  /** Trusted per-Goal event tool factory; absent keeps core decisions zero-tool. */
+  eventTools?: CoreDecisionEventToolFactory;
   /** Trusted composition only. Core lifecycle and decisions must share this one adapter instance. */
   namespace?: 'lifecycle' | 'core';
   createUserMessage?: NativeMessageFactory;
@@ -253,13 +277,14 @@ export class GoalSessionAdapter {
     owner.disposers.push(ctx.tools.presentAs('native'));
     const denied = ctx.tools.schemas(agent).map(tool => tool.name).filter(name => name !== 'run_code');
     if (denied.length) owner.disposers.push(ctx.tools.restrict({ deny: denied }));
-    owner.disposers.push(ctx.tools.guard(() => 'Goal lifecycle Sessions have no model tools.'));
+    const eventTools = this.core && owner.decision ? owner.decision.hasEventTools() : false;
+    if (!eventTools) owner.disposers.push(ctx.tools.guard(() => 'Goal lifecycle Sessions have no model tools.'));
     if (owner.decision) owner.decision.compose(ctx, agent, owner.disposers);
     else {
       owner.disposers.push(ctx.on('agent/pre-step', async () => ({ kind: 'reject' })));
       owner.disposers.push(ctx.on('agent/request', async () => { throw new Error('Goal lifecycle Session cannot issue model requests'); }));
     }
-    owner.disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: [] })));
+    if (!eventTools) owner.disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: [] })));
   }
   /**
    * Core recovery keeps the exact pre-resume cut, re-observes the resumed live
@@ -469,6 +494,120 @@ export class GoalSessionAdapter {
       }
     });
   }
+  /**
+   * Zero-model mount probe for the H2c core event tool surface. Uses the same
+   * trusted provider contract and restricted tool-surface construction as a real
+   * core decision round, creates one disposable core-preset Session, reads the
+   * assembled tool declarations, then cancels/disposes it. No Goal command,
+   * model request, tool execution, Task or business binding is created.
+   */
+  async probeCoreDecisionEventTools(factory: CoreDecisionEventToolFactory | undefined,
+    options: CoreDecisionEventToolProbeOptions = {}): Promise<CoreDecisionEventToolProbeResult> {
+    this.assertOpen();
+    if (!factory || typeof factory !== 'function') throw new Error('Core decision probe requires the trusted event tool factory');
+    const signal = options.signal;
+    if (signal?.aborted) signal.throwIfAborted();
+    await this.initialize();
+    signal?.throwIfAborted();
+    const cwd = options.cwd === undefined ? resolve(process.cwd()) : options.cwd;
+    if (!isAbsolute(cwd) || resolve(cwd) !== cwd) throw new Error('Core decision probe cwd must be a normalized absolute path');
+    const scope = options.scope ?? 'local-owner';
+    if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/.test(scope)) throw new Error('Invalid core decision probe scope');
+    const timeoutMs = options.timeoutMs ?? 15000;
+    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 60000) throw new Error('Invalid core decision probe timeout');
+    const probeSessionId = `${CORE_DECISION_PROBE_PREFIX}${randomUUID()}`;
+    const binding: GoalBinding = { goalId: `probe-${probeSessionId.slice(-12)}`, sessionId: probeSessionId, ownerId: 'probe',
+      scope, cwd, completionCriteriaHash: '0'.repeat(64), metadataVersion: 1 };
+    const provider = factory(structuredClone(binding));
+    if (!provider) throw new Error('Core decision probe factory returned no event tools');
+    const names = typeof provider.names === 'function' ? provider.names() : undefined;
+    const schemas = typeof provider.schemas === 'function' ? provider.schemas() : undefined;
+    if (!Array.isArray(names) || names.length !== 3 || new Set(names).size !== 3 || CORE_DECISION_EVENT_TOOL_NAMES.some(name => !names.includes(name))) {
+      throw new Error('Core decision probe provider is not the exact restricted read-only tool set');
+    }
+    if (!Array.isArray(schemas) || schemas.length !== names.length) throw new Error('Core decision probe provider schemas are missing');
+    const authority: string[] = [];
+    for (const schema of schemas) {
+      if (!schema || !names.includes(schema.name) || typeof schema.description !== 'string' || !schema.description || schema.description.length > 4096
+        || !schema.parameters || typeof schema.parameters !== 'object' || !Array.isArray(schema.parameters.oneOf) && schema.parameters.type !== 'object'
+        || Buffer.byteLength(JSON.stringify(schema)) > 16384) throw new Error('Core decision probe provider schema is invalid or unbounded');
+      for (const field of coreProbeAuthorityFields(schema.parameters)) authority.push(field);
+    }
+    if (authority.length) throw new Error(`Core decision probe provider schema exposes authority fields: ${[...new Set(authority)].sort().join(',')}`);
+    const tools = schemas.map(schema => ({ name: schema.name, description: schema.description, parameters: structuredClone(schema.parameters) }));
+    const observed: { type: string; usage: boolean }[] = [];
+    let requests = 0, streams = 0, disposed = false;
+    let handle: DshAgentHandle | undefined;
+    let hostTools: string[] = [];
+    const disposers: Disposer[] = [];
+    let failure: unknown, cleanupFailure: unknown, result: CoreDecisionEventToolProbeResult | undefined;
+    const listener = this.options.ctx.on('session/event', (session: DshSession, event: SessionEvent) => {
+      if (!session || session.id !== probeSessionId) return;
+      if (observed.length >= 256) return;
+      observed.push({ type: typeof event?.type === 'string' ? event.type : 'unknown', usage: event?.data?.usage !== undefined });
+    });
+    const streamListener = this.options.ctx.on('llm/stream', (request: { sessionId?: unknown } | undefined, next: () => unknown) => {
+      if (request?.sessionId !== probeSessionId) return next();
+      streams++; throw new Error('Zero-model core decision probe must not open a model stream');
+    });
+    const disposeListener = () => { try { listener(); } catch (error) { cleanupFailure ??= error; } try { streamListener(); } catch (error) { cleanupFailure ??= error; } };
+    try {
+      const shared = { agentOptions: { ...defaultModel('core'), maxTokens: 1 }, ...(signal ? { signal } : {}),
+        setup: (ctx: DshAgentContext, agent: DshAgent) => {
+          if (agent.session.header.agentPreset !== this.preset || agent.id !== probeSessionId || agent.session.header.cwd !== cwd) throw new Error('Core decision probe Session identity mismatch');
+          this.composed.add(agent);
+          hostTools = ctx.tools.schemas(agent).map(tool => tool.name);
+          const registry = ctx.tools as unknown as { register(tool: unknown): Disposer };
+          if (typeof registry.register !== 'function') throw new Error('Native core event tool registration is unavailable');
+          disposers.push(ctx.tools.presentAs('native'));
+          const denied = hostTools.filter(name => name !== 'run_code');
+          if (denied.length) disposers.push(ctx.tools.restrict({ deny: denied }));
+          disposers.push(ctx.tools.guard(call => names.includes(call?.name) ? undefined : 'Probe Session can only expose its mounted read-only tools.'));
+          disposers.push(ctx.systemPrompt.suppressRuntimeContext());
+          disposers.push(ctx.systemPrompt.section({ name: 'shiyu-core-probe', order: 0, complete: true,
+            text: '识雨 core 事件工具零模型挂载探针。不得请求模型、执行工具或提交计划/目标状态。' }));
+          for (const tool of tools) disposers.push(registry.register({ name: tool.name, description: tool.description, parameters: tool.parameters,
+            timeoutMs, isConcurrencySafe: false, output: { schema: {}, render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }] },
+            execute: async () => { throw new Error('Zero-model core decision probe must not execute a tool'); } }));
+          disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: tools.map(tool => ({ name: tool.name, description: tool.description, parameters: tool.parameters })) })));
+          disposers.push(ctx.on('agent/request', async () => { requests++; throw new Error('Zero-model core decision probe must not issue a model request'); }));
+        } };
+      const creation = this.options.ctx.agents.create({ ...shared, sessionId: probeSessionId, meta: { cwd, agentPreset: this.preset } });
+      handle = await creation;
+      if (signal?.aborted) throw signal.reason ?? new Error('Core decision probe cancelled');
+      const assembly = await handle.agent.ctx.systemPrompt.assemble({ scope: handle.agent });
+      if (!assembly || !Array.isArray(assembly.tools)) throw new Error('Core decision probe could not read the assembled tool surface');
+      const assembled = assembly.tools.map((tool: { name?: unknown }) => tool?.name);
+      if (assembled.length !== tools.length || new Set(assembled).size !== assembled.length || tools.some(tool => !assembled.includes(tool.name))) {
+        throw new Error('Core decision probe assembled tool surface does not match the restricted read-only set');
+      }
+      const counters = { modelRequests: requests, modelStreams: streams, assistantMessages: 0, userMessages: 0, toolEvents: 0, usageEvents: 0 };
+      for (const event of observed) {
+        if (event.type === 'assistant/message' || event.type === 'assistant/attempt') counters.assistantMessages++;
+        if (event.type === 'user/message') counters.userMessages++;
+        if (event.type.startsWith('tool/')) counters.toolEvents++;
+        if (event.usage) counters.usageEvents++;
+        if (/^(?:user\/message|assistant\/|tool\/|turn\/|request\/|compaction\/|session\/title-llm-request)/u.test(event.type) || event.usage) {
+          throw new Error(`Core decision probe observed model activity: ${event.type}`);
+        }
+      }
+      if (requests || streams) throw new Error('Core decision probe observed a model request or stream');
+      result = { ok: true, preset: this.preset, probeSessionId, scope, tools, hostTools: hostTools.filter(name => !tools.some(tool => tool.name === name)),
+        authorityFields: [], counters, released: true, disposed: true, observedAt: new Date().toISOString() };
+    } catch (error) { failure = error; }
+    finally {
+      disposeListener();
+      if (handle) {
+        try { handle.agent.cancel({ kind: 'hook', reason: 'Zero-model core decision probe released' }, { keepInbox: true }); }
+        catch (error) { cleanupFailure ??= error; }
+        try { await handle.dispose(); disposed = true; } catch (error) { cleanupFailure ??= error; }
+      }
+      if (disposed) for (const dispose of disposers.splice(0).reverse()) { try { await dispose(); } catch (error) { cleanupFailure ??= error; } }
+    }
+    if (cleanupFailure) throw new Error('Core decision probe cleanup failed; the disposable probe Session may remain and must be inspected', { cause: failure === undefined ? cleanupFailure : new AggregateError([failure, cleanupFailure], 'core decision probe failed and cleanup failed') });
+    if (failure) throw failure;
+    return result!;
+  }
   async decisionRound(input: CoreDecisionRequest): Promise<CoreDecisionResult> {
     this.assertOpen();
     if (!this.core) throw new Error('Decisions require the dedicated Core Goal namespace');
@@ -478,6 +617,7 @@ export class GoalSessionAdapter {
     this.decisionIds.add(identity);
     const run = new CoreDecisionRun({ ctx: this.options.ctx, request, now: () => this.now(), shutdown: this.shutdown.signal,
       createUserMessage: this.options.createUserMessage,
+      ...(this.options.eventTools ? { eventTools: this.options.eventTools } : {}),
       isAgentLoopRequest: this.options.isAgentLoopRequest,
       authorize: (binding, phase) => this.authorize(binding, request.capability, 'decision', request.expectedRef, undefined, { roundId: request.roundId, phase }),
       readGoal: agent => snapshot(this.goals().get(agent)) });
@@ -512,4 +652,20 @@ export class GoalSessionAdapter {
       if (failures.length) throw new AggregateError(failures, 'Goal adapter cleanup failed');
     })(); return this.closing;
   }
+}
+
+const CORE_DECISION_EVENT_TOOL_NAMES: readonly string[] = Object.freeze(['shiyu_core_event_types', 'shiyu_core_event_subscriptions', 'shiyu_core_event_report']);
+function coreProbeAuthorityFields(value: unknown, found = new Set<string>()): string[] {
+  const authority = new Set(CORE_DECISION_PROBE_AUTHORITY_FIELDS);
+  const walk = (item: unknown): void => {
+    if (!item || typeof item !== 'object') return;
+    if (Array.isArray(item)) { for (const entry of item) walk(entry); return; }
+    const source = item as Record<string, unknown>;
+    if (source.properties && typeof source.properties === 'object') {
+      for (const [key, child] of Object.entries(source.properties as Record<string, unknown>)) { if (authority.has(key)) found.add(key); walk(child); }
+    }
+    for (const key of ['items', 'additionalProperties', 'oneOf', 'anyOf', 'allOf'] as const) if (source[key] !== undefined) walk(source[key]);
+  };
+  walk(value);
+  return [...found].sort();
 }

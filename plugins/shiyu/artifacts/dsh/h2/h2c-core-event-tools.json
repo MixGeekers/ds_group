@@ -1,0 +1,200 @@
+{
+  "schemaVersion": 1,
+  "kind": "h2c-core-event-tools-offline",
+  "slice": "H2c core 受限事件工具挂载（受控决策内最多一次只读事件工具往返）",
+  "capturedAt": "2026-11-02T20:46:50.817Z",
+  "repository": {
+    "headAtVerification": "11d0c736bc6b6664c6777542160e9c5e5b2140b1",
+    "note": "Isolated worktree = current shared HEAD at verification time + only this H2c slice files (node_modules and pinned .local/ombre symlinked). H1/H3/H6 files outside the slice are unchanged.",
+    "h1HistoricalBoundary": "H1 evidence for core decisions (single pre-step/request/stream, zero model tools) is preserved as historical and remains the behavior whenever no trusted event-tool factory is supplied. Existing tests/core-goal-sessions.test.ts and tests/local-core.test.ts were NOT modified and remain green."
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin/arm64"
+  },
+  "changedFiles": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 45672,
+      "sha256": "d9c9aaf41cbdf4ac37a0b97d0bc54021d2988583f4f941e0f349d9df0339d4df"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 49814,
+      "sha256": "b682b2472a58bd4239df015f163fecda5fd255b12f17c274f8144441d5ca1406"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/event-tools.ts",
+      "bytes": 49902,
+      "sha256": "e8cd1b0a8a5357cb2e0b6f05b40c92cd170db34cec8627b81dc34b77ac2d4ef3"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-core.ts",
+      "bytes": 39312,
+      "sha256": "0c18e126b4d013b06f1621aa26ebf840418e2e461fea9921c7af39b97b3abffd"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-goal-sessions.test.ts",
+      "bytes": 48070,
+      "sha256": "68d37cf7f4244b7c6d465eebc9e31b1ab54a9d9c26901f04bbb648d2b6e60772"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 59253,
+      "sha256": "45214438874cd8050620707190dc7dfb2f56576b52d36d8191a86582bd94a98b"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2c-manifest.json",
+      "bytes": 419,
+      "sha256": "fc3482445aca03298b358c8865230133f06933466e666deb75adbbc36a675645"
+    }
+  ],
+  "commands": [
+    "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts tests/core-goal-sessions.test.ts tests/local-core.test.ts tests/core-plan.test.ts tests/core-pump.test.ts tests/events*.test.ts tests/event-tools.test.ts tests/background-pump.test.ts",
+    "node plugins/shiyu/scripts/slice-verify.mjs --slice h2c --manifest plugins/shiyu/artifacts/dsh/h2/h2c-manifest.json"
+  ],
+  "targetedRuns": {
+    "all": {
+      "tests": 169,
+      "pass": 169,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "log": {
+        "path": "plugins/shiyu/.local/h2c-targeted.log",
+        "sha256": "42e5732c52e62c205ce87c48d9f0898248e88e2d5c3d46e5d7a9c9364ef2b983"
+      }
+    },
+    "newTests": {
+      "file": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "tests": 14,
+      "pass": 14,
+      "fail": 0,
+      "breakdown": {
+        "providerContractAndIdentity": 2,
+        "accountingObservability": 1,
+        "adapterTypesToPlanRound": 1,
+        "zeroToolFallback": 1,
+        "reportObservation": 1,
+        "toolRoundNegatives": 5,
+        "serviceAndProbe": 3
+      }
+    },
+    "historicalRegression": {
+      "files": [
+        "tests/core-goal-sessions.test.ts",
+        "tests/local-core.test.ts",
+        "tests/core-plan.test.ts",
+        "tests/core-pump.test.ts",
+        "tests/events*.test.ts",
+        "tests/event-tools.test.ts",
+        "tests/background-pump.test.ts"
+      ],
+      "note": "All pre-existing H1/H3/H2a suites pass unchanged in the same run."
+    }
+  },
+  "isolatedFullCheck": {
+    "evidencePath": "plugins/shiyu/artifacts/dsh/slices/h2c-verify.json",
+    "evidenceSha256": "566254b6ead4aba900d619eafe106b118e5bfddf214b68e266f6b1330f9cfc47",
+    "head": "11d0c736bc6b6664c6777542160e9c5e5b2140b1",
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "tests": 1359,
+    "pass": 1359,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 245311,
+    "baselineTestsWithoutSlice": 1345,
+    "log": {
+      "path": "plugins/shiyu/.local/slice-verify-h2c.log",
+      "bytes": 148437,
+      "sha256": "f2850e2f64e62ee38d7df53a405b22039cf158e9fe6462758d1137be8542faeb"
+    },
+    "verdict": "pass"
+  },
+  "boundaryDeclaration": {
+    "h1Historical": "No trusted factory => core decision keeps exactly one pre-step, one request, one stream, zero tools and the original accounting rule; dispatch/tool phases are never entered.",
+    "h2cNew": "A trusted host factory for the admitted Goal binding may mount exactly three read-only event tools (types, subscriptions, report-observation). The round then allows at most ONE event-tool call and at most TWO main model requests/streams: request 1 -> one assistant tool-call -> one matching native tool/result pair -> request 2 -> one final text JSON candidate.",
+    "alternation": "The second main request is admitted only after exactly one completed tool call/result whose call id, name, raw arguments and native result message hash match the recorded events. A duplicate tool-call block, a second tool/call, a second tool round, missing result, forged authority arguments or a revoked/paused authority check fail the round explicitly.",
+    "budget": "The second request maxTokens is the remaining output budget: maxTokens minus the first assistant message outputTokens. If the first assistant usage/outputTokens is missing, the second request is refused as unknown rather than guessing or zero-padding. The native per-request output ceiling and the overall run budget stay enforced.",
+    "finalCandidate": "The plan/candidate is still one final assistant text JSON response within the same turn; tool results never become Task/Goal facts or authorization. The core domain commit/plan CAS/unknown/pause/revoke paths are untouched and still validate the final text.",
+    "accounting": "Main model requests/streams and tool calls are separately observable in CoreDecisionAccounting (mainModelRequests/mainModelStreams/toolCalls/toolResults/eventToolCalls/toolNames). modelCalls is the observed main-request count only when coverage is complete, otherwise null. Tokens are summed only when every main assistant usage is complete; unknown coverage stays complete:false with tokens/calls absent. Durable accounting evidenceRef encodes main/streams/tools/results counts and never substitutes zero for unknown.",
+    "replyerWorkerUnchanged": "replyer remains zero-tool; worker restricted tool budget and zero-model worker probe are unchanged by H2c."
+  },
+  "testCoverage": {
+    "positives": [
+      "types query -> final plan_candidate: exactly three mounted schemas, 2 requests/2 streams, maxTokens [512,505], one provider execution with host context, accounting reported tokens 38 and tool counts 1/1, plan candidate text unchanged and no Task/Goal change.",
+      "no-tool path: mounted but unused surface keeps 1 request/1 stream, tokens 18, toolCalls 0, complete accounting.",
+      "report observation: a real provider publishes one scoped agent.observation.reported with host-injected actor; no task.succeeded and no authoritative fact; tool result is data only.",
+      "zero-tool fallback without factory: historical single-request decision remains fully usable and assembly is tool-free.",
+      "core service probe delegates to the trusted adapter and refuses while paused (same admission semantics as other probes)."
+    ],
+    "negatives": [
+      "duplicate tool-call blocks in one assistant message -> round rejected, no provider execution, accounting unknown with modelCalls null.",
+      "second tool/call (second round) -> rejected, exactly the first provider execution happened, no second provider call.",
+      "missing first-response usage -> second request refused as unknown; accounting complete:false, tokens/calls absent, no zero padding.",
+      "paused/revoked authority at the tool phase -> tool provider not executed, no accepted event, accounting unknown.",
+      "authority-looking tool arguments (scope/permit/actor/ownerId/taskId) -> rejected before provider execution.",
+      "reserved/authorative report types (task.succeeded, component-only types) -> rejected by the mounted surface; no accepted event.",
+      "overbroad provider schema (authority field) / non-exact tool set -> rejected before dispatch, followup/stream counts 0.",
+      "provider report grant including reserved types or subscription target refs -> provider construction fails closed.",
+      "disposable probe cleanup failure is explicit; cancelled/late probe handle is cancelled and disposed."
+    ]
+  },
+  "runtimeIntegration": {
+    "file": "plugins/shiyu/src/runtime.ts (Lead lands; not edited by this slice)",
+    "purpose": "Supply the trusted per-Goal core event tool factory to LocalCoreService and expose the owner-only zero-model mount diagnostic.",
+    "precondition": "Create the factory after `this.events = new EventService(this.store);` and pass it into the LocalCoreOptions used to construct LocalCoreService (currently around runtime.ts:262). The factory must stay in trusted composition; never accept it from command JSON. The probe command uses the existing session.probe admission semantics (rejected while globally paused, one shared operation slot, abortable, no retry) and performs no model/embedding/Task/Goal/Lab action.",
+    "failureDegradation": "No factory => core decisions stay on the historical zero-tool path. A factory/provider validation failure rejects only that decision round before dispatch. The probe command reports CORE_EVENT_TOOL_PROBE_UNAVAILABLE when the driver lacks the probe and stores no receipt; a failing probe sets lastFailure and leaves diagnostics unchanged.",
+    "diffText": "--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ imports\n+import { createCoreEventTools } from './adapters/dsh/event-tools.js';\n+import type { CoreDecisionEventToolFactory, CoreDecisionEventToolProbeResult } from './adapters/dsh/goals.js';\n@@ export interface CoreDriver {\n   cancelAll(reason?: unknown): void;\n+  /** H2c trusted zero-model core event-tool mount diagnostic; absent = unsupported. */\n+  probeCoreEventTools?(options: { signal?: AbortSignal; cwd?: string; scope?: string }): Promise<CoreDecisionEventToolProbeResult>;\n   close(): Promise<void>;\n }\n@@ class RuntimeService {\n   private lastEventToolProbe?: WorkerEventToolProbeResult;\n+  private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;\n@@ after `this.events = new EventService(this.store);` (before any core construction)\n+      const coreEventTools: CoreDecisionEventToolFactory = binding => createCoreEventTools({\n+        service: this.events,\n+        reportTypes: ['agent.observation.reported'],\n+        principal: { principalId: `core:${binding.goalId}`, kind: 'agent', scopes: [binding.scope],\n+          publishTypes: ['agent.observation.reported'],\n+          subscribeTypes: SHIYU_EVENT_TYPES.map(type => type.type), targetRefs: [] },\n+        onPublished: () => { void this.background?.wake(); },\n+      });\n@@ const coreOptions: LocalCoreOptions = { ...,\n+            eventTools: coreEventTools,\n             onGoalStopped: goal => { ... } };\n@@ command dispatch (near 'runtime.probe-event-tools')\n+    if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);\n@@ snapshot().diagnostics\n         eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,\n+        coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null },\n@@ add method (modeled on commandEventToolProbe; same paused admission semantics)\n+  private async commandCoreEventToolProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {\n+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core event tool probe input');\n+    this.ensureCanRun(); signal?.throwIfAborted();\n+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');\n+    let finish!: () => void;\n+    const done = new Promise<void>(resolve => { finish = resolve; });\n+    const op: ActiveOperation = { id: randomUUID(), title: '检查 core 事件工具受限挂载', phase: '零模型装配与释放',\n+      status: 'running', controller: new AbortController(), done, finish };\n+    const onAbort = () => op.controller.abort(signal?.reason);\n+    signal?.addEventListener('abort', onAbort, { once: true });\n+    this.operations.set(op.id, op);\n+    try {\n+      if (typeof this.core?.probeCoreEventTools !== 'function') throw new Error('CORE_EVENT_TOOL_PROBE_UNAVAILABLE');\n+      const result = await this.core.probeCoreEventTools({ signal: op.controller.signal,\n+        cwd: path.join(this.dataDir, 'workspaces'), scope: 'local-owner' });\n+      this.ensureCanRun(); op.controller.signal.throwIfAborted();\n+      this.lastCoreEventToolProbe = structuredClone(result);\n+      this.lastFailure = undefined;\n+      return { ...result, zeroModel: true, readOnly: true, sent: false };\n+    } catch (error) { this.lastFailure = error instanceof Error ? error.message : String(error); throw error; }\n+    finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }\n+  }"
+  },
+  "zeroModelHostProbeChecklist": {
+    "status": "Entrypoint implemented offline (GoalSessionAdapter.probeCoreDecisionEventTools + LocalCoreService.probeCoreEventTools); fixed-host invocation NOT executed in this slice and left for Lead joint reload.",
+    "precondition": [
+      "Land the runtime integration diff (factory + owner command + diagnostics field) and rebuild; perform one frozen ordered reload with no in-flight task/operation.",
+      "Freeze a zero-model window: no model, embedding, channel, Task/Goal/Lab command; record before/after scripts/host-state-audit.mjs snapshots.",
+      "If the runtime is paused, decide explicitly; the probe follows session.probe admission semantics and rejects while paused."
+    ],
+    "observe": [
+      "POST {action:'runtime.probe-core-event-tools'} returns ok=true, zeroModel=true, readOnly=true, sent=false.",
+      "tools exactly shiyu_core_event_types/subscriptions/report; each parameters schema object with no authority fields; authorityFields=[]; hostTools overlap empty.",
+      "counters all 0 (modelRequests/modelStreams/assistantMessages/userMessages/toolEvents/usageEvents); released=disposed=true; probeSessionId prefixed shiyu-core-probe-.",
+      "GET state diagnostics.coreEventToolProbe equals the receipt; no new Task/Goal/business binding; event/delivery counts unchanged; disposable probe Session released/archived."
+    ],
+    "stopConditions": [
+      "Any non-zero model/embedding/usage observation, any business Task/Goal/Lab write, any tool-surface mismatch, any authority field, any cleanup failure, or a non-frozen reload => stop, preserve logs, do not retry.",
+      "A live probe Session after the command returns is a failure; do not delete it before preserving evidence."
+    ],
+    "limitation": "A zero-model probe proves mount/restrictions/release only. It cannot prove a real model called the tools, that provider budgets/cache were honoured, that the final plan was semantically valid, or that tool results stayed non-authoritative in a real model run. Those remain G4/bounded-real-model gaps."
+  },
+  "gapsAndUntested": [
+    "Fixed-host zero-model invocation of the core event tool probe is not executed here (Lead joint reload).",
+    "No real model, embedding, channel or real DSH Agent loop was invoked; evidence is offline synthetic native protocol + real temp SQLite for event provider tests.",
+    "No runtime.ts integration yet: factory diagnostics are delivered as an exact diff, not live.",
+    "Core decisions may only QUERY subscriptions read-only in this round; core-created declarative subscriptions (H2b scope) are not implemented.",
+    "Provider budget/cache accounting for the second main request, real model tool-call behavior, plan quality under real model and long-history/compaction interaction remain untested.",
+    "Tool results are kept out of the authoritative fact catalog by construction (commit accepts only the final text via existing H3 validation); no new fact-injection path was added. A real-model adversarial run is still required for semantic assurance.",
+    "Chain-depth/anti-loop enforcement, time/condition triggers and quota/backpressure matrices remain outside H2c."
+  ],
+  "evidenceBoundaries": [
+    "G1/G2 offline: real temporary SQLite ControlStore/EventService for the provider, plus synthetic native DSH protocol double for the adapter path. Not fixed-host, model or business acceptance.",
+    "Counts are snapshot-specific and must not be summed with other slices or reused after source changes."
+  ],
+  "artifacts": {
+    "manifest": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2c-manifest.json",
+      "bytes": 419,
+      "sha256": "fc3482445aca03298b358c8865230133f06933466e666deb75adbbc36a675645"
+    },
+    "isolatedCheck": {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h2c-verify.json",
+      "bytes": 2366,
+      "sha256": "566254b6ead4aba900d619eafe106b118e5bfddf214b68e266f6b1330f9cfc47"
+    },
+    "thisEvidence": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2c-core-event-tools.json",
+      "note": "self hash omitted"
+    }
+  }
+}

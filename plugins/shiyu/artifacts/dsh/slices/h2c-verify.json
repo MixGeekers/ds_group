@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h2c",
+  "capturedAt": "2026-11-02T20:50:24.460Z",
+  "head": "dfbf93d44d5ee224b1d70e0ea858d60bcbf8ba36",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h2c-1793652369810",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/event-tools.ts",
+      "bytes": 49902,
+      "sha256": "e8cd1b0a8a5357cb2e0b6f05b40c92cd170db34cec8627b81dc34b77ac2d4ef3"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 45672,
+      "sha256": "d9c9aaf41cbdf4ac37a0b97d0bc54021d2988583f4f941e0f349d9df0339d4df"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 49814,
+      "sha256": "b682b2472a58bd4239df015f163fecda5fd255b12f17c274f8144441d5ca1406"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-core.ts",
+      "bytes": 39312,
+      "sha256": "0c18e126b4d013b06f1621aa26ebf840418e2e461fea9921c7af39b97b3abffd"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 59253,
+      "sha256": "45214438874cd8050620707190dc7dfb2f56576b52d36d8191a86582bd94a98b"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-goal-sessions.test.ts",
+      "bytes": 48070,
+      "sha256": "68d37cf7f4244b7c6d465eebc9e31b1ab54a9d9c26901f04bbb648d2b6e60772"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 254267,
+    "bytes": 150216,
+    "sha256": "5ad7d0d1292218a9d183da1e25acdb375231d6c3c58d94459bbb24ba9c36ef0a",
+    "tests": {
+      "tests": 1375,
+      "pass": 1375,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 253160.734958",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h2c.log",
+    "bytes": 150216,
+    "sha256": "5ad7d0d1292218a9d183da1e25acdb375231d6c3c58d94459bbb24ba9c36ef0a"
+  },
+  "verdict": "pass"
+}

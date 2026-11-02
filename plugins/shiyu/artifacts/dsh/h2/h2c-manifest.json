@@ -1,0 +1,12 @@
+{
+  "slice": "h2c-core-event-tools",
+  "files": [
+    "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+    "plugins/shiyu/src/adapters/dsh/goals.ts",
+    "plugins/shiyu/src/adapters/dsh/event-tools.ts",
+    "plugins/shiyu/src/control/local-core.ts",
+    "plugins/shiyu/tests/core-goal-sessions.test.ts",
+    "plugins/shiyu/tests/core-event-tools.test.ts",
+    "plugins/shiyu/artifacts/dsh/h2/h2c-manifest.json"
+  ]
+}
