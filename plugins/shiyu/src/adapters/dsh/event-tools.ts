@@ -1,4 +1,5 @@
 import { EventService } from '../../control/events/index.js';
+import type { WorkerTool, WorkerToolContext } from './workers.js';
 import { EventServiceError } from '../../contracts/events.js';
 import type { EventPayload, EventPrincipal, JsonPrimitive, JsonValue, StoredSubscription, SubscribeInput, SubscriptionPatch } from '../../contracts/events.js';
 
@@ -319,4 +320,169 @@ export function installEventTools(ctx: EventToolContext, eventService: EventServ
     try { dispose(); } catch { /* Preserve the registration error; all disposers were attempted. */ }
     throw error;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Worker-side event tools.
+//
+// A managed worker runs inside the restricted `WorkerSessionDriver` environment:
+// only driver-approved tools exist, every call is gated by the current
+// Assignment permit, and model arguments can never carry execution authority.
+// These helpers are the trusted *source* of the worker's event tools. The
+// driver attaches them per Assignment; a worker only ever publishes the event
+// types its host-issued principal is granted. `task.succeeded`, verification
+// receipts, owner grants and accounting facts stay with their trusted
+// components and are not publishable through this surface.
+// ---------------------------------------------------------------------------
+
+
+/** Model-publishable worker report types. Reserved stable business facts are absent by design. */
+export const WORKER_EVENT_PUBLISH_TYPES: readonly string[] = Object.freeze(['agent.observation.reported', 'worker.result.reported']);
+export const WORKER_EVENT_TOOL_NAMES: readonly string[] = Object.freeze(['shiyu_worker_event_types', 'shiyu_worker_event_report']);
+
+export interface WorkerEventToolOptions {
+  service: EventService;
+  /** Trusted post-acceptance hook (e.g. wake the single background scanner). Never a model call. */
+  onPublished?(receipt: { eventId: string; sequence: number; status: 'accepted' | 'duplicate' }): void;
+  /**
+   * Trusted host injection. The runtime derives this from the current Assignment
+   * binding/permit; the model can never supply or override it. Returning
+   * undefined disables both tools for that call (fails closed).
+   */
+  resolvePrincipal(context: WorkerToolContext): EventPrincipal | null | undefined | Promise<EventPrincipal | null | undefined>;
+}
+
+const WORKER_EVENT_INPUT_LIMIT = 16384;
+
+function workerEventInput(value: unknown, keys: string[]): Record<string, unknown> {
+  const source = object(value, keys);
+  const cloned = json(source) as Record<string, unknown>;
+  if (Buffer.byteLength(JSON.stringify(cloned)) > WORKER_EVENT_INPUT_LIMIT) return failure('INVALID_INPUT', 'Worker event input exceeds 16 KiB.');
+  return cloned;
+}
+
+function workerPrincipal(value: unknown): EventPrincipal {
+  let actor: EventPrincipal;
+  try { actor = principalSnapshot(value); } catch { return failure('FORBIDDEN', 'A current trusted worker event principal is unavailable.'); }
+  if (actor.kind !== 'agent') return failure('FORBIDDEN', 'A worker event principal must be a trusted Agent identity.');
+  if (actor.scopes.length !== 1) return failure('FORBIDDEN', 'A worker event principal must carry exactly its assignment scope.');
+  if (actor.subscribeTypes.length || actor.targetRefs.length) return failure('FORBIDDEN', 'A worker event principal cannot hold subscription authority.');
+  const granted = actor.publishTypes.filter(type => WORKER_EVENT_PUBLISH_TYPES.includes(type));
+  if (!granted.length) return failure('FORBIDDEN', 'This worker has no granted event report type.');
+  return Object.freeze({ ...actor, publishTypes: granted });
+}
+
+/**
+ * Build the two restricted worker event tools. Names, schemas and handlers are
+ * fixed here; the driver additionally enforces its own tool budget, permit
+ * gates, authority-key rejection and per-call pre/post rechecks.
+ */
+export function createWorkerEventTools(options: WorkerEventToolOptions): WorkerTool[] {
+  if (!options || typeof options.service !== 'object' || typeof options.resolvePrincipal !== 'function') {
+    throw new Error('A worker event tool source needs the durable event service and a trusted principal resolver');
+  }
+  const { service, resolvePrincipal, onPublished } = options;
+  if (onPublished !== undefined && typeof onPublished !== 'function') throw new Error('onPublished must be a function');
+  const current = async (context: WorkerToolContext): Promise<EventPrincipal> => {
+    context.signal.throwIfAborted();
+    const actor = workerPrincipal(await resolvePrincipal(context));
+    context.signal.throwIfAborted();
+    return actor;
+  };
+  return [
+    {
+      name: 'shiyu_worker_event_types',
+      description: 'Discover the event report types this Assignment may publish. Returns type, schema version, payload fields, required fields, filterable fields and the trusted assignment scope. This grants nothing and cannot subscribe, wake a model or change task state.',
+      parameters: objectSchema({}),
+      async execute(raw, context) {
+        workerEventInput(raw, []);
+        const actor = await current(context);
+        await context.assertPermit();
+        const types = (await service.types(actor)).map(definition => ({
+          type: definition.type, schemaVersion: definition.schemaVersion, description: definition.description.slice(0, 1000),
+          canPublish: !blockedPublishTypes.has(definition.type) && !definition.publisherIds && actor.publishTypes.includes(definition.type)
+            && definition.publisherKinds.includes(actor.kind),
+          payloadFields: definition.payloadSchema.properties, requiredFields: definition.payloadSchema.required,
+          filterableFields: definition.filterableFields,
+        })).filter(definition => definition.canPublish);
+        await context.assertPermit();
+        return { scope: actor.scopes[0], canPublish: types.map(definition => definition.type), subscribeSupported: false,
+          wakeSupported: false, types,
+          meaning: 'Report acceptance is not task completion and does not imply any model was woken.' };
+      },
+    },
+    {
+      name: 'shiyu_worker_event_report',
+      description: 'Publish one scoped observation or reported result for this Assignment. Actor, scope, source trust level and allowed types are injected by the trusted runtime; they cannot be supplied in arguments. Reserved success facts (task.succeeded), verification receipts, owner grants and accounting facts are rejected. Retry with the same idempotencyKey and identical content.',
+      parameters: objectSchema({
+        type: stringSchema('A type returned by shiyu_worker_event_types.'),
+        payload: { type: 'object', additionalProperties: true, description: 'Exactly the registered payload fields. Maximum input 16 KiB; each string at most 8192 characters.' },
+        idempotencyKey: stringSchema('Stable identity for this logical report, 1–256 characters; keep unchanged across retries.'),
+        correlationId: stringSchema('Optional bounded correlation identity, 1–256 characters.'),
+      }, ['type', 'payload', 'idempotencyKey']),
+      async execute(raw, context) {
+        const args = workerEventInput(raw, ['type', 'payload', 'idempotencyKey', 'correlationId']);
+        const actor = await current(context);
+        const type = text(args.type, 'type');
+        if (blockedPublishTypes.has(type)) return failure('FORBIDDEN', 'Reserved outcome event');
+        if (!WORKER_EVENT_PUBLISH_TYPES.includes(type)) return failure('FORBIDDEN', 'This worker surface cannot publish that event type.');
+        if (!actor.publishTypes.includes(type)) return failure('FORBIDDEN', 'Event type is not granted to this worker.');
+        const definition = (await service.types(actor)).find(item => item.type === type);
+        if (!definition || definition.publisherIds || !definition.publisherKinds.includes('agent')) return failure('FORBIDDEN', 'Program-owned event types cannot be published from a worker.');
+        await context.assertPermit();
+        const receipt = await service.publish(actor, {
+          type, scope: actor.scopes[0]!, payload: object(args.payload) as EventPayload,
+          idempotencyKey: text(args.idempotencyKey, 'idempotencyKey'),
+          ...(args.correlationId === undefined ? {} : { correlationId: text(args.correlationId, 'correlationId') }),
+        });
+        await context.assertPermit();
+        if (onPublished) { try { onPublished({ eventId: receipt.eventId, sequence: receipt.sequence, status: receipt.status }); } catch { /* wake hints cannot change an already-accepted receipt */ } }
+        return { ...receipt, scope: actor.scopes[0], meaning: 'Event acceptance only; not task completion, independent verification, delivery acknowledgement or model execution.' };
+      },
+    },
+  ];
+}
+
+/**
+ * Per-Assignment event tool source for trusted runtime composition. The grant
+ * callback is host-owned: it decides whether an Assignment gets event tools at
+ * all and which report types/scope it may use. Returning undefined leaves that
+ * Assignment event-free, so this surface is never globally open by default.
+ */
+export interface WorkerEventGrantInput {
+  binding: Readonly<{ taskId: string; assignmentId: string; scope: string; sessionId: string }>;
+  identity: Readonly<{ taskId: string; assignmentId: string; scope: string; hostEpoch: string;
+    installationGeneration: string; fencingToken: number; leaseExpiresAt: string }>;
+}
+export interface WorkerEventGrant {
+  /** Trusted principal identity for this Assignment (never model arguments). */
+  principalId: string;
+  scope: string;
+  publishTypes: readonly string[];
+}
+export function createWorkerEventToolSource(options: {
+  service: EventService;
+  grant(input: WorkerEventGrantInput): WorkerEventGrant | null | undefined;
+  /** Trusted wake hint after a durable acceptance; cannot alter the receipt. */
+  onPublished?(receipt: { eventId: string; sequence: number; status: 'accepted' | 'duplicate' }): void;
+}): import('./workers.js').WorkerEventToolSource {
+  if (!options || typeof options.service !== 'object' || typeof options.grant !== 'function') {
+    throw new Error('A worker event tool source needs the durable event service and a trusted grant callback');
+  }
+  return {
+    tools(input) {
+      const grant = options.grant(input);
+      if (!grant) return [];
+      if (typeof grant.principalId !== 'string' || !grant.principalId || typeof grant.scope !== 'string' || !grant.scope
+        || grant.scope !== input.binding.scope || !Array.isArray(grant.publishTypes) || grant.publishTypes.length > 16
+        || grant.publishTypes.some(type => typeof type !== 'string' || !WORKER_EVENT_PUBLISH_TYPES.includes(type))) {
+        throw new Error('Worker event grant is invalid or outside the Assignment scope');
+      }
+      const principal: EventPrincipal = Object.freeze({ principalId: grant.principalId, kind: 'agent' as const,
+        scopes: Object.freeze([grant.scope]) as unknown as string[], publishTypes: Object.freeze([...grant.publishTypes]) as unknown as string[],
+        subscribeTypes: Object.freeze([]) as unknown as string[], targetRefs: Object.freeze([]) as unknown as string[] });
+      return createWorkerEventTools({ service: options.service, resolvePrincipal: () => principal,
+        ...(options.onPublished ? { onPublished: options.onPublished } : {}) });
+    },
+  };
 }

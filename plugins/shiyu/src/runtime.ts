@@ -11,6 +11,8 @@ import type { DshContext, SessionStatus, ProbeResult, ReplyRequest, ReplyResult,
 import { LocalStateFile } from './recovery/local-state.js';
 import { systems } from './health/systems.js';
 import { WorkerSessionDriver } from './adapters/dsh/workers.js';
+import { createWorkerEventToolSource } from './adapters/dsh/event-tools.js';
+import { EventDeliveryCoordinator } from './control/events/index.js';
 import { LocalArtifactStore } from './adapters/artifacts/index.js';
 import { LocalTaskRunner } from './control/task-runner.js';
 import type { TaskWorkerDriver } from './control/task-runner.js';
@@ -106,6 +108,8 @@ export class RuntimeService {
   state!: LocalStateFile;
   store!: ControlStore;
   events!: EventService;
+  /** H2a: durable delivery coordination for trusted Agent/component targets. */
+  eventDeliveries?: EventDeliveryCoordinator;
   sessions!: SessionDriver;
   workers!: TaskWorkerDriver;
   artifacts!: LocalArtifactStore;
@@ -198,6 +202,16 @@ export class RuntimeService {
         }
       }
       this.events = new EventService(this.store);
+      // H2a: per-Assignment restricted event tools. The grant callback is trusted
+      // composition; the model never selects, attaches or reconfigures this surface.
+      try {
+        this.workers.attachEventTools?.(createWorkerEventToolSource({
+          service: this.events,
+          grant: ({ binding }) => ({ principalId: `worker:${binding.assignmentId}`, scope: binding.scope,
+            publishTypes: ['agent.observation.reported', 'worker.result.reported'] }),
+          onPublished: () => { void this.background?.wake(); },
+        }));
+      } catch (error) { this.lastFailure = error instanceof Error ? error.message : String(error); }
       this.sessions = this.options.sessionFactory?.(this.ctx, this.state, path.join(this.dataDir, 'workspaces')) ?? new ShiyuSessionAdapter({
         ctx: this.ctx, cwd: path.join(this.dataDir, 'workspaces'),
         bindings: { load: async () => structuredClone(this.state.state.bindings), save: bindings => this.state.update(state => { state.bindings = structuredClone(bindings); }) },
@@ -270,9 +284,21 @@ export class RuntimeService {
       });
       else if (JSON.stringify(activitySubscription.types) !== JSON.stringify(ownTypes)) await this.events.update(principal, activitySubscription.id, activitySubscription.revision, { types: ownTypes });
       await this.record('runtime.lifecycle.changed', '识雨本体基础已装载', this.pauseRequested ? 'paused' : 'ready');
+      this.eventDeliveries = new EventDeliveryCoordinator({
+        events: this.events,
+        principal: { principalId: 'shiyu-runtime-delivery', kind: 'component', scopes: ['local-owner'],
+          publishTypes: [], subscribeTypes: SHIYU_EVENT_TYPES.map(type => type.type), targetRefs: [] },
+        handlers: [],
+        agentTargets: [],
+        consumerId: 'shiyu-runtime-delivery',
+      });
+      // One scan, two durable consumers: the existing conversation projection plus
+      // agent-target deliveries. scan() keeps processed+failed===claimed for the pump.
       this.background = new BackgroundPump({ batchSize: 20, consume: async limit => {
-        const result = await this.store.request('conversation.consumeBackground', { limit });
-        return { claimed: result.claimed, processed: result.acknowledged, failed: result.failed };
+        const projection = await this.store.request('conversation.consumeBackground', { limit });
+        const agent = await this.eventDeliveries!.scan(limit);
+        return { claimed: projection.claimed + agent.claimed,
+          processed: projection.acknowledged + agent.processed, failed: projection.failed + agent.failed };
       } });
       await this.background.start();
       // Existing authorized work may need a native request on startup. Keep the

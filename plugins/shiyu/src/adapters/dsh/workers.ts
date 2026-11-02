@@ -66,6 +66,14 @@ export interface WorkerRunRequest {
   timeoutMs?: number;
   maxTokens?: number;
 }
+/**
+ * Trusted source of per-Assignment event tools. Supplied by runtime composition
+ * only; the model never selects, attaches or reconfigures this surface. The
+ * driver merges the returned tools into its existing restricted tool budget.
+ */
+export interface WorkerEventToolSource {
+  tools(input: Readonly<{ binding: Readonly<WorkerBinding>; identity: Readonly<WorkerPermitIdentity> }>): readonly WorkerTool[];
+}
 export interface WorkerRunResult extends WorkerBinding {
   candidate: WorkerCandidate;
   usage: ModelUsage;
@@ -82,6 +90,8 @@ export interface WorkerDriverOptions {
   now?: () => number;
   /** Trusted injection for tests; production uses the official host peer export. */
   createUserMessage?: NativeMessageFactory;
+  /** Trusted per-Assignment event tool source; absent keeps workers event-free. */
+  eventTools?: WorkerEventToolSource;
 }
 interface RegisteredTool {
   name: string;
@@ -211,11 +221,25 @@ export class WorkerSessionDriver {
   private readonly composed = new WeakSet<DshAgent>();
   private readonly cleanupFailures = new Map<string, Error>();
   private initialized?: Promise<void>;
+  private eventToolSource?: WorkerEventToolSource;
   private presetDispose?: Disposer;
   private createdDispose?: Disposer;
   private closed = false;
   private closing?: Promise<void>;
-  constructor(private readonly options: WorkerDriverOptions) {}
+  constructor(private readonly options: WorkerDriverOptions) {
+    if (options.eventTools !== undefined) this.attachEventTools(options.eventTools);
+  }
+  /**
+   * Install the trusted event tool source once. The driver keeps every existing
+   * restriction (three-tool budget, fixed preset, permit gate, authority-key
+   * rejection); event tools gain no extra authority.
+   */
+  attachEventTools(source: WorkerEventToolSource): void {
+    this.assertOpen();
+    if (!source || typeof source.tools !== 'function') throw new Error('Worker event tool source must provide tools(binding, identity)');
+    if (this.eventToolSource !== undefined && this.eventToolSource !== source) throw new Error('A different worker event tool source is already attached');
+    this.eventToolSource = source;
+  }
   private now(): number { return this.options.now?.() ?? Date.now(); }
   private assertOpen(): void { if (this.closed) throw new Error('Worker driver is closed'); }
   async initialize(): Promise<void> {
@@ -363,9 +387,15 @@ export class WorkerSessionDriver {
     const identity = Object.freeze({ taskId, assignmentId, scope, hostEpoch: text(permit.hostEpoch, 'hostEpoch'), installationGeneration: text(permit.installationGeneration, 'installationGeneration'), fencingToken: limit(permit.fencingToken, Number.MAX_SAFE_INTEGER, 'fencingToken'), leaseExpiresAt: text(permit.leaseExpiresAt, 'leaseExpiresAt') });
     if (!Number.isFinite(Date.parse(identity.leaseExpiresAt))) throw new Error('Invalid worker lease deadline');
     const maxTokens = limit(input.maxTokens, 4096, 'maxTokens');
+    const binding = Object.freeze({ taskId, assignmentId, scope, sessionId });
+    const added = this.eventToolSource?.tools(Object.freeze({ binding, identity })) ?? [];
+    if (!Array.isArray(added) || added.length > 3) throw new Error('Worker event tool source returned an invalid tool list');
+    // One shared budget: the Assignment's controlled tools plus any trusted
+    // event tools must still fit the three-tool worker ceiling.
+    const tools = preparedTools([...(input.tools ?? []), ...added]);
     const state: RunState = {
-      key, binding: Object.freeze({ taskId, assignmentId, scope, sessionId }), cwd, identity, check: permit.check,
-      tools: preparedTools(input.tools), maxSteps: limit(input.maxSteps, 8, 'maxSteps'), maxTokens,
+      key, binding, cwd, identity, check: permit.check,
+      tools, maxSteps: limit(input.maxSteps, 8, 'maxSteps'), maxTokens,
       deadline: Math.min(this.now() + limit(input.timeoutMs, 120000, 'timeoutMs'), Date.parse(identity.leaseExpiresAt)),
       controller: new AbortController(), steps: 0, events: [], disposers: [], outputRemaining: maxTokens, reservedOutput: 0, requestAdmissions: 0, compactionObserved: false, titleObserved: false,
     };

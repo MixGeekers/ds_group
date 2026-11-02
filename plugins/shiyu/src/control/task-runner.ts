@@ -1,11 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import type { ControlStore } from '../adapters/control-store/index.js';
 import type { TaskView } from './tasks/index.js';
-import type { WorkerRunRequest, WorkerRunResult } from '../adapters/dsh/workers.js';
+import type { WorkerEventToolSource, WorkerRunRequest, WorkerRunResult } from '../adapters/dsh/workers.js';
 import type { LocalArtifactStore } from '../adapters/artifacts/index.js';
 
 export interface TaskWorkerDriver {
   initialize(): Promise<void>;
+  /** H2a: trusted per-Assignment event tool source; absent keeps workers event-free. */
+  attachEventTools?(source: WorkerEventToolSource): void;
   /** Trusted zero-model dependency preflight; absent drivers cannot claim capability availability. */
   prepareLocalNote?(): Promise<{ dependencyFingerprint: string }>;
   run(request: WorkerRunRequest): Promise<WorkerRunResult>;

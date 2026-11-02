@@ -1,0 +1,265 @@
+{
+  "schemaVersion": 1,
+  "kind": "h2a-events-offline",
+  "slice": "H2a 持久事件接入 Agent/组件路径",
+  "capturedAt": "2026-11-02T19:31:15.313Z",
+  "repository": {
+    "headAtCapture": "00fb75b25a89006b9c69a569c9203a57043855f2",
+    "headNote": "Isolated worktree = current shared HEAD at verification time + only this slice files. H0b/H1独立验证/H4/H4b host-evidence commits are already in HEAD; H2a does not modify core decision/goals/sessions.",
+    "sharedTreeDirtyNote": "The shared working tree also contains independent H3/H4b WIP. It is excluded from the isolated verification by construction."
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin/arm64",
+    "npm": "see package-lock; isolated run used the installed pinned node_modules via symlink"
+  },
+  "changedFiles": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/event-tools.ts",
+      "bytes": 38079,
+      "sha256": "bc2b60d79f348c64e04c1b67fa4bf9926a467cb8c67d5510f875b175b19fb952"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/workers.ts",
+      "bytes": 30463,
+      "sha256": "52e5e2eae3236e01a90026ab9552d595f8d379a0500140fe37370d532d7e36fd"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/index.ts",
+      "bytes": 33439,
+      "sha256": "fde58b85404989cdd2e02e9c9a55acf3f0b1b33b396bd1f900b820a7b7cfc580"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-fixtures.ts",
+      "bytes": 18103,
+      "sha256": "f5458076a10048a67293785c2ef2add240730084dc04eb3c0e94c0ae0ce647ec"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-worker-mount.test.ts",
+      "bytes": 17267,
+      "sha256": "71d8b56dc920dddc44e23dd59160d194a863ce7252fa71dd6ce7022f08ad5590"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-paths.test.ts",
+      "bytes": 15307,
+      "sha256": "20d6b7f349dad334fed23d490694253df5246a28cfbbe33116aa6817f144ed13"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-lifecycle.test.ts",
+      "bytes": 28588,
+      "sha256": "31dd99e5ab0b9284f6e0c46b632d0aa95eac511b905621694d621afa38a2361e"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-core-continuation.test.ts",
+      "bytes": 16367,
+      "sha256": "6b815ce040ebf83ed20e7f8757728b230da61f38c1b40a850d88dd1a21c16708"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2a-manifest.json",
+      "bytes": 513,
+      "sha256": "03e10296074269fc0ee27af2562e1e462880c408a9d416ebc404e5f650fbeb8a"
+    }
+  ],
+  "commands": [
+    "node --import tsx --test --test-concurrency=1 tests/events*.test.ts tests/event-tools.test.ts tests/background-pump.test.ts",
+    "node --import tsx --test --test-concurrency=1 tests/events-worker-mount.test.ts tests/events-paths.test.ts tests/events-lifecycle.test.ts tests/events-core-continuation.test.ts",
+    "node plugins/shiyu/scripts/slice-verify.mjs --slice h2a-events --manifest plugins/shiyu/artifacts/dsh/h2/h2a-manifest.json"
+  ],
+  "targetedRuns": {
+    "allEventRelated": {
+      "commandIndex": 0,
+      "tests": 66,
+      "pass": 66,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "log": {
+        "path": "plugins/shiyu/.local/h2a-events-targeted.log",
+        "sha256": "a3930082daca96f7a07337f24fe6723ff5382192c38846ad67c490cd35fd5d77"
+      }
+    },
+    "newTestsOnly": {
+      "commandIndex": 1,
+      "tests": 43,
+      "pass": 43,
+      "fail": 0,
+      "breakdown": {
+        "workerMount": 10,
+        "fourPaths": 7,
+        "lifecycleAndNegatives": 16,
+        "coreContinuation": 10
+      }
+    },
+    "regressionOfExistingEventModules": {
+      "tests": 24,
+      "pass": 24,
+      "fail": 0,
+      "note": "events.test.ts + event-tools.test.ts + background-pump.test.ts unchanged and still green."
+    }
+  },
+  "isolatedFullCheck": {
+    "evidencePath": "plugins/shiyu/artifacts/dsh/slices/h2a-events-verify.json",
+    "evidenceSha256": "5bed636aa0f2170c76dc4928dec30863536ef66dd5284603b61335a62784bc21",
+    "head": "00fb75b25a89006b9c69a569c9203a57043855f2",
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "tests": 1249,
+    "pass": 1249,
+    "fail": 0,
+    "baselineTestsWithoutSlice": 1206,
+    "cancelled": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "durationMs": 225715,
+    "log": {
+      "path": "plugins/shiyu/.local/slice-verify-h2a-events.log",
+      "bytes": 136183,
+      "sha256": "25dbaa60bd54aaa8ee398c660a04d034fa3a3cf0298d5f822cdc5ebb619d5c58"
+    },
+    "baselineNote": "HEAD baseline without this slice (isolated count minus the 43 slice tests) is reported here for traceability; this slice adds exactly 43 tests.",
+    "verdict": "pass"
+  },
+  "coverage": {
+    "A_agentEventToolRealMount": {
+      "worker": {
+        "implementation": "workers.ts attachEventTools + per-run merge into the existing three-tool restricted budget; event-tools.ts createWorkerEventTools/createWorkerEventToolSource.",
+        "proof": "tests/events-worker-mount.test.ts: 10 tests. A fake native DSH protocol drives the real WorkerSessionDriver: the mounted schema set is exactly the two event tools; the tool executes through the registered native tool handler and writes a real temp-SQLite event with host-injected actor (`worker:assignment-1`) and assignment scope.",
+        "hostIdentityInjection": "Principal comes from the trusted driver source binding/permit; model args with actor/permit/scope/taskId are rejected by the driver authority-key gate before any tool execution.",
+        "cannotForge": [
+          "task.succeeded (reserved + blocked)",
+          "unknown/non-granted types",
+          "program-owned publisherIds types",
+          "owner grants / accounting facts (no such fields/types)"
+        ],
+        "budget": "two event tools + one task tool = 3-tool ceiling; a fourth tool is rejected before any native Agent is created."
+      },
+      "core": {
+        "status": "NOT mounted as model-callable tools in H2a by Lead decision (H1 core decision zero-tool/single-request/accounting invariants preserved).",
+        "seamDelivered": "CoreGoalContinuationTarget in src/control/events/index.ts: trusted Goal/auth/instance/budget state re-read, H1 baseline check before dispatch, one-event bounded reference text, confirmed context receipt separate from delivery ack.",
+        "proof": "tests/events-core-continuation.test.ts: 10 tests with synthetic Goal state/baseline/native bridge. These are controlled-continuation offline tests; they do not claim core has callable event tools."
+      },
+      "replyer": {
+        "status": "unchanged zero-tool contract",
+        "proof": "No edits to src/adapters/dsh/sessions.ts; existing H1 sessions tests assert replyer assembly tools are empty. Not re-proven by a new host probe in this slice."
+      }
+    },
+    "B_fourPaths": {
+      "componentToComponent": "tests/events-paths.test.ts \"component -> component\": trusted component publishes component.observation.reported; a zero-model handler consumes the durable delivery once; duplicate publish yields no second effect.",
+      "componentToAgent": "tests/events-paths.test.ts \"component -> agent background/continuation\": durable zero-model background marker; continuation only after trusted gate; context receipt confirmed separately; fan-out and BackgroundPump-shaped scan also covered.",
+      "agentToComponent": "tests/events-paths.test.ts \"agent -> component\": a real mounted worker tool report (agent.observation.reported) is published with host actor and consumed by a zero-model component handler.",
+      "agentToAgent": "tests/events-paths.test.ts \"agent -> agent\": a real mounted worker tool report (worker.result.reported) reaches a bound Agent target only after Goal/authorization/instance/budget gate; native context receipt confirmed; worker cannot publish task.succeeded.",
+      "zeroModelBoundaries": "component handler, background marker and denied continuation never call the model (wake counters are 0); only an allowed continuation appends one synthetic native context message.",
+      "ackVsContextLoaded": "batch receipts expose outcome=acked separately from dispatched/contextReceipt; tests assert background-only acked decisions have no context receipt, and lost-ack retries keep one native append."
+    },
+    "C_lifecycle": {
+      "onceAndDeadline": "tests/events-lifecycle.test.ts one-shot/expiry: only first match delivered; expired subscription creates no dispatch eligibility; pause cancels pending, resume does not restore the paused-epoch delivery.",
+      "ownerScopeRevisionActivation": "subscription owner/revision/ruleRevision/activationGeneration covered by existing events.test.ts plus new stale/retire tests; unregistered/retired Agent binding never dispatches.",
+      "restartAndAtLeastOnce": "effect committed before lost ack survives a real store close/reopen with a new store handle; retried delivery id keeps one business effect; lost continuation ack retries without a second native append.",
+      "subscriptionWatermark": "from_now never backfills; bounded replay declares replayedCount/replayTruncated; post-watermark events match once per subscription.",
+      "slowBadConsumerIsolation": "handler timeout bounds a slow consumer; a healthy subscription still acks; poison handler failure stays on its own delivery and does not leak."
+    },
+    "D_negativeMatrix": [
+      "forged authority event (non-task-service principal publishing task.succeeded) rejected",
+      "out-of-grant worker report types and reserved success events rejected before acceptance",
+      "model tool args carrying actor/permit/scope/taskId rejected",
+      "cross-scope publish/subscribe rejected",
+      "unregistered component handler / unregistered Agent binding fail closed without a model wake",
+      "duplicate publication with same idempotencyKey dedupes; same key with different payload rejected by durable store",
+      "pause/revoke between gate and dispatch => stale claim, zero dispatch",
+      "unsubscribe/retire: late events create no delivery; accepted-but-pending retired-binding deliveries fail without dispatch",
+      "post-restart duplicate claims are idempotent by deliveryId",
+      "slow/poison consumer timeout isolation",
+      "paused Goal continuation degrades to background reference, resume does not revive it",
+      "malformed/forged principal from trusted resolver fails closed",
+      "event text is bounded and marked as data, not authorization"
+    ]
+  },
+  "coreSeam": {
+    "contract": "CoreGoalContinuationTarget implements the same trusted AgentEventTarget used by the coordinator; runtime composition supplies readState/assertNativeBaseline/background/dispatch ports.",
+    "invariants": [
+      "no model call in the port",
+      "current Goal phase/authorization epoch/instance/budget re-read at least twice around the baseline await",
+      "exact expected Session identity",
+      "H1 maintenance/baseline check required before native dispatch",
+      "context receipt durability=confirmed separate from delivery ack",
+      "retire/unsubscribe cannot restore old eligibility"
+    ],
+    "deferredCoreTools": "Model-callable event tools inside the core decision Session are NOT part of H2a. They are the explicit H2c gap (depends on H3 core planning/round/accounting redesign); the H1 zero-tool invariant remains enforced by existing core-goal-sessions tests."
+  },
+  "integrationPoints": [
+    {
+      "file": "plugins/shiyu/src/control/task-runner.ts",
+      "purpose": "TaskWorkerDriver gains the optional trusted event-tool attachment point (no behavior change when absent).",
+      "precondition": "None; optional interface method. Existing drivers/tests stay valid.",
+      "diff": "--- a/plugins/shiyu/src/control/task-runner.ts\n+++ b/plugins/shiyu/src/control/task-runner.ts\n@@ -4,7 +4,9 @@\n import type { TaskView } from './tasks/index.js';\n-import type { WorkerRunRequest, WorkerRunResult } from '../adapters/dsh/workers.js';\n+import type { WorkerEventToolSource, WorkerRunRequest, WorkerRunResult } from '../adapters/dsh/workers.js';\n import type { LocalArtifactStore } from '../adapters/artifacts/index.js';\n@@ export interface TaskWorkerDriver {\n   initialize(): Promise<void>;\n+  /** H2a: trusted per-Assignment event tool source; absent keeps workers event-free. */\n+  attachEventTools?(source: WorkerEventToolSource): void;\n   /** Trusted zero-model dependency preflight; absent drivers cannot claim capability availability. */\n   prepareLocalNote?(): Promise<{ dependencyFingerprint: string }>;"
+    },
+    {
+      "file": "plugins/shiyu/src/runtime.ts",
+      "purpose": "Mount the per-Assignment worker event surface after the durable EventService exists, and merge agent-target deliveries into the single existing BackgroundPump scan.",
+      "precondition": "Place the attach block immediately after `this.events = new EventService(this.store);` (currently runtime.ts:200), i.e. after WorkerSessionDriver.initialize (line 160) and before any task can run. Create the coordinator immediately before `this.background = new BackgroundPump(...)` (currently line 273). No core-decision/goals edit: H1 zero-tool core decision invariant stays untouched.",
+      "failureDegradation": "A rejected event grant/attachment is recorded in `lastFailure` and leaves workers event-free; publishing never becomes a silent no-op and worker execution continues under its original restrictions. Coordinator failures surface through BackgroundPump degraded state (existing dashboard path); no second loop is started.",
+      "diff": "--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ -13,6 +13,8 @@\n import { WorkerSessionDriver } from './adapters/dsh/workers.js';\n+import type { WorkerEventToolSource } from './adapters/dsh/workers.js';\n+import { createWorkerEventToolSource } from './adapters/dsh/event-tools.js';\n+import { EventDeliveryCoordinator } from './control/events/index.js';\n@@ export class RuntimeService {\n   store!: ControlStore;\n   events!: EventService;\n+  eventDeliveries?: EventDeliveryCoordinator;\n@@ line 200\n       this.events = new EventService(this.store);\n+      // H2a: per-Assignment restricted event tools. The grant callback is trusted\n+      // composition; the model never selects/attaches/reconfigures this surface.\n+      try {\n+        this.workers.attachEventTools?.(createWorkerEventToolSource({\n+          service: this.events,\n+          grant: ({ binding }) => ({ principalId: `worker:${binding.assignmentId}`, scope: binding.scope,\n+            publishTypes: ['agent.observation.reported', 'worker.result.reported'] }),\n+          onPublished: () => { void this.background?.wake(); },\n+        }));\n+      } catch (error) { this.lastFailure = error instanceof Error ? error.message : String(error); }\n@@ line 273\n-      this.background = new BackgroundPump({ batchSize: 20, consume: async limit => {\n-        const result = await this.store.request('conversation.consumeBackground', { limit });\n-        return { claimed: result.claimed, processed: result.acknowledged, failed: result.failed };\n-      } });\n+      this.eventDeliveries = new EventDeliveryCoordinator({\n+        events: this.events,\n+        principal: { principalId: 'shiyu-runtime-delivery', kind: 'component', scopes: ['local-owner'],\n+          publishTypes: [], subscribeTypes: SHIYU_EVENT_TYPES.map(type => type.type), targetRefs: [] },\n+        handlers: [],\n+        agentTargets: [],\n+        consumerId: 'shiyu-runtime-delivery',\n+      });\n+      // One scan, two durable consumers: existing conversation projection plus\n+      // agent-target deliveries. scan() keeps processed+failed===claimed for the pump.\n+      this.background = new BackgroundPump({ batchSize: 20, consume: async limit => {\n+        const projection = await this.store.request('conversation.consumeBackground', { limit });\n+        const agent = await this.eventDeliveries!.scan(limit);\n+        return { claimed: projection.claimed + agent.claimed,\n+          processed: projection.acknowledged + agent.processed, failed: projection.failed + agent.failed };\n+      } });"
+    },
+    {
+      "file": "plugins/shiyu/src/runtime.ts (H2c/H3 continuation registration; NOT for H2a activation)",
+      "purpose": "Where the future trusted core Goal binding registry attaches a CoreGoalContinuationTarget; kept out of H2a because real native dispatch requires H3 reworked core planning/rounds.",
+      "precondition": "Only after H3 provides a trusted continuation round and durable background-reference command. Register when a Goal binding is admitted/loaded: eventDeliveries.registerAgentTarget(new CoreGoalContinuationTarget({ bindingId: `core-goal:${goalId}`, goalId, expectedSessionId: binding.sessionId, expectedAuthorizationEpoch: <trusted authEpoch>, readState, assertNativeBaseline: <H1 cold-baseline check>, background: <durable marker command>, dispatch: <H3 native append+flush+readback> })). Retire on pause/cancel/revoke: eventDeliveries.retireAgentTarget(bindingId).",
+      "diff": "/// H2c/H3 integration point — no runtime line is landed in H2a. ////"
+    }
+  ],
+  "h2cGap": [
+    "core decision-model-callable event tools (bounded one-tool round) and their budget/accounting semantics",
+    "real runtime registration of per-Goal CoreGoalContinuationTarget + durable background-reference command + native continuation dispatch through goals/core-decision",
+    "time-triggered subscriptions via DSH Schedule ingress (H2b)",
+    "host-level proof that the mounted worker event tools appear in a real native Session and cannot forge identity (Lead fixed-host zero-model probe after integration)"
+  ],
+  "failuresUntested": [
+    "fixed-host zero-model reload probe not executed in this slice (Lead performs after runtime integration)",
+    "no real model inference, embedding, real channel or real DSH Agent loop was invoked; all Agent protocol evidence uses the synthetic native double",
+    "real Goal/Assignment continuation dispatch and background-reference durability are not wired into runtime; only the offline port contract is proven",
+    "time/condition triggered subscriptions, DSH Schedule ingress and missed-occurrence policy are not part of H2a",
+    "event catalog additions (new registered types) are out of scope; only existing SHIYU_EVENT_TYPES are exercised",
+    "worker tool grant policy is scope/identity based in this slice; per-task allowlists and capability budgets remain integration work"
+  ],
+  "evidenceBoundaries": [
+    "G1/G2 offline level: real temp SQLite through the ControlStore worker thread + synthetic native DSH protocol double.",
+    "Not V24/V03 full acceptance; not a real-host or real-model result.",
+    "Test counts 66 targeted and 1243 isolated are this slice snapshot only and are not comparable to other slices."
+  ],
+  "hostProbeChecklist": {
+    "status": "NOT executed by this slice; prepared for the Lead fixed-host zero-model reload after runtime integration.",
+    "preconditions": [
+      "Land the two integration diffs (task-runner.ts optional attach + runtime.ts attach/coordinator blocks) and rebuild the plugin (npm run build).",
+      "Confirm no in-flight tasks/operations and no paused/locked recovery state before ordered reload.",
+      "Freeze a zero-model scope: one ordered disable/enable of the shiyu runtime plugin plus read-only status/assembly observations; no model, embedding, Lab input, Task or Goal command."
+    ],
+    "observations": [
+      "Managed worker Session assembly contains exactly its controlled task tool plus the two mounted event tools (shiyu_worker_event_types/shiyu_worker_event_report) and no host tools (shell/run_code/network).",
+      "Event tool parameter schemas contain no actor/permit/scope/taskId authority fields; the driver authority-key gate and worker principal resolver still reject forged identity before dispatch.",
+      "Core Goal decision Session assembly remains tool-free (H1 invariant unchanged; no event tools mounted there in H2a).",
+      "Replyer Session assembly remains tool-free.",
+      "Read-only status tool output stays lossless JSON and the reload has no business replay; before/after host audit shows no new Task/Goal/Session/model/embedding and unchanged event/delivery counts except runtime lifecycle records."
+    ],
+    "limitation": "A zero-model host probe proves mount/restriction only. It cannot prove a model actually called the tool, that provider budgets were honoured, or real continuation dispatch; those require a later bounded real-model/G4 run and H3/H2c work."
+  },
+  "reviewNotes": [
+    "Only the declared task-7 write scope changed: src/adapters/dsh/{event-tools,workers}.ts, src/control/events/index.ts, tests/events-* and artifacts/dsh/h2/. No runtime.ts/index.ts/sessions.ts/goals.ts/core-decision.ts/control-store edits.",
+    "The shared working tree also contains independent H3/H4b WIP; the isolated verification worktree contains only HEAD feecf86 plus this slice manifest files.",
+    "Evidence counts are snapshot-specific and must not be summed with other slices or reused after source changes."
+  ],
+  "artifacts": {
+    "manifest": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2a-manifest.json",
+      "bytes": 513,
+      "sha256": "03e10296074269fc0ee27af2562e1e462880c408a9d416ebc404e5f650fbeb8a"
+    },
+    "isolatedCheck": {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h2a-events-verify.json",
+      "bytes": 2791,
+      "sha256": "5bed636aa0f2170c76dc4928dec30863536ef66dd5284603b61335a62784bc21"
+    },
+    "thisEvidence": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2a-events-offline.json",
+      "note": "self hash omitted (written after computing other hashes)"
+    }
+  }
+}

@@ -112,7 +112,7 @@ Error: tool "shiyu_status" returned invalid output: value is not lossless JSON
 |---|---|---|
 | H0 接管与测试基线 | 基线、环境/宿主/SDK 身份、测试工具自证、草稿保存 | **固定宿主限定通过**（本文 §0/§1）；测试工具已交付并经离线自证（§8，1201/1201） |
 | H1 原生会话长期复用 | 3J 长历史冷恢复、恢复基准、布局竞态、后续压缩/恢复/缓存计量 | **离线通过**（G1 模块+组合，1058/1058，见 §5）；固定宿主/压缩/缓存/有界真实长对话仍未验 |
-| H2 持久事件与多对话协作 | Agent 工具真实接线、四类发布/订阅组合、时间/外部源、背景唤醒、话题关联/受众安全 | 待 H1 后建立切片 |
+| H2 持久事件与多对话协作 | Agent 工具真实接线、四类发布/订阅组合、时间/外部源、背景唤醒、话题关联/受众安全 | **H2a 离线通过**（worker 事件工具+四类路径+可信协调器，1249/1249，见 §10）；固定宿主探针、时间/条件源、链深/背压与 core 工具（H2c）未完成 |
 | H3 core 与目标任务扩展 | 受控计划、依赖任务、修正/重规划、更多已授权能力、独立核验 | 待建立 |
 | H4 六部分状态闭环 | 记忆生命周期完善、关系/情绪/认知/人格接入、能力清单与受限 ReadView | **四域基础离线通过**（H4，1159/1159，见 §7）；replyer 组合、仪表盘面板与固定宿主证据待接线；记忆生命周期完善待继续 |
 | H5 运行保障与恢复 | 配额/迁移、宿主关闭恢复、检查点、删除/撤权屏障、独立备份 | **离线模块通过**（H5-B1 检查点/隔离恢复，1096/1096，见 §6）；未接 Runtime；宿主/独立故障域/V22/V27 未验 |
@@ -339,4 +339,41 @@ node scripts/harness/traceability.mjs --strict --out artifacts/dsh/harness/trace
 ```
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4b-manifest.json>
 cd plugins/shiyu && npm run test:ui
+```
+
+## 10. H2a 切片：Agent 事件工具真实挂载与四类发布/订阅路径
+
+状态：**离线通过（G1/G2：真实临时 SQLite + 合成原生 DSH 协议替身 + 独立效果账本）**；固定宿主零模型探针、真实 core 续接与 core 工具（H2c）未完成。2026-11-02 完成并审阅。
+
+### 10.1 交付
+
+- `src/adapters/dsh/event-tools.ts`：新增 worker 事件工具（types/report）。可发布类型限定 `agent.observation.reported` / `worker.result.reported`；actor、scope、类型由宿主 principal 注入，工具参数不得携带 actor/permit/scope/taskId；`task.succeeded`、未注册类型、未授予类型拒绝；返回类型 schema/字段/版本/scope 与受理回执及含义说明。
+- `src/adapters/dsh/workers.ts`：`attachEventTools(source)` 单次可信挂载；每个 Assignment 按 scope/身份决定是否及挂哪些事件工具；每 run 将事件工具并入原 3 工具预算（超过 4 个在原生 Session 创建前拒绝）；permit/gate/单主调用/authority-key 语义不变。
+- `src/control/events/index.ts`：`EventDeliveryCoordinator`（组件 handler 消费与 Agent 背景引用=零模型；continuation 需可信 gate；ack 与 context-loaded 分开；慢/坏消费者有界隔离；deliveryId 至少一次幂等；`registerAgentTarget/retireAgentTarget` 防止退役绑定恢复旧资格；`scan()` 可并入既有单一 BackgroundPump 循环）；`CoreGoalContinuationTarget` 受控续接端口（重读 Goal phase/authEpoch/instance/budget、H1 基准检查后才 dispatch、confirmed context receipt 与 ack 分离）。
+- **Lead 集成**：`TaskWorkerDriver` 增加可选 `attachEventTools`；`runtime.ts` 在 durable EventService 之后、任何 task 运行之前挂载 per-Assignment 事件源（失败只记 lastFailure，worker 保持事件零工具）；在既有 BackgroundPump 的单循环 consume 中合并 coordinator scan（`processed+failed===claimed` 保持，不新增第二套循环）。
+- 测试：`tests/events-fixtures.ts` + 4 个新测试文件（worker mount 10、四路径 7、生命周期/负例 16、core 续接 10 = 43 项），既有 events/event-tools/background-pump 回归。
+- 证据：`artifacts/dsh/h2/h2a-events-offline.json`、`h2a-slice-summary.json`、`artifacts/dsh/slices/h2a-events-verify.json`（实现者隔离）与 `h2a-verify.json`（Lead 独立）。
+
+### 10.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `feecf86` + 9 文件）`npm run check` | exit 0；**1243/1243 通过，0 失败/跳过**；定向事件相关 66/66 |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `00fb75b` + 10 文件=H2a+Lead 集成） | exit 0；**1249/1249 通过，0 失败/跳过**；= 1206 基线 + 43 新测试；证据 `artifacts/dsh/slices/h2a-verify.json` |
+| 四类路径（离线合成） | Agent→组件、组件→组件、组件→Agent（background 零模型 / continuation 经 gate）、Agent→Agent（worker 报告→绑定 Agent 目标恰一次原生 context receipt）；伪造 `task.succeeded`/越权 scope/退役投递/慢消费者/双 store 竞争均按预期拒绝或隔离 |
+| 证据级别 | G1/G2 离线合成；**不是固定宿主、真实模型或业务验收** |
+
+### 10.3 失败 / unknown / 未测
+
+1. 固定宿主零模型探针未执行（需 Lead 集成后另行冻结范围）；所有 Agent 证据为合成原生协议替身。
+2. 真实 core Goal 续接连线（durable background command + native dispatch 到 core Session）未做；**core 模型可调用事件工具 = H2c 缺口**（依赖 H3 重设计 core 规划/计量）。
+3. 时间/条件触发（DSH Schedule ingress）、链深/防循环、配额/背压矩阵、事件目录扩展不在本切片，仍为未测。
+4. worker grant 目前按 Assignment scope/身份挂载，每任务 allowlist 细化留后续集成。
+5. 无真实模型/embedding/频道/设备/业务动作。
+
+### 10.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h2a-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/events-*.test.ts tests/event-tools.test.ts
 ```

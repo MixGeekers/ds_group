@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "phase": "H2a",
+  "slice": "agent event tools real mounting and four publish/subscribe paths",
+  "capturedAt": "2026-11-02T19:31:25.512Z",
+  "status": "offline-verified-integration",
+  "purpose": "Mount restricted event tools on real worker sessions and coordinate component/Agent delivery paths with ack vs context-loaded separation, while keeping the H1 core decision zero-tool/single-request invariant.",
+  "baseline": {
+    "head": "00fb75b",
+    "note": "H0/H0b/H1/H1-verify/H4/H4-host/H4b/H4b-host/H5 committed; 1206 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/event-tools.ts",
+      "bytes": 38079,
+      "sha256": "bc2b60d79f348c64e04c1b67fa4bf9926a467cb8c67d5510f875b175b19fb952"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/workers.ts",
+      "bytes": 30463,
+      "sha256": "52e5e2eae3236e01a90026ab9552d595f8d379a0500140fe37370d532d7e36fd"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/index.ts",
+      "bytes": 33439,
+      "sha256": "fde58b85404989cdd2e02e9c9a55acf3f0b1b33b396bd1f900b820a7b7cfc580"
+    },
+    {
+      "path": "plugins/shiyu/src/control/task-runner.ts",
+      "bytes": 6719,
+      "sha256": "35872adaa8e2074980ede8097351abd41450063d1e7a4314b91395422a04d342"
+    },
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 76754,
+      "sha256": "4965c3ea0f10933e47e7fa88c64f5d44d34c28f2bc56ff08ff98c09489324eb1"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-fixtures.ts",
+      "bytes": 18103,
+      "sha256": "f5458076a10048a67293785c2ef2add240730084dc04eb3c0e94c0ae0ce647ec"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-worker-mount.test.ts",
+      "bytes": 17267,
+      "sha256": "71d8b56dc920dddc44e23dd59160d194a863ce7252fa71dd6ce7022f08ad5590"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-paths.test.ts",
+      "bytes": 15307,
+      "sha256": "20d6b7f349dad334fed23d490694253df5246a28cfbbe33116aa6817f144ed13"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-lifecycle.test.ts",
+      "bytes": 28588,
+      "sha256": "31dd99e5ab0b9284f6e0c46b632d0aa95eac511b905621694d621afa38a2361e"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-core-continuation.test.ts",
+      "bytes": 16367,
+      "sha256": "6b815ce040ebf83ed20e7f8757728b230da61f38c1b40a850d88dd1a21c16708"
+    }
+  ],
+  "implementation": {
+    "workerTools": "event-tools.ts adds two restricted worker tools (types/report); publishTypes limited to agent.observation.reported and worker.result.reported; actor/scope/type injected by trusted host principal, arguments may not carry actor/permit/scope/taskId; task.succeeded and unregistered types are rejected.",
+    "mounting": "workers.ts attachEventTools(source) accepts one trusted source; each run merges the event tools into the original 3-tool budget and rejects >4 tools before any native Session creation; permit/gate/single-request/authority-key semantics unchanged.",
+    "coordinator": "control/events/index.ts adds EventDeliveryCoordinator: component handlers and Agent background references are zero-model; continuation requires a trusted gate; ack and context-loaded are separate; slow/bad consumers are bounded; at-least-once uses deliveryId idempotency; registerAgentTarget/retireAgentTarget prevent retired bindings from regaining qualifications; CoreGoalContinuationTarget re-reads Goal phase/authEpoch/instance/budget and checks the H1 baseline before dispatch, with a confirmed context receipt separate from ack.",
+    "leadIntegration": "Lead applied the exact integration diff: TaskWorkerDriver gains an optional attachEventTools; runtime.ts attaches the per-Assignment worker event source right after the durable EventService and before any task can run (failure degrades to lastFailure and event-free workers); runtime.ts creates the empty trusted coordinator and merges its scan into the single existing BackgroundPump consume loop (processed+failed===claimed preserved; no second loop)."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "/tmp shiyu-h2a (ephemeral; HEAD feecf86 + 9 slice files)",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1243,
+      "pass": 1243,
+      "fail": 0,
+      "skipped": 0,
+      "durationMs": 220882,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h2a-events.log",
+        "sha256": "921ffa16…"
+      }
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 00fb75b + 10 slice/integration files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h2a-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1249,
+        "pass": 1249,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 224776,
+      "log": "plugins/shiyu/.local/slice-verify-h2a.log",
+      "arithmetic": "1206 baseline + 43 new H2a tests = 1249"
+    },
+    "targeted": {
+      "allEventRelated": {
+        "tests": 66,
+        "pass": 66,
+        "fail": 0,
+        "note": "H2a 43 new + existing events/event-tools/background-pump regression"
+      },
+      "runtimeIntegrationTargeted": {
+        "tests": 99,
+        "pass": 99,
+        "fail": 0,
+        "note": "events suites + workers/task-runner/background-pump after Lead integration"
+      }
+    },
+    "fourPaths": {
+      "agentToComponent": "real worker session driver with event tools -> composed model call -> durable SQLite accept (actor=worker:assignment-1, assignment scope) -> zero-model component handler consumes once; duplicate publish is idempotent, no second effect.",
+      "componentToComponent": "trusted component publish -> zero-model handler consumes once; duplicate/replay/out-of-order and bounded replay expose replayedCount/replayTruncated.",
+      "componentToAgent": "background mode stores a zero-model reference and acks (wake=0, no context receipt); continuation mode dispatches only after the trusted gate (PAUSED/REVOKED/AUTH_CHANGED/STALE_SESSION/STALE_INSTANCE/BUDGET_EXHAUSTED leave only a background reference and ack without waking); resume never revives old deliveries.",
+      "agentToAgent": "real worker report -> bound Agent target passes Goal/auth/instance/budget gate -> exactly one native context receipt; worker cannot publish task.succeeded, verification receipts, owner authorization or accounting facts."
+    },
+    "negativeMatrix": "one-shot/expiry/pause/unsubscribe old deliveries, revocation between gate and dispatch (zero dispatch), ack lost after effect (no duplicate business effect on restart), lost context ack (no duplicate native append), two-store concurrent claim exactly one winner, slow consumer timeout isolation, unregistered handler/binding fail-closed, cross-scope/forged authority/authority-key rejection, pause does not revive."
+  },
+  "failedUnknownUntested": [
+    "Fixed-host zero-model probe was NOT executed in this slice; all Agent evidence is a synthetic native-protocol double. The Lead integration must be exercised on the fixed host before claiming host-level mounting.",
+    "Real core Goal continuation wiring (durable background command + native dispatch into a core session) is not done: only the port contract is verified offline; core model-invocable event tools are the explicit H2c gap (depends on H3).",
+    "Time/condition triggers (DSH Schedule ingress), chain-depth/anti-loop enforcement, quota/backpressure matrices and event catalog extension are not in this slice and remain untested.",
+    "Worker event grant is currently assigned per Assignment scope/identity; per-task allowlist refinement is a follow-up integration.",
+    "No real model, embedding, channel, device or business action occurred."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "liveDataRootAccesses": 0
+  },
+  "evidenceLevel": "G1/G2 offline: real temporary SQLite + synthetic native DSH protocol double + independent effect ledger; not fixed-host, model or business acceptance."
+}

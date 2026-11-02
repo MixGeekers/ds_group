@@ -1,0 +1,14 @@
+{
+  "slice": "h2a-events",
+  "files": [
+    "plugins/shiyu/src/adapters/dsh/event-tools.ts",
+    "plugins/shiyu/src/adapters/dsh/workers.ts",
+    "plugins/shiyu/src/control/events/index.ts",
+    "plugins/shiyu/tests/events-fixtures.ts",
+    "plugins/shiyu/tests/events-worker-mount.test.ts",
+    "plugins/shiyu/tests/events-paths.test.ts",
+    "plugins/shiyu/tests/events-lifecycle.test.ts",
+    "plugins/shiyu/tests/events-core-continuation.test.ts",
+    "plugins/shiyu/artifacts/dsh/h2/h2a-manifest.json"
+  ]
+}
