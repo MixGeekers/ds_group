@@ -23,6 +23,8 @@ import { MemoryDomain, type MemoryDomainRequest } from './memory-domain.js';
 import { MemoryIndexDomain, type MemoryIndexRequest } from './memory-index-domain.js';
 import { CoreDomain } from './core-domain.js';
 import type { CoreDomainRequest } from '../../contracts/core.js';
+import { LabDomain } from './lab-domain.js';
+import type { LabDomainRequest } from '../../contracts/lab.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -42,6 +44,8 @@ let memoryIndex: MemoryIndexDomain | undefined;
 let memoryIndexError: string | undefined;
 let core: CoreDomain | undefined;
 let coreError: string | undefined;
+let lab: LabDomain | undefined;
+let labError: string | undefined;
 let publication: StatePublicationStore | undefined;
 let statePublisher: StatePublisher | undefined;
 let commitWatermark: CommitWatermarkReader;
@@ -413,6 +417,11 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
 
 function execute(request: StoreRequest): unknown {
   if (transactions.poisoned && request.command !== "close") return fail("STORE_ISOLATED", "Control store is isolated after an unreconciled transaction failure.");
+  if (request.command === 'lab.status') return { ready: Boolean(lab), ...(labError ? { errorCode: labError } : {}) };
+  if (request.command.startsWith('lab.')) {
+    if (!lab) return fail(labError ?? 'LAB_UNAVAILABLE', 'Lab control domain is unavailable.');
+    return lab.execute(request as LabDomainRequest);
+  }
   if (request.command === 'core.status') return { ready: Boolean(core), ...(coreError ? { errorCode: coreError } : {}) };
   if (request.command.startsWith('core.')) {
     if (!core) return fail(coreError ?? 'CORE_UNAVAILABLE', 'Core control domain is unavailable.');
@@ -438,6 +447,11 @@ function execute(request: StoreRequest): unknown {
   }
   if (request.command.startsWith('task.')) {
     if (!tasks) return fail('TASKS_UNAVAILABLE', 'Task commands require a trusted runtime identity at store initialization.');
+    if (request.command === 'task.setPaused' && request.args.paused) return transaction(() => {
+      const result = tasks!.execute(request);
+      lab?.pauseAll();
+      return result;
+    });
     return tasks.execute(request as TaskDomainRequest);
   }
   if (request.command.startsWith('goal.binding.') && !goalBindings) return fail('GOALS_UNAVAILABLE', 'Goal bindings require a trusted runtime identity.');
@@ -598,6 +612,17 @@ function initialize(): void {
         if (!memories) return fail(memoryError ?? 'MEMORY_UNCONFIGURED', 'Previously exposed memory cannot be revalidated.');
         memories.validateExposedSources(sources);
       } });
+    try {
+      lab = new LabDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity,
+        ensureChannel: input => conversations!.ensureLabChannel(input),
+        advanceInput: input => conversations!.advanceLabInput(input),
+        retireChannel: input => conversations!.retireLabChannel(input),
+        assertDraft: operationId => conversations!.assertReadyDraft(operationId),
+        assertRuntimeAllowed: () => { if (tasks!.isPaused()) fail('LAB_RUNTIME_PAUSED', 'Lab dispatch is paused.'); },
+      });
+    } catch (error) {
+      labError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'LAB_INITIALIZATION_FAILED';
+    }
   }
 }
 

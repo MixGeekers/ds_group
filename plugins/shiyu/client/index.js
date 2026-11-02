@@ -474,6 +474,170 @@ window.__ModuleLoader__.load({
       "coreNativeUnconfirmed": "The native command is unconfirmed. The last observed phase does not establish its completion. Resume is unavailable; pause and cancel remain possible.",
       "status_confirmed": "Confirmed"
     });
+    Object.assign(zh, {
+      "lab": "Lab 连接",
+      "labHint": "连接明确授权的健身房运行，分别查看输入处理、回复草稿与实际送达。",
+      "labUnavailable": "Lab 接口尚未接入。",
+      "labNotReady": "Lab 服务尚未就绪。",
+      "labScope": "当前范围：获准群聊或私聊中的文本消息。文件和任务完成操作尚未开放。",
+      "labConnectTitle": "授权并连接 Lab",
+      "labConnectHint": "点击后授权在指定频道、预算和期限内接收输入、生成回复并发送文本。查看或刷新只读取状态。",
+      "labRunId": "Lab Run ID",
+      "labTargetToken": "目标连接令牌",
+      "labTokenHint": "令牌用于新连接或所选历史连接的回执查询，仅提交给本次 Runtime；不保存到浏览器，提交后立即清空。",
+      "labChannelIds": "获准频道 ID",
+      "labChannelHint": "以逗号或空格分隔，最多 20 个。按频道 ID 隔离群聊与私聊，同名参与者不会合并。",
+      "labLimit_tokens": "回复 Token 总上限",
+      "labLimit_calls": "回复调用总上限",
+      "labLimit_effects": "消息总上限",
+      "labBudgetHint": "Token 是预留与对账限额；未知用量或送达仍占用额度。草稿和调用计数不证明消息已经送达，也不代表完整费用。",
+      "labConnect": "授权并连接",
+      "labConnecting": "正在连接…",
+      "labConnections": "已登记连接",
+      "labNoConnections": "暂无 Lab 连接。",
+      "labView": "查看连接 {id}",
+      "labDetails": "连接详情",
+      "labConnectionId": "连接 ID",
+      "labConnectionState": "连接状态",
+      "labSelect": "选择连接查看详情。",
+      "labNotInSnapshot": "当前快照尚未包含所选连接，请刷新核对。",
+      "labPause": "暂停连接",
+      "labDisconnect": "断开连接",
+      "labStopHint": "暂停或断连会阻止新回复和发送，已发生的效果保留。重新接入需要再次明确授权；刷新不会重连。",
+      "labChannels": "获准频道与当前输入",
+      "labChannelId": "频道 ID",
+      "labChannelKind": "频道类型",
+      "labKind_group": "群聊",
+      "labKind_direct": "私聊",
+      "labInputVersion": "当前输入版本",
+      "labInputEvent": "当前输入事件",
+      "labInputSeq": "输入序号",
+      "labPendingInputs": "待答输入数",
+      "labReplies": "回复处理记录",
+      "labNoReplies": "尚无回复处理记录。",
+      "labReplyId": "回复 ID",
+      "labReplyStage": "处理阶段",
+      "labReply_claimed": "已领取，处理中",
+      "labReply_accounted": "生成用量已核算",
+      "labReply_unknown": "生成或用量未确认",
+      "labReply_sent": "已记录发送结果",
+      "labReplyHint": "这些记录描述回复处理；实际送达以独立发送回执为准。",
+      "labSends": "草稿与实际送达",
+      "labNoSends": "尚无发送记录。",
+      "labSendId": "发送操作 ID",
+      "labDraftId": "已核对草稿 ID",
+      "labEffectState": "效果状态",
+      "labDelivery": "实际送达",
+      "labDelivered": "已确认送达",
+      "labDeliveryUnknown": "送达未知，保留占用",
+      "labNotDelivered": "尚无送达证明",
+      "labDeliveryEvent": "Lab 送达事件",
+      "labReconcile": "显式核对未知发送",
+      "labReconcileHint": "核对只读取 Lab 已有送达回执，不重新发送或调用模型。即使原授权过期或输入已更新，仍可核对既存事实；找不到回执时继续保留未知。",
+      "labReconcileBlocked": "当前无法读取此发送回执；未知结果继续保留，刷新不会自动核对。",
+      "labInvalidForm": "请填写有效 Run ID、令牌和不重复的频道 ID，并核对正整数预算。",
+      "labExpiredDraft": "此连接请求已过期；修改授权表单以创建新请求。",
+      "labUnconfirmed": "Lab 操作结果未确认，请刷新核对；不会自动重试。",
+      "labChanged": "处理期间所选连接、版本或运行实例变化，旧回执未采用。",
+      "labAccepted": "连接请求已有回执；连接与送达状态以刷新后的账本为准。",
+      "labControlAccepted": "控制请求已有回执；当前状态以刷新后的账本为准。",
+      "labReconcileAccepted": "核对请求已有回执；是否实际送达以刷新后的发送记录为准。",
+      "status_connected": "已连接",
+      "status_disconnected": "已断开",
+      "status_needs_reconnect": "等待重新接入",
+      "labTransport": "当前传输接入",
+      "labPump": "输入扫描状态",
+      "labActiveReplies": "正在处理的回复",
+      "labBudgetAxes": "数值依次为：Token / 调用 / 消息。未知不视为零。",
+      "status_polling": "正在扫描",
+      "labAttach": "连接回执查询",
+      "labAttachHint": "使用上方刚输入的令牌，按所选历史连接原有的请求、频道、预算和期限接入回执查询。不会新授权、恢复回复处理、调用模型或发送消息；之后仍需显式核对未知发送。",
+      "labAttached": "历史连接已仅接入回执查询；未新授权或恢复回复处理，未发送消息。当前传输状态以刷新后的记录为准。",
+      "labGroupTooLarge": "待合并输入过大，原始输入保留，受影响频道的回复处理已暂停；其他获准频道可继续。不会略过旧输入只处理最近几条。",
+      "labInputBackpressure": "待答输入积压超限，原始输入保留，受影响频道的回复处理已暂停；其他获准频道可继续。不会静默丢弃或跳过输入。"
+    });
+    Object.assign(en, {
+      "lab": "Lab connections",
+      "labHint": "Connect an explicitly authorized Gym run and inspect input processing, reply drafts and actual delivery separately.",
+      "labUnavailable": "The Lab interface is not connected.",
+      "labNotReady": "The Lab service is not ready.",
+      "labScope": "Current scope: text messages in permitted group chats or direct messages. File and task completion actions are unavailable.",
+      "labConnectTitle": "Authorize and connect Lab",
+      "labConnectHint": "This action authorizes receiving inputs, generating replies and sending text within the channels, budget and expiry below. Viewing and refreshing only read state.",
+      "labRunId": "Lab Run ID",
+      "labTargetToken": "Target connection token",
+      "labTokenHint": "Use this token for a new connection or receipt access to the selected historical connection. It is submitted only to this Runtime, never saved in browser storage, and cleared immediately after submission.",
+      "labChannelIds": "Permitted channel IDs",
+      "labChannelHint": "Separate up to 20 IDs with commas or spaces. Group chats and direct messages remain isolated by channel ID; matching participant names do not merge identities.",
+      "labLimit_tokens": "Total reply token limit",
+      "labLimit_calls": "Total reply call limit",
+      "labLimit_effects": "Total message limit",
+      "labBudgetHint": "Tokens are a reservation and accounting limit. Unconfirmed usage or delivery stays held. Drafts and call counts do not establish delivery or complete cost.",
+      "labConnect": "Authorize and connect",
+      "labConnecting": "Connecting…",
+      "labConnections": "Recorded connections",
+      "labNoConnections": "No Lab connections.",
+      "labView": "View connection {id}",
+      "labDetails": "Connection details",
+      "labConnectionId": "Connection ID",
+      "labConnectionState": "Connection state",
+      "labSelect": "Select a connection to inspect it.",
+      "labNotInSnapshot": "The selected connection is absent from the current snapshot. Refresh to inspect it.",
+      "labPause": "Pause connection",
+      "labDisconnect": "Disconnect",
+      "labStopHint": "Pausing or disconnecting blocks new replies and sends. Effects that already occurred remain recorded. Reconnecting requires explicit authorization; refreshing never reconnects.",
+      "labChannels": "Permitted channels and current inputs",
+      "labChannelId": "Channel ID",
+      "labChannelKind": "Channel type",
+      "labKind_group": "Group chat",
+      "labKind_direct": "Direct message",
+      "labInputVersion": "Current input version",
+      "labInputEvent": "Current input event",
+      "labInputSeq": "Input sequence",
+      "labPendingInputs": "Pending input count",
+      "labReplies": "Reply processing records",
+      "labNoReplies": "No reply processing records.",
+      "labReplyId": "Reply ID",
+      "labReplyStage": "Processing stage",
+      "labReply_claimed": "Claimed; processing",
+      "labReply_accounted": "Generation usage accounted",
+      "labReply_unknown": "Generation or usage unconfirmed",
+      "labReply_sent": "Send outcome recorded",
+      "labReplyHint": "These records describe reply processing. Actual delivery requires a separate send receipt.",
+      "labSends": "Drafts and actual delivery",
+      "labNoSends": "No send records.",
+      "labSendId": "Send operation ID",
+      "labDraftId": "Validated draft ID",
+      "labEffectState": "Effect state",
+      "labDelivery": "Actual delivery",
+      "labDelivered": "Delivery confirmed",
+      "labDeliveryUnknown": "Delivery unknown; budget held",
+      "labNotDelivered": "No delivery evidence yet",
+      "labDeliveryEvent": "Lab delivery event",
+      "labReconcile": "Reconcile unknown send",
+      "labReconcileHint": "Reconciliation only reads an existing Lab delivery receipt. It never resends or calls a model. Existing facts can be checked after authorization expiry or newer input; a missing receipt leaves the outcome unknown.",
+      "labReconcileBlocked": "This send receipt cannot currently be read. Its outcome remains unknown; refreshing does not reconcile it automatically.",
+      "labInvalidForm": "Enter a valid Run ID, token and unique channel IDs, and check positive integer budgets.",
+      "labExpiredDraft": "This connection request has expired. Edit the authorization form to create a new request.",
+      "labUnconfirmed": "The Lab outcome is unconfirmed. Refresh to inspect it; no automatic retry.",
+      "labChanged": "The selected connection, revision or runtime instance changed; the old receipt was not applied.",
+      "labAccepted": "Connection receipt received. Refreshed ledger state determines connection and delivery status.",
+      "labControlAccepted": "Control receipt received. The refreshed ledger determines the current state.",
+      "labReconcileAccepted": "Reconciliation receipt received. Refreshed send records determine actual delivery.",
+      "status_connected": "Connected",
+      "status_disconnected": "Disconnected",
+      "status_needs_reconnect": "Reconnect required",
+      "labTransport": "Current transport",
+      "labPump": "Input polling state",
+      "labActiveReplies": "Active replies",
+      "labBudgetAxes": "Values are: tokens / calls / messages. Unknown is not zero.",
+      "status_polling": "Polling",
+      "labAttach": "Connect receipt access",
+      "labAttachHint": "Use the token entered above with this historical connection’s original request, channels, budget and expiry. This only connects receipt access: no new authorization, reply processing, model call or message send. Unknown sends still require explicit reconciliation.",
+      "labAttached": "Historical receipt access is connected. No new authorization, reply processing or message send was started. Refreshed records determine the current transport state.",
+      "labGroupTooLarge": "The pending input group is too large. Original inputs are retained and reply processing for the affected channel is paused; other permitted channels can continue. Older inputs are not skipped to process only the latest few.",
+      "labInputBackpressure": "The pending input backlog exceeds its limit. Original inputs are retained and reply processing for the affected channel is paused; other permitted channels can continue. Inputs are not silently discarded or skipped."
+    });
     const knownStates = new Set(Object.keys(en).filter(key => key.startsWith('status_')).map(key => key.slice(7)));
     const css = `
 .syr{--sr-bg:var(--dsw-alias-bg-base,#fff);--sr-layer:var(--dsw-alias-bg-layer-1,#fafafa);--sr-hover:var(--dsw-alias-bg-layer-2,#f2f3f5);--sr-text:var(--dsw-alias-label-primary,#202124);--sr-muted:var(--dsw-alias-label-secondary,#71757c);--sr-line:var(--dsw-alias-border-l1,#e6e8eb);--sr-accent:var(--dsw-alias-brand-primary,#4b62d8);--sr-error:var(--dsw-alias-state-error-primary,#b93b3b);--sr-ok:var(--dsw-alias-state-success-primary,#2f7d68);height:100%;min-height:0;min-width:0;overflow:auto;color:var(--sr-text);background:var(--sr-bg);font-size:13px;line-height:1.6;font-family:inherit}
@@ -514,6 +678,24 @@ window.__ModuleLoader__.load({
         // Native observation is authoritative; a candidate or successful Task
         // cannot turn the local dispatch pause into Goal completion.
         const coreGoalComplete = goal => goal?.native?.phase === 'complete';
+        const labConnectionValid = connection => connection && typeof connection.connectionId === 'string' && connection.connectionId.trim()
+          && typeof connection.runId === 'string' && connection.runId.trim() && Number.isSafeInteger(connection.version) && connection.version >= 1
+          && ['connected', 'paused', 'disconnected', 'needs_reconnect'].includes(connection.status) && Array.isArray(connection.channels);
+        const labHistoricalIntentValid = connection => labConnectionValid(connection) && typeof connection.requestId === 'string' && Boolean(connection.requestId.trim())
+          && Number.isFinite(Date.parse(connection.expiresAt)) && ['tokens', 'calls', 'effects'].every(key => Number.isSafeInteger(connection.budget?.[key]) && connection.budget[key] > 0)
+          && connection.channels.length > 0 && connection.channels.length <= 20 && connection.channels.every(channel => typeof channel.channelId === 'string' && Boolean(channel.channelId.trim()))
+          && new Set(connection.channels.map(channel => channel.channelId)).size === connection.channels.length;
+        const labIntentMatches = (connection, payload) => labHistoricalIntentValid(connection) && connection.requestId === payload.requestId && connection.runId === payload.runId
+          && connection.expiresAt === payload.expiresAt && ['tokens', 'calls', 'effects'].every(key => connection.budget[key] === payload.budget?.[key])
+          && JSON.stringify(connection.channels.map(channel => channel.channelId)) === JSON.stringify(payload.channelIds);
+        const labDelivered = send => send?.status === 'succeeded' && typeof send.sendId === 'string' && Boolean(send.sendId.trim())
+          && typeof send.channelId === 'string' && Boolean(send.channelId.trim()) && /^[a-f0-9]{64}$/.test(send.bodyHash)
+          && typeof send.observation?.eventId === 'string' && Boolean(send.observation.eventId.trim()) && send.observation.opId === send.sendId
+          && send.observation.channelId === send.channelId && send.observation.bodyHash === send.bodyHash && Number.isFinite(Date.parse(send.observation.observedAt));
+        const labCanReconcile = (current, connection, send) => current?.lab?.ready === true
+          && labConnectionValid(connection) && connection.live === true
+          && send?.canReconcile === true && send.status === 'unknown'
+          && connection.channels.some(channel => channel.channelId === send.channelId);
         const memoryEntryValid = entry => entry && typeof entry === 'object' && !Array.isArray(entry)
           && ['operationId', 'requestId', 'conversationId', 'status'].every(key => typeof entry[key] === 'string' && Boolean(entry[key].trim()))
           && Number.isSafeInteger(entry.version) && entry.version >= 1 && typeof entry.blocked === 'boolean'
@@ -565,6 +747,18 @@ window.__ModuleLoader__.load({
           const [coreNotice, setCoreNotice] = useState('');
           const coreDraft = useRef({ revision: 0, payload: null });
           const coreSelection = useRef({ id: null, revision: 0 });
+          const [selectedLabConnection, setSelectedLabConnection] = useState(null);
+          const [labRunId, setLabRunId] = useState('');
+          const [labToken, setLabToken] = useState('');
+          const [labChannels, setLabChannels] = useState('');
+          const [labBudget, setLabBudget] = useState({ tokens: '65536', calls: '4', effects: '4' });
+          const [labLifetime, setLabLifetime] = useState('30');
+          const [labControl, setLabControl] = useState('');
+          const [labError, setLabError] = useState('');
+          const [labNotice, setLabNotice] = useState('');
+          // The retry identity holds only public grant metadata, never the token.
+          const labDraft = useRef({ revision: 0, payload: null });
+          const labSelection = useRef({ id: null, revision: 0 });
           const [selectedConversation, setSelectedConversation] = useState(null);
           const [linkTaskId, setLinkTaskId] = useState(null);
           const [command, setCommand] = useState('');
@@ -595,6 +789,8 @@ window.__ModuleLoader__.load({
           function chooseMemory(operationId) { clearMemoryBody(); memoryGuard.current.selected = operationId; setMemorySelected(operationId); }
           function changeCoreDraft() { coreDraft.current.revision++; coreDraft.current.payload = null; setCoreNotice(''); }
           function chooseCoreGoal(goalId) { coreSelection.current = { id: goalId, revision: coreSelection.current.revision + 1 }; setSelectedCoreGoal(goalId); setCoreError(''); setCoreNotice(''); }
+          function changeLabDraft() { labDraft.current.revision++; labDraft.current.payload = null; setLabNotice(''); }
+          function chooseLabConnection(connectionId) { labSelection.current = { id: connectionId, revision: labSelection.current.revision + 1 }; setSelectedLabConnection(connectionId); setLabError(''); setLabNotice(''); }
           function chooseConversation(value) { contextLoadGuard.current++; contextLoadDraftId.current = null; contextLoadSelection.current = value; setContextLoadReceipt(null); setSelectedConversation(value); }
           function memoryCanRead(operationId) {
             const guard = memoryGuard.current, current = guard.snapshot;
@@ -604,10 +800,10 @@ window.__ModuleLoader__.load({
               && current.lifecycle !== 'stopping' && !guard.revoked.has(operationId) && memoryEntryValid(entry) && entry.canRead === true && entry.consent === 'active' && !entry.blocked;
           }
           const rootRef = useRef(null);
-          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {} });
+          const operations = useRef({ refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {}, lab: () => {} });
           useEffect(() => {
             if (disposed) return;
-            let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false, withdrawalInFlight = false, coreControlInFlight = false;
+            let alive = true, panelVisible = Boolean(rootRef.current?.getClientRects().length), reading = null, commandInFlight = false, controlInFlight = false, withdrawalInFlight = false, coreControlInFlight = false, labControlInFlight = false;
             const writes = new Set(), deadlines = new Set();
             const canRead = () => alive && !disposed && panelVisible && document.visibilityState !== 'hidden';
             async function refresh(force = false) {
@@ -630,7 +826,7 @@ window.__ModuleLoader__.load({
                 if (selection && (instanceChanged || priorConversation?.sessionEpoch !== nextConversation?.sessionEpoch)) {
                   contextLoadGuard.current++; contextLoadDraftId.current = null; setContextLoadReceipt(null);
                 }
-                if (instanceChanged) coreSelection.current.revision++;
+                if (instanceChanged) { coreSelection.current.revision++; labSelection.current.revision++; changeLabDraft(); setLabToken(''); setLabNotice(''); }
                 guard.snapshot = next; guard.fresh = true;
                 if (instanceChanged || (guard.selected && (!memoryCanRead(guard.selected) || !previousEntry || !nextEntry || previousEntry.version !== nextEntry.version
                   || previousEntry.requestId !== nextEntry.requestId || previousEntry.conversationId !== nextEntry.conversationId || previousEntry.nativeId !== nextEntry.nativeId))) clearMemoryBody();
@@ -646,7 +842,7 @@ window.__ModuleLoader__.load({
             }
             async function issue(action, payload = {}, expected = {}) {
               const isControl = action === 'runtime.pause' || action === 'runtime.resume';
-              if (!alive || disposed || (isControl ? controlInFlight || (action === 'runtime.resume' && commandInFlight) : commandInFlight || controlInFlight || withdrawalInFlight || coreControlInFlight)) return;
+              if (!alive || disposed || (isControl ? controlInFlight || (action === 'runtime.resume' && commandInFlight) : commandInFlight || controlInFlight || withdrawalInFlight || coreControlInFlight || labControlInFlight)) return;
               const setPending = isControl ? setControlCommand : setCommand;
               const setError = isControl ? setControlError : setCommandError;
               const setNotice = isControl ? setControlNotice : setCommandNotice;
@@ -876,7 +1072,79 @@ window.__ModuleLoader__.load({
                 if (alive && !disposed) { if (create) setCommand(''); else setCoreControl(''); }
               }
             }
-            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory, semantic: issueSemantic, core: issueCore };
+            async function issueLab(action, payload, expected = {}) {
+              const connect = action === 'lab.connect', stop = action === 'lab.pause' || action === 'lab.disconnect';
+              const attach = connect && expected.attach === true;
+              if (!alive || disposed || labControlInFlight || controlInFlight || (!stop && (commandInFlight || withdrawalInFlight || coreControlInFlight))) return;
+              const guard = memoryGuard.current, current = guard.snapshot;
+              const fresh = guard.fresh && Number.isFinite(Date.parse(current?.observedAt)) && Date.now() - Date.parse(current.observedAt) <= 30000;
+              const connection = arr(current?.lab?.connections).find(item => item.connectionId === (attach ? expected.connectionId : payload.connectionId));
+              const send = arr(connection?.sends).find(item => item.sendId === payload.sendId);
+              if (!fresh || current?.lab?.ready !== true || current.lifecycle === 'stopping') return;
+              if (connect && !attach && !['idle', 'busy', 'waiting'].includes(current.state)) return;
+              if (attach && (!labIntentMatches(connection, payload) || connection.live !== false || connection.version !== expected.version || labSelection.current.id !== connection.connectionId)) return;
+              if (!connect && (!labConnectionValid(connection) || connection.version !== payload.expectedVersion || labSelection.current.id !== connection.connectionId)) return;
+              if (stop && (connection.status === 'disconnected' || (action === 'lab.pause' && connection.status === 'paused'))) return;
+              if (action === 'lab.reconcile' && !labCanReconcile(current, connection, send)) return;
+              if (stop) { labControlInFlight = true; setLabControl(action); } else { commandInFlight = true; setCommand(action); }
+              setLabError(''); setLabNotice('');
+              const instanceId = current.instanceId, selectionRevision = labSelection.current.revision, draftRevision = labDraft.current.revision;
+              const originalSend = send && { sendId: send.sendId, channelId: send.channelId, draftOperationId: send.draftOperationId, bodyHash: send.bodyHash };
+              const controller = new AbortController(); writes.add(controller);
+              const timeout = setTimeout(() => controller.abort(), 70000); deadlines.add(timeout);
+              let changed = false;
+              try {
+                const result = await api('commands', { action, payload, signal: controller.signal });
+                if (!alive || disposed) return;
+                const latest = guard.snapshot;
+                changed = !guard.fresh || latest?.instanceId !== instanceId || selectionRevision !== labSelection.current.revision || (connect && !attach && draftRevision !== labDraft.current.revision);
+                if (changed) throw new Error();
+                if (connect) {
+                  const returned = result?.connection;
+                  if (!labConnectionValid(returned) || (result.duplicate !== undefined && typeof result.duplicate !== 'boolean') || returned.requestId !== payload.requestId || returned.runId !== payload.runId || returned.expiresAt !== payload.expiresAt
+                    || !['tokens', 'calls', 'effects'].every(key => returned.budget?.[key] === payload.budget[key])
+                    || JSON.stringify(returned.channels.map(channel => channel.channelId).sort()) !== JSON.stringify([...payload.channelIds].sort())) throw new Error();
+                  if (attach) {
+                    const observed = arr(latest.lab?.connections).find(item => item.connectionId === expected.connectionId);
+                    changed = !observed || ![expected.version, returned.version].includes(observed.version) || !labIntentMatches(observed, payload);
+                    if (changed) throw new Error();
+                    if (result.duplicate !== true || returned.connectionId !== expected.connectionId || returned.version < expected.version || !labIntentMatches(returned, payload) || returned.live !== true) throw new Error();
+                    setLabNotice(t('labAttached'));
+                  } else {
+                    // A confirmed connection permits a later explicit new grant;
+                    // an uncertain request keeps its original identity for lookup.
+                    labDraft.current.payload = null;
+                    chooseLabConnection(returned.connectionId); setLabNotice(t('labAccepted'));
+                  }
+                } else {
+                  const observed = arr(latest.lab?.connections).find(item => item.connectionId === payload.connectionId);
+                  const returned = result?.connection;
+                  if (!labConnectionValid(returned) || returned.connectionId !== payload.connectionId || returned.version < payload.expectedVersion) throw new Error();
+                  changed = !observed || ![payload.expectedVersion, returned.version].includes(observed.version);
+                  if (changed) throw new Error();
+                  if (stop) {
+                    if (returned.status !== (action === 'lab.pause' ? 'paused' : 'disconnected')) throw new Error();
+                    setLabNotice(t('labControlAccepted'));
+                  } else {
+                    const actual = arr(returned.sends).find(item => item.sendId === payload.sendId);
+                    const latestSend = arr(observed.sends).find(item => item.sendId === payload.sendId);
+                    if (!actual || !latestSend || !['sendId', 'channelId', 'draftOperationId', 'bodyHash'].every(key => actual[key] === originalSend[key] && latestSend[key] === originalSend[key])
+                      || !['unknown', 'succeeded'].includes(actual.status)) throw new Error();
+                    setLabNotice(t('labReconcileAccepted'));
+                  }
+                }
+                await refresh(true);
+              } catch {
+                // Lab failures may originate from credential-bearing transports.
+                // Never render raw error or response strings in this request lane.
+                if (alive && !disposed) { setLabError(t(changed ? 'labChanged' : 'labUnconfirmed')); await refresh(true); }
+              } finally {
+                clearTimeout(timeout); deadlines.delete(timeout); writes.delete(controller);
+                if (stop) labControlInFlight = false; else commandInFlight = false;
+                if (alive && !disposed) { if (stop) setLabControl(''); else setCommand(''); }
+              }
+            }
+            operations.current = { refresh: () => refresh(true), command: issue, memory: issueMemory, semantic: issueSemantic, core: issueCore, lab: issueLab };
             const onVisibility = () => { setClock(Date.now()); if (canRead()) void refresh(); };
             document.addEventListener('visibilitychange', onVisibility);
             const timer = setInterval(() => { if (canRead()) { setClock(Date.now()); void refresh(); } }, 10000);
@@ -892,7 +1160,7 @@ window.__ModuleLoader__.load({
               writes.clear(); deadlines.clear(); clearInterval(timer); observer?.disconnect();
               memoryGuard.current.fresh = false; memoryGuard.current.body = null; memoryGuard.current.revision++;
               document.removeEventListener('visibilitychange', onVisibility);
-              operations.current = { refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {} };
+              operations.current = { refresh: () => {}, command: () => {}, memory: () => {}, semantic: () => {}, core: () => {}, lab: () => {} };
               panelDisposers.delete(cleanup);
             };
             panelDisposers.add(cleanup);
@@ -902,7 +1170,7 @@ window.__ModuleLoader__.load({
           const aged = Boolean(snapshot && (!Number.isFinite(observedMs) || clock - observedMs > 30000));
           const stale = Boolean(readError || aged);
           const state = snapshot?.state || 'unknown';
-          const canCommand = Boolean(snapshot && !stale && snapshot.lifecycle !== 'stopping' && !command && !controlCommand && !memoryWithdrawing && !coreControl);
+          const canCommand = Boolean(snapshot && !stale && snapshot.lifecycle !== 'stopping' && !command && !controlCommand && !memoryWithdrawing && !coreControl && !labControl);
           const canStartCommand = canCommand && state !== 'paused';
           const canCreateLocalTask = canStartCommand && typeof snapshot?.instanceId === 'string' && Boolean(snapshot.instanceId.trim());
           // Pausing has its own request lane, including while a long check is waiting.
@@ -1055,6 +1323,82 @@ window.__ModuleLoader__.load({
                     h(Facts, { rows: [['coreDecisionReceipt', evaluation.receipt ? label(evaluation.receipt.status) : t('unknownValue')], ['coreReasonCode', evaluation.receipt?.reasonCode ?? evaluation.reasonCode, true], ['taskId', evaluation.receipt?.taskId, true],
                       ['coreObservedTokens', numeric(evaluation.usage?.tokens)], ['calls', numeric(evaluation.usage?.calls)], ['embeddingUsageCompleteness', t(evaluation.usage?.complete === true ? 'usageComplete' : 'usageIncomplete')], ['sessionId', evaluation.sessionId, true]] }),
                     evaluation.status === 'unknown' && h('p', { className: 'syr-alert' }, t('coreUnknown')))))) : h(Empty, null, t(selectedCoreGoal ? 'coreNotInSnapshot' : 'coreSelect')))));
+          }
+          function labContent() {
+            const projection = snapshot.lab, connections = arr(projection?.connections).filter(labConnectionValid);
+            const connection = connections.find(item => item.connectionId === selectedLabConnection), ready = projection?.ready === true;
+            const runId = labRunId.trim(), channelIds = labChannels.trim().split(/[\s,]+/).filter(Boolean);
+            const budget = Object.fromEntries(['tokens', 'calls', 'effects'].map(key => [key, Number(labBudget[key])]));
+            const formValid = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$/.test(runId) && /^[A-Za-z0-9_-]{43}$/.test(labToken)
+              && channelIds.length >= 1 && channelIds.length <= 20 && new Set(channelIds).size === channelIds.length && channelIds.every(id => /^[A-Za-z][A-Za-z0-9_-]{0,79}$/.test(id))
+              && Object.entries(budget).every(([key, value]) => Number.isSafeInteger(value) && value > 0 && value <= (key === 'tokens' ? 100000000 : 1000));
+            const expiredDraft = labDraft.current.payload && Date.parse(labDraft.current.payload.expiresAt) <= clock;
+            const canConnect = ready && canStartCommand && ['idle', 'busy', 'waiting'].includes(state) && formValid && !expiredDraft;
+            const canAttach = ready && canCommand && connection?.live === false && labHistoricalIntentValid(connection) && /^[A-Za-z0-9_-]{43}$/.test(labToken);
+            const canStop = ready && !stale && snapshot.lifecycle !== 'stopping' && !labControl && !controlCommand && connection && connection.status !== 'disconnected';
+            const disabled = Boolean(command || labControl || controlCommand);
+            const field = (key, value, onChange, options = {}) => h('label', { className: 'syr-select-label' }, h('span', null, t(key)), h('input', {
+              className: 'syr-select', 'aria-label': t(key), value, disabled, autoComplete: 'off', onChange: event => onChange(event.target.value), ...options }));
+            const budgetFields = value => `${numeric(value?.tokens)} / ${numeric(value?.calls)} / ${numeric(value?.effects)}`;
+            return h('div', { className: 'syr-stack' },
+              h('section', { 'data-testid': 'lab-state' }, h('div', { className: 'syr-system-heading' }, h(Title, null, t('lab')), h('p', null, t('labHint'))),
+                !projection ? h(Empty, null, t('labUnavailable')) : !ready ? h('p', { className: 'syr-alert' }, t('labNotReady')) : h('p', { className: 'syr-small syr-muted' }, t('labScope')),
+                projection?.pump && h(Facts, { rows: [['labPump', label(projection.pump.state)], ['labActiveReplies', numeric(projection.pump.activeReplies)], ['checked', dateTime(projection.pump.lastPollAt, locale)]] }),
+                ['LAB_GROUP_TOO_LARGE', 'LAB_INPUT_BACKPRESSURE'].includes(projection?.pump?.errorCode) && h('p', { className: 'syr-alert', role: 'status', 'data-testid': 'lab-input-limit' },
+                  t(projection.pump.errorCode === 'LAB_GROUP_TOO_LARGE' ? 'labGroupTooLarge' : 'labInputBackpressure'))),
+              h('section', { className: 'syr-box syr-memory-form', 'data-testid': 'lab-form', 'aria-label': t('labConnectTitle') }, h(Title, null, t('labConnectTitle')), h('p', { className: 'syr-small syr-muted' }, t('labConnectHint')),
+                field('labRunId', labRunId, value => { changeLabDraft(); setLabRunId(value); }, { maxLength: 160 }),
+                field('labTargetToken', labToken, setLabToken, { type: 'password', maxLength: 43, autoComplete: 'new-password', spellCheck: false }),
+                h('p', { className: 'syr-small syr-muted' }, t('labTokenHint')),
+                field('labChannelIds', labChannels, value => { changeLabDraft(); setLabChannels(value); }, { maxLength: 1620 }), h('p', { className: 'syr-small syr-muted' }, t('labChannelHint')),
+                h('div', { className: 'syr-columns syr-section-gap' }, ...['tokens', 'calls', 'effects'].map(key => field(`labLimit_${key}`, labBudget[key], value => { changeLabDraft(); setLabBudget(current => ({ ...current, [key]: value })); }, { type: 'number', min: 1, step: 1 }))),
+                h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('labBudgetHint')),
+                h('label', { className: 'syr-select-label' }, h('span', null, t('coreLifetime')), h('select', { className: 'syr-select', 'aria-label': t('coreLifetime'), value: labLifetime, disabled,
+                  onChange: event => { changeLabDraft(); setLabLifetime(event.target.value); } }, h('option', { value: '30' }, t('core30Minutes')), h('option', { value: '60' }, t('core1Hour')))),
+                !formValid && (labRunId || labChannels) && h('p', { className: 'syr-small syr-muted' }, t('labInvalidForm')),
+                expiredDraft && h('p', { className: 'syr-small syr-muted' }, t('labExpiredDraft')),
+                h('div', { className: 'syr-actions' }, h(Button, { disabled: !canConnect, onClick: () => {
+                  if (!canConnect) return;
+                  labDraft.current.payload ||= { requestId: `lab-${crypto.randomUUID()}`, runId, channelIds, budget, expiresAt: new Date(Date.now() + Number(labLifetime) * 60000).toISOString() };
+                  const targetToken = labToken; setLabToken('');
+                  void operations.current.lab('lab.connect', { ...labDraft.current.payload, targetToken });
+                } }, t(command === 'lab.connect' ? 'labConnecting' : 'labConnect')))),
+              labError && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'lab-error' }, labError),
+              labNotice && h('div', { className: 'syr-feedback', role: 'status', 'data-testid': 'lab-notice' }, labNotice),
+              h('section', null, h(Title, { count: connections.length }, t('labConnections')), !connections.length && h(Empty, null, t('labNoConnections')),
+                h('div', { className: 'syr-task-layout' }, h('div', { className: 'syr-session-list', 'data-testid': 'lab-list' }, ...connections.map(item => h('button', { type: 'button', key: item.connectionId, className: 'syr-session-button',
+                  'aria-label': t('labView', { id: item.connectionId }), 'aria-pressed': selectedLabConnection === item.connectionId, onClick: () => chooseLabConnection(item.connectionId) },
+                  h('span', { className: 'syr-row syr-between syr-task-list-row' }, h('strong', { className: 'syr-break' }, item.runId), h(Status, { value: item.status })), h('span', { className: 'syr-id' }, item.connectionId)))),
+                  connection ? h('section', { className: 'syr-box syr-task-detail', 'aria-label': t('labDetails'), 'data-testid': 'lab-detail' },
+                    h('div', { className: 'syr-section-title' }, h('h2', null, t('labDetails')), h(Button, { icon: 'close', className: 'syr-btn syr-subtle', 'aria-label': t('close'), onClick: () => chooseLabConnection(null) })),
+                    h(Facts, { rows: [['labConnectionId', connection.connectionId, true], ['labRunId', connection.runId, true], ['labConnectionState', label(connection.status)], ['labTransport', label(connection.live === true ? 'connected' : connection.live === false ? 'not_attached' : 'unknown')], ['recordVersion', numeric(connection.version)], ['coreExpiresAt', dateTime(connection.expiresAt, locale)]] }),
+                    h('section', { className: 'syr-task-result', 'data-testid': 'lab-attach' }, h(Button, { disabled: !canAttach, onClick: () => {
+                      if (!canAttach) return;
+                      const targetToken = labToken; setLabToken('');
+                      void operations.current.lab('lab.connect', { requestId: connection.requestId, runId: connection.runId, channelIds: connection.channels.map(channel => channel.channelId),
+                        budget: { tokens: connection.budget.tokens, calls: connection.budget.calls, effects: connection.budget.effects }, expiresAt: connection.expiresAt, targetToken },
+                        { attach: true, connectionId: connection.connectionId, version: connection.version });
+                    } }, t('labAttach')), h('p', { className: 'syr-small syr-muted' }, t('labAttachHint'))),
+                    h('div', { className: 'syr-actions syr-section-gap' }, ...['pause', 'disconnect'].map(action => h(Button, { key: action, disabled: !canStop || (action === 'pause' && connection.status === 'paused'),
+                      onClick: () => void operations.current.lab(`lab.${action}`, { connectionId: connection.connectionId, expectedVersion: connection.version }) }, t(action === 'pause' ? 'labPause' : 'labDisconnect')))),
+                    h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('labStopHint')),
+                    h('section', { className: 'syr-task-result', 'data-testid': 'lab-budget' }, h(Title, null, t('coreBudget')), h('p', { className: 'syr-small syr-muted' }, t('labBudgetAxes')),
+                      h(Facts, { rows: [['coreBudgetLimit', budgetFields(connection.balance?.limits ?? connection.budget)], ['coreBudgetSpent', budgetFields(connection.balance?.spent)], ['coreBudgetHeld', budgetFields(connection.balance?.held)], ['coreBudgetAvailable', budgetFields(connection.balance?.available)]] }), h('p', { className: 'syr-small syr-muted' }, t('labBudgetHint'))),
+                    h('section', { className: 'syr-task-result', 'data-testid': 'lab-channels' }, h(Title, null, t('labChannels')), ...connection.channels.map(channel => h('article', { className: 'syr-entry', key: channel.channelId },
+                      h(Facts, { rows: [['labChannelId', channel.channelId, true], ['labChannelKind', ['group', 'direct'].includes(channel.kind) ? t(`labKind_${channel.kind}`) : t('unknownValue')],
+                        ['conversationId', channel.conversationId, true], ['labInputVersion', numeric(channel.inputVersion)], ['labInputEvent', channel.latestInput?.eventId, true], ['labInputSeq', numeric(channel.latestInput?.seq)],
+                        ['labPendingInputs', numeric(channel.pendingCount)]] })))),
+                    h('section', { className: 'syr-task-result', 'data-testid': 'lab-replies' }, h(Title, null, t('labReplies')), h('p', { className: 'syr-small syr-muted' }, t('labReplyHint')),
+                      !arr(connection.replies).length ? h(Empty, null, t('labNoReplies')) : arr(connection.replies).map(reply => h('article', { className: 'syr-entry', key: reply.replyId }, h(Facts, { rows: [
+                        ['labReplyId', reply.replyId, true], ['labChannelId', reply.channelId, true], ['labReplyStage', ['claimed', 'accounted', 'unknown', 'sent'].includes(reply.status) ? t(`labReply_${reply.status}`) : t('unknownValue')], ['labInputEvent', reply.anchorEventId, true]] })))),
+                    h('section', { className: 'syr-task-result', 'data-testid': 'lab-sends' }, h(Title, null, t('labSends')), h('p', { className: 'syr-small syr-muted' }, t('labReconcileHint')),
+                      !arr(connection.sends).length ? h(Empty, null, t('labNoSends')) : arr(connection.sends).map(send => h('article', { className: 'syr-entry', key: send.sendId, 'data-testid': 'lab-send' },
+                        h(Facts, { rows: [['labSendId', send.sendId, true], ['labChannelId', send.channelId, true], ['labDraftId', send.draftOperationId, true], ['labEffectState', label(send.status)],
+                          ['labDelivery', t(labDelivered(send) ? 'labDelivered' : send.status === 'unknown' ? 'labDeliveryUnknown' : 'labNotDelivered')], ['labDeliveryEvent', send.observation?.eventId, true]] }),
+                        send.status === 'unknown' && h(React.Fragment, null, h(Button, { disabled: !canCommand || !labCanReconcile(snapshot, connection, send),
+                          onClick: () => void operations.current.lab('lab.reconcile', { connectionId: connection.connectionId, sendId: send.sendId, expectedVersion: connection.version }) }, t('labReconcile')),
+                          !labCanReconcile(snapshot, connection, send) && h('p', { className: 'syr-small syr-muted' }, t('labReconcileBlocked')))))))
+                    : h(Empty, null, t(selectedLabConnection ? 'labNotInSnapshot' : 'labSelect')))));
           }
           function systemContent() {
             return h('section', null, h('div', { className: 'syr-system-heading' }, h('h2', null, t('implementation')), h('p', null, t('implementationHint'))),
@@ -1286,7 +1630,7 @@ window.__ModuleLoader__.load({
           return h('div', { className: 'syr', ref: rootRef }, h('style', null, css), h('div', { className: 'syr-wrap' },
             h('header', { className: 'syr-header' }, h('div', { className: 'syr-brand' }, h(Icon, { size: 27 }), h('div', null, h('h1', null, t('title')), h('div', { className: 'syr-meta' }, snapshot && h('span', null, `v${snapshot.version}`), h('span', null, t('source'))))),
               h('div', { className: 'syr-actions' }, snapshot && h(Button, { icon: state === 'paused' ? 'play' : 'pause', disabled: !canControl, onClick: () => void operations.current.command(state === 'paused' ? 'runtime.resume' : 'runtime.pause') }, t(state === 'paused' ? 'resume' : 'pause')), h(Button, { icon: 'refresh', disabled: loading, onClick: () => void operations.current.refresh(), 'aria-label': t('refresh'), 'aria-busy': loading }, t(loading ? 'refreshing' : 'refresh')))),
-            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'core', 'tasks', 'conversations', 'memory', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => setTab(id) }, t(id)))),
+            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'core', 'tasks', 'conversations', 'lab', 'memory', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => { if (tab === 'lab' && id !== 'lab') setLabToken(''); setTab(id); } }, t(id)))),
             stale && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'snapshot-stale' }, h('strong', null, t(snapshot ? 'staleTitle' : 'loadFailed')), h('p', null, readError || t('snapshotOld')), snapshot && h('p', null, t('staleHint'))),
             commandError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), commandError),
             controlError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), controlError),
@@ -1294,7 +1638,7 @@ window.__ModuleLoader__.load({
             controlNotice && h('p', { className: 'syr-feedback', role: 'status' }, controlNotice),
             command && h('p', { className: 'syr-feedback', role: 'status' }, t(command === 'session.verify-model' ? 'modelVerifyPending' : command === 'conversation.verifyContext' ? 'contextVerifyPending' : 'controlPending', { id: contextAttempt?.conversationId || t('unknownValue') })),
             controlCommand && h('p', { className: 'syr-feedback', role: 'status' }, t('controlPending')),
-            snapshot ? (tab === 'overview' ? overview() : tab === 'core' ? coreContent() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'memory' ? memoryContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
+            snapshot ? (tab === 'overview' ? overview() : tab === 'core' ? coreContent() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'lab' ? labContent() : tab === 'memory' ? memoryContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
             h('footer', { className: 'syr-footer' }, h('span', null, lastRead ? `${t('lastRead')} · ${dateTime(lastRead, locale)}` : t('unknownHint')), h('span', null, t('autoRefresh')))));
         }
         ctx.effect(() => {

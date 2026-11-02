@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "phase": "3H",
+  "status": "offline-verified-host-not-run",
+  "recordedAt": "2026-11-02T14:00:14Z",
+  "baselineCommit": "f6a4d2a59dbfd1f6c7e6f8832042064c1ecaffd2",
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "realLabRoomOperations": 0,
+    "hostReloads": 0,
+    "workbenchModified": false,
+    "labProtocol": "Narrow public message.receipt extension; production Shiyu imports no Lab engine implementation."
+  },
+  "validation": [
+    {
+      "level": "this-turn offline",
+      "package": "plugins/shiyu",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 907,
+      "passed": 907,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "moduleDurationMs": 92835.091084,
+      "typecheck": true,
+      "build": true,
+      "clientSyntax": true
+    },
+    {
+      "level": "this-turn simulated-host UI",
+      "package": "plugins/shiyu",
+      "command": "npm run test:ui",
+      "exitCode": 0,
+      "passed": 190,
+      "failed": 0,
+      "reportedDuration": "1.8m",
+      "visualReview": "390px Chinese/light and English/dark send sections"
+    },
+    {
+      "level": "this-turn isolated synthetic Lab",
+      "package": "lab",
+      "command": "npm run typecheck && npm test && npm run test:plugin && npm run check:plugin",
+      "exitCode": 0,
+      "engineTests": 109,
+      "pluginTests": 33,
+      "failed": 0,
+      "engineDurationMs": 38933.097625,
+      "pluginDurationMs": 4864.346958,
+      "typecheck": true,
+      "pluginBuild": true,
+      "pluginSyntax": true
+    },
+    {
+      "level": "this-turn packaging",
+      "package": "plugins/shiyu",
+      "command": "npm pack --dry-run --json",
+      "exitCode": 0,
+      "files": 178,
+      "packageBytes": 537518,
+      "unpackedBytes": 2136194,
+      "newCompiledLabModulesPresent": true,
+      "runtimeDataAndDependenciesExcluded": true
+    }
+  ],
+  "independentIntegration": {
+    "includedIn907": true,
+    "tests": 18,
+    "channels": 20,
+    "kinds": [
+      "direct",
+      "group"
+    ],
+    "snapshotReads": 1000,
+    "oracle": "Independent remote-side delivered ledger, separate from both Shiyu control rows and operation receipts.",
+    "verified": [
+      "run/channel and participant provenance isolation",
+      "same native Session through ordinary turns/pause/reconnect",
+      "cross-connection input idempotency and unknown delivery fencing",
+      "new input invalidates old draft",
+      "final asynchronous and synchronous dispatch gates",
+      "lost response after durable delivery before operation receipt",
+      "read-only receipt observation after expiry/new input/terminal room/reconnect",
+      "not_found and ambiguous preserve unknown and budget hold",
+      "control DB contains no token/input/draft bodies",
+      "snapshot causes no writes/native/network calls"
+    ]
+  },
+  "corrections": [
+    "Do not use repeated act as reconciliation: delivery and operation receipt are not atomic.",
+    "Stable run/channel identity and cancellation generations preserve native Session; actual audience changes retire epoch.",
+    "Retain observation transport at terminal; same-run approved reconnect can observe old operations.",
+    "Final synchronous gate follows asynchronous preflight before act.",
+    "Bounded pending inputs stop explicitly instead of dropping oldest or selecting only a tail.",
+    "Runtime pause fixture waits for both blocked native steps rather than merely entered requests."
+  ],
+  "limitations": [
+    "No live 3H DSH/model/room validation; existing host is not claimed to load this build.",
+    "Text reply only; no Lab files, Office, task completion declarations or management.",
+    "One active run and at most 20 owner-approved channels; no real enterprise accounts or generic platform connector.",
+    "Overflow retains input metadata and stops that channel; no automatic summary or backlog recovery.",
+    "Token is not restored after host restart; explicit owner attach/reconnect required.",
+    "Lab sealed identity invalidated by Lab reload remains unavailable; no authentication bypass.",
+    "Observed-primary usage is not full provider billing or transport retries; reservations are not exact pre-call hard token limits.",
+    "No full crash/disaster recovery, backups, long-history compression/cache-benefit or complete Lab S/FL/nine-system acceptance."
+  ],
+  "logs": {
+    "phase3h-check.log": {
+      "bytes": 99279,
+      "sha256": "88b822f6878a5544cb40472e8275a85d0c3735513bf7f81ec28a7132a1315cdc"
+    },
+    "phase3h-ui.log": {
+      "bytes": 27051,
+      "sha256": "2dbb93397c52d61a49b33cffd58c2a3271f41937bc75c65cffc7719bdd7781a4"
+    },
+    "phase3h-lab-check.log": {
+      "bytes": 14893,
+      "sha256": "c41c3d2bf49a9d0227bb6fc7fabf764e638c94addf084042e7f11b1fa7e9b3ca"
+    },
+    "phase3h-pack.json": {
+      "bytes": 20270,
+      "sha256": "c9ef73172e1a256fb80e01eeeebef9f88ba5a7a19ff539f8596c6c60beb274b9"
+    }
+  },
+  "logNote": "Lab stdout log begins after initial tool yield; first two engine cases were shown in the initial result. Full summary and final exit code were verified. Targeted batches are included in final totals, not added.",
+  "sourceAndTestManifest": [
+    {
+      "path": "lab/plugin/collaboration.js",
+      "bytes": 21911,
+      "sha256": "8136b3e3b43b96dd46e4f9ca6d528ff0b332dffb971481549ee38bc8fb49351c"
+    },
+    {
+      "path": "lab/plugin/service.js",
+      "bytes": 24199,
+      "sha256": "90d42ad197b963aa9146ec77893b0b233bd40115d97524a1cb8a98198abc5736"
+    },
+    {
+      "path": "lab/plugin/tests/message-receipt.test.js",
+      "bytes": 5487,
+      "sha256": "09ca4f91e78f7b32740c814bd30691bf563462a667a672d859367e7adf480452"
+    },
+    {
+      "path": "lab/src/engine.ts",
+      "bytes": 65612,
+      "sha256": "9b79240b790ce27e274bd40ad050539a664ed405e95fd543517165dbe6ca9658"
+    },
+    {
+      "path": "lab/src/protocol.ts",
+      "bytes": 4263,
+      "sha256": "a174c3976281c2c2e3c32dc48bfeef49a4af22e3cd446400b1c510d07a3b0733"
+    },
+    {
+      "path": "lab/src/store.ts",
+      "bytes": 11968,
+      "sha256": "800fae184e9e4b8ce0c49b30d574ab97f1aa8e3f4d7ff9bb65f623d809cb3f30"
+    },
+    {
+      "path": "lab/tests/message-receipt.test.ts",
+      "bytes": 7851,
+      "sha256": "13a06c35aea07103f67235c344c37819be4fb4c6e47f396083ded6619c7bcfe1"
+    },
+    {
+      "path": "plugins/shiyu/client/index.js",
+      "bytes": 210153,
+      "sha256": "f1fd84e9f64f9754b3e8b018861c945127788751c576fca70feeb159017e2165"
+    },
+    {
+      "path": "plugins/shiyu/locale/en.json",
+      "bytes": 35461,
+      "sha256": "d1b64f9063fb51f72308d0ae041550ae170c7a78f10690deb8cf590ec4395762"
+    },
+    {
+      "path": "plugins/shiyu/locale/zh.json",
+      "bytes": 32552,
+      "sha256": "23e3ace322ac543d5fdb02da6bf289b5305e4bf0720b20997fc07c4f19a5a89e"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/authority.ts",
+      "bytes": 9432,
+      "sha256": "ee6421359d07e78af71504973bdf230951e5404d681bf8a177aa0eeeb18e5413"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/conversation-domain.ts",
+      "bytes": 26054,
+      "sha256": "6f2d5644efd9bc1e41257339a4e1528f9c883ee966505c4291b1a33bf077d16f"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/lab-domain.ts",
+      "bytes": 38509,
+      "sha256": "90467ab26e3482074961067490ee25d1ce2970cfac298eb1c0d5d90fe1b420a7"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/local-reply-domain.ts",
+      "bytes": 31044,
+      "sha256": "cedcb3847fa04ddfc5a569d77fdd193ed39cd30038fc30b348a43563b3c926bb"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/protocol.ts",
+      "bytes": 4688,
+      "sha256": "219f621431ad1efa9525cd61343eb73d1c214456d4a2ed060eebebaa0b20264d"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+      "bytes": 48958,
+      "sha256": "8eedf7d3707a3a7f5d55afe027c747d4ac3960e9439c0abba1f7069c07f78539"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+      "bytes": 7549,
+      "sha256": "487221f85323e3687f4b2ffe7ca99002fbd9f28ef82cb6f179669191a4ad2ed7"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/sessions.ts",
+      "bytes": 69628,
+      "sha256": "36750e3686174c4b7fe348eba2dbcf704269831f5728db4e17a71df6012d15f2"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/lab/index.ts",
+      "bytes": 18885,
+      "sha256": "5b9ff2d6343791dd73578055e61baeaf009dbd96bb23929fcfd9a364e8d59cce"
+    },
+    {
+      "path": "plugins/shiyu/src/contracts/lab.ts",
+      "bytes": 4504,
+      "sha256": "763d7c0a0de96eb71cf4ae2da48204c48bdfe93a0ec6611794af03627be8ae7e"
+    },
+    {
+      "path": "plugins/shiyu/src/control/lab.ts",
+      "bytes": 31669,
+      "sha256": "888da8f70360c86fbfa86d7726d442ad6a3960de619ef129e5f89b5b817e22ad"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-reply.ts",
+      "bytes": 21081,
+      "sha256": "bfd5d86a5a7e72ad3f0b30286760a73c35271914272df37eebc591389844f1dd"
+    },
+    {
+      "path": "plugins/shiyu/src/health/systems.ts",
+      "bytes": 1877,
+      "sha256": "dfb6e86d998fa443b9e5b03de61427c3132c177a16f73d59b79fe9f3a7e6e9fa"
+    },
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 70703,
+      "sha256": "c1181ccbe7246442e312353a03e51d76c006f0cd50ec3a2c4bf44b95c0e126ac"
+    },
+    {
+      "path": "plugins/shiyu/tests/fixtures/lab-integration.ts",
+      "bytes": 12117,
+      "sha256": "dec1e455e8493baedbe41ef997eddcbbd01ae2d1a0f63c71c3314c5d67bc588d"
+    },
+    {
+      "path": "plugins/shiyu/tests/lab-adapter.test.ts",
+      "bytes": 25094,
+      "sha256": "06fd48d067699572a6374f5a56a441f91c8ef3f8c0a3c8fa19557ff43e7e0358"
+    },
+    {
+      "path": "plugins/shiyu/tests/lab-conversation.test.ts",
+      "bytes": 9489,
+      "sha256": "ac18b5dec049dca54e080b910f5b746b86b7b7bf12b7bae17dd703c973df29a4"
+    },
+    {
+      "path": "plugins/shiyu/tests/lab-domain.test.ts",
+      "bytes": 28622,
+      "sha256": "a14e44ec4de8265fbfb0a039f4cf123a28632e58e3e3163eefb8f602c3c058f3"
+    },
+    {
+      "path": "plugins/shiyu/tests/lab-integration.test.ts",
+      "bytes": 25924,
+      "sha256": "a192c4474d4b8dee581d057896d616be7283450fc2c49d667efeb44244d94e02"
+    },
+    {
+      "path": "plugins/shiyu/tests/lab-service.test.ts",
+      "bytes": 29583,
+      "sha256": "fe0649de9c97221b1249e321c554c322a26f745ede2a2fe0334a6b45fd2ba11d"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply-domain.test.ts",
+      "bytes": 20284,
+      "sha256": "2f18e694ebbb941dbe4862b50fcdebdd89b9eae0e9091017c89bb0649fa69c8c"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply.test.ts",
+      "bytes": 26012,
+      "sha256": "de57601b9222f1122a64abad31584dbe32ca78db576d429cb0d051d99027a22f"
+    },
+    {
+      "path": "plugins/shiyu/tests/mandates-catalog.test.ts",
+      "bytes": 45941,
+      "sha256": "4162d1e8db2f45c194ee5e23bbea8d8a6bfdb282fea8a4960117548d4fafc8dc"
+    },
+    {
+      "path": "plugins/shiyu/tests/runtime-lab.test.ts",
+      "bytes": 8822,
+      "sha256": "c615d09ca814bcaa8d0e298f1f3aeea406a1039179d29d4b4869b233bfdf9496"
+    },
+    {
+      "path": "plugins/shiyu/tests/session-draft-read.test.ts",
+      "bytes": 10896,
+      "sha256": "57dfcc362c9420f9bc161d0bd903c1d44b5ff05305cbc2fa70082cb3a9e1b523"
+    },
+    {
+      "path": "plugins/shiyu/tests/session-reply-accounting.test.ts",
+      "bytes": 22440,
+      "sha256": "b1757b86c7965ece7f028a002787e88fdb79920d3003519126f54fea93e698fc"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/lab.spec.mjs",
+      "bytes": 27602,
+      "sha256": "aa58acc5a7c1ff93d3a44740dcd9d58b4e4c02e3b26531195dac077a14cdac52"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/playwright.config.mjs",
+      "bytes": 1356,
+      "sha256": "2cc504e532719bea26166f8052179099a216417ce0cbf6831c49eec573e158a5"
+    }
+  ]
+}

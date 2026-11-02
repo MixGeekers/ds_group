@@ -14,6 +14,12 @@ export const protocol = {
     'POST /target/runs/:runId/actions，正文为 { operationId, action }。工作文件路径相对 workspace。',
     '任务状态是 Agent 的上报；验收读取实际文件、服务状态和送达事件。最后更新任务状态并交付到对应会话。'
   ],
+  messageReceipt: {
+    transport: 'DSH 插件 public target 接口：{ runId, targetToken, request }；非下方 standalone REST actions。',
+    request: { action: 'message.receipt', operationId: '原发送操作标识', channelId: '原会话标识', bodyHash: '实际送达正文 UTF-8 SHA-256，小写64位十六进制；message.send 会 trim 正文' },
+    response: { status: 'delivered | not_found | ambiguous', runId: '当前运行', operationId: '原发送操作标识', channelId: '原会话标识', bodyHash: '原查询散列', eventId: '仅 delivered：唯一持久送达事件', observedAt: '仅 delivered：该事件的 at' },
+    rule: '只读单个运行的持久事件，不重发、不修改事件或运行。相同 operationId 出现多条送达事件一律 ambiguous；仅唯一 target/SHIYU 送达且 channelId 与正文散列匹配才 delivered。not_found 不证明未发送；日志缺失、损坏或截断时拒绝查询，调用方保持 unknown。活动和封存房间均需原有效接入身份。'
+  },
   actions: {
     'file.read': { path: 'inputs/orders.csv' },
     'file.write': { taskId: 'T01', path: 'outputs/T01/result.json', content: '{...}', encoding: 'utf8 | base64' },

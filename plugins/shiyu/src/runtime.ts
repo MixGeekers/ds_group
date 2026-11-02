@@ -7,7 +7,7 @@ import { EventService } from './control/events/index.js';
 import { SHIYU_EVENT_TYPES } from './contracts/events.js';
 import type { EventPrincipal, EventTypeDefinition } from './contracts/events.js';
 import { ShiyuSessionAdapter } from './adapters/dsh/sessions.js';
-import type { DshContext, SessionStatus, ProbeResult, ReplyRequest, ReplyResult, ContextLoadRequest, ContextLoadResult } from './adapters/dsh/sessions.js';
+import type { DshContext, SessionStatus, ProbeResult, ReplyRequest, ReplyResult, ReplyDraftReadRequest, ReplyDraftReadResult, ContextLoadRequest, ContextLoadResult } from './adapters/dsh/sessions.js';
 import { LocalStateFile } from './recovery/local-state.js';
 import { systems } from './health/systems.js';
 import { WorkerSessionDriver } from './adapters/dsh/workers.js';
@@ -27,6 +27,8 @@ import type { AvailableMemoryDomain, UnavailableDomain } from './state/publicati
 import { CorePump, type CoreEvaluationResult } from './control/core-pump.js';
 import { LocalCoreService, type LocalCoreOptions } from './control/local-core.js';
 import type { CoreGoal, CorePrepareInput } from './contracts/core.js';
+import { LabTargetAdapter } from './adapters/lab/index.js';
+import { LabService, type LabServiceOptions, type LabOwnerConnectInput, type LabOwnerControlInput, type LabOwnerReconcileInput, type LabActivity } from './control/lab.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
@@ -47,6 +49,7 @@ export interface SessionDriver {
   probe(): Promise<ProbeResult>;
   generateReply(request: ReplyRequest): Promise<ReplyResult>;
   loadContextOnly?(request: ContextLoadRequest): Promise<ContextLoadResult>;
+  readReplyDraft?(request: ReplyDraftReadRequest): Promise<ReplyDraftReadResult>;
   getStatus(): Promise<SessionStatus[]>;
   cancel(key: string): Promise<void>;
   close(): Promise<void>;
@@ -71,6 +74,9 @@ export interface RuntimeOptions {
   goalFactory?: (options: GoalLifecycleOptions) => GoalLifecycleDriver;
   /** Trusted composition only; public commands cannot supply a planner or authority. */
   coreFactory?: (options: LocalCoreOptions) => CoreDriver;
+  /** Trusted composition seam; never accept an adapter or token reader from command JSON. */
+  labFactory?: (options: LabServiceOptions) => LabService;
+  labAdapterFactory?: LabServiceOptions['adapterFactory'];
   /** Trusted fixture/composition only; never accepted from command JSON. */
   memoryFactory?: (config: ManagedOmbreConfig) => Pick<ManagedOmbreBackend, 'adapter' | 'open' | 'status' | 'close'>;
 }
@@ -107,6 +113,8 @@ export class RuntimeService {
   private core?: CoreDriver;
   private corePump?: CorePump;
   private coreFailure?: string;
+  private lab?: LabService;
+  private labFailure?: string;
   localReplies!: LocalReplyService;
   private localMemories?: LocalMemoryService;
   private memorySearch?: LocalMemorySearchService;
@@ -197,6 +205,20 @@ export class RuntimeService {
       this.goals = this.options.goalFactory?.(goalOptions) ?? new LocalGoalLifecycleService(goalOptions);
       await this.goals.initialize();
       await this.store.request('task.setPaused', { paused: this.pauseRequested });
+      const labStatus = await this.store.request('lab.status', {});
+      if (labStatus.ready) {
+        try {
+          const labOptions: LabServiceOptions = { store: this.store, sessions: this.sessions,
+            adapterFactory: this.options.labAdapterFactory ?? (() => new LabTargetAdapter({ ctx: this.ctx })),
+            assertRuntimeAllowed: () => {
+              this.ensureCanRun();
+              if (!this.contextSafety.ready) throw new Error('Native context safety is unavailable');
+            },
+            tryAcquireActivity: input => this.acquireLabActivity(input),
+          };
+          this.lab = this.options.labFactory?.(labOptions) ?? new LabService(labOptions);
+        } catch { this.labFailure = 'LAB_INITIALIZATION_FAILED'; }
+      } else this.labFailure = labStatus.errorCode ?? 'LAB_UNAVAILABLE';
       const coreStatus = await this.store.request('core.status', {});
       if (coreStatus.ready) {
         try {
@@ -238,6 +260,7 @@ export class RuntimeService {
         this.lastFailure = error instanceof Error ? error.message : String(error);
       });
     } catch (error) {
+      await this.lab?.close().catch(() => undefined);
       await this.corePump?.close().catch(() => undefined);
       await this.core?.close().catch(() => undefined);
       await this.memorySearch?.close().catch(() => undefined);
@@ -258,6 +281,24 @@ export class RuntimeService {
     this.state.assertHealthy();
   }
   private ensureCanRun(): void { this.ensureOpen(); if (this.pauseRequested) throw new Error('Runtime is paused'); }
+  /** Reserve a shared slot synchronously, before the Lab coordinator can await a claim. */
+  private acquireLabActivity(input: { connectionId: string; channelId: string; phase: string; signal: AbortSignal }): LabActivity | undefined {
+    this.ensureCanRun(); input.signal.throwIfAborted();
+    if (!this.contextSafety.ready || this.operations.size + this.pendingAdmissions >= 2) return undefined;
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: `lab-${randomUUID()}`, title: `Lab · ${input.channelId}`, phase: input.phase,
+      status: 'running', controller: new AbortController(), done, finish };
+    this.operations.set(op.id, op);
+    let released = false;
+    return { signal: AbortSignal.any([input.signal, op.controller.signal]), update: phase => { if (!released) op.phase = phase; }, release: () => {
+      if (released) return; released = true; this.operations.delete(op.id); op.finish();
+      if (!this.closed && !this.closing) {
+        void this.corePump?.wake();
+        void this.scheduleQueuedTasks().catch(() => { this.lastFailure = 'TASK_SCHEDULING_FAILED'; });
+      }
+    } };
+  }
   /** Trusted lifecycle publication. Dashboard reads never publish or probe a backend. */
   private async publishMemoryAvailability(): Promise<void> {
     const current = await this.store.request('view.state', {});
@@ -284,12 +325,16 @@ export class RuntimeService {
       this.pauseRequested = true;
       this.corePump?.cancelEvaluation(new Error('Runtime paused'));
       this.core?.cancelAll(new Error('Runtime paused'));
-      for (const op of this.operations.values()) op.controller.abort();
+      // Lab cancellation follows its durable shared pause fence. Its dispatch
+      // gates already see pauseRequested immediately while that write is pending.
+      for (const op of this.operations.values()) if (!op.id.startsWith('lab-')) op.controller.abort();
     }
     const command = this.controlTail.then(async () => {
       if (paused) {
         await this.state.update(state => { state.paused = true; });
         await this.store.request('task.setPaused', { paused: true });
+        this.lab?.onRuntimePaused();
+        for (const op of this.operations.values()) if (op.id.startsWith('lab-')) op.controller.abort();
       } else {
         // Keep the durable stop until the domain accepted the resume. A failed
         // database update must not silently become a resume on the next boot.
@@ -341,15 +386,21 @@ export class RuntimeService {
         ...(this.corePump ? { pump: this.corePump.snapshot() } : {}), goals: entries };
     } catch { return { ready: false, errorCode: 'CORE_SNAPSHOT_UNAVAILABLE', goals: [] }; }
   }
+  private async labSnapshot() {
+    if (!this.lab) return { ready: false, errorCode: this.labFailure ?? 'LAB_UNAVAILABLE', connections: [] };
+    try { return await this.lab.snapshot(); }
+    catch { return { ready: false, errorCode: 'LAB_SNAPSHOT_UNAVAILABLE', connections: [] }; }
+  }
   async snapshot() {
     this.ensureOpen();
-    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection, core] = await Promise.all([
+    const [info, stats, recent, subscriptions, sessions, tasks, conversations, innerProjection, core, lab] = await Promise.all([
       this.store.info(), this.events.stats(principal), this.events.listEvents(principal, { limit: 40 }),
       this.events.listSubscriptions(principal), this.sessions.getStatus(),
       this.store.request('task.list', {}),
       this.store.request('conversation.snapshotLocal', {}),
       this.store.request('view.state', {}),
       this.coreSnapshot(),
+      this.labSnapshot(),
     ]);
     const at = new Date().toISOString();
     const probe = this.state.state.lastProbe;
@@ -366,11 +417,12 @@ export class RuntimeService {
     const memoryReady = Boolean(this.localMemories && memoryBackend?.state === 'ready' && !memoryError);
     return {
       schemaVersion: 1, version: VERSION, instanceId: this.instanceId, startedAt: this.startedAt, observedAt: at,
-      lifecycle: this.lastFailure || memoryError || this.semanticFailure || !core.ready || ('unresolved' in core && core.unresolved) || ('pump' in core && core.pump?.state === 'degraded') || memoryBackend?.state === 'failed' || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
+      lifecycle: this.lastFailure || memoryError || this.semanticFailure || !core.ready || !lab.ready || ('unresolved' in core && core.unresolved) || ('pump' in core && core.pump?.state === 'degraded') || ('pump' in lab && lab.pump?.state === 'degraded') || memoryBackend?.state === 'failed' || backgroundState.state === 'degraded' || conversations.background.failed > 0 ? 'degraded' : 'ready',
       state: this.pauseRequested ? 'paused' : this.operations.size ? 'busy' : 'idle',
       systems: structuredClone(systems),
       tasks,
       core,
+      lab,
       conversations: conversations.conversations,
       innerProjection: innerProjection ?? null,
       memory: { configured: Boolean(this.memoryConfig) || Boolean(this.memoryFailure), ready: memoryReady,
@@ -397,13 +449,14 @@ export class RuntimeService {
         { id: 'native-context', name: '原生上下文接线', status: this.contextSafety.ready ? 'available' : 'unavailable', summary: this.contextSafety.ready ? '消息工厂与原生持久化接口已加载；不代表上下文已实际加载或模型已验证。' : this.contextSafety.error ?? '上下文接线尚未准备', checkedAt: this.startedAt },
         { id: 'memory', name: '长期记忆', status: memoryReady ? 'available' : this.memoryConfig || memoryError ? 'unavailable' : 'unconfigured',
           summary: memoryReady ? this.memorySearch ? '受控存取、独立索引与同会话语义读取已接线；embedding 实测及索引覆盖按实际回执显示。' : '受控原生存取与精确读取已连接；语义检索未配置。' : memoryError ?? (this.memoryConfig ? '受控记忆等待启动或连接核对' : '尚未配置受控记忆服务') },
-        { id: 'channels', name: '外部频道与设备', status: 'unconfigured', summary: '尚未接入' },
+        { id: 'channels', name: 'Lab 频道', status: lab.connections.some(connection => connection.live && connection.status === 'connected') ? 'available' : lab.ready ? 'unconfigured' : 'unavailable',
+          summary: lab.ready ? '支持显式连接获准 Lab 群聊与私聊；刷新不访问房间、创建会话或发送消息。' : lab.errorCode ?? 'Lab 接线不可用' },
       ],
       // Session-level records are shown above. An incomplete aggregate is unknown,
       // rather than summing only the measured requests and presenting a false zero.
       usage: { calls: null, inputTokens: null, outputTokens: null, cacheReadTokens: null },
       notices: [
-        { id: 'scope', level: 'info', message: '已接入原生会话、事件、本地任务与记忆读取；core 仅在显式目标范围和共享预算内选择已授权事项，开放式规划、其余内层状态及外部渠道仍待接入。' },
+        { id: 'scope', level: 'info', message: '已接入原生会话、事件、本地任务、记忆读取与受控 Lab 对话；core 仅在显式目标范围和共享预算内选择已授权事项，开放式规划、其余内层状态及真实外部渠道仍待接入。' },
         ...(this.pauseRequested ? [{ id: 'paused', level: 'info', message: '已暂停新的模型操作；已发生效果不会因暂停回滚。' }] : []),
         ...(this.lastFailure ? [{ id: 'operation', level: 'warning', message: this.lastFailure }] : []),
         ...(backgroundState.lastFailure ? [{ id: 'background', level: 'warning', message: `对话背景处理待核对：${backgroundState.lastFailure}` }] : []),
@@ -418,6 +471,7 @@ export class RuntimeService {
     const fields = Object.getOwnPropertyDescriptors(value);
     if (![Object.prototype, null].includes(Object.getPrototypeOf(value)) || Object.values(fields).some(field => !Object.hasOwn(field, 'value'))) throw new Error('Expected command data fields');
     const action = fields.action?.value;
+    if (action === 'lab.connect' || action === 'lab.pause' || action === 'lab.disconnect' || action === 'lab.reconcile') return this.commandLab(value, signal);
     if (action === 'core.create' || action === 'core.pause' || action === 'core.resume' || action === 'core.cancel') return this.commandCore(value, signal);
     if (action === 'memory.rememberLocal' || action === 'memory.readLocal' || action === 'memory.withdrawLocal') return this.commandLocalMemory(value, signal);
     if (action === 'memory.indexLocal' || action === 'memory.searchLocal') return this.commandSemanticMemory(value, signal);
@@ -521,6 +575,32 @@ export class RuntimeService {
       if (action === 'goal.verify-lifecycle') await this.state.update(state => { state.lastGoalVerification = { at: new Date().toISOString(), ok: false, message: this.lastFailure!, instanceId: this.instanceId }; });
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
+  private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (!this.lab) throw new Error('LAB_UNAVAILABLE');
+    const action = value.action;
+    const keys = action === 'lab.connect' ? ['action', 'requestId', 'runId', 'targetToken', 'channelIds', 'budget', 'expiresAt']
+      : action === 'lab.reconcile' ? ['action', 'connectionId', 'sendId', 'expectedVersion'] : ['action', 'connectionId', 'expectedVersion'];
+    if (Object.keys(value).some(key => !keys.includes(key)) || keys.some(key => !Object.hasOwn(value, key))) throw new Error('LAB_INVALID_INPUT');
+    const { action: _action, ...args } = value;
+    try {
+      if (action === 'lab.connect') {
+        // The coordinator distinguishes a fresh model grant from an exact
+        // historical intent used only to attach a receipt-reading transport.
+        // The latter must remain reachable during pause and context failure.
+        signal?.throwIfAborted();
+        return await this.lab.connect(args as unknown as LabOwnerConnectInput, signal);
+      }
+      // Stops and read-only observations remain available while globally paused.
+      if (action === 'lab.pause') return await this.lab.pause(args as unknown as LabOwnerControlInput);
+      if (action === 'lab.disconnect') return await this.lab.disconnect(args as unknown as LabOwnerControlInput);
+      return await this.lab.reconcile(args as unknown as LabOwnerReconcileInput, signal);
+    } catch (error) {
+      // Transport/native errors must never echo the private target token or text.
+      const safeCode = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string'
+        && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'LAB_OPERATION_UNCONFIRMED';
+      throw new Error(safeCode);
+    }
   }
   private async commandCore(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
     if (!this.core) throw new Error('Core control is unavailable');
@@ -680,6 +760,8 @@ export class RuntimeService {
     this.operations.set(op.id, op);
     let requestedRounds = 0;
     try {
+      const source = (await this.store.request('conversation.snapshotLocal', { conversationId: value.conversationId as string })).conversations[0]?.source;
+      if (source?.kind === 'lab') throw new Error('Lab replies require the connection coordinator and its current authority');
       if (loadOnly) {
         const result = await this.localReplies.load({ conversationId: value.conversationId as string, inputId: value.inputId as string, text: value.text as string, signal: op.controller.signal });
         this.ensureCanRun(); op.controller.signal.throwIfAborted();
@@ -774,6 +856,8 @@ export class RuntimeService {
     void coreClosing?.catch(() => undefined);
     const backgroundClosing = this.background?.close();
     const replyClosing = this.localReplies?.close();
+    const labClosing = this.lab?.close();
+    void labClosing?.catch(() => undefined);
     const memoryClosing = this.localMemories?.close();
     const searchClosing = this.memorySearch?.close();
     // Resume may be waiting for open on controlTail. Cancel that owned startup
@@ -788,7 +872,7 @@ export class RuntimeService {
         await Promise.allSettled([...this.admissions]);
         // A failed native close does not prove a concurrent evaluation stopped.
         // Drain every owner before closing the store used by late fact records.
-        const stopped = await Promise.allSettled([backgroundClosing, corePumpClosing, coreClosing]);
+        const stopped = await Promise.allSettled([backgroundClosing, corePumpClosing, coreClosing, labClosing]);
         const failures = stopped.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
         try {
           const results = await Promise.allSettled([this.sessions?.close(), this.workers?.close(), this.goals?.close()]);

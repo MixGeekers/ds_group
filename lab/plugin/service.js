@@ -193,6 +193,10 @@ export class GymService {
   async targetCall(runId, args, signal) {
     signal?.throwIfAborted();
     if (!object(args)) throw new Error('无效目标请求');
+    if (args.action === 'message.receipt') {
+      if (Object.keys(args).some(key => !['action', 'operationId', 'channelId', 'bodyHash'].includes(key))) throw new Error('无效消息回执查询');
+      return this.engine.messageReceipt(runId, { operationId: args.operationId, channelId: args.channelId, bodyHash: args.bodyHash });
+    }
     if (args.action === 'inspect') return this.targetView(runId);
     if (args.action === 'preview') return this.preview(runId, args.path, args.offset, true);
     if (args.action === 'inputs') {

@@ -23,3 +23,5 @@ npx playwright test --config tests/ui/playwright.config.mjs
 `conversation.verifyContext` 返回合成的背景持久化、每轮草稿放行核验及同 Session 两轮检查回执。GET 的 pending 投影和保存记录可独立设定，不因回执成功自动清空；可模拟延迟、错误和篡改字段。测试覆盖显式请求、对话／绑定一致性、切换详情、历史记录、暂停通道及 95 秒客户端等待上限；不加载真实背景或调用模型。定向运行：`npm run test:ui -- context-verification.spec.js`。
 
 `memory.rememberLocal`、`memory.readLocal` 和 `memory.withdrawLocal` 仅操作合成服务内存。保存按 requestId 幂等；读取延迟回执保留发起时的旧元信息和正文，以覆盖选择、版本及读取许可变化；撤回只改变合成许可，不删除后台正文。快照只提供元信息，正文只经显式读取返回。定向运行：`npm run test:ui -- memory.spec.mjs`。
+
+3H 的 `lab.spec.mjs` 在页面路由上注入 `LabPublicConnection` 合成投影，覆盖群聊/私聊、显式连接/暂停/断连、token 清空、只读回执核对、未确认回执与实例/版本竞争。没有向真实 Lab 发请求；草稿、送达与 unknown 分开显示，公共投影不包含内部 claim/permit。中英文和窄屏截图仅证明客户端布局。

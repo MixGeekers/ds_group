@@ -1,4 +1,4 @@
-import type { DshAgent, DshContext, DshSession, SessionEvent } from './sessions.js';
+import type { DshAgent, DshContext, DshSession, NativeAssistantRef, SessionEvent } from './sessions.js';
 import { nativeMessageHash, type NativeUserMessage } from './native-message.js';
 
 export interface NativeInboxReference { messageId: string; messageHash: string; lane: 'next-turn' | 'next-step'; index: number }
@@ -70,4 +70,30 @@ export async function verifyNativeEvent(ctx: DshContext, sessionId: string, expe
       || nativeMessageHash(actual.data) !== nativeMessageHash(expected.data)) throw new Error('Native durable event readback did not match this operation');
     signal?.throwIfAborted();
   } finally { await handle.close(); }
+}
+/** Exact durable assistant lookup only; never attach, flush, project or infer. */
+export async function readNativeAssistantEvent(ctx: DshContext, reference: NativeAssistantRef, preset: string, signal?: AbortSignal): Promise<SessionEvent> {
+  if (!reference || typeof reference.sessionId !== 'string' || !reference.sessionId
+    || !Number.isSafeInteger(reference.eventSeq) || reference.eventSeq < 0
+    || typeof reference.messageId !== 'string' || !reference.messageId) throw new Error('Invalid native assistant reference');
+  signal?.throwIfAborted();
+  const persistence = ctx.get('sessionPersistence');
+  if (typeof persistence?.open !== 'function') throw new Error('Native read-only persistence is required');
+  const handle = await persistence.open(reference.sessionId, 'read', { signal });
+  let event: SessionEvent;
+  try {
+    signal?.throwIfAborted();
+    if (handle.header?.agentPreset !== preset) throw new Error('Native Session preset does not match the managed binding');
+    const result = await handle.read(reference.eventSeq, 1, { signal });
+    const actual = result?.events?.[0];
+    if (!Array.isArray(result?.events) || result.events.length !== 1 || actual?.seq !== reference.eventSeq
+      || actual.type !== 'assistant/message' || actual.data?.interrupted
+      || actual.data?.message?.role !== 'assistant' || actual.data.message.id !== reference.messageId) {
+      throw new Error('Native durable assistant event does not match the exact draft reference');
+    }
+    signal?.throwIfAborted();
+    event = structuredClone(actual);
+  } finally { await handle.close(); }
+  signal?.throwIfAborted();
+  return event;
 }

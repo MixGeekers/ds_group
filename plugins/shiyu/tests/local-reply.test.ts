@@ -9,12 +9,13 @@ import { ControlStore } from '../src/adapters/control-store/index.js';
 import { defaultModel, sessionBindingKey } from '../src/adapters/dsh/sessions.js';
 import type { ContextLoadRequest, ContextLoadResult } from '../src/adapters/dsh/sessions.js';
 import { SHIYU_EVENT_TYPES } from '../src/contracts/events.js';
-import { LocalReplyService, type LocalReplySessionDriver } from '../src/control/local-reply.js';
+import { LocalReplyService, type LocalReplyOptions, type LocalReplySessionDriver } from '../src/control/local-reply.js';
 
 const TEXT = 'Synthetic question: inspect the linked local task.';
 const sha = (value: string) => createHash('sha256').update(value).digest('hex');
 type Request = Parameters<LocalReplySessionDriver['generateReply']>[0];
 class NativeFixture implements LocalReplySessionDriver {
+  readReplyDraft?: LocalReplySessionDriver['readReplyDraft'];
   readonly requests: Request[] = [];
   readonly loads: ContextLoadRequest[] = [];
   modelSteps = 0;
@@ -71,6 +72,87 @@ async function fixture(t: TestContext, options: { now?: () => Date } = {}) {
   const latest = async () => (await store.request('conversation.snapshotLocal', { conversationId: conversation.conversationId })).conversations[0]!;
   return { store, native, service, filename, task, conversation, run, latest, pause() { paused = true; } };
 }
+
+async function labFixture(t: TestContext, options: Partial<Pick<LocalReplyOptions, 'allowEmptyContext' | 'authorize' | 'maxInputBytes'>> = {}) {
+  const directory = await mkdtemp(join(tmpdir(), 'shiyu-lab-reply-')), filename = join(directory, 'control.sqlite');
+  const store = await ControlStore.open({ filename, eventTypes: SHIYU_EVENT_TYPES, componentHandlers: ['conversation.background'], runtimeIdentity: { hostEpoch: 'lab-reply-host', installationGeneration: 'lab-reply-install' } });
+  const channel = { connectionId: 'lab-test', runId: 'run-one', channelId: 'channel-one', kind: 'direct' as const, membersDigest: sha('synthetic members') };
+  const conversation = await store.request('conversation.ensureLabChannel', channel), native = new NativeFixture();
+  const service = new LocalReplyService({ store, sessions: native, assertRuntimeAllowed() {}, ...options });
+  t.after(async () => { await service.close(); await store.close(); await rm(directory, { recursive: true, force: true }); });
+  const run = (inputId = 'lab-one', text = 'Synthetic Lab question') => service.run({ conversationId: conversation.conversationId, inputId, text });
+  return { store, native, service, conversation, channel, run, filename };
+}
+
+test('Lab empty context is trusted opt-in only and keeps one native Session for ordinary messages', async t => {
+  const denied = await labFixture(t);
+  await assert.rejects(denied.run()); assert.equal(denied.native.requests.length, 0);
+  await assert.rejects(denied.service.run({ conversationId: denied.conversation.conversationId, inputId: 'smuggled', text: 'hi', allowEmptyContext: true } as never));
+  const phases: string[] = [], allowed = await labFixture(t, { allowEmptyContext: true, authorize(check) { phases.push(check.phase); } });
+  const first = await allowed.run(), second = await allowed.run('lab-two');
+  assert.deepEqual(first.view!.data, []); assert.equal(first.operation.textSha256, sha(first.reply!.text));
+  assert.equal(first.reply!.binding.sessionId, second.reply!.binding.sessionId);
+  assert.equal(first.operation.sessionEpoch, second.operation.sessionEpoch); assert.equal(first.operation.businessId, second.operation.businessId);
+  for (const phase of ['start', 'prepare', 'bound', 'admission', 'pre_step', 'context_ack', 'durable', 'release', 'ready']) assert.ok(phases.includes(phase), phase);
+  assert.equal((await allowed.run('lab-two')).duplicate, true); assert.equal(allowed.native.requests.length, 2);
+  const db = new DatabaseSync(allowed.filename, { readOnly: true });
+  try {
+    assert.equal(db.prepare('SELECT COUNT(*) AS n FROM shiyu_local_conversations').get()!.n, 0);
+    const serialized = JSON.stringify(db.prepare('SELECT record_json FROM shiyu_local_reply_inputs').all());
+    assert.ok(!serialized.includes('Synthetic Lab question')); assert.ok(!serialized.includes(first.reply!.text));
+  } finally { db.close(); }
+});
+
+test('trusted Lab gate revocation blocks dispatch, ack and ready without releasing text', async t => {
+  for (const deniedPhase of ['start', 'bound', 'pre_step', 'context_ack', 'durable', 'release', 'ready']) {
+    const f = await labFixture(t, { allowEmptyContext: true, authorize(check) { if (check.phase === deniedPhase) throw new Error('Lab authority revoked'); } });
+    await assert.rejects(f.run());
+    if (['start', 'bound', 'pre_step'].includes(deniedPhase)) assert.equal(f.native.modelSteps, 0, deniedPhase);
+    const latest = (await f.store.request('conversation.snapshotLocal', { conversationId: f.conversation.conversationId })).conversations[0]!.latestReply;
+    assert.notEqual(latest?.status, 'ready', deniedPhase);
+    if (['context_ack', 'durable'].includes(deniedPhase)) assert.equal(latest?.durability, 'unconfirmed');
+  }
+});
+
+test('Lab membership change after native loading prevents release and starts a new safe epoch', async t => {
+  const f = await labFixture(t, { allowEmptyContext: true });
+  f.native.afterLoad = async () => { await f.store.request('conversation.ensureLabChannel', { ...f.channel, membersDigest: sha('membership changed') }); };
+  await assert.rejects(f.run());
+  const current = (await f.store.request('conversation.snapshotLocal', { conversationId: f.conversation.conversationId })).conversations[0]!;
+  assert.equal(current.sessionEpoch, f.conversation.sessionEpoch + 1); assert.notEqual(current.latestReply?.status, 'ready');
+});
+
+test('a local Task key matching a Lab display key creates an independent source binding', async t => {
+  const f = await labFixture(t, { allowEmptyContext: true });
+  const task = (await f.store.request('task.createLocal', { requestId: 'lab-key-collision', title: 'Synthetic task', content: 'Independent synthetic content' })).task;
+  const local = await f.store.request('conversation.ensureLocalTask', { taskId: task.taskId, localConversationKey: f.conversation.localConversationKey });
+  assert.notEqual(local.conversationId, f.conversation.conversationId); assert.notEqual(local.bindingId, f.conversation.bindingId);
+  assert.deepEqual(local.source, { kind: 'local-task' });
+  const lab = (await f.store.request('conversation.snapshotLocal', { conversationId: f.conversation.conversationId })).conversations[0]!;
+  assert.deepEqual(lab.taskRefs, []); assert.deepEqual(lab.sources, []);
+});
+
+test('native ready draft cold retrieval is exact, read-only and gated independently of generation', async t => {
+  const phases: string[] = [], f = await labFixture(t, { allowEmptyContext: true, authorize(check) { phases.push(check.phase); } });
+  const ready = await f.run(); let reads = 0;
+  f.native.readReplyDraft = async input => {
+    reads++; assert.equal(input.textSha256, ready.operation.textSha256); assert.deepEqual(input.assistantRef, ready.reply!.assistantRef);
+    return { text: ready.reply!.text, assistantRef: input.assistantRef, binding: ready.reply!.binding };
+  };
+  const before = await f.store.request('control.watermark', {}), recovered = await f.service.readReadyDraft({ operationId: ready.operation.operationId });
+  assert.equal(recovered.text, ready.reply!.text); assert.equal(reads, 1); assert.equal(f.native.requests.length, 1);
+  assert.deepEqual(await f.store.request('control.watermark', {}), before); assert.equal(phases.filter(phase => phase === 'read_draft').length, 2);
+  f.native.readReplyDraft = async input => ({ text: 'changed', assistantRef: input.assistantRef, binding: ready.reply!.binding });
+  await assert.rejects(f.service.readReadyDraft({ operationId: ready.operation.operationId }), /does not match/);
+});
+
+test('trusted grouped input byte bound is explicit and never truncates or leaks into public input', async t => {
+  const f = await labFixture(t, { allowEmptyContext: true, maxInputBytes: 18432 });
+  await assert.rejects(f.run('too-big', '合'.repeat(6145))); assert.equal(f.native.requests.length, 0);
+  const content = 'a'.repeat(17000), result = await f.run('allowed-group', content);
+  assert.equal(result.operation.inputHash, sha(content)); assert.ok(f.native.requests[0]!.prompt.endsWith(content));
+  assert.throws(() => new LocalReplyService({ store: f.store, sessions: f.native, assertRuntimeAllowed() {}, maxInputBytes: 32769 }));
+});
 
 test('two local inputs use real captures and one stable native binding; duplicate input never follows up again', async t => {
   const f = await fixture(t); const published = await f.store.request('view.state', {});

@@ -48,9 +48,21 @@ export const CONTROL_AUTHORITY_V4: MandateStoreOptions = freeze({
   reconcilerActions: { ...CONTROL_AUTHORITY_V3.reconcilerActions, [CORE_VERIFIER.principalId]: ['core.evaluate'] },
   actionCosts: { ...CONTROL_AUTHORITY_V3.actionCosts, 'core.evaluate': { tokens: 1, calls: 1, effects: 0 } },
 });
+export const LAB_DISPATCHER: TrustedPolicyActor = freeze({ principalId: 'shiyu-lab-dispatcher', kind: 'component', scopes: ['local-owner'] });
+export const LAB_VERIFIER: TrustedPolicyActor = freeze({ principalId: 'shiyu-lab-verifier', kind: 'component', scopes: ['local-owner'] });
+/** Explicit Lab connection authority; the catalog itself grants no channels or calls. */
+export const CONTROL_AUTHORITY_V5: MandateStoreOptions = freeze({
+  ...CONTROL_AUTHORITY_V4,
+  dispatcherIds: [...CONTROL_AUTHORITY_V4.dispatcherIds!, LAB_DISPATCHER.principalId],
+  reconcilerIds: [...CONTROL_AUTHORITY_V4.reconcilerIds!, LAB_VERIFIER.principalId],
+  dispatcherActions: { ...CONTROL_AUTHORITY_V4.dispatcherActions, [LAB_DISPATCHER.principalId]: ['lab.reply', 'lab.message.send'] },
+  reconcilerActions: { ...CONTROL_AUTHORITY_V4.reconcilerActions, [LAB_VERIFIER.principalId]: ['lab.reply', 'lab.message.send'] },
+  actionCosts: { ...CONTROL_AUTHORITY_V4.actionCosts, 'lab.reply': { tokens: 1, calls: 1, effects: 0 }, 'lab.message.send': { tokens: 0, calls: 0, effects: 1 } },
+});
 // Reviewed pre-core declaration. Accept its fresh revision or either historical
 // factory migration path, never an arbitrary policy with a similar action set.
 const V3_POLICY_HASH = 'eb3183573ec2c51a50f46127b649e86e722dc99350a514a9f1ae50397755d752';
+const V4_POLICY_HASH = '1326a581698a4346e7fe3ae099cca3bad593df77c97fdf71bffb1fdd3321dbdc';
 const MIGRATION_ID = 'shiyu-control-authority-task-v1-memory-v2';
 const instances = new WeakMap<DatabaseSync, { transactions: SqliteTransactions; store: MandateStore }>();
 
@@ -92,11 +104,19 @@ export function createControlAuthority(db: DatabaseSync, transactions: SqliteTra
         if (![1, 2, 3].includes(previous.revision)) throw new MandateError('INCOMPATIBLE_POLICY', 'Unexpected index v3 catalog history');
         migrateMandateCatalog(db, transactions, { migrationId: 'shiyu-control-authority-index-v3-core-v4',
           expectedRevision: previous.revision, expectedPolicyHash: V3_POLICY_HASH, target: CONTROL_AUTHORITY_V4, ...options });
-      } else if (currentHash !== policyCatalogHash(CONTROL_AUTHORITY_V4)) {
-        throw new MandateError('INCOMPATIBLE_POLICY', 'Control authority only migrates reviewed Task v1, memory v2 and index v3 declarations');
+        currentHash = policyCatalogHash(CONTROL_AUTHORITY_V4);
+      }
+      if (currentHash === V4_POLICY_HASH) {
+        const legacy = new MandateStore(db, transactions, { ...CONTROL_AUTHORITY_V4, ...options });
+        const previous = legacy.catalog();
+        if (![1, 2, 3, 4].includes(previous.revision)) throw new MandateError('INCOMPATIBLE_POLICY', 'Unexpected core v4 catalog history');
+        migrateMandateCatalog(db, transactions, { migrationId: 'shiyu-control-authority-core-v4-lab-v5',
+          expectedRevision: previous.revision, expectedPolicyHash: V4_POLICY_HASH, target: CONTROL_AUTHORITY_V5, ...options });
+      } else if (currentHash !== policyCatalogHash(CONTROL_AUTHORITY_V5)) {
+        throw new MandateError('INCOMPATIBLE_POLICY', 'Control authority only migrates reviewed Task v1, memory v2, index v3 and core v4 declarations');
       }
     }
-    return new MandateStore(db, transactions, { ...CONTROL_AUTHORITY_V4, ...options });
+    return new MandateStore(db, transactions, { ...CONTROL_AUTHORITY_V5, ...options });
   });
   instances.set(db, { transactions, store });
   return store;

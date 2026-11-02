@@ -175,6 +175,15 @@ export class GymCollaboration {
     signal?.throwIfAborted();
     if (this.service.closed) throw new Error('健身房正在关闭');
     if (!request || typeof request !== 'object' || Array.isArray(request)) throw new Error('无效目标请求');
+    // Receipt observation never establishes/renews a connection or refreshes run metrics.
+    if (request.action === 'message.receipt') {
+      const access = this.engine.targetAccess(runId);
+      if (access.target !== 'external' || !this.engine.authorizeTarget(runId, token)) throw new Error('无效运行令牌');
+      if (this.service.bindings(runId).some(binding => binding.role === 'target' && active(binding))) throw new Error('房间已有 DSH 测试 Agent');
+      const connection = this.service.state.connections[runId];
+      if (connection?.kind !== 'http' || !attached(connection) || (ended(access.status) && connection.status !== 'sealed')) throw new Error('原 HTTP 接入身份已断开或失效');
+      return this.service.targetCall(runId, request, signal);
+    }
     const run = this.engine.getRun(runId);
     if (run.config.target !== 'external' || !this.engine.authorizeTarget(runId, token)) throw new Error('无效运行令牌');
     if (this.service.bindings(runId).some(binding => binding.role === 'target' && active(binding))) throw new Error('房间已有 DSH 测试 Agent');
@@ -193,7 +202,7 @@ export class GymCollaboration {
     return this.connectedCall(runId, request, signal);
   }
   connectedCall(runId, request, signal) {
-    if (ended(this.engine.getRun(runId).status) && !['inspect', 'inputs', 'act'].includes(request?.action)) throw new Error('房间已封存，仅可读取状态、输入或查询已有操作回执');
+    if (ended(this.engine.getRun(runId).status) && !['inspect', 'inputs', 'act', 'message.receipt'].includes(request?.action)) throw new Error('房间已封存，仅可读取状态、输入或查询已有操作回执');
     // LabEngine.act checks the persisted operation identity before its sealed
     // guard: known identical requests return receipts, new effects are rejected.
     return this.service.targetCall(runId, request, signal);

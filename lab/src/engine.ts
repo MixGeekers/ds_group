@@ -26,6 +26,11 @@ type Runtime = {
 };
 
 type EventFields = Partial<Pick<LabEvent, 'actorId' | 'channelId' | 'taskId' | 'data' | 'causeId'>>;
+export interface MessageReceiptQuery { operationId: string; channelId: string; bodyHash: string; }
+export type MessageReceipt = MessageReceiptQuery & { runId: string } & (
+  | { status: 'delivered'; eventId: string; observedAt: string }
+  | { status: 'not_found' | 'ambiguous' }
+);
 const terminalStatuses = new Set(['completed', 'stopped', 'interrupted', 'failed']);
 const terminalTasks = new Set<TaskStatus>(['completed', 'failed', 'cancelled']);
 const taskStates = new Set<TaskStatus>(['queued', 'running', 'waiting', 'completed', 'failed', 'cancelled']);
@@ -137,6 +142,12 @@ export class LabEngine {
   }
 
   getRun(id: string): RunDetail { const rt = this.find(id); this.refreshMetrics(rt); return clone(rt.run); }
+
+  /** Authentication metadata for read-only target operations; does not refresh runtime metrics. */
+  targetAccess(id: string): { target: RunConfig['target']; status: RunDetail['status'] } {
+    const run = this.find(id).run;
+    return { target: run.config.target, status: run.status };
+  }
 
   runCompany(id: string): CompanySnapshot { return clone(this.find(id).run.company ?? scenarioCompany({})); }
 
@@ -489,6 +500,27 @@ export class LabEngine {
   eventsSince(id: string, after = 0): LabEvent[] {
     if (!Number.isSafeInteger(after) || after < 0) throw new Error('无效事件游标');
     return clone(this.find(id).run.events.filter(event => event.seq > after));
+  }
+
+  /** A missing observation is not proof of no effect. This never replays an action. */
+  messageReceipt(id: string, query: MessageReceiptQuery): MessageReceipt {
+    const run = this.find(id).run;
+    if (!query || typeof query !== 'object' || Array.isArray(query)
+      || Object.keys(query).some(key => !['operationId', 'channelId', 'bodyHash'].includes(key))
+      || typeof query.operationId !== 'string' || !/^[A-Za-z0-9_.:-]{1,160}$/.test(query.operationId)
+      || typeof query.channelId !== 'string' || !query.channelId || query.channelId.length > 100 || /[\u0000-\u001f]/.test(query.channelId)
+      || typeof query.bodyHash !== 'string' || !/^[a-f0-9]{64}$/.test(query.bodyHash)) throw new Error('Invalid message receipt query');
+    if ((run.manifest.evidenceRecovery as { status?: string } | undefined)?.status === 'incomplete') throw new Error('Persisted event evidence is incomplete or inconsistent');
+    const base = { runId: id, operationId: query.operationId, channelId: query.channelId, bodyHash: query.bodyHash };
+    const events = this.store.readPersistedEvents(id, run.events.length)
+      .filter(event => event.type === 'message.delivered' && event.data?.operationId === query.operationId);
+    // Count by operation before matching the body/channel: one matching duplicate is still ambiguous.
+    if (events.length > 1) return { status: 'ambiguous', ...base };
+    const event = events[0];
+    if (!event || event.data?.source !== 'target' || event.actorId !== 'SHIYU' || event.role !== 'world'
+      || event.channelId !== query.channelId || hash(event.text) !== query.bodyHash) return { status: 'not_found', ...base };
+    if (event.id !== `${id}:e${event.seq}` || typeof event.at !== 'string' || !Number.isFinite(Date.parse(event.at))) throw new Error('Persisted message evidence metadata is invalid');
+    return { status: 'delivered', ...base, eventId: event.id, observedAt: event.at };
   }
 
   targetInputs(id: string, after = 0): TargetInput[] {

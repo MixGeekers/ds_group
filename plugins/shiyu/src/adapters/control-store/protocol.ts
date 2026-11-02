@@ -12,6 +12,7 @@ import type { MemoryCommands } from './memory-domain.js';
 import type { MemoryIndexCommands } from './memory-index-domain.js';
 import type { AvailableMemoryDomain, UnavailableDomain, StatePublicationReceipt } from '../../state/publication.js';
 import type { CoreCommands } from '../../contracts/core.js';
+import type { LabCommands } from '../../contracts/lab.js';
 
 export interface ControlStoreOptions {
   filename: string;
@@ -24,7 +25,8 @@ export interface ControlStoreOptions {
 }
 
 type WithPrincipal<T = unknown> = { principal: EventPrincipal } & T;
-export interface StoreCommands extends TaskCommands, ConversationCommands, ViewCommands, MemoryCommands, MemoryIndexCommands, CoreCommands {
+export interface StoreCommands extends TaskCommands, ConversationCommands, ViewCommands, MemoryCommands, MemoryIndexCommands, CoreCommands, LabCommands {
+  'lab.status': { input: Record<string, never>; output: { ready: boolean; errorCode?: string } };
   'core.status': { input: Record<string, never>; output: { ready: boolean; errorCode?: string } };
   'memory.status': { input: Record<string, never>; output: { configured: boolean; ready: boolean; errorCode?: string } };
   'memory.index.status': { input: Record<string, never>; output: { configured: boolean; ready: boolean; errorCode?: string } };

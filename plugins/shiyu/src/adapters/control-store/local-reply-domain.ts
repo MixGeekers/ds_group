@@ -51,6 +51,8 @@ export interface LocalReplyOperation {
   sources?: SourceVersion[]; draftId?: string; nativeBinding?: LocalReplyNativeBinding;
   memorySources?: MemoryViewSource[];
   contextReceipt?: LocalReplyContextReceipt; assistantRef?: LocalReplyAssistantRef; draftRef?: string; reasonCode?: string;
+  /** Hash of the exact transient native assistant text; no body is stored here. */
+  textSha256?: string;
 }
 export interface LocalReplyCommands {
   'conversation.reply.admit': { input: { conversationId: string; inputId: string; inputHash: string }; output: { duplicate: boolean; operation: LocalReplyOperation } };
@@ -58,7 +60,7 @@ export interface LocalReplyCommands {
   'conversation.reply.bind': { input: { binding: LocalReplyNativeBinding }; output: LocalReplyOperation };
   'conversation.reply.authorize': { input: { operationId: string; phase: 'dispatch' | 'ack' | 'ready' }; output: LocalReplyOperation };
   'conversation.reply.contextDurable': { input: { receipt: LocalReplyContextReceipt }; output: LocalReplyOperation };
-  'conversation.reply.ready': { input: { operationId: string; assistantRef: LocalReplyAssistantRef }; output: LocalReplyOperation };
+  'conversation.reply.ready': { input: { operationId: string; assistantRef: LocalReplyAssistantRef; textSha256?: string }; output: LocalReplyOperation };
   'conversation.reply.loaded': { input: { operationId: string }; output: LocalReplyOperation };
   'conversation.reply.fail': { input: { operationId: string; status: 'failed' | 'cancelled' | 'unknown'; reasonCode: string }; output: LocalReplyOperation };
   'conversation.reply.get': { input: { operationId: string }; output: LocalReplyOperation };
@@ -244,13 +246,14 @@ export class LocalReplyDomain {
     });
   }
   ready(input: LocalReplyCommands['conversation.reply.ready']['input']): LocalReplyOperation {
-    fields(input, ['operationId', 'assistantRef']); const ref = input.assistantRef;
+    fields(input, ['operationId', 'assistantRef', 'textSha256'], ['operationId', 'assistantRef']); const ref = input.assistantRef;
+    if (input.textSha256 !== undefined && !sha(input.textSha256)) fail('INVALID_SCHEMA', 'Invalid native assistant text hash');
     fields(ref, ['sessionId', 'eventSeq', 'messageId']);
     if (!opaque(ref.sessionId) || !opaque(ref.messageId) || !Number.isSafeInteger(ref.eventSeq) || ref.eventSeq < 1) fail('INVALID_SCHEMA', 'Invalid native assistant reference');
     return this.tx.atomic(() => {
       const operation = this.get({ operationId: input.operationId });
       if (operation.status === 'ready') {
-        if (canonical(operation.assistantRef) !== canonical(ref)) fail('IDEMPOTENCY_CONFLICT', 'Completed draft already names another native message');
+        if (canonical(operation.assistantRef) !== canonical(ref) || input.textSha256 !== operation.textSha256) fail('IDEMPOTENCY_CONFLICT', 'Completed draft already names another native message');
         return operation;
       }
       if (operation.status !== 'dispatching' || operation.durability !== 'confirmed' || !operation.contextReceipt || ref.sessionId !== operation.contextReceipt.sessionId || ref.eventSeq <= operation.contextReceipt.userMessageSeq) fail('REPLY_NOT_READY', 'A durable input and later native assistant event are required');
@@ -258,7 +261,33 @@ export class LocalReplyDomain {
       const draftRef = `native-session:${ref.sessionId}:event:${ref.eventSeq}:message:${ref.messageId}`;
       this.options.conversations.completeReply(OWNER, { draftId: operation.draftId!, draftRef });
       this.options.conversations.assertDraftCurrent(OWNER, operation.draftId!);
-      operation.status = 'ready'; operation.assistantRef = structuredClone(ref); operation.draftRef = draftRef; return this.save(operation);
+      operation.status = 'ready'; operation.assistantRef = structuredClone(ref); operation.draftRef = draftRef;
+      if (input.textSha256 !== undefined) operation.textSha256 = input.textSha256;
+      return this.save(operation);
+    });
+  }
+  /** Trusted synchronous publication gate, composable in a send claim transaction.
+   * Historical ready records are not authority: expiry, sources and the current
+   * audience/generation must still pass. Legacy records without a text hash fail. */
+  assertReadyDraft(operationId: string): LocalReplyOperation {
+    return this.tx.atomic(() => {
+      const operation = this.get({ operationId });
+      const receipt = operation.contextReceipt, ref = operation.assistantRef;
+      if (operation.status !== 'ready' || operation.durability !== 'confirmed' || !receipt || receipt.durability !== 'confirmed'
+        || !operation.nativeBinding || !ref || !operation.draftId || !sha(operation.textSha256)
+        || !Number.isSafeInteger(receipt.userMessageSeq) || receipt.userMessageSeq < 1
+        || !Number.isSafeInteger(ref.eventSeq) || ref.eventSeq <= receipt.userMessageSeq || ref.sessionId !== receipt.sessionId
+        || operation.draftRef !== `native-session:${ref.sessionId}:event:${ref.eventSeq}:message:${ref.messageId}`) fail('REPLY_NOT_READY', 'A precise durable native draft is required');
+      const verifiedReceipt = receipt!;
+      const { userMessageSeq: _seq, confirmedAt: _at, durability: _durability, ...native } = verifiedReceipt;
+      if (canonical(native) !== canonical(operation.nativeBinding) || verifiedReceipt.operationId !== operation.operationId
+        || verifiedReceipt.contextTokenId !== operation.contextTokenId || verifiedReceipt.sessionEpoch !== operation.sessionEpoch
+        || verifiedReceipt.businessId !== operation.businessId || verifiedReceipt.scope !== operation.scope) fail('REPLY_NOT_READY', 'Native context receipt does not match the persisted draft');
+      this.current(operation, 'ready');
+      const draft = this.options.conversations.assertDraftCurrent(OWNER, operation.draftId!);
+      if (draft.draftRef !== operation.draftRef || canonical(draft.token) !== canonical(operation.token)
+        || canonical(draft.dependencies) !== canonical(operation.sources ?? [])) fail('STALE_DRAFT', 'Current draft evidence changed');
+      return operation;
     });
   }
   loaded(input: LocalReplyCommands['conversation.reply.loaded']['input']): LocalReplyOperation {

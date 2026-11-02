@@ -75,10 +75,10 @@ function fixture(t: TestContext, persistent = false) {
   });
   const receipt = (value: LocalReplyNativeBinding): LocalReplyContextReceipt => ({ ...value, userMessageSeq: 4, confirmedAt: new Date(time).toISOString(), durability: 'confirmed' });
   const dispatch = (inputId?: string) => { const prepared = prepare(inputId), value = native(prepared); h.domain.bind({ binding: value }); return { prepared, native: value }; };
-  const complete = () => {
+  const complete = (textSha256?: string) => {
     const value = dispatch(); h.domain.contextDurable({ receipt: receipt(value.native) });
     const assistantRef = { sessionId: value.native.sessionId, eventSeq: 6, messageId: 'assistant-a' };
-    return { ...value, assistantRef, ready: h.domain.ready({ operationId: value.prepared.operationId, assistantRef }) };
+    return { ...value, assistantRef, ready: h.domain.ready({ operationId: value.prepared.operationId, assistantRef, ...(textSha256 ? { textSha256 } : {}) }) };
   };
   t.after(() => { for (const db of handles) { try { db.close(); } catch {} } if (directory) rmSync(directory, { recursive: true, force: true }); });
   return { ...h, conversation, binding, revoked, taskVersions, captures, open, link, update, capture, admit, prepare, native, receipt, dispatch, complete,
@@ -217,4 +217,28 @@ test('reopened unknown input retains stable native identity and cannot be prepar
   assert.throws(() => reopen.domain.prepare({ operationId: prepared.operationId, captureId: prepared.captureId!, viewId: 'replacement-view', loadedTaskIds: ['task-a'] }), code('REPLY_ALREADY_PREPARED'));
   assert.throws(() => reopen.domain.bind({ binding: native }), code('REPLY_ALREADY_DISPATCHED'));
   assert.equal(reopen.watermark.read().commitSeq, before);
+});
+
+test('trusted ready draft publication checks exact receipt/hash and stays read-only', t => {
+  const h = fixture(t), done = h.complete(hash('native assistant text')), before = h.watermark.read().commitSeq;
+  assert.deepEqual(h.domain.assertReadyDraft(done.ready.operationId), done.ready);
+  assert.equal(h.watermark.read().commitSeq, before);
+  assert.throws(() => h.domain.ready({ operationId: done.ready.operationId, assistantRef: done.assistantRef, textSha256: hash('changed') }), code('IDEMPOTENCY_CONFLICT'));
+  h.admit('newer-input');
+  assert.throws(() => h.domain.assertReadyDraft(done.ready.operationId), code('STALE_CONTEXT'));
+});
+
+test('trusted ready draft gate rejects legacy, changed sources, expired captures and altered durable evidence', t => {
+  const legacy = fixture(t), old = legacy.complete();
+  assert.throws(() => legacy.domain.assertReadyDraft(old.ready.operationId), code('REPLY_NOT_READY'));
+  const current = fixture(t), done = current.complete(hash('exact text'));
+  current.taskVersions.set('task-a', 7);
+  assert.throws(() => current.domain.assertReadyDraft(done.ready.operationId), code('VIEW_INVALIDATED'));
+  current.taskVersions.set('task-a', 6);
+  const record = structuredClone(done.ready); record.contextReceipt!.messageHash = hash('not the bound input');
+  current.tx.atomic(() => current.db.prepare('UPDATE shiyu_local_reply_inputs SET record_json=? WHERE operation_id=?').run(JSON.stringify(record), record.operationId));
+  assert.throws(() => current.domain.assertReadyDraft(record.operationId), code('REPLY_NOT_READY'));
+  current.tx.atomic(() => current.db.prepare('UPDATE shiyu_local_reply_inputs SET record_json=? WHERE operation_id=?').run(JSON.stringify(done.ready), record.operationId));
+  current.advanceTime(30000);
+  assert.throws(() => current.domain.assertReadyDraft(record.operationId), code('EXPIRED'));
 });

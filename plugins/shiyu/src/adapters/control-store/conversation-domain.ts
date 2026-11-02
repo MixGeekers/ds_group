@@ -28,6 +28,7 @@ export interface ConversationEventPort {
   fail(input: FailInput): StoredDelivery;
 }
 export interface LocalConversationEntry {
+  source?: { kind: 'local-task' } | { kind: 'lab'; connectionId: string; runId: string; channelId: string; membersDigest: string };
   conversationId: string;
   localConversationKey: string;
   topicId: string;
@@ -62,11 +63,15 @@ export interface BackgroundConsumptionResult {
 }
 export interface ConversationCommands extends LocalReplyCommands {
   'conversation.ensureLocalTask': { input: { taskId: string; localConversationKey?: string }; output: LocalConversationEntry };
+  'conversation.ensureLabChannel': { input: LabChannelInput; output: LocalConversationEntry };
   'conversation.consumeBackground': { input: { limit?: number }; output: BackgroundConsumptionResult };
   'conversation.snapshotLocal': { input: { conversationId?: string }; output: LocalConversationSnapshot };
 }
 export type ConversationDomainRequest = { [K in keyof ConversationCommands]: { command: K; args: ConversationCommands[K]['input'] } }[keyof ConversationCommands];
 interface LocalBinding { localKey: string; conversationId: string; topicId: string; bindingId: string }
+export interface LabChannelKey { connectionId: string; runId: string; channelId: string }
+export interface LabChannelInput extends LabChannelKey { kind: 'direct' | 'group' | 'channel'; membersDigest: string }
+interface LabBinding extends LocalBinding, LabChannelInput { retired: number }
 interface Options { events: ConversationEventPort; getTask(taskId: string): TaskView }
 const fail = (code: string, message: string): never => { throw new ConversationError(code, message); };
 function fields(value: unknown, allowed: string[], required = allowed): void {
@@ -82,7 +87,7 @@ function errorCode(error: unknown): string {
   return error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'PROJECTION_FAILED';
 }
 
-/** Local synthetic business bindings and durable background projection; no Session, model, body or send port. */
+/** Trusted local/Lab bindings and durable background projection; no native I/O, message body or send port. */
 export class ConversationDomain {
   private readonly conversations: ConversationStore;
   private readonly replies: LocalReplyDomain;
@@ -98,17 +103,23 @@ export class ConversationDomain {
     });
     tx.atomic(() => db.exec(`CREATE TABLE IF NOT EXISTS shiyu_local_conversations (
       local_key TEXT PRIMARY KEY,conversation_id TEXT NOT NULL UNIQUE,topic_id TEXT NOT NULL UNIQUE,binding_id TEXT NOT NULL UNIQUE
+    ); CREATE TABLE IF NOT EXISTS shiyu_lab_conversations (
+      connection_id TEXT NOT NULL,run_id TEXT NOT NULL,channel_id TEXT NOT NULL,kind TEXT NOT NULL,members_digest TEXT NOT NULL,retired INTEGER NOT NULL,
+      conversation_id TEXT NOT NULL UNIQUE,topic_id TEXT NOT NULL UNIQUE,binding_id TEXT NOT NULL UNIQUE,
+      PRIMARY KEY(run_id,channel_id)
     )`));
     this.replies = new LocalReplyDomain(db, tx, { conversations: this.conversations, bindingFor: conversationId => this.localReplyBinding(conversationId) });
   }
   private localReplyBinding(conversationId: string) {
     text(conversationId, 'conversationId');
     const local = this.bindings(conversationId)[0];
-    if (!local) fail('UNKNOWN_CONVERSATION', 'No local synthetic conversation has this identity');
+    if (!local) fail('UNKNOWN_CONVERSATION', 'No managed local conversation has this identity');
     return this.conversations.getReplyBinding(OWNER, local!.bindingId);
   }
   /** Trusted same-Worker view authority is installed once; no public command can replace it. */
   setReplyAuthority(authority: LocalReplyAuthority): void { this.replies.setAuthority(authority); }
+  /** Same-Worker send gate. It performs no native I/O and cannot grant a draft. */
+  assertReadyDraft(operationId: string): LocalReplyOperation { return this.replies.assertReadyDraft(operationId); }
   /** Same-Worker withdrawal callback, intentionally absent from public IPC. */
   invalidateMemorySources(input: Parameters<LocalReplyDomain['invalidateMemorySources']>[0]) { return this.replies.invalidateMemorySources(input); }
   /** Same-Worker owner authority for source consent; never accepts an actor or remote scope. */
@@ -127,9 +138,90 @@ export class ConversationDomain {
     });
   }
   private bindings(conversationId?: string): LocalBinding[] {
+    return [...this.localBindings(conversationId), ...this.labBindings(conversationId)];
+  }
+  private localBindings(conversationId?: string): LocalBinding[] {
     this.tx.assertUsable();
     return (this.db.prepare(`SELECT local_key AS localKey,conversation_id AS conversationId,topic_id AS topicId,binding_id AS bindingId
       FROM shiyu_local_conversations ${conversationId ? 'WHERE conversation_id=?' : ''} ORDER BY local_key`).all(...conversationId ? [conversationId] : []) as unknown as LocalBinding[]);
+  }
+  private labBindings(conversationId?: string): LabBinding[] {
+    this.tx.assertUsable();
+    return (this.db.prepare(`SELECT connection_id AS connectionId,run_id AS runId,channel_id AS channelId,kind,members_digest AS membersDigest,retired,
+      conversation_id AS conversationId,topic_id AS topicId,binding_id AS bindingId FROM shiyu_lab_conversations
+      ${conversationId ? 'WHERE conversation_id=?' : ''} ORDER BY connection_id,run_id,channel_id`).all(...conversationId ? [conversationId] : []) as unknown as Omit<LabBinding, 'localKey'>[])
+      .map(binding => ({ ...binding, localKey: `lab_${hash(JSON.stringify([binding.runId, binding.channelId]))}` }));
+  }
+  private labKey(input: LabChannelKey): void {
+    for (const value of [input.connectionId, input.runId, input.channelId]) if (typeof value !== 'string' || !value.trim() || value.length > 200 || /[\u0000-\u001f]/u.test(value)) fail('INVALID_SCHEMA', 'Invalid Lab channel identity');
+  }
+  private labBinding(input: LabChannelKey): LabBinding {
+    this.labKey(input);
+    const binding = this.labBindings().find(value => value.runId === input.runId && value.channelId === input.channelId);
+    if (!binding) fail('UNKNOWN_CONVERSATION', 'No Lab channel has this identity');
+    return binding!;
+  }
+  /** Trusted Lab domain only: no fake Task, subscription, history or inbox is created. */
+  ensureLabChannel(input: LabChannelInput): LocalConversationEntry {
+    fields(input, ['connectionId', 'runId', 'channelId', 'kind', 'membersDigest']); this.labKey(input);
+    if (!['direct', 'group', 'channel'].includes(input.kind) || !/^[a-f0-9]{64}$/.test(input.membersDigest)) fail('INVALID_SCHEMA', 'Invalid Lab channel audience');
+    return this.tx.atomic(() => {
+      let binding = this.labBindings().find(value => value.runId === input.runId && value.channelId === input.channelId);
+      if (!binding) {
+        if (this.labBindings().length >= 128) fail('CONVERSATION_CAPACITY', 'At most 128 Lab channel bindings are supported');
+        const key = hash(JSON.stringify([input.runId, input.channelId]));
+        const conversation = this.conversations.ensureConversation(OWNER, { connectionId: `lab-run:${hash(input.runId)}`, platformConversationId: key, kind: input.kind, scope: LOCAL_SCOPE });
+        const topic = this.conversations.createTopic(OWNER, { topicId: `lab-topic:${key}`, scope: LOCAL_SCOPE });
+        this.conversations.linkTopic(OWNER, { conversationId: conversation.conversationId, topicId: topic.topicId, expectedConversationRevision: conversation.revision, expectedTopicRevision: topic.revision });
+        const reply = this.conversations.ensureReplyBinding(OWNER, { conversationId: conversation.conversationId, topicId: topic.topicId });
+        binding = { ...input, retired: 0, localKey: `lab_${key}`, conversationId: conversation.conversationId, topicId: topic.topicId, bindingId: reply.bindingId };
+        this.db.prepare('INSERT INTO shiyu_lab_conversations VALUES(?,?,?,?,?,?,?,?,?)').run(input.connectionId, input.runId, input.channelId, input.kind, input.membersDigest, 0, binding.conversationId, binding.topicId, binding.bindingId);
+      } else {
+        if (binding.kind !== input.kind) fail('IDEMPOTENCY_CONFLICT', 'Lab channel kind cannot change');
+        if (binding.connectionId !== input.connectionId && binding.retired !== 1) fail('LAB_CHANNEL_OWNED', 'Lab channel still has an active connection owner');
+        if (binding.membersDigest !== input.membersDigest) {
+          const current = this.conversations.getConversation(OWNER, binding.conversationId);
+          // invalidateAudience already retires the native epoch exactly once.
+          this.conversations.invalidateAudience(OWNER, { conversationId: current.conversationId, expectedRevision: current.revision, reasonRef: `lab-members:${input.membersDigest}` });
+          this.db.prepare('UPDATE shiyu_lab_conversations SET members_digest=? WHERE conversation_id=?').run(input.membersDigest, binding.conversationId);
+          binding.membersDigest = input.membersDigest;
+        }
+        if (binding.connectionId !== input.connectionId || binding.retired !== 0) {
+          this.db.prepare('UPDATE shiyu_lab_conversations SET connection_id=?,retired=0 WHERE conversation_id=?').run(input.connectionId, binding.conversationId);
+          binding.connectionId = input.connectionId; binding.retired = 0;
+        }
+      }
+      return this.entry(binding, []);
+    });
+  }
+  /** Same-transaction Lab ingest fence; the Lab ledger owns event/body identity. */
+  advanceLabInput(input: LabChannelKey & { eventId: string }): LocalConversationEntry {
+    fields(input, ['connectionId', 'runId', 'channelId', 'eventId']);
+    if (typeof input.eventId !== 'string' || !input.eventId || input.eventId.length > 200) fail('INVALID_SCHEMA', 'Invalid Lab input identity');
+    return this.tx.atomic(() => {
+      const binding = this.labBinding(input), conversation = this.conversations.getConversation(OWNER, binding.conversationId);
+      if (binding.connectionId !== input.connectionId || binding.retired !== 0) fail('STALE_LAB_CONNECTION', 'Lab input does not own the current channel binding');
+      this.conversations.advanceGeneration(OWNER, { conversationId: conversation.conversationId, expectedRevision: conversation.revision,
+        eventId: `lab-input:${hash(JSON.stringify([input.runId, input.channelId, input.eventId]))}`, reason: 'input' });
+      return this.entry(binding, []);
+    });
+  }
+  /** Retire a connection's authority, preserving the native Session for the
+   * same run/channel/audience. Only a membership change resets its epoch. */
+  retireLabChannel(input: LabChannelKey & { reasonRef: string }): LocalConversationEntry {
+    fields(input, ['connectionId', 'runId', 'channelId', 'reasonRef']);
+    if (typeof input.reasonRef !== 'string' || !input.reasonRef || input.reasonRef.length > 200) fail('INVALID_SCHEMA', 'Invalid Lab retirement reason');
+    return this.tx.atomic(() => {
+      const binding = this.labBinding(input);
+      // A late old owner's cleanup must never retire the replacement owner.
+      if (binding.connectionId !== input.connectionId || binding.retired === 1) return this.entry(binding, []);
+      const conversation = this.conversations.getConversation(OWNER, binding.conversationId);
+      this.conversations.advanceGeneration(OWNER, { conversationId: conversation.conversationId, expectedRevision: conversation.revision,
+        eventId: `lab-retire:${hash(JSON.stringify([input.connectionId, input.reasonRef]))}`, reason: 'cancel' });
+      this.db.prepare('UPDATE shiyu_lab_conversations SET retired=1 WHERE conversation_id=?').run(binding.conversationId);
+      binding.retired = 1;
+      return this.entry(binding, []);
+    });
   }
   private entry(binding: LocalBinding, subscriptions: StoredSubscription[]): LocalConversationEntry {
     const version = this.conversations.version(OWNER, binding.bindingId), context = this.conversations.contextSnapshot(OWNER, binding.bindingId);
@@ -143,6 +235,8 @@ export class ConversationDomain {
       ...(reply.nativeBinding ? { sessionId: reply.nativeBinding.sessionId } : {}), ...(reply.contextReceipt ? { userMessageSeq: reply.contextReceipt.userMessageSeq } : {}),
       ...(reply.assistantRef ? { assistantEventSeq: reply.assistantRef.eventSeq } : {}) } : undefined;
     return {
+      source: 'membersDigest' in binding ? { kind: 'lab', connectionId: (binding as LabBinding).connectionId, runId: (binding as LabBinding).runId,
+        channelId: (binding as LabBinding).channelId, membersDigest: (binding as LabBinding).membersDigest } : { kind: 'local-task' },
       conversationId: binding.conversationId, localConversationKey: binding.localKey, topicId: binding.topicId, bindingId: binding.bindingId, scope: LOCAL_SCOPE,
       audienceVersion: version.audienceVersion, conversationGeneration: version.conversationGeneration, routingRevision: version.routingRevision,
       sessionEpoch: version.sessionEpoch, contextVersion: version.contextVersion, needsSync: context.needsSync, sources: context.sources, pending: context.pending, taskRefs, ...(latestReply ? { latestReply } : {}),
@@ -155,9 +249,9 @@ export class ConversationDomain {
     const localKey = input.localConversationKey === undefined ? taskId : text(input.localConversationKey, 'localConversationKey');
     return this.tx.atomic(() => {
       this.options.getTask(taskId); // Existing local Task only; this method cannot create or dispatch one.
-      let binding = this.bindings().find(value => value.localKey === localKey);
+      let binding = this.localBindings().find(value => value.localKey === localKey);
       if (!binding) {
-        if (this.bindings().length >= 64) fail('CONVERSATION_CAPACITY', 'At most 64 local synthetic conversation bindings are supported');
+        if (this.localBindings().length >= 64) fail('CONVERSATION_CAPACITY', 'At most 64 local synthetic conversation bindings are supported');
         const conversation = this.conversations.ensureConversation(OWNER, { connectionId: 'local-synthetic', platformConversationId: localKey, kind: 'direct', scope: LOCAL_SCOPE });
         const topic = this.conversations.createTopic(OWNER, { topicId: `local-topic:${hash(localKey)}`, scope: LOCAL_SCOPE });
         this.conversations.linkTopic(OWNER, { conversationId: conversation.conversationId, topicId: topic.topicId, expectedConversationRevision: conversation.revision, expectedTopicRevision: topic.revision });
@@ -177,7 +271,7 @@ export class ConversationDomain {
     if (input.conversationId !== undefined) text(input.conversationId, 'conversationId');
     return this.tx.atomic(() => {
       const bindings = this.bindings(input.conversationId);
-      if (input.conversationId && !bindings.length) fail('UNKNOWN_CONVERSATION', 'No local synthetic conversation has this identity');
+      if (input.conversationId && !bindings.length) fail('UNKNOWN_CONVERSATION', 'No managed local conversation has this identity');
       const subscriptions = this.options.events.listSubscriptions(), stats = this.options.events.stats();
       const { subscriptions: count, pending, claimed, acknowledged, failed, cancelled } = stats;
       return { schemaVersion: 1, scope: LOCAL_SCOPE, conversations: bindings.map(binding => this.entry(binding, subscriptions)),
@@ -226,6 +320,7 @@ export class ConversationDomain {
     if (request.command.startsWith('conversation.reply.')) return this.replies.execute(request as LocalReplyDomainRequest);
     switch (request.command) {
       case 'conversation.ensureLocalTask': return this.ensureLocalTask(request.args);
+      case 'conversation.ensureLabChannel': return this.ensureLabChannel(request.args);
       case 'conversation.consumeBackground': return this.consumeBackground(request.args);
       case 'conversation.snapshotLocal': return this.snapshotLocal(request.args);
     }

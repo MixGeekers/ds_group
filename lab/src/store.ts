@@ -186,6 +186,16 @@ export class LabStore {
     return row ? { requestHash: row.request_hash, result: JSON.parse(row.result) as ActionResult } : undefined;
   }
 
+  /** Cold, read-only evidence from exactly one run; never repair or accept a partial ledger. */
+  readPersistedEvents(runId: string, expectedEventCount: number): LabEvent[] {
+    if (!Number.isSafeInteger(expectedEventCount) || expectedEventCount < 0) throw new Error('Invalid expected event count');
+    const filename = join(this.runDir(runId), 'events.jsonl');
+    this.assertNotSymlink(filename);
+    const { events, issues } = this.readEvents(filename, runId);
+    if (issues.length || events.length !== expectedEventCount) throw new Error('Persisted event evidence is incomplete or inconsistent');
+    return events;
+  }
+
   saveToken(runId: string, tokenHash: string): void {
     this.runDir(runId);
     if (!tokenHash || tokenHash.length > 256) throw new Error('Invalid target token hash');
