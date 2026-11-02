@@ -1,7 +1,7 @@
 # H1 独立验证：Issue 清单（最终，随 H1 提交 92c857f）
 
 结论：**产品行为问题：无。** 独立套件 117 条逐例记录 / 103 个 TAP tests 全部通过（0 失败 / 0 blocked / 0 unobservable / 0 unreported / 0 skip）。
-最终报告：`FINAL-REPORT.md`；最终运行：`runs/2026-11-02T18-49-33-366Z-final-92c857f/`；被测提交 `92c857f`。
+最终报告：`FINAL-REPORT.md`；最终运行：见 `index.md` / `latest.md`（最新 `runs/*-final/`）；被测 H1 提交 `92c857f`，运行所在 HEAD 见该运行的 `manifest.json`（后续 HEAD 未改 H1 适配文件）。
 
 ## A. 产品行为问题
 

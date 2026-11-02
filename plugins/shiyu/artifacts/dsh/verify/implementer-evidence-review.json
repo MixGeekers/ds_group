@@ -9,7 +9,7 @@
     {
       "id": "EV-01",
       "item": "committed H1 file SHA256 equal to the independent verifier manifest and working tree",
-      "method": "git show 92c857f:<path> | shasum -a 256 vs artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/manifest.json",
+      "method": "git show 92c857f:<path> | shasum -a 256 vs artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/manifest.json",
       "files": {
         "src/adapters/dsh/native-context.ts": "747450b8b7c63087961f9faf68802c7d78704a5ac175e84900bcaaf1bdf5b794",
         "src/adapters/dsh/sessions.ts": "c856085a936d958071eb3c71a249696be136f802a52f07f5401badef9c290e90",
@@ -38,14 +38,37 @@
         "worktree_diff_scope": "4 src + 4 modified tests + new tests/native-history.test.ts + .local",
         "h1_file_hashes_in_log": "all 9 match EV-01"
       },
-      "result": {"command": "npm run check", "typecheck": "pass (no diagnostics)", "tests": 1058, "pass": 1058, "fail": 0, "cancelled": 0, "skipped": 0, "todo": 0, "build": "pass", "clientSyntax": "pass", "exitCode": 0},
+      "result": {
+        "command": "npm run check",
+        "typecheck": "pass (no diagnostics)",
+        "tests": 1058,
+        "pass": 1058,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "todo": 0,
+        "build": "pass",
+        "clientSyntax": "pass",
+        "exitCode": 0
+      },
       "verdict": "authentic"
     },
     {
       "id": "EV-03",
       "item": "independent replication of the implementer final check by the verifier",
       "method": "In the same isolated worktree /tmp/shiyu-h1-check (HEAD 08995d1 + 9 H1 files): hash all 9 files, run npm run check, hash all 9 files again",
-      "result": {"exitCode": 0, "tests": 1058, "pass": 1058, "fail": 0, "cancelled": 0, "skipped": 0, "build": "pass", "clientSyntax": "pass", "sourceHashesUnchangedBeforeAfter": true, "durationMs": 140596},
+      "result": {
+        "exitCode": 0,
+        "tests": 1058,
+        "pass": 1058,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "build": "pass",
+        "clientSyntax": "pass",
+        "sourceHashesUnchangedBeforeAfter": true,
+        "durationMs": 140596
+      },
       "evidence": [
         "plugins/shiyu/artifacts/dsh/verify/replication-final-check.log",
         "plugins/shiyu/artifacts/dsh/verify/replication-final-check.log sha256 c61818326d1ebd9d6af5d808d9d426ee35c25ec4ac2705f476188484a5ea6e4b",
@@ -65,16 +88,39 @@
         "head": "08995d182d2ae5ecda69ae81992a636af37f6399",
         "files": "9 H1 files, hashes match EV-01",
         "command": "npm run check in an isolated git worktree (-tool reviewed: scripts/slice-verify.mjs materializes HEAD, copies exact files, symlinks node_modules + pinned Python fixture, spawns npm run check, hashes the raw log; verdict pass only if exit 0 and fail=skip=0)",
-        "result": {"exitCode": 0, "tests": 1058, "pass": 1058, "fail": 0, "cancelled": 0, "skipped": 0, "durationMs": 146732}
+        "result": {
+          "exitCode": 0,
+          "tests": 1058,
+          "pass": 1058,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "durationMs": 146732
+        }
       },
       "verdict": "authentic"
     },
     {
       "id": "EV-05",
       "item": "test-count arithmetic is coherent (no deleted/omitted baseline tests)",
-      "baseline": {"h0BaselineLog": "plugins/shiyu/.local/h0-baseline-check.log", "tests": 1021, "pass": 1021, "fail": 0},
-      "h0Added": {"file": "plugins/shiyu/tests/host-status.test.ts", "tests": 4, "presentInBaseCommit08995d1": true, "resultingBaseline": 1025},
-      "h1NetNew": {"native-context.test.ts": "6 -> 22 (+16)", "native-history.test.ts": "new +14", "core-goal-sessions.test.ts": "17 -> 20 (+3)", "net": 33},
+      "baseline": {
+        "h0BaselineLog": "plugins/shiyu/.local/h0-baseline-check.log",
+        "tests": 1021,
+        "pass": 1021,
+        "fail": 0
+      },
+      "h0Added": {
+        "file": "plugins/shiyu/tests/host-status.test.ts",
+        "tests": 4,
+        "presentInBaseCommit08995d1": true,
+        "resultingBaseline": 1025
+      },
+      "h1NetNew": {
+        "native-context.test.ts": "6 -> 22 (+16)",
+        "native-history.test.ts": "new +14",
+        "core-goal-sessions.test.ts": "17 -> 20 (+3)",
+        "net": 33
+      },
       "total": 1058,
       "verdict": "consistent (1021 + 4 + 33 = 1058)"
     },
@@ -82,7 +128,15 @@
       "id": "EV-06",
       "item": "no silent skips / tautologies / weakened pass counting in the changed tests",
       "method": "grep .skip/.todo/.only/assert.ok(true) over the 5 changed test files; read diff for removed assertions; read final log summary lines",
-      "result": {"skipCalls": 0, "onlyCalls": 0, "tautologies": 0, "logSkipped": 0, "logTodo": 0, "removedAssertions": "none found; old fixtures updated for canonical version-4 header, session.seq/inheritedEventCount/append, sessions.get, runMaintenance, projector asOfSeq/contiguity and real fixed-title append", "regexRelaxation": "a few old assertions widened to accept a new earlier rejection point; surrounding assertions still require rejection + zero receipt/handle closure, so no failure is silently accepted"},
+      "result": {
+        "skipCalls": 0,
+        "onlyCalls": 0,
+        "tautologies": 0,
+        "logSkipped": 0,
+        "logTodo": 0,
+        "removedAssertions": "none found; old fixtures updated for canonical version-4 header, session.seq/inheritedEventCount/append, sessions.get, runMaintenance, projector asOfSeq/contiguity and real fixed-title append",
+        "regexRelaxation": "a few old assertions widened to accept a new earlier rejection point; surrounding assertions still require rejection + zero receipt/handle closure, so no failure is silently accepted"
+      },
       "verdict": "acceptable"
     },
     {
@@ -100,7 +154,15 @@
       "id": "EV-08",
       "item": "implementer report honesty about gaps/scope",
       "result": {
-        "declaredGaps": ["real fixed-host long-history cold recovery/reload not executed", "live native Session ops/model/embeddings = 0", "native compaction/checkpoint not integrated", "lifecycle (non-core) Goal namespace unchanged", "cooperative AbortSignal limitation and no hard real-time claim", "two-pass observation is not an atomic snapshot against arbitrary writers", "no V24/V13/V14 or fixed-host acceptance claimed"],
+        "declaredGaps": [
+          "real fixed-host long-history cold recovery/reload not executed",
+          "live native Session ops/model/embeddings = 0",
+          "native compaction/checkpoint not integrated",
+          "lifecycle (non-core) Goal namespace unchanged",
+          "cooperative AbortSignal limitation and no hard real-time claim",
+          "two-pass observation is not an atomic snapshot against arbitrary writers",
+          "no V24/V13/V14 or fixed-host acceptance claimed"
+        ],
         "evidenceLevel": "G1 module + native-interface combination tests with synthetic worlds and temporary real SQLite; fixed SDK 0.2.1-rc.5 static source read only (not executed)",
         "status": "offline-verified-module-and-combination"
       },
@@ -108,10 +170,10 @@
     },
     {
       "id": "EV-09",
-      "item": "minor documentation inconsistency (not a fabrication signal)",
-      "observed": "implementer's artifacts/dsh/h1/h1-verification.json records implementerIsolatedCheck.startedAt=2026-11-02T18:39:49Z, while the retained final log header records start_utc=2026-11-02T18:42:44Z and end_utc=18:44:47Z. Counts (1058/1058/0/0), log SHA256, exit code 0, head and 9 file hashes are all consistent and were independently reproduced.",
-      "impact": "metadata only; the retained run itself is authentic and reproducible. Recommend recording the retained log's own timestamps if the evidence bundle is re-generated.",
-      "verdict": "minor"
+      "item": "timestamp metadata inconsistency explained by the implementer (minor, not a fabrication signal)",
+      "observed": "implementer's artifacts/dsh/h1/h1-verification.json recorded implementerIsolatedCheck.startedAt=2026-11-02T18:39:49Z, but the retained final log header records start_utc=2026-11-02T18:42:44Z and end_utc=18:44:47Z. Implementer confirmed (2026-11-02) that 18:39:49Z was an earlier attempt whose isolated worktree had no pinned Python/Ombre symlink; that attempt produced 1058 tests / 1057 pass / 1 skipped (pre-existing conditional skip in semantic-memory-stdio.test.ts). The worktree was then given the pinned fixture and re-run, and the same log path was overwritten by the second attempt; bytes=117921, sha256=8c05c87f…, exitCode=0, tests=1058/pass=1058/fail=0/skipped=0 all match the retained log. The artifact only kept the superseded first attempt's start time; counts/hashes/exit code and the independent replication all agree.",
+      "impact": "metadata only; retained evidence is the second attempt and is authentic/reproducible. Lead may correct the artifact timestamp (18:42:44Z, note earlier attempt superseded) or document the correction; implementer will not amend the frozen files.",
+      "verdict": "minor (root cause confirmed: superseded first attempt timestamp)"
     }
   ],
   "overallVerdict": "implementer evidence is authentic and reproducible; no product behavior failure was found by the independent suite; implemented claims and declared gaps match the evidence layer (G1 offline), and no fixed-host/model/compaction claim is contained in the reviewed evidence."

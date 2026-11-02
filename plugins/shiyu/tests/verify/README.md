@@ -120,10 +120,10 @@ source/SDK/test 摘要，任何产品、SDK 或测试改动都会使旧运行结
 
 ## 7. 当前状态（H1 收口）
 
-- 被测提交：`92c857fcfe5d823836b48ea9c9df09fcdeb14981`；最终独立运行
-  `artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/`：
+- 被测 H1 提交：`92c857fcfe5d823836b48ea9c9df09fcdeb14981`；最终独立运行在后续 HEAD `31af227`（该 HEAD 未修改 H1 适配文件，H1 9 文件哈希与 92c857f 一致）；最终运行
+  `artifacts/dsh/verify/runs/2026-11-02T18-54-10-909Z-final/`：
   **117 条逐例记录 / 103 个 TAP tests 全部通过**（0 失败 / 0 blocked / 0 unobservable / 0 unreported / 0 skip）。
 - 最终报告：`artifacts/dsh/verify/FINAL-REPORT.md`；Issue 清单：`ISSUES.md`；
   实现者证据复核：`implementer-evidence-review.json`。
-- 中间运行与模板保留为过程证据：`runs/*-interim4`、`runs/*-interim5`、
-  `FINAL-REPORT-TEMPLATE.md`；不替代最终运行。
+- 过程证据：`runs/2026-11-02T18-45-41-522Z/`（被实现者 H1 证据引用的中间运行）与
+  `FINAL-REPORT-TEMPLATE.md`；不替代最终运行。新增证据已做 home 路径脱敏（`<home>`）。

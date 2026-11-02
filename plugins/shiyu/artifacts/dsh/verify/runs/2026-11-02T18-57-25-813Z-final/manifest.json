@@ -1,0 +1,239 @@
+{
+  "runId": "2026-11-02T18-57-25-813Z-final",
+  "label": "final",
+  "startedAt": "2026-11-02T18:57:25.813Z",
+  "command": "node --import tsx --test --test-concurrency=1 --test-reporter=tap tests/verify/*.test.ts",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin/arm64",
+    "workingDirectory": "<home>/Documents/识雨/plugins/shiyu",
+    "harnessAsar": "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar"
+  },
+  "git": {
+    "head": "2e04eb20eda5f958f0b15177bca0f5bdab21cc00",
+    "branch": "codex/start-shiyu-implementation",
+    "dirtyPaths": [
+      "M plugins/shiyu/tests/verify/README.md",
+      " M plugins/shiyu/tests/verify/report.mjs"
+    ]
+  },
+  "product": {
+    "src/adapters/dsh/native-context.ts": {
+      "sha256": "747450b8b7c63087961f9faf68802c7d78704a5ac175e84900bcaaf1bdf5b794",
+      "bytes": 36742
+    },
+    "src/adapters/dsh/native-message.ts": {
+      "sha256": "41211c6646e7c3f999976cb330fd1c6f2ffbcd2e5c5f92906787391525337d72",
+      "bytes": 1927
+    },
+    "src/adapters/dsh/session-title.ts": {
+      "sha256": "624039d6d2bb927d7648826d991795875422f1a09197735d5a0e6ef77dc0d052",
+      "bytes": 1624
+    },
+    "src/adapters/dsh/sessions.ts": {
+      "sha256": "c856085a936d958071eb3c71a249696be136f802a52f07f5401badef9c290e90",
+      "bytes": 79245
+    },
+    "src/adapters/dsh/goals.ts": {
+      "sha256": "788cf6a237c1f0bc9cf50b6e08f2f8f1d0b5ebf02cbbf8cf9ac0689716d8470c",
+      "bytes": 37117
+    },
+    "src/adapters/dsh/core-decision.ts": {
+      "sha256": "4ceb0a291fc08129a365dc304d260e1268c5993f610cdec55a4af8ada7e67769",
+      "bytes": 24474
+    }
+  },
+  "sdk": [
+    {
+      "package": "dsh-session/lib/index.js",
+      "sha256": "2f5dd07cb5c744a29abbb8003a8a4cefd9e582c6e2538074ca299a0ddd02a3bf",
+      "bytes": 94982,
+      "ok": true
+    },
+    {
+      "package": "dsh-session-persistence/lib/index.js",
+      "sha256": "cc0b6d3a224133af611b428d5a49020e300f86c3b4ba28037aeb219029bde3eb",
+      "bytes": 12920,
+      "ok": true
+    },
+    {
+      "package": "dsh-session-persistence-jsonl/lib/index.js",
+      "sha256": "973dd78679b2661d6f492343bc22b124ae958aa597d3b36c698a2c650f909984",
+      "bytes": 147273,
+      "ok": true
+    },
+    {
+      "package": "dsh-session-projection/lib/index.js",
+      "sha256": "7dc2b212819baf4fc292751054d30b97afcbdee0a4733230abf92c6722e6550c",
+      "bytes": 19981,
+      "ok": true
+    },
+    {
+      "package": "dsh-agent-loop/lib/index.js",
+      "sha256": "cf57e3ecd487ac5c2553455aaa5cef2c6fb41e6bd61be5aa455675d1d7193033",
+      "bytes": 74599,
+      "ok": true
+    },
+    {
+      "package": "dsh-session-title/lib/index.js",
+      "sha256": "eb814490ca3d0aaabf8f6ddc705a031f99a98709c484c1502c5f28f101cf0eeb",
+      "bytes": 27183,
+      "ok": true
+    },
+    {
+      "package": "dsh-goal/lib/index.js",
+      "sha256": "8ec52107ead3d31f4d8ca95894c851046a2cbbd1b2033a0ea22fedf17c043ae4",
+      "bytes": 36744,
+      "ok": true
+    }
+  ],
+  "tests": {
+    "00-oracle-selftest.test.ts": {
+      "sha256": "4472404437b94b585e8d4ca4c78cbc9ad2ee05ec674441b1ba34156bfacd52cb",
+      "bytes": 16209
+    },
+    "10-legal-history.test.ts": {
+      "sha256": "28c561371c2a268574fef6b1cfff300ac3a93dc00caf86cdad55eebc6a069e7e",
+      "bytes": 9990
+    },
+    "20-invalid-history.test.ts": {
+      "sha256": "5e12e3e81fe9850fa9bdcfa5d8f3e93f3baf4cb9680bf6c729023672474ce051",
+      "bytes": 13956
+    },
+    "30-races.test.ts": {
+      "sha256": "ccc0a728be631ad829e88f1cb6305e5bf84c117dbe9b8cb2f2145006d2ecf8bb",
+      "bytes": 12576
+    },
+    "40-limits.test.ts": {
+      "sha256": "340b534e42aa564fdadbc9a141a805b61355ec9cb949666f9aef3a76f31382a7",
+      "bytes": 8999
+    },
+    "50-recovery.test.ts": {
+      "sha256": "bf62bb1e8827e18643faceb59249051e4e997233248cf337544ec9cfafcd9b11",
+      "bytes": 33109
+    },
+    "60-business-loadonly.test.ts": {
+      "sha256": "fcc5ec47d8354f9ba59b3ca749c965bb90c32616dc1f23f142cc174f3110c13b",
+      "bytes": 31962
+    },
+    "70-business-replyer.test.ts": {
+      "sha256": "be76c9b936b4d989f24bc27bb4978b0d6337f58b4070074d7148bdc83d967552",
+      "bytes": 27252
+    },
+    "80-business-core.test.ts": {
+      "sha256": "4900aba41215a30e6c16924bb1ba21f01072079b719ad171023e483c41a08533",
+      "bytes": 16216
+    }
+  },
+  "suite": {
+    "00-oracle-selftest.test.ts": {
+      "sha256": "4472404437b94b585e8d4ca4c78cbc9ad2ee05ec674441b1ba34156bfacd52cb",
+      "bytes": 16209
+    },
+    "10-legal-history.test.ts": {
+      "sha256": "28c561371c2a268574fef6b1cfff300ac3a93dc00caf86cdad55eebc6a069e7e",
+      "bytes": 9990
+    },
+    "20-invalid-history.test.ts": {
+      "sha256": "5e12e3e81fe9850fa9bdcfa5d8f3e93f3baf4cb9680bf6c729023672474ce051",
+      "bytes": 13956
+    },
+    "30-races.test.ts": {
+      "sha256": "ccc0a728be631ad829e88f1cb6305e5bf84c117dbe9b8cb2f2145006d2ecf8bb",
+      "bytes": 12576
+    },
+    "40-limits.test.ts": {
+      "sha256": "340b534e42aa564fdadbc9a141a805b61355ec9cb949666f9aef3a76f31382a7",
+      "bytes": 8999
+    },
+    "50-recovery.test.ts": {
+      "sha256": "bf62bb1e8827e18643faceb59249051e4e997233248cf337544ec9cfafcd9b11",
+      "bytes": 33109
+    },
+    "60-business-loadonly.test.ts": {
+      "sha256": "fcc5ec47d8354f9ba59b3ca749c965bb90c32616dc1f23f142cc174f3110c13b",
+      "bytes": 31962
+    },
+    "70-business-replyer.test.ts": {
+      "sha256": "be76c9b936b4d989f24bc27bb4978b0d6337f58b4070074d7148bdc83d967552",
+      "bytes": 27252
+    },
+    "80-business-core.test.ts": {
+      "sha256": "4900aba41215a30e6c16924bb1ba21f01072079b719ad171023e483c41a08533",
+      "bytes": 16216
+    },
+    "README.md": {
+      "sha256": "8cbffc26d6ae9f1828b67dff18bf6b8f588ba7cdb43b2d006e6ff4cc659f4e7c",
+      "bytes": 9620
+    },
+    "report.mjs": {
+      "sha256": "b40a36b678a27fbe33909818ebb8af6262b934eec69c40784426d269dfffec4b",
+      "bytes": 29187
+    },
+    "support/evidence.ts": {
+      "sha256": "a0da81ef248386158c4de2f02470e1c114641e03355a986f481aee3f99a6cdad",
+      "bytes": 3433
+    },
+    "support/harness.ts": {
+      "sha256": "9c4b51b156bc8b975768d61596688cfb778a6a2954934ca8fb43524c9b3075e5",
+      "bytes": 11340
+    },
+    "support/host.ts": {
+      "sha256": "d7d38b311c7f3e9f32b315b5fbc85ce1cf2bb938ec387bc57d6b21aeeb6c4424",
+      "bytes": 23483
+    },
+    "support/independent.ts": {
+      "sha256": "f5368fd3383a9af3e790a546636a2dded57190f09a5082d0d155d9ccecae46ea",
+      "bytes": 18936
+    },
+    "support/seam.ts": {
+      "sha256": "348e8a0ea297103078c0322071f4a2cc2bd1ac09b288f62a0ea4d5822a67c490",
+      "bytes": 5466
+    },
+    "support/world.ts": {
+      "sha256": "dcb27debfd224a22cf7f9197fd80119a3538e3d3bd7fa14a84eef7259aeff729",
+      "bytes": 20903
+    },
+    "tsconfig.json": {
+      "sha256": "a1d587908f6afa766518e0b71eaeb4918b28d61f8c415a9f8e770e6dae2c70e2",
+      "bytes": 305
+    }
+  },
+  "isolation": "synthetic in-memory native host; no real DSH host, model, embedding, channel or user data is read or written",
+  "homePathRedaction": "<home> replaces the local home directory; artifact-internal paths are relative to the package root",
+  "independence": "expectations derived from 架构与设计/DSH交接 00-03 + frozen SDK 0.2.1-rc.5 static source; the judge does not import product parsers/hash helpers; see 00-oracle-selftest.test.ts for the judge self-verification",
+  "integrity": {
+    "judgeImportsProduct": false,
+    "judgeSupportFiles": [
+      "evidence.ts",
+      "harness.ts",
+      "host.ts",
+      "independent.ts",
+      "seam.ts",
+      "world.ts"
+    ],
+    "antiPatterns": {
+      "skip": [],
+      "only": [],
+      "tautology": [],
+      "unconditionalPass": []
+    },
+    "casesRecordedPerTestFile": {
+      "00-oracle-selftest.test.ts": 6,
+      "10-legal-history.test.ts": 13,
+      "20-invalid-history.test.ts": 22,
+      "30-races.test.ts": 12,
+      "40-limits.test.ts": 7,
+      "50-recovery.test.ts": 16,
+      "60-business-loadonly.test.ts": 13,
+      "70-business-replyer.test.ts": 10,
+      "80-business-core.test.ts": 5
+    },
+    "everyTestFileHasEvidence": true,
+    "evidenceFiles": 9,
+    "evidenceRecords": 117
+  },
+  "durationMs": 36944,
+  "exitStatus": 0,
+  "finishedAt": "2026-11-02T18:58:03.108Z"
+}

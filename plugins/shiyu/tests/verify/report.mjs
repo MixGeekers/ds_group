@@ -127,6 +127,19 @@ const manifest = {
   product: Object.fromEntries(productFiles.map(file => [file, existsSync(join(packageRoot, file)) ? { sha256: sha256File(join(packageRoot, file)), bytes: readFileSync(join(packageRoot, file)).length } : { missing: true }])),
   sdk: sdkHashes,
   tests: Object.fromEntries(files.map(file => [file, { sha256: sha256File(join(verifyDir, file)), bytes: readFileSync(join(verifyDir, file)).length }])),
+  suite: (() => {
+    const entries = {};
+    const walk = directory => {
+      for (const name of readdirSync(directory, { withFileTypes: true })) {
+        const path = join(directory, name.name);
+        if (name.isDirectory()) { walk(path); continue; }
+        if (!name.isFile()) continue;
+        entries[path.slice(verifyDir.length + 1).split('\\').join('/')] = { sha256: sha256File(path), bytes: readFileSync(path).length };
+      }
+    };
+    walk(verifyDir);
+    return entries;
+  })(),
   isolation: 'synthetic in-memory native host; no real DSH host, model, embedding, channel or user data is read or written',
   homePathRedaction: `${HOME_TOKEN} replaces the local home directory; artifact-internal paths are relative to the package root`,
   independence: 'expectations derived from 架构与设计/DSH交接 00-03 + frozen SDK 0.2.1-rc.5 static source; the judge does not import product parsers/hash helpers; see 00-oracle-selftest.test.ts for the judge self-verification',

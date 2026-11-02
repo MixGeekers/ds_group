@@ -1,26 +1,28 @@
 # H1 独立验证最终报告（task-3 收口）
 
 - 结论对象：H1/3J「原生 Session 长历史冷恢复、恢复前缀身份与授权/派发边界」离线切片
-- 被测提交：`92c857fcfe5d823836b48ea9c9df09fcdeb14981`（feat(shiyu): recover long native Session history with bounded paging (H1/3J)，2026-11-02 14:48:57 -0400）
-- 独立运行：`2026-11-02T18-49-33-366Z-final-92c857f`（`artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/`）
+- 被测 H1 提交：`92c857fcfe5d823836b48ea9c9df09fcdeb14981`（feat(shiyu): recover long native Session history with bounded paging (H1/3J)，2026-11-02 14:48:57 -0400）
+- 最终运行所在 HEAD：`2e04eb20eda5f958f0b15177bca0f5bdab21cc00`（该 HEAD 及其间提交（H5、H4、独立验证套件）未修改 H1 适配文件；`git diff 92c857f..2e04eb20eda5 -- plugins/shiyu/src/adapters/dsh` 为空，H1 9 文件哈希与 92c857f 一致）
+- 独立运行：`2026-11-02T18-57-25-813Z-final`（`artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/`）
 - 独立类型检查：`npx tsc -p tests/verify --noEmit` 通过
 - 判定器自证：C00a–C00f 通过（手工应过/应拒样本 + 1 正确/3 故障突变体端到端突变测试）
 - 产品行为缺口：**无**（117 条独立用例全部通过；失败/blocked/unobservable/skip/unreported 均为 0）
 - 证据真实性复核：实现者最终 check、独立复现、Lead 隔离切片验证三者一致（见 §5）
 - 证据层级：**G1 离线（合成原生替身 + 固定 SDK 静态契约）+ 组合级业务路径**；不冒充真实宿主/模型/压缩/长期运行验收
+- 路径脱敏：本目录所有新增证据中的本机 home 绝对路径统一替换为 `<home>`，运行内路径为相对路径；产品/测试源码与固定 SDK 指纹保持原样
 
 ## 1. 运行与冻结清单
 
 | 项 | 值 |
 |---|---|
-| 运行命令 | `node --import tsx tests/verify/report.mjs --label final-92c857f`（内部：`node --import tsx --test --test-concurrency=1 --test-reporter=tap tests/verify/*.test.ts`） |
+| 运行命令 | `node --import tsx tests/verify/report.mjs --label final`（内部：`node --import tsx --test --test-concurrency=1 --test-reporter=tap tests/verify/*.test.ts`） |
 | 独立 tsconfig | `tests/verify/tsconfig.json`；`npx tsc -p tests/verify --noEmit` = 0 退出 |
-| 环境 | Node `v24.19.0`，`darwin/arm64`，工作目录 `plugins/shiyu` |
-| 时间/耗时/退出码 | `2026-11-02T18:49:33.366Z` / `37.4s` / `0` |
-| git | HEAD `92c857fcfe5d823836b48ea9c9df09fcdeb14981`，分支 `codex/start-shiyu-implementation`；H1 9 文件在工作树与提交中一致（`git show 92c857f:<path>` 逐项核对） |
+| 环境 | Node `v24.19.0`，`darwin/arm64`，工作目录 `<home>/Documents/识雨/plugins/shiyu` |
+| 时间/耗时/退出码 | `2026-11-02T18:57:25.813Z` / `36.9s` / `0` |
+| git | 运行 HEAD `2e04eb20eda5f958f0b15177bca0f5bdab21cc00`（分支 `codex/start-shiyu-implementation`）；被测 H1 提交 `92c857f`，H1 9 文件在两处哈希一致（`git show 92c857f:<path>` 逐项核对） |
 | 隔离声明 | 合成内存原生世界 + 合成业务宿主；不连接真实 DSH 宿主、模型、embedding、频道或用户数据；SDK 仅只读静态核对，未执行 |
 
-冻结指纹（完整见 `manifest.json`）：
+冻结指纹（完整见 `manifest.json`；独立套件共 `18` 个文件全部记录 SHA256）：
 
 产品 6 文件：
   - `src/adapters/dsh/native-context.ts` `747450b8b7c63087961f9faf68802c7d78704a5ac175e84900bcaaf1bdf5b794`
@@ -37,7 +39,7 @@
   - `dsh-agent-loop/lib/index.js` `cf57e3ecd487ac5c2553455aaa5cef2c6fb41e6bd61be5aa455675d1d7193033`
   - `dsh-session-title/lib/index.js` `eb814490ca3d0aaabf8f6ddc705a031f99a98709c484c1502c5f28f101cf0eeb`
   - `dsh-goal/lib/index.js` `8ec52107ead3d31f4d8ca95894c851046a2cbbd1b2033a0ea22fedf17c043ae4`
-独立测试 9 文件：
+独立测试文件（9 个 `.test.ts`，另 support/report/README/tsconfig 见 manifest.json `suite`）：
   - `00-oracle-selftest.test.ts` `4472404437b94b585e8d4ca4c78cbc9ad2ee05ec674441b1ba34156bfacd52cb`
   - `10-legal-history.test.ts` `28c561371c2a268574fef6b1cfff300ac3a93dc00caf86cdad55eebc6a069e7e`
   - `20-invalid-history.test.ts` `5e12e3e81fe9850fa9bdcfa5d8f3e93f3baf4cb9680bf6c729023672474ce051`
@@ -79,7 +81,7 @@ TAP 测试级：`103` 个 = 通过 `103` / 失败 `0` / blocked `0` / unobservab
 | 7 | 03 §5 row7: load-only、replyer、Core 各自正常长史路径；精确本次原生消息+flush+独立回读才给 receipt；生成路径在明确预算下推进 | 9/9 | covered | — |
 | 8 | 02 §3.2 / 03 §5 row8: 判定器自证（应过/应拒样本），测试/替身/SDK静态分别留证不互相冒充 | 8/8 | covered | — |
 
-逐目标测试 ID（详见 `runs/2026-11-02T18-49-33-366Z-final-92c857f/results.md` §3 与 §5）：
+逐目标测试 ID（详见 `runs/2026-11-02T18-57-25-813Z-final/results.md` §3 与 §5）：
 - row1 合法长史/边界/多页/继承 seed/身份：L01–L13、R02–R03、S17、LO02/LO08/LO11/LO13、RP02/RP06/RP10、CO01
 - row2 非法输入/坏 header/preset/继承/−0/资源释放：I01–I27、L06、L12
 - row3 读取中/EOF 后/投影中变更/同长度改写/缩短：R01–R07、S07
@@ -98,11 +100,11 @@ TAP 测试级：`103` 个 = 通过 `103` / 失败 `0` / blocked `0` / unobservab
 **B. 证据/环境事项（均不改变产品行为结论）：**
 | ID | 状态 | 事实 | 证据 |
 |---|---|---|---|
-| B-01 主套件曾红（旧夹具） | **已解决** | 曾被 `tests/session-reply-accounting.test.ts` 旧夹具阻塞；已由实现者按新契约更新（加 canonical version-4 header、seq/inherited/append、runMaintenance、sessions.get、projector asOfSeq、真实 fixed-title append），未删除/跳过断言 | `92c857f` 提交；`phase3j-final-check.log` 1058/1058/0；独立复现一致 |
+| B-01 主套件旧夹具曾红 | **已解决** | 曾被 `tests/session-reply-accounting.test.ts` 旧夹具阻塞；已由实现者按新契约更新（canonical version-4 header、seq/inherited/append、runMaintenance、sessions.get、projector asOfSeq、真实 fixed-title append），未删除/跳过断言 | `92c857f` 提交；`phase3j-final-check.log` 1058/1058/0；独立复现一致 |
 | B-02 全量 check 受并行 WIP 干扰 | **已规避** | 主树同时有 H4/H5 等未跟踪 WIP，直接全量 check 不可归因；实现者与 Lead 均在隔离 worktree 运行并留哈希 | 实现者 `/tmp/shiyu-h1-check`；Lead `artifacts/dsh/slices/h1-verify.json` |
 | B-03 实现者自测覆盖缺口 | **已解决** | 最终版新增 `tests/native-history.test.ts` 14 项业务路径集成测试 + core-goal +3；模块级 22 项真实断言 | `92c857f` 测试文件与 EV-07 |
-| B-04 最终 check 证据 | **已核实** | 日志 SHA256 `8c05c87f…` 与声明一致；独立复现 exit 0、1058/1058/0/skip 0；源文件哈希前后不变 | `implementer-evidence-review.json` EV-02/EV-03；`replication-final-check.log` |
-| B-05 文档时间戳小差异 | **记录** | 实现者 `h1-verification.json` 记 startedAt=18:39:49Z，保留日志头为 18:42:44Z（计数/哈希/退出码/复现均一致，属元数据不一致） | `implementer-evidence-review.json` EV-09 |
+| B-04 最终 check 证据 | **已核实** | 日志 SHA256 `8c05c87f…` 与声明一致；独立复现 exit 0、1058/1058/0/skip 0；源文件哈希前后不变；Lead 隔离切片日志 `aa342679…` 一致 | `implementer-evidence-review.json` EV-02–EV-05；`replication-final-check.log` |
+| B-05 文档时间戳差异（根因已确认） | **记录（不影响结论）** | 实现者 `h1-verification.json` 的 startedAt=18:39:49Z 是**未被保留的第一次 attempt**（worktree 未 symlink pinned Python/Ombre，1058 tests/1057 pass/1 skipped 条件 skip）；随后补 symlink 重跑并以第二次 attempt 日志覆盖同路径（start 18:42:44Z→end 18:44:47Z，bytes 117921，SHA256 8c05c87f…，1058/1058/0/0/0，exit 0）。artifact 仅沿用了首次 attempt 的开始时间 | `implementer-evidence-review.json` EV-09；实现者 2026-11-02 更正说明 |
 
 **C. 明确未覆盖/不可观察项（按 03 §5 最后一行分层留证，不是失败）：**
 | 未覆盖行为目标 | 原因 | 需要的后续证据 |
@@ -119,7 +121,7 @@ TAP 测试级：`103` 个 = 通过 `103` / 失败 `0` / blocked `0` / unobservab
 | 证据 | 检查 | 结论 |
 |---|---|---|
 | H1 提交 9 文件 SHA256 | `git show 92c857f:<path>` vs 独立 manifest 逐项 | **完全一致** |
-| 实现者最终 `npm run check` 日志 | SHA256 `8c05c87f719afc9ea2ecc7b3fac690d89827e741b00b2c455d36505b0da5c258` 与声明一致；日志自身含 worktree/HEAD/9 文件哈希、typecheck、1058/1058/0/0、build、client 语法、exit 0 | **真实且内部一致** |
+| 实现者最终 `npm run check` 日志 | SHA256 `8c05c87f719afc9ea2ecc7b3fac690d89827e741b00b2c455d36505b0da5c258` 与声明一致；日志自身含 worktree/HEAD/9 文件哈希、typecheck、1058/1058/0/0/0、build、client 语法、exit 0；实现者已确认该保留日志为第二次 attempt（首次 attempt 与 artifact startedAt 差异见 B-05） | **真实且内部一致** |
 | 独立复现实现者 check | 在同一隔离 worktree 重跑 `npm run check`：exit 0、1058/1058/0/skip 0、build 通过；运行前后 9 文件哈希不变 | **可复现**（`replication-final-check.log`，SHA256 `c6181832…`） |
 | Lead 隔离切片验证 | `artifacts/dsh/slices/h1-verify.json`：HEAD 08995d1 + 9 文件、1058/1058/0/skip 0、exit 0；日志 SHA256 `aa342679…` 与声明一致；工具 `scripts/slice-verify.mjs` 经审阅为真实隔离 worktree + `npm run check` + 原始日志哈希，不是硬编码结论 | **真实且与实现者一致** |
 | 测试计数算术 | 1021（H0 前基线日志）+ 4（H0 host-status，已在 08995d1）+ 33（H1：native-context 6→22、native-history +14、core-goal 17→20）= 1058 | **一致，无删除基线测试** |
@@ -145,7 +147,7 @@ TAP 测试级：`103` 个 = 通过 `103` / 失败 `0` / blocked `0` / unobservab
 
 ## 8. 证据索引
 
-- 独立结果：`artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/results.json`、`results.md`、`tap.txt`、`manifest.json`、`raw/*.jsonl`
+- 独立结果：`artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/results.json`、`results.md`、`tap.txt`、`manifest.json`、`raw/*.jsonl`
 - 本轮最新：`artifacts/dsh/verify/latest.md` / `latest.json`
 - 判定器自证与否定对照：`00-oracle-selftest.test.ts`、`artifacts/dsh/verify/negative-control.json`
 - 实现者证据复核：`artifacts/dsh/verify/implementer-evidence-review.json`、`replication-final-check.log`、`replication-before/after-hashes.txt`

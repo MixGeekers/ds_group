@@ -1,8 +1,8 @@
 {
-  "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-  "label": "final-92c857f",
-  "startedAt": "2026-11-02T18:49:33.366Z",
-  "durationMs": 37419,
+  "runId": "2026-11-02T18-57-25-813Z-final",
+  "label": "final",
+  "startedAt": "2026-11-02T18:57:25.813Z",
+  "durationMs": 36944,
   "exitStatus": 0,
   "summary": {
     "categories": 9,
@@ -1211,10 +1211,10 @@
           }
         }
       },
-      "startedAt": "2026-11-02T18:49:58.498Z",
-      "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9919
+      "startedAt": "2026-11-02T18:57:50.596Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16977
     },
     {
       "id": "B01",
@@ -1244,10 +1244,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:58.499Z",
-      "durationMs": 6821,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9919
+      "startedAt": "2026-11-02T18:57:50.597Z",
+      "durationMs": 6736,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16977
     },
     {
       "id": "B02",
@@ -1266,10 +1266,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:50:05.321Z",
-      "durationMs": 3318,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9919
+      "startedAt": "2026-11-02T18:57:57.333Z",
+      "durationMs": 3273,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16977
     },
     {
       "id": "B03",
@@ -1289,10 +1289,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:50:08.640Z",
-      "durationMs": 102,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9919
+      "startedAt": "2026-11-02T18:58:00.606Z",
+      "durationMs": 94,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16977
     },
     {
       "id": "B04",
@@ -1315,10 +1315,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:50:08.742Z",
-      "durationMs": 66,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9919
+      "startedAt": "2026-11-02T18:58:00.700Z",
+      "durationMs": 67,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16977
     },
     {
       "id": "B05",
@@ -1338,10 +1338,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:50:08.930Z",
-      "durationMs": 89,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9919
+      "startedAt": "2026-11-02T18:58:00.907Z",
+      "durationMs": 92,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16977
     },
     {
       "id": "B06",
@@ -1360,10 +1360,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:50:08.808Z",
-      "durationMs": 121,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9919
+      "startedAt": "2026-11-02T18:58:00.767Z",
+      "durationMs": 140,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16977
     },
     {
       "id": "C00a",
@@ -1375,10 +1375,10 @@
       "expectation": "independent judge reports no violation for correct snapshot and refs",
       "verdict": "pass",
       "actual": "accepted both correct hand samples (40-event mixed history and empty history)",
-      "startedAt": "2026-11-02T18:49:33.801Z",
-      "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9557
+      "startedAt": "2026-11-02T18:57:26.228Z",
+      "durationMs": 2,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16733
     },
     {
       "id": "C00b",
@@ -1400,10 +1400,10 @@
           "-0 watermark"
         ]
       },
-      "startedAt": "2026-11-02T18:49:33.803Z",
+      "startedAt": "2026-11-02T18:57:26.231Z",
       "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9557
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16733
     },
     {
       "id": "C00c",
@@ -1423,10 +1423,10 @@
           "unidentified pending message"
         ]
       },
-      "startedAt": "2026-11-02T18:49:33.804Z",
+      "startedAt": "2026-11-02T18:57:26.232Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9557
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16733
     },
     {
       "id": "C00d",
@@ -1447,10 +1447,10 @@
           "missing-error"
         ]
       },
-      "startedAt": "2026-11-02T18:49:33.805Z",
+      "startedAt": "2026-11-02T18:57:26.232Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9557
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16733
     },
     {
       "id": "C00e",
@@ -1461,10 +1461,10 @@
       "expectation": "offset slices, explicit EOF, monotonic shrink rejection, empty asOfSeq=-1 and detached state",
       "verdict": "pass",
       "actual": "fixture semantics verified (slices, EOF, shrink rejection, empty asOfSeq -1, detached state, inert end-seed)",
-      "startedAt": "2026-11-02T18:49:33.854Z",
-      "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9557
+      "startedAt": "2026-11-02T18:57:26.277Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16733
     },
     {
       "id": "C00f",
@@ -1484,10 +1484,10 @@
           "short-page-as-eof:asOfSeq: expected 499 got 98 (inclusive native watermark must be eventCount-1 (e"
         ]
       },
-      "startedAt": "2026-11-02T18:49:33.805Z",
-      "durationMs": 48,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9557
+      "startedAt": "2026-11-02T18:57:26.233Z",
+      "durationMs": 44,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16733
     },
     {
       "id": "CO01",
@@ -1500,10 +1500,10 @@
       "expectation": "same Goal Session resumed from long history; trusted suffix+title bound; exact dispatch receipt; one primary stream; bounded candidate",
       "verdict": "pass",
       "actual": "same Goal Session resumed; candidate text, exact input seq=2011 and assistant seq=2013, one model call, observed accounting",
-      "startedAt": "2026-11-02T18:50:10.875Z",
-      "durationMs": 174,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10041
+      "startedAt": "2026-11-02T18:58:02.834Z",
+      "durationMs": 180,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17597
     },
     {
       "id": "CO02",
@@ -1515,10 +1515,10 @@
       "expectation": "a foreign native input appended while onDispatch awaits must be detected by the synchronous live baseline recheck before dispatch; no candidate, no context receipt",
       "verdict": "pass",
       "actual": "round refused with \"Native history changed outside the trusted recovery suffix\"; no candidate/context receipt, accounting preserved",
-      "startedAt": "2026-11-02T18:50:11.074Z",
-      "durationMs": 28,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10041
+      "startedAt": "2026-11-02T18:58:03.038Z",
+      "durationMs": 24,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17597
     },
     {
       "id": "CO03",
@@ -1530,10 +1530,10 @@
       "expectation": "the dispatch gate rechecks the live baseline after an authorization await, so a write landing there is refused before any model call",
       "verdict": "pass",
       "actual": "round refused with \"Native history changed outside the trusted recovery suffix\"; zero model calls",
-      "startedAt": "2026-11-02T18:50:11.103Z",
-      "durationMs": 21,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10041
+      "startedAt": "2026-11-02T18:58:03.063Z",
+      "durationMs": 22,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17597
     },
     {
       "id": "CO04",
@@ -1545,10 +1545,10 @@
       "expectation": "only the owner input plus at most the exact cwd runtime snapshot may enter the core request; any other user message is rejected before/at the stream boundary",
       "verdict": "pass",
       "actual": "round refused with \"Core native context has no distinct official message identity\"; no candidate/context receipt",
-      "startedAt": "2026-11-02T18:50:11.050Z",
+      "startedAt": "2026-11-02T18:58:03.015Z",
       "durationMs": 16,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10041
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17597
     },
     {
       "id": "CO05",
@@ -1560,10 +1560,10 @@
       "expectation": "an unknown pending native input on the resumed Goal Session blocks the decision before any dispatch/model call; the input is preserved",
       "verdict": "pass",
       "actual": "decision refused with \"Unknown native inbox blocks Core Goal recovery\"; input preserved; zero dispatch/model",
-      "startedAt": "2026-11-02T18:50:11.066Z",
-      "durationMs": 7,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10041
+      "startedAt": "2026-11-02T18:58:03.031Z",
+      "durationMs": 6,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17597
     },
     {
       "id": "I01",
@@ -1581,10 +1581,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.120Z",
-      "durationMs": 8,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "startedAt": "2026-11-02T18:57:30.242Z",
+      "durationMs": 7,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I02a",
@@ -1602,10 +1602,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.129Z",
+      "startedAt": "2026-11-02T18:57:30.250Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I02b",
@@ -1623,10 +1623,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.129Z",
+      "startedAt": "2026-11-02T18:57:30.250Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I03",
@@ -1646,10 +1646,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.129Z",
+      "startedAt": "2026-11-02T18:57:30.251Z",
       "durationMs": 6,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I04",
@@ -1668,10 +1668,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.135Z",
-      "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "startedAt": "2026-11-02T18:57:30.257Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I05",
@@ -1690,10 +1690,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.136Z",
+      "startedAt": "2026-11-02T18:57:30.257Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I06",
@@ -1713,10 +1713,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.136Z",
+      "startedAt": "2026-11-02T18:57:30.258Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I07",
@@ -1736,10 +1736,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.136Z",
-      "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "startedAt": "2026-11-02T18:57:30.258Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I08",
@@ -1759,10 +1759,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.137Z",
+      "startedAt": "2026-11-02T18:57:30.258Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I09",
@@ -1782,10 +1782,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.137Z",
-      "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "startedAt": "2026-11-02T18:57:30.258Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I10",
@@ -1804,10 +1804,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.137Z",
+      "startedAt": "2026-11-02T18:57:30.259Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I11",
@@ -1826,10 +1826,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.137Z",
+      "startedAt": "2026-11-02T18:57:30.259Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I12",
@@ -1848,10 +1848,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.137Z",
+      "startedAt": "2026-11-02T18:57:30.259Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I13",
@@ -1870,10 +1870,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.137Z",
-      "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "startedAt": "2026-11-02T18:57:30.259Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I14",
@@ -1892,10 +1892,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.138Z",
-      "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "startedAt": "2026-11-02T18:57:30.259Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I15",
@@ -1914,10 +1914,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.138Z",
+      "startedAt": "2026-11-02T18:57:30.260Z",
       "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I16",
@@ -1936,10 +1936,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.139Z",
-      "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "startedAt": "2026-11-02T18:57:30.261Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I17",
@@ -1958,10 +1958,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.140Z",
+      "startedAt": "2026-11-02T18:57:30.262Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I18",
@@ -1980,10 +1980,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.140Z",
+      "startedAt": "2026-11-02T18:57:30.262Z",
       "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I19",
@@ -2002,10 +2002,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.141Z",
+      "startedAt": "2026-11-02T18:57:30.263Z",
       "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I20",
@@ -2024,10 +2024,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.142Z",
+      "startedAt": "2026-11-02T18:57:30.264Z",
       "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I21",
@@ -2046,10 +2046,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.143Z",
-      "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "startedAt": "2026-11-02T18:57:30.265Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I22",
@@ -2069,10 +2069,10 @@
         "opens": 1,
         "closes": 0
       },
-      "startedAt": "2026-11-02T18:49:38.144Z",
+      "startedAt": "2026-11-02T18:57:30.265Z",
       "durationMs": 2,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I23",
@@ -2091,10 +2091,10 @@
         "opens": 0,
         "closes": 0
       },
-      "startedAt": "2026-11-02T18:49:38.146Z",
+      "startedAt": "2026-11-02T18:57:30.267Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I24",
@@ -2113,10 +2113,10 @@
         "opens": 0,
         "closes": 0
       },
-      "startedAt": "2026-11-02T18:49:38.146Z",
+      "startedAt": "2026-11-02T18:57:30.267Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I25",
@@ -2135,10 +2135,10 @@
         "opens": 0,
         "closes": 0
       },
-      "startedAt": "2026-11-02T18:49:38.146Z",
+      "startedAt": "2026-11-02T18:57:30.267Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I26",
@@ -2156,10 +2156,10 @@
         "opens": 0,
         "closes": 0
       },
-      "startedAt": "2026-11-02T18:49:38.146Z",
+      "startedAt": "2026-11-02T18:57:30.267Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "I27",
@@ -2178,10 +2178,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.147Z",
+      "startedAt": "2026-11-02T18:57:30.267Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9803
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16779
     },
     {
       "id": "L01",
@@ -2206,10 +2206,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:33.917Z",
+      "startedAt": "2026-11-02T18:57:26.335Z",
       "durationMs": 7,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L02",
@@ -2233,10 +2233,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:33.925Z",
+      "startedAt": "2026-11-02T18:57:26.343Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L03",
@@ -2267,10 +2267,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:33.925Z",
-      "durationMs": 79,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:26.343Z",
+      "durationMs": 75,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L04",
@@ -2301,10 +2301,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:34.005Z",
-      "durationMs": 77,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:26.418Z",
+      "durationMs": 70,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L05",
@@ -2335,10 +2335,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:34.082Z",
-      "durationMs": 82,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:26.489Z",
+      "durationMs": 74,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L06",
@@ -2375,10 +2375,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:34.164Z",
-      "durationMs": 907,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:26.564Z",
+      "durationMs": 757,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L07",
@@ -2409,10 +2409,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:35.071Z",
-      "durationMs": 2842,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:27.321Z",
+      "durationMs": 2728,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L08",
@@ -2449,10 +2449,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:37.913Z",
-      "durationMs": 42,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:30.049Z",
+      "durationMs": 39,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L09",
@@ -2483,10 +2483,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:37.955Z",
+      "startedAt": "2026-11-02T18:57:30.089Z",
       "durationMs": 2,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L10",
@@ -2523,10 +2523,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:37.957Z",
-      "durationMs": 15,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:30.091Z",
+      "durationMs": 13,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L11",
@@ -2556,10 +2556,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:37.973Z",
-      "durationMs": 59,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:30.105Z",
+      "durationMs": 55,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L12",
@@ -2589,10 +2589,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.032Z",
-      "durationMs": 20,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "startedAt": "2026-11-02T18:57:30.161Z",
+      "durationMs": 17,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "L13",
@@ -2621,10 +2621,10 @@
           }
         }
       },
-      "startedAt": "2026-11-02T18:49:38.052Z",
+      "startedAt": "2026-11-02T18:57:30.179Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9558
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16736
     },
     {
       "id": "LO01",
@@ -2637,10 +2637,10 @@
       "expectation": "exact current message appended + flushed, durable readback, no generation, receipt only after all of it",
       "verdict": "pass",
       "actual": "receipt at exact seq=1, 3 flushes, zero followup/model calls, agent disposed",
-      "startedAt": "2026-11-02T18:50:09.761Z",
-      "durationMs": 10,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "startedAt": "2026-11-02T18:58:01.745Z",
+      "durationMs": 11,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO02",
@@ -2653,10 +2653,10 @@
       "expectation": "same Session resumes 3000 persisted events; the resume suffix and the fixed title append are bound into the baseline before the exact load message",
       "verdict": "pass",
       "actual": "same Session shiyu-replyer-verify-load-long-0001: 3000 prefix events preserved, suffix [\"session/end-seed\",\"session/title\",\"user/message\"], receipt seq=3002",
-      "startedAt": "2026-11-02T18:50:09.772Z",
-      "durationMs": 369,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "startedAt": "2026-11-02T18:58:01.757Z",
+      "durationMs": 355,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO03",
@@ -2668,10 +2668,10 @@
       "expectation": "a foreign user/message written to the same Session while authorize(append) awaits must not be acknowledged; no durable receipt, no deletion",
       "verdict": "pass",
       "actual": "foreign append left in the log (403 events), no receipt/ack; load failed with \"Native history changed outside the trusted recovery suffix\"",
-      "startedAt": "2026-11-02T18:50:10.142Z",
-      "durationMs": 21,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "startedAt": "2026-11-02T18:58:02.112Z",
+      "durationMs": 19,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO04",
@@ -2683,10 +2683,10 @@
       "expectation": "a foreign write landing before the acknowledgement callback must prevent onContextDurable",
       "verdict": "pass",
       "actual": "foreign event preserved in the log, no durable receipt and no load result",
-      "startedAt": "2026-11-02T18:50:10.163Z",
-      "durationMs": 19,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "startedAt": "2026-11-02T18:58:02.132Z",
+      "durationMs": 18,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO05",
@@ -2698,10 +2698,10 @@
       "expectation": "unknown pending input is never removed to make loading succeed; no receipt and the input is preserved",
       "verdict": "pass",
       "actual": "load refused with \"Pending native inbox blocks load-only context\"; pending input preserved",
-      "startedAt": "2026-11-02T18:50:10.182Z",
+      "startedAt": "2026-11-02T18:58:02.150Z",
       "durationMs": 3,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO06",
@@ -2713,10 +2713,10 @@
       "expectation": "if the durability barrier for the loaded message does not confirm, no load receipt escapes even though the in-memory append happened",
       "verdict": "pass",
       "actual": "load refused with \"Native Session durability listener did not handle the flush\"; no receipt",
-      "startedAt": "2026-11-02T18:50:10.185Z",
+      "startedAt": "2026-11-02T18:58:02.153Z",
       "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO07",
@@ -2728,10 +2728,10 @@
       "expectation": "an absolute deadline exceeded while authorize(append) awaits rejects without a receipt",
       "verdict": "pass",
       "actual": "deadline observed during authorize(append); load refused without receipt",
-      "startedAt": "2026-11-02T18:50:10.186Z",
+      "startedAt": "2026-11-02T18:58:02.154Z",
       "durationMs": 42,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO08",
@@ -2741,11 +2741,11 @@
       ],
       "expectation": "the same business Session id is resumed, the first loaded message remains native history, and the second exact message extends it",
       "verdict": "pass",
-      "actual": "one created + one resumed Session shiyu-replyer-ad56d961-24ef-4f04-8839-db3b1e63726e, both exact messages retained, second receipt seq=3",
-      "startedAt": "2026-11-02T18:50:10.228Z",
-      "durationMs": 2,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "actual": "one created + one resumed Session shiyu-replyer-3984ffda-7dd8-4889-9127-53999e707455, both exact messages retained, second receipt seq=3",
+      "startedAt": "2026-11-02T18:58:02.197Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO09",
@@ -2757,10 +2757,10 @@
       "expectation": "cooperative cancellation rejects without a load receipt and the owned Agent is released",
       "verdict": "pass",
       "actual": "cancellation observed; no receipt, agent released",
-      "startedAt": "2026-11-02T18:50:10.230Z",
-      "durationMs": 26,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "startedAt": "2026-11-02T18:58:02.199Z",
+      "durationMs": 25,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO10",
@@ -2772,10 +2772,10 @@
       "expectation": "the acknowledged seq/type/full-message hash read back through a fresh independent handle equals what the log holds; the receipt is never just the adapter success field",
       "verdict": "pass",
       "actual": "exact message read back at seq=1802 through a fresh independent handle (1803 events)",
-      "startedAt": "2026-11-02T18:50:10.285Z",
-      "durationMs": 173,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "startedAt": "2026-11-02T18:58:02.253Z",
+      "durationMs": 169,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO11",
@@ -2787,10 +2787,10 @@
       "expectation": "a Session whose title is already user-pinned needs no title write; seq is not assumed to change and the load still produces an exact receipt",
       "verdict": "pass",
       "actual": "no duplicate title append; suffix [\"session/title\",\"session/end-seed\",\"user/message\"]; receipt seq=222",
-      "startedAt": "2026-11-02T18:50:10.256Z",
+      "startedAt": "2026-11-02T18:58:02.224Z",
       "durationMs": 16,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO12",
@@ -2803,10 +2803,10 @@
       "expectation": "an unregistered pending input arriving over the live Session during the append authorization blocks the acknowledgement and is preserved",
       "verdict": "pass",
       "actual": "load refused with \"Load-only context failed and native cleanup could not be confirmed\"; pending input preserved, no receipt",
-      "startedAt": "2026-11-02T18:50:10.272Z",
-      "durationMs": 10,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "startedAt": "2026-11-02T18:58:02.241Z",
+      "durationMs": 9,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "LO13",
@@ -2817,11 +2817,11 @@
       ],
       "expectation": "after closing the adapter, a new adapter instance with the persisted binding resumes the same native Session (no replacement Session) and still issues an exact receipt",
       "verdict": "pass",
-      "actual": "restarted adapter resumed shiyu-replyer-7912c169-949d-4ec3-8953-a02415815701 without a replacement Session; prefix preserved; receipt seq=3",
-      "startedAt": "2026-11-02T18:50:10.282Z",
-      "durationMs": 3,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10023
+      "actual": "restarted adapter resumed shiyu-replyer-d443f30a-660a-415c-9a77-53abb5ec9071 without a replacement Session; prefix preserved; receipt seq=3",
+      "startedAt": "2026-11-02T18:58:02.251Z",
+      "durationMs": 2,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17460
     },
     {
       "id": "R01",
@@ -2840,10 +2840,10 @@
         "references": [],
         "reads": 24
       },
-      "startedAt": "2026-11-02T18:49:38.206Z",
-      "durationMs": 42,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.320Z",
+      "durationMs": 39,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R02",
@@ -2868,10 +2868,10 @@
         ],
         "reads": 24
       },
-      "startedAt": "2026-11-02T18:49:38.249Z",
-      "durationMs": 33,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.360Z",
+      "durationMs": 31,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R03",
@@ -2889,10 +2889,10 @@
         "references": [],
         "reads": 24
       },
-      "startedAt": "2026-11-02T18:49:38.282Z",
-      "durationMs": 32,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.391Z",
+      "durationMs": 30,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R04",
@@ -3016,10 +3016,10 @@
           }
         ]
       },
-      "startedAt": "2026-11-02T18:49:38.315Z",
-      "durationMs": 14,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.421Z",
+      "durationMs": 12,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R05",
@@ -3115,10 +3115,10 @@
           }
         ]
       },
-      "startedAt": "2026-11-02T18:49:38.329Z",
+      "startedAt": "2026-11-02T18:57:30.433Z",
       "durationMs": 9,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R06",
@@ -3213,10 +3213,10 @@
           }
         ]
       },
-      "startedAt": "2026-11-02T18:49:38.339Z",
+      "startedAt": "2026-11-02T18:57:30.442Z",
       "durationMs": 9,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R07",
@@ -3235,10 +3235,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.348Z",
-      "durationMs": 6,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.451Z",
+      "durationMs": 5,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R08",
@@ -3258,10 +3258,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.354Z",
-      "durationMs": 18,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.457Z",
+      "durationMs": 16,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R09",
@@ -3279,10 +3279,10 @@
         "opens": 0,
         "closes": 0
       },
-      "startedAt": "2026-11-02T18:49:38.372Z",
-      "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.473Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R10",
@@ -3302,10 +3302,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.437Z",
+      "startedAt": "2026-11-02T18:57:30.537Z",
       "durationMs": 10003,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R11",
@@ -3320,15 +3320,15 @@
       "refs": {
         "errorName": "NativeHistoryError",
         "errorCode": "NATIVE_HISTORY_DEADLINE",
-        "notes": "deadlineAtMs=+60ms honoured in 62ms",
+        "notes": "deadlineAtMs=+60ms honoured in 61ms",
         "reads": 0,
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:49:38.373Z",
-      "durationMs": 63,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.474Z",
+      "durationMs": 62,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "R12",
@@ -3346,10 +3346,10 @@
         "opens": 0,
         "closes": 0
       },
-      "startedAt": "2026-11-02T18:49:38.436Z",
-      "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 9804
+      "startedAt": "2026-11-02T18:57:30.537Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 16780
     },
     {
       "id": "RP01",
@@ -3362,10 +3362,10 @@
       "expectation": "one exact owner message durably loaded, one bounded primary stream under maxTokens, observed usage, complete accounting",
       "verdict": "pass",
       "actual": "receipt seq=5, draft+assistant ref durable, 1 model call, usage reported, accounting complete",
-      "startedAt": "2026-11-02T18:50:10.523Z",
+      "startedAt": "2026-11-02T18:58:02.487Z",
       "durationMs": 11,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP02",
@@ -3378,10 +3378,10 @@
       "expectation": "2500 persisted events are preserved; resume suffix + fixed title are bound; the exact new message and one generation extend the same Session",
       "verdict": "pass",
       "actual": "same Session shiyu-replyer-verify-reply-long-1: 2500 prefix events + suffix [\"session/end-seed\",\"session/title\",\"agent/inbox/spliced\",\"turn/start\",\"agent/inbox/spliced\",\"step/start\",\"user/message\",\"assistant/message\",\"step/end\",\"turn/end\"], receipt seq=2506, one call",
-      "startedAt": "2026-11-02T18:50:10.535Z",
-      "durationMs": 193,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "startedAt": "2026-11-02T18:58:02.499Z",
+      "durationMs": 186,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP03",
@@ -3394,10 +3394,10 @@
       "expectation": "an unregistered native user input arriving during an authorization await blocks the stream/draft; no context receipt",
       "verdict": "pass",
       "actual": "reply refused with \"Native context inputs do not match the registered owner input\"; foreign event preserved; no receipt/draft",
-      "startedAt": "2026-11-02T18:50:10.729Z",
+      "startedAt": "2026-11-02T18:58:02.685Z",
       "durationMs": 16,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP04",
@@ -3409,10 +3409,10 @@
       "expectation": "an unregistered pending inbox input inserted while the binding callback awaits blocks loading/acknowledgement",
       "verdict": "pass",
       "actual": "reply refused with \"Context-safe reply failed and native cleanup could not be confirmed\"; no receipt or draft",
-      "startedAt": "2026-11-02T18:50:10.746Z",
+      "startedAt": "2026-11-02T18:58:02.704Z",
       "durationMs": 9,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP05",
@@ -3424,10 +3424,10 @@
       "expectation": "maxTokens from the operation reaches the single native stream; no title/compaction model calls are counted",
       "verdict": "pass",
       "actual": "one bounded primary stream, reported usage, no title/compaction inference events",
-      "startedAt": "2026-11-02T18:50:10.755Z",
+      "startedAt": "2026-11-02T18:58:02.714Z",
       "durationMs": 1,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP06",
@@ -3439,10 +3439,10 @@
       "expectation": "normal input reuses the native Session (no new Session), the first message/assistant remain history, and the second receipt/assistant are exact",
       "verdict": "pass",
       "actual": "one created + one resumed Session, both exact messages and assistant drafts retained",
-      "startedAt": "2026-11-02T18:50:10.756Z",
-      "durationMs": 2,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "startedAt": "2026-11-02T18:58:02.715Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP07",
@@ -3454,10 +3454,10 @@
       "expectation": "unknown pending input blocks the reply before any model call; no receipt",
       "verdict": "pass",
       "actual": "reply refused with \"Unknown native inbox input blocks context-safe continuation\"; zero model calls",
-      "startedAt": "2026-11-02T18:50:10.807Z",
-      "durationMs": 5,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "startedAt": "2026-11-02T18:58:02.766Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP08",
@@ -3470,10 +3470,10 @@
       "expectation": "a controller-declared obsolete pending input is removed by its exact id/hash, the removal events are re-read into the baseline, and the reply proceeds with an empty inbox",
       "verdict": "pass",
       "actual": "one exact removal (seq=402) bound into the baseline; inbox empty; reply receipt seq=408",
-      "startedAt": "2026-11-02T18:50:10.762Z",
-      "durationMs": 41,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "startedAt": "2026-11-02T18:58:02.720Z",
+      "durationMs": 40,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP09",
@@ -3485,10 +3485,10 @@
       "expectation": "only a controller declaration whose exact id+hash matches the durable input may remove it; a wrong hash blocks the reply and preserves the input",
       "verdict": "pass",
       "actual": "reply refused with \"Unknown native inbox input blocks context-safe continuation\"; pending input preserved",
-      "startedAt": "2026-11-02T18:50:10.758Z",
-      "durationMs": 4,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "startedAt": "2026-11-02T18:58:02.717Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "RP10",
@@ -3498,11 +3498,11 @@
       ],
       "expectation": "a new adapter instance + persisted binding resumes the same native Session, preserves history and produces a second exact receipt with one bounded generation",
       "verdict": "pass",
-      "actual": "restarted adapter resumed shiyu-replyer-651c7129-72f8-4b15-8525-49059f26a765, preserved 9 durable events and generated one bounded reply",
-      "startedAt": "2026-11-02T18:50:10.803Z",
+      "actual": "restarted adapter resumed shiyu-replyer-c28678b8-2d82-4a12-abf4-696df9144767, preserved 9 durable events and generated one bounded reply",
+      "startedAt": "2026-11-02T18:58:02.761Z",
       "durationMs": 4,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10036
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17594
     },
     {
       "id": "S00",
@@ -3532,10 +3532,10 @@
           "appendedTypes"
         ]
       },
-      "startedAt": "2026-11-02T18:50:09.106Z",
-      "durationMs": 14,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.087Z",
+      "durationMs": 13,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S01",
@@ -3546,10 +3546,10 @@
       "expectation": "no new events → appendedCount=0, same asOfSeq/eventCount/digest/references",
       "verdict": "pass",
       "actual": "unchanged prefix proven (digest chain equal, appendedCount=0, 1 refs)",
-      "startedAt": "2026-11-02T18:50:09.120Z",
-      "durationMs": 14,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.101Z",
+      "durationMs": 13,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S02",
@@ -3562,10 +3562,10 @@
       "expectation": "end-seed + interrupted closers + user-pinned fixed title are accepted, counted and reported by type; older cut keeps its digest",
       "verdict": "pass",
       "actual": "accepted 5 trusted suffix events [\"session/end-seed\",\"tool/result\",\"step/end\",\"turn/end\",\"session/title\"]; prefix digest preserved, baseline references unchanged",
-      "startedAt": "2026-11-02T18:50:09.135Z",
-      "durationMs": 14,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.115Z",
+      "durationMs": 13,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S03",
@@ -3586,10 +3586,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.150Z",
+      "startedAt": "2026-11-02T18:58:01.129Z",
       "durationMs": 7,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S04",
@@ -3610,10 +3610,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.157Z",
+      "startedAt": "2026-11-02T18:58:01.136Z",
       "durationMs": 7,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S05",
@@ -3634,10 +3634,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.165Z",
-      "durationMs": 6,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.143Z",
+      "durationMs": 7,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S06",
@@ -3658,10 +3658,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.171Z",
-      "durationMs": 8,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.150Z",
+      "durationMs": 7,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S07",
@@ -3680,10 +3680,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.179Z",
-      "durationMs": 6,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.157Z",
+      "durationMs": 7,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S08",
@@ -3702,10 +3702,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.186Z",
+      "startedAt": "2026-11-02T18:58:01.167Z",
       "durationMs": 5,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S09",
@@ -3723,10 +3723,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.192Z",
-      "durationMs": 4,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.173Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S10a",
@@ -3744,10 +3744,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.196Z",
+      "startedAt": "2026-11-02T18:58:01.177Z",
       "durationMs": 3,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S10b",
@@ -3765,10 +3765,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.200Z",
-      "durationMs": 2,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.180Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S10c",
@@ -3786,10 +3786,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:50:09.202Z",
-      "durationMs": 3,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.183Z",
+      "durationMs": 2,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S10d",
@@ -3807,10 +3807,10 @@
         "opens": 1,
         "closes": 1
       },
-      "startedAt": "2026-11-02T18:50:09.205Z",
+      "startedAt": "2026-11-02T18:58:01.186Z",
       "durationMs": 2,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S11",
@@ -3830,10 +3830,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.208Z",
-      "durationMs": 6,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.189Z",
+      "durationMs": 5,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S12",
@@ -3868,10 +3868,10 @@
           "tool/result without surfaceOp"
         ]
       },
-      "startedAt": "2026-11-02T18:50:09.214Z",
+      "startedAt": "2026-11-02T18:58:01.194Z",
       "durationMs": 0,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S13",
@@ -3890,10 +3890,10 @@
           "inheritedEventCount": 0
         }
       },
-      "startedAt": "2026-11-02T18:50:09.214Z",
+      "startedAt": "2026-11-02T18:58:01.194Z",
       "durationMs": 25,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S14",
@@ -3905,10 +3905,10 @@
       "expectation": "a fixed-title/load-only style exact append is re-read at its exact seq, EOF confirmed, and the baseline extended; a stale, duplicated or inbox-splice append fails",
       "verdict": "pass",
       "actual": "exact legitimate append extended the baseline; wrong validator, stale extra append and inbox splice all refused",
-      "startedAt": "2026-11-02T18:50:09.239Z",
-      "durationMs": 7,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.219Z",
+      "durationMs": 6,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S15",
@@ -3924,10 +3924,10 @@
         "flushCalls": 2,
         "readPages": 14
       },
-      "startedAt": "2026-11-02T18:50:09.246Z",
+      "startedAt": "2026-11-02T18:58:01.228Z",
       "durationMs": 5,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S16",
@@ -3946,10 +3946,10 @@
         "opens": 2,
         "closes": 2
       },
-      "startedAt": "2026-11-02T18:50:09.251Z",
+      "startedAt": "2026-11-02T18:58:01.234Z",
       "durationMs": 5,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S17",
@@ -3960,10 +3960,10 @@
       "expectation": "after a trusted resume suffix on a long history, the same business Session id/preset and the whole projected inbox are preserved",
       "verdict": "pass",
       "actual": "same Session shiyu-verify-long-recovery, preset shiyu-runtime-replyer-v1, asOfSeq=2604, 2 inbox refs after trusted suffix",
-      "startedAt": "2026-11-02T18:50:09.285Z",
-      "durationMs": 408,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.267Z",
+      "durationMs": 410,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S18",
@@ -3975,10 +3975,10 @@
       "expectation": "the array-shaped compatibility helper returns the same exact references as the snapshot and rejects malformed history the same way",
       "verdict": "pass",
       "actual": "compat helper returned 1 identical references and refused malformed history",
-      "startedAt": "2026-11-02T18:50:09.264Z",
-      "durationMs": 21,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.246Z",
+      "durationMs": 20,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     },
     {
       "id": "S19",
@@ -3989,10 +3989,10 @@
       "expectation": "an explicit caller policy (not the default trusted native suffix) is honoured and the appended count/types reflect exactly what it admitted",
       "verdict": "pass",
       "actual": "caller-controlled policy admitted exactly one user/message suffix event",
-      "startedAt": "2026-11-02T18:50:09.257Z",
-      "durationMs": 7,
-      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
-      "pid": 10013
+      "startedAt": "2026-11-02T18:58:01.239Z",
+      "durationMs": 6,
+      "runId": "2026-11-02T18-57-25-813Z-final",
+      "pid": 17409
     }
   ],
   "coverage": [
@@ -4132,6 +4132,6 @@
       "required": "后续切片"
     }
   ],
-  "manifestPath": "/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/manifest.json",
-  "rawEvidenceDir": "/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/raw"
+  "manifestPath": "artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/manifest.json",
+  "rawEvidenceDir": "artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/raw"
 }

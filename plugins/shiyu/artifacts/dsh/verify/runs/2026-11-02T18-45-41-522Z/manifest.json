@@ -5,7 +5,7 @@
   "environment": {
     "node": "v24.19.0",
     "platform": "darwin/arm64",
-    "workingDirectory": "/Users/caja/Documents/识雨/plugins/shiyu",
+    "workingDirectory": "<home>/Documents/识雨/plugins/shiyu",
     "harnessAsar": "/Applications/DeepSeek Harness.app/Contents/Resources/app.asar"
   },
   "git": {

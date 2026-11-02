@@ -4131,6 +4131,6 @@
       "required": "后续切片"
     }
   ],
-  "manifestPath": "/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/manifest.json",
-  "rawEvidenceDir": "/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/raw"
+  "manifestPath": "<home>/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/manifest.json",
+  "rawEvidenceDir": "<home>/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/raw"
 }

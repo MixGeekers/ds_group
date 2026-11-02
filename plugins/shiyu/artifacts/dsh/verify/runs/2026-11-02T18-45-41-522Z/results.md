@@ -2,7 +2,7 @@
 
 - 运行命令：`node --import tsx --test --test-concurrency=1 --test-reporter=tap tests/verify/*.test.ts`
 - 运行时间：2026-11-02T18:45:41.522Z，耗时 41.1s；退出码：0
-- 环境：Node v24.19.0，darwin/arm64；工作目录 `/Users/caja/Documents/识雨/plugins/shiyu`
+- 环境：Node v24.19.0，darwin/arm64；工作目录 `<home>/Documents/识雨/plugins/shiyu`
 - 产品源码指纹：HEAD 08995d182d2a（分支 codex/start-shiyu-implementation），本切片 6 个适配文件 + 测试文件 SHA256 记录在 [manifest.json](manifest.json)
 - 固定 SDK：DSH app.asar 内 7 个 0.2.1-rc.5 包的只读 SHA256 已记录（见 manifest.json）；本运行未连接真实宿主、模型、embedding、频道或用户数据。
 
@@ -194,9 +194,9 @@
 
 ## 8. 运行级证据
 
-- 结构化逐例证据（JSONL，每进程一个文件）：`/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/raw`
-- TAP 原始输出：`/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/tap.txt`
-- 冻结清单：`/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/manifest.json`
-- 本报告：`/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/results.md` 与 `/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/results.json`
+- 结构化逐例证据（JSONL，每进程一个文件）：`<home>/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/raw`
+- TAP 原始输出：`<home>/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/tap.txt`
+- 冻结清单：`<home>/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/manifest.json`
+- 本报告：`<home>/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/results.md` 与 `<home>/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/results.json`
 
 **证据边界：** 本验证为离线合成替身 + 固定 SDK 静态契约层。它证明适配逻辑在合成原生语义下的行为；不替代真实宿主/模型/压缩/长对话验收（03 §5 最后一行要求分层留证，不得互相冒充）。

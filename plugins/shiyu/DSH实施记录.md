@@ -180,7 +180,7 @@ node scripts/host-state-audit.mjs --out /tmp/host-audit.json
 |---|---|
 | [h1-verification.json](<artifacts/dsh/h1/h1-verification.json>) | 本切片文件哈希、实现/验证范围、实现者隔离检查、Lead 独立切片检查、独立验证员最终结果、EV-09 元数据更正、失败/unknown/未测 |
 | [h1-verify.json](<artifacts/dsh/slices/h1-verify.json>) | `scripts/slice-verify.mjs` 在 HEAD+仅本切片隔离 worktree 的全量检查原始记录（与 `.local/slice-verify-h1.log` 对应） |
-| [FINAL-REPORT.md](<artifacts/dsh/verify/FINAL-REPORT.md>) / [runs/2026-11-02T18-49-33-366Z-final-92c857f](<artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/>) | 独立验证最终报告、运行 manifest/逐例结果/TAP/原始证据；[ISSUES.md](<artifacts/dsh/verify/ISSUES.md>) 与 [implementer-evidence-review.json](<artifacts/dsh/verify/implementer-evidence-review.json>) 保存复核结论与 EV-09 |
+| [FINAL-REPORT.md](<artifacts/dsh/verify/FINAL-REPORT.md>) / [runs/2026-11-02T18-57-25-813Z-final](<artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/>) | 独立验证最终报告与最终运行 manifest/逐例结果/TAP/原始证据（绑定 H1 提交 `92c857f`，运行 HEAD `2e04eb2`，117 例/103 TAP 全过；本机 home 绝对路径已脱敏为 `<home>`）；[ISSUES.md](<artifacts/dsh/verify/ISSUES.md>) 与 [implementer-evidence-review.json](<artifacts/dsh/verify/implementer-evidence-review.json>) 保存复核结论与 EV-09 根因/更正 |
 | [replication-final-check.log](<artifacts/dsh/verify/replication-final-check.log>) | 独立验证员在同一隔离 worktree 复现的 `npm run check` 日志（SHA256 `c6181832…`） |
 | 独立套件源码 | `tests/verify/`（9 个 test + `support/` 独立世界/判据 + `report.mjs` + 独立 tsconfig + README）；运行 `node --import tsx tests/verify/report.mjs` |
 

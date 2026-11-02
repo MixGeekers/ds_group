@@ -1,9 +1,9 @@
-# H1 独立验证结果：2026-11-02T18-49-33-366Z-final-92c857f
+# H1 独立验证结果：2026-11-02T18-57-25-813Z-final
 
 - 运行命令：`node --import tsx --test --test-concurrency=1 --test-reporter=tap tests/verify/*.test.ts`
-- 运行时间：2026-11-02T18:49:33.366Z，耗时 37.4s；退出码：0
-- 环境：Node v24.19.0，darwin/arm64；工作目录 `/Users/caja/Documents/识雨/plugins/shiyu`
-- 产品源码指纹：HEAD 92c857fcfe5d（分支 codex/start-shiyu-implementation），本切片 6 个适配文件 + 测试文件 SHA256 记录在 [manifest.json](manifest.json)
+- 运行时间：2026-11-02T18:57:25.813Z，耗时 36.9s；退出码：0
+- 环境：Node v24.19.0，darwin/arm64；工作目录 `<home>/Documents/识雨/plugins/shiyu`
+- 产品源码指纹：HEAD 2e04eb20eda5（分支 codex/start-shiyu-implementation），本切片 6 个适配文件 + 测试文件 SHA256 记录在 [manifest.json](manifest.json)
 - 固定 SDK：DSH app.asar 内 7 个 0.2.1-rc.5 包的只读 SHA256 已记录（见 manifest.json）；本运行未连接真实宿主、模型、embedding、频道或用户数据。
 
 ## 1. 判定口径
@@ -127,12 +127,12 @@
 | LO05 | pass | unknown pending input is never removed to make loading succeed; no receipt and the input is preserved | load refused with "Pending native inbox blocks load-only context"; pending input preserved | 03 §4.1 03 §5 row6.2 |
 | LO06 | pass | if the durability barrier for the loaded message does not confirm, no load receipt escapes even though the in-memory append happened | load refused with "Native Session durability listener did not handle the flush"; no receipt | 03 §4.1 03 §5 row8 |
 | LO07 | pass | an absolute deadline exceeded while authorize(append) awaits rejects without a receipt | deadline observed during authorize(append); load refused without receipt | 03 §4.1 03 §4.3 |
-| LO08 | pass | the same business Session id is resumed, the first loaded message remains native history, and the second exact message extends it | one created + one resumed Session shiyu-replyer-ad56d961-24ef-4f04-8839-db3b1e63726e, both exact messages retained, second receipt seq=3 | 03 §5 row1/row8 |
+| LO08 | pass | the same business Session id is resumed, the first loaded message remains native history, and the second exact message extends it | one created + one resumed Session shiyu-replyer-3984ffda-7dd8-4889-9127-53999e707455, both exact messages retained, second receipt seq=3 | 03 §5 row1/row8 |
 | LO09 | pass | cooperative cancellation rejects without a load receipt and the owned Agent is released | cancellation observed; no receipt, agent released | 03 §4.1 03 §5 last row |
 | LO10 | pass | the acknowledged seq/type/full-message hash read back through a fresh independent handle equals what the log holds; the receipt is never just the adapter succes… | exact message read back at seq=1802 through a fresh independent handle (1803 events) | 03 §5 row8 02 §3.1 |
 | LO11 | pass | a Session whose title is already user-pinned needs no title write; seq is not assumed to change and the load still produces an exact receipt | no duplicate title append; suffix ["session/title","session/end-seed","user/message"]; receipt seq=222 | 03 §4.3 03 §5 row4 |
 | LO12 | pass | an unregistered pending input arriving over the live Session during the append authorization blocks the acknowledgement and is preserved | load refused with "Load-only context failed and native cleanup could not be confirmed"; pending input preserved, no receipt | 03 §4.1 03 §4.3 03 §5 row5 |
-| LO13 | pass | after closing the adapter, a new adapter instance with the persisted binding resumes the same native Session (no replacement Session) and still issues an exact … | restarted adapter resumed shiyu-replyer-7912c169-949d-4ec3-8953-a02415815701 without a replacement Session; prefix preserved; receipt seq=3 | 03 §5 row1/row8 03 §2 isolation-root |
+| LO13 | pass | after closing the adapter, a new adapter instance with the persisted binding resumes the same native Session (no replacement Session) and still issues an exact … | restarted adapter resumed shiyu-replyer-d443f30a-660a-415c-9a77-53abb5ec9071 without a replacement Session; prefix preserved; receipt seq=3 | 03 §5 row1/row8 03 §2 isolation-root |
 | R01 | pass | a foreign append observed mid-read either rejects or is re-read into the final coherent cut | accepted only after re-reading the final cut: asOfSeq=600 eventCount=601 refs=0 | 03 §5 row3 03 §3 two passes |
 | R02 | pass | a pending inbox insertion observed mid-read either rejects or is projected from the final coherent cut exactly once | accepted only after re-reading the final cut: asOfSeq=600 eventCount=601 refs=1 | 03 §5 row1/row3 |
 | R03 | pass | a pending input removed mid-read is absent from the verified final projection (no resurrection) | accepted only after re-reading the final cut: asOfSeq=601 eventCount=602 refs=0 | 03 §5 row1/row3 |
@@ -154,7 +154,7 @@
 | RP07 | pass | unknown pending input blocks the reply before any model call; no receipt | reply refused with "Unknown native inbox input blocks context-safe continuation"; zero model calls | 03 §4.1 6.2 |
 | RP08 | pass | a controller-declared obsolete pending input is removed by its exact id/hash, the removal events are re-read into the baseline, and the reply proceeds with an e… | one exact removal (seq=402) bound into the baseline; inbox empty; reply receipt seq=408 | 03 §4.3 03 §5 row4 NATIVE_SEAMS exact removal |
 | RP09 | pass | only a controller declaration whose exact id+hash matches the durable input may remove it; a wrong hash blocks the reply and preserves the input | reply refused with "Unknown native inbox input blocks context-safe continuation"; pending input preserved | 03 §4.3 NATIVE_SEAMS exact removal |
-| RP10 | pass | a new adapter instance + persisted binding resumes the same native Session, preserves history and produces a second exact receipt with one bounded generation | restarted adapter resumed shiyu-replyer-651c7129-72f8-4b15-8525-49059f26a765, preserved 9 durable events and generated one bounded reply | 03 §5 row1/row8 |
+| RP10 | pass | a new adapter instance + persisted binding resumes the same native Session, preserves history and produces a second exact receipt with one bounded generation | restarted adapter resumed shiyu-replyer-c28678b8-2d82-4a12-abf4-696df9144767, preserved 9 durable events and generated one bounded reply | 03 §5 row1/row8 |
 | S00 | pass | the public seam accepts a previous complete cut and returns appendedCount/appendedTypes for a continuity proof | snapshot seam reports appendedCount=0 appendedTypes=[] | 03 §4.2 03 §4.4 |
 | S01 | pass | no new events → appendedCount=0, same asOfSeq/eventCount/digest/references | unchanged prefix proven (digest chain equal, appendedCount=0, 1 refs) | 03 §4.2 |
 | S02 | pass | end-seed + interrupted closers + user-pinned fixed title are accepted, counted and reported by type; older cut keeps its digest | accepted 5 trusted suffix events ["session/end-seed","tool/result","step/end","turn/end","session/title"]; prefix digest preserved, baseline references unchanged | 03 §4.2 03 §5 row4 03 §3 native resume |
@@ -194,9 +194,9 @@
 
 ## 8. 运行级证据
 
-- 结构化逐例证据（JSONL，每进程一个文件）：`/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/raw`
-- TAP 原始输出：`/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/tap.txt`
-- 冻结清单：`/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/manifest.json`
-- 本报告：`/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/results.md` 与 `/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-49-33-366Z-final-92c857f/results.json`
+- 结构化逐例证据（JSONL，每进程一个文件）：`artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/raw`
+- TAP 原始输出：`artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/tap.txt`
+- 冻结清单：`artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/manifest.json`
+- 本报告：`artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/results.md` 与 `artifacts/dsh/verify/runs/2026-11-02T18-57-25-813Z-final/results.json`
 
 **证据边界：** 本验证为离线合成替身 + 固定 SDK 静态契约层。它证明适配逻辑在合成原生语义下的行为；不替代真实宿主/模型/压缩/长对话验收（03 §5 最后一行要求分层留证，不得互相冒充）。
