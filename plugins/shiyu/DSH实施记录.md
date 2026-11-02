@@ -776,3 +776,27 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 零模型证据只证启动、发布、新投影、受限挂载/不可伪造字段/释放与诊断缓存；不证真实模型调用事件工具、provider 预算/缓存、真实 core 计划执行或真实渠道流量。
 2. `channels` 投影在 live 为空（尚无渠道适配器）；真实 audience/binding/invalidation 行为仅有离线集成证据。
 3. 真实浏览器 DOM 渲染未证明；lifecycle=degraded 仍来自保留的历史 unknown/暂停事实。
+
+## 23. H7-prep：证据派生的覆盖映射与 clean-VCS 证据刷新（第三批收尾）
+
+状态：**G1 工具/证据层级通过**；产品业务验收仍未运行（traceability 产品行 79/79 not_covered、covered=0）。2026-11-02 完成并审阅。
+
+### 23.1 提交链
+
+| 提交 | 内容 |
+|---|---|
+| `4849c89`（X，H7 code） | 新增 `tests/harness/evidence.ts` 与 6 个测试；traceability 增加 evidenceLevel/evidenceRefs/limitations、H7 mapping 渲染与 `oracleCorpus`（15+7=22）口径；隔离 check **1382/1382、0 skip**。 |
+| `762955f`（artifact-only） | 第三批复核 F-R1..R7 元数据/披露修正（H2c 实现者日志 superseded+重绑、round2 payload bytes 语义、sanitizedAudits/relativePathEncoding、探针 payload sha/bytes 与 diagnostics cache 绑定、集成 targeted 无日志披露、H6b 完整 log sha/bytes）；不触 code/tests。 |
+| `ef1e9e0`（X+1，only artifacts） | X 的干净 worktree 重生成 9 件 harness artifacts：`manifest.vcs={head:4849c89,dirty:false,dirtyEntries:0}`、generatedAt=21:13:38Z、sanitization leaks=0；selfproof 8 files/63 pass（H0b 42 + H0c 15 + H7 6）；traceability rows 103、产品 79/79 not_covered、covered=0、tooling_ready 仅 TV.1–7/9、issues=0；证据映射 22/22 sources verified（54 文件、0 unknown）、41/103 行 limited-only；fl-scenarios synthetic-only、`canUseForBusinessAcceptance=false`。`git diff X..X+1 -- src client tests scripts` = 0 行（中间 `762955f` 为 artifacts-only，manifest 不含 artifacts/dsh，故 head=X/dirty=false 仍有效）。 |
+
+### 23.2 验证与复核
+
+- clean-X 隔离：`npm run check` **1382/1382、0 fail/0 skip**；pipeline（manifest→selfproof→traceability --strict→fl-scenarios --require-selfproof）exit 0；日志归档 `.local/h7-verify/`（check sha `59116c33…`/150551、pipeline `edeffbbf…`/2170、archive-manifest `bd2580ed…`/768；gitignored + lifetimeNote）。
+- 第三批独立复核（task-19，提交 `dfbf93d` H6b、`d4408c8`+`26bda0e` H2c、`66a9428`+`11d0c73` H4d、`021bdc6` 集成、`0fb0c59` 第二轮宿主、`4849c89` X、`ef1e9e0` X+1）：**30 项检查完成，证据真实、内部一致；未发现伪造/静默跳过/未跑写通过**；8 条 findings（F-R1..R8）全部 fixed/resolved。报告：[ROUND2-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND2-EVIDENCE-REVIEW.md>)、[round2-evidence-review.json](<artifacts/dsh/verify/round2-evidence-review.json>)。
+- 复算要点：各切片文件/日志/计数与 commit blob 一致；H6b/H2c/H4d/集成/H7 的隔离计数（1361/1375/1345/1376/1382）与 0 skip 匹配；第二轮宿主审计链 commitSeq 315→322→322→322、events 39→40、sessions 18→18→20→20（仅 worker/core 两探针）、18 个已知 Session 不变、capability 14→16 且 definitionDigest 不变、unknown Task v28 披露、diagnostics 两探针缓存、状态调用只读；`git archive 021bdc6` + tsc 独立重建 dist `7b70471a…`（103 文件）与 definitionDigest `5a591515…`；X+1 manifest `dd67e036…`/78073 与 9 件 artifact 哈希一致。
+
+### 23.3 边界
+
+1. 覆盖映射只是**证据层**：产品行仍 79/79 not_covered、covered=0，`tooling_ready` 不升级为产品通过；H5 明确仅 G1、H4b 合成 UI+零模型宿主、H2a/H2a-probe 离线+零模型探针、H1 独立验证离线 oracle、历史样本 historical-limited。
+2. 真实宿主/模型/频道/设备/业务验收未运行；H7 mapping 明示不能用于业务验收。
+3. clean-VCS manifest 绑定 frozen X；中间 artifact-only 提交已披露且不影响 manifest 哈希有效性。

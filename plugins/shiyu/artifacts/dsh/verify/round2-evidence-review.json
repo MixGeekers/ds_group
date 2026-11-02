@@ -1,0 +1,766 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-19)",
+  "reviewedAt": "2026-11-02T21:10:00Z",
+  "subject": "Third batch: H6b/H2c/H4d-followup/Lead integration/round-2 fixed host/H7 code",
+  "head": "4849c893cb2183a21605c89ab4a07f4ba7e43516",
+  "commits": {
+    "H6b": "dfbf93d",
+    "H2c": "d4408c8",
+    "H2c-evidence-refresh": "26bda0e",
+    "H4d-followup": "11d0c73",
+    "integration": "021bdc6",
+    "round2-host": "0fb0c59",
+    "H7-code": "4849c89",
+    "X": "4849c893cb2183a21605c89ab4a07f4ba7e43516",
+    "X+1": "ef1e9e0e58001bc35c570fa4b2a891ffd986fa77",
+    "intermediate-evidence-fix": "762955fe5e97065b596a9f3a26fdcc144323279e"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "commit/file identity",
+      "claim": "Declared evidence files match their commits: H6b 6+6 vs dfbf93d, H2c 6 vs d4408c8 + 7 changedFiles vs 26bda0e, integration 5 vs 021bdc6, H4d 4 vs 66a9428 + 11d0c73 blobs, H7 6 vs 4849c89, slice artifacts files[] vs commits",
+      "evidence": [
+        "artifacts/dsh/h6/h6b-{slice-summary,channel-runtime-bridge}.json",
+        "artifacts/dsh/h2/h2c-{slice-summary,core-event-tools}.json",
+        "artifacts/dsh/integration/h6b-h2c-lead-integration.json",
+        "artifacts/dsh/slices/{h6b,h2c,h6b-h2c-integration,h7-prep,h4d}-verify.json"
+      ],
+      "method": "git show <commit>:<path> SHA256/bytes vs declared",
+      "result": "verified",
+      "detail": "0 mismatches; H4d 11d0c73 commits h4d artifact 2f7911c5…/16503 (lifetimeNote) and the H4D review files"
+    },
+    {
+      "id": "R02",
+      "area": "isolated counts/logs",
+      "claim": "H6b 1361 (impl 1352), H2c 1375 (impl 1359), H4d 1345, integration 1376, H7 1382; all 0 fail/0 skip and log hashes match",
+      "evidence": [
+        ".local/slice-verify-{h6b,h2c,h6b-h2c-integration,h7-prep}.log",
+        "artifacts/dsh/h6/h6b-isolated-check.log",
+        ".local/h4d-check-final.log",
+        "artifacts/dsh/slices/*-verify.json#check/log"
+      ],
+      "method": "sha256/bytes + summary parse vs claims",
+      "result": "verified",
+      "detail": "H6b slice ba8e2bb1…/148588 1361, impl db2e0f2f…/147714 1352; H2c slice 6c52a1f5…/150184 1375 (impl 1359 log stale, see F-R1); H4d 911b8e7a…/146824 1345; integration 68fb9d8c…/150291 1376; H7 1d2c044a…/150583 1382"
+    },
+    {
+      "id": "R03",
+      "area": "H6b focused logs",
+      "claim": "7 focused + 1 regression logs and counts match",
+      "evidence": [
+        "artifacts/dsh/h6/h6b-channel-runtime-bridge.json#focused/regression",
+        "artifacts/dsh/h6/logs/*"
+      ],
+      "method": "file sha/bytes/counts",
+      "result": "verified",
+      "detail": "8/8 hashes match; bridge 9, bridge-worker 7, identity 9, ingress 12, audience 8, conversation 4, ingress-worker 4, control-store regression 97; total focused 53/53"
+    },
+    {
+      "id": "R04",
+      "area": "H2c targeted",
+      "claim": "169/169 targeted, 14 new tests with negative matrix",
+      "evidence": [
+        ".local/h2c-targeted.log",
+        "artifacts/dsh/h2/h2c-core-event-tools.json#targetedRuns",
+        "d4408c8 tests/core-event-tools.test.ts"
+      ],
+      "method": "log sha/bytes/summary + test-name/assertion sampling",
+      "result": "verified",
+      "detail": "42e5732c…/19022/169; new test file 14 tests incl single tool round budget, duplicate/second round rejected, unknown usage not zero-padded, revoked/paused denied, authority args refused, overbroad provider rejected"
+    },
+    {
+      "id": "R05",
+      "area": "integration wiring",
+      "claim": "Lead integration files hash-match and +1 tool test closes 1375→1376; no overclaim",
+      "evidence": [
+        "artifacts/dsh/integration/h6b-h2c-lead-integration.json",
+        "artifacts/dsh/slices/h6b-h2c-integration-verify.json",
+        "021bdc6 runtime/index/worker diffs"
+      ],
+      "method": "blob hashes + test count + evidence review",
+      "result": "verified",
+      "detail": "5/5 files match; host-diagnostics-tool tests 2→3 (+1); isolated 1376/1376 0 skip; evidence documents worker/runtime wiring and channels projection; known limitation (pending.unapplied global-min over-report) disclosed; fixed-host validation was pending at this commit"
+    },
+    {
+      "id": "R06",
+      "area": "H4d archive",
+      "claim": "11d0c73 archives the lifetimeNote artifact and the independent H4d review; 4 code files unchanged",
+      "evidence": [
+        "11d0c73 stat",
+        "artifacts/dsh/h4/h4d-prepare-inner.json",
+        "artifacts/dsh/verify/H4D-EVIDENCE-REVIEW.md",
+        "artifacts/dsh/verify/h4d-evidence-review.json"
+      ],
+      "method": "blob hashes + file count",
+      "result": "verified",
+      "detail": "3 files only; h4d artifact 2f7911c5…/16503; review files committed (463460b7…/2017 and c05056ab…/7515); H4D-F1 closed"
+    },
+    {
+      "id": "R07",
+      "area": "H7 code/tests",
+      "claim": "H7-prep 1382/1382 and its 6 files match; mapping tests enforce no product upgrade and limited/unknown statuses",
+      "evidence": [
+        "artifacts/dsh/slices/h7-prep-verify.json",
+        "4849c89 tests/harness/evidence.ts/tests/harness-evidence.test.ts"
+      ],
+      "method": "blob hashes + test-name/assertion sampling",
+      "result": "verified",
+      "detail": "6/6 files match; log 1d2c044a…/150583; tests: sources-bound-to-frozen-head, system-mapping-boundaries, product-rows-stay-not-covered, unknown-sources-fail-closed, h7-report-and-traceability-render, negative-upgrade-rejected; assertions keep 79 product rows not_covered, covered=0, limited-only/unknown+limitations, reject product_claim_without_evidence/forbidden_claim_level"
+    },
+    {
+      "id": "R08",
+      "area": "traceability state",
+      "claim": "Current committed traceability artifact is not upgraded by H7 code; X+1 refresh pending",
+      "evidence": [
+        "artifacts/dsh/harness/traceability.json (HEAD)"
+      ],
+      "method": "HEAD blob summary + git log",
+      "result": "verified-pending",
+      "detail": "rows 103, product 79/79 not_covered, covered 0, tooling_ready 8, oracles 15, no oracleCorpus yet (artifact unchanged since 7bd962c); H7 code/tests ready for X+1"
+    },
+    {
+      "id": "R09",
+      "area": "host audit chain",
+      "claim": "0fb0c59 raw audits: commitSeq 315→322→322→322, events 39→40, deliveries 38→39, stateVersion 6/6/6/6, capability 14→16, definitionDigest unchanged, sessions 18→18→20→20",
+      "evidence": [
+        "artifacts/dsh/host/round2/round2-host-{before,after,after-tools,after-status2}.json",
+        "round2-joint-zero-model.json#deltas"
+      ],
+      "method": "deep diff all four audits",
+      "result": "verified",
+      "detail": "before→after adds +7 commitSeq, +1 event/delivery, hostEpoch 1832→68b6, capability 14→16, definitionDigest stays 5a591515; after→tools sessions+2 (digest change), after→status2 only capturedAt differs; known 18 sessions unchanged; state file hash unchanged"
+    },
+    {
+      "id": "R10",
+      "area": "host probes/cache",
+      "claim": "Two probe Sessions only; diagnostics cache returns both receipts; probes read-only",
+      "evidence": [
+        "artifacts/dsh/host/round2/{worker-tool-probe,core-event-tool-probe,status-after-probes}.json",
+        "round2-host-after-tools.json"
+      ],
+      "method": "payload/audit/diagnostics compare",
+      "result": "verified",
+      "detail": "two added session files match probeSessionIds (worker a91427aa…, core bd923a83…); authorityFields [], counters 0, released/disposed; statusAfterProbes diagnostics.eventToolProbe/coreEventToolProbe cached with matching probeSessionId (cached receipt = raw probe + wrapper flags zeroModel/readOnly/sent); commitSeq/events/state unchanged"
+    },
+    {
+      "id": "R11",
+      "area": "host dist/definition",
+      "claim": "dist 7b70471a…/103 files and definitionDigest 5a591515… are reproducible from code.head 021bdc6",
+      "evidence": [
+        "round2-joint-zero-model.json#code"
+      ],
+      "method": "git archive 021bdc6 + tsc + recompute digest + import capability-identity",
+      "result": "verified",
+      "detail": "rebuilt exactly 103 files/digest 7b70471a91e79d46031cff9f54a09f68e099f8877a67fb8115080b290426b1c7 and definitionDigest 5a591515147e63ccd956f4ed85b95ccf7df8b29770f4c13ac0ef11d3636c652e; temp tree deleted"
+    },
+    {
+      "id": "R12",
+      "area": "host payload claims",
+      "claim": "status payload shas match files; payloadBytes equals file size",
+      "evidence": [
+        "round2-joint-zero-model.json#statusAfterReload/statusAfterProbes",
+        "artifacts/dsh/host/round2/status-after-{reload,probes}.json"
+      ],
+      "method": "sha/bytes recompute",
+      "result": "finding",
+      "detail": "sha 8bea2ebb…/cc599d12… match; payloadBytes 51990/56833 are character counts, actual files 54828/59755 bytes (F-R2)"
+    },
+    {
+      "id": "R13",
+      "area": "host hygiene/sanitization",
+      "claim": "New host evidence has no absolute home/secrets/bodies; committed audits are raw capture",
+      "evidence": [
+        "artifacts/dsh/host/round2/*",
+        ".local/round2-host-*.json"
+      ],
+      "method": "diff + scan",
+      "result": "finding",
+      "detail": "no absolute /Users, no secret patterns, no message bodies; committed raw audits differ from .local only in dataDir/sessions.root redaction but round2 joint evidence documents no sanitization (F-R3); encoded 'Users-caja-…' session paths remain in 4 raw audits and joint addedSessionFiles (no absolute; F-R4); payloads are status/diagnostic summaries"
+    },
+    {
+      "id": "R14",
+      "area": "probe payload auditability",
+      "claim": "Probe payload files are recorded with hashes and full fields",
+      "evidence": [
+        "round2-joint-zero-model.json#workerProbe/coreProbe",
+        "artifacts/dsh/host/round2/{worker-tool-probe,core-event-tool-probe}.json"
+      ],
+      "method": "key/compare",
+      "result": "finding",
+      "detail": "joint evidence summarizes probes but omits ok/preset/scope (worker) and ok/scope (core) from raw payloads and records no payload sha/bytes for the two probe files; raw files are committed and consistent otherwise (F-R5)"
+    },
+    {
+      "id": "R15",
+      "area": "H2c implementer log",
+      "claim": "H2c slice-summary implementer 1359 log is retained at the claimed path/hash",
+      "evidence": [
+        "artifacts/dsh/h2/h2c-slice-summary.json#verification.implementerIsolatedCheck",
+        "h2c-core-event-tools.json#isolatedFullCheck"
+      ],
+      "method": "path/hash compare",
+      "result": "finding",
+      "detail": "slice-summary claims .local/slice-verify-h2c.log sha 17efc888… for the 1359 run, but that path now holds the Lead 1375 run (6c52a1f5…) and the implementer log is not retained; the refreshed detail evidence correctly binds the Lead run (F-R1)"
+    },
+    {
+      "id": "R16",
+      "area": "H6b summary log hash",
+      "claim": "H6b slice-summary implementer log hash is complete",
+      "evidence": [
+        "artifacts/dsh/h6/h6b-slice-summary.json#verification.implementerIsolatedCheck.log"
+      ],
+      "method": "compare",
+      "result": "note",
+      "detail": "hash recorded as truncated 'db2e0f2f…' while the committed log full sha is db2e0f2f…/147714 and matches (F-R7 info)"
+    },
+    {
+      "id": "R17",
+      "area": "integration targeted log",
+      "claim": "Integration 145/145 targeted evidence is retained",
+      "evidence": [
+        "h6b-h2c-lead-integration.json#verification.targeted"
+      ],
+      "method": "log existence",
+      "result": "note",
+      "detail": "targeted claim has no retained log; full isolated 1376/1376 log retained (F-R6 info)"
+    },
+    {
+      "id": "R18",
+      "area": "test truth (global)",
+      "claim": "No skip/only/tautology in third-batch new tests; negative cases real",
+      "evidence": [
+        "dfbf93d/d4408c8/021bdc6/4849c89 test files"
+      ],
+      "method": "grep + assertion sampling",
+      "result": "verified",
+      "detail": "scan hits 0; H6b sink-rollback/CAS/pull/projection-no-write, H2c one-tool-round/unknown-usage, H7 product-row/upgrade negatives sampled with real assertions"
+    },
+    {
+      "id": "R19",
+      "area": "scope/evidence levels",
+      "claim": "Commit scopes and evidence-level claims are honest",
+      "evidence": [
+        "git show --name-only per commit",
+        "evidence JSONs#evidenceLevel/boundaries"
+      ],
+      "method": "file-list + wording review",
+      "result": "verified",
+      "detail": "7 commits touch only their slice code/tests/evidence/docs; H6b/H2c G1 offline (runtime assembly/host explicitly pending at their commit); integration G1 (fixed-host pending, later round2 limited); host round2 limited zero-model; no real model/channel/business claims"
+    },
+    {
+      "id": "R20",
+      "area": "X+1 blocked item",
+      "claim": "H7 X+1 clean artifacts (manifest.vcs head=X,dirty=false; X..X+1 artifacts only) verified",
+      "evidence": [
+        "pending"
+      ],
+      "method": "n/a",
+      "result": "pending",
+      "detail": "not yet produced by test-harness/Lead; task-cannot-complete until received"
+    },
+    {
+      "id": "R21",
+      "area": "X+1 identity",
+      "claim": "X=4849c89, X+1=ef1e9e0 (parent 762955f); X..X+1 = 13 artifact files, 0 src/client/tests/scripts diff",
+      "evidence": [
+        "git diff --name-status 4849c89..ef1e9e0",
+        "git diff 4849c89..ef1e9e0 -- src client tests scripts"
+      ],
+      "method": "committed git objects",
+      "result": "verified",
+      "detail": "13 files: 9 from ef1e9e0 + 4 artifact-only fixes from 762955f; code/tests/scripts diff lines = 0; HEAD = ef1e9e0"
+    },
+    {
+      "id": "R22",
+      "area": "X+1 manifest",
+      "claim": "manifest.vcs head=X, dirty:false, branch HEAD; generatedAt 21:13:38.075Z; leaks=0; no artifacts/dsh path in manifest",
+      "evidence": [
+        "ef1e9e0 artifacts/dsh/harness/manifest.json"
+      ],
+      "method": "git-show parse + string scan",
+      "result": "verified",
+      "detail": "vcs={head:4849c89…,branch:HEAD,dirty:false,dirtyEntries:0}; leaks=0; manifest mentions 'artifacts/dsh' 0 times; sha dd67e036…/78073"
+    },
+    {
+      "id": "R23",
+      "area": "X+1 artifact hashes",
+      "claim": "9 published artifacts match the declared SHA256/bytes",
+      "evidence": [
+        "ef1e9e0 artifacts/dsh/harness/**"
+      ],
+      "method": "git-show sha256/bytes",
+      "result": "verified",
+      "detail": "manifest dd67e036…/78073, selfproof 6a5e7e23…/15768, tap 3849c2d8…/12882, traceability d2454275…/524899, traceability.md f9186d52…/31057, h7 mapping 74fc5df5…/28413, fl manifest 628bb011…/13154, coverage bc89db16…/52559, coverage.md 1c31e5f4…/9308"
+    },
+    {
+      "id": "R24",
+      "area": "oracleCorpus",
+      "claim": "oracleCorpus 15/7/22 derived from committed selfproof; 8 files/63 pass; H0b 42 + H0c 15 + H7 6 = 63",
+      "evidence": [
+        "ef1e9e0 tool-selfproof.json/.tap",
+        "traceability.json#oracleCorpus",
+        "traceability.md"
+      ],
+      "method": "parse test names + TAP lines + file counts",
+      "result": "verified",
+      "detail": "oracle:*=15, business-oracle:*=7, evidence:*=6; per-file: business 15, evidence 6, faults 6, manifest 4, observer 5, oracles 19, selfproof 4, traceability 4 = 63; TAP 22 oracle lines; traceability.md states 合计 22 且不是缺少 7 个 oracle"
+    },
+    {
+      "id": "R25",
+      "area": "product rows/tooling",
+      "claim": "product 79/79 not_covered, covered 0, tooling_ready only TV.1–7/9, issues 0",
+      "evidence": [
+        "ef1e9e0 traceability.json"
+      ],
+      "method": "row parse",
+      "result": "verified",
+      "detail": "79 product rows all not_covered; byStatus self_proven 13/not_covered 82/tooling_ready 8; tooling_ready rows TV.1,2,3,4,5,6,7,9; issues=[]"
+    },
+    {
+      "id": "R26",
+      "area": "H7 mapping",
+      "claim": "22/22 sources verified (54 files, 0 unknown/warnings); 41/103 rows mapped all limited-only; 38 unmapped not_covered; 9 systems have limitations+gaps",
+      "evidence": [
+        "ef1e9e0 traceability.json#evidenceMapping",
+        "h7-traceability-mapping.md"
+      ],
+      "method": "JSON parse + md table",
+      "result": "verified",
+      "detail": "evidenceMapping counts sources 22/verified 22/unknown 0/files 54/warnings 0; productRowsMapped 41; summary limitedOnly 41 unknown 0; systemSummaries 9 all with limitations+gaps; cannotUseForAcceptance text present; h7 md first paragraph 不能用于业务验收"
+    },
+    {
+      "id": "R27",
+      "area": "X+1 isolation",
+      "claim": "clean-X check 1382/1382 0 skip, log sha/bytes; pipeline/archive logs; worktreeHead=X; artifacts equal committed blobs",
+      "evidence": [
+        ".local/h7-verify/*",
+        "/tmp/h7x-verify"
+      ],
+      "method": "sha/bytes/summary + worktree blob compare",
+      "result": "verified",
+      "detail": "check log 59116c33…/150551 1382/1382/0/0/0 exit 0; pipeline edeffbbf…/2170 (selfproof verified, fl-scenarios synthetic-only, failures 0); archive-manifest bd2580ed…/768 worktreeHead=X + lifetimeNote; 9 worktree artifact files equal HEAD blobs (only artifacts modified + node_modules symlink)"
+    },
+    {
+      "id": "R28",
+      "area": "F-R1..F-R7 dispositions",
+      "claim": "Lead fixed F-R1..F-R7 in commit 762955f; updated claims internally consistent",
+      "evidence": [
+        "762955f diff",
+        "HEAD evidence files"
+      ],
+      "method": "diff review + re-verification",
+      "result": "verified",
+      "detail": "F-R1 H2c implementer log re-bound to Lead 1375 sha 6c52a1f5… + superseded/note; F-R2 payloadBytes 54828/59755 + bytesSemantics (sha matches); F-R3 sanitizedAudits note added; F-R4 relativePathEncoding note added; F-R5 probe/status payload sha+bytes + ok/preset/scope binding + diagnosticsCacheBinding; F-R6 targetedNote; F-R7 full sha/bytes; commit is artifacts-only (4 files, no code/tests)"
+    },
+    {
+      "id": "R29",
+      "area": "X+1 boundaries",
+      "claim": "H7 remains G1 tooling evidence; tooling_ready not upgraded; no host/model/business claim",
+      "evidence": [
+        "traceability.json",
+        "h7 md",
+        "pipeline log"
+      ],
+      "method": "wording review",
+      "result": "verified",
+      "detail": "cannotUseForAcceptance states product rows not_covered/no business acceptance; H7 md G1 boundaries; tooling_ready semantics unchanged; fl-scenarios coverage cannotUseForBusinessAcceptance=false? (pipeline says canUseForBusinessAcceptance=false)"
+    },
+    {
+      "id": "R30",
+      "area": "review boundary",
+      "claim": "Final review frozen at ef1e9e0; no later commits/code changes",
+      "evidence": [
+        "git log/status"
+      ],
+      "method": "git state",
+      "result": "verified",
+      "detail": "HEAD=ef1e9e0; X ancestor; working tree only contains this review's untracked files; no post-X+1 code changes"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F-R1",
+      "severity": "minor-evidence-reference",
+      "title": "H2c slice-summary keeps an overwritten implementer log reference",
+      "files": [
+        "artifacts/dsh/h2/h2c-slice-summary.json#verification.implementerIsolatedCheck.log"
+      ],
+      "evidence": "claims .local/slice-verify-h2c.log sha '17efc888…' for the 1359 implementer run; current file is the Lead 1375 run (6c52a1f5…/150184) and the 1359 log is not retained; h2c-core-event-tools.json (26bda0e) correctly binds the Lead run",
+      "impact": "implementer 1359 full log not independently verifiable; Lead 1375 run validates the same build. Result unaffected",
+      "recommendation": "re-bind/mark superseded like H3, or attach the retained implementer log; use immutable run names",
+      "owner": "inner-domains / Lead",
+      "disposition": {
+        "status": "fixed-in-762955f",
+        "verified": true,
+        "commit": "762955fe5e97065b596a9f3a26fdcc144323279e"
+      }
+    },
+    {
+      "id": "F-R2",
+      "severity": "minor-metadata",
+      "title": "Round-2 statusTool payloadBytes are character counts, not file bytes",
+      "files": [
+        "artifacts/dsh/host/round2-joint-zero-model.json#statusAfterReload",
+        "#statusAfterProbes"
+      ],
+      "evidence": "declared 51990/56833 vs actual files 54828/59755 bytes; sha256 matches the actual files",
+      "impact": "sha/content correct; only byte accounting wrong; repeats earlier payload.bytes class",
+      "recommendation": "set actual bytes and add bytesSemantics like the H4/H4b fix",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-762955f",
+        "verified": true,
+        "commit": "762955fe5e97065b596a9f3a26fdcc144323279e"
+      }
+    },
+    {
+      "id": "F-R3",
+      "severity": "minor-disclosure",
+      "title": "Round-2 raw audits are sanitized copies but the joint evidence does not say so",
+      "files": [
+        "artifacts/dsh/host/round2/round2-host-*.json",
+        "round2-joint-zero-model.json#evidence"
+      ],
+      "evidence": "committed audits differ from .local originals only in dataDir and sessions.root (<home> redaction); no sanitizedAudits note in round2 joint evidence (the prior round added one)",
+      "impact": "honest hygiene, but a byte comparison with originals fails; disclosure regression from round 1",
+      "recommendation": "add the same sanitizedAudits note or re-export with the sanitizer",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-762955f",
+        "verified": true,
+        "commit": "762955fe5e97065b596a9f3a26fdcc144323279e"
+      }
+    },
+    {
+      "id": "F-R4",
+      "severity": "minor-hygiene",
+      "title": "New round-2 host evidence keeps encoded home path in session names",
+      "files": [
+        "artifacts/dsh/host/round2/round2-host-*.json",
+        "artifacts/dsh/host/round2-joint-zero-model.json#deltas.probes.addedSessionFiles"
+      ],
+      "evidence": "encoded 'Users-caja-…' appears in 4 raw audits and the joint addedSessionFiles; no absolute /Users path, no body/secret",
+      "impact": "username/profile fragment in new evidence; same convention as earlier host audits",
+      "recommendation": "redact relativePath/addedSessionFiles to <workspace-root>/<session>/… in future exports",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-762955f",
+        "verified": true,
+        "commit": "762955fe5e97065b596a9f3a26fdcc144323279e"
+      }
+    },
+    {
+      "id": "F-R5",
+      "severity": "minor-auditability",
+      "title": "Round-2 probe payloads lack recorded sha/bytes and some fields are summarized away",
+      "files": [
+        "round2-joint-zero-model.json#workerProbe",
+        "#coreProbe",
+        "artifacts/dsh/host/round2/worker-tool-probe.json",
+        "core-event-tool-probe.json"
+      ],
+      "evidence": "joint evidence omits ok/preset/scope from the raw probe payloads (keeps expected/other fields) and records no sha/bytes for the two probe files; raw files committed and internally consistent; diagnostics cache = raw probe + wrapper flags",
+      "impact": "probe receipt relation is inferable but not hash-bound in the joint evidence",
+      "recommendation": "record payload sha/bytes and/or state the wrapper-flag derivation explicitly",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-762955f",
+        "verified": true,
+        "commit": "762955fe5e97065b596a9f3a26fdcc144323279e"
+      }
+    },
+    {
+      "id": "F-R6",
+      "severity": "info",
+      "title": "Integration 145/145 targeted run has no retained log",
+      "files": [
+        "artifacts/dsh/integration/h6b-h2c-lead-integration.json#verification.targeted"
+      ],
+      "evidence": "claim only; the full isolated 1376/1376 log is retained",
+      "impact": "targeted sub-claim is self-reported (full check covers it)",
+      "recommendation": "retain targeted logs or mark self-reported",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-762955f",
+        "verified": true,
+        "commit": "762955fe5e97065b596a9f3a26fdcc144323279e"
+      }
+    },
+    {
+      "id": "F-R7",
+      "severity": "info",
+      "title": "H6b slice-summary implementer log hash truncated",
+      "files": [
+        "artifacts/dsh/h6/h6b-slice-summary.json"
+      ],
+      "evidence": "'db2e0f2f…' vs committed full sha db2e0f2f…/147714 (matches)",
+      "impact": "cosmetic; full log retained",
+      "recommendation": "use full hash",
+      "owner": "inner-domains",
+      "disposition": {
+        "status": "fixed-in-762955f",
+        "verified": true,
+        "commit": "762955fe5e97065b596a9f3a26fdcc144323279e"
+      }
+    },
+    {
+      "id": "F-R8",
+      "severity": "pending",
+      "title": "H7 X+1 clean artifacts not yet delivered",
+      "files": [
+        "pending"
+      ],
+      "evidence": "HEAD 4849c89 has H7 code/tests only; committed traceability artifact still pre-H7 (no oracleCorpus)",
+      "impact": "task-19 cannot complete until X+1 is provided and checked",
+      "recommendation": "supply X/X+1 SHAs + manifest.vcs + artifact hashes per the agreed package",
+      "owner": "test-harness / Lead",
+      "disposition": {
+        "status": "resolved",
+        "verified": true,
+        "commit": "ef1e9e0e58001bc35c570fa4b2a891ffd986fa77"
+      }
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "H7 X+1 clean artifacts",
+      "reason": "not yet produced; X/X+1 not available at review time"
+    },
+    {
+      "item": "Independent re-execution of suites",
+      "reason": "read-only review; verified via retained logs/hashes/counts + Lead slice-verify secondary execution"
+    },
+    {
+      "item": "Real model/channel/provider/DOM/long-run behavior",
+      "reason": "round-2 host is zero-model limited; probes only prove mounting/release/cache; real channel traffic/audience behavior only offline tests"
+    },
+    {
+      "item": "H2c implementer 1359 log",
+      "reason": "overwritten/not retained; Lead 1375 run validates same build"
+    },
+    {
+      "item": "Round-2 probe wrapper flags at host layer",
+      "reason": "cache adds zeroModel/readOnly/sent wrapper flags not present in stored probe payloads; relation inferred, not hash-bound"
+    }
+  ],
+  "traceability": {
+    "artifact": "artifacts/dsh/harness/traceability.json",
+    "sha256": "d2454275a768102615f9f295f88a8f2149751bcade761bbbc99cb78339628f7a",
+    "generatedAt": "2026-11-02T21:13:54.383Z",
+    "rows": 103,
+    "product": 79,
+    "productCovered": 0,
+    "productNotCovered": 79,
+    "toolingReady": 8,
+    "toolingReadyRows": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "issues": 0,
+    "oracles": 15,
+    "oracleCorpus": {
+      "h0b": 15,
+      "h0cBusiness": 7,
+      "totalOracleTests": 22
+    },
+    "evidenceMapping": {
+      "sources": 22,
+      "verified": 22,
+      "unknownSources": 0,
+      "files": 54,
+      "warnings": 0,
+      "mappedProductRows": 41,
+      "limitedOnly": 41,
+      "unknown": 0,
+      "systemSummaries": 9,
+      "systemsWithLimitationsAndGaps": 9
+    },
+    "note": "X+1 clean refresh; product rows remain not_covered; tooling_ready not upgraded; oracle corpus wording explicit"
+  },
+  "evidenceLevels": [
+    {
+      "slice": "H6b",
+      "level": "G1 offline module/integration + real temporary SQLite/Worker IPC",
+      "host": "runtime assembly pending at slice commit; round-2 host validates limited wiring/projection"
+    },
+    {
+      "slice": "H2c",
+      "level": "G1 module/integration + synthetic provider loop",
+      "host": "round-2 core probe limited zero-model"
+    },
+    {
+      "slice": "H4d",
+      "level": "G1 offline module + real temp SQLite/Worker IPC",
+      "host": "not run for H4d"
+    },
+    {
+      "slice": "integration",
+      "level": "G1 integration + full isolated check",
+      "host": "round-2 host limited zero-model validates wiring/probes"
+    },
+    {
+      "slice": "round2-host",
+      "level": "fixed-host zero-model limited (reload + 4 tool calls)",
+      "host": "no real model/channel/business"
+    },
+    {
+      "slice": "H7",
+      "level": "G1 tooling/evidence mapping (clean X+1 artifacts verified)",
+      "host": "n/a"
+    }
+  ],
+  "overallVerdict": "Third-batch evidence authentic and internally consistent: all file/log hashes and counts match, tests are real with negative cases, round-2 host audit chain matches claims and probes/cache are consistent, dist/definitionDigest independently reproduced, H7 X+1 clean artifacts satisfy the agreed invariants (manifest head=X, dirty=false, code/tests unchanged, 13 artifact-only files including 762955f), traceability keeps 79/79 product rows not_covered with oracleCorpus 15/7/22 and 41 limited-only mapped rows. F-R1..F-R7 were fixed in 762955f and re-verified; F-R8 (X+1) is resolved. No fabricated or silently skipped evidence found.",
+  "xPlusOne": {
+    "X": "4849c893cb2183a21605c89ab4a07f4ba7e43516",
+    "X+1": "ef1e9e0e58001bc35c570fa4b2a891ffd986fa77",
+    "intermediateCommit": "762955fe5e97065b596a9f3a26fdcc144323279e",
+    "diffFileCount": 13,
+    "diffFiles": [
+      "artifacts/dsh/h2/h2c-slice-summary.json",
+      "artifacts/dsh/h6/h6b-slice-summary.json",
+      "artifacts/dsh/harness/fl-scenarios/coverage.json",
+      "artifacts/dsh/harness/fl-scenarios/coverage.md",
+      "artifacts/dsh/harness/fl-scenarios/manifest.json",
+      "artifacts/dsh/harness/h7-traceability-mapping.md",
+      "artifacts/dsh/harness/manifest.json",
+      "artifacts/dsh/harness/tool-selfproof.json",
+      "artifacts/dsh/harness/tool-selfproof.tap",
+      "artifacts/dsh/harness/traceability.json",
+      "artifacts/dsh/harness/traceability.md",
+      "artifacts/dsh/host/round2-joint-zero-model.json",
+      "artifacts/dsh/integration/h6b-h2c-lead-integration.json"
+    ],
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "4849c893cb2183a21605c89ab4a07f4ba7e43516",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "manifestGeneratedAt": "2026-11-02T21:13:38.075Z",
+    "manifestSanitizationLeaks": 0,
+    "manifestArtifactsPathMentions": 0,
+    "artifactHashes": {
+      "manifest.json": [
+        "dd67e036d82175d8ce37784fafbef9ef035b1736365d63e82ac95da080d8a587",
+        78073
+      ],
+      "tool-selfproof.json": [
+        "6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061",
+        15768
+      ],
+      "tool-selfproof.tap": [
+        "3849c2d888240cebf02933193eadfad2b119c5baa376e367af4065c6ea76a504",
+        12882
+      ],
+      "traceability.json": [
+        "d2454275a768102615f9f295f88a8f2149751bcade761bbbc99cb78339628f7a",
+        524899
+      ],
+      "traceability.md": [
+        "f9186d526972869a55e93f19eccbaf182904e21d01f603b6e3368d9589e5281a",
+        31057
+      ],
+      "h7-traceability-mapping.md": [
+        "74fc5df593815746c99fe0554bcd00b787a5929c7a6821a48b60bfc3aeae056f",
+        28413
+      ],
+      "fl-scenarios/manifest.json": [
+        "628bb01164ad84ab307ad00456a13b515d6d63b6086060f859f3e8b00262d16e",
+        13154
+      ],
+      "fl-scenarios/coverage.json": [
+        "bc89db16e467bef56f8a9a7b9132013938cbf9dbfd28a4421b31bbde184578b1",
+        52559
+      ],
+      "fl-scenarios/coverage.md": [
+        "1c31e5f4823557c5bdebf77e91c81f08c3343eaa1449686e1e7ae4f289992d1a",
+        9308
+      ]
+    },
+    "selfproof": {
+      "files": 8,
+      "tests": 63,
+      "pass": 63,
+      "fail": 0,
+      "skip": 0,
+      "oracle": 15,
+      "businessOracle": 7,
+      "evidenceTests": 6,
+      "split": "H0b 42 + H0c 15 = 57, plus H7 mapping evidence 6 = 63"
+    },
+    "oracleCorpus": {
+      "h0b": 15,
+      "h0cBusiness": 7,
+      "totalOracleTests": 22,
+      "note": "traceability.md 明写两者合计 22、不是缺少 7 个 oracle"
+    },
+    "traceability": {
+      "rows": 103,
+      "product": 79,
+      "productNotCovered": 79,
+      "covered": 0,
+      "toolingReady": 8,
+      "toolingReadyRows": [
+        "TV.1",
+        "TV.2",
+        "TV.3",
+        "TV.4",
+        "TV.5",
+        "TV.6",
+        "TV.7",
+        "TV.9"
+      ],
+      "issues": 0,
+      "mappedProductRows": 41,
+      "limitedOnly": 41,
+      "unknown": 0,
+      "verifiedSources": 22,
+      "sourceFiles": 54,
+      "unknownSources": 0,
+      "warnings": 0,
+      "systemSummaries": 9,
+      "systemsWithLimitationsAndGaps": 9
+    },
+    "isolation": {
+      "check": {
+        "tests": 1382,
+        "pass": 1382,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0,
+        "exit": 0,
+        "logSha256": "59116c3344a71bbe0ad65faf522ab617571f4826c89a17fdfa5f384a273cb416",
+        "bytes": 150551
+      },
+      "pipelineLogSha256": "edeffbbf3366078a76dc1fc9fc34052c9e53f08dbdde28b71f92ccab2f0eb6f5",
+      "pipelineBytes": 2170,
+      "archiveManifestSha256": "bd2580edb7ee4120307af6eddf86489b1fbead7028b268e6f132493d0ffa14f4",
+      "archiveBytes": 768,
+      "archiveManifest": {
+        "worktreeHead": "4849c893cb2183a21605c89ab4a07f4ba7e43516",
+        "lifetimeNote": "machine-local ephemeral copies; not committed; may be cleaned after review; committed artifacts authoritative"
+      }
+    },
+    "provenance": {
+      "cleanWorktree": "/tmp/h7x-verify at X; 9 artifact files equal committed X+1 blobs; only artifacts modified + node_modules symlink",
+      "pipeline": "selfproof verified=true fresh=true; fl-scenarios status=synthetic-fixture-only-not-run canUseForBusinessAcceptance=false; failures=0"
+    },
+    "notes": [
+      "X..X+1 includes the artifact-only evidence-fix commit 762955f (F-R1..F-R7) before the 9 artifact refresh; aggregate diff has 13 artifact files, code/tests/scripts diff = 0, so the requirement holds in aggregate",
+      "manifest roots exclude artifacts/dsh (0 mentions), so the intermediate artifact-only commit does not invalidate manifest.vcs head=X/dirty=false",
+      "clean check log itself does not embed the X SHA (archive-manifest records worktreeHead=X); pipeline log is a checklist, committed tool-selfproof is the authority for 63 tests",
+      "h7 mapping MD uses 41/38 wording; the exact “不是缺少 7 个 oracle” sentence is in traceability.md"
+    ],
+    "result": "verified"
+  }
+}
