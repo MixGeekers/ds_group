@@ -30,7 +30,8 @@ window.__ModuleLoader__.load({
     function NavIcon({ size = 18 }) { return h(React.Fragment, null, h('link', { rel: 'stylesheet', href: new URL('api/shiyu-gym/assets/icons.css', document.baseURI).href }), h('span', { className: 'syg-nav-icon', style: { fontSize: size } }, h(Icon, { name: 'barbell' }))); }
     function normalizeScenario(raw, catalog) {
       const source = raw && typeof raw === 'object' ? clone(raw) : {};
-      return { ...source, id: str(source.id), name: str(source.name), description: str(source.description), durationMs: Number(source.durationMs) || 60000, focus: arr(source.focus), actors: arr(source.actors).length ? source.actors : clone(arr(catalog?.actors)), channels: arr(source.channels).length ? source.channels : clone(arr(catalog?.channels)), tasks: arr(source.tasks), inputs: arr(source.inputs), assets: arr(source.assets) };
+      // Explicit empty arrays describe an empty company; only absent arrays use the catalog defaults.
+      return { ...source, id: str(source.id), name: str(source.name), description: str(source.description), durationMs: Number(source.durationMs) || 60000, focus: arr(source.focus), actors: Array.isArray(source.actors) ? source.actors : clone(arr(catalog?.actors)), channels: Array.isArray(source.channels) ? source.channels : clone(arr(catalog?.channels)), tasks: arr(source.tasks), inputs: arr(source.inputs), assets: arr(source.assets) };
     }
     function fileTree(files) {
       const root = { dirs: new Map(), files: [] };

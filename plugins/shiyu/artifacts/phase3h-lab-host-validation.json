@@ -1,0 +1,849 @@
+{
+  "schemaVersion": 1,
+  "phase": "3H",
+  "recordedAt": "2026-11-02T14:47:40.420916+00:00",
+  "evidenceLevel": "bounded-real-installed-host-and-selected-native-files",
+  "status": "stopped-incomplete",
+  "completionVerified": false,
+  "runtimeSourceCommit": "0c341c60195c379a7616e056a25b50e3c8e97903",
+  "offlineEvidence": {
+    "path": "plugins/shiyu/artifacts/phase3h-lab-offline-validation.json",
+    "bytes": 11849,
+    "sha256": "4cacbe2b7af5e4acd866b893eba6e68e73c00643b018903d7eed0680e988a132"
+  },
+  "executionPlans": [
+    {
+      "path": "plugins/shiyu/.local/phase3h-host-execution-plan.json",
+      "bytes": 7157,
+      "sha256": "077527edb78a75b9dab1cae9e579e2305036e2fd2259711e0213ee703b82b51e"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-host-execution-plan-ui-amendment.json",
+      "bytes": 7720,
+      "sha256": "8dc4c2c2861333d6d8fb7b3207ca0d2b3549f059373ad728a5a7f7f2d576d5c0"
+    }
+  ],
+  "amendment": {
+    "reason": "Actual public Lab connection UI offers 30 or 60 minutes, not assumed 15. No connection or model input submitted yet.",
+    "changes": [
+      "authorization.uiExpiryMinutes 15 -> 30"
+    ],
+    "unchanged": "1 room; max 3 primary requests/3 text effects; 49152 token reservation limit; manual pause/stop initiated within 600 seconds of room creation; no retry or replacement."
+  },
+  "scenario": {
+    "scenarioId": "user-2782852d-56da-45ac-9a73-caaa1e7bb67e",
+    "revision": 1,
+    "bytes": 782,
+    "sha256": "d6b78ff41dc7af544b3556faae0de2e086d512abdb1f37da2628b1e9dd5ce774",
+    "actors": [
+      "HUMAN",
+      "SHIYU"
+    ],
+    "channels": [
+      {
+        "id": "H3-GROUP",
+        "name": "3H 合成群聊",
+        "kind": "group",
+        "memberIds": [
+          "HUMAN",
+          "SHIYU"
+        ]
+      },
+      {
+        "id": "D-SHIYU",
+        "name": "你与识雨",
+        "kind": "direct",
+        "memberIds": [
+          "HUMAN",
+          "SHIYU"
+        ]
+      }
+    ],
+    "scheduledInputs": 0,
+    "tasks": 0,
+    "assets": 0,
+    "durationMs": 600000
+  },
+  "labScaffoldingNote": "The Lab engine also seeds its standard synthetic workspace fixtures; no fixture contents were loaded, attached or exposed to this text-only replyer. Scenario-defined assets are zero.",
+  "limits": {
+    "newScenarios": 1,
+    "newRooms": 1,
+    "newModelConnections": 1,
+    "humanMessages": 3,
+    "primaryRequests": 3,
+    "messageEffects": 3,
+    "newNativeReplyerSessions": 2,
+    "embedding": 0,
+    "workerTasks": 0,
+    "newCoreGoals": 0,
+    "labPluginReloads": 1,
+    "shiyuPluginReloads": 2,
+    "manualStopAfterSeconds": 600,
+    "automaticRetry": false,
+    "providerInternalRetryCount": "unknown",
+    "hardBillingTokenCap": false
+  },
+  "authorization": {
+    "budget": {
+      "tokens": 49152,
+      "calls": 3,
+      "effects": 3
+    },
+    "uiExpiryMinutes": 30,
+    "channelIds": [
+      "H3-GROUP",
+      "D-SHIYU"
+    ],
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "effort": "low",
+    "maximumOutputTokensPerReply": 512
+  },
+  "selected": {
+    "connectionId": "lab-e4795c3e96472800e1189baa18a8604d1e607fd2",
+    "runId": "run-mvzcwl61-ee725230",
+    "status": "paused",
+    "epoch": 2,
+    "replyIds": [
+      "lab-reply-20f1991b20d0ee189530d22cd0cc86c95aa57819",
+      "lab-reply-82f502198c0501711922499c865c73dd64beaf20"
+    ],
+    "sendIds": [
+      "lab-send-2fc516150ddb164a4046eb39bfa4e4c8cb79609f"
+    ],
+    "inputIds": [
+      "run-mvzcwl61-ee725230:e2",
+      "run-mvzcwl61-ee725230:e6"
+    ],
+    "ledgerSha256": "e5074fb35307f43c5f82661f3c1884de9ff974c9368f46239c6f7b4bda1306d7",
+    "budget": {
+      "limits": {
+        "tokens": 49152,
+        "calls": 3,
+        "effects": 3
+      },
+      "spent": {
+        "tokens": 374,
+        "calls": 1,
+        "effects": 1
+      },
+      "held": {
+        "tokens": 16384,
+        "calls": 1,
+        "effects": 0
+      }
+    }
+  },
+  "timeline": {
+    "roomCreatedAt": "2026-11-02T14:30:54.508Z",
+    "connectionAcceptedAt": "2026-11-02T14:32:49.956Z",
+    "groupInputAt": "2026-11-02T14:36:49.749Z",
+    "groupDeliveredAt": "2026-11-02T14:36:52.689Z",
+    "directInputAt": "2026-11-02T14:37:18.918Z",
+    "directInterruptedAt": "2026-11-02T14:37:49.253Z",
+    "directTurnAbortedAt": "2026-11-02T14:37:49.254Z",
+    "connectionPausedAt": "2026-11-02T14:38:28.424Z",
+    "roomStoppedAt": "2026-11-02T14:38:49.064Z",
+    "afterStopCheckedAt": "2026-11-02T14:42:56.267467+00:00"
+  },
+  "actualScope": {
+    "newScenarios": 1,
+    "newRooms": 1,
+    "newModelConnections": 1,
+    "humanInputs": 2,
+    "nativeReplyerSessions": 2,
+    "nativeTurns": 2,
+    "completedNativeTurns": 1,
+    "abortedNativeTurns": 1,
+    "deliveredMessages": 1,
+    "thirdInputSent": false,
+    "sameSessionSecondGroupTurnTested": false,
+    "embeddingRequests": 0,
+    "newWorkerTasks": 0,
+    "newCoreGoals": 0,
+    "judgeInvocations": 0,
+    "labPluginReloads": 1,
+    "shiyuPluginReloads": 1,
+    "successOnlySecondReloadPerformed": false,
+    "retryOrReplacementRun": false
+  },
+  "results": {
+    "group": {
+      "status": "delivered-verified",
+      "inputBytes": 145,
+      "inputSha256": "194b80abeafa9c581ad528670413b4baa29142e9b83466a3d187a2b4c296b6a9",
+      "outputBytes": 43,
+      "outputSha256": "6cc399b2d78e28e9bb53c3d36ce430bf46c97803a3dcb8fc984822e55277943b",
+      "expectedJSONMatched": true,
+      "independentLabEvent": {
+        "eventId": "run-mvzcwl61-ee725230:e4",
+        "channelId": "H3-GROUP",
+        "opId": "lab-send-2fc516150ddb164a4046eb39bfa4e4c8cb79609f",
+        "bodyHash": "6cc399b2d78e28e9bb53c3d36ce430bf46c97803a3dcb8fc984822e55277943b",
+        "observedAt": "2026-11-02T14:36:52.689Z"
+      },
+      "nativeDraftVerified": true,
+      "reportedUsage": {
+        "inputTokens": 316,
+        "outputTokens": 58,
+        "totalTokens": 374
+      },
+      "cacheRead": "not-reported",
+      "cacheWrite": "not-reported"
+    },
+    "direct": {
+      "status": "unknown-no-delivery",
+      "inputBytes": 142,
+      "inputSha256": "e356f37c727fc86ed787432a155c2ed94d6e53a99bd75dc1be171f3361a48ba8",
+      "nativeUserInputVerified": true,
+      "nativeAssistantInterrupted": true,
+      "contentTypes": [
+        "reasoning"
+      ],
+      "textBytes": 0,
+      "usage": "not-reported",
+      "turnEndReason": {
+        "kind": "aborted",
+        "reason": {
+          "kind": "hook",
+          "reason": "Context-safe reply cancelled or expired"
+        }
+      },
+      "held": {
+        "tokens": 16384,
+        "calls": 1,
+        "effects": 0
+      },
+      "retry": false
+    },
+    "inputIsolation": [
+      {
+        "channelId": "D-SHIYU",
+        "replyId": "lab-reply-20f1991b20d0ee189530d22cd0cc86c95aa57819",
+        "sessionId": "shiyu-replyer-3cc667f1-c2b7-4c37-a0c2-adb8df6ef72c",
+        "nativeFileSha256": "5633dec0142c672b8fce8d652252c50400049893b845d8f0a724f978bd9062ba",
+        "ownerSeq": 9,
+        "ownerMessageId": "7c0a6959-a6a4-46ac-bf87-f80d4e8ce808",
+        "ownerMessageHash": "bffe0d192592866ad9256d8d4110849b28fa0d1fa66e4ab2b78902b5a7b4ee34",
+        "onlyOwnExactInput": true,
+        "otherChannelMarkerInUserContext": false,
+        "nativeUserMessageCount": 2,
+        "nativeOwnerMessageCount": 1,
+        "bodyIncluded": false
+      },
+      {
+        "channelId": "H3-GROUP",
+        "replyId": "lab-reply-82f502198c0501711922499c865c73dd64beaf20",
+        "sessionId": "shiyu-replyer-7ad8c4d1-2433-4a0c-884c-39f638df7f8a",
+        "nativeFileSha256": "9bcad5f4e2c4fbfb5acab880c1e02d0b6a8b306b8d843104277918786e0ed78b",
+        "ownerSeq": 9,
+        "ownerMessageId": "08771b04-440e-4948-9a6b-27c40ddf289a",
+        "ownerMessageHash": "c7dd67ffaae56b09f4cac5cfe35ca82ae1597544bcdc584f5e3ed2890d8c9d89",
+        "onlyOwnExactInput": true,
+        "otherChannelMarkerInUserContext": false,
+        "nativeUserMessageCount": 2,
+        "nativeOwnerMessageCount": 1,
+        "bodyIncluded": false
+      }
+    ],
+    "stop": {
+      "connectionId": "lab-e4795c3e96472800e1189baa18a8604d1e607fd2",
+      "runId": "run-mvzcwl61-ee725230",
+      "status": "paused",
+      "epoch": 2,
+      "version": 7,
+      "updatedAt": "2026-11-02T14:38:28.424Z"
+    },
+    "taskCountAfter": 3,
+    "commitSeqAfter": 173,
+    "old11NativeFilesUnchanged": true,
+    "new2NativeFilesUnchangedAfterAudit": true
+  },
+  "diagnosis": {
+    "level": "native-observation-and-static-call-chain",
+    "finding": "Fixed 30-second ReadView and captured operation expiry bounded the whole model generation; the second turn crossed it and was cancelled. No completed text or usage receipt was accepted.",
+    "sources": [
+      "src/adapters/control-store/view-domain.ts",
+      "src/views/index.ts",
+      "src/control/local-reply.ts",
+      "src/adapters/dsh/sessions.ts"
+    ],
+    "providerRootCause": "unknown; no evidence attributes latency to provider failure",
+    "handling": "Preserve unknown hold; do not release, replay, reconnect or manufacture success."
+  },
+  "audit": {
+    "status": "consistent-incomplete",
+    "completionVerified": false,
+    "issues": [],
+    "nativeFilesRead": 2,
+    "checks": {
+      "replies": [
+        {
+          "replyId": "lab-reply-82f502198c0501711922499c865c73dd64beaf20",
+          "nativeDraftVerified": true
+        },
+        {
+          "replyId": "lab-reply-20f1991b20d0ee189530d22cd0cc86c95aa57819",
+          "nativeDraftVerified": false
+        }
+      ],
+      "nativeMessageCoverageComplete": false,
+      "unlinkedNativeMessageCount": 2,
+      "nativeLifecycle": {
+        "shiyu-replyer-3cc667f1-c2b7-4c37-a0c2-adb8df6ef72c": {
+          "rounds": 1,
+          "issueCodes": []
+        },
+        "shiyu-replyer-7ad8c4d1-2433-4a0c-884c-39f638df7f8a": {
+          "rounds": 1,
+          "issueCodes": []
+        }
+      },
+      "independentDeliveryObservationsVerified": true,
+      "deliveryEvidence": {
+        "file": {
+          "bytes": 546,
+          "sha256": "ad60001cd0289414863b3ce35499b2437b373c9746ae51f75676bda4130b62c3",
+          "mtimeNs": "1793630357120076531"
+        },
+        "source": {
+          "kind": "lab-persisted-events",
+          "sha256": "a6e6754533ff3289b39fe10f3f6bd2f16be86d907e8c8b7289e01750c3bd155f",
+          "bytes": 3591
+        },
+        "level": "root-frozen-persisted-event-metadata"
+      },
+      "pauseReloadNoReplayVerified": null
+    },
+    "script": {
+      "path": "plugins/shiyu/scripts/audit-lab-host.py",
+      "bytes": 35700,
+      "sha256": "d08079e9f0ca0c101eabcefa79b70fd725d4389b9ae963c9474fdba19093d86a"
+    },
+    "tests": {
+      "path": "plugins/shiyu/tests/test_audit_lab_host.py",
+      "bytes": 46490,
+      "sha256": "c866d3be0a750b9e306cb14a6c87e248bd4cdf614a49041072c3b49732b42df4"
+    },
+    "helper": {
+      "path": "plugins/shiyu/scripts/audit-core-host.py",
+      "bytes": 40246,
+      "sha256": "16ced99ab99f84ce9f9ba8786cdc596b8f04252b3fe4f7b05439a7dabce84785"
+    },
+    "syntheticTestCount": 21,
+    "syntheticTestLog": {
+      "path": "plugins/shiyu/.local/phase3h-audit-tests-final.log",
+      "bytes": 4336,
+      "sha256": "f14cd558748de8331780847c9817e2d78f6e8ef7bbe0e75db885ac2d10447664"
+    }
+  },
+  "native": [
+    {
+      "sessionId": "shiyu-replyer-3cc667f1-c2b7-4c37-a0c2-adb8df6ef72c",
+      "conversationId": "c37c0155-7fb0-4b27-9f60-aa04d98830cf",
+      "file": {
+        "bytes": 4178,
+        "sha256": "5633dec0142c672b8fce8d652252c50400049893b845d8f0a724f978bd9062ba",
+        "mtimeNs": "1793630269260610805"
+      },
+      "headerHash": "b5537a72fb768c86a4d5700e826ea00204d171c55bd38b019141d96cf4d26cce",
+      "eventCounts": {
+        "agent/inbox/spliced": 2,
+        "approval/policy": 1,
+        "assistant/message": 1,
+        "permission/preset": 1,
+        "request/context": 1,
+        "request/header": 1,
+        "sandbox/mode": 1,
+        "session/title": 1,
+        "step/end": 1,
+        "step/start": 1,
+        "system/message": 1,
+        "turn/end": 1,
+        "turn/start": 1,
+        "user/message": 2
+      },
+      "events": [
+        {
+          "seq": 0,
+          "type": "permission/preset",
+          "eventHash": "acb33016e1a4d3ebd5b8ee8fa97039590290bd28dd1b711c7d6ee02c4d02424f"
+        },
+        {
+          "seq": 1,
+          "type": "sandbox/mode",
+          "eventHash": "174aebcf2aa05076a8f90614131c735f197a919eb8d854a97d8d0e68d6a4b480"
+        },
+        {
+          "seq": 2,
+          "type": "approval/policy",
+          "eventHash": "12844fabff97bee41a425ab1ea998f4306306cd98c22ac7e3b842db2a9e1cc4e"
+        },
+        {
+          "seq": 3,
+          "type": "session/title",
+          "eventHash": "42d32f7e1e626a7117406dca5a01a70ddf63fe659e2cebcc644b3e83708ac0bf"
+        },
+        {
+          "seq": 4,
+          "type": "agent/inbox/spliced",
+          "eventHash": "c25d1bee79eb6a8df8679ef0d47af64ad78e10caaae40c4f20ebd8367e028b75"
+        },
+        {
+          "seq": 5,
+          "type": "turn/start",
+          "eventHash": "b8a7992957f813b719f333bf66f10ce7f804ecef8e4474697566fe8cb977dd06"
+        },
+        {
+          "seq": 6,
+          "type": "agent/inbox/spliced",
+          "eventHash": "600fcb95e13a4c0c9fc22b0470bcb3605b46656b471168b9b8fe4840f30bd4b0"
+        },
+        {
+          "seq": 7,
+          "type": "step/start",
+          "eventHash": "1ccc45a024f1e5a64a358e3a1a3d4c3438538982a93aa3d402881dce8bc4f5ab"
+        },
+        {
+          "seq": 8,
+          "type": "system/message",
+          "eventHash": "bd4d020f176e8d45436fc594d5c6db3eb40193f646946fe22b74f80cb3fcf919"
+        },
+        {
+          "seq": 9,
+          "type": "user/message",
+          "eventHash": "8807bfc6108ef99f6f836a7531c85b77d17522c7baaaf7f41106b1f89b1c6773",
+          "messageId": "7c0a6959-a6a4-46ac-bf87-f80d4e8ce808",
+          "messageRole": "user",
+          "sourceKind": "user",
+          "textSha256": "33220645e9643aa0a21351f03375b38c1d0f0af993407fc4251b280648f8a7ad",
+          "interrupted": false,
+          "messageHash": "bffe0d192592866ad9256d8d4110849b28fa0d1fa66e4ab2b78902b5a7b4ee34"
+        },
+        {
+          "seq": 10,
+          "type": "user/message",
+          "eventHash": "bc3f1f267046dc5e0c5b43213e83405063ee922e4b37c7d9b8a9dcf333e4f477",
+          "messageId": "9c5588df-2858-40ce-92a9-0fa97ca270bd",
+          "messageRole": "user",
+          "sourceKind": "runtime-context",
+          "textSha256": "9ab10691531397071fed64867bad0cdfc2577afcb87ac80ca9bbe121fce1f5da",
+          "interrupted": false,
+          "runtimeContextValidBoundCwd": true,
+          "messageHash": "aa0723826c2e3640501360c855bddd21ba8f567c6ee1b34a1ec44352a57059f2",
+          "runtimeContextExpectedHash": "aa0723826c2e3640501360c855bddd21ba8f567c6ee1b34a1ec44352a57059f2"
+        },
+        {
+          "seq": 11,
+          "type": "request/header",
+          "eventHash": "b125a9393266c787fa9f2564f1340a13ea9c283759d70a938a56349a14c14259"
+        },
+        {
+          "seq": 12,
+          "type": "request/context",
+          "eventHash": "da69a5638160948d157f046dc4c366ff706d49ee38fe4ac6fbe2a87480040783"
+        },
+        {
+          "seq": 13,
+          "type": "assistant/message",
+          "eventHash": "68d2d6d5e720ef1baa36bcaec6ad49a7d3b75c16d12b329d4ff7d2cdb995a07a",
+          "messageId": "27a0c6e9-71b8-4bfe-b384-59c461222f68",
+          "messageRole": "assistant",
+          "sourceKind": "other",
+          "textSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "interrupted": true,
+          "messageHash": "04c3dfddf020fdc1b246ab7f8e6bae0fbf2d080fce16058de0defc5cb786c8f8"
+        },
+        {
+          "seq": 14,
+          "type": "step/end",
+          "eventHash": "b21a15be8bcc372ec72a6d920fc3dbca12ee9fe38a53f7b74e503a22e770280f"
+        },
+        {
+          "seq": 15,
+          "type": "turn/end",
+          "eventHash": "79fd26f7176fc179c6b687a9f4499230c9a18d6c6ab490ce4b74e7c51e79d60e"
+        }
+      ],
+      "details": [
+        {
+          "seq": 3,
+          "type": "session/title",
+          "time": 1793630239326,
+          "source": {
+            "kind": "user"
+          }
+        },
+        {
+          "seq": 5,
+          "type": "turn/start",
+          "time": 1793630239359,
+          "turn": 1
+        },
+        {
+          "seq": 7,
+          "type": "step/start",
+          "time": 1793630239381,
+          "turn": 1,
+          "step": 1
+        },
+        {
+          "seq": 11,
+          "type": "request/header",
+          "time": 1793630239401,
+          "reason": "initial",
+          "configKeys": [
+            "provider",
+            "model",
+            "reasoningEffort",
+            "maxTokens"
+          ],
+          "config": {
+            "model": "deepseek-v4.1-flash",
+            "provider": "opencode-go",
+            "reasoningEffort": "low",
+            "maxTokens": 512
+          }
+        },
+        {
+          "seq": 12,
+          "type": "request/context",
+          "time": 1793630239401,
+          "model": "deepseek-v4.1-flash",
+          "provider": "opencode-go"
+        },
+        {
+          "seq": 13,
+          "type": "assistant/message",
+          "time": 1793630269253,
+          "turn": 1,
+          "step": 1,
+          "interrupted": true,
+          "contentTypes": [
+            "reasoning"
+          ],
+          "textBytes": 0,
+          "usageProvided": false
+        },
+        {
+          "seq": 14,
+          "type": "step/end",
+          "time": 1793630269254,
+          "turn": 1,
+          "step": 1
+        },
+        {
+          "seq": 15,
+          "type": "turn/end",
+          "time": 1793630269254,
+          "turn": 1,
+          "reason": {
+            "kind": "aborted",
+            "reason": {
+              "kind": "hook",
+              "reason": "Context-safe reply cancelled or expired"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "sessionId": "shiyu-replyer-7ad8c4d1-2433-4a0c-884c-39f638df7f8a",
+      "conversationId": "4b8e670d-01d2-4462-80ea-6cc707b81f75",
+      "file": {
+        "bytes": 3733,
+        "sha256": "9bcad5f4e2c4fbfb5acab880c1e02d0b6a8b306b8d843104277918786e0ed78b",
+        "mtimeNs": "1793630212531228406"
+      },
+      "headerHash": "5f4dbfa49bd60d5497b83e55006e3dedbf542522cf65d6e5f972282c1338b75f",
+      "eventCounts": {
+        "agent/inbox/spliced": 2,
+        "approval/policy": 1,
+        "assistant/message": 1,
+        "permission/preset": 1,
+        "request/context": 1,
+        "request/header": 1,
+        "sandbox/mode": 1,
+        "session/title": 1,
+        "step/end": 1,
+        "step/start": 1,
+        "system/message": 1,
+        "turn/end": 1,
+        "turn/start": 1,
+        "user/message": 2
+      },
+      "events": [
+        {
+          "seq": 0,
+          "type": "permission/preset",
+          "eventHash": "7a48619b4b1bc5f6f31bb953ee14d145b2fc845410b9397cc9a30e4bf67dfd50"
+        },
+        {
+          "seq": 1,
+          "type": "sandbox/mode",
+          "eventHash": "db5b09dfbef2e5fb5174c8ca2174e4fcc3daf7eb5d3cbad4d8345b6375eb787c"
+        },
+        {
+          "seq": 2,
+          "type": "approval/policy",
+          "eventHash": "462e2c8a11c65542eb45ef69ccc6ff1ffcfc236ec058ba1e0c9193fc329d7346"
+        },
+        {
+          "seq": 3,
+          "type": "session/title",
+          "eventHash": "65181ee79ab7d6d2d700f0e513afa17e8ae669f2a188777a86304a61faae8e2e"
+        },
+        {
+          "seq": 4,
+          "type": "agent/inbox/spliced",
+          "eventHash": "bd3b8b83263b2bb50867e04280905050c816bbcc5fba0b74d6ade2026285e48a"
+        },
+        {
+          "seq": 5,
+          "type": "turn/start",
+          "eventHash": "fd8a261e3775c3d87552b6835e31c13bc2eedc0b8ad36f1cb83a584b5b7b7efc"
+        },
+        {
+          "seq": 6,
+          "type": "agent/inbox/spliced",
+          "eventHash": "74aae59db7e63b36c7bcb46fd2bbc34bf87c7b2cedaf691a53205e6be17a0774"
+        },
+        {
+          "seq": 7,
+          "type": "step/start",
+          "eventHash": "8fad2d57f73de3a4bb3d9e7a0bc26e42bf2b418c38ce1d8b2e2f87b27823f3be"
+        },
+        {
+          "seq": 8,
+          "type": "system/message",
+          "eventHash": "9153e39ad7e114eb526336be967d28ee094b899a28d68b508c495e02a8d48b67"
+        },
+        {
+          "seq": 9,
+          "type": "user/message",
+          "eventHash": "d5dc756c3b8ef4e7c7258884fc424565d73538355b28fc402bbdfcca6a7ba117",
+          "messageId": "08771b04-440e-4948-9a6b-27c40ddf289a",
+          "messageRole": "user",
+          "sourceKind": "user",
+          "textSha256": "8a91e2bfaf43611aacf44a89d22015de1824ee02e664dccb179678110b7d5ffd",
+          "interrupted": false,
+          "messageHash": "c7dd67ffaae56b09f4cac5cfe35ca82ae1597544bcdc584f5e3ed2890d8c9d89"
+        },
+        {
+          "seq": 10,
+          "type": "user/message",
+          "eventHash": "82033277b2d64b62451c8ede360d6e6b93fbd13347ea9f3eec2bc9777055bcb4",
+          "messageId": "3d1b59d2-c46d-474c-9626-6aab78339aa2",
+          "messageRole": "user",
+          "sourceKind": "runtime-context",
+          "textSha256": "9ab10691531397071fed64867bad0cdfc2577afcb87ac80ca9bbe121fce1f5da",
+          "interrupted": false,
+          "runtimeContextValidBoundCwd": true,
+          "messageHash": "b5cf4cac5e7c56bb2bf999964885c462aea31d67a532644501d2d6bacbe82b13",
+          "runtimeContextExpectedHash": "b5cf4cac5e7c56bb2bf999964885c462aea31d67a532644501d2d6bacbe82b13"
+        },
+        {
+          "seq": 11,
+          "type": "request/header",
+          "eventHash": "c039955139c1c0d188841c397496ce47647a382b6ec9b56a914435a2be75a6ff"
+        },
+        {
+          "seq": 12,
+          "type": "request/context",
+          "eventHash": "4241cd490756e76dbdbb9e72242763827b779499c4a158307c2a6893a629fb01"
+        },
+        {
+          "seq": 13,
+          "type": "assistant/message",
+          "eventHash": "bca4e0be2472f277fbd8fcf535681ada70831e4c0a7014db8d9bdb389a94679d",
+          "messageId": "1c773777-feb4-49f8-92a9-e25085487bf0",
+          "messageRole": "assistant",
+          "sourceKind": "other",
+          "textSha256": "6cc399b2d78e28e9bb53c3d36ce430bf46c97803a3dcb8fc984822e55277943b",
+          "interrupted": false,
+          "usage": {
+            "inputTokens": 316,
+            "outputTokens": 58,
+            "totalTokens": 374
+          },
+          "messageHash": "9a338909afc91d6bb3328be0b583856391bd59a236193667fee76aaa76f56962"
+        },
+        {
+          "seq": 14,
+          "type": "step/end",
+          "eventHash": "569f273abd25d881088660e67a9ec861b6e2c8367decf9e9a9d7d0da9a8a92bf"
+        },
+        {
+          "seq": 15,
+          "type": "turn/end",
+          "eventHash": "8e57b93d3585af32d570f93e1870a615743e231396f4c8f0528a56b37c193c4c"
+        }
+      ],
+      "details": [
+        {
+          "seq": 3,
+          "type": "session/title",
+          "time": 1793630210393,
+          "source": {
+            "kind": "user"
+          }
+        },
+        {
+          "seq": 5,
+          "type": "turn/start",
+          "time": 1793630210425,
+          "turn": 1
+        },
+        {
+          "seq": 7,
+          "type": "step/start",
+          "time": 1793630210452,
+          "turn": 1,
+          "step": 1
+        },
+        {
+          "seq": 11,
+          "type": "request/header",
+          "time": 1793630210471,
+          "reason": "initial",
+          "configKeys": [
+            "provider",
+            "model",
+            "reasoningEffort",
+            "maxTokens"
+          ],
+          "config": {
+            "model": "deepseek-v4.1-flash",
+            "provider": "opencode-go",
+            "reasoningEffort": "low",
+            "maxTokens": 512
+          }
+        },
+        {
+          "seq": 12,
+          "type": "request/context",
+          "time": 1793630210471,
+          "model": "deepseek-v4.1-flash",
+          "provider": "opencode-go"
+        },
+        {
+          "seq": 13,
+          "type": "assistant/message",
+          "time": 1793630212524,
+          "turn": 1,
+          "step": 1,
+          "usage": {
+            "inputTokens": 316,
+            "outputTokens": 58,
+            "totalTokens": 374
+          },
+          "interrupted": false,
+          "contentTypes": [
+            "reasoning",
+            "text"
+          ],
+          "textBytes": 43,
+          "usageProvided": true
+        },
+        {
+          "seq": 14,
+          "type": "step/end",
+          "time": 1793630212524,
+          "turn": 1,
+          "step": 1
+        },
+        {
+          "seq": 15,
+          "type": "turn/end",
+          "time": 1793630212525,
+          "turn": 1,
+          "reason": {
+            "kind": "completed"
+          }
+        }
+      ]
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/.local/phase3h-host-baseline.json",
+      "bytes": 7106,
+      "sha256": "3c43ba739063bcd1a452f53d52c2907e4a5304307c580ba1374bc041c70025bb"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-post-reload-baseline.json",
+      "bytes": 6025,
+      "sha256": "763e2b8393f9cbd113ffb21756c35db9f359eb4c371deb7605b87c70ce659b00"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-scenario-preflight.json",
+      "bytes": 959,
+      "sha256": "e0fb7fdd115e42429f72d9657ba3f51cdca66fbc8850f0d9307a1829d6689263"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-inventory-plan.json",
+      "bytes": 871,
+      "sha256": "e37360da79047de19fdb07b062cd99024f06335c94b716304658abaf88a077fe"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-inventory-1.json",
+      "bytes": 10785,
+      "sha256": "8edb217fab092466680220fdb96da8c5e637d81c72b1f2e3dd4679833f144e60"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-inventory-2.json",
+      "bytes": 13785,
+      "sha256": "ff617faf939900b1e08386dc506305f3b8a9ff7c9231034a57c20644854dfa26"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-inventory-final.json",
+      "bytes": 14146,
+      "sha256": "3a6131ddf43611159da7a9d6c5b3a9e29af9471097e9e5ba9627ef666fd81271"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-native-scope.json",
+      "bytes": 720,
+      "sha256": "c90f6c28ec17fd226ad6cc9488a925b375112386d7e0e1d29584e00e02b2df5d"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-audit-plan.json",
+      "bytes": 2114,
+      "sha256": "f9afe189ecb68cbe19855241ea07852dd2e590f4a6d9ed0cee4e79b885f8fc4b"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-delivery-evidence.json",
+      "bytes": 546,
+      "sha256": "ad60001cd0289414863b3ce35499b2437b373c9746ae51f75676bda4130b62c3"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-host-audit.json",
+      "bytes": 24405,
+      "sha256": "d00328891a353a46a757734bf4891637768a17a99cf32cca8a8bb856d570970b"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-native-details-v2.json",
+      "bytes": 4370,
+      "sha256": "26950d39396d896510aee970e49d80ed0c78e2a30b8e5a29819c895f580ea71d"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-independent-input-proof.json",
+      "bytes": 1628,
+      "sha256": "c78fadaf96f9abd576dd12ee09ae088248b8a07adbce3a505846eaeb2d1d9f03"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-host-after-stop.json",
+      "bytes": 7384,
+      "sha256": "c88276b25b4836051eba69e224d059ce3ac6e12314410ac0e4f089df61decd24"
+    }
+  ],
+  "notProven": [
+    "Successful private-channel reply",
+    "Third message and same-channel multi-turn native Session reuse in this run",
+    "Warm-cache hit or cache savings in this run",
+    "Successful-only second host reload and zero replay",
+    "Full provider billing or hidden transport retries",
+    "Full Lab S/FL or all nine systems"
+  ],
+  "bodyIncluded": false,
+  "credentialsIncluded": false,
+  "claimTokensIncluded": false
+}

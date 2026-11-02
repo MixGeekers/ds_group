@@ -2,13 +2,15 @@
 
 `@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 core/replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地目标、任务与记忆链路。
 
-**状态：3G 已通过一个真实合成便签闭环及完成后重载核对。** owner 明确指定范围、共享预算与期限后，core 提出候选，控制域接纳 Task，worker 执行，独立核验后完成原生 Goal。两轮 Core 复用同一 Session；主模型记录合计 3813 reported tokens、4 次调用、1 次效果，完成后无剩余预留。首次失败 A 的取消与 unknown 保留，新样本 B 不改写其结果。见[成功证据](<artifacts/phase3g-core-host-success.json>)、[首次失败](<artifacts/phase3g-core-host-validation.json>)、[兼容修复](<artifacts/phase3g-required-context-fix.json>)及下方 [3G 说明](#3g有界-core-与本地目标)。这仍是有限授权事项推进，不是开放式规划或九系统整体验收。
+**当前状态：3H A 轮真实 Lab 尝试已停止，整轮未完成验收。** 首条群聊实际送达并匹配 oracle，第二条私聊在 30 秒 ReadView 到期后中断，未知用量继续占用预算；第三条未发送，同频道连续 Session 复用与成功后重载未验证。见[3H 宿主记录](<artifacts/phase3h-lab-host-validation.json>)及下方 [3H 说明](#3hlab-连续对话与回执)。
+
+**3G 历史验证：已通过一个真实合成便签闭环及完成后重载核对。** owner 明确指定范围、共享预算与期限后，core 提出候选，控制域接纳 Task，worker 执行，独立核验后完成原生 Goal。两轮 Core 复用同一 Session；主模型记录合计 3813 reported tokens、4 次调用、1 次效果，完成后无剩余预留。首次失败 A 的取消与 unknown 保留，新样本 B 不改写其结果。见[成功证据](<artifacts/phase3g-core-host-success.json>)、[首次失败](<artifacts/phase3g-core-host-validation.json>)、[兼容修复](<artifacts/phase3g-required-context-fix.json>)及下方 [3G 说明](#3g有界-core-与本地目标)。这仍是有限授权事项推进，不是开放式规划或九系统整体验收。
 
 **3F 历史验证：** 3E 已完成限定 DSH 保存、精确读回、有序重载和本地撤回；3F 新增受控 Harrier 生命周期、单独授权的索引操作、同对话语义检索、原生记忆 ReadView 与零推理背景加载。记忆已进入 Session 后，撤回会封存旧绑定并切换安全代次；正常消息继续复用 Session。记忆正文只存原生普通桶，控制库与后端 journal 只存其元信息，撤回不代表物理删除。schema1 配置继续关闭 embedding，schema2 才显式启用受控 Harrier；其余五个内层域仍 unavailable。3F 当时 676 模块、59 Python、154 UI 通过；真实隔离 Harrier 20 次 embedding，宿主两次零推理加载确认了撤回前复用与撤回后新 Session 不含撤回正文。固定标题及恢复标记另作解释，宿主内部查询完整用量未知；分批结果、失败与未覆盖范围见[实施记录](<实施记录.md>)及[九系统计划](<../../架构与设计/九大系统实施与验证计划.md>)。
 
 本包不依赖 Lab 引擎或资料工作台作为运行能力。`lab/` 继续作为独立被测环境，`plugins/shiyu-workbench/` 完整保留。
 
-**3H 新增：受控 Lab 连续对话。** owner 显式指定 run、获准频道、预算和期限后，通过健身房公共目标协议接收输入，按 run/channel 复用 DSH 原生 replyer，核对当前草稿与授权后发送。发送实际回执、草稿完成和调用账目分别记录；结果未知只查询既存回执，不重复发送。当前仅有离线模块、真实临时数据库、公共协议替身及模拟 UI 验证；没有为此重载真实宿主、调用模型或操作真实 Lab 房间。具体结果见[实施记录](<实施记录.md>)。
+**3H 新增：受控 Lab 连续对话。** owner 显式指定 run、获准频道、预算和期限后，通过健身房公共目标协议接收输入，按 run/channel 复用 DSH 原生 replyer，核对当前草稿与授权后发送。发送实际回执、草稿完成和调用账目分别记录；结果未知只查询既存回执，不重复发送。此前离线批次的模块、真实临时数据库、公共协议替身及模拟 UI 结果独立保留，该批次没有真实宿主、模型或房间操作；后续 A 轮已有一条真实送达和一次中断，不能据此宣布双频道或连续对话整体验收通过。具体结果见[实施记录](<实施记录.md>)。
 
 ## 当前实现与限定验证
 
@@ -17,12 +19,12 @@
 | Host 与运行状态 | DSH 插件入口、只读状态路由、`shiyu_status` 工具、显式运行命令与卸载清理 | 原生安装与限定禁用/启用验证已有证据；无独立 Web 服务，不等于完整生命周期压力验收 |
 | 运行仪表盘 | 总览、目标与判断、当前工作、活动、九系统状态、事件/订阅、Session、任务核验、显式诊断和记忆操作；中英文、主题及窄屏布局 | 目标候选、接纳任务、原生观察及命令回执分别显示；受理不显示为成功，unknown 与缺失用量保留未知 |
 | 有界 core | owner 明确登记 local-note 范围、依赖、预算与期限；可信触发、判断预留、原生候选、同事务 Task 接纳和独立完成证明 | 一个真实便签闭环及重载不重放已验；模型只能选择已授权便签 ID，没有任意任务、记忆写入、设备或外部渠道权限 |
-| replyer Session | 专用原生 preset、空工具、稳定业务/scope 绑定、单主调用观测与实际账目、取消与释放 | 历史原生探针和两轮代号回忆已测；3H 新主调用门及 Lab 路径仅离线验证，业务压缩与完整缓存收益待验 |
+| replyer Session | 专用原生 preset、空工具、稳定业务/scope 绑定、单主调用观测与实际账目、取消与释放 | 历史原生探针和两轮代号回忆已测；3H A 有一条生成并送达、另一条中断保留 unknown；同频道连续复用、业务压缩与完整缓存收益待验 |
 | 任务与 worker | owner 本地任务及 3G 已授权便签委托复用 Task/Assignment；原生 worker 只写固定产物，派发资格持续复查 | 历史有界任务及 3G core 派工各有限定真实成功证据，首次 unknown 保留；没有通用文件或设备权限 |
 | 授权、效果与核验 | Mandate/CAS、原子预留、Effect 与独立产物核验；3G 判断与派生 Task 共用同一 Goal 授权及预算 | 不以模型候选或 `task.createLocal` 代替 owner 授权；取消不回滚已发生效果，旧实例与 unknown 不自动重派 |
 | 原生 Goal 生命周期 | 原生 Goal 绑定/CAS/命令历史、独立完成证明；历史零推理诊断保留，3G 另用专用 Goal Session 执行有界判断 | 原生日志拥有 phase/revision；普通判断 followup 不计为原生 Goal driver round；旧观察不覆盖 pending/unknown 命令事实 |
 | 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、Task 关联、可信完成事件投影、有界扫描；显式本地上下文回复与验证 | 背景消费者不调用模型；Event ack 不等于加载，显式回复须原生持久回执才 ackContext；无渠道发送 |
-| Lab 连续对话 | 最多 20 个获准群聊/私聊、原生 Session、输入去重与纠正失效、共享容量、预算、Effect 发送及只读回执核对 | 仅文本 message.send；不开放文件、Office、任务完成或管理操作，不自动注入跨对话记忆；真实房间业务验收待做 |
+| Lab 连续对话 | 最多 20 个获准群聊/私聊、原生 Session、输入去重与纠正失效、共享容量、预算、Effect 发送及只读回执核对 | 仅文本 message.send；A 轮群聊送达已核验、私聊中断，整轮未完成；不开放文件、Office、任务完成或管理操作，不自动注入跨对话记忆 |
 | 发布与受限视图 | schema2 按实际依赖发布 memory 读取能力，其余五域 unavailable；Task 与 native-memory ReadView、独立删除屏障及最终双校验 | 30 秒 capture，正文异步精确读取前后重核；只读接口不保存记忆，版本不与 commitSeq 或索引水位混用 |
 | 事件与订阅 | 类型目录、发布、订阅增删改查、有限回放、投递领取/确认/失败、重试和统计；事件与匹配投递同事务提交 | live 路径为可信组件消费和 Agent background 引用；Agent 事件工具工厂已实现并合成验证，但尚未挂载到原生 Session，未自动续接 |
 | 本地状态与数据库 | 单实例运行锁、暂停与 Session 绑定保存；SQLite 独立 WorkerThread，事件、Task/Assignment、Mandate/预算及 Effect 共用连接与事务 | 尚无原生 inbox/请求结果完整对账；正常重载、事务/文件故障注入和限定子进程退出不代替完整断电/灾难恢复 |
@@ -58,11 +60,11 @@ npm run test:ui
 | `GET /api/shiyu/state` | 只读运行快照；与 `shiyu_status` 使用同一服务 |
 | `POST /api/shiyu/commands` | 显式 `runtime.pause`、`runtime.resume`、`session.probe`、`session.verify-model`、`reply.generate`、`task.createLocal`、`task.cancel`、`goal.verify-lifecycle`、`conversation.linkLocalTask`、`conversation.replyLocal`、`conversation.verifyContext`、`conversation.loadContext`、`memory.rememberLocal`、`memory.readLocal`、`memory.withdrawLocal`、`memory.indexLocal`、`memory.searchLocal` 及下方四个 `core.*` 命令；JSON 正文上限 64 KiB |
 
-`reply.generate` 是当前本地 owner 范围的开发入口：传入业务标识及文本，返回 `status=draft`、`sent=false`。它会发起模型请求，界面刷新和会话探针不会。当前没有多用户授权管理、渠道收发或外部 Effect 派发，不能将这个入口当作完整聊天产品或通用任务执行工具。
+`reply.generate` 是当前本地 owner 范围的开发入口：传入业务标识及文本，返回 `status=draft`、`sent=false`。它会发起模型请求，界面刷新和会话探针不会。该入口不提供多用户授权管理、渠道收发或外部 Effect 派发；3H 的文本发送另经受限 Lab 协调器，不能将这个入口当作完整聊天产品或通用任务执行工具。
 
 ## Session 与模型
 
-默认路由为用户现有 `opencode-go / deepseek-v4.1-flash`，replyer effort 为 `low`，受限本地 worker 与 3G core 为 `high`；模型配置先经宿主解析。当前适配支持 `low/high/max`，不增加另一套凭据或修改宿主全局模型。core 的该固定路由已接代码，但本轮未调用真实生成模型。
+默认路由为用户现有 `opencode-go / deepseek-v4.1-flash`，replyer effort 为 `low`，受限本地 worker 与 3G core 为 `high`；模型配置先经宿主解析。当前适配支持 `low/high/max`，不增加另一套凭据或修改宿主全局模型。core 的固定路由已有 3G B 轮限定真实证据；3H A 两个原生 Session 均确认使用上述模型、`low` 和 512 输出 tokens 上限，其中只有首条取得完整主调用用量并结算。
 
 绑定键包含 role、businessId、scope；同一 replyer 绑定串行复用原生会话，不在本地复制模型历史。原生 Session 日志与压缩由 DSH 管理，当前实现只记录业务绑定和本轮观察结果。完整 conversationGeneration、发送门禁、原生压缩和缓存复用效果仍待后续验收。
 
@@ -117,7 +119,7 @@ node --import tsx scripts/embedding-smoke.ts /path/model.gguf /path/llama-server
 
 本轮真实诊断以阶段 2 成功任务为独立依据，原生 Goal 在同一 Session 完成 4 次变更，revision 连续为 1–4、roundsStarted=0。精确原生日志中 request/header、assistant、标题 LLM 与压缩均为 0；控制库有 4 个 confirmed 命令回执，metadataVersion=8。有序重载后 Session 字节与哈希、绑定及命令历史一致，历史验证保留且未重放。证据见[原生 Goal 验证](<artifacts/goal-validation.json>)；该结果证明受控生命周期接缝，不代表已开启自主 Goal 规划或通过崩溃恢复验收。
 
-ConversationStore 的本地任务背景路径与 3C 本地回复资格、localTask ReadView 已接入，范围见下节；分支/合并/分离和实际渠道路由仍未运行接入。记忆模块的原独立边界与 3E 新接线分开：
+ConversationStore 的本地任务背景路径与 3C 本地回复资格、localTask ReadView 已接入，范围见下节；分支/合并/分离和通用实际渠道路由仍未接入，受控 Lab 文本发送另见 3H。记忆模块的原独立边界与 3E 新接线分开：
 
 | 模块 | 实现范围 | 尚缺的运行接缝 |
 |---|---|---|
@@ -132,7 +134,7 @@ Ombre 的 domain/tag 不是多受众 ACL，“读取”也可能触发原生日�
 
 每个 Task 复用一条 `task.succeeded` 订阅。消费者重新检查持久 claim、事件来源、scope 与真实 Task 成功状态，再在同一 SQLite 事务提交背景来源标记和 Event ack。领取次数单独持久化，失败保留投递重试资格；来源版本 1 表示一次不可变的已核验成功事实，不取全局事件序号或 Task 总修订号。一个 Task 可以关联多个本地对话；晚建绑定仍需首次加载来源，不能因旧投递已确认就显示已同步。
 
-后台扫描在启动、任务结算、关联后唤醒，并每 5 秒补扫；每批最多 20 条，每次唤醒最多 4 批，卸载等待在途扫描结束。暂停允许纯背景落库；持久 failed 投递使整体状态保持 degraded，不能被后续空扫描消除。GET 与仪表盘刷新不消费投递，也不调用 `ackContext`；Event ack 只确认背景标记已落库，不能证明上下文已注入 Session。3B 当时未开放原生上下文注入、回复/发送或 ReadView；3C 的本地只读上下文与回复接线见下节，渠道发送仍未接入。
+后台扫描在启动、任务结算、关联后唤醒，并每 5 秒补扫；每批最多 20 条，每次唤醒最多 4 批，卸载等待在途扫描结束。暂停允许纯背景落库；持久 failed 投递使整体状态保持 degraded，不能被后续空扫描消除。GET 与仪表盘刷新不消费投递，也不调用 `ackContext`；Event ack 只确认背景标记已落库，不能证明上下文已注入 Session。3B 当时未开放原生上下文注入、回复/发送或 ReadView；3C 的本地只读上下文与回复接线见下节，该本地路径不提供渠道发送，3H 的受控 Lab 文本发送见后文。
 
 控制库另提供持久 `commitSeq`，有效行或支持的 schema 变化在同一外层提交中计一次；纯读、无变化和回滚不增加。旧库首次启用建立独立基线，不回填旧历史，只有相同 baselineId 的序号可以比较。它不是事件序号、Task 版本或内层组合投影的 `stateVersion`，不能用它宣布 ReadView 权威已建立。实际限制见[控制库说明](<src/adapters/control-store/README.md>)；修复后全量 348/348 模块、83/83 UI 通过，限定宿主关联、刷新及修复后重载幂等核对已有证据。
 
@@ -274,3 +276,17 @@ licenses/                           随发布包保留的第三方完整许可
 “核对”只调用新增公共 `message.receipt`，冷读 Lab 已持久化的送达事件并核对原操作、频道、正文摘要，不重复 `act`。它可补记过期、暂停或旧输入代次下已发生的事实；未找到、歧义或认证失效仍保持 unknown。Lab 自身重载导致 sealed 身份失效时，不绕过其认证恢复观察。正常 Runtime 关闭或重开不会自动装回 token、恢复模型或重发；重新接入须 owner 显式操作。
 
 每次回复预留 16384 tokens / 1 主调用，发送另预留 1 effect；原生报告不完整时不把缺失字段填零。预算是准入、预留与事后对账，不能声称调用前精确硬限 provider 费用或知道其内部传输重试。原生核心上下文、历史和压缩归 DSH；本切片不冒称长历史压缩、缓存收益或完整 Lab S/FL 验收。
+
+### 3H A 轮真实尝试：部分送达，后续中断
+
+2026-11-02，限定 run `run-mvzcwl61-ee725230` 实际接收两条输入，分别来自获准群聊与私聊。前述离线批次的零真实调用记录保持原意；以下是随后新增的真实宿主证据。
+
+| 观察项 | 本轮结果 |
+|---|---|
+| 群聊首条 | 43 字节 JSON 实际送达，与预定 oracle 匹配；原生持久消息、草稿、发送账本和 Lab 独立送达记录可核对 |
+| 私聊第二条 | 原生已启动 1 turn / 1 step，仅有 reasoning、无文本或 usage；30 秒 ReadView 到期后于 14:37:49.254 UTC 由 hook 中止，原生 turn 结束为 `aborted`，本地保持 unknown |
+| 预算 | 已结算 374 reported tokens / 1 call / 1 effect；另保留 16384 tokens / 1 call / 0 effects 的 unknown hold。两个原生 turn 不是两次已结算调用，已知用量也不是完整 provider 费用 |
+| 停止与独立核对 | 14:38:28 UTC 连接暂停至 epoch=2，14:38:49 UTC 房间停止，处于 600 秒限期内；审计读取本轮两个精确原生文件，结果 `consistent-incomplete`、issues=0，首条送达链核对成功 |
+| 收尾 | 第三条未发送，未执行仅限成功后的重载；14:42:56 UTC 只读复核时旧 11 个自有原生文件的字节数、哈希与 mtime 未变，本轮两个文件自独立审计后也未变，Task 仍为 3、commitSeq=173 |
+
+证据见[3H 宿主记录](<artifacts/phase3h-lab-host-validation.json>)。`consistent-incomplete` 仅说明已观察记录未发现矛盾，不表示整轮通过；本轮未验证同频道连续 Session 复用、成功后重载不重放、业务压缩、缓存命中率或完整双频道/S/FL 场景。首条未提供 cache 字段，第二条无 usage，不补零或推算命中率。ReadView 期限兼容修复及另次真实复验待完成，unknown 占用不因停止或文档收尾而结算。运行后发现的 Lab UI 空数组问题另有 5/5 离线修复验证，该修复不在本次真实运行构建内。

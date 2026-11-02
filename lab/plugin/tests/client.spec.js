@@ -118,6 +118,42 @@ test('script editor saves a new actor and task then preserves revisions on reope
   expect(errors).toEqual([]);
 });
 
+for (const entry of [
+  { name: 'explicit empty actors and channels', title: '导入空参与者与空会话', actors: [], channels: [], actorIds: ['HUMAN', 'SHIYU'], channelIds: ['D-SHIYU'] },
+  { name: 'explicit empty actors with one group', title: '导入仅双人群聊', actors: [], channels: [{ id: 'C-IMPORT', name: '合成群聊', kind: 'group', memberIds: ['HUMAN', 'SHIYU'] }], actorIds: ['HUMAN', 'SHIYU'], channelIds: ['C-IMPORT', 'D-SHIYU'] },
+  { name: 'omitted actors and channels retain catalog defaults', title: '导入缺省公司目录' },
+]) test(`raw JSON import preserves ${entry.name} through save and reopen`, async ({ page, request }) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  const { catalog } = await post(request, { action: 'snapshot' });
+  const source = { id: '', name: entry.title, description: '隔离 UI 合成导入；不创建房间或调用模型。', durationMs: 1000, tasks: [], inputs: [], assets: [],
+    ...(entry.actors === undefined ? {} : { actors: entry.actors }), ...(entry.channels === undefined ? {} : { channels: entry.channels }) };
+  await page.goto('/');
+  await page.getByRole('button', { name: '剧本', exact: true }).click();
+  await page.locator('.syg-sidebar').getByRole('button', { name: '新建剧本', exact: true }).click();
+  await expect(page.getByRole('button', { name: '保存', exact: true })).toBeEnabled();
+  await page.locator('.syg-editor input[type=file]').setInputFiles({ name: 'raw-scenario.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(source)) });
+  await expect(page.getByRole('textbox', { name: '名称', exact: true }).first()).toHaveValue(entry.title);
+  const saved = actionResponse(page, 'scenario_save');
+  await page.getByRole('button', { name: '保存', exact: true }).click();
+  const response = await saved, submitted = response.request().postDataJSON().scenario, result = await response.json();
+  expect(response.ok(), JSON.stringify(result)).toBe(true);
+  expect(submitted.actors).toEqual(entry.actors ?? catalog.actors);
+  expect(submitted.channels).toEqual(entry.channels ?? catalog.channels);
+  const expectedActors = entry.actorIds ?? [...catalog.actors.map(actor => actor.id), 'HUMAN', 'SHIYU'];
+  const expectedChannels = entry.channelIds ?? [...catalog.channels.map(channel => channel.id), 'D-SHIYU'];
+  expect(result.scenario.actors.map(actor => actor.id).sort()).toEqual([...expectedActors].sort());
+  expect(result.scenario.channels.map(channel => channel.id).sort()).toEqual([...expectedChannels].sort());
+  expect(result.scenario.tasks).toEqual([]); expect(result.scenario.inputs).toEqual([]);
+  await expect(page.getByText('版本 1', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: '自由会话 内置', exact: true }).click();
+  await page.getByRole('button', { name: `${entry.title} 自定义`, exact: true }).click();
+  await expect(page.getByRole('textbox', { name: '名称', exact: true }).first()).toHaveValue(entry.title);
+  const reopened = await post(request, { action: 'scenario_get', scenarioId: result.scenario.id });
+  expect(reopened.scenario.actors.map(actor => actor.id).sort()).toEqual([...expectedActors].sort());
+  expect(reopened.scenario.channels.map(channel => channel.id).sort()).toEqual([...expectedChannels].sort());
+  expect(errors).toEqual([]);
+});
+
 test('a stale 0.2 service shows a reload instruction without permitting room writes', async ({ page }) => {
   let writes = 0;
   await page.route('**/api/shiyu-gym', async route => {
