@@ -1,0 +1,157 @@
+diff --git a/plugins/shiyu/src/control/local-core.ts b/plugins/shiyu/src/control/local-core.ts
+index 523a2f7..ad8ab51 100644
+--- a/plugins/shiyu/src/control/local-core.ts
++++ b/plugins/shiyu/src/control/local-core.ts
+@@ -2,7 +2,8 @@ import { createHash } from 'node:crypto';
+ import type { LocalArtifactStore } from '../adapters/artifacts/index.js';
+ import type { TaskDetail } from '../adapters/control-store/task-domain.js';
+ import { GoalSessionAdapter, type CoreDecisionEventToolFactory, type CoreDecisionEventToolProbeOptions,
+-  type CoreDecisionEventToolProbeResult, type GoalAdapterOptions, type GoalAuthorityContext, type GoalAuthorityVerdict,
++  type CoreDecisionEventToolProbeResult, type CoreEventToolModelProbeRequestOptions, type CoreEventToolModelProbeResult,
++  type GoalAdapterOptions, type GoalAuthorityContext, type GoalAuthorityVerdict,
+   type GoalBindingPort, type GoalCompletionProof, type GoalReadResult, type NativeGoalRef, type CoreDecisionAccounting, type CoreDecisionResult } from '../adapters/dsh/goals.js';
+ import type { DshContext } from '../adapters/dsh/sessions.js';
+ import type { CoreCommands, CoreEvaluation, CoreGoal, CorePrepareInput, CoreCompletionRequest } from '../contracts/core.js';
+@@ -184,6 +185,16 @@ export class LocalCoreService {
+     this.open(options.signal);
+     return adapter.probeCoreDecisionEventTools(this.options.eventTools, options);
+   }
++  /** Trusted bounded real-model diagnostic: one fixed prompt, at most one
++   * read-only event-tool round and two main requests, then native release and
++   * archive. It never creates a Goal/Task/budget/Effect or business fact. */
++  async probeCoreEventToolModelRound(options: CoreEventToolModelProbeRequestOptions = {}): Promise<CoreEventToolModelProbeResult> {
++    this.open(options.signal); await this.options.assertRuntimeAllowed(); this.open(options.signal);
++    const adapter = this.adapter as LocalCoreAdapter & { probeCoreEventToolModelRound?: (options?: CoreEventToolModelProbeRequestOptions) => Promise<CoreEventToolModelProbeResult> };
++    if (typeof adapter.probeCoreEventToolModelRound !== 'function') throw new LocalCoreError('NATIVE_MISMATCH');
++    this.open(options.signal);
++    return adapter.probeCoreEventToolModelRound(options);
++  }
+   private open(signal?: AbortSignal): void { if (this.closed) throw new LocalCoreError('CLOSED'); signal?.throwIfAborted(); }
+   private async allowed(active: Active): Promise<void> {
+     this.open(active.signal); await this.options.assertRuntimeAllowed(); this.open(active.signal);
+diff --git a/plugins/shiyu/src/index.ts b/plugins/shiyu/src/index.ts
+index 4ece0fb..a4fade8 100644
+--- a/plugins/shiyu/src/index.ts
++++ b/plugins/shiyu/src/index.ts
+@@ -60,6 +60,28 @@ export function coreToolDiagnosisTool(service: { command(input: unknown): Promis
+     },
+   };
+ }
++/**
++ * Owner-triggered bounded real-model probe of the restricted core event tool
++ * surface. It runs exactly one synthetic probe turn (fixed prompt, at most one
++ * read-only tool round and two main requests), records only provider-reported
++ * usage, releases and archives the disposable Session, and returns an honest
++ * failed/unknown/cancelled receipt instead of retrying. It never creates a
++ * Goal/Task/Effect or writes business state. Only the owner-facing runtime
++ * command surface can reach the underlying operation.
++ */
++export function coreModelToolProbeTool(service: { command(input: unknown): Promise<unknown> }) {
++  return {
++    name: 'shiyu_diagnose_core_model_tools',
++    description: '有界真实模型单轮事件工具探针：专用受限 core 会话发送固定不可变提示，要求先调用一次 shiyu_core_event_types 再返回单行 JSON；最多 1 次工具往返、≤2 次主请求，usage 仅按 provider 实际报告（缺失为 unknown），会话释放并归档；不创建 Goal/Task/Effect、不写业务库、不重试。',
++    parameters: { type: 'object', properties: {}, additionalProperties: false },
++    isConcurrencySafe: false,
++    execute: async () => service.command({ action: 'runtime.probe-core-model-tools' }),
++    output: {
++      schema: { type: 'object', additionalProperties: true },
++      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
++    },
++  };
++}
+ export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
+   return {
+     name: 'shiyu_diagnose_worker_tools',
+@@ -88,4 +110,7 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
+   // product never calls a model here and the probe Session is released at once.
+   ctx.effect(() => ctx.tools.register(workerToolDiagnosisTool(service)));
+   ctx.effect(() => ctx.tools.register(coreToolDiagnosisTool(service)));
++  // Owner-triggered bounded real-model probe; the tool is never mounted into a
++  // restricted core/worker/replyer Session, only exposed to the owner command surface.
++  ctx.effect(() => ctx.tools.register(coreModelToolProbeTool(service)));
+ }
+diff --git a/plugins/shiyu/src/runtime.ts b/plugins/shiyu/src/runtime.ts
+index 2b7cd6d..2e52e33 100644
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ -16,7 +16,7 @@ import { LocalStateFile } from './recovery/local-state.js';
+ import { systems } from './health/systems.js';
+ import { WorkerSessionDriver, type WorkerEventToolProbeResult } from './adapters/dsh/workers.js';
+ import { createCoreEventTools, createWorkerEventToolSource } from './adapters/dsh/event-tools.js';
+-import type { CoreDecisionEventToolFactory, CoreDecisionEventToolProbeResult } from './adapters/dsh/goals.js';
++import type { CoreDecisionEventToolFactory, CoreDecisionEventToolProbeResult, CoreEventToolModelProbeResult } from './adapters/dsh/goals.js';
+ import { ChannelRuntimeBridge } from './control/channels/index.js';
+ import { EventDeliveryCoordinator } from './control/events/index.js';
+ import { LocalArtifactStore } from './adapters/artifacts/index.js';
+@@ -85,6 +85,8 @@ export interface CoreDriver {
+   cancelAll(reason?: unknown): void;
+   /** H2c trusted zero-model core event-tool mount diagnostic; absent = unsupported. */
+   probeCoreEventTools?(options: { signal?: AbortSignal; cwd?: string; scope?: string }): Promise<CoreDecisionEventToolProbeResult>;
++  /** H2c bounded real-model single-round core event-tool probe; absent = unsupported. */
++  probeCoreEventToolModelRound?(options: { signal?: AbortSignal; cwd?: string; scope?: string; timeoutMs?: number; maxTokens?: number }): Promise<CoreEventToolModelProbeResult>;
+   close(): Promise<void>;
+ }
+ export interface RuntimeOptions {
+@@ -159,6 +161,7 @@ export class RuntimeService {
+   background!: BackgroundPump;
+   private lastEventToolProbe?: WorkerEventToolProbeResult;
+   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
++  private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
+   private core?: CoreDriver;
+   private corePump?: CorePump;
+   private coreFailure?: string;
+@@ -549,6 +552,38 @@ export class RuntimeService {
+       throw error;
+     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+   }
++  /**
++   * Owner-only bounded real-model single-round core event-tool probe. It uses
++   * the same paused admission, one-slot capacity and abortable operation
++   * semantics as session.probe; a probe turn is issued once and never retried.
++   * The honest receipt (including failed/unknown/cancelled outcomes) is cached
++   * only in snapshot diagnostics; no business state or event is written.
++   */
++  private async commandCoreModelToolProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
++    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core model tool probe input');
++    this.ensureCanRun(); signal?.throwIfAborted();
++    if (typeof this.core?.probeCoreEventToolModelRound !== 'function') throw new Error('CORE_MODEL_TOOL_PROBE_UNAVAILABLE');
++    if ([...this.operations.values()].some(op => op.phase === 'single-round core model tool probe')) throw new Error('Core model tool probe is already running');
++    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
++    let finish!: () => void;
++    const done = new Promise<void>(resolve => { finish = resolve; });
++    const op: ActiveOperation = { id: randomUUID(), title: '有界真实模型单轮事件工具探针', phase: 'single-round core model tool probe',
++      status: 'running', controller: new AbortController(), done, finish };
++    const onAbort = () => op.controller.abort(signal?.reason);
++    signal?.addEventListener('abort', onAbort, { once: true });
++    this.operations.set(op.id, op);
++    try {
++      const core = this.core;
++      const result = await core.probeCoreEventToolModelRound!({ signal: op.controller.signal, cwd: path.join(this.dataDir, 'workspaces'),
++        scope: 'local-owner', timeoutMs: 60000, maxTokens: 256 });
++      this.lastCoreModelToolProbe = structuredClone(result);
++      if (result.status === 'passed') this.lastFailure = undefined;
++      return { ...result, sent: false, productionStateWrites: 0 };
++    } catch (error) {
++      this.lastFailure = error instanceof Error ? error.message : String(error);
++      throw error;
++    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
++  }
+   private async record(type: string, message: string, status: string): Promise<void> {
+     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });
+     // This component's only effect is a readable event-backed activity projection.
+@@ -665,6 +700,7 @@ export class RuntimeService {
+         contextSafety: structuredClone(this.contextSafety),
+         eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,
+         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
++        coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
+         timeSource: this.timePump ? this.timePump.snapshot() : null,
+         notifications: this.notificationRouter ? { enabled: true } : { enabled: false } },
+       background: { ...conversations.background, ...backgroundState },
+@@ -713,6 +749,7 @@ export class RuntimeService {
+     if (action === 'memory.indexLocal' || action === 'memory.searchLocal') return this.commandSemanticMemory(value, signal);
+     if (action === 'runtime.probe-event-tools') return this.commandEventToolProbe(value, signal);
+     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
++    if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);
+     if (action === 'runtime.pause') return this.setPaused(true);
+     if (action === 'runtime.resume') return this.setPaused(false);
+     // H5b: owner-only local checkpoint. Dispatched before ensureCanRun() so a

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import test from 'node:test';
-import { GoalSessionAdapter, CORE_GOAL_PRESET_ID, type CoreDecisionEventToolFactory,
+import { GoalSessionAdapter, CORE_GOAL_PRESET_ID, CORE_MODEL_PROBE_PROMPT, type CoreDecisionEventToolFactory,
   type GoalAuthorityContext, type GoalAuthorityVerdict, type GoalBinding, type GoalBindingPort,
   type GoalCommandReceipt, type GoalCreateRequest, type NativeGoalRef, type NativeGoalView, goalCommandIdentity } from '../src/adapters/dsh/goals.js';
 import type { DshAgent, DshAgentContext, DshContext, DshSession, SessionEvent } from '../src/adapters/dsh/sessions.js';
@@ -55,7 +55,9 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   let beforeAuthorize: ((context: GoalAuthorityContext) => void) | undefined;
   let mode: 'normal' | 'retry' | 'compaction' | 'title' | 'anonymous' | 'history' | 'history-update' | 'changed-prestep' | 'mutated-user' | 'extra-user' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
   let messageNumber = 0, creates = 0, resumes = 0, followups = 0, disposals = 0, streams = 0, autoRounds = 0, opens = 0, closes = 0;
-  let requests = 0, toolExecutions = 0;
+  let requests = 0, toolExecutions = 0, goalCalls = 0;
+  const archives: string[] = [], toolReturns: unknown[] = [];
+  let failArchive = false;
   let toolPlan: undefined | { name: string; args?: Record<string, unknown>; result?: unknown; unknownUsage?: boolean;
     duplicate?: boolean; omitResult?: boolean; skipExecution?: boolean; pauseOnTool?: boolean; secondRound?: boolean };
   const assemblies: { tools: { name: string }[] }[] = [];
@@ -117,6 +119,10 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     resume: (agent: FakeAgent, ref: NativeGoalRef) => mutate('resume', agent, ref, { phase: 'active' }),
     complete: (agent: FakeAgent, ref: NativeGoalRef) => mutate('complete', agent, ref, { phase: 'complete' }),
   };
+  for (const name of ['get', 'create', 'edit', 'pause', 'resume', 'complete', 'disarm'] as const) {
+    const original = (goals as unknown as Record<string, (...args: unknown[]) => unknown>)[name];
+    (goals as unknown as Record<string, (...args: unknown[]) => unknown>)[name] = (...args: unknown[]) => { goalCalls++; return original(...args); };
+  }
   function stream(options: Record<string, unknown>): AsyncIterable<unknown> {
     return global.waterfall('llm/stream', [options], () => {
       admittedStreams.push(Object.fromEntries(['sessionId', 'provider', 'model', 'reasoningEffort', 'maxTokens', 'purpose', 'tools'].filter(key => options[key] !== undefined).map(key => [key, options[key]])));
@@ -209,16 +215,17 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
               append(agent, 'assistant/message', { message: { id: `assistant-${message.id}`, role: 'assistant', content }, ...(usage ? { usage } : {}) });
               if (!toolPlan.duplicate) {
                 append(agent, 'tool/call', { turn: 1, step: 1, callId, name: toolPlan.name, arguments: argumentsText });
+                let returned: unknown;
                 if (!toolPlan.skipExecution) {
                   const tool = registeredTools.get(toolPlan.name); assert.ok(tool, 'mounted core event tool is registered');
                   if (toolPlan.pauseOnTool) allowed = false;
                   toolExecutions++;
-                  try { await tool.execute(structuredClone(toolPlan.args ?? {}), { signal: new AbortController().signal }); }
+                  try { returned = await tool.execute(structuredClone(toolPlan.args ?? {}), { signal: new AbortController().signal }); toolReturns.push(structuredClone(returned)); }
                   catch (error) { toolErrors.push(error instanceof Error ? `${error.name}: ${error.message}` : String(error)); }
                   allowed = true;
                 }
                 if (!toolPlan.omitResult) append(agent, 'tool/result', { turn: 1, step: 1, message: { id: `tool-result-${message.id}`, role: 'tool',
-                  source: { kind: 'tool', callId }, toolCallId: callId, content: [{ type: 'text', text: JSON.stringify(toolPlan.result ?? {}) }], isError: false } });
+                  source: { kind: 'tool', callId }, toolCallId: callId, content: [{ type: 'text', text: JSON.stringify(toolPlan.result ?? returned ?? {}) }], isError: false } });
                 if (toolPlan.secondRound) {
                   append(agent, 'tool/call', { turn: 1, step: 2, callId: `${callId}-2`, name: toolPlan.name, arguments: argumentsText });
                 } else if (!toolPlan.omitResult) {
@@ -261,6 +268,9 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
       if (name === 'sessions') return {
         async flush(session: DshSession) { trace.push('flush'); if (failFlush) throw new Error('Native flush failed'); const record = stored.get(session.id)!; record.durable = structuredClone(record.events); return true; },
         get(id: string) { return live.get(id)?.session; },
+      };
+      if (name === 'workspaceRegistry') return {
+        async archiveSession(id: string) { if (failArchive) throw new Error('Native archive failed'); archives.push(id); },
       };
       if (name === 'sessionTitle') return {
         get: (session: DshSession) => { const value = stored.get(session.id)?.title; return value && structuredClone(value); },
@@ -317,9 +327,12 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     roundId: `decision-${accounting.length + 1}`, capability, prompt: 'Only propose the next check for the synthetic goal.', deadlineAtMs: Date.now() + 30000, maxTokens: 512,
     async onDispatch() { trace.push('dispatch-receipt'); }, async onContextDurable() { trace.push('context-receipt'); },
     async onAccounting(value) { accounting.push(structuredClone(value)); }, ...patch });
-  return { ctx, stored, live, presets, bindings, checks, accounting, trace, capability, create, decision, adapter, stream, admittedStreams, preparedContexts, committedContexts, assemblies, toolErrors,
-    counts: () => ({ creates, resumes, followups, disposals, streams, requests, autoRounds, opens, closes, toolExecutions }), agent: () => lastAgent!,
+  return { ctx, stored, live, presets, bindings, commands, checks, accounting, trace, capability, create, decision, adapter, stream, admittedStreams, preparedContexts, committedContexts, assemblies, toolErrors,
+    counts: () => ({ creates, resumes, followups, disposals, streams, requests, autoRounds, opens, closes, toolExecutions, goalCalls }),
+    archives, toolReturns, agent: () => lastAgent!,
+    async drain() { for (const [id, agent] of [...live]) { try { agent.cancel({ kind: 'hook', reason: 'fixture drain' }, { keepInbox: true }); } catch { /* fixture teardown */ } live.delete(id); record: void id; } },
     setToolPlan(value: typeof toolPlan) { toolPlan = value; },
+    setFailArchive(value: boolean) { failArchive = value; },
     setAllowed(value: boolean) { allowed = value; }, setExpired(value: boolean) { expiredGrant = value; }, setMode(value: typeof mode) { mode = value; },
     setOutput(value: string) { output = value; }, setReadFault(value: typeof readFault) { readFault = value; }, setFlushFault(value: boolean) { failFlush = value; },
     setDisposeFault(value: boolean) { failDispose = value; }, setCreateGate(value: Promise<void> | undefined) { createGate = value; }, setStreamGate(value: Promise<void>) { streamGate = value; },
@@ -744,4 +757,199 @@ test('the core service exposes a zero-model probe that follows existing paused-a
     await assert.rejects(service.probeCoreEventTools({ cwd: '/synthetic/shiyu/core' }), /paused/);
     assert.equal(calls.length, 1, 'a paused runtime never reaches the native probe');
   } finally { await service.close(); }
+});
+
+// ---------------------------------------------------------------------------
+// H2c real-model bounded probe: implementation receipt only (the Lead executes
+// the one real model round on the fixed host; these tests use the synthetic
+// provider/session doubles above and never contact a model or the network).
+// ---------------------------------------------------------------------------
+const sha256 = (value: string) => createHash('sha256').update(value, 'utf8').digest('hex');
+const probeBinding = (goalId = 'probe-core-model-1'): GoalBinding => ({ goalId, sessionId: `shiyu-core-model-probe-${goalId}`,
+  ownerId: 'probe', scope: 'local-owner', cwd: '/synthetic/shiyu/core', completionCriteriaHash: '0'.repeat(64), metadataVersion: 1 });
+async function visibleTypeCount(f: Awaited<ReturnType<typeof eventStore>>): Promise<number> {
+  const provider = realProvider(f.events)(probeBinding());
+  assert.ok(provider);
+  const value = await provider.execute('shiyu_core_event_types', {}, { signal: new AbortController().signal,
+    goalId: 'probe-core-model-1', sessionId: 'probe-session', roundId: 'probe-round' }) as { types?: unknown };
+  return Array.isArray(value.types) ? value.types.length : 0;
+}
+async function probeFixture(t: Parameters<typeof eventStore>[0]) {
+  const events = await eventStore(t, []);
+  const f = fixture(realProvider(events.events));
+  const adapter = f.adapter();
+  return { events, f, adapter, typesSeen: await visibleTypeCount(events) };
+}
+
+test('bounded real-model probe performs exactly one read-only types round and returns an honest passed receipt', async t => {
+  const { events, f, adapter, typesSeen } = await probeFixture(t);
+  const before = await events.events.stats(readerPrincipal());
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  try {
+    const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', scope: 'local-owner', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'passed'); assert.equal(receipt.ok, true); assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_PASSED');
+    assert.match(receipt.sessionId, /^shiyu-core-model-probe-/);
+    assert.equal(receipt.promptSha256, sha256(CORE_MODEL_PROBE_PROMPT));
+    assert.ok(Buffer.byteLength(CORE_MODEL_PROBE_PROMPT) <= 2048);
+    assert.equal(CORE_MODEL_PROBE_PROMPT.includes('shiyu_core_event_types'), true);
+    assert.equal(CORE_MODEL_PROBE_PROMPT.includes('{{'), false);
+    assert.deepEqual({ provider: receipt.provider, model: receipt.model, reasoningEffort: receipt.reasoningEffort },
+      { provider: 'opencode-go', model: 'deepseek-v4.1-flash', reasoningEffort: 'high' });
+    assert.equal(receipt.maxTokens, 256);
+    assert.deepEqual(receipt.counters, { followups: 1, turns: 1, userMessages: 2, assistantMessages: 2,
+      mainModelRequests: 2, mainModelStreams: 2, toolCalls: 1, toolResults: 1 });
+    assert.deepEqual(receipt.toolCalls, [{ name: 'shiyu_core_event_types', argumentsSha256: sha256('{}') }]);
+    assert.equal(receipt.toolResult!.typesSeen, typesSeen);
+    assert.equal(receipt.toolResult!.outcome, 'observed');
+    assert.deepEqual(receipt.finalJson, { ok: true, typesSeen });
+    assert.equal(receipt.usage.status, 'reported'); assert.equal(receipt.usage.complete, true);
+    assert.equal(receipt.usage.totalTokens, 38); assert.equal(receipt.usage.inputTokens, 22); assert.equal(receipt.usage.outputTokens, 16);
+    assert.deepEqual({ released: receipt.released, disposed: receipt.disposed, archived: receipt.archived, cleanupVerified: receipt.cleanupVerified },
+      { released: true, disposed: true, archived: true, cleanupVerified: true });
+    assert.deepEqual(f.archives, [receipt.sessionId]);
+    // Exactly one tool execution; no Goal, Task, budget, Effect, authority or event fact.
+    assert.equal(f.counts().toolExecutions, 1); assert.equal(f.counts().goalCalls, 0); assert.equal(f.checks.length, 0);
+    assert.equal(f.counts().followups, 1); assert.equal(f.counts().disposals, 1); assert.equal(f.counts().toolExecutions, 1);
+    assert.equal(f.bindings.size, 0); assert.equal(f.commands.size, 0); assert.equal(f.accounting.length, 0);
+    assert.deepEqual(await events.events.stats(readerPrincipal()), before, 'the probe writes no events or business facts');
+    assert.equal(f.live.size, 0);
+    // The disposable Session log holds only the immutable prompt and the one tool round.
+    const stored = f.stored.get(receipt.sessionId)!;
+    const userMessages = stored.events.filter(event => event.type === 'user/message');
+    assert.equal(userMessages[0]!.data.content[0].text, CORE_MODEL_PROBE_PROMPT);
+    assert.equal(stored.header.agentPreset, CORE_GOAL_PRESET_ID);
+    assert.equal(stored.events.filter(event => event.type === 'tool/call').length, 1);
+    assert.equal(stored.events.filter(event => event.type === 'assistant/message').length, 2);
+  } finally { await adapter.close(); }
+});
+
+test('the probe reports a model answer that never called the tool as failed without retrying', async t => {
+  const { f, adapter, typesSeen } = await probeFixture(t);
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+  try {
+    assert.equal(receipt.status, 'failed'); assert.equal(receipt.ok, false); assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_NO_TOOL_CALL');
+    assert.equal(receipt.counters.mainModelRequests, 1); assert.equal(receipt.counters.mainModelStreams, 1);
+    assert.equal(receipt.counters.toolCalls, 0); assert.equal(receipt.counters.toolResults, 0);
+    assert.equal(receipt.counters.followups, 1); assert.equal(receipt.cleanupVerified, true);
+    assert.equal(f.counts().followups, 1, 'no retry is launched');
+    assert.equal(f.counts().requests, 1);
+  } finally { await adapter.close(); }
+});
+
+test('the probe reports a malformed final answer and a wrong types count as failed', async t => {
+  const malformed = await probeFixture(t);
+  malformed.f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  malformed.f.setOutput('I observed the tool types but will not return JSON.');
+  try {
+    const receipt = await malformed.adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'failed'); assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_FINAL_JSON_INVALID');
+    assert.equal(receipt.counters.toolCalls, 1); assert.equal(receipt.counters.toolResults, 1);
+    assert.equal(receipt.cleanupVerified, true);
+  } finally { await malformed.adapter.close(); }
+  const mismatch = await probeFixture(t);
+  mismatch.f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  mismatch.f.setOutput(JSON.stringify({ ok: true, typesSeen: mismatch.typesSeen + 7 }));
+  try {
+    const receipt = await mismatch.adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'failed'); assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_TYPES_COUNT_MISMATCH');
+    assert.equal(receipt.toolResult!.typesSeen, mismatch.typesSeen);
+    assert.deepEqual(receipt.finalJson, { ok: true, typesSeen: mismatch.typesSeen + 7 });
+  } finally { await mismatch.adapter.close(); }
+});
+
+test('missing provider usage stays unknown rather than zero and the probe still cleans up', async t => {
+  const { f, adapter, typesSeen } = await probeFixture(t);
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {}, unknownUsage: true });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+  try {
+    assert.equal(receipt.status, 'unknown'); assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_USAGE_UNKNOWN');
+    assert.deepEqual(receipt.usage, { status: 'unknown', complete: false });
+    assert.equal(receipt.usage.totalTokens, undefined); assert.equal(receipt.usage.inputTokens, undefined);
+    assert.equal(receipt.counters.toolCalls, 1); assert.equal(receipt.counters.toolResults, 1);
+    assert.equal(receipt.cleanupVerified, true); assert.deepEqual(f.archives, [receipt.sessionId]);
+  } finally { await adapter.close(); }
+});
+
+test('cancellation stops the single model round, returns a cancelled receipt and never retries', async t => {
+  const { f, adapter } = await probeFixture(t);
+  const gate = deferred();
+  f.setStreamGate(gate.promise);
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  const controller = new AbortController();
+  const pending = adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000, signal: controller.signal });
+  try {
+    for (let index = 0; index < 200 && f.counts().streams === 0; index++) await tick();
+    assert.equal(f.counts().streams, 1);
+    controller.abort(new Error('synthetic owner cancellation'));
+    gate.resolve();
+    const receipt = await pending;
+    assert.equal(receipt.status, 'cancelled'); assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_CANCELLED');
+    assert.equal(receipt.ok, false); assert.equal(receipt.counters.mainModelRequests, 1);
+    assert.equal(receipt.counters.followups, 1); assert.equal(f.counts().followups, 1, 'cancellation is not retried');
+    assert.equal(receipt.cleanupVerified, true);
+  } finally { await adapter.close(); }
+});
+
+test('a disposable Session cleanup failure is explicit and never reported as success', async t => {
+  const { f, adapter } = await probeFixture(t);
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen: 0 }));
+  f.setDisposeFault(true);
+  try {
+    await assert.rejects(adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 }), /cleanup failed/);
+    assert.equal(f.counts().disposals, 1); assert.deepEqual(f.archives, []);
+    assert.equal(f.live.size, 1, 'the fixture double deliberately leaves the native Session for inspection');
+  } finally { await f.drain(); await adapter.close(); }
+});
+
+test('the probe refuses a non-read-only tool call and writes no event facts', async t => {
+  const { events, f, adapter, typesSeen } = await probeFixture(t);
+  const before = await events.events.stats(readerPrincipal());
+  f.setToolPlan({ name: 'shiyu_core_event_report', args: { type: 'agent.observation.reported', payload: { message: 'synthetic' }, idempotencyKey: 'probe-report-1' } });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+  try {
+    assert.equal(receipt.status, 'failed'); assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION');
+    assert.equal(f.toolErrors.some(error => /bounded probe may execute only the read-only types tool/.test(error)), true);
+    assert.deepEqual(await events.events.stats(readerPrincipal()), before, 'a forbidden report call cannot publish an event');
+    assert.equal(receipt.cleanupVerified, true);
+  } finally { await adapter.close(); }
+});
+
+test('an overbroad mounted tool schema is rejected before any probe Session is created', async t => {
+  const events = await eventStore(t, []);
+  const overbroad: CoreDecisionEventToolFactory = () => ({
+    names: () => [...CORE_EVENT_TOOL_NAMES],
+    schemas: () => SCHEMAS.map((schema, index) => index === 0
+      ? { ...schema, parameters: { type: 'object', properties: { scope: { type: 'string' } }, additionalProperties: false } }
+      : schema),
+    execute: async () => ({ readOnly: true }),
+  });
+  const f = fixture(overbroad);
+  const adapter = f.adapter();
+  try {
+    await assert.rejects(adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core' }), /authority fields/);
+    assert.equal(f.counts().creates, 0); assert.equal(f.counts().followups, 0);
+  } finally { await adapter.close(); }
+  void events;
+});
+
+test('the probe rejects malformed options and an absent trusted event tool factory before any Session work', async t => {
+  const events = await eventStore(t, []);
+  const withoutFactory = fixture();
+  const noFactoryAdapter = withoutFactory.adapter();
+  try {
+    await assert.rejects(noFactoryAdapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core' }), /trusted event tool factory/);
+    const f = fixture(realProvider(events.events));
+    const adapter = f.adapter();
+    try {
+      for (const invalid of [{ maxTokens: 4096 }, { maxTokens: 257 }, { timeoutMs: 999 }, { timeoutMs: 120001 }, { cwd: 'relative/path' }, { scope: 'bad scope!' }]) {
+        await assert.rejects(adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', ...invalid }), /Invalid|must be a normalized/);
+      }
+      assert.equal(f.counts().creates, 0); assert.equal(f.counts().followups, 0);
+    } finally { await adapter.close(); }
+  } finally { await noFactoryAdapter.close(); }
 });

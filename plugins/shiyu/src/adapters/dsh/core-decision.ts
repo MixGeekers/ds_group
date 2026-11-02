@@ -1,4 +1,5 @@
-import type { CoreDecisionEventToolFactory, CoreDecisionEventTools, CoreDecisionEventToolSchema, GoalBinding, GoalAuthorityVerdict, NativeGoalRef, NativeGoalView } from './goals.js';
+import { createHash } from 'node:crypto';
+import type { CoreDecisionEventToolFactory, CoreDecisionEventTools, CoreDecisionEventToolSchema, CoreEventToolModelProbeReason, CoreEventToolModelProbeResult, CoreEventToolModelProbeStatus, CoreEventToolModelProbeToolCall, CoreEventToolModelProbeUsage, GoalBinding, GoalAuthorityVerdict, NativeGoalRef, NativeGoalView } from './goals.js';
 import { defaultModel, type DshAgent, type DshAgentContext, type DshContext, type DshSession, type ModelUsage, type SessionEvent } from './sessions.js';
 import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
 import { assertNativeLiveHistory, flushNative, nativeInboxReferences, verifyNativeEvent, type NativeColdInboxSnapshot } from './native-context.js';
@@ -237,23 +238,8 @@ export class CoreDecisionRun {
   private resolveToolMount(binding: GoalBinding): void {
     const mount = this.options.eventTools?.(binding);
     if (!mount) { this.toolMount = undefined; this.toolSchemas = []; this.toolNames = []; return; }
-    if (typeof mount.names !== 'function' || typeof mount.schemas !== 'function' || typeof mount.execute !== 'function') throw new Error('Trusted core event tool provider is malformed');
-    const names = mount.names();
-    if (!Array.isArray(names) || names.length !== CORE_EVENT_TOOL_NAMES.length || new Set(names).size !== names.length
-      || CORE_EVENT_TOOL_NAMES.some(name => !names.includes(name))) throw new Error('Core event tool set is not the exact registered read-only set');
-    const schemas = mount.schemas();
-    if (!Array.isArray(schemas) || schemas.length !== names.length) throw new Error('Core event tool schemas do not match the declared names');
-    for (const schema of schemas) {
-      if (!jsonObject(schema) || !names.includes(schema.name) || typeof schema.description !== 'string' || !schema.description
-        || schema.description.length > 4096 || !jsonObject(schema.parameters) || schema.parameters.type !== 'object'
-        || !jsonObject(schema.parameters.properties) || Buffer.byteLength(JSON.stringify(schema)) > 16384) throw new Error('Core event tool schema is invalid or unbounded');
-      const forbidden = schemaAuthorityFields(schema.parameters);
-      if (forbidden.length) throw new Error(`Core event tool schema exposes authority fields: ${forbidden.join(',')}`);
-    }
-    if (new Set(schemas.map(schema => schema.name)).size !== schemas.length) throw new Error('Core event tool schemas are duplicated');
-    this.toolMount = mount;
-    this.toolSchemas = Object.freeze(schemas.map(schema => Object.freeze({ name: schema.name, description: schema.description, parameters: structuredClone(schema.parameters) })));
-    this.toolNames = Object.freeze(names.slice());
+    const validated = validateCoreEventToolMount(mount);
+    this.toolMount = mount; this.toolSchemas = validated.schemas; this.toolNames = validated.names;
   }
   private toolsEnabled(): boolean { return this.toolMount !== undefined; }
   /** Trusted composition observation only: whether this admitted round mounted the read-only event tools. */
@@ -610,6 +596,537 @@ export class CoreDecisionRun {
   }
   close(): void { clearTimeout(this.timer); this.signal.removeEventListener('abort', this.onAbort); }
 }
+
+/** Shared trusted validation of the H2c read-only core event tool provider. Both
+ * the admitted decision round and the bounded real-model probe use it so a probe
+ * can never run with a wider or differently declared tool surface. */
+function validateCoreEventToolMount(mount: CoreDecisionEventTools): { names: readonly string[]; schemas: readonly CoreDecisionEventToolSchema[] } {
+  if (!mount || typeof mount !== 'object' || typeof mount.names !== 'function' || typeof mount.schemas !== 'function'
+    || typeof mount.execute !== 'function') throw new Error('Trusted core event tool provider is malformed');
+  const names = mount.names();
+  if (!Array.isArray(names) || names.length !== CORE_EVENT_TOOL_NAMES.length || new Set(names).size !== names.length
+    || CORE_EVENT_TOOL_NAMES.some(name => !names.includes(name))) throw new Error('Core event tool set is not the exact registered read-only set');
+  const schemas = mount.schemas();
+  if (!Array.isArray(schemas) || schemas.length !== names.length) throw new Error('Core event tool schemas do not match the declared names');
+  for (const schema of schemas) {
+    if (!jsonObject(schema) || !names.includes(schema.name) || typeof schema.description !== 'string' || !schema.description
+      || schema.description.length > 4096 || !jsonObject(schema.parameters) || schema.parameters.type !== 'object'
+      || !jsonObject(schema.parameters.properties) || Buffer.byteLength(JSON.stringify(schema)) > 16384) throw new Error('Core event tool schema is invalid or unbounded');
+    const forbidden = schemaAuthorityFields(schema.parameters);
+    if (forbidden.length) throw new Error(`Core event tool schema exposes authority fields: ${forbidden.join(',')}`);
+  }
+  if (new Set(schemas.map(schema => schema.name)).size !== schemas.length) throw new Error('Core event tool schemas are duplicated');
+  return { names: Object.freeze(names.slice()),
+    schemas: Object.freeze(schemas.map(schema => Object.freeze({ name: schema.name, description: schema.description, parameters: structuredClone(schema.parameters) }))) };
+}
+
+export interface CoreEventToolModelProbeRunOptions {
+  ctx: DshContext; goalId: string; sessionId: string; cwd: string;
+  prompt: string; systemSection: string; maxTokens: number; timeoutMs: number;
+  now: () => number; signal?: AbortSignal;
+  createUserMessage?: NativeMessageFactory;
+  isAgentLoopRequest?: (request: unknown) => boolean;
+}
+function probeFailure(code: string, message: string): Error & { code: string } {
+  return Object.assign(new Error(message), { code });
+}
+function sha256Text(value: string): string { return createHash('sha256').update(value, 'utf8').digest('hex'); }
+/**
+ * One bounded real-model probe turn for the H2c restricted core event tool
+ * surface. It mounts the exact trusted read-only tools, sends one fixed prompt,
+ * admits at most one `shiyu_core_event_types` call and at most two main
+ * requests/streams, records only provider-reported usage, and never creates a
+ * Goal/Task/budget/Effect/business fact. Session lifecycle is owned by the
+ * adapter that constructs this run.
+ */
+export class CoreEventToolModelProbeRun {
+  private readonly controller = new AbortController();
+  readonly signal: AbortSignal;
+  private readonly timer: ReturnType<typeof setTimeout>;
+  private readonly deadline: number;
+  private agent?: DshAgent;
+  private message?: NativeUserMessage;
+  private expected?: { messageId: string; messageHash: string };
+  private toolMount?: CoreDecisionEventTools;
+  private toolSchemas: readonly CoreDecisionEventToolSchema[] = [];
+  private toolNames: readonly string[] = [];
+  private events: SessionEvent[] = [];
+  private requests = 0;
+  private streams = 0;
+  private steps = 0;
+  private turns = 0;
+  private userMessages = 0;
+  private assistantMessages = 0;
+  private assistantToolCallMessages = 0;
+  private toolCalls = 0;
+  private toolResults = 0;
+  private firstOutputTokens: number | null = null;
+  private requestMaxTokens: number;
+  private pendingToolCall?: { callId: string; name: string; arguments: string; messageHash: string };
+  private toolSettled = false;
+  private toolRoundUsed = false;
+  private toolReturn?: unknown;
+  private toolResultMessageHash?: string;
+  private dispatchAttempted = false;
+  private released = false;
+  private cancelled = false;
+  private failure?: unknown;
+  private failureCode?: string;
+  private isAgentLoopRequest?: (request: unknown) => boolean;
+  constructor(private readonly options: CoreEventToolModelProbeRunOptions) {
+    this.requestMaxTokens = options.maxTokens;
+    this.deadline = options.now() + options.timeoutMs;
+    this.signal = AbortSignal.any([this.controller.signal, ...(options.signal ? [options.signal] : [])]);
+    this.timer = setTimeout(() => this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe deadline expired')),
+      Math.max(1, options.timeoutMs));
+    this.signal.addEventListener('abort', this.onAbort, { once: true });
+  }
+  private onAbort = (): void => {
+    // An internal stop() also aborts the signal; only an owner-issued abort that
+    // has no recorded failure is a cancellation outcome.
+    if (this.failure !== undefined) return;
+    this.cancelled = true;
+    if (this.released) return;
+    try { this.agent?.cancel({ kind: 'hook', reason: 'Core model probe cancelled' }, { keepInbox: true }); } catch { /* cancellation is already the outcome */ }
+  };
+  private stop(code: string, error: unknown): void {
+    this.failure ??= error; this.failureCode ??= code;
+    if (!this.controller.signal.aborted) this.controller.abort(error);
+  }
+  private assertCurrent(): void {
+    if (this.failure) throw this.failure;
+    if (this.cancelled || this.options.signal?.aborted) throw new Error('Core model probe cancelled');
+    if (this.options.now() >= this.deadline) {
+      const error = probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe deadline expired');
+      this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', error); throw error;
+    }
+    this.signal.throwIfAborted();
+  }
+  private toolBlock(message: any): { id: string; name: string; arguments: string } | undefined {
+    const content = message?.content;
+    if (!Array.isArray(content)) return undefined;
+    const blocks = content.filter((block: any) => block?.type === 'tool-call');
+    if (!blocks.length) return undefined;
+    if (blocks.length !== 1) return { id: '', name: '', arguments: '' };
+    const block = blocks[0];
+    return { id: typeof block.id === 'string' ? block.id : '', name: typeof block.name === 'string' ? block.name : '',
+      arguments: typeof block.arguments === 'string' ? block.arguments : '' };
+  }
+  private runtimeContext(cwd: string): Record<string, unknown> {
+    const directoryText = `Current working directory: ${JSON.stringify(cwd)}.`;
+    return { role: 'user', content: [{ type: 'text', text: `${RUNTIME_CONTEXT_PREFIX}\n\n${directoryText}` }],
+      source: { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'working-directory:current', text: directoryText }] } };
+  }
+  private validateOwnerInput(message: unknown): void {
+    if (!jsonObject(message) || message.id !== this.expected?.messageId || nativeMessageHash(message) !== this.expected!.messageHash) {
+      throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe input is not the one registered fixed prompt');
+    }
+  }
+  private validateRuntimeContext(message: Record<string, unknown>): void {
+    if (!jsonObject(message) || typeof message.id !== 'string') throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe runtime context has no official identity');
+    const expected = { ...this.runtimeContext(this.options.cwd), id: message.id };
+    if (nativeMessageHash(message) !== nativeMessageHash(expected)) {
+      throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe runtime context is not the exact bound working-directory snapshot');
+    }
+  }
+  private validateCommittedInputs(): void {
+    const inputs = this.events.filter(event => event.type === 'user/message').map(event => event.data);
+    if (!inputs.length) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe has no committed owner input');
+    this.validateOwnerInput(inputs[0]);
+    if (inputs.length > 2) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe received unregistered native input');
+    if (inputs.length === 2) this.validateRuntimeContext(inputs[1] as Record<string, unknown>);
+  }
+  private assertRequestTools(request: any): void {
+    if (!Array.isArray(request.tools) || request.tools.length !== this.toolSchemas.length) {
+      throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe request tool declarations do not match the mounted read-only tools');
+    }
+    for (const schema of this.toolSchemas) {
+      const found = (request.tools as any[]).find(tool => tool?.name === schema.name);
+      if (!found || found.description !== schema.description || canonical(found.parameters) !== canonical(schema.parameters)) {
+        throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe request tool declaration changed from the trusted mounted schema');
+      }
+    }
+    const history = request.toolHistory;
+    if (history === undefined) return;
+    if (!Array.isArray(history?.tools) || history.tools.length || !Array.isArray(history?.updates)) {
+      throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history declares hidden tools');
+    }
+    for (const update of history.updates) {
+      if (!Array.isArray(update?.additions)) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history update is malformed');
+      if (Array.isArray(update?.removals) && update.removals.length) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history cannot remove trusted tools');
+      for (const addition of update.additions) {
+        const name = typeof addition === 'string' ? addition : addition?.toolName;
+        if (!this.toolNames.includes(name)) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history declares an unmounted tool');
+      }
+    }
+  }
+  private assertToolRoundHistory(completed = false): { callId: string; name: string; arguments: string } {
+    if (this.toolCalls !== 1 || this.toolResults !== 1 || !this.pendingToolCall || !this.toolSettled) {
+      throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool round is not exactly one completed call');
+    }
+    const calls = this.events.filter(event => event.type === 'tool/call');
+    const results = this.events.filter(event => event.type === 'tool/result');
+    const assistants = this.events.filter(event => event.type === 'assistant/message');
+    if (calls.length !== 1 || results.length !== 1 || assistants.length !== (completed ? 2 : 1)) {
+      throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool round history is not exactly one call/result pair');
+    }
+    if (completed) {
+      const callAssistant = this.toolBlock(assistants[0]!.data?.message);
+      if (!callAssistant || callAssistant.id !== this.pendingToolCall.callId || callAssistant.name !== this.pendingToolCall.name
+        || callAssistant.arguments !== this.pendingToolCall.arguments) {
+        throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool round assistant history changed');
+      }
+      if (this.toolBlock(assistants[1]!.data?.message)) throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe final candidate still contains a tool call');
+    }
+    const call = calls[0]!.data as any, result = results[0]!.data as any;
+    if (call?.callId !== this.pendingToolCall.callId || call?.name !== this.pendingToolCall.name || call?.arguments !== this.pendingToolCall.arguments) {
+      throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool call identity changed after dispatch');
+    }
+    const message = result?.message;
+    if (message?.role !== 'tool' || (message.toolCallId ?? message.source?.callId) !== this.pendingToolCall.callId
+      || typeof message.id !== 'string' || nativeMessageHash(message) !== this.toolResultMessageHash) {
+      throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool result identity is not the recorded native result');
+    }
+    return { callId: this.pendingToolCall.callId, name: this.pendingToolCall.name, arguments: this.pendingToolCall.arguments };
+  }
+  async prepare(mount: CoreDecisionEventTools): Promise<void> {
+    const validated = validateCoreEventToolMount(mount);
+    this.toolMount = mount; this.toolSchemas = validated.schemas; this.toolNames = validated.names;
+    const llm = this.options.ctx.get('llm');
+    if (typeof llm?.resolveCallConfig !== 'function') throw new Error('Native model resolver is unavailable');
+    const resolved = await llm.resolveCallConfig(MODEL, this.signal);
+    this.assertCurrent();
+    if (resolved?.provider !== MODEL.provider || resolved?.model !== MODEL.model || resolved?.reasoningEffort !== MODEL.reasoningEffort) {
+      throw new Error('Native core model profile changed');
+    }
+    const moduleName = '@deepseek-ai/dsh-llm';
+    this.isAgentLoopRequest = this.options.isAgentLoopRequest ?? (await import(moduleName)).isAgentLoopRequest;
+    if (typeof this.isAgentLoopRequest !== 'function') throw new Error('Official native Agent request identity predicate is unavailable');
+    this.assertCurrent();
+    const factory = this.options.createUserMessage ?? await loadNativeMessageFactory();
+    this.message = checkedNativeUserMessage(await factory({ content: [{ type: 'text', text: this.options.prompt }], source: { kind: 'user' } }), this.options.prompt);
+    this.expected = Object.freeze({ messageId: this.message.id, messageHash: nativeMessageHash(this.message) });
+  }
+  compose(ctx: DshAgentContext, agent: DshAgent, disposers: Disposer[]): void {
+    this.agent = agent;
+    disposers.push(ctx.systemPrompt.suppressRuntimeContext());
+    disposers.push(ctx.systemPrompt.section({ name: 'shiyu-core-model-probe', order: -10000, complete: true, text: this.options.systemSection }));
+    const registry = ctx.tools as unknown as ToolRegistry;
+    if (typeof registry.register !== 'function') throw new Error('Native core event tool registration is unavailable');
+    for (const schema of this.toolSchemas) {
+      disposers.push(registry.register({
+        name: schema.name, description: schema.description, parameters: schema.parameters, timeoutMs: 15000, isConcurrencySafe: false,
+        output: { schema: {}, render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }] },
+        execute: async (args, execution) => this.executeProbeTool(schema.name, args, execution),
+      }));
+    }
+    disposers.push(ctx.tools.guard(call => this.toolNames.includes(call?.name) ? undefined : 'Core model probe can only call its mounted read-only event tools.'));
+    disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(),
+      tools: this.toolSchemas.map(schema => ({ name: schema.name, description: schema.description, parameters: schema.parameters })) })));
+    disposers.push(ctx.on('agent/pre-step', async (payload, next) => {
+      try {
+        this.assertCurrent();
+        if (!this.dispatchAttempted || this.released || !Array.isArray(payload?.messages)) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe step outside its admitted turn');
+        if (this.steps === 0) {
+          if (payload.messages.length !== 1) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first step is not the one registered fixed prompt');
+          this.validateOwnerInput(payload.messages[0]);
+        } else if (this.steps !== 1 || !this.toolRoundUsed) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe step is outside the admitted tool round');
+        const decision = await next();
+        this.assertCurrent();
+        if (decision?.kind !== 'enter') throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe prepared step did not enter');
+        if (this.steps === 0) {
+          if (!Array.isArray(decision.messages) || decision.messages.length < 1 || decision.messages.length > 2) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first input shape is unbounded');
+          this.validateOwnerInput(decision.messages[0]);
+          if (decision.messages.length === 2) this.validateRuntimeContext(decision.messages[1]);
+        }
+        this.steps++;
+        return decision;
+      } catch (error) { this.stop(errorCode(error) ?? 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION', error); return { kind: 'reject' }; }
+    }));
+    disposers.push(ctx.on('agent/request', async (_request, next) => {
+      try {
+        this.assertCurrent();
+        if (!this.dispatchAttempted || this.released) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe request outside its admitted turn');
+        if (this.requests === 0) {
+          if (this.steps !== 1) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first request was not prepared by its owned step');
+          this.requestMaxTokens = this.options.maxTokens;
+        } else if (this.requests === 1) {
+          if (!this.toolRoundUsed || this.requests !== this.streams) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe second request has no admitted tool round');
+          this.assertToolRoundHistory();
+          if (this.firstOutputTokens === null) throw probeFailure('CORE_MODEL_PROBE_USAGE_UNKNOWN', 'Core model probe first request usage is unknown; output budget cannot be proven');
+          const remaining = this.options.maxTokens - this.firstOutputTokens;
+          if (!Number.isSafeInteger(remaining) || remaining < 1) throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool round exhausted the fixed output budget');
+          this.requestMaxTokens = remaining;
+        } else throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe request budget exhausted');
+        const downstream = await next();
+        this.assertCurrent();
+        this.requests++;
+        return { ...downstream, ...MODEL, maxTokens: this.requestMaxTokens };
+      } catch (error) { this.stop(errorCode(error) ?? 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION', error); throw this.failure ?? error; }
+    }));
+    disposers.push(ctx.on('agent/inbox/inserted', (entry: { message?: any }) => {
+      const message = entry?.message;
+      if (!this.dispatchAttempted || message?.id !== this.expected?.messageId || nativeMessageHash(message) !== this.expected!.messageHash) {
+        this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Unregistered Core model probe inbox input must be preserved'));
+      }
+    }));
+    disposers.push(ctx.on('session/event', (session: DshSession, event: SessionEvent) => {
+      if (!session || session.id !== this.options.sessionId) return;
+      if (this.events.length >= 256) { this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe native observation bound exceeded')); return; }
+      if (['user/message', 'assistant/message', 'assistant/attempt', 'turn/start', 'turn/end', 'tool/call', 'tool/result',
+        'developer/message', 'session/title'].includes(event.type) || event.type.startsWith('compaction/') || event.type === 'session/title-llm-request') {
+        this.events.push(structuredClone(event));
+      }
+      if (event.type === 'turn/start') this.turns++;
+      if (event.type === 'user/message') this.userMessages++;
+      if (event.type === 'turn/end' && event.data?.reason?.kind !== 'completed') {
+        if (event.data?.reason?.kind === 'cancelled' || event.data?.reason?.kind === 'aborted') this.cancelled = true;
+        else this.stop('CORE_MODEL_PROBE_TURN_FAILED', new Error(`Core model probe turn ended: ${event.data?.reason?.kind ?? 'unknown'}`));
+      }
+      if (event.type === 'assistant/message') this.observeAssistantMessage(event);
+      if (event.type === 'tool/call') this.observeToolCall(event);
+      if (event.type === 'tool/result') this.observeToolResult(event);
+      if (event.type === 'developer/message') this.observeDeveloperMessage(event);
+      if (event.type.startsWith('compaction/') || event.type === 'session/title-llm-request' || event.type === 'assistant/attempt') {
+        this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe observed auxiliary model activity'));
+      }
+    }));
+  }
+  private observeAssistantMessage(event: SessionEvent): void {
+    this.assistantMessages++;
+    const message = event.data?.message;
+    const usage = event.data?.usage;
+    const block = this.toolBlock(message);
+    if (block) {
+      if (this.assistantToolCallMessages > 0 || this.toolCalls > 0 || this.requests !== 1) {
+        this.stop('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', new Error('Core model probe used more than one tool call round')); return;
+      }
+      if (!this.toolNames.includes(block.name) || !block.id || block.arguments.length > 8192) {
+        this.stop('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', new Error('Core model probe tool call is not a trusted mounted tool identity')); return;
+      }
+      this.assistantToolCallMessages++;
+      this.pendingToolCall = { callId: block.id, name: block.name, arguments: block.arguments, messageHash: nativeMessageHash(message) };
+    }
+    if (this.requests === 1) {
+      if (usage === undefined) this.firstOutputTokens = null;
+      else {
+        const observed = usage?.outputTokens;
+        if (Number.isSafeInteger(observed) && observed >= 0) {
+          if (observed > this.requestMaxTokens) this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe output exceeded the per-request limit'));
+          else this.firstOutputTokens = observed;
+        } else this.firstOutputTokens = null;
+      }
+    }
+  }
+  private observeToolCall(event: SessionEvent): void {
+    this.toolCalls++;
+    const data = event.data as any;
+    if (this.toolCalls > 1 || !this.pendingToolCall || data?.callId !== this.pendingToolCall.callId
+      || data?.name !== this.pendingToolCall.name || data?.arguments !== this.pendingToolCall.arguments) {
+      this.stop('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', new Error('Core model probe tool call event does not match the admitted call'));
+    }
+  }
+  private observeToolResult(event: SessionEvent): void {
+    this.toolResults++;
+    const message = (event.data as any)?.message;
+    if (this.toolResults > 1 || !this.pendingToolCall || message?.role !== 'tool'
+      || (message.toolCallId ?? message.source?.callId) !== this.pendingToolCall.callId) {
+      this.stop('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', new Error('Core model probe tool result event does not match the admitted call')); return;
+    }
+    this.toolResultMessageHash = nativeMessageHash(message);
+    this.toolSettled = true;
+  }
+  private observeDeveloperMessage(event: SessionEvent): void {
+    const message = (event.data as any)?.message;
+    if (message?.source?.kind !== 'tool-registry') { this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe received a non-tool-registry developer message')); return; }
+    const content = message.content;
+    if (!Array.isArray(content) || content.length > this.toolSchemas.length) { this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe developer tool update is malformed')); return; }
+    for (const block of content) {
+      if (block?.type === 'tool-removal') { this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe received a tool removal')); return; }
+      if (block?.type !== 'tool-addition' || !this.toolNames.includes(block.toolName)) {
+        this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe received an unmounted tool declaration'));
+      }
+    }
+  }
+  private async executeProbeTool(name: string, rawArgs: unknown, execution: { signal: AbortSignal }): Promise<unknown> {
+    this.assertCurrent();
+    if (name !== 'shiyu_core_event_types') throw this.stopFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'The bounded probe may execute only the read-only types tool');
+    if (!this.toolMount || !this.toolNames.includes(name)) throw new Error('Core event tool is not mounted');
+    if (!this.dispatchAttempted || this.released) throw new Error('Core model probe tool outside its admitted turn');
+    if (this.requests !== 1 || this.streams !== 1 || this.steps !== 1) throw new Error('Core model probe tool outside its one admitted step');
+    if (this.toolRoundUsed) throw this.stopFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool round budget exhausted');
+    if (!this.pendingToolCall || this.pendingToolCall.name !== name || this.toolSettled) throw new Error('Core model probe tool has no matching admitted native call');
+    try {
+      if (!jsonObject(rawArgs) || Object.keys(rawArgs).some(key => TOOL_ARGUMENT_AUTHORITY.has(key))) {
+        throw this.stopFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool arguments cannot supply execution authority');
+      }
+      const signal = AbortSignal.any([this.signal, execution.signal]); signal.throwIfAborted();
+      this.toolRoundUsed = true;
+      const value = await this.toolMount.execute(name, Object.freeze(structuredClone(rawArgs)), { signal,
+        goalId: this.options.goalId, sessionId: this.options.sessionId, roundId: `${this.options.sessionId}:model-probe` });
+      this.assertCurrent();
+      const encoded = JSON.stringify(value);
+      if (encoded === undefined || encoded.length > TOOL_RESULT_LIMIT) throw new Error('Core event tool returned an invalid or oversized result');
+      this.toolReturn = JSON.parse(encoded);
+      return this.toolReturn;
+    } catch (error) {
+      this.stop(errorCode(error) ?? 'CORE_MODEL_PROBE_TOOL_ROUND_INVALID', error);
+      throw this.failure ?? error;
+    }
+  }
+  private stopFailure(code: string, message: string): Error { const error = probeFailure(code, message); this.stop(code, error); return error; }
+  /** Global llm/stream middleware for the probe Session only. The adapter routes
+   * exactly this Session id here; every other request passes through unchanged. */
+  stream(request: any, next: () => AsyncIterable<unknown>): AsyncIterable<unknown> {
+    const self = this;
+    return (async function* () {
+      try {
+        self.assertCurrent();
+        const expected = self.streams + 1;
+        if (!self.dispatchAttempted || self.released || self.requests !== expected || self.streams !== expected - 1
+          || self.requests > MAX_MAIN_REQUESTS || request.purpose !== undefined || !self.isAgentLoopRequest?.(request)
+          || request.sessionId !== self.options.sessionId || request.provider !== MODEL.provider || request.model !== MODEL.model
+          || request.reasoningEffort !== MODEL.reasoningEffort || request.maxTokens !== self.requestMaxTokens) {
+          throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe stream is outside the admitted primary request');
+        }
+        self.assertRequestTools(request);
+        self.validateCommittedInputs();
+        if (self.requests === 2) self.assertToolRoundHistory();
+        else if (self.toolCalls !== 0 || self.toolResults !== 0) {
+          throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool events appeared before the admitted tool round');
+        }
+        self.streams++;
+        yield* next();
+      } catch (error) {
+        self.stop(errorCode(error) ?? 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION', error);
+        throw self.failure ?? error;
+      }
+    })();
+  }
+  async execute(agent: DshAgent): Promise<void> {
+    this.agent = agent;
+    if (agent.status !== 'idle' || nativeInboxReferences(agent.inbox).length) throw new Error('Core model probe requires an idle empty native inbox');
+    this.dispatchAttempted = true;
+    try { agent.followup(this.message!); await agent.whenIdle(); }
+    catch (error) { this.stop('CORE_MODEL_PROBE_DISPATCH_FAILED', error); }
+    if (this.cancelled || this.options.signal?.aborted) this.cancelled = true;
+    if (this.failure || this.cancelled) return;
+    try { this.validateRound(); }
+    catch (error) { this.stop(errorCode(error) ?? 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION', error); }
+  }
+  private validateRound(): void {
+    this.validateCommittedInputs();
+    if (this.turns !== 1) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe did not observe exactly one native turn');
+    const assistants = this.events.filter(event => event.type === 'assistant/message');
+    const toolUsed = this.toolCalls > 0 || this.assistantToolCallMessages > 0;
+    if (!toolUsed) {
+      if (this.requests !== 1 || this.streams !== 1 || this.steps !== 1 || assistants.length !== 1) {
+        throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe no-tool answer is outside the single-request protocol');
+      }
+      return;
+    }
+    if (this.requests !== 2 || this.streams !== 2 || this.steps !== 2 || assistants.length !== 2 || this.assistantToolCallMessages !== 1) {
+      throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool round is not exactly one call and one final answer');
+    }
+    const round = this.assertToolRoundHistory(true);
+    if (round.name !== 'shiyu_core_event_types') throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe called a tool other than the read-only types tool');
+    if (!this.toolRoundUsed || !this.toolSettled) throw probeFailure('CORE_MODEL_PROBE_TOOL_ROUND_INVALID', 'Core model probe tool round was not executed exactly once');
+    if (!this.toolReturn) throw probeFailure('CORE_MODEL_PROBE_TOOL_RESULT_UNOBSERVED', 'Core model probe did not observe the tool execution result');
+  }
+  private usage(): CoreEventToolModelProbeUsage {
+    const samples = this.events.filter(event => event.type === 'assistant/message').map(event => event.data?.usage);
+    const complete = samples.length === this.requests && samples.length > 0 && samples.every(sample => jsonObject(sample)
+      && (Number.isSafeInteger(sample.totalTokens) || USAGE_KEYS.every(key => Number.isSafeInteger(sample[key]))));
+    if (!complete) return { status: 'unknown', complete: false };
+    const usage: CoreEventToolModelProbeUsage = { status: 'reported', complete: true };
+    for (const key of USAGE_KEYS) {
+      const known = samples.map(sample => sample[key]).filter(value => Number.isSafeInteger(value) && value >= 0);
+      const sum = known.reduce((total: number, value: number) => total + value, 0);
+      if (known.length === samples.length && Number.isSafeInteger(sum)) usage[key] = sum;
+    }
+    return usage;
+  }
+  private finalContent(): { text?: string; json?: { ok: true; typesSeen: number }; assistantMessages: SessionEvent[] } {
+    const assistants = this.events.filter(event => event.type === 'assistant/message');
+    const final = assistants.at(-1);
+    if (!final) return { assistantMessages: assistants };
+    const content = (final.data as any)?.message?.content;
+    if (!Array.isArray(content)) return { assistantMessages: assistants };
+    const parts = content.filter((part: any) => part.type === 'text');
+    if (!parts.length || parts.some((part: any) => typeof part.text !== 'string') || content.some((part: any) => ['tool-call', 'tool_use'].includes(part.type))) {
+      return { assistantMessages: assistants };
+    }
+    const text = parts.map((part: any) => part.text).join('\n');
+    if (!text.trim() || Buffer.byteLength(text) > 16384) return { assistantMessages: assistants };
+    const trimmed = text.trim();
+    if (trimmed.includes('\n')) return { text, assistantMessages: assistants };
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (!jsonObject(parsed) || Object.keys(parsed).sort().join(',') !== 'ok,typesSeen' || parsed.ok !== true
+        || !Number.isSafeInteger(parsed.typesSeen) || (parsed.typesSeen as number) < 0 || (parsed.typesSeen as number) > 1024) {
+        return { text, assistantMessages: assistants };
+      }
+      return { text, json: { ok: true, typesSeen: parsed.typesSeen as number }, assistantMessages: assistants };
+    } catch { return { text, assistantMessages: assistants }; }
+  }
+  private toolResultObservation(): CoreEventToolModelProbeResult['toolResult'] {
+    const results = this.events.filter(event => event.type === 'tool/result');
+    const message = (results.at(-1)?.data as any)?.message;
+    if (!message) return undefined;
+    const digest = nativeMessageHash(message);
+    const content = Array.isArray(message.content) ? message.content.filter((part: any) => part.type === 'text').map((part: any) => part.text).join('\n') : undefined;
+    if (typeof content !== 'string') return { name: this.pendingToolCall?.name ?? '', digest, typesSeen: null, outcome: 'unobserved' };
+    let typesSeen: number | null = null;
+    try {
+      const parsed = JSON.parse(content);
+      if (jsonObject(parsed) && Array.isArray(parsed.types)) typesSeen = parsed.types.length;
+      else if (jsonObject(parsed) && Array.isArray(parsed.canPublish)) typesSeen = (parsed as any).types?.length ?? null;
+    } catch { /* the native result may be wrapped; digest is still recorded */ }
+    return { name: this.pendingToolCall?.name ?? '', digest, typesSeen, outcome: 'observed' };
+  }
+  receipt(sessionId: string, preset: string, scope: string, cwd: string, maxTokens: number): CoreEventToolModelProbeResult {
+    const final = this.finalContent();
+    const usage = this.usage();
+    const toolResult = this.toolResultObservation();
+    const toolCalls: CoreEventToolModelProbeToolCall[] = this.events.filter(event => event.type === 'tool/call')
+      .map(event => ({ name: String((event.data as any)?.name ?? ''), argumentsSha256: sha256Text(String((event.data as any)?.arguments ?? '')) }));
+    const toolUsed = this.toolCalls > 0 || this.assistantToolCallMessages > 0;
+    let status: CoreEventToolModelProbeStatus, reasonCode: CoreEventToolModelProbeReason;
+    const typesMismatch = final.json !== undefined && this.toolReturn !== undefined
+      && jsonObject(this.toolReturn) && Array.isArray(this.toolReturn.types) && final.json.typesSeen !== this.toolReturn.types.length;
+    if (this.cancelled) { status = 'cancelled'; reasonCode = 'CORE_MODEL_PROBE_CANCELLED'; }
+    else if (this.failureCode === 'CORE_MODEL_PROBE_USAGE_UNKNOWN') { status = 'unknown'; reasonCode = 'CORE_MODEL_PROBE_USAGE_UNKNOWN'; }
+    else if (this.failureCode !== undefined) { status = 'failed'; reasonCode = this.failureCode as CoreEventToolModelProbeReason; }
+    else if (!toolUsed) { status = 'failed'; reasonCode = 'CORE_MODEL_PROBE_NO_TOOL_CALL'; }
+    else if (final.json === undefined) { status = 'failed'; reasonCode = 'CORE_MODEL_PROBE_FINAL_JSON_INVALID'; }
+    else if (typesMismatch) { status = 'failed'; reasonCode = 'CORE_MODEL_PROBE_TYPES_COUNT_MISMATCH'; }
+    else if (toolResult === undefined || toolResult.outcome === 'unobserved') { status = 'failed'; reasonCode = 'CORE_MODEL_PROBE_TOOL_RESULT_UNOBSERVED'; }
+    else if (!usage.complete) { status = 'unknown'; reasonCode = 'CORE_MODEL_PROBE_USAGE_UNKNOWN'; }
+    else { status = 'passed'; reasonCode = 'CORE_MODEL_PROBE_PASSED'; }
+    return {
+      ok: status === 'passed', status, reasonCode, sessionId, preset, scope, cwd,
+      promptSha256: sha256Text(this.options.prompt), maxTokens,
+      provider: MODEL.provider, model: MODEL.model, reasoningEffort: MODEL.reasoningEffort,
+      counters: { followups: this.dispatchAttempted ? 1 : 0, turns: this.turns, userMessages: this.userMessages,
+        assistantMessages: this.assistantMessages, mainModelRequests: this.requests, mainModelStreams: this.streams,
+        toolCalls: this.toolCalls, toolResults: this.toolResults },
+      toolCalls, ...(toolResult ? { toolResult } : {}),
+      ...(final.text !== undefined ? { finalTextSha256: sha256Text(final.text) } : {}),
+      ...(final.json !== undefined ? { finalJson: final.json } : {}),
+      usage, released: false, disposed: false, archived: false, cleanupVerified: false,
+      observedAt: new Date(this.options.now()).toISOString(),
+    };
+  }
+  release(): void {
+    if (this.released) return;
+    this.released = true; clearTimeout(this.timer); this.signal.removeEventListener('abort', this.onAbort);
+    try { this.agent?.cancel({ kind: 'hook', reason: 'Core model probe released' }, { keepInbox: true }); } catch { /* cleanup reports its own failure */ }
+  }
+}
+function errorCode(error: unknown): string | undefined {
+  return error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : undefined;
+}
+
 function schemaAuthorityFields(value: unknown, found = new Set<string>()): string[] {
   const authority = new Set(['actor', 'principal', 'principalId', 'kind', 'permit', 'scope', 'taskId', 'assignmentId', 'hostEpoch',
     'installationGeneration', 'fencingToken', 'leaseExpiresAt', 'authorization', 'ownerId', 'grant', 'mandate', 'budget', 'targetRefs']);
