@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "phase": "H6c",
+  "slice": "channel read-only projection dashboard panel and truthful conversation system summary",
+  "capturedAt": "2026-11-02T21:54:52.871Z",
+  "status": "offline-verified-ui",
+  "purpose": "Expose the committed channel projection in the dashboard as a strictly read-only bilingual panel with explicit empty/missing/incompatible/degraded states and no bodies, and correct the conversation system summary to the actual H6a/H6b/offline wiring.",
+  "baseline": {
+    "head": "d160756",
+    "note": "H0..H6b/H4d/H2c/round-2 host/H7 committed; 1382 baseline tests, UI 209 baseline"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/client/index.js",
+      "bytes": 247689,
+      "sha256": "9b69e566c6d6fc3aa03ffbc558c61888a284bc2b601bb49eb759f2a878a681c1"
+    },
+    {
+      "path": "plugins/shiyu/src/health/systems.ts",
+      "bytes": 2240,
+      "sha256": "c8f19ed8f5320231c15f3ed321e590ec2398af359fb3fb43dc9ee15816154297"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/channels.spec.mjs",
+      "bytes": 14097,
+      "sha256": "6775c6810d46e5d3db269447040da1940679851b5b069d60f85d36b25cf3ce93"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/fixtures.js",
+      "bytes": 13015,
+      "sha256": "28782467ab1918fb66fa13ba3f13c31ef2c541f2491722338f9e6ceb57a66e27"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/playwright.config.mjs",
+      "bytes": 1418,
+      "sha256": "7b2a3f99178e606c5cfeadd88ca24c6a67ab3dd059e580cb81a60450fa1b34b5"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/README.md",
+      "bytes": 3839,
+      "sha256": "2b3b8f95c9affeb47ed993ec2c62f268d822fcd780eb100c1fc3d45e9ceba231"
+    }
+  ],
+  "implementation": {
+    "panel": "new bilingual Channels tab renders runtime.snapshot().channels (status/source/schema/capturedAt/errorCode; four watermarks; pending appliedThrough/unapplied/unbound/truncated; bindings with channelRef/conversationId/scope/version/appliedWatermark/audienceVersion/replySessionEpoch; connections provider/deployment/accountId/revision; conversations mode/audienceVersion/status/participantCount/nativeConversationId; degraded reasons) with explicit empty/missing/incompatible/field-missing states, no bodies or participant text, no controls, and a clear statement that this is a read-only projection and not real-platform or business acceptance.",
+    "summary": "conversation system summary now states the actual state: local conversation/background and bounded Lab channels wired, H6a/H6b channel identity/dedup/audience/tombstone and channel-to-conversation binding/invalidation/projection wired offline, real platform adapters, channel sending and fixed-host acceptance not complete; status stays partial.",
+    "tests": "tests/ui/channels.spec.mjs 5 cases (data render, ready-but-empty/missing/incompatible/degraded/null fields, English + 390px no overflow, refresh/tab-return keeps commands==[] with increasing stateReads, no body/summary/bodyRef/participant canaries, no input controls, no page errors) plus systems-summary static checks and fixtures updated to the real projection shape."
+  },
+  "verification": {
+    "implementerIsolated": {
+      "check": "npm run check 1382/1382 (no new unit tests)",
+      "ui": "npm run test:ui 214/214",
+      "note": "isolated worktree at HEAD d160756 + 6 files; UI log artifacts/dsh/h6/logs/h6c-ui-isolated.log"
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD d160756 + only these 6 files)",
+      "evidence": "artifacts/dsh/slices/h6c-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1382,
+        "pass": 1382,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 274599,
+      "log": "plugins/shiyu/.local/slice-verify-h6c.log"
+    },
+    "leadUi": {
+      "command": "npm run test:ui (shared tree, quiet)",
+      "passed": 214,
+      "failed": 0,
+      "exitCode": 0,
+      "log": "plugins/shiyu/.local/h6c-lead-ui2.log"
+    },
+    "flakeDisclosure": "Two first-attempt failures were observed under concurrent slice-verification load and were reproduced as load-sensitive known flakes, not H6c regressions: (1) tests/lab-integration.test.ts twenty-channel case exceeded its internal 10s wait at 10.6s (quiet re-run passed 1382/1382; multiple other slices report the same under load); (2) tests/ui/context-verification.spec.js switching-conversations case hit Playwright strict-mode two role=status nodes while the UI suite ran in parallel with heavy checks (quiet re-run 214/214, and H6c does not add role=status nodes). Both first-attempt logs are retained in .local for audit.",
+    "flakeEvidence": {
+      "uiFirstAttempt": "plugins/shiyu/.local/h6c-lead-ui.log",
+      "note": "the first slice-verify log was overwritten by the quiet re-run at the same .local path; its failure detail is quoted in flakeDisclosure and the retained quiet log is the passing run."
+    }
+  },
+  "failedUnknownUntested": [
+    "Synthetic ModuleLoader/slots/locale host page + real Chromium via Playwright; not real DSH client injection/DOM or production-browser acceptance.",
+    "The live channels projection is currently ready-but-empty (no channel adapter); rendering non-empty real data is only synthetic.",
+    "Accessibility, real mobile devices, languages other than zh/en were not tested; screenshots were kept only in .local.",
+    "No real platform/model/embedding/Lab/room/host reload; runtime/worker/src other modules untouched; no new command endpoints."
+  ],
+  "scope": {
+    "realPlatformCalls": 0,
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "labRooms": 0
+  },
+  "evidenceLevel": "G1 synthetic-host UI with a real Chromium process; not production UI acceptance."
+}

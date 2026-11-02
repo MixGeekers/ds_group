@@ -16,6 +16,44 @@ export function makeInnerProjection({ stateVersion = 3, domains = {} } = {}) {
   };
 }
 
+// Synthetic channel-ingress projection (H6c). Metadata only: this fixture never
+// contains a message body, summary, bodyRef or participant text, and the client
+// must not invent any. Defaults mirror a ready-but-empty real ledger.
+export function makeChannelBinding(overrides = {}) {
+  return {
+    channelRef: 'chconv-11111111111111111111111111111111', conversationId: 'test-channel-conversation-1',
+    scope: 'local-owner', version: 1, appliedInvalidationWatermark: 3,
+    conversationAudienceVersion: 2, replySessionEpoch: 1, lastInvalidationAt: new Date().toISOString(), ...overrides,
+  };
+}
+export function makeChannelConnection(overrides = {}) {
+  return {
+    connectionId: 'chconn-22222222222222222222222222222222', sourceNamespace: 'synthetic.chat',
+    provider: 'synthetic-chat', deployment: 'offline-ui-lab', accountId: 'acct-alpha', revision: 2, ...overrides,
+  };
+}
+export function makeChannelConversation(overrides = {}) {
+  return {
+    conversationRef: 'chconv-33333333333333333333333333333333', connectionId: 'chconn-22222222222222222222222222222222',
+    nativeConversationId: 'native-short-group-1', mode: 'group', audienceVersion: 2, audienceStatus: 'current', participantCount: 2, ...overrides,
+  };
+}
+export function makeChannelProjection({ bindings = [makeChannelBinding()], connections = [makeChannelConnection()], conversations = [makeChannelConversation()], pending = {}, degraded = [], status = { ready: true, schemaVersion: 1 }, watermark = {}, ...rest } = {}) {
+  const at = new Date().toISOString();
+  return {
+    schemaVersion: 1, source: 'channel-ingress', capturedAt: at, status,
+    watermark: { intakeSeq: 12, invalidationWatermark: 3, deletionWatermark: 1, revocationWatermark: 2, ...watermark },
+    bindings, connections, conversations,
+    pending: { invalidationWatermark: 3, appliedThrough: 3, unapplied: 0, unbound: 0, truncated: false, ...pending },
+    degraded, ...rest,
+  };
+}
+export function makeEmptyChannelProjection(overrides = {}) {
+  return makeChannelProjection({ bindings: [], connections: [], conversations: [],
+    watermark: { intakeSeq: 0, invalidationWatermark: 0, deletionWatermark: 0, revocationWatermark: 0 },
+    pending: { invalidationWatermark: 0, appliedThrough: 0, unapplied: 0, unbound: 0, truncated: false }, ...overrides });
+}
+
 // Synthetic UI fixtures only. These do not describe a running Shiyu instance.
 export function makeSnapshot({ state = 'idle', populated = false } = {}) {
   const at = new Date().toISOString();
@@ -55,6 +93,9 @@ export function makeSnapshot({ state = 'idle', populated = false } = {}) {
     usage: { calls: 0, inputTokens: null, outputTokens: null, cacheReadTokens: null },
     diagnostics: { contextSafety: { ready: true, messageFactory: 'injected' } },
     innerProjection: makeInnerProjection(),
+    // Authentic real-host shape at the current wiring level: ready, empty fields,
+    // no message bodies. Individual specs override with synthetic bindings.
+    channels: makeEmptyChannelProjection(),
     notices: [{ id: 'synthetic-fixture', level: 'info', message: '合成 UI 测试快照，不代表本体运行验收。' }],
   };
 }

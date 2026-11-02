@@ -800,3 +800,37 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 覆盖映射只是**证据层**：产品行仍 79/79 not_covered、covered=0，`tooling_ready` 不升级为产品通过；H5 明确仅 G1、H4b 合成 UI+零模型宿主、H2a/H2a-probe 离线+零模型探针、H1 独立验证离线 oracle、历史样本 historical-limited。
 2. 真实宿主/模型/频道/设备/业务验收未运行；H7 mapping 明示不能用于业务验收。
 3. clean-VCS manifest 绑定 frozen X；中间 artifact-only 提交已披露且不影响 manifest 哈希有效性。
+
+## 24. H6c 切片：渠道只读投影仪表盘展示与系统文案
+
+状态：**离线通过（G1 合成宿主 UI + 真实 Chromium 进程）**；真实 DSH DOM/生产浏览器、真实平台与业务验收未验。2026-11-02 完成并审阅。
+
+### 24.1 交付（6 文件）
+
+- `client/index.js`：新增“渠道 / Channels”只读标签页，读取 `runtime.snapshot().channels`：status/source/schemaVersion/capturedAt/errorCode；四个 watermark；pending（appliedThrough/unapplied/unbound/truncated）；bindings（channelRef/conversationId/scope/version/appliedInvalidationWatermark/conversationAudienceVersion/replySessionEpoch/可选 lastInvalidationAt）；connections（provider/deployment/accountId/revision 等）；conversations（mode/audienceVersion/audienceStatus/participantCount/nativeConversationId 等）；degraded 原因双语。空/缺失/不兼容/字段缺失均显式提示，不留空白、不假可用；**不显示正文/summary/bodyRef/参与者文本**，无任何交互控件；明示只读投影不代表真实平台已接入或业务验收。
+- `src/health/systems.ts`：conversation 摘要按实际接线更新为新文案（本地对话/背景、受控 Lab 限定频道与私聊回执已接线；H6a 身份/去重/受众/墓碑与 H6b 绑定/失效桥/只读投影已离线接线；真实平台适配、渠道发送与固定宿主验收未完成）；status 保持 partial。
+- `tests/ui/channels.spec.mjs`（5 项）+ fixtures 合成投影 + playwright testMatch + UI README。
+- 证据：`artifacts/dsh/h6/h6c-ui.json`、`h6c-slice-summary.json`、`h6c-isolated-check.log`、`artifacts/dsh/slices/h6c-verify.json`。
+
+### 24.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `d160756` + 仅 6 文件） | `npm run check` **1382/1382、0 skip**；`npm run test:ui` **214/214**（基线 209 + 5） |
+| Lead 独立 `scripts/slice-verify.mjs`（静默重跑） | exit 0；**1382/1382 通过，0 失败/跳过**；证据 `artifacts/dsh/slices/h6c-verify.json` |
+| Lead `npm run test:ui`（静默重跑） | **214/214 通过，exit 0**；日志 `.local/h6c-lead-ui2.log` |
+| 首次尝试的两次失败（如实保留） | 均为负载敏感的**已知 flake**，非 H6c 回归：(1) `lab-integration.test.ts` 20 频道用例内部 10s 等待在并发负载下 10.6s 超时——静默重跑 1382/1382 通过，且其他切片也报同一现象；(2) `context-verification.spec.js` 切对话用例在 UI 套件与重型检查并行时命中 Playwright strict-mode 两个 `role=status` 节点——静默重跑 214/214 通过，H6c 未新增 `role=status` 节点。首次 UI 日志 `.local/h6c-lead-ui.log` 保留；首次 slice-verify 日志已被静默重跑覆盖，失败详情记录在上述证据 JSON。 |
+| 证据级别 | G1 合成宿主 UI + 真实 Chromium；不是真实 DSH 客户端注入/生产浏览器验收 |
+
+### 24.3 失败 / unknown / 未测
+
+1. 真实 DSH 客户端注入/DOM、生产浏览器验收、无障碍、真实移动设备、zh/en 之外语言未测；截图仅存 `.local`。
+2. 当前 live 的 channels 投影为 ready-空（无渠道适配器）；非空真实数据渲染仅有合成夹具。
+3. 未改 runtime.ts/index.ts/worker.ts/dsh adapters，未新增命令端点；无真实平台/模型/embedding/Lab/宿主 reload。
+
+### 24.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h6c-manifest.json>
+cd plugins/shiyu && npm run test:ui
+```

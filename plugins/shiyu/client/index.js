@@ -74,6 +74,24 @@ window.__ModuleLoader__.load({
       backgroundDelivery: '后台标记投递', backgroundDeliveryHint: '这里的待投递与已落库计数属于后台投递，不代表来源已加载到 Session；暂停时仍可接收后台标记。',
       backgroundUnavailable: '后台投递状态尚未接入', backgroundState: '扫描状态', backgroundPending: '待投递', backgroundClaimed: '已认领', backgroundAcknowledged: '已落库确认', backgroundCancelled: '已取消投递',
       backgroundLastScan: '最近扫描', backgroundLastFailure: '最近失败', backgroundBatch: '最近扫描批次', backgroundProcessed: '已处理', status_stopped: '已停止',
+      channels: '渠道', channelsHint: '只读投影：渠道连接、会话、绑定、水位与待应用失效信号；不代表真实平台已接入。',
+      channelsReadOnly: '这里只显示只读元数据，不显示消息正文、摘要、正文引用或参与者文本；查看或刷新不会加载、确认或发送任何内容。',
+      channelsNotReal: '只读投影不代表真实平台已接入、账号已配置、消息已发送或业务已验收。',
+      channelsNotProvided: '当前快照未提供渠道投影。这不代表渠道正常，也不代表已接入；请以运行依赖状态为准。',
+      channelsIncompatible: '渠道投影不兼容（schemaVersion 不是 1），未作为可用状态展示。',
+      channelsEmpty: '尚无渠道适配器接入：connections、conversations、bindings 均为空。空投影不等于真实渠道验收通过。',
+      channelStatus: '渠道投影状态', channelStatusUnknown: '快照未提供渠道投影状态；不能推断为可用或不可用。',
+      channelSource: '投影来源', channelSchemaVersion: 'schema 版本', channelObserved: '投影时间',
+      channelWatermark: '渠道水位', channelIntakeSeq: '接纳序号', channelInvalidationWatermark: '失效水位', channelDeletionWatermark: '删除水位', channelRevocationWatermark: '撤权水位',
+      channelPending: '待应用失效信号', channelAppliedThrough: '已应用到', channelUnapplied: '未应用', channelUnbound: '未绑定频道', channelTruncated: '结果截断',
+      channelBindings: '渠道绑定', channelNoBindings: '暂无渠道到对话的绑定', channelBindingsUnknown: '快照未提供渠道绑定记录',
+      channelConnections: '渠道连接', channelNoConnections: '尚无渠道连接', channelConnectionsUnknown: '快照未提供渠道连接记录',
+      channelConversations: '渠道会话', channelNoConversations: '尚无渠道会话', channelConversationsUnknown: '快照未提供渠道会话记录',
+      channelDegraded: '渠道投影受限原因', channelsNoDegraded: '未报告渠道投影受限原因。', channelsDegradedUnknown: '快照未提供渠道投影受限原因；投影完整性未知。',
+      channelRef: '渠道引用', channelAppliedWatermark: '已应用失效水位', channelLastInvalidation: '最近失效时间', replySessionEpoch: '回复 Session 代次',
+      channelConnectionId: '渠道连接 ID', channelAccountId: '账号 ID', channelProvider: '平台提供方', channelDeployment: '部署', channelRevision: '连接版本',
+      channelMode: '受众模式', channelAudienceStatus: '受众状态', channelParticipantCount: '参与者数量', channelNativeConversation: '原生会话标识', channelSourceNamespace: '来源命名空间', channelYes: '是', channelNo: '否',
+      channelDegradedIngress: '渠道接入域不可用', channelDegradedConversation: '对话域不可用', channelDegradedBinding: '渠道绑定不可用', channelDegradedInvalidations: '失效信号不可用',
       contextVerifyTitle: '背景加载与会话复用', contextVerify: '验证背景加载与会话复用', contextVerifying: '正在验证背景加载与会话复用…',
       contextVerifyHint: '显式执行 2 轮本地合成模型生成，验证背景加载并复用同一 Session。', contextVerifyLimits: '使用 opencode-go/deepseek-v4.1-flash（low），每轮最多 512 输出 tokens；只读，不发送消息，不自动重试。',
       contextVerifyNeedsTask: '当前对话需有至少一项已关联任务。', contextVerifyPending: '正在等待对话（{id}）的背景加载检查回执；可通过“暂停运行”取消。',
@@ -169,6 +187,24 @@ window.__ModuleLoader__.load({
       backgroundDelivery: 'Background marker delivery', backgroundDeliveryHint: 'Pending and acknowledged delivery counts do not confirm that sources were loaded into a Session. Background markers may still arrive while paused.',
       backgroundUnavailable: 'Background delivery status is not connected yet', backgroundState: 'Scanner state', backgroundPending: 'Awaiting delivery', backgroundClaimed: 'Claimed', backgroundAcknowledged: 'Recorded acknowledgements', backgroundCancelled: 'Cancelled deliveries',
       backgroundLastScan: 'Last scan', backgroundLastFailure: 'Last failure', backgroundBatch: 'Last scan batch', backgroundProcessed: 'Processed', status_stopped: 'Stopped',
+      channels: 'Channels', channelsHint: 'Read-only projection of channel connections, conversations, bindings, watermarks and pending invalidations; it does not mean a real platform is connected.',
+      channelsReadOnly: 'This view shows read-only metadata only: no message body, summary, body reference or participant text. Viewing or refreshing loads, acknowledges and sends nothing.',
+      channelsNotReal: 'This read-only projection does not mean a real platform, account, delivery or business acceptance exists.',
+      channelsNotProvided: 'The snapshot provides no channel projection. This does not mean channels are healthy or connected.',
+      channelsIncompatible: 'The channel projection is incompatible (schemaVersion is not 1) and is not shown as available.',
+      channelsEmpty: 'No channel adapter is connected: connections, conversations and bindings are all empty. An empty projection is not real-channel acceptance.',
+      channelStatus: 'Channel projection status', channelStatusUnknown: 'The snapshot provides no channel projection status; availability is unknown.',
+      channelSource: 'Projection source', channelSchemaVersion: 'Schema version', channelObserved: 'Projected at',
+      channelWatermark: 'Channel watermarks', channelIntakeSeq: 'Intake sequence', channelInvalidationWatermark: 'Invalidation watermark', channelDeletionWatermark: 'Deletion watermark', channelRevocationWatermark: 'Revocation watermark',
+      channelPending: 'Pending invalidations', channelAppliedThrough: 'Applied through', channelUnapplied: 'Unapplied', channelUnbound: 'Unbound channels', channelTruncated: 'Truncated',
+      channelBindings: 'Channel bindings', channelNoBindings: 'No channel-to-conversation bindings yet', channelBindingsUnknown: 'The snapshot provides no channel binding records',
+      channelConnections: 'Channel connections', channelNoConnections: 'No channel connections yet', channelConnectionsUnknown: 'The snapshot provides no channel connection records',
+      channelConversations: 'Channel conversations', channelNoConversations: 'No channel conversations yet', channelConversationsUnknown: 'The snapshot provides no channel conversation records',
+      channelDegraded: 'Channel projection degraded reasons', channelsNoDegraded: 'No channel projection degraded reason was reported.', channelsDegradedUnknown: 'The snapshot provides no channel projection degraded reasons; completeness is unknown.',
+      channelRef: 'Channel ref', channelAppliedWatermark: 'Applied invalidation watermark', channelLastInvalidation: 'Last invalidation', replySessionEpoch: 'Reply Session epoch',
+      channelConnectionId: 'Channel connection ID', channelAccountId: 'Account ID', channelProvider: 'Platform provider', channelDeployment: 'Deployment', channelRevision: 'Connection revision',
+      channelMode: 'Audience mode', channelAudienceStatus: 'Audience status', channelParticipantCount: 'Participant count', channelNativeConversation: 'Native conversation id', channelSourceNamespace: 'Source namespace', channelYes: 'Yes', channelNo: 'No',
+      channelDegradedIngress: 'Channel ingress unavailable', channelDegradedConversation: 'Conversation domain unavailable', channelDegradedBinding: 'Channel binding unavailable', channelDegradedInvalidations: 'Invalidation signals unavailable',
       contextVerifyTitle: 'Context loading and Session reuse', contextVerify: 'Verify context loading and Session reuse', contextVerifying: 'Verifying context loading and Session reuse…',
       contextVerifyHint: 'Explicitly runs 2 local synthetic model turns to check context loading and reuse of the same Session.', contextVerifyLimits: 'Uses opencode-go/deepseek-v4.1-flash (low), with at most 512 output tokens per turn. Read-only, no outbound message, and no automatic retry.',
       contextVerifyNeedsTask: 'This conversation needs at least one linked task.', contextVerifyPending: 'Waiting for the context check receipt for Conversation ({id}). Use “Pause runtime” to cancel.',
@@ -1330,6 +1366,11 @@ window.__ModuleLoader__.load({
           const canControl = state === 'paused' ? canCommand : Boolean(snapshot && snapshot.lifecycle !== 'stopping' && !controlCommand && (!stale || command));
           const work = arr(snapshot?.activeWork), activities = arr(snapshot?.activities), sessions = arr(snapshot?.sessions);
           const systems = arr(snapshot?.systems), dependencies = arr(snapshot?.dependencies), notices = arr(snapshot?.notices);
+          // H6c: read-only channel projection. Non-object, non-schema-1 or missing
+          // values stay explicitly unknown; this panel never invents availability.
+          const channelProjection = snapshot?.channels && typeof snapshot.channels === 'object' && !Array.isArray(snapshot.channels) ? snapshot.channels : null;
+          const channelsCompatible = Boolean(channelProjection && channelProjection.schemaVersion === 1);
+          const channelsReady = Boolean(channelsCompatible && channelProjection.status?.ready === true);
           const tasksConnected = Array.isArray(snapshot?.tasks), tasks = arr(snapshot?.tasks);
           const goalTask = tasks.filter(item => item.state === 'succeeded' && typeof item.taskId === 'string' && Boolean(item.taskId.trim())
             && arr(item.inputRefs).includes(`local-input:${item.taskId}`) && Number.isFinite(Date.parse(item.updatedAt)))
@@ -1618,6 +1659,100 @@ window.__ModuleLoader__.load({
                 `${t('innerSchemaVersion')} · ${text(manifest.schemaVersion)} · ${t('innerStateVersion')} · ${numeric(projection.stateVersion)}`),
               h('p', { className: 'syr-small syr-muted syr-section-gap', 'data-testid': 'inner-note' }, t('innerNote')));
           }
+          function channelContent() {
+            if (!channelProjection) {
+              return h('section', { className: 'syr-stack', 'data-testid': 'channel-projection' },
+                h('div', { className: 'syr-system-heading' }, h('h2', null, t('channels')), h('p', null, t('channelsHint'))),
+                h('p', { className: 'syr-alert', role: 'alert', 'data-testid': 'channel-missing' }, t('channelsNotProvided')),
+                h('p', { className: 'syr-small syr-muted', 'data-testid': 'channel-read-only' }, t('channelsReadOnly')));
+            }
+            if (!channelsCompatible) {
+              return h('section', { className: 'syr-stack', 'data-testid': 'channel-projection' },
+                h('div', { className: 'syr-system-heading' }, h('h2', null, t('channels')), h('p', null, t('channelsHint'))),
+                h('p', { className: 'syr-alert', role: 'alert', 'data-testid': 'channel-incompatible' }, t('channelsIncompatible')),
+                h('p', { className: 'syr-small syr-muted', 'data-testid': 'channel-read-only' }, t('channelsReadOnly')));
+            }
+            const channelArray = key => channelsCompatible && Array.isArray(channelProjection[key]) ? channelProjection[key] : null;
+            const channelId = value => text(value) || t('unknownValue');
+            const channelBool = value => value === true ? t('channelYes') : value === false ? t('channelNo') : t('unknownValue');
+            const channelDegradedLabel = reason => {
+              const key = { channel_ingress_unavailable: 'channelDegradedIngress', conversation_domain_unavailable: 'channelDegradedConversation',
+                channel_binding_unavailable: 'channelDegradedBinding', channel_invalidations_unavailable: 'channelDegradedInvalidations' }[reason];
+              return key ? t(key) + ' (' + channelId(reason) + ')' : channelId(reason);
+            };
+            const bindings = channelArray('bindings'), connections = channelArray('connections'), channelConversations = channelArray('conversations'), degraded = channelArray('degraded');
+            const status = channelProjection.status, watermark = channelProjection.watermark, pending = channelProjection.pending;
+            const statusKnown = Boolean(status && typeof status === 'object' && !Array.isArray(status) && typeof status.ready === 'boolean');
+            const statusValue = statusKnown ? (status.ready ? 'ready' : 'unavailable') : 'unknown';
+            const empty = channelsReady && bindings && connections && channelConversations
+              && !bindings.length && !connections.length && !channelConversations.length;
+            const bindingFacts = binding => [
+              ['channelRef', channelId(binding?.channelRef), true],
+              ['conversationId', channelId(binding?.conversationId), true],
+              ['conversationScope', channelId(binding?.scope)],
+              ['recordVersion', numeric(binding?.version)],
+              ['channelAppliedWatermark', numeric(binding?.appliedInvalidationWatermark)],
+              ['audienceVersion', numeric(binding?.conversationAudienceVersion)],
+              ['replySessionEpoch', numeric(binding?.replySessionEpoch)],
+              ...(binding?.lastInvalidationAt === undefined ? [] : [['channelLastInvalidation', dateTime(binding.lastInvalidationAt, locale)]]),
+            ];
+            const connectionFacts = connection => [
+              ['channelConnectionId', channelId(connection?.connectionId), true],
+              ['channelSourceNamespace', channelId(connection?.sourceNamespace), true],
+              ['channelProvider', channelId(connection?.provider)],
+              ['channelDeployment', channelId(connection?.deployment)],
+              ['channelAccountId', channelId(connection?.accountId), true],
+              ['channelRevision', numeric(connection?.revision)],
+            ];
+            const conversationFacts = item => [
+              ['conversationId', channelId(item?.conversationRef), true],
+              ['channelConnectionId', channelId(item?.connectionId), true],
+              ['channelNativeConversation', channelId(item?.nativeConversationId), true],
+              ['channelMode', channelId(item?.mode)],
+              ['audienceVersion', numeric(item?.audienceVersion)],
+              ['channelAudienceStatus', channelId(item?.audienceStatus)],
+              ['channelParticipantCount', numeric(item?.participantCount)],
+            ];
+            return h('section', { className: 'syr-stack', 'data-testid': 'channel-projection' },
+              h('div', { className: 'syr-system-heading' }, h(Title, { count: bindings ? bindings.length : undefined }, t('channels')), h('p', null, t('channelsHint')),
+                h('p', { className: 'syr-small syr-muted', 'data-testid': 'channel-read-only' }, t('channelsReadOnly') + ' ' + t('channelsNotReal'))),
+              h('section', { className: 'syr-box', 'aria-label': t('channelStatus'), 'data-testid': 'channel-status' },
+                h('div', { className: 'syr-diagnostic-head' }, h('div', null, h('h2', null, t('channelStatus')), h('p', { className: 'syr-small syr-muted' }, t('channelsNotReal'))),
+                  h(Status, { value: statusValue })),
+                h('div', { className: 'syr-section-gap' }, h(Facts, { rows: [
+                  ['channelSource', channelId(channelProjection.source)],
+                  ['channelSchemaVersion', numeric(channelProjection.schemaVersion)],
+                  ['channelObserved', dateTime(channelProjection.capturedAt, locale)],
+                  ...(statusKnown && typeof status.errorCode === 'string' && status.errorCode ? [['errorCode', text(status.errorCode), true]] : []),
+                ] })),
+                !statusKnown && h('p', { className: 'syr-small syr-muted syr-section-gap', 'data-testid': 'channel-status-unknown' }, t('channelStatusUnknown'))),
+              empty && h('p', { className: 'syr-empty', 'data-testid': 'channel-empty' }, t('channelsEmpty')),
+              h('div', { className: 'syr-columns' },
+                h('section', { className: 'syr-box', 'aria-label': t('channelWatermark'), 'data-testid': 'channel-watermark' }, h(Title, null, t('channelWatermark')),
+                  h(Facts, { rows: [['channelIntakeSeq', numeric(watermark?.intakeSeq)], ['channelInvalidationWatermark', numeric(watermark?.invalidationWatermark)],
+                    ['channelDeletionWatermark', numeric(watermark?.deletionWatermark)], ['channelRevocationWatermark', numeric(watermark?.revocationWatermark)]] })),
+                h('section', { className: 'syr-box', 'aria-label': t('channelPending'), 'data-testid': 'channel-pending' }, h(Title, null, t('channelPending')),
+                  h(Facts, { rows: [['channelAppliedThrough', numeric(pending?.appliedThrough)], ['channelUnapplied', numeric(pending?.unapplied)],
+                    ['channelUnbound', numeric(pending?.unbound)], ['channelTruncated', channelBool(pending?.truncated)]] })),
+              ),
+              h('section', { 'data-testid': 'channel-bindings' }, h(Title, { count: bindings ? bindings.length : undefined }, t('channelBindings')),
+                bindings === null ? h(Empty, null, t('channelBindingsUnknown')) : !bindings.length ? h(Empty, null, t('channelNoBindings'))
+                  : h('div', { className: 'syr-system-list' }, ...bindings.map((binding, index) => h('article', { key: index, className: 'syr-entry', 'data-testid': 'channel-binding' },
+                    h(Facts, { rows: bindingFacts(binding) }))))),
+              h('div', { className: 'syr-columns syr-section-gap' },
+                h('section', { 'data-testid': 'channel-connections' }, h(Title, { count: connections ? connections.length : undefined }, t('channelConnections')),
+                  connections === null ? h(Empty, null, t('channelConnectionsUnknown')) : !connections.length ? h(Empty, null, t('channelNoConnections'))
+                    : h('div', { className: 'syr-system-list' }, ...connections.map((connection, index) => h('article', { key: index, className: 'syr-entry', 'data-testid': 'channel-connection' },
+                      h(Facts, { rows: connectionFacts(connection) }))))),
+                h('section', { 'data-testid': 'channel-conversations' }, h(Title, { count: channelConversations ? channelConversations.length : undefined }, t('channelConversations')),
+                  channelConversations === null ? h(Empty, null, t('channelConversationsUnknown')) : !channelConversations.length ? h(Empty, null, t('channelNoConversations'))
+                    : h('div', { className: 'syr-system-list' }, ...channelConversations.map((item, index) => h('article', { key: index, className: 'syr-entry', 'data-testid': 'channel-conversation' },
+                      h(Facts, { rows: conversationFacts(item) })))))),
+              degraded === null ? h('p', { className: 'syr-alert', role: 'alert', 'data-testid': 'channel-degraded' }, t('channelsDegradedUnknown'))
+                : degraded.length ? h('section', { className: 'syr-box', 'aria-label': t('channelDegraded'), 'data-testid': 'channel-degraded' }, h(Title, null, t('channelDegraded')),
+                  ...degraded.map((reason, index) => h('p', { key: index, className: 'syr-small syr-break' }, channelDegradedLabel(reason))))
+                  : h('p', { className: 'syr-small syr-muted', 'data-testid': 'channel-degraded' }, t('channelsNoDegraded')));
+          }
           function systemContent() {
             return h('section', null, h('div', { className: 'syr-system-heading' }, h('h2', null, t('implementation')), h('p', null, t('implementationHint'))),
               h('div', { className: 'syr-system-list', 'data-testid': 'system-list' }, systems.length ? systems.map(item => h('article', { key: item.id, className: 'syr-system-row' }, h('h3', null, item.name), h(Status, { value: item.status }), h('p', null, item.summary))) : h(Empty, null, t('noSystems'))), abilityContent());
@@ -1848,7 +1983,7 @@ window.__ModuleLoader__.load({
           return h('div', { className: 'syr', ref: rootRef }, h('style', null, css), h('div', { className: 'syr-wrap' },
             h('header', { className: 'syr-header' }, h('div', { className: 'syr-brand' }, h(Icon, { size: 27 }), h('div', null, h('h1', null, t('title')), h('div', { className: 'syr-meta' }, snapshot && h('span', null, `v${snapshot.version}`), h('span', null, t('source'))))),
               h('div', { className: 'syr-actions' }, snapshot && h(Button, { icon: state === 'paused' ? 'play' : 'pause', disabled: !canControl, onClick: () => void operations.current.command(state === 'paused' ? 'runtime.resume' : 'runtime.pause') }, t(state === 'paused' ? 'resume' : 'pause')), h(Button, { icon: 'refresh', disabled: loading, onClick: () => void operations.current.refresh(), 'aria-label': t('refresh'), 'aria-busy': loading }, t(loading ? 'refreshing' : 'refresh')))),
-            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'core', 'tasks', 'conversations', 'lab', 'memory', 'inner', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => { if (tab === 'lab' && id !== 'lab') setLabToken(''); setTab(id); } }, t(id)))),
+            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'core', 'tasks', 'conversations', 'channels', 'lab', 'memory', 'inner', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => { if (tab === 'lab' && id !== 'lab') setLabToken(''); setTab(id); } }, t(id)))),
             stale && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'snapshot-stale' }, h('strong', null, t(snapshot ? 'staleTitle' : 'loadFailed')), h('p', null, readError || t('snapshotOld')), snapshot && h('p', null, t('staleHint'))),
             commandError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), commandError),
             controlError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), controlError),
@@ -1856,7 +1991,7 @@ window.__ModuleLoader__.load({
             controlNotice && h('p', { className: 'syr-feedback', role: 'status' }, controlNotice),
             command && h('p', { className: 'syr-feedback', role: 'status' }, t(command === 'session.verify-model' ? 'modelVerifyPending' : command === 'conversation.verifyContext' ? 'contextVerifyPending' : 'controlPending', { id: contextAttempt?.conversationId || t('unknownValue') })),
             controlCommand && h('p', { className: 'syr-feedback', role: 'status' }, t('controlPending')),
-            snapshot ? (tab === 'overview' ? overview() : tab === 'core' ? coreContent() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'lab' ? labContent() : tab === 'memory' ? memoryContent() : tab === 'inner' ? innerContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
+            snapshot ? (tab === 'overview' ? overview() : tab === 'core' ? coreContent() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'channels' ? channelContent() : tab === 'lab' ? labContent() : tab === 'memory' ? memoryContent() : tab === 'inner' ? innerContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
             h('footer', { className: 'syr-footer' }, h('span', null, lastRead ? `${t('lastRead')} · ${dateTime(lastRead, locale)}` : t('unknownHint')), h('span', null, t('autoRefresh')))));
         }
         ctx.effect(() => {

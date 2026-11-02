@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h6c",
+  "capturedAt": "2026-11-02T21:37:44.679Z",
+  "head": "d1607562f401a8bf5c87382d216036d68661285b",
+  "worktree": "/tmp/shiyu-h6c",
+  "files": [
+    {
+      "path": "plugins/shiyu/client/index.js",
+      "bytes": 247689,
+      "sha256": "9b69e566c6d6fc3aa03ffbc558c61888a284bc2b601bb49eb759f2a878a681c1"
+    },
+    {
+      "path": "plugins/shiyu/src/health/systems.ts",
+      "bytes": 2240,
+      "sha256": "c8f19ed8f5320231c15f3ed321e590ec2398af359fb3fb43dc9ee15816154297"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/channels.spec.mjs",
+      "bytes": 14097,
+      "sha256": "6775c6810d46e5d3db269447040da1940679851b5b069d60f85d36b25cf3ce93"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/fixtures.js",
+      "bytes": 13015,
+      "sha256": "28782467ab1918fb66fa13ba3f13c31ef2c541f2491722338f9e6ceb57a66e27"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/playwright.config.mjs",
+      "bytes": 1418,
+      "sha256": "7b2a3f99178e606c5cfeadd88ca24c6a67ab3dd059e580cb81a60450fa1b34b5"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/README.md",
+      "bytes": 3839,
+      "sha256": "2b3b8f95c9affeb47ed993ec2c62f268d822fcd780eb100c1fc3d45e9ceba231"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 350126,
+    "bytes": 150855,
+    "sha256": "bae4278c5ada0a688170af51cd5fbfc80033fdfaaf2d16c02c687e8d0d27ad12",
+    "tests": {
+      "tests": 1382,
+      "pass": 1382,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 348732.27325",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h6c.log",
+    "bytes": 150855,
+    "sha256": "bae4278c5ada0a688170af51cd5fbfc80033fdfaaf2d16c02c687e8d0d27ad12"
+  },
+  "verdict": "pass"
+}

@@ -25,3 +25,5 @@ npx playwright test --config tests/ui/playwright.config.mjs
 `memory.rememberLocal`、`memory.readLocal` 和 `memory.withdrawLocal` 仅操作合成服务内存。保存按 requestId 幂等；读取延迟回执保留发起时的旧元信息和正文，以覆盖选择、版本及读取许可变化；撤回只改变合成许可，不删除后台正文。快照只提供元信息，正文只经显式读取返回。定向运行：`npm run test:ui -- memory.spec.mjs`。
 
 3H 的 `lab.spec.mjs` 在页面路由上注入 `LabPublicConnection` 合成投影，覆盖群聊/私聊、显式连接/暂停/断连、token 清空、只读回执核对、未确认回执与实例/版本竞争。没有向真实 Lab 发请求；草稿、送达与 unknown 分开显示，公共投影不包含内部 claim/permit。中英文和窄屏截图仅证明客户端布局。
+
+H6c 的 `channels.spec.mjs` 使用 `runtime.snapshot().channels` 的合成只读投影（connections/conversations/bindings/watermark/pending/degraded），覆盖有数据渲染、ready 但为空、缺失、不兼容、degraded、字段缺失、英文与 390px 窄屏、多次刷新仅 GET 且无命令，以及正文/摘要/正文引用/参与者文本 canary 不出现。该投影不代表真实平台已接入或业务已验收；定向运行：`npm run test:ui -- channels.spec.mjs`。
