@@ -1,6 +1,6 @@
 # H0 测试工具覆盖追踪报告
 
-生成时间：2026-11-02T19:25:29.130Z；harness 0.1.0；self-proof corpus `h0-selfproof-1`。
+生成时间：2026-11-02T21:13:54.383Z；harness 0.1.0；self-proof corpus `h0-selfproof-1`。
 
 > 本清单只证明需求已登记、来源可核验，以及 H0 测试工具在 manifest/selfproof 冻结的文件身份下完成自证。产品 V01–V27、九个系统与 S/FL 场景均未由 H0 运行或验收；not_covered 不得被读作通过，历史有限证据不计入状态。
 
@@ -23,20 +23,20 @@
 
 | 产物 | 存在 | SHA256 | 生成时间 | 说明 |
 | --- | --- | --- | --- | --- |
-| selfproof | true | 5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | 2026-11-02T19:25:29.013Z | self-proof passed |
-| manifest | true | a2243889e97271606153ae2e5fe69fd01dcd746f1864fccd842c8b2d5da27b0a | 2026-11-02T19:25:26.577Z | manifest files match the current tree |
+| selfproof | true | 6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061 | 2026-11-02T21:13:52.282Z | self-proof passed |
+| manifest | true | dd67e036d82175d8ce37784fafbef9ef035b1736365d63e82ac95da080d8a587 | 2026-11-02T21:13:38.075Z | manifest files match the current tree |
 
 ## 3. H0 工具能力（可 self_proven 的唯一一类）
 
 | ID | 状态 | 能力 | 测试通过/要求 | oracle 通过 | 证据 | 依据/缺口 |
 | --- | --- | --- | --- | --- | --- | --- |
-| H0.ORACLE | H0 自证通过 | 判定器套件：无损 JSON/结构/CAS/状态机/计数/因… | 3/3 | 10/10 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 3/3, oracles… |
-| H0.SELFCHECK | H0 自证通过 | 工具验真执行器：真实运行全部 known-pass/kno… | 5/5 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 5/5, oracles… |
-| H0.FAULTS | H0 自证通过 | 驱动/时钟/故障控制：绝对期限、假业务时钟、确定性断点 | 6/6 | 3/3 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 6/6, oracles… |
-| H0.OBSERVER | H0 自证通过 | 独立观察器与效果账本：崩溃后可取证的 append-onl… | 4/4 | 2/2 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.MANIFEST | H0 自证通过 | manifest/证据包：源码/构建/环境/fixture… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.TRACEABILITY | H0 自证通过 | 覆盖追踪：需求→代码→测试ID→oracle→证据→状态/… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.DOCS | H0 自证通过 | 使用说明：运行、接入后续切片、证据复核方法 | 1/1 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@5ea97d0212da40c02deb320c471c41b7c53b06e6748edc1073804da781cd4128 | self-proof artifact + manifest verified: tests 1/1, oracles… |
+| H0.ORACLE | H0 自证通过 | 判定器套件：无损 JSON/结构/CAS/状态机/计数/因… | 3/3 | 10/10 | artifacts/dsh/harness/tool-selfproof.json@6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061 | self-proof artifact + manifest verified: tests 3/3, oracles… |
+| H0.SELFCHECK | H0 自证通过 | 工具验真执行器：真实运行全部 known-pass/kno… | 5/5 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061 | self-proof artifact + manifest verified: tests 5/5, oracles… |
+| H0.FAULTS | H0 自证通过 | 驱动/时钟/故障控制：绝对期限、假业务时钟、确定性断点 | 6/6 | 3/3 | artifacts/dsh/harness/tool-selfproof.json@6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061 | self-proof artifact + manifest verified: tests 6/6, oracles… |
+| H0.OBSERVER | H0 自证通过 | 独立观察器与效果账本：崩溃后可取证的 append-onl… | 4/4 | 2/2 | artifacts/dsh/harness/tool-selfproof.json@6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.MANIFEST | H0 自证通过 | manifest/证据包：源码/构建/环境/fixture… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.TRACEABILITY | H0 自证通过 | 覆盖追踪：需求→代码→测试ID→oracle→证据→状态/… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.DOCS | H0 自证通过 | 使用说明：运行、接入后续切片、证据复核方法 | 1/1 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@6a5e7e2396946546ae25942d8e68657985929fa982bfeeca2081a834af53b061 | self-proof artifact + manifest verified: tests 1/1, oracles… |
 
 ## 4. 02 §1 必须资产（H0 范围与缺口）
 
@@ -84,6 +84,8 @@
 | fault-injection | 1.1.0 | tests/harness/faults.ts | 0 | 3 | 通过 |
 | observer-ledger | 1.1.0 | tests/harness/observer.ts | 0 | 5 | 通过 |
 | observer-counter | 1.1.0 | tests/harness/observer.ts | 3 | 0 | 通过 |
+
+> **oracle corpus 范围**：本表覆盖 H0b corpus（15 个）；H0c business oracles 另有 7 个（`business-oracle:*`），合计 22 个，均记录在 tool-selfproof.json。traceability.json#oracles 覆盖 H0b corpus（ALL_SELF_PROOFS）；H0c business oracles 另见 tool-selfproof.json 的 business-oracle:* 测试。两者合计才是当前工具自证 oracle 总数，不是缺少 7 个 oracle。
 
 ## 7.1 九系统（01）
 
@@ -199,7 +201,25 @@
 | COMBO.LONGRUN |  | 02 §6.9 检查点、迁移、长期运行与恢复 | 未覆盖 | doc-02 ### 6.9 |
 | COMBO.E2E |  | 02 §6.10 三条端到端链不得省略 | 未覆盖 | doc-02 ### 6.10 |
 
-## 8. 来源可核验性
+## 8. H7 证据层映射（产品行仍 not_covered，只读派生）
+
+> frozen HEAD `4849c893cb2183a21605c89ab4a07f4ba7e43516`；证据来源 22 个（verified=22，unknown=0），产品行映射 41 行。已提交切片证据层只表示该切片实际跑过的层级（离线模块/独立验证/固定宿主零模型/合成 UI/历史限定等）；产品行状态仍全部 not_covered，不能用于业务验收或 V/S/FL 通过声明。
+
+| 系统 | 状态 | 证据层 | 部分子场景 | 限定/缺口 |
+| --- | --- | --- | --- | --- |
+| SYS.1 | not_covered | offline-module, slice-verification, historical-limited, bounded-real-model, fixed-host-zero-model | two-channel text loop (historical, 3 messages)；channel ingress identity/dedup offline；replyer inner-reference composition offline | No real platform adapter, sending Effect, native draft delivery or multi-channel conversation business loop on current HEAD.；Historical Lab loop is three text messages; not V05/V23/V25 or S/FL acceptance.；真实平台/账号/发送 Effect/多频道业务闭环未运行；多频道公平/过期草稿/送达未知未验 |
+| SYS.2 | not_covered | offline-module, slice-verification, fixed-host-zero-model | four publish/subscribe path module tests；zero-model restricted worker tool surface probe | No model actually invoked an event tool; real core Goal continuation, time/condition triggers, quotas/fanout/anti-loop and catalog extension remain untested.；Fixed-host evidence is zero-model only; not V03/V14/V24 acceptance.；模型实际调用事件工具、core Goal 续接、时间/外部触发、配额/fanout/防环未验 |
+| SYS.3 | not_covered | offline-module, slice-verification, historical-limited, bounded-real-model, fixed-host-zero-model | offline plan candidate validation/CAS/replan；historical bounded owner local-note closure | No real DSH host/native Goal rounds under current HEAD, no real model plan JSON/cost/cache; only fixed local-note capability binding.；Open-ended planning, multi-Goal timers and worker slot behaviour remain untested.；真实宿主/原生 Goal 下的开放式多步规划、模型 plan JSON、费用/缓存未验 |
+| SYS.4 | not_covered | historical-limited, bounded-real-model, fixed-host-zero-model, offline-module, slice-verification, independent-verification | historical single local task with independent artifact/effect check；offline plan→Task admission | Historical one-task samples and G1 modules only; no current-HEAD concurrent worker/lease/cancel/late-result matrix or cross-assignment fencing.；Independent review only checked evidence authenticity, not product behaviour.；当前 HEAD 并发 worker/租约/取消/迟到结果矩阵、跨 Assignment fencing、真实设备未验 |
+| SYS.5 | not_covered | offline-module, slice-verification, fixed-host-zero-model, synthetic-ui, historical-limited, bounded-real-model, independent-verification | schema4 six-domain publication on fixed host (zero model)；inner ReadView/UI synthetic composition；bounded inner prompt block offline | No real model use of inner state, no real inner bodies/Ombre content, no real browser DOM against real data, no cross-domain recomputation.；Historical memory samples are earlier-build limited; deletion propagation/physical erasure not proven.；真实模型使用内层状态、真实后端正文、跨域重算、真实 UI DOM 未验 |
+| SYS.6 | not_covered | offline-module, slice-verification, independent-verification, historical-limited, bounded-real-model, fixed-host-zero-model | bounded paged recovery + independent offline oracle；historical two-turn real-model Session reuse | No fixed-host long-history cold recovery/compaction under current HEAD, no real generation/usage/cache measurement, no full provider fees.；Independent verifier is offline; historical real-model samples are earlier builds and very small.；当前 HEAD 长历史冷恢复/压缩、真实生成、缓存/费用、完整 provider 请求未验 |
+| SYS.7 | not_covered | offline-module, slice-verification, historical-limited, bounded-real-model, fixed-host-zero-model | offline identity/audience ingress foundation；historical fixed-capability enable/disable persistence | No current-HEAD full Mandate/budget/pause/revoke matrix, no real channel credentials/receipts, no security canary sweep of model inputs or real device fences.；Historical policy/budget samples cannot be reused as V10/V17/V18–V20 acceptance.；当前 HEAD Mandate/预算/暂停/撤权矩阵、真实凭据与 canary 扫描、设备 fencing 未验 |
+| SYS.8 | not_covered | offline-module, slice-verification, independent-verification | G1 backup bundle capture/verify + isolated-root disarmed restore | G1 modules only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/erasure, independent fault domain/V27, RPO/RTO, OS power loss or multi-process single-writer.；No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance.；仅 G1 模块：未接 Runtime、无真实 Goal 日志/Ombre 导出/独立故障域/RPO-RTO/断电 |
+| SYS.9 | not_covered | offline-module, synthetic-ui, slice-verification, fixed-host-zero-model, environment-baseline | synthetic-host six-domain panel UI cases；fixed-host zero-model status/read-only visibility | No real browser DOM against real host data, no real user interactions beyond read-only status/tool calls, no UI lifecycle or long-list/old-response matrix.；Zero-model host checks are not V05/V24 dashboard acceptance; no sensitive-value sweep over real UI.；真实浏览器 DOM、真实数据、只读刷新 1000 次/old-response 矩阵、敏感值扫描未验 |
+
+完整逐系统“证据→状态→缺口”与来源明细见 `h7-traceability-mapping.md`；V/S/FL 有限映射只列证据层，状态仍 not_covered。
+
+## 9. 来源可核验性
 
 | 文档 | 存在 | SHA256 | 被引行核验 |
 | --- | --- | --- | --- |
@@ -210,7 +230,7 @@
 
 九系统计划 §5 的 V01–V27 索引核验：通过。
 
-## 9. 历史有限证据（单独列出，不计入任何状态）
+## 10. 历史有限证据（单独列出，不计入任何状态）
 
 | 证据 | 存在 | SHA256 | 范围（历史，限定） | 关联 |
 | --- | --- | --- | --- | --- |
@@ -223,7 +243,7 @@
 | plugins/shiyu/artifacts/context-validation.json | true | 79043e2212021ab7e07d295dd0b9e9d643886a8e21e665cb1d959e3e6afcb423 | 受限上下文与同 Session 回复（历史，限定） | V24,V25 |
 | plugins/shiyu/实施记录.md | true | 1f529ec438c357c062e356c251bdca3c5addca323db0924e7a680108196eeab9 | 本体实施记录与失败保留（历史） | — |
 
-## 10. 未覆盖与下一步
+## 11. 未覆盖与下一步
 
 - 产品需求 79 项全部未覆盖（H0 范围外）：25 个 V 完整门槛、9 个系统、S01–S08、FL01–FL08、02 §6 组合场景与 E1–E3 均未运行
 - H0 资产 ASSET.2 合成 fixture 与独立答案集：H0 未交付/未运行该能力
@@ -233,7 +253,7 @@
 - 固定宿主适配与恢复驱动、Judge 语义独立评分、长历史/长期运行观察器仍属后续切片；H0 不声明 V24/V25
 - 观察器哈希链不是签名；同一机器/用户下的目录不构成秘密隔离，HOLDOUT 答案隔离仍需独立保管
 
-## 11. 复核与再生命令
+## 12. 复核与再生命令
 
 - `node scripts/harness/manifest.mjs`
 - `node scripts/harness/selfproof.mjs`
