@@ -431,7 +431,11 @@
       "rootCause": "scripts/slice-verify.mjs writes absolute worktree/log paths into evidence; H4 evidence reproduce block handwritten absolute",
       "classification": "new (not historical)",
       "recommendation": "sanitize slice-verify.mjs output (worktree relative to repo or <home>) and fix H4 reproduce commands; regenerate artifacts; H1/H0b same class if batch-regenerated",
-      "owner": "lead (tool) / inner-domains + recovery-checkpoint (their committed evidence)"
+      "owner": "lead (tool) / inner-domains + recovery-checkpoint (their committed evidence)",
+      "postReviewStatus": {
+        "status": "fixed-in-c6a3f05",
+        "note": "slice-verify.mjs 从生成处输出 <home>；已提交 slice artifacts（h0b/h0c/h1/h2a*/h4/h4b/h5）与 H4 手写 reproduce 均脱敏；HEAD artifacts/dsh 已无 绝对 home 路径（仅保留 <home>/... token）"
+      }
     },
     {
       "id": "F2",
@@ -449,7 +453,11 @@
       "rootCause": "host-state-audit.mjs redacts dataDir/sessions.root as <home> but emits raw relativePath (encoded cwd segment)",
       "classification": "follows existing H0 host-audit convention (base HEAD 08995d1 already had h0 host-audit files with the same class), but these are newly added files; no absolute <home> and no message bodies",
       "recommendation": "redact relativePath in future exports (e.g. <workspace-root>/session.v4.jsonl.zstd) or accept as documented historical convention for host-audit metadata",
-      "owner": "lead (host evidence/tool)"
+      "owner": "lead (host evidence/tool)",
+      "postReviewStatus": {
+        "status": "accepted-as-existing-convention (dispositioned)",
+        "note": "c6a3f05 说明接受为既有惯例：无绝对路径/无正文；6 个 host 原始审计文件仍含编码 Users-caja；后续导出将脱敏 relativePath"
+      }
     },
     {
       "id": "F3",
@@ -462,7 +470,11 @@
       "evidence": "declared 50630 vs actual 53320 bytes (H4); 50971 vs 53773 (H4b); sha256 equals committed file content in both",
       "rootCause": "bytes likely recorded from the original tool-response string length before the payload was pretty-printed/committed",
       "recommendation": "correct the bytes fields or document that they refer to the original tool output; sha and content are consistent",
-      "owner": "lead (host evidence)"
+      "owner": "lead (host evidence)",
+      "postReviewStatus": {
+        "status": "fixed-in-c6a3f05",
+        "note": "payload.bytes 改为实际文件字节（53320/53773）并增加 bytesSemantics；sha256 原本正确未变"
+      }
     },
     {
       "id": "F4",
@@ -475,7 +487,11 @@
       "evidence": "H4 evidence discloses version 24->25 at 19:02 reload; read-only DB shows retained unknown Task version=26, uncertainty.updatedAt=2026-11-02T19:24:28.897Z (H4b reload start) while counts/states unchanged; H4b deltaClassification only says businessFacts unchanged",
       "impact": "aggregate facts (unknown preserved, no retry/success/assignment) unchanged, so the classification is not false, but the write is not disclosed in the H4b artifact",
       "recommendation": "add the metadata-refresh disclosure (as H4 did) and/or capture task version/update digests in the audit snapshot",
-      "owner": "lead (host evidence)"
+      "owner": "lead (host evidence)",
+      "postReviewStatus": {
+        "status": "fixed-in-c6a3f05",
+        "note": "H4b findings 新增披露 version 25->26、updatedAt=本次 reload、状态/计数/不重试/不宣告成功不变；与只读 DB 观察（version 26）一致"
+      }
     },
     {
       "id": "F5",
@@ -487,7 +503,11 @@
       ],
       "evidence": "audit snapshots record tasks count/states/ids only (no record versions); current read-only DB shows version 26 with H4b reload timestamp, consistent with H4 refresh but not proving 24->25",
       "recommendation": "include task record version/last-updated digest (metadata only) in host-state-audit output",
-      "owner": "lead (host evidence/tool)"
+      "owner": "lead (host evidence/tool)",
+      "postReviewStatus": {
+        "status": "mitigated-prospective",
+        "note": "host-state-audit.mjs 现输出 tasks.metadata(version/updatedAt/state/uncertaintyReason)，但已提交的 3 个旧快照未重跑，故 H4 的 24->25 仍不能从旧快照直接验证；现由 H4b 披露+只读 DB 三角验证"
+      }
     },
     {
       "id": "F6",
@@ -498,7 +518,11 @@
       ],
       "evidence": "paths /tmp/h5-check-final{,2,3}.log currently exist and hashes/bytes match declarations, but /tmp is not durable and the repo keeps only the hashes",
       "recommendation": "copy the three logs into plugins/shiyu/.local (gitignored) or artifacts and record their hashes, or explicitly note transient evidence",
-      "owner": "recovery-checkpoint/lead"
+      "owner": "recovery-checkpoint/lead",
+      "postReviewStatus": {
+        "status": "fixed-and-committed-in-c6a3f05",
+        "note": "h5-verification.json 增加 archivedCopy/logDurability；.local/h5-verify/ 三份日志存在且 sha/bytes 与声明一致（gitignored）；矩阵/校验器文件未改"
+      }
     },
     {
       "id": "F7",
@@ -509,7 +533,11 @@
       ],
       "evidence": "logs listed as plain .local paths; current logs show 1206/1206 and 209 passed; Lead reran UI (209) independently",
       "recommendation": "add sha/bytes claims like H4/H5 for attribution/durability",
-      "owner": "inner-domains/lead"
+      "owner": "inner-domains/lead",
+      "postReviewStatus": {
+        "status": "dispositioned-known-limitation",
+        "note": "H4b 实现者日志仍无 sha/bytes 声明；DSH 记录 §12 记为已知限制，后续切片日志复制 .local 并声明 sha/bytes（H5 已按此办理）"
+      }
     },
     {
       "id": "F8",
@@ -520,7 +548,11 @@
       ],
       "evidence": "runner asserts via expect(...) but writes fixed observed strings; tests assert every case pass; not a fake-pass path",
       "recommendation": "derive observed from measured variables where feasible to avoid future drift",
-      "owner": "recovery-checkpoint"
+      "owner": "recovery-checkpoint",
+      "postReviewStatus": {
+        "status": "accepted-future-improvement",
+        "note": "H5 matrix observed 叙述串保持；下一版从实测变量派生"
+      }
     },
     {
       "id": "F9",
@@ -533,7 +565,11 @@
       "evidence": "independent rebuild of 3b3b69f -> 647aaa7f… = both values; dist-backup/h0 (created 15:01) also has this digest",
       "impact": "installed-build claim is independently confirmed; only the oldDist label is ambiguous",
       "recommendation": "clarify/rename oldDist if the backup was taken after the new build; keep dist digest evidence",
-      "owner": "lead"
+      "owner": "lead",
+      "postReviewStatus": {
+        "status": "info-unchanged",
+        "note": "oldDist 语义未改；安装构建已独立复现，不矛盾"
+      }
     },
     {
       "id": "F10",
@@ -546,7 +582,11 @@
       "evidence": "committed manifest vcs.dirty=true; evidence explicitly documents the overlay and says a clean-VCS refresh can be committed after H0b without changing tool semantics",
       "impact": "artifact is self-consistent and sanitized(leaks=0), but not byte-reproducible from the commit tree alone",
       "recommendation": "optional clean refresh in a later tooling slice; keep the disclosure",
-      "owner": "test-harness/lead"
+      "owner": "test-harness/lead",
+      "postReviewStatus": {
+        "status": "acknowledged-pending-clean-refresh",
+        "note": "test-harness 确认 dirty overlay 披露仍在，待 Lead 指定目标 HEAD 后 clean refresh；本报告不对新 commit/artifacts 结论"
+      }
     }
   ],
   "unobserved": [
@@ -652,5 +692,71 @@
     "rejected": 0,
     "findings": 10,
     "unobserved": 7
+  },
+  "scopeBoundary": "Review snapshot is frozen at HEAD 00fb75b (reviewed commits: 2e04eb2/f2f9d42/5a7bc9e/feecf86/00fb75b/eef00d3). Later commits (a80c33d H2a, 086e43a H2a evidence, 7bd962c H0c) are OUT OF SCOPE for this review and are not certified here. Post-review facts observed but not re-reviewed: at HEAD 7bd962c the H0c commit refreshed artifacts/dsh/harness to 42 files (manifest vcs.dirty=true with head=feecf86, F10 class persists) and selfproof to 7 files/57 tests; those figures must not be mixed with the eef00d3 H0b 6-file/42-test evidence reviewed here. A new review round is required for the new commit/artifacts.",
+  "followUp": {
+    "headAtReview": "00fb75b25a89006b9c69a569c9203a57043855f2",
+    "currentHeadAtFollowUp": "7bd962ce2998d51ffeff3efbf6719bd96b3ed1d0",
+    "newCommitsAfterReview": [
+      "a80c33d",
+      "086e43a",
+      "7bd962c"
+    ],
+    "action": "not reviewed by task-13; requires a separate review round on the exact new commit"
+  },
+  "postReviewFixVerification": {
+    "headAtReview": "00fb75b25a89006b9c69a569c9203a57043855f2",
+    "fixCommit": "c6a3f05b50d51c5619b1342f60e0907e1c0ddf2f",
+    "fixCommitTitle": "chore(shiyu): evidence hygiene fixes and independent H4/H5 review (F1-F5)",
+    "verifiedAt": "2026-11-02T19:42:00Z",
+    "method": "read-only review of commit c6a3f05 diff and HEAD blobs; re-verified slice artifact file[] hashes still match their source commits; re-verified H5 archived log sha/bytes on disk; no product/test/host/model run",
+    "f1": {
+      "verified": true,
+      "head_grep_absolute_home": "0 hits in plugins/shiyu/artifacts/dsh",
+      "slice_artifacts": "worktree/log.path use <home>/... token; files[] hashes still match source commits (h4 21/21, h4b 7/7, h5 18/18)",
+      "h4_reproduce": "<home>/... token",
+      "tools": "scripts/slice-verify.mjs + scripts/host-state-audit.mjs updated"
+    },
+    "f2": {
+      "verified": "dispositioned/accepted; 6 host raw snapshots unchanged (encoded Users-caja retained, no absolute home, no bodies)"
+    },
+    "f3": {
+      "verified": true,
+      "h4_payload_bytes": 53320,
+      "h4b_payload_bytes": 53773,
+      "sha_unchanged": true
+    },
+    "f4": {
+      "verified": true,
+      "disclosed": "version 25->26, updatedAt=this reload, no retry/success; consistent with read-only DB current version 26"
+    },
+    "f5": {
+      "verified": "prospective tool fix only; no host re-run, so old snapshots lack tasks.metadata; triangulated by H4b disclosure + read-only DB",
+      "tool_now_emits": "tasks.metadata[version,updatedAt,state,uncertaintyReason]"
+    },
+    "f6": {
+      "verified": true,
+      "files": [
+        ".local/h5-verify/h5-check-final.log",
+        ".local/h5-verify/h5-check-final2.log",
+        ".local/h5-verify/h5-check-final3.log"
+      ],
+      "sha_bytes_match": true,
+      "logDurability_committed": true,
+      "matrix_validator_unchanged_since_5a7bc9e": true
+    },
+    "f7": {
+      "verified": "dispositioned as known limitation; H4b logs still path-only"
+    },
+    "f8": {
+      "verified": "accepted future improvement"
+    },
+    "f9": {
+      "verified": "info unchanged"
+    },
+    "f10": {
+      "verified": "acknowledged by test-harness; pending optional clean refresh; original review remains frozen at 00fb75b"
+    },
+    "scopeNote": "c6a3f05 reviewed only for the F1-F6 fix dispositions; it also commits the earlier version of this review artifact and other slices (H2a/H0c evidence); those are outside task-13 evidence review."
   }
 }

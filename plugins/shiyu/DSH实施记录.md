@@ -433,8 +433,8 @@ findings 处理：
 | F2 host audit `sessions.files[].relativePath` 含编码 home 片段 | 接受为既有惯例（无绝对路径、无正文）；后续导出会脱敏 relativePath |
 | F3 两轮 host 证据 `payload.bytes` 是字符数而非字节数 | 已修：改为实际文件字节数并注明语义（sha256 原本正确） |
 | F4 H4b 未披露 unknown Task 元数据启动刷新 | 已补披露：version 25→26、updatedAt=本次 reload；状态/计数/不重试/不宣告成功不变 |
-| F5 host 审计缺 task version/updated 摘要 | 已修工具：`scripts/host-state-audit.mjs` 现输出逐 Task version/updatedAt/state/uncertaintyReason，后续证据可直接核对 |
-| F6/F7 实现者日志仅在 /tmp、H4b 日志未声明 sha/bytes | 记录为已知限制；证据 JSON 已冻结日志 hash，临时日志不作为长期证据；后续切片日志统一复制到 `.local` 并声明 sha/bytes |
+| F5 host 审计缺 task version/updated 摘要 | 工具前景已修：`scripts/host-state-audit.mjs` 现输出逐 Task version/updatedAt/state/uncertaintyReason；已提交的旧 host 快照未重跑，H4 的 24→25 由 H4b 披露 + 只读 DB 三角佐证；如需旧快照直接可核需另立一次零模型 host audit 批次 |
+| F6/F7 实现者日志仅在 /tmp、H4b 日志未声明 sha/bytes | **F6 已修**：H5 三份全量日志已归档到 gitignored `.local/h5-verify/`，`h5-verification.json` 增加 `archivedCopy{path,sha256,bytes,matchTransientLog}` 与 `logDurability`（归档哈希与原件一致，复核通过）；F7（H4b 日志未声明 sha/bytes）记录为已知限制，后续切片统一声明 |
 | F8/F9/F10 matrix observed 叙述、oldDist 语义、H0b dirty overlay | info 级披露；H0b/H0c artifacts 可在最终批次干净 HEAD 上重生成 clean-VCS 指纹 |
 
-说明：F6/F7 的日志仅 /tmp 属于可审计性不足而非证据造假；本记录保留该限制，不把临时日志当作首选证据。
+说明：F6 已修复并复核通过；F7 属于可审计性不足而非证据造假，本记录保留该限制，不把临时日志当作首选证据。独立复核员随后在 `H4H5-EVIDENCE-REVIEW.md`/`h4h5-evidence-review.json` 增加了 §7“复核快照边界”、§8“F1–F6 修正验证”与逐 finding 的 `postReviewStatus`，作为 F1–F6 处置的持久记录。

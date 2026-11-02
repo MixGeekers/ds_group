@@ -146,3 +146,26 @@
 | `artifacts/dsh/h0/h0b-test-harness.json` | `e6eb22efb6260ea1452141f7abcf3587059dc829ba6d160650cb0ac7dd06ab68` |
 
 复现要点：`git show <commit>:<path> | shasum -a 256`；日志 `shasum -a 256` + `grep -E "ℹ (tests|pass|fail|skipped)"`；宿主证据逐项重算见 JSON method 字段；dist 复现见 C20。
+
+## 7. 复核快照边界（后续提交不在本报告范围）
+
+- 本报告冻结于 HEAD `00fb75b`，复核提交为 `2e04eb2`/`f2f9d42`/`5a7bc9e`/`feecf86`/`00fb75b`/`eef00d3`。
+- 复核完成后 HEAD 已前移至 `7bd962c`（中间 `a80c33d` H2a、`086e43a` H2a evidence、`7bd962c` H0c）。这些提交**不在 task-13 范围**，本报告不对其作真实性结论。
+- 事后观察（未复核）：`7bd962c` 已把 `artifacts/dsh/harness` 刷新为 42 个 artifact 文件、tool-selfproof 7 files/57 tests；其 manifest 仍 `vcs.dirty=true`（head `feecf86`），即 F10 类披露在当前 HEAD 仍成立。**不要把 H0c 新 artifact/57 tests 与 `eef00d3` H0b 的 6 files/42 tests 混算**；新提交需要新的独立复核轮次。
+
+## 8. 复核后修正验证（commit `c6a3f05`，仅针对 F1–F6 处置）
+
+Lead 已提交 `c6a3f05`（chore(shiyu): evidence hygiene fixes and independent H4/H5 review (F1-F5)），并对 F1–F6 做出处置。本节为**只读复核该提交的修复字段**，原报告主体仍冻结于 `00fb75b`。
+
+| ID | 处置状态 | 复核结果 |
+|---|---|---|
+| F1 绝对 home 路径 | 已修 | HEAD `artifacts/dsh` 无 `绝对 home 路径`；slice artifacts 的 worktree/log 改为 `<home>/…` token；H4 reproduce 命令脱敏；`slice-verify.mjs` 从生成处脱敏；核对 h4/h4b/h5 slice artifacts 的 files[] 哈希仍与源 commit 一致（21/7/18 全匹配） |
+| F2 编码 home 片段 | 接受为既有惯例 | Lead 记录接受（无绝对路径/无正文），6 个 host 原始审计文件保持原样；后续导出将脱敏 relativePath |
+| F3 payload.bytes | 已修 | 两轮 host evidence bytes 改为实际 53320/53773 并加 `bytesSemantics`；sha256 原值不变、仍与实际文件一致 |
+| F4 unknown Task 元数据披露 | 已修 | H4b findings 新增 version 25→26、updatedAt=本次 reload、状态/计数/不重试/不宣告成功不变；与只读 DB（version 26、updatedAt=19:24:28.897Z）一致 |
+| F5 旧快照缺 task version | 工具前景修复 | `host-state-audit.mjs` 现输出 tasks.metadata(version/updatedAt/state/uncertaintyReason)；已提交旧快照未重跑，故旧的 24→25 仍不能由旧快照直接验证（由 H4b 披露+DB 三角佐证） |
+| F6 H5 /tmp 日志 | 已修并入库 | HEAD `h5-verification.json` 含 archivedCopy/logDurability；`.local/h5-verify/` 三份日志存在且 sha/bytes 与声明逐一匹配（gitignored）；矩阵/校验器 JSON 自 `5a7bc9e` 未变 |
+| F7 H4b 日志无 hash 声明 | 记录为已知限制 | DSH 记录 §12 记录；后续切片日志复制 .local 并声明 sha/bytes（H5 已按此办理） |
+| F8/F9/F10 | 接受/待定 | F8 记后续改进；F9 info 不变；F10 由 test-harness 确认待 Lead 指定 HEAD 后 clean refresh，本报告不对新 commit 结论 |
+
+结论：F1/F3/F4/F6 已修复且复核通过；F2 已按既有惯例明确接受；F5 工具已修但仅对后续快照生效；F7/F8/F9/F10 为已知限制/后续项。修复未改变任何产品/测试源码结论，也未改变 H4/H4b/H5 的证据层级结论。
