@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "phase": "H4",
+  "slice": "H4 inner domains foundation (relationship/emotion/cognition/personality)",
+  "capturedAt": "2026-11-02T18:56:54.476Z",
+  "status": "offline-verified-module",
+  "purpose": "Implement the four remaining inner domains as local control-store authorities with versions/source refs/withdrawal and deletion barriers/audience filtering, same ControlStore Worker IPC, schema4 publication manifest, and two-stage ReadView (metadata crop, re-authorization, body read only for eligible records).",
+  "baseline": {
+    "head": "31af227",
+    "note": "H1 + H5 + independent H1 verification committed/pushed; 1096 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/contracts/inner.ts",
+      "bytes": 52002,
+      "sha256": "276ee117280308c54411b07b0d48a4c42cffd79e668650faed2f0fdeb3837d9c"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/inner-domain.ts",
+      "bytes": 34628,
+      "sha256": "896f587be8b9dda182ebbb63799a9c9a5b68ef493d9659ad6a994f824c438cf9"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/relationship-domain.ts",
+      "bytes": 19554,
+      "sha256": "20fb9eaa19e04b21452ada3a76d5b3097af918058d7951eb4027b4ae22f5bbac"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/emotion-domain.ts",
+      "bytes": 13672,
+      "sha256": "81d49106dd01299052137345cf4fdc30a9fdc43203c4f7f53871e3087f43420a"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/cognition-domain.ts",
+      "bytes": 19561,
+      "sha256": "94d1646c403c55fcf3802ed7fe19b8c9c65d5643182297488ee06304763e5e6d"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/personality-domain.ts",
+      "bytes": 17497,
+      "sha256": "957a5e4bd8325ce651f8fe267d95db564dd662558b5e48de047d7e19fee26a78"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+      "bytes": 60497,
+      "sha256": "ed60752222f2c57cb94b98a330dcc76b0deca129847d5edc5bd841523c1c79c9"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/protocol.ts",
+      "bytes": 5139,
+      "sha256": "9a530add70a47b6037987c88b45654f1e8292efb35a8d344dc9e1a927507ee31"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/view-domain.ts",
+      "bytes": 26643,
+      "sha256": "64117bc08d1c3b6574aed7190cd6f00e6355b34e1b3df00f04748c94018b0298"
+    },
+    {
+      "path": "plugins/shiyu/src/state/publication.ts",
+      "bytes": 25760,
+      "sha256": "7c502b2c2b48d653a4ebc2bee69a052faf5050a4dd52e3b0db4934c3ea15342b"
+    },
+    {
+      "path": "plugins/shiyu/src/views/index.ts",
+      "bytes": 42097,
+      "sha256": "e0d94718d78fa64e3f3ddd760135cd271855101450fca798a1e0772d87d5e623"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-relationship.test.ts",
+      "bytes": 23334,
+      "sha256": "0ef968434ef8c79c5a19a6b9a3d550e0aec119d6fec01e8c92c4981295114590"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-emotion.test.ts",
+      "bytes": 16203,
+      "sha256": "6b0e347c5098522e5e61ac57b910a550134c60b902fdcdc9c6f361fea4961578"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-cognition.test.ts",
+      "bytes": 14900,
+      "sha256": "c9842650137b38c74724dbc899f3d7b9e772f55a964f777ea4c90b6d66e52a72"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-personality.test.ts",
+      "bytes": 12810,
+      "sha256": "0235810f297a576fbad4c0bafd52e57920c03b2125e09133ac11f6b0bd589759"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-publication.test.ts",
+      "bytes": 12440,
+      "sha256": "8f436abf79ccca60e572d410349ebf7f5fd866689fa397b98c28b55e4b98f3d0"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-readview.test.ts",
+      "bytes": 9636,
+      "sha256": "efe1423442e67e9094eaacecbca510050b1d45bf25296ef1b322802404c9b86f"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-view.test.ts",
+      "bytes": 20134,
+      "sha256": "71559f1bb29d63312fb62ab9f83e0ea80dcdefd27415e161faf1381f9532aa17"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-view-store.test.ts",
+      "bytes": 9219,
+      "sha256": "24a1fac7506debf6e080be1e55b7f84d9e3fd5411b56b0f6379e22cf526a16ce"
+    },
+    {
+      "path": "plugins/shiyu/tests/memory-view-store.test.ts",
+      "bytes": 17459,
+      "sha256": "780a0c842400e46fdc2cf4b8f9eccc19a7cfbc56e26bb1e5572fad7758fe1833"
+    },
+    {
+      "path": "plugins/shiyu/tests/runtime-capability.test.ts",
+      "bytes": 10749,
+      "sha256": "1179a33aa47e216c2e16fbdf40a0ce48db6d335d3a2740eaefa5b17f6c5ba410"
+    }
+  ],
+  "implementation": {
+    "schema4": "publication schema 4: memory+ability keep previous semantics; each of the four domains is available only when its instance initializes successfully; initialization failure publishes unavailable and commands fail explicitly; schema4 memory/ability updates no longer downgrade the manifest (pre-existing defect fixed)",
+    "relationship": "complete account-tuple unique binding; same display name / same short id never merged; role/member/interaction assertions with sources; explicit merge/split CAS with history preserved; evidence/identity tombstones; audience filtering; no body copies",
+    "emotion": "sourced observations with fixed policy version for decay/review, deterministic integer state, expression regulation expiry, non-human-psychology/unauthorized claims rejected, cross-audience isolation, source withdrawal downgrade",
+    "cognition": "sourced claims/hypotheses/conflicts/review conclusions/revised action experience; facts separated from interpretations; self-asserted tool/world facts rejected by predicate; dependent conclusions drop on source withdrawal",
+    "personality": "stable Profile versions; whitelisted diff; learning strategy fixed disabled; propose->review two-stage approval; CAS; source withdrawal fails closed; ordinary chat cannot change profile",
+    "readView": "two-stage: capture metadata only (no body, no grant authority), validate capture per domain, then read bodies only for the captured intersection after audience/resource/source re-authorization; missing/incomplete body ports are explicit unavailable, never empty success",
+    "ipc": "four domains registered in the same ControlStore worker; 9-11 typed commands per domain; view.readInnerBodies and captureLocal innerDomains"
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "/tmp/shiyu-h4 (ephemeral; HEAD 08995d1 + the 21 slice files, dependency and pinned Python symlinks)",
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 1088,
+      "pass": 1088,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 162504,
+      "log": {
+        "path": "plugins/shiyu/.local/h4-check-final.log",
+        "bytes": 119152,
+        "sha256": "f43ac02c7734a91be34537be20942347560880bc2e12b7f805a1601cfea43c50"
+      },
+      "arithmetic": "H0-era 1025 baseline + 63 new tests = 1088"
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 31af227 + only this slice; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h4-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1159,
+        "pass": 1159,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 181675,
+      "log": "plugins/shiyu/.local/slice-verify-h4.log",
+      "arithmetic": "1096 committed baseline + 63 new = 1159"
+    },
+    "testDelta": {
+      "base": 1096,
+      "slice": 63,
+      "total": 1159
+    },
+    "coverage": {
+      "relationship": "same-name/short-id non-merge, unique account tuple binding, merge/split history, CAS correction, withdrawal non-revival, cross-audience isolation, real WorkerThread two-connection CAS single winner, restart persistence, missing authority fail-closed",
+      "emotion": "source+fixed-version decay/review determinism, regulation expiry, unauthorized psychological claims, audience isolation, deletion propagation",
+      "cognition": "conflict sets, revision, review, self-asserted facts rejected, source withdrawal downgrade",
+      "personality": "stable profile across many ordinary turns, whitelist diff, propose/review approval, CAS, source withdrawal fail-closed, learning disabled",
+      "publication": "schema4 available/unavailable, memory/ability non-downgrade, old receipt replay",
+      "readview": "metadata/body two-stage, cross-audience crop before body, unavailable explicit failure, worker restart persistence"
+    }
+  },
+  "failedUnknownUntested": [
+    "replyer composition (src/views/local.ts) and the client dashboard six-domain availability panel are NOT wired in this slice; exact integration points are recorded in the H4 evidence. A fixed-host zero-model H4 evidence is still missing.",
+    "No real DSH host, model/embedding, real Ombre body content, real channels/devices or business acceptance.",
+    "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition conclusions) is not implemented; only source-invalidation downgrade.",
+    "Emotion rule policy version is fixed at 1 (no runtime migration path); personality learning is fixed disabled (no enable path).",
+    "Historical revisions/conflicts live in the control DB only; capture exposes the current latest eligible version, not a full history replay.",
+    "publication available is a read-availability declaration, not business acceptance or a grant."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "liveDataRootAccesses": 0
+  },
+  "evidenceLevel": "G1 module/property tests with real temporary SQLite and WorkerThread; synthetic inputs only."
+}

@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h4",
+  "capturedAt": "2026-11-02T18:56:33.879Z",
+  "head": "31af2275a0aee098e23694675d75d3e76f36f672",
+  "worktree": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h4-1793645611820",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/contracts/inner.ts",
+      "bytes": 52002,
+      "sha256": "276ee117280308c54411b07b0d48a4c42cffd79e668650faed2f0fdeb3837d9c"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/inner-domain.ts",
+      "bytes": 34628,
+      "sha256": "896f587be8b9dda182ebbb63799a9c9a5b68ef493d9659ad6a994f824c438cf9"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/relationship-domain.ts",
+      "bytes": 19554,
+      "sha256": "20fb9eaa19e04b21452ada3a76d5b3097af918058d7951eb4027b4ae22f5bbac"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/emotion-domain.ts",
+      "bytes": 13672,
+      "sha256": "81d49106dd01299052137345cf4fdc30a9fdc43203c4f7f53871e3087f43420a"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/cognition-domain.ts",
+      "bytes": 19561,
+      "sha256": "94d1646c403c55fcf3802ed7fe19b8c9c65d5643182297488ee06304763e5e6d"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/personality-domain.ts",
+      "bytes": 17497,
+      "sha256": "957a5e4bd8325ce651f8fe267d95db564dd662558b5e48de047d7e19fee26a78"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+      "bytes": 60497,
+      "sha256": "ed60752222f2c57cb94b98a330dcc76b0deca129847d5edc5bd841523c1c79c9"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/protocol.ts",
+      "bytes": 5139,
+      "sha256": "9a530add70a47b6037987c88b45654f1e8292efb35a8d344dc9e1a927507ee31"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/view-domain.ts",
+      "bytes": 26643,
+      "sha256": "64117bc08d1c3b6574aed7190cd6f00e6355b34e1b3df00f04748c94018b0298"
+    },
+    {
+      "path": "plugins/shiyu/src/state/publication.ts",
+      "bytes": 25760,
+      "sha256": "7c502b2c2b48d653a4ebc2bee69a052faf5050a4dd52e3b0db4934c3ea15342b"
+    },
+    {
+      "path": "plugins/shiyu/src/views/index.ts",
+      "bytes": 42097,
+      "sha256": "e0d94718d78fa64e3f3ddd760135cd271855101450fca798a1e0772d87d5e623"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-relationship.test.ts",
+      "bytes": 23334,
+      "sha256": "0ef968434ef8c79c5a19a6b9a3d550e0aec119d6fec01e8c92c4981295114590"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-emotion.test.ts",
+      "bytes": 16203,
+      "sha256": "6b0e347c5098522e5e61ac57b910a550134c60b902fdcdc9c6f361fea4961578"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-cognition.test.ts",
+      "bytes": 14900,
+      "sha256": "c9842650137b38c74724dbc899f3d7b9e772f55a964f777ea4c90b6d66e52a72"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-personality.test.ts",
+      "bytes": 12810,
+      "sha256": "0235810f297a576fbad4c0bafd52e57920c03b2125e09133ac11f6b0bd589759"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-publication.test.ts",
+      "bytes": 12440,
+      "sha256": "8f436abf79ccca60e572d410349ebf7f5fd866689fa397b98c28b55e4b98f3d0"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-readview.test.ts",
+      "bytes": 9636,
+      "sha256": "efe1423442e67e9094eaacecbca510050b1d45bf25296ef1b322802404c9b86f"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-view.test.ts",
+      "bytes": 20134,
+      "sha256": "71559f1bb29d63312fb62ab9f83e0ea80dcdefd27415e161faf1381f9532aa17"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-view-store.test.ts",
+      "bytes": 9219,
+      "sha256": "24a1fac7506debf6e080be1e55b7f84d9e3fd5411b56b0f6379e22cf526a16ce"
+    },
+    {
+      "path": "plugins/shiyu/tests/memory-view-store.test.ts",
+      "bytes": 17459,
+      "sha256": "780a0c842400e46fdc2cf4b8f9eccc19a7cfbc56e26bb1e5572fad7758fe1833"
+    },
+    {
+      "path": "plugins/shiyu/tests/runtime-capability.test.ts",
+      "bytes": 10749,
+      "sha256": "1179a33aa47e216c2e16fbdf40a0ce48db6d335d3a2740eaefa5b17f6c5ba410"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 181675,
+    "bytes": 126682,
+    "sha256": "0bffd689189cb072dcd9c5e5009b59046065cd8193eaf61dffde9ac977d92171",
+    "tests": {
+      "tests": 1159,
+      "pass": 1159,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 180687.350333",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "/Users/caja/Documents/识雨/plugins/shiyu/.local/slice-verify-h4.log",
+    "bytes": 126682,
+    "sha256": "0bffd689189cb072dcd9c5e5009b59046065cd8193eaf61dffde9ac977d92171"
+  },
+  "verdict": "pass"
+}

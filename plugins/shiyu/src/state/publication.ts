@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
 import type { SqliteTransactions } from '../adapters/control-store/transaction.js';
+import { INNER_DOMAINS, INNER_DOMAIN_BACKENDS, type InnerDomain } from '../contracts/inner.js';
 
 export const STATE_DOMAINS = ['memory', 'relationship', 'emotion', 'cognition', 'personality', 'ability'] as const;
 export type StateDomain = typeof STATE_DOMAINS[number];
@@ -20,17 +21,31 @@ export interface MemoryStateManifest {
   schemaVersion: 2;
   domains: Record<Exclude<StateDomain, 'memory'>, UnavailableDomain> & { memory: UnavailableDomain | AvailableMemoryDomain };
 }
+/** Fixed backend identities for the four inner domains; never tool execution claims. */
+export interface AvailableInnerDomain {
+  status: 'available';
+  backendId: string;
+  /** Persistent domain authority identity, not data content or a permission token. */
+  authorityId: string;
+  capabilities: ['metadata_read', 'content_read'];
+}
+export type InnerAvailability = UnavailableDomain | AvailableInnerDomain;
 /** Read availability only. This never declares a tool enabled, executable or verified. */
 export interface AvailableAbilityDomain {
   status: 'available'; backendId: 'control-ability'; authorityId: string; capabilities: ['state_read'];
 }
 export type MemoryAvailability = UnavailableDomain | AvailableMemoryDomain;
 export type AbilityAvailability = UnavailableDomain | AvailableAbilityDomain;
+export type InnerDomainAvailability = Record<InnerDomain, InnerAvailability>;
 export interface AbilityStateManifest {
   schemaVersion: 3;
   domains: Record<Exclude<StateDomain, 'memory' | 'ability'>, UnavailableDomain> & { memory: MemoryAvailability; ability: AbilityAvailability };
 }
-export type StateManifest = LegacyStateManifest | MemoryStateManifest | AbilityStateManifest;
+export interface InnerStateManifest {
+  schemaVersion: 4;
+  domains: Record<Exclude<StateDomain, 'memory' | 'ability'>, InnerAvailability> & { memory: MemoryAvailability; ability: AbilityAvailability };
+}
+export type StateManifest = LegacyStateManifest | MemoryStateManifest | AbilityStateManifest | InnerStateManifest;
 export interface PublishedState {
   schemaVersion: 1; baselineId: string; stateVersion: number; manifest: StateManifest;
   manifestHash: string; publishedAt: string; publisherId: string;
@@ -41,6 +56,9 @@ export interface MemoryAvailabilityPublishCommand {
 }
 export interface AbilityAvailabilityPublishCommand {
   requestId: string; expectedStateVersion: number; expectedBaselineId: string; availability: AbilityAvailability;
+}
+export interface InnerAvailabilityPublishCommand {
+  requestId: string; expectedStateVersion: number; expectedBaselineId: string; availability: InnerDomainAvailability;
 }
 export interface StatePublicationReceipt {
   requestId: string; publisherId: string; status: 'published' | 'unchanged'; recordedAt: string;
@@ -103,35 +121,56 @@ function availableAbility(value: unknown): AvailableAbilityDomain {
     || !Array.isArray(item.capabilities) || item.capabilities.length !== 1 || item.capabilities[0] !== 'state_read') fail('INVALID_MANIFEST', 'Invalid ability read authority or capabilities');
   return { status: 'available', backendId: 'control-ability', authorityId: item.authorityId, capabilities: ['state_read'] };
 }
+function availableInner(domain: InnerDomain, value: unknown): AvailableInnerDomain {
+  const item = plain(value, ['status', 'backendId', 'authorityId', 'capabilities']);
+  if (item.status !== 'available' || item.backendId !== INNER_DOMAIN_BACKENDS[domain] || typeof item.authorityId !== 'string'
+    || !/^[A-Za-z0-9][A-Za-z0-9:._\/-]{0,199}$/.test(item.authorityId)
+    || !Array.isArray(item.capabilities) || item.capabilities.length !== 2
+    || item.capabilities[0] !== 'metadata_read' || item.capabilities[1] !== 'content_read') {
+    fail('INVALID_MANIFEST', 'Invalid available inner-domain read authority or capabilities');
+  }
+  return { status: 'available', backendId: INNER_DOMAIN_BACKENDS[domain], authorityId: item.authorityId, capabilities: ['metadata_read', 'content_read'] };
+}
 function manifest(value: unknown): StateManifest {
   const root = plain(value, ['schemaVersion', 'domains']);
-  if (root.schemaVersion !== 1 && root.schemaVersion !== 2 && root.schemaVersion !== 3) fail('INCOMPATIBLE_VERSION', 'Unsupported state manifest schema');
+  if (root.schemaVersion !== 1 && root.schemaVersion !== 2 && root.schemaVersion !== 3 && root.schemaVersion !== 4) fail('INCOMPATIBLE_VERSION', 'Unsupported state manifest schema');
   const domains = plain(root.domains, STATE_DOMAINS);
-  const result = {} as AbilityStateManifest['domains'];
+  const result = {} as InnerStateManifest['domains'];
   for (const domain of STATE_DOMAINS) {
     if (root.schemaVersion >= 2 && domain === 'memory' && plain(domains.memory, ['status', 'reason', 'backendId', 'deploymentId', 'capabilities', 'profileFingerprint'], ['status']).status === 'available') {
       result.memory = availableMemory(domains.memory); continue;
     }
-    if (root.schemaVersion === 3 && domain === 'ability' && plain(domains.ability, ['status', 'reason', 'backendId', 'authorityId', 'capabilities'], ['status']).status === 'available') {
+    if (root.schemaVersion >= 3 && domain === 'ability' && plain(domains.ability, ['status', 'reason', 'backendId', 'authorityId', 'capabilities'], ['status']).status === 'available') {
       result.ability = availableAbility(domains.ability); continue;
     }
+    if (root.schemaVersion === 4 && (INNER_DOMAINS as readonly string[]).includes(domain)
+      && plain(domains[domain], ['status', 'reason', 'backendId', 'authorityId', 'capabilities'], ['status']).status === 'available') {
+      result[domain as InnerDomain] = availableInner(domain as InnerDomain, domains[domain]); continue;
+    }
     const item = plain(domains[domain], ['status', 'reason']);
-    if (item.status !== 'unavailable' || !UNAVAILABLE_REASONS.includes(item.reason as UnavailableReason)) fail('INVALID_MANIFEST', 'Only schema2+ memory and schema3 ability reads can be available; other domains require a registered unavailable reason');
+    if (item.status !== 'unavailable' || !UNAVAILABLE_REASONS.includes(item.reason as UnavailableReason)) fail('INVALID_MANIFEST', 'Only schema2+ memory, schema3+ ability and schema4 inner-domain reads can be available; other values require a registered unavailable reason');
     result[domain] = { status: 'unavailable', reason: item.reason as UnavailableReason };
   }
   if (root.schemaVersion === 1) return { schemaVersion: 1, domains: result as LegacyStateManifest['domains'] };
   if (root.schemaVersion === 2) return { schemaVersion: 2, domains: result as MemoryStateManifest['domains'] };
-  return { schemaVersion: 3, domains: result };
+  if (root.schemaVersion === 3) return { schemaVersion: 3, domains: result as AbilityStateManifest['domains'] };
+  return { schemaVersion: 4, domains: result };
 }
-/** Pure composition. Preserve every unrelated domain and never downgrade schema3. */
-export function manifestWithMemoryAvailability(current: StateManifest, availability: MemoryAvailability): MemoryStateManifest | AbilityStateManifest {
+/** Pure composition. Preserve every unrelated domain and never downgrade schema4/schema3. */
+export function manifestWithMemoryAvailability(current: StateManifest, availability: MemoryAvailability): MemoryStateManifest | AbilityStateManifest | InnerStateManifest {
   const source = manifest(current);
-  return manifest({ schemaVersion: source.schemaVersion === 3 ? 3 : 2, domains: { ...source.domains, memory: availability } }) as MemoryStateManifest | AbilityStateManifest;
+  const schemaVersion = source.schemaVersion === 4 ? 4 : source.schemaVersion === 3 ? 3 : 2;
+  return manifest({ schemaVersion, domains: { ...source.domains, memory: availability } }) as MemoryStateManifest | AbilityStateManifest | InnerStateManifest;
 }
 /** Pure composition; publishing still requires the original StatePublisher and CAS. */
-export function manifestWithAbilityAvailability(current: StateManifest, availability: AbilityAvailability): AbilityStateManifest {
+export function manifestWithAbilityAvailability(current: StateManifest, availability: AbilityAvailability): AbilityStateManifest | InnerStateManifest {
   const source = manifest(current);
-  return manifest({ schemaVersion: 3, domains: { ...source.domains, ability: availability } }) as AbilityStateManifest;
+  return manifest({ schemaVersion: source.schemaVersion === 4 ? 4 : 3, domains: { ...source.domains, ability: availability } }) as AbilityStateManifest | InnerStateManifest;
+}
+/** Pure composition; publishing still requires the original StatePublisher and CAS. */
+export function manifestWithInnerAvailability(current: StateManifest, availability: InnerDomainAvailability): InnerStateManifest {
+  const source = manifest(current);
+  return manifest({ schemaVersion: 4, domains: { ...source.domains, ...availability } }) as InnerStateManifest;
 }
 /** Trusted composition only: never expose this factory as a model or UI command. */
 export function createStatePublisher(principalId: string): StatePublisher {
@@ -237,6 +276,13 @@ export class StatePublicationStore {
     const requestId = text(command.requestId, 'publication requestId');
     return this.tx.atomic(() => this.publish(actor, { requestId, expectedStateVersion: command.expectedStateVersion, expectedBaselineId: command.expectedBaselineId,
       manifest: manifestWithAbilityAvailability(this.availabilityBase(requestId), command.availability) }));
+  }
+  publishInnerAvailability(actor: StatePublisher, command: InnerAvailabilityPublishCommand): StatePublicationReceipt {
+    this.publisher(actor); plain(command, ['requestId', 'expectedStateVersion', 'expectedBaselineId', 'availability']);
+    const requestId = text(command.requestId, 'publication requestId');
+    const availability = plain(command.availability, INNER_DOMAINS) as unknown as InnerDomainAvailability;
+    return this.tx.atomic(() => this.publish(actor, { requestId, expectedStateVersion: command.expectedStateVersion, expectedBaselineId: command.expectedBaselineId,
+      manifest: manifestWithInnerAvailability(this.availabilityBase(requestId), availability) }));
   }
   publish(actor: StatePublisher, command: StatePublishCommand): StatePublicationReceipt {
     const publisherId = this.publisher(actor);

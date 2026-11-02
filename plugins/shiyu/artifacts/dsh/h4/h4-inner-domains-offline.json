@@ -1,0 +1,288 @@
+{
+  "slice": "H4 内层四域基础：关系 / 情绪 / 认知 / 人格",
+  "recordedAt": "2026-11-02T14:52:46-04:00",
+  "workspace": "plugins/shiyu",
+  "branchHead": "08995d182d2ae5ecda69ae81992a636af37f6399",
+  "environment": {
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "sqlite": "node:sqlite (bundled, real temporary files)",
+    "platform": "darwin/arm64"
+  },
+  "isolation": {
+    "method": "git worktree add --detach /tmp/shiyu-h4 08995d1",
+    "path": "/tmp/shiyu-h4",
+    "included": "HEAD 08995d1 + 仅本切片 21 个文件（12 源码/测试新增或修改 + 7 个 tests/inner-*.test.ts + 3 个既有基线测试断言更新）",
+    "dependencyLinks": [
+      "/tmp/shiyu-h4/plugins/shiyu/node_modules -> 主树 node_modules（只读依赖）",
+      "/tmp/shiyu-h4/plugins/shiyu/.local/ombre -> 主树 .local/ombre（固定 Python/Ombre 工具夹具；仅被既有 semantic-memory-stdio 测试使用）"
+    ],
+    "note": "主树有并行 WIP（src/recovery/*、src/adapters/dsh/* 及其测试），不在本切片范围；因此全量验证在隔离 worktree 内针对 HEAD+本切片做，避免把并行 WIP 结果混入。"
+  },
+  "implementation": {
+    "schema": {
+      "publicationSchemaVersion": 4,
+      "availableInnerDomain": {
+        "status": "available",
+        "backendId": "control-relationship|control-emotion|control-cognition|control-personality",
+        "authorityId": "持久域 authority UUID",
+        "capabilities": [
+          "metadata_read",
+          "content_read"
+        ]
+      },
+      "unavailable": {
+        "status": "unavailable",
+        "reason": "not_connected|not_implemented|source_unavailable|verification_pending|incompatible_version"
+      },
+      "semantics": "只有四域实例成功初始化才发布 available；初始化失败发布 unavailable 且命令显式失败；publication 只是读取可用性声明，不是业务验收或授权。memory/ability 旧语义保留，schema4 下更新 memory/ability 不再降级。"
+    },
+    "ipcCommands": {
+      "relationship": [
+        "relationship.status",
+        "relationship.registerSubject",
+        "relationship.assert",
+        "relationship.reviseAssertion",
+        "relationship.mergeSubjects",
+        "relationship.splitSubjects",
+        "relationship.resolveSubject",
+        "relationship.withdraw",
+        "relationship.captureForView",
+        "relationship.validateForView",
+        "relationship.readBodies"
+      ],
+      "emotion": [
+        "emotion.status",
+        "emotion.observe",
+        "emotion.review",
+        "emotion.regulate",
+        "emotion.state",
+        "emotion.withdraw",
+        "emotion.captureForView",
+        "emotion.validateForView",
+        "emotion.readBodies"
+      ],
+      "cognition": [
+        "cognition.status",
+        "cognition.propose",
+        "cognition.revise",
+        "cognition.review",
+        "cognition.resolveConflict",
+        "cognition.withdraw",
+        "cognition.captureForView",
+        "cognition.validateForView",
+        "cognition.readBodies"
+      ],
+      "personality": [
+        "personality.status",
+        "personality.snapshot",
+        "personality.propose",
+        "personality.review",
+        "personality.withdraw",
+        "personality.captureForView",
+        "personality.validateForView",
+        "personality.readBodies"
+      ],
+      "view": [
+        "view.captureLocal({innerDomains?}) 扩展",
+        "view.readInnerBodies({captureId,domain,recordIds}) 新增",
+        "view.validateCapture 逐域重验"
+      ]
+    },
+    "readView": "views/index.ts 通用 ReadView 两段式：先 metadata 读并按 scope/audience/resource/source 裁剪，再仅对 eligible record 调 body 端口；body 端口缺失/不完整/超时=显式 unavailable；四域独立 authority 向量进入 securityHash。",
+    "addedSourceFiles": [
+      {
+        "path": "src/contracts/inner.ts",
+        "sha256": "276ee117280308c54411b07b0d48a4c42cffd79e668650faed2f0fdeb3837d9c",
+        "lines": 743
+      },
+      {
+        "path": "src/adapters/control-store/inner-domain.ts",
+        "sha256": "896f587be8b9dda182ebbb63799a9c9a5b68ef493d9659ad6a994f824c438cf9",
+        "lines": 532
+      },
+      {
+        "path": "src/adapters/control-store/relationship-domain.ts",
+        "sha256": "20fb9eaa19e04b21452ada3a76d5b3097af918058d7951eb4027b4ae22f5bbac",
+        "lines": 276
+      },
+      {
+        "path": "src/adapters/control-store/emotion-domain.ts",
+        "sha256": "81d49106dd01299052137345cf4fdc30a9fdc43203c4f7f53871e3087f43420a",
+        "lines": 204
+      },
+      {
+        "path": "src/adapters/control-store/cognition-domain.ts",
+        "sha256": "94d1646c403c55fcf3802ed7fe19b8c9c65d5643182297488ee06304763e5e6d",
+        "lines": 266
+      },
+      {
+        "path": "src/adapters/control-store/personality-domain.ts",
+        "sha256": "957a5e4bd8325ce651f8fe267d95db564dd662558b5e48de047d7e19fee26a78",
+        "lines": 235
+      }
+    ],
+    "modifiedSourceFiles": [
+      {
+        "path": "src/adapters/control-store/worker.ts",
+        "sha256": "ed60752222f2c57cb94b98a330dcc76b0deca129847d5edc5bd841523c1c79c9",
+        "lines": 825
+      },
+      {
+        "path": "src/adapters/control-store/protocol.ts",
+        "sha256": "9a530add70a47b6037987c88b45654f1e8292efb35a8d344dc9e1a927507ee31",
+        "lines": 71
+      },
+      {
+        "path": "src/adapters/control-store/view-domain.ts",
+        "sha256": "64117bc08d1c3b6574aed7190cd6f00e6355b34e1b3df00f04748c94018b0298",
+        "lines": 324
+      },
+      {
+        "path": "src/state/publication.ts",
+        "sha256": "7c502b2c2b48d653a4ebc2bee69a052faf5050a4dd52e3b0db4934c3ea15342b",
+        "lines": 322
+      },
+      {
+        "path": "src/views/index.ts",
+        "sha256": "e0d94718d78fa64e3f3ddd760135cd271855101450fca798a1e0772d87d5e623",
+        "lines": 513
+      }
+    ],
+    "addedTestFiles": [
+      {
+        "path": "tests/inner-cognition.test.ts",
+        "sha256": "c9842650137b38c74724dbc899f3d7b9e772f55a964f777ea4c90b6d66e52a72",
+        "lines": 192,
+        "testCount": 8
+      },
+      {
+        "path": "tests/inner-emotion.test.ts",
+        "sha256": "6b0e347c5098522e5e61ac57b910a550134c60b902fdcdc9c6f361fea4961578",
+        "lines": 228,
+        "testCount": 10
+      },
+      {
+        "path": "tests/inner-personality.test.ts",
+        "sha256": "0235810f297a576fbad4c0bafd52e57920c03b2125e09133ac11f6b0bd589759",
+        "lines": 177,
+        "testCount": 9
+      },
+      {
+        "path": "tests/inner-publication.test.ts",
+        "sha256": "8f436abf79ccca60e572d410349ebf7f5fd866689fa397b98c28b55e4b98f3d0",
+        "lines": 143,
+        "testCount": 7
+      },
+      {
+        "path": "tests/inner-readview.test.ts",
+        "sha256": "efe1423442e67e9094eaacecbca510050b1d45bf25296ef1b322802404c9b86f",
+        "lines": 138,
+        "testCount": 8
+      },
+      {
+        "path": "tests/inner-relationship.test.ts",
+        "sha256": "0ef968434ef8c79c5a19a6b9a3d550e0aec119d6fec01e8c92c4981295114590",
+        "lines": 268,
+        "testCount": 12
+      },
+      {
+        "path": "tests/inner-view.test.ts",
+        "sha256": "71559f1bb29d63312fb62ab9f83e0ea80dcdefd27415e161faf1381f9532aa17",
+        "lines": 216,
+        "testCount": 9
+      }
+    ],
+    "updatedBaselineTests": {
+      "files": [
+        {
+          "path": "tests/local-view-store.test.ts",
+          "sha256": "24a1fac7506debf6e080be1e55b7f84d9e3fd5411b56b0f6379e22cf526a16ce",
+          "lines": 102
+        },
+        {
+          "path": "tests/memory-view-store.test.ts",
+          "sha256": "780a0c842400e46fdc2cf4b8f9eccc19a7cfbc56e26bb1e5572fad7758fe1833",
+          "lines": 176
+        },
+        {
+          "path": "tests/runtime-capability.test.ts",
+          "sha256": "1179a33aa47e216c2e16fbdf40a0ce48db6d335d3a2740eaefa5b17f6c5ba410",
+          "lines": 158
+        }
+      ],
+      "diffStat": "+8 / -5 lines in 3 files",
+      "reason": "schema4 升版导致 Worker 初始 publication 的形状断言（manifest.schemaVersion 3->4、stateVersion 2->3、四域由 unavailable 变为 available）必须同步；未削弱任何安全断言。",
+      "detail": [
+        "tests/local-view-store.test.ts: 仅 stateVersion/schemaVersion + 四域 available 断言；其余权限/只读/失效断言未改。",
+        "tests/memory-view-store.test.ts: 初始与 memory 更新后的 schema/stateVersion + “memory/ability 更新不得把四域降级”替换原“其余域必须 unavailable”；memory 私有发布/CAS/部署绑定/只读断言未改。",
+        "tests/runtime-capability.test.ts: 仅 publication schema/四域 available 断言；Runtime 真实任务/能力证据断言未改。"
+      ]
+    }
+  },
+  "verification": {
+    "isolatedWorktreeFullCheck": {
+      "command": "cd /tmp/shiyu-h4/plugins/shiyu && npm run check",
+      "exitCode": 0,
+      "typecheck": "pass (tsc --noEmit)",
+      "tests": 1088,
+      "pass": 1088,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "todo": 0,
+      "durationMs": 162504,
+      "build": "pass (tsc -p tsconfig.build.json)",
+      "clientSyntax": "pass (node --check client/index.js)",
+      "baselineArithmetic": "H0 基线 1025 + 本切片新增 63 = 1088（不把旧批次与本次相加成覆盖率）",
+      "log": "完整日志副本在 plugins/shiyu/.local/h4-check-final.log（.local 被本包 .gitignore 排除，不入库）；主树对应路径 /tmp/h4-check-final.log 亦可再取",
+      "workspaceCleanliness": "worktree git status 仅包含本切片 21 个文件 + 2 个依赖 symlink；未触碰 dsh adapters、tests/verify、tests/harness、runtime.ts/index.ts/client、memory 正文权威。"
+    },
+    "mainTreeTargeted": {
+      "innerSuites": "node --import tsx --test --test-concurrency=1 tests/inner-*.test.ts -> 63/63 pass, 0 fail, 0 skip",
+      "affectedExistingSuites": "inner-*.test.ts + local-view-store + memory-view-store + state-publication + local-views + views + local-memory-views + local-reply-memory -> 140/140 pass；runtime-capability + runtime-semantic-memory + runtime-core -> 31/31 pass",
+      "note": "主树随后被并行 WIP 污染 typecheck；只用于快速回归，最终结论以隔离 worktree 为准。"
+    },
+    "testCoverage": {
+      "relationship": "同名/同短ID不合并、完整账号元组唯一绑定、成员/角色与交互事实、said_by/about 区分、显式 merge/split 不改历史、CAS 纠正、证据/身份撤回不复活、跨受众隔离、来源失效降级、真实 WorkerThread 双连接 CAS 唯一赢家、重启持久、缺失 authority fail-closed、无正文副本。",
+      "emotion": "来源观察 + 固定版本衰减/回顾规则、同输入/时钟确定性重算、review digest、表达调节过期、非人类心理事实/无授权声明、跨受众状态隔离、来源 tombstone 与外部来源失效降级/撤销、撤回不抹掉他域客观事实、读纯、重启持久、缺失 authority fail-closed。",
+      "cognition": "事实/解释/行动经验分离、保留谓词拒绝自述伪造工具/世界事实、无来源/仅自述拒绝、冲突集 contested 与来源化解决、CAS 修订、复盘结论、来源撤回降级->撤销、跨受众隔离、读纯、重启/新安装失效、缺失 authority fail-closed。",
+      "personality": "基线 Profile、100 轮普通活动零漂移、propose->review 两段审批才生效、拒绝不改变、学习策略 disabled、封闭白名单与非法字段/越界拒绝、跨受众复核拒绝、来源撤回 body fail-closed 且不自动回退、CAS 竞争、重启持久、缺失 state/authority fail-closed。",
+      "publication": "schema4 形状封闭、只有真实接线域 available、memory+ability 保留、schema1-3 旧回执重放、schema4 下 memory/ability 更新不降级、可用性撤回/恢复、receipt 失败原子回滚、纯组合不发布。",
+      "readView": "metadata 先受众/资源裁剪再读正文、只请求 eligible record、缺 body 端口/不完整/未知/重复/超时=显式 unavailable、四域 authority 精确匹配与显式 grant、两阶段之间 authority 变化拒绝返回、body 字段不扩权。",
+      "viewWorker": "真实 ControlStore Worker schema4 发布、inner 捕获无正文、validate 重验、readInnerBodies 二段、读纯不推 commit 水位、越界字段拒绝、DM 事实不入群聊、memory 来源撤回传播、域初始化失败显式 unavailable、event-only store 显式不可用、重启不复活 capture。"
+    }
+  },
+  "evidenceLevel": "G1 模块/属性 + 真实临时 SQLite 文件；固定 DSH 宿主、真实模型/embedding、Ombre 正文、真实渠道/设备/业务均未验证。publication 的 available 只是读取能力声明，不是业务验收。",
+  "failures": [],
+  "unverifiedOrBoundaries": [
+    "replyer 组合 views/local.ts 未接 inner ports（runtime.ts/index.ts/client、views/local.ts 不在本切片写作用域）；IPC 命令已具备，generic ReadView 两段式已单测验证，精确集成点见 integrationPoints。",
+    "运行仪表盘未新增六域面板；client 未改动（不在本切片）。数据已在 runtime.snapshot().innerProjection 中透出。",
+    "没有真实 DSH 宿主零模型/模型运行、没有真实 Ombre 记忆正文参与（memory-operation 证据在 Worker 测试中使用假原生后端保存的真实控制库记录，不是 Ombre 服务）。",
+    "关系历史版本/所有冲突历史只保留在控制库；capture 只暴露当前 latest 可用版本，未提供完整历史回放视图（本切片范围外）。",
+    "emotion 衰减/回顾规则固定 policyVersion=1，未提供运行时配置迁移（改规则需显式迁移，当前无命令）；personality 学习策略固定 disabled，无启用路径。",
+    "合并/拆分不改写历史 actor ID，但跨域重算任务（关系修正后重算认知结论）未实现，仅保留来源失效降级。"
+  ],
+  "integrationPoints": [
+    {
+      "target": "plugins/shiyu/src/views/local.ts（replyer 只读组合，Lead 集成）",
+      "need": "createLocalReadView 的 components 增加四域 Port：metadata 来自 capture.inner.domains[domain].records，正文通过 store.request(\"view.readInnerBodies\",{captureId,domain,recordIds}) 获取；authority 用 capture.access.authority.inner[domain]，bodyFields=[...INNER_VIEW_BODY_FIELDS]。可复用 tests/inner-readview.test.ts 中已验证的两段式模式。",
+      "captureInput": "store.request(\"view.captureLocal\",{conversationId,purpose:\"reply_context\",innerDomains:[\"relationship\",\"emotion\",\"cognition\",\"personality\"]})"
+    },
+    {
+      "target": "plugins/shiyu/client（运行仪表盘六域可用性面板，Lead 集成）",
+      "need": "runtime.snapshot().innerProjection 已是 view.state() 原样（schema4 manifest）。逐域渲染 manifest.domains[domain]：available -> backendId/authorityId/capabilities；unavailable -> reason。不得把 available 解读为业务验收或授权。",
+      "field": "innerProjection.manifest.schemaVersion === 4"
+    },
+    {
+      "target": "plugins/shiyu/src/runtime.ts（可选）",
+      "need": "无需改动即可透出 innerProjection；若仪表盘要展示 inner domain 活跃使用情况，可另加只读命令/投影（当前未实现）。"
+    }
+  ],
+  "reproduce": [
+    "git -C /Users/caja/Documents/识雨 worktree add --detach /tmp/shiyu-h4 08995d1",
+    "复制本切片 21 个文件到 worktree（路径同上）；ln -s 主树 plugins/shiyu/node_modules；ln -s 主树 plugins/shiyu/.local/ombre（固定 Python/Ombre 夹具，仅既有 semantic-memory-stdio 测试使用）",
+    "cd /tmp/shiyu-h4/plugins/shiyu && npm run check  # 期望 typecheck+1088/1088+build+client syntax 通过",
+    "cd /Users/caja/Documents/识雨/plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-*.test.ts  # 63/63"
+  ]
+}

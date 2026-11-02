@@ -30,7 +30,8 @@ async function associated(store: ControlStore) {
 
 test('real Worker initializes one honest manifest and serves Task-only ReadView without ack or writes', async t => {
   const { store, filename } = await fixture(t), initial = await store.request('view.state', {});
-  assert.equal(initial!.stateVersion, 2); assert.equal(initial!.manifest.schemaVersion, 3);
+  assert.equal(initial!.stateVersion, 3); assert.equal(initial!.manifest.schemaVersion, 4);
+  for (const domain of ['relationship', 'emotion', 'cognition', 'personality'] as const) assert.equal(initial!.manifest.domains[domain].status, 'available');
   assert.equal(initial!.manifest.domains.ability.status, 'available'); assert.equal(Object.keys(initial!.manifest.domains).length, 6);
   const { task, entry } = await associated(store), before = await store.request('control.watermark', {});
   const capture = await store.request('view.captureLocal', { conversationId: entry.conversationId, purpose: 'reply_context' });

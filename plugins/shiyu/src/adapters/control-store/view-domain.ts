@@ -9,10 +9,24 @@ import type { CommitWatermark, CommitWatermarkReader } from './commit-watermark.
 import { SqliteTransactions } from './transaction.js';
 import type { MemoryDomain, MemoryViewSnapshot } from './memory-domain.js';
 import type { LabReplyPermit } from '../../contracts/lab.js';
+import {
+  INNER_DOMAINS, INNER_DOMAIN_BACKENDS, validateInnerBodyRead, validateInnerCapture,
+  type InnerAuthority, type InnerBodyRead, type InnerCapture, type InnerDomain, type InnerBodyRecord,
+} from '../../contracts/inner.js';
+import type { ViewInnerAuthority } from '../../views/index.js';
 
 export type { MemoryViewSnapshot, MemoryViewSource } from './memory-domain.js';
 export const MEMORY_VIEW_BACKEND = 'native-memory';
 export const MEMORY_VIEW_FIELDS = ['text'] as const;
+/** Metadata fields exposed by an inner-domain capture; the body is a separate read. */
+export const INNER_VIEW_FIELDS = ['recordId', 'revision', 'kind', 'status', 'evidenceState', 'observedAt', 'bodyAvailable'] as const;
+export const INNER_VIEW_BODY_FIELDS = ['body'] as const;
+/** Trusted same-Worker inner-domain read port; it owns audiences, bodies and deletion barriers. */
+export interface InnerDomainReadPort {
+  captureForView(input: { conversationId: string; recordIds?: readonly string[] }): InnerCapture;
+  validateForView(input: { capture: InnerCapture }): InnerCapture;
+  readBodies(input: { capture: InnerCapture; recordIds: readonly string[] }): InnerBodyRead;
+}
 
 export type LocalViewPurpose = 'reply_context' | 'task_status';
 export type LocalViewPhase = 'prepare' | 'ack' | 'ready';
@@ -30,13 +44,20 @@ export interface LocalViewCapture {
   tasks: LocalTaskProjection[]; component: ComponentSnapshot;
   /** Selected, freshly authorized references only; never native memory bodies. */
   memory?: MemoryViewSnapshot;
+  /** Metadata-only inner-domain captures; bodies require a separate, revalidated read. */
+  inner?: { domains: Partial<Record<InnerDomain, InnerCapture>> };
   /** Metadata only. Its exact permit remains private in this Worker. */
   replyExecution?: LabReplyExecutionBinding;
 }
+export interface InnerBodyReadOutput {
+  domain: InnerDomain; authority: InnerAuthority; capturedAt: string; bodies: InnerBodyRecord[];
+}
 export interface ViewCommands {
-  'view.captureLocal': { input: { conversationId: string; purpose: LocalViewPurpose; memoryOperationIds?: string[] }; output: LocalViewCapture };
+  'view.captureLocal': { input: { conversationId: string; purpose: LocalViewPurpose; memoryOperationIds?: string[]; innerDomains?: InnerDomain[] }; output: LocalViewCapture };
   'view.captureLabReply': { input: LabReplyCaptureRequest; output: LocalViewCapture };
   'view.validateCapture': { input: { captureId: string; phase?: LocalViewPhase }; output: LocalViewCapture };
+  /** Exact content read for a previously captured, audience-trimmed inner-domain selection. */
+  'view.readInnerBodies': { input: { captureId: string; domain: InnerDomain; recordIds: string[] }; output: InnerBodyReadOutput };
   'view.state': { input: Record<string, never>; output: PublishedState | undefined };
 }
 export type ViewDomainRequest = { [K in keyof ViewCommands]: { command: K; args: ViewCommands[K]['input'] } }[keyof ViewCommands];
@@ -46,6 +67,7 @@ interface Options {
   context(conversationId: string): LocalViewCapture['context'];
   getTask(taskId: string): TaskView;
   memory?: Pick<MemoryDomain, 'captureForView' | 'validateForView'>;
+  inner?: Partial<Record<InnerDomain, InnerDomainReadPort>>;
   /** Exact same-Worker Lab permit + local operation check, never a caller profile. */
   authorizeLabReply?(request: LabReplyCaptureRequest, phase: 'capture' | 'validate'): LabReplyCaptureAuthority;
   now?: () => Date; ttlMs?: number; maxCaptures?: number;
@@ -55,6 +77,7 @@ export class LocalViewError extends Error {
 }
 function fail(code: string, message: string): never { throw new LocalViewError(code, message); }
 const id = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9_-]{1,200}$/.test(value);
+const innerRecordId = (value: unknown): value is string => typeof value === 'string' && /^[A-Za-z0-9][A-Za-z0-9:._/-]{0,199}$/.test(value);
 const clone = <T>(value: T): T => structuredClone(value);
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 function fields(value: unknown, allowed: string[], required = allowed): void {
@@ -104,8 +127,13 @@ export class ViewDomain {
   private capture(localInput?: ViewCommands['view.captureLocal']['input'], labRequest?: LabReplyCaptureRequest): LocalViewCapture {
     // The callback is re-run inside the same transaction as the source capture.
     const input = localInput ?? { conversationId: '', purpose: 'reply_context' as const, ...(labRequest?.memoryOperationIds ? { memoryOperationIds: labRequest.memoryOperationIds } : {}) };
-    fields(input, ['conversationId', 'purpose', 'memoryOperationIds'], ['conversationId', 'purpose']);
+    fields(input, ['conversationId', 'purpose', 'memoryOperationIds', 'innerDomains'], ['conversationId', 'purpose']);
     if ((!labRequest && !id(input.conversationId)) || !['reply_context', 'task_status'].includes(input.purpose)) fail('INVALID_SCHEMA', 'Invalid local conversation view');
+    if (input.innerDomains !== undefined) {
+      if (input.purpose !== 'reply_context' || !Array.isArray(input.innerDomains) || !input.innerDomains.length || input.innerDomains.length > INNER_DOMAINS.length
+        || input.innerDomains.some(domain => !(INNER_DOMAINS as readonly string[]).includes(domain))
+        || new Set(input.innerDomains).size !== input.innerDomains.length) fail('INVALID_SCHEMA', 'Inner-domain reads require a bounded reply-context selection');
+    }
     if (input.memoryOperationIds !== undefined && (input.purpose !== 'reply_context' || !Array.isArray(input.memoryOperationIds)
       || input.memoryOperationIds.length > 20 || input.memoryOperationIds.some(value => !id(value))
       || new Set(input.memoryOperationIds).size !== input.memoryOperationIds.length)) fail('INVALID_SCHEMA', 'Invalid bounded memory selection');
@@ -139,6 +167,32 @@ export class ViewDomain {
           || memory.authority.authorizationEpoch !== safety.authEpoch
           || memory.authority.backendId !== published.backendId || memory.authority.deploymentId !== published.deploymentId) fail('MEMORY_UNAVAILABLE', 'Selected memory provenance is incomplete or belongs to another published backend');
       }
+      let inner: LocalViewCapture['inner'];
+      const innerAuthority: Partial<Record<InnerDomain, ViewInnerAuthority>> = {};
+      const innerComponents: { backendId: string; fields: readonly string[]; bodyFields: readonly string[]; authority: InnerDomain }[] = [];
+      const innerResources: string[] = [];
+      if (input.innerDomains !== undefined) {
+        const domains: Partial<Record<InnerDomain, InnerCapture>> = {};
+        for (const domain of [...input.innerDomains].sort()) {
+          const published = publication.manifest.domains[domain];
+          const port = this.options.inner?.[domain];
+          if (!published || published.status !== 'available' || !port) fail('INNER_DOMAIN_UNAVAILABLE', `${domain} has no published read capability`);
+          let captured: InnerCapture;
+          try { captured = validateInnerCapture(port.captureForView({ conversationId: input.conversationId })); }
+          catch (error) {
+            if (error && typeof error === 'object' && 'code' in error && ['UNKNOWN_INNER_CONVERSATION', 'INNER_CONVERSATION_INACTIVE', 'INNER_AUDIENCE_FORBIDDEN'].includes(String(error.code))) fail('FORBIDDEN', 'This conversation audience is not authorized for inner-domain reads');
+            throw error;
+          }
+          if (captured.domain !== domain || captured.conversationId !== input.conversationId) fail('INNER_DOMAIN_UNAVAILABLE', 'An inner-domain capture belongs to another conversation');
+          if (captured.authority.authorityId !== published.authorityId) fail('INNER_DOMAIN_UNAVAILABLE', 'The published inner-domain read authority does not match its live instance');
+          domains[domain] = captured;
+          innerAuthority[domain] = { domain, authorityId: captured.authority.authorityId, installationGeneration: captured.authority.installationGeneration,
+            policyVersion: captured.authority.policyVersion, tombstoneWatermark: captured.authority.tombstoneWatermark, baselineId: captured.authority.baselineId };
+          innerComponents.push({ backendId: INNER_DOMAIN_BACKENDS[domain], fields: [...INNER_VIEW_FIELDS], bodyFields: [...INNER_VIEW_BODY_FIELDS], authority: domain });
+          for (const record of captured.records) innerResources.push(`inner:${domain}:${record.recordId}`);
+        }
+        inner = { domains };
+      }
       const now = this.now(), capturedAt = now.toISOString();
       const expires = execution ? Date.parse(execution.expiresAt) : now.getTime() + this.ttl;
       if (!Number.isFinite(expires) || expires <= now.getTime() || (execution && (expires > now.getTime() + 120000
@@ -149,20 +203,23 @@ export class ViewDomain {
       const actor: TrustedViewActor = { principalId: 'local-replyer', role: 'replyer', scopes: ['local-owner'] };
       const appliedSafety = { authEpoch: safety.authEpoch, tombstoneWatermark: safety.tombstoneWatermark };
       const access: ViewAccess = { principalId: actor.principalId, purpose: input.purpose, scope: 'local-owner', audienceIds: ['local-owner'],
-        resourceRefs: [`conversation:${input.conversationId}`, ...tasks.map(task => `task:${task.taskId}`), ...(memory?.sources.map(source => `memory:${source.operationId}`) ?? [])],
-        components: [{ backendId: 'control-task', fields: [...LOCAL_TASK_FIELDS] }, ...(memory ? [{ backendId: MEMORY_VIEW_BACKEND, fields: [...MEMORY_VIEW_FIELDS], authority: 'memory' as const }] : [])], expiresAt,
+        resourceRefs: [`conversation:${input.conversationId}`, ...tasks.map(task => `task:${task.taskId}`),
+          ...(memory?.sources.map(source => `memory:${source.operationId}`) ?? []), ...innerResources],
+        components: [{ backendId: 'control-task', fields: [...LOCAL_TASK_FIELDS] },
+          ...(memory ? [{ backendId: MEMORY_VIEW_BACKEND, fields: [...MEMORY_VIEW_FIELDS], authority: 'memory' as const }] : []), ...innerComponents], expiresAt,
         policyVersion: safety.policyVersion, authEpoch: safety.authEpoch, tombstoneWatermark: safety.tombstoneWatermark, appliedSafety,
         commitSeq: control.commitSeq, stateVersion: publication.stateVersion, indexWatermark: 0, conversation: clone(context.token),
         authority: { publicationBaselineId: publication.baselineId, policyAuthorityId: safety.policyAuthorityId,
           deletionAuthorityId: safety.deletionAuthorityId, deletionScope: 'local-task-source', indexMode: 'not-used',
-          ...(memory ? { memory: clone(memory.authority) } : {}) } };
+          ...(memory ? { memory: clone(memory.authority) } : {}),
+          ...(Object.keys(innerAuthority).length ? { inner: clone(innerAuthority) } : {}) } };
       const component: ComponentSnapshot = { capturedAt, verifiedSourceHash: hash(tasks), freshness: { status: 'current' }, appliedSafety, expiresAt,
         records: tasks.map(task => ({ recordId: task.taskId, scope: 'local-owner', audienceIds: ['local-owner'], resourceRefs: [`task:${task.taskId}`], fields: { ...task },
           sourceRefs: [{ sourceId: `task:${task.taskId}`, revision: task.version, observedAt: capturedAt, trustClass: 'trusted-control-ledger' }],
           aggregateVersion: { aggregateType: 'task', aggregateId: task.taskId, version: task.version } })) };
       return { schemaVersion: 1 as const, captureId: randomUUID(), capturedAt, expiresAt, actor, access, publication, control, safety,
         index: { mode: 'not-used' as const, watermark: 0 as const }, context, tasks, component, ...(memory ? { memory: clone(memory) } : {}),
-        ...(execution ? { replyExecution: clone(execution.binding) } : {}) };
+        ...(inner ? { inner: clone(inner) } : {}), ...(execution ? { replyExecution: clone(execution.binding) } : {}) };
     });
     this.captures.set(capture.captureId, clone(capture)); return clone(capture);
   }
@@ -190,6 +247,23 @@ export class ViewDomain {
         const checked = this.options.memory.validateForView(capture.memory);
         if (hash(checked) !== hash(capture.memory)) fail('VIEW_INVALIDATED', 'Memory authorization snapshot changed');
       }
+      if (capture.inner) {
+        for (const [domain, stored] of Object.entries(capture.inner.domains)) {
+          const port = this.options.inner?.[domain as InnerDomain];
+          if (!port) fail('INNER_DOMAIN_UNAVAILABLE', 'Inner-domain read authority is no longer connected');
+          let checked: InnerCapture;
+          try { checked = port!.validateForView({ capture: stored! }); }
+          catch (error) {
+            if (error && typeof error === 'object' && 'code' in error && String(error.code).startsWith('INNER_')) {
+              fail('VIEW_INVALIDATED', 'Inner-domain capture authority, audience or provenance changed');
+            }
+            throw error;
+          }
+          if (hash(checked) !== hash(stored)) fail('VIEW_INVALIDATED', 'Inner-domain capture authority changed');
+          const published = publication.manifest.domains[domain as InnerDomain];
+          if (!published || published.status !== 'available' || published.authorityId !== checked.authority.authorityId) fail('VIEW_INVALIDATED', 'Published inner-domain read capability changed');
+        }
+      }
       const current = this.options.context(capture.context.token.conversationId);
       if (strongKeys.some(key => current.token[key] !== capture.context.token[key]) || current.businessId !== capture.context.businessId
         || (capture.context.sessionId !== undefined && current.sessionId !== capture.context.sessionId)) fail('STALE_CONTEXT', 'Conversation audience, generation, routing or Session binding changed');
@@ -204,11 +278,46 @@ export class ViewDomain {
       return clone(capture);
     });
   }
+  /**
+   * Exact content read behind a previously captured metadata selection. The
+   * caller cannot name records that were not captured for this audience, and
+   * the domain revalidates authority, audience and provenance before returning
+   * any body. No write, ack or publication happens here.
+   */
+  readInnerBodies(input: ViewCommands['view.readInnerBodies']['input']): InnerBodyReadOutput {
+    fields(input, ['captureId', 'domain', 'recordIds']);
+    if (!id(input.captureId) || !(INNER_DOMAINS as readonly string[]).includes(input.domain)
+      || !Array.isArray(input.recordIds) || !input.recordIds.length || input.recordIds.length > 200
+      || input.recordIds.some(recordId => !innerRecordId(recordId)) || new Set(input.recordIds).size !== input.recordIds.length) {
+      fail('INVALID_SCHEMA', 'Invalid bounded inner-domain body read');
+    }
+    const domain = input.domain;
+    const capture = this.validateReplyCapture(input.captureId, { for: 'ready' });
+    const stored = capture.inner?.domains[domain];
+    const port = this.options.inner?.[domain];
+    if (!stored || !port) fail('INNER_DOMAIN_UNAVAILABLE', 'This capture has no inner-domain metadata for that domain');
+    const readable = new Set(stored.records.filter(record => record.bodyAvailable).map(record => record.recordId));
+    for (const recordId of input.recordIds) if (!readable.has(recordId)) fail('INNER_BODY_FORBIDDEN', 'A requested body was not captured as readable for this audience');
+    let result: InnerBodyRead;
+    try { result = validateInnerBodyRead(port.readBodies({ capture: stored, recordIds: [...input.recordIds] })); }
+    catch (error) {
+      if (error && typeof error === 'object' && 'code' in error && String(error.code).startsWith('INNER_')) {
+        fail('VIEW_INVALIDATED', 'The captured inner-domain selection is no longer readable');
+      }
+      throw error;
+    }
+    if (result.domain !== domain || hash(result.authority) !== hash(stored.authority) || result.capturedAt !== stored.capturedAt
+      || result.bodies.length !== input.recordIds.length || new Set(result.bodies.map(body => body.recordId)).size !== input.recordIds.length) {
+      fail('VIEW_INVALIDATED', 'Inner-domain authority or selection changed before the body read');
+    }
+    return { domain: result.domain, authority: clone(result.authority), capturedAt: result.capturedAt, bodies: clone(result.bodies) };
+  }
   execute(request: ViewDomainRequest): unknown {
     switch (request.command) {
       case 'view.captureLocal': return this.captureLocal(request.args);
       case 'view.captureLabReply': return this.captureLabReply(request.args);
       case 'view.validateCapture': fields(request.args, ['captureId', 'phase'], ['captureId']); return this.validateReplyCapture(request.args.captureId, { for: request.args.phase ?? 'ready' });
+      case 'view.readInnerBodies': return this.readInnerBodies(request.args);
       case 'view.state': fields(request.args, []); return this.options.publication.get();
     }
   }

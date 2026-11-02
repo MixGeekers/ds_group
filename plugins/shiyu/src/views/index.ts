@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { JsonValue } from '../contracts/events.js';
+import { INNER_DOMAINS, INNER_DOMAIN_BACKENDS, type InnerDomain } from '../contracts/inner.js';
 
 export type ViewPurpose = 'reply_context' | 'task_status' | 'core_decision' | 'health_summary';
 export type ViewRole = 'replyer' | 'worker' | 'core' | 'diagnostic';
@@ -17,11 +18,21 @@ export interface ViewConversationVersion {
   conversationGeneration: number; routingRevision: number; sessionEpoch: number; contextVersion: number;
 }
 export interface SafetyWatermarks { authEpoch: number | null; tombstoneWatermark: number | null }
-export interface ComponentGrant { backendId: string; fields: readonly string[]; authority?: 'memory' | 'ability' }
+export interface ComponentGrant {
+  backendId: string; fields: readonly string[];
+  /** Optional exact-content fields, read only after audience/resource trimming. */
+  bodyFields?: readonly string[];
+  authority?: 'memory' | 'ability' | InnerDomain;
+}
 /** Independent memory deletion/installation authority. Never collapse it into the Task watermark. */
 export interface ViewMemoryAuthority {
   backendId: string; deploymentId: string; installationGeneration: string; authorizationEpoch: number;
   deletionBaselineId: string; deletionScope: 'local-memory-source'; tombstoneWatermark: number; installedAt: string;
+}
+/** Independent inner-domain authority/deletion identity; never a global version or permission. */
+export interface ViewInnerAuthority {
+  domain: InnerDomain; authorityId: string; installationGeneration: string; policyVersion: number;
+  tombstoneWatermark: number; baselineId: string;
 }
 /** Capability binding and safety revision have no shared deletion or proof watermark. */
 export interface ViewAbilityAuthority {
@@ -34,6 +45,7 @@ export interface ViewAuthorityIdentity {
   deletionScope: 'local-task-source'; indexMode: 'not-used';
   memory?: ViewMemoryAuthority;
   ability?: ViewAbilityAuthority;
+  inner?: Partial<Record<InnerDomain, ViewInnerAuthority>>;
 }
 /** Produced only by the current policy/deletion authority and authenticated conversation adapter. */
 export interface ViewAccess {
@@ -68,16 +80,25 @@ export interface ComponentSnapshot {
   expiresAt?: string;
   memoryAuthority?: ViewMemoryAuthority;
   abilityAuthority?: ViewAbilityAuthority;
+  innerAuthority?: ViewInnerAuthority;
 }
 export interface ComponentReadRequest {
   purpose: ViewPurpose; scope: string; audienceIds: readonly string[]; resourceRefs: readonly string[];
   fields: readonly string[]; conversationId?: string; taskId?: string; query?: string;
   sourceFilter?: readonly string[]; maxItems: number; maxBytes: number;
 }
+/** Second, explicitly bounded read for content fields after metadata eligibility is known. */
+export interface ReadViewBodyRequest {
+  purpose: ViewPurpose; scope: string; audienceIds: readonly string[]; resourceRefs: readonly string[];
+  fields: readonly string[]; recordIds: readonly string[]; conversationId?: string; taskId?: string; query?: string;
+}
+export interface ComponentBodyRecord { recordId: string; fields: Readonly<Record<string, JsonValue>> }
 /** No database handle, memory mutation, arbitrary query, or commit method is passed to this service. */
 export interface ReadViewComponentPort {
   backendId: string;
   read(request: Readonly<ComponentReadRequest>, signal?: AbortSignal): Promise<ComponentSnapshot> | ComponentSnapshot;
+  /** Optional content phase. When a grant declares bodyFields this must exist or the component is unavailable. */
+  readBody?(request: Readonly<ReadViewBodyRequest>, signal?: AbortSignal): Promise<readonly ComponentBodyRecord[]> | readonly ComponentBodyRecord[];
 }
 export interface ReadViewComponent {
   backendId: string; capturedAt: string | null; componentRevision?: Revision;
@@ -132,7 +153,8 @@ function uniqueSources(refs: readonly ViewSourceRef[]): ViewSourceRef[] { return
 function scopeHash(actor: TrustedViewActor, request: ViewRequest, access: ViewAccess): string {
   return hash({ principalId: actor.principalId, role: actor.role, purpose: request.purpose, scope: access.scope,
     audienceIds: [...access.audienceIds].sort(), resourceRefs: [...access.resourceRefs].sort(),
-    components: access.components.map(item => ({ backendId: item.backendId, fields: [...item.fields].sort(), ...(item.authority ? { authority: item.authority } : {}) })).sort((a, b) => a.backendId.localeCompare(b.backendId)),
+    components: access.components.map(item => ({ backendId: item.backendId, fields: [...item.fields].sort(),
+      ...(item.bodyFields ? { bodyFields: [...item.bodyFields].sort() } : {}), ...(item.authority ? { authority: item.authority } : {}) })).sort((a, b) => a.backendId.localeCompare(b.backendId)),
     conversationId: request.conversationId, taskId: request.taskId });
 }
 function securityHash(actor: TrustedViewActor, request: ViewRequest, access: ViewAccess): string {
@@ -166,6 +188,16 @@ function sameAbilityAuthority(actual: ViewAbilityAuthority | undefined, expected
     && (['backendId', 'capabilityId', 'authorityId', 'definitionDigest', 'installationGeneration', 'environmentFingerprint', 'safetyRevision'] as const)
       .every(key => actual![key] === expected![key]);
 }
+function innerAuthority(value: ViewInnerAuthority | undefined): boolean {
+  return Boolean(value && (INNER_DOMAINS as readonly string[]).includes(value.domain) && name(value.authorityId)
+    && name(value.installationGeneration) && integer(value.policyVersion) && value.policyVersion >= 1
+    && integer(value.tombstoneWatermark) && name(value.baselineId));
+}
+function sameInnerAuthority(actual: ViewInnerAuthority | undefined, expected: ViewInnerAuthority | undefined): boolean {
+  return innerAuthority(actual) && innerAuthority(expected) && actual!.domain === expected!.domain
+    && (['authorityId', 'installationGeneration', 'policyVersion', 'tombstoneWatermark', 'baselineId'] as const)
+      .every(key => actual![key] === expected![key]);
+}
 function jsonValue(value: unknown, depth = 0): JsonValue {
   if (depth > 16) fail('INVALID_COMPONENT', 'Component data is too deeply nested');
   if (value === null || typeof value === 'string' || typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value))) return value as JsonValue;
@@ -194,6 +226,7 @@ function requestInput(input: ViewRequest): ViewRequest {
  */
 export class ReadViewService {
   private readonly reads = new Map<string, ReadViewComponentPort['read']>();
+  private readonly bodyReads = new Map<string, NonNullable<ReadViewComponentPort['readBody']>>();
   private readonly issued = new Map<string, IssuedMetadata>();
   private readonly authority: ReadViewAuthorityPort;
   private readonly maxOutstanding: number;
@@ -210,6 +243,10 @@ export class ReadViewService {
     for (const port of options.components) {
       if (!name(port.backendId) || port.backendId === 'conversation' || this.reads.has(port.backendId) || typeof port.read !== 'function') fail('INVALID_SCHEMA', 'Invalid or duplicate component read port');
       this.reads.set(port.backendId, port.read.bind(port));
+      if (port.readBody) {
+        if (typeof port.readBody !== 'function') fail('INVALID_SCHEMA', 'Invalid component body reader');
+        this.bodyReads.set(port.backendId, port.readBody.bind(port));
+      }
     }
   }
   private now(): Date {
@@ -229,11 +266,17 @@ export class ReadViewService {
     try { raw = await this.authority.resolve(actor, freeze(authorityRequest)); } catch { fail('DEPENDENCY_UNAVAILABLE', 'Current view authority is unavailable'); }
     if (!raw || raw.principalId !== actor.principalId || raw.purpose !== request.purpose || !name(raw.scope) || !actor.scopes.includes(raw.scope)) fail('FORBIDDEN', 'View access is not permitted');
     const access = clone(raw!);
+    const innerGrants = (item: ComponentGrant): InnerDomain | undefined => typeof item.authority === 'string'
+      && (INNER_DOMAINS as readonly string[]).includes(item.authority) ? item.authority as InnerDomain : undefined;
     if (!list(access.audienceIds) || !access.audienceIds.length || !list(access.resourceRefs)
       || !Array.isArray(access.components) || access.components.length > 16
       || new Set(access.components.map(item => item.backendId)).size !== access.components.length
-      || access.components.some(item => !name(item.backendId) || item.backendId === 'conversation' || (item.authority !== undefined && !['memory', 'ability'].includes(item.authority))
-        || !list(item.fields, 64) || item.fields.some((field: string) => ['__proto__', 'constructor', 'prototype'].includes(field)))
+      || access.components.some(item => !name(item.backendId) || item.backendId === 'conversation'
+        || (item.authority !== undefined && !['memory', 'ability', ...INNER_DOMAINS].includes(item.authority))
+        || !list(item.fields, 64) || item.fields.some((field: string) => ['__proto__', 'constructor', 'prototype'].includes(field))
+        || (item.bodyFields !== undefined && (!list(item.bodyFields, 64) || !item.bodyFields.length
+          || item.bodyFields.some((field: string) => ['__proto__', 'constructor', 'prototype'].includes(field))))
+        || (innerGrants(item) !== undefined && item.backendId !== INNER_DOMAIN_BACKENDS[innerGrants(item)!]))
       || !timestamp(access.expiresAt) || ![access.policyVersion, access.authEpoch, access.tombstoneWatermark, access.commitSeq, access.stateVersion, access.indexWatermark].every(integer)) fail('DEPENDENCY_UNAVAILABLE', 'Current view authority is incomplete');
     if (access.authority && (!name(access.authority.publicationBaselineId) || !name(access.authority.policyAuthorityId)
       || !name(access.authority.deletionAuthorityId) || access.authority.deletionScope !== 'local-task-source' || access.authority.indexMode !== 'not-used')) fail('DEPENDENCY_UNAVAILABLE', 'View authority baseline is incomplete');
@@ -241,6 +284,13 @@ export class ReadViewService {
       || access.components.some(item => item.authority === 'memory' && !access.authority?.memory)) fail('DEPENDENCY_UNAVAILABLE', 'Memory view authority is incomplete');
     if ((access.authority?.ability && !abilityAuthority(access.authority.ability))
       || access.components.some(item => item.authority === 'ability' && (!access.authority?.ability || item.backendId !== access.authority.ability.backendId))) fail('DEPENDENCY_UNAVAILABLE', 'Ability view authority is incomplete');
+    if (access.authority?.inner && (Object.keys(access.authority.inner).length > INNER_DOMAINS.length
+      || Object.entries(access.authority.inner).some(([domain, value]) => !(INNER_DOMAINS as readonly string[]).includes(domain)
+        || !innerAuthority(value) || (value as ViewInnerAuthority).domain !== domain))) fail('DEPENDENCY_UNAVAILABLE', 'Inner-domain view authority is incomplete');
+    for (const grant of access.components) {
+      const domain = innerGrants(grant);
+      if (domain !== undefined && !innerAuthority(access.authority?.inner?.[domain])) fail('DEPENDENCY_UNAVAILABLE', 'An inner-domain grant has no matching authority');
+    }
     if (Date.parse(access.expiresAt) <= this.now().getTime()) fail('EXPIRED', 'View authority has expired');
     if (request.taskId && !access.resourceRefs.includes(`task:${request.taskId}`)) fail('FORBIDDEN', 'View access is not permitted');
     if (request.conversationId) {
@@ -269,6 +319,22 @@ export class ReadViewService {
         controller.signal.addEventListener('abort', aborted, { once: true });
         timer = setTimeout(() => controller.abort(), Math.min(this.componentTimeout, remainingMs));
         Promise.resolve().then(() => read(freeze(request), controller.signal)).then(resolve, reject);
+      });
+    } finally {
+      if (timer) clearTimeout(timer); if (aborted) controller.signal.removeEventListener('abort', aborted);
+      this.pending.delete(controller);
+    }
+  }
+  private async readBodyPhase(readBody: NonNullable<ReadViewComponentPort['readBody']>, request: ReadViewBodyRequest, remainingMs: number): Promise<readonly ComponentBodyRecord[]> {
+    const controller = new AbortController(); this.pending.add(controller);
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let aborted: (() => void) | undefined;
+    try {
+      return await new Promise<readonly ComponentBodyRecord[]>((resolve, reject) => {
+        aborted = () => reject(new ReadViewError(this.closed ? 'DISPOSED' : 'COMPONENT_TIMEOUT', 'Component body read did not complete'));
+        controller.signal.addEventListener('abort', aborted, { once: true });
+        timer = setTimeout(() => controller.abort(), Math.min(this.componentTimeout, remainingMs));
+        Promise.resolve().then(() => readBody(freeze(request), controller.signal)).then(resolve, reject);
       });
     } finally {
       if (timer) clearTimeout(timer); if (aborted) controller.signal.removeEventListener('abort', aborted);
@@ -318,6 +384,13 @@ export class ReadViewService {
       if (grant.authority === 'memory' && !sameMemoryAuthority(snapshot.memoryAuthority, access.authority?.memory)) fail('SECURITY_STATE_UNAVAILABLE', 'The memory component has not applied its independent authority vector');
       if (grant.authority === 'ability' && !sameAbilityAuthority(snapshot.abilityAuthority, access.authority?.ability)) fail('SECURITY_STATE_UNAVAILABLE', 'The ability component has not applied its independent authority vector');
       if (snapshot.abilityAuthority && grant.authority !== 'ability') fail('SECURITY_STATE_UNAVAILABLE', 'An ability component needs an explicit ability grant');
+      if ((INNER_DOMAINS as readonly string[]).includes(String(grant.authority))
+        && !sameInnerAuthority(snapshot.innerAuthority, access.authority?.inner?.[grant.authority as InnerDomain])) {
+        fail('SECURITY_STATE_UNAVAILABLE', 'The inner-domain component has not applied its independent authority vector');
+      }
+      if (snapshot.innerAuthority && !(INNER_DOMAINS as readonly string[]).includes(String(grant.authority))) {
+        fail('SECURITY_STATE_UNAVAILABLE', 'An inner-domain component needs an explicit inner-domain grant');
+      }
       // Adapter diagnostics are not a second, unredacted path into the view.
       const freshness: ViewFreshness = snapshot.freshness.status === 'stale'
         ? { status: 'stale', reason: 'source_reported_stale' } : { status: 'current' };
@@ -351,10 +424,53 @@ export class ReadViewService {
       if (statuses.includes('unavailable')) view.components.find(component => component.backendId === item.backendId)!.freshness = { status: 'unavailable', reason: 'source_unverified' };
       return statuses.every(status => status === 'visible');
     });
+    // Content phase. Metadata was already narrowed by scope, audience, resource
+    // references and source visibility; only these eligible records are requested.
+    // A missing or incomplete body reader is an explicit unavailable component,
+    // never an empty success or a partially-filled view.
+    const ineligibleBackends = new Set<string>();
+    for (const grant of access.components) {
+      if (!grant.bodyFields?.length) continue;
+      const component = view.components.find(item => item.backendId === grant.backendId);
+      if (!component) continue;
+      const requestIds = eligible.filter(item => item.backendId === grant.backendId).map(item => item.record.recordId);
+      const readBody = this.bodyReads.get(grant.backendId);
+      if (!readBody) { component.freshness = { status: 'unavailable', reason: 'body_not_connected' }; ineligibleBackends.add(grant.backendId); continue; }
+      if (!requestIds.length) continue;
+      const remainingMs = Date.parse(view.expiresAt) - this.now().getTime();
+      if (remainingMs <= 0) fail('EXPIRED', 'View expired while reading');
+      let bodies: readonly ComponentBodyRecord[];
+      try {
+        bodies = await this.readBodyPhase(readBody, { purpose: request.purpose, scope: access.scope, audienceIds: clone(access.audienceIds),
+          resourceRefs: clone(access.resourceRefs), fields: clone(grant.bodyFields), recordIds: requestIds,
+          ...(request.conversationId ? { conversationId: request.conversationId } : {}), ...(request.taskId ? { taskId: request.taskId } : {}),
+          ...(request.query !== undefined ? { query: request.query } : {}) }, remainingMs);
+      } catch (error) {
+        if (this.closed) fail('DISPOSED', 'View service is disposed');
+        component.freshness = { status: 'unavailable', reason: error instanceof ReadViewError && error.code === 'COMPONENT_TIMEOUT' ? 'read_timeout' : 'read_failed' };
+        ineligibleBackends.add(grant.backendId); continue;
+      }
+      if (!Array.isArray(bodies) || bodies.length !== requestIds.length
+        || bodies.some(body => !body || !name(body.recordId) || !requestIds.includes(body.recordId))) {
+        fail('INVALID_COMPONENT', 'A component body read returned unbounded, duplicate or unknown records');
+      }
+      const byId = new Map<string, ComponentBodyRecord>();
+      for (const body of bodies) {
+        if (byId.has(body.recordId)) fail('INVALID_COMPONENT', 'A component body read returned a duplicate record');
+        byId.set(body.recordId, body);
+      }
+      for (const item of eligible) {
+        if (item.backendId !== grant.backendId) continue;
+        const body = byId.get(item.record.recordId);
+        if (!body) fail('INVALID_COMPONENT', 'A component body read was incomplete');
+        for (const field of grant.bodyFields) if (body.fields && Object.hasOwn(body.fields, field)) item.fields[field] = jsonValue(body.fields[field]);
+      }
+    }
+    const dataEligible = eligible.filter(item => !ineligibleBackends.has(item.backendId));
     const overall = view.components.map(item => item.freshness.status);
     view.freshness = overall.includes('unavailable') ? { status: 'unavailable', reason: 'component_unavailable' }
       : overall.includes('stale') ? { status: 'stale', reason: 'component_stale' } : { status: 'current' };
-    for (const item of eligible) {
+    for (const item of dataEligible) {
       if (view.data.length >= request.maxItems!) { view.truncated.items = true; break; }
       const refs = uniqueSources([...view.sourceRefs, ...item.record.sourceRefs]);
       const aggregate = item.record.aggregateVersion;
@@ -393,5 +509,5 @@ export class ReadViewService {
     if (this.closed) fail('DISPOSED', 'View service is disposed');
   }
   release(viewId: string): void { this.issued.delete(viewId); }
-  dispose(): void { this.closed = true; for (const controller of this.pending) controller.abort(); this.pending.clear(); this.issued.clear(); this.reads.clear(); }
+  dispose(): void { this.closed = true; for (const controller of this.pending) controller.abort(); this.pending.clear(); this.issued.clear(); this.reads.clear(); this.bodyReads.clear(); }
 }

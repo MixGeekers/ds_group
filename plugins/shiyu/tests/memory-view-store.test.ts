@@ -68,7 +68,7 @@ async function fixture(t: TestContext, configured = true) {
 
 test('Worker availability publishing is private, deployment bound, CAS protected and separate from reads', async t => {
   const f = await fixture(t), initial = (await f.store.request('view.state', {}))!, before = await f.store.request('control.watermark', {});
-  assert.equal(initial.manifest.schemaVersion, 3); assert.equal(initial.stateVersion, 2);
+  assert.equal(initial.manifest.schemaVersion, 4); assert.equal(initial.stateVersion, 3);
   assert.equal(initial.manifest.domains.ability.status, 'available');
   assert.deepEqual(await f.store.request('memory.status', {}), { configured: true, ready: true });
   assert.deepEqual(await f.store.request('memory.index.status', {}), { configured: true, ready: true });
@@ -80,9 +80,10 @@ test('Worker availability publishing is private, deployment bound, CAS protected
   }
   await assert.rejects(f.publish({ ...availability(), deploymentId: 'foreign' }), code('MEMORY_DEPLOYMENT_MISMATCH'));
   const published = await f.store.request('state.publishMemoryAvailability', command);
-  assert.equal(published.publication.stateVersion, initial.stateVersion + 1); assert.equal(published.publication.manifest.schemaVersion, 3);
+  assert.equal(published.publication.stateVersion, initial.stateVersion + 1); assert.equal(published.publication.manifest.schemaVersion, 4);
   assert.deepEqual(published.publication.manifest.domains.ability, initial.manifest.domains.ability);
-  assert.ok(Object.entries(published.publication.manifest.domains).filter(([name]) => !['memory', 'ability'].includes(name)).every(([, value]) => value.status === 'unavailable'));
+  // The four inner domains were published by the Worker itself; memory/ability updates must not downgrade them.
+  for (const domain of ['relationship', 'emotion', 'cognition', 'personality'] as const) assert.equal(published.publication.manifest.domains[domain].status, 'available');
   assert.deepEqual(await f.store.request('state.publishMemoryAvailability', command), published);
   await assert.rejects(f.store.request('state.publishMemoryAvailability', { ...command, requestId: 'stale' }), code('VERSION_CONFLICT'));
   const semantic = await f.publish(availability(true)); assert.equal(semantic.publication.stateVersion, initial.stateVersion + 2);

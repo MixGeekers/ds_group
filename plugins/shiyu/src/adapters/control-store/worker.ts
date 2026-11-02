@@ -28,6 +28,15 @@ import type { LocalReplyOperation } from './local-reply-domain.js';
 import type { LabDomainRequest } from '../../contracts/lab.js';
 import { CapabilityDomain } from './capability-domain.js';
 import type { CapabilityDomainRequest } from '../../contracts/capability.js';
+import { RelationshipDomain, type RelationshipDomainRequest } from './relationship-domain.js';
+import { EmotionDomain, type EmotionDomainRequest } from './emotion-domain.js';
+import { CognitionDomain, type CognitionDomainRequest } from './cognition-domain.js';
+import { PersonalityDomain, type PersonalityDomainRequest } from './personality-domain.js';
+import {
+  INNER_DOMAINS, INNER_DOMAIN_BACKENDS, type InnerConversationFacts, type InnerDomain,
+  type InnerEvidenceFacts, type InnerSourceRef,
+} from '../../contracts/inner.js';
+import type { InnerDomainAvailability } from '../../state/publication.js';
 import { localNoteDefinitionDigest } from '../capability-identity.js';
 
 type Row = Record<string, unknown>;
@@ -52,6 +61,14 @@ let ability: CapabilityDomain | undefined;
 let abilityError: string | undefined;
 let lab: LabDomain | undefined;
 let labError: string | undefined;
+let relationship: RelationshipDomain | undefined;
+let relationshipError: string | undefined;
+let emotion: EmotionDomain | undefined;
+let emotionError: string | undefined;
+let cognition: CognitionDomain | undefined;
+let cognitionError: string | undefined;
+let personality: PersonalityDomain | undefined;
+let personalityError: string | undefined;
 let publication: StatePublicationStore | undefined;
 let statePublisher: StatePublisher | undefined;
 let commitWatermark: CommitWatermarkReader;
@@ -421,6 +438,85 @@ function listSubscriptions(actor: EventPrincipal): StoredSubscription[] {
     .filter((sub) => actor.scopes.includes(sub.scope) && sub.types.every((type) => actor.subscribeTypes.includes(type)) && actor.targetRefs.includes(targetRef(sub.target)));
 }
 
+const OWNER_INNER_AUDIENCE = Object.freeze({ scope: 'local-owner', kind: 'owner' as const, audienceId: 'local-owner' });
+/** Trusted same-Worker local conversation/audience read; never a public command or model input. */
+function innerConversationFacts(conversationId: string): InnerConversationFacts | undefined {
+  if (!conversations) return undefined;
+  try {
+    const record = conversations.getLocalConversation(conversationId);
+    return { audience: { scope: record.key.scope, kind: record.key.kind, audienceId: record.conversationId },
+      revision: record.revision, audienceVersion: record.audienceVersion, active: !record.archived };
+  } catch (error) {
+    const code = isObject(error) && typeof error.code === 'string' ? error.code : '';
+    if (code === 'UNKNOWN_CONVERSATION' || code === 'NOT_FOUND') return undefined;
+    throw error;
+  }
+}
+/** Trusted same-Worker evidence read: memory operation readback or a succeeded local Task. */
+function innerEvidence(ref: InnerSourceRef): InnerEvidenceFacts | undefined {
+  const codeOf = (error: unknown): string => isObject(error) && typeof error.code === 'string' ? error.code : '';
+  if (ref.kind === 'memory-operation') {
+    if (!memories) return undefined;
+    let entry: ReturnType<MemoryDomain['get']>;
+    try { entry = memories.get(ref.sourceId); }
+    catch (error) {
+      const code = codeOf(error);
+      if (code === 'UNKNOWN_MEMORY_OPERATION' || code === 'NOT_FOUND') return undefined;
+      throw error;
+    }
+    const conversation = innerConversationFacts(entry.conversationId);
+    if (!conversation) return undefined;
+    return { valid: Boolean(entry.reference) && entry.operation.status === 'applied' && entry.source.revision === ref.revision,
+      audience: conversation.audience, revision: entry.source.revision };
+  }
+  if (ref.kind === 'task-receipt') {
+    if (!tasks) return undefined;
+    let detail: ReturnType<TaskDomain['get']>;
+    try { detail = tasks.get(ref.sourceId); }
+    catch (error) {
+      const code = codeOf(error);
+      if (code === 'UNKNOWN_TASK' || code === 'NOT_FOUND') return undefined;
+      throw error;
+    }
+    return { valid: detail.task.state === 'succeeded', audience: structuredClone(OWNER_INNER_AUDIENCE), revision: detail.task.version };
+  }
+  return undefined;
+}
+function innerAvailabilityReason(code: string | undefined): 'not_connected' | 'incompatible_version' | 'source_unavailable' | 'verification_pending' {
+  if (!code) return 'verification_pending';
+  if (code.startsWith('INCOMPATIBLE_')) return 'incompatible_version';
+  if (code.startsWith('CORRUPT_') || code.startsWith('TRANSACTION_')) return 'source_unavailable';
+  return 'verification_pending';
+}
+/**
+ * Publish only domains that are truly instantiated on this control DB. A failed or
+ * absent domain stays explicitly unavailable; the manifest is a read-availability
+ * declaration, never a business acceptance or a permission grant.
+ */
+function publishInnerReadability(): void {
+  if (!publication || !statePublisher) return;
+  const current = publication.get();
+  if (!current) return fail('VIEWS_UNAVAILABLE', 'Inner state publication is unavailable.');
+  const instances: Record<InnerDomain, RelationshipDomain | EmotionDomain | CognitionDomain | PersonalityDomain | undefined> = { relationship, emotion, cognition, personality };
+  const errors: Record<InnerDomain, string | undefined> = { relationship: relationshipError, emotion: emotionError, cognition: cognitionError, personality: personalityError };
+  const availability = {} as InnerDomainAvailability;
+  for (const domain of INNER_DOMAINS) {
+    const instance = instances[domain];
+    if (!instance) { availability[domain] = { status: 'unavailable', reason: innerAvailabilityReason(errors[domain]) }; continue; }
+    try {
+      availability[domain] = { status: 'available', backendId: INNER_DOMAIN_BACKENDS[domain], authorityId: instance.authority().authorityId,
+        capabilities: ['metadata_read', 'content_read'] };
+    } catch { availability[domain] = { status: 'unavailable', reason: 'source_unavailable' }; }
+  }
+  if (current.manifest.schemaVersion === 4) {
+    if (INNER_DOMAINS.every(domain => canonical(current.manifest.domains[domain]) === canonical(availability[domain]))) return;
+  } else if (INNER_DOMAINS.every(domain => availability[domain].status === 'unavailable')) {
+    // Keep the legacy schema honest without a version bump: all four are already declared unavailable.
+    return;
+  }
+  publication.publishInnerAvailability(statePublisher, { requestId: `inner-readability-${randomUUID()}`,
+    expectedBaselineId: current.baselineId, expectedStateVersion: current.stateVersion, availability });
+}
 function publishAbilityReadability(): void {
   if (!publication || !statePublisher) return;
   const current = publication.get();
@@ -453,6 +549,28 @@ function execute(request: StoreRequest): unknown {
   if (request.command.startsWith('core.')) {
     if (!core) return fail(coreError ?? 'CORE_UNAVAILABLE', 'Core control domain is unavailable.');
     return core.execute(request as CoreDomainRequest);
+  }
+  const innerStatus = (instance: unknown, error: string | undefined) => ({
+    configured: Boolean(options.runtimeIdentity), ready: Boolean(instance), ...(error ? { errorCode: error } : {}) });
+  if (request.command.startsWith('relationship.')) {
+    if (request.command === 'relationship.status') return innerStatus(relationship, relationshipError);
+    if (!relationship) return fail(relationshipError ?? 'RELATIONSHIP_UNAVAILABLE', 'Relationship domain is unavailable.');
+    return relationship.execute({ command: request.command, args: request.args } as RelationshipDomainRequest);
+  }
+  if (request.command.startsWith('emotion.')) {
+    if (request.command === 'emotion.status') return innerStatus(emotion, emotionError);
+    if (!emotion) return fail(emotionError ?? 'EMOTION_UNAVAILABLE', 'Emotion domain is unavailable.');
+    return emotion.execute({ command: request.command, args: request.args } as EmotionDomainRequest);
+  }
+  if (request.command.startsWith('cognition.')) {
+    if (request.command === 'cognition.status') return innerStatus(cognition, cognitionError);
+    if (!cognition) return fail(cognitionError ?? 'COGNITION_UNAVAILABLE', 'Cognition domain is unavailable.');
+    return cognition.execute({ command: request.command, args: request.args } as CognitionDomainRequest);
+  }
+  if (request.command.startsWith('personality.')) {
+    if (request.command === 'personality.status') return innerStatus(personality, personalityError);
+    if (!personality) return fail(personalityError ?? 'PERSONALITY_UNAVAILABLE', 'Personality domain is unavailable.');
+    return personality.execute({ command: request.command, args: request.args } as PersonalityDomainRequest);
   }
   if (request.command === 'memory.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memories), ...(memoryError ? { errorCode: memoryError } : {}) };
   if (request.command === 'memory.index.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memoryIndex), ...(memoryIndexError || memoryError ? { errorCode: memoryIndexError ?? memoryError } : {}) };
@@ -639,6 +757,14 @@ function initialize(): void {
         catch (error) { memoryIndexError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'MEMORY_INDEX_INITIALIZATION_FAILED'; }
       }
     }
+    const innerOptions = { runtimeIdentity: options.runtimeIdentity, resolveConversation: innerConversationFacts, resolveEvidence: innerEvidence };
+    const domainError = (error: unknown, fallback: string): string =>
+      isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : fallback;
+    try { relationship = new RelationshipDomain(db, transactions, innerOptions); } catch (error) { relationshipError = domainError(error, 'RELATIONSHIP_INITIALIZATION_FAILED'); }
+    try { emotion = new EmotionDomain(db, transactions, innerOptions); } catch (error) { emotionError = domainError(error, 'EMOTION_INITIALIZATION_FAILED'); }
+    try { cognition = new CognitionDomain(db, transactions, innerOptions); } catch (error) { cognitionError = domainError(error, 'COGNITION_INITIALIZATION_FAILED'); }
+    try { personality = new PersonalityDomain(db, transactions, innerOptions); } catch (error) { personalityError = domainError(error, 'PERSONALITY_INITIALIZATION_FAILED'); }
+    publishInnerReadability();
     const safety = new LocalReadSafetyStore(db, transactions, { getAuthEpoch: () => tasks!.mandates.health().authEpoch });
     try {
       if (!ability) fail(abilityError ?? 'CAPABILITY_UNAVAILABLE', 'Core planning requires readable capability authority.');
@@ -648,7 +774,11 @@ function initialize(): void {
     catch (error) {
       coreError = isObject(error) && typeof error.code === 'string' && /^[A-Z_]{1,80}$/.test(error.code) ? error.code : 'CORE_INITIALIZATION_FAILED';
     }
-    views = new ViewDomain(db, transactions, { publication, safety, watermark: commitWatermark, ...(memories ? { memory: memories } : {}),
+    const innerPorts = {
+      ...(relationship ? { relationship } : {}), ...(emotion ? { emotion } : {}),
+      ...(cognition ? { cognition } : {}), ...(personality ? { personality } : {}),
+    };
+    views = new ViewDomain(db, transactions, { publication, safety, watermark: commitWatermark, ...(memories ? { memory: memories } : {}), inner: innerPorts,
       authorizeLabReply: (input, phase) => {
         if (!lab) return fail(labError ?? 'LAB_UNAVAILABLE', 'Lab reply capture authority is unavailable.');
         const operation = conversations!.execute({ command: 'conversation.reply.get', args: { operationId: input.operationId } }) as LocalReplyOperation;

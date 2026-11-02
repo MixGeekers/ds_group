@@ -81,7 +81,8 @@ test('Runtime first approved task starts with unknown proof, records ledger proo
   assert.equal(proof.lastSuccess?.receiptId, result.effectReceipts[0]?.receiptId);
   assert.equal((await runtime.artifacts.inspect({ taskId: admitted.task.taskId }))?.sha256, result.artifact.expectedSha256);
   const state = await runtime.store.request('view.state', {});
-  assert.equal(state?.manifest.schemaVersion, 3); assert.equal(state?.manifest.domains.ability.status, 'available');
+  assert.equal(state?.manifest.schemaVersion, 4); assert.equal(state?.manifest.domains.ability.status, 'available');
+  for (const domain of ['relationship', 'emotion', 'cognition', 'personality'] as const) assert.equal(state?.manifest.domains[domain].status, 'available');
   await runtime.close();
   const reopened = await create();
   const current = await reopened.store.request('ability.snapshot', {});
