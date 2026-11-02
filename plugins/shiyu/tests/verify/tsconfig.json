@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "../.."
+  },
+  "include": ["**/*.ts", "../../src/adapters/dsh/native-context.ts", "../../src/adapters/dsh/native-message.ts", "../../src/adapters/dsh/sessions.ts", "../../src/adapters/dsh/session-title.ts"]
+}

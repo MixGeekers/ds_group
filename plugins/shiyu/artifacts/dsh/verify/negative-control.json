@@ -1,0 +1,43 @@
+{
+  "purpose": "Proof that the H1 verification aggregator never reports a failure, a blocked case or an unreported test as a pass.",
+  "method": "Two temporary test files (not part of the suite) were injected into tests/verify/, run through report.mjs, then removed. Run dirs were deleted after capturing the outcome; this JSON is the retained evidence.",
+  "firstRun": {
+    "injected": [
+      "one deliberately failing case"
+    ],
+    "exitStatus": 1,
+    "summary": {
+      "cases": 118,
+      "pass": 117,
+      "fail": 1,
+      "blocked": 0,
+      "unobservable": 0,
+      "tapUnreported": 0
+    },
+    "observed": "the failing test and its evidence record both reported as fail; overall exit status 1"
+  },
+  "secondRun": {
+    "injected": [
+      "one deliberately failing case",
+      "one blocked case (TAP green)",
+      "one test with no evidence record (TAP green)"
+    ],
+    "exitStatus": 1,
+    "summary": {
+      "cases": 119,
+      "pass": 117,
+      "fail": 1,
+      "blocked": 1,
+      "unobservable": 0,
+      "tapPass": 103,
+      "tapFail": 1,
+      "tapBlocked": 1,
+      "tapUnreported": 1
+    },
+    "unreportedTests": [
+      "ZZ03 deliberate unreported control"
+    ],
+    "observed": "TAP-green blocked case counted as blocked (not pass); TAP-green evidence-less test counted as unreported (not pass); exit status 1"
+  },
+  "conclusion": "The aggregator's fail/blocked/unreported denominators are real and cannot be silently upgraded to pass."
+}

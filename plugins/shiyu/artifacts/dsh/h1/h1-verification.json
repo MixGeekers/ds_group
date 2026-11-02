@@ -89,14 +89,14 @@
       "fail": 0,
       "cancelled": 0,
       "skipped": 0,
-      "startedAt": "2026-11-02T18:39:49Z",
+      "startedAt": "2026-11-02T18:42:44Z",
       "endedAt": "2026-11-02T18:44:47Z",
       "log": {
         "path": "plugins/shiyu/.local/phase3j-final-check.log",
         "bytes": 117921,
         "sha256": "8c05c87f719afc9ea2ecc7b3fac690d89827e741b00b2c455d36505b0da5c258"
       },
-      "note": "test count = 1025 baseline + 33 net new H1 tests (native-context 6→22, native-history new 14, core-goal-sessions 17→20)"
+      "note": "Retained log is the second attempt (18:42:44Z→18:44:47Z) after the local Python/Ombre fixture was symlinked into the isolated worktree, so it has 0 skips. An earlier attempt started 18:39:49Z was superseded and is not retained; it differed only by the pre-existing conditional Python/Ombre skip. Counts/hash/exit code in this record all refer to the retained log."
     },
     "leadIndependentSliceCheck": {
       "tool": "plugins/shiyu/scripts/slice-verify.mjs (isolated git worktree at HEAD + only this slice, node_modules + pinned Python fixture symlinked)",
@@ -124,6 +124,45 @@
       "tapTests": 103,
       "tapPass": 103,
       "note": "Interim run against the working tree while the H1 files were frozen; the final verification run on the committed HEAD is performed separately by the independent verifier and will be recorded in its own report."
+    },
+    "independentVerifierFinal": {
+      "runId": "2026-11-02T18-49-33-366Z-final-92c857f",
+      "commit": "92c857fcfe5d823836b48ea9c9df09fcdeb14981",
+      "generator": "independent-verifier teammate; independent oracle/tsconfig/glob, product implementation not imported as oracle",
+      "productFilesVerifiedAgainstCommit": [
+        "src/adapters/dsh/native-context.ts",
+        "src/adapters/dsh/native-message.ts",
+        "src/adapters/dsh/session-title.ts",
+        "src/adapters/dsh/sessions.ts",
+        "src/adapters/dsh/goals.ts",
+        "src/adapters/dsh/core-decision.ts"
+      ],
+      "results": {
+        "cases": 117,
+        "casePass": 117,
+        "caseFailed": 0,
+        "blocked": 0,
+        "unobservable": 0,
+        "unreported": 0,
+        "tapTests": 103,
+        "tapPass": 103,
+        "typecheck": "npx tsc -p tests/verify --noEmit exit 0",
+        "judgeSelfProof": "C00a-C00f pass (manual accept/reject samples + 1 correct/3 mutant end-to-end mutation test)",
+        "coverageMatrix": "03 §5 rows 21/21, 30/30, 8/8, 8/8, 10/10, 7/7, 9/9, 8/8 covered; categories L13/I28/R12/B7/S23/LO13/RP10/CO5/C6 all 0 failed"
+      },
+      "replication": {
+        "worktree": "/tmp/shiyu-h1-check (same isolated worktree)",
+        "command": "npm run check",
+        "exitCode": 0,
+        "tests": 1058,
+        "pass": 1058,
+        "fail": 0,
+        "skipped": 0,
+        "log": "artifacts/dsh/verify/replication-final-check.log",
+        "sha256": "c6181832…"
+      },
+      "leadEvidenceAudit": "artifacts/dsh/slices/h1-verify.json and .local/slice-verify-h1.log (aa342679…) reviewed as a real isolated worktree + check + raw log hash, not hardcoded; test-count arithmetic 1021+4+33=1058 consistent; no deleted baseline tests, .skip/.only/assert.ok(true) or silent pass found; relaxed legacy regexes still retain reject + zero-receipt + handle-close/foreign-preservation hard assertions.",
+      "metadataIssue": "EV-09: h1-verification.json startedAt originally mixed the superseded first attempt (18:39:49Z, 1 pre-existing skip) with the retained second-attempt log; corrected in this record to the retained log timestamps 18:42:44Z→18:44:47Z. No counts/hash/exit changes."
     }
   },
   "failedUnknownUntested": [
@@ -141,5 +180,5 @@
     "liveDatabaseWrites": 0,
     "liveNativeSessionOperations": 0
   },
-  "evidenceLevel": "G1 module + native-interface combination tests with synthetic worlds and temporary real SQLite; fixed SDK 0.2.1-rc.5 static source read only (not executed)."
+  "evidenceLevel": "G1 module + native-interface combination tests with synthetic worlds and temporary real SQLite; fixed SDK 0.2.1-rc.5 static source read only (not executed). Independently verified by a separate oracle suite bound to commit 92c857f."
 }

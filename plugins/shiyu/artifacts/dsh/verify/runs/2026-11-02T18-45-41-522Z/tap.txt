@@ -1,0 +1,630 @@
+TAP version 13
+# Subtest: C00a oracle accepts hand-constructed correct cold snapshots
+ok 1 - C00a oracle accepts hand-constructed correct cold snapshots
+  ---
+  duration_ms: 2.800959
+  type: 'test'
+  ...
+# Subtest: C00b oracle rejects wrong asOfSeq/eventCount/inherited and mixed references
+ok 2 - C00b oracle rejects wrong asOfSeq/eventCount/inherited and mixed references
+  ---
+  duration_ms: 4.5585
+  type: 'test'
+  ...
+# Subtest: C00c oracle rejects malformed inbox histories and bad inherited metadata
+ok 3 - C00c oracle rejects malformed inbox histories and bad inherited metadata
+  ---
+  duration_ms: 0.661042
+  type: 'test'
+  ...
+# Subtest: C00d oracle rejects a safe-looking error that leaks bodies or retains the handle
+ok 4 - C00d oracle rejects a safe-looking error that leaks bodies or retains the handle
+  ---
+  duration_ms: 0.224042
+  type: 'test'
+  ...
+# Subtest: C00f harness mutation-test: a correct hand reader passes; three buggy readers are rejected
+ok 5 - C00f harness mutation-test: a correct hand reader passes; three buggy readers are rejected
+  ---
+  duration_ms: 47.539166
+  type: 'test'
+  ...
+# Subtest: C00e native-world fixture matches the frozen reader contract
+ok 6 - C00e native-world fixture matches the frozen reader contract
+  ---
+  duration_ms: 3.463042
+  type: 'test'
+  ...
+# Subtest: L01 empty native history restores the empty official projection
+ok 7 - L01 empty native history restores the empty official projection
+  ---
+  duration_ms: 9.783084
+  type: 'test'
+  ...
+# Subtest: L02 unmaterialized detached pending log is a legal empty cut
+ok 8 - L02 unmaterialized detached pending log is a legal empty cut
+  ---
+  duration_ms: 0.666375
+  type: 'test'
+  ...
+# Subtest: L03 2047 events (old 2048 cap - 1) with short backend pages
+ok 9 - L03 2047 events (old 2048 cap - 1) with short backend pages
+  ---
+  duration_ms: 75.583917
+  type: 'test'
+  ...
+# Subtest: L04 exactly 2048 events (old cap boundary)
+ok 10 - L04 exactly 2048 events (old cap boundary)
+  ---
+  duration_ms: 73.225542
+  type: 'test'
+  ...
+# Subtest: L05 2049 events (old cap + 1) must succeed, proving the old rejection is gone
+ok 11 - L05 2049 events (old cap + 1) must succeed, proving the old rejection is gone
+  ---
+  duration_ms: 79.008542
+  type: 'test'
+  ...
+# Subtest: L06 far beyond one page with conforming short pages (5000 events, pageCap=100)
+ok 12 - L06 far beyond one page with conforming short pages (5000 events, pageCap=100)
+  ---
+  duration_ms: 1034.390667
+  type: 'test'
+  ...
+# Subtest: L07 generated 10000-event history with tiny pages (far beyond one page)
+ok 13 - L07 generated 10000-event history with tiny pages (far beyond one page)
+  ---
+  duration_ms: 3056.250916
+  type: 'test'
+  ...
+# Subtest: L08 seeded history: inherited prefix included in the projection
+ok 14 - L08 seeded history: inherited prefix included in the projection
+  ---
+  duration_ms: 47.227375
+  type: 'test'
+  ...
+# Subtest: L09 seeded history with inheritedEventCount=0 and cut marker at seq 0
+ok 15 - L09 seeded history with inheritedEventCount=0 and cut marker at seq 0
+  ---
+  duration_ms: 3.836917
+  type: 'test'
+  ...
+# Subtest: L10 interleaved lanes, insertions and cancellations project exactly
+ok 16 - L10 interleaved lanes, insertions and cancellations project exactly
+  ---
+  duration_ms: 15.947625
+  type: 'test'
+  ...
+# Subtest: L11 custom managed Session identity and preset are preserved
+ok 17 - L11 custom managed Session identity and preset are preserved
+  ---
+  duration_ms: 62.944208
+  type: 'test'
+  ...
+# Subtest: L12 natural short final page (700 events)
+ok 18 - L12 natural short final page (700 events)
+  ---
+  duration_ms: 20.452916
+  type: 'test'
+  ...
+# Subtest: L13 declared recovery limit is not lower than the legal 2049 case
+ok 19 - L13 declared recovery limit is not lower than the legal 2049 case
+  ---
+  duration_ms: 3.695416
+  type: 'test'
+  ...
+# Subtest: I01 missing event sequence is refused
+ok 20 - I01 missing event sequence is refused
+  ---
+  duration_ms: 9.169959
+  type: 'test'
+  ...
+# Subtest: I02 duplicate and out-of-order sequences are refused
+ok 21 - I02 duplicate and out-of-order sequences are refused
+  ---
+  duration_ms: 2.763291
+  type: 'test'
+  ...
+# Subtest: I03 backend returning more events than requested is refused
+ok 22 - I03 backend returning more events than requested is refused
+  ---
+  duration_ms: 12.744875
+  type: 'test'
+  ...
+# Subtest: I04 malformed read result shape is refused
+ok 23 - I04 malformed read result shape is refused
+  ---
+  duration_ms: 4.880667
+  type: 'test'
+  ...
+# Subtest: I05 header identity mismatch is refused
+ok 24 - I05 header identity mismatch is refused
+  ---
+  duration_ms: 3.9895
+  type: 'test'
+  ...
+# Subtest: I06 preset mismatch is refused
+ok 25 - I06 preset mismatch is refused
+  ---
+  duration_ms: 4.085125
+  type: 'test'
+  ...
+# Subtest: I07 unsupported header version is refused
+ok 26 - I07 unsupported header version is refused
+  ---
+  duration_ms: 3.864292
+  type: 'test'
+  ...
+# Subtest: I08 non-boolean header isSeeded is refused
+ok 27 - I08 non-boolean header isSeeded is refused
+  ---
+  duration_ms: 0.358209
+  type: 'test'
+  ...
+# Subtest: I09 branded -0 inherited count is refused
+ok 28 - I09 branded -0 inherited count is refused
+  ---
+  duration_ms: 0.30775
+  type: 'test'
+  ...
+# Subtest: I10-I13 malformed inherited ranges are refused
+ok 29 - I10-I13 malformed inherited ranges are refused
+  ---
+  duration_ms: 0.544
+  type: 'test'
+  ...
+# Subtest: I14 seeded header without a valid inherited cut marker is refused
+ok 30 - I14 seeded header without a valid inherited cut marker is refused
+  ---
+  duration_ms: 0.885
+  type: 'test'
+  ...
+# Subtest: I15 unidentified pending inbox message is refused
+ok 31 - I15 unidentified pending inbox message is refused
+  ---
+  duration_ms: 2.98075
+  type: 'test'
+  ...
+# Subtest: I16 duplicate pending message identity across lanes is refused
+ok 32 - I16 duplicate pending message identity across lanes is refused
+  ---
+  duration_ms: 3.93675
+  type: 'test'
+  ...
+# Subtest: I17 invalid inbox splice range is refused
+ok 33 - I17 invalid inbox splice range is refused
+  ---
+  duration_ms: 4.746042
+  type: 'test'
+  ...
+# Subtest: I18 official projection throwing must reject the load
+ok 34 - I18 official projection throwing must reject the load
+  ---
+  duration_ms: 4.003792
+  type: 'test'
+  ...
+# Subtest: I19 projection without the registered inbox value is refused
+ok 35 - I19 projection without the registered inbox value is refused
+  ---
+  duration_ms: 4.324167
+  type: 'test'
+  ...
+# Subtest: I20 projection watermark that disagrees with the observed cut is refused
+ok 36 - I20 projection watermark that disagrees with the observed cut is refused
+  ---
+  duration_ms: 4.368792
+  type: 'test'
+  ...
+# Subtest: I21 native read failure rejects and does not leak event bodies
+ok 37 - I21 native read failure rejects and does not leak event bodies
+  ---
+  duration_ms: 5.232375
+  type: 'test'
+  ...
+# Subtest: I22 handle close failure rejects while retaining that handle for diagnosis
+ok 38 - I22 handle close failure rejects while retaining that handle for diagnosis
+  ---
+  duration_ms: 4.265875
+  type: 'test'
+  ...
+# Subtest: I23-I25 missing required native services are refused
+ok 39 - I23-I25 missing required native services are refused
+  ---
+  duration_ms: 2.000542
+  type: 'test'
+  ...
+# Subtest: I26 native Session not found is refused
+ok 40 - I26 native Session not found is refused
+  ---
+  duration_ms: 0.205417
+  type: 'test'
+  ...
+# Subtest: I27 empty-cut projection watermark must also be exact
+ok 41 - I27 empty-cut projection watermark must also be exact
+  ---
+  duration_ms: 0.312125
+  type: 'test'
+  ...
+# Subtest: R01 append between pages is not silently accepted as a mixed history
+ok 42 - R01 append between pages is not silently accepted as a mixed history
+  ---
+  duration_ms: 46.209042
+  type: 'test'
+  ...
+# Subtest: R02 inbox insertion between pages is projected from the final cut
+ok 43 - R02 inbox insertion between pages is projected from the final cut
+  ---
+  duration_ms: 34.849541
+  type: 'test'
+  ...
+# Subtest: R03 inbox removal between pages is reflected exactly once
+ok 44 - R03 inbox removal between pages is reflected exactly once
+  ---
+  duration_ms: 35.681875
+  type: 'test'
+  ...
+# Subtest: R04 same-length early rewrite during the first pass is detected or re-read
+ok 45 - R04 same-length early rewrite during the first pass is detected or re-read
+  ---
+  duration_ms: 14.300875
+  type: 'test'
+  ...
+# Subtest: R05 append after an observed EOF is detected or re-read
+ok 46 - R05 append after an observed EOF is detected or re-read
+  ---
+  duration_ms: 10.454292
+  type: 'test'
+  ...
+# Subtest: R06 append during the official projection is detected or re-read
+ok 47 - R06 append during the official projection is detected or re-read
+  ---
+  duration_ms: 10.877167
+  type: 'test'
+  ...
+# Subtest: R07 log shrink observed after a read rejects (no mixed history)
+ok 48 - R07 log shrink observed after a read rejects (no mixed history)
+  ---
+  duration_ms: 7.218042
+  type: 'test'
+  ...
+# Subtest: R08 cancel during a native read rejects without orphaning the handle
+ok 49 - R08 cancel during a native read rejects without orphaning the handle
+  ---
+  duration_ms: 21.784583
+  type: 'test'
+  ...
+# Subtest: R09 already-aborted signal opens no native handle
+ok 50 - R09 already-aborted signal opens no native handle
+  ---
+  duration_ms: 0.671875
+  type: 'test'
+  ...
+# Subtest: R11 an absolute caller deadline option rejects promptly without waiting for the fixed timeout
+ok 51 - R11 an absolute caller deadline option rejects promptly without waiting for the fixed timeout
+  ---
+  duration_ms: 62.946375
+  type: 'test'
+  ...
+# Subtest: R12 an already-expired absolute deadline rejects before opening a handle
+ok 52 - R12 an already-expired absolute deadline rejects before opening a handle
+  ---
+  duration_ms: 3.30825
+  type: 'test'
+  ...
+# Subtest: R10 internal recovery deadline rejects instead of hanging
+ok 53 - R10 internal recovery deadline rejects instead of hanging
+  ---
+  duration_ms: 10004.140833
+  type: 'test'
+  ...
+# Subtest: B00 advertised limits are explicit and self-consistent
+ok 54 - B00 advertised limits are explicit and self-consistent
+  ---
+  duration_ms: 1.315792
+  type: 'test'
+  ...
+# Subtest: B01 exactly maxEvents is a legal history
+ok 55 - B01 exactly maxEvents is a legal history
+  ---
+  duration_ms: 8287.083542
+  type: 'test'
+  ...
+# Subtest: B02 maxEvents + 1 rejects explicitly (no silent truncation)
+ok 56 - B02 maxEvents + 1 rejects explicitly (no silent truncation)
+  ---
+  duration_ms: 4279.222708
+  type: 'test'
+  ...
+# Subtest: B03 serialized history beyond maxBytes rejects
+ok 57 - B03 serialized history beyond maxBytes rejects
+  ---
+  duration_ms: 141.498208
+  type: 'test'
+  ...
+# Subtest: B04 history well below maxBytes still succeeds (byte bound is not over-restrictive)
+ok 58 - B04 history well below maxBytes still succeeds (byte bound is not over-restrictive)
+  ---
+  duration_ms: 102.97125
+  type: 'test'
+  ...
+# Subtest: B06 byte accounting counts UTF-8 bytes, not JavaScript characters
+ok 59 - B06 byte accounting counts UTF-8 bytes, not JavaScript characters
+  ---
+  duration_ms: 158.076
+  type: 'test'
+  ...
+# Subtest: B05 read-count bound rejects instead of looping forever
+ok 60 - B05 read-count bound rejects instead of looping forever
+  ---
+  duration_ms: 116.720959
+  type: 'test'
+  ...
+# Subtest: S00 cold seam exposes the expectedPrefix continuity capability
+ok 61 - S00 cold seam exposes the expectedPrefix continuity capability
+  ---
+  duration_ms: 17.051917
+  type: 'test'
+  ...
+# Subtest: S01 unchanged log re-observed with expectedPrefix reports a zero-length trusted suffix
+ok 62 - S01 unchanged log re-observed with expectedPrefix reports a zero-length trusted suffix
+  ---
+  duration_ms: 22.354917
+  type: 'test'
+  ...
+# Subtest: S02 trusted native resume/setup/title suffix extends the baseline exactly
+ok 63 - S02 trusted native resume/setup/title suffix extends the baseline exactly
+  ---
+  duration_ms: 18.001917
+  type: 'test'
+  ...
+# Subtest: S03-S06 foreign recovery-window inputs are refused (user/assistant/inbox/automatic title)
+ok 64 - S03-S06 foreign recovery-window inputs are refused (user/assistant/inbox/automatic title)
+  ---
+  duration_ms: 38.2745
+  type: 'test'
+  ...
+# Subtest: S07-S08 earlier-cut rewrite or shrink is refused by the full-prefix digest
+ok 65 - S07-S08 earlier-cut rewrite or shrink is refused by the full-prefix digest
+  ---
+  duration_ms: 24.703042
+  type: 'test'
+  ...
+# Subtest: S09-S10 tampered expectedPrefix metadata is refused
+ok 66 - S09-S10 tampered expectedPrefix metadata is refused
+  ---
+  duration_ms: 27.126375
+  type: 'test'
+  ...
+# Subtest: S11 appended suffix beyond the declared bound is refused
+ok 67 - S11 appended suffix beyond the declared bound is refused
+  ---
+  duration_ms: 6.081083
+  type: 'test'
+  ...
+# Subtest: S12 trustedNativeRecoverySuffix accepts only native resume/setup/title events
+ok 68 - S12 trustedNativeRecoverySuffix accepts only native resume/setup/title events
+  ---
+  duration_ms: 0.617042
+  type: 'test'
+  ...
+# Subtest: S13 live Session identity/header/inherited/seq/inbox must match the observed baseline
+ok 69 - S13 live Session identity/header/inherited/seq/inbox must match the observed baseline
+  ---
+  duration_ms: 40.639292
+  type: 'test'
+  ...
+# Subtest: S14 extendNativeHistorySnapshot accepts one exact legitimate appended event and stretches the baseline
+ok 70 - S14 extendNativeHistorySnapshot accepts one exact legitimate appended event and stretches the baseline
+  ---
+  duration_ms: 8.027375
+  type: 'test'
+  ...
+# Subtest: S15 observeNativeBaseline flushes inside native maintenance and binds the live cut
+ok 71 - S15 observeNativeBaseline flushes inside native maintenance and binds the live cut
+  ---
+  duration_ms: 10.169333
+  type: 'test'
+  ...
+# Subtest: S16 recovery-window foreign append is refused even through observeNativeBaseline + expectedPrefix
+ok 72 - S16 recovery-window foreign append is refused even through observeNativeBaseline + expectedPrefix
+  ---
+  duration_ms: 12.383459
+  type: 'test'
+  ...
+# Subtest: S19 caller-controlled allowAppended can admit an explicitly authorised suffix
+ok 73 - S19 caller-controlled allowAppended can admit an explicitly authorised suffix
+  ---
+  duration_ms: 7.879375
+  type: 'test'
+  ...
+# Subtest: S18 compatibility inbox-array helper agrees with the snapshot seam and still refuses bad history
+ok 74 - S18 compatibility inbox-array helper agrees with the snapshot seam and still refuses bad history
+  ---
+  duration_ms: 21.996416
+  type: 'test'
+  ...
+# Subtest: S17 post-recovery cut of a long session keeps the same business Session and exact projection
+ok 75 - S17 post-recovery cut of a long session keeps the same business Session and exact projection
+  ---
+  duration_ms: 529.628125
+  type: 'test'
+  ...
+# Subtest: LO01 fresh load-only writes exactly one durable current message and acknowledges it
+ok 76 - LO01 fresh load-only writes exactly one durable current message and acknowledges it
+  ---
+  duration_ms: 17.133333
+  type: 'test'
+  ...
+# Subtest: LO02 long resumed history + fixed title are included in the new baseline
+ok 77 - LO02 long resumed history + fixed title are included in the new baseline
+  ---
+  duration_ms: 481.224417
+  type: 'test'
+  ...
+# Subtest: LO03 external direct user/message during authorize(append) blocks the receipt
+ok 78 - LO03 external direct user/message during authorize(append) blocks the receipt
+  ---
+  duration_ms: 27.067667
+  type: 'test'
+  ...
+# Subtest: LO04 external direct user/message during authorize(context_ack) blocks the durable receipt
+ok 79 - LO04 external direct user/message during authorize(context_ack) blocks the durable receipt
+  ---
+  duration_ms: 24.00975
+  type: 'test'
+  ...
+# Subtest: LO05 pending native inbox blocks load-only before any acknowledgement
+ok 80 - LO05 pending native inbox blocks load-only before any acknowledgement
+  ---
+  duration_ms: 5.402166
+  type: 'test'
+  ...
+# Subtest: LO06 lost durability after the exact message append is never acknowledged
+ok 81 - LO06 lost durability after the exact message append is never acknowledged
+  ---
+  duration_ms: 0.714
+  type: 'test'
+  ...
+# Subtest: LO07 deadline expiry during an authorization wait blocks the receipt
+ok 82 - LO07 deadline expiry during an authorization wait blocks the receipt
+  ---
+  duration_ms: 42.514208
+  type: 'test'
+  ...
+# Subtest: LO08 a second load-only on the same business Session keeps identity and extends history
+ok 83 - LO08 a second load-only on the same business Session keeps identity and extends history
+  ---
+  duration_ms: 1.832084
+  type: 'test'
+  ...
+# Subtest: LO09 cancellation while authorize(append) awaits leaves no receipt and no live Agent
+ok 84 - LO09 cancellation while authorize(append) awaits leaves no receipt and no live Agent
+  ---
+  duration_ms: 29.943833
+  type: 'test'
+  ...
+# Subtest: LO11 an already pinned fixed title is not re-appended and the baseline still matches
+ok 85 - LO11 an already pinned fixed title is not re-appended and the baseline still matches
+  ---
+  duration_ms: 28.783666
+  type: 'test'
+  ...
+# Subtest: LO12 a foreign pending inbox input inserted during authorize(append) blocks the receipt
+ok 86 - LO12 a foreign pending inbox input inserted during authorize(append) blocks the receipt
+  ---
+  duration_ms: 15.018667
+  type: 'test'
+  ...
+# Subtest: LO13 a fresh adapter instance recovers the persisted binding and resumes the same Session
+ok 87 - LO13 a fresh adapter instance recovers the persisted binding and resumes the same Session
+  ---
+  duration_ms: 1.656166
+  type: 'test'
+  ...
+# Subtest: LO10 long-history load-only keeps an independent durable readback of the exact message
+ok 88 - LO10 long-history load-only keeps an independent durable readback of the exact message
+  ---
+  duration_ms: 220.236458
+  type: 'test'
+  ...
+# Subtest: RP01 fresh context reply: exact current message + flush + readback precede the receipt, generation continues
+ok 89 - RP01 fresh context reply: exact current message + flush + readback precede the receipt, generation continues
+  ---
+  duration_ms: 13.764875
+  type: 'test'
+  ...
+# Subtest: RP02 long resumed history: same Session, prefix preserved, generation continues
+ok 90 - RP02 long resumed history: same Session, prefix preserved, generation continues
+  ---
+  duration_ms: 284.014833
+  type: 'test'
+  ...
+# Subtest: RP03 foreign user/message appended during authorize(pre_step) cannot produce a draft
+ok 91 - RP03 foreign user/message appended during authorize(pre_step) cannot produce a draft
+  ---
+  duration_ms: 45.225208
+  type: 'test'
+  ...
+# Subtest: RP04 foreign pending inbox inserted during onBound cannot produce a receipt
+ok 92 - RP04 foreign pending inbox inserted during onBound cannot produce a receipt
+  ---
+  duration_ms: 10.147208
+  type: 'test'
+  ...
+# Subtest: RP05 bounded request parameters and single stream are observable
+ok 93 - RP05 bounded request parameters and single stream are observable
+  ---
+  duration_ms: 2.677542
+  type: 'test'
+  ...
+# Subtest: RP06 two consecutive replies reuse one Session and keep both exact messages
+ok 94 - RP06 two consecutive replies reuse one Session and keep both exact messages
+  ---
+  duration_ms: 4.889625
+  type: 'test'
+  ...
+# Subtest: RP09 a stale-inbox declaration with a wrong hash cannot remove an unknown input
+ok 95 - RP09 a stale-inbox declaration with a wrong hash cannot remove an unknown input
+  ---
+  duration_ms: 3.359084
+  type: 'test'
+  ...
+# Subtest: RP08 declared obsolete pending input is removed precisely and bound into the new baseline
+ok 96 - RP08 declared obsolete pending input is removed precisely and bound into the new baseline
+  ---
+  duration_ms: 57.269459
+  type: 'test'
+  ...
+# Subtest: RP10 a fresh adapter instance resumes the persisted replyer Session and generates again
+ok 97 - RP10 a fresh adapter instance resumes the persisted replyer Session and generates again
+  ---
+  duration_ms: 4.667542
+  type: 'test'
+  ...
+# Subtest: RP07 pending inbox blocks context-safe generation before any model call
+ok 98 - RP07 pending inbox blocks context-safe generation before any model call
+  ---
+  duration_ms: 4.463625
+  type: 'test'
+  ...
+# Subtest: CO01 core decision on a resumed long Goal Session completes one bounded round
+ok 99 - CO01 core decision on a resumed long Goal Session completes one bounded round
+  ---
+  duration_ms: 217.336834
+  type: 'test'
+  ...
+# Subtest: CO04 an extra unregistered plain user message beside the owner input is refused
+ok 100 - CO04 an extra unregistered plain user message beside the owner input is refused
+  ---
+  duration_ms: 20.339834
+  type: 'test'
+  ...
+# Subtest: CO05 a pre-existing unknown pending inbox blocks the core round before dispatch
+ok 101 - CO05 a pre-existing unknown pending inbox blocks the core round before dispatch
+  ---
+  duration_ms: 7.246041
+  type: 'test'
+  ...
+# Subtest: CO02 foreign native user/message during onDispatch await blocks the round
+ok 102 - CO02 foreign native user/message during onDispatch await blocks the round
+  ---
+  duration_ms: 29.691375
+  type: 'test'
+  ...
+# Subtest: CO03 foreign native write during a Core authorization await is rechecked before dispatch
+ok 103 - CO03 foreign native write during a Core authorization await is rechecked before dispatch
+  ---
+  duration_ms: 23.771084
+  type: 'test'
+  ...
+1..103
+# tests 103
+# suites 0
+# pass 103
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 41106.67975
+
+[stderr]

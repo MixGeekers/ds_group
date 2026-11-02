@@ -1,0 +1,4136 @@
+{
+  "runId": "2026-11-02T18-45-41-522Z",
+  "startedAt": "2026-11-02T18:45:41.522Z",
+  "durationMs": 41136,
+  "exitStatus": 0,
+  "summary": {
+    "categories": 9,
+    "cases": 117,
+    "pass": 117,
+    "fail": 0,
+    "blocked": 0,
+    "unobservable": 0,
+    "unreportedTests": [],
+    "unattributedEvidence": [],
+    "tap": {
+      "total": 103,
+      "pass": 103,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "unreported": 0,
+      "skip": 0
+    }
+  },
+  "categories": [
+    {
+      "category": "B declared capacity bounds",
+      "cases": 7,
+      "pass": 7,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    },
+    {
+      "category": "C judge self-verification",
+      "cases": 6,
+      "pass": 6,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    },
+    {
+      "category": "CO core business path",
+      "cases": 5,
+      "pass": 5,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    },
+    {
+      "category": "I invalid history/backend",
+      "cases": 28,
+      "pass": 28,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    },
+    {
+      "category": "L legal long history",
+      "cases": 13,
+      "pass": 13,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    },
+    {
+      "category": "LO load-only business path",
+      "cases": 13,
+      "pass": 13,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    },
+    {
+      "category": "R races/cancellation/limits",
+      "cases": 12,
+      "pass": 12,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    },
+    {
+      "category": "RP replyer business path",
+      "cases": 10,
+      "pass": 10,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    },
+    {
+      "category": "S recovery continuity",
+      "cases": 23,
+      "pass": 23,
+      "fail": 0,
+      "blocked": 0,
+      "unobservable": 0,
+      "issueIds": []
+    }
+  ],
+  "tests": [
+    {
+      "ok": true,
+      "number": 1,
+      "title": "C00a oracle accepts hand-constructed correct cold snapshots",
+      "skip": null,
+      "evidenceIds": [
+        "C00a",
+        "C00b",
+        "C00c",
+        "C00d",
+        "C00e",
+        "C00f"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 2,
+      "title": "C00b oracle rejects wrong asOfSeq/eventCount/inherited and mixed references",
+      "skip": null,
+      "evidenceIds": [
+        "C00a",
+        "C00b",
+        "C00c",
+        "C00d",
+        "C00e",
+        "C00f"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 3,
+      "title": "C00c oracle rejects malformed inbox histories and bad inherited metadata",
+      "skip": null,
+      "evidenceIds": [
+        "C00a",
+        "C00b",
+        "C00c",
+        "C00d",
+        "C00e",
+        "C00f"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 4,
+      "title": "C00d oracle rejects a safe-looking error that leaks bodies or retains the handle",
+      "skip": null,
+      "evidenceIds": [
+        "C00a",
+        "C00b",
+        "C00c",
+        "C00d",
+        "C00e",
+        "C00f"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 5,
+      "title": "C00f harness mutation-test: a correct hand reader passes; three buggy readers are rejected",
+      "skip": null,
+      "evidenceIds": [
+        "C00a",
+        "C00b",
+        "C00c",
+        "C00d",
+        "C00e",
+        "C00f"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 6,
+      "title": "C00e native-world fixture matches the frozen reader contract",
+      "skip": null,
+      "evidenceIds": [
+        "C00a",
+        "C00b",
+        "C00c",
+        "C00d",
+        "C00e",
+        "C00f"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 7,
+      "title": "L01 empty native history restores the empty official projection",
+      "skip": null,
+      "evidenceIds": [
+        "L01"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 8,
+      "title": "L02 unmaterialized detached pending log is a legal empty cut",
+      "skip": null,
+      "evidenceIds": [
+        "L02"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 9,
+      "title": "L03 2047 events (old 2048 cap - 1) with short backend pages",
+      "skip": null,
+      "evidenceIds": [
+        "L03"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 10,
+      "title": "L04 exactly 2048 events (old cap boundary)",
+      "skip": null,
+      "evidenceIds": [
+        "L04"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 11,
+      "title": "L05 2049 events (old cap + 1) must succeed, proving the old rejection is gone",
+      "skip": null,
+      "evidenceIds": [
+        "L05"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 12,
+      "title": "L06 far beyond one page with conforming short pages (5000 events, pageCap=100)",
+      "skip": null,
+      "evidenceIds": [
+        "L06"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 13,
+      "title": "L07 generated 10000-event history with tiny pages (far beyond one page)",
+      "skip": null,
+      "evidenceIds": [
+        "L07"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 14,
+      "title": "L08 seeded history: inherited prefix included in the projection",
+      "skip": null,
+      "evidenceIds": [
+        "L08"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 15,
+      "title": "L09 seeded history with inheritedEventCount=0 and cut marker at seq 0",
+      "skip": null,
+      "evidenceIds": [
+        "L09"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 16,
+      "title": "L10 interleaved lanes, insertions and cancellations project exactly",
+      "skip": null,
+      "evidenceIds": [
+        "L10"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 17,
+      "title": "L11 custom managed Session identity and preset are preserved",
+      "skip": null,
+      "evidenceIds": [
+        "L11"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 18,
+      "title": "L12 natural short final page (700 events)",
+      "skip": null,
+      "evidenceIds": [
+        "L12"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 19,
+      "title": "L13 declared recovery limit is not lower than the legal 2049 case",
+      "skip": null,
+      "evidenceIds": [
+        "L13"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 20,
+      "title": "I01 missing event sequence is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I01"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 21,
+      "title": "I02 duplicate and out-of-order sequences are refused",
+      "skip": null,
+      "evidenceIds": [
+        "I02a",
+        "I02b"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 22,
+      "title": "I03 backend returning more events than requested is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I03"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 23,
+      "title": "I04 malformed read result shape is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I04"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 24,
+      "title": "I05 header identity mismatch is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I05"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 25,
+      "title": "I06 preset mismatch is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I06"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 26,
+      "title": "I07 unsupported header version is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I07"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 27,
+      "title": "I08 non-boolean header isSeeded is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I08"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 28,
+      "title": "I09 branded -0 inherited count is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I09"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 29,
+      "title": "I10-I13 malformed inherited ranges are refused",
+      "skip": null,
+      "evidenceIds": [
+        "I10",
+        "I11",
+        "I12",
+        "I13"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 30,
+      "title": "I14 seeded header without a valid inherited cut marker is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I14"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 31,
+      "title": "I15 unidentified pending inbox message is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I15"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 32,
+      "title": "I16 duplicate pending message identity across lanes is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I16"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 33,
+      "title": "I17 invalid inbox splice range is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I17"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 34,
+      "title": "I18 official projection throwing must reject the load",
+      "skip": null,
+      "evidenceIds": [
+        "I18"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 35,
+      "title": "I19 projection without the registered inbox value is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I19"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 36,
+      "title": "I20 projection watermark that disagrees with the observed cut is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I20"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 37,
+      "title": "I21 native read failure rejects and does not leak event bodies",
+      "skip": null,
+      "evidenceIds": [
+        "I21"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 38,
+      "title": "I22 handle close failure rejects while retaining that handle for diagnosis",
+      "skip": null,
+      "evidenceIds": [
+        "I22"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 39,
+      "title": "I23-I25 missing required native services are refused",
+      "skip": null,
+      "evidenceIds": [
+        "I23",
+        "I24",
+        "I25"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 40,
+      "title": "I26 native Session not found is refused",
+      "skip": null,
+      "evidenceIds": [
+        "I26"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 41,
+      "title": "I27 empty-cut projection watermark must also be exact",
+      "skip": null,
+      "evidenceIds": [
+        "I27"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 42,
+      "title": "R01 append between pages is not silently accepted as a mixed history",
+      "skip": null,
+      "evidenceIds": [
+        "R01"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 43,
+      "title": "R02 inbox insertion between pages is projected from the final cut",
+      "skip": null,
+      "evidenceIds": [
+        "R02"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 44,
+      "title": "R03 inbox removal between pages is reflected exactly once",
+      "skip": null,
+      "evidenceIds": [
+        "R03"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 45,
+      "title": "R04 same-length early rewrite during the first pass is detected or re-read",
+      "skip": null,
+      "evidenceIds": [
+        "R04"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 46,
+      "title": "R05 append after an observed EOF is detected or re-read",
+      "skip": null,
+      "evidenceIds": [
+        "R05"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 47,
+      "title": "R06 append during the official projection is detected or re-read",
+      "skip": null,
+      "evidenceIds": [
+        "R06"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 48,
+      "title": "R07 log shrink observed after a read rejects (no mixed history)",
+      "skip": null,
+      "evidenceIds": [
+        "R07"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 49,
+      "title": "R08 cancel during a native read rejects without orphaning the handle",
+      "skip": null,
+      "evidenceIds": [
+        "R08"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 50,
+      "title": "R09 already-aborted signal opens no native handle",
+      "skip": null,
+      "evidenceIds": [
+        "R09"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 51,
+      "title": "R11 an absolute caller deadline option rejects promptly without waiting for the fixed timeout",
+      "skip": null,
+      "evidenceIds": [
+        "R11"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 52,
+      "title": "R12 an already-expired absolute deadline rejects before opening a handle",
+      "skip": null,
+      "evidenceIds": [
+        "R12"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 53,
+      "title": "R10 internal recovery deadline rejects instead of hanging",
+      "skip": null,
+      "evidenceIds": [
+        "R10"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 54,
+      "title": "B00 advertised limits are explicit and self-consistent",
+      "skip": null,
+      "evidenceIds": [
+        "B00"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 55,
+      "title": "B01 exactly maxEvents is a legal history",
+      "skip": null,
+      "evidenceIds": [
+        "B01"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 56,
+      "title": "B02 maxEvents + 1 rejects explicitly (no silent truncation)",
+      "skip": null,
+      "evidenceIds": [
+        "B02"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 57,
+      "title": "B03 serialized history beyond maxBytes rejects",
+      "skip": null,
+      "evidenceIds": [
+        "B03"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 58,
+      "title": "B04 history well below maxBytes still succeeds (byte bound is not over-restrictive)",
+      "skip": null,
+      "evidenceIds": [
+        "B04"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 59,
+      "title": "B06 byte accounting counts UTF-8 bytes, not JavaScript characters",
+      "skip": null,
+      "evidenceIds": [
+        "B06"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 60,
+      "title": "B05 read-count bound rejects instead of looping forever",
+      "skip": null,
+      "evidenceIds": [
+        "B05"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 61,
+      "title": "S00 cold seam exposes the expectedPrefix continuity capability",
+      "skip": null,
+      "evidenceIds": [
+        "S00"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 62,
+      "title": "S01 unchanged log re-observed with expectedPrefix reports a zero-length trusted suffix",
+      "skip": null,
+      "evidenceIds": [
+        "S01"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 63,
+      "title": "S02 trusted native resume/setup/title suffix extends the baseline exactly",
+      "skip": null,
+      "evidenceIds": [
+        "S02"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 64,
+      "title": "S03-S06 foreign recovery-window inputs are refused (user/assistant/inbox/automatic title)",
+      "skip": null,
+      "evidenceIds": [
+        "S03",
+        "S04",
+        "S05",
+        "S06"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 65,
+      "title": "S07-S08 earlier-cut rewrite or shrink is refused by the full-prefix digest",
+      "skip": null,
+      "evidenceIds": [
+        "S07",
+        "S08"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 66,
+      "title": "S09-S10 tampered expectedPrefix metadata is refused",
+      "skip": null,
+      "evidenceIds": [
+        "S09",
+        "S10a",
+        "S10b",
+        "S10c",
+        "S10d"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 67,
+      "title": "S11 appended suffix beyond the declared bound is refused",
+      "skip": null,
+      "evidenceIds": [
+        "S11"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 68,
+      "title": "S12 trustedNativeRecoverySuffix accepts only native resume/setup/title events",
+      "skip": null,
+      "evidenceIds": [
+        "S12"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 69,
+      "title": "S13 live Session identity/header/inherited/seq/inbox must match the observed baseline",
+      "skip": null,
+      "evidenceIds": [
+        "S13"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 70,
+      "title": "S14 extendNativeHistorySnapshot accepts one exact legitimate appended event and stretches the baseline",
+      "skip": null,
+      "evidenceIds": [
+        "S14"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 71,
+      "title": "S15 observeNativeBaseline flushes inside native maintenance and binds the live cut",
+      "skip": null,
+      "evidenceIds": [
+        "S15"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 72,
+      "title": "S16 recovery-window foreign append is refused even through observeNativeBaseline + expectedPrefix",
+      "skip": null,
+      "evidenceIds": [
+        "S16"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 73,
+      "title": "S19 caller-controlled allowAppended can admit an explicitly authorised suffix",
+      "skip": null,
+      "evidenceIds": [
+        "S19"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 74,
+      "title": "S18 compatibility inbox-array helper agrees with the snapshot seam and still refuses bad history",
+      "skip": null,
+      "evidenceIds": [
+        "S18"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 75,
+      "title": "S17 post-recovery cut of a long session keeps the same business Session and exact projection",
+      "skip": null,
+      "evidenceIds": [
+        "S17"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 76,
+      "title": "LO01 fresh load-only writes exactly one durable current message and acknowledges it",
+      "skip": null,
+      "evidenceIds": [
+        "LO01"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 77,
+      "title": "LO02 long resumed history + fixed title are included in the new baseline",
+      "skip": null,
+      "evidenceIds": [
+        "LO02"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 78,
+      "title": "LO03 external direct user/message during authorize(append) blocks the receipt",
+      "skip": null,
+      "evidenceIds": [
+        "LO03"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 79,
+      "title": "LO04 external direct user/message during authorize(context_ack) blocks the durable receipt",
+      "skip": null,
+      "evidenceIds": [
+        "LO04"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 80,
+      "title": "LO05 pending native inbox blocks load-only before any acknowledgement",
+      "skip": null,
+      "evidenceIds": [
+        "LO05"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 81,
+      "title": "LO06 lost durability after the exact message append is never acknowledged",
+      "skip": null,
+      "evidenceIds": [
+        "LO06"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 82,
+      "title": "LO07 deadline expiry during an authorization wait blocks the receipt",
+      "skip": null,
+      "evidenceIds": [
+        "LO07"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 83,
+      "title": "LO08 a second load-only on the same business Session keeps identity and extends history",
+      "skip": null,
+      "evidenceIds": [
+        "LO08"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 84,
+      "title": "LO09 cancellation while authorize(append) awaits leaves no receipt and no live Agent",
+      "skip": null,
+      "evidenceIds": [
+        "LO09"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 85,
+      "title": "LO11 an already pinned fixed title is not re-appended and the baseline still matches",
+      "skip": null,
+      "evidenceIds": [
+        "LO11"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 86,
+      "title": "LO12 a foreign pending inbox input inserted during authorize(append) blocks the receipt",
+      "skip": null,
+      "evidenceIds": [
+        "LO12"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 87,
+      "title": "LO13 a fresh adapter instance recovers the persisted binding and resumes the same Session",
+      "skip": null,
+      "evidenceIds": [
+        "LO13"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 88,
+      "title": "LO10 long-history load-only keeps an independent durable readback of the exact message",
+      "skip": null,
+      "evidenceIds": [
+        "LO10"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 89,
+      "title": "RP01 fresh context reply: exact current message + flush + readback precede the receipt, generation continues",
+      "skip": null,
+      "evidenceIds": [
+        "RP01"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 90,
+      "title": "RP02 long resumed history: same Session, prefix preserved, generation continues",
+      "skip": null,
+      "evidenceIds": [
+        "RP02"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 91,
+      "title": "RP03 foreign user/message appended during authorize(pre_step) cannot produce a draft",
+      "skip": null,
+      "evidenceIds": [
+        "RP03"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 92,
+      "title": "RP04 foreign pending inbox inserted during onBound cannot produce a receipt",
+      "skip": null,
+      "evidenceIds": [
+        "RP04"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 93,
+      "title": "RP05 bounded request parameters and single stream are observable",
+      "skip": null,
+      "evidenceIds": [
+        "RP05"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 94,
+      "title": "RP06 two consecutive replies reuse one Session and keep both exact messages",
+      "skip": null,
+      "evidenceIds": [
+        "RP06"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 95,
+      "title": "RP09 a stale-inbox declaration with a wrong hash cannot remove an unknown input",
+      "skip": null,
+      "evidenceIds": [
+        "RP09"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 96,
+      "title": "RP08 declared obsolete pending input is removed precisely and bound into the new baseline",
+      "skip": null,
+      "evidenceIds": [
+        "RP08"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 97,
+      "title": "RP10 a fresh adapter instance resumes the persisted replyer Session and generates again",
+      "skip": null,
+      "evidenceIds": [
+        "RP10"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 98,
+      "title": "RP07 pending inbox blocks context-safe generation before any model call",
+      "skip": null,
+      "evidenceIds": [
+        "RP07"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 99,
+      "title": "CO01 core decision on a resumed long Goal Session completes one bounded round",
+      "skip": null,
+      "evidenceIds": [
+        "CO01"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 100,
+      "title": "CO04 an extra unregistered plain user message beside the owner input is refused",
+      "skip": null,
+      "evidenceIds": [
+        "CO04"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 101,
+      "title": "CO05 a pre-existing unknown pending inbox blocks the core round before dispatch",
+      "skip": null,
+      "evidenceIds": [
+        "CO05"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 102,
+      "title": "CO02 foreign native user/message during onDispatch await blocks the round",
+      "skip": null,
+      "evidenceIds": [
+        "CO02"
+      ],
+      "status": "pass"
+    },
+    {
+      "ok": true,
+      "number": 103,
+      "title": "CO03 foreign native write during a Core authorization await is rechecked before dispatch",
+      "skip": null,
+      "evidenceIds": [
+        "CO03"
+      ],
+      "status": "pass"
+    }
+  ],
+  "tapFailures": [],
+  "evidence": [
+    {
+      "id": "B00",
+      "title": "declared limits",
+      "spec": [
+        "03 §2",
+        "03 §4.1"
+      ],
+      "expectation": "page/maxEvents/maxBytes/maxReads/timeout are explicit numbers; page < maxEvents; bounds exceed the legal 2049 history",
+      "verdict": "pass",
+      "actual": "explicit limits: {\"pageEvents\":512,\"maxEvents\":32768,\"maxBytes\":33554432,\"maxReads\":256,\"timeoutMs\":10000,\"raw\":{\"pageEvents\":512,\"maxEvents\":32768,\"maxBytes\":33554432,\"maxReads\":256,\"timeoutMs\":10000,\"maxAppendedEvents\":64}}",
+      "refs": {
+        "limits": {
+          "pageEvents": 512,
+          "maxEvents": 32768,
+          "maxBytes": 33554432,
+          "maxReads": 256,
+          "timeoutMs": 10000,
+          "raw": {
+            "pageEvents": 512,
+            "maxEvents": 32768,
+            "maxBytes": 33554432,
+            "maxReads": 256,
+            "timeoutMs": 10000,
+            "maxAppendedEvents": 64
+          }
+        }
+      },
+      "startedAt": "2026-11-02T18:46:07.117Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6432
+    },
+    {
+      "id": "B01",
+      "title": "maxEvents boundary legal",
+      "spec": [
+        "03 §4.1"
+      ],
+      "expectation": "the declared capacity boundary itself must still recover; only maxEvents+1 may fail",
+      "verdict": "pass",
+      "actual": "asOfSeq=32767 eventCount=32768 refs=1 inherited=0 reads=132 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 32767,
+        "eventCount": 32768,
+        "sessionId": "shiyu-verify-maxevents",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-32766-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "f570c5c53e1e0310328379d63d0d99aa4d8b2b467bbde6c54901186bdc65c019"
+          }
+        ],
+        "unobservable": [],
+        "reads": 132,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:46:07.118Z",
+      "durationMs": 8287,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6432
+    },
+    {
+      "id": "B02",
+      "title": "maxEvents exceeded",
+      "spec": [
+        "03 §4.1",
+        "03 §5 row2"
+      ],
+      "expectation": "one event past the declared capacity rejects with a diagnosable limit error and releases the handle; it must not return a truncated history",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_LIMIT: NativeHistoryError: Native cold projection history exceeds the safe read bound",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_LIMIT",
+        "reads": 65,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:46:15.406Z",
+      "durationMs": 4279,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6432
+    },
+    {
+      "id": "B03",
+      "title": "maxBytes exceeded",
+      "spec": [
+        "03 §2",
+        "03 §4.1"
+      ],
+      "expectation": "a history whose serialized events exceed the declared byte bound rejects; no partial projection",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_LIMIT: NativeHistoryError: Native cold projection history exceeds the safe read bound",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_LIMIT",
+        "notes": "serialized fixture bytes=34342770, maxBytes=33554432",
+        "reads": 1,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:46:19.685Z",
+      "durationMs": 141,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6432
+    },
+    {
+      "id": "B04",
+      "title": "maxBytes legal",
+      "spec": [
+        "03 §4.1"
+      ],
+      "expectation": "a multi-megabyte history below the byte bound recovers exactly",
+      "verdict": "pass",
+      "actual": "asOfSeq=5 eventCount=6 refs=0 inherited=0 reads=16 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 5,
+        "eventCount": 6,
+        "sessionId": "shiyu-verify-maxbytes-ok",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [],
+        "unobservable": [],
+        "reads": 16,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:46:19.827Z",
+      "durationMs": 102,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6432
+    },
+    {
+      "id": "B05",
+      "title": "maxReads exceeded",
+      "spec": [
+        "03 §2",
+        "03 §4.1"
+      ],
+      "expectation": "a backend forcing more than maxReads slices (pageCap=1) rejects with a bounded-work error rather than unbounded reads",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_LIMIT: NativeHistoryError: Native cold projection history exceeds the safe read bound",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_LIMIT",
+        "notes": "events=266, maxReads=256, pageCap=1",
+        "reads": 256,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:46:20.088Z",
+      "durationMs": 116,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6432
+    },
+    {
+      "id": "B06",
+      "title": "utf8 byte accounting",
+      "spec": [
+        "03 §4.1"
+      ],
+      "expectation": "a history whose serialized UTF-8 bytes exceed maxBytes rejects even when its JSON character count is smaller; byte accounting is not a character count",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_LIMIT: NativeHistoryError: Native cold projection history exceeds the safe read bound",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_LIMIT",
+        "notes": "UTF-8 bytes=50332550 > maxBytes=33554432; JS characters=16778102 <= maxBytes",
+        "reads": 1,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:46:19.930Z",
+      "durationMs": 157,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6432
+    },
+    {
+      "id": "C00a",
+      "title": "oracle accepts correct hand samples",
+      "spec": [
+        "02 §3.2",
+        "03 §5"
+      ],
+      "expectation": "independent judge reports no violation for correct snapshot and refs",
+      "verdict": "pass",
+      "actual": "accepted both correct hand samples (40-event mixed history and empty history)",
+      "startedAt": "2026-11-02T18:45:41.962Z",
+      "durationMs": 2,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5760
+    },
+    {
+      "id": "C00b",
+      "title": "oracle rejects wrong watermarks and references",
+      "spec": [
+        "02 §3.2",
+        "03 §3",
+        "03 §5"
+      ],
+      "expectation": "each of 4 hand-built wrong samples is rejected with the matching field violation",
+      "verdict": "pass",
+      "actual": "rejected all 5 hand-built wrong snapshots with the expected fields",
+      "refs": {
+        "samples": [
+          "asOfSeq off by one",
+          "eventCount is last-page length",
+          "inherited count invented from header",
+          "mixed-reference history (one pending message missing)",
+          "-0 watermark"
+        ]
+      },
+      "startedAt": "2026-11-02T18:45:41.965Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5760
+    },
+    {
+      "id": "C00c",
+      "title": "oracle rejects malformed inbox/history inputs",
+      "spec": [
+        "02 §3.2",
+        "03 §3"
+      ],
+      "expectation": "independent fold refuses duplicate/out-of-range/gap inputs instead of projecting them",
+      "verdict": "pass",
+      "actual": "rejected 7 malformed hand samples",
+      "refs": {
+        "samples": [
+          "duplicate pending message id across lanes",
+          "splice range beyond lane length",
+          "non-contiguous log (missing seq)",
+          "unidentified pending message"
+        ]
+      },
+      "startedAt": "2026-11-02T18:45:41.970Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5760
+    },
+    {
+      "id": "C00d",
+      "title": "oracle verifies rejection safety",
+      "spec": [
+        "02 §3.2",
+        "03 §5"
+      ],
+      "expectation": "clean rejection passes; body-leaking, unclosed-handle, empty-message and missing-error samples fail",
+      "verdict": "pass",
+      "actual": "accepted the clean rejection and rejected all 5 unsafe rejection samples",
+      "refs": {
+        "samples": [
+          "clean",
+          "leak",
+          "unclosed",
+          "empty-message",
+          "missing-error"
+        ]
+      },
+      "startedAt": "2026-11-02T18:45:41.970Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5760
+    },
+    {
+      "id": "C00e",
+      "title": "fixture models read/offset/shrink/restore semantics",
+      "spec": [
+        "03 §3"
+      ],
+      "expectation": "offset slices, explicit EOF, monotonic shrink rejection, empty asOfSeq=-1 and detached state",
+      "verdict": "pass",
+      "actual": "fixture semantics verified (slices, EOF, shrink rejection, empty asOfSeq -1, detached state, inert end-seed)",
+      "startedAt": "2026-11-02T18:45:42.018Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5760
+    },
+    {
+      "id": "C00f",
+      "title": "harness rejects buggy implementations",
+      "spec": [
+        "02 §3.2",
+        "02 §3.1",
+        "03 §5"
+      ],
+      "expectation": "independent world+judge accepts a hand-written correct two-pass reader and rejects single-pass, stale-cut and short-page-as-EOF readers",
+      "verdict": "pass",
+      "actual": "accepted the correct hand reader and rejected all 3 mutants (single-pass:only one complete history pass observed (returned=500, events=500); 03 §4.1 requ | stale-cut:asOfSeq: expected 500 got 499 (inclusive native watermark must be eventCount-1 ( | short-page-as-eof:asOfSeq: expected 499 got 98 (inclusive native watermark must be eventCount-1 (e)",
+      "refs": {
+        "rejected": [
+          "single-pass:only one complete history pass observed (returned=500, events=500); 03 §4.1 requ",
+          "stale-cut:asOfSeq: expected 500 got 499 (inclusive native watermark must be eventCount-1 (",
+          "short-page-as-eof:asOfSeq: expected 499 got 98 (inclusive native watermark must be eventCount-1 (e"
+        ]
+      },
+      "startedAt": "2026-11-02T18:45:41.971Z",
+      "durationMs": 47,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5760
+    },
+    {
+      "id": "CO01",
+      "title": "core long-history decision round",
+      "spec": [
+        "03 §5 row8",
+        "03 §4.3",
+        "6.3"
+      ],
+      "expectation": "same Goal Session resumed from long history; trusted suffix+title bound; exact dispatch receipt; one primary stream; bounded candidate",
+      "verdict": "pass",
+      "actual": "same Goal Session resumed; candidate text, exact input seq=2011 and assistant seq=2013, one model call, observed accounting",
+      "startedAt": "2026-11-02T18:46:22.702Z",
+      "durationMs": 217,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6641
+    },
+    {
+      "id": "CO02",
+      "title": "foreign write during onDispatch",
+      "spec": [
+        "03 §4.3",
+        "03 §5 row5"
+      ],
+      "expectation": "a foreign native input appended while onDispatch awaits must be detected by the synchronous live baseline recheck before dispatch; no candidate, no context receipt",
+      "verdict": "pass",
+      "actual": "round refused with \"Native history changed outside the trusted recovery suffix\"; no candidate/context receipt, accounting preserved",
+      "startedAt": "2026-11-02T18:46:22.947Z",
+      "durationMs": 30,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6641
+    },
+    {
+      "id": "CO03",
+      "title": "foreign write during core gate await",
+      "spec": [
+        "03 §4.3",
+        "03 §5 row5"
+      ],
+      "expectation": "the dispatch gate rechecks the live baseline after an authorization await, so a write landing there is refused before any model call",
+      "verdict": "pass",
+      "actual": "round refused with \"Native history changed outside the trusted recovery suffix\"; zero model calls",
+      "startedAt": "2026-11-02T18:46:22.977Z",
+      "durationMs": 23,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6641
+    },
+    {
+      "id": "CO04",
+      "title": "extra unregistered core input",
+      "spec": [
+        "03 §4.3",
+        "NATIVE_SEAMS core input boundary"
+      ],
+      "expectation": "only the owner input plus at most the exact cwd runtime snapshot may enter the core request; any other user message is rejected before/at the stream boundary",
+      "verdict": "pass",
+      "actual": "round refused with \"Core native context has no distinct official message identity\"; no candidate/context receipt",
+      "startedAt": "2026-11-02T18:46:22.920Z",
+      "durationMs": 20,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6641
+    },
+    {
+      "id": "CO05",
+      "title": "core pending inbox blocks",
+      "spec": [
+        "03 §4.1",
+        "03 §5 row5"
+      ],
+      "expectation": "an unknown pending native input on the resumed Goal Session blocks the decision before any dispatch/model call; the input is preserved",
+      "verdict": "pass",
+      "actual": "decision refused with \"Unknown native inbox blocks Core Goal recovery\"; input preserved; zero dispatch/model",
+      "startedAt": "2026-11-02T18:46:22.940Z",
+      "durationMs": 7,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6641
+    },
+    {
+      "id": "I01",
+      "title": "missing seq",
+      "spec": [
+        "03 §5 row2"
+      ],
+      "expectation": "a gap in the logical sequence must reject; a completed prefix must not be accepted",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_SEQUENCE: NativeHistoryError: Native cold projection has an incomplete or invalid event sequence",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_SEQUENCE",
+        "reads": 1,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.643Z",
+      "durationMs": 8,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I02a",
+      "title": "duplicate/out-of-order seq",
+      "spec": [
+        "03 §5 row2"
+      ],
+      "expectation": "non-strictly-increasing seqs must reject",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_SEQUENCE: NativeHistoryError: Native cold projection has an incomplete or invalid event sequence",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_SEQUENCE",
+        "reads": 1,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.652Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I02b",
+      "title": "duplicate/out-of-order seq",
+      "spec": [
+        "03 §5 row2"
+      ],
+      "expectation": "non-strictly-increasing seqs must reject",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_SEQUENCE: NativeHistoryError: Native cold projection has an incomplete or invalid event sequence",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_SEQUENCE",
+        "reads": 1,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.655Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I03",
+      "title": "oversized page",
+      "spec": [
+        "03 §5 row2",
+        "03 §3 read(offset,length)"
+      ],
+      "expectation": "read length is a maximum; a page exceeding it must be treated as an invalid backend, not silently consumed",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_SEQUENCE: NativeHistoryError: Native cold projection has an incomplete or invalid event sequence",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_SEQUENCE",
+        "notes": "page oversize is listed as invalid in 03 §5",
+        "reads": 1,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.655Z",
+      "durationMs": 9,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I04",
+      "title": "malformed read result",
+      "spec": [
+        "03 §5 row2",
+        "03 §4.1"
+      ],
+      "expectation": "a backend result without an events array must reject and release the handle",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_READ: NativeHistoryError: Native history read failed",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_READ",
+        "reads": 1,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.668Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I05",
+      "title": "bad header id",
+      "spec": [
+        "03 §5 row2",
+        "03 §3 header.id"
+      ],
+      "expectation": "a stored header bound to another Session id must never be accepted as this managed Session",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.673Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I06",
+      "title": "bad preset",
+      "spec": [
+        "03 §5 row2",
+        "03 §3 header/preset"
+      ],
+      "expectation": "a Session whose agentPreset differs from the managed binding must reject",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "notes": "requested preset shiyu-runtime-replyer-v1 vs stored some-other-preset",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.677Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I07",
+      "title": "bad header version",
+      "spec": [
+        "03 §5 row2",
+        "03 §3",
+        "SDK validateSessionHeader"
+      ],
+      "expectation": "a non-current stored header version must not be projected as current history",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.681Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I08",
+      "title": "bad isSeeded type",
+      "spec": [
+        "03 §5 row2",
+        "03 §3",
+        "SDK header validation"
+      ],
+      "expectation": "isSeeded must be a boolean; a string must reject before projection",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.685Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I09",
+      "title": "inherited -0",
+      "spec": [
+        "03 §4.4",
+        "03 §5 row2",
+        "SDK SessionLogOffset"
+      ],
+      "expectation": "the frozen SDK brand rejects -0; a recovered inherited count of -0 must never be accepted",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.685Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I10",
+      "title": "I10 fractional inherited",
+      "spec": [
+        "03 §5 row2",
+        "03 §4.4"
+      ],
+      "expectation": "inheritedEventCount must be a branded safe integer within the log and exactly 0 for an unseeded Session",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.686Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I11",
+      "title": "I11 negative inherited",
+      "spec": [
+        "03 §5 row2",
+        "03 §4.4"
+      ],
+      "expectation": "inheritedEventCount must be a branded safe integer within the log and exactly 0 for an unseeded Session",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.686Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I12",
+      "title": "I12 inherited beyond log",
+      "spec": [
+        "03 §5 row2",
+        "03 §4.4"
+      ],
+      "expectation": "inheritedEventCount must be a branded safe integer within the log and exactly 0 for an unseeded Session",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.686Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I13",
+      "title": "I13 unseeded nonzero inherited",
+      "spec": [
+        "03 §5 row2",
+        "03 §4.4"
+      ],
+      "expectation": "inheritedEventCount must be a branded safe integer within the log and exactly 0 for an unseeded Session",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.686Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I14",
+      "title": "seeded cut marker",
+      "spec": [
+        "03 §5 row2",
+        "SDK Session constructor"
+      ],
+      "expectation": "a seeded header must identify its inherited cut with data.inherited===true session/end-seed (or inherited===eventCount)",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_HEADER: NativeHistoryError: Native history identity or inherited metadata does not match",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_HEADER",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.686Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I15",
+      "title": "unidentified inbox message",
+      "spec": [
+        "03 §5 row2",
+        "03 §4.1"
+      ],
+      "expectation": "an inbox entry without a complete native message id must reject rather than project an anonymous pending input",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_PROJECTION: NativeHistoryError: Native inbox projection or its sequence watermark is invalid",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_PROJECTION",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.687Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I16",
+      "title": "duplicate pending id",
+      "spec": [
+        "03 §5 row2",
+        "agent-loop inbox projection"
+      ],
+      "expectation": "the official inbox fold rejects the same pending message id appearing twice; cold recovery must not accept it",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_PROJECTION: NativeHistoryError: Native inbox projection or its sequence watermark is invalid",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_PROJECTION",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.690Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I17",
+      "title": "invalid inbox splice",
+      "spec": [
+        "03 §5 row2",
+        "agent-loop inbox projection"
+      ],
+      "expectation": "a persisted splice outside its lane range must reject instead of being clamped",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_PROJECTION: NativeHistoryError: Native inbox projection or its sequence watermark is invalid",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_PROJECTION",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.694Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I18",
+      "title": "projection failure",
+      "spec": [
+        "03 §5 last row",
+        "03 §4.1"
+      ],
+      "expectation": "a projection failure must reject with no acceptance receipt and release the handle",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_PROJECTION: NativeHistoryError: Native inbox projection or its sequence watermark is invalid",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_PROJECTION",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.699Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I19",
+      "title": "missing inbox projection",
+      "spec": [
+        "03 §5 last row",
+        "03 §4.1"
+      ],
+      "expectation": "an absent registered inbox projection must never be interpreted as an empty inbox",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_PROJECTION: NativeHistoryError: Native inbox projection or its sequence watermark is invalid",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_PROJECTION",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.703Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I20",
+      "title": "wrong asOfSeq",
+      "spec": [
+        "03 §3 snapshot.asOfSeq",
+        "03 §5"
+      ],
+      "expectation": "snapshot.asOfSeq must equal the last observed seq (eventCount-1); a projector claiming another cut must reject",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_PROJECTION: NativeHistoryError: Native inbox projection or its sequence watermark is invalid",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_PROJECTION",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.707Z",
+      "durationMs": 2,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I21",
+      "title": "read failure/no body leak",
+      "spec": [
+        "03 §5 last row",
+        "02 §9"
+      ],
+      "expectation": "a read error rejects, stays diagnosable, releases the handle and never includes event/message bodies",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_READ: NativeHistoryError: Native history read failed",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_READ",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.711Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I22",
+      "title": "close failure",
+      "spec": [
+        "03 §5 last row",
+        "03 §4.1"
+      ],
+      "expectation": "a close error must reject the operation (no acceptance receipt); the handle may remain for diagnosis, but no success result escapes",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CLOSE: NativeHistoryError: Native history handle release failed",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CLOSE",
+        "notes": "synthetic close failure is deliberately not marked closed",
+        "reads": 6,
+        "opens": 1,
+        "closes": 0
+      },
+      "startedAt": "2026-11-02T18:45:46.717Z",
+      "durationMs": 2,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I23",
+      "title": "missing sessions service",
+      "spec": [
+        "03 §4.1",
+        "03 §5 last row"
+      ],
+      "expectation": "flush, read-only persistence and cold projection are all required; a missing service rejects without opening/accepted receipt",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_SERVICES: NativeHistoryError: Native history services are unavailable",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_SERVICES",
+        "reads": 0,
+        "opens": 0,
+        "closes": 0
+      },
+      "startedAt": "2026-11-02T18:45:46.721Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I24",
+      "title": "missing sessionPersistence service",
+      "spec": [
+        "03 §4.1",
+        "03 §5 last row"
+      ],
+      "expectation": "flush, read-only persistence and cold projection are all required; a missing service rejects without opening/accepted receipt",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_SERVICES: NativeHistoryError: Native history services are unavailable",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_SERVICES",
+        "reads": 0,
+        "opens": 0,
+        "closes": 0
+      },
+      "startedAt": "2026-11-02T18:45:46.721Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I25",
+      "title": "missing sessionProjections service",
+      "spec": [
+        "03 §4.1",
+        "03 §5 last row"
+      ],
+      "expectation": "flush, read-only persistence and cold projection are all required; a missing service rejects without opening/accepted receipt",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_SERVICES: NativeHistoryError: Native history services are unavailable",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_SERVICES",
+        "reads": 0,
+        "opens": 0,
+        "closes": 0
+      },
+      "startedAt": "2026-11-02T18:45:46.723Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I26",
+      "title": "Session not found",
+      "spec": [
+        "03 §5 last row"
+      ],
+      "expectation": "opening a non-existent Session rejects; no substitute Session is created",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_READ: NativeHistoryError: Native history read failed",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_READ",
+        "reads": 0,
+        "opens": 0,
+        "closes": 0
+      },
+      "startedAt": "2026-11-02T18:45:46.723Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "I27",
+      "title": "wrong empty asOfSeq",
+      "spec": [
+        "03 §3",
+        "03 §5 last row"
+      ],
+      "expectation": "for an empty log asOfSeq must be -1; a projector claiming 0 must reject",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_PROJECTION: NativeHistoryError: Native inbox projection or its sequence watermark is invalid",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_PROJECTION",
+        "reads": 1,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.723Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6098
+    },
+    {
+      "id": "L01",
+      "title": "empty history",
+      "spec": [
+        "03 §5 row1",
+        "03 §3",
+        "6.6"
+      ],
+      "expectation": "asOfSeq=-1, eventCount=0, inherited=0, empty inbox, handle released",
+      "verdict": "pass",
+      "actual": "asOfSeq=-1 eventCount=0 refs=0 inherited=0 reads=3 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": -1,
+        "eventCount": 0,
+        "sessionId": "shiyu-verify-empty",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [],
+        "unobservable": [],
+        "reads": 3,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:42.081Z",
+      "durationMs": 8,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L02",
+      "title": "detached pending empty cut",
+      "spec": [
+        "03 §3",
+        "session-persistence README"
+      ],
+      "expectation": "both frozen/detached event states are adoptable; empty cut restores with asOfSeq=-1",
+      "verdict": "pass",
+      "actual": "asOfSeq=-1 eventCount=0 refs=0 inherited=0 reads=3 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": -1,
+        "eventCount": 0,
+        "sessionId": "shiyu-verify-detached",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [],
+        "unobservable": [],
+        "reads": 3,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:42.091Z",
+      "durationMs": 1,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L03",
+      "title": "2048-1 legal history",
+      "spec": [
+        "03 §5 row1",
+        "6.6"
+      ],
+      "expectation": "2047 events restored exactly; conforming pages of 512 are not mistaken for EOF",
+      "verdict": "pass",
+      "actual": "asOfSeq=2046 eventCount=2047 refs=1 inherited=0 reads=12 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 2046,
+        "eventCount": 2047,
+        "sessionId": "shiyu-verify-2047",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-2040-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "8c45e1fd99944d6118d3c6fd2f46b3f5942a8c45eb14ab3ef60aa70972e27190"
+          }
+        ],
+        "unobservable": [],
+        "reads": 12,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:42.092Z",
+      "durationMs": 75,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L04",
+      "title": "2048 legal history",
+      "spec": [
+        "03 §5 row1",
+        "6.6"
+      ],
+      "expectation": "exactly 2048 events restored with exact projection and asOfSeq=2047",
+      "verdict": "pass",
+      "actual": "asOfSeq=2047 eventCount=2048 refs=1 inherited=0 reads=12 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 2047,
+        "eventCount": 2048,
+        "sessionId": "shiyu-verify-2048",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-2044-0",
+            "lane": "next-step",
+            "index": 0,
+            "messageHash": "240716a72fd4102a74f37896d9852476ac6e2784add6adc0355ac7d2222a8830"
+          }
+        ],
+        "unobservable": [],
+        "reads": 12,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:42.168Z",
+      "durationMs": 71,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L05",
+      "title": "2048+1 legal history",
+      "spec": [
+        "03 §5 row1",
+        "6.6"
+      ],
+      "expectation": "the old hard 2048 limit must not reject a legal 2049-event history",
+      "verdict": "pass",
+      "actual": "asOfSeq=2048 eventCount=2049 refs=1 inherited=0 reads=14 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 2048,
+        "eventCount": 2049,
+        "sessionId": "shiyu-verify-2049",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-2045-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "60b71e877436361c53f265d6dc8ffc95a6b61bb23a40e4fe32551f9c3f064383"
+          }
+        ],
+        "unobservable": [],
+        "reads": 14,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:42.241Z",
+      "durationMs": 79,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L06",
+      "title": "short pages non-EOF",
+      "spec": [
+        "03 §5 row1/row2",
+        "03 §3"
+      ],
+      "expectation": "a conforming backend returning fewer events than requested maximum does not terminate the scan early",
+      "verdict": "pass",
+      "actual": "asOfSeq=4999 eventCount=5000 refs=2 inherited=0 reads=104 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 4999,
+        "eventCount": 5000,
+        "sessionId": "shiyu-verify-5000",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-4990-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "81ea1f5c1ad5895be62c7e0bfaff35de4a644b1514ad5d2bcb566df2c4718b66"
+          },
+          {
+            "messageId": "pending-4995-0",
+            "lane": "next-step",
+            "index": 0,
+            "messageHash": "5c740eaa27901c990948907bf98f7d9b14b2b4c1ff01532b3bee2d79dcd04268"
+          }
+        ],
+        "unobservable": [],
+        "reads": 104,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:42.320Z",
+      "durationMs": 1030,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L07",
+      "title": "10k events tiny pages",
+      "spec": [
+        "03 §5 row1",
+        "6.6"
+      ],
+      "expectation": "long legal history restores exactly, no silent truncation, bounded pages honoured",
+      "verdict": "pass",
+      "actual": "asOfSeq=9999 eventCount=10000 refs=1 inherited=0 reads=204 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 9999,
+        "eventCount": 10000,
+        "sessionId": "shiyu-verify-10000",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-9994-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "d384ab73e9423be1caa0c25dc3dd2ce2439371144a9eea4b3559331710e18cd9"
+          }
+        ],
+        "unobservable": [],
+        "reads": 204,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:43.354Z",
+      "durationMs": 3056,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L08",
+      "title": "inherited seed prefix",
+      "spec": [
+        "03 §5 row1",
+        "03 §3 header/inherited"
+      ],
+      "expectation": "inheritedEventCount=300 reported exactly; inherited-prefix inbox splices are projected; official asOfSeq covers the whole log",
+      "verdict": "pass",
+      "actual": "asOfSeq=899 eventCount=900 refs=2 inherited=300 reads=20 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 899,
+        "eventCount": 900,
+        "sessionId": "shiyu-verify-seeded",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 300,
+        "references": [
+          {
+            "messageId": "pending-120-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "87ee01e608aab1aeefb6cb00a62a857724bbaaa3b2077578d3d247f5c1e439ca"
+          },
+          {
+            "messageId": "pending-880-0",
+            "lane": "next-step",
+            "index": 0,
+            "messageHash": "d3c38f39b65e1f535ecbfe1e565fd0035ae6f80b23c81d610345d745649ba6ad"
+          }
+        ],
+        "unobservable": [],
+        "reads": 20,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.411Z",
+      "durationMs": 44,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L09",
+      "title": "seeded cut at zero",
+      "spec": [
+        "03 §3",
+        "03 §5 row1"
+      ],
+      "expectation": "a seeded header whose inherited cut is the empty prefix passes; marker at seq 0 is part of the log",
+      "verdict": "pass",
+      "actual": "asOfSeq=60 eventCount=61 refs=1 inherited=0 reads=12 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 60,
+        "eventCount": 61,
+        "sessionId": "shiyu-verify-seeded-zero",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-55-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "e8c5d6d6236dca4e494a75794771c4075d07a4c5969cfcee47a2d2875f50473c"
+          }
+        ],
+        "unobservable": [],
+        "reads": 12,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.458Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L10",
+      "title": "inbox lane ordering and removal",
+      "spec": [
+        "03 §5 row1",
+        "agent-loop inbox projection"
+      ],
+      "expectation": "next-turn refs precede next-step refs; insert+remove history folds to the final durable inbox",
+      "verdict": "pass",
+      "actual": "asOfSeq=302 eventCount=303 refs=2 inherited=0 reads=22 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 302,
+        "eventCount": 303,
+        "sessionId": "shiyu-verify-inbox-order",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "lane-a2",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "7b0aa5cf71657b77e553f6ea210cfd3db2285c7192efd3900717aecf5ecb1772"
+          },
+          {
+            "messageId": "lane-b1",
+            "lane": "next-step",
+            "index": 0,
+            "messageHash": "e7f1b43e2a5f703cd7b7e918b315a938a1f078405da459c0e5d6c8b6be7be43e"
+          }
+        ],
+        "unobservable": [],
+        "reads": 22,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.462Z",
+      "durationMs": 14,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L11",
+      "title": "same business Session identity",
+      "spec": [
+        "03 §5 row1"
+      ],
+      "expectation": "a long-lived managed Session keeps its exact native id and managed preset across cold recovery",
+      "verdict": "pass",
+      "actual": "asOfSeq=1499 eventCount=1500 refs=1 inherited=0 reads=16 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 1499,
+        "eventCount": 1500,
+        "sessionId": "shiyu-replyer-verify-identity-1234",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-1490-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "d03d3c101999b68c758b2a64c05b86dfaa27d4f9920e48b64184883bde0ba587"
+          }
+        ],
+        "unobservable": [],
+        "reads": 16,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.478Z",
+      "durationMs": 60,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L12",
+      "title": "natural short final page",
+      "spec": [
+        "03 §5 row2"
+      ],
+      "expectation": "a final page shorter than the requested maximum (because the log ends) is read to explicit EOF and succeeds",
+      "verdict": "pass",
+      "actual": "asOfSeq=699 eventCount=700 refs=1 inherited=0 reads=8 opens=1 closes=1",
+      "refs": {
+        "asOfSeq": 699,
+        "eventCount": 700,
+        "sessionId": "shiyu-verify-700",
+        "preset": "shiyu-runtime-replyer-v1",
+        "inheritedEventCount": 0,
+        "references": [
+          {
+            "messageId": "pending-694-0",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "9b179915c456bb6cc9e2bf7cad416ae72b1a8c8ae089de082f391e05b0e2bedf"
+          }
+        ],
+        "unobservable": [],
+        "reads": 8,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.541Z",
+      "durationMs": 20,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "L13",
+      "title": "declared capacity covers old boundary",
+      "spec": [
+        "03 §2",
+        "03 §4.1"
+      ],
+      "expectation": "explicit advertised maxEvents >= 2049 so the old hard limit is genuinely replaced",
+      "verdict": "pass",
+      "actual": "declared maxEvents=32768 (pageEvents=512, maxBytes=33554432, maxReads=256, timeoutMs=10000)",
+      "refs": {
+        "limits": {
+          "pageEvents": 512,
+          "maxEvents": 32768,
+          "maxBytes": 33554432,
+          "maxReads": 256,
+          "timeoutMs": 10000,
+          "raw": {
+            "pageEvents": 512,
+            "maxEvents": 32768,
+            "maxBytes": 33554432,
+            "maxReads": 256,
+            "timeoutMs": 10000,
+            "maxAppendedEvents": 64
+          }
+        }
+      },
+      "startedAt": "2026-11-02T18:45:46.561Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 5761
+    },
+    {
+      "id": "LO01",
+      "title": "fresh load-only receipt",
+      "spec": [
+        "03 §5 row8",
+        "03 §4.3",
+        "6.2"
+      ],
+      "expectation": "exact current message appended + flushed, durable readback, no generation, receipt only after all of it",
+      "verdict": "pass",
+      "actual": "receipt at exact seq=1, 3 flushes, zero followup/model calls, agent disposed",
+      "startedAt": "2026-11-02T18:46:21.205Z",
+      "durationMs": 16,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO02",
+      "title": "long history resume baseline",
+      "spec": [
+        "03 §4.2",
+        "03 §4.3",
+        "03 §5 row8"
+      ],
+      "expectation": "same Session resumes 3000 persisted events; the resume suffix and the fixed title append are bound into the baseline before the exact load message",
+      "verdict": "pass",
+      "actual": "same Session shiyu-replyer-verify-load-long-0001: 3000 prefix events preserved, suffix [\"session/end-seed\",\"session/title\",\"user/message\"], receipt seq=3002",
+      "startedAt": "2026-11-02T18:46:21.222Z",
+      "durationMs": 481,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO03",
+      "title": "foreign append during authorize(append)",
+      "spec": [
+        "03 §4.3 static counterexample",
+        "03 §5 row5"
+      ],
+      "expectation": "a foreign user/message written to the same Session while authorize(append) awaits must not be acknowledged; no durable receipt, no deletion",
+      "verdict": "pass",
+      "actual": "foreign append left in the log (403 events), no receipt/ack; load failed with \"Native history changed outside the trusted recovery suffix\"",
+      "startedAt": "2026-11-02T18:46:21.703Z",
+      "durationMs": 27,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO04",
+      "title": "foreign append during authorize(context_ack)",
+      "spec": [
+        "03 §4.3",
+        "03 §5 row5"
+      ],
+      "expectation": "a foreign write landing before the acknowledgement callback must prevent onContextDurable",
+      "verdict": "pass",
+      "actual": "foreign event preserved in the log, no durable receipt and no load result",
+      "startedAt": "2026-11-02T18:46:21.730Z",
+      "durationMs": 24,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO05",
+      "title": "pending inbox blocks load",
+      "spec": [
+        "03 §4.1",
+        "03 §5 row6.2"
+      ],
+      "expectation": "unknown pending input is never removed to make loading succeed; no receipt and the input is preserved",
+      "verdict": "pass",
+      "actual": "load refused with \"Pending native inbox blocks load-only context\"; pending input preserved",
+      "startedAt": "2026-11-02T18:46:21.755Z",
+      "durationMs": 5,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO06",
+      "title": "flush failure before receipt",
+      "spec": [
+        "03 §4.1",
+        "03 §5 row8"
+      ],
+      "expectation": "if the durability barrier for the loaded message does not confirm, no load receipt escapes even though the in-memory append happened",
+      "verdict": "pass",
+      "actual": "load refused with \"Native Session durability listener did not handle the flush\"; no receipt",
+      "startedAt": "2026-11-02T18:46:21.760Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO07",
+      "title": "deadline during authorize",
+      "spec": [
+        "03 §4.1",
+        "03 §4.3"
+      ],
+      "expectation": "an absolute deadline exceeded while authorize(append) awaits rejects without a receipt",
+      "verdict": "pass",
+      "actual": "deadline observed during authorize(append); load refused without receipt",
+      "startedAt": "2026-11-02T18:46:21.761Z",
+      "durationMs": 42,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO08",
+      "title": "same Session second load",
+      "spec": [
+        "03 §5 row1/row8"
+      ],
+      "expectation": "the same business Session id is resumed, the first loaded message remains native history, and the second exact message extends it",
+      "verdict": "pass",
+      "actual": "one created + one resumed Session shiyu-replyer-89274b5b-c1a4-45d9-a0e8-472d3811706a, both exact messages retained, second receipt seq=3",
+      "startedAt": "2026-11-02T18:46:21.803Z",
+      "durationMs": 2,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO09",
+      "title": "cancel during authorize",
+      "spec": [
+        "03 §4.1",
+        "03 §5 last row"
+      ],
+      "expectation": "cooperative cancellation rejects without a load receipt and the owned Agent is released",
+      "verdict": "pass",
+      "actual": "cancellation observed; no receipt, agent released",
+      "startedAt": "2026-11-02T18:46:21.805Z",
+      "durationMs": 30,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO10",
+      "title": "independent durable readback",
+      "spec": [
+        "03 §5 row8",
+        "02 §3.1"
+      ],
+      "expectation": "the acknowledged seq/type/full-message hash read back through a fresh independent handle equals what the log holds; the receipt is never just the adapter success field",
+      "verdict": "pass",
+      "actual": "exact message read back at seq=1802 through a fresh independent handle (1803 events)",
+      "startedAt": "2026-11-02T18:46:21.881Z",
+      "durationMs": 220,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO11",
+      "title": "existing fixed title",
+      "spec": [
+        "03 §4.3",
+        "03 §5 row4"
+      ],
+      "expectation": "a Session whose title is already user-pinned needs no title write; seq is not assumed to change and the load still produces an exact receipt",
+      "verdict": "pass",
+      "actual": "no duplicate title append; suffix [\"session/title\",\"session/end-seed\",\"user/message\"]; receipt seq=222",
+      "startedAt": "2026-11-02T18:46:21.835Z",
+      "durationMs": 28,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO12",
+      "title": "foreign inbox during authorize",
+      "spec": [
+        "03 §4.1",
+        "03 §4.3",
+        "03 §5 row5"
+      ],
+      "expectation": "an unregistered pending input arriving over the live Session during the append authorization blocks the acknowledgement and is preserved",
+      "verdict": "pass",
+      "actual": "load refused with \"Load-only context failed and native cleanup could not be confirmed\"; pending input preserved, no receipt",
+      "startedAt": "2026-11-02T18:46:21.864Z",
+      "durationMs": 15,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "LO13",
+      "title": "adapter restart recovery",
+      "spec": [
+        "03 §5 row1/row8",
+        "03 §2 isolation-root"
+      ],
+      "expectation": "after closing the adapter, a new adapter instance with the persisted binding resumes the same native Session (no replacement Session) and still issues an exact receipt",
+      "verdict": "pass",
+      "actual": "restarted adapter resumed shiyu-replyer-cff147fc-25c8-4fcb-b0a3-9a283274fb30 without a replacement Session; prefix preserved; receipt seq=3",
+      "startedAt": "2026-11-02T18:46:21.879Z",
+      "durationMs": 2,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6602
+    },
+    {
+      "id": "R01",
+      "title": "append between pages",
+      "spec": [
+        "03 §5 row3",
+        "03 §3 two passes"
+      ],
+      "expectation": "a foreign append observed mid-read either rejects or is re-read into the final coherent cut",
+      "verdict": "pass",
+      "actual": "accepted only after re-reading the final cut: asOfSeq=600 eventCount=601 refs=0",
+      "refs": {
+        "mode": "accepted-after-refetch",
+        "asOfSeq": 600,
+        "eventCount": 601,
+        "references": [],
+        "reads": 24
+      },
+      "startedAt": "2026-11-02T18:45:46.785Z",
+      "durationMs": 44,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R02",
+      "title": "inbox insert between pages",
+      "spec": [
+        "03 §5 row1/row3"
+      ],
+      "expectation": "a pending inbox insertion observed mid-read either rejects or is projected from the final coherent cut exactly once",
+      "verdict": "pass",
+      "actual": "accepted only after re-reading the final cut: asOfSeq=600 eventCount=601 refs=1",
+      "refs": {
+        "mode": "accepted-after-refetch",
+        "asOfSeq": 600,
+        "eventCount": 601,
+        "references": [
+          {
+            "messageId": "mid-read-pending-1",
+            "lane": "next-turn",
+            "index": 0,
+            "messageHash": "75d4b02d8158f3b60760d620cf422ea26e2f1a2cec490a0e4620dc5be67ba84a"
+          }
+        ],
+        "reads": 24
+      },
+      "startedAt": "2026-11-02T18:45:46.831Z",
+      "durationMs": 33,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R03",
+      "title": "inbox removal between pages",
+      "spec": [
+        "03 §5 row1/row3"
+      ],
+      "expectation": "a pending input removed mid-read is absent from the verified final projection (no resurrection)",
+      "verdict": "pass",
+      "actual": "accepted only after re-reading the final cut: asOfSeq=601 eventCount=602 refs=0",
+      "refs": {
+        "mode": "accepted-after-refetch",
+        "asOfSeq": 601,
+        "eventCount": 602,
+        "references": [],
+        "reads": 24
+      },
+      "startedAt": "2026-11-02T18:45:46.866Z",
+      "durationMs": 32,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R04",
+      "title": "same-length early rewrite",
+      "spec": [
+        "03 §5 row3",
+        "03 §3"
+      ],
+      "expectation": "a same-length rewrite of an already-observed early event must not yield a stale/mixed accepted projection",
+      "verdict": "pass",
+      "actual": "rejected observed change with NativeHistoryError: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "mode": "rejected",
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": [
+          {
+            "handle": 1,
+            "offset": 0,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 32,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 64,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 96,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 128,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 160,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 192,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 224,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 256,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 288,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 320,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 352,
+            "requested": 512,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 384,
+            "requested": 512,
+            "returned": 16,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 400,
+            "requested": 512,
+            "returned": 0,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 0,
+            "requested": 401,
+            "returned": 32,
+            "eventState": "shared-frozen"
+          }
+        ]
+      },
+      "startedAt": "2026-11-02T18:45:46.902Z",
+      "durationMs": 14,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R05",
+      "title": "append after EOF",
+      "spec": [
+        "03 §5 row3",
+        "03 §3 EOF"
+      ],
+      "expectation": "an append after a first-pass EOF is never accepted as if the earlier cut were current",
+      "verdict": "pass",
+      "actual": "rejected observed change with NativeHistoryError: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "mode": "rejected",
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": [
+          {
+            "handle": 1,
+            "offset": 0,
+            "requested": 512,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 64,
+            "requested": 512,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 128,
+            "requested": 512,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 192,
+            "requested": 512,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 256,
+            "requested": 512,
+            "returned": 44,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 300,
+            "requested": 512,
+            "returned": 0,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 0,
+            "requested": 301,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 64,
+            "requested": 237,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 128,
+            "requested": 173,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 192,
+            "requested": 109,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 256,
+            "requested": 45,
+            "returned": 45,
+            "eventState": "shared-frozen"
+          }
+        ]
+      },
+      "startedAt": "2026-11-02T18:45:46.916Z",
+      "durationMs": 10,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R06",
+      "title": "append during projection",
+      "spec": [
+        "03 §5 row3"
+      ],
+      "expectation": "a write that lands while the projector runs must not be silently dropped from the accepted cut",
+      "verdict": "pass",
+      "actual": "rejected observed change with NativeHistoryError: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "mode": "rejected",
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": [
+          {
+            "handle": 1,
+            "offset": 0,
+            "requested": 512,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 64,
+            "requested": 512,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 128,
+            "requested": 512,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 192,
+            "requested": 512,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 256,
+            "requested": 512,
+            "returned": 44,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 300,
+            "requested": 512,
+            "returned": 0,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 0,
+            "requested": 301,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 64,
+            "requested": 237,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 128,
+            "requested": 173,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 192,
+            "requested": 109,
+            "returned": 64,
+            "eventState": "shared-frozen"
+          },
+          {
+            "handle": 1,
+            "offset": 256,
+            "requested": 45,
+            "returned": 45,
+            "eventState": "shared-frozen"
+          }
+        ]
+      },
+      "startedAt": "2026-11-02T18:45:46.927Z",
+      "durationMs": 9,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R07",
+      "title": "shrinking log",
+      "spec": [
+        "03 §5 row3",
+        "session-persistence monotonic read contract"
+      ],
+      "expectation": "a stored log that shrank below the observed prefix must reject, never return a silently shortened/mixed history",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_READ: NativeHistoryError: Native history read failed",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_READ",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.938Z",
+      "durationMs": 7,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R08",
+      "title": "cancel during read",
+      "spec": [
+        "03 §5 last row",
+        "03 §4.1"
+      ],
+      "expectation": "cooperative cancellation rejects with a diagnosable error, releases the handle and posts no acceptance receipt",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CANCELLED: NativeHistoryError: Native history recovery was cancelled",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CANCELLED",
+        "notes": "cancellation is cooperative in the frozen SDK; the check is \"rejects and releases\", not a hard realtime bound",
+        "reads": 2,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.945Z",
+      "durationMs": 19,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R09",
+      "title": "pre-aborted signal",
+      "spec": [
+        "03 §4.1"
+      ],
+      "expectation": "an aborted caller signal rejects before any read/acceptance receipt",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CANCELLED: NativeHistoryError: Native history recovery was cancelled",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CANCELLED",
+        "reads": 0,
+        "opens": 0,
+        "closes": 0
+      },
+      "startedAt": "2026-11-02T18:45:46.967Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R10",
+      "title": "recovery deadline",
+      "spec": [
+        "03 §4.1 cancellation/deadline",
+        "03 §2 default 10s collaborative deadline"
+      ],
+      "expectation": "an exceeded recovery deadline rejects with a diagnosable error and releases the handle",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_DEADLINE: NativeHistoryError: Native history recovery exceeded its deadline",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_DEADLINE",
+        "notes": "observe timeoutMs=10000ms, elapsed=10003ms",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:47.034Z",
+      "durationMs": 10004,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R11",
+      "title": "absolute deadline option",
+      "spec": [
+        "03 §4.1 native deadlines",
+        "03 §2"
+      ],
+      "expectation": "a supplied absolute deadlineAtMs shortens recovery and rejects with a deadline error, releasing the handle",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_DEADLINE: NativeHistoryError: Native history recovery exceeded its deadline",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_DEADLINE",
+        "notes": "deadlineAtMs=+60ms honoured in 61ms",
+        "reads": 0,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:45:46.968Z",
+      "durationMs": 62,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "R12",
+      "title": "expired deadline option",
+      "spec": [
+        "03 §4.1"
+      ],
+      "expectation": "an absolute deadline in the past rejects without opening/using a native handle or accepting a projection",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_DEADLINE: NativeHistoryError: Native history recovery exceeded its deadline",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_DEADLINE",
+        "reads": 0,
+        "opens": 0,
+        "closes": 0
+      },
+      "startedAt": "2026-11-02T18:45:47.031Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6102
+    },
+    {
+      "id": "RP01",
+      "title": "fresh replyer generation receipt",
+      "spec": [
+        "03 §5 row8",
+        "03 §4.3",
+        "6.2"
+      ],
+      "expectation": "one exact owner message durably loaded, one bounded primary stream under maxTokens, observed usage, complete accounting",
+      "verdict": "pass",
+      "actual": "receipt seq=5, draft+assistant ref durable, 1 model call, usage reported, accounting complete",
+      "startedAt": "2026-11-02T18:46:22.187Z",
+      "durationMs": 13,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP02",
+      "title": "long history replyer resume",
+      "spec": [
+        "03 §4.2",
+        "03 §5 row8",
+        "6.6"
+      ],
+      "expectation": "2500 persisted events are preserved; resume suffix + fixed title are bound; the exact new message and one generation extend the same Session",
+      "verdict": "pass",
+      "actual": "same Session shiyu-replyer-verify-reply-long-1: 2500 prefix events + suffix [\"session/end-seed\",\"session/title\",\"agent/inbox/spliced\",\"turn/start\",\"agent/inbox/spliced\",\"step/start\",\"user/message\",\"assistant/message\",\"step/end\",\"turn/end\"], receipt seq=2506, one call",
+      "startedAt": "2026-11-02T18:46:22.201Z",
+      "durationMs": 284,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP03",
+      "title": "foreign input during authorize(pre_step)",
+      "spec": [
+        "03 §4.3",
+        "03 §5 row5",
+        "6.2"
+      ],
+      "expectation": "an unregistered native user input arriving during an authorization await blocks the stream/draft; no context receipt",
+      "verdict": "pass",
+      "actual": "reply refused with \"Native context inputs do not match the registered owner input\"; foreign event preserved; no receipt/draft",
+      "startedAt": "2026-11-02T18:46:22.485Z",
+      "durationMs": 45,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP04",
+      "title": "foreign inbox during onBound",
+      "spec": [
+        "03 §4.3",
+        "03 §5 row4/row5"
+      ],
+      "expectation": "an unregistered pending inbox input inserted while the binding callback awaits blocks loading/acknowledgement",
+      "verdict": "pass",
+      "actual": "reply refused with \"Context-safe reply failed and native cleanup could not be confirmed\"; no receipt or draft",
+      "startedAt": "2026-11-02T18:46:22.530Z",
+      "durationMs": 10,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP05",
+      "title": "bounded generation",
+      "spec": [
+        "03 §5 row8",
+        "NATIVE_SEAMS modelCalls"
+      ],
+      "expectation": "maxTokens from the operation reaches the single native stream; no title/compaction model calls are counted",
+      "verdict": "pass",
+      "actual": "one bounded primary stream, reported usage, no title/compaction inference events",
+      "startedAt": "2026-11-02T18:46:22.540Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP06",
+      "title": "same Session reply reuse",
+      "spec": [
+        "03 §5 row1/row8",
+        "6.6"
+      ],
+      "expectation": "normal input reuses the native Session (no new Session), the first message/assistant remain history, and the second receipt/assistant are exact",
+      "verdict": "pass",
+      "actual": "one created + one resumed Session, both exact messages and assistant drafts retained",
+      "startedAt": "2026-11-02T18:46:22.543Z",
+      "durationMs": 5,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP07",
+      "title": "pending inbox blocks generation",
+      "spec": [
+        "03 §4.1",
+        "6.2"
+      ],
+      "expectation": "unknown pending input blocks the reply before any model call; no receipt",
+      "verdict": "pass",
+      "actual": "reply refused with \"Unknown native inbox input blocks context-safe continuation\"; zero model calls",
+      "startedAt": "2026-11-02T18:46:22.614Z",
+      "durationMs": 4,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP08",
+      "title": "known stale inbox removal",
+      "spec": [
+        "03 §4.3",
+        "03 §5 row4",
+        "NATIVE_SEAMS exact removal"
+      ],
+      "expectation": "a controller-declared obsolete pending input is removed by its exact id/hash, the removal events are re-read into the baseline, and the reply proceeds with an empty inbox",
+      "verdict": "pass",
+      "actual": "one exact removal (seq=402) bound into the baseline; inbox empty; reply receipt seq=408",
+      "startedAt": "2026-11-02T18:46:22.552Z",
+      "durationMs": 56,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP09",
+      "title": "stale inbox hash mismatch",
+      "spec": [
+        "03 §4.3",
+        "NATIVE_SEAMS exact removal"
+      ],
+      "expectation": "only a controller declaration whose exact id+hash matches the durable input may remove it; a wrong hash blocks the reply and preserves the input",
+      "verdict": "pass",
+      "actual": "reply refused with \"Unknown native inbox input blocks context-safe continuation\"; pending input preserved",
+      "startedAt": "2026-11-02T18:46:22.548Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "RP10",
+      "title": "replyer adapter restart",
+      "spec": [
+        "03 §5 row1/row8"
+      ],
+      "expectation": "a new adapter instance + persisted binding resumes the same native Session, preserves history and produces a second exact receipt with one bounded generation",
+      "verdict": "pass",
+      "actual": "restarted adapter resumed shiyu-replyer-66a96f28-d239-4aab-953e-316f8c5bccc1, preserved 9 durable events and generated one bounded reply",
+      "startedAt": "2026-11-02T18:46:22.609Z",
+      "durationMs": 4,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6606
+    },
+    {
+      "id": "S00",
+      "title": "expectedPrefix capability",
+      "spec": [
+        "03 §4.2",
+        "03 §4.4"
+      ],
+      "expectation": "the public seam accepts a previous complete cut and returns appendedCount/appendedTypes for a continuity proof",
+      "verdict": "pass",
+      "actual": "snapshot seam reports appendedCount=0 appendedTypes=[]",
+      "refs": {
+        "functionName": "coldNativeInboxSnapshot",
+        "keys": [
+          "references",
+          "asOfSeq",
+          "eventCount",
+          "sessionId",
+          "preset",
+          "headerHash",
+          "inheritedEventCount",
+          "historyBytes",
+          "historyDigest",
+          "readPages",
+          "tailEventHash",
+          "appendedCount",
+          "appendedTypes"
+        ]
+      },
+      "startedAt": "2026-11-02T18:46:20.316Z",
+      "durationMs": 15,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S01",
+      "title": "prefix unchanged",
+      "spec": [
+        "03 §4.2"
+      ],
+      "expectation": "no new events → appendedCount=0, same asOfSeq/eventCount/digest/references",
+      "verdict": "pass",
+      "actual": "unchanged prefix proven (digest chain equal, appendedCount=0, 1 refs)",
+      "startedAt": "2026-11-02T18:46:20.333Z",
+      "durationMs": 22,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S02",
+      "title": "trusted recovery suffix",
+      "spec": [
+        "03 §4.2",
+        "03 §5 row4",
+        "03 §3 native resume"
+      ],
+      "expectation": "end-seed + interrupted closers + user-pinned fixed title are accepted, counted and reported by type; older cut keeps its digest",
+      "verdict": "pass",
+      "actual": "accepted 5 trusted suffix events [\"session/end-seed\",\"tool/result\",\"step/end\",\"turn/end\",\"session/title\"]; prefix digest preserved, baseline references unchanged",
+      "startedAt": "2026-11-02T18:46:20.355Z",
+      "durationMs": 18,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S03",
+      "title": "foreign user/message in recovery suffix",
+      "spec": [
+        "03 §4.2",
+        "03 §5 row4",
+        "03 §4.3"
+      ],
+      "expectation": "a foreign event appended between the pre-resume cut and resume must reject the continuity proof; it is never discarded as recovery noise",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "notes": "foreign append after the observed cut",
+        "reads": 14,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.373Z",
+      "durationMs": 9,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S04",
+      "title": "foreign assistant/message in recovery suffix",
+      "spec": [
+        "03 §4.2",
+        "03 §5 row4",
+        "03 §4.3"
+      ],
+      "expectation": "a foreign event appended between the pre-resume cut and resume must reject the continuity proof; it is never discarded as recovery noise",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "notes": "foreign append after the observed cut",
+        "reads": 14,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.382Z",
+      "durationMs": 9,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S05",
+      "title": "foreign inbox splice in recovery suffix",
+      "spec": [
+        "03 §4.2",
+        "03 §5 row4",
+        "03 §4.3"
+      ],
+      "expectation": "a foreign event appended between the pre-resume cut and resume must reject the continuity proof; it is never discarded as recovery noise",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "notes": "foreign append after the observed cut",
+        "reads": 14,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.391Z",
+      "durationMs": 10,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S06",
+      "title": "automatic (non-user) title in recovery suffix",
+      "spec": [
+        "03 §4.2",
+        "03 §5 row4",
+        "03 §4.3"
+      ],
+      "expectation": "a foreign event appended between the pre-resume cut and resume must reject the continuity proof; it is never discarded as recovery noise",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "notes": "foreign append after the observed cut",
+        "reads": 14,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.401Z",
+      "durationMs": 10,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S07",
+      "title": "prefix same-length rewrite",
+      "spec": [
+        "03 §4.2",
+        "03 §3"
+      ],
+      "expectation": "a same-length rewrite inside the previously observed prefix must fail the prefix digest, not just a count/tail comparison",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": 14,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.411Z",
+      "durationMs": 14,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S08",
+      "title": "prefix shrink",
+      "spec": [
+        "03 §4.2",
+        "03 §3"
+      ],
+      "expectation": "a log shortened below the observed cut must fail (no silently shortened recovery)",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": 13,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.425Z",
+      "durationMs": 11,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S09",
+      "title": "prefix digest mismatch",
+      "spec": [
+        "03 §4.2"
+      ],
+      "expectation": "a stale/tampered baseline must be refused when used as expectedPrefix",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": 14,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.436Z",
+      "durationMs": 10,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S10a",
+      "title": "prefix header hash mismatch",
+      "spec": [
+        "03 §4.2"
+      ],
+      "expectation": "a stale/tampered baseline must be refused when used as expectedPrefix",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": 10,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.447Z",
+      "durationMs": 5,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S10b",
+      "title": "prefix inherited mismatch",
+      "spec": [
+        "03 §4.2"
+      ],
+      "expectation": "a stale/tampered baseline must be refused when used as expectedPrefix",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": 10,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.452Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S10c",
+      "title": "prefix session identity mismatch",
+      "spec": [
+        "03 §4.2"
+      ],
+      "expectation": "a stale/tampered baseline must be refused when used as expectedPrefix",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": 10,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:46:20.455Z",
+      "durationMs": 3,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S10d",
+      "title": "prefix preset mismatch",
+      "spec": [
+        "03 §4.2"
+      ],
+      "expectation": "a stale/tampered baseline must be refused when used as expectedPrefix",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": 10,
+        "opens": 1,
+        "closes": 1
+      },
+      "startedAt": "2026-11-02T18:46:20.458Z",
+      "durationMs": 5,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S11",
+      "title": "suffix bound",
+      "spec": [
+        "03 §4.2",
+        "03 §4.1 bounds"
+      ],
+      "expectation": "a recovery suffix larger than the declared maxAppendedEvents rejects instead of accepting unbounded recovery writes",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_LIMIT: NativeHistoryError: Native cold projection history exceeds the safe read bound",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_LIMIT",
+        "notes": "appended=65, maxAppendedEvents=64",
+        "reads": 19,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.464Z",
+      "durationMs": 5,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S12",
+      "title": "trusted suffix predicate",
+      "spec": [
+        "03 §3 native resume",
+        "03 §4.2"
+      ],
+      "expectation": "hand-built positive/negative matrix: exactly the SDK resume closers/end-seed/fixed user title pass; user/assistant/inbox/automatic-title/compaction events fail",
+      "verdict": "pass",
+      "actual": "accepted 7 trusted events, refused 10 foreign/automatic events",
+      "refs": {
+        "positives": [
+          "end-seed {}",
+          "end-seed inherited",
+          "interrupted tool/result",
+          "interrupted tool/result unknown",
+          "step/end",
+          "turn/end interrupted",
+          "fixed user title"
+        ],
+        "negatives": [
+          "user/message",
+          "assistant/message",
+          "inbox splice",
+          "automatic title (assistant source)",
+          "user title with messageSeqs",
+          "completed turn/end",
+          "title-llm-request",
+          "compaction summary",
+          "end-seed bad inherited type",
+          "tool/result without surfaceOp"
+        ]
+      },
+      "startedAt": "2026-11-02T18:46:20.470Z",
+      "durationMs": 0,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S13",
+      "title": "live baseline binding",
+      "spec": [
+        "03 §4.2",
+        "03 §5 row5"
+      ],
+      "expectation": "exact live object/id/header/preset/inherited/seq and the projected live inbox must all match; each mismatch rejects",
+      "verdict": "pass",
+      "actual": "matching live binding accepted; all 5 mismatched bindings rejected",
+      "refs": {
+        "baseline": {
+          "asOfSeq": 119,
+          "eventCount": 120,
+          "inheritedEventCount": 0
+        }
+      },
+      "startedAt": "2026-11-02T18:46:20.470Z",
+      "durationMs": 41,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S14",
+      "title": "extend baseline by one exact event",
+      "spec": [
+        "03 §4.3",
+        "03 §5 row5"
+      ],
+      "expectation": "a fixed-title/load-only style exact append is re-read at its exact seq, EOF confirmed, and the baseline extended; a stale, duplicated or inbox-splice append fails",
+      "verdict": "pass",
+      "actual": "exact legitimate append extended the baseline; wrong validator, stale extra append and inbox splice all refused",
+      "startedAt": "2026-11-02T18:46:20.511Z",
+      "durationMs": 8,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S15",
+      "title": "native maintenance baseline observation",
+      "spec": [
+        "03 §4.2",
+        "03 §5 row5"
+      ],
+      "expectation": "flush is performed, exactly one maintenance phase runs, and live identity/inbox are bound; running/disabled hosts reject without success",
+      "verdict": "pass",
+      "actual": "one maintenance phase, 2 flushes, bound cut eventCount=140; running host and failed flush both rejected",
+      "refs": {
+        "flushCalls": 2,
+        "readPages": 14
+      },
+      "startedAt": "2026-11-02T18:46:20.519Z",
+      "durationMs": 10,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S16",
+      "title": "observe with expectedPrefix",
+      "spec": [
+        "03 §4.2",
+        "03 §4.3"
+      ],
+      "expectation": "a foreign user/message appended after the pre-resume baseline is refused by the post-flush observation, never acknowledged",
+      "verdict": "pass",
+      "actual": "rejected with NativeHistoryError code=NATIVE_HISTORY_CHANGED: NativeHistoryError: Native history changed outside the trusted recovery suffix",
+      "refs": {
+        "errorName": "NativeHistoryError",
+        "errorCode": "NATIVE_HISTORY_CHANGED",
+        "reads": 17,
+        "opens": 2,
+        "closes": 2
+      },
+      "startedAt": "2026-11-02T18:46:20.529Z",
+      "durationMs": 12,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S17",
+      "title": "long-session recovery projection",
+      "spec": [
+        "03 §5 row1/row4"
+      ],
+      "expectation": "after a trusted resume suffix on a long history, the same business Session id/preset and the whole projected inbox are preserved",
+      "verdict": "pass",
+      "actual": "same Session shiyu-verify-long-recovery, preset shiyu-runtime-replyer-v1, asOfSeq=2604, 2 inbox refs after trusted suffix",
+      "startedAt": "2026-11-02T18:46:20.572Z",
+      "durationMs": 529,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S18",
+      "title": "compat inkbox helper",
+      "spec": [
+        "03 §4.4 interface freedom",
+        "NATIVE_SEAMS compatibility helper"
+      ],
+      "expectation": "the array-shaped compatibility helper returns the same exact references as the snapshot and rejects malformed history the same way",
+      "verdict": "pass",
+      "actual": "compat helper returned 1 identical references and refused malformed history",
+      "startedAt": "2026-11-02T18:46:20.550Z",
+      "durationMs": 21,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    },
+    {
+      "id": "S19",
+      "title": "allowAppended override",
+      "spec": [
+        "03 §4.2 public seam"
+      ],
+      "expectation": "an explicit caller policy (not the default trusted native suffix) is honoured and the appended count/types reflect exactly what it admitted",
+      "verdict": "pass",
+      "actual": "caller-controlled policy admitted exactly one user/message suffix event",
+      "startedAt": "2026-11-02T18:46:20.542Z",
+      "durationMs": 7,
+      "runId": "2026-11-02T18-45-41-522Z",
+      "pid": 6580
+    }
+  ],
+  "coverage": [
+    {
+      "requirement": "03 §5 row1: 空史/2048±/远超一页/页间inbox插入移除/继承seed 恢复正确官方投影，同业务 Session 身份保留，不能只证明超限拒绝",
+      "planned": 21,
+      "present": 21,
+      "failed": [],
+      "incomplete": [],
+      "missing": [],
+      "status": "covered"
+    },
+    {
+      "requirement": "03 §5 row2: 短页合法继续；缺号/重复乱序/页超量/坏header/preset/继承/−0 失效无接受回执、资源释放",
+      "planned": 30,
+      "present": 30,
+      "failed": [],
+      "incomplete": [],
+      "missing": [],
+      "status": "covered"
+    },
+    {
+      "requirement": "03 §5 row3: 读取中/EOF后/投影中追加；同长度早段变化、缩短 被检测或按受信规则重取，不默默拼混合历史",
+      "planned": 8,
+      "present": 8,
+      "failed": [],
+      "incomplete": [],
+      "missing": [],
+      "status": "covered"
+    },
+    {
+      "requirement": "03 §5 row4: 原生合法中断收尾/end-seed/固定标题与异源 user 混入；合法恢复成功、未知输入不被丢/自动执行",
+      "planned": 8,
+      "present": 8,
+      "failed": [],
+      "incomplete": [],
+      "missing": [],
+      "status": "covered"
+    },
+    {
+      "requirement": "03 §5 row5: 授权await、onDispatch await、冷读后 live.seq/inbox 变化 → 最终接纳门拒绝失效基准，不产生错误 context receipt/草稿资格",
+      "planned": 10,
+      "present": 10,
+      "failed": [],
+      "incomplete": [],
+      "missing": [],
+      "status": "covered"
+    },
+    {
+      "requirement": "03 §5 row6: 取消、期限、读/投影/关闭失败、关闭后迟到 → handle/agent 生命周期可核对，无静默新 Session/重试未知效果，不泄漏正文",
+      "planned": 7,
+      "present": 7,
+      "failed": [],
+      "incomplete": [],
+      "missing": [],
+      "status": "covered"
+    },
+    {
+      "requirement": "03 §5 row7: load-only、replyer、Core 各自正常长史路径；精确本次原生消息+flush+独立回读才给 receipt；生成路径在明确预算下推进",
+      "planned": 9,
+      "present": 9,
+      "failed": [],
+      "incomplete": [],
+      "missing": [],
+      "status": "covered"
+    },
+    {
+      "requirement": "02 §3.2 / 03 §5 row8: 判定器自证（应过/应拒样本），测试/替身/SDK静态分别留证不互相冒充",
+      "planned": 8,
+      "present": 8,
+      "failed": [],
+      "incomplete": [],
+      "missing": [],
+      "status": "covered"
+    }
+  ],
+  "integrity": {
+    "judgeImportsProduct": false,
+    "judgeSupportFiles": [
+      "evidence.ts",
+      "harness.ts",
+      "host.ts",
+      "independent.ts",
+      "seam.ts",
+      "world.ts"
+    ],
+    "antiPatterns": {
+      "skip": [],
+      "only": [],
+      "tautology": [],
+      "unconditionalPass": []
+    },
+    "casesRecordedPerTestFile": {
+      "00-oracle-selftest.test.ts": 6,
+      "10-legal-history.test.ts": 13,
+      "20-invalid-history.test.ts": 22,
+      "30-races.test.ts": 12,
+      "40-limits.test.ts": 7,
+      "50-recovery.test.ts": 16,
+      "60-business-loadonly.test.ts": 13,
+      "70-business-replyer.test.ts": 10,
+      "80-business-core.test.ts": 5
+    },
+    "everyTestFileHasEvidence": true,
+    "evidenceFiles": 9,
+    "evidenceRecords": 117
+  },
+  "notCovered": [
+    {
+      "target": "真实 DSH 宿主上的长历史冷恢复/恢复（真实 JSONL、projection、agent resume；零模型）",
+      "reason": "本套件为合成原生替身+固定 SDK 静态契约层，不执行真实宿主",
+      "required": "Lead 冻结的 G3/V24 零模型重载/隔离根验证"
+    },
+    {
+      "target": "真实模型生成、标题/压缩旁路、provider 内部重试与计费/缓存完整性",
+      "reason": "不调用模型或网络",
+      "required": "有界真实模型批次与独立观测器；压缩单独评估"
+    },
+    {
+      "target": "原生压缩/检查点之后的恢复",
+      "reason": "H1 实现尚未接线压缩",
+      "required": "H1 后续切片（03 §2 明确为长期目标）"
+    },
+    {
+      "target": "跨进程或任意外部写者条件下的原子快照",
+      "reason": "固定 SDK 是 append-only 合同而非原子快照（03 §3 已声明边界）",
+      "required": "不承诺；按观察/使用边界留证"
+    },
+    {
+      "target": "真实后端内存/IO 成本与资源上界、长期运行稳定性",
+      "reason": "替身不提供真实解码/存储成本",
+      "required": "宿主性能与长期运行测试"
+    },
+    {
+      "target": "真实频道、设备、备份与恢复（H2+、V21/V22/V26/V27）",
+      "reason": "资源与授权范围之外",
+      "required": "后续切片"
+    }
+  ],
+  "manifestPath": "/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/manifest.json",
+  "rawEvidenceDir": "/Users/caja/Documents/识雨/plugins/shiyu/artifacts/dsh/verify/runs/2026-11-02T18-45-41-522Z/raw"
+}
