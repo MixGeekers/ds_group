@@ -1,0 +1,891 @@
+{
+  "schemaVersion": 1,
+  "phase": "3H-C",
+  "status": "bounded-host-and-strict-oracle-verified",
+  "checkedAt": "2026-11-02T16:01:49.917630+00:00",
+  "sourceCommit": "75b5fe1a901610b55111ff25d9bec3bdb7ca361d",
+  "scope": "One synthetic two-channel room, three text replies, same-group native Session history, bounded accounting/delivery and one orderly post-success reload. Not whole-system, full S/FL or full V24/V25 acceptance.",
+  "result": {
+    "strictBusinessOracle": {
+      "passed": 3,
+      "total": 3
+    },
+    "inputReplySendCounts": {
+      "inputs": 3,
+      "replies": 3,
+      "sends": 3,
+      "nativeSessions": 2
+    },
+    "channelTurns": {
+      "H3-GROUP": 2,
+      "D-SHIYU": 1
+    },
+    "knownPrimaryUsage": {
+      "tokens": 1852,
+      "calls": 3,
+      "effects": 3
+    },
+    "heldBudget": {
+      "tokens": 0,
+      "calls": 0,
+      "effects": 0
+    },
+    "sameGroupSession": true,
+    "independentDeliveryVerified": true,
+    "postSuccessReloadNoReplayVerified": true,
+    "fullNineSystemGoalComplete": false
+  },
+  "execution": {
+    "validationId": "shiyu-lab-host-20261102-c",
+    "runId": "run-mvzfsovl-5355e002",
+    "connectionId": "lab-6e22c6f4faa72d0179f044f8401f4bc2b82e7e2a",
+    "requestId": "lab-301db6d2-59d7-49d8-bd48-c016135a98c5",
+    "scenario": {
+      "reuseId": "user-2782852d-56da-45ac-9a73-caaa1e7bb67e",
+      "revision": 1,
+      "sha256": "d6b78ff41dc7af544b3556faae0de2e086d512abdb1f37da2628b1e9dd5ce774",
+      "scriptedTasks": 0,
+      "scheduledInputs": 0,
+      "scenarioAssets": 0,
+      "modelActors": 0,
+      "judges": 0
+    },
+    "room": {
+      "target": "external",
+      "seed": 42,
+      "speed": 1,
+      "noiseCount": 0,
+      "fault": "none",
+      "timeLimitSeconds": 600
+    },
+    "authorization": {
+      "budget": {
+        "tokens": 49152,
+        "calls": 3,
+        "effects": 3
+      },
+      "uiExpiryMinutes": 30,
+      "channelIds": [
+        "H3-GROUP",
+        "D-SHIYU"
+      ],
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "effort": "low",
+      "maximumOutputTokensPerReply": 512,
+      "fixedLabReplyMaximumMilliseconds": 120000
+    },
+    "limits": {
+      "newScenarios": 0,
+      "newRooms": 1,
+      "newModelConnections": 1,
+      "humanMessages": 3,
+      "primaryRequests": 3,
+      "messageEffects": 3,
+      "newNativeReplyerSessions": 2,
+      "embedding": 0,
+      "newWorkerTasks": 0,
+      "newCoreGoals": 0,
+      "labPluginReloads": 0,
+      "shiyuPluginReloads": 2,
+      "manualStopAfterRoomCreationSeconds": 600,
+      "automaticRetry": false,
+      "providerInternalRetryCount": "unknown",
+      "hardBillingTokenCap": false
+    },
+    "executionPlanSha256": "e48ea529268e59f03b2dd99b9e2c57a567290b0e9a380bda2d0794324e834406",
+    "semantics": "No retries, reconnection or replacement rooms; each next input waited for complete accounting and independently persisted delivery."
+  },
+  "preflight": {
+    "previousGoalTurn": "progress",
+    "sourceWasClean": true,
+    "oldNativeMetadataUnchanged": 15,
+    "oldNativeDecodeCount": 0,
+    "terminalOldLabRooms": 8,
+    "fixFingerprints": 6,
+    "installedSdkFingerprints": 12,
+    "priorModuleCheck": {
+      "passed": 929,
+      "level": "Historical immediately preceding offline check; not rerun this host turn."
+    },
+    "independentAuditRegression": {
+      "passed": 21,
+      "level": "Previous B-turn synthetic audit tests, same unchanged audit script; not rerun this host turn."
+    },
+    "initialCommitSeq": 213,
+    "afterFirstReloadCommitSeq": 218,
+    "taskCount": 3
+  },
+  "timeline": {
+    "timezone": "UTC",
+    "firstReloadStartup": "2026-11-02T15:50:57Z",
+    "firstReloadReady": "2026-11-02T15:50:59Z",
+    "roomIndexCreatedAt": "2026-11-02T15:51:51.540Z",
+    "roomStartedEventAt": "2026-11-02T15:51:51.550Z",
+    "connectionCreatedAt": "2026-11-02T15:52:57.627Z",
+    "events": [
+      {
+        "id": "run-mvzfsovl-5355e002:e1",
+        "type": "run.started",
+        "at": "2026-11-02T15:51:51.550Z",
+        "seq": 1
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e2",
+        "type": "input.message",
+        "at": "2026-11-02T15:53:58.983Z",
+        "seq": 2,
+        "channelId": "H3-GROUP",
+        "actorId": "HUMAN"
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e3",
+        "type": "tool.call",
+        "at": "2026-11-02T15:54:02.322Z",
+        "seq": 3
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e4",
+        "type": "message.delivered",
+        "at": "2026-11-02T15:54:02.336Z",
+        "seq": 4,
+        "channelId": "H3-GROUP",
+        "actorId": "SHIYU"
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e5",
+        "type": "tool.result",
+        "at": "2026-11-02T15:54:02.347Z",
+        "seq": 5
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e6",
+        "type": "input.message",
+        "at": "2026-11-02T15:54:58.054Z",
+        "seq": 6,
+        "channelId": "D-SHIYU",
+        "actorId": "HUMAN"
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e7",
+        "type": "tool.call",
+        "at": "2026-11-02T15:55:00.192Z",
+        "seq": 7
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e8",
+        "type": "message.delivered",
+        "at": "2026-11-02T15:55:00.207Z",
+        "seq": 8,
+        "channelId": "D-SHIYU",
+        "actorId": "SHIYU"
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e9",
+        "type": "tool.result",
+        "at": "2026-11-02T15:55:00.219Z",
+        "seq": 9
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e10",
+        "type": "input.message",
+        "at": "2026-11-02T15:55:35.294Z",
+        "seq": 10,
+        "channelId": "H3-GROUP",
+        "actorId": "HUMAN"
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e11",
+        "type": "tool.call",
+        "at": "2026-11-02T15:55:43.751Z",
+        "seq": 11
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e12",
+        "type": "message.delivered",
+        "at": "2026-11-02T15:55:43.765Z",
+        "seq": 12,
+        "channelId": "H3-GROUP",
+        "actorId": "SHIYU"
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e13",
+        "type": "tool.result",
+        "at": "2026-11-02T15:55:43.775Z",
+        "seq": 13
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e14",
+        "type": "target.token_rotated",
+        "at": "2026-11-02T15:57:33.421Z",
+        "seq": 14
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e15",
+        "type": "run.finished",
+        "at": "2026-11-02T15:57:33.438Z",
+        "seq": 15
+      },
+      {
+        "id": "run-mvzfsovl-5355e002:e16",
+        "type": "evaluation.completed",
+        "at": "2026-11-02T15:57:33.452Z",
+        "seq": 16
+      }
+    ],
+    "pausedAt": "2026-11-02T15:56:47.181Z",
+    "stoppedAt": "2026-11-02T15:57:33.438Z",
+    "pauseSecondsFromRoomCreation": 295.641,
+    "stopSecondsFromRoomCreation": 341.898,
+    "secondReloadStartup": "2026-11-02T16:00:36Z",
+    "secondReloadReady": "2026-11-02T16:00:38Z"
+  },
+  "inputs": [
+    {
+      "eventId": "run-mvzfsovl-5355e002:e2",
+      "channelId": "H3-GROUP",
+      "actorId": "HUMAN",
+      "type": "input.message",
+      "seq": 2,
+      "bodyHash": "28bf56cbf8768378425b50a81e11c39f1aad29f1142c952bb18921bffe2e80f0",
+      "bodyBytes": 145
+    },
+    {
+      "eventId": "run-mvzfsovl-5355e002:e6",
+      "channelId": "D-SHIYU",
+      "actorId": "HUMAN",
+      "type": "input.message",
+      "seq": 6,
+      "bodyHash": "d5b916633cc28f41f5ed0b4f12fa578cd4eee04b9b660c227b08a2bad6da346d",
+      "bodyBytes": 142
+    },
+    {
+      "eventId": "run-mvzfsovl-5355e002:e10",
+      "channelId": "H3-GROUP",
+      "actorId": "HUMAN",
+      "type": "input.message",
+      "seq": 10,
+      "bodyHash": "3747eb416ba17caf486c3ba09d7aeb30279616afc770e0c7e05d5189acd75c81",
+      "bodyBytes": 172
+    }
+  ],
+  "strictBusinessOracle": [
+    {
+      "inputEventId": "run-mvzfsovl-5355e002:e2",
+      "deliveryEventId": "run-mvzfsovl-5355e002:e4",
+      "channelId": "H3-GROUP",
+      "bodySha256": "bbefef6a6554241a54436c363535b463a2cd40be6a05c834addaff928060945d",
+      "bodyBytes": 43,
+      "strictJson": true,
+      "strictOraclePassed": true
+    },
+    {
+      "inputEventId": "run-mvzfsovl-5355e002:e6",
+      "deliveryEventId": "run-mvzfsovl-5355e002:e8",
+      "channelId": "D-SHIYU",
+      "bodySha256": "6b186b6a7710311651d4b0ebfe318b92cd5e40d2f25d330c1ef21227b158e68c",
+      "bodyBytes": 42,
+      "strictJson": true,
+      "strictOraclePassed": true
+    },
+    {
+      "inputEventId": "run-mvzfsovl-5355e002:e10",
+      "deliveryEventId": "run-mvzfsovl-5355e002:e12",
+      "channelId": "H3-GROUP",
+      "bodySha256": "bbefef6a6554241a54436c363535b463a2cd40be6a05c834addaff928060945d",
+      "bodyBytes": 43,
+      "strictJson": true,
+      "strictOraclePassed": true
+    }
+  ],
+  "nativeSessions": [
+    {
+      "sessionId": "shiyu-replyer-02ff25ed-c2b2-4927-8642-bee2f3230f05",
+      "conversationId": "f3d9b8b2-35a4-4574-9994-e18b99a9c6e9",
+      "file": {
+        "bytes": 7149,
+        "sha256": "9e09d8428e571702de752a6435dcc9cb771729b45e0168f45ff7e0407d976345",
+        "mtimeNs": "1793634943622637352"
+      },
+      "configs": [
+        {
+          "seq": 11,
+          "at": "2026-11-02T15:53:59.915000+00:00",
+          "config": {
+            "provider": "opencode-go",
+            "model": "deepseek-v4.1-flash",
+            "reasoningEffort": "low",
+            "maxTokens": 512
+          }
+        }
+      ],
+      "systemPromptMatchesCommittedFix": true,
+      "ownerInputs": [
+        {
+          "seq": 9,
+          "at": "2026-11-02T15:53:59.915000+00:00",
+          "textSha256": "f98a43a38e3f88990cd50c0096181a0652280ad6c9dd7ba42b164b7e9db6a4f8",
+          "textBytes": 824,
+          "containsGroupMarker": true,
+          "containsDirectMarker": false
+        },
+        {
+          "seq": 20,
+          "at": "2026-11-02T15:55:35.959000+00:00",
+          "textSha256": "1b8419970d907fd1e253f2baf84fb0c9d6322ee3901e43f2dc9a699884fc0e12",
+          "textBytes": 852,
+          "containsGroupMarker": false,
+          "containsDirectMarker": false
+        }
+      ],
+      "assistantUsage": [
+        {
+          "seq": 13,
+          "at": "2026-11-02T15:54:02.181000+00:00",
+          "textSha256": "bbefef6a6554241a54436c363535b463a2cd40be6a05c834addaff928060945d",
+          "usage": {
+            "inputTokens": 489,
+            "outputTokens": 67,
+            "totalTokens": 556
+          },
+          "interrupted": false
+        },
+        {
+          "seq": 21,
+          "at": "2026-11-02T15:55:43.616000+00:00",
+          "textSha256": "bbefef6a6554241a54436c363535b463a2cd40be6a05c834addaff928060945d",
+          "usage": {
+            "inputTokens": 730,
+            "outputTokens": 62,
+            "totalTokens": 792
+          },
+          "interrupted": false
+        }
+      ],
+      "systemPromptSha256": "73ffdf126c85280ff1d650c270a7c35f02773c955e8874138527e9c1129ea124",
+      "nativeMessageReferences": [
+        {
+          "seq": 9,
+          "type": "user/message",
+          "messageId": "e3fefdb9-c4af-4f5c-b2b7-44e12206ad1c",
+          "messageHash": "5e7b62fc78882927d6b7fc559e13198de57ec0ab10600f652ee57be62e6fb9bf",
+          "sourceKind": "user"
+        },
+        {
+          "seq": 10,
+          "type": "user/message",
+          "messageId": "139dc159-8b83-43b5-92b4-e043f5cafcfd",
+          "messageHash": "ea6294f56a4e337e8b3e4f5544d72a737ac496348c5222ce4b2088fee13bd600",
+          "sourceKind": "runtime-context"
+        },
+        {
+          "seq": 13,
+          "type": "assistant/message",
+          "messageId": "cb29e61e-9ffe-4423-85a4-e3873d030528",
+          "messageHash": "40998bf9f8f613b0830834fc5fa11df12d6b5754cabfccab17cf2d661345a593",
+          "sourceKind": "other"
+        },
+        {
+          "seq": 20,
+          "type": "user/message",
+          "messageId": "429b7fd2-9788-46b3-8351-ca2ae7d8ee31",
+          "messageHash": "d229ef94bf4e343874703796a57ab5f87c2d418ed46c1e987e05c8381314232b",
+          "sourceKind": "user"
+        },
+        {
+          "seq": 21,
+          "type": "assistant/message",
+          "messageId": "817166b4-32e4-40cd-a12c-0ba8cffbbe07",
+          "messageHash": "50e43f4ff8ff102c2982fe8ce565b19bbd678ff782ca088014a72f536094c9c0",
+          "sourceKind": "other"
+        }
+      ],
+      "nativeLifecycle": {
+        "rounds": 2,
+        "issueCodes": []
+      }
+    },
+    {
+      "sessionId": "shiyu-replyer-3aeefd95-4529-439d-bae2-00fc47cf3ffc",
+      "conversationId": "28e356b1-7f6b-45f8-824f-3f0e139f9725",
+      "file": {
+        "bytes": 3923,
+        "sha256": "f449da18f81c6f12d47235f563e4e1b076dd4b549f1384f4a06b3e587db546eb",
+        "mtimeNs": "1793634900061115855"
+      },
+      "configs": [
+        {
+          "seq": 11,
+          "at": "2026-11-02T15:54:59.041000+00:00",
+          "config": {
+            "provider": "opencode-go",
+            "model": "deepseek-v4.1-flash",
+            "reasoningEffort": "low",
+            "maxTokens": 512
+          }
+        }
+      ],
+      "systemPromptMatchesCommittedFix": true,
+      "ownerInputs": [
+        {
+          "seq": 9,
+          "at": "2026-11-02T15:54:59.041000+00:00",
+          "textSha256": "d702269341ef7771026c094b18a6e88fb9c84e1069e703c1d0ff95255fbde6e7",
+          "textBytes": 820,
+          "containsGroupMarker": false,
+          "containsDirectMarker": true
+        }
+      ],
+      "assistantUsage": [
+        {
+          "seq": 13,
+          "at": "2026-11-02T15:55:00.055000+00:00",
+          "textSha256": "6b186b6a7710311651d4b0ebfe318b92cd5e40d2f25d330c1ef21227b158e68c",
+          "usage": {
+            "inputTokens": 487,
+            "outputTokens": 17,
+            "totalTokens": 504
+          },
+          "interrupted": false
+        }
+      ],
+      "systemPromptSha256": "73ffdf126c85280ff1d650c270a7c35f02773c955e8874138527e9c1129ea124",
+      "nativeMessageReferences": [
+        {
+          "seq": 9,
+          "type": "user/message",
+          "messageId": "11b8f142-9211-46b4-9ea2-b25bbb07e23d",
+          "messageHash": "36184448f8539390977fe43e4d2c526149309b72249a5f4f5d7418b442c5cf87",
+          "sourceKind": "user"
+        },
+        {
+          "seq": 10,
+          "type": "user/message",
+          "messageId": "0cfd00c1-4293-4f77-a90a-0be42dbcb417",
+          "messageHash": "f6d7bfe9909b6609a32c2c73ba044b606dc13a18d845f95b092a6df1b6dd27c1",
+          "sourceKind": "runtime-context"
+        },
+        {
+          "seq": 13,
+          "type": "assistant/message",
+          "messageId": "60bca798-fed7-4fa4-b80b-609d0aa8c6c7",
+          "messageHash": "bc1c365b54934856dc0c4d3e7edde4d2fae0ab9a1635335a54216934c45623ba",
+          "sourceKind": "other"
+        }
+      ],
+      "nativeLifecycle": {
+        "rounds": 1,
+        "issueCodes": []
+      }
+    }
+  ],
+  "generationDeadlines": {
+    "observations": [
+      {
+        "replyId": "lab-reply-d5d1c77dccce7c68e40486bf8da3b1eb257fa5b3",
+        "channelId": "H3-GROUP",
+        "operationId": "0a6d4c21-1324-4443-9ffb-da031c9bd9bf",
+        "createdAt": "2026-11-02T15:53:59.729Z",
+        "expiresAt": "2026-11-02T15:55:59.729Z",
+        "bounds": {
+          "operationPlus120Seconds": "2026-11-02T15:55:59.729000+00:00",
+          "connectionExpiresAt": "2026-11-02T16:22:57.608Z",
+          "permitLeaseExpiresAt": "2026-11-02T16:03:59.709Z",
+          "mandateExpiresAt": "2026-11-02T16:22:57.608Z"
+        },
+        "windowMilliseconds": 120000,
+        "readyAt": "2026-11-02T15:54:02.285Z",
+        "readyMilliseconds": 2556,
+        "sessionId": "shiyu-replyer-02ff25ed-c2b2-4927-8642-bee2f3230f05",
+        "sourceRefsCount": 0
+      },
+      {
+        "replyId": "lab-reply-c773832cdfeea4eb442ccd074399b90ecfdd6eea",
+        "channelId": "D-SHIYU",
+        "operationId": "e959bf94-3ddc-4924-83cf-fc046326b35c",
+        "createdAt": "2026-11-02T15:54:58.790Z",
+        "expiresAt": "2026-11-02T15:56:58.790Z",
+        "bounds": {
+          "operationPlus120Seconds": "2026-11-02T15:56:58.790000+00:00",
+          "connectionExpiresAt": "2026-11-02T16:22:57.608Z",
+          "permitLeaseExpiresAt": "2026-11-02T16:04:58.749Z",
+          "mandateExpiresAt": "2026-11-02T16:22:57.608Z"
+        },
+        "windowMilliseconds": 120000,
+        "readyAt": "2026-11-02T15:55:00.156Z",
+        "readyMilliseconds": 1366,
+        "sessionId": "shiyu-replyer-3aeefd95-4529-439d-bae2-00fc47cf3ffc",
+        "sourceRefsCount": 0
+      },
+      {
+        "replyId": "lab-reply-227bff457afe4cc08fa92239fc105559a902568b",
+        "channelId": "H3-GROUP",
+        "operationId": "79507138-1d16-4b06-8099-ef98eab1c15b",
+        "createdAt": "2026-11-02T15:55:35.805Z",
+        "expiresAt": "2026-11-02T15:57:35.805Z",
+        "bounds": {
+          "operationPlus120Seconds": "2026-11-02T15:57:35.805000+00:00",
+          "connectionExpiresAt": "2026-11-02T16:22:57.608Z",
+          "permitLeaseExpiresAt": "2026-11-02T16:05:35.787Z",
+          "mandateExpiresAt": "2026-11-02T16:22:57.608Z"
+        },
+        "windowMilliseconds": 120000,
+        "readyAt": "2026-11-02T15:55:43.714Z",
+        "readyMilliseconds": 7909,
+        "sessionId": "shiyu-replyer-02ff25ed-c2b2-4927-8642-bee2f3230f05",
+        "sourceRefsCount": 0
+      }
+    ],
+    "allOperationWindows120000ms": true,
+    "allEqualMinimumOriginalBounds": true,
+    "generationOver30SecondsVerified": false,
+    "meaning": "The fixed long capture exists in the host; all real generations completed before 30 seconds. No delayed-response stress claim."
+  },
+  "accounting": {
+    "budget": {
+      "limits": {
+        "tokens": 49152,
+        "calls": 3,
+        "effects": 3
+      },
+      "spent": {
+        "tokens": 1852,
+        "calls": 3,
+        "effects": 3
+      },
+      "held": {
+        "tokens": 0,
+        "calls": 0,
+        "effects": 0
+      }
+    },
+    "reportedInputTokens": 1706,
+    "reportedOutputTokens": 146,
+    "reportedTotalTokens": 1852,
+    "perReplyTokens": [
+      556,
+      504,
+      792
+    ],
+    "completeScope": "trusted observed-primary instrumentation plus exact persisted assistant usage",
+    "cacheReadTokens": null,
+    "cacheWriteTokens": null,
+    "providerInternalRetries": null,
+    "providerTotalCost": null,
+    "fullSessionCost": null
+  },
+  "independentAudit": {
+    "beforeReload": {
+      "status": "verified",
+      "completionVerified": true,
+      "issues": [],
+      "checks": {
+        "replies": [
+          {
+            "replyId": "lab-reply-d5d1c77dccce7c68e40486bf8da3b1eb257fa5b3",
+            "nativeDraftVerified": true
+          },
+          {
+            "replyId": "lab-reply-c773832cdfeea4eb442ccd074399b90ecfdd6eea",
+            "nativeDraftVerified": true
+          },
+          {
+            "replyId": "lab-reply-227bff457afe4cc08fa92239fc105559a902568b",
+            "nativeDraftVerified": true
+          }
+        ],
+        "nativeMessageCoverageComplete": true,
+        "unlinkedNativeMessageCount": 0,
+        "nativeLifecycle": {
+          "shiyu-replyer-02ff25ed-c2b2-4927-8642-bee2f3230f05": {
+            "rounds": 2,
+            "issueCodes": []
+          },
+          "shiyu-replyer-3aeefd95-4529-439d-bae2-00fc47cf3ffc": {
+            "rounds": 1,
+            "issueCodes": []
+          }
+        },
+        "independentDeliveryObservationsVerified": true,
+        "deliveryEvidence": {
+          "file": {
+            "bytes": 1124,
+            "sha256": "1e8b10ba9cc775982ceb8b7f5732008f4b3b6047bd9ccdbfd55b3a91deba2675",
+            "mtimeNs": "1793635124532337670"
+          },
+          "source": {
+            "kind": "lab-persisted-events",
+            "sha256": "a286384401f3e714d6661ff57398d3b702543b96edbc927d238fb9377783c9a2",
+            "bytes": 6457
+          },
+          "level": "root-frozen-persisted-event-metadata"
+        },
+        "pauseReloadNoReplayVerified": null
+      }
+    },
+    "afterReload": {
+      "status": "verified",
+      "completionVerified": true,
+      "issues": [],
+      "checks": {
+        "replies": [
+          {
+            "replyId": "lab-reply-d5d1c77dccce7c68e40486bf8da3b1eb257fa5b3",
+            "nativeDraftVerified": true
+          },
+          {
+            "replyId": "lab-reply-c773832cdfeea4eb442ccd074399b90ecfdd6eea",
+            "nativeDraftVerified": true
+          },
+          {
+            "replyId": "lab-reply-227bff457afe4cc08fa92239fc105559a902568b",
+            "nativeDraftVerified": true
+          }
+        ],
+        "nativeMessageCoverageComplete": true,
+        "unlinkedNativeMessageCount": 0,
+        "nativeLifecycle": {
+          "shiyu-replyer-02ff25ed-c2b2-4927-8642-bee2f3230f05": {
+            "rounds": 2,
+            "issueCodes": []
+          },
+          "shiyu-replyer-3aeefd95-4529-439d-bae2-00fc47cf3ffc": {
+            "rounds": 1,
+            "issueCodes": []
+          }
+        },
+        "independentDeliveryObservationsVerified": true,
+        "deliveryEvidence": {
+          "file": {
+            "bytes": 1124,
+            "sha256": "1e8b10ba9cc775982ceb8b7f5732008f4b3b6047bd9ccdbfd55b3a91deba2675",
+            "mtimeNs": "1793635124532337670"
+          },
+          "source": {
+            "kind": "lab-persisted-events",
+            "sha256": "a286384401f3e714d6661ff57398d3b702543b96edbc927d238fb9377783c9a2",
+            "bytes": 6457
+          },
+          "level": "root-frozen-persisted-event-metadata"
+        },
+        "pauseReloadNoReplayVerified": true
+      }
+    },
+    "tools": {
+      "scriptSha256": "d08079e9f0ca0c101eabcefa79b70fd725d4389b9ae963c9474fdba19093d86a",
+      "helperSha256": "16ced99ab99f84ce9f9ba8786cdc596b8f04252b3fe4f7b05439a7dabce84785"
+    },
+    "meaning": "Audit proves precise persisted input/draft, known primary usage and independent delivery metadata. Strict output and recall checks are the separate root oracle above."
+  },
+  "independentLabDelivery": {
+    "schemaVersion": 1,
+    "phase": "3H",
+    "runId": "run-mvzfsovl-5355e002",
+    "source": {
+      "kind": "lab-persisted-events",
+      "sha256": "a286384401f3e714d6661ff57398d3b702543b96edbc927d238fb9377783c9a2",
+      "bytes": 6457
+    },
+    "observations": [
+      {
+        "eventId": "run-mvzfsovl-5355e002:e4",
+        "channelId": "H3-GROUP",
+        "opId": "lab-send-417bd1d19b6cd70d13c5c10d4644b4990182ca64",
+        "bodyHash": "bbefef6a6554241a54436c363535b463a2cd40be6a05c834addaff928060945d",
+        "observedAt": "2026-11-02T15:54:02.336Z"
+      },
+      {
+        "eventId": "run-mvzfsovl-5355e002:e8",
+        "channelId": "D-SHIYU",
+        "opId": "lab-send-e1157fcd689b7d990f1e30d3d8846b5b300610ee",
+        "bodyHash": "6b186b6a7710311651d4b0ebfe318b92cd5e40d2f25d330c1ef21227b158e68c",
+        "observedAt": "2026-11-02T15:55:00.207Z"
+      },
+      {
+        "eventId": "run-mvzfsovl-5355e002:e12",
+        "channelId": "H3-GROUP",
+        "opId": "lab-send-d2f95311e2ed06f57a2925987a4e57a249b4163b",
+        "bodyHash": "bbefef6a6554241a54436c363535b463a2cd40be6a05c834addaff928060945d",
+        "observedAt": "2026-11-02T15:55:43.765Z"
+      }
+    ]
+  },
+  "finalState": {
+    "phase": "3H-C",
+    "checkedAt": "2026-11-02T16:01:49.917630+00:00",
+    "uiStartup": "2026-11-02T16:00:36Z",
+    "uiReady": "2026-11-02T16:00:38Z",
+    "oldNativeMetadataUnchanged": 15,
+    "newNativeMetadataUnchanged": 2,
+    "priorBudgetsUnchanged": true,
+    "priorConnections": [
+      {
+        "connectionId": "lab-e4795c3e96472800e1189baa18a8604d1e607fd2",
+        "status": "disconnected",
+        "version": 8,
+        "epoch": 3
+      },
+      {
+        "connectionId": "lab-bc6cd763d07d9f79eaae3228cf95b9253961509a",
+        "status": "disconnected",
+        "version": 12,
+        "epoch": 3
+      }
+    ],
+    "connection": {
+      "connectionId": "lab-6e22c6f4faa72d0179f044f8401f4bc2b82e7e2a",
+      "status": "disconnected",
+      "version": 12,
+      "epoch": 3,
+      "updatedAt": "2026-11-02T16:00:06.003Z"
+    },
+    "sameInputReplySendIds": true,
+    "sameNativeFiles": true,
+    "rawLabEventsUnchangedSinceStop": true,
+    "rawLabEventsSha256": "a286384401f3e714d6661ff57398d3b702543b96edbc927d238fb9377783c9a2",
+    "budget": {
+      "limits": {
+        "tokens": 49152,
+        "calls": 3,
+        "effects": 3
+      },
+      "spent": {
+        "tokens": 1852,
+        "calls": 3,
+        "effects": 3
+      },
+      "held": {
+        "tokens": 0,
+        "calls": 0,
+        "effects": 0
+      }
+    },
+    "strictOraclePassed": 3,
+    "strictOracleTotal": 3,
+    "commitSeq": 258,
+    "taskCount": 3
+  },
+  "priorAttemptPreservation": {
+    "AUnknownUnchanged": true,
+    "AUnknownHold": {
+      "tokens": 16384,
+      "calls": 1,
+      "effects": 0
+    },
+    "BStrictOracleRemains": "1/3; extra private note and failed group recall",
+    "BSpentUnchanged": {
+      "tokens": 1826,
+      "calls": 3,
+      "effects": 3
+    },
+    "oldNativeFilesUnchanged": 15,
+    "newNativeFilesUnchanged": 2,
+    "noOldNativeDecode": true,
+    "disconnectedAfterReload": "Transport credentials are not persisted; no reconnection or generation occurred."
+  },
+  "limits": [
+    "One bounded synthetic sample is not a general reliability, long-history, compaction, full business or all-channel result.",
+    "No full provider request payload was captured. Persisted owner history and successful recall support this sample only.",
+    "No cache fields were reported; unknown values are not zero and no hit-rate or complete-cost claim is made.",
+    "Raw Lab persistent delivery events and source hash were checked separately from Shiyu control receipts.",
+    "No new worker/Core, embedding, external company account or device operation; Lab and workbench were not reloaded.",
+    "A and B failures and A unknown remain independently preserved."
+  ],
+  "evidence": [
+    {
+      "path": ".local/phase3h-c-host-execution-plan.json",
+      "bytes": 6079,
+      "sha256": "e48ea529268e59f03b2dd99b9e2c57a567290b0e9a380bda2d0794324e834406"
+    },
+    {
+      "path": ".local/phase3h-c-host-baseline.json",
+      "bytes": 12356,
+      "sha256": "29910450e817e5f34d98fb8c672296240ed575cdbd6a0092cf28bc9b9920316c"
+    },
+    {
+      "path": ".local/phase3h-c-sdk-preflight.json",
+      "bytes": 12149,
+      "sha256": "f510d2623de5c83346094d0f17dd6b448c43460dd47088dc47134a1484dfa5b9"
+    },
+    {
+      "path": ".local/phase3h-c-after-reload-baseline.json",
+      "bytes": 615,
+      "sha256": "a17cbeceab8c4a8a67769ffda1243c0baac43a36d78d0fe243dbdf767e33009a"
+    },
+    {
+      "path": ".local/phase3h-c-host-inventory-plan.json",
+      "bytes": 877,
+      "sha256": "2bc5a163cece6dba113c8a151b00b1b10911e9fa9b451bba77ab7a25cdff2863"
+    },
+    {
+      "path": ".local/phase3h-c-first-inventory.json",
+      "bytes": 17942,
+      "sha256": "bdd4971d793e72b9c3a2d38f60c434338fc319c1f6402600bff5aeb9d9748258"
+    },
+    {
+      "path": ".local/phase3h-c-final-inventory.json",
+      "bytes": 24933,
+      "sha256": "6832ab21911cd79084b08d1c874c14134a1c1f1feb5e1ce5627fb6054521ceaf"
+    },
+    {
+      "path": ".local/phase3h-c-host-audit-plan.json",
+      "bytes": 2413,
+      "sha256": "0138c603700901850aeb52c265319c5de8216e86dcf74831958a49b984011620"
+    },
+    {
+      "path": ".local/phase3h-c-delivery-evidence.json",
+      "bytes": 1124,
+      "sha256": "1e8b10ba9cc775982ceb8b7f5732008f4b3b6047bd9ccdbfd55b3a91deba2675"
+    },
+    {
+      "path": ".local/phase3h-c-oracle-results.json",
+      "bytes": 1146,
+      "sha256": "6ff02bc7119dbc039a68ecfda2e953dc158e647b7b5655a1f85fa02158c489be"
+    },
+    {
+      "path": ".local/phase3h-c-host-audit.json",
+      "bytes": 37464,
+      "sha256": "6b43e3bebe1afa14eebcb49a9148bb435dbb02e172632027f658f38810bad980"
+    },
+    {
+      "path": ".local/phase3h-c-before-final-reload.json",
+      "bytes": 6572,
+      "sha256": "f7ae2f1bcb8020477b6ca6f8089cbf6787140c52ff9e13d39782cf671ab5a8e6"
+    },
+    {
+      "path": ".local/phase3h-c-reload-audit-plan.json",
+      "bytes": 2612,
+      "sha256": "1044bc79234523279d03fb247a291eab6ee49a5ed1f75606a98ef90fcd302e66"
+    },
+    {
+      "path": ".local/phase3h-c-after-reload-audit.json",
+      "bytes": 37474,
+      "sha256": "eecaf51c375c463778761c2f182029aae8e4c0a298fd919bf922926060dee92e"
+    },
+    {
+      "path": ".local/phase3h-c-final-state.json",
+      "bytes": 1330,
+      "sha256": "d2f898a7ccc34cbf4ebfcc3afef88620fa181b8309ea808c3463e6eaf32db00b"
+    },
+    {
+      "path": ".local/phase3h-c-timeline.json",
+      "bytes": 2704,
+      "sha256": "7ed2cc7309e2f95844c19543525206a7cde801f301d2112a77e42e961565ef89"
+    }
+  ],
+  "bodyIncluded": false,
+  "reasoningIncluded": false,
+  "credentialsIncluded": false,
+  "independentReadOnlyReview": {
+    "scope": "Frozen execution/audit/oracle/delivery/final-state snapshots and public metadata; no live database or native-file reread by reviewer.",
+    "blockingFindings": 0,
+    "confirmed": [
+      "3 input/reply/send/effect/attempt records; each effect one attempt",
+      "6 settled reservations and 6 usage receipts; total1852/3/3; no hold",
+      "2 native Sessions with group2/direct1 turns",
+      "original minimum deadlines and actual ready times",
+      "paused/stopped elapsed times within600seconds",
+      "source digests and no body/credentials/absolute paths in public artifact"
+    ],
+    "remaining": "Full-provider payload/cost/cache, arbitrary N-channel concurrency, in-flight recovery and long-history compression are not proven."
+  }
+}

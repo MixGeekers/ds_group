@@ -2,7 +2,7 @@
 
 `@shiyu/runtime` **0.1.0**。识雨的独立 DSH 插件包，采用宿主内权威核心的 A 方案。当前已有运行仪表盘、受限原生 core/replyer/worker、持久事件，以及带授权预算、效果回执和独立核验的本地目标、任务与记忆链路。
 
-**当前状态：3H B 轮三次真实生成、对账和送达已核验，严格对话行为仅 1/3 通过，整轮仍未通过。** 群聊两轮复用了同一原生 Session，私聊使用独立 Session；但私聊增加了多余字段，群聊第二轮拒绝回忆已有历史。三次 capture 均已使用固定 120 秒截止，实际生成均不足 30 秒，不能据此声称较长生成已实测。房间与连接已停止，没有执行仅限成功后的第二次重载。A 轮中断与 unknown 原样保留。见 [B 轮真实证据](<artifacts/phase3h-b-lab-host-validation.json>)、[A 轮记录](<artifacts/phase3h-lab-host-validation.json>)及下方 [3H 说明](#3hlab-连续对话与回执)。
+**当前状态：3H C 轮限定双频道文本闭环通过，严格对话验收3/3。** 群聊两轮复用同一原生Session且正确回忆前文，私聊使用独立Session并遵从限定字段；三次生成/账目/独立送达对应，已知主用量1852 tokens。停止后一次有序重载未重放，旧15个及新2个Session文件不变。实际生成均不足30秒，缓存和完整费用仍未知；这不是完整S/FL、长历史恢复/压缩或九系统整体验收。见 [C轮成功证据](<artifacts/phase3h-c-lab-host-validation.json>)；[B轮失败](<artifacts/phase3h-b-lab-host-validation.json>)与[A轮unknown](<artifacts/phase3h-lab-host-validation.json>)独立保留。
 
 **3G 历史验证：已通过一个真实合成便签闭环及完成后重载核对。** owner 明确指定范围、共享预算与期限后，core 提出候选，控制域接纳 Task，worker 执行，独立核验后完成原生 Goal。两轮 Core 复用同一 Session；主模型记录合计 3813 reported tokens、4 次调用、1 次效果，完成后无剩余预留。首次失败 A 的取消与 unknown 保留，新样本 B 不改写其结果。见[成功证据](<artifacts/phase3g-core-host-success.json>)、[首次失败](<artifacts/phase3g-core-host-validation.json>)、[兼容修复](<artifacts/phase3g-required-context-fix.json>)及下方 [3G 说明](#3g有界-core-与本地目标)。这仍是有限授权事项推进，不是开放式规划或九系统整体验收。
 
@@ -10,7 +10,7 @@
 
 本包不依赖 Lab 引擎或资料工作台作为运行能力。`lab/` 继续作为独立被测环境，`plugins/shiyu-workbench/` 完整保留。
 
-**3H 新增：受控 Lab 连续对话。** owner 显式指定 run、获准频道、预算和期限后，通过健身房公共目标协议接收输入，按 run/channel 复用 DSH 原生 replyer，核对当前草稿与授权后发送。发送实际回执、草稿完成和调用账目分别记录；结果未知只查询既存回执，不重复发送。离线、A 轮及 B 轮分别留证；B 轮已确认双频道隔离绑定与同群聊原生 Session 复用，但回忆行为失败。独立传输审计通过不等于业务 oracle 通过。具体结果见[实施记录](<实施记录.md>)。
+**3H 新增：受控 Lab 连续对话。** owner 显式指定run、获准频道、预算和期限后，经健身房公共协议接收输入，按run/channel复用原生replyer，核对草稿与授权后发送。送达、草稿和账目分别记录，unknown只查询既存回执。C轮限定三条输入的严格oracle和独立链路均通过，A/B历史失败保留；具体范围见[实施记录](<实施记录.md>)。
 
 ## 当前实现与限定验证
 
@@ -19,12 +19,12 @@
 | Host 与运行状态 | DSH 插件入口、只读状态路由、`shiyu_status` 工具、显式运行命令与卸载清理 | 原生安装与限定禁用/启用验证已有证据；无独立 Web 服务，不等于完整生命周期压力验收 |
 | 运行仪表盘 | 总览、目标与判断、当前工作、活动、九系统状态、事件/订阅、Session、任务核验、显式诊断和记忆操作；中英文、主题及窄屏布局 | 目标候选、接纳任务、原生观察及命令回执分别显示；受理不显示为成功，unknown 与缺失用量保留未知 |
 | 有界 core | owner 明确登记 local-note 范围、依赖、预算与期限；可信触发、判断预留、原生候选、同事务 Task 接纳和独立完成证明 | 一个真实便签闭环及重载不重放已验；模型只能选择已授权便签 ID，没有任意任务、记忆写入、设备或外部渠道权限 |
-| replyer Session | 专用原生 preset、空工具、稳定业务/scope 绑定、单主调用观测与实际账目、取消与释放 | 3H B 同群聊两轮复用已核对，但回忆行为失败；持久历史存在不等于完整 provider 请求体已采集。业务压缩与完整缓存收益待验 |
+| replyer Session | 专用原生 preset、空工具、稳定业务/scope 绑定、单主调用观测与实际账目、取消与释放 | 3H C 同群聊两轮复用和回忆通过，一次有序重载未重放；完整provider请求体未采集，业务压缩与缓存收益待验 |
 | 任务与 worker | owner 本地任务及 3G 已授权便签委托复用 Task/Assignment；原生 worker 只写固定产物，派发资格持续复查 | 历史有界任务及 3G core 派工各有限定真实成功证据，首次 unknown 保留；没有通用文件或设备权限 |
 | 授权、效果与核验 | Mandate/CAS、原子预留、Effect 与独立产物核验；3G 判断与派生 Task 共用同一 Goal 授权及预算 | 不以模型候选或 `task.createLocal` 代替 owner 授权；取消不回滚已发生效果，旧实例与 unknown 不自动重派 |
 | 原生 Goal 生命周期 | 原生 Goal 绑定/CAS/命令历史、独立完成证明；历史零推理诊断保留，3G 另用专用 Goal Session 执行有界判断 | 原生日志拥有 phase/revision；普通判断 followup 不计为原生 Goal driver round；旧观察不覆盖 pending/unknown 命令事实 |
 | 本地对话与背景 | 同库稳定 Conversation/Topic/回复绑定、Task 关联、可信完成事件投影、有界扫描；显式本地上下文回复与验证 | 背景消费者不调用模型；Event ack 不等于加载，显式回复须原生持久回执才 ackContext；无渠道发送 |
-| Lab 连续对话 | 最多 20 个获准群聊/私聊、原生 Session、输入去重与纠正失效、共享容量、预算、Effect 发送及只读回执核对 | 仅文本 message.send；B 轮三次送达核验、严格业务 oracle 1/3，整轮未通过；不开放文件、Office、任务完成或管理操作，不自动注入跨对话记忆 |
+| Lab 连续对话 | 最多 20 个获准群聊/私聊、原生 Session、输入去重与纠正失效、共享容量、预算、Effect 发送及只读回执核对 | 仅文本message.send；C轮双频道3条严格oracle/独立送达通过，A/B失败保留；文件、Office、任务完成、管理操作及跨对话记忆注入未开放 |
 | 发布与受限视图 | schema2 按实际依赖发布 memory 读取能力，其余五域 unavailable；Task 与 native-memory ReadView、独立删除屏障及最终双校验 | 普通读取/回复/load-only 为 30 秒；可信 Lab 生成按具体原操作固定最多 120 秒，并取原授权更早截止。正文读取及返回前仍重核，版本不与 commitSeq 或索引水位混用 |
 | 事件与订阅 | 类型目录、发布、订阅增删改查、有限回放、投递领取/确认/失败、重试和统计；事件与匹配投递同事务提交 | live 路径为可信组件消费和 Agent background 引用；Agent 事件工具工厂已实现并合成验证，但尚未挂载到原生 Session，未自动续接 |
 | 本地状态与数据库 | 单实例运行锁、暂停与 Session 绑定保存；SQLite 独立 WorkerThread，事件、Task/Assignment、Mandate/预算及 Effect 共用连接与事务 | 尚无原生 inbox/请求结果完整对账；正常重载、事务/文件故障注入和限定子进程退出不代替完整断电/灾难恢复 |
@@ -64,7 +64,7 @@ npm run test:ui
 
 ## Session 与模型
 
-默认路由为用户现有 `opencode-go / deepseek-v4.1-flash`，replyer effort 为 `low`，受限本地 worker 与 3G core 为 `high`；模型配置先经宿主解析。当前适配支持 `low/high/max`，不增加另一套凭据或修改宿主全局模型。core 的固定路由已有 3G B 轮限定真实证据；3H B 两个原生 Session 均确认上述模型、`low` 和 512 输出 tokens 上限，三次主调用已知用量共 1826 tokens；缓存字段未报告，完整 provider 费用仍未知。A 轮私聊 unknown 未释放。
+默认路由为用户现有 `opencode-go / deepseek-v4.1-flash`，replyer effort为`low`，本地worker与3G core为`high`；模型配置先经宿主解析，支持`low/high/max`，不增加凭据或修改全局模型。3H C两个原生Session确认上述模型、low和输出512上限，三次主调用已知1852 tokens；缓存未报告、完整provider费用未知。B的1826 tokens及A私聊unknown分别保留。
 
 绑定键包含 role、businessId、scope；同一 replyer 绑定串行复用原生会话，不在本地复制模型历史。原生 Session 日志与压缩由 DSH 管理，当前实现只记录业务绑定和本轮观察结果。完整 conversationGeneration、发送门禁、原生压缩和缓存复用效果仍待后续验收。
 
@@ -304,4 +304,10 @@ licenses/                           随发布包保留的第三方完整许可
 
 本轮于房间启动后不足 300 秒暂停连接并结束房间；不重试、不替代房间、不进行仅限成功后的第二次重载。旧 13 个 Session 文件未变、A unknown 保留，两个 B Session 自审计后也未变。缓存字段未报告，完整费用未知。详见 [B 轮证据](<artifacts/phase3h-b-lab-host-validation.json>)。
 
-随后已澄清两处提示中的原生对话历史、长期 Memory 和外部操作职责，并保持原始输入封装与所有执行门禁。最终离线 **929/929**、类型检查/构建/Client语法通过；首轮沙箱EPERM失败及完整重跑分别留证。新增模拟历史/隔离/恢复测试不证明模型语义，本修补尚未重载或真实复验。见 [提示修补证据](<artifacts/phase3h-history-prompt-fix.json>)。
+随后已澄清两处提示中的原生对话历史、长期Memory和外部操作职责，并保持输入封装与执行门禁。该离线批次929/929及构建通过；沙箱EPERM失败与完整重跑分别留证。当时没有真实复验，新增模拟测试不证明模型语义；后续C轮结果如下。见[提示修补证据](<artifacts/phase3h-history-prompt-fix.json>)。
+
+### 3H C轮真实复验：限定闭环通过
+
+同一固定剧本的新房间只运行三条输入，严格格式及群聊回忆均通过。三个回复在独立Lab事件中实际送达，已知主用量556/504/792 tokens，共1852；群聊两轮复用同一原生Session，私聊独立，实际系统提示与修补版本一致。停止后一次有序重载没有新增或更换输入/回复/发送记录，17个精确自有Session文件不变，Lab原始事件文件未变。
+
+三个capture为120秒，但实际ready只有2.556/1.366/7.909秒；不声明超过30秒生成、完整请求体、缓存命中或完整费用已验。A unknown及B失败保留；本次通过只覆盖两频道三条文本和一次停止后重载，不代表在途崩溃恢复、长历史压缩或完整S/FL。[C轮完整证据](<artifacts/phase3h-c-lab-host-validation.json>)。
