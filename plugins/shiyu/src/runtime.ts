@@ -4,6 +4,10 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ControlStore } from './adapters/control-store/index.js';
 import { EventService } from './control/events/index.js';
+import { EventRuleStore } from './control/events/rules.js';
+import { RuleStoreSubscriptionReader, SubscriptionLifecycleService } from './control/events/subscriptions.js';
+import { H2B_EVENT_TYPES, RuleBasedSchedulePort, TimeSourcePump, TimeSourceService, type ReadonlyObservationPort } from './control/events/time-source.js';
+import { NotificationRouter, type NotificationEffectPort } from './control/events/notifications.js';
 import { SHIYU_EVENT_TYPES } from './contracts/events.js';
 import type { EventPrincipal, EventTypeDefinition } from './contracts/events.js';
 import { ShiyuSessionAdapter } from './adapters/dsh/sessions.js';
@@ -35,11 +39,18 @@ import type { CapabilityBinding, CapabilityCommandReceipt } from './contracts/ca
 import { localNoteDefinitionDigest, localNoteEnvironmentFingerprint, UNAVAILABLE_WORKER_DEPENDENCY } from './adapters/capability-identity.js';
 import { LabTargetAdapter } from './adapters/lab/index.js';
 import { LabService, type LabServiceOptions, type LabOwnerConnectInput, type LabOwnerControlInput, type LabOwnerReconcileInput, type LabActivity } from './control/lab.js';
+import {
+  createRuntimeCheckpointComposition,
+  detectSessionPersistenceLogResolver,
+  type RuntimeCheckpointComposition,
+} from './recovery/host-ports.js';
+import { RuntimeCheckpointCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
+import type { RuntimeManifest } from './recovery/types.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
 const ownTypes = ['runtime.lifecycle.changed', 'runtime.session.probed', 'runtime.model.verified', 'runtime.goal.verified', 'runtime.context.verified'];
-const catalog: EventTypeDefinition[] = [...SHIYU_EVENT_TYPES, ...ownTypes.map(type => ({
+const catalog: EventTypeDefinition[] = [...SHIYU_EVENT_TYPES, ...H2B_EVENT_TYPES, ...ownTypes.map(type => ({
   type, schemaVersion: 1, description: 'Shiyu runtime lifecycle evidence.',
   publisherKinds: ['component' as const], publisherIds: ['shiyu-runtime'],
   payloadSchema: { properties: { message: 'string' as const, status: 'string' as const }, required: ['message', 'status'], additionalProperties: false as const },
@@ -87,6 +98,23 @@ export interface RuntimeOptions {
   labAdapterFactory?: LabServiceOptions['adapterFactory'];
   /** Trusted fixture/composition only; never accepted from command JSON. */
   memoryFactory?: (config: ManagedOmbreConfig) => Pick<ManagedOmbreBackend, 'adapter' | 'open' | 'status' | 'close'>;
+  /**
+   * H5b trusted composition only: explicit checkpoint staging root outside the
+   * live data root. Public commands, model output and GET traffic can never set
+   * or widen it. Absent means the owner-only checkpoint command stays
+   * unavailable (CHECKPOINT_STAGING_UNCONFIGURED), never a temp fallback.
+   */
+  checkpointStagingRoot?: string;
+  /**
+   * H5b trusted fixed host identity (DSH version/commit, Node, plugin and
+   * component schema versions). The composition must never guess a host
+   * version from a request; absent keeps the checkpoint command unavailable.
+   */
+  checkpointRuntimeManifest?: RuntimeManifest;
+  /** H2b trusted composition only: read-only external observation for time/condition rules. */
+  timeObservationPort?: ReadonlyObservationPort;
+  /** H2b trusted composition only: notification Effect adapter; absent keeps notifications disabled. */
+  notificationEffectPort?: NotificationEffectPort;
 }
 function memoryEntry(entry: LocalMemoryEntry) {
   return { operationId: entry.operation.operationId, version: entry.operation.version, requestId: entry.requestId,
@@ -116,6 +144,13 @@ export class RuntimeService {
   eventDeliveries?: EventDeliveryCoordinator;
   /** H6b: channel bindings, invalidation bridge and read-only projection. */
   channels!: ChannelRuntimeBridge;
+  /** H2b: declarative event rules, subscription lifecycle, time source and notification routing. */
+  eventRules!: EventRuleStore;
+  subscriptions!: SubscriptionLifecycleService;
+  subscriptionReader!: RuleStoreSubscriptionReader;
+  timeSource!: TimeSourceService;
+  timePump?: TimeSourcePump;
+  notificationRouter?: NotificationRouter;
   sessions!: SessionDriver;
   workers!: TaskWorkerDriver;
   artifacts!: LocalArtifactStore;
@@ -149,6 +184,12 @@ export class RuntimeService {
   private pauseRequested = false;
   private lastFailure?: string;
   private contextSafety: { ready: boolean; messageFactory?: 'official' | 'injected'; error?: string } = { ready: false };
+  /** H5b owner-only checkpoint command; created during init without any I/O below the command path. */
+  private checkpointCommand?: RuntimeCheckpointCommand;
+  /** Lazily created by the first explicit owner command; never by a GET/snapshot read. */
+  private checkpoint?: RuntimeCheckpointComposition;
+  /** Last explicit checkpoint diagnostic code; used for degrade visibility, never for auto retry. */
+  private checkpointFailure?: string;
   constructor(private readonly ctx: DshContext, config: RuntimeConfig = {}, private readonly options: RuntimeOptions = {}) {
     const defaultDirectory = fileURLToPath(new URL('../.local/runtime/', import.meta.url));
     if (config.dataDir !== undefined && (typeof config.dataDir !== 'string' || !path.isAbsolute(config.dataDir))) throw new Error('dataDir must be an absolute path');
@@ -211,6 +252,26 @@ export class RuntimeService {
         }
       }
       this.events = new EventService(this.store);
+      // H2b: declarative rules/lifecycle/time source. The pump is a zero-model
+      // cooperative tick with its own timer; it never occupies an operation slot
+      // and never calls a model. Rules are only read; the control DB stays the
+      // sole subscription/delivery/ack authority.
+      this.eventRules = new EventRuleStore({ filename: path.join(this.dataDir, 'control', 'event-rules.json') });
+      this.subscriptions = new SubscriptionLifecycleService({ events: this.events, rules: this.eventRules });
+      this.subscriptionReader = new RuleStoreSubscriptionReader(this.eventRules, this.events);
+      this.timeSource = new TimeSourceService({ events: this.events, rules: this.eventRules,
+        schedule: new RuleBasedSchedulePort(this.eventRules),
+        principal: { principalId: 'shiyu-time-source', kind: 'component', scopes: ['local-owner'],
+          publishTypes: ['time.occurred', 'observation.changed'], subscribeTypes: [], targetRefs: [] },
+        readSubscription: id => this.subscriptionReader.read(id),
+        triggerEventType: 'time.occurred', observationEventType: 'observation.changed',
+        ...(this.options.timeObservationPort ? { observation: this.options.timeObservationPort } : {}) });
+      this.timePump = new TimeSourcePump({ source: this.timeSource,
+        allowed: () => !this.pauseRequested && !this.closed && !this.closing,
+        onFailure: error => { this.lastFailure = error instanceof Error ? error.message : String(error); } });
+      this.timePump.start();
+      if (this.options.notificationEffectPort) this.notificationRouter = new NotificationRouter({ events: this.events,
+        rules: this.eventRules, effect: this.options.notificationEffectPort });
       // H2a: per-Assignment restricted event tools. The grant callback is trusted
       // composition; the model never selects, attaches or reconfigures this surface.
       try {
@@ -260,6 +321,17 @@ export class RuntimeService {
       this.goals = this.options.goalFactory?.(goalOptions) ?? new LocalGoalLifecycleService(goalOptions);
       await this.goals.initialize();
       await this.store.request('task.setPaused', { paused: this.pauseRequested });
+      // H5b: owner-only local checkpoint command. Nothing is captured here and no
+      // staging directory is written; the composition is created lazily only by
+      // an explicit `runtime.checkpoint.capture` command, so GET/status reads can
+      // never trigger a checkpoint. A failed attempt is surfaced in the command
+      // result and this diagnostic field; it is never retried automatically.
+      this.checkpointCommand = new RuntimeCheckpointCommand({
+        composition: () => this.checkpointComposition(),
+        isOpen: () => !this.closed && !this.closing,
+        isPaused: () => this.pauseRequested,
+        onDiagnostic: entry => { this.checkpointFailure = entry.code ?? undefined; },
+      });
       const labStatus = await this.store.request('lab.status', {});
       if (labStatus.ready) {
         try {
@@ -592,7 +664,9 @@ export class RuntimeService {
       diagnostics: { contextVerification: this.state.state.lastContextVerification ? structuredClone(this.state.state.lastContextVerification) : null,
         contextSafety: structuredClone(this.contextSafety),
         eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,
-        coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null },
+        coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
+        timeSource: this.timePump ? this.timePump.snapshot() : null,
+        notifications: this.notificationRouter ? { enabled: true } : { enabled: false } },
       background: { ...conversations.background, ...backgroundState },
       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
@@ -641,6 +715,11 @@ export class RuntimeService {
     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
     if (action === 'runtime.resume') return this.setPaused(false);
+    // H5b: owner-only local checkpoint. Dispatched before ensureCanRun() so a
+    // paused runtime can still snapshot local state (no model/dispatch side
+    // effects); the handler validates the exact fields, is single-flight and
+    // performs at most one capture attempt per explicit command.
+    if (action === 'runtime.checkpoint.capture') return this.commandCheckpoint(value, signal);
     if (action === 'conversation.linkLocalTask') {
       this.ensureCanRun(); signal?.throwIfAborted();
       if (Object.keys(value).some(key => !['action', 'taskId', 'localConversationKey'].includes(key))
@@ -740,6 +819,54 @@ export class RuntimeService {
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
+  /** Lazily create the H5b composition on the first explicit owner command only. */
+  private async checkpointComposition(): Promise<RuntimeCheckpointComposition | undefined> {
+    if (this.checkpoint) return this.checkpoint;
+    const stagingRoot = this.options.checkpointStagingRoot;
+    const runtimeManifest = this.options.checkpointRuntimeManifest;
+    // Absent trusted composition inputs keep the command explicitly unavailable;
+    // never fall back to a temp directory or guess a host version.
+    if (!stagingRoot || !runtimeManifest) return undefined;
+    if (!this.state.state.installationGeneration) throw new Error('CHECKPOINT_GENERATION_UNAVAILABLE');
+    try {
+      const persistence = this.ctx.get('sessionPersistence');
+      // Candidate, non-contract resolver: the installed JSONL backend exposes a
+      // diagnostic resolveCurrentLog; the provider-neutral contract does not.
+      const resolver = detectSessionPersistenceLogResolver(persistence);
+      this.checkpoint = await createRuntimeCheckpointComposition({
+        dataDir: this.dataDir,
+        stagingRoot,
+        controlStore: this.store,
+        generation: { installationGeneration: this.state.state.installationGeneration, hostEpoch: this.instanceId },
+        runtimeManifest,
+        goalSessions: {
+          ...(resolver ? { resolver } : {}),
+          // Public sessions service: exact session object + acknowledged flush.
+          flushSession: async (sessionId: string) => {
+            const sessions = this.ctx.get('sessions');
+            if (typeof sessions?.get !== 'function' || typeof sessions?.flush !== 'function') return false;
+            let session: unknown;
+            try { session = sessions.get(sessionId); } catch { return false; }
+            if (!session) return false;
+            return (await sessions.flush(session)) === true;
+          },
+        },
+      });
+      this.checkpointFailure = undefined;
+      return this.checkpoint;
+    } catch (error) {
+      this.checkpointFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    }
+  }
+
+  /** Owner-only checkpoint command. Never called by a GET/snapshot path. */
+  private async commandCheckpoint(value: Record<string, unknown>, signal?: AbortSignal): Promise<RuntimeCheckpointCommandResult> {
+    this.ensureOpen();
+    if (!this.checkpointCommand) throw new Error('CHECKPOINT_UNAVAILABLE');
+    return this.checkpointCommand.handle(value, signal);
+  }
+
   private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
     if (!this.lab) throw new Error('LAB_UNAVAILABLE');
     const action = value.action;
@@ -1017,6 +1144,7 @@ export class RuntimeService {
   async close(): Promise<void> {
     if (this.closing) return this.closing;
     this.closed = true;
+    const timeClosing = this.timePump?.close();
     const corePumpClosing = this.corePump?.close();
     const coreClosing = this.core?.close();
     void coreClosing?.catch(() => undefined);
@@ -1038,7 +1166,7 @@ export class RuntimeService {
         await Promise.allSettled([...this.admissions]);
         // A failed native close does not prove a concurrent evaluation stopped.
         // Drain every owner before closing the store used by late fact records.
-        const stopped = await Promise.allSettled([backgroundClosing, corePumpClosing, coreClosing, labClosing]);
+        const stopped = await Promise.allSettled([backgroundClosing, corePumpClosing, coreClosing, labClosing, timeClosing]);
         const failures = stopped.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
         try {
           const results = await Promise.allSettled([this.sessions?.close(), this.workers?.close(), this.goals?.close()]);

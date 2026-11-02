@@ -979,3 +979,30 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/recovery
 node plugins/shiyu/scripts/slice-verify.mjs --manifest <h7-acceptance-manifest.json>
 cd plugins/shiyu && node scripts/harness/acceptance.mjs --out /tmp/acceptance-preview
 ```
+
+## 29. Lead 集成：H2b 时间源/规则与 H5b 检查点命令接入 Runtime
+
+状态：**离线集成通过（G1：隔离全量 check + 定向）**；固定宿主验证与真实依赖未验。2026-11-02 完成并审阅。
+
+### 29.1 集成内容（runtime.ts）
+
+- **H2b**：受信 catalog 增加 `H2B_EVENT_TYPES`（`time.occurred`/`observation.changed`）；在 `EventService` 创建后构造 `EventRuleStore`（`dataDir/control/event-rules.json`）、`SubscriptionLifecycleService`、`RuleStoreSubscriptionReader`、`TimeSourceService`（受信 component principal）并启动协作式零模型 `TimeSourcePump`（自有 timer、不占操作槽、不调模型、pause 门控、close 参与 drain）；仅当受信 `notificationEffectPort` 存在时创建 `NotificationRouter`；`snapshot().diagnostics` 增加只读 `timeSource` 快照与 `notifications{enabled}`。
+- **H5b**：应用提供的精确 patch：`RuntimeOptions.checkpointStagingRoot`/`checkpointRuntimeManifest`（trusted composition，默认缺省）、懒创建组合、`runtime.checkpoint.capture` 在 `ensureCanRun` 之前 dispatch（paused 可快照）、不因 GET/snapshot 触发、无自动重试/临时目录回退；**trusted 输入缺省时命令显式 unavailable，不伪造 ready**。
+- **测试适配**：H5b 证据测试原先要求 integration patch 能干净应用到未打补丁的 runtime.ts；Lead 应用后改为断言 runtime 中的集成标记（patch 仍作为集成证据），未削弱任何产品行为。
+- **可见新键**：`diagnostics.timeSource`（pump 快照或 null）与 `diagnostics.notifications{enabled}`；既有 channels/diagnostics 键不变。
+
+### 29.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| Lead `scripts/slice-verify.mjs`（HEAD `09cf6d9` + 仅 2 文件） | exit 0；**1434/1434 通过，0 失败/跳过**；证据 `artifacts/dsh/slices/h2b-h5b-integration-verify.json` |
+| 定向 | 72/72：runtime、host-status（新增 diagnostics 键后快照仍无损）、H2b 订阅/时间/通知、H5b host-ports/证据矩阵、host diagnostics |
+| 边界 | 检查点命令在 trusted composition 缺省时显式 unavailable；时间源仅插件自有规则，不使用 DSH dsh-schedule；无 IANA DST/真实观察/通知 Effect/agent-facing 订阅工具 |
+| 证据级别 | G1 集成；固定宿主验证下一步 |
+
+### 29.3 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <round3-integration-manifest.json>
+cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.test.ts tests/host-status.test.ts tests/events-time-source.test.ts tests/recovery-h5b-evidence.test.ts
+```

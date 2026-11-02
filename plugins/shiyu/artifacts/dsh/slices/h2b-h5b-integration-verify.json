@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h2b-h5b-integration",
+  "capturedAt": "2026-11-02T22:30:01.144Z",
+  "head": "09cf6d97c90155b942c2c183d3ffe83c8da75463",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h2b-h5b-integration-1793658294741",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 90389,
+      "sha256": "de1fb7e39a33573f8049373d2f8235a6a2947e85df14064a1fa1e4ef347ab8b8"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-h5b-evidence.test.ts",
+      "bytes": 13154,
+      "sha256": "08c7d312a051f76247b3f56fb5a294f90062ba01c96da247be09536a3ba01730"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 305992,
+    "bytes": 155724,
+    "sha256": "1af1f9c4957e53fd2f16f14b5d09fb388f8cdb65b68f7f09c7d43a94d2568041",
+    "tests": {
+      "tests": 1434,
+      "pass": 1434,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 304982.714291",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h2b-h5b-integration.log",
+    "bytes": 155724,
+    "sha256": "1af1f9c4957e53fd2f16f14b5d09fb388f8cdb65b68f7f09c7d43a94d2568041"
+  },
+  "verdict": "pass"
+}

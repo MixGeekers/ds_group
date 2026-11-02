@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of H2b event rules/time source and H5b checkpoint composition into the Runtime",
+  "capturedAt": "2026-11-02T22:30:17.018Z",
+  "status": "offline-verified-integration",
+  "purpose": "Land the two verified integration diffs in runtime.ts: the H2b declarative rule store/lifecycle/time-source pump/optional notification router (zero-model cooperative tick, close drain, read-only diagnostics) and the H5b owner-only checkpoint capture composition/command (trusted composition inputs absent by default so it stays explicitly unavailable).",
+  "baseline": {
+    "head": "09cf6d9",
+    "note": "H0..H6c/H2b/H4e/H5b/H7-acceptance committed; 1434 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 90389,
+      "sha256": "de1fb7e39a33573f8049373d2f8235a6a2947e85df14064a1fa1e4ef347ab8b8"
+    },
+    {
+      "path": "plugins/shiyu/tests/recovery-h5b-evidence.test.ts",
+      "bytes": 13154,
+      "sha256": "08c7d312a051f76247b3f56fb5a294f90062ba01c96da247be09536a3ba01730"
+    }
+  ],
+  "changes": {
+    "runtimeH2b": "imports EventRuleStore/SubscriptionLifecycleService/RuleStoreSubscriptionReader/TimeSourceService/TimeSourcePump/NotificationRouter; the trusted catalog gains H2B_EVENT_TYPES (time.occurred/observation.changed); after EventService creation it builds the rule store (dataDir/control/event-rules.json), lifecycle service, reader, time source with trusted component principal, starts the cooperative zero-model TimeSourcePump (pause gate, own timer, no operation slot, no model), optionally creates the NotificationRouter only when a trusted notificationEffectPort is supplied, and includes the pump in close drain; snapshot diagnostics gain read-only timeSource snapshot and notifications enabled flag.",
+    "runtimeH5b": "the exact provided checkpoint patch is applied: trusted RuntimeOptions checkpointStagingRoot/checkpointRuntimeManifest (absent by default), lazy composition only on the first explicit runtime.checkpoint.capture command, dispatch before ensureCanRun so a paused runtime can snapshot, no GET/snapshot trigger, no automatic retry, and no temp fallback. With the trusted composition inputs absent the command resolves to an explicit unavailability rather than fabricating readiness.",
+    "testAdaptation": "the H5b evidence test previously required the integration patch to apply cleanly to an unpatched runtime.ts; once the Lead applies it, the test now verifies the integrated runtime markers instead (patch remains the integration evidence). No product behavior was weakened.",
+    "visibleNewKeys": "snapshot().diagnostics now includes timeSource (null before pump start or read-only projection after) and notifications {enabled:boolean}; the channels/projection and previous diagnostics keys are unchanged."
+  },
+  "verification": {
+    "leadIsolatedIntegrationCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 09cf6d9 + only these 2 files)",
+      "evidence": "artifacts/dsh/slices/h2b-h5b-integration-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1434,
+        "pass": 1434,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 305992,
+      "log": "plugins/shiyu/.local/slice-verify-h2b-h5b-integration.log",
+      "arithmetic": "1434 baseline + 0 new tests = 1434"
+    },
+    "targeted": {
+      "tests": 72,
+      "pass": 72,
+      "fail": 0,
+      "note": "runtime, host-status lossless snapshot with the new diagnostics keys, H2b subscription/time/notification suites, H5b host-ports/evidence matrix, host diagnostics tool"
+    },
+    "hostValidationPending": "fixed-host zero-model validation of the integrated build is performed next and committed separately; real model/channel/Effect and production checkpoint readiness remain untested."
+  },
+  "knownLimitations": [
+    "The checkpoint command stays explicitly unavailable while checkpointStagingRoot/checkpointRuntimeManifest are not supplied by trusted host composition; no host execution is claimed.",
+    "H2b time source uses plugin-owned rules only; DSH dsh-schedule is not used. No IANA DST database, no real observation/notification Effect ports and no agent-facing subscription tools.",
+    "The H5b integration test adaptation is evidence-shape only; it does not change composition or capture behavior."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; fixed-host validation pending."
+}
