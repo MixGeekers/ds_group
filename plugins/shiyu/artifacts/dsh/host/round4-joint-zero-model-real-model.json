@@ -1,0 +1,620 @@
+{
+  "schemaVersion": 1,
+  "phase": "round4-host",
+  "slice": "fixed-host zero-model probes plus one bounded real-model core tool probe attempt",
+  "capturedAt": "2026-11-02T23:27:00.389Z",
+  "status": "fixed-host-zero-model-limited-plus-bounded-real-model-failure",
+  "purpose": "Validate the round-4 diagnostic surfaces on the fixed host: zero-model time-source and checkpoint-availability probes, the existing worker/core mount probes, and exactly one bounded real-model single-round core event-tool probe attempt under the existing bounded model authorization. Failures are recorded honestly and never retried.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-round4-host-execution-plan.json",
+    "sha256": "73d94d32b491eb389296f6b2ceedd66e7e9850ed5a34b23880f07b0947ad1f9b"
+  },
+  "code": {
+    "head": "af201fe",
+    "dist": {
+      "files": 111,
+      "digest": "04d4a43551f6f57aba557a5a64c425ea245af9791f15a46f6c831e8bace5aa5b"
+    },
+    "note": "rebuilt from the committed round-4 hotfix HEAD (missing LocalCoreService delegation fixed) and installed after digest comparison"
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "reloads": 1,
+    "previousFailedAttemptHostBuild": "1f74180",
+    "newInstanceId": "2ad2a8dc-500a-4067-8611-a7cd9d19fe5e",
+    "startedAt": "2026-11-02T23:25:25.724Z"
+  },
+  "incident": {
+    "attempt1": {
+      "build": "1f74180",
+      "tool": "shiyu_diagnose_core_model_tools",
+      "result": "error CORE_MODEL_TOOL_PROBE_UNAVAILABLE before any model call",
+      "cause": "the H2c integration patch LocalCoreService delegation hunk was absent in the shared tree, so the Runtime CoreDriver lacked the optional method",
+      "fix": "commit af201fe adds the thin delegation and a regression test",
+      "modelCalls": 0,
+      "fixVerification": {
+        "cleanXCheck": {
+          "tests": 1473,
+          "pass": 1473,
+          "fail": 0,
+          "skipped": 0,
+          "evidence": "clean worktree at af201fe, npm run check",
+          "log": {
+            "path": "plugins/shiyu/.local/h7-verify/round4-clean-af201fe-check.log",
+            "sha256": "e64f43d4c2c1ceee9b5a33dbf2a77762a3521a9011edfcf89c84a290750757e3",
+            "bytes": 159480
+          }
+        },
+        "independentLocalCoreTests": "tests/local-core.test.ts 32/32 passed with 0 skips in an independent /tmp checkout (reviewer)",
+        "baselineArithmetic": "1f74180 integration baseline 1472 + the new delegation regression test = 1473"
+      }
+    },
+    "attempt2": {
+      "build": "af201fe",
+      "tool": "shiyu_diagnose_core_model_tools",
+      "result": "structured failed receipt CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "counters": {
+        "mainModelRequests": 0,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "toolResults": 0,
+        "userMessages": 0,
+        "assistantMessages": 0
+      },
+      "archivedSessionEvents": "turn/start -> agent/inbox/spliced(removedCount:1) -> turn/end(reason blocked); no assistant message, no model request",
+      "modelCalls": 0,
+      "retried": false,
+      "note": "the probe channel worked, returned an honest failure, released/disposed/archived the Session and wrote no business state; the real-model tool round remains unverified and is not retried"
+    }
+  },
+  "statusAfterReload": {
+    "payload": {
+      "file": "artifacts/dsh/host/round4/status-after-reload.json",
+      "bytes": 55906,
+      "sha256": "6e0e4777a663880dff9bae2132db7957a77b0074784f6eff2222e1a2f88a83c8",
+      "bytesSemantics": "actual committed file bytes (UTF-8); earlier char-count values replaced"
+    },
+    "schemaVersion": 1,
+    "lifecycle": "degraded",
+    "state": "idle",
+    "innerPublication": {
+      "schemaVersion": 4,
+      "stateVersion": 6,
+      "manifestHash": "8e9f0530d2c4cc175ccaf9be5447833eada1eef42a62a03dbaf7d12bb49324fd"
+    },
+    "channels": {
+      "source": "channel-ingress",
+      "status": {
+        "ready": true,
+        "schemaVersion": 1
+      },
+      "bindings": 0,
+      "connections": 0,
+      "pending": {
+        "invalidationWatermark": 0,
+        "appliedThrough": 0,
+        "unapplied": 0,
+        "unbound": 0,
+        "truncated": false
+      },
+      "degraded": []
+    },
+    "diagnosticsBeforeProbes": {
+      "eventToolProbe": null,
+      "coreEventToolProbe": null,
+      "coreModelToolProbe": null,
+      "timeSource": {
+        "state": "idle",
+        "lastTickAt": "2026-11-02T23:25:37.381Z",
+        "lastTick": {
+          "evaluatedAt": 1793661937381,
+          "schedules": 0,
+          "occurrences": 0,
+          "accepted": 0,
+          "duplicate": 0,
+          "skipped": 0,
+          "deferred": 0,
+          "gaps": [],
+          "items": []
+        }
+      },
+      "timeSourceProbe": null,
+      "checkpointProbe": null,
+      "notifications": {
+        "enabled": false
+      }
+    },
+    "counts": {
+      "tasks": 3,
+      "coreGoals": 2,
+      "labConnections": 3,
+      "sessions": 10,
+      "activeWork": 0
+    }
+  },
+  "zeroModelProbes": {
+    "worker": {
+      "payload": {
+        "file": "artifacts/dsh/host/round4/worker-tool-probe.json",
+        "bytes": 2549,
+        "sha256": "5ba0027924a88767f99cbc03b38efc10f2c4f4363ac978d9b0696c399d5383c5",
+        "bytesSemantics": "actual committed file bytes (UTF-8); earlier char-count values replaced"
+      },
+      "ok": true,
+      "probeSessionId": "shiyu-worker-probe-b0e70f9d-0e7e-4bfd-a032-622ea21aa7b5",
+      "tools": [
+        {
+          "name": "shiyu_worker_probe_task",
+          "source": "assignment"
+        },
+        {
+          "name": "shiyu_worker_event_types",
+          "source": "event"
+        },
+        {
+          "name": "shiyu_worker_event_report",
+          "source": "event"
+        }
+      ],
+      "authorityFields": [],
+      "counters": {
+        "modelRequests": 0,
+        "modelStreams": 0,
+        "assistantMessages": 0,
+        "userMessages": 0,
+        "toolEvents": 0,
+        "usageEvents": 0
+      },
+      "released": true,
+      "disposed": true,
+      "expected": true
+    },
+    "core": {
+      "payload": {
+        "file": "artifacts/dsh/host/round4/core-event-tool-probe.json",
+        "bytes": 2688,
+        "sha256": "a270ccbf29d6b74cb4f6832be7c305c0fac64a7ca3ad60f65a6f299ec3e79271",
+        "bytesSemantics": "actual committed file bytes (UTF-8); earlier char-count values replaced"
+      },
+      "ok": true,
+      "probeSessionId": "shiyu-core-probe-730e7816-f748-46b8-936f-9ffd6bbb2f1a",
+      "tools": [
+        "shiyu_core_event_types",
+        "shiyu_core_event_subscriptions",
+        "shiyu_core_event_report"
+      ],
+      "authorityFields": [],
+      "counters": {
+        "modelRequests": 0,
+        "modelStreams": 0,
+        "assistantMessages": 0,
+        "userMessages": 0,
+        "toolEvents": 0,
+        "usageEvents": 0
+      },
+      "released": true,
+      "disposed": true,
+      "expected": true
+    },
+    "timeSource": {
+      "payload": {
+        "file": "artifacts/dsh/host/round4/time-source-probe.json",
+        "bytes": 3976,
+        "sha256": "ab8c88b53c4cec155aa64fe36f0f354e721b370a681ad3ef7ba5fafdd98d8f5c"
+      },
+      "ok": true,
+      "zeroModel": true,
+      "store": {
+        "kind": "in-memory",
+        "liveDataTouched": false
+      },
+      "eventCount": 2,
+      "eventTypes": [
+        "time.occurred"
+      ],
+      "identity": {
+        "subscriptionId": "probe-once",
+        "ruleRevision": 1,
+        "occurrence": "once:1:2026-01-01T00:00:05.000Z",
+        "scheduledFor": "2026-01-01T00:00:05.000Z",
+        "idempotencyKeyHash": "e5d72da2384fcea57e62565d248e7161249e1d8d85e473abad83f238ff024c17",
+        "eventIdHash": "54b5cf9fbb59395c7f6e50970565b1cb"
+      },
+      "onceWait": {
+        "claimed": 1,
+        "matched": 1,
+        "backgroundOnly": 0,
+        "zeroModel": true
+      },
+      "checks": [
+        {
+          "id": "catalog_types",
+          "ok": true
+        },
+        {
+          "id": "baseline_established",
+          "ok": true
+        },
+        {
+          "id": "not_due_before_occurrence",
+          "ok": true
+        },
+        {
+          "id": "once_single_occurrence",
+          "ok": true
+        },
+        {
+          "id": "repeat_tick_no_second_event",
+          "ok": true
+        },
+        {
+          "id": "latest_only_single_merged_occurrence",
+          "ok": true
+        },
+        {
+          "id": "latest_repeat_stays_silent",
+          "ok": true
+        },
+        {
+          "id": "clock_rollback_gap_no_trigger",
+          "ok": true
+        },
+        {
+          "id": "paused_not_triggered_no_replay",
+          "ok": true
+        },
+        {
+          "id": "once_wait_matched_zero_model",
+          "ok": true
+        },
+        {
+          "id": "events_are_declared_types_only",
+          "ok": true
+        },
+        {
+          "id": "identity_scoped_to_probe",
+          "ok": true
+        },
+        {
+          "id": "isolated_in_memory_store",
+          "ok": true
+        },
+        {
+          "id": "zero_model_no_task_effect",
+          "ok": true
+        },
+        {
+          "id": "cleanup_complete",
+          "ok": true
+        }
+      ],
+      "released": true,
+      "disposed": true,
+      "diagnostics": {
+        "ruleStoreClosed": true,
+        "controlStoreClosed": true,
+        "tempDirectoryRemoved": true,
+        "cleanupErrors": [],
+        "durationMs": 87,
+        "catalogTypes": [
+          "observation.changed",
+          "time.occurred"
+        ]
+      },
+      "expected": true
+    },
+    "checkpoint": {
+      "payload": {
+        "file": "artifacts/dsh/host/round4/checkpoint-availability-probe.json",
+        "bytes": 3836,
+        "sha256": "394353b20a8c839501a8b96f5340bf4fae4d6e234e8748d679df106f688da011"
+      },
+      "ready": false,
+      "expectedReady": false,
+      "readOnly": true,
+      "captureAttempted": false,
+      "resolverInvoked": false,
+      "filesWritten": 0,
+      "goalBindings": {
+        "source": "controlStore",
+        "total": 3,
+        "active": 3,
+        "detail": "3 active of 3 bindings (conservative: native GoalRef or unresolved receipt)"
+      },
+      "components": [
+        {
+          "id": "staging",
+          "status": "unconfigured",
+          "reasonCode": "CHECKPOINT_STAGING_UNCONFIGURED"
+        },
+        {
+          "id": "control",
+          "status": "available",
+          "reasonCode": null
+        },
+        {
+          "id": "dsh-goal-sessions",
+          "status": "unavailable",
+          "reasonCode": "GOAL_SESSION_EXPORT_UNAVAILABLE"
+        },
+        {
+          "id": "memory",
+          "status": "unavailable",
+          "reasonCode": "MEMORY_EXPORT_UNAVAILABLE"
+        },
+        {
+          "id": "shared-objects",
+          "status": "available",
+          "reasonCode": null
+        }
+      ],
+      "blockers": [
+        "CHECKPOINT_STAGING_UNCONFIGURED",
+        "GOAL_SESSION_EXPORT_UNAVAILABLE",
+        "MEMORY_EXPORT_UNAVAILABLE"
+      ],
+      "expected": true
+    },
+    "note": "worker/core/time-source/checkpoint receipts are from the af201fe build; the failed-build (1f74180) worker/core receipts were also observed but are not used as the authoritative zero-model evidence."
+  },
+  "realModelAttempt": {
+    "payload": {
+      "file": "artifacts/dsh/host/round4/core-model-tool-probe.json",
+      "bytes": 826,
+      "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa",
+      "bytesSemantics": "actual committed file bytes (UTF-8); earlier char-count values replaced"
+    },
+    "receipt": {
+      "ok": false,
+      "status": "failed",
+      "reasonCode": "CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "sessionId": "shiyu-core-model-probe-c6126eb1-3759-4d58-a0d5-132687a18c5e",
+      "promptSha256": "887309188b9a38506c45d77fb3b16ea9500b9d87fdb757c9e42c9c6e1d2011ea",
+      "maxTokens": 256,
+      "provider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "reasoningEffort": "high",
+      "counters": {
+        "followups": 1,
+        "turns": 1,
+        "userMessages": 0,
+        "assistantMessages": 0,
+        "mainModelRequests": 0,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "toolResults": 0
+      },
+      "toolCalls": [],
+      "usage": {
+        "status": "unknown",
+        "complete": false
+      },
+      "released": true,
+      "disposed": true,
+      "archived": true,
+      "cleanupVerified": true,
+      "sent": false,
+      "productionStateWrites": 0
+    },
+    "classification": "failed honestly (CORE_MODEL_PROBE_PROTOCOL_VIOLATION) with zero main model requests/streams/tool calls and no usage; the disposable Session was released/disposed/archived with cleanup verified; a successor status shows the receipt cached; no retry was made and no business state was written."
+  },
+  "statusAfterProbes": {
+    "payload": {
+      "file": "artifacts/dsh/host/round4/status-final-cached.json",
+      "bytes": 69781,
+      "sha256": "a8223fc267065506ae618b62e937ad199e8cb07fb0db3ae00fa7b5935758962a",
+      "bytesSemantics": "actual committed file bytes (UTF-8); earlier char-count values replaced"
+    },
+    "coreModelToolProbeCached": true,
+    "timeSourceProbeCached": true,
+    "checkpointProbeCached": true,
+    "channelsSameEmpty": true,
+    "innerPublicationSame": true
+  },
+  "deltas": {
+    "repairedReload": {
+      "note": "previous host instance (1f74180 build) -> af201fe build",
+      "commitSeq": [
+        347,
+        353
+      ],
+      "events": [
+        43,
+        44
+      ],
+      "deliveries": [
+        {
+          "acked": 42
+        },
+        {
+          "acked": 43
+        }
+      ],
+      "stateVersion": [
+        6,
+        6
+      ],
+      "capabilityRevision": [
+        23,
+        25
+      ],
+      "sessions": [
+        24,
+        24
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ]
+    },
+    "probes": {
+      "commitSeq": [
+        353,
+        353
+      ],
+      "events": [
+        44,
+        44
+      ],
+      "capabilityRevision": [
+        25,
+        25
+      ],
+      "sessions": [
+        24,
+        25
+      ],
+      "addedSessionFiles": [
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-model-probe-c6126eb1-3759-4d58-a0d5-132687a18c5e/session.v4.jsonl.zstd"
+      ],
+      "changedKnownSessionFiles": []
+    },
+    "postStatus": {
+      "commitSeq": [
+        353,
+        353
+      ],
+      "events": [
+        44,
+        44
+      ],
+      "sessions": [
+        25,
+        27
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ]
+    },
+    "classification": {
+      "repairedReload": "+6 commitSeq from normal startup lifecycle/capability writes and the capability observation; +1 runtime.lifecycle.changed event with its delivery ack; stateVersion unchanged at 6; capability revision +2 for the hostEpoch rebind; unknown Task metadata refreshed with reason runtime_reopened_requires_reconciliation; business facts unchanged.",
+      "probes": "across the zero-model and real-model probe calls: commitSeq/events/capability revision and the runtime-state file hash are unchanged; the control DB remains untouched by the probes; exactly three new released/archived probe Session files appear (worker, core, core-model) while all previously known Session files are byte-identical; the time-source and checkpoint probes create no Session.",
+      "postStatus": "the final read-only status is side-effect free (no commitSeq/event/state change) and caches all four receipts (coreModelToolProbe, timeSourceProbe, checkpointProbe, plus previous diagnostics); worker/core probe receipts are cached too."
+    },
+    "failedBuildWindow": {
+      "note": "failed build 1f74180 reload window before the hotfix",
+      "commitSeq": [
+        341,
+        347
+      ],
+      "events": [
+        42,
+        43
+      ],
+      "sessions": [
+        22,
+        22
+      ],
+      "capabilityRevision": [
+        21,
+        23
+      ],
+      "dist": {
+        "head": "1f74180",
+        "digest": "ebf257e6eefaf16b"
+      },
+      "classification": "+6 normal startup lifecycle/capability writes, +1 runtime.lifecycle.changed event and delivery ack, capability revision +2 for the hostEpoch rebind; no business facts changed; probes on this build created two released probe Session files (worker + core) and the real-model tool attempt returned CORE_MODEL_TOOL_PROBE_UNAVAILABLE before any model call."
+    },
+    "unknownTaskMetadata": {
+      "versions": "v31 at round-4 start (round4-host-before) -> v32 after the failed-build reload (round4b-host-before) -> v33 after the repaired reload (round4b-host-after)",
+      "note": "each reload only refreshed the retained uncertainty metadata with reason runtime_reopened_requires_reconciliation; the Task state stays unknown, with no retry, no success claim and no budget/effect change."
+    }
+  },
+  "findings": [
+    "The zero-model time-source probe passes on the fixed host with zero live writes and a complete identity/idempotency/pause/clock matrix.",
+    "The checkpoint availability probe returns ready:false with CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE and MEMORY_EXPORT_UNAVAILABLE, correctly enumerates 3 active Goal bindings and writes no files.",
+    "The worker and core mount probes still return exactly their expected restricted surfaces with no authority fields and zero counters.",
+    "The bounded real-model core event-tool probe reached the host and returned an honest structured failure (protocol violation, zero model requests) with full cleanup; no model cost was incurred and no retry was made. The real-model tool round therefore remains unverified.",
+    "schema4 publication, channels projection and capability definitionDigest remain truthful; no business fact was written by any probe."
+  ],
+  "scope": {
+    "orderedReloads": 1,
+    "failedLiveAttempts": 2,
+    "toolCalls": 9,
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "taskCreates": 0,
+    "goalOperations": 0,
+    "channelInputs": 0,
+    "labInputs": 0
+  },
+  "evidence": {
+    "plan": "plugins/shiyu/.local/dsh-round4-host-execution-plan.json",
+    "beforeAudit": "artifacts/dsh/host/round4/round4b-host-before.json",
+    "afterAudit": "artifacts/dsh/host/round4/round4b-host-after.json",
+    "afterToolsAudit": "artifacts/dsh/host/round4/round4b-host-after-tools.json",
+    "afterStatusAudit": "artifacts/dsh/host/round4/round4b-host-after-status.json",
+    "statusAfterReload": "artifacts/dsh/host/round4/status-after-reload.json",
+    "statusAfterCoreModel": "artifacts/dsh/host/round4/status-after-core-model-attempt.json",
+    "statusFinal": "artifacts/dsh/host/round4/status-final-cached.json",
+    "workerProbe": "artifacts/dsh/host/round4/worker-tool-probe.json",
+    "coreProbe": "artifacts/dsh/host/round4/core-event-tool-probe.json",
+    "timeProbe": "artifacts/dsh/host/round4/time-source-probe.json",
+    "checkpointProbe": "artifacts/dsh/host/round4/checkpoint-availability-probe.json",
+    "coreModelProbe": "artifacts/dsh/host/round4/core-model-tool-probe.json",
+    "failedBuildBeforeAudit": "artifacts/dsh/host/round4/round4-host-before.json",
+    "failedBuildAfterAudit": "artifacts/dsh/host/round4/round4-host-after.json",
+    "relativePathEncoding": "Session relative paths retain the host-encoded project directory name (e.g. --Users-caja-...--); they contain no absolute path, no message body and no secret; future exports should redact them.",
+    "sanitizedAudits": "The committed round4-host-*.json audits differ from their .local originals only by replacing the local home/data-root path with <home>; no other field was altered."
+  },
+  "limitations": [
+    "The bounded real-model single-round tool probe failed before any model request and is not retried; no real-model tool invocation, provider usage, cache or cost is proven.",
+    "Zero-model evidence only for the mount/time/checkpoint probes; live time triggering (rules in the live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
+    "The archived core-model probe Session ended with a blocked turn before any assistant message; its root cause inside the host agent loop is not investigated further in this slice.",
+    "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical facts."
+  ],
+  "probeSessions": {
+    "note": "round-4 started with 22 sessions; the failed build created two released probe Sessions (worker 44868a86, core 23ecb68c); the repaired build created three (worker b0e70f9d, core 730e7816, core-model c6126eb1); total 5 new probe Sessions, all released/archived, and all 22 previously known Session files stay byte-identical.",
+    "failedBuild": [
+      "shiyu-worker-probe-44868a86-9bb1-47eb-98d4-55c27effbd93",
+      "shiyu-core-probe-23ecb68c-f861-461c-a904-0ce3aedc8801"
+    ],
+    "repairedBuild": [
+      "shiyu-worker-probe-b0e70f9d-0e7e-4bfd-a032-622ea21aa7b5",
+      "shiyu-core-probe-730e7816-f748-46b8-936f-9ffd6bbb2f1a",
+      "shiyu-core-model-probe-c6126eb1-3759-4d58-a0d5-132687a18c5e"
+    ]
+  },
+  "evidenceCorrections": [
+    {
+      "id": "F4-R2..R6",
+      "finding": "payload byte semantics, failed-build window, probe-session count and per-window unknown Task versions needed correction/disclosure",
+      "resolution": "actual bytes plus semantics recorded; failed-build audit window referenced and classified; five probe Sessions disclosed per build; unknown Task versions v31->v32->v33 per window; relativePath/sanitized-audit conventions disclosed"
+    },
+    {
+      "id": "F4-R1",
+      "finding": "the hotfix verification count was misstated as 1435 without evidence",
+      "resolution": "corrected to the clean-X check 1473/1473 with retained log hash while the reviewer independently ran local-core tests 32/32"
+    }
+  ]
+}

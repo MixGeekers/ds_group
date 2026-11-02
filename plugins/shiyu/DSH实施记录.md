@@ -1148,3 +1148,38 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - **Lead 集成隔离验证**（HEAD `50e347d` + 全部 round-4 切片与集成文件）：**1472/1472 通过，0 失败/0 跳过**（= 1435 + 9 + 9 + 10 + 6 + 3）；证据 `artifacts/dsh/slices/round4-integrated-verify.json`。
 - 定向 76/76（runtime、host diagnostics、时间探针、检查点探针、core 事件工具）。
 - 证据级别：G1 集成；宿主命令执行、真实模型单轮、真实 Session/Ombre 导出仍未验。
+
+## 34. 第四轮联合固定宿主验证：零模型探针与一次有界真实模型尝试
+
+状态：**固定宿主零模型限定通过 + 有界真实模型单轮尝试诚实失败**（未产生模型请求/费用）；真实模型工具往返仍未验证。代码 HEAD `af201fe`，dist 由该 HEAD 隔离 worktree 构建（111 文件，digest `04d4a435…`），一次有序 reload。
+
+### 34.1 失败 → 修复 → 重载
+
+1. 第一次在 `1f74180` 构建上调用 `shiyu_diagnose_core_model_tools` 返回 `CORE_MODEL_TOOL_PROBE_UNAVAILABLE`：H2c 集成 patch 的 LocalCoreService 委托 hunk 实际未落进共享树（`git apply -3` 报告 clean 但文件未变），Runtime CoreDriver 缺少可选方法。**此尝试未产生任何模型请求。**
+2. 热修复 `af201fe`：补 LocalCoreService 薄委托 + 回归测试（adapter 存在时委托、缺失时 `NATIVE_MISMATCH`）。验证：独立复核者在 /tmp 独立跑 `tests/local-core.test.ts` **32/32、0 skip**；clean-X（af201fe）全量 check **1473/1473、0 skip**（= 集成基线 1472 + 新增 1 个委托回归测试；日志 `.local/h7-verify/round4-clean-af201fe-check.log`，sha256 `e64f43d4…`/159480）。
+3. 以 `af201fe` 重建 dist 并再次有序 reload 成功；随后零模型探针全部通过，并做**唯一一次**有界真实模型单轮尝试（不重试）。
+
+### 34.2 零模型探针（af201fe 构建）
+
+| 探针 | 实际 |
+|---|---|
+| worker 工具 | ok；3 工具（占位任务 + 2 事件）；authorityFields=[]；counters 全 0；released/disposed；probe session `shiyu-worker-probe-b0e70f9d…` |
+| core 事件工具 | ok；3 个 core 事件工具；authorityFields=[]；counters 全 0；released/disposed；probe session `shiyu-core-probe-730e7816…` |
+| 时间源（H2b） | ok/zeroModel/zeroEmbedding/zeroTaskOrEffect；独立 `:memory:` 控制库；once 到点恰好 1 个 `time.occurred`（identity=subscription+conditionRevision+`once:1:2026-01-01T00:00:05.000Z`）、重复 tick 无第二事件、latest-only 合并、paused 不触发、时钟回拨记 gap、once-wait 匹配一次；15 项 checks 全 true；released/disposed，temp dir removed，`liveDataTouched=false` |
+| 检查点可用性（H5b） | `ready=false/expectedReady=false/readOnly=true/captureAttempted=false/resolverInvoked=false/filesWritten=0`；只读枚举 **3 个 active Goal binding**；blockers = `CHECKPOINT_STAGING_UNCONFIGURED`、`GOAL_SESSION_EXPORT_UNAVAILABLE`、`MEMORY_EXPORT_UNAVAILABLE`；shared-objects/control 只读可用；未建任何文件/未调 resolver |
+| 诊断缓存 | 探针后只读 `shiyu_status` 显示 `coreModelToolProbe`、`timeSourceProbe`、`checkpointProbe` 回执均缓存；快照仍无损 |
+
+### 34.3 有界真实模型单轮尝试（唯一一次，不重试）
+
+- 调用：`shiyu_diagnose_core_model_tools` → `runtime.probe-core-model-tools`；固定 prompt（sha256 `88730918…`）、opencode-go/deepseek-v4.1-flash/high、maxTokens 256、60s 上限、0 重试。
+- 结果：**结构化失败** `CORE_MODEL_PROBE_PROTOCOL_VIOLATION`；counters 全 0（mainModelRequests=0/streams=0/toolCalls=0/toolResults=0）；usage status=unknown；`released/disposed/archived/cleanupVerified=true`；`sent=false`、`productionStateWrites=0`。
+- 归档 Session 事件：`agent/inbox/spliced(inserted fixed prompt) → turn/start → agent/inbox/spliced(removedCount:1) → turn/end(reason: blocked)`，**没有任何 assistant 消息/模型请求**；说明失败发生在 host agent loop 的 blocked turn，而非模型协议。
+- 判定：**诚实失败、零模型费用、未重试**；真实模型工具往返仍未验证（记录为 gap，不升级任何 H2c 真实模型结论）。
+- 两次尝试均未写控制库业务表：探针前后 commitSeq/events/capability revision/runtime-state 文件哈希不变；新增 Session 仅 3 个已释放/归档探针（worker、core、core-model），已知 Session 逐字节不变。
+
+### 34.4 边界
+
+1. 零模型证据只证挂载/时间源隔离行为/检查点阻断清单/诊断缓存/只读；不证 live 时间规则触发、capture 就绪、真实 Session/Ombre 导出。
+2. 真实模型单轮失败，无 provider 用量/缓存/费用证据；不得据此声称 H2c 真实模型工具调用通过。
+3. 失败原因（host agent loop 对探针 Session 的 blocked turn）未进一步深挖；后续需单独修复探针输入投递路径后再做一次有界验证（另留证据，不重试本次失败）。
+4. 真实浏览器 DOM、真实渠道/设备、V27 独立故障域等仍未验。
