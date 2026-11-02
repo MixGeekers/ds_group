@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "kind": "isolated-slice-verification",
   "slice": "h2a-events",
-  "capturedAt": "2026-11-02T19:31:03.327Z",
-  "head": "00fb75b25a89006b9c69a569c9203a57043855f2",
-  "worktree": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-events-1793647637288",
+  "capturedAt": "2026-11-02T19:46:28.666Z",
+  "head": "41c496b0f48ee0e923cab8f4858c615098635a8f",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h2a-events-1793648578894",
   "files": [
     {
       "path": "plugins/shiyu/src/adapters/dsh/event-tools.ts",
@@ -13,8 +13,8 @@
     },
     {
       "path": "plugins/shiyu/src/adapters/dsh/workers.ts",
-      "bytes": 30463,
-      "sha256": "52e5e2eae3236e01a90026ab9552d595f8d379a0500140fe37370d532d7e36fd"
+      "bytes": 43250,
+      "sha256": "669d4f0c9c2dd9c5f8e17797540d6fc0367a52a4564ce9957884833dd91aa8d3"
     },
     {
       "path": "plugins/shiyu/src/control/events/index.ts",
@@ -23,8 +23,8 @@
     },
     {
       "path": "plugins/shiyu/tests/events-fixtures.ts",
-      "bytes": 18103,
-      "sha256": "f5458076a10048a67293785c2ef2add240730084dc04eb3c0e94c0ae0ce647ec"
+      "bytes": 18876,
+      "sha256": "8777095f05619364d7ea09391a453d1fb8f1a18a053f99b484bd0baad2927f58"
     },
     {
       "path": "plugins/shiyu/tests/events-worker-mount.test.ts",
@@ -48,8 +48,23 @@
     },
     {
       "path": "plugins/shiyu/artifacts/dsh/h2/h2a-manifest.json",
-      "bytes": 513,
-      "sha256": "03e10296074269fc0ee27af2562e1e462880c408a9d416ebc404e5f650fbeb8a"
+      "bytes": 664,
+      "sha256": "524e6f89f5428f708b728a706e2973a9295b0e2223bf6e69df4fb4c26f9c383a"
+    },
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 78923,
+      "sha256": "b6f220cdf1ffdc15f4221cf23adf7f9869789fb9774d2bf760b5c1dbc9e1a466"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-zero-model-probe.test.ts",
+      "bytes": 10490,
+      "sha256": "5df31beef9d56cd4bf6d49e6762eb789dd67430570964bd6ca6a65d76a42d5e3"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-runtime-probe.test.ts",
+      "bytes": 7651,
+      "sha256": "f482c19e7aad07797a74e3b40a9c3d82a40aebd9c916aed8e7ae72d38009e661"
     }
   ],
   "check": {
@@ -57,12 +72,12 @@
     "exitCode": 0,
     "signal": null,
     "timedOut": false,
-    "durationMs": 225715,
-    "bytes": 136183,
-    "sha256": "25dbaa60bd54aaa8ee398c660a04d034fa3a3cf0298d5f822cdc5ebb619d5c58",
+    "durationMs": 208354,
+    "bytes": 138856,
+    "sha256": "8633d035bd4a923b8154ca735c61bc430fa8b546d792dc77fd1648dbc9c42334",
     "tests": {
-      "tests": 1249,
-      "pass": 1249,
+      "tests": 1273,
+      "pass": 1273,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0
@@ -71,15 +86,15 @@
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 224743.143208",
+      "ℹ duration_ms 207246.363833",
       "> @shiyu/runtime@0.1.0 build",
       "> tsc -p tsconfig.build.json"
     ]
   },
   "log": {
-    "path": "<home>/Documents/识雨/plugins/shiyu/.local/slice-verify-h2a-events.log",
-    "bytes": 136183,
-    "sha256": "25dbaa60bd54aaa8ee398c660a04d034fa3a3cf0298d5f822cdc5ebb619d5c58"
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h2a-events.log",
+    "bytes": 138856,
+    "sha256": "8633d035bd4a923b8154ca735c61bc430fa8b546d792dc77fd1648dbc9c42334"
   },
   "verdict": "pass"
 }
