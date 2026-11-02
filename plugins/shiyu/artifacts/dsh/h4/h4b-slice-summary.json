@@ -1,0 +1,112 @@
+{
+  "schemaVersion": 1,
+  "phase": "H4b",
+  "slice": "inner domains replyer read-view composition and dashboard panel",
+  "capturedAt": "2026-11-02T19:21:48.096Z",
+  "status": "offline-verified-integration",
+  "purpose": "Wire the committed H4 inner domains into the replyer read-only composition and the running dashboard: two-stage metadata/body ReadView for the four domains, a bilingual six-domain availability panel, and truthful inner summary text (the fixed-host reload had exposed a stale summary).",
+  "baseline": {
+    "head": "feecf86",
+    "note": "H0/H0b/H1/H1-verify/H4/H4-host/H5 committed; 1201 baseline tests"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/views/local.ts",
+      "bytes": 15104,
+      "sha256": "eda7f0a9a5c792d9a528812eadd367f3180dc93a3d44e3a977267826861366f7"
+    },
+    {
+      "path": "plugins/shiyu/src/health/systems.ts",
+      "bytes": 2065,
+      "sha256": "2279c483ca8cf0eb0b47e574950e4bb1a568471f7ff43dc44eaebf1ac1d69b42"
+    },
+    {
+      "path": "plugins/shiyu/client/index.js",
+      "bytes": 231326,
+      "sha256": "72b4f4de62f1835498ff8ba5298781758226bafcd74086fc89e7488935e93f70"
+    },
+    {
+      "path": "plugins/shiyu/tests/inner-view.test.ts",
+      "bytes": 28600,
+      "sha256": "bad9e225865ce3fbc6c9413947ff3e01a619d38cd9dd834e8babd65a58202f49"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/fixtures.js",
+      "bytes": 10508,
+      "sha256": "656897cb27b4b77c06f9b2f5f42ecd33f7128794854606f80d6c1210eea42544"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/playwright.config.mjs",
+      "bytes": 1397,
+      "sha256": "7cc22401fd81251bc6ffe628e5632e5e6d2d9003b21ba9fb7626de184fa16911"
+    },
+    {
+      "path": "plugins/shiyu/tests/ui/inner.spec.mjs",
+      "bytes": 7196,
+      "sha256": "26898bb27153adac14c4fad0e608c6d3fa8dbc9d65f08f7bc69cd1a7d66ee0d2"
+    }
+  ],
+  "implementation": {
+    "replyerView": "createLocalReadView accepts an optional innerRead port; capture.inner builds per-domain ReadView components with their own authority vector; metadata is trimmed by scope/audience/resource/source first, then bodies are read only for eligible record ids; authorization is rechecked before returning; a missing body reader is an explicit body_not_connected unavailable; tampered captures without matching authority/grant are rejected at construction; revoked records never return bodies.",
+    "dashboard": "new bilingual inner-state tab reads runtime.snapshot().innerProjection schema4 manifest and renders available backendId/authorityId/capabilities or unavailable reason; states explicitly that available is a read-capability declaration, not authorization or business acceptance; no-manifest and unknown states are explicit, not empty success.",
+    "summaryFix": "src/health/systems.ts inner summary updated to the actual schema4 six-domain state (authority/version/source/withdrawal and audience cropping; available means read capability only); this was found by the fixed-host zero-model reload.",
+    "boundary": "replyer upstream src/control/local-reply.ts still does not request innerDomains or include inner rows in the prompt/prepare contract; that is a separate H4c integration (explicitly not claimed here)."
+  },
+  "verification": {
+    "implementerIsolatedCheck": {
+      "worktree": "/tmp/shiyu-h4b (ephemeral; HEAD feecf86 + the 7 slice files; node_modules + pinned Python symlinked)",
+      "check": {
+        "command": "npm run check",
+        "exitCode": 0,
+        "tests": 1206,
+        "pass": 1206,
+        "fail": 0,
+        "skipped": 0,
+        "durationMs": 176800
+      },
+      "ui": {
+        "command": "npm run test:ui",
+        "exitCode": 0,
+        "passed": 209,
+        "failed": 0,
+        "note": "existing 204 + 5 new inner panel cases (zh default, en + 390px, all-unavailable reasons, missing manifest explicit, refresh read-only commands==[] with stateReads increasing)"
+      },
+      "logs": {
+        "check": "plugins/shiyu/.local/h4b-check-final.log",
+        "ui": "plugins/shiyu/.local/h4b-ui-final.log"
+      }
+    },
+    "leadIndependentSliceCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD feecf86 + only these 7 files; node_modules + pinned Python symlinked)",
+      "evidence": "artifacts/dsh/slices/h4b-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1206,
+        "pass": 1206,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 183514,
+      "log": "plugins/shiyu/.local/slice-verify-h4b.log"
+    },
+    "testDelta": {
+      "base": 1201,
+      "slice": 5,
+      "total": 1206
+    }
+  },
+  "failedUnknownUntested": [
+    "replyer upstream src/control/local-reply.ts does not yet request innerDomains or include inner rows in the prompt/conversation.reply.prepare contract, so production replyer generation does not consume the four inner domains yet (H4c).",
+    "The dashboard panel is client JS validated in a synthetic host fixture; real DSH host rendering and real-data consistency are not proven until a post-commit zero-model reload is performed by the Lead.",
+    "UI fixture data is synthetic; no real Task/Goal/relationship data was rendered.",
+    "No new IPC command or permission was added; no host, model or embedding call occurred."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0,
+    "liveDataRootAccesses": 0
+  },
+  "evidenceLevel": "G1 module + synthetic-host UI; fixed-host reload and real rendering pending Lead verification."
+}

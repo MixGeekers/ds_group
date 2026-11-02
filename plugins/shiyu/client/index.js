@@ -708,6 +708,32 @@ window.__ModuleLoader__.load({
       "abilityUnconfirmed": "The capability change is unconfirmed. Refresh to inspect it; no automatic retry.",
       "abilityChanged": "The capability identity, revision or runtime instance changed; the old receipt was not applied."
     });
+    Object.assign(zh, {
+      inner: '内层状态',
+      innerHint: '六域已发布的受控读取能力与不可用原因。available 只表示读取能力已发布，不代表授权、业务验收或已知历史。',
+      innerUnpublished: '当前运行快照尚未提供已发布的六域清单；这不等于全部为空或全部不可用，读取会显式失败。',
+      innerNote: '这里的 available 是读取能力声明：不授予工具或动作权限，也不表示业务已完成验收。unavailable 会给出原因，读取方必须显式失败而不是返回空数据。',
+      innerDomain: '域', innerStatus: '状态', innerCapabilities: '读取能力', innerSource: '来源与权威',
+      innerAvailable: '可用（仅读取能力）', innerUnavailable: '不可用', innerNoCapabilities: '未声明读取能力',
+      innerDomain_memory: '记忆', innerDomain_relationship: '关系', innerDomain_emotion: '情绪', innerDomain_cognition: '认知', innerDomain_personality: '人格', innerDomain_ability: '能力',
+      innerReason: '不可用原因',
+      innerReason_not_connected: '未接入', innerReason_not_implemented: '未实现', innerReason_source_unavailable: '来源不可用',
+      innerReason_verification_pending: '待验证', innerReason_incompatible_version: '版本不兼容',
+      innerSchemaVersion: '清单 schema', innerStateVersion: '清单版本',
+    });
+    Object.assign(en, {
+      inner: 'Inner state',
+      innerHint: 'Published controlled read capabilities and unavailable reasons for the six inner domains. "Available" only means the read capability is published; it is not authorization, business acceptance or known history.',
+      innerUnpublished: 'The runtime snapshot has not provided a published six-domain manifest. That does not mean all domains are empty or all are unavailable; reads must fail explicitly.',
+      innerNote: 'Available here is a read-capability declaration: it grants no tool or action permission and does not mean business acceptance is complete. Unavailable entries include a reason, and readers must fail explicitly instead of returning empty data.',
+      innerDomain: 'Domain', innerStatus: 'Status', innerCapabilities: 'Read capabilities', innerSource: 'Source and authority',
+      innerAvailable: 'Available (read capability only)', innerUnavailable: 'Unavailable', innerNoCapabilities: 'No read capability declared',
+      innerDomain_memory: 'Memory', innerDomain_relationship: 'Relationship', innerDomain_emotion: 'Emotion', innerDomain_cognition: 'Cognition', innerDomain_personality: 'Personality', innerDomain_ability: 'Ability',
+      innerReason: 'Unavailable reason',
+      innerReason_not_connected: 'Not connected', innerReason_not_implemented: 'Not implemented', innerReason_source_unavailable: 'Source unavailable',
+      innerReason_verification_pending: 'Verification pending', innerReason_incompatible_version: 'Incompatible version',
+      innerSchemaVersion: 'Manifest schema', innerStateVersion: 'Manifest version',
+    });
     const knownStates = new Set(Object.keys(en).filter(key => key.startsWith('status_')).map(key => key.slice(7)));
     const css = `
 .syr{--sr-bg:var(--dsw-alias-bg-base,#fff);--sr-layer:var(--dsw-alias-bg-layer-1,#fafafa);--sr-hover:var(--dsw-alias-bg-layer-2,#f2f3f5);--sr-text:var(--dsw-alias-label-primary,#202124);--sr-muted:var(--dsw-alias-label-secondary,#71757c);--sr-line:var(--dsw-alias-border-l1,#e6e8eb);--sr-accent:var(--dsw-alias-brand-primary,#4b62d8);--sr-error:var(--dsw-alias-state-error-primary,#b93b3b);--sr-ok:var(--dsw-alias-state-success-primary,#2f7d68);height:100%;min-height:0;min-width:0;overflow:auto;color:var(--sr-text);background:var(--sr-bg);font-size:13px;line-height:1.6;font-family:inherit}
@@ -1554,6 +1580,44 @@ window.__ModuleLoader__.load({
                 evidence.length ? h(Evidence, { values: evidence }) : h('p', { className: 'syr-small syr-muted' }, t('abilityNoEvidence')),
                 h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('abilityVerificationHint'))));
           }
+          function innerContent() {
+            const projection = snapshot?.innerProjection;
+            const envelopeValid = Boolean(projection && typeof projection === 'object' && !Array.isArray(projection)
+              && projection.schemaVersion === 1 && Number.isSafeInteger(projection.stateVersion) && projection.stateVersion >= 1
+              && projection.manifest && typeof projection.manifest === 'object' && !Array.isArray(projection.manifest)
+              && Number.isSafeInteger(projection.manifest.schemaVersion));
+            const manifest = envelopeValid ? projection.manifest : null;
+            const domains = manifest?.domains;
+            const ids = ['memory', 'relationship', 'emotion', 'cognition', 'personality', 'ability'];
+            const reasonKeys = new Set(['not_connected', 'not_implemented', 'source_unavailable', 'verification_pending', 'incompatible_version']);
+            const rows = ids.map(id => {
+              const value = domains && typeof domains[id] === 'object' && !Array.isArray(domains[id]) ? domains[id] : null;
+              const status = value && (value.status === 'available' || value.status === 'unavailable') ? value.status : 'unknown';
+              const reason = status === 'unavailable' && typeof value.reason === 'string' && value.reason.trim() ? value.reason.trim() : null;
+              const capabilities = arr(value?.capabilities).filter(item => typeof item === 'string' && item.trim()).slice(0, 8);
+              return { id, value, status, reason, capabilities,
+                reasonText: reason && reasonKeys.has(reason) ? t(`innerReason_${reason}`) : reason ? text(reason) : t('unknownValue'),
+                source: value ? [value.backendId, value.authorityId, value.deploymentId].filter(item => typeof item === 'string' && item.trim()).map(item => text(item)).join(' · ') : '' };
+            });
+            return h('section', { 'data-testid': 'inner-state', 'aria-label': t('inner') },
+              h('div', { className: 'syr-system-heading' }, h('h2', null, t('inner')), h('p', null, t('innerHint'))),
+              !envelopeValid && h('p', { className: 'syr-alert', role: 'status', 'data-testid': 'inner-unpublished' }, t('innerUnpublished')),
+              envelopeValid && h('div', { className: 'syr-table-wrap', 'data-testid': 'inner-domains' },
+                h('table', { className: 'syr-table' },
+                  h('thead', null, h('tr', null, ...['innerDomain', 'innerStatus', 'innerCapabilities', 'innerSource'].map(key => h('th', { key, scope: 'col' }, t(key))))),
+                  h('tbody', null, ...rows.map(row => h('tr', { key: row.id, 'data-testid': 'inner-domain', 'data-domain': row.id },
+                    h('td', null, h('strong', null, t(`innerDomain_${row.id}`))),
+                    h('td', null, row.status === 'available' ? h('span', { className: 'syr-status' }, h('span', { className: 'syr-dot', 'data-state': 'available' }), t('innerAvailable'))
+                      : row.status === 'unavailable' ? h('span', { className: 'syr-status' }, h('span', { className: 'syr-dot', 'data-state': 'unavailable' }), t('innerUnavailable')) : t('unknownValue')),
+                    h('td', null, row.status === 'available' && row.capabilities.length ? h('span', { className: 'syr-code' }, row.capabilities.join(', '))
+                      : h('span', { className: 'syr-small syr-muted' }, t('innerNoCapabilities'))),
+                    h('td', null, row.status === 'available' && row.source ? h('span', { className: 'syr-code' }, row.source)
+                      : row.status === 'unavailable' && row.reason ? h('span', { className: 'syr-small syr-muted', 'data-testid': 'inner-reason' }, `${t('innerReason')} · ${row.reasonText}`)
+                        : h('span', { className: 'syr-small syr-muted' }, t('unknownValue')))))))),
+              envelopeValid && h('p', { className: 'syr-small syr-muted syr-section-gap', 'data-testid': 'inner-provenance' },
+                `${t('innerSchemaVersion')} · ${text(manifest.schemaVersion)} · ${t('innerStateVersion')} · ${numeric(projection.stateVersion)}`),
+              h('p', { className: 'syr-small syr-muted syr-section-gap', 'data-testid': 'inner-note' }, t('innerNote')));
+          }
           function systemContent() {
             return h('section', null, h('div', { className: 'syr-system-heading' }, h('h2', null, t('implementation')), h('p', null, t('implementationHint'))),
               h('div', { className: 'syr-system-list', 'data-testid': 'system-list' }, systems.length ? systems.map(item => h('article', { key: item.id, className: 'syr-system-row' }, h('h3', null, item.name), h(Status, { value: item.status }), h('p', null, item.summary))) : h(Empty, null, t('noSystems'))), abilityContent());
@@ -1784,7 +1848,7 @@ window.__ModuleLoader__.load({
           return h('div', { className: 'syr', ref: rootRef }, h('style', null, css), h('div', { className: 'syr-wrap' },
             h('header', { className: 'syr-header' }, h('div', { className: 'syr-brand' }, h(Icon, { size: 27 }), h('div', null, h('h1', null, t('title')), h('div', { className: 'syr-meta' }, snapshot && h('span', null, `v${snapshot.version}`), h('span', null, t('source'))))),
               h('div', { className: 'syr-actions' }, snapshot && h(Button, { icon: state === 'paused' ? 'play' : 'pause', disabled: !canControl, onClick: () => void operations.current.command(state === 'paused' ? 'runtime.resume' : 'runtime.pause') }, t(state === 'paused' ? 'resume' : 'pause')), h(Button, { icon: 'refresh', disabled: loading, onClick: () => void operations.current.refresh(), 'aria-label': t('refresh'), 'aria-busy': loading }, t(loading ? 'refreshing' : 'refresh')))),
-            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'core', 'tasks', 'conversations', 'lab', 'memory', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => { if (tab === 'lab' && id !== 'lab') setLabToken(''); setTab(id); } }, t(id)))),
+            h('nav', { className: 'syr-tabs', 'aria-label': t('title') }, ...['overview', 'core', 'tasks', 'conversations', 'lab', 'memory', 'inner', 'systems', 'sessions', 'diagnostics'].map(id => h('button', { type: 'button', className: 'syr-tab', key: id, 'aria-current': tab === id ? 'page' : undefined, onClick: () => { if (tab === 'lab' && id !== 'lab') setLabToken(''); setTab(id); } }, t(id)))),
             stale && h('div', { className: 'syr-alert', role: 'alert', 'data-testid': 'snapshot-stale' }, h('strong', null, t(snapshot ? 'staleTitle' : 'loadFailed')), h('p', null, readError || t('snapshotOld')), snapshot && h('p', null, t('staleHint'))),
             commandError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), commandError),
             controlError && h('div', { className: 'syr-alert', role: 'alert' }, h('strong', null, t('commandFailed')), controlError),
@@ -1792,7 +1856,7 @@ window.__ModuleLoader__.load({
             controlNotice && h('p', { className: 'syr-feedback', role: 'status' }, controlNotice),
             command && h('p', { className: 'syr-feedback', role: 'status' }, t(command === 'session.verify-model' ? 'modelVerifyPending' : command === 'conversation.verifyContext' ? 'contextVerifyPending' : 'controlPending', { id: contextAttempt?.conversationId || t('unknownValue') })),
             controlCommand && h('p', { className: 'syr-feedback', role: 'status' }, t('controlPending')),
-            snapshot ? (tab === 'overview' ? overview() : tab === 'core' ? coreContent() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'lab' ? labContent() : tab === 'memory' ? memoryContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
+            snapshot ? (tab === 'overview' ? overview() : tab === 'core' ? coreContent() : tab === 'tasks' ? taskContent() : tab === 'conversations' ? conversationContent() : tab === 'lab' ? labContent() : tab === 'memory' ? memoryContent() : tab === 'inner' ? innerContent() : tab === 'systems' ? systemContent() : tab === 'sessions' ? sessionContent() : diagnostics()) : !readError && h('p', { className: 'syr-loading', role: 'status' }, t('loading')),
             h('footer', { className: 'syr-footer' }, h('span', null, lastRead ? `${t('lastRead')} · ${dateTime(lastRead, locale)}` : t('unknownHint')), h('span', null, t('autoRefresh')))));
         }
         ctx.effect(() => {

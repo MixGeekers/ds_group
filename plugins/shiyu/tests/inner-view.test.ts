@@ -12,6 +12,8 @@ import { CONVERSATION_BACKGROUND_HANDLER } from '../src/adapters/control-store/c
 import { SHIYU_EVENT_TYPES } from '../src/contracts/events.js';
 import { memoryBodyDigest, memoryCommandDigest, type MemoryBackendObservation } from '../src/contracts/memory.js';
 import { syntheticLocalNoteBinding, observeSyntheticLocalNote } from './helpers/capability.js';
+import { createLocalReadView } from '../src/views/local.js';
+import type { InnerBodyReadOutput } from '../src/adapters/control-store/view-domain.js';
 
 const code = (...codes: string[]) => (error: unknown) => !!error && typeof error === 'object' && 'code' in error && codes.includes(String(error.code));
 const sha = (value: string) => createHash('sha256').update(value).digest('hex');
@@ -213,4 +215,97 @@ test('restart keeps domain reads and publication but never revives a Worker capt
   assert.equal((bodies.bodies[0]!.payload as Record<string, unknown>).value, 'meeting');
   const stale = JSON.stringify(capture.inner);
   assert.equal(stale.includes('meeting'), false);
+});
+
+test('the replyer local read view composes captured inner domains and reads bodies only after trimming', async t => {
+  const f = await fixture(t), { entry } = await f.dm();
+  const entity = await f.store.request('relationship.registerSubject', { requestId: 'readview-subject', account: {
+    connectionId: 'synthetic-lab', identityNamespace: 'lab', identityType: 'member', externalSubjectId: 'readview-person' }, entityKind: 'person', displayName: '读取同名' });
+  const assertion = await f.store.request('relationship.assert', { requestId: 'readview-fact', conversationId: entry.conversationId,
+    subjectId: entity.record.entityId, predicate: 'interaction', value: 'meeting', sourceRefs: [f.observation(entry.conversationId)] });
+  const capture = await f.store.request('view.captureLocal', { conversationId: entry.conversationId, purpose: 'reply_context', innerDomains: ['relationship'] });
+  const watermarkBefore = await f.store.request('control.watermark', {});
+  const requested: string[][] = [];
+  const local = createLocalReadView(capture, { validate: captureId => f.store.request('view.validateCapture', { captureId }),
+    innerRead: async (domain, captured, recordIds): Promise<InnerBodyReadOutput> => {
+      requested.push([domain, ...recordIds]);
+      assert.equal(JSON.stringify(captured).includes('"body"'), false);
+      return f.store.request('view.readInnerBodies', { captureId: capture.captureId, domain, recordIds: [...recordIds] });
+    } });
+  t.after(() => local.close());
+  const view = await local.read();
+  assert.equal(view.freshness.status, 'current');
+  assert.equal(requested.length, 1);
+  assert.equal(requested[0]![0], 'relationship');
+  const capturedIds = capture.inner!.domains.relationship!.records.map(record => record.recordId);
+  assert.deepEqual([...requested[0]!.slice(1)].sort(), [...capturedIds].sort());
+  const rows = view.data.filter(row => row.backendId === 'control-relationship');
+  assert.equal(rows.length, capturedIds.length);
+  const assertionRow = rows.find(row => row.recordId === assertion.record.recordId)!;
+  assert.equal((assertionRow.fields.body as Record<string, unknown>).value, 'meeting');
+  assert.equal(assertionRow.fields.kind, 'assertion');
+  assert.equal(view.authority!.inner!.relationship!.authorityId, capture.inner!.domains.relationship!.authority.authorityId);
+  assert.equal(view.components.find(component => component.backendId === 'control-relationship')!.freshness.status, 'current');
+  await local.assertCurrent(view.viewId);
+  // GET-style reads (metadata capture, body read, re-authorization) never write.
+  assert.deepEqual(await f.store.request('control.watermark', {}), watermarkBefore);
+});
+
+test('an inner-domain capture without an exact body reader is an explicit unavailable component', async t => {
+  const f = await fixture(t), { entry } = await f.dm();
+  await f.store.request('emotion.observe', { requestId: 'unavailable-emotion', conversationId: entry.conversationId, valenceBps: 6000,
+    arousalBps: 3000, label: 'positive', sourceRefs: [f.observation(entry.conversationId)] });
+  const capture = await f.store.request('view.captureLocal', { conversationId: entry.conversationId, purpose: 'reply_context', innerDomains: ['emotion'] });
+  const local = createLocalReadView(capture, { validate: captureId => f.store.request('view.validateCapture', { captureId }) });
+  t.after(() => local.close());
+  const view = await local.read();
+  assert.equal(view.freshness.status, 'unavailable');
+  assert.deepEqual(view.data.filter(row => row.backendId === 'control-emotion'), []);
+  assert.equal(view.components.find(component => component.backendId === 'control-emotion')!.freshness.reason, 'body_not_connected');
+});
+
+test('a tampered or authority-less inner capture is refused before any body read', async t => {
+  const f = await fixture(t), { entry } = await f.dm();
+  await f.store.request('cognition.propose', { requestId: 'tamper-claim', conversationId: entry.conversationId, claimType: 'owner-statement',
+    subjectIds: ['entity-a'], predicate: 'prefers-tea', proposition: '合成偏好。', confidenceBps: 7000, sourceRefs: [f.observation(entry.conversationId)] });
+  const capture = await f.store.request('view.captureLocal', { conversationId: entry.conversationId, purpose: 'reply_context', innerDomains: ['cognition'] });
+  const noAuthority = structuredClone(capture); delete noAuthority.access.authority!.inner;
+  assert.throws(() => createLocalReadView(noAuthority, { validate: captureId => f.store.request('view.validateCapture', { captureId }) }), (error: unknown) =>
+    error instanceof Error && 'code' in error && error.code === 'INVALID_INNER_CAPTURE');
+  const noGrant = structuredClone(capture); noGrant.access.components = noGrant.access.components.filter(component => component.backendId !== 'control-cognition');
+  assert.throws(() => createLocalReadView(noGrant, { validate: captureId => f.store.request('view.validateCapture', { captureId }) }), (error: unknown) =>
+    error instanceof Error && 'code' in error && error.code === 'INVALID_INNER_CAPTURE');
+});
+
+test('a corrected inner record invalidates a pinned local view instead of returning the old body', async t => {
+  const f = await fixture(t), { entry } = await f.dm();
+  const claim = await f.store.request('cognition.propose', { requestId: 'stale-claim', conversationId: entry.conversationId, claimType: 'owner-statement',
+    subjectIds: ['entity-a'], predicate: 'prefers-tea', proposition: '旧结论。', confidenceBps: 7000, sourceRefs: [f.observation(entry.conversationId)] });
+  const capture = await f.store.request('view.captureLocal', { conversationId: entry.conversationId, purpose: 'reply_context', innerDomains: ['cognition'] });
+  const local = createLocalReadView(capture, { validate: captureId => f.store.request('view.validateCapture', { captureId }),
+    innerRead: (domain, _captured, recordIds) => f.store.request('view.readInnerBodies', { captureId: capture.captureId, domain, recordIds: [...recordIds] }) });
+  t.after(() => local.close());
+  await f.store.request('cognition.revise', { requestId: 'stale-revise', conversationId: entry.conversationId, claimId: claim.record.claimId,
+    expectedRevision: 1, proposition: '新结论。', confidenceBps: 8000, sourceRefs: [f.observation(entry.conversationId)] });
+  // Re-authorization fails before returning either the stale view or a happy-path
+  // empty result: the caller can only see an explicit dependency/invalidated error.
+  await assert.rejects(local.read(), code('DEPENDENCY_UNAVAILABLE', 'VIEW_INVALIDATED'));
+  const fresh = await f.store.request('view.captureLocal', { conversationId: entry.conversationId, purpose: 'reply_context', innerDomains: ['cognition'] });
+  assert.notEqual(JSON.stringify(fresh.inner).includes('旧结论。'), true);
+});
+
+test('a group local view never reveals a direct-message inner fact through the composed reader', async t => {
+  const f = await fixture(t), dm = await f.dm(), group = await f.group();
+  const entity = await f.store.request('relationship.registerSubject', { requestId: 'compose-subject', account: {
+    connectionId: 'synthetic-lab', identityNamespace: 'lab', identityType: 'member', externalSubjectId: 'compose-person' }, entityKind: 'person', displayName: '组合同名' });
+  const dmFact = await f.store.request('relationship.assert', { requestId: 'compose-dm-fact', conversationId: dm.entry.conversationId, subjectId: entity.record.entityId,
+    predicate: 'interaction', value: 'message-exchange', sourceRefs: [f.observation(dm.entry.conversationId)] });
+  const groupCapture = await f.store.request('view.captureLocal', { conversationId: group.conversationId, purpose: 'reply_context', innerDomains: ['relationship'] });
+  const local = createLocalReadView(groupCapture, { validate: captureId => f.store.request('view.validateCapture', { captureId }),
+    innerRead: (domain, _captured, recordIds) => f.store.request('view.readInnerBodies', { captureId: groupCapture.captureId, domain, recordIds: [...recordIds] }) });
+  t.after(() => local.close());
+  const view = await local.read();
+  assert.equal(view.freshness.status, 'current');
+  assert.equal(view.data.some(row => row.recordId === dmFact.record.recordId), false);
+  assert.doesNotMatch(JSON.stringify(view), /message-exchange/);
 });

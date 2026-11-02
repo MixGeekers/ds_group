@@ -1,0 +1,143 @@
+{
+  "slice": "H4b：内层四域 replyer 只读组合与仪表盘六域可用性面板",
+  "recordedAt": "2026-11-02T15:17:48-04:00",
+  "workspace": "plugins/shiyu",
+  "baseline": {
+    "head": "feecf869dfbce6d948bb60bd414a7786c2b882f7",
+    "note": "feecf86 只在上一个 H4 提交 2e04eb2 之上加入固定宿主零模型证据；本切片源码基线等价于 2e04eb2。"
+  },
+  "scope": {
+    "implemented": [
+      "src/views/local.ts：createLocalReadView 接收 capture.inner 四域 metadata，构建四域 ReadView 组件；先由 ReadViewService 按 scope/audience/resource/source 裁剪 metadata，再只对 eligible record 调 innerRead；校验返回 authority/capturedAt/record 版本与证据态，缺失 body reader 时显式 unavailable。",
+      "client/index.js：新增“内层状态”标签页与六域可用性面板，读取 runtime.snapshot().innerProjection（schema4 manifest）；显示 available 的 backendId/authorityId/capabilities、unavailable 的 reason，并明确 available 只是读取能力声明（不授权、非业务验收）。",
+      "src/health/systems.ts：修正 systems[].inner.summary 的陈旧文案（原称“关系、情绪、认知、人格待接入”），改为如实描述 schema4 六域接线/来源/删除屏障/受众裁剪与 available 语义。",
+      "tests/ui/inner.spec.mjs + fixtures/playwright config：合成宿主 UI 测试 5 项（中文默认、英文+390px 窄屏、全部 unavailable reason、无 manifest 显式不可用、刷新只读）。",
+      "tests/inner-view.test.ts：新增 4 项 local read view 组合测试（正例含正文/authority/aggregate；无 body reader 显式 unavailable；篡改 capture 拒绝；纠正后重验拒绝旧正文；跨受众不泄露 DM 事实），并补 GET 不写 control watermark 断言。"
+    ],
+    "notInScopeRespected": [
+      "未改 runtime.ts/index.ts/server、未改 src/adapters/control-store/*（曾试加 schemaVersion 字段的修复已撤回，改为在 local.ts 适配既有 IPC 输出类型）、未改 dsh adapters/events/recovery、未 git 提交。"
+    ],
+    "interfaces": {
+      "client": "runtime.snapshot().innerProjection = view.state()（schema4 PublishedState）；面板只读该字段，无新命令、无新权限。",
+      "localView": "createLocalReadView(capture, { validate, innerRead?, memoryRead?, memoryIndex?, now? })；innerRead(domain, captured, recordIds, signal) -> view.readInnerBodies 输出；仅当 capture.inner 存在时启用。",
+      "upstreamGap": "replyer 上游 local-reply.ts 尚未在 captureLocal 请求 innerDomains，也未把 inner 行加入 prompt/prepare 合同；这不在 H4b 写作用域，见 boundaries。"
+    },
+    "leadAuthorizedScopeChange": "Lead 于 2026-11-02 明确将 src/health/systems.ts 与 client 同义硬编码文案纳入 H4b 写作用域（修复宿主发现的 systems[].inner.summary 陈旧文案）；仍未改 src/adapters/control-store/*、runtime.ts/index.ts 与 dsh adapters。"
+  },
+  "files": {
+    "modified": [
+      {
+        "path": "src/views/local.ts",
+        "sha256": "eda7f0a9a5c792d9a528812eadd367f3180dc93a3d44e3a977267826861366f7",
+        "lines": 191
+      },
+      {
+        "path": "src/health/systems.ts",
+        "sha256": "2279c483ca8cf0eb0b47e574950e4bb1a568471f7ff43dc44eaebf1ac1d69b42",
+        "lines": 11
+      },
+      {
+        "path": "client/index.js",
+        "sha256": "72b4f4de62f1835498ff8ba5298781758226bafcd74086fc89e7488935e93f70",
+        "lines": 1873
+      },
+      {
+        "path": "tests/inner-view.test.ts",
+        "sha256": "bad9e225865ce3fbc6c9413947ff3e01a619d38cd9dd834e8babd65a58202f49",
+        "lines": 311
+      },
+      {
+        "path": "tests/ui/fixtures.js",
+        "sha256": "656897cb27b4b77c06f9b2f5f42ecd33f7128794854606f80d6c1210eea42544",
+        "lines": 197
+      },
+      {
+        "path": "tests/ui/playwright.config.mjs",
+        "sha256": "7cc22401fd81251bc6ffe628e5632e5e6d2d9003b21ba9fb7626de184fa16911",
+        "lines": 23
+      }
+    ],
+    "added": [
+      {
+        "path": "tests/ui/inner.spec.mjs",
+        "sha256": "26898bb27153adac14c4fad0e608c6d3fa8dbc9d65f08f7bc69cd1a7d66ee0d2",
+        "lines": 115
+      }
+    ],
+    "diffStat": [
+      "plugins/shiyu/client/index.js                |  68 +++++++++++++++++-",
+      " plugins/shiyu/src/health/systems.ts          |   2 +-",
+      " plugins/shiyu/src/views/local.ts             | 101 ++++++++++++++++++++++++++-",
+      " plugins/shiyu/tests/inner-view.test.ts       |  95 +++++++++++++++++++++++++",
+      " plugins/shiyu/tests/ui/fixtures.js           |  21 +++++-",
+      " plugins/shiyu/tests/ui/playwright.config.mjs |   2 +-",
+      " 6 files changed, 281 insertions(+), 8 deletions(-)"
+    ],
+    "newTestCounts": {
+      "inner-view": 14,
+      "inner-spec-ui": 5
+    }
+  },
+  "verification": {
+    "isolatedWorktree": {
+      "path": "/tmp/shiyu-h4b",
+      "head": "feecf86",
+      "method": "git worktree add --detach /tmp/shiyu-h4b feecf86 + 仅本切片 7 文件",
+      "dependencyLinks": [
+        "node_modules -> 主树 node_modules",
+        ".local/ombre -> 主树 .local/ombre（既有 pinned Python/Ombre 工具测试）"
+      ],
+      "fullCheck": {
+        "command": "cd /tmp/shiyu-h4b/plugins/shiyu && npm run check",
+        "exitCode": 0,
+        "typecheck": "pass",
+        "tests": 1206,
+        "pass": 1206,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "durationMs": 176752,
+        "build": "pass",
+        "clientSyntax": "pass",
+        "log": "plugins/shiyu/.local/h4b-check-final.log（本包 .local 已 gitignore；原始路径 /tmp/h4b-check-final.log）"
+      },
+      "uiSuite": {
+        "command": "cd /tmp/shiyu-h4b/plugins/shiyu && npm run test:ui",
+        "exitCode": 0,
+        "tests": 209,
+        "passed": 209,
+        "failed": 0,
+        "browser": "system Google Chrome / Playwright chromium channel",
+        "log": "plugins/shiyu/.local/h4b-ui-final.log（本包 .local 已 gitignore；原始路径 /tmp/h4b-ui-final.log）",
+        "innerSpec": "5/5 pass（中文默认/英文+窄屏/unavailable 原因/无 manifest 显式提示/刷新只读）"
+      }
+    },
+    "mainTreeRegression": {
+      "unit": "inner-view + local-views + local-memory-views + local-view-store + memory-view-store + lab-reply-capture + runtime -> 88/88 pass；runtime + host-status -> 32/32 pass（systems 文案改动后复跑）",
+      "ui": "npm run test:ui -> 209/209 pass（含新增 5 项）",
+      "note": "主树另有 events-agent/H2a 与 H0b harness 并行未提交文件，本切片不触碰；最终结论取隔离 worktree。"
+    },
+    "readOnlyEvidence": {
+      "module": "inner-view 新测试断言 capture/read/assertCurrent 前后 control.watermark 不变；既有的 local Task/memory 读纯测试全部保持通过。",
+      "ui": "合成宿主 /__test/stats 断言 commands==[] 且 stateReads 增加；测试页面无模型端点，仅 GET /api/shiyu/state。"
+    }
+  },
+  "hostEvidenceReference": {
+    "path": "artifacts/dsh/h4/h4-host-zero-model.json",
+    "head": "feecf86",
+    "facts": [
+      "零模型有序重载一次，shiyu_status 返回有效无损 JSON；innerPublication schemaVersion=4、stateVersion=6、六域 available（含 backendId/authorityId/capabilities）；tool 调用前后 commitSeq 302→302；无模型/embedding/Task/Goal/Session 探针/Lab 输入。",
+      "该证据同时记录本切片修复的真实缺口：systems[].inner.summary 仍写“关系、情绪、认知、人格待接入”。"
+    ],
+    "postCommitRequirement": "H4b 提交后需再由 Lead 执行一次零模型有序重载 + shiyu_status/仪表盘只读核对，才能声称“仪表盘宿主可见/文案正确”；本切片不宣称宿主验收，只提供离线模块+合成 UI 证据。"
+  },
+  "evidenceLevel": "G1 模块测试（真实临时 SQLite/Worker IPC）+ 合成宿主 Playwright UI；固定 DSH 宿主可见性仅引用 Lead 的 H4 零模型证据，H4b 文案/面板的宿主确认待提交后重载。未使用真实模型/embedding/渠道/设备/业务。",
+  "failures": [],
+  "unverifiedOrBoundaries": [
+    "replyer 上游 capture 尚未请求 innerDomains（src/control/local-reply.ts 与 prompt/prepare 合同不在 H4b 写作用域）：local.ts 组合已可用并有真实 Worker 测试，但生产 replyer 本轮不会真正把四域正文读入生成上下文。",
+    "仪表盘面板是 client 侧 JS；合成宿主 UI 通过不等于真实 DSH 宿主渲染验收，需 Lead 提交后零模型 reload 确认。",
+    "未新增任何 IPC 命令或权限；面板只读 snapshot，GET 不写权威、不调用模型。",
+    "未验证真实宿主窄屏/中英截图、真实 task/Goal 数据下的面板一致性；UI 计数 209 为合成夹具。",
+    "systems[].inner.summary 文案改动只影响展示文案，不改变任何权威状态或验收标签。"
+  ]
+}

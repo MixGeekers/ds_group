@@ -230,7 +230,7 @@ node --import tsx --test --test-concurrency=1 tests/recovery-*.test.ts
 
 ## 7. H4 切片：内层四域基础（关系/情绪/认知/人格）
 
-状态：**离线通过（G1 模块/属性测试 + 真实临时 SQLite/WorkerThread）**；replyer 组合、仪表盘面板与固定宿主证据未接线，不冒充内层业务验收。2026-11-02 完成并审阅。
+状态：**离线通过（G1 模块/属性测试 + 真实临时 SQLite/WorkerThread）**，并已由 H4b 完成 replyer 只读组合与仪表盘面板；上游 replyer 生成路径接入（H4c）与真实业务验收未完成。2026-11-02 完成并审阅。
 
 ### 7.1 交付
 
@@ -301,4 +301,39 @@ node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts
 node scripts/harness/manifest.mjs --out artifacts/dsh/harness/manifest.json
 node scripts/harness/selfproof.mjs --out artifacts/dsh/harness/tool-selfproof.json
 node scripts/harness/traceability.mjs --strict --out artifacts/dsh/harness/traceability.json
+```
+
+## 9. H4b 切片：内层四域 replyer 只读组合与仪表盘面板
+
+状态：**离线通过（G1 模块 + 真实 Worker + 合成宿主 UI）**；H4c（replyer 上游生成路径）与 H4b 提交后的固定宿主渲染核对另行推进。2026-11-02 完成并审阅。
+
+### 9.1 交付（7 文件）
+
+- `src/views/local.ts`：`createLocalReadView` 新增可选 `innerRead` 端口。capture.inner 四域构建独立 authority 的 ReadView 组件；严格遵守两段式：先按 scope/audience/resource/来源裁剪 metadata，再仅对 eligible recordIds 读正文；返回前再次授权并校验 authority/capturedAt/record 版本与证据态；缺 body reader 显式 `body_not_connected` unavailable；authority/grant 不匹配的篡改 capture 构造期拒绝；revoked 记录永不返回正文。
+- `client/index.js`：新增“内层状态”标签页，读取 `runtime.snapshot().innerProjection`（schema4 manifest），available 展示 backendId/authorityId/capabilities，unavailable 展示 reason（五类已翻译），并明确 available 只是读取能力声明、不授权、非业务验收；缺 manifest 显式提示；中英双语。
+- `src/health/systems.ts`：修复固定宿主零模型 reload 发现的陈旧文案（inner summary 原写“关系、情绪、认知、人格待接入”，与 schema4 manifest 不符），改为如实描述六域接线与 available 语义。
+- 测试：`tests/inner-view.test.ts` +4（真实 Worker capture→local view 正例；缺 body reader 显式 unavailable；篡改/无 authority 构造期拒绝；纠正后重验拒绝旧正文；群聊视图不含私聊事实）；新增 `tests/ui/inner.spec.mjs` 5 项 + UI 夹具调整。
+- 证据：`artifacts/dsh/h4/h4b-integration.json`、`h4b-slice-summary.json`、`artifacts/dsh/slices/h4b-verify.json`。
+
+### 9.2 验证（实际运行）
+
+| 验证 | 结果 |
+|---|---|
+| 实现者隔离 worktree（HEAD `feecf86` + 仅 7 文件）`npm run check` | exit 0；**1206/1206 通过，0 失败/取消/跳过**；typecheck/build/Client 语法通过 |
+| 实现者隔离 worktree `npm run test:ui` | exit 0；**209/209 通过**（既有 204 + 新增 5：中文默认、英文+390px、全 unavailable 原因、缺 manifest 显式提示、刷新只读 `commands==[]`） |
+| Lead 独立 `scripts/slice-verify.mjs`（HEAD `feecf86` + 仅 7 文件） | exit 0；**1206/1206 通过，0 跳过**；证据 `artifacts/dsh/slices/h4b-verify.json` |
+| Lead 复跑 `npm run test:ui`（共享树） | exit 0；**209/209 通过**（2.2 分钟）；日志 `.local/h4b-lead-ui.log` |
+| 证据级别 | G1 模块 + 真实 WorkerThread + 合成宿主 UI；真实 DSH 宿主渲染与真实数据一致性待提交后零模型 reload 核对 |
+
+### 9.3 失败 / unknown / 未测
+
+1. replyer 上游 `src/control/local-reply.ts` 尚未在 `view.captureLocal` 请求 `innerDomains`，也未把内层行纳入 prompt / `conversation.reply.prepare` 合同——生产 replyer 生成路径本轮**不会**消费四域正文；这是显式 H4c 集成项，不把 local.ts 两段式就绪写成生成闭环。
+2. 仪表盘为 client JS 面板，合成宿主 209 项 UI 通过不等于真实 DSH 宿主渲染验收；真实数据一致性未验。
+3. 未新增 IPC 命令或权限；无宿主、模型、embedding 调用。
+
+### 9.4 复现
+
+```
+node plugins/shiyu/scripts/slice-verify.mjs --manifest <h4b-manifest.json>
+cd plugins/shiyu && npm run test:ui
 ```

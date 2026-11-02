@@ -1,3 +1,21 @@
+// Synthetic six-domain publication manifest for client behavior only.
+export function makeInnerProjection({ stateVersion = 3, domains = {} } = {}) {
+  const at = new Date().toISOString();
+  const defaults = {
+    memory: { status: 'available', backendId: 'ombre-local', deploymentId: 'deployment-a', capabilities: ['exact_read'] },
+    relationship: { status: 'available', backendId: 'control-relationship', authorityId: 'relationship-test-authority', capabilities: ['metadata_read', 'content_read'] },
+    emotion: { status: 'available', backendId: 'control-emotion', authorityId: 'emotion-test-authority', capabilities: ['metadata_read', 'content_read'] },
+    cognition: { status: 'available', backendId: 'control-cognition', authorityId: 'cognition-test-authority', capabilities: ['metadata_read', 'content_read'] },
+    personality: { status: 'available', backendId: 'control-personality', authorityId: 'personality-test-authority', capabilities: ['metadata_read', 'content_read'] },
+    ability: { status: 'available', backendId: 'control-ability', authorityId: 'ability:test-authority', capabilities: ['state_read'] },
+  };
+  return {
+    schemaVersion: 1, baselineId: 'synthetic-baseline-0000', stateVersion,
+    manifest: { schemaVersion: 4, domains: { ...defaults, ...domains } },
+    manifestHash: 'a'.repeat(64), publishedAt: at, publisherId: 'shiyu-state-service',
+  };
+}
+
 // Synthetic UI fixtures only. These do not describe a running Shiyu instance.
 export function makeSnapshot({ state = 'idle', populated = false } = {}) {
   const at = new Date().toISOString();
@@ -14,7 +32,7 @@ export function makeSnapshot({ state = 'idle', populated = false } = {}) {
       { id: 'events', name: '事件系统', status: 'partial', summary: '合成测试：观察事件。' },
       { id: 'sessions', name: '会话系统', status: 'partial', summary: '合成测试：DSH Session 绑定。' },
       { id: 'core', name: '核心判断', status: 'planned', summary: '尚未实施。' },
-      { id: 'inner', name: '内层状态', status: 'planned', summary: '尚未实施。' },
+      { id: 'inner', name: '内层状态', status: 'partial', summary: '合成测试：六域读取能力清单与不可用原因。' },
       { id: 'execution', name: '任务执行', status: 'planned', summary: '尚未实施。' },
       { id: 'outer', name: '对话表达', status: 'partial', summary: '合成测试：只读仪表盘。' },
       { id: 'devices', name: '设备接入', status: 'planned', summary: '尚未实施。' },
@@ -36,6 +54,7 @@ export function makeSnapshot({ state = 'idle', populated = false } = {}) {
     ],
     usage: { calls: 0, inputTokens: null, outputTokens: null, cacheReadTokens: null },
     diagnostics: { contextSafety: { ready: true, messageFactory: 'injected' } },
+    innerProjection: makeInnerProjection(),
     notices: [{ id: 'synthetic-fixture', level: 'info', message: '合成 UI 测试快照，不代表本体运行验收。' }],
   };
 }
