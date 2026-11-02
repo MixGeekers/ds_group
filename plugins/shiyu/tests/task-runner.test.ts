@@ -53,6 +53,9 @@ test('native-worker orchestration commits a real local artifact, receipt and ind
   assert.ok(task.verification?.checks.every(check => check.status === 'pass'));
   const detail = await store.request('task.get', { taskId });
   assert.equal(detail.effects.length, 1); assert.equal(detail.effects[0].status, 'succeeded');
+  assert.equal(detail.effectReceipts.length, 1);
+  assert.equal(detail.effectReceipts[0].receiptId, detail.effects[0].receiptId);
+  assert.equal(detail.effectReceipts[0].verification.verified, true);
   assert.equal((await artifacts.inspect({ taskId }))?.sha256, detail.artifact.expectedSha256);
   assert.equal(worker.calls, 1); assert.ok(phases.length >= 4);
   await assert.rejects(runner.run(taskId, { signal: new AbortController().signal, progress() {} }));

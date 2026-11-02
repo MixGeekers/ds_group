@@ -1,0 +1,440 @@
+{
+  "schemaVersion": 1,
+  "evidenceLevel": "current-run-native-DSH-UI-and-exact-owned-Session-plus-read-only-control-ledger",
+  "date": "2026-11-02",
+  "timezone": "America/Caracas",
+  "host": {
+    "version": "0.2.1-rc.5",
+    "auditSqliteVersion": "3.53.3",
+    "runtimeSqliteVersion": "3.53.4",
+    "runtimeSqliteVersionEvidence": "root native runtime UI observation",
+    "auditSqliteVersionEvidence": "Node read-only audit connection SELECT sqlite_version()"
+  },
+  "taskId": "0908b666529d90685193fb27c6913040",
+  "goalId": "artifact-validation:0908b666529d90685193fb27c6913040",
+  "nativeGoalId": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+  "sessionId": "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+  "runtimeInstanceId": "a8036161-f209-4950-847a-871b874dc7f9",
+  "finishedAt": "2026-11-02T06:41:02.523Z",
+  "result": {
+    "verified": true,
+    "nativePhase": "complete",
+    "nativeRevision": 4,
+    "inferenceRequested": false,
+    "operations": [
+      "create",
+      "pause",
+      "resume",
+      "complete"
+    ]
+  },
+  "artifact": {
+    "relativePath": ".local/runtime/workspaces/0908b666529d90685193fb27c6913040/artifacts/note.txt",
+    "byteLength": 92,
+    "sha256": "f7c069590eb77aa87a3a13ae2c827d1c21f596f2819e3d173f2f6ab0419812cd",
+    "matchesTaskCompletionSpec": true,
+    "matchesTaskVerification": true,
+    "stableDuringRead": true
+  },
+  "sourceTask": {
+    "state": "succeeded",
+    "assignmentId": "9eebf6bdb35c88153a646b496720ea3d",
+    "verification": {
+      "assignmentId": "9eebf6bdb35c88153a646b496720ea3d",
+      "checks": [
+        {
+          "checkId": "artifact-sha256",
+          "evidenceRefs": [
+            "artifact-observation:dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+            "artifact:0908b666529d90685193fb27c6913040"
+          ],
+          "status": "pass"
+        }
+      ],
+      "completionSpecVersion": 1,
+      "resultHash": "f7c069590eb77aa87a3a13ae2c827d1c21f596f2819e3d173f2f6ab0419812cd",
+      "taskId": "0908b666529d90685193fb27c6913040",
+      "verifiedAt": "2026-11-02T06:18:18.849Z",
+      "verifierVersion": "local-artifact-sha256-v1"
+    },
+    "effect": {
+      "effectId": "reservation:0908b666529d90685193fb27c6913040:9eebf6bdb35c88153a646b496720ea3d",
+      "status": "succeeded",
+      "action": "artifact.write",
+      "receiptId": "dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+      "payloadHash": "906d3d1735da900940284a9f48bce08a31261386f2dafc2356206dab308a390a"
+    },
+    "receipt": {
+      "receiptId": "dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+      "effectId": "reservation:0908b666529d90685193fb27c6913040:9eebf6bdb35c88153a646b496720ea3d",
+      "serviceId": "shiyu-local-artifact",
+      "outcome": "succeeded",
+      "observedAt": "2026-11-02T06:18:15.966Z",
+      "receivedAt": "2026-11-02T06:18:15.967Z",
+      "payloadHash": "906d3d1735da900940284a9f48bce08a31261386f2dafc2356206dab308a390a",
+      "evidenceRefs": [
+        "artifact-observation:dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+        "artifact:0908b666529d90685193fb27c6913040"
+      ],
+      "verification": {
+        "verified": true,
+        "installationGeneration": "f4778c18-a78b-4a78-a137-c7574ce27db4",
+        "serviceId": "shiyu-local-artifact",
+        "externalOperationId": "reservation:0908b666529d90685193fb27c6913040:9eebf6bdb35c88153a646b496720ea3d",
+        "reconciled": false,
+        "settledEffect": {
+          "idempotencyKey": "artifact:0908b666529d90685193fb27c6913040:9eebf6bdb35c88153a646b496720ea3d",
+          "payloadHash": "906d3d1735da900940284a9f48bce08a31261386f2dafc2356206dab308a390a",
+          "outcome": "succeeded"
+        }
+      }
+    }
+  },
+  "binding": {
+    "goalId": "artifact-validation:0908b666529d90685193fb27c6913040",
+    "sessionId": "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+    "ownerId": "local-owner",
+    "scope": "local-owner",
+    "metadataVersion": 8,
+    "completionCriteriaHash": "13bbf4642671b610d8468302aa87090352ee5cfdda478fbbb231ab6e74148741",
+    "goalRef": {
+      "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+      "revision": 4
+    },
+    "latestReceipt": {
+      "commandId": "artifact-validation:0908b666529d90685193fb27c6913040:complete:v1",
+      "completionProof": {
+        "completionCriteriaHash": "13bbf4642671b610d8468302aa87090352ee5cfdda478fbbb231ab6e74148741",
+        "evidenceRefs": [
+          "artifact:0908b666529d90685193fb27c6913040",
+          "artifact-observation:dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+          "effect-receipt:dc36d1f0-216d-4ddb-8ac4-a71e40124845"
+        ],
+        "goalRef": {
+          "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+          "revision": 3
+        },
+        "verifiedAt": "2026-11-02T06:41:02.498Z",
+        "verifierId": "shiyu-goal-local-artifact-v1"
+      },
+      "evidenceRefs": [
+        "artifact:0908b666529d90685193fb27c6913040",
+        "artifact-observation:dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+        "effect-receipt:dc36d1f0-216d-4ddb-8ac4-a71e40124845"
+      ],
+      "expectedRef": {
+        "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+        "revision": 3
+      },
+      "observedRef": {
+        "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+        "revision": 4
+      },
+      "operation": "complete",
+      "postconditionHash": "4d852ba8c4d7522660383375975fb97fd4510e865d53a3e8da5f0739bbcde474",
+      "status": "confirmed"
+    },
+    "canonicalSha256": "3d9d2abe97f32635f59cccce22c04d298ce3e559783fb79cf7da03b125f8ca5c"
+  },
+  "commandJournal": {
+    "count": 4,
+    "commands": [
+      {
+        "firstMetadataVersion": 1,
+        "lastMetadataVersion": 2,
+        "receipt": {
+          "commandId": "artifact-validation:0908b666529d90685193fb27c6913040:create:v1",
+          "observedRef": {
+            "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+            "revision": 1
+          },
+          "operation": "create",
+          "postconditionHash": "667692f90b6df9ed0b733676a2940650de72512bf6b0eacff5ee14d4142ea194",
+          "status": "confirmed"
+        }
+      },
+      {
+        "firstMetadataVersion": 3,
+        "lastMetadataVersion": 4,
+        "receipt": {
+          "commandId": "artifact-validation:0908b666529d90685193fb27c6913040:pause:v1",
+          "expectedRef": {
+            "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+            "revision": 1
+          },
+          "observedRef": {
+            "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+            "revision": 2
+          },
+          "operation": "pause",
+          "postconditionHash": "a5f5261976dd7148bc7444e41982f8dd0cdd4524b5ca1759133443481d3b85f8",
+          "status": "confirmed"
+        }
+      },
+      {
+        "firstMetadataVersion": 5,
+        "lastMetadataVersion": 6,
+        "receipt": {
+          "commandId": "artifact-validation:0908b666529d90685193fb27c6913040:resume:v1",
+          "expectedRef": {
+            "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+            "revision": 2
+          },
+          "observedRef": {
+            "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+            "revision": 3
+          },
+          "operation": "resume",
+          "postconditionHash": "dfdb2888ad8a43a8bee7dbbe8c7b3f9aa32cdbacc006d04eff17c4bb0fc5f2b9",
+          "status": "confirmed"
+        }
+      },
+      {
+        "firstMetadataVersion": 7,
+        "lastMetadataVersion": 8,
+        "receipt": {
+          "commandId": "artifact-validation:0908b666529d90685193fb27c6913040:complete:v1",
+          "completionProof": {
+            "completionCriteriaHash": "13bbf4642671b610d8468302aa87090352ee5cfdda478fbbb231ab6e74148741",
+            "evidenceRefs": [
+              "artifact:0908b666529d90685193fb27c6913040",
+              "artifact-observation:dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+              "effect-receipt:dc36d1f0-216d-4ddb-8ac4-a71e40124845"
+            ],
+            "goalRef": {
+              "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+              "revision": 3
+            },
+            "verifiedAt": "2026-11-02T06:41:02.498Z",
+            "verifierId": "shiyu-goal-local-artifact-v1"
+          },
+          "evidenceRefs": [
+            "artifact:0908b666529d90685193fb27c6913040",
+            "artifact-observation:dc36d1f0-216d-4ddb-8ac4-a71e40124845",
+            "effect-receipt:dc36d1f0-216d-4ddb-8ac4-a71e40124845"
+          ],
+          "expectedRef": {
+            "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+            "revision": 3
+          },
+          "observedRef": {
+            "id": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+            "revision": 4
+          },
+          "operation": "complete",
+          "postconditionHash": "4d852ba8c4d7522660383375975fb97fd4510e865d53a3e8da5f0739bbcde474",
+          "status": "confirmed"
+        }
+      }
+    ],
+    "canonicalSha256": "5d3f396eab2d1e95a21ac8024d42354a20d930710bd95dde6932146123381d60"
+  },
+  "nativeSessionEvidence": {
+    "exactPath": "/Users/caja/.dsh/sessions/--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-0908b666529d90685193fb27c6913040--/shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3/session.v4.jsonl.zstd",
+    "bytes": 2276,
+    "frames": 10,
+    "rows": 12,
+    "events": 11,
+    "mtime": "2026-11-02T06:41:02.515Z",
+    "sha256": "6c8e01f894f1751c2ed10944c569402779ffd170164d0b56c9204aea227d1af4",
+    "method": "read-only exact owned Session; zstdDecompressSync(info:true), advance engine.bytesWritten through all concatenated frames; file size and mtime verified before/after",
+    "stableDuringRead": true,
+    "changes": [
+      {
+        "seq": 4,
+        "operation": "create",
+        "nativeGoalId": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+        "revision": 1,
+        "phase": "active",
+        "roundsStarted": 0,
+        "maxGoalRounds": 1
+      },
+      {
+        "seq": 6,
+        "operation": "pause",
+        "nativeGoalId": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+        "revision": 2,
+        "phase": "paused",
+        "roundsStarted": 0,
+        "maxGoalRounds": 1
+      },
+      {
+        "seq": 8,
+        "operation": "resume",
+        "nativeGoalId": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+        "revision": 3,
+        "phase": "active",
+        "roundsStarted": 0,
+        "maxGoalRounds": 1
+      },
+      {
+        "seq": 10,
+        "operation": "complete",
+        "nativeGoalId": "goal-e224cc86-0000-4c19-aec9-522f1cd1abc8",
+        "revision": 4,
+        "phase": "complete",
+        "roundsStarted": 0,
+        "maxGoalRounds": 1
+      }
+    ],
+    "counts": {
+      "user/message": 0,
+      "request/header": 0,
+      "assistant/message": 0,
+      "assistant/attempt": 0,
+      "session/title-llm-request": 0,
+      "compaction/start": 0,
+      "compaction/summary": 0,
+      "compaction/end": 0
+    },
+    "title": [
+      {
+        "seq": 3,
+        "source": {
+          "kind": "user"
+        }
+      }
+    ]
+  },
+  "localState": {
+    "path": ".local/runtime/runtime-state.json",
+    "lastGoalVerification": {
+      "at": "2026-11-02T06:41:02.523Z",
+      "ok": true,
+      "instanceId": "a8036161-f209-4950-847a-871b874dc7f9",
+      "goalId": "artifact-validation:0908b666529d90685193fb27c6913040",
+      "sessionId": "shiyu-goal-9d3594efc518189fcd214ab5c285e4e88f964a434f3cb4f4964c706566c90cf3",
+      "message": "原生 Goal 创建、暂停、恢复及独立证据完成通过；未请求模型推理。"
+    }
+  },
+  "checks": {
+    "module": {
+      "command": "npm run check",
+      "passed": 304,
+      "failed": 0,
+      "typecheck": "passed",
+      "build": "passed",
+      "clientSyntax": "passed",
+      "log": ".local/phase3-check.log",
+      "sha256": "7c02cac06f1c64f21ecc670c0b74d42d301a16ab9a9b4c1081b64830e3734c01",
+      "mtime": "2026-11-02T06:36:16.910Z"
+    },
+    "ui": {
+      "command": "npm run test:ui",
+      "passed": 64,
+      "failed": 0,
+      "log": ".local/phase3-ui.log",
+      "sha256": "894dffde5cb32c0ddbc76b6f7449825b82cf17cd1c6e145a44c88dc2e144e845",
+      "mtime": "2026-11-02T06:36:38.890Z"
+    }
+  },
+  "sourceSha256": {
+    "src/runtime.ts": "f0f10685902586adaba9cf37a949541a8746350436f2237c49890068fcded4d2",
+    "src/control/goal-lifecycle.ts": "1dcace78cc7989126ae5f286bdfb4d5c9ab0a73ce298639b960adcd550a7f865",
+    "src/adapters/dsh/goals.ts": "d30f0e13cce236a51bb9ef2ba36ceebcb9afee36c82ed63b65322ef584c07994",
+    "src/adapters/dsh/session-title.ts": "624039d6d2bb927d7648826d991795875422f1a09197735d5a0e6ef77dc0d052",
+    "src/adapters/control-store/goal-bindings.ts": "bc09d0fb7e5aa171fa11904359f6c4e90eb4735f02d1fb300c168f60d972b5da",
+    "src/adapters/control-store/protocol.ts": "3b2f4333eb48cb3493790a515264fe6f64e1c4c81ffa5b2c8353322e8124374a",
+    "src/adapters/control-store/worker.ts": "0a22624cd94749f312095ac8ffd56ce35285644caaa9a78f8717059391d67102",
+    "src/adapters/control-store/task-domain.ts": "f783181e4a2b1f8b6691d44e6fb2f6e1b4a89cdb0ce8f0d08c2699974131a322",
+    "src/adapters/artifacts/index.ts": "1570e0b5e49500e1a3d60a4e2b5edf6ba780622471dd6ad3e0bf204f5fafbf54",
+    "src/recovery/local-state.ts": "301d8062590b41424ca9859dd5cf7223817c9abd88d114da8ee248fdb77594a5"
+  },
+  "buildSha256": {
+    "dist/runtime.js": "d71eb4802e068929f23e766a70a00f6b2714db43dd8358c48f278c81c660defd",
+    "dist/control/goal-lifecycle.js": "a9129452a271def4bc4288820b979390c815e13fe89ce3fd588a0b61065cf028",
+    "dist/adapters/dsh/goals.js": "68c61c50ffd4b74c006a0a817eed86a0ce60b419b809fc1ffbc48bea7fc1615c",
+    "dist/adapters/dsh/session-title.js": "def0cfc7c50ca2ef2aa5d39e58b84ea2620e8d86773c5698a3ec5b62bcdf9d62",
+    "dist/adapters/control-store/goal-bindings.js": "3195095d2f8b04a1fcc7b391f619702f9bb9f10ae62a3102e6fe481a83b0fd77",
+    "dist/adapters/control-store/protocol.js": "8e609bb71c20b858c77f0e9f90bb1319db8477b13f9f965f1a1e18524bf50881",
+    "dist/adapters/control-store/worker.js": "1dcd7ff1585a943cf35734abe01f49a7bd8f0918d10c387fae88af5f99f71da5",
+    "dist/adapters/control-store/task-domain.js": "fd1f8300fc8f9228de33c608473b31af004f20141de8f2d02bd8b4fc683acfa2",
+    "dist/adapters/artifacts/index.js": "89d185a310bc38860a3f26fa3f06134278f6262bb80fe5049e622c278668aac1",
+    "dist/recovery/local-state.js": "24626805eaca1ca2525e2f2b01d976715d28d21f06b77009a8600fcc037152a2"
+  },
+  "clientSha256": {
+    "client/index.js": "22d72dfa9b829b90c543d463b413bb144916d7a1ed273a20a72cd3a417878b2a",
+    "locale/zh.json": "56a48dfd35e2ab88ba335fba473a76b733e5615c2b13a34d64588b66711c3d3d",
+    "locale/en.json": "2d6007dde413b3633dde4a2d53ae5e13c96ac233d5097e95f95f4b83d66e0337"
+  },
+  "reload": {
+    "scope": "one orderly runtime-plugin disable/enable; not process crash recovery",
+    "source": "root nativeUI observation, independently followed by exact Session and own DB read-only audit",
+    "runtimeInstanceIdBefore": "a8036161-f209-4950-847a-871b874dc7f9",
+    "runtimeInstanceIdAfter": "65e67c7e-4334-4e8f-afeb-13117e4a9d82",
+    "startedAtLocal": "2026-11-02 02:41:56 America/Caracas",
+    "goalButtonClickedAgain": false,
+    "ui": {
+      "dashboardAndDiagnosticsIdle": true,
+      "workingCount": 0,
+      "goalDependencyStatus": "unknown",
+      "historicalVerificationDisplayed": true,
+      "allThreePluginsEnabled": true,
+      "reportedEventCounts": {
+        "published": 13,
+        "pending": 0,
+        "failed": 0,
+        "scope": "runtime"
+      }
+    },
+    "readOnlyAudit": {
+      "sessionMatchesPreReloadBytesAndHash": true,
+      "bindingMetadataVersion": 8,
+      "nativeRevision": 4,
+      "confirmedCommandCount": 4,
+      "noAdditionalGoalChangeEvents": true,
+      "lastGoalVerificationPreserved": true,
+      "goalVerifiedEventCount": 1,
+      "goalVerifiedEventIds": [
+        "02fb6d9a-3910-4a74-a39d-3f1865819a1f"
+      ],
+      "goalVerifiedSubscriptionTypePresent": true,
+      "currentEventCounts": {
+        "published": 14,
+        "pending": 0,
+        "failed": 0,
+        "scope": "all scopes"
+      },
+      "comparisonBasis": "pre-reload root audit reported Session bytes/hash, binding version 8/native revision 4 and four confirmed commands; this post-reload exact read matches those fields",
+      "eventCountsByScope": {
+        "local-owner": 1,
+        "runtime": 13
+      },
+      "eventCountsByScopeAndType": [
+        {
+          "scope": "local-owner",
+          "type": "task.succeeded",
+          "count": 1
+        },
+        {
+          "scope": "runtime",
+          "type": "runtime.goal.verified",
+          "count": 1
+        },
+        {
+          "scope": "runtime",
+          "type": "runtime.lifecycle.changed",
+          "count": 9
+        },
+        {
+          "scope": "runtime",
+          "type": "runtime.model.verified",
+          "count": 1
+        },
+        {
+          "scope": "runtime",
+          "type": "runtime.session.probed",
+          "count": 2
+        }
+      ],
+      "eventCountExplanation": "The UI/runtime principal counts scope runtime (13). The audit counted all DB scopes (14), including one local-owner/task.succeeded event. These totals differ by scope, not evidence of an asynchronous new event."
+    }
+  },
+  "limitations": [
+    "A bounded lifecycle verification for one already succeeded synthetic local artifact Task; not a core planning loop or autonomous Goal-round execution.",
+    "inferenceRequested=false describes this service. This exact native Session contains zero user/request/assistant/title-LLM/compaction events and roundsStarted=0; unrelated host/model traffic is not assessed.",
+    "Orderly plugin reload preserves historical verification and does not replay Goal commands. It does not establish process-crash recovery or prove a fresh active-session Goal recovery API call.",
+    "The original Task used bounded model inference in phase 2; this Goal lifecycle check did not repeat that Task or its model calls.",
+    "No external account, device or message delivery was used."
+  ]
+}

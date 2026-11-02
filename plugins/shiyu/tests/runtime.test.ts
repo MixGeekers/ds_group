@@ -9,6 +9,14 @@ import { defaultModel, sessionBindingKey } from '../src/adapters/dsh/sessions.js
 import type { DshContext, ReplyRequest, ReplyResult } from '../src/adapters/dsh/sessions.js';
 import { readCommand, serveCommand, serveState } from '../src/index.js';
 import type { WorkerRunRequest, WorkerRunResult } from '../src/adapters/dsh/workers.js';
+import type { GoalLifecycleResult, GoalLifecycleRunOptions } from '../src/control/goal-lifecycle.js';
+
+class FakeGoals {
+  calls = 0;
+  async initialize() {}
+  async run(_taskId: string, _options: GoalLifecycleRunOptions): Promise<GoalLifecycleResult> { this.calls++; throw new Error('Synthetic Goal driver was not configured'); }
+  async close() {}
+}
 
 class FakeWorkers {
   calls = 0;
@@ -36,14 +44,48 @@ async function fixture(t: any, allowCloseFailure = false) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'shiyu-runtime-test-'));
   const fake = new FakeSessions();
   const workers = new FakeWorkers();
-  const create = () => new RuntimeService({} as DshContext, { dataDir: directory }, { sessionFactory: () => fake, workerFactory: () => workers });
+  const goals = new FakeGoals();
+  const create = () => new RuntimeService({} as DshContext, { dataDir: directory }, { sessionFactory: () => fake, workerFactory: () => workers, goalFactory: () => goals });
   const runtime = create(); await runtime.init();
   t.after(async () => { try { await runtime.close(); } catch (error) { if (!allowCloseFailure) throw error; } finally { await rm(directory, { recursive: true, force: true }); } });
-  return { directory, fake, workers, runtime, create };
+  return { directory, fake, workers, goals, runtime, create };
 }
 function syntheticReply(request: ReplyRequest, text: string): ReplyResult {
   return { text, usage: { status: 'unknown' }, binding: { key: sessionBindingKey('replyer', request.businessId, request.scope), role: 'replyer', businessId: request.businessId, scope: request.scope, sessionId: 'shiyu-replyer-synthetic-model-check', model: defaultModel('replyer'), status: 'idle', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), usage: { status: 'unknown' } } };
 }
+
+test('explicit Goal verification reports native evidence without inference and becomes historical on reload', async t => {
+  const { runtime, goals, fake, workers, create } = await fixture(t);
+  const taskId = 'a'.repeat(32);
+  goals.run = async (id, options) => {
+    goals.calls++; options.signal.throwIfAborted(); options.progress('原生完成核对');
+    return { verified: true, taskId: id, goalId: `artifact-validation:${id}`, nativeGoalId: 'synthetic-native-goal', sessionId: 'shiyu-goal-synthetic', nativePhase: 'complete', inferenceRequested: false, operations: ['create', 'pause', 'resume', 'complete'] };
+  };
+  const result: any = await runtime.command({ action: 'goal.verify-lifecycle', taskId });
+  assert.equal(result.verified, true); assert.equal(result.taskId, taskId);
+  assert.equal((await runtime.snapshot()).dependencies.find(d => d.id === 'native-goal')?.status, 'available');
+  await runtime.snapshot(); await runtime.snapshot();
+  assert.equal(goals.calls, 1); assert.equal(fake.generations, 0); assert.equal(workers.calls, 0);
+  await runtime.close(); const fresh = create(); await fresh.init();
+  try { assert.equal((await fresh.snapshot()).dependencies.find(d => d.id === 'native-goal')?.status, 'unknown'); assert.equal(goals.calls, 1); }
+  finally { await fresh.close(); }
+});
+
+test('Goal validation rejects public authority fields and respects immediate runtime pause', async t => {
+  const { runtime, goals } = await fixture(t);
+  const taskId = 'b'.repeat(32);
+  await assert.rejects(runtime.command({ action: 'goal.verify-lifecycle', taskId, ownerId: 'forged' }), /Invalid Goal validation/);
+  assert.equal(goals.calls, 0);
+  let started!: () => void;
+  const began = new Promise<void>(resolve => { started = resolve; });
+  goals.run = async (_id, options) => { goals.calls++; started(); return new Promise((_resolve, reject) => { options.signal.addEventListener('abort', () => reject(new Error('Goal verification cancelled')), { once: true }); }); };
+  const running = runtime.command({ action: 'goal.verify-lifecycle', taskId });
+  await began; await runtime.command({ action: 'runtime.pause' });
+  await assert.rejects(running, /cancelled/);
+  assert.equal(runtime.state.state.lastGoalVerification?.ok, false);
+  await assert.rejects(runtime.command({ action: 'goal.verify-lifecycle', taskId }), /paused/);
+  assert.equal(goals.calls, 1); assert.equal(runtime.operations.size, 0);
+});
 
 test('explicit model verification uses exactly two bounded turns and one Session without sending', async t => {
   const { runtime, fake } = await fixture(t);

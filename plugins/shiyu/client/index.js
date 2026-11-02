@@ -50,6 +50,11 @@ window.__ModuleLoader__.load({
       localTaskHint: '仅在识雨本体的专属目录写入 note.txt。使用 deepseek-v4.1-flash（high），最多 2 个模型步骤，输出总预算 1024 tokens。',
       localTaskLimits: '受理后由后台执行，独立核验内容与回执后才算成功。不会自动启动或重试；暂停运行可取消在途模型，未确认的结果会保留为未知。',
       localTaskAccepted: '本地任务已受理（{id}）；是否完成以任务状态和独立核验为准。', localTaskUnconfirmed: '本地任务受理回执不完整，受理结果未确认。请刷新任务状态；不会自动重试。', taskNotInSnapshot: '当前快照尚未包含选中的任务记录。',
+      goalVerifyTitle: '原生 Goal 生命周期', goalVerify: '检查原生 Goal 生命周期（零推理）', goalVerifying: '正在检查原生 Goal 生命周期…',
+      goalVerifyHint: '使用最近已成功的本地任务，重新核验产物，再检查目标的创建、暂停、恢复和完成。不会请求模型推理或发送消息。',
+      goalVerifyNeedsTask: '请先完成本地任务验证', goalVerifyTask: '检查依据任务', goalVerifyDone: '原生 Goal 生命周期检查通过：创建、暂停、恢复和完成已确认，未请求模型推理。',
+      goalVerifyUnconfirmed: '原生 Goal 检查回执未完整确认任务、目标、会话、完成状态、零推理及四步操作链；结果未确认。',
+      goalVerifyReceipt: '本次 Goal 检查回执', goalId: '识雨目标 ID', nativeGoalId: '原生 Goal ID', nativePhase: '原生阶段', goalOperations: '已确认操作链', inferenceRequested: '模型推理请求', noInferenceRequested: '未请求',
       commandFailed: '操作未完成', commandUncertain: '操作结果未确认，请先刷新状态再决定下一步。', requestFailed: '请求失败',
       controlPending: '正在处理请求…', close: '关闭详情', phase: '阶段', checked: '最近检查', source: '来自运行快照',
     };
@@ -99,6 +104,11 @@ window.__ModuleLoader__.load({
       localTaskHint: 'Writes only note.txt in Shiyu’s dedicated directory. Uses deepseek-v4.1-flash (high), at most 2 model steps, and a total output budget of 1,024 tokens.',
       localTaskLimits: 'Runs in the background after admission. Success requires independent content and receipt verification. No automatic start or retry. Pause runtime cancels in-flight model work; unconfirmed outcomes remain unknown.',
       localTaskAccepted: 'Local task accepted ({id}). Completion depends on its task state and independent verification.', localTaskUnconfirmed: 'The task admission receipt is incomplete; acceptance is unconfirmed. Refresh task state. No automatic retry will occur.', taskNotInSnapshot: 'The selected task record is not in the current snapshot yet.',
+      goalVerifyTitle: 'Native Goal lifecycle', goalVerify: 'Check native Goal lifecycle (no inference)', goalVerifying: 'Checking native Goal lifecycle…',
+      goalVerifyHint: 'Uses the latest successful local task, rechecks its artifact, then checks Goal creation, pause, resume, and completion. No model inference or outbound message is requested.',
+      goalVerifyNeedsTask: 'Complete local task validation first', goalVerifyTask: 'Task used for this check', goalVerifyDone: 'Native Goal lifecycle checked: creation, pause, resume, and completion confirmed, with no model inference requested.',
+      goalVerifyUnconfirmed: 'The Goal receipt does not fully confirm the task, Goal, Session, completion, no inference, and the four-step operation sequence. The result is unconfirmed.',
+      goalVerifyReceipt: 'Goal check receipt', goalId: 'Shiyu Goal ID', nativeGoalId: 'Native Goal ID', nativePhase: 'Native phase', goalOperations: 'Confirmed operation sequence', inferenceRequested: 'Model inference requested', noInferenceRequested: 'Not requested',
       commandFailed: 'Operation did not complete', commandUncertain: 'The result is unconfirmed. Refresh the state before deciding what to do next.', requestFailed: 'Request failed',
       controlPending: 'Processing request…', close: 'Close details', phase: 'Phase', checked: 'Last checked', source: 'From the runtime snapshot',
     };
@@ -181,6 +191,7 @@ window.__ModuleLoader__.load({
           const [controlCommand, setControlCommand] = useState('');
           const [controlError, setControlError] = useState('');
           const [controlNotice, setControlNotice] = useState('');
+          const [goalReceipt, setGoalReceipt] = useState(null);
           const rootRef = useRef(null);
           const operations = useRef({ refresh: () => {}, command: () => {} });
           useEffect(() => {
@@ -216,6 +227,7 @@ window.__ModuleLoader__.load({
               const setNotice = isControl ? setControlNotice : setCommandNotice;
               if (isControl) controlInFlight = true; else commandInFlight = true;
               setPending(action); setError(''); setNotice('');
+              if (action === 'goal.verify-lifecycle') setGoalReceipt(null);
               const controller = new AbortController(); writes.add(controller);
               let timedOut = false;
               const timeout = setTimeout(() => { timedOut = true; controller.abort(); }, action === 'session.verify-model' ? 250000 : 20000);
@@ -225,14 +237,24 @@ window.__ModuleLoader__.load({
                 if (action === 'session.probe' && (result?.ready !== true || result?.noModelCalled !== true || result?.released !== true || result?.archived !== true)) throw new Error(t('probeUnconfirmed'));
                 if (action === 'session.verify-model' && (result?.verified !== true || result?.calls !== 2 || result?.sameSession !== true || result?.sent !== false)) throw new Error(t('modelVerifyUnconfirmed'));
                 if (action === 'task.createLocal' && (result?.accepted !== true || typeof result?.task?.taskId !== 'string' || !result.task.taskId.trim())) throw new Error(t('localTaskUnconfirmed'));
+                if (action === 'goal.verify-lifecycle' && (result?.verified !== true || result?.taskId !== payload.taskId
+                  || !['goalId', 'nativeGoalId', 'sessionId'].every(key => typeof result?.[key] === 'string' && Boolean(result[key].trim()))
+                  || result?.nativePhase !== 'complete' || result?.inferenceRequested !== false
+                  || !Array.isArray(result?.operations) || result.operations.length !== 4
+                  || !['create', 'pause', 'resume', 'complete'].every((operation, index) => result.operations[index] === operation))) throw new Error(t('goalVerifyUnconfirmed'));
                 if (!alive || disposed) return;
                 if (action === 'task.createLocal') {
                   // Admission is a receipt, not a task outcome or a replacement snapshot.
                   setNotice(t('localTaskAccepted', { id: result.task.taskId }));
                   setSelectedTask(result.task.taskId); setTab('tasks');
                 }
+                if (action === 'goal.verify-lifecycle') {
+                  setGoalReceipt({ taskId: result.taskId, goalId: result.goalId, nativeGoalId: result.nativeGoalId, sessionId: result.sessionId,
+                    nativePhase: result.nativePhase, inferenceRequested: result.inferenceRequested, operations: [...result.operations] });
+                  setNotice(t('goalVerifyDone'));
+                }
                 const refreshed = await refresh(true);
-                if (alive && !disposed && refreshed && action !== 'task.createLocal') setNotice(t(action === 'session.probe' ? 'probeDone' : action === 'session.verify-model' ? 'modelVerifyDone' : action === 'runtime.pause' ? 'pausedDone' : 'resumedDone'));
+                if (alive && !disposed && refreshed && action !== 'task.createLocal' && action !== 'goal.verify-lifecycle') setNotice(t(action === 'session.probe' ? 'probeDone' : action === 'session.verify-model' ? 'modelVerifyDone' : action === 'runtime.pause' ? 'pausedDone' : 'resumedDone'));
               } catch (error) {
                 if (alive && !disposed) { setError(timedOut && action === 'session.verify-model' ? t('modelVerifyTimeout') : controller.signal.aborted ? t('commandUncertain') : error.message || t('commandFailed')); await refresh(true); }
               } finally {
@@ -275,6 +297,9 @@ window.__ModuleLoader__.load({
           const work = arr(snapshot?.activeWork), activities = arr(snapshot?.activities), sessions = arr(snapshot?.sessions);
           const systems = arr(snapshot?.systems), dependencies = arr(snapshot?.dependencies), notices = arr(snapshot?.notices);
           const tasksConnected = Array.isArray(snapshot?.tasks), tasks = arr(snapshot?.tasks);
+          const goalTask = tasks.filter(item => item.state === 'succeeded' && typeof item.taskId === 'string' && Boolean(item.taskId.trim())
+            && arr(item.inputRefs).includes(`local-input:${item.taskId}`) && Number.isFinite(Date.parse(item.updatedAt)))
+            .sort((a, b) => Date.parse(b.updatedAt) - Date.parse(a.updatedAt) || a.taskId.localeCompare(b.taskId))[0];
           const task = tasks.find(item => item.taskId === selectedTask);
           const selected = sessions.find(session => session.id === selectedSession);
           const hostState = session => ['idle', 'running', 'not_attached'].includes(session.hostStatus) ? session.hostStatus : 'unknown';
@@ -345,6 +370,12 @@ window.__ModuleLoader__.load({
               h('section', { className: 'syr-box syr-diagnostic-head' }, h('div', null, h('h2', null, t('diagnostics')), h('p', { className: 'syr-small syr-muted' }, t('probeHint'))), h(Button, { disabled: !canStartCommand, onClick: () => void operations.current.command('session.probe') }, t(command === 'session.probe' ? 'probing' : 'probe'))),
               h('section', { className: 'syr-box syr-diagnostic-head', 'data-testid': 'model-verification' }, h('div', null, h('h2', null, t('modelVerifyTitle')), h('p', { className: 'syr-small syr-muted' }, t('modelVerifyHint')), h('p', { className: 'syr-small syr-muted syr-break' }, t('modelVerifyLimits'))), h(Button, { disabled: !canStartCommand, onClick: () => void operations.current.command('session.verify-model') }, t(command === 'session.verify-model' ? 'modelVerifying' : 'modelVerify'))),
               h('section', { className: 'syr-box syr-diagnostic-head', 'data-testid': 'local-task-validation' }, h('div', null, h('h2', null, t('localTaskTitle')), h('p', { className: 'syr-small syr-muted' }, t('localTaskHint')), h('p', { className: 'syr-small syr-muted' }, t('localTaskLimits'))), h(Button, { disabled: !canCreateLocalTask, onClick: () => void operations.current.command('task.createLocal', { requestId: `local-validation-${snapshot.instanceId}`, title: '本地任务链路验证', content: '识雨本地任务验证：受限 worker 写入专属产物，独立核验内容与回执。' }) }, t(command === 'task.createLocal' ? 'localTaskStarting' : 'localTaskRun'))),
+              h('section', { className: 'syr-box', 'data-testid': 'goal-verification' },
+                h('div', { className: 'syr-diagnostic-head' }, h('div', null, h('h2', null, t('goalVerifyTitle')), h('p', { className: 'syr-small syr-muted' }, t('goalVerifyHint'))),
+                  h(Button, { disabled: !canStartCommand || !goalTask, onClick: () => { if (goalTask) void operations.current.command('goal.verify-lifecycle', { taskId: goalTask.taskId }); } }, t(command === 'goal.verify-lifecycle' ? 'goalVerifying' : 'goalVerify'))),
+                h('p', { className: 'syr-small syr-muted syr-break syr-section-gap' }, goalTask ? `${t('goalVerifyTask')} · ${text(goalTask.title)} (${goalTask.taskId})` : t('goalVerifyNeedsTask')),
+                goalReceipt && h('section', { className: 'syr-task-result', 'aria-label': t('goalVerifyReceipt'), 'data-testid': 'goal-verification-receipt' }, h(Title, null, t('goalVerifyReceipt')),
+                  h(Facts, { rows: [['taskId', goalReceipt.taskId, true], ['goalId', goalReceipt.goalId, true], ['nativeGoalId', goalReceipt.nativeGoalId, true], ['sessionId', goalReceipt.sessionId, true], ['nativePhase', goalReceipt.nativePhase, true], ['goalOperations', goalReceipt.operations.join(' → '), true], ['inferenceRequested', t('noInferenceRequested')]] }))),
               h('div', { className: 'syr-columns' },
                 h('section', { className: 'syr-box' }, h(Title, null, t('dependencies')), dependencies.length ? dependencies.map(item => h('div', { key: item.id, className: 'syr-dependency' }, h('div', { className: 'syr-row syr-between' }, h('h3', null, item.name), h(Status, { value: item.status })), h('p', null, item.summary), item.checkedAt && h('p', null, `${t('checked')} · ${dateTime(item.checkedAt, locale)}`))) : h(Empty, null, t('noDependencies'))),
                 h('section', { className: 'syr-box' }, h(Title, null, t('usage')), h(Facts, { rows: [['calls', numeric(snapshot.usage?.calls)], ...usageRows(snapshot.usage)] }), h('p', { className: 'syr-small syr-muted syr-section-gap' }, t('usageHint')))),

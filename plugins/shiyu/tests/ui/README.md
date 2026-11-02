@@ -15,3 +15,5 @@ npx playwright test --config tests/ui/playwright.config.mjs
 `session.verify-model` 在此服务中只返回明确标记的合成回执，可通过测试控制端点延迟、删除确认字段或返回错误。测试验证显式发起、两轮回执确认、独立暂停通道和 250 秒客户端等待上限；界面中的模型名与合成 token 数不代表发生过真实调用。
 
 `task.createLocal` 只在测试服务内存中按 `requestId` 保留合成任务。可延迟或丢失受理回执，任务仍能由合成 GET 快照读取；不会创建 `note.txt`、执行 worker 或调用模型。定向运行该交互检查：`npm run test:ui -- task-validation.spec.js`。
+
+`goal.verify-lifecycle` 仅返回合成的任务／Goal／Session 标识和四步回执，不创建真实 Goal、Session 或 Task。相关测试核对最近成功本地任务的选择、严格回执字段及独立暂停通道：`npm run test:ui -- goal-verification.spec.js`。

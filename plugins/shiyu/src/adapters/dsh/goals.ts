@@ -1,0 +1,401 @@
+import { createHash } from 'node:crypto';
+import { isAbsolute, resolve } from 'node:path';
+import { defaultModel } from './sessions.js';
+import { pinOwnedSessionTitle } from './session-title.js';
+import type { DshAgent, DshAgentContext, DshAgentHandle, DshContext } from './sessions.js';
+
+type Disposer = () => void | Promise<void>;
+export interface NativeGoalRef { id: string; revision: number }
+export interface NativeGoalView extends NativeGoalRef {
+  objective: string;
+  phase: 'active' | 'paused' | 'blocked' | 'complete';
+  maxGoalRounds: number;
+  roundsStarted: number;
+  createdAt: number;
+  updatedAt: number;
+  activation: 'armed' | 'disarmed';
+  blockedReason?: { code: string; message: string };
+}
+export type GoalWriteOperation = 'create' | 'update' | 'pause' | 'resume' | 'complete';
+export interface GoalCommandReceipt {
+  commandId: string;
+  operation: GoalWriteOperation;
+  status: 'pending' | 'unknown' | 'confirmed' | 'rejected';
+  expectedRef?: NativeGoalRef;
+  /** Hash of an intended native postcondition; this is not a stored Goal phase. */
+  postconditionHash: string;
+  observedRef?: NativeGoalRef;
+  evidenceRefs?: string[];
+  /** Evidence identity received from the trusted authority before native complete. */
+  completionProof?: GoalCompletionProof;
+  reason?: string;
+}
+/** References and cross-store command facts only. The native Session owns Goal state. */
+export interface GoalBinding {
+  goalId: string;
+  sessionId: string;
+  ownerId: string;
+  scope: string;
+  cwd: string;
+  completionCriteriaHash: string;
+  metadataVersion: number;
+  goalRef?: NativeGoalRef;
+  receipt?: GoalCommandReceipt;
+}
+export interface GoalBindingPort {
+  load(goalId: string): Promise<GoalBinding | undefined>;
+  loadCommand(goalId: string, commandId: string): Promise<GoalCommandReceipt | undefined>;
+  /**
+   * Durable atomic binding CAS plus receipt history. undefined requires no
+   * binding. Existing command identity must never change; only its receipt
+   * status/observedRef/reason may advance. Ownership and Session identity stay
+   * fixed. A historical command cannot become a new current command.
+   */
+  compareAndSet(expectedMetadataVersion: number | undefined, binding: GoalBinding): Promise<void>;
+}
+export interface GoalCompletionProof {
+  goalRef: NativeGoalRef;
+  completionCriteriaHash: string;
+  evidenceRefs: string[];
+  verifierId: string;
+  verifiedAt: string;
+}
+export interface GoalAuthorityContext {
+  operation: GoalWriteOperation | 'read' | 'recover';
+  goalId: string;
+  ownerId: string;
+  scope: string;
+  completionCriteriaHash: string;
+  expectedRef?: NativeGoalRef;
+  changes?: { objective?: string; maxGoalRounds?: number };
+}
+export type GoalAuthorityVerdict = { allowed: false; reason?: string } | {
+  allowed: true;
+  kind: 'owner' | 'mandate';
+  ownerId: string;
+  scope: string;
+  expiresAt: string;
+  mandateId?: string;
+  mandateVersion?: number;
+  authEpoch?: number;
+  /** Produced by an independent trusted verifier, never accepted from model text. */
+  completion?: GoalCompletionProof;
+};
+export interface GoalAuthority {
+  /** Authenticate the opaque capability and current policy; a JSON 'trusted' flag is not a capability. */
+  authorize(capability: object, context: Readonly<GoalAuthorityContext>): GoalAuthorityVerdict | Promise<GoalAuthorityVerdict>;
+}
+export interface GoalCreateRequest {
+  goalId: string;
+  ownerId: string;
+  scope: string;
+  cwd: string;
+  completionCriteriaHash: string;
+  objective: string;
+  maxGoalRounds?: number;
+  commandId: string;
+  capability: object;
+  signal?: AbortSignal;
+}
+export interface GoalMutationRequest { goalId: string; expectedRef: NativeGoalRef; commandId: string; capability: object; signal?: AbortSignal }
+export interface GoalReadResult { binding: GoalBinding; native: NativeGoalView | undefined }
+export interface GoalRecoveryResult extends GoalReadResult { reconciliation: 'consistent' | 'confirmed' | 'not_observed' | 'conflict' }
+export class GoalOperationUnknownError extends Error {
+  readonly code = 'GOAL_OPERATION_UNKNOWN';
+  constructor(readonly binding: GoalBinding, cause: unknown) { super('Native Goal outcome requires reconciliation; the command was not replayed', { cause }); this.name = 'GoalOperationUnknownError'; }
+}
+interface NativeGoals {
+  get(agent: DshAgent): NativeGoalView | undefined;
+  create(agent: DshAgent, request: { objective: string; maxGoalRounds: number }): NativeGoalView;
+  edit(agent: DshAgent, ref: NativeGoalRef, changes: { objective?: string; maxGoalRounds?: number }): NativeGoalView;
+  pause(agent: DshAgent, ref: NativeGoalRef): NativeGoalView;
+  resume(agent: DshAgent, ref: NativeGoalRef): NativeGoalView;
+  complete(agent: DshAgent, ref: NativeGoalRef): NativeGoalView;
+  disarm(agent: DshAgent): NativeGoalView | undefined;
+}
+interface SessionOwner { creation?: Promise<DshAgentHandle>; handle?: DshAgentHandle; disposers: Disposer[]; release?: Promise<void> }
+export interface GoalAdapterOptions { ctx: DshContext; bindings: GoalBindingPort; authority: GoalAuthority; now?: () => number }
+export const GOAL_PRESET_ID = 'shiyu-runtime-goal-v1';
+const PREFIX = 'shiyu-goal-';
+
+function text(value: unknown, name: string, limit = 2048): string {
+  if (typeof value !== 'string' || !value.trim() || value.length > limit) throw new Error(`Invalid ${name}`); return value;
+}
+function integer(value: unknown, name: string, max = Number.MAX_SAFE_INTEGER): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1 || value > max) throw new Error(`Invalid ${name}`); return value;
+}
+function ref(value: NativeGoalRef): NativeGoalRef { return { id: text(value?.id, 'native Goal id'), revision: integer(value?.revision, 'native Goal revision') }; }
+function sameRef(a?: NativeGoalRef, b?: NativeGoalRef): boolean { return a?.id === b?.id && a?.revision === b?.revision; }
+function digest(value: unknown): string { return createHash('sha256').update(JSON.stringify(value)).digest('hex'); }
+function sessionId(binding: Pick<GoalBinding, 'goalId' | 'ownerId' | 'scope'>): string { return PREFIX + digest([binding.goalId, binding.ownerId, binding.scope]); }
+function postcondition(value: Pick<NativeGoalView, 'objective' | 'maxGoalRounds' | 'phase' | 'revision'>): string { return digest([value.objective, value.maxGoalRounds, value.phase, value.revision]); }
+/** Stable command identity for the durable port; excludes reconciliation status. */
+export function goalCommandIdentity(receipt: GoalCommandReceipt): string {
+  const expected = receipt.expectedRef;
+  return digest([receipt.commandId, receipt.operation, expected ? [expected.id, expected.revision] : null, receipt.postconditionHash,
+    receipt.evidenceRefs ?? null, receipt.completionProof ? proofIdentity(receipt.completionProof) : null]);
+}
+function proofMatches(proof: GoalCompletionProof | undefined, binding: GoalBinding, expectedRef: NativeGoalRef | undefined, now: number): proof is GoalCompletionProof {
+  return Boolean(proof && expectedRef && sameRef(proof.goalRef, expectedRef) && proof.completionCriteriaHash === binding.completionCriteriaHash
+    && Array.isArray(proof.evidenceRefs) && proof.evidenceRefs.length > 0 && proof.evidenceRefs.length <= 64
+    && proof.evidenceRefs.every(value => typeof value === 'string' && value.trim().length > 0 && value.length <= 2048)
+    && typeof proof.verifierId === 'string' && proof.verifierId.trim().length > 0 && proof.verifierId.length <= 2048
+    && Number.isFinite(Date.parse(proof.verifiedAt)) && Date.parse(proof.verifiedAt) <= now);
+}
+function proofIdentity(proof: GoalCompletionProof): string { return digest([proof.goalRef.id, proof.goalRef.revision, proof.completionCriteriaHash, proof.evidenceRefs, proof.verifierId, proof.verifiedAt]); }
+function snapshot(value: NativeGoalView | undefined): NativeGoalView | undefined {
+  if (value === undefined) return undefined;
+  ref(value); text(value.objective, 'native Goal objective', 64000); integer(value.maxGoalRounds, 'native round limit');
+  if (!['active', 'paused', 'blocked', 'complete'].includes(value.phase) || !['armed', 'disarmed'].includes(value.activation)) throw new Error('Unsupported native Goal view');
+  return structuredClone(value);
+}
+function errorText(error: unknown): string { return (error instanceof Error ? error.message : String(error)).slice(0, 500); }
+
+/** A native Goal lifecycle seam. It never schedules rounds or stores a second Goal state. */
+export class GoalSessionAdapter {
+  private initialized?: Promise<void>;
+  private readonly locks = new Map<string, Promise<unknown>>();
+  private readonly owners = new Set<SessionOwner>();
+  private readonly composed = new WeakSet<DshAgent>();
+  private readonly cleanupFailures: unknown[] = [];
+  private presetDispose?: Disposer;
+  private createdDispose?: Disposer;
+  private closed = false;
+  private closing?: Promise<void>;
+  private readonly shutdown = new AbortController();
+  constructor(private readonly options: GoalAdapterOptions) {}
+  private now(): number { return this.options.now?.() ?? Date.now(); }
+  private assertOpen(): void { if (this.closed) throw new Error('Goal adapter is closed'); }
+  private goals(): NativeGoals { return this.options.ctx.get('goals'); }
+  async initialize(): Promise<void> {
+    this.assertOpen();
+    return this.initialized ??= (async () => {
+      const { ctx } = this.options, goals = this.goals(), presets = ctx.get('agentPresets');
+      if (!goals || ['get', 'create', 'edit', 'pause', 'resume', 'complete', 'disarm'].some(name => typeof (goals as any)[name] !== 'function') || !ctx.get('sessionProjections') || !ctx.get('sessionPersistence') || typeof ctx.get('sessions')?.flush !== 'function' || typeof presets?.register !== 'function') throw new Error('Required native Goal, projection, persistence, flush and preset services are unavailable');
+      this.presetDispose = await presets.register({ id: GOAL_PRESET_ID, name: '识雨目标权威会话', description: 'Lifecycle only; Shiyu controls all execution admission.', plugins: [] });
+      this.assertOpen();
+      this.createdDispose = ctx.on('agent/created', ({ agent }: { agent: DshAgent }) => this.protectResumed(agent));
+      for (const agent of ctx.agents.list()) this.protectResumed(agent);
+    })();
+  }
+  private protectResumed(agent: DshAgent): void {
+    if (this.composed.has(agent) || (!agent.id.startsWith(PREFIX) && agent.session.header.agentPreset !== GOAL_PRESET_ID)) return;
+    agent.ctx.tools.guard(() => 'Managed Goal Session cannot execute directly.');
+    agent.ctx.on('agent/pre-step', async () => ({ kind: 'reject' }));
+    agent.cancel({ kind: 'hook', reason: 'Managed Goal activation rejected' });
+    throw new Error('Managed Goal Session must be recovered by Shiyu');
+  }
+  private serial<T>(goalId: string, work: () => Promise<T>): Promise<T> {
+    text(goalId, 'goalId'); this.assertOpen();
+    const pending = (this.locks.get(goalId) ?? Promise.resolve()).catch(() => {}).then(() => { this.assertOpen(); return work(); });
+    this.locks.set(goalId, pending);
+    void pending.finally(() => { if (this.locks.get(goalId) === pending) this.locks.delete(goalId); }).catch(() => {});
+    return pending;
+  }
+  private async load(goalId: string): Promise<GoalBinding> {
+    const value = await this.options.bindings.load(goalId);
+    if (!value) throw new Error('Goal binding not found');
+    if (value.goalId !== goalId || value.sessionId !== sessionId(value) || !isAbsolute(value.cwd) || value.cwd !== resolve(value.cwd) || !/^[a-f0-9]{64}$/.test(value.completionCriteriaHash)) throw new Error('Invalid Goal binding');
+    integer(value.metadataVersion, 'binding version'); text(value.ownerId, 'ownerId'); text(value.scope, 'scope'); if (value.goalRef) ref(value.goalRef);
+    return structuredClone(value);
+  }
+  private async save(binding: GoalBinding, patch: Partial<GoalBinding>): Promise<GoalBinding> {
+    const next = { ...binding, ...structuredClone(patch), metadataVersion: binding.metadataVersion + 1 };
+    await this.options.bindings.compareAndSet(binding.metadataVersion, next); return next;
+  }
+  private async authorize(binding: GoalBinding, capability: object, operation: GoalAuthorityContext['operation'], expectedRef?: NativeGoalRef, changes?: GoalAuthorityContext['changes']): Promise<Extract<GoalAuthorityVerdict, { allowed: true }>> {
+    this.assertOpen();
+    if (!capability || typeof capability !== 'object') throw new Error('Trusted Goal capability is required');
+    const context = Object.freeze({ operation, goalId: binding.goalId, ownerId: binding.ownerId, scope: binding.scope, completionCriteriaHash: binding.completionCriteriaHash, ...(expectedRef ? { expectedRef: Object.freeze(ref(expectedRef)) } : {}), ...(changes ? { changes: Object.freeze({ ...changes }) } : {}) });
+    const verdict = await this.options.authority.authorize(capability, context); this.assertOpen();
+    if (!verdict || verdict.allowed !== true || verdict.ownerId !== binding.ownerId || verdict.scope !== binding.scope || !['owner', 'mandate'].includes(verdict.kind) || !Number.isFinite(Date.parse(verdict.expiresAt)) || Date.parse(verdict.expiresAt) <= this.now()) throw new Error('Goal capability denied or expired');
+    if (verdict.kind === 'mandate') { text(verdict.mandateId, 'mandateId'); integer(verdict.mandateVersion, 'mandateVersion'); integer(verdict.authEpoch, 'authEpoch'); }
+    if (operation === 'resume' && verdict.kind !== 'owner') throw new Error('Only the trusted owner may resume a stopped Goal');
+    if (operation === 'complete') {
+      const proof = verdict.completion;
+      if (!proofMatches(proof, binding, expectedRef, this.now())) throw new Error('Independent Goal completion evidence is required');
+    }
+    return structuredClone(verdict);
+  }
+  private compose(owner: SessionOwner, binding: GoalBinding, ctx: DshAgentContext, agent: DshAgent): void {
+    if (agent.id !== binding.sessionId || agent.session.header.agentPreset !== GOAL_PRESET_ID || agent.session.header.cwd !== binding.cwd) throw new Error('Native Goal Session binding mismatch');
+    this.composed.add(agent);
+    owner.disposers.push(ctx.tools.presentAs('native'));
+    const denied = ctx.tools.schemas(agent).map(tool => tool.name).filter(name => name !== 'run_code');
+    if (denied.length) owner.disposers.push(ctx.tools.restrict({ deny: denied }));
+    owner.disposers.push(ctx.tools.guard(() => 'Goal lifecycle Sessions have no model tools.'));
+    owner.disposers.push(ctx.on('agent/pre-step', async () => ({ kind: 'reject' })));
+    owner.disposers.push(ctx.on('agent/request', async () => { throw new Error('Goal lifecycle Session cannot issue model requests'); }));
+    owner.disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: [] })));
+  }
+  private async withNative<T>(binding: GoalBinding, create: boolean, run: (agent: DshAgent) => Promise<T>, signal?: AbortSignal): Promise<T> {
+    const nativeSignal = signal ? AbortSignal.any([signal, this.shutdown.signal]) : this.shutdown.signal;
+    nativeSignal.throwIfAborted();
+    await this.initialize();
+    const owner: SessionOwner = { disposers: [] }; this.owners.add(owner);
+    try {
+      const shared = { agentOptions: { ...defaultModel('core'), maxTokens: 1 }, signal: nativeSignal, setup: (ctx: DshAgentContext, agent: DshAgent) => this.compose(owner, binding, ctx, agent) };
+      owner.creation = create ? this.options.ctx.agents.create({ ...shared, sessionId: binding.sessionId, meta: { cwd: binding.cwd, agentPreset: GOAL_PRESET_ID } }) : this.options.ctx.agents.resume({ ...shared, resumeSessionId: binding.sessionId });
+      owner.handle = await owner.creation; this.assertOpen(); nativeSignal.throwIfAborted();
+      // Native recovery is disarmed; explicitly fence this exact owner as well.
+      this.goals().disarm(owner.handle.agent);
+      await pinOwnedSessionTitle(this.options.ctx, owner.handle.agent.session, '识雨目标权威会话');
+      this.assertOpen(); nativeSignal.throwIfAborted();
+      return await run(owner.handle.agent);
+    } finally { await this.release(owner); }
+  }
+  private async release(owner: SessionOwner): Promise<void> {
+    return owner.release ??= (async () => {
+      const handle = owner.handle ?? await owner.creation?.catch(() => undefined);
+      const failures: unknown[] = []; let disposed = !handle;
+      if (handle) {
+        try { this.goals().disarm(handle.agent); } catch (error) { failures.push(error); }
+        try { handle.agent.cancel({ kind: 'hook', reason: 'Goal lifecycle operation released' }); await handle.dispose(); disposed = true; } catch (error) { failures.push(error); }
+      }
+      if (disposed) {
+        for (const dispose of owner.disposers.splice(0).reverse()) { try { await dispose(); } catch (error) { failures.push(error); } }
+        this.owners.delete(owner);
+      }
+      if (failures.length) throw new AggregateError(failures, 'Native Goal Session release failed');
+    })().catch(error => { this.cleanupFailures.push(error); throw error; });
+  }
+  private async flushRead(agent: DshAgent): Promise<NativeGoalView | undefined> {
+    if (await this.options.ctx.get('sessions').flush(agent.session) !== true) throw new Error('Native Goal durability listener is absent');
+    this.assertOpen(); return snapshot(this.goals().get(agent));
+  }
+  private async unknown(binding: GoalBinding, cause: unknown): Promise<never> {
+    const receipt = binding.receipt!;
+    try { binding = await this.save(binding, { receipt: { ...receipt, status: 'unknown', reason: errorText(cause) } }); } catch { /* The pending durable receipt remains the recovery fence. */ }
+    throw new GoalOperationUnknownError(structuredClone(binding), cause);
+  }
+  async create(request: GoalCreateRequest): Promise<GoalReadResult> {
+    return this.serial(request.goalId, async () => {
+      request.signal?.throwIfAborted();
+      const objective = text(request.objective, 'objective', 64000).trim(), maxGoalRounds = integer(request.maxGoalRounds ?? 32, 'maxGoalRounds', 256);
+      if (!isAbsolute(request.cwd) || !/^[a-f0-9]{64}$/.test(request.completionCriteriaHash)) throw new Error('Invalid Goal cwd or completion criteria hash');
+      let binding: GoalBinding = { goalId: text(request.goalId, 'goalId'), sessionId: '', ownerId: text(request.ownerId, 'ownerId'), scope: text(request.scope, 'scope'), cwd: resolve(request.cwd), completionCriteriaHash: request.completionCriteriaHash, metadataVersion: 1,
+        receipt: { commandId: text(request.commandId, 'commandId'), operation: 'create', status: 'pending', postconditionHash: postcondition({ objective, maxGoalRounds, phase: 'active', revision: 1 }) } };
+      binding.sessionId = sessionId(binding);
+      await this.authorize(binding, request.capability, 'create', undefined, { objective, maxGoalRounds });
+      if (await this.options.bindings.load(binding.goalId)) throw new Error('Goal binding already exists; recover instead of replaying create');
+      if (await this.options.bindings.loadCommand(binding.goalId, request.commandId)) throw new Error('Goal commandId was already accepted; read or recover instead of replaying');
+      await this.options.bindings.compareAndSet(undefined, structuredClone(binding));
+      try {
+        return await this.withNative(binding, true, async agent => {
+          await this.authorize(binding, request.capability, 'create', undefined, { objective, maxGoalRounds });
+          request.signal?.throwIfAborted();
+          // Keep these synchronous: create arms, disarm must precede the driver's awaited checkpoint.
+          try { this.goals().create(agent, { objective, maxGoalRounds }); }
+          finally { this.goals().disarm(agent); }
+          const native = await this.flushRead(agent);
+          request.signal?.throwIfAborted();
+          if (!native || postcondition(native) !== binding.receipt!.postconditionHash || native.activation !== 'disarmed') throw new Error('Native Goal create read-back mismatch');
+          binding = await this.save(binding, { goalRef: ref(native), receipt: { ...binding.receipt!, status: 'confirmed', observedRef: ref(native) } });
+          return { binding, native };
+        }, request.signal);
+      } catch (error) { return this.unknown(binding, error); }
+    });
+  }
+  async read(goalId: string, capability: object): Promise<GoalReadResult> {
+    return this.serial(goalId, async () => {
+      const binding = await this.load(goalId); await this.authorize(binding, capability, 'read');
+      // Opening an exact restricted native Agent is necessary: cold wire projection hides replay failures.
+      return this.withNative(binding, false, async agent => { await this.authorize(binding, capability, 'read'); return { binding, native: snapshot(this.goals().get(agent)) }; });
+    });
+  }
+  async update(request: GoalMutationRequest & { objective?: string; maxGoalRounds?: number }): Promise<GoalReadResult> {
+    const changes = { ...(request.objective === undefined ? {} : { objective: text(request.objective, 'objective', 64000).trim() }), ...(request.maxGoalRounds === undefined ? {} : { maxGoalRounds: integer(request.maxGoalRounds, 'maxGoalRounds', 256) }) };
+    if (!Object.keys(changes).length) throw new Error('Goal update requires a replacement field');
+    return this.mutate('update', request, changes);
+  }
+  async pause(request: GoalMutationRequest): Promise<GoalReadResult> { return this.mutate('pause', request); }
+  async resume(request: GoalMutationRequest): Promise<GoalReadResult> { return this.mutate('resume', request); }
+  async complete(request: GoalMutationRequest): Promise<GoalReadResult> { return this.mutate('complete', request); }
+  private mutate(operation: Exclude<GoalWriteOperation, 'create'>, request: GoalMutationRequest, changes?: GoalAuthorityContext['changes']): Promise<GoalReadResult> {
+    return this.serial(request.goalId, async () => {
+      request.signal?.throwIfAborted();
+      let binding = await this.load(request.goalId); const expectedRef = ref(request.expectedRef); text(request.commandId, 'commandId');
+      if (binding.receipt && ['pending', 'unknown'].includes(binding.receipt.status)) throw new Error('Unresolved Goal command requires recovery');
+      const entryGrant = await this.authorize(binding, request.capability, operation, expectedRef, changes);
+      if (await this.options.bindings.loadCommand(binding.goalId, request.commandId)) throw new Error('Goal commandId was already accepted; read or recover instead of replaying');
+      let invoked = false;
+      try { return await this.withNative(binding, false, async agent => {
+        const before = snapshot(this.goals().get(agent));
+        if (!before || !sameRef(before, expectedRef) || !sameRef(binding.goalRef, expectedRef)) throw new Error('Stale Goal revision; read and reconcile before writing');
+        const phase = operation === 'update' ? before.phase : operation === 'pause' ? 'paused' : operation === 'resume' ? 'active' : 'complete';
+        const intended = { ...before, ...changes, phase, revision: before.revision + 1 };
+        binding = await this.save(binding, { receipt: { commandId: request.commandId, operation, status: 'pending', expectedRef, postconditionHash: postcondition(intended), ...(entryGrant.completion ? { evidenceRefs: entryGrant.completion.evidenceRefs, completionProof: entryGrant.completion } : {}) } });
+        try {
+          const grant = await this.authorize(binding, request.capability, operation, expectedRef, changes);
+          request.signal?.throwIfAborted();
+          if (operation === 'complete' && proofIdentity(grant.completion!) !== proofIdentity(binding.receipt!.completionProof!)) throw new Error('Completion evidence changed after the pending receipt');
+          invoked = true;
+          try {
+            if (operation === 'update') this.goals().edit(agent, expectedRef, changes!); else this.goals()[operation](agent, expectedRef);
+          } finally { this.goals().disarm(agent); }
+          const native = await this.flushRead(agent);
+          request.signal?.throwIfAborted();
+          if (!native || native.id !== expectedRef.id || postcondition(native) !== binding.receipt!.postconditionHash || native.activation !== 'disarmed') throw new Error('Native Goal mutation read-back mismatch');
+          binding = await this.save(binding, { goalRef: ref(native), receipt: { ...binding.receipt!, status: 'confirmed', observedRef: ref(native) } });
+          return { binding, native };
+        } catch (error) {
+          // This public native error is raised before commit. Confirm the exact
+          // prior snapshot before classifying a rejected transition as known.
+          if (invoked && (error as { code?: unknown })?.code === 'GOAL_INVALID_TRANSITION') {
+            const current = snapshot(this.goals().get(agent));
+            if (current && sameRef(current, before) && postcondition(current) === postcondition(before)) {
+              binding = await this.save(binding, { receipt: { ...binding.receipt!, status: 'rejected', reason: errorText(error) } });
+              invoked = false; throw error;
+            }
+          }
+          if (invoked) return this.unknown(binding, error);
+          binding = await this.save(binding, { receipt: { ...binding.receipt!, status: 'rejected', reason: errorText(error) } }); throw error;
+        }
+      }, request.signal); } catch (error) {
+        // A failure while releasing a successfully mutated native Session must
+        // not escape with a confirmed local command and an apparent clean return.
+        if (invoked && !(error instanceof GoalOperationUnknownError)) return this.unknown(binding, error);
+        throw error;
+      }
+    });
+  }
+  async recover(goalId: string, capability: object): Promise<GoalRecoveryResult> {
+    return this.serial(goalId, async () => {
+      let binding = await this.load(goalId); await this.authorize(binding, capability, 'recover');
+      const reconciling = binding.receipt && ['pending', 'unknown'].includes(binding.receipt.status);
+      try { return await this.withNative(binding, false, async agent => {
+        await this.authorize(binding, capability, 'recover');
+        // No resume/create transition and no dispatch grant: get rejects native replay corruption.
+        const native = await this.flushRead(agent), receipt = binding.receipt;
+        if (!receipt || !['pending', 'unknown'].includes(receipt.status)) {
+          return { binding, native, reconciliation: sameRef(binding.goalRef, native) ? 'consistent' : 'conflict' };
+        }
+        const completionProven = receipt.operation !== 'complete' || (proofMatches(receipt.completionProof, binding, receipt.expectedRef, this.now()) && digest(receipt.evidenceRefs) === digest(receipt.completionProof.evidenceRefs));
+        const matching = native && (receipt.expectedRef === undefined || native.id === receipt.expectedRef.id) && postcondition(native) === receipt.postconditionHash && completionProven;
+        await this.authorize(binding, capability, 'recover');
+        if (matching) {
+          binding = await this.save(binding, { goalRef: ref(native), receipt: { ...receipt, status: 'confirmed', observedRef: ref(native) } });
+          return { binding, native, reconciliation: 'confirmed' };
+        }
+        const reconciliation = !native || sameRef(native, receipt.expectedRef) ? 'not_observed' : 'conflict';
+        binding = await this.save(binding, { receipt: { ...receipt, status: 'unknown', ...(native ? { observedRef: ref(native) } : {}), reason: `Recovery ${reconciliation}; no command was replayed` } });
+        return { binding, native, reconciliation };
+      }); } catch (error) {
+        if (reconciling) return this.unknown(binding, error);
+        throw error;
+      }
+    });
+  }
+  async close(): Promise<void> {
+    if (this.closing) return this.closing;
+    this.closed = true;
+    this.shutdown.abort(new Error('Goal adapter is closed'));
+    this.closing = (async () => {
+      for (const owner of this.owners) owner.handle?.agent.cancel({ kind: 'hook', reason: 'Goal adapter closed' });
+      await Promise.allSettled([...this.locks.values()]); await this.initialized?.catch(() => {});
+      const failures = [...this.cleanupFailures];
+      for (const dispose of [this.createdDispose, this.presetDispose]) { try { await dispose?.(); } catch (error) { failures.push(error); } }
+      if (failures.length) throw new AggregateError(failures, 'Goal adapter cleanup failed');
+    })(); return this.closing;
+  }
+}

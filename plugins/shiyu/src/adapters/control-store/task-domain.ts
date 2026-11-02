@@ -1,6 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import type { DatabaseSync } from 'node:sqlite';
-import { EffectLedger, type EffectClaim, type EffectRecord, type DispatchVerdict } from '../../control/effects/index.js';
+import { EffectLedger, type EffectClaim, type EffectRecord, type EffectReceipt, type DispatchVerdict } from '../../control/effects/index.js';
 import { MandateStore, type BudgetReservation, type TrustedPolicyActor } from '../../control/policy/mandates.js';
 import { TaskFacade, TaskError, type CancellationProof, type RecoveryProof, type TaskView, type Ticket, type Assignment, type VerificationContext } from '../../control/tasks/index.js';
 import { key } from '../../control/tasks/upstream/ids.js';
@@ -49,6 +49,7 @@ export interface TaskDetail {
   artifact: { artifactRef: string; expectedSha256: string; byteLength: number };
   execution?: TaskExecutionSummary;
   effects: EffectRecord[];
+  effectReceipts: EffectReceipt[];
   reservation?: BudgetReservation;
 }
 export interface TaskArtifactObservation {
@@ -351,10 +352,11 @@ export class TaskDomain {
   }
   get(taskId: string): TaskDetail {
     const local = this.local(taskId), task = this.facade.get(taskId);
+    const effects = this.effectsForTask(taskId);
     const execution = task.latestAssignmentId ? this.run(task.latestAssignmentId) : undefined;
     const summary = execution ? (({ taskId: _task, reservationId: _reservation, permit: _permit, ...value }) => value)(execution) : undefined;
     return { task, artifact: { artifactRef: local.artifactRef, expectedSha256: local.expectedSha256, byteLength: local.byteLength },
-      ...(summary ? { execution: summary } : {}), effects: this.effectsForTask(taskId),
+      ...(summary ? { execution: summary } : {}), effects, effectReceipts: effects.flatMap(effect => this.effects.receipts(effect.effectId)),
       ...(execution ? { reservation: this.mandates.getReservation(OWNER, execution.reservationId) } : {}) };
   }
   private claimAssignment(input: TaskCommands['task.claimAssignment']['input']): TaskExecutionPlan {

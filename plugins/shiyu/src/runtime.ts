@@ -14,10 +14,12 @@ import { WorkerSessionDriver } from './adapters/dsh/workers.js';
 import { LocalArtifactStore } from './adapters/artifacts/index.js';
 import { LocalTaskRunner } from './control/task-runner.js';
 import type { TaskWorkerDriver } from './control/task-runner.js';
+import { LocalGoalLifecycleService } from './control/goal-lifecycle.js';
+import type { GoalLifecycleOptions, GoalLifecycleResult, GoalLifecycleRunOptions } from './control/goal-lifecycle.js';
 
 export const VERSION = '0.1.0';
 const OWN_SCOPE = 'runtime';
-const ownTypes = ['runtime.lifecycle.changed', 'runtime.session.probed', 'runtime.model.verified'];
+const ownTypes = ['runtime.lifecycle.changed', 'runtime.session.probed', 'runtime.model.verified', 'runtime.goal.verified'];
 const catalog: EventTypeDefinition[] = [...SHIYU_EVENT_TYPES, ...ownTypes.map(type => ({
   type, schemaVersion: 1, description: 'Shiyu runtime lifecycle evidence.',
   publisherKinds: ['component' as const], publisherIds: ['shiyu-runtime'],
@@ -37,9 +39,15 @@ export interface SessionDriver {
   close(): Promise<void>;
 }
 export interface RuntimeConfig { dataDir?: string }
+export interface GoalLifecycleDriver {
+  initialize(): Promise<void>;
+  run(taskId: string, options: GoalLifecycleRunOptions): Promise<GoalLifecycleResult>;
+  close(): Promise<void>;
+}
 export interface RuntimeOptions {
   sessionFactory?: (ctx: DshContext, state: LocalStateFile, cwd: string) => SessionDriver;
   workerFactory?: (ctx: DshContext) => TaskWorkerDriver;
+  goalFactory?: (options: GoalLifecycleOptions) => GoalLifecycleDriver;
 }
 interface ActiveOperation { id: string; title: string; phase: string; status: string; controller: AbortController; done: Promise<void>; finish: () => void }
 
@@ -55,6 +63,7 @@ export class RuntimeService {
   workers!: TaskWorkerDriver;
   artifacts!: LocalArtifactStore;
   tasks!: LocalTaskRunner;
+  goals!: GoalLifecycleDriver;
   private closed = false;
   private closing?: Promise<void>;
   private controlTail: Promise<void> = Promise.resolve();
@@ -92,6 +101,21 @@ export class RuntimeService {
       await this.workers.initialize();
       this.artifacts = await LocalArtifactStore.open(path.join(this.dataDir, 'workspaces'));
       this.tasks = new LocalTaskRunner(this.store, this.workers, this.artifacts);
+      const goalOptions: GoalLifecycleOptions = {
+        ctx: this.ctx,
+        bindings: {
+          load: goalId => this.store.request('goal.binding.load', { goalId }),
+          loadCommand: (goalId, commandId) => this.store.request('goal.binding.loadCommand', { goalId, commandId }),
+          compareAndSet: (expectedMetadataVersion, binding) => this.store.request('goal.binding.compareAndSet', { expectedMetadataVersion, binding }),
+        },
+        taskReader: taskId => this.store.request('task.get', { taskId }),
+        artifacts: this.artifacts,
+        isRuntimeOpenAndUnpaused: () => {
+          try { this.ensureCanRun(); return true; } catch { return false; }
+        },
+      };
+      this.goals = this.options.goalFactory?.(goalOptions) ?? new LocalGoalLifecycleService(goalOptions);
+      await this.goals.initialize();
       await this.store.request('task.setPaused', { paused: this.pauseRequested });
       const existing = await this.events.listSubscriptions(principal);
       const activitySubscription = existing.find(s => s.id === 'runtime-activity');
@@ -102,6 +126,7 @@ export class RuntimeService {
       else if (JSON.stringify(activitySubscription.types) !== JSON.stringify(ownTypes)) await this.events.update(principal, activitySubscription.id, activitySubscription.revision, { types: ownTypes });
       await this.record('runtime.lifecycle.changed', '识雨本体基础已装载', this.pauseRequested ? 'paused' : 'ready');
     } catch (error) {
+      await this.goals?.close().catch(() => undefined);
       await this.workers?.close().catch(() => undefined);
       await this.artifacts?.close().catch(() => undefined);
       await this.sessions?.close().catch(() => undefined);
@@ -159,6 +184,7 @@ export class RuntimeService {
     const at = new Date().toISOString();
     const probe = this.state.state.lastProbe;
     const verification = this.state.state.lastModelVerification;
+    const goalVerification = this.state.state.lastGoalVerification;
     return {
       schemaVersion: 1, version: VERSION, instanceId: this.instanceId, startedAt: this.startedAt, observedAt: at,
       lifecycle: this.lastFailure ? 'degraded' : 'ready',
@@ -177,6 +203,7 @@ export class RuntimeService {
         { id: 'control-store', name: '控制账本', status: 'available', summary: `SQLite ${info.sqliteVersion} · ${info.journalMode} · 独立线程`, checkedAt: at },
         { id: 'native-session', name: 'DSH 原生会话', status: probe?.instanceId === this.instanceId ? (probe.ok ? 'available' : 'unavailable') : 'unknown', summary: probe ? `${probe.instanceId === this.instanceId ? '' : '上次运行的检查记录，本次尚未检查：'}${probe.message}` : '尚未执行会话连接检查', checkedAt: probe?.at },
         { id: 'model', name: '生成模型', status: verification?.instanceId === this.instanceId ? (verification.ok ? 'available' : 'unavailable') : 'unknown', summary: verification ? `${verification.instanceId === this.instanceId ? '' : '上次运行的验证记录：'}${verification.message}` : '配置为 opencode-go / deepseek-v4.1-flash；连接检查不代表推理可用。', checkedAt: verification?.at },
+        { id: 'native-goal', name: 'DSH 原生 Goal', status: goalVerification?.instanceId === this.instanceId ? (goalVerification.ok ? 'available' : 'unavailable') : 'unknown', summary: goalVerification ? `${goalVerification.instanceId === this.instanceId ? '' : '上次运行的验证记录：'}${goalVerification.message}` : '尚未验证原生 Goal 生命周期；查看页面不会创建或恢复目标会话。', checkedAt: goalVerification?.at },
         { id: 'memory', name: '长期记忆与语义检索', status: 'unconfigured', summary: '尚未接入' },
         { id: 'channels', name: '外部频道与设备', status: 'unconfigured', summary: '尚未接入' },
       ],
@@ -219,19 +246,28 @@ export class RuntimeService {
       this.operations.get(value.taskId)?.controller.abort();
       return { accepted: true, task };
     }
-    if (action !== 'session.probe' && action !== 'reply.generate' && action !== 'session.verify-model') throw new Error('Unsupported runtime command');
+    if (action !== 'session.probe' && action !== 'reply.generate' && action !== 'session.verify-model' && action !== 'goal.verify-lifecycle') throw new Error('Unsupported runtime command');
     this.ensureCanRun(); signal?.throwIfAborted();
     if (this.operations.size + this.pendingTaskAdmissions >= 2) throw new Error('Runtime operation capacity reached');
     if (action === 'reply.generate' && (typeof value.businessId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(value.businessId) || typeof value.prompt !== 'string' || !value.prompt.trim() || value.prompt.length > 16000)) throw new Error('Invalid reply input');
+    if (action === 'goal.verify-lifecycle' && (typeof value.taskId !== 'string' || !/^[a-f0-9]{32}$/.test(value.taskId) || Object.keys(value).some(key => !['action', 'taskId'].includes(key)))) throw new Error('Invalid Goal validation input');
     let finish!: () => void;
     const done = new Promise<void>(resolve => { finish = resolve; });
     if (action === 'session.verify-model' && [...this.operations.values()].some(op => op.phase.startsWith('模型验证'))) throw new Error('Model verification is already running');
-    const op: ActiveOperation = { id: randomUUID(), title: action === 'session.probe' ? '检查原生会话连接' : action === 'session.verify-model' ? '验证生成模型与原生会话复用' : '生成只读回复草稿', phase: action === 'session.probe' ? '创建并释放受限会话' : action === 'session.verify-model' ? '模型验证 0/2' : '等待模型结果', status: 'running', controller: new AbortController(), done, finish };
+    if (action === 'goal.verify-lifecycle' && [...this.operations.values()].some(op => op.phase.startsWith('目标验证'))) throw new Error('Goal verification is already running');
+    const op: ActiveOperation = { id: randomUUID(), title: action === 'goal.verify-lifecycle' ? '检查原生目标生命周期' : action === 'session.probe' ? '检查原生会话连接' : action === 'session.verify-model' ? '验证生成模型与原生会话复用' : '生成只读回复草稿', phase: action === 'goal.verify-lifecycle' ? '目标验证：核对已完成任务' : action === 'session.probe' ? '创建并释放受限会话' : action === 'session.verify-model' ? '模型验证 0/2' : '等待模型结果', status: 'running', controller: new AbortController(), done, finish };
     const onAbort = () => op.controller.abort(); signal?.addEventListener('abort', onAbort, { once: true });
     this.operations.set(op.id, op);
     const verificationUsage: ReplyResult['usage'][] = [];
     let verificationCalls = 0;
     try {
+      if (action === 'goal.verify-lifecycle') {
+        const result = await this.goals.run(value.taskId as string, { signal: op.controller.signal, progress: phase => { op.phase = `目标验证：${phase}`; } });
+        this.ensureCanRun(); op.controller.signal.throwIfAborted();
+        await this.state.update(state => { state.lastGoalVerification = { at: new Date().toISOString(), ok: true, instanceId: this.instanceId, goalId: result.goalId, sessionId: result.sessionId, message: '原生 Goal 创建、暂停、恢复及独立证据完成通过；未请求模型推理。' }; });
+        await this.record('runtime.goal.verified', '原生目标生命周期与独立完成证据验证通过', 'succeeded');
+        this.lastFailure = undefined; return result;
+      }
       if (action === 'session.probe') {
         const result = await this.sessions.probe();
         op.controller.signal.throwIfAborted();
@@ -264,6 +300,7 @@ export class RuntimeService {
       this.lastFailure = error instanceof Error ? error.message : String(error);
       if (action === 'session.probe') await this.state.update(state => { state.lastProbe = { at: new Date().toISOString(), ok: false, message: this.lastFailure!, instanceId: this.instanceId }; });
       if (action === 'session.verify-model') await this.state.update(state => { state.lastModelVerification = { at: new Date().toISOString(), ok: false, message: this.lastFailure!, instanceId: this.instanceId, calls: verificationCalls, usage: verificationUsage }; });
+      if (action === 'goal.verify-lifecycle') await this.state.update(state => { state.lastGoalVerification = { at: new Date().toISOString(), ok: false, message: this.lastFailure!, instanceId: this.instanceId }; });
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
@@ -300,7 +337,7 @@ export class RuntimeService {
         await this.controlTail;
         await Promise.allSettled([...this.admissions]);
         try {
-          const results = await Promise.allSettled([this.sessions?.close(), this.workers?.close()]);
+          const results = await Promise.allSettled([this.sessions?.close(), this.workers?.close(), this.goals?.close()]);
           const failures = results.flatMap(result => result.status === 'rejected' ? [result.reason] : []);
           if (failures.length) throw new AggregateError(failures, 'Native Session cleanup failed');
         }

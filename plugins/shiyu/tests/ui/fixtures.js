@@ -96,3 +96,19 @@ export function makeLocalTask(taskId = 'test-local-task-1') {
     activeAssignmentId: undefined, latestAssignmentId: undefined, attempt: 0, result: undefined,
   });
 }
+
+export function makeSucceededLocalTask(taskId = 'test-local-task-1', updatedAt = new Date().toISOString()) {
+  return {
+    ...makeLocalTask(taskId), state: 'succeeded', inputRefs: [`local-input:${taskId}`], updatedAt,
+    verification: makeTaskVerification({ taskId }),
+  };
+}
+
+// Synthetic lifecycle evidence only: this fixture creates no DSH Goal or Session.
+export function makeGoalVerificationReceipt(taskId) {
+  return {
+    verified: true, taskId, goalId: 'test-goal-binding-1', nativeGoalId: 'test-native-goal-1',
+    sessionId: 'test-goal-session-1', nativePhase: 'complete', inferenceRequested: false,
+    operations: ['create', 'pause', 'resume', 'complete'], synthetic: true,
+  };
+}

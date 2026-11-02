@@ -12,6 +12,7 @@ export interface LocalState {
   bindings: SessionBinding[];
   lastProbe?: { at: string; ok: boolean; message: string; instanceId?: string };
   lastModelVerification?: { at: string; ok: boolean; message: string; instanceId: string; calls: number; sessionId?: string; usage: ModelUsage[] };
+  lastGoalVerification?: { at: string; ok: boolean; message: string; instanceId: string; goalId?: string; sessionId?: string };
 }
 
 /** Business bindings only. Model history and compaction remain in DSH. */

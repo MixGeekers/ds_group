@@ -13,6 +13,7 @@ import {
 import type { ControlStoreOptions, StoreRequest, StoreResponse } from "./protocol.js";
 import { SqliteTransactions } from './transaction.js';
 import { TaskDomain, type TaskDomainRequest } from './task-domain.js';
+import { SQLiteGoalBindingStore } from './goal-bindings.js';
 
 type Row = Record<string, unknown>;
 const port = parentPort;
@@ -23,6 +24,7 @@ let db: DatabaseSync;
 let info!: StoreInfo;
 let transactions!: SqliteTransactions;
 let tasks: TaskDomain | undefined;
+let goalBindings: SQLiteGoalBindingStore | undefined;
 const fail = (code: string, message: string): never => { throw new EventServiceError(code, message); };
 const isObject = (value: unknown): value is Record<string, unknown> => value !== null && typeof value === "object" && !Array.isArray(value);
 function string(value: unknown, name: string, max = 256): asserts value is string {
@@ -395,7 +397,12 @@ function execute(request: StoreRequest): unknown {
     if (!tasks) return fail('TASKS_UNAVAILABLE', 'Task commands require a trusted runtime identity at store initialization.');
     return tasks.execute(request as TaskDomainRequest);
   }
+  if (request.command.startsWith('goal.binding.') && !goalBindings) return fail('GOALS_UNAVAILABLE', 'Goal bindings require a trusted runtime identity.');
   switch (request.command) {
+    case 'goal.binding.load': return goalBindings!.load(request.args.goalId);
+    case 'goal.binding.loadCommand': return goalBindings!.loadCommand(request.args.goalId, request.args.commandId);
+    case 'goal.binding.compareAndSet': return goalBindings!.compareAndSet(request.args.expectedMetadataVersion, request.args.binding);
+    case 'goal.binding.list': return goalBindings!.list(request.args);
     case "info": return info;
     case "types": {
       const actor = request.args.principal; principal(actor);
@@ -477,6 +484,7 @@ function initialize(): void {
     }
   });
   if (options.runtimeIdentity) {
+    goalBindings = new SQLiteGoalBindingStore(db, transactions);
     tasks = new TaskDomain(db, transactions, { runtimeIdentity: options.runtimeIdentity, onSucceeded: taskId => {
       // Completion facts share the Task transaction; no observer can see a half-committed success.
       publish({ principalId: 'task-service', kind: 'component', scopes: ['local-owner'], publishTypes: ['task.succeeded'], subscribeTypes: [], targetRefs: [] },

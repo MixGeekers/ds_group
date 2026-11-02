@@ -4,6 +4,7 @@ import type {
   StoredSubscription, StoreInfo, SubscribeInput, SubscriptionPatch,
 } from "../../contracts/events.js";
 import type { TaskCommands, TaskRuntimeIdentity } from './task-domain.js';
+import type { GoalBinding, GoalCommandReceipt } from '../dsh/goals.js';
 
 export interface ControlStoreOptions {
   filename: string;
@@ -15,6 +16,11 @@ export interface ControlStoreOptions {
 
 type WithPrincipal<T = unknown> = { principal: EventPrincipal } & T;
 export interface StoreCommands extends TaskCommands {
+  /** Trusted host-to-worker bookkeeping only; never exposed as public/model commands. */
+  'goal.binding.load': { input: { goalId: string }; output: GoalBinding | undefined };
+  'goal.binding.loadCommand': { input: { goalId: string; commandId: string }; output: GoalCommandReceipt | undefined };
+  'goal.binding.compareAndSet': { input: { expectedMetadataVersion?: number; binding: GoalBinding }; output: void };
+  'goal.binding.list': { input: { ownerId: string; scope: string }; output: GoalBinding[] };
   info: { input: Record<string, never>; output: StoreInfo };
   types: { input: WithPrincipal; output: EventTypeDefinition[] };
   publish: { input: WithPrincipal<{ input: PublishEventInput }>; output: PublishReceipt };
