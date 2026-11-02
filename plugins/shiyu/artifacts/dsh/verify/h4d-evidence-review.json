@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-followup-evidence-review",
+  "reviewedBy": "independent-verifier",
+  "reviewedAt": "2026-11-02T20:45:00Z",
+  "subject": "H4d commit 66a9428 (inner sources in reply prepare and Lab inner path) after task-18",
+  "head": "66a9428848ed8dfba61187e9ebc802df802e0ab4",
+  "parent": "7f354ac4f5176796c1e48ef7cf0a864149106fe1",
+  "method": [
+    "read-only review of committed blobs, artifacts, .local logs; no host/model/embedding run",
+    "recomputed all declared file/log SHA256+bytes+counts; verified Lead slice evidence against commit blobs; sampled test assertions for persistence/idempotency/negative cases"
+  ],
+  "summary": {
+    "checks": 12,
+    "verified": 12,
+    "findings": 1,
+    "unobserved": 0
+  },
+  "checks": [
+    {
+      "id": "D01",
+      "claim": "4 code/test files in commit 66a9428 match the declared content hashes/bytes",
+      "method": "git show 66a9428:<path> sha256/bytes",
+      "result": "verified",
+      "detail": "local-reply-domain.ts 3870997e…/41706; local-reply.ts 5588637b…/38470; tests/local-reply-domain.test.ts bd4a3df6…/33129; tests/local-reply.test.ts 6edd24f2…/54474"
+    },
+    {
+      "id": "D02",
+      "claim": "H4c G5 fix artifact (h4c-replyer-inner-context.json) committed as e8a529e8…/11901 with only descriptive changes",
+      "method": "blob hash + field diff",
+      "result": "verified",
+      "detail": "newTests 25/32/+7; targeted string '25 既有 + 7 新增，无删除'; corrections[] records task-18 G5; content hash matches"
+    },
+    {
+      "id": "D03",
+      "claim": "h4c-slice-summary residual 26+6 string fixed",
+      "method": "blob read",
+      "result": "verified",
+      "detail": "66a9428 has '32/32（25 既有 + 7 新增）'; no contradiction with testDelta; G5 residual closed"
+    },
+    {
+      "id": "D04",
+      "claim": "H4d artifact committed content is internally consistent (old blob b0017279…/14963, no lifetimeNote)",
+      "method": "blob read",
+      "result": "verified-with-difference",
+      "detail": "expectedFileHashes match commit blobs; expectedCheckLog 911b8e7a…/146824/1345; targetedMainTree.logs hashes match actual logs; failures=[]; boundaries 5; evidenceLevel G1; committed blob lacks lifetimeNote (working tree 2f7911c5…/16503 uncommitted), non-blocking"
+    },
+    {
+      "id": "D05",
+      "claim": "Implementer isolated check: 1345/1345, 0 fail/skip, exit 0, log sha/bytes match",
+      "method": ".local/h4d-check-final.log sha/bytes + summary parse",
+      "result": "verified",
+      "detail": "911b8e7a…/146824; 1345/1345/0/0/0; no /Users absolute path in log; 1336+9 arithmetic consistent with test deltas 13→20 (+7) and 32→34 (+2)"
+    },
+    {
+      "id": "D06",
+      "claim": "Lead independent slice evidence: 1345/1345, 0 skip, exit 0, log sha/bytes match, files match commit",
+      "method": "artifacts/dsh/slices/h4d-verify.json + actual .local/slice-verify-h4d.log",
+      "result": "verified",
+      "detail": "head 7f354ac; worktree <repo>/…; check 55b0d880…/146852; log 1345/1345/0/0/0; files[] hashes match commit blobs; verdict pass; durationMs 257684"
+    },
+    {
+      "id": "D07",
+      "claim": "Targeted runs are independently reproducible from the recorded commands/logs",
+      "method": "actual log files sha/bytes/summary",
+      "result": "verified",
+      "detail": ".local/h4d-targeted-prepare-inner.log 0563a70e…/6132 54/54/0/0/0; .local/h4d-targeted-reply-lab.log 8f28952e…/12965 116/116/0/0/0; commands in artifact match"
+    },
+    {
+      "id": "D08",
+      "claim": "Prepare/Lab inner behavior is covered by real assertions (persistence/readback/reopen, idempotency, legacy, closed negatives, revoke/degrade, Lab time boundary, cross-conversation)",
+      "method": "commit diff + test-name/assertion sampling",
+      "result": "verified",
+      "detail": "new tests include 'prepare persists body-free inner provenance and returns it on readback and reopen', 'prepare replay is idempotent … second prepare stays refused', 'legacy callers … not_provided', 'closed: bodies, grants, bad order, bad digests and mismatch are refused', 'revoked inner capture refused', 'Lab reply tolerates only the inner read-snapshot time bound', 'inner provenance from another conversation … refused'; no .skip/.only/assert.ok(true)"
+    },
+    {
+      "id": "D09",
+      "claim": "Commit scope is limited to H4d and does not touch runtime/index/client/view-domain/dsh adapters or unrelated WIP",
+      "method": "git show --name-only/stat; forbidden grep",
+      "result": "verified",
+      "detail": "9 files = 4 code/test + h4d artifact + h4c G5 artifact + h4c slice-summary + h4d slice evidence + DSH record; no runtime.ts/index.ts/client/views/dsh-adapter changes; diffStat +402/−18 matches artifact claim"
+    },
+    {
+      "id": "D10",
+      "claim": "Evidence-level and boundaries are honest (G1 offline; no host/model/real Lab claims; body-free summary; 30s/120s bounded)",
+      "method": "blob read + DSH §18 review",
+      "result": "verified",
+      "detail": "evidenceLevel G1; boundaries 5 items; no host/model acceptance claims; DSH §18 states offline pass and untested items; failures=[]"
+    },
+    {
+      "id": "D11",
+      "claim": "Hygiene: no absolute home paths/secrets/bodies in committed H4d evidence",
+      "method": "pattern scan committed blobs",
+      "result": "verified",
+      "detail": "no /Users absolute path and no encoded Users-caja in h4d artifact/slice evidence/h4c artifacts; h4d artifact/slice evidence use <repo> token where applicable; no message bodies"
+    },
+    {
+      "id": "D12",
+      "claim": "Review scope frozen at commit 66a9428 (HEAD)",
+      "method": "git rev-parse/status",
+      "result": "verified",
+      "detail": "HEAD 66a9428; working tree has h4d artifact with lifetimeNote (sha 2f7911c5…/16503) uncommitted and unrelated untracked h2c-verify.json; only the committed blob is certified here"
+    }
+  ],
+  "findings": [
+    {
+      "id": "H4D-F1",
+      "severity": "minor-nonblocking",
+      "title": "Committed H4d artifact is the pre-lifetimeNote blob; the working-tree version with lifetimeNote is uncommitted",
+      "evidence": "commit blob h4d-prepare-inner.json = b0017279…/14963 (no lifetimeNote); working tree = 2f7911c5…/16503 (with lifetimeNote)",
+      "impact": "no substantive claim difference: targetedMainTree logs/hashes, expectedCheckLog, 4 file hashes, boundaries and evidenceLevel are all present and verified in the committed blob; lifetimeNote is an explanatory durability note only",
+      "recommendation": "optional single-file follow-up commit if durable lifetimeNote is desired; otherwise record as intentional difference",
+      "owner": "inner-domains / Lead"
+    }
+  ],
+  "unobserved": [
+    "Independent re-execution of the 1345-test suite or targeted runs (read-only review; verified through committed/retained logs + Lead slice-verify secondary execution)",
+    "Real model use of innerSources, real Lab room/provider behavior (declared untested)"
+  ],
+  "verdict": "H4d evidence authentic and internally consistent: all hashes/counts/logs match, Lead independent slice evidence matches, test assertions are real, scope/boundaries are honest. Only non-blocking difference is the uncommitted lifetimeNote version of the H4d artifact.",
+  "scopeNote": "Round-2 review task-18 remains completed and frozen at a68eeb2; this is a follow-up review of the later H4d commit 66a9428, not a replacement."
+}

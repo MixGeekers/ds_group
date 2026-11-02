@@ -109,7 +109,8 @@
           "fail": 0,
           "skipped": 0,
           "cancelled": 0,
-          "exitCode": 0
+          "exitCode": 0,
+          "lifetimeNote": "两份 targeted 日志位于 .local/（gitignored 临时运行数据），不随提交入库；可由各自 command 在相同 HEAD+4 文件工作树上重跑等价复现（测试确定性、无模型/网络/宿主）。若需长期归档，应由证据提交者按不可变命名另存并声明 sha256/bytes；当前 sha/bytes 仅对应本次冻结运行。"
         },
         "replyLabAdjacent": {
           "path": ".local/h4d-targeted-reply-lab.log",
@@ -121,9 +122,11 @@
           "fail": 0,
           "skipped": 0,
           "cancelled": 0,
-          "exitCode": 0
+          "exitCode": 0,
+          "lifetimeNote": "两份 targeted 日志位于 .local/（gitignored 临时运行数据），不随提交入库；可由各自 command 在相同 HEAD+4 文件工作树上重跑等价复现（测试确定性、无模型/网络/宿主）。若需长期归档，应由证据提交者按不可变命名另存并声明 sha256/bytes；当前 sha/bytes 仅对应本次冻结运行。"
         }
-      }
+      },
+      "lifetimeNote": "两份 targeted 日志位于 .local/（gitignored 临时运行数据），不随提交入库；可由各自 command 在相同 HEAD+4 文件工作树上重跑等价复现（测试确定性、无模型/网络/宿主）。若需长期归档，应由证据提交者按不可变命名另存并声明 sha256/bytes；当前 sha/bytes 仅对应本次冻结运行。"
     },
     "newTestCoverage": [
       "prepare 显式 innerSources 持久化 + conversation.reply.get 回读 + 真实 SQLite 重开回读；字段仅摘要、无正文/授权字段。",
@@ -208,7 +211,8 @@
       "tests/local-reply.test.ts": "34/34（HEAD 32 + 2 新增）",
       "reply+lab adjacent": "116/116",
       "combinedPrepareInner": "tests/local-reply-domain.test.ts + tests/local-reply.test.ts -> 54/54（20+34）；日志与 sha/bytes 见 verification.targetedMainTree.logs.prepareInner",
-      "combinedReplyLab": "reply/lab 邻接 116/116；日志与 sha/bytes 见 verification.targetedMainTree.logs.replyLabAdjacent"
+      "combinedReplyLab": "reply/lab 邻接 116/116；日志与 sha/bytes 见 verification.targetedMainTree.logs.replyLabAdjacent",
+      "lifetimeNote": "两份 targeted 日志位于 .local/（gitignored 临时运行数据），不随提交入库；可由各自 command 在相同 HEAD+4 文件工作树上重跑等价复现（测试确定性、无模型/网络/宿主）。若需长期归档，应由证据提交者按不可变命名另存并声明 sha256/bytes；当前 sha/bytes 仅对应本次冻结运行。"
     },
     "checksToRun": [
       "git diff HEAD -- 4 files：确认只含 prepare innerSources 合同/持久化/重验、local-reply 摘要与 Lab 只读路径、对应测试；无 runtime/client/view-domain/dsh adapters 改动。",
