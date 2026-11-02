@@ -1,0 +1,178 @@
+{
+  "schemaVersion": 1,
+  "phase": "3H-history-prompt-fix",
+  "checkedAt": "2026-11-02T15:44:47.613270+00:00",
+  "status": "offline-verified-host-behavior-unverified",
+  "baseCommit": "27319a7fac1c163bd0ded3a0ea22a07ad5549f29",
+  "trigger": {
+    "artifact": "phase3h-b-lab-host-validation.json",
+    "executionSourceCommit": "16d9afe7955710d061c2d66267abb0c609b4ef16",
+    "strictOraclePassed": 1,
+    "strictOracleTotal": 3,
+    "failures": [
+      "private reply added extra note property",
+      "second group turn refused same-channel history recall and returned non-JSON output"
+    ],
+    "attribution": "Prompt ambiguity is supported by static inspection and consistent model text; not a proven exclusive root cause or proof of full provider request content."
+  },
+  "change": {
+    "productionFiles": 2,
+    "testFiles": 2,
+    "behavior": [
+      "Distinguish still-authorized visible native Session history from long-term Memory reads and writes.",
+      "Empty current business data supplements the conversation and does not mean visible conversation history is empty.",
+      "Task and external-effect success require current authoritative data and trusted receipts; historical assistant claims are insufficient.",
+      "Honor ordinary content and format requests without granting authority; output user-facing text without unrequested internal disclaimers.",
+      "Preserve original input-envelope delimiter and inputHash; retain existing source, revocation, audience, epoch, tool, budget and send checks."
+    ],
+    "notChanged": [
+      "model route",
+      "effort",
+      "generation deadline",
+      "provider transport",
+      "Session lifecycle",
+      "Memory execution",
+      "automatic retries",
+      "actual send authorization"
+    ],
+    "fixtureScope": "Prepared-message history, cross-Session isolation and adapter reopen identity are simulated transport checks, not model recall or real host payload proof."
+  },
+  "validation": {
+    "finalCheck": {
+      "command": "npm run check",
+      "exitCode": 0,
+      "tests": 929,
+      "passed": 929,
+      "failed": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMilliseconds": 85833.011584,
+      "typecheck": true,
+      "build": true,
+      "clientSyntax": true,
+      "environment": "Escalated execution permitted temporary synthetic 127.0.0.1 HTTP listeners. No real model or embedding loaded."
+    },
+    "earlierSandboxAttempt": {
+      "exitCode": 1,
+      "summaryTests": 213,
+      "passed": 149,
+      "failed": 8,
+      "cancelled": 56,
+      "skipped": 0,
+      "durationMilliseconds": 111991.747458,
+      "completion": "Partial run stopped after synthetic managed-server failures; remaining tests cancelled. Not a full regression result.",
+      "diagnosis": "Single existing managed-server test reproduces OPEN_FAILED; separate minimal loopback probe returns EPERM on listen(127.0.0.1).",
+      "logsPreserved": true
+    },
+    "targetedBatches": {
+      "boundaryFiles": 8,
+      "passed": 144,
+      "accountingFilePassed": 15,
+      "includedInFinal929": true,
+      "evidence": "Implementation-agent tool results; no separate targeted log claimed."
+    },
+    "independentReview": {
+      "readOnly": true,
+      "blockingFindings": 0,
+      "limits": "Static review only; did not rerun tests or inspect live data."
+    },
+    "uiTestsRerun": false,
+    "uiReason": "No UI source changes. Historical 190 UI tests not reclassified as this execution."
+  },
+  "afterStopMetadata": {
+    "checkedAt": "2026-11-02T15:44:47.613270+00:00",
+    "nativeDecodeCount": 0,
+    "unchangedOwnedNativeFiles": 15,
+    "connections": [
+      {
+        "connectionId": "lab-e4795c3e96472800e1189baa18a8604d1e607fd2",
+        "status": "disconnected",
+        "version": 8,
+        "epoch": 3
+      },
+      {
+        "connectionId": "lab-bc6cd763d07d9f79eaae3228cf95b9253961509a",
+        "status": "paused",
+        "version": 11,
+        "epoch": 2
+      }
+    ],
+    "oldUnknownUnchanged": true,
+    "commitSeq": 213,
+    "taskCount": 3
+  },
+  "newRuntimeActionsForThisFix": {
+    "realModel": 0,
+    "embedding": 0,
+    "labRooms": 0,
+    "humanInputs": 0,
+    "hostReloads": 0
+  },
+  "evidence": [
+    {
+      "path": "plugins/shiyu/.local/phase3h-history-prompt-check.log",
+      "bytes": 35802,
+      "sha256": "f4dc866d8ba99af7f8c8beeb916062272a85e78c154700f643b6ce2e0f595f7b"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-history-prompt-sandbox-repro.log",
+      "bytes": 973,
+      "sha256": "228af12300ea71d7892c72bf96267fc9ef7cee9a32dd66bd8db9c7ec530c5236"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-history-prompt-loopback-probe.log",
+      "bytes": 58,
+      "sha256": "0c43c314a930a5a74cb5ac9dd0727f1191c46ae7a1b64d0b6e30c69ef48f3120"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-history-prompt-check-unrestricted.log",
+      "bytes": 101530,
+      "sha256": "8c2a9f92874dee13ecb2b880ca1bafa50aad1cd2dd634025ace6eb046634f47e"
+    },
+    {
+      "path": "plugins/shiyu/.local/phase3h-history-prompt-after-check.json",
+      "bytes": 506,
+      "sha256": "e8d2d7d5f7ca16afa2b63b258a0b80d5b046b8cee4a2e28dd0db96cf9f5d321a"
+    }
+  ],
+  "fingerprints": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/sessions.ts",
+      "bytes": 70369,
+      "sha256": "47c53b310018c19c111234ce794036cb5a89653da7be43ca756d41e745bd1221"
+    },
+    {
+      "path": "plugins/shiyu/src/control/local-reply.ts",
+      "bytes": 22192,
+      "sha256": "6bf0066adc49950f034152c24251fff77f2267846f4bbed5b8f26e060804f4b8"
+    },
+    {
+      "path": "plugins/shiyu/tests/local-reply.test.ts",
+      "bytes": 33035,
+      "sha256": "5fa4cd29e78c9b81b8654ec259eabdd23165b7537c7238dfa68631d6e31d69fe"
+    },
+    {
+      "path": "plugins/shiyu/tests/session-reply-accounting.test.ts",
+      "bytes": 25472,
+      "sha256": "7d7bcf3368083edd8c5f8713f4f56543d5389fa65361ad56157e554b1c2928b4"
+    },
+    {
+      "path": "plugins/shiyu/dist/adapters/dsh/sessions.js",
+      "bytes": 68614,
+      "sha256": "cd24a8d273afbacfdbb10dbde9485809db297f65eadc9be7c80eed3b0d0e4f58"
+    },
+    {
+      "path": "plugins/shiyu/dist/control/local-reply.js",
+      "bytes": 18863,
+      "sha256": "6b2d03241584eb5989e2bd60c8feba259b427a6765b1b45cd6e019224e3f7c0a"
+    }
+  ],
+  "remaining": [
+    "Bounded real-host validation of corrected strict format and same-channel recall.",
+    "Success-only orderly reload no-replay check once a complete behavior sample succeeds.",
+    "Full provider request payload, cache and total cost coverage remain unavailable.",
+    "3I capability state plan exists only as an ignored implementation proposal; not implemented."
+  ],
+  "bodyIncluded": false,
+  "credentialsIncluded": false
+}

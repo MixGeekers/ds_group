@@ -6,6 +6,8 @@
 
 **最新进展：3H B 轮三次真实生成、账目及独立送达已核验，严格对话行为仅 1/3 通过。** 两频道使用独立原生 Session，群聊两轮复用同一 Session；但私聊多输出字段、群聊拒绝回忆已有历史，因此整轮仍未通过，未执行仅限成功后的重载。120 秒 capture 已在宿主落地，实际生成均不足 30 秒；已知主用量 1826 tokens/3 次调用，缓存与完整费用未知。见 [B 轮结果](<plugins/shiyu/artifacts/phase3h-b-lab-host-validation.json>)；A 轮中断及 unknown [独立保留](<plugins/shiyu/artifacts/phase3h-lab-host-validation.json>)。此前受控 Core → worker → 独立核验 → 原生 Goal 完成已通过一个真实合成便签样本，两轮 Core 复用同一 DSH Session，重载未重放；[成功证据](<plugins/shiyu/artifacts/phase3g-core-host-success.json>)与首次失败及 unknown 预算分别保留。开放式规划、其余五个内层域、真实外部渠道及完整恢复/压缩仍未完成，九系统 Goal 持续推进。各批测试与边界见[实施记录](<plugins/shiyu/实施记录.md>)。资料工作台完整保留，健身房维持独立产品；Lab 历史结果不代替本体验收。
 
+后续两处提示已澄清会话历史与长期 Memory，离线 **929/929** 及构建通过；[提示修补](<plugins/shiyu/artifacts/phase3h-history-prompt-fix.json>)尚未真实复验，不覆盖上述失败。
+
 ## 从这里开始
 
 - [总体架构](<架构与设计/总体架构.md>)与[完整方案](<架构与设计/A方案全景/完整架构方案.md>)。

@@ -237,7 +237,9 @@ test('trusted grouped input byte bound is explicit and never truncates or leaks 
   const f = await labFixture(t, { allowEmptyContext: true, maxInputBytes: 18432 });
   await assert.rejects(f.run('too-big', '合'.repeat(6145))); assert.equal(f.native.requests.length, 0);
   const content = 'a'.repeat(17000), result = await f.run('allowed-group', content);
-  assert.equal(result.operation.inputHash, sha(content)); assert.ok(f.native.requests[0]!.prompt.endsWith(content));
+  assert.equal(result.operation.inputHash, sha(content));
+  // Independent Lab audit extracts the exact admitted input with this stable delimiter.
+  assert.equal(f.native.requests[0]!.prompt.split('\n本轮用户输入：\n').at(1), content);
   assert.throws(() => new LocalReplyService({ store: f.store, sessions: f.native, assertRuntimeAllowed() {}, maxInputBytes: 32769 }));
 });
 

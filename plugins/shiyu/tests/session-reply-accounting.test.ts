@@ -33,6 +33,7 @@ function fixture() {
   let currentCwd = '/synthetic/replyer', corruptContextRead = false;
   let streamGate: Promise<void> | undefined, entered: (() => void) | undefined, cancelled = false;
   const counts = { creates: 0, resumes: 0, followups: 0, providerEntries: 0, requests: 0, flushes: 0, opens: 0, closes: 0, disposes: 0, contextReads: 0 };
+  const preparedRequests: { sessionId: string; messages: unknown[] }[] = [];
   const cwdMessage = (cwd = '/synthetic/replyer') => {
     const text = `Current working directory: ${JSON.stringify(cwd)}.`;
     return { id: randomUUID(), role: 'user', content: [{ type: 'text', text: `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n${text}` }],
@@ -45,6 +46,8 @@ function fixture() {
     if (live.has(id)) locals.get(id)!.emit('session/event', live.get(id)!.session, event);
   };
   const stream = (request: object): AsyncIterable<unknown> => global.waterfall('llm/stream', [request], () => (async function* () {
+    const prepared = request as { sessionId: string; messages: unknown[] };
+    preparedRequests.push({ sessionId: prepared.sessionId, messages: structuredClone(prepared.messages) });
     counts.providerEntries++; entered?.(); if (streamGate) await streamGate;
     if (streamFailure) throw new Error('synthetic primary stream failed');
     yield { type: 'synthetic-chunk' };
@@ -132,12 +135,13 @@ function fixture() {
       } };
     } };
   let messages = 0;
-  const adapter = new ShiyuSessionAdapter({ ctx, cwd: '/synthetic/replyer', bindings: { async load() { return structuredClone(bindings); }, async save(value) { bindings.splice(0, bindings.length, ...structuredClone(value)); } },
+  const createAdapter = () => new ShiyuSessionAdapter({ ctx, cwd: '/synthetic/replyer', bindings: { async load() { return structuredClone(bindings); }, async save(value) { bindings.splice(0, bindings.length, ...structuredClone(value)); } },
     createUserMessage: (input: NativeMessageInput): NativeUserMessage => ({ ...structuredClone(input), id: `synthetic-input-${++messages}`, role: 'user' }),
     isAgentLoopRequest: request => !!request && typeof request === 'object' && official.has(request) });
+  const adapter = createAdapter();
   const request = (overrides: Partial<ReplyRequest> = {}): ReplyRequest => ({ businessId: 'synthetic-accounting', scope: 'local-owner', prompt: 'Synthetic authorized context', deadlineMs: Date.now() + 5000,
     context: { operationId: `operation-${messages + 1}`, contextTokenId: `token-${messages + 1}`, sessionEpoch: 1, onBound() {}, authorize() {}, onContextDurable(value) { receipts.push(value); } }, ...overrides });
-  return { adapter, request, counts, bindings, receipts, records, global, stream, official,
+  return { adapter, createAdapter, request, counts, preparedRequests, bindings, receipts, records, global, stream, official,
     setMode(value: Mode) { mode = value; }, setUsage(value: Record<string, unknown>) { usage = value; }, setDiagnostic(value: string) { diagnostic = value; },
     setCorruptAssistantRead() { corruptAssistantRead = true; }, setStreamFailure() { streamFailure = true; }, setDisposeFailure() { failDispose = true; },
     setCwd(value: string) { currentCwd = value; }, setCorruptContextRead() { corruptContextRead = true; },
@@ -156,6 +160,43 @@ test('one actually entered primary stream and a cold-confirmed reported total pr
     assert.equal(second.accounting?.complete, true); assert.equal(second.accounting?.calls, 1); assert.equal(f.counts.providerEntries, 2);
     assert.notEqual(second.accounting?.evidenceRef, first.accounting?.evidenceRef);
   } finally { await f.adapter.close(); }
+});
+
+test('prepared primary requests retain exact same-Session history across turns and reopen without cross-Session inputs', async () => {
+  const f = fixture();
+  let reopened: ShiyuSessionAdapter | undefined;
+  const firstPrompt = 'The sample cabinet is labeled amber.';
+  const secondPrompt = 'What label did I provide in my previous message?';
+  assert.equal(secondPrompt.includes('amber'), false);
+  try {
+    const first = await f.adapter.generateReply(f.request({ prompt: firstPrompt }));
+    const firstRecord = f.records.get(first.binding.sessionId)!;
+    const firstUser = structuredClone(firstRecord.durable[first.contextReceipt!.userMessageSeq]!.data);
+    const firstAssistant = structuredClone(firstRecord.durable[first.assistantRef!.eventSeq]!.data.message);
+    const other = await f.adapter.generateReply(f.request({ businessId: 'separate-conversation', scope: 'other-owner', prompt: 'The other sample uses the violet label.' }));
+    const otherUser = f.records.get(other.binding.sessionId)!.durable[other.contextReceipt!.userMessageSeq]!.data;
+    assert.notEqual(other.binding.sessionId, first.binding.sessionId);
+    assert.deepEqual(f.preparedRequests[0]!.messages, [firstUser]);
+    assert.deepEqual(f.preparedRequests[1]!.messages, [otherUser]);
+
+    const second = await f.adapter.generateReply(f.request({ prompt: secondPrompt }));
+    const secondUser = structuredClone(firstRecord.durable[second.contextReceipt!.userMessageSeq]!.data);
+    const secondAssistant = structuredClone(firstRecord.durable[second.assistantRef!.eventSeq]!.data.message);
+    assert.equal(second.binding.sessionId, first.binding.sessionId);
+    assert.equal(f.preparedRequests[2]!.sessionId, first.binding.sessionId);
+    // Assert the transport surface, not a fake model's ability to recall an answer.
+    // The previous assistant is retained even though no channel delivery occurred.
+    assert.deepEqual(f.preparedRequests[2]!.messages, [firstUser, firstAssistant, secondUser]);
+
+    await f.adapter.close();
+    reopened = f.createAdapter();
+    const third = await reopened.generateReply(f.request({ prompt: 'Continue using this conversation without repeating my earlier inputs.' }));
+    const thirdUser = firstRecord.durable[third.contextReceipt!.userMessageSeq]!.data;
+    assert.equal(third.binding.sessionId, first.binding.sessionId);
+    assert.equal(f.preparedRequests[3]!.sessionId, first.binding.sessionId);
+    assert.deepEqual(f.preparedRequests[3]!.messages, [firstUser, firstAssistant, secondUser, secondAssistant, thirdUser]);
+    assert.equal(f.counts.creates, 2); assert.equal(f.counts.resumes, 1);
+  } finally { await reopened?.close(); await f.adapter.close(); }
 });
 
 test('an assistant event and exact reference without stream observation never fabricate a call', async () => {
