@@ -277,7 +277,7 @@ export function coreGoalValidationV6Tool(service: { command(input: unknown): Pro
 export function memoryEmbeddingProbeTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_verify_memory_embedding',
-    description: '零生成模型、单次真实本地 embedding 验证（owner-only）：对现有本地会话执行一次 memory.searchLocal 固定探针查询，仅用于确认 Harrier embedding 真实可用；不写记忆、不调用生成模型、0 重试；成功后 runtime 才允许声明 semantic_search，失败如实降级 exact_read；回执含 embeddingCalls/usageComplete/readiness/coverage。',
+    description: '零生成模型、单次真实本地记忆往返验证（owner-only）：在现有本地会话写入一条合成事实→真实 Harrier embedding 建索引→语义检索→精确读取→撤回并验证撤回后拒绝；不调用生成模型、0 重试；成功后 runtime 才允许声明 semantic_search，失败如实降级 exact_read；副作用=留下恰好一条已撤回的合成记忆操作（回执披露）；回执含 steps/embeddingCalls/matches/readiness/coverage。',
     parameters: { type: 'object', properties: {}, additionalProperties: false },
     isConcurrencySafe: false,
     execute: async () => service.command({ action: 'runtime.probe-memory-embedding' }),

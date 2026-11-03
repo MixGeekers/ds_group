@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -1353,40 +1353,71 @@ export class RuntimeService {
       return 'body' in result ? { entry: memoryEntry(result.entry), body: result.body } : { duplicate: result.duplicate, entry: memoryEntry(result.entry) };
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', abort); }
   }
-  /** Owner-only P0 probe: exactly one real local embedding query against an
-   * existing local conversation. It uses no generation model, writes no memory,
-   * performs no retry and only exists to verify the embedding path so the
-   * runtime may advertise semantic_search after a real success. */
+  /** Owner-only P0 round-trip probe: writes one synthetic memory fact, indexes
+   * it with the real local embedding backend, performs one semantic search and
+   * one exact read, then withdraws it and verifies the post-withdraw rejection.
+   * It uses no generation model, performs no retry, and leaves exactly one
+   * withdrawn synthetic memory operation as its disclosed side effect. */
   private async commandMemoryEmbeddingProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
     if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid memory embedding probe input');
     this.ensureCanRun(); signal?.throwIfAborted();
     if ([...this.operations.values()].some(op => op.phase === 'memory embedding readiness probe')) throw new Error('Memory embedding probe is already running');
     if (this.operations.size + this.pendingAdmissions !== 0) throw new Error('Memory embedding probe requires an idle runtime');
     let finish!: () => void; const done = new Promise<void>(resolve => { finish = resolve; });
-    const op: ActiveOperation = { id: randomUUID(), title: '记忆 embedding 就绪验证', phase: 'memory embedding readiness probe',
+    const op: ActiveOperation = { id: randomUUID(), title: '记忆 embedding 往返验证', phase: 'memory embedding readiness probe',
       status: 'running', controller: new AbortController(), done, finish };
     const onAbort = () => op.controller.abort(signal?.reason);
     signal?.addEventListener('abort', onAbort, { once: true }); this.operations.set(op.id, op);
+    const marker = `SHIYU_MEMORY_PROBE_${randomUUID().replaceAll('-', '').slice(0, 16)}`;
+    const steps: Array<{ step: string; status: string; detail?: string }> = [];
+    const attempt = async <T>(name: string, run: () => Promise<T>): Promise<T | undefined> => {
+      try { const result = await run(); steps.push({ step: name, status: 'passed' }); return result; }
+      catch (error) {
+        const code = error && typeof error === 'object' && 'code' in error && typeof (error as { code?: unknown }).code === 'string'
+          ? (error as { code: string }).code : 'MEMORY_PROBE_STEP_FAILED';
+        steps.push({ step: name, status: 'failed', detail: code }); return undefined;
+      }
+    };
     try {
       const snap = await this.store.request('conversation.snapshotLocal', {}) as { conversations?: Array<{ conversationId?: string; source?: { kind?: string } }> };
       const conversations = Array.isArray(snap?.conversations) ? snap.conversations : [];
       const target = conversations.find(item => item?.source?.kind === 'local') ?? conversations[0];
-      if (!target?.conversationId) return { ok: false, reasonCode: 'MEMORY_PROBE_NO_CONVERSATION', embeddingCalls: 0, generationModelCalls: 0, readiness: this.memoryReadiness ?? null };
-      let result: any; let reasonCode: string | undefined;
-      try { result = await this.commandSemanticMemory({ action: 'memory.searchLocal', conversationId: target.conversationId,
-        query: 'SHIYU local memory embedding readiness probe' }, op.controller.signal); }
-      catch (error) {
-        const code = error && typeof error === 'object' && 'code' in error && typeof (error as { code?: unknown }).code === 'string'
-          ? (error as { code: string }).code : 'MEMORY_PROBE_FAILED';
-        reasonCode = code;
+      if (!target?.conversationId) return { ok: false, reasonCode: 'MEMORY_PROBE_NO_CONVERSATION', embeddingCalls: 0, generationModelCalls: 0, readiness: this.memoryReadiness ?? null, steps };
+      const conversationId = target.conversationId;
+      const remember = await attempt('remember-synthetic-fact', () => this.commandLocalMemory({ action: 'memory.rememberLocal',
+        requestId: `memory-probe-${randomUUID()}`, conversationId, text: `${marker} 有界记忆验证事实` }, op.controller.signal));
+      const operationId = (remember as any)?.entry?.operationId;
+      if (!operationId) return { ok: false, reasonCode: 'MEMORY_PROBE_REMEMBER_FAILED', conversationId, embeddingCalls: 0, generationModelCalls: 0, readiness: this.memoryReadiness ?? null, steps };
+      const indexed = await attempt('index-fact', () => this.commandSemanticMemory({ action: 'memory.indexLocal',
+        requestId: `memory-probe-index-${randomUUID()}`, operationId }, op.controller.signal));
+      const search = await attempt('semantic-search', () => this.commandSemanticMemory({ action: 'memory.searchLocal',
+        conversationId, query: marker }, op.controller.signal));
+      const read = await attempt('exact-read', () => this.commandLocalMemory({ action: 'memory.readLocal', operationId }, op.controller.signal));
+      const withdrawn = await attempt('withdraw-fact', () => this.commandLocalMemory({ action: 'memory.withdrawLocal',
+        requestId: `memory-probe-withdraw-${randomUUID()}`, operationId }, op.controller.signal));
+      let postWithdrawRejected = false; let postWithdrawCode: string | undefined;
+      if (withdrawn !== undefined) {
+        try { await this.commandLocalMemory({ action: 'memory.readLocal', operationId }, op.controller.signal); }
+        catch (error) {
+          postWithdrawRejected = true;
+          postWithdrawCode = error && typeof error === 'object' && 'code' in error && typeof (error as { code?: unknown }).code === 'string'
+            ? (error as { code: string }).code : 'MEMORY_PROBE_REJECTED';
+        }
       }
       try { await this.refreshMemoryCoverage(); await this.publishMemoryAvailability(); } catch { /* readiness stays honest */ }
       this.ensureCanRun();
-      return { ok: reasonCode === undefined, ...(reasonCode === undefined ? {} : { reasonCode }), conversationId: target.conversationId,
-        state: result?.state, matches: Array.isArray(result?.matches) ? result.matches.length : 0,
-        embeddingCalls: result?.embeddingCalls ?? null, usageComplete: result?.usageComplete === true,
-        readiness: this.memoryReadiness ?? null, coverage: this.memoryCoverage ?? null,
-        semanticModel: 'local-embedding-only', generationModelCalls: 0 };
+      const matches = Array.isArray((search as any)?.matches) ? (search as any).matches.length : 0;
+      const semanticHit = matches > 0;
+      const stepPassed = (name: string) => steps.some(item => item.step === name && item.status === 'passed');
+      const ok = stepPassed('remember-synthetic-fact') && stepPassed('index-fact') && stepPassed('semantic-search')
+        && stepPassed('exact-read') && stepPassed('withdraw-fact') && postWithdrawRejected && semanticHit
+        && (indexed as any)?.entry?.effect?.status === 'succeeded';
+      return { ok, ...(ok ? {} : { reasonCode: 'MEMORY_PROBE_ROUNDTRIP_INCOMPLETE' }), conversationId, markerSha256: createHash('sha256').update(marker).digest('hex'),
+        steps, embeddingCalls: (indexed as any)?.entry?.embeddingUsage?.calls ?? null,
+        searchEmbeddingCalls: (search as any)?.embeddingCalls ?? null, usageComplete: (indexed as any)?.entry?.embeddingUsage?.complete === true && (search as any)?.usageComplete === true,
+        searchState: (search as any)?.state, matches, semanticHit, exactReadBodyMatched: typeof (read as any)?.body === 'string' && (read as any).body.includes(marker),
+        postWithdrawRejected, ...(postWithdrawCode ? { postWithdrawCode } : {}),
+        readiness: this.memoryReadiness ?? null, coverage: this.memoryCoverage ?? null, semanticModel: 'local-embedding-only', generationModelCalls: 0 };
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
   private async commandSemanticMemory(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
