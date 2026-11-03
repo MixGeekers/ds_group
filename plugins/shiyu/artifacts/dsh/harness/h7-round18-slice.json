@@ -2,7 +2,7 @@
  "schemaVersion": 1,
  "kind": "shiyu.harness.h7-round18-slice-evidence",
  "phase": "H7-round18",
- "capturedAt": "2026-11-03T20:50:24.201Z",
+ "capturedAt": "2026-11-03T22:35:31.629Z",
  "baselineHead": "ab08779e9883d3c4498b38ba495b1e384599605c",
  "status": "code-tests-delivered-not-clean-refresh",
  "purpose": "Bind the round-17 P0 memory readiness/real-embedding verification, emotion continuation (offline + zero-model joint host probe), writable per-task shared-workspace module, provider-stream/v7 instrumentation (not executed), round-17 clean artifacts and the round-17 review into evidence.ts and the acceptance index without granting pass; product rows stay not_covered.",
@@ -137,15 +137,15 @@
     }
    },
    "fullCheck": {
-    "tests": 1,
-    "pass": 1,
+    "tests": 1775,
+    "pass": 1775,
     "fail": 0,
     "skipped": 0,
     "exitCode": 0,
     "log": {
      "path": "plugins/shiyu/.local/h7-verify/round18-ab08779-check.log",
-     "sha256": "52d26753462488ad21852bc6718e21b84835f53765304d0a1e1b89d05a2a71b1",
-     "bytes": 8
+     "sha256": "bc056c1dd36bb8559d17bfd526743098ad9629f4a218646d8b706f7052bd9d24",
+     "bytes": 186476
     }
    }
   }
@@ -182,6 +182,11 @@
    "path": "plugins/shiyu/.local/h7-verify/round18-ab08779-isolated-harness.log",
    "sha256": "4d9e7bf36e0cec4e82d9c3b7aa55b6efcf37911be107c17d003dc7c2cb12e3c7",
    "bytes": 14342
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round18-ab08779-check.log",
+   "sha256": "bc056c1dd36bb8559d17bfd526743098ad9629f4a218646d8b706f7052bd9d24",
+   "bytes": 186476
   }
  ]
 }
