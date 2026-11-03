@@ -3,49 +3,49 @@ TAP version 13
 # Subtest: acceptance:module-registry-complete
 ok 1 - acceptance:module-registry-complete
   ---
-  duration_ms: 0.575208
+  duration_ms: 0.59525
   type: 'test'
   ...
 # Subtest: acceptance:preserves-v-and-sfl
 ok 2 - acceptance:preserves-v-and-sfl
   ---
-  duration_ms: 52.899208
+  duration_ms: 53.402959
   type: 'test'
   ...
 # Subtest: acceptance:evidence-derived-statuses
 ok 3 - acceptance:evidence-derived-statuses
   ---
-  duration_ms: 46.857083
+  duration_ms: 46.415125
   type: 'test'
   ...
 # Subtest: acceptance:unmapped-inputs-are-unknown
 ok 4 - acceptance:unmapped-inputs-are-unknown
   ---
-  duration_ms: 45.236417
+  duration_ms: 43.577083
   type: 'test'
   ...
 # Subtest: acceptance:denominators-honest
 ok 5 - acceptance:denominators-honest
   ---
-  duration_ms: 45.88
+  duration_ms: 45.960459
   type: 'test'
   ...
 # Subtest: acceptance:negative-upgrade-rejected
 ok 6 - acceptance:negative-upgrade-rejected
   ---
-  duration_ms: 56.592208
+  duration_ms: 56.594459
   type: 'test'
   ...
 # Subtest: acceptance:deterministic-output-and-cli
 ok 7 - acceptance:deterministic-output-and-cli
   ---
-  duration_ms: 25910.68925
+  duration_ms: 28286.022167
   type: 'test'
   ...
 # Subtest: acceptance:no-product-or-network-imports
 ok 8 - acceptance:no-product-or-network-imports
   ---
-  duration_ms: 2.05575
+  duration_ms: 1.048333
   type: 'test'
   ...
 1..8
@@ -56,105 +56,105 @@ ok 8 - acceptance:no-product-or-network-imports
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 26236.564416
+# duration_ms 28606.139041
 
 # ===== tests/harness-business.test.ts exit=0 =====
 TAP version 13
 # Subtest: business-oracle:business-catalog
 ok 1 - business-oracle:business-catalog
   ---
-  duration_ms: 4.340584
+  duration_ms: 4.116666
   type: 'test'
   ...
 # business-oracle=business-catalog version=1.0.0 samples=3 scenarios=0 known-accept-pass=1 known-reject-caught=2 failures=0
 # Subtest: business-oracle:business-fixture-isolation
 ok 2 - business-oracle:business-fixture-isolation
   ---
-  duration_ms: 43.868334
+  duration_ms: 42.741708
   type: 'test'
   ...
 # business-oracle=business-fixture-isolation version=1.0.0 samples=4 scenarios=0 known-accept-pass=2 known-reject-caught=2 failures=0
 # Subtest: business-oracle:four-class-answers
 ok 3 - business-oracle:four-class-answers
   ---
-  duration_ms: 0.323041
+  duration_ms: 0.314542
   type: 'test'
   ...
 # business-oracle=four-class-answers version=1.0.0 samples=12 scenarios=0 known-accept-pass=2 known-reject-caught=10 failures=0
 # Subtest: business-oracle:answer-provenance
 ok 4 - business-oracle:answer-provenance
   ---
-  duration_ms: 0.158
+  duration_ms: 0.157167
   type: 'test'
   ...
 # business-oracle=answer-provenance version=1.0.0 samples=7 scenarios=0 known-accept-pass=2 known-reject-caught=5 failures=0
 # Subtest: business-oracle:business-aggregation
 ok 5 - business-oracle:business-aggregation
   ---
-  duration_ms: 0.36475
+  duration_ms: 0.372458
   type: 'test'
   ...
 # business-oracle=business-aggregation version=1.0.0 samples=9 scenarios=0 known-accept-pass=2 known-reject-caught=7 failures=0
 # Subtest: business-oracle:split-policy
 ok 6 - business-oracle:split-policy
   ---
-  duration_ms: 0.153
+  duration_ms: 0.144875
   type: 'test'
   ...
 # business-oracle=split-policy version=1.0.0 samples=5 scenarios=0 known-accept-pass=2 known-reject-caught=3 failures=0
 # Subtest: business-oracle:business-coverage
 ok 7 - business-oracle:business-coverage
   ---
-  duration_ms: 11.019625
+  duration_ms: 10.560833
   type: 'test'
   ...
 # business-oracle=business-coverage version=1.0.0 samples=0 scenarios=3 known-accept-pass=1 known-reject-caught=2 failures=0
 # Subtest: business:fixture-determinism
 ok 8 - business:fixture-determinism
   ---
-  duration_ms: 30.466167
+  duration_ms: 29.385
   type: 'test'
   ...
 # Subtest: business:answers-independent-of-seed
 ok 9 - business:answers-independent-of-seed
   ---
-  duration_ms: 16.247375
+  duration_ms: 16.070667
   type: 'test'
   ...
 # Subtest: business:isolation-and-driver-boundary
 ok 10 - business:isolation-and-driver-boundary
   ---
-  duration_ms: 12.880834
+  duration_ms: 12.880541
   type: 'test'
   ...
 # Subtest: business:no-product-or-lab-imports
 ok 11 - business:no-product-or-lab-imports
   ---
-  duration_ms: 3.242042
+  duration_ms: 2.741708
   type: 'test'
   ...
 # Subtest: business:coverage-index
 ok 12 - business:coverage-index
   ---
-  duration_ms: 1.692542
+  duration_ms: 1.677709
   type: 'test'
   ...
 # Subtest: business:aggregation-honesty
 ok 13 - business:aggregation-honesty
   ---
-  duration_ms: 5.225875
+  duration_ms: 5.238
   type: 'test'
   ...
 # Subtest: business:cli-artifacts
 ok 14 - business:cli-artifacts
   ---
-  duration_ms: 470.3315
+  duration_ms: 463.493292
   type: 'test'
   ...
 # Subtest: business:docs-contract
 ok 15 - business:docs-contract
   ---
-  duration_ms: 0.340125
+  duration_ms: 0.33325
   type: 'test'
   ...
 1..15
@@ -165,44 +165,44 @@ ok 15 - business:docs-contract
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 693.179
+# duration_ms 658.884375
 
 # ===== tests/harness-evidence.test.ts exit=0 =====
 TAP version 13
 # Subtest: evidence:sources-bound-to-frozen-head
 ok 1 - evidence:sources-bound-to-frozen-head
   ---
-  duration_ms: 25703.590167
+  duration_ms: 28023.962041
   type: 'test'
   ...
 # Subtest: evidence:system-mapping-boundaries
 ok 2 - evidence:system-mapping-boundaries
   ---
-  duration_ms: 0.498708
+  duration_ms: 0.486667
   type: 'test'
   ...
 # Subtest: evidence:product-rows-stay-not-covered
 ok 3 - evidence:product-rows-stay-not-covered
   ---
-  duration_ms: 0.341459
+  duration_ms: 0.335542
   type: 'test'
   ...
 # Subtest: evidence:unknown-sources-fail-closed
 ok 4 - evidence:unknown-sources-fail-closed
   ---
-  duration_ms: 10.172084
+  duration_ms: 9.262834
   type: 'test'
   ...
 # Subtest: evidence:h7-report-and-traceability-render
 ok 5 - evidence:h7-report-and-traceability-render
   ---
-  duration_ms: 1.381583
+  duration_ms: 1.2905
   type: 'test'
   ...
 # Subtest: evidence:negative-upgrade-rejected
 ok 6 - evidence:negative-upgrade-rejected
   ---
-  duration_ms: 0.188167
+  duration_ms: 0.167083
   type: 'test'
   ...
 1..6
@@ -213,44 +213,44 @@ ok 6 - evidence:negative-upgrade-rejected
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 25787.501875
+# duration_ms 28104.677458
 
 # ===== tests/harness-faults.test.ts exit=0 =====
 TAP version 13
 # Subtest: faults:deadline-real-timer
 ok 1 - faults:deadline-real-timer
   ---
-  duration_ms: 18.14175
+  duration_ms: 17.889042
   type: 'test'
   ...
 # Subtest: faults:deadline-manual-and-combined-signals
 ok 2 - faults:deadline-manual-and-combined-signals
   ---
-  duration_ms: 0.225
+  duration_ms: 0.197584
   type: 'test'
   ...
 # Subtest: faults:fault-injector-deterministic-plan
 ok 3 - faults:fault-injector-deterministic-plan
   ---
-  duration_ms: 0.591958
+  duration_ms: 0.54075
   type: 'test'
   ...
 # Subtest: faults:fault-injector-abort-and-guards
 ok 4 - faults:fault-injector-abort-and-guards
   ---
-  duration_ms: 0.136583
+  duration_ms: 0.094667
   type: 'test'
   ...
 # Subtest: faults:business-clock-utc-recurrence
 ok 5 - faults:business-clock-utc-recurrence
   ---
-  duration_ms: 9.107041
+  duration_ms: 9.0435
   type: 'test'
   ...
 # Subtest: faults:business-clock-deterministic-timer-queue
 ok 6 - faults:business-clock-deterministic-timer-queue
   ---
-  duration_ms: 0.248209
+  duration_ms: 0.252542
   type: 'test'
   ...
 1..6
@@ -261,32 +261,32 @@ ok 6 - faults:business-clock-deterministic-timer-queue
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 82.982458
+# duration_ms 80.60575
 
 # ===== tests/harness-manifest.test.ts exit=0 =====
 TAP version 13
 # Subtest: manifest:builds-hashed-sanitized-evidence
 ok 1 - manifest:builds-hashed-sanitized-evidence
   ---
-  duration_ms: 189.59725
+  duration_ms: 186.342917
   type: 'test'
   ...
 # Subtest: manifest:sanitizer-rejects-leaks
 ok 2 - manifest:sanitizer-rejects-leaks
   ---
-  duration_ms: 0.286958
+  duration_ms: 0.343584
   type: 'test'
   ...
 # Subtest: manifest:cli-temp-root-and-atomic-write
 ok 3 - manifest:cli-temp-root-and-atomic-write
   ---
-  duration_ms: 151.762417
+  duration_ms: 146.524334
   type: 'test'
   ...
 # Subtest: manifest:verify-detects-drift
 ok 4 - manifest:verify-detects-drift
   ---
-  duration_ms: 68.167167
+  duration_ms: 69.879375
   type: 'test'
   ...
 1..4
@@ -297,38 +297,38 @@ ok 4 - manifest:verify-detects-drift
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 467.731667
+# duration_ms 468.182292
 
 # ===== tests/harness-observer.test.ts exit=0 =====
 TAP version 13
 # Subtest: observer:ledger-append-read-roundtrip
 ok 1 - observer:ledger-append-read-roundtrip
   ---
-  duration_ms: 18.11075
+  duration_ms: 16.158291
   type: 'test'
   ...
 # Subtest: observer:ledger-real-sqlite-child-crash-survives
 ok 2 - observer:ledger-real-sqlite-child-crash-survives
   ---
-  duration_ms: 65.066291
+  duration_ms: 64.164625
   type: 'test'
   ...
 # Subtest: observer:effect-ledger-lost-receipt
 ok 3 - observer:effect-ledger-lost-receipt
   ---
-  duration_ms: 10.995833
+  duration_ms: 11.116125
   type: 'test'
   ...
 # Subtest: observer:observer-independence-and-alignment
 ok 4 - observer:observer-independence-and-alignment
   ---
-  duration_ms: 8.272542
+  duration_ms: 9.013458
   type: 'test'
   ...
 # Subtest: observer:ledger-tamper-evidence
 ok 5 - observer:ledger-tamper-evidence
   ---
-  duration_ms: 8.768167
+  duration_ms: 10.302833
   type: 'test'
   ...
 1..5
@@ -339,138 +339,138 @@ ok 5 - observer:ledger-tamper-evidence
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 167.544333
+# duration_ms 167.449916
 
 # ===== tests/harness-oracles.test.ts exit=0 =====
 TAP version 13
 # Subtest: oracle-manifest:contract
 ok 1 - oracle-manifest:contract
   ---
-  duration_ms: 0.60875
+  duration_ms: 0.746167
   type: 'test'
   ...
 # Subtest: oracle:lossless-json
 ok 2 - oracle:lossless-json
   ---
-  duration_ms: 1.156916
+  duration_ms: 0.9135
   type: 'test'
   ...
 # oracle=lossless-json version=1.1.0 samples=18 scenarios=0 known-accept-pass=3 known-reject-caught=15 failures=0
 # Subtest: oracle:json-text
 ok 3 - oracle:json-text
   ---
-  duration_ms: 0.431459
+  duration_ms: 0.390292
   type: 'test'
   ...
 # oracle=json-text version=1.1.0 samples=8 scenarios=0 known-accept-pass=2 known-reject-caught=6 failures=0
 # Subtest: oracle:schema
 ok 4 - oracle:schema
   ---
-  duration_ms: 0.440291
+  duration_ms: 0.432667
   type: 'test'
   ...
 # oracle=schema version=1.1.0 samples=14 scenarios=0 known-accept-pass=2 known-reject-caught=12 failures=0
 # Subtest: oracle:cas
 ok 5 - oracle:cas
   ---
-  duration_ms: 0.250875
+  duration_ms: 0.247542
   type: 'test'
   ...
 # oracle=cas version=1.1.0 samples=10 scenarios=0 known-accept-pass=3 known-reject-caught=7 failures=0
 # Subtest: oracle:state-machine
 ok 6 - oracle:state-machine
   ---
-  duration_ms: 0.273041
+  duration_ms: 0.274833
   type: 'test'
   ...
 # oracle=state-machine version=1.1.0 samples=10 scenarios=0 known-accept-pass=3 known-reject-caught=7 failures=0
 # Subtest: oracle:counts
 ok 7 - oracle:counts
   ---
-  duration_ms: 0.279166
+  duration_ms: 0.288625
   type: 'test'
   ...
 # oracle=counts version=1.1.0 samples=17 scenarios=0 known-accept-pass=4 known-reject-caught=13 failures=0
 # Subtest: oracle:causal
 ok 8 - oracle:causal
   ---
-  duration_ms: 0.3515
+  duration_ms: 0.357958
   type: 'test'
   ...
 # oracle=causal version=1.1.0 samples=18 scenarios=0 known-accept-pass=5 known-reject-caught=13 failures=0
 # Subtest: oracle:version
 ok 9 - oracle:version
   ---
-  duration_ms: 0.216584
+  duration_ms: 0.224917
   type: 'test'
   ...
 # oracle=version version=1.1.0 samples=12 scenarios=0 known-accept-pass=4 known-reject-caught=8 failures=0
 # Subtest: oracle:authority
 ok 10 - oracle:authority
   ---
-  duration_ms: 0.232875
+  duration_ms: 0.2245
   type: 'test'
   ...
 # oracle=authority version=1.1.0 samples=10 scenarios=0 known-accept-pass=2 known-reject-caught=8 failures=0
 # Subtest: oracle:canary
 ok 11 - oracle:canary
   ---
-  duration_ms: 0.132416
+  duration_ms: 0.125833
   type: 'test'
   ...
 # oracle=canary version=1.1.0 samples=5 scenarios=0 known-accept-pass=2 known-reject-caught=3 failures=0
 # Subtest: oracle:deadline
 ok 12 - oracle:deadline
   ---
-  duration_ms: 18.013625
+  duration_ms: 17.943375
   type: 'test'
   ...
 # oracle=deadline version=1.1.0 samples=4 scenarios=3 known-accept-pass=2 known-reject-caught=5 failures=0
 # Subtest: oracle:business-clock
 ok 13 - oracle:business-clock
   ---
-  duration_ms: 9.627792
+  duration_ms: 9.718792
   type: 'test'
   ...
 # oracle=business-clock version=1.1.0 samples=0 scenarios=5 known-accept-pass=4 known-reject-caught=1 failures=0
 # Subtest: oracle:fault-injection
 ok 14 - oracle:fault-injection
   ---
-  duration_ms: 0.525458
+  duration_ms: 0.2595
   type: 'test'
   ...
 # oracle=fault-injection version=1.1.0 samples=0 scenarios=3 known-accept-pass=1 known-reject-caught=2 failures=0
 # Subtest: oracle:observer-ledger
 ok 15 - oracle:observer-ledger
   ---
-  duration_ms: 42.917292
+  duration_ms: 42.57675
   type: 'test'
   ...
 # oracle=observer-ledger version=1.1.0 samples=0 scenarios=5 known-accept-pass=3 known-reject-caught=2 failures=0
 # Subtest: oracle:observer-counter
 ok 16 - oracle:observer-counter
   ---
-  duration_ms: 0.145208
+  duration_ms: 0.143041
   type: 'test'
   ...
 # oracle=observer-counter version=1.1.0 samples=3 scenarios=0 known-accept-pass=1 known-reject-caught=2 failures=0
 # Subtest: oracle-selfproof:aggregate
 ok 17 - oracle-selfproof:aggregate
   ---
-  duration_ms: 60.557375
+  duration_ms: 57.170708
   type: 'test'
   ...
 # \\noracle,version,samples,scenarios,known_accept_pass,known_reject_caught,failures\\nlossless-json,1.1.0,18,0,3/3,15/15,0\\njson-text,1.1.0,8,0,2/2,6/6,0\\nschema,1.1.0,14,0,2/2,12/12,0\\ncas,1.1.0,10,0,3/3,7/7,0\\nstate-machine,1.1.0,10,0,3/3,7/7,0\\ncounts,1.1.0,17,0,4/4,13/13,0\\ncausal,1.1.0,18,0,5/5,13/13,0\\nversion,1.1.0,12,0,4/4,8/8,0\\nauthority,1.1.0,10,0,2/2,8/8,0\\ncanary,1.1.0,5,0,2/2,3/3,0\\ndeadline,1.1.0,4,3,2/2,5/5,0\\nbusiness-clock,1.1.0,0,5,4/4,1/1,0\\nfault-injection,1.1.0,0,3,1/1,2/2,0\\nobserver-ledger,1.1.0,0,5,3/3,2/2,0\\nobserver-counter,1.1.0,3,0,1/1,2/2,0
 # Subtest: selfproof:framework-rejects-accepting-oracle
 ok 18 - selfproof:framework-rejects-accepting-oracle
   ---
-  duration_ms: 0.232875
+  duration_ms: 0.223875
   type: 'test'
   ...
 # Subtest: selfproof:lossless-json-detects-host-snapshot-defect
 ok 19 - selfproof:lossless-json-detects-host-snapshot-defect
   ---
-  duration_ms: 0.0895
+  duration_ms: 0.092708
   type: 'test'
   ...
 1..19
@@ -481,56 +481,56 @@ ok 19 - selfproof:lossless-json-detects-host-snapshot-defect
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 197.94125
+# duration_ms 191.619167
 
 # ===== tests/harness-round11.test.ts exit=0 =====
 TAP version 13
 # Subtest: round11:new-v2-sources-integrity-and-ancestry
 ok 1 - round11:new-v2-sources-integrity-and-ancestry
   ---
-  duration_ms: 12964.524667
+  duration_ms: 14090.872833
   type: 'test'
   ...
 # Subtest: round11:v2-create-failure-never-pass
 ok 2 - round11:v2-create-failure-never-pass
   ---
-  duration_ms: 12883.269
+  duration_ms: 14044.44375
   type: 'test'
   ...
 # Subtest: round11:v2-activation-boundary
 ok 3 - round11:v2-activation-boundary
   ---
-  duration_ms: 0.201292
+  duration_ms: 0.204291
   type: 'test'
   ...
 # Subtest: round11:review-info-only-unmapped
 ok 4 - round11:review-info-only-unmapped
   ---
-  duration_ms: 12847.339083
+  duration_ms: 13959.402709
   type: 'test'
   ...
 # Subtest: round11:blobcommit-round10-clean-artifacts-stable
 ok 5 - round11:blobcommit-round10-clean-artifacts-stable
   ---
-  duration_ms: 219.009417
+  duration_ms: 210.18725
   type: 'test'
   ...
 # Subtest: round11:product-tooling-vsfl-no-upgrade
 ok 6 - round11:product-tooling-vsfl-no-upgrade
   ---
-  duration_ms: 12881.811417
+  duration_ms: 14038.216583
   type: 'test'
   ...
 # Subtest: round11:acceptance-index-cites-v2-limited-evidence
 ok 7 - round11:acceptance-index-cites-v2-limited-evidence
   ---
-  duration_ms: 12859.26675
+  duration_ms: 14012.29225
   type: 'test'
   ...
 # Subtest: round11:slice-evidence-present
 ok 8 - round11:slice-evidence-present
   ---
-  duration_ms: 90.315
+  duration_ms: 87.810916
   type: 'test'
   ...
 1..8
@@ -541,62 +541,62 @@ ok 8 - round11:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 64821.8805
+# duration_ms 70518.66325
 
 # ===== tests/harness-round12.test.ts exit=0 =====
 TAP version 13
 # Subtest: round12:new-round11-sources-integrity-and-ancestry
 ok 1 - round12:new-round11-sources-integrity-and-ancestry
   ---
-  duration_ms: 12995.90025
+  duration_ms: 14145.812292
   type: 'test'
   ...
 # Subtest: round12:history-assert-diagnostic-boundary
 ok 2 - round12:history-assert-diagnostic-boundary
   ---
-  duration_ms: 12898.66525
+  duration_ms: 13968.975167
   type: 'test'
   ...
 # Subtest: round12:reconcile-generalization-offline-boundary
 ok 3 - round12:reconcile-generalization-offline-boundary
   ---
-  duration_ms: 12882.236625
+  duration_ms: 13986.6185
   type: 'test'
   ...
 # Subtest: round12:host-v1v2-reconcile-never-pass
 ok 4 - round12:host-v1v2-reconcile-never-pass
   ---
-  duration_ms: 12904.126083
+  duration_ms: 14041.469083
   type: 'test'
   ...
 # Subtest: round12:review-info-only-unmapped
 ok 5 - round12:review-info-only-unmapped
   ---
-  duration_ms: 12830.503625
+  duration_ms: 14001.254292
   type: 'test'
   ...
 # Subtest: round12:blobcommit-round11-clean-artifacts-stable
 ok 6 - round12:blobcommit-round11-clean-artifacts-stable
   ---
-  duration_ms: 216.858083
+  duration_ms: 212.605917
   type: 'test'
   ...
 # Subtest: round12:product-tooling-vsfl-no-upgrade
 ok 7 - round12:product-tooling-vsfl-no-upgrade
   ---
-  duration_ms: 12903.903167
+  duration_ms: 14035.365125
   type: 'test'
   ...
 # Subtest: round12:acceptance-index-cites-round11-reconcile-limited
 ok 8 - round12:acceptance-index-cites-round11-reconcile-limited
   ---
-  duration_ms: 12941.34575
+  duration_ms: 14024.283375
   type: 'test'
   ...
 # Subtest: round12:slice-evidence-present
 ok 9 - round12:slice-evidence-present
   ---
-  duration_ms: 100.99975
+  duration_ms: 95.813959
   type: 'test'
   ...
 1..9
@@ -607,68 +607,68 @@ ok 9 - round12:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 90754.627541
+# duration_ms 98586.574833
 
 # ===== tests/harness-round13.test.ts exit=0 =====
 TAP version 13
 # Subtest: round13:new-round12-sources-integrity-and-ancestry
 ok 1 - round13:new-round12-sources-integrity-and-ancestry
   ---
-  duration_ms: 13017.442334
+  duration_ms: 14140.364584
   type: 'test'
   ...
 # Subtest: round13:v3-activation-boundary
 ok 2 - round13:v3-activation-boundary
   ---
-  duration_ms: 12880.659541
+  duration_ms: 13992.437625
   type: 'test'
   ...
 # Subtest: round13:round12-integration-boundary
 ok 3 - round13:round12-integration-boundary
   ---
-  duration_ms: 12894.086417
+  duration_ms: 13994.121667
   type: 'test'
   ...
 # Subtest: round13:v3-create-failure-never-pass
 ok 4 - round13:v3-create-failure-never-pass
   ---
-  duration_ms: 12925.884834
+  duration_ms: 14066.010084
   type: 'test'
   ...
 # Subtest: round13:v3-cleanup-reconcile-not-business
 ok 5 - round13:v3-cleanup-reconcile-not-business
   ---
-  duration_ms: 12869.072
+  duration_ms: 13984.372625
   type: 'test'
   ...
 # Subtest: round13:blobcommit-round12-clean-artifacts-stable
 ok 6 - round13:blobcommit-round12-clean-artifacts-stable
   ---
-  duration_ms: 218.747875
+  duration_ms: 210.93525
   type: 'test'
   ...
 # Subtest: round13:review-info-only-unmapped
 ok 7 - round13:review-info-only-unmapped
   ---
-  duration_ms: 12867.059792
+  duration_ms: 14042.297416
   type: 'test'
   ...
 # Subtest: round13:product-tooling-vsfl-no-upgrade
 ok 8 - round13:product-tooling-vsfl-no-upgrade
   ---
-  duration_ms: 12907.466959
+  duration_ms: 14041.525
   type: 'test'
   ...
 # Subtest: round13:acceptance-index-cites-round12-limited
 ok 9 - round13:acceptance-index-cites-round12-limited
   ---
-  duration_ms: 12901.23125
+  duration_ms: 14006.49675
   type: 'test'
   ...
 # Subtest: round13:slice-evidence-present
 ok 10 - round13:slice-evidence-present
   ---
-  duration_ms: 110.235916
+  duration_ms: 106.714458
   type: 'test'
   ...
 1..10
@@ -679,68 +679,68 @@ ok 10 - round13:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 103668.763458
+# duration_ms 112658.919583
 
 # ===== tests/harness-round14.test.ts exit=0 =====
 TAP version 13
 # Subtest: round14:new-round13-sources-integrity-and-ancestry
 ok 1 - round14:new-round13-sources-integrity-and-ancestry
   ---
-  duration_ms: 13128.949625
+  duration_ms: 14146.239042
   type: 'test'
   ...
 # Subtest: round14:header-cut-probe-source-boundary
 ok 2 - round14:header-cut-probe-source-boundary
   ---
-  duration_ms: 12904.721167
+  duration_ms: 14017.387084
   type: 'test'
   ...
 # Subtest: round14:round13-integration-boundary
 ok 3 - round14:round13-integration-boundary
   ---
-  duration_ms: 12871.297833
+  duration_ms: 14022.93775
   type: 'test'
   ...
 # Subtest: round14:header-cut-host-probe-never-pass
 ok 4 - round14:header-cut-host-probe-never-pass
   ---
-  duration_ms: 13116.34175
+  duration_ms: 14058.598834
   type: 'test'
   ...
 # Subtest: round14:correction-info-only-unmapped
 ok 5 - round14:correction-info-only-unmapped
   ---
-  duration_ms: 12873.410875
+  duration_ms: 13979.436833
   type: 'test'
   ...
 # Subtest: round14:blobcommit-round13-clean-artifacts-stable
 ok 6 - round14:blobcommit-round13-clean-artifacts-stable
   ---
-  duration_ms: 240.188167
+  duration_ms: 211.457791
   type: 'test'
   ...
 # Subtest: round14:review-info-only-unmapped
 ok 7 - round14:review-info-only-unmapped
   ---
-  duration_ms: 12859.523542
+  duration_ms: 13982.968458
   type: 'test'
   ...
 # Subtest: round14:product-tooling-vsfl-no-upgrade
 ok 8 - round14:product-tooling-vsfl-no-upgrade
   ---
-  duration_ms: 12903.806958
+  duration_ms: 14032.127958
   type: 'test'
   ...
 # Subtest: round14:acceptance-index-cites-round13-limited
 ok 9 - round14:acceptance-index-cites-round13-limited
   ---
-  duration_ms: 12890.623292
+  duration_ms: 14024.161916
   type: 'test'
   ...
 # Subtest: round14:slice-evidence-present
 ok 10 - round14:slice-evidence-present
   ---
-  duration_ms: 5.185375
+  duration_ms: 115.990209
   type: 'test'
   ...
 1..10
@@ -751,44 +751,116 @@ ok 10 - round14:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 103871.745375
+# duration_ms 112670.927875
+
+# ===== tests/harness-round15.test.ts exit=0 =====
+TAP version 13
+# Subtest: round15:new-round14-sources-integrity-and-ancestry
+ok 1 - round15:new-round14-sources-integrity-and-ancestry
+  ---
+  duration_ms: 14175.544959
+  type: 'test'
+  ...
+# Subtest: round15:delegation-depth-normalization-boundary
+ok 2 - round15:delegation-depth-normalization-boundary
+  ---
+  duration_ms: 14020.704084
+  type: 'test'
+  ...
+# Subtest: round15:new-evidence-level-is-limited
+ok 3 - round15:new-evidence-level-is-limited
+  ---
+  duration_ms: 0.1605
+  type: 'test'
+  ...
+# Subtest: round15:v4-create-success-eval-failure-never-pass
+ok 4 - round15:v4-create-success-eval-failure-never-pass
+  ---
+  duration_ms: 14112.044167
+  type: 'test'
+  ...
+# Subtest: round15:blobcommit-round14-clean-artifacts-stable
+ok 5 - round15:blobcommit-round14-clean-artifacts-stable
+  ---
+  duration_ms: 209.91275
+  type: 'test'
+  ...
+# Subtest: round15:correction-info-only-unmapped
+ok 6 - round15:correction-info-only-unmapped
+  ---
+  duration_ms: 0.166209
+  type: 'test'
+  ...
+# Subtest: round15:review-info-only-unmapped
+ok 7 - round15:review-info-only-unmapped
+  ---
+  duration_ms: 14026.940834
+  type: 'test'
+  ...
+# Subtest: round15:product-tooling-vsfl-no-upgrade
+ok 8 - round15:product-tooling-vsfl-no-upgrade
+  ---
+  duration_ms: 14060.834292
+  type: 'test'
+  ...
+# Subtest: round15:acceptance-index-cites-round14-limited
+ok 9 - round15:acceptance-index-cites-round14-limited
+  ---
+  duration_ms: 14075.388333
+  type: 'test'
+  ...
+# Subtest: round15:slice-evidence-present
+ok 10 - round15:slice-evidence-present
+  ---
+  duration_ms: 3.288959
+  type: 'test'
+  ...
+1..10
+# tests 10
+# suites 0
+# pass 10
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 84761.591916
 
 # ===== tests/harness-round4.test.ts exit=0 =====
 TAP version 13
 # Subtest: round4:new-sources-integrity-and-ancestry
 ok 1 - round4:new-sources-integrity-and-ancestry
   ---
-  duration_ms: 13121.947
+  duration_ms: 14286.625417
   type: 'test'
   ...
 # Subtest: round4:hash-mismatch-and-unreadable-fail-closed
 ok 2 - round4:hash-mismatch-and-unreadable-fail-closed
   ---
-  duration_ms: 15695.229209
+  duration_ms: 17066.588916
   type: 'test'
   ...
 # Subtest: round4:product-rows-and-tooling-ready-unchanged
 ok 3 - round4:product-rows-and-tooling-ready-unchanged
   ---
-  duration_ms: 12864.491625
+  duration_ms: 14050.900166
   type: 'test'
   ...
 # Subtest: round4:acceptance-index-updated-with-limited-evidence
 ok 4 - round4:acceptance-index-updated-with-limited-evidence
   ---
-  duration_ms: 12848.181292
+  duration_ms: 14052.169792
   type: 'test'
   ...
 # Subtest: round4:limitations-preserve-production-and-boundaries
 ok 5 - round4:limitations-preserve-production-and-boundaries
   ---
-  duration_ms: 12842.04575
+  duration_ms: 14098.839042
   type: 'test'
   ...
 # Subtest: round4:slice-evidence-present
 ok 6 - round4:slice-evidence-present
   ---
-  duration_ms: 57.092
+  duration_ms: 49.482667
   type: 'test'
   ...
 1..6
@@ -799,56 +871,56 @@ ok 6 - round4:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 67521.038875
+# duration_ms 73676.054041
 
 # ===== tests/harness-round5.test.ts exit=0 =====
 TAP version 13
 # Subtest: round5:new-probe-sources-integrity-and-ancestry
 ok 1 - round5:new-probe-sources-integrity-and-ancestry
   ---
-  duration_ms: 13114.762208
+  duration_ms: 14318.623834
   type: 'test'
   ...
 # Subtest: round5:real-model-failure-never-pass
 ok 2 - round5:real-model-failure-never-pass
   ---
-  duration_ms: 12956.346667
+  duration_ms: 14099.759208
   type: 'test'
   ...
 # Subtest: round5:hash-mismatch-fails-closed
 ok 3 - round5:hash-mismatch-fails-closed
   ---
-  duration_ms: 15671.868542
+  duration_ms: 17041.693959
   type: 'test'
   ...
 # Subtest: round5:product-tooling-and-vsfl-stay
 ok 4 - round5:product-tooling-and-vsfl-stay
   ---
-  duration_ms: 12931.048417
+  duration_ms: 14116.40325
   type: 'test'
   ...
 # Subtest: round5:acceptance-index-cites-new-limited-evidence
 ok 5 - round5:acceptance-index-cites-new-limited-evidence
   ---
-  duration_ms: 12906.738542
+  duration_ms: 14146.499667
   type: 'test'
   ...
 # Subtest: round5:blob-commit-snapshot-survives-pipeline-rewrites
 ok 6 - round5:blob-commit-snapshot-survives-pipeline-rewrites
   ---
-  duration_ms: 177.525709
+  duration_ms: 177.179583
   type: 'test'
   ...
 # Subtest: round5:blob-commit-invalid-fails-closed
 ok 7 - round5:blob-commit-invalid-fails-closed
   ---
-  duration_ms: 11685.479458
+  duration_ms: 12646.540708
   type: 'test'
   ...
 # Subtest: round5:slice-evidence-present
 ok 8 - round5:slice-evidence-present
   ---
-  duration_ms: 41.052541
+  duration_ms: 39.358083
   type: 'test'
   ...
 1..8
@@ -859,50 +931,50 @@ ok 8 - round5:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 79566.310833
+# duration_ms 86662.923375
 
 # ===== tests/harness-round6.test.ts exit=0 =====
 TAP version 13
 # Subtest: round6:new-host-fix-sources-integrity-and-ancestry
 ok 1 - round6:new-host-fix-sources-integrity-and-ancestry
   ---
-  duration_ms: 13097.737917
+  duration_ms: 14315.785917
   type: 'test'
   ...
 # Subtest: round6:diagnostic-pass-never-v25-or-business
 ok 2 - round6:diagnostic-pass-never-v25-or-business
   ---
-  duration_ms: 12896.32
+  duration_ms: 14093.897209
   type: 'test'
   ...
 # Subtest: round6:h2c-fix-chain-boundary-preserved
 ok 3 - round6:h2c-fix-chain-boundary-preserved
   ---
-  duration_ms: 12911.511542
+  duration_ms: 14135.779709
   type: 'test'
   ...
 # Subtest: round6:blobcommit-clean-snapshots-stable
 ok 4 - round6:blobcommit-clean-snapshots-stable
   ---
-  duration_ms: 365.838583
+  duration_ms: 354.536916
   type: 'test'
   ...
 # Subtest: round6:product-tooling-vsfl-no-upgrade
 ok 5 - round6:product-tooling-vsfl-no-upgrade
   ---
-  duration_ms: 12937.103459
+  duration_ms: 14127.527167
   type: 'test'
   ...
 # Subtest: round6:acceptance-index-cites-round5-limited-evidence
 ok 6 - round6:acceptance-index-cites-round5-limited-evidence
   ---
-  duration_ms: 12923.598125
+  duration_ms: 14095.553666
   type: 'test'
   ...
 # Subtest: round6:slice-evidence-present
 ok 7 - round6:slice-evidence-present
   ---
-  duration_ms: 54.496667
+  duration_ms: 50.030209
   type: 'test'
   ...
 1..7
@@ -913,50 +985,50 @@ ok 7 - round6:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 65264.706625
+# duration_ms 71248.370291
 
 # ===== tests/harness-round7.test.ts exit=0 =====
 TAP version 13
 # Subtest: round7:new-host-sources-integrity-and-ancestry
 ok 1 - round7:new-host-sources-integrity-and-ancestry
   ---
-  duration_ms: 12990.143542
+  duration_ms: 14187.166083
   type: 'test'
   ...
 # Subtest: round7:host-inner-lifecycle-diagnostic-not-pass
 ok 2 - round7:host-inner-lifecycle-diagnostic-not-pass
   ---
-  duration_ms: 12947.803333
+  duration_ms: 14120.683958
   type: 'test'
   ...
 # Subtest: round7:h4e-isolated-probe-boundary
 ok 3 - round7:h4e-isolated-probe-boundary
   ---
-  duration_ms: 12869.839584
+  duration_ms: 14071.34975
   type: 'test'
   ...
 # Subtest: round7:blobcommit-round6-clean-artifacts-stable
 ok 4 - round7:blobcommit-round6-clean-artifacts-stable
   ---
-  duration_ms: 240.818
+  duration_ms: 230.382083
   type: 'test'
   ...
 # Subtest: round7:product-tooling-vsfl-no-upgrade
 ok 5 - round7:product-tooling-vsfl-no-upgrade
   ---
-  duration_ms: 12932.993875
+  duration_ms: 14132.279792
   type: 'test'
   ...
 # Subtest: round7:acceptance-index-cites-round6-diagnostic
 ok 6 - round7:acceptance-index-cites-round6-diagnostic
   ---
-  duration_ms: 12909.198416
+  duration_ms: 14102.699958
   type: 'test'
   ...
 # Subtest: round7:slice-evidence-present
 ok 7 - round7:slice-evidence-present
   ---
-  duration_ms: 61.797625
+  duration_ms: 61.156625
   type: 'test'
   ...
 1..7
@@ -967,56 +1039,56 @@ ok 7 - round7:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 65032.327459
+# duration_ms 70981.30125
 
 # ===== tests/harness-round8.test.ts exit=0 =====
 TAP version 13
 # Subtest: round8:new-failure-sources-integrity-and-ancestry
 ok 1 - round8:new-failure-sources-integrity-and-ancestry
   ---
-  duration_ms: 12956.2535
+  duration_ms: 14177.2905
   type: 'test'
   ...
 # Subtest: round8:failed-core-goal-never-pass
 ok 2 - round8:failed-core-goal-never-pass
   ---
-  duration_ms: 12921.54375
+  duration_ms: 14260.784917
   type: 'test'
   ...
 # Subtest: round8:h3-runner-boundary
 ok 3 - round8:h3-runner-boundary
   ---
-  duration_ms: 0.220292
+  duration_ms: 0.259333
   type: 'test'
   ...
 # Subtest: round8:review-is-info-only-and-unmapped
 ok 4 - round8:review-is-info-only-and-unmapped
   ---
-  duration_ms: 12887.84875
+  duration_ms: 14088.768584
   type: 'test'
   ...
 # Subtest: round8:blobcommit-round7-clean-artifacts-stable
 ok 5 - round8:blobcommit-round7-clean-artifacts-stable
   ---
-  duration_ms: 220.742
+  duration_ms: 212.058125
   type: 'test'
   ...
 # Subtest: round8:product-tooling-vsfl-no-upgrade
 ok 6 - round8:product-tooling-vsfl-no-upgrade
   ---
-  duration_ms: 12944.505291
+  duration_ms: 14193.190459
   type: 'test'
   ...
 # Subtest: round8:acceptance-index-cites-failure-limited-evidence
 ok 7 - round8:acceptance-index-cites-failure-limited-evidence
   ---
-  duration_ms: 12904.267042
+  duration_ms: 14251.21575
   type: 'test'
   ...
 # Subtest: round8:slice-evidence-present
 ok 8 - round8:slice-evidence-present
   ---
-  duration_ms: 80.760042
+  duration_ms: 77.394916
   type: 'test'
   ...
 1..8
@@ -1027,56 +1099,56 @@ ok 8 - round8:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 64993.501458
+# duration_ms 71336.994708
 
 # ===== tests/harness-round9.test.ts exit=0 =====
 TAP version 13
 # Subtest: round9:new-reconcile-sources-integrity-and-ancestry
 ok 1 - round9:new-reconcile-sources-integrity-and-ancestry
   ---
-  duration_ms: 13001.388542
+  duration_ms: 14325.810709
   type: 'test'
   ...
 # Subtest: round9:reconcile-never-pass
 ok 2 - round9:reconcile-never-pass
   ---
-  duration_ms: 12925.032458
+  duration_ms: 14130.258125
   type: 'test'
   ...
 # Subtest: round9:h3-reconcile-boundary
 ok 3 - round9:h3-reconcile-boundary
   ---
-  duration_ms: 0.265
+  duration_ms: 0.24125
   type: 'test'
   ...
 # Subtest: round9:review-info-only-unmapped
 ok 4 - round9:review-info-only-unmapped
   ---
-  duration_ms: 12847.853166
+  duration_ms: 14079.931583
   type: 'test'
   ...
 # Subtest: round9:blobcommit-round8-clean-artifacts-stable
 ok 5 - round9:blobcommit-round8-clean-artifacts-stable
   ---
-  duration_ms: 218.488209
+  duration_ms: 211.824041
   type: 'test'
   ...
 # Subtest: round9:product-tooling-vsfl-no-upgrade
 ok 6 - round9:product-tooling-vsfl-no-upgrade
   ---
-  duration_ms: 12932.959125
+  duration_ms: 14127.168416
   type: 'test'
   ...
 # Subtest: round9:acceptance-index-cites-reconcile-limited-evidence
 ok 7 - round9:acceptance-index-cites-reconcile-limited-evidence
   ---
-  duration_ms: 12897.172209
+  duration_ms: 14149.93775
   type: 'test'
   ...
 # Subtest: round9:slice-evidence-present
 ok 8 - round9:slice-evidence-present
   ---
-  duration_ms: 100.006917
+  duration_ms: 94.602584
   type: 'test'
   ...
 1..8
@@ -1087,32 +1159,32 @@ ok 8 - round9:slice-evidence-present
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 65002.992584
+# duration_ms 71205.74075
 
 # ===== tests/harness-selfproof.test.ts exit=0 =====
 TAP version 13
 # Subtest: selfproof:tap-parser
 ok 1 - selfproof:tap-parser
   ---
-  duration_ms: 0.582708
+  duration_ms: 0.546375
   type: 'test'
   ...
 # Subtest: selfproof:artifact-honesty-validation
 ok 2 - selfproof:artifact-honesty-validation
   ---
-  duration_ms: 49.16575
+  duration_ms: 48.772041
   type: 'test'
   ...
 # Subtest: selfproof:artifact-staleness-detection
 ok 3 - selfproof:artifact-staleness-detection
   ---
-  duration_ms: 14.401666
+  duration_ms: 14.771958
   type: 'test'
   ...
 # Subtest: docs:readme-contract
 ok 4 - docs:readme-contract
   ---
-  duration_ms: 1.03725
+  duration_ms: 0.579208
   type: 'test'
   ...
 1..4
@@ -1123,32 +1195,32 @@ ok 4 - docs:readme-contract
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 128.39
+# duration_ms 133.336833
 
 # ===== tests/harness-traceability.test.ts exit=0 =====
 TAP version 13
 # Subtest: traceability:registry-complete-and-sourced
 ok 1 - traceability:registry-complete-and-sourced
   ---
-  duration_ms: 4.735417
+  duration_ms: 4.950875
   type: 'test'
   ...
 # Subtest: traceability:statuses-are-evidence-derived
 ok 2 - traceability:statuses-are-evidence-derived
   ---
-  duration_ms: 25772.908416
+  duration_ms: 28215.229792
   type: 'test'
   ...
 # Subtest: traceability:cli-generates-json-and-markdown
 ok 3 - traceability:cli-generates-json-and-markdown
   ---
-  duration_ms: 26184.302791
+  duration_ms: 28743.428667
   type: 'test'
   ...
 # Subtest: traceability:rejects-unsupported-pass-claims
 ok 4 - traceability:rejects-unsupported-pass-claims
   ---
-  duration_ms: 0.19825
+  duration_ms: 0.226209
   type: 'test'
   ...
 1..4
@@ -1159,4 +1231,4 @@ ok 4 - traceability:rejects-unsupported-pass-claims
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 52032.045166
+# duration_ms 57036.044042
