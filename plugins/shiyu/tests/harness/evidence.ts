@@ -71,6 +71,17 @@ export interface EvidenceFileRef {
   readonly path: string;
   /** The slice commit expected to have introduced/last-touched this evidence file. */
   readonly sliceCommit: string;
+  /**
+   * Optional committed snapshot commit. When set, the verifier reads the blob
+   * with `git show <blobCommit>:<path>` and hashes that committed content
+   * instead of comparing the mutable worktree file to the frozen HEAD blob.
+   * This keeps evidence stable for pipeline outputs that are legitimately
+   * rewritten after the evidence commit (manifest/traceability/acceptance).
+   * The commit must exist and be an ancestor of the frozen HEAD.
+   */
+  readonly blobCommit?: string;
+  /** Optional pinned SHA256 of the committed blob (fails closed on mismatch). */
+  readonly expectedSha256?: string;
 }
 
 export interface EvidenceSource {
@@ -694,9 +705,24 @@ export const EVIDENCE_SOURCES: readonly EvidenceSource[] = [
     id: 'h7-round4-clean-artifacts',
     commits: ['dfe4372'],
     files: [
-      REF('artifacts/dsh/harness/manifest.json', 'dfe4372'),
-      REF('artifacts/dsh/harness/traceability.json', 'dfe4372'),
-      REF('artifacts/dsh/harness/acceptance-report.json', 'dfe4372'),
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/manifest.json',
+        sliceCommit: 'dfe4372',
+        blobCommit: 'dfe4372',
+        expectedSha256: 'c32b773453e64eaccfd67c94e467ddb2a3f0567f18b98da8528fe2aa567d432a',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/traceability.json',
+        sliceCommit: 'dfe4372',
+        blobCommit: 'dfe4372',
+        expectedSha256: 'd208ceb02401f61b8415233ebdf4ba95445569450fd4058f6ba43f8eaa41f061',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/acceptance-report.json',
+        sliceCommit: 'dfe4372',
+        blobCommit: 'dfe4372',
+        expectedSha256: 'c244f683b3200c8b12a65a53b12e8dfb90298019b346c82b25a00606af697d5c',
+      },
     ],
     levels: ['offline-module'],
     scope: 'H7-round4 clean-VCS harness artifacts (X+1): clean-X manifest, traceability with 30 verified evidence sources, and acceptance report (gate incomplete) regenerated on af201fe.',
@@ -1040,11 +1066,17 @@ export interface VerifiedEvidenceFile {
   readonly sha256: string;
   readonly bytes: number;
   readonly present: boolean;
+  /** True when the verified blob matches the expected committed blob (for
+   * blobCommit refs) or the frozen HEAD blob (default behaviour). */
   readonly matchesFrozenHead: boolean;
   readonly frozenHeadBlobSha256: string | null;
   readonly lastCommit: string | null;
   readonly expectedCommit: string;
   readonly jsonParseable: boolean | null;
+  /** Set when the ref uses a committed snapshot instead of the worktree. */
+  readonly blobCommit?: string;
+  /** Set when the ref pins an expected blob SHA256. */
+  readonly expectedSha256?: string;
 }
 
 export interface VerifiedEvidenceSource {
@@ -1100,6 +1132,99 @@ function resolveJsonPath(value: unknown, path: string): JsonValue | undefined {
   return undefined;
 }
 
+export interface EvidenceFileFactsOutcome {
+  readonly facts: VerifiedEvidenceFile;
+  readonly issues: readonly string[];
+  /** Committed/worktree bytes used for JSON derive (never cached by the verifier). */
+  readonly bytes: Buffer | null;
+}
+
+/**
+ * Verify one evidence file.
+ *
+ * Default: read the worktree file and compare its SHA256 with the frozen HEAD
+ * blob (tamper/dirty worktree fails closed).
+ * With `blobCommit`: read `git show <blobCommit>:<path>` directly and compare
+ * the committed blob with `expectedSha256` when pinned; worktree rewrites of
+ * pipeline output paths do not affect this committed snapshot.
+ */
+export async function verifyEvidenceFileFacts(root: string, frozenHead: string, file: EvidenceFileRef): Promise<EvidenceFileFactsOutcome> {
+  const displayPath = file.path;
+  const issues: string[] = [];
+  const lastCommitRaw = git(root, ['log', '-1', '--format=%H', '--', displayPath]).stdout;
+  const lastCommit = (typeof lastCommitRaw === 'string' ? lastCommitRaw : lastCommitRaw.toString()).trim() || null;
+  let bytes: Buffer | null = null;
+  let sha256 = '';
+  let present = false;
+  let matches = false;
+  let frozenHeadBlobSha256: string | null = null;
+  const base = { path: displayPath, expectedCommit: file.sliceCommit, lastCommit };
+  if (file.blobCommit !== undefined) {
+    const commitExists = git(root, ['cat-file', '-e', `${file.blobCommit}^{commit}`]).status === 0;
+    if (!commitExists) {
+      issues.push(`blob commit ${file.blobCommit} is not present`);
+    } else if (git(root, ['merge-base', '--is-ancestor', file.blobCommit, frozenHead]).status !== 0) {
+      issues.push(`blob commit ${file.blobCommit} is not an ancestor of ${frozenHead}`);
+    } else {
+      const blob = git(root, ['show', `${file.blobCommit}:${displayPath}`], 'buffer');
+      if (blob.status !== 0 || !Buffer.isBuffer(blob.stdout)) {
+        issues.push(`file ${displayPath} is absent at blob commit ${file.blobCommit}`);
+      } else {
+        bytes = blob.stdout as Buffer;
+        sha256 = sha256Hex(bytes);
+        present = true;
+        frozenHeadBlobSha256 = sha256;
+        matches = file.expectedSha256 === undefined ? true : file.expectedSha256 === sha256;
+        if (file.expectedSha256 !== undefined && file.expectedSha256 !== sha256) {
+          issues.push(`file ${displayPath} does not match expected committed blob SHA (expected ${file.expectedSha256.slice(0, 16)}…, got ${sha256.slice(0, 16)}…)`);
+        }
+      }
+    }
+  } else {
+    try {
+      bytes = await readFile(join(root, displayPath));
+    } catch {
+      issues.push(`file ${displayPath} is absent from the worktree`);
+      bytes = null;
+    }
+    if (bytes !== null) {
+      sha256 = sha256Hex(bytes);
+      const blob = git(root, ['show', `${frozenHead}:${displayPath}`], 'buffer');
+      frozenHeadBlobSha256 = blob.status === 0 && Buffer.isBuffer(blob.stdout) ? sha256Hex(blob.stdout as Buffer) : null;
+      matches = frozenHeadBlobSha256 === sha256;
+      present = frozenHeadBlobSha256 !== null;
+      if (!matches) issues.push(`file ${displayPath} does not match the frozen HEAD blob`);
+      if (file.expectedSha256 !== undefined && file.expectedSha256 !== sha256) {
+        issues.push(`file ${displayPath} does not match expected committed blob SHA`);
+        matches = false;
+      }
+    }
+  }
+  let jsonParseable: boolean | null = null;
+  if (bytes !== null && displayPath.endsWith('.json')) {
+    try {
+      JSON.parse(bytes.toString('utf8'));
+      jsonParseable = true;
+    } catch {
+      jsonParseable = false;
+      issues.push(`file ${displayPath} is not valid JSON`);
+    }
+  }
+  const facts: VerifiedEvidenceFile = {
+    ...base,
+    sha256,
+    bytes: bytes?.byteLength ?? 0,
+    present,
+    matchesFrozenHead: matches,
+    frozenHeadBlobSha256,
+    jsonParseable,
+    ...(file.blobCommit === undefined ? {} : { blobCommit: file.blobCommit }),
+    ...(file.expectedSha256 === undefined ? {} : { expectedSha256: file.expectedSha256 }),
+  };
+  return { facts, issues, bytes };
+}
+
+
 export async function verifyEvidenceSources(workspaceRoot: string, frozenHead: string): Promise<{ report: EvidenceVerificationReport; result: CheckResult }> {
   const root = resolve(workspaceRoot);
   const headCheck = git(root, ['cat-file', '-t', frozenHead]);
@@ -1132,36 +1257,16 @@ export async function verifyEvidenceSources(workspaceRoot: string, frozenHead: s
     }
     const files: VerifiedEvidenceFile[] = [];
     for (const file of source.files) {
-      const displayPath = file.path;
-      const absolute = join(root, displayPath);
-      let bytes: Buffer | null = null;
-      try {
-        bytes = await readFile(absolute);
-      } catch {
-        sourceIssues.push(`file ${displayPath} is absent from the worktree`);
-        files.push({ path: displayPath, sha256: '', bytes: 0, present: false, matchesFrozenHead: false, frozenHeadBlobSha256: null, lastCommit: null, expectedCommit: file.sliceCommit, jsonParseable: null });
-        continue;
-      }
-      const sha256 = sha256Hex(bytes);
-      const blob = git(root, ['show', `${frozenHead}:${displayPath}`], 'buffer');
-      const blobBytes = blob.status === 0 && Buffer.isBuffer(blob.stdout) ? (blob.stdout as Buffer) : null;
-      const frozenHeadBlobSha256 = blobBytes === null ? null : sha256Hex(blobBytes);
-      const matches = frozenHeadBlobSha256 === sha256;
-      if (!matches) sourceIssues.push(`file ${displayPath} does not match the frozen HEAD blob`);
-      const lastCommitRaw = git(root, ['log', '-1', '--format=%H', '--', displayPath]).stdout;
-      const lastCommit = (typeof lastCommitRaw === 'string' ? lastCommitRaw : lastCommitRaw.toString()).trim() || null;
-      let jsonParseable: boolean | null = null;
-      if (displayPath.endsWith('.json')) {
+      const outcome = await verifyEvidenceFileFacts(root, frozenHead, file);
+      sourceIssues.push(...outcome.issues);
+      files.push(outcome.facts);
+      if (outcome.bytes !== null && file.path.endsWith('.json')) {
         try {
-          const parsed = JSON.parse(bytes.toString('utf8')) as unknown;
-          jsonParseable = true;
-          jsonCache.set(displayPath, parsed);
+          jsonCache.set(file.path, JSON.parse(outcome.bytes.toString('utf8')) as unknown);
         } catch {
-          jsonParseable = false;
-          sourceIssues.push(`file ${displayPath} is not valid JSON`);
+          // jsonParseable=false was already recorded by the helper.
         }
       }
-      files.push({ path: displayPath, sha256, bytes: bytes.byteLength, present: true, matchesFrozenHead: matches, frozenHeadBlobSha256, lastCommit, expectedCommit: file.sliceCommit, jsonParseable });
     }
     const observations: { label: string; value: JsonValue }[] = [];
     const deriveWarnings: string[] = [];

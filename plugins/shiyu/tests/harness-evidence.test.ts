@@ -98,9 +98,11 @@ test('evidence:sources-bound-to-frozen-head', async () => {
   const sampleFile = sample.files[0];
   const disk = await readFile(join(workspaceRoot, sampleFile.path));
   assert.equal(sha256Hex(disk), sampleFile.sha256);
-  const blob = spawnSync('git', ['-C', workspaceRoot, 'show', `${frozenHead}:${sampleFile.path}`], { timeout: 30_000 });
+  const blobRef = sampleFile.blobCommit ?? frozenHead;
+  const blob = spawnSync('git', ['-C', workspaceRoot, 'show', `${blobRef}:${sampleFile.path}`], { timeout: 30_000 });
   assert.equal(blob.status, 0);
   assert.equal(sha256Hex(blob.stdout), sampleFile.sha256);
+  if (sampleFile.blobCommit !== undefined) assert.equal(sampleFile.sha256, sampleFile.expectedSha256);
 });
 
 test('evidence:system-mapping-boundaries', async () => {

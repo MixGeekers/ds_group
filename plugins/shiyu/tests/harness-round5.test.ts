@@ -31,6 +31,8 @@ import {
   checkEvidenceMappingHonesty,
   evaluateEvidenceMapping,
   verifyEvidenceSources,
+  verifyEvidenceFileFacts,
+  type EvidenceFileRef,
   type EvidenceLevel,
   type EvidenceVerificationReport,
 } from './harness/evidence.js';
@@ -168,10 +170,15 @@ test('round5:new-probe-sources-integrity-and-ancestry', async () => {
   // Independent git-show blob check for each new source's first file.
   for (const source of newSources) {
     const file = source.files[0];
-    const blob = git(['show', `${head}:${file.path}`], 'buffer');
-    assert.equal(blob.status, 0, `${source.id} show ${file.path}`);
-    const disk = await readFile(join(workspaceRoot, file.path));
-    assert.equal(sha256Hex(disk), sha256Hex(blob.stdout as Buffer));
+    const blobRef = file.blobCommit ?? head;
+    const blob = git(['show', `${blobRef}:${file.path}`], 'buffer');
+    assert.equal(blob.status, 0, `${source.id} show ${blobRef}:${file.path}`);
+    if (file.blobCommit === undefined) {
+      const disk = await readFile(join(workspaceRoot, file.path));
+      assert.equal(sha256Hex(disk), sha256Hex(blob.stdout as Buffer));
+    } else {
+      assert.equal(sha256Hex(blob.stdout as Buffer), file.expectedSha256);
+    }
   }
 });
 
@@ -326,6 +333,75 @@ test('round5:acceptance-index-cites-new-limited-evidence', async () => {
   assert.equal(acceptance.summary.denominators.executed, 0);
   assert.equal(acceptance.summary.denominators.passed, 0);
   assert.equal(checkAcceptanceHonesty(acceptance).ok, true);
+});
+
+test('round5:blob-commit-snapshot-survives-pipeline-rewrites', async () => {
+  const head = git(['rev-parse', 'HEAD']).stdout.toString().trim();
+  const source = EVIDENCE_SOURCES.find(item => item.id === 'h7-round4-clean-artifacts');
+  assert.ok(source !== undefined);
+  const manifestRef = source.files.find(file => file.path.endsWith('manifest.json'));
+  assert.ok(manifestRef !== undefined);
+  assert.equal(manifestRef.blobCommit, 'dfe4372');
+  // The committed snapshot verifies independently of the worktree file.
+  const outcome = await verifyEvidenceFileFacts(workspaceRoot, head, manifestRef);
+  assert.deepEqual(outcome.issues, []);
+  assert.equal(outcome.facts.present, true);
+  assert.equal(outcome.facts.matchesFrozenHead, true);
+  assert.equal(outcome.facts.sha256, manifestRef.expectedSha256);
+  // Simulate a pipeline rewrite in a temp workspace: the worktree file differs
+  // completely, but the committed blob snapshot still verifies.
+  const directory = await mkdtemp(join(tmpdir(), 'shiyu-round5-blob-'));
+  try {
+    await symlink(join(workspaceRoot, '.git'), join(directory, '.git'));
+    const target = join(directory, manifestRef.path);
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, '{"rewrittenByPipeline":true}\n', 'utf8');
+    const rewritten = await verifyEvidenceFileFacts(directory, head, manifestRef);
+    assert.deepEqual(rewritten.issues, []);
+    assert.equal(rewritten.facts.sha256, manifestRef.expectedSha256);
+    // A non-snapshot source (default worktree check) fails on the same rewrite.
+    const defaultRef = EVIDENCE_SOURCES.find(item => item.id === 'h2b-host-time-probe')?.files[0];
+    assert.ok(defaultRef !== undefined);
+    const materialized = join(directory, defaultRef.path);
+    await mkdir(dirname(materialized), { recursive: true });
+    const blob = git(['show', `${head}:${defaultRef.path}`], 'buffer');
+    await writeFile(materialized, blob.stdout as Buffer);
+    assert.deepEqual((await verifyEvidenceFileFacts(directory, head, defaultRef)).issues, []);
+    await writeFile(materialized, `${(blob.stdout as Buffer).toString('utf8')}\n`, 'utf8');
+    const tampered = await verifyEvidenceFileFacts(directory, head, defaultRef);
+    assert.equal(tampered.facts.matchesFrozenHead, false);
+    assert.ok(tampered.issues.some(issue => issue.includes('does not match the frozen HEAD blob')));
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('round5:blob-commit-invalid-fails-closed', async () => {
+  const head = git(['rev-parse', 'HEAD']).stdout.toString().trim();
+  const source = EVIDENCE_SOURCES.find(item => item.id === 'h7-round4-clean-artifacts');
+  assert.ok(source !== undefined);
+  const manifestRef = source.files.find(file => file.path.endsWith('manifest.json'));
+  assert.ok(manifestRef !== undefined);
+  // Wrong pinned SHA (as if the committed blob was tampered): unknown, not pass.
+  const wrongSha: EvidenceFileRef = { ...manifestRef, expectedSha256: '0'.repeat(64) };
+  const wrong = await verifyEvidenceFileFacts(workspaceRoot, head, wrongSha);
+  assert.equal(wrong.facts.matchesFrozenHead, false);
+  assert.ok(wrong.issues.some(issue => issue.includes('does not match expected committed blob SHA')));
+  // Missing blob commit fails closed.
+  const missingCommit: EvidenceFileRef = { ...manifestRef, blobCommit: '0'.repeat(40) };
+  const missing = await verifyEvidenceFileFacts(workspaceRoot, head, missingCommit);
+  assert.ok(missing.issues.some(issue => issue.includes('is not present')));
+  // Not-an-ancestor blob commit fails closed (dfe4372 is not an ancestor of an
+  // earlier frozen HEAD).
+  const earlyHead = git(['rev-parse', 'af201fe']).stdout.toString().trim();
+  const notAncestor: EvidenceFileRef = { ...manifestRef, blobCommit: 'dfe4372' };
+  const ancestry = await verifyEvidenceFileFacts(workspaceRoot, earlyHead, notAncestor);
+  assert.ok(ancestry.issues.some(issue => issue.includes('is not an ancestor')));
+  const early = await verifyEvidenceSources(workspaceRoot, earlyHead);
+  const earlySource = early.report.sources.find(item => item.id === 'h7-round4-clean-artifacts');
+  assert.equal(earlySource?.status, 'unknown');
+  assert.ok(early.report.unknownSourceIds.includes('h7-round4-clean-artifacts'));
+  assert.equal(early.result.ok, false);
 });
 
 test('round5:slice-evidence-present', async () => {

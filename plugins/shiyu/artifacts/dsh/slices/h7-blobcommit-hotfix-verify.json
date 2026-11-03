@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h7-blobcommit-hotfix",
+  "capturedAt": "2026-11-03T01:16:51.326Z",
+  "head": "511fe653e9417d447d0bd6a56712dbd59c7b7ef9",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h7-blobcommit-hotfix-1793668229400",
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "bytes": 96593,
+      "sha256": "0f687a247d89f4bbfb7279034826f5d59f3a8e9850f41e66521b97ae8a90bae7"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+      "bytes": 13311,
+      "sha256": "1895967fac28e4c703c96c1f3f40148c4cf28cd68ccff944d488dbbca49d6458"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "bytes": 18584,
+      "sha256": "ff31ebfedcbd61806800994e948e57c5f2721e136ef749bb4051cc5783d578b0"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "bytes": 23131,
+      "sha256": "d0dbdac4cf49e19cea763210fdbddeb11c91bafc615a2cf2042ee7bcc4aeb302"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/h7-round5-slice.json",
+      "bytes": 8628,
+      "sha256": "5d3a826a5e74b078bf733bb074746093fc4f26bfb2c55dd5b8b823b1fd405a32"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 381516,
+    "bytes": 161620,
+    "sha256": "e6bcf50a4bd9bec4739fa16c8594c9faa40b88ce7fb229e2f1879617b74ff650",
+    "tests": {
+      "tests": 1498,
+      "pass": 1498,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 380559.761958",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h7-blobcommit-hotfix.log",
+    "bytes": 161620,
+    "sha256": "e6bcf50a4bd9bec4739fa16c8594c9faa40b88ce7fb229e2f1879617b74ff650"
+  },
+  "verdict": "pass"
+}

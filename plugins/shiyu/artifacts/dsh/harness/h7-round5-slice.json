@@ -123,23 +123,23 @@
   "files": [
     {
       "path": "plugins/shiyu/tests/harness/evidence.ts",
-      "sha256": "fccc4a6960ce1ddc5a78e1d7b49415863a8dd18e84fe3fa9fe055d1cd3e2edff",
-      "bytes": 92433
+      "sha256": "0f687a247d89f4bbfb7279034826f5d59f3a8e9850f41e66521b97ae8a90bae7",
+      "bytes": 96593
     },
     {
-      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
-      "sha256": "d5577a49209c96971f96772afc1c6e8ca021966f8e821d00bcb42c32934437d0",
-      "bytes": 34301
+      "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+      "sha256": "1895967fac28e4c703c96c1f3f40148c4cf28cd68ccff944d488dbbca49d6458",
+      "bytes": 13311
     },
     {
       "path": "plugins/shiyu/tests/harness-round4.test.ts",
-      "sha256": "bdca55fe4b8545c4a16b61f1d1d76114d30e39d137d08f3ad47ba3b9ed18a342",
-      "bytes": 18351
+      "sha256": "ff31ebfedcbd61806800994e948e57c5f2721e136ef749bb4051cc5783d578b0",
+      "bytes": 18584
     },
     {
       "path": "plugins/shiyu/tests/harness-round5.test.ts",
-      "sha256": "05c247e135aa66aee4e8a2259dc063a3ca037684479a31a582f856055a7b99e1",
-      "bytes": 18562
+      "sha256": "d0dbdac4cf49e19cea763210fdbddeb11c91bafc615a2cf2042ee7bcc4aeb302",
+      "bytes": 23131
     }
   ],
   "commands": [
@@ -155,14 +155,14 @@
         "exitCode": 0
       },
       "harness": {
-        "tests": 83,
-        "pass": 83,
+        "tests": 85,
+        "pass": 85,
         "fail": 0,
         "skipped": 0,
         "log": {
-          "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-shared-harness.log",
-          "sha256": "c42370d9c791135196d7002af5148485f184451a2bf4cb5ae2414fa4a49f3564",
-          "bytes": 7523
+          "path": "plugins/shiyu/.local/h7-verify/round5-hotfix-6ae4582-shared-harness.log",
+          "sha256": "e031a94a5e02295f6bcb22871bff3e212b625dde5d8b120102db2ca6d60c0cd9",
+          "bytes": 7637
         }
       }
     },
@@ -172,32 +172,32 @@
       "tsc": {
         "exitCode": 0,
         "log": {
-          "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-isolated-tsc.log",
+          "path": "plugins/shiyu/.local/h7-verify/round5-hotfix-6ae4582-isolated-tsc.log",
           "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
           "bytes": 0
         }
       },
       "harness": {
-        "tests": 83,
-        "pass": 83,
+        "tests": 85,
+        "pass": 85,
         "fail": 0,
         "skipped": 0,
         "log": {
-          "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-isolated-harness.log",
-          "sha256": "d17c5a6d723a79c3b7421739b4f325b6294eaf3ad0fe7240cb38f048bea4c0de",
-          "bytes": 7527
+          "path": "plugins/shiyu/.local/h7-verify/round5-hotfix-6ae4582-isolated-harness.log",
+          "sha256": "d4a0190e80f004b43d679f4d5b6faedfb1ee6982ddb0a5d89b94ef037789dd6e",
+          "bytes": 7655
         }
       },
       "fullCheck": {
-        "tests": 1479,
-        "pass": 1479,
+        "tests": 1498,
+        "pass": 1498,
         "fail": 0,
         "skipped": 0,
         "exitCode": 0,
         "log": {
-          "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-check.log",
-          "sha256": "84a76388b11be2313c66609a9698017ca2404459a0f25e6e18e903ca9e31362d",
-          "bytes": 159850
+          "path": "plugins/shiyu/.local/h7-verify/round5-hotfix-6ae4582-check.log",
+          "sha256": "3ce16405816f4b22dad6c213b2944dff66d29f76d14bae2a187b6b1fdb29787b",
+          "bytes": 161637
         }
       }
     }
@@ -226,24 +226,34 @@
   ],
   "archivedCopies": [
     {
-      "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-check.log",
-      "sha256": "84a76388b11be2313c66609a9698017ca2404459a0f25e6e18e903ca9e31362d",
-      "bytes": 159850
+      "path": "plugins/shiyu/.local/h7-verify/round5-hotfix-6ae4582-check.log",
+      "sha256": "3ce16405816f4b22dad6c213b2944dff66d29f76d14bae2a187b6b1fdb29787b",
+      "bytes": 161637
     },
     {
-      "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-isolated-harness.log",
-      "sha256": "d17c5a6d723a79c3b7421739b4f325b6294eaf3ad0fe7240cb38f048bea4c0de",
-      "bytes": 7527
+      "path": "plugins/shiyu/.local/h7-verify/round5-hotfix-6ae4582-isolated-harness.log",
+      "sha256": "d4a0190e80f004b43d679f4d5b6faedfb1ee6982ddb0a5d89b94ef037789dd6e",
+      "bytes": 7655
     },
     {
-      "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-shared-harness.log",
-      "sha256": "c42370d9c791135196d7002af5148485f184451a2bf4cb5ae2414fa4a49f3564",
-      "bytes": 7523
+      "path": "plugins/shiyu/.local/h7-verify/round5-hotfix-6ae4582-shared-harness.log",
+      "sha256": "e031a94a5e02295f6bcb22871bff3e212b625dde5d8b120102db2ca6d60c0cd9",
+      "bytes": 7637
     },
     {
-      "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-isolated-tsc.log",
+      "path": "plugins/shiyu/.local/h7-verify/round5-hotfix-6ae4582-isolated-tsc.log",
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "bytes": 0
     }
-  ]
+  ],
+  "hotfix": "blobCommit snapshot semantics: evidence refs may pin a committed snapshot (git show <blobCommit>:<path> + optional expectedSha256) so pipeline-generated manifest/traceability/acceptance artifacts are verified from the evidence commit instead of the rewritten worktree; other sources keep worktree-vs-HEAD tamper detection. Hotfix adds 2 tests (blobCommit snapshot survives pipeline rewrites; invalid blobCommit/expected SHA/ancestry fails closed).",
+  "supersededCleanCheck": {
+    "note": "The first clean-X 6ae4582 check (1496/1496) remains historical reference only; it was superseded by the blobCommit hotfix because the pipeline regenerated manifest before self-proof and invalidated the mutable-worktree evidence check.",
+    "tests": 1496,
+    "pass": 1496,
+    "fail": 0,
+    "skipped": 0,
+    "logSha256": "feeb1188c2beef73e356ebcf59dcc95b637d0b9b22fff5f627b317ac01fa8cab",
+    "logBytes": 161519
+  }
 }

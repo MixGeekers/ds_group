@@ -1293,3 +1293,12 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 该通过只证：固定宿主、受限 core 事件工具挂载、固定 prompt、≤2 主请求/1 工具往返、真实 provider 用量报告、Session 清理与无业务写入；不证完整 core 决策、计划质量、Goal/Task 执行、缓存/费用完整、真实渠道/设备、DOM 或九系统验收。
 2. live 时间触发为探针一次性规则，不是长期调度；会留下一个 append-only 事件。
 3. 失败尝试均未在模型轮准入后重试；真实 provider 在最终轮之前未完成任何主请求（0 streams）。
+
+## 38. H7 证据来源 hotfix：blobCommit 绑定 committed 快照（round-5 clean 阻塞修复）
+
+状态：**harness-only 热修复，离线通过**；产品代码/宿主证据不变。2026-11-02。
+
+- 现象：round-5 clean 刷新在 selfproof 阶段 fail-closed——`manifest.mjs` 在 selfproof 前重写 `artifacts/dsh/harness/manifest.json`，而 H7-round5 映射把“X+1 clean artifacts”作为 frozen-HEAD 工作树来源，重写后文件与 HEAD blob 不一致 → 该来源 unknown，自指失效。
+- 修复（方案 A）：`EvidenceFileRef` 增加可选 `blobCommit`/`expectedSha256`；`h7-round4-clean-artifacts` 的 manifest/traceability/acceptance 三个 ref 固定 `blobCommit:'dfe4372'` 并钉死交付 SHA，验证器要求 commit 存在且为 frozenHead 祖先，直接 `git show dfe4372:<path>` 校验 blob SHA/JSON，不再读可变工作树；其它来源保留 worktree tamper→unknown。
+- 测试：新增 2 项（流水线重写产物后 blobCommit 来源仍 verified；invalid commit/wrong expected SHA/非祖先→unknown）；harness 85/85；隔离 HEAD 6ae4582+仅切片 全量 **1498/1498、0 skip**；原 1496 clean check 标 superseded-by-hotfix。
+- 该 hotfix 成为新 X（`511fe65` 的祖先链不变；产品代码与宿主证据未变），随后重跑 clean 刷新获得 X+1。

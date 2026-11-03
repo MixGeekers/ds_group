@@ -139,11 +139,16 @@ test('round4:new-sources-integrity-and-ancestry', async () => {
   // Independent git-show check for one file of each new source.
   for (const source of newSources) {
     const file = source.files[0];
-    const blob = git(['show', `${head}:${file.path}`], 'buffer');
-    assert.equal(blob.status, 0, `${source.id} git show ${file.path}`);
+    const blobRef = file.blobCommit ?? head;
+    const blob = git(['show', `${blobRef}:${file.path}`], 'buffer');
+    assert.equal(blob.status, 0, `${source.id} git show ${blobRef}:${file.path}`);
     assert.ok(Buffer.isBuffer(blob.stdout));
-    const disk = await readFile(join(workspaceRoot, file.path));
-    assert.equal(sha256Hex(disk), sha256Hex(blob.stdout as Buffer), `${source.id} disk/blob sha`);
+    if (file.blobCommit === undefined) {
+      const disk = await readFile(join(workspaceRoot, file.path));
+      assert.equal(sha256Hex(disk), sha256Hex(blob.stdout as Buffer), `${source.id} disk/blob sha`);
+    } else {
+      assert.equal(sha256Hex(blob.stdout as Buffer), file.expectedSha256, `${source.id} committed blob sha`);
+    }
   }
 });
 
