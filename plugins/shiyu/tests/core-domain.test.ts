@@ -452,3 +452,16 @@ test('pure pending cursor reaches Goals beyond the first 100 and advances past a
   assert.throws(() => f.call('core.pending', { afterGoalId: `core-${'f'.repeat(40)}`, injected: true } as never), code('INVALID_CORE_INPUT'));
   assert.equal(f.watermark.read().commitSeq, before);
 });
+
+test('a later unknown mark cannot overwrite the first unknown reason or reconcile the reservation twice', t => {
+  const f = fixture(t), goal = f.authorize(), evaluation = f.call('core.claim', { goalId: goal.goalId })!;
+  f.dispatched(evaluation);
+  const first = f.call('core.markUnknown', { permit: evaluation.permit, reasonCode: 'CORE_DECISION_PRESTEP_ABORTED' });
+  assert.equal(first.status, 'unknown'); assert.equal(first.reasonCode, 'CORE_DECISION_PRESTEP_ABORTED');
+  const balanceBefore = f.call('core.balance', { goalId: goal.goalId });
+  const second = f.call('core.markUnknown', { permit: evaluation.permit, reasonCode: 'owner_paused' });
+  assert.equal(second.status, 'unknown');
+  assert.equal(second.reasonCode, 'CORE_DECISION_PRESTEP_ABORTED', 'the first unknown reason is preserved');
+  assert.equal(f.call('core.evaluations', { goalId: goal.goalId })[0]!.reasonCode, 'CORE_DECISION_PRESTEP_ABORTED');
+  assert.deepEqual(f.call('core.balance', { goalId: goal.goalId }), balanceBefore, 'the reservation is not reconciled twice');
+});

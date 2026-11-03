@@ -679,6 +679,45 @@ test('a real mounted provider publishes only a scoped observation and cannot pro
   } finally { await driver.close(); }
 });
 
+test('a host pre-step claim with the exact owner input plus runtime-context snapshot enters the decision round', async t => {
+  const f = await eventStore(t, []);
+  const host = fixture(realProvider(f.events)), driver = host.adapter();
+  try {
+    const created = await driver.create(host.create);
+    host.setMode('host-context-prestep');
+    host.setOutput(PLAN_OUTPUT);
+    const result = await driver.decisionRound(host.decision(ref(created.native)));
+    assert.equal(result.text, PLAN_OUTPUT);
+    assert.equal(result.modelCalls, 1); assert.equal(result.mainModelRequests, 1); assert.equal(result.mainModelStreams, 1);
+    assert.equal(host.counts().requests, 1); assert.equal(host.counts().streams, 1);
+    assert.deepEqual(host.counts().toolExecutions, 0);
+  } finally { await driver.close(); }
+});
+
+test('a host pre-step runtime-context snapshot with changed content is still rejected before any request', async t => {
+  const f = await eventStore(t, []);
+  const host = fixture(realProvider(f.events)), driver = host.adapter();
+  try {
+    const created = await driver.create(host.create);
+    host.setMode('host-bad-context-prestep');
+    host.setOutput(PLAN_OUTPUT);
+    await assert.rejects(driver.decisionRound(host.decision(ref(created.native))), /context|snapshot|owner input/i);
+    assert.equal(host.counts().requests, 0); assert.equal(host.counts().streams, 0); assert.equal(host.counts().toolExecutions, 0);
+  } finally { await driver.close(); }
+});
+
+test('a third host pre-step message is rejected before any request even with the exact owner input first', async t => {
+  const f = await eventStore(t, []);
+  const host = fixture(realProvider(f.events)), driver = host.adapter();
+  try {
+    const created = await driver.create(host.create);
+    host.setMode('host-third-input-prestep');
+    host.setOutput(PLAN_OUTPUT);
+    await assert.rejects(driver.decisionRound(host.decision(ref(created.native))), /owner input|unregistered/i);
+    assert.equal(host.counts().requests, 0); assert.equal(host.counts().streams, 0);
+  } finally { await driver.close(); }
+});
+
 test('the one tool-round budget rejects duplicate calls, a second tool round and malformed tool step input', async t => {
   for (const [plan, expected] of [
     [{ name: 'shiyu_core_event_types', duplicate: true }, /tool call/],

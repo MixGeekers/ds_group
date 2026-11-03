@@ -247,6 +247,8 @@ export interface CoreValidationReceipt {
   failureDetail?: string;
   /** Controlled expected/live cut facts for a history-assert failure (no bodies/paths). */
   historyDiagnostic?: NativeHistoryDiagnostic;
+  /** Evaluation readback captured immediately BEFORE the single stop action. */
+  preStopEvaluation?: { evaluationId: string; status: string; reasonCode?: string };
 }
 export class CoreValidationBusyError extends Error {
   readonly code = 'CORE_VALIDATION_BUSY';
@@ -382,7 +384,17 @@ export const CORE_VALIDATION_EXPERIMENT_V4: Readonly<CoreValidationExperiment> =
   budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
   maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
 });
-const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4]);
+/** v5 frozen experiment: the fifth independent owner-decision attempt after the
+ * failed v1-v4 creates. It is a NEW frozen experiment, not a retry. */
+export const CORE_VALIDATION_EXPERIMENT_V5: Readonly<CoreValidationExperiment> = Object.freeze({
+  version: 5, requestId: 'core-validation-frozen-v5',
+  objective: '完成 owner 预授权的有界本地便签验证 v5：写入 note-1 并由独立核验确认。',
+  deliverable: Object.freeze({ id: 'note-1', title: '有界 core 验证便签 v5',
+    content: 'SHIYU_CORE_VALIDATION_NOTE_V5', dependsOn: Object.freeze([]) as unknown as readonly string[] }),
+  budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
+  maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
+});
+const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5]);
 function experimentTemplate(experiment: Readonly<CoreValidationExperiment>): unknown {
   return { requestId: experiment.requestId, objective: experiment.objective, deliverables: [experiment.deliverable],
     budget: experiment.budget, expiresInMs: experiment.expiresInMs, maxEvaluations: experiment.maxEvaluations };
@@ -392,10 +404,11 @@ export const CORE_VALIDATION_TEMPLATE_SHA256: string = experimentTemplateSha(COR
 export const CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT);
 export const CORE_VALIDATION_EXPERIMENT_V3_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V3);
 export const CORE_VALIDATION_EXPERIMENT_V4_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V4);
+export const CORE_VALIDATION_EXPERIMENT_V5_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V5);
 /** Fixed, code-level reconcile targets. Callers cannot select or add requestIds. */
 export const CORE_VALIDATION_RECONCILE_REQUEST_IDS: readonly string[] = Object.freeze([
   CORE_VALIDATION_REQUEST_ID, CORE_VALIDATION_EXPERIMENT.requestId, CORE_VALIDATION_EXPERIMENT_V3.requestId,
-  CORE_VALIDATION_EXPERIMENT_V4.requestId,
+  CORE_VALIDATION_EXPERIMENT_V4.requestId, CORE_VALIDATION_EXPERIMENT_V5.requestId,
 ]);
 
 function experimentFixedInput(experiment: Readonly<CoreValidationExperiment>): CoreValidationFixedInput {
@@ -439,7 +452,8 @@ function validateOptions(options: unknown): asserts options is CoreValidationOpt
     throw new CoreValidationOptionsError('Invalid abort signal');
   }
   if (value.experiment !== undefined && value.experiment !== CORE_VALIDATION_V1 && value.experiment !== CORE_VALIDATION_EXPERIMENT
-    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V3 && value.experiment !== CORE_VALIDATION_EXPERIMENT_V4) {
+    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V3 && value.experiment !== CORE_VALIDATION_EXPERIMENT_V4
+    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V5) {
     throw new CoreValidationOptionsError('The validation experiment must be one of the code-level frozen constants');
   }
 }
@@ -599,6 +613,7 @@ class BoundedValidationRunnerCore {
   private readonly unknowns: string[] = [];
   private readonly experiment: Readonly<CoreValidationExperiment>;
   private createFailure?: { phase: GoalOperationPhase; code: string; detail: string; historyDiagnostic?: NativeHistoryDiagnostic };
+  private preStopEvaluation?: { evaluationId: string; status: string; reasonCode?: string };
   private completedObserved = false;
   private creationReadback?: CoreValidationGoalReadback;
   private partialCreation: CoreValidationPartialCreation = { detected: false, readback: 'absent', evidence: [] };
@@ -705,9 +720,26 @@ class BoundedValidationRunnerCore {
     if (!observation.tasks.length) return false;
     return observation.tasks.every(task => task.state === TASK_SUCCESS);
   }
+  /** Bounded read-only capture of the latest evaluation just BEFORE the stop
+   * command, so the original unknown/failure reason cannot be hidden by the
+   * pause/cancel path. Read failures are isolated from the stop decision. */
+  private async readPreStopEvaluation(): Promise<{ evaluationId: string; status: string; reasonCode?: string } | undefined> {
+    const goalId = this.goal?.goalId;
+    if (!goalId) return undefined;
+    try {
+      const evaluations = await this.options.store.request('core.evaluations', { goalId });
+      const latest = Array.isArray(evaluations) ? evaluations.at(-1) : undefined;
+      if (!latest || typeof latest.evaluationId !== 'string' || typeof latest.status !== 'string') return undefined;
+      const reasonCode = typeof latest.reasonCode === 'string' ? latest.reasonCode
+        : typeof latest.receipt?.reasonCode === 'string' ? latest.receipt.reasonCode : undefined;
+      return { evaluationId: latest.evaluationId.slice(0, 120), status: latest.status.slice(0, 40),
+        ...(reasonCode ? { reasonCode: reasonCode.slice(0, 200) } : {}) };
+    } catch { return undefined; }
+  }
   private async finish(status: CoreValidationStatus, reasonCode: CoreValidationReasonCode): Promise<CoreValidationReceipt> {
     this.finished = true;
     clearTimeout(this.wallTimer);
+    this.preStopEvaluation = await this.readPreStopEvaluation();
     const stopAction = await this.stop(status);
     let observation = this.observation;
     try { observation = await this.observe(); } catch { /* retain the last honest observation */ }
@@ -802,6 +834,7 @@ class BoundedValidationRunnerCore {
       stopAction,
       unknowns: [...new Set(this.unknowns)].slice(0, 16),
       ...(this.error ? { error: this.error } : {}),
+      ...(this.preStopEvaluation ? { preStopEvaluation: structuredClone(this.preStopEvaluation) } : {}),
       ...(this.createFailure ? { failurePhase: this.createFailure.phase, failureCode: this.createFailure.code,
         failureDetail: this.createFailure.detail,
         ...(this.createFailure.historyDiagnostic ? { historyDiagnostic: structuredClone(this.createFailure.historyDiagnostic) } : {}) } : {}),
@@ -1268,6 +1301,15 @@ export function assertBoundedCoreValidationReceipt(value: unknown): asserts valu
   if (!receipt.stopAction || !['none', 'pause', 'cancel'].includes(receipt.stopAction.kind) || typeof receipt.stopAction.attempted !== 'boolean') throw new Error('Receipt stop action is invalid');
   if (!Array.isArray(receipt.unknowns) || receipt.unknowns.length > 16 || receipt.unknowns.some(code => typeof code !== 'string' || code.length > 120)) throw new Error('Receipt unknowns are invalid');
   if (receipt.error !== undefined && (typeof receipt.error.phase !== 'string' || !/^[A-Z][A-Z0-9_]{0,99}$/.test(receipt.error.code))) throw new Error('Receipt error is invalid');
+  if (receipt.preStopEvaluation !== undefined) {
+    const evaluation = receipt.preStopEvaluation;
+    if (!evaluation || typeof evaluation !== 'object' || Array.isArray(evaluation)
+      || typeof evaluation.evaluationId !== 'string' || !evaluation.evaluationId || evaluation.evaluationId.length > 120
+      || typeof evaluation.status !== 'string' || !/^[a-z][a-z_]{0,39}$/.test(evaluation.status)
+      || (evaluation.reasonCode !== undefined && (typeof evaluation.reasonCode !== 'string' || evaluation.reasonCode.length > 200))) {
+      throw new Error('Receipt preStopEvaluation is malformed or unbounded');
+    }
+  }
   if (receipt.error?.phase === 'create') {
     if (!receipt.failurePhase || !GOAL_OPERATION_PHASES.includes(receipt.failurePhase)
       || typeof receipt.failureCode !== 'string' || !/^[A-Z][A-Z0-9_]{0,79}$/.test(receipt.failureCode)

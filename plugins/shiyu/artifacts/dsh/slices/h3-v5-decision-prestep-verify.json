@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h3-v5-decision-prestep",
+  "capturedAt": "2026-11-03T12:41:10.072Z",
+  "head": "6130b805574aa74026dc6e8b7622ead65b89a0ee",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h3-v5-decision-prestep-1793708331593",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 87463,
+      "sha256": "0b2a520f3dd60c6d29cc8349293e92aeb8ed42b8a683de12cbb4d48daba03f5b"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+      "bytes": 81615,
+      "sha256": "ec36e8e4ac3b5a153dedbd59e55c4c4784f565a7465f71f57da4bf296dec75ca"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 91897,
+      "sha256": "199eb601b94d1934d4c2d9dbd9fcc796b983779db3bbf7aeb6357964e8f6fbcd"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 117982,
+      "sha256": "ec1b1d70b9d0f38f43a126d511655f8825c3d720e3fe5dad948c5642524a4764"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 82186,
+      "sha256": "fe22b484083d5c098d3021f6a4023de73b3f61d1ce442d242141941ca42c1c5c"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-domain.test.ts",
+      "bytes": 38112,
+      "sha256": "8298284423872fdf60affecf50404d3b3aa7cce9468512013051379b79afe23f"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 1338207,
+    "bytes": 177175,
+    "sha256": "139d564e622dee5355a9d8931822e3ddafffe9d62ec08d8e65581624e463808b",
+    "tests": {
+      "tests": 1671,
+      "pass": 1671,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 1337033.028167",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h3-v5-decision-prestep.log",
+    "bytes": 177175,
+    "sha256": "139d564e622dee5355a9d8931822e3ddafffe9d62ec08d8e65581624e463808b"
+  },
+  "verdict": "pass"
+}

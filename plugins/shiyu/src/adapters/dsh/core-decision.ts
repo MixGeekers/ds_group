@@ -192,6 +192,20 @@ export class CoreDecisionRun {
     if (messages.length === 1) return;
     if (!this.isExpectedRuntimeContext(messages[1])) throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native context does not match the exact bound working-directory snapshot');
   }
+  /** Step-zero pre-step claim: exactly the registered owner input plus at most
+   * the one exact host runtime-context snapshot. The pre-step payload is the
+   * host's claim (owner prompt plus its runtime-context message); it is still not
+   * arbitrary input: a third message, wrong order or any changed content fails
+   * closed. The prepared `decision.messages` are revalidated by validateInputs. */
+  private validatePreStepInputs(messages: unknown): void {
+    if (!Array.isArray(messages) || messages.length < 1 || messages.length > 2 || messages[0]?.id !== this.expected?.messageId
+      || nativeMessageHash(messages[0]) !== this.expected!.messageHash) {
+      throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core step is not this one registered owner input');
+    }
+    if (messages.length === 2 && !this.isExpectedRuntimeContext(messages[1])) {
+      throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native context does not match the exact bound working-directory snapshot');
+    }
+  }
   /** Step one of a tool round claims only awaited next-step input: an optional
    * repeated cwd snapshot, never a second owner message or model text. */
   private validateToolStepInputs(messages: unknown): void {
@@ -331,9 +345,7 @@ export class CoreDecisionRun {
         await this.gate('pre-step');
         if (!this.dispatchAttempted || this.released || !Array.isArray(payload?.messages)) throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core step is not this one registered owner input');
         if (this.steps === 0) {
-          if (payload.messages.length !== 1 || payload.messages[0]?.id !== this.expected?.messageId || nativeMessageHash(payload.messages[0]) !== this.expected!.messageHash) {
-            throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core step is not this one registered owner input');
-          }
+          this.validatePreStepInputs(payload.messages);
         } else if (this.steps === 1 && this.toolsEnabled() && this.toolRoundUsed) {
           this.validateToolStepInputs(payload.messages);
         } else throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core step is outside the admitted zero-or-one tool round');

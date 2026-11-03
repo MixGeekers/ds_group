@@ -794,6 +794,10 @@ export class CoreDomain {
     return this.tx.atomic(() => {
       const evaluation = this.evaluation(permit);
       if (evaluation.status === 'committed' || evaluation.status === 'rejected') return clone(evaluation);
+      // The first unknown reason is the diagnostic truth (e.g. a pre-model abort
+      // reason); a later owner pause/interrupt must not overwrite it or reconcile
+      // the same reservation twice.
+      if (evaluation.status === 'unknown') return clone(evaluation);
       const reservation = this.mandates.getReservation(OWNER, permit.reservationId);
       if (reservation.state === 'reserved') evaluation.reservation = this.mandates.reconcile(CORE_VERIFIER, { receiptId: `core-unknown:${permit.evaluationId}`,
         reservationId: reservation.reservationId, expectedVersion: reservation.version, complete: false, usage: {}, evidenceRef: `core-interruption:${permit.evaluationId}` });
