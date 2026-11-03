@@ -1,0 +1,362 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-56)",
+  "reviewedAt": "2026-11-03T10:40:00Z",
+  "subject": "Round-13: headerDiff bounded diagnostics, zero-model native header-cut probe, host exact field difference, H7 X+1, pending H7 correction",
+  "head": "9ba7e7048c21f79e3d4e6588f40bea8d21d5b411",
+  "commits": {
+    "headerDiff-probe": "4421b6a",
+    "H7-round13": "e371479",
+    "integration (X)": "76c7116",
+    "H7 X+1": "4c2de7c",
+    "host-probe": "9ba7e70"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "X slice/files/logs",
+      "claim": "4421b6a files match; isolated 1632/1632; combined 1643/1643",
+      "evidence": [
+        "artifacts/dsh/h3/h3-native-header-cut-probe.json",
+        "artifacts/dsh/slices/h3-native-header-cut-verify.json",
+        "artifacts/dsh/slices/round13-integrated-verify.json"
+      ],
+      "method": "hashes/logs",
+      "result": "verified",
+      "detail": "files 5/5; log e34c6a8d…/173814 1632; integration log 17b98b3e…/174494 1643; X+1 code diff0"
+    },
+    {
+      "id": "R02",
+      "area": "headerDiff design/bounds",
+      "claim": "field name/category only; <=12 entries/<=80 chars/join<=300; total 600 documented; no body/path; string 8-hex sha; validator double-check",
+      "evidence": [
+        "4421b6a native-context.ts/core-validation.ts/probe tests"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "nativeHeaderFacts strings -> string-sha:8hex; diff <=12x<=80; assertHistoryDiagnostic and probe validator enforce 300 join + total600; fake host isSeeded/createdAt/delegationDepth/cwd tests; no path/body"
+    },
+    {
+      "id": "R03",
+      "area": "zero-model probe",
+      "claim": "exactly one bare lifecycle Session, Goal preset/cwd/meta, no event tools, model rejected, empty inbox; flush/cold/live/assert liveCut; finally cancel/dispose/archive; zero effects; admission/cleanup failure honest",
+      "evidence": [
+        "4421b6a native-header-cut-probe.ts/tests",
+        "host receipt"
+      ],
+      "method": "code/tests/receipt",
+      "result": "verified",
+      "detail": "tests 9? probe checks; native create none; nativeHeaderCutProbe receipt zeroModel/zeroEmbedding/zeroTaskOrEffect/createdGoal false"
+    },
+    {
+      "id": "R04",
+      "area": "host exact field difference",
+      "claim": "one call completed; matched=false/mismatchKind header-hash; headerDiff exact delegationDepth number:0→absent; cold/live facts; 9 checks; cleanup ok; exactly one Session added",
+      "evidence": [
+        "artifacts/dsh/host/round13/native-header-cut-receipt.json",
+        "round13 joint",
+        "audits",
+        "session"
+      ],
+      "method": "receipt/audit/DB/session",
+      "result": "verified",
+      "detail": "receipt 903B/sha a7cc6e83… (joint claims 901); cold event3/inherited0/hash421ba38b, live seq3/hash815793bb; headerDiff exact; released/disposed/archived/cleanup true; audits 444/58/36 → reload450/59/36 → probe/final450/59/37; goals5/tasks/budget/effects/state unchanged; known36 sessions unchanged; one new probe Session"
+    },
+    {
+      "id": "R05",
+      "area": "host zero effects/cleanup",
+      "claim": "no model/embedding/Task/Effect/Goal/budget/business write; 0 retry; exactly one archived Session",
+      "evidence": [
+        "round13 audits",
+        "receipt",
+        "status-final"
+      ],
+      "method": "audit diff + receipt",
+      "result": "verified",
+      "detail": "probe commitSeq/events/goals/tasks/budget/effects/state unchanged; only sessions+1; receipt zero flags; cleanup ok; no Goal/Task/Effect; no retry"
+    },
+    {
+      "id": "R06",
+      "area": "host payload metadata",
+      "claim": "joint receipt/status bytes consistent",
+      "evidence": [
+        "round13 joint receipt/cachedReceipt",
+        "host/round13 files"
+      ],
+      "method": "sha/bytes",
+      "result": "finding",
+      "detail": "joint receipt bytes 901 vs actual 903 (sha matches); cachedReceipt 57582 vs actual status-final 60692 (sha 9abd48d7 matches); actual final 60692 matches Lead"
+    },
+    {
+      "id": "R07",
+      "area": "H7-round13 caveat/correction",
+      "claim": "committed h7-round13-slice placeholders replaced/blocked-WIP disclosed; corrected version committed",
+      "evidence": [
+        "h7-round13-slice.json HEAD",
+        "worktree corrected file",
+        "harness-round13.test.ts"
+      ],
+      "method": "git status/head/working diff/logs",
+      "result": "finding-pending",
+      "detail": "HEAD placeholder shared 142/142/0 with empty sha/bytes and archivedCopies []; worktree has uncommitted corrected slice+test with blockedByConcurrentWip/shared 100/42 real log ac5235b9/43478, isolated 142/142 log ca4889ee/11159, full 1633 log f977bdb9/173500 and archivedCopies real; correction NOT committed before final SHA (F13-R2); placeholder not green"
+    },
+    {
+      "id": "R08",
+      "area": "X+1",
+      "claim": "4c2de7c 11 artifacts; manifest head=76c7116/dirty=false; clean1643; selfproof18/142; 73/73 sources; product79/79; gate incomplete",
+      "evidence": [
+        "4c2de7c artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "manifest 407/7,360,380/2dedf999…; clean 192fee72…/174535 1643; pipeline 2e1c3995…/3245; archive 90c08f5f…/839; selfproof18/142; sources73/254; product79/79; gate incomplete/executed=passed=0; code diff0"
+    },
+    {
+      "id": "R09",
+      "area": "failure/unauthorized boundary",
+      "claim": "probe is diagnosis only; no fix/fourth; H7 not upgraded",
+      "evidence": [
+        "round13 limitations/H7"
+      ],
+      "method": "text/mapping",
+      "result": "verified",
+      "detail": "limitations say no fix/no fourth; headerDiff field-level diagnosis; product79/79; H7 round12 v3 failure/cleanup levels fixed-host-failure-diagnostic/fixed-host-zero-model-reconcile; no V25; round13 host not mapped yet"
+    },
+    {
+      "id": "R10",
+      "area": "H7 placeholder vs clean",
+      "claim": "do not treat HEAD placeholder as green; X+1 clean real 1643 and corrected worktree logs real",
+      "evidence": [
+        "HEAD/worktree H7",
+        "X+1 logs"
+      ],
+      "method": "evidence review",
+      "result": "verified-with-pending",
+      "detail": "HEAD placeholder has unobserved shared142 claim; corrected worktree logs exist and are non-green shared100/42 blocked-by-WIP; correction commit pending"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F13-R1",
+      "severity": "minor-bytes",
+      "title": "Host receipt 901 vs actual 903; cachedReceipt 57582 vs final status 60692",
+      "files": [
+        "artifacts/dsh/host/round13-joint-header-cut.json#receipt/cachedReceipt",
+        "artifacts/dsh/host/round13/native-header-cut-receipt.json",
+        "host/round13/status-final.json"
+      ],
+      "evidence": "receipt sha a7cc6e83 matches, bytes 901 vs 903; status sha 9abd48d7 matches, cached bytes 57582 vs actual 60692; Lead status 60692 correct",
+      "impact": "content/sha correct; byte accounting wrong; attempt-time cache summary not retained",
+      "recommendation": "set actual bytes/semantics; keep/annotate cached status snapshot",
+      "owner": "Lead"
+    },
+    {
+      "id": "F13-R2",
+      "severity": "pending-evidence",
+      "title": "H7-round13 committed slice still contains development placeholders; corrected version uncommitted",
+      "files": [
+        "plugins/shiyu/artifacts/dsh/harness/h7-round13-slice.json",
+        "plugins/shiyu/tests/harness-round13.test.ts"
+      ],
+      "evidence": "HEAD shared 142/142/0 empty logs/archivedCopies []; worktree M corrected slice/test with blockedByConcurrentWip, real logs shared ac5235b9/43478 (100/42), isolated ca4889ee/11159 (142/142), full f977bdb9/173500 (1633), archivedCopies real; not committed before final SHA 9ba7e70",
+      "impact": "HEAD H7 slice is not valid green evidence; corrected content exists but must be committed as independent correction; X+1 clean 1643 provides real final harness run",
+      "recommendation": "commit the corrected slice/test as independent correction and re-verify its blob SHA; do not count placeholder shared142 as evidence",
+      "owner": "Lead/B"
+    },
+    {
+      "id": "F13-R3",
+      "severity": "info-boundary",
+      "title": "headerDiff total bound 300→600 documented and double-validated",
+      "files": [
+        "4421b6a native-context.ts/core-validation.ts"
+      ],
+      "evidence": "headerDiff <=12x<=80/join<=300; total diagnostic <=600; validators enforce both; no body/path",
+      "impact": "intentional documented expansion; no leakage found",
+      "recommendation": "none",
+      "owner": "Lead"
+    },
+    {
+      "id": "F13-R4",
+      "severity": "info-scope",
+      "title": "Host probe diagnosis only; no fix/fourth attempt; round13 host not mapped in H7",
+      "files": [
+        "round13 limitations",
+        "h7-round13-slice.json"
+      ],
+      "evidence": "headerDiff delegationDepth:0→absent; no fix; fourth unauthorized; product79/79 not_covered; H7 round13 maps round12 only",
+      "impact": "no upgrade/V25/business claim",
+      "recommendation": "map as diagnostic-only in later round; trusted-field normalization decision required before fourth attempt",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "H7 corrected slice commit",
+      "reason": "worktree correction uncommitted; HEAD placeholder not green"
+    },
+    {
+      "item": "Header trusted-field normalization/fix",
+      "reason": "not applied; fourth attempt unauthorized"
+    },
+    {
+      "item": "Real business chain",
+      "reason": "zero-model probe only; no Goal/Task/model completion"
+    },
+    {
+      "item": "Independent full-suite rerun at correction",
+      "reason": "X+1 clean 1643 and worktree real logs used; no correction commit"
+    }
+  ],
+  "counts": {
+    "h3_isolated": 1632,
+    "integration": 1643,
+    "X1_clean": 1643,
+    "selfproof": 142,
+    "sources": 73,
+    "files": 254,
+    "host_probe_sessions_added": 1,
+    "host_events": 59,
+    "host_goals": 5,
+    "host_sessions": 37
+  },
+  "hostProbe": {
+    "status": "completed",
+    "matched": false,
+    "mismatchKind": "header-hash",
+    "headerDiff": [
+      "delegationDepth: number:0→absent"
+    ],
+    "cold": {
+      "eventCount": 3,
+      "inheritedEventCount": 0,
+      "headerHashPrefix": "421ba38b88bb3384"
+    },
+    "live": {
+      "eventCount": 3,
+      "seq": 3,
+      "inheritedEventCount": 0,
+      "headerHashPrefix": "815793bba716d8fc"
+    },
+    "checks": 9,
+    "released": true,
+    "disposed": true,
+    "archived": true,
+    "cleanup": {
+      "ok": true,
+      "failures": []
+    },
+    "zeroModel": true,
+    "zeroEmbedding": true,
+    "zeroTaskOrEffect": true,
+    "createdGoal": false,
+    "createdSessionId": "shiyu-native-header-cut-d2fd51f0-3d04-44b2-85e1-3536985ab51f",
+    "receiptBytes": 903,
+    "receiptSha": "a7cc6e8336547300c7974d7c57d356e9fbf22bb32f12ebc5f628a4a5772dd0ed",
+    "statusFinalBytes": 60692,
+    "statusFinalSha": "9abd48d743fd4dc222f2236a2fc7653bc1fdaafe0179c811856c45b59a675424",
+    "before": {
+      "commitSeq": 444,
+      "events": 58,
+      "sessions": 36,
+      "goals": 5
+    },
+    "afterProbe": {
+      "commitSeq": 450,
+      "events": 59,
+      "sessions": 37,
+      "goals": 5
+    },
+    "probeDidNotChangeCommit": true,
+    "known36SessionsUnchanged": true,
+    "businessFactsUnchanged": true,
+    "retry": false,
+    "fixApplied": false,
+    "fourthAttemptAuthorized": false
+  },
+  "xPlusOne": {
+    "X": "76c7116",
+    "X+1": "4c2de7c",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "76c7116",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T10:07:48.085Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 407,
+      "bytes": 7360380,
+      "digest": "2dedf999957f0a333a7f63baf49b32a8b1058b8521cda0e2f82e1c1cf2618dec"
+    },
+    "cleanCheck": {
+      "tests": 1643,
+      "pass": 1643,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "192fee728719f2df000405c321332020b21a8eb54aa7a5eb71751033022a29ac",
+      "bytes": 174535
+    },
+    "pipeline": {
+      "sha256": "2e1c399513715b29637d3b0ef1aede827b5a7ed0d2a6f7c2bf38ae2332b65494",
+      "bytes": 3245,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "90c08f5f73a19d53638ccef30b7fdde0dad40c2bc1cab840ac8978046b4fa623/839",
+    "selfproof": {
+      "files": 18,
+      "tests": 142
+    },
+    "sources": {
+      "verified": 73,
+      "files": 254,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "d08f947d172883e0c5e1ddbce84edadd9230d072d840a86eb58afeb163a587d2/84873",
+      "tool-selfproof.json": "e044d160f0d9730c34a593a1904d8d0f2a8de08276769d7d768da1a880f61d13/29175",
+      "tool-selfproof.tap": "9ad81c23cbcb3a06eac2660aab0f3d2aa82db7759bdc1544ad05a367b48c25af/26772",
+      "traceability.json": "7a2988b0ba0958619fa3eed08db1dc7bb13b203de7622e5774b231cb013391e7/1517836",
+      "traceability.md": "416c31e01dc2dda9f59733df8b35390e46f83c54d7d8777efa139b428e5f247e/34171",
+      "h7-traceability-mapping.md": "4730757123336ac882d077fad1327ff7334b2d73f9a80f1fd3e42b5762fcd8d3/92406",
+      "acceptance-report.json": "303833183044e5dda02d71828cfa104122a718c44640f65d65e28c26e010fd7a/498299",
+      "acceptance-report.md": "49cd31fb7e8412b830efab0e3c0dda29f4acfba171fee81b9ff30931b107b0b9/30826",
+      "fl-scenarios/manifest.json": "b3a711c4d36449c679fb030279d9a62ceed4b1174577887c1c33457746c105a8/13154",
+      "fl-scenarios/coverage.json": "7e66699459f0478f6f9d503fceae5c8d02bd942dd3fdd19a012d5108766c1633/52559",
+      "fl-scenarios/coverage.md": "61ca98f217f91117eecbf91e7f40e392c9b0af17e8eff818404ca52f97545b66/9308"
+    }
+  },
+  "overallVerdict": "Round-13 evidence is substantively authentic and honest: headerDiff is field-name/value-category only with string hashes, bounded 12x80/join300 and total600 (documented and double-validated), the fake-host tests cover isSeeded/createdAt/delegationDepth/cwd without leaks, and the zero-model native header-cut probe created exactly one bare lifecycle Session, used the create-only seq-excluding-header cut, reported matched=false/header-hash/headerDiff delegationDepth: number:0→absent, and cleaned up (released/disposed/archived, cleanup.ok) with no model/embedding/Task/Effect/Goal/budget/business writes and no retry; host audits show commitSeq/events/goals/tasks/budget/effects/state unchanged and only one Session added. The probe is diagnosis only; no fix and no fourth attempt, product 79/79 not_covered, H7 not upgraded. X+1=4c2de7c is artifact-only with manifest head=X/dirty=false, clean1643, selfproof18/142, 73/73 sources/254 files and gate incomplete. Two issues: host receipt/status byte metadata is stale/wrong (F13-R1), and the committed H7-round13 slice still contains development placeholders while the corrected blocked-by-concurrent-WIP slice/test remains uncommitted (F13-R2); X+1 clean 1643 is real but the H7 correction must be committed before treating that slice as final evidence."
+}

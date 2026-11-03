@@ -18,7 +18,7 @@
   },
   "receipt": {
     "file": "artifacts/dsh/host/round13/native-header-cut-receipt.json",
-    "bytes": 901,
+    "bytes": 903,
     "sha256": "a7cc6e8336547300c7974d7c57d356e9fbf22bb32f12ebc5f628a4a5772dd0ed"
   },
   "result": {
@@ -172,7 +172,7 @@
   },
   "cachedReceipt": {
     "file": "artifacts/dsh/host/round13/status-final.json",
-    "bytes": 57582,
+    "bytes": 60692,
     "sha256": "9abd48d743fd4dc222f2236a2fc7653bc1fdaafe0179c811856c45b59a675424",
     "matched": false,
     "headerDiff": [
@@ -185,7 +185,8 @@
     "cleanup": {
       "ok": true,
       "failures": []
-    }
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8)"
   },
   "findings": [
     "The cold/live header mismatch is now exactly identified as delegationDepth: number:0→absent; the event-count/seq cut is already aligned at 3/3, so the previous failure is fully explained by this single trusted-volatile field difference.",
@@ -211,5 +212,12 @@
     "Zero-model header-cut diagnosis only; it does not prove any business chain and creates one disposable Session file.",
     "The fix (create-only trusted-field normalization) and any fourth bounded attempt remain out of scope and unauthorized.",
     "The probe covers the header/history cut only, not plan/model/Task/worker/native completion semantics."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F13-R1",
+      "finding": "receipt/status byte counts used character counts instead of actual file bytes",
+      "resolution": "receipt bytes set to the actual committed file size 903 and status-final to 60692 with matching sha256"
+    }
   ]
 }

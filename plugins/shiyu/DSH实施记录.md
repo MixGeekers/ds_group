@@ -1848,3 +1848,31 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - final status 只读，`diagnostics.nativeHeaderCutProbe` 缓存该 receipt。
 - 证据：[round13-joint-header-cut.json](<artifacts/dsh/host/round13-joint-header-cut.json>) + `host/round13/`（probe receipt、plan、4 审计、status-final 60,692B）、§60 设计。
 - **边界**：本轮只诊断；create 未修复；`delegationDepth:0↔absent` 的 create-only trusted-field 归一化策略尚未实施；**第四次 bounded Goal 尝试未授权**，需新的显式 owner 决定。
+
+## 62. 第十三轮独立复核与 F13/R13-CORR 处置（round-13 收尾）
+
+2026-11-03，独立验证员完成 round-13 只读复核（task-56）：**headerDiff/零模型探针/宿主精确字段差异真实且无泄露；探针零副作用、清理完整；失败/未授权边界诚实；H7 未升级；X+1 满足约定。** 报告：[ROUND13-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND13-EVIDENCE-REVIEW.md>)、[round13-evidence-review.json](<artifacts/dsh/verify/round13-evidence-review.json>)。
+
+### 62.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| X `76c7116` | headerDiff 仅字段名+值类别、≤12/≤80/join≤300、总诊断 300→600 已披露；探针 1 裸 Session/Goal preset/无事件工具/拒绝模型/空 inbox/finally 清理；隔离 1632/1632、组合 1643/1643 |
+| 宿主 `9ba7e70` | receipt 903B/sha `a7cc6e83…`：matched=false、mismatchKind=header-hash、**headerDiff `["delegationDepth: number:0→absent"]`**、cold `421ba38b…`/live `815793bb…`、9 checks、cleanup ok；恰 1 个 probe Session；commitSeq/events/goals/tasks/budget/effects/state 不变；0 模型/Goal/Task/Effect/业务写/重试 |
+| H7-round13 | round12 v3 failure 仅 `fixed-host-failure-diagnostic`、cleanup 仅 `fixed-host-zero-model-reconcile`；V25 不接收；产品 79/79 not_covered；**已知占位 caveat 已确认并更正** |
+| X+1 `4c2de7c` | 11 artifacts only；manifest head=76c7116/dirty=false/leaks=0；clean 1643/1643；selfproof 18/142；**73/73 sources verified（254 文件、0 unknown）**；gate=incomplete/executed=passed=0 |
+
+### 62.2 处置
+
+| ID | 处置 |
+|---|---|
+| F13-R1（bytes） | 已修：joint receipt bytes 901→实际 903（sha `a7cc6e83…`）；cachedReceipt bytes 57,582→实际 60,692（sha `9abd48d7…`）+ bytesSemantics |
+| **R13-CORR（H7 占位）** | 已修：独立更正提交 `d6934b6` 用真实归档替换 h7-round13-slice.json 的 checks/archivedCopies（隔离 tsc `bcb1a617…`、隔离 harness 142/142 `ca4889ee…`、full 1633 `f977bdb9…`）；sharedTree 明确 `blockedByConcurrentWip=true` + 真实污染观测（100/42，`ac5235b9…`），删除未观察的 142/142/0 green 声明；同步修正 harness-round13 测试（10/10、full harness exit 0） |
+| F13-R2（诊断上限） | info：300→600 为容纳 headerDiff 的有意扩展，已双 validator 与证据披露 |
+| F13-R3/R4 | info：仅诊断、不证业务链；未修复、第四次未授权；round-13 host 未入 H7（round-14） |
+
+### 62.3 边界
+
+1. 只证 header-cut 诊断（`delegationDepth: number:0→absent` 精确字段差异），不证真实业务链；未修复、第四次尝试未授权。
+2. 探针创建并归档 1 个裸 Session（已知副作用）；业务库/Goal/journal/budget 不变。
+3. 下一步：create-only trusted-field 归一化决策（`delegationDepth:0 ↔ absent`）→ 若修复完成，再以**显式 owner 决定**决定是否进行第四次独立尝试（新 requestId/模板）。
