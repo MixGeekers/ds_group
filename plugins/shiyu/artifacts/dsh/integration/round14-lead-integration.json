@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the create-only delegationDepth normalization and the v4 experiment owner surface",
+  "capturedAt": "2026-11-03T11:26:10.195Z",
+  "status": "offline-verified-integration",
+  "baseline": {
+    "head": "d221561"
+  },
+  "purpose": "Wire runtime.probe-core-goal-v4 and shiyu_validate_core_goal_v4 around the existing bounded runner with only the exact frozen V4 constant; reconcile now covers [v1,v2,v3,v4]. The fourth real attempt is an explicit owner decision and not a retry of v1/v2/v3.",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 112832,
+      "sha256": "fe034ee4b5897a17a9e7e02bd7667c582698bc3f6cec010f3f797ee66f936a15"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 20869,
+      "sha256": "ba6de25795efc8b1fec2aa505e1f1a7b4ca1a6c2bb3acfd7966affcd7fd212b5"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 12193,
+      "sha256": "612ff6dd8e7c90fc4718166e1e5c59d5904cdcd22f091fc0e50d603f9e4d911e"
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD d221561 + all round-14 slice files and integration)",
+      "evidence": "artifacts/dsh/slices/round14-integrated-verify.json",
+      "exitCode": 0,
+      "tests": 1662,
+      "pass": 1662,
+      "fail": 0,
+      "skipped": 0,
+      "log": "plugins/shiyu/.local/slice-verify-round14-integrated.log",
+      "logSha256": "bc962e12b735e00dbf02095cb213fe67766451cd939547427ee805f8b2bbfec2",
+      "arithmetic": "1643 baseline + 8 delegationDepth/v4 product tests + 10 H7-round14 + 1 v4 tool test = 1662"
+    },
+    "authorChecks": {
+      "h3V4": "isolated 1651/1651 (baseline 1643 + 8)",
+      "h7Round14": "author isolated check plus harness suite"
+    },
+    "hostAttemptPending": "one fourth independent v4 attempt is executed under the frozen owner decision; failure/unknown is preserved and never retried."
+  },
+  "knownLimitations": [
+    "The normalization is conditional: if the real cold header does not carry delegationDepth:0, strict semantics remain and v4 fails at header-hash without retry.",
+    "The v4 experiment creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; it is not a read-only probe.",
+    "Receipts live in memory diagnostics and must be captured before reload."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; fourth v4 host attempt pending."
+}

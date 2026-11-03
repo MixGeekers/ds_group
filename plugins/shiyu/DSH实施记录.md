@@ -1876,3 +1876,26 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 只证 header-cut 诊断（`delegationDepth: number:0→absent` 精确字段差异），不证真实业务链；未修复、第四次尝试未授权。
 2. 探针创建并归档 1 个裸 Session（已知副作用）；业务库/Goal/journal/budget 不变。
 3. 下一步：create-only trusted-field 归一化决策（`delegationDepth:0 ↔ absent`）→ 若修复完成，再以**显式 owner 决定**决定是否进行第四次独立尝试（新 requestId/模板）。
+
+## 63. 第十四轮：delegationDepth create-only 归一化与 v4 冻结实验（第四次尝试准备）
+
+状态：**G1 离线/集成通过**；第四次真实尝试待固定宿主执行（新的显式 owner 决定）。2026-11-03。
+
+### 63.1 create-only trusted-field 归一化修复
+
+- 根因（round-13 宿主探针确认）：cold persisted header `delegationDepth:0` vs live Session header **absent**，eventCount/seq 已对齐 3/3。
+- 修复：仅在**新会话 create 的 cold-cut 路径**启用 `headerCanonicalization:'delegation-depth-default-zero'`——仅当 cold headerFacts 的 `delegationDepth===number:0` 且 live header 该字段 absent/null 时，把 **live 比较副本**规范为 0（不修改真实 header、不归一化其它字段）。
+- 作用点：`stabilizeCoreCreateBaseline` 与 create 路径的 `bindCoreTitleAppend` 断言；**recovery/resume/expectedPrefix/默认 strict assert 完全不变**；事件数/seq/digest/references/inherited 检查未放宽；失败仍带 historyDiagnostic/headerDiff。
+- fake-host：0↔absent → **create 成功且 native create 恰一次**；isSeeded/createdAt/delegationDepth(非 0) 等仍精确失败；默认 strict assert 对 0↔absent 仍拒绝。
+
+### 63.2 v4 冻结实验与 owner 面
+
+- `CORE_VALIDATION_EXPERIMENT_V4`：requestId `core-validation-frozen-v4`、content `SHIYU_CORE_VALIDATION_NOTE_V4`（sha `79f3b83f…`）、budget 16384/3/1、expires 10min、max2、template sha `14296381…`；Object.freeze、exact-only；v1/v2/v3 不变且永不重试；reconcile 固定 targets 扩展 `[v1,v2,v3,v4]`。
+- `runtime.probe-core-goal-v4` + 工具 `shiyu_validate_core_goal_v4`（无参数、output schema；description 明确全新 v4、非 v1/v2/v3 重试、显式 owner 决定的第四次独立尝试、真实副作用、失败/未知不重试）。
+- 测试净新增/更新 8；作者隔离 1651/1651；**Lead 组合隔离 1662/1662、0 skip**（1643+8+10+1）。
+
+### 63.3 第四次尝试（待执行）
+
+- **显式 owner 决定**：全新 v4 requestId/模板，非 v1/v2/v3 重试；一次调用、0 重试；预算 16384/3/1、≤2 评估、180s wall、10min 过期、单槽单飞。
+- 成功判据：create 成功 → core 计划/模型轮/Task/worker/独立核验/native complete；失败：receipt 带 failurePhase/failureCode/failureDetail/historyDiagnostic(headerDiff)，partial 原样保留、不删不滚、0 重试；随后可用覆盖 [v1..v4] 的 reconcile 清理 inert 残留。
+- 归一化是有条件的：若真实 cold header 无 `delegationDepth:0`，严格语义保留、v4 会 header-hash 失败且停止报告，不猜测不重试。

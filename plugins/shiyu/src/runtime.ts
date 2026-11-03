@@ -49,7 +49,7 @@ import {
 import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
 import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
 import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
-import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3 } from './control/core-validation.js';
+import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4 } from './control/core-validation.js';
 import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, type NativeHeaderCutProbeReceipt } from './control/native-header-cut-probe.js';
 import { CORE_GOAL_PRESET_ID } from './adapters/dsh/goals.js';
 import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
@@ -714,6 +714,15 @@ export class RuntimeService {
     return this.commandCoreGoalValidationRun(value, signal, CORE_VALIDATION_EXPERIMENT_V3);
   }
 
+  /** v4 is the fourth independent frozen experiment for an explicit owner
+   * decision (create-only delegationDepth trusted-field canonicalization
+   * prepared). It is NOT a retry of the failed v1/v2/v3 creates and never
+   * accepts input selection; it reuses the same single-slot, paused/idle,
+   * bounded, no-retry runner and only changes the frozen experiment constant. */
+  private async commandCoreGoalValidationV4(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    return this.commandCoreGoalValidationRun(value, signal, CORE_VALIDATION_EXPERIMENT_V4);
+  }
+
   private async commandCoreGoalValidationRun(value: Record<string, unknown>, signal: AbortSignal | undefined, experiment: typeof CORE_VALIDATION_EXPERIMENT | undefined): Promise<unknown> {
     if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid bounded core Goal validation input');
     this.ensureCanRun(); signal?.throwIfAborted();
@@ -999,6 +1008,7 @@ export class RuntimeService {
     if (action === 'runtime.probe-core-goal') return this.commandCoreGoalValidation(value, signal);
     if (action === 'runtime.probe-core-goal-v2') return this.commandCoreGoalValidationV2(value, signal);
     if (action === 'runtime.probe-core-goal-v3') return this.commandCoreGoalValidationV3(value, signal);
+    if (action === 'runtime.probe-core-goal-v4') return this.commandCoreGoalValidationV4(value, signal);
     if (action === 'runtime.probe-native-header-cut') return this.commandNativeHeaderCutProbe(value, signal);
     if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);
     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
