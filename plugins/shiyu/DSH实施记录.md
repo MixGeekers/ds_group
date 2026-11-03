@@ -2011,3 +2011,24 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. create 已连续两次真实成功；真实业务链仍未完成（evaluation 在 0 模型请求前失败）。
 2. 新阻塞 = runtime-context claim 形状：下一步需用 bounded probe 的 renderer/结构化绑定做字段级对齐；**第六次尝试未授权**。
 3. v4/v5 两个 authorized/paused Goal + unknown evaluation/held budget 残留需披露/对账；H7 未升级；round-15 host 未入映射（round-16）。
+
+## 69. 第十六轮：runtime-context claim 绑定对齐、字段诊断与 v6 冻结实验
+
+状态：**G1 离线/集成通过**；第六次真实尝试待固定宿主执行（新的显式 owner 决定）。2026-11-03。
+
+### 69.1 绑定对齐与字段诊断
+
+- 根因（round-15 v5 宿主）：create 两次成功；evaluation 在 **0 模型请求**前失败于 `CORE_NATIVE_CONTEXT_REJECTED`（preStopEvaluation 已保留真实 reason），pre-step 第 2 条 host runtime-context 与手写 expected text 不符。
+- 修复：CoreDecisionRun 捕获宿主 `system-prompt/assemble`，用与 bounded probe 相同的 `SystemPromptContextRenderer` 重建期望投影（sections+join）；接受条件为重建快照 hash 完全一致，**或** probe 结构化绑定（source kind/form、section 渲染、精确 cwd section）且 projected sections 与 assembly 渲染一致；额外 host section 仅在被投影并渲染时接受。仍只接受 1–2 条、第 1 条精确 owner；第三条/错序/错误字段 fail closed；其它检查不变。
+- `contextDiagnostic{mismatchKind,expected/actual shaPrefix,fieldNames[]}`（≤300、仅字段名+hash 前缀、无正文/路径）挂在 `CORE_NATIVE_CONTEXT_REJECTED`，经有界 in-process handoff 进入 unknown evaluation 与 runner `preStopEvaluation.contextDiagnostic`（独立 validator）；首次 reason 保留。
+
+### 69.2 v6 冻结实验与 owner 面
+
+- `CORE_VALIDATION_EXPERIMENT_V6`：requestId `core-validation-frozen-v6`、content sha `5313715c…`、budget 16384/3/1、expires 10min、max2、template sha `2f7a647d…`；exact-only；v1–v5 不变且永不重试；reconcile `[v1..v6]`。
+- `runtime.probe-core-goal-v6` + 工具 `shiyu_validate_core_goal_v6`（无参数、output schema；description 明确全新 v6、非 v1–v5 重试、显式 owner 决定的第六次独立尝试、真实副作用、失败/未知不重试）。
+- 测试净新增/更新 8；作者隔离 1689/1689；**Lead 组合隔离 1700/1700、0 skip**（1682+7+10+1）。
+
+### 69.3 第六次尝试（待执行）
+
+- **显式 owner 决定**：全新 v6 requestId/模板（非 v1–v5 重试），一次调用、0 重试；成功判据 = completed + 独立核验 + native complete；失败保留 preStopEvaluation（含 contextDiagnostic）/partial 证据，不删不滚不重试；0 模型请求前再次失败则停止报告。
+- v4/v5 残留 unknown budget 保留并披露，不因 v6 成功被静默清理。

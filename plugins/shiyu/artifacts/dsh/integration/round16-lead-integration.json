@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the assembly-rendered runtime-context binding, contextDiagnostic and the v6 experiment",
+  "capturedAt": "2026-11-03T16:19:29.754Z",
+  "status": "offline-verified-integration",
+  "baseline": {
+    "head": "b59c8af"
+  },
+  "purpose": "Wire runtime.probe-core-goal-v6 and shiyu_validate_core_goal_v6 around the existing bounded runner with only the exact frozen V6 constant; reconcile now covers [v1..v6]. The sixth real attempt is an explicit owner decision and not a retry of v1-v5.",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 114325,
+      "sha256": "96d68abda4be741d4d65dc42edc19dc29bd30bd03b4efebe8510a5c8aa5df437"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 24757,
+      "sha256": "7ae2914dae538e5bdb6f3917312bbdcd0580b58a9176cc18cf8b52b3006cb043"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 13965,
+      "sha256": "4e7ad90ae445834c3c4f7376e9323b74aa7a0b9b457100d3fa616d17c52039f2"
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD b59c8af + all round-16 slice files and integration)",
+      "evidence": "artifacts/dsh/slices/round16-integrated-verify.json",
+      "exitCode": 0,
+      "tests": 1700,
+      "pass": 1700,
+      "fail": 0,
+      "skipped": 0,
+      "log": "plugins/shiyu/.local/slice-verify-round16-integrated.log",
+      "logSha256": "26693952a313aee7f73f028fb77b3e861fb1d293131854ac1344c628c7258a38",
+      "arithmetic": "1682 baseline + 7 assembly-binding/context-diagnostic/v6 product tests + 10 H7-round16 + 1 v6 tool test = 1700"
+    },
+    "authorChecks": {
+      "h3V6": "isolated 1689/1689 (baseline 1682 + 7)",
+      "h7Round16": "isolated 1692/1692 (baseline 1682 + 10)"
+    },
+    "hostAttemptPending": "one sixth independent v6 attempt is executed under the frozen owner decision; failure/unknown is preserved with preStopEvaluation/contextDiagnostic and never retried."
+  },
+  "knownLimitations": [
+    "The binding accepts only the exact owner + exact assembled runtime-context snapshot (or the probe structural binding whose projected sections match); other shapes fail closed with a contextDiagnostic.",
+    "The sixth attempt creates real Goal/Task/Effect/budget/Session/artifact and may issue up to the frozen model calls; it is not a read-only probe.",
+    "The v4/v5 Goals and unknown reservations remain; a successful v6 does not silently rewrite them."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; sixth v6 host attempt pending."
+}

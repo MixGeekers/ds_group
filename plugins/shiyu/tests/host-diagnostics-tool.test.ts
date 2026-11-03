@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, nativeHeaderCutProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, nativeHeaderCutProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 import { innerLifecycleDiagnosisTool } from '../src/control/inner-lifecycle-probe.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
@@ -196,4 +196,17 @@ test('core goal validation v5 tool executes exactly the fifth frozen experiment 
   assert.match(tool.description, /非 v1-v4 重试/);
   assert.equal(await tool.execute(), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.probe-core-goal-v5' }]);
+});
+
+test('core goal validation v6 tool executes exactly the sixth frozen experiment command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, status: 'failed', reasonCode: 'CORE_VALIDATION_EVALUATION_UNKNOWN', requestId: 'core-validation-frozen-v6', readOnlyProbe: false };
+  const tool = coreGoalValidationV6Tool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_validate_core_goal_v6');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /v6 全新冻结实验/);
+  assert.match(tool.description, /非 v1-v5 重试/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-core-goal-v6' }]);
 });
