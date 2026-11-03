@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.business.manifest",
-  "generatedAt": "2026-11-03T08:31:33.734Z",
+  "generatedAt": "2026-11-03T10:19:19.112Z",
   "seed": 20261101,
   "catalogVersion": "1.0.0",
   "catalogDigest": "bc01a4878c3982176208ceda8906c941112ce46f603bde2ad84d94119ebf7c43",
@@ -290,7 +290,7 @@
     "selfProof": {
       "path": "artifacts/dsh/harness/tool-selfproof.json",
       "present": true,
-      "sha256": "19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697",
+      "sha256": "e044d160f0d9730c34a593a1904d8d0f2a8de08276769d7d768da1a880f61d13",
       "fresh": true,
       "issues": [],
       "requiredTests": [
