@@ -226,6 +226,30 @@ export function coreGoalValidationV4Tool(service: { command(input: unknown): Pro
   } as const;
 }
 
+/**
+ * Owner-only bounded REAL core business-chain validation for the frozen v5
+ * experiment. This is explicitly the fifth independent attempt after the failed
+ * v1-v4 creates (which stay failed, reconciled and never retried): one call
+ * creates a real core Goal/Task/Effect/budget/native Session/local artifact and
+ * issues up to two real bounded model rounds through the normal core path. It
+ * requires an idle, unpaused runtime, is single-flight, applies the existing
+ * 180s/2-evaluation/frozen-budget stops, never retries a failed or unknown
+ * round, and caches only the honest bounded receipt in snapshot diagnostics.
+ */
+export function coreGoalValidationV5Tool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_validate_core_goal_v5',
+    description: '有界真实 core Goal 验证（v5 全新冻结实验，非 v1-v4 重试；显式 owner 决定的第五次独立尝试）：会创建真实 Goal/Task/Effect/budget/原生 Session/本地 artifact，并通过 core 路径发起最多 2 轮真实模型调用（含 worker 执行与独立核验）；使用全新 requestId core-validation-frozen-v5 与固定模板，不接受任何输入/参数覆盖；v1-v4 已失败并已验证 reconcile（均保持不重试），本工具不会重放它们；要求运行时未暂停且空闲，单飞、180 秒/2 次评估/冻结预算硬停止、失败或未知绝不重试；回执仅存 snapshot().diagnostics.coreGoalValidation。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-core-goal-v5' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  } as const;
+}
+
 export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_validate_core_goal',
@@ -297,6 +321,7 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(coreGoalValidationV2Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV3Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV4Tool(service)));
+  ctx.effect(() => ctx.tools.register(coreGoalValidationV5Tool(service)));
   // Zero-model native Session header-cut diagnostic: one bare lifecycle Session only.
   ctx.effect(() => ctx.tools.register(nativeHeaderCutProbeTool(service)));
   // Owner-only reconcile of the fixed core-validation Goal: read-only + at most

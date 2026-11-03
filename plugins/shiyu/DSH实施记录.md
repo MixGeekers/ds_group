@@ -1951,3 +1951,23 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 2. **create 阻塞已解决**（`delegationDepth:0↔absent` 归一化在宿主生效）；新阻塞：decision pre-step claim 形状 + evaluation reason 被 pause 覆盖。
 3. v4 Goal `core-92818c…` authorized/paused、activeEvaluation unknown、held budget 16384/2；**第五次尝试未授权**，需先修 reason 保留/pre-step 形状、披露/对账 unknown 预算，并显式 owner 决定。
 4. H7 未升级；round-14 host 未入映射（round-15）。
+
+## 66. 第十五轮：decision pre-step claim 修复、reason 保留与 v5 冻结实验
+
+状态：**G1 离线/集成通过**；第五次真实尝试待固定宿主执行（新的显式 owner 决定）。2026-11-03。
+
+### 66.1 两项修复
+
+- **pre-step claim 形状**：`CoreDecisionRun` step0 pre-step 接受 1–2 条：第 1 条精确 owner input（id+hash）；可选第 2 条必须是**精确 runtime-context 快照**（runtime-context/snapshot source、单个 `working-directory:current` section 与精确 cwd 文本/渲染、单 text、UUIDv4）；第三条/错序/内容不符 fail closed；`validateInputs`/tool step/全部历史检查不变。fake host：owner+context → decision round 进入并发出 1 次 model request；坏 context/第三条在 0 request 前拒绝。
+- **evaluation reason 保留**：`core-domain` 的 `unknown()` 对已是 unknown 的 evaluation 原样返回（保留首次 reasonCode、不重复 reconcile reservation）；runner 在唯一 stop 前抓取 `preStopEvaluation{evaluationId,status,reasonCode}` 并校验，pause 不再掩盖原始失败原因。
+
+### 66.2 v5 冻结实验与 owner 面
+
+- `CORE_VALIDATION_EXPERIMENT_V5`：requestId `core-validation-frozen-v5`、content sha `722e6a2a…`、budget 16384/3/1、expires 10min、max2、template sha `c5901e64…`；exact-only；v1–v4 不变且永不重试；reconcile targets `[v1..v5]`。
+- `runtime.probe-core-goal-v5` + 工具 `shiyu_validate_core_goal_v5`（无参数、output schema；description 明确全新 v5、非 v1–v4 重试、显式 owner 决定的第五次独立尝试、真实副作用、失败/未知不重试）。
+- 测试净新增 8+；作者隔离 1671/1671；**Lead 组合隔离 1682/1682、0 skip**（1662+9+10+1）。
+
+### 66.3 第五次尝试（待执行）
+
+- **显式 owner 决定**：全新 v5 requestId/模板，非 v1–v4 重试；一次调用、0 重试；成功判据 = completed + 独立核验 + native complete；失败必须保留 preStopEvaluation/完整诊断与 partial 证据，随后可用覆盖 [v1..v5] 的 reconcile 清理 inert 残留；0 模型请求前再次失败则停止报告。
+- v4 Goal/unknown budget 保留并披露，不因 v5 成功而被静默清理或改写。

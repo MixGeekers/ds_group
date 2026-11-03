@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the decision pre-step claim fix, evaluation reason preservation and the v5 experiment",
+  "capturedAt": "2026-11-03T13:33:03.375Z",
+  "status": "offline-verified-integration",
+  "baseline": {
+    "head": "6130b80"
+  },
+  "purpose": "Wire runtime.probe-core-goal-v5 and shiyu_validate_core_goal_v5 around the existing bounded runner with only the exact frozen V5 constant; reconcile now covers [v1..v5]. The fifth real attempt is an explicit owner decision and not a retry of v1-v4.",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 113568,
+      "sha256": "4745c1f2a3ad3ede5d2ff053772cec6c7d0c1f672d0f2e6d5119ca852297c5ee"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 22813,
+      "sha256": "22da3b041064ed564f9eb6e1d46e6f5d05d8c6e28b7c2b90198901fdb944fc9e"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 13079,
+      "sha256": "d308579cb8d094a34fce535e2ece13802e1cd7888a62de5f15aa77b8c07b3084"
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 6130b80 + all round-15 slice files and integration)",
+      "evidence": "artifacts/dsh/slices/round15-integrated-verify.json",
+      "exitCode": 0,
+      "tests": 1682,
+      "pass": 1682,
+      "fail": 0,
+      "skipped": 0,
+      "log": "plugins/shiyu/.local/slice-verify-round15-integrated.log",
+      "logSha256": "3127187036286c7388e2c51dc6ba00fcdd4c3dd71283418d004bb6473ae74575",
+      "arithmetic": "1662 baseline + 9 pre-step/reason/v5 product tests + 10 H7-round15 + 1 v5 tool test = 1682"
+    },
+    "authorChecks": {
+      "h3V5": "isolated 1671/1671 (baseline 1662 + 9)",
+      "h7Round15": "isolated 1672/1672 (baseline 1662 + 10)"
+    },
+    "hostAttemptPending": "one fifth independent v5 attempt is executed under the frozen owner decision; failure/unknown is preserved (with preStopEvaluation) and never retried."
+  },
+  "knownLimitations": [
+    "The pre-step accepts only the exact owner+runtime-context shape; other host injection shapes fail closed and will surface as new controlled failures.",
+    "The fifth attempt creates real Goal/Task/Effect/budget/Session/artifact and may issue up to the frozen model calls; it is not a read-only probe.",
+    "The v4 Goal/unknown reservation remains; a successful v5 does not silently clear or rewrite it."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; fifth v5 host attempt pending."
+}
