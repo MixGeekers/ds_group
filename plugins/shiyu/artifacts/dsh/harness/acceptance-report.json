@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.acceptance-report",
-  "generatedAt": "2026-11-03T01:25:15.841Z",
+  "generatedAt": "2026-11-03T02:03:59.478Z",
   "registryVersion": "1.0.0",
   "inputs": {
-    "pluginRoot": "/private/tmp/h7r5-clean2/plugins/shiyu",
-    "workspaceRoot": "/private/tmp/h7r5-clean2",
-    "traceabilitySha256": "ca9307dfb6dfb9859fe45bcde183e3040c8362dcf90a90effc60fcf1490550c2",
-    "selfproofSha256": "b362022d555e55684933cdcc0a167c15e9e4385610732f1dd48966d500f64dbe",
-    "manifestSha256": "2474996a6d4d67d8609b60090bc8d3c1647635f2189d2c136f51b97a961f685f",
-    "coverageSha256": "0b907322a9b4d631715508d5830924a344bb9f1691e73687f21e1eac3c24b1b9",
-    "frozenHead": "444f3777f674287dc1640c714b4764b84fe7371f",
+    "pluginRoot": "/private/tmp/h7r6-clean/plugins/shiyu",
+    "workspaceRoot": "/private/tmp/h7r6-clean",
+    "traceabilitySha256": "fc05cdd0aa8e2e3b3d78c64bc120dd900bdef10ca062671adcc593e39e6a44ad",
+    "selfproofSha256": "73585ca2f65208fb36edd71965331ca17885290a4110c6b7d76af7ec3d897e7b",
+    "manifestSha256": "e4ab6be069f6d4d4fb4dcc2546ae7814790018a01ae3787830f60caf8e270683",
+    "coverageSha256": "98656a2a9ba938c899cb1e1bcdb30b6b2a8eaa10bc27060b16162ce66d920eff",
+    "frozenHead": "fc124d16242e76a269372295dd731abc474780f9",
     "selfproofPassed": true,
     "manifestDirty": false
   },
@@ -256,9 +256,12 @@
         "h2a-probe",
         "h2b-subscriptions-time",
         "h2b-host-time-probe",
+        "h2b-live-time-trigger",
         "h2c-real-model-probe",
+        "h2c-probe-fix-chain",
         "round3-host-zero-model",
-        "round4-host-zero-model"
+        "round4-host-zero-model",
+        "round5-host-real-model"
       ],
       "evidenceRefs": [
         {
@@ -340,6 +343,24 @@
           ]
         },
         {
+          "sourceId": "h2b-live-time-trigger",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round5-lead-integration.json",
+              "sha256": "4dd518467a609ae4e376acfebb59239afd1b48f5e73b7923a991819b925499be"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round5-integrated-verify.json",
+              "sha256": "9af0a7506f23e3d0bcf557b8f006d215dfd0567d637bbbc3e233f987ba5d5ac3"
+            }
+          ]
+        },
+        {
           "sourceId": "h2c-real-model-probe",
           "status": "verified",
           "levels": [
@@ -357,6 +378,27 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h2c-probe-verify.json",
               "sha256": "3712c7dc42a579a3424b7e7ff61e275c762da2a1ca5ba90de61896d3de8740c1"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2c-probe-fix-chain",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/core-model-probe-diagnostics-verify.json",
+              "sha256": "27d57675528670d30a2c7e7312ede7de6f96dd62a7656decfcd1fd633c4622eb"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/core-model-probe-context-verify.json",
+              "sha256": "82b5642c7f8a257ba59af5ecbb173312e862671404ef6f261a5ae8f130b41b73"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "111f56caf601ab05608d5c7d86063fc7846b8af2e022c1aaee7ac32b8ecfb0c2"
             }
           ]
         },
@@ -477,6 +519,68 @@
               "sha256": "46ed5c381ca15d5ba43dd70629ec66eb53a09e4b01fcba6613ed74698d1fa303"
             }
           ]
+        },
+        {
+          "sourceId": "round5-host-real-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model",
+            "bounded-real-model-diagnostic-only"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5-joint-zero-model-and-real-model.json",
+              "sha256": "7843a6d43b6b40b3e514c442536b823fecae743b5fc930206311345ad5217f23"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/time-trigger-probe.json",
+              "sha256": "b518522482e8c255cfb833eb356bd9623fb3d22b83487bf4c9b1e3c1b7f5b356"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-probe-passed.json",
+              "sha256": "5498a949567e5b37f40a13b80309489670d8d32db31dfa6876114ab5caa761d5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-1-69464312.json",
+              "sha256": "be4469adfaf523ca08884f84aeadaabba0403bdc7577a2310c5f683c27a54f0b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-2-51c5970a.json",
+              "sha256": "90dbd03e3d73e786bb5c7e6ff543303204649f49e91b05400ce9c8d95cab4432"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-3-d60c7b3a.json",
+              "sha256": "58a7dd54f2ca406181ea8af191dce2d023582c802ecd4a496bde26fc8571f9f3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json",
+              "sha256": "05b0f1fbe4fbb155651238fd2c16cc886dfdbf7139422f0a26517b5f8c0706e9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-5-76894525.json",
+              "sha256": "de625535fb49e2ee6dfbd04ce9fee4b28a0671511502c791081ec6668e8b9ae0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-before.json",
+              "sha256": "9bf75c56aac12b4235fd83a3c97b9504e3b78f1668c41aabb0139e4ebe130c2a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-first-reload.json",
+              "sha256": "84dafd337abee5d9743dda1ebee71b7962410fee0ec4050f3262c35d7f0c85ac"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-real-probes.json",
+              "sha256": "ba8e58ca3259f93b3770f278d18ea8028a7861e85de4ef554a9078615d091bb4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-final.json",
+              "sha256": "676405116cc31cdb12b84c18196b1e1c754f19b5ba4bb1878e021e834dc1cd28"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/status-final.json",
+              "sha256": "1101df252383b46a752c4f55324b2a3825505fd2cf3070301eb156c8e94a50da"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -510,7 +614,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H2a 离线+零模型探针；H2b 离线订阅/时间源及宿主零模型时间探针；H2c 真实模型事件工具探针仅离线 kit，宿主尝试在任何模型请求前失败，不得记 pass；round-3/4 宿主仅零模型；fan-out/配额未验",
+        "H2a 离线+零模型探针；H2b 离线订阅/时间源、宿主零模型时间探针与 live time-trigger（一次不可删 append-only time.occurred）；H2c 修复链为 fake-host 离线，round-5 宿主真实模型诊断 tool round 通过（usage 1469/41/2406；attempt4/5=1 request/0 stream/费用 unknown）但仅 diagnostic，不得记 pass/V25/业务；fan-out/配额未验",
         "Offline module/integration with synthetic native DSH double and independent effect ledger; not fixed-host model behaviour.",
         "Real core Goal continuation wiring, time/condition triggers, anti-loop/fanout quota matrices and event-catalog extension remain untested.",
         "No model actually called an event tool; provider budgets/cache and real task/Goal continuation are unproven.",
@@ -523,10 +627,16 @@
         "The kit itself is offline/isolated: it does not execute a live host run; the fixed-host zero-model probe execution and receipts are recorded separately in round4-host-zero-model (bd81270).",
         "No real model, embedding, channel or business call; live rule/time DB, DSH Schedule/IANA DST and real notification Effect remain untested.",
         "Probe evidence cannot upgrade V14/SYS.2 or any product module to pass.",
+        "The live time-trigger probe intentionally appends exactly one undeletable time.occurred control event to the live append-only ledger (disclosed real side effect); no live delivery, Task/Goal/Effect or model call is created.",
+        "This integration source is offline/isolated only: the fixed-host probe result, failures and real-model diagnostic are separate host evidence; diagnostic pass must never be counted as business acceptance.",
+        "Host retest may pass/fail/reveal another shape; no automatic retry is allowed. No V25/complete nine-system claim.",
         "The implementer did NOT execute the real model: this source is offline implementation/isolated verification only.",
         "The host bounded real-model attempt failed before any model request and was not retried (recorded in round4-host-zero-model, bd81270): no real-model tool invocation, provider usage, cache or cost is proven.",
         "A failed/unknown real-model attempt must never be counted as pass, product acceptance or V25 evidence; the probe is diagnostic only and does not prove plan quality, provider behavior or usage reporting.",
         "No automatic retry is allowed; the blocked probe Session ended before any assistant message and host root cause is left uninspected in this slice.",
+        "Fake-host offline evidence only: the fixes repair first-step/context/title/tool-history handling; they do NOT widen the H2c boundary, add retries, or prove real model success.",
+        "Real-provider behavior is recorded only in round5-host-real-model (one bounded diagnostic pass after five disclosed failures); the fix-chain tests cannot upgrade V25, full core, Goal/Task or business acceptance.",
+        "No real model, embedding, channel, device or host run is executed by this source.",
         "Zero-model evidence only: activation/upgrade/publication/probes/diagnostics are proven, not real model tool invocation, provider budgets, real plan quality or channel traffic.",
         "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was NOT executed on the host.",
         "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts; probes are zero-model.",
@@ -534,10 +644,15 @@
         "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
         "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
         "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
-        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0."
+        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0.",
+        "This is a bounded diagnostic probe, NOT a full core decision round, Goal, plan or Task; it does not prove real plan quality, provider cache accounting or business acceptance.",
+        "Primary provider usage is only reported (input 1469 / output 41 / total 2406 as reported; no cache fields); attempts 4 and 5 show mainModelRequests=1 / mainModelStreams=0 with usage unknown — one request initiated, no stream completed, provider receipt/cost unknown, never claim zero cost.",
+        "Five pre-pass attempts and their root causes are disclosed; none was retried after the successful admitted model turn; failed/diagnostic attempts must never be counted as pass.",
+        "The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect) and the rule/time state were removed; no live delivery/business tables were written.",
+        "Real browser DOM, real channels/devices, checkpoint capture readiness, V25 semantic evaluation and nine-system acceptance remain untested; diagnostic pass cannot upgrade V25 or any product row."
       ],
       "notes": [
-        "H2a 离线+零模型探针；H2b 离线订阅/时间源及宿主零模型时间探针；H2c 真实模型事件工具探针仅离线 kit，宿主尝试在任何模型请求前失败，不得记 pass；round-3/4 宿主仅零模型；fan-out/配额未验"
+        "H2a 离线+零模型探针；H2b 离线订阅/时间源、宿主零模型时间探针与 live time-trigger（一次不可删 append-only time.occurred）；H2c 修复链为 fake-host 离线，round-5 宿主真实模型诊断 tool round 通过（usage 1469/41/2406；attempt4/5=1 request/0 stream/费用 unknown）但仅 diagnostic，不得记 pass/V25/业务；fan-out/配额未验"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/01-输入与事件/03-外部事件/README.md",
@@ -906,8 +1021,10 @@
         "h3-core-planning",
         "h4e-lifecycle-recompute",
         "h2c-real-model-probe",
+        "h2c-probe-fix-chain",
         "round4-localcore-hotfix",
-        "round4-host-zero-model"
+        "round4-host-zero-model",
+        "round5-host-real-model"
       ],
       "evidenceRefs": [
         {
@@ -963,6 +1080,27 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h2c-probe-verify.json",
               "sha256": "3712c7dc42a579a3424b7e7ff61e275c762da2a1ca5ba90de61896d3de8740c1"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2c-probe-fix-chain",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/core-model-probe-diagnostics-verify.json",
+              "sha256": "27d57675528670d30a2c7e7312ede7de6f96dd62a7656decfcd1fd633c4622eb"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/core-model-probe-context-verify.json",
+              "sha256": "82b5642c7f8a257ba59af5ecbb173312e862671404ef6f261a5ae8f130b41b73"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "111f56caf601ab05608d5c7d86063fc7846b8af2e022c1aaee7ac32b8ecfb0c2"
             }
           ]
         },
@@ -1051,6 +1189,68 @@
               "sha256": "46ed5c381ca15d5ba43dd70629ec66eb53a09e4b01fcba6613ed74698d1fa303"
             }
           ]
+        },
+        {
+          "sourceId": "round5-host-real-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model",
+            "bounded-real-model-diagnostic-only"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5-joint-zero-model-and-real-model.json",
+              "sha256": "7843a6d43b6b40b3e514c442536b823fecae743b5fc930206311345ad5217f23"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/time-trigger-probe.json",
+              "sha256": "b518522482e8c255cfb833eb356bd9623fb3d22b83487bf4c9b1e3c1b7f5b356"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-probe-passed.json",
+              "sha256": "5498a949567e5b37f40a13b80309489670d8d32db31dfa6876114ab5caa761d5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-1-69464312.json",
+              "sha256": "be4469adfaf523ca08884f84aeadaabba0403bdc7577a2310c5f683c27a54f0b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-2-51c5970a.json",
+              "sha256": "90dbd03e3d73e786bb5c7e6ff543303204649f49e91b05400ce9c8d95cab4432"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-3-d60c7b3a.json",
+              "sha256": "58a7dd54f2ca406181ea8af191dce2d023582c802ecd4a496bde26fc8571f9f3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json",
+              "sha256": "05b0f1fbe4fbb155651238fd2c16cc886dfdbf7139422f0a26517b5f8c0706e9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-5-76894525.json",
+              "sha256": "de625535fb49e2ee6dfbd04ce9fee4b28a0671511502c791081ec6668e8b9ae0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-before.json",
+              "sha256": "9bf75c56aac12b4235fd83a3c97b9504e3b78f1668c41aabb0139e4ebe130c2a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-first-reload.json",
+              "sha256": "84dafd337abee5d9743dda1ebee71b7962410fee0ec4050f3262c35d7f0c85ac"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-real-probes.json",
+              "sha256": "ba8e58ca3259f93b3770f278d18ea8028a7861e85de4ef554a9078615d091bb4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-final.json",
+              "sha256": "676405116cc31cdb12b84c18196b1e1c754f19b5ba4bb1878e021e834dc1cd28"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/status-final.json",
+              "sha256": "1101df252383b46a752c4f55324b2a3825505fd2cf3070301eb156c8e94a50da"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -1089,7 +1289,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 探针接线 hotfix；H2c 真实模型宿主尝试在任何模型请求前失败、不得记 pass；无真实宿主/模型 plan 验收",
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收",
         "G1 module/property + real temporary SQLite/Worker only; no real DSH host/native Goal rounds, real model plan JSON, cost/cache or slot behaviour.",
         "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission.",
         "G1 module/property with real temporary SQLite/Worker IPC only: no model, embedding, real Ombre body, host reload, real channel or business acceptance.",
@@ -1100,16 +1300,24 @@
         "The host bounded real-model attempt failed before any model request and was not retried (recorded in round4-host-zero-model, bd81270): no real-model tool invocation, provider usage, cache or cost is proven.",
         "A failed/unknown real-model attempt must never be counted as pass, product acceptance or V25 evidence; the probe is diagnostic only and does not prove plan quality, provider behavior or usage reporting.",
         "No automatic retry is allowed; the blocked probe Session ended before any assistant message and host root cause is left uninspected in this slice.",
+        "Fake-host offline evidence only: the fixes repair first-step/context/title/tool-history handling; they do NOT widen the H2c boundary, add retries, or prove real model success.",
+        "Real-provider behavior is recorded only in round5-host-real-model (one bounded diagnostic pass after five disclosed failures); the fix-chain tests cannot upgrade V25, full core, Goal/Task or business acceptance.",
+        "No real model, embedding, channel, device or host run is executed by this source.",
         "Code/test hotfix only: it proves the delegation wiring, not real-model execution, host behavior or plan quality.",
         "The fixed-host bounded real-model attempt still failed before any model request (see round4-host-zero-model); no model usage/cost and no retry.",
         "Cannot be mapped to pass; no product acceptance.",
         "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
         "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
         "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
-        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0."
+        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0.",
+        "This is a bounded diagnostic probe, NOT a full core decision round, Goal, plan or Task; it does not prove real plan quality, provider cache accounting or business acceptance.",
+        "Primary provider usage is only reported (input 1469 / output 41 / total 2406 as reported; no cache fields); attempts 4 and 5 show mainModelRequests=1 / mainModelStreams=0 with usage unknown — one request initiated, no stream completed, provider receipt/cost unknown, never claim zero cost.",
+        "Five pre-pass attempts and their root causes are disclosed; none was retried after the successful admitted model turn; failed/diagnostic attempts must never be counted as pass.",
+        "The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect) and the rule/time state were removed; no live delivery/business tables were written.",
+        "Real browser DOM, real channels/devices, checkpoint capture readiness, V25 semantic evaluation and nine-system acceptance remain untested; diagnostic pass cannot upgrade V25 or any product row."
       ],
       "notes": [
-        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 探针接线 hotfix；H2c 真实模型宿主尝试在任何模型请求前失败、不得记 pass；无真实宿主/模型 plan 验收"
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/00-core-主动判断/README.md",
@@ -1808,6 +2016,7 @@
         "h6c-channel-projection-ui",
         "round3-host-zero-model",
         "round4-host-zero-model",
+        "round5-host-real-model",
         "h4c-replyer-inner"
       ],
       "evidenceRefs": [
@@ -1984,6 +2193,68 @@
           ]
         },
         {
+          "sourceId": "round5-host-real-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model",
+            "bounded-real-model-diagnostic-only"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5-joint-zero-model-and-real-model.json",
+              "sha256": "7843a6d43b6b40b3e514c442536b823fecae743b5fc930206311345ad5217f23"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/time-trigger-probe.json",
+              "sha256": "b518522482e8c255cfb833eb356bd9623fb3d22b83487bf4c9b1e3c1b7f5b356"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-probe-passed.json",
+              "sha256": "5498a949567e5b37f40a13b80309489670d8d32db31dfa6876114ab5caa761d5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-1-69464312.json",
+              "sha256": "be4469adfaf523ca08884f84aeadaabba0403bdc7577a2310c5f683c27a54f0b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-2-51c5970a.json",
+              "sha256": "90dbd03e3d73e786bb5c7e6ff543303204649f49e91b05400ce9c8d95cab4432"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-3-d60c7b3a.json",
+              "sha256": "58a7dd54f2ca406181ea8af191dce2d023582c802ecd4a496bde26fc8571f9f3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json",
+              "sha256": "05b0f1fbe4fbb155651238fd2c16cc886dfdbf7139422f0a26517b5f8c0706e9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-5-76894525.json",
+              "sha256": "de625535fb49e2ee6dfbd04ce9fee4b28a0671511502c791081ec6668e8b9ae0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-before.json",
+              "sha256": "9bf75c56aac12b4235fd83a3c97b9504e3b78f1668c41aabb0139e4ebe130c2a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-first-reload.json",
+              "sha256": "84dafd337abee5d9743dda1ebee71b7962410fee0ec4050f3262c35d7f0c85ac"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-real-probes.json",
+              "sha256": "ba8e58ca3259f93b3770f278d18ea8028a7861e85de4ef554a9078615d091bb4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-final.json",
+              "sha256": "676405116cc31cdb12b84c18196b1e1c754f19b5ba4bb1878e021e834dc1cd28"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/status-final.json",
+              "sha256": "1101df252383b46a752c4f55324b2a3825505fd2cf3070301eb156c8e94a50da"
+            }
+          ]
+        },
+        {
           "sourceId": "h4c-replyer-inner",
           "status": "verified",
           "levels": [
@@ -2061,6 +2332,11 @@
         "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
         "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
         "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0.",
+        "This is a bounded diagnostic probe, NOT a full core decision round, Goal, plan or Task; it does not prove real plan quality, provider cache accounting or business acceptance.",
+        "Primary provider usage is only reported (input 1469 / output 41 / total 2406 as reported; no cache fields); attempts 4 and 5 show mainModelRequests=1 / mainModelStreams=0 with usage unknown — one request initiated, no stream completed, provider receipt/cost unknown, never claim zero cost.",
+        "Five pre-pass attempts and their root causes are disclosed; none was retried after the successful admitted model turn; failed/diagnostic attempts must never be counted as pass.",
+        "The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect) and the rule/time state were removed; no live delivery/business tables were written.",
+        "Real browser DOM, real channels/devices, checkpoint capture readiness, V25 semantic evaluation and nine-system acceptance remain untested; diagnostic pass cannot upgrade V25 or any product row.",
         "Real model generation, how a model uses the inner block, provider cache/cost and quality impact are NOT measured.",
         "conversation.reply.prepare contract not extended with explicit inner-source fields; Lab reply capture does not request inner domains."
       ],
@@ -2637,7 +2913,9 @@
       "evidenceSourceIds": [
         "h2a-probe",
         "h2c-real-model-probe",
+        "h2c-probe-fix-chain",
         "round4-host-zero-model",
+        "round5-host-real-model",
         "historical-capability-3i"
       ],
       "evidenceRefs": [
@@ -2677,6 +2955,27 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h2c-probe-verify.json",
               "sha256": "3712c7dc42a579a3424b7e7ff61e275c762da2a1ca5ba90de61896d3de8740c1"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2c-probe-fix-chain",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/core-model-probe-diagnostics-verify.json",
+              "sha256": "27d57675528670d30a2c7e7312ede7de6f96dd62a7656decfcd1fd633c4622eb"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/core-model-probe-context-verify.json",
+              "sha256": "82b5642c7f8a257ba59af5ecbb173312e862671404ef6f261a5ae8f130b41b73"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "111f56caf601ab05608d5c7d86063fc7846b8af2e022c1aaee7ac32b8ecfb0c2"
             }
           ]
         },
@@ -2750,6 +3049,68 @@
           ]
         },
         {
+          "sourceId": "round5-host-real-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model",
+            "bounded-real-model-diagnostic-only"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5-joint-zero-model-and-real-model.json",
+              "sha256": "7843a6d43b6b40b3e514c442536b823fecae743b5fc930206311345ad5217f23"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/time-trigger-probe.json",
+              "sha256": "b518522482e8c255cfb833eb356bd9623fb3d22b83487bf4c9b1e3c1b7f5b356"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-probe-passed.json",
+              "sha256": "5498a949567e5b37f40a13b80309489670d8d32db31dfa6876114ab5caa761d5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-1-69464312.json",
+              "sha256": "be4469adfaf523ca08884f84aeadaabba0403bdc7577a2310c5f683c27a54f0b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-2-51c5970a.json",
+              "sha256": "90dbd03e3d73e786bb5c7e6ff543303204649f49e91b05400ce9c8d95cab4432"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-3-d60c7b3a.json",
+              "sha256": "58a7dd54f2ca406181ea8af191dce2d023582c802ecd4a496bde26fc8571f9f3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json",
+              "sha256": "05b0f1fbe4fbb155651238fd2c16cc886dfdbf7139422f0a26517b5f8c0706e9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-5-76894525.json",
+              "sha256": "de625535fb49e2ee6dfbd04ce9fee4b28a0671511502c791081ec6668e8b9ae0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-before.json",
+              "sha256": "9bf75c56aac12b4235fd83a3c97b9504e3b78f1668c41aabb0139e4ebe130c2a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-first-reload.json",
+              "sha256": "84dafd337abee5d9743dda1ebee71b7962410fee0ec4050f3262c35d7f0c85ac"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-real-probes.json",
+              "sha256": "ba8e58ca3259f93b3770f278d18ea8028a7861e85de4ef554a9078615d091bb4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-final.json",
+              "sha256": "676405116cc31cdb12b84c18196b1e1c754f19b5ba4bb1878e021e834dc1cd28"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/status-final.json",
+              "sha256": "1101df252383b46a752c4f55324b2a3825505fd2cf3070301eb156c8e94a50da"
+            }
+          ]
+        },
+        {
           "sourceId": "historical-capability-3i",
           "status": "verified",
           "levels": [
@@ -2792,22 +3153,30 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型工具挂载探针 + H2c 真实模型事件工具探针 kit（宿主尝试失败，禁止 pass）；模型实际调用/权限矩阵未验",
+        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；权限矩阵未验",
         "Zero-model probe only: proves restricted mounting, non-forgeable tool parameters and release — not that a model called an event tool.",
         "Not Task/Goal continuation, not provider budget/cache/cost, not business acceptance.",
         "The implementer did NOT execute the real model: this source is offline implementation/isolated verification only.",
         "The host bounded real-model attempt failed before any model request and was not retried (recorded in round4-host-zero-model, bd81270): no real-model tool invocation, provider usage, cache or cost is proven.",
         "A failed/unknown real-model attempt must never be counted as pass, product acceptance or V25 evidence; the probe is diagnostic only and does not prove plan quality, provider behavior or usage reporting.",
         "No automatic retry is allowed; the blocked probe Session ended before any assistant message and host root cause is left uninspected in this slice.",
+        "Fake-host offline evidence only: the fixes repair first-step/context/title/tool-history handling; they do NOT widen the H2c boundary, add retries, or prove real model success.",
+        "Real-provider behavior is recorded only in round5-host-real-model (one bounded diagnostic pass after five disclosed failures); the fix-chain tests cannot upgrade V25, full core, Goal/Task or business acceptance.",
+        "No real model, embedding, channel, device or host run is executed by this source.",
         "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
         "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
         "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
         "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0.",
+        "This is a bounded diagnostic probe, NOT a full core decision round, Goal, plan or Task; it does not prove real plan quality, provider cache accounting or business acceptance.",
+        "Primary provider usage is only reported (input 1469 / output 41 / total 2406 as reported; no cache fields); attempts 4 and 5 show mainModelRequests=1 / mainModelStreams=0 with usage unknown — one request initiated, no stream completed, provider receipt/cost unknown, never claim zero cost.",
+        "Five pre-pass attempts and their root causes are disclosed; none was retried after the successful admitted model turn; failed/diagnostic attempts must never be counted as pass.",
+        "The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect) and the rule/time state were removed; no live delivery/business tables were written.",
+        "Real browser DOM, real channels/devices, checkpoint capture readiness, V25 semantic evaluation and nine-system acceptance remain untested; diagnostic pass cannot upgrade V25 or any product row.",
         "Historical fixed capability only; new-binding real task proof, dynamic candidate/skill matrix, complete V09 and other five domains remain untested.",
         "Zero-model host reloads are not generation or business evidence."
       ],
       "notes": [
-        "零模型工具挂载探针 + H2c 真实模型事件工具探针 kit（宿主尝试失败，禁止 pass）；模型实际调用/权限矩阵未验"
+        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；权限矩阵未验"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/02-工具与权限/README.md",
@@ -2826,7 +3195,9 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h2b-subscriptions-time",
-        "h2b-host-time-probe"
+        "h2b-host-time-probe",
+        "h2b-live-time-trigger",
+        "round5-host-real-model"
       ],
       "evidenceRefs": [
         {
@@ -2862,6 +3233,86 @@
               "sha256": "65ecd8d99c2b76d9165daaab8337b17e3b496576318486f3591ef90daec9c6ee"
             }
           ]
+        },
+        {
+          "sourceId": "h2b-live-time-trigger",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round5-lead-integration.json",
+              "sha256": "4dd518467a609ae4e376acfebb59239afd1b48f5e73b7923a991819b925499be"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round5-integrated-verify.json",
+              "sha256": "9af0a7506f23e3d0bcf557b8f006d215dfd0567d637bbbc3e233f987ba5d5ac3"
+            }
+          ]
+        },
+        {
+          "sourceId": "round5-host-real-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model",
+            "bounded-real-model-diagnostic-only"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5-joint-zero-model-and-real-model.json",
+              "sha256": "7843a6d43b6b40b3e514c442536b823fecae743b5fc930206311345ad5217f23"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/time-trigger-probe.json",
+              "sha256": "b518522482e8c255cfb833eb356bd9623fb3d22b83487bf4c9b1e3c1b7f5b356"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-probe-passed.json",
+              "sha256": "5498a949567e5b37f40a13b80309489670d8d32db31dfa6876114ab5caa761d5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-1-69464312.json",
+              "sha256": "be4469adfaf523ca08884f84aeadaabba0403bdc7577a2310c5f683c27a54f0b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-2-51c5970a.json",
+              "sha256": "90dbd03e3d73e786bb5c7e6ff543303204649f49e91b05400ce9c8d95cab4432"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-3-d60c7b3a.json",
+              "sha256": "58a7dd54f2ca406181ea8af191dce2d023582c802ecd4a496bde26fc8571f9f3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json",
+              "sha256": "05b0f1fbe4fbb155651238fd2c16cc886dfdbf7139422f0a26517b5f8c0706e9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-5-76894525.json",
+              "sha256": "de625535fb49e2ee6dfbd04ce9fee4b28a0671511502c791081ec6668e8b9ae0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-before.json",
+              "sha256": "9bf75c56aac12b4235fd83a3c97b9504e3b78f1668c41aabb0139e4ebe130c2a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-first-reload.json",
+              "sha256": "84dafd337abee5d9743dda1ebee71b7962410fee0ec4050f3262c35d7f0c85ac"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-real-probes.json",
+              "sha256": "ba8e58ca3259f93b3770f278d18ea8028a7861e85de4ef554a9078615d091bb4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-final.json",
+              "sha256": "676405116cc31cdb12b84c18196b1e1c754f19b5ba4bb1878e021e834dc1cd28"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/status-final.json",
+              "sha256": "1101df252383b46a752c4f55324b2a3825505fd2cf3070301eb156c8e94a50da"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -2890,7 +3341,15 @@
         "No IANA tz/DST database: daily schedules take injected zoneOffsetMinutes. Budget bounding is structural; monetary/model cost is out of scope.",
         "The kit itself is offline/isolated: it does not execute a live host run; the fixed-host zero-model probe execution and receipts are recorded separately in round4-host-zero-model (bd81270).",
         "No real model, embedding, channel or business call; live rule/time DB, DSH Schedule/IANA DST and real notification Effect remain untested.",
-        "Probe evidence cannot upgrade V14/SYS.2 or any product module to pass."
+        "Probe evidence cannot upgrade V14/SYS.2 or any product module to pass.",
+        "The live time-trigger probe intentionally appends exactly one undeletable time.occurred control event to the live append-only ledger (disclosed real side effect); no live delivery, Task/Goal/Effect or model call is created.",
+        "This integration source is offline/isolated only: the fixed-host probe result, failures and real-model diagnostic are separate host evidence; diagnostic pass must never be counted as business acceptance.",
+        "Host retest may pass/fail/reveal another shape; no automatic retry is allowed. No V25/complete nine-system claim.",
+        "This is a bounded diagnostic probe, NOT a full core decision round, Goal, plan or Task; it does not prove real plan quality, provider cache accounting or business acceptance.",
+        "Primary provider usage is only reported (input 1469 / output 41 / total 2406 as reported; no cache fields); attempts 4 and 5 show mainModelRequests=1 / mainModelStreams=0 with usage unknown — one request initiated, no stream completed, provider receipt/cost unknown, never claim zero cost.",
+        "Five pre-pass attempts and their root causes are disclosed; none was retried after the successful admitted model turn; failed/diagnostic attempts must never be counted as pass.",
+        "The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect) and the rule/time state were removed; no live delivery/business tables were written.",
+        "Real browser DOM, real channels/devices, checkpoint capture readiness, V25 semantic evaluation and nine-system acceptance remain untested; diagnostic pass cannot upgrade V25 or any product row."
       ],
       "notes": [
         "H2b 插件自有时间源（注入 zoneOffset）离线 G1；DSH Schedule ingress/IANA DST/真实触发未实现，host 仅零模型 cooperative tick idle"
@@ -3083,8 +3542,10 @@
         "h4b-host",
         "round3-lead-integration",
         "round4-lead-integration",
+        "h2b-live-time-trigger",
         "round3-host-zero-model",
         "round4-host-zero-model",
+        "round5-host-real-model",
         "joint-host-zero-model"
       ],
       "evidenceRefs": [
@@ -3134,6 +3595,24 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/round4-integrated-verify.json",
               "sha256": "19d740a235dd0d18021225d6c9a19c4050090afd98b5e55baf8e9000d385bf8f"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2b-live-time-trigger",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round5-lead-integration.json",
+              "sha256": "4dd518467a609ae4e376acfebb59239afd1b48f5e73b7923a991819b925499be"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round5-integrated-verify.json",
+              "sha256": "9af0a7506f23e3d0bcf557b8f006d215dfd0567d637bbbc3e233f987ba5d5ac3"
             }
           ]
         },
@@ -3256,6 +3735,68 @@
           ]
         },
         {
+          "sourceId": "round5-host-real-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model",
+            "bounded-real-model-diagnostic-only"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5-joint-zero-model-and-real-model.json",
+              "sha256": "7843a6d43b6b40b3e514c442536b823fecae743b5fc930206311345ad5217f23"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/time-trigger-probe.json",
+              "sha256": "b518522482e8c255cfb833eb356bd9623fb3d22b83487bf4c9b1e3c1b7f5b356"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-probe-passed.json",
+              "sha256": "5498a949567e5b37f40a13b80309489670d8d32db31dfa6876114ab5caa761d5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-1-69464312.json",
+              "sha256": "be4469adfaf523ca08884f84aeadaabba0403bdc7577a2310c5f683c27a54f0b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-2-51c5970a.json",
+              "sha256": "90dbd03e3d73e786bb5c7e6ff543303204649f49e91b05400ce9c8d95cab4432"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-3-d60c7b3a.json",
+              "sha256": "58a7dd54f2ca406181ea8af191dce2d023582c802ecd4a496bde26fc8571f9f3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json",
+              "sha256": "05b0f1fbe4fbb155651238fd2c16cc886dfdbf7139422f0a26517b5f8c0706e9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/core-model-attempt-5-76894525.json",
+              "sha256": "de625535fb49e2ee6dfbd04ce9fee4b28a0671511502c791081ec6668e8b9ae0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-before.json",
+              "sha256": "9bf75c56aac12b4235fd83a3c97b9504e3b78f1668c41aabb0139e4ebe130c2a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-first-reload.json",
+              "sha256": "84dafd337abee5d9743dda1ebee71b7962410fee0ec4050f3262c35d7f0c85ac"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-after-real-probes.json",
+              "sha256": "ba8e58ca3259f93b3770f278d18ea8028a7861e85de4ef554a9078615d091bb4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/round5-host-final.json",
+              "sha256": "676405116cc31cdb12b84c18196b1e1c754f19b5ba4bb1878e021e834dc1cd28"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round5/status-final.json",
+              "sha256": "1101df252383b46a752c4f55324b2a3825505fd2cf3070301eb156c8e94a50da"
+            }
+          ]
+        },
+        {
           "sourceId": "joint-host-zero-model",
           "status": "verified",
           "levels": [
@@ -3307,7 +3848,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型有序重载/启停 + round-3/4 集成与 H4e hotfix 恢复激活；round-4 bounded real-model 尝试失败，不得记 pass；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
+        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
         "No real dashboard rendering (browser DOM) and no real business data; one host instance, zero model calls.",
         "Not V24 UI acceptance, not generation or lifecycle evidence.",
         "G1 integration + isolated full check only; fixed-host validation is recorded separately in round3-host-zero-model.",
@@ -3317,6 +3858,9 @@
         "The real-model core probe depends on provider behavior; its failed/unknown host outcome must be recorded honestly and never auto-retried or counted as pass.",
         "All three probes are diagnostics only; they do not prove production time triggering, real Session log export, Ombre export readiness or plan quality; checkpoint capture remains unavailable.",
         "No real model/embedding/channel/host reload in this integration evidence.",
+        "The live time-trigger probe intentionally appends exactly one undeletable time.occurred control event to the live append-only ledger (disclosed real side effect); no live delivery, Task/Goal/Effect or model call is created.",
+        "This integration source is offline/isolated only: the fixed-host probe result, failures and real-model diagnostic are separate host evidence; diagnostic pass must never be counted as business acceptance.",
+        "Host retest may pass/fail/reveal another shape; no automatic retry is allowed. No V25/complete nine-system claim.",
         "Zero-model evidence only: activation/upgrade/publication/probes/diagnostics are proven, not real model tool invocation, provider budgets, real plan quality or channel traffic.",
         "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was NOT executed on the host.",
         "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts; probes are zero-model.",
@@ -3325,11 +3869,16 @@
         "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
         "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
         "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0.",
+        "This is a bounded diagnostic probe, NOT a full core decision round, Goal, plan or Task; it does not prove real plan quality, provider cache accounting or business acceptance.",
+        "Primary provider usage is only reported (input 1469 / output 41 / total 2406 as reported; no cache fields); attempts 4 and 5 show mainModelRequests=1 / mainModelStreams=0 with usage unknown — one request initiated, no stream completed, provider receipt/cost unknown, never claim zero cost.",
+        "Five pre-pass attempts and their root causes are disclosed; none was retried after the successful admitted model turn; failed/diagnostic attempts must never be counted as pass.",
+        "The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect) and the rule/time state were removed; no live delivery/business tables were written.",
+        "Real browser DOM, real channels/devices, checkpoint capture readiness, V25 semantic evaluation and nine-system acceptance remain untested; diagnostic pass cannot upgrade V25 or any product row.",
         "Zero-model evidence only: no model-generated reply, no event-tool model invocation, no provider budget/cache/cost, no real task/Goal continuation under a model.",
         "One ordered reload and two tool calls; no real browser DOM, channel, Lab business loop, device, long-run or independent fault domain."
       ],
       "notes": [
-        "零模型有序重载/启停 + round-3/4 集成与 H4e hotfix 恢复激活；round-4 bounded real-model 尝试失败，不得记 pass；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
+        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/05-插件生命周期/README.md",
@@ -4632,16 +5181,20 @@
       "evidenceLevels": [
         "offline-module",
         "slice-verification",
-        "fixed-host-zero-model"
+        "fixed-host-zero-model",
+        "bounded-real-model-diagnostic-only"
       ],
       "evidenceSourceIds": [
         "h2a-events",
         "h2a-probe",
         "h2b-subscriptions-time",
         "h2b-host-time-probe",
+        "h2b-live-time-trigger",
         "h2c-real-model-probe",
+        "h2c-probe-fix-chain",
         "round3-lead-integration",
         "round4-lead-integration",
+        "round5-host-real-model",
         "round3-host-zero-model",
         "round4-host-zero-model",
         "joint-host-zero-model"
@@ -4649,7 +5202,8 @@
       "limitations": [
         "No model actually invoked an event tool; real core Goal continuation, declarative-condition tools, platform redelivery and quotas/fanout remain untested.",
         "H2b is G1/G2 offline with synthetic clock/observation/Effect doubles; no DSH schedule/IANA tz database and no monetary/model cost bounding.",
-        "Fixed-host evidence is zero-model only (cooperative tick idle, schedules=0, notifications disabled); the bounded real-model H2c attempt failed before any model request and must never be recorded as pass; not V03/V14/V24 acceptance."
+        "Round-5 fixed-host host evidence is zero-model + bounded-real-model-diagnostic-only: the diagnostic tool round passed with reported usage 1469/41/2406 (attempts 4/5 = 1 request/0 stream/cost unknown), but this is NOT V25, full core/Goal or business acceptance and never pass.",
+        "The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect); no live delivery/model/Task/Goal/Effect; diagnostic pass cannot upgrade V03/V14/V24."
       ],
       "gaps": [
         "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
@@ -4696,17 +5250,21 @@
         "slice-verification",
         "historical-limited",
         "bounded-real-model",
-        "fixed-host-zero-model"
+        "fixed-host-zero-model",
+        "bounded-real-model-diagnostic-only"
       ],
       "evidenceSourceIds": [
         "h3-core-planning",
         "historical-task-goal",
         "h2c-real-model-probe",
+        "h2c-probe-fix-chain",
         "round4-localcore-hotfix",
-        "round4-host-zero-model"
+        "round4-host-zero-model",
+        "round5-host-real-model"
       ],
       "limitations": [
-        "No real-model plan/tool round is proven: the H2c host attempt failed before any model request and returned an honest structured failure; no usage/cache/cost and no retry.",
+        "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
+        "Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.",
         "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
         "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
       ],
@@ -5080,6 +5638,7 @@
         "synthetic-ui",
         "slice-verification",
         "fixed-host-zero-model",
+        "bounded-real-model-diagnostic-only",
         "environment-baseline"
       ],
       "evidenceSourceIds": [
@@ -5088,13 +5647,14 @@
         "h6c-channel-projection-ui",
         "round3-host-zero-model",
         "round4-host-zero-model",
+        "round5-host-real-model",
         "joint-host-zero-model",
         "h0-baseline"
       ],
       "limitations": [
         "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
         "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-        "Round-4 host includes only a failed bounded real-model attempt (no model request); zero-model host checks are not V05/V24 dashboard acceptance and no sensitive-value sweep over real UI."
+        "Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits, but real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
       ],
       "gaps": [
         "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
@@ -5503,7 +6063,9 @@
         "historical-limited",
         "bounded-real-model",
         "fixed-host-zero-model",
-        "offline-module"
+        "offline-module",
+        "slice-verification",
+        "bounded-real-model-diagnostic-only"
       ],
       "evidenceSourceIds": [
         "historical-task-goal",
@@ -5511,11 +6073,13 @@
         "h2a-probe",
         "h2b-subscriptions-time",
         "h2b-host-time-probe",
+        "h2b-live-time-trigger",
         "round3-host-zero-model",
-        "round4-host-zero-model"
+        "round4-host-zero-model",
+        "round5-host-real-model"
       ],
       "limitations": [
-        "No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; zero-model only; H2b time source is plugin-owned with synthetic clock, no DSH schedule/DST/live rules; the round-4 host time-source probe passed but cannot upgrade V14."
+        "No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; the live time-trigger probe passed once with one append-only time.occurred event but the bounded real-model diagnostic round is NOT V14/V25/business acceptance; H2b time source is plugin-owned with synthetic clock, no DSH schedule/DST/live rules."
       ],
       "blockedResourceIds": [],
       "sourceHeadingPresent": true
@@ -5783,6 +6347,7 @@
         "environment-baseline",
         "fixed-host-zero-model",
         "offline-module",
+        "bounded-real-model-diagnostic-only",
         "historical-limited"
       ],
       "evidenceSourceIds": [
@@ -5792,13 +6357,14 @@
         "h4b-host",
         "round3-host-zero-model",
         "round4-host-zero-model",
+        "round5-host-real-model",
         "joint-host-zero-model",
         "historical-capability-3i"
       ],
       "limitations": [
         "Zero-model only: no generation, compression, long-history cold recovery, 20-lifecycle matrix, real UI interactions or allowed-network audit.",
         "Round-3 host had one ordered reload and four zero-model tool calls; checkpoint capture unavailable; lifecycle=degraded reflects retained historical facts.",
-        "Round-4 host had one ordered reload/nine tool calls, realModelCalls=0; checkpoint capture unavailable (ready:false); the bounded real-model attempt failed before any model request and lifecycle=degraded retains historical facts.",
+        "Round-4 host had one ordered reload/nine tool calls, realModelCalls=0; round-5 host had six ordered reloads and one bounded real-model diagnostic tool round (reported usage 1469/41/2406; attempts 4/5 = 1 request/0 stream/cost unknown) plus an intentional append-only time.occurred event; diagnostic pass is NOT V24 acceptance.",
         "Installed builds were isolated verified builds of their slices, not current-HEAD generation acceptance."
       ],
       "blockedResourceIds": [
