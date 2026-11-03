@@ -1,0 +1,67 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead verification of the round-9 core create stabilization, failure diagnostics and v2 experiment freeze",
+  "capturedAt": "2026-11-03T04:55:01.494Z",
+  "status": "offline-verified-integration",
+  "purpose": "Verify the round-9 product fix slice (bounded history stabilization before native Goal create, controlled failure phase diagnostics, frozen v2 experiment config) together with the H7-round9 evidence mapping. No runtime/index integration is required: the v2 experiment is a frozen code constant and its activation requires a future explicit owner decision.",
+  "baseline": {
+    "head": "80e2867",
+    "note": "round-8 close; round-9 slices committed on top"
+  },
+  "slices": [
+    {
+      "name": "h3-core-create-diagnosis",
+      "commit": "1ae4bb8",
+      "files": [
+        "plugins/shiyu/src/adapters/dsh/goals.ts",
+        "plugins/shiyu/src/control/core-validation.ts",
+        "plugins/shiyu/tests/core-event-tools.test.ts",
+        "plugins/shiyu/tests/core-validation.test.ts",
+        "artifacts/dsh/h3/h3-core-create-diagnosis.json"
+      ]
+    },
+    {
+      "name": "h7-round9",
+      "commit": "b01843e",
+      "files": [
+        "plugins/shiyu/tests/harness/",
+        "plugins/shiyu/tests/harness-*.test.ts",
+        "artifacts/dsh/harness/h7-round9-slice.json"
+      ]
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 80e2867 + all round-9 slice files)",
+      "evidence": "artifacts/dsh/slices/round9-integrated-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1582,
+        "pass": 1582,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 606920,
+      "log": "plugins/shiyu/.local/slice-verify-round9-integrated.log",
+      "arithmetic": "1561 baseline + 13 product tests (8 create-failure/stabilization + 5 failure-diagnostics/v2) + 8 H7-round9 = 1582"
+    },
+    "perSliceAuthorChecks": {
+      "h3Diagnosis": "product-only isolated 1467/1467 (harness evidence bindings expected to fail until clean refresh); full isolated 1574 with 26 harness hash-binding failures disclosed",
+      "h7Round9": "1569/1569 (baseline 1561 + 8) plus harness 115/115"
+    },
+    "cleanRefreshPending": "the round-end clean refresh regenerates the harness/acceptance artifacts and is committed as X+1."
+  },
+  "knownLimitations": [
+    "The root cause is strongly supported (persisted journal reason NATIVE_HISTORY_CHANGED + a four-event Goal Session + fake-host reproduction) but not host-confirmed; the specific asynchronous meta event from round 7 is unknown.",
+    "The stabilization only re-observes on NATIVE_HISTORY_CHANGED, at most 3 observations; persistent tampering still fails bounded without replaying native Goal create.",
+    "The v2 experiment is frozen but not activated and no new bounded real business attempt is made here."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; host confirmation of the create stabilization and the v2 attempt are round-10 work."
+}

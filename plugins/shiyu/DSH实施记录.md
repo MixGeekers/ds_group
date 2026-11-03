@@ -1550,3 +1550,30 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. reconcile 通过仅证明“inert 残留 Goal 的只读分类 + 一次安全 cancel”路径，**不证明有界真实 core 业务链，也不修复原 create 失败原因**。
 2. 未来 bounded validation 尝试需新的显式 owner 决定与新冻结计划；不得重试本次失败 create。
 3. 产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0；round-8 host 证据未入 H7 映射（round-9）。
+
+## 49. 第九轮：core Goal create 失败根因修复与 v2 冻结实验（round-9 离线切片）
+
+状态：**根因强支持（未 host-confirmed）+ 有界稳定化修复 + 失败可观察性 + v2 冻结实验；离线/组合验证通过**。2026-11-03。
+
+### 49.1 根因证据与判断
+
+- live `shiyu_goal_commands` 只读查询（round-7 失败 Goal `core-17e3fe95…` 的 create command）：`status=unknown`、**`reason="Native history changed outside the trusted recovery suffix"`**；该 core Goal Session 仅 4 个 meta 事件（session/permission-preset/sandbox-mode/approval-policy，无 title/turn）。
+- 判断：失败发生在 `withNative` 的 **observeNativeBaseline 之后、assertNativeLiveHistory 的 live-watermark 校验**处（NATIVE_HISTORY_CHANGED）；native `goals().create` 尚未调用；**不是** title/preset 缺陷，也不是 title 生成竞争（此前假设被证据否定）。
+- fake host 在 observation 与 assert 之间追加 `session/end-seed` 可稳定复现：**pre-fix 8 个新测试 red（39 中 31 pass/8 fail）→ post-fix 39/39 green**；具体 round-7 异步事件类型未知（未 host-confirmed）。
+
+### 49.2 修复与可观察性
+
+- **create 前有界历史稳定化**：flush+observe→assert live cut；仅 `NATIVE_HISTORY_CHANGED` 时重观察新 durable cut，上限 3 次观察（首次+最多 2 次重观察，遵守 signal/deadline）；其它错误立即失败；**native `goals().create` 仍只调用一次、绝不 replay**；持续篡改仍有界失败于 history-assert。
+- `GoalOperationUnknownError.diagnostic{phase,code,message}`：受控 phase 枚举（native-session/observe/stabilize/history-assert/title/title-readback/native-goal/readback/postcondition/confirm/release/prepare/authorize/binding/unknown）；message ≤300、路径→`<workspace>`、无正文/用户内容；持久 receipt schema 不变（`receipt.reason="phase/code: message"`）。
+- bounded runner create-failure receipt 新增 `failurePhase/failureCode/failureDetail`，并支持从 binding reason 前缀只读 fallback；validator 强制 create 失败必须暴露三元组。
+
+### 49.3 v2 冻结实验
+
+- `CORE_VALIDATION_EXPERIMENT`：version2、requestId `core-validation-frozen-v2`、content `SHIYU_CORE_VALIDATION_NOTE_V2`（sha `1e45f585…`）、budget 16384/3/1、expires 10min、maxEvaluations 2、template sha `756ec37b…`；v1 常量/reconcile 路径不变。
+- runner 仅接受精确 v1/v2 常量对象（默认 v1）；任意克隆/version-only 覆盖被拒；tool/command/model 无法选择；激活 v2 需未来 trusted composition（本切片无 runtime 改动）。
+
+### 49.4 H7-round9 映射与 Lead 验证
+
+- H7-round9：5 来源/19 文件（round8 host reconcile 仅 `fixed-host-zero-model-reconcile`、H3 reconcile blobCommit、round8 integration、round8 clean artifacts @f766ab7、round8 review info-only 未映射）；57 来源/179 文件；产品行仍 79/79 not_covered。
+- **Lead 组合隔离验证**（HEAD `80e2867` + 全部 round-9 切片）：**1582/1582 通过，0 失败/0 跳过**（= 1561 + 13 + 8，含 `1ae4bb8` 与本轮 H7 提交）；证据 `artifacts/dsh/slices/round9-integrated-verify.json`。
+- 宿主：本轮无 runtime 改动、无 reload；v2 未激活，未执行任何真实 Goal 创建或模型调用。

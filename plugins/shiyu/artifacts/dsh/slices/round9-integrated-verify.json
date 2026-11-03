@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "round9-integrated",
+  "capturedAt": "2026-11-03T04:54:46.508Z",
+  "head": "b01843e39d08ba9a2cdc03c9bac6d6a0eb061210",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-round9-integrated-1793681079181",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 67598,
+      "sha256": "c5c54c1162a3f18aa9b74aa4cda7419cbf7fcdc52559310c7640b96f53b6a23a"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 76786,
+      "sha256": "692e852fa1f3d608b6b263f676659f80a450fb84a1f0b173ad9959cefe10008f"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 93498,
+      "sha256": "b7db4b83c66bae563a16e3e636a83d4be409a21a12c26a44cce8fd8022a147fe"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 58326,
+      "sha256": "1b45b7aff6ed02dd5506dd1485fdbc753b64c8ea1893121727250c45dc31e59d"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-core-create-diagnosis.json",
+      "bytes": 19471,
+      "sha256": "f0a0176dbdce40f4d566727ae19b880e232089afde1f6056f77f05ade6d02ad4"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-create-diagnosis-verify.json",
+      "bytes": 1853,
+      "sha256": "26cc2a7a00071d5d0403ec2cf611b4fd90ba6b7ec3f20ba16e5850c52bdeb472"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "bytes": 134000,
+      "sha256": "6191d6fdf009be1c062a4679a08745933ca9f62a622de48f3deeb731c8ec2169"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "bytes": 36975,
+      "sha256": "987aaa2d0d04d8ad5e4c9e9a0646a6f98250749d9f0ddb09220e841b88a45c2d"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+      "bytes": 13379,
+      "sha256": "df4ad74198fe8e1f1aaeefc8f215237db73db6c50052fb485e1777fce9757ee1"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-acceptance.test.ts",
+      "bytes": 22505,
+      "sha256": "95e048f8a76d50469a28b85b36b228f51e6f1d780978eb8cb61548188ca32969"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "bytes": 18584,
+      "sha256": "0786348699c8fdda01ddb02858c19987d86b73b2d857508df8fcb7e405da3e38"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "bytes": 23353,
+      "sha256": "74a6ec8c91314d3be3078ddfa92d15395191feb4c732030eec1bacfe07c5e9b2"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round6.test.ts",
+      "bytes": 20213,
+      "sha256": "3a8b80673b1b3df681f422eb9e08d14f8c6cb2977dae317820721b99338b9b6c"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round7.test.ts",
+      "bytes": 17944,
+      "sha256": "79d7a430cae6821caee452949164f5a7b8adcff2c7d01aaa027daf157295f660"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round8.test.ts",
+      "bytes": 18150,
+      "sha256": "07fafe6880343f45cbcb9b6242699971a68bbd6bb245074b5cca0f520f172444"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round9.test.ts",
+      "bytes": 17380,
+      "sha256": "588ed5cb3160ef40db098a5e0ba917b9c1d4ceec3336935a17f24b6aa97e2237"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/h7-round9-slice.json",
+      "bytes": 7367,
+      "sha256": "e834af20dd1bdab2a17e4188f59e83722a7baf5e92e09344231507449e5a0b0c"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 606920,
+    "bytes": 169117,
+    "sha256": "f1bf764d76c1c8c794b68a91ac56d02be7a17441ad043cc2f14a9f9d360df218",
+    "tests": {
+      "tests": 1582,
+      "pass": 1582,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 605853.481209",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-round9-integrated.log",
+    "bytes": 169117,
+    "sha256": "f1bf764d76c1c8c794b68a91ac56d02be7a17441ad043cc2f14a9f9d360df218"
+  },
+  "verdict": "pass"
+}
