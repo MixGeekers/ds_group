@@ -1,0 +1,514 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-37)",
+  "reviewedAt": "2026-11-03T02:40:00Z",
+  "subject": "Round-6: H4e isolated lifecycle probe, H7-round6 mapping, integration, round-6 host draft, pending X+1",
+  "head": "8d4c97cc7fca01741abf57c4f8c3664b6e51aec6",
+  "commits": {
+    "H4e-probe": "0965d0f",
+    "H7-round6": "08243b4",
+    "integration (X)": "fc124d1",
+    "H7 X+1": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+    "host-round6": "8d4c97cc7fca01741abf57c4f8c3664b6e51aec6"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "H4e probe commit/files",
+      "claim": "0965d0f probe module/test/integration diff hashes match; isolated 1507/1507 log a11adb7b…/162609",
+      "evidence": [
+        "artifacts/dsh/h4/h4e-host-lifecycle-probe.json",
+        "0965d0f files"
+      ],
+      "method": "git show sha/bytes + log",
+      "result": "verified",
+      "detail": "files 3/3; probe module 5981dfa6…/25628, test eea71b49…/10361, integration diff 79f5747c…/4798; 9 tests; isolated 1507/1507 0 skip"
+    },
+    {
+      "id": "R02",
+      "area": "H4e probe behavior",
+      "claim": "14 steps/9 checks; derivedRevision 3→4 +1; stale capture/bodies rejected; no revival; personality needs_review; cleanup; zero activity; private :memory: and live-path rejection",
+      "evidence": [
+        "artifacts/dsh/h4/h4e-host-lifecycle-probe.json",
+        "tests/inner-lifecycle-probe.test.ts",
+        "host receipt"
+      ],
+      "method": "evidence/test/receipt review",
+      "result": "verified",
+      "detail": "scenario 14 steps, checks 9, test assertions cover exactly-one bump, INNER_CAPTURE_INVALIDATED, INNER_SOURCE_UNAVAILABLE, needs_review count 1, cleanup storeClosed/workerTerminated, zeroActivity all 0, livePathsAccepted 0; no skip/only/tautology; host receipt matches"
+    },
+    {
+      "id": "R03",
+      "area": "H7-round6 mapping",
+      "claim": "08243b4 files match; 43 sources/126 files; 5 new sources 23 files blob/ancestry verified; round5-host only diagnostic-only; V25 not mapped; product 79/79; tooling/V/S/FL unchanged; blobCommit stable",
+      "evidence": [
+        "artifacts/dsh/harness/h7-round6-slice.json",
+        "tests/harness-round6.test.ts",
+        "evidence.ts/registry"
+      ],
+      "method": "hashes/tests/assertions/logs",
+      "result": "verified",
+      "detail": "files 5/5; tests assert EVIDENCE_SOURCES=43, new=5/files=23, 43/126 verified, round5-host levels include fixed-host-zero-model + bounded-real-model-diagnostic-only and exclude plain bounded-real-model, V25 sourceIds exclude round5-host/fix-chain, gate incomplete/executed=passed=0, product 79/79; logs 1505/92/92 match; archives 4/4"
+    },
+    {
+      "id": "R04",
+      "area": "round-6 integration",
+      "claim": "fc124d1 runtime/index/tool files match; 1515/1515 log 7a469848…/163134; host pending",
+      "evidence": [
+        "artifacts/dsh/integration/round6-lead-integration.json",
+        "artifacts/dsh/slices/round6-integrated-verify.json"
+      ],
+      "method": "hash/log/arithmetic",
+      "result": "verified",
+      "detail": "files 3/3 + slice files 11/11; 1515=1498+9+7+1; hostValidationPending disclosed"
+    },
+    {
+      "id": "R05",
+      "area": "host round-6 draft",
+      "claim": "one reload 390→396/events51→52/cap37→39/sessions33; probe before/after live data unchanged; business/state unchanged; probe receipt passed 14 steps/9 checks/derived+1/cleanup; dist fc124d1 112/9f6996e2",
+      "evidence": [
+        "artifacts/dsh/host/round6* (draft)"
+      ],
+      "method": "raw audits/receipt/dist rebuild",
+      "result": "verified-with-findings",
+      "detail": "before390/51/33/cap37 → afterReload396/52/33/39 → probe396 same → final396 same; sessions/known/business/state unchanged; receipt 2984B sha matches, 9 checks all passed, derived 3→4, cleanup true, liveDataTouched false; dist rebuilt exactly 112/9f6996e2; plan sha matches; encoded paths only in raw audits; no absolute/secrets"
+    },
+    {
+      "id": "R06",
+      "area": "host diagnostics cache",
+      "claim": "diagnostics.innerLifecycleProbe caches the passed receipt",
+      "evidence": [
+        "round6-joint deltas.postStatus.classification"
+      ],
+      "method": "evidence-ref check",
+      "result": "finding",
+      "detail": "host evidence has no status/status-final payload; only plan/probe/receipt/4 audits; claim cannot be verified (F6-R1)"
+    },
+    {
+      "id": "R07",
+      "area": "host probe metadata",
+      "claim": "Probe expected flag consistent with raw receipt",
+      "evidence": [
+        "round6-joint probe.expected",
+        "round6/inner-lifecycle-probe.json expected"
+      ],
+      "method": "field compare",
+      "result": "finding",
+      "detail": "joint probe.expected=true but raw receipt expected=null; derived flag not sourced (F6-R2)"
+    },
+    {
+      "id": "R08",
+      "area": "host hygiene",
+      "claim": "no absolute home/secrets/bodies",
+      "evidence": [
+        "round6/*"
+      ],
+      "method": "scan",
+      "result": "verified",
+      "detail": "only encoded Users-caja relativePaths in raw audits; no /Users absolute, secret or body"
+    },
+    {
+      "id": "R09",
+      "area": "X+1/host commit",
+      "claim": "X+1 (X=fc124d1) and host commit verified",
+      "evidence": [
+        "pending"
+      ],
+      "method": "n/a",
+      "result": "pending",
+      "detail": "host evidence untracked draft with F6-R1/R2 to fix; X+1 not committed; task remains in progress"
+    },
+    {
+      "id": "R10",
+      "area": "X+1 identity/manifest",
+      "claim": "X+1=c89d940 (parent fc124d1): 11 artifacts all M; code/tests/scripts diff 0; manifest.vcs head=fc124d1/dirty=false/leaks=0; aggregates 401/6,975,553",
+      "evidence": [
+        "git diff fc124d1..c89d940",
+        "manifest.json"
+      ],
+      "method": "git objects + JSON",
+      "result": "verified",
+      "detail": "11 artifacts (acceptance 2, fl 3, h7 mapping, manifest, selfproof json/tap, traceability json/md); manifest head fc124d1 dirty false; generatedAt 02:01:52.221Z; no artifacts/dsh paths"
+    },
+    {
+      "id": "R11",
+      "area": "X+1 artifacts/selfproof/sources",
+      "claim": "11 artifact hashes/bytes; selfproof 12 files/92; oracleCorpus 15/7/22; 43/43 sources/126 files 0 unknown; product 79/79 not_covered",
+      "evidence": [
+        "c89d940 artifacts"
+      ],
+      "method": "sha/bytes + counts",
+      "result": "verified",
+      "detail": "manifest e4ab6be0…/83724, selfproof 73585ca2…/20999, tap 58bcf72b…/18015, traceability fc05cdd0…/929894, md c0aa56a6…/32743, mapping 2f5ab9f8…/53765, acceptance a7ff35c0…/280582, md 578e0b93…/27875, fl manifest a1093fae…/13154, coverage 98656a2a…/52559, coverage md d6b4d1d4…/9308; sources 43 verified/0 unknown; product 79/79; tooling TV.1–7/9"
+    },
+    {
+      "id": "R12",
+      "area": "X+1 clean/acceptance",
+      "claim": "clean 1515/1515 0 skip (25c7b440…/163069); pipeline 042cf839…/2799 honesty=pass/gate=incomplete/executed=passed=0; archive 024f2f87…/867; acceptance gate incomplete",
+      "evidence": [
+        ".local/h7-verify/round6-clean-fc124d1-*",
+        "acceptance-report.json"
+      ],
+      "method": "sha/bytes/logs/JSON",
+      "result": "verified",
+      "detail": "selfproof 12/92; sources 43/126; acceptance denominators planned92/executed0/passed0/failed0/blocked19/notRun73; issues=0"
+    },
+    {
+      "id": "R13",
+      "area": "host F6 fixes",
+      "claim": "F6-R1 status-final payload/cachedReceipt added; F6-R2 expectedNote added; host commit 8 files artifacts/doc no code",
+      "evidence": [
+        "8d4c97c joint/status/DSH"
+      ],
+      "method": "git-show + field compare",
+      "result": "verified",
+      "detail": "status-final 59072B/sha 7581873a… matches claim; cachedReceipt.innerLifecycleProbe status passed/in-memory/liveDataTouched false/checks9/3→4; expectedNote states derived by Lead; commit 8 files (doc+joint+probe+4 audits+status) no code/tests"
+    },
+    {
+      "id": "R14",
+      "area": "host body final",
+      "claim": "390→396/events51→52/cap37→39/sessions33 unchanged; probe before/after live unchanged; business/state same; dist fc124d1 112/9f6996e2",
+      "evidence": [
+        "8d4c97c round6 audits/status"
+      ],
+      "method": "committed blobs",
+      "result": "verified",
+      "detail": "before390/51/33/cap37 → reload396/52/33/39 → probe/final same; known 33 sessions unchanged; business/state unchanged; probe receipt 2984B f7fb…; dist rebuilt exactly 112/9f6996e2; definitionDigest 5a591515…; status-final no absolute/manual home path"
+    },
+    {
+      "id": "R15",
+      "area": "final scope",
+      "claim": "X/X+1/host verified; real-model not involved; no product upgrades",
+      "evidence": [
+        "all checks"
+      ],
+      "method": "integration",
+      "result": "verified",
+      "detail": "H4e probe zero-model isolated; H7 product 79/79 not_covered; round6 host zero-model only; X+1 no code change; clean sources 43/43; no pass upgrade"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F6-R1",
+      "severity": "evidence-gap",
+      "title": "Host claim of diagnostics.innerLifecycleProbe cache has no status payload",
+      "files": [
+        "artifacts/dsh/host/round6-joint-zero-model.json#deltas.postStatus",
+        "artifacts/dsh/host/round6/"
+      ],
+      "evidence": "evidence list contains only plan, probe receipt, four audits; no status/status-final artifact; classification claims cache passed",
+      "impact": "task expects diagnostics cache proof; currently unverifiable",
+      "recommendation": "add a read-only status payload/status-final artifact showing diagnostics.innerLifecycleProbe passed (and lossless), or remove the cache claim",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-8d4c97c",
+        "verified": true,
+        "commit": "8d4c97cc7fca01741abf57c4f8c3664b6e51aec6"
+      }
+    },
+    {
+      "id": "F6-R2",
+      "severity": "minor-metadata",
+      "title": "Joint probe expected=true but raw receipt expected=null",
+      "files": [
+        "round6-joint probe.expected",
+        "round6/inner-lifecycle-probe.json"
+      ],
+      "evidence": "raw receipt JSON has expected:null; joint summary sets true",
+      "impact": "derived flag not sourced; no behavior change",
+      "recommendation": "derive from raw or add note",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-8d4c97c",
+        "verified": true,
+        "commit": "8d4c97cc7fca01741abf57c4f8c3664b6e51aec6"
+      }
+    },
+    {
+      "id": "F6-R3",
+      "severity": "pending",
+      "title": "Host commit and X+1 pending",
+      "files": [
+        "untracked round6 evidence",
+        "pending X+1"
+      ],
+      "evidence": "host draft untracked; X+1 not committed",
+      "impact": "task-37 cannot complete until host commit and X+1 verified (manifest head=fc124d1/dirty=false, artifact-only, selfproof 92, gate incomplete, product 79/79)",
+      "recommendation": "fix F6-R1/R2, commit host evidence, provide X+1",
+      "owner": "Lead",
+      "disposition": {
+        "status": "resolved-by-c89d940-and-8d4c97c",
+        "verified": true
+      }
+    },
+    {
+      "id": "F6-R4",
+      "severity": "info-hygiene",
+      "title": "acceptance inputs contain clean generation temp root",
+      "files": [
+        "artifacts/dsh/harness/acceptance-report.json#inputs"
+      ],
+      "evidence": "pluginRoot=/private/tmp/h7r6-clean/plugins/shiyu, workspaceRoot=/private/tmp/h7r6-clean; no home/user path, non-product temp path",
+      "impact": "no product/home leak; future generator can redact",
+      "recommendation": "future acceptance generator redaction (non-blocking)",
+      "owner": "test-harness/Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true
+      }
+    },
+    {
+      "id": "F6-R5",
+      "severity": "info-scope",
+      "title": "Round-6 host evidence not yet in H7 mapping",
+      "files": [
+        "traceability.json"
+      ],
+      "evidence": "X+1 maps round5 host/fix chain/live trigger/blobCommit/round5 clean artifacts (43/126); round6 host evidence is committed after X+1 and is not mapped",
+      "impact": "explicitly no upgrade/unknown; round6 host remains round7 mapping work",
+      "recommendation": "map in round7",
+      "owner": "Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true
+      }
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Host commit/X+1",
+      "reason": "host evidence untracked draft; X+1 pending"
+    },
+    {
+      "item": "Host diagnostics cache",
+      "reason": "no status payload captured; F6-R1"
+    },
+    {
+      "item": "Independent suite re-execution",
+      "reason": "read-only; counts/hashes/logs + host proofs used; no product/host/model rerun"
+    },
+    {
+      "item": "H4e live memory semantics",
+      "reason": "probe skips memory domain; isolated in-memory only"
+    },
+    {
+      "item": "V25/H7 host mapping",
+      "reason": "round5-host diagnostic-only not mapped to V25; round-6 host not yet mapped (round7)"
+    }
+  ],
+  "counts": {
+    "H4e_probe_impl": 1507,
+    "H7_round6_slice": 1505,
+    "H7_harness": 92,
+    "round6_integration": 1515,
+    "H4e_probe_tests": 9
+  },
+  "h4eProbe": {
+    "privateMemoryStore": true,
+    "livePathRejected": true,
+    "steps": 14,
+    "checks": 9,
+    "derivedRevision": "3→4 (+1)",
+    "staleCaptureRejected": true,
+    "staleBodiesRejected": true,
+    "sourceRevivalRefused": true,
+    "profileVersionNeedsReview": 1,
+    "cleanup": {
+      "storeClosed": true,
+      "workerTerminated": true
+    },
+    "zeroActivity": {
+      "model": 0,
+      "embedding": 0,
+      "tasks": 0,
+      "effects": 0,
+      "sends": 0
+    }
+  },
+  "h7Round6": {
+    "sources": 43,
+    "files": 126,
+    "newSources": 5,
+    "newSourceFiles": 23,
+    "round5HostLevels": [
+      "fixed-host-zero-model",
+      "bounded-real-model-diagnostic-only"
+    ],
+    "v25Mapped": false,
+    "productRows": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "gate": "incomplete",
+    "issues": 0,
+    "logs": {
+      "full": 1505,
+      "harnessShared": 92,
+      "harnessIsolated": 92
+    }
+  },
+  "hostDraft": {
+    "status": "committed-8d4c97c",
+    "before": {
+      "commitSeq": 390,
+      "events": 51,
+      "sessions": 33,
+      "capability": 37
+    },
+    "afterReload": {
+      "commitSeq": 396,
+      "events": 52,
+      "sessions": 33,
+      "capability": 39
+    },
+    "afterProbe": {
+      "commitSeq": 396,
+      "events": 52,
+      "sessions": 33,
+      "capability": 39
+    },
+    "final": {
+      "commitSeq": 396,
+      "events": 52,
+      "sessions": 33,
+      "capability": 39
+    },
+    "probeReceipt": {
+      "status": "passed",
+      "bytes": 2984,
+      "sha256": "f7fb097850e0e1e88fd0ecaef81b1188c57e5253fde1833d64217b00367f23bc",
+      "steps": 14,
+      "checks": 9,
+      "derivedRevision": [
+        3,
+        4
+      ],
+      "cleanup": true,
+      "liveDataTouched": false
+    },
+    "statusFinal": {
+      "bytes": 59072,
+      "sha256": "7581873a7ca3be590305c75f4ea952d5ac4504c49c8145cf0bb3f677dce699a8",
+      "cachedReceipt": {
+        "status": "passed",
+        "store": "in-memory",
+        "liveDataTouched": false,
+        "checks": 9,
+        "derivedRevisionBefore": 3,
+        "derivedRevisionAfter": 4
+      }
+    },
+    "businessFactsUnchanged": true,
+    "knownSessionsUnchanged": true,
+    "stateFileUnchanged": true,
+    "dist": "9f6996e2d6d685df1b930b9657583a1e3d1e8205e6598ea0f2d18255abcfef1c/112",
+    "definitionDigest": "5a591515147e63ccd956f4ed85b95ccf7df8b29770f4c13ac0ef11d3636c652e"
+  },
+  "overallVerdict": "Task-37 is complete and verified: H4e isolated probe (9 tests/14 steps/9 checks, +1 derived revision, stale rejection, no revival, needs_review, cleanup, zero activity, private in-memory store) matches its evidence and the committed host receipt; H7-round6 (43 sources/126 files, 5 new sources, diagnostic-only level, V25 unmapped, product 79/79 not_covered, gate incomplete) keeps the mapping honest; integration 1515 is verified; the committed round-6 host evidence (8d4c97c) shows one reload 390→396/events 51→52/cap 37→39/sessions 33, fully unchanged live data/business/state and a passed in-memory probe, with the status-final payload now proving diagnostics.innerLifecycleProbe caching; X+1=c89d940 is 11 artifact-only files with manifest head=X/dirty=false, clean 1515/1515, selfproof 12/92, 43/43 sources/126 files, product 79/79 not_covered and gate=incomplete/executed=passed=0. All F6 findings are fixed or accepted info; the round-6 host pass is zero-model diagnostic only, not business/nine-system acceptance.",
+  "xPlusOne": {
+    "X": "fc124d16242e76a269372295dd731abc474780f9",
+    "X+1": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+    "host": "8d4c97cc7fca01741abf57c4f8c3664b6e51aec6",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "fc124d16242e76a269372295dd731abc474780f9",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T02:01:52.221Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 401,
+      "bytes": 6975553,
+      "digest": "a3644adf1ba6c95fed9d3d016a122c34cfe8fe418456a790e1a6bea193d53189"
+    },
+    "cleanCheck": {
+      "tests": 1515,
+      "pass": 1515,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "25c7b440115950a2b94125007fc3c5813e1cfb4846a8df5dda8995cb0adc8b63",
+      "bytes": 163069
+    },
+    "pipeline": {
+      "sha256": "042cf8396793447926843bc313d58ca7efac10fe03359b5e327efb539ee80efd",
+      "bytes": 2799,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "024f2f872336859bf99be995b2fb7bbb8484cbfc4600edec60af6f648fc42052/867",
+    "selfproof": {
+      "files": 12,
+      "tests": 92
+    },
+    "sources": {
+      "verified": 43,
+      "files": 126,
+      "unknown": 0
+    },
+    "oracleCorpus": {
+      "h0b": 15,
+      "h0cBusiness": 7,
+      "total": 22
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "e4ab6be069f6d4d4fb4dcc2546ae7814790018a01ae3787830f60caf8e270683/83724",
+      "tool-selfproof.json": "73585ca2f65208fb36edd71965331ca17885290a4110c6b7d76af7ec3d897e7b/20999",
+      "tool-selfproof.tap": "58bcf72bb0cd8407e34304482256c30ddda917ef2e963419cb4c4c640f6f0d63/18015",
+      "traceability.json": "fc05cdd0aa8e2e3b3d78c64bc120dd900bdef10ca062671adcc593e39e6a44ad/929894",
+      "traceability.md": "c0aa56a6945100f030a15ffb75e328eef1e5412e27b979f797208b88dcc4064f/32743",
+      "h7-traceability-mapping.md": "2f5ab9f892a2f46a951b66b960ce7ad3dc25196594435346148e2c9065015cd5/53765",
+      "acceptance-report.json": "a7ff35c09114b730f158e3b5a33b4869e05e4e87d74a299ad8e6fa5c6c7f269a/280582",
+      "acceptance-report.md": "578e0b93e6f97068d9c3546ca817f00acdef32025db2b4501d95cc519aaee937/27875",
+      "fl-scenarios/manifest.json": "a1093fae70782d99d78bced88f8b1ccb68c2e67fc831fdc2e5a2a556b29e9620/13154",
+      "fl-scenarios/coverage.json": "98656a2a9ba938c899cb1e1bcdb30b6b2a8eaa10bc27060b16162ce66d920eff/52559",
+      "fl-scenarios/coverage.md": "d6b4d1d493d5f7e650a767a7c3f8d1a7d2f79fbb009cd8ba2a140fa1bc611228/9308"
+    },
+    "notes": [
+      "acceptance inputs temp root /private/tmp/h7r6-clean (F6-R4 info)",
+      "round6 host evidence not in H7 mapping (F6-R5 info; round7)"
+    ]
+  }
+}

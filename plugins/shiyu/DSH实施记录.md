@@ -1373,3 +1373,33 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - 探针前后 live 数据：commitSeq/events/sessions/capability/state 文件全部不变；无业务行；无模型/embedding/Task/Effect。探针后 `shiyu_status.diagnostics.innerLifecycleProbe` 缓存 passed 回执，final status 调用只读。
 - 证据：[round6-joint-zero-model.json](<artifacts/dsh/host/round6-joint-zero-model.json>) + `host/round6/`（探针回执、4 份审计）。
 - 边界：隔离 `:memory:` store 且跳过 memory backend，不证 live 记忆语义/Ombre 导出/真实业务；产品行与 acceptance gate 未升级。
+
+## 42. 第六轮独立复核与 F6 处置（round-6 收尾）
+
+2026-11-03，独立验证员对 round-6 提交与宿主证据做只读复核（task-37）：**15 项检查完成，5 条 findings 全部 fixed/info/resolved**。报告：[ROUND6-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND6-EVIDENCE-REVIEW.md>)、[round6-evidence-review.json](<artifacts/dsh/verify/round6-evidence-review.json>)。
+
+### 42.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| H4e 隔离生命周期探针 `0965d0f` | 文件 3/3 匹配；隔离 1507/1507、0 skip；14 steps/9 checks、derivedRevision 3→4 恰 +1、旧 capture/readBodies 拒、不复活、needs_review、cleanup、zeroActivity 全 0、私有 `:memory:`/拒绝 live path；9 tests 真实 |
+| H7-round6 `08243b4` | 43 sources/126 files；round5-host 仅 `fixed-host-zero-model`+`bounded-real-model-diagnostic-only`（无 plain bounded-real-model）；V25 不映射；产品 79/79 not_covered、covered=0、tooling_ready 未升级；issues=0 |
+| 集成 `fc124d1` | 隔离 1515/1515、0 skip（`7a469848…`/163134）；算术 1498+9+7+1=1515 |
+| 宿主 `8d4c97c` | 链 390→396/events 51→52/cap37→39/sessions33 不变；probe 前后 live 数据不变；final status 只读；probe passed/2984B sha 匹配/9 checks/derived 3→4/cleanup；**F6-R1 修复后 status-final.json 59072B/sha `7581873a…` 与 cachedReceipt 逐项一致**；dist 独立重建 112 文件/`9f6996e2…`；definitionDigest 不变 |
+| X+1 `c89d940` | 11 artifacts only；manifest.vcs head=fc124d1/dirty=false；src/client/tests/scripts diff=0；clean 1515/1515；pipeline 全绿；selfproof 12 files/92；**43/43 sources verified、126 文件、0 unknown**；产品 79/79 not_covered；acceptance gate=incomplete/executed=passed=0 |
+
+### 42.2 F6 findings 处置
+
+| ID | 处置 |
+|---|---|
+| F6-R1（缓存缺 status 证据） | 已修：提交 `status-final.json`（59072B，sha `7581873a…`）+ joint evidence `deltas.postStatus.payload` 与 `cachedReceipt.innerLifecycleProbe`（passed/in-memory/liveDataTouched=false/9 checks/derived 3→4），与 status diagnostics 逐项一致 |
+| F6-R2（expected flag 来源） | 已修：`probe.expectedNote` 明示 expected 由 Lead 从 receipt 派生，raw receipt 无 expected 字段 |
+| F6-R3（host/X+1 pending） | resolved（`8d4c97c`/`c89d940` 已提交并复核） |
+| F6-R4（acceptance 临时路径） | info 接受，future redact |
+| F6-R5（round6 host 未入映射） | 按计划属 round-7，无 unknown/升级 |
+
+### 42.3 边界
+
+1. round-6 host 为零模型隔离诊断：`:memory:` store、跳过 memory backend，不证 live memory/Ombre 导出/真实业务/九系统验收。
+2. 产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0。
+3. round-6 host 证据尚未进入 H7 映射（round-7 工作）；无 unknown、无升级。
