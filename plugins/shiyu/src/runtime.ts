@@ -1409,9 +1409,11 @@ export class RuntimeService {
       const matches = Array.isArray((search as any)?.matches) ? (search as any).matches.length : 0;
       const semanticHit = matches > 0;
       const stepPassed = (name: string) => steps.some(item => item.step === name && item.status === 'passed');
+      const effectStatus = (indexed as any)?.entry?.effect?.status;
       const ok = stepPassed('remember-synthetic-fact') && stepPassed('index-fact') && stepPassed('semantic-search')
         && stepPassed('exact-read') && stepPassed('withdraw-fact') && postWithdrawRejected && semanticHit
-        && (indexed as any)?.entry?.effect?.status === 'succeeded';
+        && effectStatus !== 'unknown' && effectStatus !== 'failed'
+        && (indexed as any)?.entry?.embeddingUsage?.complete === true;
       return { ok, ...(ok ? {} : { reasonCode: 'MEMORY_PROBE_ROUNDTRIP_INCOMPLETE' }), conversationId, markerSha256: createHash('sha256').update(marker).digest('hex'),
         steps, embeddingCalls: (indexed as any)?.entry?.embeddingUsage?.calls ?? null,
         searchEmbeddingCalls: (search as any)?.embeddingCalls ?? null, usageComplete: (indexed as any)?.entry?.embeddingUsage?.complete === true && (search as any)?.usageComplete === true,
