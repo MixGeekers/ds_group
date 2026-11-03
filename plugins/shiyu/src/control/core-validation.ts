@@ -362,7 +362,17 @@ export const CORE_VALIDATION_EXPERIMENT: Readonly<CoreValidationExperiment> = Ob
   budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
   maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
 });
-const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT]);
+/** v3 frozen experiment: the third independent owner-decision attempt after the
+ * failed v1/v2 creates. It is a NEW frozen experiment, not a v1/v2 retry. */
+export const CORE_VALIDATION_EXPERIMENT_V3: Readonly<CoreValidationExperiment> = Object.freeze({
+  version: 3, requestId: 'core-validation-frozen-v3',
+  objective: '完成 owner 预授权的有界本地便签验证 v3：写入 note-1 并由独立核验确认。',
+  deliverable: Object.freeze({ id: 'note-1', title: '有界 core 验证便签 v3',
+    content: 'SHIYU_CORE_VALIDATION_NOTE_V3', dependsOn: Object.freeze([]) as unknown as readonly string[] }),
+  budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
+  maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
+});
+const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3]);
 function experimentTemplate(experiment: Readonly<CoreValidationExperiment>): unknown {
   return { requestId: experiment.requestId, objective: experiment.objective, deliverables: [experiment.deliverable],
     budget: experiment.budget, expiresInMs: experiment.expiresInMs, maxEvaluations: experiment.maxEvaluations };
@@ -370,9 +380,10 @@ function experimentTemplate(experiment: Readonly<CoreValidationExperiment>): unk
 function experimentTemplateSha(experiment: Readonly<CoreValidationExperiment>): string { return sha256(canonical(experimentTemplate(experiment))); }
 export const CORE_VALIDATION_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_V1);
 export const CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT);
+export const CORE_VALIDATION_EXPERIMENT_V3_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V3);
 /** Fixed, code-level reconcile targets. Callers cannot select or add requestIds. */
 export const CORE_VALIDATION_RECONCILE_REQUEST_IDS: readonly string[] = Object.freeze([
-  CORE_VALIDATION_REQUEST_ID, CORE_VALIDATION_EXPERIMENT.requestId,
+  CORE_VALIDATION_REQUEST_ID, CORE_VALIDATION_EXPERIMENT.requestId, CORE_VALIDATION_EXPERIMENT_V3.requestId,
 ]);
 
 function experimentFixedInput(experiment: Readonly<CoreValidationExperiment>): CoreValidationFixedInput {
@@ -415,7 +426,8 @@ function validateOptions(options: unknown): asserts options is CoreValidationOpt
   if (value.signal !== undefined && (typeof value.signal !== 'object' || typeof (value.signal as AbortSignal).aborted !== 'boolean')) {
     throw new CoreValidationOptionsError('Invalid abort signal');
   }
-  if (value.experiment !== undefined && value.experiment !== CORE_VALIDATION_V1 && value.experiment !== CORE_VALIDATION_EXPERIMENT) {
+  if (value.experiment !== undefined && value.experiment !== CORE_VALIDATION_V1 && value.experiment !== CORE_VALIDATION_EXPERIMENT
+    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V3) {
     throw new CoreValidationOptionsError('The validation experiment must be one of the code-level frozen constants');
   }
 }

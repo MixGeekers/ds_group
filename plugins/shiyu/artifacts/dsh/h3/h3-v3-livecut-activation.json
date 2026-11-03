@@ -1,0 +1,300 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-v3-livecut-activation",
+  "phase": "round12",
+  "capturedAt": "2026-11-03T07:32:11.797Z",
+  "status": "offline code preparation for the third independent bounded core Goal attempt: create-only cold-header cut activated + frozen v3 experiment + v3 owner command/tool patch + fixed v1/v2/v3 reconcile; real host execution NOT performed by implementer",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "realGoalCreatedByImplementer": false,
+  "realGoalCancelledByImplementer": false,
+  "explicitDeclaration": "This slice only prepares code. The third bounded attempt is a NEW explicit owner decision and independent attempt; it is NOT a retry of the failed v1 (core-validation-frozen-v1) or v2 (core-validation-frozen-v2) creates. Both remain failed and reconciled (cancelled version 2) and must not be retried.",
+  "head": "a29dd29905775c5287714b57ee7db8c6802e98a0",
+  "activation": {
+    "change": "GoalSessionAdapter.stabilizeCoreCreateBaseline now passes { liveCut: \"seq-excluding-header\" } to observeNativeBaseline and assertNativeLiveHistory. Only new-Session create stabilization uses this cut alignment; the cold snapshot subtracts a leading Session header record (headerEventCount 0/1) from the expected live session.seq.",
+    "scope": "create-only: recovery/resume and every expectedPrefix path keep the strict event-count semantics (no behavior change)",
+    "stabilization": "unchanged: flush+observe, assert, only NATIVE_HISTORY_CHANGED triggers a bounded re-observation (first + at most two, CORE_CREATE_HISTORY_OBSERVATIONS=3); other errors fail immediately",
+    "nativeCreate": "native goals().create is still invoked exactly once and never replayed",
+    "failureDiagnostics": "unchanged controlled phase/code + historyDiagnostic on any remaining history-assert failure",
+    "verifiedBy": [
+      "fake host deterministic cold-header cut (cold 4 events including session header, live session.seq 3) now succeeds with exactly one native goals.create",
+      "fake host cold-header cut plus one transient host metadata append also succeeds via bounded re-observation with exactly one native create",
+      "fake host cold-header cut plus a real append still fails history-assert with historyDiagnostic mismatchKind event-count and positive delta, no native create",
+      "direct header/inherited/references/projection mismatch classification tests unchanged"
+    ],
+    "riskAndBoundary": "If the real host persisted header record is already counted in live session.seq (or no header record is persisted), the headerEventCount offset could misalign by one. The real host run will show this via the receipt: a history-assert diagnostic with live.seq = expected+1 / event-count positive delta means over-correction, and the next slice must adjust/revert before any further attempt. No retry is allowed regardless.",
+    "files": [
+      {
+        "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+        "sha256": "a9e38eb5bd6561474f0d01b9f0004e396db0b3dc4822b6189c97218806ef1853"
+      }
+    ]
+  },
+  "experimentV3": {
+    "constant": "CORE_VALIDATION_EXPERIMENT_V3 (Object.freeze, nested deliverable/budget frozen)",
+    "version": 3,
+    "requestId": "core-validation-frozen-v3",
+    "objective": "完成 owner 预授权的有界本地便签验证 v3：写入 note-1 并由独立核验确认。",
+    "deliverable": {
+      "id": "note-1",
+      "title": "有界 core 验证便签 v3",
+      "content": "SHIYU_CORE_VALIDATION_NOTE_V3",
+      "contentSha256": "39078e1d2159283eb93e57a2ba78f5c3159da2856cf08f652d01c7eef6e52579"
+    },
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "fixedTemplateSha256": "dc907faaa3f01f196e14e518a3cc292bb02d46447dfa102358ab871983bb6c94",
+    "acceptance": "runBoundedCoreValidation accepts only the exact CORE_VALIDATION_V1 / CORE_VALIDATION_EXPERIMENT / CORE_VALIDATION_EXPERIMENT_V3 object references via trusted composition; clones, version-only objects and every tool/command/model argument are rejected. The runner is never given a requestId or template from input.",
+    "unchanged": {
+      "v1": {
+        "requestId": "core-validation-frozen-v1",
+        "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca",
+        "status": "failed and reconciled; historical path unchanged"
+      },
+      "v2": {
+        "requestId": "core-validation-frozen-v2",
+        "templateSha256": "756ec37b5bc054564076e226fc45bed135ced702d337acbf75fdcaf7f18ae34d",
+        "status": "failed and reconciled; historical path unchanged"
+      }
+    }
+  },
+  "reconcile": {
+    "fixedTargets": [
+      "core-validation-frozen-v1",
+      "core-validation-frozen-v2",
+      "core-validation-frozen-v3"
+    ],
+    "semantics": "one owner call reconciles the three fixed requestIds in code order; per target read-only classification (absent/inert-unauthorized/paused-authorized/cancelled/unknown), at most one explicit core.control(cancel) only for inert-unauthorized, postCancel readback, 0 retries, 0 model calls, no Goal creation/resume; top-level fields keep the v1 target for backward compatibility and targets[] carries all three; callers cannot select/add/override a requestId",
+    "tests": [
+      "v3 inert target is the only one cancelled",
+      "v3 absent while v1/v2 absent and no writes",
+      "arbitrary caller requestId/requestIds rejected",
+      "tampered/missing v3 target rejected by the independent validator"
+    ]
+  },
+  "integration": {
+    "patchPath": "plugins/shiyu/artifacts/dsh/h3/h3-v3-runtime-index.patch",
+    "patchBytes": 5686,
+    "patchSha256": "3dcefda41c627ce03ae6f65ce6a3d1719dd5a4f28500c4a2709aa08a9f11b4f3",
+    "patchLines": 80,
+    "touchedFiles": [
+      "plugins/shiyu/src/runtime.ts",
+      "plugins/shiyu/src/index.ts"
+    ],
+    "runtime": {
+      "newAction": "runtime.probe-core-goal-v3",
+      "implementation": "commandCoreGoalValidationV3 delegates to the existing commandCoreGoalValidationRun with the frozen CORE_VALIDATION_EXPERIMENT_V3 constant only; paused/idle/single-slot/abort/0-retry/cached-diagnostics behavior is unchanged and shared with v1/v2"
+    },
+    "index": {
+      "newTool": "shiyu_validate_core_goal_v3",
+      "parameters": "none (empty object, additionalProperties false)",
+      "outputSchema": "object (additionalProperties true), JSON text render",
+      "descriptionRequirements": [
+        "全新 v3 冻结实验，非 v1/v2 重试，显式 owner 决定的第三次独立尝试",
+        "创建真实 Goal/Task/Effect/budget/原生 Session/本地 artifact 并调用真实模型",
+        "requestId core-validation-frozen-v3 固定、不接受输入覆盖",
+        "失败/未知绝不重试，回执仅存 diagnostics.coreGoalValidation"
+      ]
+    },
+    "validation": {
+      "patchAppliesToHead": "git apply --check exit 0 on a clean worktree at HEAD a29dd29",
+      "typecheckWithSliceAndPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + slice + patch)",
+      "buildWithSliceAndPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    },
+    "observedFiles": [
+      {
+        "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+        "bytes": 69101,
+        "sha256": "a9e38eb5bd6561474f0d01b9f0004e396db0b3dc4822b6189c97218806ef1853"
+      },
+      {
+        "path": "plugins/shiyu/src/control/core-validation.ts",
+        "bytes": 87004,
+        "sha256": "a70a8ca018dd7d6dcb606e96a8572ce4b4b4ffa34794b0adaf42e13766ce31d3"
+      },
+      {
+        "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+        "bytes": 103013,
+        "sha256": "9ef3d5f797c299638dd3f8d2d5c034b052cd3c925df538988fd64cd3a4b1a665"
+      },
+      {
+        "path": "plugins/shiyu/tests/core-validation.test.ts",
+        "bytes": 72014,
+        "sha256": "c53ff800cfe8e76d848ac8cd0d6b81d2268a8e820fb7884952e0050a2b49a261"
+      }
+    ]
+  },
+  "tests": {
+    "focused": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts tests/core-validation.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h12-focused.log",
+        "sha256": "76f99c6e155b94b4f2d8805ce8a67d4bb2b27ec06c32d6d8937f66f70352d2a7"
+      },
+      "tests": 95,
+      "pass": 95,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "regression": {
+      "command": "goals/core-goal-sessions/core-plan/local-core/runtime-core/recovery suites",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h12-regression.log",
+        "sha256": "4a177edb0160e1186b3c3a93639cb340aee1e23d4e27483f4eb217f85502a5f7"
+      },
+      "tests": 101,
+      "pass": 101,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "netNew": 8,
+    "noSkips": true,
+    "newOrUpdated": [
+      "activated create-only cold-header cut succeeds with one native create (updated from dormant failure-gate test)",
+      "activated cold-header cut absorbs one transient metadata append with one native create",
+      "activated cold-header cut still fails as event-count with positive delta and no native create on a real append",
+      "v3 constant frozen with requestId/template sha/content sha and exact-reference-only acceptance",
+      "v3 completed bounded run carries the frozen requestId/template/content sha and never retries",
+      "v3 create failure keeps the v3 requestId with controlled failurePhase/failureCode and no retry",
+      "reconcile cancels only the inert v3 target and leaves v1/v2 untouched",
+      "reconcile reports v3 absent and rejects caller requestIds; independent validator rejects tampered/missing v3 target"
+    ]
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-v3-livecut --manifest plugins/shiyu/.local/h3-v3-manifest.json",
+      "head": "a29dd29905775c5287714b57ee7db8c6802e98a0",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+          "bytes": 69101,
+          "sha256": "a9e38eb5bd6561474f0d01b9f0004e396db0b3dc4822b6189c97218806ef1853"
+        },
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 87004,
+          "sha256": "a70a8ca018dd7d6dcb606e96a8572ce4b4b4ffa34794b0adaf42e13766ce31d3"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+          "bytes": 103013,
+          "sha256": "9ef3d5f797c299638dd3f8d2d5c034b052cd3c925df538988fd64cd3a4b1a665"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-validation.test.ts",
+          "bytes": 72014,
+          "sha256": "c53ff800cfe8e76d848ac8cd0d6b81d2268a8e820fb7884952e0050a2b49a261"
+        }
+      ],
+      "exitCode": 0,
+      "tests": {
+        "tests": 1613,
+        "pass": 1613,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 743387,
+      "log": {
+        "path": "plugins/shiyu/.local/h3/slice-verify-h3-v3-livecut.log",
+        "bytes": 374,
+        "sha256": "fb47604470dd61075b76bc6c7977b1536a7c423da4be7a5beb5b1e1d9b4ab49d"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-v3-livecut-verify.json",
+        "sha256": "3dd6eb2292332b948d9d0ebb47b0925a019013060a5fc0c7afcf5bf52dfa52df"
+      }
+    },
+    "mainTreeTypecheck": "npx tsc --noEmit exit 0",
+    "note": "no real host/model execution was performed; the host side is the Lead-owned third attempt under the kit below"
+  },
+  "hostKit": {
+    "kitVersion": 1,
+    "status": "frozen; third attempt is an explicit owner decision and is NOT a v1/v2 retry",
+    "precondition": [
+      "integrate this slice + the runtime/index patch; record the resulting dist/commit digest",
+      "confirm the runtime is unpaused and idle (no active operation, no queued Task admission); the command rejects otherwise before any side effect",
+      "capture a before-audit: goal count/ids for v1/v2/v3, session file hashes/counts, budget counters, journal receipts for v1/v2",
+      "v1/v2 must stay failed/reconciled and must not be retried; only the new v3 requestId may be created",
+      "explicitly accept the declared real side effects: Goal, Task, Effect, budget, native Session, local artifact, up to 2 real bounded model rounds"
+    ],
+    "invocation": {
+      "action": "runtime.probe-core-goal-v3",
+      "tool": "shiyu_validate_core_goal_v3",
+      "parameters": "none",
+      "expectedOutput": "bounded runner receipt + { sent:false, readOnlyProbe:false, declaredSideEffects{goal:true,task:true,effect:true,budget:true,session:true,artifact:true,realModelCalls:true} }; receipt cached only in snapshot().diagnostics.coreGoalValidation"
+    },
+    "expectedReceiptFields": [
+      "requestId = core-validation-frozen-v3",
+      "fixedInput.requestId/templateSha256 = the frozen v3 values declared above",
+      "status completed|failed|paused|timeout|cancelled (honest, no upgrade)",
+      "evaluations/evaluateAttempts/taskRefs/evidence and businessSideEffects.goal.created true|false|unknown",
+      "on create failure: failurePhase (includes history-assert), failureCode, failureDetail, and historyDiagnostic{mismatchKind, expected.eventCount, live.seq, delta, hash prefixes}",
+      "creationReadback/partialCreation when the Goal readback is available",
+      "usage counters only as actually reported; never invented"
+    ],
+    "successCriteria": [
+      "status completed with independently verified task/artifact and a completed native Goal",
+      "native create called exactly once, no replay/retry, one core Session",
+      "no v1/v2 change beyond the pre-existing reconciled cancelled state"
+    ],
+    "failurePreservationRules": [
+      "any failed/unknown outcome leaves the partial Goal/Task/Session/artifact/budget evidence in place; do not delete, roll back or retry",
+      "run shiyu_reconcile_core_validation_goal afterwards: it now covers the fixed [v1,v2,v3] targets, is read-only except one cancel for an inert-unauthorized partial v3 Goal, and never retries",
+      "if failurePhase=history-assert, keep the full historyDiagnostic + the journal reason + the archived Session event inventory (event types/seq/count, whether a leading session header exists) and stop; no further attempt without a new explicit owner decision",
+      "if the historyDiagnostic shows event-count with positive delta after the cut activation, the create-only cut over-corrected on this host; stop and report rather than retrying"
+    ],
+    "costAndTimeStops": [
+      "frozen budget tokens 16384 / calls 3 / effects 1",
+      "max 2 evaluation rounds",
+      "wall 180s and expiresInMs 600000",
+      "single runtime slot/single-flight; command-level abort supported",
+      "failure/unknown is terminal for the attempt: 0 retries; a new attempt requires a new explicit owner decision"
+    ],
+    "afterRunAudit": [
+      "record dist/commit digest, exact receipt JSON, journal receipt, Session inventory/hashes, counters and any unknown usage",
+      "confirm no v1/v2 Goal/Session changed and no model call happened outside the two bounded rounds"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model run by the implementer: activation is validated against fake-host deterministic cut shapes only",
+    "if the real host cut/header semantics differ from the round-11 candidate, the v3 attempt will expose it via historyDiagnostic; do not retry, adjust in a following slice",
+    "the runtime/index patch is provided but not applied in this workspace (write scope excludes runtime.ts/index.ts)",
+    "no v1/v2 retry, no real Goal creation/cancel by the implementer"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-v3-runtime-index.patch",
+      "sha256": "3dcefda41c627ce03ae6f65ce6a3d1719dd5a4f28500c4a2709aa08a9f11b4f3",
+      "bytes": 5686
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-v3-livecut-verify.json",
+      "sha256": "3dd6eb2292332b948d9d0ebb47b0925a019013060a5fc0c7afcf5bf52dfa52df"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/slice-verify-h3-v3-livecut.log",
+      "sha256": "fb47604470dd61075b76bc6c7977b1536a7c423da4be7a5beb5b1e1d9b4ab49d"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h12-focused.log",
+      "sha256": "76f99c6e155b94b4f2d8805ce8a67d4bb2b27ec06c32d6d8937f66f70352d2a7"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h12-regression.log",
+      "sha256": "4a177edb0160e1186b3c3a93639cb340aee1e23d4e27483f4eb217f85502a5f7"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h12-integration-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  ]
+}

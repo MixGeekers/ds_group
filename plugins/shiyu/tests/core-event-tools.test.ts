@@ -1277,6 +1277,8 @@ test('persistently changing live history fails bounded stabilization as history-
   const failure = await expectCreateFailure(host, 'history-assert', 'NATIVE_HISTORY_CHANGED');
   assert.equal(host.createCounts().nativeCreateCalls, 0, 'no native create replay on an unstable history');
   assert.equal(host.createCounts().historyOpens, 3, 'the stabilization is bounded to the first observation plus two re-observations');
+  assert.equal(failure.diagnostic?.historyDiagnostic?.mismatchKind, 'event-count');
+  assert.ok((failure.diagnostic?.historyDiagnostic?.delta ?? 0) >= 1);
 });
 
 // ---------------------------------------------------------------------------
@@ -1363,8 +1365,21 @@ test('a malformed live inbox is classified as projection rather than silently ac
     { kind: 'projection', code: 'NATIVE_HISTORY_PROJECTION' });
 });
 
-test('a deterministic cold-header cut (4 persisted events, live seq 3) fails create with the controlled diagnostic and no native create replay', async () => {
+test('the activated create-only cold-header cut makes the deterministic host shape succeed with exactly one native create', async () => {
   const host = fixture(); host.setColdHeaderCut(true);
+  const driver = host.adapter();
+  try {
+    const result = await driver.create(host.create);
+    assert.ok(result.native); assert.equal(result.native.phase, 'active');
+    assert.equal(result.binding.receipt?.status, 'confirmed');
+    assert.equal(host.createCounts().nativeCreateCalls, 1, 'native goals.create is called exactly once');
+    assert.ok(host.createCounts().historyOpens >= 1);
+    assert.equal(host.counts().followups, 0); assert.equal(host.counts().streams, 0);
+  } finally { await driver.close(); }
+});
+
+test('the activated cold-header cut still fails with a controlled event-count diagnostic when a real event is appended', async () => {
+  const host = fixture(); host.setColdHeaderCut(true); host.setHistoryRace('always');
   const driver = host.adapter();
   try {
     let failure: CreateFailure | undefined;
@@ -1373,15 +1388,20 @@ test('a deterministic cold-header cut (4 persisted events, live seq 3) fails cre
     });
     assert.equal(failure!.diagnostic?.phase, 'history-assert');
     assert.equal(failure!.diagnostic?.code, 'NATIVE_HISTORY_CHANGED');
-    assert.equal(failure!.diagnostic?.historyDiagnostic?.mismatchKind, 'live-seq-vs-event-count');
-    assert.equal(failure!.diagnostic?.historyDiagnostic?.expected.eventCount, 4);
-    assert.equal(failure!.diagnostic?.historyDiagnostic?.live.seq, 3);
-    assert.equal(failure!.diagnostic?.historyDiagnostic?.delta, -1);
-    assert.equal(host.createCounts().nativeCreateCalls, 0, 'native goals.create is never reached');
-    assert.equal(host.counts().followups, 0); assert.equal(host.counts().streams, 0);
-    const serialized = JSON.stringify(failure!.diagnostic);
-    assert.equal(serialized.includes('permission/preset'), false);
-    assert.equal(serialized.includes('sandbox/mode'), false);
-    assert.ok(failure!.binding.receipt?.reason?.startsWith('history-assert/NATIVE_HISTORY_CHANGED'));
+    assert.equal(failure!.diagnostic?.historyDiagnostic?.mismatchKind, 'event-count');
+    assert.ok(failure!.diagnostic?.historyDiagnostic?.delta! >= 1, 'a real append keeps a positive delta');
+    assert.equal(host.createCounts().nativeCreateCalls, 0, 'no native create replay on a real append');
+  } finally { await driver.close(); }
+});
+
+test('the activated cold-header cut absorbs one transient host metadata append with exactly one native create', async () => {
+  const host = fixture(); host.setColdHeaderCut(true); host.setHistoryRace('once');
+  const driver = host.adapter();
+  try {
+    const result = await driver.create(host.create);
+    assert.ok(result.native); assert.equal(result.native.phase, 'active');
+    assert.equal(result.binding.receipt?.status, 'confirmed');
+    assert.equal(host.createCounts().nativeCreateCalls, 1, 'native goals.create is still called exactly once');
+    assert.ok(host.createCounts().historyOpens >= 2, 'the transient append is absorbed by bounded re-observation');
   } finally { await driver.close(); }
 });

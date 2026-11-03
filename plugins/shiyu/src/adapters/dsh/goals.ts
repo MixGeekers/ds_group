@@ -489,7 +489,10 @@ export class GoalSessionAdapter {
    * the newly durable cut (at most CORE_CREATE_HISTORY_OBSERVATIONS attempts in
    * total, with the caller signal/deadline). A genuinely mutated history that
    * never converges still fails, with the history-assert phase. The native Goal
-   * create command itself is never replayed.
+   * create command itself is never replayed. The create-only cold-header cut
+   * option aligns the cold persisted event count with the live `session.seq`
+   * when the host persists a leading Session header record; it does not change
+   * recovery/expectedPrefix semantics.
    */
   private async stabilizeCoreCreateBaseline(agent: DshAgent, phase: { current: GoalOperationPhase } | undefined,
     signal: AbortSignal, deadlineAtMs?: number): Promise<NativeColdInboxSnapshot> {
@@ -500,11 +503,16 @@ export class GoalSessionAdapter {
       try {
         const snapshot = await observeNativeBaseline(this.options.ctx, agent, this.preset, {
           ...(deadlineAtMs === undefined ? {} : { deadlineAtMs }),
+          // Create-only cut alignment: the cold persisted cut may include the
+          // Session header record while the live session.seq excludes it. This
+          // option is scoped to new-Session create stabilization; recovery and
+          // expectedPrefix paths keep the strict event-count semantics.
+          liveCut: 'seq-excluding-header',
           signal,
         });
         if (snapshot.references.length) throw new Error('Unknown native inbox blocks Core Goal activation');
         if (phase) phase.current = 'history-assert';
-        assertNativeLiveHistory(this.options.ctx, agent.session, snapshot, agent.inbox);
+        assertNativeLiveHistory(this.options.ctx, agent.session, snapshot, agent.inbox, { liveCut: 'seq-excluding-header' });
         if (phase) phase.current = 'observe';
         return snapshot;
       } catch (error) {
