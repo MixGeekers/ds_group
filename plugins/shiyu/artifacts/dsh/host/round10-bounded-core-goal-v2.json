@@ -1,0 +1,339 @@
+{
+  "schemaVersion": 1,
+  "phase": "round10-host",
+  "slice": "fixed-host attempt of the new frozen v2 bounded core Goal experiment (failed at the same history-assert stage)",
+  "capturedAt": "2026-11-03T05:24:45.000Z",
+  "status": "fixed-host-v2-create-failed-history-assert",
+  "purpose": "Explicit owner decision: one NEW frozen v2 bounded core Goal experiment, not a retry of v1. The attempt failed at the persistent history-assert stage (NATIVE_HISTORY_CHANGED) despite the bounded stabilization, creating a partial unauthorized/paused v2 Goal and one Goal Session with no model request, Task, Effect or budget change; it was not retried.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-round10-host-execution-plan.json",
+    "sha256": "c6be8da1bcbae6bf3886bf954b1b999209e45052af4c0068d69349f72b6843f3"
+  },
+  "code": {
+    "head": "b09416f",
+    "dist": {
+      "files": 113,
+      "digest": "1031ee720bbef911e66f651d3b4139b0002c8c3a3501308a9e64173df8701955"
+    }
+  },
+  "decision": "new v2 experiment, not a v1 retry; v1 already failed and was reconciled and must never be retried.",
+  "attempt": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round10/core-goal-v2-receipt.json",
+      "bytes": 5700,
+      "sha256": "734e1b015f1a507a9acfca6226b30342bd303b2efffa4917a4bfa2df440af38a"
+    },
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_CREATE_FAILED",
+    "requestId": "core-validation-frozen-v2",
+    "failurePhase": "history-assert",
+    "failureCode": "NATIVE_HISTORY_CHANGED",
+    "failureDetail": "Native history changed outside the trusted recovery suffix",
+    "counters": {
+      "evaluateAttempts": 0,
+      "pollCount": 0,
+      "maxEvaluations": 2,
+      "wallLimitMs": 180000
+    },
+    "stopAction": {
+      "kind": "none",
+      "attempted": false,
+      "ok": null
+    },
+    "unknowns": [
+      "GOAL_CREATE_FAILED",
+      "PARTIAL_CREATION_REQUIRES_RECONCILE",
+      "CREATE_FAILURE_PHASE_RECORDED",
+      "GOAL_READ_UNAVAILABLE",
+      "PLAN_READ_UNAVAILABLE",
+      "BINDING_READ_UNAVAILABLE",
+      "BALANCE_READ_UNAVAILABLE",
+      "USAGE_UNKNOWN"
+    ],
+    "error": {
+      "phase": "create",
+      "code": "GOAL_OPERATION_UNKNOWN",
+      "message": "Native Goal outcome requires reconciliation; the command was not replayed"
+    },
+    "partialCreation": {
+      "detected": true,
+      "readback": "complete",
+      "evidence": [
+        "goal-row-present",
+        "binding:unknown",
+        "goal-session:bound",
+        "unauthorized",
+        "paused",
+        "not-cancelled",
+        "no-mandate",
+        "no-native",
+        "evaluations:0",
+        "tasks:0",
+        "plan:0"
+      ]
+    },
+    "businessSideEffectsGoal": {
+      "created": "true",
+      "requestId": "core-validation-frozen-v2",
+      "version": 1,
+      "observed": {
+        "goalId": "core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+        "requestId": "core-validation-frozen-v2",
+        "version": 1,
+        "authorized": false,
+        "paused": true,
+        "cancelled": false,
+        "hasMandate": false,
+        "nativePhase": "unobserved",
+        "evaluations": 0,
+        "taskRefs": 0,
+        "planVersion": 0,
+        "bindingReceiptStatus": "unknown",
+        "goalSessionId": "shiyu-core-goal-fb2f50026790359d6878fc5e697d8ef892f455395645d0cc45ad780ce9c92081",
+        "bindingFailurePhase": "history-assert",
+        "bindingFailureCode": "NATIVE_HISTORY_CHANGED",
+        "bindingFailureDetail": "Native history changed outside the trusted recovery suffix"
+      }
+    },
+    "declaredSideEffects": {
+      "goal": true,
+      "task": true,
+      "effect": true,
+      "budget": true,
+      "session": true,
+      "artifact": true,
+      "realModelCalls": true
+    }
+  },
+  "observed": {
+    "goalObservation": {
+      "file": "artifacts/dsh/host/round10/v2-goal-observation.json",
+      "bytes": 625,
+      "sha256": "07e0879fd6fb14a2e2c90205dd8883ffb4e1f98740328be425948099b62550d6",
+      "value": {
+        "goal": {
+          "goalId": "core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+          "requestId": "core-validation-frozen-v2",
+          "version": 1,
+          "authorized": false,
+          "paused": true,
+          "cancelled": false,
+          "evaluations": 0,
+          "maxEvaluations": 2,
+          "budget": {
+            "tokens": 16384,
+            "calls": 3,
+            "effects": 1
+          },
+          "mandateId": null,
+          "native": null
+        },
+        "journal": {
+          "commandId": "core-create:core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+          "status": "unknown",
+          "reason": "history-assert/NATIVE_HISTORY_CHANGED: Native history changed outside the trusted recovery suffix"
+        }
+      }
+    },
+    "classification": "the v2 create failed at history-assert/NATIVE_HISTORY_CHANGED again; a durable partial side effect exists: one unauthorized/paused v2 Goal row (version 1, no mandate/native, evaluations 0) plus one core Goal Session (four meta events, no title/turn); the create command journal is unknown with the same reason. No model request, Task, Effect, budget reservation or artifact was created."
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        412,
+        424
+      ],
+      "events": [
+        54,
+        56
+      ],
+      "capabilityRevision": [
+        43,
+        47
+      ],
+      "sessions": [
+        34,
+        34
+      ],
+      "goals": [
+        3,
+        3
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "two lifecycle events (a failed activation attempt plus the successful activation) and their startup writes; sessions/goals/business facts unchanged."
+    },
+    "attempt": {
+      "commitSeq": [
+        424,
+        427
+      ],
+      "events": [
+        56,
+        56
+      ],
+      "sessions": [
+        34,
+        35
+      ],
+      "goals": [
+        3,
+        4
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "addedSessionFiles": [
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-a47e7c55f973504e5f046b50704748c0--/shiyu-core-goal-fb2f50026790359d6878fc5e697d8ef892f455395645d0cc45ad780ce9c92081/session.v4.jsonl.zstd"
+      ],
+      "classification": "+3 commitSeq and one new v2 Goal row + one new core Goal Session; no events, no Task/Effect/budget/artifact, no change to known Sessions and the runtime-state file is unchanged."
+    },
+    "postStatus": {
+      "commitSeq": [
+        427,
+        427
+      ],
+      "events": [
+        56,
+        56
+      ],
+      "sessions": [
+        35,
+        35
+      ],
+      "goals": [
+        4,
+        4
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only and caches the failed v2 receipt in diagnostics.coreGoalValidation."
+    }
+  },
+  "cachedReceipt": {
+    "file": "artifacts/dsh/host/round10/status-final.json",
+    "bytes": 61039,
+    "sha256": "27805dd53765c27534d9d0f91cdfb6a887b7f2356c4a3df0d331730ec515e616",
+    "value": {
+      "status": "failed",
+      "reasonCode": "CORE_VALIDATION_CREATE_FAILED",
+      "requestId": "core-validation-frozen-v2",
+      "failurePhase": "history-assert",
+      "failureCode": "NATIVE_HISTORY_CHANGED",
+      "counters": {
+        "evaluateAttempts": 0,
+        "pollCount": 0,
+        "maxEvaluations": 2,
+        "wallLimitMs": 180000
+      },
+      "goal": {
+        "created": "true",
+        "requestId": "core-validation-frozen-v2",
+        "version": 1,
+        "observed": {
+          "goalId": "core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+          "requestId": "core-validation-frozen-v2",
+          "version": 1,
+          "authorized": false,
+          "paused": true,
+          "cancelled": false,
+          "hasMandate": false,
+          "nativePhase": "unobserved",
+          "evaluations": 0,
+          "taskRefs": 0,
+          "planVersion": 0,
+          "bindingReceiptStatus": "unknown",
+          "goalSessionId": "shiyu-core-goal-fb2f50026790359d6878fc5e697d8ef892f455395645d0cc45ad780ce9c92081",
+          "bindingFailurePhase": "history-assert",
+          "bindingFailureCode": "NATIVE_HISTORY_CHANGED",
+          "bindingFailureDetail": "Native history changed outside the trusted recovery suffix"
+        }
+      },
+      "partialCreation": {
+        "detected": true,
+        "readback": "complete",
+        "evidence": [
+          "goal-row-present",
+          "binding:unknown",
+          "goal-session:bound",
+          "unauthorized",
+          "paused",
+          "not-cancelled",
+          "no-mandate",
+          "no-native",
+          "evaluations:0",
+          "tasks:0",
+          "plan:0"
+        ]
+      }
+    }
+  },
+  "findings": [
+    "The v2 experiment failed at the exact same history-assert stage as v1 even with the bounded three-observation stabilization, so the mismatch is deterministic rather than a transient meta-event race. The root cause remains unconfirmed at this level; the new failurePhase/failureCode diagnostics localize it to NATIVE_HISTORY_CHANGED.",
+    "The attempt created a partial v2 Goal + one core Goal Session, no model request/Task/Effect/budget/artifact; the create command journal is unknown with the same reason. No retry was made.",
+    "The v2 residual Goal (requestId core-validation-frozen-v2) remains unauthorized/paused; the current reconcile tool is fixed to v1, so v2 needs a generalized reconcile path before any further attempt.",
+    "The stabilization bounded re-observation is not sufficient; next diagnosis needs the exact expected/live event counts and hashes from the assertion, plus a zero-model host reproduction of Session creation baseline semantics."
+  ],
+  "residual": {
+    "note": "one unauthorized/paused v2 Goal and one core Goal Session remain; do not create another experiment until this is reconciled and the root cause is instrumented/understood.",
+    "goalId": "core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+    "journal": {
+      "commandId": "core-create:core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+      "status": "unknown",
+      "reason": "history-assert/NATIVE_HISTORY_CHANGED: Native history changed outside the trusted recovery suffix"
+    }
+  },
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "goals": 4,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "This is a failed v2 attempt, not a bounded real business validation; no core plan/model/Task/worker/verification/native completion occurred.",
+    "The v2 Goal is inert but unresolved; no automatic cleanup was attempted.",
+    "The two-attempt failure at the same stage is disclosed; a third attempt is not authorized until the history-assert semantics are instrumented and fixed."
+  ]
+}

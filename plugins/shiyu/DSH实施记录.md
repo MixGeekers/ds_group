@@ -1612,3 +1612,26 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 - 这是**新的显式 owner 决定**，不是 v1 失败的重试：全新 requestId/模板/内容 sha；同一套停止条件与失败保留规则。
 - 结果另行留证（成功→完整 core 计划/模型轮/Task/worker/核验/native complete；失败→新的 `failurePhase/failureCode/failureDetail` + journal reason + Session 事件清单，不重试）。
+
+## 52. 第十轮固定宿主：v2 新冻结实验的第一次尝试（仍失败于 history-assert）
+
+状态：**失败（v2 亦未创建成功）**；未重试，部分创建与 journal reason 如实记录。2026-11-03，代码 HEAD `b09416f`（v2 激活），dist 由该 HEAD 隔离 worktree 构建，一次有序 reload（含一次失败激活后成功激活，2 条 lifecycle）。
+
+### 52.1 执行与结果
+
+- 前置：runtime 未暂停、空闲、无 queued Task、无 v2 requestId Goal、local-note ability 可用；唯一一次 `shiyu_validate_core_goal_v2`（全新 requestId `core-validation-frozen-v2`，**非 v1 重试**，0 重试）。
+- receipt：`status=failed`、`reasonCode=CORE_VALIDATION_CREATE_FAILED`、`failurePhase=history-assert`、`failureCode=NATIVE_HISTORY_CHANGED`、`failureDetail="Native history changed outside the trusted recovery suffix"`；`evaluateAttempts=0`（**无模型请求**）、`stopAction=none`、`partialCreation.detected=true/readback=complete`。
+- **部分创建**：commitSeq `424→427`、goals `3→4`、sessions `34→35`；新增 v2 Goal `core-9f494d…`（unauthorized=true? 实际 `authorized=false`、paused=true、cancelled=false、version 1、evaluations 0、无 mandate/native）+ 1 个 core Goal Session（仅 4 条 meta 事件、无 title/turn）；journal create `status=unknown`、reason 同为 history-assert/NATIVE_HISTORY_CHANGED；无 Task/Effect/budget/artifact、无 events、state 文件不变、既有 34 Session 不变。
+- final status 只读无副作用，`diagnostics.coreGoalValidation` 缓存 failed v2 receipt。
+
+### 52.2 关键结论
+
+- **有界稳定化（≤3 次重观察）未能解决**：v1 与 v2 两次失败都精确停在 `NATIVE_HISTORY_CHANGED`（history-assert），说明该不匹配是**确定性**的，而不是一次性的 meta 事件竞争；此前“瞬时并发追加”判断不充分。
+- 失败定位已可观察（failurePhase/failureCode），但**精确的 expected/live eventCount、historyDigest、headerHash、inheritedEventCount、references 尚未暴露**，这是下一步必须补的诊断。
+- v2 残留 Goal（requestId `core-validation-frozen-v2`）为 inert（未授权/paused），当前 reconcile 工具固定 v1，**无法清理**；在任何进一步尝试前必须先泛化 reconcile 并补 history-assert 计数诊断（零模型）。
+
+### 52.3 边界
+
+1. 真实有界业务链仍未验证：无 core 计划/模型轮/Task/worker/核验/native complete；两次尝试均无模型请求。
+2. v2 遗留 inert Goal + Session 未清理；**第三次尝试未授权**，须先修复/取证。
+3. 证据：[round10-bounded-core-goal-v2.json](<artifacts/dsh/host/round10-bounded-core-goal-v2.json>) + `host/round10/`（v2 receipt、Goal/journal 观测、4 份审计、status-final）。

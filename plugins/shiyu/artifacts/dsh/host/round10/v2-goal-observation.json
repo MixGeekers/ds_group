@@ -1,0 +1,24 @@
+{
+  "goal": {
+    "goalId": "core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+    "requestId": "core-validation-frozen-v2",
+    "version": 1,
+    "authorized": false,
+    "paused": true,
+    "cancelled": false,
+    "evaluations": 0,
+    "maxEvaluations": 2,
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "mandateId": null,
+    "native": null
+  },
+  "journal": {
+    "commandId": "core-create:core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+    "status": "unknown",
+    "reason": "history-assert/NATIVE_HISTORY_CHANGED: Native history changed outside the trusted recovery suffix"
+  }
+}
