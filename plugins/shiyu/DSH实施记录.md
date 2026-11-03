@@ -1804,3 +1804,32 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 第三次尝试失败：无 core 计划/模型轮/Task/worker/native 完成；0 模型请求。
 2. header-hash 根因未定位（cold `baa30ad4…` vs live `bbd0090c…`，计数一致）；下一步需字段级受控差异诊断与 trusted-field 决策。
 3. **第四次尝试未授权**；v1/v2/v3 均不得重试；reconcile 只证清理路径。
+
+## 60. 第十三轮：header 字段级诊断与零模型 header-cut 探针
+
+状态：**离线/组合通过；宿主零模型探针待执行（只诊断、不修复、不第四次尝试）**。2026-11-03。
+
+### 60.1 受控 headerDiff
+
+- `NativeHistoryDiagnostic.headerDiff[]`：仅**字段名 + 值类别**（`boolean:true→false`、`number:0→1`、`string-sha:<8hex>→…`、`object/array/null/absent`），每项 ≤80、最多 12、join ≤300；字符串字段一律 8-hex sha 前缀，**绝不包含正文/路径/长字符串**。
+- 透出 `GoalOperationUnknownError.diagnostic.historyDiagnostic.headerDiff`、bounded runner create-failure receipt、probe receipt；validator 双重校验。诚实记录：historyDiagnostic 总上限由 300 提升到 **600**（headerDiff 自身仍 ≤300）。
+- fake host 验证：`isSeeded:boolean:true→false`、`createdAt`、`delegationDepth`、`cwd:string-sha` 均能列出，且断言不含 `/synthetic`/正文。
+
+### 60.2 零模型 header-cut 探针
+
+- `probeNativeHeaderCut`：`ctx.agents.create` 创建**恰好一个裸 lifecycle Session**（同 Goal preset/cwd/meta；无事件工具、拒绝模型请求、空 inbox），flush→cold snapshot→live facts→`assertNativeLiveHistory(liveCut:'seq-excluding-header')` → matched/mismatchKind/headerDiff；**finally 必 cancel/dispose/archive**。
+- 零副作用：无 Goal/Task/Effect/budget、无模型/embedding、无业务库写、0 重试；receipt ≤24KiB lossless（失败也校验；creation/dispose/archive 失败分别报告，不谎称成功）。
+- owner 准入：paused→`NATIVE_HEADER_CUT_PAUSED`、busy→`NATIVE_HEADER_CUT_BUSY`、capacity→`NATIVE_HEADER_CUT_CAPACITY`。
+- 集成：`runtime.probe-native-header-cut` + 工具 `shiyu_diagnose_native_header_cut`（无参数、output schema、description 声明零模型/只建并归档一个 Session/不建 Goal/Task/Effect）；回执仅存 `diagnostics.nativeHeaderCutProbe`。
+
+### 60.3 验证与映射
+
+- 测试净增 8（core-event-tools 58 项；含 headerDiff 无泄露、创建/释放失败、abort/deadline、receipt 突变拒绝、owner 准入）；作者隔离 1632/1632。
+- H7-round13：round-12 v3 失败（仅 `fixed-host-failure-diagnostic`）+ 清理 reconcile（仅 `fixed-host-zero-model-reconcile`）+ cold-cut/v3 激活/集成/round-12 clean（blobCommit 1113662）/review（info-only 未映射）；产品行 79/79 not_covered、无升级；harness 132/132。
+- **Lead 组合隔离 1643/1643、0 skip**（1623+9+9+1）；证据 `artifacts/dsh/slices/round13-integrated-verify.json`。
+
+### 60.4 宿主探针（待执行，一次、0 重试）
+
+- 预期判读：`isSeeded:boolean:false→true` → seed 期 header 变更（未来 create-only trusted-field 归一化的精确依据）；createdAt/delegationDepth number 差异 → 宿主初始化元数据；cwd/agentPreset/id 只 sha；**hash 不同但 headerDiff 空 → 嵌套字段，停止报告**；matched=true → 非 header cut，停止。
+- 清理核对：恰一个探针 Session 归档、业务库/Goal/journal/budget 不变、cleanup.ok。
+- **不修复、不尝试第四次**；任何后续尝试需新的显式 owner 决定。

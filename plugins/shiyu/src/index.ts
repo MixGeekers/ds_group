@@ -179,6 +179,28 @@ export function coreGoalValidationV3Tool(service: { command(input: unknown): Pro
   } as const;
 }
 
+/**
+ * Owner-only ZERO-MODEL diagnostic of the native Session header cut. It creates
+ * exactly one bare lifecycle Session (managed core Goal preset/cwd/meta), runs
+ * the same flush -> cold observe -> live assertion cut comparison and always
+ * cancels/disposes/archives that Session. It creates no Goal/Task/Effect/budget,
+ * writes no business store entry and calls no model or embedding; it retries
+ * nothing and keeps only the bounded receipt in diagnostics.nativeHeaderCutProbe.
+ */
+export function nativeHeaderCutProbeTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_diagnose_native_header_cut',
+    description: '零模型原生 Session header-cut 诊断（owner-only）：只创建并归档一个裸 lifecycle Session（与 Goal 会话同 preset/cwd/meta；无事件工具、拒绝模型请求、无 inbox），运行 flush→cold observe→live assert 的切割比较并输出 cold/live headerHash 前缀、eventCount/seq/inherited、matched 与字段级 headerDiff（仅字段名+值类别/hash 前缀，≤300 字符，绝无正文/路径）；不创建 Goal/Task/Effect/budget、不写业务库、不调用模型或 embedding、0 重试；回执仅存 snapshot().diagnostics.nativeHeaderCutProbe。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-native-header-cut' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  } as const;
+}
+
 export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_validate_core_goal',
@@ -249,6 +271,8 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(coreGoalValidationTool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV2Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV3Tool(service)));
+  // Zero-model native Session header-cut diagnostic: one bare lifecycle Session only.
+  ctx.effect(() => ctx.tools.register(nativeHeaderCutProbeTool(service)));
   // Owner-only reconcile of the fixed core-validation Goal: read-only + at most
   // one cancel for an inert partial Goal; no Goal creation and no model call.
   ctx.effect(() => ctx.tools.register(coreValidationReconcileTool(service)));

@@ -50,6 +50,8 @@ import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCh
 import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
 import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
 import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3 } from './control/core-validation.js';
+import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, type NativeHeaderCutProbeReceipt } from './control/native-header-cut-probe.js';
+import { CORE_GOAL_PRESET_ID } from './adapters/dsh/goals.js';
 import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
 
 export const VERSION = '0.1.0';
@@ -168,6 +170,7 @@ export class RuntimeService {
   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
   private lastCoreGoalValidation?: CoreValidationReceipt;
+  private lastNativeHeaderCutProbe: NativeHeaderCutProbeReceipt | null = null;
   private lastCoreValidationReconcile?: CoreValidationReconcileReceipt;
   private lastTimeSourceProbe?: TimeSourceProbeResult;
   private lastTimeTriggerProbe?: LiveTimeTriggerProbeResult;
@@ -759,6 +762,43 @@ export class RuntimeService {
    * retries and never writes around the trusted core service. The receipt is
    * cached only in snapshot diagnostics. Paused runtimes are rejected.
    */
+  /**
+   * Owner-only ZERO-MODEL native Session header-cut diagnostic. It creates
+   * exactly one bare lifecycle Session with the managed core Goal preset/cwd/meta,
+   * compares the persisted cold header with the live header field by field, then
+   * cancels/disposes/archives that Session. It creates no Goal/Task/Effect/budget,
+   * writes no business store entry, calls no model or embedding, retries nothing
+   * and caches only the bounded receipt in snapshot diagnostics. Paused runtimes
+   * and non-idle slots are rejected before any native Session is created.
+   */
+  private async commandNativeHeaderCutProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid native header-cut probe input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    const artifacts = this.artifacts;
+    if (!artifacts) throw new Error('NATIVE_HEADER_CUT_UNAVAILABLE');
+    if ([...this.operations.values()].some(op => op.phase === 'native header-cut probe')) {
+      throw new Error('Native header-cut probe is already running');
+    }
+    assertNativeHeaderCutAdmission({ paused: this.pauseRequested, operations: this.operations.size,
+      capacity: 1, sameActionRunning: false });
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '原生 Session header-cut 零模型诊断', phase: 'native header-cut probe',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      const cwd = await artifacts.prepareWorkspace(`native-header-cut-probe-${randomUUID().slice(0, 24)}`);
+      signal?.throwIfAborted();
+      const receipt = await probeNativeHeaderCut({ ctx: this.ctx, cwd, preset: CORE_GOAL_PRESET_ID, signal: op.controller.signal });
+      this.lastNativeHeaderCutProbe = structuredClone(receipt);
+      return receipt;
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private async commandCoreValidationReconcile(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
     if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core-validation reconcile input');
     this.ensureCanRun(); signal?.throwIfAborted();
@@ -900,6 +940,7 @@ export class RuntimeService {
         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
         coreGoalValidation: this.lastCoreGoalValidation ? structuredClone(this.lastCoreGoalValidation) : null,
+        nativeHeaderCutProbe: this.lastNativeHeaderCutProbe ? structuredClone(this.lastNativeHeaderCutProbe) : null,
         coreValidationReconcile: this.lastCoreValidationReconcile ? structuredClone(this.lastCoreValidationReconcile) : null,
         timeSource: this.timePump ? this.timePump.snapshot() : null,
         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,
@@ -958,6 +999,7 @@ export class RuntimeService {
     if (action === 'runtime.probe-core-goal') return this.commandCoreGoalValidation(value, signal);
     if (action === 'runtime.probe-core-goal-v2') return this.commandCoreGoalValidationV2(value, signal);
     if (action === 'runtime.probe-core-goal-v3') return this.commandCoreGoalValidationV3(value, signal);
+    if (action === 'runtime.probe-native-header-cut') return this.commandNativeHeaderCutProbe(value, signal);
     if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);
     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);

@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the zero-model native header-cut probe and controlled header diagnostics",
+  "capturedAt": "2026-11-03T09:47:59.246Z",
+  "status": "offline-verified-integration",
+  "baseline": {
+    "head": "390346d"
+  },
+  "purpose": "Expose the zero-model header-cut probe through an owner-only runtime command and tool so the exact cold/live header field difference can be confirmed on the fixed host without creating a Goal. This is diagnosis only: no fix and no fourth bounded attempt.",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 112100,
+      "sha256": "84b887296d49cc150a59dd85454391e3ada37a5339cea4f09881d52b97a67e56"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 18912,
+      "sha256": "0db034d2a4ff25277afd567efd0781c1fb84f251e6911cd3bbb4aff28ca49065"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 11306,
+      "sha256": "abefc4a424fa6210034a8ed6efc2b65d4f07e61ef70d355c578fcb42b45d87a1"
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 390346d + all round-13 slice files and integration)",
+      "evidence": "artifacts/dsh/slices/round13-integrated-verify.json",
+      "exitCode": 0,
+      "tests": 1643,
+      "pass": 1643,
+      "fail": 0,
+      "skipped": 0,
+      "log": "plugins/shiyu/.local/slice-verify-round13-integrated.log",
+      "logSha256": "17b98b3e7855a02b97b3cb7de36ab7c61ad0f6e43fb0d665d1339363f84a2a73",
+      "arithmetic": "1623 baseline + 9 header-diagnostic/probe product tests + 9 H7-round13 + 1 probe tool test = 1643"
+    },
+    "authorChecks": {
+      "h3HeaderProbe": "isolated 1632/1632 (baseline 1623 + 9)",
+      "h7Round13": "author isolated check plus harness 132/132"
+    },
+    "hostProbePending": "one zero-model header-cut probe is executed on the host; it creates and archives exactly one bare lifecycle Session, no Goal/Task/Effect/model."
+  },
+  "knownLimitations": [
+    "The probe confirms or rejects the cold/live header field difference; it does not fix it and does not authorize a fourth bounded Goal attempt.",
+    "A header-hash mismatch with an empty headerDiff means the difference is nested/unlisted and must stop for reporting rather than guessing.",
+    "The probe itself creates one disposable Session file; it is cancelled/disposed/archived and audited."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "goalCreates": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; host zero-model header-cut probe pending."
+}
