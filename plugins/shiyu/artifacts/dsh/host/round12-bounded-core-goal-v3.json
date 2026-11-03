@@ -1,0 +1,401 @@
+{
+  "schemaVersion": 1,
+  "phase": "round12-host",
+  "slice": "fixed-host third independent bounded core Goal attempt (v3) — failed later at header-hash mismatch",
+  "capturedAt": "2026-11-03T08:07:22.550Z",
+  "status": "fixed-host-v3-create-failed-header-hash",
+  "purpose": "Explicit owner decision: one third independent v3 bounded experiment (not a v1/v2 retry). The cold-cut fix aligned expected/live event counts (3/3) but the create then failed deterministically at header-hash mismatch (cold headerHash baa30ad4... vs live bbd0090c...); a partial unauthorized/paused v3 Goal plus one Goal Session were created, no model request occurred and the attempt was not retried.",
+  "plan": {
+    "path": "artifacts/dsh/host/round12/plan.json",
+    "sha256": "b9393d6bf14856b894bbd035ec44b1d46c36de46136af10fd4f88576b672647a"
+  },
+  "code": {
+    "head": "68b1caf",
+    "dist": {
+      "files": 113,
+      "digest": "acfcbd3aba5b6abbc6027327d49cc39ff63fc93e11d8dd62bccc128b7031f4b7"
+    }
+  },
+  "attempt": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round12/core-goal-v3-receipt.json",
+      "bytes": 5999,
+      "sha256": "7eefe41d67be12005ed19e0c75141fcc249bc19d9b90c8c034f191e91535c143"
+    },
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_CREATE_FAILED",
+    "requestId": "core-validation-frozen-v3",
+    "failurePhase": "history-assert",
+    "failureCode": "NATIVE_HISTORY_CHANGED",
+    "failureDetail": "Native history changed outside the trusted recovery suffix",
+    "historyDiagnostic": {
+      "mismatchKind": "header-hash",
+      "expected": {
+        "eventCount": 3,
+        "inheritedEventCount": 0,
+        "headerHash": "baa30ad4d06e38bf",
+        "historyDigestPrefix": "a2d4e67e956c9f28"
+      },
+      "live": {
+        "eventCount": 3,
+        "seq": 3,
+        "inheritedEventCount": 0,
+        "headerHash": "bbd0090cf84d43d9",
+        "historyDigestPrefix": ""
+      },
+      "delta": 0
+    },
+    "counters": {
+      "evaluateAttempts": 0,
+      "pollCount": 0,
+      "maxEvaluations": 2,
+      "wallLimitMs": 180000
+    },
+    "stopAction": {
+      "kind": "none",
+      "attempted": false,
+      "ok": null
+    },
+    "unknowns": [
+      "GOAL_CREATE_FAILED",
+      "PARTIAL_CREATION_REQUIRES_RECONCILE",
+      "CREATE_FAILURE_PHASE_RECORDED",
+      "GOAL_READ_UNAVAILABLE",
+      "PLAN_READ_UNAVAILABLE",
+      "BINDING_READ_UNAVAILABLE",
+      "BALANCE_READ_UNAVAILABLE",
+      "USAGE_UNKNOWN"
+    ],
+    "error": {
+      "phase": "create",
+      "code": "GOAL_OPERATION_UNKNOWN",
+      "message": "Native Goal outcome requires reconciliation; the command was not replayed"
+    },
+    "partialCreation": {
+      "detected": true,
+      "readback": "complete",
+      "evidence": [
+        "goal-row-present",
+        "binding:unknown",
+        "goal-session:bound",
+        "unauthorized",
+        "paused",
+        "not-cancelled",
+        "no-mandate",
+        "no-native",
+        "evaluations:0",
+        "tasks:0",
+        "plan:0"
+      ]
+    },
+    "businessSideEffectsGoal": {
+      "created": "true",
+      "requestId": "core-validation-frozen-v3",
+      "version": 1,
+      "observed": {
+        "goalId": "core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+        "requestId": "core-validation-frozen-v3",
+        "version": 1,
+        "authorized": false,
+        "paused": true,
+        "cancelled": false,
+        "hasMandate": false,
+        "nativePhase": "unobserved",
+        "evaluations": 0,
+        "taskRefs": 0,
+        "planVersion": 0,
+        "bindingReceiptStatus": "unknown",
+        "goalSessionId": "shiyu-core-goal-41d02414fd5d442c2809b142c707bcb82804264bc708a9c55797876469873d19",
+        "bindingFailurePhase": "history-assert",
+        "bindingFailureCode": "NATIVE_HISTORY_CHANGED",
+        "bindingFailureDetail": "Native history changed outside the trusted recovery suffix"
+      }
+    }
+  },
+  "observed": {
+    "goalObservation": {
+      "file": "artifacts/dsh/host/round12/v3-goal-observation.json",
+      "bytes": 474,
+      "sha256": "6164c848a762d1ae66a8f6cf34cb553c172e171804674e1766e09148d2c6fa65",
+      "value": {
+        "goal": {
+          "goalId": "core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+          "requestId": "core-validation-frozen-v3",
+          "version": 1,
+          "authorized": false,
+          "paused": true,
+          "cancelled": false,
+          "evaluations": 0
+        },
+        "journal": {
+          "commandId": "core-create:core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+          "status": "unknown",
+          "reason": "history-assert/NATIVE_HISTORY_CHANGED: Native history changed outside the trusted recovery suffix"
+        }
+      }
+    },
+    "classification": "the cold-cut fix worked for the event-count/seq cut (expected 3/live 3), but the header hashes differ deterministically (cold baa30ad4d06e38bf vs live bbd0090cf84d43d9); the create failed again at history-assert, the journal is unknown with the same reason. One unauthorized/paused v3 Goal and one core Goal Session (four meta events) were created; no model request, Task, Effect, budget or artifact."
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        434,
+        440
+      ],
+      "events": [
+        57,
+        58
+      ],
+      "capabilityRevision": [
+        49,
+        51
+      ],
+      "sessions": [
+        35,
+        35
+      ],
+      "goals": [
+        4,
+        4
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "normal startup writes only; business facts unchanged."
+    },
+    "attempt": {
+      "commitSeq": [
+        440,
+        443
+      ],
+      "events": [
+        58,
+        58
+      ],
+      "sessions": [
+        35,
+        36
+      ],
+      "goals": [
+        4,
+        5
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "+3 commitSeq and one new v3 Goal row + one new Goal Session; no events, no Task/Effect/budget/artifact, unchanged state file and known Sessions."
+    },
+    "postStatus": {
+      "commitSeq": [
+        443,
+        443
+      ],
+      "events": [
+        58,
+        58
+      ],
+      "sessions": [
+        36,
+        36
+      ],
+      "goals": [
+        5,
+        5
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only and caches the failed v3 receipt."
+    }
+  },
+  "cachedReceipt": {
+    "file": "artifacts/dsh/host/round12/status-final.json",
+    "bytes": 62489,
+    "sha256": "f78c8f5dbdbfd7383b89ebe81708f04a56b28ec4083a1c59b761d09e23d41eb8",
+    "fieldsPresent": "status/reasonCode/requestId/failurePhase/failureCode/failureDetail/historyDiagnostic partial (cache holds the validated core receipt; readOnly/createsGoal/modelCalls/retries are declared on the tool response and in the receipt file)",
+    "value": {
+      "status": "failed",
+      "reasonCode": "CORE_VALIDATION_CREATE_FAILED",
+      "requestId": "core-validation-frozen-v3",
+      "failurePhase": "history-assert",
+      "failureCode": "NATIVE_HISTORY_CHANGED",
+      "counters": {
+        "evaluateAttempts": 0,
+        "pollCount": 0,
+        "maxEvaluations": 2,
+        "wallLimitMs": 180000
+      },
+      "unknowns": [
+        "GOAL_CREATE_FAILED",
+        "PARTIAL_CREATION_REQUIRES_RECONCILE",
+        "CREATE_FAILURE_PHASE_RECORDED",
+        "GOAL_READ_UNAVAILABLE",
+        "PLAN_READ_UNAVAILABLE",
+        "BINDING_READ_UNAVAILABLE",
+        "BALANCE_READ_UNAVAILABLE",
+        "USAGE_UNKNOWN"
+      ]
+    }
+  },
+  "findings": [
+    "Progress: the create-only cold-cut fix removed the previous event-count mismatch (expected.eventCount=3 == live.seq=3, inherited 0, delta 0).",
+    "New deterministic blocker: header-hash mismatch (cold headerHash baa30ad4d06e38bf vs live bbd0090cf84d43d9) with identical counts, so the live Session header differs from the persisted header used by the cold read; the stabilization cannot converge because this is not a transient append.",
+    "The third attempt created a partial v3 Goal + one core Goal Session, 0 model requests, no Task/Effect/budget/artifact; no retry was made and v1/v2 remain untouched.",
+    "Next diagnosis must expose the field-level header difference (e.g., volatile fields such as isSeeded/seed state) before deciding whether the create-only path may normalize trusted header fields; a fourth attempt is not authorized yet."
+  ],
+  "residual": {
+    "note": "one unauthorized/paused v3 Goal (requestId core-validation-frozen-v3) and one core Goal Session remain; reconcile now covers the fixed [v1,v2,v3] targets and can be run next.",
+    "goalId": "core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+    "journal": {
+      "commandId": "core-create:core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+      "status": "unknown",
+      "reason": "history-assert/NATIVE_HISTORY_CHANGED: Native history changed outside the trusted recovery suffix"
+    }
+  },
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "goals": 5,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "This is a failed third attempt, not a bounded real business validation: no core plan/model/Task/worker/verification/native completion occurred.",
+    "The cold-cut fix is host-confirmed for the event-count/seq cut but not for the header hash; the header mismatch cause is unknown.",
+    "A fourth experiment is not authorized until the header difference is diagnosed and the trusted-field policy is decided."
+  ],
+  "postAttemptReconcile": {
+    "purpose": "Per the frozen kit, after the failed third attempt the now-[v1,v2,v3] reconcile was run once as cleanup: v1/v2 already cancelled (no action), v3 inert-unauthorized received exactly one cancel.",
+    "requestIds": [
+      "core-validation-frozen-v1",
+      "core-validation-frozen-v2",
+      "core-validation-frozen-v3"
+    ],
+    "targets": [
+      {
+        "requestId": "core-validation-frozen-v1",
+        "classification": "cancelled",
+        "cancelAttempts": 0,
+        "unknowns": [],
+        "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+        "version": 2,
+        "cancelled": true
+      },
+      {
+        "requestId": "core-validation-frozen-v2",
+        "classification": "cancelled",
+        "cancelAttempts": 0,
+        "unknowns": [],
+        "goalId": "core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+        "version": 2,
+        "cancelled": true
+      },
+      {
+        "requestId": "core-validation-frozen-v3",
+        "classification": "inert-unauthorized",
+        "cancelAttempts": 1,
+        "postCancel": {
+          "cancelled": true,
+          "paused": true,
+          "version": 2
+        },
+        "unknowns": [],
+        "goalId": "core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+        "version": 1,
+        "cancelled": false
+      }
+    ],
+    "auditDeltas": {
+      "commitSeq": [
+        444,
+        444
+      ],
+      "events": [
+        58,
+        58
+      ],
+      "sessions": [
+        36,
+        36
+      ],
+      "goals": [
+        5,
+        5
+      ],
+      "note": "the reconcile itself added +1 commitSeq for the v3 cancel; the following status was read-only and left commitSeq/events/sessions/goals unchanged."
+    },
+    "statusPayload": {
+      "file": "artifacts/dsh/host/round12/status-final.json",
+      "bytes": 66187,
+      "sha256": "e727ffcc5c5d30d2485347b8314784f0f7cf378547e758e9ec6b8078615bac31",
+      "cachedReconcile": {
+        "requestIds": [
+          "core-validation-frozen-v1",
+          "core-validation-frozen-v2",
+          "core-validation-frozen-v3"
+        ],
+        "classifications": [
+          "core-validation-frozen-v1:cancelled",
+          "core-validation-frozen-v2:cancelled",
+          "core-validation-frozen-v3:inert-unauthorized"
+        ],
+        "v3PostCancel": {
+          "cancelled": true,
+          "paused": true,
+          "version": 2
+        }
+      }
+    }
+  },
+  "statusFinal": {
+    "file": "artifacts/dsh/host/round12/status-final.json",
+    "bytes": 66187,
+    "sha256": "e727ffcc5c5d30d2485347b8314784f0f7cf378547e758e9ec6b8078615bac31"
+  },
+  "audits": {
+    "before": "artifacts/dsh/host/round12/round12-host-before.json",
+    "afterReload": "artifacts/dsh/host/round12/round12-host-after-reload.json",
+    "afterAttempt": "artifacts/dsh/host/round12/round12-host-after-run.json",
+    "afterReconcile": "artifacts/dsh/host/round12/round12-host-after-reconcile.json",
+    "final": "artifacts/dsh/host/round12/round12-host-final.json"
+  }
+}

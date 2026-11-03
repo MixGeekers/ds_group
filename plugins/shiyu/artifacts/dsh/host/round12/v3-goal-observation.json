@@ -1,0 +1,16 @@
+{
+  "goal": {
+    "goalId": "core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+    "requestId": "core-validation-frozen-v3",
+    "version": 1,
+    "authorized": false,
+    "paused": true,
+    "cancelled": false,
+    "evaluations": 0
+  },
+  "journal": {
+    "commandId": "core-create:core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+    "status": "unknown",
+    "reason": "history-assert/NATIVE_HISTORY_CHANGED: Native history changed outside the trusted recovery suffix"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "phase": "round12-joint-host-bounded-core-goal-v3",
+  "status": "frozen-before-execution",
+  "frozenAt": "2026-11-03T08:06:20.392Z",
+  "decision": "EXPLICIT OWNER DECISION: execute exactly one THIRD independent bounded core business experiment (v3, requestId core-validation-frozen-v3). This is NOT a retry of v1 or v2 (both failed and are reconciled/cancelled). One call, zero retries; real Goal/Task/Effect/budget/Session/artifact and up to two real model rounds are accepted under the frozen budget/time stops.",
+  "code": {
+    "head": "68b1caf80e39cc9a4b2a73bbbb99dea07e9b25f7",
+    "dist": {
+      "files": 113,
+      "digest": "acfcbd3aba5b6abbc6027327d49cc39ff63fc93e11d8dd62bccc128b7031f4b7"
+    }
+  },
+  "frozenInput": {
+    "version": 3,
+    "requestId": "core-validation-frozen-v3",
+    "objective": "完成 owner 预授权的 v3 有界本地便签验证：写入 note-1 并由独立核验确认。",
+    "deliverableContent": "SHIYU_CORE_VALIDATION_NOTE_V3",
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "templateSha256Expected": "dc907faa"
+  },
+  "preconditions": [
+    "runtime unpaused and idle",
+    "no queued/pending Task",
+    "no existing Goal with requestId core-validation-frozen-v3",
+    "v1/v2 Goals cancelled (must not be retried)",
+    "local-note ability usable",
+    "before audits captured"
+  ],
+  "hardStops": {
+    "wallMs": 180000,
+    "pollMs": 1000,
+    "maxEvaluations": 2,
+    "maxStopCommands": 1,
+    "noRetry": true,
+    "budgetOverrunFails": true
+  },
+  "expected": {
+    "success": "status=completed; create succeeded (cold-header cut fixed); 2 evaluations; note-1 Task succeeded + independent verification pass; Effect succeeded; artifact sha matches; native Goal phase complete; exactly one new Goal/Task/Effect/artifact/Session; budget within limits",
+    "createStillFails": "failurePhase=history-assert with historyDiagnostic (event-count positive delta/live.seq) — stop, preserve receipt, no retry",
+    "otherFailure": "failed/unknown/timeout receipt preserved; at most one stop command; no retry; partial side effects kept"
+  },
+  "evidence": "artifacts/dsh/host/round12-bounded-core-goal-v3.json"
+}
+

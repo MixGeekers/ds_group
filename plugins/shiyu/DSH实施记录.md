@@ -1756,3 +1756,32 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 - **显式 owner 决定**：新 v3 requestId/模板，非 v1/v2 重试；一次调用、0 重试；预算 16384/3/1、≤2 评估、180s wall、10min 过期、单槽单飞。
 - 预期：create 成功后进入 core 计划/模型轮/Task/worker/独立核验/native complete；若 create 仍失败，receipt 必须给出 failurePhase/failureCode/failureDetail/historyDiagnostic（event-count 正 delta/live.seq 等），保留 partial 产物、0 重试，并停止报告。
+
+## 58. 第十二轮固定宿主：第三次独立尝试（v3）— cold-cut 修复生效但 header-hash 新阻塞
+
+状态：**失败（第三次尝试）**；cold-cut 修复在宿主上生效（event-count 3/3 对齐），但 create 随后确定性失败于 **header-hash 不匹配**；未重试，partial v3 Goal/Session 已按 kit 用广义 reconcile 清理。2026-11-03，代码 HEAD `68b1caf`，一次有序 reload。
+
+### 58.1 三次尝试的前置与成本
+
+- 显式 owner 决定：全新 v3 requestId/模板，**非 v1/v2 重试**；一次调用、0 重试；预算 16384/3/1、≤2 评估、180s wall、10min 过期、单槽单飞。
+- 重载增量：commitSeq `434→440`、events `57→58`、capability `49→51`、sessions 35/goals 4 不变、业务事实/state 不变。
+- 调用 `shiyu_validate_core_goal_v3`：`status=failed`、`CORE_VALIDATION_CREATE_FAILED`、**0 模型请求**（evaluateAttempts=0）、`stopAction=none`、未重试。
+
+### 58.2 关键诊断（progress + new blocker）
+
+- **cold-cut 修复生效**：historyDiagnostic `mismatchKind=header-hash`，`expected.eventCount=3`、`live.seq=3`、`inheritedEventCount=0`、`delta=0` —— 上一轮的 event-count 不匹配已消除。
+- **新确定性阻塞**：cold headerHash `baa30ad4d06e38bf` ≠ live headerHash `bbd0090cf84d43d9`（计数完全一致）；说明 live Session header 与 cold persisted header 存在字段级差异（很可能是 seed/isSeeded 等宿主可变字段），稳定化无法收敛。
+- 持久部分副作用：commitSeq `440→443`、goals `4→5`、sessions `35→36`；新增 v3 Goal `core-3e89f888…`（unauthorized/paused/cancelled=false/v1/evaluations0/无 mandate/native）+ 1 个 Goal Session（4 条 meta、无 title/turn）；journal unknown 同 reason；无 Task/Effect/budget/artifact/events、state 不变、既有 35 Session 不变。
+- final status 只读，缓存 failed v3 receipt。
+
+### 58.3 失败后清理（按 kit，零模型）
+
+- 运行一次广义 reconcile（固定 `[v1,v2,v3]`）：v1/v2 已 cancelled 无动作；**v3 inert-unauthorized → 恰一次 cancel**、`postCancel={cancelled:true,paused:true,version:2}`、unknowns=[]；`readOnly=true/createsGoal=false/modelCalls=0/retries=0`。
+- 审计：reconcile 仅 **+1 commitSeq**（v3 cancel），无 events/session/Goal/Task/Effect/budget/artifact 变化；随后 status 只读无副作用。
+- 证据：[round12-bounded-core-goal-v3.json](<artifacts/dsh/host/round12-bounded-core-goal-v3.json>) + `host/round12/`（v3 receipt、Goal/journal 观测、plan、6 份审计、status-final 66,187B）。
+
+### 58.4 下一步
+
+1. **header 字段级差异诊断**：受控输出 cold/live header 的差异字段名（如 isSeeded/seed 状态/other volatile fields，不泄露正文），并判断哪些字段是宿主可信任的可变初始化字段。
+2. 据此在 **create-only** 路径决定是否允许受控 header 归一化；recovery/expectedPrefix 严格语义仍不变。
+3. **第四次尝试未授权**：需先修/取证并显式 owner 决定；v1/v2/v3 均不得重试。
