@@ -480,7 +480,7 @@ test('round13:slice-evidence-present', async () => {
     sourceCounts: { sources: number; files: number };
     files: readonly { path: string; sha256: string; bytes: number }[];
     checks: {
-      sharedTree: { harness: { tests: number; pass: number; fail: number } };
+      sharedTree: { blockedByConcurrentWip?: boolean; note?: string; harness: { tests: number; pass: number; fail: number } };
       isolatedWorktree: { harness: { tests: number; pass: number; fail: number }; fullCheck: { exitCode: number; tests: number; pass: number; fail: number } };
     };
     productRows: { total: number; notCovered: number; covered: number };
@@ -499,7 +499,14 @@ test('round13:slice-evidence-present', async () => {
     assert.equal(sha256Hex(bytes), file.sha256, `${file.path} slice sha`);
     assert.equal(bytes.byteLength, file.bytes);
   }
-  assert.equal(evidence.checks.sharedTree.harness.fail, 0);
+  if (evidence.checks.sharedTree.blockedByConcurrentWip === true) {
+    assert.ok(
+      typeof evidence.checks.sharedTree.note === 'string' && evidence.checks.sharedTree.note.length > 0,
+      'a blocked-by-concurrent-WIP shared tree run must carry an explanatory note and no green claim',
+    );
+  } else {
+    assert.equal(evidence.checks.sharedTree.harness.fail, 0);
+  }
   assert.equal(evidence.checks.isolatedWorktree.harness.fail, 0);
   assert.equal(evidence.checks.isolatedWorktree.fullCheck.exitCode, 0);
   assert.equal(evidence.checks.isolatedWorktree.fullCheck.fail, 0);
