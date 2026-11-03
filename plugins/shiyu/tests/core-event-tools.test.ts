@@ -54,7 +54,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   const preparedContexts: RuntimeContextMessage[] = [], committedContexts: RuntimeContextMessage[] = [];
   let beforeAuthorize: ((context: GoalAuthorityContext) => void) | undefined;
   let mode: 'normal' | 'retry' | 'compaction' | 'title' | 'anonymous' | 'history' | 'history-update' | 'changed-prestep' | 'mutated-user' | 'extra-user'
-    | 'host-context-prestep' | 'host-bad-context-prestep' | 'host-third-input-prestep' | 'host-title-prestep' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
+    | 'host-context-prestep' | 'host-bad-context-prestep' | 'host-third-input-prestep' | 'host-title-prestep' | 'host-tool-history-prestep' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
   let assemblyContexts: Array<{ name: string; text: string }> = [];
   let messageNumber = 0, creates = 0, resumes = 0, followups = 0, disposals = 0, streams = 0, autoRounds = 0, opens = 0, closes = 0;
   let requests = 0, toolExecutions = 0, goalCalls = 0;
@@ -231,6 +231,8 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
             }
             if (mode === 'anonymous') for await (const _item of stream({ ...main })) { /* absent purpose is not official provenance */ }
             if (mode === 'history') main.toolHistory = { tools: [{ name: 'shell' }], updates: [] };
+            if (mode === 'host-tool-history-prestep') main.toolHistory = { tools: [{ name: 'shell' }, { name: 'run_code' }],
+              updates: [{ additions: ['shell', 'run_code'], removals: ['shell'] }] };
             if (mode === 'history-update') main.toolHistory = { tools: [], updates: [{ additions: [{ name: 'shell' }] }] };
             for await (const _item of stream(main)) { /* native provider stream double */ }
             if (mode === 'retry') {
@@ -1043,6 +1045,19 @@ test('host runtime-context snapshots are bound structurally when extra host sect
   missing.content[0]!.text = `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n${directory}`;
   assert.equal(probeRuntimeContextBinding(missing, cwd), false);
   assert.equal(probeRuntimeContextBinding({ role: 'user', content: [{ type: 'text', text }] }, cwd), false);
+});
+
+test('host tool-history bookkeeping about unrelated tools does not fail the probe', async t => {
+  const { f, adapter, typesSeen } = await probeFixture(t);
+  f.setMode('host-tool-history-prestep');
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  try {
+    const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'passed', JSON.stringify(receipt));
+    assert.equal(receipt.counters.mainModelRequests, 2);
+    assert.equal(receipt.counters.toolCalls, 1);
+  } finally { await adapter.close(); }
 });
 
 test('host session-title housekeeping is suppressed without becoming auxiliary model activity', async t => {

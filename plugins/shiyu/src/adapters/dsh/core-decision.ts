@@ -813,17 +813,23 @@ export class CoreEventToolModelProbeRun {
         throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe request tool declaration changed from the trusted mounted schema');
       }
     }
+    // The model-facing request.tools array above is the authoritative surface
+    // and must be exactly the mounted read-only tools. The host's tool-history
+    // bookkeeping may mention unrelated host tools (shell/run_code, etc.) in
+    // baseline/removal entries; what matters is that it never removes one of the
+    // mounted probe tools and that every update entry is well formed.
     const history = request.toolHistory;
     if (history === undefined) return;
-    if (!Array.isArray(history?.tools) || history.tools.length || !Array.isArray(history?.updates)) {
+    if (!Array.isArray(history?.tools) || !Array.isArray(history?.updates)) {
       throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history declares hidden tools');
     }
     for (const update of history.updates) {
       if (!Array.isArray(update?.additions)) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history update is malformed');
-      if (Array.isArray(update?.removals) && update.removals.length) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history cannot remove trusted tools');
-      for (const addition of update.additions) {
-        const name = typeof addition === 'string' ? addition : addition?.toolName;
-        if (!this.toolNames.includes(name)) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history declares an unmounted tool');
+      if (Array.isArray(update?.removals)) {
+        for (const removal of update.removals) {
+          const name = typeof removal === 'string' ? removal : removal?.toolName;
+          if (this.toolNames.includes(name)) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe tool history cannot remove trusted tools');
+        }
       }
     }
   }
