@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-62)",
+  "reviewedAt": "2026-11-03T14:40:00Z",
+  "subject": "Round-15: decision pre-step/runtime-context admission, reason preservation, frozen v5, fifth host attempt (create success/eval context-rejected), H7 X+1",
+  "head": "3d31da3ac37d2db774ac83b243f6488e64952990",
+  "commits": {
+    "prestep-reason-v5": "91fdbf6",
+    "H7-round15": "26e1e14",
+    "integration (X)": "94251aa",
+    "H7 X+1": "b1c9061",
+    "host-v5": "3d31da3"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "X slice/files/logs",
+      "claim": "91fdbf6 files match; isolated 1671/1671; combined 1682/1682",
+      "evidence": [
+        "artifacts/dsh/h3/h3-v5-decision-prestep-fix.json",
+        "artifacts/dsh/slices/h3-v5-decision-prestep-verify.json",
+        "artifacts/dsh/slices/round15-integrated-verify.json"
+      ],
+      "method": "hashes/logs",
+      "result": "verified",
+      "detail": "files 6/6; log 139d564e…/177175 1671; integration 31271870…/177860 1682; X+1 code diff0"
+    },
+    {
+      "id": "R02",
+      "area": "pre-step semantics",
+      "claim": "step0 accepts 1-2 exact messages (owner prompt + optional exact host runtime-context structural binding); third/wrong order/bad context fail closed; decision.messages/tool/history unchanged",
+      "evidence": [
+        "91fdbf6 core-decision/tests"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "isExpectedRuntimeContext structural binding; changed content/third message rejected before request; tool step/history checks unchanged; fake host positive/negative tests"
+    },
+    {
+      "id": "R03",
+      "area": "reason preservation",
+      "claim": "core-domain unknown() preserves first unknown reason/no double reconcile; runner captures preStopEvaluation before unique stop with bounded validation",
+      "evidence": [
+        "91fdbf6 core-domain/core-validation/tests"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "first unknown reason retained; pause cannot overwrite; preStopEvaluation read before stop; validator bounded; 8 net tests incl core-domain"
+    },
+    {
+      "id": "R04",
+      "area": "v5 freeze/reconcile",
+      "claim": "v5 constants frozen/exact-only; reconcile [v1..v5] caller cannot select; integration runtime/index/output schema",
+      "evidence": [
+        "91fdbf6 core-validation/tests",
+        "94251aa integration"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "requestId core-validation-frozen-v5/template/content sha; EXPERIMENTS includes v5; reconcile fixed list v1-v5; integration files match"
+    },
+    {
+      "id": "R05",
+      "area": "host create success again",
+      "claim": "create succeeded: authorized true/active/mandate/goalRef rev1/one Goal Session/partialCreation false",
+      "evidence": [
+        "round15 receipt/createSuccess",
+        "DB"
+      ],
+      "method": "receipt/DB/audit",
+      "result": "verified-with-note",
+      "detail": "receipt goal created true/version2 observed authorized true/paused false/native active/hasMandate true/goalRef rev1/goalSession; one Session added; receipt snapshot bindingReceiptStatus absent but final native binding confirmed (F15-R2 info)"
+    },
+    {
+      "id": "R06",
+      "area": "host evaluation failure/preStop",
+      "claim": "evaluation failed/EVALUATION_UNKNOWN, preStopEvaluation reason CORE_NATIVE_CONTEXT_REJECTED; evaluateAttempts1; 0 model requests; pause stop ok",
+      "evidence": [
+        "round15 receipt/result/sessionEvents/audit"
+      ],
+      "method": "receipt/session/audit",
+      "result": "verified",
+      "detail": "receipt preStopEvaluation exactly; evaluation reason preserved; Goal Session 13 events no request/assistant; stop pause ok; no retry"
+    },
+    {
+      "id": "R07",
+      "area": "host audit/side effects",
+      "claim": "+14 commitSeq, +1 Goal/+1 Session/+1 unknown budget; no events/Task/Effect/artifact; state/known unchanged; v4/v5 residual; sixth unauthorized",
+      "evidence": [
+        "round15 audits",
+        "DB"
+      ],
+      "method": "audit diff + DB",
+      "result": "verified",
+      "detail": "470/60/38/goals6/budget24 → reload476/61/38/6 → run/final490/61/39/7/budget25 unknown4→5; goal v5 authorized/paused/activeEvaluation unknown; budget held 16384/2; no Task/Effect; state/known38? unchanged; fifth no retry, sixth not authorized"
+    },
+    {
+      "id": "R08",
+      "area": "host metadata",
+      "claim": "cachedReceipt/status bytes consistent",
+      "evidence": [
+        "round15 joint cachedReceipt",
+        "host/round15/status-final.json"
+      ],
+      "method": "sha/bytes",
+      "result": "finding",
+      "detail": "cachedReceipt bytes 64766 vs actual 67986 (sha 6ab5b46a matches; Lead 67986 correct); receipt 3921/sha 274ce6df matches; plan 2341/sha 32e06b6f matches; sessionEvents 676/sha 262513a8 matches (F15-R1)"
+    },
+    {
+      "id": "R09",
+      "area": "H7-round15",
+      "claim": "84 sources/311 files; round14 v4 level fixed-host-create-succeeded-evaluation-failure; product79/79; no upgrade; logs 1672/162",
+      "evidence": [
+        "h7-round15-slice.json",
+        "logs"
+      ],
+      "method": "hashes/tests/logs",
+      "result": "verified",
+      "detail": "files 14/14; archived3 real; isolated 162/162; full1672; V25 no; product79/79; gate incomplete"
+    },
+    {
+      "id": "R10",
+      "area": "X+1",
+      "claim": "b1c9061 11 artifacts; manifest head=94251aa/dirty=false; clean1682; selfproof20/162; 84/84 sources; product79/79; gate incomplete",
+      "evidence": [
+        "b1c9061 artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "clean 2520a1fb…/177891 1682; pipeline 6ee030b7…/3399; manifest 407/7,433,706/c61dce70…; selfproof20/162; sources84/311; product79/79; gate incomplete/executed=passed=0"
+    },
+    {
+      "id": "R11",
+      "area": "honesty/no overclaim",
+      "claim": "create successes do not prove business chain; reason preserved; new blocker runtime-context shape; sixth unauthorized",
+      "evidence": [
+        "round15 findings/limitations"
+      ],
+      "method": "text",
+      "result": "verified",
+      "detail": "explicit failed fifth attempt, 0 model, no Task/worker/native completion; v4/v5 residual unknown budgets disclosed; sixth not authorized"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F15-R1",
+      "severity": "minor-bytes",
+      "title": "cachedReceipt bytes 64766 vs actual status-final 67986",
+      "files": [
+        "round15 joint cachedReceipt",
+        "host/round15/status-final.json"
+      ],
+      "evidence": "actual 67986B/sha 6ab5b46a…; cached bytes 64766 (sha matches); Lead 67986 correct",
+      "impact": "sha/content correct; byte accounting off",
+      "recommendation": "set actual bytes+semantics",
+      "owner": "Lead"
+    },
+    {
+      "id": "F15-R2",
+      "severity": "info-wording",
+      "title": "createSuccess says confirmed binding while create snapshot reported bindingReceiptStatus absent",
+      "files": [
+        "round15 createSuccess/receipt"
+      ],
+      "evidence": "createSuccess 'confirmed binding'; receipt observed bindingReceiptStatus absent; native final binding confirmed; DB create command confirmed",
+      "impact": "binding status historical/ambiguous but create success fields supported",
+      "recommendation": "clarify create-time vs final binding status",
+      "owner": "Lead"
+    },
+    {
+      "id": "F15-R3",
+      "severity": "info-boundary",
+      "title": "v4/v5 residual unknown budgets; sixth unauthorized; no business chain",
+      "files": [
+        "round15 residual/limitations"
+      ],
+      "evidence": "v4/v5 Goals authorized/paused activeEvaluation unknown; unknown budget 4→5; sixth not authorized; 0 model; no Task/Effect",
+      "impact": "disclosed; future attempt needs binding fix/explicit owner decision/reconcile",
+      "recommendation": "fix runtime-context claim shape and reconcile/disclose residuals",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "runtime-context exact expected shape",
+      "reason": "new blocker; second message mismatch not field-diagnosed yet"
+    },
+    {
+      "item": "Real business chain",
+      "reason": "only create success; evaluation failed before model; no plan/Task/worker/native completion"
+    },
+    {
+      "item": "Sixth attempt",
+      "reason": "not authorized"
+    },
+    {
+      "item": "V4/V5 residual reconciliation",
+      "reason": "unknown evaluations/budgets remain; no cleanup this round"
+    }
+  ],
+  "counts": {
+    "h3_isolated": 1671,
+    "integration": 1682,
+    "X1_clean": 1682,
+    "selfproof": 162,
+    "sources": 84,
+    "files": 311,
+    "goalsBefore": 6,
+    "goalsAfter": 7,
+    "sessionsAfter": 39,
+    "budgetUnknown": 5
+  },
+  "hostV5": {
+    "status": "fixed-host-v5-create-succeeded-evaluation-context-rejected",
+    "receipt": {
+      "bytes": 3921,
+      "sha256": "274ce6dfb5c01b077b25ac64b51aad0c0f68d7891a853bcdfebacf95db8cdd51"
+    },
+    "createSuccess": {
+      "goalId": "core-f5d638166d03988e3251d67ba875cf8c16fcef36",
+      "authorized": true,
+      "nativeActive": true,
+      "hasMandate": true,
+      "goalRef": {
+        "id": "goal-086a7400-02a0-4c5e-9967-c0c294066da1",
+        "revision": 1
+      },
+      "oneGoalSession": true,
+      "partialCreation": false
+    },
+    "evaluation": {
+      "status": "unknown",
+      "reasonCode": "CORE_NATIVE_CONTEXT_REJECTED",
+      "preStopReasonCode": "CORE_NATIVE_CONTEXT_REJECTED",
+      "evaluateAttempts": 1,
+      "modelRequests": 0,
+      "sessionEvents": 13
+    },
+    "stopAction": {
+      "kind": "pause",
+      "attempted": true,
+      "ok": true
+    },
+    "goal": {
+      "goalId": "core-f5d638166d03988e3251d67ba875cf8c16fcef36",
+      "version": 5,
+      "authorized": true,
+      "paused": true,
+      "cancelled": false,
+      "activeEvaluationId": "evaluation:core-f5d638166d03988e3251d67ba875cf8c16fcef36:1"
+    },
+    "budgetHeld": {
+      "tokens": 16384,
+      "calls": 2
+    },
+    "before": {
+      "commitSeq": 470,
+      "events": 60,
+      "sessions": 38,
+      "goals": 6
+    },
+    "after": {
+      "commitSeq": 490,
+      "events": 61,
+      "sessions": 39,
+      "goals": 7
+    },
+    "statusFinal": {
+      "bytes": 67986,
+      "sha256": "6ab5b46acf2f85a0aa0dc26e4d9ae20426b09e3238eaa795112bd96bd0210724"
+    },
+    "stateFileUnchanged": true,
+    "knownSessionsUnchanged": true,
+    "retry": false,
+    "sixthAttemptAuthorized": false
+  },
+  "xPlusOne": {
+    "X": "94251aa",
+    "X+1": "b1c9061",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "94251aa",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T13:59:42.399Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 407,
+      "bytes": 7433706,
+      "digest": "c61dce70f90bf0722e96eaf4c4292f3a3e4094172c6b034b14f59d1b2a94c2cd"
+    },
+    "cleanCheck": {
+      "tests": 1682,
+      "pass": 1682,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "2520a1fb1056418171765dff8ef72b2db786d39626da2c689b2776a3dbdd94b9",
+      "bytes": 177891
+    },
+    "pipeline": {
+      "sha256": "6ee030b713d5f268e06b06cee5d6a5bc8274822f0bb042a9482fb96c12d36871",
+      "bytes": 3399,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "e5dd002bf8f1ead0453544d4d71a630553b89cccf9013bfbd75cb95ab4d0edfc/839",
+    "selfproof": {
+      "files": 20,
+      "tests": 162
+    },
+    "sources": {
+      "verified": 84,
+      "files": 311,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "6705aaaf5654e114a6c584e64e273e3b5311d1a29c239a8f9b327c99d6476df7/84873",
+      "tool-selfproof.json": "5193dbcd6166335287a56c6752c60aa50e66a32877e4b57ff8dd754c45f6dd5a/32270",
+      "tool-selfproof.tap": "b6b61143975cb2fc09d96f65b3e9aea7c7042ca55a98f80cc119b0999e5033fb/30254",
+      "traceability.json": "e461798c2837e368af294a58103874df10ae03abf3ca1b1699f3d696ea07796e/1771462",
+      "traceability.md": "46357e7cbed48149e2ca1d44fccc446fdb4b3e1d0adeb2fbc8c691eea99c8edd/34868",
+      "h7-traceability-mapping.md": "ac9946fd6c1fedec2a583324384c979f5ea3256eb8ae12008000402541b19f20/109898",
+      "acceptance-report.json": "4f304a74faca36588115a3bd1218f9dd24bb161cdf6ef7db801f3f6a45cee532/572125",
+      "acceptance-report.md": "3ddd9deae3aec82e1c383195af9ad395c3bc3bed861866a0c2b6ccf8ab8a9644/31690",
+      "fl-scenarios/manifest.json": "b6c546074e735ca02d817bfb624a5121476698285200a7c99033d5d59d2033d4/13154",
+      "fl-scenarios/coverage.json": "313c4bfaab7bf270a5503e6d8e851fab6d56cd9ccbd099b44d506c87668dfa98/52559",
+      "fl-scenarios/coverage.md": "549c888a020a5a618709893bc822b300f754a3f2b1b794225188f9f018d4cbce/9308"
+    }
+  },
+  "overallVerdict": "Round-15 evidence is authentic and honest: the decision pre-step now admits exactly the owner prompt plus the exact host runtime-context structural binding (third/wrong/context changes fail closed before any request), core-domain unknown() preserves the first unknown reason without double reconcile, and the runner captures preStopEvaluation before the single stop with bounded validation. Create succeeded a second real time (authorized/active/mandate/goalRef rev1/one Goal Session/partialCreation=false); the single evaluation failed with CORE_NATIVE_CONTEXT_REJECTED preserved in preStopEvaluation, evaluateAttempts=1, 0 model requests, pause stop ok, +1 Goal/+1 Session/+1 unknown budget held 16384/2, no Task/Effect/artifact/events with unchanged state/known Sessions; reason masking is fixed and the new blocker is the runtime-context claim shape. No retry occurred, a sixth attempt is not authorized, v4/v5 residual unknown budgets are disclosed, and no business pass is claimed. H7-round15 maps 84/311 sources with the round14 v4 level fixed-host-create-succeeded-evaluation-failure, V25 excluded, product 79/79 not_covered; X+1=b1c9061 is artifact-only with manifest head=X/dirty=false, clean1682, selfproof20/162, 84/84 sources and gate incomplete. F15-R1 is host byte metadata; F15-R2/R3 are info."
+}

@@ -266,7 +266,7 @@
   },
   "cachedReceipt": {
     "file": "artifacts/dsh/host/round15/status-final.json",
-    "bytes": 64766,
+    "bytes": 67986,
     "sha256": "6ab5b46acf2f85a0aa0dc26e4d9ae20426b09e3238eaa795112bd96bd0210724",
     "value": {
       "status": "failed",
@@ -305,7 +305,8 @@
         "EVALUATION_UNKNOWN",
         "USAGE_UNKNOWN"
       ]
-    }
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8)"
   },
   "findings": [
     "Progress: create succeeded again and the reason-preservation fix works: the receipt now exposes the real evaluation reason CORE_NATIVE_CONTEXT_REJECTED instead of owner_paused.",
@@ -335,5 +336,12 @@
     "This is a failed fifth attempt with 0 model requests and no real business chain; it does not prove planning, Task/worker or native completion.",
     "The runtime-context expected shape is still wrong; the exact field-level difference is not yet captured.",
     "v4/v5 unknown reservations remain; a sixth attempt needs the binding fix plus an explicit owner decision."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F15-R1",
+      "finding": "cached status byte count used a character count",
+      "resolution": "cachedReceipt now uses the actual committed 67,986 bytes and sha 6ab5b46a..."
+    }
   ]
 }

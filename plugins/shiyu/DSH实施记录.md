@@ -1984,3 +1984,30 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - v4/v5 两个 authorized/paused Goal + unknown evaluation/held budget 残留；**第六次尝试未授权**。
 - 证据：[round15-bounded-core-goal-v5.json](<artifacts/dsh/host/round15-bounded-core-goal-v5.json>) + `host/round15/`（receipt 含 preStopEvaluation、Goal Session 事件清单、plan、4 审计、status-final 67,986B）、§66 设计。
 - 边界：不证真实业务链；0 模型请求；create 已稳定成功；runtime-context 绑定修复后才谈第六次显式尝试。
+
+## 68. 第十五轮独立复核与 F15 处置（round-15 收尾）
+
+2026-11-03，独立验证员完成 round-15 只读复核（task-62）：**pre-step 语义/边界正确；reason 保留修复生效；create 再次真实成功；evaluation 0 模型失败；preStopEvaluation 真实；审计/残留披露；第六次未授权；H7 未升级；X+1 满足约定。** 报告：[ROUND15-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND15-EVIDENCE-REVIEW.md>)、[round15-evidence-review.json](<artifacts/dsh/verify/round15-evidence-review.json>)。
+
+### 68.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| X `94251aa` | step0 pre-step 接受 1–2 条（精确 owner + 可选精确 runtime-context 结构绑定）；第三条/错序/坏 context 请求前 fail closed；decision.messages/tool/history 不变；reason 保留（unknown() 原样返回、不重复 reconcile）；preStopEvaluation 有界校验；v5 exact-only、reconcile [v1..v5]；隔离 1671、组合 1682 |
+| 宿主 `3d31da3` | **create 第二次真实成功**（authorized/active/mandate/binding confirmed/goalRef rev1/1 Goal Session/partialCreation=false，receipt 3921B/sha `274ce6df…`）；evaluation failed/EVALUATION_UNKNOWN、**preStopEvaluation.reasonCode=`CORE_NATIVE_CONTEXT_REJECTED`**（reason 保留生效、不再 owner_paused）、evaluateAttempts=1、**0 模型请求**（13 events 无 request/assistant）、stopAction pause；审计 470/60/38/goals6 → 476/61/38/6 → 490/61/39/7（budget 25，unknown 4→5）；无 events/Task/Effect/artifact、state/known 不变；第六次未授权 |
+| H7-round15 | 84 sources/311 files；round14 v4 新等级 `fixed-host-create-succeeded-evaluation-failure`；V25 不接收；产品 79/79 not_covered；V/S/FL 不升级；issues 0 |
+| X+1 `b1c9061` | 11 artifacts only；manifest head=94251aa/dirty=false/leaks=0；clean 1682/1682；selfproof 20/162；84/84 sources、0 unknown；gate=incomplete/executed=passed=0 |
+
+### 68.2 F15 处置
+
+| ID | 处置 |
+|---|---|
+| **F15-R1（open-minor）** | 已修：host cachedReceipt bytes 改为实际 **67,986**/sha `6ab5b46a…` + bytesSemantics |
+| F15-R2（info） | binding absent→confirmed 历史措辞：create 快照与后续 confirmed 均如实记录，无需改 |
+| F15-R3（info） | 0 模型/reason/预算边界：已披露；runtime-context 形状修复留给 round-16 |
+
+### 68.3 边界
+
+1. create 已连续两次真实成功；真实业务链仍未完成（evaluation 在 0 模型请求前失败）。
+2. 新阻塞 = runtime-context claim 形状：下一步需用 bounded probe 的 renderer/结构化绑定做字段级对齐；**第六次尝试未授权**。
+3. v4/v5 两个 authorized/paused Goal + unknown evaluation/held budget 残留需披露/对账；H7 未升级；round-15 host 未入映射（round-16）。
