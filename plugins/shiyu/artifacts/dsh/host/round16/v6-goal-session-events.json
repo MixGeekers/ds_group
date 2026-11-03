@@ -1,0 +1,134 @@
+[
+  {
+    "seq": null,
+    "type": "session",
+    "data": {
+      "isSeeded": null,
+      "delegationDepth": null,
+      "agentPreset": null
+    }
+  },
+  {
+    "seq": 0,
+    "type": "permission/preset",
+    "data": null
+  },
+  {
+    "seq": 1,
+    "type": "sandbox/mode",
+    "data": null
+  },
+  {
+    "seq": 2,
+    "type": "approval/policy",
+    "data": null
+  },
+  {
+    "seq": 3,
+    "type": "session/title",
+    "data": null
+  },
+  {
+    "seq": 4,
+    "type": "goal/change",
+    "data": {
+      "operation": "create",
+      "version": 1
+    }
+  },
+  {
+    "seq": 5,
+    "type": "session/end-seed",
+    "data": null
+  },
+  {
+    "seq": 6,
+    "type": "agent/inbox/spliced",
+    "data": null
+  },
+  {
+    "seq": 7,
+    "type": "turn/start",
+    "data": null
+  },
+  {
+    "seq": 8,
+    "type": "agent/inbox/spliced",
+    "data": null
+  },
+  {
+    "seq": 9,
+    "type": "step/start",
+    "data": null
+  },
+  {
+    "seq": 10,
+    "type": "system/message",
+    "data": null
+  },
+  {
+    "seq": 11,
+    "type": "user/message",
+    "data": null
+  },
+  {
+    "seq": 12,
+    "type": "user/message",
+    "data": null
+  },
+  {
+    "seq": 13,
+    "type": "request/header",
+    "data": {
+      "provider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "tools": [
+        "shiyu_core_event_types",
+        "shiyu_core_event_subscriptions",
+        "shiyu_core_event_report"
+      ]
+    }
+  },
+  {
+    "seq": 14,
+    "type": "request/context",
+    "data": {
+      "provider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "contextWindow": 1000000
+    }
+  },
+  {
+    "seq": 15,
+    "type": "assistant/attempt",
+    "data": {
+      "streamLength": 0,
+      "reason": null
+    }
+  },
+  {
+    "seq": 16,
+    "type": "step/end",
+    "data": null
+  },
+  {
+    "seq": 17,
+    "type": "turn/end",
+    "data": {
+      "reason": "Core decision cancelled"
+    }
+  },
+  {
+    "seq": 18,
+    "type": "session/end-seed",
+    "data": null
+  },
+  {
+    "seq": 19,
+    "type": "goal/change",
+    "data": {
+      "operation": "pause",
+      "version": 1
+    }
+  }
+]

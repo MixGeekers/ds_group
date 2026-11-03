@@ -1,0 +1,351 @@
+{
+  "schemaVersion": 1,
+  "phase": "round16-host",
+  "slice": "fixed-host sixth independent bounded core Goal attempt (v6): decision round reached a real model request, but the provider stream was empty and the evaluation was unconfirmed",
+  "capturedAt": "2026-11-03T16:21:27.454Z",
+  "status": "fixed-host-v6-create-succeeded-first-real-model-request-empty-stream",
+  "purpose": "Explicit owner decision: one sixth independent v6 experiment. The assembly-rendered runtime-context binding worked: the decision pre-step entered, the core system/owner/runtime-context messages and the model request header/context were emitted with the event tools mounted. The provider stream then produced an empty assistant attempt and the run was aborted, so the evaluation became CORE_EXECUTION_UNCONFIRMED; create succeeded, no retry was made.",
+  "plan": {
+    "path": "artifacts/dsh/host/round16/plan.json",
+    "sha256": "1648f8744c95a9b10803c4912e84a51d006202f81530df85cbeea006dc582c1b"
+  },
+  "code": {
+    "head": "dcede28",
+    "dist": {
+      "files": 114,
+      "digest": "eafa6e50f1d1032260edb737bab2fb614d72194a0f8b83802f78f556a6515c26"
+    }
+  },
+  "receipt": {
+    "file": "artifacts/dsh/host/round16/core-goal-v6-receipt.json",
+    "bytes": 3917,
+    "sha256": "80afd9bd64daf4e9a28079e178e0be65ea7c43190dcb635fcf9d53470ab99de9"
+  },
+  "result": {
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_EVALUATION_UNKNOWN",
+    "requestId": "core-validation-frozen-v6",
+    "goal": {
+      "goalId": "core-02829b5e321e30a0f8824fe2db2a41496cccafca",
+      "version": 5,
+      "requestId": "core-validation-frozen-v6",
+      "authorized": true,
+      "paused": true,
+      "cancelled": false,
+      "planVersion": 0,
+      "mandateId": "core-mandate:core-02829b5e321e30a0f8824fe2db2a41496cccafca",
+      "expiresAt": "2026-11-03T16:30:16.088Z",
+      "nativePhase": "paused"
+    },
+    "evaluations": [
+      {
+        "evaluationId": "evaluation:core-02829b5e321e30a0f8824fe2db2a41496cccafca:1",
+        "status": "unknown",
+        "reasonCode": "CORE_EXECUTION_UNCONFIRMED",
+        "triggerRefs": [
+          "owner:core-02829b5e321e30a0f8824fe2db2a41496cccafca"
+        ],
+        "usage": {
+          "state": "unknown",
+          "observedTokens": null,
+          "observedCalls": null,
+          "overrun": false,
+          "accounting": "unknown"
+        }
+      }
+    ],
+    "preStopEvaluation": {
+      "evaluationId": "evaluation:core-02829b5e321e30a0f8824fe2db2a41496cccafca:1",
+      "status": "unknown",
+      "reasonCode": "CORE_EXECUTION_UNCONFIRMED"
+    },
+    "counters": {
+      "evaluateAttempts": 1,
+      "pollCount": 0,
+      "maxEvaluations": 2,
+      "wallLimitMs": 180000
+    },
+    "stopAction": {
+      "kind": "pause",
+      "attempted": true,
+      "ok": true,
+      "at": "2026-11-03T16:20:16.553Z",
+      "goalVersion": 5
+    },
+    "unknowns": [
+      "EVALUATION_UNKNOWN",
+      "USAGE_UNKNOWN"
+    ],
+    "businessSideEffects": {
+      "goal": {
+        "created": "true",
+        "requestId": "core-validation-frozen-v6",
+        "version": 2,
+        "observed": {
+          "goalId": "core-02829b5e321e30a0f8824fe2db2a41496cccafca",
+          "requestId": "core-validation-frozen-v6",
+          "version": 2,
+          "authorized": true,
+          "paused": false,
+          "cancelled": false,
+          "hasMandate": true,
+          "nativePhase": "active",
+          "evaluations": 0,
+          "taskRefs": 0,
+          "planVersion": 0,
+          "bindingReceiptStatus": "absent",
+          "goalSessionId": "shiyu-core-goal-823ef5ebfbf712021ae2b8362c5616493d7a63c818c4ed1584b0a6a26c541721",
+          "goalRef": {
+            "id": "goal-571b4341-bf09-47c7-b407-b98985e71f8d",
+            "revision": 1
+          }
+        }
+      },
+      "partialCreation": {
+        "detected": false,
+        "readback": "complete",
+        "evidence": [
+          "goal-create-returned"
+        ]
+      },
+      "tasks": {
+        "count": 0,
+        "ids": []
+      },
+      "effects": {
+        "count": 0,
+        "ids": []
+      },
+      "artifacts": {
+        "count": 0,
+        "refs": []
+      },
+      "sessions": {
+        "goalSessionId": "shiyu-core-goal-823ef5ebfbf712021ae2b8362c5616493d7a63c818c4ed1584b0a6a26c541721",
+        "workerSessionIds": []
+      },
+      "budget": {
+        "limits": {
+          "tokens": 16384,
+          "calls": 3,
+          "effects": 1
+        },
+        "spent": {
+          "tokens": 0,
+          "calls": 0,
+          "effects": 0
+        },
+        "held": {
+          "tokens": 16384,
+          "calls": 2,
+          "effects": 0
+        }
+      },
+      "control": {
+        "commitSeqBefore": 501,
+        "commitSeqAfter": 510
+      }
+    },
+    "partialCreation": {
+      "detected": false,
+      "readback": "complete",
+      "evidence": [
+        "goal-create-returned"
+      ]
+    }
+  },
+  "createSuccess": "create succeeded again: authorized=true, active, mandate, confirmed binding, goalRef revision 1 and exactly one Goal Session; partialCreation=false.",
+  "milestone": "MAJOR PROGRESS: the v6 Goal Session has 21 events and now includes step/start, the core system message, the owner user message, the host runtime-context user message, a model request/header with provider/config and the three mounted read-only event tools, and a request/context. This is the first real model request in the whole validation series.",
+  "failure": {
+    "evaluationStatus": "unknown",
+    "reasonCode": "CORE_EXECUTION_UNCONFIRMED",
+    "detail": "The provider stream produced an empty assistant attempt (assistant/attempt stream: []) immediately after the request header/context; step/end followed and the run was aborted with the generic Core decision cancelled hook before any assistant message. local-core maps the resulting no-code error to CORE_EXECUTION_UNCONFIRMED. No token usage was reported and the reason was preserved via preStopEvaluation. The exact provider error text is not yet surfaced and must be instrumented next."
+  },
+  "sessionEvents": {
+    "file": "artifacts/dsh/host/round16/v6-goal-session-events.json",
+    "bytes": 2061,
+    "sha256": "73d47588255c0d4e639ececcc60d5aedbba6a3b94e70cd7fefd51c45af793250",
+    "count": 21,
+    "types": [
+      "session",
+      "permission/preset",
+      "sandbox/mode",
+      "approval/policy",
+      "session/title",
+      "goal/change",
+      "session/end-seed",
+      "agent/inbox/spliced",
+      "turn/start",
+      "agent/inbox/spliced",
+      "step/start",
+      "system/message",
+      "user/message",
+      "user/message",
+      "request/header",
+      "request/context",
+      "assistant/attempt",
+      "step/end",
+      "turn/end",
+      "session/end-seed",
+      "goal/change"
+    ]
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        490,
+        496
+      ],
+      "events": [
+        61,
+        62
+      ],
+      "capabilityRevision": [
+        57,
+        59
+      ],
+      "sessions": [
+        39,
+        39
+      ],
+      "goals": [
+        7,
+        7
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "normal startup writes only; business facts unchanged."
+    },
+    "attempt": {
+      "commitSeq": [
+        496,
+        510
+      ],
+      "events": [
+        62,
+        62
+      ],
+      "sessions": [
+        39,
+        40
+      ],
+      "goals": [
+        7,
+        8
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 5
+        },
+        {
+          "settled": 21,
+          "unknown": 6
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "+14 commitSeq, +1 Goal, +1 Goal Session, +1 unknown budget reservation; no events, no Task/Effect/artifact, unchanged state and known Sessions."
+    },
+    "postStatus": {
+      "commitSeq": [
+        510,
+        510
+      ],
+      "events": [
+        62,
+        62
+      ],
+      "sessions": [
+        40,
+        40
+      ],
+      "goals": [
+        8,
+        8
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only and caches the failed v6 receipt with preStopEvaluation."
+    }
+  },
+  "cachedReceipt": {
+    "file": "artifacts/dsh/host/round16/status-final.json",
+    "bytes": 66937,
+    "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265",
+    "value": {
+      "status": "failed",
+      "reasonCode": "CORE_VALIDATION_EVALUATION_UNKNOWN",
+      "goalId": "core-02829b5e321e30a0f8824fe2db2a41496cccafca",
+      "preStopEvaluation": {
+        "evaluationId": "evaluation:core-02829b5e321e30a0f8824fe2db2a41496cccafca:1",
+        "status": "unknown",
+        "reasonCode": "CORE_EXECUTION_UNCONFIRMED"
+      },
+      "stopAction": {
+        "kind": "pause",
+        "attempted": true,
+        "ok": true,
+        "at": "2026-11-03T16:20:16.553Z",
+        "goalVersion": 5
+      },
+      "unknowns": [
+        "EVALUATION_UNKNOWN",
+        "USAGE_UNKNOWN"
+      ]
+    }
+  },
+  "findings": [
+    "MAJOR PROGRESS: the decision round finally reached the real model layer (system/owner/runtime-context messages, request header/context with the three read-only event tools). The context-binding fix is effective.",
+    "The provider stream returned empty (assistant/attempt with no chunks) and the run was aborted before any assistant message; local-core maps the resulting no-code error to CORE_EXECUTION_UNCONFIRMED. No usage was reported; the reason is preserved via preStopEvaluation.",
+    "Next: instrument the stream/decision error (bounded provider error text/code handoff into the evaluation unknown reason, same in-process pattern as contextDiagnostic) to determine whether the empty stream is a provider/transport error, a request-shape rejection, or a timeout; then fix and prepare a new explicit v7 attempt.",
+    "The v6 Goal and its unknown reservation remain; v4/v5 residuals also remain disclosed. A seventh attempt is not authorized."
+  ],
+  "residual": {
+    "note": "v4, v5 and v6 authorized/paused Goals with unknown evaluations/reservations remain; no Task/Effect/artifact; the seventh attempt is unauthorized."
+  },
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 6
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "goals": 8,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "This is a failed sixth attempt with no completed model stream and no real business chain; it does not prove planning, Task/worker or native completion.",
+    "The exact provider/stream error is not yet surfaced; the next slice must instrument it.",
+    "v4/v5/v6 unknown reservations remain; a seventh attempt needs the fix plus an explicit owner decision."
+  ]
+}

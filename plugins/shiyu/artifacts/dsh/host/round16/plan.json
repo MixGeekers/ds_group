@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "phase": "round16-joint-host-bounded-core-goal-v6",
+  "status": "frozen-before-execution",
+  "frozenAt": "2026-11-03T16:19:39.503Z",
+  "decision": "EXPLICIT OWNER DECISION: execute exactly one SIXTH independent bounded core business experiment (v6, requestId core-validation-frozen-v6). NOT a retry of v1-v5 (all failed/reconciled and never retried). One call, zero retries; real Goal/Task/Effect/budget/Session/artifact and up to two real model rounds are accepted under the frozen budget/time stops.",
+  "code": {
+    "head": "dcede28bf921fc73f68e7abebec84bb80ae33f38",
+    "dist": {
+      "files": 114,
+      "digest": "eafa6e50f1d1032260edb737bab2fb614d72194a0f8b83802f78f556a6515c26"
+    }
+  },
+  "frozenInput": {
+    "version": 6,
+    "requestId": "core-validation-frozen-v6",
+    "objective": "完成 owner 预授权的 v6 有界本地便签验证：写入 note-1 并由独立核验确认。",
+    "deliverableContent": "SHIYU_CORE_VALIDATION_NOTE_V6",
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "templateSha256Expected": "2f7a647d"
+  },
+  "preconditions": [
+    "runtime unpaused and idle",
+    "no queued/pending Task",
+    "no existing Goal with requestId core-validation-frozen-v6",
+    "v1-v5 Goals failed/reconciled and never retried",
+    "local-note ability usable",
+    "before audits captured"
+  ],
+  "hardStops": {
+    "wallMs": 180000,
+    "pollMs": 1000,
+    "maxEvaluations": 2,
+    "maxStopCommands": 1,
+    "noRetry": true,
+    "budgetOverrunFails": true
+  },
+  "expected": {
+    "success": "status=completed; create succeeded; decision round admitted via the assembly-rendered runtime-context binding and issued real model request(s); 2 evaluations; note-1 Task succeeded + independent verification pass; Effect succeeded; artifact sha matches; native Goal phase complete; exactly one new Goal/Task/Effect/artifact/Session; budget within limits",
+    "failure": "failed/unknown/timeout receipt preserved with preStopEvaluation (incl contextDiagnostic if applicable) and partial evidence; at most one stop command; no retry"
+  },
+  "evidence": "artifacts/dsh/host/round16-bounded-core-goal-v6.json"
+}
+

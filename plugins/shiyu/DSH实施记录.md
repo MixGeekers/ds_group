@@ -2032,3 +2032,15 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 - **显式 owner 决定**：全新 v6 requestId/模板（非 v1–v5 重试），一次调用、0 重试；成功判据 = completed + 独立核验 + native complete；失败保留 preStopEvaluation（含 contextDiagnostic）/partial 证据，不删不滚不重试；0 模型请求前再次失败则停止报告。
 - v4/v5 残留 unknown budget 保留并披露，不因 v6 成功被静默清理。
+
+## 70. 第十六轮固定宿主：第六次尝试（v6）— 首次真实模型请求已发出，provider stream 为空
+
+状态：**首次进入真实模型请求层（重大进展）；provider 返回空 stream → CORE_EXECUTION_UNCONFIRMED；create 再次成功；未重试**。2026-11-03，代码 HEAD `dcede28`，一次有序 reload。
+
+- 显式 owner 决定：全新 v6 requestId/模板（非 v1–v5 重试），一次调用、0 重试。
+- **create 再次成功**：authorized/active/mandate/binding confirmed/goalRef rev1/恰 1 Goal Session/partialCreation=false。
+- **v6 Goal Session 21 events**（对比之前 13）：title → goal/change → end-seed → prompt spliced → turn/start → **step/start** → **system/message（core planner）** → **user/message（owner prompt）** → **user/message（host runtime-context 快照）** → **request/header（provider=opencode-go/model=deepseek-v4.1-flash/effort high/maxTokens 1024 + 3 个挂载的只读事件工具）** → **request/context（contextWindow 1000000）** → **assistant/attempt（stream=[]）** → step/end → turn/end aborted（release）→ pause。
+- 结论：**runtime-context claim 绑定修复生效**，decision round 首次真正到达 provider 请求层；但 provider **返回空 stream**（无 assistant 内容、无 usage），run 被 release，local-core 将该无 code 错误映射为 **`CORE_EXECUTION_UNCONFIRMED`**（preStopEvaluation 已保留真实 reason）。
+- 副作用：commitSeq 496→510、goals 7→8、sessions 39→40、budget unknown 5→6（held 16384/2）；无 Task/Effect/artifact/events、state/known Session 不变；0 token usage 报告。
+- 证据：[round16-bounded-core-goal-v6.json](<artifacts/dsh/host/round16-bounded-core-goal-v6.json>) + `host/round16/`（receipt 含 preStopEvaluation、21-event 清单、plan、4 审计、status-final 70,221B）。
+- **下一步**：instrument provider/stream 错误（把有界 error text/code 按 contextDiagnostic 同款 in-process 方式透出到 evaluation unknown reason），判断空 stream 是 provider/transport、请求形状还是超时；修复后才谈新的显式 v7 尝试；v4/v5/v6 unknown budget 保留披露；第七次未授权。
