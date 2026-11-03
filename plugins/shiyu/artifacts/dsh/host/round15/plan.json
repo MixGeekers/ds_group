@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "phase": "round15-joint-host-bounded-core-goal-v5",
+  "status": "frozen-before-execution",
+  "frozenAt": "2026-11-03T13:33:13.066Z",
+  "decision": "EXPLICIT OWNER DECISION: execute exactly one FIFTH independent bounded core business experiment (v5, requestId core-validation-frozen-v5). This is NOT a retry of v1-v4 (all failed/reconciled and never retried). One call, zero retries; real Goal/Task/Effect/budget/Session/artifact and up to two real model rounds are accepted under the frozen budget/time stops.",
+  "code": {
+    "head": "94251aa46462de36ba8d1311e43b6c9c9453603d",
+    "dist": {
+      "files": 114,
+      "digest": "25cf97909a220a66fa07d352558af1d4903eb912e0459bbfe0ca7178a6dab985"
+    }
+  },
+  "frozenInput": {
+    "version": 5,
+    "requestId": "core-validation-frozen-v5",
+    "objective": "完成 owner 预授权的 v5 有界本地便签验证：写入 note-1 并由独立核验确认。",
+    "deliverableContent": "SHIYU_CORE_VALIDATION_NOTE_V5",
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "templateSha256Expected": "c5901e64"
+  },
+  "preconditions": [
+    "runtime unpaused and idle",
+    "no queued/pending Task",
+    "no existing Goal with requestId core-validation-frozen-v5",
+    "v1-v4 Goals failed/reconciled and never retried",
+    "local-note ability usable",
+    "before audits captured"
+  ],
+  "hardStops": {
+    "wallMs": 180000,
+    "pollMs": 1000,
+    "maxEvaluations": 2,
+    "maxStopCommands": 1,
+    "noRetry": true,
+    "budgetOverrunFails": true
+  },
+  "expected": {
+    "success": "status=completed; create succeeded; decision round admitted with the exact host runtime-context; 2 evaluations; note-1 Task succeeded + independent verification pass; Effect succeeded; artifact sha matches; native Goal phase complete; exactly one new Goal/Task/Effect/artifact/Session; budget within limits",
+    "failure": "failed/unknown/timeout receipt preserved with preStopEvaluation and partial evidence; at most one stop command; no retry",
+    "zeroModelFailure": "if the decision round again fails before any model request, preserve preStopEvaluation.reasonCode and the archived Session event list, then stop"
+  },
+  "evidence": "artifacts/dsh/host/round15-bounded-core-goal-v5.json"
+}
+

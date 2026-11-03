@@ -1,0 +1,339 @@
+{
+  "schemaVersion": 1,
+  "phase": "round15-host",
+  "slice": "fixed-host fifth independent bounded core Goal attempt (v5): create succeeded again and the preserved preStopEvaluation exposes the real decision-round reason CORE_NATIVE_CONTEXT_REJECTED",
+  "capturedAt": "2026-11-03T13:34:22.789Z",
+  "status": "fixed-host-v5-create-succeeded-evaluation-context-rejected",
+  "purpose": "Explicit owner decision: one fifth independent v5 experiment. Create succeeded again, and this time the reason-preservation fix worked: preStopEvaluation reports CORE_NATIVE_CONTEXT_REJECTED instead of the masked owner_paused. The decision round still admitted the owner prompt plus a runtime-context snapshot that did not match the exact expected binding, so it failed before any model request; the stop policy paused the Goal and no retry was made.",
+  "plan": {
+    "path": "artifacts/dsh/host/round15/plan.json",
+    "sha256": "32e06b6f996a9ebed2334730a570965d4f34114288c6e7c82359ccb578efcf78"
+  },
+  "code": {
+    "head": "94251aa",
+    "dist": {
+      "files": 114,
+      "digest": "25cf97909a220a66fa07d352558af1d4903eb912e0459bbfe0ca7178a6dab985"
+    }
+  },
+  "receipt": {
+    "file": "artifacts/dsh/host/round15/core-goal-v5-receipt.json",
+    "bytes": 3921,
+    "sha256": "274ce6dfb5c01b077b25ac64b51aad0c0f68d7891a853bcdfebacf95db8cdd51"
+  },
+  "result": {
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_EVALUATION_UNKNOWN",
+    "requestId": "core-validation-frozen-v5",
+    "goal": {
+      "goalId": "core-f5d638166d03988e3251d67ba875cf8c16fcef36",
+      "version": 5,
+      "requestId": "core-validation-frozen-v5",
+      "authorized": true,
+      "paused": true,
+      "cancelled": false,
+      "planVersion": 0,
+      "mandateId": "core-mandate:core-f5d638166d03988e3251d67ba875cf8c16fcef36",
+      "expiresAt": "2026-11-03T13:43:46.380Z",
+      "nativePhase": "paused"
+    },
+    "evaluations": [
+      {
+        "evaluationId": "evaluation:core-f5d638166d03988e3251d67ba875cf8c16fcef36:1",
+        "status": "unknown",
+        "reasonCode": "CORE_NATIVE_CONTEXT_REJECTED",
+        "triggerRefs": [
+          "owner:core-f5d638166d03988e3251d67ba875cf8c16fcef36"
+        ],
+        "usage": {
+          "state": "unknown",
+          "observedTokens": null,
+          "observedCalls": null,
+          "overrun": false,
+          "accounting": "unknown"
+        }
+      }
+    ],
+    "preStopEvaluation": {
+      "evaluationId": "evaluation:core-f5d638166d03988e3251d67ba875cf8c16fcef36:1",
+      "status": "unknown",
+      "reasonCode": "CORE_NATIVE_CONTEXT_REJECTED"
+    },
+    "counters": {
+      "evaluateAttempts": 1,
+      "pollCount": 0,
+      "maxEvaluations": 2,
+      "wallLimitMs": 180000
+    },
+    "stopAction": {
+      "kind": "pause",
+      "attempted": true,
+      "ok": true,
+      "at": "2026-11-03T13:33:46.790Z",
+      "goalVersion": 5
+    },
+    "unknowns": [
+      "EVALUATION_UNKNOWN",
+      "USAGE_UNKNOWN"
+    ],
+    "businessSideEffects": {
+      "goal": {
+        "created": "true",
+        "requestId": "core-validation-frozen-v5",
+        "version": 2,
+        "observed": {
+          "goalId": "core-f5d638166d03988e3251d67ba875cf8c16fcef36",
+          "requestId": "core-validation-frozen-v5",
+          "version": 2,
+          "authorized": true,
+          "paused": false,
+          "cancelled": false,
+          "hasMandate": true,
+          "nativePhase": "active",
+          "evaluations": 0,
+          "taskRefs": 0,
+          "planVersion": 0,
+          "bindingReceiptStatus": "absent",
+          "goalSessionId": "shiyu-core-goal-84b332f4a97bbba87b0e4e422199c1f9da4585791c430f6109a05c5aba4f78f3",
+          "goalRef": {
+            "id": "goal-086a7400-02a0-4c5e-9967-c0c294066da1",
+            "revision": 1
+          }
+        }
+      },
+      "partialCreation": {
+        "detected": false,
+        "readback": "complete",
+        "evidence": [
+          "goal-create-returned"
+        ]
+      },
+      "tasks": {
+        "count": 0,
+        "ids": []
+      },
+      "effects": {
+        "count": 0,
+        "ids": []
+      },
+      "artifacts": {
+        "count": 0,
+        "refs": []
+      },
+      "sessions": {
+        "goalSessionId": "shiyu-core-goal-84b332f4a97bbba87b0e4e422199c1f9da4585791c430f6109a05c5aba4f78f3",
+        "workerSessionIds": []
+      },
+      "budget": {
+        "limits": {
+          "tokens": 16384,
+          "calls": 3,
+          "effects": 1
+        },
+        "spent": {
+          "tokens": 0,
+          "calls": 0,
+          "effects": 0
+        },
+        "held": {
+          "tokens": 16384,
+          "calls": 2,
+          "effects": 0
+        }
+      },
+      "control": {
+        "commitSeqBefore": 481,
+        "commitSeqAfter": 490
+      }
+    },
+    "partialCreation": {
+      "detected": false,
+      "readback": "complete",
+      "evidence": [
+        "goal-create-returned"
+      ]
+    }
+  },
+  "createSuccess": "create succeeded a second time: authorized=true, paused=false, cancelled=false, hasMandate=true, nativePhase=active, confirmed binding, goalRef revision 1 and exactly one Goal Session; partialCreation=false.",
+  "evaluationFailure": "The decision round was admitted and failed with the real reason CORE_NATIVE_CONTEXT_REJECTED (preserved via preStopEvaluation); the Goal Session again has 13 events (title/goal-change/end-seed/inbox spliced/turn start/input removed/turn end aborted/pause) and no request/assistant events, so zero model requests were issued. The step-0 pre-step now accepts 1-2 messages, but the second runtime-context message did not match the exact expected structure/text binding; the exact field-level difference is the next diagnostic target (reuse the bounded probe renderer/structural binding rather than a hand-built expected text).",
+  "sessionEvents": {
+    "file": "artifacts/dsh/host/round15/v5-goal-session-events.json",
+    "bytes": 676,
+    "sha256": "262513a860b817848c434bb45156bcc3407fb946b1adeec3ec543378354d0df1"
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        470,
+        476
+      ],
+      "events": [
+        60,
+        61
+      ],
+      "capabilityRevision": [
+        55,
+        57
+      ],
+      "sessions": [
+        38,
+        38
+      ],
+      "goals": [
+        6,
+        6
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "normal startup writes only; business facts unchanged."
+    },
+    "attempt": {
+      "commitSeq": [
+        476,
+        490
+      ],
+      "events": [
+        61,
+        61
+      ],
+      "sessions": [
+        38,
+        39
+      ],
+      "goals": [
+        6,
+        7
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 4
+        },
+        {
+          "settled": 21,
+          "unknown": 5
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "+14 commitSeq, +1 Goal, +1 Goal Session, +1 unknown budget reservation; no events, no Task/Effect/artifact, unchanged state and known Sessions."
+    },
+    "postStatus": {
+      "commitSeq": [
+        490,
+        490
+      ],
+      "events": [
+        61,
+        61
+      ],
+      "sessions": [
+        39,
+        39
+      ],
+      "goals": [
+        7,
+        7
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only and caches the failed v5 receipt including preStopEvaluation."
+    }
+  },
+  "cachedReceipt": {
+    "file": "artifacts/dsh/host/round15/status-final.json",
+    "bytes": 64766,
+    "sha256": "6ab5b46acf2f85a0aa0dc26e4d9ae20426b09e3238eaa795112bd96bd0210724",
+    "value": {
+      "status": "failed",
+      "reasonCode": "CORE_VALIDATION_EVALUATION_UNKNOWN",
+      "goalId": "core-f5d638166d03988e3251d67ba875cf8c16fcef36",
+      "evaluations": [
+        {
+          "evaluationId": "evaluation:core-f5d638166d03988e3251d67ba875cf8c16fcef36:1",
+          "status": "unknown",
+          "reasonCode": "CORE_NATIVE_CONTEXT_REJECTED",
+          "triggerRefs": [
+            "owner:core-f5d638166d03988e3251d67ba875cf8c16fcef36"
+          ],
+          "usage": {
+            "state": "unknown",
+            "observedTokens": null,
+            "observedCalls": null,
+            "overrun": false,
+            "accounting": "unknown"
+          }
+        }
+      ],
+      "preStopEvaluation": {
+        "evaluationId": "evaluation:core-f5d638166d03988e3251d67ba875cf8c16fcef36:1",
+        "status": "unknown",
+        "reasonCode": "CORE_NATIVE_CONTEXT_REJECTED"
+      },
+      "stopAction": {
+        "kind": "pause",
+        "attempted": true,
+        "ok": true,
+        "at": "2026-11-03T13:33:46.790Z",
+        "goalVersion": 5
+      },
+      "unknowns": [
+        "EVALUATION_UNKNOWN",
+        "USAGE_UNKNOWN"
+      ]
+    }
+  },
+  "findings": [
+    "Progress: create succeeded again and the reason-preservation fix works: the receipt now exposes the real evaluation reason CORE_NATIVE_CONTEXT_REJECTED instead of owner_paused.",
+    "The new precise blocker is the runtime-context claim shape: the step-0 pre-step admits 1-2 messages, but the host-provided second message does not match the current exact expected structural/text binding. The exact field-level difference must be diagnosed (likely by reusing the bounded probe renderer/structural binding for the decision pre-step).",
+    "No model request occurred; the Goal is paused with an unknown evaluation and a held budget reservation. No retry was made and a sixth attempt is not authorized.",
+    "The v4 and v5 Goals and their unknown reservations remain and must be disclosed/reconciled; a future successful v6 does not silently rewrite them."
+  ],
+  "residual": {
+    "note": "v4 and v5 authorized/paused Goals with unknown evaluations and held unknown reservations remain; no Task/Effect/artifact; the sixth attempt is unauthorized."
+  },
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 5
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "goals": 7,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "This is a failed fifth attempt with 0 model requests and no real business chain; it does not prove planning, Task/worker or native completion.",
+    "The runtime-context expected shape is still wrong; the exact field-level difference is not yet captured.",
+    "v4/v5 unknown reservations remain; a sixth attempt needs the binding fix plus an explicit owner decision."
+  ]
+}

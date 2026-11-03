@@ -1971,3 +1971,16 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 - **显式 owner 决定**：全新 v5 requestId/模板，非 v1–v4 重试；一次调用、0 重试；成功判据 = completed + 独立核验 + native complete；失败必须保留 preStopEvaluation/完整诊断与 partial 证据，随后可用覆盖 [v1..v5] 的 reconcile 清理 inert 残留；0 模型请求前再次失败则停止报告。
 - v4 Goal/unknown budget 保留并披露，不因 v5 成功而被静默清理或改写。
+
+## 67. 第十五轮固定宿主：第五次尝试（v5）— create 再次成功，preStopEvaluation 揭示真实原因
+
+状态：**create 再次成功；reason 保留修复生效；新精确阻塞 = runtime-context claim 形状（CORE_NATIVE_CONTEXT_REJECTED）；0 模型请求、未重试**。2026-11-03，代码 HEAD `94251aa`，一次有序 reload。
+
+- 显式 owner 决定：全新 v5 requestId/模板（非 v1–v4 重试），一次调用、0 重试。
+- **create 再次成功**：authorized=true、active、mandate、binding confirmed、goalRef rev1、恰 1 Goal Session、partialCreation=false。
+- evaluation 失败，但 **preStopEvaluation.reasonCode = `CORE_NATIVE_CONTEXT_REJECTED`**（不再被 owner_paused 掩盖）——reason 保留修复生效；Goal Session 仍 13 events、无 request/assistant，**0 模型请求**。
+- 新精确阻塞：step0 pre-step 已接受 1–2 条，但 host 注入的 runtime-context 消息与当前“精确结构/文本”绑定不符；下一步需用 bounded probe 同款 renderer/结构化绑定做字段级诊断并对齐（而非手写 expected text）。
+- 副作用：commitSeq 476→490、goals 6→7、sessions 38→39、budget unknown 4→5（held 16384/2）；无 Task/Effect/artifact/events、state/known Session 不变。
+- v4/v5 两个 authorized/paused Goal + unknown evaluation/held budget 残留；**第六次尝试未授权**。
+- 证据：[round15-bounded-core-goal-v5.json](<artifacts/dsh/host/round15-bounded-core-goal-v5.json>) + `host/round15/`（receipt 含 preStopEvaluation、Goal Session 事件清单、plan、4 审计、status-final 67,986B）、§66 设计。
+- 边界：不证真实业务链；0 模型请求；create 已稳定成功；runtime-context 绑定修复后才谈第六次显式尝试。

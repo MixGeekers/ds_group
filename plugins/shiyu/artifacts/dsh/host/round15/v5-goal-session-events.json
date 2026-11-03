@@ -1,0 +1,54 @@
+[
+  {
+    "seq": null,
+    "type": "session"
+  },
+  {
+    "seq": 0,
+    "type": "permission/preset"
+  },
+  {
+    "seq": 1,
+    "type": "sandbox/mode"
+  },
+  {
+    "seq": 2,
+    "type": "approval/policy"
+  },
+  {
+    "seq": 3,
+    "type": "session/title"
+  },
+  {
+    "seq": 4,
+    "type": "goal/change"
+  },
+  {
+    "seq": 5,
+    "type": "session/end-seed"
+  },
+  {
+    "seq": 6,
+    "type": "agent/inbox/spliced"
+  },
+  {
+    "seq": 7,
+    "type": "turn/start"
+  },
+  {
+    "seq": 8,
+    "type": "agent/inbox/spliced"
+  },
+  {
+    "seq": 9,
+    "type": "turn/end"
+  },
+  {
+    "seq": 10,
+    "type": "session/end-seed"
+  },
+  {
+    "seq": 11,
+    "type": "goal/change"
+  }
+]
