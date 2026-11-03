@@ -35,6 +35,7 @@ export type EvidenceLevel =
   | 'fixed-host-zero-model'
   | 'fixed-host-zero-model-reconcile'
   | 'fixed-host-failure-diagnostic'
+  | 'fixed-host-create-succeeded-evaluation-failure'
   | 'synthetic-ui'
   | 'bounded-real-model'
   | 'bounded-real-model-diagnostic-only'
@@ -50,6 +51,7 @@ export const ALLOWED_EVIDENCE_LEVELS: readonly EvidenceLevel[] = [
   'fixed-host-zero-model',
   'fixed-host-zero-model-reconcile',
   'fixed-host-failure-diagnostic',
+  'fixed-host-create-succeeded-evaluation-failure',
   'synthetic-ui',
   'bounded-real-model',
   'bounded-real-model-diagnostic-only',
@@ -67,6 +69,7 @@ export const LIMITED_EVIDENCE_LEVELS: readonly EvidenceLevel[] = [
   'fixed-host-zero-model',
   'fixed-host-zero-model-reconcile',
   'fixed-host-failure-diagnostic',
+  'fixed-host-create-succeeded-evaluation-failure',
   'synthetic-ui',
   'bounded-real-model',
   'bounded-real-model-diagnostic-only',
@@ -2255,6 +2258,265 @@ export const EVIDENCE_SOURCES: readonly EvidenceSource[] = [
       'Cannot upgrade V/S/FL/product rows or nine-system gate.',
     ],
   },
+  /* ---------------- round-14 delegationDepth normalization / v4 create-success eval-failure evidence (H7-round15) ---------------- */
+  {
+    id: 'delegation-depth-normalization-v4',
+    commits: ['2752f49', '7d5d2e1'],
+    files: [
+      {
+        path: 'plugins/shiyu/src/adapters/dsh/native-context.ts',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: '4aa15fed07b050bae743e3f0e5a6a09214ce504346eb9e5d9f39c9586d4b6f87',
+      },
+      {
+        path: 'plugins/shiyu/src/adapters/dsh/goals.ts',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: 'cce0a5eb650e131b51e76894fb3e5bc66ea664031f05de362a2b50afd00b54fc',
+      },
+      {
+        path: 'plugins/shiyu/src/control/native-header-cut-probe.ts',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: '20de09280ce292d2b67352dbf294d4a105e84f9d5f10740a13ca86eb0f355e2d',
+      },
+      {
+        path: 'plugins/shiyu/src/control/core-validation.ts',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: 'b2a44c3526b013b2400c09303c012ed528bace216c54fed566f4a6e358db500a',
+      },
+      {
+        path: 'plugins/shiyu/tests/core-event-tools.test.ts',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: '6108e487c0a93d6572cd27fb2dddb288c1d8ca12aace4dceadbac4919f1cfa1b',
+      },
+      {
+        path: 'plugins/shiyu/tests/core-validation.test.ts',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: 'f0d3a428df5bb8a6c84ef04e8d5fd3b46b9e82c3a2a0427e553cd48e4d1685c4',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/h3/h3-v4-trusted-header-fix.json',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: 'a3aae8c0f46ae7958c83f5f99084668b6bc0537243446d8216bc767986bc14be',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/h3/h3-v4-runtime-index.patch',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: 'aaa64310c20219fba331381bed625de1de8d20e431896d8e88d676fbf8b80587',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/slices/h3-v4-trusted-header-verify.json',
+        sliceCommit: '2752f49',
+        blobCommit: '2752f49',
+        expectedSha256: '69c31013aa33663a436ea2199b437d03dd377720e473421819f5714a0df7de4c',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/integration/round14-lead-integration.json',
+        sliceCommit: '7d5d2e1',
+        blobCommit: '7d5d2e1',
+        expectedSha256: '9d62faf4935f48b41ef8660d78e2a88c25fca453de77c39de7f1c59448f473ee',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/slices/round14-integrated-verify.json',
+        sliceCommit: '7d5d2e1',
+        blobCommit: '7d5d2e1',
+        expectedSha256: 'a1ac26240dfe34865995d27ced6f870b5b9997d3be749248b6b78f8fd4e09fb3',
+      },
+      {
+        path: 'plugins/shiyu/src/runtime.ts',
+        sliceCommit: '7d5d2e1',
+        blobCommit: '7d5d2e1',
+        expectedSha256: 'fe034ee4b5897a17a9e7e02bd7667c582698bc3f6cec010f3f797ee66f936a15',
+      },
+      {
+        path: 'plugins/shiyu/src/index.ts',
+        sliceCommit: '7d5d2e1',
+        blobCommit: '7d5d2e1',
+        expectedSha256: 'ba6de25795efc8b1fec2aa505e1f1a7b4ca1a6c2bb3acfd7966affcd7fd212b5',
+      },
+      {
+        path: 'plugins/shiyu/tests/host-diagnostics-tool.test.ts',
+        sliceCommit: '7d5d2e1',
+        blobCommit: '7d5d2e1',
+        expectedSha256: '612ff6dd8e7c90fc4718166e1e5c59d5904cdcd22f091fc0e50d603f9e4d911e',
+      },
+    ],
+    levels: ['offline-module', 'slice-verification'],
+    scope: 'Round-14 create-only delegationDepth normalization + frozen v4 experiment + integration: canonicalLiveHeader inserts delegationDepth=0 only when the caller passes headerCanonicalization=delegation-depth-default-zero, the cold baseline headerFacts delegationDepth is number:0, and the live header delegationDepth is absent/null (applied on the create stabilize baseline + title-append assertions); recovery/resume, every expectedPrefix path and the default assert stay strict, and no other header field is normalized; the zero-model probe mirrors it and now reports matched=true for cold-0/live-absent; CORE_VALIDATION_EXPERIMENT_V4 is frozen (requestId/template/content sha, exact-reference-only) and reconcile covers fixed [v1,v2,v3,v4]; focused 112/112 + regression 89/89 (net +8) and isolated 1651/1651; Lead integration isolated 1662/1662 (1643 baseline + 8 + 10 H7-round14 + 1 v4 tool test).',
+    limitations: [
+      'Offline/fake-host source only: the implementer ran no real host/model; the real fourth v4 attempt is separate evidence (round14-host-v4-create-success-eval-failure) and its create success does not make this offline slice a business acceptance.',
+      'The normalization is conditional and narrow: if the real cold header lacks delegationDepth: number:0, strict semantics remain and a create attempt would fail header-hash without retry; non-zero or absent/null mismatches beyond this exact pair are NOT normalized and still carry the controlled historyDiagnostic/headerDiff.',
+      'It does not fix the separate evaluation/pre-step blocker: the real v4 evaluation failed before any model request (reason masked as owner_paused) and a fifth attempt is NOT authorized until reason preservation/pre-step shape fixes land.',
+      'This source can NEVER be pass, V25, business or nine-system acceptance.',
+    ],
+    derive: [
+      { label: 'round14NormalizationStatus', path: 'artifacts/dsh/h3/h3-v4-trusted-header-fix.json', jsonPath: 'status' },
+      { label: 'round14NormalizationNetNewTests', path: 'artifacts/dsh/h3/h3-v4-trusted-header-fix.json', jsonPath: 'tests.netNew' },
+      { label: 'round14NormalizationIsolatedTests', path: 'artifacts/dsh/h3/h3-v4-trusted-header-fix.json', jsonPath: 'verification.isolatedFullCheck.tests.tests' },
+      { label: 'round14IntegrationTests', path: 'artifacts/dsh/integration/round14-lead-integration.json', jsonPath: 'verification.leadIntegratedIsolatedCheck.tests' },
+    ],
+  },
+  {
+    id: 'h7-round14-clean-artifacts',
+    commits: ['4f8c342'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/manifest.json',
+        sliceCommit: '4f8c342',
+        blobCommit: '4f8c342',
+        expectedSha256: 'c5370f8efd7ba71248416003237c2bf61019719955dca2e0e29fa560a080a8fd',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/traceability.json',
+        sliceCommit: '4f8c342',
+        blobCommit: '4f8c342',
+        expectedSha256: 'bdf46d46c7997b2826ea993a87aa5aad2bfe955bce5c7992c2890991471b6000',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/acceptance-report.json',
+        sliceCommit: '4f8c342',
+        blobCommit: '4f8c342',
+        expectedSha256: 'c146621def46ac029741752e30fb049297506e715038658f11087d7adf8a9cff',
+      },
+    ],
+    levels: ['offline-module'],
+    scope: 'H7-round14 clean-VCS harness artifacts (X+1 of 7d5d2e1, commit 4f8c342): clean-X manifest (vcs head 7d5d2e1, dirty=false, 407 files), traceability with 79 verified evidence sources/282 files and acceptance report (gate incomplete, executed=passed=0, product 79/79 not_covered).',
+    limitations: [
+      'Tooling evidence only: not product/host/model/business acceptance; product rows remain not_covered and the gate incomplete.',
+      'Bound with blobCommit=4f8c342 + expectedSha256; later pipeline rewrites do not affect the committed snapshot; never read from the mutable worktree.',
+      'Cannot upgrade V/S/FL/product rows or the nine-system gate.',
+    ],
+    derive: [{ label: 'round14CleanGate', path: 'artifacts/dsh/harness/acceptance-report.json', jsonPath: 'gate.overall' }],
+  },
+  {
+    id: 'round14-host-v4-create-success-eval-failure',
+    commits: ['732b9f7', '6130b80'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14-bounded-core-goal-v4.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '6130b80',
+        expectedSha256: 'c0293928561fee131bb84175d93eb0087db93c7c4946a7625357ea8c7c5a6ac7',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14/core-goal-v4-receipt.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '732b9f7',
+        expectedSha256: 'c378aaea3ca47c4f7a7abcfb9e6b6a875baa1852ae5bd9060807170ed88ec7b4',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14/plan.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '732b9f7',
+        expectedSha256: '85cc16845f9b9cc9ae4fb248210a1a1296a1e6fd8ba12a6d653777eeb1c10b53',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14/round14-host-before.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '732b9f7',
+        expectedSha256: 'd2117eb95ddfadb3a80fbadd07e31cac4a70e3bffcefd2942bdb30bf114b4034',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14/round14-host-after-reload.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '732b9f7',
+        expectedSha256: 'b4fbeebcc1d6cf71364299b1291c3f70c28ad8f1c5ec635b30ee23b605af8775',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14/round14-host-after-run.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '732b9f7',
+        expectedSha256: 'c3b08004ea45e82794a754e96b19330ca9a89ec3e035ee9e2952498359968270',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14/round14-host-final.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '732b9f7',
+        expectedSha256: '85858465667c4fd3edb2b34c3bab8c94c2bc39c45af9f8922aa543261b044d00',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14/status-final.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '732b9f7',
+        expectedSha256: 'f8443b15200ebb4dcd11a4b69a9487da29e559840914c65a5f5d6afb3f9638cd',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round14/v4-goal-session-events.json',
+        sliceCommit: '732b9f7',
+        blobCommit: '732b9f7',
+        expectedSha256: 'ade3663c5b6f94f02300313b981e14b98a49664db25aa77b1378dc73c0c9526b',
+      },
+    ],
+    levels: ['fixed-host-create-succeeded-evaluation-failure'],
+    scope: 'Round-14 fixed-host fourth independent bounded core Goal attempt (v4, explicit owner decision; not a v1/v2/v3 retry) on the installed X=7d5d2e1 build (dist 114 files, digest cbc10d58...): the create-only delegationDepth normalization worked — create returned exactly ONE authorized (authorized=true), owner-mandated, native-active Goal with a confirmed binding, goalRef revision 1 and exactly one Goal Session, partialCreation=false; the single evaluation then failed as CORE_VALIDATION_EVALUATION_UNKNOWN (evaluateAttempts=1) with 0 model requests — the 13-event Goal Session has title/goal-change/end-seed/inbox-spliced/turn-start/input-removed/turn-end-aborted/pause but NO request or assistant event; the reason is masked as owner_paused by the pause path, stopAction=pause ok (goalVersion 5), and the audit shows +14 commitSeq (456→470), goals 5→6, sessions 37→38, budget unknown 3→4 with held tokens 16384/calls 2, no events/Task/Effect/artifact and unchanged state/known Sessions; the 65594-byte final status caches the failed receipt.',
+    limitations: [
+      'It is a FAILED fourth attempt despite the create success: create succeeded (authorized/active/mandate/binding confirmed/goalRef rev1/1 Goal Session, partialCreation=false) but the single evaluation is unknown with evaluateAttempts=1 and 0 model requests (13 Goal-Session events contain no request/assistant event); this is NOT business/complete/passed and can NEVER be pass, V25, business or nine-system acceptance.',
+      'The evaluation reason is masked as owner_paused (the pause-path classification overwrites the original decision-round failure reason); the likely cause is the decision-run pre-step still expecting one message while the host claims the owner prompt plus its runtime-context snapshot — both are evidence-integrity defects disclosed for follow-up slices, not fixed here.',
+      'The audit is exactly +14 commitSeq (456→470), goals 5→6, sessions 37→38, budget unknown 3→4 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4 Goal remains authorized/paused with an unknown evaluation and a held reservation, and no retry was made.',
+      'No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a fifth attempt is NOT authorized until reason preservation/pre-step shape fixes land and the unknown budget is reconciled or disclosed.',
+    ],
+    derive: [
+      { label: 'round14V4Status', path: 'artifacts/dsh/host/round14-bounded-core-goal-v4.json', jsonPath: 'status' },
+      { label: 'round14V4ReasonCode', path: 'artifacts/dsh/host/round14-bounded-core-goal-v4.json', jsonPath: 'result.reasonCode' },
+      { label: 'round14V4EvaluateAttempts', path: 'artifacts/dsh/host/round14-bounded-core-goal-v4.json', jsonPath: 'result.counters.evaluateAttempts' },
+      { label: 'round14V4GoalAuthorized', path: 'artifacts/dsh/host/round14-bounded-core-goal-v4.json', jsonPath: 'result.goal.authorized' },
+      { label: 'round14V4GoalPaused', path: 'artifacts/dsh/host/round14-bounded-core-goal-v4.json', jsonPath: 'result.goal.paused' },
+      { label: 'round14V4StopKind', path: 'artifacts/dsh/host/round14-bounded-core-goal-v4.json', jsonPath: 'result.stopAction.kind' },
+      { label: 'round14V4BudgetHeldTokens', path: 'artifacts/dsh/host/round14-bounded-core-goal-v4.json', jsonPath: 'result.businessSideEffects.budget.held.tokens' },
+      { label: 'round14V4StatusFinalBytes', path: 'artifacts/dsh/host/round14-bounded-core-goal-v4.json', jsonPath: 'cachedReceipt.bytes' },
+    ],
+  },
+  {
+    id: 'round14-review',
+    commits: ['6130b80'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/verify/round14-evidence-review.json',
+        sliceCommit: '6130b80',
+        blobCommit: '6130b80',
+        expectedSha256: '3a2383a7d809c7328a08c09e31687c7f2fff602ba84e75bd7a9e639aa0870aa4',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/verify/ROUND14-EVIDENCE-REVIEW.md',
+        sliceCommit: '6130b80',
+        blobCommit: '6130b80',
+        expectedSha256: '03cb33657b09f3cd2fc69f9ae975ef5e76eb55f22917a7c35e82d873a6de214b',
+      },
+    ],
+    levels: ['independent-review-info'],
+    scope: 'Round-14 independent evidence review metadata plus F14 dispositions (F14-R1 cachedReceipt bytes corrected to actual 65594/f8443b15; F14-R2 placeholder H7-round14 slice evidence corrected and committed 437ac97; F14-R3 create-time vs final binding status wording accepted; F14-R4 evaluation reason masking / 0 model requests / held unknown budget / fifth attempt unauthorized accepted as an honest boundary).',
+    limitations: [
+      'Info/metadata only: independent review record, not product/host/model/business verification and not a pass claim.',
+      'Deliberately NOT referenced by any product row/module/system in the evidence map to avoid turning review metadata into acceptance evidence.',
+      'Cannot upgrade V/S/FL/product rows or nine-system gate.',
+    ],
+  },
+  {
+    id: 'h7-round14-slice-correction',
+    commits: ['437ac97'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/h7-round14-slice.json',
+        sliceCommit: '437ac97',
+        blobCommit: '437ac97',
+        expectedSha256: '3eca7e3f7493c4015f19dad8a11905bf1cb95b188f25993f9d1c517dc92a6cd7',
+      },
+    ],
+    levels: ['independent-review-info'],
+    scope: 'Round-14 evidence correction record (R14-CORR-1, info-only): replaces the committed H7-round14 slice-evidence placeholders with real archived log SHA/bytes and archivedCopies (isolated tsc 11B, harness 152/152 11773B, full check 1653/1653 175049B), keeps sharedTree explicitly blockedByConcurrentWip with NO green claim; all other slice facts unchanged.',
+    limitations: [
+      'Info/metadata correction only: it documents the true provenance of the round-14 slice evidence; it is not product/host/model/business verification and not a pass claim.',
+      'Deliberately NOT referenced by any product row/module/system in the evidence map.',
+      'Cannot upgrade V/S/FL/product rows or nine-system gate.',
+    ],
+  },
 ];
 
 const SOURCE_BY_ID = new Map(EVIDENCE_SOURCES.map(source => [source.id, source]));
@@ -2298,8 +2560,8 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.3',
-    sourceIds: ['h3-core-planning', 'h3-bounded-core-validation-runner', 'h3-core-validation-reconcile', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'historical-task-goal', 'h2c-real-model-probe', 'h2c-probe-fix-chain', 'round4-localcore-hotfix', 'round4-host-zero-model', 'round5-host-real-model', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'history-assert-diagnostics', 'v1v2-reconcile-generalization', 'round11-lead-integration', 'round11-host-v1v2-reconcile', 'cold-cut-v3-activation', 'round12-lead-integration', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'native-header-cut-probe', 'round13-lead-integration', 'round13-host-native-header-cut'],
-    levels: ['offline-module', 'slice-verification', 'historical-limited', 'bounded-real-model', 'bounded-real-model-diagnostic-only', 'fixed-host-zero-model', 'fixed-host-failure-diagnostic', 'fixed-host-zero-model-reconcile'],
+    sourceIds: ['h3-core-planning', 'h3-bounded-core-validation-runner', 'h3-core-validation-reconcile', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'historical-task-goal', 'h2c-real-model-probe', 'h2c-probe-fix-chain', 'round4-localcore-hotfix', 'round4-host-zero-model', 'round5-host-real-model', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'history-assert-diagnostics', 'v1v2-reconcile-generalization', 'round11-lead-integration', 'round11-host-v1v2-reconcile', 'cold-cut-v3-activation', 'round12-lead-integration', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'native-header-cut-probe', 'round13-lead-integration', 'round13-host-native-header-cut', 'delegation-depth-normalization-v4', 'round14-host-v4-create-success-eval-failure'],
+    levels: ['offline-module', 'slice-verification', 'historical-limited', 'bounded-real-model', 'bounded-real-model-diagnostic-only', 'fixed-host-zero-model', 'fixed-host-failure-diagnostic', 'fixed-host-zero-model-reconcile', 'fixed-host-create-succeeded-evaluation-failure'],
     scope: 'H3 offline controlled multi-step plan/replan with CAS plan versions and Task/Mandate admission; historical limited owner local-note Goal closure.',
     limitations: [
       'The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.',
@@ -2310,6 +2572,7 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
       'Round-11 adds the bounded history-assert instrument (mismatchKind/expected/live/delta, hash prefixes only; 14 net-new tests; isolated 1597/1597) and generalizes reconcile to fixed targets [v1,v2]; the create-only liveCut candidate fix is DORMANT and NOT host-confirmed. The fixed-host generalized reconcile is zero-model only: v1 cancelled/no action, v2 inert-unauthorized with exactly one cancel to version 2, 0 model/0 retries/0 creations, only +1 commitSeq; it does NOT fix the create failure and a third attempt is NOT authorized — never pass/V25/business/nine-system.',
       'Round-12 activates the create-only cold-cut (host-candidate; offline 1613/1623, recovery/expectedPrefix strict unchanged, native create once), but the third independent v3 host attempt FAILED at history-assert/header-hash: event-count/seq aligned (expected 3 = live 3, delta 0) while cold/live header hashes differ (baa30ad4 vs bbd0090c), 0 model requests, no retry, partial unauthorized/paused v3 Goal + Session, journal unknown, no new Task/Effect/budget/artifact; a fourth attempt is NOT authorized. The post-attempt generalized cleanup reconcile is zero-model (v1/v2 cancelled no action, v3 inert exactly one cancel to version 2, only +1 commitSeq) and does NOT fix the create failure — never pass/V25/business/nine-system.',
       'Round-13 adds the controlled field-level headerDiff and a zero-model native header-cut probe (offline 1632, integration 1643), then the fixed-host zero-model probe (installed X=76c7116) reports matched=false, mismatchKind=header-hash, headerDiff ["delegationDepth: number:0→absent"] with eventCount/seq already aligned 3/3; exactly one bare Session created/archived, 0 model/Goal/Task/Effect/business writes and 0 retries. This is diagnosis only: no fix, a fourth attempt is NOT authorized, and it cannot prove the business chain or V25/nine-system acceptance.',
+      'Round-14 activates the create-only delegationDepth normalization (only cold delegationDepth number:0 + live absent/null, create path only; recovery/default strict unchanged) and freezes v4. The fixed-host fourth attempt then achieved the FIRST real create success (authorized/active/mandate/binding confirmed/goalRef rev1/1 Goal Session, partialCreation=false) but the single evaluation failed CORE_VALIDATION_EVALUATION_UNKNOWN with evaluateAttempts=1 and 0 model requests (13-event Goal Session has no request/assistant), reason masked as owner_paused, stopAction pause, +14 commitSeq/goals 5→6/sessions 37→38/budget unknown 3→4 with held 16384/2; no Task/Effect/artifact or business chain and a fifth attempt is NOT authorized — never pass/V25/business/nine-system.',
       'No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.',
       'Open-ended planning, multi-Goal timers and worker slot behaviour remain untested.',
     ],
@@ -2363,8 +2626,8 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.8',
-    sourceIds: ['h5-g1-module', 'h5b-runtime-integration', 'h5b-checkpoint-probe', 'h4e-migration-hotfix', 'round3-lead-integration', 'round4-lead-integration', 'round6-lead-integration', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'h3-core-validation-reconcile', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'history-assert-diagnostics', 'v1v2-reconcile-generalization', 'round11-lead-integration', 'round11-host-v1v2-reconcile', 'cold-cut-v3-activation', 'round12-lead-integration', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'native-header-cut-probe', 'round13-lead-integration', 'round13-host-native-header-cut', 'round3-host-zero-model', 'round4-host-zero-model', 'h4h5-independent-review'],
-    levels: ['offline-module', 'slice-verification', 'independent-verification', 'fixed-host-zero-model', 'fixed-host-zero-model-reconcile', 'fixed-host-failure-diagnostic'],
+    sourceIds: ['h5-g1-module', 'h5b-runtime-integration', 'h5b-checkpoint-probe', 'h4e-migration-hotfix', 'round3-lead-integration', 'round4-lead-integration', 'round6-lead-integration', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'h3-core-validation-reconcile', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'history-assert-diagnostics', 'v1v2-reconcile-generalization', 'round11-lead-integration', 'round11-host-v1v2-reconcile', 'cold-cut-v3-activation', 'round12-lead-integration', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'native-header-cut-probe', 'round13-lead-integration', 'round13-host-native-header-cut', 'delegation-depth-normalization-v4', 'round14-host-v4-create-success-eval-failure', 'round3-host-zero-model', 'round4-host-zero-model', 'h4h5-independent-review'],
+    levels: ['offline-module', 'slice-verification', 'independent-verification', 'fixed-host-zero-model', 'fixed-host-zero-model-reconcile', 'fixed-host-failure-diagnostic', 'fixed-host-create-succeeded-evaluation-failure'],
     scope: 'H5-B1 G1 checkpoint/restore module + H5b runtime composition/capture integration and read-only checkpoint availability probe + H4e additive migration hotfix + round-3/4 zero-model host reload/probes; independent authenticity review.',
     limitations: [
       'G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.',
@@ -2374,19 +2637,20 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
       'Round-11 generalized the reconcile to fixed v1+v2 targets and the fixed-host zero-model call cancelled the inert v2 residual Goal (v1 already cancelled with no action; exactly one cancel, postCancel version 2, 0 model/0 retries/0 creations, only +1 commitSeq, unchanged state file; the 61122-byte final status caches the receipt). This is reconcile/cancel diagnostics only: the create history-assert failure is unfixed, the dormant liveCut fix and cold-header candidate are not host-confirmed, and it cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.',
       'Round-12 activated the create-only cold-cut and froze v3, but the third independent v3 host attempt FAILED at history-assert/header-hash (counts aligned 3=3/delta 0, cold baa30ad4 vs live bbd0090c; 0 model requests, no retry, partial unauthorized/paused v3 Goal+Session, journal unknown; +3 commitSeq, goals 4→5, sessions 35→36, no new Task/Effect/budget/artifact, state file unchanged). The post-attempt zero-model generalized cleanup reconcile cancelled only the inert v3 target (v1/v2 no action; exactly one cancel to version 2; only +1 commitSeq). These are failure/cleanup diagnostics only: the create failure is unfixed, a fourth attempt is NOT authorized, and they cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.',
       'Round-13 adds a fixed-host zero-model native header-cut diagnosis that explains the remaining header-hash mismatch as exactly delegationDepth: number:0→absent with eventCount/seq 3/3; it creates and archives exactly one bare Session, changes no events/goals/tasks/budget/effects/state (only sessions 36→37), makes 0 model requests and 0 retries, and neither fixes the create failure nor authorizes a fourth attempt; it cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.',
+      'Round-14 normalizes the create-only delegationDepth field and the fourth fixed-host v4 attempt achieved the first real create success (1 authorized/active Goal + 1 Goal Session, budget held 16384/2), but the evaluation failed before any model request (EVALUATION_UNKNOWN, evaluateAttempts=1, reason masked owner_paused) with +14 commitSeq and an unknown budget reservation left in place; it proves create-path progress only, not planning/Task/worker/native completion or checkpoint/recovery readiness, and a fifth attempt is NOT authorized.',
       'No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance.',
     ],
     partialSubscenarios: ['G1 backup bundle capture/verify + isolated-root disarmed restore'],
   },
   {
     rowId: 'SYS.9',
-    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'round11-host-v1v2-reconcile', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'round13-host-native-header-cut', 'joint-host-zero-model', 'h0-baseline'],
-    levels: ['synthetic-ui', 'fixed-host-zero-model', 'fixed-host-zero-model-reconcile', 'fixed-host-failure-diagnostic', 'bounded-real-model-diagnostic-only', 'offline-module', 'environment-baseline'],
-    scope: 'H4b six-domain dashboard panel + H6c channel projection panel (synthetic-host UI cases); fixed-host zero-model visibility of schema4 publication/summary/projection, the round-11/round-12 generalized reconcile receipt caches and the round-13 header-cut probe receipt; H0 status tool check.',
+    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'round11-host-v1v2-reconcile', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'round13-host-native-header-cut', 'round14-host-v4-create-success-eval-failure', 'joint-host-zero-model', 'h0-baseline'],
+    levels: ['synthetic-ui', 'fixed-host-zero-model', 'fixed-host-zero-model-reconcile', 'fixed-host-failure-diagnostic', 'fixed-host-create-succeeded-evaluation-failure', 'bounded-real-model-diagnostic-only', 'offline-module', 'environment-baseline'],
+    scope: 'H4b six-domain dashboard panel + H6c channel projection panel (synthetic-host UI cases); fixed-host visibility of schema4 publication/summary/projection, the round-11/round-12 generalized reconcile receipt caches, the round-13 header-cut probe receipt and the round-14 failed v4 receipt cache; H0 status tool check.',
     limitations: [
       'No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.',
       'No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.',
-      'Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Round-11 adds a 61122-byte final status that caches the generalized v1/v2 reconcile receipt (v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq). round-12 adds a 69,295-byte final status caching BOTH the failed v3 create receipt (header-hash mismatch, 0 model requests, partial v3 Goal+Session) and the generalized cleanup reconcile receipt (v1/v2 no action, v3 inert exactly one cancel to version 2, only +1 commitSeq) — diagnostics caches, not dashboard/render or V05/V24 acceptance. Round-13 adds a 60,692-byte final status caching the zero-model header-cut probe receipt (matched=false, headerDiff delegationDepth: number:0→absent, one bare Session archived, 0 model/Goal/Task/Effect/business writes) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.',
+      'Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Round-11 adds a 61122-byte final status that caches the generalized v1/v2 reconcile receipt (v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq). round-12 adds a 69,295-byte final status caching BOTH the failed v3 create receipt (header-hash mismatch, 0 model requests, partial v3 Goal+Session) and the generalized cleanup reconcile receipt (v1/v2 no action, v3 inert exactly one cancel to version 2, only +1 commitSeq) — diagnostics caches, not dashboard/render or V05/V24 acceptance. Round-13 adds a 60,692-byte final status caching the zero-model header-cut probe receipt (matched=false, headerDiff delegationDepth: number:0→absent, one bare Session archived, 0 model/Goal/Task/Effect/business writes) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-14 adds a 65,594-byte final status caching the failed v4 receipt (create succeeded but evaluation unknown, 0 model requests, reason masked owner_paused, unknown budget 3→4 held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.',
     ],
     partialSubscenarios: ['synthetic-host six-domain panel UI cases', 'fixed-host zero-model status/read-only visibility'],
   },

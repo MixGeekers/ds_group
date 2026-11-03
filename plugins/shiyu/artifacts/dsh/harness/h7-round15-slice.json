@@ -1,0 +1,178 @@
+{
+ "schemaVersion": 1,
+ "kind": "shiyu.harness.h7-round15-slice-evidence",
+ "phase": "H7-round15",
+ "capturedAt": "2026-11-03T12:17:23.081Z",
+ "baselineHead": "6130b805574aa74026dc6e8b7622ead65b89a0ee",
+ "status": "code-tests-delivered-not-clean-refresh",
+ "purpose": "Bind round-14 create-only delegationDepth normalization / frozen v4 experiment / fourth v4 host attempt (create first success, evaluation unknown before any model request) / round-14 clean artifacts / review and the R14-CORR slice-evidence correction into evidence.ts and the acceptance index without granting pass; product rows stay not_covered.",
+ "round14Sources": [
+  "delegation-depth-normalization-v4",
+  "round14-host-v4-create-success-eval-failure",
+  "h7-round14-clean-artifacts",
+  "round14-review",
+  "h7-round14-slice-correction"
+ ],
+ "sourceCounts": {
+  "sources": 84,
+  "files": 311
+ },
+ "files": [
+  {
+   "path": "plugins/shiyu/tests/harness/evidence.ts",
+   "sha256": "a89334cd3b04983b0e3c8836ef6bc02af18d2f2f6894cecc84fd3c904e560fdd",
+   "bytes": 219276
+  },
+  {
+   "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+   "sha256": "b440a6cf7bdcc72802a9b6a4427b7e3d17ed2f86a0332f9425ff70ed420b3349",
+   "bytes": 42999
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+   "sha256": "ec3b4fc993439aa3f62c9a3df29022711776a66f7c29c2f5a8feb4ffbeab68ff",
+   "bytes": 13429
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round4.test.ts",
+   "sha256": "6142a1977f079bdb45abefa573f390f999a22b8552dbc0186723c0f0cfa1e2db",
+   "bytes": 18584
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round5.test.ts",
+   "sha256": "6940b701839e8298f92d1d7e90983179c24c4b3b367e8e73ab83740f8f90e2b4",
+   "bytes": 23353
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round6.test.ts",
+   "sha256": "4969050732ff97d6776f2ad4325ae813a2db664b57d88b2d70842a367f13f2be",
+   "bytes": 20213
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round7.test.ts",
+   "sha256": "027fe52de9010580a5a6e111cec11cfedf36d09f194379e11580a6a743d5b0b0",
+   "bytes": 17944
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round8.test.ts",
+   "sha256": "a16ae96f736919ae98dd797845dd95cff64f0d47d37dcab96d7efedd985f690a",
+   "bytes": 18150
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round9.test.ts",
+   "sha256": "dcbed6bc3a427941d1be85b9ce6fc23741f046af00b5f97a98c84407addb2378",
+   "bytes": 17602
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round11.test.ts",
+   "sha256": "a887d92225f6682f7454f60044e815e4713e5ca36801067b38e23638bde86fd7",
+   "bytes": 17441
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round12.test.ts",
+   "sha256": "3db1f59b8a2efdb4d1defade41b45b3e6b946519a69313e9f3dac7329a4e00f9",
+   "bytes": 23563
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round13.test.ts",
+   "sha256": "db26550f44a6ed981978d6aa0a9939a12163e2e93a504a1b320cf2c8a42c3496",
+   "bytes": 28378
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round14.test.ts",
+   "sha256": "2900917c6739ca28344a47a373ed01b18f7cb1f91bb885fe7c9f98162943fb2e",
+   "bytes": 27982
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round15.test.ts",
+   "sha256": "9bd593c12a48d01b3f527b47cc3c04e14d578f4a18ee4f6800d6f8f6857f8f5a",
+   "bytes": 27313
+  }
+ ],
+ "commands": [
+  "npx tsc --noEmit",
+  "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+  "npm run check (isolated worktree 6130b80 + only round-15 slice files)",
+  "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+  "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+ ],
+ "checks": {
+  "sharedTree": {
+   "blockedByConcurrentWip": true,
+   "note": "No green shared-tree run is claimed for the round-15 code slice: when authoring, the shared workspace contained concurrent uncommitted product WIP, so sources without a pinned blobCommit would compare dirty worktree files against the frozen HEAD blob. The authoritative slice verification is the isolated worktree below; no green/average claim is implied for the shared tree."
+  },
+  "isolatedWorktree": {
+   "head": "6130b805574aa74026dc6e8b7622ead65b89a0ee",
+   "worktree": "/tmp/h7r15-slice (ephemeral)",
+   "tsc": {
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round15-6130b80-isolated-tsc.log",
+     "sha256": "bcb1a61798abda8d8a3a775a1373725c955f1de0a18ef7e131bc06475bdc0f16",
+     "bytes": 11
+    }
+   },
+   "harness": {
+    "tests": 162,
+    "pass": 162,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round15-6130b80-isolated-harness.log",
+     "sha256": "3577267095771ed57bbf703f6ee1bf6c27e86fae0c732a7e890aa02dc6c8369c",
+     "bytes": 12415
+    }
+   },
+   "fullCheck": {
+    "tests": 1672,
+    "pass": 1672,
+    "fail": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round15-6130b80-check.log",
+     "sha256": "56141d6f0d6099c44adb7208fa2ca9b1bcbe1fe6a687ce3519c3dddc243a49dc",
+     "bytes": 176828
+    }
+   }
+  }
+ },
+ "productRows": {
+  "total": 79,
+  "notCovered": 79,
+  "covered": 0
+ },
+ "toolingReady": [
+  "TV.1",
+  "TV.2",
+  "TV.3",
+  "TV.4",
+  "TV.5",
+  "TV.6",
+  "TV.7",
+  "TV.9"
+ ],
+ "acceptanceGate": "incomplete",
+ "limitations": [
+  "H7-round15 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+  "Round-14 fourth v4 host attempt: create succeeded (authorized/active/mandate/binding confirmed/goalRef rev1/1 Goal Session) but evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with evaluateAttempts=1 and 0 model requests; reason masked owner_paused, stopAction pause, +14 commitSeq, goals 5→6, sessions 37→38, budget unknown 3→4 (held 16384/2); no Task/Effect/artifact/business chain; fifth attempt NOT authorized; never pass/V25/business/nine-system.",
+  "Round-14 review and R14-CORR slice-evidence correction are info-only and deliberately unmapped; product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD."
+ ],
+ "archivedCopies": [
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round15-6130b80-isolated-tsc.log",
+   "sha256": "bcb1a61798abda8d8a3a775a1373725c955f1de0a18ef7e131bc06475bdc0f16",
+   "bytes": 11
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round15-6130b80-isolated-harness.log",
+   "sha256": "3577267095771ed57bbf703f6ee1bf6c27e86fae0c732a7e890aa02dc6c8369c",
+   "bytes": 12415
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round15-6130b80-check.log",
+   "sha256": "56141d6f0d6099c44adb7208fa2ca9b1bcbe1fe6a687ce3519c3dddc243a49dc",
+   "bytes": 176828
+  }
+ ]
+}
