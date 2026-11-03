@@ -1,0 +1,423 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-40)",
+  "reviewedAt": "2026-11-03T03:30:00Z",
+  "subject": "Round-7: H3 bounded core-goal runner, host failed attempt evidence, H7-round7 mapping, X+1",
+  "head": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e",
+  "commits": {
+    "H3-runner": "9f841bd",
+    "H7-round7": "bc36dbc",
+    "integration (X)": "183b6499f322c92278b735c704e1f879114475d5",
+    "X+1": "cf8732229a3576955b425f86c818f8726ddb0286",
+    "host-failed-attempt": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "H3 runner evidence",
+      "claim": "9f841bd files/patch hashes match; isolated 1531/1531 0 skip; 16 tests; 16 mutation self-proof",
+      "evidence": [
+        "artifacts/dsh/h3/h3-bounded-core-validation.json",
+        "artifacts/dsh/slices/h3-validation-verify.json"
+      ],
+      "method": "git sha/bytes + log + test inspection",
+      "result": "verified",
+      "detail": "runner 52fac4ff…/47893, test e41f5602…/35688, patch 095c3a45…/9642; log 6eed16af…/164825 1531; 16 tests; mutation loop; statuses/boundaries real"
+    },
+    {
+      "id": "R02",
+      "area": "H3 runner behavior",
+      "claim": "completed/failed/unknown/timeout/abort/single-flight/fixed-input/create-failure/budget/evidence-incomplete covered; no retry; frozen input",
+      "evidence": [
+        "9f841bd tests/core-validation.ts"
+      ],
+      "method": "test names/assertions",
+      "result": "verified-with-finding",
+      "detail": "coverage present; create-failure test asserts empty side effects under fake driver, but real host create failure persisted partial Goal (F7-R1)"
+    },
+    {
+      "id": "R03",
+      "area": "H7-round7",
+      "claim": "47 sources/142 files; 4 new sources/16 files; round6-host only fixed-host-zero-model; product 79/79; no upgrades; blobCommit stable; issues 0",
+      "evidence": [
+        "artifacts/dsh/harness/h7-round7-slice.json",
+        "tests/harness-round7.test.ts",
+        "logs"
+      ],
+      "method": "hashes/tests/logs",
+      "result": "verified",
+      "detail": "tests assert 47/142, new 4/16, round6-host levels exactly ['fixed-host-zero-model'], product 79/79, gate incomplete; logs 1522/99/99; archives match"
+    },
+    {
+      "id": "R04",
+      "area": "integration",
+      "claim": "183b649 runtime/index/tool files match; 1539/1539 log",
+      "evidence": [
+        "artifacts/dsh/integration/round7-lead-integration.json",
+        "artifacts/dsh/slices/round7-integrated-verify.json"
+      ],
+      "method": "hash/log",
+      "result": "verified",
+      "detail": "files 3/3+12/12; log 61ab6577…/165402 1539; host failure later disclosed"
+    },
+    {
+      "id": "R05",
+      "area": "host failure receipt",
+      "claim": "receipt status=failed/CORE_VALIDATION_CREATE_FAILED/GOAL_OPERATION_UNKNOWN; evaluateAttempts=0/stopAction none; no model request; no retry",
+      "evidence": [
+        "artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+        "round7 joint"
+      ],
+      "method": "receipt/audit",
+      "result": "verified",
+      "detail": "receipt 4347B/sha f8b70b5a…; counters evaluateAttempts0/poll0; stopAction none/attempted false; unknowns include CREATE_FAILED/READ_UNAVAILABLE/USAGE_UNKNOWN; second attempt none"
+    },
+    {
+      "id": "R06",
+      "area": "host partial side effect",
+      "claim": "audit discloses durable unauthorized/paused Goal row + one core Goal Session; no Task/Effect/budget/artifact; no events/state change; known 33 sessions unchanged",
+      "evidence": [
+        "round7 host audits",
+        "frozen-goal-state.json",
+        "live DB read-only"
+      ],
+      "method": "audit diff + DB query",
+      "result": "verified",
+      "detail": "before396/52/33/cap39/goals2 → reload402/53/33/41/goals2 → run405/53/34/41/goals3; goal row exact (core-17e3fe95…/request core-validation-frozen-v1/version1/authorized false/paused true/evaluations0/max2/mandate null/native null); added one Goal Session; tasks/budget/effects counts unchanged; state sha/events unchanged"
+    },
+    {
+      "id": "R07",
+      "area": "receipt contradiction disclosure",
+      "claim": "receipt businessSideEffects.goal.created=false contradicted by audit, corrected in evidence findings; no pass claim",
+      "evidence": [
+        "round7 joint observedSideEffects/classification/findings"
+      ],
+      "method": "text review",
+      "result": "verified",
+      "detail": "evidence states contradiction; status failed; no business-pass claim; residual Goal and no-retry disclosed"
+    },
+    {
+      "id": "R08",
+      "area": "H3 offline create-failure gap",
+      "claim": "H3 test/runner model exhausted create-failure side effects correctly",
+      "evidence": [
+        "tests/core-validation.test.ts",
+        "runner create catch",
+        "host evidence"
+      ],
+      "method": "code/test comparison",
+      "result": "finding",
+      "detail": "runner catches create error, sets goal null → businessSideEffects.goal.created=false; test asserts empty; host real create failure leaves durable partial Goal; offline test did not model partial side effect (F7-R1)"
+    },
+    {
+      "id": "R09",
+      "area": "host historical evaluations ambiguity",
+      "claim": "attempt evaluations=2 are clearly historical",
+      "evidence": [
+        "round7 joint attempt.evaluations",
+        "receipt evaluations array"
+      ],
+      "method": "field/text review",
+      "result": "finding",
+      "detail": "attempt.evaluations=2 but evaluateAttempts=0; evidence explains historical tasks/effects, not evaluations; could be misread (F7-R2)"
+    },
+    {
+      "id": "R10",
+      "area": "host provenance/hygiene",
+      "claim": "audit/receipt/goal hashes match; dist 183b649 reproducible; plan sha; no absolute home/secrets",
+      "evidence": [
+        "round7 audits/plan/receipt/goal"
+      ],
+      "method": "sha/bytes + rebuild + scan",
+      "result": "verified",
+      "detail": "audit claims match; receipt/goal claims match; dist 113/a2756606; definitionDigest 5a591515…; plan 8993f0a7… exists; encoded paths only"
+    },
+    {
+      "id": "R11",
+      "area": "X+1",
+      "claim": "cf87322 11 artifacts all M; manifest head=183b649/dirty=false/leaks=0; code/tests/scripts diff0; clean 1539; selfproof 13/99; 47/47 sources/142; product 79/79; gate incomplete",
+      "evidence": [
+        "cf87322 artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "manifest 99948cb2…/84286; clean 775ef3c2…/165330 1539; pipeline 938409ee…/2874; archive a24e7fbe…/867; selfproof 13/99; sources 47/142; product 79/79; gate incomplete executed=passed=0; 11 artifact hashes recorded"
+    },
+    {
+      "id": "R12",
+      "area": "scope/no-pass",
+      "claim": "No evidence overclaims real business chain; host failed; H7-round7 excludes round7 host; product not upgraded",
+      "evidence": [
+        "round7 joint status",
+        "H7 round7",
+        "acceptance"
+      ],
+      "method": "text/mapping review",
+      "result": "verified",
+      "detail": "status=failed-create-unknown; H7 round7 sources are round6 host/h4e/integration/round6 clean, not round7 host; product rows 79/79 not_covered; acceptance gate incomplete; residual Goal deferred to round8"
+    },
+    {
+      "id": "R13",
+      "area": "X/X+1/host scope",
+      "claim": "X=183b649, X+1=cf87322, host=cc2e8d1; host commit only artifacts/doc; X+1 only artifacts",
+      "evidence": [
+        "git logs/stat"
+      ],
+      "method": "file-list/diff",
+      "result": "verified",
+      "detail": "host 7 files (doc+joint+receipt+goal state+3 audits); X+1 11 artifacts; code diff 0 both"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F7-R1",
+      "severity": "moderate-product-test-gap",
+      "title": "H3 runner's create-failure path/test assumes empty side effects; real host failure persisted partial Goal",
+      "files": [
+        "9f841bd src/control/core-validation.ts catch create",
+        "9f841bd tests/core-validation.test.ts create-failure test",
+        "artifacts/dsh/host/round7-bounded-core-goal.json"
+      ],
+      "evidence": "runner catch returns failed with goal null → businessSideEffects.goal.created=false; test asserts created=false/empty; host receipt same false but live audit has unauthorized/paused Goal row + core Goal Session",
+      "impact": "host evidence correctly discloses and corrects the receipt claim; no pass claimed. But the offline test encoded an assumption that create failure is side-effect free, so the runner/receipt defect and partial-create path are not covered by H3 tests",
+      "recommendation": "post-create-failure store readback/unknown side effects in runner; add fake-host regression that persists a partial Goal and asserts disclosure; update test description/coverage; reconcile residual Goal in round-8",
+      "owner": "Lead/H3 implementer"
+    },
+    {
+      "id": "F7-R2",
+      "severity": "minor-disclosure",
+      "title": "Host attempt evaluations=2 lacks explicit 'historical' label",
+      "files": [
+        "artifacts/dsh/host/round7-bounded-core-goal.json#attempt.evaluations"
+      ],
+      "evidence": "attempt.evaluations=2 while counters.evaluateAttempts=0; receipt evaluations are pre-existing goals'; evidence explains historical tasks/effects but not evaluations",
+      "impact": "reader could misread two attempts; counters/evidence otherwise correct",
+      "recommendation": "label evaluations as historical/pre-existing or reference evaluateAttempts=0 explicitly",
+      "owner": "Lead"
+    },
+    {
+      "id": "F7-R3",
+      "severity": "info-residual",
+      "title": "Residual unauthorized/paused core Goal and Goal Session intentionally left for round-8 reconcile",
+      "files": [
+        "artifacts/dsh/host/round7/frozen-goal-state.json",
+        "host audits"
+      ],
+      "evidence": "goal core-17e3fe95… request core-validation-frozen-v1 version1 authorized false paused true evaluations0; no cleanup command; not retried",
+      "impact": "real side effect disclosed; residual must be reconciled later; no Task/Effect/budget/artifact/events/state change",
+      "recommendation": "round-8 reconcile/cancel without retrying the failed attempt",
+      "owner": "Lead"
+    },
+    {
+      "id": "F7-R4",
+      "severity": "info-scope",
+      "title": "Round-7 failed host evidence not mapped in H7-round7",
+      "files": [
+        "h7-round7-slice.json",
+        "traceability.json"
+      ],
+      "evidence": "H7-round7 new sources are round6 host/h4e/integration/round6 clean; host commit cc2e8d1 comes after X+1 and is not mapped",
+      "impact": "no upgrade/unknown; product rows still not_covered",
+      "recommendation": "map failed attempt as diagnostic-only/unknown in round-8 if appropriate",
+      "owner": "Lead"
+    },
+    {
+      "id": "F7-R5",
+      "severity": "info-hygiene",
+      "title": "acceptance inputs contain clean generation temp root",
+      "files": [
+        "acceptance-report.json#inputs"
+      ],
+      "evidence": "pluginRoot=/private/tmp/h7r7-clean/plugins/shiyu, workspaceRoot=/private/tmp/h7r7-clean; no home/user path",
+      "impact": "no product/home leak",
+      "recommendation": "future redaction",
+      "owner": "test-harness/Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Successful real bounded core Goal run",
+      "reason": "host attempt failed at create; no plan/Task/worker/verification/native completion; not retried"
+    },
+    {
+      "item": "Partial-create detection in H3 offline suite",
+      "reason": "fake driver throws before persisting; host real partial Goal not reproduced offline (F7-R1)"
+    },
+    {
+      "item": "Exact provider usage/cost on failed attempt",
+      "reason": "no model request admitted; usage unknown"
+    },
+    {
+      "item": "Round-7 host mapping in H7",
+      "reason": "not mapped until round-8 (intentional)"
+    },
+    {
+      "item": "Independent suite re-execution",
+      "reason": "read-only; logs/hashes/counts/Lead checks used; no product/host/model rerun"
+    }
+  ],
+  "counts": {
+    "H3_runner_isolated": 1531,
+    "H3_tests": 16,
+    "H7_round7_sources": 47,
+    "H7_round7_files": 142,
+    "H7_round7_full": 1522,
+    "H7_harness": 99,
+    "round7_integration": 1539,
+    "X+1_clean": 1539,
+    "selfproof": 99
+  },
+  "h3Runner": {
+    "frozenInputVerified": true,
+    "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca",
+    "patchSha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383",
+    "mutationSelfProof": true,
+    "casesCovered": [
+      "completed",
+      "failed",
+      "unknown",
+      "timeout",
+      "abort",
+      "single-flight",
+      "fixed-input",
+      "create-failure",
+      "budget-overrun",
+      "evidence-incomplete"
+    ],
+    "createFailureAssumesEmptySideEffects": true
+  },
+  "hostFailure": {
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_CREATE_FAILED",
+    "cycle": "GOAL_OPERATION_UNKNOWN",
+    "evaluateAttempts": 0,
+    "stopAction": "none",
+    "modelRequests": 0,
+    "retried": false,
+    "receipt": {
+      "bytes": 4347,
+      "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+      "businessSideEffectsGoalCreated": false
+    },
+    "audit": {
+      "before": {
+        "commitSeq": 396,
+        "events": 52,
+        "sessions": 33,
+        "capability": 39,
+        "goals": 2
+      },
+      "afterReload": {
+        "commitSeq": 402,
+        "events": 53,
+        "sessions": 33,
+        "capability": 41,
+        "goals": 2
+      },
+      "afterRun": {
+        "commitSeq": 405,
+        "events": 53,
+        "sessions": 34,
+        "capability": 41,
+        "goals": 3
+      },
+      "addedGoalSession": 1,
+      "tasksEffectsBudgetArtifactsUnchanged": true,
+      "stateFileUnchanged": true,
+      "known33SessionsUnchanged": true
+    },
+    "goalRow": {
+      "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+      "requestId": "core-validation-frozen-v1",
+      "version": 1,
+      "authorized": false,
+      "paused": true,
+      "cancelled": false,
+      "evaluations": 0,
+      "maxEvaluations": 2,
+      "mandateId": null,
+      "native": null
+    },
+    "receiptContradictionDisclosed": true,
+    "noBusinessPassClaim": true
+  },
+  "xorOne": {
+    "X": "183b6499f322c92278b735c704e1f879114475d5",
+    "X+1": "cf8732229a3576955b425f86c818f8726ddb0286",
+    "host": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "183b6499f322c92278b735c704e1f879114475d5",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T02:53:29.518Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 404,
+      "bytes": 7096993,
+      "digest": "10a0f0e318868f55e2b74f2741a2f8aed4c40555cdaeb352fbad566db06d9ad2"
+    },
+    "cleanCheck": {
+      "tests": 1539,
+      "pass": 1539,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "775ef3c2ff914baa4729c69882ae478f76940a9cc701b8233bbdd80ccc6915d0",
+      "bytes": 165330
+    },
+    "pipeline": {
+      "sha256": "938409eec9a6406529a3871b900effd381c3fa5b580c9f625b21001c355a0374",
+      "bytes": 2874,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "a24e7fbe9b710868660e04940b96f0cc7d44309186caa776b95d1c87bb8fc63c/867",
+    "selfproof": {
+      "files": 13,
+      "tests": 99
+    },
+    "sources": {
+      "verified": 47,
+      "files": 142,
+      "unknown": 0
+    },
+    "oracleCorpus": {
+      "h0b": 15,
+      "h0cBusiness": 7,
+      "total": 22
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    }
+  },
+  "overallVerdict": "Round-7 evidence is authentic and honest: the H3 bounded runner, H7-round7 mapping and X+1 clean artifacts match their hashes/counts and do not upgrade product rows; the fixed-host attempt is correctly recorded as a FAILED create with GOAL_OPERATION_UNKNOWN (0 evaluate attempts, 0 model requests, no retry), and the evidence explicitly discloses the durable unauthorized/paused Goal row + core Goal Session, the receipt businessSideEffects.goal.created=false contradiction, and the absence of Task/Effect/budget/artifact/event/state changes. The only substantive gap is F7-R1: the H3 offline create-failure test assumes side-effect-free failure and the runner does not read back after a create error, so the partial-create side effect seen on the host is not covered offline (host evidence corrects it); plus F7-R2 historical evaluations labelling. No evidence was found that masks the failure or claims real business completion."
+}

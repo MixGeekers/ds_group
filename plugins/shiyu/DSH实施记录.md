@@ -1449,3 +1449,35 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 2. 失败被原样保留、未重试、未创建第二个 Goal/Task；残留 1 个 inert（未授权/paused）Goal 与 Session，需下一轮新增 reconcile/cancel 路径处理（且不得自动重试创建）。
 3. 下一轮应：实现“对账/清理未知 create”的只读-安全路径（读取 Goal/native 状态→显式 cancel 或标记 abandoned），再决定是否允许一次人工触发的新尝试（需重新冻结计划与预算）。
 - 证据：[round7-bounded-core-goal.json](<artifacts/dsh/host/round7-bounded-core-goal.json>) + `host/round7/`（receipt、Goal 状态摘录、3 份审计）。
+
+## 45. 第七轮独立复核与 F7 处置（round-7 收尾）
+
+2026-11-03，独立验证员对 round-7 提交与宿主失败证据做只读复核（task-40）：**13 项检查完成，5 条 findings**。报告：[ROUND7-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND7-EVIDENCE-REVIEW.md>)、[round7-evidence-review.json](<artifacts/dsh/verify/round7-evidence-review.json>)。
+
+### 45.1 结论
+
+**round-7 证据真实、披露诚实；宿主尝试被正确记录为失败，无真实业务通过声明，未重试，未发现掩盖失败或把诊断当 pass。** 真实业务链未验证，主要缺口是 H3 离线 create-failure 假设与真实部分创建不一致（F7-R1）。
+
+### 45.2 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| H3 runner `9f841bd` | 文件/补丁匹配；隔离 1531/1531、0 skip；16 tests（completed/failed/unknown/timeout/abort/单飞/冻结输入/create 失败/预算 overrun/证据不完整）；validator mutation 自证真实 |
+| H7-round7 `bc36dbc` | 47 sources/142 files；新增 4 来源/16 文件逐文件 blob/ancestry；round6-host 仅 `fixed-host-zero-model`；产品 79/79 not_covered、无升级；issues=0 |
+| 集成 `183b649` | 隔离 1539/1539、0 skip（`61ab6577…`/165402） |
+| 宿主 `cc2e8d1` | **失败证据披露诚实**：receipt failed/CREATE_FAILED/GOAL_OPERATION_UNKNOWN、evaluateAttempts=0、stopAction=none、0 模型请求、未重试；审计链 396→402→405/events 52→53/53/goals 2→2→3/sessions 33→33→34；Task/Effect/budget/artifact 不变、state 不变、known 33 Session 不变；新 unauthorized/paused Goal `core-17e3fe95…` + 1 core Goal Session 经复核者只读 DB 逐字段核对一致；receipt created=false 矛盾已在 findings 更正；dist 独立重建 113/`a2756606…`；definitionDigest 不变 |
+| X+1 `cf87322` | 11 artifacts only；manifest head=183b649/dirty=false/leaks=0；src/client/tests/scripts diff=0；clean 1539/1539；pipeline 全绿；selfproof 13 files/99；47/47 sources verified、0 unknown；产品 79/79 not_covered；acceptance gate=incomplete/executed=passed=0 |
+
+### 45.3 F7 findings 处置
+
+| ID | 处置 |
+|---|---|
+| **F7-R1（moderate）** | runner create 失败时未做 post-failure readback，仍报告 `businessSideEffects.goal.created=false`；离线测试未覆盖“部分创建”。宿主证据已诚实更正。**转 round-8**：补 create-failure 后只读回读（Goal/Session/native 行）与 unknown side effects 分类、fake-host partial-create 回归，并更新测试描述；不得因此重试创建。 |
+| F7-R2（minor） | attempt block 中 `evaluations:2` 是历史 evaluations，误导；round-8 加 historical 标签。 |
+| F7-R3/F7-R4/F7-R5（info） | 残留 Goal/Session 留待 round-8 reconcile；round-7 host 未入 H7 映射（round-8）；acceptance 临时路径 future redact。 |
+
+### 45.4 边界
+
+1. 真实有界业务链未验证：create 失败、无模型请求、无 Task/worker/核验/native complete；残留 1 个 inert Goal + Session 需 reconcile。
+2. 产品行 79/79 not_covered；acceptance gate=incomplete、executed=passed=0；round-7 host 证据未入映射。
+3. **不重试**已失败的真实 create；round-8 先做失败后回读/清理路径，再决定是否需要人工触发的新冻结尝试。
