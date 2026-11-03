@@ -1,0 +1,180 @@
+{
+ "schemaVersion": 1,
+ "kind": "shiyu.harness.h7-round12-slice-evidence",
+ "phase": "H7-round12",
+ "capturedAt": "2026-11-03T08:03:12.361Z",
+ "baselineHead": "a29dd29905775c5287714b57ee7db8c6802e98a0",
+ "status": "code-tests-delivered-not-clean-refresh",
+ "purpose": "Bind round-11 history-assert diagnostics, generalized v1/v2 reconcile, fixed-host zero-model generalized reconcile, round-11 integration/clean artifacts and review into evidence.ts / acceptance index without granting pass; product rows stay not_covered.",
+ "round11Sources": [
+  "history-assert-diagnostics",
+  "v1v2-reconcile-generalization",
+  "round11-lead-integration",
+  "round11-host-v1v2-reconcile",
+  "h7-round11-clean-artifacts",
+  "round11-review"
+ ],
+ "sourceCounts": {
+  "sources": 67,
+  "files": 224
+ },
+ "files": [
+  {
+   "path": "plugins/shiyu/tests/harness/evidence.ts",
+   "sha256": "f1b1b4aa027765e193e4a1da2a82f7cb12d977901374c11ad73f0b57a884ec6b",
+   "bytes": 161790
+  },
+  {
+   "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+   "sha256": "aa1a80e80bac6fdff69d60151bb0c6a5b188282b54a7eeba8d13eac6013cb97a",
+   "bytes": 38949
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round4.test.ts",
+   "sha256": "f20c6445c6c22ed7f2eac91736e073bf89d2e348648014ea936f36f8cc94e010",
+   "bytes": 18584
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round5.test.ts",
+   "sha256": "fc5fecc366426dadb929d954c0dcf0d9863c6ee46ad794d9f6dfacfb5e1f05b0",
+   "bytes": 23353
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round6.test.ts",
+   "sha256": "41597a1735631e62041ffbeb7b2b01d01eaa74d21090015e6b6bb60b33b0091c",
+   "bytes": 20213
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round7.test.ts",
+   "sha256": "cb7184f8a444d17bbb9d6e229653824e3a6e2d53766c1043731bc3b8d5bf7476",
+   "bytes": 17944
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round8.test.ts",
+   "sha256": "d7c7e72d020b5d7d4cc6c0ebbcf1dbb109aeabaec0de4cf7fb3eb247267ac431",
+   "bytes": 18150
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round9.test.ts",
+   "sha256": "aa0b1ebd7595fa9b3e8995ce479a1c415f403d3a76b59cc1fe4aa1b4cd1913bb",
+   "bytes": 17602
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round11.test.ts",
+   "sha256": "28d655e147c8a81e3a97957280eccca07d22141feca7ed430dd087474c4aed01",
+   "bytes": 17441
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round12.test.ts",
+   "sha256": "778a4f06b32705807f666ac31023b205f00428f883a47cc6c7b5c29ac3a1b119",
+   "bytes": 23178
+  }
+ ],
+ "commands": [
+  "npx tsc --noEmit",
+  "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+  "npm run check (isolated worktree a29dd29 + only round-12 slice files)",
+  "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+  "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+ ],
+ "checks": {
+  "sharedTree": {
+   "tsc": {
+    "exitCode": 0
+   },
+   "harness": {
+    "tests": 132,
+    "pass": 132,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round12-a29dd29-shared-harness.log",
+     "sha256": "20e8f9ebb83c167c24afcf1119114098d7de7a41f2b71f97b6e71972265c7de2",
+     "bytes": 10543
+    }
+   }
+  },
+  "isolatedWorktree": {
+   "head": "a29dd29905775c5287714b57ee7db8c6802e98a0",
+   "worktree": "/tmp/h7r12-slice (ephemeral)",
+   "tsc": {
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round12-a29dd29-isolated-tsc.log",
+     "sha256": "bcb1a61798abda8d8a3a775a1373725c955f1de0a18ef7e131bc06475bdc0f16",
+     "bytes": 11
+    }
+   },
+   "harness": {
+    "tests": 132,
+    "pass": 132,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round12-a29dd29-isolated-harness.log",
+     "sha256": "59478a28d75f3a79fdecbb94e4c847b172ed026c623984173778b7e321f0ff56",
+     "bytes": 10507
+    }
+   },
+   "fullCheck": {
+    "tests": 1614,
+    "pass": 1614,
+    "fail": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round12-a29dd29-check.log",
+     "sha256": "e66eb61a7ae7ab2cc622690ff35eac0619ecd934f5ec63c53919281c72caea7f",
+     "bytes": 171846
+    }
+   }
+  }
+ },
+ "productRows": {
+  "total": 79,
+  "notCovered": 79,
+  "covered": 0
+ },
+ "toolingReady": [
+  "TV.1",
+  "TV.2",
+  "TV.3",
+  "TV.4",
+  "TV.5",
+  "TV.6",
+  "TV.7",
+  "TV.9"
+ ],
+ "acceptanceGate": "incomplete",
+ "limitations": [
+  "H7-round12 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+  "Round-11 history-assert diagnostics are offline/isolated and the create-only liveCut candidate fix is DORMANT/not host-confirmed; the v1/v2 create failure remains unfixed.",
+  "Round-11 fixed-host generalized reconcile is zero-model: v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq; it is never pass/V25/business/nine-system.",
+  "Round-11 review is independent-review-info only and deliberately unmapped; product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD.",
+  "A later independent v3 liveCut activation fix by core-planning (commit ccefc57, outside this slice) and Lead round-12 integration WIP exist on the shared tree; the mapped round-11 source facts/limitations are as-of their committed slice (196024a/7d9979e) and are not claims about later trees."
+ ],
+ "archivedCopies": [
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round12-a29dd29-shared-harness.log",
+   "sha256": "20e8f9ebb83c167c24afcf1119114098d7de7a41f2b71f97b6e71972265c7de2",
+   "bytes": 10543
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round12-a29dd29-isolated-tsc.log",
+   "sha256": "bcb1a61798abda8d8a3a775a1373725c955f1de0a18ef7e131bc06475bdc0f16",
+   "bytes": 11
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round12-a29dd29-isolated-harness.log",
+   "sha256": "59478a28d75f3a79fdecbb94e4c847b172ed026c623984173778b7e321f0ff56",
+   "bytes": 10507
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round12-a29dd29-check.log",
+   "sha256": "e66eb61a7ae7ab2cc622690ff35eac0619ecd934f5ec63c53919281c72caea7f",
+   "bytes": 171846
+  }
+ ],
+ "isolatedWorktreeHead": "a29dd29905775c5287714b57ee7db8c6802e98a0",
+ "baselineNote": "Round-12 task baseline HEAD was a29dd29 (round-11 review); the shared tree subsequently advanced to ccefc57 (independent v3 liveCut activation commit by core-planning) and also carries Lead round-12 integration WIP, neither of which is part of this H7 mapping slice. The isolated verification worktree was created detached at a29dd29 + only the 10 round-12 harness/test files + this slice evidence json, so its 1614/1614 count is the round-11-review baseline (1605) + 9 new H7-round12 tests."
+}
