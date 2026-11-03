@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the core-validation Goal reconcile command and tool",
+  "capturedAt": "2026-11-03T03:41:40.430Z",
+  "status": "offline-verified-integration",
+  "purpose": "Wire the owner-only runtime.reconcile-core-validation-goal command (fixed requestId, read-only classification, at most one cancel for an inert residual Goal, no retry/model/Goal creation) and the parameterless shiyu_reconcile_core_validation_goal tool; receipts stay in diagnostics.coreValidationReconcile.",
+  "baseline": {
+    "head": "ab62847",
+    "note": "round-7 close; round-8 slices committed on top"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 107668,
+      "sha256": "eb66e3d1f8cac8ec23190d26fd9e5a418661a9ea8a9f45504424febebf554c2e"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 13717,
+      "sha256": "8df3adadfb901958c9cba0ca23b7521dd43d47c7c0cb393a0b6c77d8e0ea47e7"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 8792,
+      "sha256": "6c07c3244d85574b1fc7063d6ced388a892a1c3910ec56fb161692f3409d1933"
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD ab62847 + all round-8 slice files and the integration files)",
+      "evidence": "artifacts/dsh/slices/round8-integrated-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1561,
+        "pass": 1561,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 534472,
+      "log": "plugins/shiyu/.local/slice-verify-round8-integrated.log",
+      "arithmetic": "1539 baseline + 13 net reconcile tests + 8 H7-round8 + 1 tool test = 1561"
+    },
+    "perSliceAuthorChecks": {
+      "h3Reconcile": "1552/1552 (baseline 1539 + 13)",
+      "h7Round8": "1547/1547 (baseline 1539 + 8) plus harness 107/107"
+    },
+    "hostExecutionPending": "the one reconcile call against the residual round-7 Goal is executed next and committed separately; it must not create a Goal or call a model."
+  },
+  "knownLimitations": [
+    "Reconcile only classifies and optionally cancels the inert residual Goal; it does not retry creation or start a new bounded validation.",
+    "Readback depends on the core domain being available; otherwise the result is unknown and nothing is written.",
+    "The residual Goal Session is retained as history and is not deleted."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; host reconcile pending."
+}

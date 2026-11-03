@@ -154,6 +154,28 @@ export function coreGoalValidationTool(service: { command(input: unknown): Promi
     },
   };
 }
+/**
+ * Owner-only reconcile tool for the fixed core-validation Goal.
+ *
+ * This is READ-ONLY except for at most one explicit cancel of an inert
+ * unauthorized partial Goal left behind by a failed create. It never creates or
+ * resumes a Goal, never calls a model, never retries, and never writes around the
+ * trusted core service. Paused runtimes are rejected; the receipt is cached only
+ * in snapshot().diagnostics.coreValidationReconcile.
+ */
+export function coreValidationReconcileTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_reconcile_core_validation_goal',
+    description: '只读核对固定 requestId core-validation-frozen-v1 的 Goal 并分类（absent/inert-unauthorized/paused-authorized/cancelled/unknown）；仅 inert unauthorized 残留 Goal 尝试一次显式 cancel，0 重试；不创建/重启 Goal、不调模型、不写业务库；要求运行时未暂停；回执仅存 snapshot().diagnostics.coreValidationReconcile。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.reconcile-core-validation-goal' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  };
+}
 export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_diagnose_worker_tools',
@@ -187,6 +209,9 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   // Session/artifact and makes real model calls. Owner-only; never mounted into
   // restricted core/worker/replyer Sessions.
   ctx.effect(() => ctx.tools.register(coreGoalValidationTool(service)));
+  // Owner-only reconcile of the fixed core-validation Goal: read-only + at most
+  // one cancel for an inert partial Goal; no Goal creation and no model call.
+  ctx.effect(() => ctx.tools.register(coreValidationReconcileTool(service)));
   ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));
   ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));
   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private

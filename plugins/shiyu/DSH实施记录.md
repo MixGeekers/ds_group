@@ -1481,3 +1481,28 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 真实有界业务链未验证：create 失败、无模型请求、无 Task/worker/核验/native complete；残留 1 个 inert Goal + Session 需 reconcile。
 2. 产品行 79/79 not_covered；acceptance gate=incomplete、executed=passed=0；round-7 host 证据未入映射。
 3. **不重试**已失败的真实 create；round-8 先做失败后回读/清理路径，再决定是否需要人工触发的新冻结尝试。
+
+## 46. 第八轮：core Goal create 失败回读与安全 reconcile（round-8 离线切片）
+
+状态：**G1 离线/集成通过**；宿主 reconcile 待执行。2026-11-03。
+
+### 46.1 F7-R1 修复：create 失败后的只读回读
+
+- `runBoundedCoreValidation` 在 create 抛错后按固定 requestId 执行只读 post-failure readback（`core.snapshot` + `goal.binding.load` 精确 Session）：receipt 改为 `businessSideEffects.goal:{created:'true'|'false'|'unknown', observed{...}}` + `partialCreation:{detected,readback:complete|absent|unavailable|inconsistent,evidence[]}`；读回不可用/重复 requestId → `unknown`，**绝不把部分创建误报为空**；不重试、不自动取消。
+- 测试更新/新增覆盖：create 失败读回发现 inert partial Goal→`created='true'`+精确 observed（round-7 goalId/version1/unauthorized/paused/无 mandate·native/evaluations0/taskRefs0）+ binding unknown + partialCreation；读回不可用→unknown；authorized partial→true 且不自动 cancel；无重试/无自动 cancel。
+
+### 46.2 reconcile 能力
+
+- `reconcileCoreValidationGoal`：固定 requestId 只读分类 `absent / inert-unauthorized / paused-authorized / cancelled / unknown`；**仅 inert-unauthorized** 尝试恰好一次 `core.control('cancel',{goalId,expectedVersion})`（0 重试；拒绝保留 errorCode + `CANCEL_UNCONFIRMED`；成功后只读回读 postCancel）；paused-authorized 不 cancel 并标 `OWNER_DECISION_REQUIRED`；unknown/读回不可用不写；不创建/不重启 Goal、不调模型、不写库绕过。
+- 测试 29 项（16+13）；作者隔离 1552/1552。
+
+### 46.3 H7-round8 映射
+
+- 新增 5 来源/18 文件（52 来源/160 文件）：round7-host-bounded-core-goal-failure（新等级仅 `fixed-host-failure-diagnostic`，失败证据绝不 pass/V25/业务）、h3 runner（blobCommit 9f841bd）、round7 integration、h7-round7 clean artifacts、round7 review（`independent-review-info` 且刻意不引用产品行）。
+- 产品行仍 79/79 not_covered、covered=0、tooling_ready/V/S/FL 不升级；harness 107/107、作者隔离 1547/1547。
+
+### 46.4 Lead 集成与验证
+
+- owner-only `runtime.reconcile-core-validation-goal`（paused 拒绝、专用单槽、可中止、只调一次、回执存 `diagnostics.coreValidationReconcile`，返回 `readOnly:true/createsGoal:false/modelCalls:0/retries:0`）+ 工具 `shiyu_reconcile_core_validation_goal`。
+- **Lead 集成隔离验证**（HEAD `ab62847` + 全部 round-8 切片与集成文件）：**1561/1561 通过，0 失败/0 跳过**（= 1539 + 13 + 8 + 1）；证据 `artifacts/dsh/slices/round8-integrated-verify.json`。
+- 宿主执行为一次 reconcile 调用（0 重试、无模型、不新建 Goal），结果另行留证。

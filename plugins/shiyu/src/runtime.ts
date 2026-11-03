@@ -34,7 +34,7 @@ import type { LocalMemoryEntry } from './adapters/control-store/memory-domain.js
 import type { MemoryIndexEntry } from './adapters/control-store/memory-index-domain.js';
 import type { AvailableMemoryDomain, UnavailableDomain } from './state/publication.js';
 import { CorePump, type CoreEvaluationResult } from './control/core-pump.js';
-import { runBoundedCoreValidation, type CoreValidationReceipt, type CoreValidationStore } from './control/core-validation.js';
+import { reconcileCoreValidationGoal, runBoundedCoreValidation, type CoreValidationReceipt, type CoreValidationReconcileReceipt, type CoreValidationStore } from './control/core-validation.js';
 import { LocalCoreService, type LocalCoreOptions } from './control/local-core.js';
 import type { CoreGoal, CorePrepareInput } from './contracts/core.js';
 import type { CapabilityBinding, CapabilityCommandReceipt } from './contracts/capability.js';
@@ -167,6 +167,7 @@ export class RuntimeService {
   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
   private lastCoreGoalValidation?: CoreValidationReceipt;
+  private lastCoreValidationReconcile?: CoreValidationReconcileReceipt;
   private lastTimeSourceProbe?: TimeSourceProbeResult;
   private lastTimeTriggerProbe?: LiveTimeTriggerProbeResult;
   private core?: CoreDriver;
@@ -730,6 +731,36 @@ export class RuntimeService {
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
+  /**
+   * Owner-only, read-only classification of the one fixed core-validation Goal,
+   * with at most one explicit `core.control('cancel')` for an inert unauthorized
+   * partial Goal. It never creates/resumes a Goal, never calls a model, never
+   * retries and never writes around the trusted core service. The receipt is
+   * cached only in snapshot diagnostics. Paused runtimes are rejected.
+   */
+  private async commandCoreValidationReconcile(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core-validation reconcile input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (!this.core) throw new Error('CORE_VALIDATION_RECONCILE_UNAVAILABLE');
+    if ([...this.operations.values()].some(op => op.phase === 'core-validation goal reconcile')) throw new Error('Core-validation Goal reconciliation is already running');
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '核对有界 core 验证 Goal', phase: 'core-validation goal reconcile',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      const receipt = await reconcileCoreValidationGoal({ core: this.core, store: this.store as unknown as CoreValidationStore,
+        signal: op.controller.signal, progress: phase => { op.phase = phase.slice(0, 120); } });
+      this.lastCoreValidationReconcile = structuredClone(receipt);
+      return { ...receipt, readOnly: true, createsGoal: false, modelCalls: 0, retries: 0 };
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private async record(type: string, message: string, status: string): Promise<void> {
     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });
     // This component's only effect is a readable event-backed activity projection.
@@ -848,6 +879,7 @@ export class RuntimeService {
         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
         coreGoalValidation: this.lastCoreGoalValidation ? structuredClone(this.lastCoreGoalValidation) : null,
+        coreValidationReconcile: this.lastCoreValidationReconcile ? structuredClone(this.lastCoreValidationReconcile) : null,
         timeSource: this.timePump ? this.timePump.snapshot() : null,
         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,
         timeTriggerProbe: this.lastTimeTriggerProbe ? structuredClone(this.lastTimeTriggerProbe) : null,
@@ -903,6 +935,7 @@ export class RuntimeService {
     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
     if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);
     if (action === 'runtime.probe-core-goal') return this.commandCoreGoalValidation(value, signal);
+    if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);
     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
