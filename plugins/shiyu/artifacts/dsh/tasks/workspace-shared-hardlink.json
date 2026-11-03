@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "slice": "task-67",
+  "title": "每任务工作区 + 可写共享工作区硬链接：布局、发布、锁、manifest、冲突与回滚",
+  "generatedAt": "2026-11-03T17:24:52.337Z",
+  "evidenceLevel": "G1 offline filesystem module (real temporary filesystems and hard links; no live host/model)",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "fingerprints": {
+    "source": {
+      "git": {
+        "head": "9d419668c0eaf83512644719777b46b14e5ecab8"
+      },
+      "moduleFiles": [
+        {
+          "path": "src/adapters/artifacts/shared-workspace.ts",
+          "sha256": "68f7b1cc35ee3293298baaaf72c1b131866b363d6da836fe81271f950c217afb"
+        },
+        {
+          "path": "src/adapters/artifacts/index.ts",
+          "sha256": "09138ac806be345c3a380c706672042bed535fe00cb7f42b28828f35a1704f27"
+        },
+        {
+          "path": "src/adapters/artifacts/SHARED_WORKSPACE.md",
+          "sha256": "cd72f227c1e8a219a03076a3e7bc95150217957efd33ea02a4f35523447a8ef7"
+        },
+        {
+          "path": "tests/workspace-shared-hardlink.test.ts",
+          "sha256": "45ca1e5964d14842ff4c837b7e1a05cb6b1073df2995f2724a3704a0cabf9481"
+        }
+      ]
+    },
+    "build": {
+      "buildCommand": "npm run check (tsc --noEmit + node --import tsx --test tests/*.test.ts + tsc -p tsconfig.build.json + node --check client/index.js)",
+      "tsconfigBuildSha256": "54b6d705480e307e263aa78965b318c0921d5b94fa346b385ca68cbd8318137a",
+      "packageJsonSha256": "7eb06a89562c77d7f6f674b630011764d9350528a81d316786470c4afdcf4700"
+    },
+    "tests": {
+      "files": [
+        {
+          "path": "tests/workspace-shared-hardlink.test.ts",
+          "sha256": "45ca1e5964d14842ff4c837b7e1a05cb6b1073df2995f2724a3704a0cabf9481"
+        }
+      ]
+    }
+  },
+  "layout": {
+    "taskRoot": "{dataDir}/workspaces/<taskId>/task",
+    "sharedMirror": "{dataDir}/workspaces/<taskId>/shared (hard links only; directories recreated)",
+    "manifest": "{dataDir}/workspaces/<taskId>/.workspace-manifest.json (dev/ino/nlink/size/mtime/sha256 + integrity hash)",
+    "report": "{dataDir}/workspaces/<taskId>/.workspace-report.json",
+    "snapshot": "{dataDir}/workspaces/<taskId>/.workspace-snapshot/ (optional APFS clone/copy)",
+    "sharedIndex": "{dataDir}/workspaces/.shared-workspaces/index.json",
+    "lock": "{dataDir}/workspaces/.shared-workspaces/lock.json (exclusive single-writer)",
+    "artifacts": "unchanged: {dataDir}/workspaces/<taskId>/artifacts/note.txt is only published by LocalArtifactStore from the task area"
+  },
+  "disclosure": {
+    "inPlaceWritesPropagateToSharedSource": true,
+    "mirrorUsesFileHardLinksOnly": true,
+    "deletionDefault": "task-link-only",
+    "deleteSharedRequiresExplicitOwnerDecision": true,
+    "unexpectedConflictOutcome": "unknown/blocked, shared index not advanced, task mirror retained for reconciliation",
+    "singleWriterAssumption": true,
+    "sameFilesystemRequired": true,
+    "symlinkAndExternalHardlinkRejected": true,
+    "artifactsPathUnchanged": true
+  },
+  "summary": {
+    "total": 11,
+    "passed": 11,
+    "failed": 0
+  },
+  "cases": [
+    {
+      "caseId": "in-place-propagation",
+      "injectionPoint": "共享文件已链接到任务 shared/，任务原地写该链接",
+      "expected": "canonical 内容立即变化；declare expectedChanges 后 synced 且 index 更新",
+      "observed": "canonical changed immediately; synced with declared change; index sha updated",
+      "pass": true
+    },
+    {
+      "caseId": "new-file-publish",
+      "injectionPoint": "任务在 shared/ 下新建 nested/new.txt",
+      "expected": "canonical 出现新文件；index 记录；不静默丢弃",
+      "observed": "published new.txt by hard link; canonical readable; index updated",
+      "pass": true
+    },
+    {
+      "caseId": "delete-default",
+      "injectionPoint": "任务删除 shared/ 中文件链接",
+      "expected": "默认只移除任务侧链接，canonical 保留",
+      "observed": "task-link removed; canonical kept; change recorded as task-link-removed",
+      "pass": true
+    },
+    {
+      "caseId": "delete-owner-decision",
+      "injectionPoint": "任务删除链接 + 显式 ownerDecision delete-shared",
+      "expected": "canonical 被受控删除；index 移除；回执记录 decision",
+      "observed": "canonical deleted only under explicit owner decision; index updated",
+      "pass": true
+    },
+    {
+      "caseId": "unexpected-conflict",
+      "injectionPoint": "任务原地写未在 expectedChanges 声明",
+      "expected": "status unknown；index 不变；mirror 保留；不猜",
+      "observed": "unknown with unexpected-modification; index untouched; mirror retained",
+      "pass": true
+    },
+    {
+      "caseId": "lock-exclusive",
+      "injectionPoint": "任务 A 持有共享锁时任务 B prepare",
+      "expected": "任务 B 得到 WORKSPACE_LOCKED；A release 后 B 可 prepare",
+      "observed": "second prepare blocked with WORKSPACE_LOCKED; released lock allows next task",
+      "pass": true
+    },
+    {
+      "caseId": "cross-device-rejected",
+      "injectionPoint": "注入 deviceOf 使 shared root 与 workspaces root 设备不同",
+      "expected": "CROSS_DEVICE；不创建链接",
+      "observed": "CROSS_DEVICE before any link creation",
+      "pass": true
+    },
+    {
+      "caseId": "symlink-rejected",
+      "injectionPoint": "shared root 中存在符号链接条目",
+      "expected": "SYMLINK_FORBIDDEN；不跟随、不链接",
+      "observed": "SYMLINK_FORBIDDEN; outside file never linked or read as workspace content",
+      "pass": true
+    },
+    {
+      "caseId": "manifest-tamper",
+      "injectionPoint": "修改 .workspace-manifest.json 的 entry sha256",
+      "expected": "blocked MANIFEST_TAMPERED；不发布/index 不变",
+      "observed": "blocked MANIFEST_TAMPERED; lock released; no publish",
+      "pass": true
+    },
+    {
+      "caseId": "snapshot-rollback",
+      "injectionPoint": "snapshot=true 后原地修改，再 rollback",
+      "expected": "rolled-back；canonical 内容恢复；index 恢复；锁释放",
+      "observed": "rolled-back; canonical content/hash restored; index rebuilt; lock released",
+      "pass": true
+    },
+    {
+      "caseId": "no-shared-noop",
+      "injectionPoint": "未配置 sharedRoot",
+      "expected": "task-only；publish=no-shared；artifact 路径不变",
+      "observed": "task-only layout; publish no-shared; artifact still observable",
+      "pass": true
+    }
+  ],
+  "boundaries": {
+    "liveHost": false,
+    "modelCalls": 0,
+    "realWorkspaceTouched": false,
+    "apfsCloneVerified": false,
+    "externalConcurrentWriters": "not supported; exclusive advisory lock + single-writer assumption only",
+    "runtimeWired": false
+  },
+  "regeneration": {
+    "command": "SHIYU_WRITE_EVIDENCE=1 node --import tsx --test tests/workspace-shared-hardlink.test.ts"
+  },
+  "verification": {
+    "generatedAt": "2026-11-03T18:25:32.159401Z",
+    "worktree": {
+      "path": "<temporary-worktree>/shiyu-workspace-verify/plugins/shiyu",
+      "baselineCommit": "9d41966",
+      "method": "git worktree add --detach HEAD + 仅复制本切片（src/adapters/artifacts/shared-workspace.ts、SHARED_WORKSPACE.md、index.ts 导出、tests/workspace-shared-hardlink.test.ts、本证据 JSON）；node_modules 符号链接；.local/ombre 仅符号链接复用既有 pinned Python/Ombre 夹具（未安装依赖）"
+    },
+    "commands": [
+      "npm run check  # tsc --noEmit && node --import tsx --test --test-concurrency=1 tests/*.test.ts && tsc -p tsconfig.build.json && node --check client/index.js"
+    ],
+    "runs": {
+      "final": {
+        "transientPath": "<transient-tmp>/ws-check-final.log",
+        "sha256": "52dbae5bf6646d2b4bb57c36a355084265735353a7e465d6d089f3a0dc039c48",
+        "bytes": 181019,
+        "exitCode": 0,
+        "counts": {
+          "tests": 1715,
+          "suites": 0,
+          "pass": 1715,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2030480.1065
+        },
+        "pythonCrossLanguageTestRan": true,
+        "archivedCopy": {
+          "path": ".local/workspace-verify/ws-check-final.log",
+          "sha256": "52dbae5bf6646d2b4bb57c36a355084265735353a7e465d6d089f3a0dc039c48",
+          "bytes": 181019,
+          "gitIgnored": true
+        }
+      }
+    },
+    "zeroSkipEvidence": {
+      "tests": 1715,
+      "pass": 1715,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "pythonCrossLanguageTestRan": true,
+      "note": "隔离 worktree 全量 check 0 失败 / 0 跳过；pinned Python/Ombre 夹具以既有 .local/ombre 符号链接复用，未安装依赖。"
+    },
+    "sliceFileHashes": {
+      "files": [
+        {
+          "path": "src/adapters/artifacts/shared-workspace.ts",
+          "sha256": "68f7b1cc35ee3293298baaaf72c1b131866b363d6da836fe81271f950c217afb"
+        },
+        {
+          "path": "src/adapters/artifacts/index.ts",
+          "sha256": "09138ac806be345c3a380c706672042bed535fe00cb7f42b28828f35a1704f27"
+        },
+        {
+          "path": "src/adapters/artifacts/SHARED_WORKSPACE.md",
+          "sha256": "cd72f227c1e8a219a03076a3e7bc95150217957efd33ea02a4f35523447a8ef7"
+        },
+        {
+          "path": "tests/workspace-shared-hardlink.test.ts",
+          "sha256": "45ca1e5964d14842ff4c837b7e1a05cb6b1073df2995f2724a3704a0cabf9481"
+        },
+        {
+          "path": "artifacts/dsh/tasks/workspace-shared-hardlink.json",
+          "sha256": "671a7378c7b07111e3044eaea4017d00fb83dedaeaf06bdef3b206b1086d9f49"
+        }
+      ]
+    },
+    "boundaries": {
+      "liveHost": false,
+      "liveNativeSessionTouched": false,
+      "runtimeTsEdited": false,
+      "gitCommitMade": false,
+      "dependenciesInstalled": false,
+      "modelCalls": 0,
+      "realWorkspaceTouched": false
+    },
+    "discardedPreparation": {
+      "note": "在补上 ownerDecision 回执/限制说明前，曾用一个仅含旧切片副本的 worktree 跑过一次全量 check；该次未完成即被停止且不作为证据（其计数/日志未采用）。"
+    }
+  }
+}

@@ -321,3 +321,5 @@ export class LocalArtifactStore {
     return this.closing;
   }
 }
+
+export * from './shared-workspace.js';
