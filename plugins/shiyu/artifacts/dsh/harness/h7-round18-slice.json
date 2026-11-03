@@ -1,0 +1,187 @@
+{
+ "schemaVersion": 1,
+ "kind": "shiyu.harness.h7-round18-slice-evidence",
+ "phase": "H7-round18",
+ "capturedAt": "2026-11-03T20:50:24.201Z",
+ "baselineHead": "ab08779e9883d3c4498b38ba495b1e384599605c",
+ "status": "code-tests-delivered-not-clean-refresh",
+ "purpose": "Bind the round-17 P0 memory readiness/real-embedding verification, emotion continuation (offline + zero-model joint host probe), writable per-task shared-workspace module, provider-stream/v7 instrumentation (not executed), round-17 clean artifacts and the round-17 review into evidence.ts and the acceptance index without granting pass; product rows stay not_covered.",
+ "round17Sources": [
+  "h2d-single-user-memory-chat",
+  "h2d-host-memory-embedding-verification",
+  "h4f-emotion-continuation",
+  "round17-host-emotion-memory-probes",
+  "workspace-shared-hardlink",
+  "h3-v7-stream-error-instrumentation",
+  "h7-round17-clean-artifacts",
+  "round17-review"
+ ],
+ "sourceCounts": {
+  "sources": 100,
+  "files": 420
+ },
+ "files": [
+  {
+   "path": "plugins/shiyu/tests/harness/evidence.ts",
+   "sha256": "c319d3c6010064be95004230f93d326e855e8b9acbbf86945d70be1d3d099ec8",
+   "bytes": 285315
+  },
+  {
+   "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+   "sha256": "dff5fdb3f93575ac4fdd5ed7707967d0c7ec2b9b904527706e4208bfb56e4d49",
+   "bytes": 49538
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round18.test.ts",
+   "sha256": "28dc572d448ae4827a529ec746b4ee931df0fe528704e01109152676e919aa7f",
+   "bytes": 34870
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round4.test.ts",
+   "sha256": "a1366dd45239f245b3a511cdba9cb46b867c4d15c29feb90ef54ea0f9efa454e",
+   "bytes": 18587
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round5.test.ts",
+   "sha256": "427a4dd451e66d5a92ab3587ac23a20feb972c7001e41353004c3f27ff4d271b",
+   "bytes": 23356
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round6.test.ts",
+   "sha256": "bd1eaff7cadb88d5a58c5d0917987b4dba6536c19bb31c1d1490c29d4bd5688f",
+   "bytes": 20216
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round7.test.ts",
+   "sha256": "a6a3b65dbd0ab4fb12dec309ea34556083cbf2258966c38676a92bc02525a636",
+   "bytes": 17947
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round8.test.ts",
+   "sha256": "78f6831240327052cf610e93bd60b0041414de592f7f92c6407e97daeec4aa2a",
+   "bytes": 18153
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round9.test.ts",
+   "sha256": "4507bdf49d61b292e02207fd227b0d78d61587be205b4a48a6a936418cc98066",
+   "bytes": 17605
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round11.test.ts",
+   "sha256": "451198719c9df549a778378e534c1b7c0ff0cdbec6d08aeece38141ba7aabcf0",
+   "bytes": 17444
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round12.test.ts",
+   "sha256": "cf18a7954d448e9d2d8be3e41d0e21abeb73bba751735d90ec0528c9b2618ae5",
+   "bytes": 23566
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round13.test.ts",
+   "sha256": "9b84a7f018fc4c1770f1b59f2e0e506f78c5fbd1e518e1ee1ac45cb6f0e306b7",
+   "bytes": 28381
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round14.test.ts",
+   "sha256": "b3b9492ae26b5fd7259a90507f05991d00d21cf71a119fd5a1061f1333b55c02",
+   "bytes": 27985
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round15.test.ts",
+   "sha256": "7f3d630c089d253862333db291d88ec025e8f448c1466b0e50d197a41a5a5084",
+   "bytes": 27703
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round16.test.ts",
+   "sha256": "724227116a09d5a0af77c40d3da0e5e6143cee4f3f5f8eadac79aad32a793489",
+   "bytes": 29178
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round17.test.ts",
+   "sha256": "8ecceb751dcd0e7d906eff92132af1741607166e39084204a5c9d8183992d8f1",
+   "bytes": 35084
+  }
+ ],
+ "commands": [
+  "npx tsc --noEmit",
+  "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+  "npm run check (isolated worktree ab08779 + only round-18 slice files)",
+  "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+  "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+ ],
+ "checks": {
+  "sharedTree": {
+   "blockedByConcurrentWip": true,
+   "note": "No green shared-tree run is claimed for the round-18 code slice: the shared workspace can carry concurrent uncommitted product WIP from other round-18 tasks, so sources without a pinned blobCommit would compare dirty worktree files against the frozen HEAD blob. The authoritative slice verification is the isolated worktree below; no green/average claim is implied for the shared tree."
+  },
+  "isolatedWorktree": {
+   "head": "ab08779e9883d3c4498b38ba495b1e384599605c",
+   "worktree": "/tmp/h7r18-slice (ephemeral)",
+   "tsc": {
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round18-ab08779-isolated-tsc.log",
+     "sha256": "a6ce7f41eaf235b981cdbfe9a3d6a5d9a3502b6bd605ffc2acf78679a4ee9a2f",
+     "bytes": 11
+    }
+   },
+   "harness": {
+    "tests": 193,
+    "pass": 193,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round18-ab08779-isolated-harness.log",
+     "sha256": "4d9e7bf36e0cec4e82d9c3b7aa55b6efcf37911be107c17d003dc7c2cb12e3c7",
+     "bytes": 14342
+    }
+   },
+   "fullCheck": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round18-ab08779-check.log",
+     "sha256": "52d26753462488ad21852bc6718e21b84835f53765304d0a1e1b89d05a2a71b1",
+     "bytes": 8
+    }
+   }
+  }
+ },
+ "productRows": {
+  "total": 79,
+  "notCovered": 79,
+  "covered": 0
+ },
+ "toolingReady": [
+  "TV.1",
+  "TV.2",
+  "TV.3",
+  "TV.4",
+  "TV.5",
+  "TV.6",
+  "TV.7",
+  "TV.9"
+ ],
+ "acceptanceGate": "incomplete",
+ "limitations": [
+  "H7-round18 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+  "Round-17 P0 memory: the fixed-host embedding round-trip passed with 1+1 real Harrier embedding calls, 1 semantic match, exact read, post-withdraw MEMORY_READ_FORBIDDEN and readiness→embeddingVerified/semanticReady (INDEX_COVERAGE_INCOMPLETE), +10 commitSeq 546→556, no generation model; only synthetic withdrawn probe facts remain (coverage not populated), per-process verification, and the single-user multi-turn/restart chat closure is NOT yet proven.",
+  "Round-17 emotion continuation: offline slice 1727/1727 plus the isolated zero-model :memory: joint probe 15/15 checks (liveDataTouched=false, explicit no-subjective-experience disclosure, Ombre pulse never treated as emotion); not live chat emotion behavior nor subjective experience; workspace shared-hardlink module is offline only (1715/1715, 11/11 cases, runtimeWired=false, in-place write propagation disclosed); v7 stream instrumentation was prepared/verified offline (focused 167/167, regression 101/101, isolated slice 1710/1710) but NOT executed and the seventh attempt is NOT authorized.",
+  "Round-17 review is independent-review-info only and deliberately unmapped; product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD."
+ ],
+ "archivedCopies": [
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round18-ab08779-isolated-tsc.log",
+   "sha256": "a6ce7f41eaf235b981cdbfe9a3d6a5d9a3502b6bd605ffc2acf78679a4ee9a2f",
+   "bytes": 11
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round18-ab08779-isolated-harness.log",
+   "sha256": "4d9e7bf36e0cec4e82d9c3b7aa55b6efcf37911be107c17d003dc7c2cb12e3c7",
+   "bytes": 14342
+  }
+ ]
+}

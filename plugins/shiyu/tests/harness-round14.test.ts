@@ -131,7 +131,7 @@ async function acceptanceInputs(): Promise<AcceptanceInputs> {
 }
 
 test('round14:new-round13-sources-integrity-and-ancestry', async () => {
-  assert.equal(EVIDENCE_SOURCES.length, 92);
+  assert.equal(EVIDENCE_SOURCES.length, 100);
   const ids = new Set(EVIDENCE_SOURCES.map(source => source.id));
   for (const id of ROUND13_SOURCE_IDS) assert.ok(ids.has(id), `missing round-13 source ${id}`);
   const newSources = EVIDENCE_SOURCES.filter(source => ROUND13_SOURCE_IDS.includes(source.id as (typeof ROUND13_SOURCE_IDS)[number]));
@@ -149,9 +149,9 @@ test('round14:new-round13-sources-integrity-and-ancestry', async () => {
   }
   const { report, result } = await verifyEvidenceSources(workspaceRoot, head);
   assert.equal(result.ok, true, JSON.stringify(result.violations.slice(0, 5)));
-  assert.equal(report.counts.sources, 92);
-  assert.equal(report.counts.verified, 92, `unknown: ${report.unknownSourceIds.join(',')}`);
-  assert.equal(report.counts.files, 368);
+  assert.equal(report.counts.sources, 100);
+  assert.equal(report.counts.verified, 100, `unknown: ${report.unknownSourceIds.join(',')}`);
+  assert.equal(report.counts.files, 420);
   for (const source of newSources) {
     const verified = report.sources.find(item => item.id === source.id);
     assert.equal(verified?.status, 'verified');
