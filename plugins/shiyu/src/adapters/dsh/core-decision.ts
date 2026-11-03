@@ -628,6 +628,36 @@ export interface CoreEventToolModelProbeRunOptions {
   isAgentLoopRequest?: (request: unknown) => boolean;
   contextRenderer?: SystemPromptContextRenderer;
 }
+/** Structural binding check for a host-owned runtime-context snapshot: it must
+ * be a single user text message owned by the runtime-context source, start with
+ * the official snapshot header, declare at most 32 named sections, render every
+ * declared section into the text, and contain an exact working-directory
+ * section for this cwd. Extra host sections are accepted; anything unbound is
+ * rejected. Exported for direct testing. */
+export function probeRuntimeContextBinding(message: unknown, cwd: string): boolean {
+  try {
+    if (!jsonObject(message)) return false;
+    const source = (message as any).source;
+    if (!jsonObject(source) || source.kind !== 'runtime-context' || source.form !== 'snapshot'
+      || Object.keys(source).some(key => !['kind', 'form', 'sections'].includes(key))) return false;
+    if (!Array.isArray(source.sections) || source.sections.length < 1 || source.sections.length > 32) return false;
+    if ((message as any).role !== 'user' || !Array.isArray((message as any).content) || (message as any).content.length !== 1) return false;
+    const block = (message as any).content[0];
+    if (!jsonObject(block) || block.type !== 'text' || typeof block.text !== 'string' || block.text.length === 0 || block.text.length > 16384) return false;
+    const text = block.text as string;
+    if (!text.startsWith('Current runtime context.')) return false;
+    const directory = `Current working directory: ${JSON.stringify(cwd)}.`;
+    let bound = false;
+    for (const section of source.sections as unknown[]) {
+      if (!jsonObject(section) || typeof section.name !== 'string' || section.name.length === 0 || section.name.length > 200
+        || typeof section.text !== 'string' || section.text.length === 0 || section.text.length > 8192
+        || Object.keys(section).some(key => !['name', 'text'].includes(key))) return false;
+      if (!text.includes(section.text as string)) return false;
+      if (section.name === 'working-directory:current' && section.text === directory) bound = true;
+    }
+    return bound;
+  } catch { return false; }
+}
 function probeFailure(code: string, message: string): Error & { code: string } {
   return Object.assign(new Error(message), { code });
 }
@@ -741,9 +771,17 @@ export class CoreEventToolModelProbeRun {
   private validateRuntimeContext(message: Record<string, unknown>): void {
     if (!jsonObject(message) || typeof message.id !== 'string') throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe runtime context has no official identity');
     const expected = { ...this.runtimeContext(this.options.cwd), id: message.id };
-    if (nativeMessageHash(message) !== nativeMessageHash(expected)) {
-      throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe runtime context is not the exact bound working-directory snapshot');
-    }
+    if (nativeMessageHash(message) === nativeMessageHash(expected)) return;
+    // Exact reconstruction can differ across host builds (extra context
+    // sections, interpolation). Fall back to a strict structural check that is
+    // still bound to this working directory: one host-owned runtime-context
+    // snapshot containing a working-directory section for exactly this cwd, with
+    // every declared section rendered into the message text.
+    if (this.validateRuntimeContextStructure(message)) return;
+    throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe runtime context is not the exact bound working-directory snapshot');
+  }
+  private validateRuntimeContextStructure(message: Record<string, unknown>): boolean {
+    return probeRuntimeContextBinding(message, this.options.cwd);
   }
   /** The fixed host may inject its required working-directory snapshot into the
    * first claimed turn even with suppressRuntimeContext(). Accept exactly the one

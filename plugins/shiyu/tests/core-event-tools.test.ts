@@ -386,6 +386,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
 // H2c tests: restricted core event tools in the permitted decision Session.
 // ---------------------------------------------------------------------------
 import type { CoreDecisionEventTools, CoreDecisionEventToolSchema } from '../src/adapters/dsh/goals.js';
+import { probeRuntimeContextBinding } from '../src/adapters/dsh/core-decision.js';
 import type { EventPrincipal } from '../src/contracts/events.js';
 
 const ref = (value?: NativeGoalView): NativeGoalRef => { assert.ok(value); return { id: value.id, revision: value.revision }; };
@@ -1015,6 +1016,23 @@ test('a host-injected working-directory snapshot in the first claimed turn is ac
     const stored = f.stored.get(receipt.sessionId)!;
     assert.equal(stored.events.some(event => event.type === 'turn/end' && event.data?.reason?.kind === 'blocked'), false);
   } finally { await adapter.close(); }
+});
+
+test('host runtime-context snapshots are bound structurally when extra host sections are present', () => {
+  const cwd = '/synthetic/shiyu/core';
+  const directory = `Current working directory: ${JSON.stringify(cwd)}.`;
+  const sections = [{ name: 'working-directory:current', text: directory }, { name: 'environment:time', text: 'Synthetic runtime context.' }];
+  const text = `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n${sections.map(section => section.text).join('\n\n')}`;
+  const message = { id: '11111111-1111-4111-8111-111111111111', role: 'user', content: [{ type: 'text', text }],
+    source: { kind: 'runtime-context', form: 'snapshot', sections } };
+  assert.equal(probeRuntimeContextBinding(message, cwd), true);
+  const foreign = structuredClone(message);
+  foreign.source.sections[0]!.text = 'Current working directory: "/synthetic/foreign".';
+  assert.equal(probeRuntimeContextBinding(foreign, cwd), false);
+  const missing = structuredClone(message);
+  missing.content[0]!.text = `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n${directory}`;
+  assert.equal(probeRuntimeContextBinding(missing, cwd), false);
+  assert.equal(probeRuntimeContextBinding({ role: 'user', content: [{ type: 'text', text }] }, cwd), false);
 });
 
 test('the host assembly context is reconstructed exactly for the first claimed turn', async t => {

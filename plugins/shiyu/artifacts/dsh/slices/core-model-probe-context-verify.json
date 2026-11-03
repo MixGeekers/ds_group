@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "kind": "isolated-slice-verification",
   "slice": "core-model-probe-context",
-  "capturedAt": "2026-11-03T00:23:03.185Z",
-  "head": "7f57ea1bca099c8e5699120bf4ad0e3f337025b1",
-  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-core-model-probe-context-1793665008599",
+  "capturedAt": "2026-11-03T00:30:18.549Z",
+  "head": "7704e5d696a2173c7bed3bba51176bcc5e819964",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-core-model-probe-context-1793665441466",
   "files": [
     {
       "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
@@ -13,13 +13,13 @@
     },
     {
       "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
-      "bytes": 83436,
-      "sha256": "cc71ea0d3c3e88fa41c14ba690e1a1fea84e089b8ec83e219833a86285dbb333"
+      "bytes": 86108,
+      "sha256": "ec1cb2210dd9773a341c961b682cf6504884cc28b8a8531a07c0b1a390d89d8f"
     },
     {
       "path": "plugins/shiyu/tests/core-event-tools.test.ts",
-      "bytes": 82162,
-      "sha256": "ebc4d6be6c5ba11d8cb3d35486172a30bfe98eed511ada9524ad2451f84cc0c5"
+      "bytes": 83570,
+      "sha256": "362247276c4a741188d1374f39dad445f9e73f2339c033d52bc3323b41fe9bac"
     }
   ],
   "check": {
@@ -27,12 +27,12 @@
     "exitCode": 0,
     "signal": null,
     "timedOut": false,
-    "durationMs": 374375,
-    "bytes": 161248,
-    "sha256": "a0efc4b2b69196124e6ecdac9925547e4d648a7ba56103afbf6a2dd846d12712",
+    "durationMs": 376680,
+    "bytes": 161340,
+    "sha256": "3ec73e729ebe1af89beab08556498d7343df2a3a4af5948ba33637b0ce8dd7b0",
     "tests": {
-      "tests": 1493,
-      "pass": 1493,
+      "tests": 1494,
+      "pass": 1494,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0
@@ -41,15 +41,15 @@
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 373316.615834",
+      "ℹ duration_ms 375595.934",
       "> @shiyu/runtime@0.1.0 build",
       "> tsc -p tsconfig.build.json"
     ]
   },
   "log": {
     "path": "<repo>/plugins/shiyu/.local/slice-verify-core-model-probe-context.log",
-    "bytes": 161248,
-    "sha256": "a0efc4b2b69196124e6ecdac9925547e4d648a7ba56103afbf6a2dd846d12712"
+    "bytes": 161340,
+    "sha256": "3ec73e729ebe1af89beab08556498d7343df2a3a4af5948ba33637b0ce8dd7b0"
   },
   "verdict": "pass"
 }
