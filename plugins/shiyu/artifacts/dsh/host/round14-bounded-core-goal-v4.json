@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 1,
+  "phase": "round14-host",
+  "slice": "fixed-host fourth independent bounded core Goal attempt (v4): create SUCCEEDED, evaluation failed quickly after the native decision turn was cancelled",
+  "capturedAt": "2026-11-03T11:28:48.472Z",
+  "status": "fixed-host-v4-create-succeeded-evaluation-unknown",
+  "purpose": "Explicit owner decision: one fourth independent v4 experiment. The create-only delegationDepth normalization worked: Goal create returned exactly one authorized, owner-mandated, native-active Goal with a confirmed binding and the fixed title. The single evaluation then started a native decision turn that was cancelled before any model request; the evaluation was marked unknown and the owner-only stop policy paused the Goal. No retry was made.",
+  "plan": {
+    "path": "artifacts/dsh/host/round14/plan.json",
+    "sha256": "85cc16845f9b9cc9ae4fb248210a1a1296a1e6fd8ba12a6d653777eeb1c10b53"
+  },
+  "code": {
+    "head": "7d5d2e1",
+    "dist": {
+      "files": 114,
+      "digest": "cbc10d5874ef455c02874bb2a38ac60747f7467c3670833abaef1d39f56be978"
+    }
+  },
+  "receipt": {
+    "file": "artifacts/dsh/host/round14/core-goal-v4-receipt.json",
+    "bytes": 3744,
+    "sha256": "c378aaea3ca47c4f7a7abcfb9e6b6a875baa1852ae5bd9060807170ed88ec7b4"
+  },
+  "result": {
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_EVALUATION_UNKNOWN",
+    "requestId": "core-validation-frozen-v4",
+    "goal": {
+      "goalId": "core-92818c10725d4cd8889a689d0160ad03d1403b41",
+      "version": 5,
+      "requestId": "core-validation-frozen-v4",
+      "authorized": true,
+      "paused": true,
+      "cancelled": false,
+      "planVersion": 0,
+      "mandateId": "core-mandate:core-92818c10725d4cd8889a689d0160ad03d1403b41",
+      "expiresAt": "2026-11-03T11:36:49.055Z",
+      "nativePhase": "paused"
+    },
+    "evaluations": [
+      {
+        "evaluationId": "evaluation:core-92818c10725d4cd8889a689d0160ad03d1403b41:1",
+        "status": "unknown",
+        "reasonCode": "owner_paused",
+        "triggerRefs": [
+          "owner:core-92818c10725d4cd8889a689d0160ad03d1403b41"
+        ],
+        "usage": {
+          "state": "unknown",
+          "observedTokens": null,
+          "observedCalls": null,
+          "overrun": false,
+          "accounting": "unknown"
+        }
+      }
+    ],
+    "counters": {
+      "evaluateAttempts": 1,
+      "pollCount": 0,
+      "maxEvaluations": 2,
+      "wallLimitMs": 180000
+    },
+    "stopAction": {
+      "kind": "pause",
+      "attempted": true,
+      "ok": true,
+      "at": "2026-11-03T11:26:49.478Z",
+      "goalVersion": 5
+    },
+    "unknowns": [
+      "EVALUATION_UNKNOWN",
+      "USAGE_UNKNOWN"
+    ],
+    "businessSideEffects": {
+      "goal": {
+        "created": "true",
+        "requestId": "core-validation-frozen-v4",
+        "version": 2,
+        "observed": {
+          "goalId": "core-92818c10725d4cd8889a689d0160ad03d1403b41",
+          "requestId": "core-validation-frozen-v4",
+          "version": 2,
+          "authorized": true,
+          "paused": false,
+          "cancelled": false,
+          "hasMandate": true,
+          "nativePhase": "active",
+          "evaluations": 0,
+          "taskRefs": 0,
+          "planVersion": 0,
+          "bindingReceiptStatus": "absent",
+          "goalSessionId": "shiyu-core-goal-b23734804f1a26a2f188db9c98ec5f9d9a976aacc9509f24efd021114e1eba63",
+          "goalRef": {
+            "id": "goal-9ead3d44-815e-42e4-b48c-e76e71bcd80e",
+            "revision": 1
+          }
+        }
+      },
+      "partialCreation": {
+        "detected": false,
+        "readback": "complete",
+        "evidence": [
+          "goal-create-returned"
+        ]
+      },
+      "tasks": {
+        "count": 0,
+        "ids": []
+      },
+      "effects": {
+        "count": 0,
+        "ids": []
+      },
+      "artifacts": {
+        "count": 0,
+        "refs": []
+      },
+      "sessions": {
+        "goalSessionId": "shiyu-core-goal-b23734804f1a26a2f188db9c98ec5f9d9a976aacc9509f24efd021114e1eba63",
+        "workerSessionIds": []
+      },
+      "budget": {
+        "limits": {
+          "tokens": 16384,
+          "calls": 3,
+          "effects": 1
+        },
+        "spent": {
+          "tokens": 0,
+          "calls": 0,
+          "effects": 0
+        },
+        "held": {
+          "tokens": 16384,
+          "calls": 2,
+          "effects": 0
+        }
+      },
+      "control": {
+        "commitSeqBefore": 461,
+        "commitSeqAfter": 470
+      }
+    },
+    "partialCreation": {
+      "detected": false,
+      "readback": "complete",
+      "evidence": [
+        "goal-create-returned"
+      ]
+    }
+  },
+  "createSuccess": "The leading blocker is resolved: create returned authorized=true, paused=false, cancelled=false, hasMandate=true, nativePhase=active, binding receipt absent->confirmed, goalRef revision 1, and exactly one Goal Session; the only partialCreation detection is false. This is the first real host confirmation that the create-only delegationDepth normalization works end to end.",
+  "evaluationFailure": {
+    "evaluationStatus": "unknown",
+    "reasonCode": "owner_paused",
+    "dispatch": "shiyu-core-goal-b23734804f1a26a2f188db9c98ec5f9d9a976aacc9509f24efd021114e1eba63",
+    "evidence": "The Goal Session (13 events) shows title pin, goal/change create, end-seed, core prompt spliced, turn/start, then the input message removed and turn/end aborted with the generic hook reason \"Core decision cancelled\", then goal/change pause. No system/message, user/message, request or assistant event exists, so no model request was issued. The evaluation unknown reason owner_paused is the pause-path classification overwriting the original decision-round failure reason (a separate evidence-integrity defect to fix). The likely cause is the decision-run pre-step still requiring exactly one message while the host claims the owner prompt plus its runtime-context snapshot (the same class already fixed for the bounded probe)."
+  },
+  "sessionEvents": {
+    "file": "artifacts/dsh/host/round14/v4-goal-session-events.json",
+    "bytes": 2135,
+    "sha256": "ade3663c5b6f94f02300313b981e14b98a49664db25aa77b1378dc73c0c9526b"
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        450,
+        456
+      ],
+      "events": [
+        59,
+        60
+      ],
+      "capabilityRevision": [
+        53,
+        55
+      ],
+      "sessions": [
+        37,
+        37
+      ],
+      "goals": [
+        5,
+        5
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "normal startup writes only; business facts unchanged."
+    },
+    "attempt": {
+      "commitSeq": [
+        456,
+        470
+      ],
+      "events": [
+        60,
+        60
+      ],
+      "sessions": [
+        37,
+        38
+      ],
+      "goals": [
+        5,
+        6
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 4
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "+14 commitSeq, +1 Goal, +1 Goal Session, +1 budget reservation unknown; no events, no Task/Effect/artifact, unchanged state file and known Sessions."
+    },
+    "postStatus": {
+      "commitSeq": [
+        470,
+        470
+      ],
+      "events": [
+        60,
+        60
+      ],
+      "sessions": [
+        38,
+        38
+      ],
+      "goals": [
+        6,
+        6
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only and caches the failed v4 receipt."
+    }
+  },
+  "cachedReceipt": {
+    "file": "artifacts/dsh/host/round14/status-final.json",
+    "bytes": 62422,
+    "sha256": "f8443b15200ebb4dcd11a4b69a9487da29e559840914c65a5f5d6afb3f9638cd",
+    "fieldsPresent": "validated bounded-core-goal receipt fields; readOnly/createsGoal/modelCalls/retries are declared on the tool response and in the receipt file",
+    "value": {
+      "status": "failed",
+      "reasonCode": "CORE_VALIDATION_EVALUATION_UNKNOWN",
+      "goalId": "core-92818c10725d4cd8889a689d0160ad03d1403b41",
+      "evaluations": [
+        {
+          "evaluationId": "evaluation:core-92818c10725d4cd8889a689d0160ad03d1403b41:1",
+          "status": "unknown",
+          "reasonCode": "owner_paused",
+          "triggerRefs": [
+            "owner:core-92818c10725d4cd8889a689d0160ad03d1403b41"
+          ],
+          "usage": {
+            "state": "unknown",
+            "observedTokens": null,
+            "observedCalls": null,
+            "overrun": false,
+            "accounting": "unknown"
+          }
+        }
+      ],
+      "stopAction": {
+        "kind": "pause",
+        "attempted": true,
+        "ok": true,
+        "at": "2026-11-03T11:26:49.478Z",
+        "goalVersion": 5
+      },
+      "unknowns": [
+        "EVALUATION_UNKNOWN",
+        "USAGE_UNKNOWN"
+      ]
+    }
+  },
+  "findings": [
+    "MAJOR PROGRESS: create succeeded on the real host via the create-only delegationDepth normalization; the Goal is authorized, owner-mandated, native-active with confirmed binding and one Goal Session. The v1/v2/v3 create blocker is resolved.",
+    "The single evaluation failed before any model request: the decision turn started and was cancelled; the Goal Session has no model request/assistant events. The evaluation reason is masked as owner_paused by the stop policy.",
+    "Two follow-ups are needed: preserve the original evaluation reason when the pause path sees an already-unknown evaluation, and align the CoreDecisionRun pre-step with the host claim shape (owner prompt plus the exact runtime-context snapshot) as already done for the bounded core probe.",
+    "No retry was made; the v4 Goal remains paused/authorized with an unknown evaluation and a held budget reservation. A fifth attempt is not authorized until those fixes are applied; the unknown budget must be reconciled or disclosed."
+  ],
+  "residual": {
+    "note": "one authorized/paused v4 Goal (core-92818c...) with activeEvaluationId unknown and one held/unknown reservation remains; no Task/Effect/artifact; the failure reason owner_paused is masking the original decision-round failure."
+  },
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 4
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "goals": 6,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "This is a failed fourth attempt with 0 model requests and no real business chain; it does not prove planning, Task/worker or native completion.",
+    "The decision-round failure reason is masked; follow-up slices must fix reason preservation and pre-step shape before any further attempt.",
+    "The v4 Goal and its unknown reservation remain; a fifth attempt needs explicit owner authorization and prior reconciliation/disclosure."
+  ]
+}

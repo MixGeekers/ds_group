@@ -1899,3 +1899,26 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - **显式 owner 决定**：全新 v4 requestId/模板，非 v1/v2/v3 重试；一次调用、0 重试；预算 16384/3/1、≤2 评估、180s wall、10min 过期、单槽单飞。
 - 成功判据：create 成功 → core 计划/模型轮/Task/worker/独立核验/native complete；失败：receipt 带 failurePhase/failureCode/failureDetail/historyDiagnostic(headerDiff)，partial 原样保留、不删不滚、0 重试；随后可用覆盖 [v1..v4] 的 reconcile 清理 inert 残留。
 - 归一化是有条件的：若真实 cold header 无 `delegationDepth:0`，严格语义保留、v4 会 header-hash 失败且停止报告，不猜测不重试。
+
+## 64. 第十四轮固定宿主：第四次尝试（v4）— create 首次真实成功，evaluation 快速失败
+
+状态：**create 成功（重大进展）**；evaluation 在模型请求前失败（0 模型请求），Goal 被 owner-only stop policy 暂停；未重试。2026-11-03，代码 HEAD `7d5d2e1`，一次有序 reload。
+
+### 64.1 create 首次真实成功
+
+- 显式 owner 决定：全新 v4 requestId/模板（非 v1/v2/v3 重试），一次调用、0 重试。
+- **create 返回**：`authorized=true`、`paused=false`、`hasMandate=true`、`nativePhase=active`、`goalRef revision 1`、binding absent→confirmed、恰好 1 个 Goal Session；`partialCreation.detected=false`。
+- 结论：**create-only `delegationDepth:0↔absent` 归一化在真实宿主上端到端生效**，v1/v2/v3 的 create 阻塞根因解决。
+- 重载增量：commitSeq 450→456、events 59→60、capability 53→55、sessions 37/goals 5 不变、业务事实/state 不变。
+
+### 64.2 evaluation 失败（0 模型请求）
+
+- receipt：`status=failed`、`CORE_VALIDATION_EVALUATION_UNKNOWN`；`evaluateAttempts=1`；evaluation unknown（reason 被 pause 路径覆盖为 `owner_paused`）；stopAction pause ok。
+- Goal Session（13 events）：title pin → goal/change create → end-seed → core prompt spliced → turn/start → **input removed + turn/end aborted（通用 hook reason "Core decision cancelled"）** → goal/change pause。**无 system/message、user/message、request、assistant/attempt 事件 → 未发出任何模型请求。**
+- 可能原因（与已修复的 probe 同类）：`CoreDecisionRun` 的 pre-step 仍要求恰好 1 条消息，而 host 在 pre-step 注入 owner prompt + runtime-context 快照 → 决策轮被拒；另有一个证据完整性缺陷：pause 路径把已 unknown 的 evaluation reason 覆盖为 owner_paused，掩盖真实原因。
+- 副作用：commitSeq 456→470、goals 5→6、sessions 37→38、budget reservations unknown 3→4（held 16384/2）；无 Task/Effect/artifact、无 events、state/known Session 不变。v4 Goal 保持 authorized/paused、activeEvaluationId unknown、预算 hold（需后续 reconcile/处理）。
+
+### 64.3 证据与边界
+
+- 证据：[round14-bounded-core-goal-v4.json](<artifacts/dsh/host/round14-bounded-core-goal-v4.json>) + `host/round14/`（receipt、v4 Goal Session 事件摘要、plan、4 审计、status-final 65,593B）。
+- **边界**：真实业务链仍未完成（无模型轮/计划/Task/worker/native complete）；2 个后续修复点（evaluation reason 保留、decision pre-step 形状）；**第五次尝试未授权**，需先修复且显式 owner 决定，并对 v4 unknown 预算作披露/对账。

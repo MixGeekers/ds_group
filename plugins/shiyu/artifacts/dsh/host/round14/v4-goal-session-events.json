@@ -1,0 +1,112 @@
+[
+  {
+    "seq": null,
+    "type": "session",
+    "data": null
+  },
+  {
+    "seq": 0,
+    "type": "permission/preset",
+    "data": null
+  },
+  {
+    "seq": 1,
+    "type": "sandbox/mode",
+    "data": null
+  },
+  {
+    "seq": 2,
+    "type": "approval/policy",
+    "data": null
+  },
+  {
+    "seq": 3,
+    "type": "session/title",
+    "data": {
+      "title": "识雨 · 受限目标规划",
+      "messageSeqs": [],
+      "source": {
+        "kind": "user"
+      }
+    }
+  },
+  {
+    "seq": 4,
+    "type": "goal/change",
+    "data": {
+      "kind": "goal/change",
+      "version": 1,
+      "operation": "create",
+      "goal": {
+        "id": "goal-9ead3d44-815e-42e4-b48c-e76e71bcd80e",
+        "revision": 1,
+        "objective": "完成 owner 预授权的有界本地便签验证 v4：写入 note-1 并由独立核验确认。",
+        "phase": "active",
+        "maxGoalRounds": 2
+      },
+      "roundsStarted": 0,
+      "createdAt": 1793705209115,
+      "updatedAt": 1793705209115
+    }
+  },
+  {
+    "seq": 5,
+    "type": "session/end-seed",
+    "data": {}
+  },
+  {
+    "seq": 6,
+    "type": "agent/inbox/spliced",
+    "data": null
+  },
+  {
+    "seq": 7,
+    "type": "turn/start",
+    "data": {
+      "turn": 1
+    }
+  },
+  {
+    "seq": 8,
+    "type": "agent/inbox/spliced",
+    "data": null
+  },
+  {
+    "seq": 9,
+    "type": "turn/end",
+    "data": {
+      "turn": 1,
+      "reason": {
+        "kind": "aborted",
+        "reason": {
+          "kind": "hook",
+          "reason": "Core decision cancelled"
+        }
+      }
+    }
+  },
+  {
+    "seq": 10,
+    "type": "session/end-seed",
+    "data": {}
+  },
+  {
+    "seq": 11,
+    "type": "goal/change",
+    "data": {
+      "kind": "goal/change",
+      "version": 1,
+      "operation": "pause",
+      "goal": {
+        "id": "goal-9ead3d44-815e-42e4-b48c-e76e71bcd80e",
+        "revision": 2,
+        "objective": "完成 owner 预授权的有界本地便签验证 v4：写入 note-1 并由独立核验确认。",
+        "phase": "paused",
+        "maxGoalRounds": 2
+      },
+      "roundsStarted": 0,
+      "createdAt": 1793705209115,
+      "updatedAt": 1793705209455
+    }
+  }
+]
