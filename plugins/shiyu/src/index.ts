@@ -129,6 +129,31 @@ export function timeTriggerDiagnosisTool(service: { command(input: unknown): Pro
       render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }] },
   };
 }
+/**
+ * Owner-triggered bounded REAL core business-chain validation tool.
+ *
+ * WARNING — this is NOT a read-only probe. One invocation creates a real core
+ * Goal, a real Task/Effect/budget reservation, a dedicated native core Session
+ * and a local artifact, and it issues up to two real model rounds through the
+ * trusted core path (worker execution and independent verification included).
+ * It requires an idle, unpaused runtime, is single-flight, applies hard
+ * 180s / 2-evaluation / frozen-budget stops, never retries a failed or unknown
+ * round, and returns an honest bounded receipt. Only the owner command surface
+ * can reach it; restricted core/worker/replyer Sessions never receive it.
+ */
+export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_validate_core_goal',
+    description: '有界真实 core Goal 业务链验证（非只读探针）：一次调用会创建真实 Goal/Task/Effect/budget/原生 Session/本地 artifact，并通过 core 路径发起最多 2 轮真实模型调用（含 worker 执行与独立核验）；要求运行时未暂停且空闲，单飞、180 秒/2 次评估/冻结预算硬停止、失败或未知绝不重试；回执仅存 snapshot().diagnostics.coreGoalValidation。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-core-goal' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  };
+}
 export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_diagnose_worker_tools',
@@ -158,6 +183,10 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(workerToolDiagnosisTool(service)));
   ctx.effect(() => ctx.tools.register(coreToolDiagnosisTool(service)));
   ctx.effect(() => ctx.tools.register(coreModelToolProbeTool(service)));
+  // Bounded REAL business-chain validation: creates Goal/Task/Effect/budget/
+  // Session/artifact and makes real model calls. Owner-only; never mounted into
+  // restricted core/worker/replyer Sessions.
+  ctx.effect(() => ctx.tools.register(coreGoalValidationTool(service)));
   ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));
   ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));
   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private

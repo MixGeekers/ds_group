@@ -1403,3 +1403,25 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. round-6 host 为零模型隔离诊断：`:memory:` store、跳过 memory backend，不证 live memory/Ombre 导出/真实业务/九系统验收。
 2. 产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0。
 3. round-6 host 证据尚未进入 H7 映射（round-7 工作）；无 unknown、无升级。
+
+## 43. 第七轮：有界真实 core Goal 验证 runner 与 H7-round7
+
+状态：**G1 离线/集成通过**；真实有界业务链待 Lead 在固定宿主执行一次。2026-11-03。
+
+### 43.1 H3 有界真实 core Goal 验证 runner
+
+- `runBoundedCoreValidation`：冻结输入（固定 objective、note-1 内容 sha `c5bb3cbc…`、budget 16384 tokens/3 calls/1 effect、+10min、maxEvaluations=2）；创建 1 个真实 Goal → 至多 2 次真实模型评估轮（第 1 轮 plan/派工；仅所有已派 Task succeeded 后第 2 轮 complete_candidate；失败/unknown 立即停、0 重试）→ 1s 轮询最多 180s；completed 需独立 Task 核验 pass + Effect 回执 + artifact sha 匹配 + native complete，否则按 stop policy 恰好 1 条持久 pause/cancel（stop 前重读最新 version）。
+- receipt：evaluations[]（usage 原样、缺失 null+unknown 不补零）、taskRefs、plans、native、artifacts/effects、budget、stopAction、unknowns、businessSideEffects（Goal/Task/Effect/artifact/Session 计数+IDs、commitSeq 前后）；所有路径（含 create 失败）生成并校验无损有界 receipt。
+- 测试 16 项（completed/failed/unknown/timeout/abort/单飞/冻结输入/create 失败/外部暂停/预算 overrun/NO_PROGRESS/证据不完整等）；作者隔离 1531/1531。
+- **显式副作用声明**：会创建真实 Goal/Task/Effect/budget/Session/artifact 并调用真实模型；不是只读探针。
+
+### 43.2 H7-round7 映射
+
+- 新增 4 来源/16 文件（47 来源/142 文件）：round6-host-inner-lifecycle（仅 `fixed-host-zero-model`；status-final 只证缓存）、h4e-isolated-lifecycle-probe、round6-lead-integration、h7-round6-clean-artifacts（blobCommit 绑定 `c89d940`）。
+- SYS.5/8/9 与相关模块只加 limited/诊断 refs；产品行仍 79/79 not_covered、covered=0、tooling_ready/V/S/FL 不升级；harness 99/99、作者隔离 1522/1522。
+
+### 43.3 Lead 集成与验证
+
+- owner-only `runtime.probe-core-goal`（paused 拒绝、要求完全空闲、单槽、可中止、只调 runner 一次、evaluate=core.evaluatePending+正常 scheduleQueuedTasks、回执仅存 `diagnostics.coreGoalValidation`，返回显式 declaredSideEffects）+ 工具 `shiyu_validate_core_goal`（无参数、description 声明真实副作用）。
+- **Lead 集成隔离验证**（HEAD `e777bdb` + 全部 round-7 切片与集成文件）：**1539/1539 通过，0 失败/0 跳过**（= 1515 + 16 + 7 + 1）；证据 `artifacts/dsh/slices/round7-integrated-verify.json`。
+- 宿主执行（按 kit）：一次调用、0 重试、180s/2 评估/冻结预算硬停止；receipt 必须在 reload 前抓取；结果另行留证。

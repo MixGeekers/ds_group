@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the bounded real core Goal validation runner",
+  "capturedAt": "2026-11-03T02:42:04.231Z",
+  "status": "offline-verified-integration",
+  "purpose": "Wire the owner-only runtime.probe-core-goal command and the shiyu_validate_core_goal tool around the bounded core validation runner. The command requires an unpaused completely idle runtime, is single-slot and abortable, runs the runner exactly once and caches only the validated receipt in diagnostics.coreGoalValidation; the tool description declares the real Goal/Task/Effect/budget/Session/artifact/model side effects.",
+  "baseline": {
+    "head": "e777bdb",
+    "note": "round-6 close; round-7 slices committed on top"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 105125,
+      "sha256": "d8403692b0f3ed347dde0e3c740d195895d4308cce5e6bfa7b08ce2fe11aed7c"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 12088,
+      "sha256": "5c243d8b796b9142ed9e8bbd02b9b691ac2dfad66db7a3e082ed819982dca4da"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 7952,
+      "sha256": "c909b1f130f320f7760e76d2b4278cab18ac78f101fff18907254d00ca668e21"
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD e777bdb + all round-7 slice files and the integration files)",
+      "evidence": "artifacts/dsh/slices/round7-integrated-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1539,
+        "pass": 1539,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 474846,
+      "log": "plugins/shiyu/.local/slice-verify-round7-integrated.log",
+      "arithmetic": "1515 baseline + 16 H3 validation + 7 H7-round7 + 1 tool test = 1539"
+    },
+    "perSliceAuthorChecks": {
+      "h3Validation": "1531/1531 (baseline 1515 + 16)",
+      "h7Round7": "1522/1522 (baseline 1515 + 7) plus harness 99/99"
+    },
+    "hostExecutionPending": "the one bounded real business run is executed by the Lead under the frozen kit; failures/unknowns are kept as receipts and never retried."
+  },
+  "knownLimitations": [
+    "The runner creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; it is not a read-only probe and must run only when the runtime is idle and unpaused.",
+    "Receipts live in memory diagnostics and are cleared by reload, so the host execution captures them before any reload.",
+    "Provider usage/cost may be unknown and must never be zero-filled."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; fixed-host bounded business run pending."
+}

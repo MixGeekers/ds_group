@@ -34,6 +34,7 @@ import type { LocalMemoryEntry } from './adapters/control-store/memory-domain.js
 import type { MemoryIndexEntry } from './adapters/control-store/memory-index-domain.js';
 import type { AvailableMemoryDomain, UnavailableDomain } from './state/publication.js';
 import { CorePump, type CoreEvaluationResult } from './control/core-pump.js';
+import { runBoundedCoreValidation, type CoreValidationReceipt, type CoreValidationStore } from './control/core-validation.js';
 import { LocalCoreService, type LocalCoreOptions } from './control/local-core.js';
 import type { CoreGoal, CorePrepareInput } from './contracts/core.js';
 import type { CapabilityBinding, CapabilityCommandReceipt } from './contracts/capability.js';
@@ -165,6 +166,7 @@ export class RuntimeService {
   private lastEventToolProbe?: WorkerEventToolProbeResult;
   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
+  private lastCoreGoalValidation?: CoreValidationReceipt;
   private lastTimeSourceProbe?: TimeSourceProbeResult;
   private lastTimeTriggerProbe?: LiveTimeTriggerProbeResult;
   private core?: CoreDriver;
@@ -677,6 +679,57 @@ export class RuntimeService {
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
+  /**
+   * Owner-only bounded REAL core business-chain validation. This is NOT a
+   * read-only probe: one invocation creates a real core Goal, a real
+   * Task/Effect/budget reservation, a dedicated native core Session and a local
+   * artifact, and it issues up to two real bounded model rounds through the
+   * normal core path (including worker execution and independent verification).
+   * It requires an idle, unpaused runtime, is single-flight, applies hard
+   * 180s/2-evaluation/budget stops, never retries, and caches the honest bounded
+   * receipt only in snapshot diagnostics. The caller must explicitly accept the
+   * declared side effects.
+   */
+  private async commandCoreGoalValidation(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid bounded core Goal validation input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (!this.core) throw new Error('CORE_GOAL_VALIDATION_UNAVAILABLE');
+    if ([...this.operations.values()].some(op => op.phase === 'bounded core goal validation')) throw new Error('Bounded core Goal validation is already running');
+    if (this.operations.size + this.pendingAdmissions !== 0) {
+      throw new Error('Bounded core Goal validation requires an idle runtime with no other active operation');
+    }
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '有界真实 core Goal 业务链验证', phase: 'bounded core goal validation',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      const core = this.core;
+      const receipt = await runBoundedCoreValidation({
+        core,
+        store: this.store as unknown as CoreValidationStore,
+        // The probe owns the single exclusive runtime slot; each bounded model
+        // round goes through the core service under the same paused admission.
+        // Queued worker Tasks are scheduled through the normal runtime scanner
+        // after each round (never by a second operation slot of this command).
+        evaluate: async input => {
+          const result = await core.evaluatePending({ signal: input.signal });
+          await this.scheduleQueuedTasks();
+          return result;
+        },
+        signal: op.controller.signal,
+        progress: phase => { op.phase = phase.slice(0, 120); },
+      });
+      this.lastCoreGoalValidation = structuredClone(receipt);
+      return { ...receipt, sent: false, readOnlyProbe: false,
+        declaredSideEffects: { goal: true, task: true, effect: true, budget: true, session: true, artifact: true, realModelCalls: true } };
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private async record(type: string, message: string, status: string): Promise<void> {
     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });
     // This component's only effect is a readable event-backed activity projection.
@@ -794,6 +847,7 @@ export class RuntimeService {
         eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,
         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
+        coreGoalValidation: this.lastCoreGoalValidation ? structuredClone(this.lastCoreGoalValidation) : null,
         timeSource: this.timePump ? this.timePump.snapshot() : null,
         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,
         timeTriggerProbe: this.lastTimeTriggerProbe ? structuredClone(this.lastTimeTriggerProbe) : null,
@@ -848,6 +902,7 @@ export class RuntimeService {
     if (action === 'runtime.probe-event-tools') return this.commandEventToolProbe(value, signal);
     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
     if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);
+    if (action === 'runtime.probe-core-goal') return this.commandCoreGoalValidation(value, signal);
     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);

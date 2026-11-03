@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkpointAvailabilityTool, coreModelToolProbeTool, coreToolDiagnosisTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreGoalValidationTool, coreModelToolProbeTool, coreToolDiagnosisTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 import { innerLifecycleDiagnosisTool } from '../src/control/inner-lifecycle-probe.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
@@ -108,4 +108,16 @@ test('inner lifecycle diagnosis tool executes exactly the isolated zero-model pr
   assert.match(tool.description, /零模型|zero-model/i);
   assert.equal(await tool.execute(), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.probe-inner-lifecycle' }]);
+});
+
+test('core goal validation tool executes exactly the declared bounded real business command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, status: 'completed', readOnlyProbe: false, declaredSideEffects: { goal: true, task: true, realModelCalls: true } };
+  const tool = coreGoalValidationTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_validate_core_goal');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /非只读探针/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-core-goal' }]);
 });
