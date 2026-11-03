@@ -266,7 +266,7 @@
   },
   "cachedReceipt": {
     "file": "artifacts/dsh/host/round14/status-final.json",
-    "bytes": 62422,
+    "bytes": 65594,
     "sha256": "f8443b15200ebb4dcd11a4b69a9487da29e559840914c65a5f5d6afb3f9638cd",
     "fieldsPresent": "validated bounded-core-goal receipt fields; readOnly/createsGoal/modelCalls/retries are declared on the tool response and in the receipt file",
     "value": {
@@ -301,7 +301,8 @@
         "EVALUATION_UNKNOWN",
         "USAGE_UNKNOWN"
       ]
-    }
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8)"
   },
   "findings": [
     "MAJOR PROGRESS: create succeeded on the real host via the create-only delegationDepth normalization; the Goal is authorized, owner-mandated, native-active with confirmed binding and one Goal Session. The v1/v2/v3 create blocker is resolved.",
@@ -331,5 +332,12 @@
     "This is a failed fourth attempt with 0 model requests and no real business chain; it does not prove planning, Task/worker or native completion.",
     "The decision-round failure reason is masked; follow-up slices must fix reason preservation and pre-step shape before any further attempt.",
     "The v4 Goal and its unknown reservation remain; a fifth attempt needs explicit owner authorization and prior reconciliation/disclosure."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F14-R1",
+      "finding": "cached status byte count was a character count (62,422/65,593)",
+      "resolution": "cachedReceipt now uses the actual committed 65,594 bytes and sha f8443b15..."
+    }
   ]
 }

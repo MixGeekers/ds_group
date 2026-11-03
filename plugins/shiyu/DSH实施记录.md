@@ -1922,3 +1922,32 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 - 证据：[round14-bounded-core-goal-v4.json](<artifacts/dsh/host/round14-bounded-core-goal-v4.json>) + `host/round14/`（receipt、v4 Goal Session 事件摘要、plan、4 审计、status-final 65,593B）。
 - **边界**：真实业务链仍未完成（无模型轮/计划/Task/worker/native complete）；2 个后续修复点（evaluation reason 保留、decision pre-step 形状）；**第五次尝试未授权**，需先修复且显式 owner 决定，并对 v4 unknown 预算作披露/对账。
+
+## 65. 第十四轮独立复核与 F14 处置（round-14 收尾）
+
+2026-11-03，独立验证员完成 round-14 只读复核（task-59）：**归一化范围/边界正确；create 首次真实成功；evaluation 0 模型失败与 reason masking 披露诚实；v4 残留/预算披露；第五次未授权；H7 未升级；X+1 满足约定；H7 占位已由 `437ac97` 修正入库。** 报告：[ROUND14-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND14-EVIDENCE-REVIEW.md>)、[round14-evidence-review.json](<artifacts/dsh/verify/round14-evidence-review.json>)。
+
+### 65.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| X `7d5d2e1` | create-only `headerCanonicalization=delegation-depth-default-zero` 仅 cold delegationDepth 0 + live absent/null 时用于 create 比较副本；recovery/resume/expectedPrefix/default strict 不变；不归一化其它字段；native create 恰一次；v4 exact-only、reconcile [v1..v4] caller 不可选；隔离 1651、组合 1662 |
+| 宿主 `732b9f7` | **create 首次真实成功**（authorized/active/mandate/binding confirmed/goalRef rev1/恰 1 Goal Session/partialCreation=false，receipt 3744B/sha `c378aaea…`）；evaluation failed/EVALUATION_UNKNOWN、evaluateAttempts=1、**0 模型请求**（Session 13 events 无 request/assistant）、reason 被 pause 掩为 owner_paused、stopAction pause ok；审计 450/59/37/goals5 → 456/60/37/5 → 470/60/38/6（budget 25，unknown 3→4）；无 events/Task/Effect/artifact、state/known37 不变；第五次未授权 |
+| H7-round14 + `437ac97` | 79 sources/282 files；header-cut 探针仅 `fixed-host-zero-model`；更正替换占位为真实归档（tsc `bcb1a617…`、harness `38b9613a…`、full `8f685d2d…`）、sharedTree blockedByConcurrentWip 明确 non-green；产品 79/79 not_covered |
+| X+1 `4f8c342` | 11 artifacts only；manifest head=7d5d2e1/dirty=false/leaks=0；clean 1662/1662；selfproof 19/152；79/79 sources、0 unknown；gate=incomplete/executed=passed=0 |
+
+### 65.2 F14 处置
+
+| ID | 处置 |
+|---|---|
+| **F14-R1（open-minor）** | 已修：host cachedReceipt bytes 改为实际 **65,594**/sha `f8443b15…` + bytesSemantics |
+| F14-R2（resolved） | 记录：R14-CORR 提交消息写“four archives”，slice evidence 实际 3 条（shared 污染日志未入 archivedCopies）；内容真实无 green 声明，属 wording 小差异，已在 §65 注明 |
+| F14-R3（info） | binding absent→confirmed 历史措辞：create receipt 中 businessSideEffects 快照 vs 后续 binding confirmed 均如实记录，无需改 |
+| F14-R4（info） | reason masking/0 模型/预算残留：已披露；修复留给 round-15 |
+
+### 65.3 边界
+
+1. 真实业务链仍未完成：无模型轮/计划/Task/worker/native complete；第四次尝试 0 模型请求。
+2. **create 阻塞已解决**（`delegationDepth:0↔absent` 归一化在宿主生效）；新阻塞：decision pre-step claim 形状 + evaluation reason 被 pause 覆盖。
+3. v4 Goal `core-92818c…` authorized/paused、activeEvaluation unknown、held budget 16384/2；**第五次尝试未授权**，需先修 reason 保留/pre-step 形状、披露/对账 unknown 预算，并显式 owner 决定。
+4. H7 未升级；round-14 host 未入映射（round-15）。
