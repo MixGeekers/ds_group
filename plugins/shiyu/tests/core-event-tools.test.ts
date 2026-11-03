@@ -53,7 +53,8 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   let workingDirectory: string | undefined, workingDirectoryAvailable = true;
   const preparedContexts: RuntimeContextMessage[] = [], committedContexts: RuntimeContextMessage[] = [];
   let beforeAuthorize: ((context: GoalAuthorityContext) => void) | undefined;
-  let mode: 'normal' | 'retry' | 'compaction' | 'title' | 'anonymous' | 'history' | 'history-update' | 'changed-prestep' | 'mutated-user' | 'extra-user' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
+  let mode: 'normal' | 'retry' | 'compaction' | 'title' | 'anonymous' | 'history' | 'history-update' | 'changed-prestep' | 'mutated-user' | 'extra-user'
+    | 'host-context-prestep' | 'host-bad-context-prestep' | 'host-third-input-prestep' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
   let messageNumber = 0, creates = 0, resumes = 0, followups = 0, disposals = 0, streams = 0, autoRounds = 0, opens = 0, closes = 0;
   let requests = 0, toolExecutions = 0, goalCalls = 0;
   const archives: string[] = [], toolReturns: unknown[] = [];
@@ -171,7 +172,20 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
             append(agent, 'agent/inbox/spliced', { target: 'next-turn', start: 0, removedCount: claimed.length, inserted: [] });
             // Fixed SDK: working-directory context is required and survives
             // suppressRuntimeContext(); loop preStep appends this snapshot.
-            const step = await hooks.waterfall('agent/pre-step', [{ messages: claimed }], () => ({ kind: 'enter', messages: mode === 'changed-prestep' ? [] : [...claimed, ...contextMessages(session, 'prepared')] }));
+            // The fixed host may inject its required working-directory snapshot
+            // into the first claimed turn alongside the followup message.
+            const preparedContext = mode === 'host-context-prestep' || mode === 'host-bad-context-prestep' || mode === 'host-third-input-prestep'
+              ? contextMessages(session, 'prepared') : [];
+            if (mode === 'host-bad-context-prestep' && preparedContext[0]) {
+              const bad = structuredClone(preparedContext[0]);
+              bad.content[0]!.text = 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\nCurrent working directory: "/synthetic/foreign".';
+              bad.source.sections[0]!.text = 'Current working directory: "/synthetic/foreign".';
+              preparedContext[0] = bad;
+            }
+            const firstStepPayload = mode === 'host-third-input-prestep'
+              ? [...claimed, ...preparedContext, { id: 'unregistered-third-input', role: 'user', content: [{ type: 'text', text: 'extra hostile input' }], source: { kind: 'user' } }]
+              : [...claimed, ...preparedContext];
+            const step = await hooks.waterfall('agent/pre-step', [{ messages: firstStepPayload }], () => ({ kind: 'enter', messages: mode === 'changed-prestep' ? [] : firstStepPayload }));
             if (step.kind === 'reject') { append(agent, 'turn/end', { reason: agent.cancelled
               ? { kind: 'aborted', reason: { kind: 'hook', reason: 'Core decision cancelled' } } : { kind: 'blocked' } }); return; }
             const assembly = await local.systemPrompt.assemble({ scope: agent }); assemblies.push(structuredClone(assembly)); if (!eventTools) assert.deepEqual(assembly.tools, []);
@@ -952,4 +966,80 @@ test('the probe rejects malformed options and an absent trusted event tool facto
       assert.equal(f.counts().creates, 0); assert.equal(f.counts().followups, 0);
     } finally { await adapter.close(); }
   } finally { await noFactoryAdapter.close(); }
+});
+
+// ---------------------------------------------------------------------------
+// H2c-probe-fix regression: the fixed host injects its required
+// working-directory runtime-context snapshot into the first claimed turn even
+// with suppressRuntimeContext(); the probe must accept exactly one registered
+// prompt plus at most that one exact bound snapshot, and still reject anything
+// else before any model request.
+// ---------------------------------------------------------------------------
+test('a host-injected working-directory snapshot in the first claimed turn is accepted and the round proceeds', async t => {
+  const { events, f, adapter, typesSeen } = await probeFixture(t);
+  f.setMode('host-context-prestep');
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  const before = await events.events.stats(readerPrincipal());
+  try {
+    const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'passed', JSON.stringify(receipt));
+    assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_PASSED');
+    assert.deepEqual(receipt.counters, { followups: 1, turns: 1, userMessages: 2, assistantMessages: 2,
+      mainModelRequests: 2, mainModelStreams: 2, toolCalls: 1, toolResults: 1 });
+    assert.equal(receipt.cleanupVerified, true);
+    assert.deepEqual(await events.events.stats(readerPrincipal()), before);
+    assert.equal(f.counts().requests, 2); assert.equal(f.counts().streams, 2); assert.equal(f.counts().toolExecutions, 1);
+    assert.deepEqual(f.toolErrors, []);
+    assert.equal(f.counts().goalCalls, 0);
+    const stored = f.stored.get(receipt.sessionId)!;
+    assert.equal(stored.events.some(event => event.type === 'turn/end' && event.data?.reason?.kind === 'blocked'), false);
+  } finally { await adapter.close(); }
+});
+
+test('a wrong host working-directory snapshot is rejected in the first step before any model request', async t => {
+  const { f, adapter } = await probeFixture(t);
+  f.setMode('host-bad-context-prestep');
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen: 0 }));
+  try {
+    const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'failed');
+    assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION');
+    assert.deepEqual(receipt.counters, { followups: 1, turns: 1, userMessages: 0, assistantMessages: 0,
+      mainModelRequests: 0, mainModelStreams: 0, toolCalls: 0, toolResults: 0 });
+    assert.equal(f.counts().requests, 0); assert.equal(f.counts().streams, 0); assert.equal(f.counts().toolExecutions, 0);
+    const stored = f.stored.get(receipt.sessionId)!;
+    assert.equal(stored.events.some(event => event.type === 'turn/end' && event.data?.reason?.kind === 'blocked'), true);
+    assert.equal(stored.events.some(event => event.type === 'user/message'), false);
+    assert.equal(receipt.cleanupVerified, true);
+  } finally { await adapter.close(); }
+});
+
+test('a third native first-step input is rejected before any model request', async t => {
+  const { f, adapter } = await probeFixture(t);
+  f.setMode('host-third-input-prestep');
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen: 0 }));
+  try {
+    const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'failed');
+    assert.equal(receipt.reasonCode, 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION');
+    assert.equal(receipt.counters.mainModelRequests, 0); assert.equal(receipt.counters.mainModelStreams, 0);
+    assert.equal(receipt.counters.toolCalls, 0); assert.equal(f.counts().requests, 0); assert.equal(f.counts().streams, 0);
+    assert.equal(receipt.cleanupVerified, true);
+  } finally { await adapter.close(); }
+});
+
+test('the single claimed input path stays accepted without a host runtime-context snapshot', async t => {
+  const { f, adapter, typesSeen } = await probeFixture(t);
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  try {
+    const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'passed');
+    assert.equal(receipt.counters.mainModelRequests, 2); assert.equal(receipt.counters.mainModelStreams, 2);
+    assert.equal(receipt.counters.userMessages, 2);
+    assert.equal(receipt.cleanupVerified, true);
+  } finally { await adapter.close(); }
 });

@@ -729,6 +729,17 @@ export class CoreEventToolModelProbeRun {
       throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe runtime context is not the exact bound working-directory snapshot');
     }
   }
+  /** The fixed host may inject its required working-directory snapshot into the
+   * first claimed turn even with suppressRuntimeContext(). Accept exactly the one
+   * registered prompt plus at most that one exact bound runtime-context message;
+   * every other input count or identity still fails closed. */
+  private validateFirstStepInputs(messages: unknown): void {
+    if (!Array.isArray(messages) || messages.length < 1 || messages.length > 2) {
+      throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first step is not the one registered prompt with at most its bound runtime context');
+    }
+    this.validateOwnerInput(messages[0]);
+    if (messages.length === 2) this.validateRuntimeContext(messages[1] as Record<string, unknown>);
+  }
   private validateCommittedInputs(): void {
     const inputs = this.events.filter(event => event.type === 'user/message').map(event => event.data);
     if (!inputs.length) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe has no committed owner input');
@@ -828,17 +839,12 @@ export class CoreEventToolModelProbeRun {
         this.assertCurrent();
         if (!this.dispatchAttempted || this.released || !Array.isArray(payload?.messages)) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe step outside its admitted turn');
         if (this.steps === 0) {
-          if (payload.messages.length !== 1) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first step is not the one registered fixed prompt');
-          this.validateOwnerInput(payload.messages[0]);
+          this.validateFirstStepInputs(payload.messages);
         } else if (this.steps !== 1 || !this.toolRoundUsed) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe step is outside the admitted tool round');
         const decision = await next();
         this.assertCurrent();
         if (decision?.kind !== 'enter') throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe prepared step did not enter');
-        if (this.steps === 0) {
-          if (!Array.isArray(decision.messages) || decision.messages.length < 1 || decision.messages.length > 2) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first input shape is unbounded');
-          this.validateOwnerInput(decision.messages[0]);
-          if (decision.messages.length === 2) this.validateRuntimeContext(decision.messages[1]);
-        }
+        if (this.steps === 0) this.validateFirstStepInputs(decision.messages);
         this.steps++;
         return decision;
       } catch (error) { this.stop(errorCode(error) ?? 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION', error); return { kind: 'reject' }; }

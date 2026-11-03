@@ -1,0 +1,331 @@
+{
+  "schemaVersion": 1,
+  "kind": "h2c-model-probe-blocked-turn-fix",
+  "phase": "H2c-probe-fix",
+  "capturedAt": "2026-11-02T23:52:07.237Z",
+  "status": "offline-root-cause-confirmed+fixed+isolated-verified; real-host retest NOT executed by implementer (Lead kit)",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "networkCallsByImplementer": 0,
+  "embeddingCallsByImplementer": 0,
+  "head": "bcc35911afbcfd8795b771b413f14cf1d5f8a135",
+  "baseline": {
+    "head": "bcc3591",
+    "isolatedTestCount": 1477,
+    "newTests": 4,
+    "arithmetic": "1477 = 1473 clean-HEAD baseline (round-4 clean check) + 4 new probe-fix regression tests"
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "platform": "darwin/arm64",
+    "sqlite": "3.53.3",
+    "pluginPackage": "0.1.0"
+  },
+  "rootCause": {
+    "summary": "CoreEventToolModelProbeRun.agent/pre-step rejected the first claimed turn whenever the fixed host supplied the followup message together with its required working-directory runtime-context snapshot (2 messages). It required exactly 1 message, returned {kind:\"reject\"}, and the host removed the claimed inputs and ended the turn as blocked before any model request.",
+    "hostSymptom": {
+      "build": "af201fe",
+      "tool": "shiyu_diagnose_core_model_tools",
+      "status": "failed",
+      "reasonCode": "CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "sessionId": "shiyu-core-model-probe-c6126eb1-3759-4d58-a0d5-132687a18c5e",
+      "counters": {
+        "followups": 1,
+        "turns": 1,
+        "userMessages": 0,
+        "assistantMessages": 0,
+        "mainModelRequests": 0,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "toolResults": 0
+      },
+      "released": true,
+      "disposed": true,
+      "archived": true,
+      "cleanupVerified": true,
+      "productionStateWrites": 0,
+      "hostPromptSha256": "887309188b9a38506c45d77fb3b16ea9500b9d87fdb757c9e42c9c6e1d2011ea",
+      "frozenPromptSha256": "887309188b9a38506c45d77fb3b16ea9500b9d87fdb757c9e42c9c6e1d2011ea",
+      "promptIdentityMatched": true,
+      "archivedSessionEvents": "turn/start -> agent/inbox/spliced(removedCount:1) -> turn/end(reason blocked); no assistant message, no model request",
+      "evidence": [
+        {
+          "path": "plugins/shiyu/artifacts/dsh/host/round4/core-model-tool-probe.json",
+          "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa"
+        },
+        {
+          "path": "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json",
+          "sha256": "c4f1dcf992a6f22592c81fed02d381c94e1022836ffb31e99ab9da6060fe9d96"
+        }
+      ]
+    },
+    "codePath": [
+      "src/adapters/dsh/core-decision.ts → CoreEventToolModelProbeRun.compose → ctx.on(\"agent/pre-step\")",
+      "first step required payload.messages.length === 1 (pre-fix), then validateOwnerInput(payload.messages[0])",
+      "reject → host appends turn/end(reason=blocked) after agent/inbox/spliced(start:0,removedCount:1)",
+      "no user/message or model request is reached, so validateCommittedInputs/stream never run and all counters stay 0"
+    ],
+    "offlineReproduction": {
+      "description": "Synthetic host claims [fixed prompt, exact bound cwd runtime-context] into the first pre-step; pre-fix receipt matches the host failure exactly.",
+      "redRun": {
+        "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts",
+        "log": {
+          "path": "plugins/shiyu/.local/h3/fix-red.log",
+          "sha256": "a68920f1b983b608a9d17ebfeb39fecf20f6f7c1ff6ca1f1bd3a18925a75419c",
+          "bytes": 4510
+        },
+        "tests": 27,
+        "pass": 26,
+        "fail": 1,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "failingExpectation": "test \"a host-injected working-directory snapshot in the first claimed turn is accepted and the round proceeds\" expected passed, pre-fix receipt was status=failed, reasonCode=CORE_MODEL_PROBE_PROTOCOL_VIOLATION, counters all 0, released/disposed/archived true — the same shape as the host attempt."
+    }
+  },
+  "fix": {
+    "file": "src/adapters/dsh/core-decision.ts (CoreEventToolModelProbeRun only)",
+    "change": "The probe first step now accepts exactly 1–2 claimed messages instead of only 1. Message 1 must equal the registered fixed prompt by id and native message hash; if message 2 exists it must be the exact bound working-directory runtime-context (same validateRuntimeContext used by committed-input validation). Any other count (>2, 0) or identity still fails closed before any model request. The post-pre-step decision.messages pass through the same first-step validator, so the whole turn admits at most those two inputs.",
+    "notRelaxed": [
+      "exactly one registered owner prompt (id + hash) and no user-controlled text",
+      "at most two inputs: one optional exact cwd runtime-context; a third input, a different cwd/section/shape or a non-runtime-context message is rejected",
+      "downstream committed user/message validation and stream validation still admit at most those two inputs; unregistered inbox insertions still stop the run",
+      "requests/streams ≤2, turns=1, exactly one shiyu_core_event_types tool call/result, only the read-only types tool may execute",
+      "maxTokens 256 with second request = 256 − first reported outputTokens; tool timeout, usage completeness and unknown rules unchanged",
+      "no retry, no Goal/Task/budget/Effect/event/business write; flush/release/dispose/archive still mandatory for any receipt"
+    ],
+    "suppressRuntimeContextDecision": {
+      "keepSuppressRuntimeContext": true,
+      "reason": "The fixed host injects its required working-directory snapshot into the first claimed turn even with systemPrompt.suppressRuntimeContext(); the snapshot is context the host requires and is already exact-bound by content. Removing suppression or adding a deny/restrict guard would not remove this snapshot and could admit or silently drop unrelated host context. No setup change is needed; the probe accepts exactly the host-required snapshot and rejects anything else.",
+      "setupChanges": "none; runtime.ts/index.ts unchanged"
+    },
+    "integration": {
+      "runtimeOrIndexChangeRequired": false,
+      "reason": "The defect is entirely inside CoreEventToolModelProbeRun first-step admission; the runtime command/tool/diagnostics integration from round 4 is unchanged.",
+      "patchPath": "plugins/shiyu/artifacts/dsh/h2/h2c-model-probe-fix.patch",
+      "patchBytes": 3247,
+      "patchSha256": "d7fc5337c744dfd649d23ab240cad6b8f3aaa066c55bbe1ccd5fba72c0f5f2ce",
+      "patchFiles": [
+        "plugins/shiyu/src/adapters/dsh/core-decision.ts"
+      ],
+      "patchAppliesToHead": "git apply --check passed on an ephemeral worktree at HEAD bcc3591",
+      "patch": "diff --git a/plugins/shiyu/src/adapters/dsh/core-decision.ts b/plugins/shiyu/src/adapters/dsh/core-decision.ts\nindex c1d914e..198ec29 100644\n--- a/plugins/shiyu/src/adapters/dsh/core-decision.ts\n+++ b/plugins/shiyu/src/adapters/dsh/core-decision.ts\n@@ -729,6 +729,17 @@ export class CoreEventToolModelProbeRun {\n       throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe runtime context is not the exact bound working-directory snapshot');\n     }\n   }\n+  /** The fixed host may inject its required working-directory snapshot into the\n+   * first claimed turn even with suppressRuntimeContext(). Accept exactly the one\n+   * registered prompt plus at most that one exact bound runtime-context message;\n+   * every other input count or identity still fails closed. */\n+  private validateFirstStepInputs(messages: unknown): void {\n+    if (!Array.isArray(messages) || messages.length < 1 || messages.length > 2) {\n+      throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first step is not the one registered prompt with at most its bound runtime context');\n+    }\n+    this.validateOwnerInput(messages[0]);\n+    if (messages.length === 2) this.validateRuntimeContext(messages[1] as Record<string, unknown>);\n+  }\n   private validateCommittedInputs(): void {\n     const inputs = this.events.filter(event => event.type === 'user/message').map(event => event.data);\n     if (!inputs.length) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe has no committed owner input');\n@@ -828,17 +839,12 @@ export class CoreEventToolModelProbeRun {\n         this.assertCurrent();\n         if (!this.dispatchAttempted || this.released || !Array.isArray(payload?.messages)) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe step outside its admitted turn');\n         if (this.steps === 0) {\n-          if (payload.messages.length !== 1) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first step is not the one registered fixed prompt');\n-          this.validateOwnerInput(payload.messages[0]);\n+          this.validateFirstStepInputs(payload.messages);\n         } else if (this.steps !== 1 || !this.toolRoundUsed) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe step is outside the admitted tool round');\n         const decision = await next();\n         this.assertCurrent();\n         if (decision?.kind !== 'enter') throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe prepared step did not enter');\n-        if (this.steps === 0) {\n-          if (!Array.isArray(decision.messages) || decision.messages.length < 1 || decision.messages.length > 2) throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first input shape is unbounded');\n-          this.validateOwnerInput(decision.messages[0]);\n-          if (decision.messages.length === 2) this.validateRuntimeContext(decision.messages[1]);\n-        }\n+        if (this.steps === 0) this.validateFirstStepInputs(decision.messages);\n         this.steps++;\n         return decision;\n       } catch (error) { this.stop(errorCode(error) ?? 'CORE_MODEL_PROBE_PROTOCOL_VIOLATION', error); return { kind: 'reject' }; }\n"
+    }
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h2c-probe-fix --manifest plugins/shiyu/.local/h2c-probe-fix-manifest.json",
+      "head": "bcc35911afbcfd8795b771b413f14cf1d5f8a135",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+          "bytes": 81635,
+          "sha256": "262d850e4c376093c8444d9d3c4d2f3eb45cd445220c6997d0968b6da04273a0"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+          "bytes": 79188,
+          "sha256": "f6e52c6152cbbb9447e4889a01afad7ec1c8dbfac8d8bf9fc8d739e6cd37ec69"
+        }
+      ],
+      "exitCode": 0,
+      "tests": {
+        "tests": 1477,
+        "pass": 1477,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 348037,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h2c-probe-fix.log",
+        "bytes": 159925,
+        "sha256": "fff150c7984d4fcf0269cb31366db3e9cea741e6f679b7b15b00647f0a0e95f4"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h2c-probe-fix-verify.json",
+        "sha256": "057f83e10ed4473377c2e6601e5e0dd56df51b4ac4f54d405d6aa69cdab2e994"
+      },
+      "tail": [
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 346938.154625",
+        "> @shiyu/runtime@0.1.0 build",
+        "> tsc -p tsconfig.build.json"
+      ]
+    },
+    "focusedAfterFix": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/fix-green.log",
+        "sha256": "1f5b9ab9b6f5d243b7293dc0c8c1c5a1d1355f33a99ff230680acb7ff56e5fb1"
+      },
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "regressionBatch": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts tests/core-goal-sessions.test.ts tests/core-plan.test.ts tests/local-core.test.ts tests/runtime-core.test.ts tests/event-tools.test.ts tests/events-runtime-probe.test.ts tests/events-zero-model-probe.test.ts tests/events-core-continuation.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/fix-regression.log",
+        "sha256": "94a97d3611f38c1d67eabb04af1667861328cdb01b57d481a92f8d6d65967301"
+      },
+      "tests": 135,
+      "pass": 135,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "redToGreen": {
+      "preFixFailingTests": 1,
+      "postFixFailingTests": 0,
+      "note": "the only pre-fix failure is the 2-message first-step case; the 1-message, wrong-context and third-input cases were already rejected/behaving correctly and stay green"
+    }
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 81635,
+      "sha256": "262d850e4c376093c8444d9d3c4d2f3eb45cd445220c6997d0968b6da04273a0"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 79188,
+      "sha256": "f6e52c6152cbbb9447e4889a01afad7ec1c8dbfac8d8bf9fc8d739e6cd37ec69"
+    }
+  ],
+  "tests": {
+    "added": [
+      "a host-injected working-directory snapshot in the first claimed turn is accepted and the round proceeds (passed receipt, 2 requests/2 streams/1+1 tool, two committed user messages, no event writes)",
+      "a wrong host working-directory snapshot is rejected in the first step before any model request (counters all 0, blocked turn, no user/message event)",
+      "a third native first-step input is rejected before any model request",
+      "the single claimed input path stays accepted without a host runtime-context snapshot"
+    ],
+    "existingH2cProbeTests": "the 23 previous probe/feature tests remain green in the 27-test focused suite and in the isolated full check",
+    "businessWriteAsserts": "event ledger stats unchanged; zero Goal/Task/budget/Effect/authority writes; only the disposable Session log is written and archived"
+  },
+  "hostRetestKit": {
+    "kitVersion": 1,
+    "status": "frozen; post-fix real host retest NOT executed by implementer; exactly one Lead-owned retest",
+    "frozenInput": {
+      "command": {
+        "action": "runtime.probe-core-model-tools",
+        "fields": "exactly this one field"
+      },
+      "preferredTool": "shiyu_diagnose_core_model_tools (no parameters)",
+      "httpPath": "POST /api/shiyu/commands with application/json",
+      "fixedPromptSha256": "887309188b9a38506c45d77fb3b16ea9500b9d87fdb757c9e42c9c6e1d2011ea",
+      "maxTokens": 256,
+      "timeoutMs": 60000,
+      "retries": 0,
+      "model": {
+        "provider": "opencode-go",
+        "model": "deepseek-v4.1-flash",
+        "reasoningEffort": "high"
+      }
+    },
+    "preconditions": [
+      "fixed host rebuilt/installed from a build containing this core-decision fix and the round-4 runtime integration; record dist digest",
+      "runtime not paused; no other model operation in flight; owner invokes exactly once",
+      "before-audit: node plugins/shiyu/scripts/host-state-audit.mjs --out <tmp-before.json> plus a shiyu_status diagnostics baseline"
+    ],
+    "expectedAfterFix": {
+      "passed": {
+        "ok": true,
+        "status": "passed",
+        "reasonCode": "CORE_MODEL_PROBE_PASSED",
+        "sessionIdPrefix": "shiyu-core-model-probe-",
+        "counters": {
+          "followups": 1,
+          "turns": 1,
+          "mainModelRequests": 2,
+          "mainModelStreams": 2,
+          "toolCalls": 1,
+          "toolResults": 1
+        },
+        "userMessages": "1 or 2 depending on how the host projects the cwd snapshot as a committed user/message event (both accepted by the fix)",
+        "toolCalls": [
+          "shiyu_core_event_types"
+        ],
+        "toolResultOutcome": "observed",
+        "finalJson": "{ok:true,typesSeen:<n>} with n === toolResult.typesSeen (number of visible event types)",
+        "usageStatus": "reported",
+        "released": true,
+        "disposed": true,
+        "archived": true,
+        "cleanupVerified": true,
+        "promptSha256": "887309188b9a38506c45d77fb3b16ea9500b9d87fdb757c9e42c9c6e1d2011ea"
+      },
+      "semanticFailureButTurnFixed": {
+        "example": "CORE_MODEL_PROBE_NO_TOOL_CALL",
+        "meaning": "the host turn ran and the model answered, but did not call the read-only types tool; record as failed, no retry"
+      },
+      "stillBlockedTurn": {
+        "detection": "counters all 0 and the archived shiyu-core-model-probe-* Session shows turn/start → agent/inbox/spliced(removedCount) → turn/end(blocked) with no user/message",
+        "action": "record as failed/blocked reproduction, capture the new session event chain, stop; do NOT retry. A different first-step shape is still present (e.g. >2 inputs or a context form other than the exact cwd snapshot) and needs a new diagnosis slice."
+      },
+      "cleanupFailure": {
+        "detection": "command throws \"Core model probe cleanup failed\"",
+        "action": "inspect/archive the disposable Session manually; never mark passed, never retry the model round"
+      }
+    },
+    "costAndTimeStop": [
+      "one invocation only; at most 2 provider main requests/streams, 1 tool call, 1 turn; 60s absolute deadline",
+      "per-request output cap 256 tokens (second request cap = 256 − first reported outputTokens)",
+      "abort via runtime.pause or request cancellation -> cancelled receipt, no retry",
+      "failed/unknown/cancelled outcomes are retained as-is; missing usage stays unknown (no zero fill, no cost estimate) and stops this verification batch"
+    ],
+    "postChecks": [
+      "after-audit comparison: no Goal/Task/Effect/budget/event business writes attributable to the probe; host lifecycle writes excluded and itemized",
+      "no live/running shiyu-core-model-probe-* Session remains; its log is archived, not bound to any Goal or business identity",
+      "shiyu_status diagnostics.coreModelToolProbe equals the returned receipt (in-memory only)",
+      "if the retest happens on the same host instance, record the before/after session-file inventory and control watermark"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model round in this fix: the host retest must be executed once by the Lead with the kit; this evidence does not claim the real model round passes",
+    "the host may project the cwd snapshot differently than the synthetic fake (1 vs 2 committed user/message events); the fix accepts both, and the receipt counters will record the actual number",
+    "if the host first-step shape is still not the exact cwd runtime-context (different text/shape or more than 2 inputs), the probe intentionally stays failed; that needs a new diagnosis with the new archived-session event chain",
+    "transport-internal retries, real provider usage completeness and cost remain unobservable until the host retest"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2c-model-probe-fix.patch",
+      "sha256": "d7fc5337c744dfd649d23ab240cad6b8f3aaa066c55bbe1ccd5fba72c0f5f2ce",
+      "bytes": 3247
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h2c-probe-fix-verify.json",
+      "sha256": "057f83e10ed4473377c2e6601e5e0dd56df51b4ac4f54d405d6aa69cdab2e994"
+    },
+    {
+      "path": "plugins/shiyu/.local/slice-verify-h2c-probe-fix.log",
+      "sha256": "fff150c7984d4fcf0269cb31366db3e9cea741e6f679b7b15b00647f0a0e95f4"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/fix-red.log",
+      "sha256": "a68920f1b983b608a9d17ebfeb39fecf20f6f7c1ff6ca1f1bd3a18925a75419c"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/fix-green.log",
+      "sha256": "1f5b9ab9b6f5d243b7293dc0c8c1c5a1d1355f33a99ff230680acb7ff56e5fb1"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/fix-regression.log",
+      "sha256": "94a97d3611f38c1d67eabb04af1667861328cdb01b57d481a92f8d6d65967301"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/host/round4/core-model-tool-probe.json",
+      "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json",
+      "sha256": "c4f1dcf992a6f22592c81fed02d381c94e1022836ffb31e99ab9da6060fe9d96"
+    }
+  ]
+}
