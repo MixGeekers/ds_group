@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the cold-cut fix, v3 experiment owner surface and general reconcile targets",
+  "capturedAt": "2026-11-03T08:06:12.115Z",
+  "status": "offline-verified-integration",
+  "baseline": {
+    "head": "a29dd29"
+  },
+  "purpose": "Wire runtime.probe-core-goal-v3 and shiyu_validate_core_goal_v3 around the existing bounded runner with only the exact frozen V3 constant; reconcile now covers the fixed [v1,v2,v3] targets. The third real attempt is an explicit owner decision and is not a retry of v1/v2.",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 109223,
+      "sha256": "d64766e5285b86080bc614e3dfad5c8fb5e95f76107175f47b4698d224afab2b"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 17094,
+      "sha256": "3b1a404040b1e31e2bb7a139a9dd50ccbf2310c67360ef00153eda30892b64a8"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 10517,
+      "sha256": "b0d36da1e163065e409d339f7a56baf6bd8861f7d51d1ecd7e40e9746e49390e"
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD a29dd29 + all round-12 slice files and integration)",
+      "evidence": "artifacts/dsh/slices/round12-integrated-verify.json",
+      "exitCode": 0,
+      "tests": 1623,
+      "pass": 1623,
+      "fail": 0,
+      "skipped": 0,
+      "log": "plugins/shiyu/.local/slice-verify-round12-integrated.log",
+      "logSha256": "52cfd4ec41343673c2e5d7087ad2d5c915546bbb2b1454b572813a0bd635c531",
+      "arithmetic": "1605 baseline + 8 cold-cut/v3 product tests + 9 H7-round12 + 1 v3 tool test = 1623"
+    },
+    "authorChecks": {
+      "h3V3": "isolated 1613/1613 (baseline 1605 + 8)",
+      "h7Round12": "isolated 1614/1614 (baseline 1605 + 9) plus harness 132/132"
+    },
+    "hostAttemptPending": "one third independent v3 attempt is executed by the Lead under the frozen owner decision; failures/unknowns are preserved and never retried."
+  },
+  "knownLimitations": [
+    "The cold-header cut is host-candidate only; if the real host cut differs, the v3 receipt will show event-count positive delta/live.seq and the attempt stops with no retry.",
+    "The v3 experiment creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; it is not a read-only probe.",
+    "Receipts live in memory diagnostics and must be captured before reload."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; third v3 host attempt pending."
+}

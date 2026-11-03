@@ -1730,3 +1730,29 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 1. create 失败**未修复**；cold-header 根因候选**未 host-confirmed**，dormant `liveCut` **未激活**；第三次实验未授权。
 2. reconcile 通过仅证清理路径；真实有界业务链仍未验证；产品行 79/79 not_covered、gate=incomplete、executed=passed=0。
+
+## 57. 第十二轮：激活 cold-header 修复、v3 冻结实验与第三次尝试准备
+
+状态：**G1 离线/集成通过**；第三次真实尝试待固定宿主执行（显式 owner 决定）。2026-11-03。
+
+### 57.1 create-only cold-header cut 激活
+
+- `GoalSessionAdapter.stabilizeCoreCreateBaseline` 显式向 `observeNativeBaseline`/`assertNativeLiveHistory` 传 `{liveCut:'seq-excluding-header'}`：cold snapshot 去掉 leading Session header 后与 live `session.seq` 对齐；**仅新会话 create**；recovery/resume/expectedPrefix 严格语义不变。
+- 稳定化保持（仅 `NATIVE_HISTORY_CHANGED` 首次+≤2 次重观察）；native `goals().create` **仍恰一次、不 replay**；剩余失败仍带受控 historyDiagnostic。
+- fake-host 测试：确定性 cold-header 场景（cold 4 含 header / live seq 3）→ **create 成功且 native create 1 次**；cold-header+瞬时 append 有界重观察后成功；真实 append 仍失败为 `event-count` 正 delta、native create 0。
+
+### 57.2 v3 冻结实验与 owner 面
+
+- `CORE_VALIDATION_EXPERIMENT_V3`：requestId `core-validation-frozen-v3`、content `SHIYU_CORE_VALIDATION_NOTE_V3`（sha `39078e1d…`）、budget 16384/3/1、expires 10min、max2、template sha `dc907faa…`；Object.freeze，仅精确引用可被 runner 接受；v1/v2 常量/历史路径不变且保持 failed+reconciled。
+- `runtime.probe-core-goal-v3` + 工具 `shiyu_validate_core_goal_v3`（无参数、output schema；description 明确**全新 v3 冻结实验、非 v1/v2 重试、显式 owner 决定的第三次独立尝试**、真实副作用、失败/未知不重试）；reconcile 固定 targets 扩展 `[v1,v2,v3]`。
+- 测试净增 8；focused 95；作者隔离 1613/1613；**Lead 组合隔离 1623/1623、0 skip**（1605+8+9+1）。
+
+### 57.3 H7-round12 映射
+
+- 新增 6 来源/26 引用（67 来源/224 文件）：history 诊断、v1/v2 reconcile 泛化、round11 集成、round11 宿主零模型 reconcile（仅 `fixed-host-zero-model-reconcile`）、round11 clean artifacts（blobCommit 7ad2621）、round11 review（info-only 未映射）。
+- 产品行仍 79/79 not_covered、covered=0、tooling/V/S/FL 不升级；harness 132/132、作者隔离 1614/1614。
+
+### 57.4 第三次尝试（待执行）
+
+- **显式 owner 决定**：新 v3 requestId/模板，非 v1/v2 重试；一次调用、0 重试；预算 16384/3/1、≤2 评估、180s wall、10min 过期、单槽单飞。
+- 预期：create 成功后进入 core 计划/模型轮/Task/worker/独立核验/native complete；若 create 仍失败，receipt 必须给出 failurePhase/failureCode/failureDetail/historyDiagnostic（event-count 正 delta/live.seq 等），保留 partial 产物、0 重试，并停止报告。
