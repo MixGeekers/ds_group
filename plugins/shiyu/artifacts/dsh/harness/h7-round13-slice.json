@@ -1,0 +1,161 @@
+{
+ "schemaVersion": 1,
+ "kind": "shiyu.harness.h7-round13-slice-evidence",
+ "phase": "H7-round13",
+ "capturedAt": "2026-11-03T08:41:04.582Z",
+ "baselineHead": "390346d7fe15722c49703f1c7192c29308d1ff1b",
+ "status": "code-tests-delivered-not-clean-refresh",
+ "purpose": "Bind round-12 create-only cold-cut/v3 activation, third v3 host attempt failure (header-hash), post-attempt generalized cleanup reconcile, round-12 integration/clean artifacts and review into evidence.ts / acceptance index without granting pass; product rows stay not_covered.",
+ "round12Sources": [
+  "cold-cut-v3-activation",
+  "round12-lead-integration",
+  "h7-round12-clean-artifacts",
+  "round12-host-v3-create-failure",
+  "round12-host-v3-cleanup-reconcile",
+  "round12-review"
+ ],
+ "sourceCounts": {
+  "sources": 73,
+  "files": 254
+ },
+ "files": [
+  {
+   "path": "plugins/shiyu/tests/harness/evidence.ts",
+   "sha256": "7452bc18a219ee43b7748eaa7536b558cda97c96cbe035bc71f145e006ce98f7",
+   "bytes": 182562
+  },
+  {
+   "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+   "sha256": "460842f82f5ae912264618652dda8bfd39ab93dfac7185dcee184d069888776d",
+   "bytes": 40338
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round4.test.ts",
+   "sha256": "7df9d2eb2037e4d07ba033b8c1457f39606fdee5dc541b4e5e135945ab79982d",
+   "bytes": 18584
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round5.test.ts",
+   "sha256": "8ee3b9bd4663da66ebe3ebaa4413a0641dbc4731dff49e7d62839c6e3203f712",
+   "bytes": 23353
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round6.test.ts",
+   "sha256": "7833cfa545c0efe7074d77c2a7187cac49fe99da7c939564df8b0174ed0ba749",
+   "bytes": 20213
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round7.test.ts",
+   "sha256": "7fa92a5ba10324a657221170675778774acce5a261cc88e1ad275a0b86d2365a",
+   "bytes": 17944
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round8.test.ts",
+   "sha256": "891ce10e7de2f205c4fb9200cb6e23ffa9185c5d219119005922613df093df55",
+   "bytes": 18150
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round9.test.ts",
+   "sha256": "590803f61c5cdea899af6351d458320005fc4a0092e88e3e8d82f40ee366d7aa",
+   "bytes": 17602
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round11.test.ts",
+   "sha256": "be0cde293aab8e11250a246ecaac68016e58497e51f3724449f9e7704e4bdfb4",
+   "bytes": 17441
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round12.test.ts",
+   "sha256": "1034c374afb65a34b4a8a5dfe6125ea6e315201f1a39c4492f6e8c403d03d223",
+   "bytes": 23563
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round13.test.ts",
+   "sha256": "23d2f8fee505367a72deff83805b72ec2e761b6251c0f911f498e2ab7db9e7ec",
+   "bytes": 27622
+  }
+ ],
+ "commands": [
+  "npx tsc --noEmit",
+  "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+  "npm run check (isolated worktree 390346d + only round-13 slice files)",
+  "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+  "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+ ],
+ "checks": {
+  "sharedTree": {
+   "tsc": {
+    "exitCode": 0
+   },
+   "harness": {
+    "tests": 142,
+    "pass": 142,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round13-390346d-shared-harness.log",
+     "sha256": "",
+     "bytes": 0
+    }
+   }
+  },
+  "isolatedWorktree": {
+   "head": "390346d7fe15722c49703f1c7192c29308d1ff1b",
+   "worktree": "/tmp/h7r13-slice (ephemeral)",
+   "tsc": {
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round13-390346d-isolated-tsc.log",
+     "sha256": "",
+     "bytes": 0
+    }
+   },
+   "harness": {
+    "tests": 142,
+    "pass": 142,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round13-390346d-isolated-harness.log",
+     "sha256": "",
+     "bytes": 0
+    }
+   },
+   "fullCheck": {
+    "tests": 1633,
+    "pass": 1633,
+    "fail": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round13-390346d-check.log",
+     "sha256": "",
+     "bytes": 0
+    }
+   }
+  }
+ },
+ "productRows": {
+  "total": 79,
+  "notCovered": 79,
+  "covered": 0
+ },
+ "toolingReady": [
+  "TV.1",
+  "TV.2",
+  "TV.3",
+  "TV.4",
+  "TV.5",
+  "TV.6",
+  "TV.7",
+  "TV.9"
+ ],
+ "acceptanceGate": "incomplete",
+ "limitations": [
+  "H7-round13 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+  "Round-12 third v3 host attempt FAILED at history-assert/header-hash: cold-cut fixed event-count/seq (expected 3 = live 3, delta 0) but cold/live header hashes differ; 0 model requests, no retry, partial unauthorized/paused v3 Goal+Session, journal unknown, no new Task/Effect/budget/artifact; fourth attempt NOT authorized and create failure NOT fixed.",
+  "Round-12 post-attempt cleanup reconcile is zero-model only (v1/v2 no action, v3 inert exactly one cancel to version 2, only +1 commitSeq); it is cleanup, not business acceptance.",
+  "Round-12 review is independent-review-info only and deliberately unmapped; product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD."
+ ],
+ "archivedCopies": []
+}

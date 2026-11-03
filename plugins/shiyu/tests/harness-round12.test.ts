@@ -126,7 +126,7 @@ async function acceptanceInputs(): Promise<AcceptanceInputs> {
 }
 
 test('round12:new-round11-sources-integrity-and-ancestry', async () => {
-  assert.equal(EVIDENCE_SOURCES.length, 67);
+  assert.equal(EVIDENCE_SOURCES.length, 73);
   const ids = new Set(EVIDENCE_SOURCES.map(source => source.id));
   for (const id of ROUND11_SOURCE_IDS) assert.ok(ids.has(id), `missing round-11 source ${id}`);
   const newSources = EVIDENCE_SOURCES.filter(source => ROUND11_SOURCE_IDS.includes(source.id as (typeof ROUND11_SOURCE_IDS)[number]));
@@ -144,9 +144,9 @@ test('round12:new-round11-sources-integrity-and-ancestry', async () => {
   }
   const { report, result } = await verifyEvidenceSources(workspaceRoot, head);
   assert.equal(result.ok, true, JSON.stringify(result.violations.slice(0, 5)));
-  assert.equal(report.counts.sources, 67);
-  assert.equal(report.counts.verified, 67, `unknown: ${report.unknownSourceIds.join(',')}`);
-  assert.equal(report.counts.files, 224);
+  assert.equal(report.counts.sources, 73);
+  assert.equal(report.counts.verified, 73, `unknown: ${report.unknownSourceIds.join(',')}`);
+  assert.equal(report.counts.files, 254);
   for (const source of newSources) {
     const verified = report.sources.find(item => item.id === source.id);
     assert.equal(verified?.status, 'verified');
@@ -408,10 +408,15 @@ test('round12:slice-evidence-present', async () => {
     [...ROUND11_SOURCE_IDS].sort(),
   );
   assert.deepEqual(evidence.sourceCounts, { sources: 67, files: 224 });
+  // Historical slice snapshot: hash the blobs as committed in the round-12 X+1
+  // commit (1113662). Later rounds legitimately edit these harness files, so a
+  // mutable-worktree comparison would turn a historical record into a stale
+  // drift check; the committed snapshot is the evidence.
   for (const file of evidence.files) {
-    const bytes = await readFile(join(workspaceRoot, file.path));
-    assert.equal(sha256Hex(bytes), file.sha256, `${file.path} slice sha`);
-    assert.equal(bytes.byteLength, file.bytes);
+    const blob = git(['show', `1113662:${file.path}`], 'buffer').stdout as Buffer;
+    assert.ok(blob.byteLength > 0, `${file.path} committed blob missing`);
+    assert.equal(sha256Hex(blob), file.sha256, `${file.path} slice sha`);
+    assert.equal(blob.byteLength, file.bytes);
   }
   assert.equal(evidence.checks.sharedTree.harness.fail, 0);
   assert.equal(evidence.checks.isolatedWorktree.harness.fail, 0);
