@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h2b-live-time-trigger",
+  "capturedAt": "2026-11-02T23:57:10.387Z",
+  "head": "bcc35911afbcfd8795b771b413f14cf1d5f8a135",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h2b-live-time-trigger-1793663464558",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/events/probe.ts",
+      "bytes": 29028,
+      "sha256": "d0b3fdf6c05b7468e183234dba4fe350195e838c92b8603a458ff37e7e3c0165"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/time-source.ts",
+      "bytes": 30278,
+      "sha256": "923881a6a6e32e3db40e45fb74fe6dcb359d2a326e2cd3a21dea4672ea601040"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/rules.ts",
+      "bytes": 24425,
+      "sha256": "5a67150170f468bc18ae325f3ccbbde40be28aa8e60068b4b68457ae140755d7"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-live-time-trigger.test.ts",
+      "bytes": 9187,
+      "sha256": "1adf7b3789c6e63366279691103aceef4cebe8275240cce2a59eaf0b3dd3ffbd"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-live-time-trigger-manifest.json",
+      "bytes": 343,
+      "sha256": "8bfa190a99b7d245cdabf056c6189dfb46840c7e8d9a6029caa9d87966f2705b"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 365598,
+    "bytes": 160255,
+    "sha256": "80ba53d5e03cc1cffb750ce932a4c3624dd0bd81f4c62820b6dc44bee0141ccb",
+    "tests": {
+      "tests": 1481,
+      "pass": 1481,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 364525.097041",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h2b-live-time-trigger.log",
+    "bytes": 160255,
+    "sha256": "80ba53d5e03cc1cffb750ce932a4c3624dd0bd81f4c62820b6dc44bee0141ccb"
+  },
+  "verdict": "pass"
+}

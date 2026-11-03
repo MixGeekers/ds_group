@@ -1,13 +1,13 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ControlStore } from '../../adapters/control-store/index.js';
 import { SHIYU_EVENT_TYPES, type EventPrincipal, type StoredEvent } from '../../contracts/events.js';
 import { EventService } from './index.js';
-import { EventRuleStore } from './rules.js';
+import { EventRuleStore, type TimeRule } from './rules.js';
 import { OnceWaitService, RuleStoreSubscriptionReader, SubscriptionLifecycleService } from './subscriptions.js';
-import { H2B_EVENT_TYPES, RuleBasedSchedulePort, TimeSourceService } from './time-source.js';
+import { H2B_EVENT_TYPES, RuleBasedSchedulePort, TimeSourcePump, TimeSourceService, type EphemeralTimeSubscription } from './time-source.js';
 
 // ---------------------------------------------------------------------------
 // H2b zero-model host probe.
@@ -213,4 +213,206 @@ export async function probeTimeSource(options: TimeSourceProbeOptions = {}): Pro
     diagnostics: { ruleStoreClosed, controlStoreClosed, tempDirectoryRemoved, cleanupErrors: cleanupErrors.slice(0, 8),
       durationMs: Date.now() - startedAt, catalogTypes },
     observedAt: new Date().toISOString() };
+}
+
+// ---------------------------------------------------------------------------
+// H2b LIVE time-trigger probe.
+//
+// Unlike probeTimeSource(), this probe intentionally writes one uniquely named
+// one-shot rule into the *live* plugin EventRuleStore and lets the *live*
+// TimeSourcePump tick publish one real `time.occurred` fact through the live
+// EventService. It must not pretend to be side-effect free: the accepted event
+// is appended to the live control ledger and cannot be deleted afterwards. The
+// rule entry (and its derived time state) are removed again on cleanup; no other
+// business table is written and no model/embedding/Task/Effect is involved.
+//
+// The probe publishes into the reserved probe scope so no live subscription can
+// receive a delivery: only the append-only control event remains.
+// ---------------------------------------------------------------------------
+
+export const TIME_TRIGGER_PROBE_TOOL_NAME = 'shiyu_diagnose_time_trigger';
+export const TIME_TRIGGER_PROBE_SCOPE = 'shiyu-time-probe';
+export interface LiveTimeTriggerProbeOptions {
+  events: EventService;
+  rules: EventRuleStore;
+  timeSource: TimeSourceService;
+  /** The real live cooperative pump; its wake() drives the same tick path. */
+  pump?: Pick<TimeSourcePump, 'wake'>;
+  signal?: AbortSignal;
+  /** Trusted admission gate (runtime pause/close); false aborts before writing. */
+  allowed?: () => boolean;
+  now?: () => number;
+  dueInMs?: number;
+  timeoutMs?: number;
+  pollIntervalMs?: number;
+  /** Test/trusted override; defaults to probe-time-trigger-<uuid>. */
+  subscriptionId?: string;
+  /** Trusted scope override for isolated tests; defaults to the reserved probe scope. */
+  scope?: string;
+}
+export interface LiveTimeTriggerProbeCheck { id: string; ok: boolean; detail?: string }
+export interface LiveTimeTriggerProbeResult {
+  ok: true;
+  toolName: typeof TIME_TRIGGER_PROBE_TOOL_NAME;
+  liveDataTouched: 'control-events-append-only';
+  zeroModel: true; zeroEmbedding: true; zeroTaskOrEffect: true;
+  pumpDriven: boolean;
+  rule: { subscriptionId: string; scheduleRef: string; ruleRevision: number; scope: string; dueAt: string; removed: true; timeStateRemoved: true };
+  observed: {
+    ticksObserved: number; pollCycles: number; eventCount: 1; occurredAt: string;
+    identity: { subscriptionId: string; ruleRevision: number; occurrence: string; scheduledFor: string; eventIdHash: string };
+  };
+  /** Honest side-effect declaration. The appended event cannot be deleted. */
+  sideEffects: {
+    controlEventAppended: true; eventType: 'time.occurred'; eventId: string; appendOnly: true; eventDeletable: false;
+    businessTablesWritten: []; ruleEntriesAddedThenRemoved: 1; residualRule: false; residualTimeState: false; externalEffects: 0;
+  };
+  checks: LiveTimeTriggerProbeCheck[];
+  deadlines: { dueInMs: number; timeoutMs: number; pollIntervalMs: number };
+  cleanup: { ephemeralReleased: true; ruleRemoved: true; timeStateRemoved: true; ruleFileEntriesForProbe: 0 };
+  released: true; disposed: true; durationMs: number; observedAt: string;
+}
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) { reject(signal.reason ?? new Error('aborted')); return; }
+    const timer = setTimeout(() => { signal?.removeEventListener('abort', stop); resolve(); }, ms);
+    const stop = () => { clearTimeout(timer); reject(signal!.reason ?? new Error('aborted')); };
+    signal?.addEventListener('abort', stop, { once: true });
+  });
+}
+function probeSha(value: string): string { return createHash('sha256').update(value).digest('hex'); }
+export async function probeLiveTimeTrigger(options: LiveTimeTriggerProbeOptions): Promise<LiveTimeTriggerProbeResult> {
+  if (!options || typeof options !== 'object' || !options.events || !options.rules || !options.timeSource
+    || typeof options.events.publish !== 'function' || typeof options.events.listEvents !== 'function') {
+    throw new Error('TIME_TRIGGER_PROBE_INVALID: live EventService, EventRuleStore and TimeSourceService are required');
+  }
+  const signal = options.signal;
+  const now = options.now ?? (() => Date.now());
+  const allowed = options.allowed ?? (() => true);
+  const dueInMs = options.dueInMs ?? 1000;
+  const timeoutMs = options.timeoutMs ?? 5000;
+  const pollIntervalMs = options.pollIntervalMs ?? 50;
+  if (!Number.isSafeInteger(dueInMs) || dueInMs < 50 || dueInMs > 4000
+    || !Number.isSafeInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 15000
+    || !Number.isSafeInteger(pollIntervalMs) || pollIntervalMs < 10 || pollIntervalMs > 250) {
+    throw new Error('TIME_TRIGGER_PROBE_INVALID: due/timeout/poll bounds are invalid');
+  }
+  const subscriptionId = options.subscriptionId ?? `probe-time-trigger-${randomUUID()}`;
+  if (!/^probe-time-trigger-[A-Za-z0-9-]{8,160}$/.test(subscriptionId)) throw new Error('TIME_TRIGGER_PROBE_INVALID: invalid probe subscription id');
+  const scope = options.scope ?? TIME_TRIGGER_PROBE_SCOPE;
+  if (!/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/.test(scope)) throw new Error('TIME_TRIGGER_PROBE_INVALID: invalid probe scope');
+  const dueAt = now() + dueInMs;
+  const scheduleRef = `probe-schedule-${subscriptionId.slice(-24)}`;
+  const timing: TimeRule = { scheduleRef, kind: 'once', atMs: dueAt, misfirePolicy: 'latest' };
+  const ephemeral: EphemeralTimeSubscription = { subscriptionId, ruleRevision: 1, scope, timing };
+  const inspector: EventPrincipal = { principalId: 'shiyu-time-trigger-probe-inspector', kind: 'component', scopes: [scope],
+    publishTypes: [], subscribeTypes: ['time.occurred'], targetRefs: [] };
+  const startedAt = Date.now();
+  const checks: LiveTimeTriggerProbeCheck[] = [];
+  const ticks = { observed: 0, pollCycles: 0 };
+  let releaseEphemeral: (() => void) | undefined;
+  let ruleWritten = false;
+  let observedEvent: StoredEvent | undefined;
+  let eventCount = 0;
+  let cleanupDone = false;
+  let ruleRemoved = false;
+  let timeStateRemoved = false;
+  let ephemeralReleased = false;
+  let failure: unknown;
+  const probeEvents = async (): Promise<StoredEvent[]> => (await options.events.listEvents(inspector, { limit: 100 }))
+    .filter(event => event.type === 'time.occurred' && event.payload.subscriptionId === subscriptionId && event.scope === scope);
+  const admission = (phase: string): void => {
+    signal?.throwIfAborted();
+    if (!allowed()) throw new Error(`TIME_TRIGGER_PROBE_PAUSED: runtime is paused before ${phase}`);
+  };
+  const wake = async (): Promise<void> => {
+    if (options.pump) { await options.pump.wake(); ticks.observed++; }
+  };
+  try {
+    admission('writing the live probe rule');
+    releaseEphemeral = options.timeSource.registerEphemeralTimeSubscription(ephemeral);
+    await options.rules.putRule({ subscriptionId, conditionRevision: 1,
+      ownerPrincipal: { principalId: 'shiyu-time-trigger-probe', kind: 'component', scopes: [scope],
+        publishTypes: [], subscribeTypes: ['time.occurred'], targetRefs: [] },
+      time: timing });
+    ruleWritten = true;
+    // Establish the declarative baseline before the due time. A later wake at
+    // the due boundary publishes the canonical occurrence exactly once.
+    await wake();
+    if ((await probeEvents()).length !== 0) throw new Error('TIME_TRIGGER_PROBE_FAILED: probe event appeared before its due time');
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      admission('waiting for the due trigger');
+      ticks.pollCycles++;
+      const events = await probeEvents();
+      if (events.length) { observedEvent = events[0]; break; }
+      if (now() >= dueAt) await wake();
+      await sleep(Math.min(pollIntervalMs, Math.max(1, deadline - Date.now())), signal);
+    }
+    if (!observedEvent) {
+      const residue = await probeEvents();
+      throw new Error(`TIME_TRIGGER_PROBE_TIMEOUT: no live time.occurred within ${timeoutMs} ms; controlEventAppended=${residue.length > 0}`);
+    }
+    eventCount = (await probeEvents()).length;
+    const expectedOccurrence = `once:1:${new Date(dueAt).toISOString()}`;
+    const identity = observedEvent.payload;
+    checks.push({ id: 'exactly_one_live_event', ok: eventCount === 1, detail: `count=${eventCount}` });
+    checks.push({ id: 'canonical_identity', ok: String(identity.subscriptionId) === subscriptionId
+      && Number(identity.ruleRevision) === 1 && String(identity.occurrence) === expectedOccurrence
+      && String(identity.scheduledFor) === new Date(dueAt).toISOString() && String(identity.scheduleRef) === scheduleRef,
+      detail: `${String(identity.occurrence)}` });
+    checks.push({ id: 'probe_scope_isolated', ok: observedEvent.scope === scope
+      && scope !== 'local-owner', detail: scope });
+    // Repeated pump ticks must stay idempotent for the canonical occurrence.
+    await wake(); await wake();
+    const afterRepeat = await probeEvents();
+    checks.push({ id: 'repeat_tick_no_second_event', ok: afterRepeat.length === 1 && afterRepeat[0]!.eventId === observedEvent.eventId,
+      detail: `after=${afterRepeat.length}` });
+    eventCount = afterRepeat.length;
+    // Only the intended control event type was produced by this probe.
+    checks.push({ id: 'no_unexpected_event_types', ok: afterRepeat.every(event => event.type === 'time.occurred') });
+  } catch (error) { failure = error; }
+  finally {
+    if (releaseEphemeral) { try { releaseEphemeral(); ephemeralReleased = options.timeSource.ephemeralSubscriptionIds().every(id => id !== subscriptionId); } catch { ephemeralReleased = false; } }
+    if (ruleWritten) {
+      try { ruleRemoved = await options.rules.deleteRule(subscriptionId); } catch { ruleRemoved = false; }
+      try { timeStateRemoved = await options.rules.deleteTimeState(subscriptionId); } catch { timeStateRemoved = false; }
+    }
+    cleanupDone = true;
+  }
+  const residualRule = ruleWritten ? await options.rules.getRule(subscriptionId) !== undefined : false;
+  const residualTimeState = timeStateRemoved ? false : (await options.rules.getTimeState(subscriptionId)).lastEvaluatedAt !== undefined;
+  const appended = observedEvent !== undefined;
+  const cleanupChecks: LiveTimeTriggerProbeCheck[] = [
+    { id: 'cleanup_rule_removed', ok: ruleRemoved && !residualRule, detail: `ruleRemoved=${ruleRemoved}` },
+    { id: 'cleanup_time_state_removed', ok: timeStateRemoved && !residualTimeState, detail: `timeStateRemoved=${timeStateRemoved}` },
+    { id: 'cleanup_ephemeral_released', ok: ephemeralReleased, detail: `released=${ephemeralReleased}` },
+  ];
+  checks.push(...cleanupChecks);
+  const failed = checks.filter(check => !check.ok);
+  if (failure) {
+    // Before any live write, preserve the exact cancellation/admission error (the
+    // runtime abort path relies on the caller's reason). After a write, append the
+    // honest side-effect/cleanup status so a caller cannot mistake it for clean.
+    if (!ruleWritten && !appended) throw failure;
+    const suffix = ` (controlEventAppended=${appended}; ruleRemoved=${ruleRemoved}; timeStateRemoved=${timeStateRemoved})`;
+    throw new Error(`${failure instanceof Error ? failure.message : String(failure)}${suffix}`, { cause: failure });
+  }
+  if (failed.length) throw new Error(`TIME_TRIGGER_PROBE_FAILED: ${failed.map(check => `${check.id}${check.detail ? `(${check.detail.slice(0, 120)})` : ''}`).join(', ')} (controlEventAppended=${appended})`);
+  if (!observedEvent) throw new Error(`TIME_TRIGGER_PROBE_FAILED: no observed live event (controlEventAppended=false)`);
+  return {
+    ok: true, toolName: TIME_TRIGGER_PROBE_TOOL_NAME, liveDataTouched: 'control-events-append-only',
+    zeroModel: true, zeroEmbedding: true, zeroTaskOrEffect: true, pumpDriven: options.pump !== undefined,
+    rule: { subscriptionId, scheduleRef, ruleRevision: 1, scope, dueAt: new Date(dueAt).toISOString(), removed: true as const, timeStateRemoved: timeStateRemoved as true },
+    observed: { ticksObserved: ticks.observed, pollCycles: ticks.pollCycles, eventCount: 1, occurredAt: observedEvent.receivedAt,
+      identity: { subscriptionId, ruleRevision: 1, occurrence: `once:1:${new Date(dueAt).toISOString()}`,
+        scheduledFor: new Date(dueAt).toISOString(), eventIdHash: probeSha(observedEvent.eventId).slice(0, 32) } },
+    sideEffects: { controlEventAppended: true, eventType: 'time.occurred', eventId: observedEvent.eventId,
+      appendOnly: true, eventDeletable: false, businessTablesWritten: [], ruleEntriesAddedThenRemoved: 1,
+      residualRule: false, residualTimeState: false, externalEffects: 0 },
+    checks, deadlines: { dueInMs, timeoutMs, pollIntervalMs },
+    cleanup: { ephemeralReleased: ephemeralReleased as true, ruleRemoved: ruleRemoved as true, timeStateRemoved: timeStateRemoved as true,
+      ruleFileEntriesForProbe: 0 },
+    released: true, disposed: true, durationMs: Date.now() - startedAt, observedAt: new Date().toISOString(),
+  };
 }

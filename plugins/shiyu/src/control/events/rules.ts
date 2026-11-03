@@ -283,6 +283,22 @@ export class EventRuleStore {
     const bounded: TimeSourceState = { ...structuredClone(state), gaps: state.gaps.slice(-MAX_STATE_GAPS) };
     await this.mutate(document => { document.timeState[subscriptionId] = bounded; });
   }
+  async deleteRule(subscriptionId: string): Promise<boolean> {
+    if (typeof subscriptionId !== 'string' || !subscriptionId) throw new Error('RULE_INVALID_SUBSCRIPTION');
+    return this.mutate(document => {
+      const had = Object.hasOwn(document.rules, subscriptionId);
+      delete document.rules[subscriptionId];
+      return had;
+    });
+  }
+  async deleteTimeState(subscriptionId: string): Promise<boolean> {
+    if (typeof subscriptionId !== 'string' || !subscriptionId) throw new Error('RULE_INVALID_SUBSCRIPTION');
+    return this.mutate(document => {
+      const had = Object.hasOwn(document.timeState, subscriptionId);
+      delete document.timeState[subscriptionId];
+      return had;
+    });
+  }
   async recordGap(subscriptionId: string, reason: string): Promise<void> {
     await this.mutate(document => {
       const state = document.timeState[subscriptionId] ?? { schemaVersion: 1, gaps: [] };

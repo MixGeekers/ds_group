@@ -1,0 +1,165 @@
+{
+  "schemaVersion": 1,
+  "kind": "h2b-live-time-trigger",
+  "slice": "H2b live 时间规则触发零模型诊断（append-only 副作用如实声明）",
+  "capturedAt": "2026-11-02T23:57:14.858Z",
+  "repository": {
+    "headAtVerification": "bcc35911afbcfd8795b771b413f14cf1d5f8a135",
+    "note": "Isolated worktree = shared HEAD at verification time + only this slice files. The live-trigger probe is exercised against a real temporary SQLite ControlStore + real TimeSourcePump; the fixed-host invocation is NOT executed in this slice."
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin/arm64"
+  },
+  "changedFiles": [
+    {
+      "path": "plugins/shiyu/src/control/events/probe.ts",
+      "bytes": 29028,
+      "sha256": "d0b3fdf6c05b7468e183234dba4fe350195e838c92b8603a458ff37e7e3c0165"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/time-source.ts",
+      "bytes": 30278,
+      "sha256": "923881a6a6e32e3db40e45fb74fe6dcb359d2a326e2cd3a21dea4672ea601040"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/rules.ts",
+      "bytes": 24425,
+      "sha256": "5a67150170f468bc18ae325f3ccbbde40be28aa8e60068b4b68457ae140755d7"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-live-time-trigger.test.ts",
+      "bytes": 9187,
+      "sha256": "1adf7b3789c6e63366279691103aceef4cebe8275240cce2a59eaf0b3dd3ffbd"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-live-time-trigger-manifest.json",
+      "bytes": 343,
+      "sha256": "8bfa190a99b7d245cdabf056c6189dfb46840c7e8d9a6029caa9d87966f2705b"
+    }
+  ],
+  "commands": [
+    "node --import tsx --test --test-concurrency=1 tests/events-live-time-trigger.test.ts tests/events-time-probe.test.ts tests/events-time-source.test.ts tests/events-subscriptions.test.ts tests/events-notifications.test.ts tests/events*.test.ts tests/event-tools.test.ts tests/background-pump.test.ts",
+    "node plugins/shiyu/scripts/slice-verify.mjs --slice h2b-live-time-trigger --manifest plugins/shiyu/artifacts/dsh/h2/h2b-live-time-trigger-manifest.json"
+  ],
+  "targetedRuns": {
+    "all": {
+      "tests": 115,
+      "pass": 115,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "log": {
+        "path": "plugins/shiyu/.local/h2b-live-trigger-targeted.log",
+        "sha256": "4b341ba5725c374f64bfa4793a7c597320b9a59655b78eb0cbde4a2051938588"
+      }
+    },
+    "newTests": {
+      "file": "plugins/shiyu/tests/events-live-time-trigger.test.ts",
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "topics": [
+        "positive: exactly one canonical live event through real pump wake path + receipt identity",
+        "repeat pump ticks after probe stay idempotent",
+        "cleanup removes live rule/time-state but honestly keeps the append-only event; second probe unique identity",
+        "paused gate aborts before any rule/event",
+        "pause during wait aborts and cleans",
+        "timeout deadline aborts and cleans",
+        "real auto-ticking TimeSourcePump drives the rule without explicit wake",
+        "lossless receipt + aborted signal leaves no rule behind"
+      ]
+    },
+    "historicalRegression": {
+      "note": "Existing H2a/H2b event suites and event-tools/background-pump regression ran in the same batch; no existing test file was modified."
+    }
+  },
+  "isolatedFullCheck": {
+    "evidencePath": "plugins/shiyu/artifacts/dsh/slices/h2b-live-time-trigger-verify.json",
+    "evidenceSha256": "ae27bf174011603de533ceda9b9d2bf02805ace57ab216bbf632f63eeb400a3d",
+    "head": "bcc35911afbcfd8795b771b413f14cf1d5f8a135",
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "tests": 1481,
+    "pass": 1481,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "durationMs": 365598,
+    "baselineTestsWithoutSlice": 1473,
+    "log": {
+      "path": "plugins/shiyu/.local/slice-verify-h2b-live-time-trigger.log",
+      "bytes": 160255,
+      "sha256": "80ba53d5e03cc1cffb750ce932a4c3624dd0bd81f4c62820b6dc44bee0141ccb"
+    },
+    "verdict": "pass"
+  },
+  "probeDesign": {
+    "liveMechanism": "Writes one uniquely named one-shot rule (probe-time-trigger-<uuid>, dueAt=now+~1s) to the *live* EventRuleStore passed by Runtime (dataDir/control/event-rules.json), registers an in-memory ephemeral subscription on the *live* TimeSourceService (no control-store subscription row), drives the *live* TimeSourcePump (explicit wake at baseline and at the due boundary, with automatic ticks also valid), and observes the accepted event through the live EventService with a probe-scope inspector.",
+    "reservedScope": "Events are accepted in the reserved scope \"shiyu-time-probe\". No live subscription uses that scope, so the probe event cannot be delivered to any Agent/component handler; only the append-only control event remains. Runtime integration adds this scope to the trusted time-source publisher principal.",
+    "identity": "Expected event payload {subscriptionId, ruleRevision:1, scheduleRef, occurrence=once:1:<ISO dueAt>, scheduledFor=<ISO dueAt>}; the receipt hashes eventId and reports ticksObserved/pollCycles. Repeat pump ticks are driven twice before cleanup and the event count must stay exactly one.",
+    "cleanup": "Always removes the ephemeral registration, deletes the live rule entry and its derived time state in a finally block, then re-verifies rule/time-state absence. A cleanup failure is reported in the error/receipt rather than hidden.",
+    "appendOnlyTruth": "The probe deliberately writes one real time.occurred fact to the live control ledger. Control-store events are append-only; the probe cannot delete it, and it must not claim zero side effects. The receipt field liveDataTouched=\"control-events-append-only\" and sideEffects.controlEventAppended=true/eventDeletable=false make this explicit. Only that control event (plus temporary rule-file entry before cleanup) is written; no Task/Session/budget/Effect/delivery row is created."
+  },
+  "hostKit": {
+    "tool": "shiyu_diagnose_time_trigger (no parameters, isConcurrencySafe=false)",
+    "command": "POST /api/shiyu/commands { action: 'runtime.probe-time-trigger' }",
+    "admission": "Same session.probe semantics: rejected while globally paused (ensureCanRun), one shared runtime operation slot (capacity 2), abortable, no retry; no model/embedding/Task/Goal/Lab/Effect.",
+    "expectedReceipt": [
+      "ok=true, toolName=shiyu_diagnose_time_trigger, liveDataTouched=control-events-append-only, pumpDriven=true (when the pump exists)",
+      "rule.subscriptionId starts probe-time-trigger-, ruleRevision=1, rule.removed=true, rule.timeStateRemoved=true",
+      "observed.eventCount=1, observed.ticksObserved>=3, observed.pollCycles>0, identity.occurrence=once:1:<ISO dueAt> and scheduledFor=<ISO dueAt>",
+      "sideEffects.controlEventAppended=true, eventDeletable=false, businessTablesWritten=[], ruleEntriesAddedThenRemoved=1, residualRule=false, residualTimeState=false, externalEffects=0",
+      "checks: exactly_one_live_event, canonical_identity, probe_scope_isolated, repeat_tick_no_second_event, no_unexpected_event_types, cleanup_rule_removed, cleanup_time_state_removed, cleanup_ephemeral_released all true",
+      "diagnostics.timeTriggerProbe equals the tool receipt; no Task/Goal/budget/Effect/delivery rows created; the appended time.occurred event remains visible in the live event ledger by design."
+    ],
+    "operatorWarnings": [
+      "This is NOT a zero-side-effect probe: it permanently appends one time.occurred control event. Do not run it as part of a \"no business writes\" acceptance criterion without recording the exception.",
+      "If the process crashes after the rule write but before cleanup, a probe-time-trigger-* entry may remain in dataDir/control/event-rules.json. Without its in-memory ephemeral subscription it cannot fire (readSubscription returns undefined), but the operator should inspect and remove it.",
+      "Do not run two live-trigger probes concurrently (tool is non-concurrency-safe); the command also shares the runtime operation slot.",
+      "The protected runtime-state file, business Task/Goal/budget/delivery tables and known business Session files must stay unchanged; only the control events ledger gains one time.occurred fact (plus the rule file is transiently rewritten)."
+    ],
+    "stopConditions": [
+      "Any failed check, any unexpected delivery/business row/model activity, any cleanup failure, or a non-frozen reload => stop, preserve logs, do not retry; the append-only event remains part of the evidence."
+    ]
+  },
+  "integrationDiffs": [
+    {
+      "file": "plugins/shiyu/src/runtime.ts",
+      "status": "Lead lands; not edited by this slice",
+      "notes": "Also adds TIME_TRIGGER_PROBE_SCOPE to the trusted time-source principal scopes so the probe scope is publishable; command deliberately returns readOnly:false because it appends one control event."
+    },
+    {
+      "file": "plugins/shiyu/src/index.ts",
+      "status": "Lead lands; not edited by this slice"
+    }
+  ],
+  "integrationDiffText": "--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ imports (next to probeTimeSource)\n+import { probeLiveTimeTrigger, TIME_TRIGGER_PROBE_SCOPE, type LiveTimeTriggerProbeResult } from './control/events/probe.js';\n@@ TimeSourceService construction in init()\n-        principal: { principalId: 'shiyu-time-source', kind: 'component', scopes: ['local-owner'],\n+        principal: { principalId: 'shiyu-time-source', kind: 'component', scopes: ['local-owner', TIME_TRIGGER_PROBE_SCOPE],\n@@ class RuntimeService private probe receipts\n   private lastTimeSourceProbe?: TimeSourceProbeResult;\n+  private lastTimeTriggerProbe?: LiveTimeTriggerProbeResult;\n@@ command dispatch (after 'runtime.probe-time-source')\n     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);\n+    if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);\n@@ add next to commandTimeSourceProbe (same session.probe admissions)\n+  /** Owner-only zero-model LIVE time-trigger diagnostic: appends ONE real\n+   * time.occurred event to the live control ledger (cannot be deleted). */\n+  private async commandTimeTriggerProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {\n+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid time trigger probe input');\n+    this.ensureCanRun(); signal?.throwIfAborted();\n+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');\n+    let finish!: () => void;\n+    const done = new Promise<void>(resolve => { finish = resolve; });\n+    const op: ActiveOperation = { id: randomUUID(), title: '检查 live 时间规则触发', phase: '零模型 live 规则探针',\n+      status: 'running', controller: new AbortController(), done, finish };\n+    const onAbort = () => op.controller.abort(signal?.reason);\n+    signal?.addEventListener('abort', onAbort, { once: true });\n+    this.operations.set(op.id, op);\n+    try {\n+      const result = await probeLiveTimeTrigger({ events: this.events, rules: this.eventRules, timeSource: this.timeSource,\n+        pump: this.timePump, allowed: () => !this.pauseRequested && !this.closed && !this.closing, signal: op.controller.signal });\n+      this.ensureCanRun(); op.controller.signal.throwIfAborted();\n+      this.lastTimeTriggerProbe = structuredClone(result);\n+      this.lastFailure = undefined;\n+      return { ...result, zeroModel: true, readOnly: false, sent: false };\n+    } catch (error) {\n+      this.lastFailure = error instanceof Error ? error.message : String(error);\n+      throw error;\n+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }\n+  }\n@@ snapshot().diagnostics (after timeSourceProbe)\n         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,\n+        timeTriggerProbe: this.lastTimeTriggerProbe ? structuredClone(this.lastTimeTriggerProbe) : null,\n--- a/plugins/shiyu/src/index.ts\n+++ b/plugins/shiyu/src/index.ts\n@@ exported tool factories (after timeSourceDiagnosisTool())\n+/** Owner-only zero-model LIVE time-trigger diagnosis. It appends exactly one\n+ * real time.occurred control event that cannot be deleted; the receipt declares it. */\n+export function timeTriggerDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {\n+  return {\n+    name: 'shiyu_diagnose_time_trigger',\n+    description: '零模型 live 时间触发诊断：向 live 规则文件写入唯一 one-shot 规则并等待 live 时间源 tick，要求 live 控制库恰好出现一个 time.occurred 事件；该事件 append-only 不可删除（回执明确声明副作用），规则条目随后清理；不执行 Task、不发送、不调用模型。',\n+    parameters: { type: 'object', properties: {}, additionalProperties: false },\n+    isConcurrencySafe: false,\n+    execute: async () => service.command({ action: 'runtime.probe-time-trigger' }),\n+    output: { schema: { type: 'object', additionalProperties: true },\n+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }] },\n+  };\n+}\n@@ apply() registration (next to the other diagnosis tools)\n+  ctx.effect(() => ctx.tools.register(timeTriggerDiagnosisTool(service)));\n",
+  "gapsAndUntested": [
+    "runtime.ts/index.ts integration and the fixed-host invocation are NOT executed here; tests use a real temporary ControlStore/EventService/rule file/TimeSourcePump.",
+    "The live pump phase in the real host can delay the due tick; the probe relies on explicit pump.wake() at the due boundary (the runtime diff passes this.timePump), so a missing/closed pump makes the probe time out rather than pretending to fire.",
+    "Control-store events are append-only: the probe event cannot be removed after the run. This is declared, not a defect; evidence recorders must account for the extra event/delivery counters (no delivery is created because the reserved scope has no subscribers).",
+    "Rule-file cleanup requires the rule file to be writable by the runtime; if it is unavailable the probe fails before writing or reports cleanup failure.",
+    "No real model/embedding/Task/Effect/Lab/channel was used; this probe proves the live time-source trigger path and the append-only side-effect accounting, not downstream notifications or business scheduling semantics (G4).",
+    "Concurrent probes or a crash mid-probe can leave an inert probe rule entry; operator inspection is documented in hostKit.operatorWarnings."
+  ],
+  "evidenceBoundaries": [
+    "G1 offline: real temporary SQLite control store + real TimeSourcePump + real temporary rule file + real wall clock. Not fixed-host or business acceptance."
+  ],
+  "artifacts": {
+    "manifest": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-live-time-trigger-manifest.json",
+      "bytes": 343,
+      "sha256": "8bfa190a99b7d245cdabf056c6189dfb46840c7e8d9a6029caa9d87966f2705b"
+    },
+    "isolatedCheck": {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h2b-live-time-trigger-verify.json",
+      "bytes": 2086,
+      "sha256": "ae27bf174011603de533ceda9b9d2bf02805ace57ab216bbf632f63eeb400a3d"
+    },
+    "thisEvidence": {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-live-time-trigger.json",
+      "note": "self hash omitted"
+    }
+  }
+}

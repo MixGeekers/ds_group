@@ -1,0 +1,10 @@
+{
+  "slice": "h2b-live-time-trigger",
+  "files": [
+    "plugins/shiyu/src/control/events/probe.ts",
+    "plugins/shiyu/src/control/events/time-source.ts",
+    "plugins/shiyu/src/control/events/rules.ts",
+    "plugins/shiyu/tests/events-live-time-trigger.test.ts",
+    "plugins/shiyu/artifacts/dsh/h2/h2b-live-time-trigger-manifest.json"
+  ]
+}

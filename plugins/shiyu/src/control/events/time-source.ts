@@ -10,6 +10,16 @@ import type { EventPayload, EventPrincipal, EventTypeDefinition, StoredSubscript
 // future optional port implementation, never the semantic authority.
 // ---------------------------------------------------------------------------
 
+/** A trusted, in-memory-only subscription used by isolated live probes. It is
+ * never written to the control store; the corresponding rule entry lives in the
+ * plugin rule file and must be removed by its owner. */
+export interface EphemeralTimeSubscription {
+  subscriptionId: string;
+  ruleRevision: number;
+  scope: string;
+  timing: TimeRule;
+  expiresAt?: string;
+}
 /** One declarative schedule bound to a subscription rule revision. */
 export interface TimeScheduleRecord {
   scheduleRef: string;
@@ -108,6 +118,7 @@ export class TimeSourceService {
   private readonly observation?: ReadonlyObservationPort;
   private readonly maxOccurrences: number;
   private readonly maxSchedules: number;
+  private readonly ephemeral = new Map<string, EphemeralTimeSubscription>();
   private ticking?: Promise<TimeTickReceipt>;
   constructor(options: TimeSourceOptions) {
     if (!options?.events || !options.rules || !options.schedule || !options.principal
@@ -129,6 +140,24 @@ export class TimeSourceService {
       || !Number.isSafeInteger(maxSchedules) || maxSchedules < 1 || maxSchedules > MAX_SCHEDULES) throw new Error('Invalid time source bounds');
     this.maxOccurrences = maxOccurrences; this.maxSchedules = maxSchedules;
   }
+  /** Register a trusted live-probe subscription. No control-store row is created;
+   * the caller must also write the matching declarative time rule and must call
+   * the returned disposer (plus remove the rule entry) when its probe finishes. */
+  registerEphemeralTimeSubscription(record: EphemeralTimeSubscription): () => void {
+    if (!record || typeof record.subscriptionId !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,199}$/.test(record.subscriptionId)
+      || !Number.isSafeInteger(record.ruleRevision) || record.ruleRevision < 1
+      || typeof record.scope !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9._:-]{0,99}$/.test(record.scope)
+      || !record.timing || typeof record.timing !== 'object' || this.ephemeral.has(record.subscriptionId)) {
+      throw new Error('Invalid ephemeral time subscription');
+    }
+    const captured = Object.freeze({ ...record, timing: structuredClone(record.timing) });
+    this.ephemeral.set(record.subscriptionId, captured as EphemeralTimeSubscription);
+    return () => {
+      if (this.ephemeral.get(record.subscriptionId) === captured) this.ephemeral.delete(record.subscriptionId);
+    };
+  }
+  /** Observation only: live probes use this to verify their registration state. */
+  ephemeralSubscriptionIds(): string[] { return [...this.ephemeral.keys()].sort(); }
   private async subscriptions(): Promise<Map<string, StoredSubscription>> {
     if (!this.inspector) return new Map();
     const subscriptions = await this.events.listSubscriptions(this.inspector);
@@ -158,7 +187,12 @@ export class TimeSourceService {
     for (const schedule of schedules) {
       const occurrenceIdentity = `${schedule.subscriptionId}:${schedule.ruleRevision}:${schedule.scheduleRef}`;
       if (seen.has(`${occurrenceIdentity}:${evaluatedAt}`)) continue;
-      const subscription = await this.currentSubscription(schedule.subscriptionId, subscriptions);
+      const ephemeral = this.ephemeral.get(schedule.subscriptionId);
+      const subscription = ephemeral
+        ? ({ id: ephemeral.subscriptionId, status: 'active', scope: ephemeral.scope, expiresAt: ephemeral.expiresAt,
+             target: { kind: 'component' as const, handlerRef: 'ephemeral.probe' }, deliveryMode: 'component' as const,
+             types: [] } as unknown as StoredSubscription)
+        : await this.currentSubscription(schedule.subscriptionId, subscriptions);
       const rule = await this.rules.getRule(schedule.subscriptionId);
       const state = await this.state(schedule.subscriptionId);
       const skip = async (reason: string, itemStatus: TimeOccurrenceReceipt['status'] = 'skipped'): Promise<void> => {
