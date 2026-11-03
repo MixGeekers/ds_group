@@ -144,7 +144,7 @@ function isNativeHistoryDiagnostic(value: unknown): value is NativeHistoryDiagno
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
   const candidate = value as Partial<NativeHistoryDiagnostic>;
   return typeof candidate.mismatchKind === 'string' && candidate.expected !== undefined && candidate.live !== undefined
-    && Number.isSafeInteger(candidate.delta) && JSON.stringify(value).length <= 300;
+    && Number.isSafeInteger(candidate.delta) && JSON.stringify(value).length <= 600;
 }
 interface NativeGoals {
   get(agent: DshAgent): NativeGoalView | undefined;

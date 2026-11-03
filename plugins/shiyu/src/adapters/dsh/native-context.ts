@@ -44,12 +44,62 @@ export interface NativeHistoryDiagnostic {
   /** live.eventCount is the live session.seq (the sequence-excluding-header count). */
   live: { eventCount: number; seq: number; inheritedEventCount: number; headerHash: string; historyDigestPrefix: string };
   delta: number;
+  /** Bounded field-name/value-category diff for a header mismatch; no string content. */
+  headerDiff?: string[];
 }
 const historyHashPrefix = (value: unknown): string => typeof value === 'string' && /^[a-f0-9]{16,}$/i.test(value) ? value.slice(0, 16) : '';
 const historyIntegerOr = (value: unknown): number => historyInteger(value) ? Number(value) : -1;
+const HEADER_FACT_FIELD = /^[A-Za-z][A-Za-z0-9_]{0,39}$/;
+const HEADER_FACT_KEYS = 24;
+/** Controlled per-field header categories for a field-level diff. Scalar field
+ * names are kept; string values are reduced to a short sha prefix (so ids,
+ * presets and cwd never appear as text); nested values are category-only. */
+export type NativeHeaderFacts = Record<string, string>;
+export function nativeHeaderFacts(header: unknown): NativeHeaderFacts | undefined {
+  if (!plainRecord(header)) return undefined;
+  const facts: NativeHeaderFacts = {};
+  const keys = Object.keys(header).filter(key => HEADER_FACT_FIELD.test(key)).sort().slice(0, HEADER_FACT_KEYS);
+  for (const key of keys) {
+    const value = (header as Record<string, unknown>)[key];
+    let fact: string;
+    if (typeof value === 'boolean') fact = `boolean:${value}`;
+    else if (typeof value === 'number') fact = Number.isFinite(value) && String(value).length <= 20 ? `number:${String(value)}` : 'number:other';
+    else if (typeof value === 'string') fact = /^[\x20-\x7e]{0,256}$/.test(value) ? `string-sha:${createHash('sha256').update(value).digest('hex').slice(0, 8)}` : 'string:other';
+    else if (value === null) fact = 'null';
+    else if (Array.isArray(value)) fact = 'array';
+    else if (plainRecord(value)) fact = 'object';
+    else fact = 'other';
+    facts[key] = fact;
+  }
+  return facts;
+}
+/** Bounded field-name/value-category diff. Never includes string content. */
+export function nativeHeaderFieldDiff(expected: NativeHeaderFacts | undefined, liveHeader: unknown): string[] {
+  const live = nativeHeaderFacts(liveHeader);
+  if (!expected || !live) return [];
+  const keys = [...new Set([...Object.keys(expected), ...Object.keys(live)])].sort();
+  const diff: string[] = [];
+  for (const key of keys) {
+    if (expected[key] === live[key]) continue;
+    diff.push(`${key}: ${expected[key] ?? 'absent'}→${live[key] ?? 'absent'}`);
+  }
+  return diff.slice(0, 12).map(entry => entry.slice(0, 80));
+}
+/** Shrink/serialize the bounded controlled diagnostic. headerDiff is trimmed
+ * first so the whole diagnostic stays <=300 characters. */
+function boundedHistoryDiagnostic(diagnostic: NativeHistoryDiagnostic): NativeHistoryDiagnostic {
+  let value = diagnostic;
+  while (JSON.stringify(value).length > 600) {
+    const diff = value.headerDiff;
+    if (!diff || diff.length === 0) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
+    value = { ...value, headerDiff: diff.slice(0, -1) };
+    if ((value.headerDiff?.length ?? 0) === 0) delete value.headerDiff;
+  }
+  return value;
+}
 export function historyDiagnostic(mismatchKind: NativeHistoryMismatchKind, expected: Partial<NativeColdInboxSnapshot> | undefined,
   live: { eventCount?: unknown; seq?: unknown; inheritedEventCount?: unknown; headerHash?: unknown; historyDigest?: unknown } | undefined,
-  delta?: number): NativeHistoryDiagnostic {
+  delta?: number, headerDiff?: string[]): NativeHistoryDiagnostic {
   const expectedCount = historyIntegerOr(expected?.eventCount), liveCount = historyIntegerOr(live?.eventCount ?? live?.seq);
   const diagnostic: NativeHistoryDiagnostic = {
     mismatchKind,
@@ -59,9 +109,9 @@ export function historyDiagnostic(mismatchKind: NativeHistoryMismatchKind, expec
       inheritedEventCount: historyIntegerOr(live?.inheritedEventCount), headerHash: historyHashPrefix(live?.headerHash),
       historyDigestPrefix: historyHashPrefix(live?.historyDigest) },
     delta: Number.isSafeInteger(delta) ? Number(delta) : liveCount - expectedCount,
+    ...(headerDiff && headerDiff.length ? { headerDiff } : {}),
   };
-  if (JSON.stringify(diagnostic).length > 300) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
-  return diagnostic;
+  return boundedHistoryDiagnostic(diagnostic);
 }
 /** No native error, event body, or provider text is attached to this public failure. */
 export class NativeHistoryError extends Error {
@@ -94,6 +144,8 @@ export interface NativeColdInboxSnapshot {
    * The live `session.seq` excludes such a record, so a create cut that includes
    * it needs this offset to compare against the live seq. */
   headerEventCount?: number;
+  /** Controlled cold header field categories for a field-level header diff. */
+  headerFacts?: NativeHeaderFacts;
 }
 
 export interface NativeColdHistoryOptions {
@@ -383,6 +435,7 @@ export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string
     }
     if (!handle || typeof handle.read !== 'function' || typeof handle.close !== 'function') throw new NativeHistoryError('NATIVE_HISTORY_SERVICES');
     const { headerHash, inheritedEventCount } = historyHeader(handle, sessionId, preset);
+    const headerFacts = nativeHeaderFacts(handle.header);
     if (expected !== undefined) {
       if (expected.headerHash !== headerHash || expected.inheritedEventCount !== inheritedEventCount) {
         throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic(expected.headerHash !== headerHash ? 'header-hash' : 'inherited-count',
@@ -463,6 +516,7 @@ export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string
 
     result = {
       headerEventCount,
+      ...(headerFacts ? { headerFacts } : {}),
       references: inboxReferences,
       asOfSeq: total - 1,
       eventCount: total,
@@ -550,6 +604,8 @@ export async function extendNativeHistorySnapshot(ctx: DshContext, baseline: Nat
     const eventCount = expectation.seq + 1;
     result = {
       references: baseline.references,
+      ...(baseline.headerEventCount === undefined ? {} : { headerEventCount: baseline.headerEventCount }),
+      ...(baseline.headerFacts === undefined ? {} : { headerFacts: baseline.headerFacts }),
       asOfSeq: expectation.seq,
       eventCount,
       sessionId: baseline.sessionId,
@@ -607,7 +663,7 @@ export function assertNativeLiveHistory(ctx: DshContext, session: DshSession, ba
   }
   if (session.header.id !== session.id || session.header.agentPreset !== baseline.preset) {
     throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic(session.header.agentPreset !== baseline.preset ? 'preset' : 'session-id',
-      baseline, liveFacts));
+      baseline, liveFacts, undefined, nativeHeaderFieldDiff(baseline.headerFacts, session.header)));
   }
   if (session.header.version !== 4 || typeof session.header.isSeeded !== 'boolean') {
     throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('header-hash', baseline, liveFacts));
@@ -616,7 +672,8 @@ export function assertNativeLiveHistory(ctx: DshContext, session: DshSession, ba
   try { liveHeaderHash = nativeMessageHash(session.header); }
   catch { throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('header-hash', baseline, liveFacts)); }
   if (liveHeaderHash !== baseline.headerHash) {
-    throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('header-hash', baseline, { ...liveFacts, headerHash: liveHeaderHash }));
+    throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('header-hash', baseline,
+      { ...liveFacts, headerHash: liveHeaderHash }, undefined, nativeHeaderFieldDiff(baseline.headerFacts, session.header)));
   }
   if (!historyInteger(session.inheritedEventCount) || session.inheritedEventCount !== baseline.inheritedEventCount) {
     throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('inherited-count', baseline, liveFacts));

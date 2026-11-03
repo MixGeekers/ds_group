@@ -1,0 +1,327 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-native-header-cut-probe",
+  "phase": "round13",
+  "capturedAt": "2026-11-03T09:29:01.894Z",
+  "status": "offline: field-level bounded headerDiff + zero-model native header-cut probe + owner runtime/index patch; real host probe NOT executed by implementer",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "realGoalCreatedByImplementer": false,
+  "realGoalCancelledByImplementer": false,
+  "explicitDeclaration": "Diagnosis only. No product header/cut fix and NO fourth bounded core Goal attempt were made. The failed third v3 attempt remains failed/reconciled; any further real attempt requires a new explicit owner decision after this probe is interpreted.",
+  "head": "390346d7fe15722c49703f1c7192c29308d1ff1b",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+      "bytes": 45678,
+      "sha256": "d0b5ecb1065f70971e96886ff38a65db7eee6932caaeda71a13b4a92cdfa79cb"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 69101,
+      "sha256": "4b8fcccb0c2e9a50567c7a0b2175bb9ac95e8f38560e02b2d0ca53f1771d9b9a"
+    },
+    {
+      "path": "plugins/shiyu/src/control/native-header-cut-probe.ts",
+      "bytes": 17310,
+      "sha256": "77abc65db9abb923a396489937ce83e99d5ccc25866462a583d6faa90cda0bd3"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 87678,
+      "sha256": "cac3a711f6b83251f31424f46431f86b09d3ac1a1be7bef175378639ce5f83dc"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 111837,
+      "sha256": "bec836bac2da1094fbe1a84b17c40cb790fccc765410e59a25081d7bff16cd2d"
+    }
+  ],
+  "hostFacts": {
+    "source": "Lead-provided read-only facts (implementer has no live host access and did not re-read them)",
+    "failedAttempt": "third v3 attempt after the cold-cut activation: history-assert, mismatchKind header-hash, expected.eventCount=3=live.seq=3, inherited 0, delta 0; cold headerHash baa30ad4d06e38bf != live headerHash bbd0090cf84d43d9",
+    "persistedColdHeader": {
+      "type": "session",
+      "version": 4,
+      "idPrefix": "shiyu-core-goal-41d024…",
+      "createdAt": 1793693205227,
+      "cwd": "<workspace>",
+      "isSeeded": false,
+      "delegationDepth": 0,
+      "agentPreset": "shiyu-runtime-core-goal-v1"
+    },
+    "candidate": "The event cut matches exactly (counts/seq/inherited/delta), so the remaining deterministic difference is a header field: most likely isSeeded false -> true after seed, and/or createdAt/delegationDepth/cwd/agentPreset initialization differences. The probe reports the exact field names and value categories."
+  },
+  "headerDiffDesign": {
+    "fields": "field name plus value category only: boolean:<true|false>, number:<n>, string-sha:<8 hex>, object, array, null, other, absent",
+    "examples": [
+      "isSeeded: boolean:true→boolean:false",
+      "createdAt: number:1793693205227→number:1",
+      "delegationDepth: number:2→absent",
+      "cwd: string-sha:0123abcd→string-sha:89abcdef",
+      "agentPreset: string-sha:...→string-sha:..."
+    ],
+    "bounds": {
+      "headerDiffEntries": "<=12 entries, each <=80 chars, joined <=300 chars; no body/path/long string is ever included",
+      "historyDiagnosticTotal": "total controlled diagnostic JSON raised from 300 to 600 characters so the base cut facts + headerDiff fit; headerDiff itself remains <=300 and the runner/independent validator enforces both bounds",
+      "receipt": "zero-model probe receipt <= 24576 bytes, lossless JSON, validated even on failure"
+    },
+    "surfaces": [
+      "NativeHistoryDiagnostic.headerDiff (header-hash / session-id / preset assertion branches)",
+      "GoalOperationUnknownError.diagnostic.historyDiagnostic.headerDiff",
+      "bounded runner create-failure receipt.historyDiagnostic.headerDiff",
+      "probe receipt.headerDiff"
+    ]
+  },
+  "probe": {
+    "name": "probeNativeHeaderCut",
+    "toolName": "shiyu_diagnose_native_header_cut",
+    "session": "exactly one bare lifecycle Session via ctx.agents.create with the managed core Goal preset/cwd/meta; no event tools, model requests rejected (tools.guard + agent/pre-step reject), empty inbox asserted",
+    "flow": "flush -> coldNativeInboxSnapshot (cold persisted cut) -> live header hash/seq/inherited facts -> assertNativeLiveHistory with liveCut seq-excluding-header -> controlled headerDiff -> finally cancel/dispose/archive",
+    "zeroEffects": {
+      "model": 0,
+      "embedding": 0,
+      "goal": 0,
+      "task": 0,
+      "effect": 0,
+      "budget": 0,
+      "businessStoreWrites": 0,
+      "retries": 0
+    },
+    "receiptFields": [
+      "schemaVersion/kind/toolName/status",
+      "zeroModel/zeroEmbedding/zeroTaskOrEffect/createdGoal",
+      "createdSessionId",
+      "cold{eventCount,inheritedEventCount,headerHashPrefix}",
+      "live{eventCount,seq,inheritedEventCount,headerHashPrefix}",
+      "matched/mismatchKind/headerDiff[]",
+      "checks[]",
+      "released/disposed/archived/cleanup{ok,failures[]}",
+      "startedAt/completedAt/durationMs",
+      "error{code,message} on failure"
+    ],
+    "cleanup": "finally always cancels (keepInbox), disposes and archives the probe Session; failures are reported in cleanup.failures with controlled codes and the receipt remains bounded/validated",
+    "admission": "assertNativeHeaderCutAdmission: paused rejects, same probe action rejects, generic runtime capacity/idle slot required; the runtime command creates no session before admission passes"
+  },
+  "tests": {
+    "totals": {
+      "coreEventTools": 58,
+      "coreValidation": 46,
+      "regression": 89,
+      "isolatedFull": {
+        "tests": 1632,
+        "pass": 1632,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    "netNew": 8,
+    "noSkips": true,
+    "new": [
+      "probe matched: one bare Session, matched cold/live cut, one archived Session, zero model/streams, no Goal command",
+      "probe headerDiff: cold overrides isSeeded/createdAt/delegationDepth/cwd report exact field names + categories, no body/path text",
+      "history-assert diagnostic carries the same bounded headerDiff (direct assertion)",
+      "probe creation failure returns a validated bounded failed receipt",
+      "probe dispose/release failure is reported in cleanup facts without false success",
+      "probe archive failure reports archived=false and cleanup.ok=false",
+      "probe abort/deadline returns cancelled/timeout before creating any Session",
+      "receipt validator rejects oversize/body-looking categories/malformed cleanup/flags; owner admission helper rejects paused/busy/capacity"
+    ],
+    "logs": [
+      {
+        "path": "plugins/shiyu/.local/h3/h13-core-event-tools-focused.log",
+        "sha256": "19d310ed7a6a49d8e5e4d289ae709b42927c182c95194f4a5e7d3bdce5770afb",
+        "tests": 58,
+        "pass": 58,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "path": "plugins/shiyu/.local/h3/h13-core-validation-focused.log",
+        "sha256": "057a4edb9e22960b4afd9459b74e9a1aa274cdb0335ba37cbdbe2ad04a812f14",
+        "tests": 46,
+        "pass": 46,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "path": "plugins/shiyu/.local/h3/h13-regression.log",
+        "sha256": "f62a7d645df9a0a5298a19933f0dfedb77004753191ab2b8f50bb366614e60a2",
+        "tests": 89,
+        "pass": 89,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "integration": {
+    "patchPath": "plugins/shiyu/artifacts/dsh/h3/h3-native-header-cut-probe.patch",
+    "patchBytes": 8806,
+    "patchSha256": "3e6d6aadb5c493052975b809550e516374be474c4393b0e66804fc01092da068",
+    "patchLines": 123,
+    "touchedFiles": [
+      "plugins/shiyu/src/runtime.ts",
+      "plugins/shiyu/src/index.ts"
+    ],
+    "runtime": {
+      "action": "runtime.probe-native-header-cut",
+      "ownerOnly": true,
+      "behavior": "paused rejects via ensureCanRun; single action slot (`native header-cut probe`); runtime capacity 1 admission helper; caller abort fused into the operation controller; 0 retries; one probe call; receipt cached only in snapshot().diagnostics.nativeHeaderCutProbe; cwd from LocalArtifactStore.prepareWorkspace and preset CORE_GOAL_PRESET_ID are passed directly so no frozen round4 local-core evidence source is touched"
+    },
+    "index": {
+      "tool": "shiyu_diagnose_native_header_cut",
+      "parameters": "none (empty object, additionalProperties false)",
+      "output": "object (additionalProperties true), JSON text render",
+      "descriptionRequirements": [
+        "zero-model: only creates and archives one bare lifecycle Session",
+        "no Goal/Task/Effect/budget creation, no business-store write",
+        "no model or embedding call",
+        "field-level bounded headerDiff with hash prefixes/categories only, no body/path",
+        "receipt only in diagnostics.nativeHeaderCutProbe"
+      ]
+    },
+    "validation": {
+      "patchAppliesToHead": "git apply --check exit 0 on a clean worktree at HEAD 390346d",
+      "typecheckWithSliceAndPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + slice + patch)",
+      "buildWithSliceAndPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    },
+    "note": "Deliberately no key-order change to src/control/local-core.ts so the older frozen round4 evidence source stays byte-identical; the runtime calls the probe module directly."
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-native-header-cut --manifest plugins/shiyu/.local/h3-h13-manifest.json",
+      "head": "390346d7fe15722c49703f1c7192c29308d1ff1b",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+          "bytes": 45678,
+          "sha256": "d0b5ecb1065f70971e96886ff38a65db7eee6932caaeda71a13b4a92cdfa79cb"
+        },
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+          "bytes": 69101,
+          "sha256": "4b8fcccb0c2e9a50567c7a0b2175bb9ac95e8f38560e02b2d0ca53f1771d9b9a"
+        },
+        {
+          "path": "plugins/shiyu/src/control/native-header-cut-probe.ts",
+          "bytes": 17310,
+          "sha256": "77abc65db9abb923a396489937ce83e99d5ccc25866462a583d6faa90cda0bd3"
+        },
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 87678,
+          "sha256": "cac3a711f6b83251f31424f46431f86b09d3ac1a1be7bef175378639ce5f83dc"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+          "bytes": 111837,
+          "sha256": "bec836bac2da1094fbe1a84b17c40cb790fccc765410e59a25081d7bff16cd2d"
+        }
+      ],
+      "exitCode": 0,
+      "tests": {
+        "tests": 1632,
+        "pass": 1632,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 913465,
+      "log": {
+        "path": "plugins/shiyu/.local/h3/slice-verify-h3-native-header-cut.log",
+        "bytes": 388,
+        "sha256": "9f2f51908ad72dd122912bd8de4d57f52407b9b88026393fccb4f32289475ff4"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-native-header-cut-verify.json",
+        "sha256": "2801b9c121718ce89a17078ad145de0e060f2cd87d4f5a38966e7e304a30db52"
+      }
+    },
+    "mainTreeTypecheck": "npx tsc --noEmit exit 0",
+    "note": "no real host/model execution was performed; the host probe is the Lead-owned single run under the kit below"
+  },
+  "hostKit": {
+    "kitVersion": 1,
+    "status": "frozen; one owner-authorized zero-model probe run only. NO fix and NO fourth bounded Goal attempt.",
+    "explicitOwnerDecision": true,
+    "preconditions": [
+      "integrate this slice + the runtime/index patch and record the build/commit digest",
+      "runtime unpaused and idle; no active operation and no queued Task admission (the command rejects before creating anything)",
+      "capture a before-audit: v1/v2/v3 Goal ids/states/journal receipts, Session file hashes/counts, business-store counts, budget counters",
+      "confirm the existing v3 failure evidence is preserved; do not retry v1/v2/v3 bounded Goal attempts"
+    ],
+    "invocation": {
+      "action": "runtime.probe-native-header-cut",
+      "tool": "shiyu_diagnose_native_header_cut",
+      "parameters": "none",
+      "expectedOutput": "zero-model probe receipt; cached only in snapshot().diagnostics.nativeHeaderCutProbe"
+    },
+    "expectedReceiptFields": [
+      "status completed|failed|cancelled|timeout; zeroModel/zeroEmbedding/zeroTaskOrEffect true; createdGoal false",
+      "createdSessionId; cold{eventCount,inheritedEventCount,headerHashPrefix}; live{eventCount,seq,inheritedEventCount,headerHashPrefix}",
+      "matched boolean; mismatchKind; headerDiff[] field-name/value-category entries (<=300 chars, hash prefixes only)",
+      "checks[]; released/disposed/archived; cleanup{ok,failures[]}; startedAt/completedAt/durationMs; controlled error on failure"
+    ],
+    "interpretation": {
+      "isSeeded: boolean:false→boolean:true": "strongly supports a seed-time header mutation; a future slice may normalize this trusted field for the create-only cut comparison (NOT in this round)",
+      "createdAt/delegationDepth number difference": "host initialization metadata changed between persisted cold header and live header; category only, no body/path needed",
+      "cwd/agentPreset/id string-sha difference": "identity/context field differs; compare hash prefixes, never the raw values; do not retry",
+      "headerDiff empty while headerHash differs": "difference is in a nested/unlisted header field; stop and report (do not invent a fix)",
+      "matched true": "cold/live header consistent for the bare Session; the previous Goal failure then lies in Goal-specific history/title timing, not the header cut; stop and report"
+    },
+    "cleanupChecks": [
+      "one probe Session was created, then cancelled/disposed/archived (receipt released/disposed/archived all true and cleanup.ok true)",
+      "no Goal/Task/Effect/budget/business-store write and no model/embedding call (receipt zero flags + runtime operation audit)",
+      "v1/v2/v3 Goal rows, journal receipts, Session files and budget counters unchanged except the one archived probe Session",
+      "if cleanup.ok is false, report the controlled failure codes and the leftover Session; do not silently delete"
+    ],
+    "stopConditions": [
+      "one probe invocation only, 0 retries; probe creates no Goal and calls no model",
+      "failure or cleanup failure is terminal for the diagnosis: report receipt + cleanup, no retry",
+      "NO product fix is applied in this round and NO fourth bounded core Goal attempt is made; a further attempt needs a new explicit owner decision after headerDiff interpretation"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model run by the implementer: probe is validated against the fake host only",
+    "the real persisted header may differ in nested fields not covered by the scalar field categories; headerDiff would then be empty and the kit stops",
+    "historyDiagnostic total bound was raised to 600 characters to fit base cut facts + headerDiff (headerDiff remains <=300); this is documented and validator-enforced",
+    "probe intentionally has no local-core.ts change to keep old frozen evidence byte-identical; runtime patch calls the probe module directly",
+    "no header fix and no fourth attempt were made"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-native-header-cut-probe.patch",
+      "sha256": "3e6d6aadb5c493052975b809550e516374be474c4393b0e66804fc01092da068",
+      "bytes": 8806
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-native-header-cut-verify.json",
+      "sha256": "2801b9c121718ce89a17078ad145de0e060f2cd87d4f5a38966e7e304a30db52"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/slice-verify-h3-native-header-cut.log",
+      "sha256": "9f2f51908ad72dd122912bd8de4d57f52407b9b88026393fccb4f32289475ff4"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h13-core-event-tools-focused.log",
+      "sha256": "19d310ed7a6a49d8e5e4d289ae709b42927c182c95194f4a5e7d3bdce5770afb"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h13-core-validation-focused.log",
+      "sha256": "057a4edb9e22960b4afd9459b74e9a1aa274cdb0335ba37cbdbe2ad04a812f14"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h13-regression.log",
+      "sha256": "f62a7d645df9a0a5298a19933f0dfedb77004753191ab2b8f50bb366614e60a2"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h13-integration-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  ]
+}

@@ -953,7 +953,13 @@ export function assertHistoryDiagnostic(value: unknown): void {
   if (!Number.isSafeInteger(live.seq) || !Number.isSafeInteger(diagnostic.delta) || Math.abs(diagnostic.delta) > 1_000_000) {
     throw new Error('History diagnostic sequence/delta is malformed');
   }
-  if (JSON.stringify(diagnostic).length > 300) throw new Error('History diagnostic exceeds its bounded size');
+  if (diagnostic.headerDiff !== undefined) {
+    const entry = /^[A-Za-z][A-Za-z0-9_]{0,39}: (absent|boolean:(true|false)|number:[0-9-]{1,20}|string-sha:[a-f0-9]{8}|string:other|object|array|null|other)→(absent|boolean:(true|false)|number:[0-9-]{1,20}|string-sha:[a-f0-9]{8}|string:other|object|array|null|other)$/;
+    if (!Array.isArray(diagnostic.headerDiff) || diagnostic.headerDiff.length > 12
+      || diagnostic.headerDiff.some(value => typeof value !== 'string' || value.length > 80 || !entry.test(value))
+      || diagnostic.headerDiff.join('\n').length > 300) throw new Error('History diagnostic headerDiff is not a controlled bounded field/category diff');
+  }
+  if (JSON.stringify(diagnostic).length > 600) throw new Error('History diagnostic exceeds its bounded size');
 }
 let reconcileInFlight = false;
 /**

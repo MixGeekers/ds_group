@@ -7,7 +7,9 @@ import { GoalSessionAdapter, GoalOperationUnknownError, CORE_GOAL_PRESET_ID, COR
 import type { DshAgent, DshAgentContext, DshContext, DshSession, SessionEvent } from '../src/adapters/dsh/sessions.js';
 import { nativeMessageHash, type NativeMessageInput, type NativeUserMessage } from '../src/adapters/dsh/native-message.js';
 import { createCoreEventTools, CORE_EVENT_TOOL_NAMES } from '../src/adapters/dsh/event-tools.js';
-import { assertNativeLiveHistory, NativeHistoryError, type NativeColdInboxSnapshot, type NativeHistoryDiagnostic } from '../src/adapters/dsh/native-context.js';
+import { assertNativeLiveHistory, nativeHeaderFacts, NativeHistoryError, type NativeColdInboxSnapshot, type NativeHistoryDiagnostic } from '../src/adapters/dsh/native-context.js';
+import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, assertNativeHeaderCutProbeReceipt,
+  NativeHeaderCutProbeError, NATIVE_HEADER_CUT_RECEIPT_MAX_BYTES } from '../src/control/native-header-cut-probe.js';
 import { LocalCoreService, summarizeCoreDecisionAccounting } from '../src/control/local-core.js';
 import { eventStore, readerPrincipal } from './events-fixtures.js';
 
@@ -62,7 +64,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   const archives: string[] = [], toolReturns: unknown[] = [];
   let failArchive = false;
   let failNativeCreate = false, failTitleRename = false, failFlushReadback = false, hideTitleAfterPin = false, wrongNativeGoal = false;
-  let historyRace: 'none' | 'once' | 'always' = 'none'; let historyRaceDone = false; let coldHeaderCut = false;
+  let historyRace: 'none' | 'once' | 'always' = 'none'; let historyRaceDone = false; let coldHeaderCut = false; let coldHeaderOverrides: Record<string, unknown> | undefined;
   let flushCount = 0, historyOpens = 0, nativeCreateCalls = 0, titleGetCalls = 0;
   let toolPlan: undefined | { name: string; args?: Record<string, unknown>; result?: unknown; unknownUsage?: boolean;
     duplicate?: boolean; omitResult?: boolean; skipExecution?: boolean; pauseOnTool?: boolean; secondRound?: boolean };
@@ -356,7 +358,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
           append(agent, 'session/end-seed', { seed: 'synthetic-host-async-metadata' });
           stored.get(sessionId)!.durable = structuredClone(stored.get(sessionId)!.events);
         };
-        return { header: structuredClone(record.header), inheritedEventCount: 0, async read(offset: number, count: number) {
+        return { header: structuredClone({ ...record.header, ...(coldHeaderOverrides ?? {}) }), inheritedEventCount: 0, async read(offset: number, count: number) {
           if (readFault === 'throw') throw new Error('Native read failed');
           const events = structuredClone(record.durable.slice(offset, offset + count));
           if (count === 1 && events[0]?.type === 'user/message' && readFault === 'user-hash') events[0].data.content[0].text = 'changed durable body';
@@ -420,6 +422,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     },
     setHistoryRace(value: 'none' | 'once' | 'always') { historyRace = value; historyRaceDone = false; },
     setColdHeaderCut(value: boolean) { coldHeaderCut = value; },
+    setColdHeaderOverrides(value: Record<string, unknown> | undefined) { coldHeaderOverrides = value; },
     createCounts: () => ({ flushes: flushCount, historyOpens, nativeCreateCalls, titleGets: titleGetCalls }),
     setAllowed(value: boolean) { allowed = value; }, setExpired(value: boolean) { expiredGrant = value; }, setMode(value: typeof mode) { mode = value; },
     setOutput(value: string) { output = value; }, setReadFault(value: typeof readFault) { readFault = value; }, setFlushFault(value: boolean) { failFlush = value; },
@@ -1296,7 +1299,7 @@ function historyProbe(overrides: { header?: Record<string, unknown>; liveHeader?
     references: (overrides.references ?? []) as never, asOfSeq: (overrides.eventCount ?? 3) - 1, eventCount: overrides.eventCount ?? 3,
     sessionId: 'session-a', preset: 'preset-a', headerHash: nativeMessageHash(header), inheritedEventCount: overrides.inheritedEventCount ?? 0,
     historyBytes: 0, historyDigest: 'b'.repeat(64), readPages: 1, appendedCount: 0, appendedTypes: [],
-    headerEventCount: overrides.headerEventCount ?? 0,
+    headerEventCount: overrides.headerEventCount ?? 0, headerFacts: nativeHeaderFacts(header),
   };
   return { ctx, session, header, baseline };
 }
@@ -1312,7 +1315,7 @@ function expectHistoryDiagnostic(work: () => void, expected: { kind: string; exp
     if (expected.liveSeq !== undefined) { assert.equal(diagnostic.live.seq, expected.liveSeq); assert.equal(diagnostic.live.eventCount, expected.liveSeq); }
     if (expected.delta !== undefined) assert.equal(diagnostic.delta, expected.delta);
     const serialized = JSON.stringify(diagnostic);
-    assert.ok(serialized.length <= 300, 'diagnostic is bounded');
+    assert.ok(serialized.length <= 600, 'diagnostic is bounded');
     assert.equal(serialized.includes('content'), false); assert.equal(serialized.includes('message'), false);
     assert.equal(serialized.includes('/synthetic'), false); assert.equal(serialized.includes('permission/preset'), false);
     return diagnostic;
@@ -1404,4 +1407,121 @@ test('the activated cold-header cut absorbs one transient host metadata append w
     assert.equal(host.createCounts().nativeCreateCalls, 1, 'native goals.create is still called exactly once');
     assert.ok(host.createCounts().historyOpens >= 2, 'the transient append is absorbed by bounded re-observation');
   } finally { await driver.close(); }
+});
+
+// ---------------------------------------------------------------------------
+// Zero-model native header-cut probe (bare lifecycle Session, no Goal/model).
+// ---------------------------------------------------------------------------
+const probeOptions = (host: ReturnType<typeof fixture>, extra: Record<string, unknown> = {}) => ({
+  ctx: host.ctx, cwd: '/synthetic/shiyu/core', preset: CORE_GOAL_PRESET_ID, ...extra,
+});
+
+test('the zero-model header-cut probe creates exactly one bare Session, matches the cut and archives everything', async () => {
+  const host = fixture();
+  const receipt = await probeNativeHeaderCut(probeOptions(host));
+  assert.equal(receipt.status, 'completed'); assert.equal(receipt.matched, true);
+  assert.deepEqual(receipt.headerDiff, []);
+  assert.equal(receipt.zeroModel, true); assert.equal(receipt.zeroEmbedding, true);
+  assert.equal(receipt.zeroTaskOrEffect, true); assert.equal(receipt.createdGoal, false);
+  assert.equal(receipt.released, true); assert.equal(receipt.disposed, true); assert.equal(receipt.archived, true);
+  assert.equal(receipt.cleanup.ok, true);
+  assert.equal(receipt.cold?.eventCount, 0); assert.equal(receipt.live?.seq, 0);
+  assert.equal(receipt.cold?.headerHashPrefix, receipt.live?.headerHashPrefix);
+  assert.equal(host.live.size, 0, 'the probe Session is disposed');
+  assert.equal(host.archives.includes(receipt.createdSessionId!), true, 'the probe Session is archived');
+  assert.equal(host.counts().followups, 0); assert.equal(host.counts().streams, 0); assert.equal(host.counts().requests, 0);
+  assert.deepEqual(host.checks.filter(check => check.operation !== 'create'), [], 'no Goal command is issued');
+  assert.doesNotThrow(() => assertNativeHeaderCutProbeReceipt(receipt));
+});
+
+test('the probe reports controlled cold/live headerDiff field names and categories without body or paths', async () => {
+  const host = fixture(); host.setColdHeaderOverrides({ isSeeded: true, createdAt: 1793693205227, delegationDepth: 2, cwd: '/synthetic/other-workspace' });
+  const receipt = await probeNativeHeaderCut(probeOptions(host));
+  assert.equal(receipt.status, 'completed'); assert.equal(receipt.matched, false);
+  assert.equal(receipt.mismatchKind, 'header-hash');
+  assert.notEqual(receipt.cold?.headerHashPrefix, receipt.live?.headerHashPrefix);
+  const diff = receipt.headerDiff.join('\n');
+  assert.match(diff, /isSeeded: boolean:true→boolean:false/);
+  assert.match(diff, /createdAt: number:1793693205227→number:1/);
+  assert.match(diff, /delegationDepth: number:2→absent/);
+  assert.match(diff, /cwd: string-sha:[a-f0-9]{8}→string-sha:[a-f0-9]{8}/);
+  assert.equal(diff.includes('/synthetic'), false); assert.equal(diff.includes('shiyu-runtime'), false);
+  assert.ok(diff.length <= 300);
+  assert.equal(receipt.released, true); assert.equal(receipt.disposed, true); assert.equal(receipt.archived, true);
+  assert.doesNotThrow(() => assertNativeHeaderCutProbeReceipt(receipt));
+});
+
+test('the history-assert diagnostic carries the same bounded headerDiff on a live header field change', () => {
+  const probe = historyProbe({ liveHeader: { isSeeded: true, delegationDepth: 2 } });
+  const diagnostic = expectHistoryDiagnostic(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline), { kind: 'header-hash' });
+  assert.deepEqual(diagnostic.headerDiff, ['delegationDepth: absent→number:2', 'isSeeded: boolean:false→boolean:true'].sort());
+  assert.equal(JSON.stringify(diagnostic).includes('message'), false);
+  assert.equal(JSON.stringify(diagnostic).includes('/synthetic'), false);
+});
+
+test('a probe creation failure still returns a bounded validated failed receipt', async () => {
+  const host = fixture(); host.setCreateFailures({ agentsCreate: true });
+  const receipt = await probeNativeHeaderCut(probeOptions(host));
+  assert.equal(receipt.status, 'failed'); assert.equal(receipt.error?.code, 'SYNTHETIC_AGENTS_CREATE_FAILED');
+  assert.equal(receipt.matched, false); assert.equal(receipt.released, false); assert.equal(receipt.disposed, false);
+  assert.doesNotThrow(() => assertNativeHeaderCutProbeReceipt(receipt));
+});
+
+test('a probe release/dispose failure is reported in the bounded cleanup facts', async () => {
+  const host = fixture(); host.setDisposeFault(true);
+  const receipt = await probeNativeHeaderCut(probeOptions(host));
+  assert.equal(receipt.status, 'completed'); assert.equal(receipt.released, true); assert.equal(receipt.disposed, false);
+  assert.equal(receipt.cleanup.ok, false); assert.equal(receipt.cleanup.failures.some(entry => entry.startsWith('dispose:')), true);
+  assert.doesNotThrow(() => assertNativeHeaderCutProbeReceipt(receipt));
+});
+
+test('a probe archive failure is reported without claiming archived', async () => {
+  const host = fixture(); host.setFailArchive(true);
+  const receipt = await probeNativeHeaderCut(probeOptions(host));
+  assert.equal(receipt.archived, false); assert.equal(receipt.cleanup.ok, false);
+  assert.equal(receipt.cleanup.failures.some(entry => entry.startsWith('archive:')), true);
+  assert.doesNotThrow(() => assertNativeHeaderCutProbeReceipt(receipt));
+});
+
+test('probe abort and deadline produce cancelled/timeout receipts without retries', async () => {
+  const host = fixture(); const controller = new AbortController(); controller.abort(new Error('synthetic cancel'));
+  const cancelled = await probeNativeHeaderCut(probeOptions(host, { signal: controller.signal }));
+  assert.equal(cancelled.status, 'cancelled'); assert.equal(cancelled.released, false);
+  assert.equal(host.counts().creates, 0, 'no Session is created after cancellation');
+  assert.doesNotThrow(() => assertNativeHeaderCutProbeReceipt(cancelled));
+  const timedOut = await probeNativeHeaderCut(probeOptions(host, { deadlineAtMs: Date.now() - 1 }));
+  assert.equal(timedOut.status, 'timeout'); assert.equal(host.counts().creates, 0);
+  assert.doesNotThrow(() => assertNativeHeaderCutProbeReceipt(timedOut));
+});
+
+test('the probe receipt validator rejects oversize, body/path leakage-looking categories and malformed cleanup', async () => {
+  const host = fixture(); const receipt = await probeNativeHeaderCut(probeOptions(host));
+  const validatorMutations: ((value: Record<string, unknown>) => void)[] = [
+    value => { value.headerDiff = ['isSeeded: boolean:true→false with a long explanatory body that exceeds the allowed categories']; },
+    value => { value.headerDiff = ['cwd: string-sha:01234567→/synthetic/workspace']; },
+    value => { value.checks = ['x'.repeat(400)]; },
+    value => { value.zeroModel = false; },
+    value => { value.status = 'failed'; },
+    value => { value.durationMs = Number.NaN; },
+    value => { value.cleanup = { ok: 'yes', failures: [] }; },
+    value => { value.error = { code: 'lowercase', message: 'x' }; },
+  ];
+  for (const mutate of validatorMutations) {
+    const copy = JSON.parse(JSON.stringify(receipt)) as Record<string, unknown>;
+    mutate(copy); assert.throws(() => assertNativeHeaderCutProbeReceipt(copy));
+  }
+  const oversized = JSON.parse(JSON.stringify(receipt)) as Record<string, unknown>;
+  (oversized as Record<string, unknown>).checks = Array.from({ length: 32 }, () => 'x'.repeat(240));
+  assert.throws(() => assertNativeHeaderCutProbeReceipt(oversized));
+  assert.ok(Buffer.byteLength(JSON.stringify(receipt)) <= NATIVE_HEADER_CUT_RECEIPT_MAX_BYTES);
+});
+
+test('the owner-command admission helper rejects paused/busy/capacity runtimes with controlled codes', () => {
+  assert.doesNotThrow(() => assertNativeHeaderCutAdmission({ paused: false, operations: 0, capacity: 1, sameActionRunning: false }));
+  assert.throws(() => assertNativeHeaderCutAdmission({ paused: true, operations: 0, capacity: 1, sameActionRunning: false }),
+    (error: unknown) => error instanceof NativeHeaderCutProbeError && error.code === 'NATIVE_HEADER_CUT_PAUSED');
+  assert.throws(() => assertNativeHeaderCutAdmission({ paused: false, operations: 1, capacity: 2, sameActionRunning: true }),
+    (error: unknown) => error instanceof NativeHeaderCutProbeError && error.code === 'NATIVE_HEADER_CUT_BUSY');
+  assert.throws(() => assertNativeHeaderCutAdmission({ paused: false, operations: 1, capacity: 1, sameActionRunning: false }),
+    (error: unknown) => error instanceof NativeHeaderCutProbeError && error.code === 'NATIVE_HEADER_CUT_CAPACITY');
 });
