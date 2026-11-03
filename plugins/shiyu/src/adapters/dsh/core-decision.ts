@@ -4,7 +4,7 @@ import { defaultModel, type DshAgent, type DshAgentContext, type DshContext, typ
 import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
 import { assertNativeLiveHistory, flushNative, nativeInboxReferences, verifyNativeEvent, type NativeColdInboxSnapshot } from './native-context.js';
 import { CORE_EVENT_TOOL_NAMES } from './event-tools.js';
-import { recordNativeContextDiagnostic } from '../control-store/core-domain.js';
+import { recordNativeContextDiagnostic, recordNativeStreamDiagnostic } from '../control-store/core-domain.js';
 
 export type CoreDecisionPhase = 'start' | 'bound' | 'dispatch' | 'pre-step' | 'request' | 'stream' | 'context' | 'result' | 'tool' | 'tool-result';
 export interface CoreDecisionBinding { goalId: string; goalRef: NativeGoalRef; roundId: string; sessionId: string; messageId: string; messageHash: string }
@@ -117,6 +117,8 @@ export class CoreDecisionRun {
   private accounted = false;
   private isAgentLoopRequest?: (request: unknown) => boolean;
   private historyBaseline?: NativeColdInboxSnapshot;
+  private streamDiagnostic?: CoreStreamDiagnostic;
+  private goalSessionSummary?: CoreGoalSessionSummary;
   unknownInbox = false;
   private toolMount?: CoreDecisionEventTools;
   private toolSchemas: readonly CoreDecisionEventToolSchema[] = [];
@@ -150,8 +152,61 @@ export class CoreDecisionRun {
   }
   private stop(error: unknown): unknown {
     this.failure ??= error;
+    if (error && typeof error === 'object') {
+      if (this.streamDiagnostic) {
+        try { Object.defineProperty(error, 'streamDiagnostic', { value: structuredClone(this.streamDiagnostic), configurable: true }); } catch { /* keep the controlled error */ }
+      }
+      if (this.goalSessionSummary) {
+        try { Object.defineProperty(error, 'goalSessionSummary', { value: structuredClone(this.goalSessionSummary), configurable: true }); } catch { /* keep the controlled error */ }
+      }
+    }
     if (!this.controller.signal.aborted) this.controller.abort(error);
     return error;
+  }
+  /** Record the bounded stream failure and bounded Goal Session summary once per
+   * run; the in-process handoff lets CoreDomain attach them to the unknown
+   * evaluation and the bounded runner expose preStopEvaluation.streamDiagnostic. */
+  private captureStreamFailure(error: unknown, chunks: number, firstChunkSeen: boolean): CoreStreamDiagnostic {
+    const signalAborted = this.signal.aborted;
+    const timedOut = this.options.now() >= this.deadline;
+    const state = { chunks, abortedBeforeFirstChunk: signalAborted && !firstChunkSeen,
+      abortedAfterFirstChunk: signalAborted && firstChunkSeen, timedOut, signalAborted };
+    const diagnostic = this.streamDiagnostic ?? providerStreamDiagnostic(error, state);
+    this.streamDiagnostic = diagnostic;
+    if (!this.goalSessionSummary) this.goalSessionSummary = this.buildGoalSessionSummary(diagnostic.chunks);
+    try { recordNativeStreamDiagnostic(this.binding!.goalId, diagnostic, this.goalSessionSummary); } catch { /* observation only */ }
+    return diagnostic;
+  }
+  private buildGoalSessionSummary(streamChunks: number): CoreGoalSessionSummary {
+    const counts: Record<string, number> = {};
+    for (const event of this.events) {
+      const rawType = typeof event.type === 'string' && /^[a-z][a-z0-9/_-]{0,39}$/.test(event.type) ? event.type : 'other';
+      // Receipt keys must stay within the strict lossless JSON key alphabet.
+      const type = rawType.replace(/[^A-Za-z0-9_]/g, '_');
+      counts[type] = (counts[type] ?? 0) + 1;
+    }
+    const attemptStreamLengths = this.events.filter(event => event.type === 'assistant/attempt').map(event => {
+      const stream = (event.data as { stream?: unknown } | undefined)?.stream;
+      if (Array.isArray(stream)) return stream.length;
+      if (Number.isSafeInteger((event.data as { streamLength?: unknown } | undefined)?.streamLength)) return (event.data as { streamLength: number }).streamLength;
+      return 0;
+    });
+    if (!attemptStreamLengths.length && streamChunks >= 0 && this.streams > 0) attemptStreamLengths.push(streamChunks);
+    const turnEndReasons = this.events.filter(event => event.type === 'turn/end').map(event => {
+      const reason = (event.data as { reason?: unknown } | undefined)?.reason;
+      if (typeof reason === 'string') return boundedCode(reason);
+      if (reason && typeof reason === 'object') {
+        const record = reason as Record<string, unknown>;
+        const kind = record.kind, nested = record.reason;
+        if (typeof kind === 'string') return boundedCode(kind);
+        if (nested && typeof nested === 'object' && typeof (nested as Record<string, unknown>).kind === 'string') return boundedCode((nested as Record<string, unknown>).kind);
+        if (typeof nested === 'string') return boundedCode(nested);
+      }
+      return 'unknown';
+    });
+    return { provider: MODEL.provider, model: MODEL.model, reasoningEffort: MODEL.reasoningEffort, maxTokens: this.requestMaxTokens,
+      toolCount: this.toolNames.length, eventCounts: Object.fromEntries(Object.entries(counts).slice(0, 16)),
+      attemptStreamLengths: attemptStreamLengths.slice(0, 8), turnEndReasons: [...new Set(turnEndReasons)].slice(0, 8) };
   }
   async gate(phase: CoreDecisionPhase): Promise<void> {
     this.assertCurrent();
@@ -574,7 +629,14 @@ export class CoreDecisionRun {
         if (self.requests === 2) self.assertToolRoundHistory();
         else if (self.toolsEnabled() && (self.toolCalls !== 0 || self.toolResults !== 0)) throw new Error('Core tool events appeared before their admitted round');
         self.streams++;
-        yield* next();
+        let chunks = 0, firstChunkSeen = false;
+        try {
+          for await (const chunk of next()) { chunks++; firstChunkSeen = true; yield chunk; }
+        } catch (error) {
+          self.captureStreamFailure(error, chunks, firstChunkSeen);
+          throw self.stop(error);
+        }
+        if (chunks === 0) self.captureStreamFailure(undefined, 0, false);
       } catch (error) { throw self.stop(error); }
     })();
   }
@@ -597,6 +659,7 @@ export class CoreDecisionRun {
     assertNativeLiveHistory(this.options.ctx, this.agent.session, this.historyBaseline, this.agent.inbox);
   }
   async execute(agent: DshAgent, historyBaseline?: NativeColdInboxSnapshot): Promise<CoreDecisionResult> {
+    try {
     this.agent = agent;
     if (!historyBaseline) throw new Error('Core decision requires a verified native history baseline');
     this.historyBaseline = historyBaseline;
@@ -612,7 +675,7 @@ export class CoreDecisionRun {
     this.dispatchAttempted = true; agent.followup(this.message!);
     await agent.whenIdle();
     this.signal.throwIfAborted();
-    if (this.failure) throw this.failure;
+    if (this.failure) throw this.stop(this.failure);
     const inputs = this.committedInputs();
     const inputRef = await this.exact(inputs[0]!);
     const runtimeContextRefs: CoreDecisionMessageRef[] = [];
@@ -641,6 +704,7 @@ export class CoreDecisionRun {
     if (before !== after) throw new Error('Native Goal driver ran outside the controlled decision');
     return { binding: structuredClone(this.expected!), text, inputRef, assistantRef, runtimeContextRefs, ...this.observations(), verified: false,
       nativeRoundsStarted: { before, after }, nativeGoalRound: false };
+    } catch (error) { throw this.stop(error); }
   }
   private assertRequestRoundCounts(toolUsed: boolean): void {
     const expected = toolUsed ? 2 : 1;
@@ -685,6 +749,12 @@ export class CoreDecisionRun {
       mainModelRequests: this.requests, mainModelStreams: this.streams,
       toolCalls: toolCalls.length, toolResults: toolResults.length,
       nativeObservations };
+  }
+  /** Controlled stream/Goal-Session observation for the owning adapter to attach
+   * to a failed round (in addition to the in-process CoreDomain handoff). */
+  streamObservation(): { streamDiagnostic?: CoreStreamDiagnostic; goalSessionSummary?: CoreGoalSessionSummary } {
+    return { ...(this.streamDiagnostic ? { streamDiagnostic: structuredClone(this.streamDiagnostic) } : {}),
+      ...(this.goalSessionSummary ? { goalSessionSummary: structuredClone(this.goalSessionSummary) } : {}) };
   }
   releasing(): void { this.released = true; }
   async account(success: boolean): Promise<void> {
@@ -748,6 +818,63 @@ function contextDiagnosticFor(kind: CoreContextDiagnostic['mismatchKind'], expec
     fieldNames: [...new Set(fieldNames)].slice(0, 12) };
   if (JSON.stringify(diagnostic).length > 300) return { ...diagnostic, fieldNames: diagnostic.fieldNames.slice(0, 4) };
   return diagnostic;
+}
+/** Bounded provider/stream failure facts. Categories are derived only from
+ * controlled error code/name/signal state; provider internals are never guessed. */
+export interface CoreStreamDiagnostic {
+  category: 'empty-provider-stream' | 'transport' | 'auth' | 'request-shape' | 'timeout' | 'aborted' | 'unknown';
+  code: string;
+  name: string;
+  chunks: number;
+  abortedBeforeFirstChunk: boolean;
+  abortedAfterFirstChunk: boolean;
+  timedOut: boolean;
+  message: string;
+}
+export interface CoreGoalSessionSummary {
+  provider: string;
+  model: string;
+  reasoningEffort: string;
+  maxTokens: number;
+  toolCount: number;
+  eventCounts: Record<string, number>;
+  attemptStreamLengths: number[];
+  turnEndReasons: string[];
+}
+function boundedCode(value: unknown): string {
+  if (typeof value === 'string' && /^[A-Za-z][A-Za-z0-9_.-]{0,39}$/.test(value)) return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value).slice(0, 20);
+  return 'NONE';
+}
+function boundedMessage(value: unknown): string {
+  let text = (value instanceof Error ? value.message : typeof value === 'string' ? value : '').replace(/[\u0000-\u001f\u007f]/g, ' ').trim();
+  text = text.replace(/(?:\/[\w.@+-]+){2,}/g, '<workspace>').replace(/[A-Za-z0-9+/=]{60,}/g, '<redacted>');
+  return text.slice(0, 160);
+}
+/** Controlled classification: empty stream, transport/auth/request-shape/timeout,
+ * abort before/after the first chunk, else unknown. No provider semantics beyond
+ * the observed error code/name and signal state. */
+export function providerStreamDiagnostic(error: unknown, state: { chunks: number; abortedBeforeFirstChunk: boolean;
+  abortedAfterFirstChunk: boolean; timedOut: boolean; signalAborted: boolean }): CoreStreamDiagnostic {
+  const record = error && typeof error === 'object' ? error as Record<string, unknown> : {};
+  const code = boundedCode(record.code ?? record.errno);
+  const name = typeof record.name === 'string' && /^[A-Za-z][A-Za-z0-9_.-]{0,39}$/.test(record.name) ? record.name : 'Error';
+  const raw = `${code} ${name} ${typeof record.message === 'string' ? record.message : ''}`.toLowerCase();
+  const category: CoreStreamDiagnostic['category'] =
+    error === undefined && state.chunks === 0 ? 'empty-provider-stream'
+    : state.timedOut ? 'timeout'
+    : state.signalAborted || state.abortedBeforeFirstChunk || state.abortedAfterFirstChunk ? 'aborted'
+    : /auth|unauthorized|forbidden|401|403|api[-_ ]?key|credential/.test(raw) ? 'auth'
+    : /timeout|timedout|etimedout|deadline/.test(raw) ? 'timeout'
+    : /enotfound|econnreset|econnrefused|ehostunreach|epipe|socket|network|fetch|tls|certificate|eai_again/.test(raw) ? 'transport'
+    : /invalid|schema|malformed|request|400|422|tool|parameter/.test(raw) ? 'request-shape'
+    : error === undefined ? 'unknown' : 'unknown';
+  // The provider message body is deliberately NOT retained: only the controlled
+  // code/name label is exposed, so no response body, prompt or path can leak.
+  const message = error === undefined ? '' : `${name}${code !== 'NONE' ? `:${code}` : ''}`.slice(0, 80);
+  return { category, code, name, chunks: state.chunks,
+    abortedBeforeFirstChunk: state.abortedBeforeFirstChunk, abortedAfterFirstChunk: state.abortedAfterFirstChunk,
+    timedOut: state.timedOut, message };
 }
 /** Structural binding check for a host-owned runtime-context snapshot: it must
  * be a single user text message owned by the runtime-context source, start with

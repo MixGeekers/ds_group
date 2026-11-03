@@ -118,6 +118,17 @@ export interface CoreValidationUsage {
   overrun: boolean;
   accounting: 'complete' | 'unknown';
 }
+/** Bounded provider/stream failure facts (controlled categories/codes only). */
+export interface CoreValidationStreamDiagnostic {
+  category: 'empty-provider-stream' | 'transport' | 'auth' | 'request-shape' | 'timeout' | 'aborted' | 'unknown';
+  code: string; name: string; chunks: number; abortedBeforeFirstChunk: boolean; abortedAfterFirstChunk: boolean;
+  timedOut: boolean; message: string;
+}
+/** Bounded Goal Session config/event summary; counts and controlled codes only. */
+export interface CoreValidationGoalSessionSummary {
+  provider: string; model: string; reasoningEffort: string; maxTokens: number; toolCount: number;
+  eventCounts: Record<string, number>; attemptStreamLengths: number[]; turnEndReasons: string[];
+}
 export interface CoreValidationEvaluationSummary {
   evaluationId: string;
   status: string;
@@ -248,9 +259,12 @@ export interface CoreValidationReceipt {
   /** Controlled expected/live cut facts for a history-assert failure (no bodies/paths). */
   historyDiagnostic?: NativeHistoryDiagnostic;
   /** Evaluation readback captured immediately BEFORE the single stop action,
-   * plus the controlled field-level runtime-context mismatch facts when present. */
+   * plus the controlled field-level runtime-context/provider-stream facts. */
   preStopEvaluation?: { evaluationId: string; status: string; reasonCode?: string;
-    contextDiagnostic?: { mismatchKind: string; fieldNames: string[]; expectedShaPrefix: string; actualShaPrefix: string } };
+    contextDiagnostic?: { mismatchKind: string; fieldNames: string[]; expectedShaPrefix: string; actualShaPrefix: string };
+    streamDiagnostic?: CoreValidationStreamDiagnostic };
+  /** Bounded Goal Session event/config summary captured with the same readback. */
+  goalSessionSummary?: CoreValidationGoalSessionSummary;
 }
 export class CoreValidationBusyError extends Error {
   readonly code = 'CORE_VALIDATION_BUSY';
@@ -406,7 +420,17 @@ export const CORE_VALIDATION_EXPERIMENT_V6: Readonly<CoreValidationExperiment> =
   budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
   maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
 });
-const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6]);
+/** v7 frozen experiment: the seventh independent owner-decision attempt after the
+ * failed v1-v6 creates. It is a NEW frozen experiment, not a retry. */
+export const CORE_VALIDATION_EXPERIMENT_V7: Readonly<CoreValidationExperiment> = Object.freeze({
+  version: 7, requestId: 'core-validation-frozen-v7',
+  objective: '完成 owner 预授权的有界本地便签验证 v7：写入 note-1 并由独立核验确认。',
+  deliverable: Object.freeze({ id: 'note-1', title: '有界 core 验证便签 v7',
+    content: 'SHIYU_CORE_VALIDATION_NOTE_V7', dependsOn: Object.freeze([]) as unknown as readonly string[] }),
+  budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
+  maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
+});
+const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6, CORE_VALIDATION_EXPERIMENT_V7]);
 function experimentTemplate(experiment: Readonly<CoreValidationExperiment>): unknown {
   return { requestId: experiment.requestId, objective: experiment.objective, deliverables: [experiment.deliverable],
     budget: experiment.budget, expiresInMs: experiment.expiresInMs, maxEvaluations: experiment.maxEvaluations };
@@ -418,10 +442,12 @@ export const CORE_VALIDATION_EXPERIMENT_V3_TEMPLATE_SHA256: string = experimentT
 export const CORE_VALIDATION_EXPERIMENT_V4_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V4);
 export const CORE_VALIDATION_EXPERIMENT_V5_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V5);
 export const CORE_VALIDATION_EXPERIMENT_V6_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V6);
+export const CORE_VALIDATION_EXPERIMENT_V7_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V7);
 /** Fixed, code-level reconcile targets. Callers cannot select or add requestIds. */
 export const CORE_VALIDATION_RECONCILE_REQUEST_IDS: readonly string[] = Object.freeze([
   CORE_VALIDATION_REQUEST_ID, CORE_VALIDATION_EXPERIMENT.requestId, CORE_VALIDATION_EXPERIMENT_V3.requestId,
   CORE_VALIDATION_EXPERIMENT_V4.requestId, CORE_VALIDATION_EXPERIMENT_V5.requestId, CORE_VALIDATION_EXPERIMENT_V6.requestId,
+  CORE_VALIDATION_EXPERIMENT_V7.requestId,
 ]);
 
 function experimentFixedInput(experiment: Readonly<CoreValidationExperiment>): CoreValidationFixedInput {
@@ -466,7 +492,8 @@ function validateOptions(options: unknown): asserts options is CoreValidationOpt
   }
   if (value.experiment !== undefined && value.experiment !== CORE_VALIDATION_V1 && value.experiment !== CORE_VALIDATION_EXPERIMENT
     && value.experiment !== CORE_VALIDATION_EXPERIMENT_V3 && value.experiment !== CORE_VALIDATION_EXPERIMENT_V4
-    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V5 && value.experiment !== CORE_VALIDATION_EXPERIMENT_V6) {
+    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V5 && value.experiment !== CORE_VALIDATION_EXPERIMENT_V6
+    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V7) {
     throw new CoreValidationOptionsError('The validation experiment must be one of the code-level frozen constants');
   }
 }
@@ -626,7 +653,10 @@ class BoundedValidationRunnerCore {
   private readonly unknowns: string[] = [];
   private readonly experiment: Readonly<CoreValidationExperiment>;
   private createFailure?: { phase: GoalOperationPhase; code: string; detail: string; historyDiagnostic?: NativeHistoryDiagnostic };
-  private preStopEvaluation?: { evaluationId: string; status: string; reasonCode?: string };
+  private preStopEvaluation?: { evaluationId: string; status: string; reasonCode?: string;
+    contextDiagnostic?: { mismatchKind: string; fieldNames: string[]; expectedShaPrefix: string; actualShaPrefix: string };
+    streamDiagnostic?: CoreValidationStreamDiagnostic };
+  private preStopGoalSessionSummary?: CoreValidationGoalSessionSummary;
   private completedObserved = false;
   private creationReadback?: CoreValidationGoalReadback;
   private partialCreation: CoreValidationPartialCreation = { detected: false, readback: 'absent', evidence: [] };
@@ -746,9 +776,12 @@ class BoundedValidationRunnerCore {
       const reasonCode = typeof latest.reasonCode === 'string' ? latest.reasonCode
         : typeof latest.receipt?.reasonCode === 'string' ? latest.receipt.reasonCode : undefined;
       const contextDiagnostic = readContextDiagnostic((latest as { contextDiagnostic?: unknown }).contextDiagnostic);
+      const streamDiagnostic = readStreamDiagnostic((latest as { streamDiagnostic?: unknown }).streamDiagnostic);
+      this.preStopGoalSessionSummary = readGoalSessionSummary((latest as { goalSessionSummary?: unknown }).goalSessionSummary);
       return { evaluationId: latest.evaluationId.slice(0, 120), status: latest.status.slice(0, 40),
         ...(reasonCode ? { reasonCode: reasonCode.slice(0, 200) } : {}),
-        ...(contextDiagnostic ? { contextDiagnostic } : {}) };
+        ...(contextDiagnostic ? { contextDiagnostic } : {}),
+        ...(streamDiagnostic ? { streamDiagnostic } : {}) };
     } catch { return undefined; }
   }
   private async finish(status: CoreValidationStatus, reasonCode: CoreValidationReasonCode): Promise<CoreValidationReceipt> {
@@ -850,6 +883,7 @@ class BoundedValidationRunnerCore {
       unknowns: [...new Set(this.unknowns)].slice(0, 16),
       ...(this.error ? { error: this.error } : {}),
       ...(this.preStopEvaluation ? { preStopEvaluation: structuredClone(this.preStopEvaluation) } : {}),
+      ...(this.preStopGoalSessionSummary ? { goalSessionSummary: structuredClone(this.preStopGoalSessionSummary) } : {}),
       ...(this.createFailure ? { failurePhase: this.createFailure.phase, failureCode: this.createFailure.code,
         failureDetail: this.createFailure.detail,
         ...(this.createFailure.historyDiagnostic ? { historyDiagnostic: structuredClone(this.createFailure.historyDiagnostic) } : {}) } : {}),
@@ -994,6 +1028,41 @@ export function runBoundedCoreValidation(options: CoreValidationOptions): Promis
   return sharedRunner.run(options);
 }
 
+function readStreamDiagnostic(value: unknown): CoreValidationStreamDiagnostic | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  const categories = ['empty-provider-stream', 'transport', 'auth', 'request-shape', 'timeout', 'aborted', 'unknown'];
+  if (typeof record.category !== 'string' || !categories.includes(record.category)
+    || typeof record.code !== 'string' || record.code.length > 40 || !/^[A-Za-z0-9_.:-]*$/.test(record.code)
+    || typeof record.name !== 'string' || record.name.length > 40 || !/^[A-Za-z][A-Za-z0-9_.-]*$/.test(record.name)
+    || !Number.isSafeInteger(record.chunks) || (record.chunks as number) < 0 || (record.chunks as number) > 1_000_000
+    || typeof record.abortedBeforeFirstChunk !== 'boolean' || typeof record.abortedAfterFirstChunk !== 'boolean'
+    || typeof record.timedOut !== 'boolean'
+    || typeof record.message !== 'string' || record.message.length > 160) return undefined;
+  const diagnostic = { category: record.category as CoreValidationStreamDiagnostic['category'],
+    code: record.code, name: record.name, chunks: record.chunks as number,
+    abortedBeforeFirstChunk: record.abortedBeforeFirstChunk, abortedAfterFirstChunk: record.abortedAfterFirstChunk,
+    timedOut: record.timedOut, message: record.message };
+  return JSON.stringify(diagnostic).length <= 400 ? diagnostic : undefined;
+}
+function readGoalSessionSummary(value: unknown): CoreValidationGoalSessionSummary | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  const short = (item: unknown, max = 80): item is string => typeof item === 'string' && item.length <= max && /^[A-Za-z0-9_.:/()-]*$/.test(item);
+  if (!short(record.provider) || !short(record.model) || !short(record.reasoningEffort)
+    || !Number.isSafeInteger(record.maxTokens) || !Number.isSafeInteger(record.toolCount)
+    || !record.eventCounts || typeof record.eventCounts !== 'object' || Array.isArray(record.eventCounts)
+    || Object.keys(record.eventCounts as object).length > 16
+    || Object.entries(record.eventCounts as Record<string, unknown>).some(([key, count]) => !/^[A-Za-z0-9_]{1,60}$/.test(key) || !Number.isSafeInteger(count))
+    || !Array.isArray(record.attemptStreamLengths) || record.attemptStreamLengths.length > 8
+    || record.attemptStreamLengths.some(item => !Number.isSafeInteger(item) || item < 0 || item > 1_000_000)
+    || !Array.isArray(record.turnEndReasons) || record.turnEndReasons.length > 8 || record.turnEndReasons.some(item => !short(item, 40))) return undefined;
+  const summary: CoreValidationGoalSessionSummary = { provider: record.provider, model: record.model, reasoningEffort: record.reasoningEffort,
+    maxTokens: record.maxTokens as number, toolCount: record.toolCount as number,
+    eventCounts: record.eventCounts as Record<string, number>, attemptStreamLengths: record.attemptStreamLengths as number[],
+    turnEndReasons: record.turnEndReasons as string[] };
+  return JSON.stringify(summary).length <= 2048 ? summary : undefined;
+}
 function readContextDiagnostic(value: unknown): { mismatchKind: string; fieldNames: string[]; expectedShaPrefix: string; actualShaPrefix: string } | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
   const record = value as Record<string, unknown>;
@@ -1341,6 +1410,12 @@ export function assertBoundedCoreValidationReceipt(value: unknown): asserts valu
         actual: { shaPrefix: evaluation.contextDiagnostic.actualShaPrefix } }) === undefined)) {
       throw new Error('Receipt preStopEvaluation is malformed or unbounded');
     }
+    if (evaluation.streamDiagnostic !== undefined && readStreamDiagnostic(evaluation.streamDiagnostic) === undefined) {
+      throw new Error('Receipt preStopEvaluation.streamDiagnostic is malformed or unbounded');
+    }
+  }
+  if (receipt.goalSessionSummary !== undefined && readGoalSessionSummary(receipt.goalSessionSummary) === undefined) {
+    throw new Error('Receipt goalSessionSummary is malformed or unbounded');
   }
   if (receipt.error?.phase === 'create') {
     if (!receipt.failurePhase || !GOAL_OPERATION_PHASES.includes(receipt.failurePhase)

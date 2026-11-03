@@ -49,6 +49,19 @@ export interface NativeContextDiagnostic {
   actual: { shaPrefix: string };
   fieldNames: string[];
 }
+/** Bounded provider/stream failure facts and Goal Session summary handoff, same
+ * in-process pattern as the runtime-context diagnostic. Categories/field code
+ * only: no response body, prompt, path or provider text beyond a short bounded
+ * controlled error message. */
+export interface NativeStreamDiagnostic {
+  category: string; code: string; name: string; chunks: number;
+  abortedBeforeFirstChunk: boolean; abortedAfterFirstChunk: boolean; timedOut: boolean; message: string;
+}
+export interface NativeGoalSessionSummary {
+  provider: string; model: string; reasoningEffort: string; maxTokens: number; toolCount: number;
+  eventCounts: Record<string, number>; attemptStreamLengths: number[]; turnEndReasons: string[];
+}
+const pendingStreamDiagnostics = new Map<string, { streamDiagnostic: NativeStreamDiagnostic; goalSessionSummary: NativeGoalSessionSummary }>();
 const pendingContextDiagnostics = new Map<string, NativeContextDiagnostic>();
 export function recordNativeContextDiagnostic(goalId: string, diagnostic: NativeContextDiagnostic): void {
   if (typeof goalId !== 'string' || !goalId) return;
@@ -60,6 +73,23 @@ export function recordNativeContextDiagnostic(goalId: string, diagnostic: Native
     if (oldest !== undefined) pendingContextDiagnostics.delete(oldest);
   }
   pendingContextDiagnostics.set(goalId, structuredClone(diagnostic));
+}
+export function recordNativeStreamDiagnostic(goalId: string, streamDiagnostic: NativeStreamDiagnostic,
+  goalSessionSummary: NativeGoalSessionSummary): void {
+  if (typeof goalId !== 'string' || !goalId) return;
+  let serialized: string;
+  try { serialized = JSON.stringify({ streamDiagnostic, goalSessionSummary }); } catch { return; }
+  if (serialized.length > 4096) return;
+  if (pendingStreamDiagnostics.size >= 16) {
+    const oldest = pendingStreamDiagnostics.keys().next().value;
+    if (oldest !== undefined) pendingStreamDiagnostics.delete(oldest);
+  }
+  pendingStreamDiagnostics.set(goalId, structuredClone({ streamDiagnostic, goalSessionSummary }));
+}
+function takeNativeStreamDiagnostic(goalId: string): { streamDiagnostic: NativeStreamDiagnostic; goalSessionSummary: NativeGoalSessionSummary } | undefined {
+  const value = pendingStreamDiagnostics.get(goalId);
+  if (value !== undefined) pendingStreamDiagnostics.delete(goalId);
+  return value;
 }
 function takeNativeContextDiagnostic(goalId: string): NativeContextDiagnostic | undefined {
   const value = pendingContextDiagnostics.get(goalId);
@@ -90,6 +120,10 @@ interface Options {
 }
 interface StoredEvaluation extends CoreEvaluation { proposalHash?: string   /** Controlled runtime-context mismatch facts attached to an unknown evaluation. */
   contextDiagnostic?: NativeContextDiagnostic;
+  /** Controlled provider/stream failure facts attached to an unknown evaluation. */
+  streamDiagnostic?: NativeStreamDiagnostic;
+  /** Bounded Goal Session event/config summary attached to an unknown evaluation. */
+  goalSessionSummary?: NativeGoalSessionSummary;
 }
 
 /**
@@ -828,16 +862,25 @@ export class CoreDomain {
       // the same reservation twice. The field-level context diagnostic may still
       // be attached once if the decision run recorded it.
       if (evaluation.status === 'unknown') {
-        const pending = takeNativeContextDiagnostic(permit.goalId);
-        if (pending && evaluation.contextDiagnostic === undefined) { evaluation.contextDiagnostic = pending; this.saveEvaluation(evaluation); }
+        let changed = false;
+        const pendingContext = takeNativeContextDiagnostic(permit.goalId);
+        if (pendingContext && evaluation.contextDiagnostic === undefined) { evaluation.contextDiagnostic = pendingContext; changed = true; }
+        const pendingStream = takeNativeStreamDiagnostic(permit.goalId);
+        if (pendingStream) {
+          if (evaluation.streamDiagnostic === undefined) { evaluation.streamDiagnostic = pendingStream.streamDiagnostic; changed = true; }
+          if (evaluation.goalSessionSummary === undefined) { evaluation.goalSessionSummary = pendingStream.goalSessionSummary; changed = true; }
+        }
+        if (changed) this.saveEvaluation(evaluation);
         return clone(evaluation);
       }
       const contextDiagnostic = takeNativeContextDiagnostic(permit.goalId);
+      const streamRecord = takeNativeStreamDiagnostic(permit.goalId);
       const reservation = this.mandates.getReservation(OWNER, permit.reservationId);
       if (reservation.state === 'reserved') evaluation.reservation = this.mandates.reconcile(CORE_VERIFIER, { receiptId: `core-unknown:${permit.evaluationId}`,
         reservationId: reservation.reservationId, expectedVersion: reservation.version, complete: false, usage: {}, evidenceRef: `core-interruption:${permit.evaluationId}` });
       evaluation.status = 'unknown'; evaluation.reasonCode = reasonCode;
       if (contextDiagnostic) evaluation.contextDiagnostic = contextDiagnostic;
+      if (streamRecord) { evaluation.streamDiagnostic = streamRecord.streamDiagnostic; evaluation.goalSessionSummary = streamRecord.goalSessionSummary; }
       this.saveEvaluation(evaluation); return clone(evaluation);
     });
   }

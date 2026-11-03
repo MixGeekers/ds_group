@@ -51,7 +51,7 @@ import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
 import { computeMemoryReadiness, type MemoryReadiness } from './adapters/ombre/readiness.js';
 import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
 import { EMOTION_PROBE_ACTION, RuntimeEmotionContinuationProbeCommand, type EmotionProbeReceipt } from './adapters/control-store/emotion-continuation-probe.js';
-import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6 } from './control/core-validation.js';
+import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6, CORE_VALIDATION_EXPERIMENT_V7 } from './control/core-validation.js';
 import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, type NativeHeaderCutProbeReceipt } from './control/native-header-cut-probe.js';
 import { CORE_GOAL_PRESET_ID } from './adapters/dsh/goals.js';
 import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
@@ -767,6 +767,12 @@ export class RuntimeService {
     return this.commandCoreGoalValidationRun(value, signal, CORE_VALIDATION_EXPERIMENT_V6);
   }
 
+  /** v7 is a new frozen experiment for an explicit owner decision; it is NOT a
+   * retry of v1-v6 and its stream diagnostics never trigger automatic retries. */
+  private async commandCoreGoalValidationV7(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    return this.commandCoreGoalValidationRun(value, signal, CORE_VALIDATION_EXPERIMENT_V7);
+  }
+
   private async commandCoreGoalValidationRun(value: Record<string, unknown>, signal: AbortSignal | undefined, experiment: typeof CORE_VALIDATION_EXPERIMENT | undefined): Promise<unknown> {
     if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid bounded core Goal validation input');
     this.ensureCanRun(); signal?.throwIfAborted();
@@ -1058,6 +1064,7 @@ export class RuntimeService {
     if (action === 'runtime.probe-core-goal-v4') return this.commandCoreGoalValidationV4(value, signal);
     if (action === 'runtime.probe-core-goal-v5') return this.commandCoreGoalValidationV5(value, signal);
     if (action === 'runtime.probe-core-goal-v6') return this.commandCoreGoalValidationV6(value, signal);
+    if (action === 'runtime.probe-core-goal-v7') return this.commandCoreGoalValidationV7(value, signal);
     if (action === 'runtime.probe-native-header-cut') return this.commandNativeHeaderCutProbe(value, signal);
     if (action === 'runtime.probe-memory-embedding') return this.commandMemoryEmbeddingProbe(value, signal);
     if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);

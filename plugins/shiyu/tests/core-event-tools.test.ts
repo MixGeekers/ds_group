@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import test from 'node:test';
+import { providerStreamDiagnostic } from '../src/adapters/dsh/core-decision.js';
 import { GoalSessionAdapter, GoalOperationUnknownError, CORE_GOAL_PRESET_ID, CORE_MODEL_PROBE_PROMPT, type CoreDecisionEventToolFactory,
   type GoalAuthorityContext, type GoalAuthorityVerdict, type GoalBinding, type GoalBindingPort,
   type GoalCommandReceipt, type GoalCreateRequest, type NativeGoalRef, type NativeGoalView, goalCommandIdentity } from '../src/adapters/dsh/goals.js';
@@ -51,6 +52,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   const admittedStreams: Record<string, unknown>[] = [];
   const nativeRequests = new WeakSet<object>();
   let allowed = true, expiredGrant = false, createGate: Promise<void> | undefined, streamGate: Promise<void> | undefined;
+  let streamFault: 'none' | 'empty' | 'throw-code' | 'throw-plain' | 'abort-before' | 'abort-after' | 'timeout' = 'none';
   let failDispose = false, failFlush = false, readFault: 'throw' | 'user-hash' | 'assistant-seq' | 'context-hash' | undefined;
   let contextFault: { stage: 'prepared' | 'committed'; kind: ContextFault } | undefined;
   let workingDirectory: string | undefined, workingDirectoryAvailable = true;
@@ -141,7 +143,15 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     return global.waterfall('llm/stream', [options], () => {
       admittedStreams.push(Object.fromEntries(['sessionId', 'provider', 'model', 'reasoningEffort', 'maxTokens', 'purpose', 'tools'].filter(key => options[key] !== undefined).map(key => [key, options[key]])));
       streams++; trace.push(`stream:${String(options.purpose ?? 'main')}`);
-      return (async function* () { if (streamGate) await streamGate; yield { type: 'synthetic' }; })();
+      const fault = streamFault;
+      return (async function* () {
+        if (fault === 'empty') return;
+        if (fault === 'throw-code') throw Object.assign(new Error('Synthetic provider socket reset at /synthetic/shiyu/core/stream.bin'), { code: 'ECONNRESET' });
+        if (fault === 'throw-plain') throw new Error('Synthetic provider failure: TOP_SECRET_PROMPT_BODY /synthetic/shiyu/core/hidden.bin');
+        if (fault === 'abort-before') { await new Promise(resolve => setTimeout(resolve, 80)); throw Object.assign(new Error('aborted before first chunk'), { name: 'AbortError' }); }
+        if (fault === 'abort-after') { yield { type: 'synthetic' }; await new Promise(resolve => setTimeout(resolve, 80)); throw Object.assign(new Error('aborted after first chunk'), { name: 'AbortError' }); }
+        if (fault === 'timeout') { await new Promise(resolve => setTimeout(resolve, 120)); yield { type: 'synthetic' }; return; }
+        if (streamGate) await streamGate; yield { type: 'synthetic' }; })();
     });
   }
   const make = async (options: any, resume: boolean) => {
@@ -254,7 +264,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
               append(agent, 'assistant/attempt', { usage: { inputTokens: 7, outputTokens: 2, totalTokens: 9 }, reason: 'retry' });
               for await (const _item of stream(main)) { /* second next() must be blocked */ }
             }
-            if (!agent.cancelled && !toolPlan) {
+            if (!agent.cancelled && !toolPlan && streamFault !== 'empty') {
               append(agent, 'assistant/message', { message: { id: `assistant-${message.id}`, role: 'assistant', content: [{ type: 'text', text: output }] }, usage: { inputTokens: 11, outputTokens: 7, totalTokens: 18 } });
             } else if (!agent.cancelled && toolPlan) {
               const callId = `call-${message.id}`;
@@ -427,6 +437,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     setAllowed(value: boolean) { allowed = value; }, setExpired(value: boolean) { expiredGrant = value; }, setMode(value: typeof mode) { mode = value; },
     setOutput(value: string) { output = value; }, setReadFault(value: typeof readFault) { readFault = value; }, setFlushFault(value: boolean) { failFlush = value; },
     setDisposeFault(value: boolean) { failDispose = value; }, setCreateGate(value: Promise<void> | undefined) { createGate = value; }, setStreamGate(value: Promise<void>) { streamGate = value; },
+    setStreamFault(value: typeof streamFault) { streamFault = value; },
     beforeAuthorize(value: typeof beforeAuthorize) { beforeAuthorize = value; },
     setContextFault(stage: 'prepared' | 'committed', kind: ContextFault) { contextFault = { stage, kind }; },
     setWorkingDirectory(value: string | undefined) { workingDirectory = value; }, setWorkingDirectoryAvailable(value: boolean) { workingDirectoryAvailable = value; },
@@ -762,6 +773,85 @@ test('a host runtime-context projection with a bound cwd mismatch is rejected wi
     assert.equal(serialized.includes('/synthetic'), false);
     assert.equal(serialized.includes('Current working directory'), false);
   } finally { await driver.close(); }
+});
+
+function expectStreamFailure(error: unknown, category: string): { streamDiagnostic: any; goalSessionSummary: any } {
+  const record = error as { streamDiagnostic?: any; goalSessionSummary?: any };
+  assert.ok(record.streamDiagnostic, 'the failed decision carries a bounded streamDiagnostic');
+  assert.equal(record.streamDiagnostic.category, category);
+  const serialized = JSON.stringify(record.streamDiagnostic);
+  assert.ok(serialized.length <= 400);
+  assert.equal(serialized.includes('/synthetic'), false); assert.equal(serialized.includes('TOP_SECRET'), false);
+  return record as { streamDiagnostic: any; goalSessionSummary: any };
+}
+
+test('an empty provider stream is classified as empty-provider-stream with a bounded Goal Session summary', async t => {
+  const f = await eventStore(t, []);
+  const host = fixture(realProvider(f.events)), driver = host.adapter();
+  try {
+    const created = await driver.create(host.create);
+    host.setStreamFault('empty'); host.setOutput(PLAN_OUTPUT);
+    let failure: unknown;
+    await assert.rejects(driver.decisionRound(host.decision(ref(created.native))), (error: unknown) => { failure = error; return true; });
+    const record = expectStreamFailure(failure, 'empty-provider-stream');
+    assert.equal(record.streamDiagnostic.chunks, 0); assert.equal(record.streamDiagnostic.code, 'NONE');
+    assert.equal(record.streamDiagnostic.timedOut, false);
+    assert.deepEqual(record.streamDiagnostic.message, '');
+    assert.ok(record.goalSessionSummary, 'the receipt-facing Goal Session summary is attached');
+    assert.equal(record.goalSessionSummary.provider, 'opencode-go');
+    assert.deepEqual(record.goalSessionSummary.attemptStreamLengths, [0]);
+    assert.ok(record.goalSessionSummary.eventCounts.user_message >= 1);
+    assert.equal(host.counts().requests, 1); assert.equal(host.counts().streams, 1);
+  } finally { await driver.close(); }
+});
+
+test('a provider stream throw with a code is classified as transport and never leaks the path or body', async t => {
+  const f = await eventStore(t, []);
+  const host = fixture(realProvider(f.events)), driver = host.adapter();
+  try {
+    const created = await driver.create(host.create);
+    host.setStreamFault('throw-code'); host.setOutput(PLAN_OUTPUT);
+    let failure: unknown;
+    await assert.rejects(driver.decisionRound(host.decision(ref(created.native))), (error: unknown) => { failure = error; return true; });
+    const record = expectStreamFailure(failure, 'transport');
+    assert.equal(record.streamDiagnostic.code, 'ECONNRESET');
+    assert.equal(record.streamDiagnostic.message, 'Error:ECONNRESET');
+    assert.equal(record.streamDiagnostic.message.includes('/synthetic'), false);
+  } finally { await driver.close(); }
+});
+
+test('a plain provider stream throw without a code stays unknown and redacts sensitive text/path', async t => {
+  const f = await eventStore(t, []);
+  const host = fixture(realProvider(f.events)), driver = host.adapter();
+  try {
+    const created = await driver.create(host.create);
+    host.setStreamFault('throw-plain'); host.setOutput(PLAN_OUTPUT);
+    let failure: unknown;
+    await assert.rejects(driver.decisionRound(host.decision(ref(created.native))), (error: unknown) => { failure = error; return true; });
+    const record = expectStreamFailure(failure, 'unknown');
+    assert.equal(record.streamDiagnostic.code, 'NONE');
+    assert.equal(JSON.stringify(record.streamDiagnostic).includes('/synthetic'), false);
+  } finally { await driver.close(); }
+});
+
+test('provider stream classification distinguishes abort before/after the first chunk and timeout without guessing', () => {
+  const abortBefore = providerStreamDiagnostic(Object.assign(new Error('aborted'), { name: 'AbortError' }),
+    { chunks: 0, abortedBeforeFirstChunk: true, abortedAfterFirstChunk: false, timedOut: false, signalAborted: true });
+  assert.equal(abortBefore.category, 'aborted'); assert.equal(abortBefore.abortedBeforeFirstChunk, true);
+  const abortAfter = providerStreamDiagnostic(Object.assign(new Error('aborted'), { name: 'AbortError' }),
+    { chunks: 1, abortedBeforeFirstChunk: false, abortedAfterFirstChunk: true, timedOut: false, signalAborted: true });
+  assert.equal(abortAfter.category, 'aborted'); assert.equal(abortAfter.abortedAfterFirstChunk, true); assert.equal(abortAfter.chunks, 1);
+  const timeout = providerStreamDiagnostic(Object.assign(new Error('deadline'), { code: 'ETIMEDOUT' }),
+    { chunks: 0, abortedBeforeFirstChunk: false, abortedAfterFirstChunk: false, timedOut: true, signalAborted: false });
+  assert.equal(timeout.category, 'timeout'); assert.equal(timeout.timedOut, true);
+  const auth = providerStreamDiagnostic(Object.assign(new Error('401 unauthorized api key'), { code: 'AUTH_ERROR' }), { chunks: 0, abortedBeforeFirstChunk: false, abortedAfterFirstChunk: false, timedOut: false, signalAborted: false });
+  assert.equal(auth.category, 'auth');
+  const shape = providerStreamDiagnostic(Object.assign(new Error('invalid tool schema / 422'), { code: 'INVALID_REQUEST' }), { chunks: 0, abortedBeforeFirstChunk: false, abortedAfterFirstChunk: false, timedOut: false, signalAborted: false });
+  assert.equal(shape.category, 'request-shape');
+  for (const diagnostic of [abortBefore, abortAfter, timeout, auth, shape]) {
+    assert.ok(JSON.stringify(diagnostic).length <= 400);
+    assert.equal(JSON.stringify(diagnostic).includes('/synthetic'), false);
+  }
 });
 
 test('the one tool-round budget rejects duplicate calls, a second tool round and malformed tool step input', async t => {

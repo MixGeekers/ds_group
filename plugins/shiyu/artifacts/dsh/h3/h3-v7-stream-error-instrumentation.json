@@ -1,0 +1,374 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-v7-stream-error-instrumentation",
+  "phase": "round17",
+  "capturedAt": "2026-11-03T18:35:09.362Z",
+  "status": "offline instrumentation preparation for the seventh bounded core Goal attempt: bounded provider-stream failure diagnostic + Goal Session summary + frozen v7 experiment + v7 owner command/tool patch + fixed v1-v7 reconcile; real host execution NOT performed by implementer",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "realGoalCreatedByImplementer": false,
+  "realGoalCancelledByImplementer": false,
+  "explicitDeclaration": "This slice only instruments and prepares code. It performs NO automatic retry and NO seventh host attempt. An owner-authorized retry would be a separate explicit experiment decision; v1-v6 remain failed/reconciled and must never be auto-retried.",
+  "head": "9d419668c0eaf83512644719777b46b14e5ecab8",
+  "worktreeHeadAtCapture": "67bf0bc5d8287def99ac3c381fd113c797e9e234",
+  "headNote": "the isolated verification was materialized on the task base HEAD 9d41966; the shared worktree had already advanced to a later commit with unrelated teammate changes when this evidence was captured",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 102382,
+      "sha256": "a663d0d0089e545b9b50f8ee31ab4e2a59b499a17af6f58e42f618f6ba6d9323"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+      "bytes": 86371,
+      "sha256": "660c55f96e66156268f7ff152239461c28b3121990274a191913d24f777f980f"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 101061,
+      "sha256": "d1542a059fc0cfac137d36dc901372da9c10861c8aee65e574d39f5dde427fe1"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 127169,
+      "sha256": "b6ed1a9d45b973d440f18a5b195e3aa72f4e90306e925cf86548344247c81ff9"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 94260,
+      "sha256": "116ff70f935892949f80a659d64ce9bb7f63055c9fb4b9107857ce163ba5a3ca"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-domain.test.ts",
+      "bytes": 41220,
+      "sha256": "2562f128ef1f88b412c39c0378f14147953f065ec19bd7628f545de59fd4152f"
+    }
+  ],
+  "hostFacts": {
+    "source": "Lead-provided round-16 host facts (implementer has no live host access and did not re-read them)",
+    "progress": "the v6 decision round reached the model request layer for the first time: request/header + runtime context, exactly 3 read-only event tools, system/owner/runtime-context inputs",
+    "providerFailure": "the provider returned an EMPTY stream (assistant/attempt stream=[]); the run was released and LocalCoreService mapped the outcome to CORE_EXECUTION_UNCONFIRMED; preStopEvaluation preserved that real reason and 0 usage was reported",
+    "goal": "this is NOT a pass and NOT a task/plan/business success: no model content, no candidate, no Task/Effect/artifact"
+  },
+  "instrumentation": {
+    "streamDiagnostic": {
+      "shape": "preStopEvaluation.streamDiagnostic = { category, code, name, chunks, abortedBeforeFirstChunk, abortedAfterFirstChunk, timedOut, message }",
+      "categories": {
+        "empty-provider-stream": "stream completed with zero chunks and no error",
+        "transport": "ENOTFOUND/ECONNRESET/ECONNREFUSED/EHOSTUNREACH/EPIPE/socket/network/fetch/TLS patterns",
+        "auth": "auth/unauthorized/forbidden/401/403/api-key/credential patterns",
+        "request-shape": "invalid/schema/malformed/request/400/422/tool/parameter patterns",
+        "timeout": "deadline/ETIMEDOUT pattern or expired run deadline",
+        "aborted": "caller/run abort signal; before/after first chunk are separate booleans",
+        "unknown": "anything else; provider internals are never guessed"
+      },
+      "bounds": "short category/code/name/flag facts; message is only the controlled label `<Name>[:<CODE>]` (<=80 chars) and the provider message body is deliberately NOT retained; no prompt, response body, path or provider text",
+      "exposure": [
+        "attached to the failed decision error object as streamDiagnostic + goalSessionSummary",
+        "recorded via the same bounded in-process handoff used by contextDiagnostic; CoreDomain unknown() attaches them to the unknown evaluation (streamDiagnostic, goalSessionSummary)",
+        "bounded runner preStopEvaluation.streamDiagnostic + receipt.goalSessionSummary carry them; the independent receipt validator bounds/validates both"
+      ],
+      "noAutoRetry": "the instrumentation never retries; a failure/unknown outcome stays terminal. A human/owner-authorized retry is explicitly the next experimental option, never default behavior",
+      "code": [
+        "src/adapters/dsh/core-decision.ts stream() instrumentation + providerStreamDiagnostic + Goal Session summary",
+        "src/adapters/control-store/core-domain.ts recordNativeStreamDiagnostic + unknown() attachment",
+        "src/control/core-validation.ts readPreStopEvaluation + receipt fields/validator"
+      ]
+    },
+    "goalSessionSummary": {
+      "shape": "{ provider, model, reasoningEffort, maxTokens, toolCount, eventCounts, attemptStreamLengths, turnEndReasons }",
+      "bounds": "provider/model/effort labels, counts, attempt stream lengths and controlled turn/end reason codes only; event-type keys are lossless-JSON safe (non-alphanumeric replaced with _); no event body or text",
+      "purpose": "lets the next host run distinguish request/header configuration, provider attempt length (empty=0), turn/end reason and the reached request layer directly from the receipt"
+    }
+  },
+  "experimentV7": {
+    "constant": "CORE_VALIDATION_EXPERIMENT_V7 (Object.freeze, nested deliverable/budget frozen)",
+    "version": 7,
+    "requestId": "core-validation-frozen-v7",
+    "objective": "完成 owner 预授权的有界本地便签验证 v7：写入 note-1 并由独立核验确认。",
+    "deliverable": {
+      "id": "note-1",
+      "title": "有界 core 验证便签 v7",
+      "content": "SHIYU_CORE_VALIDATION_NOTE_V7",
+      "contentSha256": "8bd2944a27d514e553ac3b3ad08bf283ecafb3d41f9eaec571b414f8503ca529"
+    },
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "fixedTemplateSha256": "c8fbd85b9d4f8d602ab78a2fae6be9448f8cfef469f8aa772e4468f0e2805bdf",
+    "acceptance": "runBoundedCoreValidation accepts only the exact code-level constants V1/_EXPERIMENT/_V3/_V4/_V5/_V6/_V7 via trusted composition; clones, version-only objects and every tool/command/model argument are rejected.",
+    "unchanged": {
+      "v1": {
+        "requestId": "core-validation-frozen-v1",
+        "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca"
+      },
+      "v2": {
+        "requestId": "core-validation-frozen-v2",
+        "templateSha256": "756ec37b5bc054564076e226fc45bed135ced702d337acbf75fdcaf7f18ae34d"
+      },
+      "v3": {
+        "requestId": "core-validation-frozen-v3",
+        "templateSha256": "dc907faaa3f01f196e14e518a3cc292bb02d46447dfa102358ab871983bb6c94"
+      },
+      "v4": {
+        "requestId": "core-validation-frozen-v4",
+        "templateSha256": "14296381ae9d8bd3d68fa58107cb00294e6ee29bd16734411314158345a9000e"
+      },
+      "v5": {
+        "requestId": "core-validation-frozen-v5",
+        "templateSha256": "c5901e6437004249ac7c10e059ec9757a7f38320db2fb3a24472f0aa7b7105f4"
+      },
+      "v6": {
+        "requestId": "core-validation-frozen-v6",
+        "templateSha256": "2f7a647db5c37ae8b237014af3acdc0aa9346f745dccf074c0037f0b39cbda73"
+      },
+      "note": "v1-v6 remain failed and reconciled; this slice never retries them"
+    }
+  },
+  "reconcile": {
+    "fixedTargets": [
+      "core-validation-frozen-v1",
+      "core-validation-frozen-v2",
+      "core-validation-frozen-v3",
+      "core-validation-frozen-v4",
+      "core-validation-frozen-v5",
+      "core-validation-frozen-v6",
+      "core-validation-frozen-v7"
+    ],
+    "semantics": "one owner call reconciles the seven fixed requestIds in code order; per target read-only classification, at most one explicit cancel only for inert-unauthorized, 0 retries, 0 model calls, no Goal creation; top-level v1 fields preserved and targets[] carries all seven; callers cannot select/add/override",
+    "tests": [
+      "v7 inert target is the only one cancelled",
+      "all seven absent without writes",
+      "arbitrary caller requestIds rejected",
+      "fixed order/mirroring validated"
+    ]
+  },
+  "integration": {
+    "patchPath": "plugins/shiyu/artifacts/dsh/h3/h3-v7-runtime-index.patch",
+    "patchBytes": 6327,
+    "patchSha256": "5eebfba01c0192cf106c323577885cae5654e7bb2ca73f4d2146bed927317f1c",
+    "patchLines": 81,
+    "touchedFiles": [
+      "plugins/shiyu/src/runtime.ts",
+      "plugins/shiyu/src/index.ts"
+    ],
+    "runtime": {
+      "action": "runtime.probe-core-goal-v7",
+      "implementation": "commandCoreGoalValidationV7 delegates to the existing commandCoreGoalValidationRun with the frozen CORE_VALIDATION_EXPERIMENT_V7 constant only; paused/idle/single-slot/abort/0-retry/cached-diagnostics behavior is unchanged and shared with v1-v6"
+    },
+    "index": {
+      "tool": "shiyu_validate_core_goal_v7",
+      "parameters": "none (empty object, additionalProperties false)",
+      "outputSchema": "object (additionalProperties true), JSON text render",
+      "descriptionRequirements": [
+        "全新 v7 冻结实验、非 v1-v6 重试、显式 owner 决定的第七次独立尝试",
+        "创建真实 Goal/Task/Effect/budget/native Session/local artifact 并调用真实模型",
+        "requestId core-validation-frozen-v7 固定、不接受输入覆盖",
+        "失败/未知绝不重试；owner 授权重试是另一次显式决定；回执仅存 diagnostics.coreGoalValidation"
+      ]
+    },
+    "validation": {
+      "patchAppliesToHead": "git apply --check exit 0 on a clean worktree at HEAD 9d41966",
+      "typecheckWithSliceAndPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + slice + patch)",
+      "buildWithSliceAndPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  },
+  "tests": {
+    "focused": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts tests/core-validation.test.ts tests/core-domain.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h17-focused.log",
+        "sha256": "d1fdf89b165c85807f015ec02e85f425addbf5f6788e5bc9c751b89b387d77e5"
+      },
+      "tests": 167,
+      "pass": 167,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "regression": {
+      "command": "goals/core-goal-sessions/local-core/runtime-core/recovery/core-plan suites",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h17-regression.log",
+        "sha256": "2cd9701de191ab15ca74f331a7bbec3e34cef079fd97ac9a8fb5fa852ce1c093"
+      },
+      "tests": 101,
+      "pass": 101,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "netNew": 8,
+    "noSkips": true,
+    "newOrUpdated": [
+      "empty provider stream -> empty-provider-stream with chunks=0, empty message and bounded Goal Session summary (attemptStreamLengths=[0], turn/end reason counts)",
+      "stream throw with a code -> transport classification (ECONNRESET), controlled label only, no path/body text",
+      "plain stream throw without code -> unknown classification, no path/body leakage",
+      "classification distinguishes abort before/after the first chunk and timeout; auth/request-shape mapped from controlled code/name only",
+      "controlled streamDiagnostic + Goal Session summary handoff reaches the unknown evaluation without overwriting the first reason (core-domain)",
+      "bounded runner exposes preStopEvaluation.streamDiagnostic and receipt.goalSessionSummary; independent validator rejects malformed/unbounded mutations",
+      "v7 frozen constants/sha/exact-only, v7 completed run, v7 reconcile inert/absent/caller target"
+    ]
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-v7-stream-error --manifest plugins/shiyu/.local/h3-h17-manifest.json --timeout-ms 4000000",
+      "head": "9d419668c0eaf83512644719777b46b14e5ecab8",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+          "bytes": 102382,
+          "sha256": "a663d0d0089e545b9b50f8ee31ab4e2a59b499a17af6f58e42f618f6ba6d9323"
+        },
+        {
+          "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+          "bytes": 86371,
+          "sha256": "660c55f96e66156268f7ff152239461c28b3121990274a191913d24f777f980f"
+        },
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 101061,
+          "sha256": "d1542a059fc0cfac137d36dc901372da9c10861c8aee65e574d39f5dde427fe1"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+          "bytes": 127169,
+          "sha256": "b6ed1a9d45b973d440f18a5b195e3aa72f4e90306e925cf86548344247c81ff9"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-validation.test.ts",
+          "bytes": 94260,
+          "sha256": "116ff70f935892949f80a659d64ce9bb7f63055c9fb4b9107857ce163ba5a3ca"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-domain.test.ts",
+          "bytes": 41220,
+          "sha256": "2562f128ef1f88b412c39c0378f14147953f065ec19bd7628f545de59fd4152f"
+        }
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "tests": {
+        "tests": 1710,
+        "pass": 1710,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 1994217,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h3-v7-stream-error.log",
+        "bytes": 180738,
+        "sha256": "8aca3acee500e09a848a5cb57e04fc1d21dcb2adba84f55a9b32f379e2542f7b"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-v7-stream-error-verify.json",
+        "sha256": "029985296800b298b70e557dd240e8e846ab892093a26f36c9efc955e9126ed4"
+      },
+      "note": "a first isolated run had ONE timing-sensitive lab-integration 10s timeout unrelated to this slice (1709/1710, 0 product failures); the final rerun passed the whole npm run check with exit 0, 1710/1710, 0 fail, 0 skip"
+    },
+    "mainTreeTypecheck": "npx tsc --noEmit exit 0 excluding unrelated concurrent harness/WIP files",
+    "note": "no real host/model execution was performed; the host side is the Lead-owned seventh attempt under the kit below"
+  },
+  "hostKit": {
+    "kitVersion": 1,
+    "status": "frozen; the seventh attempt is an explicit owner decision and is NOT a v1-v6 retry",
+    "explicitOwnerDecisionStatement": "I explicitly decide to run the SEVENTH independent bounded core Goal validation attempt as a new v7 frozen experiment. It is not a replay/retry of v1-v6 (which stay failed and reconciled), and I accept the declared real side effects and no-retry failure handling. Any owner-authorized retry after an empty provider stream is itself a separate explicit decision.",
+    "preconditions": [
+      "integrate this slice + the runtime/index patch and record the resulting build/commit digest",
+      "runtime unpaused and idle (no active operation, no queued Task admission); the command rejects otherwise before any side effect",
+      "capture a before-audit: v1-v6 Goal ids/states/journal receipts, Session file hashes/counts, budget counters, business-store counts",
+      "confirm v1-v6 stay failed/reconciled and are not retried",
+      "accept declared real side effects: Goal, Task, Effect, budget, native Session, local artifact, up to 2 real bounded model rounds"
+    ],
+    "invocation": {
+      "action": "runtime.probe-core-goal-v7",
+      "tool": "shiyu_validate_core_goal_v7",
+      "parameters": "none",
+      "expectedOutput": "bounded runner receipt + { sent:false, readOnlyProbe:false, declaredSideEffects{...true} }; receipt cached only in snapshot().diagnostics.coreGoalValidation"
+    },
+    "expectedReceiptFields": [
+      "requestId = core-validation-frozen-v7; fixedInput requestId/templateSha256 = the frozen v7 values",
+      "status completed|failed|paused|timeout|cancelled (honest, never upgraded)",
+      "evaluations/evaluateAttempts/taskRefs/evidence and businessSideEffects.goal.created true|false|unknown",
+      "preStopEvaluation.streamDiagnostic (category/code/name/chunks/abort flags/timeout/message label) if the provider stream fails",
+      "receipt.goalSessionSummary (provider/model/effort/maxTokens/toolCount/eventCounts/attemptStreamLengths/turnEndReasons)",
+      "preStopEvaluation.reasonCode + contextDiagnostic when present",
+      "on create/history failure: failurePhase/failureCode/failureDetail (+historyDiagnostic/headerDiff)",
+      "creationReadback/partialCreation when available",
+      "usage counters only as actually reported (empty stream = 0 reported usage)"
+    ],
+    "streamClassificationTable": {
+      "empty-provider-stream": "provider returned no chunks; no assistant content or usage. Terminal for this attempt; an owner-authorized retry is a separate explicit experiment decision",
+      "transport": "provider/network transport error; terminal, capture receipt and stop",
+      "auth": "credentials/authorization error; terminal, do not retry blindly",
+      "request-shape": "our request/context/tool declaration was rejected or malformed; terminal, capture and inspect",
+      "timeout": "deadline expired before a usable stream; terminal, no auto retry",
+      "aborted": "owner/caller abort; terminal, no auto retry",
+      "unknown": "unclassified provider failure; terminal, capture the controlled diagnostic and stop"
+    },
+    "successCriteria": [
+      "status completed with independent verification and a completed native Goal",
+      "native create exactly once, no automatic retry/replay, one core Session",
+      "the decision round receives a non-empty provider stream and produces a bounded candidate",
+      "no v1-v6 change beyond the pre-existing reconciled cancelled state"
+    ],
+    "failurePreservationRules": [
+      "failed/unknown leaves partial Goal/Task/Session/artifact/budget evidence in place; do not delete, roll back or retry automatically",
+      "run shiyu_reconcile_core_validation_goal afterwards: it now covers [v1..v7], is read-only except one cancel for an inert partial v7 Goal, never retries",
+      "if the provider stream is empty again, keep the full receipt including preStopEvaluation.streamDiagnostic + goalSessionSummary + the archived Session event inventory, and stop; NO automatic retry",
+      "an owner-authorized retry (if ever wanted) must be a separate explicit decision, not a default path"
+    ],
+    "costAndTimeStops": [
+      "frozen budget tokens 16384 / calls 3 / effects 1",
+      "max 2 evaluation rounds",
+      "wall 180s and expiresInMs 600000",
+      "single runtime slot/single-flight; command-level abort supported",
+      "failure/unknown is terminal for the attempt: 0 automatic retries"
+    ],
+    "afterRunAudit": [
+      "record dist/commit digest, exact receipt JSON (including preStopEvaluation.streamDiagnostic and goalSessionSummary), journal receipt, Session inventory/hashes, counters and unknown usage",
+      "confirm no v1-v6 Goal/Session changed and no model call happened outside the bounded rounds"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model run by the implementer: instrumentation and classification are validated against the fake host only",
+    "classification uses only controlled code/name/signal patterns; provider internals and response bodies are never guessed or retained",
+    "the in-process stream diagnostic handoff is bounded and non-durable; the receipt is the durable evidence path",
+    "the runtime/index patch is provided but not applied here (write scope excludes runtime.ts/index.ts)",
+    "a first isolated check hit one unrelated timing-sensitive 10s lab-integration timeout; the final rerun passed 1710/1710 with exit 0",
+    "no automatic retry and no seventh host attempt were performed"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-v7-runtime-index.patch",
+      "sha256": "5eebfba01c0192cf106c323577885cae5654e7bb2ca73f4d2146bed927317f1c",
+      "bytes": 6327
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-v7-stream-error-verify.json",
+      "sha256": "029985296800b298b70e557dd240e8e846ab892093a26f36c9efc955e9126ed4"
+    },
+    {
+      "path": "plugins/shiyu/.local/slice-verify-h3-v7-stream-error.log",
+      "sha256": "8aca3acee500e09a848a5cb57e04fc1d21dcb2adba84f55a9b32f379e2542f7b"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h17-focused.log",
+      "sha256": "d1fdf89b165c85807f015ec02e85f425addbf5f6788e5bc9c751b89b387d77e5"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h17-regression.log",
+      "sha256": "2cd9701de191ab15ca74f331a7bbec3e34cef079fd97ac9a8fb5fa852ce1c093"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h17-integration-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  ]
+}

@@ -18,7 +18,8 @@ import {
   CORE_VALIDATION_EXPERIMENT_V3_TEMPLATE_SHA256, CORE_VALIDATION_EXPERIMENT_V4,
   CORE_VALIDATION_EXPERIMENT_V4_TEMPLATE_SHA256, CORE_VALIDATION_EXPERIMENT_V5,
   CORE_VALIDATION_EXPERIMENT_V5_TEMPLATE_SHA256, CORE_VALIDATION_EXPERIMENT_V6,
-  CORE_VALIDATION_EXPERIMENT_V6_TEMPLATE_SHA256, CORE_VALIDATION_RECEIPT_MAX_BYTES,
+  CORE_VALIDATION_EXPERIMENT_V6_TEMPLATE_SHA256, CORE_VALIDATION_EXPERIMENT_V7,
+  CORE_VALIDATION_EXPERIMENT_V7_TEMPLATE_SHA256, CORE_VALIDATION_RECEIPT_MAX_BYTES,
   CORE_VALIDATION_TEMPLATE_SHA256, CORE_VALIDATION_V1, CORE_VALIDATION_WALL_MS,
   type CoreValidationCommands, type CoreValidationDriver, type CoreValidationOptions, type CoreValidationReceipt, type CoreValidationStore,
 } from '../src/control/core-validation.js';
@@ -360,6 +361,11 @@ test('the independent receipt validator rejects lossless/boundary/fixed-input vi
       contextDiagnostic: { mismatchKind: 'ok', fieldNames: ['bad field with spaces'], expectedShaPrefix: 'z', actualShaPrefix: '0' } }; },
     value => { value.preStopEvaluation = { evaluationId: 'evaluation:1', status: 'unknown',
       contextDiagnostic: { mismatchKind: 'ok', fieldNames: ['content'], expectedShaPrefix: 'a'.repeat(20), actualShaPrefix: 'b'.repeat(16) } }; },
+    value => { value.preStopEvaluation = { evaluationId: 'evaluation:1', status: 'unknown',
+      streamDiagnostic: { category: 'invented', code: 'NONE', name: 'Error', chunks: 0, abortedBeforeFirstChunk: false,
+        abortedAfterFirstChunk: false, timedOut: false, message: 'body /synthetic/path' } }; },
+    value => { value.goalSessionSummary = { provider: 'opencode-go', model: 'm', reasoningEffort: 'high', maxTokens: 'x', toolCount: 3,
+      eventCounts: {}, attemptStreamLengths: [], turnEndReasons: [] }; },
     value => { (value.fixedInput as { budget: Budget }).budget = { tokens: 1, calls: 1, effects: 1 }; },
     value => { value.taskRefs = Array.from({ length: 17 }, () => ({})); },
     value => { value.counters = { evaluateAttempts: 3, pollCount: 0, maxEvaluations: 2, wallLimitMs: CORE_VALIDATION_WALL_MS }; },
@@ -409,6 +415,30 @@ test('an unknown evaluation keeps its first reason in the pre-stop readback (pau
     contextDiagnostic: { mismatchKind: 'section-render', expectedShaPrefix: '0123456789abcdef',
       actualShaPrefix: 'fedcba9876543210', fieldNames: ['source.sections[0].text', 'content[0].text'] } });
   assert.equal(world.controlCalls.length, 1); assert.equal(world.controlCalls[0]!.kind, 'pause');
+  assertBoundedCoreValidationReceipt(receipt);
+});
+
+test('a provider stream failure and Goal Session summary are exposed in preStopEvaluation and the receipt', async () => {
+  const world = makeWorld();
+  world.evaluate = async () => {
+    world.commitPlanEvaluation();
+    world.evaluations[0]!.status = 'unknown';
+    world.evaluations[0]!.reasonCode = 'CORE_EXECUTION_UNCONFIRMED';
+    (world.evaluations[0] as unknown as Record<string, unknown>).streamDiagnostic = { category: 'empty-provider-stream',
+      code: 'NONE', name: 'Error', chunks: 0, abortedBeforeFirstChunk: false, abortedAfterFirstChunk: false, timedOut: false, message: '' };
+    (world.evaluations[0] as unknown as Record<string, unknown>).goalSessionSummary = { provider: 'opencode-go',
+      model: 'deepseek-v4.1-flash', reasoningEffort: 'high', maxTokens: 512, toolCount: 3,
+      eventCounts: { user_message: 2, assistant_attempt: 1, turn_end: 1 }, attemptStreamLengths: [0], turnEndReasons: ['blocked'] };
+    return { status: 'unknown', goalId: 'core-validation-fixture' };
+  };
+  const receipt = await runBoundedCoreValidation(optionsFor(world));
+  assert.equal(receipt.status, 'failed'); assert.equal(receipt.reasonCode, 'CORE_VALIDATION_EVALUATION_UNKNOWN');
+  assert.deepEqual(receipt.preStopEvaluation?.streamDiagnostic, { category: 'empty-provider-stream', code: 'NONE',
+    name: 'Error', chunks: 0, abortedBeforeFirstChunk: false, abortedAfterFirstChunk: false, timedOut: false, message: '' });
+  assert.deepEqual(receipt.goalSessionSummary, { provider: 'opencode-go', model: 'deepseek-v4.1-flash',
+    reasoningEffort: 'high', maxTokens: 512, toolCount: 3,
+    eventCounts: { user_message: 2, assistant_attempt: 1, turn_end: 1 }, attemptStreamLengths: [0], turnEndReasons: ['blocked'] });
+  assert.equal(world.controlCalls.length, 1);
   assertBoundedCoreValidationReceipt(receipt);
 });
 
@@ -900,9 +930,9 @@ test('the v3 experiment drives a completed bounded run with the frozen requestId
 test('reconcile includes the fixed v3 target and cancels only the inert v3 Goal', async () => {
   const world = makeWorld(); world.setReconcileGoalFor('core-validation-frozen-v3', 'inert');
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.deepEqual(receipt.requestIds, ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6']);
-  assert.equal(receipt.targets.length, 6);
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'inert-unauthorized', 'absent', 'absent', 'absent']);
+  assert.deepEqual(receipt.requestIds, ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6', 'core-validation-frozen-v7']);
+  assert.equal(receipt.targets.length, 7);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'inert-unauthorized', 'absent', 'absent', 'absent', 'absent']);
   const v3 = receipt.targets[2]!;
   assert.equal(v3.cancelAttempts, 1); assert.equal(v3.stopAction.ok, true);
   assert.deepEqual(world.controlCalls.map(call => call.kind), ['cancel']);
@@ -914,8 +944,8 @@ test('reconcile leaves v1/v2 untouched while reporting the v3 target absent, and
   const world = makeWorld();
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
   assert.deepEqual(receipt.targets.map(target => target.requestId),
-    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6']);
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
+    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6', 'core-validation-frozen-v7']);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
   assert.equal(world.controlCalls.length, 0);
   assertBoundedCoreValidationReconcileReceipt(receipt);
   for (const override of [{ requestId: 'core-validation-frozen-v3' }, { requestIds: ['core-validation-frozen-v3'] }, { requestId: 'arbitrary' }]) {
@@ -983,8 +1013,8 @@ test('the independent historyDiagnostic validator rejects unbounded or malformed
 test('reconcile processes the fixed v1 and v2 targets and cancels only the inert v2 Goal', async () => {
   const world = makeWorld(); world.setReconcileGoalFor('core-validation-frozen-v2', 'inert');
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.deepEqual(receipt.requestIds, ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6']);
-  assert.equal(receipt.targets.length, 6);
+  assert.deepEqual(receipt.requestIds, ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6', 'core-validation-frozen-v7']);
+  assert.equal(receipt.targets.length, 7);
   assert.equal(receipt.classification, 'absent'); // primary v1 target stays backward compatible
   assert.equal(receipt.cancelAttempts, 0);
   const v1 = receipt.targets[0]!, v2 = receipt.targets[1]!;
@@ -1000,8 +1030,8 @@ test('reconcile processes the fixed v1 and v2 targets and cancels only the inert
 test('reconcile reports both fixed targets absent and never cancels or creates anything', async () => {
   const world = makeWorld();
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.deepEqual(receipt.requestIds, ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6']);
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
+  assert.deepEqual(receipt.requestIds, ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6', 'core-validation-frozen-v7']);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
   assert.equal(receipt.targets.every(target => target.cancelAttempts === 0 && target.stopAction.kind === 'none'), true);
   assert.equal(world.controlCalls.length, 0); assert.equal(world.createCalls.length, 0); assert.equal(world.evaluateCalls, 0);
   assertBoundedCoreValidationReconcileReceipt(receipt);
@@ -1099,8 +1129,8 @@ test('the v4 experiment drives a completed bounded run with the frozen requestId
 test('reconcile includes the fixed v4 target and cancels only the inert v4 Goal', async () => {
   const world = makeWorld(); world.setReconcileGoalFor('core-validation-frozen-v4', 'inert');
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.equal(receipt.targets.length, 6);
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'inert-unauthorized', 'absent', 'absent']);
+  assert.equal(receipt.targets.length, 7);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'inert-unauthorized', 'absent', 'absent', 'absent']);
   const v4 = receipt.targets[3]!;
   assert.equal(v4.requestId, 'core-validation-frozen-v4'); assert.equal(v4.cancelAttempts, 1); assert.equal(v4.stopAction.ok, true);
   assert.deepEqual(world.controlCalls.map(call => call.kind), ['cancel']);
@@ -1111,9 +1141,9 @@ test('reconcile includes the fixed v4 target and cancels only the inert v4 Goal'
 test('reconcile leaves v1/v2/v3 untouched while reporting the v4 target absent, and rejects arbitrary requestIds', async () => {
   const world = makeWorld();
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
   assert.deepEqual(receipt.targets.map(target => target.requestId),
-    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6']);
+    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6', 'core-validation-frozen-v7']);
   assert.equal(world.controlCalls.length, 0);
   assertBoundedCoreValidationReconcileReceipt(receipt);
   for (const override of [{ requestId: 'core-validation-frozen-v4' }, { requestIds: ['core-validation-frozen-v4'] }, { requestId: 'arbitrary' }]) {
@@ -1155,8 +1185,8 @@ test('the v5 experiment drives a completed bounded run with the frozen requestId
 test('reconcile includes the fixed v5 target and cancels only the inert v5 Goal', async () => {
   const world = makeWorld(); world.setReconcileGoalFor('core-validation-frozen-v5', 'inert');
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.equal(receipt.targets.length, 6);
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'inert-unauthorized', 'absent']);
+  assert.equal(receipt.targets.length, 7);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'inert-unauthorized', 'absent', 'absent']);
   const v5 = receipt.targets[4]!;
   assert.equal(v5.requestId, 'core-validation-frozen-v5'); assert.equal(v5.cancelAttempts, 1); assert.equal(v5.stopAction.ok, true);
   assert.deepEqual(world.controlCalls.map(call => call.kind), ['cancel']);
@@ -1167,9 +1197,9 @@ test('reconcile includes the fixed v5 target and cancels only the inert v5 Goal'
 test('reconcile reports all five fixed targets absent and rejects arbitrary requestIds', async () => {
   const world = makeWorld();
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
   assert.deepEqual(receipt.targets.map(target => target.requestId),
-    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6']);
+    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6', 'core-validation-frozen-v7']);
   assert.equal(world.controlCalls.length, 0);
   assertBoundedCoreValidationReconcileReceipt(receipt);
   for (const override of [{ requestId: 'core-validation-frozen-v5' }, { requestIds: ['core-validation-frozen-v5'] }, { requestId: 'arbitrary' }]) {
@@ -1211,8 +1241,8 @@ test('the v6 experiment drives a completed bounded run with the frozen requestId
 test('reconcile includes the fixed v6 target and cancels only the inert v6 Goal', async () => {
   const world = makeWorld(); world.setReconcileGoalFor('core-validation-frozen-v6', 'inert');
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.equal(receipt.targets.length, 6);
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'inert-unauthorized']);
+  assert.equal(receipt.targets.length, 7);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'inert-unauthorized', 'absent']);
   const v6 = receipt.targets[5]!;
   assert.equal(v6.requestId, 'core-validation-frozen-v6'); assert.equal(v6.cancelAttempts, 1); assert.equal(v6.stopAction.ok, true);
   assert.deepEqual(world.controlCalls.map(call => call.kind), ['cancel']);
@@ -1223,12 +1253,64 @@ test('reconcile includes the fixed v6 target and cancels only the inert v6 Goal'
 test('reconcile reports all six fixed targets absent and rejects arbitrary requestIds', async () => {
   const world = makeWorld();
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent', 'absent']);
   assert.deepEqual(receipt.targets.map(target => target.requestId),
-    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6']);
+    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6', 'core-validation-frozen-v7']);
   assert.equal(world.controlCalls.length, 0);
   assertBoundedCoreValidationReconcileReceipt(receipt);
   for (const override of [{ requestId: 'core-validation-frozen-v6' }, { requestIds: ['core-validation-frozen-v6'] }, { requestId: 'arbitrary' }]) {
+    await assert.rejects(reconcileCoreValidationGoal(reconcileOptions(world, override)),
+      (error: unknown) => error instanceof CoreValidationReconcileOptionsError);
+  }
+});
+
+test('the v7 experiment is code-frozen with its own requestId/template/content sha and only exact references are accepted', async () => {
+  assert.equal(Object.isFrozen(CORE_VALIDATION_EXPERIMENT_V7), true);
+  assert.equal(Object.isFrozen(CORE_VALIDATION_EXPERIMENT_V7.deliverable), true);
+  assert.equal(CORE_VALIDATION_EXPERIMENT_V7.version, 7);
+  assert.equal(CORE_VALIDATION_EXPERIMENT_V7.requestId, 'core-validation-frozen-v7');
+  assert.deepEqual(CORE_VALIDATION_EXPERIMENT_V7.budget, { tokens: 16384, calls: 3, effects: 1 });
+  assert.equal(CORE_VALIDATION_EXPERIMENT_V7.maxEvaluations, 2);
+  assert.equal(CORE_VALIDATION_EXPERIMENT_V7.deliverable.content, 'SHIYU_CORE_VALIDATION_NOTE_V7');
+  assert.equal(CORE_VALIDATION_EXPERIMENT_V7_TEMPLATE_SHA256, 'c8fbd85b9d4f8d602ab78a2fae6be9448f8cfef469f8aa772e4468f0e2805bdf');
+  assert.equal(sha256(CORE_VALIDATION_EXPERIMENT_V7.deliverable.content), '8bd2944a27d514e553ac3b3ad08bf283ecafb3d41f9eaec571b414f8503ca529');
+  for (const override of [{ ...CORE_VALIDATION_EXPERIMENT_V7, requestId: 'caller-selected' }, { ...CORE_VALIDATION_EXPERIMENT_V7 }, { version: 7 }, 7, null]) {
+    await assert.rejects(runBoundedCoreValidation(optionsFor(makeWorld(), { experiment: override } as never)),
+      (error: unknown) => error instanceof CoreValidationOptionsError);
+  }
+});
+
+test('the v7 experiment drives a completed bounded run with the frozen requestId/template/content sha', async () => {
+  const world = makeWorld(); completedScenario(world);
+  const v7 = await runBoundedCoreValidation(optionsFor(world, { experiment: CORE_VALIDATION_EXPERIMENT_V7 }));
+  assert.equal(v7.requestId, 'core-validation-frozen-v7'); assert.equal(v7.status, 'completed');
+  assert.equal(v7.fixedInput.templateSha256, CORE_VALIDATION_EXPERIMENT_V7_TEMPLATE_SHA256);
+  assert.equal(v7.taskRefs[0]?.expectedSha256, sha256(CORE_VALIDATION_EXPERIMENT_V7.deliverable.content));
+  assert.deepEqual(world.createCalls[0], frozenCoreValidationInput(T0, CORE_VALIDATION_EXPERIMENT_V7));
+  assert.equal(world.createCalls.length, 1, 'the v7 runner never retries');
+  assertBoundedCoreValidationReceipt(v7);
+});
+
+test('reconcile includes the fixed v7 target and cancels only the inert v7 Goal', async () => {
+  const world = makeWorld(); world.setReconcileGoalFor('core-validation-frozen-v7', 'inert');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.targets.length, 7);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent', 'absent', 'absent', 'absent', 'absent', 'inert-unauthorized']);
+  const v7 = receipt.targets[6]!;
+  assert.equal(v7.requestId, 'core-validation-frozen-v7'); assert.equal(v7.cancelAttempts, 1);
+  assert.deepEqual(world.controlCalls.map(call => call.kind), ['cancel']);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile reports all seven fixed targets absent and rejects arbitrary requestIds', async () => {
+  const world = makeWorld();
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.targets.length, 7);
+  assert.deepEqual(receipt.targets.map(target => target.requestId),
+    ['core-validation-frozen-v1', 'core-validation-frozen-v2', 'core-validation-frozen-v3', 'core-validation-frozen-v4', 'core-validation-frozen-v5', 'core-validation-frozen-v6', 'core-validation-frozen-v7']);
+  assert.equal(world.controlCalls.length, 0);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+  for (const override of [{ requestId: 'core-validation-frozen-v7' }, { requestIds: ['core-validation-frozen-v7'] }, { requestId: 'arbitrary' }]) {
     await assert.rejects(reconcileCoreValidationGoal(reconcileOptions(world, override)),
       (error: unknown) => error instanceof CoreValidationReconcileOptionsError);
   }

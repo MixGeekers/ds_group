@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
-import { CoreDomain, recordNativeContextDiagnostic } from '../src/adapters/control-store/core-domain.js';
+import { CoreDomain, recordNativeContextDiagnostic, recordNativeStreamDiagnostic } from '../src/adapters/control-store/core-domain.js';
 import { TaskDomain, type TaskCommands, type TaskDetail } from '../src/adapters/control-store/task-domain.js';
 import { SQLiteGoalBindingStore } from '../src/adapters/control-store/goal-bindings.js';
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
@@ -481,4 +481,22 @@ test('a controlled runtime-context diagnostic reaches the unknown evaluation wit
   const again = f.call('core.markUnknown', { permit: evaluation.permit, reasonCode: 'owner_paused' });
   assert.equal(again.reasonCode, 'CORE_NATIVE_CONTEXT_REJECTED');
   assert.deepEqual((f.call('core.evaluations', { goalId: goal.goalId })[0] as unknown as { contextDiagnostic?: any }).contextDiagnostic, stored.contextDiagnostic);
+});
+
+test('a controlled provider stream failure and Goal Session summary reach the unknown evaluation without changing the first reason', t => {
+  const f = fixture(t), goal = f.authorize(), evaluation = f.call('core.claim', { goalId: goal.goalId })!;
+  f.dispatched(evaluation);
+  recordNativeStreamDiagnostic(goal.goalId, { category: 'empty-provider-stream', code: 'NONE', name: 'Error', chunks: 0,
+    abortedBeforeFirstChunk: false, abortedAfterFirstChunk: false, timedOut: false, message: '' }, {
+    provider: 'opencode-go', model: 'deepseek-v4.1-flash', reasoningEffort: 'high', maxTokens: 512, toolCount: 3,
+    eventCounts: { 'user/message': 2, 'assistant/attempt': 1, 'turn/end': 1 }, attemptStreamLengths: [0], turnEndReasons: ['blocked'] });
+  const unknown = f.call('core.markUnknown', { permit: evaluation.permit, reasonCode: 'CORE_EXECUTION_UNCONFIRMED' });
+  assert.equal(unknown.reasonCode, 'CORE_EXECUTION_UNCONFIRMED');
+  const stored = f.call('core.evaluations', { goalId: goal.goalId })[0] as unknown as { streamDiagnostic?: any; goalSessionSummary?: any };
+  assert.equal(stored.streamDiagnostic?.category, 'empty-provider-stream');
+  assert.deepEqual(stored.goalSessionSummary?.attemptStreamLengths, [0]);
+  assert.deepEqual(stored.goalSessionSummary?.turnEndReasons, ['blocked']);
+  const again = f.call('core.markUnknown', { permit: evaluation.permit, reasonCode: 'owner_paused' });
+  assert.equal(again.reasonCode, 'CORE_EXECUTION_UNCONFIRMED');
+  assert.deepEqual((f.call('core.evaluations', { goalId: goal.goalId })[0] as unknown as { streamDiagnostic?: any }).streamDiagnostic, stored.streamDiagnostic);
 });

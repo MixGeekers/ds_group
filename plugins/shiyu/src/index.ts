@@ -289,6 +289,20 @@ export function memoryEmbeddingProbeTool(service: { command(input: unknown): Pro
     },
   };
 }
+export function coreGoalValidationV7Tool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_validate_core_goal_v7',
+    description: '有界真实 core Goal 验证（v7 全新冻结实验，非 v1-v6 重试；显式 owner 决定的第七次独立尝试）：会创建真实 Goal/Task/Effect/budget/原生 Session/本地 artifact，并通过 core 路径发起最多 2 轮真实模型调用；使用全新 requestId core-validation-frozen-v7 与固定模板，不接受任何输入覆盖；若 provider stream 失败，receipt 会带受控 preStopEvaluation.streamDiagnostic 与 goalSessionSummary，便于判读空 stream/transport/auth/request-shape/timeout；失败或未知绝不自动重试（owner 授权重试是另一次显式决定）；回执仅存 diagnostics.coreGoalValidation。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-core-goal-v7' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  } as const;
+}
+
 export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_validate_core_goal',
@@ -362,6 +376,7 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(coreGoalValidationV4Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV5Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV6Tool(service)));
+  ctx.effect(() => ctx.tools.register(coreGoalValidationV7Tool(service)));
   // Owner-only one-shot embedding verification; no generation model, no retry.
   ctx.effect(() => ctx.tools.register(memoryEmbeddingProbeTool(service)));
   // Owner-only zero-model emotion-continuation diagnosis; private :memory: store.
