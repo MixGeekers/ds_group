@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.traceability",
-  "generatedAt": "2026-11-03T05:10:29.853Z",
+  "generatedAt": "2026-11-03T05:41:43.641Z",
   "harnessVersion": "0.1.0",
   "selfProofCorpus": "h0-selfproof-1",
   "sources": [
@@ -145,15 +145,15 @@
     "selfproof": {
       "path": "artifacts/dsh/harness/tool-selfproof.json",
       "present": true,
-      "sha256": "b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-      "generatedAt": "2026-11-03T05:10:22.769Z",
+      "sha256": "f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+      "generatedAt": "2026-11-03T05:41:36.460Z",
       "note": "self-proof passed"
     },
     "manifest": {
       "path": "artifacts/dsh/harness/manifest.json",
       "present": true,
-      "sha256": "18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
-      "generatedAt": "2026-11-03T05:05:38.152Z",
+      "sha256": "34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
+      "generatedAt": "2026-11-03T05:36:48.271Z",
       "note": "manifest files match the current tree"
     }
   },
@@ -323,8 +323,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -386,8 +386,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -473,8 +473,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -549,8 +549,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -615,8 +615,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -682,8 +682,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -743,8 +743,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -799,8 +799,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -833,8 +833,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -889,8 +889,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -945,8 +945,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -998,8 +998,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1032,8 +1032,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1091,8 +1091,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1141,8 +1141,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1199,8 +1199,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1257,8 +1257,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1321,8 +1321,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1385,8 +1385,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1431,8 +1431,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1477,8 +1477,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1523,8 +1523,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1555,8 +1555,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -1613,8 +1613,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca",
-        "manifest": "artifacts/dsh/harness/manifest.json@18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18",
+        "manifest": "artifacts/dsh/harness/manifest.json@34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d",
         "historical": null
       }
     },
@@ -7245,9 +7245,9 @@
   },
   "evidenceMapping": {
     "version": "1.0.0",
-    "frozenHead": "69ed588438b462043c1a5ff329020e8f23443b16",
+    "frozenHead": "b09416fcc977823eaf494817f1f564c20dd3a43c",
     "frozenHeadSource": "explicit --frozen-head",
-    "generatedAt": "2026-11-03T05:10:29.853Z",
+    "generatedAt": "2026-11-03T05:41:43.641Z",
     "counts": {
       "sources": 57,
       "verified": 57,
@@ -9579,7 +9579,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
             "expectedCommit": "dfe4372",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "c32b773453e64eaccfd67c94e467ddb2a3f0567f18b98da8528fe2aa567d432a",
             "bytes": 83139,
             "present": true,
@@ -9592,7 +9592,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
             "expectedCommit": "dfe4372",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "d208ceb02401f61b8415233ebdf4ba95445569450fd4058f6ba43f8eaa41f061",
             "bytes": 654174,
             "present": true,
@@ -9605,7 +9605,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
             "expectedCommit": "dfe4372",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "c244f683b3200c8b12a65a53b12e8dfb90298019b346c82b25a00606af697d5c",
             "bytes": 203512,
             "present": true,
@@ -10034,7 +10034,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
             "expectedCommit": "693fab1",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "2474996a6d4d67d8609b60090bc8d3c1647635f2189d2c136f51b97a961f685f",
             "bytes": 83141,
             "present": true,
@@ -10047,7 +10047,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
             "expectedCommit": "693fab1",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "ca9307dfb6dfb9859fe45bcde183e3040c8362dcf90a90effc60fcf1490550c2",
             "bytes": 818405,
             "present": true,
@@ -10060,7 +10060,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
             "expectedCommit": "693fab1",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "beb367d8acb51c67c4f80e5b570906fe544b818eeb4edab485d5ebdfd187a7be",
             "bytes": 245696,
             "present": true,
@@ -10350,7 +10350,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
             "expectedCommit": "c89d940",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "e4ab6be069f6d4d4fb4dcc2546ae7814790018a01ae3787830f60caf8e270683",
             "bytes": 83724,
             "present": true,
@@ -10363,7 +10363,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
             "expectedCommit": "c89d940",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "fc05cdd0aa8e2e3b3d78c64bc120dd900bdef10ca062671adcc593e39e6a44ad",
             "bytes": 929894,
             "present": true,
@@ -10376,7 +10376,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
             "expectedCommit": "c89d940",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "a7ff35c09114b730f158e3b5a33b4869e05e4e87d74a299ad8e6fa5c6c7f269a",
             "bytes": 280582,
             "present": true,
@@ -10681,7 +10681,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
             "expectedCommit": "cf87322",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
             "bytes": 84286,
             "present": true,
@@ -10694,7 +10694,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
             "expectedCommit": "cf87322",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "d9ef264483b922d2e02369352daca9192d885f83cb8431adbd11bf4fde08b441",
             "bytes": 998264,
             "present": true,
@@ -10707,7 +10707,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
             "expectedCommit": "cf87322",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "c3bffa29ddf60a392cbea604d06832299899ef345ebf001d4c3d000095813315",
             "bytes": 312586,
             "present": true,
@@ -11071,7 +11071,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
             "expectedCommit": "f766ab7",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
             "bytes": 84286,
             "present": true,
@@ -11084,7 +11084,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
             "expectedCommit": "f766ab7",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "bdee819c0018feaf0ce5e9a6c4aee2d96050830a8f546a06f80eda44bcce1672",
             "bytes": 1072747,
             "present": true,
@@ -11097,7 +11097,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
             "expectedCommit": "f766ab7",
-            "lastCommit": "f766ab74960b8253365d794ea3c407e57aaa2460",
+            "lastCommit": "04dc817251e73d22e413b3f65dc6f11392f92f99",
             "sha256": "c0719e83f63b7eea1de938c444c45e2df2e040560367a516d905d63e05ca2462",
             "bytes": 347583,
             "present": true,

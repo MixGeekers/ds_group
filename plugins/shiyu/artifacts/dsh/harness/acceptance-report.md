@@ -1,6 +1,6 @@
 # H7-acceptance 全量验收追踪与门控报告
 
-生成时间：2026-11-03T05:10:37.046Z；registry 1.0.0；schema 1。
+生成时间：2026-11-03T05:41:50.938Z；registry 1.0.0；schema 1。
 
 > **门控结论：incomplete（未完成）。不得声明完整九系统完成或任何 V 项整体通过。** H7-prep 只有已提交切片证据层与 H0c 合成骨架，没有任何产品/宿主/模型/业务验收执行。
 
@@ -8,11 +8,11 @@
 
 | 输入 | SHA256 前缀 | 状态 |
 | --- | --- | --- |
-| traceability.json | 0bdadedd5f7a706b | present |
-| tool-selfproof.json | b1789f874a562781 | passed |
-| manifest.json | 18cfb1497a14de9e | clean-vcs |
-| fl-scenarios/coverage.json | d443194c0f305e72 | present |
-| frozen HEAD | 69ed588438b462043c1a5ff329020e8f23443b16 | bound |
+| traceability.json | df5959d59adfa732 | present |
+| tool-selfproof.json | f1e11bb2424357da | passed |
+| manifest.json | 34c7d1006856f537 | clean-vcs |
+| fl-scenarios/coverage.json | ba6a7ed2e77bc6df | present |
+| frozen HEAD | b09416fcc977823eaf494817f1f564c20dd3a43c | bound |
 
 ## 2. 分母（H7-prep 无验收执行）
 
