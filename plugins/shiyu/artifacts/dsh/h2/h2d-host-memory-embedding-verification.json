@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "phase": "p0-memory-host",
+  "slice": "fixed-host P0 verification of the real Ombre embedding and single-user memory round-trip",
+  "capturedAt": "2026-11-03T18:10:12.099Z",
+  "status": "fixed-host-embedding-roundtrip-passed",
+  "purpose": "Verify the P0 memory path on the fixed host without any generation model: write one synthetic memory fact into an existing local conversation, index it with the real Harness Harrier embedding backend, run one semantic search and one exact read, withdraw it, verify post-withdraw rejection, and confirm the runtime advertises semantic_search only after the real embedding success.",
+  "receipt": {
+    "ok": true,
+    "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+    "steps": [
+      {
+        "step": "remember-synthetic-fact",
+        "status": "passed"
+      },
+      {
+        "step": "index-fact",
+        "status": "passed"
+      },
+      {
+        "step": "semantic-search",
+        "status": "passed"
+      },
+      {
+        "step": "exact-read",
+        "status": "passed"
+      },
+      {
+        "step": "withdraw-fact",
+        "status": "passed"
+      }
+    ],
+    "embeddingCalls": 1,
+    "searchEmbeddingCalls": 1,
+    "usageComplete": true,
+    "searchState": "ok",
+    "matches": 1,
+    "semanticHit": true,
+    "exactReadBodyMatched": true,
+    "postWithdrawRejected": true,
+    "postWithdrawCode": "MEMORY_READ_FORBIDDEN",
+    "readinessBefore": {
+      "embeddingVerified": false,
+      "semanticReady": false,
+      "capabilities": [
+        "exact_read"
+      ],
+      "reason": "EMBEDDING_UNVERIFIED"
+    },
+    "readinessAfter": {
+      "embeddingVerified": true,
+      "semanticReady": true,
+      "capabilities": [
+        "exact_read",
+        "semantic_search"
+      ],
+      "reason": "INDEX_COVERAGE_INCOMPLETE",
+      "coverage": {
+        "readableCount": 0,
+        "indexedCount": 0,
+        "staleCount": 3,
+        "pendingCount": 0,
+        "cancelledCount": 0,
+        "coverageComplete": false
+      }
+    },
+    "semanticModel": "local-embedding-only",
+    "generationModelCalls": 0,
+    "sideEffects": {
+      "syntheticMemoryOperations": 2,
+      "state": "withdrawn/blocked",
+      "note": "exactly two synthetic memory operations were written, indexed, searched and withdrawn: one from the criterion-too-strict run and one from the ok=true run; they remain as withdrawn/blocked tombstones with canRead=false."
+    }
+  },
+  "statusEvidence": {
+    "file": "artifacts/dsh/h2/host/memory-readiness-status.json",
+    "bytes": 3827,
+    "sha256": "a2e6eb168a07f31b030d5d2401eb1b85dc40d1c1a9a0d2719288f4129d4e12cd"
+  },
+  "statusFinal": {
+    "file": "artifacts/dsh/h2/host/status-final.json",
+    "bytes": 64889,
+    "sha256": "4ac9e162bcada358e0127e8b724cbef37e39cba389a0a55e63904fb418f28af6"
+  },
+  "operationsEvidence": {
+    "file": "artifacts/dsh/h2/host/memory-probe-operations.json",
+    "bytes": 401,
+    "sha256": "ff42638747643aa4d9b61822525f0723cbd63b1dcfd22b44ca1cdf8131ebf798",
+    "probeLocalOperations": [
+      {
+        "operationId": "4b9bc310-78e1-494d-82c7-168a8eb12a89",
+        "requestId": "memory-probe-d72be65d-4c0d-4f64-843c-500ede946d20",
+        "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49"
+      },
+      {
+        "operationId": "9143ba25-6696-43d0-aadf-329dea9dc68d",
+        "requestId": "memory-probe-0829de43-b20d-4bae-ba40-95027db25adf",
+        "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49"
+      }
+    ]
+  },
+  "deltas": {
+    "verification": {
+      "commitSeq": [
+        546,
+        556
+      ],
+      "events": [
+        66,
+        66
+      ],
+      "sessions": [
+        40,
+        40
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the memory round-trip added +10 commitSeq for memory command/index/withdraw/availability publication; sessions and the runtime-state file are unchanged and no generation model was called."
+    },
+    "postStatus": {
+      "commitSeq": [
+        556,
+        556
+      ],
+      "events": [
+        66,
+        66
+      ],
+      "sessions": [
+        40,
+        40
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final read-only status left the ledger unchanged and captured the readiness/capabilities evidence."
+    }
+  },
+  "milestone": "The P0 memory path is now verified on the fixed host: real local embedding (index and search each reported one call), one semantic match, exact body read, post-withdraw MEMORY_READ_FORBIDDEN, and readiness flipped from exact_read/EMBEDDING_UNVERIFIED to exact_read+semantic_search/embeddingVerified=true. The runtime state publication now advertises semantic_search.",
+  "boundaries": [
+    "The synthetic facts were withdrawn; index coverage is incomplete (readable/indexed 0, stale 3) because only withdrawn probe entries exist, so semantic capability is verified while index coverage is not production-populated.",
+    "No generation model was used, so this does not yet prove model-visible multi-turn recall; the single-user chat closure and restart recall are the next Lead-executed steps.",
+    "Two synthetic withdrawn/blocked memory operations remain as disclosed side effects; no deletion/cleanup was attempted."
+  ]
+}

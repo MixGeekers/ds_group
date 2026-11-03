@@ -2069,3 +2069,30 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - 本轮仍未完成任何模型 stream/计划/Task/worker/native complete；不证业务链。
 - 第七次尝试未授权；v4/v5/v6 unknown evaluation/held budget 残留，需后续 reconcile/披露。
 - round-16 host 未入 H7 映射（round-17）。
+
+## 72. P0 固定宿主：Ombre 真实 embedding 与单用户记忆往返验证通过
+
+状态：**固定宿主、零生成模型、真实 Harrier embedding 往返通过；semantic_search 首次在 runtime 状态中发布**。2026-11-03，代码 HEAD `520e305`（P0 readiness 门禁 + owner 验证工具），三次有序 reload 后一次性验证。
+
+### 72.1 修复与验证工具
+
+- **readiness 门禁**：`semantic_search` 仅在本进程 embedding 实测成功、profile 兼容且索引非空/已对账时声明；否则 exact_read + 明确 reason（EMBEDDING_UNVERIFIED/PROFILE_MISMATCH/INDEX_EMPTY/INDEX_UNSETTLED/COVERAGE_INCOMPLETE）。readiness 为纯缓存投影，GET/snapshot 不查询 backend。
+- **索引覆盖对账**：memory index domain/worker 新增只读 `memory.index.coverage`（indexed/stale/pending/unknown/cancelled + baseline/watermark），启动与 remember/withdraw/index/search 后刷新；分析只标 missing/stale，不派发不重试。
+- **owner 验证工具** `shiyu_verify_memory_embedding`：零生成模型、单次受控往返——写一条合成事实→真实 Harrier embedding 建索引→语义检索→精确读取→撤回→验证撤回后拒绝；0 重试；副作用=留下恰好一条已撤回合成记忆操作（第二版因成功判据过严重跑一次，共 2 条，均 disclosed）。
+
+### 72.2 宿主结果（一次 ok=true）
+
+- steps：remember→index→semantic-search→exact-read→withdraw **全部 passed**；
+- `embeddingCalls=1`（index）、`searchEmbeddingCalls=1`、`usageComplete=true`；`matches=1`、`semanticHit=true`、`exactReadBodyMatched=true`；
+- 撤回后读取拒绝：`MEMORY_READ_FORBIDDEN`；
+- readiness：**embeddingVerified=true、semanticReady=true、capabilities=["exact_read","semantic_search"]**；`lastEmbeddingSuccessAt` 已记录；
+- runtime state：`innerProjection.manifest.domains.memory.capabilities` 已发布 `exact_read+semantic_search`；`lastSemanticOperation` search completed、embeddingUsage calls 1 complete；
+- 审计：往返 +10 commitSeq（memory 命令/索引/撤回/能力发布），sessions 与 runtime-state 文件不变；**0 生成模型调用**；
+- 遗留：合成事实已撤回，coverage readable/indexed 0、stale 3、reason=INDEX_COVERAGE_INCOMPLETE（能力已验证但索引覆盖尚未由真实业务填充）；2 条 synthetic withdrawn/blocked 记忆操作保留披露。
+- 证据：[h2d-host-memory-embedding-verification.json](<artifacts/dsh/h2/h2d-host-memory-embedding-verification.json>) + `h2/host/`（readiness status、probe ops、3 审计）。
+
+### 72.3 边界与下一步
+
+1. 只证"真实本地 embedding + 检索 + 读取 + 撤回拒绝 + 能力发布"；**尚未用生成模型做单用户多轮聊天召回**。
+2. 下一步 P0：单用户多轮（同 native Session）写入事实→下一轮模型可见召回→有序 reload 后召回→撤回后拒绝；严格 oracle；需要一次有界真实模型聊天脚本。
+3. 多任务/多日稳定/多人/情绪行为仍按新优先级排队（情绪继续、不作主观体验声明）。
