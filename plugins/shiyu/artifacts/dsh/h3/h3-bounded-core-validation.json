@@ -1,0 +1,423 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-bounded-core-goal-validation",
+  "phase": "H3-real-validation",
+  "capturedAt": "2026-11-03T02:32:45.697Z",
+  "status": "offline-implemented-and-isolated-verified; real bounded core Goal run NOT executed by implementer (Lead host kit)",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "networkCallsByImplementer": 0,
+  "embeddingCallsByImplementer": 0,
+  "realTaskExecutedByImplementer": false,
+  "head": "e777bdb0fee05c2b13827e3aaf468ddaabad2b47",
+  "baseline": {
+    "head": "e777bdb",
+    "isolatedTestCount": 1531,
+    "newTests": 16,
+    "arithmetic": "1531 = 1515 clean-HEAD baseline + 16 new core-validation tests"
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "platform": "darwin/arm64",
+    "sqlite": "3.53.3",
+    "pluginPackage": "0.1.0",
+    "fixedHostNote": "this slice is offline; the fixed host build/reload/run identity is recorded by the Lead execution"
+  },
+  "frozenInput": {
+    "requestId": "core-validation-frozen-v1",
+    "objective": "完成 owner 预授权的有界本地便签验证：写入 note-1 并由独立核验确认。",
+    "deliverable": {
+      "id": "note-1",
+      "title": "有界 core 验证便签",
+      "contentSha256": "c5bb3cbc87ddc2bfb2429f7a6e3b55d6869a357fe25b6774635d39ed1b684e52",
+      "contentBytes": 29,
+      "dependsOn": []
+    },
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca"
+  },
+  "implementation": {
+    "file": "src/control/core-validation.ts (new; no other product source changed)",
+    "entryPoints": [
+      "runBoundedCoreValidation(options) (process-wide single-flight)",
+      "BoundedCoreValidationRunner.run(options) (explicit instance for trusted composition)",
+      "assertBoundedCoreValidationReceipt(value) (independent lossless/bounded/shape validator)"
+    ],
+    "ports": {
+      "core": "trusted CoreDriver (create/control/evaluatePending/cancelGoal); real LocalCoreService satisfies it structurally",
+      "store": "read-only control-store subset (core.get/snapshot/evaluations/balance/plan, goal.binding.load, control.watermark, task.list/get)",
+      "evaluate": "trusted host hook for one evaluation round (defaults to core.evaluatePending; runtime patch runs core.evaluatePending then scheduleQueuedTasks())",
+      "now": "injected clock (defaults to Date.now)",
+      "sleep": "injected 1s poll waiter (defaults to abortable timer)",
+      "signal": "external abort",
+      "progress": "bounded owner-facing phase text"
+    },
+    "steps": [
+      "create the one frozen Goal and verify exactly one active owner-authorized native-active Goal",
+      "at most two evaluation rounds: round 1 plans/admits exactly note-1; round 2 is attempted only after every admitted Task reached succeeded, for the complete_candidate round",
+      "poll every 1000ms up to 180s: plan/evaluations/taskRefs/artifacts/effects/budget/native phase are read; completion requires independent Task verification + Effect receipt + artifact hash + native complete",
+      "on completed return completed; on timeout/failed/unknown issue exactly one durable pause; on owner abort issue exactly one durable cancel; no retry anywhere"
+    ],
+    "receipt": {
+      "statuses": [
+        "completed",
+        "paused",
+        "timeout",
+        "failed",
+        "cancelled"
+      ],
+      "reasonCodes": [
+        "CORE_VALIDATION_COMPLETED",
+        "CORE_VALIDATION_PAUSED_EXTERNALLY",
+        "CORE_VALIDATION_TIMEOUT",
+        "CORE_VALIDATION_CANCELLED",
+        "CORE_VALIDATION_CREATE_FAILED",
+        "CORE_VALIDATION_CREATE_INTEGRITY",
+        "CORE_VALIDATION_EVALUATION_FAILED",
+        "CORE_VALIDATION_EVALUATION_UNKNOWN",
+        "CORE_VALIDATION_TASK_FAILED",
+        "CORE_VALIDATION_NO_PROGRESS",
+        "CORE_VALIDATION_EVIDENCE_INCOMPLETE",
+        "CORE_VALIDATION_BUDGET_OVERRUN",
+        "CORE_VALIDATION_INTERNAL_ERROR"
+      ],
+      "bounded": {
+        "maxBytes": 65536,
+        "maxArray": 16,
+        "maxString": 4000,
+        "maxDepth": 8,
+        "lossless": true
+      },
+      "usageRule": "budget reservations are copied as recorded; missing observedTokens/observedCalls stay null and accounting=unknown; unknowns include USAGE_UNKNOWN; nothing is zero-padded"
+    },
+    "hardStops": {
+      "wall": 180000,
+      "poll": 1000,
+      "maxEvaluations": 2,
+      "noProgress": 15000,
+      "budget": {
+        "tokens": 16384,
+        "calls": 3,
+        "effects": 1
+      },
+      "singleFlight": true,
+      "stopCommandsPerRun": 1
+    }
+  },
+  "integration": {
+    "patchPath": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation-integration.patch",
+    "patchBytes": 9642,
+    "patchSha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383",
+    "touchedFiles": [
+      "plugins/shiyu/src/runtime.ts",
+      "plugins/shiyu/src/index.ts"
+    ],
+    "notAppliedInSharedTree": true,
+    "runtimeCommand": "runtime.probe-core-goal (owner-only; paused rejected; requires an entirely idle runtime; one exclusive operation slot; abortable; calls the runner once, no retry; receipt cached only in diagnostics.coreGoalValidation)",
+    "identityTool": "shiyu_validate_core_goal (no parameters; concurrency-unsafe; description explicitly declares the real Goal/Task/Effect/budget/Session/artifact creation and up to two real model rounds)",
+    "evaluationHook": "the command runs core.evaluatePending under the same paused admission and then the normal scheduleQueuedTasks() worker scanner; no second operation slot and no runtime worker bypass",
+    "diagnosticsField": "snapshot().diagnostics.coreGoalValidation (in-memory only; never persisted as product state)",
+    "validation": {
+      "patchAppliesToHead": "git apply --check passed on an ephemeral worktree at HEAD e777bdb",
+      "typecheckWithPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + this slice + this patch)",
+      "buildWithPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824",
+      "combinedFullCheck": {
+        "command": "npm run check in the ephemeral worktree (HEAD + slice + runtime/index patch)",
+        "tests": 1531,
+        "pass": 1531,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h3/h3-validation-integration-check.log",
+          "sha256": "532af204241fc05c5ef39868a87579e0a5c68528d215efd1b3a7616682c9c238"
+        }
+      }
+    },
+    "patch": "diff --git a/plugins/shiyu/src/index.ts b/plugins/shiyu/src/index.ts\nindex 49b6395..157625f 100644\n--- a/plugins/shiyu/src/index.ts\n+++ b/plugins/shiyu/src/index.ts\n@@ -129,6 +129,31 @@ export function timeTriggerDiagnosisTool(service: { command(input: unknown): Pro\n       render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }] },\n   };\n }\n+/**\n+ * Owner-triggered bounded REAL core business-chain validation tool.\n+ *\n+ * WARNING — this is NOT a read-only probe. One invocation creates a real core\n+ * Goal, a real Task/Effect/budget reservation, a dedicated native core Session\n+ * and a local artifact, and it issues up to two real model rounds through the\n+ * trusted core path (worker execution and independent verification included).\n+ * It requires an idle, unpaused runtime, is single-flight, applies hard\n+ * 180s / 2-evaluation / frozen-budget stops, never retries a failed or unknown\n+ * round, and returns an honest bounded receipt. Only the owner command surface\n+ * can reach it; restricted core/worker/replyer Sessions never receive it.\n+ */\n+export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {\n+  return {\n+    name: 'shiyu_validate_core_goal',\n+    description: '有界真实 core Goal 业务链验证（非只读探针）：一次调用会创建真实 Goal/Task/Effect/budget/原生 Session/本地 artifact，并通过 core 路径发起最多 2 轮真实模型调用（含 worker 执行与独立核验）；要求运行时未暂停且空闲，单飞、180 秒/2 次评估/冻结预算硬停止、失败或未知绝不重试；回执仅存 snapshot().diagnostics.coreGoalValidation。',\n+    parameters: { type: 'object', properties: {}, additionalProperties: false },\n+    isConcurrencySafe: false,\n+    execute: async () => service.command({ action: 'runtime.probe-core-goal' }),\n+    output: {\n+      schema: { type: 'object', additionalProperties: true },\n+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],\n+    },\n+  };\n+}\n export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {\n   return {\n     name: 'shiyu_diagnose_worker_tools',\n@@ -158,6 +183,10 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>\n   ctx.effect(() => ctx.tools.register(workerToolDiagnosisTool(service)));\n   ctx.effect(() => ctx.tools.register(coreToolDiagnosisTool(service)));\n   ctx.effect(() => ctx.tools.register(coreModelToolProbeTool(service)));\n+  // Bounded REAL business-chain validation: creates Goal/Task/Effect/budget/\n+  // Session/artifact and makes real model calls. Owner-only; never mounted into\n+  // restricted core/worker/replyer Sessions.\n+  ctx.effect(() => ctx.tools.register(coreGoalValidationTool(service)));\n   ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));\n   ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));\n   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private\ndiff --git a/plugins/shiyu/src/runtime.ts b/plugins/shiyu/src/runtime.ts\nindex 6beea0b..973f04c 100644\n--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ -34,6 +34,7 @@ import type { LocalMemoryEntry } from './adapters/control-store/memory-domain.js\n import type { MemoryIndexEntry } from './adapters/control-store/memory-index-domain.js';\n import type { AvailableMemoryDomain, UnavailableDomain } from './state/publication.js';\n import { CorePump, type CoreEvaluationResult } from './control/core-pump.js';\n+import { runBoundedCoreValidation, type CoreValidationReceipt, type CoreValidationStore } from './control/core-validation.js';\n import { LocalCoreService, type LocalCoreOptions } from './control/local-core.js';\n import type { CoreGoal, CorePrepareInput } from './contracts/core.js';\n import type { CapabilityBinding, CapabilityCommandReceipt } from './contracts/capability.js';\n@@ -165,6 +166,7 @@ export class RuntimeService {\n   private lastEventToolProbe?: WorkerEventToolProbeResult;\n   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;\n   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;\n+  private lastCoreGoalValidation?: CoreValidationReceipt;\n   private lastTimeSourceProbe?: TimeSourceProbeResult;\n   private lastTimeTriggerProbe?: LiveTimeTriggerProbeResult;\n   private core?: CoreDriver;\n@@ -677,6 +679,57 @@ export class RuntimeService {\n       throw error;\n     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }\n   }\n+  /**\n+   * Owner-only bounded REAL core business-chain validation. This is NOT a\n+   * read-only probe: one invocation creates a real core Goal, a real\n+   * Task/Effect/budget reservation, a dedicated native core Session and a local\n+   * artifact, and it issues up to two real bounded model rounds through the\n+   * normal core path (including worker execution and independent verification).\n+   * It requires an idle, unpaused runtime, is single-flight, applies hard\n+   * 180s/2-evaluation/budget stops, never retries, and caches the honest bounded\n+   * receipt only in snapshot diagnostics. The caller must explicitly accept the\n+   * declared side effects.\n+   */\n+  private async commandCoreGoalValidation(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {\n+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid bounded core Goal validation input');\n+    this.ensureCanRun(); signal?.throwIfAborted();\n+    if (!this.core) throw new Error('CORE_GOAL_VALIDATION_UNAVAILABLE');\n+    if ([...this.operations.values()].some(op => op.phase === 'bounded core goal validation')) throw new Error('Bounded core Goal validation is already running');\n+    if (this.operations.size + this.pendingAdmissions !== 0) {\n+      throw new Error('Bounded core Goal validation requires an idle runtime with no other active operation');\n+    }\n+    let finish!: () => void;\n+    const done = new Promise<void>(resolve => { finish = resolve; });\n+    const op: ActiveOperation = { id: randomUUID(), title: '有界真实 core Goal 业务链验证', phase: 'bounded core goal validation',\n+      status: 'running', controller: new AbortController(), done, finish };\n+    const onAbort = () => op.controller.abort(signal?.reason);\n+    signal?.addEventListener('abort', onAbort, { once: true });\n+    this.operations.set(op.id, op);\n+    try {\n+      const core = this.core;\n+      const receipt = await runBoundedCoreValidation({\n+        core,\n+        store: this.store as unknown as CoreValidationStore,\n+        // The probe owns the single exclusive runtime slot; each bounded model\n+        // round goes through the core service under the same paused admission.\n+        // Queued worker Tasks are scheduled through the normal runtime scanner\n+        // after each round (never by a second operation slot of this command).\n+        evaluate: async input => {\n+          const result = await core.evaluatePending({ signal: input.signal });\n+          await this.scheduleQueuedTasks();\n+          return result;\n+        },\n+        signal: op.controller.signal,\n+        progress: phase => { op.phase = phase.slice(0, 120); },\n+      });\n+      this.lastCoreGoalValidation = structuredClone(receipt);\n+      return { ...receipt, sent: false, readOnlyProbe: false,\n+        declaredSideEffects: { goal: true, task: true, effect: true, budget: true, session: true, artifact: true, realModelCalls: true } };\n+    } catch (error) {\n+      this.lastFailure = error instanceof Error ? error.message : String(error);\n+      throw error;\n+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }\n+  }\n   private async record(type: string, message: string, status: string): Promise<void> {\n     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });\n     // This component's only effect is a readable event-backed activity projection.\n@@ -794,6 +847,7 @@ export class RuntimeService {\n         eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,\n         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,\n         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,\n+        coreGoalValidation: this.lastCoreGoalValidation ? structuredClone(this.lastCoreGoalValidation) : null,\n         timeSource: this.timePump ? this.timePump.snapshot() : null,\n         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,\n         timeTriggerProbe: this.lastTimeTriggerProbe ? structuredClone(this.lastTimeTriggerProbe) : null,\n@@ -848,6 +902,7 @@ export class RuntimeService {\n     if (action === 'runtime.probe-event-tools') return this.commandEventToolProbe(value, signal);\n     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);\n     if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);\n+    if (action === 'runtime.probe-core-goal') return this.commandCoreGoalValidation(value, signal);\n     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);\n     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);\n     if (action === 'runtime.pause') return this.setPaused(true);\n"
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-validation --manifest plugins/shiyu/.local/h3-validation-manifest.json",
+      "head": "e777bdb0fee05c2b13827e3aaf468ddaabad2b47",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 47893,
+          "sha256": "52fac4ff1c00ef1334da979e6a82771367c88c50667a1e12d652a31714740358"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-validation.test.ts",
+          "bytes": 35688,
+          "sha256": "e41f56021897c72f2bb15bb878defce4438b8067669d690b1637f50c845e4fff"
+        }
+      ],
+      "exitCode": 0,
+      "tests": {
+        "tests": 1531,
+        "pass": 1531,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 444453,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h3-validation.log",
+        "bytes": 164825,
+        "sha256": "6eed16afc42ee6511eda1aa716331aa67158b327c9d628887ea2709888927558"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-validation-verify.json",
+        "sha256": "33220049ae32241c372b81571dfcabb52c2be2b685a9294e13a3840471c8aec9"
+      },
+      "tail": [
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 443416.115708",
+        "> @shiyu/runtime@0.1.0 build",
+        "> tsc -p tsconfig.build.json"
+      ]
+    },
+    "focused": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/core-validation.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/core-validation-focused.log",
+        "sha256": "8f5f2a9e1c6c498be969028dc5fbef625df23fbf4eee7c4f881406a5dd597f4c"
+      },
+      "tests": 16,
+      "pass": 16,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  },
+  "tests": {
+    "count": 16,
+    "coverage": [
+      "completed positive: 2 evaluations + plan + admitted Task + worker artifact/effect verification + native complete receipt",
+      "receipt validator self-proof: lossless/bounded/status/fixed-input/taskRefs/counters violations are rejected (not always-true)",
+      "evaluation failure after a committed plan: bounded failed receipt, one fresh-CAS pause, exactly one model round, no retry",
+      "unknown evaluation round: preserved/unknown, one round, one pause, never converted to success",
+      "unknown provider usage: null+unknown, USAGE_UNKNOWN recorded, independent completion still stands, no zero fill",
+      "wall timeout: timeout receipt at >=180s with exactly one explicit pause and >=170 polls",
+      "owner cancellation: cancelled receipt, exactly one cancel, no second evaluation",
+      "single-flight BUSY on a concurrent call and release afterwards",
+      "frozen input cannot be overridden by options (objective/budget/deliverables/maxEvaluations/expiresAt) and reaches the driver unchanged",
+      "Goal creation failure still returns a validated receipt with empty side effects and no stop command",
+      "externally paused Goal: paused receipt, no duplicate stop command",
+      "budget overrun: detected failed receipt with overrun flag and one pause",
+      "evaluation producing no plan/Task: explicit NO_PROGRESS failure without a second model round",
+      "created Goal that is not active/authorized: CREATE_INTEGRITY failure with one pause",
+      "native complete without independent artifact evidence: EVIDENCE_INCOMPLETE failure (fake completion cannot pass)",
+      "invalid dependency options rejected before any Goal creation"
+    ],
+    "noSkips": true,
+    "noAlwaysTrueAssertions": "the receipt validator is exercised with 8 mutated receipts that must be rejected"
+  },
+  "hostExecutionKit": {
+    "kitVersion": 1,
+    "status": "frozen; real bounded run NOT executed by implementer; exactly one Lead-owned execution on the fixed host",
+    "sideEffectDeclaration": {
+      "readOnlyProbe": false,
+      "creates": [
+        "one real core Goal (requestId core-validation-frozen-v1)",
+        "one real Task with worker Assignment",
+        "one real budget reservation/mandate under the shared Goal allowance",
+        "one dedicated native core Goal Session",
+        "one real local artifact written by the restricted worker",
+        "one real model decision round per evaluation (up to 2 rounds)"
+      ],
+      "doesNotDo": [
+        "no arbitrary objective/budget/input (all frozen in code)",
+        "no retry of a failed/unknown/cancelled round",
+        "no second Goal/Task lifecycle or second budget ledger",
+        "no event publication, DSH reload or device access"
+      ]
+    },
+    "frozenInput": {
+      "requestId": "core-validation-frozen-v1",
+      "objective": "完成 owner 预授权的有界本地便签验证：写入 note-1 并由独立核验确认。",
+      "deliverable": {
+        "id": "note-1",
+        "title": "有界 core 验证便签",
+        "contentSha256": "c5bb3cbc87ddc2bfb2429f7a6e3b55d6869a357fe25b6774635d39ed1b684e52",
+        "contentBytes": 29,
+        "dependsOn": []
+      },
+      "budget": {
+        "tokens": 16384,
+        "calls": 3,
+        "effects": 1
+      },
+      "expiresInMs": 600000,
+      "maxEvaluations": 2,
+      "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca"
+    },
+    "frozenCommand": {
+      "command": {
+        "action": "runtime.probe-core-goal",
+        "fields": "exactly this one field"
+      },
+      "preferredTool": "shiyu_validate_core_goal (no parameters)",
+      "httpPath": "POST /api/shiyu/commands with application/json"
+    },
+    "hardStops": {
+      "wallMs": 180000,
+      "pollMs": 1000,
+      "maxEvaluationRounds": 2,
+      "noProgressAfterMs": 15000,
+      "budget": {
+        "tokens": 16384,
+        "calls": 3,
+        "effects": 1
+      },
+      "singleFlight": "process-wide singleton runner + one exclusive runtime operation; any other active runtime operation rejects the command",
+      "stopPolicy": "on timeout/failed/unknown -> exactly one durable pause; on owner abort -> exactly one durable cancel; completed -> no stop command",
+      "retries": 0
+    },
+    "preconditions": [
+      "fixed host runs a build containing this slice plus the runtime/index integration patch (record dist digest)",
+      "runtime unpaused and idle: command rejects if paused or if any other operation is active/in admission",
+      "no other queued Task may exist: the runtime worker scanner runs after each validation round and would dispatch unrelated historical work; verify task.list is free of queued entries and inspect any other Goal/Task before running",
+      "capability state for task.local-note.execute is enabled/available and usableForAuthorizedTask (the trusted runtime checks this)",
+      "no prior Goal with requestId core-validation-frozen-v1 exists; create is idempotent and a prior goal is never replayed/re-authorized by a retry",
+      "record before-audit: node plugins/shiyu/scripts/host-state-audit.mjs --out <tmp-before.json> and a shiyu_status diagnostics baseline",
+      "model profile is the fixed opencode-go / deepseek-v4.1-flash / high; no extra model/embedding authorization is needed beyond the existing bounded core budget"
+    ],
+    "executionSteps": [
+      "apply integration patch to a clean worktree/build (git apply --check first) and install/reload the plugin under the Lead procedure",
+      "capture before-audit and shiyu_status diagnostics baseline",
+      "invoke shiyu_validate_core_goal exactly once (or the one-field command); wait up to 180s + cleanup",
+      "capture the full receipt and the shiyu_status snapshot (diagnostics.coreGoalValidation)",
+      "run after-audit, compare business counters/IDs and the native Goal phase"
+    ],
+    "expectedReceipt": {
+      "requiredFields": [
+        "schemaVersion(=1)",
+        "kind(bounded-core-goal-validation)",
+        "status",
+        "reasonCode",
+        "goalId",
+        "requestId",
+        "startedAt",
+        "completedAt",
+        "durationMs",
+        "fixedInput",
+        "counters{evaluateAttempts,pollCount,maxEvaluations,wallLimitMs}",
+        "goal",
+        "evaluations[]",
+        "taskRefs[]",
+        "plans[]",
+        "native{phase,goalRef,sessionId,bindingReceiptStatus,completedObserved}",
+        "artifacts[]",
+        "effects[]",
+        "businessSideEffects",
+        "stopAction",
+        "unknowns[]"
+      ],
+      "completedPassCriteria": {
+        "status": "completed",
+        "reasonCode": "CORE_VALIDATION_COMPLETED",
+        "counters": {
+          "evaluateAttempts": 2,
+          "maxEvaluations": 2
+        },
+        "evaluations": "2 entries, first plan/task kind, second complete_candidate; usage/accounting preserved as reported (unknown stays unknown)",
+        "taskRefs": "exactly note-1 -> one Task: state succeeded, verification pass, expectedSha256 == c5bb3cbc87ddc2bfb2429f7a6e3b55d6869a357fe25b6774635d39ed1b684e52",
+        "artifacts": "one artifact: expectedSha256 == observedSha256 == c5bb3cbc87ddc2bfb2429f7a6e3b55d6869a357fe25b6774635d39ed1b684e52",
+        "effects": "one effect succeeded with a receiptId",
+        "native": "phase complete, completedObserved true, bindingReceiptStatus confirmed",
+        "stopAction": "kind none / attempted false",
+        "budget": "no overrun; spent+held within {\"tokens\":16384,\"calls\":3,\"effects\":1}",
+        "businessSideEffects": "goal.created true; tasks.count 1; effects.count 1; artifacts.count 1; goal Session id recorded",
+        "fixedInput": "templateSha256 == 1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca"
+      },
+      "honestNonPass": {
+        "failed": [
+          "CORE_VALIDATION_CREATE_FAILED",
+          "CORE_VALIDATION_CREATE_INTEGRITY",
+          "CORE_VALIDATION_EVALUATION_FAILED",
+          "CORE_VALIDATION_EVALUATION_UNKNOWN",
+          "CORE_VALIDATION_TASK_FAILED",
+          "CORE_VALIDATION_NO_PROGRESS",
+          "CORE_VALIDATION_EVIDENCE_INCOMPLETE",
+          "CORE_VALIDATION_BUDGET_OVERRUN"
+        ],
+        "paused": [
+          "CORE_VALIDATION_PAUSED_EXTERNALLY"
+        ],
+        "timeout": [
+          "CORE_VALIDATION_TIMEOUT"
+        ],
+        "cancelled": [
+          "CORE_VALIDATION_CANCELLED"
+        ],
+        "rule": "keep the receipt exactly as produced in diagnostics; do not retry, do not create a second Goal/Task, do not mark passed"
+      }
+    },
+    "failureAndPauseRetention": {
+      "pause": "timeout/failed/unknown ends with exactly one explicit pause; the Goal stays paused and its Task/Effect/artifact/unknowns are inspected, never auto-retried",
+      "cancel": "only an owner abort produces exactly one explicit cancel; a cancelled Goal is not resumed by this kit",
+      "unknownUsage": "provider usage missing/incomplete stays null+unknown in the receipt (never zero-filled); cost is unknown and this batch ends",
+      "unknownEvaluation": "an unknown core round is kept unknown and never replayed",
+      "stopFailure": "if the single stop command itself fails, receipt.stopAction.ok=false and unknowns include STOP_UNCONFIRMED; inspect manually",
+      "cleanup": "the core Goal Session is a real retained Goal history (not a disposable probe Session); the worker Session is released by the normal runtime path"
+    },
+    "businessBeforeAfterAudit": [
+      "control watermark before/after and the receipt businessSideEffects.control (expected new commits: goal prepare/authorize/native create, 1-2 evaluations/reservations/agreements, task admission/assignment/effect/receipt, artifact observation, native complete or pause)",
+      "Task list: exactly one new Task for goalId from the receipt, state succeeded (completed) or failed/unknown (honest non-pass); no other Task changed or started (the idle+no-queued precondition makes any other start a failure)",
+      "Goal list: exactly one Goal with requestId core-validation-frozen-v1; native Goal phase complete (completed) or paused (honest non-pass)",
+      "budget: one shared Goal mandate; spent+held never exceeds {\"tokens\":16384,\"calls\":3,\"effects\":1}; unknown usage stays unknown",
+      "events: no event published by the validation runner itself; host lifecycle events unchanged",
+      "artifact: expected/observed sha256 == c5bb3cbc87ddc2bfb2429f7a6e3b55d6869a357fe25b6774635d39ed1b684e52; no other artifact path touched",
+      "diagnostics.coreGoalValidation equals the returned receipt; the receipt is in-memory only (not persisted as product state)",
+      "sessions: goal Session id equals receipt businessSideEffects.sessions.goalSessionId; worker Session released/not running afterwards"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model/worker run by the implementer: the Lead executes this kit exactly once on the fixed host; this evidence does not claim the real chain passes",
+    "offline tests use a fake CoreDriver and a fake read-only store (the task permits fake store); the real LocalCoreService/ControlStore/worker/runtime path is compiled and typechecked in the integration worktree but not executed",
+    "a real model may defer or answer no_action; that is reported honestly as NO_PROGRESS/timeout with a pause and is not retried",
+    "provider usage completeness, real token/cache/cost, model adherence to the frozen deliverable and the exact prompt are unknown until the host run",
+    "wall limit is enforced by the runner clock + cooperative abort; a single native call that ignores AbortSignal can delay the receipt beyond 180s (LocalCoreService has its own 120s decision deadline)",
+    "the core Goal Session is real retained history, not a disposable probe Session; no archive/cleanup of it is attempted by design",
+    "historical unknown/paused business facts may keep runtime lifecycle degraded; that is not a validation failure and must be read from the receipt",
+    "receipt is in-memory diagnostics only; a host reload clears it (the Lead must capture the receipt before reload)"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation-integration.patch",
+      "sha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383",
+      "bytes": 9642
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-validation-verify.json",
+      "sha256": "33220049ae32241c372b81571dfcabb52c2be2b685a9294e13a3840471c8aec9"
+    },
+    {
+      "path": "plugins/shiyu/.local/slice-verify-h3-validation.log",
+      "sha256": "6eed16afc42ee6511eda1aa716331aa67158b327c9d628887ea2709888927558"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/core-validation-focused.log",
+      "sha256": "8f5f2a9e1c6c498be969028dc5fbef625df23fbf4eee7c4f881406a5dd597f4c"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h3-validation-integration-check.log",
+      "sha256": "532af204241fc05c5ef39868a87579e0a5c68528d215efd1b3a7616682c9c238"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h3-validation-integration-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  ]
+}
