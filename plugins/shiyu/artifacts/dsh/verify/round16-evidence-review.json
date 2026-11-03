@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-65)",
+  "reviewedAt": "2026-11-03T17:30:00Z",
+  "subject": "Round-16: assembly-rendered runtime-context binding + bounded contextDiagnostic + frozen v6, sixth host attempt reaches first real model request but empty provider stream, H7 X+1",
+  "head": "893f846a8b8e89169d09235dbc792dcd791152d8",
+  "commits": {
+    "binding-v6": "fcb7604",
+    "H7-round16": "e33b93e",
+    "integration (X)": "dcede28",
+    "H7 X+1": "40df964",
+    "host-v6": "893f846"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "X slice/files/logs",
+      "claim": "fcb7604 files match; isolated 1689/1689; combined 1700/1700",
+      "evidence": [
+        "artifacts/dsh/h3/h3-v6-decision-context-binding.json",
+        "artifacts/dsh/slices/h3-v6-context-binding-verify.json",
+        "artifacts/dsh/slices/round16-integrated-verify.json"
+      ],
+      "method": "hashes/logs",
+      "result": "verified",
+      "detail": "files 7/7; log c7d76d94…/178726 1689; integration 26693952…/179396 1700; X+1 code diff0"
+    },
+    {
+      "id": "R02",
+      "area": "binding semantics",
+      "claim": "assembly-rendered exact runtime-context or structural binding (source kind/form/section/cwd) accepted; extra sections projected only when rendered; 1-2 messages exact owner; third/wrong/bad fails closed; other checks unchanged",
+      "evidence": [
+        "fcb7604 core-decision/tests"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "system-prompt/assemble captures host assembly; same renderer as probe; nativeMessageHash exact or structural binding; contextDiagnostic field-level; positive/negative tests"
+    },
+    {
+      "id": "R03",
+      "area": "contextDiagnostic boundedness",
+      "claim": "field-level bounded diagnostic, hash prefixes/field names only, no body/path; error→core-domain→unknown evaluation→preStopEvaluation; first reason preserved",
+      "evidence": [
+        "fcb7604 core-decision/core-domain/core-validation/tests"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "CoreContextDiagnostic mismatchKind/fieldNames/shaPrefixes; bounded validator; preStopEvaluation.contextDiagnostic; reason preservation from round15 intact"
+    },
+    {
+      "id": "R04",
+      "area": "v6 freeze/reconcile",
+      "claim": "v6 constants frozen/exact-only; reconcile [v1..v6] caller cannot select; integration runtime/index/output schema",
+      "evidence": [
+        "fcb7604 core-validation/tests",
+        "dcede28 integration"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "requestId core-validation-frozen-v6/template/content sha; EXPERIMENTS includes v6; fixed reconcile list v1-v6; integration files match"
+    },
+    {
+      "id": "R05",
+      "area": "host first real model request",
+      "claim": "create succeeded again; first real model request reached: 21-event Goal Session includes step/start, system message, owner user, runtime-context user, request/header with provider/model/maxTokens + 3 read-only event tools, request/context 1M; assistant attempt stream=[]; preStop CORE_EXECUTION_UNCONFIRMED; 0 usage; no retry",
+      "evidence": [
+        "round16 receipt/sessionEvents/audit"
+      ],
+      "method": "receipt/session/audit",
+      "result": "verified",
+      "detail": "events 21 exact; request/header provider opencode-go model deepseek-v4.1-flash tools 3; request/context 1M; assistant streamLength0; preStopEvaluation reason CORE_EXECUTION_UNCONFIRMED; no request/assistant completed; 0 usage unknown"
+    },
+    {
+      "id": "R06",
+      "area": "host audit/side effects",
+      "claim": "+14 commitSeq/+1 Goal/+1 Session/+1 unknown budget; no events/Task/Effect/artifact; state/known unchanged; seventh unauthorized; v4/v5/v6 residual",
+      "evidence": [
+        "round16 audits",
+        "DB"
+      ],
+      "method": "audit diff+DB",
+      "result": "verified",
+      "detail": "before490/61/39/goals7/budget26(unknown5) → reload496/62/39/7 → run/final510/62/40/8/budget27(unknown6); goal v6 authorized/paused/activeEvaluation unknown; no Task/Effect; state same; known unchanged; no retry; seventh not authorized"
+    },
+    {
+      "id": "R07",
+      "area": "host metadata",
+      "claim": "cachedReceipt/status bytes consistent",
+      "evidence": [
+        "round16 joint cachedReceipt",
+        "host/round16/status-final.json"
+      ],
+      "method": "sha/bytes",
+      "result": "finding",
+      "detail": "cachedReceipt bytes 66937 vs actual 70221 (sha ea856219 matches; Lead 70221 correct); receipt 3917/sha 80afd9bd matches; session 2061/sha 73d47588 matches; plan 2247/sha 1648f874 matches (F16-R1)"
+    },
+    {
+      "id": "R08",
+      "area": "H7-round16",
+      "claim": "88 sources/339 files; round15 v5 level fixed-host-create-succeeded-evaluation-failure; product79/79; no upgrade; logs 1692/172",
+      "evidence": [
+        "h7-round16-slice.json",
+        "logs"
+      ],
+      "method": "hashes/tests",
+      "result": "verified",
+      "detail": "files 14/14; archived3 real; isolated 172/172; full1692; V25 no; product79/79; gate incomplete; round15 source level fixed-host-create-succeeded-evaluation-failure"
+    },
+    {
+      "id": "R09",
+      "area": "X+1",
+      "claim": "40df964 11 artifacts; manifest head=dcede28/dirty=false; clean1700; selfproof21/172; 88/88 sources; product79/79; gate incomplete",
+      "evidence": [
+        "40df964 artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "clean b75b5cc6…/179397 1700; pipeline 41a7bb9b…/3478; archive77b21371…/839; manifest 407/7,485,173/24b324a6…; selfproof21/172; sources88/339; product79/79; gate incomplete/executed=passed=0"
+    },
+    {
+      "id": "R10",
+      "area": "honesty/no overclaim",
+      "claim": "binding fix works/first model layer reached/empty stream is new blocker; no business pass",
+      "evidence": [
+        "round16 findings/limitations"
+      ],
+      "method": "text",
+      "result": "verified",
+      "detail": "explicit failed sixth attempt, no completed model stream/usage, no Task/worker/native completion; seventh unauthorized; residual unknown budgets disclosed"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F16-R1",
+      "severity": "minor-bytes",
+      "title": "cachedReceipt bytes 66937 vs actual status-final 70221",
+      "files": [
+        "round16 joint cachedReceipt",
+        "host/round16/status-final.json"
+      ],
+      "evidence": "actual 70221B/sha ea856219…; cached bytes 66937 (sha matches); Lead 70221 correct",
+      "impact": "sha/content correct; byte accounting off",
+      "recommendation": "set actual bytes+semantics",
+      "owner": "Lead"
+    },
+    {
+      "id": "F16-R2",
+      "severity": "info-wording",
+      "title": "createSuccess says confirmed binding while create snapshot reported bindingReceiptStatus absent",
+      "files": [
+        "round16 createSuccess/receipt"
+      ],
+      "evidence": "createSuccess 'confirmed binding'; receipt observed bindingReceiptStatus absent; native final binding confirmed",
+      "impact": "binding status historical/ambiguous but create fields supported",
+      "recommendation": "clarify create-time vs final binding status",
+      "owner": "Lead"
+    },
+    {
+      "id": "F16-R3",
+      "severity": "info-boundary",
+      "title": "Empty provider stream/new blocker; 0 usage; v4/v5/v6 residual; seventh unauthorized",
+      "files": [
+        "round16 findings/limitations"
+      ],
+      "evidence": "assistant attempt streamLength0; no usage; no Task/Effect; residual unknown budgets; seventh not authorized",
+      "impact": "honestly disclosed; next step instrument stream/error and decide v7 only with owner authorization",
+      "recommendation": "instrument bounded provider/stream error and reconcile residuals",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Provider empty stream root cause",
+      "reason": "stream error not surfaced; requires bounded error handoff instrumentation"
+    },
+    {
+      "item": "Completed model stream/real business chain",
+      "reason": "empty stream; no plan/Task/worker/native completion"
+    },
+    {
+      "item": "Seventh attempt",
+      "reason": "not authorized"
+    },
+    {
+      "item": "V4/V5/V6 residual reconciliation",
+      "reason": "unknown evaluations/budgets remain"
+    }
+  ],
+  "counts": {
+    "h3_isolated": 1689,
+    "integration": 1700,
+    "X1_clean": 1700,
+    "selfproof": 172,
+    "sources": 88,
+    "files": 339,
+    "goalsBefore": 7,
+    "goalsAfter": 8,
+    "sessionsAfter": 40,
+    "budgetUnknown": 6
+  },
+  "hostV6": {
+    "status": "fixed-host-v6-create-succeeded-first-real-model-request-empty-stream",
+    "receipt": {
+      "bytes": 3917,
+      "sha256": "80afd9bd64daf4e9a28079e178e0be65ea7c43190dcb635fcf9d53470ab99de9"
+    },
+    "createSuccess": {
+      "goalId": "core-02829b5e321e30a0f8824fe2db2a41496cccafca",
+      "authorized": true,
+      "nativeActive": true,
+      "hasMandate": true,
+      "goalRef": {
+        "id": "goal-571b4341-b",
+        "revision": 1
+      },
+      "oneGoalSession": true,
+      "partialCreation": false
+    },
+    "evaluation": {
+      "status": "unknown",
+      "reasonCode": "CORE_EXECUTION_UNCONFIRMED",
+      "preStopReasonCode": "CORE_EXECUTION_UNCONFIRMED",
+      "evaluateAttempts": 1,
+      "modelRequests": 1,
+      "streams": 0,
+      "usage": "unknown"
+    },
+    "sessionEvents": {
+      "count": 21,
+      "hasRequestHeader": true,
+      "hasRequestContext": true,
+      "hasAssistantAttempt": true,
+      "assistantStreamLength": 0
+    },
+    "stopAction": {
+      "kind": "pause",
+      "attempted": true,
+      "ok": true
+    },
+    "goal": {
+      "goalId": "core-02829b5e321e30a0f8824fe2db2a41496cccafca",
+      "version": 5,
+      "authorized": true,
+      "paused": true,
+      "cancelled": false,
+      "activeEvaluationId": "evaluation:core-02829b5e321e30a0f8824fe2db2a41496cccafca:1"
+    },
+    "budgetHeld": {
+      "tokens": 16384,
+      "calls": 2
+    },
+    "before": {
+      "commitSeq": 490,
+      "events": 61,
+      "sessions": 39,
+      "goals": 7,
+      "budgetUnknown": 5
+    },
+    "after": {
+      "commitSeq": 510,
+      "events": 62,
+      "sessions": 40,
+      "goals": 8,
+      "budgetUnknown": 6
+    },
+    "statusFinal": {
+      "bytes": 70221,
+      "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265"
+    },
+    "stateFileUnchanged": true,
+    "knownSessionsUnchanged": true,
+    "retry": false,
+    "seventhAttemptAuthorized": false
+  },
+  "xPlusOne": {
+    "X": "dcede28",
+    "X+1": "40df964",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "dcede28",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T16:51:35.805Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 407,
+      "bytes": 7485173,
+      "digest": "24b324a6138c145239803bd052f9ead8c22d5cd69f9f885784c1f66e14709ee7"
+    },
+    "cleanCheck": {
+      "tests": 1700,
+      "pass": 1700,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "b75b5cc6ed388d61e05e7601d6bec37ed9df27e3df186dc1312cb09d0c99cd3a",
+      "bytes": 179397
+    },
+    "pipeline": {
+      "sha256": "41a7bb9bdff8ea265e0ea256050a9102fdaf08378b477c9f29bceeb2996c0d08",
+      "bytes": 3478,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "77b2137190b24951ac2fe0210789cd6c6809296662f720ad783804c2d612a4fa/839",
+    "selfproof": {
+      "files": 21,
+      "tests": 172
+    },
+    "sources": {
+      "verified": 88,
+      "files": 339,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "48c91d63bc9110f9e1ea20e6516e2b82909e851adfea71846b762d4b89d12c95/84874",
+      "tool-selfproof.json": "449fd189f66a1d698c0354e24ec47f1ad54944c085de00754da14954dd1106ae/33816",
+      "tool-selfproof.tap": "e03c23db0ac707166242ba9133cf47c257f93f49d12c4c3c2deff2ea55711103/31969",
+      "traceability.json": "f4bd91031c21641d80115c0e07654b3427873208100446ac505560c4988ec595/1897644",
+      "traceability.md": "17aca297783b23bb18977db90dd80438041d0c738efcd5d7b51c1b73e455baf1/35174",
+      "h7-traceability-mapping.md": "ca9ed1010b39fb99c7f7d970e7b5436a02157589269c1f309b3f0af8959357d8/117683",
+      "acceptance-report.json": "250e45c85dc99a39302b257bd8451b45e8715f68ab684001a3ea8680e1096964/608655",
+      "acceptance-report.md": "e8e1e37177a020bb10220dba1faa9f5f17c8311d4d97bedaa0dacdf1f3741e13/32098",
+      "fl-scenarios/manifest.json": "b453615602aae7552146aa7e3acab915bf2cec3c73546bde723a120fb58e2804/13154",
+      "fl-scenarios/coverage.json": "fa0d2843188e0ef29a9c22faed77da8b6f6f9103f76906af2e59e6bf78ff3ee4/52559",
+      "fl-scenarios/coverage.md": "9a8d37a7573527a5545183922f310b0bf3e29a1ff49cc01baa4c77616d95f053/9308"
+    }
+  },
+  "overallVerdict": "Round-16 evidence is authentic and honest: the runtime-context claim is now bound through the host assembly renderer (same renderer as the bounded probe), with exact-hash/structural acceptance and a bounded field-level contextDiagnostic; extra sections are only accepted when rendered, still 1-2 exact messages, and other checks unchanged. The sixth host attempt achieved create success again and, for the first time, reached a real model request: the 21-event Goal Session contains request/header (provider/model/effort/maxTokens + 3 read-only event tools) and request/context (1M), then assistant/attempt streamLength=0, abort, and preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED; usage is unknown, no retry occurred, audit shows +14 commitSeq/+1 Goal/+1 Session/+1 unknown budget (unknown 5→6, held 16384/2), no Task/Effect/artifact/events and unchanged state/known Sessions. The evidence explicitly calls the empty provider stream the new blocker and does not claim a business pass; v4/v5/v6 residual unknown budgets are disclosed and the seventh attempt is unauthorized. H7-round16 maps 88/339 sources with round15 v5 level fixed-host-create-succeeded-evaluation-failure, V25 excluded, product 79/79 not_covered; X+1=40df964 is artifact-only with manifest head=X/dirty=false, clean1700, selfproof21/172, 88/88 sources and gate incomplete. F16-R1 is host byte metadata; F16-R2/R3 are info."
+}

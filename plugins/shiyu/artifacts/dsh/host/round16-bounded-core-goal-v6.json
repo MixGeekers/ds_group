@@ -154,7 +154,7 @@
       ]
     }
   },
-  "createSuccess": "create succeeded again: authorized=true, active, mandate, confirmed binding, goalRef revision 1 and exactly one Goal Session; partialCreation=false.",
+  "createSuccess": "create succeeded again: authorized=true, active, mandate, confirmed binding, goalRef revision 1 and exactly one Goal Session; partialCreation=false. (binding status is historical: the create-time observed snapshot reports bindingReceiptStatus absent while the final native binding is confirmed; both are recorded as-is.)",
   "milestone": "MAJOR PROGRESS: the v6 Goal Session has 21 events and now includes step/start, the core system message, the owner user message, the host runtime-context user message, a model request/header with provider/config and the three mounted read-only event tools, and a request/context. This is the first real model request in the whole validation series.",
   "failure": {
     "evaluationStatus": "unknown",
@@ -295,7 +295,7 @@
   },
   "cachedReceipt": {
     "file": "artifacts/dsh/host/round16/status-final.json",
-    "bytes": 66937,
+    "bytes": 70221,
     "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265",
     "value": {
       "status": "failed",
@@ -317,7 +317,8 @@
         "EVALUATION_UNKNOWN",
         "USAGE_UNKNOWN"
       ]
-    }
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8)"
   },
   "findings": [
     "MAJOR PROGRESS: the decision round finally reached the real model layer (system/owner/runtime-context messages, request header/context with the three read-only event tools). The context-binding fix is effective.",
@@ -347,5 +348,12 @@
     "This is a failed sixth attempt with no completed model stream and no real business chain; it does not prove planning, Task/worker or native completion.",
     "The exact provider/stream error is not yet surfaced; the next slice must instrument it.",
     "v4/v5/v6 unknown reservations remain; a seventh attempt needs the fix plus an explicit owner decision."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F16-R1/R2",
+      "finding": "cached status bytes used a character count; createSuccess wording could conflate create-time and final binding status",
+      "resolution": "bytes set to the actual 70,221 with sha ea856219...; createSuccess now explicitly distinguishes create-time bindingReceiptStatus absent from the final confirmed binding"
+    }
   ]
 }

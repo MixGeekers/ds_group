@@ -2044,3 +2044,28 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - 副作用：commitSeq 496→510、goals 7→8、sessions 39→40、budget unknown 5→6（held 16384/2）；无 Task/Effect/artifact/events、state/known Session 不变；0 token usage 报告。
 - 证据：[round16-bounded-core-goal-v6.json](<artifacts/dsh/host/round16-bounded-core-goal-v6.json>) + `host/round16/`（receipt 含 preStopEvaluation、21-event 清单、plan、4 审计、status-final 70,221B）。
 - **下一步**：instrument provider/stream 错误（把有界 error text/code 按 contextDiagnostic 同款 in-process 方式透出到 evaluation unknown reason），判断空 stream 是 provider/transport、请求形状还是超时；修复后才谈新的显式 v7 尝试；v4/v5/v6 unknown budget 保留披露；第七次未授权。
+
+## 71. 第十六轮独立复核、F16 处置与用户新优先级（round-16 收尾）
+
+2026-11-03，独立验证员完成 round-16 只读复核（task-65）：**绑定修复生效；首次到达真实模型请求层；provider 空 stream 是新阻塞；0 usage/未重试；第七次未授权；审计与残留披露诚实；H7 未升级；X+1 符合约定。** 报告：[ROUND16-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND16-EVIDENCE-REVIEW.md>)、[round16-evidence-review.json](<artifacts/dsh/verify/round16-evidence-review.json>)。
+
+### 71.1 F16 处置
+
+| ID | 处置 |
+|---|---|
+| **F16-R1（minor-bytes）** | 已修：cachedReceipt bytes 改为实际 **70,221**/sha `ea856219…` + semantics |
+| F16-R2（info-wording） | 已修：createSuccess 明确区分“create-time observed bindingReceiptStatus=absent”与“final native binding confirmed”，两者都如实记录 |
+| F16-R3（info-boundary） | info：空 provider stream/0 usage/v4–v6 残留/第七次未授权均如实披露；下一步 instrument stream/error |
+
+### 71.2 用户新优先级（2026-11-03，作为后续实施主线）
+
+- **情绪域暂不做**：保留六域 schema 与现有记录（不删除），验收登记改为本阶段 deferred；复用了 Ombre 的效价/唤醒度**记忆元数据**作为未来检索维度，但 Ombre **没有可复用的当前情绪模块**（其 `pulse` 明确是“homeostatic signal, not an emotion”，且禁止 `set_emotion` 类工具）。
+- **P0：调通 Ombre 记忆与对话，保证单人聊天没问题**；单人、一次一个任务即可，多任务并发/流畅管理继续 deferred。
+- **任务工作区**：每个任务一个独立工作区（现有 `LocalArtifactStore.prepareWorkspace(taskId)` 已具备）；共享工作区以**只读硬链接**接入，任务写区隔离，manifest 记录 path→sha256/inode/nlink 并在前后校验；将来若要改共享文件，走 copy-on-write（复制/APFS clone），不原地写硬链接。
+- 优先级调整后：记忆/单人聊天闭环 > 单用户任务执行链 > （deferred）多任务/多日稳定/情绪/多人。
+
+### 71.3 边界
+
+- 本轮仍未完成任何模型 stream/计划/Task/worker/native complete；不证业务链。
+- 第七次尝试未授权；v4/v5/v6 unknown evaluation/held budget 残留，需后续 reconcile/披露。
+- round-16 host 未入 H7 映射（round-17）。
