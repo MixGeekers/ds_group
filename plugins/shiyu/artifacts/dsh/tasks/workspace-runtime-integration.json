@@ -72,7 +72,10 @@
     "clientChanged": false,
     "gitCommitMade": false,
     "dependenciesInstalled": false,
-    "workerSharedFileTools": "the fake worker writes the shared mirror directly; a real worker tool surface for shared-file writes is outside this slice"
+    "workerSharedFileTools": "the fake worker writes the shared mirror directly; a real worker tool surface for shared-file writes is outside this slice",
+    "runtimeTsEditedByAuthor": false,
+    "runtimeTsEditedByLead": true,
+    "runtimeIntegrationApplied": "the author delivered runtime-task-workspace.diff and kept runtime/index untouched; the Lead applied it in c47502d (manual rebase onto the already-modified runtime.ts)."
   },
   "summary": {
     "total": 10,
@@ -401,5 +404,12 @@
     "discardedRuns": {
       "note": "首次 full check 在测试补充/复核前启动，未完成即停止，不作为证据。"
     }
-  }
+  },
+  "evidenceCorrections": [
+    {
+      "id": "F18-R2",
+      "finding": "boundaries.runtimeTsEdited=false could be misread as the runtime never being wired; the slice delivered a patch and the Lead applied it in c47502d",
+      "resolution": "record that runtime.ts was edited by the Lead (not by the author) and that the TaskRunner integration is wired; the old adapter slice cce6deb remains accurate that the adapter itself did not wire runtime"
+    }
+  ]
 }

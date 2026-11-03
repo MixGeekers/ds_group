@@ -245,5 +245,95 @@
     "No recall phase was executed, so restart recall, marker containment and same-session evidence are NOT verified.",
     "The two synthetic retained facts are residual data and are disclosed; no cleanup was attempted during the failed write.",
     "The host evidence is limited to a failed generation attempt plus the startup embedding-verification success; it does not prove single-user multi-turn chat memory."
+  ],
+  "effectsBudgetDisclosure": {
+    "note": "F18-R1 correction: the write attempts settled memory-command/index effects and budget. These are NOT Task/Goal business effects and no external send occurred, but they must be disclosed.",
+    "effectsSucceeded": [
+      19,
+      19,
+      21,
+      21,
+      23
+    ],
+    "timeline": [
+      {
+        "stage": "before",
+        "effects": {
+          "succeeded": 19
+        },
+        "budget": {
+          "count": 33,
+          "states": {
+            "settled": 27,
+            "unknown": 6
+          }
+        },
+        "stateFile": "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      },
+      {
+        "stage": "reload1",
+        "effects": {
+          "succeeded": 19
+        },
+        "budget": {
+          "count": 33,
+          "states": {
+            "settled": 27,
+            "unknown": 6
+          }
+        },
+        "stateFile": "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      },
+      {
+        "stage": "write1-failed-pre-model",
+        "effects": {
+          "succeeded": 21
+        },
+        "budget": {
+          "count": 35,
+          "states": {
+            "settled": 29,
+            "unknown": 6
+          }
+        },
+        "stateFile": "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      },
+      {
+        "stage": "reload2",
+        "effects": {
+          "succeeded": 21
+        },
+        "budget": {
+          "count": 35,
+          "states": {
+            "settled": 29,
+            "unknown": 6
+          }
+        },
+        "stateFile": "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      },
+      {
+        "stage": "write2-reply-failed",
+        "effects": {
+          "succeeded": 23
+        },
+        "budget": {
+          "count": 37,
+          "states": {
+            "settled": 31,
+            "unknown": 6
+          }
+        },
+        "stateFile": "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690"
+      }
+    ],
+    "interpretation": "each write attempt wrote one synthetic memory fact and indexed it: +2 settled effects and +2 settled budget per attempt (19→21→23 effects; settled 27→29→31), while unknown budget stayed 6. The first attempt failed after index but before any reply; the second reached draft generation. No Task/Goal/Effect reservation or external send was created."
+  },
+  "evidenceCorrections": [
+    {
+      "id": "F18-R1",
+      "finding": "the joint summary said no Effect/send occurred while memory remember/index settled +2 effects and +2 budget per write attempt (19→21→23; settled 27→29→31), and the runtime-state file changed on write2",
+      "resolution": "add effectsBudgetDisclosure with the exact audit timeline; clarify these are memory-command/index settlements, not Task/Goal business effects; corrected the no-Effect wording"
+    }
   ]
 }

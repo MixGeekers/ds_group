@@ -2186,9 +2186,34 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 3. 按冻结计划 **0 重试**，recall 阶段**未执行** → 重启召回、marker 命中、同 Session 证据均**未验证**。
 4. **启动自动 embedding 验证通过**：第二次 reload 后 `attempted=true, verified=true, embeddingCalls=1, semanticPublished=true`；manifest memory capabilities 已发布 `exact_read+semantic_search`（profile fingerprint），修复了 reload 后语义能力回落的缺口。
 5. 残留：2 条合成 chat-memory-probe 事实仍 active（`cccbba76`、`d855739f`），因 write 未通过未执行 recall 撤回；如实披露。
-6. 审计：两次 reload 及 write 尝试 commitSeq 580→609、state 文件两次变化；sessions 40 不变；无 Task/Goal/Effect/外部发送。
+6. 审计：两次 reload 及 write 尝试 commitSeq 573→609；**memory remember/index 结算使 effects succeeded 19→21→23、budget settled 27→29→31（每次 write +2），unknown budget 保持 6**；write#2 后 state 文件 9a1d…→b487…；sessions 40、goals 8、tasks 状态不变；无 Task/Goal 业务 Effect、无外部发送（F18-R1 更正：先前“无 Effect”措辞不准确，指无 Task/Goal 业务 Effect，memory 命令 Effect 已如实结算）。
 
 ### 75.3 证据与边界
 
 - 证据：[round18-p0-chat-memory.json](<artifacts/dsh/host/round18-p0-chat-memory.json>) + `host/round18/`（plan、7 审计、status-final、status-extract、reply-failures）。
 - 边界：**P0 聊天记忆闭环未通过**，不得宣称"能聊天/能记住事情"已在真实模型多轮验证；启动 embedding 自动验证通过是独立成功项。再次尝试需新的显式 owner 决定（先解决/诊断生成 provider 失败，避免盲目重试）。
+
+## 76. 第十八轮独立复核与 F18 处置（round-18 收尾）
+
+2026-11-03，独立验证员完成 round-18 只读复核（task-75）：**P0 聊天记忆闭环未通过、披露诚实；启动 embedding 验证独立成功；workspace TaskRunner 代码已接线；H7 未升级；X+1 符合约定**；发现 F18-R1（effects/budget 未披露，moderate）与 F18-R2（workspace 证据措辞，minor）。报告：[ROUND18-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND18-EVIDENCE-REVIEW.md>)、[round18-evidence-review.json](<artifacts/dsh/verify/round18-evidence-review.json>)。
+
+### 76.1 F18 处置
+
+| ID | 处置 |
+|---|---|
+| **F18-R1（moderate）** | 已修：host evidence 增加 `effectsBudgetDisclosure` 完整审计时间线；更正“无 Effect”措辞为“无 Task/Goal 业务 Effect；memory remember/index 结算 +2 effects/+2 settled budget per write，unknown 保持 6”；§75.2 同步更正 |
+| **F18-R2（minor）** | 已修：workspace-runtime-integration boundaries 记录 runtime.ts 由 **Lead** 在 `c47502d` 应用（作者仅交 patch）；TaskRunner 集成已接线；旧 adapter 切片 cce6deb 的 `runtimeWired=false` 仅指该切片自身 |
+| F18-R3（info） | startup 成功≠聊天召回；P0 chat closure 未通过——已在 §75 明确 |
+
+### 76.2 复核结论（摘要）
+
+- **P0 聊天记忆：未通过**。write#1 在 0 生成调用前失败于 `INVALID_INDEX_OBSERVATION`（已修 `ff5ea11`）；write#2 到达 ReadView（2 个受控 memorySources）与 draft，但无 current verified draft（`REPLY_FAILED`/unknown/usage null/replyer cancelled）；**0 重试，recall 未执行**，重启召回/marker/同 Session 均未验证；2 条合成 chat-probe 记忆 active 披露。
+- **启动 embedding 自动验证：通过**。第二次 reload 后 verified=true/embeddingCalls=1/semanticPublished=true，manifest capabilities 含 semantic_search+profileFingerprint；属独立成功项，非聊天召回证明。
+- **workspace TaskRunner**：可信 sharedRoot、claim 前 prepare、worker cwd task/、成功 publish、失败 unknown 不发布、expectedChanges/ownerDecision 仅 RuntimeOptions、无 sharedRoot no-op；代码已接线（`c47502d`），真实宿主任务未执行。
+- **H7/X+1**：100 sources/420 files、0 unknown；产品 79/79 not_covered、gate=incomplete/executed=passed=0；X+1 12 M artifacts（含 R18-CORR），code diff 0。
+
+### 76.3 边界
+
+1. P0 聊天记忆闭环**未通过**；下一次尝试需新显式 owner 决定，并先诊断生成 provider 的 reply 失败（避免盲目重试）。
+2. 启动 embedding 验证为进程级、非召回证明；reload 后自动恢复 semantic 已实机验证一次。
+3. workspace 真实任务执行、v7 第七次尝试、live emotion 行为均未执行；H7/产品/V25/九系统未升级。

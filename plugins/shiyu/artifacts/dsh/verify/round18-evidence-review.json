@@ -1,0 +1,343 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-75)",
+  "reviewedAt": "2026-11-03T23:30:00Z",
+  "subject": "Round-18: P0 chat-memory two-phase failure, startup embedding verification, TaskRunner workspace integration, H7 X+1",
+  "head": "3673395b16d7f82291936357647bc7360456a174",
+  "commits": {
+    "chat-probe/startup/workspace": "c47502d",
+    "onIndexed-fix": "ff5ea11",
+    "H7-round18": "fc4b947",
+    "H7 X+1": "8a06066",
+    "host": "3673395"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "chat-memory host facts",
+      "claim": "write#1 failed before any generation model call with INVALID_INDEX_OBSERVATION; after ff5ea11 write#2 reached ReadView (2 controlled sources)/draft but no current verified draft (reply unknown/REPLY_FAILED/usage null/replyer Session cancelled); recall not executed; no retry",
+      "evidence": [
+        "artifacts/dsh/host/round18-p0-chat-memory.json",
+        "host/round18/reply-failures.json",
+        "status-extract.json"
+      ],
+      "method": "receipt/audit",
+      "result": "verified",
+      "detail": "attempt1 generationModelCalls0; attempt2 generation attempted usage null/unknown; two synthetic facts active; no recall; no verified draft"
+    },
+    {
+      "id": "R02",
+      "area": "startup embedding verification",
+      "claim": "after second reload attempted=true/verified=true/embeddingCalls=1/semanticPublished=true; manifest capabilities exact_read+semantic_search+profileFingerprint; independent success not chat recall",
+      "evidence": [
+        "host/round18/status-extract.json",
+        "round18 joint"
+      ],
+      "method": "status receipt",
+      "result": "verified",
+      "detail": "status-extract 3055B/sha dad4725d matches; capture 21:46:03; semanticPublished true; not chat recall proof"
+    },
+    {
+      "id": "R03",
+      "area": "host audit side effects",
+      "claim": "no Task/Goal/Effect/external sends; state/session invariants",
+      "evidence": [
+        "host/round18 7 audits",
+        "round18 joint delta"
+      ],
+      "method": "audit diff",
+      "result": "finding",
+      "detail": "goals8/tasks states unchanged/sessions40; BUT effects succeeded 19→21→23 and budget settled27→31 across write1/write2 (+4 each); stateFile 9a1d→b487 on write2; joint delta omits effects/budget and key facts say no Effect — must disclose memory-probe effects/budget or clarify (F18-R1)"
+    },
+    {
+      "id": "R04",
+      "area": "workspace TaskRunner integration",
+      "claim": "trusted sharedRoot; prepare before claim; worker cwd task/; publish/owner delete; expectedChanges/ownerDecision; failure mirror+markUnknown; no sharedRoot no-op; tests 10/10 & isolated1776; code wired",
+      "evidence": [
+        "artifacts/dsh/tasks/workspace-runtime-integration.json",
+        "runtime-task-workspace.diff",
+        "c47502d"
+      ],
+      "method": "evidence/diff/tests",
+      "result": "verified-with-finding",
+      "detail": "summary10/10, isolated1776; patch sha cdc9e268 matches/applies; runtime/task-runner files in c47502d; BUT evidence boundaries runtimeTsEdited=false and H7 old workspace source still runtimeWired=false; wording needs scope (F18-R2)"
+    },
+    {
+      "id": "R05",
+      "area": "H7-round18",
+      "claim": "100 sources/420 files; product79/79; no upgrade; logs 1775/193",
+      "evidence": [
+        "h7-round18-slice.json",
+        "tests"
+      ],
+      "method": "JSON/logs",
+      "result": "verified-with-note",
+      "detail": "full1775, harness193, archived3; product79/79; gate incomplete; round17 workspace source still runtimeWired=false; new round18 chat/startup/TaskRunner/workspace integration not yet mapped (next round); no upgrade"
+    },
+    {
+      "id": "R06",
+      "area": "X+1",
+      "claim": "8a06066 12 M artifacts (11 clean + R18-CORR), code diff0, manifest head=fc4b947/dirty=false; clean1807; selfproof23/193; 100/100 sources/420; product79/79; gate incomplete",
+      "evidence": [
+        "8a06066 artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "manifest 69b70cea…/88589; clean 526913b5…/189727 1807; pipeline8716f780…/3722; archive49360c29…/839; selfproof23/193; sources100/420; product79/79; gate incomplete/executed=passed=0"
+    },
+    {
+      "id": "R07",
+      "area": "honesty/no overclaim",
+      "claim": "P0 chat-memory closure NOT passed; startup embedding success independent; 2 active synthetic facts disclosed; no real multi-turn chat claim",
+      "evidence": [
+        "host joint milestones/blockers/limitations"
+      ],
+      "method": "text",
+      "result": "verified",
+      "detail": "write1 0 model pre-model fail; write2 reply failed/no verified draft; recall not executed; 2 active synthetic facts cccbba76/d855739f; no chat memory pass"
+    },
+    {
+      "id": "R08",
+      "area": "evidence/byte checks",
+      "claim": "h2e/workspace evidence files and host plan/startup claims match",
+      "evidence": [
+        "h2e/workspace evidence",
+        "host files"
+      ],
+      "method": "sha/bytes",
+      "result": "verified",
+      "detail": "h2e 5/5, workspace 7/7, host plan/startup claim shas match; workspace patch sha matches; status-extract matches"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F18-R1",
+      "severity": "moderate-disclosure",
+      "title": "Host audits show +4 effects/+4 settled budget, but joint delta/key facts omit them and say no Effect",
+      "files": [
+        "host/round18 7 audits",
+        "round18 joint delta",
+        "host/round18-p0-chat-memory.json#memory/milestones"
+      ],
+      "evidence": "effects19→21 (write1)→23 (write2), budget settled27→31; stateFile 9a1d→b487 on write2; goals/tasks/sessions unchanged; 2 active synthetic facts",
+      "impact": "audit completeness: memory-probe effects/budget and state-file change are not disclosed in joint/key summary; no Task/Goal, but 'no Effect' is inaccurate",
+      "recommendation": "disclose memory-operation effects/budget and state change explicitly; clarify 'Effect' scope",
+      "owner": "Lead"
+    },
+    {
+      "id": "F18-R2",
+      "severity": "minor-wording",
+      "title": "Workspace evidence/H7 says runtimeWired=false/runtimeTsEdited=false although round18 code wires Runtime/TaskRunner",
+      "files": [
+        "artifacts/dsh/tasks/workspace-runtime-integration.json#boundaries",
+        "h7-round18 evidence.ts workspace source"
+      ],
+      "evidence": "c47502d edits runtime.ts/task-runner and integration patch applies; integration evidence summary10/10; boundaries.runtimeTsEdited=false and H7 old source limitations runtimeWired=false",
+      "impact": "old adapter slice statement is accurate for cce6deb but misleading for current TaskRunner integration; new integration not yet mapped",
+      "recommendation": "scope wording to old adapter slice and map new integration next round",
+      "owner": "Lead/test-harness"
+    },
+    {
+      "id": "F18-R3",
+      "severity": "info-boundary",
+      "title": "Startup embedding verification success is independent of chat recall; P0 chat closure NOT passed",
+      "files": [
+        "host joint milestones/limitations"
+      ],
+      "evidence": "startup attempted/verified/embeddingCalls1/semanticPublished true; write2 reply failed; recall not executed; 2 active synthetic facts",
+      "impact": "must not claim real multi-turn chat memory; H7 product79/79 no V25",
+      "recommendation": "keep separate; next attempt needs explicit owner decision",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "P0 real multi-turn chat memory closure",
+      "reason": "write2 reply failed/no verified draft; recall/restart/marker/same-Session unverified"
+    },
+    {
+      "item": "Workspace Runtime/TaskRunner host execution",
+      "reason": "offline tests; liveHost=false; fake worker shared-file tools"
+    },
+    {
+      "item": "Effects/budget accounting detail",
+      "reason": "counts changed but joint delta omits; needs disclosure"
+    },
+    {
+      "item": "H7 mapping round18 new work",
+      "reason": "round18 P0 chat/startup/TaskRunner not yet mapped; next round"
+    }
+  ],
+  "counts": {
+    "h2e_isolated": 1782,
+    "workspace_integration_isolated": 1776,
+    "X1_clean": 1807,
+    "selfproof": 193,
+    "sources": 100,
+    "files": 420,
+    "write1_generationCalls": 0,
+    "write2_generation": "attempted/usage unknown/no verified draft",
+    "activeSyntheticFacts": 2,
+    "effectsDelta": 4,
+    "budgetSettledDelta": 4
+  },
+  "hostRound18": {
+    "status": "fixed-host-startup-embedding-verified-chat-reply-failed",
+    "code": {
+      "head": "ff5ea11",
+      "dist": "120/82a283dc8645"
+    },
+    "attempts": [
+      {
+        "attempt": 1,
+        "reasonCode": "INVALID_INDEX_OBSERVATION",
+        "generationModelCalls": 0,
+        "memorySourceCount": 0
+      },
+      {
+        "attempt": 2,
+        "reasonCode": "REPLY_FAILED",
+        "status": "unknown",
+        "usage": null,
+        "memorySourceCount": 2,
+        "sessionId": "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a"
+      }
+    ],
+    "startupEmbeddingVerification": {
+      "attempted": true,
+      "verified": true,
+      "embeddingCalls": 1,
+      "semanticPublished": true,
+      "file": "host/round18/status-extract.json",
+      "sha256": "dad4725ded485cb30dfade4cf3f9db4499302fe963e0dc9c04390bab21740fb7"
+    },
+    "memory": {
+      "embeddingVerified": true,
+      "semanticReady": true,
+      "reason": "INDEX_COVERAGE_INCOMPLETE",
+      "capabilities": [
+        "exact_read",
+        "semantic_search"
+      ],
+      "probeMemories": [
+        "cccbba76-fe70-4e5c-b1f7-ad9b15d0c553",
+        "d855739f-d1a8-42df-802f-08ad3a76ea54"
+      ],
+      "active": true
+    },
+    "before": {
+      "commitSeq": 573,
+      "events": 67,
+      "sessions": 40,
+      "goals": 8,
+      "effects": 19,
+      "budgetSettled": 27
+    },
+    "afterWrite1": {
+      "commitSeq": 590,
+      "events": 68,
+      "sessions": 40,
+      "goals": 8,
+      "effects": 21,
+      "budgetSettled": 29
+    },
+    "afterWrite2": {
+      "commitSeq": 609,
+      "events": 69,
+      "sessions": 40,
+      "goals": 8,
+      "effects": 23,
+      "budgetSettled": 31,
+      "stateFile": "b4879e93ff74"
+    },
+    "retry": false,
+    "recallExecuted": false,
+    "chatMemoryPassed": false
+  },
+  "xPlusOne": {
+    "X": "fc4b947",
+    "X+1": "8a06066",
+    "diffFileCount": 12,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "fc4b947",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T23:07:03.740Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 426,
+      "bytes": 7941693,
+      "digest": "d2ba0e33d25655d01f82a0059066755e11e3189047ce30bc5bbe468d8cc2ea71"
+    },
+    "cleanCheck": {
+      "tests": 1807,
+      "pass": 1807,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "526913b5305d1f204dd73b4dcd4074a69ab8de2eea917c5591bbcea802987526",
+      "bytes": 189727
+    },
+    "pipeline": {
+      "sha256": "8716f780247511b5ed5d14124cd6e1d355e283fbeea2c2c5702157825f8fb16d",
+      "bytes": 3722,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "49360c298bdb48a29d30148e7389f8439890577814f12f9b4f04e485f15fc98e/839",
+    "selfproof": {
+      "files": 23,
+      "tests": 193
+    },
+    "sources": {
+      "verified": 100,
+      "files": 420,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "69b70cea51ab1359a5aad2dae24b62f0db4b9a679d02546d31f11bc127d50720/88589",
+      "tool-selfproof.json": "c6f27d1420e74940c5e17040167049803032e4e64875bac078eb3d38ef9719c8/37085",
+      "tool-selfproof.tap": "035ec76c862d5b88a2356d2f745fcd21009961ee74d5117973e8a83d99488904/35707",
+      "traceability.json": "e9dacd6a6a0d998d9126b616d9a464f690de479ab4846068d1a6c32cacdf4392/2204212",
+      "traceability.md": "316d25b9a85de98e4668d9be99f5f7eb80b42802f9ec76df66ed60d9e0ecbfc6/36162",
+      "h7-traceability-mapping.md": "56a281a68923f8ce45a67a0de2666d4d85b465cef98da3487d9b89031fa49be3/141002",
+      "acceptance-report.json": "24f4955ad9b354b90b778d4e0177c644bf8ecccc611732cf145f3bda5bbf9f94/703311",
+      "acceptance-report.md": "036f9d919c5568c0f3aee77b7c8cb19ac923ad9b5e378b3e50d6c6b54bced71e/33102",
+      "fl-scenarios/manifest.json": "2e2ce1c083cede515d379cc2c741ddc446660b95a0cd37829db34a53ce23a932/13154",
+      "fl-scenarios/coverage.json": "a32c47a19bef3d2cd9480a915955f9cb7a4fabd395ea9f9c8178156e1895967e/52559",
+      "fl-scenarios/coverage.md": "caede9896af1152a0fafd1f24a47c2ba9e35fd9a6f04f6cc611ea28641a5d814/9308"
+    }
+  },
+  "overallVerdict": "Round-18 evidence is honest about the chat-memory failure: write#1 failed pre-model with INVALID_INDEX_OBSERVATION and 0 generation calls; the ff5ea11 fix let write#2 reach the ReadView with two controlled memory sources and a draft, but no current verified draft was produced (reply unknown/REPLY_FAILED/usage null/replyer Session cancelled), the recall phase was not executed and the P0 chat-memory closure is NOT passed; startup automatic embedding verification independently passed after reload2 (attempted/verified/semanticPublished, one embedding); two synthetic facts remain active/disclosed; no Task/Goal changes and no retry. However the host audit shows effects succeeded 19→23 and settled budget 27→31 across the write attempts and a stateFile change, while the joint delta/key summary omits effects/budget and claims no Effect (F18-R1); the workspace TaskRunner integration is real in code/tests (10/10, isolated1776) but H7/evidence still carries the old adapter's runtimeWired=false wording and new integration is not mapped (F18-R2). H7/X+1 do not upgrade product (79/79 not_covered), 100/100 sources; X+1=8a06066 is 12 M artifacts (11 clean + R18-CORR), code diff0, manifest head=X/dirty=false, clean1807, selfproof23/193 and gate incomplete. The startup embedding success is not chat recall proof; no real multi-turn chat memory pass is claimed."
+}
