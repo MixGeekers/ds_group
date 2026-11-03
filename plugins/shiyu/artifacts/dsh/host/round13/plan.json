@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "phase": "round13-joint-host-native-header-cut-probe",
+  "status": "frozen-before-execution",
+  "frozenAt": "2026-11-03T09:48:07.872Z",
+  "code": {
+    "head": "76c7116323d32430632d85472ccd9b7cd84e7051",
+    "dist": {
+      "files": 114,
+      "digest": "87f187413b87604f4815c2a56d1fedba1fc5fa6ef0f74bbe153bf479dee536c1"
+    }
+  },
+  "purpose": "One zero-model owner-only native header-cut probe: create exactly one bare lifecycle Session with the Goal preset/cwd/meta, run flush/cold observe/live assert with the create-only seq-excluding-header cut, report matched/headerDiff, then always cancel/dispose/archive the Session. No Goal/Task/Effect/budget, no model/embedding, no business writes, zero retry. This is diagnosis only: no fix and no fourth bounded attempt.",
+  "scope": {
+    "orderedReloads": 1,
+    "toolCalls": [
+      "shiyu_status",
+      "shiyu_diagnose_native_header_cut",
+      "shiyu_status"
+    ],
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "goalCreates": 0
+  },
+  "expected": {
+    "receipt": "status passed/failed with zero flags, createdSessionId, cold/live facts, matched or headerDiff; cleanup released/disposed/archived",
+    "conditionCheck": "paused/busy/capacity rejection is reported without creating a Session",
+    "audit": "exactly one probe Session added and archived; goals/tasks/effects/budget/state unchanged apart from normal lifecycle and the probe Session"
+  },
+  "stopConditions": [
+    "probe failed/cleanup not ok",
+    "headerHash differs but headerDiff empty",
+    "unexpected Goal/Task/Effect/budget/business write",
+    "model request attempted",
+    "plugin failed/disabled"
+  ]
+}
+

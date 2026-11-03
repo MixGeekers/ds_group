@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "phase": "round13-host",
+  "slice": "fixed-host zero-model native header-cut probe: exact cold/live header field difference identified",
+  "capturedAt": "2026-11-03T09:49:06.160Z",
+  "status": "fixed-host-zero-model-header-cut-passed",
+  "purpose": "One owner-only zero-model probe created exactly one bare lifecycle Session with the Goal preset/cwd/meta, ran flush/cold observe/live assert with the create-only seq-excluding-header cut, and always cancelled/disposed/archived it. It reports matched=false with the exact bounded headerDiff \"delegationDepth: number:0→absent\" and zero model/embedding/Task/Effect/business writes. Diagnosis only: no fix and no fourth bounded attempt.",
+  "plan": {
+    "path": "artifacts/dsh/host/round13/plan.json",
+    "sha256": "be469f796e47706048d18a2a812ac26af3198e6ec010a0a74fe0be873f33cc17"
+  },
+  "code": {
+    "head": "76c7116",
+    "dist": {
+      "files": 114,
+      "digest": "87f187413b87604f4815c2a56d1fedba1fc5fa6ef0f74bbe153bf479dee536c1"
+    }
+  },
+  "receipt": {
+    "file": "artifacts/dsh/host/round13/native-header-cut-receipt.json",
+    "bytes": 901,
+    "sha256": "a7cc6e8336547300c7974d7c57d356e9fbf22bb32f12ebc5f628a4a5772dd0ed"
+  },
+  "result": {
+    "status": "completed",
+    "zeroModel": true,
+    "zeroEmbedding": true,
+    "zeroTaskOrEffect": true,
+    "createdGoal": false,
+    "createdSessionId": "shiyu-native-header-cut-d2fd51f0-3d04-44b2-85e1-3536985ab51f",
+    "cold": {
+      "eventCount": 3,
+      "inheritedEventCount": 0,
+      "headerHashPrefix": "421ba38b88bb3384"
+    },
+    "live": {
+      "eventCount": 3,
+      "seq": 3,
+      "inheritedEventCount": 0,
+      "headerHashPrefix": "815793bba716d8fc"
+    },
+    "matched": false,
+    "mismatchKind": "header-hash",
+    "headerDiff": [
+      "delegationDepth: number:0→absent"
+    ],
+    "checks": [
+      "creating-bare-lifecycle-session",
+      "created",
+      "empty-inbox",
+      "flushed",
+      "cold-observed",
+      "cold-live-header-cut-mismatched",
+      "released",
+      "disposed",
+      "archived"
+    ],
+    "released": true,
+    "disposed": true,
+    "archived": true,
+    "cleanup": {
+      "ok": true,
+      "failures": []
+    }
+  },
+  "conclusion": "The deterministic header mismatch is exactly delegationDepth: cold header has number:0 while the live Session header omits it (absent); event counts and seq already match 3/3. This is the precise, body-free field difference needed for a future create-only trusted-field normalization decision. This round neither fixes it nor attempts a fourth bounded Goal.",
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        444,
+        450
+      ],
+      "events": [
+        58,
+        59
+      ],
+      "capabilityRevision": [
+        51,
+        53
+      ],
+      "sessions": [
+        36,
+        36
+      ],
+      "goals": [
+        5,
+        5
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "normal startup writes only; business facts unchanged."
+    },
+    "probe": {
+      "commitSeq": [
+        450,
+        450
+      ],
+      "events": [
+        59,
+        59
+      ],
+      "sessions": [
+        36,
+        37
+      ],
+      "goals": [
+        5,
+        5
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "addedSessionFiles": [
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-native-header-cut-probe-c1fff9e1-4ce6-43c1-adae---/shiyu-native-header-cut-d2fd51f0-3d04-44b2-85e1-3536985ab51f/session.v4.jsonl.zstd"
+      ],
+      "classification": "the probe is side-effect limited to exactly one disposable Session file (archived); commitSeq/events/goals/tasks/budget/effects/state are unchanged, no Goal/Task/Effect/budget was created and no model request occurred."
+    },
+    "postStatus": {
+      "commitSeq": [
+        450,
+        450
+      ],
+      "events": [
+        59,
+        59
+      ],
+      "sessions": [
+        37,
+        37
+      ],
+      "goals": [
+        5,
+        5
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only and caches the validated probe receipt."
+    }
+  },
+  "cachedReceipt": {
+    "file": "artifacts/dsh/host/round13/status-final.json",
+    "bytes": 57582,
+    "sha256": "9abd48d743fd4dc222f2236a2fc7653bc1fdaafe0179c811856c45b59a675424",
+    "matched": false,
+    "headerDiff": [
+      "delegationDepth: number:0→absent"
+    ],
+    "mismatchKind": "header-hash",
+    "released": true,
+    "disposed": true,
+    "archived": true,
+    "cleanup": {
+      "ok": true,
+      "failures": []
+    }
+  },
+  "findings": [
+    "The cold/live header mismatch is now exactly identified as delegationDepth: number:0→absent; the event-count/seq cut is already aligned at 3/3, so the previous failure is fully explained by this single trusted-volatile field difference.",
+    "The probe created and archived exactly one bare lifecycle Session; no Goal/Task/Effect/budget/artifact, no model/embedding, no business write and no retry.",
+    "This is diagnosis only: no fix was applied and no fourth bounded Goal attempt was made; the next step is a trusted-field normalization decision for the create-only path, followed by an explicit owner decision if a fourth attempt is desired."
+  ],
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "goals": 5,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "Zero-model header-cut diagnosis only; it does not prove any business chain and creates one disposable Session file.",
+    "The fix (create-only trusted-field normalization) and any fourth bounded attempt remain out of scope and unauthorized.",
+    "The probe covers the header/history cut only, not plan/model/Task/worker/native completion semantics."
+  ]
+}

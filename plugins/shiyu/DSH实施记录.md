@@ -1833,3 +1833,18 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - 预期判读：`isSeeded:boolean:false→true` → seed 期 header 变更（未来 create-only trusted-field 归一化的精确依据）；createdAt/delegationDepth number 差异 → 宿主初始化元数据；cwd/agentPreset/id 只 sha；**hash 不同但 headerDiff 空 → 嵌套字段，停止报告**；matched=true → 非 header cut，停止。
 - 清理核对：恰一个探针 Session 归档、业务库/Goal/journal/budget 不变、cleanup.ok。
 - **不修复、不尝试第四次**；任何后续尝试需新的显式 owner 决定。
+
+## 61. 第十三轮固定宿主：零模型 header-cut 探针确认精确差异
+
+状态：**固定宿主零模型诊断通过**；根因字段已精确定位；**不修复、不做第四次尝试**。2026-11-03，代码 HEAD `76c7116`，一次有序 reload。
+
+- 重载增量：commitSeq `444→450`、events `58→59`、capability `51→53`、sessions 36/goals 5 不变、业务事实/state 不变。
+- 唯一一次 `shiyu_diagnose_native_header_cut`（0 模型/0 embedding/0 Task/Effect/Goal、0 重试）：
+  - 创建恰好 1 个裸 lifecycle Session `shiyu-native-header-cut-d2fd51f0…`（同 Goal preset/cwd/meta、无事件工具、拒绝模型、空 inbox）；
+  - cold `{eventCount:3, inherited:0, headerHashPrefix:421ba38b88bb3384}` vs live `{eventCount:3, seq:3, inherited:0, headerHashPrefix:815793bba716d8fc}` → **matched=false、mismatchKind=header-hash**；
+  - **headerDiff=`["delegationDepth: number:0→absent"]`**：cold persisted header 有 `delegationDepth:0`，live Session header 缺该字段（absent）——**精确、无正文/路径的字段级根因**；
+  - checks 9 项（created/empty-inbox/flushed/cold-observed/mismatch/released/disposed/archived…）；released/disposed/archived=true、cleanup.ok=true。
+- 审计：commitSeq/events/goals/tasks/budget/effects/state 均不变；**唯一新增 = 该探针 Session 文件（已归档）**；无 Goal/Task/Effect/budget、无业务写、无模型请求。
+- final status 只读，`diagnostics.nativeHeaderCutProbe` 缓存该 receipt。
+- 证据：[round13-joint-header-cut.json](<artifacts/dsh/host/round13-joint-header-cut.json>) + `host/round13/`（probe receipt、plan、4 审计、status-final 60,692B）、§60 设计。
+- **边界**：本轮只诊断；create 未修复；`delegationDepth:0↔absent` 的 create-only trusted-field 归一化策略尚未实施；**第四次 bounded Goal 尝试未授权**，需新的显式 owner 决定。
