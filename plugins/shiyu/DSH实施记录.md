@@ -1519,3 +1519,34 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - final status 只读无副作用，`diagnostics.coreValidationReconcile` 缓存同一 receipt（status payload 58,374B 已入证据）；residual Goal 现 cancelled=true（version 2）。
 - 证据：[round8-joint-reconcile.json](<artifacts/dsh/host/round8-joint-reconcile.json>) + `host/round8/`（receipt、status-final、4 份审计）。
 - 边界：本切片只证 reconcile/cancel 路径；**不证有界真实 core 业务链、不修复 create 失败原因**；未来 create 尝试需新的显式 owner 决定与新冻结计划，且不得重试本次失败。
+
+## 48. 第八轮独立复核（round-8 收尾）
+
+2026-11-03，独立验证员对 round-8 提交与宿主 reconcile 证据做只读复核（task-43）：**15 项检查完成，6 条 findings 全部 fixed/info/resolved**。报告：[ROUND8-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND8-EVIDENCE-REVIEW.md>)、[round8-evidence-review.json](<artifacts/dsh/verify/round8-evidence-review.json>)。
+
+### 48.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| H3 create 失败回读+reconcile `5f9ac00` | 文件/补丁匹配；隔离 1552/1552、0 skip；29 tests；readback true/false/unknown+partialCreation、不可用→unknown、不重试/不自动 cancel；reconcile 仅 inert 恰一次 cancel、paused-authorized 不 cancel、拒绝保留 errorCode、postCancel、固定 requestId/不创建/不调模型；validator mutation real |
+| H7-round8 `4d5ba0d` | 52 sources/160 files；round7 失败仅 `fixed-host-failure-diagnostic`（无 pass/V25/business/九系统）；review `independent-review-info` 未映射；产品 79/79 not_covered；logs 1547/107/107 |
+| 集成 `7c0b22a` | 1561/1561、0 skip（`aa181574…`/167267） |
+| 宿主 `f10affc` | **reconcile 通过（仅 cancel 路径）**：receipt inert-unauthorized/readback complete/cancel 1 次/postCancel cancelled+paused+version2/unknowns []/readOnly true/createsGoal false/modelCalls 0/retries 0；审计 405/53/34/cap41/goals3 → 411/54/34/43 → 412/54/34/43（reconcile 恰 +1 commitSeq）；无 events/session/Goal/Task-state/Effect/budget/artifact 变化；state 不变；known 34 Session 字节不变；live DB 复核 Goal `core-17e3fe95…` cancelled=true/paused=true/version2、总 goals 3；dist `7c0b22a` 独立重建 113/`c4887fa9…`；definitionDigest 不变 |
+| X+1 `f766ab7` | 11 artifacts only；manifest head=7c0b22a/dirty=false/leaks=0；src/client/tests/scripts diff=0；clean 1561/1561；pipeline 全绿；selfproof 14 files/107；**52/52 sources verified、160 文件、0 unknown**；产品 79/79 not_covered；gate=incomplete/executed=passed=0 |
+
+### 48.2 F8 findings 处置
+
+| ID | 处置 |
+|---|---|
+| F8-R1（bytes） | 已修：cachedReceipt bytes=58,375 + bytesSemantics，与实际 status-final/sha 一致 |
+| F8-R2（cache 字段声明） | 已修：cachedReceipt 仅列实际缓存字段 + fieldsPresent；readOnly/createsGoal/modelCalls/retries 移入 declaredOnlyInReceipt 并注明在 receipt 文件；findings 第 3 条同步改写 |
+| F8-R3（host/X+1 pending） | resolved（`f10affc`/`f766ab7` 已提交并复核） |
+| F8-R4（reload 记账粒度） | info：reload 期间 task metadata version 41→42/capability epoch 变化属正常启动记账；reconcile 本身仅 +1 commitSeq |
+| F8-R5（round-8 host 未入映射） | info：下一轮映射，不升级无 unknown |
+| F8-R6（acceptance 临时路径） | info，future redact |
+
+### 48.3 边界
+
+1. reconcile 通过仅证明“inert 残留 Goal 的只读分类 + 一次安全 cancel”路径，**不证明有界真实 core 业务链，也不修复原 create 失败原因**。
+2. 未来 bounded validation 尝试需新的显式 owner 决定与新冻结计划；不得重试本次失败 create。
+3. 产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0；round-8 host 证据未入 H7 映射（round-9）。

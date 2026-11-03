@@ -1,0 +1,498 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-43)",
+  "reviewedAt": "2026-11-03T04:05:00Z",
+  "subject": "Round-8: H3 create-failure readback/reconcile, H7-round8, integration, round-8 host reconcile draft, pending X+1",
+  "head": "f10affc0f0782e28a284389ff91a4f6d4c12a835",
+  "commits": {
+    "H3-reconcile": "5f9ac00",
+    "H7-round8": "4d5ba0d",
+    "integration (X)": "7c0b22a",
+    "H7 X+1": "f766ab74960b8253365d794ea3c407e57aaa2460",
+    "host-round8": "f10affc0f0782e28a284389ff91a4f6d4c12a835"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "H3 reconcile files/counts",
+      "claim": "5f9ac00 files and patch hashes match; isolated 1552/1552 0 skip",
+      "evidence": [
+        "artifacts/dsh/h3/h3-core-validation-reconcile.json",
+        "artifacts/dsh/slices/h3-reconcile-verify.json"
+      ],
+      "method": "git sha/bytes + log",
+      "result": "verified",
+      "detail": "core-validation.ts 26899a32…/69426, test 939775a0…/51705, patch d2dac5b8…/8454; log 805b5be4…/166703"
+    },
+    {
+      "id": "R02",
+      "area": "H3 readback/reconcile behavior",
+      "claim": "create failure readback true/false/unknown + partialCreation; reconcile classifications; only inert one cancel; no retry/auto cancel/model/create",
+      "evidence": [
+        "5f9ac00 tests/core-validation.ts",
+        "5f9ac00 src/core-validation.ts"
+      ],
+      "method": "test/assertion review",
+      "result": "verified",
+      "detail": "29 tests (+13), mutation validator; readback absent/complete/unavailable/inconsistent; inert cancel once; persisted refused errorCode; paused-authorized 0 cancel; no skip/only/tautology"
+    },
+    {
+      "id": "R03",
+      "area": "H7-round8",
+      "claim": "52 sources/160 files; 5 new sources/18 files; round7 fail only fixed-host-failure-diagnostic; V25 no; review info-only unmapped; product 79/79; gate incomplete",
+      "evidence": [
+        "artifacts/dsh/harness/h7-round8-slice.json",
+        "tests/harness-round8.test.ts",
+        "logs"
+      ],
+      "method": "hashes/tests/logs",
+      "result": "verified",
+      "detail": "files 8/8; tests assert 52/160, 5/18, levels fixed-host-failure-diagnostic, V25 excludes fail source, review unmapped, product 79/79; logs 1547/107/107; archives 4/4"
+    },
+    {
+      "id": "R04",
+      "area": "integration",
+      "claim": "7c0b22a files match; 1561/1561",
+      "evidence": [
+        "artifacts/dsh/integration/round8-lead-integration.json",
+        "artifacts/dsh/slices/round8-integrated-verify.json"
+      ],
+      "method": "hash/log",
+      "result": "verified",
+      "detail": "files 3/3 +17/17; log aa181574…/167267 1561; hostExecutionPending disclosed"
+    },
+    {
+      "id": "R05",
+      "area": "host reconcile receipt",
+      "claim": "unique call classification inert-unauthorized/readback complete/exactly one cancel/postCancel version2/unknowns empty/readOnly true/createsGoal false/modelCalls0/retries0",
+      "evidence": [
+        "artifacts/dsh/host/round8/reconcile-receipt.json",
+        "round8 joint"
+      ],
+      "method": "receipt/audit",
+      "result": "verified",
+      "detail": "receipt 1083B/sha 3d8597c5…; cancelAttempts1; stopAction cancel ok version2; no retry; no model"
+    },
+    {
+      "id": "R06",
+      "area": "host audit/invariants",
+      "claim": "reconcile +1 commitSeq only; no events/session/goal/task/effect/budget/artifact changes; state unchanged; known 34 sessions unchanged; DB goal cancelled v2",
+      "evidence": [
+        "round8 host audits",
+        "live DB read-only"
+      ],
+      "method": "audit diff + DB query",
+      "result": "verified",
+      "detail": "before405/53/34/cap41 → reload411/54/34/43 → run/final412/54/34/43; reconcile +1; goals still 3; DB core-17e3fe95… cancelled true/paused true/version2; live totals unchanged"
+    },
+    {
+      "id": "R07",
+      "area": "host status cache",
+      "claim": "status-final caches full reconcile receipt with readOnly/createsGoal/modelCalls/retries",
+      "evidence": [
+        "artifacts/dsh/host/round8/status-final.json",
+        "round8 joint cachedReceipt/findings"
+      ],
+      "method": "payload/field compare",
+      "result": "finding",
+      "detail": "actual status-final 58375B sha fdba995f…; joint claims bytes 55376; cached receipt lacks readOnly/createsGoal/modelCalls/retries (only classification/readback/cancelAttempts/postCancel/unknowns); joint findings claims those fields cached (F8-R1/F8-R2)"
+    },
+    {
+      "id": "R08",
+      "area": "host scope",
+      "claim": "explicitly only reconcile/cancel; no business chain pass; no create fix",
+      "evidence": [
+        "round8 joint limitations/findings"
+      ],
+      "method": "text review",
+      "result": "verified",
+      "detail": "status fixed-host-reconcile-passed; limitations explicitly reconcile-only, no business chain, future create requires new frozen plan; no V25/product upgrade"
+    },
+    {
+      "id": "R09",
+      "area": "X+1/host commit",
+      "claim": "X+1 and host committed/verified",
+      "evidence": [
+        "pending"
+      ],
+      "method": "n/a",
+      "result": "pending",
+      "detail": "host draft untracked with F8-R1/R2 to fix; X+1 not committed; task remains in progress"
+    },
+    {
+      "id": "R10",
+      "area": "X+1 identity/manifest",
+      "claim": "X+1=f766ab7 (parent 7c0b22a): 11 artifacts all M; code/tests/scripts diff 0; manifest head=7c0b22a/dirty=false/leaks=0; aggregates 404/7,162,480",
+      "evidence": [
+        "git diff 7c0b22a..f766ab7",
+        "manifest.json"
+      ],
+      "method": "git objects + JSON",
+      "result": "verified",
+      "detail": "11 artifacts; manifest head 7c0b22a dirty false; generatedAt 2026-11-03T03:54:01.191Z; no artifacts/dsh paths"
+    },
+    {
+      "id": "R11",
+      "area": "X+1 artifacts/selfproof/sources",
+      "claim": "11 artifact hashes/bytes; selfproof 14 files/107; 52/52 sources/160 files 0 unknown; product 79/79 not_covered",
+      "evidence": [
+        "f766ab7 artifacts"
+      ],
+      "method": "sha/bytes + counts",
+      "result": "verified",
+      "detail": "manifest 6ef13f68…/84286, selfproof 05d3cc31…/23553, tap 91774dd0…/20683, traceability bdee819c…/1072747, md 9a916213…/33423, mapping 3d6c8e55…/64662, acceptance c0719e83…/347583, md 998020e1…/28938, fl manifest dfd27fad…/13154, coverage 4d1314dd…/52559, coverage md 5f276d82…/9308"
+    },
+    {
+      "id": "R12",
+      "area": "X+1 clean/acceptance",
+      "claim": "clean 1561/1561 0 skip; pipeline honesty=pass/gate=incomplete/executed=passed=0; archive; acceptance",
+      "evidence": [
+        ".local/h7-verify/round8-clean-7c0b22a-*",
+        "acceptance-report.json"
+      ],
+      "method": "sha/bytes/logs/JSON",
+      "result": "verified",
+      "detail": "check a2f60e04…/167299 1561; pipeline 2bde1fcf…/2948; archive 73a77b85…/867; product 79/79; gate incomplete planned92/executed0/passed0/failed0/blocked19/notRun73; issues 0"
+    },
+    {
+      "id": "R13",
+      "area": "host F8 fixes",
+      "claim": "F8-R1 bytes 58375+semantics; F8-R2 cache fieldsPresent/declaredOnlyInReceipt; findings updated; host commit 8 files artifacts/doc no code",
+      "evidence": [
+        "f10affc joint/status/DSH"
+      ],
+      "method": "git-show + field compare",
+      "result": "verified",
+      "detail": "cachedReceipt bytes 58375/sha fdba995f… + bytesSemantics; fieldsPresent exact cache keys; declaredOnlyInReceipt readOnly/createsGoal/modelCalls/retries; finding 3 updated; 8 files (doc+joint+receipt+4 audits+status), no code"
+    },
+    {
+      "id": "R14",
+      "area": "host final body",
+      "claim": "reconcile +1 commitSeq, no events/session/goal/task/effect/budget/artifact changes; known 34 sessions unchanged; DB goal cancelled v2; status cache; dist",
+      "evidence": [
+        "f10affc audits/status",
+        "live DB read-only"
+      ],
+      "method": "audit diff + DB query + rebuild",
+      "result": "verified",
+      "detail": "before405/53/34/cap41/goals3 → reload411/54/34/43/goals3 → run/final412/54/34/43/goals3; reconcile +1 only; DB core-17e3fe95… cancelled true/paused true/version2; known sessions unchanged; status-final cache exact; dist 113/c4887fa9; definitionDigest 5a591515…; plan 5ee15ff2…"
+    },
+    {
+      "id": "R15",
+      "area": "host scope/no pass",
+      "claim": "explicitly reconcile-only, no business chain; no V25/product upgrade",
+      "evidence": [
+        "joint limitations/findings",
+        "H7-round8"
+      ],
+      "method": "text/mapping",
+      "result": "verified",
+      "detail": "status fixed-host-reconcile-passed scoped; limitations state only reconcile, create cause unfixed, future create needs new frozen plan; H7-round8 maps round7 failure only; product 79/79 unchanged"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F8-R1",
+      "severity": "evidence-metadata-bug",
+      "title": "cachedReceipt bytes 55,376 vs actual status-final 58,375",
+      "files": [
+        "artifacts/dsh/host/round8-joint-reconcile.json#cachedReceipt",
+        "artifacts/dsh/host/round8/status-final.json"
+      ],
+      "evidence": "actual 58375B/sha fdba995f…; joint claims 55376 (sha matches); Lead message said 58,374",
+      "impact": "sha correct; byte accounting wrong, claim unverifiable as written",
+      "recommendation": "set actual bytes (or bytesSemantics) before host commit",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-f10affc",
+        "verified": true,
+        "commit": "f10affc0f0782e28a284389ff91a4f6d4c12a835"
+      }
+    },
+    {
+      "id": "F8-R2",
+      "severity": "cache-claim-mismatch",
+      "title": "Cached status receipt lacks readOnly/createsGoal/modelCalls/retries but joint findings claims them",
+      "files": [
+        "round8 joint findings",
+        "round8/status-final.json#diagnostics.coreValidationReconcile"
+      ],
+      "evidence": "cached receipt contains classification/readback/cancelAttempts/postCancel/unknowns only; receipt file has readOnly true/createsGoal false/modelCalls0/retries0",
+      "impact": "cache claim overstates what status payload contains; receipt file itself is valid",
+      "recommendation": "cache full receipt or reword joint finding to point readOnly/modelCalls to receipt",
+      "owner": "Lead",
+      "disposition": {
+        "status": "fixed-in-f10affc",
+        "verified": true,
+        "commit": "f10affc0f0782e28a284389ff91a4f6d4c12a835"
+      }
+    },
+    {
+      "id": "F8-R3",
+      "severity": "pending",
+      "title": "Host commit and X+1 pending",
+      "files": [
+        "untracked round8 evidence",
+        "pending X+1"
+      ],
+      "evidence": "host draft untracked; X+1 not committed",
+      "impact": "task-43 cannot complete until host commit and X+1 verified",
+      "recommendation": "fix F8-R1/R2, commit host evidence, provide X+1",
+      "owner": "Lead",
+      "disposition": {
+        "status": "resolved-by-f766ab7-and-f10affc",
+        "verified": true
+      }
+    },
+    {
+      "id": "F8-R4",
+      "severity": "info-wording",
+      "title": "Reload delta includes normal task metadata/capability epoch changes though classification says no business facts changed",
+      "files": [
+        "artifacts/dsh/host/round8-joint-reconcile.json#deltas.reload",
+        "round8 audits"
+      ],
+      "evidence": "before→reload: events 53→54, capability 41→43, hostEpoch changes, task 59d527… metadata version 41→42; classification says 'no business facts changed'. Reconcile delta itself is +1 commitSeq only; no state/effect/budget/task-state changes.",
+      "impact": "semantic counts unchanged; normal reopen metadata bookkeeping is not called out; could be read as stricter than reality",
+      "recommendation": "future wording: 'normal startup writes incl. task metadata version/capability epoch; no Task state/Effect/budget change'; non-blocking",
+      "owner": "Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true
+      }
+    },
+    {
+      "id": "F8-R5",
+      "severity": "info-scope",
+      "title": "Round-8 host evidence not mapped in H7-round8",
+      "files": [
+        "h7-round8-slice.json",
+        "traceability.json"
+      ],
+      "evidence": "H7-round8 new sources are round7 failure/H3 runner/round7 integration/round7 clean/review; host f10affc committed after X+1",
+      "impact": "no upgrade/unknown; product rows unchanged",
+      "recommendation": "map in next round if useful",
+      "owner": "Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true
+      }
+    },
+    {
+      "id": "F8-R6",
+      "severity": "info-hygiene",
+      "title": "acceptance inputs contain clean generation temp root",
+      "files": [
+        "acceptance-report.json#inputs"
+      ],
+      "evidence": "pluginRoot=/private/tmp/h7r8-clean/plugins/shiyu, workspaceRoot=/private/tmp/h7r8-clean; no home/user path",
+      "impact": "no product/home leak",
+      "recommendation": "future redaction",
+      "owner": "test-harness/Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true
+      }
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Host commit/X+1",
+      "reason": "host draft untracked; X+1 pending"
+    },
+    {
+      "item": "Real bounded core Goal business chain",
+      "reason": "round-7 create failed; round-8 only reconciles residual; no plan/Task/worker/verification/native completion"
+    },
+    {
+      "item": "Original create failure cause",
+      "reason": "not fixed in this slice; future create needs new explicit owner decision/frozen plan"
+    },
+    {
+      "item": "Independent suite re-execution",
+      "reason": "read-only; logs/hashes/counts/Lead checks used"
+    },
+    {
+      "item": "Round-8 host H7 mapping",
+      "reason": "host committed after X+1; not in H7-round8 (future round)"
+    }
+  ],
+  "counts": {
+    "H3_reconcile_isolated": 1552,
+    "H3_tests": 29,
+    "H7_sources": 52,
+    "H7_files": 160,
+    "H7_full": 1547,
+    "H7_harness": 107,
+    "round8_integration": 1561
+  },
+  "hostDraft": {
+    "status": "committed-f10affc",
+    "before": {
+      "commitSeq": 405,
+      "events": 53,
+      "sessions": 34,
+      "capability": 41,
+      "goals": 3
+    },
+    "reload": {
+      "commitSeq": 411,
+      "events": 54,
+      "sessions": 34,
+      "capability": 43,
+      "goals": 3
+    },
+    "reconcile": {
+      "commitSeq": 412,
+      "events": 54,
+      "sessions": 34,
+      "capability": 43,
+      "goals": 3
+    },
+    "final": {
+      "commitSeq": 412,
+      "events": 54,
+      "sessions": 34,
+      "capability": 43,
+      "goals": 3
+    },
+    "receipt": {
+      "classification": "inert-unauthorized",
+      "readback": "complete",
+      "cancelAttempts": 1,
+      "postCancel": {
+        "cancelled": true,
+        "paused": true,
+        "version": 2
+      },
+      "unknowns": [],
+      "readOnly": true,
+      "createsGoal": false,
+      "modelCalls": 0,
+      "retries": 0,
+      "bytes": 1083,
+      "sha256": "3d8597c5919abb3a23aea480c6454e1f08f05bf89d784cbdfb876bb1afba43b5"
+    },
+    "cachedReceipt": {
+      "bytes": 58375,
+      "sha256": "fdba995f30c125d887df5156e6bd628d99030be94c5f75c3cf761cd628bc9206",
+      "bytesSemantics": "actual committed file bytes",
+      "fieldsPresent": "classification/readback/observed/evidence/stopAction/cancelAttempts/postCancel/unknowns",
+      "declaredOnlyInReceipt": {
+        "readOnly": true,
+        "createsGoal": false,
+        "modelCalls": 0,
+        "retries": 0
+      }
+    },
+    "goalRow": {
+      "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+      "requestId": "core-validation-frozen-v1",
+      "version": 2,
+      "authorized": false,
+      "paused": true,
+      "cancelled": true,
+      "evaluations": 0
+    },
+    "known34SessionsUnchanged": true,
+    "stateFileUnchanged": true,
+    "dist": "c4887fa966ccfb1d6bd633d4348e2ec3d23ed22b5661710d6aade23b73a6f224/113",
+    "definitionDigest": "5a591515147e63ccd956f4ed85b95ccf7df8b29770f4c13ac0ef11d3636c652e"
+  },
+  "overallVerdict": "Task-43 is complete and verified: H3 reconcile (29 tests/1552 isolated) implements real create-failure readback and bounded reconcile (only inert unauthorized Goal gets exactly one cancel; no retry/auto-cancel/model/create), H7-round8 maps 52 sources/160 files with the round-7 failure at fixed-host-failure-diagnostic only (review info-only unmapped, V25 excluded, product 79/79 not_covered), and integration 1561 passes. The committed round-8 host evidence f10affc proves a single inert-unauthorized reconcile: receipt classification/readback/one cancel/postCancel v2/unknowns empty/readOnly/createsGoal false/modelCalls0/retries0; reconcile adds exactly +1 commitSeq with no events/session/goal-count/task-state/effect/budget/artifact changes, state unchanged, known 34 Sessions byte-identical, DB Goal now cancelled=true/paused=true/version2, status-final caches the validated core receipt; dist reproducible. F8-R1/R2 fixed in the host commit; F8-R3 resolved by X+1=f766ab7 (11 artifacts, manifest head=X/dirty=false, clean 1561, selfproof 14/107, 52/52 sources/160 files, product 79/79, gate incomplete). Remaining F8-R4/R5/R6 are info-only wording/hygiene/mapping notes; the reconcile pass is not a business-chain pass and the create cause remains unfixed.",
+  "xPlusOne": {
+    "X": "7c0b22a3b331275f743efea4a9343bdc6ec6b289",
+    "X+1": "f766ab74960b8253365d794ea3c407e57aaa2460",
+    "host": "f10affc0f0782e28a284389ff91a4f6d4c12a835",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "7c0b22a3b331275f743efea4a9343bdc6ec6b289",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T03:54:01.191Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 404,
+      "bytes": 7162480,
+      "digest": "9e9837e58306117e204ebb6cb48216a7f0e62a941ca2b9892cbbc73c20010421"
+    },
+    "cleanCheck": {
+      "tests": 1561,
+      "pass": 1561,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "a2f60e041af2e6f134208fe20fbb502b37d195b8d07ca855c0759e8efef8eae5",
+      "bytes": 167299
+    },
+    "pipeline": {
+      "sha256": "2bde1fcf7a5ed142f809a9d5c81e6ca5329d3de4625f8cc079e4c9bb6711825a",
+      "bytes": 2948,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "73a77b853c08551aabce25c191483218b55e0c0c9c280adc0048279c92e01224/867",
+    "selfproof": {
+      "files": 14,
+      "tests": 107
+    },
+    "sources": {
+      "verified": 52,
+      "files": 160,
+      "unknown": 0
+    },
+    "oracleCorpus": {
+      "h0b": 15,
+      "h0cBusiness": 7,
+      "total": 22
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b/84286",
+      "tool-selfproof.json": "05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0/23553",
+      "tool-selfproof.tap": "91774dd0103d17415c53d657b96236017bfaeb6e2b9ebe09b54207b5473917d4/20683",
+      "traceability.json": "bdee819c0018feaf0ce5e9a6c4aee2d96050830a8f546a06f80eda44bcce1672/1072747",
+      "traceability.md": "9a9162135aea3d0fa5ed6c75a673f1324dab9e27114aa095ca1b14e8409f2d1a/33423",
+      "h7-traceability-mapping.md": "3d6c8e552019b6da1b7eea491ed98f054449ba3d43a199d4065dec904f1fd107/64662",
+      "acceptance-report.json": "c0719e83f63b7eea1de938c444c45e2df2e040560367a516d905d63e05ca2462/347583",
+      "acceptance-report.md": "998020e15d2becae0aa4b54df213cc4ef887c031ba15aecfa101d08ebf59f6b3/28938",
+      "fl-scenarios/manifest.json": "dfd27fad6c8876e84d0cbfa8a504a2341f5af9e653f1436d31f0f7802bed2e2f/13154",
+      "fl-scenarios/coverage.json": "4d1314ddd0e312a4d74c672867e8ace1dd7e2f641dee3170f0e6afa8845ef2ba/52559",
+      "fl-scenarios/coverage.md": "5f276d825c4725985418d11a31ae9ae069d6d2f57b09bc11c1440116337a9eed/9308"
+    },
+    "notes": [
+      "acceptance inputs temp root /private/tmp/h7r8-clean (F8-R6 info)",
+      "round8 host not in H7 mapping (F8-R5 info)"
+    ]
+  }
+}
