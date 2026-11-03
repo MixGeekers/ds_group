@@ -49,6 +49,7 @@ import {
 import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
 import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
 import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
+import { CORE_VALIDATION_EXPERIMENT } from './control/core-validation.js';
 import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
 
 export const VERSION = '0.1.0';
@@ -692,6 +693,16 @@ export class RuntimeService {
    * declared side effects.
    */
   private async commandCoreGoalValidation(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    return this.commandCoreGoalValidationRun(value, signal, undefined);
+  }
+
+  /** v2 is a new frozen experiment for an explicit owner decision; it is NOT a
+   * retry of the failed v1 create and never accepts input selection. */
+  private async commandCoreGoalValidationV2(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    return this.commandCoreGoalValidationRun(value, signal, CORE_VALIDATION_EXPERIMENT);
+  }
+
+  private async commandCoreGoalValidationRun(value: Record<string, unknown>, signal: AbortSignal | undefined, experiment: typeof CORE_VALIDATION_EXPERIMENT | undefined): Promise<unknown> {
     if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid bounded core Goal validation input');
     this.ensureCanRun(); signal?.throwIfAborted();
     if (!this.core) throw new Error('CORE_GOAL_VALIDATION_UNAVAILABLE');
@@ -722,6 +733,7 @@ export class RuntimeService {
         },
         signal: op.controller.signal,
         progress: phase => { op.phase = phase.slice(0, 120); },
+        ...(experiment === undefined ? {} : { experiment }),
       });
       this.lastCoreGoalValidation = structuredClone(receipt);
       return { ...receipt, sent: false, readOnlyProbe: false,
@@ -935,6 +947,7 @@ export class RuntimeService {
     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
     if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);
     if (action === 'runtime.probe-core-goal') return this.commandCoreGoalValidation(value, signal);
+    if (action === 'runtime.probe-core-goal-v2') return this.commandCoreGoalValidationV2(value, signal);
     if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);
     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);
