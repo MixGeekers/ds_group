@@ -54,5 +54,17 @@
     "embeddingCalls": 0,
     "hostReloads": 0
   },
-  "evidenceLevel": "G1 integration + isolated full check; third v3 host attempt pending."
+  "evidenceLevel": "G1 integration + isolated full check; third v3 host attempt pending.",
+  "fileFactsCorrections": [
+    {
+      "id": "F12-R1",
+      "finding": "the isolated verification artifact listed the pre-final h7-round12-slice.json (4,799B WIP snapshot)",
+      "resolution": "the final X tree has h7-round12-slice.json 6,690B/sha fb04c010... ; the isolated check still passed 1623/1623 with the final code and the clean X+1 refresh (1623/1623, 67/67 sources) binds the final file"
+    }
+  ],
+  "finalXSliceEvidence": {
+    "path": "plugins/shiyu/artifacts/dsh/harness/h7-round12-slice.json",
+    "bytes": 6690,
+    "sha256": "fb04c010e81f8a1f4278cff37e0f0c04ac5d9bf9b77476415eec0cd26de8ae28"
+  }
 }

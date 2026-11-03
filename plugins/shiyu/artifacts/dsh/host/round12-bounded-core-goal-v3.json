@@ -241,8 +241,8 @@
   },
   "cachedReceipt": {
     "file": "artifacts/dsh/host/round12/status-final.json",
-    "bytes": 62489,
-    "sha256": "f78c8f5dbdbfd7383b89ebe81708f04a56b28ec4083a1c59b761d09e23d41eb8",
+    "bytes": 69295,
+    "sha256": "e727ffcc5c5d30d2485347b8314784f0f7cf378547e758e9ec6b8078615bac31",
     "fieldsPresent": "status/reasonCode/requestId/failurePhase/failureCode/failureDetail/historyDiagnostic partial (cache holds the validated core receipt; readOnly/createsGoal/modelCalls/retries are declared on the tool response and in the receipt file)",
     "value": {
       "status": "failed",
@@ -266,7 +266,8 @@
         "BALANCE_READ_UNAVAILABLE",
         "USAGE_UNKNOWN"
       ]
-    }
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8) of the final read-only status; the attempt-time status snapshot was not separately retained"
   },
   "findings": [
     "Progress: the create-only cold-cut fix removed the previous event-count mismatch (expected.eventCount=3 == live.seq=3, inherited 0, delta 0).",
@@ -365,7 +366,7 @@
     },
     "statusPayload": {
       "file": "artifacts/dsh/host/round12/status-final.json",
-      "bytes": 66187,
+      "bytes": 69295,
       "sha256": "e727ffcc5c5d30d2485347b8314784f0f7cf378547e758e9ec6b8078615bac31",
       "cachedReconcile": {
         "requestIds": [
@@ -388,7 +389,7 @@
   },
   "statusFinal": {
     "file": "artifacts/dsh/host/round12/status-final.json",
-    "bytes": 66187,
+    "bytes": 69295,
     "sha256": "e727ffcc5c5d30d2485347b8314784f0f7cf378547e758e9ec6b8078615bac31"
   },
   "audits": {
@@ -397,5 +398,14 @@
     "afterAttempt": "artifacts/dsh/host/round12/round12-host-after-run.json",
     "afterReconcile": "artifacts/dsh/host/round12/round12-host-after-reconcile.json",
     "final": "artifacts/dsh/host/round12/round12-host-final.json"
-  }
+  },
+  "auditCount": 5,
+  "auditCountNote": "five committed audit snapshots: before, after reload, after attempt, after reconcile, final",
+  "evidenceCorrections": [
+    {
+      "id": "F12-R2/F12-R3",
+      "finding": "cachedReceipt used an attempt-time byte count whose snapshot was not retained and the doc said six audits while five were committed",
+      "resolution": "all status references now use the actual final 69,295B/sha e727ffcc...; audit count corrected to five with a note"
+    }
+  ]
 }

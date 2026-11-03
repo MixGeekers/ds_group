@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-53)",
+  "reviewedAt": "2026-11-03T09:10:00Z",
+  "subject": "Round-12: create-only cold-cut activation, frozen v3, third v3 failure, generalized [v1,v2,v3] reconcile cleanup, H7 X+1",
+  "head": "31e5c056f810559cf4ea89bb7cdcb67952c20341",
+  "commits": {
+    "v3-coldcut-slice": "ccefc57",
+    "H7-round12": "1a1e299",
+    "integration (X)": "68b1caf",
+    "H7 X+1": "1113662",
+    "host-v3-attempt+cleanup": "31e5c05"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "X slice files/logs",
+      "claim": "ccefc57 files match; isolated 1613/1613; combined 1623/1623; integration 1605+8+9+1 arithmetic",
+      "evidence": [
+        "artifacts/dsh/slices/h3-v3-livecut-verify.json",
+        "artifacts/dsh/slices/round12-integrated-verify.json",
+        "artifacts/dsh/h3/h3-v3-livecut-activation.json"
+      ],
+      "method": "hashes/logs",
+      "result": "verified-with-finding",
+      "detail": "h3 slice files 4/4, log 21114f28…/172099 1613; integration files code 3/3 and log 52cfd4ec…/172866 1623; BUT integration slice evidence file list claims h7-round12-slice 4799B while actual X 6690B (F12-R1)"
+    },
+    {
+      "id": "R02",
+      "area": "activation semantics",
+      "claim": "create-only liveCut seq-excluding-header affects only new create; recovery/expectedPrefix strict; native create once/no replay; v3 frozen constants/only exact ref; reconcile [v1,v2,v3]",
+      "evidence": [
+        "ccefc57 goals.ts/core-validation.ts/tests"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "stabilizeCoreCreateBaseline passes liveCut only; recovery path keeps strict event-count semantics; v3 frozen requestId/template/content; reconcile fixed [v1,v2,v3] caller cannot select; tests 8 net"
+    },
+    {
+      "id": "R03",
+      "area": "host v3 failure receipt",
+      "claim": "failed/CREATE_FAILED/history-assert/NATIVE_HISTORY_CHANGED; header-hash diagnostic expected.eventCount3=live.seq3 delta0, cold baa30ad4 vs live bbd0090c; evaluateAttempts0; stopAction none; partialCreation; 0 retry",
+      "evidence": [
+        "artifacts/dsh/host/round12/core-goal-v3-receipt.json",
+        "round12 joint"
+      ],
+      "method": "receipt/audit",
+      "result": "verified",
+      "detail": "receipt 5999B/sha 7eefe41d…; exact diagnostic; goal obs 474B/sha 6164c848…; status cache failed v3 receipt; plan 2273B/sha b9393d6b… exists"
+    },
+    {
+      "id": "R04",
+      "area": "host audit/live state",
+      "claim": "attempt +3 commitSeq/goals4→5/sessions35→36; no events/Task/Effect/budget/artifact; state/known unchanged; v3 Goal + Session 4 meta; journal unknown",
+      "evidence": [
+        "round12 audits",
+        "DB read-only",
+        "session zstd decode"
+      ],
+      "method": "audit diff+DB/session",
+      "result": "verified",
+      "detail": "434/57/35/goals4 → reload440/58/35/4 → attempt443/58/36/5 → reconcile/final444/58/36/5; known35 unchanged; new v3 Goal core-3e89f8…; Session decodes 4 lines; journal history-assert/NATIVE_HISTORY_CHANGED; DB v3 goal cancelled version2 after cleanup"
+    },
+    {
+      "id": "R05",
+      "area": "post-attempt reconcile cleanup",
+      "claim": "v1/v2 cancelled no action; v3 inert→exactly one cancel/postCancel version2/unknowns[]; +1 commitSeq only; no other side effects; status cache",
+      "evidence": [
+        "round12 postAttemptReconcile",
+        "status-final",
+        "audits"
+      ],
+      "method": "receipt/audit",
+      "result": "verified",
+      "detail": "reconcile 433→434?/444 (+1), targets v1/v2 cancelAttempts0, v3 cancelAttempts1; readOnly/createsGoal/modelCalls/retries declared in receipt; no events/goals/sessions/tasks/effects/budget/artifact changes; status cache has failed v3 + reconcile"
+    },
+    {
+      "id": "R06",
+      "area": "failure/cleanup honesty",
+      "claim": "third attempt failed, cleanup is not business pass; cold-cut host-confirmed only event-count/seq; header-hash cause unknown; fourth unauthorized",
+      "evidence": [
+        "round12 findings/limitations"
+      ],
+      "method": "text review",
+      "result": "verified",
+      "detail": "explicit progress/new blocker/fourth not authorized; no plan/model/Task/native completion claimed; no pass/V25"
+    },
+    {
+      "id": "R07",
+      "area": "host status payload metadata",
+      "claim": "statusFinal/cachedReceipt/statusPayload sizes match actual",
+      "evidence": [
+        "round12 joint cachedReceipt/statusFinal/postAttemptReconcile",
+        "round12/status-final.json"
+      ],
+      "method": "sha/bytes",
+      "result": "finding",
+      "detail": "actual status-final 69295B/sha e727ffcc…; cachedReceipt claims 62489B/sha f78c8f5d (attempt-time snapshot not retained); statusFinal/statusPayload claim 66187B (sha e727 matches) (F12-R2)"
+    },
+    {
+      "id": "R08",
+      "area": "host audit completeness",
+      "claim": "six audits present",
+      "evidence": [
+        "round12 joint audits",
+        "round12 files"
+      ],
+      "method": "file count",
+      "result": "finding",
+      "detail": "task says 6 audits; host/round12 has 5 audit JSON (before/after-reload/after-run/after-reconcile/final) (F12-R3)"
+    },
+    {
+      "id": "R09",
+      "area": "H7-round12",
+      "claim": "67 sources/224 files; 6 new/26; round11 host reconcile only fixed-host-zero-model-reconcile; V25 excluded; product79/79; logs 1614/132",
+      "evidence": [
+        "artifacts/dsh/harness/h7-round12-slice.json",
+        "tests/harness-round12.test.ts",
+        "logs"
+      ],
+      "method": "hashes/tests/logs",
+      "result": "verified",
+      "detail": "files 10/10; tests 67/224,6/26,levels,V25,review; full1614/harness132; archives 4/4; product79/79; gate incomplete"
+    },
+    {
+      "id": "R10",
+      "area": "X+1",
+      "claim": "1113662 11 artifacts; manifest head=68b1caf/dirty=false; clean1623; selfproof17/132; 67/67 sources; product79/79; gate incomplete",
+      "evidence": [
+        "1113662 artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "clean a306a454…/172840 1623; pipeline f5efeb4b…/3169; archive fb34b6f0…/839; manifest e14d6bde…/84288; selfproof19fe7789…/27647; sources67/224; product79/79; gate incomplete executed=passed=0; code diff0"
+    },
+    {
+      "id": "R11",
+      "area": "no upgrade",
+      "claim": "failure/diagnostic/reconcile not upgraded to pass/V25/business",
+      "evidence": [
+        "H7/acceptance/joint"
+      ],
+      "method": "mapping/text",
+      "result": "verified",
+      "detail": "H7 maps round11 only; product79/79 not_covered; tooling/V/S/FL not upgraded; round12 host cleanup is not business pass"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F12-R1",
+      "severity": "minor-evidence-binding",
+      "title": "round12 integrated slice evidence binds stale h7-round12-slice (4799B vs actual 6690B)",
+      "files": [
+        "artifacts/dsh/slices/round12-integrated-verify.json",
+        "68b1caf h7-round12-slice.json"
+      ],
+      "evidence": "file entry claims 4799B; actual at X 6690B/sha fb04c010; integration check still 1623; X+1 clean uses final",
+      "impact": "integration evidence stale for one harness artifact; no code/test failure",
+      "recommendation": "refresh integration verify or note the later h7 update",
+      "owner": "Lead"
+    },
+    {
+      "id": "F12-R2",
+      "severity": "minor-bytes",
+      "title": "Host status payload bytes/sha references stale",
+      "files": [
+        "round12 joint cachedReceipt/statusFinal/postAttemptReconcile",
+        "round12/status-final.json"
+      ],
+      "evidence": "actual status-final 69295B/e727ffcc; cachedReceipt 62489B/f78c8f5d (different payload); statusFinal/statusPayload 66187B/e727 (bytes only)",
+      "impact": "final status content correct; cached attempt-time status not retained and two byte counts wrong",
+      "recommendation": "set actual final bytes; either retain attempt-time status or mark cached as superseded",
+      "owner": "Lead"
+    },
+    {
+      "id": "F12-R3",
+      "severity": "minor-completeness",
+      "title": "Task says six audits; host/round12 contains five audit JSON",
+      "files": [
+        "round12 joint audits",
+        "host/round12/"
+      ],
+      "evidence": "before/after-reload/after-run/after-reconcile/final =5; joint audits lists 5",
+      "impact": "one audit unaccounted; failure/cleanup evidence still sufficient",
+      "recommendation": "add missing audit or clarify count",
+      "owner": "Lead"
+    },
+    {
+      "id": "F12-R4",
+      "severity": "info-scope",
+      "title": "Round-12 host evidence not yet mapped in H7 (round13)",
+      "files": [
+        "h7-round12-slice.json",
+        "traceability"
+      ],
+      "evidence": "H7-round12 maps round11 sources; host 31e5c05 after X+1",
+      "impact": "no upgrade/unknown; product rows unchanged",
+      "recommendation": "map in round13",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Header-hash root cause",
+      "reason": "new deterministic blocker; field-level volatile header cause unknown; fourth attempt unauthorized"
+    },
+    {
+      "item": "Create success/real business chain",
+      "reason": "third v3 attempt failed at create; no plan/model/Task/native completion"
+    },
+    {
+      "item": "Attempt-time status payload",
+      "reason": "cachedReceipt sha/bytes do not match retained final status; not retained separately"
+    },
+    {
+      "item": "Independent full-suite rerun",
+      "reason": "read-only; X+1 clean 1623 and host artifacts used"
+    }
+  ],
+  "counts": {
+    "h3_isolated": 1613,
+    "integration": 1623,
+    "X1_clean": 1623,
+    "selfproof": 132,
+    "sources": 67,
+    "files": 224,
+    "goalsBefore": 4,
+    "goalsAfterAttempt": 5,
+    "sessionsBefore": 35,
+    "sessionsAfter": 36,
+    "v3_cancelAttempts": 1
+  },
+  "hostV3": {
+    "receipt": {
+      "bytes": 5999,
+      "sha256": "7eefe41d67be12005ed19e0c75141fcc249bc19d9b90c8c034f191e91535c143"
+    },
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_CREATE_FAILED",
+    "failurePhase": "history-assert",
+    "failureCode": "NATIVE_HISTORY_CHANGED",
+    "historyDiagnostic": {
+      "mismatchKind": "header-hash",
+      "expected": {
+        "eventCount": 3,
+        "inheritedEventCount": 0,
+        "headerHash": "baa30ad4d06e38bf"
+      },
+      "live": {
+        "eventCount": 3,
+        "seq": 3,
+        "inheritedEventCount": 0,
+        "headerHash": "bbd0090cf84d43d9"
+      },
+      "delta": 0
+    },
+    "evaluateAttempts": 0,
+    "modelRequests": 0,
+    "stopAction": "none",
+    "partialCreation": {
+      "detected": true,
+      "readback": "complete"
+    },
+    "retry": false,
+    "goalId": "core-3e89f88834ad86ef7d3932e6a77cd4d055037663",
+    "requestId": "core-validation-frozen-v3",
+    "journal": {
+      "status": "unknown",
+      "reason": "history-assert/NATIVE_HISTORY_CHANGED: Native history changed outside the trusted recovery suffix"
+    },
+    "sessionEvents": 4,
+    "before": {
+      "commitSeq": 434,
+      "events": 57,
+      "sessions": 35,
+      "goals": 4
+    },
+    "afterReload": {
+      "commitSeq": 440,
+      "events": 58,
+      "sessions": 35,
+      "goals": 4
+    },
+    "afterAttempt": {
+      "commitSeq": 443,
+      "events": 58,
+      "sessions": 36,
+      "goals": 5
+    },
+    "afterReconcile": {
+      "commitSeq": 444,
+      "events": 58,
+      "sessions": 36,
+      "goals": 5
+    },
+    "statusFinal": {
+      "bytes": 69295,
+      "sha256": "e727ffcc5c5d30d2485347b8314784f0f7cf378547e758e9ec6b8078615bac31"
+    },
+    "cleanup": {
+      "v1": "cancelled/no-action",
+      "v2": "cancelled/no-action",
+      "v3": "inert-unauthorized/one-cancel/version2",
+      "commitSeqDelta": 1
+    }
+  },
+  "xPlusOne": {
+    "X": "68b1caf",
+    "X+1": "1113662",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "68b1caf",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T08:22:49.599Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 404,
+      "bytes": 7280449,
+      "digest": "6dfa918695248e1bbc517c4b11c425a9c8284c43aa24d7b0e04a93986d9538e0"
+    },
+    "cleanCheck": {
+      "tests": 1623,
+      "pass": 1623,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "a306a454096f07f2f3ba5385667cfccc57bb8e11cb36de65487836584e1d64cd",
+      "bytes": 172840
+    },
+    "pipeline": {
+      "sha256": "f5efeb4b5cc708d63d958c877c9f90d5b17d55381add8bab53c4d26d060c7c01",
+      "bytes": 3169,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "fb34b6f0c9e344af7f92de8e365d39848ec9fbdcc8a1cac58ff918e078296443/839",
+    "selfproof": {
+      "files": 17,
+      "tests": 132
+    },
+    "sources": {
+      "verified": 67,
+      "files": 224,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "e14d6bde3082ba8528669c79fd60b6db366e64b3a99a2ed00c93ccae8640effc/84288",
+      "tool-selfproof.json": "19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697/27647",
+      "tool-selfproof.tap": "94ae218a7d7851414575d002a6298e60c5854939f0d2f390fc51df4b4ad6676c/25047",
+      "traceability.json": "42c53bc65307e0741c9a5b8aa27b53b2d6c0077b58d6bee4f99465da7a0b1763/1364061",
+      "traceability.md": "c529370c3faa82f68c3494c6a385469535a7cf2161443f4cc126ae995497bf9d/33899",
+      "h7-traceability-mapping.md": "246c0e621721b22f37b3172d447fb8117704ff3c09bb90977821d24b2b29511c/83282",
+      "acceptance-report.json": "52c6bd100223f25f1a87cab791457059c588d6165992e5a5cb853a191e280072/462301",
+      "acceptance-report.md": "e29b76f8b8139ea2fd312170672858485d00db323f6d7716e927ded454d6b30b/30385",
+      "fl-scenarios/manifest.json": "019d8fd9ddfafc9b36679ef39c1c37356b81c9595d7993f3876f7e299a659bb8/13154",
+      "fl-scenarios/coverage.json": "57632eb299f0cc434dc1708823b232aa213496ea791c7ad39dfd928d263a3f01/52559",
+      "fl-scenarios/coverage.md": "8c84405059030f73effcc859246695756f798e27038058733f75361ca486e45c/9308"
+    }
+  },
+  "overallVerdict": "Round-12 evidence is substantively honest: the create-only cold-cut fix is correctly scoped (new create only; recovery/expectedPair strict; native create once), v3 is frozen behind an exact owner surface and reconcile covers fixed [v1,v2,v3]; the third v3 host attempt is correctly recorded as FAILED at history-assert/header-hash even though event-count/seq now align (expected3/live3/delta0; cold vs live header hash), with 0 model requests, no retry, one partial unauthorized/paused v3 Goal + one 4-meta-event Goal Session, journal unknown; the follow-up generalized reconcile cleaned v1/v2 (cancelled/no action) and v3 (one cancel to version 2), +1 commitSeq with no other side effects. H7-round12 maps 67/224 sources with round11 reconcile at fixed-host-zero-model-reconcile only, V25 excluded, product 79/79 not_covered; X+1=1113662 is artifact-only with clean1623, selfproof17/132, 67/67 sources and gate incomplete. F12-R1/R2/R3 are evidence-metadata/completeness issues (stale integration file binding, status payload bytes/cached attempt status, audit count); F12-R4 info scope. They do not show a false pass or hidden business completion."
+}

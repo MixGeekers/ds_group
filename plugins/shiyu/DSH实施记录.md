@@ -1778,10 +1778,29 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 - 运行一次广义 reconcile（固定 `[v1,v2,v3]`）：v1/v2 已 cancelled 无动作；**v3 inert-unauthorized → 恰一次 cancel**、`postCancel={cancelled:true,paused:true,version:2}`、unknowns=[]；`readOnly=true/createsGoal=false/modelCalls=0/retries=0`。
 - 审计：reconcile 仅 **+1 commitSeq**（v3 cancel），无 events/session/Goal/Task/Effect/budget/artifact 变化；随后 status 只读无副作用。
-- 证据：[round12-bounded-core-goal-v3.json](<artifacts/dsh/host/round12-bounded-core-goal-v3.json>) + `host/round12/`（v3 receipt、Goal/journal 观测、plan、6 份审计、status-final 66,187B）。
+- 证据：[round12-bounded-core-goal-v3.json](<artifacts/dsh/host/round12-bounded-core-goal-v3.json>) + `host/round12/`（v3 receipt、Goal/journal 观测、plan、**5 份审计**、status-final 69,295B）。
 
 ### 58.4 下一步
 
 1. **header 字段级差异诊断**：受控输出 cold/live header 的差异字段名（如 isSeeded/seed 状态/other volatile fields，不泄露正文），并判断哪些字段是宿主可信任的可变初始化字段。
 2. 据此在 **create-only** 路径决定是否允许受控 header 归一化；recovery/expectedPrefix 严格语义仍不变。
 3. **第四次尝试未授权**：需先修/取证并显式 owner 决定；v1/v2/v3 均不得重试。
+
+## 59. 第十二轮独立复核与 F12 处置（round-12 收尾）
+
+2026-11-03，独立验证员完成 round-12 只读复核（task-53）：**cold-cut 进展真实（event-count/seq 3/3 对齐、delta 0），新阻塞为 header-hash；第三次尝试失败、0 模型、未重试、partial v3 Goal/Session 如实保留并经广义 reconcile 清理；第四次未授权；H7 未升级；X+1 满足约定。** 报告：[ROUND12-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND12-EVIDENCE-REVIEW.md>)、[round12-evidence-review.json](<artifacts/dsh/verify/round12-evidence-review.json>)。
+
+### 59.1 F12 处置
+
+| ID | 处置 |
+|---|---|
+| F12-R1（verify 文件清单旧 hash） | 已修：集成证据记录最终 X 的 h7-round12-slice.json 为 6,690B/sha `fb04c010…`（隔离 check 仍 1623/1623；clean X+1 1623/1623、67/67 绑定最终文件） |
+| F12-R2（status bytes） | 已修：cachedReceipt/statusFinal/reconcile statusPayload 全部改为实际最终 69,295B/sha `e727ffcc…`，注明 attempt-time status snapshot 未单独保留 |
+| F12-R3（审计计数） | 已修：证据记录 auditCount=5（before/reload/after-attempt/after-reconcile/final）并加说明；§58 同步改“5 份审计” |
+| F12-R4（映射/边界 info） | info：round-12 host 未入 H7（round-13）；header-hash 根因未知、create 未修复、第四次未授权、reconcile 仅为清理 |
+
+### 59.2 边界
+
+1. 第三次尝试失败：无 core 计划/模型轮/Task/worker/native 完成；0 模型请求。
+2. header-hash 根因未定位（cold `baa30ad4…` vs live `bbd0090c…`，计数一致）；下一步需字段级受控差异诊断与 trusted-field 决策。
+3. **第四次尝试未授权**；v1/v2/v3 均不得重试；reconcile 只证清理路径。
