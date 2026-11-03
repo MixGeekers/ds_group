@@ -1,0 +1,323 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-v4-trusted-header-fix",
+  "phase": "round14",
+  "capturedAt": "2026-11-03T10:52:52.925Z",
+  "status": "offline code preparation for the fourth independent bounded core Goal attempt: create-only delegationDepth canonicalization activated + frozen v4 experiment + v4 owner command/tool patch + fixed v1/v2/v3/v4 reconcile; real host execution NOT performed by implementer",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "realGoalCreatedByImplementer": false,
+  "realGoalCancelledByImplementer": false,
+  "explicitDeclaration": "This slice only prepares code. The fourth bounded attempt is a NEW explicit owner decision and independent attempt; it is NOT a retry of the failed v1/v2/v3 creates. All three remain failed/reconciled and must never be retried.",
+  "head": "d22156159df81a27ebd0366619c95ec81606ee90",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+      "bytes": 47512,
+      "sha256": "4aa15fed07b050bae743e3f0e5a6a09214ce504346eb9e5d9f39c9586d4b6f87"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 69810,
+      "sha256": "cce0a5eb650e131b51e76894fb3e5bc66ea664031f05de362a2b50afd00b54fc"
+    },
+    {
+      "path": "plugins/shiyu/src/control/native-header-cut-probe.ts",
+      "bytes": 18004,
+      "sha256": "20de09280ce292d2b67352dbf294d4a105e84f9d5f10740a13ca86eb0f355e2d"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 88699,
+      "sha256": "b2a44c3526b013b2400c09303c012ed528bace216c54fed566f4a6e358db500a"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 115899,
+      "sha256": "6108e487c0a93d6572cd27fb2dddb288c1d8ca12aace4dceadbac4919f1cfa1b"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 76455,
+      "sha256": "f0d3a428df5bb8a6c84ef04e8d5fd3b46b9e82c3a2a0427e553cd48e4d1685c4"
+    }
+  ],
+  "rootCause": {
+    "confirmedByRound13Probe": "The round-13 zero-model header-cut probe reported the exact remaining difference: the persisted cold header has delegationDepth: 0 while the live seeded Session header omits (absent) that trusted field; eventCount/seq already aligned at 3/3 and inherited/delta were 0. The deterministic header-hash mismatch is therefore the delegationDepth trusted-field representation difference, not an event append.",
+    "fix": "Create-only trusted-field canonicalization: before the cold/live header comparison, the live `delegationDepth: absent` is canonicalized to 0 ONLY when the persisted cold header facts contain `delegationDepth: number:0`. No other field is normalized and no other history-integrity check is relaxed."
+  },
+  "normalization": {
+    "activatedPaths": [
+      "GoalSessionAdapter.stabilizeCoreCreateBaseline: observeNativeBaseline + explicit assertNativeLiveHistory",
+      "GoalSessionAdapter.bindCoreTitleAppend: post-title-create assertions on the same create path"
+    ],
+    "condition": "canonicalLiveHeader only inserts delegationDepth=0 when (a) caller passes headerCanonicalization=delegation-depth-default-zero, (b) the cold baseline headerFacts delegationDepth === number:0, and (c) the live header delegationDepth is absent/null",
+    "unchanged": [
+      "recovery/resume and every expectedPrefix path do not pass the option and keep the strict header-hash comparison",
+      "default assertNativeLiveHistory (no option) is strict; a cold delegationDepth:0 vs live absent still fails header-hash",
+      "no other header field is normalized (isSeeded/createdAt/cwd/agentPreset/id/version all remain strict)",
+      "no history event/digest/reference/inherited/cut check was relaxed"
+    ],
+    "probe": "the zero-model header-cut probe mirrors the create-only path, records headerNormalization=delegation-depth-default-zero and adds check trusted-header-normalized:delegation-depth-default-zero; in the cold-0/live-absent scenario it now reports matched=true",
+    "failureDiagnostics": "any remaining header/event mismatch still carries the controlled historyDiagnostic with headerDiff (field name + value category only)"
+  },
+  "experimentV4": {
+    "constant": "CORE_VALIDATION_EXPERIMENT_V4 (Object.freeze, nested deliverable/budget frozen)",
+    "version": 4,
+    "requestId": "core-validation-frozen-v4",
+    "objective": "完成 owner 预授权的有界本地便签验证 v4：写入 note-1 并由独立核验确认。",
+    "deliverable": {
+      "id": "note-1",
+      "title": "有界 core 验证便签 v4",
+      "content": "SHIYU_CORE_VALIDATION_NOTE_V4",
+      "contentSha256": "79f3b83f7aa59887f0b6814ccd1e8578e8f7c35474756ee15475ab53f6f4c74e"
+    },
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "fixedTemplateSha256": "14296381ae9d8bd3d68fa58107cb00294e6ee29bd16734411314158345a9000e",
+    "acceptance": "runBoundedCoreValidation accepts only the exact code-level constants CORE_VALIDATION_V1 / _EXPERIMENT / _EXPERIMENT_V3 / _EXPERIMENT_V4 via trusted composition; clones, version-only objects and every tool/command/model argument are rejected.",
+    "unchanged": {
+      "v1": {
+        "requestId": "core-validation-frozen-v1",
+        "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca"
+      },
+      "v2": {
+        "requestId": "core-validation-frozen-v2",
+        "templateSha256": "756ec37b5bc054564076e226fc45bed135ced702d337acbf75fdcaf7f18ae34d"
+      },
+      "v3": {
+        "requestId": "core-validation-frozen-v3",
+        "templateSha256": "dc907faaa3f01f196e14e518a3cc292bb02d46447dfa102358ab871983bb6c94"
+      },
+      "note": "v1/v2/v3 remain failed and reconciled; this slice never retries them"
+    }
+  },
+  "reconcile": {
+    "fixedTargets": [
+      "core-validation-frozen-v1",
+      "core-validation-frozen-v2",
+      "core-validation-frozen-v3",
+      "core-validation-frozen-v4"
+    ],
+    "semantics": "one owner call reconciles the four fixed requestIds in code order; per target read-only classification, at most one explicit core.control(cancel) only for inert-unauthorized, postCancel readback, 0 retries, 0 model calls, no Goal creation/resume; top-level fields keep the v1 target for backward compatibility and targets[] carries all four; callers cannot select/add/override",
+    "tests": [
+      "v4 inert target is the only one cancelled",
+      "all four absent without writes",
+      "arbitrary caller requestId/requestIds rejected",
+      "fixed target order/mirroring validated"
+    ]
+  },
+  "integration": {
+    "patchPath": "plugins/shiyu/artifacts/dsh/h3/h3-v4-runtime-index.patch",
+    "patchBytes": 6025,
+    "patchSha256": "aaa64310c20219fba331381bed625de1de8d20e431896d8e88d676fbf8b80587",
+    "patchLines": 81,
+    "touchedFiles": [
+      "plugins/shiyu/src/runtime.ts",
+      "plugins/shiyu/src/index.ts"
+    ],
+    "runtime": {
+      "action": "runtime.probe-core-goal-v4",
+      "implementation": "commandCoreGoalValidationV4 delegates to the existing commandCoreGoalValidationRun with the frozen CORE_VALIDATION_EXPERIMENT_V4 constant only; paused/idle/single-slot/abort/0-retry/cached-diagnostics behavior is unchanged and shared with v1/v2/v3"
+    },
+    "index": {
+      "tool": "shiyu_validate_core_goal_v4",
+      "parameters": "none (empty object, additionalProperties false)",
+      "outputSchema": "object (additionalProperties true), JSON text render",
+      "descriptionRequirements": [
+        "全新 v4 冻结实验、非 v1/v2/v3 重试、显式 owner 决定的第四次独立尝试",
+        "创建真实 Goal/Task/Effect/budget/native Session/local artifact 并调用真实模型",
+        "requestId core-validation-frozen-v4 固定、不接受输入覆盖",
+        "失败/未知绝不重试，回执仅存 diagnostics.coreGoalValidation"
+      ]
+    },
+    "validation": {
+      "patchAppliesToHead": "git apply --check exit 0 on a clean worktree at HEAD d221561",
+      "typecheckWithSliceAndPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + slice + patch)",
+      "buildWithSliceAndPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  },
+  "tests": {
+    "focused": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts tests/core-validation.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h14-focused.log",
+        "sha256": "95b2b227c815d838fc090ff5a19dce83d7d25fbce8ceb4eb09b29a79771658b2"
+      },
+      "tests": 112,
+      "pass": 112,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "regression": {
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h14-regression.log",
+        "sha256": "a7beb52baee08ced58ccc38c2b25a813d13f1f25c6e846f04fe963b0c323fad9"
+      },
+      "tests": 89,
+      "pass": 89,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "netNew": 8,
+    "noSkips": true,
+    "newOrUpdated": [
+      "create-only delegationDepth 0 vs absent now succeeds with exactly one native create (updated activation gate)",
+      "cold/live isSeeded/createdAt/delegationDepth(non-zero) differences still fail as header-hash with controlled headerDiff",
+      "default strict assertion remains strict while the create-only canonicalization aligns delegationDepth 0 vs absent; non-zero value still fails",
+      "zero-model header-cut probe reports matched=true for the same scenario with headerNormalization recorded",
+      "v4 constants frozen (requestId/template/content sha) and exact-reference-only acceptance",
+      "v4 completed bounded run carries the frozen requestId/template/content sha and never retries",
+      "reconcile cancels only the inert v4 target and leaves v1/v2/v3 untouched",
+      "reconcile reports all four absent and rejects caller requestIds; fixed target order validated"
+    ]
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-v4-trusted-header --manifest plugins/shiyu/.local/h3-h14-manifest.json",
+      "head": "d22156159df81a27ebd0366619c95ec81606ee90",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+          "bytes": 47512,
+          "sha256": "4aa15fed07b050bae743e3f0e5a6a09214ce504346eb9e5d9f39c9586d4b6f87"
+        },
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+          "bytes": 69810,
+          "sha256": "cce0a5eb650e131b51e76894fb3e5bc66ea664031f05de362a2b50afd00b54fc"
+        },
+        {
+          "path": "plugins/shiyu/src/control/native-header-cut-probe.ts",
+          "bytes": 18004,
+          "sha256": "20de09280ce292d2b67352dbf294d4a105e84f9d5f10740a13ca86eb0f355e2d"
+        },
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 88699,
+          "sha256": "b2a44c3526b013b2400c09303c012ed528bace216c54fed566f4a6e358db500a"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+          "bytes": 115899,
+          "sha256": "6108e487c0a93d6572cd27fb2dddb288c1d8ca12aace4dceadbac4919f1cfa1b"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-validation.test.ts",
+          "bytes": 76455,
+          "sha256": "f0d3a428df5bb8a6c84ef04e8d5fd3b46b9e82c3a2a0427e553cd48e4d1685c4"
+        }
+      ],
+      "exitCode": 0,
+      "tests": {
+        "tests": 1651,
+        "pass": 1651,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 1101627,
+      "log": {
+        "path": "plugins/shiyu/.local/h3/slice-verify-h3-v4-trusted-header.log",
+        "bytes": 388,
+        "sha256": "6e38d79cd154e87029e094c7531e222aa22b4395684005e1aa106c82d4a1ca3d"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-v4-trusted-header-verify.json",
+        "sha256": "69c31013aa33663a436ea2199b437d03dd377720e473421819f5714a0df7de4c"
+      }
+    },
+    "mainTreeTypecheck": "npx tsc --noEmit exit 0",
+    "note": "no real host/model execution was performed; the host side is the Lead-owned fourth attempt under the kit below"
+  },
+  "hostKit": {
+    "kitVersion": 1,
+    "status": "frozen; the fourth attempt is an explicit owner decision and is NOT a v1/v2/v3 retry",
+    "explicitOwnerDecisionStatement": "I explicitly decide to run the FOURTH independent bounded core Goal validation attempt as a new v4 frozen experiment. It is not a replay/retry of v1/v2/v3 (which stay failed and reconciled), and I accept the declared real side effects and no-retry failure handling.",
+    "preconditions": [
+      "integrate this slice + the runtime/index patch and record the resulting build/commit digest",
+      "runtime unpaused and idle (no active operation, no queued Task admission); the command rejects otherwise before any side effect",
+      "capture a before-audit: v1/v2/v3 Goal ids/states/journal receipts, Session file hashes/counts, budget counters, business-store counts",
+      "confirm v1/v2/v3 stay failed/reconciled and are not retried",
+      "accept declared real side effects: Goal, Task, Effect, budget, native Session, local artifact, up to 2 real bounded model rounds"
+    ],
+    "invocation": {
+      "action": "runtime.probe-core-goal-v4",
+      "tool": "shiyu_validate_core_goal_v4",
+      "parameters": "none",
+      "expectedOutput": "bounded runner receipt + { sent:false, readOnlyProbe:false, declaredSideEffects{...true} }; receipt cached only in snapshot().diagnostics.coreGoalValidation"
+    },
+    "expectedReceiptFields": [
+      "requestId = core-validation-frozen-v4",
+      "fixedInput.requestId/templateSha256 = the frozen v4 values declared above",
+      "status completed|failed|paused|timeout|cancelled (honest, never upgraded)",
+      "evaluations/evaluateAttempts/taskRefs/evidence and businessSideEffects.goal.created true|false|unknown",
+      "on create failure: failurePhase, failureCode, failureDetail and historyDiagnostic{mismatchKind, expected.eventCount, live.seq, delta, hash prefixes, headerDiff?}",
+      "creationReadback/partialCreation when available",
+      "usage counters only as actually reported; no invented usage"
+    ],
+    "successCriteria": [
+      "status completed with independent verification and a completed native Goal",
+      "native create exactly once, no retry/replay, one core Session",
+      "no v1/v2/v3 change beyond the pre-existing reconciled cancelled state"
+    ],
+    "failurePreservationRules": [
+      "failed/unknown leaves partial Goal/Task/Session/artifact/budget evidence in place; do not delete, roll back or retry",
+      "run shiyu_reconcile_core_validation_goal afterwards: it now covers the fixed [v1,v2,v3,v4] targets, is read-only except one cancel for an inert partial v4 Goal, never retries",
+      "if failurePhase=history-assert, keep the full historyDiagnostic (and headerDiff) + journal reason + archived Session event inventory and stop; no further attempt without a new explicit owner decision"
+    ],
+    "costAndTimeStops": [
+      "frozen budget tokens 16384 / calls 3 / effects 1",
+      "max 2 evaluation rounds",
+      "wall 180s and expiresInMs 600000",
+      "single runtime slot/single-flight; command-level abort supported",
+      "failure/unknown is terminal for the attempt: 0 retries; a further attempt requires a new explicit owner decision"
+    ],
+    "afterRunAudit": [
+      "record dist/commit digest, exact receipt JSON, journal receipt, Session inventory/hashes, counters and unknown usage",
+      "confirm no v1/v2/v3 Goal/Session changed and no model call happened outside the two bounded rounds"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model run by the implementer: normalization is validated against fake host shapes only",
+    "the canonicalization is conditional on the persisted cold fact delegationDepth: number:0; if the real cold header lacks it, strict semantics remain and the attempt would fail header-hash without retry",
+    "no other header field is normalized; any other difference still fails with the controlled headerDiff and is not guessed away",
+    "the runtime/index patch is provided but not applied here (write scope excludes runtime.ts/index.ts)",
+    "no v1/v2/v3 retry and no real Goal creation/cancellation by the implementer"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-v4-runtime-index.patch",
+      "sha256": "aaa64310c20219fba331381bed625de1de8d20e431896d8e88d676fbf8b80587",
+      "bytes": 6025
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-v4-trusted-header-verify.json",
+      "sha256": "69c31013aa33663a436ea2199b437d03dd377720e473421819f5714a0df7de4c"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/slice-verify-h3-v4-trusted-header.log",
+      "sha256": "6e38d79cd154e87029e094c7531e222aa22b4395684005e1aa106c82d4a1ca3d"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h14-focused.log",
+      "sha256": "95b2b227c815d838fc090ff5a19dce83d7d25fbce8ceb4eb09b29a79771658b2"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h14-regression.log",
+      "sha256": "a7beb52baee08ced58ccc38c2b25a813d13f1f25c6e846f04fe963b0c323fad9"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h14-integration-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  ]
+}

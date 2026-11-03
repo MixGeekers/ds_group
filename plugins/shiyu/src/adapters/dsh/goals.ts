@@ -468,7 +468,8 @@ export class GoalSessionAdapter {
       this.assertOpen(); nativeSignal.throwIfAborted();
       if (this.core) {
         if (phase) phase.current = 'title-readback';
-        baseline = await this.bindCoreTitleAppend(owner.handle.agent, baseline!, nativeSignal);
+        baseline = await this.bindCoreTitleAppend(owner.handle.agent, baseline!, nativeSignal,
+          create ? 'delegation-depth-default-zero' : undefined);
       }
       return await run(owner.handle.agent, baseline);
     } catch (error) {
@@ -508,11 +509,17 @@ export class GoalSessionAdapter {
           // option is scoped to new-Session create stabilization; recovery and
           // expectedPrefix paths keep the strict event-count semantics.
           liveCut: 'seq-excluding-header',
+          // Create-only trusted header canonicalization: the persisted cold
+          // header carries delegationDepth: 0 while the live seeded Session
+          // header omits that trusted field. Only this single field is
+          // normalized, and only on the new-Session create cold-cut path.
+          headerCanonicalization: 'delegation-depth-default-zero',
           signal,
         });
         if (snapshot.references.length) throw new Error('Unknown native inbox blocks Core Goal activation');
         if (phase) phase.current = 'history-assert';
-        assertNativeLiveHistory(this.options.ctx, agent.session, snapshot, agent.inbox, { liveCut: 'seq-excluding-header' });
+        assertNativeLiveHistory(this.options.ctx, agent.session, snapshot, agent.inbox,
+          { liveCut: 'seq-excluding-header', headerCanonicalization: 'delegation-depth-default-zero' });
         if (phase) phase.current = 'observe';
         return snapshot;
       } catch (error) {
@@ -531,7 +538,8 @@ export class GoalSessionAdapter {
     throw lastError;
   }
   /** A fixed title is a legitimate write; it must extend the observed cut by exactly its event. */
-  private async bindCoreTitleAppend(agent: DshAgent, baseline: NativeColdInboxSnapshot, signal: AbortSignal): Promise<NativeColdInboxSnapshot> {
+  private async bindCoreTitleAppend(agent: DshAgent, baseline: NativeColdInboxSnapshot, signal: AbortSignal,
+    headerCanonicalization?: 'delegation-depth-default-zero'): Promise<NativeColdInboxSnapshot> {
     const title = '识雨 · 受限目标规划';
     const snapshot = this.options.ctx.get('sessionTitle').get(agent.session);
     if (!snapshot || snapshot.title !== title || snapshot.source?.kind !== 'user'
@@ -543,11 +551,13 @@ export class GoalSessionAdapter {
         validate: event => event.type === 'session/title' && event.data?.title === title
           && event.data?.source?.kind === 'user' && Array.isArray(event.data?.messageSeqs) && event.data.messageSeqs.length === 0,
       }, this.preset, { signal });
-      assertNativeLiveHistory(this.options.ctx, agent.session, next, agent.inbox);
+      assertNativeLiveHistory(this.options.ctx, agent.session, next, agent.inbox,
+        { ...(headerCanonicalization ? { headerCanonicalization } : {}) });
       return next;
     }
     // No title append: the observed cut and the live watermark must still agree.
-    assertNativeLiveHistory(this.options.ctx, agent.session, baseline, agent.inbox);
+    assertNativeLiveHistory(this.options.ctx, agent.session, baseline, agent.inbox,
+      { ...(headerCanonicalization ? { headerCanonicalization } : {}) });
     return baseline;
   }
   private async release(owner: SessionOwner): Promise<void> {

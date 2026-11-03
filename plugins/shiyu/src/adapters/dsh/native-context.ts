@@ -170,6 +170,13 @@ export interface NativeColdHistoryOptions {
    * (a candidate create-only alignment, inactive unless the caller opts in).
    */
   liveCut?: 'event-count' | 'seq-excluding-header';
+  /**
+   * Create-only trusted header canonicalization before the cold/live header hash
+   * comparison. `delegation-depth-default-zero` makes a live header whose
+   * `delegationDepth` field is absent equal to the persisted cold header value 0.
+   * No other field is normalized; default (absent) keeps strict semantics.
+   */
+  headerCanonicalization?: 'delegation-depth-default-zero';
 }
 
 const HISTORY_SEED = 'shiyu-native-history-v1';
@@ -532,7 +539,10 @@ export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string
       appendedTypes,
     };
     if (options.liveSession !== undefined || options.liveInbox !== undefined) {
-      assertNativeLiveHistory(ctx, options.liveSession!, result, options.liveInbox, { ...(options.liveCut ? { liveCut: options.liveCut } : {}) });
+      assertNativeLiveHistory(ctx, options.liveSession!, result, options.liveInbox, {
+        ...(options.liveCut ? { liveCut: options.liveCut } : {}),
+        ...(options.headerCanonicalization ? { headerCanonicalization: options.headerCanonicalization } : {}),
+      });
     }
   } catch (error) {
     failure = error instanceof NativeHistoryError ? error : new NativeHistoryError('NATIVE_HISTORY_READ');
@@ -641,7 +651,7 @@ export async function extendNativeHistorySnapshot(ctx: DshContext, baseline: Nat
  */
 export function assertNativeLiveHistory(ctx: DshContext, session: DshSession, baseline: NativeColdInboxSnapshot,
   liveInbox?: { readonly nextTurn: readonly unknown[]; readonly nextStep?: readonly unknown[] },
-  options: { liveCut?: 'event-count' | 'seq-excluding-header' } = {}): void {
+  options: { liveCut?: 'event-count' | 'seq-excluding-header'; headerCanonicalization?: 'delegation-depth-default-zero' } = {}): void {
   if (!plainRecord(baseline) || typeof baseline.sessionId !== 'string' || typeof baseline.preset !== 'string'
     || !historyInteger(baseline.eventCount) || !historyInteger(baseline.inheritedEventCount)
     || typeof baseline.headerHash !== 'string' || !Array.isArray(baseline.references)) {
@@ -655,25 +665,26 @@ export function assertNativeLiveHistory(ctx: DshContext, session: DshSession, ba
   let live: unknown;
   try { live = sessions.get(session.id); }
   catch { throw new NativeHistoryError('NATIVE_HISTORY_SERVICES'); }
+  const comparableHeader = canonicalLiveHeader(session.header, options.headerCanonicalization, baseline.headerFacts) ?? session.header;
   const liveFacts = { eventCount: session.seq, seq: session.seq, inheritedEventCount: session.inheritedEventCount,
-    headerHash: safeHeaderHash(session.header) };
+    headerHash: safeHeaderHash(comparableHeader) };
   if (live !== session) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('session-id', baseline, liveFacts));
   if (session.id !== baseline.sessionId) {
     throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('session-id', baseline, liveFacts));
   }
   if (session.header.id !== session.id || session.header.agentPreset !== baseline.preset) {
     throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic(session.header.agentPreset !== baseline.preset ? 'preset' : 'session-id',
-      baseline, liveFacts, undefined, nativeHeaderFieldDiff(baseline.headerFacts, session.header)));
+      baseline, liveFacts, undefined, nativeHeaderFieldDiff(baseline.headerFacts, comparableHeader)));
   }
   if (session.header.version !== 4 || typeof session.header.isSeeded !== 'boolean') {
     throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('header-hash', baseline, liveFacts));
   }
   let liveHeaderHash: string;
-  try { liveHeaderHash = nativeMessageHash(session.header); }
+  try { liveHeaderHash = nativeMessageHash(comparableHeader); }
   catch { throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('header-hash', baseline, liveFacts)); }
   if (liveHeaderHash !== baseline.headerHash) {
     throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('header-hash', baseline,
-      { ...liveFacts, headerHash: liveHeaderHash }, undefined, nativeHeaderFieldDiff(baseline.headerFacts, session.header)));
+      { ...liveFacts, headerHash: liveHeaderHash }, undefined, nativeHeaderFieldDiff(baseline.headerFacts, comparableHeader)));
   }
   if (!historyInteger(session.inheritedEventCount) || session.inheritedEventCount !== baseline.inheritedEventCount) {
     throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('inherited-count', baseline, liveFacts));
@@ -696,6 +707,21 @@ export function assertNativeLiveHistory(ctx: DshContext, session: DshSession, ba
       throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('references', baseline, liveFacts));
     }
   }
+}
+/** Clone a live header for the create-only trusted comparison. The only
+ * canonicalization permitted here is the persisted `delegationDepth: 0` being
+ * absent on the live seeded Session header; every other field and the live
+ * Session object stay untouched. */
+export function canonicalLiveHeader(header: unknown,
+  mode?: 'delegation-depth-default-zero', expectedFacts?: NativeHeaderFacts): Record<string, unknown> | undefined {
+  if (!plainRecord(header)) return undefined;
+  const clone = structuredClone(header) as Record<string, unknown>;
+  // Only default the live absent field to 0 when the persisted cold header
+  // actually carries the trusted delegationDepth: 0 fact. Strict callers pass no
+  // mode (or no matching cold fact) and therefore never normalize.
+  if (mode === 'delegation-depth-default-zero' && expectedFacts?.delegationDepth === 'number:0'
+    && (clone.delegationDepth === undefined || clone.delegationDepth === null)) clone.delegationDepth = 0;
+  return clone;
 }
 function safeHeaderHash(header: unknown): string | undefined {
   try { return typeof header === 'object' && header !== null ? nativeMessageHash(header) : undefined; } catch { return undefined; }
@@ -722,6 +748,7 @@ export async function observeNativeBaseline(ctx: DshContext, agent: DshAgent, pr
       ...(options.expectedPrefix === undefined ? {} : { expectedPrefix: options.expectedPrefix }),
       ...(options.allowAppended === undefined ? {} : { allowAppended: options.allowAppended }),
       ...(options.liveCut === undefined ? {} : { liveCut: options.liveCut }),
+      ...(options.headerCanonicalization === undefined ? {} : { headerCanonicalization: options.headerCanonicalization }),
       liveSession: agent.session,
       ...(agent.inbox === undefined ? {} : { liveInbox: agent.inbox }),
     });

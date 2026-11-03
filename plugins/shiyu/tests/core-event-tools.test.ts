@@ -1423,6 +1423,7 @@ test('the zero-model header-cut probe creates exactly one bare Session, matches 
   assert.deepEqual(receipt.headerDiff, []);
   assert.equal(receipt.zeroModel, true); assert.equal(receipt.zeroEmbedding, true);
   assert.equal(receipt.zeroTaskOrEffect, true); assert.equal(receipt.createdGoal, false);
+  assert.equal(receipt.headerNormalization, 'delegation-depth-default-zero');
   assert.equal(receipt.released, true); assert.equal(receipt.disposed, true); assert.equal(receipt.archived, true);
   assert.equal(receipt.cleanup.ok, true);
   assert.equal(receipt.cold?.eventCount, 0); assert.equal(receipt.live?.seq, 0);
@@ -1524,4 +1525,65 @@ test('the owner-command admission helper rejects paused/busy/capacity runtimes w
     (error: unknown) => error instanceof NativeHeaderCutProbeError && error.code === 'NATIVE_HEADER_CUT_BUSY');
   assert.throws(() => assertNativeHeaderCutAdmission({ paused: false, operations: 1, capacity: 1, sameActionRunning: false }),
     (error: unknown) => error instanceof NativeHeaderCutProbeError && error.code === 'NATIVE_HEADER_CUT_CAPACITY');
+});
+
+// ---------------------------------------------------------------------------
+// Create-only delegationDepth trusted-field canonicalization (round 14).
+// ---------------------------------------------------------------------------
+test('the create-only delegationDepth normalization makes a cold 0 vs live absent header create succeed with one native create', async () => {
+  const host = fixture(); host.setColdHeaderOverrides({ delegationDepth: 0 });
+  const driver = host.adapter();
+  try {
+    const result = await driver.create(host.create);
+    assert.ok(result.native); assert.equal(result.native.phase, 'active');
+    assert.equal(result.binding.receipt?.status, 'confirmed');
+    assert.equal(host.createCounts().nativeCreateCalls, 1, 'native goals.create is called exactly once');
+    assert.equal(host.counts().followups, 0); assert.equal(host.counts().streams, 0);
+  } finally { await driver.close(); }
+});
+
+test('other cold/live header field differences still fail as header-hash with the controlled diff', async () => {
+  for (const [field, value, pattern] of [
+    ['isSeeded', true, /isSeeded: boolean:true→boolean:false/],
+    ['createdAt', 123456789, /createdAt: number:123456789→number:1/],
+    ['delegationDepth', 2, /delegationDepth: number:2→absent/],
+  ] as const) {
+    const host = fixture(); host.setColdHeaderOverrides({ [field]: value });
+    const driver = host.adapter();
+    try {
+      let failure: CreateFailure | undefined;
+      await assert.rejects(driver.create(host.create), (error: unknown) => {
+        assert.ok(error instanceof GoalOperationUnknownError); failure = error as CreateFailure; return true;
+      });
+      assert.equal(failure!.diagnostic?.phase, 'history-assert');
+      assert.equal(failure!.diagnostic?.historyDiagnostic?.mismatchKind, 'header-hash');
+      assert.match(failure!.diagnostic?.historyDiagnostic?.headerDiff?.join('\n') ?? '', pattern);
+      assert.equal(host.createCounts().nativeCreateCalls, 0, 'a non-normalized header difference never reaches native create');
+    } finally { await driver.close(); }
+  }
+});
+
+test('the default strict assertion is unchanged while the create-only canonicalization aligns delegationDepth 0 vs absent', () => {
+  const probe = historyProbe({ header: { delegationDepth: 0 } });
+  delete (probe.session.header as Record<string, unknown>).delegationDepth;
+  expectHistoryDiagnostic(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline), { kind: 'header-hash' });
+  assert.doesNotThrow(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline, undefined,
+    { headerCanonicalization: 'delegation-depth-default-zero' }));
+  // Only the single trusted field is normalized: a real value difference still fails.
+  const nonZero = historyProbe({ header: { delegationDepth: 2 } });
+  delete (nonZero.session.header as Record<string, unknown>).delegationDepth;
+  expectHistoryDiagnostic(() => assertNativeLiveHistory(nonZero.ctx, nonZero.session, nonZero.baseline, undefined,
+    { headerCanonicalization: 'delegation-depth-default-zero' }), { kind: 'header-hash' });
+});
+
+test('the zero-model header-cut probe uses the same create-only normalization and reports matched for delegationDepth 0 vs absent', async () => {
+  const host = fixture(); host.setColdHeaderOverrides({ delegationDepth: 0 });
+  const receipt = await probeNativeHeaderCut(probeOptions(host));
+  assert.equal(receipt.status, 'completed'); assert.equal(receipt.matched, true);
+  assert.equal(receipt.headerNormalization, 'delegation-depth-default-zero');
+  assert.deepEqual(receipt.headerDiff, []);
+  assert.equal(receipt.cold?.headerHashPrefix, receipt.live?.headerHashPrefix);
+  assert.equal(receipt.checks.includes('trusted-header-normalized:delegation-depth-default-zero'), true);
+  assert.equal(receipt.released, true); assert.equal(receipt.disposed, true); assert.equal(receipt.archived, true);
+  assert.doesNotThrow(() => assertNativeHeaderCutProbeReceipt(receipt));
 });

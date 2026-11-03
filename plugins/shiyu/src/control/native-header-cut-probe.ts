@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { isAbsolute } from 'node:path';
 import { defaultModel, type DshAgentHandle, type DshContext } from '../adapters/dsh/sessions.js';
 import { nativeMessageHash } from '../adapters/dsh/native-message.js';
-import { assertNativeLiveHistory, coldNativeInboxSnapshot, nativeHeaderFieldDiff, nativeInboxReferences,
+import { assertNativeLiveHistory, canonicalLiveHeader, coldNativeInboxSnapshot, nativeHeaderFieldDiff, nativeInboxReferences,
   NativeHistoryError, type NativeHistoryDiagnostic } from '../adapters/dsh/native-context.js';
 
 export const NATIVE_HEADER_CUT_PROBE_TOOL = 'shiyu_diagnose_native_header_cut';
@@ -39,6 +39,8 @@ export interface NativeHeaderCutProbeReceipt {
   cold?: { eventCount: number; inheritedEventCount: number; headerHashPrefix: string };
   live?: { eventCount: number; seq: number; inheritedEventCount: number; headerHashPrefix: string };
   matched: boolean;
+  /** Create-only trusted normalization used for the comparison. */
+  headerNormalization: 'delegation-depth-default-zero';
   headerDiff: string[];
   mismatchKind?: string;
   checks: string[];
@@ -127,13 +129,18 @@ export async function probeNativeHeaderCut(options: NativeHeaderCutProbeOptions)
     if (remaining() <= 0) { status = 'timeout'; throw Object.assign(new Error('Native header-cut probe deadline exceeded'), { code: 'NATIVE_HISTORY_DEADLINE' }); }
     const snapshot = await coldNativeInboxSnapshot(ctx, createdSessionId, options.preset, signal, { deadlineAtMs: deadline });
     checks.push('cold-observed');
-    const liveHeaderHash = nativeMessageHash(handle.agent.session.header);
+    // The probe mirrors the create-only cold-cut path: only the persisted
+    // delegationDepth: 0 vs absent live field is canonicalized.
+    const comparableHeader = canonicalLiveHeader(handle.agent.session.header, 'delegation-depth-default-zero', snapshot.headerFacts) ?? handle.agent.session.header;
+    const liveHeaderHash = nativeMessageHash(comparableHeader);
+    checks.push('trusted-header-normalized:delegation-depth-default-zero');
     cold = { eventCount: snapshot.eventCount, inheritedEventCount: snapshot.inheritedEventCount, headerHashPrefix: prefix(snapshot.headerHash) };
     live = { eventCount: Number(handle.agent.session.seq), seq: Number(handle.agent.session.seq),
       inheritedEventCount: Number(handle.agent.session.inheritedEventCount), headerHashPrefix: prefix(liveHeaderHash) };
-    headerDiff = nativeHeaderFieldDiff(snapshot.headerFacts, handle.agent.session.header).slice(0, 12);
+    headerDiff = nativeHeaderFieldDiff(snapshot.headerFacts, comparableHeader).slice(0, 12);
     try {
-      assertNativeLiveHistory(ctx, handle.agent.session, snapshot, handle.agent.inbox, { liveCut: 'seq-excluding-header' });
+      assertNativeLiveHistory(ctx, handle.agent.session, snapshot, handle.agent.inbox,
+        { liveCut: 'seq-excluding-header', headerCanonicalization: 'delegation-depth-default-zero' });
       matched = cold.headerHashPrefix === live.headerHashPrefix && cold.eventCount - (snapshot.headerEventCount ?? 0) === live.seq
         && cold.inheritedEventCount === live.inheritedEventCount;
       checks.push(matched ? 'cold-live-header-cut-matched' : 'cold-live-header-cut-mismatched');
@@ -172,7 +179,7 @@ export async function probeNativeHeaderCut(options: NativeHeaderCutProbeOptions)
     startedAt: iso(startedAtMs), completedAt: iso(completedAtMs), durationMs: Math.max(0, completedAtMs - startedAtMs),
     ...(createdSessionId ? { createdSessionId } : {}),
     ...(cold ? { cold } : {}), ...(live ? { live } : {}),
-    matched, headerDiff, ...(mismatchKind ? { mismatchKind } : {}), checks: checks.slice(0, 32),
+    matched, headerNormalization: 'delegation-depth-default-zero', headerDiff, ...(mismatchKind ? { mismatchKind } : {}), checks: checks.slice(0, 32),
     released, disposed, archived, cleanup: { ok: cleanupFailures.length === 0, failures: cleanupFailures.slice(0, 8) },
     ...(failure ? { error: failure } : {}),
   };
@@ -217,7 +224,8 @@ export function assertNativeHeaderCutProbeReceipt(value: unknown): asserts value
       throw new Error('Native header-cut live facts are malformed');
     }
   }
-  if (typeof receipt.matched !== 'boolean' || !Array.isArray(receipt.headerDiff) || receipt.headerDiff.length > 12) throw new Error('Native header-cut match facts are malformed');
+  if (typeof receipt.matched !== 'boolean' || receipt.headerNormalization !== 'delegation-depth-default-zero'
+    || !Array.isArray(receipt.headerDiff) || receipt.headerDiff.length > 12) throw new Error('Native header-cut match facts are malformed');
   if (receipt.headerDiff.some(entry => typeof entry !== 'string' || entry.length > 80 || !DIFF_ENTRY.test(entry))) throw new Error('Native header-cut headerDiff is not a controlled field/category diff');
   if (receipt.headerDiff.join('\n').length > 300) throw new Error('Native header-cut headerDiff exceeds its bounded size');
   if (!Array.isArray(receipt.checks) || receipt.checks.length > 32 || receipt.checks.some(entry => typeof entry !== 'string' || !/^[a-z][a-z0-9:_-]{0,63}$/.test(entry))) {
