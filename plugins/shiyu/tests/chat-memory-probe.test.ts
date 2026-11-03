@@ -183,3 +183,16 @@ test('abort/deadline are explicit and do not retry', async () => {
   await assert.rejects(runChatMemoryWritePhase(deadline.ports, { deadlineMs: 1, now }), (error: unknown) => Boolean(error));
   assert.equal(deadline.calls.reply, 0);
 });
+
+test('write phase refreshes memory availability after indexing and before the reply', async () => {
+  let availabilityPublished = false;
+  const order: string[] = [];
+  const { ports } = writePorts({
+    async index() { order.push('index'); return { indexReceiptId: `index_receipt_${'b'.repeat(64)}`, effectStatus: 'succeeded', embeddingCalls: 1, usageComplete: true }; },
+    async onIndexed() { order.push('publish'); availabilityPublished = true; },
+    async reply(input) { order.push('reply'); assert.equal(availabilityPublished, true); return reply({ conversationId: input.conversationId }); },
+  });
+  const receipt = await runChatMemoryWritePhase(ports);
+  assert.equal(receipt.pass, true);
+  assert.deepEqual(order, ['index', 'publish', 'reply']);
+});

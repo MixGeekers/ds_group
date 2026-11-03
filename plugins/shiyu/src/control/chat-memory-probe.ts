@@ -52,6 +52,10 @@ export interface ChatMemoryWritePorts {
   findConversation(): Promise<{ conversationId: string } | undefined>;
   remember(input: { requestId: string; conversationId: string; text: string }): Promise<{ operationId: string; requestId: string; canRead?: boolean }>;
   index(input: { requestId: string; operationId: string }): Promise<ChatMemoryProbeIndexReceipt>;
+  /** Trusted runtime hook: after a successful index, refresh/publish memory
+   * availability so a reply's semantic ReadView observes the verified profile
+   * and the semantic_search capability. Never supplied by model/command input. */
+  onIndexed?(): Promise<void>;
   reply(input: { conversationId: string; inputId: string; text: string; maxTokens: number }): Promise<ChatMemoryProbeReply>;
 }
 export interface ChatMemoryRecallPorts {
@@ -176,6 +180,10 @@ export async function runChatMemoryWritePhase(ports: ChatMemoryWritePorts, optio
       throw new ChatMemoryProbeError('CHAT_MEMORY_PROBE_FAILED', `Write phase failed: ${reason}`,
         make({ conversationId: conversation.conversationId, memory: { operationId: remembered.operationId, requestId: remembered.requestId }, index: clone(indexed), reasonCode: reason }));
     }
+    // A newly indexed fact verifies the embedding; refresh the readiness
+    // projection and publish semantic availability before the reply, otherwise
+    // the reply's ReadView rejects a valid index observation as INVALID_INDEX_OBSERVATION.
+    if (ports.onIndexed) { await ports.onIndexed(); steps.push({ step: 'publish-memory-availability', status: 'passed' }); }
     const maxTokens = options.maxTokens ?? CHAT_MEMORY_PROBE_MAX_TOKENS;
     if (!Number.isSafeInteger(maxTokens) || maxTokens < 1 || maxTokens > CHAT_MEMORY_PROBE_MAX_TOKENS) throw new ChatMemoryProbeError('CHAT_MEMORY_PROBE_FAILED', 'Invalid write maxTokens', make({ conversationId: conversation.conversationId, reasonCode: 'INVALID_OPTIONS' }));
     const reply = await ports.reply({ conversationId: conversation.conversationId, inputId: `chat-memory-probe-write-${randomUUID()}`,

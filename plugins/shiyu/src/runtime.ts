@@ -1568,6 +1568,7 @@ export class RuntimeService {
             return { ...(indexed.entry.observation?.receipt?.receiptId ? { indexReceiptId: indexed.entry.observation.receipt.receiptId } : {}),
               effectStatus: indexed.entry.effect.status, embeddingCalls: indexed.entry.embeddingUsage.calls, usageComplete: indexed.entry.embeddingUsage.complete };
           },
+          async onIndexed() { await runtime.refreshMemoryCoverage(); await runtime.publishMemoryAvailability(); },
           reply: replyPort,
         }, { signal: op.controller.signal, ...(conversationId ? { conversationId } : {}) })
         : await runChatMemoryRecallPhase({
