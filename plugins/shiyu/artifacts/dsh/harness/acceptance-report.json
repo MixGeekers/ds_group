@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.acceptance-report",
-  "generatedAt": "2026-11-03T07:06:42.261Z",
+  "generatedAt": "2026-11-03T08:31:43.574Z",
   "registryVersion": "1.0.0",
   "inputs": {
-    "pluginRoot": "/private/tmp/h7r11-clean/plugins/shiyu",
-    "workspaceRoot": "/private/tmp/h7r11-clean",
-    "traceabilitySha256": "592c9bd8875e2062883984f22dceabac21d1a5da8889d2133da7aa18d18b3339",
-    "selfproofSha256": "3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b",
-    "manifestSha256": "27401364c723eba40fc6baf43459a6a4bc186b5863cfefa360df44127a7ce538",
-    "coverageSha256": "06d44a45887c5d24297aef6bd6b3fcc7a3c44b63138c09da0168220ae8f8a3de",
-    "frozenHead": "fe6d5f7d83f8e4438164baba68599a0d50b1f120",
+    "pluginRoot": "/private/tmp/h7r12-clean/plugins/shiyu",
+    "workspaceRoot": "/private/tmp/h7r12-clean",
+    "traceabilitySha256": "42c53bc65307e0741c9a5b8aa27b53b2d6c0077b58d6bee4f99465da7a0b1763",
+    "selfproofSha256": "19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697",
+    "manifestSha256": "e14d6bde3082ba8528669c79fd60b6db366e64b3a99a2ed00c93ccae8640effc",
+    "coverageSha256": "57632eb299f0cc434dc1708823b232aa213496ea791c7ad39dfd928d263a3f01",
+    "frozenHead": "68b1caf80e39cc9a4b2a73bbbb99dea07e9b25f7",
     "selfproofPassed": true,
     "manifestDirty": false
   },
@@ -1033,7 +1033,11 @@
         "round7-host-bounded-core-goal-failure",
         "round8-host-core-validation-reconcile",
         "v2-experiment-activation",
-        "round10-host-v2-create-failure"
+        "round10-host-v2-create-failure",
+        "history-assert-diagnostics",
+        "v1v2-reconcile-generalization",
+        "round11-lead-integration",
+        "round11-host-v1v2-reconcile"
       ],
       "evidenceRefs": [
         {
@@ -1519,6 +1523,129 @@
               "sha256": "07e0879fd6fb14a2e2c90205dd8883ffb4e1f98740328be425948099b62550d6"
             }
           ]
+        },
+        {
+          "sourceId": "history-assert-diagnostics",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+              "sha256": "2a882e63e2a5790e8ced2bb163acfd4c4c932346cde7968d2598f37eeb8567f1"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+              "sha256": "060e746f2f83aaf936073f56325690dbbf7d86b36d153a17320e38e8e631601a"
+            },
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "95d5878318fad97a64a43f9f2a57575e59c5912b71ab987c552876fae33cf180"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-diagnosis.json",
+              "sha256": "b2e94bd3a2c767782b2441f4777c0ad4bbcecd9a01a7b82cdd6afe590908bf38"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-hist-assert-verify.json",
+              "sha256": "a26bca923858f24af67ee4e0ecf41eddbe91a9c083d3f5f0d7fe477086d4a686"
+            }
+          ]
+        },
+        {
+          "sourceId": "v1v2-reconcile-generalization",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-reconcile-integration.patch",
+              "sha256": "fd7a2278dd753a48e391b394721ba5495f192764dca56f1e0f6242160d64e7e7"
+            },
+            {
+              "path": "plugins/shiyu/src/index.ts",
+              "sha256": "d09cfa6cdfeadabb9006ea5efcb1196c319a88e26ed057ffb1eb56c31672e59c"
+            }
+          ]
+        },
+        {
+          "sourceId": "round11-lead-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round11-lead-integration.json",
+              "sha256": "72105e708437dea3cbcac8fc228903f4ef61fc36751aa16e20a1a54e74310a6a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round11-integrated-verify.json",
+              "sha256": "ff59dbe9c7a361c328a66de0e68ea58c233a3fcba64b111bbe7bca67d7c94060"
+            }
+          ]
+        },
+        {
+          "sourceId": "round11-host-v1v2-reconcile",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model-reconcile"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11-joint-reconcile-v1v2.json",
+              "sha256": "063490c650a8b867dc1d0dee42804738115418267c853178c42fe3109ff5989d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/plan.json",
+              "sha256": "8733779142627a28c94f66ac293e55899cdd736afe7e3664f7c1e52afc0350c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/reconcile-v1v2-receipt.json",
+              "sha256": "0a6ea978553aa83959b5841afb07e594595496847a7a922fef1e654d71777a14"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-before.json",
+              "sha256": "223c9279208ca8a4d8bed3f625e82a9212f3e55bf2accbcaf5d31d9c962a886e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-reload.json",
+              "sha256": "2a29ff1a8a7c735648e768f4c46f4929f8a30c618fffccf29774ce6e14cdc0ed"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-run.json",
+              "sha256": "27d52f8beee2bb99957ccf9f650e8a327bda94bfbb58231be3c6168493ba4943"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-final.json",
+              "sha256": "72ac438d7e6ca3d1f0229e4a477d0f0512a059f93af4a1229396940a492371da"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/status-final.json",
+              "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -1557,7 +1684,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收",
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收；round-11 有界 history-assert 诊断（liveCut 休眠/未宿主确认）+ 泛化 v1/v2 reconcile（离线 1605/1605）与固定宿主零模型 reconcile（v1 无动作/v2 恰一次 cancel 至 version 2）仅 limited/failure 参考，create 未修复、第三次未授权，不得 pass",
         "G1 module/property + real temporary SQLite/Worker only; no real DSH host/native Goal rounds, real model plan JSON, cost/cache or slot behaviour.",
         "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission.",
         "Offline implementation/isolated verification only: real bounded core Goal host run was NOT executed by the implementer (Lead host kit); fixed-host attempt failed separately in round7-host-bounded-core-goal-failure with GOAL_OPERATION_UNKNOWN.",
@@ -1613,10 +1740,25 @@
         "FAILED v2 attempt, not bounded-real-model success and NOT business/plan/Task/worker/verification/native acceptance: v2 create failed on history-assert / NATIVE_HISTORY_CHANGED; evaluateAttempts=0, 0 model requests, no retry, no Task/Effect/budget/artifact or native completion.",
         "Partial side effect: an unauthorized/paused v2 Goal (requestId core-validation-frozen-v2) plus one core Goal Session were created; the create command journal is unknown with the same reason; the residual v2 Goal remains unresolved (current reconcile tool is v1-only).",
         "A third attempt is NOT authorized until history-assert semantics are instrumented/fixed; the same-stage two-attempt failure is disclosed. Real business chain remains unverified.",
-        "This fail-diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; the host v2 activation itself is separate offline evidence."
+        "This fail-diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; the host v2 activation itself is separate offline evidence.",
+        "Offline/isolated instrumentation only: the implementer ran no real model or host. The cold-header candidate (cold eventCount includes the Session header while live seq excludes it) is strongly supported by fake-host reproduction at expected.eventCount 4 / live.seq 3 / delta -1 but is NOT host-confirmed.",
+        "The create-only liveCut candidate fix is DORMANT/not activated: product create behavior is unchanged, v1/v2 create were not retried, and a result can only be obtained from a next host instrumented run or a new explicit owner-decided attempt.",
+        "This diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; it does not fix the create history-assert failure and does not prove the real host header/cut semantics.",
+        "The diagnostic payload is bounded to <=300 characters with hash prefixes only: no event body, message text, inbox content or filesystem path.",
+        "Fixed code-constant target order is [core-validation-frozen-v1, core-validation-frozen-v2]; the caller cannot select/override requestIds and arbitrary keys are rejected; v1 top-level fields remain compatible while targets[] carries both. Per target: read-only classification, at most one explicit cancel only for inert-unauthorized, postCancel readback, 0 retries, 0 model calls, no Goal creation.",
+        "Offline module + isolated integration evidence only (core-validation focused 40/40; round-11 integrated isolated check 1605/1605): the fixed-host reconcile call is separate evidence and this source cannot prove a real business chain.",
+        "Generalized reconcile only classifies and at most cancels inert residual Goals; it NEVER creates/retries an experiment and does NOT fix the v1/v2 create history-assert failure.",
+        "A third bounded experiment remains unauthorized and requires an explicit owner decision plus a new frozen requestId/template; caller-supplied requestIds are rejected.",
+        "Never pass/V25/business/nine-system: zero model/embedding/host run in this offline source.",
+        "Integration + isolated check only: 0 real model calls, 0 embedding calls and 0 host reloads in this integration source; the fixed-host reconcile evidence is separate.",
+        "Never pass/V25/business/nine-system; the third bounded experiment remains unauthorized and the create history-assert failure remains unfixed.",
+        "Zero-model reconcile only, NOT a bounded-real-model/business/complete/passed run: v1 cancelled with no action; v2 inert-unauthorized with exactly one cancel and postCancel version 2; 0 model calls, 0 retries, 0 Goal creations, 0 Task/Effect/budget/artifact; only +1 commitSeq and no state-file change.",
+        "It does not fix the v1/v2 create history-assert failure: the cold-header root-cause candidate is NOT host-confirmed and the liveCut fix remains inactive; this call exercised only the reconcile path.",
+        "The final status call is read-only and caches the reconcile receipt (61122 bytes, fields present per the cached snapshot; readOnly/createsGoal/modelCalls/retries are declared in the receipt file); it is a diagnostics cache, not a product UI/render acceptance.",
+        "A third bounded experiment is NOT authorized and requires an explicit owner decision after the diagnostic fix is activated and host-confirmed. This evidence can NEVER be pass, V25, business or nine-system acceptance."
       ],
       "notes": [
-        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收"
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收；round-11 有界 history-assert 诊断（liveCut 休眠/未宿主确认）+ 泛化 v1/v2 reconcile（离线 1605/1605）与固定宿主零模型 reconcile（v1 无动作/v2 恰一次 cancel 至 version 2）仅 limited/failure 参考，create 未修复、第三次未授权，不得 pass"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/00-core-主动判断/README.md",
@@ -4215,6 +4357,10 @@
         "round8-host-core-validation-reconcile",
         "v2-experiment-activation",
         "round10-host-v2-create-failure",
+        "history-assert-diagnostics",
+        "v1v2-reconcile-generalization",
+        "round11-lead-integration",
+        "round11-host-v1v2-reconcile",
         "historical-capability-3i"
       ],
       "evidenceRefs": [
@@ -4615,6 +4761,129 @@
           ]
         },
         {
+          "sourceId": "history-assert-diagnostics",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+              "sha256": "2a882e63e2a5790e8ced2bb163acfd4c4c932346cde7968d2598f37eeb8567f1"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+              "sha256": "060e746f2f83aaf936073f56325690dbbf7d86b36d153a17320e38e8e631601a"
+            },
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "95d5878318fad97a64a43f9f2a57575e59c5912b71ab987c552876fae33cf180"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-diagnosis.json",
+              "sha256": "b2e94bd3a2c767782b2441f4777c0ad4bbcecd9a01a7b82cdd6afe590908bf38"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-hist-assert-verify.json",
+              "sha256": "a26bca923858f24af67ee4e0ecf41eddbe91a9c083d3f5f0d7fe477086d4a686"
+            }
+          ]
+        },
+        {
+          "sourceId": "v1v2-reconcile-generalization",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-reconcile-integration.patch",
+              "sha256": "fd7a2278dd753a48e391b394721ba5495f192764dca56f1e0f6242160d64e7e7"
+            },
+            {
+              "path": "plugins/shiyu/src/index.ts",
+              "sha256": "d09cfa6cdfeadabb9006ea5efcb1196c319a88e26ed057ffb1eb56c31672e59c"
+            }
+          ]
+        },
+        {
+          "sourceId": "round11-lead-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round11-lead-integration.json",
+              "sha256": "72105e708437dea3cbcac8fc228903f4ef61fc36751aa16e20a1a54e74310a6a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round11-integrated-verify.json",
+              "sha256": "ff59dbe9c7a361c328a66de0e68ea58c233a3fcba64b111bbe7bca67d7c94060"
+            }
+          ]
+        },
+        {
+          "sourceId": "round11-host-v1v2-reconcile",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model-reconcile"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11-joint-reconcile-v1v2.json",
+              "sha256": "063490c650a8b867dc1d0dee42804738115418267c853178c42fe3109ff5989d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/plan.json",
+              "sha256": "8733779142627a28c94f66ac293e55899cdd736afe7e3664f7c1e52afc0350c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/reconcile-v1v2-receipt.json",
+              "sha256": "0a6ea978553aa83959b5841afb07e594595496847a7a922fef1e654d71777a14"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-before.json",
+              "sha256": "223c9279208ca8a4d8bed3f625e82a9212f3e55bf2accbcaf5d31d9c962a886e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-reload.json",
+              "sha256": "2a29ff1a8a7c735648e768f4c46f4929f8a30c618fffccf29774ce6e14cdc0ed"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-run.json",
+              "sha256": "27d52f8beee2bb99957ccf9f650e8a327bda94bfbb58231be3c6168493ba4943"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-final.json",
+              "sha256": "72ac438d7e6ca3d1f0229e4a477d0f0512a059f93af4a1229396940a492371da"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/status-final.json",
+              "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b"
+            }
+          ]
+        },
+        {
           "sourceId": "historical-capability-3i",
           "status": "verified",
           "levels": [
@@ -4657,7 +4926,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；权限矩阵未验",
+        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；round-11 仅更新 owner reconcile 工具描述（固定 v1/v2 目标），宿主零模型 reconcile 仅分类/一次 cancel，不是权限矩阵通过；权限矩阵未验",
         "Zero-model probe only: proves restricted mounting, non-forgeable tool parameters and release — not that a model called an event tool.",
         "Not Task/Goal continuation, not provider budget/cache/cost, not business acceptance.",
         "The implementer did NOT execute the real model: this source is offline implementation/isolated verification only.",
@@ -4698,11 +4967,26 @@
         "Partial side effect: an unauthorized/paused v2 Goal (requestId core-validation-frozen-v2) plus one core Goal Session were created; the create command journal is unknown with the same reason; the residual v2 Goal remains unresolved (current reconcile tool is v1-only).",
         "A third attempt is NOT authorized until history-assert semantics are instrumented/fixed; the same-stage two-attempt failure is disclosed. Real business chain remains unverified.",
         "This fail-diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; the host v2 activation itself is separate offline evidence.",
+        "Offline/isolated instrumentation only: the implementer ran no real model or host. The cold-header candidate (cold eventCount includes the Session header while live seq excludes it) is strongly supported by fake-host reproduction at expected.eventCount 4 / live.seq 3 / delta -1 but is NOT host-confirmed.",
+        "The create-only liveCut candidate fix is DORMANT/not activated: product create behavior is unchanged, v1/v2 create were not retried, and a result can only be obtained from a next host instrumented run or a new explicit owner-decided attempt.",
+        "This diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; it does not fix the create history-assert failure and does not prove the real host header/cut semantics.",
+        "The diagnostic payload is bounded to <=300 characters with hash prefixes only: no event body, message text, inbox content or filesystem path.",
+        "Fixed code-constant target order is [core-validation-frozen-v1, core-validation-frozen-v2]; the caller cannot select/override requestIds and arbitrary keys are rejected; v1 top-level fields remain compatible while targets[] carries both. Per target: read-only classification, at most one explicit cancel only for inert-unauthorized, postCancel readback, 0 retries, 0 model calls, no Goal creation.",
+        "Offline module + isolated integration evidence only (core-validation focused 40/40; round-11 integrated isolated check 1605/1605): the fixed-host reconcile call is separate evidence and this source cannot prove a real business chain.",
+        "Generalized reconcile only classifies and at most cancels inert residual Goals; it NEVER creates/retries an experiment and does NOT fix the v1/v2 create history-assert failure.",
+        "A third bounded experiment remains unauthorized and requires an explicit owner decision plus a new frozen requestId/template; caller-supplied requestIds are rejected.",
+        "Never pass/V25/business/nine-system: zero model/embedding/host run in this offline source.",
+        "Integration + isolated check only: 0 real model calls, 0 embedding calls and 0 host reloads in this integration source; the fixed-host reconcile evidence is separate.",
+        "Never pass/V25/business/nine-system; the third bounded experiment remains unauthorized and the create history-assert failure remains unfixed.",
+        "Zero-model reconcile only, NOT a bounded-real-model/business/complete/passed run: v1 cancelled with no action; v2 inert-unauthorized with exactly one cancel and postCancel version 2; 0 model calls, 0 retries, 0 Goal creations, 0 Task/Effect/budget/artifact; only +1 commitSeq and no state-file change.",
+        "It does not fix the v1/v2 create history-assert failure: the cold-header root-cause candidate is NOT host-confirmed and the liveCut fix remains inactive; this call exercised only the reconcile path.",
+        "The final status call is read-only and caches the reconcile receipt (61122 bytes, fields present per the cached snapshot; readOnly/createsGoal/modelCalls/retries are declared in the receipt file); it is a diagnostics cache, not a product UI/render acceptance.",
+        "A third bounded experiment is NOT authorized and requires an explicit owner decision after the diagnostic fix is activated and host-confirmed. This evidence can NEVER be pass, V25, business or nine-system acceptance.",
         "Historical fixed capability only; new-binding real task proof, dynamic candidate/skill matrix, complete V09 and other five domains remain untested.",
         "Zero-model host reloads are not generation or business evidence."
       ],
       "notes": [
-        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；权限矩阵未验"
+        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；round-11 仅更新 owner reconcile 工具描述（固定 v1/v2 目标），宿主零模型 reconcile 仅分类/一次 cancel，不是权限矩阵通过；权限矩阵未验"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/02-工具与权限/README.md",
@@ -4904,6 +5188,7 @@
         "round7-host-bounded-core-goal-failure",
         "round8-host-core-validation-reconcile",
         "round10-host-v2-create-failure",
+        "round11-host-v1v2-reconcile",
         "h4-inner-offline"
       ],
       "evidenceRefs": [
@@ -5121,6 +5406,47 @@
           ]
         },
         {
+          "sourceId": "round11-host-v1v2-reconcile",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model-reconcile"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11-joint-reconcile-v1v2.json",
+              "sha256": "063490c650a8b867dc1d0dee42804738115418267c853178c42fe3109ff5989d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/plan.json",
+              "sha256": "8733779142627a28c94f66ac293e55899cdd736afe7e3664f7c1e52afc0350c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/reconcile-v1v2-receipt.json",
+              "sha256": "0a6ea978553aa83959b5841afb07e594595496847a7a922fef1e654d71777a14"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-before.json",
+              "sha256": "223c9279208ca8a4d8bed3f625e82a9212f3e55bf2accbcaf5d31d9c962a886e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-reload.json",
+              "sha256": "2a29ff1a8a7c735648e768f4c46f4929f8a30c618fffccf29774ce6e14cdc0ed"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-run.json",
+              "sha256": "27d52f8beee2bb99957ccf9f650e8a327bda94bfbb58231be3c6168493ba4943"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-final.json",
+              "sha256": "72ac438d7e6ca3d1f0229e4a477d0f0512a059f93af4a1229396940a492371da"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/status-final.json",
+              "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b"
+            }
+          ]
+        },
+        {
           "sourceId": "h4-inner-offline",
           "status": "verified",
           "levels": [
@@ -5174,7 +5500,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵",
+        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；round-11 宿主零模型 reconcile 仅 v2 cancel 的 +1 commitSeq、无事件/无 state 文件变化，打包/加载/迁移仍 limited；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance.",
         "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
@@ -5202,11 +5528,15 @@
         "Partial side effect: an unauthorized/paused v2 Goal (requestId core-validation-frozen-v2) plus one core Goal Session were created; the create command journal is unknown with the same reason; the residual v2 Goal remains unresolved (current reconcile tool is v1-only).",
         "A third attempt is NOT authorized until history-assert semantics are instrumented/fixed; the same-stage two-attempt failure is disclosed. Real business chain remains unverified.",
         "This fail-diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; the host v2 activation itself is separate offline evidence.",
+        "Zero-model reconcile only, NOT a bounded-real-model/business/complete/passed run: v1 cancelled with no action; v2 inert-unauthorized with exactly one cancel and postCancel version 2; 0 model calls, 0 retries, 0 Goal creations, 0 Task/Effect/budget/artifact; only +1 commitSeq and no state-file change.",
+        "It does not fix the v1/v2 create history-assert failure: the cold-header root-cause candidate is NOT host-confirmed and the liveCut fix remains inactive; this call exercised only the reconcile path.",
+        "The final status call is read-only and caches the reconcile receipt (61122 bytes, fields present per the cached snapshot; readOnly/createsGoal/modelCalls/retries are declared in the receipt file); it is a diagnostics cache, not a product UI/render acceptance.",
+        "A third bounded experiment is NOT authorized and requires an explicit owner decision after the diagnostic fix is activated and host-confirmed. This evidence can NEVER be pass, V25, business or nine-system acceptance.",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
         "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
       ],
       "notes": [
-        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵"
+        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；round-11 宿主零模型 reconcile 仅 v2 cancel 的 +1 commitSeq、无事件/无 state 文件变化，打包/加载/迁移仍 limited；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/04-持久化接口/README.md",
@@ -5240,6 +5570,10 @@
         "round7-host-bounded-core-goal-failure",
         "round8-host-core-validation-reconcile",
         "round10-host-v2-create-failure",
+        "history-assert-diagnostics",
+        "v1v2-reconcile-generalization",
+        "round11-lead-integration",
+        "round11-host-v1v2-reconcile",
         "joint-host-zero-model"
       ],
       "evidenceRefs": [
@@ -5727,6 +6061,129 @@
           ]
         },
         {
+          "sourceId": "history-assert-diagnostics",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+              "sha256": "2a882e63e2a5790e8ced2bb163acfd4c4c932346cde7968d2598f37eeb8567f1"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+              "sha256": "060e746f2f83aaf936073f56325690dbbf7d86b36d153a17320e38e8e631601a"
+            },
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "95d5878318fad97a64a43f9f2a57575e59c5912b71ab987c552876fae33cf180"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-diagnosis.json",
+              "sha256": "b2e94bd3a2c767782b2441f4777c0ad4bbcecd9a01a7b82cdd6afe590908bf38"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-hist-assert-verify.json",
+              "sha256": "a26bca923858f24af67ee4e0ecf41eddbe91a9c083d3f5f0d7fe477086d4a686"
+            }
+          ]
+        },
+        {
+          "sourceId": "v1v2-reconcile-generalization",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-reconcile-integration.patch",
+              "sha256": "fd7a2278dd753a48e391b394721ba5495f192764dca56f1e0f6242160d64e7e7"
+            },
+            {
+              "path": "plugins/shiyu/src/index.ts",
+              "sha256": "d09cfa6cdfeadabb9006ea5efcb1196c319a88e26ed057ffb1eb56c31672e59c"
+            }
+          ]
+        },
+        {
+          "sourceId": "round11-lead-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round11-lead-integration.json",
+              "sha256": "72105e708437dea3cbcac8fc228903f4ef61fc36751aa16e20a1a54e74310a6a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round11-integrated-verify.json",
+              "sha256": "ff59dbe9c7a361c328a66de0e68ea58c233a3fcba64b111bbe7bca67d7c94060"
+            }
+          ]
+        },
+        {
+          "sourceId": "round11-host-v1v2-reconcile",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model-reconcile"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11-joint-reconcile-v1v2.json",
+              "sha256": "063490c650a8b867dc1d0dee42804738115418267c853178c42fe3109ff5989d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/plan.json",
+              "sha256": "8733779142627a28c94f66ac293e55899cdd736afe7e3664f7c1e52afc0350c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/reconcile-v1v2-receipt.json",
+              "sha256": "0a6ea978553aa83959b5841afb07e594595496847a7a922fef1e654d71777a14"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-before.json",
+              "sha256": "223c9279208ca8a4d8bed3f625e82a9212f3e55bf2accbcaf5d31d9c962a886e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-reload.json",
+              "sha256": "2a29ff1a8a7c735648e768f4c46f4929f8a30c618fffccf29774ce6e14cdc0ed"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-run.json",
+              "sha256": "27d52f8beee2bb99957ccf9f650e8a327bda94bfbb58231be3c6168493ba4943"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-final.json",
+              "sha256": "72ac438d7e6ca3d1f0229e4a477d0f0512a059f93af4a1229396940a492371da"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/status-final.json",
+              "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b"
+            }
+          ]
+        },
+        {
           "sourceId": "joint-host-zero-model",
           "status": "verified",
           "levels": [
@@ -5778,7 +6235,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
+        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；round-11 固定宿主一次零模型泛化 reconcile 后 final status 缓存回执（v1 无动作/v2 一次 cancel，+1 commitSeq，无事件/session/goal 变化）不是生命周期/drain 验收；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
         "No real dashboard rendering (browser DOM) and no real business data; one host instance, zero model calls.",
         "Not V24 UI acceptance, not generation or lifecycle evidence.",
         "G1 integration + isolated full check only; fixed-host validation is recorded separately in round3-host-zero-model.",
@@ -5833,11 +6290,26 @@
         "Partial side effect: an unauthorized/paused v2 Goal (requestId core-validation-frozen-v2) plus one core Goal Session were created; the create command journal is unknown with the same reason; the residual v2 Goal remains unresolved (current reconcile tool is v1-only).",
         "A third attempt is NOT authorized until history-assert semantics are instrumented/fixed; the same-stage two-attempt failure is disclosed. Real business chain remains unverified.",
         "This fail-diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; the host v2 activation itself is separate offline evidence.",
+        "Offline/isolated instrumentation only: the implementer ran no real model or host. The cold-header candidate (cold eventCount includes the Session header while live seq excludes it) is strongly supported by fake-host reproduction at expected.eventCount 4 / live.seq 3 / delta -1 but is NOT host-confirmed.",
+        "The create-only liveCut candidate fix is DORMANT/not activated: product create behavior is unchanged, v1/v2 create were not retried, and a result can only be obtained from a next host instrumented run or a new explicit owner-decided attempt.",
+        "This diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; it does not fix the create history-assert failure and does not prove the real host header/cut semantics.",
+        "The diagnostic payload is bounded to <=300 characters with hash prefixes only: no event body, message text, inbox content or filesystem path.",
+        "Fixed code-constant target order is [core-validation-frozen-v1, core-validation-frozen-v2]; the caller cannot select/override requestIds and arbitrary keys are rejected; v1 top-level fields remain compatible while targets[] carries both. Per target: read-only classification, at most one explicit cancel only for inert-unauthorized, postCancel readback, 0 retries, 0 model calls, no Goal creation.",
+        "Offline module + isolated integration evidence only (core-validation focused 40/40; round-11 integrated isolated check 1605/1605): the fixed-host reconcile call is separate evidence and this source cannot prove a real business chain.",
+        "Generalized reconcile only classifies and at most cancels inert residual Goals; it NEVER creates/retries an experiment and does NOT fix the v1/v2 create history-assert failure.",
+        "A third bounded experiment remains unauthorized and requires an explicit owner decision plus a new frozen requestId/template; caller-supplied requestIds are rejected.",
+        "Never pass/V25/business/nine-system: zero model/embedding/host run in this offline source.",
+        "Integration + isolated check only: 0 real model calls, 0 embedding calls and 0 host reloads in this integration source; the fixed-host reconcile evidence is separate.",
+        "Never pass/V25/business/nine-system; the third bounded experiment remains unauthorized and the create history-assert failure remains unfixed.",
+        "Zero-model reconcile only, NOT a bounded-real-model/business/complete/passed run: v1 cancelled with no action; v2 inert-unauthorized with exactly one cancel and postCancel version 2; 0 model calls, 0 retries, 0 Goal creations, 0 Task/Effect/budget/artifact; only +1 commitSeq and no state-file change.",
+        "It does not fix the v1/v2 create history-assert failure: the cold-header root-cause candidate is NOT host-confirmed and the liveCut fix remains inactive; this call exercised only the reconcile path.",
+        "The final status call is read-only and caches the reconcile receipt (61122 bytes, fields present per the cached snapshot; readOnly/createsGoal/modelCalls/retries are declared in the receipt file); it is a diagnostics cache, not a product UI/render acceptance.",
+        "A third bounded experiment is NOT authorized and requires an explicit owner decision after the diagnostic fix is activated and host-confirmed. This evidence can NEVER be pass, V25, business or nine-system acceptance.",
         "Zero-model evidence only: no model-generated reply, no event-tool model invocation, no provider budget/cache/cost, no real task/Goal continuation under a model.",
         "One ordered reload and two tool calls; no real browser DOM, channel, Lab business loop, device, long-run or independent fault domain."
       ],
       "notes": [
-        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
+        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；round-11 固定宿主一次零模型泛化 reconcile 后 final status 缓存回执（v1 无动作/v2 一次 cancel，+1 commitSeq，无事件/session/goal 变化）不是生命周期/drain 验收；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/05-插件生命周期/README.md",
@@ -6007,7 +6479,9 @@
         "h5b-checkpoint-probe",
         "round7-host-bounded-core-goal-failure",
         "round8-host-core-validation-reconcile",
-        "round10-host-v2-create-failure"
+        "round10-host-v2-create-failure",
+        "history-assert-diagnostics",
+        "round11-host-v1v2-reconcile"
       ],
       "evidenceRefs": [
         {
@@ -6180,6 +6654,85 @@
               "sha256": "07e0879fd6fb14a2e2c90205dd8883ffb4e1f98740328be425948099b62550d6"
             }
           ]
+        },
+        {
+          "sourceId": "history-assert-diagnostics",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+              "sha256": "2a882e63e2a5790e8ced2bb163acfd4c4c932346cde7968d2598f37eeb8567f1"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+              "sha256": "060e746f2f83aaf936073f56325690dbbf7d86b36d153a17320e38e8e631601a"
+            },
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "95d5878318fad97a64a43f9f2a57575e59c5912b71ab987c552876fae33cf180"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-diagnosis.json",
+              "sha256": "b2e94bd3a2c767782b2441f4777c0ad4bbcecd9a01a7b82cdd6afe590908bf38"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-hist-assert-verify.json",
+              "sha256": "a26bca923858f24af67ee4e0ecf41eddbe91a9c083d3f5f0d7fe477086d4a686"
+            }
+          ]
+        },
+        {
+          "sourceId": "round11-host-v1v2-reconcile",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model-reconcile"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11-joint-reconcile-v1v2.json",
+              "sha256": "063490c650a8b867dc1d0dee42804738115418267c853178c42fe3109ff5989d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/plan.json",
+              "sha256": "8733779142627a28c94f66ac293e55899cdd736afe7e3664f7c1e52afc0350c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/reconcile-v1v2-receipt.json",
+              "sha256": "0a6ea978553aa83959b5841afb07e594595496847a7a922fef1e654d71777a14"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-before.json",
+              "sha256": "223c9279208ca8a4d8bed3f625e82a9212f3e55bf2accbcaf5d31d9c962a886e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-reload.json",
+              "sha256": "2a29ff1a8a7c735648e768f4c46f4929f8a30c618fffccf29774ce6e14cdc0ed"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-run.json",
+              "sha256": "27d52f8beee2bb99957ccf9f650e8a327bda94bfbb58231be3c6168493ba4943"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-final.json",
+              "sha256": "72ac438d7e6ca3d1f0229e4a477d0f0512a059f93af4a1229396940a492371da"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/status-final.json",
+              "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -6209,7 +6762,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；round-7 失败 + round-8 零模型 reconcile 只证明 residual Goal 清理，不是恢复演练；未接 supervisor，无真实恢复演练/RPO-RTO",
+        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；round-7 失败 + round-8 零模型 reconcile 只证明 residual Goal 清理；round-11 history-assert 诊断（liveCut 休眠）与泛化 reconcile（v1 无动作/v2 一次 cancel）只清理剩余 Goal，不是恢复演练；未接 supervisor，无真实恢复演练/RPO-RTO",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance.",
         "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
@@ -6230,10 +6783,18 @@
         "FAILED v2 attempt, not bounded-real-model success and NOT business/plan/Task/worker/verification/native acceptance: v2 create failed on history-assert / NATIVE_HISTORY_CHANGED; evaluateAttempts=0, 0 model requests, no retry, no Task/Effect/budget/artifact or native completion.",
         "Partial side effect: an unauthorized/paused v2 Goal (requestId core-validation-frozen-v2) plus one core Goal Session were created; the create command journal is unknown with the same reason; the residual v2 Goal remains unresolved (current reconcile tool is v1-only).",
         "A third attempt is NOT authorized until history-assert semantics are instrumented/fixed; the same-stage two-attempt failure is disclosed. Real business chain remains unverified.",
-        "This fail-diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; the host v2 activation itself is separate offline evidence."
+        "This fail-diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; the host v2 activation itself is separate offline evidence.",
+        "Offline/isolated instrumentation only: the implementer ran no real model or host. The cold-header candidate (cold eventCount includes the Session header while live seq excludes it) is strongly supported by fake-host reproduction at expected.eventCount 4 / live.seq 3 / delta -1 but is NOT host-confirmed.",
+        "The create-only liveCut candidate fix is DORMANT/not activated: product create behavior is unchanged, v1/v2 create were not retried, and a result can only be obtained from a next host instrumented run or a new explicit owner-decided attempt.",
+        "This diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; it does not fix the create history-assert failure and does not prove the real host header/cut semantics.",
+        "The diagnostic payload is bounded to <=300 characters with hash prefixes only: no event body, message text, inbox content or filesystem path.",
+        "Zero-model reconcile only, NOT a bounded-real-model/business/complete/passed run: v1 cancelled with no action; v2 inert-unauthorized with exactly one cancel and postCancel version 2; 0 model calls, 0 retries, 0 Goal creations, 0 Task/Effect/budget/artifact; only +1 commitSeq and no state-file change.",
+        "It does not fix the v1/v2 create history-assert failure: the cold-header root-cause candidate is NOT host-confirmed and the liveCut fix remains inactive; this call exercised only the reconcile path.",
+        "The final status call is read-only and caches the reconcile receipt (61122 bytes, fields present per the cached snapshot; readOnly/createsGoal/modelCalls/retries are declared in the receipt file); it is a diagnostics cache, not a product UI/render acceptance.",
+        "A third bounded experiment is NOT authorized and requires an explicit owner decision after the diagnostic fix is activated and host-confirmed. This evidence can NEVER be pass, V25, business or nine-system acceptance."
       ],
       "notes": [
-        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；round-7 失败 + round-8 零模型 reconcile 只证明 residual Goal 清理，不是恢复演练；未接 supervisor，无真实恢复演练/RPO-RTO"
+        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；round-7 失败 + round-8 零模型 reconcile 只证明 residual Goal 清理；round-11 history-assert 诊断（liveCut 休眠）与泛化 reconcile（v1 无动作/v2 一次 cancel）只清理剩余 Goal，不是恢复演练；未接 supervisor，无真实恢复演练/RPO-RTO"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/05-宿主外恢复/02-恢复入口/README.md",
@@ -6254,7 +6815,8 @@
         "h4-inner-offline",
         "h4e-migration-hotfix",
         "h4e-isolated-lifecycle-probe",
-        "h5-g1-module"
+        "h5-g1-module",
+        "round11-host-v1v2-reconcile"
       ],
       "evidenceRefs": [
         {
@@ -6346,6 +6908,47 @@
               "sha256": "7afdd460629792b4d4c2fb42b4c07a64384e8c9e1fabec840ac33eb776cd5d0e"
             }
           ]
+        },
+        {
+          "sourceId": "round11-host-v1v2-reconcile",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model-reconcile"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11-joint-reconcile-v1v2.json",
+              "sha256": "063490c650a8b867dc1d0dee42804738115418267c853178c42fe3109ff5989d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/plan.json",
+              "sha256": "8733779142627a28c94f66ac293e55899cdd736afe7e3664f7c1e52afc0350c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/reconcile-v1v2-receipt.json",
+              "sha256": "0a6ea978553aa83959b5841afb07e594595496847a7a922fef1e654d71777a14"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-before.json",
+              "sha256": "223c9279208ca8a4d8bed3f625e82a9212f3e55bf2accbcaf5d31d9c962a886e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-reload.json",
+              "sha256": "2a29ff1a8a7c735648e768f4c46f4929f8a30c618fffccf29774ce6e14cdc0ed"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-after-run.json",
+              "sha256": "27d52f8beee2bb99957ccf9f650e8a327bda94bfbb58231be3c6168493ba4943"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/round11-host-final.json",
+              "sha256": "72ac438d7e6ca3d1f0229e4a477d0f0512a059f93af4a1229396940a492371da"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round11/status-final.json",
+              "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -6375,7 +6978,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；无完整删除/恢复水位生产证据",
+        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；round-11 零模型 reconcile 后 state 文件不变、仅 control commitSeq +1（v2 cancel），可作状态不变量 limited 参考；无完整删除/恢复水位生产证据",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
         "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
         "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
@@ -6385,10 +6988,14 @@
         "Fixed-host diagnostic execution and audits are separate evidence (round6-host-inner-lifecycle); the probe receipt is diagnostics only, not publication/authorization/Task/Effect completion or business acceptance.",
         "No model, embedding, Ombre body, channel, DOM or live business write; it cannot upgrade SYS.5/V items/product rows to pass.",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
-        "Synthetic ports and temporary local roots; not host or business acceptance."
+        "Synthetic ports and temporary local roots; not host or business acceptance.",
+        "Zero-model reconcile only, NOT a bounded-real-model/business/complete/passed run: v1 cancelled with no action; v2 inert-unauthorized with exactly one cancel and postCancel version 2; 0 model calls, 0 retries, 0 Goal creations, 0 Task/Effect/budget/artifact; only +1 commitSeq and no state-file change.",
+        "It does not fix the v1/v2 create history-assert failure: the cold-header root-cause candidate is NOT host-confirmed and the liveCut fix remains inactive; this call exercised only the reconcile path.",
+        "The final status call is read-only and caches the reconcile receipt (61122 bytes, fields present per the cached snapshot; readOnly/createsGoal/modelCalls/retries are declared in the receipt file); it is a diagnostics cache, not a product UI/render acceptance.",
+        "A third bounded experiment is NOT authorized and requires an explicit owner decision after the diagnostic fix is activated and host-confirmed. This evidence can NEVER be pass, V25, business or nine-system acceptance."
       ],
       "notes": [
-        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；无完整删除/恢复水位生产证据"
+        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；round-11 零模型 reconcile 后 state 文件不变、仅 control commitSeq +1（v2 cancel），可作状态不变量 limited 参考；无完整删除/恢复水位生产证据"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/06-预留空间/01-内部权威状态/README.md",
@@ -7520,7 +8127,11 @@
         "round5-host-real-model",
         "round7-host-bounded-core-goal-failure",
         "round8-host-core-validation-reconcile",
-        "round10-host-v2-create-failure"
+        "round10-host-v2-create-failure",
+        "history-assert-diagnostics",
+        "v1v2-reconcile-generalization",
+        "round11-lead-integration",
+        "round11-host-v1v2-reconcile"
       ],
       "limitations": [
         "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
@@ -7528,6 +8139,7 @@
         "Round-7 bounded real core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion; an unauthorized/paused Goal + Session partial side effect exists; this failure evidence can never be V25/business/nine-system pass.",
         "Round-8 fixed-host reconcile only classifies/cancels the inert residual Goal; it does NOT fix the create failure or prove the business chain.",
         "Round-10 v2 activation is offline/isolated only (1583); the fixed-host v2 attempt then FAILED at history-assert/NATIVE_HISTORY_CHANGED with evaluateAttempts=0, 0 model requests, partial unauthorized/paused v2 Goal+Session, journal unknown, no Task/Effect/budget/artifact; third attempt not authorized — never pass/V25/business/nine-system.",
+        "Round-11 adds the bounded history-assert instrument (mismatchKind/expected/live/delta, hash prefixes only; 14 net-new tests; isolated 1597/1597) and generalizes reconcile to fixed targets [v1,v2]; the create-only liveCut candidate fix is DORMANT and NOT host-confirmed. The fixed-host generalized reconcile is zero-model only: v1 cancelled/no action, v2 inert-unauthorized with exactly one cancel to version 2, 0 model/0 retries/0 creations, only +1 commitSeq; it does NOT fix the create failure and a third attempt is NOT authorized — never pass/V25/business/nine-system.",
         "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
         "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
       ],
@@ -7865,6 +8477,10 @@
         "round7-host-bounded-core-goal-failure",
         "round8-host-core-validation-reconcile",
         "round10-host-v2-create-failure",
+        "history-assert-diagnostics",
+        "v1v2-reconcile-generalization",
+        "round11-lead-integration",
+        "round11-host-v1v2-reconcile",
         "round3-host-zero-model",
         "round4-host-zero-model",
         "h4h5-independent-review"
@@ -7874,6 +8490,7 @@
         "Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.",
         "Round-7 failure + round-8 reconcile cancelled v1 residual Goal without model/retry; round-10 v2 attempt re-failed at history-assert and left a partial unauthorized/paused v2 Goal+Session with journal unknown — these failure/reconcile diagnostics cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
+        "Round-11 generalized the reconcile to fixed v1+v2 targets and the fixed-host zero-model call cancelled the inert v2 residual Goal (v1 already cancelled with no action; exactly one cancel, postCancel version 2, 0 model/0 retries/0 creations, only +1 commitSeq, unchanged state file; the 61122-byte final status caches the receipt). This is reconcile/cancel diagnostics only: the create history-assert failure is unfixed, the dormant liveCut fix and cold-header candidate are not host-confirmed, and it cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
         "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
       ],
       "gaps": [
@@ -7934,13 +8551,14 @@
         "round7-host-bounded-core-goal-failure",
         "round8-host-core-validation-reconcile",
         "round10-host-v2-create-failure",
+        "round11-host-v1v2-reconcile",
         "joint-host-zero-model",
         "h0-baseline"
       ],
       "limitations": [
         "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
         "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-        "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
+        "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Round-11 adds a 61122-byte final status that caches the generalized v1/v2 reconcile receipt (v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq) — a diagnostics cache, not a dashboard/render or V05/V24 acceptance. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
       ],
       "gaps": [
         "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",

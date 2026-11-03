@@ -1,6 +1,6 @@
 # H0 测试工具覆盖追踪报告
 
-生成时间：2026-11-03T07:06:33.827Z；harness 0.1.0；self-proof corpus `h0-selfproof-1`。
+生成时间：2026-11-03T08:31:33.646Z；harness 0.1.0；self-proof corpus `h0-selfproof-1`。
 
 > 本清单只证明需求已登记、来源可核验，以及 H0 测试工具在 manifest/selfproof 冻结的文件身份下完成自证。产品 V01–V27、九个系统与 S/FL 场景均未由 H0 运行或验收；not_covered 不得被读作通过，历史有限证据不计入状态。
 
@@ -23,20 +23,20 @@
 
 | 产物 | 存在 | SHA256 | 生成时间 | 说明 |
 | --- | --- | --- | --- | --- |
-| selfproof | true | 3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b | 2026-11-03T07:06:25.465Z | self-proof passed |
-| manifest | true | 27401364c723eba40fc6baf43459a6a4bc186b5863cfefa360df44127a7ce538 | 2026-11-03T07:00:10.684Z | manifest files match the current tree |
+| selfproof | true | 19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697 | 2026-11-03T08:31:23.782Z | self-proof passed |
+| manifest | true | e14d6bde3082ba8528669c79fd60b6db366e64b3a99a2ed00c93ccae8640effc | 2026-11-03T08:22:49.599Z | manifest files match the current tree |
 
 ## 3. H0 工具能力（可 self_proven 的唯一一类）
 
 | ID | 状态 | 能力 | 测试通过/要求 | oracle 通过 | 证据 | 依据/缺口 |
 | --- | --- | --- | --- | --- | --- | --- |
-| H0.ORACLE | H0 自证通过 | 判定器套件：无损 JSON/结构/CAS/状态机/计数/因… | 3/3 | 10/10 | artifacts/dsh/harness/tool-selfproof.json@3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b | self-proof artifact + manifest verified: tests 3/3, oracles… |
-| H0.SELFCHECK | H0 自证通过 | 工具验真执行器：真实运行全部 known-pass/kno… | 5/5 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b | self-proof artifact + manifest verified: tests 5/5, oracles… |
-| H0.FAULTS | H0 自证通过 | 驱动/时钟/故障控制：绝对期限、假业务时钟、确定性断点 | 6/6 | 3/3 | artifacts/dsh/harness/tool-selfproof.json@3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b | self-proof artifact + manifest verified: tests 6/6, oracles… |
-| H0.OBSERVER | H0 自证通过 | 独立观察器与效果账本：崩溃后可取证的 append-onl… | 4/4 | 2/2 | artifacts/dsh/harness/tool-selfproof.json@3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.MANIFEST | H0 自证通过 | manifest/证据包：源码/构建/环境/fixture… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.TRACEABILITY | H0 自证通过 | 覆盖追踪：需求→代码→测试ID→oracle→证据→状态/… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b | self-proof artifact + manifest verified: tests 4/4, oracles… |
-| H0.DOCS | H0 自证通过 | 使用说明：运行、接入后续切片、证据复核方法 | 1/1 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b | self-proof artifact + manifest verified: tests 1/1, oracles… |
+| H0.ORACLE | H0 自证通过 | 判定器套件：无损 JSON/结构/CAS/状态机/计数/因… | 3/3 | 10/10 | artifacts/dsh/harness/tool-selfproof.json@19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697 | self-proof artifact + manifest verified: tests 3/3, oracles… |
+| H0.SELFCHECK | H0 自证通过 | 工具验真执行器：真实运行全部 known-pass/kno… | 5/5 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697 | self-proof artifact + manifest verified: tests 5/5, oracles… |
+| H0.FAULTS | H0 自证通过 | 驱动/时钟/故障控制：绝对期限、假业务时钟、确定性断点 | 6/6 | 3/3 | artifacts/dsh/harness/tool-selfproof.json@19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697 | self-proof artifact + manifest verified: tests 6/6, oracles… |
+| H0.OBSERVER | H0 自证通过 | 独立观察器与效果账本：崩溃后可取证的 append-onl… | 4/4 | 2/2 | artifacts/dsh/harness/tool-selfproof.json@19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.MANIFEST | H0 自证通过 | manifest/证据包：源码/构建/环境/fixture… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.TRACEABILITY | H0 自证通过 | 覆盖追踪：需求→代码→测试ID→oracle→证据→状态/… | 4/4 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697 | self-proof artifact + manifest verified: tests 4/4, oracles… |
+| H0.DOCS | H0 自证通过 | 使用说明：运行、接入后续切片、证据复核方法 | 1/1 | 0/0 | artifacts/dsh/harness/tool-selfproof.json@19fe778999307e398d647363d79146a2b372abbe296aa2f988d5fbb522a29697 | self-proof artifact + manifest verified: tests 1/1, oracles… |
 
 ## 4. 02 §1 必须资产（H0 范围与缺口）
 
@@ -203,7 +203,7 @@
 
 ## 8. H7 证据层映射（产品行仍 not_covered，只读派生）
 
-> frozen HEAD `fe6d5f7d83f8e4438164baba68599a0d50b1f120`；证据来源 61 个（verified=61，unknown=0），产品行映射 41 行。已提交切片证据层只表示该切片实际跑过的层级（离线模块/独立验证/固定宿主零模型/合成 UI/历史限定等）；产品行状态仍全部 not_covered，不能用于业务验收或 V/S/FL 通过声明。
+> frozen HEAD `68b1caf80e39cc9a4b2a73bbbb99dea07e9b25f7`；证据来源 67 个（verified=67，unknown=0），产品行映射 41 行。已提交切片证据层只表示该切片实际跑过的层级（离线模块/独立验证/固定宿主零模型/合成 UI/历史限定等）；产品行状态仍全部 not_covered，不能用于业务验收或 V/S/FL 通过声明。
 
 | 系统 | 状态 | 证据层 | 部分子场景 | 限定/缺口 |
 | --- | --- | --- | --- | --- |
@@ -215,7 +215,7 @@
 | SYS.6 | not_covered | offline-module, slice-verification, independent-verification, historical-limited, bounded-real-model, fixed-host-zero-model | bounded paged recovery + independent offline oracle；historical two-turn real-model Session reuse | No fixed-host long-history cold recovery/compaction under current HEAD, no real generation/usage/cache measurement, no full provider fees.；Independent verifier is offline; historical real-model samples are earlier builds and very small.；当前 HEAD 长历史冷恢复/压缩、真实生成、缓存/费用、完整 provider 请求未验 |
 | SYS.7 | not_covered | offline-module, slice-verification, historical-limited, bounded-real-model, fixed-host-zero-model | offline identity/audience ingress foundation；historical fixed-capability enable/disable persistence | No current-HEAD full Mandate/budget/pause/revoke matrix, no real channel credentials/receipts, no security canary sweep of model inputs or real device fences.；Historical policy/budget samples cannot be reused as V10/V17/V18–V20 acceptance.；当前 HEAD Mandate/预算/暂停/撤权矩阵、真实凭据与 canary 扫描、设备 fencing 未验 |
 | SYS.8 | not_covered | offline-module, slice-verification, fixed-host-zero-model, fixed-host-failure-diagnostic, fixed-host-zero-model-reconcile, independent-verification | G1 backup bundle capture/verify + isolated-root disarmed restore | G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.；Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.；Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.；仅 G1 模块：未接 Runtime、无真实 Goal 日志/Ombre 导出/独立故障域/RPO-RTO/断电 |
-| SYS.9 | not_covered | offline-module, synthetic-ui, slice-verification, fixed-host-zero-model, bounded-real-model-diagnostic-only, fixed-host-failure-diagnostic, fixed-host-zero-model-reconcile, environment-baseline | synthetic-host six-domain panel UI cases；fixed-host zero-model status/read-only visibility | No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.；No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.；Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.；真实浏览器 DOM、真实数据、只读刷新 1000 次/old-response 矩阵、敏感值扫描未验 |
+| SYS.9 | not_covered | offline-module, synthetic-ui, slice-verification, fixed-host-zero-model, bounded-real-model-diagnostic-only, fixed-host-failure-diagnostic, fixed-host-zero-model-reconcile, environment-baseline | synthetic-host six-domain panel UI cases；fixed-host zero-model status/read-only visibility | No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.；No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.；Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Round-11 adds a 61122-byte final status that caches the generalized v1/v2 reconcile receipt (v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq) — a diagnostics cache, not a dashboard/render or V05/V24 acceptance. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.；真实浏览器 DOM、真实数据、只读刷新 1000 次/old-response 矩阵、敏感值扫描未验 |
 
 完整逐系统“证据→状态→缺口”与来源明细见 `h7-traceability-mapping.md`；V/S/FL 有限映射只列证据层，状态仍 not_covered。
 
