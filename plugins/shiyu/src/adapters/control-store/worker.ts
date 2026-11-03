@@ -631,6 +631,15 @@ function execute(request: StoreRequest): unknown {
   }
   if (request.command === 'memory.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memories), ...(memoryError ? { errorCode: memoryError } : {}) };
   if (request.command === 'memory.index.status') return { configured: Boolean(options.memoryBackend), ready: Boolean(memoryIndex), ...(memoryIndexError || memoryError ? { errorCode: memoryIndexError ?? memoryError } : {}) };
+  if (request.command === 'memory.index.coverage') {
+    if (!memories) return fail(memoryError ?? 'MEMORY_UNCONFIGURED', 'Memory control domain is unavailable.');
+    if (!memoryIndex) return fail(memoryIndexError ?? memoryError ?? 'MEMORY_INDEX_UNCONFIGURED', 'Memory index control domain is unavailable.');
+    const coverage = memoryIndex.coverage();
+    const readableCount = memories.list({}).filter(entry => Boolean(entry.reference)).length;
+    return { readableCount, missingCount: Math.max(0, readableCount - coverage.indexedCount), coverageComplete:
+      readableCount === 0 ? coverage.indexBaselineId !== null : coverage.indexedCount === readableCount && coverage.staleCount === 0 && coverage.pendingCount === 0 && coverage.unknownCount === 0,
+      ...coverage };
+  }
   if (request.command.startsWith('memory.index.')) {
     if (!memoryIndex) return fail(memoryIndexError ?? memoryError ?? 'MEMORY_INDEX_UNCONFIGURED', 'Memory index control domain is unavailable.');
     return memoryIndex.execute(request as MemoryIndexRequest);

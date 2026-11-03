@@ -33,6 +33,10 @@ export interface MemoryIndexEntry {
   publishable: boolean;
 }
 export interface MemoryIndexPlan { entry: MemoryIndexEntry; command: MemoryIndexCommand; claim: EffectClaim }
+export interface MemoryIndexCoverageState {
+  indexedCount: number; staleCount: number; pendingCount: number; unknownCount: number; cancelledCount: number; failedCount: number;
+  indexBaselineId: string | null; indexWatermark: number | null; observedAt: string | null;
+}
 export interface MemoryIndexCommands {
   'memory.index.prepare': { input: PrepareMemoryIndex; output: { duplicate: boolean; entry: MemoryIndexEntry } };
   'memory.index.claim': { input: { indexOperationId: string; leaseMs?: number }; output: MemoryIndexPlan | undefined };
@@ -41,6 +45,7 @@ export interface MemoryIndexCommands {
   'memory.index.markUnknown': { input: { indexOperationId: string; claim: EffectClaim; reasonCode: string; observation?: MemoryIndexObservation }; output: MemoryIndexEntry };
   'memory.index.cancel': { input: { indexOperationId: string; reasonCode: string }; output: MemoryIndexEntry };
   'memory.index.get': { input: { indexOperationId: string }; output: MemoryIndexEntry };
+  'memory.index.coverage': { input: Record<string, never>; output: MemoryIndexCoverageState };
 }
 export type MemoryIndexRequest = { [K in keyof MemoryIndexCommands]: { command: K; args: MemoryIndexCommands[K]['input'] } }[keyof MemoryIndexCommands];
 interface IndexRecord {
@@ -311,6 +316,32 @@ export class MemoryIndexDomain {
         ...(local.observation ? { observation: structuredClone(local.observation) } : {}), publishable: effect.status === 'succeeded' && !effect.cancelRequestedAt && local.embeddingUsage.complete && this.sourceCurrent(local) };
     });
   }
+  /**
+   * Read-only index coverage reconciliation. It never dispatches, retries or
+   * mutates: applied entries whose source is no longer current count as stale,
+   * and pending/unknown work is reported as unsettled rather than success.
+   */
+  coverage(): MemoryIndexCoverageState {
+    return this.tx.atomic(() => {
+      const rows = this.db.prepare('SELECT index_operation_id FROM shiyu_memory_index_operations ORDER BY rowid').all() as { index_operation_id: string }[];
+      let indexedCount = 0, staleCount = 0, pendingCount = 0, unknownCount = 0, cancelledCount = 0, failedCount = 0;
+      let indexBaselineId: string | null = null, indexWatermark: number | null = null, observedAt: string | null = null;
+      for (const row of rows) {
+        const local = this.local(String(row.index_operation_id)), status = this.effect(local).status;
+        if (status === 'succeeded' && local.observation?.state === 'applied') {
+          if (this.sourceCurrent(local)) indexedCount++; else staleCount++;
+        } else if (status === 'pending' || status === 'dispatching') pendingCount++;
+        else if (status === 'unknown') unknownCount++;
+        else if (status === 'cancelled') cancelledCount++;
+        else if (status === 'failed') failedCount++;
+        if (local.observation && local.observation.state !== 'absent') {
+          const baseline = local.observation.currentIndexBaselineId, watermark = local.observation.currentIndexWatermark;
+          if (indexWatermark === null || watermark > indexWatermark) { indexWatermark = watermark; indexBaselineId = baseline; observedAt = local.observation.receipt?.observedAt ?? null; }
+        }
+      }
+      return { indexedCount, staleCount, pendingCount, unknownCount, cancelledCount, failedCount, indexBaselineId, indexWatermark, observedAt };
+    });
+  }
   execute(request: MemoryIndexRequest): MemoryIndexCommands[keyof MemoryIndexCommands]['output'] {
     switch (request.command) {
       case 'memory.index.prepare': return this.prepare(request.args);
@@ -320,6 +351,7 @@ export class MemoryIndexDomain {
       case 'memory.index.markUnknown': return this.markUnknown(request.args);
       case 'memory.index.cancel': return this.cancel(request.args);
       case 'memory.index.get': fields(request.args, ['indexOperationId']); return this.get(request.args.indexOperationId);
+      case 'memory.index.coverage': fields(request.args, []); return this.coverage();
       default: return fail('UNKNOWN_INDEX_COMMAND', 'Unknown index control command');
     }
   }

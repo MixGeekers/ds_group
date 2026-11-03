@@ -1,0 +1,183 @@
+{
+  "slice": "P0：Ombre 记忆就绪 + 单用户多轮聊天记忆闭环（H2d）",
+  "recordedAt": "2026-11-03T14:04:09-04:00",
+  "workspace": "plugins/shiyu",
+  "status": "离线/集成通过；真实宿主多轮闭环待 Lead 执行（hostKit）——本文件不宣称宿主通过。",
+  "baseline": {
+    "head": "9d41966",
+    "note": "隔离 worktree 仅含本切片 5 个源/测试文件 + runtime patch；主树并行 WIP 未纳入。runtime.ts/index.ts 未修改，patch 以 diff 交付。"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "plugins/shiyu/src/adapters/ombre/readiness.ts",
+        "sha256": "dce490b04d20e1aec87e7b1004babf40c0e35ba620bd70fee00e1a404c053616",
+        "bytes": 6794,
+        "lines": 122
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/memory-index-domain.ts",
+        "sha256": "7c93d5001c2bcdbe0e247c3eea815c9c214ce731dc29e6149edd2f4ee9736e81",
+        "bytes": 32254,
+        "lines": 358
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/worker.ts",
+        "sha256": "3273aaffa59b35a449242a4b69a80afce607305abba545d214eb3ec6fddfb3c0",
+        "bytes": 65539,
+        "lines": 904
+      },
+      {
+        "path": "plugins/shiyu/tests/ombre-readiness.test.ts",
+        "sha256": "80034afab055b73088fa2d2667e78084dd9ef14e48286fcddcc3327bf9bc7be5",
+        "bytes": 13093,
+        "lines": 139
+      },
+      {
+        "path": "plugins/shiyu/tests/memory-single-user-chat.test.ts",
+        "sha256": "79030a7e8f7e5b8e7ab7c34b278c953a68891633100a972667a9da210952f908",
+        "bytes": 25813,
+        "lines": 303
+      },
+      {
+        "path": "plugins/shiyu/artifacts/dsh/h2/runtime-memory-readiness.patch.diff",
+        "sha256": "b6e06c337b143346e38b4fd2ab96a96c3af1ab72825204625facb2d0b1e02f9f",
+        "bytes": 8408,
+        "lines": 100
+      }
+    ],
+    "readiness": {
+      "module": "src/adapters/ombre/readiness.ts",
+      "rule": "semantic_search 只在 embeddingVerified（本进程新查询成功）且 profile 兼容且索引非空时声明；否则 exact_read + 显式 reason（EMBEDDING_UNVERIFIED/PROFILE_MISMATCH/INDEX_EMPTY/INDEX_UNSETTLED/INDEX_COVERAGE_INCOMPLETE/…）。这是对“profile 兼容即语义能力”旧门禁的修复。",
+      "coverage": "每域实时只读对账：readable/indexed/missing/stale/pending/unknown/cancelled + baseline/watermark/observedAt；不派发、不重试、不改账。新 `memory.index.coverage` 命令在 Worker 内组合索引账本与可读 memory 源。"
+    },
+    "runtimePatch": {
+      "path": "artifacts/dsh/h2/runtime-memory-readiness.patch.diff",
+      "status": "未应用；写作用域不含 runtime.ts，已交付精确 diff，待 Lead 应用后随构建生效",
+      "changes": [
+        "snapshot.memory 增加 readiness（纯缓存投影，GET/snapshot 不查询 backend）与 indexCoverage",
+        "publishMemoryAvailability 用 verified embedding 门禁 capabilities；不再把 profile 兼容当作语义召回",
+        "启动时及 remember/withdraw/index/search 后刷新只读 index coverage 并对账；未验证时明确降级 exact_read only"
+      ],
+      "compileCheck": "HEAD 9d41966 + patch 在临时 worktree：tsc --noEmit/build 通过（日志 sha 见 verification.runtimePatchCheck）"
+    },
+    "oracle": {
+      "controlledFactHit": "下一轮 reply context 的 memorySources 必须包含本轮保存 operationId，且本轮 native load/generate 的 prompt 包含精确 fact 正文；模型自然语言输出单独不算命中。",
+      "semanticRecallHit": "memory.searchLocal/内部 select 必须 state=ok、embeddingCalls≥1、matches 含该 operationId、index metadata 一致；index_required/空集合不得伪装为语义命中。",
+      "sameSessionReuse": "同一 conversation 的多轮 replyer sessionId 相同、native Session 数不随消息线性增长。",
+      "restartRecall": "有序 reload 后同一 memory operation 仍被下一轮 memorySources 读取；不重新保存。",
+      "withdrawalRefusal": "withdrawLocal 后 select/read/prompt 均不包含该事实；readLocal 明确 MEMORY_READ_FORBIDDEN；模型“看起来记得”不计。",
+      "audienceRefusal": "其它 conversation 的 select/load 不包含该 conversation 的 memory source；越权 read 明确拒绝。",
+      "readiness": "验证查询前 semanticReady=false/capabilities=exact_read；成功后 embeddingVerified=true/semanticReady=true（宿主 patch 生效时 publication 也翻转）；失败不得静默。",
+      "coverage": "snapshot.indexCoverage 报告 readable/indexed/missing；未索引事实 select 返回 index_required，不调用 embedding、不产生假召回。"
+    }
+  },
+  "verification": {
+    "isolatedWorktree": {
+      "path": "/tmp/shiyu-h2d",
+      "head": "9d41966",
+      "method": "git worktree --detach 9d41966 + 本切片 5 文件；node_modules/.local/ombre symlink",
+      "command": "cd /tmp/shiyu-h2d/plugins/shiyu && npm run check",
+      "exitCode": 0,
+      "typecheck": "pass",
+      "tests": 1716,
+      "pass": 1716,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 2058594,
+      "build": "pass",
+      "clientSyntax": "pass",
+      "log": {
+        "path": ".local/h2d-check-final.log",
+        "sha256": "9fef6784af8c523a712f799e4f0f0ab3398968c42c8869ee18021f4861a825f7",
+        "bytes": 181117
+      }
+    },
+    "targeted": {
+      "readiness": "tests/ombre-readiness.test.ts 9/9",
+      "singleUserChat": "tests/memory-single-user-chat.test.ts 7/7"
+    },
+    "runtimePatchCheck": {
+      "worktree": "/tmp/h2d-check",
+      "method": "HEAD 9d41966 + runtime-memory-readiness.patch.diff + readiness/coverage 模块",
+      "command": "npx tsc --noEmit && npx tsc -p tsconfig.build.json",
+      "result": "pass",
+      "log": {
+        "path": ".local/h2d-runtime-patch-check.log",
+        "sha256": "5ebb634b9dffb21b43cf4a3a6e363d2732f36ade3fcef84df0b9e60496505a84",
+        "bytes": 170
+      }
+    },
+    "testArithmetic": "HEAD 9d41966 基线 1700 + 新增 16 = 1716（隔离 worktree 单批；不含并行 WIP）"
+  },
+  "previousHostObservation": {
+    "source": "artifacts/dsh/host/round16/status-final.json（committed round-16，非本轮实测）",
+    "memory": {
+      "configured": true,
+      "ready": true,
+      "semanticConfigured": true
+    },
+    "backend": {
+      "state": "ready",
+      "embedding": "managed-harrier",
+      "semanticReady": false,
+      "bindingVerified": true,
+      "storageReady": true
+    },
+    "semantic": {
+      "state": "unverified",
+      "profileCompatible": true,
+      "embeddingVerified": false,
+      "profileId": "harrier-oss-v1-0.6b-q8_0-1024-ombre-head2000-v1",
+      "profileFingerprint": "d3aa5e3e6aecf3cc147ea1f1c04ffad2fcfcb206271364f284f0d432fbc1111b",
+      "indexBaselineId": "index_f0f5218980fc4ed1a9f20176bee88905",
+      "indexWatermark": 1,
+      "recordedIndexedCount": 1,
+      "observedAt": "2026-11-03T16:19:50.953Z",
+      "lastEmbeddingSuccessAt": null
+    },
+    "note": "上一轮宿主 evidence 显示 backend/harrier ready，但 semantic.state=unverified、embeddingVerified=false、indexWatermark=1、recordedIndexedCount=1；这说明“backend ready”不等于 embedding 已验证，也是本切片 readiness 门禁与 hostKit 需要一次显式成功查询的原因。"
+  },
+  "hostKit": {
+    "status": "待真实宿主（Lead 执行；本轮未 reload、未真实模型/embedding）",
+    "prerequisites": [
+      "应用 artifacts/dsh/h2/runtime-memory-readiness.patch.diff 到 runtime.ts（及本切片 readiness/coverage 模块随构建生效）",
+      "typecheck+build 通过后一次有序 reload（零模型）；记录实例 ID"
+    ],
+    "steps": [
+      "1. 基线审计：保存 shiyu_status JSON 与 control 审计（commitSeq、stateVersion、memory entries、effects/tasks/goals 计数、Session 文件清单/hash）。",
+      "2. 就绪检查：POST /api/shiyu/commands {\"action\":\"runtime.checkpoint.probe\"} 不适用；改用 shiyu_status：memory.readiness 应为 exactRead=true、embeddingVerified=false、capabilities=[\"exact_read\"]、indexCoverage 有 readable/indexed/missing；若 embedding provider 不可用须显示 reason，绝不能出现 semantic_search。",
+      "3. 显式语义验证：对单用户会话执行一次 owner `memory.searchLocal`（query 使用已索引记忆的关键词）。成功判据：state=ok、embeddingCalls≥1、matches 来自已索引 operation、usageComplete=true；随后 shiyu_status.memory.readiness.embeddingVerified=true / semanticReady=true（patch 生效时 publication memory capabilities 含 semantic_search）。失败则记录 errorCode、保持 exact-read-only，不宣称 P0。",
+      "4. 多轮闭环（同一 conversation/native Session）：turn1 发送消息并在同一轮显式保存唯一 fact（memory.rememberLocal）+ memory.indexLocal（记录 operationId/indexOperationId/receipt/embeddingCalls）。turn2（不重启）询问该 fact：strict oracle 命中 = conversation.reply.get 的 memorySources 含 turn1 operationId + searchLocal state=ok/embeddingCalls≥1；模型回复文本仅作说明，不作为记忆命中证据。",
+      "5. 重启/重载召回：一次有序 reload 后 turn3 再询问同一 fact：memorySources 仍含同一 operationId，无需重新保存；对比 reload 前后 Session 文件与 native binding，确认未每消息新建 Session。",
+      "6. 撤回：memory.withdrawLocal(operationId)→记录回执/contextInvalidation；turn4 询问：memorySources 为空、search 无匹配/无可读、readLocal 拒绝；即使模型自然语言“看起来记得”也判失败。",
+      "7. 受众/越权：创建第二 conversation，memory.searchLocal/load 只应看到自己的 source；跨 conversation 读取拒绝。",
+      "8. 收尾审计：commitSeq/stateVersion 变化仅来自预期控制写；无未预期 Task/Goal/Effect/外部发送；无模型/embedding 之外的副作用；保存 before/after JSON + 工具回执 + 每个 oracle 的 pass/fail + 未测/unknown（例如 provider 完整用量）。"
+    ],
+    "evidenceToCapture": [
+      "patch 应用后 git HEAD/dirty=false、实例 ID、reload 次数",
+      "shiyu_status before/after（含 memory.readiness/indexCoverage/backend.semantic）JSON sha256/bytes",
+      "remember/index/search/withdraw 回执原文 sha256/bytes",
+      "每轮 reply operationId/contextReceipt/memorySources/index metadata/native sessionId",
+      "control 审计 before/after（commitSeq、stateVersion、entries、effects、tasks/goals、Session 文件数/hash）",
+      "oracle 表逐项结论与反向证据（模型声称但无 memorySources 的样例）"
+    ],
+    "acceptanceBoundary": "通过只证明“固定宿主上单用户、受控记忆事实被正确读写且 embedding/index 就绪”；不证明多用户/多渠道/多日稳定/情绪行为/完整 provider 用量/全部九系统。"
+  },
+  "evidenceLevel": "G1 模块/集成测试 + 真实临时 SQLite/Worker（伪 transport、无网络/无模型/无 embedding 进程）；runtime patch 编译验证；宿主执行前不宣称宿主通过。",
+  "failures": [],
+  "boundaries": [
+    "本轮未改 runtime.ts/index.ts（patch 交付），未 git 提交，未 reload，未真实模型/embedding/真实 Ombre 正文；宿主 P0 结论待 hostKit 执行。",
+    "离线 fixture 的 embedding/search 是进程内伪后端，只证明控制/检索/回复上下文与失效语义，不证明 Harrier 检索质量。",
+    "同一 Session 复用由 fake native driver 的 expectedSessionId 语义验证；宿主需按 hostKit 用真实 Session 文件与 binding 证明。",
+    "语义召回质量/阈值/多语言未评估；只要求严格 oracle 的受控事实命中。",
+    "P0 只覆盖单人；多任务并发、多渠道、多日稳定、情绪行为按用户优先级 deferred。"
+  ],
+  "reproduce": [
+    "git -C <repo> worktree add --detach /tmp/shiyu-h2d 9d41966",
+    "复制本切片 5 文件；ln -s 主树 node_modules/.local/ombre；npm run check",
+    "node --import tsx --test --test-concurrency=1 tests/ombre-readiness.test.ts tests/memory-single-user-chat.test.ts",
+    "runtime patch 编译验证：worktree 9d41966 + git apply artifacts/dsh/h2/runtime-memory-readiness.patch.diff + tsc"
+  ]
+}

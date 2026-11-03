@@ -48,6 +48,7 @@ import {
 } from './recovery/host-ports.js';
 import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
 import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
+import { computeMemoryReadiness, type MemoryReadiness } from './adapters/ombre/readiness.js';
 import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
 import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6 } from './control/core-validation.js';
 import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, type NativeHeaderCutProbeReceipt } from './control/native-header-cut-probe.js';
@@ -186,6 +187,10 @@ export class RuntimeService {
   private memoryConfig?: Readonly<ManagedOmbreConfig>;
   private memoryFailure?: string;
   private semanticFailure?: string;
+  /** P0: last trusted index coverage reconciliation (read-only; refreshed by memory commands). */
+  private memoryCoverage?: Partial<import('./adapters/ombre/readiness.js').MemoryIndexCoverage>;
+  /** Pure in-memory readiness projection; never queried by GET/snapshot. */
+  private memoryReadiness?: MemoryReadiness;
   private lastSemanticOperation?: { kind: 'index' | 'search'; status: 'completed' | 'failed' | 'existing'; at: string;
     outcome?: MemoryIndexEntry['effect']['status'];
     embeddingUsage: { calls: number | null; complete: boolean } };
@@ -270,6 +275,7 @@ export class RuntimeService {
               if (indexDomain.ready) this.memorySearch = new LocalMemorySearchService({ store: this.store, backend: this.memoryBackend.adapter, assertRuntimeAllowed: () => this.ensureCanRun() });
               else this.semanticFailure = indexDomain.errorCode ?? 'MEMORY_INDEX_UNAVAILABLE';
             }
+            await this.refreshMemoryCoverage();
           } catch { this.memoryFailure = 'MEMORY_BACKEND_UNAVAILABLE'; await this.memoryBackend?.close().catch(() => undefined); }
         }
       }
@@ -501,15 +507,24 @@ export class RuntimeService {
     let availability: UnavailableDomain | AvailableMemoryDomain = { status: 'unavailable',
       reason: this.memoryConfig ? 'source_unavailable' : this.memoryFailure ? 'incompatible_version' : 'not_connected' };
     if (this.localMemories && backend?.state === 'ready' && backend.bindingVerified && !this.memoryFailure) {
-      const semantic = Boolean(this.memorySearch && backend.semantic?.profileCompatible);
+      // P0: an available profile is not a verified embedding. Advertise semantic
+      // search only after a fresh query embedding succeeded in this process and
+      // the index ledger is not empty/unsettled; otherwise exact read only.
+      this.memoryReadiness = computeMemoryReadiness({ backend, coverage: this.memoryCoverage, semanticConfigured: Boolean(this.memorySearch) });
       availability = { status: 'available', backendId: backend.backendId, deploymentId: backend.deploymentId,
-        capabilities: semantic ? ['exact_read', 'semantic_search'] : ['exact_read'],
-        ...(semantic ? { profileFingerprint: backend.semantic!.profileFingerprint! } : {}) };
-    }
+        capabilities: this.memoryReadiness.capabilities as ['exact_read'] | ['exact_read', 'semantic_search'],
+        ...(this.memoryReadiness.semanticReady && backend.semantic?.profileFingerprint ? { profileFingerprint: backend.semantic.profileFingerprint } : {}) };
+    } else this.memoryReadiness = undefined;
     // No receipt churn for a lifecycle reconciliation whose state is already published.
     if (JSON.stringify(current.manifest.domains.memory) === JSON.stringify(availability)) return;
     await this.store.request('state.publishMemoryAvailability', { requestId: `memory-availability-${this.instanceId}-${randomUUID()}`,
       expectedBaselineId: current.baselineId, expectedStateVersion: current.stateVersion, availability });
+  }
+  /** Bounded, read-only index coverage reconciliation; never spawns a backend. */
+  private async refreshMemoryCoverage(): Promise<void> {
+    if (!this.memorySearch) return;
+    try { this.memoryCoverage = await this.store.request('memory.index.coverage', {}) as Partial<import('./adapters/ombre/readiness.js').MemoryIndexCoverage>; }
+    catch { this.semanticFailure = 'MEMORY_INDEX_COVERAGE_UNAVAILABLE'; }
   }
   private setPaused(paused: boolean): Promise<unknown> {
     const revision = ++this.controlRevision;
@@ -961,7 +976,9 @@ export class RuntimeService {
         semanticConfigured: Boolean(this.memorySearch),
         ...(this.semanticFailure ? { semanticErrorCode: this.semanticFailure } : {}),
         ...(this.lastSemanticOperation ? { lastSemanticOperation: structuredClone(this.lastSemanticOperation) } : {}),
-        ...(memoryError ? { errorCode: memoryError } : {}), ...(memoryBackend ? { backend: memoryBackend } : {}), entries: memoryEntries },
+        ...(memoryError ? { errorCode: memoryError } : {}), ...(memoryBackend ? { backend: memoryBackend } : {}),
+        ...(memoryBackend ? { readiness: this.memoryReadiness ?? computeMemoryReadiness({ backend: memoryBackend, coverage: this.memoryCoverage, semanticConfigured: Boolean(this.memorySearch) }) } : {}),
+        ...(this.memoryCoverage ? { indexCoverage: structuredClone(this.memoryCoverage) } : {}), entries: memoryEntries },
       diagnostics: { contextVerification: this.state.state.lastContextVerification ? structuredClone(this.state.state.lastContextVerification) : null,
         contextSafety: structuredClone(this.contextSafety),
         eventToolProbe: this.lastEventToolProbe ? structuredClone(this.lastEventToolProbe) : null,
@@ -1308,6 +1325,7 @@ export class RuntimeService {
       this.admissions.add(admission);
       try {
         const entry = await this.store.request('memory.withdrawLocal', { requestId: value.requestId as string, operationId: value.operationId as string });
+        await this.refreshMemoryCoverage(); await this.publishMemoryAvailability();
         // The same-transaction epoch fence is authoritative, even if this process
         // dies before cancelling an already running native attempt.
         if (entry.contextInvalidation?.conversationIds.length) await this.localReplies.cancelConversations(entry.contextInvalidation.conversationIds);
@@ -1330,6 +1348,7 @@ export class RuntimeService {
         ? await this.localMemories.remember({ requestId: value.requestId as string, conversationId: value.conversationId as string, text: value.text as string, signal: op.controller.signal })
         : await this.localMemories.read({ operationId: value.operationId as string, signal: op.controller.signal });
       this.ensureCanRun(); op.controller.signal.throwIfAborted();
+      await this.refreshMemoryCoverage(); await this.publishMemoryAvailability();
       return 'body' in result ? { entry: memoryEntry(result.entry), body: result.body } : { duplicate: result.duplicate, entry: memoryEntry(result.entry) };
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', abort); }
   }
@@ -1358,11 +1377,13 @@ export class RuntimeService {
         this.lastSemanticOperation = { kind, status: result.duplicate ? 'existing' : 'completed', outcome: result.entry.effect.status,
           at: new Date().toISOString(), embeddingUsage: result.entry.embeddingUsage };
         this.ensureCanRun(); op.controller.signal.throwIfAborted();
+        await this.refreshMemoryCoverage(); await this.publishMemoryAvailability();
         return { duplicate: result.duplicate, entry: memoryIndexEntry(result.entry) };
       }
       const result = await this.memorySearch.search({ conversationId: value.conversationId as string, text: value.query as string, signal: op.controller.signal });
       this.lastSemanticOperation = { kind, status: 'completed', at: new Date().toISOString(), embeddingUsage: result.embeddingUsage };
       this.ensureCanRun(); op.controller.signal.throwIfAborted();
+      await this.refreshMemoryCoverage(); await this.publishMemoryAvailability();
       return { state: result.state, matches: result.matches, coverage: result.coverage, index: result.index,
         embeddingCalls: result.embeddingUsage.calls, usageComplete: result.embeddingUsage.complete };
     } catch (error) {
