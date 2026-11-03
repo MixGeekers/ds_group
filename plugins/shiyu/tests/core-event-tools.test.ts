@@ -718,6 +718,52 @@ test('a third host pre-step message is rejected before any request even with the
   } finally { await driver.close(); }
 });
 
+test('a real host runtime-context projection claim (assembly renderer, extra sections) enters the decision round', async t => {
+  const f = await eventStore(t, []);
+  const host = fixture(realProvider(f.events)), driver = host.adapter();
+  try {
+    const created = await driver.create(host.create);
+    host.setAssemblyContexts([
+      { name: 'working-directory:current', text: 'Current working directory: "/synthetic/shiyu/core".' },
+      { name: 'host:extra-context', text: 'Host projected context section' },
+    ]);
+    host.setMode('host-context-prestep');
+    host.setOutput(PLAN_OUTPUT);
+    const result = await driver.decisionRound(host.decision(ref(created.native)));
+    assert.equal(result.text, PLAN_OUTPUT);
+    assert.equal(result.mainModelRequests, 1); assert.equal(result.mainModelStreams, 1);
+    assert.equal(host.counts().requests, 1); assert.equal(host.counts().streams, 1);
+  } finally { await driver.close(); }
+});
+
+test('a host runtime-context projection with a bound cwd mismatch is rejected with a field-level contextDiagnostic', async t => {
+  const f = await eventStore(t, []);
+  const host = fixture(realProvider(f.events)), driver = host.adapter();
+  try {
+    const created = await driver.create(host.create);
+    host.setAssemblyContexts([
+      { name: 'working-directory:current', text: 'Current working directory: "/synthetic/shiyu/core".' },
+    ]);
+    host.setMode('host-bad-context-prestep');
+    host.setOutput(PLAN_OUTPUT);
+    let failure: any;
+    await assert.rejects(driver.decisionRound(host.decision(ref(created.native))), (error: unknown) => {
+      assert.equal((error as any).code, 'CORE_NATIVE_CONTEXT_REJECTED'); failure = error; return true;
+    });
+    assert.equal(host.counts().requests, 0); assert.equal(host.counts().streams, 0);
+    const diagnostic = failure.contextDiagnostic;
+    assert.ok(diagnostic, 'the rejected claim carries a controlled contextDiagnostic');
+    assert.ok(['source-structure', 'section-render', 'text-render', 'cwd-binding', 'unknown'].includes(diagnostic.mismatchKind));
+    assert.ok(Array.isArray(diagnostic.fieldNames) && diagnostic.fieldNames.length > 0);
+    assert.match(diagnostic.expected.shaPrefix, /^[a-f0-9]{16}$/);
+    assert.match(diagnostic.actual.shaPrefix, /^[a-f0-9]{16}$/);
+    const serialized = JSON.stringify(diagnostic);
+    assert.ok(serialized.length <= 300);
+    assert.equal(serialized.includes('/synthetic'), false);
+    assert.equal(serialized.includes('Current working directory'), false);
+  } finally { await driver.close(); }
+});
+
 test('the one tool-round budget rejects duplicate calls, a second tool round and malformed tool step input', async t => {
   for (const [plan, expected] of [
     [{ name: 'shiyu_core_event_types', duplicate: true }, /tool call/],

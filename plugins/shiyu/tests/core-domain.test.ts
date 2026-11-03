@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import test, { type TestContext } from 'node:test';
-import { CoreDomain } from '../src/adapters/control-store/core-domain.js';
+import { CoreDomain, recordNativeContextDiagnostic } from '../src/adapters/control-store/core-domain.js';
 import { TaskDomain, type TaskCommands, type TaskDetail } from '../src/adapters/control-store/task-domain.js';
 import { SQLiteGoalBindingStore } from '../src/adapters/control-store/goal-bindings.js';
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
@@ -464,4 +464,21 @@ test('a later unknown mark cannot overwrite the first unknown reason or reconcil
   assert.equal(second.reasonCode, 'CORE_DECISION_PRESTEP_ABORTED', 'the first unknown reason is preserved');
   assert.equal(f.call('core.evaluations', { goalId: goal.goalId })[0]!.reasonCode, 'CORE_DECISION_PRESTEP_ABORTED');
   assert.deepEqual(f.call('core.balance', { goalId: goal.goalId }), balanceBefore, 'the reservation is not reconciled twice');
+});
+
+test('a controlled runtime-context diagnostic reaches the unknown evaluation without changing the first reason', t => {
+  const f = fixture(t), goal = f.authorize(), evaluation = f.call('core.claim', { goalId: goal.goalId })!;
+  f.dispatched(evaluation);
+  recordNativeContextDiagnostic(goal.goalId, { mismatchKind: 'section-render',
+    expected: { shaPrefix: '0123456789abcdef' }, actual: { shaPrefix: 'fedcba9876543210' },
+    fieldNames: ['source.sections[0].text', 'content[0].text'] });
+  const unknown = f.call('core.markUnknown', { permit: evaluation.permit, reasonCode: 'CORE_NATIVE_CONTEXT_REJECTED' });
+  assert.equal(unknown.status, 'unknown'); assert.equal(unknown.reasonCode, 'CORE_NATIVE_CONTEXT_REJECTED');
+  const stored = f.call('core.evaluations', { goalId: goal.goalId })[0] as unknown as { contextDiagnostic?: any };
+  assert.deepEqual(stored.contextDiagnostic, { mismatchKind: 'section-render',
+    expected: { shaPrefix: '0123456789abcdef' }, actual: { shaPrefix: 'fedcba9876543210' },
+    fieldNames: ['source.sections[0].text', 'content[0].text'] });
+  const again = f.call('core.markUnknown', { permit: evaluation.permit, reasonCode: 'owner_paused' });
+  assert.equal(again.reasonCode, 'CORE_NATIVE_CONTEXT_REJECTED');
+  assert.deepEqual((f.call('core.evaluations', { goalId: goal.goalId })[0] as unknown as { contextDiagnostic?: any }).contextDiagnostic, stored.contextDiagnostic);
 });

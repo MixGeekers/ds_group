@@ -247,8 +247,10 @@ export interface CoreValidationReceipt {
   failureDetail?: string;
   /** Controlled expected/live cut facts for a history-assert failure (no bodies/paths). */
   historyDiagnostic?: NativeHistoryDiagnostic;
-  /** Evaluation readback captured immediately BEFORE the single stop action. */
-  preStopEvaluation?: { evaluationId: string; status: string; reasonCode?: string };
+  /** Evaluation readback captured immediately BEFORE the single stop action,
+   * plus the controlled field-level runtime-context mismatch facts when present. */
+  preStopEvaluation?: { evaluationId: string; status: string; reasonCode?: string;
+    contextDiagnostic?: { mismatchKind: string; fieldNames: string[]; expectedShaPrefix: string; actualShaPrefix: string } };
 }
 export class CoreValidationBusyError extends Error {
   readonly code = 'CORE_VALIDATION_BUSY';
@@ -394,7 +396,17 @@ export const CORE_VALIDATION_EXPERIMENT_V5: Readonly<CoreValidationExperiment> =
   budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
   maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
 });
-const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5]);
+/** v6 frozen experiment: the sixth independent owner-decision attempt after the
+ * failed v1-v5 creates. It is a NEW frozen experiment, not a retry. */
+export const CORE_VALIDATION_EXPERIMENT_V6: Readonly<CoreValidationExperiment> = Object.freeze({
+  version: 6, requestId: 'core-validation-frozen-v6',
+  objective: '完成 owner 预授权的有界本地便签验证 v6：写入 note-1 并由独立核验确认。',
+  deliverable: Object.freeze({ id: 'note-1', title: '有界 core 验证便签 v6',
+    content: 'SHIYU_CORE_VALIDATION_NOTE_V6', dependsOn: Object.freeze([]) as unknown as readonly string[] }),
+  budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
+  maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
+});
+const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6]);
 function experimentTemplate(experiment: Readonly<CoreValidationExperiment>): unknown {
   return { requestId: experiment.requestId, objective: experiment.objective, deliverables: [experiment.deliverable],
     budget: experiment.budget, expiresInMs: experiment.expiresInMs, maxEvaluations: experiment.maxEvaluations };
@@ -405,10 +417,11 @@ export const CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256: string = experimentTemp
 export const CORE_VALIDATION_EXPERIMENT_V3_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V3);
 export const CORE_VALIDATION_EXPERIMENT_V4_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V4);
 export const CORE_VALIDATION_EXPERIMENT_V5_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V5);
+export const CORE_VALIDATION_EXPERIMENT_V6_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT_V6);
 /** Fixed, code-level reconcile targets. Callers cannot select or add requestIds. */
 export const CORE_VALIDATION_RECONCILE_REQUEST_IDS: readonly string[] = Object.freeze([
   CORE_VALIDATION_REQUEST_ID, CORE_VALIDATION_EXPERIMENT.requestId, CORE_VALIDATION_EXPERIMENT_V3.requestId,
-  CORE_VALIDATION_EXPERIMENT_V4.requestId, CORE_VALIDATION_EXPERIMENT_V5.requestId,
+  CORE_VALIDATION_EXPERIMENT_V4.requestId, CORE_VALIDATION_EXPERIMENT_V5.requestId, CORE_VALIDATION_EXPERIMENT_V6.requestId,
 ]);
 
 function experimentFixedInput(experiment: Readonly<CoreValidationExperiment>): CoreValidationFixedInput {
@@ -453,7 +466,7 @@ function validateOptions(options: unknown): asserts options is CoreValidationOpt
   }
   if (value.experiment !== undefined && value.experiment !== CORE_VALIDATION_V1 && value.experiment !== CORE_VALIDATION_EXPERIMENT
     && value.experiment !== CORE_VALIDATION_EXPERIMENT_V3 && value.experiment !== CORE_VALIDATION_EXPERIMENT_V4
-    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V5) {
+    && value.experiment !== CORE_VALIDATION_EXPERIMENT_V5 && value.experiment !== CORE_VALIDATION_EXPERIMENT_V6) {
     throw new CoreValidationOptionsError('The validation experiment must be one of the code-level frozen constants');
   }
 }
@@ -732,8 +745,10 @@ class BoundedValidationRunnerCore {
       if (!latest || typeof latest.evaluationId !== 'string' || typeof latest.status !== 'string') return undefined;
       const reasonCode = typeof latest.reasonCode === 'string' ? latest.reasonCode
         : typeof latest.receipt?.reasonCode === 'string' ? latest.receipt.reasonCode : undefined;
+      const contextDiagnostic = readContextDiagnostic((latest as { contextDiagnostic?: unknown }).contextDiagnostic);
       return { evaluationId: latest.evaluationId.slice(0, 120), status: latest.status.slice(0, 40),
-        ...(reasonCode ? { reasonCode: reasonCode.slice(0, 200) } : {}) };
+        ...(reasonCode ? { reasonCode: reasonCode.slice(0, 200) } : {}),
+        ...(contextDiagnostic ? { contextDiagnostic } : {}) };
     } catch { return undefined; }
   }
   private async finish(status: CoreValidationStatus, reasonCode: CoreValidationReasonCode): Promise<CoreValidationReceipt> {
@@ -979,6 +994,20 @@ export function runBoundedCoreValidation(options: CoreValidationOptions): Promis
   return sharedRunner.run(options);
 }
 
+function readContextDiagnostic(value: unknown): { mismatchKind: string; fieldNames: string[]; expectedShaPrefix: string; actualShaPrefix: string } | undefined {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  const fieldNames = record.fieldNames;
+  const expected = record.expected as Record<string, unknown> | undefined;
+  const actual = record.actual as Record<string, unknown> | undefined;
+  if (typeof record.mismatchKind !== 'string' || !/^[a-z][a-z-]{0,39}$/.test(record.mismatchKind)
+    || !Array.isArray(fieldNames) || fieldNames.length > 12 || fieldNames.some(name => typeof name !== 'string' || !/^[A-Za-z0-9_.\[\]]{1,64}$/.test(name))
+    || typeof expected?.shaPrefix !== 'string' || !/^[a-f0-9]{0,16}$/.test(expected.shaPrefix)
+    || typeof actual?.shaPrefix !== 'string' || !/^[a-f0-9]{0,16}$/.test(actual.shaPrefix)) return undefined;
+  const diagnostic = { mismatchKind: record.mismatchKind, fieldNames: fieldNames as string[],
+    expectedShaPrefix: expected.shaPrefix, actualShaPrefix: actual.shaPrefix };
+  return JSON.stringify(diagnostic).length <= 300 ? diagnostic : undefined;
+}
 const HISTORY_MISMATCH_KINDS = Object.freeze(['event-count', 'live-seq-vs-event-count', 'prefix-digest', 'header-hash',
   'inherited-count', 'session-id', 'preset', 'references', 'projection', 'unknown'] as const);
 /** Strict independent bounded validation of the native history mismatch diagnostic. */
@@ -1306,7 +1335,10 @@ export function assertBoundedCoreValidationReceipt(value: unknown): asserts valu
     if (!evaluation || typeof evaluation !== 'object' || Array.isArray(evaluation)
       || typeof evaluation.evaluationId !== 'string' || !evaluation.evaluationId || evaluation.evaluationId.length > 120
       || typeof evaluation.status !== 'string' || !/^[a-z][a-z_]{0,39}$/.test(evaluation.status)
-      || (evaluation.reasonCode !== undefined && (typeof evaluation.reasonCode !== 'string' || evaluation.reasonCode.length > 200))) {
+      || (evaluation.reasonCode !== undefined && (typeof evaluation.reasonCode !== 'string' || evaluation.reasonCode.length > 200))
+      || (evaluation.contextDiagnostic !== undefined && readContextDiagnostic({ mismatchKind: evaluation.contextDiagnostic.mismatchKind,
+        fieldNames: evaluation.contextDiagnostic.fieldNames, expected: { shaPrefix: evaluation.contextDiagnostic.expectedShaPrefix },
+        actual: { shaPrefix: evaluation.contextDiagnostic.actualShaPrefix } }) === undefined)) {
       throw new Error('Receipt preStopEvaluation is malformed or unbounded');
     }
   }

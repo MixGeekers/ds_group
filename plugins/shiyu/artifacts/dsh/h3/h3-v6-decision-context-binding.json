@@ -1,0 +1,376 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-v6-decision-context-binding",
+  "phase": "round16",
+  "capturedAt": "2026-11-03T15:49:04.648Z",
+  "status": "offline code preparation for the sixth independent bounded core Goal attempt: host runtime-context claim binding aligned with the bounded probe renderer + field-level controlled context diagnostic + frozen v6 experiment + v6 owner command/tool patch + fixed v1-v6 reconcile; real host execution NOT performed by implementer",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "realGoalCreatedByImplementer": false,
+  "realGoalCancelledByImplementer": false,
+  "explicitDeclaration": "This slice only prepares code. The sixth bounded attempt is a NEW explicit owner decision and independent attempt; it is NOT a retry of the failed v1/v2/v3/v4/v5 creates. All five remain failed/reconciled and must never be retried.",
+  "head": "b59c8af0e2f952050a9249b6a6f88f436ee96640",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 94336,
+      "sha256": "a2b999e472f7ab05295be14f972ca599364f193e4e5201d88e92358463de4445"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 69916,
+      "sha256": "fb213e156d9b8f6688d8383e5f0546dbc4883e55c6c9463e829514b4cd1e628c"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+      "bytes": 83568,
+      "sha256": "e264eef56ab8c1ce615512b7da3e4b3fac3bdd2ef75a69a22367e4781f21be9a"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 94856,
+      "sha256": "26929d5eb5c61dbc1c05a905ac0767f9c24ecd6cb091ac5561e2fea7c5d98f65"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 120532,
+      "sha256": "1d59f876026dfb396a9062a2b79c7b57af71ad6447910616285d52fd6c661223"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 87719,
+      "sha256": "b9b0470f6c55c0eeecb3a029f915473a5922d0bdb565a97e28aff591154d9113"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-domain.test.ts",
+      "bytes": 39557,
+      "sha256": "c8fc1b46d53edbe3bcb2703717cc76e37d549b84c0176abbbc06bcd9ff2cf9e4"
+    }
+  ],
+  "hostFacts": {
+    "source": "Lead-provided round-15 host facts (implementer has no live host access and did not re-read them)",
+    "create": "the v5 attempt created its Goal successfully again",
+    "evaluationFailure": "the evaluation failed at CORE_NATIVE_CONTEXT_REJECTED before ANY model request; the Goal Session has 13 events (title/goal-change/end-seed/inbox-spliced/turn-start/input-removed/turn-end-aborted/pause), no request/assistant event",
+    "reasonPreservation": "the round-15 preStopEvaluation fix worked: the preserved real reason is CORE_NATIVE_CONTEXT_REJECTED, no longer owner_paused",
+    "structuralCandidate": "the pre-step already accepted 1-2 messages after round 15, but the host second runtime-context message did not match the previously hand-written expected text; the host projection (assembly renderer, extra sections) must be reconstructed instead"
+  },
+  "fix": {
+    "bindingAlignment": {
+      "change": "CoreDecisionRun step0 now captures the host system-prompt assembly (system-prompt/assemble hook) and rebuilds the expected runtime-context projection with the same SystemPromptContextRenderer as the bounded probe (sections + join). A claim is accepted when the message hashes to that reconstruction, or when it passes the bounded probe structural binding (host-owned runtime-context source, rendered sections, exact working-directory:current cwd section) AND its projected sections equal the assembly-rendered sections.",
+      "preserved": [
+        "only 1-2 messages: the first must be the exact owner input (id + hash); the second is the one runtime-context snapshot",
+        "a third message, wrong order or wrong fields still fail closed",
+        "decision.messages still go through the existing validateInputs; tool-step and history checks are unchanged",
+        "the host message must carry an official UUIDv4 identity (this regression was caught by the existing core-goal-sessions suite and fixed before final verification)"
+      ],
+      "fallback": "when no host assembly/renderer exists, the previous single-directory-section projection remains the expected shape (older builds keep working)",
+      "code": [
+        "src/adapters/dsh/core-decision.ts: expectedRuntimeContext/validateRuntimeContext/contextMismatch + assembly capture",
+        "src/adapters/dsh/goals.ts: pass this.options.systemPromptContext to CoreDecisionRun"
+      ]
+    },
+    "contextDiagnostic": {
+      "shape": "contextDiagnostic{mismatchKind, expected{shaPrefix}, actual{shaPrefix}, fieldNames[]}",
+      "misfitKinds": [
+        "message-shape",
+        "owner-input",
+        "source-structure",
+        "section-render",
+        "text-render",
+        "cwd-binding",
+        "unknown"
+      ],
+      "bounds": "<=300 characters; field names and 16-hex sha prefixes only; never message text, host section text, cwd or any filesystem path",
+      "exposure": [
+        "attached to the CORE_NATIVE_CONTEXT_REJECTED rejection error",
+        "recorded through a bounded in-process handoff and attached by CoreDomain unknown() to the unknown evaluation",
+        "bounded runner preStopEvaluation.contextDiagnostic carries {mismatchKind, fieldNames, expectedShaPrefix, actualShaPrefix}; the independent receipt validator checks it",
+        "the first unknown reasonCode remains preserved (round-15 behavior)"
+      ],
+      "code": [
+        "src/adapters/dsh/core-decision.ts contextDiagnosticFor/nativeRejected",
+        "src/adapters/control-store/core-domain.ts recordNativeContextDiagnostic + unknown() attachment",
+        "src/control/core-validation.ts readPreStopEvaluation + receipt validator"
+      ]
+    }
+  },
+  "experimentV6": {
+    "constant": "CORE_VALIDATION_EXPERIMENT_V6 (Object.freeze, nested deliverable/budget frozen)",
+    "version": 6,
+    "requestId": "core-validation-frozen-v6",
+    "objective": "完成 owner 预授权的有界本地便签验证 v6：写入 note-1 并由独立核验确认。",
+    "deliverable": {
+      "id": "note-1",
+      "title": "有界 core 验证便签 v6",
+      "content": "SHIYU_CORE_VALIDATION_NOTE_V6",
+      "contentSha256": "5313715c3838a6db109e17790fe11fdd99bcf288757739bc71b1f8e270f25686"
+    },
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "fixedTemplateSha256": "2f7a647db5c37ae8b237014af3acdc0aa9346f745dccf074c0037f0b39cbda73",
+    "acceptance": "runBoundedCoreValidation accepts only the exact code-level constants V1/_EXPERIMENT/_V3/_V4/_V5/_V6 via trusted composition; clones, version-only objects and every tool/command/model argument are rejected.",
+    "unchanged": {
+      "v1": {
+        "requestId": "core-validation-frozen-v1",
+        "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca"
+      },
+      "v2": {
+        "requestId": "core-validation-frozen-v2",
+        "templateSha256": "756ec37b5bc054564076e226fc45bed135ced702d337acbf75fdcaf7f18ae34d"
+      },
+      "v3": {
+        "requestId": "core-validation-frozen-v3",
+        "templateSha256": "dc907faaa3f01f196e14e518a3cc292bb02d46447dfa102358ab871983bb6c94"
+      },
+      "v4": {
+        "requestId": "core-validation-frozen-v4",
+        "templateSha256": "14296381ae9d8bd3d68fa58107cb00294e6ee29bd16734411314158345a9000e"
+      },
+      "v5": {
+        "requestId": "core-validation-frozen-v5",
+        "templateSha256": "c5901e6437004249ac7c10e059ec9757a7f38320db2fb3a24472f0aa7b7105f4"
+      },
+      "note": "v1-v5 remain failed and reconciled; this slice never retries them"
+    }
+  },
+  "reconcile": {
+    "fixedTargets": [
+      "core-validation-frozen-v1",
+      "core-validation-frozen-v2",
+      "core-validation-frozen-v3",
+      "core-validation-frozen-v4",
+      "core-validation-frozen-v5",
+      "core-validation-frozen-v6"
+    ],
+    "semantics": "one owner call reconciles the six fixed requestIds in code order; per target read-only classification, at most one explicit cancel only for inert-unauthorized, 0 retries, 0 model calls, no Goal creation; top-level v1 fields preserved and targets[] carries all six; callers cannot select/add/override",
+    "tests": [
+      "v6 inert target is the only one cancelled",
+      "all six absent without writes",
+      "arbitrary caller requestIds rejected",
+      "fixed order/mirroring validated"
+    ]
+  },
+  "integration": {
+    "patchPath": "plugins/shiyu/artifacts/dsh/h3/h3-v6-runtime-index.patch",
+    "patchBytes": 6169,
+    "patchSha256": "54c21f474d68a18f0b172cc4336102c8da8f44458cb42021eeb4ea365386b8e3",
+    "patchLines": 81,
+    "touchedFiles": [
+      "plugins/shiyu/src/runtime.ts",
+      "plugins/shiyu/src/index.ts"
+    ],
+    "runtime": {
+      "action": "runtime.probe-core-goal-v6",
+      "implementation": "commandCoreGoalValidationV6 delegates to the existing commandCoreGoalValidationRun with the frozen CORE_VALIDATION_EXPERIMENT_V6 constant only; paused/idle/single-slot/abort/0-retry/cached-diagnostics behavior is unchanged and shared with v1-v5"
+    },
+    "index": {
+      "tool": "shiyu_validate_core_goal_v6",
+      "parameters": "none (empty object, additionalProperties false)",
+      "outputSchema": "object (additionalProperties true), JSON text render",
+      "descriptionRequirements": [
+        "全新 v6 冻结实验、非 v1-v5 重试、显式 owner 决定的第六次独立尝试",
+        "创建真实 Goal/Task/Effect/budget/native Session/local artifact 并调用真实模型",
+        "requestId core-validation-frozen-v6 固定、不接受输入覆盖",
+        "失败/未知绝不重试，回执仅存 diagnostics.coreGoalValidation"
+      ]
+    },
+    "validation": {
+      "patchAppliesToHead": "git apply --check exit 0 on a clean worktree at HEAD b59c8af",
+      "typecheckWithSliceAndPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + slice + patch)",
+      "buildWithSliceAndPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  },
+  "tests": {
+    "focused": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts tests/core-validation.test.ts tests/core-domain.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h16-focused.log",
+        "sha256": "8a84559c91f65b65879b66bafadffe9863ea35145cf5d048e4a52f0fb37efd82"
+      },
+      "tests": 157,
+      "pass": 157,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "regression": {
+      "command": "goals/core-goal-sessions/local-core/runtime-core/recovery/core-plan suites",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h16-regression.log",
+        "sha256": "f2409c1eeace1dc571c5f4865f6f148db987b564c606f9493cb799bfa42c54ec"
+      },
+      "tests": 101,
+      "pass": 101,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "netNew": 8,
+    "noSkips": true,
+    "newOrUpdated": [
+      "real host projection claim (assembly renderer with an extra host section) enters the decision round and issues one model request",
+      "a bound-cwd mismatch is rejected with CORE_NATIVE_CONTEXT_REJECTED plus a field-level contextDiagnostic (hash prefixes, field names, no text/path)",
+      "the official UUIDv4 identity remains mandatory for the runtime-context snapshot",
+      "existing prepared/committed context rejection suite stays green (wrong cwd, forged kind/form, duplicate, non-v4 identity)",
+      "a controlled context diagnostic is attached to the unknown evaluation without overwriting the first unknown reason (core-domain)",
+      "the bounded runner carries preStopEvaluation.contextDiagnostic and its validator rejects malformed/unbounded values",
+      "v6 frozen constants/sha/exact-only, v6 completed run, v6 reconcile inert/absent/caller target"
+    ]
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-v6-context-binding --manifest plugins/shiyu/.local/h3-h16-manifest.json --timeout-ms 3000000",
+      "head": "b59c8af0e2f952050a9249b6a6f88f436ee96640",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+          "bytes": 94336,
+          "sha256": "a2b999e472f7ab05295be14f972ca599364f193e4e5201d88e92358463de4445"
+        },
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+          "bytes": 69916,
+          "sha256": "fb213e156d9b8f6688d8383e5f0546dbc4883e55c6c9463e829514b4cd1e628c"
+        },
+        {
+          "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+          "bytes": 83568,
+          "sha256": "e264eef56ab8c1ce615512b7da3e4b3fac3bdd2ef75a69a22367e4781f21be9a"
+        },
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 94856,
+          "sha256": "26929d5eb5c61dbc1c05a905ac0767f9c24ecd6cb091ac5561e2fea7c5d98f65"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+          "bytes": 120532,
+          "sha256": "1d59f876026dfb396a9062a2b79c7b57af71ad6447910616285d52fd6c661223"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-validation.test.ts",
+          "bytes": 87719,
+          "sha256": "b9b0470f6c55c0eeecb3a029f915473a5922d0bdb565a97e28aff591154d9113"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-domain.test.ts",
+          "bytes": 39557,
+          "sha256": "c8fc1b46d53edbe3bcb2703717cc76e37d549b84c0176abbbc06bcd9ff2cf9e4"
+        }
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "tests": {
+        "tests": 1689,
+        "pass": 1689,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 1588827,
+      "log": {
+        "path": "plugins/shiyu/.local/h3/slice-verify-h3-v6-context-binding.log",
+        "bytes": 390,
+        "sha256": "da89a82678dbe3272dabfda2d239455697717384afe191e66fd64213f35d30ab"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-v6-context-binding-verify.json",
+        "sha256": "66ffe20c6d7d0534bce8f3619b0bab31db7282fea74297345433798a39ec4d84"
+      },
+      "note": "one earlier run was externally SIGTERMed at ~1600s after the test phase had already reported 1689/1689 pass (exit null, no failures); the final rerun with an explicit longer timeout completed the whole npm run check with exit 0 and 0 fail/0 skip"
+    },
+    "mainTreeTypecheck": "npx tsc --noEmit exit 0 excluding an unrelated concurrent harness WIP typecheck error",
+    "note": "no real host/model execution was performed; the host side is the Lead-owned sixth attempt under the kit below"
+  },
+  "hostKit": {
+    "kitVersion": 1,
+    "status": "frozen; the sixth attempt is an explicit owner decision and is NOT a v1-v5 retry",
+    "explicitOwnerDecisionStatement": "I explicitly decide to run the SIXTH independent bounded core Goal validation attempt as a new v6 frozen experiment. It is not a replay/retry of v1-v5 (which stay failed and reconciled), and I accept the declared real side effects and no-retry failure handling.",
+    "preconditions": [
+      "integrate this slice + the runtime/index patch and record the resulting build/commit digest",
+      "runtime unpaused and idle (no active operation, no queued Task admission); the command rejects otherwise before any side effect",
+      "capture a before-audit: v1-v5 Goal ids/states/journal receipts, Session file hashes/counts, budget counters, business-store counts",
+      "confirm v1-v5 stay failed/reconciled and are not retried",
+      "accept declared real side effects: Goal, Task, Effect, budget, native Session, local artifact, up to 2 real bounded model rounds"
+    ],
+    "invocation": {
+      "action": "runtime.probe-core-goal-v6",
+      "tool": "shiyu_validate_core_goal_v6",
+      "parameters": "none",
+      "expectedOutput": "bounded runner receipt + { sent:false, readOnlyProbe:false, declaredSideEffects{...true} }; receipt cached only in snapshot().diagnostics.coreGoalValidation"
+    },
+    "expectedReceiptFields": [
+      "requestId = core-validation-frozen-v6; fixedInput requestId/templateSha256 = the frozen v6 values",
+      "status completed|failed|paused|timeout|cancelled (honest, never upgraded)",
+      "evaluations/evaluateAttempts/taskRefs/evidence and businessSideEffects.goal.created true|false|unknown",
+      "preStopEvaluation {evaluationId,status,reasonCode?,contextDiagnostic?} captured immediately before the stop: the real evaluation reason and, if the runtime-context claim still mismatches, mismatchKind/fieldNames/expected+actual sha prefixes",
+      "on any create/history failure: failurePhase/failureCode/failureDetail (+historyDiagnostic/headerDiff)",
+      "creationReadback/partialCreation when available",
+      "usage counters only as actually reported"
+    ],
+    "successCriteria": [
+      "status completed with independent verification and a completed native Goal",
+      "native create exactly once, no retry/replay, one core Session",
+      "the decision round reaches its model request with the host runtime-context projection accepted exactly",
+      "no v1-v5 change beyond the pre-existing reconciled cancelled state"
+    ],
+    "failurePreservationRules": [
+      "failed/unknown leaves partial Goal/Task/Session/artifact/budget evidence in place; do not delete, roll back or retry",
+      "run shiyu_reconcile_core_validation_goal afterwards: it now covers [v1..v6], is read-only except one cancel for an inert partial v6 Goal, never retries",
+      "if the evaluation fails before any model request again, keep the full receipt including preStopEvaluation.reasonCode + contextDiagnostic and the archived Session event inventory; do NOT let the pause path hide the reason and do NOT retry",
+      "a further attempt requires a new explicit owner decision"
+    ],
+    "costAndTimeStops": [
+      "frozen budget tokens 16384 / calls 3 / effects 1",
+      "max 2 evaluation rounds",
+      "wall 180s and expiresInMs 600000",
+      "single runtime slot/single-flight; command-level abort supported",
+      "failure/unknown is terminal for the attempt: 0 retries"
+    ],
+    "afterRunAudit": [
+      "record dist/commit digest, exact receipt JSON (including preStopEvaluation/contextDiagnostic), journal receipt, Session inventory/hashes, counters and unknown usage",
+      "confirm no v1-v5 Goal/Session changed and no model call happened outside the two bounded rounds"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model run by the implementer: the renderer alignment and contextDiagnostic are validated against the fake host only",
+    "extra host runtime-context sections are accepted only when the bound renderer projects them and they are rendered into the text; an unprojected/unrendered section still fails closed",
+    "the in-process contextDiagnostic handoff is bounded (16 entries, <=300 characters) and is not a durable business fact",
+    "the runtime/index patch is provided but not applied here (write scope excludes runtime.ts/index.ts)",
+    "one earlier isolated check was environment-SIGTERMed after tests passed; the final rerun completed with exit 0, 0 fail, 0 skip",
+    "no v1-v5 retry and no real Goal creation/cancellation by the implementer"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-v6-runtime-index.patch",
+      "sha256": "54c21f474d68a18f0b172cc4336102c8da8f44458cb42021eeb4ea365386b8e3",
+      "bytes": 6169
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-v6-context-binding-verify.json",
+      "sha256": "66ffe20c6d7d0534bce8f3619b0bab31db7282fea74297345433798a39ec4d84"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/slice-verify-h3-v6-context-binding.log",
+      "sha256": "da89a82678dbe3272dabfda2d239455697717384afe191e66fd64213f35d30ab"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h16-focused.log",
+      "sha256": "8a84559c91f65b65879b66bafadffe9863ea35145cf5d048e4a52f0fb37efd82"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h16-regression.log",
+      "sha256": "f2409c1eeace1dc571c5f4865f6f148db987b564c606f9493cb799bfa42c54ec"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h16-integration-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  ]
+}

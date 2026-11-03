@@ -941,6 +941,7 @@ export class GoalSessionAdapter {
     const run = new CoreDecisionRun({ ctx: this.options.ctx, request, now: () => this.now(), shutdown: this.shutdown.signal,
       createUserMessage: this.options.createUserMessage,
       ...(this.options.eventTools ? { eventTools: this.options.eventTools } : {}),
+      ...(this.options.systemPromptContext ? { contextRenderer: this.options.systemPromptContext } : {}),
       isAgentLoopRequest: this.options.isAgentLoopRequest,
       authorize: (binding, phase) => this.authorize(binding, request.capability, 'decision', request.expectedRef, undefined, { roundId: request.roundId, phase }),
       readGoal: agent => snapshot(this.goals().get(agent)) });

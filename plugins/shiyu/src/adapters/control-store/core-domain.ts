@@ -39,6 +39,33 @@ const canonical = (value: unknown): string => JSON.stringify(value, (_key, item:
   ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
 const digest = (value: unknown) => hash(canonical(value));
 const clone = <T>(value: T): T => structuredClone(value);
+/** Bounded in-process handoff for the controlled runtime-context mismatch facts.
+ * The decision run records field-name/hash-only diagnostics; the same host
+ * process's CoreDomain unknown() attaches them to the evaluation so the bounded
+ * runner's preStopEvaluation readback can expose them. */
+export interface NativeContextDiagnostic {
+  mismatchKind: string;
+  expected: { shaPrefix: string };
+  actual: { shaPrefix: string };
+  fieldNames: string[];
+}
+const pendingContextDiagnostics = new Map<string, NativeContextDiagnostic>();
+export function recordNativeContextDiagnostic(goalId: string, diagnostic: NativeContextDiagnostic): void {
+  if (typeof goalId !== 'string' || !goalId) return;
+  let serialized: string;
+  try { serialized = JSON.stringify(diagnostic); } catch { return; }
+  if (serialized.length > 300) return;
+  if (pendingContextDiagnostics.size >= 16) {
+    const oldest = pendingContextDiagnostics.keys().next().value;
+    if (oldest !== undefined) pendingContextDiagnostics.delete(oldest);
+  }
+  pendingContextDiagnostics.set(goalId, structuredClone(diagnostic));
+}
+function takeNativeContextDiagnostic(goalId: string): NativeContextDiagnostic | undefined {
+  const value = pendingContextDiagnostics.get(goalId);
+  if (value !== undefined) pendingContextDiagnostics.delete(goalId);
+  return value;
+}
 function object(input: unknown, keys: string[], required = keys): void {
   if (!input || typeof input !== 'object' || Array.isArray(input) || Object.keys(input).some(key => !keys.includes(key))
     || required.some(key => !Object.hasOwn(input, key))) fail('INVALID_CORE_INPUT', 'Unknown or missing Core fields');
@@ -61,7 +88,9 @@ interface Options {
   capability: CapabilityAuthorityPort; publication: StatePublicationStore; safety: LocalReadSafetyStore; watermark: CommitWatermarkReader;
   now?: () => Date; isPaused?: () => boolean;
 }
-interface StoredEvaluation extends CoreEvaluation { proposalHash?: string }
+interface StoredEvaluation extends CoreEvaluation { proposalHash?: string   /** Controlled runtime-context mismatch facts attached to an unknown evaluation. */
+  contextDiagnostic?: NativeContextDiagnostic;
+}
 
 /**
  * Synchronous control admission only. DSH owns Goal phase/rounds/Session; this
@@ -796,12 +825,20 @@ export class CoreDomain {
       if (evaluation.status === 'committed' || evaluation.status === 'rejected') return clone(evaluation);
       // The first unknown reason is the diagnostic truth (e.g. a pre-model abort
       // reason); a later owner pause/interrupt must not overwrite it or reconcile
-      // the same reservation twice.
-      if (evaluation.status === 'unknown') return clone(evaluation);
+      // the same reservation twice. The field-level context diagnostic may still
+      // be attached once if the decision run recorded it.
+      if (evaluation.status === 'unknown') {
+        const pending = takeNativeContextDiagnostic(permit.goalId);
+        if (pending && evaluation.contextDiagnostic === undefined) { evaluation.contextDiagnostic = pending; this.saveEvaluation(evaluation); }
+        return clone(evaluation);
+      }
+      const contextDiagnostic = takeNativeContextDiagnostic(permit.goalId);
       const reservation = this.mandates.getReservation(OWNER, permit.reservationId);
       if (reservation.state === 'reserved') evaluation.reservation = this.mandates.reconcile(CORE_VERIFIER, { receiptId: `core-unknown:${permit.evaluationId}`,
         reservationId: reservation.reservationId, expectedVersion: reservation.version, complete: false, usage: {}, evidenceRef: `core-interruption:${permit.evaluationId}` });
-      evaluation.status = 'unknown'; evaluation.reasonCode = reasonCode; this.saveEvaluation(evaluation); return clone(evaluation);
+      evaluation.status = 'unknown'; evaluation.reasonCode = reasonCode;
+      if (contextDiagnostic) evaluation.contextDiagnostic = contextDiagnostic;
+      this.saveEvaluation(evaluation); return clone(evaluation);
     });
   }
   private reject(permit: CoreEvaluationPermit, reasonCode: string): CoreEvaluation {

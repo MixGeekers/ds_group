@@ -4,6 +4,7 @@ import { defaultModel, type DshAgent, type DshAgentContext, type DshContext, typ
 import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
 import { assertNativeLiveHistory, flushNative, nativeInboxReferences, verifyNativeEvent, type NativeColdInboxSnapshot } from './native-context.js';
 import { CORE_EVENT_TOOL_NAMES } from './event-tools.js';
+import { recordNativeContextDiagnostic } from '../control-store/core-domain.js';
 
 export type CoreDecisionPhase = 'start' | 'bound' | 'dispatch' | 'pre-step' | 'request' | 'stream' | 'context' | 'result' | 'tool' | 'tool-result';
 export interface CoreDecisionBinding { goalId: string; goalRef: NativeGoalRef; roundId: string; sessionId: string; messageId: string; messageHash: string }
@@ -47,6 +48,8 @@ interface Options {
   isAgentLoopRequest?: (request: unknown) => boolean;
   /** Trusted per-Goal provider; absent keeps the H1 single-request zero-tool fallback. */
   eventTools?: CoreDecisionEventToolFactory;
+  /** Trusted host runtime-context projection renderer (same as the probe). */
+  contextRenderer?: SystemPromptContextRenderer;
   authorize(binding: GoalBinding, phase: CoreDecisionPhase): Promise<Extract<GoalAuthorityVerdict, { allowed: true }>>;
   readGoal(agent: DshAgent): NativeGoalView | undefined;
 }
@@ -67,8 +70,9 @@ const TOOL_ARGUMENT_AUTHORITY = new Set(['actor', 'principal', 'principalId', 'k
   'targetRefs', 'verification', 'verificationReceipt', 'accounting']);
 const RUNTIME_CONTEXT_PREFIX = 'Current runtime context. This snapshot supersedes earlier runtime-context snapshots.';
 const sameRef = (a: NativeGoalRef | undefined, b: NativeGoalRef): boolean => a?.id === b.id && a.revision === b.revision;
-function nativeRejected(code: 'CORE_NATIVE_INPUT_REJECTED' | 'CORE_NATIVE_CONTEXT_REJECTED', message: string): Error & { code: string } {
-  return Object.assign(new Error(message), { code });
+function nativeRejected(code: 'CORE_NATIVE_INPUT_REJECTED' | 'CORE_NATIVE_CONTEXT_REJECTED', message: string,
+  contextDiagnostic?: CoreContextDiagnostic): Error & { code: string; contextDiagnostic?: CoreContextDiagnostic } {
+  return Object.assign(new Error(message), { code, ...(contextDiagnostic ? { contextDiagnostic } : {}) });
 }
 function jsonObject(value: unknown): value is Record<string, unknown> { return value !== null && typeof value === 'object' && !Array.isArray(value); }
 function canonical(value: unknown): string {
@@ -98,6 +102,8 @@ export class CoreDecisionRun {
   private timer: ReturnType<typeof setTimeout>;
   private deadline: number;
   private binding?: GoalBinding;
+  private contextRenderer?: SystemPromptContextRenderer;
+  private assembledContext?: unknown;
   private message?: NativeUserMessage;
   private agent?: DshAgent;
   private expected?: CoreDecisionBinding;
@@ -170,27 +176,97 @@ export class CoreDecisionRun {
       throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native working directory differs from its trusted binding');
     }
   }
-  private expectedContextText(): string {
-    return `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\nCurrent working directory: ${JSON.stringify(this.binding!.cwd)}.`;
+  /** Expected host runtime-context projection: rendered from the trusted host
+   * assembly with the SAME SystemPromptContextRenderer as the bounded probe, so
+   * the projection rules (sections, join text) are the host's, not a hand-written
+   * string. The single directory-section fallback remains for older builds. */
+  private expectedRuntimeContext(actualId?: string): Record<string, unknown> {
+    let reconstructed: Record<string, unknown> | undefined;
+    if (this.assembledContext !== undefined && this.contextRenderer) {
+      try {
+        const sections = this.contextRenderer.sections(this.assembledContext);
+        if (Array.isArray(sections) && sections.length) {
+          reconstructed = { role: 'user',
+            content: [{ type: 'text', text: this.contextRenderer.join(sections.map(section => ({ ...section }))) }],
+            source: { kind: 'runtime-context', form: 'snapshot', sections: sections.map(section => ({ name: section.name, text: section.text })) } };
+        }
+      } catch { reconstructed = undefined; }
+    }
+    if (!reconstructed) {
+      const directoryText = `Current working directory: ${JSON.stringify(this.binding!.cwd)}.`;
+      reconstructed = { role: 'user', content: [{ type: 'text', text: `${RUNTIME_CONTEXT_PREFIX}\n\n${directoryText}` }],
+        source: { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'working-directory:current', text: directoryText }] } };
+    }
+    return actualId === undefined ? reconstructed : { ...reconstructed, id: actualId };
   }
-  private isExpectedRuntimeContext(input: unknown): boolean {
-    if (!jsonObject(input)) return false;
-    const message = input as any;
-    return message.role === 'user' && message.source?.kind === 'runtime-context'
-      && message.source?.form === 'snapshot' && Array.isArray(message.source?.sections) && message.source.sections.length === 1
-      && message.source.sections[0]?.name === 'working-directory:current'
-      && message.source.sections[0]?.text === `Current working directory: ${JSON.stringify(this.binding!.cwd)}.`
-      && Array.isArray(message.content) && message.content.length === 1 && message.content[0]?.type === 'text'
-      && message.content[0]?.text === this.expectedContextText()
-      && typeof message.id === 'string'
-      && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(message.id);
+  private contextMismatch(actual: unknown): CoreContextDiagnostic {
+    const expected = this.expectedRuntimeContext() as any;
+    const fields: string[] = [];
+    const record = (jsonObject(actual) ? actual : {}) as any;
+    if (record.role !== 'user') fields.push('role');
+    const source = record.source;
+    if (!jsonObject(source)) fields.push('source');
+    else {
+      if (source.kind !== 'runtime-context') fields.push('source.kind');
+      if (source.form !== 'snapshot') fields.push('source.form');
+      if (!Array.isArray(source.sections)) fields.push('source.sections');
+      else {
+        const expectedSections = expected.source.sections as Array<{ name: string; text: string }>;
+        if (source.sections.length !== expectedSections.length) fields.push('source.sections.length');
+        else source.sections.forEach((section: any, index: number) => {
+          if (!jsonObject(section) || section.name !== expectedSections[index]!.name) fields.push(`source.sections[${index}].name`);
+          if (!jsonObject(section) || section.text !== expectedSections[index]!.text) fields.push(`source.sections[${index}].text`);
+        });
+      }
+    }
+    const content = record.content;
+    if (!Array.isArray(content) || content.length !== 1 || !jsonObject(content[0]) || content[0].type !== 'text') fields.push('content');
+    else if (content[0].text !== expected.content[0].text) fields.push('content[0].text');
+    if (typeof record.id !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(record.id)) fields.push('id');
+    const kind: CoreContextDiagnostic['mismatchKind'] = fields.includes('source.kind') || fields.includes('source.form') || fields.includes('source.sections')
+      ? 'source-structure' : fields.some(field => field.startsWith('source.sections[')) ? 'section-render'
+      : fields.includes('content[0].text') ? 'text-render'
+      : !probeRuntimeContextBinding(actual, this.binding!.cwd) ? 'cwd-binding' : 'unknown';
+    return contextDiagnosticFor(kind, expected, actual, fields.length ? fields : ['runtime-context']);
+  }
+  /** Accept the exact host runtime-context projection: the assembly-rendered
+   * expected snapshot, or the bounded probe's structural binding (host extra
+   * sections must be rendered into the text and an exact cwd section must be
+   * present). Any mismatch raises the controlled code plus contextDiagnostic. */
+  private validateRuntimeContext(actual: unknown): void {
+    // The host-owned snapshot must carry its official v4 message identity even
+    // when the structural binding otherwise matches.
+    if (!jsonObject(actual) || typeof actual.id !== 'string'
+      || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(actual.id)) {
+      const diagnostic = contextDiagnosticFor('message-shape', this.expectedRuntimeContext(), actual, ['id']);
+      try { recordNativeContextDiagnostic(this.binding!.goalId, diagnostic); } catch { /* never mask the rejection */ }
+      throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native context has no official v4 message identity', diagnostic);
+    }
+    {
+      const reconstructed = this.expectedRuntimeContext(actual.id);
+      try { if (nativeMessageHash(actual) === nativeMessageHash(reconstructed)) return; } catch { /* structural fallback */ }
+    }
+    if (probeRuntimeContextBinding(actual, this.binding!.cwd)) {
+      if (this.assembledContext !== undefined && this.contextRenderer) {
+        try {
+          const expectedSections = this.contextRenderer.sections(this.assembledContext);
+          const actualSections = (actual as any).source.sections as Array<{ name: string; text: string }>;
+          if (Array.isArray(expectedSections) && expectedSections.length
+            && JSON.stringify(expectedSections.map(section => ({ name: section.name, text: section.text })))
+              === JSON.stringify(actualSections.map(section => ({ name: section.name, text: section.text })))) return;
+        } catch { /* fall through to rejection */ }
+      } else return;
+    }
+    const diagnostic = this.contextMismatch(actual);
+    try { recordNativeContextDiagnostic(this.binding!.goalId, diagnostic); } catch { /* never mask the rejection */ }
+    throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native context does not match the exact bound runtime-context projection', diagnostic);
   }
   /** Only the fixed SDK's required cwd snapshot is admitted beside owner input. */
   private validateInputs(messages: unknown): void {
     if (!Array.isArray(messages) || messages.length < 1 || messages.length > 2 || messages[0]?.id !== this.expected?.messageId
       || nativeMessageHash(messages[0]) !== this.expected!.messageHash) throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core owner input is missing, changed or accompanied by unregistered input');
     if (messages.length === 1) return;
-    if (!this.isExpectedRuntimeContext(messages[1])) throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native context does not match the exact bound working-directory snapshot');
+    this.validateRuntimeContext(messages[1]);
   }
   /** Step-zero pre-step claim: exactly the registered owner input plus at most
    * the one exact host runtime-context snapshot. The pre-step payload is the
@@ -202,16 +278,14 @@ export class CoreDecisionRun {
       || nativeMessageHash(messages[0]) !== this.expected!.messageHash) {
       throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core step is not this one registered owner input');
     }
-    if (messages.length === 2 && !this.isExpectedRuntimeContext(messages[1])) {
-      throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core native context does not match the exact bound working-directory snapshot');
-    }
+    if (messages.length === 2) this.validateRuntimeContext(messages[1]);
   }
   /** Step one of a tool round claims only awaited next-step input: an optional
    * repeated cwd snapshot, never a second owner message or model text. */
   private validateToolStepInputs(messages: unknown): void {
     if (!Array.isArray(messages)) throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core tool step input is not a message list');
     if (messages.length > 1) throw nativeRejected('CORE_NATIVE_INPUT_REJECTED', 'Core tool step carries unregistered input');
-    for (const message of messages) if (!this.isExpectedRuntimeContext(message)) throw nativeRejected('CORE_NATIVE_CONTEXT_REJECTED', 'Core tool step context is not the exact bound working-directory snapshot');
+    for (const message of messages) this.validateRuntimeContext(message);
   }
   private committedInputs(): SessionEvent[] {
     const inputs = this.events.filter(event => event.type === 'user/message');
@@ -241,6 +315,16 @@ export class CoreDecisionRun {
     this.isAgentLoopRequest = this.options.isAgentLoopRequest ?? (await import(moduleName)).isAgentLoopRequest;
     if (typeof this.isAgentLoopRequest !== 'function') throw new Error('Official native Agent request identity predicate is unavailable');
     await this.gate('start');
+    if (this.options.contextRenderer) this.contextRenderer = this.options.contextRenderer;
+    else {
+      try {
+        const moduleName = '@deepseek-ai/dsh-system-prompt';
+        const promptModule: any = await import(moduleName);
+        if (typeof promptModule.renderContextSections === 'function' && typeof promptModule.joinContextSections === 'function') {
+          this.contextRenderer = { sections: promptModule.renderContextSections, join: promptModule.joinContextSections };
+        }
+      } catch { /* keep the minimal single-section fallback */ }
+    }
     const factory = this.options.createUserMessage ?? await loadNativeMessageFactory();
     this.assertCurrent();
     this.message = checkedNativeUserMessage(await factory({ content: [{ type: 'text', text: this.options.request.prompt }], source: { kind: 'user' } }), this.options.request.prompt);
@@ -338,8 +422,15 @@ export class CoreDecisionRun {
         }));
       }
       disposers.push(ctx.tools.guard(call => this.toolNames.includes(call?.name) ? undefined : 'Core decision can only call its mounted read-only event tools.'));
-      disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(), tools: this.toolDeclarations() })));
     } else disposers.push(ctx.systemPrompt.section({ name: 'shiyu-core-tools', order: -9999, complete: true, text: 'No tools are mounted for this core decision.' }));
+    // Capture the host assembly used to project the bound runtime-context
+    // snapshot (trusted observation only); tool declarations still merge when
+    // the read-only event tools are mounted.
+    disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
+      const assembled = await next();
+      this.assembledContext = assembled;
+      return this.toolsEnabled() ? { ...assembled, tools: this.toolDeclarations() } : assembled;
+    }));
     disposers.push(ctx.on('agent/pre-step', async (payload, next) => {
       try {
         await this.gate('pre-step');
@@ -639,6 +730,24 @@ export interface CoreEventToolModelProbeRunOptions {
   createUserMessage?: NativeMessageFactory;
   isAgentLoopRequest?: (request: unknown) => boolean;
   contextRenderer?: SystemPromptContextRenderer;
+}
+/** Field-level controlled diagnostic for a host runtime-context claim mismatch.
+ * Field names/hash prefixes only: no body text or filesystem path. */
+export interface CoreContextDiagnostic {
+  mismatchKind: 'message-shape' | 'owner-input' | 'source-structure' | 'section-render' | 'cwd-binding' | 'text-render' | 'unknown';
+  expected: { shaPrefix: string };
+  actual: { shaPrefix: string };
+  fieldNames: string[];
+}
+function contextDiagnosticFor(kind: CoreContextDiagnostic['mismatchKind'], expected: unknown, actual: unknown, fieldNames: string[]): CoreContextDiagnostic {
+  const hash = (value: unknown): string => {
+    try { return createHash('sha256').update(JSON.stringify(value)).digest('hex').slice(0, 16); } catch { return ''; }
+  };
+  const diagnostic: CoreContextDiagnostic = { mismatchKind: kind,
+    expected: { shaPrefix: hash(expected) }, actual: { shaPrefix: hash(actual) },
+    fieldNames: [...new Set(fieldNames)].slice(0, 12) };
+  if (JSON.stringify(diagnostic).length > 300) return { ...diagnostic, fieldNames: diagnostic.fieldNames.slice(0, 4) };
+  return diagnostic;
 }
 /** Structural binding check for a host-owned runtime-context snapshot: it must
  * be a single user text message owned by the runtime-context source, start with
