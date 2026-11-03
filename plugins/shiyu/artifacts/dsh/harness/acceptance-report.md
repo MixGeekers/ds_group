@@ -1,6 +1,6 @@
 # H7-acceptance 全量验收追踪与门控报告
 
-生成时间：2026-11-03T02:56:23.864Z；registry 1.0.0；schema 1。
+生成时间：2026-11-03T03:57:51.743Z；registry 1.0.0；schema 1。
 
 > **门控结论：incomplete（未完成）。不得声明完整九系统完成或任何 V 项整体通过。** H7-prep 只有已提交切片证据层与 H0c 合成骨架，没有任何产品/宿主/模型/业务验收执行。
 
@@ -8,11 +8,11 @@
 
 | 输入 | SHA256 前缀 | 状态 |
 | --- | --- | --- |
-| traceability.json | d9ef264483b922d2 | present |
-| tool-selfproof.json | d6959ae116cd2774 | passed |
-| manifest.json | 99948cb2d05b73a0 | clean-vcs |
-| fl-scenarios/coverage.json | 4852d0801f012813 | present |
-| frozen HEAD | 183b6499f322c92278b735c704e1f879114475d5 | bound |
+| traceability.json | bdee819c0018feaf | present |
+| tool-selfproof.json | 05d3cc31e1a57197 | passed |
+| manifest.json | 6ef13f680e48d268 | clean-vcs |
+| fl-scenarios/coverage.json | 4d1314ddd0e312a4 | present |
+| frozen HEAD | 7c0b22a3b331275f743efea4a9343bdc6ec6b289 | bound |
 
 ## 2. 分母（H7-prep 无验收执行）
 
@@ -30,13 +30,13 @@
 | --- | --- | --- | --- | --- | --- | --- |
 | SYS.1 接入、对话与话题协作 | limited-evidence-only | 5 | V02,V03,V04,V05,V13,V23,V24,V25 | S01,S02,S03,S04,S05,S06,S07,S08,FL01,FL02,FL03,FL04,FL05,FL06,FL07,FL08 | offline-module,slice-verification,synthetic-ui,historical-limited,bounded-real-model,fixed-host-zero-model | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
 | SYS.2 Agent 与组件共用事件系统 | limited-evidence-only | 5 | V03,V04,V10,V12,V14,V21,V23,V24 | S01,S03,S04,S05,S06,S08,FL03,FL04,FL07,FL08 | offline-module,slice-verification,fixed-host-zero-model,bounded-real-model-diagnostic-only | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
-| SYS.3 core 判断与持续规划 | limited-evidence-only | 2 | V02,V06,V09,V10,V13,V23,V24,V25 | S01,S02,S03,S04,S05,S06,S07,S08,FL01,FL02,FL03,FL04,FL05,FL06,FL08 | offline-module,slice-verification,historical-limited,bounded-real-model,fixed-host-zero-model,bounded-real-model-diagnostic-only | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
+| SYS.3 core 判断与持续规划 | limited-evidence-only | 2 | V02,V06,V09,V10,V13,V23,V24,V25 | S01,S02,S03,S04,S05,S06,S07,S08,FL01,FL02,FL03,FL04,FL05,FL06,FL08 | offline-module,slice-verification,historical-limited,bounded-real-model,fixed-host-zero-model,bounded-real-model-diagnostic-only,fixed-host-failure-diagnostic | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
 | SYS.4 目标、任务、worker 与外部效果 | limited-evidence-only | 11 | V10,V11,V12,V18,V19,V20,V21,V22,V23,V24,V26 | S03,S04,S05,S06,S08,FL03,FL04,FL05,FL07,FL08 | historical-limited,bounded-real-model,fixed-host-zero-model,offline-module,slice-verification,independent-verification | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
 | SYS.5 六部分内层与只读视图 | limited-evidence-only | 7 | V06,V07,V08,V09,V16,V23,V24,V25 | S01,S02,S03,S04,S05,S06,S07,FL01,FL02,FL04,FL06,FL08 | offline-module,slice-verification,fixed-host-zero-model,synthetic-ui,historical-limited,bounded-real-model,independent-verification | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
 | SYS.6 模型、Session、上下文与缓存 | limited-evidence-only | 5 | V04,V13,V14,V24,V25 | S01,S02,S03,S04,S05,S06,S07,S08,FL01,FL02,FL04,FL05,FL06,FL08 | offline-module,slice-verification,independent-verification,historical-limited,bounded-real-model,fixed-host-zero-model | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
 | SYS.7 身份、授权、预算与控制 | limited-evidence-only | 10 | V02,V04,V10,V13,V16,V17,V18,V19,V20,V24,V26 | S01,S02,S03,S04,S05,S06,S07,S08,FL03,FL04,FL05,FL06,FL08 | offline-module,slice-verification,historical-limited,bounded-real-model,fixed-host-zero-model | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
-| SYS.8 数据、生命周期、恢复与备份 | limited-evidence-only | 14 | V01,V06,V12,V14,V15,V16,V17,V19,V21,V22,V23,V24,V27 | S02,S03,S04,S05,S06,S08,FL04,FL07,FL08 | offline-module,slice-verification,fixed-host-zero-model,independent-verification | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
-| SYS.9 运行仪表盘 | limited-evidence-only | 1 | V04,V05,V09,V13,V14,V23,V24 | S01,S02,S03,S04,S05,S06,S07,S08,FL01,FL03,FL04,FL05,FL06,FL08 | offline-module,synthetic-ui,slice-verification,fixed-host-zero-model,bounded-real-model-diagnostic-only,environment-baseline | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
+| SYS.8 数据、生命周期、恢复与备份 | limited-evidence-only | 14 | V01,V06,V12,V14,V15,V16,V17,V19,V21,V22,V23,V24,V27 | S02,S03,S04,S05,S06,S08,FL04,FL07,FL08 | offline-module,slice-verification,fixed-host-zero-model,fixed-host-failure-diagnostic,independent-verification | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
+| SYS.9 运行仪表盘 | limited-evidence-only | 1 | V04,V05,V09,V13,V14,V23,V24 | S01,S02,S03,S04,S05,S06,S07,S08,FL01,FL03,FL04,FL05,FL06,FL08 | offline-module,synthetic-ui,slice-verification,fixed-host-zero-model,bounded-real-model-diagnostic-only,fixed-host-failure-diagnostic,environment-baseline | H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）；仅有限工具/模块证据，不是完整系统验收 |
 
 ## 4. 40 模块清单（状态只允许 not_covered/limited-only/unknown/blocked）
 
@@ -49,29 +49,29 @@
 | MOD.links 渠道链接 | A.outer | 1,2,4 | limited-only | h6a-channel-ingress | src/control/channels/bridge.ts | tests/channel-conversation-integration.test.ts | — |
 | MOD.dialogue-queue 串行与并行队列 | A.outer | 1,2 | limited-only | h2a-events,h2b-subscriptions-time | src/control/background-pump.ts | tests/background-pump.test.ts,tests/events-lifecycle.test.ts | — |
 | MOD.replyer replyer-表现 | A.outer | 1,6 | limited-only | h4c-replyer-inner,historical-model-context | src/control/local-reply.ts,src/adapters/dsh/sessions.ts | tests/local-reply.test.ts,tests/local-reply-memory.test.ts,tests/sessions.test.ts | — |
-| MOD.core core-主动判断 | A.inner | 3 | limited-only | h3-core-planning,h4e-lifecycle-recompute,h2c-real-model-probe,h2c-probe-fix-chain,round4-localcore-hotfix,round4-host-zero-model,round5-host-real-model,round6-lead-integration | src/control/local-core.ts,src/control/core-pump.ts,src/adapters/dsh/core-decision.ts | tests/local-core.test.ts,tests/core-plan.test.ts,tests/core-pump.test.ts | — |
+| MOD.core core-主动判断 | A.inner | 3 | limited-only | h3-core-planning,h3-bounded-core-validation-runner,h4e-lifecycle-recompute,h2c-real-model-probe,h2c-probe-fix-chain,round4-localcore-hotfix,round4-host-zero-model,round5-host-real-model,round6-lead-integration,round7-lead-integration,round7-host-bounded-core-goal-failure | src/control/local-core.ts,src/control/core-pump.ts,src/adapters/dsh/core-decision.ts | tests/local-core.test.ts,tests/core-plan.test.ts,tests/core-pump.test.ts | — |
 | MOD.memory 记忆 | A.inner | 5 | limited-only | historical-memory,h4-inner-offline,h4e-lifecycle-recompute,h4e-migration-hotfix,h4e-isolated-lifecycle-probe,round6-host-inner-lifecycle | src/control/local-memory.ts,src/adapters/control-store/memory-domain.ts,src/adapters/control-store/memory-index-domain.ts | tests/local-memory.test.ts,tests/local-memory-search.test.ts,tests/memory-domain.test.ts | — |
 | MOD.relationship 关系 | A.inner | 5 | limited-only | h4-inner-offline,h4e-lifecycle-recompute,h4e-migration-hotfix,h4e-isolated-lifecycle-probe,round6-host-inner-lifecycle | src/adapters/control-store/relationship-domain.ts | tests/inner-relationship.test.ts | — |
 | MOD.emotion 情绪 | A.inner | 5 | limited-only | h4-inner-offline,h4e-lifecycle-recompute,h4e-migration-hotfix,h4e-isolated-lifecycle-probe,round6-host-inner-lifecycle | src/adapters/control-store/emotion-domain.ts | tests/inner-emotion.test.ts | — |
 | MOD.cognition 认知 | A.inner | 5 | limited-only | h4-inner-offline,h4e-lifecycle-recompute,h4e-migration-hotfix,h4e-isolated-lifecycle-probe,round6-host-inner-lifecycle | src/adapters/control-store/cognition-domain.ts | tests/inner-cognition.test.ts | — |
 | MOD.personality 人格 | A.inner | 5 | limited-only | h4-inner-offline,h4e-lifecycle-recompute,h4e-migration-hotfix,h4e-isolated-lifecycle-probe,round6-host-inner-lifecycle | src/adapters/control-store/personality-domain.ts | tests/inner-personality.test.ts | — |
 | MOD.ability 能力 | A.inner | 5,7 | limited-only | historical-capability-3i,h4-inner-offline | src/adapters/control-store/capability-domain.ts,src/adapters/capability-identity.ts,src/contracts/capability.ts | tests/capability-domain.test.ts,tests/capability-matrix.test.ts,tests/capability-task.test.ts | — |
-| MOD.views 只读状态视图 | A.inner | 5,9 | limited-only | h4b-composition,h4-host,h6c-channel-projection-ui,round3-host-zero-model,round4-host-zero-model,round5-host-real-model,round6-host-inner-lifecycle,h4c-replyer-inner | src/views/index.ts,src/views/local.ts,src/views/core.ts,src/adapters/control-store/view-domain.ts | tests/views.test.ts,tests/inner-readview.test.ts,tests/local-views.test.ts | — |
-| MOD.mandate 任务授权与范围 | A.execution | 4,7 | limited-only | historical-task-goal,h2a-events | src/control/policy/mandates.ts,src/adapters/control-store/authority.ts | tests/mandates.test.ts,tests/mandates-catalog.test.ts | — |
-| MOD.tasks 任务与执行实例 | A.execution | 4 | limited-only | historical-task-goal,h3-core-planning | src/control/tasks/index.ts,src/adapters/control-store/task-domain.ts,src/adapters/control-store/task-repositories.ts | tests/tasks.test.ts,tests/task-domain.test.ts,tests/task-repositories.test.ts | — |
+| MOD.views 只读状态视图 | A.inner | 5,9 | limited-only | h4b-composition,h4-host,h6c-channel-projection-ui,round3-host-zero-model,round4-host-zero-model,round5-host-real-model,round6-host-inner-lifecycle,round7-host-bounded-core-goal-failure,h4c-replyer-inner | src/views/index.ts,src/views/local.ts,src/views/core.ts,src/adapters/control-store/view-domain.ts | tests/views.test.ts,tests/inner-readview.test.ts,tests/local-views.test.ts | — |
+| MOD.mandate 任务授权与范围 | A.execution | 4,7 | limited-only | historical-task-goal,h2a-events,h3-bounded-core-validation-runner,round7-host-bounded-core-goal-failure | src/control/policy/mandates.ts,src/adapters/control-store/authority.ts | tests/mandates.test.ts,tests/mandates-catalog.test.ts | — |
+| MOD.tasks 任务与执行实例 | A.execution | 4 | limited-only | historical-task-goal,h3-core-planning,h3-bounded-core-validation-runner,round7-host-bounded-core-goal-failure | src/control/tasks/index.ts,src/adapters/control-store/task-domain.ts,src/adapters/control-store/task-repositories.ts | tests/tasks.test.ts,tests/task-domain.test.ts,tests/task-repositories.test.ts | — |
 | MOD.worker worker-任务执行 | A.execution | 4 | limited-only | historical-task-goal,h3-core-planning | src/adapters/dsh/workers.ts,src/control/task-runner.ts | tests/workers.test.ts,tests/task-runner.test.ts | — |
 | MOD.verify 结果核验与回执 | A.execution | 4 | limited-only | historical-task-goal,h5-g1-module | src/control/effects/index.ts,src/adapters/artifacts/index.ts | tests/effects.test.ts,tests/artifacts.test.ts | — |
 | MOD.model-session 模型与会话 | A.foundation | 6 | limited-only | h1-native-history,h1-independent-run,historical-model-context | src/adapters/dsh/sessions.ts,src/adapters/dsh/native-context.ts,src/adapters/dsh/native-message.ts,src/adapters/dsh/session-title.ts | tests/sessions.test.ts,tests/native-history.test.ts,tests/native-context.test.ts | — |
-| MOD.tool-policy 工具与权限 | A.foundation | 7 | limited-only | h2a-probe,h2c-real-model-probe,h2c-probe-fix-chain,round4-host-zero-model,round5-host-real-model,historical-capability-3i | src/adapters/dsh/event-tools.ts | tests/event-tools.test.ts,tests/events-worker-mount.test.ts | — |
+| MOD.tool-policy 工具与权限 | A.foundation | 7 | limited-only | h2a-probe,h2c-real-model-probe,h2c-probe-fix-chain,h3-bounded-core-validation-runner,round4-host-zero-model,round5-host-real-model,round7-host-bounded-core-goal-failure,historical-capability-3i | src/adapters/dsh/event-tools.ts | tests/event-tools.test.ts,tests/events-worker-mount.test.ts | — |
 | MOD.event-schedule 事件与定时 | A.foundation | 2 | limited-only | h2b-subscriptions-time,h2b-host-time-probe,h2b-live-time-trigger,round5-host-real-model | src/control/events/index.ts | tests/events-lifecycle.test.ts | — |
-| MOD.persistence 持久化接口 | A.foundation | 8 | limited-only | h5-g1-module,h4e-migration-hotfix,h4e-isolated-lifecycle-probe,h5b-runtime-integration,h5b-checkpoint-probe,h4-inner-offline | src/adapters/control-store/transaction.ts,src/adapters/control-store/index.ts,src/adapters/control-store/worker.ts | tests/transaction.test.ts,tests/store.test.ts | — |
-| MOD.lifecycle 插件生命周期 | A.foundation | 8,6 | limited-only | h4b-host,round3-lead-integration,round4-lead-integration,round6-lead-integration,h2b-live-time-trigger,round3-host-zero-model,round4-host-zero-model,round5-host-real-model,round6-host-inner-lifecycle,joint-host-zero-model | src/runtime.ts,src/index.ts | tests/runtime.test.ts,tests/runtime-capability.test.ts | — |
+| MOD.persistence 持久化接口 | A.foundation | 8 | limited-only | h5-g1-module,h4e-migration-hotfix,h4e-isolated-lifecycle-probe,h5b-runtime-integration,h5b-checkpoint-probe,round7-host-bounded-core-goal-failure,h4-inner-offline | src/adapters/control-store/transaction.ts,src/adapters/control-store/index.ts,src/adapters/control-store/worker.ts | tests/transaction.test.ts,tests/store.test.ts | — |
+| MOD.lifecycle 插件生命周期 | A.foundation | 8,6 | limited-only | h4b-host,round3-lead-integration,round4-lead-integration,round6-lead-integration,round7-lead-integration,h2b-live-time-trigger,round3-host-zero-model,round4-host-zero-model,round5-host-real-model,round6-host-inner-lifecycle,round7-host-bounded-core-goal-failure,joint-host-zero-model | src/runtime.ts,src/index.ts | tests/runtime.test.ts,tests/runtime-capability.test.ts | — |
 | MOD.device-gateway 设备能力接口 | A.devices | 4,7 | blocked | — | — | — | real-device-authorization |
 | MOD.desktop-device 桌面设备 | A.devices | 4,7 | blocked | — | — | — | real-device-authorization |
 | MOD.other-device 其他终端 | A.devices | 4,7 | blocked | — | — | — | real-device-authorization |
 | MOD.robot 机器人 | A.devices | 4,7 | blocked | — | — | — | real-device-authorization |
 | MOD.supervisor 进程监督 | A.recovery | 8 | not_covered | — | — | — | — |
-| MOD.recovery-entry 恢复入口 | A.recovery | 8 | limited-only | h5-g1-module,h5b-runtime-integration,h5b-checkpoint-probe | src/recovery/restore.ts,src/recovery/capture.ts | tests/recovery-restore.test.ts,tests/recovery-capture.test.ts | — |
+| MOD.recovery-entry 恢复入口 | A.recovery | 8 | limited-only | h5-g1-module,h5b-runtime-integration,h5b-checkpoint-probe,round7-host-bounded-core-goal-failure | src/recovery/restore.ts,src/recovery/capture.ts | tests/recovery-restore.test.ts,tests/recovery-capture.test.ts | — |
 | MOD.state 内部权威状态 | A.data | 8 | limited-only | h4-inner-offline,h4e-migration-hotfix,h4e-isolated-lifecycle-probe,h5-g1-module | src/state/publication.ts,src/state/safety.ts | tests/state-publication.test.ts,tests/local-state.test.ts | — |
 | MOD.task-store 目标与授权及任务 | A.data | 4,8 | limited-only | historical-task-goal,h4-inner-offline | src/adapters/control-store/task-domain.ts,src/adapters/control-store/task-repositories.ts,src/adapters/control-store/goal-bindings.ts | tests/task-domain.test.ts,tests/goal-store-integration.test.ts | — |
 | MOD.evidence 经历与证据及回执 | A.data | 8 | limited-only | historical-task-goal,h5-g1-module | src/control/effects/index.ts,src/adapters/control-store/commit-watermark.ts | tests/effects.test.ts,tests/commit-watermark.test.ts | — |
@@ -79,7 +79,7 @@
 | MOD.cache 索引与缓存 | A.data | 6,8 | not_covered | — | — | — | — |
 | MOD.config 配置与版本清单 | A.data | 8 | limited-only | h4-inner-offline | src/state/publication.ts | tests/state-publication.test.ts,tests/inner-publication.test.ts | — |
 | MOD.credentials 凭据引用 | A.data | 7,8 | blocked | — | — | — | real-credential-source |
-| MOD.checkpoint 本地检查点 | A.data | 8 | limited-only | h5-g1-module,h5b-runtime-integration,h5b-checkpoint-probe,round4-host-zero-model | src/recovery/capture.ts,src/recovery/schema.ts,src/recovery/verify.ts | tests/recovery-capture.test.ts,tests/recovery-schema.test.ts | — |
+| MOD.checkpoint 本地检查点 | A.data | 8 | limited-only | h5-g1-module,h5b-runtime-integration,h5b-checkpoint-probe,round4-host-zero-model,round7-host-bounded-core-goal-failure | src/recovery/capture.ts,src/recovery/schema.ts,src/recovery/verify.ts | tests/recovery-capture.test.ts,tests/recovery-schema.test.ts | — |
 | MOD.backup-copy 独立域备份 | A.backup | 8 | limited-only | h5-g1-module,h5b-runtime-integration,h5b-checkpoint-probe | src/recovery/capture.ts,src/recovery/files.ts | tests/recovery-capture.test.ts | — |
 | MOD.restore-test 恢复演练 | A.backup | 8 | limited-only | h5-g1-module | src/recovery/restore.ts,src/recovery/control-facts.ts | tests/recovery-restore.test.ts,tests/recovery-fault-matrix.test.ts | — |
 

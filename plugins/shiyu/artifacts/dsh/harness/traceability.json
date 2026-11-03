@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.traceability",
-  "generatedAt": "2026-11-03T02:56:18.343Z",
+  "generatedAt": "2026-11-03T03:57:45.443Z",
   "harnessVersion": "0.1.0",
   "selfProofCorpus": "h0-selfproof-1",
   "sources": [
@@ -145,15 +145,15 @@
     "selfproof": {
       "path": "artifacts/dsh/harness/tool-selfproof.json",
       "present": true,
-      "sha256": "d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-      "generatedAt": "2026-11-03T02:56:12.870Z",
+      "sha256": "05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+      "generatedAt": "2026-11-03T03:57:39.228Z",
       "note": "self-proof passed"
     },
     "manifest": {
       "path": "artifacts/dsh/harness/manifest.json",
       "present": true,
-      "sha256": "99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
-      "generatedAt": "2026-11-03T02:53:29.518Z",
+      "sha256": "6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
+      "generatedAt": "2026-11-03T03:54:01.191Z",
       "note": "manifest files match the current tree"
     }
   },
@@ -195,7 +195,7 @@
       "mappedProductRows": 41,
       "limitedOnly": 41,
       "unknown": 0,
-      "verifiedSources": 47,
+      "verifiedSources": 52,
       "unknownSources": 0
     }
   },
@@ -323,8 +323,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -386,8 +386,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -473,8 +473,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -549,8 +549,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -615,8 +615,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -682,8 +682,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -743,8 +743,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -799,8 +799,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -833,8 +833,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -889,8 +889,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -945,8 +945,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -998,8 +998,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1032,8 +1032,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1091,8 +1091,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1141,8 +1141,8 @@
         }
       ],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1199,8 +1199,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1257,8 +1257,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1321,8 +1321,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1385,8 +1385,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1431,8 +1431,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1477,8 +1477,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1523,8 +1523,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1555,8 +1555,8 @@
       "oracleStatus": [],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1613,8 +1613,8 @@
       ],
       "artifactChecks": [],
       "evidence": {
-        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@d6959ae116cd277466d4a0c63f8c2ca03691fdb33e84ff810c626b6ab2324243",
-        "manifest": "artifacts/dsh/harness/manifest.json@99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+        "selfproof": "artifacts/dsh/harness/tool-selfproof.json@05d3cc31e1a57197917c817e916ad576e792c58265c2d497efd1b784a11242e0",
+        "manifest": "artifacts/dsh/harness/manifest.json@6ef13f680e48d268e18ce6a022ddbd4feab9d6d18c8c597dc6fb7c7aec9a562b",
         "historical": null
       }
     },
@@ -1952,7 +1952,7 @@
       "historicalEvidence": [],
       "note": "",
       "status": "not_covered",
-      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,slice-verification,historical-limited,bounded-real-model,fixed-host-zero-model,bounded-real-model-diagnostic-only]，来源 7 个",
+      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,slice-verification,historical-limited,bounded-real-model,fixed-host-zero-model,bounded-real-model-diagnostic-only,fixed-host-failure-diagnostic]，来源 10 个",
       "sourceVerified": true,
       "verifiedTests": [],
       "missingTests": [],
@@ -1967,12 +1967,29 @@
         "historical-limited",
         "bounded-real-model",
         "fixed-host-zero-model",
-        "bounded-real-model-diagnostic-only"
+        "bounded-real-model-diagnostic-only",
+        "fixed-host-failure-diagnostic"
       ],
       "evidenceState": "limited-only",
       "evidenceSources": [
         {
           "id": "h3-core-planning",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ]
+        },
+        {
+          "id": "h3-bounded-core-validation-runner",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ]
+        },
+        {
+          "id": "round7-lead-integration",
           "status": "verified",
           "levels": [
             "offline-module",
@@ -2023,11 +2040,19 @@
             "fixed-host-zero-model",
             "bounded-real-model-diagnostic-only"
           ]
+        },
+        {
+          "id": "round7-host-bounded-core-goal-failure",
+          "status": "verified",
+          "levels": [
+            "fixed-host-failure-diagnostic"
+          ]
         }
       ],
       "limitations": [
         "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
         "Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.",
+        "Round-7 bounded real core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion; an unauthorized/paused Goal + Session partial side effect exists; this failure evidence can never be V25/business/nine-system pass.",
         "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
         "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
       ],
@@ -2574,7 +2599,7 @@
       "historicalEvidence": [],
       "note": "",
       "status": "not_covered",
-      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,slice-verification,fixed-host-zero-model,independent-verification]，来源 11 个",
+      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,slice-verification,fixed-host-zero-model,fixed-host-failure-diagnostic,independent-verification]，来源 13 个",
       "sourceVerified": true,
       "verifiedTests": [],
       "missingTests": [],
@@ -2587,6 +2612,7 @@
         "offline-module",
         "slice-verification",
         "fixed-host-zero-model",
+        "fixed-host-failure-diagnostic",
         "independent-verification"
       ],
       "evidenceState": "limited-only",
@@ -2645,10 +2671,25 @@
           ]
         },
         {
+          "id": "round7-lead-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ]
+        },
+        {
           "id": "round6-host-inner-lifecycle",
           "status": "verified",
           "levels": [
             "fixed-host-zero-model"
+          ]
+        },
+        {
+          "id": "round7-host-bounded-core-goal-failure",
+          "status": "verified",
+          "levels": [
+            "fixed-host-failure-diagnostic"
           ]
         },
         {
@@ -2677,6 +2718,7 @@
         "G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.",
         "Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.",
+        "Round-7 bounded core Goal host failure persisted an unauthorized/paused Goal row + Session and must be reconciled; failure evidence cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
         "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
       ],
       "partialSubscenarios": [
@@ -2718,7 +2760,7 @@
       "historicalEvidence": [],
       "note": "",
       "status": "not_covered",
-      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,synthetic-ui,slice-verification,fixed-host-zero-model,bounded-real-model-diagnostic-only,environment-baseline]，来源 9 个",
+      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,synthetic-ui,slice-verification,fixed-host-zero-model,bounded-real-model-diagnostic-only,fixed-host-failure-diagnostic,environment-baseline]，来源 10 个",
       "sourceVerified": true,
       "verifiedTests": [],
       "missingTests": [],
@@ -2733,6 +2775,7 @@
         "slice-verification",
         "fixed-host-zero-model",
         "bounded-real-model-diagnostic-only",
+        "fixed-host-failure-diagnostic",
         "environment-baseline"
       ],
       "evidenceState": "limited-only",
@@ -2791,6 +2834,13 @@
           ]
         },
         {
+          "id": "round7-host-bounded-core-goal-failure",
+          "status": "verified",
+          "levels": [
+            "fixed-host-failure-diagnostic"
+          ]
+        },
+        {
           "id": "joint-host-zero-model",
           "status": "verified",
           "levels": [
@@ -2809,7 +2859,7 @@
       "limitations": [
         "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
         "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-        "Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits; round-6 adds an isolated inner-lifecycle diagnostic whose 59072-byte status-final proves only diagnostics-cache passed. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
+        "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session). Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
       ],
       "partialSubscenarios": [
         "synthetic-host six-domain panel UI cases",
@@ -3115,7 +3165,7 @@
       "historicalEvidence": [],
       "note": "",
       "status": "not_covered",
-      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,slice-verification,historical-limited,bounded-real-model,fixed-host-zero-model,bounded-real-model-diagnostic-only]，来源 7 个",
+      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,slice-verification,historical-limited,bounded-real-model,fixed-host-zero-model,bounded-real-model-diagnostic-only,fixed-host-failure-diagnostic]，来源 10 个",
       "sourceVerified": true,
       "verifiedTests": [],
       "missingTests": [],
@@ -3130,12 +3180,29 @@
         "historical-limited",
         "bounded-real-model",
         "fixed-host-zero-model",
-        "bounded-real-model-diagnostic-only"
+        "bounded-real-model-diagnostic-only",
+        "fixed-host-failure-diagnostic"
       ],
       "evidenceState": "limited-only",
       "evidenceSources": [
         {
           "id": "h3-core-planning",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ]
+        },
+        {
+          "id": "h3-bounded-core-validation-runner",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ]
+        },
+        {
+          "id": "round7-lead-integration",
           "status": "verified",
           "levels": [
             "offline-module",
@@ -3186,11 +3253,19 @@
             "fixed-host-zero-model",
             "bounded-real-model-diagnostic-only"
           ]
+        },
+        {
+          "id": "round7-host-bounded-core-goal-failure",
+          "status": "verified",
+          "levels": [
+            "fixed-host-failure-diagnostic"
+          ]
         }
       ],
       "limitations": [
         "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
         "Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.",
+        "Round-7 bounded real core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion; an unauthorized/paused Goal + Session partial side effect exists; this failure evidence can never be V25/business/nine-system pass.",
         "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
         "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
       ],
@@ -3686,7 +3761,7 @@
       "historicalEvidence": [],
       "note": "",
       "status": "not_covered",
-      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,slice-verification,fixed-host-zero-model,independent-verification]，来源 11 个",
+      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,slice-verification,fixed-host-zero-model,fixed-host-failure-diagnostic,independent-verification]，来源 13 个",
       "sourceVerified": true,
       "verifiedTests": [],
       "missingTests": [],
@@ -3699,6 +3774,7 @@
         "offline-module",
         "slice-verification",
         "fixed-host-zero-model",
+        "fixed-host-failure-diagnostic",
         "independent-verification"
       ],
       "evidenceState": "limited-only",
@@ -3757,10 +3833,25 @@
           ]
         },
         {
+          "id": "round7-lead-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ]
+        },
+        {
           "id": "round6-host-inner-lifecycle",
           "status": "verified",
           "levels": [
             "fixed-host-zero-model"
+          ]
+        },
+        {
+          "id": "round7-host-bounded-core-goal-failure",
+          "status": "verified",
+          "levels": [
+            "fixed-host-failure-diagnostic"
           ]
         },
         {
@@ -3789,6 +3880,7 @@
         "G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.",
         "Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.",
+        "Round-7 bounded core Goal host failure persisted an unauthorized/paused Goal row + Session and must be reconciled; failure evidence cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
         "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
       ],
       "partialSubscenarios": [
@@ -3829,7 +3921,7 @@
       "historicalEvidence": [],
       "note": "",
       "status": "not_covered",
-      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,synthetic-ui,slice-verification,fixed-host-zero-model,bounded-real-model-diagnostic-only,environment-baseline]，来源 9 个",
+      "statusBasis": "H0 仅登记需求，产品状态仍 not_covered；已提交切片证据层=limited-only [offline-module,synthetic-ui,slice-verification,fixed-host-zero-model,bounded-real-model-diagnostic-only,fixed-host-failure-diagnostic,environment-baseline]，来源 10 个",
       "sourceVerified": true,
       "verifiedTests": [],
       "missingTests": [],
@@ -3844,6 +3936,7 @@
         "slice-verification",
         "fixed-host-zero-model",
         "bounded-real-model-diagnostic-only",
+        "fixed-host-failure-diagnostic",
         "environment-baseline"
       ],
       "evidenceState": "limited-only",
@@ -3902,6 +3995,13 @@
           ]
         },
         {
+          "id": "round7-host-bounded-core-goal-failure",
+          "status": "verified",
+          "levels": [
+            "fixed-host-failure-diagnostic"
+          ]
+        },
+        {
           "id": "joint-host-zero-model",
           "status": "verified",
           "levels": [
@@ -3920,7 +4020,7 @@
       "limitations": [
         "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
         "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-        "Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits; round-6 adds an isolated inner-lifecycle diagnostic whose 59072-byte status-final proves only diagnostics-cache passed. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
+        "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session). Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
       ],
       "partialSubscenarios": [
         "synthetic-host six-domain panel UI cases",
@@ -7031,14 +7131,14 @@
   },
   "evidenceMapping": {
     "version": "1.0.0",
-    "frozenHead": "183b6499f322c92278b735c704e1f879114475d5",
+    "frozenHead": "7c0b22a3b331275f743efea4a9343bdc6ec6b289",
     "frozenHeadSource": "explicit --frozen-head",
-    "generatedAt": "2026-11-03T02:56:18.343Z",
+    "generatedAt": "2026-11-03T03:57:45.443Z",
     "counts": {
-      "sources": 47,
-      "verified": 47,
+      "sources": 52,
+      "verified": 52,
       "unknown": 0,
-      "files": 142,
+      "files": 160,
       "warnings": 0
     },
     "sources": [
@@ -9365,7 +9465,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
             "expectedCommit": "dfe4372",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "c32b773453e64eaccfd67c94e467ddb2a3f0567f18b98da8528fe2aa567d432a",
             "bytes": 83139,
             "present": true,
@@ -9378,7 +9478,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
             "expectedCommit": "dfe4372",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "d208ceb02401f61b8415233ebdf4ba95445569450fd4058f6ba43f8eaa41f061",
             "bytes": 654174,
             "present": true,
@@ -9391,7 +9491,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
             "expectedCommit": "dfe4372",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "c244f683b3200c8b12a65a53b12e8dfb90298019b346c82b25a00606af697d5c",
             "bytes": 203512,
             "present": true,
@@ -9814,7 +9914,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
             "expectedCommit": "693fab1",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "2474996a6d4d67d8609b60090bc8d3c1647635f2189d2c136f51b97a961f685f",
             "bytes": 83141,
             "present": true,
@@ -9827,7 +9927,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
             "expectedCommit": "693fab1",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "ca9307dfb6dfb9859fe45bcde183e3040c8362dcf90a90effc60fcf1490550c2",
             "bytes": 818405,
             "present": true,
@@ -9840,7 +9940,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
             "expectedCommit": "693fab1",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "beb367d8acb51c67c4f80e5b570906fe544b818eeb4edab485d5ebdfd187a7be",
             "bytes": 245696,
             "present": true,
@@ -10130,7 +10230,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
             "expectedCommit": "c89d940",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "e4ab6be069f6d4d4fb4dcc2546ae7814790018a01ae3787830f60caf8e270683",
             "bytes": 83724,
             "present": true,
@@ -10143,7 +10243,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
             "expectedCommit": "c89d940",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "fc05cdd0aa8e2e3b3d78c64bc120dd900bdef10ca062671adcc593e39e6a44ad",
             "bytes": 929894,
             "present": true,
@@ -10156,7 +10256,7 @@
           {
             "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
             "expectedCommit": "c89d940",
-            "lastCommit": "c89d9405f459305a596fe72c24dc970bf0b7fafd",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
             "sha256": "a7ff35c09114b730f158e3b5a33b4869e05e4e87d74a299ad8e6fa5c6c7f269a",
             "bytes": 280582,
             "present": true,
@@ -10180,6 +10280,384 @@
           "Tooling evidence only: artifacts prove clean-X recomputation/honesty, not product/host/model/business acceptance.",
           "Bound with blobCommit+expectedSha256 so later pipeline rewrites do not invalidate the committed snapshot; never read from the mutable worktree.",
           "executed=0/passed=0, product rows not_covered and the nine-system gate remains incomplete — this artifact source cannot upgrade V/S/FL or product rows."
+        ]
+      },
+      {
+        "id": "round7-host-bounded-core-goal-failure",
+        "status": "verified",
+        "levels": [
+          "fixed-host-failure-diagnostic"
+        ],
+        "commits": [
+          {
+            "sha": "cc2e8d1",
+            "exists": true,
+            "ancestor": true
+          }
+        ],
+        "files": [
+          {
+            "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+            "expectedCommit": "cc2e8d1",
+            "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e",
+            "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+            "bytes": 8671,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+            "jsonParseable": true
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+            "expectedCommit": "cc2e8d1",
+            "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e",
+            "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+            "bytes": 4347,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+            "jsonParseable": true
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+            "expectedCommit": "cc2e8d1",
+            "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e",
+            "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+            "bytes": 362,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+            "jsonParseable": true
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+            "expectedCommit": "cc2e8d1",
+            "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e",
+            "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+            "bytes": 36592,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+            "jsonParseable": true
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+            "expectedCommit": "cc2e8d1",
+            "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e",
+            "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+            "bytes": 36592,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+            "jsonParseable": true
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+            "expectedCommit": "cc2e8d1",
+            "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e",
+            "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+            "bytes": 37013,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+            "jsonParseable": true
+          }
+        ],
+        "observations": [
+          {
+            "label": "round7FailureStatus",
+            "value": "fixed-host-bounded-real-business-create-failed-unknown"
+          },
+          {
+            "label": "round7ReceiptStatus",
+            "value": "failed"
+          },
+          {
+            "label": "round7FrozenAuthorized",
+            "value": false
+          }
+        ],
+        "issues": [],
+        "warnings": [],
+        "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+        "limitations": [
+          "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+          "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+          "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+          "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+        ]
+      },
+      {
+        "id": "h3-bounded-core-validation-runner",
+        "status": "verified",
+        "levels": [
+          "offline-module",
+          "slice-verification"
+        ],
+        "commits": [
+          {
+            "sha": "9f841bd",
+            "exists": true,
+            "ancestor": true
+          }
+        ],
+        "files": [
+          {
+            "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation.json",
+            "expectedCommit": "9f841bd",
+            "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8",
+            "sha256": "1e1376b8f4d824ef85c2d812a84f15b19ad0ab311069bff01f2bbba9bbef4208",
+            "bytes": 31597,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "1e1376b8f4d824ef85c2d812a84f15b19ad0ab311069bff01f2bbba9bbef4208",
+            "jsonParseable": true,
+            "blobCommit": "9f841bd",
+            "expectedSha256": "1e1376b8f4d824ef85c2d812a84f15b19ad0ab311069bff01f2bbba9bbef4208"
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation-integration.patch",
+            "expectedCommit": "9f841bd",
+            "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8",
+            "sha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383",
+            "bytes": 9642,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383",
+            "jsonParseable": null,
+            "blobCommit": "9f841bd",
+            "expectedSha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383"
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/slices/h3-validation-verify.json",
+            "expectedCommit": "9f841bd",
+            "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8",
+            "sha256": "33220049ae32241c372b81571dfcabb52c2be2b685a9294e13a3840471c8aec9",
+            "bytes": 1497,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "33220049ae32241c372b81571dfcabb52c2be2b685a9294e13a3840471c8aec9",
+            "jsonParseable": true,
+            "blobCommit": "9f841bd",
+            "expectedSha256": "33220049ae32241c372b81571dfcabb52c2be2b685a9294e13a3840471c8aec9"
+          },
+          {
+            "path": "plugins/shiyu/src/control/core-validation.ts",
+            "expectedCommit": "9f841bd",
+            "lastCommit": "5f9ac008d8a2d2525389ed6d65b5c6da8ca768f0",
+            "sha256": "52fac4ff1c00ef1334da979e6a82771367c88c50667a1e12d652a31714740358",
+            "bytes": 47893,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "52fac4ff1c00ef1334da979e6a82771367c88c50667a1e12d652a31714740358",
+            "jsonParseable": null,
+            "blobCommit": "9f841bd",
+            "expectedSha256": "52fac4ff1c00ef1334da979e6a82771367c88c50667a1e12d652a31714740358"
+          },
+          {
+            "path": "plugins/shiyu/tests/core-validation.test.ts",
+            "expectedCommit": "9f841bd",
+            "lastCommit": "5f9ac008d8a2d2525389ed6d65b5c6da8ca768f0",
+            "sha256": "e41f56021897c72f2bb15bb878defce4438b8067669d690b1637f50c845e4fff",
+            "bytes": 35688,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "e41f56021897c72f2bb15bb878defce4438b8067669d690b1637f50c845e4fff",
+            "jsonParseable": null,
+            "blobCommit": "9f841bd",
+            "expectedSha256": "e41f56021897c72f2bb15bb878defce4438b8067669d690b1637f50c845e4fff"
+          }
+        ],
+        "observations": [
+          {
+            "label": "h3ValidationIsolatedTests",
+            "value": 1531
+          },
+          {
+            "label": "h3ValidationFocusedTests",
+            "value": 16
+          }
+        ],
+        "issues": [],
+        "warnings": [],
+        "scope": "H3 bounded real core Goal validation runner implementation: runner source + 16 focused tests + sliced evidence + integration patch; isolated full check 1531/1531 (baseline 1515 + 16).",
+        "limitations": [
+          "Offline implementation/isolated verification only: real bounded core Goal host run was NOT executed by the implementer (Lead host kit); fixed-host attempt failed separately in round7-host-bounded-core-goal-failure with GOAL_OPERATION_UNKNOWN.",
+          "The runner creates real Goal/Task/Effect/budget/Session/artifact and invokes real models when executed; it must run only when the runtime is idle and unpaused, receipts live in memory diagnostics and may be cleared by reload, and provider usage/cost may be unknown (never zero-fill).",
+          "16 focused tests + 1531 isolated check cannot upgrade V25/full core/business or nine-system acceptance; failure evidence must never be counted as pass."
+        ]
+      },
+      {
+        "id": "round7-lead-integration",
+        "status": "verified",
+        "levels": [
+          "offline-module",
+          "slice-verification"
+        ],
+        "commits": [
+          {
+            "sha": "183b649",
+            "exists": true,
+            "ancestor": true
+          }
+        ],
+        "files": [
+          {
+            "path": "plugins/shiyu/artifacts/dsh/integration/round7-lead-integration.json",
+            "expectedCommit": "183b649",
+            "lastCommit": "183b6499f322c92278b735c704e1f879114475d5",
+            "sha256": "f5f890024f3e837d9299cb19815297db438bee049288786a2dd5ce17ee9d1b82",
+            "bytes": 2835,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "f5f890024f3e837d9299cb19815297db438bee049288786a2dd5ce17ee9d1b82",
+            "jsonParseable": true
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/slices/round7-integrated-verify.json",
+            "expectedCommit": "183b649",
+            "lastCommit": "183b6499f322c92278b735c704e1f879114475d5",
+            "sha256": "aa34b27de1bbf1eb35d45e44d3691c906500a829dd123bb9a76f9bfa123535ad",
+            "bytes": 3284,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "aa34b27de1bbf1eb35d45e44d3691c906500a829dd123bb9a76f9bfa123535ad",
+            "jsonParseable": true
+          }
+        ],
+        "observations": [
+          {
+            "label": "round7IntegrationStatus",
+            "value": "offline-verified-integration"
+          },
+          {
+            "label": "round7IntegrationTests",
+            "value": 1539
+          }
+        ],
+        "issues": [],
+        "warnings": [],
+        "scope": "Lead round-7 integration of the bounded core Goal validation runner and diagnostics tool into Runtime/index: offline-verified integration plus isolated combined check 1539/1539; host execution/failure is recorded separately in round7-host-bounded-core-goal-failure.",
+        "limitations": [
+          "G1 integration + isolated full check only: the real bounded business run is separate host evidence and FAILED (GOAL_OPERATION_UNKNOWN), never a pass.",
+          "The runner is not read-only: it creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; host execution must be idle/unpaused and receipts can be cleared by reload.",
+          "Provider usage/cost may be unknown and must never be zero-filled; no V25/full core/business/nine-system acceptance."
+        ]
+      },
+      {
+        "id": "h7-round7-clean-artifacts",
+        "status": "verified",
+        "levels": [
+          "offline-module"
+        ],
+        "commits": [
+          {
+            "sha": "cf87322",
+            "exists": true,
+            "ancestor": true
+          }
+        ],
+        "files": [
+          {
+            "path": "plugins/shiyu/artifacts/dsh/harness/manifest.json",
+            "expectedCommit": "cf87322",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
+            "sha256": "99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+            "bytes": 84286,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0",
+            "jsonParseable": true,
+            "blobCommit": "cf87322",
+            "expectedSha256": "99948cb2d05b73a0f85a3eb82dc27b449d6e880a9456d022db59b66271125cc0"
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/harness/traceability.json",
+            "expectedCommit": "cf87322",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
+            "sha256": "d9ef264483b922d2e02369352daca9192d885f83cb8431adbd11bf4fde08b441",
+            "bytes": 998264,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "d9ef264483b922d2e02369352daca9192d885f83cb8431adbd11bf4fde08b441",
+            "jsonParseable": true,
+            "blobCommit": "cf87322",
+            "expectedSha256": "d9ef264483b922d2e02369352daca9192d885f83cb8431adbd11bf4fde08b441"
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
+            "expectedCommit": "cf87322",
+            "lastCommit": "cf8732229a3576955b425f86c818f8726ddb0286",
+            "sha256": "c3bffa29ddf60a392cbea604d06832299899ef345ebf001d4c3d000095813315",
+            "bytes": 312586,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "c3bffa29ddf60a392cbea604d06832299899ef345ebf001d4c3d000095813315",
+            "jsonParseable": true,
+            "blobCommit": "cf87322",
+            "expectedSha256": "c3bffa29ddf60a392cbea604d06832299899ef345ebf001d4c3d000095813315"
+          }
+        ],
+        "observations": [
+          {
+            "label": "round7CleanGate",
+            "value": "incomplete"
+          }
+        ],
+        "issues": [],
+        "warnings": [],
+        "scope": "H7-round7 clean-VCS harness artifacts (X+1 of 183b649, commit cf87322): clean-X manifest, traceability with 47 verified evidence sources and acceptance report (gate incomplete).",
+        "limitations": [
+          "Tooling evidence only: artifacts prove clean-X recomputation/honesty, not product/host/model/business acceptance.",
+          "Bound with blobCommit+expectedSha256 so later pipeline rewrites do not invalidate the committed snapshot; never read from the mutable worktree.",
+          "executed=0/passed=0, product rows not_covered and gate incomplete — this source cannot upgrade V/S/FL or product rows."
+        ]
+      },
+      {
+        "id": "round7-review",
+        "status": "verified",
+        "levels": [
+          "independent-review-info"
+        ],
+        "commits": [
+          {
+            "sha": "ab62847",
+            "exists": true,
+            "ancestor": true
+          }
+        ],
+        "files": [
+          {
+            "path": "plugins/shiyu/artifacts/dsh/verify/round7-evidence-review.json",
+            "expectedCommit": "ab62847",
+            "lastCommit": "ab628476f151780c006639e252a0b12f224aad05",
+            "sha256": "54de8d1273357b1eb126c5e82591859000410a30f1972141a9de04d9e52dad38",
+            "bytes": 17199,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "54de8d1273357b1eb126c5e82591859000410a30f1972141a9de04d9e52dad38",
+            "jsonParseable": true
+          },
+          {
+            "path": "plugins/shiyu/artifacts/dsh/verify/ROUND7-EVIDENCE-REVIEW.md",
+            "expectedCommit": "ab62847",
+            "lastCommit": "ab628476f151780c006639e252a0b12f224aad05",
+            "sha256": "0c320456c0378b95b31858ae1e1681f838df651f6817da1fac5408adefd45911",
+            "bytes": 4798,
+            "present": true,
+            "matchesFrozenHead": true,
+            "frozenHeadBlobSha256": "0c320456c0378b95b31858ae1e1681f838df651f6817da1fac5408adefd45911",
+            "jsonParseable": null
+          }
+        ],
+        "observations": [],
+        "issues": [],
+        "warnings": [],
+        "scope": "Round-7 independent evidence review metadata (ROUND7-EVIDENCE-REVIEW.md + JSON): review scope/dispositions/F7 corrections.",
+        "limitations": [
+          "Info/metadata only: this is an independent review record, not product/host/model/business verification and not a pass claim.",
+          "Deliberately NOT referenced by any product row/module/system in the evidence map to avoid turning review metadata into acceptance evidence.",
+          "Cannot upgrade V/S/FL/product rows or nine-system gate."
         ]
       }
     ],
@@ -10919,7 +11397,8 @@
           "historical-limited",
           "bounded-real-model",
           "fixed-host-zero-model",
-          "bounded-real-model-diagnostic-only"
+          "bounded-real-model-diagnostic-only",
+          "fixed-host-failure-diagnostic"
         ],
         "sources": [
           {
@@ -10949,6 +11428,75 @@
                 "path": "plugins/shiyu/artifacts/dsh/slices/h3-verify.json",
                 "sha256": "738d8133b1cb4c9a0a3965e1681f6a7d1b1aa13a2448dfbf76b9cf27681ba1a9",
                 "lastCommit": "d7dd731646fe6d33e4db3a8a842c955cfb8c4221"
+              }
+            ],
+            "issues": []
+          },
+          {
+            "id": "h3-bounded-core-validation-runner",
+            "status": "verified",
+            "levels": [
+              "offline-module",
+              "slice-verification"
+            ],
+            "scope": "H3 bounded real core Goal validation runner implementation: runner source + 16 focused tests + sliced evidence + integration patch; isolated full check 1531/1531 (baseline 1515 + 16).",
+            "limitations": [
+              "Offline implementation/isolated verification only: real bounded core Goal host run was NOT executed by the implementer (Lead host kit); fixed-host attempt failed separately in round7-host-bounded-core-goal-failure with GOAL_OPERATION_UNKNOWN.",
+              "The runner creates real Goal/Task/Effect/budget/Session/artifact and invokes real models when executed; it must run only when the runtime is idle and unpaused, receipts live in memory diagnostics and may be cleared by reload, and provider usage/cost may be unknown (never zero-fill).",
+              "16 focused tests + 1531 isolated check cannot upgrade V25/full core/business or nine-system acceptance; failure evidence must never be counted as pass."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation.json",
+                "sha256": "1e1376b8f4d824ef85c2d812a84f15b19ad0ab311069bff01f2bbba9bbef4208",
+                "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation-integration.patch",
+                "sha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383",
+                "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/slices/h3-validation-verify.json",
+                "sha256": "33220049ae32241c372b81571dfcabb52c2be2b685a9294e13a3840471c8aec9",
+                "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+              },
+              {
+                "path": "plugins/shiyu/src/control/core-validation.ts",
+                "sha256": "52fac4ff1c00ef1334da979e6a82771367c88c50667a1e12d652a31714740358",
+                "lastCommit": "5f9ac008d8a2d2525389ed6d65b5c6da8ca768f0"
+              },
+              {
+                "path": "plugins/shiyu/tests/core-validation.test.ts",
+                "sha256": "e41f56021897c72f2bb15bb878defce4438b8067669d690b1637f50c845e4fff",
+                "lastCommit": "5f9ac008d8a2d2525389ed6d65b5c6da8ca768f0"
+              }
+            ],
+            "issues": []
+          },
+          {
+            "id": "round7-lead-integration",
+            "status": "verified",
+            "levels": [
+              "offline-module",
+              "slice-verification"
+            ],
+            "scope": "Lead round-7 integration of the bounded core Goal validation runner and diagnostics tool into Runtime/index: offline-verified integration plus isolated combined check 1539/1539; host execution/failure is recorded separately in round7-host-bounded-core-goal-failure.",
+            "limitations": [
+              "G1 integration + isolated full check only: the real bounded business run is separate host evidence and FAILED (GOAL_OPERATION_UNKNOWN), never a pass.",
+              "The runner is not read-only: it creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; host execution must be idle/unpaused and receipts can be cleared by reload.",
+              "Provider usage/cost may be unknown and must never be zero-filled; no V25/full core/business/nine-system acceptance."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/integration/round7-lead-integration.json",
+                "sha256": "f5f890024f3e837d9299cb19815297db438bee049288786a2dd5ce17ee9d1b82",
+                "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/slices/round7-integrated-verify.json",
+                "sha256": "aa34b27de1bbf1eb35d45e44d3691c906500a829dd123bb9a76f9bfa123535ad",
+                "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
               }
             ],
             "issues": []
@@ -11249,12 +11797,60 @@
               }
             ],
             "issues": []
+          },
+          {
+            "id": "round7-host-bounded-core-goal-failure",
+            "status": "verified",
+            "levels": [
+              "fixed-host-failure-diagnostic"
+            ],
+            "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+            "limitations": [
+              "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+              "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+              "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+              "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              }
+            ],
+            "issues": []
           }
         ],
         "scope": "H3 offline controlled multi-step plan/replan with CAS plan versions and Task/Mandate admission; historical limited owner local-note Goal closure.",
         "limitations": [
           "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
           "Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.",
+          "Round-7 bounded real core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion; an unauthorized/paused Goal + Session partial side effect exists; this failure evidence can never be V25/business/nine-system pass.",
           "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
           "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
         ],
@@ -12079,6 +12675,7 @@
           "offline-module",
           "slice-verification",
           "fixed-host-zero-model",
+          "fixed-host-failure-diagnostic",
           "independent-verification"
         ],
         "sources": [
@@ -12269,6 +12866,33 @@
             "issues": []
           },
           {
+            "id": "round7-lead-integration",
+            "status": "verified",
+            "levels": [
+              "offline-module",
+              "slice-verification"
+            ],
+            "scope": "Lead round-7 integration of the bounded core Goal validation runner and diagnostics tool into Runtime/index: offline-verified integration plus isolated combined check 1539/1539; host execution/failure is recorded separately in round7-host-bounded-core-goal-failure.",
+            "limitations": [
+              "G1 integration + isolated full check only: the real bounded business run is separate host evidence and FAILED (GOAL_OPERATION_UNKNOWN), never a pass.",
+              "The runner is not read-only: it creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; host execution must be idle/unpaused and receipts can be cleared by reload.",
+              "Provider usage/cost may be unknown and must never be zero-filled; no V25/full core/business/nine-system acceptance."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/integration/round7-lead-integration.json",
+                "sha256": "f5f890024f3e837d9299cb19815297db438bee049288786a2dd5ce17ee9d1b82",
+                "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/slices/round7-integrated-verify.json",
+                "sha256": "aa34b27de1bbf1eb35d45e44d3691c906500a829dd123bb9a76f9bfa123535ad",
+                "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+              }
+            ],
+            "issues": []
+          },
+          {
             "id": "round6-host-inner-lifecycle",
             "status": "verified",
             "levels": [
@@ -12316,6 +12940,53 @@
                 "path": "plugins/shiyu/artifacts/dsh/host/round6/status-final.json",
                 "sha256": "7581873a7ca3be590305c75f4ea952d5ac4504c49c8145cf0bb3f677dce699a8",
                 "lastCommit": "8d4c97cc7fca01741abf57c4f8c3664b6e51aec6"
+              }
+            ],
+            "issues": []
+          },
+          {
+            "id": "round7-host-bounded-core-goal-failure",
+            "status": "verified",
+            "levels": [
+              "fixed-host-failure-diagnostic"
+            ],
+            "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+            "limitations": [
+              "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+              "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+              "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+              "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
               }
             ],
             "issues": []
@@ -12514,6 +13185,7 @@
           "G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.",
           "Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
           "Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.",
+          "Round-7 bounded core Goal host failure persisted an unauthorized/paused Goal row + Session and must be reconciled; failure evidence cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
           "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
         ],
         "partialSubscenarios": [
@@ -12529,6 +13201,7 @@
           "slice-verification",
           "fixed-host-zero-model",
           "bounded-real-model-diagnostic-only",
+          "fixed-host-failure-diagnostic",
           "environment-baseline"
         ],
         "sources": [
@@ -12907,6 +13580,53 @@
             "issues": []
           },
           {
+            "id": "round7-host-bounded-core-goal-failure",
+            "status": "verified",
+            "levels": [
+              "fixed-host-failure-diagnostic"
+            ],
+            "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+            "limitations": [
+              "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+              "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+              "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+              "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              }
+            ],
+            "issues": []
+          },
+          {
             "id": "joint-host-zero-model",
             "status": "verified",
             "levels": [
@@ -12972,7 +13692,7 @@
         "limitations": [
           "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
           "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-          "Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits; round-6 adds an isolated inner-lifecycle diagnostic whose 59072-byte status-final proves only diagnostics-cache passed. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
+          "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session). Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
         ],
         "partialSubscenarios": [
           "synthetic-host six-domain panel UI cases",
@@ -16235,7 +16955,8 @@
           "historical-limited",
           "bounded-real-model",
           "fixed-host-zero-model",
-          "bounded-real-model-diagnostic-only"
+          "bounded-real-model-diagnostic-only",
+          "fixed-host-failure-diagnostic"
         ],
         "sources": [
           {
@@ -16265,6 +16986,75 @@
                 "path": "plugins/shiyu/artifacts/dsh/slices/h3-verify.json",
                 "sha256": "738d8133b1cb4c9a0a3965e1681f6a7d1b1aa13a2448dfbf76b9cf27681ba1a9",
                 "lastCommit": "d7dd731646fe6d33e4db3a8a842c955cfb8c4221"
+              }
+            ],
+            "issues": []
+          },
+          {
+            "id": "h3-bounded-core-validation-runner",
+            "status": "verified",
+            "levels": [
+              "offline-module",
+              "slice-verification"
+            ],
+            "scope": "H3 bounded real core Goal validation runner implementation: runner source + 16 focused tests + sliced evidence + integration patch; isolated full check 1531/1531 (baseline 1515 + 16).",
+            "limitations": [
+              "Offline implementation/isolated verification only: real bounded core Goal host run was NOT executed by the implementer (Lead host kit); fixed-host attempt failed separately in round7-host-bounded-core-goal-failure with GOAL_OPERATION_UNKNOWN.",
+              "The runner creates real Goal/Task/Effect/budget/Session/artifact and invokes real models when executed; it must run only when the runtime is idle and unpaused, receipts live in memory diagnostics and may be cleared by reload, and provider usage/cost may be unknown (never zero-fill).",
+              "16 focused tests + 1531 isolated check cannot upgrade V25/full core/business or nine-system acceptance; failure evidence must never be counted as pass."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation.json",
+                "sha256": "1e1376b8f4d824ef85c2d812a84f15b19ad0ab311069bff01f2bbba9bbef4208",
+                "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation-integration.patch",
+                "sha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383",
+                "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/slices/h3-validation-verify.json",
+                "sha256": "33220049ae32241c372b81571dfcabb52c2be2b685a9294e13a3840471c8aec9",
+                "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+              },
+              {
+                "path": "plugins/shiyu/src/control/core-validation.ts",
+                "sha256": "52fac4ff1c00ef1334da979e6a82771367c88c50667a1e12d652a31714740358",
+                "lastCommit": "5f9ac008d8a2d2525389ed6d65b5c6da8ca768f0"
+              },
+              {
+                "path": "plugins/shiyu/tests/core-validation.test.ts",
+                "sha256": "e41f56021897c72f2bb15bb878defce4438b8067669d690b1637f50c845e4fff",
+                "lastCommit": "5f9ac008d8a2d2525389ed6d65b5c6da8ca768f0"
+              }
+            ],
+            "issues": []
+          },
+          {
+            "id": "round7-lead-integration",
+            "status": "verified",
+            "levels": [
+              "offline-module",
+              "slice-verification"
+            ],
+            "scope": "Lead round-7 integration of the bounded core Goal validation runner and diagnostics tool into Runtime/index: offline-verified integration plus isolated combined check 1539/1539; host execution/failure is recorded separately in round7-host-bounded-core-goal-failure.",
+            "limitations": [
+              "G1 integration + isolated full check only: the real bounded business run is separate host evidence and FAILED (GOAL_OPERATION_UNKNOWN), never a pass.",
+              "The runner is not read-only: it creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; host execution must be idle/unpaused and receipts can be cleared by reload.",
+              "Provider usage/cost may be unknown and must never be zero-filled; no V25/full core/business/nine-system acceptance."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/integration/round7-lead-integration.json",
+                "sha256": "f5f890024f3e837d9299cb19815297db438bee049288786a2dd5ce17ee9d1b82",
+                "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/slices/round7-integrated-verify.json",
+                "sha256": "aa34b27de1bbf1eb35d45e44d3691c906500a829dd123bb9a76f9bfa123535ad",
+                "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
               }
             ],
             "issues": []
@@ -16565,12 +17355,60 @@
               }
             ],
             "issues": []
+          },
+          {
+            "id": "round7-host-bounded-core-goal-failure",
+            "status": "verified",
+            "levels": [
+              "fixed-host-failure-diagnostic"
+            ],
+            "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+            "limitations": [
+              "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+              "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+              "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+              "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              }
+            ],
+            "issues": []
           }
         ],
         "scope": "H3 offline controlled multi-step plan/replan with CAS plan versions and Task/Mandate admission; historical limited owner local-note Goal closure.",
         "limitations": [
           "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
           "Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.",
+          "Round-7 bounded real core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion; an unauthorized/paused Goal + Session partial side effect exists; this failure evidence can never be V25/business/nine-system pass.",
           "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
           "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
         ],
@@ -17395,6 +18233,7 @@
           "offline-module",
           "slice-verification",
           "fixed-host-zero-model",
+          "fixed-host-failure-diagnostic",
           "independent-verification"
         ],
         "sources": [
@@ -17585,6 +18424,33 @@
             "issues": []
           },
           {
+            "id": "round7-lead-integration",
+            "status": "verified",
+            "levels": [
+              "offline-module",
+              "slice-verification"
+            ],
+            "scope": "Lead round-7 integration of the bounded core Goal validation runner and diagnostics tool into Runtime/index: offline-verified integration plus isolated combined check 1539/1539; host execution/failure is recorded separately in round7-host-bounded-core-goal-failure.",
+            "limitations": [
+              "G1 integration + isolated full check only: the real bounded business run is separate host evidence and FAILED (GOAL_OPERATION_UNKNOWN), never a pass.",
+              "The runner is not read-only: it creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; host execution must be idle/unpaused and receipts can be cleared by reload.",
+              "Provider usage/cost may be unknown and must never be zero-filled; no V25/full core/business/nine-system acceptance."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/integration/round7-lead-integration.json",
+                "sha256": "f5f890024f3e837d9299cb19815297db438bee049288786a2dd5ce17ee9d1b82",
+                "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/slices/round7-integrated-verify.json",
+                "sha256": "aa34b27de1bbf1eb35d45e44d3691c906500a829dd123bb9a76f9bfa123535ad",
+                "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+              }
+            ],
+            "issues": []
+          },
+          {
             "id": "round6-host-inner-lifecycle",
             "status": "verified",
             "levels": [
@@ -17632,6 +18498,53 @@
                 "path": "plugins/shiyu/artifacts/dsh/host/round6/status-final.json",
                 "sha256": "7581873a7ca3be590305c75f4ea952d5ac4504c49c8145cf0bb3f677dce699a8",
                 "lastCommit": "8d4c97cc7fca01741abf57c4f8c3664b6e51aec6"
+              }
+            ],
+            "issues": []
+          },
+          {
+            "id": "round7-host-bounded-core-goal-failure",
+            "status": "verified",
+            "levels": [
+              "fixed-host-failure-diagnostic"
+            ],
+            "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+            "limitations": [
+              "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+              "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+              "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+              "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
               }
             ],
             "issues": []
@@ -17830,6 +18743,7 @@
           "G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.",
           "Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
           "Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.",
+          "Round-7 bounded core Goal host failure persisted an unauthorized/paused Goal row + Session and must be reconciled; failure evidence cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
           "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
         ],
         "partialSubscenarios": [
@@ -17845,6 +18759,7 @@
           "slice-verification",
           "fixed-host-zero-model",
           "bounded-real-model-diagnostic-only",
+          "fixed-host-failure-diagnostic",
           "environment-baseline"
         ],
         "sources": [
@@ -18223,6 +19138,53 @@
             "issues": []
           },
           {
+            "id": "round7-host-bounded-core-goal-failure",
+            "status": "verified",
+            "levels": [
+              "fixed-host-failure-diagnostic"
+            ],
+            "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+            "limitations": [
+              "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+              "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+              "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+              "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+            ],
+            "files": [
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              },
+              {
+                "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+              }
+            ],
+            "issues": []
+          },
+          {
             "id": "joint-host-zero-model",
             "status": "verified",
             "levels": [
@@ -18288,7 +19250,7 @@
         "limitations": [
           "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
           "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-          "Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits; round-6 adds an isolated inner-lifecycle diagnostic whose 59072-byte status-final proves only diagnostics-cache passed. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
+          "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session). Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
         ],
         "partialSubscenarios": [
           "synthetic-host six-domain panel UI cases",
@@ -19103,7 +20065,8 @@
             "historical-limited",
             "bounded-real-model",
             "fixed-host-zero-model",
-            "bounded-real-model-diagnostic-only"
+            "bounded-real-model-diagnostic-only",
+            "fixed-host-failure-diagnostic"
           ],
           "sources": [
             {
@@ -19133,6 +20096,75 @@
                   "path": "plugins/shiyu/artifacts/dsh/slices/h3-verify.json",
                   "sha256": "738d8133b1cb4c9a0a3965e1681f6a7d1b1aa13a2448dfbf76b9cf27681ba1a9",
                   "lastCommit": "d7dd731646fe6d33e4db3a8a842c955cfb8c4221"
+                }
+              ],
+              "issues": []
+            },
+            {
+              "id": "h3-bounded-core-validation-runner",
+              "status": "verified",
+              "levels": [
+                "offline-module",
+                "slice-verification"
+              ],
+              "scope": "H3 bounded real core Goal validation runner implementation: runner source + 16 focused tests + sliced evidence + integration patch; isolated full check 1531/1531 (baseline 1515 + 16).",
+              "limitations": [
+                "Offline implementation/isolated verification only: real bounded core Goal host run was NOT executed by the implementer (Lead host kit); fixed-host attempt failed separately in round7-host-bounded-core-goal-failure with GOAL_OPERATION_UNKNOWN.",
+                "The runner creates real Goal/Task/Effect/budget/Session/artifact and invokes real models when executed; it must run only when the runtime is idle and unpaused, receipts live in memory diagnostics and may be cleared by reload, and provider usage/cost may be unknown (never zero-fill).",
+                "16 focused tests + 1531 isolated check cannot upgrade V25/full core/business or nine-system acceptance; failure evidence must never be counted as pass."
+              ],
+              "files": [
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation.json",
+                  "sha256": "1e1376b8f4d824ef85c2d812a84f15b19ad0ab311069bff01f2bbba9bbef4208",
+                  "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/h3/h3-bounded-core-validation-integration.patch",
+                  "sha256": "095c3a4504a1491d64e57881b728cc101685482eb8fa78c3d88210451cdc7383",
+                  "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/slices/h3-validation-verify.json",
+                  "sha256": "33220049ae32241c372b81571dfcabb52c2be2b685a9294e13a3840471c8aec9",
+                  "lastCommit": "9f841bd3ec68f68568f21f6f960d177bd0e75bc8"
+                },
+                {
+                  "path": "plugins/shiyu/src/control/core-validation.ts",
+                  "sha256": "52fac4ff1c00ef1334da979e6a82771367c88c50667a1e12d652a31714740358",
+                  "lastCommit": "5f9ac008d8a2d2525389ed6d65b5c6da8ca768f0"
+                },
+                {
+                  "path": "plugins/shiyu/tests/core-validation.test.ts",
+                  "sha256": "e41f56021897c72f2bb15bb878defce4438b8067669d690b1637f50c845e4fff",
+                  "lastCommit": "5f9ac008d8a2d2525389ed6d65b5c6da8ca768f0"
+                }
+              ],
+              "issues": []
+            },
+            {
+              "id": "round7-lead-integration",
+              "status": "verified",
+              "levels": [
+                "offline-module",
+                "slice-verification"
+              ],
+              "scope": "Lead round-7 integration of the bounded core Goal validation runner and diagnostics tool into Runtime/index: offline-verified integration plus isolated combined check 1539/1539; host execution/failure is recorded separately in round7-host-bounded-core-goal-failure.",
+              "limitations": [
+                "G1 integration + isolated full check only: the real bounded business run is separate host evidence and FAILED (GOAL_OPERATION_UNKNOWN), never a pass.",
+                "The runner is not read-only: it creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; host execution must be idle/unpaused and receipts can be cleared by reload.",
+                "Provider usage/cost may be unknown and must never be zero-filled; no V25/full core/business/nine-system acceptance."
+              ],
+              "files": [
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/integration/round7-lead-integration.json",
+                  "sha256": "f5f890024f3e837d9299cb19815297db438bee049288786a2dd5ce17ee9d1b82",
+                  "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/slices/round7-integrated-verify.json",
+                  "sha256": "aa34b27de1bbf1eb35d45e44d3691c906500a829dd123bb9a76f9bfa123535ad",
+                  "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
                 }
               ],
               "issues": []
@@ -19433,12 +20465,60 @@
                 }
               ],
               "issues": []
+            },
+            {
+              "id": "round7-host-bounded-core-goal-failure",
+              "status": "verified",
+              "levels": [
+                "fixed-host-failure-diagnostic"
+              ],
+              "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+              "limitations": [
+                "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+                "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+                "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+                "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+              ],
+              "files": [
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                  "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                  "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                  "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                  "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                  "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                  "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                }
+              ],
+              "issues": []
             }
           ],
           "scope": "H3 offline controlled multi-step plan/replan with CAS plan versions and Task/Mandate admission; historical limited owner local-note Goal closure.",
           "limitations": [
             "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
             "Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.",
+            "Round-7 bounded real core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion; an unauthorized/paused Goal + Session partial side effect exists; this failure evidence can never be V25/business/nine-system pass.",
             "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
             "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
           ],
@@ -19453,20 +20533,25 @@
           "historical-limited",
           "bounded-real-model",
           "fixed-host-zero-model",
-          "bounded-real-model-diagnostic-only"
+          "bounded-real-model-diagnostic-only",
+          "fixed-host-failure-diagnostic"
         ],
         "sourceIds": [
           "h3-core-planning",
+          "h3-bounded-core-validation-runner",
+          "round7-lead-integration",
           "historical-task-goal",
           "h2c-real-model-probe",
           "h2c-probe-fix-chain",
           "round4-localcore-hotfix",
           "round4-host-zero-model",
-          "round5-host-real-model"
+          "round5-host-real-model",
+          "round7-host-bounded-core-goal-failure"
         ],
         "limitations": [
           "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
           "Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.",
+          "Round-7 bounded real core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion; an unauthorized/paused Goal + Session partial side effect exists; this failure evidence can never be V25/business/nine-system pass.",
           "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
           "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
         ],
@@ -20424,6 +21509,7 @@
             "offline-module",
             "slice-verification",
             "fixed-host-zero-model",
+            "fixed-host-failure-diagnostic",
             "independent-verification"
           ],
           "sources": [
@@ -20614,6 +21700,33 @@
               "issues": []
             },
             {
+              "id": "round7-lead-integration",
+              "status": "verified",
+              "levels": [
+                "offline-module",
+                "slice-verification"
+              ],
+              "scope": "Lead round-7 integration of the bounded core Goal validation runner and diagnostics tool into Runtime/index: offline-verified integration plus isolated combined check 1539/1539; host execution/failure is recorded separately in round7-host-bounded-core-goal-failure.",
+              "limitations": [
+                "G1 integration + isolated full check only: the real bounded business run is separate host evidence and FAILED (GOAL_OPERATION_UNKNOWN), never a pass.",
+                "The runner is not read-only: it creates real Goal/Task/Effect/budget/Session/artifact and invokes real models; host execution must be idle/unpaused and receipts can be cleared by reload.",
+                "Provider usage/cost may be unknown and must never be zero-filled; no V25/full core/business/nine-system acceptance."
+              ],
+              "files": [
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/integration/round7-lead-integration.json",
+                  "sha256": "f5f890024f3e837d9299cb19815297db438bee049288786a2dd5ce17ee9d1b82",
+                  "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/slices/round7-integrated-verify.json",
+                  "sha256": "aa34b27de1bbf1eb35d45e44d3691c906500a829dd123bb9a76f9bfa123535ad",
+                  "lastCommit": "183b6499f322c92278b735c704e1f879114475d5"
+                }
+              ],
+              "issues": []
+            },
+            {
               "id": "round6-host-inner-lifecycle",
               "status": "verified",
               "levels": [
@@ -20661,6 +21774,53 @@
                   "path": "plugins/shiyu/artifacts/dsh/host/round6/status-final.json",
                   "sha256": "7581873a7ca3be590305c75f4ea952d5ac4504c49c8145cf0bb3f677dce699a8",
                   "lastCommit": "8d4c97cc7fca01741abf57c4f8c3664b6e51aec6"
+                }
+              ],
+              "issues": []
+            },
+            {
+              "id": "round7-host-bounded-core-goal-failure",
+              "status": "verified",
+              "levels": [
+                "fixed-host-failure-diagnostic"
+              ],
+              "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+              "limitations": [
+                "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+                "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+                "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+                "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+              ],
+              "files": [
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                  "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                  "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                  "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                  "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                  "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                  "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
                 }
               ],
               "issues": []
@@ -20859,6 +22019,7 @@
             "G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.",
             "Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
             "Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.",
+            "Round-7 bounded core Goal host failure persisted an unauthorized/paused Goal row + Session and must be reconciled; failure evidence cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
             "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
           ],
           "partialSubscenarios": [
@@ -20869,6 +22030,7 @@
           "offline-module",
           "slice-verification",
           "fixed-host-zero-model",
+          "fixed-host-failure-diagnostic",
           "independent-verification"
         ],
         "sourceIds": [
@@ -20879,7 +22041,9 @@
           "round3-lead-integration",
           "round4-lead-integration",
           "round6-lead-integration",
+          "round7-lead-integration",
           "round6-host-inner-lifecycle",
+          "round7-host-bounded-core-goal-failure",
           "round3-host-zero-model",
           "round4-host-zero-model",
           "h4h5-independent-review"
@@ -20888,6 +22052,7 @@
           "G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.",
           "Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
           "Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.",
+          "Round-7 bounded core Goal host failure persisted an unauthorized/paused Goal row + Session and must be reconciled; failure evidence cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
           "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
         ],
         "partialSubscenarios": [
@@ -20909,6 +22074,7 @@
             "slice-verification",
             "fixed-host-zero-model",
             "bounded-real-model-diagnostic-only",
+            "fixed-host-failure-diagnostic",
             "environment-baseline"
           ],
           "sources": [
@@ -21287,6 +22453,53 @@
               "issues": []
             },
             {
+              "id": "round7-host-bounded-core-goal-failure",
+              "status": "verified",
+              "levels": [
+                "fixed-host-failure-diagnostic"
+              ],
+              "scope": "Round-7 fixed-host attempt of the bounded real core Goal validation: create failed with GOAL_OPERATION_UNKNOWN; receipt status=failed with 0 model requests, no Task/worker/verification/native completion, and disclosed partial side effects.",
+              "limitations": [
+                "This is a FAILED fixed-host attempt / diagnostic evidence, NOT bounded-real-model success and NOT a business validation: create failed with GOAL_OPERATION_UNKNOWN; no core plan, Task, worker, verification or native Goal completion occurred; no model request was admitted (0 model calls), no retry happened, and provider usage/cost is unknown.",
+                "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reported goal.created=false and the audit correction is recorded in this evidence; the inert partial Goal must be reconciled/cancelled by a later slice.",
+                "No Task, Effect, budget reservation or artifact was created; tasks/effects shown in the receipt are pre-existing rows read for context.",
+                "Real business chain, plan quality, Task/worker/verification and nine-system acceptance remain unverified; this failure can NEVER be counted as pass, V25, business or nine-system evidence."
+              ],
+              "files": [
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+                  "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+                  "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+                  "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-before.json",
+                  "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-reload.json",
+                  "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                },
+                {
+                  "path": "plugins/shiyu/artifacts/dsh/host/round7/round7-host-after-run.json",
+                  "sha256": "e547e07f228c1316bd51480f000b8f40f97de0d675b86a59b6768039692269e4",
+                  "lastCommit": "cc2e8d1924b8480ee5e8ef07cf15cc6254da9f2e"
+                }
+              ],
+              "issues": []
+            },
+            {
               "id": "joint-host-zero-model",
               "status": "verified",
               "levels": [
@@ -21352,7 +22565,7 @@
           "limitations": [
             "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
             "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-            "Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits; round-6 adds an isolated inner-lifecycle diagnostic whose 59072-byte status-final proves only diagnostics-cache passed. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
+            "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session). Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
           ],
           "partialSubscenarios": [
             "synthetic-host six-domain panel UI cases",
@@ -21365,6 +22578,7 @@
           "slice-verification",
           "fixed-host-zero-model",
           "bounded-real-model-diagnostic-only",
+          "fixed-host-failure-diagnostic",
           "environment-baseline"
         ],
         "sourceIds": [
@@ -21375,13 +22589,14 @@
           "round4-host-zero-model",
           "round5-host-real-model",
           "round6-host-inner-lifecycle",
+          "round7-host-bounded-core-goal-failure",
           "joint-host-zero-model",
           "h0-baseline"
         ],
         "limitations": [
           "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
           "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-          "Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits; round-6 adds an isolated inner-lifecycle diagnostic whose 59072-byte status-final proves only diagnostics-cache passed. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
+          "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session). Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
         ],
         "partialSubscenarios": [
           "synthetic-host six-domain panel UI cases",
