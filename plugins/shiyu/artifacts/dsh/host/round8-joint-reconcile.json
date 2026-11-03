@@ -1,0 +1,226 @@
+{
+  "schemaVersion": 1,
+  "phase": "round8-host",
+  "slice": "fixed-host reconcile of the residual round-7 core-validation Goal",
+  "capturedAt": "2026-11-03T03:43:13.065Z",
+  "status": "fixed-host-reconcile-passed",
+  "purpose": "One reconcile call against the residual inert round-7 core-validation Goal: read-only classification, exactly one cancel for the inert unauthorized Goal, no Goal creation, no model call and no retry; then verify the live data invariants and the diagnostics cache.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-round8-host-reconcile-plan.json",
+    "sha256": "5ee15ff2c374dd8f4a5ad9594660106664e762a9d22b02f84ba2f4e66fa08b86"
+  },
+  "code": {
+    "head": "7c0b22a",
+    "dist": {
+      "files": 113,
+      "digest": "c4887fa966ccfb1d6bd633d4348e2ec3d23ed22b5661710d6aade23b73a6f224"
+    }
+  },
+  "receipt": {
+    "file": "artifacts/dsh/host/round8/reconcile-receipt.json",
+    "bytes": 1083,
+    "sha256": "3d8597c5919abb3a23aea480c6454e1f08f05bf89d784cbdfb876bb1afba43b5"
+  },
+  "classification": "inert-unauthorized",
+  "readback": "complete",
+  "observed": {
+    "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+    "requestId": "core-validation-frozen-v1",
+    "version": 1,
+    "authorized": false,
+    "paused": true,
+    "cancelled": false,
+    "hasMandate": false,
+    "nativePhase": "unobserved",
+    "evaluations": 0,
+    "taskRefs": 0,
+    "planVersion": 0,
+    "bindingReceiptStatus": "unknown",
+    "goalSessionId": "shiyu-core-goal-066c102e4706af09a85713fbae7c0da5c12f80063d2d4e85848b7d3003c199e0"
+  },
+  "evidence": [
+    "goal-row-present",
+    "binding:unknown",
+    "goal-session:bound",
+    "unauthorized",
+    "paused",
+    "not-cancelled",
+    "no-mandate",
+    "no-native",
+    "evaluations:0",
+    "tasks:0",
+    "plan:0"
+  ],
+  "stopAction": {
+    "kind": "cancel",
+    "attempted": true,
+    "ok": true,
+    "at": "2026-11-03T03:42:30.361Z",
+    "goalVersion": 2
+  },
+  "cancelAttempts": 1,
+  "postCancel": {
+    "cancelled": true,
+    "paused": true,
+    "version": 2
+  },
+  "unknowns": [],
+  "readOnly": true,
+  "createsGoal": false,
+  "modelCalls": 0,
+  "retries": 0,
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        405,
+        411
+      ],
+      "events": [
+        53,
+        54
+      ],
+      "capabilityRevision": [
+        41,
+        43
+      ],
+      "sessions": [
+        34,
+        34
+      ],
+      "goals": [
+        3,
+        3
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "normal startup writes; the residual Goal stays unauthorized/paused/cancelled=false; no business facts changed."
+    },
+    "reconcile": {
+      "commitSeq": [
+        411,
+        412
+      ],
+      "events": [
+        54,
+        54
+      ],
+      "sessions": [
+        34,
+        34
+      ],
+      "goals": [
+        3,
+        3
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "exactly +1 commitSeq for the single cancel transition; no events/deliveries, no new/removed sessions or Goals, no Task/Effect/budget change and no artifact; the runtime-state file is unchanged."
+    },
+    "postStatus": {
+      "commitSeq": [
+        412,
+        412
+      ],
+      "events": [
+        54,
+        54
+      ],
+      "sessions": [
+        34,
+        34
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only (no commitSeq/event/session/state change) and caches the reconcile receipt."
+    }
+  },
+  "cachedReceipt": {
+    "file": "artifacts/dsh/host/round8/status-final.json",
+    "bytes": 58375,
+    "sha256": "fdba995f30c125d887df5156e6bd628d99030be94c5f75c3cf761cd628bc9206",
+    "classification": "inert-unauthorized",
+    "readback": "complete",
+    "postCancel": {
+      "cancelled": true,
+      "paused": true,
+      "version": 2
+    },
+    "cancelAttempts": 1,
+    "bytesSemantics": "actual committed file bytes (UTF-8)",
+    "fieldsPresent": "classification/readback/observed/evidence/stopAction/cancelAttempts/postCancel/unknowns (the diagnostics cache stores the validated reconcile core receipt; readOnly/createsGoal/modelCalls/retries are declared on the tool response and committed in the receipt file, not in this cache entry)",
+    "declaredOnlyInReceipt": {
+      "readOnly": true,
+      "createsGoal": false,
+      "modelCalls": 0,
+      "retries": 0
+    }
+  },
+  "invariants": "no new Goal/Task/Effect/budget/Session/artifact; no model request; only the inert Goal was cancelled (version 2, cancelled=true, paused=true); all previously known Session files byte-identical; runtime-state file unchanged.",
+  "findings": [
+    "The residual Goal was classified inert-unauthorized exactly as expected and received exactly one cancel with no retry; the post-cancel readback reports cancelled=true/paused=true/version=2.",
+    "The live data invariant holds: +1 commitSeq only, no events/deliveries, no new/removed sessions or Goals, no Task/Effect/budget/artifact, state file unchanged.",
+    "The diagnostics cache contains the validated reconcile core receipt (classification/readback/observed/evidence/stopAction/cancelAttempts/postCancel/unknowns); readOnly=true, createsGoal=false, modelCalls=0 and retries=0 are declared on the tool response and committed in the receipt file, not stored in this cache entry.",
+    "The underlying create failure cause is still not fixed: a future bounded validation attempt would need a new frozen plan and must not reuse the failed create; this round only reconciled the residual."
+  ],
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "goals": 3,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "This proves the reconcile/cancel path only; it does not prove the bounded real core Goal business chain and does not fix the original create failure.",
+    "No model/embedding/Task/worker/Goal completion is involved; the residual Goal Session remains as history.",
+    "A future create attempt would require a new explicit owner decision and a newly frozen plan."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F8-R1/F8-R2",
+      "finding": "status-final bytes recorded from a different count and the cachedReceipt block claimed fields that the diagnostics cache does not hold",
+      "resolution": "bytes corrected to the actual committed file size (58375) with semantics; cachedReceipt now lists the fields actually present and points to the receipt file for the tool-response declarations"
+    }
+  ]
+}

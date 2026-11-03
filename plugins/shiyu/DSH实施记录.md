@@ -1506,3 +1506,16 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - owner-only `runtime.reconcile-core-validation-goal`（paused 拒绝、专用单槽、可中止、只调一次、回执存 `diagnostics.coreValidationReconcile`，返回 `readOnly:true/createsGoal:false/modelCalls:0/retries:0`）+ 工具 `shiyu_reconcile_core_validation_goal`。
 - **Lead 集成隔离验证**（HEAD `ab62847` + 全部 round-8 切片与集成文件）：**1561/1561 通过，0 失败/0 跳过**（= 1539 + 13 + 8 + 1）；证据 `artifacts/dsh/slices/round8-integrated-verify.json`。
 - 宿主执行为一次 reconcile 调用（0 重试、无模型、不新建 Goal），结果另行留证。
+
+## 47. 第八轮固定宿主验证：残留 core-validation Goal 的安全 reconcile（零模型）
+
+状态：**固定宿主零模型 reconcile 通过**；不证真实业务链、不修复 create 失败。2026-11-03，代码 HEAD `7c0b22a`，dist 由该 HEAD 隔离 worktree 构建（113 文件），一次有序 reload。
+
+- 重载增量：commitSeq `405→411`、events `53→54`、capability `41→43`、sessions 34/goals 3 不变、业务事实/state 不变。
+- 唯一一次 `shiyu_reconcile_core_validation_goal`（0 重试、无模型、不新建 Goal）：
+  - classification **inert-unauthorized**、readback complete；observed：goalId `core-17e3fe95…`、version 1、authorized=false、paused=true、cancelled=false、hasMandate=false、nativePhase=unobserved、evaluations 0、taskRefs 0、planVersion 0、bindingReceiptStatus=unknown、goalSessionId `shiyu-core-goal-066c102e…`；evidence 11 项。
+  - stopAction：**cancel attempted/ok，恰好 1 次**；`postCancel={cancelled:true,paused:true,version:2}`；unknowns=[]；`readOnly:true/createsGoal:false/modelCalls:0/retries:0`。
+- 数据不变量：reconcile 仅 **+1 commitSeq**（cancel 转换）；无 events/deliveries、无新增/删除 session 或 Goal、无 Task/Effect/budget/artifact、state 文件不变；既有 34 个 Session 逐字节不变。
+- final status 只读无副作用，`diagnostics.coreValidationReconcile` 缓存同一 receipt（status payload 58,374B 已入证据）；residual Goal 现 cancelled=true（version 2）。
+- 证据：[round8-joint-reconcile.json](<artifacts/dsh/host/round8-joint-reconcile.json>) + `host/round8/`（receipt、status-final、4 份审计）。
+- 边界：本切片只证 reconcile/cancel 路径；**不证有界真实 core 业务链、不修复 create 失败原因**；未来 create 尝试需新的显式 owner 决定与新冻结计划，且不得重试本次失败。
