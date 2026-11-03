@@ -1,0 +1,369 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-core-create-diagnosis",
+  "phase": "round9",
+  "capturedAt": "2026-11-03T04:36:27.367Z",
+  "status": "offline root-cause reproduction confirmed for the history-race failure mode + bounded stabilization fix + failure observability + frozen v2 experiment; real host confirmation NOT executed by implementer",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "realGoalCreatedByImplementer": false,
+  "realGoalCancelledByImplementer": false,
+  "head": "80e2867db2f27024a69b65d98e2e5869562cd026",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 67598,
+      "sha256": "c5c54c1162a3f18aa9b74aa4cda7419cbf7fcdc52559310c7640b96f53b6a23a"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 76786,
+      "sha256": "692e852fa1f3d608b6b263f676659f80a450fb84a1f0b173ad9959cefe10008f"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 58326,
+      "sha256": "1b45b7aff6ed02dd5506dd1485fdbc753b64c8ea1893121727250c45dc31e59d"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 93498,
+      "sha256": "b7db4b83c66bae563a16e3e636a83d4be409a21a12c26a44cce8fd8022a147fe"
+    }
+  ],
+  "rootCause": {
+    "liveEvidence": {
+      "source": "Lead read-only query of the live shiyu_goal_commands row for the round-7 failed Goal (provided in the round-9 task message; implementer has no host access and did not re-read it)",
+      "commandId": "core-create:core-17e3fe95b62427e395e6386686e602cf90024ec7",
+      "persistedReceipt": {
+        "status": "unknown",
+        "reason": "Native history changed outside the trusted recovery suffix"
+      },
+      "sessionEvidence": "the core Goal Session file contains only 4 meta events (session/permission-preset/sandbox-mode/approval-policy), no session/title and no turn/start",
+      "interpretation": "the failure happened inside withNative after agents.create, at the observe → assertNativeLiveHistory watermark check (NATIVE_HISTORY_CHANGED), not at title/preset/native Goal creation; the native Goal create command was never reached"
+    },
+    "judgment": "Confirmed failure mode offline: a host meta event appended between the flush/cold-read observation and the immediate live-history assert makes session.seq exceed the observed cut and raises NATIVE_HISTORY_CHANGED. The exact live async event type that raced round-7 is not observable from the archived log, so the live root cause is strongly supported but NOT host-confirmed. No title/preset defect is supported.",
+    "offlineReproduction": {
+      "preFix": {
+        "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts",
+        "log": {
+          "path": "plugins/shiyu/.local/h3/create-diagnosis-red.log",
+          "sha256": "6bc6e491fd115bf758308d31e1ca02a387521e4f37a28e9bd7b6c1232d698418"
+        },
+        "tests": 39,
+        "pass": 31,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0,
+        "failedTests": [
+          "agents.create failure observability",
+          "observe failure observability",
+          "title failure observability",
+          "title-readback observability",
+          "readback failure observability",
+          "postcondition mismatch observability",
+          "transient history race stabilization",
+          "persistent history tamper bounded failure"
+        ]
+      },
+      "postFix": {
+        "command": "node --import tsx --test --test-concurrency=1 tests/core-event-tools.test.ts",
+        "log": {
+          "path": "plugins/shiyu/.local/h3/create-diagnosis-green.log",
+          "sha256": "39d4c3bffcaf5b910cf5129e790cf32216f5b5de8b1f7602e12ddc7d21f34aed"
+        },
+        "tests": 39,
+        "pass": 39,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "race": {
+        "transient": "a fake host appends a session/end-seed meta event between observation and live assert; pre-fix create fails NATIVE_HISTORY_CHANGED, post-fix re-observes the new durable cut (historyOpens >= 2) and native goals.create runs exactly once",
+        "persistent": "a fake host appends on every observation; pre-fix and post-fix both fail, bounded to 3 observations, failurePhase=history-assert, failureCode=NATIVE_HISTORY_CHANGED, and native goals.create is never called"
+      }
+    }
+  },
+  "observability": {
+    "thrownUnknownError": "GoalOperationUnknownError now carries diagnostic { phase, code, message } (controlled phase enum; message <=300 chars; absolute workspace paths replaced with <workspace>; control chars stripped; no objective/model/user body)",
+    "persistedReceipt": "the durable GoalCommandReceipt schema is unchanged (no SQLite migration): receipt.reason is the controlled short text \"phase/code: message\" (<=500 chars); GoalOperationUnknownError keeps the structured copy",
+    "boundedRunnerReceipt": "create-failure receipts expose failurePhase (controlled enum), failureCode (underlying controlled code) and failureDetail (<=300); they also expose partialCreation + businessSideEffects.goal.created true|false|unknown from the read-only requestId readback",
+    "fallback": "when the error object has no diagnostic, the runner parses the persisted binding receipt.reason phase/code prefix (read-only), so a host-only failure is still observable",
+    "phases": [
+      "prepare",
+      "authorize",
+      "binding",
+      "native-session",
+      "observe",
+      "stabilize",
+      "history-assert",
+      "title",
+      "title-readback",
+      "native-goal",
+      "readback",
+      "postcondition",
+      "confirm",
+      "release",
+      "unknown"
+    ],
+    "boundaries": [
+      "no body/user/objective content is copied into diagnostics",
+      "no model or embedding call is made to build diagnostics",
+      "the persisted receipt shape is unchanged so existing journal validation/recovery keeps working"
+    ]
+  },
+  "fix": {
+    "problem": "withNative observed the Session history once, then immediately asserted the live Session still equalled that cut. Host async meta appends could land in between and cause a false NATIVE_HISTORY_CHANGED at create.",
+    "stabilization": "pre-create core Goal Sessions now flush+observe, assert the live cut, and only on NATIVE_HISTORY_CHANGED re-observe the newly durable cut, bounded to CORE_CREATE_HISTORY_OBSERVATIONS (3 total observations, signal/deadline observed). Other errors fail immediately. The native goals().create command is still invoked exactly once and is never replayed.",
+    "phasePreservation": "withNative preserves the operation failure phase across its release step; a release-only failure is still reported as release",
+    "notChanged": [
+      "no title/preset logic change (not supported by the evidence)",
+      "no retry of the native create command",
+      "no second Goal lifecycle or replay",
+      "v1 reconcile path unchanged"
+    ]
+  },
+  "experimentV2": {
+    "CORE_VALIDATION_V1": {
+      "requestId": "core-validation-frozen-v1",
+      "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca",
+      "deliverableContentSha256": "c5bb3cbc87ddc2bfb2429f7a6e3b55d6869a357fe25b6774635d39ed1b684e52",
+      "budget": {
+        "tokens": 16384,
+        "calls": 3,
+        "effects": 1
+      },
+      "maxEvaluations": 2,
+      "note": "historical round-7 experiment; already failed, reconciled, and remains the one-shot reconcile path"
+    },
+    "CORE_VALIDATION_EXPERIMENT": {
+      "version": 2,
+      "requestId": "core-validation-frozen-v2",
+      "objective": "完成 owner 预授权的有界本地便签验证 v2：写入 note-1 并由独立核验确认。",
+      "deliverable": {
+        "id": "note-1",
+        "title": "有界 core 验证便签 v2",
+        "content": "SHIYU_CORE_VALIDATION_NOTE_V2",
+        "contentSha256": "1e45f585fdccc37bdd93f486ce0c380ecfe5002aa0a37b39356f384f0e79059e"
+      },
+      "budget": {
+        "tokens": 16384,
+        "calls": 3,
+        "effects": 1
+      },
+      "expiresInMs": 600000,
+      "maxEvaluations": 2,
+      "templateSha256": "756ec37b5bc054564076e226fc45bed135ced702d337acbf75fdcaf7f18ae34d"
+    },
+    "freezeRule": "both experiments are Object.freeze constants; runBoundedCoreValidation only accepts the exact CORE_VALIDATION_V1 or CORE_VALIDATION_EXPERIMENT object reference as options.experiment (default v1). Arbitrary/cloned/version-only overrides are rejected as invalid options; tool/command/model payloads cannot select or override any field.",
+    "activation": "the current runtime command still runs v1 (historical). A future explicit owner decision must have trusted composition pass the CORE_VALIDATION_EXPERIMENT constant to runBoundedCoreValidation; no tool input may select it. Runtime/index change is NOT part of this slice."
+  },
+  "tests": {
+    "coreEventTools": {
+      "total": 39,
+      "pass": 39,
+      "new": [
+        "agents.create failure → phase native-session, partially stored Session, no model",
+        "flush/observe failure → phase observe",
+        "title pin failure → phase title, workspace path sanitized",
+        "title read-back mismatch → phase title-readback",
+        "read-back durability failure → phase readback",
+        "native postcondition mismatch → phase postcondition, native create once",
+        "transient host meta append race → stabilized create success, historyOpens >= 2, native create once",
+        "persistent history tamper → bounded 3 observations, phase history-assert, no native create"
+      ]
+    },
+    "coreValidation": {
+      "total": 34,
+      "new": [
+        "create failure exposes failurePhase/failureCode/failureDetail from the thrown diagnostic",
+        "create failure without diagnostic falls back to the persisted binding reason prefix",
+        "v2 experiment is code-frozen with its own fixed sha and v1 stays unchanged",
+        "runner only accepts the exact code-level experiment constant; v2 drives requestId/template/content; arbitrary overrides rejected",
+        "v1 reconcile path unchanged and ignores a v2 requestId Goal"
+      ]
+    },
+    "netNew": 13,
+    "noSkips": true,
+    "logs": [
+      {
+        "path": "plugins/shiyu/.local/h3/create-diagnosis-red.log",
+        "sha256": "6bc6e491fd115bf758308d31e1ca02a387521e4f37a28e9bd7b6c1232d698418",
+        "tests": 39,
+        "pass": 31,
+        "fail": 8,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "path": "plugins/shiyu/.local/h3/create-diagnosis-green.log",
+        "sha256": "39d4c3bffcaf5b910cf5129e790cf32216f5b5de8b1f7602e12ddc7d21f34aed",
+        "tests": 39,
+        "pass": 39,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "path": "plugins/shiyu/.local/h3/validation-final-focused.log",
+        "sha256": "01ca3f82f45caa317818de831d938203241ee0377a01cda70154a1cc5209dcf2"
+      }
+    ]
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-create-diagnosis --manifest plugins/shiyu/.local/h3-create-diagnosis-manifest.json",
+      "head": "80e2867db2f27024a69b65d98e2e5869562cd026",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+          "bytes": 67598,
+          "sha256": "c5c54c1162a3f18aa9b74aa4cda7419cbf7fcdc52559310c7640b96f53b6a23a"
+        },
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 76786,
+          "sha256": "692e852fa1f3d608b6b263f676659f80a450fb84a1f0b173ad9959cefe10008f"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-validation.test.ts",
+          "bytes": 58326,
+          "sha256": "1b45b7aff6ed02dd5506dd1485fdbc753b64c8ea1893121727250c45dc31e59d"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+          "bytes": 93498,
+          "sha256": "b7db4b83c66bae563a16e3e636a83d4be409a21a12c26a44cce8fd8022a147fe"
+        }
+      ],
+      "exitCode": 1,
+      "tests": {
+        "tests": 1574,
+        "pass": 1548,
+        "fail": 26,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 540759,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h3-create-diagnosis.log",
+        "bytes": 194646,
+        "sha256": "c085258f3e864b46d21e57d7dd0abefa7517c5e811743be4a480b4c1e062bc2d"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-create-diagnosis-verify.json",
+        "sha256": "26cc2a7a00071d5d0403ec2cf611b4fd90ba6b7ec3f20ba16e5850c52bdeb472"
+      },
+      "failureClassification": {
+        "count": 26,
+        "files": [
+          "tests/harness-acceptance.test.ts",
+          "tests/harness-evidence.test.ts",
+          "tests/harness-round4.test.ts",
+          "tests/harness-round5.test.ts",
+          "tests/harness-round6.test.ts",
+          "tests/harness-round7.test.ts",
+          "tests/harness-round8.test.ts",
+          "tests/harness-traceability.test.ts"
+        ],
+        "cause": "all failures are tests/harness-*.test.ts frozen-evidence/acceptance/traceability checks. This slice intentionally changes two files that committed evidence manifests bind by frozen-HEAD hash (src/adapters/dsh/goals.ts and tests/core-event-tools.test.ts), so \"evidence_source_unverified / does not match the frozen HEAD blob\" is the expected pre-integration state. No product test fails.",
+        "example": "evidence:sources-bound-to-frozen-head: h2c-probe-fix-chain: file plugins/shiyu/tests/core-event-tools.test.ts does not match the frozen HEAD blob",
+        "resolution": "Lead integration commits the slice and refreshes the clean-VCS harness/acceptance artifacts (the established per-X refresh step); at the refreshed HEAD + slice the isolated full check is expected to return 0 failures / 0 skips."
+      }
+    },
+    "productOnlyIsolatedCheck": {
+      "purpose": "authoritative product-test evidence in the same isolated worktree, excluding the intentionally frozen harness-evidence tests only",
+      "worktree": "ephemeral git worktree at HEAD 80e2867 + the four slice files (node_modules + pinned Python/Ombre symlinked)",
+      "typecheck": {
+        "command": "npm run typecheck",
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h3/product-typecheck.log",
+          "sha256": "9f330d1ecd9e3050f50f049ede3a34ed2a36ff93e45c1352a138d95fd4c48add"
+        }
+      },
+      "build": {
+        "command": "npm run build",
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h3/product-build.log",
+          "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+        }
+      },
+      "tests": {
+        "command": "node --import tsx --test --test-concurrency=1 $(ls tests/*.test.ts | grep -v /harness)",
+        "tests": 1467,
+        "pass": 1467,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h3/product-tests.log",
+          "sha256": "68b1c06025ecc7867e06050ad9b90b7a9adac382eda77092a0af72056458bdb7"
+        }
+      }
+    }
+  },
+  "hostDiagnosisKit": {
+    "kitVersion": 1,
+    "status": "frozen; no real host run executed by implementer",
+    "precondition": [
+      "install a build containing this slice; record dist digest; runtime unpaused and idle; no queued Task; capture a before-audit",
+      "v1 (core-validation-frozen-v1) must NOT be retried: it failed and was reconciled; any new bounded validation is a new explicit owner decision using the v2 frozen experiment constant via trusted composition (not a tool argument)"
+    ],
+    "onNewBoundedAttempt": {
+      "createSuccess": "verify the normal bounded chain; the stabilization may re-observe once or twice — this is expected and the native create is still called once",
+      "createFailure": [
+        "capture the receipt failurePhase/failureCode/failureDetail and businessSideEffects.goal.created + partialCreation/observed readback",
+        "read the live shiyu_goal_commands receipt.reason for the same commandId and the new archived Session event inventory",
+        "do NOT retry the create; reconcile only if the readback classifies the partial Goal as inert-unauthorized (existing v1/v2-aware tool behavior: reconcile remains fixed to v1)",
+        "if failurePhase=history-assert, record which session event types/counts appeared between flush/observe and the live assert; attach as the next evidence"
+      ]
+    },
+    "stopConditions": [
+      "one attempt only; 0 retries; no native command replay",
+      "wall 180s / 2 evaluation rounds / frozen budget / single-flight from the existing validation runner",
+      "if the new receipt still reports history-assert after the bounded stabilization, stop and hand the new session evidence for diagnosis; do not guess further product changes"
+    ],
+    "expectedRootCauseConfirmation": "a new create that now succeeds (or fails with a different, observable phase) while the receipt records the phase/code, together with the round-7 live reason, confirms the history-race diagnosis and the fix."
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model run by the implementer: the live root cause is strongly supported by the provided journal reason + 4-event Session but not re-read or re-run here; the fix is validated against fake-host races",
+    "the exact live async event(s) that raced round-7 are not in the archived 4-event log; the host diagnosis kit must capture them if a new attempt fails again",
+    "full isolated check cannot be 0 failures before Lead integration because this slice changes files frozen by existing clean-VCS evidence manifests; product-only isolated check is 0/0 and the full-suite list is classified",
+    "v2 is frozen in code but not yet activated by the runtime command (would require a trusted integration edit passing CORE_VALIDATION_EXPERIMENT); no tool can select it",
+    "the stabilization retries only NATIVE_HISTORY_CHANGED; any other host variation still fails immediately with an observable phase/code",
+    "release-phase errors still override the body failure as before (matching existing finally semantics)"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-create-diagnosis-verify.json",
+      "sha256": "26cc2a7a00071d5d0403ec2cf611b4fd90ba6b7ec3f20ba16e5850c52bdeb472"
+    },
+    {
+      "path": "plugins/shiyu/.local/slice-verify-h3-create-diagnosis.log",
+      "sha256": "c085258f3e864b46d21e57d7dd0abefa7517c5e811743be4a480b4c1e062bc2d"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/create-diagnosis-red.log",
+      "sha256": "6bc6e491fd115bf758308d31e1ca02a387521e4f37a28e9bd7b6c1232d698418"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/create-diagnosis-green.log",
+      "sha256": "39d4c3bffcaf5b910cf5129e790cf32216f5b5de8b1f7602e12ddc7d21f34aed"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/product-tests.log",
+      "sha256": "68b1c06025ecc7867e06050ad9b90b7a9adac382eda77092a0af72056458bdb7"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/product-typecheck.log",
+      "sha256": "9f330d1ecd9e3050f50f049ede3a34ed2a36ff93e45c1352a138d95fd4c48add"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/product-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  ]
+}

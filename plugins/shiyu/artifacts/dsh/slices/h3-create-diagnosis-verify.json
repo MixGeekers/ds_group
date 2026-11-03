@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h3-create-diagnosis",
+  "capturedAt": "2026-11-03T04:30:06.940Z",
+  "head": "80e2867db2f27024a69b65d98e2e5869562cd026",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h3-create-diagnosis-1793679665737",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 67598,
+      "sha256": "c5c54c1162a3f18aa9b74aa4cda7419cbf7fcdc52559310c7640b96f53b6a23a"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 76786,
+      "sha256": "692e852fa1f3d608b6b263f676659f80a450fb84a1f0b173ad9959cefe10008f"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 58326,
+      "sha256": "1b45b7aff6ed02dd5506dd1485fdbc753b64c8ea1893121727250c45dc31e59d"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 93498,
+      "sha256": "b7db4b83c66bae563a16e3e636a83d4be409a21a12c26a44cce8fd8022a147fe"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 1,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 540759,
+    "bytes": 194646,
+    "sha256": "c085258f3e864b46d21e57d7dd0abefa7517c5e811743be4a480b4c1e062bc2d",
+    "tests": {
+      "tests": 1574,
+      "pass": 1548,
+      "fail": 26,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "    code: 'ERR_ASSERTION',",
+      "    actual: 3,",
+      "    expected: 0,",
+      "    operator: 'strictEqual',",
+      "    diff: 'simple'",
+      "  }"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h3-create-diagnosis.log",
+    "bytes": 194646,
+    "sha256": "c085258f3e864b46d21e57d7dd0abefa7517c5e811743be4a480b4c1e062bc2d"
+  },
+  "verdict": "fail"
+}

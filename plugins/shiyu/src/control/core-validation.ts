@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { CoreCommands, CoreEvaluation, CoreGoal, CorePlanView, CorePrepareInput } from '../contracts/core.js';
-import type { GoalBinding } from '../adapters/dsh/goals.js';
+import { GOAL_OPERATION_PHASES, type GoalBinding, type GoalOperationDiagnostic, type GoalOperationPhase } from '../adapters/dsh/goals.js';
 import type { CommitWatermark } from '../adapters/control-store/commit-watermark.js';
 import type { Budget } from './policy/mandates.js';
 import type { CoreEvaluationResult } from './core-pump.js';
@@ -79,6 +79,9 @@ export interface CoreValidationOptions {
   sleep?: (ms: number, signal: AbortSignal) => Promise<void>;
   signal?: AbortSignal;
   progress?: (phase: string, detail: string) => void;
+  /** Trusted composition only: exactly CORE_VALIDATION_V1 or the frozen v2
+   * experiment constant. Never accepted from a tool/command/model payload. */
+  experiment?: Readonly<CoreValidationExperiment>;
 }
 
 export type CoreValidationStatus = 'completed' | 'paused' | 'timeout' | 'failed' | 'cancelled';
@@ -172,6 +175,10 @@ export interface CoreValidationGoalObservation {
   bindingReceiptStatus: 'pending' | 'unknown' | 'confirmed' | 'rejected' | 'absent';
   goalSessionId?: string;
   goalRef?: { id: string; revision: number };
+  /** Controlled failure diagnostic already persisted in the binding receipt. */
+  bindingFailurePhase?: GoalOperationPhase;
+  bindingFailureCode?: string;
+  bindingFailureDetail?: string;
 }
 export interface CoreValidationGoalReadback {
   status: 'present' | 'absent' | 'unknown';
@@ -233,6 +240,10 @@ export interface CoreValidationReceipt {
   stopAction: CoreValidationStopAction;
   unknowns: string[];
   error?: { phase: string; code: string; message: string };
+  /** Controlled create-failure stage and underlying code (no body/path leakage). */
+  failurePhase?: GoalOperationPhase;
+  failureCode?: string;
+  failureDetail?: string;
 }
 export class CoreValidationBusyError extends Error {
   readonly code = 'CORE_VALIDATION_BUSY';
@@ -304,29 +315,67 @@ function validateReconcileOptions(options: unknown): asserts options is CoreVali
   }
 }
 
-const FROZEN_TEMPLATE = Object.freeze({ requestId: CORE_VALIDATION_REQUEST_ID, objective: CORE_VALIDATION_OBJECTIVE,
-  deliverables: [CORE_VALIDATION_DELIVERABLE], budget: CORE_VALIDATION_BUDGET,
-  expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS, maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS });
-export const CORE_VALIDATION_TEMPLATE_SHA256: string = sha256(canonical(FROZEN_TEMPLATE));
-const FIXED_INPUT: CoreValidationFixedInput = Object.freeze({
-  frozen: true as const,
-  requestId: CORE_VALIDATION_REQUEST_ID,
-  objectiveSha256: sha256(CORE_VALIDATION_OBJECTIVE),
-  deliverable: Object.freeze({ id: CORE_VALIDATION_DELIVERABLE.id, titleSha256: sha256(CORE_VALIDATION_DELIVERABLE.title),
-    contentSha256: sha256(CORE_VALIDATION_DELIVERABLE.content), dependsOn: Object.freeze([]) as unknown as string[] }),
-  budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }),
-  expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
-  maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
-  templateSha256: CORE_VALIDATION_TEMPLATE_SHA256,
-});
-export function frozenCoreValidationInput(startedAtMs: number): CorePrepareInput {
-  return { requestId: CORE_VALIDATION_REQUEST_ID, objective: CORE_VALIDATION_OBJECTIVE,
-    deliverables: [{ id: CORE_VALIDATION_DELIVERABLE.id, title: CORE_VALIDATION_DELIVERABLE.title,
-      content: CORE_VALIDATION_DELIVERABLE.content, dependsOn: [...CORE_VALIDATION_DELIVERABLE.dependsOn] }],
-    budget: { ...CORE_VALIDATION_BUDGET }, expiresAt: iso(startedAtMs + CORE_VALIDATION_EXPIRES_IN_MS),
-    maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS };
+/** One code-frozen validation experiment. Only these exact constants may be
+ * selected by trusted composition; no tool/command input can override them. */
+export interface CoreValidationExperiment {
+  readonly version: number;
+  readonly requestId: string;
+  readonly objective: string;
+  readonly deliverable: { readonly id: string; readonly title: string; readonly content: string; readonly dependsOn: readonly string[] };
+  readonly budget: Budget;
+  readonly expiresInMs: number;
+  readonly maxEvaluations: number;
 }
-const OPTION_KEYS = ['core', 'store', 'evaluate', 'now', 'sleep', 'signal', 'progress'] as const;
+export const CORE_VALIDATION_V1: Readonly<CoreValidationExperiment> = Object.freeze({
+  version: 1, requestId: CORE_VALIDATION_REQUEST_ID, objective: CORE_VALIDATION_OBJECTIVE,
+  deliverable: Object.freeze({ id: CORE_VALIDATION_DELIVERABLE.id, title: CORE_VALIDATION_DELIVERABLE.title,
+    content: CORE_VALIDATION_DELIVERABLE.content, dependsOn: Object.freeze([]) as unknown as readonly string[] }),
+  budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
+  maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
+});
+/** v2 frozen experiment for a future explicit owner decision. v1 stays bound to
+ * the historical failed create and to the one-shot reconcile path. */
+export const CORE_VALIDATION_EXPERIMENT: Readonly<CoreValidationExperiment> = Object.freeze({
+  version: 2, requestId: 'core-validation-frozen-v2',
+  objective: '完成 owner 预授权的有界本地便签验证 v2：写入 note-1 并由独立核验确认。',
+  deliverable: Object.freeze({ id: 'note-1', title: '有界 core 验证便签 v2',
+    content: 'SHIYU_CORE_VALIDATION_NOTE_V2', dependsOn: Object.freeze([]) as unknown as readonly string[] }),
+  budget: Object.freeze({ ...CORE_VALIDATION_BUDGET }), expiresInMs: CORE_VALIDATION_EXPIRES_IN_MS,
+  maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS,
+});
+const EXPERIMENTS: readonly Readonly<CoreValidationExperiment>[] = Object.freeze([CORE_VALIDATION_V1, CORE_VALIDATION_EXPERIMENT]);
+function experimentTemplate(experiment: Readonly<CoreValidationExperiment>): unknown {
+  return { requestId: experiment.requestId, objective: experiment.objective, deliverables: [experiment.deliverable],
+    budget: experiment.budget, expiresInMs: experiment.expiresInMs, maxEvaluations: experiment.maxEvaluations };
+}
+function experimentTemplateSha(experiment: Readonly<CoreValidationExperiment>): string { return sha256(canonical(experimentTemplate(experiment))); }
+export const CORE_VALIDATION_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_V1);
+export const CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256: string = experimentTemplateSha(CORE_VALIDATION_EXPERIMENT);
+function experimentFixedInput(experiment: Readonly<CoreValidationExperiment>): CoreValidationFixedInput {
+  return Object.freeze({
+    frozen: true as const,
+    requestId: experiment.requestId,
+    objectiveSha256: sha256(experiment.objective),
+    deliverable: Object.freeze({ id: experiment.deliverable.id, titleSha256: sha256(experiment.deliverable.title),
+      contentSha256: sha256(experiment.deliverable.content), dependsOn: Object.freeze([...experiment.deliverable.dependsOn]) as unknown as string[] }),
+    budget: Object.freeze({ ...experiment.budget }),
+    expiresInMs: experiment.expiresInMs,
+    maxEvaluations: experiment.maxEvaluations,
+    templateSha256: experimentTemplateSha(experiment),
+  });
+}
+export function frozenCoreValidationInput(startedAtMs: number,
+  experiment: Readonly<CoreValidationExperiment> = CORE_VALIDATION_V1): CorePrepareInput {
+  return { requestId: experiment.requestId, objective: experiment.objective,
+    deliverables: [{ id: experiment.deliverable.id, title: experiment.deliverable.title,
+      content: experiment.deliverable.content, dependsOn: [...experiment.deliverable.dependsOn] }],
+    budget: { ...experiment.budget }, expiresAt: iso(startedAtMs + experiment.expiresInMs),
+    maxEvaluations: experiment.maxEvaluations };
+}
+function experimentForRequestId(requestId: string): Readonly<CoreValidationExperiment> | undefined {
+  return EXPERIMENTS.find(experiment => experiment.requestId === requestId);
+}
+const OPTION_KEYS = ['core', 'store', 'evaluate', 'now', 'sleep', 'signal', 'progress', 'experiment'] as const;
 function validateOptions(options: unknown): asserts options is CoreValidationOptions {
   if (!options || typeof options !== 'object' || Array.isArray(options)) throw new CoreValidationOptionsError('Bounded core validation requires an options object');
   const value = options as Record<string, unknown>;
@@ -341,6 +390,9 @@ function validateOptions(options: unknown): asserts options is CoreValidationOpt
   for (const name of ['evaluate', 'now', 'sleep', 'progress'] as const) if (value[name] !== undefined && typeof value[name] !== 'function') throw new CoreValidationOptionsError(`Invalid ${name} port`);
   if (value.signal !== undefined && (typeof value.signal !== 'object' || typeof (value.signal as AbortSignal).aborted !== 'boolean')) {
     throw new CoreValidationOptionsError('Invalid abort signal');
+  }
+  if (value.experiment !== undefined && value.experiment !== CORE_VALIDATION_V1 && value.experiment !== CORE_VALIDATION_EXPERIMENT) {
+    throw new CoreValidationOptionsError('The validation experiment must be one of the code-level frozen constants');
   }
 }
 /** Real timers by default; tests inject a deterministic clock and sleep. */
@@ -428,6 +480,14 @@ function boundedText(value: unknown, max = 240): string | undefined {
   return value.length <= max ? value : `${value.slice(0, max)}…`;
 }
 /** Exact read-only observation of the frozen Goal row and its bound Session. */
+/** Parse the controlled `phase/code: short text` prefix persisted as the unknown
+ * receipt reason. Anything else stays unobserved; no body/path content is added. */
+function bindingFailureDiagnostic(reason: unknown): { bindingFailurePhase?: GoalOperationPhase; bindingFailureCode?: string; bindingFailureDetail?: string } {
+  if (typeof reason !== 'string') return {};
+  const match = reason.match(/^([a-z][a-z-]{0,31})\/([A-Z][A-Z0-9_]{0,79}): ([\s\S]{0,300})$/);
+  if (!match || !GOAL_OPERATION_PHASES.includes(match[1] as GoalOperationPhase)) return {};
+  return { bindingFailurePhase: match[1] as GoalOperationPhase, bindingFailureCode: match[2], bindingFailureDetail: match[3] };
+}
 function goalObservation(goal: CoreGoal, binding: GoalBinding | undefined): CoreValidationGoalObservation {
   const status = binding?.receipt?.status;
   return { goalId: goal.goalId, requestId: goal.requestId, version: goal.version, authorized: goal.authorized,
@@ -436,7 +496,8 @@ function goalObservation(goal: CoreGoal, binding: GoalBinding | undefined): Core
     planVersion: goal.planVersion,
     bindingReceiptStatus: status === 'pending' || status === 'unknown' || status === 'confirmed' || status === 'rejected' ? status : 'absent',
     ...((binding?.sessionId ?? goal.native?.sessionId) ? { goalSessionId: binding?.sessionId ?? goal.native!.sessionId } : {}),
-    ...(goal.native ? { goalRef: { id: goal.native.goalRef.id, revision: goal.native.goalRef.revision } } : {}) };
+    ...(goal.native ? { goalRef: { id: goal.native.goalRef.id, revision: goal.native.goalRef.revision } } : {}),
+    ...bindingFailureDiagnostic(binding?.receipt?.reason) };
 }
 /**
  * Read-only post-failure/reconcile readback by the fixed requestId. It only uses
@@ -444,11 +505,11 @@ function goalObservation(goal: CoreGoal, binding: GoalBinding | undefined): Core
  * or ambiguous readback stays explicitly unknown; it is never treated as "no
  * side effect".
  */
-async function readValidationGoal(store: CoreValidationStore): Promise<CoreValidationGoalReadback> {
+async function readValidationGoal(store: CoreValidationStore, requestId: string = CORE_VALIDATION_REQUEST_ID): Promise<CoreValidationGoalReadback> {
   let snapshot: CoreGoal[];
   try { snapshot = await store.request('core.snapshot', {}); }
   catch (error) { return { status: 'unknown', errorCode: safeCode(error), evidence: ['core.snapshot:unavailable'] }; }
-  const matches = snapshot.filter(goal => goal.requestId === CORE_VALIDATION_REQUEST_ID);
+  const matches = snapshot.filter(goal => goal.requestId === requestId);
   if (!matches.length) return { status: 'absent', evidence: ['core.snapshot:requestId-absent'] };
   if (matches.length > 1) return { status: 'unknown', errorCode: 'CORE_VALIDATION_GOAL_AMBIGUOUS', evidence: ['core.snapshot:duplicate-requestId'] };
   const goal = matches[0]!;
@@ -488,6 +549,8 @@ class BoundedValidationRunnerCore {
   private commitSeqBefore?: number;
   private commitSeqAfter?: number;
   private readonly unknowns: string[] = [];
+  private readonly experiment: Readonly<CoreValidationExperiment>;
+  private createFailure?: { phase: GoalOperationPhase; code: string; detail: string };
   private completedObserved = false;
   private creationReadback?: CoreValidationGoalReadback;
   private partialCreation: CoreValidationPartialCreation = { detected: false, readback: 'absent', evidence: [] };
@@ -496,6 +559,7 @@ class BoundedValidationRunnerCore {
   private goal?: CoreGoal;
   private readonly wallTimer: ReturnType<typeof setTimeout>;
   constructor(private readonly options: CoreValidationOptions) {
+    this.experiment = options.experiment ?? CORE_VALIDATION_V1;
     this.evaluate = options.evaluate ?? (input => options.core.evaluatePending({ signal: input.signal }));
     this.now = options.now ?? Date.now;
     this.sleep = options.sleep ?? defaultSleep;
@@ -560,7 +624,7 @@ class BoundedValidationRunnerCore {
   private completionEvidence(observation: Observation): { ok: boolean; unknown: string[] } {
     const unknown: string[] = [];
     const goal = observation.goal!;
-    const deliverable = CORE_VALIDATION_DELIVERABLE;
+    const deliverable = this.experiment.deliverable;
     const expectedSha = sha256(deliverable.content);
     for (const ref of goal.taskRefs) {
       const detail = observation.details.get(ref.taskId);
@@ -639,7 +703,7 @@ class BoundedValidationRunnerCore {
     const workerSessions = [...observation.details.values()].map(detail => detail.execution?.sessionId).filter((value): value is string => !!value);
     const balance = observation.balance;
     return {
-      goal: { created, requestId: CORE_VALIDATION_REQUEST_ID, ...(observed ? { version: observed.version, observed } : {}) },
+      goal: { created, requestId: this.experiment.requestId, ...(observed ? { version: observed.version, observed } : {}) },
       partialCreation: structuredClone(this.partialCreation),
       tasks: { count: tasks.length, ids: tasks.slice(0, 8).map(task => task.taskId) },
       effects: { count: effects.length, ids: effects.slice(0, 8).map(effect => effect.effectId) },
@@ -656,9 +720,9 @@ class BoundedValidationRunnerCore {
     const native = nativeSummary(goal, observation.binding, this.completedObserved);
     const receipt: CoreValidationReceipt = {
       schemaVersion: 1, kind: 'bounded-core-goal-validation', status, reasonCode,
-      ...(goal ? { goalId: goal.goalId } : {}), requestId: CORE_VALIDATION_REQUEST_ID,
+      ...(goal ? { goalId: goal.goalId } : {}), requestId: this.experiment.requestId,
       startedAt: iso(this.startedAtMs), completedAt: iso(Math.max(end, this.startedAtMs)),
-      durationMs: Math.max(0, end - this.startedAtMs), fixedInput: structuredClone(FIXED_INPUT),
+      durationMs: Math.max(0, end - this.startedAtMs), fixedInput: experimentFixedInput(this.experiment),
       counters: { evaluateAttempts: this.evaluateAttempts, pollCount: this.pollCount, maxEvaluations: CORE_VALIDATION_MAX_EVALUATIONS, wallLimitMs: CORE_VALIDATION_WALL_MS },
       ...(goal ? { goal: { goalId: goal.goalId, version: goal.version, requestId: goal.requestId, authorized: goal.authorized,
         paused: goal.paused, cancelled: goal.cancelled, planVersion: goal.planVersion, ...(goal.mandateId ? { mandateId: goal.mandateId } : {}),
@@ -690,6 +754,8 @@ class BoundedValidationRunnerCore {
       stopAction,
       unknowns: [...new Set(this.unknowns)].slice(0, 16),
       ...(this.error ? { error: this.error } : {}),
+      ...(this.createFailure ? { failurePhase: this.createFailure.phase, failureCode: this.createFailure.code,
+        failureDetail: this.createFailure.detail } : {}),
     };
     const unknownUsage = receipt.evaluations.some(evaluation => evaluation.usage.accounting === 'unknown');
     if (unknownUsage && !receipt.unknowns.includes('USAGE_UNKNOWN')) receipt.unknowns.push('USAGE_UNKNOWN');
@@ -709,14 +775,14 @@ class BoundedValidationRunnerCore {
     this.progress('核心有界验证：创建冻结 Goal', 'frozen owner input only');
     let created: CoreGoal;
     try {
-      created = await this.options.core.create(frozenCoreValidationInput(this.startedAtMs), this.signal);
+      created = await this.options.core.create(frozenCoreValidationInput(this.startedAtMs, this.experiment), this.signal);
     } catch (error) {
       this.error = { phase: 'create', code: safeCode(error), message: messageOf(error) };
       if (!this.unknowns.includes('GOAL_CREATE_FAILED')) this.unknowns.push('GOAL_CREATE_FAILED');
       // Read-only post-failure readback by the fixed requestId. A durable partial
       // Goal row is never reported as "no side effect"; a failed readback is
       // explicitly unknown. There is no retry and no automatic cancel here.
-      try { this.creationReadback = await readValidationGoal(this.options.store); }
+      try { this.creationReadback = await readValidationGoal(this.options.store, this.experiment.requestId); }
       catch { this.creationReadback = { status: 'unknown', evidence: ['readback:exception'], errorCode: 'GOAL_READBACK_FAILED' }; }
       const readback = this.creationReadback;
       if (readback.status === 'present') {
@@ -729,6 +795,19 @@ class BoundedValidationRunnerCore {
           evidence: readback.evidence.slice(0, 16) };
         if (!this.unknowns.includes('GOAL_READBACK_UNKNOWN')) this.unknowns.push('GOAL_READBACK_UNKNOWN');
       }
+      const adapterDiagnostic = (error as { diagnostic?: GoalOperationDiagnostic }).diagnostic;
+      const observedDiagnostic = readback.status === 'present' ? readback.observed : undefined;
+      const failureCandidate = adapterDiagnostic ?? (observedDiagnostic?.bindingFailurePhase ? {
+        phase: observedDiagnostic.bindingFailurePhase,
+        code: observedDiagnostic.bindingFailureCode ?? 'GOAL_OPERATION_UNKNOWN',
+        message: observedDiagnostic.bindingFailureDetail ?? '',
+      } : undefined);
+      const phase = failureCandidate && GOAL_OPERATION_PHASES.includes(failureCandidate.phase)
+        ? failureCandidate.phase : 'prepare';
+      const code = failureCandidate && /^[A-Z][A-Z0-9_]{0,79}$/.test(failureCandidate.code) ? failureCandidate.code : safeCode(error);
+      const detail = boundedText(failureCandidate?.message ?? messageOf(error), 300) ?? 'unknown create failure';
+      this.createFailure = { phase, code, detail };
+      if (!this.unknowns.includes('CREATE_FAILURE_PHASE_RECORDED')) this.unknowns.push('CREATE_FAILURE_PHASE_RECORDED');
       if ((error as { code?: string })?.code === 'CORE_VALIDATION_CANCELLED' || this.options.signal?.aborted) return this.finish('cancelled', 'CORE_VALIDATION_CANCELLED');
       return this.finish('failed', 'CORE_VALIDATION_CREATE_FAILED');
     }
@@ -740,6 +819,7 @@ class BoundedValidationRunnerCore {
       this.error = { phase: 'create', code: 'CORE_VALIDATION_CREATE_INTEGRITY', message: 'Created Goal is not exactly one active, owner-authorized, native-active Goal' };
       if (!this.unknowns.includes('GOAL_CREATE_INTEGRITY')) this.unknowns.push('GOAL_CREATE_INTEGRITY');
       this.partialCreation = { detected: true, readback: 'complete', evidence: ['goal-create-returned-but-not-active-authorized-native'] };
+      this.createFailure = { phase: 'confirm', code: 'CORE_VALIDATION_CREATE_INTEGRITY', detail: 'created Goal is not active/owner-authorized/native-active' };
       if (!this.unknowns.includes('PARTIAL_CREATION_REQUIRES_RECONCILE')) this.unknowns.push('PARTIAL_CREATION_REQUIRES_RECONCILE');
       return this.finish('failed', 'CORE_VALIDATION_CREATE_INTEGRITY');
     }
@@ -970,11 +1050,17 @@ export function assertBoundedCoreValidationReceipt(value: unknown): asserts valu
     if (typeof receipt[field] !== 'string' || new Date(receipt[field]).toISOString() !== receipt[field]) throw new Error(`Receipt ${field} is not canonical UTC`);
   }
   if (!Number.isSafeInteger(receipt.durationMs) || receipt.durationMs < 0) throw new Error('Receipt duration is invalid');
-  if (receipt.requestId !== CORE_VALIDATION_REQUEST_ID) throw new Error('Receipt request identity changed');
-  if (receipt.fixedInput?.frozen !== true || receipt.fixedInput.templateSha256 !== CORE_VALIDATION_TEMPLATE_SHA256
-    || receipt.fixedInput.objectiveSha256 !== FIXED_INPUT.objectiveSha256
-    || receipt.fixedInput.deliverable?.contentSha256 !== FIXED_INPUT.deliverable.contentSha256
-    || canonical(receipt.fixedInput.budget) !== canonical(CORE_VALIDATION_BUDGET)) throw new Error('Receipt fixed input is not the frozen owner template');
+  const experiment = experimentForRequestId(receipt.requestId);
+  if (!experiment) throw new Error('Receipt request identity is not one of the frozen code-level experiments');
+  const expectedInput = experimentFixedInput(experiment);
+  if (receipt.fixedInput?.frozen !== true || receipt.fixedInput.requestId !== experiment.requestId
+    || receipt.fixedInput.templateSha256 !== expectedInput.templateSha256
+    || receipt.fixedInput.objectiveSha256 !== expectedInput.objectiveSha256
+    || receipt.fixedInput.deliverable?.id !== expectedInput.deliverable.id
+    || receipt.fixedInput.deliverable?.contentSha256 !== expectedInput.deliverable.contentSha256
+    || canonical(receipt.fixedInput.budget) !== canonical(experiment.budget)
+    || receipt.fixedInput.expiresInMs !== experiment.expiresInMs
+    || receipt.fixedInput.maxEvaluations !== experiment.maxEvaluations) throw new Error('Receipt fixed input is not the frozen owner template');
   const counters = receipt.counters;
   if (!counters || !Number.isSafeInteger(counters.evaluateAttempts) || counters.evaluateAttempts < 0 || counters.evaluateAttempts > CORE_VALIDATION_MAX_EVALUATIONS
     || !Number.isSafeInteger(counters.pollCount) || counters.pollCount < 0 || counters.maxEvaluations !== CORE_VALIDATION_MAX_EVALUATIONS
@@ -1001,7 +1087,7 @@ export function assertBoundedCoreValidationReceipt(value: unknown): asserts valu
   }
   if (!receipt.businessSideEffects || typeof receipt.businessSideEffects.goal !== 'object'
     || !['true', 'false', 'unknown'].includes(receipt.businessSideEffects.goal.created)
-    || receipt.businessSideEffects.goal.requestId !== CORE_VALIDATION_REQUEST_ID
+    || receipt.businessSideEffects.goal.requestId !== receipt.requestId
     || (receipt.businessSideEffects.goal.created === 'true' && !receipt.businessSideEffects.goal.observed)
     || (receipt.businessSideEffects.goal.created === 'false' && receipt.businessSideEffects.goal.observed !== undefined)
     || !Array.isArray(receipt.businessSideEffects.tasks.ids) || !Array.isArray(receipt.businessSideEffects.effects.ids)
@@ -1020,7 +1106,10 @@ export function assertBoundedCoreValidationReceipt(value: unknown): asserts valu
       || typeof observed.paused !== 'boolean' || typeof observed.cancelled !== 'boolean' || typeof observed.hasMandate !== 'boolean'
       || !['active', 'paused', 'blocked', 'complete', 'unobserved'].includes(observed.nativePhase)
       || !Number.isSafeInteger(observed.evaluations) || !Number.isSafeInteger(observed.taskRefs) || !Number.isSafeInteger(observed.planVersion)
-      || !['pending', 'unknown', 'confirmed', 'rejected', 'absent'].includes(observed.bindingReceiptStatus)) {
+      || !['pending', 'unknown', 'confirmed', 'rejected', 'absent'].includes(observed.bindingReceiptStatus)
+      || (observed.bindingFailurePhase !== undefined && !GOAL_OPERATION_PHASES.includes(observed.bindingFailurePhase))
+      || (observed.bindingFailureCode !== undefined && !/^[A-Z][A-Z0-9_]{0,79}$/.test(observed.bindingFailureCode))
+      || (observed.bindingFailureDetail !== undefined && (typeof observed.bindingFailureDetail !== 'string' || observed.bindingFailureDetail.length > 300))) {
       throw new Error('Receipt created-Goal observation is malformed');
     }
   }
@@ -1028,5 +1117,14 @@ export function assertBoundedCoreValidationReceipt(value: unknown): asserts valu
   if (!receipt.stopAction || !['none', 'pause', 'cancel'].includes(receipt.stopAction.kind) || typeof receipt.stopAction.attempted !== 'boolean') throw new Error('Receipt stop action is invalid');
   if (!Array.isArray(receipt.unknowns) || receipt.unknowns.length > 16 || receipt.unknowns.some(code => typeof code !== 'string' || code.length > 120)) throw new Error('Receipt unknowns are invalid');
   if (receipt.error !== undefined && (typeof receipt.error.phase !== 'string' || !/^[A-Z][A-Z0-9_]{0,99}$/.test(receipt.error.code))) throw new Error('Receipt error is invalid');
+  if (receipt.error?.phase === 'create') {
+    if (!receipt.failurePhase || !GOAL_OPERATION_PHASES.includes(receipt.failurePhase)
+      || typeof receipt.failureCode !== 'string' || !/^[A-Z][A-Z0-9_]{0,79}$/.test(receipt.failureCode)
+      || typeof receipt.failureDetail !== 'string' || receipt.failureDetail.length > 300) {
+      throw new Error('A create-failure receipt must expose a bounded failurePhase/failureCode/failureDetail');
+    }
+  } else if (receipt.failurePhase !== undefined || receipt.failureCode !== undefined || receipt.failureDetail !== undefined) {
+    throw new Error('Failure diagnostics are only valid on a create-failure receipt');
+  }
   if (receipt.status === 'completed' && (receipt.native.phase !== 'complete' || receipt.evaluations.length < 1)) throw new Error('Completed receipt lacks native completion evidence');
 }

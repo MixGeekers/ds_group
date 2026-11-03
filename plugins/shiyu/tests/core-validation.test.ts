@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import test from 'node:test';
 import type { CoreCandidate, CoreEvaluation, CoreGoal, CorePlanVersion, CorePrepareInput } from '../src/contracts/core.js';
 import type { CoreEvaluationResult } from '../src/control/core-pump.js';
-import type { GoalBinding } from '../src/adapters/dsh/goals.js';
+import type { GoalBinding, GoalOperationPhase } from '../src/adapters/dsh/goals.js';
 import type { CommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
 import type { TaskDetail } from '../src/adapters/control-store/task-domain.js';
 import type { TaskView } from '../src/control/tasks/types.js';
@@ -13,7 +13,8 @@ import {
   CoreValidationBusyError, CoreValidationReconcileBusyError, CoreValidationReconcileOptionsError, CoreValidationOptionsError,
   frozenCoreValidationInput, reconcileCoreValidationGoal, runBoundedCoreValidation, CORE_VALIDATION_BUDGET,
   CORE_VALIDATION_DELIVERABLE, CORE_VALIDATION_MAX_EVALUATIONS, CORE_VALIDATION_OBJECTIVE, CORE_VALIDATION_POLL_MS,
-  CORE_VALIDATION_RECEIPT_MAX_BYTES, CORE_VALIDATION_TEMPLATE_SHA256, CORE_VALIDATION_WALL_MS,
+  CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256, CORE_VALIDATION_RECEIPT_MAX_BYTES,
+  CORE_VALIDATION_TEMPLATE_SHA256, CORE_VALIDATION_V1, CORE_VALIDATION_WALL_MS,
   type CoreValidationCommands, type CoreValidationDriver, type CoreValidationOptions, type CoreValidationReceipt, type CoreValidationStore,
 } from '../src/control/core-validation.js';
 
@@ -32,12 +33,12 @@ const GOAL_SESSION = 'shiyu-core-goal-fixture-validation';
 const CONTROL_SPEC = { version: 1, checks: [{ checkId: 'artifact-sha256', type: 'artifact.sha256', targetRef: 'artifact:task-note-1',
   expected: CONTENT_SHA, evidenceRequired: true }] };
 
-function planVersionOne(): CorePlanVersion {
+function planVersionOne(contentSha: string = CONTENT_SHA, content: string = CONTENT): CorePlanVersion {
   return { schemaVersion: 2, goalId: 'core-validation-fixture', planVersion: 1, basePlanVersion: 0, evaluationId: 'evaluation:1',
     proposalId: 'proposal:evaluation:1', acceptedAt: iso(T0 + 1000), summary: 'Synthetic frozen note plan', reasoningRefs: ['goal:fixture'],
     triggerRefs: ['owner:fixture'], stopConditions: { onStepFailure: 'stop', maxFailedSteps: 0, onFactConflict: 'wait', maxParallelSteps: 2 },
     steps: [{ stepId: 'step-note-1', deliverableId: 'note-1', dependsOn: [], requiredFacts: [],
-      expectedArtifact: { kind: 'local-note', verifier: 'artifact.sha256.v1' }, expectedSha256: CONTENT_SHA, byteLength: Buffer.byteLength(CONTENT) }],
+      expectedArtifact: { kind: 'local-note', verifier: 'artifact.sha256.v1' }, expectedSha256: contentSha, byteLength: Buffer.byteLength(content) }],
     facts: [], planHash: 'a'.repeat(64) };
 }
 function reservation(evaluationId: string, state: 'settled' | 'unknown' = 'settled', observed: Partial<Budget> = { tokens: 123, calls: 1 }): CoreEvaluation['reservation'] {
@@ -63,6 +64,10 @@ class World {
   autoWorker = false;
   workerCompleted = false;
   workerTampered = false;
+  content: string = CONTENT;
+  contentSha: string = CONTENT_SHA;
+  createErrorDiagnostic?: { phase: GoalOperationPhase; code: string; message: string };
+  partialBindingDiagnostic?: { phase: GoalOperationPhase; code: string; message: string };
   snapshotFailure = false;
   snapshotOverride?: CoreGoal[];
   /** Simulates a durable partial Goal row left behind when create throws. */
@@ -127,6 +132,8 @@ class World {
   private async create(input: CorePrepareInput, signal?: AbortSignal): Promise<CoreGoal> {
     signal?.throwIfAborted();
     this.createCalls.push(clone(input));
+    const requestedDeliverable = input.deliverables[0]!;
+    this.content = requestedDeliverable.content; this.contentSha = sha256(this.content);
     if (this.createFailure) {
       if (this.partialOnCreateFailure) {
         const kind = this.partialOnCreateFailure;
@@ -137,9 +144,12 @@ class World {
         this.binding = { goalId: goal.goalId, sessionId: GOAL_SESSION, ownerId: 'local-owner', scope: 'local-owner', cwd: '/synthetic/core-validation',
           completionCriteriaHash: goal.completionCriteriaHash, metadataVersion: 2, ...(goal.native ? { goalRef: { ...GOAL_REF } } : {}),
           receipt: { commandId: 'create:fixture', operation: 'create', status: 'unknown', postconditionHash: sha256('create'),
-            ...(goal.native ? { expectedRef: { ...GOAL_REF } } : {}) } };
+            ...(goal.native ? { expectedRef: { ...GOAL_REF } } : {}),
+            ...(this.partialBindingDiagnostic
+              ? { reason: `${this.partialBindingDiagnostic.phase}/${this.partialBindingDiagnostic.code}: ${this.partialBindingDiagnostic.message}` } : {}) } };
       }
-      throw Object.assign(new Error('Synthetic native Goal create failed'), { code: this.createFailure });
+      throw Object.assign(new Error('Synthetic native Goal create failed'), { code: this.createFailure,
+        ...(this.createErrorDiagnostic ? { diagnostic: structuredClone(this.createErrorDiagnostic) } : {}) });
     }
     const startedAt = this.clock;
     const goal: CoreGoal = { schemaVersion: 1, goalId: 'core-validation-fixture', requestId: input.requestId, objective: input.objective,
@@ -184,11 +194,11 @@ class World {
     if (!task || task.state !== 'queued') return;
     this.workerCompleted = true;
     const succeeded: TaskView = { ...task, state: 'succeeded', version: task.version + 1, updatedAt: iso(this.clock),
-      verification: { taskId: task.taskId, assignmentId: 'assignment-note-1', completionSpecVersion: 1, resultHash: CONTENT_SHA,
+      verification: { taskId: task.taskId, assignmentId: 'assignment-note-1', completionSpecVersion: 1, resultHash: this.contentSha,
         verifierVersion: 'fixture-independent-verifier', verifiedAt: iso(this.clock), checks: [{ checkId: 'artifact-sha256', status: 'pass', evidenceRefs: ['artifact-observation:receipt-note-1'] }] },
-      result: { resultHash: CONTENT_SHA, artifactRefs: ['artifact:task-note-1'], effectRefs: ['effect-note-1'] } };
+      result: { resultHash: this.contentSha, artifactRefs: ['artifact:task-note-1'], effectRefs: ['effect-note-1'] } };
     this.tasks.set(task.taskId, succeeded);
-    const detail = taskDetail(succeeded);
+    const detail = taskDetail(succeeded, this.contentSha, this.content);
     if (this.workerTampered) detail.artifact.expectedSha256 = sha256('tampered worker artifact');
     this.details.set(task.taskId, detail);
     this.balance = { limits: clone(this.balance.limits), spent: { tokens: 200, calls: 2, effects: 1 }, held: { tokens: 0, calls: 0, effects: 0 },
@@ -197,10 +207,10 @@ class World {
   }
   commitPlanEvaluation(): void {
     const goal = this.goal!;
-    const plan = planVersionOne(); plan.goalId = goal.goalId;
+    const plan = planVersionOne(this.contentSha, this.content); plan.goalId = goal.goalId;
     this.plan = plan;
     goal.planVersion = 1; goal.plans = [clone(plan)]; goal.evaluations = 1; goal.updatedAt = iso(this.clock);
-    const task = taskView(goal.goalId, 'queued');
+    const task = taskView(goal.goalId, 'queued', this.contentSha);
     this.tasks.set(task.taskId, task);
     goal.taskRefs = [{ deliverableId: 'note-1', taskId: task.taskId }];
     const evaluation: CoreEvaluation = {
@@ -243,24 +253,24 @@ class World {
     this.watermark = { ...this.watermark, commitSeq: this.watermark.commitSeq + 1 };
   }
 }
-function taskView(goalId: string, state: TaskView['state']): TaskView {
+function taskView(goalId: string, state: TaskView['state'], contentSha: string = CONTENT_SHA): TaskView {
   return { taskId: 'task-note-1', title: CORE_VALIDATION_DELIVERABLE.title, state, version: 2, goalId, mandateId: 'mandate:fixture', mandateVersion: 1,
-    completionSpec: clone(CONTROL_SPEC), originEventIds: [], inputRefs: [], latestAssignmentId: 'assignment-note-1', attempt: 1,
+    completionSpec: { version: 1, checks: [{ ...CONTROL_SPEC.checks[0]!, expected: contentSha }] }, originEventIds: [], inputRefs: [], latestAssignmentId: 'assignment-note-1', attempt: 1,
     stopRequested: false, createdAt: iso(T0), updatedAt: iso(T0) };
 }
-function taskDetail(task: TaskView): TaskDetail {
+function taskDetail(task: TaskView, contentSha: string = CONTENT_SHA, content: string = CONTENT): TaskDetail {
   const effect = { schemaVersion: 1, effectId: 'effect-note-1', idempotencyKey: 'idem-note-1',
     origin: { kind: 'task', taskId: task.taskId, assignmentId: 'assignment-note-1' }, action: 'artifact.write',
-    resourceScopes: ['artifact:task-note-1'], payloadRef: 'payload:note-1', payloadHash: CONTENT_SHA, replayClass: 'idempotent',
+    resourceScopes: ['artifact:task-note-1'], payloadRef: 'payload:note-1', payloadHash: contentSha, replayClass: 'idempotent',
     authorization: { hostEpoch: 'fixture-host', installationGeneration: 'fixture-install', fencingToken: 1, mandateId: 'mandate:fixture',
       mandateVersion: 1, authEpoch: 1 }, expiresAt: iso(T0 + 600_000), maxAttempts: 3, status: 'succeeded', version: 2,
     attempts: 1, createdAt: iso(T0), updatedAt: iso(T0), receiptId: 'receipt-note-1' };
   const receipt = { receiptId: 'receipt-note-1', serviceId: 'fixture-artifact', externalOperationId: 'effect-note-1', observedAt: iso(T0 + 5000),
-    outcome: 'succeeded', payloadHash: CONTENT_SHA, evidenceRefs: ['artifact-observation:receipt-note-1'],
+    outcome: 'succeeded', payloadHash: contentSha, evidenceRefs: ['artifact-observation:receipt-note-1'],
     effectId: 'effect-note-1', receivedAt: iso(T0 + 5000), mode: 'completion', verification: { verified: true, installationGeneration: 'fixture-install' },
     claim: { effectId: 'effect-note-1', attempt: 1, ownerId: 'worker:task-note-1', claimToken: 'claim-note-1', claimedAt: iso(T0),
       leaseExpiresAt: iso(T0 + 120_000), fencingToken: 1 } };
-  return { task: clone(task), artifact: { artifactRef: 'artifact:task-note-1', expectedSha256: CONTENT_SHA, byteLength: Buffer.byteLength(CONTENT) },
+  return { task: clone(task), artifact: { artifactRef: 'artifact:task-note-1', expectedSha256: contentSha, byteLength: Buffer.byteLength(content) },
     execution: { assignmentId: 'assignment-note-1', state: 'reported', sessionId: 'worker-session:note-1', hostEpoch: 'fixture-host',
       installationGeneration: 'fixture-install' }, effects: [effect], effectReceipts: [receipt],
     reservation: reservation('task:evaluation:1').state === 'settled' ? undefined : undefined } as unknown as TaskDetail;
@@ -745,4 +755,85 @@ test('the reconcile receipt validator rejects lossless/boundary/classification v
     mutate(copy);
     assert.throws(() => assertBoundedCoreValidationReconcileReceipt(copy));
   }
+});
+
+test('a create failure exposes the controlled adapter failurePhase/code and the partial readback', async () => {
+  const world = makeWorld();
+  world.createFailure = 'GOAL_OPERATION_UNKNOWN'; world.partialOnCreateFailure = 'inert';
+  world.createErrorDiagnostic = { phase: 'history-assert', code: 'NATIVE_HISTORY_CHANGED',
+    message: 'Native history changed outside the trusted recovery suffix' };
+  const receipt = await runBoundedCoreValidation(optionsFor(world));
+  assert.equal(receipt.status, 'failed'); assert.equal(receipt.reasonCode, 'CORE_VALIDATION_CREATE_FAILED');
+  assert.equal(receipt.error?.code, 'GOAL_OPERATION_UNKNOWN');
+  assert.equal(receipt.failurePhase, 'history-assert');
+  assert.equal(receipt.failureCode, 'NATIVE_HISTORY_CHANGED');
+  assert.equal(receipt.failureDetail, 'Native history changed outside the trusted recovery suffix');
+  assert.equal(receipt.businessSideEffects.goal.created, 'true');
+  assert.equal(receipt.partialCreation.detected, true);
+  assert.equal(receipt.unknowns.includes('CREATE_FAILURE_PHASE_RECORDED'), true);
+  assert.equal(world.createCalls.length, 1); assert.equal(world.controlCalls.length, 0);
+  assertBoundedCoreValidationReceipt(receipt);
+  // The same controlled diagnostic is readable from the persisted binding receipt.
+  assert.equal(receipt.businessSideEffects.goal.observed?.bindingFailurePhase, undefined);
+});
+
+test('a create failure without an error diagnostic falls back to the persisted binding diagnostic', async () => {
+  const world = makeWorld();
+  world.createFailure = 'GOAL_OPERATION_UNKNOWN'; world.partialOnCreateFailure = 'inert';
+  world.partialBindingDiagnostic = { phase: 'history-assert', code: 'NATIVE_HISTORY_CHANGED',
+    message: 'Native history changed outside the trusted recovery suffix' };
+  const receipt = await runBoundedCoreValidation(optionsFor(world));
+  assert.equal(receipt.failurePhase, 'history-assert');
+  assert.equal(receipt.failureCode, 'NATIVE_HISTORY_CHANGED');
+  assert.equal(receipt.businessSideEffects.goal.created, 'true');
+  assert.equal(receipt.businessSideEffects.goal.observed?.bindingFailurePhase, 'history-assert');
+  assertBoundedCoreValidationReceipt(receipt);
+});
+
+test('the v2 experiment is code-frozen with its own requestId/template and default v1 is unchanged', async () => {
+  assert.equal(Object.isFrozen(CORE_VALIDATION_EXPERIMENT), true);
+  assert.equal(Object.isFrozen(CORE_VALIDATION_EXPERIMENT.deliverable), true);
+  assert.equal(Object.isFrozen(CORE_VALIDATION_EXPERIMENT.budget), true);
+  assert.equal(CORE_VALIDATION_EXPERIMENT.version, 2);
+  assert.equal(CORE_VALIDATION_EXPERIMENT.requestId, 'core-validation-frozen-v2');
+  assert.equal(CORE_VALIDATION_EXPERIMENT.maxEvaluations, 2);
+  assert.equal(CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256.length, 64);
+  assert.notEqual(CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256, CORE_VALIDATION_TEMPLATE_SHA256);
+  assert.notEqual(CORE_VALIDATION_EXPERIMENT.deliverable.content, CORE_VALIDATION_DELIVERABLE.content);
+  assert.equal(CORE_VALIDATION_V1.requestId, 'core-validation-frozen-v1');
+  assert.equal(CORE_VALIDATION_TEMPLATE_SHA256, '1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca');
+  assert.equal(CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256, '756ec37b5bc054564076e226fc45bed135ced702d337acbf75fdcaf7f18ae34d');
+  assert.equal(sha256(CORE_VALIDATION_EXPERIMENT.deliverable.content), '1e45f585fdccc37bdd93f486ce0c380ecfe5002aa0a37b39356f384f0e79059e');
+});
+
+test('the runner can only be bound to an exact code-level experiment constant and v2 drives the frozen input', async () => {
+  const world = makeWorld(); completedScenario(world);
+  const v2 = await runBoundedCoreValidation(optionsFor(world, { experiment: CORE_VALIDATION_EXPERIMENT }));
+  assert.equal(v2.requestId, 'core-validation-frozen-v2'); assert.equal(v2.status, 'completed');
+  assert.equal(v2.fixedInput.requestId, 'core-validation-frozen-v2');
+  assert.equal(v2.fixedInput.templateSha256, CORE_VALIDATION_EXPERIMENT_TEMPLATE_SHA256);
+  const v2ContentSha = sha256(CORE_VALIDATION_EXPERIMENT.deliverable.content);
+  assert.equal(v2.taskRefs[0]?.expectedSha256, v2ContentSha);
+  assert.deepEqual(world.createCalls[0], frozenCoreValidationInput(T0, CORE_VALIDATION_EXPERIMENT));
+  assertBoundedCoreValidationReceipt(v2);
+  const v1World = makeWorld(); completedScenario(v1World);
+  const v1 = await runBoundedCoreValidation(optionsFor(v1World));
+  assert.equal(v1.requestId, 'core-validation-frozen-v1');
+  assert.equal(v1.fixedInput.templateSha256, CORE_VALIDATION_TEMPLATE_SHA256);
+  for (const override of [{ ...CORE_VALIDATION_EXPERIMENT, requestId: 'caller-selected' }, { version: 2 }, 2, null]) {
+    await assert.rejects(runBoundedCoreValidation(optionsFor(makeWorld(), { experiment: override } as never)),
+      (error: unknown) => error instanceof CoreValidationOptionsError);
+  }
+  await assert.rejects(runBoundedCoreValidation(optionsFor(makeWorld(), { requestId: 'caller-selected' } as never)),
+    (error: unknown) => error instanceof CoreValidationOptionsError);
+});
+
+test('the v1 reconcile path is unchanged and ignores a v2 requestId Goal', async () => {
+  const world = makeWorld();
+  world.setReconcileGoal('inert');
+  world.goal = { ...world.goal!, requestId: 'core-validation-frozen-v2' };
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'absent');
+  assert.equal(world.controlCalls.length, 0);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
 });

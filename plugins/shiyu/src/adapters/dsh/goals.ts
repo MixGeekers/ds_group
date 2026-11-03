@@ -21,6 +21,16 @@ export interface NativeGoalView extends NativeGoalRef {
   blockedReason?: { code: string; message: string };
 }
 export type GoalWriteOperation = 'create' | 'update' | 'pause' | 'resume' | 'complete';
+/** Controlled create/operation failure stages exposed on an unknown receipt.
+ * These are stage names only: they never carry objective, model or user text. */
+export type GoalOperationPhase = 'prepare' | 'authorize' | 'binding' | 'native-session' | 'observe' | 'stabilize'
+  | 'history-assert' | 'title' | 'title-readback' | 'native-goal' | 'readback' | 'postcondition' | 'confirm' | 'release' | 'unknown';
+export const GOAL_OPERATION_PHASES: readonly GoalOperationPhase[] = Object.freeze(['prepare', 'authorize', 'binding', 'native-session',
+  'observe', 'stabilize', 'history-assert', 'title', 'title-readback', 'native-goal', 'readback', 'postcondition', 'confirm', 'release', 'unknown']);
+export interface GoalOperationDiagnostic { phase: GoalOperationPhase; code: string; message: string }
+/** Bounded create-time history observations: the first observation plus at most
+ * two re-observations of the newly durable cut before the operation fails. */
+export const CORE_CREATE_HISTORY_OBSERVATIONS = 3;
 export interface GoalCommandReceipt {
   commandId: string;
   operation: GoalWriteOperation;
@@ -109,7 +119,19 @@ export interface GoalReadResult { binding: GoalBinding; native: NativeGoalView |
 export interface GoalRecoveryResult extends GoalReadResult { reconciliation: 'consistent' | 'confirmed' | 'not_observed' | 'conflict' }
 export class GoalOperationUnknownError extends Error {
   readonly code = 'GOAL_OPERATION_UNKNOWN';
-  constructor(readonly binding: GoalBinding, cause: unknown) { super('Native Goal outcome requires reconciliation; the command was not replayed', { cause }); this.name = 'GoalOperationUnknownError'; }
+  constructor(readonly binding: GoalBinding, cause: unknown, readonly diagnostic?: GoalOperationDiagnostic) {
+    super('Native Goal outcome requires reconciliation; the command was not replayed', { cause }); this.name = 'GoalOperationUnknownError';
+  }
+}
+/** Controlled, sanitized diagnostic: bounded text only, workspace paths replaced. */
+function goalOperationDiagnostic(phase: GoalOperationPhase | undefined, cause: unknown, cwd?: string): GoalOperationDiagnostic {
+  const candidate = cause && typeof cause === 'object' && 'code' in cause ? (cause as { code?: unknown }).code : undefined;
+  const code = typeof candidate === 'string' && /^[A-Z][A-Z0-9_]{0,79}$/.test(candidate) ? candidate : 'GOAL_OPERATION_UNKNOWN';
+  let message = (cause instanceof Error ? cause.message : String(cause))
+    .replaceAll(/[\u0000-\u001f\u007f]/g, ' ').trim();
+  if (cwd && cwd.length > 1) message = message.split(cwd).join('<workspace>');
+  message = message.replace(/(?:\/${'[\\w.@+-]+'}){2,}/g, '<workspace>').slice(0, 300).trim();
+  return { phase: phase ?? 'unknown', code, message };
 }
 interface NativeGoals {
   get(agent: DshAgent): NativeGoalView | undefined;
@@ -387,7 +409,7 @@ export class GoalSessionAdapter {
    * and rechecks that baseline before handing control to the caller. Lifecycle
    * (no-inference) operations keep their previous semantics.
    */
-  private async withNative<T>(binding: GoalBinding, create: boolean, run: (agent: DshAgent, baseline: NativeColdInboxSnapshot | undefined) => Promise<T>, signal?: AbortSignal, decision?: CoreDecisionRun): Promise<T> {
+  private async withNative<T>(binding: GoalBinding, create: boolean, run: (agent: DshAgent, baseline: NativeColdInboxSnapshot | undefined) => Promise<T>, signal?: AbortSignal, decision?: CoreDecisionRun, phase?: { current: GoalOperationPhase }): Promise<T> {
     const nativeSignal = signal ? AbortSignal.any([signal, this.shutdown.signal]) : this.shutdown.signal;
     nativeSignal.throwIfAborted();
     await this.initialize();
@@ -399,8 +421,10 @@ export class GoalSessionAdapter {
       if (baseline.references.length) throw new Error('Unknown native inbox blocks Core Goal recovery');
     }
     const owner: SessionOwner = { disposers: [], decision }; this.owners.add(owner);
+    let failedPhase: GoalOperationPhase | undefined;
     try {
       const shared = { agentOptions: { ...defaultModel('core'), maxTokens: decision?.maxTokens ?? 1 }, signal: nativeSignal, setup: (ctx: DshAgentContext, agent: DshAgent) => this.compose(owner, binding, ctx, agent) };
+      if (phase) phase.current = 'native-session';
       owner.creation = create ? this.options.ctx.agents.create({ ...shared, sessionId: binding.sessionId, meta: { cwd: binding.cwd, agentPreset: this.preset } }) : this.options.ctx.agents.resume({ ...shared, resumeSessionId: binding.sessionId });
       owner.handle = await owner.creation; this.assertOpen(); nativeSignal.throwIfAborted();
       // Native recovery is disarmed; explicitly fence this exact owner as well.
@@ -408,19 +432,82 @@ export class GoalSessionAdapter {
       if (this.core && nativeInboxReferences(owner.handle.agent.inbox).length) throw new Error('Unknown native inbox blocks Core Goal activation');
       if (this.core) {
         const agent = owner.handle.agent;
-        baseline = await observeNativeBaseline(this.options.ctx, agent, this.preset, {
-          ...(baseline === undefined ? {} : { expectedPrefix: baseline }),
-          ...(decision === undefined ? {} : { deadlineAtMs: decision.deadlineAtMs }),
-          signal: nativeSignal,
-        });
-        if (baseline.references.length) throw new Error('Unknown native inbox blocks Core Goal activation');
-        assertNativeLiveHistory(this.options.ctx, agent.session, baseline, agent.inbox);
+        if (create) {
+          // A host may append asynchronous meta events right after Session
+          // creation; the observed cut then no longer matches the live Session.
+          // Re-observe the newly durable cut a bounded number of times instead
+          // of failing (and never replay the native create command).
+          baseline = await this.stabilizeCoreCreateBaseline(agent, phase, nativeSignal, decision?.deadlineAtMs);
+        } else {
+          if (phase) phase.current = 'observe';
+          baseline = await observeNativeBaseline(this.options.ctx, agent, this.preset, {
+            ...(baseline === undefined ? {} : { expectedPrefix: baseline }),
+            ...(decision === undefined ? {} : { deadlineAtMs: decision.deadlineAtMs }),
+            signal: nativeSignal,
+          });
+          if (baseline.references.length) throw new Error('Unknown native inbox blocks Core Goal activation');
+          if (phase) phase.current = 'history-assert';
+          assertNativeLiveHistory(this.options.ctx, agent.session, baseline, agent.inbox);
+        }
       }
+      if (phase) phase.current = 'title';
       await pinOwnedSessionTitle(this.options.ctx, owner.handle.agent.session, this.core ? '识雨 · 受限目标规划' : '识雨目标权威会话');
       this.assertOpen(); nativeSignal.throwIfAborted();
-      if (this.core) baseline = await this.bindCoreTitleAppend(owner.handle.agent, baseline!, nativeSignal);
+      if (this.core) {
+        if (phase) phase.current = 'title-readback';
+        baseline = await this.bindCoreTitleAppend(owner.handle.agent, baseline!, nativeSignal);
+      }
       return await run(owner.handle.agent, baseline);
-    } finally { await this.release(owner); }
+    } catch (error) {
+      if (phase) failedPhase = phase.current;
+      throw error;
+    } finally {
+      // Preserve the operation's failure stage; only a release-only failure is
+      // reported as the release phase (the original error is still preferred
+      // unless release itself throws, matching the previous finally semantics).
+      if (phase) phase.current = failedPhase ?? 'release';
+      try { await this.release(owner); }
+      catch (error) { if (phase) phase.current = 'release'; throw error; }
+    }
+  }
+  /**
+   * Bounded pre-create stabilization: flush+observe the Session, verify the live
+   * Session matches that exact cut, and only on NATIVE_HISTORY_CHANGED re-observe
+   * the newly durable cut (at most CORE_CREATE_HISTORY_OBSERVATIONS attempts in
+   * total, with the caller signal/deadline). A genuinely mutated history that
+   * never converges still fails, with the history-assert phase. The native Goal
+   * create command itself is never replayed.
+   */
+  private async stabilizeCoreCreateBaseline(agent: DshAgent, phase: { current: GoalOperationPhase } | undefined,
+    signal: AbortSignal, deadlineAtMs?: number): Promise<NativeColdInboxSnapshot> {
+    let lastError: unknown;
+    for (let attempt = 0; attempt < CORE_CREATE_HISTORY_OBSERVATIONS; attempt++) {
+      signal.throwIfAborted();
+      if (phase) phase.current = attempt === 0 ? 'observe' : 'stabilize';
+      try {
+        const snapshot = await observeNativeBaseline(this.options.ctx, agent, this.preset, {
+          ...(deadlineAtMs === undefined ? {} : { deadlineAtMs }),
+          signal,
+        });
+        if (snapshot.references.length) throw new Error('Unknown native inbox blocks Core Goal activation');
+        if (phase) phase.current = 'history-assert';
+        assertNativeLiveHistory(this.options.ctx, agent.session, snapshot, agent.inbox);
+        if (phase) phase.current = 'observe';
+        return snapshot;
+      } catch (error) {
+        lastError = error;
+        const code = (error as { code?: unknown })?.code;
+        if (code !== 'NATIVE_HISTORY_CHANGED') throw error;
+        if (attempt + 1 >= CORE_CREATE_HISTORY_OBSERVATIONS) {
+          if (phase) phase.current = 'history-assert';
+          throw error;
+        }
+        // Let the host's microtask/timer metadata append settle before re-observing.
+        await new Promise<void>(resolve => { const timer = setTimeout(resolve, 0); timer.unref?.(); });
+      }
+    }
+    if (phase) phase.current = 'history-assert';
+    throw lastError;
   }
   /** A fixed title is a legitimate write; it must extend the observed cut by exactly its event. */
   private async bindCoreTitleAppend(agent: DshAgent, baseline: NativeColdInboxSnapshot, signal: AbortSignal): Promise<NativeColdInboxSnapshot> {
@@ -466,13 +553,19 @@ export class GoalSessionAdapter {
     if (await this.options.ctx.get('sessions').flush(agent.session) !== true) throw new Error('Native Goal durability listener is absent');
     this.assertOpen(); return snapshot(this.goals().get(agent));
   }
-  private async unknown(binding: GoalBinding, cause: unknown): Promise<never> {
+  private async unknown(binding: GoalBinding, cause: unknown, phase?: GoalOperationPhase): Promise<never> {
     const receipt = binding.receipt!;
-    try { binding = await this.save(binding, { receipt: { ...receipt, status: 'unknown', reason: errorText(cause) } }); } catch { /* The pending durable receipt remains the recovery fence. */ }
-    throw new GoalOperationUnknownError(structuredClone(binding), cause);
+    const diagnostic = goalOperationDiagnostic(phase, cause, binding.cwd);
+    const reason = `${diagnostic.phase}/${diagnostic.code}: ${diagnostic.message}`.slice(0, 500);
+    // The persisted receipt shape is unchanged (reason is already the durable
+    // free-text diagnostic). The structured phase/code also travels on the
+    // thrown GoalOperationUnknownError for the owning runner/host diagnostic.
+    try { binding = await this.save(binding, { receipt: { ...receipt, status: 'unknown', reason } }); } catch { /* The pending durable receipt remains the recovery fence. */ }
+    throw new GoalOperationUnknownError(structuredClone(binding), cause, diagnostic);
   }
   async create(request: GoalCreateRequest): Promise<GoalReadResult> {
     return this.serial(request.goalId, async () => {
+      const phase: { current: GoalOperationPhase } = { current: 'prepare' };
       request.signal?.throwIfAborted();
       const objective = text(request.objective, 'objective', 64000).trim(), maxGoalRounds = integer(request.maxGoalRounds ?? 32, 'maxGoalRounds', 256);
       if (!isAbsolute(request.cwd) || !/^[a-f0-9]{64}$/.test(request.completionCriteriaHash)) throw new Error('Invalid Goal cwd or completion criteria hash');
@@ -484,19 +577,24 @@ export class GoalSessionAdapter {
       if (await this.options.bindings.loadCommand(binding.goalId, request.commandId)) throw new Error('Goal commandId was already accepted; read or recover instead of replaying');
       await this.options.bindings.compareAndSet(undefined, structuredClone(binding));
       try {
+        phase.current = 'authorize';
         return await this.withNative(binding, true, async agent => {
           await this.authorize(binding, request.capability, 'create', undefined, { objective, maxGoalRounds });
           request.signal?.throwIfAborted();
           // Keep these synchronous: create arms, disarm must precede the driver's awaited checkpoint.
+          phase.current = 'native-goal';
           try { this.goals().create(agent, { objective, maxGoalRounds }); }
           finally { this.goals().disarm(agent); }
+          phase.current = 'readback';
           const native = await this.flushRead(agent);
           request.signal?.throwIfAborted();
+          phase.current = 'postcondition';
           if (!native || postcondition(native) !== binding.receipt!.postconditionHash || native.activation !== 'disarmed') throw new Error('Native Goal create read-back mismatch');
+          phase.current = 'confirm';
           binding = await this.save(binding, { goalRef: ref(native), receipt: { ...binding.receipt!, status: 'confirmed', observedRef: ref(native) } });
           return { binding, native };
-        }, request.signal);
-      } catch (error) { return this.unknown(binding, error); }
+        }, request.signal, undefined, phase);
+      } catch (error) { return this.unknown(binding, error, phase.current); }
     });
   }
   async read(goalId: string, capability: object): Promise<GoalReadResult> {

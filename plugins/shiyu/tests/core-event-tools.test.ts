@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import test from 'node:test';
-import { GoalSessionAdapter, CORE_GOAL_PRESET_ID, CORE_MODEL_PROBE_PROMPT, type CoreDecisionEventToolFactory,
+import { GoalSessionAdapter, GoalOperationUnknownError, CORE_GOAL_PRESET_ID, CORE_MODEL_PROBE_PROMPT, type CoreDecisionEventToolFactory,
   type GoalAuthorityContext, type GoalAuthorityVerdict, type GoalBinding, type GoalBindingPort,
   type GoalCommandReceipt, type GoalCreateRequest, type NativeGoalRef, type NativeGoalView, goalCommandIdentity } from '../src/adapters/dsh/goals.js';
 import type { DshAgent, DshAgentContext, DshContext, DshSession, SessionEvent } from '../src/adapters/dsh/sessions.js';
@@ -60,6 +60,9 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   let requests = 0, toolExecutions = 0, goalCalls = 0;
   const archives: string[] = [], toolReturns: unknown[] = [];
   let failArchive = false;
+  let failNativeCreate = false, failTitleRename = false, failFlushReadback = false, hideTitleAfterPin = false, wrongNativeGoal = false;
+  let historyRace: 'none' | 'once' | 'always' = 'none'; let historyRaceDone = false;
+  let flushCount = 0, historyOpens = 0, nativeCreateCalls = 0, titleGetCalls = 0;
   let toolPlan: undefined | { name: string; args?: Record<string, unknown>; result?: unknown; unknownUsage?: boolean;
     duplicate?: boolean; omitResult?: boolean; skipExecution?: boolean; pauseOnTool?: boolean; secondRound?: boolean };
   const assemblies: { tools: { name: string }[] }[] = [];
@@ -116,8 +119,9 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     get: native,
     disarm(agent: FakeAgent) { exact(agent); agent.activation = 'disarmed'; trace.push('disarm'); return native(agent); },
     create(agent: FakeAgent, input: { objective: string; maxGoalRounds: number }) {
+      nativeCreateCalls++;
       const record = exact(agent); assert.equal(record.native, undefined);
-      record.native = { id: `native-goal-${creates}`, revision: 1, objective: input.objective, phase: 'active', roundsStarted: 0,
+      record.native = { id: `native-goal-${creates}`, revision: 1, objective: input.objective, phase: wrongNativeGoal ? 'complete' : 'active', roundsStarted: 0,
         maxGoalRounds: input.maxGoalRounds, createdAt: Date.now(), updatedAt: Date.now() };
       agent.activation = 'armed'; append(agent, 'goal/change', { goal: record.native }); schedule(agent); return native(agent);
     },
@@ -146,6 +150,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
       stored.set(id, { header: { version: 4, id, createdAt: 1, isSeeded: false, cwd: options.meta.cwd, agentPreset: options.meta.agentPreset }, events: [], durable: [], inbox: [] });
       creates++;
     }
+    if (failNativeCreate) throw Object.assign(new Error('Synthetic agents.create failed after session storage'), { code: 'SYNTHETIC_AGENTS_CREATE_FAILED' });
     const record = stored.get(id)!, hooks = new Hooks(), guards: Hook[] = [], registeredTools = new Map<string, any>();
     const session: DshSession = {
       id, header: record.header, inheritedEventCount: 0,
@@ -303,15 +308,25 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
       if (name === 'llm') return { resolveCallConfig: async (value: unknown) => structuredClone(value), stream };
       if (name === 'agentPresets') return { register(value: { id: string }) { assert.equal(presets.has(value.id), false); presets.add(value.id); return () => { presets.delete(value.id); }; } };
       if (name === 'sessions') return {
-        async flush(session: DshSession) { trace.push('flush'); if (failFlush) throw new Error('Native flush failed'); const record = stored.get(session.id)!; record.durable = structuredClone(record.events); return true; },
+        async flush(session: DshSession) {
+          flushCount++; trace.push('flush');
+          if (failFlush) throw new Error('Native flush failed');
+          if (failFlushReadback && flushCount >= 3) throw new Error('Native flush failed during read-back');
+          const record = stored.get(session.id)!; record.durable = structuredClone(record.events); return true;
+        },
         get(id: string) { return live.get(id)?.session; },
       };
       if (name === 'workspaceRegistry') return {
         async archiveSession(id: string) { if (failArchive) throw new Error('Native archive failed'); archives.push(id); },
       };
       if (name === 'sessionTitle') return {
-        get: (session: DshSession) => { const value = stored.get(session.id)?.title; return value && structuredClone(value); },
+        get: (session: DshSession) => {
+          titleGetCalls++;
+          if (hideTitleAfterPin && titleGetCalls > 3) return undefined as never;
+          const value = stored.get(session.id)?.title; return value && structuredClone(value);
+        },
         rename(session: DshSession, title: string) {
+          if (failTitleRename) throw new Error('Synthetic title rename rejected at /synthetic/shiyu/core/sessions/native.jsonl');
           const agent = live.get(session.id)!;
           const event = append(agent, 'session/title', { title, messageSeqs: [], source: { kind: 'user' } });
           const result = { title, source: { kind: 'user' }, messageSeqs: [], eventSeq: event.seq };
@@ -319,7 +334,15 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
         },
       };
       if (name === 'sessionPersistence') return { async open(sessionId: string, mode: string) {
-        assert.equal(mode, 'read'); const record = stored.get(sessionId); if (!record) throw new Error('Native Session not found'); opens++;
+        assert.equal(mode, 'read'); const record = stored.get(sessionId); if (!record) throw new Error('Native Session not found');
+        opens++; historyOpens++;
+        const maybeRaceAppend = () => {
+          if (historyRace === 'none' || (historyRace === 'once' && historyRaceDone)) return;
+          historyRaceDone = true;
+          const agent = live.get(sessionId); if (!agent) return;
+          append(agent, 'session/end-seed', { seed: 'synthetic-host-async-metadata' });
+          stored.get(sessionId)!.durable = structuredClone(stored.get(sessionId)!.events);
+        };
         return { header: structuredClone(record.header), inheritedEventCount: 0, async read(offset: number, count: number) {
           if (readFault === 'throw') throw new Error('Native read failed');
           const events = structuredClone(record.durable.slice(offset, offset + count));
@@ -327,7 +350,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
           if (count === 1 && events[0]?.type === 'user/message' && events[0].data.source?.kind === 'runtime-context' && readFault === 'context-hash') events[0].data.content[0].text = 'changed durable context';
           if (count === 1 && events[0]?.type === 'assistant/message' && readFault === 'assistant-seq') events[0].seq = events[0].seq! + 1;
           return { events, eventState: 'detached' };
-        }, async close() { closes++; } };
+        }, async close() { maybeRaceAppend(); closes++; } };
       } };
       if (name === 'sessionProjections') return { async restore(_context: unknown, events: SessionEvent[], baseSeq: number) {
         const inbox: NativeUserMessage[] = [];
@@ -378,6 +401,12 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     async drain() { for (const [id, agent] of [...live]) { try { agent.cancel({ kind: 'hook', reason: 'fixture drain' }, { keepInbox: true }); } catch { /* fixture teardown */ } live.delete(id); record: void id; } },
     setToolPlan(value: typeof toolPlan) { toolPlan = value; },
     setFailArchive(value: boolean) { failArchive = value; },
+    setCreateFailures(value: { agentsCreate?: boolean; titleRename?: boolean; titleReadbackHidden?: boolean; flushReadback?: boolean; wrongNativeGoal?: boolean }) {
+      failNativeCreate = value.agentsCreate === true; failTitleRename = value.titleRename === true;
+      hideTitleAfterPin = value.titleReadbackHidden === true; failFlushReadback = value.flushReadback === true; wrongNativeGoal = value.wrongNativeGoal === true;
+    },
+    setHistoryRace(value: 'none' | 'once' | 'always') { historyRace = value; historyRaceDone = false; },
+    createCounts: () => ({ flushes: flushCount, historyOpens, nativeCreateCalls, titleGets: titleGetCalls }),
     setAllowed(value: boolean) { allowed = value; }, setExpired(value: boolean) { expiredGrant = value; }, setMode(value: typeof mode) { mode = value; },
     setOutput(value: string) { output = value; }, setReadFault(value: typeof readFault) { readFault = value; }, setFlushFault(value: boolean) { failFlush = value; },
     setDisposeFault(value: boolean) { failDispose = value; }, setCreateGate(value: Promise<void> | undefined) { createGate = value; }, setStreamGate(value: Promise<void>) { streamGate = value; },
@@ -1145,4 +1174,93 @@ test('the single claimed input path stays accepted without a host runtime-contex
     assert.equal(receipt.counters.userMessages, 2);
     assert.equal(receipt.cleanupVerified, true);
   } finally { await adapter.close(); }
+});
+
+// ---------------------------------------------------------------------------
+// Core Goal create failure phases and bounded history stabilization.
+// ---------------------------------------------------------------------------
+type CreateFailure = GoalOperationUnknownError & { diagnostic?: { phase: string; code: string; message: string } };
+async function expectCreateFailure(host: ReturnType<typeof fixture>, expectedPhase: string, expectedCode?: string): Promise<CreateFailure> {
+  const driver = host.adapter();
+  try {
+    let failure: CreateFailure | undefined;
+    await assert.rejects(driver.create(host.create), (error: unknown) => {
+      assert.ok(error instanceof GoalOperationUnknownError, `expected a GoalOperationUnknownError, got ${String(error)}`);
+      failure = error as CreateFailure;
+      return true;
+    });
+    const receipt = failure!.binding.receipt!;
+    assert.equal(receipt.status, 'unknown');
+    assert.equal(failure!.diagnostic?.phase, expectedPhase);
+    assert.ok(failure!.diagnostic?.code, 'the thrown unknown error keeps the underlying controlled code');
+    assert.ok(failure!.diagnostic!.message.length <= 300, 'diagnostic text is bounded');
+    assert.ok(receipt.reason!.startsWith(`${expectedPhase}/${failure!.diagnostic!.code}`), `receipt reason records phase/code: ${receipt.reason}`);
+    assert.equal(host.counts().followups, 0); assert.equal(host.counts().streams, 0); assert.equal(host.counts().requests, 0);
+    if (expectedCode) assert.equal(failure!.diagnostic?.code, expectedCode);
+    return failure!;
+  } finally { await driver.close(); }
+}
+
+test('an agents.create failure is observable as native-session with a partially stored Session', async () => {
+  const host = fixture(); host.setCreateFailures({ agentsCreate: true });
+  const failure = await expectCreateFailure(host, 'native-session', 'SYNTHETIC_AGENTS_CREATE_FAILED');
+  assert.equal(failure.binding.receipt?.status, 'unknown');
+  assert.equal(host.stored.size, 1, 'the native Session was partially created before make threw');
+  assert.equal(host.live.size, 0); assert.equal(host.createCounts().nativeCreateCalls, 0);
+  assert.equal(host.counts().goalCalls, 0);
+});
+
+test('a durability/observe failure is observable as observe and never reaches the native Goal', async () => {
+  const host = fixture(); host.setFlushFault(true);
+  const failure = await expectCreateFailure(host, 'observe');
+  assert.ok(failure.binding.receipt?.reason);
+  assert.equal(host.createCounts().nativeCreateCalls, 0);
+});
+
+test('a title pin failure is observable as title with sanitized workspace paths', async () => {
+  const host = fixture(); host.setCreateFailures({ titleRename: true });
+  const failure = await expectCreateFailure(host, 'title', 'GOAL_OPERATION_UNKNOWN');
+  assert.equal(failure.diagnostic?.message.includes('<workspace>'), true);
+  assert.equal(failure.diagnostic?.message.includes('/synthetic/shiyu/core'), false);
+  assert.equal(host.createCounts().nativeCreateCalls, 0);
+});
+
+test('a fixed-title read-back mismatch after pinning is observable as title-readback', async () => {
+  const host = fixture(); host.setCreateFailures({ titleReadbackHidden: true });
+  const failure = await expectCreateFailure(host, 'title-readback');
+  assert.equal(host.createCounts().nativeCreateCalls, 0);
+});
+
+test('a durability failure during the native create read-back is observable as readback', async () => {
+  const host = fixture(); host.setCreateFailures({ flushReadback: true });
+  const failure = await expectCreateFailure(host, 'readback');
+  assert.equal(host.createCounts().nativeCreateCalls, 1);
+});
+
+test('a native Goal postcondition mismatch is observable as postcondition and does not replay create', async () => {
+  const host = fixture(); host.setCreateFailures({ wrongNativeGoal: true });
+  const failure = await expectCreateFailure(host, 'postcondition');
+  assert.equal(host.createCounts().nativeCreateCalls, 1, 'the native create is attempted once and never replayed');
+  assert.match(failure.binding.receipt!.reason!, /read-back mismatch/);
+});
+
+test('a transient host metadata append between observation and live-history assert is stabilized without replay', async () => {
+  const host = fixture(); host.setHistoryRace('once');
+  const driver = host.adapter();
+  try {
+    const result = await driver.create(host.create);
+    assert.ok(result.native); assert.equal(result.native.phase, 'active');
+    assert.equal(result.binding.receipt?.status, 'confirmed');
+    assert.equal(host.createCounts().nativeCreateCalls, 1, 'native goals.create is called exactly once');
+    assert.ok(host.createCounts().historyOpens >= 2, 'the bounded stabilization re-observed the new durable cut');
+    assert.equal(host.counts().followups, 0); assert.equal(host.counts().streams, 0);
+    assert.equal(host.stored.get(result.binding.sessionId)!.events.some(event => event.type === 'session/end-seed'), true);
+  } finally { await driver.close(); }
+});
+
+test('persistently changing live history fails bounded stabilization as history-assert without native create', async () => {
+  const host = fixture(); host.setHistoryRace('always');
+  const failure = await expectCreateFailure(host, 'history-assert', 'NATIVE_HISTORY_CHANGED');
+  assert.equal(host.createCounts().nativeCreateCalls, 0, 'no native create replay on an unstable history');
+  assert.equal(host.createCounts().historyOpens, 3, 'the stabilization is bounded to the first observation plus two re-observations');
 });
