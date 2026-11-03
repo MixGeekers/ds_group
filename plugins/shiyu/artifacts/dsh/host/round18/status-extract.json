@@ -1,0 +1,102 @@
+{
+  "readiness": {
+    "version": 1,
+    "semanticConfigured": true,
+    "exactRead": true,
+    "embeddingVerified": true,
+    "profileCompatible": true,
+    "capabilities": [
+      "exact_read",
+      "semantic_search"
+    ],
+    "coverage": {
+      "readableCount": 2,
+      "indexedCount": 2,
+      "missingCount": 0,
+      "staleCount": 4,
+      "pendingCount": 0,
+      "unknownCount": 0,
+      "cancelledCount": 0,
+      "indexBaselineId": "index_f0f5218980fc4ed1a9f20176bee88905",
+      "indexWatermark": 6,
+      "observedAt": "2026-11-03T21:46:14.240Z",
+      "coverageComplete": false
+    },
+    "coverageComplete": false,
+    "semanticReady": true,
+    "reason": "INDEX_COVERAGE_INCOMPLETE",
+    "verification": {
+      "scope": "backend-instance",
+      "lastEmbeddingSuccessAt": "2026-11-03T21:46:03.644Z"
+    }
+  },
+  "startupEmbeddingVerification": {
+    "schemaVersion": 1,
+    "attempted": true,
+    "verified": true,
+    "reason": null,
+    "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+    "embeddingCalls": 1,
+    "usageComplete": true,
+    "semanticPublished": true,
+    "capturedAt": "2026-11-03T21:46:03.703Z",
+    "durationMs": 168
+  },
+  "manifestMemory": {
+    "status": "available",
+    "backendId": "ombre-local",
+    "deploymentId": "shiyu-memory-3cefe13a-e99c-4904-a139-d3215c39ec10",
+    "capabilities": [
+      "exact_read",
+      "semantic_search"
+    ],
+    "profileFingerprint": "d3aa5e3e6aecf3cc147ea1f1c04ffad2fcfcb206271364f284f0d432fbc1111b"
+  },
+  "notices": [
+    {
+      "id": "scope",
+      "level": "info",
+      "message": "已接入原生会话、事件、本地任务、记忆读取与受控 Lab 对话；core 仅在显式目标范围和共享预算内选择已授权事项，开放式规划、其余内层状态及真实外部渠道仍待接入。"
+    },
+    {
+      "id": "operation",
+      "level": "warning",
+      "message": "Local reply did not produce a current verified draft"
+    }
+  ],
+  "sessionSummary": {
+    "count": 10,
+    "cancelled": [
+      "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a"
+    ]
+  },
+  "probeMemories": [
+    {
+      "operationId": "cccbba76-fe70-4e5c-b1f7-ad9b15d0c553",
+      "version": 4,
+      "requestId": "chat-memory-probe-write-5f412b36-882a-4c7a-afe3-91343b4c71e1",
+      "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+      "status": "applied",
+      "blocked": false,
+      "bodyBytes": 170,
+      "consent": "active",
+      "canRead": true,
+      "nativeId": "shiyu_be0ade3ed57c4cd2a2cd9e1dcb886ec0",
+      "createdAt": "2026-11-03T21:44:25.692Z"
+    },
+    {
+      "operationId": "d855739f-d1a8-42df-802f-08ad3a76ea54",
+      "version": 4,
+      "requestId": "chat-memory-probe-write-261b9d7b-bc6c-41be-8330-121293a64a36",
+      "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+      "status": "applied",
+      "blocked": false,
+      "bodyBytes": 170,
+      "consent": "active",
+      "canRead": true,
+      "nativeId": "shiyu_17c46c51b85540459e27c6042b600371",
+      "createdAt": "2026-11-03T21:46:13.993Z"
+    }
+  ]
+}
+

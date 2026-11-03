@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "phase": "round18-joint-host-p0-single-user-chat-memory",
+  "status": "frozen-before-execution",
+  "frozenAt": "2026-11-03T21:43:01.350Z",
+  "code": {
+    "head": "c47502d3945d450261ebdd8e36bd51ce4006fafd",
+    "dist": {
+      "files": 120,
+      "digest": "724c688d053f33322df31cf286804c88177aad9ac87d7e32256bf8da20bcc72a"
+    }
+  },
+  "decision": "P0 bounded real single-user chat-memory validation: phase write (save synthetic fact + real embedding index + one local reply <=256 tokens), ordered reload with automatic startup embedding verification, then phase recall (second local reply <=256 tokens, prompt without marker; strict oracle: reply contains marker + controlled memorySources carries operationId + same native Session). Total <=2 generation calls, 0 automatic retries.",
+  "scope": {
+    "orderedReloads": 2,
+    "toolCalls": [
+      "write",
+      "recall"
+    ],
+    "maxGenerationCalls": 2,
+    "maxTokensPerCall": 256,
+    "retries": 0,
+    "realEmbeddingCalls": "performed by probe"
+  },
+  "stops": [
+    "probe failed/wrong reasonCode",
+    "session mismatch",
+    "memory source missing despite reply",
+    "startup verifier no eligible memory",
+    "any Task/Goal/Effect/send created"
+  ]
+}
+

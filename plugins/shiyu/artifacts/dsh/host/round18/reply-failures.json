@@ -1,0 +1,50 @@
+{
+  "replyInputs": [
+    {
+      "inputId": "chat-memory-probe-write-b825c4b5-9d75-4c67-a75c-59af9529a532",
+      "status": "unknown",
+      "reasonCode": "REPLY_FAILED",
+      "durability": "unconfirmed",
+      "sessionId": "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a",
+      "memorySourceCount": 2,
+      "createdAt": "2026-11-03T21:46:14.306Z",
+      "updatedAt": "2026-11-03T21:46:14.999Z"
+    },
+    {
+      "inputId": "chat-memory-probe-write-9eb3ada6-3ba7-4071-a7db-bfcce03f718a",
+      "status": "failed",
+      "reasonCode": "INVALID_INDEX_OBSERVATION",
+      "durability": "unconfirmed",
+      "memorySourceCount": 0,
+      "createdAt": "2026-11-03T21:44:25.982Z",
+      "updatedAt": "2026-11-03T21:44:26.106Z"
+    }
+  ],
+  "memoryOps": [
+    {
+      "requestId": "chat-memory-probe-write-261b9d7b-bc6c-41be-8330-121293a64a36",
+      "operationId": "d855739f-d1a8-42df-802f-08ad3a76ea54",
+      "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+      "createdAt": "2026-11-03T21:46:13.991Z"
+    },
+    {
+      "requestId": "chat-memory-probe-write-5f412b36-882a-4c7a-afe3-91343b4c71e1",
+      "operationId": "cccbba76-fe70-4e5c-b1f7-ad9b15d0c553",
+      "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+      "createdAt": "2026-11-03T21:44:25.690Z"
+    },
+    {
+      "requestId": "memory-probe-f0844e7f-4c3d-4b0d-aa7b-fc94bf1dc714",
+      "operationId": "c0a7eb26-4f89-4a20-915c-a7e455a99917",
+      "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+      "createdAt": "2026-11-03T19:05:56.808Z"
+    },
+    {
+      "requestId": "memory-probe-0829de43-b20d-4bae-ba40-95027db25adf",
+      "operationId": "9143ba25-6696-43d0-aadf-329dea9dc68d",
+      "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+      "createdAt": "2026-11-03T18:09:13.277Z"
+    }
+  ]
+}
+

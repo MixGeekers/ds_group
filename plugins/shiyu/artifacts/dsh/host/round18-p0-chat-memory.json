@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "phase": "round18-host",
+  "slice": "fixed-host P0 single-user chat-memory probe: startup embedding verification passed; the write phase reached the reply/draft stage but generation failed without a verified draft; no retry",
+  "capturedAt": "2026-11-03T21:47:00.064Z",
+  "status": "fixed-host-startup-embedding-verified-chat-reply-failed",
+  "purpose": "P0 bounded real single-user chat-memory validation under a frozen plan: write phase (save synthetic fact + real local embedding index + one local reply <=256 tokens), ordered reload with automatic startup embedding verification, then recall phase. Two host attempts were needed because the first failed pre-model on INVALID_INDEX_OBSERVATION; the fix was committed (ff5ea11), then one further write attempt was made. The second attempt reached draft generation but produced no verified reply. Per the frozen no-retry rule the recall phase was not executed.",
+  "code": {
+    "head": "ff5ea11",
+    "dist": {
+      "files": 120,
+      "digest": "82a283dc8645209b811b95d0f7653109549b010710759d0022736f069677fa31"
+    }
+  },
+  "plan": {
+    "file": "artifacts/dsh/host/round18/plan.json",
+    "sha256": "aac957a91314ae2d9e54a37f7a1aa6576436d1f1367e5cb47d944207ecfdf533"
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "phase": "write",
+      "after": "reload1",
+      "result": "failed before any model request",
+      "reasonCode": "INVALID_INDEX_OBSERVATION",
+      "generationModelCalls": 0,
+      "detail": "the probe indexed the synthetic fact and the backend became embeddingVerified, but the published memory manifest still advertised exact_read only, so the reply ReadView rejected the index observation. Fixed in ff5ea11 with the trusted onIndexed publish hook.",
+      "replyInput": {
+        "inputId": "chat-memory-probe-write-9eb3ada6-3ba7-4071-a7db-bfcce03f718a",
+        "status": "failed",
+        "reasonCode": "INVALID_INDEX_OBSERVATION",
+        "durability": "unconfirmed",
+        "memorySourceCount": 0,
+        "createdAt": "2026-11-03T21:44:25.982Z",
+        "updatedAt": "2026-11-03T21:44:26.106Z"
+      },
+      "syntheticMemory": {
+        "requestId": "chat-memory-probe-write-5f412b36-882a-4c7a-afe3-91343b4c71e1",
+        "operationId": "cccbba76-fe70-4e5c-b1f7-ad9b15d0c553",
+        "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+        "createdAt": "2026-11-03T21:44:25.690Z"
+      }
+    },
+    {
+      "attempt": 2,
+      "phase": "write",
+      "after": "reload2",
+      "result": "reached reply draft generation; no current verified draft",
+      "reasonCode": "REPLY_FAILED",
+      "status": "unknown",
+      "generationModelCalls": "attempted (usage null/unknown; no verified assistant draft)",
+      "detail": "the memory fact was written, indexed (real embedding; indexWatermark 6) and the reply ReadView observed two controlled memory sources and created a draft; the replyer session was cancelled without a verified draft. This is a generation/provider failure on the same upstream path that returned empty streams in the v6 core attempt; automatic retry is forbidden and the recall phase was not run.",
+      "replyInput": {
+        "inputId": "chat-memory-probe-write-b825c4b5-9d75-4c67-a75c-59af9529a532",
+        "status": "unknown",
+        "reasonCode": "REPLY_FAILED",
+        "durability": "unconfirmed",
+        "sessionId": "shiyu-replyer-b426ad85-cceb-4a42-9f6e-4ece98376a8a",
+        "memorySourceCount": 2,
+        "createdAt": "2026-11-03T21:46:14.306Z",
+        "updatedAt": "2026-11-03T21:46:14.999Z"
+      },
+      "syntheticMemory": {
+        "requestId": "chat-memory-probe-write-261b9d7b-bc6c-41be-8330-121293a64a36",
+        "operationId": "d855739f-d1a8-42df-802f-08ad3a76ea54",
+        "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+        "createdAt": "2026-11-03T21:46:13.991Z"
+      }
+    }
+  ],
+  "startupEmbeddingVerification": {
+    "file": "artifacts/dsh/host/round18/status-extract.json",
+    "sha256": "dad4725ded485cb30dfade4cf3f9db4499302fe963e0dc9c04390bab21740fb7",
+    "value": {
+      "schemaVersion": 1,
+      "attempted": true,
+      "verified": true,
+      "reason": null,
+      "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+      "embeddingCalls": 1,
+      "usageComplete": true,
+      "semanticPublished": true,
+      "capturedAt": "2026-11-03T21:46:03.703Z",
+      "durationMs": 168
+    },
+    "note": "after the second ordered reload the process performed exactly one fixed local embedding query and published semantic_search; this closes the reload-readiness gap but is not a chat-memory recall proof."
+  },
+  "memory": {
+    "readiness": {
+      "version": 1,
+      "semanticConfigured": true,
+      "exactRead": true,
+      "embeddingVerified": true,
+      "profileCompatible": true,
+      "capabilities": [
+        "exact_read",
+        "semantic_search"
+      ],
+      "coverage": {
+        "readableCount": 2,
+        "indexedCount": 2,
+        "missingCount": 0,
+        "staleCount": 4,
+        "pendingCount": 0,
+        "unknownCount": 0,
+        "cancelledCount": 0,
+        "indexBaselineId": "index_f0f5218980fc4ed1a9f20176bee88905",
+        "indexWatermark": 6,
+        "observedAt": "2026-11-03T21:46:14.240Z",
+        "coverageComplete": false
+      },
+      "coverageComplete": false,
+      "semanticReady": true,
+      "reason": "INDEX_COVERAGE_INCOMPLETE",
+      "verification": {
+        "scope": "backend-instance",
+        "lastEmbeddingSuccessAt": "2026-11-03T21:46:03.644Z"
+      }
+    },
+    "manifest": {
+      "status": "available",
+      "backendId": "ombre-local",
+      "deploymentId": "shiyu-memory-3cefe13a-e99c-4904-a139-d3215c39ec10",
+      "capabilities": [
+        "exact_read",
+        "semantic_search"
+      ],
+      "profileFingerprint": "d3aa5e3e6aecf3cc147ea1f1c04ffad2fcfcb206271364f284f0d432fbc1111b"
+    },
+    "probeMemories": [
+      {
+        "operationId": "cccbba76-fe70-4e5c-b1f7-ad9b15d0c553",
+        "version": 4,
+        "requestId": "chat-memory-probe-write-5f412b36-882a-4c7a-afe3-91343b4c71e1",
+        "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+        "status": "applied",
+        "blocked": false,
+        "bodyBytes": 170,
+        "consent": "active",
+        "canRead": true,
+        "nativeId": "shiyu_be0ade3ed57c4cd2a2cd9e1dcb886ec0",
+        "createdAt": "2026-11-03T21:44:25.692Z"
+      },
+      {
+        "operationId": "d855739f-d1a8-42df-802f-08ad3a76ea54",
+        "version": 4,
+        "requestId": "chat-memory-probe-write-261b9d7b-bc6c-41be-8330-121293a64a36",
+        "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+        "status": "applied",
+        "blocked": false,
+        "bodyBytes": 170,
+        "consent": "active",
+        "canRead": true,
+        "nativeId": "shiyu_17c46c51b85540459e27c6042b600371",
+        "createdAt": "2026-11-03T21:46:13.993Z"
+      }
+    ],
+    "note": "two synthetic chat-memory-probe facts are retained active (cccbba76 and d855739f); recall withdrawal was not reached because the write phase did not pass. They are disclosed residual synthetic data."
+  },
+  "delta": {
+    "reload1": {
+      "commitSeq": [
+        573,
+        580
+      ],
+      "sessions": [
+        40,
+        40
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ]
+    },
+    "write1": {
+      "commitSeq": [
+        580,
+        590
+      ],
+      "events": [
+        68,
+        68
+      ],
+      "sessions": [
+        40,
+        40
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ]
+    },
+    "reload2": {
+      "commitSeq": [
+        590,
+        597
+      ],
+      "sessions": [
+        40,
+        40
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ]
+    },
+    "write2": {
+      "commitSeq": [
+        597,
+        609
+      ],
+      "events": [
+        69,
+        69
+      ],
+      "sessions": [
+        40,
+        40
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690"
+      ]
+    },
+    "final": {
+      "commitSeq": [
+        609,
+        609
+      ],
+      "stateFile": [
+        "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690",
+        "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690"
+      ]
+    }
+  },
+  "milestones": [
+    "Startup automatic embedding verification passed on the fixed host: exactly one local embedding call, semanticPublished=true, manifest memory capabilities exact_read+semantic_search with the profile fingerprint (after a reload that previously fell back to exact_read).",
+    "The chat-memory write phase reached the reply stage with two controlled memory sources in the ReadView and a draft, proving the memory->ReadView wiring; however no current verified assistant draft was produced, so the P0 chat-memory round-trip is NOT passed."
+  ],
+  "blockers": [
+    "Generation/reply failure: the replyer session was cancelled with reply status unknown and usage null; the same upstream empty/failed-stream class observed in the v6 core attempt. No retry was made; a further attempt is a new explicit owner decision.",
+    "Live emotion behavior and subjective experience remain unverified; workspace Runtime/TaskRunner execution remains unverified (offline tests only)."
+  ],
+  "limitations": [
+    "No recall phase was executed, so restart recall, marker containment and same-session evidence are NOT verified.",
+    "The two synthetic retained facts are residual data and are disclosed; no cleanup was attempted during the failed write.",
+    "The host evidence is limited to a failed generation attempt plus the startup embedding-verification success; it does not prove single-user multi-turn chat memory."
+  ]
+}

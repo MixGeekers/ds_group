@@ -2166,3 +2166,29 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 2. **未执行**可写共享工作区的 Runtime/TaskRunner 真实任务；workspace 仅适配器层 + 测试。
 3. **未执行** v7 宿主尝试（第七次需显式 owner 授权）；live 情绪行为/主观体验未验证。
 4. P0/emotion/workspace 均未升级到 V25/业务/九系统；产品 79/79 not_covered；acceptance gate=incomplete、executed=passed=0。
+
+## 75. 第十八轮：P0 单用户聊天记忆闭环宿主尝试（启动自动 embedding 通过，回复生成失败）
+
+状态：**固定宿主上 startup embedding 自动验证通过；P0 聊天记忆闭环未通过（回复生成无 verified draft），未重试**。2026-11-03，代码 HEAD `ff5ea11`。
+
+### 75.1 交付（离线/集成）
+
+- **两阶段 owner-only 聊天记忆探针**（`chat-memory-probe.ts` + `shiyu_verify_single_user_chat_memory`）：write 写合成 marker 事实+真实 embedding 索引+≤1 次本地回复；recall 查找事实、读正文、第 2 次回复（prompt 不含 marker），严格 oracle 要求 reply 含 marker + 受控 memorySources 含 operationId + 同一 native Session；每阶段 ≤1 次生成、0 重试；recall 成功才撤回并披露。
+- **启动自动 embedding 验证**（`startup-embedding-verifier.ts`）：memory availability 发布后、backend ready 且未 verified 时执行一次固定本地 embedding（无生成模型、每进程一次、失败保持 exact_read），成功后发布 semantic_search；reload 新进程自动恢复。
+- **可写共享工作区接入 TaskRunner**（`task-workspace.ts` + TaskRunner 集成）：可信 sharedRoot 下 claim 前 prepare、worker cwd=`<taskId>/task`、成功后 publish、失败保留 mirror 并 markUnknown、expectedChanges/ownerDecision 仅来自可信 RuntimeOptions；无 sharedRoot 完全 legacy no-op。
+- 测试：chat/startup 18、task-workspace runtime 12；Lead 定向 30/30；作者隔离 1782/1782、1776/1776。
+- 修复（宿主发现）：`ff5ea11` 在 index 成功后、reply 前刷新并发布 memory availability，避免 reply ReadView 的 `INVALID_INDEX_OBSERVATION`。
+
+### 75.2 固定宿主结果
+
+1. 第一次 write 尝试：失败于 `INVALID_INDEX_OBSERVATION`，**0 次生成模型请求**（索引/embedding 已成功）。
+2. 修复后第二次 write 尝试：记忆写入/索引/ReadView（2 个受控 memorySources）与 draft 均发生；**回复生成未产生 verified draft**（reply 状态 unknown、reason `REPLY_FAILED`、usage null、replyer Session cancelled）。与 v6 core 的空/失败 stream 同类上游问题。
+3. 按冻结计划 **0 重试**，recall 阶段**未执行** → 重启召回、marker 命中、同 Session 证据均**未验证**。
+4. **启动自动 embedding 验证通过**：第二次 reload 后 `attempted=true, verified=true, embeddingCalls=1, semanticPublished=true`；manifest memory capabilities 已发布 `exact_read+semantic_search`（profile fingerprint），修复了 reload 后语义能力回落的缺口。
+5. 残留：2 条合成 chat-memory-probe 事实仍 active（`cccbba76`、`d855739f`），因 write 未通过未执行 recall 撤回；如实披露。
+6. 审计：两次 reload 及 write 尝试 commitSeq 580→609、state 文件两次变化；sessions 40 不变；无 Task/Goal/Effect/外部发送。
+
+### 75.3 证据与边界
+
+- 证据：[round18-p0-chat-memory.json](<artifacts/dsh/host/round18-p0-chat-memory.json>) + `host/round18/`（plan、7 审计、status-final、status-extract、reply-failures）。
+- 边界：**P0 聊天记忆闭环未通过**，不得宣称"能聊天/能记住事情"已在真实模型多轮验证；启动 embedding 自动验证通过是独立成功项。再次尝试需新的显式 owner 决定（先解决/诊断生成 provider 失败，避免盲目重试）。
