@@ -6,8 +6,9 @@
   "status": "fixed-host-v2-create-failed-history-assert",
   "purpose": "Explicit owner decision: one NEW frozen v2 bounded core Goal experiment, not a retry of v1. The attempt failed at the persistent history-assert stage (NATIVE_HISTORY_CHANGED) despite the bounded stabilization, creating a partial unauthorized/paused v2 Goal and one Goal Session with no model request, Task, Effect or budget change; it was not retried.",
   "plan": {
-    "path": "plugins/shiyu/.local/dsh-round10-host-execution-plan.json",
-    "sha256": "c6be8da1bcbae6bf3886bf954b1b999209e45052af4c0068d69349f72b6843f3"
+    "path": "artifacts/dsh/host/round10/plan.json",
+    "sha256": "c6be8da1bcbae6bf3886bf954b1b999209e45052af4c0068d69349f72b6843f3",
+    "note": "committed copy of the frozen execution plan; identical bytes to the gitignored .local working copy at execution time"
   },
   "code": {
     "head": "b09416f",
@@ -245,7 +246,7 @@
   },
   "cachedReceipt": {
     "file": "artifacts/dsh/host/round10/status-final.json",
-    "bytes": 61039,
+    "bytes": 64082,
     "sha256": "27805dd53765c27534d9d0f91cdfb6a887b7f2356c4a3df0d331730ec515e616",
     "value": {
       "status": "failed",
@@ -299,7 +300,8 @@
           "plan:0"
         ]
       }
-    }
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8)"
   },
   "findings": [
     "The v2 experiment failed at the exact same history-assert stage as v1 even with the bounded three-observation stabilization, so the mismatch is deterministic rather than a transient meta-event race. The root cause remains unconfirmed at this level; the new failurePhase/failureCode diagnostics localize it to NATIVE_HISTORY_CHANGED.",
@@ -335,5 +337,12 @@
     "This is a failed v2 attempt, not a bounded real business validation; no core plan/model/Task/worker/verification/native completion occurred.",
     "The v2 Goal is inert but unresolved; no automatic cleanup was attempted.",
     "The two-attempt failure at the same stage is disclosed; a third attempt is not authorized until the history-assert semantics are instrumented and fixed."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F10-R2/F10-R3",
+      "finding": "cached status bytes used a character count and the frozen plan existed only in a gitignored path",
+      "resolution": "bytes corrected to the actual 64082 committed file size with semantics; the frozen plan is now committed at artifacts/dsh/host/round10/plan.json with its original sha"
+    }
   ]
 }

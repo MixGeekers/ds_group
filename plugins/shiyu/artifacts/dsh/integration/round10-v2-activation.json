@@ -16,8 +16,8 @@
     },
     {
       "path": "plugins/shiyu/src/index.ts",
-      "bytes": 14765,
-      "sha256": "39a982dd7b6f9248c41b97b63a85f1b582d83b73d76a2389c878a1bcffb346aa"
+      "bytes": 14947,
+      "sha256": "688288102c0d650654dd3a85654dec81faf80ed862faeb2862a293ec3b97c145"
     },
     {
       "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
@@ -27,7 +27,7 @@
   ],
   "verification": {
     "leadIsolatedCheck": {
-      "tool": "scripts/slice-verify.mjs",
+      "tool": "scripts/slice-verify.mjs (re-run on the final X commit 6392c7e tree with the exact activation files)",
       "evidence": "artifacts/dsh/slices/round10-v2-activation-verify.json",
       "exitCode": 0,
       "tests": {
@@ -37,7 +37,9 @@
         "cancelled": 0,
         "skipped": 0
       },
+      "durationMs": 612061,
       "log": "plugins/shiyu/.local/slice-verify-round10-v2-activation.log",
+      "logSha256": "cc06c1c8f0d5dcbac4bba9cd171e6d3583a57fa0f3a2b28d1316c35089199c2a",
       "arithmetic": "1582 baseline + 1 v2 tool-definition test = 1583"
     }
   },
@@ -51,5 +53,13 @@
     "embeddingCalls": 0,
     "hostReloads": 0
   },
-  "evidenceLevel": "G1 integration + isolated full check; host v2 attempt pending."
+  "evidenceLevel": "G1 integration + isolated full check; host v2 attempt pending.",
+  "amendNote": "The v2 activation commit was amended before push to add the required tool output schema (+4 lines in src/index.ts); the earlier pre-amend verify artifact listed the old index.ts hash. The file facts above are the final X=b09416f tree, and the regenerated isolated verification artifact binds them.",
+  "evidenceCorrections": [
+    {
+      "id": "F10-R1",
+      "finding": "pre-amend activation evidence listed the earlier src/index.ts hash",
+      "resolution": "fact list updated to the final X tree and the isolated check regenerated on the final X commit"
+    }
+  ]
 }

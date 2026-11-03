@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "kind": "isolated-slice-verification",
   "slice": "round10-v2-activation",
-  "capturedAt": "2026-11-03T05:22:46.112Z",
-  "head": "3aeeffa503c712c27fb2c6a41519e0974a9a4106",
-  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-round10-v2-activation-1793682757209",
+  "capturedAt": "2026-11-03T05:55:17.471Z",
+  "head": "6392c7eb98da9bb39e24edb8a959e7d8572b5b3a",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-round10-v2-activation-1793684705095",
   "files": [
     {
       "path": "plugins/shiyu/src/runtime.ts",
@@ -13,8 +13,8 @@
     },
     {
       "path": "plugins/shiyu/src/index.ts",
-      "bytes": 14765,
-      "sha256": "39a982dd7b6f9248c41b97b63a85f1b582d83b73d76a2389c878a1bcffb346aa"
+      "bytes": 14947,
+      "sha256": "688288102c0d650654dd3a85654dec81faf80ed862faeb2862a293ec3b97c145"
     },
     {
       "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
@@ -27,9 +27,9 @@
     "exitCode": 0,
     "signal": null,
     "timedOut": false,
-    "durationMs": 608502,
-    "bytes": 169245,
-    "sha256": "45d06d35a5ba0dc71d4e1331180ec7928940a6a41e1b06775538258cd702fd51",
+    "durationMs": 612061,
+    "bytes": 169218,
+    "sha256": "cc06c1c8f0d5dcbac4bba9cd171e6d3583a57fa0f3a2b28d1316c35089199c2a",
     "tests": {
       "tests": 1583,
       "pass": 1583,
@@ -41,15 +41,15 @@
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 607452.591917",
+      "ℹ duration_ms 610992.420625",
       "> @shiyu/runtime@0.1.0 build",
       "> tsc -p tsconfig.build.json"
     ]
   },
   "log": {
     "path": "<repo>/plugins/shiyu/.local/slice-verify-round10-v2-activation.log",
-    "bytes": 169245,
-    "sha256": "45d06d35a5ba0dc71d4e1331180ec7928940a6a41e1b06775538258cd702fd51"
+    "bytes": 169218,
+    "sha256": "cc06c1c8f0d5dcbac4bba9cd171e6d3583a57fa0f3a2b28d1316c35089199c2a"
   },
   "verdict": "pass"
 }

@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-47)",
+  "reviewedAt": "2026-11-03T06:10:00Z",
+  "subject": "Round-10: v2 activation/tool output schema, failed v2 host attempt, merge preservation, H7 X+1",
+  "head": "6392c7eb98da9bb39e24edb8a959e7d8572b5b3a",
+  "commits": {
+    "v2-activation (X)": "b09416f",
+    "v2-host-failure": "6d65135",
+    "H7 X+1": "b5bc3cc",
+    "merge": "6392c7e",
+    "remote-pre-merge": "081e987"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "X activation files/logs",
+      "claim": "b09416f activation files/logs and 1583 isolated check",
+      "evidence": [
+        "artifacts/dsh/integration/round10-v2-activation.json",
+        "artifacts/dsh/slices/round10-v2-activation-verify.json"
+      ],
+      "method": "hashes/logs",
+      "result": "verified-with-finding",
+      "detail": "runtime.ts/index.ts/host-diagnostics test log 1583 (45d06d35…/169245); BUT evidence file list incorrectly records src/index.ts 14765/39a982dd… while actual b09416f is 14947/68828810… (F10-R1); X+1 clean 1583 covers final code"
+    },
+    {
+      "id": "R02",
+      "area": "v2 activation semantics",
+      "claim": "new runtime.probe-core-goal-v2 + parameterless shiyu_validate_core_goal_v2; exact frozen v2 constant; v1 not retried; output schema present; no tool override",
+      "evidence": [
+        "b09416f src/index.ts/runtime.ts/tests"
+      ],
+      "method": "code/tests",
+      "result": "verified",
+      "detail": "tool calls action runtime.probe-core-goal-v2, no parameters; exact CORE_VALIDATION_EXPERIMENT; output schema added (4 lines); v1 remains historical; no runtime ref from tool inputs"
+    },
+    {
+      "id": "R03",
+      "area": "host v2 failure receipt",
+      "claim": "failed/CREATE_FAILED/history-assert/NATIVE_HISTORY_CHANGED; evaluateAttempts0; stopAction none; partialCreation detected/readback complete; 0 retry",
+      "evidence": [
+        "artifacts/dsh/host/round10/core-goal-v2-receipt.json",
+        "round10 joint"
+      ],
+      "method": "receipt/audit",
+      "result": "verified",
+      "detail": "receipt 5700B/sha 734e1b01…; goal observation 625B/sha 07e0879f…; failed fields exact; status cache failed v2 receipt"
+    },
+    {
+      "id": "R04",
+      "area": "host audit/live state",
+      "claim": "424→427 commitSeq, goals3→4, sessions34→35; new v2 Goal core-9f494d…; one Session 4 meta events; journal unknown same reason; no Task/Effect/budget/artifact/events; state unchanged; known34 unchanged",
+      "evidence": [
+        "round10 audits",
+        "live DB read-only",
+        "session zstd decode"
+      ],
+      "method": "audit diff + DB/session",
+      "result": "verified",
+      "detail": "before412/54/34/goals3 → reload424/56/34/3 → run/final427/56/35/4; DB Goal unauthorized/paused/v1/evals0/no mandate/native; journal history-assert/NATIVE_HISTORY_CHANGED reason; Session decodes 4 lines (session+3 meta); tasks/effects/budget same; state sha unchanged; known sessions byte-identical; added one Session"
+    },
+    {
+      "id": "R05",
+      "area": "failure honesty",
+      "claim": "two independent failures same history-assert => deterministic mismatch; third attempt unauthorized; v2 residual outside v1-only reconcile; no pass claim",
+      "evidence": [
+        "round10 joint findings/limitations"
+      ],
+      "method": "text review",
+      "result": "verified",
+      "detail": "status=failed; explicit deterministic mismatch, third not authorized, v2 needs generalized reconcile; no core plan/model/Task/native completion claimed"
+    },
+    {
+      "id": "R06",
+      "area": "host metadata",
+      "claim": "host payload bytes/plan consistent",
+      "evidence": [
+        "round10 joint cachedReceipt/plan"
+      ],
+      "method": "sha/bytes/files",
+      "result": "finding",
+      "detail": "cachedReceipt bytes 61039 vs actual status-final 64082 (sha matches) F10-R2; plan path .local/dsh-round10-host-execution-plan.json missing F10-R3"
+    },
+    {
+      "id": "R07",
+      "area": "merge authenticity",
+      "claim": "6392c7e merges local 6d65135 + origin 081e987; 081e987..6392c7e only forward changes; no remote content deletion; no conflict markers; code HEAD==b09416f",
+      "evidence": [
+        "git graph/parents/diff"
+      ],
+      "method": "git object inspection",
+      "result": "verified",
+      "detail": "parents 6d65135+081e987; no D files; index.ts +4 output schema; harness artifacts refreshed; host/doc additions; no conflict markers; 081e987 ancestor; origin ref now merge (non-force history preserved); code b09416f..HEAD diff 0"
+    },
+    {
+      "id": "R08",
+      "area": "X+1",
+      "claim": "b5bc3cc 11 artifacts; manifest head=b09416f/dirty=false/leaks0; clean 1583; selfproof 15/115; 57/57 sources; product79/79; gate incomplete",
+      "evidence": [
+        "b5bc3cc artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "clean 4826fdc6…/169127 1583; pipeline ff33a1e2…/3021; manifest 34c7d100…/84286; selfproof f1e11bb2…/24867; sources 57/179; product 79/79; gate incomplete/executed=passed=0"
+    },
+    {
+      "id": "R09",
+      "area": "H7 no upgrade",
+      "claim": "57/57 sources, product 79/79 not_covered; no round10 host pass mapping",
+      "evidence": [
+        "traceability/acceptance"
+      ],
+      "method": "JSON",
+      "result": "verified",
+      "detail": "verifiedSources57/unknown0; product not_covered79; gate incomplete; no V25/FL/S upgrade; round10 v2 failure not mapped as pass"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F10-R1",
+      "severity": "moderate-evidence-binding",
+      "title": "X activation evidence files still bind the pre-amend src/index.ts (14765B/39a982dd) while X has 14947B/68828810",
+      "files": [
+        "artifacts/dsh/integration/round10-v2-activation.json",
+        "artifacts/dsh/slices/round10-v2-activation-verify.json",
+        "b09416f src/index.ts"
+      ],
+      "evidence": "evidence claims index.ts 14765/sha39a982dd; actual b09416f 14947/sha68828810; amend +4 output schema lines not reflected; X isolated 1583 log was produced against old file list; X+1 clean 1583 at b09416f covers final code",
+      "impact": "X commit's own isolation evidence does not bind final X; final code is covered by X+1 clean/host but the X evidence is stale",
+      "recommendation": "correct X evidence file list/sha or add explicit note that X+1 clean covers the +4-line output-schema fix",
+      "owner": "Lead"
+    },
+    {
+      "id": "F10-R2",
+      "severity": "minor-bytes",
+      "title": "cachedReceipt bytes 61039 vs actual status-final 64082",
+      "files": [
+        "artifacts/dsh/host/round10-bounded-core-goal-v2.json#cachedReceipt",
+        "artifacts/dsh/host/round10/status-final.json"
+      ],
+      "evidence": "sha 27805dd5… matches actual; bytes claim 61039 vs actual 64082",
+      "impact": "sha/content correct; byte accounting wrong",
+      "recommendation": "set actual bytes + semantics",
+      "owner": "Lead"
+    },
+    {
+      "id": "F10-R3",
+      "severity": "minor-provenance",
+      "title": "Host execution plan file missing though evidence pins its sha",
+      "files": [
+        "artifacts/dsh/host/round10-bounded-core-goal-v2.json#plan"
+      ],
+      "evidence": "plan path .local/dsh-round10-host-execution-plan.json sha c6be8da1…; file not found",
+      "impact": "plan sha unverifiable; other host evidence intact",
+      "recommendation": "retain plan or note lifetime",
+      "owner": "Lead"
+    },
+    {
+      "id": "F10-R4",
+      "severity": "info-merge",
+      "title": "Merge preserved remote history without reusing remote broken output schema",
+      "files": [
+        "6392c7e"
+      ],
+      "evidence": "parents 6d65135+081e987; no deletions; index.ts forward +4; remote 081e987 ancestor; origin ref merge",
+      "impact": "no remote content loss/force-push rewrite detected; no conflict markers",
+      "recommendation": "none (after F10-R1 fix)",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Successful v2 bounded business run",
+      "reason": "v2 host attempt failed at history-assert; no plan/model/Task/native completion"
+    },
+    {
+      "item": "Exact expected/live counts/digests",
+      "reason": "failure diagnostics localize phase/code but do not expose assertion values"
+    },
+    {
+      "item": "v2 residual cleanup",
+      "reason": "v1-only reconcile cannot clean v2; generalized reconcile not implemented"
+    },
+    {
+      "item": "Third attempt",
+      "reason": "not authorized until history-assert semantics instrumented/fixed"
+    },
+    {
+      "item": "Independent full-suite rerun after merge",
+      "reason": "read-only; code HEAD==b09416f and X+1 clean 1583 used; merge adds artifacts/doc only"
+    }
+  ],
+  "counts": {
+    "X_isolated": 1583,
+    "X1_clean": 1583,
+    "selfproof": 115,
+    "sources": 57,
+    "files": 179,
+    "goalsBefore": 3,
+    "goalsAfter": 4,
+    "sessionsBefore": 34,
+    "sessionsAfter": 35,
+    "addedSessionFiles": 1,
+    "addedGoalSessionMetaEvents": 4
+  },
+  "hostFailure": {
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_CREATE_FAILED",
+    "failurePhase": "history-assert",
+    "failureCode": "NATIVE_HISTORY_CHANGED",
+    "failureDetail": "Native history changed outside the trusted recovery suffix",
+    "evaluateAttempts": 0,
+    "modelRequests": 0,
+    "stopAction": "none",
+    "partialCreation": {
+      "detected": true,
+      "readback": "complete"
+    },
+    "retry": false,
+    "goalId": "core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+    "requestId": "core-validation-frozen-v2",
+    "goalVersion": 1,
+    "authorized": false,
+    "paused": true,
+    "cancelled": false,
+    "evaluations": 0,
+    "journal": {
+      "status": "unknown",
+      "reason": "history-assert/NATIVE_HISTORY_CHANGED: Native history changed outside the trusted recovery suffix"
+    },
+    "sessionEvents": 4,
+    "goalsAfter": 4,
+    "sessionsAfter": 35,
+    "businessFactsUnchangedExceptGoal": true,
+    "stateFileUnchanged": true,
+    "known34SessionsUnchanged": true,
+    "statusCacheFailedReceipt": true
+  },
+  "merge": {
+    "commit": "6392c7e",
+    "parents": [
+      "6d65135",
+      "081e987"
+    ],
+    "remoteBefore": "081e987",
+    "remoteAfter": "6392c7e",
+    "remoteAncestor": true,
+    "deletions": 0,
+    "conflictMarkers": 0,
+    "codeFinalEquals": true,
+    "indexSchemaForwardLines": 4
+  },
+  "xPlusOne": {
+    "X": "b09416f",
+    "X+1": "b5bc3cc",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "b09416f",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T05:36:48.271Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 404,
+      "bytes": 7206587,
+      "digest": "b0fd920c6b9e63066cfa418ec9e348be96908b5fa2e3161dfbf9ecdb2a9494e7"
+    },
+    "cleanCheck": {
+      "tests": 1583,
+      "pass": 1583,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "4826fdc65804575bbe0a0649a19cc098bc143f3ce6be44ff92d20eb6c56c3c40",
+      "bytes": 169127
+    },
+    "pipeline": {
+      "sha256": "ff33a1e2c1eb69240f8b9641f1c81041bc944a65db3a5b7e694b927f34aa7f47",
+      "bytes": 3021,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "82d71408548a71b5339b5e12079e3a8b8ad71f18c8f714fb6fe8ab6f454364c1/872",
+    "selfproof": {
+      "files": 15,
+      "tests": 115
+    },
+    "sources": {
+      "verified": 57,
+      "files": 179,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d/84286",
+      "tool-selfproof.json": "f1e11bb2424357da9b6c0dbe8871ef211500cf4e27e582385355aea84b49eb18/24867",
+      "tool-selfproof.tap": "6b8b0d98cd9c9097d3f94b0efc01fa943dd69e24fa76780c747db6639d99bd75/22044",
+      "traceability.json": "df5959d59adfa732d6010583f66cd5083971e5832f36392c245877784daff0ca/1156614",
+      "traceability.md": "e69e38e539eec492e46139d3c25552d95f415e7197ecdbfb19d24e3ddd2d4a04/33624",
+      "h7-traceability-mapping.md": "9ca006002460a00af5134b15eda79689c54c1716ad1a4acfb3d7f6e1b90439e3/70260",
+      "acceptance-report.json": "dfca3f70a781a01f986e4b2e748d0aad5135c4b6e431a1e6c3cfd546a89bcb46/383498",
+      "acceptance-report.md": "578c82f2a362ef1442cc62d3c6f20dd3844f1dc1c73445a032bb86f1d81f3f69/29540",
+      "fl-scenarios/manifest.json": "d9f031a3f79c6b69bb5824997c31716c8881c07390d75d9054922e4d6a019ff9/13154",
+      "fl-scenarios/coverage.json": "ba6a7ed2e77bc6df13755d5e70f0b7a911b44b60df1cbc5360983f978ea1386a/52559",
+      "fl-scenarios/coverage.md": "913d1afa10c9331b9567f87c61c83701e5e4e29a0f3327aa88bbd55015ae1356/9308"
+    },
+    "notes": [
+      "F10-R1 X evidence stale index.ts; X+1 clean 1583 covers final code",
+      "F10-R2 cached bytes mismatch",
+      "F10-R3 plan missing",
+      "acceptance inputs temp root likely /private/tmp/h7r10-clean (info)"
+    ]
+  },
+  "overallVerdict": "Round-10 evidence is substantively honest: the v2 activation adds a separate owner-only tool for the exact frozen experiment and fixes the tool output schema, but the X activation evidence file list is stale (F10-R1); the host v2 attempt is correctly recorded as FAILED at the same history-assert/NATIVE_HISTORY_CHANGED as v1, with 0 model requests, no retry, one partial unauthorized/paused v2 Goal + one 4-meta-event Goal Session, journal unknown, no Task/Effect/budget/artifact/events and unchanged state/known sessions; the two same-stage failures are explicitly treated as deterministic mismatch, a third attempt is unauthorized, and v2 residual needs a generalized reconcile; no pass/V25/business claim is made. The merge 6392c7e is genuine: parents 6d65135+081e987, no deletions/conflict markers, forward-only index.ts output-schema +4 lines and round10 evidence/doc, remote 081e987 preserved as ancestor, final code equals b09416f. X+1=b5bc3cc is artifact-only with manifest head=b09416f/dirty=false, clean 1583, selfproof 15/115, 57/57 sources, product 79/79 and gate incomplete. F10-R1/R2/R3 are evidence-metadata/provenance issues to correct; they do not overturn the failure disclosure or the H7 no-upgrade conclusion."
+}

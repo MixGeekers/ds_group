@@ -1635,3 +1635,29 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 真实有界业务链仍未验证：无 core 计划/模型轮/Task/worker/核验/native complete；两次尝试均无模型请求。
 2. v2 遗留 inert Goal + Session 未清理；**第三次尝试未授权**，须先修复/取证。
 3. 证据：[round10-bounded-core-goal-v2.json](<artifacts/dsh/host/round10-bounded-core-goal-v2.json>) + `host/round10/`（v2 receipt、Goal/journal 观测、4 份审计、status-final）。
+
+## 53. 第十轮独立复核与 F10 处置（round-10 收尾）
+
+2026-11-03，独立验证员对 round-10 做只读复核（task-47）：**结论：v2 首次宿主尝试失败披露诚实、未重试、未冒充通过；merge 真实保留远端历史；X+1 满足约定；H7 未升级。** F10-R1..R4 均记录并处置。报告：[ROUND10-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND10-EVIDENCE-REVIEW.md>)、[round10-evidence-review.json](<artifacts/dsh/verify/round10-evidence-review.json>)。
+
+### 53.1 F10 处置
+
+| ID | 处置 |
+|---|---|
+| F10-R1（moderate evidence-binding） | 已修：v2 激活集成证据的文件清单更新为最终 X 树（runtime.ts 108540B、index.ts 14947B/sha `68828810…`、host-diagnostics test 9635B），并加 amendNote 说明 output schema 在 amend 时新增；同步**重跑**激活切片隔离验证（最终 X 树，1583/1583、0 skip），新 verify artifact 与日志 SHA 入证据 |
+| F10-R2（bytes） | 已修：host cached status bytes 改为实际 64,082B + bytesSemantics（sha `27805dd5…` 不变） |
+| F10-R3（plan provenance） | 已修：冻结执行计划已提交为 `artifacts/dsh/host/round10/plan.json`（sha `c6be8da1…` 与证据一致，注明与 gitignored 工作副本同字节）；证据 plan.path 改指 committed 副本 |
+| F10-R4（merge info） | info：merge 保留远端 081e987 历史、无删除、无冲突标记、无 force-push；HEAD 代码与 b09416f 一致 |
+
+### 53.2 复核要点
+
+- **X `b09416f`**：v2 command/tool 仅传精确 frozen experiment、tool 无参数/不可覆盖、v1 不重试、output schema 修复真实；隔离 1583/1583。
+- **host `6d65135`**：v2 receipt failed/CREATE_FAILED/failurePhase history-assert/failureCode NATIVE_HISTORY_CHANGED、evaluateAttempts=0、stopAction=none、partialCreation detected/readback complete、0 retry；审计 424→427/events 56/goals 3→4/sessions 34→35；v2 Goal `core-9f494d…` unauthorized/paused/cancelled=false/evals0/无 mandate/native，journal unknown 同 reason，Goal Session 恰 4 条 meta；无 Task/Effect/budget/artifact/events、state 不变、known 34 Session 不变；status 缓存 failed receipt；结论明确“两次独立失败同一 history-assert → 确定性不匹配、第三次未授权、v2 残留在 v1-only reconcile 之外”。
+- **merge `6392c7e`**：parents `6d65135`+`081e987`；`081e987..6392c7e` 无删除、无冲突标记，仅前向新增（index.ts +4 output schema、round10 证据/doc、X+1 产物）；origin 已前进到 merge，非 force-push。
+- **X+1 `b5bc3cc`**：11 artifacts、manifest head=b09416f/dirty=false/leaks=0、clean 1583/1583、selfproof 15/115、57/57 sources、产品 79/79 not_covered、gate=incomplete/executed=passed=0。
+
+### 53.3 边界
+
+1. v2 尝试失败，无 core 计划/模型轮/Task/worker/核验/native 完成；两次尝试均 0 模型请求。
+2. 根因仍在 history-assert：确定性不匹配，需下一步 instrument 精确 expected/live eventCount、historyDigest、headerHash、inheritedEventCount、references；v2 残留需泛化 reconcile。
+3. **第三次尝试未授权**；先修诊断与清理，再考虑新的显式 owner 决定；产品行/验收等级不变。

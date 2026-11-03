@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "phase": "round10-joint-host-bounded-core-goal-v2",
+  "status": "frozen-before-execution",
+  "frozenAt": "2026-11-03T05:23:05.291Z",
+  "code": {
+    "head": "081e9871cbd86aba82584d9339c7d09a1b10ee20",
+    "dist": {
+      "files": 113,
+      "digest": "c4a6cd8c5d9ff0f8fdc7c7e36a107ac99de6394af261faf3f83e086950a05bbf"
+    }
+  },
+  "decision": "explicit owner decision: run exactly one NEW frozen v2 bounded core Goal experiment. This is not a retry of the failed v1 create (new requestId/template/content sha); v1 must never be retried.",
+  "frozenInput": {
+    "version": 2,
+    "requestId": "core-validation-frozen-v2",
+    "objective": "完成 owner 预授权的 v2 有界本地便签验证：写入 note-1 并由独立核验确认。",
+    "deliverableContent": "SHIYU_CORE_VALIDATION_NOTE_V2",
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "expiresInMs": 600000,
+    "maxEvaluations": 2,
+    "templateSha256Expected": "756ec37b"
+  },
+  "preconditions": [
+    "runtime unpaused",
+    "no active operation/admission",
+    "no queued/pending Task",
+    "no existing Goal with requestId core-validation-frozen-v2",
+    "v1 Goal already cancelled and must not be reused",
+    "local-note ability enabled/available/usable"
+  ],
+  "hardStops": {
+    "wallMs": 180000,
+    "pollMs": 1000,
+    "maxEvaluations": 2,
+    "maxStopCommands": 1,
+    "noRetry": true,
+    "budgetOverrunFails": true,
+    "stopOnModelUnknown": true
+  },
+  "expected": {
+    "success": "status=completed, 2 evaluations (plan then complete_candidate), note-1 Task succeeded + independent verification pass, Effect succeeded, artifact sha matches, native Goal phase complete, exactly one new Goal/Task/Effect/artifact/goal Session, budget within limits",
+    "failure": "failed/paused/timeout/cancelled receipt preserved as-is with failurePhase/failureCode/failureDetail; exactly one stop command; no retry; no second Goal; provider usage unknown allowed"
+  },
+  "evidence": "artifacts/dsh/host/round10-bounded-core-goal-v2.json"
+}
