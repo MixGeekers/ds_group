@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import type { CoreDecisionEventToolFactory, CoreDecisionEventTools, CoreDecisionEventToolSchema, CoreEventToolModelProbeReason, CoreEventToolModelProbeResult, CoreEventToolModelProbeStatus, CoreEventToolModelProbeToolCall, CoreEventToolModelProbeUsage, GoalBinding, GoalAuthorityVerdict, NativeGoalRef, NativeGoalView } from './goals.js';
+import type { CoreDecisionEventToolFactory, CoreDecisionEventTools, CoreDecisionEventToolSchema, CoreEventToolModelProbeReason, CoreEventToolModelProbeResult, CoreEventToolModelProbeStatus, CoreEventToolModelProbeToolCall, CoreEventToolModelProbeUsage, GoalBinding, GoalAuthorityVerdict, NativeGoalRef, NativeGoalView, SystemPromptContextRenderer } from './goals.js';
 import { defaultModel, type DshAgent, type DshAgentContext, type DshContext, type DshSession, type ModelUsage, type SessionEvent } from './sessions.js';
 import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
 import { assertNativeLiveHistory, flushNative, nativeInboxReferences, verifyNativeEvent, type NativeColdInboxSnapshot } from './native-context.js';
@@ -626,6 +626,7 @@ export interface CoreEventToolModelProbeRunOptions {
   now: () => number; signal?: AbortSignal;
   createUserMessage?: NativeMessageFactory;
   isAgentLoopRequest?: (request: unknown) => boolean;
+  contextRenderer?: SystemPromptContextRenderer;
 }
 function probeFailure(code: string, message: string): Error & { code: string } {
   return Object.assign(new Error(message), { code });
@@ -675,6 +676,8 @@ export class CoreEventToolModelProbeRun {
   private failureMessage?: string;
   private firstStepMessageCount?: number;
   private isAgentLoopRequest?: (request: unknown) => boolean;
+  private contextRenderer?: SystemPromptContextRenderer;
+  private assembledContext?: unknown;
   constructor(private readonly options: CoreEventToolModelProbeRunOptions) {
     this.requestMaxTokens = options.maxTokens;
     this.deadline = options.now() + options.timeoutMs;
@@ -719,6 +722,13 @@ export class CoreEventToolModelProbeRun {
       arguments: typeof block.arguments === 'string' ? block.arguments : '' };
   }
   private runtimeContext(cwd: string): Record<string, unknown> {
+    if (this.assembledContext !== undefined && this.contextRenderer) {
+      const sections = this.contextRenderer.sections(this.assembledContext);
+      if (sections.length) {
+        return { role: 'user', content: [{ type: 'text', text: this.contextRenderer.join(sections) }],
+          source: { kind: 'runtime-context', form: 'snapshot', sections } };
+      }
+    }
     const directoryText = `Current working directory: ${JSON.stringify(cwd)}.`;
     return { role: 'user', content: [{ type: 'text', text: `${RUNTIME_CONTEXT_PREFIX}\n\n${directoryText}` }],
       source: { kind: 'runtime-context', form: 'snapshot', sections: [{ name: 'working-directory:current', text: directoryText }] } };
@@ -820,6 +830,16 @@ export class CoreEventToolModelProbeRun {
     const moduleName = '@deepseek-ai/dsh-llm';
     this.isAgentLoopRequest = this.options.isAgentLoopRequest ?? (await import(moduleName)).isAgentLoopRequest;
     if (typeof this.isAgentLoopRequest !== 'function') throw new Error('Official native Agent request identity predicate is unavailable');
+    if (this.options.contextRenderer) this.contextRenderer = this.options.contextRenderer;
+    else {
+      const promptModuleName = '@deepseek-ai/dsh-system-prompt';
+      try {
+        const promptModule: any = await import(promptModuleName);
+        if (typeof promptModule.renderContextSections === 'function' && typeof promptModule.joinContextSections === 'function') {
+          this.contextRenderer = { sections: promptModule.renderContextSections, join: promptModule.joinContextSections };
+        }
+      } catch { /* keep the minimal single-section fallback below */ }
+    }
     this.assertCurrent();
     const factory = this.options.createUserMessage ?? await loadNativeMessageFactory();
     this.message = checkedNativeUserMessage(await factory({ content: [{ type: 'text', text: this.options.prompt }], source: { kind: 'user' } }), this.options.prompt);
@@ -839,8 +859,11 @@ export class CoreEventToolModelProbeRun {
       }));
     }
     disposers.push(ctx.tools.guard(call => this.toolNames.includes(call?.name) ? undefined : 'Core model probe can only call its mounted read-only event tools.'));
-    disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => ({ ...await next(),
-      tools: this.toolSchemas.map(schema => ({ name: schema.name, description: schema.description, parameters: schema.parameters })) })));
+    disposers.push(ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
+      const assembled = await next();
+      this.assembledContext = assembled;
+      return { ...assembled, tools: this.toolSchemas.map(schema => ({ name: schema.name, description: schema.description, parameters: schema.parameters })) };
+    }));
     disposers.push(ctx.on('agent/pre-step', async (payload, next) => {
       try {
         this.assertCurrent();

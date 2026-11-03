@@ -228,6 +228,12 @@ export interface CoreEventToolModelProbeRequestOptions {
   timeoutMs?: number;
   maxTokens?: number;
 }
+/** Host system-prompt context renderer; production loads the official package,
+ * tests may inject an equivalent trusted implementation. */
+export interface SystemPromptContextRenderer {
+  sections(assembly: unknown): Array<{ name: string; text: string }>;
+  join(sections: Array<{ name: string; text: string }>): string;
+}
 export interface GoalAdapterOptions {
   ctx: DshContext; bindings: GoalBindingPort; authority: GoalAuthority; now?: () => number;
   /** Trusted per-Goal event tool factory; absent keeps core decisions zero-tool. */
@@ -237,6 +243,8 @@ export interface GoalAdapterOptions {
   createUserMessage?: NativeMessageFactory;
   /** Trusted test injection; production loads the host's public WeakSet-backed predicate. */
   isAgentLoopRequest?: (request: unknown) => boolean;
+  /** Trusted test injection for the host system-prompt context renderer. */
+  systemPromptContext?: SystemPromptContextRenderer;
 }
 export const GOAL_PRESET_ID = 'shiyu-runtime-goal-v1';
 export const CORE_GOAL_PRESET_ID = 'shiyu-runtime-core-goal-v1';
@@ -730,7 +738,8 @@ export class GoalSessionAdapter {
     const run = new CoreEventToolModelProbeRun({ ctx: this.options.ctx, goalId: binding.goalId, sessionId: probeSessionId, cwd,
       prompt: CORE_MODEL_PROBE_PROMPT, systemSection: CORE_MODEL_PROBE_SYSTEM_SECTION, maxTokens, timeoutMs, now: () => this.now(),
       ...(signal ? { signal } : {}), ...(this.options.createUserMessage ? { createUserMessage: this.options.createUserMessage } : {}),
-      ...(this.options.isAgentLoopRequest ? { isAgentLoopRequest: this.options.isAgentLoopRequest } : {}) });
+      ...(this.options.isAgentLoopRequest ? { isAgentLoopRequest: this.options.isAgentLoopRequest } : {}),
+      ...(this.options.systemPromptContext ? { contextRenderer: this.options.systemPromptContext } : {}) });
     const disposers: Disposer[] = [];
     // Only this disposable probe Session is routed to the probe's model gate; all
     // other core/worker/replyer streams keep their existing behavior unchanged.

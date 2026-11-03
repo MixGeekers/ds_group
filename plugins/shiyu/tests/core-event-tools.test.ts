@@ -55,6 +55,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   let beforeAuthorize: ((context: GoalAuthorityContext) => void) | undefined;
   let mode: 'normal' | 'retry' | 'compaction' | 'title' | 'anonymous' | 'history' | 'history-update' | 'changed-prestep' | 'mutated-user' | 'extra-user'
     | 'host-context-prestep' | 'host-bad-context-prestep' | 'host-third-input-prestep' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
+  let assemblyContexts: Array<{ name: string; text: string }> = [];
   let messageNumber = 0, creates = 0, resumes = 0, followups = 0, disposals = 0, streams = 0, autoRounds = 0, opens = 0, closes = 0;
   let requests = 0, toolExecutions = 0, goalCalls = 0;
   const archives: string[] = [], toolReturns: unknown[] = [];
@@ -69,6 +70,11 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     const value = workingDirectory ?? stored.get(session.id)!.header.cwd; assert.equal(typeof value, 'string'); return value as string;
   };
   const contextMessages = (session: DshSession, stage: 'prepared' | 'committed'): RuntimeContextMessage[] => {
+    if (assemblyContexts.length) {
+      const sections = assemblyContexts.map(section => ({ ...section }));
+      const text = `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n${sections.map(section => section.text).join('\n\n')}`;
+      return [{ id: randomUUID(), role: 'user', content: [{ type: 'text', text }], source: { kind: 'runtime-context', form: 'snapshot', sections } }];
+    }
     const record = stored.get(session.id)!, directoryText = `Current working directory: ${JSON.stringify(currentDirectory(session))}.`;
     // The SDK projects again during prepareRequest: only a retained matching
     // snapshot suppresses emission, not the ephemeral pre-step projection.
@@ -154,7 +160,8 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
         register(tool: any) { assert.equal(registeredTools.has(tool.name), false); registeredTools.set(tool.name, tool); return () => { registeredTools.delete(tool.name); }; },
         guard(handler) { guards.push(handler); return () => { guards.splice(guards.indexOf(handler), 1); }; } },
       systemPrompt: { suppressRuntimeContext: () => () => {}, section: () => () => {},
-        assemble: async () => hooks.waterfall('system-prompt/assemble', [{ tools: [{ name: 'shell' }] }, {}], () => ({ tools: [{ name: 'shell' }] })) },
+        assemble: async () => hooks.waterfall('system-prompt/assemble', [{ tools: [{ name: 'shell' }] }, {}],
+          () => ({ tools: [{ name: 'shell' }], ...(assemblyContexts.length ? { contexts: assemblyContexts.map(section => ({ ...section, interpolate: false })), variables: {} } : {}) })) },
     };
     agent = { id, session, ctx: local, hooks, guards, status: 'idle', activation: 'disarmed', cancelled: false,
       inbox: { get nextTurn() { return record.inbox; }, get nextStep() { return []; }, remove(messageId: string) {
@@ -185,6 +192,10 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
             const firstStepPayload = mode === 'host-third-input-prestep'
               ? [...claimed, ...preparedContext, { id: 'unregistered-third-input', role: 'user', content: [{ type: 'text', text: 'extra hostile input' }], source: { kind: 'user' } }]
               : [...claimed, ...preparedContext];
+            // The fixed host assembles the system prompt (and its context
+            // sections) before the pre-step waterfall; mirror that so the probe
+            // can reconstruct the exact projected runtime-context snapshot.
+            await local.systemPrompt.assemble({} as never);
             const step = await hooks.waterfall('agent/pre-step', [{ messages: firstStepPayload }], () => ({ kind: 'enter', messages: mode === 'changed-prestep' ? [] : firstStepPayload }));
             if (step.kind === 'reject') { append(agent, 'turn/end', { reason: agent.cancelled
               ? { kind: 'aborted', reason: { kind: 'hook', reason: 'Core decision cancelled' } } : { kind: 'blocked' } }); return; }
@@ -334,6 +345,14 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   const adapter = (namespace: 'core' | 'lifecycle' = 'core') => new GoalSessionAdapter({ ctx, bindings: port, authority, namespace,
     ...(eventTools ? { eventTools } : {}),
     isAgentLoopRequest: (request: unknown) => request !== null && typeof request === 'object' && nativeRequests.has(request),
+    systemPromptContext: {
+      sections: (assembly: any) => Array.isArray(assembly?.contexts)
+        ? assembly.contexts.map((context: any) => ({ name: String(context.name), text: String(context.text) })).filter((section: any) => section.text.length > 0) : [],
+      join: (sections: Array<{ name: string; text: string }>) => {
+        const body = sections.map(section => section.text).join('\n\n');
+        return body.length === 0 ? '' : `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n${body}`;
+      },
+    },
     createUserMessage: (input: NativeMessageInput) => ({ ...structuredClone(input), role: 'user', id: `core-user-${++messageNumber}` }) });
   const create: GoalCreateRequest = { goalId: 'core-goal-a', ownerId: 'owner-1', scope: 'local-owner', cwd: '/synthetic/shiyu/core',
     completionCriteriaHash: 'a'.repeat(64), objective: 'Plan using approved synthetic evidence', commandId: 'create-a', capability };
@@ -353,6 +372,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     beforeAuthorize(value: typeof beforeAuthorize) { beforeAuthorize = value; },
     setContextFault(stage: 'prepared' | 'committed', kind: ContextFault) { contextFault = { stage, kind }; },
     setWorkingDirectory(value: string | undefined) { workingDirectory = value; }, setWorkingDirectoryAvailable(value: boolean) { workingDirectoryAvailable = value; },
+    setAssemblyContexts(value: Array<{ name: string; text: string }>) { assemblyContexts = value; },
     insertForeign(sessionId: string, durable = true) {
       const record = stored.get(sessionId)!, message: NativeUserMessage = { id: 'foreign-message', role: 'user', content: [{ type: 'text', text: 'Unregistered input' }], source: { kind: 'user' } };
       record.inbox.push(message); const event: SessionEvent = { type: 'agent/inbox/spliced', seq: record.events.length, data: { target: 'next-turn', start: record.inbox.length - 1, removedCount: 0, inserted: [message] } };
@@ -994,6 +1014,24 @@ test('a host-injected working-directory snapshot in the first claimed turn is ac
     assert.equal(f.counts().goalCalls, 0);
     const stored = f.stored.get(receipt.sessionId)!;
     assert.equal(stored.events.some(event => event.type === 'turn/end' && event.data?.reason?.kind === 'blocked'), false);
+  } finally { await adapter.close(); }
+});
+
+test('the host assembly context is reconstructed exactly for the first claimed turn', async t => {
+  const { f, adapter, typesSeen } = await probeFixture(t);
+  f.setMode('host-context-prestep');
+  f.setAssemblyContexts([
+    { name: 'working-directory:current', text: 'Current working directory: "/synthetic/shiyu/core".' },
+    { name: 'environment:time', text: 'Synthetic runtime context.' },
+  ]);
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  try {
+    const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'passed', JSON.stringify(receipt));
+    assert.equal(receipt.counters.userMessages, 2);
+    assert.equal(receipt.failureDetail, undefined);
+    assert.equal(f.counts().requests, 2);
   } finally { await adapter.close(); }
 });
 
