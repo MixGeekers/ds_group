@@ -1687,3 +1687,17 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 - 宿主零模型执行泛化的 `shiyu_reconcile_core_validation_goal`：预期 v1 目标 cancelled 不再动作、v2 目标 inert-unauthorized → 恰一次 cancel；0 模型/0 重试/不创建。
 - 若 reconcile 回执与审计一致，再讨论激活 dormant cut 修复；第三次 v2/v3 实验室仍是**新的显式 owner 决定**，不得重试 v1/v2。
+
+## 55. 第十一轮固定宿主：v1/v2 泛化 reconcile（零模型通过）
+
+状态：**固定宿主零模型 reconcile 通过**；create 根因修复未激活、第三次尝试未授权。2026-11-03，代码 HEAD `fe6d5f7`（仪器化 + 泛化 reconcile + H7-round11），dist 由该 HEAD 隔离 worktree 构建，一次有序 reload。
+
+- 重载增量：commitSeq `427→433`、events `56→57`、capability `47→49`、sessions 35/goals 4 不变、业务事实/state 不变。
+- 唯一一次 `shiyu_reconcile_core_validation_goal`（固定 targets `requestIds=[v1,v2]`，0 重试、0 模型、不创建 Goal）：
+  - **v1** `core-validation-frozen-v1`：classification `cancelled`、readback complete、**cancelAttempts=0**（已取消、无动作）、unknowns=[]。
+  - **v2** `core-validation-frozen-v2`：classification `inert-unauthorized`、readback complete；**恰好 1 次 cancel ok**、`postCancel={cancelled:true,paused:true,version:2}`、unknowns=[]；observed 含 bindingFailurePhase/Code/Detail（history-assert/NATIVE_HISTORY_CHANGED）。
+  - 顶字段保留 v1 兼容（requestId/classification/…）+ `targets[]` 双目标；`readOnly=true/createsGoal=false/modelCalls=0/retries=0`。
+- 数据不变量：reconcile 仅 **+1 commitSeq**（v2 cancel 转换）；无 events、无新增/删除 session/Goal、无 Task/Effect/budget/artifact、state 文件不变、既有 35 Session 不变。
+- final status 只读无副作用，`diagnostics.coreValidationReconcile` 缓存该广义 receipt（61,121B status 证据）。
+- 证据：[round11-joint-reconcile-v1v2.json](<artifacts/dsh/host/round11-joint-reconcile-v1v2.json>) + `host/round11/`（receipt、plan、4 审计、status-final）。
+- 边界：仅证 reconcile 路径；v1/v2 create 失败未修复、cold-header 根因仍未 host-confirmed、dormant `liveCut` 未激活；**第三次实验未授权**。

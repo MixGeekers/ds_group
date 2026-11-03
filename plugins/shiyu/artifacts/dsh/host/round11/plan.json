@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "phase": "round11-joint-host-v1v2-reconcile",
+  "status": "frozen-before-execution",
+  "frozenAt": "2026-11-03T06:43:11.186Z",
+  "code": {
+    "head": "fe6d5f7d83f8e4438164baba68599a0d50b1f120",
+    "dist": {
+      "files": 113,
+      "digest": "fce8d0472822e6191887d52340310a175391890d2f1b2fc9484b392be77cce38"
+    }
+  },
+  "purpose": "One zero-model generalized reconcile call: fixed targets v1 and v2; v1 is already cancelled, v2 is inert-unauthorized and should receive exactly one cancel. No Goal creation, no model, no retry.",
+  "scope": {
+    "orderedReloads": 1,
+    "toolCalls": [
+      "shiyu_status",
+      "shiyu_reconcile_core_validation_goal"
+    ],
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "goalCreates": 0
+  },
+  "expected": {
+    "v1": {
+      "classification": "cancelled",
+      "noAction": true
+    },
+    "v2": {
+      "classification": "inert-unauthorized",
+      "cancelAttempts": 1,
+      "postCancel": {
+        "cancelled": true,
+        "paused": true,
+        "version": 2
+      }
+    },
+    "invariants": "no new Goal/Task/Effect/budget/Session/artifact; no model request; diagnostics.coreValidationReconcile caches the receipt"
+  },
+  "stopConditions": [
+    "receipt mismatch",
+    "v2 not inert (owner decision required)",
+    "unknown/readback unavailable",
+    "new Goal/Task/Effect/budget/session created",
+    "model request attempted"
+  ]
+}
+

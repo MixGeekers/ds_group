@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "phase": "round11-host",
+  "slice": "fixed-host zero-model generalized reconcile of the v1 and v2 residual core-validation Goals",
+  "capturedAt": "2026-11-03T06:44:06.846Z",
+  "status": "fixed-host-reconcile-v1v2-passed",
+  "purpose": "One generalized reconcile call with the fixed requestId constants [v1,v2]: v1 was already cancelled and received no action; v2 was inert-unauthorized and received exactly one cancel; no Goal creation, no model call, no retry.",
+  "plan": {
+    "path": "artifacts/dsh/host/round11/plan.json",
+    "sha256": "8733779142627a28c94f66ac293e55899cdd736afe7e3664f7c1e52afc0350c5"
+  },
+  "code": {
+    "head": "fe6d5f7",
+    "dist": {
+      "files": 113,
+      "digest": "fce8d0472822e6191887d52340310a175391890d2f1b2fc9484b392be77cce38"
+    }
+  },
+  "receipt": {
+    "file": "artifacts/dsh/host/round11/reconcile-v1v2-receipt.json",
+    "bytes": 2825,
+    "sha256": "0a6ea978553aa83959b5841afb07e594595496847a7a922fef1e654d71777a14"
+  },
+  "requestIds": [
+    "core-validation-frozen-v1",
+    "core-validation-frozen-v2"
+  ],
+  "readOnly": true,
+  "createsGoal": false,
+  "modelCalls": 0,
+  "retries": 0,
+  "targets": [
+    {
+      "requestId": "core-validation-frozen-v1",
+      "classification": "cancelled",
+      "readback": "complete",
+      "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+      "version": 2,
+      "authorized": false,
+      "paused": true,
+      "cancelled": true,
+      "hasMandate": false,
+      "nativePhase": "unobserved",
+      "stopAction": {
+        "kind": "none",
+        "attempted": false,
+        "ok": null
+      },
+      "cancelAttempts": 0,
+      "unknowns": []
+    },
+    {
+      "requestId": "core-validation-frozen-v2",
+      "classification": "inert-unauthorized",
+      "readback": "complete",
+      "goalId": "core-9f494d7be579f86a774c624bfdd0d1127e2959bc",
+      "version": 1,
+      "authorized": false,
+      "paused": true,
+      "cancelled": false,
+      "hasMandate": false,
+      "nativePhase": "unobserved",
+      "stopAction": {
+        "kind": "cancel",
+        "attempted": true,
+        "ok": true,
+        "at": "2026-11-03T06:43:36.948Z",
+        "goalVersion": 2
+      },
+      "cancelAttempts": 1,
+      "postCancel": {
+        "cancelled": true,
+        "paused": true,
+        "version": 2
+      },
+      "unknowns": []
+    }
+  ],
+  "topLevelCompatibility": {
+    "requestId": "core-validation-frozen-v1",
+    "classification": "cancelled",
+    "cancelAttempts": 0,
+    "unknowns": []
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        427,
+        433
+      ],
+      "events": [
+        56,
+        57
+      ],
+      "capabilityRevision": [
+        47,
+        49
+      ],
+      "sessions": [
+        35,
+        35
+      ],
+      "goals": [
+        4,
+        4
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "normal startup writes only; business facts unchanged."
+    },
+    "reconcile": {
+      "commitSeq": [
+        433,
+        434
+      ],
+      "events": [
+        57,
+        57
+      ],
+      "sessions": [
+        35,
+        35
+      ],
+      "goals": [
+        4,
+        4
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "exactly +1 commitSeq for the single v2 cancel transition; v1 target did not write; no events, no new/removed sessions or Goals, no Task/Effect/budget/artifact change and no state-file change."
+    },
+    "postStatus": {
+      "commitSeq": [
+        434,
+        434
+      ],
+      "events": [
+        57,
+        57
+      ],
+      "sessions": [
+        35,
+        35
+      ],
+      "goals": [
+        4,
+        4
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only and caches the generalized reconcile receipt."
+    }
+  },
+  "cachedReceipt": {
+    "file": "artifacts/dsh/host/round11/status-final.json",
+    "bytes": 58079,
+    "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b",
+    "value": {
+      "requestId": "core-validation-frozen-v1",
+      "classification": "cancelled",
+      "requestIds": [
+        "core-validation-frozen-v1",
+        "core-validation-frozen-v2"
+      ],
+      "targets": [
+        {
+          "requestId": "core-validation-frozen-v1",
+          "classification": "cancelled",
+          "cancelAttempts": 0,
+          "unknowns": []
+        },
+        {
+          "requestId": "core-validation-frozen-v2",
+          "classification": "inert-unauthorized",
+          "cancelAttempts": 1,
+          "postCancel": {
+            "cancelled": true,
+            "paused": true,
+            "version": 2
+          },
+          "unknowns": []
+        }
+      ]
+    }
+  },
+  "findings": [
+    "The generalized reconcile matched expectations: v1 was classified cancelled with no action, v2 was inert-unauthorized and received exactly one cancel (postCancel cancelled=true/paused=true/version=2), both readbacks complete, no unknowns.",
+    "The live data invariant holds: +1 commitSeq only (the v2 cancel), no events, no Goal/Task/Effect/budget/Session/artifact changes and unchanged runtime-state file.",
+    "The receipt is cached in diagnostics.coreValidationReconcile with readOnly=true/createsGoal=false/modelCalls=0/retries=0; the top-level v1-compatible fields remain present alongside targets[].",
+    "This validates only the reconcile path; the v1/v2 create failures remain unfixed and no real business chain has run."
+  ],
+  "observations": [
+    "The cold-header root-cause candidate (cold eventCount includes the session header while live seq excludes it) is not exercised by this call; it remains host-unconfirmed and the dormant liveCut fix is inactive."
+  ],
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "goals": 4,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "Zero-model reconcile only; does not prove the bounded real core business chain and does not fix the create history-assert failure.",
+    "No model/embedding/Task/worker/Goal completion is involved; the v1/v2 Goal Sessions remain as history.",
+    "A third experiment remains unauthorized and requires an explicit owner decision after the diagnostic fix is activated and host-confirmed."
+  ]
+}
