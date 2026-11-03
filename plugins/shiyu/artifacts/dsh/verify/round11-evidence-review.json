@@ -1,0 +1,371 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-50)",
+  "reviewedAt": "2026-11-03T07:40:00Z",
+  "subject": "Round-11: history-assert instrumentation, dormant cold-header candidate, generalized v1/v2 reconcile, host reconcile, H7 X+1",
+  "head": "7d9979e9fb71f80e7d312f4a02c43e32b0ba8b7c",
+  "commits": {
+    "diagnostics-reconcile": "196024a",
+    "H7-round11": "1eea3e8",
+    "integration (X)": "fe6d5f7",
+    "H7 X+1": "7ad2621",
+    "host-reconcile": "7d9979e"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "history diagnostic files/tests",
+      "claim": "196024a files match; isolated 1597/1597; 14 net tests; 47 core-event-tools +40 core-validation",
+      "evidence": [
+        "artifacts/dsh/h3/h3-history-assert-diagnosis.json",
+        "artifacts/dsh/slices/h3-hist-assert-verify.json"
+      ],
+      "method": "hashes/logs",
+      "result": "verified",
+      "detail": "files 5/5; slice log 12289fc3…/170794 1597; focused logs 47/40; no skips"
+    },
+    {
+      "id": "R02",
+      "area": "diagnostic semantics",
+      "claim": "historyDiagnostic shape expected/live seq/eventCount/hash prefixes/delta ≤300 no body/path; surfaces on error and runner receipt; validator self-proof",
+      "evidence": [
+        "196024a native-context/goals/core-validation/tests"
+      ],
+      "method": "code/test review",
+      "result": "verified",
+      "detail": "mismatchKinds event-count/live-seq-vs-event-count/prefix-digest/header-hash/inherited-count/session-id/preset/references/projection/unknown; fake-host deterministic cold-header expected4/live3/delta-1/native create 0; 14 new tests"
+    },
+    {
+      "id": "R03",
+      "area": "dormant candidate",
+      "claim": "cold-header liveCut candidate fix not activated in product create path",
+      "evidence": [
+        "196024a native-context.ts"
+      ],
+      "method": "grep/code review",
+      "result": "verified",
+      "detail": "liveCut option exists and unit-tested only; no create-path caller passes it; candidate dormant; evidence explicitly says not activated"
+    },
+    {
+      "id": "R04",
+      "area": "reconcile generalization",
+      "claim": "fixed targets [v1,v2] not caller-selectable; each inert only one cancel; 0 retry/model/create; top-level v1 fields + targets[]",
+      "evidence": [
+        "196024a core-validation/tests",
+        "host receipt"
+      ],
+      "method": "code/tests/receipt",
+      "result": "verified",
+      "detail": "CORE_VALIDATION_RECONCILE_REQUEST_IDS frozen [v1,v2]; tests fixed order/absence/paused-authorized/caller rejection; host receipt requestIds and targets correct"
+    },
+    {
+      "id": "R05",
+      "area": "host reconcile receipt",
+      "claim": "v1 cancelled no action; v2 inert-unauthorized exactly one cancel/postCancel version2; readOnly/createsGoal/modelCalls/retries; no unknowns",
+      "evidence": [
+        "artifacts/dsh/host/round11/reconcile-v1v2-receipt.json",
+        "round11 joint"
+      ],
+      "method": "receipt/audit",
+      "result": "verified",
+      "detail": "receipt 2825B/sha 0a6ea978…; targets v1 cancelAttempts0, v2 cancelAttempts1/postCancel ; readOnly true/createsGoal false/modelCalls0/retries0"
+    },
+    {
+      "id": "R06",
+      "area": "host audit/live state",
+      "claim": "only +1 commitSeq for v2 cancel; no events/goal/task/effect/budget/session/artifact changes; state unchanged; known35 sessions unchanged",
+      "evidence": [
+        "round11 audits",
+        "live DB read-only"
+      ],
+      "method": "audit diff + DB",
+      "result": "verified-with-note",
+      "detail": "427/56/35/goals4 → reload433/57/35/4 → run/final434/57/35/4; commitSeq +1 on reconcile; no events/session/Task-state/Effect/budget/artifact change; state sha same; known35 unchanged; DB v1/v2 goals cancelled version2; task metadata version 44→45 and coreGoals cancelled2→3 during reload normal startup (F11-R3 wording)"
+    },
+    {
+      "id": "R07",
+      "area": "host metadata",
+      "claim": "status-final size/cache consistent",
+      "evidence": [
+        "round11 joint cachedReceipt/status-final"
+      ],
+      "method": "sha/bytes/fields",
+      "result": "finding",
+      "detail": "actual status-final 61122B/sha 3b595259…; joint cachedReceipt bytes=58079; findings claims cache contains readOnly/createsGoal/modelCalls/retries but status diagnostics cache lacks them (F11-R1/F11-R2); plan exists sha matches 8733779…"
+    },
+    {
+      "id": "R08",
+      "area": "H7-round11",
+      "claim": "61 sources/198 files; 4 new sources/19 files; round10 v2 failure only fixed-host-failure-diagnostic; V25 excluded; merge info-only unmapped; product79/79; logs 1591/123",
+      "evidence": [
+        "artifacts/dsh/harness/h7-round11-slice.json",
+        "tests/harness-round11.test.ts",
+        "logs"
+      ],
+      "method": "hashes/tests/logs",
+      "result": "verified",
+      "detail": "files 9/9; tests 61/198,4/19,levels,V25,review,merge note; full1591/harness123; archives 4/4; product79/79; gate incomplete"
+    },
+    {
+      "id": "R09",
+      "area": "integration",
+      "claim": "fe6d5f7 index description only; 1605/1605",
+      "evidence": [
+        "artifacts/dsh/integration/round11-lead-integration.json",
+        "artifacts/dsh/slices/round11-integrated-verify.json"
+      ],
+      "method": "hash/log",
+      "result": "verified",
+      "detail": "files 1/1 + slice19/19; log 5ee768bd…/171214 1605; no runtime activation"
+    },
+    {
+      "id": "R10",
+      "area": "X+1",
+      "claim": "7ad2621 11 artifacts; manifest head=fe6d5f7/dirty=false/leaks0; clean1605; selfproof16/123; 61/61 sources; product79/79; gate incomplete",
+      "evidence": [
+        "7ad2621 artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "clean 24f63f7a…/171178; pipeline dcde725d…/3095; archive 93d67e23…/839; artifacts 61/198; product 79/79; gate incomplete/executed=passed=0"
+    },
+    {
+      "id": "R11",
+      "area": "no upgrade",
+      "claim": "diagnostic/dormant/reconcile host evidence not upgraded to pass/V25/business",
+      "evidence": [
+        "H7/acceptance/joint"
+      ],
+      "method": "text/mapping",
+      "result": "verified",
+      "detail": "round10 v2 failure fixed-host-failure-diagnostic only; V25 not fed; product79/79; merge info-only; create not fixed; third attempt unauthorized; only reconcile path proven"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F11-R1",
+      "severity": "minor-bytes",
+      "title": "cachedReceipt bytes 58079 vs actual status-final 61122 (Lead note 61121)",
+      "files": [
+        "artifacts/dsh/host/round11-joint-reconcile-v1v2.json#cachedReceipt",
+        "artifacts/dsh/host/round11/status-final.json"
+      ],
+      "evidence": "actual 61122B/sha 3b595259…; joint bytes 58079 (sha matches); Lead message 61121",
+      "impact": "sha/content correct; byte accounting off; minor",
+      "recommendation": "set actual bytes+semantics",
+      "owner": "Lead"
+    },
+    {
+      "id": "F11-R2",
+      "severity": "minor-cache-claim",
+      "title": "joint findings claims cache has readOnly/createsGoal/modelCalls/retries, but status diagnostics cache lacks them",
+      "files": [
+        "round11 joint findings",
+        "round11/status-final.json#diagnostics.coreValidationReconcile"
+      ],
+      "evidence": "cache keys are schema/kind/requestId/classification/readback/startedAt/completedAt/durationMs/observed/evidence/stopAction/cancelAttempts/unknowns/requestIds/targets; receipt file has readOnly/createsGoal/modelCalls/retries",
+      "impact": "cache claim overstates fields; receipt file valid",
+      "recommendation": "cache full receipt or reword finding to point to receipt",
+      "owner": "Lead"
+    },
+    {
+      "id": "F11-R3",
+      "severity": "info-wording",
+      "title": "reload delta includes normal task-metadata/capability changes though classification says business facts unchanged",
+      "files": [
+        "round11 joint deltas.reload",
+        "round11 audits"
+      ],
+      "evidence": "task 59d527… version44→45/updatedAt; events56→57; capability47→49 during reload; reconcile itself +1 commitSeq only; no Task state/effect/budget change",
+      "impact": "normal reopen bookkeeping not called out; reconcile invariant still holds",
+      "recommendation": "future wording distinguish normal startup metadata from business state",
+      "owner": "Lead"
+    },
+    {
+      "id": "F11-R4",
+      "severity": "info-scope",
+      "title": "merge provenance is info-only and not mapped",
+      "files": [
+        "h7-round11-slice.json#mergeProvenanceNote",
+        "traceability"
+      ],
+      "evidence": "6392c7e has no file changes; H7 explicit info-only; no product/module/system references",
+      "impact": "no upgrade/unknown; remote history note preserved",
+      "recommendation": "none",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Host confirmation of history-assert root cause",
+      "reason": "cold-header candidate strongly supported but not host-confirmed; liveCut dormant"
+    },
+    {
+      "item": "Product create fix",
+      "reason": "create failure not fixed; third experiment unauthorized"
+    },
+    {
+      "item": "Real business chain/Goal/model",
+      "reason": "reconcile is zero-model; no Goal/Task/model completion"
+    },
+    {
+      "item": "Independent full-suite rerun after host commit",
+      "reason": "read-only; X+1 clean 1605 and host artifacts used; host commit adds evidence only"
+    }
+  ],
+  "counts": {
+    "h3_isolated": 1597,
+    "integration": 1605,
+    "X1_clean": 1605,
+    "selfproof": 123,
+    "sources": 61,
+    "files": 198,
+    "netNewTests": 14,
+    "v1_cancelAttempts": 0,
+    "v2_cancelAttempts": 1
+  },
+  "hostReconcile": {
+    "status": "fixed-host-reconcile-v1v2-passed",
+    "receipt": {
+      "bytes": 2825,
+      "sha256": "0a6ea978553aa83959b5841afb07e594595496847a7a922fef1e654d71777a14"
+    },
+    "requestIds": [
+      "core-validation-frozen-v1",
+      "core-validation-frozen-v2"
+    ],
+    "v1": {
+      "classification": "cancelled",
+      "cancelAttempts": 0,
+      "readback": "complete"
+    },
+    "v2": {
+      "classification": "inert-unauthorized",
+      "cancelAttempts": 1,
+      "postCancel": {
+        "cancelled": true,
+        "paused": true,
+        "version": 2
+      },
+      "readback": "complete"
+    },
+    "readOnly": true,
+    "createsGoal": false,
+    "modelCalls": 0,
+    "retries": 0,
+    "before": {
+      "commitSeq": 427,
+      "events": 56,
+      "sessions": 35,
+      "goals": 4
+    },
+    "afterReload": {
+      "commitSeq": 433,
+      "events": 57,
+      "sessions": 35,
+      "goals": 4
+    },
+    "afterRun": {
+      "commitSeq": 434,
+      "events": 57,
+      "sessions": 35,
+      "goals": 4
+    },
+    "stateFileUnchanged": true,
+    "known35SessionsUnchanged": true,
+    "statusFinal": {
+      "bytes": 61122,
+      "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b"
+    },
+    "plan": {
+      "bytes": 1419,
+      "sha256": "8733779142627a28c94f66ac293e55899cdd736afe7e3664f7c1e52afc0350c5"
+    }
+  },
+  "xPlusOne": {
+    "X": "fe6d5f7",
+    "X+1": "7ad2621",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "fe6d5f7",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T07:00:10.684Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 404,
+      "bytes": 7249365,
+      "digest": "b9b96225bb8b2607c612f4ff6de0dba78da67c4a33a561b8d71009e9d3f9370c"
+    },
+    "cleanCheck": {
+      "tests": 1605,
+      "pass": 1605,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "24f63f7a3918d47b10fc1b10e142b7f3e82311ee6db001caac31e7459c932a86",
+      "bytes": 171178
+    },
+    "pipeline": {
+      "sha256": "dcde725de9206f81cbb83779f7288e822252ec5d04d01f2a8c95007de8bee609",
+      "bytes": 3095,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "93d67e235a560a9d2d76278b26c4e670b37da8c1e60d74d619a6806b832c9ff8/839",
+    "selfproof": {
+      "files": 16,
+      "tests": 123
+    },
+    "sources": {
+      "verified": 61,
+      "files": 198,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "27401364c723eba40fc6baf43459a6a4bc186b5863cfefa360df44127a7ce538/84287",
+      "tool-selfproof.json": "3a15d3e12efb4d885397c384321633f5cfd5ca2247bd9b48a740762a2f1f915b/26188",
+      "tool-selfproof.tap": "d2c1ac9ed0f0f3e2196cfa53b238105433c714890993cb642debc6696cf4159e/23429",
+      "traceability.json": "592c9bd8875e2062883984f22dceabac21d1a5da8889d2133da7aa18d18b3339/1232412",
+      "traceability.md": "55537be0df88edc2a9da0d56f9f26d31e19b8546078b3f10ad3c1f29b2d40705/33624",
+      "h7-traceability-mapping.md": "2e9c43ddcf10244d720a998f8ba9d9beb7f59c9993749a340168870e52045343/74474",
+      "acceptance-report.json": "37e292861b94e6a6779cac1887e0fd85f304ffe00e0cd53842a99b6c28228559/420793",
+      "acceptance-report.md": "be2afe2a53f5b1f8bfc08ff45166ff974ec9ec42302dda691fe19e14491754a4/29944",
+      "fl-scenarios/manifest.json": "6a25df8298f1ed4059827422c22d37abc0fe83100e2648c872c91423391b0e31/13154",
+      "fl-scenarios/coverage.json": "06d44a45887c5d24297aef6bd6b3fcc7a3c44b63138c09da0168220ae8f8a3de/52559",
+      "fl-scenarios/coverage.md": "46dcf02e15ce244bf884030f56a0ba9aa53b6079d3ddd25890e817a341190a64/9308"
+    }
+  },
+  "overallVerdict": "Round-11 evidence is authentic and honest: the history-assert instrumentation exposes bounded expected/live/seq/eventCount/hash-prefix/delta diagnostics with no bodies or paths, the cold-header race is deterministically reproduced in fake-host tests (expected 4/live 3/delta -1/native create 0), the candidate liveCut fix is dormant and not activated, and the generalized reconcile uses fixed [v1,v2] targets with only the inert v2 Goal cancelled once (v1 cancelled no action), 0 model/retry/create. Host evidence (7d9979e) shows only +1 commitSeq for the v2 cancel, no events/Goal/Task-state/Effect/budget/Session/artifact changes, state unchanged, known 35 Sessions unchanged, failed v2 receipt explanation preserved, and explicitly states create remains unfixed/cold-header not host-confirmed/third attempt unauthorized. H7-round11 maps 61 sources/198 files, keeps round10 v2 failure at fixed-host-failure-diagnostic only, V25 excluded, merge info-only, product 79/79 not_covered; X+1=7ad2621 is artifact-only with clean 1605, selfproof 16/123, 61/61 sources and gate incomplete. F11-R1/R2 are minor byte/cache-field evidence issues; F11-R3/R4 are wording/scope info only."
+}

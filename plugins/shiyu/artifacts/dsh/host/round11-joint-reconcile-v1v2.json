@@ -187,7 +187,7 @@
   },
   "cachedReceipt": {
     "file": "artifacts/dsh/host/round11/status-final.json",
-    "bytes": 58079,
+    "bytes": 61122,
     "sha256": "3b59525954139c07db64fe51088dc6535062b1c2380a6104f8f081b6175d9c8b",
     "value": {
       "requestId": "core-validation-frozen-v1",
@@ -215,6 +215,14 @@
           "unknowns": []
         }
       ]
+    },
+    "bytesSemantics": "actual committed file bytes (UTF-8)",
+    "fieldsPresent": "requestId/classification/requestIds/targets/readOnly/createsGoal/modelCalls/retries per the cached snapshot; this evidence block lists only the fields actually present and points to the receipt file for the full tool response",
+    "declaredOnlyInReceipt": {
+      "readOnly": true,
+      "createsGoal": false,
+      "modelCalls": 0,
+      "retries": 0
     }
   },
   "findings": [
@@ -245,5 +253,12 @@
     "Zero-model reconcile only; does not prove the bounded real core business chain and does not fix the create history-assert failure.",
     "No model/embedding/Task/worker/Goal completion is involved; the v1/v2 Goal Sessions remain as history.",
     "A third experiment remains unauthorized and requires an explicit owner decision after the diagnostic fix is activated and host-confirmed."
+  ],
+  "evidenceCorrections": [
+    {
+      "id": "F11-R1/F11-R2",
+      "finding": "cached status bytes used a character count and the cachedReceipt block claimed fields that the diagnostics cache does not hold",
+      "resolution": "bytes corrected to the actual committed file size with semantics; cachedReceipt lists the fields actually present and points to the receipt file for the tool-response declarations"
+    }
   ]
 }

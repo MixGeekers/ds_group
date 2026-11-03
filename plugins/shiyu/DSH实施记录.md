@@ -1701,3 +1701,32 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - final status 只读无副作用，`diagnostics.coreValidationReconcile` 缓存该广义 receipt（61,121B status 证据）。
 - 证据：[round11-joint-reconcile-v1v2.json](<artifacts/dsh/host/round11-joint-reconcile-v1v2.json>) + `host/round11/`（receipt、plan、4 审计、status-final）。
 - 边界：仅证 reconcile 路径；v1/v2 create 失败未修复、cold-header 根因仍未 host-confirmed、dormant `liveCut` 未激活；**第三次实验未授权**。
+
+## 56. 第十一轮独立复核与 F11 处置（round-11 收尾）
+
+2026-11-03，独立验证员完成 round-11 只读复核（task-50）：**证据真实、边界诚实——history-assert 仪器化与 fake-host 确定性复现成立；dormant liveCut 候选未激活；v1/v2 reconcile 固定 targets、v1 无动作/v2 恰一次 cancel、0 模型/0 重试/0 创建；宿主仅 +1 commitSeq、无其他副作用；H7 未升级；X+1 满足约定。** 报告：[ROUND11-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND11-EVIDENCE-REVIEW.md>)、[round11-evidence-review.json](<artifacts/dsh/verify/round11-evidence-review.json>)。
+
+### 56.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| history 诊断 `196024a` | files 5/5；隔离 1597/1597（`12289fc3…`/170794）；14 net tests；historyDiagnostic 枚举/expected/live/delta/≤300/无正文路径；error+receipt+validator；**liveCut dormant 未激活** |
+| reconcile 泛化 | 固定 `CORE_VALIDATION_RECONCILE_REQUEST_IDS=[v1,v2]`、caller 不可选；每目标仅 inert 一次 cancel/postCancel/0 重试/0 模型/不创建；顶字段 v1 兼容 + targets[] |
+| 集成 X `fe6d5f7` | index 描述 only；组合隔离 1605/1605（`5ee768bd…`/171214） |
+| 宿主 `7d9979e` | receipt v1 cancelled/no action；v2 inert→恰一次 cancel/postCancel cancelled+paused+version2；readOnly/createsGoal/modelCalls/retries 声明；审计 427/56/35/goals4→433/57/35/4→434/57/35/4，仅 +1 commitSeq，无其他副作用；DB v1/v2 均 cancelled version2 |
+| H7-round11 | 61 sources/198 files；round10 v2 failure 仅 `fixed-host-failure-diagnostic`、V25 不接收、merge info-only 未映射、产品 79/79 not_covered |
+| X+1 `7ad2621` | 11 artifacts 全 M；code diff=0；manifest head=fe6d5f7/dirty=false/leaks=0；clean 1605/1605；selfproof 16 files/123；61/61 sources、0 unknown；gate=incomplete/executed=passed=0 |
+
+### 56.2 F11 处置
+
+| ID | 处置 |
+|---|---|
+| F11-R1（bytes） | 已修：cached status bytes 改为实际 61,122 + bytesSemantics（sha 不变） |
+| F11-R2（cache 字段声明） | 已修：cachedReceipt value 仅保留实际缓存字段，readOnly/createsGoal/modelCalls/retries 移入 declaredOnlyInReceipt 并注明在 receipt 文件；fieldsPresent 说明 |
+| F11-R3（reload 记账粒度） | info：reload 期间 task metadata 44→45/capability 47→49 属正常启动；reconcile 本身仅 +1 commitSeq |
+| F11-R4（merge info） | info：merge provenance 仅 info-only 未映射、无升级 |
+
+### 56.3 边界
+
+1. create 失败**未修复**；cold-header 根因候选**未 host-confirmed**，dormant `liveCut` **未激活**；第三次实验未授权。
+2. reconcile 通过仅证清理路径；真实有界业务链仍未验证；产品行 79/79 not_covered、gate=incomplete、executed=passed=0。
