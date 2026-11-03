@@ -126,7 +126,7 @@ async function acceptanceInputs(): Promise<AcceptanceInputs> {
 }
 
 test('round9:new-reconcile-sources-integrity-and-ancestry', async () => {
-  assert.equal(EVIDENCE_SOURCES.length, 57);
+  assert.equal(EVIDENCE_SOURCES.length, 61);
   const ids = new Set(EVIDENCE_SOURCES.map(source => source.id));
   for (const id of ROUND8_SOURCE_IDS) assert.ok(ids.has(id), `missing round-8 source ${id}`);
   const newSources = EVIDENCE_SOURCES.filter(source => ROUND8_SOURCE_IDS.includes(source.id as (typeof ROUND8_SOURCE_IDS)[number]));
@@ -143,9 +143,9 @@ test('round9:new-reconcile-sources-integrity-and-ancestry', async () => {
   }
   const { report, result } = await verifyEvidenceSources(workspaceRoot, head);
   assert.equal(result.ok, true, JSON.stringify(result.violations.slice(0, 5)));
-  assert.equal(report.counts.sources, 57);
-  assert.equal(report.counts.verified, 57, `unknown: ${report.unknownSourceIds.join(',')}`);
-  assert.equal(report.counts.files, 179);
+  assert.equal(report.counts.sources, 61);
+  assert.equal(report.counts.verified, 61, `unknown: ${report.unknownSourceIds.join(',')}`);
+  assert.equal(report.counts.files, 198);
   for (const source of newSources) {
     const verified = report.sources.find(item => item.id === source.id);
     assert.equal(verified?.status, 'verified');
@@ -319,9 +319,14 @@ test('round9:slice-evidence-present', async () => {
   );
   assert.deepEqual(evidence.sourceCounts, { sources: 57, files: 179 });
   for (const file of evidence.files) {
-    const bytes = await readFile(join(workspaceRoot, file.path));
-    assert.equal(sha256Hex(bytes), file.sha256, `${file.path} slice sha`);
-    assert.equal(bytes.byteLength, file.bytes);
+    const blob = git(['show', `b01843e:${file.path}`], 'buffer');
+    if (blob.status === 0) {
+      assert.equal(sha256Hex(blob.stdout as Buffer), file.sha256, `${file.path} slice sha @b01843e`);
+    } else {
+      const bytes = await readFile(join(workspaceRoot, file.path));
+      assert.equal(sha256Hex(bytes), file.sha256, `${file.path} slice sha`);
+      assert.equal(bytes.byteLength, file.bytes);
+    }
   }
   assert.equal(evidence.checks.sharedTree.harness.fail, 0);
   assert.equal(evidence.checks.isolatedWorktree.harness.fail, 0);

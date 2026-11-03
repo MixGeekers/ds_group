@@ -1259,6 +1259,184 @@ export const EVIDENCE_SOURCES: readonly EvidenceSource[] = [
       'Cannot upgrade V/S/FL/product rows or nine-system gate.',
     ],
   },
+  /* ---------------- round-10 v2 failure / activation evidence (H7-round11) ---------------- */
+  {
+    id: 'round10-host-v2-create-failure',
+    commits: ['6d65135', 'fffa269'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10-bounded-core-goal-v2.json',
+        sliceCommit: '6d65135',
+        blobCommit: 'fffa269',
+        expectedSha256: 'f3b763c01c6f2578c619fa4eb15fa094c4d556bdec8b8e02617be0d73db19791',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10/core-goal-v2-receipt.json',
+        sliceCommit: '6d65135',
+        blobCommit: '6d65135',
+        expectedSha256: '734e1b015f1a507a9acfca6226b30342bd303b2efffa4917a4bfa2df440af38a',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10/plan.json',
+        sliceCommit: 'fffa269',
+        blobCommit: 'fffa269',
+        expectedSha256: 'c6be8da1bcbae6bf3886bf954b1b999209e45052af4c0068d69349f72b6843f3',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10/round10-host-before.json',
+        sliceCommit: '6d65135',
+        blobCommit: '6d65135',
+        expectedSha256: '0dbfef6c3371b83425690cd752fb71597192154fa5e926d262c8a857b4f51d76',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10/round10-host-after-reload.json',
+        sliceCommit: '6d65135',
+        blobCommit: '6d65135',
+        expectedSha256: '1ad7f718990bea2dc529bfaccccf529e43f187230a407f73ab4ad2111a1d8481',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10/round10-host-after-run.json',
+        sliceCommit: '6d65135',
+        blobCommit: '6d65135',
+        expectedSha256: '04beb98e5ee7cc9d1936d8d9746ad82514a3f9705fdc1f5a547b9b6688aba8ee',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10/round10-host-final.json',
+        sliceCommit: '6d65135',
+        blobCommit: '6d65135',
+        expectedSha256: '758db4bbfebe2c288c000f1298bd2c6eb59d403b2059a42bb36655995af25bac',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10/status-final.json',
+        sliceCommit: '6d65135',
+        blobCommit: '6d65135',
+        expectedSha256: '27805dd53765c27534d9d0f91cdfb6a887b7f2356c4a3df0d331730ec515e616',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/host/round10/v2-goal-observation.json',
+        sliceCommit: '6d65135',
+        blobCommit: '6d65135',
+        expectedSha256: '07e0879fd6fb14a2e2c90205dd8883ffb4e1f98740328be425948099b62550d6',
+      },
+    ],
+    levels: ['fixed-host-failure-diagnostic'],
+    scope: 'Round-10 fixed-host v2 bounded core Goal attempt: create failed at the same history-assert stage as v1 with NATIVE_HISTORY_CHANGED; receipt status=failed, evaluateAttempts=0, zero model requests, partial v2 Goal+Session, journal unknown, no Task/Effect/budget/artifact.',
+    limitations: [
+      'FAILED v2 attempt, not bounded-real-model success and NOT business/plan/Task/worker/verification/native acceptance: v2 create failed on history-assert / NATIVE_HISTORY_CHANGED; evaluateAttempts=0, 0 model requests, no retry, no Task/Effect/budget/artifact or native completion.',
+      'Partial side effect: an unauthorized/paused v2 Goal (requestId core-validation-frozen-v2) plus one core Goal Session were created; the create command journal is unknown with the same reason; the residual v2 Goal remains unresolved (current reconcile tool is v1-only).',
+      'A third attempt is NOT authorized until history-assert semantics are instrumented/fixed; the same-stage two-attempt failure is disclosed. Real business chain remains unverified.',
+      'This fail-diagnostic evidence can NEVER be counted as pass, V25, business or nine-system acceptance; the host v2 activation itself is separate offline evidence.',
+    ],
+    derive: [
+      { label: 'round10V2Status', path: 'artifacts/dsh/host/round10-bounded-core-goal-v2.json', jsonPath: 'status' },
+      { label: 'round10V2ReceiptStatus', path: 'artifacts/dsh/host/round10/core-goal-v2-receipt.json', jsonPath: 'status' },
+      { label: 'round10V2EvaluateAttempts', path: 'artifacts/dsh/host/round10/core-goal-v2-receipt.json', jsonPath: 'counters.evaluateAttempts' },
+    ],
+  },
+  {
+    id: 'v2-experiment-activation',
+    commits: ['b09416f', 'fffa269'],
+    files: [
+      {
+        path: 'plugins/shiyu/src/index.ts',
+        sliceCommit: 'b09416f',
+        blobCommit: 'b09416f',
+        expectedSha256: '688288102c0d650654dd3a85654dec81faf80ed862faeb2862a293ec3b97c145',
+      },
+      {
+        path: 'plugins/shiyu/src/runtime.ts',
+        sliceCommit: 'b09416f',
+        blobCommit: 'b09416f',
+        expectedSha256: '41c4a5ecc9d9ea17e250fc51f6d7eeb990f7a93bd1e6ea9196ab807daad2bd33',
+      },
+      {
+        path: 'plugins/shiyu/tests/host-diagnostics-tool.test.ts',
+        sliceCommit: 'b09416f',
+        blobCommit: 'b09416f',
+        expectedSha256: '96008d5ad7474c7efd7c2f7f90877971b61bab0bf8c5213a4a4bf4d8b43138b6',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/integration/round10-v2-activation.json',
+        sliceCommit: 'b09416f',
+        blobCommit: 'fffa269',
+        expectedSha256: '647822145d66b23df8989e615dcd0b1151b9927132e629ad4279cb34ab69433b',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/slices/round10-v2-activation-verify.json',
+        sliceCommit: 'b09416f',
+        blobCommit: 'fffa269',
+        expectedSha256: '2c19b080eb2cda7dd98bd1050df361cc9495edb6fb32128a979e5c41c92a6991',
+      },
+    ],
+    levels: ['offline-module', 'slice-verification'],
+    scope: 'V2 core-validation experiment activation behind a new owner-only tool: runtime/index command+tool, output schema fix and isolated activation verify (1583/1583) against final X tree; real host v2 attempt is separate and FAILED.',
+    limitations: [
+      'Offline/isolated activation only (G1 integration + 1583/1583 isolated check): it proves the owner-only v2 command/tool wiring and output schema, not real bounded business success.',
+      'The fixed-host v2 attempt then FAILED at history-assert/NATIVE_HISTORY_CHANGED with partial v2 Goal+Session and 0 model requests (see round10-host-v2-create-failure); activation must never be reported as a successful v2 run.',
+      'Third attempt not authorized; real business chain/V25/nine-system remain unverified; no real model/embedding call in this activation evidence.',
+    ],
+    derive: [
+      { label: 'v2ActivationStatus', path: 'artifacts/dsh/integration/round10-v2-activation.json', jsonPath: 'status' },
+      { label: 'v2ActivationTests', path: 'artifacts/dsh/integration/round10-v2-activation.json', jsonPath: 'verification.leadIsolatedCheck.tests.tests' },
+    ],
+  },
+  {
+    id: 'h7-round10-clean-artifacts',
+    commits: ['b5bc3cc'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/manifest.json',
+        sliceCommit: 'b5bc3cc',
+        blobCommit: 'b5bc3cc',
+        expectedSha256: '34c7d1006856f537b2581ef4e0407b2b6eca45e9fb3536c0a8ced67e357db53d',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/traceability.json',
+        sliceCommit: 'b5bc3cc',
+        blobCommit: 'b5bc3cc',
+        expectedSha256: 'df5959d59adfa732d6010583f66cd5083971e5832f36392c245877784daff0ca',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/acceptance-report.json',
+        sliceCommit: 'b5bc3cc',
+        blobCommit: 'b5bc3cc',
+        expectedSha256: 'dfca3f70a781a01f986e4b2e748d0aad5135c4b6e431a1e6c3cfd546a89bcb46',
+      },
+    ],
+    levels: ['offline-module'],
+    scope: 'H7-round10 clean-VCS harness artifacts (X+1 of b09416f, commit b5bc3cc): clean-X manifest, traceability with 57 verified evidence sources and acceptance report (gate incomplete).',
+    limitations: [
+      'Tooling evidence only: not product/host/model/business acceptance.',
+      'Bound with blobCommit+expectedSha256; later pipeline rewrites do not affect the committed snapshot; never read from mutable worktree.',
+      'executed=0/passed=0, product rows not_covered and gate incomplete; cannot upgrade V/S/FL or product rows.',
+    ],
+    derive: [{ label: 'round10CleanGate', path: 'artifacts/dsh/harness/acceptance-report.json', jsonPath: 'gate.overall' }],
+  },
+  {
+    id: 'round10-review',
+    commits: ['fffa269'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/verify/round10-evidence-review.json',
+        sliceCommit: 'fffa269',
+        blobCommit: 'fffa269',
+        expectedSha256: '9e6cf9b07c068e1d9f5885e19e87196da95439fc70792ee2fda1efa36eaaa265',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/verify/ROUND10-EVIDENCE-REVIEW.md',
+        sliceCommit: 'fffa269',
+        blobCommit: 'fffa269',
+        expectedSha256: 'ae39959b7a7c3df3204e9d9e2da96bd0942cd62af39551fcec15cfe2f2a31b47',
+      },
+    ],
+    levels: ['independent-review-info'],
+    scope: 'Round-10 independent evidence review metadata plus F10 corrections/dispositions.',
+    limitations: [
+      'Info/metadata only: independent review record, not product/host/model/business verification and not a pass claim.',
+      'Deliberately NOT referenced by any product row/module/system in the evidence map.',
+      'Cannot upgrade V/S/FL/product rows or nine-system gate.',
+    ],
+  },
 ];
 
 const SOURCE_BY_ID = new Map(EVIDENCE_SOURCES.map(source => [source.id, source]));
@@ -1302,14 +1480,15 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.3',
-    sourceIds: ['h3-core-planning', 'h3-bounded-core-validation-runner', 'h3-core-validation-reconcile', 'round7-lead-integration', 'round8-lead-integration', 'historical-task-goal', 'h2c-real-model-probe', 'h2c-probe-fix-chain', 'round4-localcore-hotfix', 'round4-host-zero-model', 'round5-host-real-model', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile'],
+    sourceIds: ['h3-core-planning', 'h3-bounded-core-validation-runner', 'h3-core-validation-reconcile', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'historical-task-goal', 'h2c-real-model-probe', 'h2c-probe-fix-chain', 'round4-localcore-hotfix', 'round4-host-zero-model', 'round5-host-real-model', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure'],
     levels: ['offline-module', 'slice-verification', 'historical-limited', 'bounded-real-model', 'bounded-real-model-diagnostic-only', 'fixed-host-zero-model', 'fixed-host-failure-diagnostic'],
     scope: 'H3 offline controlled multi-step plan/replan with CAS plan versions and Task/Mandate admission; historical limited owner local-note Goal closure.',
     limitations: [
       'The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.',
       'Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.',
       'Round-7 bounded real core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion; an unauthorized/paused Goal + Session partial side effect exists; this failure evidence can never be V25/business/nine-system pass.',
-      'Round-8 fixed-host reconcile only classifies/cancels the inert residual Goal (inert-unauthorized, one cancel, modelCalls=0/retries=0, readOnly=true, createsGoal=false); it does NOT fix the create failure or prove the business chain.',
+      'Round-8 fixed-host reconcile only classifies/cancels the inert residual Goal; it does NOT fix the create failure or prove the business chain.',
+      'Round-10 v2 activation is offline/isolated only (1583); the fixed-host v2 attempt then FAILED at history-assert/NATIVE_HISTORY_CHANGED with evaluateAttempts=0, 0 model requests, partial unauthorized/paused v2 Goal+Session, journal unknown, no Task/Effect/budget/artifact; third attempt not authorized — never pass/V25/business/nine-system.',
       'No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.',
       'Open-ended planning, multi-Goal timers and worker slot behaviour remain untested.',
     ],
@@ -1363,21 +1542,21 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.8',
-    sourceIds: ['h5-g1-module', 'h5b-runtime-integration', 'h5b-checkpoint-probe', 'h4e-migration-hotfix', 'round3-lead-integration', 'round4-lead-integration', 'round6-lead-integration', 'round7-lead-integration', 'round8-lead-integration', 'h3-core-validation-reconcile', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round3-host-zero-model', 'round4-host-zero-model', 'h4h5-independent-review'],
+    sourceIds: ['h5-g1-module', 'h5b-runtime-integration', 'h5b-checkpoint-probe', 'h4e-migration-hotfix', 'round3-lead-integration', 'round4-lead-integration', 'round6-lead-integration', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'h3-core-validation-reconcile', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'round3-host-zero-model', 'round4-host-zero-model', 'h4h5-independent-review'],
     levels: ['offline-module', 'slice-verification', 'independent-verification', 'fixed-host-zero-model'],
     scope: 'H5-B1 G1 checkpoint/restore module + H5b runtime composition/capture integration and read-only checkpoint availability probe + H4e additive migration hotfix + round-3/4 zero-model host reload/probes; independent authenticity review.',
     limitations: [
       'G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.',
       'Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.',
       'Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.',
-      'Round-7 bounded core Goal host failure persisted an unauthorized/paused Goal row + Session; round-8 reconcile cancelled it (version 2) without model/retry and retained the Session as history — this cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.',
+      'Round-7 failure + round-8 reconcile cancelled v1 residual Goal without model/retry; round-10 v2 attempt re-failed at history-assert and left a partial unauthorized/paused v2 Goal+Session with journal unknown — these failure/reconcile diagnostics cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.',
       'No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance.',
     ],
     partialSubscenarios: ['G1 backup bundle capture/verify + isolated-root disarmed restore'],
   },
   {
     rowId: 'SYS.9',
-    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'joint-host-zero-model', 'h0-baseline'],
+    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'joint-host-zero-model', 'h0-baseline'],
     levels: ['synthetic-ui', 'fixed-host-zero-model', 'bounded-real-model-diagnostic-only', 'offline-module', 'environment-baseline'],
     scope: 'H4b six-domain dashboard panel + H6c channel projection panel (synthetic-host UI cases); fixed-host zero-model visibility of schema4 publication/summary/projection; H0 status tool check.',
     limitations: [

@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.h7-round11-slice-evidence",
+  "phase": "H7-round11",
+  "capturedAt": "2026-11-03T05:57:59.720Z",
+  "baselineHead": "cc53c34e386d121c9201a5fcdd456da3c3582748",
+  "status": "code-tests-delivered-not-clean-refresh",
+  "purpose": "Bind round-10 v2 failure/activation/clean-artifact/review evidence into evidence.ts/acceptance index without granting pass to failed v2 attempt; merge provenance 6392c7e has no file artifacts (diff-tree empty) so it is documented as info-only and not mapped.",
+  "round10Sources": [
+    {
+      "id": "round10-host-v2-create-failure",
+      "commits": [
+        "6d65135",
+        "fffa269"
+      ],
+      "levels": [
+        "fixed-host-failure-diagnostic"
+      ],
+      "note": "v2 create FAILED history-assert/NATIVE_HISTORY_CHANGED; evaluateAttempts=0; 0 model requests; no retry; partial unauthorized/paused v2 Goal+Session; journal unknown; no Task/Effect/budget/artifact; third attempt not authorized; never pass/V25/business/nine-system"
+    },
+    {
+      "id": "v2-experiment-activation",
+      "commits": [
+        "b09416f",
+        "fffa269"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "note": "owner-only v2 command/tool + output schema; isolated 1583; host v2 attempt separate and FAILED"
+    },
+    {
+      "id": "h7-round10-clean-artifacts",
+      "commits": [
+        "b5bc3cc"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "blobCommit b5bc3cc; manifest 34c7d100/traceability df5959d5/acceptance dfca3f70"
+    },
+    {
+      "id": "round10-review",
+      "commits": [
+        "fffa269"
+      ],
+      "levels": [
+        "independent-review-info"
+      ],
+      "note": "info-only review metadata; deliberately not referenced by product/module/system mappings"
+    }
+  ],
+  "sourceCounts": {
+    "sources": 61,
+    "files": 198
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "sha256": "e138a3309481c8025d8dbd6e8e4428fe73b50d86246e84e58e81925755b40ef1",
+      "bytes": 143685
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "sha256": "3856455cae1567c61db309af5d3ee9c5ba3229498e280c3eca11479bfb48e390",
+      "bytes": 37421
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "sha256": "517a53ea07a7c6bc369694a8e4b62941a9423dc981fa21b1b977f9fbdcffeff2",
+      "bytes": 18584
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "sha256": "07accc6d4f87ae630d3c5493b3c80e0e48bc629dacec0ef4f871039b22cd8b9b",
+      "bytes": 23353
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round6.test.ts",
+      "sha256": "afb97b0fa690c7a68921df696f1c42aaeade4ab54597bf6c3f6211681000e370",
+      "bytes": 20213
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round7.test.ts",
+      "sha256": "9b0d4f0e1e7e77fe63200148b1bc0a7e7d9b537b3dfaa0d934f38cfcef2389ad",
+      "bytes": 17944
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round8.test.ts",
+      "sha256": "6c2e23b54c81479dfbbd7435ed493ffe92bfc481fa781c2ec8e50daaa8d766a9",
+      "bytes": 18150
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round9.test.ts",
+      "sha256": "3047768c7ab238a0ad859f9fc1b4cebde160d7d53dd6cac0338cc7935ecb9fa1",
+      "bytes": 17602
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round11.test.ts",
+      "sha256": "4bb42185c8a8f69dc0d33e3f4e15ccc48fbb29bbeaee4e03e46ddb60ba3ba570",
+      "bytes": 17056
+    }
+  ],
+  "mergeProvenanceNote": "Mapped sources list excludes merge-provenance @6392c7e: the merge commit has no file changes (git diff-tree empty), so it has no committable file evidence to bind. Provenance info: remote branch origin/codex/start-shiyu-implementation at 081e987 was preserved and merged without force-push; this note is info-only and is not referenced by product rows/modules/systems.",
+  "commands": [
+    "npx tsc --noEmit",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+    "npm run check (isolated worktree cc53c34 + only slice files + slice evidence json)",
+    "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+    "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+  ],
+  "checks": {
+    "sharedTree": {
+      "tsc": {
+        "exitCode": 0
+      },
+      "harness": {
+        "tests": 123,
+        "pass": 123,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round11-cc53c34-shared-harness.log",
+          "sha256": "1228a8a90d38b367ee9ed614aada80aebffbfebff86ab9c00fdd2558a2cbbcac",
+          "bytes": 9948
+        }
+      }
+    },
+    "isolatedWorktree": {
+      "head": "cc53c34e386d121c9201a5fcdd456da3c3582748",
+      "worktree": "/tmp/round11-verify (ephemeral)",
+      "tsc": {
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round11-cc53c34-isolated-tsc.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      },
+      "harness": {
+        "tests": 123,
+        "pass": 123,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round11-cc53c34-isolated-harness.log",
+          "sha256": "f4507e3e222d9cf864158e246bd71132f5d26943bc18b4a4a5bbac2719bc5ec5",
+          "bytes": 9943
+        }
+      },
+      "fullCheck": {
+        "tests": 1591,
+        "pass": 1591,
+        "fail": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round11-cc53c34-check.log",
+          "sha256": "aa39bc9521ca675aee2ac4d4e21de0014e9e2823a3bd19071c2041f9fab6ad3e",
+          "bytes": 169606
+        }
+      }
+    }
+  },
+  "productRows": {
+    "total": 79,
+    "notCovered": 79,
+    "covered": 0
+  },
+  "toolingReady": [
+    "TV.1",
+    "TV.2",
+    "TV.3",
+    "TV.4",
+    "TV.5",
+    "TV.6",
+    "TV.7",
+    "TV.9"
+  ],
+  "acceptanceGate": "incomplete",
+  "limitations": [
+    "H7-round11 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+    "Round-10 v2 host attempt FAILED at history-assert/NATIVE_HISTORY_CHANGED: evaluateAttempts=0, 0 model requests, no retry, partial unauthorized/paused v2 Goal+Session, journal unknown, no Task/Effect/budget/artifact, third attempt not authorized; never pass/V25/business/nine-system.",
+    "V2 activation is offline/isolated 1583 only; host run failed.",
+    "Product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD.",
+    "merge-provenance @6392c7e is info-only and not mapped because the merge commit has no file changes."
+  ],
+  "archivedCopies": [
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round11-cc53c34-check.log",
+      "sha256": "aa39bc9521ca675aee2ac4d4e21de0014e9e2823a3bd19071c2041f9fab6ad3e",
+      "bytes": 169606
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round11-cc53c34-isolated-harness.log",
+      "sha256": "f4507e3e222d9cf864158e246bd71132f5d26943bc18b4a4a5bbac2719bc5ec5",
+      "bytes": 9943
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round11-cc53c34-shared-harness.log",
+      "sha256": "1228a8a90d38b367ee9ed614aada80aebffbfebff86ab9c00fdd2558a2cbbcac",
+      "bytes": 9948
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round11-cc53c34-isolated-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}
