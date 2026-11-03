@@ -47,6 +47,7 @@ import {
 } from './recovery/host-ports.js';
 import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
 import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
+import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
 import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
 
 export const VERSION = '0.1.0';
@@ -201,6 +202,9 @@ export class RuntimeService {
   private checkpointProbeCommand?: RuntimeCheckpointProbeCommand;
   /** Last validated probe receipt; the only place it is stored (snapshot diagnostics). */
   private checkpointProbeReceipt?: CheckpointProbeResult;
+  /** H4e-probe: owner-only zero-model isolated lifecycle command + last validated receipt. */
+  private innerLifecycleProbeCommand?: RuntimeInnerLifecycleProbeCommand;
+  private innerLifecycleProbeReceipt?: InnerLifecycleProbeReceipt;
   constructor(private readonly ctx: DshContext, config: RuntimeConfig = {}, private readonly options: RuntimeOptions = {}) {
     const defaultDirectory = fileURLToPath(new URL('../.local/runtime/', import.meta.url));
     if (config.dataDir !== undefined && (typeof config.dataDir !== 'string' || !path.isAbsolute(config.dataDir))) throw new Error('dataDir must be an absolute path');
@@ -367,6 +371,13 @@ export class RuntimeService {
         isOpen: () => !this.closed && !this.closing,
         isPaused: () => this.pauseRequested,
         onReceipt: receipt => { this.checkpointProbeReceipt = receipt; },
+      });
+      // H4e-probe: the probe owns its own :memory: ControlStore. This command is
+      // never reached by GET/snapshot; the live store and dataDir are not inputs.
+      this.innerLifecycleProbeCommand = new RuntimeInnerLifecycleProbeCommand({
+        isOpen: () => !this.closed && !this.closing,
+        isPaused: () => this.pauseRequested,
+        onReceipt: receipt => { this.innerLifecycleProbeReceipt = structuredClone(receipt); },
       });
       const labStatus = await this.store.request('lab.status', {});
       if (labStatus.ready) {
@@ -787,7 +798,9 @@ export class RuntimeService {
         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,
         timeTriggerProbe: this.lastTimeTriggerProbe ? structuredClone(this.lastTimeTriggerProbe) : null,
         notifications: this.notificationRouter ? { enabled: true } : { enabled: false },
-        checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null },
+        checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null,
+        // Diagnostics-only projection; never a publication, authorization or completion fact.
+        innerLifecycleProbe: this.innerLifecycleProbeReceipt ? structuredClone(this.innerLifecycleProbeReceipt) : null },
       background: { ...conversations.background, ...backgroundState },
       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
@@ -847,6 +860,7 @@ export class RuntimeService {
     // H5b-probe: read-only availability receipt, dispatched before ensureCanRun()
     // so a paused runtime can still be diagnosed without model/dispatch effects.
     if (action === 'runtime.checkpoint.probe') return this.commandCheckpointProbe(value, signal);
+    if (action === INNER_LIFECYCLE_PROBE_ACTION) return this.commandInnerLifecycleProbe(value, signal);
     if (action === 'conversation.linkLocalTask') {
       this.ensureCanRun(); signal?.throwIfAborted();
       if (Object.keys(value).some(key => !['action', 'taskId', 'localConversationKey'].includes(key))
@@ -999,6 +1013,19 @@ export class RuntimeService {
     this.ensureOpen();
     if (!this.checkpointProbeCommand) throw new Error('CHECKPOINT_UNAVAILABLE');
     return this.checkpointProbeCommand.handle(value, signal);
+  }
+
+  /** Owner-only zero-model isolated lifecycle probe (same admission as
+   * session.probe: open and unpaused, single slot, abortable, no automatic retry).
+   * It validates the exact command shape, never receives a live path, and stores
+   * only the validated receipt in snapshot diagnostics. */
+  private async commandInnerLifecycleProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<InnerLifecycleProbeReceipt> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid inner lifecycle probe input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (!this.innerLifecycleProbeCommand) throw new Error('INNER_LIFECYCLE_PROBE_UNAVAILABLE');
+    const receipt = await this.innerLifecycleProbeCommand.handle(value, signal);
+    this.lastFailure = undefined;
+    return receipt;
   }
 
   private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {

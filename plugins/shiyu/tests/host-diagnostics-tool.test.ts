@@ -7,6 +7,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { checkpointAvailabilityTool, coreModelToolProbeTool, coreToolDiagnosisTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { innerLifecycleDiagnosisTool } from '../src/control/inner-lifecycle-probe.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
   const snapshot = { schemaVersion: 1, instanceId: 'synthetic', state: 'idle' };
@@ -95,4 +96,16 @@ test('live time-trigger diagnosis tool executes exactly the append-only probe co
   assert.match(tool.description, /append-only/);
   assert.equal(await tool.execute(), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.probe-time-trigger' }]);
+});
+
+test('inner lifecycle diagnosis tool executes exactly the isolated zero-model probe command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, zeroModel: true, zeroEmbedding: true, zeroTaskOrEffect: true, store: { kind: 'in-memory' }, liveDataTouched: false, checks: [] };
+  const tool = innerLifecycleDiagnosisTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_diagnose_inner_lifecycle');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /零模型|zero-model/i);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-inner-lifecycle' }]);
 });

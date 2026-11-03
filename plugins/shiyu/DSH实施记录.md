@@ -1336,3 +1336,26 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. **真实模型工具往返仅在受限诊断探针范围内通过**（固定 prompt、2 主请求、1 个只读 types 工具、受限 Session），不是完整 core 决策/计划/业务验收；provider 是否接收 attempt4/5 的请求与费用未知。
 2. live 时间触发为一次性规则探针，留下一个 append-only 事件；不是长期调度/崩溃恢复验收。
 3. round-5 host 证据尚未进入 H7 映射（round-6）；产品行 79/79 not_covered；acceptance gate=incomplete、executed=passed=0。
+
+## 40. 第六轮：H4e 隔离生命周期探针与 round-5 证据映射（round-6 离线切片）
+
+状态：**G1 离线/集成通过**；固定宿主探针与 clean 刷新下一步。2026-11-02。
+
+### 40.1 H4e 固定宿主零模型隔离生命周期探针
+
+- `probeInnerLifecycle`：在私有 Worker 内打开 `ControlStore({filename:":memory:"})`，用真实 relationship/cognition/personality/emotion 域完成可复现场景（seed 隔离 conversation/来源记录 → 依赖 claim → 撤回/版本变更来源 → 同库事务 recompute → 降级/旧 capture 拒绝/derivedRevision 恰好 +1/幂等不重复/不复活 → finally 关闭 store）。
+- 探针**拒绝任何 live path/filename 选项**；receipt：zeroModel/zeroEmbedding/zeroTaskOrEffect、store=in-memory、`liveDataTouched=false`、`livePathsAccepted=0`、14 steps/9 checks、无损有界（≤24KiB，失败也生成并校验 failed receipt）、cleanup（storeClosed/workerTerminated）。
+- owner-only `runtime.probe-inner-lifecycle` 命令（session.probe 准入、单槽、可中止、不重试，合法 receipt 才缓存）+ 工具 `shiyu_diagnose_inner_lifecycle`（无参数）。
+- 测试 9 项；作者隔离 1507/1507；Lead 集成隔离 1515/1515。
+
+### 40.2 H7-round6：round-5 宿主/修复链/工具证据入映射
+
+- 新增 5 个来源/23 文件（总 43 来源/126 文件）：round5-host-real-model（13 文件；新等级 `bounded-real-model-diagnostic-only`，usage 1469/41/2406 原样、attempt4/5 = 1 request/0 stream/费用 unknown、append-only time.occurred）、H2c 修复链（fake-host，边界未放宽）、H2b live time trigger、blobCommit hotfix、round-5 clean X+1（@693fab1 用 blobCommit 快照绑定，未改动 round-4 绑定）。
+- **V25 刻意不映射**该诊断通过；产品行仍 79/79 not_covered、covered=0、tooling_ready/V/S/FL 不升级；九系统/40 模块只加 limited/诊断 evidenceRefs。
+- 测试 7 项；harness 92/92；作者隔离 1505/1505。
+
+### 40.3 Lead 集成与验证
+
+- `runtime.ts`：构造探针命令、命令分派（`INNER_LIFECYCLE_PROBE_ACTION`，ensureCanRun+signal+单槽）、`diagnostics.innerLifecycleProbe`；`index.ts` 注册工具。
+- **Lead 集成隔离验证**（HEAD `0819d11` + 全部 round-6 切片与集成文件）：**1515/1515 通过，0 失败/0 跳过**（= 1498 + 9 + 7 + 1）；证据 `artifacts/dsh/slices/round6-integrated-verify.json`。
+- 宿主执行：零模型 reload + `shiyu_diagnose_inner_lifecycle` + 前后独立审计；结果另行留证。

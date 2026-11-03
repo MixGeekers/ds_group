@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the H4e isolated lifecycle probe into Runtime and the diagnostic tool surface",
+  "capturedAt": "2026-11-03T01:51:32.424Z",
+  "status": "offline-verified-integration",
+  "purpose": "Wire the owner-only zero-model isolated inner-lifecycle probe: construct its command in init, dispatch it before any GET path with session.probe admission, expose diagnostics.innerLifecycleProbe and register the parameterless shiyu_diagnose_inner_lifecycle tool. The probe builds its own private :memory: ControlStore and never receives live paths.",
+  "baseline": {
+    "head": "0819d11",
+    "note": "round-5 close; round-6 slices committed on top"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 101590,
+      "sha256": "a1e6f73f539533544b5b1871eb41148a76df05f4ebdce282eaba92436100cd3b"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 10134,
+      "sha256": "64d36f47db52410e85dd3aede316f766f3525577364b52ab083d19df1dcd6975"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 7148,
+      "sha256": "b93fce030346fe37c3648012c9367685b62b819887b0cec3486509b8629fe5f6"
+    }
+  ],
+  "changes": {
+    "runtime": "imports the probe command/action/receipt type, constructs RuntimeInnerLifecycleProbeCommand in init (no I/O below the command), dispatches runtime.probe-inner-lifecycle with ensureCanRun + signal + a single command slot, and exposes diagnostics.innerLifecycleProbe only after receipt validation.",
+    "indexTools": "registers shiyu_diagnose_inner_lifecycle (parameterless, non-concurrency-safe, owner command surface only).",
+    "tests": "host-diagnostics-tool covers the new tool executing exactly its command; the round integrated isolated check covers the H4e probe (9), H7-round6 mapping (7) and the tool test (+1)."
+  },
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD 0819d11 + all round-6 slice files and the integration files)",
+      "evidence": "artifacts/dsh/slices/round6-integrated-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1515,
+        "pass": 1515,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 428104,
+      "log": "plugins/shiyu/.local/slice-verify-round6-integrated.log",
+      "arithmetic": "1498 baseline + 9 H4e probe + 7 H7-round6 + 1 tool test = 1515"
+    },
+    "perSliceAuthorChecks": {
+      "h4eProbe": "1507/1507 (baseline 1498 + 9)",
+      "h7Round6": "1505/1505 (baseline 1498 + 7) plus harness 92/92"
+    },
+    "hostValidationPending": "the fixed-host zero-model inner-lifecycle probe call and its before/after audit are executed next and committed separately."
+  },
+  "knownLimitations": [
+    "The probe uses a private in-memory store: it does not prove live data was untouched (that requires the next host audit) and does not exercise the live memory backend.",
+    "No model, embedding, Ombre or live business write is involved; real inner semantic quality is out of scope."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; fixed-host validation pending."
+}

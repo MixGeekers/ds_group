@@ -1,4 +1,5 @@
 import { RuntimeService } from './runtime.js';
+import { innerLifecycleDiagnosisTool } from './control/inner-lifecycle-probe.js';
 import type { RuntimeConfig } from './runtime.js';
 
 export const inject = ['connection', 'tools', 'agents', 'agentPresets', 'systemPrompt', 'sessions', 'sessionPersistence', 'sessionProjections', 'workspaceRegistry', 'workingDirectory'];
@@ -159,5 +160,8 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(coreModelToolProbeTool(service)));
   ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));
   ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));
+  // Zero-model isolated inner-lifecycle diagnosis. It constructs a private
+  // :memory: store, never opens the live control database and never calls a model.
+  ctx.effect(() => ctx.tools.register(innerLifecycleDiagnosisTool(service)));
   ctx.effect(() => ctx.tools.register(timeTriggerDiagnosisTool(service)));
 }
