@@ -99,8 +99,8 @@
     "exitCode": 0,
     "log": {
      "path": "plugins/shiyu/.local/h7-verify/round14-d221561-isolated-tsc.log",
-     "sha256": "",
-     "bytes": 0
+     "sha256": "bcb1a61798abda8d8a3a775a1373725c955f1de0a18ef7e131bc06475bdc0f16",
+     "bytes": 11
     }
    },
    "harness": {
@@ -110,8 +110,8 @@
     "skipped": 0,
     "log": {
      "path": "plugins/shiyu/.local/h7-verify/round14-d221561-isolated-harness.log",
-     "sha256": "",
-     "bytes": 0
+     "sha256": "38b9613ae51a8e3d686fc510686427278761ae60c52692be72b1ff011e612ce8",
+     "bytes": 11773
     }
    },
    "fullCheck": {
@@ -122,8 +122,8 @@
     "exitCode": 0,
     "log": {
      "path": "plugins/shiyu/.local/h7-verify/round14-d221561-check.log",
-     "sha256": "",
-     "bytes": 0
+     "sha256": "8f685d2d3e653360966f8e3b1a7b0e5d55be64a14c0e62a53f2dec1b0830ce42",
+     "bytes": 175049
     }
    }
   }
@@ -149,5 +149,23 @@
   "Round-13 host native header-cut probe is zero-model diagnosis only: matched=false, headerDiff [\"delegationDepth: number:0→absent\"], eventCount/seq 3/3, exactly one bare Session created/archived, 0 model/Goal/Task/Effect/business writes and 0 retries; no fix, fourth attempt NOT authorized; never pass/V25/business/nine-system.",
   "Round-13 review and the R13-CORR slice-evidence correction are info-only and deliberately unmapped; product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD."
  ],
- "archivedCopies": []
+ "archivedCopies": [
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round14-d221561-isolated-tsc.log",
+   "sha256": "bcb1a61798abda8d8a3a775a1373725c955f1de0a18ef7e131bc06475bdc0f16",
+   "bytes": 11
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round14-d221561-isolated-harness.log",
+   "sha256": "38b9613ae51a8e3d686fc510686427278761ae60c52692be72b1ff011e612ce8",
+   "bytes": 11773
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round14-d221561-check.log",
+   "sha256": "8f685d2d3e653360966f8e3b1a7b0e5d55be64a14c0e62a53f2dec1b0830ce42",
+   "bytes": 175049
+  }
+ ],
+ "correctionNote": "R14-CORR-1: replaces planning placeholders in the committed round-14 slice evidence with real archived log facts (isolated tsc 11B, harness 152/152 11773B, full check 1653/1653 175049B); sharedTree remains explicitly blockedByConcurrentWip with NO green claim. sourceCounts, files hashes, productRows, toolingReady, acceptanceGate, limitations and baselineHead are unchanged.",
+ "correctedAt": "2026-11-03T11:33:35.907Z"
 }
