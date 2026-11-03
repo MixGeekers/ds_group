@@ -857,6 +857,104 @@ export const EVIDENCE_SOURCES: readonly EvidenceSource[] = [
     ],
     derive: [{ label: 'round5CleanGate', path: 'artifacts/dsh/harness/acceptance-report.json', jsonPath: 'gate.overall' }],
   },
+  /* ---------------- round-6 host isolated lifecycle evidence (H7-round7) ---------------- */
+  {
+    id: 'round6-host-inner-lifecycle',
+    commits: ['8d4c97c'],
+    files: [
+      REF('artifacts/dsh/host/round6-joint-zero-model.json', '8d4c97c'),
+      REF('artifacts/dsh/host/round6/inner-lifecycle-probe.json', '8d4c97c'),
+      REF('artifacts/dsh/host/round6/round6-host-before.json', '8d4c97c'),
+      REF('artifacts/dsh/host/round6/round6-host-after-reload.json', '8d4c97c'),
+      REF('artifacts/dsh/host/round6/round6-host-after-probe.json', '8d4c97c'),
+      REF('artifacts/dsh/host/round6/round6-host-final.json', '8d4c97c'),
+      REF('artifacts/dsh/host/round6/status-final.json', '8d4c97c'),
+    ],
+    levels: ['fixed-host-zero-model'],
+    scope: 'Round-6 fixed-host zero-model isolated inner-lifecycle probe: one diagnostic probe call against a private in-memory ControlStore, plus before/reload/after-probe/final audits and a 59072-byte status-final receipt proving the diagnostics cache passed; product rows and gate unchanged.',
+    limitations: [
+      'Diagnostic-only: the probe uses an isolated :memory: ControlStore and SKIPS the memory backend; it does not prove live memory semantics, live data untouched, real Ombre export or business acceptance.',
+      'The status-final 59072-byte receipt proves only that the diagnostics cache reports the probe as passed; it is not a publication, authorization, Task/Effect completion or nine-system acceptance fact.',
+      'No real model/embedding/Task/Effect/channel/DOM was involved; product rows stay not_covered and the acceptance gate remains incomplete — this probe can never be counted as pass.',
+      'Fixed-host diagnostic evidence cannot upgrade live memory/Ombre/business or any V item/SYS.5 complete status.',
+    ],
+    derive: [
+      { label: 'round6HostStatus', path: 'artifacts/dsh/host/round6-joint-zero-model.json', jsonPath: 'status' },
+      { label: 'round6ProbeStatus', path: 'artifacts/dsh/host/round6/inner-lifecycle-probe.json', jsonPath: 'status' },
+    ],
+  },
+  {
+    id: 'h4e-isolated-lifecycle-probe',
+    commits: ['0965d0f'],
+    files: [
+      REF('artifacts/dsh/h4/h4e-host-lifecycle-probe.json', '0965d0f'),
+      REF('artifacts/dsh/h4/h4e-runtime-integration.diff', '0965d0f'),
+      REF('src/control/inner-lifecycle-probe.ts', '0965d0f'),
+      REF('tests/inner-lifecycle-probe.test.ts', '0965d0f'),
+    ],
+    levels: ['offline-module'],
+    scope: 'H4e isolated zero-model inner-lifecycle probe implementation: private in-memory probe covering 14 steps / 9 checks (derivation/recompute/capture rejection/cleanup), 9 new tests, integration diff; isolated full check 1507/1507 at baseline 0819d11 plus 9 tests.',
+    limitations: [
+      'Offline isolated probe only (14 steps / 9 checks; isolated full check 1507/1507): it rejects live path options, uses a private :memory: ControlStore and does not touch the live data root; live memory backend is not exercised.',
+      'Fixed-host diagnostic execution and audits are separate evidence (round6-host-inner-lifecycle); the probe receipt is diagnostics only, not publication/authorization/Task/Effect completion or business acceptance.',
+      'No model, embedding, Ombre body, channel, DOM or live business write; it cannot upgrade SYS.5/V items/product rows to pass.',
+    ],
+    derive: [
+      { label: 'h4eProbeIsolatedTests', path: 'artifacts/dsh/h4/h4e-host-lifecycle-probe.json', jsonPath: 'verification.isolatedWorktree.tests' },
+      { label: 'h4eProbeTestCount', path: 'artifacts/dsh/h4/h4e-host-lifecycle-probe.json', jsonPath: 'verification.probeTests.count' },
+    ],
+  },
+  {
+    id: 'round6-lead-integration',
+    commits: ['fc124d1'],
+    files: [
+      REF('artifacts/dsh/integration/round6-lead-integration.json', 'fc124d1'),
+      REF('artifacts/dsh/slices/round6-integrated-verify.json', 'fc124d1'),
+    ],
+    levels: ['offline-module', 'slice-verification'],
+    scope: 'Lead round-6 integration of the isolated inner-lifecycle probe diagnostic tool into Runtime/index: offline-verified integration plus isolated combined check 1515/1515; fixed-host probe execution is recorded separately in round6-host-inner-lifecycle.',
+    limitations: [
+      'G1 integration + isolated full check only: fixed-host execution/audits are separate; no live memory backend, Ombre body or business write is exercised.',
+      'The private in-memory probe cannot prove live data untouched or real inner semantics; its diagnostic pass is never business/nine-system acceptance.',
+      'No real model/embedding/channel/host reload is performed by this integration evidence.',
+    ],
+    derive: [
+      { label: 'round6IntegrationStatus', path: 'artifacts/dsh/integration/round6-lead-integration.json', jsonPath: 'status' },
+      { label: 'round6IntegrationTests', path: 'artifacts/dsh/integration/round6-lead-integration.json', jsonPath: 'verification.leadIntegratedIsolatedCheck.tests.tests' },
+    ],
+  },
+  {
+    id: 'h7-round6-clean-artifacts',
+    commits: ['c89d940'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/manifest.json',
+        sliceCommit: 'c89d940',
+        blobCommit: 'c89d940',
+        expectedSha256: 'e4ab6be069f6d4d4fb4dcc2546ae7814790018a01ae3787830f60caf8e270683',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/traceability.json',
+        sliceCommit: 'c89d940',
+        blobCommit: 'c89d940',
+        expectedSha256: 'fc05cdd0aa8e2e3b3d78c64bc120dd900bdef10ca062671adcc593e39e6a44ad',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/acceptance-report.json',
+        sliceCommit: 'c89d940',
+        blobCommit: 'c89d940',
+        expectedSha256: 'a7ff35c09114b730f158e3b5a33b4869e05e4e87d74a299ad8e6fa5c6c7f269a',
+      },
+    ],
+    levels: ['offline-module'],
+    scope: 'H7-round6 clean-VCS harness artifacts (X+1 of fc124d1, commit c89d940): clean-X manifest, traceability with 43 verified evidence sources and acceptance report (gate incomplete).',
+    limitations: [
+      'Tooling evidence only: artifacts prove clean-X recomputation/honesty, not product/host/model/business acceptance.',
+      'Bound with blobCommit+expectedSha256 so later pipeline rewrites do not invalidate the committed snapshot; never read from the mutable worktree.',
+      'executed=0/passed=0, product rows not_covered and the nine-system gate remains incomplete — this artifact source cannot upgrade V/S/FL or product rows.',
+    ],
+    derive: [{ label: 'round6CleanGate', path: 'artifacts/dsh/harness/acceptance-report.json', jsonPath: 'gate.overall' }],
+  },
 ];
 
 const SOURCE_BY_ID = new Map(EVIDENCE_SOURCES.map(source => [source.id, source]));
@@ -924,12 +1022,13 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.5',
-    sourceIds: ['h4-inner-offline', 'h4e-lifecycle-recompute', 'h4e-migration-hotfix', 'h4-host', 'h4b-composition', 'h4b-host', 'h4c-replyer-inner', 'historical-memory', 'h4h5-independent-review'],
+    sourceIds: ['h4-inner-offline', 'h4e-lifecycle-recompute', 'h4e-migration-hotfix', 'h4e-isolated-lifecycle-probe', 'h4-host', 'h4b-composition', 'h4b-host', 'h4c-replyer-inner', 'round6-lead-integration', 'round6-host-inner-lifecycle', 'historical-memory', 'h4h5-independent-review'],
     levels: ['offline-module', 'slice-verification', 'fixed-host-zero-model', 'synthetic-ui', 'historical-limited', 'bounded-real-model'],
-    scope: 'H4 four inner domains offline + schema4 fixed-host zero-model publication; H4e lifecycle/recompute + additive migration hotfix; H4b synthetic UI; H4c offline replyer inner reference; historical memory samples.',
+    scope: 'H4 four inner domains offline + schema4 fixed-host zero-model publication; H4e lifecycle/recompute + additive migration hotfix + isolated inner-lifecycle probe (implementation/integration/host diagnostic); H4b synthetic UI; H4c offline replyer inner reference; historical memory samples.',
     limitations: [
       'No real model use of inner state, no real inner bodies/Ombre content, no real browser DOM against real data.',
       'H4e recompute is same-DB bounded deterministic scan; logical retention only (no automatic expiry/physical erase/backup deletion propagation); migration hotfix is offline regression plus separate zero-model host recovery.',
+      'Round-6 host inner-lifecycle probe is diagnostic-only with an isolated :memory: ControlStore and skips the memory backend; status-final diagnostics-cache passed is NOT live memory/business/nine-system acceptance.',
       'Historical memory samples are earlier-build limited; deletion propagation/physical erasure not proven.',
     ],
     partialSubscenarios: ['schema4 six-domain publication on fixed host (zero model)', 'inner ReadView/UI synthetic composition', 'bounded inner prompt block offline'],
@@ -958,25 +1057,26 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.8',
-    sourceIds: ['h5-g1-module', 'h5b-runtime-integration', 'h5b-checkpoint-probe', 'h4e-migration-hotfix', 'round3-lead-integration', 'round4-lead-integration', 'round3-host-zero-model', 'round4-host-zero-model', 'h4h5-independent-review'],
+    sourceIds: ['h5-g1-module', 'h5b-runtime-integration', 'h5b-checkpoint-probe', 'h4e-migration-hotfix', 'round3-lead-integration', 'round4-lead-integration', 'round6-lead-integration', 'round6-host-inner-lifecycle', 'round3-host-zero-model', 'round4-host-zero-model', 'h4h5-independent-review'],
     levels: ['offline-module', 'slice-verification', 'independent-verification', 'fixed-host-zero-model'],
     scope: 'H5-B1 G1 checkpoint/restore module + H5b runtime composition/capture integration and read-only checkpoint availability probe + H4e additive migration hotfix + round-3/4 zero-model host reload/probes; independent authenticity review.',
     limitations: [
       'G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.',
       'Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.',
+      'Round-6 inner-lifecycle host probe is diagnostics-only (in-memory, skips memory backend); it does not prove live persistence/checkpoint readiness or V15/V21/V22/V24/V27 acceptance.',
       'No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance.',
     ],
     partialSubscenarios: ['G1 backup bundle capture/verify + isolated-root disarmed restore'],
   },
   {
     rowId: 'SYS.9',
-    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'joint-host-zero-model', 'h0-baseline'],
+    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'round6-host-inner-lifecycle', 'joint-host-zero-model', 'h0-baseline'],
     levels: ['synthetic-ui', 'fixed-host-zero-model', 'bounded-real-model-diagnostic-only', 'offline-module', 'environment-baseline'],
     scope: 'H4b six-domain dashboard panel + H6c channel projection panel (synthetic-host UI cases); fixed-host zero-model visibility of schema4 publication/summary/projection; H0 status tool check.',
     limitations: [
       'No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.',
       'No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.',
-      'Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits, but real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.',
+      'Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits; round-6 adds an isolated inner-lifecycle diagnostic whose 59072-byte status-final proves only diagnostics-cache passed. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.',
     ],
     partialSubscenarios: ['synthetic-host six-domain panel UI cases', 'fixed-host zero-model status/read-only visibility'],
   },

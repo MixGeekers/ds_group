@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.h7-round7-slice-evidence",
+  "phase": "H7-round7",
+  "capturedAt": "2026-11-03T02:09:02.355Z",
+  "baselineHead": "e777bdb0fee05c2b13827e3aaf468ddaabad2b47",
+  "status": "code-tests-delivered-not-clean-refresh",
+  "purpose": "Bind round-6 host isolated inner-lifecycle diagnostic, H4e isolated probe, Lead integration and round6 clean artifact snapshot into evidence.ts/acceptance index without upgrading diagnostics into live-memory/business/nine-system acceptance.",
+  "round6Sources": [
+    {
+      "id": "round6-host-inner-lifecycle",
+      "commits": [
+        "8d4c97c"
+      ],
+      "levels": [
+        "fixed-host-zero-model"
+      ],
+      "note": "diagnostic-only isolated :memory: probe; skips memory backend; status-final 59072B proves diagnostics cache only; never live memory/business/nine-system"
+    },
+    {
+      "id": "h4e-isolated-lifecycle-probe",
+      "commits": [
+        "0965d0f"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "14 steps/9 checks; rejects live path; 1507 isolated; probe+9 tests+integration diff"
+    },
+    {
+      "id": "round6-lead-integration",
+      "commits": [
+        "fc124d1"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "note": "G1 integration isolated 1515; host separate"
+    },
+    {
+      "id": "h7-round6-clean-artifacts",
+      "commits": [
+        "c89d940"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "blobCommit c89d940; manifest e4ab6be0/traceability fc05cdd0/acceptance a7ff35c0; gate incomplete"
+    }
+  ],
+  "sourceCounts": {
+    "sources": 47,
+    "files": 142
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "sha256": "2663b8fd777320ade5ba09cd80478f4d0d40abbcd4e5d0aeb4f1b50b8f7b157d",
+      "bytes": 114236
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "sha256": "e6666deb53a5ff19fb4de5bb693154c965c9883cd8b28332e3aaaad0d44db439",
+      "bytes": 35610
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "sha256": "e0e34deb1eb704027a78c2f824991796c97403c7bbcef659f254df517da9ca98",
+      "bytes": 18584
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "sha256": "f98d278b1a79628a091c8d17578bdad2bd64feec84f5344985526103957bc557",
+      "bytes": 23353
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round6.test.ts",
+      "sha256": "14deaf8dcad0272069b42359d129042f20a689604c1d4a08b3c6242ba422f9ca",
+      "bytes": 20213
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round7.test.ts",
+      "sha256": "55cea9a9260b3204d594c150f8c04b40cd1091b9223c0083c303f61e50b9e2fd",
+      "bytes": 17722
+    }
+  ],
+  "commands": [
+    "npx tsc --noEmit",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+    "npm run check (isolated worktree e777bdb + only slice files + slice evidence json)",
+    "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+    "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+  ],
+  "checks": {
+    "sharedTree": {
+      "tsc": {
+        "exitCode": 0
+      },
+      "harness": {
+        "tests": 99,
+        "pass": 99,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round7-e777bdb-shared-harness.log",
+          "sha256": "6e502717d4e5b159143e5f3053f9b910ede68fc0a872a5a757405385c1d256df",
+          "bytes": 8508
+        }
+      }
+    },
+    "isolatedWorktree": {
+      "head": "e777bdb0fee05c2b13827e3aaf468ddaabad2b47",
+      "worktree": "/tmp/round7-verify (ephemeral)",
+      "tsc": {
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round7-e777bdb-isolated-tsc.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      },
+      "harness": {
+        "tests": 99,
+        "pass": 99,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round7-e777bdb-isolated-harness.log",
+          "sha256": "bb751c8b28a9405ed8847bb5b4681c1b89c8dca8b030e5a300950f25b91b33f7",
+          "bytes": 8513
+        }
+      },
+      "fullCheck": {
+        "tests": 1522,
+        "pass": 1522,
+        "fail": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round7-e777bdb-check.log",
+          "sha256": "686a32842f744e0343382e8b833e746a04b1b1b5d8d41c3f046ca71b19374542",
+          "bytes": 163565
+        }
+      }
+    }
+  },
+  "productRows": {
+    "total": 79,
+    "notCovered": 79,
+    "covered": 0
+  },
+  "toolingReady": [
+    "TV.1",
+    "TV.2",
+    "TV.3",
+    "TV.4",
+    "TV.5",
+    "TV.6",
+    "TV.7",
+    "TV.9"
+  ],
+  "acceptanceGate": "incomplete",
+  "limitations": [
+    "H7-round7 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+    "Round-6 host inner-lifecycle probe is diagnostic-only (isolated :memory:, memory backend skipped); status-final 59072B proves diagnostics cache passed only, never live memory/business/nine-system.",
+    "H4e isolated probe rejects live path and runs 14 steps/9 checks offline; no live data root.",
+    "Product rows remain not_covered; tooling_ready/V/S/FL are not upgraded; artifacts regenerate at round-end clean HEAD."
+  ],
+  "archivedCopies": [
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round7-e777bdb-check.log",
+      "sha256": "686a32842f744e0343382e8b833e746a04b1b1b5d8d41c3f046ca71b19374542",
+      "bytes": 163565
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round7-e777bdb-isolated-harness.log",
+      "sha256": "bb751c8b28a9405ed8847bb5b4681c1b89c8dca8b030e5a300950f25b91b33f7",
+      "bytes": 8513
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round7-e777bdb-shared-harness.log",
+      "sha256": "6e502717d4e5b159143e5f3053f9b910ede68fc0a872a5a757405385c1d256df",
+      "bytes": 8508
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round7-e777bdb-isolated-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}
