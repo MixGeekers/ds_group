@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of history-assert diagnostics and the generalized v1/v2 validation reconcile",
+  "capturedAt": "2026-11-03T06:43:04.398Z",
+  "status": "offline-verified-integration",
+  "baseline": {
+    "head": "cc53c34"
+  },
+  "purpose": "Update the owner-facing reconcile tool description to state the fixed v1+v2 target constants; runtime command already stores the whole return object in diagnostics, so no runtime change is needed. Also verify the round-11 instrument/reconcile slice together with the H7-round11 mapping.",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 15146,
+      "sha256": "d09cfa6cdfeadabb9006ea5efcb1196c319a88e26ed057ffb1eb56c31672e59c"
+    }
+  ],
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD cc53c34 + all round-11 slice files)",
+      "evidence": "artifacts/dsh/slices/round11-integrated-verify.json",
+      "exitCode": 0,
+      "tests": 1605,
+      "pass": 1605,
+      "fail": 0,
+      "skipped": 0,
+      "log": "plugins/shiyu/.local/slice-verify-round11-integrated.log",
+      "logSha256": "5ee768bd7cb9143144b025e3ff83e169dbadff7543fdcb1559a70b9cfbf4177d",
+      "arithmetic": "1583 baseline + 14 history-diagnostic/reconcile tests + 8 H7-round11 = 1605"
+    },
+    "authorChecks": {
+      "h3HistoryDiagnosis": "isolated 1597/1597 (baseline 1583 + 14)",
+      "h7Round11": "isolated 1591/1591 (baseline 1583 + 8) plus harness 123/123"
+    },
+    "hostReconcilePending": "one zero-model generalized reconcile call against the v1/v2 residual Goals is executed next and committed separately."
+  },
+  "knownLimitations": [
+    "The cold-header root-cause candidate is strongly supported by fake-host reproduction but not yet host-confirmed; the dormant liveCut fix is not active.",
+    "The generalized reconcile only classifies and at most cancels inert residual Goals; it never creates or retries an experiment.",
+    "A third bounded experiment still requires an explicit owner decision and a new frozen requestId/template."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; host generalized reconcile pending."
+}

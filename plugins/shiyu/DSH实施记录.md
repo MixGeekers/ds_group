@@ -1661,3 +1661,29 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. v2 尝试失败，无 core 计划/模型轮/Task/worker/核验/native 完成；两次尝试均 0 模型请求。
 2. 根因仍在 history-assert：确定性不匹配，需下一步 instrument 精确 expected/live eventCount、historyDigest、headerHash、inheritedEventCount、references；v2 残留需泛化 reconcile。
 3. **第三次尝试未授权**；先修诊断与清理，再考虑新的显式 owner 决定；产品行/验收等级不变。
+
+## 54. 第十一轮：history-assert 精确诊断、候选根因与 v1/v2 reconcile 泛化
+
+状态：**G1 离线/集成通过**；宿主零模型 reconcile 待执行；第三次真实尝试仍需显式 owner 决定。2026-11-03。
+
+### 54.1 根因候选（强候选、待 host 确认）
+
+- v1/v2 两次真实失败均精确停在 `assertNativeLiveHistory`（`NATIVE_HISTORY_CHANGED`）；失败 Session 落盘恰 4 条：`session` header + 3 条 meta（seq 0,1,2）。
+- 假设：cold snapshot `eventCount` 含 header（=4），live `session.seq` 不含（=3）→ `session.seq !== baseline.eventCount` 每次确定性失败；fake-host 已按该形状复现 `mismatchKind=live-seq-vs-event-count`、expected.eventCount=4、live.seq=3、delta=-1、native create 0。
+- **未猜测性修改产品逻辑**：稳定化行为不变；候选修复以 dormant create-only `liveCut:'seq-excluding-header'` 实现并在 unit 层验证，待 host instrument 确认后一行激活（证据含激活 gate）。
+
+### 54.2 受控诊断与 reconcile 泛化
+
+- `NativeHistoryError.historyDiagnostic`：mismatchKind 枚举（含 `live-seq-vs-event-count`）+ expected/live{eventCount,seq,inheritedEventCount,headerHash16,historyDigestPrefix16}+delta；固定形状紧凑 JSON ≤300 字符、仅 hash 前缀、无正文/路径；经 `GoalOperationUnknownError.diagnostic` 与 bounded runner `historyDiagnostic` 透出，并有独立校验器。
+- reconcile 泛化：固定常量数组 [v1,v2]，一次 owner 调用依次只读分类；每目标语义不变（仅 inert 一次 cancel、postCancel、0 重试/0 模型/不创建）；顶字段保留 v1 兼容 + `targets[]`；调用方不可选择 requestId。集成仅 index 工具描述（13 行）。
+- 测试净增 14（core-event +8、core-validation +6）；作者隔离 1597/1597；**Lead 组合隔离 1605/1605、0 skip**（1583+14+8）。
+
+### 54.3 H7-round11 映射
+
+- 新增 4 来源/19 文件（61 来源/198 文件）：round10-host-v2-create-failure（仅 `fixed-host-failure-diagnostic`）、v2-experiment-activation（1583；host 尝试随后失败，不得当成功）、h7-round10-clean-artifacts（blobCommit b5bc3cc）、round10-review（info-only 未映射）；merge 仅记录 info note。
+- 产品行仍 79/79 not_covered、covered=0、tooling_ready/V/S/FL 不升级；harness 123/123、作者隔离 1591/1591。
+
+### 54.4 下一步
+
+- 宿主零模型执行泛化的 `shiyu_reconcile_core_validation_goal`：预期 v1 目标 cancelled 不再动作、v2 目标 inert-unauthorized → 恰一次 cancel；0 模型/0 重试/不创建。
+- 若 reconcile 回执与审计一致，再讨论激活 dormant cut 修复；第三次 v2/v3 实验室仍是**新的显式 owner 决定**，不得重试 v1/v2。
