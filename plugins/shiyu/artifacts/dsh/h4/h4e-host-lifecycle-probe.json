@@ -1,0 +1,160 @@
+{
+  "slice": "H4e-host-lifecycle-probe：固定宿主零模型隔离生命周期探针（:memory: ControlStore）",
+  "recordedAt": "2026-11-02T21:41:46-04:00",
+  "workspace": "plugins/shiyu",
+  "baseline": {
+    "head": "0819d11",
+    "note": "隔离 worktree 仅含本切片 2 个源码/测试文件；runtime.ts/index.ts 未改，集成以精确 diff 交由 Lead 应用。"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "plugins/shiyu/src/control/inner-lifecycle-probe.ts",
+        "sha256": "5981dfa697ca3878a6375e9377c653cfcd0495a569e5f18d99bab0a671555f00",
+        "bytes": 25628,
+        "lines": 358
+      },
+      {
+        "path": "plugins/shiyu/tests/inner-lifecycle-probe.test.ts",
+        "sha256": "eea71b49a5b9cdba588b2a8d520d9419cedb7a6d5276dd64101284715303c4e9",
+        "bytes": 10361,
+        "lines": 164
+      },
+      {
+        "path": "plugins/shiyu/artifacts/dsh/h4/h4e-runtime-integration.diff",
+        "sha256": "79f5747cfced7e4cddce153a7f0dc340312527d27425b6ae356374d4673ac67b",
+        "bytes": 4798,
+        "lines": 71
+      }
+    ],
+    "probeModule": {
+      "path": "src/control/inner-lifecycle-probe.ts",
+      "exports": [
+        "probeInnerLifecycle(options)",
+        "RuntimeInnerLifecycleProbeCommand",
+        "validateInnerLifecycleProbeReceipt",
+        "innerLifecycleDiagnosisTool",
+        "INNER_LIFECYCLE_PROBE_ACTION",
+        "INNER_LIFECYCLE_PROBE_TOOL"
+      ],
+      "isolation": "在私有 Worker 中打开 ControlStore({filename:\":memory:\"})；模块不接收 live dataDir/filename（未知选项直接 INNER_LIFECYCLE_PROBE_INPUT），不读 src/runtime 上下文、不触碰 live 控制库/文件；finally 关闭 store 并报告 cleanup.storeClosed/workerTerminated。",
+      "scenario": [
+        "open-isolated-in-memory-store",
+        "seed-isolated-conversation",
+        "seed-relationship-source",
+        "seed-dependent-cognition",
+        "seed-personality-version-dependency",
+        "capture-metadata-before-change",
+        "record-derived-revision",
+        "withdraw-source-and-recompute",
+        "verify-derived-degradation",
+        "verify-stale-capture-rejected",
+        "verify-stale-bodies-rejected",
+        "verify-recompute-idempotent",
+        "verify-source-not-revived",
+        "verify-personality-version-degrades-dependants"
+      ],
+      "checks": [
+        "dependent-not-current",
+        "degradation-reason-present",
+        "stale-capture-rejected",
+        "stale-bodies-rejected",
+        "exactly-one-revision-bump",
+        "recompute-idempotent",
+        "withdrawn-source-cannot-revive",
+        "profile-version-needs-review",
+        "stale-personality-capture-rejected"
+      ],
+      "receipt": "schemaVersion/toolName/zeroModel/zeroEmbedding/zeroTaskOrEffect/store=in-memory/liveDataTouched=false/status/startedAt/completedAt/durationMs/scenario/steps/checks/diagnostics{derivedRevisionBefore/After,degradation,staleCaptureRejected,staleBodyRejected,recomputeIdempotent,sourceRevivalRefused,cleanup,zeroActivity,livePathsAccepted}/released/disposed；严格 lossless+bounded 校验（默认 ≤24KiB，违反即 INNER_LIFECYCLE_PROBE_INVALID）。失败也构造并校验 failed receipt（disposed 反映真实清理）。",
+      "command": "RuntimeInnerLifecycleProbeCommand：精确 {action:\"runtime.probe-inner-lifecycle\"}、open/unpaused 准入、单槽（BUSY）、signal 可中止、每次调用最多一次 probe（无自动重试）、失败/非法 receipt 不缓存，合法 receipt 缓存供 diagnostics。",
+      "tool": "innerLifecycleDiagnosisTool(service)：工具名 shiyu_diagnose_inner_lifecycle，无参数（properties:{} + additionalProperties:false），并发不安全，仅路由上述 owner 命令。"
+    },
+    "runtimeIntegration": {
+      "status": "not-applied（写作用域不允许改 runtime.ts/index.ts）；已在临时 worktree /tmp/h4e-integration 对 0819d11 应用精确 diff 并验证 typecheck/build 通过。",
+      "diffFile": "plugins/shiyu/artifacts/dsh/h4/h4e-runtime-integration.diff",
+      "diffSummary": [
+        "runtime.ts: 导入 probe 模块；新增 innerLifecycleProbeCommand/Receipt 字段；init 中构造 command（isOpen/isPaused/onReceipt）；command 分派 action；commandInnerLifecycleProbe 采用 ensureCanRun+signal+单槽语义并把 lastFailure 清零；snapshot diagnostics 新增只读 innerLifecycleProbe。",
+        "index.ts: 导入并注册工具 shiyu_diagnose_inner_lifecycle。"
+      ],
+      "contracts": [
+        "命令仅 owner 路由（/api/shiyu/commands），GET/snapshot 永不触发 probe；工具调用只经 service.command。",
+        "receipt 只存 diagnostics.innerLifecycleProbe，不写 publication/Event/Task/Effect/Session/业务行。"
+      ]
+    },
+    "hostKit": {
+      "purpose": "Lead 应用 diff 后做一次固定宿主零模型验证（本轮未执行 reload，不宣称宿主通过）。",
+      "steps": [
+        "应用 h4e-runtime-integration.diff 到 runtime.ts/index.ts，typecheck+build，安装 dist 后做一次有序 reload（仅零模型）。",
+        "reload 后调用工具 shiyu_diagnose_inner_lifecycle（无参数），期望 status=passed、store=in-memory、liveDataTouched=false、checks 全 passed。",
+        "可选 owner 路由：POST /api/shiyu/commands {\"action\":\"runtime.probe-inner-lifecycle\"}，确认同一 receipt；确认 GET /api/shiyu/state 的 diagnostics.innerLifecycleProbe 为最后一次验证 receipt 或 null。",
+        "paused 状态下调用应返回 INNER_LIFECYCLE_PROBE_PAUSED；命令不支持参数/不会重试。",
+        "独立审计：工具调用前后 live 控制库 commitSeq、stateVersion、Task/Goal/Lab/预算/Effect/Session 文件计数应不变（probe 只用 :memory:；除 lastFailure/内存 diagnostics 外不写 live 状态），且无模型/embedding 调用痕迹。",
+        "记录：工具输出 JSON 的 sha256/bytes、reload 实例 ID、前后审计摘要、diagnostics.innerLifecycleProbe 字段；保存为宿主证据 artifact。"
+      ],
+      "acceptanceBoundary": "通过仅证明“固定宿主上零模型隔离探针可运行且不触 live 数据”；不证明模型/业务/真实 Ombre/恢复/长历史。"
+    }
+  },
+  "verification": {
+    "isolatedWorktree": {
+      "path": "/tmp/shiyu-h4e-probe",
+      "head": "0819d11",
+      "method": "git worktree --detach 0819d11 + 仅 probe 模块/测试；node_modules 与 .local/ombre symlink",
+      "command": "cd /tmp/shiyu-h4e-probe/plugins/shiyu && npm run check",
+      "exitCode": 0,
+      "typecheck": "pass",
+      "tests": 1507,
+      "pass": 1507,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 403953,
+      "build": "pass",
+      "clientSyntax": "pass",
+      "log": {
+        "path": ".local/h4e-probe-check-final.log",
+        "sha256": "a11adb7bf76777935d9e476028de43935f6d0dd96370b6a1c46c770d3ea33826",
+        "bytes": 162609
+      }
+    },
+    "probeTests": {
+      "file": "tests/inner-lifecycle-probe.test.ts",
+      "count": 9,
+      "pass": 9,
+      "coverage": [
+        "完整场景正例（derivedRevisionBefore→After 恰好 +1、依赖非 current、旧 capture/正文拒绝、不复活、personality 版本 needs_review、cleanup/zero activity/liveDataTouched=false）",
+        "receipt lossless/bounded/校验负例",
+        "重复运行独立且各自 +1",
+        "signal 中止（mid-probe）→ ABORTED 且 disposed/storeClosed=true",
+        "afterStep 合成失败→failed receipt+cleanup",
+        "deadline 中途超时→DEADLINE+cleanup",
+        "owner command 输入/BUSY/paused/closed 与单槽、receipt 缓存",
+        "owner command 失败不重试、非法 receipt 拒绝",
+        "tool 无参数/仅路由 owner action/拒绝 live 路径选项"
+      ]
+    },
+    "integrationCompileCheck": {
+      "worktree": "/tmp/h4e-integration",
+      "head": "0819d11",
+      "method": "临时 worktree 应用精确 integration diff（runtime.ts/index.ts）",
+      "command": "npx tsc --noEmit && npx tsc -p tsconfig.build.json",
+      "result": "typecheck/build pass（不提交、不改主树 runtime/index）"
+    },
+    "mainTreeTypecheck": "本切片新增文件无类型错误（主树其他切片 WIP 未计入）。",
+    "testArithmetic": "HEAD 0819d11 基线 1498 + 新增 9 = 1507（隔离 worktree 单批，不与历史批次相加）"
+  },
+  "evidenceLevel": "G1 模块/集成测试 + 真实 WorkerThread 与真实 :memory: SQLite（隔离于 live 数据根）；零模型/零 embedding/零 Task/Effect。固定宿主实际工具/命令与 reload 未执行，待 Lead 应用集成 diff 后用 hostKit 留证。",
+  "failures": [],
+  "boundaries": [
+    "本轮未改 runtime.ts/index.ts/client、未 git 提交、未宿主 reload；因此 shiyu_diagnose_inner_lifecycle 与 runtime.probe-inner-lifecycle 尚未在真实宿主可见，hostKit 是其验收步骤。",
+    "探针在每个 step 前检查 abort/deadline；宿主 HTTP 取消信号经命令透传（集成 handler 传递 request signal），单槽由 command 类保证；工具调用路径本身无用户参数/取消入口。",
+    "probe 的 :memory: store 是真实 SQLite Worker，但不是 live 控制库；探针不证明 live 数据不变——这需要 Lead reload 后的独立前后审计。",
+    "receipt 只存 diagnostics；不是 publication、授权、Task/Effect 完成或业务验收事实。",
+    "场景跳过 memory 域（无 memory backend）：使用 relationship/emotion/cognition/personality 真实域与 relationship/personality 两类来源变化；memory→派生链已在 H4e 离线测试覆盖，不在本探针内。"
+  ],
+  "reproduce": [
+    "git -C <repo> worktree add --detach /tmp/shiyu-h4e-probe 0819d11",
+    "复制 src/control/inner-lifecycle-probe.ts、tests/inner-lifecycle-probe.test.ts；ln -s 主树 node_modules 与 .local/ombre",
+    "cd /tmp/shiyu-h4e-probe/plugins/shiyu && npm run check",
+    "cd <repo>/plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/inner-lifecycle-probe.test.ts"
+  ]
+}

@@ -1,0 +1,71 @@
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ imports @@
+ import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
+ import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
++import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
+ import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
+@@ fields after checkpointProbeReceipt @@
+   /** Last validated probe receipt; the only place it is stored (snapshot diagnostics). */
+   private checkpointProbeReceipt?: CheckpointProbeResult;
++  /** H4e-probe: owner-only zero-model isolated lifecycle command + last validated receipt. */
++  private innerLifecycleProbeCommand?: RuntimeInnerLifecycleProbeCommand;
++  private innerLifecycleProbeReceipt?: InnerLifecycleProbeReceipt;
+@@ init after checkpointProbeCommand construction @@
+         isOpen: () => !this.closed && !this.closing,
+         isPaused: () => this.pauseRequested,
+         onReceipt: receipt => { this.checkpointProbeReceipt = receipt; },
+       });
++      // H4e-probe: the probe owns its own :memory: ControlStore. This command is
++      // never reached by GET/snapshot; the live store and dataDir are not inputs.
++      this.innerLifecycleProbeCommand = new RuntimeInnerLifecycleProbeCommand({
++        isOpen: () => !this.closed && !this.closing,
++        isPaused: () => this.pauseRequested,
++        onReceipt: receipt => { this.innerLifecycleProbeReceipt = structuredClone(receipt); },
++      });
+       const labStatus = await this.store.request('lab.status', {});
+@@ command dispatch after runtime.checkpoint.probe @@
+     // H5b-probe: read-only availability receipt, dispatched before ensureCanRun()
+     // so a paused runtime can still be diagnosed without model/dispatch effects.
+     if (action === 'runtime.checkpoint.probe') return this.commandCheckpointProbe(value, signal);
++    if (action === INNER_LIFECYCLE_PROBE_ACTION) return this.commandInnerLifecycleProbe(value, signal);
+     if (action === 'conversation.linkLocalTask') {
+@@ handler after commandCheckpointProbe @@
+   private async commandCheckpointProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<CheckpointProbeResult> {
+     this.ensureOpen();
+     if (!this.checkpointProbeCommand) throw new Error('CHECKPOINT_UNAVAILABLE');
+     return this.checkpointProbeCommand.handle(value, signal);
+   }
++
++  /** Owner-only zero-model isolated lifecycle probe (same admission as
++   * session.probe: open and unpaused, single slot, abortable, no automatic retry).
++   * It validates the exact command shape, never receives a live path, and stores
++   * only the validated receipt in snapshot diagnostics. */
++  private async commandInnerLifecycleProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<InnerLifecycleProbeReceipt> {
++    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid inner lifecycle probe input');
++    this.ensureCanRun(); signal?.throwIfAborted();
++    if (!this.innerLifecycleProbeCommand) throw new Error('INNER_LIFECYCLE_PROBE_UNAVAILABLE');
++    const receipt = await this.innerLifecycleProbeCommand.handle(value, signal);
++    this.lastFailure = undefined;
++    return receipt;
++  }
+ 
+   private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+@@ snapshot diagnostics (last property) @@
+         notifications: this.notificationRouter ? { enabled: true } : { enabled: false },
+-        checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null },
++        checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null,
++        // Diagnostics-only projection; never a publication, authorization or completion fact.
++        innerLifecycleProbe: this.innerLifecycleProbeReceipt ? structuredClone(this.innerLifecycleProbeReceipt) : null },
+--- a/plugins/shiyu/src/index.ts
++++ b/plugins/shiyu/src/index.ts
+@@ imports @@
+ import { RuntimeService } from './runtime.js';
++import { innerLifecycleDiagnosisTool } from './control/inner-lifecycle-probe.js';
+ import type { RuntimeConfig } from './runtime.js';
+@@ tool registration after checkpointAvailabilityTool @@
+   ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));
++  // Zero-model isolated inner-lifecycle diagnosis. It constructs a private
++  // :memory: store, never opens the live control database and never calls a model.
++  ctx.effect(() => ctx.tools.register(innerLifecycleDiagnosisTool(service)));
+   ctx.effect(() => ctx.tools.register(timeTriggerDiagnosisTool(service)));
