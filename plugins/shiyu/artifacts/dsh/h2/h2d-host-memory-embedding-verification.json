@@ -79,8 +79,9 @@
   },
   "statusFinal": {
     "file": "artifacts/dsh/h2/host/status-final.json",
-    "bytes": 64889,
-    "sha256": "4ac9e162bcada358e0127e8b724cbef37e39cba389a0a55e63904fb418f28af6"
+    "bytes": 68173,
+    "sha256": "4ac9e162bcada358e0127e8b724cbef37e39cba389a0a55e63904fb418f28af6",
+    "bytesSemantics": "actual committed file bytes (UTF-8)"
   },
   "operationsEvidence": {
     "file": "artifacts/dsh/h2/host/memory-probe-operations.json",

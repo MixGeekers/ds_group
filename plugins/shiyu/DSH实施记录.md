@@ -2135,3 +2135,34 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - clean X：**1764/1764、0 skip**；selfproof 22 files/182；traceability **92/92 sources（368 文件、0 unknown）**；产品行 79/79 not_covered、V/S/FL 不升级；acceptance gate=incomplete/executed=passed=0。
 - 宿主证据：`artifacts/dsh/host/round17-joint-emotion-memory.json` + `host/round17/`（emotion/memory receipts、3 审计）。
 - **真实多轮聊天记忆闭环、可写共享工作区真实任务执行均未做**：下一步。
+
+## 74. 第十七轮独立复核与 F17 处置（round-17 收尾）
+
+2026-11-03，独立验证员完成 round-17 只读复核（task-71）：**P0 memory gate/宿主 embedding round-trip、可写 workspace、emotion、stream/v7 边界真实；单用户多轮真实聊天记忆闭环未执行；H7 未升级；X+1 符合约定。** 报告：[ROUND17-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND17-EVIDENCE-REVIEW.md>)、[round17-evidence-review.json](<artifacts/dsh/verify/round17-evidence-review.json>)。
+
+### 74.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| P0 memory | semantic_search 仅在 embeddingVerified+profile+索引非空后声明；宿主 round-trip ok=true、index/search embedding 各 1、semanticHit、exact body、postWithdraw MEMORY_READ_FORBIDDEN；readiness exact_read/EMBEDDING_UNVERIFIED → exact_read+semantic_search/embeddingVerified；+10 commitSeq、0 generation model；2+1 synthetic withdrawn 披露 |
+| 可写 workspace | 硬链接镜像、原地写传播 canonical、新文件 publish、删除默认 task-link-only/ownerDecision、锁/冲突 unknown/manifest tamper/回滚/跨设备/符号链接/外部 inode/allowlist 覆盖；15 tests、隔离 1715/1715；`runtimeWired=false`（未接 Runtime/TaskRunner） |
+| 情绪延续 | h4f 1727/1727；宿主 probe 15/15 checks、zeroModel/embedding、liveDataTouched=false、cleanup；context/memoryDimension 只读；无 set_emotion/pulse；Ombre 仅 valence/arousal 元数据且未写；不宣称主观体验/长期人格 |
+| stream/v7 | 分类/无正文/无自动重试/Goal Session 摘要真实；v7 exact-only、未执行；第七次未授权 |
+| 宿主 round17 | 1 reload 556→563、probes 563→573 仅 +10 commitSeq；sessions40/goals8/events/state 不变；无 Task/Effect/业务写 |
+| X+1 | 11 artifacts、code diff0、manifest head=6f6268d/dirty=false/leaks0、clean 1764/1764、selfproof 22/182、92/92 sources/368 files/0 unknown、产品 79/79 not_covered、gate incomplete/executed=passed=0 |
+
+### 74.2 F17 处置
+
+| ID | 处置 |
+|---|---|
+| **F17-R1（minor-bytes）** | 已修：h2d statusFinal bytes 改为实际 **68,173**/sha `4ac9e162…` + semantics |
+| **F17-R2（minor-self-hash）** | 已修：workspace evidence 的 self 条目从 fingerprints.files 移除并记录 `selfEntryExcluded`；其余 4 个文件事实不变 |
+| F17-R3（info） | memory synthetic 累计 3/stale 4 已披露（2→3）；coverage incomplete 已标注 |
+| F17-R4（info） | round-17 P0/emotion/workspace/v7 新证据未入 H7（round-18）；无 unknown/升级 |
+
+### 74.3 边界（必须保留）
+
+1. **未执行**真实单用户多轮聊天记忆闭环（模型可见召回）；h2d 的 hostKit 仍待执行，不得宣称聊天记忆通过。
+2. **未执行**可写共享工作区的 Runtime/TaskRunner 真实任务；workspace 仅适配器层 + 测试。
+3. **未执行** v7 宿主尝试（第七次需显式 owner 授权）；live 情绪行为/主观体验未验证。
+4. P0/emotion/workspace 均未升级到 V25/业务/九系统；产品 79/79 not_covered；acceptance gate=incomplete、executed=passed=0。

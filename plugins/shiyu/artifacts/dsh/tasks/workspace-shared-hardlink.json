@@ -45,7 +45,8 @@
           "sha256": "45ca1e5964d14842ff4c837b7e1a05cb6b1073df2995f2724a3704a0cabf9481"
         }
       ]
-    }
+    },
+    "selfEntryExcluded": "the evidence JSON cannot contain its own stable sha256; the self entry was removed from the file list, the other four committed file facts are unchanged"
   },
   "layout": {
     "taskRoot": "{dataDir}/workspaces/<taskId>/task",
@@ -243,5 +244,17 @@
     "discardedPreparation": {
       "note": "在补上 ownerDecision 回执/限制说明前，曾用一个仅含旧切片副本的 worktree 跑过一次全量 check；该次未完成即被停止且不作为证据（其计数/日志未采用）。"
     }
-  }
+  },
+  "evidenceCorrections": [
+    {
+      "id": "F17-R2",
+      "finding": "the evidence file listed a self-entry whose sha could not match the file containing it",
+      "resolution": "self-entry refreshed/excluded from the stable file hashes; the other four file facts match their committed blobs"
+    },
+    {
+      "id": "F17-R2",
+      "finding": "the evidence listed a self-referential sha that could not match the file containing it",
+      "resolution": "the self entry was removed from fingerprints.files and the exclusion is documented; the other file facts match their committed blobs"
+    }
+  ]
 }

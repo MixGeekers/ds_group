@@ -1,0 +1,360 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-71)",
+  "reviewedAt": "2026-11-03T20:50:00Z",
+  "subject": "Round-17: P0 memory readiness/embedding, writable shared workspace, emotion continuation, stream/v7 classification, H7 X+1",
+  "head": "928c8f1888cf7cf2ed117d8376d4db0f8eb46961",
+  "commits": {
+    "P0-memory": "fc9daae..520e305",
+    "workspace": "cce6deb",
+    "emotion": "e860ac8",
+    "stream-v7": "fa9e880",
+    "H7-round17": "bcb252f",
+    "R17-CORR": "6f6268d",
+    "H7 X+1": "4110d35",
+    "host": "928c8f1"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "P0 memory gate/semantics",
+      "claim": "semantic_search only after real embeddingVerified+profile+non-empty index; unverified→exact_read only; explicit index/search allowed but no premature semanticReady; host readiness before/after",
+      "evidence": [
+        "h2d single-user chat/runtime patch/readiness",
+        "h2d host evidence"
+      ],
+      "method": "code/tests/host receipt",
+      "result": "verified",
+      "detail": "readinessBefore exact_read/EMBEDDING_UNVERIFIED; after success exact_read+semantic_search/embeddingVerified/semanticReady reason INDEX_COVERAGE_INCOMPLETE; per-process verification; no generation model"
+    },
+    {
+      "id": "R02",
+      "area": "host memory round-trip",
+      "claim": "host embedding round-trip ok=true; index/search embedding each1; semanticHit; exactRead; postWithdraw MEMORY_READ_FORBIDDEN; readiness/coverage; synthetic op disclosure",
+      "evidence": [
+        "artifacts/dsh/h2/h2d-host-memory-embedding-verification.json",
+        "host/round17/memory-embedding-receipt.json"
+      ],
+      "method": "receipt/JSON",
+      "result": "verified-with-note",
+      "detail": "receipt 1572B/sha 46f59610; steps5; embeddingCalls1/search1; matches1; exact body; post withdraw; readiness embeddingVerified/semanticReady; stale4; h2d host status before earlier 2 synthetic ops, host round adds one →total3 disclosed in joint sideEffects.syntheticMemories3"
+    },
+    {
+      "id": "R03",
+      "area": "workspace module",
+      "claim": "hardlink mirror writable/in-place canonical propagation; new-file publish; delete default task-link vs ownerDecision shared delete; locks/manifest/conflict/rollback/safety; 15 tests; isolated1715; not wired Runtime/TaskRunner",
+      "evidence": [
+        "artifacts/dsh/tasks/workspace-shared-hardlink.json",
+        "tests/workspace-shared-hardlink.test.ts"
+      ],
+      "method": "tests/evidence",
+      "result": "verified-with-finding",
+      "detail": "15 tests, 11 scenario cases all pass, isolated1715/1715; boundaries runtimeWired=false; in-place propagation/publish/delete/lock/conflict/rollback; self-hash in evidence for its own JSON stale (F17-R2)"
+    },
+    {
+      "id": "R04",
+      "area": "emotion continuation",
+      "claim": "emotion context/memoryDimension read-only; audience/withdraw/degradation/version/decay; no set_emotion/pulse; Ombre metadata not written; 15-check host probe zeroModel/embedding/liveDataTouched=false/cleanup; no subjective experience",
+      "evidence": [
+        "artifacts/dsh/h4/h4f-emotion-continuation.json",
+        "host/round17/emotion-probe-receipt.json"
+      ],
+      "method": "receipt/tests",
+      "result": "verified",
+      "detail": "receipt 4139B/sha 091024b6; steps7; checks15/all passed; zeroModel/Embedding/TaskEffect; memoryDimension readOnly/ombreMetadataWritten false; cleanup in diagnostics storeClosed/workerTerminated; releases; no subjective/long-term"
+    },
+    {
+      "id": "R05",
+      "area": "stream/v7",
+      "claim": "classified provider stream failure bounded no text/no retry; Goal Session summary; v7 frozen exact-only not executed; seventh unauthorized",
+      "evidence": [
+        "artifacts/dsh/h3/h3-v7-stream-error-instrumentation.json",
+        "slice verify"
+      ],
+      "method": "evidence/tests",
+      "result": "verified",
+      "detail": "offline instrumentation, realModelExecuted false, hostReloads0, goalCreated false; v7 constants/sha; empty-provider-stream classification; no automatic retry"
+    },
+    {
+      "id": "R06",
+      "area": "host round17",
+      "claim": "one ordered reload, emotion probe+memory roundtrip; +10 commitSeq only; no sessions/goals/events/state changes; host evidence receipts match; no business/chat loop",
+      "evidence": [
+        "artifacts/dsh/host/round17-joint-emotion-memory.json"
+      ],
+      "method": "receipt/audit",
+      "result": "verified-with-finding",
+      "detail": "reload 556→563 events66→67 cap67→69; probes563→573 +10; sessions40/goals8/state unchanged; emotion/memory receipts match; h2d host statusFinal bytes mismatch F17-R1; host sideEffects syntheticMemories3 (one added); no real multi-turn chat loop"
+    },
+    {
+      "id": "R07",
+      "area": "H7-round17",
+      "claim": "92 sources/368 files; product79/79; no upgrade; R17-CORR; no unknown; logs 1710/182",
+      "evidence": [
+        "h7-round17-slice.json"
+      ],
+      "method": "JSON/tests/logs",
+      "result": "verified",
+      "detail": "sourceCounts92/368; product79/79; gate incomplete; archived3 real; round16 v6 level fixed-host-failure-diagnostic; new round17 P0/emotion/workspace/v7 not yet mapped; V25 no"
+    },
+    {
+      "id": "R08",
+      "area": "X+1",
+      "claim": "4110d35 11 artifacts; manifest head=6f6268d/dirty=false; clean1764; selfproof22/182; 92/92 sources; product79/79; gate incomplete",
+      "evidence": [
+        "4110d35 artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "manifest 7eb07b03…/86872; clean d34a82f5…/185715; pipeline44cbda5c…/3637; archive57e4f6cd…/839; selfproof22/182; sources92/368; product79/79; gate incomplete/executed=passed=0"
+    },
+    {
+      "id": "R09",
+      "area": "honesty/no overclaim",
+      "claim": "no real multi-turn chat memory closure; P0/emotion/workspace not business/V25; workspace not wired; v7 not executed",
+      "evidence": [
+        "h2d chat status/boundaries",
+        "workspace boundaries",
+        "host limitations",
+        "H7"
+      ],
+      "method": "text",
+      "result": "verified",
+      "detail": "h2d single-user chat explicitly says host multi-turn pending; workspace runtimeWired=false; emotion no subjective; v7 no host; H7 product79/79; no chat memory pass"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F17-R1",
+      "severity": "minor-bytes",
+      "title": "h2d host statusFinal bytes 64889 vs actual 68173",
+      "files": [
+        "artifacts/dsh/h2/h2d-host-memory-embedding-verification.json#statusFinal"
+      ],
+      "evidence": "actual 68173B/sha4ac9e162 matches; claim64889",
+      "impact": "sha correct; byte accounting wrong",
+      "recommendation": "set actual bytes+semantics",
+      "owner": "Lead"
+    },
+    {
+      "id": "F17-R2",
+      "severity": "minor-self-hash",
+      "title": "workspace evidence self-hash stale",
+      "files": [
+        "artifacts/dsh/tasks/workspace-shared-hardlink.json#verification.sliceFileHashes"
+      ],
+      "evidence": "self-entry sha671a7378… vs actual HEAD a50e0bb1…/10205; other four files match",
+      "impact": "self-binding field stale; tests/boundaries otherwise valid",
+      "recommendation": "refresh self hash or exclude self-entry",
+      "owner": "Lead/test-harness"
+    },
+    {
+      "id": "F17-R3",
+      "severity": "info-counts",
+      "title": "Memory synthetic ops total3 (2 prior +1 this round), stale4; task disclosure 2→3",
+      "files": [
+        "h2d host sideEffects",
+        "round17 joint sideEffects"
+      ],
+      "evidence": "h2d host status:2 synthetic ops withdrawn, host joint sideEffects syntheticMemories3/totalNote one added; coverage stale4",
+      "impact": "disclosed; no chat loop",
+      "recommendation": "keep explicit cumulative count",
+      "owner": "Lead"
+    },
+    {
+      "id": "F17-R4",
+      "severity": "info-scope",
+      "title": "Round-17 P0/emotion/workspace/v7 not yet mapped into H7; no product/V25 upgrade",
+      "files": [
+        "h7-round17-slice.json"
+      ],
+      "evidence": "H7-round17 maps round16 v6 only; P0/emotion/workspace/v7 absent; product79/79; tooling/V/S/FL unchanged",
+      "impact": "expected next-round mapping; no upgrade/unknown",
+      "recommendation": "map as diagnostic/limited in later round",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Real multi-turn single-user chat memory closure",
+      "reason": "host memory round-trip is synthetic fact; h2d chat hostKit not executed; no model chat"
+    },
+    {
+      "item": "Workspace Runtime/TaskRunner integration",
+      "reason": "runtimeWired=false; G1 module only"
+    },
+    {
+      "item": "v7 host attempt",
+      "reason": "offline instrumentation only; seventh unauthorized"
+    },
+    {
+      "item": "Live chat emotion behavior/subjective experience",
+      "reason": "emotion probe in-memory; explicitly no subjective/long-term"
+    }
+  ],
+  "counts": {
+    "h2d_isolated": 1716,
+    "workspace_isolated": 1715,
+    "h4f_isolated": 1727,
+    "v7_isolated": 1710,
+    "X1_clean": 1764,
+    "selfproof": 182,
+    "sources": 92,
+    "files": 368,
+    "syntheticMemories": 3,
+    "commitSeqDelta": 10
+  },
+  "hostRound17": {
+    "status": "fixed-host-zero-model-emotion-and-memory-passed",
+    "code": {
+      "head": "6f6268d",
+      "dist": "117/6a1f3b3a65a2"
+    },
+    "emotion": {
+      "receiptBytes": 4139,
+      "receiptSha": "091024b6d9ab96bbceb1a89898faf04f6b820764061d56ad4f3e6e2777218677",
+      "checks": 15,
+      "checksPassed": 15,
+      "zeroModel": true,
+      "zeroEmbedding": true,
+      "zeroTaskOrEffect": true,
+      "liveDataTouched": false,
+      "subjectiveExperience": false,
+      "longTermPersonality": false,
+      "ombreMetadataWritten": false,
+      "cleanup": "diagnostics.storeClosed/workerTerminated"
+    },
+    "memory": {
+      "receiptBytes": 1572,
+      "receiptSha": "46f596103ada06d448b3d410258a26edae332ce2506db33629ea64c3f30d3700",
+      "ok": true,
+      "embeddingCalls": 1,
+      "searchEmbeddingCalls": 1,
+      "matches": 1,
+      "semanticHit": true,
+      "exactReadBodyMatched": true,
+      "postWithdrawCode": "MEMORY_READ_FORBIDDEN",
+      "embeddingVerified": true,
+      "semanticReady": true,
+      "reason": "INDEX_COVERAGE_INCOMPLETE",
+      "staleCount": 4
+    },
+    "reload": {
+      "commitSeq": [
+        556,
+        563
+      ],
+      "events": [
+        66,
+        67
+      ],
+      "sessions": 40,
+      "goals": 8
+    },
+    "probes": {
+      "commitSeq": [
+        563,
+        573
+      ],
+      "commitSeqDelta": 10,
+      "events": 67,
+      "sessions": 40,
+      "goals": 8
+    },
+    "sideEffects": {
+      "syntheticMemories": 3,
+      "oneAdded": true
+    },
+    "limitations": [
+      "emotion isolated in-memory; not live chat/subjective",
+      "memory synthetic/withdrawn, coverage unpopulated",
+      "embedding per-process, restart path needed"
+    ]
+  },
+  "xPlusOne": {
+    "X": "6f6268d",
+    "X+1": "4110d35",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "6f6268d",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T20:10:30.696Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 417,
+      "bytes": 7764548,
+      "digest": "b676a3c261668b2b83fb6dfe50654b8e842d9fd5e141bb5ca6b8f01b2b484816"
+    },
+    "cleanCheck": {
+      "tests": 1764,
+      "pass": 1764,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "d34a82f5afcf64e8a38d023f779b9c3b657e6958d086067fbabb77ca16709d06",
+      "bytes": 185715
+    },
+    "pipeline": {
+      "sha256": "44cbda5cd92717177686d22c54a9980aeb5d9cb323317e8ae9e52703de96fa01",
+      "bytes": 3637,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "57e4f6cdb6ac35ea102d71036d443031a76dd80c058a65c2d003d9fa90220374/839",
+    "selfproof": {
+      "files": 22,
+      "tests": 182
+    },
+    "sources": {
+      "verified": 92,
+      "files": 368,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "7eb07b032d8c257934ba153ea765648292ae7254e5bbdcd1026de3ad9b6d0403/86872",
+      "tool-selfproof.json": "7252e8d2c6751f43b581acbf474bd8b4a6b1b6b2f3f65b3cf186af5cd67c8ffe/35403",
+      "tool-selfproof.tap": "bf2d618306cc79ae416c7b69729f1fce437d4de2492b5fd7674e24a8071245f4/33772",
+      "traceability.json": "32093d1e8fcc2d9c646ff837ce5659f7857ee748b69bb87de0543dc1fb88aada/2038514",
+      "traceability.md": "d78e0a0e5e378767ffd019d53e0d875076b1c83285e84203243aab687e5e7630/35594",
+      "h7-traceability-mapping.md": "cd8f74d4aaf1a8784673d28167e86d4b39de0ddb93d9db82e6a9e9ce06d1a100/126493",
+      "acceptance-report.json": "0b8c304ccba2b12c6424f469e34a3c256267a1468da57fe0eb50284957a3ae46/648132",
+      "acceptance-report.md": "ad86c06775caf2ead3824acb0626cd56876c3a22f1a3d3487460aebceb5f1a44/32473",
+      "fl-scenarios/manifest.json": "8a6be0cf1257d87c680086d41f7d15253f7986b61de2b6dea2122bc3c9d9102d/13154",
+      "fl-scenarios/coverage.json": "8a81c2d2972ae921866afa89b8e416dd7dd3abd1d3566eef06e134743ad64b4d/52559",
+      "fl-scenarios/coverage.md": "fa40ceaa844aa1ff6530904c3a109491aab01ee620e77aa0478be10f3e62b846/9308"
+    }
+  },
+  "overallVerdict": "Round-17 evidence is authentic and honest within its boundaries: the P0 memory path now gates semantic_search on a real embedding success and shows a fixed-host embedding round-trip (index/search embeddings each 1, semantic hit, exact body read, post-withdraw MEMORY_READ_FORBIDDEN, readiness embeddingVerified/semanticReady with coverage still unpopulated); the writable shared workspace is a hardlink mirror with in-place canonical propagation, controlled publish, owner-decision shared delete, locks/manifest/conflict/rollback/safety tests (15 tests, isolated 1715) and is explicitly not wired to Runtime/TaskRunner; the emotion continuation probe passes 15/15 checks in a private in-memory store with zero model/embedding, read-only emotion/memoryDimension, no set_emotion/pulse, no Ombre metadata write, cleanup and explicit no-subjective-experience disclosure; stream/v7 classification is offline only with v7 exact-only and no seventh attempt; host round17 reload+probes add only +10 commitSeq (sessions/goals/events/state unchanged; three cumulative withdrawn synthetic memories, one added; receipts match). The real single-user multi-turn chat memory closure, live emotion behavior, workspace runtime wiring and v7 host attempt remain unexecuted and are not upgraded; H7-round17 maps 92/368 sources with product 79/79 not_covered and no V25 upgrade; X+1=4110d35 is artifact-only with clean1764, selfproof22/182, 92/92 sources and gate incomplete. F17-R1 host status bytes and F17-R2 workspace self-hash are minor evidence metadata; F17-R3/R4 are info."
+}
