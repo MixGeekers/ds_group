@@ -126,7 +126,7 @@ test('evidence:system-mapping-boundaries', async () => {
   assert.ok(sys2.sourceIds.some(id => id.startsWith('h2a')), 'system 2 must bind H2a evidence');
   const sys8 = bySystem.get('SYS.8');
   assert.ok(sys8 !== undefined);
-  for (const level of sys8.verifiedLevels) assert.ok(['offline-module', 'slice-verification', 'independent-verification', 'fixed-host-zero-model'].includes(level));
+  for (const level of sys8.verifiedLevels) assert.ok(['offline-module', 'slice-verification', 'independent-verification', 'fixed-host-zero-model', 'fixed-host-failure-diagnostic'].includes(level));
   assert.ok(sys8.limitations.some(item => item.includes('G1')), 'H5 must be described as G1-only');
   assert.ok(sys8.gaps.some(item => item.includes('G1')), 'system 8 gap must say G1-only');
   const sys9 = bySystem.get('SYS.9');

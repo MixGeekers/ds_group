@@ -1,0 +1,213 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.h7-round8-slice-evidence",
+  "phase": "H7-round8",
+  "capturedAt": "2026-11-03T03:05:42.805Z",
+  "baselineHead": "ab628476f151780c006639e252a0b12f224aad05",
+  "status": "code-tests-delivered-not-clean-refresh",
+  "purpose": "Bind round-7 failed bounded core Goal host evidence, H3 validation runner, Lead integration, round7 clean artifact snapshot and review metadata into evidence.ts/acceptance index without granting any pass to failure evidence.",
+  "round7Sources": [
+    {
+      "id": "round7-host-bounded-core-goal-failure",
+      "commits": [
+        "cc2e8d1"
+      ],
+      "levels": [
+        "fixed-host-failure-diagnostic"
+      ],
+      "note": "FAILED create GOAL_OPERATION_UNKNOWN; 0 model requests; no retry; no Task/worker/verification/native complete; partial unauthorized/paused Goal+Session persisted; receipt created=false contradiction corrected; never pass/V25/business/nine-system"
+    },
+    {
+      "id": "h3-bounded-core-validation-runner",
+      "commits": [
+        "9f841bd"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "note": "runner+16 tests+evidence+patch; isolated 1531; implementer did not execute host run"
+    },
+    {
+      "id": "round7-lead-integration",
+      "commits": [
+        "183b649"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "note": "G1 integration isolated 1539; host run separate and failed"
+    },
+    {
+      "id": "h7-round7-clean-artifacts",
+      "commits": [
+        "cf87322"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "blobCommit cf87322; manifest 99948cb2/traceability d9ef2644/acceptance c3bffa29"
+    },
+    {
+      "id": "round7-review",
+      "commits": [
+        "ab62847"
+      ],
+      "levels": [
+        "independent-review-info"
+      ],
+      "note": "info-only review metadata; deliberately not referenced by product/module/system mappings"
+    }
+  ],
+  "sourceCounts": {
+    "sources": 52,
+    "files": 160
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "sha256": "ae60daab59375bb80694d5eedac4dbd3228ed2e30a4a9010241077268d1ae468",
+      "bytes": 124119
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "sha256": "408bb42d480216ebefaf2562925f1017de0d7e717861f2e029895b9752fe69a2",
+      "bytes": 36418
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+      "sha256": "229a27e193ab36ccbf68b6214b6a6388d4513a9330230e9d1b08f9c084a7cf91",
+      "bytes": 13344
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "sha256": "0fe6ff005cfc514aa8e4279c271fb107c9177b6a916230b721a05767a95c4e70",
+      "bytes": 18584
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "sha256": "aa010ddd89374ce0776c98b97c55ba6dbae40fe943f273a3808c153f4dd1a0f7",
+      "bytes": 23353
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round6.test.ts",
+      "sha256": "7fd92ea8b121984913cb7fdd4dcc914f2560517ebee326beb96c6a32333dc714",
+      "bytes": 20213
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round7.test.ts",
+      "sha256": "79cc3e461b4cdf6384c695af90bca73c7ef9f6cff7852395b4433db0735d45a2",
+      "bytes": 17944
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round8.test.ts",
+      "sha256": "7a6c2f2df2bbf41dc82bf6e3f430f33c2ea2b1da30b5e63795b2187394e3b024",
+      "bytes": 17928
+    }
+  ],
+  "commands": [
+    "npx tsc --noEmit",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+    "npm run check (isolated worktree ab62847 + only slice files + slice evidence json)",
+    "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+    "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+  ],
+  "checks": {
+    "sharedTree": {
+      "tsc": {
+        "exitCode": 0
+      },
+      "harness": {
+        "tests": 107,
+        "pass": 107,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round8-ab62847-shared-harness.log",
+          "sha256": "f6772203f685e3d03dd74a10e8bfcbd321ef77005b6be560077ac37c4c134242",
+          "bytes": 8999
+        }
+      }
+    },
+    "isolatedWorktree": {
+      "head": "ab628476f151780c006639e252a0b12f224aad05",
+      "worktree": "/tmp/round8-verify (ephemeral)",
+      "tsc": {
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round8-ab62847-isolated-tsc.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      },
+      "harness": {
+        "tests": 107,
+        "pass": 107,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round8-ab62847-isolated-harness.log",
+          "sha256": "b31fada7dc69f6dd7029a67464bdf46b0f3547f24ae3f45ed17bab4bc313e17c",
+          "bytes": 8997
+        }
+      },
+      "fullCheck": {
+        "tests": 1547,
+        "pass": 1547,
+        "fail": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round8-ab62847-check.log",
+          "sha256": "a172832388cae94867aa867b36ae5f7948070ddf2f120ecf1a9510ddded9cc8f",
+          "bytes": 165887
+        }
+      }
+    }
+  },
+  "productRows": {
+    "total": 79,
+    "notCovered": 79,
+    "covered": 0
+  },
+  "toolingReady": [
+    "TV.1",
+    "TV.2",
+    "TV.3",
+    "TV.4",
+    "TV.5",
+    "TV.6",
+    "TV.7",
+    "TV.9"
+  ],
+  "acceptanceGate": "incomplete",
+  "limitations": [
+    "H7-round8 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+    "Round-7 bounded core Goal host attempt FAILED at create with GOAL_OPERATION_UNKNOWN: 0 model requests, no retry, no Task/worker/verification/native completion, partial unauthorized/paused Goal+Session persisted; never pass/V25/business/nine-system.",
+    "H3 runner is offline/isolated (1531/16 tests); real host run failed.",
+    "Product rows remain not_covered; tooling_ready/V/S/FL are not upgraded; artifacts regenerate at round-end clean HEAD."
+  ],
+  "archivedCopies": [
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round8-ab62847-check.log",
+      "sha256": "a172832388cae94867aa867b36ae5f7948070ddf2f120ecf1a9510ddded9cc8f",
+      "bytes": 165887
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round8-ab62847-isolated-harness.log",
+      "sha256": "b31fada7dc69f6dd7029a67464bdf46b0f3547f24ae3f45ed17bab4bc313e17c",
+      "bytes": 8997
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round8-ab62847-shared-harness.log",
+      "sha256": "f6772203f685e3d03dd74a10e8bfcbd321ef77005b6be560077ac37c4c134242",
+      "bytes": 8999
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round8-ab62847-isolated-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}
