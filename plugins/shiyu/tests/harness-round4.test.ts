@@ -106,7 +106,7 @@ function syntheticEvidenceReport(frozenHead: string): EvidenceVerificationReport
 
 test('round4:new-sources-integrity-and-ancestry', async () => {
   // 8 new round-3 sources, 18 new files, total 30 sources / 72 files.
-  assert.equal(EVIDENCE_SOURCES.length, 30);
+  assert.equal(EVIDENCE_SOURCES.length, 38);
   const ids = new Set(EVIDENCE_SOURCES.map(source => source.id));
   for (const id of ROUND3_SOURCE_IDS) assert.ok(ids.has(id), `missing round-3 source ${id}`);
   const newSources = EVIDENCE_SOURCES.filter(source => ROUND3_SOURCE_IDS.includes(source.id as (typeof ROUND3_SOURCE_IDS)[number]));
@@ -126,9 +126,9 @@ test('round4:new-sources-integrity-and-ancestry', async () => {
   }
   const { report, result } = await verifyEvidenceSources(workspaceRoot, head);
   assert.equal(result.ok, true, JSON.stringify(result.violations.slice(0, 5)));
-  assert.equal(report.counts.sources, 30);
-  assert.equal(report.counts.verified, 30, `unknown sources: ${report.unknownSourceIds.join(',')}`);
-  assert.equal(report.counts.files, 72);
+  assert.equal(report.counts.sources, 38);
+  assert.equal(report.counts.verified, 38, `unknown sources: ${report.unknownSourceIds.join(',')}`);
+  assert.equal(report.counts.files, 103);
   for (const source of newSources) {
     const verified = report.sources.find(item => item.id === source.id);
     assert.ok(verified !== undefined, `${source.id} verified entry`);
@@ -322,10 +322,18 @@ test('round4:slice-evidence-present', async () => {
   assert.equal(evidence.kind, 'shiyu.harness.h7-round4-slice-evidence');
   assert.match(evidence.baselineHead, /^[0-9a-f]{40}$/);
   assert.ok(evidence.files.length >= 2);
+  // The slice evidence is a historical snapshot: compare each declared file to
+  // its blob at the slice commit when available (later slices may modify it),
+  // otherwise fall back to the current worktree file.
   for (const file of evidence.files) {
-    const bytes = await readFile(join(workspaceRoot, file.path));
-    assert.equal(sha256Hex(bytes), file.sha256, `${file.path} slice-evidence sha`);
-    assert.equal(bytes.byteLength, file.bytes);
+    const blob = git(['show', `e273aa7:${file.path}`], 'buffer');
+    if (blob.status === 0) {
+      assert.equal(sha256Hex(blob.stdout as Buffer), file.sha256, `${file.path} slice-evidence blob sha @e273aa7`);
+    } else {
+      const bytes = await readFile(join(workspaceRoot, file.path));
+      assert.equal(sha256Hex(bytes), file.sha256, `${file.path} slice-evidence sha`);
+      assert.equal(bytes.byteLength, file.bytes);
+    }
   }
   const ids = evidence.round3Sources.map(item => (typeof item === 'string' ? item : item.id)).sort();
   assert.deepEqual(ids, [...ROUND3_SOURCE_IDS].sort());

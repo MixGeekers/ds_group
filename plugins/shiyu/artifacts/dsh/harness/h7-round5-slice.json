@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.h7-round5-slice-evidence",
+  "phase": "H7-round5",
+  "capturedAt": "2026-11-02T23:45:32.237Z",
+  "baselineHead": "bcc35911afbcfd8795b771b413f14cf1d5f8a135",
+  "status": "code-tests-delivered-not-clean-refresh",
+  "purpose": "Bind round-4 probe/host/failure evidence (H2b time probe, H2c failed real-model attempt, H5b checkpoint probe, round-4 integration/hotfix/host, H7 round4 slice and clean artifacts) into evidence.ts and the acceptance index with blob/ancestry verification and fail-closed unknown, without any pass upgrade.",
+  "round4Sources": [
+    {
+      "id": "h2b-host-time-probe",
+      "commits": [
+        "8cc6762"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/h2/h2b-host-time-probe.json",
+        "plugins/shiyu/artifacts/dsh/h2/h2b-time-probe-manifest.json",
+        "plugins/shiyu/artifacts/dsh/slices/h2b-time-probe-verify.json"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "h2c-real-model-probe",
+      "commits": [
+        "d2da9c7"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/h2/h2c-real-model-probe.json",
+        "plugins/shiyu/artifacts/dsh/h2/h2c-real-model-probe-integration.patch",
+        "plugins/shiyu/artifacts/dsh/slices/h2c-probe-verify.json"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "implementer did NOT execute real model; host attempt failed before any model request; never pass"
+    },
+    {
+      "id": "h5b-checkpoint-probe",
+      "commits": [
+        "dab6d5b"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/h5/h5b-checkpoint-probe.json",
+        "plugins/shiyu/artifacts/dsh/h5/runtime-checkpoint-probe.diff"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "h7-round4-slice",
+      "commits": [
+        "e273aa7"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/harness/h7-round4-slice.json"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "round4-lead-integration",
+      "commits": [
+        "1f74180"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/integration/round4-lead-integration.json",
+        "plugins/shiyu/artifacts/dsh/slices/round4-integrated-verify.json"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ]
+    },
+    {
+      "id": "round4-localcore-hotfix",
+      "commits": [
+        "af201fe"
+      ],
+      "files": [
+        "plugins/shiyu/src/control/local-core.ts",
+        "plugins/shiyu/tests/local-core.test.ts"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    },
+    {
+      "id": "round4-host-zero-model",
+      "commits": [
+        "bd81270"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json"
+      ],
+      "levels": [
+        "fixed-host-zero-model"
+      ],
+      "note": "zero-model limited + bounded real-model attempt failed before any model request; never pass"
+    },
+    {
+      "id": "h7-round4-clean-artifacts",
+      "commits": [
+        "dfe4372"
+      ],
+      "files": [
+        "plugins/shiyu/artifacts/dsh/harness/manifest.json",
+        "plugins/shiyu/artifacts/dsh/harness/traceability.json",
+        "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json"
+      ],
+      "levels": [
+        "offline-module"
+      ]
+    }
+  ],
+  "sourceCounts": {
+    "sources": 38,
+    "files": 103
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "sha256": "fccc4a6960ce1ddc5a78e1d7b49415863a8dd18e84fe3fa9fe055d1cd3e2edff",
+      "bytes": 92433
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "sha256": "d5577a49209c96971f96772afc1c6e8ca021966f8e821d00bcb42c32934437d0",
+      "bytes": 34301
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "sha256": "bdca55fe4b8545c4a16b61f1d1d76114d30e39d137d08f3ad47ba3b9ed18a342",
+      "bytes": 18351
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "sha256": "05c247e135aa66aee4e8a2259dc063a3ca037684479a31a582f856055a7b99e1",
+      "bytes": 18562
+    }
+  ],
+  "commands": [
+    "npx tsc --noEmit",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+    "npm run check (isolated worktree bcc3591 + only slice files + slice evidence json)",
+    "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+    "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+  ],
+  "checks": {
+    "sharedTree": {
+      "tsc": {
+        "exitCode": 0
+      },
+      "harness": {
+        "tests": 83,
+        "pass": 83,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-shared-harness.log",
+          "sha256": "c42370d9c791135196d7002af5148485f184451a2bf4cb5ae2414fa4a49f3564",
+          "bytes": 7523
+        }
+      }
+    },
+    "isolatedWorktree": {
+      "head": "bcc35911afbcfd8795b771b413f14cf1d5f8a135",
+      "worktree": "/tmp/round5-verify (ephemeral)",
+      "tsc": {
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-isolated-tsc.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      },
+      "harness": {
+        "tests": 83,
+        "pass": 83,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-isolated-harness.log",
+          "sha256": "d17c5a6d723a79c3b7421739b4f325b6294eaf3ad0fe7240cb38f048bea4c0de",
+          "bytes": 7527
+        }
+      },
+      "fullCheck": {
+        "tests": 1479,
+        "pass": 1479,
+        "fail": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-check.log",
+          "sha256": "84a76388b11be2313c66609a9698017ca2404459a0f25e6e18e903ca9e31362d",
+          "bytes": 159850
+        }
+      }
+    }
+  },
+  "productRows": {
+    "total": 79,
+    "notCovered": 79,
+    "covered": 0
+  },
+  "toolingReady": [
+    "TV.1",
+    "TV.2",
+    "TV.3",
+    "TV.4",
+    "TV.5",
+    "TV.6",
+    "TV.7",
+    "TV.9"
+  ],
+  "acceptanceGate": "incomplete",
+  "limitations": [
+    "H7-round5 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+    "H2c bounded real-model attempt failed before any model request and is never pass; round4 host evidence is zero-model limited plus that honest failure.",
+    "H5b checkpoint probe is read-only availability (ready:false); production capture remains blocked.",
+    "Product rows remain not_covered; tooling_ready/V/S/FL are not upgraded; artifacts regenerate at round-end clean HEAD."
+  ],
+  "archivedCopies": [
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-check.log",
+      "sha256": "84a76388b11be2313c66609a9698017ca2404459a0f25e6e18e903ca9e31362d",
+      "bytes": 159850
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-isolated-harness.log",
+      "sha256": "d17c5a6d723a79c3b7421739b4f325b6294eaf3ad0fe7240cb38f048bea4c0de",
+      "bytes": 7527
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-shared-harness.log",
+      "sha256": "c42370d9c791135196d7002af5148485f184451a2bf4cb5ae2414fa4a49f3564",
+      "bytes": 7523
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round5-bcc3591-isolated-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}
