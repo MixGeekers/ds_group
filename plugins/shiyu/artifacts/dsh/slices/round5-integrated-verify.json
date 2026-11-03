@@ -1,0 +1,120 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "round5-integrated",
+  "capturedAt": "2026-11-03T00:04:30.702Z",
+  "head": "bcc35911afbcfd8795b771b413f14cf1d5f8a135",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-round5-integrated-1793663895971",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 81635,
+      "sha256": "262d850e4c376093c8444d9d3c4d2f3eb45cd445220c6997d0968b6da04273a0"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 79188,
+      "sha256": "f6e52c6152cbbb9447e4889a01afad7ec1c8dbfac8d8bf9fc8d739e6cd37ec69"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/probe.ts",
+      "bytes": 29028,
+      "sha256": "d0b3fdf6c05b7468e183234dba4fe350195e838c92b8603a458ff37e7e3c0165"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/rules.ts",
+      "bytes": 24425,
+      "sha256": "5a67150170f468bc18ae325f3ccbbde40be28aa8e60068b4b68457ae140755d7"
+    },
+    {
+      "path": "plugins/shiyu/src/control/events/time-source.ts",
+      "bytes": 30278,
+      "sha256": "923881a6a6e32e3db40e45fb74fe6dcb359d2a326e2cd3a21dea4672ea601040"
+    },
+    {
+      "path": "plugins/shiyu/tests/events-live-time-trigger.test.ts",
+      "bytes": 9187,
+      "sha256": "1adf7b3789c6e63366279691103aceef4cebe8275240cce2a59eaf0b3dd3ffbd"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "bytes": 92433,
+      "sha256": "fccc4a6960ce1ddc5a78e1d7b49415863a8dd18e84fe3fa9fe055d1cd3e2edff"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "bytes": 34301,
+      "sha256": "d5577a49209c96971f96772afc1c6e8ca021966f8e821d00bcb42c32934437d0"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "bytes": 18351,
+      "sha256": "bdca55fe4b8545c4a16b61f1d1d76114d30e39d137d08f3ad47ba3b9ed18a342"
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "bytes": 18562,
+      "sha256": "05c247e135aa66aee4e8a2259dc063a3ca037684479a31a582f856055a7b99e1"
+    },
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 99601,
+      "sha256": "bbeefe45f4177f78468acb031dbdb41135cf7257209270e6dfd52e315568661e"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 9814,
+      "sha256": "658d1b81e4595a0583a0be5e6043758ced824a7ad8364234a081e080d1b6688e"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 6244,
+      "sha256": "bba21a1895a16b7ea49c18c9c4aef33285d1b967bf62f2c75264d7c9800e074a"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2c-model-probe-fix.json",
+      "bytes": 20521,
+      "sha256": "fd6835ec7766854a1293aeeff655911329a79cbd9ad576ad2b532b70230b72bf"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h2/h2b-live-time-trigger.json",
+      "bytes": 15535,
+      "sha256": "4141597a1a30acb29af467700ec4e222e54c2da42b3804b4542330b0521b3330"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/harness/h7-round5-slice.json",
+      "bytes": 7654,
+      "sha256": "2be5db63186b37bb1b2fb74893f1fc187b7896aff1d41bad60b4def9e3752b7a"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 374347,
+    "bytes": 161135,
+    "sha256": "c6d8772b9e6212b029842b1d0960ac2dd5ed9bc85b80db38098ee85ab8b0cd19",
+    "tests": {
+      "tests": 1492,
+      "pass": 1492,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 373373.161416",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-round5-integrated.log",
+    "bytes": 161135,
+    "sha256": "c6d8772b9e6212b029842b1d0960ac2dd5ed9bc85b80db38098ee85ab8b0cd19"
+  },
+  "verdict": "pass"
+}

@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkpointAvailabilityTool, coreModelToolProbeTool, coreToolDiagnosisTool, statusTool, timeSourceDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreModelToolProbeTool, coreToolDiagnosisTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
   const snapshot = { schemaVersion: 1, instanceId: 'synthetic', state: 'idle' };
@@ -83,4 +83,16 @@ test('core model tool probe executes exactly the bounded real-model command', as
   assert.match(tool.description, /不重试/);
   assert.equal(await tool.execute(), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.probe-core-model-tools' }]);
+});
+
+test('live time-trigger diagnosis tool executes exactly the append-only probe command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, zeroModel: true, readOnly: false, sent: false, liveDataTouched: 'control-events-append-only', sideEffects: { controlEventAppended: true } };
+  const tool = timeTriggerDiagnosisTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_diagnose_time_trigger');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /append-only/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-time-trigger' }]);
 });

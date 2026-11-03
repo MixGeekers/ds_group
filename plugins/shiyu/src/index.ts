@@ -115,6 +115,19 @@ export function checkpointAvailabilityTool(service: { command(input: unknown): P
     },
   };
 }
+/** Owner-only zero-model LIVE time-trigger diagnosis. It appends exactly one
+ * real time.occurred control event that cannot be deleted; the receipt declares it. */
+export function timeTriggerDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_diagnose_time_trigger',
+    description: '零模型 live 时间触发诊断：向 live 规则文件写入唯一 one-shot 规则并等待 live 时间源 tick，要求 live 控制库恰好出现一个 time.occurred 事件；该事件 append-only 不可删除（回执明确声明副作用），规则条目随后清理；不执行 Task、不发送、不调用模型。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-time-trigger' }),
+    output: { schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }] },
+  };
+}
 export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_diagnose_worker_tools',
@@ -146,4 +159,5 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(coreModelToolProbeTool(service)));
   ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));
   ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));
+  ctx.effect(() => ctx.tools.register(timeTriggerDiagnosisTool(service)));
 }

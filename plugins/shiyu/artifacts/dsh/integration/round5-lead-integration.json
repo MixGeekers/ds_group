@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "Lead integration of the core-model first-step fix and the live time-trigger probe into Runtime and tools",
+  "capturedAt": "2026-11-03T00:05:09.448Z",
+  "status": "offline-verified-integration",
+  "purpose": "Land the two verified integration surfaces: the probe-level fix for the host two-message first step (no runtime change needed) and the owner-only live time-rule trigger diagnostic plus its tool; every receipt stays in snapshot diagnostics and no business state is written apart from the explicitly disclosed append-only time.occurred control event.",
+  "baseline": {
+    "head": "bcc3591",
+    "note": "round-4 close; round-5 slices committed on top"
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 99601,
+      "sha256": "bbeefe45f4177f78468acb031dbdb41135cf7257209270e6dfd52e315568661e"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 9814,
+      "sha256": "658d1b81e4595a0583a0be5e6043758ced824a7ad8364234a081e080d1b6688e"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 6244,
+      "sha256": "bba21a1895a16b7ea49c18c9c4aef33285d1b967bf62f2c75264d7c9800e074a"
+    }
+  ],
+  "changes": {
+    "runtime": "imports probeLiveTimeTrigger/TIME_TRIGGER_PROBE_SCOPE/LiveTimeTriggerProbeResult; the live time source principal scopes gain TIME_TRIGGER_PROBE_SCOPE so probe events land in the append-only ledger with no live delivery; adds lastTimeTriggerProbe, dispatches runtime.probe-time-trigger, implements commandTimeTriggerProbe with session.probe admission (paused rejection, shared capacity, abortable, no retry, zero model/Task/Goal/Effect) and returns readOnly:false because one append-only control event is written; snapshot diagnostics exposes timeTriggerProbe.",
+    "indexTools": "registers shiyu_diagnose_time_trigger (parameterless, non-concurrency-safe, owner command surface only) alongside the existing diagnostics tools.",
+    "tests": "host-diagnostics-tool covers the new tool executing exactly its command; the round combined isolated check covers the H2c fix (4 tests), the live-trigger probe (8 tests), H7-round5 mapping (6 tests) and the tool test (+1).",
+    "hostKit": "time-trigger probe: one call, paused rejected, expects exactly one time.occurred event with canonical identity and explicit side-effect disclosure; core-model probe retest: one call, 0 retries, passed/failed per frozen kit."
+  },
+  "verification": {
+    "leadIntegratedIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs (isolated worktree at HEAD bcc3591 + all round-5 slice files and the integration files)",
+      "evidence": "artifacts/dsh/slices/round5-integrated-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1492,
+        "pass": 1492,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 374347,
+      "log": "plugins/shiyu/.local/slice-verify-round5-integrated.log",
+      "arithmetic": "1473 baseline + 4 H2c fix + 8 live trigger + 6 H7-round5 + 1 tool test = 1492"
+    },
+    "perSliceAuthorChecks": {
+      "h2cFix": "1477/1477 (baseline 1473 + 4)",
+      "h2bLiveTrigger": "1481/1481 (baseline 1473 + 8)",
+      "h7Round5": "1479/1479 (baseline 1473 + 6) plus harness 83/83"
+    },
+    "hostValidationPending": "fixed-host retest of the core-model probe with the first-step fix, and the live time-rule trigger probe call, are executed next and committed separately."
+  },
+  "knownLimitations": [
+    "The live time-trigger probe intentionally appends one undeletable time.occurred control event; this is disclosed in its receipt and must be recorded in host evidence.",
+    "The core-model probe fix is offline-verified only; the real host retest may pass, fail honestly, or reveal another first-step shape, and no retry is allowed.",
+    "No real model pass, business acceptance or nine-system completion is claimed."
+  ],
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; fixed-host validation pending."
+}

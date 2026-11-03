@@ -1221,3 +1221,33 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. round-4 探针均为 G1/零模型诊断；**真实模型工具往返仍是诚实失败**（0 main requests/streams/tool calls、usage unknown、未重试），不得记为通过或升级为业务/九系统验收。
 2. 零模型只证挂载/时间源隔离行为/检查点阻断清单/诊断缓存；live 时间规则触发、capture 就绪、真实 Session/Ombre 导出、真实 DOM、真实渠道/设备与 V27 仍未验。
 3. 产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0；真实模型尝试的根因（host agent loop blocked turn）未进一步修复。
+
+## 36. 第五轮：core-model 首步修复与 live 时间规则触发探针（round-5 离线切片）
+
+状态：**G1 离线/集成通过**；固定宿主重测（真实模型一次、live 时间触发）未执行（下一步）。2026-11-02 完成并审阅。
+
+### 36.1 H2c core-model 探针 blocked turn 根因与修复
+
+- 根因（用 fake host 事件序列离线复现）：固定宿主在首步同时 claim 固定 prompt 与**必需的 working-directory runtime-context 快照**（2 条，`suppressRuntimeContext()` 也仍注入）；probe 的 `agent/pre-step` 要求长度恰好 1，于是 reject → 宿主移除输入并以 blocked 结束 turn → 没有任何 user/message 或模型请求（counters 全 0）。
+- 修复（仅 `core-decision.ts`）：首步接受 1–2 条——第 1 条必须 id+hash 等于注册固定 prompt；第 2 条若存在必须是精确绑定的 cwd runtime-context（复用同一校验）；0 或 >2 条仍 fail-closed；`decision.messages` 与 committed-input/stream 校验共用同一首步校验；**其他边界完全未放宽**（仅 types 工具、≤2 主请求/2 stream/1 turn、1 工具往返、maxTokens 256、usage unknown 不补零、0 重试、无业务写、flush+release+dispose+archive 才出回执）。
+- 测试：新增 4 项（1 条路径、正确 2 条、错误 cwd、第三条输入拒绝）；修复前 focused 仅 2 条失败、修复后 27/27；回归 135/135；作者隔离 1477/1477。
+- 集成 diff：`artifacts/dsh/h2/h2c-model-probe-fix.patch`（42 行，仅 core-decision.ts）；runtime/index 无需改动。
+
+### 36.2 H2b live 时间规则触发探针（如实披露副作用）
+
+- `probeLiveTimeTrigger`：向**真实 live EventRuleStore** 写入唯一 one-shot 规则（dueAt≈now+1s），在 live TimeSourceService 注册**内存 ephemeral 订阅**（不写控制库 subscription 行），经 live TimeSourcePump 驱动，在 live EventService 观察到**恰好 1 个 `time.occurred`**（identity=subscription+conditionRevision+规范 occurrence+scheduledFor）；重复 wake 无第二事件；reserved probe scope 无 delivery；finally 清理规则/timeState 并复核。
+- **副作用如实声明**：会向 live 控制库 append **1 个不可删除的 `time.occurred`**（`liveDataTouched='control-events-append-only'`、`eventDeletable=false`、`businessTablesWritten=[]`、`externalEffects=0`）；规则条目临时写入后删除；崩溃可能残留惰性规则（hostKit 有 operator warning）。
+- 测试：新增 8 项（真实临时 SQLite+EventService+规则文件+真实 TimeSourcePump；正例/重复 tick 幂等/cleanup 保留 append-only 事件+唯一身份/paused 前后/deadline/真实自动 tick/abort+lossless receipt）；作者隔离 1481/1481。
+
+### 36.3 H7-round5 证据映射
+
+- 增加 8 个 round-4 来源/31 文件（H2b 时间探针、H2c 探针 kit、H5b checkpoint 探针、H7-round4、Lead 集成、LocalCore 热修复、round-4 宿主、X+1 clean artifacts），逐文件 blob SHA+ancestry，失败→unknown。
+- **失败语义保留**：H2c 实现者未执行真实模型、宿主真实尝试在任何模型请求前失败且未重试，映射中明确“不得记 pass/V25/产品验收”；host 保持 zero-model limited；H5b 保持 production-blocked。
+- 产品行仍 79/79 not_covered、covered=0、tooling_ready/V/S/FL 不升级；harness 83/83；作者隔离 1479/1479。
+
+### 36.4 Lead 集成与验证
+
+- `runtime.ts`：live 时间源 principal scopes 增加 `TIME_TRIGGER_PROBE_SCOPE`（probe 事件只落 append-only 账本、无 live delivery）；新 owner 命令 `runtime.probe-time-trigger`（session.probe 准入、单槽、可中止、不重试、`readOnly:false` 因会 append）；`diagnostics.timeTriggerProbe`。
+- `index.ts`：新工具 `shiyu_diagnose_time_trigger`（无参数、非并发安全）。
+- **Lead 集成隔离验证**（HEAD `bcc3591` + 全部 round-5 切片与集成文件）：**1492/1492 通过，0 失败/0 跳过**（= 1473 + 4 + 8 + 6 + 1）；证据 `artifacts/dsh/slices/round5-integrated-verify.json`。
+- 宿主重测：真实模型探针按 kit 仅一次、0 重试；live 时间触发探针一次并记录 append-only 副作用；结果另行留证。

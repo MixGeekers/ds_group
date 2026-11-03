@@ -18,7 +18,7 @@ import { WorkerSessionDriver, type WorkerEventToolProbeResult } from './adapters
 import { createCoreEventTools, createWorkerEventToolSource } from './adapters/dsh/event-tools.js';
 import type { CoreDecisionEventToolFactory, CoreDecisionEventToolProbeResult, CoreEventToolModelProbeResult } from './adapters/dsh/goals.js';
 import { ChannelRuntimeBridge } from './control/channels/index.js';
-import { probeTimeSource, type TimeSourceProbeResult } from './control/events/probe.js';
+import { probeLiveTimeTrigger, probeTimeSource, TIME_TRIGGER_PROBE_SCOPE, type LiveTimeTriggerProbeResult, type TimeSourceProbeResult } from './control/events/probe.js';
 import { EventDeliveryCoordinator } from './control/events/index.js';
 import { LocalArtifactStore } from './adapters/artifacts/index.js';
 import { LocalTaskRunner } from './control/task-runner.js';
@@ -165,6 +165,7 @@ export class RuntimeService {
   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
   private lastTimeSourceProbe?: TimeSourceProbeResult;
+  private lastTimeTriggerProbe?: LiveTimeTriggerProbeResult;
   private core?: CoreDriver;
   private corePump?: CorePump;
   private coreFailure?: string;
@@ -271,7 +272,7 @@ export class RuntimeService {
       this.subscriptionReader = new RuleStoreSubscriptionReader(this.eventRules, this.events);
       this.timeSource = new TimeSourceService({ events: this.events, rules: this.eventRules,
         schedule: new RuleBasedSchedulePort(this.eventRules),
-        principal: { principalId: 'shiyu-time-source', kind: 'component', scopes: ['local-owner'],
+        principal: { principalId: 'shiyu-time-source', kind: 'component', scopes: ['local-owner', TIME_TRIGGER_PROBE_SCOPE],
           publishTypes: ['time.occurred', 'observation.changed'], subscribeTypes: [], targetRefs: [] },
         readSubscription: id => this.subscriptionReader.read(id),
         triggerEventType: 'time.occurred', observationEventType: 'observation.changed',
@@ -640,6 +641,31 @@ export class RuntimeService {
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
+  /** Owner-only zero-model LIVE time-trigger diagnostic: appends ONE real
+   * time.occurred event to the live control ledger (cannot be deleted). */
+  private async commandTimeTriggerProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid time trigger probe input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '检查 live 时间规则触发', phase: '零模型 live 规则探针',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      const result = await probeLiveTimeTrigger({ events: this.events, rules: this.eventRules, timeSource: this.timeSource,
+        pump: this.timePump, allowed: () => !this.pauseRequested && !this.closed && !this.closing, signal: op.controller.signal });
+      this.ensureCanRun(); op.controller.signal.throwIfAborted();
+      this.lastTimeTriggerProbe = structuredClone(result);
+      this.lastFailure = undefined;
+      return { ...result, zeroModel: true, readOnly: false, sent: false };
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private async record(type: string, message: string, status: string): Promise<void> {
     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });
     // This component's only effect is a readable event-backed activity projection.
@@ -759,6 +785,7 @@ export class RuntimeService {
         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
         timeSource: this.timePump ? this.timePump.snapshot() : null,
         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,
+        timeTriggerProbe: this.lastTimeTriggerProbe ? structuredClone(this.lastTimeTriggerProbe) : null,
         notifications: this.notificationRouter ? { enabled: true } : { enabled: false },
         checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null },
       background: { ...conversations.background, ...backgroundState },
@@ -809,6 +836,7 @@ export class RuntimeService {
     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
     if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);
     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
+    if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);
     if (action === 'runtime.pause') return this.setPaused(true);
     if (action === 'runtime.resume') return this.setPaused(false);
     // H5b: owner-only local checkpoint. Dispatched before ensureCanRun() so a
