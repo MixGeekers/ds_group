@@ -141,8 +141,11 @@ test('schema2 compatible but unverified embedding permits explicit index/search 
   const before = await f.runtime.snapshot();
   assert.equal(before.memory.semanticConfigured, true); assert.equal(before.memory.backend!.semanticReady, false);
   assert.equal(before.memory.backend!.semantic!.embeddingVerified, false);
+  // P0 readiness gate: a compatible but yet-unverified embedding profile is
+  // exact-read only; semantic_search is advertised only after a real embedding
+  // succeeds in this process (the explicit index/search below).
   assert.deepEqual(before.innerProjection!.manifest.domains.memory, { status: 'available', backendId: f.backend.config.backendId,
-    deploymentId: f.backend.config.deploymentId, capabilities: ['exact_read', 'semantic_search'], profileFingerprint: OMBRE_HARRIER_PROFILE_FINGERPRINT });
+    deploymentId: f.backend.config.deploymentId, capabilities: ['exact_read'] });
   service.index = async input => {
     routes.push('index'); assert.equal(input.operationId, 'memory-one'); assert.ok(input.signal); assert.equal(input.signal.aborted, false);
     return { duplicate: false, entry: { indexOperationId: 'index-one', command: { memoryOperationId: input.operationId },
