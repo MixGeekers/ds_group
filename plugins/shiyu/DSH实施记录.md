@@ -1577,3 +1577,24 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - H7-round9：5 来源/19 文件（round8 host reconcile 仅 `fixed-host-zero-model-reconcile`、H3 reconcile blobCommit、round8 integration、round8 clean artifacts @f766ab7、round8 review info-only 未映射）；57 来源/179 文件；产品行仍 79/79 not_covered。
 - **Lead 组合隔离验证**（HEAD `80e2867` + 全部 round-9 切片）：**1582/1582 通过，0 失败/0 跳过**（= 1561 + 13 + 8，含 `1ae4bb8` 与本轮 H7 提交）；证据 `artifacts/dsh/slices/round9-integrated-verify.json`。
 - 宿主：本轮无 runtime 改动、无 reload；v2 未激活，未执行任何真实 Goal 创建或模型调用。
+
+## 50. 第九轮独立复核（round-9 收尾）
+
+2026-11-03，独立验证员对 round-9 做只读复核（task-46）：**13 项检查完成，F9-R1..R4 全部 resolved/info，无需修改的 finding**。报告：[ROUND9-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND9-EVIDENCE-REVIEW.md>)、[round9-evidence-review.json](<artifacts/dsh/verify/round9-evidence-review.json>)。
+
+### 50.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| create 根因修复 `1ae4bb8` | files 4/4；product-only 1467/1467；full isolated 26 harness hash-binding failures 已在 clean 后清零；red 31/39（8 fail）→ green 39/39；独立只读复核 live DB command reason 恰为 “Native history changed outside the trusted recovery suffix”，失败 Goal Session 恰 4 条 meta 事件，与证据一致；证据明确“强支持但 not host-confirmed”，title/preset 假设被否定 |
+| fix 语义 | 仅 NATIVE_HISTORY_CHANGED 有界重观察 3 次、signal/deadline；持续篡改有界失败；**native create 恰一次、不 replay**；failure phase 枚举/≤300/path `<workspace>`/无正文；receipt schema 不变；fallback/validator 真实 |
+| v2 冻结 | requestId `core-validation-frozen-v2`、template `756ec37b…`、content `1e45f585…`、budget 16384/3/1、max2；Object.freeze；仅精确常量引用；克隆/version-only/override 拒绝；v1 reconcile 不变；**runtime/index/tool 无 ref、未激活** |
+| H7-round9 `b01843e` | 57 sources/179 files；5 新来源/19 文件；round8 host reconcile 等级精确 `fixed-host-zero-model-reconcile`；V25 不接收；review `independent-review-info` 未映射；round8 clean@f766ab7；产品 79/79 not_covered；issues=0 |
+| 集成 `69ed588` | 组合隔离 1582/1582、0 skip（`f1bf764d…`/169117；1561+13+8）；无 v2 激活 |
+| X+1 `04dc817` | 11 artifacts only；manifest head=69ed588/dirty=false/leaks=0；src/client/tests/scripts diff=0；clean 1582/1582；pipeline 全绿；selfproof 15 files/115；**57/57 sources verified、179 文件、0 unknown**；产品 79/79 not_covered；gate=incomplete/executed=passed=0 |
+
+### 50.2 边界
+
+1. 根因**未 host-confirmed**；具体 round-7 异步 meta 事件类型未知；title/preset 假设已否定。
+2. v2 实验已冻结但**未激活**、无宿主证据、无真实 Goal 创建/模型调用；激活需未来显式 owner 决定 + trusted composition。
+3. 真实 host 确认与新的有界业务尝试留待 round-10；产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0。

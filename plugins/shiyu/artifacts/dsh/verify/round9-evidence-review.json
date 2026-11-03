@@ -1,0 +1,396 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-46)",
+  "reviewedAt": "2026-11-03T05:20:00Z",
+  "subject": "Round-9: core create root-cause fix/observability/v2 freeze, H7-round9, integration, pending X+1",
+  "head": "04dc817251e73d22e413b3f65dc6f11392f92f99",
+  "commits": {
+    "create-fix": "1ae4bb8",
+    "H7-round9": "b01843e",
+    "integration (X)": "69ed588",
+    "X+1": "04dc817251e73d22e413b3f65dc6f11392f92f99"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "H3 fix files/counts",
+      "claim": "1ae4bb8 files/logs match; product-only 1467/1467; full isolated 1574 with 26 expected harness failures",
+      "evidence": [
+        "artifacts/dsh/h3/h3-core-create-diagnosis.json",
+        "artifacts/dsh/slices/h3-create-diagnosis-verify.json"
+      ],
+      "method": "hashes/logs",
+      "result": "verified",
+      "detail": "files 4/4; product log 68b1c060…/1467; red log 6bc6e491 31/39 (8 fail); green 39d4c3bf 39/39; full c085258f 1574/1548/26 (all harness frozen-evidence expected); clean refresh pending"
+    },
+    {
+      "id": "R02",
+      "area": "live root-cause evidence",
+      "claim": "live shiyu_goal_commands reason and failed Goal Session 4-event inventory support NATIVE_HISTORY_CHANGED; not host-confirmed",
+      "evidence": [
+        "DB read-only",
+        "session zstd decode",
+        ".local/h3 logs"
+      ],
+      "method": "DB/session inspection",
+      "result": "verified",
+      "detail": "command core-create:core-17e3fe95… receipt status unknown/reason 'Native history changed outside the trusted recovery suffix'; session decodes to exactly session+permission/preset+sandbox/mode+approval/policy; evidence marks not host-confirmed, title/preset hypothesis unsupported"
+    },
+    {
+      "id": "R03",
+      "area": "fix semantics",
+      "claim": "only NATIVE_HISTORY_CHANGED re-observes ≤3 with signal/deadline; native create exactly once/no replay; persistent tamper bounded fail; phase diagnostics sanitized",
+      "evidence": [
+        "1ae4bb8 goals.ts/core-validation.ts",
+        "tests"
+      ],
+      "method": "diff/test review",
+      "result": "verified",
+      "detail": "stabilizeCoreCreateBaseline loop 3, abort/deadline, only code NATIVE_HISTORY_CHANGED; create command after stabilization unchanged; failure phase enum/path <workspace>/≤300/detail fallback; tests 39 green incl transient/persistent race"
+    },
+    {
+      "id": "R04",
+      "area": "v2 freeze",
+      "claim": "v2 constants fixed (requestId core-validation-frozen-v2, content/template sha, budget 16384/3/1, max2); only exact constant accepted; clone/version-only/tool override rejected; no runtime activation",
+      "evidence": [
+        "1ae4bb8 core-validation.ts/tests",
+        "git grep runtime"
+      ],
+      "method": "code/tests/grep",
+      "result": "verified",
+      "detail": "Object.freeze constants; tests frozen requestId/template/content sha/budget/max; exact object reference only; v1 reconcile unchanged; no CORE_VALIDATION_EXPERIMENT refs in runtime/index/tool"
+    },
+    {
+      "id": "R05",
+      "area": "H7-round9",
+      "claim": "57 sources/179 files; 5 new sources/19 files; round8 host reconcile only fixed-host-zero-model-reconcile; V25 no; review info-only unmapped; round8 clean@f766ab7; product 79/79; logs 1569/115",
+      "evidence": [
+        "artifacts/dsh/harness/h7-round9-slice.json",
+        "tests/harness-round9.test.ts",
+        "logs"
+      ],
+      "method": "hashes/tests/logs",
+      "result": "verified",
+      "detail": "files 10/10; tests assert 57/179, 5/19, levels fixed-host-zero-model-reconcile, V25 excludes, review unmapped, product 79/79; full 1569, harness 115; archives 4/4"
+    },
+    {
+      "id": "R06",
+      "area": "integration",
+      "claim": "69ed588 files match; 1582/1582 0 skip",
+      "evidence": [
+        "artifacts/dsh/integration/round9-lead-integration.json",
+        "artifacts/dsh/slices/round9-integrated-verify.json"
+      ],
+      "method": "hash/log",
+      "result": "verified",
+      "detail": "log f1bf764d…/169117; arithmetic 1561+13+8=1582; host/v2 activation not claimed"
+    },
+    {
+      "id": "R07",
+      "area": "honesty/no-overclaim",
+      "claim": "root cause not host-confirmed; v2 frozen not activated; no host evidence/Goal/model; title/preset refuted",
+      "evidence": [
+        "h3 evidence status/untestedOrBoundaries",
+        "integration",
+        "H7"
+      ],
+      "method": "text review",
+      "result": "verified",
+      "detail": "evidence explicitly says live root cause strongly supported not host-confirmed; v2 needs future owner/trusted composition; no runtime activation; title/preset not changed; product rows not upgraded"
+    },
+    {
+      "id": "R08",
+      "area": "X+1",
+      "claim": "X+1 (X=69ed588) verified",
+      "evidence": [
+        "pending"
+      ],
+      "method": "n/a",
+      "result": "pending",
+      "detail": "X+1 not yet committed; task remains in progress"
+    },
+    {
+      "id": "R09",
+      "area": "X+1 identity/manifest",
+      "claim": "X+1=04dc817 (parent 69ed588): 11 artifacts all M; code/tests/scripts diff 0; manifest.vcs head=69ed588/dirty=false/leaks=0; aggregates 404/7,201,020",
+      "evidence": [
+        "git diff 69ed588..04dc817",
+        "manifest.json"
+      ],
+      "method": "git objects + JSON",
+      "result": "verified",
+      "detail": "11 artifacts; manifest head 69ed588 dirty false; generatedAt 2026-11-03T05:05:38.152Z; no artifacts/dsh paths"
+    },
+    {
+      "id": "R10",
+      "area": "X+1 artifacts/selfproof/sources",
+      "claim": "11 artifact hashes/bytes; selfproof 15 files/115; 57/57 sources/179 files 0 unknown; product 79/79 not_covered",
+      "evidence": [
+        "04dc817 artifacts"
+      ],
+      "method": "sha/bytes + counts",
+      "result": "verified",
+      "detail": "manifest 18cfb149…/84286, selfproof b1789f87…/24867, tap 7f762c41…/22048, traceability 0bdadedd…/1156614, md 31f705e5…/33624, mapping e4d670c7…/70260, acceptance 51c39884…/383496, md 38bbd09e…/29540, fl manifest b4796358…/13154, coverage d443194c…/52559, coverage md 2803681d…/9308"
+    },
+    {
+      "id": "R11",
+      "area": "X+1 clean/acceptance",
+      "claim": "clean 1582/1582 0 skip (38998588…/169046); pipeline 41e4bc29…/3021 honesty=pass/gate=incomplete/executed=passed=0; archive 7842e144…/867; product/gate",
+      "evidence": [
+        ".local/h7-verify/round9-clean-69ed588-*",
+        "acceptance-report.json"
+      ],
+      "method": "sha/bytes/logs/JSON",
+      "result": "verified",
+      "detail": "selfproof15/115; sources57/179; planned92/executed0/passed0/failed0/blocked19/notRun73; issues0"
+    },
+    {
+      "id": "R12",
+      "area": "host commit",
+      "claim": "No host commit in round-9; no runtime change/reload/v2 activation/Goal/model",
+      "evidence": [
+        "git log 69ed588..HEAD"
+      ],
+      "method": "git log/diff",
+      "result": "verified",
+      "detail": "only X+1 commit after X; no host artifacts; integration purpose says no runtime/index required; v2 inactive and no host evidence"
+    },
+    {
+      "id": "R13",
+      "area": "clean resolves expected failures",
+      "claim": "H3 pre-clean full isolated 26 harness hash-binding failures cleared by clean X+1",
+      "evidence": [
+        "clean log",
+        "h3 evidence"
+      ],
+      "method": "log compare",
+      "result": "verified",
+      "detail": "clean 1582/1582; pre-clean product-only 1467/1467; 26 expected harness failures disclosed and gone"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F9-R1",
+      "severity": "info-expected",
+      "title": "Full isolated check has 26 expected harness hash-binding failures until clean refresh",
+      "files": [
+        "artifacts/dsh/slices/h3-create-diagnosis-verify.json",
+        "h3 evidence"
+      ],
+      "evidence": "full isolated 1574/1548/26, exitCode1; product-only 1467/1467; failures are harness-* frozen evidence bindings caused by slice changing goals.ts/core-event-tools.test.ts; clean X+1 regenerates",
+      "impact": "expected pre-integration state; honestly disclosed; no product test failure",
+      "recommendation": "no action; confirm clean X+1 1582 after refresh",
+      "owner": "Lead",
+      "disposition": {
+        "status": "resolved-by-clean-X+1",
+        "verified": true
+      }
+    },
+    {
+      "id": "F9-R2",
+      "severity": "info-unconfirmed",
+      "title": "Live root cause strongly supported but not host-confirmed",
+      "files": [
+        "h3-core-create-diagnosis.json#rootCause"
+      ],
+      "evidence": "journal reason + 4-event Session reproduced offline; exact racing event type not observable; implementer did not re-read host",
+      "impact": "correctly disclosed; fix validated with fake-host red→green",
+      "recommendation": "host diagnosis kit remains pending; no overclaim",
+      "owner": "Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true
+      }
+    },
+    {
+      "id": "F9-R3",
+      "severity": "info-frozen",
+      "title": "v2 is frozen but not activated; no host/Goal/model execution",
+      "files": [
+        "1ae4bb8 core-validation.ts",
+        "h3 evidence"
+      ],
+      "evidence": "frozen constants; only exact trusted composition can activate; no runtime ref; no host run",
+      "impact": "no runtime/Goal/model evidence; correct boundary",
+      "recommendation": "future explicit owner decision + trusted activation",
+      "owner": "Lead",
+      "disposition": {
+        "status": "info-accepted",
+        "verified": true
+      }
+    },
+    {
+      "id": "F9-R4",
+      "severity": "pending",
+      "title": "X+1 pending",
+      "files": [
+        "pending"
+      ],
+      "evidence": "X+1 not committed",
+      "impact": "task-46 cannot complete until X+1 verified (manifest head=69ed588/dirty=false, artifact-only, clean 1582, selfproof 115, 57/57 sources, product unchanged, gate incomplete)",
+      "recommendation": "provide X+1 SHA",
+      "owner": "Lead",
+      "disposition": {
+        "status": "resolved-by-04dc817",
+        "verified": true
+      }
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "X+1",
+      "reason": "pending"
+    },
+    {
+      "item": "Host confirmation of root cause/fix",
+      "reason": "no host run; v2 not activated"
+    },
+    {
+      "item": "Real Goal/model call with v2",
+      "reason": "requires future explicit owner decision + trusted composition"
+    },
+    {
+      "item": "Independent suite re-execution",
+      "reason": "read-only; logs/hashes/counts + Lead checks used"
+    },
+    {
+      "item": "Goals.test compatibility 21/21 separate log",
+      "reason": "file has 21 tests; product suite 1467 pass; no dedicated log retained"
+    }
+  ],
+  "counts": {
+    "h3_product_tests": 1467,
+    "h3_full_tests": 1574,
+    "h3_full_fail_expected": 26,
+    "coreEventTools": 39,
+    "coreValidation": 34,
+    "h7_sources": 57,
+    "h7_files": 179,
+    "h7_full": 1569,
+    "h7_harness": 115,
+    "round9_integration": 1582
+  },
+  "v2": {
+    "requestId": "core-validation-frozen-v2",
+    "templateSha256": "756ec37b5bc054564076e226fc45bed135ced702d337acbf75fdcaf7f18ae34d",
+    "contentSha256": "1e45f585fdccc37bdd93f486ce0c380ecfe5002aa0a37b39356f384f0e79059e",
+    "budget": {
+      "tokens": 16384,
+      "calls": 3,
+      "effects": 1
+    },
+    "maxEvaluations": 2,
+    "frozen": true,
+    "activated": false,
+    "runtimeRefs": 0
+  },
+  "fix": {
+    "requestIdAffected": "NATIVE_HISTORY_CHANGED only",
+    "maxObservations": 3,
+    "nativeCreateInvocations": 1,
+    "replay": false,
+    "failureDiagnostics": {
+      "phaseEnum": 15,
+      "messageMax": 300,
+      "workspacePath": "<workspace>",
+      "receiptSchemaChanged": false
+    }
+  },
+  "overallVerdict": "Task-46 is complete and verified: the core Goal create root cause is strongly supported by the live journal reason and the failed Goal Session 4-event inventory (independently re-read: session + permission/preset + sandbox/mode + approval/policy), with fake-host red→green reproduction; the fix is narrowly bounded to NATIVE_HISTORY_CHANGED (≤3 observations, signal/deadline, exactly one native create, no replay), failure diagnostics preserve the receipt schema and sanitize phase/message, and v2 is frozen but not activated (no runtime refs, no host run, no real Goal/model). H7-round9 maps 57/179 sources with round8 reconcile only fixed-host-zero-model-reconcile, V25 excluded, review info-only unmapped and product 79/79 not_covered; integration 1582 passes. X+1=04dc817 is artifact-only with manifest head=X/dirty=false, clean 1582/1582 clearing the disclosed pre-clean harness failures, selfproof 15/115, 57/57 sources/179 files, product 79/79 and gate incomplete. No host commit is expected/claimed because there was no runtime change or v2 activation; all honesty boundaries are correctly disclosed.",
+  "xPlusOne": {
+    "X": "69ed588438b462043c1a5ff329020e8f23443b16",
+    "X+1": "04dc817251e73d22e413b3f65dc6f11392f92f99",
+    "host": null,
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "69ed588438b462043c1a5ff329020e8f23443b16",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-03T05:05:38.152Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 404,
+      "bytes": 7201020,
+      "digest": "3e25c91902e0d7be6f4c67c591e0537643ea1e9c1696dc643b1cd09bcc09acaf"
+    },
+    "cleanCheck": {
+      "tests": 1582,
+      "pass": 1582,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "389985888be3b7bb6b40969d2312fe66d4ad2e8549d5c52a0890ee56f71052dd",
+      "bytes": 169046
+    },
+    "pipeline": {
+      "sha256": "41e4bc2994fd2ec31bba6d4a595df11ed453a23bdc475db139a194db217b61e0",
+      "bytes": 3021,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "7842e1448fd566ed627160e525a614087a053678b5e773d8d2f351054d3e9b46/867",
+    "selfproof": {
+      "files": 15,
+      "tests": 115
+    },
+    "sources": {
+      "verified": 57,
+      "files": 179,
+      "unknown": 0
+    },
+    "oracleCorpus": {
+      "h0b": 15,
+      "h0cBusiness": 7,
+      "total": 22
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "18cfb1497a14de9e5972324563db572cdfca027d8c86a5485dab66106495d876/84286",
+      "tool-selfproof.json": "b1789f874a562781dfd2755d595a0e71dac3b66320fe6cb54ca08cb777650bca/24867",
+      "tool-selfproof.tap": "7f762c417feeeb6905fa5ef38072fda3074c52824c142bc9e3740600b6804ca8/22048",
+      "traceability.json": "0bdadedd5f7a706b5670e631772ebbb759a35528675feca5523d733c20e13427/1156614",
+      "traceability.md": "31f705e5fce74c76c37a0eadd8770c0207f63cc64540cbad713bac4c1833c852/33624",
+      "h7-traceability-mapping.md": "e4d670c7adb879ab8b3a0ec65e7180f3d5e786feae674d07ae7ddfb112caad15/70260",
+      "acceptance-report.json": "51c398844283fe8d1c949b1c97560b707475888e3148e13179e2923bed32c315/383496",
+      "acceptance-report.md": "38bbd09e0fcdf9b3eb8e9806a2caad941cd064a96db2998dfb62ab366a1a1b44/29540",
+      "fl-scenarios/manifest.json": "b479635888e6909716639ce19bfdf663878d11642cf63a8f06e5c913522ae08c/13154",
+      "fl-scenarios/coverage.json": "d443194c0f305e7268aa1561590fa74582c1505e8a7edf763680d003551cf940/52559",
+      "fl-scenarios/coverage.md": "2803681d8dc7299798a42927c134b250506211aee9e767767f217f42470c83dd/9308"
+    },
+    "notes": [
+      "no host commit: no runtime/index change, v2 not activated",
+      "H3 pre-clean 26 harness hash-binding failures cleared by clean 1582",
+      "acceptance inputs temp root likely /private/tmp/h7r9-clean (info)"
+    ]
+  }
+}
