@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h3-reconcile",
+  "capturedAt": "2026-11-03T03:27:16.559Z",
+  "head": "ab628476f151780c006639e252a0b12f224aad05",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h3-reconcile-1793675924677",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 69426,
+      "sha256": "26899a3207538dd39f16610bcb83c8f975a34634dc5ae564d040c93d6cf658c7"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 51705,
+      "sha256": "939775a0f76e6dec998d418bab9c26004d3e03c80df5b7758a26ff829d1c3f85"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 511455,
+    "bytes": 166703,
+    "sha256": "805b5be4d4dc2269d9a13f5dbae860070d14a6f532a08ce894a13c1c8560a7ec",
+    "tests": {
+      "tests": 1552,
+      "pass": 1552,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 510364.1285",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h3-reconcile.log",
+    "bytes": 166703,
+    "sha256": "805b5be4d4dc2269d9a13f5dbae860070d14a6f532a08ce894a13c1c8560a7ec"
+  },
+  "verdict": "pass"
+}

@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-core-validation-reconcile",
+  "phase": "F7-R1",
+  "capturedAt": "2026-11-03T03:28:07.477Z",
+  "status": "offline-implemented-and-isolated-verified; real host reconcile NOT executed by implementer (Lead kit)",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "goalCreatedByImplementer": false,
+  "goalCancelledByImplementer": false,
+  "head": "ab628476f151780c006639e252a0b12f224aad05",
+  "baseline": {
+    "head": "ab62847",
+    "isolatedTestCount": 1552,
+    "netNewTests": 13,
+    "note": "HEAD already contains the previous 16-test version of this file; this slice replaces it with 29 tests (+13 net)",
+    "arithmetic": "1552 = 1539 HEAD baseline (including the old 16-test file) - 16 + 29"
+  },
+  "environment": {
+    "node": "v24.19.0",
+    "npm": "11.17.0",
+    "platform": "darwin/arm64",
+    "sqlite": "3.53.3",
+    "pluginPackage": "0.1.0"
+  },
+  "finding": {
+    "source": {
+      "round": "round7",
+      "receipt": {
+        "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+        "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6"
+      },
+      "hostRecord": {
+        "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+        "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38"
+      },
+      "goalRow": {
+        "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+        "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388"
+      },
+      "receiptSha": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6"
+    },
+    "contradiction": {
+      "reported": "businessSideEffects.goal.created=false",
+      "actual": "a durable unauthorized/paused core Goal row exists (core-17e3fe95b62427e395e6386686e602cf90024ec7, requestId core-validation-frozen-v1, version 1, evaluations 0, no mandate/native) plus one core Goal Session",
+      "classification": "the create command returned GOAL_OPERATION_UNKNOWN and the runner did not replay it, but the audit shows a durable partial side effect: one new core Goal row for requestId core-validation-frozen-v1 exists in an unauthorized/paused state (version 1, evaluations 0, no mandate, no native GoalRef) plus exactly one new core Goal Session file; no Task/Effect/budget row was created and no model request happened (evaluateAttempts=0). The receipt field businessSideEffects.goal.created=false is therefore contradicted by the durable row and is corrected here as a finding."
+    },
+    "cause": "CoreLocalService.create persists the owner Goal row (core.prepareGoal) before the native create; the native create then returned GOAL_OPERATION_UNKNOWN. The runner had no post-failure readback, so it reported created=false from an empty in-memory view.",
+    "f7r1Fix": "create failure now performs a read-only readback by the fixed requestId (core.snapshot + goal.binding.load), records created true|false|unknown plus the exact observed row/session evidence, and never retries or auto-cancels."
+  },
+  "implementation": {
+    "file": "src/control/core-validation.ts (no other product source changed)",
+    "runnerFix": {
+      "receiptChanges": [
+        "businessSideEffects.goal is now {created: true|false|unknown, requestId, version?, observed?}",
+        "partialCreation is now {detected, readback: complete|absent|unavailable|inconsistent, evidence[]}",
+        "receipt carries partialCreation explicitly"
+      ],
+      "readback": {
+        "commands": [
+          "core.snapshot (filter by requestId)",
+          "goal.binding.load (exact bound Goal Session id/receipt)"
+        ],
+        "write": "none",
+        "sessionObservation": "exact binding sessionId/native sessionId only; no path guessing and no session-directory enumeration",
+        "unknownRule": "snapshot unavailable/duplicate requestId -> created=unknown, readback unavailable/inconsistent, GOAL_READBACK_UNKNOWN; never created=false",
+        "noRetry": true,
+        "noAutoCancel": true
+      },
+      "validation": "the main receipt validator now requires the created enum, observed row when created=true, absent observation when created=false, and a bounded partialCreation evidence list"
+    },
+    "reconcile": {
+      "entryPoint": "reconcileCoreValidationGoal(options) (process-wide single-flight)",
+      "ports": [
+        "trusted core driver (control cancel only; create/evaluatePending must exist but are never called)",
+        "read-only control store subset (core.snapshot + goal.binding.load)"
+      ],
+      "classifications": {
+        "absent": "no Goal with the fixed requestId; no write",
+        "inert-unauthorized": "unauthorized && no mandate && no native && no taskRefs -> exactly one core.control(cancel) attempt",
+        "paused-authorized": "authorized/mandate/native present -> NO cancel; OWNER_DECISION_REQUIRED",
+        "cancelled": "already cancelled -> no cancel",
+        "unknown": "readback unavailable/inconsistent/ambiguous -> NO write"
+      },
+      "stopAction": {
+        "fields": [
+          "kind none|cancel",
+          "attempted",
+          "ok",
+          "errorCode?",
+          "at?",
+          "goalVersion?"
+        ],
+        "attempts": "0 or 1 total, 0 retries"
+      },
+      "postCancel": "read-only re-read confirms cancelled/paused/version after a successful cancel",
+      "receiptValidator": "assertBoundedCoreValidationReconcileReceipt (lossless/bounded/classification/cancel-count/observation shape)",
+      "noCreateNoModelNoRestart": true,
+      "requestIdFrozen": "core-validation-frozen-v1"
+    }
+  },
+  "integration": {
+    "patchPath": "plugins/shiyu/artifacts/dsh/h3/h3-core-validation-reconcile-integration.patch",
+    "patchBytes": 8454,
+    "patchSha256": "d2dac5b8632a1a7340883632a3002c6c27c7233cf7f4c681709eb3d32b7a41f4",
+    "touchedFiles": [
+      "plugins/shiyu/src/runtime.ts",
+      "plugins/shiyu/src/index.ts"
+    ],
+    "notAppliedInSharedTree": true,
+    "runtimeCommand": "runtime.reconcile-core-validation-goal (owner-only; paused rejected; one dedicated operation slot; abortable; calls the reconciler exactly once, no retry; receipt cached only in diagnostics.coreValidationReconcile)",
+    "identityTool": "shiyu_reconcile_core_validation_goal (no parameters; concurrency-unsafe; description states read-only + at most one cancel, no Goal creation/restart, no model call, no retry)",
+    "diagnosticsField": "snapshot().diagnostics.coreValidationReconcile (in-memory only)",
+    "validation": {
+      "patchAppliesToHead": "git apply --check passed on an ephemeral worktree at HEAD ab62847",
+      "typecheckWithPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + this slice + this patch)",
+      "buildWithPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824",
+      "combinedFullCheck": {
+        "command": "npm run check in the ephemeral worktree (HEAD + slice + runtime/index patch)",
+        "tests": 1552,
+        "pass": 1552,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h3/h3-reconcile-integration-check.log",
+          "sha256": "289c8aa88cc7c53c13dfb9cd4686b8726a767e943cdeb8bf9a75480b37b57431"
+        }
+      }
+    },
+    "patch": "diff --git a/plugins/shiyu/src/index.ts b/plugins/shiyu/src/index.ts\nindex 157625f..59b0e27 100644\n--- a/plugins/shiyu/src/index.ts\n+++ b/plugins/shiyu/src/index.ts\n@@ -154,6 +154,28 @@ export function coreGoalValidationTool(service: { command(input: unknown): Promi\n     },\n   };\n }\n+/**\n+ * Owner-only reconcile tool for the fixed core-validation Goal.\n+ *\n+ * This is READ-ONLY except for at most one explicit cancel of an inert\n+ * unauthorized partial Goal left behind by a failed create. It never creates or\n+ * resumes a Goal, never calls a model, never retries, and never writes around the\n+ * trusted core service. Paused runtimes are rejected; the receipt is cached only\n+ * in snapshot().diagnostics.coreValidationReconcile.\n+ */\n+export function coreValidationReconcileTool(service: { command(input: unknown): Promise<unknown> }) {\n+  return {\n+    name: 'shiyu_reconcile_core_validation_goal',\n+    description: '只读核对固定 requestId core-validation-frozen-v1 的 Goal 并分类（absent/inert-unauthorized/paused-authorized/cancelled/unknown）；仅 inert unauthorized 残留 Goal 尝试一次显式 cancel，0 重试；不创建/重启 Goal、不调模型、不写业务库；要求运行时未暂停；回执仅存 snapshot().diagnostics.coreValidationReconcile。',\n+    parameters: { type: 'object', properties: {}, additionalProperties: false },\n+    isConcurrencySafe: false,\n+    execute: async () => service.command({ action: 'runtime.reconcile-core-validation-goal' }),\n+    output: {\n+      schema: { type: 'object', additionalProperties: true },\n+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],\n+    },\n+  };\n+}\n export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {\n   return {\n     name: 'shiyu_diagnose_worker_tools',\n@@ -187,6 +209,9 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>\n   // Session/artifact and makes real model calls. Owner-only; never mounted into\n   // restricted core/worker/replyer Sessions.\n   ctx.effect(() => ctx.tools.register(coreGoalValidationTool(service)));\n+  // Owner-only reconcile of the fixed core-validation Goal: read-only + at most\n+  // one cancel for an inert partial Goal; no Goal creation and no model call.\n+  ctx.effect(() => ctx.tools.register(coreValidationReconcileTool(service)));\n   ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));\n   ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));\n   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private\ndiff --git a/plugins/shiyu/src/runtime.ts b/plugins/shiyu/src/runtime.ts\nindex 973f04c..c219db0 100644\n--- a/plugins/shiyu/src/runtime.ts\n+++ b/plugins/shiyu/src/runtime.ts\n@@ -34,7 +34,7 @@ import type { LocalMemoryEntry } from './adapters/control-store/memory-domain.js\n import type { MemoryIndexEntry } from './adapters/control-store/memory-index-domain.js';\n import type { AvailableMemoryDomain, UnavailableDomain } from './state/publication.js';\n import { CorePump, type CoreEvaluationResult } from './control/core-pump.js';\n-import { runBoundedCoreValidation, type CoreValidationReceipt, type CoreValidationStore } from './control/core-validation.js';\n+import { reconcileCoreValidationGoal, runBoundedCoreValidation, type CoreValidationReceipt, type CoreValidationReconcileReceipt, type CoreValidationStore } from './control/core-validation.js';\n import { LocalCoreService, type LocalCoreOptions } from './control/local-core.js';\n import type { CoreGoal, CorePrepareInput } from './contracts/core.js';\n import type { CapabilityBinding, CapabilityCommandReceipt } from './contracts/capability.js';\n@@ -167,6 +167,7 @@ export class RuntimeService {\n   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;\n   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;\n   private lastCoreGoalValidation?: CoreValidationReceipt;\n+  private lastCoreValidationReconcile?: CoreValidationReconcileReceipt;\n   private lastTimeSourceProbe?: TimeSourceProbeResult;\n   private lastTimeTriggerProbe?: LiveTimeTriggerProbeResult;\n   private core?: CoreDriver;\n@@ -730,6 +731,36 @@ export class RuntimeService {\n       throw error;\n     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }\n   }\n+  /**\n+   * Owner-only, read-only classification of the one fixed core-validation Goal,\n+   * with at most one explicit `core.control('cancel')` for an inert unauthorized\n+   * partial Goal. It never creates/resumes a Goal, never calls a model, never\n+   * retries and never writes around the trusted core service. The receipt is\n+   * cached only in snapshot diagnostics. Paused runtimes are rejected.\n+   */\n+  private async commandCoreValidationReconcile(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {\n+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core-validation reconcile input');\n+    this.ensureCanRun(); signal?.throwIfAborted();\n+    if (!this.core) throw new Error('CORE_VALIDATION_RECONCILE_UNAVAILABLE');\n+    if ([...this.operations.values()].some(op => op.phase === 'core-validation goal reconcile')) throw new Error('Core-validation Goal reconciliation is already running');\n+    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');\n+    let finish!: () => void;\n+    const done = new Promise<void>(resolve => { finish = resolve; });\n+    const op: ActiveOperation = { id: randomUUID(), title: '核对有界 core 验证 Goal', phase: 'core-validation goal reconcile',\n+      status: 'running', controller: new AbortController(), done, finish };\n+    const onAbort = () => op.controller.abort(signal?.reason);\n+    signal?.addEventListener('abort', onAbort, { once: true });\n+    this.operations.set(op.id, op);\n+    try {\n+      const receipt = await reconcileCoreValidationGoal({ core: this.core, store: this.store as unknown as CoreValidationStore,\n+        signal: op.controller.signal, progress: phase => { op.phase = phase.slice(0, 120); } });\n+      this.lastCoreValidationReconcile = structuredClone(receipt);\n+      return { ...receipt, readOnly: true, createsGoal: false, modelCalls: 0, retries: 0 };\n+    } catch (error) {\n+      this.lastFailure = error instanceof Error ? error.message : String(error);\n+      throw error;\n+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }\n+  }\n   private async record(type: string, message: string, status: string): Promise<void> {\n     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });\n     // This component's only effect is a readable event-backed activity projection.\n@@ -848,6 +879,7 @@ export class RuntimeService {\n         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,\n         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,\n         coreGoalValidation: this.lastCoreGoalValidation ? structuredClone(this.lastCoreGoalValidation) : null,\n+        coreValidationReconcile: this.lastCoreValidationReconcile ? structuredClone(this.lastCoreValidationReconcile) : null,\n         timeSource: this.timePump ? this.timePump.snapshot() : null,\n         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,\n         timeTriggerProbe: this.lastTimeTriggerProbe ? structuredClone(this.lastTimeTriggerProbe) : null,\n@@ -903,6 +935,7 @@ export class RuntimeService {\n     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);\n     if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);\n     if (action === 'runtime.probe-core-goal') return this.commandCoreGoalValidation(value, signal);\n+    if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);\n     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);\n     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);\n     if (action === 'runtime.pause') return this.setPaused(true);\n"
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-reconcile --manifest plugins/shiyu/.local/h3-reconcile-manifest.json",
+      "head": "ab628476f151780c006639e252a0b12f224aad05",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 69426,
+          "sha256": "26899a3207538dd39f16610bcb83c8f975a34634dc5ae564d040c93d6cf658c7"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-validation.test.ts",
+          "bytes": 51705,
+          "sha256": "939775a0f76e6dec998d418bab9c26004d3e03c80df5b7758a26ff829d1c3f85"
+        }
+      ],
+      "exitCode": 0,
+      "tests": {
+        "tests": 1552,
+        "pass": 1552,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 511455,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h3-reconcile.log",
+        "bytes": 166703,
+        "sha256": "805b5be4d4dc2269d9a13f5dbae860070d14a6f532a08ce894a13c1c8560a7ec"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-reconcile-verify.json",
+        "sha256": "a0457375ff8487464348eb57f08af72555ab9e3329e56bbaf4f2d4a85495c382"
+      },
+      "tail": [
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 510364.1285",
+        "> @shiyu/runtime@0.1.0 build",
+        "> tsc -p tsconfig.build.json"
+      ]
+    },
+    "focused": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/core-validation.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/core-validation-reconcile-focused.log",
+        "sha256": "d8a3e1f0715f0957a73e4deadb14ded605a9a9efd949a64bf54b9a4f6d5702f7"
+      },
+      "tests": 29,
+      "pass": 29,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  },
+  "tests": {
+    "file": "tests/core-validation.test.ts",
+    "total": 29,
+    "netNew": 13,
+    "updated": [
+      "the previous create-failure test now asserts businessSideEffects.goal.created=\"false\" only for an absent readback, plus partialCreation.readback=\"absent\" and no false-empty claim"
+    ],
+    "added": [
+      "create failure with durable inert partial Goal -> created=\"true\", exact observed row (goalId/version/unauthorized/paused/no mandate/no native/evaluations 0/no taskRefs), binding session id, partialCreation detected=true, no retry/no auto-cancel",
+      "create failure with unavailable readback -> created=\"unknown\", partialCreation.readback=\"unavailable\", GOAL_READBACK_UNKNOWN (never false)",
+      "create failure with an authorized partial Goal -> created=\"true\" and observed authorized/mandate/native, still no auto-cancel",
+      "reconcile absent -> classification absent, no cancel/write",
+      "reconcile inert -> exactly one cancel, postCancel cancelled=true/paused/version confirmation",
+      "reconcile inert with refused cancel -> errorCode preserved, one attempt only, CANCEL_UNCONFIRMED",
+      "reconcile paused-authorized -> no cancel, OWNER_DECISION_REQUIRED",
+      "reconcile cancelled -> no second cancel",
+      "reconcile duplicate requestId readback -> inconsistent unknown, no cancel",
+      "reconcile unavailable readback -> unknown, no write",
+      "reconcile ignores foreign requestIds and rejects caller-supplied requestId/goalId/objective overrides",
+      "reconcile single-flight BUSY and release",
+      "reconcile receipt validator self-proof: 8 mutated receipts (NaN/undefined/classification/cancel-count/stop mismatch/negative version/requestId/oversized unknown) are rejected"
+    ],
+    "noSkips": true,
+    "noAlwaysTrue": "both validators are exercised with mutated negative receipts"
+  },
+  "hostExecutionKit": {
+    "kitVersion": 1,
+    "status": "frozen; real reconcile NOT executed by implementer; exactly one Lead-owned reconcile on the fixed host",
+    "purpose": "F7-R1: reconcile the one inert unauthorized core-validation Goal left by the failed round-7 create, and verify that future create failures are reported with a read-only post-failure readback instead of created=false.",
+    "knownArtifact": {
+      "requestId": "core-validation-frozen-v1",
+      "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+      "version": 1,
+      "authorized": false,
+      "paused": true,
+      "cancelled": false,
+      "mandateId": null,
+      "native": null,
+      "evaluations": 0,
+      "evidence": [
+        {
+          "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+          "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388"
+        },
+        {
+          "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+          "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6"
+        },
+        {
+          "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+          "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38"
+        }
+      ]
+    },
+    "frozenInput": {
+      "command": {
+        "action": "runtime.reconcile-core-validation-goal",
+        "fields": "exactly this one field"
+      },
+      "preferredTool": "shiyu_reconcile_core_validation_goal (no parameters)",
+      "httpPath": "POST /api/shiyu/commands with application/json",
+      "fixedRequestId": "core-validation-frozen-v1",
+      "calls": 1,
+      "retries": 0,
+      "modelCalls": 0,
+      "createsGoal": false
+    },
+    "preconditions": [
+      "fixed host runs a build containing this slice plus the runtime/index integration patch (record dist digest)",
+      "runtime unpaused (the command rejects paused runtimes); no other operation is required, but an idle runtime is recommended for a clean readback",
+      "the round-7 persisted Goal above is expected to still exist; do not delete it by hand and do not create a new Goal first",
+      "capture a before-audit (node plugins/shiyu/scripts/host-state-audit.mjs --out <tmp-before.json>) and a shiyu_status snapshot"
+    ],
+    "expectedReceipt": {
+      "requiredFields": [
+        "schemaVersion(=1)",
+        "kind(core-validation-goal-reconcile)",
+        "requestId",
+        "classification",
+        "readback",
+        "startedAt",
+        "completedAt",
+        "durationMs",
+        "evidence[]",
+        "stopAction{kind,attempted,ok}",
+        "cancelAttempts",
+        "unknowns[]"
+      ],
+      "expectedForRoundSevenGoal": {
+        "classification": "inert-unauthorized",
+        "readback": "complete",
+        "observed": {
+          "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+          "requestId": "core-validation-frozen-v1",
+          "version": 1,
+          "authorized": false,
+          "paused": true,
+          "cancelled": false,
+          "hasMandate": false,
+          "nativePhase": "unobserved",
+          "evaluations": 0,
+          "taskRefs": 0,
+          "planVersion": 0,
+          "bindingReceiptStatus": "unknown or absent (exact readback value)",
+          "goalSessionId": "the exact bound Goal Session id when the binding is present"
+        },
+        "cancelAttempts": 1,
+        "stopAction": {
+          "kind": "cancel",
+          "attempted": true,
+          "ok": true
+        },
+        "postCancel": {
+          "cancelled": true,
+          "paused": true,
+          "version": 2
+        },
+        "unknowns": "none or GOAL_SESSION_UNOBSERVED only"
+      },
+      "otherClassifications": {
+        "paused-authorized": "observed authorized/mandate/native present -> NO cancel; owner decision required; stop",
+        "cancelled": "already cancelled -> no cancel; stop",
+        "absent": "no Goal with the fixed requestId -> no cancel; nothing to clean",
+        "unknown": "readback unavailable/inconsistent -> NO write; inspect and stop; never guess or retry"
+      }
+    },
+    "stopConditions": [
+      "one reconcile invocation only; 0 retries; no model call; no new Goal/Task/Effect/budget/Session/artifact",
+      "the only permitted write is at most one core.control(cancel) for an inert unauthorized Goal; a refusal keeps its error code (CANCEL_UNCONFIRMED), no write-around, no retry",
+      "abort is allowed; paused runtime is rejected; capture the receipt from snapshot diagnostics before any reload"
+    ],
+    "postChecks": [
+      "goal row with requestId core-validation-frozen-v1 is cancelled=true (postCancel) and no new Goal with that requestId exists",
+      "no new Task/Effect/budget row, no model request, no new Session or artifact from this reconcile; host lifecycle files unchanged apart from the cancel commit",
+      "snapshot().diagnostics.coreValidationReconcile equals the returned receipt (in-memory only; cleared by reload)",
+      "after this reconcile: a future bounded validation attempt must be a new explicit owner decision. If create fails again, the fixed runner receipt must report businessSideEffects.goal.created true/unknown plus partialCreation readback evidence; do not retry and reconcile only if inert"
+    ],
+    "f7r1RunnerKit": {
+      "futureCreateFailure": {
+        "neverRetry": true,
+        "autoCancel": false,
+        "receipt": "businessSideEffects.goal.created is true|false|unknown from a read-only requestId readback; partialCreation.detected/readback/evidence records the exact observed row/binding/session; unknown readback is never reported as false",
+        "nextAction": "run the reconcile tool once; only an inert unauthorized Goal may be cancelled; authorized/paused Goals need owner decision"
+      }
+    }
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/Goal/Session readback or cancel by the implementer: the Lead runs the reconcile kit exactly once; this evidence does not claim the real reconcile succeeded",
+    "offline tests use a fake CoreDriver and fake read-only store (permitted); the real LocalCoreService/ControlStore path is typechecked and covered by the combined worktree full check but not executed",
+    "the reconcile receipt is in-memory diagnostics only; the Lead must capture it before any reload",
+    "readback uses the exact binding sessionId when present; if the binding is missing the Goal Session identity stays unobserved (GOAL_SESSION_UNOBSERVED) and is never guessed from paths",
+    "a future bounded validation attempt is a new explicit owner decision; this slice intentionally does not create a new Goal or replay create",
+    "the round-7 Goal Session remains real retained history; this reconcile only cancels the inert Goal row and does not delete Sessions or artifacts"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-core-validation-reconcile-integration.patch",
+      "sha256": "d2dac5b8632a1a7340883632a3002c6c27c7233cf7f4c681709eb3d32b7a41f4",
+      "bytes": 8454
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-reconcile-verify.json",
+      "sha256": "a0457375ff8487464348eb57f08af72555ab9e3329e56bbaf4f2d4a85495c382"
+    },
+    {
+      "path": "plugins/shiyu/.local/slice-verify-h3-reconcile.log",
+      "sha256": "805b5be4d4dc2269d9a13f5dbae860070d14a6f532a08ce894a13c1c8560a7ec"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/core-validation-reconcile-focused.log",
+      "sha256": "d8a3e1f0715f0957a73e4deadb14ded605a9a9efd949a64bf54b9a4f6d5702f7"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h3-reconcile-integration-check.log",
+      "sha256": "289c8aa88cc7c53c13dfb9cd4686b8726a767e943cdeb8bf9a75480b37b57431"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h3-reconcile-integration-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+      "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/host/round7-bounded-core-goal.json",
+      "sha256": "8aa8ed4c4cd58cce050955f71a04990a3318acaf9b2b06d9f7ff6dd16d832d38"
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/host/round7/frozen-goal-state.json",
+      "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388"
+    }
+  ]
+}

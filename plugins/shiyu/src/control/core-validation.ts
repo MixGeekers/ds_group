@@ -155,8 +155,39 @@ export interface CoreValidationNativeSummary {
   /** True if any observation in this run saw the native Goal phase complete. */
   completedObserved: boolean;
 }
+export type CoreValidationGoalCreation = 'true' | 'false' | 'unknown';
+/** Exact read-only observation of the frozen requestId Goal row (and its bound Session). */
+export interface CoreValidationGoalObservation {
+  goalId: string;
+  requestId: string;
+  version: number;
+  authorized: boolean;
+  paused: boolean;
+  cancelled: boolean;
+  hasMandate: boolean;
+  nativePhase: 'active' | 'paused' | 'blocked' | 'complete' | 'unobserved';
+  evaluations: number;
+  taskRefs: number;
+  planVersion: number;
+  bindingReceiptStatus: 'pending' | 'unknown' | 'confirmed' | 'rejected' | 'absent';
+  goalSessionId?: string;
+  goalRef?: { id: string; revision: number };
+}
+export interface CoreValidationGoalReadback {
+  status: 'present' | 'absent' | 'unknown';
+  observed?: CoreValidationGoalObservation;
+  evidence: string[];
+  errorCode?: string;
+}
+export interface CoreValidationPartialCreation {
+  /** True only when a post-failure readback positively observed a durable Goal row. */
+  detected: boolean;
+  readback: 'complete' | 'absent' | 'unavailable' | 'inconsistent';
+  evidence: string[];
+}
 export interface CoreValidationBusinessSideEffects {
-  goal: { created: boolean; goalId?: string; requestId: string; version?: number };
+  goal: { created: CoreValidationGoalCreation; requestId: string; version?: number; observed?: CoreValidationGoalObservation };
+  partialCreation: CoreValidationPartialCreation;
   tasks: { count: number; ids: string[] };
   effects: { count: number; ids: string[] };
   artifacts: { count: number; refs: { taskId: string; artifactRef: string; sha256: string; bytes: number }[] };
@@ -198,6 +229,7 @@ export interface CoreValidationReceipt {
   artifacts: { taskId: string; artifactRef: string; expectedSha256: string; observedSha256?: string; byteLength: number; verification: string }[];
   effects: { effectId: string; status: string; receiptId?: string }[];
   businessSideEffects: CoreValidationBusinessSideEffects;
+  partialCreation: CoreValidationPartialCreation;
   stopAction: CoreValidationStopAction;
   unknowns: string[];
   error?: { phase: string; code: string; message: string };
@@ -209,6 +241,67 @@ export class CoreValidationBusyError extends Error {
 export class CoreValidationOptionsError extends Error {
   readonly code = 'CORE_VALIDATION_INVALID_OPTIONS';
   constructor(message: string) { super(message); this.name = 'CoreValidationOptionsError'; }
+}
+
+export type CoreValidationReconcileClassification = 'absent' | 'inert-unauthorized' | 'paused-authorized' | 'cancelled' | 'unknown';
+export interface CoreValidationReconcileStopAction {
+  kind: 'none' | 'cancel';
+  attempted: boolean;
+  ok: boolean | null;
+  errorCode?: string;
+  at?: string;
+  goalVersion?: number;
+}
+export interface CoreValidationReconcileReceipt {
+  schemaVersion: 1;
+  kind: 'core-validation-goal-reconcile';
+  requestId: string;
+  classification: CoreValidationReconcileClassification;
+  readback: 'complete' | 'unavailable' | 'inconsistent';
+  startedAt: string;
+  completedAt: string;
+  durationMs: number;
+  observed?: CoreValidationGoalObservation;
+  evidence: string[];
+  stopAction: CoreValidationReconcileStopAction;
+  cancelAttempts: 0 | 1;
+  postCancel?: { cancelled: boolean; paused: boolean; version: number };
+  unknowns: string[];
+}
+export interface CoreValidationReconcileOptions {
+  core: CoreValidationDriver;
+  store: CoreValidationStore;
+  signal?: AbortSignal;
+  now?: () => number;
+  progress?: (phase: string) => void;
+}
+export class CoreValidationReconcileBusyError extends Error {
+  readonly code = 'CORE_VALIDATION_RECONCILE_BUSY';
+  constructor() { super('A core-validation Goal reconciliation is already running; it is single-flight and is never retried'); this.name = 'CoreValidationReconcileBusyError'; }
+}
+export class CoreValidationReconcileOptionsError extends Error {
+  readonly code = 'CORE_VALIDATION_RECONCILE_INVALID_OPTIONS';
+  constructor(message: string) { super(message); this.name = 'CoreValidationReconcileOptionsError'; }
+}
+const RECONCILE_OPTION_KEYS = ['core', 'store', 'signal', 'now', 'progress'] as const;
+function validateReconcileOptions(options: unknown): asserts options is CoreValidationReconcileOptions {
+  if (!options || typeof options !== 'object' || Array.isArray(options)) throw new CoreValidationReconcileOptionsError('Core-validation Goal reconciliation requires an options object');
+  const value = options as Record<string, unknown>;
+  if (Object.keys(value).some(key => !(RECONCILE_OPTION_KEYS as readonly string[]).includes(key))) {
+    throw new CoreValidationReconcileOptionsError('Reconciliation accepts no caller-supplied requestId, goalId or input overrides');
+  }
+  if (!value.core || typeof value.core !== 'object' || typeof (value.core as Record<string, unknown>).control !== 'function'
+    || typeof (value.core as Record<string, unknown>).create !== 'function' || typeof (value.core as Record<string, unknown>).evaluatePending !== 'function') {
+    throw new CoreValidationReconcileOptionsError('Reconciliation requires the trusted core driver');
+  }
+  if (!value.store || typeof value.store !== 'object' || typeof (value.store as Record<string, unknown>).request !== 'function') {
+    throw new CoreValidationReconcileOptionsError('Reconciliation requires the read-only control store');
+  }
+  if (value.now !== undefined && typeof value.now !== 'function') throw new CoreValidationReconcileOptionsError('Invalid clock port');
+  if (value.progress !== undefined && typeof value.progress !== 'function') throw new CoreValidationReconcileOptionsError('Invalid progress port');
+  if (value.signal !== undefined && (typeof value.signal !== 'object' || typeof (value.signal as AbortSignal).aborted !== 'boolean')) {
+    throw new CoreValidationReconcileOptionsError('Invalid abort signal');
+  }
 }
 
 const FROZEN_TEMPLATE = Object.freeze({ requestId: CORE_VALIDATION_REQUEST_ID, objective: CORE_VALIDATION_OBJECTIVE,
@@ -334,6 +427,51 @@ function boundedText(value: unknown, max = 240): string | undefined {
   if (typeof value !== 'string' || !value) return undefined;
   return value.length <= max ? value : `${value.slice(0, max)}…`;
 }
+/** Exact read-only observation of the frozen Goal row and its bound Session. */
+function goalObservation(goal: CoreGoal, binding: GoalBinding | undefined): CoreValidationGoalObservation {
+  const status = binding?.receipt?.status;
+  return { goalId: goal.goalId, requestId: goal.requestId, version: goal.version, authorized: goal.authorized,
+    paused: goal.paused, cancelled: goal.cancelled, hasMandate: !!goal.mandateId,
+    nativePhase: goal.native?.phase ?? 'unobserved', evaluations: goal.evaluations, taskRefs: goal.taskRefs.length,
+    planVersion: goal.planVersion,
+    bindingReceiptStatus: status === 'pending' || status === 'unknown' || status === 'confirmed' || status === 'rejected' ? status : 'absent',
+    ...((binding?.sessionId ?? goal.native?.sessionId) ? { goalSessionId: binding?.sessionId ?? goal.native!.sessionId } : {}),
+    ...(goal.native ? { goalRef: { id: goal.native.goalRef.id, revision: goal.native.goalRef.revision } } : {}) };
+}
+/**
+ * Read-only post-failure/reconcile readback by the fixed requestId. It only uses
+ * injected read commands: no path guessing, no direct SQL, no writes. A failed
+ * or ambiguous readback stays explicitly unknown; it is never treated as "no
+ * side effect".
+ */
+async function readValidationGoal(store: CoreValidationStore): Promise<CoreValidationGoalReadback> {
+  let snapshot: CoreGoal[];
+  try { snapshot = await store.request('core.snapshot', {}); }
+  catch (error) { return { status: 'unknown', errorCode: safeCode(error), evidence: ['core.snapshot:unavailable'] }; }
+  const matches = snapshot.filter(goal => goal.requestId === CORE_VALIDATION_REQUEST_ID);
+  if (!matches.length) return { status: 'absent', evidence: ['core.snapshot:requestId-absent'] };
+  if (matches.length > 1) return { status: 'unknown', errorCode: 'CORE_VALIDATION_GOAL_AMBIGUOUS', evidence: ['core.snapshot:duplicate-requestId'] };
+  const goal = matches[0]!;
+  const evidence = ['goal-row-present'];
+  let binding: GoalBinding | undefined, bindingRead = 'complete';
+  try { binding = await store.request('goal.binding.load', { goalId: goal.goalId }); }
+  catch { bindingRead = 'unavailable'; }
+  evidence.push(bindingRead === 'unavailable' ? 'binding:unavailable' : binding ? `binding:${binding.receipt?.status ?? 'without-receipt'}` : 'binding:absent');
+  evidence.push((binding?.sessionId ?? goal.native?.sessionId) ? 'goal-session:bound' : 'goal-session:unobserved');
+  evidence.push(goal.authorized ? 'authorized' : 'unauthorized', goal.paused ? 'paused' : 'active', goal.cancelled ? 'cancelled' : 'not-cancelled',
+    goal.mandateId ? 'mandate' : 'no-mandate', goal.native ? `native:${goal.native.phase}` : 'no-native',
+    `evaluations:${goal.evaluations}`, `tasks:${goal.taskRefs.length}`, `plan:${goal.planVersion}`);
+  return { status: 'present', observed: goalObservation(goal, binding), evidence: evidence.slice(0, 16),
+    ...(bindingRead === 'unavailable' ? { errorCode: 'BINDING_READ_UNAVAILABLE' } : {}) };
+}
+function classifyReconcile(observed: CoreValidationGoalObservation): CoreValidationReconcileClassification {
+  if (observed.cancelled) return 'cancelled';
+  // Any authorized Goal (with its mandate/native presence) is owner-owned work:
+  // reconciliation never cancels it automatically.
+  if (observed.authorized || observed.hasMandate || observed.nativePhase !== 'unobserved') return 'paused-authorized';
+  if (!observed.authorized && !observed.hasMandate && observed.nativePhase === 'unobserved' && observed.taskRefs === 0) return 'inert-unauthorized';
+  return 'unknown';
+}
 class BoundedValidationRunnerCore {
   private readonly evaluate: CoreValidationEvaluate;
   private readonly now: () => number;
@@ -351,6 +489,8 @@ class BoundedValidationRunnerCore {
   private commitSeqAfter?: number;
   private readonly unknowns: string[] = [];
   private completedObserved = false;
+  private creationReadback?: CoreValidationGoalReadback;
+  private partialCreation: CoreValidationPartialCreation = { detected: false, readback: 'absent', evidence: [] };
   private error?: { phase: string; code: string; message: string };
   private observation: Observation = { evaluations: [], tasks: [], details: new Map() };
   private goal?: CoreGoal;
@@ -489,6 +629,9 @@ class BoundedValidationRunnerCore {
   }
   private businessSideEffects(observation: Observation): CoreValidationBusinessSideEffects {
     const goal = observation.goal;
+    const creation = this.creationReadback;
+    const observed = creation?.status === 'present' ? creation.observed : undefined;
+    const created: CoreValidationGoalCreation = observed ? 'true' : creation?.status === 'absent' ? 'false' : 'unknown';
     const tasks = observation.tasks;
     const effects = [...observation.details.values()].flatMap(detail => detail.effects);
     const artifacts = [...observation.details.values()].map(detail => ({ taskId: detail.task.taskId, artifactRef: detail.artifact.artifactRef,
@@ -496,11 +639,13 @@ class BoundedValidationRunnerCore {
     const workerSessions = [...observation.details.values()].map(detail => detail.execution?.sessionId).filter((value): value is string => !!value);
     const balance = observation.balance;
     return {
-      goal: { created: !!goal, ...(goal ? { goalId: goal.goalId, requestId: goal.requestId, version: goal.version } : { requestId: CORE_VALIDATION_REQUEST_ID }) },
+      goal: { created, requestId: CORE_VALIDATION_REQUEST_ID, ...(observed ? { version: observed.version, observed } : {}) },
+      partialCreation: structuredClone(this.partialCreation),
       tasks: { count: tasks.length, ids: tasks.slice(0, 8).map(task => task.taskId) },
       effects: { count: effects.length, ids: effects.slice(0, 8).map(effect => effect.effectId) },
       artifacts: { count: artifacts.length, refs: artifacts.slice(0, 8) },
-      sessions: { ...(goal?.native?.sessionId ? { goalSessionId: goal.native.sessionId } : {}), workerSessionIds: workerSessions.slice(0, 8) },
+      sessions: { ...((observed?.goalSessionId ?? goal?.native?.sessionId) ? { goalSessionId: observed?.goalSessionId ?? goal!.native!.sessionId } : {}),
+        workerSessionIds: workerSessions.slice(0, 8) },
       budget: { limits: { ...CORE_VALIDATION_BUDGET }, spent: balance ? budgetSum(balance.spent) : {}, held: balance ? budgetSum(balance.held) : {} },
       control: { ...(this.commitSeqBefore !== undefined ? { commitSeqBefore: this.commitSeqBefore } : {}), ...(this.commitSeqAfter !== undefined ? { commitSeqAfter: this.commitSeqAfter } : {}) },
     };
@@ -541,6 +686,7 @@ class BoundedValidationRunnerCore {
       effects: [...observation.details.values()].flatMap(detail => detail.effects).slice(0, 8).map(effect => ({
         effectId: effect.effectId, status: effect.status, ...(effect.receiptId ? { receiptId: effect.receiptId } : {}) })),
       businessSideEffects: this.businessSideEffects(observation),
+      partialCreation: structuredClone(this.partialCreation),
       stopAction,
       unknowns: [...new Set(this.unknowns)].slice(0, 16),
       ...(this.error ? { error: this.error } : {}),
@@ -567,14 +713,34 @@ class BoundedValidationRunnerCore {
     } catch (error) {
       this.error = { phase: 'create', code: safeCode(error), message: messageOf(error) };
       if (!this.unknowns.includes('GOAL_CREATE_FAILED')) this.unknowns.push('GOAL_CREATE_FAILED');
+      // Read-only post-failure readback by the fixed requestId. A durable partial
+      // Goal row is never reported as "no side effect"; a failed readback is
+      // explicitly unknown. There is no retry and no automatic cancel here.
+      try { this.creationReadback = await readValidationGoal(this.options.store); }
+      catch { this.creationReadback = { status: 'unknown', evidence: ['readback:exception'], errorCode: 'GOAL_READBACK_FAILED' }; }
+      const readback = this.creationReadback;
+      if (readback.status === 'present') {
+        this.partialCreation = { detected: true, readback: 'complete', evidence: readback.evidence.slice(0, 16) };
+        if (!this.unknowns.includes('PARTIAL_CREATION_REQUIRES_RECONCILE')) this.unknowns.push('PARTIAL_CREATION_REQUIRES_RECONCILE');
+      } else if (readback.status === 'absent') {
+        this.partialCreation = { detected: false, readback: 'absent', evidence: readback.evidence.slice(0, 16) };
+      } else {
+        this.partialCreation = { detected: false, readback: readback.errorCode === 'CORE_VALIDATION_GOAL_AMBIGUOUS' ? 'inconsistent' : 'unavailable',
+          evidence: readback.evidence.slice(0, 16) };
+        if (!this.unknowns.includes('GOAL_READBACK_UNKNOWN')) this.unknowns.push('GOAL_READBACK_UNKNOWN');
+      }
       if ((error as { code?: string })?.code === 'CORE_VALIDATION_CANCELLED' || this.options.signal?.aborted) return this.finish('cancelled', 'CORE_VALIDATION_CANCELLED');
       return this.finish('failed', 'CORE_VALIDATION_CREATE_FAILED');
     }
     this.goal = created;
     this.goalId = created.goalId;
+    this.creationReadback = { status: 'present', observed: goalObservation(created, undefined), evidence: ['goal-create-returned'] };
+    this.partialCreation = { detected: false, readback: 'complete', evidence: ['goal-create-returned'] };
     if (!created.authorized || created.cancelled || created.native?.phase !== 'active') {
       this.error = { phase: 'create', code: 'CORE_VALIDATION_CREATE_INTEGRITY', message: 'Created Goal is not exactly one active, owner-authorized, native-active Goal' };
       if (!this.unknowns.includes('GOAL_CREATE_INTEGRITY')) this.unknowns.push('GOAL_CREATE_INTEGRITY');
+      this.partialCreation = { detected: true, readback: 'complete', evidence: ['goal-create-returned-but-not-active-authorized-native'] };
+      if (!this.unknowns.includes('PARTIAL_CREATION_REQUIRES_RECONCILE')) this.unknowns.push('PARTIAL_CREATION_REQUIRES_RECONCILE');
       return this.finish('failed', 'CORE_VALIDATION_CREATE_INTEGRITY');
     }
     const initial = await this.observe();
@@ -650,6 +816,117 @@ export function runBoundedCoreValidation(options: CoreValidationOptions): Promis
   return sharedRunner.run(options);
 }
 
+let reconcileInFlight = false;
+/**
+ * Owner-only, read-only classification and one-shot reconciliation of the one
+ * fixed core-validation Goal. It only reads the control store; the single
+ * permitted mutation is `core.control('cancel')` for an inert unauthorized Goal
+ * (exactly one attempt, no retry). It never creates or resumes a Goal, never
+ * calls a model, and never writes around the trusted core service.
+ */
+export async function reconcileCoreValidationGoal(options: CoreValidationReconcileOptions): Promise<CoreValidationReconcileReceipt> {
+  validateReconcileOptions(options);
+  if (reconcileInFlight) throw new CoreValidationReconcileBusyError();
+  reconcileInFlight = true;
+  try {
+    const now = options.now ?? Date.now;
+    const startedAtMs = now();
+    const progress = options.progress ?? (() => undefined);
+    const unknowns: string[] = [];
+    progress('读取固定 requestId 的 core-validation Goal');
+    const readback = await readValidationGoal(options.store);
+    const observed = readback.observed;
+    let classification: CoreValidationReconcileClassification;
+    let readbackState: CoreValidationReconcileReceipt['readback'];
+    if (readback.status === 'unknown') { classification = 'unknown'; readbackState = readback.errorCode === 'CORE_VALIDATION_GOAL_AMBIGUOUS' ? 'inconsistent' : 'unavailable'; unknowns.push('GOAL_READBACK_UNKNOWN'); }
+    else if (readback.status === 'absent') { classification = 'absent'; readbackState = 'complete'; }
+    else { classification = classifyReconcile(observed!); readbackState = 'complete'; }
+    if (readback.errorCode === 'BINDING_READ_UNAVAILABLE' && !unknowns.includes('GOAL_SESSION_UNOBSERVED')) unknowns.push('GOAL_SESSION_UNOBSERVED');
+    let stopAction: CoreValidationReconcileStopAction = { kind: 'none', attempted: false, ok: null };
+    let cancelAttempts: 0 | 1 = 0;
+    let postCancel: CoreValidationReconcileReceipt['postCancel'];
+    if (classification === 'inert-unauthorized' && observed) {
+      options.signal?.throwIfAborted();
+      progress('仅 inert unauthorized Goal：尝试一次显式 cancel，不重试');
+      try {
+        // Fresh non-aborted signal: the cancel is the one permitted stop action
+        // and must not be skipped because an external caller signal already aborted.
+        const stopped = await options.core.control('cancel', { goalId: observed.goalId, expectedVersion: observed.version },
+          new AbortController().signal);
+        cancelAttempts = 1;
+        stopAction = { kind: 'cancel', attempted: true, ok: true, at: iso(now()), goalVersion: stopped.version };
+        try {
+          const after = await readValidationGoal(options.store);
+          if (after.status === 'present' && after.observed) {
+            postCancel = { cancelled: after.observed.cancelled, paused: after.observed.paused, version: after.observed.version };
+          } else unknowns.push('POST_CANCEL_READBACK_UNKNOWN');
+        } catch { unknowns.push('POST_CANCEL_READBACK_UNKNOWN'); }
+      } catch (error) {
+        cancelAttempts = 1;
+        stopAction = { kind: 'cancel', attempted: true, ok: false, errorCode: safeCode(error), at: iso(now()), goalVersion: observed.version };
+        if (!unknowns.includes('CANCEL_UNCONFIRMED')) unknowns.push('CANCEL_UNCONFIRMED');
+      }
+    } else if (classification === 'paused-authorized') unknowns.push('OWNER_DECISION_REQUIRED');
+    else if (classification === 'unknown') { if (!unknowns.includes('GOAL_STATE_AMBIGUOUS')) unknowns.push('GOAL_STATE_AMBIGUOUS'); }
+    const end = now();
+    const receipt: CoreValidationReconcileReceipt = {
+      schemaVersion: 1, kind: 'core-validation-goal-reconcile', requestId: CORE_VALIDATION_REQUEST_ID,
+      classification, readback: readbackState, startedAt: iso(startedAtMs), completedAt: iso(Math.max(end, startedAtMs)),
+      durationMs: Math.max(0, end - startedAtMs), ...(observed ? { observed } : {}), evidence: readback.evidence.slice(0, 16),
+      stopAction, cancelAttempts, ...(postCancel ? { postCancel } : {}), unknowns: [...new Set(unknowns)].slice(0, 16),
+    };
+    assertBoundedCoreValidationReconcileReceipt(receipt);
+    return receipt;
+  } finally { reconcileInFlight = false; }
+}
+/** Independent strict validator for the reconcile receipt (lossless, bounded, classified). */
+export function assertBoundedCoreValidationReconcileReceipt(value: unknown): asserts value is CoreValidationReconcileReceipt {
+  assertLossless(value, '$', 0, new Set());
+  if (Buffer.byteLength(JSON.stringify(value)) > CORE_VALIDATION_RECEIPT_MAX_BYTES) throw new Error('Reconcile receipt exceeds its bounded byte size');
+  const receipt = value as CoreValidationReconcileReceipt;
+  if (receipt.schemaVersion !== 1 || receipt.kind !== 'core-validation-goal-reconcile'
+    || receipt.requestId !== CORE_VALIDATION_REQUEST_ID) throw new Error('Reconcile receipt header is invalid');
+  if (!['absent', 'inert-unauthorized', 'paused-authorized', 'cancelled', 'unknown'].includes(receipt.classification)) throw new Error('Reconcile classification is invalid');
+  if (!['complete', 'unavailable', 'inconsistent'].includes(receipt.readback)) throw new Error('Reconcile readback state is invalid');
+  for (const field of ['startedAt', 'completedAt'] as const) {
+    if (typeof receipt[field] !== 'string' || new Date(receipt[field]).toISOString() !== receipt[field]) throw new Error(`Reconcile ${field} is not canonical UTC`);
+  }
+  if (!Number.isSafeInteger(receipt.durationMs) || receipt.durationMs < 0) throw new Error('Reconcile duration is invalid');
+  if (!Array.isArray(receipt.evidence) || receipt.evidence.length > 16 || receipt.evidence.some(entry => typeof entry !== 'string' || entry.length > 240)) {
+    throw new Error('Reconcile evidence is invalid');
+  }
+  if (!receipt.stopAction || !['none', 'cancel'].includes(receipt.stopAction.kind) || typeof receipt.stopAction.attempted !== 'boolean'
+    || !(receipt.stopAction.ok === null || typeof receipt.stopAction.ok === 'boolean')
+    || (receipt.stopAction.errorCode !== undefined && !/^[A-Z][A-Z0-9_]{0,99}$/.test(receipt.stopAction.errorCode))) {
+    throw new Error('Reconcile stop action is invalid');
+  }
+  if (receipt.cancelAttempts !== 0 && receipt.cancelAttempts !== 1) throw new Error('Reconcile cancel attempt count is invalid');
+  if (receipt.cancelAttempts === 0 && receipt.stopAction.kind !== 'none') throw new Error('Reconcile reports a stop action it did not admit');
+  if (receipt.cancelAttempts === 1 && receipt.stopAction.kind !== 'cancel') throw new Error('Reconcile cancel attempt lacks its stop action');
+  if (receipt.classification === 'inert-unauthorized' && receipt.cancelAttempts !== 1) throw new Error('Inert Goal reconciliation must attempt its one cancel');
+  if (receipt.classification === 'paused-authorized' && receipt.cancelAttempts !== 0) throw new Error('Authorized Goal reconciliation must not cancel');
+  if (receipt.classification === 'cancelled' && receipt.cancelAttempts !== 0) throw new Error('Already-cancelled Goal cannot be cancelled again');
+  if (receipt.classification === 'absent' && receipt.observed !== undefined) throw new Error('Absent Goal cannot carry an observation');
+  if (receipt.classification === 'unknown' && receipt.observed !== undefined && typeof receipt.observed.goalId !== 'string') throw new Error('Reconcile unknown observation is malformed');
+  if (['inert-unauthorized', 'paused-authorized', 'cancelled'].includes(receipt.classification)
+    && (!receipt.observed || typeof receipt.observed.goalId !== 'string')) throw new Error('Reconcile observation is missing');
+  if (receipt.observed !== undefined) {
+    const observed = receipt.observed;
+    if (typeof observed.requestId !== 'string' || !Number.isSafeInteger(observed.version) || observed.version < 1
+      || typeof observed.authorized !== 'boolean' || typeof observed.paused !== 'boolean' || typeof observed.cancelled !== 'boolean'
+      || typeof observed.hasMandate !== 'boolean' || !['active', 'paused', 'blocked', 'complete', 'unobserved'].includes(observed.nativePhase)
+      || !Number.isSafeInteger(observed.evaluations) || observed.evaluations < 0 || !Number.isSafeInteger(observed.taskRefs) || observed.taskRefs < 0
+      || !Number.isSafeInteger(observed.planVersion) || observed.planVersion < 0
+      || !['pending', 'unknown', 'confirmed', 'rejected', 'absent'].includes(observed.bindingReceiptStatus)) {
+      throw new Error('Reconcile observation is malformed');
+    }
+  }
+  if (receipt.postCancel !== undefined && (typeof receipt.postCancel.cancelled !== 'boolean' || typeof receipt.postCancel.paused !== 'boolean'
+    || !Number.isSafeInteger(receipt.postCancel.version))) throw new Error('Reconcile post-cancel observation is malformed');
+  if (!Array.isArray(receipt.unknowns) || receipt.unknowns.length > 16 || receipt.unknowns.some(code => typeof code !== 'string' || code.length > 120)) {
+    throw new Error('Reconcile unknowns are invalid');
+  }
+}
 const STATUSES: readonly CoreValidationStatus[] = ['completed', 'paused', 'timeout', 'failed', 'cancelled'];
 const REASONS: readonly CoreValidationReasonCode[] = ['CORE_VALIDATION_COMPLETED', 'CORE_VALIDATION_PAUSED_EXTERNALLY', 'CORE_VALIDATION_TIMEOUT',
   'CORE_VALIDATION_CANCELLED', 'CORE_VALIDATION_CREATE_FAILED', 'CORE_VALIDATION_CREATE_INTEGRITY', 'CORE_VALIDATION_EVALUATION_FAILED',
@@ -722,9 +999,32 @@ export function assertBoundedCoreValidationReceipt(value: unknown): asserts valu
     || receipt.effects.some(entry => !entry || typeof entry.effectId !== 'string' || typeof entry.status !== 'string')) {
     throw new Error('Receipt effect summary is invalid');
   }
-  if (!receipt.businessSideEffects || typeof receipt.businessSideEffects.goal !== 'object' || !Array.isArray(receipt.businessSideEffects.tasks.ids)
-    || !Array.isArray(receipt.businessSideEffects.effects.ids) || !Array.isArray(receipt.businessSideEffects.artifacts.refs)
-    || !Array.isArray(receipt.businessSideEffects.sessions.workerSessionIds)) throw new Error('Receipt business side effects are invalid');
+  if (!receipt.businessSideEffects || typeof receipt.businessSideEffects.goal !== 'object'
+    || !['true', 'false', 'unknown'].includes(receipt.businessSideEffects.goal.created)
+    || receipt.businessSideEffects.goal.requestId !== CORE_VALIDATION_REQUEST_ID
+    || (receipt.businessSideEffects.goal.created === 'true' && !receipt.businessSideEffects.goal.observed)
+    || (receipt.businessSideEffects.goal.created === 'false' && receipt.businessSideEffects.goal.observed !== undefined)
+    || !Array.isArray(receipt.businessSideEffects.tasks.ids) || !Array.isArray(receipt.businessSideEffects.effects.ids)
+    || !Array.isArray(receipt.businessSideEffects.artifacts.refs) || !Array.isArray(receipt.businessSideEffects.sessions.workerSessionIds)) {
+    throw new Error('Receipt business side effects are invalid');
+  }
+  const partial = receipt.partialCreation;
+  if (!partial || typeof partial.detected !== 'boolean' || !['complete', 'absent', 'unavailable', 'inconsistent'].includes(partial.readback)
+    || !Array.isArray(partial.evidence) || partial.evidence.length > 16 || partial.evidence.some(entry => typeof entry !== 'string' || entry.length > 240)) {
+    throw new Error('Receipt partial-creation readback is invalid');
+  }
+  if (partial.detected && receipt.businessSideEffects.goal.created !== 'true') throw new Error('Detected partial creation must report the Goal as created');
+  if (receipt.businessSideEffects.goal.created === 'true' && receipt.businessSideEffects.goal.observed) {
+    const observed = receipt.businessSideEffects.goal.observed;
+    if (typeof observed.goalId !== 'string' || !Number.isSafeInteger(observed.version) || typeof observed.authorized !== 'boolean'
+      || typeof observed.paused !== 'boolean' || typeof observed.cancelled !== 'boolean' || typeof observed.hasMandate !== 'boolean'
+      || !['active', 'paused', 'blocked', 'complete', 'unobserved'].includes(observed.nativePhase)
+      || !Number.isSafeInteger(observed.evaluations) || !Number.isSafeInteger(observed.taskRefs) || !Number.isSafeInteger(observed.planVersion)
+      || !['pending', 'unknown', 'confirmed', 'rejected', 'absent'].includes(observed.bindingReceiptStatus)) {
+      throw new Error('Receipt created-Goal observation is malformed');
+    }
+  }
+  if (receipt.partialCreation !== undefined && JSON.stringify(receipt.partialCreation) !== JSON.stringify(partial)) throw new Error('Receipt partial-creation copy changed');
   if (!receipt.stopAction || !['none', 'pause', 'cancel'].includes(receipt.stopAction.kind) || typeof receipt.stopAction.attempted !== 'boolean') throw new Error('Receipt stop action is invalid');
   if (!Array.isArray(receipt.unknowns) || receipt.unknowns.length > 16 || receipt.unknowns.some(code => typeof code !== 'string' || code.length > 120)) throw new Error('Receipt unknowns are invalid');
   if (receipt.error !== undefined && (typeof receipt.error.phase !== 'string' || !/^[A-Z][A-Z0-9_]{0,99}$/.test(receipt.error.code))) throw new Error('Receipt error is invalid');

@@ -1,0 +1,117 @@
+diff --git a/plugins/shiyu/src/index.ts b/plugins/shiyu/src/index.ts
+index 157625f..59b0e27 100644
+--- a/plugins/shiyu/src/index.ts
++++ b/plugins/shiyu/src/index.ts
+@@ -154,6 +154,28 @@ export function coreGoalValidationTool(service: { command(input: unknown): Promi
+     },
+   };
+ }
++/**
++ * Owner-only reconcile tool for the fixed core-validation Goal.
++ *
++ * This is READ-ONLY except for at most one explicit cancel of an inert
++ * unauthorized partial Goal left behind by a failed create. It never creates or
++ * resumes a Goal, never calls a model, never retries, and never writes around the
++ * trusted core service. Paused runtimes are rejected; the receipt is cached only
++ * in snapshot().diagnostics.coreValidationReconcile.
++ */
++export function coreValidationReconcileTool(service: { command(input: unknown): Promise<unknown> }) {
++  return {
++    name: 'shiyu_reconcile_core_validation_goal',
++    description: '只读核对固定 requestId core-validation-frozen-v1 的 Goal 并分类（absent/inert-unauthorized/paused-authorized/cancelled/unknown）；仅 inert unauthorized 残留 Goal 尝试一次显式 cancel，0 重试；不创建/重启 Goal、不调模型、不写业务库；要求运行时未暂停；回执仅存 snapshot().diagnostics.coreValidationReconcile。',
++    parameters: { type: 'object', properties: {}, additionalProperties: false },
++    isConcurrencySafe: false,
++    execute: async () => service.command({ action: 'runtime.reconcile-core-validation-goal' }),
++    output: {
++      schema: { type: 'object', additionalProperties: true },
++      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
++    },
++  };
++}
+ export function workerToolDiagnosisTool(service: { command(input: unknown): Promise<unknown> }) {
+   return {
+     name: 'shiyu_diagnose_worker_tools',
+@@ -187,6 +209,9 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
+   // Session/artifact and makes real model calls. Owner-only; never mounted into
+   // restricted core/worker/replyer Sessions.
+   ctx.effect(() => ctx.tools.register(coreGoalValidationTool(service)));
++  // Owner-only reconcile of the fixed core-validation Goal: read-only + at most
++  // one cancel for an inert partial Goal; no Goal creation and no model call.
++  ctx.effect(() => ctx.tools.register(coreValidationReconcileTool(service)));
+   ctx.effect(() => ctx.tools.register(timeSourceDiagnosisTool(service)));
+   ctx.effect(() => ctx.tools.register(checkpointAvailabilityTool(service)));
+   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private
+diff --git a/plugins/shiyu/src/runtime.ts b/plugins/shiyu/src/runtime.ts
+index 973f04c..c219db0 100644
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ -34,7 +34,7 @@ import type { LocalMemoryEntry } from './adapters/control-store/memory-domain.js
+ import type { MemoryIndexEntry } from './adapters/control-store/memory-index-domain.js';
+ import type { AvailableMemoryDomain, UnavailableDomain } from './state/publication.js';
+ import { CorePump, type CoreEvaluationResult } from './control/core-pump.js';
+-import { runBoundedCoreValidation, type CoreValidationReceipt, type CoreValidationStore } from './control/core-validation.js';
++import { reconcileCoreValidationGoal, runBoundedCoreValidation, type CoreValidationReceipt, type CoreValidationReconcileReceipt, type CoreValidationStore } from './control/core-validation.js';
+ import { LocalCoreService, type LocalCoreOptions } from './control/local-core.js';
+ import type { CoreGoal, CorePrepareInput } from './contracts/core.js';
+ import type { CapabilityBinding, CapabilityCommandReceipt } from './contracts/capability.js';
+@@ -167,6 +167,7 @@ export class RuntimeService {
+   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
+   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
+   private lastCoreGoalValidation?: CoreValidationReceipt;
++  private lastCoreValidationReconcile?: CoreValidationReconcileReceipt;
+   private lastTimeSourceProbe?: TimeSourceProbeResult;
+   private lastTimeTriggerProbe?: LiveTimeTriggerProbeResult;
+   private core?: CoreDriver;
+@@ -730,6 +731,36 @@ export class RuntimeService {
+       throw error;
+     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+   }
++  /**
++   * Owner-only, read-only classification of the one fixed core-validation Goal,
++   * with at most one explicit `core.control('cancel')` for an inert unauthorized
++   * partial Goal. It never creates/resumes a Goal, never calls a model, never
++   * retries and never writes around the trusted core service. The receipt is
++   * cached only in snapshot diagnostics. Paused runtimes are rejected.
++   */
++  private async commandCoreValidationReconcile(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
++    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core-validation reconcile input');
++    this.ensureCanRun(); signal?.throwIfAborted();
++    if (!this.core) throw new Error('CORE_VALIDATION_RECONCILE_UNAVAILABLE');
++    if ([...this.operations.values()].some(op => op.phase === 'core-validation goal reconcile')) throw new Error('Core-validation Goal reconciliation is already running');
++    if (this.operations.size + this.pendingAdmissions >= 2) throw new Error('Runtime operation capacity reached');
++    let finish!: () => void;
++    const done = new Promise<void>(resolve => { finish = resolve; });
++    const op: ActiveOperation = { id: randomUUID(), title: '核对有界 core 验证 Goal', phase: 'core-validation goal reconcile',
++      status: 'running', controller: new AbortController(), done, finish };
++    const onAbort = () => op.controller.abort(signal?.reason);
++    signal?.addEventListener('abort', onAbort, { once: true });
++    this.operations.set(op.id, op);
++    try {
++      const receipt = await reconcileCoreValidationGoal({ core: this.core, store: this.store as unknown as CoreValidationStore,
++        signal: op.controller.signal, progress: phase => { op.phase = phase.slice(0, 120); } });
++      this.lastCoreValidationReconcile = structuredClone(receipt);
++      return { ...receipt, readOnly: true, createsGoal: false, modelCalls: 0, retries: 0 };
++    } catch (error) {
++      this.lastFailure = error instanceof Error ? error.message : String(error);
++      throw error;
++    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
++  }
+   private async record(type: string, message: string, status: string): Promise<void> {
+     await this.events.publish(principal, { type, scope: OWN_SCOPE, payload: { message, status }, idempotencyKey: randomUUID(), correlationId: this.instanceId });
+     // This component's only effect is a readable event-backed activity projection.
+@@ -848,6 +879,7 @@ export class RuntimeService {
+         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
+         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
+         coreGoalValidation: this.lastCoreGoalValidation ? structuredClone(this.lastCoreGoalValidation) : null,
++        coreValidationReconcile: this.lastCoreValidationReconcile ? structuredClone(this.lastCoreValidationReconcile) : null,
+         timeSource: this.timePump ? this.timePump.snapshot() : null,
+         timeSourceProbe: this.lastTimeSourceProbe ? structuredClone(this.lastTimeSourceProbe) : null,
+         timeTriggerProbe: this.lastTimeTriggerProbe ? structuredClone(this.lastTimeTriggerProbe) : null,
+@@ -903,6 +935,7 @@ export class RuntimeService {
+     if (action === 'runtime.probe-core-event-tools') return this.commandCoreEventToolProbe(value, signal);
+     if (action === 'runtime.probe-core-model-tools') return this.commandCoreModelToolProbe(value, signal);
+     if (action === 'runtime.probe-core-goal') return this.commandCoreGoalValidation(value, signal);
++    if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);
+     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
+     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);
+     if (action === 'runtime.pause') return this.setPaused(true);

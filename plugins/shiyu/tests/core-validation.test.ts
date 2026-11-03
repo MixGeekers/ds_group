@@ -9,8 +9,9 @@ import type { TaskDetail } from '../src/adapters/control-store/task-domain.js';
 import type { TaskView } from '../src/control/tasks/types.js';
 import type { Budget } from '../src/control/policy/mandates.js';
 import {
-  assertBoundedCoreValidationReceipt, BoundedCoreValidationRunner, CoreValidationBusyError, CoreValidationOptionsError,
-  frozenCoreValidationInput, runBoundedCoreValidation, CORE_VALIDATION_BUDGET,
+  assertBoundedCoreValidationReceipt, assertBoundedCoreValidationReconcileReceipt, BoundedCoreValidationRunner,
+  CoreValidationBusyError, CoreValidationReconcileBusyError, CoreValidationReconcileOptionsError, CoreValidationOptionsError,
+  frozenCoreValidationInput, reconcileCoreValidationGoal, runBoundedCoreValidation, CORE_VALIDATION_BUDGET,
   CORE_VALIDATION_DELIVERABLE, CORE_VALIDATION_MAX_EVALUATIONS, CORE_VALIDATION_OBJECTIVE, CORE_VALIDATION_POLL_MS,
   CORE_VALIDATION_RECEIPT_MAX_BYTES, CORE_VALIDATION_TEMPLATE_SHA256, CORE_VALIDATION_WALL_MS,
   type CoreValidationCommands, type CoreValidationDriver, type CoreValidationOptions, type CoreValidationReceipt, type CoreValidationStore,
@@ -62,6 +63,10 @@ class World {
   autoWorker = false;
   workerCompleted = false;
   workerTampered = false;
+  snapshotFailure = false;
+  snapshotOverride?: CoreGoal[];
+  /** Simulates a durable partial Goal row left behind when create throws. */
+  partialOnCreateFailure?: 'inert' | 'authorized' | 'cancelled';
   evaluate: (world: World) => Promise<CoreEvaluationResult> = async () => ({ status: 'evaluated', goalId: 'unspecified' });
   createFailure?: string;
   createUnauthorized = false;
@@ -78,7 +83,11 @@ class World {
         void args;
         switch (command) {
           case 'core.get': return clone(this.goal) as unknown as CoreValidationCommands[K]['output'];
-          case 'core.snapshot': return (this.goal ? [clone(this.goal)] : []) as unknown as CoreValidationCommands[K]['output'];
+          case 'core.snapshot': {
+            if (this.snapshotFailure) throw new Error('Synthetic core snapshot unavailable');
+            const goals = this.snapshotOverride ?? (this.goal ? [this.goal] : []);
+            return clone(goals) as unknown as CoreValidationCommands[K]['output'];
+          }
           case 'core.evaluations': return clone(this.evaluations) as unknown as CoreValidationCommands[K]['output'];
           case 'core.balance': return clone(this.balance) as unknown as CoreValidationCommands[K]['output'];
           case 'core.plan': return (this.plan
@@ -94,10 +103,44 @@ class World {
       }) as CoreValidationStore['request'],
     };
   }
+  variantGoal(kind: 'inert' | 'authorized' | 'cancelled' | 'foreign-request' | 'active-authorized'): CoreGoal {
+    const authorized = kind === 'authorized' || kind === 'active-authorized';
+    const cancelled = kind === 'cancelled';
+    return { schemaVersion: 1, goalId: kind === 'foreign-request' ? 'core-foreign-request' : 'core-17e3fe95b62427e395e6386686e602cf90024ec7',
+      requestId: kind === 'foreign-request' ? 'another-request' : 'core-validation-frozen-v1', objective: CORE_VALIDATION_OBJECTIVE,
+      deliverables: [{ id: 'note-1', title: CORE_VALIDATION_DELIVERABLE.title, content: CONTENT, dependsOn: [] }],
+      budget: { ...CORE_VALIDATION_BUDGET }, expiresAt: iso(T0 + 600_000), maxEvaluations: 2,
+      completionCriteria: '{"kind":"fixture"}', completionCriteriaHash: sha256('{"kind":"fixture"}'), version: 1,
+      authorized, paused: kind !== 'active-authorized', cancelled, controlEpoch: 1,
+      ...(authorized ? { mandateId: 'mandate:fixture' } : {}), ...(authorized ? { native: { goalId: 'native-core-validation-goal',
+        goalRef: { ...GOAL_REF }, sessionId: GOAL_SESSION, phase: kind === 'active-authorized' ? 'active' as const : 'paused' as const, observedAt: iso(T0) } } : {}),
+      taskRefs: [], planVersion: 0, evaluations: 0, createdAt: iso(T0), updatedAt: iso(T0) } as CoreGoal;
+  }
+  setReconcileGoal(kind: 'inert' | 'authorized' | 'cancelled' | 'foreign-request' | 'active-authorized'): void {
+    const goal = this.variantGoal(kind);
+    this.goal = goal;
+    this.binding = { goalId: goal.goalId, sessionId: GOAL_SESSION, ownerId: 'local-owner', scope: 'local-owner', cwd: '/synthetic/core-validation',
+      completionCriteriaHash: goal.completionCriteriaHash, metadataVersion: 2, goalRef: goal.native ? { ...GOAL_REF } : undefined,
+      receipt: { commandId: 'create:fixture', operation: 'create', status: kind === 'inert' ? 'unknown' : 'confirmed', postconditionHash: sha256('create'),
+        ...(goal.native ? { observedRef: { ...GOAL_REF } } : {}) } };
+  }
   private async create(input: CorePrepareInput, signal?: AbortSignal): Promise<CoreGoal> {
     signal?.throwIfAborted();
     this.createCalls.push(clone(input));
-    if (this.createFailure) throw Object.assign(new Error('Synthetic native Goal create failed'), { code: this.createFailure });
+    if (this.createFailure) {
+      if (this.partialOnCreateFailure) {
+        const kind = this.partialOnCreateFailure;
+        const goal = { ...this.variantGoal(kind === 'authorized' ? 'authorized' : kind), requestId: input.requestId,
+          deliverables: clone(input.deliverables), budget: clone(input.budget), expiresAt: input.expiresAt, maxEvaluations: input.maxEvaluations ?? 2,
+          objective: input.objective } as CoreGoal;
+        this.goal = goal;
+        this.binding = { goalId: goal.goalId, sessionId: GOAL_SESSION, ownerId: 'local-owner', scope: 'local-owner', cwd: '/synthetic/core-validation',
+          completionCriteriaHash: goal.completionCriteriaHash, metadataVersion: 2, ...(goal.native ? { goalRef: { ...GOAL_REF } } : {}),
+          receipt: { commandId: 'create:fixture', operation: 'create', status: 'unknown', postconditionHash: sha256('create'),
+            ...(goal.native ? { expectedRef: { ...GOAL_REF } } : {}) } };
+      }
+      throw Object.assign(new Error('Synthetic native Goal create failed'), { code: this.createFailure });
+    }
     const startedAt = this.clock;
     const goal: CoreGoal = { schemaVersion: 1, goalId: 'core-validation-fixture', requestId: input.requestId, objective: input.objective,
       deliverables: clone(input.deliverables), budget: clone(input.budget), expiresAt: input.expiresAt, maxEvaluations: input.maxEvaluations ?? 2,
@@ -228,6 +271,9 @@ function optionsFor(world: World, extra: Partial<CoreValidationOptions> = {}): C
     sleep: async (ms: number, signal: AbortSignal) => { signal.throwIfAborted(); world.clock += ms; await new Promise<void>(resolve => setImmediate(resolve)); },
     ...extra };
 }
+function reconcileOptions(world: World, extra: Record<string, unknown> = {}): Parameters<typeof reconcileCoreValidationGoal>[0] {
+  return { core: world.driver, store: world.store, now: () => world.clock, ...extra } as Parameters<typeof reconcileCoreValidationGoal>[0];
+}
 function completedScenario(world: World): void {
   const goalId = 'core-validation-fixture';
   void goalId;
@@ -256,7 +302,7 @@ test('bounded validation completes the frozen chain: plan, Task/Effect/artifact 
   assert.equal(receipt.native.phase, 'complete'); assert.equal(receipt.native.completedObserved, true);
   assert.equal(receipt.native.bindingReceiptStatus, 'confirmed');
   assert.equal(receipt.stopAction.kind, 'none'); assert.equal(receipt.stopAction.attempted, false);
-  assert.equal(receipt.businessSideEffects.goal.created, true);
+  assert.equal(receipt.businessSideEffects.goal.created, 'true');
   assert.deepEqual(receipt.businessSideEffects.tasks.ids, ['task-note-1']);
   assert.equal(receipt.businessSideEffects.effects.count, 1);
   assert.equal(receipt.businessSideEffects.artifacts.count, 1);
@@ -418,13 +464,17 @@ test('frozen input cannot be overridden by options and reaches the trusted drive
   assert.deepEqual(world.createCalls[0], frozenCoreValidationInput(T0));
 });
 
-test('a failed Goal creation still returns a validated receipt with honest empty side effects', async () => {
+test('a failed Goal creation with an absent readback returns created=false and no false-empty claim', async () => {
   const world = makeWorld();
   world.createFailure = 'SYNTHETIC_CREATE_FAILED';
   const receipt = await runBoundedCoreValidation(optionsFor(world));
   assert.equal(receipt.status, 'failed'); assert.equal(receipt.reasonCode, 'CORE_VALIDATION_CREATE_FAILED');
   assert.equal(receipt.error?.phase, 'create'); assert.equal(receipt.error?.code, 'SYNTHETIC_CREATE_FAILED');
-  assert.equal(receipt.businessSideEffects.goal.created, false);
+  assert.equal(receipt.businessSideEffects.goal.created, 'false');
+  assert.equal(receipt.businessSideEffects.goal.observed, undefined);
+  assert.equal(receipt.partialCreation.detected, false); assert.equal(receipt.partialCreation.readback, 'absent');
+  assert.equal(receipt.partialCreation.evidence.includes('core.snapshot:requestId-absent'), true);
+  assert.equal(receipt.unknowns.includes('PARTIAL_CREATION_REQUIRES_RECONCILE'), false);
   assert.equal(receipt.stopAction.attempted, false);
   assert.equal(world.controlCalls.length, 0);
   assertBoundedCoreValidationReceipt(receipt);
@@ -510,4 +560,189 @@ test('a native complete that is not backed by independent artifact evidence is r
   assert.equal(receipt.native.phase, 'paused'); assert.equal(receipt.native.completedObserved, true);
   assert.equal(receipt.stopAction.kind, 'pause');
   assertBoundedCoreValidationReceipt(receipt);
+});
+
+test('a create failure with a durable inert partial Goal is reported as created=true with its readback evidence', async () => {
+  const world = makeWorld();
+  world.createFailure = 'GOAL_OPERATION_UNKNOWN'; world.partialOnCreateFailure = 'inert';
+  const receipt = await runBoundedCoreValidation(optionsFor(world));
+  assert.equal(receipt.status, 'failed'); assert.equal(receipt.error?.code, 'GOAL_OPERATION_UNKNOWN');
+  assert.equal(receipt.businessSideEffects.goal.created, 'true');
+  const observed = receipt.businessSideEffects.goal.observed!;
+  assert.equal(observed.goalId, 'core-17e3fe95b62427e395e6386686e602cf90024ec7');
+  assert.equal(observed.requestId, 'core-validation-frozen-v1'); assert.equal(observed.version, 1);
+  assert.equal(observed.authorized, false); assert.equal(observed.paused, true); assert.equal(observed.cancelled, false);
+  assert.equal(observed.hasMandate, false); assert.equal(observed.nativePhase, 'unobserved');
+  assert.equal(observed.evaluations, 0); assert.equal(observed.taskRefs, 0); assert.equal(observed.planVersion, 0);
+  assert.equal(observed.bindingReceiptStatus, 'unknown'); assert.equal(observed.goalSessionId, GOAL_SESSION);
+  assert.equal(receipt.partialCreation.detected, true); assert.equal(receipt.partialCreation.readback, 'complete');
+  assert.equal(receipt.partialCreation.evidence.includes('binding:unknown'), true);
+  assert.equal(receipt.partialCreation.evidence.includes('goal-session:bound'), true);
+  assert.equal(receipt.unknowns.includes('PARTIAL_CREATION_REQUIRES_RECONCILE'), true);
+  // No retry and no automatic cancel: the owner must reconcile separately.
+  assert.equal(world.createCalls.length, 1); assert.equal(world.controlCalls.length, 0); assert.equal(world.evaluateCalls, 0);
+  assert.equal(receipt.stopAction.attempted, false);
+  assertBoundedCoreValidationReceipt(receipt);
+});
+
+test('a create failure whose readback is unavailable reports created=unknown instead of no side effect', async () => {
+  const world = makeWorld();
+  world.createFailure = 'GOAL_OPERATION_UNKNOWN'; world.snapshotFailure = true;
+  const receipt = await runBoundedCoreValidation(optionsFor(world));
+  assert.equal(receipt.status, 'failed');
+  assert.equal(receipt.businessSideEffects.goal.created, 'unknown');
+  assert.equal(receipt.businessSideEffects.goal.observed, undefined);
+  assert.equal(receipt.partialCreation.detected, false); assert.equal(receipt.partialCreation.readback, 'unavailable');
+  assert.equal(receipt.partialCreation.evidence.includes('core.snapshot:unavailable'), true);
+  assert.equal(receipt.unknowns.includes('GOAL_READBACK_UNKNOWN'), true);
+  assert.equal(world.controlCalls.length, 0); assert.equal(world.createCalls.length, 1);
+  assertBoundedCoreValidationReceipt(receipt);
+});
+
+test('a create failure that left an authorized partial Goal is observed but never auto-cancelled', async () => {
+  const world = makeWorld();
+  world.createFailure = 'GOAL_OPERATION_UNKNOWN'; world.partialOnCreateFailure = 'authorized';
+  const receipt = await runBoundedCoreValidation(optionsFor(world));
+  assert.equal(receipt.businessSideEffects.goal.created, 'true');
+  const observed = receipt.businessSideEffects.goal.observed!;
+  assert.equal(observed.authorized, true); assert.equal(observed.paused, true); assert.equal(observed.hasMandate, true);
+  assert.equal(observed.nativePhase, 'paused');
+  assert.equal(receipt.partialCreation.detected, true);
+  assert.equal(receipt.unknowns.includes('PARTIAL_CREATION_REQUIRES_RECONCILE'), true);
+  assert.equal(world.controlCalls.length, 0);
+  assertBoundedCoreValidationReceipt(receipt);
+});
+
+test('reconcile reports an absent fixed requestId Goal without any cancel or write', async () => {
+  const world = makeWorld();
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'absent'); assert.equal(receipt.readback, 'complete');
+  assert.equal(receipt.observed, undefined); assert.equal(receipt.cancelAttempts, 0);
+  assert.deepEqual(receipt.stopAction, { kind: 'none', attempted: false, ok: null });
+  assert.equal(receipt.requestId, 'core-validation-frozen-v1');
+  assert.equal(world.controlCalls.length, 0);
+  assert.equal(world.createCalls.length, 0); assert.equal(world.evaluateCalls, 0);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile cancels an inert unauthorized partial Goal exactly once and confirms it', async () => {
+  const world = makeWorld(); world.setReconcileGoal('inert');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'inert-unauthorized'); assert.equal(receipt.cancelAttempts, 1);
+  assert.equal(receipt.observed?.goalId, 'core-17e3fe95b62427e395e6386686e602cf90024ec7');
+  assert.equal(receipt.observed?.version, 1); assert.equal(receipt.observed?.authorized, false);
+  assert.equal(receipt.stopAction.kind, 'cancel'); assert.equal(receipt.stopAction.attempted, true); assert.equal(receipt.stopAction.ok, true);
+  assert.deepEqual(world.controlCalls.map(call => call.kind), ['cancel']);
+  assert.deepEqual(receipt.postCancel, { cancelled: true, paused: true, version: 2 });
+  assert.equal(receipt.unknowns.length, 0);
+  assert.equal(world.evaluateCalls, 0); assert.equal(world.createCalls.length, 0);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('a refused inert-Goal cancel keeps the error code, is not retried and is not written around', async () => {
+  const world = makeWorld(); world.setReconcileGoal('inert');
+  let calls = 0;
+  world.driver.control = async () => { calls++; throw Object.assign(new Error('Synthetic cancel denied'), { code: 'SYNTHETIC_CANCEL_DENIED' }); };
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'inert-unauthorized'); assert.equal(receipt.cancelAttempts, 1);
+  assert.equal(receipt.stopAction.kind, 'cancel'); assert.equal(receipt.stopAction.ok, false);
+  assert.equal(receipt.stopAction.errorCode, 'SYNTHETIC_CANCEL_DENIED');
+  assert.equal(receipt.unknowns.includes('CANCEL_UNCONFIRMED'), true);
+  assert.equal(calls, 1);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile never cancels an authorized/paused Goal and marks it as owner decision required', async () => {
+  const world = makeWorld(); world.setReconcileGoal('authorized');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'paused-authorized'); assert.equal(receipt.cancelAttempts, 0);
+  assert.equal(receipt.stopAction.kind, 'none'); assert.equal(world.controlCalls.length, 0);
+  assert.equal(receipt.observed?.authorized, true); assert.equal(receipt.observed?.hasMandate, true);
+  assert.equal(receipt.unknowns.includes('OWNER_DECISION_REQUIRED'), true);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile reports an already-cancelled Goal as cancelled without a second cancel', async () => {
+  const world = makeWorld(); world.setReconcileGoal('cancelled');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'cancelled'); assert.equal(receipt.cancelAttempts, 0);
+  assert.equal(world.controlCalls.length, 0);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile treats a duplicate requestId readback as an inconsistent unknown and cancels nothing', async () => {
+  const world = makeWorld(); world.setReconcileGoal('inert');
+  const duplicate = { ...world.variantGoal('inert'), goalId: 'core-second-duplicate' } as CoreGoal;
+  world.snapshotOverride = [world.variantGoal('inert'), duplicate];
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'unknown'); assert.equal(receipt.readback, 'inconsistent');
+  assert.equal(receipt.cancelAttempts, 0); assert.equal(world.controlCalls.length, 0);
+  assert.equal(receipt.unknowns.includes('GOAL_READBACK_UNKNOWN'), true);
+  assert.equal(receipt.observed, undefined);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile treats an unavailable readback as unknown without any write', async () => {
+  const world = makeWorld(); world.setReconcileGoal('inert'); world.snapshotFailure = true;
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'unknown'); assert.equal(receipt.readback, 'unavailable');
+  assert.equal(receipt.cancelAttempts, 0); assert.equal(world.controlCalls.length, 0);
+  assert.equal(receipt.unknowns.includes('GOAL_READBACK_UNKNOWN'), true);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile ignores Goals with other requestIds and rejects caller-supplied request identities', async () => {
+  const world = makeWorld(); world.setReconcileGoal('foreign-request');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.classification, 'absent');
+  for (const override of [{ requestId: 'core-validation-frozen-v1' }, { goalId: 'core-17e3fe95b62427e395e6386686e602cf90024ec7' }, { objective: 'x' }]) {
+    await assert.rejects(reconcileCoreValidationGoal(reconcileOptions(world, override)),
+      (error: unknown) => error instanceof CoreValidationReconcileOptionsError && code('CORE_VALIDATION_RECONCILE_INVALID_OPTIONS')(error));
+  }
+});
+
+test('reconcile is single-flight and releases after the first run', async () => {
+  const world = makeWorld();
+  const enter = new Promise<void>(resolve => setImmediate(resolve));
+  const original = world.store.request;
+  let blocked = true; let entered!: () => void;
+  const reached = new Promise<void>(resolve => { entered = resolve; });
+  const gate: { release?: () => void } = {};
+  const held = new Promise<void>(resolve => { gate.release = resolve; });
+  world.store.request = (async (command: unknown, args: unknown) => {
+    if (blocked && command === 'core.snapshot') { entered(); await held; }
+    return original(command as never, args as never);
+  }) as typeof world.store.request;
+  try {
+    const first = reconcileCoreValidationGoal(reconcileOptions(world));
+    await reached;
+    await assert.rejects(reconcileCoreValidationGoal(reconcileOptions(world)),
+      (error: unknown) => error instanceof CoreValidationReconcileBusyError && code('CORE_VALIDATION_RECONCILE_BUSY')(error));
+    blocked = false; gate.release!();
+    const receipt = await first;
+    assert.equal(receipt.classification, 'absent');
+    const next = await reconcileCoreValidationGoal(reconcileOptions(world));
+    assert.equal(next.classification, 'absent');
+  } finally { gate.release?.(); world.store.request = original; await enter; }
+});
+
+test('the reconcile receipt validator rejects lossless/boundary/classification violations', async () => {
+  const world = makeWorld(); world.setReconcileGoal('inert');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.doesNotThrow(() => assertBoundedCoreValidationReconcileReceipt(receipt));
+  const mutations: ((value: Record<string, unknown>) => void)[] = [
+    value => { value.durationMs = Number.NaN; },
+    value => { (value.evidence as unknown[]).push(undefined); },
+    value => { value.classification = 'inert'; },
+    value => { value.cancelAttempts = 2; },
+    value => { value.stopAction = { kind: 'none', attempted: false, ok: null }; },
+    value => { (value.observed as Record<string, unknown>).version = -1; },
+    value => { value.requestId = 'another-request'; },
+    value => { (value.unknowns as unknown[]).push('x'.repeat(130)); },
+  ];
+  for (const mutate of mutations) {
+    const copy = JSON.parse(JSON.stringify(receipt)) as Record<string, unknown>;
+    mutate(copy);
+    assert.throws(() => assertBoundedCoreValidationReconcileReceipt(copy));
+  }
 });
