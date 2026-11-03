@@ -1,0 +1,18 @@
+{
+  "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+  "requestId": "core-validation-frozen-v1",
+  "version": 1,
+  "authorized": false,
+  "paused": true,
+  "cancelled": false,
+  "evaluations": 0,
+  "maxEvaluations": 2,
+  "budget": {
+    "tokens": 16384,
+    "calls": 3,
+    "effects": 1
+  },
+  "mandateId": null,
+  "native": null,
+  "planning": null
+}

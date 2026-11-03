@@ -1425,3 +1425,27 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - owner-only `runtime.probe-core-goal`（paused 拒绝、要求完全空闲、单槽、可中止、只调 runner 一次、evaluate=core.evaluatePending+正常 scheduleQueuedTasks、回执仅存 `diagnostics.coreGoalValidation`，返回显式 declaredSideEffects）+ 工具 `shiyu_validate_core_goal`（无参数、description 声明真实副作用）。
 - **Lead 集成隔离验证**（HEAD `e777bdb` + 全部 round-7 切片与集成文件）：**1539/1539 通过，0 失败/0 跳过**（= 1515 + 16 + 7 + 1）；证据 `artifacts/dsh/slices/round7-integrated-verify.json`。
 - 宿主执行（按 kit）：一次调用、0 重试、180s/2 评估/冻结预算硬停止；receipt 必须在 reload 前抓取；结果另行留证。
+
+## 44. 第七轮固定宿主：有界真实 core Goal 验证尝试（create 失败，诚实失败）
+
+状态：**失败（固定宿主真实业务链未通过创建阶段）**；未重试，未知/部分副作用如实记录。2026-11-03，代码 HEAD `183b649`，dist 由该 HEAD 隔离 worktree 构建，一次有序 reload。
+
+### 44.1 前置与执行
+
+- 重载增量：commitSeq `396→402`、events `52→53`、capability `39→41`、sessions 33 不变、业务事实/state 不变。
+- 前置检查通过：未暂停、runtime 空闲（activeWork=[]）、task states 仅 succeeded/unknown（无排队 Task）、2 个历史 core Goal、无同 requestId Goal、local-note ability `usableForAuthorizedTask=true`。
+- 唯一一次调用 `shiyu_validate_core_goal`（冻结输入 requestId `core-validation-frozen-v1`、note-1、budget 16384/3/1、maxEvaluations 2、180s 硬停止；0 重试）。
+
+### 44.2 结果（失败）
+
+- receipt：`status=failed`、`reasonCode=CORE_VALIDATION_CREATE_FAILED`、error `GOAL_OPERATION_UNKNOWN: Native Goal outcome requires reconciliation; the command was not replayed`；`evaluateAttempts=0`（**没有模型请求**）、`stopAction=none`（create 阶段失败，无需 stop）、unknowns 含 `GOAL_CREATE_FAILED/GOAL_READ_UNAVAILABLE/...`。
+- **持久部分副作用（审计发现，receipt 未准确反映）**：commitSeq `402→405`、core goals `2→3`、sessions `33→34`；新增 1 个 core Goal 行（requestId `core-validation-frozen-v1`，`authorized=false`、`paused=true`、`cancelled=false`、version 1、evaluations 0、**无 mandate/native GoalRef**）与 1 个 core Goal Session；无新 Task/Effect/budget/artifact、无新 events、state 文件不变；既有 33 个 Session 逐字节不变。
+- receipt 的 `businessSideEffects.goal.created=false` 与审计矛盾：实际持久了未授权/paused 的 Goal 行；已在证据 `findings` 中更正并披露。
+- 历史 tasks/effects 出现在 receipt 的业务摘要中，但它们是既有行（读取上下文），不是本次新副作用。
+
+### 44.3 结论与下一步
+
+1. 本轮**没有**完成有界真实 core 业务链（未进入 core 计划/模型轮/Task/worker/核验/native complete）；不得声称通过。
+2. 失败被原样保留、未重试、未创建第二个 Goal/Task；残留 1 个 inert（未授权/paused）Goal 与 Session，需下一轮新增 reconcile/cancel 路径处理（且不得自动重试创建）。
+3. 下一轮应：实现“对账/清理未知 create”的只读-安全路径（读取 Goal/native 状态→显式 cancel 或标记 abandoned），再决定是否允许一次人工触发的新尝试（需重新冻结计划与预算）。
+- 证据：[round7-bounded-core-goal.json](<artifacts/dsh/host/round7-bounded-core-goal.json>) + `host/round7/`（receipt、Goal 状态摘录、3 份审计）。

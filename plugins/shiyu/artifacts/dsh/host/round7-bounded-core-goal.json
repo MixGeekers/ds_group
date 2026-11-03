@@ -1,0 +1,246 @@
+{
+  "schemaVersion": 1,
+  "phase": "round7-host",
+  "slice": "fixed-host attempt of the bounded real core Goal validation (failed at create with an unknown native outcome)",
+  "capturedAt": "2026-11-03T02:44:10.450Z",
+  "status": "fixed-host-bounded-real-business-create-failed-unknown",
+  "purpose": "Attempt exactly one bounded real business run (frozen Goal note-1) on the fixed host and record whatever happens honestly: this attempt failed at Goal creation with GOAL_OPERATION_UNKNOWN, created a partially initialized unauthorized/paused Goal row plus one core Goal Session, made no model/Task/Effect/budget changes, and was not retried.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-round7-host-execution-plan.json",
+    "sha256": "8993f0a72b03ecc85f8b26df6b0467bf5d29108c5ceda4723fc9c14fe1042d64"
+  },
+  "code": {
+    "head": "183b649",
+    "dist": {
+      "files": 113,
+      "digest": "a275660690f4963b50af643cc02fd55b4dc5c47f34ea05482919c8d53740e356"
+    }
+  },
+  "preconditions": {
+    "beforeAudit": {
+      "file": "artifacts/dsh/host/round7/round7-host-before.json",
+      "bytes": 36592,
+      "sha256": "ace6809a4b873e2430957b033ec8caaa9b2d126fc6b2ee9b56b8f9c7cf05db4c"
+    },
+    "reloadAudit": {
+      "file": "artifacts/dsh/host/round7/round7-host-after-reload.json",
+      "bytes": 36592,
+      "sha256": "f25159fe13ea1385ef867bb00700de110d7bd4bffdc4b94fc7a280f90400b90a"
+    },
+    "verified": "runtime unpaused and idle; task states only succeeded/unknown (no queued Task); two historical core Goals; local-note ability usableForAuthorizedTask=true; no Goal with requestId core-validation-frozen-v1 before the attempt."
+  },
+  "attempt": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round7/core-goal-validation-receipt.json",
+      "bytes": 4347,
+      "sha256": "f8b70b5a5044398605409f793611e5dd9a01b4ea54242847a2f1e2aaddf4e6f6"
+    },
+    "status": "failed",
+    "reasonCode": "CORE_VALIDATION_CREATE_FAILED",
+    "error": {
+      "phase": "create",
+      "code": "GOAL_OPERATION_UNKNOWN",
+      "message": "Native Goal outcome requires reconciliation; the command was not replayed"
+    },
+    "fixedInput": {
+      "frozen": true,
+      "requestId": "core-validation-frozen-v1",
+      "objectiveSha256": "2f1ef162ce5e16c968ae59836687b0c81c11feb6e1450abae4405f6f5e23236b",
+      "deliverable": {
+        "id": "note-1",
+        "titleSha256": "afec182c67460a0c67225401485cb4e6d56fe0d7b5c039bee8fdf734ecbb75f6",
+        "contentSha256": "c5bb3cbc87ddc2bfb2429f7a6e3b55d6869a357fe25b6774635d39ed1b684e52",
+        "dependsOn": []
+      },
+      "budget": {
+        "tokens": 16384,
+        "calls": 3,
+        "effects": 1
+      },
+      "expiresInMs": 600000,
+      "maxEvaluations": 2,
+      "templateSha256": "1bfea1be7927a1f093cee8de2130943ba2e9de0c51bf69fb9bd59f719f2099ca"
+    },
+    "counters": {
+      "evaluateAttempts": 0,
+      "pollCount": 0,
+      "maxEvaluations": 2,
+      "wallLimitMs": 180000
+    },
+    "evaluations": 2,
+    "stopAction": {
+      "kind": "none",
+      "attempted": false,
+      "ok": null
+    },
+    "unknowns": [
+      "GOAL_CREATE_FAILED",
+      "GOAL_READ_UNAVAILABLE",
+      "PLAN_READ_UNAVAILABLE",
+      "BINDING_READ_UNAVAILABLE",
+      "BALANCE_READ_UNAVAILABLE",
+      "USAGE_UNKNOWN"
+    ],
+    "declaredSideEffects": {
+      "goal": true,
+      "task": true,
+      "effect": true,
+      "budget": true,
+      "session": true,
+      "artifact": true,
+      "realModelCalls": true
+    }
+  },
+  "observedSideEffects": {
+    "goalRow": {
+      "file": "artifacts/dsh/host/round7/frozen-goal-state.json",
+      "bytes": 362,
+      "sha256": "fd312adefed249bb097ab30c24ed25d2cddbde75114d06b4c1a118fa518b1388",
+      "value": {
+        "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+        "requestId": "core-validation-frozen-v1",
+        "version": 1,
+        "authorized": false,
+        "paused": true,
+        "cancelled": false,
+        "evaluations": 0,
+        "maxEvaluations": 2,
+        "budget": {
+          "tokens": 16384,
+          "calls": 3,
+          "effects": 1
+        },
+        "mandateId": null,
+        "native": null,
+        "planning": null
+      }
+    },
+    "classification": "the create command returned GOAL_OPERATION_UNKNOWN and the runner did not replay it, but the audit shows a durable partial side effect: one new core Goal row for requestId core-validation-frozen-v1 exists in an unauthorized/paused state (version 1, evaluations 0, no mandate, no native GoalRef) plus exactly one new core Goal Session file; no Task/Effect/budget row was created and no model request happened (evaluateAttempts=0). The receipt field businessSideEffects.goal.created=false is therefore contradicted by the durable row and is corrected here as a finding."
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        396,
+        402
+      ],
+      "events": [
+        52,
+        53
+      ],
+      "capabilityRevision": [
+        39,
+        41
+      ],
+      "sessions": [
+        33,
+        33
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "normal startup writes only; no business facts changed."
+    },
+    "attempt": {
+      "commitSeq": [
+        402,
+        405
+      ],
+      "events": [
+        53,
+        53
+      ],
+      "deliveries": [
+        {
+          "acked": 51
+        },
+        {
+          "acked": 51
+        }
+      ],
+      "capabilityRevision": [
+        41,
+        41
+      ],
+      "sessions": [
+        33,
+        34
+      ],
+      "tasks": [
+        {
+          "succeeded": 2,
+          "unknown": 1
+        },
+        {
+          "succeeded": 2,
+          "unknown": 1
+        }
+      ],
+      "goals": [
+        2,
+        3
+      ],
+      "budget": [
+        {
+          "settled": 21,
+          "unknown": 3
+        },
+        {
+          "settled": 21,
+          "unknown": 3
+        }
+      ],
+      "effects": [
+        {
+          "succeeded": 13
+        },
+        {
+          "succeeded": 13
+        }
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "addedSessionFiles": [
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces-37d7437f0740cdc1cfc4f1c19b8546b2--/shiyu-core-goal-066c102e4706af09a85713fbae7c0da5c12f80063d2d4e85848b7d3003c199e0/session.v4.jsonl.zstd"
+      ],
+      "changedKnownSessionFiles": [],
+      "classification": "+3 commitSeq and one new core Goal row + one new core Goal Session; no new Task/Effect/budget, no new events, no state-file change; sessions 33->34 with all previously known files byte-identical."
+    }
+  },
+  "findings": [
+    "The bounded real business attempt failed before any model call: create returned GOAL_OPERATION_UNKNOWN and the runner correctly did not replay it.",
+    "A durable partial side effect exists despite the failure: an unauthorized/paused core Goal row plus a core Goal Session were created; the receipt incorrectly reports goal.created=false, and the audit correction is recorded here.",
+    "No Task, Effect, budget reservation or artifact was created; the historical tasks/effects shown in the receipt businessSideEffects are pre-existing rows read for context, not new side effects.",
+    "The partial Goal is inert (unauthorized/paused, no mandate/native) but must be reconciled or cancelled in a later slice; no cleanup command is currently exposed and no retry happened."
+  ],
+  "residual": {
+    "note": "one unauthorized/paused core Goal (requestId core-validation-frozen-v1) and one core Goal Session remain; next round should add a reconcile/cancel path and NOT create another Goal automatically.",
+    "goalId": "core-17e3fe95b62427e395e6386686e602cf90024ec7",
+    "goalSession": "see addedSessionFiles"
+  },
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "lab": {
+      "disconnected": 3
+    },
+    "goals": 3,
+    "stateFileUnchanged": true
+  },
+  "limitations": [
+    "This is a failed attempt, not a bounded real business validation: no core plan, Task, worker, verification or native Goal completion occurred.",
+    "Receipt/businessSideEffects inconsistencies are disclosed; the partial Goal must be reconciled by a future slice without automatic retry.",
+    "Provider usage/cost is unknown because no model request was admitted."
+  ]
+}
