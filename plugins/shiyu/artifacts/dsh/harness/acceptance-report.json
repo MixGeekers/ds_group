@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.acceptance-report",
-  "generatedAt": "2026-11-02T23:35:28.216Z",
+  "generatedAt": "2026-11-03T01:25:15.841Z",
   "registryVersion": "1.0.0",
   "inputs": {
-    "pluginRoot": "/private/tmp/h7r4-clean/plugins/shiyu",
-    "workspaceRoot": "/private/tmp/h7r4-clean",
-    "traceabilitySha256": "d208ceb02401f61b8415233ebdf4ba95445569450fd4058f6ba43f8eaa41f061",
-    "selfproofSha256": "408f93b452818375342d24990391f3830527e3df6b34c34d4cebc580fac99ee8",
-    "manifestSha256": "c32b773453e64eaccfd67c94e467ddb2a3f0567f18b98da8528fe2aa567d432a",
-    "coverageSha256": "9d392a357fb88a02131db31e75017884071f0a335ed950d0abbc43d88acb28c7",
-    "frozenHead": "af201fecea06c13dbfbc23e5f4e66d2aa29350b1",
+    "pluginRoot": "/private/tmp/h7r5-clean2/plugins/shiyu",
+    "workspaceRoot": "/private/tmp/h7r5-clean2",
+    "traceabilitySha256": "ca9307dfb6dfb9859fe45bcde183e3040c8362dcf90a90effc60fcf1490550c2",
+    "selfproofSha256": "b362022d555e55684933cdcc0a167c15e9e4385610732f1dd48966d500f64dbe",
+    "manifestSha256": "2474996a6d4d67d8609b60090bc8d3c1647635f2189d2c136f51b97a961f685f",
+    "coverageSha256": "0b907322a9b4d631715508d5830924a344bb9f1691e73687f21e1eac3c24b1b9",
+    "frozenHead": "444f3777f674287dc1640c714b4764b84fe7371f",
     "selfproofPassed": true,
     "manifestDirty": false
   },
@@ -255,7 +255,10 @@
         "h2a-events",
         "h2a-probe",
         "h2b-subscriptions-time",
-        "round3-host-zero-model"
+        "h2b-host-time-probe",
+        "h2c-real-model-probe",
+        "round3-host-zero-model",
+        "round4-host-zero-model"
       ],
       "evidenceRefs": [
         {
@@ -316,6 +319,48 @@
           ]
         },
         {
+          "sourceId": "h2b-host-time-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2b-host-time-probe.json",
+              "sha256": "061cfa381c90d8a4ec098d846df990fe69344c7dee80c4bee05ad8182f9b46a0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2b-time-probe-manifest.json",
+              "sha256": "fbead183a709e740676c15691fd82d1bdfe293075f35f3288eb000c1c26a4176"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2b-time-probe-verify.json",
+              "sha256": "65ecd8d99c2b76d9165daaab8337b17e3b496576318486f3591ef90daec9c6ee"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2c-real-model-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2c-real-model-probe.json",
+              "sha256": "c61175628ef6d9a8b1f4cdc2b24afaa10c0b1262480c0a08227597bb43aeee48"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2c-real-model-probe-integration.patch",
+              "sha256": "ca4795faa7801710b51b3493a9dfd9675abc0832c273f672a2458572680402d3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2c-probe-verify.json",
+              "sha256": "3712c7dc42a579a3424b7e7ff61e275c762da2a1ca5ba90de61896d3de8740c1"
+            }
+          ]
+        },
+        {
           "sourceId": "round3-host-zero-model",
           "status": "verified",
           "levels": [
@@ -363,6 +408,75 @@
               "sha256": "7f54854635ebca79c4c5a44b727874dfb5278a34d0766b23653cd4d68235478c"
             }
           ]
+        },
+        {
+          "sourceId": "round4-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json",
+              "sha256": "c4f1dcf992a6f22592c81fed02d381c94e1022836ffb31e99ab9da6060fe9d96"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-before.json",
+              "sha256": "e49e8321b5179e76945ff8cba46c5de473b0527a7069ab8c030ff796c8cfcb2b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-after.json",
+              "sha256": "6194a3ab622a5f44fcbff0910436cf2b69626a45bad717323583439f43cd8b9d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-before.json",
+              "sha256": "a55f8b08436d6f4c2aa1381dd5f64ac34d7e0382773af3e37ab85fc55612c2c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after.json",
+              "sha256": "33b3d688b7affef839209c8d4088b6365c0976f9a439d7da2015c480b54da6df"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-status.json",
+              "sha256": "d559afc817b98941e55a278119df894006236f687f09f21f3f8cd0c95495fd31"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-tools.json",
+              "sha256": "b5ef48fe0fbebb9cc7c49a5217a1ae1b289775fa3a36990635f97f87e8dd35c1"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/time-source-probe.json",
+              "sha256": "ab8c88b53c4cec155aa64fe36f0f354e721b370a681ad3ef7ba5fafdd98d8f5c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/checkpoint-availability-probe.json",
+              "sha256": "394353b20a8c839501a8b96f5340bf4fae4d6e234e8748d679df106f688da011"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/worker-tool-probe.json",
+              "sha256": "5ba0027924a88767f99cbc03b38efc10f2c4f4363ac978d9b0696c399d5383c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-event-tool-probe.json",
+              "sha256": "a270ccbf29d6b74cb4f6832be7c305c0fac64a7ca3ad60f65a6f299ec3e79271"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-model-tool-probe.json",
+              "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-reload.json",
+              "sha256": "6e0e4777a663880dff9bae2132db7957a77b0074784f6eff2222e1a2f88a83c8"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-final-cached.json",
+              "sha256": "a8223fc267065506ae618b62e937ad199e8cb07fb0db3ae00fa7b5935758962a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-core-model-attempt.json",
+              "sha256": "46ed5c381ca15d5ba43dd70629ec66eb53a09e4b01fcba6613ed74698d1fa303"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -396,7 +510,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H2a 离线+零模型探针；H2b 离线订阅生命周期/插件时间源；round-3 宿主仅零模型 timeSource idle；时间/外部触发、fan-out/配额未验",
+        "H2a 离线+零模型探针；H2b 离线订阅/时间源及宿主零模型时间探针；H2c 真实模型事件工具探针仅离线 kit，宿主尝试在任何模型请求前失败，不得记 pass；round-3/4 宿主仅零模型；fan-out/配额未验",
         "Offline module/integration with synthetic native DSH double and independent effect ledger; not fixed-host model behaviour.",
         "Real core Goal continuation wiring, time/condition triggers, anti-loop/fanout quota matrices and event-catalog extension remain untested.",
         "No model actually called an event tool; provider budgets/cache and real task/Goal continuation are unproven.",
@@ -406,13 +520,24 @@
         "Runtime wiring (catalog, rule store/lifecycle, time pump, diagnostics) was integrated by Lead under e400fcc; fixed-host/zero-model probe is separate round-3 host evidence.",
         "Agent-facing declarative-condition tools are not mounted; dedupe across reconnect is proven only across process/rule-store restart, not real platform redelivery.",
         "No IANA tz/DST database: daily schedules take injected zoneOffsetMinutes. Budget bounding is structural; monetary/model cost is out of scope.",
+        "The kit itself is offline/isolated: it does not execute a live host run; the fixed-host zero-model probe execution and receipts are recorded separately in round4-host-zero-model (bd81270).",
+        "No real model, embedding, channel or business call; live rule/time DB, DSH Schedule/IANA DST and real notification Effect remain untested.",
+        "Probe evidence cannot upgrade V14/SYS.2 or any product module to pass.",
+        "The implementer did NOT execute the real model: this source is offline implementation/isolated verification only.",
+        "The host bounded real-model attempt failed before any model request and was not retried (recorded in round4-host-zero-model, bd81270): no real-model tool invocation, provider usage, cache or cost is proven.",
+        "A failed/unknown real-model attempt must never be counted as pass, product acceptance or V25 evidence; the probe is diagnostic only and does not prove plan quality, provider behavior or usage reporting.",
+        "No automatic retry is allowed; the blocked probe Session ended before any assistant message and host root cause is left uninspected in this slice.",
         "Zero-model evidence only: activation/upgrade/publication/probes/diagnostics are proven, not real model tool invocation, provider budgets, real plan quality or channel traffic.",
         "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was NOT executed on the host.",
         "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts; probes are zero-model.",
-        "One ordered reload and four tool calls only; no real task/Goal continuation under a model, no channel/Lab business loop and no device/long-run evidence."
+        "One ordered reload and four tool calls only; no real task/Goal continuation under a model, no channel/Lab business loop and no device/long-run evidence.",
+        "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
+        "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
+        "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
+        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0."
       ],
       "notes": [
-        "H2a 离线+零模型探针；H2b 离线订阅生命周期/插件时间源；round-3 宿主仅零模型 timeSource idle；时间/外部触发、fan-out/配额未验"
+        "H2a 离线+零模型探针；H2b 离线订阅/时间源及宿主零模型时间探针；H2c 真实模型事件工具探针仅离线 kit，宿主尝试在任何模型请求前失败，不得记 pass；round-3/4 宿主仅零模型；fan-out/配额未验"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/01-输入与事件/03-外部事件/README.md",
@@ -779,7 +904,10 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h3-core-planning",
-        "h4e-lifecycle-recompute"
+        "h4e-lifecycle-recompute",
+        "h2c-real-model-probe",
+        "round4-localcore-hotfix",
+        "round4-host-zero-model"
       ],
       "evidenceRefs": [
         {
@@ -814,6 +942,113 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/h4/h4e-lifecycle-recompute.json",
               "sha256": "0b99a5c6f294553e57d69cfa8b86ca2a4832fd237f426ffed05d58be0b959052"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2c-real-model-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2c-real-model-probe.json",
+              "sha256": "c61175628ef6d9a8b1f4cdc2b24afaa10c0b1262480c0a08227597bb43aeee48"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2c-real-model-probe-integration.patch",
+              "sha256": "ca4795faa7801710b51b3493a9dfd9675abc0832c273f672a2458572680402d3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2c-probe-verify.json",
+              "sha256": "3712c7dc42a579a3424b7e7ff61e275c762da2a1ca5ba90de61896d3de8740c1"
+            }
+          ]
+        },
+        {
+          "sourceId": "round4-localcore-hotfix",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/src/control/local-core.ts",
+              "sha256": "511db02e5b066eb03b0eb8da6a73685e3e0ec883cb0dc08ac1c4f2fc69c90bbd"
+            },
+            {
+              "path": "plugins/shiyu/tests/local-core.test.ts",
+              "sha256": "a3968c28e3c80d868dbfbbc26fd900ec4bcc479d5ba79e3a9ef9eb917bf67f64"
+            }
+          ]
+        },
+        {
+          "sourceId": "round4-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json",
+              "sha256": "c4f1dcf992a6f22592c81fed02d381c94e1022836ffb31e99ab9da6060fe9d96"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-before.json",
+              "sha256": "e49e8321b5179e76945ff8cba46c5de473b0527a7069ab8c030ff796c8cfcb2b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-after.json",
+              "sha256": "6194a3ab622a5f44fcbff0910436cf2b69626a45bad717323583439f43cd8b9d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-before.json",
+              "sha256": "a55f8b08436d6f4c2aa1381dd5f64ac34d7e0382773af3e37ab85fc55612c2c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after.json",
+              "sha256": "33b3d688b7affef839209c8d4088b6365c0976f9a439d7da2015c480b54da6df"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-status.json",
+              "sha256": "d559afc817b98941e55a278119df894006236f687f09f21f3f8cd0c95495fd31"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-tools.json",
+              "sha256": "b5ef48fe0fbebb9cc7c49a5217a1ae1b289775fa3a36990635f97f87e8dd35c1"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/time-source-probe.json",
+              "sha256": "ab8c88b53c4cec155aa64fe36f0f354e721b370a681ad3ef7ba5fafdd98d8f5c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/checkpoint-availability-probe.json",
+              "sha256": "394353b20a8c839501a8b96f5340bf4fae4d6e234e8748d679df106f688da011"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/worker-tool-probe.json",
+              "sha256": "5ba0027924a88767f99cbc03b38efc10f2c4f4363ac978d9b0696c399d5383c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-event-tool-probe.json",
+              "sha256": "a270ccbf29d6b74cb4f6832be7c305c0fac64a7ca3ad60f65a6f299ec3e79271"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-model-tool-probe.json",
+              "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-reload.json",
+              "sha256": "6e0e4777a663880dff9bae2132db7957a77b0074784f6eff2222e1a2f88a83c8"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-final-cached.json",
+              "sha256": "a8223fc267065506ae618b62e937ad199e8cb07fb0db3ae00fa7b5935758962a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-core-model-attempt.json",
+              "sha256": "46ed5c381ca15d5ba43dd70629ec66eb53a09e4b01fcba6613ed74698d1fa303"
             }
           ]
         }
@@ -854,16 +1089,27 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H3 离线受控计划/重规划 + H4e 离线内层派生状态；无真实宿主/模型 plan 验收",
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 探针接线 hotfix；H2c 真实模型宿主尝试在任何模型请求前失败、不得记 pass；无真实宿主/模型 plan 验收",
         "G1 module/property + real temporary SQLite/Worker only; no real DSH host/native Goal rounds, real model plan JSON, cost/cache or slot behaviour.",
         "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission.",
         "G1 module/property with real temporary SQLite/Worker IPC only: no model, embedding, real Ombre body, host reload, real channel or business acceptance.",
         "Retention is explicit logical lifecycle (owner-controlled, no automatic expiry, no physical erase); background retention cleanup and backup deletion propagation are not implemented.",
         "Recompute is a same-DB bounded deterministic scan; cross-component trust is only explicit unknown, not an atomic snapshot; derivation gates current-evidence use without rewriting bodies.",
-        "Old records without derivation fields normalize to current: that means \"never computed\", not a re-proof of history; no model self-asserted status upgrade is allowed."
+        "Old records without derivation fields normalize to current: that means \"never computed\", not a re-proof of history; no model self-asserted status upgrade is allowed.",
+        "The implementer did NOT execute the real model: this source is offline implementation/isolated verification only.",
+        "The host bounded real-model attempt failed before any model request and was not retried (recorded in round4-host-zero-model, bd81270): no real-model tool invocation, provider usage, cache or cost is proven.",
+        "A failed/unknown real-model attempt must never be counted as pass, product acceptance or V25 evidence; the probe is diagnostic only and does not prove plan quality, provider behavior or usage reporting.",
+        "No automatic retry is allowed; the blocked probe Session ended before any assistant message and host root cause is left uninspected in this slice.",
+        "Code/test hotfix only: it proves the delegation wiring, not real-model execution, host behavior or plan quality.",
+        "The fixed-host bounded real-model attempt still failed before any model request (see round4-host-zero-model); no model usage/cost and no retry.",
+        "Cannot be mapped to pass; no product acceptance.",
+        "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
+        "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
+        "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
+        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0."
       ],
       "notes": [
-        "H3 离线受控计划/重规划 + H4e 离线内层派生状态；无真实宿主/模型 plan 验收"
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 探针接线 hotfix；H2c 真实模型宿主尝试在任何模型请求前失败、不得记 pass；无真实宿主/模型 plan 验收"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/00-core-主动判断/README.md",
@@ -1561,6 +1807,7 @@
         "h4-host",
         "h6c-channel-projection-ui",
         "round3-host-zero-model",
+        "round4-host-zero-model",
         "h4c-replyer-inner"
       ],
       "evidenceRefs": [
@@ -1668,6 +1915,75 @@
           ]
         },
         {
+          "sourceId": "round4-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json",
+              "sha256": "c4f1dcf992a6f22592c81fed02d381c94e1022836ffb31e99ab9da6060fe9d96"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-before.json",
+              "sha256": "e49e8321b5179e76945ff8cba46c5de473b0527a7069ab8c030ff796c8cfcb2b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-after.json",
+              "sha256": "6194a3ab622a5f44fcbff0910436cf2b69626a45bad717323583439f43cd8b9d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-before.json",
+              "sha256": "a55f8b08436d6f4c2aa1381dd5f64ac34d7e0382773af3e37ab85fc55612c2c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after.json",
+              "sha256": "33b3d688b7affef839209c8d4088b6365c0976f9a439d7da2015c480b54da6df"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-status.json",
+              "sha256": "d559afc817b98941e55a278119df894006236f687f09f21f3f8cd0c95495fd31"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-tools.json",
+              "sha256": "b5ef48fe0fbebb9cc7c49a5217a1ae1b289775fa3a36990635f97f87e8dd35c1"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/time-source-probe.json",
+              "sha256": "ab8c88b53c4cec155aa64fe36f0f354e721b370a681ad3ef7ba5fafdd98d8f5c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/checkpoint-availability-probe.json",
+              "sha256": "394353b20a8c839501a8b96f5340bf4fae4d6e234e8748d679df106f688da011"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/worker-tool-probe.json",
+              "sha256": "5ba0027924a88767f99cbc03b38efc10f2c4f4363ac978d9b0696c399d5383c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-event-tool-probe.json",
+              "sha256": "a270ccbf29d6b74cb4f6832be7c305c0fac64a7ca3ad60f65a6f299ec3e79271"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-model-tool-probe.json",
+              "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-reload.json",
+              "sha256": "6e0e4777a663880dff9bae2132db7957a77b0074784f6eff2222e1a2f88a83c8"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-final-cached.json",
+              "sha256": "a8223fc267065506ae618b62e937ad199e8cb07fb0db3ae00fa7b5935758962a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-core-model-attempt.json",
+              "sha256": "46ed5c381ca15d5ba43dd70629ec66eb53a09e4b01fcba6613ed74698d1fa303"
+            }
+          ]
+        },
+        {
           "sourceId": "h4c-replyer-inner",
           "status": "verified",
           "levels": [
@@ -1741,6 +2057,10 @@
         "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was NOT executed on the host.",
         "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts; probes are zero-model.",
         "One ordered reload and four tool calls only; no real task/Goal continuation under a model, no channel/Lab business loop and no device/long-run evidence.",
+        "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
+        "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
+        "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
+        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0.",
         "Real model generation, how a model uses the inner block, provider cache/cost and quality impact are NOT measured.",
         "conversation.reply.prepare contract not extended with explicit inner-source fields; Lab reply capture does not request inner domains."
       ],
@@ -2316,6 +2636,8 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h2a-probe",
+        "h2c-real-model-probe",
+        "round4-host-zero-model",
         "historical-capability-3i"
       ],
       "evidenceRefs": [
@@ -2334,6 +2656,96 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/slices/h2a-probe-verify.json",
               "sha256": "ec72562a1ee544f431b4bfe47fe71aedbc455c0a491e55abd2ea121bc479f24e"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2c-real-model-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2c-real-model-probe.json",
+              "sha256": "c61175628ef6d9a8b1f4cdc2b24afaa10c0b1262480c0a08227597bb43aeee48"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2c-real-model-probe-integration.patch",
+              "sha256": "ca4795faa7801710b51b3493a9dfd9675abc0832c273f672a2458572680402d3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2c-probe-verify.json",
+              "sha256": "3712c7dc42a579a3424b7e7ff61e275c762da2a1ca5ba90de61896d3de8740c1"
+            }
+          ]
+        },
+        {
+          "sourceId": "round4-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json",
+              "sha256": "c4f1dcf992a6f22592c81fed02d381c94e1022836ffb31e99ab9da6060fe9d96"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-before.json",
+              "sha256": "e49e8321b5179e76945ff8cba46c5de473b0527a7069ab8c030ff796c8cfcb2b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-after.json",
+              "sha256": "6194a3ab622a5f44fcbff0910436cf2b69626a45bad717323583439f43cd8b9d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-before.json",
+              "sha256": "a55f8b08436d6f4c2aa1381dd5f64ac34d7e0382773af3e37ab85fc55612c2c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after.json",
+              "sha256": "33b3d688b7affef839209c8d4088b6365c0976f9a439d7da2015c480b54da6df"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-status.json",
+              "sha256": "d559afc817b98941e55a278119df894006236f687f09f21f3f8cd0c95495fd31"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-tools.json",
+              "sha256": "b5ef48fe0fbebb9cc7c49a5217a1ae1b289775fa3a36990635f97f87e8dd35c1"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/time-source-probe.json",
+              "sha256": "ab8c88b53c4cec155aa64fe36f0f354e721b370a681ad3ef7ba5fafdd98d8f5c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/checkpoint-availability-probe.json",
+              "sha256": "394353b20a8c839501a8b96f5340bf4fae4d6e234e8748d679df106f688da011"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/worker-tool-probe.json",
+              "sha256": "5ba0027924a88767f99cbc03b38efc10f2c4f4363ac978d9b0696c399d5383c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-event-tool-probe.json",
+              "sha256": "a270ccbf29d6b74cb4f6832be7c305c0fac64a7ca3ad60f65a6f299ec3e79271"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-model-tool-probe.json",
+              "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-reload.json",
+              "sha256": "6e0e4777a663880dff9bae2132db7957a77b0074784f6eff2222e1a2f88a83c8"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-final-cached.json",
+              "sha256": "a8223fc267065506ae618b62e937ad199e8cb07fb0db3ae00fa7b5935758962a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-core-model-attempt.json",
+              "sha256": "46ed5c381ca15d5ba43dd70629ec66eb53a09e4b01fcba6613ed74698d1fa303"
             }
           ]
         },
@@ -2380,14 +2792,22 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型工具挂载探针；模型实际调用/权限矩阵未验",
+        "零模型工具挂载探针 + H2c 真实模型事件工具探针 kit（宿主尝试失败，禁止 pass）；模型实际调用/权限矩阵未验",
         "Zero-model probe only: proves restricted mounting, non-forgeable tool parameters and release — not that a model called an event tool.",
         "Not Task/Goal continuation, not provider budget/cache/cost, not business acceptance.",
+        "The implementer did NOT execute the real model: this source is offline implementation/isolated verification only.",
+        "The host bounded real-model attempt failed before any model request and was not retried (recorded in round4-host-zero-model, bd81270): no real-model tool invocation, provider usage, cache or cost is proven.",
+        "A failed/unknown real-model attempt must never be counted as pass, product acceptance or V25 evidence; the probe is diagnostic only and does not prove plan quality, provider behavior or usage reporting.",
+        "No automatic retry is allowed; the blocked probe Session ended before any assistant message and host root cause is left uninspected in this slice.",
+        "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
+        "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
+        "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
+        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0.",
         "Historical fixed capability only; new-binding real task proof, dynamic candidate/skill matrix, complete V09 and other five domains remain untested.",
         "Zero-model host reloads are not generation or business evidence."
       ],
       "notes": [
-        "零模型工具挂载探针；模型实际调用/权限矩阵未验"
+        "零模型工具挂载探针 + H2c 真实模型事件工具探针 kit（宿主尝试失败，禁止 pass）；模型实际调用/权限矩阵未验"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/02-工具与权限/README.md",
@@ -2405,7 +2825,8 @@
       ],
       "status": "limited-only",
       "evidenceSourceIds": [
-        "h2b-subscriptions-time"
+        "h2b-subscriptions-time",
+        "h2b-host-time-probe"
       ],
       "evidenceRefs": [
         {
@@ -2418,6 +2839,27 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/h2/h2b-subscriptions-time.json",
               "sha256": "632130e8f3975a3ec23615e00cdade7d5b77f039e0d88a44aab7229cddaa5d80"
+            }
+          ]
+        },
+        {
+          "sourceId": "h2b-host-time-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2b-host-time-probe.json",
+              "sha256": "061cfa381c90d8a4ec098d846df990fe69344c7dee80c4bee05ad8182f9b46a0"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h2/h2b-time-probe-manifest.json",
+              "sha256": "fbead183a709e740676c15691fd82d1bdfe293075f35f3288eb000c1c26a4176"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h2b-time-probe-verify.json",
+              "sha256": "65ecd8d99c2b76d9165daaab8337b17e3b496576318486f3591ef90daec9c6ee"
             }
           ]
         }
@@ -2445,7 +2887,10 @@
         "G1/G2 offline only: no fixed host, model, embedding, channel, device or real effect endpoint; notification Effect and observations are synthetic doubles.",
         "Runtime wiring (catalog, rule store/lifecycle, time pump, diagnostics) was integrated by Lead under e400fcc; fixed-host/zero-model probe is separate round-3 host evidence.",
         "Agent-facing declarative-condition tools are not mounted; dedupe across reconnect is proven only across process/rule-store restart, not real platform redelivery.",
-        "No IANA tz/DST database: daily schedules take injected zoneOffsetMinutes. Budget bounding is structural; monetary/model cost is out of scope."
+        "No IANA tz/DST database: daily schedules take injected zoneOffsetMinutes. Budget bounding is structural; monetary/model cost is out of scope.",
+        "The kit itself is offline/isolated: it does not execute a live host run; the fixed-host zero-model probe execution and receipts are recorded separately in round4-host-zero-model (bd81270).",
+        "No real model, embedding, channel or business call; live rule/time DB, DSH Schedule/IANA DST and real notification Effect remain untested.",
+        "Probe evidence cannot upgrade V14/SYS.2 or any product module to pass."
       ],
       "notes": [
         "H2b 插件自有时间源（注入 zoneOffset）离线 G1；DSH Schedule ingress/IANA DST/真实触发未实现，host 仅零模型 cooperative tick idle"
@@ -2469,6 +2914,7 @@
         "h5-g1-module",
         "h4e-migration-hotfix",
         "h5b-runtime-integration",
+        "h5b-checkpoint-probe",
         "h4-inner-offline"
       ],
       "evidenceRefs": [
@@ -2525,6 +2971,23 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/h5/h5b-runtime-integration.json",
               "sha256": "2b608a26e77694245b22de4506ac7752986f90f32ce36ab034cf864629abfb02"
+            }
+          ]
+        },
+        {
+          "sourceId": "h5b-checkpoint-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5b-checkpoint-probe.json",
+              "sha256": "d991c6cd4cd9e3501153e942b7fbac45defa97c58c7df6f67c93e9a0b68a3ea7"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/runtime-checkpoint-probe.diff",
+              "sha256": "b35cdc13199aa27d83b04a010ec99f8654beba76be8e25daf14457e87991b381"
             }
           ]
         },
@@ -2591,6 +3054,9 @@
         "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
         "G1+ offline composition only: no live data root/native Session/control-DB writes, no real Ombre backend, no model/channel/device, no production host readiness.",
         "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven.",
+        "Read-only availability probe only: checkpoint capture/restore is still production-blocked (trusted staging/manifest absent) and no Goal Session/Ombre export or durable checkpoint was produced.",
+        "Verified offline with synthetic resolver markers; the fixed-host probe returns ready:false with CHECKPOINT_STAGING_UNCONFIGURED/GOAL_SESSION_EXPORT_UNAVAILABLE/MEMORY_EXPORT_UNAVAILABLE and writes no files.",
+        "No real host capture readiness, RPO/RTO drill, backup destination or V22/V27 acceptance; probe evidence cannot upgrade product rows.",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
         "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
       ],
@@ -2616,7 +3082,9 @@
       "evidenceSourceIds": [
         "h4b-host",
         "round3-lead-integration",
+        "round4-lead-integration",
         "round3-host-zero-model",
+        "round4-host-zero-model",
         "joint-host-zero-model"
       ],
       "evidenceRefs": [
@@ -2648,6 +3116,24 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/integration/round3-lead-integration.json",
               "sha256": "0373a151bb87e49b8d444f2acf7ed46b33057797649c191825cc211f7a8e893a"
+            }
+          ]
+        },
+        {
+          "sourceId": "round4-lead-integration",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round4-lead-integration.json",
+              "sha256": "26334759fb8d2667e99b4f7ade2b254b26aad66ef4800bbf16e691ecda91e84e"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round4-integrated-verify.json",
+              "sha256": "19d740a235dd0d18021225d6c9a19c4050090afd98b5e55baf8e9000d385bf8f"
             }
           ]
         },
@@ -2697,6 +3183,75 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/host/round3/worker-tool-probe.json",
               "sha256": "7f54854635ebca79c4c5a44b727874dfb5278a34d0766b23653cd4d68235478c"
+            }
+          ]
+        },
+        {
+          "sourceId": "round4-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json",
+              "sha256": "c4f1dcf992a6f22592c81fed02d381c94e1022836ffb31e99ab9da6060fe9d96"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-before.json",
+              "sha256": "e49e8321b5179e76945ff8cba46c5de473b0527a7069ab8c030ff796c8cfcb2b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-after.json",
+              "sha256": "6194a3ab622a5f44fcbff0910436cf2b69626a45bad717323583439f43cd8b9d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-before.json",
+              "sha256": "a55f8b08436d6f4c2aa1381dd5f64ac34d7e0382773af3e37ab85fc55612c2c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after.json",
+              "sha256": "33b3d688b7affef839209c8d4088b6365c0976f9a439d7da2015c480b54da6df"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-status.json",
+              "sha256": "d559afc817b98941e55a278119df894006236f687f09f21f3f8cd0c95495fd31"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-tools.json",
+              "sha256": "b5ef48fe0fbebb9cc7c49a5217a1ae1b289775fa3a36990635f97f87e8dd35c1"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/time-source-probe.json",
+              "sha256": "ab8c88b53c4cec155aa64fe36f0f354e721b370a681ad3ef7ba5fafdd98d8f5c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/checkpoint-availability-probe.json",
+              "sha256": "394353b20a8c839501a8b96f5340bf4fae4d6e234e8748d679df106f688da011"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/worker-tool-probe.json",
+              "sha256": "5ba0027924a88767f99cbc03b38efc10f2c4f4363ac978d9b0696c399d5383c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-event-tool-probe.json",
+              "sha256": "a270ccbf29d6b74cb4f6832be7c305c0fac64a7ca3ad60f65a6f299ec3e79271"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-model-tool-probe.json",
+              "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-reload.json",
+              "sha256": "6e0e4777a663880dff9bae2132db7957a77b0074784f6eff2222e1a2f88a83c8"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-final-cached.json",
+              "sha256": "a8223fc267065506ae618b62e937ad199e8cb07fb0db3ae00fa7b5935758962a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-core-model-attempt.json",
+              "sha256": "46ed5c381ca15d5ba43dd70629ec66eb53a09e4b01fcba6613ed74698d1fa303"
             }
           ]
         },
@@ -2752,21 +3307,29 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型有序重载/启停 + round-3 集成与 H4e hotfix 恢复激活；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
+        "零模型有序重载/启停 + round-3/4 集成与 H4e hotfix 恢复激活；round-4 bounded real-model 尝试失败，不得记 pass；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
         "No real dashboard rendering (browser DOM) and no real business data; one host instance, zero model calls.",
         "Not V24 UI acceptance, not generation or lifecycle evidence.",
         "G1 integration + isolated full check only; fixed-host validation is recorded separately in round3-host-zero-model.",
         "The checkpoint command stays explicitly unavailable while trusted checkpointStagingRoot/checkpointRuntimeManifest are not supplied; no host execution is claimed.",
         "H2b uses plugin-owned rules only, no DSH schedule, no real observation/notification Effect ports and no agent-facing subscription tools; no real model/channel calls.",
+        "G1 integration + isolated full check only: fixed-host validation is separate (round4-host-zero-model) and real-model execution is not proven by this source.",
+        "The real-model core probe depends on provider behavior; its failed/unknown host outcome must be recorded honestly and never auto-retried or counted as pass.",
+        "All three probes are diagnostics only; they do not prove production time triggering, real Session log export, Ombre export readiness or plan quality; checkpoint capture remains unavailable.",
+        "No real model/embedding/channel/host reload in this integration evidence.",
         "Zero-model evidence only: activation/upgrade/publication/probes/diagnostics are proven, not real model tool invocation, provider budgets, real plan quality or channel traffic.",
         "The checkpoint capture command remains explicitly unavailable because trusted staging/manifest composition is absent; it was NOT executed on the host.",
         "Real browser DOM rendering of the dashboard remains unproven; lifecycle=degraded still reflects retained historical unknown/paused facts; probes are zero-model.",
         "One ordered reload and four tool calls only; no real task/Goal continuation under a model, no channel/Lab business loop and no device/long-run evidence.",
+        "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
+        "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
+        "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
+        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0.",
         "Zero-model evidence only: no model-generated reply, no event-tool model invocation, no provider budget/cache/cost, no real task/Goal continuation under a model.",
         "One ordered reload and two tool calls; no real browser DOM, channel, Lab business loop, device, long-run or independent fault domain."
       ],
       "notes": [
-        "零模型有序重载/启停 + round-3 集成与 H4e hotfix 恢复激活；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
+        "零模型有序重载/启停 + round-3/4 集成与 H4e hotfix 恢复激活；round-4 bounded real-model 尝试失败，不得记 pass；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/05-插件生命周期/README.md",
@@ -2932,7 +3495,8 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h5-g1-module",
-        "h5b-runtime-integration"
+        "h5b-runtime-integration",
+        "h5b-checkpoint-probe"
       ],
       "evidenceRefs": [
         {
@@ -2973,6 +3537,23 @@
               "sha256": "2b608a26e77694245b22de4506ac7752986f90f32ce36ab034cf864629abfb02"
             }
           ]
+        },
+        {
+          "sourceId": "h5b-checkpoint-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5b-checkpoint-probe.json",
+              "sha256": "d991c6cd4cd9e3501153e942b7fbac45defa97c58c7df6f67c93e9a0b68a3ea7"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/runtime-checkpoint-probe.diff",
+              "sha256": "b35cdc13199aa27d83b04a010ec99f8654beba76be8e25daf14457e87991b381"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -3002,15 +3583,18 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H5 G1 隔离恢复 + H5b 离线 runtime composition；未接 supervisor，无真实恢复演练/RPO-RTO",
+        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；未接 supervisor，无真实恢复演练/RPO-RTO",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance.",
         "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
         "G1+ offline composition only: no live data root/native Session/control-DB writes, no real Ombre backend, no model/channel/device, no production host readiness.",
-        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven."
+        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven.",
+        "Read-only availability probe only: checkpoint capture/restore is still production-blocked (trusted staging/manifest absent) and no Goal Session/Ombre export or durable checkpoint was produced.",
+        "Verified offline with synthetic resolver markers; the fixed-host probe returns ready:false with CHECKPOINT_STAGING_UNCONFIGURED/GOAL_SESSION_EXPORT_UNAVAILABLE/MEMORY_EXPORT_UNAVAILABLE and writes no files.",
+        "No real host capture readiness, RPO/RTO drill, backup destination or V22/V27 acceptance; probe evidence cannot upgrade product rows."
       ],
       "notes": [
-        "H5 G1 隔离恢复 + H5b 离线 runtime composition；未接 supervisor，无真实恢复演练/RPO-RTO"
+        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；未接 supervisor，无真实恢复演练/RPO-RTO"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/05-宿主外恢复/02-恢复入口/README.md",
@@ -3567,7 +4151,9 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h5-g1-module",
-        "h5b-runtime-integration"
+        "h5b-runtime-integration",
+        "h5b-checkpoint-probe",
+        "round4-host-zero-model"
       ],
       "evidenceRefs": [
         {
@@ -3606,6 +4192,92 @@
             {
               "path": "plugins/shiyu/artifacts/dsh/h5/h5b-runtime-integration.json",
               "sha256": "2b608a26e77694245b22de4506ac7752986f90f32ce36ab034cf864629abfb02"
+            }
+          ]
+        },
+        {
+          "sourceId": "h5b-checkpoint-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5b-checkpoint-probe.json",
+              "sha256": "d991c6cd4cd9e3501153e942b7fbac45defa97c58c7df6f67c93e9a0b68a3ea7"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/runtime-checkpoint-probe.diff",
+              "sha256": "b35cdc13199aa27d83b04a010ec99f8654beba76be8e25daf14457e87991b381"
+            }
+          ]
+        },
+        {
+          "sourceId": "round4-host-zero-model",
+          "status": "verified",
+          "levels": [
+            "fixed-host-zero-model"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4-joint-zero-model-real-model.json",
+              "sha256": "c4f1dcf992a6f22592c81fed02d381c94e1022836ffb31e99ab9da6060fe9d96"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-before.json",
+              "sha256": "e49e8321b5179e76945ff8cba46c5de473b0527a7069ab8c030ff796c8cfcb2b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4-host-after.json",
+              "sha256": "6194a3ab622a5f44fcbff0910436cf2b69626a45bad717323583439f43cd8b9d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-before.json",
+              "sha256": "a55f8b08436d6f4c2aa1381dd5f64ac34d7e0382773af3e37ab85fc55612c2c4"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after.json",
+              "sha256": "33b3d688b7affef839209c8d4088b6365c0976f9a439d7da2015c480b54da6df"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-status.json",
+              "sha256": "d559afc817b98941e55a278119df894006236f687f09f21f3f8cd0c95495fd31"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/round4b-host-after-tools.json",
+              "sha256": "b5ef48fe0fbebb9cc7c49a5217a1ae1b289775fa3a36990635f97f87e8dd35c1"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/time-source-probe.json",
+              "sha256": "ab8c88b53c4cec155aa64fe36f0f354e721b370a681ad3ef7ba5fafdd98d8f5c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/checkpoint-availability-probe.json",
+              "sha256": "394353b20a8c839501a8b96f5340bf4fae4d6e234e8748d679df106f688da011"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/worker-tool-probe.json",
+              "sha256": "5ba0027924a88767f99cbc03b38efc10f2c4f4363ac978d9b0696c399d5383c5"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-event-tool-probe.json",
+              "sha256": "a270ccbf29d6b74cb4f6832be7c305c0fac64a7ca3ad60f65a6f299ec3e79271"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/core-model-tool-probe.json",
+              "sha256": "3cac1d4ce4c04841b4ea355673fe5430fab0f3964337963d735f44ead8f778aa"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-reload.json",
+              "sha256": "6e0e4777a663880dff9bae2132db7957a77b0074784f6eff2222e1a2f88a83c8"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-final-cached.json",
+              "sha256": "a8223fc267065506ae618b62e937ad199e8cb07fb0db3ae00fa7b5935758962a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round4/status-after-core-model-attempt.json",
+              "sha256": "46ed5c381ca15d5ba43dd70629ec66eb53a09e4b01fcba6613ed74698d1fa303"
             }
           ]
         }
@@ -3641,15 +4313,22 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H5 G1 检查点 + H5b 离线 runtime composition；生产 capture 明确 unavailable（trusted staging/manifest 缺失），未在宿主执行",
+        "H5 G1 + H5b 离线 composition + 只读 checkpoint availability probe（宿主 ready:false，零文件写）；生产 capture 明确 unavailable（trusted staging/manifest 缺失），未在宿主执行",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance.",
         "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
         "G1+ offline composition only: no live data root/native Session/control-DB writes, no real Ombre backend, no model/channel/device, no production host readiness.",
-        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven."
+        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven.",
+        "Read-only availability probe only: checkpoint capture/restore is still production-blocked (trusted staging/manifest absent) and no Goal Session/Ombre export or durable checkpoint was produced.",
+        "Verified offline with synthetic resolver markers; the fixed-host probe returns ready:false with CHECKPOINT_STAGING_UNCONFIGURED/GOAL_SESSION_EXPORT_UNAVAILABLE/MEMORY_EXPORT_UNAVAILABLE and writes no files.",
+        "No real host capture readiness, RPO/RTO drill, backup destination or V22/V27 acceptance; probe evidence cannot upgrade product rows.",
+        "The bounded real-model single-round tool probe FAILED before any model request and was not retried: no real-model tool invocation, provider usage, cache or cost is proven; failure must never be recorded as pass.",
+        "Zero-model evidence only for mount/time/checkpoint probes; live time triggering (rules in live control DB), checkpoint capture readiness, real Session export and real Ombre export remain untested.",
+        "The archived core-model probe Session ended with a blocked turn before any assistant message; host root cause is not investigated further and lifecycle=degraded retains historical pausing facts.",
+        "Real browser DOM rendering is unproven; no business facts were written by any probe. scope: orderedReloads=1, failedLiveAttempts=2, toolCalls=9, realModelCalls=0."
       ],
       "notes": [
-        "H5 G1 检查点 + H5b 离线 runtime composition；生产 capture 明确 unavailable（trusted staging/manifest 缺失），未在宿主执行"
+        "H5 G1 + H5b 离线 composition + 只读 checkpoint availability probe（宿主 ready:false，零文件写）；生产 capture 明确 unavailable（trusted staging/manifest 缺失），未在宿主执行"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/06-预留空间/08-本地检查点/README.md",
@@ -3668,7 +4347,8 @@
       "status": "limited-only",
       "evidenceSourceIds": [
         "h5-g1-module",
-        "h5b-runtime-integration"
+        "h5b-runtime-integration",
+        "h5b-checkpoint-probe"
       ],
       "evidenceRefs": [
         {
@@ -3709,6 +4389,23 @@
               "sha256": "2b608a26e77694245b22de4506ac7752986f90f32ce36ab034cf864629abfb02"
             }
           ]
+        },
+        {
+          "sourceId": "h5b-checkpoint-probe",
+          "status": "verified",
+          "levels": [
+            "offline-module"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/h5b-checkpoint-probe.json",
+              "sha256": "d991c6cd4cd9e3501153e942b7fbac45defa97c58c7df6f67c93e9a0b68a3ea7"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h5/runtime-checkpoint-probe.diff",
+              "sha256": "b35cdc13199aa27d83b04a010ec99f8654beba76be8e25daf14457e87991b381"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -3734,15 +4431,18 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H5 G1 + H5b 离线 composition；同盘副本不构成独立故障域，生产 capture blocked，无 V27",
+        "H5 G1 + H5b 离线 composition/availability probe；同盘副本不构成独立故障域，生产 capture blocked，无 V27",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance.",
         "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
         "G1+ offline composition only: no live data root/native Session/control-DB writes, no real Ombre backend, no model/channel/device, no production host readiness.",
-        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven."
+        "V22 is sub-scenarios only with synthetic seams; V27 not attempted; full V21/V22/V24 host lifecycle and real RPO/RTO remain unproven.",
+        "Read-only availability probe only: checkpoint capture/restore is still production-blocked (trusted staging/manifest absent) and no Goal Session/Ombre export or durable checkpoint was produced.",
+        "Verified offline with synthetic resolver markers; the fixed-host probe returns ready:false with CHECKPOINT_STAGING_UNCONFIGURED/GOAL_SESSION_EXPORT_UNAVAILABLE/MEMORY_EXPORT_UNAVAILABLE and writes no files.",
+        "No real host capture readiness, RPO/RTO drill, backup destination or V22/V27 acceptance; probe evidence cannot upgrade product rows."
       ],
       "notes": [
-        "H5 G1 + H5b 离线 composition；同盘副本不构成独立故障域，生产 capture blocked，无 V27"
+        "H5 G1 + H5b 离线 composition/availability probe；同盘副本不构成独立故障域，生产 capture blocked，无 V27"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/07-独立备份/01-独立域备份/README.md",
@@ -3938,14 +4638,18 @@
         "h2a-events",
         "h2a-probe",
         "h2b-subscriptions-time",
+        "h2b-host-time-probe",
+        "h2c-real-model-probe",
         "round3-lead-integration",
+        "round4-lead-integration",
         "round3-host-zero-model",
+        "round4-host-zero-model",
         "joint-host-zero-model"
       ],
       "limitations": [
         "No model actually invoked an event tool; real core Goal continuation, declarative-condition tools, platform redelivery and quotas/fanout remain untested.",
         "H2b is G1/G2 offline with synthetic clock/observation/Effect doubles; no DSH schedule/IANA tz database and no monetary/model cost bounding.",
-        "Fixed-host evidence is zero-model only (cooperative tick idle, schedules=0, notifications disabled); not V03/V14/V24 acceptance."
+        "Fixed-host evidence is zero-model only (cooperative tick idle, schedules=0, notifications disabled); the bounded real-model H2c attempt failed before any model request and must never be recorded as pass; not V03/V14/V24 acceptance."
       ],
       "gaps": [
         "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
@@ -3996,10 +4700,14 @@
       ],
       "evidenceSourceIds": [
         "h3-core-planning",
-        "historical-task-goal"
+        "historical-task-goal",
+        "h2c-real-model-probe",
+        "round4-localcore-hotfix",
+        "round4-host-zero-model"
       ],
       "limitations": [
-        "No real DSH host/native Goal rounds under current HEAD, no real model plan JSON/cost/cache; only fixed local-note capability binding.",
+        "No real-model plan/tool round is proven: the H2c host attempt failed before any model request and returned an honest structured failure; no usage/cache/cost and no retry.",
+        "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
         "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
       ],
       "gaps": [
@@ -4317,14 +5025,17 @@
       "evidenceSourceIds": [
         "h5-g1-module",
         "h5b-runtime-integration",
+        "h5b-checkpoint-probe",
         "h4e-migration-hotfix",
         "round3-lead-integration",
+        "round4-lead-integration",
         "round3-host-zero-model",
+        "round4-host-zero-model",
         "h4h5-independent-review"
       ],
       "limitations": [
-        "G1 modules/composition only: H5b production capture is blocked (GOAL_SESSION_EXPORT_UNAVAILABLE, trusted staging/manifest missing) and no production restore drill exists.",
-        "Round-3 host evidence is zero-model only; checkpoint capture command explicitly unavailable and not executed on host; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
+        "G1 modules/composition/probe only: H5b production capture remains blocked (CHECKPOINT_STAGING_UNCONFIGURED, GOAL_SESSION_EXPORT_UNAVAILABLE, MEMORY_EXPORT_UNAVAILABLE, trusted staging/manifest missing); the host checkpoint probe returns ready:false and writes no files.",
+        "Round-3/4 host evidence is zero-model only; the bounded real-model attempt failed before any model request; no real Ombre export/erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
       ],
       "gaps": [
@@ -4376,13 +5087,14 @@
         "h4b-host",
         "h6c-channel-projection-ui",
         "round3-host-zero-model",
+        "round4-host-zero-model",
         "joint-host-zero-model",
         "h0-baseline"
       ],
       "limitations": [
         "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
-        "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3 host projection remains zero-model.",
-        "Zero-model host checks are not V05/V24 dashboard acceptance; no sensitive-value sweep over real UI."
+        "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
+        "Round-4 host includes only a failed bounded real-model attempt (no model request); zero-model host checks are not V05/V24 dashboard acceptance and no sensitive-value sweep over real UI."
       ],
       "gaps": [
         "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
@@ -4798,10 +5510,12 @@
         "joint-host-zero-model",
         "h2a-probe",
         "h2b-subscriptions-time",
-        "round3-host-zero-model"
+        "h2b-host-time-probe",
+        "round3-host-zero-model",
+        "round4-host-zero-model"
       ],
       "limitations": [
-        "No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; zero-model only; H2b time source is plugin-owned with synthetic clock, no DSH schedule/DST."
+        "No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; zero-model only; H2b time source is plugin-owned with synthetic clock, no DSH schedule/DST/live rules; the round-4 host time-source probe passed but cannot upgrade V14."
       ],
       "blockedResourceIds": [],
       "sourceHeadingPresent": true
@@ -4998,13 +5712,16 @@
       "evidenceSourceIds": [
         "h5-g1-module",
         "h5b-runtime-integration",
+        "h5b-checkpoint-probe",
         "h4e-migration-hotfix",
         "round3-lead-integration",
-        "round3-host-zero-model",
+        "round4-lead-integration",
+        "round4-host-zero-model",
         "h4h5-independent-review"
       ],
       "limitations": [
-        "No 20-fault recovery matrix, 1 GiB/1000-task benchmark, Goal Session log completeness or RTO≤30 min host drill."
+        "H5b production capture remains blocked: the checkpoint probe returns ready:false with CHECKPOINT_STAGING_UNCONFIGURED/GOAL_SESSION_EXPORT_UNAVAILABLE/MEMORY_EXPORT_UNAVAILABLE; no capture/restore was executed on the host and no files were written.",
+        "No 20-fault recovery matrix, 1 GiB/1000-task benchmark, Goal Session log completeness, real backup destination or RTO≤30 min host drill."
       ],
       "blockedResourceIds": [
         "real-host-acceptance-window",
@@ -5074,12 +5791,14 @@
         "h4-host",
         "h4b-host",
         "round3-host-zero-model",
+        "round4-host-zero-model",
         "joint-host-zero-model",
         "historical-capability-3i"
       ],
       "limitations": [
         "Zero-model only: no generation, compression, long-history cold recovery, 20-lifecycle matrix, real UI interactions or allowed-network audit.",
         "Round-3 host had one ordered reload and four zero-model tool calls; checkpoint capture unavailable; lifecycle=degraded reflects retained historical facts.",
+        "Round-4 host had one ordered reload/nine tool calls, realModelCalls=0; checkpoint capture unavailable (ready:false); the bounded real-model attempt failed before any model request and lifecycle=degraded retains historical facts.",
         "Installed builds were isolated verified builds of their slices, not current-HEAD generation acceptance."
       ],
       "blockedResourceIds": [
