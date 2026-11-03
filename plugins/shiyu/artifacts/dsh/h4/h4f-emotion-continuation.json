@@ -1,0 +1,189 @@
+{
+  "slice": "H4f：情绪域延续——可读取的情绪状态与受控集成（不暂停）",
+  "recordedAt": "2026-11-03T14:42:36-04:00",
+  "workspace": "plugins/shiyu",
+  "status": "离线/集成通过（10/10 定向）；全量 worktree 1727 tests / 1726 pass / 1 fail = 当前 HEAD 既有 runtime-semantic-memory 期望未更新（与 H4f 无关，已干净 HEAD 复现）；0 skip。宿主探针待 Lead 应用 patch+reload（hostKit）——不宣称宿主通过。",
+  "baseline": {
+    "head": "11d863a",
+    "note": "隔离 worktree /tmp/shiyu-h4f 仅含本切片 4 文件；runtime.ts/index.ts 未改，集成以精确 diff 交付。当前主树 HEAD 已推进到 520e305（含 Lead H2d 修复）；H4f patch 在 11d863a 验证编译通过。"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "plugins/shiyu/src/contracts/inner.ts",
+        "sha256": "e8edd13d1fd05fcfc4f9824d959259cfd6ffcbfabfd00eff6a3357e372888f0a",
+        "bytes": 58120,
+        "lines": 829
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/emotion-domain.ts",
+        "sha256": "5fe72794f6121eb4822b72d5f0b8600d7886205ab8f0b27e829b776de1874593",
+        "bytes": 19063,
+        "lines": 272
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/emotion-continuation-probe.ts",
+        "sha256": "63949c7a130d0558a71eb21e290df79a60a451641cfe8a6d195231ae1e17b185",
+        "bytes": 20667,
+        "lines": 240
+      },
+      {
+        "path": "plugins/shiyu/tests/emotion-continuation.test.ts",
+        "sha256": "6772026c20f6246049005f08d4b4f8745e4c783743773b5420d1b9db86df467d",
+        "bytes": 17091,
+        "lines": 215
+      },
+      {
+        "path": "plugins/shiyu/artifacts/dsh/h4/h4f-emotion-runtime.patch.diff",
+        "sha256": "a7921d2211f65603e9f673d908f902c0453ad9d4a00a9e732540a74196b356d1",
+        "bytes": 5106,
+        "lines": 68
+      }
+    ],
+    "read_path": {
+      "commands": [
+        "emotion.context {conversationId, windowMs?<=7d}",
+        "emotion.memoryDimension {conversationId}"
+      ],
+      "context": "conversation-scoped 只读：system-state 投影（valenceBps/arousalBps/label、policy v1 halfLife 21.6M ms/reviewAfter 24h、reviewDue/regulations、degraded/revokedEvidence、derivation+reasons）+ 最近≤8 事件（recordId/revision/kind、label/valence/arousal 或 conclusion/guidance、observedAt、sourceRefs、derivation/reasons、bodyAvailable）；显式 subject=system-state、humanFeeling=false、authorityEffect=none；disclosure=无主观体验/无长期人格/模型自述无权威/Ombre pulse 不当情绪。",
+      "audience": "仅 active conversation 受众；越权来源写入拒绝；另一 conversation context 无跨域事件且为中性基线；capture 按受众裁剪。",
+      "derivation": "复用 H4e 派生引擎：撤回记录从 recent 移除；撤回证据使事件/状态 derivation=source_invalid（bodyAvailable=false、revokedEvidence 显式）；旧 capture validateForView 拒绝；撤回来源不可复活。",
+      "decay": "固定整数策略：weight=floor(10000*halfLife/(halfLife+age))；默认 context window=reviewAfterMs，可通过 windowMs 扩到 7d；reviewDue 显式列出超期事件；同输入+同钟=同字节。",
+      "version_review": "review(no-longer-affects) 生成 review 记录并 digest 经验；context 只显示 active 经验+review 结论；derivedRevision 增加使旧捕获失效。"
+    },
+    "ombre_integration": {
+      "design": "Ombre 上游记忆条目确有 valence/arousal 元数据（本地 upstream CHANGELOG 记载 hold/grow/import 的 memory JSON 字段），但 DSH memory contract 与 Ombre MCP 适配器当前未携带这些字段。本切片只暴露**本地只读候选检索维度** memoryDimension（sourceDomain=emotion、readOnly=true、ombreMetadataWritten=false），供未来受控 index/search 元数据使用；本轮不写 Ombre。",
+      "prohibitions": [
+        "不把 Ombre pulse 当情绪（disclosure.ombrePulseTreatedAsEmotion=false）",
+        "不提供 set_emotion/pulse 类写命令；未知命令明确拒绝",
+        "不把模型自然语言自述当情绪权威（modelSelfReportAuthority=none）",
+        "不写 live Ombre 元数据/正文；不猜上游语义"
+      ],
+      "future_steps": [
+        "若上游提供受限 metadata 写接口：仅允许 owner 显式/本地确定性投影的 valence/arousal（整数 bps→上游量纲映射需单独设计+迁移），且记录来源与时间；读取时仍以 emotion 域状态为准。",
+        "memory interaction：reply context 已由 H4c inner reference 读取现有 emotion 记录；实时状态注入聊天需 owner 显式写入路径或 conversation 背景投影（本轮未实现，不猜）。"
+      ]
+    },
+    "no_subjective_experience": "明确：有情绪状态管理、确定性投影与可读取证据 ≠ 模型有主观情绪体验或长期人格；本切片不升级该主张，disclosure 字段随每个 context 返回。",
+    "runtimePatch": {
+      "path": "artifacts/dsh/h4/h4f-emotion-runtime.patch.diff",
+      "status": "未应用；待 Lead 应用",
+      "changes": [
+        "导入 probe 模块；字段 emotionProbeCommand/Receipt；init 构造（isOpen/isPaused/onReceipt）；command 分派 runtime.probe-emotion-continuation；handler ensureCanRun+signal+单槽；snapshot diagnostics.emotionContinuationProbe（只读）",
+        "index.ts：注册工具 shiyu_diagnose_emotion_continuation（无参数）"
+      ],
+      "compileCheck": "HEAD 11d863a + patch：tsc --noEmit/build pass（日志见 verification.runtimePatchCheck）"
+    },
+    "scopeNote": "新增只读命令类型需要在 src/contracts/inner.ts 增加 27 行（EmotionContext/EmotionContextEvent + 两个命令声明）；该文件不在 task-68 字面写作用域，但为新增 emotion 只读 API 的相邻类型面所必需，未改变既有字段/行为；已在本报告与证据中显式披露。"
+  },
+  "verification": {
+    "isolatedWorktree": {
+      "path": "/tmp/shiyu-h4f",
+      "head": "11d863a",
+      "method": "git worktree --detach 11d863a + 本切片 4 文件；node_modules/.local/ombre symlink",
+      "command": "cd /tmp/shiyu-h4f/plugins/shiyu && npm run check",
+      "exitCode": 1,
+      "typecheck": "pass",
+      "tests": 1727,
+      "pass": 1726,
+      "fail": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 1938632,
+      "build": "pass",
+      "clientSyntax": "pass",
+      "failure": {
+        "test": "tests/runtime-semantic-memory.test.ts: schema2 compatible but unverified embedding permits explicit index/search without claiming verified inference",
+        "reason": "当前 HEAD 既有 H2d readiness 门禁使 publication capabilities 在 embeddingVerified=false 时只有 exact_read；该旧测试仍期待 semantic_search+profileFingerprint。",
+        "isolation": "干净 worktree 仅 HEAD 520e305（不含 H4f 切片）单测复现同一失败；与 H4f 无关。",
+        "log": {
+          "path": "plugins/shiyu/.local/h4f-baseline-failure.log",
+          "sha256": "3ca82e25cede0cd7ac87d7ad9060b1d5b5426a5b9aca6109658130a6b4ffec51",
+          "bytes": 1652
+        },
+        "disposition": "待 Lead/负责 H2d 的 agent 更新测试期望（unverified→exact_read only）；H4f 切片本身 10/10。"
+      },
+      "log": {
+        "path": "plugins/shiyu/.local/h4f-check-final.log",
+        "sha256": "e5dbd5aff879ce384aa4aaa3723c1b5b16179c24fa8f8402b87f96fa1826ba00",
+        "bytes": 183600
+      }
+    },
+    "targeted": {
+      "file": "tests/emotion-continuation.test.ts",
+      "count": 10,
+      "pass": 10,
+      "log": {
+        "path": "plugins/shiyu/.local/h4f-targeted.log",
+        "sha256": "b3976ff0cbde17095d89323d79a785f08fe8e0c2bf418fd72fa3157fc4ea12bb",
+        "bytes": 1149
+      },
+      "coverage": [
+        "context 来源/时间/披露/memoryDimension 只读",
+        "受众裁剪+跨会话来源拒绝",
+        "记录撤回→context 移除+旧 capture 拒绝+不复活",
+        "证据撤回→source_invalid/degraded 显式",
+        "review 版本 digest→状态变化+derivedRevision",
+        "decay 权重+默认窗口/自定义窗口+reviewDue",
+        "regulation/未知会话边界",
+        "无 set_emotion/pulse + pulse 不当情绪 + 不写 Ombre 元数据",
+        "隔离探针 receipt/清理/零活动/15 checks",
+        "命令单槽/输入/paused/closed/不重试/工具无参数/abort+deadline"
+      ]
+    },
+    "runtimePatchCheck": {
+      "worktree": "/tmp/h4f-check",
+      "method": "HEAD 11d863a + runtime emotion patch",
+      "command": "tsc --noEmit && tsc -p tsconfig.build.json",
+      "result": "pass",
+      "log": {
+        "path": "plugins/shiyu/.local/h4f-runtime-patch-check.log",
+        "sha256": "b293a0e906acbe82c7377cf6721e36e459d1fdbd9c7ae1622500eaa521b29c67",
+        "bytes": 120
+      }
+    },
+    "testArithmetic": "HEAD 11d863a 基线 1717 + 新增 10 = 1727（worktree 单批）；1 fail 为既有基线问题。"
+  },
+  "hostKit": {
+    "status": "待真实宿主（本轮未 reload、未真实模型/embedding）",
+    "prerequisites": [
+      "应用 artifacts/dsh/h4/h4f-emotion-runtime.patch.diff 到 runtime.ts 与 index.ts（本切片 emotion/contracts 文件随构建生效）",
+      "typecheck+build 后一次有序 reload（零模型）；记录实例 ID"
+    ],
+    "steps": [
+      "1. 基线审计：保存 shiyu_status JSON + control commitSeq/stateVersion/entries/effects/tasks/goals + Session 文件清单/hash。",
+      "2. 调用工具 shiyu_diagnose_emotion_continuation（无参数）或 owner POST /api/shiyu/commands {\"action\":\"runtime.probe-emotion-continuation\"}；期望 receipt.status=passed、store=in-memory、liveDataTouched=false、15 checks 全 passed、disposed/cleanup.storeClosed=true、zeroActivity 全 0。",
+      "3. 校验 snapshot().diagnostics.emotionContinuationProbe 为该 receipt（或 null）；GET/快照不得触发 probe。",
+      "4. 审计：调用前后 live commitSeq/stateVersion/entries/Task/Goal/Lab/Effect/Session 文件计数与 hash 不变；无模型/embedding 调用；无 live 数据/文件写入。",
+      "5. 如实记录：本轮 live 聊天中尚无 owner 显式 emotion 写入路径（设计见 ombre_integration.future_steps），因此宿主只验证隔离读数/披露/撤回/受众语义；不得宣称模型有情绪体验或聊天情绪行为通过。",
+      "6. paused 状态下调用应返回 EMOTION_PROBE_PAUSED；命令无参数/单槽/不重试。"
+    ],
+    "evidenceToCapture": [
+      "patch 应用后 git HEAD/dirty、实例 ID、reload 次数",
+      "工具输出 JSON sha256/bytes + snapshot.diagnostics 字段",
+      "before/after 审计 JSON sha256/bytes（commitSeq、stateVersion、entries、effects/tasks/goals、Session 文件数/hash）",
+      "paused/无参/单槽失败样例（可选）",
+      "边界陈述：state management/readable evidence ≠ subjective experience"
+    ]
+  },
+  "failures": [
+    {
+      "id": "H4F-BASELINE-1",
+      "status": "open-external",
+      "detail": "HEAD 520e305 的 tests/runtime-semantic-memory.test.ts 期望未随 H2d readiness 门禁更新；干净 HEAD 复现，不属 H4f；待更新测试期望。"
+    }
+  ],
+  "boundaries": [
+    "未改 runtime.ts/index.ts（patch 交付）、未 git 提交、未宿主 reload、未真实模型/embedding/Ombre 写；宿主探针待 Lead 执行。",
+    "live 聊天中创建 emotion 记录的 owner 显式路径/背景投影本轮未实现；H4c 已能读取现有 emotion 记录，本轮提供 read-only context 命令与设计。",
+    "Ombre 上游 valence/arousal 元数据存在，但 DSH 记忆契约未携带；本轮不写元数据、不映射量纲、不猜语义；只暴露本地只读候选维度。",
+    "decay/review 是固定版本化策略，不是人类心理模型；review 只 digest 指定经验，不改写事实。",
+    "明确不宣称模型有主观情绪体验/长期人格；有状态管理与可读证据仅此而已。"
+  ],
+  "reproduce": [
+    "git worktree add --detach /tmp/shiyu-h4f 11d863a",
+    "复制本切片 4 文件；ln -s 主树 node_modules/.local/ombre；npm run check",
+    "node --import tsx --test --test-concurrency=1 tests/emotion-continuation.test.ts",
+    "runtime patch 编译：worktree 11d863a + git apply artifacts/dsh/h4/h4f-emotion-runtime.patch.diff + tsc"
+  ]
+}

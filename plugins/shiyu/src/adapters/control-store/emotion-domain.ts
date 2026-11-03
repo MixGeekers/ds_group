@@ -4,7 +4,7 @@ import {
   innerFail, innerFields, innerId, innerInstant, innerInteger, innerBps,
   validateEmotionPayload,
   type EmotionCommands, type EmotionDomainRequest, type EmotionGuidance, type EmotionLabel,
-  type EmotionPayload, type EmotionState,
+  type EmotionPayload, type EmotionState, type EmotionContext, type EmotionContextEvent, type InnerDerivation,
 } from '../../contracts/inner.js';
 export type { EmotionDomainRequest } from '../../contracts/inner.js';
 import { InnerDomainBase, type InnerDomainBaseOptions, type StoredInnerRecord } from './inner-domain.js';
@@ -158,6 +158,17 @@ export class EmotionDomain extends InnerDomainBase {
         }
       }
       observations.sort((a, b) => a.record.recordId.localeCompare(b.record.recordId));
+      const derivationCounts = { current: 0, degraded: 0, revoked: 0 } as Record<'current' | 'degraded' | 'revoked', number>;
+      const derivationReasons: InnerDerivationReason[] = [];
+      for (const record of visible) {
+        const derived = this.derivation(record);
+        if (derived.evidenceState === 'valid') derivationCounts.current++;
+        else if (derived.evidenceState === 'degraded') derivationCounts.degraded++;
+        else derivationCounts.revoked++;
+        for (const reason of derived.reasons) if (derivationReasons.length < 4 && !derivationReasons.includes(reason)) derivationReasons.push(reason);
+      }
+      const derivation: InnerDerivation = derivationCounts.degraded === 0 && derivationCounts.revoked === 0 ? 'current'
+        : derivationCounts.current > 0 || derivationCounts.degraded > 0 ? 'degraded' : 'source_invalid';
       regulations.sort((a, b) => a.recordId.localeCompare(b.recordId));
       let denominator = 0, valence = 0, arousal = 0;
       for (const item of observations) {
@@ -176,11 +187,57 @@ export class EmotionDomain extends InnerDomainBase {
         contributions: observations.map(item => ({ recordId: item.record.recordId, weightBps: item.weightBps,
           observedAt: item.record.observedAt, label: item.payload.label })),
         reviewDue: reviewDue.sort(), regulations, degraded, revokedEvidence: revokedEvidence.sort(),
+        derivation, derivationReasons,
       };
       return state;
     });
   }
 
+  /**
+   * Read-only conversation-scoped context for chat background / memory
+   * interaction: current deterministic state plus the latest bounded events
+   * with their source references and timestamps. It never exposes bodies to a
+   * different audience, never treats an Ombre pulse as emotion and never writes
+   * memory or backend metadata.
+   */
+  context(input: EmotionCommands['emotion.context']['input']): EmotionContext {
+    innerFields(input, ['conversationId', 'windowMs'], ['conversationId']);
+    const conversationId = innerId(input.conversationId, 'conversationId');
+    const windowMs = input.windowMs === undefined ? EMOTION_POLICY_V1.reviewAfterMs : innerInteger(input.windowMs, 'windowMs', 1, 7 * 24 * 3_600_000);
+    return this.tx.atomic(() => {
+      const facts = this.activeConversation(conversationId);
+      const state = this.state({ conversationId });
+      const cutoff = Date.parse(state.computedAt) - windowMs;
+      const recent: EmotionContextEvent[] = [];
+      for (const record of this.visibleLatest(conversationId)) {
+        if (record.kind === 'experience' && record.status !== 'active') continue;
+        if (Date.parse(record.observedAt) < cutoff) continue;
+        const derived = this.derivation(record);
+        const payload = this.payload(record) as EmotionPayload;
+        recent.push({ recordId: record.recordId, revision: record.revision, kind: record.kind as EmotionContextEvent['kind'],
+          ...(payload.kind === 'experience' ? { label: payload.label, valenceBps: payload.valenceBps, arousalBps: payload.arousalBps } : {}),
+          ...(payload.kind === 'review' ? { conclusion: payload.conclusion } : {}),
+          ...(payload.kind === 'regulation' ? { guidance: payload.guidance } : {}),
+          observedAt: record.observedAt, derivation: derived.derivation, derivationReasons: derived.reasons,
+          sourceRefs: structuredClone(record.sourceRefs), bodyAvailable: derived.bodyAvailable });
+      }
+      recent.sort((left, right) => right.observedAt.localeCompare(left.observedAt) || right.recordId.localeCompare(left.recordId));
+      return { schemaVersion: 1, conversationId, computedAt: state.computedAt, audience: facts.audience, policy: structuredClone(EMOTION_POLICY_V1),
+        subject: 'system-state', humanFeeling: false, authorityEffect: 'none',
+        memoryDimension: { valenceBps: state.valenceBps, arousalBps: state.arousalBps, label: state.label, sourceDomain: 'emotion',
+          readOnly: true, ombreMetadataWritten: false, note: 'candidate retrieval dimension from the local system-state projection; not a memory fact and never written by this domain' },
+        state: { valenceBps: state.valenceBps, arousalBps: state.arousalBps, label: state.label, degraded: state.degraded,
+          revokedEvidence: state.revokedEvidence, reviewDue: state.reviewDue, regulations: state.regulations,
+          derivation: state.derivation ?? 'current', derivationReasons: state.derivationReasons ?? [] },
+        recent: recent.slice(0, 8), windowMs,
+        disclosure: { subjectiveExperience: false, longTermPersonality: false, modelSelfReportAuthority: 'none', ombrePulseTreatedAsEmotion: false } };
+    });
+  }
+  /** Narrow read-only projection for controlled memory-interaction consumers. */
+  memoryDimension(input: EmotionCommands['emotion.memoryDimension']['input']): EmotionContext['memoryDimension'] {
+    innerFields(input, ['conversationId']);
+    return this.context({ conversationId: innerId(input.conversationId, 'conversationId') }).memoryDimension;
+  }
   withdraw(input: EmotionCommands['emotion.withdraw']['input']): EmotionCommands['emotion.withdraw']['output'] {
     return super.withdraw(input);
   }
@@ -201,6 +258,8 @@ export class EmotionDomain extends InnerDomainBase {
       case 'emotion.review': return this.review(request.args);
       case 'emotion.regulate': return this.regulate(request.args);
       case 'emotion.state': return this.state(request.args);
+      case 'emotion.context': return this.context(request.args);
+      case 'emotion.memoryDimension': return this.memoryDimension(request.args);
       case 'emotion.withdraw': return this.withdraw(request.args);
       case 'emotion.captureForView': return this.captureForView(request.args);
       case 'emotion.validateForView': return this.validateForView(request.args);

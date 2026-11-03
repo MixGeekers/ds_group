@@ -50,6 +50,7 @@ import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCh
 import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
 import { computeMemoryReadiness, type MemoryReadiness } from './adapters/ombre/readiness.js';
 import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
+import { EMOTION_PROBE_ACTION, RuntimeEmotionContinuationProbeCommand, type EmotionProbeReceipt } from './adapters/control-store/emotion-continuation-probe.js';
 import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6 } from './control/core-validation.js';
 import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, type NativeHeaderCutProbeReceipt } from './control/native-header-cut-probe.js';
 import { CORE_GOAL_PRESET_ID } from './adapters/dsh/goals.js';
@@ -217,6 +218,9 @@ export class RuntimeService {
   /** H4e-probe: owner-only zero-model isolated lifecycle command + last validated receipt. */
   private innerLifecycleProbeCommand?: RuntimeInnerLifecycleProbeCommand;
   private innerLifecycleProbeReceipt?: InnerLifecycleProbeReceipt;
+  /** H4f: owner-only read-only emotion-context probe + last validated receipt. */
+  private emotionProbeCommand?: RuntimeEmotionContinuationProbeCommand;
+  private emotionProbeReceipt?: EmotionProbeReceipt;
   constructor(private readonly ctx: DshContext, config: RuntimeConfig = {}, private readonly options: RuntimeOptions = {}) {
     const defaultDirectory = fileURLToPath(new URL('../.local/runtime/', import.meta.url));
     if (config.dataDir !== undefined && (typeof config.dataDir !== 'string' || !path.isAbsolute(config.dataDir))) throw new Error('dataDir must be an absolute path');
@@ -391,6 +395,12 @@ export class RuntimeService {
         isOpen: () => !this.closed && !this.closing,
         isPaused: () => this.pauseRequested,
         onReceipt: receipt => { this.innerLifecycleProbeReceipt = structuredClone(receipt); },
+      });
+      // H4f: private :memory: store only; the live data root is never an input.
+      this.emotionProbeCommand = new RuntimeEmotionContinuationProbeCommand({
+        isOpen: () => !this.closed && !this.closing,
+        isPaused: () => this.pauseRequested,
+        onReceipt: receipt => { this.emotionProbeReceipt = structuredClone(receipt); },
       });
       const labStatus = await this.store.request('lab.status', {});
       if (labStatus.ready) {
@@ -993,7 +1003,8 @@ export class RuntimeService {
         notifications: this.notificationRouter ? { enabled: true } : { enabled: false },
         checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null,
         // Diagnostics-only projection; never a publication, authorization or completion fact.
-        innerLifecycleProbe: this.innerLifecycleProbeReceipt ? structuredClone(this.innerLifecycleProbeReceipt) : null },
+        innerLifecycleProbe: this.innerLifecycleProbeReceipt ? structuredClone(this.innerLifecycleProbeReceipt) : null,
+        emotionContinuationProbe: this.emotionProbeReceipt ? structuredClone(this.emotionProbeReceipt) : null },
       background: { ...conversations.background, ...backgroundState },
       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
       activities: recent.slice().sort((a, b) => b.sequence - a.sequence).map(event => ({ id: event.eventId, at: event.receivedAt, kind: event.type, title: String(event.payload.message ?? event.type), status: String(event.payload.status ?? 'accepted') })),
@@ -1063,6 +1074,7 @@ export class RuntimeService {
     // so a paused runtime can still be diagnosed without model/dispatch effects.
     if (action === 'runtime.checkpoint.probe') return this.commandCheckpointProbe(value, signal);
     if (action === INNER_LIFECYCLE_PROBE_ACTION) return this.commandInnerLifecycleProbe(value, signal);
+    if (action === EMOTION_PROBE_ACTION) return this.commandEmotionProbe(value, signal);
     if (action === 'conversation.linkLocalTask') {
       this.ensureCanRun(); signal?.throwIfAborted();
       if (Object.keys(value).some(key => !['action', 'taskId', 'localConversationKey'].includes(key))
@@ -1226,6 +1238,16 @@ export class RuntimeService {
     this.ensureCanRun(); signal?.throwIfAborted();
     if (!this.innerLifecycleProbeCommand) throw new Error('INNER_LIFECYCLE_PROBE_UNAVAILABLE');
     const receipt = await this.innerLifecycleProbeCommand.handle(value, signal);
+    this.lastFailure = undefined;
+    return receipt;
+  }
+
+  /** Owner-only zero-model emotion-continuation probe: same admission as session.probe. */
+  private async commandEmotionProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<EmotionProbeReceipt> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid emotion probe input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (!this.emotionProbeCommand) throw new Error('EMOTION_PROBE_UNAVAILABLE');
+    const receipt = await this.emotionProbeCommand.handle(value, signal);
     this.lastFailure = undefined;
     return receipt;
   }

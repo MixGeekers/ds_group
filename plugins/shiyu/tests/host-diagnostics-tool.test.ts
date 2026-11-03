@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, memoryEmbeddingProbeTool, nativeHeaderCutProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, emotionContinuationDiagnosisTool, memoryEmbeddingProbeTool, nativeHeaderCutProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 import { innerLifecycleDiagnosisTool } from '../src/control/inner-lifecycle-probe.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
@@ -221,4 +221,15 @@ test('memory embedding verification tool executes exactly the zero-generation-mo
   assert.match(tool.description, /零生成模型/);
   assert.equal(await tool.execute(), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.probe-memory-embedding' }]);
+});
+
+test('emotion continuation diagnosis tool executes exactly the isolated probe command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, zeroModel: true, liveDataTouched: false, checks: [] };
+  const tool = emotionContinuationDiagnosisTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_diagnose_emotion_continuation');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-emotion-continuation' }]);
 });

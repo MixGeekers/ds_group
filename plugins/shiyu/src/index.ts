@@ -1,4 +1,6 @@
 import { RuntimeService } from './runtime.js';
+import { emotionContinuationDiagnosisTool } from './adapters/control-store/emotion-continuation-probe.js';
+export { emotionContinuationDiagnosisTool };
 import { innerLifecycleDiagnosisTool } from './control/inner-lifecycle-probe.js';
 import type { RuntimeConfig } from './runtime.js';
 
@@ -362,6 +364,8 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(coreGoalValidationV6Tool(service)));
   // Owner-only one-shot embedding verification; no generation model, no retry.
   ctx.effect(() => ctx.tools.register(memoryEmbeddingProbeTool(service)));
+  // Owner-only zero-model emotion-continuation diagnosis; private :memory: store.
+  ctx.effect(() => ctx.tools.register(emotionContinuationDiagnosisTool(service)));
   // Zero-model native Session header-cut diagnostic: one bare lifecycle Session only.
   ctx.effect(() => ctx.tools.register(nativeHeaderCutProbeTool(service)));
   // Owner-only reconcile of the fixed core-validation Goal: read-only + at most

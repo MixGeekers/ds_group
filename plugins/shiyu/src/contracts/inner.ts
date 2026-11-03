@@ -555,6 +555,31 @@ export interface EmotionState {
   regulations: { recordId: string; guidance: EmotionGuidance; expiresAt?: string }[];
   degraded: boolean;
   revokedEvidence: string[];
+  /** H4e/H4f derivation of the state projection; never a model self-report. */
+  derivation?: InnerDerivation;
+  derivationReasons?: InnerDerivationReason[];
+}
+export interface EmotionContextEvent {
+  recordId: string; revision: number; kind: 'experience' | 'review' | 'regulation';
+  label?: EmotionLabel; valenceBps?: number; arousalBps?: number;
+  conclusion?: (typeof EMOTION_REVIEW_CONCLUSIONS)[number]; guidance?: EmotionGuidance;
+  observedAt: string; derivation: InnerDerivation; derivationReasons: InnerDerivationReason[];
+  sourceRefs: InnerSourceRef[]; bodyAvailable: boolean;
+}
+/** Read-only, conversation-scoped emotion context for chat background/memory interaction. */
+export interface EmotionContext {
+  schemaVersion: 1; conversationId: string; computedAt: string; audience: InnerAudience;
+  policy: typeof EMOTION_POLICY_V1;
+  subject: 'system-state'; humanFeeling: false; authorityEffect: 'none';
+  /** Explicit read-only candidate retrieval dimension; never written to Ombre here. */
+  memoryDimension: { valenceBps: number; arousalBps: number; label: EmotionState['label']; sourceDomain: 'emotion';
+    readOnly: true; ombreMetadataWritten: false; note: string };
+  state: { valenceBps: number; arousalBps: number; label: EmotionState['label']; degraded: boolean; revokedEvidence: string[];
+    reviewDue: string[]; regulations: EmotionState['regulations']; derivation: InnerDerivation; derivationReasons: InnerDerivationReason[] };
+  /** Latest bounded events inside the requested window, newest first. */
+  recent: EmotionContextEvent[];
+  windowMs: number;
+  disclosure: { subjectiveExperience: false; longTermPersonality: false; modelSelfReportAuthority: 'none'; ombrePulseTreatedAsEmotion: false };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -754,6 +779,8 @@ export interface EmotionCommands {
   'emotion.review': { input: { requestId: string; conversationId: string; recordIds: string[]; conclusion: (typeof EMOTION_REVIEW_CONCLUSIONS)[number]; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ reviewRecordId: string; reviewedRecordIds: string[] }> };
   'emotion.regulate': { input: { requestId: string; conversationId: string; guidance: EmotionGuidance; expiresAt?: string; sourceRefs: InnerSourceRef[] }; output: InnerWriteReceipt<{ recordId: string; revision: number }> };
   'emotion.state': { input: { conversationId: string }; output: EmotionState };
+  'emotion.context': { input: { conversationId: string; windowMs?: number }; output: EmotionContext };
+  'emotion.memoryDimension': { input: { conversationId: string }; output: EmotionContext['memoryDimension'] };
   'emotion.withdraw': { input: { requestId: string; recordIds?: string[]; evidenceRefs?: InnerSourceRef[] }; output: InnerWithdrawReceipt };
   'emotion.captureForView': { input: InnerCaptureInput; output: InnerCapture };
   'emotion.validateForView': { input: { capture: InnerCapture }; output: InnerCapture };
