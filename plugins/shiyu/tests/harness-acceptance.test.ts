@@ -46,7 +46,7 @@ const workspaceRoot = join(pluginRoot, '..', '..');
 const FIXED_TIME = '2026-11-02T00:00:00.000Z';
 
 function committedJson<T>(relativePath: string): T | null {
-  const result = spawnSync('git', ['-C', workspaceRoot, 'show', `HEAD:${relativePath}`], { encoding: 'utf8', timeout: 30_000 });
+  const result = spawnSync('git', ['-C', workspaceRoot, 'show', `HEAD:${relativePath}`], { encoding: 'utf8', timeout: 60_000, maxBuffer: 64 * 1024 * 1024 });
   if (result.status !== 0) return null;
   try {
     return JSON.parse(result.stdout) as T;
@@ -365,7 +365,7 @@ test('acceptance:deterministic-output-and-cli', async () => {
     const paths: Record<string, string> = {};
     for (const [name, source] of files) {
       const target = join(inputDir, name);
-      const blob = spawnSync('git', ['-C', workspaceRoot, 'show', `HEAD:${source}`], { encoding: 'utf8', timeout: 30_000 });
+      const blob = spawnSync('git', ['-C', workspaceRoot, 'show', `HEAD:${source}`], { encoding: 'utf8', timeout: 60_000, maxBuffer: 64 * 1024 * 1024 });
       assert.equal(blob.status, 0, `committed blob ${source}`);
       await writeFile(target, blob.stdout);
       paths[name] = target;

@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.h7-round9-slice-evidence",
+  "phase": "H7-round9",
+  "capturedAt": "2026-11-03T04:03:09.441Z",
+  "baselineHead": "80e2867db2f27024a69b65d98e2e5869562cd026",
+  "status": "code-tests-delivered-not-clean-refresh",
+  "purpose": "Bind round-8 fixed-host reconcile, H3 reconcile, Lead integration, round8 clean artifact snapshot and review metadata into evidence.ts/acceptance index without granting pass to reconcile/failure evidence.",
+  "round8Sources": [
+    {
+      "id": "round8-host-core-validation-reconcile",
+      "commits": [
+        "f10affc"
+      ],
+      "levels": [
+        "fixed-host-zero-model-reconcile"
+      ],
+      "note": "reconcile/cancel only; inert-unauthorized; one cancel; readOnly=true/createsGoal=false/modelCalls=0/retries=0 in receipt; no new Goal/Task/Effect; original create failure unfixed; business chain unverified; status-final 58375B cache only"
+    },
+    {
+      "id": "h3-core-validation-reconcile",
+      "commits": [
+        "5f9ac00"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "note": "readback/reconcile implementation +29 tests; 1552 isolated; host not executed by implementer"
+    },
+    {
+      "id": "round8-lead-integration",
+      "commits": [
+        "7c0b22a"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "note": "G1 integration isolated 1561; host reconcile separate"
+    },
+    {
+      "id": "h7-round8-clean-artifacts",
+      "commits": [
+        "f766ab7"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "blobCommit f766ab7; manifest 6ef13f68/traceability bdee819c/acceptance c0719e83"
+    },
+    {
+      "id": "round8-review",
+      "commits": [
+        "80e2867"
+      ],
+      "levels": [
+        "independent-review-info"
+      ],
+      "note": "info-only review metadata; deliberately not referenced by product/module/system mappings"
+    }
+  ],
+  "sourceCounts": {
+    "sources": 57,
+    "files": 179
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "sha256": "6191d6fdf009be1c062a4679a08745933ca9f62a622de48f3deeb731c8ec2169",
+      "bytes": 134000
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "sha256": "987aaa2d0d04d8ad5e4c9e9a0646a6f98250749d9f0ddb09220e841b88a45c2d",
+      "bytes": 36975
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+      "sha256": "df4ad74198fe8e1f1aaeefc8f215237db73db6c50052fb485e1777fce9757ee1",
+      "bytes": 13379
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-acceptance.test.ts",
+      "sha256": "95e048f8a76d50469a28b85b36b228f51e6f1d780978eb8cb61548188ca32969",
+      "bytes": 22505
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "sha256": "0786348699c8fdda01ddb02858c19987d86b73b2d857508df8fcb7e405da3e38",
+      "bytes": 18584
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "sha256": "74a6ec8c91314d3be3078ddfa92d15395191feb4c732030eec1bacfe07c5e9b2",
+      "bytes": 23353
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round6.test.ts",
+      "sha256": "3a8b80673b1b3df681f422eb9e08d14f8c6cb2977dae317820721b99338b9b6c",
+      "bytes": 20213
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round7.test.ts",
+      "sha256": "79d7a430cae6821caee452949164f5a7b8adcff2c7d01aaa027daf157295f660",
+      "bytes": 17944
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round8.test.ts",
+      "sha256": "07fafe6880343f45cbcb9b6242699971a68bbd6bb245074b5cca0f520f172444",
+      "bytes": 18150
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round9.test.ts",
+      "sha256": "588ed5cb3160ef40db098a5e0ba917b9c1d4ceec3336935a17f24b6aa97e2237",
+      "bytes": 17380
+    }
+  ],
+  "commands": [
+    "npx tsc --noEmit",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+    "npm run check (isolated worktree 80e2867 + only slice files + slice evidence json)",
+    "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+    "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+  ],
+  "checks": {
+    "sharedTree": {
+      "tsc": {
+        "exitCode": 0
+      },
+      "harness": {
+        "tests": 115,
+        "pass": 115,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round9-80e2867-shared-harness.log",
+          "sha256": "b338a0a34f85633180816bac9418a449125e8d649d18373739a2336a01ffbe2a",
+          "bytes": 9466
+        }
+      }
+    },
+    "isolatedWorktree": {
+      "head": "80e2867db2f27024a69b65d98e2e5869562cd026",
+      "worktree": "/tmp/round9-verify (ephemeral)",
+      "tsc": {
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round9-80e2867-isolated-tsc.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      },
+      "harness": {
+        "tests": 115,
+        "pass": 115,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round9-80e2867-isolated-harness.log",
+          "sha256": "6a170fe36b6bfe44ee5c86571f5bb259534e23c7625bb42aad0576b46ba137e0",
+          "bytes": 9452
+        }
+      },
+      "fullCheck": {
+        "tests": 1569,
+        "pass": 1569,
+        "fail": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round9-80e2867-check.log",
+          "sha256": "561968acd68e6239e538712fb263e35f340508285bebfac8932e8bdb4b09fc3b",
+          "bytes": 167783
+        }
+      }
+    }
+  },
+  "productRows": {
+    "total": 79,
+    "notCovered": 79,
+    "covered": 0
+  },
+  "toolingReady": [
+    "TV.1",
+    "TV.2",
+    "TV.3",
+    "TV.4",
+    "TV.5",
+    "TV.6",
+    "TV.7",
+    "TV.9"
+  ],
+  "acceptanceGate": "incomplete",
+  "limitations": [
+    "H7-round9 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+    "Round-8 fixed-host reconcile is zero-model reconcile/cancel only (inert-unauthorized, one cancel, modelCalls=0/retries=0, no new Goal/Task/Effect); original create failure unfixed, business chain unverified; never pass/V25/business/nine-system.",
+    "H3 reconcile offline/isolated 1552/29 tests; host reconcile separate.",
+    "Product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD."
+  ],
+  "archivedCopies": [
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round9-80e2867-check.log",
+      "sha256": "561968acd68e6239e538712fb263e35f340508285bebfac8932e8bdb4b09fc3b",
+      "bytes": 167783
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round9-80e2867-isolated-harness.log",
+      "sha256": "6a170fe36b6bfe44ee5c86571f5bb259534e23c7625bb42aad0576b46ba137e0",
+      "bytes": 9452
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round9-80e2867-shared-harness.log",
+      "sha256": "b338a0a34f85633180816bac9418a449125e8d649d18373739a2336a01ffbe2a",
+      "bytes": 9466
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round9-80e2867-isolated-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}
