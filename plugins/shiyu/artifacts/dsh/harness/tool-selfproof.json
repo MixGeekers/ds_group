@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.selfproof",
-  "generatedAt": "2026-11-03T17:13:31.285Z",
+  "generatedAt": "2026-11-03T20:37:17.291Z",
   "harnessVersion": "0.1.0",
   "selfProofCorpus": "h0-selfproof-1",
   "pluginRoot": "<plugin-root>",
@@ -30,6 +30,7 @@
     "tests/harness-round14.test.ts",
     "tests/harness-round15.test.ts",
     "tests/harness-round16.test.ts",
+    "tests/harness-round17.test.ts",
     "tests/harness-round4.test.ts",
     "tests/harness-round5.test.ts",
     "tests/harness-round6.test.ts",
@@ -81,8 +82,8 @@
       ],
       "pass": 8,
       "fail": 0,
-      "durationMs": 33083,
-      "tapSha256": "0f605ecff2cf793c411ec54d5f84f6fa5741cdb70d823aeeab462419dbdc8997"
+      "durationMs": 38174,
+      "tapSha256": "4acb5115ddae2a913238d32d7df366a9ea74f7090873b9231f950707ca9a0711"
     },
     {
       "path": "tests/harness-business.test.ts",
@@ -153,8 +154,8 @@
       ],
       "pass": 15,
       "fail": 0,
-      "durationMs": 704,
-      "tapSha256": "cb69c3f6bcdd3a73b3e3a50b9bddc6d1b47e94c57f7caf13facbef3560c82c14"
+      "durationMs": 736,
+      "tapSha256": "86cc100d46ef1ba9957d0c51e0a5232360e5a87e382b645327b6b2f7e34fa3b6"
     },
     {
       "path": "tests/harness-evidence.test.ts",
@@ -189,8 +190,8 @@
       ],
       "pass": 6,
       "fail": 0,
-      "durationMs": 32443,
-      "tapSha256": "d8d1e6cb43974f1f98e49d513fcbdec6386d6f0ad5e95f7ef9e9638c1b5e6f7c"
+      "durationMs": 37865,
+      "tapSha256": "13dfe0c182625a38b89b28b7c64bea61f56ee7aa0fac48b5a5b3fe3367216a23"
     },
     {
       "path": "tests/harness-faults.test.ts",
@@ -225,8 +226,8 @@
       ],
       "pass": 6,
       "fail": 0,
-      "durationMs": 108,
-      "tapSha256": "5065b994737a4b50bd16af293501f2ff8ecfc987584d62aeba8f320af9b6f071"
+      "durationMs": 109,
+      "tapSha256": "a15af242fd757f1e2437159c9e41f71a4f67fd4503b79288dcaa46d46890fc54"
     },
     {
       "path": "tests/harness-manifest.test.ts",
@@ -253,8 +254,8 @@
       ],
       "pass": 4,
       "fail": 0,
-      "durationMs": 500,
-      "tapSha256": "fcf22c249733faf476a76e0ab658fb2b3dc20b5964296641bfc1268b04e6fd82"
+      "durationMs": 554,
+      "tapSha256": "3da9659a38db29d7c3ddac9a589c597686ebfbcb1021c28ac6b2cb89f69b2ddf"
     },
     {
       "path": "tests/harness-observer.test.ts",
@@ -285,8 +286,8 @@
       ],
       "pass": 5,
       "fail": 0,
-      "durationMs": 187,
-      "tapSha256": "aa74f157a13359f9fed5e20ef23231c9c06af223a6416bba5b143c52bd3c3bc5"
+      "durationMs": 194,
+      "tapSha256": "12302e8151f9a380a9e068c067106e41dcbe7bca67fa7a3966edf1ca3c27e604"
     },
     {
       "path": "tests/harness-oracles.test.ts",
@@ -373,12 +374,12 @@
       ],
       "pass": 19,
       "fail": 0,
-      "durationMs": 215,
-      "tapSha256": "38749754ee2fcc39e267f7dbfde7f64629213cdeef1e4a21b790efd2c8b28f74"
+      "durationMs": 222,
+      "tapSha256": "f4a7bfc0912cccee59c528075b6abce8d3ced335168a4202b671a3fdeafbdb7a"
     },
     {
       "path": "tests/harness-round11.test.ts",
-      "sha256": "99f9910cf439f7e87f06e4e7a338c1dcc517d3dcbd38efe17c5ab5a7a7091165",
+      "sha256": "d481c92b3336e312607d8324f6810ce07950da4e4d30ce6fbafb238db71c4e70",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -417,12 +418,12 @@
       ],
       "pass": 8,
       "fail": 0,
-      "durationMs": 82037,
-      "tapSha256": "74a1c1a8afad87397b73cea1e58b95446911d60c86738b59ea119d185f076e21"
+      "durationMs": 95325,
+      "tapSha256": "73bbb52b3525f676cf9efd965170782b40420e09185b02be183a7d051992a4c1"
     },
     {
       "path": "tests/harness-round12.test.ts",
-      "sha256": "7628e9793f099a5496c1a9863988962ce0840710b4e594de4363b978bbd26ad2",
+      "sha256": "6e245a60b53b67200e156d86b34894c38d84cd5ec188b74f38c692d3591fdfcd",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -465,12 +466,12 @@
       ],
       "pass": 9,
       "fail": 0,
-      "durationMs": 114657,
-      "tapSha256": "e508ae5cf43b6b089c046787b17796211ee64d9625cdbd34b6ba8b7580baf598"
+      "durationMs": 133157,
+      "tapSha256": "376acda4aa25466929830a88d9e4178a6bf38602254f577c6dc1330fdab7c469"
     },
     {
       "path": "tests/harness-round13.test.ts",
-      "sha256": "1162e2ad69b2a18a4182e57a4e4bf953abc0f4135804b781f094ce9e4d47d97d",
+      "sha256": "34171cafdd329813a7205521764aa704a9e5854f46e9e40e210202082d27d852",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -517,12 +518,12 @@
       ],
       "pass": 10,
       "fail": 0,
-      "durationMs": 130452,
-      "tapSha256": "9e8cf5a6290e80ae40ef596dd9e3cf7414bd83f9545433bdece633f2497f7a93"
+      "durationMs": 148498,
+      "tapSha256": "8111e47ad7a104c8fddf8635a1142f96e7425a95958b5867e7b0ef3885deb9ea"
     },
     {
       "path": "tests/harness-round14.test.ts",
-      "sha256": "650cd970bbc1bc17d43dd62ca078e11ff032ef1fba4bb9d25fce83b00c9d15b8",
+      "sha256": "c30f9412c66415c997c89d0f669f013bf19db4bff773006720dcb222a03ada0d",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -569,12 +570,12 @@
       ],
       "pass": 10,
       "fail": 0,
-      "durationMs": 130884,
-      "tapSha256": "4cb2d8069d1ccedfc92e070956a5f800a39cea807e7bb5b61803a6e38bbc54a5"
+      "durationMs": 148371,
+      "tapSha256": "608003a41b3aac8808816386678a301cc0053847294849a698008a5374033ded"
     },
     {
       "path": "tests/harness-round15.test.ts",
-      "sha256": "b7c232a63b2d0605495d49b0c5e33d7f283db571466482ab275b2b4791a4749b",
+      "sha256": "aa20596cbf99e44b138f81fda71a85ecbd073841fbcbc0b0a005e2726a5dea15",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -621,12 +622,12 @@
       ],
       "pass": 10,
       "fail": 0,
-      "durationMs": 98422,
-      "tapSha256": "070f6e2c760e126db210b6382af9c4d03a0422278f68b003eca7a95172e5dc45"
+      "durationMs": 114637,
+      "tapSha256": "f608eb387179f9072caca7d1fa48216d98ce77d6bca72515f4ae6b446128ef8f"
     },
     {
       "path": "tests/harness-round16.test.ts",
-      "sha256": "7070bab5b91507ab22f99d11c13ca054fa5282ff923355f8242d0b4ff716d9ce",
+      "sha256": "550abfeff8e4bf176cfc9396ac5a5153ef09b0d3e0329791484b80ed9580454b",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -673,12 +674,64 @@
       ],
       "pass": 10,
       "fail": 0,
-      "durationMs": 100352,
-      "tapSha256": "80cb1c5123f0a713878dba00bc034f6af8fe9de5d483667f237505ea11ae010f"
+      "durationMs": 114007,
+      "tapSha256": "c8fdb0a552f9d6efe8acbcdf4cdc27658592690327224e4e062ad56d234534fe"
+    },
+    {
+      "path": "tests/harness-round17.test.ts",
+      "sha256": "a04897c6e3c90d4e6f4416ceadcec77fad85054bc88f65e8ae7c9c159a74b6d4",
+      "exitCode": 0,
+      "ok": true,
+      "tests": [
+        {
+          "name": "round17:new-round16-sources-integrity-and-ancestry",
+          "ok": true
+        },
+        {
+          "name": "round17:runtime-context-binding-v6-semantics",
+          "ok": true
+        },
+        {
+          "name": "round17:first-real-model-request-empty-stream-never-pass",
+          "ok": true
+        },
+        {
+          "name": "round17:first-model-request-session-events-boundary",
+          "ok": true
+        },
+        {
+          "name": "round17:blobcommit-v6-correction-and-clean-artifacts-stable",
+          "ok": true
+        },
+        {
+          "name": "round17:review-info-only-unmapped",
+          "ok": true
+        },
+        {
+          "name": "round17:product-tooling-vsfl-no-upgrade",
+          "ok": true
+        },
+        {
+          "name": "round17:acceptance-index-cites-round16-limited",
+          "ok": true
+        },
+        {
+          "name": "round17:clean-artifacts-source-snapshot",
+          "ok": true
+        },
+        {
+          "name": "round17:slice-evidence-present",
+          "ok": true
+        }
+      ],
+      "pass": 10,
+      "fail": 0,
+      "durationMs": 113132,
+      "tapSha256": "8f65e59c1ff6c91ce88bba2ddecb7d5e9da3bfbd33659ae6bcc82c9c554488e4"
     },
     {
       "path": "tests/harness-round4.test.ts",
-      "sha256": "eb79f14c2f38034b6a4d38d6821ce98c80338dc5edf0480a765264392887af08",
+      "sha256": "12fa3e91872968d064bc4e8ba62389d941fa1d1baa2dd16af0f5358b785c55e7",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -709,12 +762,12 @@
       ],
       "pass": 6,
       "fail": 0,
-      "durationMs": 86680,
-      "tapSha256": "59210add817e9a78ddc1877ab3590a1c3032b1efdc7b44032fd0868e89e40d6a"
+      "durationMs": 97635,
+      "tapSha256": "ad4c156fcdf52d3a289a059217ef07b30cd023fb5d3a10a7c6652aa4ae44b7b8"
     },
     {
       "path": "tests/harness-round5.test.ts",
-      "sha256": "ceef1e841ef20d687661dc2c00208b576d19d5d0686020e17833420f2bdee9ec",
+      "sha256": "1c5f408519dc8a8cff6b57aa231830cb411c248b929b08e6278ea696ce0e17b8",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -753,12 +806,12 @@
       ],
       "pass": 8,
       "fail": 0,
-      "durationMs": 102153,
-      "tapSha256": "09424ec640e0abfec599e68323c1162b41f3d769623453090366bc26c496da07"
+      "durationMs": 113776,
+      "tapSha256": "2fa29e3ae211789c1274120f2844d135122ca7432a6aa69565662fe7a8b4c435"
     },
     {
       "path": "tests/harness-round6.test.ts",
-      "sha256": "6195c23c157f6eb817e3e82713ef03458514a30bdfc488b44596bbdc0a4ac2f5",
+      "sha256": "47d5ea7c00e6aa0b7396271118943268c24f8150205bbc920380a61d9ae3384f",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -793,12 +846,12 @@
       ],
       "pass": 7,
       "fail": 0,
-      "durationMs": 83969,
-      "tapSha256": "5835b2314c4e838fc966c30e578ff65468f08a3e1d7fff0ae4f30e8bb1b015de"
+      "durationMs": 94357,
+      "tapSha256": "256eb67e593e66941bd3f30206ecf41d695b4efa0c6242e45654399779092a9f"
     },
     {
       "path": "tests/harness-round7.test.ts",
-      "sha256": "066fcb0d18e4cb6d391112b43bcf0412cbc1a85139dc53e2cc5a30c6aba83187",
+      "sha256": "eb26b10a889edd1d01a33856543322b17fcdb1f1e8e63391d8c9e6b094efe504",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -833,12 +886,12 @@
       ],
       "pass": 7,
       "fail": 0,
-      "durationMs": 83520,
-      "tapSha256": "d8df41c1f16d6c5f2277cec3e2687009588d41a37645e20ea155f7ec0b7f3431"
+      "durationMs": 94174,
+      "tapSha256": "ea8916c08c4daee4ff6322889987e1097fe42992cbdac85afb916078dd4dbbc4"
     },
     {
       "path": "tests/harness-round8.test.ts",
-      "sha256": "db51faf1c4bbfb2d55820fb6c7c93ac56fbeae48922fb37d2cb9ca9ff9ed30ca",
+      "sha256": "b7580e8b96b5ef705c343d40308e27519a35e175cacf3795491258f2309a0ea9",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -877,12 +930,12 @@
       ],
       "pass": 8,
       "fail": 0,
-      "durationMs": 83139,
-      "tapSha256": "c18a8d71e22804fb38602318e4a9f40afc2b4ae5abb532e4d24614a004fff3b2"
+      "durationMs": 93011,
+      "tapSha256": "327da483c3e18cb30873f4c76591dec01f7fd7062bc7d0ad32164771d0c6de0b"
     },
     {
       "path": "tests/harness-round9.test.ts",
-      "sha256": "2ba9011c8ed5ec071a5e525596857575d39bc1751d86718a56470e50ee3f7b4d",
+      "sha256": "aa0f0c0e951037fc5f59047c8a1166344510e826c31a3e236f809a64c40c5c4a",
       "exitCode": 0,
       "ok": true,
       "tests": [
@@ -921,8 +974,8 @@
       ],
       "pass": 8,
       "fail": 0,
-      "durationMs": 85470,
-      "tapSha256": "49fc70e69fa7e9280c6486537a86a12a8c39649e58a1e465c7497b9792dcf9bb"
+      "durationMs": 93052,
+      "tapSha256": "1fb355b88af919baaff9290a41200f4e74c242a74eda2c744803500c1cfbfe4d"
     },
     {
       "path": "tests/harness-selfproof.test.ts",
@@ -949,8 +1002,8 @@
       ],
       "pass": 4,
       "fail": 0,
-      "durationMs": 171,
-      "tapSha256": "3d3f0544bba88f09e0b8b292392dfc96ab9aa62bc9b583773fb9654394c5ec13"
+      "durationMs": 167,
+      "tapSha256": "b752d6b6b9fe2f5576382546336f4c3fcb52a70334405e04fca1a6323f5a2402"
     },
     {
       "path": "tests/harness-traceability.test.ts",
@@ -977,17 +1030,17 @@
       ],
       "pass": 4,
       "fail": 0,
-      "durationMs": 66245,
-      "tapSha256": "b7fb60d5c44483eaf2b39abd0c783613df8f90df46bf99fc545197532293aa13"
+      "durationMs": 75351,
+      "tapSha256": "5ef85904f06a4be8113e17a6fbc91025d8db772bcdb751fce3326448b38114b6"
     }
   ],
   "totals": {
-    "pass": 172,
+    "pass": 182,
     "fail": 0,
     "skipped": 0,
     "cancelled": 0,
     "todo": 0,
-    "files": 21
+    "files": 22
   },
   "passed": true,
   "failures": [],
@@ -1069,7 +1122,7 @@
     }
   ],
   "sourceHashes": {
-    "tests/harness/acceptance-registry.ts": "fe018d37ec3985bde4fe7e2822ba55a8433f92bf0e9979c29871223aa42cb2b1",
+    "tests/harness/acceptance-registry.ts": "ae35b8dd50b2cc0669afeec7f2f9fb29024ff1d5dc7432662da5434086f3d002",
     "tests/harness/acceptance.ts": "a860658c067412880501c1d1f178199aed443ab29b1effdba04ee8eb82ec8c49",
     "tests/harness/authority.ts": "ebd847d7bc39f895ae06782de5756134d7c1b3fad694227068b427f43310db37",
     "tests/harness/business/answers.ts": "1fc1aeb137f97e14afc148f06752d39fc5ccccc0e2c31de54b49d5102e28cf3f",
@@ -1086,7 +1139,7 @@
     "tests/harness/cas.ts": "193b125c78abb6ea1c55e5e9b973003a966c0dcc6d85890419699bcf753b8871",
     "tests/harness/causal.ts": "e20489f3fe613ecfeb468210bbd8a942c6cb3cd92b3c2cd514f862ae2765b887",
     "tests/harness/counts.ts": "11d07f1f8722d7b37d5478b902346fbfbf142211ac1071459167e32d614848a8",
-    "tests/harness/evidence.ts": "3582d86f2dac9156a6376e46adb667f5e9e625cfca61e25a03b918e294d1a78a",
+    "tests/harness/evidence.ts": "78eb69d876428b2dfa3367a6bde2aa56f0e1611c5e7e07cfb91e508ac65fda86",
     "tests/harness/faults.ts": "81c4fe15eabe638670d05e0c105d5f7d4d81d7f8a3f07530d006cbe24ab0fa21",
     "tests/harness/fixtures/crash-child.ts": "a3c701bfdb12efc5313853b3da535fa9aa43b01576bc90fdd9966b49325a11c4",
     "tests/harness/fl-scenarios.ts": "4a52a4a06ce5353094224a4fea3dcb5a31b3a28a4ca432650f854bd288218caf",
@@ -1111,24 +1164,25 @@
     "tests/harness-manifest.test.ts": "106615e54f0e87a7c6c39ae0d59de4f5fca350e9b285a1e385c1662380a97476",
     "tests/harness-observer.test.ts": "6a8d602684e39bc26f1f0347ed5288f14e20fad2dbb3c5e48e98f5dbd21c6606",
     "tests/harness-oracles.test.ts": "fcab2bd31d87dd8945213a536cf65034488212223869f49b648557e9364b7268",
-    "tests/harness-round11.test.ts": "99f9910cf439f7e87f06e4e7a338c1dcc517d3dcbd38efe17c5ab5a7a7091165",
-    "tests/harness-round12.test.ts": "7628e9793f099a5496c1a9863988962ce0840710b4e594de4363b978bbd26ad2",
-    "tests/harness-round13.test.ts": "1162e2ad69b2a18a4182e57a4e4bf953abc0f4135804b781f094ce9e4d47d97d",
-    "tests/harness-round14.test.ts": "650cd970bbc1bc17d43dd62ca078e11ff032ef1fba4bb9d25fce83b00c9d15b8",
-    "tests/harness-round15.test.ts": "b7c232a63b2d0605495d49b0c5e33d7f283db571466482ab275b2b4791a4749b",
-    "tests/harness-round16.test.ts": "7070bab5b91507ab22f99d11c13ca054fa5282ff923355f8242d0b4ff716d9ce",
-    "tests/harness-round4.test.ts": "eb79f14c2f38034b6a4d38d6821ce98c80338dc5edf0480a765264392887af08",
-    "tests/harness-round5.test.ts": "ceef1e841ef20d687661dc2c00208b576d19d5d0686020e17833420f2bdee9ec",
-    "tests/harness-round6.test.ts": "6195c23c157f6eb817e3e82713ef03458514a30bdfc488b44596bbdc0a4ac2f5",
-    "tests/harness-round7.test.ts": "066fcb0d18e4cb6d391112b43bcf0412cbc1a85139dc53e2cc5a30c6aba83187",
-    "tests/harness-round8.test.ts": "db51faf1c4bbfb2d55820fb6c7c93ac56fbeae48922fb37d2cb9ca9ff9ed30ca",
-    "tests/harness-round9.test.ts": "2ba9011c8ed5ec071a5e525596857575d39bc1751d86718a56470e50ee3f7b4d",
+    "tests/harness-round11.test.ts": "d481c92b3336e312607d8324f6810ce07950da4e4d30ce6fbafb238db71c4e70",
+    "tests/harness-round12.test.ts": "6e245a60b53b67200e156d86b34894c38d84cd5ec188b74f38c692d3591fdfcd",
+    "tests/harness-round13.test.ts": "34171cafdd329813a7205521764aa704a9e5854f46e9e40e210202082d27d852",
+    "tests/harness-round14.test.ts": "c30f9412c66415c997c89d0f669f013bf19db4bff773006720dcb222a03ada0d",
+    "tests/harness-round15.test.ts": "aa20596cbf99e44b138f81fda71a85ecbd073841fbcbc0b0a005e2726a5dea15",
+    "tests/harness-round16.test.ts": "550abfeff8e4bf176cfc9396ac5a5153ef09b0d3e0329791484b80ed9580454b",
+    "tests/harness-round17.test.ts": "a04897c6e3c90d4e6f4416ceadcec77fad85054bc88f65e8ae7c9c159a74b6d4",
+    "tests/harness-round4.test.ts": "12fa3e91872968d064bc4e8ba62389d941fa1d1baa2dd16af0f5358b785c55e7",
+    "tests/harness-round5.test.ts": "1c5f408519dc8a8cff6b57aa231830cb411c248b929b08e6278ea696ce0e17b8",
+    "tests/harness-round6.test.ts": "47d5ea7c00e6aa0b7396271118943268c24f8150205bbc920380a61d9ae3384f",
+    "tests/harness-round7.test.ts": "eb26b10a889edd1d01a33856543322b17fcdb1f1e8e63391d8c9e6b094efe504",
+    "tests/harness-round8.test.ts": "b7580e8b96b5ef705c343d40308e27519a35e175cacf3795491258f2309a0ea9",
+    "tests/harness-round9.test.ts": "aa0f0c0e951037fc5f59047c8a1166344510e826c31a3e236f809a64c40c5c4a",
     "tests/harness-selfproof.test.ts": "9df4342bc2cbfdb3703f38bc28512ac10f4b50cf89ad6c995e45403fb482e2e6",
     "tests/harness-traceability.test.ts": "6a8794c8f605e3dd1a3dbd1c39c9354773d017bfdec973fdf7b6f341b0b8f0c9"
   },
   "rawTap": {
     "path": "tool-selfproof.tap",
-    "sha256": "e03c23db0ac707166242ba9133cf47c257f93f49d12c4c3c2deff2ea55711103",
-    "bytes": 31969
+    "sha256": "bf2d618306cc79ae416c7b69729f1fce437d4de2492b5fd7674e24a8071245f4",
+    "bytes": 33772
   }
 }

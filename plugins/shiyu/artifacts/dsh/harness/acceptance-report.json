@@ -1,16 +1,16 @@
 {
   "schemaVersion": 1,
   "kind": "shiyu.harness.acceptance-report",
-  "generatedAt": "2026-11-03T17:14:04.221Z",
+  "generatedAt": "2026-11-03T20:37:54.651Z",
   "registryVersion": "1.0.0",
   "inputs": {
-    "pluginRoot": "/private/tmp/h7r16-clean/plugins/shiyu",
-    "workspaceRoot": "/private/tmp/h7r16-clean",
-    "traceabilitySha256": "f4bd91031c21641d80115c0e07654b3427873208100446ac505560c4988ec595",
-    "selfproofSha256": "449fd189f66a1d698c0354e24ec47f1ad54944c085de00754da14954dd1106ae",
-    "manifestSha256": "48c91d63bc9110f9e1ea20e6516e2b82909e851adfea71846b762d4b89d12c95",
-    "coverageSha256": "fa0d2843188e0ef29a9c22faed77da8b6f6f9103f76906af2e59e6bf78ff3ee4",
-    "frozenHead": "dcede28bf921fc73f68e7abebec84bb80ae33f38",
+    "pluginRoot": "/private/tmp/h7r17-clean/plugins/shiyu",
+    "workspaceRoot": "/private/tmp/h7r17-clean",
+    "traceabilitySha256": "32093d1e8fcc2d9c646ff837ce5659f7857ee748b69bb87de0543dc1fb88aada",
+    "selfproofSha256": "7252e8d2c6751f43b581acbf474bd8b4a6b1b6b2f3f65b3cf186af5cd67c8ffe",
+    "manifestSha256": "7eb07b032d8c257934ba153ea765648292ae7254e5bbdcd1026de3ad9b6d0403",
+    "coverageSha256": "8a81c2d2972ae921866afa89b8e416dd7dd3abd1d3566eef06e134743ad64b4d",
+    "frozenHead": "6f6268d1e02900bb4e12c70ca8b65812689d8d2b",
     "selfproofPassed": true,
     "manifestDirty": false
   },
@@ -1048,7 +1048,9 @@
         "delegation-depth-normalization-v4",
         "round14-host-v4-create-success-eval-failure",
         "decision-prestep-reason-preservation-v5",
-        "round15-host-v5-create-success-context-rejected"
+        "round15-host-v5-create-success-context-rejected",
+        "runtime-context-binding-v6",
+        "round16-host-v6-first-model-request-empty-stream"
       ],
       "evidenceRefs": [
         {
@@ -2130,6 +2132,121 @@
               "sha256": "262513a860b817848c434bb45156bcc3407fb946b1adeec3ec543378354d0df1"
             }
           ]
+        },
+        {
+          "sourceId": "runtime-context-binding-v6",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-v6-decision-context-binding.json",
+              "sha256": "de571cfa99f03a9791ce45a2d999aae0924776a05489bea0ee13c261bf428b5d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-v6-runtime-index.patch",
+              "sha256": "54c21f474d68a18f0b172cc4336102c8da8f44458cb42021eeb4ea365386b8e3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-v6-context-binding-verify.json",
+              "sha256": "66ffe20c6d7d0534bce8f3619b0bab31db7282fea74297345433798a39ec4d84"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+              "sha256": "e264eef56ab8c1ce615512b7da3e4b3fac3bdd2ef75a69a22367e4781f21be9a"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+              "sha256": "a2b999e472f7ab05295be14f972ca599364f193e4e5201d88e92358463de4445"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+              "sha256": "fb213e156d9b8f6688d8383e5f0546dbc4883e55c6c9463e829514b4cd1e628c"
+            },
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "26929d5eb5c61dbc1c05a905ac0767f9c24ecd6cb091ac5561e2fea7c5d98f65"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-domain.test.ts",
+              "sha256": "c8fc1b46d53edbe3bcb2703717cc76e37d549b84c0176abbbc06bcd9ff2cf9e4"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "1d59f876026dfb396a9062a2b79c7b57af71ad6447910616285d52fd6c661223"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "b9b0470f6c55c0eeecb3a029f915473a5922d0bdb565a97e28aff591154d9113"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round16-lead-integration.json",
+              "sha256": "6931ddfc42c3db3b7320baab7a029d105c5558ac13a75104aa745371d2ca501f"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round16-integrated-verify.json",
+              "sha256": "a569dac8046f862bab47dbf38abcaef133f5031bb999fc1127e673cf7d485855"
+            },
+            {
+              "path": "plugins/shiyu/src/index.ts",
+              "sha256": "7ae2914dae538e5bdb6f3917312bbdcd0580b58a9176cc18cf8b52b3006cb043"
+            },
+            {
+              "path": "plugins/shiyu/src/runtime.ts",
+              "sha256": "96d68abda4be741d4d65dc42edc19dc29bd30bd03b4efebe8510a5c8aa5df437"
+            },
+            {
+              "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+              "sha256": "4e7ad90ae445834c3c4f7376e9323b74aa7a0b9b457100d3fa616d17c52039f2"
+            }
+          ]
+        },
+        {
+          "sourceId": "round16-host-v6-first-model-request-empty-stream",
+          "status": "verified",
+          "levels": [
+            "fixed-host-create-succeeded-evaluation-failure"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16-bounded-core-goal-v6.json",
+              "sha256": "f451169be1b186c6045a938d8b10992db2b9890222a0f45db828b71af941a273"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/core-goal-v6-receipt.json",
+              "sha256": "80afd9bd64daf4e9a28079e178e0be65ea7c43190dcb635fcf9d53470ab99de9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/plan.json",
+              "sha256": "1648f8744c95a9b10803c4912e84a51d006202f81530df85cbeea006dc582c1b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-before.json",
+              "sha256": "4d04ddbd690cdf6cd51bdb92a6b297c23193d8a2d043f68829fc3bac0ed517f2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-reload.json",
+              "sha256": "539e092c5ea3608f9ac24e19ae525a32820d63b8129d74825acb7cfd4b5b2ad2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-run.json",
+              "sha256": "0cb56b36ce4f8a361de76012bf46d41b192cfcd11acc9c7492a46b0cbdf1955a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-final.json",
+              "sha256": "b4182d28d4e92946b068d5692e95d1a15696dba722c140fb252ddb669a3f0b6c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/status-final.json",
+              "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/v6-goal-session-events.json",
+              "sha256": "73d47588255c0d4e639ececcc60d5aedbba6a3b94e70cd7fefd51c45af793250"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -2168,7 +2285,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收；round-11 有界 history-assert 诊断（liveCut 休眠/未宿主确认）+ 泛化 v1/v2 reconcile（离线 1605/1605）与固定宿主零模型 reconcile（v1 无动作/v2 恰一次 cancel 至 version 2）仅 limited/failure 参考；round-12 create-only cold-cut 激活后第三次 v3 宿主尝试仍失败于 header-hash（0 模型/未重试/partial v3 Goal+Session/第四次未授权），其后零模型 cleanup reconcile（v3 恰一次 cancel）只清理剩余 Goal；round-13 headerDiff + 零模型 header-cut 探针（离线 1632/集成 1643）与固定宿主探针仅诊断出 delegationDepth:0→absent（matched=false、0 模型、1 裸 Session 归档、未修复、第四次未授权）；round-14 create-only delegationDepth 归一化+v4 冻结（离线 1651/集成 1662）后第四次宿主尝试 create 首次真实成功（authorized/active/mandate/goalRef rev1/1 Session）但 evaluation 在 0 模型请求前 unknown（reason 被掩为 owner_paused、budget unknown held 16384/2、第五次未授权）——仍未证 plan/Task/业务链；round-15 先修 decision pre-step claim 形状+首次 unknown reason 保留（preStopEvaluation；离线 1671/集成 1682），第五次宿主 create 再次成功但 evaluation 以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型、v4/v5 unknown budget held、第六次未授权）——均不得 pass",
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收；round-11 有界 history-assert 诊断（liveCut 休眠/未宿主确认）+ 泛化 v1/v2 reconcile（离线 1605/1605）与固定宿主零模型 reconcile（v1 无动作/v2 恰一次 cancel 至 version 2）仅 limited/failure 参考；round-12 create-only cold-cut 激活后第三次 v3 宿主尝试仍失败于 header-hash（0 模型/未重试/partial v3 Goal+Session/第四次未授权），其后零模型 cleanup reconcile（v3 恰一次 cancel）只清理剩余 Goal；round-13 headerDiff + 零模型 header-cut 探针（离线 1632/集成 1643）与固定宿主探针仅诊断出 delegationDepth:0→absent（matched=false、0 模型、1 裸 Session 归档、未修复、第四次未授权）；round-14 create-only delegationDepth 归一化+v4 冻结（离线 1651/集成 1662）后第四次宿主尝试 create 首次真实成功（authorized/active/mandate/goalRef rev1/1 Session）但 evaluation 在 0 模型请求前 unknown（reason 被掩为 owner_paused、budget unknown held 16384/2、第五次未授权）——仍未证 plan/Task/业务链；round-15 先修 decision pre-step claim 形状+首次 unknown reason 保留（preStopEvaluation；离线 1671/集成 1682），第五次宿主 create 再次成功但 evaluation 以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型、v4/v5 unknown budget held、第六次未授权）；round-16 再修 assembly renderer 的 runtime-context claim 绑定+bounded contextDiagnostic+v6 冻结（离线 1689/集成 1700），第六次宿主 create 第三次成功并首次到达真实模型请求（request/header+context、3 只读事件工具）但 provider 空 stream、evaluation 保留 CORE_EXECUTION_UNCONFIRMED（0 usage、v4/v5/v6 unknown budget held、第七次未授权）——均不得 pass",
         "G1 module/property + real temporary SQLite/Worker only; no real DSH host/native Goal rounds, real model plan JSON, cost/cache or slot behaviour.",
         "Plan steps currently bind to the existing fixed local-note capability; more authorized capabilities need their own fixed-adapter admission.",
         "Offline implementation/isolated verification only: real bounded core Goal host run was NOT executed by the implementer (Lead host kit); fixed-host attempt failed separately in round7-host-bounded-core-goal-failure with GOAL_OPERATION_UNKNOWN.",
@@ -2277,10 +2394,17 @@
         "It is a FAILED fifth attempt despite the second create success: evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with evaluateAttempts=1 and preStopEvaluation.reasonCode=CORE_NATIVE_CONTEXT_REJECTED (the preserved real reason, no longer owner_paused) while 0 model requests were issued (13 Goal-Session events contain no request/assistant event); this can NEVER be pass, V25, business or nine-system acceptance.",
         "The new precise blocker is the runtime-context claim shape: the step-0 pre-step admits 1-2 messages but the host-provided second runtime-context message did not match the exact expected structural/text binding; the exact field-level difference is not yet captured and is the next diagnostic target.",
         "Audit: +14 commitSeq (476→490), goals 6→7, sessions 38→39, budget unknown 4→5 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4 and v5 Goals plus their unknown reservations remain and must be disclosed/reconciled rather than silently cleared.",
-        "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved."
+        "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved.",
+        "Offline/fake-host source only: the implementer ran no real host/model. The sixth real v6 attempt is separate failed evidence (round16-host-v6-first-model-request-empty-stream): it finally reached the first real model request but the provider stream was empty, so this slice does not prove a completed model round, plan, Task/worker or native completion.",
+        "The structural binding aligns the claim shape only; it does not surface or fix the empty provider stream, does not reconcile the v4/v5/v6 unknown reservations and does not authorize a seventh attempt.",
+        "The contextDiagnostic is deliberately bounded (field names / hash prefixes only); it must not carry prompt text, paths, credentials or full request bodies.",
+        "It is a FAILED sixth attempt despite the third create success: the decision round reached the real model layer and emitted request/header + request/context with the three read-only event tools, but the provider stream was EMPTY (assistant/attempt streamLength=0) and the run aborted before any assistant message, so the single evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED (preserved), evaluateAttempts=1, 0 usage and no completed stream; this can NEVER be pass, V25, business or nine-system acceptance.",
+        "The exact provider/stream error is not yet surfaced: whether the empty stream is a provider/transport error, a request-shape rejection or a timeout remains unknown and must be instrumented next; no completed model stream, no token usage and no plan/Task/worker/native completion were observed.",
+        "Audit: +14 commitSeq (496→510), goals 7→8, sessions 39→40, budget unknown 5→6 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4, v5 and v6 Goals plus their unknown reservations remain and must be reconciled or disclosed rather than silently cleared.",
+        "No real business chain occurred (no completed model stream, 0 usage, no plan/Task/worker/native completion); the seventh attempt is NOT authorized until the empty-stream error is instrumented and fixed plus an explicit owner decision, and the v4/v5/v6 unknown budgets are preserved."
       ],
       "notes": [
-        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收；round-11 有界 history-assert 诊断（liveCut 休眠/未宿主确认）+ 泛化 v1/v2 reconcile（离线 1605/1605）与固定宿主零模型 reconcile（v1 无动作/v2 恰一次 cancel 至 version 2）仅 limited/failure 参考；round-12 create-only cold-cut 激活后第三次 v3 宿主尝试仍失败于 header-hash（0 模型/未重试/partial v3 Goal+Session/第四次未授权），其后零模型 cleanup reconcile（v3 恰一次 cancel）只清理剩余 Goal；round-13 headerDiff + 零模型 header-cut 探针（离线 1632/集成 1643）与固定宿主探针仅诊断出 delegationDepth:0→absent（matched=false、0 模型、1 裸 Session 归档、未修复、第四次未授权）；round-14 create-only delegationDepth 归一化+v4 冻结（离线 1651/集成 1662）后第四次宿主尝试 create 首次真实成功（authorized/active/mandate/goalRef rev1/1 Session）但 evaluation 在 0 模型请求前 unknown（reason 被掩为 owner_paused、budget unknown held 16384/2、第五次未授权）——仍未证 plan/Task/业务链；round-15 先修 decision pre-step claim 形状+首次 unknown reason 保留（preStopEvaluation；离线 1671/集成 1682），第五次宿主 create 再次成功但 evaluation 以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型、v4/v5 unknown budget held、第六次未授权）——均不得 pass"
+        "H3 离线受控计划/重规划 + H4e 离线内层派生状态 + LocalCoreService 接线 hotfix + H2c fake-host 修复链；round-5 宿主真实模型诊断 tool round 通过但仅为 diagnostic（非完整 core/Goal/plan、非 V25/业务），不得记 pass；无真实宿主/模型 plan 验收；round-11 有界 history-assert 诊断（liveCut 休眠/未宿主确认）+ 泛化 v1/v2 reconcile（离线 1605/1605）与固定宿主零模型 reconcile（v1 无动作/v2 恰一次 cancel 至 version 2）仅 limited/failure 参考；round-12 create-only cold-cut 激活后第三次 v3 宿主尝试仍失败于 header-hash（0 模型/未重试/partial v3 Goal+Session/第四次未授权），其后零模型 cleanup reconcile（v3 恰一次 cancel）只清理剩余 Goal；round-13 headerDiff + 零模型 header-cut 探针（离线 1632/集成 1643）与固定宿主探针仅诊断出 delegationDepth:0→absent（matched=false、0 模型、1 裸 Session 归档、未修复、第四次未授权）；round-14 create-only delegationDepth 归一化+v4 冻结（离线 1651/集成 1662）后第四次宿主尝试 create 首次真实成功（authorized/active/mandate/goalRef rev1/1 Session）但 evaluation 在 0 模型请求前 unknown（reason 被掩为 owner_paused、budget unknown held 16384/2、第五次未授权）——仍未证 plan/Task/业务链；round-15 先修 decision pre-step claim 形状+首次 unknown reason 保留（preStopEvaluation；离线 1671/集成 1682），第五次宿主 create 再次成功但 evaluation 以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型、v4/v5 unknown budget held、第六次未授权）；round-16 再修 assembly renderer 的 runtime-context claim 绑定+bounded contextDiagnostic+v6 冻结（离线 1689/集成 1700），第六次宿主 create 第三次成功并首次到达真实模型请求（request/header+context、3 只读事件工具）但 provider 空 stream、evaluation 保留 CORE_EXECUTION_UNCONFIRMED（0 usage、v4/v5/v6 unknown budget held、第七次未授权）——均不得 pass"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/01-识雨插件/02-内层-六部分状态/00-core-主动判断/README.md",
@@ -4893,6 +5017,8 @@
         "round14-host-v4-create-success-eval-failure",
         "decision-prestep-reason-preservation-v5",
         "round15-host-v5-create-success-context-rejected",
+        "runtime-context-binding-v6",
+        "round16-host-v6-first-model-request-empty-stream",
         "historical-capability-3i"
       ],
       "evidenceRefs": [
@@ -5840,6 +5966,121 @@
           ]
         },
         {
+          "sourceId": "runtime-context-binding-v6",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-v6-decision-context-binding.json",
+              "sha256": "de571cfa99f03a9791ce45a2d999aae0924776a05489bea0ee13c261bf428b5d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-v6-runtime-index.patch",
+              "sha256": "54c21f474d68a18f0b172cc4336102c8da8f44458cb42021eeb4ea365386b8e3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-v6-context-binding-verify.json",
+              "sha256": "66ffe20c6d7d0534bce8f3619b0bab31db7282fea74297345433798a39ec4d84"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+              "sha256": "e264eef56ab8c1ce615512b7da3e4b3fac3bdd2ef75a69a22367e4781f21be9a"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+              "sha256": "a2b999e472f7ab05295be14f972ca599364f193e4e5201d88e92358463de4445"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+              "sha256": "fb213e156d9b8f6688d8383e5f0546dbc4883e55c6c9463e829514b4cd1e628c"
+            },
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "26929d5eb5c61dbc1c05a905ac0767f9c24ecd6cb091ac5561e2fea7c5d98f65"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-domain.test.ts",
+              "sha256": "c8fc1b46d53edbe3bcb2703717cc76e37d549b84c0176abbbc06bcd9ff2cf9e4"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "1d59f876026dfb396a9062a2b79c7b57af71ad6447910616285d52fd6c661223"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "b9b0470f6c55c0eeecb3a029f915473a5922d0bdb565a97e28aff591154d9113"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round16-lead-integration.json",
+              "sha256": "6931ddfc42c3db3b7320baab7a029d105c5558ac13a75104aa745371d2ca501f"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round16-integrated-verify.json",
+              "sha256": "a569dac8046f862bab47dbf38abcaef133f5031bb999fc1127e673cf7d485855"
+            },
+            {
+              "path": "plugins/shiyu/src/index.ts",
+              "sha256": "7ae2914dae538e5bdb6f3917312bbdcd0580b58a9176cc18cf8b52b3006cb043"
+            },
+            {
+              "path": "plugins/shiyu/src/runtime.ts",
+              "sha256": "96d68abda4be741d4d65dc42edc19dc29bd30bd03b4efebe8510a5c8aa5df437"
+            },
+            {
+              "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+              "sha256": "4e7ad90ae445834c3c4f7376e9323b74aa7a0b9b457100d3fa616d17c52039f2"
+            }
+          ]
+        },
+        {
+          "sourceId": "round16-host-v6-first-model-request-empty-stream",
+          "status": "verified",
+          "levels": [
+            "fixed-host-create-succeeded-evaluation-failure"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16-bounded-core-goal-v6.json",
+              "sha256": "f451169be1b186c6045a938d8b10992db2b9890222a0f45db828b71af941a273"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/core-goal-v6-receipt.json",
+              "sha256": "80afd9bd64daf4e9a28079e178e0be65ea7c43190dcb635fcf9d53470ab99de9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/plan.json",
+              "sha256": "1648f8744c95a9b10803c4912e84a51d006202f81530df85cbeea006dc582c1b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-before.json",
+              "sha256": "4d04ddbd690cdf6cd51bdb92a6b297c23193d8a2d043f68829fc3bac0ed517f2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-reload.json",
+              "sha256": "539e092c5ea3608f9ac24e19ae525a32820d63b8129d74825acb7cfd4b5b2ad2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-run.json",
+              "sha256": "0cb56b36ce4f8a361de76012bf46d41b192cfcd11acc9c7492a46b0cbdf1955a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-final.json",
+              "sha256": "b4182d28d4e92946b068d5692e95d1a15696dba722c140fb252ddb669a3f0b6c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/status-final.json",
+              "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/v6-goal-session-events.json",
+              "sha256": "73d47588255c0d4e639ececcc60d5aedbba6a3b94e70cd7fefd51c45af793250"
+            }
+          ]
+        },
+        {
           "sourceId": "historical-capability-3i",
           "status": "verified",
           "levels": [
@@ -5882,7 +6123,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；round-11 仅更新 owner reconcile 工具描述（固定 v1/v2 目标），宿主零模型 reconcile 仅分类/一次 cancel；round-12 增加 v3 owner 命令/工具（仅精确冻结常量）并泛化 reconcile 到 [v1,v2,v3]；round-13 暴露 owner-only 零模型 native header-cut 探针（仅诊断、matched=false、1 裸 Session、0 模型/Goal）；round-14 增加 v4 owner 命令/工具（仅精确冻结常量）与 reconcile [v1..v4]，第四次宿主 create 成功但 evaluation 0 模型 unknown；round-15 增加 v5 owner 命令/工具（仅精确冻结常量）、pre-step claim 形状修复与 reason 保留，第五次宿主 create 再次成功但 preStopEvaluation 揭示 CORE_NATIVE_CONTEXT_REJECTED（0 模型），均非权限矩阵通过；权限矩阵未验",
+        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；round-11 仅更新 owner reconcile 工具描述（固定 v1/v2 目标），宿主零模型 reconcile 仅分类/一次 cancel；round-12 增加 v3 owner 命令/工具（仅精确冻结常量）并泛化 reconcile 到 [v1,v2,v3]；round-13 暴露 owner-only 零模型 native header-cut 探针（仅诊断、matched=false、1 裸 Session、0 模型/Goal）；round-14 增加 v4 owner 命令/工具（仅精确冻结常量）与 reconcile [v1..v4]，第四次宿主 create 成功但 evaluation 0 模型 unknown；round-15 增加 v5 owner 命令/工具（仅精确冻结常量）、pre-step claim 形状修复与 reason 保留，第五次宿主 create 再次成功但 preStopEvaluation 揭示 CORE_NATIVE_CONTEXT_REJECTED（0 模型）；round-16 通过 host assembly renderer 绑定 runtime-context claim+bounded contextDiagnostic+v6 owner 命令/工具与 reconcile [v1..v6]，第六次宿主首次到达真实模型请求（3 只读事件工具已挂载）但 provider 空 stream、0 usage，均非权限矩阵通过；权限矩阵未验",
         "Zero-model probe only: proves restricted mounting, non-forgeable tool parameters and release — not that a model called an event tool.",
         "Not Task/Goal continuation, not provider budget/cache/cost, not business acceptance.",
         "The implementer did NOT execute the real model: this source is offline implementation/isolated verification only.",
@@ -5972,11 +6213,18 @@
         "The new precise blocker is the runtime-context claim shape: the step-0 pre-step admits 1-2 messages but the host-provided second runtime-context message did not match the exact expected structural/text binding; the exact field-level difference is not yet captured and is the next diagnostic target.",
         "Audit: +14 commitSeq (476→490), goals 6→7, sessions 38→39, budget unknown 4→5 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4 and v5 Goals plus their unknown reservations remain and must be disclosed/reconciled rather than silently cleared.",
         "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved.",
+        "Offline/fake-host source only: the implementer ran no real host/model. The sixth real v6 attempt is separate failed evidence (round16-host-v6-first-model-request-empty-stream): it finally reached the first real model request but the provider stream was empty, so this slice does not prove a completed model round, plan, Task/worker or native completion.",
+        "The structural binding aligns the claim shape only; it does not surface or fix the empty provider stream, does not reconcile the v4/v5/v6 unknown reservations and does not authorize a seventh attempt.",
+        "The contextDiagnostic is deliberately bounded (field names / hash prefixes only); it must not carry prompt text, paths, credentials or full request bodies.",
+        "It is a FAILED sixth attempt despite the third create success: the decision round reached the real model layer and emitted request/header + request/context with the three read-only event tools, but the provider stream was EMPTY (assistant/attempt streamLength=0) and the run aborted before any assistant message, so the single evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED (preserved), evaluateAttempts=1, 0 usage and no completed stream; this can NEVER be pass, V25, business or nine-system acceptance.",
+        "The exact provider/stream error is not yet surfaced: whether the empty stream is a provider/transport error, a request-shape rejection or a timeout remains unknown and must be instrumented next; no completed model stream, no token usage and no plan/Task/worker/native completion were observed.",
+        "Audit: +14 commitSeq (496→510), goals 7→8, sessions 39→40, budget unknown 5→6 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4, v5 and v6 Goals plus their unknown reservations remain and must be reconciled or disclosed rather than silently cleared.",
+        "No real business chain occurred (no completed model stream, 0 usage, no plan/Task/worker/native completion); the seventh attempt is NOT authorized until the empty-stream error is instrumented and fixed plus an explicit owner decision, and the v4/v5/v6 unknown budgets are preserved.",
         "Historical fixed capability only; new-binding real task proof, dynamic candidate/skill matrix, complete V09 and other five domains remain untested.",
         "Zero-model host reloads are not generation or business evidence."
       ],
       "notes": [
-        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；round-11 仅更新 owner reconcile 工具描述（固定 v1/v2 目标），宿主零模型 reconcile 仅分类/一次 cancel；round-12 增加 v3 owner 命令/工具（仅精确冻结常量）并泛化 reconcile 到 [v1,v2,v3]；round-13 暴露 owner-only 零模型 native header-cut 探针（仅诊断、matched=false、1 裸 Session、0 模型/Goal）；round-14 增加 v4 owner 命令/工具（仅精确冻结常量）与 reconcile [v1..v4]，第四次宿主 create 成功但 evaluation 0 模型 unknown；round-15 增加 v5 owner 命令/工具（仅精确冻结常量）、pre-step claim 形状修复与 reason 保留，第五次宿主 create 再次成功但 preStopEvaluation 揭示 CORE_NATIVE_CONTEXT_REJECTED（0 模型），均非权限矩阵通过；权限矩阵未验"
+        "零模型工具挂载探针 + H2c fake-host 修复链 + round-5 宿主真实模型 diagnostic tool round（usage 1469/41/2406；仅诊断、禁止 pass/V25/业务）；round-11 仅更新 owner reconcile 工具描述（固定 v1/v2 目标），宿主零模型 reconcile 仅分类/一次 cancel；round-12 增加 v3 owner 命令/工具（仅精确冻结常量）并泛化 reconcile 到 [v1,v2,v3]；round-13 暴露 owner-only 零模型 native header-cut 探针（仅诊断、matched=false、1 裸 Session、0 模型/Goal）；round-14 增加 v4 owner 命令/工具（仅精确冻结常量）与 reconcile [v1..v4]，第四次宿主 create 成功但 evaluation 0 模型 unknown；round-15 增加 v5 owner 命令/工具（仅精确冻结常量）、pre-step claim 形状修复与 reason 保留，第五次宿主 create 再次成功但 preStopEvaluation 揭示 CORE_NATIVE_CONTEXT_REJECTED（0 模型）；round-16 通过 host assembly renderer 绑定 runtime-context claim+bounded contextDiagnostic+v6 owner 命令/工具与 reconcile [v1..v6]，第六次宿主首次到达真实模型请求（3 只读事件工具已挂载）但 provider 空 stream、0 usage，均非权限矩阵通过；权限矩阵未验"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/02-工具与权限/README.md",
@@ -6183,6 +6431,7 @@
         "round13-host-native-header-cut",
         "round14-host-v4-create-success-eval-failure",
         "round15-host-v5-create-success-context-rejected",
+        "round16-host-v6-first-model-request-empty-stream",
         "h4-inner-offline"
       ],
       "evidenceRefs": [
@@ -6593,6 +6842,51 @@
           ]
         },
         {
+          "sourceId": "round16-host-v6-first-model-request-empty-stream",
+          "status": "verified",
+          "levels": [
+            "fixed-host-create-succeeded-evaluation-failure"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16-bounded-core-goal-v6.json",
+              "sha256": "f451169be1b186c6045a938d8b10992db2b9890222a0f45db828b71af941a273"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/core-goal-v6-receipt.json",
+              "sha256": "80afd9bd64daf4e9a28079e178e0be65ea7c43190dcb635fcf9d53470ab99de9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/plan.json",
+              "sha256": "1648f8744c95a9b10803c4912e84a51d006202f81530df85cbeea006dc582c1b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-before.json",
+              "sha256": "4d04ddbd690cdf6cd51bdb92a6b297c23193d8a2d043f68829fc3bac0ed517f2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-reload.json",
+              "sha256": "539e092c5ea3608f9ac24e19ae525a32820d63b8129d74825acb7cfd4b5b2ad2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-run.json",
+              "sha256": "0cb56b36ce4f8a361de76012bf46d41b192cfcd11acc9c7492a46b0cbdf1955a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-final.json",
+              "sha256": "b4182d28d4e92946b068d5692e95d1a15696dba722c140fb252ddb669a3f0b6c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/status-final.json",
+              "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/v6-goal-session-events.json",
+              "sha256": "73d47588255c0d4e639ececcc60d5aedbba6a3b94e70cd7fefd51c45af793250"
+            }
+          ]
+        },
+        {
           "sourceId": "h4-inner-offline",
           "status": "verified",
           "levels": [
@@ -6646,7 +6940,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；round-11 宿主零模型 reconcile 仅 v2 cancel 的 +1 commitSeq、无事件/无 state 文件变化；round-12 第三次 v3 尝试 +3 commitSeq（goal/session 各一）后 cleanup reconcile 仅 +1 commitSeq（v3 cancel）、无 state 文件变化；round-13 零模型 header-cut 探针仅 +1 Session（归档）、commitSeq/events/goals/tasks/effects/state 不变；round-14 第四次 v4 尝试 +14 commitSeq/+1 Goal/+1 Session/budget unknown 3→4；round-15 第五次 v5 尝试再 +14 commitSeq/+1 Goal/+1 Session/budget unknown 4→5，但 events/tasks/effects/state 不变，均不证明打包/加载/迁移；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵",
+        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；round-11 宿主零模型 reconcile 仅 v2 cancel 的 +1 commitSeq、无事件/无 state 文件变化；round-12 第三次 v3 尝试 +3 commitSeq（goal/session 各一）后 cleanup reconcile 仅 +1 commitSeq（v3 cancel）、无 state 文件变化；round-13 零模型 header-cut 探针仅 +1 Session（归档）、commitSeq/events/goals/tasks/effects/state 不变；round-14 第四次 v4 尝试 +14 commitSeq/+1 Goal/+1 Session/budget unknown 3→4；round-15 第五次 v5 尝试再 +14 commitSeq/+1 Goal/+1 Session/budget unknown 4→5；round-16 第六次 v6 尝试再 +14 commitSeq/+1 Goal/+1 Session/budget unknown 5→6，且 events/tasks/effects/state 不变，均不证明打包/加载/迁移；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance.",
         "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
@@ -6693,11 +6987,15 @@
         "The new precise blocker is the runtime-context claim shape: the step-0 pre-step admits 1-2 messages but the host-provided second runtime-context message did not match the exact expected structural/text binding; the exact field-level difference is not yet captured and is the next diagnostic target.",
         "Audit: +14 commitSeq (476→490), goals 6→7, sessions 38→39, budget unknown 4→5 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4 and v5 Goals plus their unknown reservations remain and must be disclosed/reconciled rather than silently cleared.",
         "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved.",
+        "It is a FAILED sixth attempt despite the third create success: the decision round reached the real model layer and emitted request/header + request/context with the three read-only event tools, but the provider stream was EMPTY (assistant/attempt streamLength=0) and the run aborted before any assistant message, so the single evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED (preserved), evaluateAttempts=1, 0 usage and no completed stream; this can NEVER be pass, V25, business or nine-system acceptance.",
+        "The exact provider/stream error is not yet surfaced: whether the empty stream is a provider/transport error, a request-shape rejection or a timeout remains unknown and must be instrumented next; no completed model stream, no token usage and no plan/Task/worker/native completion were observed.",
+        "Audit: +14 commitSeq (496→510), goals 7→8, sessions 39→40, budget unknown 5→6 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4, v5 and v6 Goals plus their unknown reservations remain and must be reconciled or disclosed rather than silently cleared.",
+        "No real business chain occurred (no completed model stream, 0 usage, no plan/Task/worker/native completion); the seventh attempt is NOT authorized until the empty-stream error is instrumented and fixed plus an explicit owner decision, and the v4/v5/v6 unknown budgets are preserved.",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
         "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only."
       ],
       "notes": [
-        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；round-11 宿主零模型 reconcile 仅 v2 cancel 的 +1 commitSeq、无事件/无 state 文件变化；round-12 第三次 v3 尝试 +3 commitSeq（goal/session 各一）后 cleanup reconcile 仅 +1 commitSeq（v3 cancel）、无 state 文件变化；round-13 零模型 header-cut 探针仅 +1 Session（归档）、commitSeq/events/goals/tasks/effects/state 不变；round-14 第四次 v4 尝试 +14 commitSeq/+1 Goal/+1 Session/budget unknown 3→4；round-15 第五次 v5 尝试再 +14 commitSeq/+1 Goal/+1 Session/budget unknown 4→5，但 events/tasks/effects/state 不变，均不证明打包/加载/迁移；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵"
+        "真实临时 SQLite + H5 G1/G1+ + H4e 加法迁移；round-11 宿主零模型 reconcile 仅 v2 cancel 的 +1 commitSeq、无事件/无 state 文件变化；round-12 第三次 v3 尝试 +3 commitSeq（goal/session 各一）后 cleanup reconcile 仅 +1 commitSeq（v3 cancel）、无 state 文件变化；round-13 零模型 header-cut 探针仅 +1 Session（归档）、commitSeq/events/goals/tasks/effects/state 不变；round-14 第四次 v4 尝试 +14 commitSeq/+1 Goal/+1 Session/budget unknown 3→4；round-15 第五次 v5 尝试再 +14 commitSeq/+1 Goal/+1 Session/budget unknown 4→5；round-16 第六次 v6 尝试再 +14 commitSeq/+1 Goal/+1 Session/budget unknown 5→6，且 events/tasks/effects/state 不变，均不证明打包/加载/迁移；H5b 生产 capture blocked，无当前 HEAD 崩溃/满盘/完整迁移矩阵"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/04-持久化接口/README.md",
@@ -6746,6 +7044,8 @@
         "round14-host-v4-create-success-eval-failure",
         "decision-prestep-reason-preservation-v5",
         "round15-host-v5-create-success-context-rejected",
+        "runtime-context-binding-v6",
+        "round16-host-v6-first-model-request-empty-stream",
         "joint-host-zero-model"
       ],
       "evidenceRefs": [
@@ -7829,6 +8129,121 @@
           ]
         },
         {
+          "sourceId": "runtime-context-binding-v6",
+          "status": "verified",
+          "levels": [
+            "offline-module",
+            "slice-verification"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-v6-decision-context-binding.json",
+              "sha256": "de571cfa99f03a9791ce45a2d999aae0924776a05489bea0ee13c261bf428b5d"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/h3/h3-v6-runtime-index.patch",
+              "sha256": "54c21f474d68a18f0b172cc4336102c8da8f44458cb42021eeb4ea365386b8e3"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/h3-v6-context-binding-verify.json",
+              "sha256": "66ffe20c6d7d0534bce8f3619b0bab31db7282fea74297345433798a39ec4d84"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+              "sha256": "e264eef56ab8c1ce615512b7da3e4b3fac3bdd2ef75a69a22367e4781f21be9a"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+              "sha256": "a2b999e472f7ab05295be14f972ca599364f193e4e5201d88e92358463de4445"
+            },
+            {
+              "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+              "sha256": "fb213e156d9b8f6688d8383e5f0546dbc4883e55c6c9463e829514b4cd1e628c"
+            },
+            {
+              "path": "plugins/shiyu/src/control/core-validation.ts",
+              "sha256": "26929d5eb5c61dbc1c05a905ac0767f9c24ecd6cb091ac5561e2fea7c5d98f65"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-domain.test.ts",
+              "sha256": "c8fc1b46d53edbe3bcb2703717cc76e37d549b84c0176abbbc06bcd9ff2cf9e4"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+              "sha256": "1d59f876026dfb396a9062a2b79c7b57af71ad6447910616285d52fd6c661223"
+            },
+            {
+              "path": "plugins/shiyu/tests/core-validation.test.ts",
+              "sha256": "b9b0470f6c55c0eeecb3a029f915473a5922d0bdb565a97e28aff591154d9113"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/integration/round16-lead-integration.json",
+              "sha256": "6931ddfc42c3db3b7320baab7a029d105c5558ac13a75104aa745371d2ca501f"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/slices/round16-integrated-verify.json",
+              "sha256": "a569dac8046f862bab47dbf38abcaef133f5031bb999fc1127e673cf7d485855"
+            },
+            {
+              "path": "plugins/shiyu/src/index.ts",
+              "sha256": "7ae2914dae538e5bdb6f3917312bbdcd0580b58a9176cc18cf8b52b3006cb043"
+            },
+            {
+              "path": "plugins/shiyu/src/runtime.ts",
+              "sha256": "96d68abda4be741d4d65dc42edc19dc29bd30bd03b4efebe8510a5c8aa5df437"
+            },
+            {
+              "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+              "sha256": "4e7ad90ae445834c3c4f7376e9323b74aa7a0b9b457100d3fa616d17c52039f2"
+            }
+          ]
+        },
+        {
+          "sourceId": "round16-host-v6-first-model-request-empty-stream",
+          "status": "verified",
+          "levels": [
+            "fixed-host-create-succeeded-evaluation-failure"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16-bounded-core-goal-v6.json",
+              "sha256": "f451169be1b186c6045a938d8b10992db2b9890222a0f45db828b71af941a273"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/core-goal-v6-receipt.json",
+              "sha256": "80afd9bd64daf4e9a28079e178e0be65ea7c43190dcb635fcf9d53470ab99de9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/plan.json",
+              "sha256": "1648f8744c95a9b10803c4912e84a51d006202f81530df85cbeea006dc582c1b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-before.json",
+              "sha256": "4d04ddbd690cdf6cd51bdb92a6b297c23193d8a2d043f68829fc3bac0ed517f2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-reload.json",
+              "sha256": "539e092c5ea3608f9ac24e19ae525a32820d63b8129d74825acb7cfd4b5b2ad2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-run.json",
+              "sha256": "0cb56b36ce4f8a361de76012bf46d41b192cfcd11acc9c7492a46b0cbdf1955a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-final.json",
+              "sha256": "b4182d28d4e92946b068d5692e95d1a15696dba722c140fb252ddb669a3f0b6c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/status-final.json",
+              "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/v6-goal-session-events.json",
+              "sha256": "73d47588255c0d4e639ececcc60d5aedbba6a3b94e70cd7fefd51c45af793250"
+            }
+          ]
+        },
+        {
           "sourceId": "joint-host-zero-model",
           "status": "verified",
           "levels": [
@@ -7880,7 +8295,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；round-11 固定宿主一次零模型泛化 reconcile 后 final status 缓存回执（v1 无动作/v2 一次 cancel，+1 commitSeq，无事件/session/goal 变化）；round-12 第三次 v3 尝试失败证据（header-hash，0 模型，partial v3 Goal/Session，+3 commitSeq）与随后 cleanup reconcile（v3 一次 cancel，仅 +1 commitSeq）；round-13 零模型 header-cut 探针（1 裸 Session 创建/归档，matched=false，0 模型/Goal/Task/Effect，commitSeq/events/goals 不变，仅 sessions 36→37）；round-14 第四次 v4 尝试 create 首次成功（+1 Goal/+1 Session/budget held）但 evaluation 0 模型 unknown 并 pause（+14 commitSeq，goals 5→6，sessions 37→38，events/tasks/effects 不变）；round-15 第五次 v5 尝试 create 再次成功但 evaluation 以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型、+14 commitSeq、goals 6→7、sessions 38→39、budget unknown 4→5）均不是生命周期/drain 验收；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
+        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；round-11 固定宿主一次零模型泛化 reconcile 后 final status 缓存回执（v1 无动作/v2 一次 cancel，+1 commitSeq，无事件/session/goal 变化）；round-12 第三次 v3 尝试失败证据（header-hash，0 模型，partial v3 Goal/Session，+3 commitSeq）与随后 cleanup reconcile（v3 一次 cancel，仅 +1 commitSeq）；round-13 零模型 header-cut 探针（1 裸 Session 创建/归档，matched=false，0 模型/Goal/Task/Effect，commitSeq/events/goals 不变，仅 sessions 36→37）；round-14 第四次 v4 尝试 create 首次成功（+1 Goal/+1 Session/budget held）但 evaluation 0 模型 unknown 并 pause（+14 commitSeq，goals 5→6，sessions 37→38，events/tasks/effects 不变）；round-15 第五次 v5 尝试 create 再次成功但 evaluation 以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型、+14 commitSeq、goals 6→7、sessions 38→39、budget unknown 4→5）；round-16 第六次 v6 尝试经 assembly renderer 绑定后首次到达真实模型请求（21-event Session、request/header+context、3 只读工具）但 provider 空 stream、evaluation 保留 CORE_EXECUTION_UNCONFIRMED（0 usage、+14 commitSeq、goals 7→8、sessions 39→40、budget unknown 5→6）均不是生命周期/drain 验收；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测",
         "No real dashboard rendering (browser DOM) and no real business data; one host instance, zero model calls.",
         "Not V24 UI acceptance, not generation or lifecycle evidence.",
         "G1 integration + isolated full check only; fixed-host validation is recorded separately in round3-host-zero-model.",
@@ -7988,11 +8403,18 @@
         "The new precise blocker is the runtime-context claim shape: the step-0 pre-step admits 1-2 messages but the host-provided second runtime-context message did not match the exact expected structural/text binding; the exact field-level difference is not yet captured and is the next diagnostic target.",
         "Audit: +14 commitSeq (476→490), goals 6→7, sessions 38→39, budget unknown 4→5 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4 and v5 Goals plus their unknown reservations remain and must be disclosed/reconciled rather than silently cleared.",
         "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved.",
+        "Offline/fake-host source only: the implementer ran no real host/model. The sixth real v6 attempt is separate failed evidence (round16-host-v6-first-model-request-empty-stream): it finally reached the first real model request but the provider stream was empty, so this slice does not prove a completed model round, plan, Task/worker or native completion.",
+        "The structural binding aligns the claim shape only; it does not surface or fix the empty provider stream, does not reconcile the v4/v5/v6 unknown reservations and does not authorize a seventh attempt.",
+        "The contextDiagnostic is deliberately bounded (field names / hash prefixes only); it must not carry prompt text, paths, credentials or full request bodies.",
+        "It is a FAILED sixth attempt despite the third create success: the decision round reached the real model layer and emitted request/header + request/context with the three read-only event tools, but the provider stream was EMPTY (assistant/attempt streamLength=0) and the run aborted before any assistant message, so the single evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED (preserved), evaluateAttempts=1, 0 usage and no completed stream; this can NEVER be pass, V25, business or nine-system acceptance.",
+        "The exact provider/stream error is not yet surfaced: whether the empty stream is a provider/transport error, a request-shape rejection or a timeout remains unknown and must be instrumented next; no completed model stream, no token usage and no plan/Task/worker/native completion were observed.",
+        "Audit: +14 commitSeq (496→510), goals 7→8, sessions 39→40, budget unknown 5→6 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4, v5 and v6 Goals plus their unknown reservations remain and must be reconciled or disclosed rather than silently cleared.",
+        "No real business chain occurred (no completed model stream, 0 usage, no plan/Task/worker/native completion); the seventh attempt is NOT authorized until the empty-stream error is instrumented and fixed plus an explicit owner decision, and the v4/v5/v6 unknown budgets are preserved.",
         "Zero-model evidence only: no model-generated reply, no event-tool model invocation, no provider budget/cache/cost, no real task/Goal continuation under a model.",
         "One ordered reload and two tool calls; no real browser DOM, channel, Lab business loop, device, long-run or independent fault domain."
       ],
       "notes": [
-        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；round-11 固定宿主一次零模型泛化 reconcile 后 final status 缓存回执（v1 无动作/v2 一次 cancel，+1 commitSeq，无事件/session/goal 变化）；round-12 第三次 v3 尝试失败证据（header-hash，0 模型，partial v3 Goal/Session，+3 commitSeq）与随后 cleanup reconcile（v3 一次 cancel，仅 +1 commitSeq）；round-13 零模型 header-cut 探针（1 裸 Session 创建/归档，matched=false，0 模型/Goal/Task/Effect，commitSeq/events/goals 不变，仅 sessions 36→37）；round-14 第四次 v4 尝试 create 首次成功（+1 Goal/+1 Session/budget held）但 evaluation 0 模型 unknown 并 pause（+14 commitSeq，goals 5→6，sessions 37→38，events/tasks/effects 不变）；round-15 第五次 v5 尝试 create 再次成功但 evaluation 以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型、+14 commitSeq、goals 6→7、sessions 38→39、budget unknown 4→5）均不是生命周期/drain 验收；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
+        "零模型有序重载/启停 + round-3/4/5 集成与 H4e hotfix 恢复激活；round-5 宿主 6 次有序重载 + live time-trigger + bounded real-model diagnostic round（仅诊断，不得 pass）；round-11 固定宿主一次零模型泛化 reconcile 后 final status 缓存回执（v1 无动作/v2 一次 cancel，+1 commitSeq，无事件/session/goal 变化）；round-12 第三次 v3 尝试失败证据（header-hash，0 模型，partial v3 Goal/Session，+3 commitSeq）与随后 cleanup reconcile（v3 一次 cancel，仅 +1 commitSeq）；round-13 零模型 header-cut 探针（1 裸 Session 创建/归档，matched=false，0 模型/Goal/Task/Effect，commitSeq/events/goals 不变，仅 sessions 36→37）；round-14 第四次 v4 尝试 create 首次成功（+1 Goal/+1 Session/budget held）但 evaluation 0 模型 unknown 并 pause（+14 commitSeq，goals 5→6，sessions 37→38，events/tasks/effects 不变）；round-15 第五次 v5 尝试 create 再次成功但 evaluation 以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型、+14 commitSeq、goals 6→7、sessions 38→39、budget unknown 4→5）；round-16 第六次 v6 尝试经 assembly renderer 绑定后首次到达真实模型请求（21-event Session、request/header+context、3 只读工具）但 provider 空 stream、evaluation 保留 CORE_EXECUTION_UNCONFIRMED（0 usage、+14 commitSeq、goals 7→8、sessions 39→40、budget unknown 5→6）均不是生命周期/drain 验收；checkpoint capture 宿主 unavailable，无 V14 20 次生命周期与 drain 实测"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/03-DSH宿主进程/02-DSH运行底座/05-插件生命周期/README.md",
@@ -8170,7 +8592,8 @@
         "native-header-cut-probe",
         "round13-host-native-header-cut",
         "round14-host-v4-create-success-eval-failure",
-        "round15-host-v5-create-success-context-rejected"
+        "round15-host-v5-create-success-context-rejected",
+        "round16-host-v6-first-model-request-empty-stream"
       ],
       "evidenceRefs": [
         {
@@ -8665,6 +9088,51 @@
               "sha256": "262513a860b817848c434bb45156bcc3407fb946b1adeec3ec543378354d0df1"
             }
           ]
+        },
+        {
+          "sourceId": "round16-host-v6-first-model-request-empty-stream",
+          "status": "verified",
+          "levels": [
+            "fixed-host-create-succeeded-evaluation-failure"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16-bounded-core-goal-v6.json",
+              "sha256": "f451169be1b186c6045a938d8b10992db2b9890222a0f45db828b71af941a273"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/core-goal-v6-receipt.json",
+              "sha256": "80afd9bd64daf4e9a28079e178e0be65ea7c43190dcb635fcf9d53470ab99de9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/plan.json",
+              "sha256": "1648f8744c95a9b10803c4912e84a51d006202f81530df85cbeea006dc582c1b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-before.json",
+              "sha256": "4d04ddbd690cdf6cd51bdb92a6b297c23193d8a2d043f68829fc3bac0ed517f2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-reload.json",
+              "sha256": "539e092c5ea3608f9ac24e19ae525a32820d63b8129d74825acb7cfd4b5b2ad2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-run.json",
+              "sha256": "0cb56b36ce4f8a361de76012bf46d41b192cfcd11acc9c7492a46b0cbdf1955a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-final.json",
+              "sha256": "b4182d28d4e92946b068d5692e95d1a15696dba722c140fb252ddb669a3f0b6c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/status-final.json",
+              "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/v6-goal-session-events.json",
+              "sha256": "73d47588255c0d4e639ececcc60d5aedbba6a3b94e70cd7fefd51c45af793250"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -8694,7 +9162,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；round-7 失败 + round-8 零模型 reconcile 只证明 residual Goal 清理；round-11 history-assert 诊断（liveCut 休眠）与泛化 reconcile（v1 无动作/v2 一次 cancel）；round-12 第三次 v3 失败（header-hash）与 cleanup reconcile（v3 一次 cancel）只清理剩余 Goal；round-13 零模型 header-cut 探针只诊断 delegationDepth:0→absent 并归档 1 裸 Session；round-14 第四次 v4 create 成功但 evaluation unknown 后 pause 并留下 unknown budget held；round-15 第五次 v5 同样 create 成功后以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型）并留下 v4/v5 unknown budget，只证明 create/pre-step 前进，不是恢复演练；未接 supervisor，无真实恢复演练/RPO-RTO",
+        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；round-7 失败 + round-8 零模型 reconcile 只证明 residual Goal 清理；round-11 history-assert 诊断（liveCut 休眠）与泛化 reconcile（v1 无动作/v2 一次 cancel）；round-12 第三次 v3 失败（header-hash）与 cleanup reconcile（v3 一次 cancel）只清理剩余 Goal；round-13 零模型 header-cut 探针只诊断 delegationDepth:0→absent 并归档 1 裸 Session；round-14 第四次 v4 create 成功但 evaluation unknown 后 pause 并留下 unknown budget held；round-15 第五次 v5 同样 create 成功后以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型）并留下 v4/v5 unknown budget；round-16 第六次 v6 create 第三次成功且首次到达真实模型请求但 provider 空 stream、保留 CORE_EXECUTION_UNCONFIRMED（0 usage）并留下 v4/v5/v6 unknown budget，只证明 create/pre-step/绑定前进，不是恢复演练；未接 supervisor，无真实恢复演练/RPO-RTO",
         "G1 module only: not wired into Runtime; no live host/V24, real Goal Session flush/log, real Ombre export/physical erasure, independent fault domain/V27, RPO/RTO or OS power loss.",
         "Synthetic ports and temporary local roots; not host or business acceptance.",
         "H5b stays production-blocked: GOAL_SESSION_EXPORT_UNAVAILABLE and required export/flush/durability scope are not satisfied; the checkpoint capture command is explicitly unavailable and was NOT executed on the host.",
@@ -8745,10 +9213,14 @@
         "It is a FAILED fifth attempt despite the second create success: evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with evaluateAttempts=1 and preStopEvaluation.reasonCode=CORE_NATIVE_CONTEXT_REJECTED (the preserved real reason, no longer owner_paused) while 0 model requests were issued (13 Goal-Session events contain no request/assistant event); this can NEVER be pass, V25, business or nine-system acceptance.",
         "The new precise blocker is the runtime-context claim shape: the step-0 pre-step admits 1-2 messages but the host-provided second runtime-context message did not match the exact expected structural/text binding; the exact field-level difference is not yet captured and is the next diagnostic target.",
         "Audit: +14 commitSeq (476→490), goals 6→7, sessions 38→39, budget unknown 4→5 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4 and v5 Goals plus their unknown reservations remain and must be disclosed/reconciled rather than silently cleared.",
-        "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved."
+        "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved.",
+        "It is a FAILED sixth attempt despite the third create success: the decision round reached the real model layer and emitted request/header + request/context with the three read-only event tools, but the provider stream was EMPTY (assistant/attempt streamLength=0) and the run aborted before any assistant message, so the single evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED (preserved), evaluateAttempts=1, 0 usage and no completed stream; this can NEVER be pass, V25, business or nine-system acceptance.",
+        "The exact provider/stream error is not yet surfaced: whether the empty stream is a provider/transport error, a request-shape rejection or a timeout remains unknown and must be instrumented next; no completed model stream, no token usage and no plan/Task/worker/native completion were observed.",
+        "Audit: +14 commitSeq (496→510), goals 7→8, sessions 39→40, budget unknown 5→6 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4, v5 and v6 Goals plus their unknown reservations remain and must be reconciled or disclosed rather than silently cleared.",
+        "No real business chain occurred (no completed model stream, 0 usage, no plan/Task/worker/native completion); the seventh attempt is NOT authorized until the empty-stream error is instrumented and fixed plus an explicit owner decision, and the v4/v5/v6 unknown budgets are preserved."
       ],
       "notes": [
-        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；round-7 失败 + round-8 零模型 reconcile 只证明 residual Goal 清理；round-11 history-assert 诊断（liveCut 休眠）与泛化 reconcile（v1 无动作/v2 一次 cancel）；round-12 第三次 v3 失败（header-hash）与 cleanup reconcile（v3 一次 cancel）只清理剩余 Goal；round-13 零模型 header-cut 探针只诊断 delegationDepth:0→absent 并归档 1 裸 Session；round-14 第四次 v4 create 成功但 evaluation unknown 后 pause 并留下 unknown budget held；round-15 第五次 v5 同样 create 成功后以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型）并留下 v4/v5 unknown budget，只证明 create/pre-step 前进，不是恢复演练；未接 supervisor，无真实恢复演练/RPO-RTO"
+        "H5 G1 隔离恢复 + H5b 离线 composition/availability probe（ready:false）；round-7 失败 + round-8 零模型 reconcile 只证明 residual Goal 清理；round-11 history-assert 诊断（liveCut 休眠）与泛化 reconcile（v1 无动作/v2 一次 cancel）；round-12 第三次 v3 失败（header-hash）与 cleanup reconcile（v3 一次 cancel）只清理剩余 Goal；round-13 零模型 header-cut 探针只诊断 delegationDepth:0→absent 并归档 1 裸 Session；round-14 第四次 v4 create 成功但 evaluation unknown 后 pause 并留下 unknown budget held；round-15 第五次 v5 同样 create 成功后以 CORE_NATIVE_CONTEXT_REJECTED 失败（0 模型）并留下 v4/v5 unknown budget；round-16 第六次 v6 create 第三次成功且首次到达真实模型请求但 provider 空 stream、保留 CORE_EXECUTION_UNCONFIRMED（0 usage）并留下 v4/v5/v6 unknown budget，只证明 create/pre-step/绑定前进，不是恢复演练；未接 supervisor，无真实恢复演练/RPO-RTO"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/05-宿主外恢复/02-恢复入口/README.md",
@@ -8774,7 +9246,8 @@
         "round12-host-v3-cleanup-reconcile",
         "round13-host-native-header-cut",
         "round14-host-v4-create-success-eval-failure",
-        "round15-host-v5-create-success-context-rejected"
+        "round15-host-v5-create-success-context-rejected",
+        "round16-host-v6-first-model-request-empty-stream"
       ],
       "evidenceRefs": [
         {
@@ -9059,6 +9532,51 @@
               "sha256": "262513a860b817848c434bb45156bcc3407fb946b1adeec3ec543378354d0df1"
             }
           ]
+        },
+        {
+          "sourceId": "round16-host-v6-first-model-request-empty-stream",
+          "status": "verified",
+          "levels": [
+            "fixed-host-create-succeeded-evaluation-failure"
+          ],
+          "files": [
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16-bounded-core-goal-v6.json",
+              "sha256": "f451169be1b186c6045a938d8b10992db2b9890222a0f45db828b71af941a273"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/core-goal-v6-receipt.json",
+              "sha256": "80afd9bd64daf4e9a28079e178e0be65ea7c43190dcb635fcf9d53470ab99de9"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/plan.json",
+              "sha256": "1648f8744c95a9b10803c4912e84a51d006202f81530df85cbeea006dc582c1b"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-before.json",
+              "sha256": "4d04ddbd690cdf6cd51bdb92a6b297c23193d8a2d043f68829fc3bac0ed517f2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-reload.json",
+              "sha256": "539e092c5ea3608f9ac24e19ae525a32820d63b8129d74825acb7cfd4b5b2ad2"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-after-run.json",
+              "sha256": "0cb56b36ce4f8a361de76012bf46d41b192cfcd11acc9c7492a46b0cbdf1955a"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/round16-host-final.json",
+              "sha256": "b4182d28d4e92946b068d5692e95d1a15696dba722c140fb252ddb669a3f0b6c"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/status-final.json",
+              "sha256": "ea856219cba7db02d5a27dfe34a7c94ad1e0e4a39718b48fea86cbb0ce185265"
+            },
+            {
+              "path": "plugins/shiyu/artifacts/dsh/host/round16/v6-goal-session-events.json",
+              "sha256": "73d47588255c0d4e639ececcc60d5aedbba6a3b94e70cd7fefd51c45af793250"
+            }
+          ]
         }
       ],
       "codePaths": [
@@ -9088,7 +9606,7 @@
       ],
       "blockedResourceIds": [],
       "limitations": [
-        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；round-11 零模型 reconcile 后 state 文件不变、仅 control commitSeq +1（v2 cancel）；round-12 第三次 v3 尝试（+3 commitSeq）与随后 cleanup reconcile（+1 commitSeq）；round-13 零模型 header-cut 探针后 state 文件同样不变、commitSeq/events/goals 不变（仅 +1 Session）；round-14 第四次 v4 尝试 +14 commitSeq/goals 5→6/sessions 37→38/budget unknown 3→4 后 state 文件仍不变；round-15 第五次 v5 尝试 +14 commitSeq/goals 6→7/sessions 38→39/budget unknown 4→5 后 state 文件同样不变，可作状态不变量 limited 参考；无完整删除/恢复水位生产证据",
+        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；round-11 零模型 reconcile 后 state 文件不变、仅 control commitSeq +1（v2 cancel）；round-12 第三次 v3 尝试（+3 commitSeq）与随后 cleanup reconcile（+1 commitSeq）；round-13 零模型 header-cut 探针后 state 文件同样不变、commitSeq/events/goals 不变（仅 +1 Session）；round-14 第四次 v4 尝试 +14 commitSeq/goals 5→6/sessions 37→38/budget unknown 3→4 后 state 文件仍不变；round-15 第五次 v5 尝试 +14 commitSeq/goals 6→7/sessions 38→39/budget unknown 4→5 后 state 文件同样不变；round-16 第六次 v6 尝试 +14 commitSeq/goals 7→8/sessions 39→40/budget unknown 5→6 后 state 文件同样不变，可作状态不变量 limited 参考；无完整删除/恢复水位生产证据",
         "G1 module/property with real temporary SQLite/Worker; no real host, model/embedding, real Ombre bodies, channels or business acceptance.",
         "Cross-domain recomputation (e.g. relationship correction re-evaluating cognition) is not implemented; historical revisions live in the control DB only.",
         "This source is offline regression/migration evidence; the real fixed-host activation/recovery proof is recorded separately in round3-host-zero-model (50af4a2).",
@@ -9117,10 +9635,14 @@
         "It is a FAILED fifth attempt despite the second create success: evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with evaluateAttempts=1 and preStopEvaluation.reasonCode=CORE_NATIVE_CONTEXT_REJECTED (the preserved real reason, no longer owner_paused) while 0 model requests were issued (13 Goal-Session events contain no request/assistant event); this can NEVER be pass, V25, business or nine-system acceptance.",
         "The new precise blocker is the runtime-context claim shape: the step-0 pre-step admits 1-2 messages but the host-provided second runtime-context message did not match the exact expected structural/text binding; the exact field-level difference is not yet captured and is the next diagnostic target.",
         "Audit: +14 commitSeq (476→490), goals 6→7, sessions 38→39, budget unknown 4→5 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4 and v5 Goals plus their unknown reservations remain and must be disclosed/reconciled rather than silently cleared.",
-        "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved."
+        "No real business chain occurred (0 model requests, no plan/Task/worker/native completion); a sixth attempt is NOT authorized until the runtime-context binding fix plus an explicit owner decision, and the unknown budgets are preserved.",
+        "It is a FAILED sixth attempt despite the third create success: the decision round reached the real model layer and emitted request/header + request/context with the three read-only event tools, but the provider stream was EMPTY (assistant/attempt streamLength=0) and the run aborted before any assistant message, so the single evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED (preserved), evaluateAttempts=1, 0 usage and no completed stream; this can NEVER be pass, V25, business or nine-system acceptance.",
+        "The exact provider/stream error is not yet surfaced: whether the empty stream is a provider/transport error, a request-shape rejection or a timeout remains unknown and must be instrumented next; no completed model stream, no token usage and no plan/Task/worker/native completion were observed.",
+        "Audit: +14 commitSeq (496→510), goals 7→8, sessions 39→40, budget unknown 5→6 (held 16384 tokens/calls 2), no events/Task/Effect/artifact and unchanged state/known Sessions; the v4, v5 and v6 Goals plus their unknown reservations remain and must be reconciled or disclosed rather than silently cleared.",
+        "No real business chain occurred (no completed model stream, 0 usage, no plan/Task/worker/native completion); the seventh attempt is NOT authorized until the empty-stream error is instrumented and fixed plus an explicit owner decision, and the v4/v5/v6 unknown budgets are preserved."
       ],
       "notes": [
-        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；round-11 零模型 reconcile 后 state 文件不变、仅 control commitSeq +1（v2 cancel）；round-12 第三次 v3 尝试（+3 commitSeq）与随后 cleanup reconcile（+1 commitSeq）；round-13 零模型 header-cut 探针后 state 文件同样不变、commitSeq/events/goals 不变（仅 +1 Session）；round-14 第四次 v4 尝试 +14 commitSeq/goals 5→6/sessions 37→38/budget unknown 3→4 后 state 文件仍不变；round-15 第五次 v5 尝试 +14 commitSeq/goals 6→7/sessions 38→39/budget unknown 4→5 后 state 文件同样不变，可作状态不变量 limited 参考；无完整删除/恢复水位生产证据"
+        "schema4 发布/离线状态 + H4e 加法 derivation_meta 迁移（旧库升级回归）；round-11 零模型 reconcile 后 state 文件不变、仅 control commitSeq +1（v2 cancel）；round-12 第三次 v3 尝试（+3 commitSeq）与随后 cleanup reconcile（+1 commitSeq）；round-13 零模型 header-cut 探针后 state 文件同样不变、commitSeq/events/goals 不变（仅 +1 Session）；round-14 第四次 v4 尝试 +14 commitSeq/goals 5→6/sessions 37→38/budget unknown 3→4 后 state 文件仍不变；round-15 第五次 v5 尝试 +14 commitSeq/goals 6→7/sessions 38→39/budget unknown 4→5 后 state 文件同样不变；round-16 第六次 v6 尝试 +14 commitSeq/goals 7→8/sessions 39→40/budget unknown 5→6 后 state 文件同样不变，可作状态不变量 limited 参考；无完整删除/恢复水位生产证据"
       ],
       "source": {
         "docPath": "架构与设计/A方案全景/06-预留空间/01-内部权威状态/README.md",
@@ -10268,7 +10790,9 @@
         "delegation-depth-normalization-v4",
         "round14-host-v4-create-success-eval-failure",
         "decision-prestep-reason-preservation-v5",
-        "round15-host-v5-create-success-context-rejected"
+        "round15-host-v5-create-success-context-rejected",
+        "runtime-context-binding-v6",
+        "round16-host-v6-first-model-request-empty-stream"
       ],
       "limitations": [
         "The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.",
@@ -10281,6 +10805,7 @@
         "Round-13 adds the controlled field-level headerDiff and a zero-model native header-cut probe (offline 1632, integration 1643), then the fixed-host zero-model probe (installed X=76c7116) reports matched=false, mismatchKind=header-hash, headerDiff [\"delegationDepth: number:0→absent\"] with eventCount/seq already aligned 3/3; exactly one bare Session created/archived, 0 model/Goal/Task/Effect/business writes and 0 retries. This is diagnosis only: no fix, a fourth attempt is NOT authorized, and it cannot prove the business chain or V25/nine-system acceptance.",
         "Round-14 activates the create-only delegationDepth normalization (only cold delegationDepth number:0 + live absent/null, create path only; recovery/default strict unchanged) and freezes v4. The fixed-host fourth attempt then achieved the FIRST real create success (authorized/active/mandate/binding confirmed/goalRef rev1/1 Goal Session, partialCreation=false) but the single evaluation failed CORE_VALIDATION_EVALUATION_UNKNOWN with evaluateAttempts=1 and 0 model requests (13-event Goal Session has no request/assistant), reason masked as owner_paused, stopAction pause, +14 commitSeq/goals 5→6/sessions 37→38/budget unknown 3→4 with held 16384/2; no Task/Effect/artifact or business chain and a fifth attempt is NOT authorized — never pass/V25/business/nine-system.",
         "Round-15 fixes the decision pre-step to admit the exact owner+host-runtime-context claim shape and preserves the first unknown reason via preStopEvaluation (offline 1671/integration 1682). The fixed-host fifth v5 attempt created the Goal a second time (authorized/active/mandate/goalRef rev1/1 Goal Session) but the evaluation failed CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_NATIVE_CONTEXT_REJECTED (no longer owner_paused), evaluateAttempts=1 and 0 model requests; +14 commitSeq/goals 6→7/sessions 38→39/budget unknown 4→5 held 16384/2, v4+v5 residuals, no Task/Effect/artifact or business chain, sixth attempt NOT authorized — never pass/V25/business/nine-system.",
+        "Round-16 binds the decision pre-step runtime-context claim through the exact host assembly renderer (exact rendered hash or structural kind/form/section/cwd binding; extra sections projected only when rendered; third/wrong-order/bad context still fails closed) plus a field-level bounded contextDiagnostic and the frozen v6 experiment/reconcile [v1..v6] (offline 1689/integration 1700). The fixed-host sixth v6 attempt then created the Goal a THIRD time and reached the FIRST real model request (21-event Goal Session with system/owner/runtime-context messages, request/header provider=opencode-go model=deepseek-v4.1-flash with the three read-only event tools, request/context 1M), but the provider stream was EMPTY (assistant/attempt streamLength=0), the turn aborted and the single evaluation stayed CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED preserved, evaluateAttempts=1 and 0 usage; +14 commitSeq/goals 7→8/sessions 39→40/budget unknown 5→6 held 16384/2, v4/v5/v6 residuals, no Task/Effect/artifact or completed business chain, seventh attempt NOT authorized — never pass/V25/business/nine-system.",
         "No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.",
         "Open-ended planning, multi-Goal timers and worker slot behaviour remain untested."
       ],
@@ -10634,6 +11159,8 @@
         "round14-host-v4-create-success-eval-failure",
         "decision-prestep-reason-preservation-v5",
         "round15-host-v5-create-success-context-rejected",
+        "runtime-context-binding-v6",
+        "round16-host-v6-first-model-request-empty-stream",
         "round3-host-zero-model",
         "round4-host-zero-model",
         "h4h5-independent-review"
@@ -10648,6 +11175,7 @@
         "Round-13 adds a fixed-host zero-model native header-cut diagnosis that explains the remaining header-hash mismatch as exactly delegationDepth: number:0→absent with eventCount/seq 3/3; it creates and archives exactly one bare Session, changes no events/goals/tasks/budget/effects/state (only sessions 36→37), makes 0 model requests and 0 retries, and neither fixes the create failure nor authorizes a fourth attempt; it cannot prove checkpoint/recovery readiness or V15/V21/V22/V24/V27 acceptance.",
         "Round-14 normalizes the create-only delegationDepth field and the fourth fixed-host v4 attempt achieved the first real create success (1 authorized/active Goal + 1 Goal Session, budget held 16384/2), but the evaluation failed before any model request (EVALUATION_UNKNOWN, evaluateAttempts=1, reason masked owner_paused) with +14 commitSeq and an unknown budget reservation left in place; it proves create-path progress only, not planning/Task/worker/native completion or checkpoint/recovery readiness, and a fifth attempt is NOT authorized.",
         "Round-15 fixes the decision pre-step claim shape and reason preservation; the fifth fixed-host v5 attempt created the Goal a second time but the evaluation failed with the preserved CORE_NATIVE_CONTEXT_REJECTED reason, evaluateAttempts=1, 0 model requests and only +14 commitSeq/goals 6→7/sessions 38→39/budget unknown 4→5 held 16384/2, leaving v4+v5 unknown reservations; it proves pre-step/reason progress only, not planning/Task/native completion or checkpoint/recovery readiness, and a sixth attempt is NOT authorized.",
+        "Round-16 aligns the pre-step runtime-context claim with the host assembly renderer and adds a bounded contextDiagnostic (offline 1689/integration 1700); the sixth fixed-host v6 attempt created the Goal a third time and reached the first real model request (request/header+context, three read-only event tools, 21-event Goal Session) but the provider stream was empty (assistant/attempt streamLength=0) so the evaluation stayed unknown with the preserved CORE_EXECUTION_UNCONFIRMED reason, evaluateAttempts=1, 0 usage and only +14 commitSeq/goals 7→8/sessions 39→40/budget unknown 5→6 held 16384/2, leaving v4/v5/v6 unknown reservations; it proves binding/create progress only, not a completed model round, planning/Task/native completion or checkpoint/recovery readiness, and a seventh attempt is NOT authorized.",
         "No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance."
       ],
       "gaps": [
@@ -10715,13 +11243,14 @@
         "round13-host-native-header-cut",
         "round14-host-v4-create-success-eval-failure",
         "round15-host-v5-create-success-context-rejected",
+        "round16-host-v6-first-model-request-empty-stream",
         "joint-host-zero-model",
         "h0-baseline"
       ],
       "limitations": [
         "No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.",
         "No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.",
-        "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Round-11 adds a 61122-byte final status that caches the generalized v1/v2 reconcile receipt (v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq). round-12 adds a 69,295-byte final status caching BOTH the failed v3 create receipt (header-hash mismatch, 0 model requests, partial v3 Goal+Session) and the generalized cleanup reconcile receipt (v1/v2 no action, v3 inert exactly one cancel to version 2, only +1 commitSeq) — diagnostics caches, not dashboard/render or V05/V24 acceptance. Round-13 adds a 60,692-byte final status caching the zero-model header-cut probe receipt (matched=false, headerDiff delegationDepth: number:0→absent, one bare Session archived, 0 model/Goal/Task/Effect/business writes) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-14 adds a 65,594-byte final status caching the failed v4 receipt (create succeeded but evaluation unknown, 0 model requests, reason masked owner_paused, unknown budget 3→4 held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-15 adds a 67,986-byte final status caching the failed v5 receipt including preStopEvaluation (create succeeded again, evaluation unknown with CORE_NATIVE_CONTEXT_REJECTED, 0 model requests, v4/v5 unknown reservations held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
+        "Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Round-11 adds a 61122-byte final status that caches the generalized v1/v2 reconcile receipt (v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq). round-12 adds a 69,295-byte final status caching BOTH the failed v3 create receipt (header-hash mismatch, 0 model requests, partial v3 Goal+Session) and the generalized cleanup reconcile receipt (v1/v2 no action, v3 inert exactly one cancel to version 2, only +1 commitSeq) — diagnostics caches, not dashboard/render or V05/V24 acceptance. Round-13 adds a 60,692-byte final status caching the zero-model header-cut probe receipt (matched=false, headerDiff delegationDepth: number:0→absent, one bare Session archived, 0 model/Goal/Task/Effect/business writes) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-14 adds a 65,594-byte final status caching the failed v4 receipt (create succeeded but evaluation unknown, 0 model requests, reason masked owner_paused, unknown budget 3→4 held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-15 adds a 67,986-byte final status caching the failed v5 receipt including preStopEvaluation (create succeeded again, evaluation unknown with CORE_NATIVE_CONTEXT_REJECTED, 0 model requests, v4/v5 unknown reservations held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-16 adds a 70,221-byte final status caching the failed v6 receipt including preStopEvaluation (create succeeded a third time, FIRST real model request with request/header+context and three read-only event tools, empty provider stream, CORE_EXECUTION_UNCONFIRMED preserved, evaluateAttempts=1, 0 usage, v4/v5/v6 unknown reservations held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested."
       ],
       "gaps": [
         "H7-prep 没有产品/宿主/模型/业务验收执行（executed=0）",
