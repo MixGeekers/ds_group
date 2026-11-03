@@ -1,0 +1,417 @@
+{
+  "schemaVersion": 1,
+  "phase": "round5-host",
+  "slice": "fixed-host validation of the round-5 probes: live time trigger success and the first bounded real-model core event-tool round",
+  "capturedAt": "2026-11-03T00:48:09.647Z",
+  "status": "fixed-host-zero-model-and-bounded-real-model-passed",
+  "purpose": "Validate the round-5 integration on the fixed host: a live one-shot time rule trigger (append-only side effect), and a bounded real-model single-round core event-tool probe after the first-step/context/title/history fixes. Failures before the successful run are recorded; none was retried after a real model turn was admitted.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-round5-host-execution-plan.json",
+    "sha256": "687596195c1f3a2088b5ae4e4eb149907b729d14121cadfc15671507ad6bd983"
+  },
+  "code": {
+    "head": "6ae4582",
+    "dist": {
+      "files": 111,
+      "digest": "bdc6e3a2d5a6d6635b7b86658e99b80b5dcaa5c6f9012d41b37c5a659a4448c8"
+    },
+    "note": "built from the committed round-5 final HEAD and installed after digest comparison"
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "orderedReloads": 6,
+    "newInstanceId": "c145737a-1de6-4c6b-8ad4-3ca9a0650f38"
+  },
+  "zeroModelTimeTrigger": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round5/time-trigger-probe.json",
+      "bytes": 1915,
+      "sha256": "b518522482e8c255cfb833eb356bd9623fb3d22b83487bf4c9b1e3c1b7f5b356"
+    },
+    "ok": true,
+    "zeroModel": true,
+    "zeroEmbedding": true,
+    "zeroTaskOrEffect": true,
+    "pumpDriven": true,
+    "rule": {
+      "subscriptionId": "probe-time-trigger-74e19426-5ea2-4d17-8501-55e4484477c2",
+      "ruleRevision": 1,
+      "scope": "shiyu-time-probe",
+      "dueAt": "2026-11-03T00:05:52.735Z",
+      "removed": true,
+      "timeStateRemoved": true
+    },
+    "observed": {
+      "ticksObserved": 4,
+      "pollCycles": 21,
+      "eventCount": 1,
+      "occurredAt": "2026-11-03T00:05:52.752Z",
+      "identity": {
+        "subscriptionId": "probe-time-trigger-74e19426-5ea2-4d17-8501-55e4484477c2",
+        "ruleRevision": 1,
+        "occurrence": "once:1:2026-11-03T00:05:52.735Z",
+        "scheduledFor": "2026-11-03T00:05:52.735Z",
+        "eventIdHash": "1ed0625228705155ac7fd746d7d46188"
+      }
+    },
+    "sideEffects": {
+      "controlEventAppended": true,
+      "eventType": "time.occurred",
+      "eventId": "0c159245-9d90-4cd9-8122-d589b26ed2a1",
+      "appendOnly": true,
+      "eventDeletable": false,
+      "businessTablesWritten": [],
+      "ruleEntriesAddedThenRemoved": 1,
+      "residualRule": false,
+      "residualTimeState": false,
+      "externalEffects": 0
+    },
+    "checks": [
+      {
+        "id": "exactly_one_live_event",
+        "ok": true
+      },
+      {
+        "id": "canonical_identity",
+        "ok": true
+      },
+      {
+        "id": "probe_scope_isolated",
+        "ok": true
+      },
+      {
+        "id": "repeat_tick_no_second_event",
+        "ok": true
+      },
+      {
+        "id": "no_unexpected_event_types",
+        "ok": true
+      },
+      {
+        "id": "cleanup_rule_removed",
+        "ok": true
+      },
+      {
+        "id": "cleanup_time_state_removed",
+        "ok": true
+      },
+      {
+        "id": "cleanup_ephemeral_released",
+        "ok": true
+      }
+    ],
+    "classification": "exactly one real time.occurred event was appended to the live control ledger with the canonical identity and reserved probe scope (no live delivery); the rule and time state were removed with no residual; the receipt explicitly discloses the append-only, undeletable event and zero business-table/external effects."
+  },
+  "realModelProbe": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round5/core-model-probe-passed.json",
+      "bytes": 1322,
+      "sha256": "5498a949567e5b37f40a13b80309489670d8d32db31dfa6876114ab5caa761d5",
+      "bytesSemantics": "actual committed file bytes (UTF-8); an earlier value was the character count"
+    },
+    "status": "passed",
+    "reasonCode": "CORE_MODEL_PROBE_PASSED",
+    "sessionId": "shiyu-core-model-probe-d9e9a8d7-9f4e-44fd-8cd4-f9cf8ff622e2",
+    "preset": "shiyu-runtime-core-goal-v1",
+    "scope": "local-owner",
+    "promptSha256": "887309188b9a38506c45d77fb3b16ea9500b9d87fdb757c9e42c9c6e1d2011ea",
+    "maxTokens": 256,
+    "provider": "opencode-go",
+    "model": "deepseek-v4.1-flash",
+    "reasoningEffort": "high",
+    "counters": {
+      "followups": 1,
+      "turns": 1,
+      "userMessages": 2,
+      "assistantMessages": 2,
+      "mainModelRequests": 2,
+      "mainModelStreams": 2,
+      "toolCalls": 1,
+      "toolResults": 1
+    },
+    "toolCalls": [
+      {
+        "name": "shiyu_core_event_types",
+        "argumentsSha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+      }
+    ],
+    "toolResult": {
+      "name": "shiyu_core_event_types",
+      "digest": "c3cf4e2aa8b008870e34ecb2f1d53a831a3f500ce4877aec1d5e06d7600ba23a",
+      "typesSeen": 4,
+      "outcome": "observed"
+    },
+    "finalJson": {
+      "ok": true,
+      "typesSeen": 4
+    },
+    "finalTextSha256": "7bef198404d970e2263f732a29a06d2673662b3597a0a2eec15534eb61af256f",
+    "usage": {
+      "status": "reported",
+      "complete": true,
+      "inputTokens": 1469,
+      "outputTokens": 41,
+      "totalTokens": 2406
+    },
+    "firstStepMessageCount": 2,
+    "titleRequestsSuppressed": 2,
+    "released": true,
+    "disposed": true,
+    "archived": true,
+    "cleanupVerified": true,
+    "sent": false,
+    "productionStateWrites": 0,
+    "classification": "the real provider admitted exactly two main requests/streams and one read-only types tool round; the provider reported usage (input 1469, output 41, total 2406 as reported; no cache fields); the final JSON typesSeen matched the tool result types length; title housekeeping was suppressed twice without a provider call; the disposable Session was flushed, released, disposed and archived with cleanup verified; no Goal/Task/budget/Effect/business fact was created.",
+    "note": "This is a diagnostic probe outside the Shiyu budget ledger by design, so the provider usage above is not charged to a Shiyu reservation; it is disclosed instead of being mapped to product modelCalls."
+  },
+  "failureTimeline": [
+    {
+      "build": "af201fe",
+      "attempt": "round-4 retest after hotfix",
+      "reasonCode": "CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "counters": {
+        "mainModelRequests": 0,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "userMessages": 0
+      },
+      "rootCause": "first step claimed the prompt plus the host runtime-context snapshot, while the probe required exactly one message",
+      "modelCalls": 0
+    },
+    {
+      "build": "6ecb487",
+      "attempt": 1,
+      "reasonCode": "CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "counters": {
+        "followups": 1,
+        "turns": 1,
+        "userMessages": 0,
+        "assistantMessages": 0,
+        "mainModelRequests": 0,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "toolResults": 0
+      },
+      "modelCalls": 0,
+      "rootCause": "host runtime-context hash differed from the minimal expected snapshot"
+    },
+    {
+      "build": "7f57ea1",
+      "attempt": 2,
+      "reasonCode": "CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "counters": {
+        "followups": 1,
+        "turns": 1,
+        "userMessages": 0,
+        "assistantMessages": 0,
+        "mainModelRequests": 0,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "toolResults": 0
+      },
+      "failureDetail": "Core model probe runtime context is not the exact bound working-directory snapshot",
+      "firstStepMessageCount": 2,
+      "modelCalls": 0,
+      "rootCause": "diagnostics added; same exact-hash mismatch (two-message first step)"
+    },
+    {
+      "build": "7704e5d",
+      "attempt": 3,
+      "reasonCode": "CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "counters": {
+        "followups": 1,
+        "turns": 1,
+        "userMessages": 0,
+        "assistantMessages": 0,
+        "mainModelRequests": 0,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "toolResults": 0
+      },
+      "failureDetail": "Core model probe runtime context is not the exact bound working-directory snapshot",
+      "firstStepMessageCount": 2,
+      "modelCalls": 0,
+      "rootCause": "assembly-based reconstruction still missed the host projection"
+    },
+    {
+      "build": "3bec321",
+      "attempt": 4,
+      "reasonCode": "CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "counters": {
+        "followups": 1,
+        "turns": 1,
+        "userMessages": 2,
+        "assistantMessages": 0,
+        "mainModelRequests": 1,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "toolResults": 0
+      },
+      "failureDetail": "Core model probe observed auxiliary model activity",
+      "firstStepMessageCount": 2,
+      "modelCalls": 0,
+      "rootCause": "auxiliary session-title model activity aborted the probe after the first request"
+    },
+    {
+      "build": "3e2bbf9",
+      "attempt": 5,
+      "reasonCode": "CORE_MODEL_PROBE_PROTOCOL_VIOLATION",
+      "counters": {
+        "followups": 1,
+        "turns": 1,
+        "userMessages": 2,
+        "assistantMessages": 0,
+        "mainModelRequests": 1,
+        "mainModelStreams": 0,
+        "toolCalls": 0,
+        "toolResults": 0
+      },
+      "failureDetail": "Core model probe tool history declares hidden tools",
+      "firstStepMessageCount": 2,
+      "titleRequestsSuppressed": 2,
+      "modelCalls": 0,
+      "rootCause": "request.tools was exact but the host tool-history bookkeeping mentioned unrelated tools"
+    },
+    {
+      "build": "6ae4582",
+      "attempt": "final",
+      "reasonCode": "CORE_MODEL_PROBE_PASSED",
+      "status": "passed",
+      "counters": {
+        "followups": 1,
+        "turns": 1,
+        "userMessages": 2,
+        "assistantMessages": 2,
+        "mainModelRequests": 2,
+        "mainModelStreams": 2,
+        "toolCalls": 1,
+        "toolResults": 1
+      },
+      "modelCalls": 2,
+      "note": "passed; no retry was made after this admitted turn"
+    }
+  ],
+  "deltas": {
+    "reloadWindows": {
+      "note": "six ordered reloads in this round: the initial round-5 validation reload plus five diagnostic rebuilds",
+      "commitSeq": [
+        353,
+        390
+      ],
+      "events": [
+        44,
+        51
+      ],
+      "sessions": [
+        27,
+        33
+      ],
+      "capabilityRevision": [
+        25,
+        37
+      ],
+      "classification": "commitSeq 353->390 (+37) = six reloads x +6 startup writes + the single append-only time.occurred event; events 44->51 (+7) = six lifecycle events + that time event; capability revision 25->37 (+12) = six hostEpoch rebinds x +2; stateVersion unchanged at 6."
+    },
+    "probes": {
+      "sessionsDelta": [
+        27,
+        33
+      ],
+      "addedSessionFiles": [
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-model-probe-7a19ad6b-99df-43cb-ad80-6a6c76894525/session.v4.jsonl.zstd",
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-model-probe-82434c35-619a-4b17-9e86-cc78d60c7b3a/session.v4.jsonl.zstd",
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-model-probe-96d69338-e0c2-4612-bcdd-aaa051c5970a/session.v4.jsonl.zstd",
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-model-probe-d9e9a8d7-9f4e-44fd-8cd4-f9cf8ff622e2/session.v4.jsonl.zstd",
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-model-probe-dea65b91-3868-442b-9673-3c4641235a79/session.v4.jsonl.zstd",
+        "--Users-caja-Documents-~8BC6~96E8-plugins-shiyu-.local-runtime-workspaces--/shiyu-core-model-probe-f7a128e7-780a-4846-9e88-cfb569464312/session.v4.jsonl.zstd"
+      ],
+      "changedKnownSessionFiles": [],
+      "classification": "six disposable shiyu-core-model-probe Session files (five pre-pass failed attempts + one passed) were added; no Session existed for the time or checkpoint probes; all previously known Session files are byte-identical."
+    },
+    "postStatus": {
+      "note": "the final read-only status was side-effect free",
+      "commitSeq": [
+        390,
+        390
+      ],
+      "events": [
+        51,
+        51
+      ],
+      "sessions": [
+        33,
+        33
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ]
+    },
+    "reloadGranularity": {
+      "note": "six ordered reloads in round 5 but only four audit snapshots were captured (before, after the first 6ecb487 reload, after the real-model probes, final). Intermediate rebuilds (7f57ea1, 7704e5d, 3bec321, 3e2bbf9) were not audited individually; their reload effects are included in the aggregate deltas and are arithmetically consistent (each reload +6 commitSeq/+1 lifecycle event/+2 capability revision, sessions unchanged by reload).",
+      "auditedDistDigests": {
+        "first": "6e5663546edb596f…",
+        "final": "bdc6e3a2d5a6d663…"
+      }
+    }
+  },
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "lab": {
+      "disconnected": 3
+    },
+    "goals": 2,
+    "stateFileUnchanged": true
+  },
+  "evidenceList": {
+    "timeTrigger": "artifacts/dsh/host/round5/time-trigger-probe.json",
+    "coreModelPassed": "artifacts/dsh/host/round5/core-model-probe-passed.json",
+    "attemptReceipts": [
+      "artifacts/dsh/host/round5/core-model-attempt-1-69464312.json",
+      "artifacts/dsh/host/round5/core-model-attempt-2-51c5970a.json",
+      "artifacts/dsh/host/round5/core-model-attempt-3-d60c7b3a.json",
+      "artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json",
+      "artifacts/dsh/host/round5/core-model-attempt-5-76894525.json"
+    ],
+    "beforeAudit": "artifacts/dsh/host/round5/round5-host-before.json",
+    "afterFirstReloadAudit": "artifacts/dsh/host/round5/round5-host-after-first-reload.json",
+    "afterRealAudit": "artifacts/dsh/host/round5/round5-host-after-real-probes.json",
+    "finalAudit": "artifacts/dsh/host/round5/round5-host-final.json",
+    "statusFinal": "artifacts/dsh/host/round5/status-final.json"
+  },
+  "limitations": [
+    "This is a bounded diagnostic probe, not a full core decision round, Goal, plan or Task; it does not prove real plan quality, provider cache accounting or business acceptance.",
+    "Usage is provider-reported only (cache fields absent); totalTokens 2406 does not equal input+output 1510 and is recorded as reported rather than recomputed.",
+    "The live time-trigger probe intentionally appended one undeletable time.occurred event; it is disclosed as a real side effect.",
+    "Five pre-pass attempts are disclosed with their root causes; none was retried after a successful admitted model turn.",
+    "Real browser DOM, real channels/devices, checkpoint capture readiness and nine-system acceptance remain untested."
+  ],
+  "failureTimelineNote": "six failure attempts total: the af201fe round-4 retest plus five round-5 pre-pass builds (6ecb487, 7f57ea1, 7704e5d, 3bec321, 3e2bbf9).",
+  "failureModelCallNote": "Attempts 4 and 5 report mainModelRequests=1 and mainModelStreams=0: one request was initiated but no stream completed and no usage was reported, so provider receipt/cost is unknown rather than claimed zero; only the final passed attempt completed provider streams (2) with reported usage.",
+  "evidenceRetention": {
+    "note": "the intermediate per-fix slice-check logs at .local/slice-verify-core-model-probe-context.log were overwritten by the later final run at the same path and are not retained as separate files; the per-commit test deltas (23->27->28->29->30->31 focused tests) and the final 1496/1496 log with sha 408dc519…/161521 are retained, and each fix evidence records its own counts. This is disclosed rather than reconstructed.",
+    "finalLog": {
+      "path": "plugins/shiyu/.local/slice-verify-core-model-probe-context.log",
+      "sha256": "408dc519…",
+      "bytes": 161521
+    }
+  },
+  "evidenceCorrections": [
+    {
+      "id": "F5-R1..R5",
+      "finding": "intermediate log retention, byte semantics, failure-count wording, request-vs-stream precision and reload audit granularity",
+      "resolution": "disclosed retention gap; actual bytes+semantics; six-failure wording; request initiated vs completed stream distinction; four-snapshot aggregate granularity note"
+    }
+  ]
+}

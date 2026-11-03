@@ -1251,3 +1251,45 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - `index.ts`：新工具 `shiyu_diagnose_time_trigger`（无参数、非并发安全）。
 - **Lead 集成隔离验证**（HEAD `bcc3591` + 全部 round-5 切片与集成文件）：**1492/1492 通过，0 失败/0 跳过**（= 1473 + 4 + 8 + 6 + 1）；证据 `artifacts/dsh/slices/round5-integrated-verify.json`。
 - 宿主重测：真实模型探针按 kit 仅一次、0 重试；live 时间触发探针一次并记录 append-only 副作用；结果另行留证。
+
+## 37. 第五轮固定宿主验证：live 时间触发通过 + 首次有界真实模型工具轮通过
+
+状态：**固定宿主零模型 + 有界真实模型诊断通过**；仍非完整 core 决策/计划/业务验收。2026-11-02/03，代码 HEAD `6ae4582`（dist `bdc6e3a2…`/111），共 6 次有序 reload（1 次初始验证 + 5 次诊断重建）。
+
+### 37.1 live 时间规则触发（零模型，如实披露 append-only 副作用）
+
+- 调用 `shiyu_diagnose_time_trigger`（build `6ecb487`）：`ok=true`、`pumpDriven=true`、`zeroModel/zeroEmbedding/zeroTaskOrEffect=true`。
+- 精确 app end 1 个 `time.occurred`：`eventId=0c159245-…`、scope=`shiyu-time-probe`、identity `once:1:2026-11-03T00:05:52.735Z`、`eventDeletable=false`、`businessTablesWritten=[]`、`externalEffects=0`；8 项 checks 全 true（exactly_one、canonical_identity、repeat_tick_no_second_event、cleanup 等）；规则与 timeState 清理后 `residualRule=false`/`residualTimeState=false`。
+- **副作用声明**：这是真实 append-only 事件，不可删除；由 receipt 与证据明确记录。
+
+### 37.2 首次有界真实模型 core 事件工具轮（通过）
+
+- 之前 **6 次失败尝试**（af201fe round-4 重测 + round-5 五个 pre-pass 构建）均未完成模型 stream；每次失败都记录了根因，且未在真实模型轮已准入后重试。需要精确区分：第 4/5 次失败已发起 1 次 main request 但 **0 stream 完成、无 usage**（provider 是否接收/计费未知，不得概括为“零请求”）；只有最终通过轮完成 2 个 stream 并报告 usage：
+  1. `af201fe`：首步 host 注入 prompt + cwd runtime-context 两条，probe 要求 1 条 → blocked；
+  2. `6ecb487`：runtime-context 哈希与最小期望不符；
+  3. `7f57ea1`：诊断显示 `firstStepMessageCount=2`、context mismatch；
+  4. `7704e5d`：assembly 重建后仍 mismatch；
+  5. `3bec321`：结构绑定通过后，host **session-title 辅助模型请求** 被判 auxiliary activity（1 request/0 stream）；
+  6. `3e2bbf9`：抑制 title 后，host tool-history 记账包含无关工具（shell/run_code）被判 hidden tools（1 request/0 stream）。
+- 最终 `6ae4582` 调用 `shiyu_diagnose_core_model_tools`：**passed**
+  - `counters`：followups 1、turns 1、userMessages 2、assistantMessages 2、mainModelRequests 2、mainModelStreams 2、toolCalls 1、toolResults 1；
+  - 工具：`shiyu_core_event_types`（arguments sha `44136fa3…`）、toolResult `typesSeen=4`；
+  - `finalJson={ok:true,typesSeen:4}` 与越权工具结果一致；prompt sha `88730918…`；
+  - usage 按 provider 实际报告：input 1469 / output 41 / total 2406 tokens（cache 字段未报告；total 与 in+out 不等，原样记录不重算）；
+  - `titleRequestsSuppressed=2`（title 生成请求在到达 provider 前被抑制）；Session `shiyu-core-model-probe-d9e9a8d7…` flushed/released/disposed/archived/cleanupVerified=true；`productionStateWrites=0`，无 Goal/Task/budget/Effect/业务事实；`sent=false`。
+  - 这是**诊断探针**，不进入 Shiyu 预算账本，故 provider 用量不映射为产品 modelCalls（已在证据披露）。
+
+### 37.3 前后一致性
+
+- 6 次 reload 增量：commitSeq `353→390`（+37 = 6×启动写入 +1 个 time.occurred）、events `44→51`（+7 = 6 个 lifecycle + 该 time 事件）、capability revision `25→37`（+12 = 6×hostEpoch 重绑）、stateVersion 6 不变。
+- **审计粒度**：仅捕获 4 个审计快照（before、首次 reload、真实探针后、final），5 次诊断重建未逐次 audit；聚合算术与每 reload 的 +6/+1/+2 一致。dist：首次审计 `6e566354…`（6ecb487 构建）、final `bdc6e3a2…`（6ae4582）。
+- **日志保留**：修复链中间 slice-check 日志使用同一路径被 final run 覆盖，未保留独立副本；计数以各 commit 的 focused test 增量（23→27→28→29→30→31）与 final 1496/1496 日志（sha `408dc519…`/161521）为准，明确披露而不重构。
+- Session：27→33，恰好 6 个 `shiyu-core-model-probe-*`（5 次失败尝试 + 1 次通过）；所有既有 Session 文件逐字节不变；time/checkpoint 探针不建 Session。
+- 业务事实：tasks/budget/effects/lab/goals/runtime-state 文件全部不变（state sha 相同）；探针后最终 `shiyu_status` 只读无副作用，diagnostics.coreModelToolProbe 缓存 passed 回执。
+- 证据：[round5-joint-zero-model-and-real-model.json](<artifacts/dsh/host/round5-joint-zero-model-and-real-model.json>) + `host/round5/`（time 回执、6 份 core-model 回执、4 份审计、status-final）。dist 在证据中记录。
+
+### 37.4 边界
+
+1. 该通过只证：固定宿主、受限 core 事件工具挂载、固定 prompt、≤2 主请求/1 工具往返、真实 provider 用量报告、Session 清理与无业务写入；不证完整 core 决策、计划质量、Goal/Task 执行、缓存/费用完整、真实渠道/设备、DOM 或九系统验收。
+2. live 时间触发为探针一次性规则，不是长期调度；会留下一个 append-only 事件。
+3. 失败尝试均未在模型轮准入后重试；真实 provider 在最终轮之前未完成任何主请求（0 streams）。
