@@ -1598,3 +1598,17 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 根因**未 host-confirmed**；具体 round-7 异步 meta 事件类型未知；title/preset 假设已否定。
 2. v2 实验已冻结但**未激活**、无宿主证据、无真实 Goal 创建/模型调用；激活需未来显式 owner 决定 + trusted composition。
 3. 真实 host 确认与新的有界业务尝试留待 round-10；产品行仍 79/79 not_covered；acceptance gate=incomplete、executed=passed=0。
+
+## 51. 第十轮：v2 冻结实验激活（显式 owner 决定）与新的有界尝试
+
+### 51.1 激活方式
+
+- 新增 owner-only 命令 `runtime.probe-core-goal-v2` 与工具 `shiyu_validate_core_goal_v2`：仅把**精确的** `CORE_VALIDATION_EXPERIMENT`（requestId `core-validation-frozen-v2`、content sha `1e45f585…`、template sha `756ec37b…`、budget 16384/3/1、max2）传给 runner；无参数、不可被 tool/command/model 选择或覆盖。
+- v1 命令/工具保持绑定 `CORE_VALIDATION_V1`，**不得重试**；v1 reconcile 仍固定 requestId v1。
+- 继承既有边界：paused 拒绝、runtime 完全空闲、单槽、可中止、wall 180s、评估 ≤2、预算不可超、失败/未知 0 重试。
+- Lead 组合隔离验证：**1583/1583、0 skip**（1582 + 1 v2 tool test）；证据 `artifacts/dsh/slices/round10-v2-activation-verify.json`、`artifacts/dsh/integration/round10-v2-activation.json`。
+
+### 51.2 新的有界尝试（本轮执行一次）
+
+- 这是**新的显式 owner 决定**，不是 v1 失败的重试：全新 requestId/模板/内容 sha；同一套停止条件与失败保留规则。
+- 结果另行留证（成功→完整 core 计划/模型轮/Task/worker/核验/native complete；失败→新的 `failurePhase/failureCode/failureDetail` + journal reason + Session 事件清单，不重试）。

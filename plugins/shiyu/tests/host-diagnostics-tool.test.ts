@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkpointAvailabilityTool, coreGoalValidationTool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 import { innerLifecycleDiagnosisTool } from '../src/control/inner-lifecycle-probe.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
@@ -132,4 +132,17 @@ test('core validation reconcile tool executes exactly the read-mostly reconcile 
   assert.match(tool.description, /不创建|不重试/);
   assert.equal(await tool.execute(), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.reconcile-core-validation-goal' }]);
+});
+
+test('core goal validation v2 tool executes exactly the new frozen experiment command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, status: 'failed', reasonCode: 'CORE_VALIDATION_CREATE_FAILED', readOnlyProbe: false };
+  const tool = coreGoalValidationV2Tool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_validate_core_goal_v2');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /v2 新冻结实验/);
+  assert.match(tool.description, /不是对 v1 的 replay/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-core-goal-v2' }]);
 });

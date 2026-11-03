@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "phase": "integration",
+  "slice": "v2 experiment activation for a new explicit bounded core Goal attempt",
+  "capturedAt": "2026-11-03T05:22:55.659Z",
+  "status": "offline-verified-integration",
+  "baseline": {
+    "head": "3aeeffa"
+  },
+  "purpose": "Expose the frozen CORE_VALIDATION_EXPERIMENT (requestId core-validation-frozen-v2) through a separate owner-only runtime command and tool, so a new bounded real business attempt is an explicit owner decision rather than a retry of the failed v1 create. No tool/command/model input can choose or alter the experiment.",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/runtime.ts",
+      "bytes": 108540,
+      "sha256": "41c4a5ecc9d9ea17e250fc51f6d7eeb990f7a93bd1e6ea9196ab807daad2bd33"
+    },
+    {
+      "path": "plugins/shiyu/src/index.ts",
+      "bytes": 14765,
+      "sha256": "39a982dd7b6f9248c41b97b63a85f1b582d83b73d76a2389c878a1bcffb346aa"
+    },
+    {
+      "path": "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+      "bytes": 9635,
+      "sha256": "96008d5ad7474c7efd7c2f7f90877971b61bab0bf8c5213a4a4bf4d8b43138b6"
+    }
+  ],
+  "verification": {
+    "leadIsolatedCheck": {
+      "tool": "scripts/slice-verify.mjs",
+      "evidence": "artifacts/dsh/slices/round10-v2-activation-verify.json",
+      "exitCode": 0,
+      "tests": {
+        "tests": 1583,
+        "pass": 1583,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "log": "plugins/shiyu/.local/slice-verify-round10-v2-activation.log",
+      "arithmetic": "1582 baseline + 1 v2 tool-definition test = 1583"
+    }
+  },
+  "design": {
+    "v1": "existing runtime.probe-core-goal and shiyu_validate_core_goal stay bound to CORE_VALIDATION_V1 and must not be retried",
+    "v2": "new runtime.probe-core-goal-v2 and shiyu_validate_core_goal_v2 pass the exact frozen CORE_VALIDATION_EXPERIMENT constant into the runner; parameters remain empty and non-concurrency-safe",
+    "safety": "paused/idle/single-slot/no-retry/budget/wall limits inherited from the existing bounded runner; v1 reconcile remains fixed to requestId core-validation-frozen-v1"
+  },
+  "scope": {
+    "realModelCalls": 0,
+    "embeddingCalls": 0,
+    "hostReloads": 0
+  },
+  "evidenceLevel": "G1 integration + isolated full check; host v2 attempt pending."
+}

@@ -141,6 +141,16 @@ export function timeTriggerDiagnosisTool(service: { command(input: unknown): Pro
  * round, and returns an honest bounded receipt. Only the owner command surface
  * can reach it; restricted core/worker/replyer Sessions never receive it.
  */
+export function coreGoalValidationV2Tool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_validate_core_goal_v2',
+    description: '有界真实 core Goal 验证（v2 新冻结实验，非 v1 重试）：会创建真实 Goal/Task/Effect/budget/原生 Session/本地 artifact，并通过 core 路径发起最多 2 轮真实模型调用（含 worker 执行与独立核验）；使用全新 requestId core-validation-frozen-v2 与固定模板，不接受任何输入/参数覆盖；要求运行时未暂停且空闲，单飞、180 秒/2 次评估/冻结预算硬停止、失败或未知绝不重试；回执仅存 snapshot().diagnostics.coreGoalValidation。v1 已失败并已 reconcile，本工具不是对 v1 的 replay。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-core-goal-v2' }),
+  } as const;
+}
+
 export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_validate_core_goal',
@@ -209,6 +219,7 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   // Session/artifact and makes real model calls. Owner-only; never mounted into
   // restricted core/worker/replyer Sessions.
   ctx.effect(() => ctx.tools.register(coreGoalValidationTool(service)));
+  ctx.effect(() => ctx.tools.register(coreGoalValidationV2Tool(service)));
   // Owner-only reconcile of the fixed core-validation Goal: read-only + at most
   // one cancel for an inert partial Goal; no Goal creation and no model call.
   ctx.effect(() => ctx.tools.register(coreValidationReconcileTool(service)));
