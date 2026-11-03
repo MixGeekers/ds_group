@@ -1359,3 +1359,17 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - `runtime.ts`：构造探针命令、命令分派（`INNER_LIFECYCLE_PROBE_ACTION`，ensureCanRun+signal+单槽）、`diagnostics.innerLifecycleProbe`；`index.ts` 注册工具。
 - **Lead 集成隔离验证**（HEAD `0819d11` + 全部 round-6 切片与集成文件）：**1515/1515 通过，0 失败/0 跳过**（= 1498 + 9 + 7 + 1）；证据 `artifacts/dsh/slices/round6-integrated-verify.json`。
 - 宿主执行：零模型 reload + `shiyu_diagnose_inner_lifecycle` + 前后独立审计；结果另行留证。
+
+## 41. 第六轮固定宿主验证：H4e 隔离生命周期探针（零模型）
+
+状态：**固定宿主零模型限定通过**；非 live memory/业务验收。2026-11-03，代码 HEAD `fc124d1`，dist 由该 HEAD 隔离 worktree 构建（112 文件），一次有序 reload。
+
+- 重载增量：commitSeq `390→396`（+6 启动生命周期/能力观察写入）、events `51→52`（+1 lifecycle 及投递 ack）、capability revision `37→39`（hostEpoch 重绑）、sessions 33 不变、stateVersion 6/state 文件不变；业务事实（tasks/budget/effects/lab/goals）不变。
+- `shiyu_diagnose_inner_lifecycle`（owner-only、无参数）：**status=passed**、store=in-memory、`liveDataTouched=false`、`livePathsAccepted=0`、zeroModel/zeroEmbedding/zeroTaskOrEffect；14 steps/9 checks 全 passed：
+  - 依赖记录撤回后 `degraded`（reason `source_revoked`）；旧 capture/readBodies 均拒绝（INNER_CAPTURE_INVALIDATED）；
+  - derivedRevision `3→4` **恰好 +1**，幂等重算 `changed=false` 不再 bump；撤回来源无法复活（INNER_SOURCE_UNAVAILABLE）；
+  - personality profile 版本变化使依赖 `needs_review`、旧 personality capture 拒绝；
+  - cleanup：storeClosed/workerTerminated true、released/disposed。
+- 探针前后 live 数据：commitSeq/events/sessions/capability/state 文件全部不变；无业务行；无模型/embedding/Task/Effect。探针后 `shiyu_status.diagnostics.innerLifecycleProbe` 缓存 passed 回执，final status 调用只读。
+- 证据：[round6-joint-zero-model.json](<artifacts/dsh/host/round6-joint-zero-model.json>) + `host/round6/`（探针回执、4 份审计）。
+- 边界：隔离 `:memory:` store 且跳过 memory backend，不证 live 记忆语义/Ombre 导出/真实业务；产品行与 acceptance gate 未升级。

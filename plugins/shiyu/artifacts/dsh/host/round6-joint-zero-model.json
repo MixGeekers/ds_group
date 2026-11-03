@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "phase": "round6-host",
+  "slice": "fixed-host zero-model validation of the isolated inner-lifecycle probe",
+  "capturedAt": "2026-11-03T01:52:53.297Z",
+  "status": "fixed-host-zero-model-passed",
+  "purpose": "Validate the round-6 integration on the fixed host: one ordered reload and one owner-only isolated inner-lifecycle probe with before/after audits. The probe must use its own in-memory store, never touch live data and never call a model.",
+  "plan": {
+    "path": "plugins/shiyu/.local/dsh-round6-host-execution-plan.json",
+    "sha256": "e2158062738425ecead475a72715c347ec91c8a2bdc16b65761c5eb52d5f445e"
+  },
+  "code": {
+    "head": "fc124d1",
+    "dist": {
+      "files": 112,
+      "digest": "9f6996e2d6d685df1b930b9657583a1e3d1e8205e6598ea0f2d18255abcfef1c"
+    }
+  },
+  "host": {
+    "app": "DeepSeek Harness 0.2.1-rc.5",
+    "pluginEntry": "include:shiyu-runtime",
+    "orderedReloads": 1,
+    "newInstanceId": "030870d4-eabc-4c24-9845-3a231d911328"
+  },
+  "probe": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round6/inner-lifecycle-probe.json",
+      "bytes": 2984,
+      "sha256": "f7fb097850e0e1e88fd0ecaef81b1188c57e5253fde1833d64217b00367f23bc"
+    },
+    "status": "passed",
+    "store": "in-memory",
+    "liveDataTouched": false,
+    "zeroModel": true,
+    "zeroEmbedding": true,
+    "zeroTaskOrEffect": true,
+    "steps": [
+      "open-isolated-in-memory-store",
+      "seed-isolated-conversation",
+      "seed-relationship-source",
+      "seed-dependent-cognition",
+      "seed-personality-version-dependency",
+      "capture-metadata-before-change",
+      "record-derived-revision",
+      "withdraw-source-and-recompute",
+      "verify-derived-degradation",
+      "verify-stale-capture-rejected",
+      "verify-stale-bodies-rejected",
+      "verify-recompute-idempotent",
+      "verify-source-not-revived",
+      "verify-personality-version-degrades-dependants"
+    ],
+    "checks": [
+      {
+        "check": "dependent-not-current",
+        "status": "passed",
+        "observed": "degraded/degraded"
+      },
+      {
+        "check": "degradation-reason-present",
+        "status": "passed",
+        "observed": "source_revoked"
+      },
+      {
+        "check": "stale-capture-rejected",
+        "status": "passed",
+        "observed": "INNER_CAPTURE_INVALIDATED"
+      },
+      {
+        "check": "stale-bodies-rejected",
+        "status": "passed",
+        "observed": "INNER_CAPTURE_INVALIDATED"
+      },
+      {
+        "check": "exactly-one-revision-bump",
+        "status": "passed",
+        "observed": "4"
+      },
+      {
+        "check": "recompute-idempotent",
+        "status": "passed",
+        "observed": "{\"before\":4,\"after\":4,\"changed\":false}"
+      },
+      {
+        "check": "withdrawn-source-cannot-revive",
+        "status": "passed",
+        "observed": "INNER_SOURCE_UNAVAILABLE"
+      },
+      {
+        "check": "profile-version-needs-review",
+        "status": "passed",
+        "observed": "1"
+      },
+      {
+        "check": "stale-personality-capture-rejected",
+        "status": "passed",
+        "observed": "INNER_CAPTURE_INVALIDATED"
+      }
+    ],
+    "diagnostics": {
+      "derivedRevisionBefore": 3,
+      "derivedRevisionAfter": 4,
+      "degradationReason": {
+        "withdrawal": "degraded",
+        "profileVersion": "current"
+      },
+      "staleCaptureRejected": true,
+      "staleBodyRejected": true,
+      "recomputeIdempotent": true,
+      "sourceRevivalRefused": true,
+      "cleanup": {
+        "storeClosed": true,
+        "workerTerminated": true
+      },
+      "zeroActivity": {
+        "modelCalls": 0,
+        "embeddingCalls": 0,
+        "tasks": 0,
+        "effects": 0,
+        "sends": 0
+      },
+      "livePathsAccepted": 0
+    },
+    "released": true,
+    "disposed": true,
+    "expected": true,
+    "expectedNote": "expected is derived by Lead from the receipt (status passed, in-memory store, no live touch, all checks passed, exactly one revision bump, storeClosed); the raw receipt itself has no expected field."
+  },
+  "deltas": {
+    "reload": {
+      "commitSeq": [
+        390,
+        396
+      ],
+      "events": [
+        51,
+        52
+      ],
+      "deliveries": [
+        {
+          "acked": 49
+        },
+        {
+          "acked": 50
+        }
+      ],
+      "stateVersion": [
+        6,
+        6
+      ],
+      "capabilityRevision": [
+        37,
+        39
+      ],
+      "sessions": [
+        33,
+        33
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "+6 normal startup lifecycle/capability writes and one runtime.lifecycle.changed event with its delivery ack; sessions unchanged; business facts/state file unchanged."
+    },
+    "probe": {
+      "commitSeq": [
+        396,
+        396
+      ],
+      "events": [
+        52,
+        52
+      ],
+      "sessions": [
+        33,
+        33
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the probe is side-effect free on live data: commitSeq/events/sessions/capability and the runtime-state file hash are unchanged; no business rows; zero model/embedding/Task/Effect."
+    },
+    "postStatus": {
+      "commitSeq": [
+        396,
+        396
+      ],
+      "events": [
+        52,
+        52
+      ],
+      "sessions": [
+        33,
+        33
+      ],
+      "stateFile": [
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+        "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+      ],
+      "classification": "the final status call is read-only; diagnostics.innerLifecycleProbe caches the passed receipt.",
+      "payload": {
+        "file": "artifacts/dsh/host/round6/status-final.json",
+        "bytes": 59072,
+        "sha256": "7581873a7ca3be590305c75f4ea952d5ac4504c49c8145cf0bb3f677dce699a8"
+      },
+      "cachedReceipt": {
+        "innerLifecycleProbe": {
+          "status": "passed",
+          "store": "in-memory",
+          "liveDataTouched": false,
+          "checks": 9,
+          "derivedRevisionBefore": 3,
+          "derivedRevisionAfter": 4
+        }
+      }
+    }
+  },
+  "businessFacts": {
+    "tasks": {
+      "succeeded": 2,
+      "unknown": 1
+    },
+    "budget": {
+      "settled": 21,
+      "unknown": 3
+    },
+    "effects": {
+      "succeeded": 13
+    },
+    "lab": {
+      "disconnected": 3
+    },
+    "goals": 2,
+    "stateFileUnchanged": true
+  },
+  "evidence": {
+    "plan": "plugins/shiyu/.local/dsh-round6-host-execution-plan.json",
+    "probeReceipt": "artifacts/dsh/host/round6/inner-lifecycle-probe.json",
+    "beforeAudit": "artifacts/dsh/host/round6/round6-host-before.json",
+    "afterReloadAudit": "artifacts/dsh/host/round6/round6-host-after-reload.json",
+    "afterProbeAudit": "artifacts/dsh/host/round6/round6-host-after-probe.json",
+    "finalAudit": "artifacts/dsh/host/round6/round6-host-final.json",
+    "statusFinal": "artifacts/dsh/host/round6/status-final.json"
+  },
+  "limitations": [
+    "Zero-model probe only: it validates derivation/recompute/capture rejection/cleanup in an isolated in-memory store, not live memory semantics, real Ombre export or business acceptance.",
+    "The probe skips the memory domain (no backend in the isolated store); memory lifecycle is covered by the earlier offline H4e slice.",
+    "No real model/embedding/Task/Effect/channel/DOM was involved; the product rows and acceptance gate are unchanged."
+  ]
+}
