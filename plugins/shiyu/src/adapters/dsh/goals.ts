@@ -213,6 +213,8 @@ export interface CoreEventToolModelProbeResult {
   failureDetail?: string;
   /** How many messages the host claimed in the probe's first step (diagnostic). */
   firstStepMessageCount?: number;
+  /** Host session-title requests suppressed without reaching a model. */
+  titleRequestsSuppressed: number;
   released: boolean;
   disposed: boolean;
   archived: boolean;
@@ -743,8 +745,14 @@ export class GoalSessionAdapter {
     const disposers: Disposer[] = [];
     // Only this disposable probe Session is routed to the probe's model gate; all
     // other core/worker/replyer streams keep their existing behavior unchanged.
-    const routeProbeStream = (request: { sessionId?: unknown } | undefined, next: () => unknown) =>
-      request?.sessionId === probeSessionId ? (run.stream as any)(request, next) : next();
+    const routeProbeStream = (request: { sessionId?: unknown; purpose?: unknown } | undefined, next: () => unknown) => {
+      if (request?.sessionId !== probeSessionId) return next();
+      // Host housekeeping must never reach a model for this disposable probe:
+      // suppress session-title generation (its request would be an auxiliary
+      // model call and is not part of the admitted probe round).
+      if (request.purpose === 'session-title') throw new Error('Session title generation is suppressed for the core model probe');
+      return (run.stream as any)(request, next);
+    };
     disposers.push(this.options.ctx.on('llm/stream', routeProbeStream as any));
     let handle: DshAgentHandle | undefined, receipt: CoreEventToolModelProbeResult | undefined;
     let failure: unknown, cleanupFailure: unknown;

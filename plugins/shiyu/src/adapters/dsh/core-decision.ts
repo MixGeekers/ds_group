@@ -705,6 +705,7 @@ export class CoreEventToolModelProbeRun {
   private failureCode?: string;
   private failureMessage?: string;
   private firstStepMessageCount?: number;
+  private titleRequestsSuppressed = 0;
   private isAgentLoopRequest?: (request: unknown) => boolean;
   private contextRenderer?: SystemPromptContextRenderer;
   private assembledContext?: unknown;
@@ -947,8 +948,12 @@ export class CoreEventToolModelProbeRun {
     disposers.push(ctx.on('session/event', (session: DshSession, event: SessionEvent) => {
       if (!session || session.id !== this.options.sessionId) return;
       if (this.events.length >= 256) { this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe native observation bound exceeded')); return; }
+      // Host session-title housekeeping is not part of the admitted probe turn:
+      // the adapter suppresses its LLM request, so the request marker and any
+      // local fallback title are housekeeping only, never model activity.
+      if (event.type === 'session/title-llm-request' || event.type === 'session/title') { this.titleRequestsSuppressed++; return; }
       if (['user/message', 'assistant/message', 'assistant/attempt', 'turn/start', 'turn/end', 'tool/call', 'tool/result',
-        'developer/message', 'session/title'].includes(event.type) || event.type.startsWith('compaction/') || event.type === 'session/title-llm-request') {
+        'developer/message'].includes(event.type) || event.type.startsWith('compaction/')) {
         this.events.push(structuredClone(event));
       }
       if (event.type === 'turn/start') this.turns++;
@@ -961,7 +966,7 @@ export class CoreEventToolModelProbeRun {
       if (event.type === 'tool/call') this.observeToolCall(event);
       if (event.type === 'tool/result') this.observeToolResult(event);
       if (event.type === 'developer/message') this.observeDeveloperMessage(event);
-      if (event.type.startsWith('compaction/') || event.type === 'session/title-llm-request' || event.type === 'assistant/attempt') {
+      if (event.type.startsWith('compaction/') || event.type === 'assistant/attempt') {
         this.stop('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', new Error('Core model probe observed auxiliary model activity'));
       }
     }));
@@ -1189,6 +1194,7 @@ export class CoreEventToolModelProbeRun {
       ...(final.json !== undefined ? { finalJson: final.json } : {}),
       usage, ...(this.failureMessage === undefined ? {} : { failureDetail: this.failureMessage }),
       ...(this.firstStepMessageCount === undefined ? {} : { firstStepMessageCount: this.firstStepMessageCount }),
+      titleRequestsSuppressed: this.titleRequestsSuppressed,
       released: false, disposed: false, archived: false, cleanupVerified: false,
       observedAt: new Date(this.options.now()).toISOString(),
     };

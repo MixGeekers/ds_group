@@ -54,7 +54,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   const preparedContexts: RuntimeContextMessage[] = [], committedContexts: RuntimeContextMessage[] = [];
   let beforeAuthorize: ((context: GoalAuthorityContext) => void) | undefined;
   let mode: 'normal' | 'retry' | 'compaction' | 'title' | 'anonymous' | 'history' | 'history-update' | 'changed-prestep' | 'mutated-user' | 'extra-user'
-    | 'host-context-prestep' | 'host-bad-context-prestep' | 'host-third-input-prestep' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
+    | 'host-context-prestep' | 'host-bad-context-prestep' | 'host-third-input-prestep' | 'host-title-prestep' = 'normal', output = '{"proposal":"inspect the synthetic evidence"}';
   let assemblyContexts: Array<{ name: string; text: string }> = [];
   let messageNumber = 0, creates = 0, resumes = 0, followups = 0, disposals = 0, streams = 0, autoRounds = 0, opens = 0, closes = 0;
   let requests = 0, toolExecutions = 0, goalCalls = 0;
@@ -214,6 +214,16 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
               main.tools = structuredClone(toolDeclarations);
             }
             requests++; nativeRequests.add(main);
+            if (mode === 'host-title-prestep') {
+              // The host schedules a session-title revision after the first user
+              // message; the probe must suppress its model request without
+              // counting it as auxiliary model activity.
+              append(agent, 'session/title-llm-request', {});
+              try {
+                for await (const _item of global.waterfall('llm/stream', [{ sessionId: id, purpose: 'session-title' }],
+                  () => (async function* () { yield { type: 'synthetic-title' }; })())) { /* no provider may be reached */ }
+              } catch { /* the probe suppresses title generation */ }
+            }
             if (mode === 'compaction' || mode === 'title') {
               const purpose = mode === 'title' ? 'session-title' : 'compaction';
               append(agent, mode === 'title' ? 'session/title-llm-request' : 'compaction/start', {});
@@ -1033,6 +1043,21 @@ test('host runtime-context snapshots are bound structurally when extra host sect
   missing.content[0]!.text = `Current runtime context. This snapshot supersedes earlier runtime-context snapshots.\n\n${directory}`;
   assert.equal(probeRuntimeContextBinding(missing, cwd), false);
   assert.equal(probeRuntimeContextBinding({ role: 'user', content: [{ type: 'text', text }] }, cwd), false);
+});
+
+test('host session-title housekeeping is suppressed without becoming auxiliary model activity', async t => {
+  const { f, adapter, typesSeen } = await probeFixture(t);
+  f.setMode('host-title-prestep');
+  f.setToolPlan({ name: 'shiyu_core_event_types', args: {} });
+  f.setOutput(JSON.stringify({ ok: true, typesSeen }));
+  try {
+    const receipt = await adapter.probeCoreEventToolModelRound({ cwd: '/synthetic/shiyu/core', timeoutMs: 5000 });
+    assert.equal(receipt.status, 'passed', JSON.stringify(receipt));
+    assert.equal(receipt.titleRequestsSuppressed, 1);
+    assert.equal(receipt.counters.mainModelRequests, 2);
+    assert.equal(receipt.counters.mainModelStreams, 2);
+    assert.equal(f.counts().requests, 2);
+  } finally { await adapter.close(); }
 });
 
 test('the host assembly context is reconstructed exactly for the first claimed turn', async t => {

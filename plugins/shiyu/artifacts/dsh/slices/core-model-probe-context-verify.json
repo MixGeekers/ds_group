@@ -2,24 +2,24 @@
   "schemaVersion": 1,
   "kind": "isolated-slice-verification",
   "slice": "core-model-probe-context",
-  "capturedAt": "2026-11-03T00:30:18.549Z",
-  "head": "7704e5d696a2173c7bed3bba51176bcc5e819964",
-  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-core-model-probe-context-1793665441466",
+  "capturedAt": "2026-11-03T00:39:53.024Z",
+  "head": "3bec321821d6b3782cd6047b471bc6ed49b246c1",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-core-model-probe-context-1793666017983",
   "files": [
     {
       "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
-      "bytes": 61142,
-      "sha256": "02fdc68f5df36bedb28eb73b4f7185969d8d89c910061f07dd639eb180502a4d"
+      "bytes": 61655,
+      "sha256": "21fe3389af5d336f20ad5d40a08dbb83afe3a40ba4b0f0ebbb54cb232ef32124"
     },
     {
       "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
-      "bytes": 86108,
-      "sha256": "ec1cb2210dd9773a341c961b682cf6504884cc28b8a8531a07c0b1a390d89d8f"
+      "bytes": 86466,
+      "sha256": "64be975d381f1b7d2db3553e04a9eab56376788e84a62b95e4ab6650f81140d7"
     },
     {
       "path": "plugins/shiyu/tests/core-event-tools.test.ts",
-      "bytes": 83570,
-      "sha256": "362247276c4a741188d1374f39dad445f9e73f2339c033d52bc3323b41fe9bac"
+      "bytes": 85036,
+      "sha256": "4fa40c81c3bd1204a5758a33810b16c623da540cae9b75266856caabae5e6cd2"
     }
   ],
   "check": {
@@ -27,12 +27,12 @@
     "exitCode": 0,
     "signal": null,
     "timedOut": false,
-    "durationMs": 376680,
-    "bytes": 161340,
-    "sha256": "3ec73e729ebe1af89beab08556498d7343df2a3a4af5948ba33637b0ce8dd7b0",
+    "durationMs": 374628,
+    "bytes": 161388,
+    "sha256": "c5fabd0a185a0c9f0677e6568ed3db90975fc875b506c005b797b0335a713a25",
     "tests": {
-      "tests": 1494,
-      "pass": 1494,
+      "tests": 1495,
+      "pass": 1495,
       "fail": 0,
       "cancelled": 0,
       "skipped": 0
@@ -41,15 +41,15 @@
       "ℹ cancelled 0",
       "ℹ skipped 0",
       "ℹ todo 0",
-      "ℹ duration_ms 375595.934",
+      "ℹ duration_ms 373566.597583",
       "> @shiyu/runtime@0.1.0 build",
       "> tsc -p tsconfig.build.json"
     ]
   },
   "log": {
     "path": "<repo>/plugins/shiyu/.local/slice-verify-core-model-probe-context.log",
-    "bytes": 161340,
-    "sha256": "3ec73e729ebe1af89beab08556498d7343df2a3a4af5948ba33637b0ce8dd7b0"
+    "bytes": 161388,
+    "sha256": "c5fabd0a185a0c9f0677e6568ed3db90975fc875b506c005b797b0335a713a25"
   },
   "verdict": "pass"
 }
