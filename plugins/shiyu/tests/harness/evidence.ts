@@ -35,6 +35,7 @@ export type EvidenceLevel =
   | 'fixed-host-zero-model'
   | 'synthetic-ui'
   | 'bounded-real-model'
+  | 'bounded-real-model-diagnostic-only'
   | 'historical-limited'
   | 'environment-baseline'
   | 'unknown';
@@ -46,6 +47,7 @@ export const ALLOWED_EVIDENCE_LEVELS: readonly EvidenceLevel[] = [
   'fixed-host-zero-model',
   'synthetic-ui',
   'bounded-real-model',
+  'bounded-real-model-diagnostic-only',
   'historical-limited',
   'environment-baseline',
   'unknown',
@@ -59,6 +61,7 @@ export const LIMITED_EVIDENCE_LEVELS: readonly EvidenceLevel[] = [
   'fixed-host-zero-model',
   'synthetic-ui',
   'bounded-real-model',
+  'bounded-real-model-diagnostic-only',
   'historical-limited',
   'environment-baseline',
 ];
@@ -733,6 +736,127 @@ export const EVIDENCE_SOURCES: readonly EvidenceSource[] = [
     ],
     derive: [{ label: 'h7Round4CleanGate', path: 'artifacts/dsh/harness/acceptance-report.json', jsonPath: 'gate.overall' }],
   },
+  /* ---------------- round-5 host/fix-chain/tooling evidence (H7-round6) ---------------- */
+  {
+    id: 'round5-host-real-model',
+    commits: ['511fe65'],
+    files: [
+      REF('artifacts/dsh/host/round5-joint-zero-model-and-real-model.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/time-trigger-probe.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/core-model-probe-passed.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/core-model-attempt-1-69464312.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/core-model-attempt-2-51c5970a.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/core-model-attempt-3-d60c7b3a.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/core-model-attempt-5-76894525.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/round5-host-before.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/round5-host-after-first-reload.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/round5-host-after-real-probes.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/round5-host-final.json', '511fe65'),
+      REF('artifacts/dsh/host/round5/status-final.json', '511fe65'),
+    ],
+    levels: ['fixed-host-zero-model', 'bounded-real-model-diagnostic-only'],
+    scope: 'Round-5 fixed-host run: live zero-model time-trigger probe success plus the first bounded real-model core event-tool diagnostic round (one read-only types tool round; primary provider-reported usage input 1469 / output 41 / total 2406 as reported), with five disclosed pre-pass failures and before/reload/real-probe/final audits.',
+    limitations: [
+      'This is a bounded diagnostic probe, NOT a full core decision round, Goal, plan or Task; it does not prove real plan quality, provider cache accounting or business acceptance.',
+      'Primary provider usage is only reported (input 1469 / output 41 / total 2406 as reported; no cache fields); attempts 4 and 5 show mainModelRequests=1 / mainModelStreams=0 with usage unknown — one request initiated, no stream completed, provider receipt/cost unknown, never claim zero cost.',
+      'Five pre-pass attempts and their root causes are disclosed; none was retried after the successful admitted model turn; failed/diagnostic attempts must never be counted as pass.',
+      'The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect) and the rule/time state were removed; no live delivery/business tables were written.',
+      'Real browser DOM, real channels/devices, checkpoint capture readiness, V25 semantic evaluation and nine-system acceptance remain untested; diagnostic pass cannot upgrade V25 or any product row.',
+    ],
+    derive: [
+      { label: 'round5HostStatus', path: 'artifacts/dsh/host/round5-joint-zero-model-and-real-model.json', jsonPath: 'status' },
+      { label: 'round5PrimaryInputTokens', path: 'artifacts/dsh/host/round5-joint-zero-model-and-real-model.json', jsonPath: 'realModelProbe.usage.inputTokens' },
+      { label: 'round5Attempt4Requests', path: 'artifacts/dsh/host/round5/core-model-attempt-4-41235a79.json', jsonPath: 'counters.mainModelRequests' },
+    ],
+  },
+  {
+    id: 'h2c-probe-fix-chain',
+    commits: ['7f57ea1', '7704e5d', '3bec321', '3e2bbf9', '6ae4582'],
+    files: [
+      REF('artifacts/dsh/slices/core-model-probe-diagnostics-verify.json', '7f57ea1'),
+      REF('artifacts/dsh/slices/core-model-probe-context-verify.json', '6ae4582'),
+      REF('tests/core-event-tools.test.ts', '6ae4582'),
+    ],
+    levels: ['offline-module'],
+    scope: 'H2c core-model probe fix chain: bounded failure diagnostics, host runtime-context reconstruction/structural binding, session-title suppression and tool-history classification; each commit carries isolated slice evidence and fake-host regression tests (4 tests).',
+    limitations: [
+      'Fake-host offline evidence only: the fixes repair first-step/context/title/tool-history handling; they do NOT widen the H2c boundary, add retries, or prove real model success.',
+      'Real-provider behavior is recorded only in round5-host-real-model (one bounded diagnostic pass after five disclosed failures); the fix-chain tests cannot upgrade V25, full core, Goal/Task or business acceptance.',
+      'No real model, embedding, channel, device or host run is executed by this source.',
+    ],
+    derive: [
+      { label: 'h2cDiagnosticsVerdict', path: 'artifacts/dsh/slices/core-model-probe-diagnostics-verify.json', jsonPath: 'verdict' },
+      { label: 'h2cContextVerdict', path: 'artifacts/dsh/slices/core-model-probe-context-verify.json', jsonPath: 'verdict' },
+    ],
+  },
+  {
+    id: 'h2b-live-time-trigger',
+    commits: ['6ecb487'],
+    files: [
+      REF('artifacts/dsh/integration/round5-lead-integration.json', '6ecb487'),
+      REF('artifacts/dsh/slices/round5-integrated-verify.json', '6ecb487'),
+    ],
+    levels: ['offline-module', 'slice-verification'],
+    scope: 'Lead round-5 integration of the live time-trigger probe diagnostic tool and H2c fix-chain: offline-verified integration plus isolated combined check 1492/1492; fixed-host execution and receipts are recorded separately in round5-host-real-model.',
+    limitations: [
+      'The live time-trigger probe intentionally appends exactly one undeletable time.occurred control event to the live append-only ledger (disclosed real side effect); no live delivery, Task/Goal/Effect or model call is created.',
+      'This integration source is offline/isolated only: the fixed-host probe result, failures and real-model diagnostic are separate host evidence; diagnostic pass must never be counted as business acceptance.',
+      'Host retest may pass/fail/reveal another shape; no automatic retry is allowed. No V25/complete nine-system claim.',
+    ],
+    derive: [
+      { label: 'round5IntegrationStatus', path: 'artifacts/dsh/integration/round5-lead-integration.json', jsonPath: 'status' },
+      { label: 'round5IntegrationTests', path: 'artifacts/dsh/slices/round5-integrated-verify.json', jsonPath: 'verdict' },
+    ],
+  },
+  {
+    id: 'h7-blobcommit-hotfix',
+    commits: ['444f377'],
+    files: [
+      REF('artifacts/dsh/harness/h7-round5-slice.json', '444f377'),
+      REF('artifacts/dsh/slices/h7-blobcommit-hotfix-verify.json', '444f377'),
+    ],
+    levels: ['offline-module'],
+    scope: 'H7 clean-pipeline self-reference hotfix: evidence refs may pin committed snapshots (blobCommit + expected SHA256) so regenerated manifest/traceability/acceptance artifacts are verified from the evidence commit instead of the rewritten worktree; clean pipeline then passes 38/38 sources.',
+    limitations: [
+      'Harness tooling hotfix only: it stabilizes evidence verification and does not run product/host/model/business acceptance.',
+      'Only the clean-artifact sources use blobCommit snapshots; all other sources keep worktree-vs-HEAD tamper detection; diagnostic/passed probes cannot upgrade product rows/V/S/FL.',
+      'The fix does not change the acceptance gate: executed=0/passed=0 and the nine-system gate remains incomplete.',
+    ],
+    derive: [{ label: 'blobCommitHotfixVerdict', path: 'artifacts/dsh/slices/h7-blobcommit-hotfix-verify.json', jsonPath: 'verdict' }],
+  },
+  {
+    id: 'h7-round5-clean-artifacts',
+    commits: ['693fab1'],
+    files: [
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/manifest.json',
+        sliceCommit: '693fab1',
+        blobCommit: '693fab1',
+        expectedSha256: '2474996a6d4d67d8609b60090bc8d3c1647635f2189d2c136f51b97a961f685f',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/traceability.json',
+        sliceCommit: '693fab1',
+        blobCommit: '693fab1',
+        expectedSha256: 'ca9307dfb6dfb9859fe45bcde183e3040c8362dcf90a90effc60fcf1490550c2',
+      },
+      {
+        path: 'plugins/shiyu/artifacts/dsh/harness/acceptance-report.json',
+        sliceCommit: '693fab1',
+        blobCommit: '693fab1',
+        expectedSha256: 'beb367d8acb51c67c4f80e5b570906fe544b818eeb4edab485d5ebdfd187a7be',
+      },
+    ],
+    levels: ['offline-module'],
+    scope: 'H7-round5 clean-VCS harness artifacts (X+1 of 444f377, commit 693fab1): manifest, traceability with 38 verified sources and acceptance report (gate incomplete) regenerated on the blobCommit hotfix X.',
+    limitations: [
+      'Tooling evidence only: artifacts prove clean-X recomputation/honesty, not product/host/model/business acceptance.',
+      'The acceptance report is h7-prep incomplete: executed=0/passed=0, product rows not_covered, gate completeNineSystems=false.',
+      'Bound with blobCommit+expectedSha256 so later pipeline rewrites do not invalidate the committed snapshot; this source must never be read from the mutable worktree.',
+    ],
+    derive: [{ label: 'round5CleanGate', path: 'artifacts/dsh/harness/acceptance-report.json', jsonPath: 'gate.overall' }],
+  },
 ];
 
 const SOURCE_BY_ID = new Map(EVIDENCE_SOURCES.map(source => [source.id, source]));
@@ -763,23 +887,25 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.2',
-    sourceIds: ['h2a-events', 'h2a-probe', 'h2b-subscriptions-time', 'h2b-host-time-probe', 'h2c-real-model-probe', 'round3-lead-integration', 'round4-lead-integration', 'round3-host-zero-model', 'round4-host-zero-model', 'joint-host-zero-model'],
-    levels: ['offline-module', 'slice-verification', 'fixed-host-zero-model'],
+    sourceIds: ['h2a-events', 'h2a-probe', 'h2b-subscriptions-time', 'h2b-host-time-probe', 'h2b-live-time-trigger', 'h2c-real-model-probe', 'h2c-probe-fix-chain', 'round3-lead-integration', 'round4-lead-integration', 'round5-host-real-model', 'round3-host-zero-model', 'round4-host-zero-model', 'joint-host-zero-model'],
+    levels: ['offline-module', 'slice-verification', 'fixed-host-zero-model', 'bounded-real-model-diagnostic-only'],
     scope: 'H2a event-tool mounting/subscription paths + H2b offline subscription lifecycle/time source/notification routing + Lead integration + zero-model fixed-host diagnostics.timeSource tick.',
     limitations: [
       'No model actually invoked an event tool; real core Goal continuation, declarative-condition tools, platform redelivery and quotas/fanout remain untested.',
       'H2b is G1/G2 offline with synthetic clock/observation/Effect doubles; no DSH schedule/IANA tz database and no monetary/model cost bounding.',
-      'Fixed-host evidence is zero-model only (cooperative tick idle, schedules=0, notifications disabled); the bounded real-model H2c attempt failed before any model request and must never be recorded as pass; not V03/V14/V24 acceptance.',
+      'Round-5 fixed-host host evidence is zero-model + bounded-real-model-diagnostic-only: the diagnostic tool round passed with reported usage 1469/41/2406 (attempts 4/5 = 1 request/0 stream/cost unknown), but this is NOT V25, full core/Goal or business acceptance and never pass.',
+      'The live time-trigger probe intentionally appended one undeletable time.occurred event (append-only side effect); no live delivery/model/Task/Goal/Effect; diagnostic pass cannot upgrade V03/V14/V24.',
     ],
     partialSubscenarios: ['four publish/subscribe path module tests', 'zero-model restricted worker tool surface probe'],
   },
   {
     rowId: 'SYS.3',
-    sourceIds: ['h3-core-planning', 'historical-task-goal', 'h2c-real-model-probe', 'round4-localcore-hotfix', 'round4-host-zero-model'],
-    levels: ['offline-module', 'slice-verification', 'historical-limited', 'bounded-real-model', 'fixed-host-zero-model'],
+    sourceIds: ['h3-core-planning', 'historical-task-goal', 'h2c-real-model-probe', 'h2c-probe-fix-chain', 'round4-localcore-hotfix', 'round4-host-zero-model', 'round5-host-real-model'],
+    levels: ['offline-module', 'slice-verification', 'historical-limited', 'bounded-real-model', 'bounded-real-model-diagnostic-only', 'fixed-host-zero-model'],
     scope: 'H3 offline controlled multi-step plan/replan with CAS plan versions and Task/Mandate admission; historical limited owner local-note Goal closure.',
     limitations: [
-      'No real-model plan/tool round is proven: the H2c host attempt failed before any model request and returned an honest structured failure; no usage/cache/cost and no retry.',
+      'The round-5 bounded real-model diagnostic tool round passed (2 requests/2 streams/1 read-only tool round; reported usage 1469/41/2406, attempts 4/5 = 1 request/0 stream/cost unknown) but it is diagnostic-only: not a full core decision/Goal/plan/Task, not V25 and not business acceptance.',
+      'Earlier H2c host attempts failed and were not retried; diagnostic pass can never be counted as product/module pass.',
       'No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.',
       'Open-ended planning, multi-Goal timers and worker slot behaviour remain untested.',
     ],
@@ -844,13 +970,13 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.9',
-    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'joint-host-zero-model', 'h0-baseline'],
-    levels: ['synthetic-ui', 'fixed-host-zero-model', 'offline-module', 'environment-baseline'],
+    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'joint-host-zero-model', 'h0-baseline'],
+    levels: ['synthetic-ui', 'fixed-host-zero-model', 'bounded-real-model-diagnostic-only', 'offline-module', 'environment-baseline'],
     scope: 'H4b six-domain dashboard panel + H6c channel projection panel (synthetic-host UI cases); fixed-host zero-model visibility of schema4 publication/summary/projection; H0 status tool check.',
     limitations: [
       'No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.',
       'No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.',
-      'Round-4 host includes only a failed bounded real-model attempt (no model request); zero-model host checks are not V05/V24 dashboard acceptance and no sensitive-value sweep over real UI.',
+      'Round-4 host had only a failed bounded real-model attempt; round-5 includes one diagnostic real-model tool round and before/reload/real-probe/final audits, but real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.',
     ],
     partialSubscenarios: ['synthetic-host six-domain panel UI cases', 'fixed-host zero-model status/read-only visibility'],
   },
@@ -952,10 +1078,10 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'V14',
-    sourceIds: ['historical-task-goal', 'joint-host-zero-model', 'h2a-probe', 'h2b-subscriptions-time', 'h2b-host-time-probe', 'round3-host-zero-model', 'round4-host-zero-model'],
-    levels: ['historical-limited', 'fixed-host-zero-model', 'offline-module'],
-    scope: 'Historical Goal lifecycle + joint/round-3 fixed-host zero-model reloads; zero-model tool probes; H2b offline subscription/time foundation.',
-    limitations: ['No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; zero-model only; H2b time source is plugin-owned with synthetic clock, no DSH schedule/DST/live rules; the round-4 host time-source probe passed but cannot upgrade V14.'],
+    sourceIds: ['historical-task-goal', 'joint-host-zero-model', 'h2a-probe', 'h2b-subscriptions-time', 'h2b-host-time-probe', 'h2b-live-time-trigger', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model'],
+    levels: ['historical-limited', 'fixed-host-zero-model', 'bounded-real-model-diagnostic-only', 'offline-module'],
+    scope: 'Historical Goal lifecycle + joint/round-3/4/5 fixed-host zero-model reloads and live time-trigger probe; zero-model tool probes; H2b offline subscription/time foundation.',
+    limitations: ['No 20-lifecycle subscription/timer/drain ≤4 s matrix on current HEAD; the live time-trigger probe passed once with one append-only time.occurred event but the bounded real-model diagnostic round is NOT V14/V25/business acceptance; H2b time source is plugin-owned with synthetic clock, no DSH schedule/DST/live rules.'],
     partialSubscenarios: ['historical Goal lifecycle + ordered reload'],
   },
   {
@@ -995,13 +1121,13 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'V24',
-    sourceIds: ['h0-baseline', 'h0b-harness', 'h4-host', 'h4b-host', 'round3-host-zero-model', 'round4-host-zero-model', 'joint-host-zero-model', 'historical-capability-3i'],
-    levels: ['fixed-host-zero-model', 'environment-baseline', 'historical-limited'],
+    sourceIds: ['h0-baseline', 'h0b-harness', 'h4-host', 'h4b-host', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'joint-host-zero-model', 'historical-capability-3i'],
+    levels: ['fixed-host-zero-model', 'bounded-real-model-diagnostic-only', 'environment-baseline', 'historical-limited'],
     scope: 'Fixed installed host zero-model reload/status/probe evidence on several verified builds (incl. round-3 H4e hotfix upgrade/reopen), plus environment/SDK identity.',
     limitations: [
       'Zero-model only: no generation, compression, long-history cold recovery, 20-lifecycle matrix, real UI interactions or allowed-network audit.',
       'Round-3 host had one ordered reload and four zero-model tool calls; checkpoint capture unavailable; lifecycle=degraded reflects retained historical facts.',
-      'Round-4 host had one ordered reload/nine tool calls, realModelCalls=0; checkpoint capture unavailable (ready:false); the bounded real-model attempt failed before any model request and lifecycle=degraded retains historical facts.',
+      'Round-4 host had one ordered reload/nine tool calls, realModelCalls=0; round-5 host had six ordered reloads and one bounded real-model diagnostic tool round (reported usage 1469/41/2406; attempts 4/5 = 1 request/0 stream/cost unknown) plus an intentional append-only time.occurred event; diagnostic pass is NOT V24 acceptance.',
       'Installed builds were isolated verified builds of their slices, not current-HEAD generation acceptance.',
     ],
     partialSubscenarios: ['fixed-host startup/status/read-only zero-model reloads', 'zero-model worker tool surface probe'],

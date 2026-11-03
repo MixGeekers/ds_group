@@ -1,0 +1,202 @@
+{
+  "schemaVersion": 1,
+  "kind": "shiyu.harness.h7-round6-slice-evidence",
+  "phase": "H7-round6",
+  "capturedAt": "2026-11-03T01:31:27.778Z",
+  "baselineHead": "0819d11283c7a32ce8071e53f88f7ea5383cfcf3",
+  "status": "code-tests-delivered-not-clean-refresh",
+  "purpose": "Bind round-5 host real-model diagnostic evidence, H2c fix chain, H2b live time-trigger integration, blobCommit hotfix and round5 clean artifact snapshot into evidence.ts/acceptance index without upgrading diagnostic passes into product acceptance.",
+  "round5Sources": [
+    {
+      "id": "round5-host-real-model",
+      "commits": [
+        "511fe65"
+      ],
+      "levels": [
+        "fixed-host-zero-model",
+        "bounded-real-model-diagnostic-only"
+      ],
+      "note": "diagnostic pass only; usage 1469/41/2406; attempts4/5=1 request/0 stream/cost unknown; never V25/pass"
+    },
+    {
+      "id": "h2c-probe-fix-chain",
+      "commits": [
+        "7f57ea1",
+        "7704e5d",
+        "3bec321",
+        "3e2bbf9",
+        "6ae4582"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "fake-host offline fix chain; boundary not widened; no retry"
+    },
+    {
+      "id": "h2b-live-time-trigger",
+      "commits": [
+        "6ecb487"
+      ],
+      "levels": [
+        "offline-module",
+        "slice-verification"
+      ],
+      "note": "live probe appends one undeletable time.occurred; no live delivery/model/Task/Effect"
+    },
+    {
+      "id": "h7-blobcommit-hotfix",
+      "commits": [
+        "444f377"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "clean pipeline self-reference fix via committed snapshots"
+    },
+    {
+      "id": "h7-round5-clean-artifacts",
+      "commits": [
+        "693fab1"
+      ],
+      "levels": [
+        "offline-module"
+      ],
+      "note": "round5 X+1 artifacts bound with blobCommit=693fab1; task text mentioned dfe4372 but actual round5 X+1 is 693fab1; h7-round4-clean-artifacts@dfe4372 kept unchanged"
+    }
+  ],
+  "sourceCounts": {
+    "sources": 43,
+    "files": 126
+  },
+  "files": [
+    {
+      "path": "plugins/shiyu/tests/harness/evidence.ts",
+      "sha256": "f79f64f303bf69e3919081c63ee4ed4548460ee94e0aefb594fa44e6b629199c",
+      "bytes": 106842
+    },
+    {
+      "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+      "sha256": "bd53397564edef1f9ee6ee2e10de10936ca247679cbc264b1b4959928a41d11b",
+      "bytes": 34915
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round4.test.ts",
+      "sha256": "81ac771fa91107c2059941379128968f3c384c3a56ac6cff9edc711ca2df3009",
+      "bytes": 18584
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round5.test.ts",
+      "sha256": "acb992c6fccef4a445d4190740a2acc405b4ebda7e9ff7aa2aba26e52469022e",
+      "bytes": 23353
+    },
+    {
+      "path": "plugins/shiyu/tests/harness-round6.test.ts",
+      "sha256": "6737c38c988b659d7a5f50702ed62fb549e348f57b4fb20a259c777ecf3f9a0d",
+      "bytes": 19991
+    }
+  ],
+  "commands": [
+    "npx tsc --noEmit",
+    "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+    "npm run check (isolated worktree 0819d11 + only slice files + slice evidence json)",
+    "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+    "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+  ],
+  "checks": {
+    "sharedTree": {
+      "tsc": {
+        "exitCode": 0
+      },
+      "harness": {
+        "tests": 92,
+        "pass": 92,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round6-0819d11-shared-harness.log",
+          "sha256": "7362c4ba61c4ebcba24f70366a66e690add267712d9e7938770e1eb197938bbc",
+          "bytes": 8078
+        }
+      }
+    },
+    "isolatedWorktree": {
+      "head": "0819d11283c7a32ce8071e53f88f7ea5383cfcf3",
+      "worktree": "/tmp/round6-verify (ephemeral)",
+      "tsc": {
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round6-0819d11-isolated-tsc.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      },
+      "harness": {
+        "tests": 92,
+        "pass": 92,
+        "fail": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round6-0819d11-isolated-harness.log",
+          "sha256": "b4859671e99bfdc4c5fd99dbd4f3e758997c467acf4986e7b406d4be79bc7935",
+          "bytes": 8080
+        }
+      },
+      "fullCheck": {
+        "tests": 1505,
+        "pass": 1505,
+        "fail": 0,
+        "skipped": 0,
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h7-verify/round6-0819d11-check.log",
+          "sha256": "d57a7f52585ab3e5fa32db097588b8cd94e35c6bc5a0ed2a581f65bb44c8791a",
+          "bytes": 162159
+        }
+      }
+    }
+  },
+  "productRows": {
+    "total": 79,
+    "notCovered": 79,
+    "covered": 0
+  },
+  "toolingReady": [
+    "TV.1",
+    "TV.2",
+    "TV.3",
+    "TV.4",
+    "TV.5",
+    "TV.6",
+    "TV.7",
+    "TV.9"
+  ],
+  "acceptanceGate": "incomplete",
+  "limitations": [
+    "H7-round6 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+    "Round-5 host real-model evidence is bounded diagnostic only (usage 1469/41/2406 reported; attempts4/5=1 request/0 stream/cost unknown; append-only time.occurred side effect disclosed); never pass/V25/full core/business.",
+    "H2c fix chain is fake-host offline and does not widen the probe boundary; no auto retry.",
+    "Product rows remain not_covered; tooling_ready/V/S/FL are not upgraded; artifacts regenerate at round-end clean HEAD."
+  ],
+  "archivedCopies": [
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round6-0819d11-check.log",
+      "sha256": "d57a7f52585ab3e5fa32db097588b8cd94e35c6bc5a0ed2a581f65bb44c8791a",
+      "bytes": 162159
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round6-0819d11-isolated-harness.log",
+      "sha256": "b4859671e99bfdc4c5fd99dbd4f3e758997c467acf4986e7b406d4be79bc7935",
+      "bytes": 8080
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round6-0819d11-shared-harness.log",
+      "sha256": "7362c4ba61c4ebcba24f70366a66e690add267712d9e7938770e1eb197938bbc",
+      "bytes": 8078
+    },
+    {
+      "path": "plugins/shiyu/.local/h7-verify/round6-0819d11-isolated-tsc.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  ]
+}
