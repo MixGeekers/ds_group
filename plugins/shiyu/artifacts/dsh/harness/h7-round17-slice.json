@@ -1,0 +1,172 @@
+{
+ "schemaVersion": 1,
+ "kind": "shiyu.harness.h7-round17-slice-evidence",
+ "phase": "H7-round17",
+ "capturedAt": "2026-11-03T17:48:22.277Z",
+ "baselineHead": "9d419668c0eaf83512644719777b46b14e5ecab8",
+ "status": "code-tests-delivered-not-clean-refresh",
+ "purpose": "Bind the round-16 assembly-rendered runtime-context binding (v6) and the sixth fixed-host v6 attempt (create succeeded a third time; the FIRST real model request reached with request/header+context and three read-only event tools; provider returned an empty stream so the evaluation stayed CORE_EXECUTION_UNCONFIRMED with 0 usage), the round-16 clean artifacts and the round-16 review into evidence.ts and the acceptance index without granting pass; product rows stay not_covered.",
+ "round16Sources": [
+  "runtime-context-binding-v6",
+  "round16-host-v6-first-model-request-empty-stream",
+  "h7-round16-clean-artifacts",
+  "round16-review"
+ ],
+ "sourceCounts": {
+  "sources": 92,
+  "files": 368
+ },
+ "files": [
+  {
+   "path": "plugins/shiyu/tests/harness/evidence.ts",
+   "sha256": "78eb69d876428b2dfa3367a6bde2aa56f0e1611c5e7e07cfb91e508ac65fda86",
+   "bytes": 255118
+  },
+  {
+   "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+   "sha256": "ae35b8dd50b2cc0669afeec7f2f9fb29024ff1d5dc7432662da5434086f3d002",
+   "bytes": 46250
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round17.test.ts",
+   "sha256": "a04897c6e3c90d4e6f4416ceadcec77fad85054bc88f65e8ae7c9c159a74b6d4",
+   "bytes": 34694
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round4.test.ts",
+   "sha256": "12fa3e91872968d064bc4e8ba62389d941fa1d1baa2dd16af0f5358b785c55e7",
+   "bytes": 18584
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round5.test.ts",
+   "sha256": "1c5f408519dc8a8cff6b57aa231830cb411c248b929b08e6278ea696ce0e17b8",
+   "bytes": 23353
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round6.test.ts",
+   "sha256": "47d5ea7c00e6aa0b7396271118943268c24f8150205bbc920380a61d9ae3384f",
+   "bytes": 20213
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round7.test.ts",
+   "sha256": "eb26b10a889edd1d01a33856543322b17fcdb1f1e8e63391d8c9e6b094efe504",
+   "bytes": 17944
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round8.test.ts",
+   "sha256": "b7580e8b96b5ef705c343d40308e27519a35e175cacf3795491258f2309a0ea9",
+   "bytes": 18150
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round9.test.ts",
+   "sha256": "aa0f0c0e951037fc5f59047c8a1166344510e826c31a3e236f809a64c40c5c4a",
+   "bytes": 17602
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round11.test.ts",
+   "sha256": "d481c92b3336e312607d8324f6810ce07950da4e4d30ce6fbafb238db71c4e70",
+   "bytes": 17441
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round12.test.ts",
+   "sha256": "6e245a60b53b67200e156d86b34894c38d84cd5ec188b74f38c692d3591fdfcd",
+   "bytes": 23563
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round13.test.ts",
+   "sha256": "34171cafdd329813a7205521764aa704a9e5854f46e9e40e210202082d27d852",
+   "bytes": 28378
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round14.test.ts",
+   "sha256": "c30f9412c66415c997c89d0f669f013bf19db4bff773006720dcb222a03ada0d",
+   "bytes": 27982
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round15.test.ts",
+   "sha256": "aa20596cbf99e44b138f81fda71a85ecbd073841fbcbc0b0a005e2726a5dea15",
+   "bytes": 27700
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round16.test.ts",
+   "sha256": "550abfeff8e4bf176cfc9396ac5a5153ef09b0d3e0329791484b80ed9580454b",
+   "bytes": 29175
+  }
+ ],
+ "commands": [
+  "npx tsc --noEmit",
+  "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+  "npm run check (isolated worktree 9d41966 + only round-17 slice files)",
+  "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+  "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+ ],
+ "checks": {
+  "sharedTree": {
+   "blockedByConcurrentWip": true,
+   "note": "No green shared-tree run is claimed for the round-17 code slice: the shared workspace can carry concurrent uncommitted product WIP from other parallel round-17 tasks, so sources without a pinned blobCommit would compare dirty worktree files against the frozen HEAD blob. The authoritative slice verification is the isolated worktree below; no green/average claim is implied for the shared tree."
+  },
+  "isolatedWorktree": {
+   "head": "9d419668c0eaf83512644719777b46b14e5ecab8",
+   "worktree": "/tmp/h7r17-slice (ephemeral)",
+   "tsc": {
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round17-9d41966-isolated-tsc.log",
+     "sha256": "a6ce7f41eaf235b981cdbfe9a3d6a5d9a3502b6bd605ffc2acf78679a4ee9a2f",
+     "bytes": 11
+    }
+   },
+   "harness": {
+    "tests": 182,
+    "pass": 182,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round17-9d41966-isolated-harness.log",
+     "sha256": "11d902bdefe2fd8cfca89b708047e44a2f0a85bbd6a984e7393edd716b9d2bb2",
+     "bytes": 13646
+    }
+   },
+   "fullCheck": {
+    "tests": 1,
+    "pass": 1,
+    "fail": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round17-9d41966-check.log",
+     "sha256": "52d26753462488ad21852bc6718e21b84835f53765304d0a1e1b89d05a2a71b1",
+     "bytes": 8
+    }
+   }
+  }
+ },
+ "productRows": {
+  "total": 79,
+  "notCovered": 79,
+  "covered": 0
+ },
+ "toolingReady": [
+  "TV.1",
+  "TV.2",
+  "TV.3",
+  "TV.4",
+  "TV.5",
+  "TV.6",
+  "TV.7",
+  "TV.9"
+ ],
+ "acceptanceGate": "incomplete",
+ "limitations": [
+  "H7-round17 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+  "Round-16 sixth v6 host attempt: create succeeded a THIRD time (authorized/active/mandate/binding confirmed/goalRef rev1/1 Goal Session) and the decision round finally reached the real model layer (21-event Goal Session: system/owner/runtime-context messages, request/header with three read-only event tools, request/context), but the provider stream was EMPTY (assistant/attempt streamLength=0) and the turn aborted; the single evaluation is CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED preserved, evaluateAttempts=1, 0 usage, stopAction pause, +14 commitSeq, goals 7→8, sessions 39→40, budget unknown 5→6 held 16384/2; v4/v5/v6 residuals, no Task/Effect/artifact or completed business chain; seventh attempt NOT authorized; never pass/V25/business/nine-system.",
+  "Round-16 review is independent-review-info only and deliberately unmapped; product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD."
+ ],
+ "archivedCopies": [
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round17-9d41966-isolated-tsc.log",
+   "sha256": "a6ce7f41eaf235b981cdbfe9a3d6a5d9a3502b6bd605ffc2acf78679a4ee9a2f",
+   "bytes": 11
+  }
+ ]
+}

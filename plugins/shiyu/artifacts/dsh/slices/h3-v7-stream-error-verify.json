@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h3-v7-stream-error",
+  "capturedAt": "2026-11-03T18:34:25.522Z",
+  "head": "9d419668c0eaf83512644719777b46b14e5ecab8",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h3-v7-stream-error-1793728870817",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/core-decision.ts",
+      "bytes": 102382,
+      "sha256": "a663d0d0089e545b9b50f8ee31ab4e2a59b499a17af6f58e42f618f6ba6d9323"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/control-store/core-domain.ts",
+      "bytes": 86371,
+      "sha256": "660c55f96e66156268f7ff152239461c28b3121990274a191913d24f777f980f"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 101061,
+      "sha256": "d1542a059fc0cfac137d36dc901372da9c10861c8aee65e574d39f5dde427fe1"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 127169,
+      "sha256": "b6ed1a9d45b973d440f18a5b195e3aa72f4e90306e925cf86548344247c81ff9"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 94260,
+      "sha256": "116ff70f935892949f80a659d64ce9bb7f63055c9fb4b9107857ce163ba5a3ca"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-domain.test.ts",
+      "bytes": 41220,
+      "sha256": "2562f128ef1f88b412c39c0378f14147953f065ec19bd7628f545de59fd4152f"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 1994217,
+    "bytes": 180738,
+    "sha256": "8aca3acee500e09a848a5cb57e04fc1d21dcb2adba84f55a9b32f379e2542f7b",
+    "tests": {
+      "tests": 1710,
+      "pass": 1710,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 1992811.221417",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h3-v7-stream-error.log",
+    "bytes": 180738,
+    "sha256": "8aca3acee500e09a848a5cb57e04fc1d21dcb2adba84f55a9b32f379e2542f7b"
+  },
+  "verdict": "pass"
+}
