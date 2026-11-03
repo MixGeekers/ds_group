@@ -30,17 +30,15 @@
       "tool": "scripts/slice-verify.mjs (re-run on the final X commit 6392c7e tree with the exact activation files)",
       "evidence": "artifacts/dsh/slices/round10-v2-activation-verify.json",
       "exitCode": 0,
-      "tests": {
-        "tests": 1583,
-        "pass": 1583,
-        "fail": 0,
-        "cancelled": 0,
-        "skipped": 0
-      },
+      "tests": 1583,
       "durationMs": 612061,
       "log": "plugins/shiyu/.local/slice-verify-round10-v2-activation.log",
       "logSha256": "cc06c1c8f0d5dcbac4bba9cd171e6d3583a57fa0f3a2b28d1316c35089199c2a",
-      "arithmetic": "1582 baseline + 1 v2 tool-definition test = 1583"
+      "arithmetic": "1582 baseline + 1 v2 tool-definition test = 1583",
+      "pass": 1583,
+      "fail": 0,
+      "skipped": 0,
+      "logBytes": 169218
     }
   },
   "design": {
