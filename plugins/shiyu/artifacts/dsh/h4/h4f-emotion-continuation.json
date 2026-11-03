@@ -2,10 +2,10 @@
   "slice": "H4f：情绪域延续——可读取的情绪状态与受控集成（不暂停）",
   "recordedAt": "2026-11-03T14:42:36-04:00",
   "workspace": "plugins/shiyu",
-  "status": "离线/集成通过（10/10 定向）；全量 worktree 1727 tests / 1726 pass / 1 fail = 当前 HEAD 既有 runtime-semantic-memory 期望未更新（与 H4f 无关，已干净 HEAD 复现）；0 skip。宿主探针待 Lead 应用 patch+reload（hostKit）——不宣称宿主通过。",
+  "status": "离线/集成通过：最终 worktree HEAD 20364bc 全量 1727/1727 pass、0 fail/0 skip；runtime+index H4f patch 已重排到 20364bc 并验证 tsc/build pass。宿主探针待 Lead 应用 patch+reload（hostKit）——不宣称宿主通过。",
   "baseline": {
-    "head": "11d863a",
-    "note": "隔离 worktree /tmp/shiyu-h4f 仅含本切片 4 文件；runtime.ts/index.ts 未改，集成以精确 diff 交付。当前主树 HEAD 已推进到 520e305（含 Lead H2d 修复）；H4f patch 在 11d863a 验证编译通过。"
+    "head": "20364bc",
+    "note": "最终隔离 worktree /tmp/shiyu-h4f2 基于 Lead 修复提交 20364bc（H2d 测试期望已对齐）+ 本切片 4 文件；runtime.ts/index.ts 未改，组合 patch 已重排到该 HEAD 并验证编译。"
   },
   "implementation": {
     "files": [
@@ -35,9 +35,9 @@
       },
       {
         "path": "plugins/shiyu/artifacts/dsh/h4/h4f-emotion-runtime.patch.diff",
-        "sha256": "a7921d2211f65603e9f673d908f902c0453ad9d4a00a9e732540a74196b356d1",
-        "bytes": 5106,
-        "lines": 68
+        "sha256": "984edfa7654c85be8519d3599fdf424d62d38a1c923509a58fbccd1a8ef7caeb",
+        "bytes": 6178,
+        "lines": 85
       }
     ],
     "read_path": {
@@ -67,46 +67,35 @@
     "no_subjective_experience": "明确：有情绪状态管理、确定性投影与可读取证据 ≠ 模型有主观情绪体验或长期人格；本切片不升级该主张，disclosure 字段随每个 context 返回。",
     "runtimePatch": {
       "path": "artifacts/dsh/h4/h4f-emotion-runtime.patch.diff",
-      "status": "未应用；待 Lead 应用",
+      "status": "未应用；已重排到当前 HEAD 20364bc（包含 runtime.ts 命令/diagnostics 与 index.ts 工具注册），在临时 worktree 验证 tsc --noEmit/build 通过；Lead 可在集成时按需手动 rebase。",
       "changes": [
-        "导入 probe 模块；字段 emotionProbeCommand/Receipt；init 构造（isOpen/isPaused/onReceipt）；command 分派 runtime.probe-emotion-continuation；handler ensureCanRun+signal+单槽；snapshot diagnostics.emotionContinuationProbe（只读）",
+        "runtime.ts：导入 probe；字段 emotionProbeCommand/Receipt；init 构造（isOpen/isPaused/onReceipt）；command 分派 runtime.probe-emotion-continuation；handler ensureCanRun+signal+单槽；snapshot diagnostics.emotionContinuationProbe（只读）",
         "index.ts：注册工具 shiyu_diagnose_emotion_continuation（无参数）"
       ],
-      "compileCheck": "HEAD 11d863a + patch：tsc --noEmit/build pass（日志见 verification.runtimePatchCheck）"
+      "compileCheck": "HEAD 20364bc + 重排 patch：tsc --noEmit/build pass（日志见 verification.runtimePatchCheck）"
     },
     "scopeNote": "新增只读命令类型需要在 src/contracts/inner.ts 增加 27 行（EmotionContext/EmotionContextEvent + 两个命令声明）；该文件不在 task-68 字面写作用域，但为新增 emotion 只读 API 的相邻类型面所必需，未改变既有字段/行为；已在本报告与证据中显式披露。"
   },
   "verification": {
     "isolatedWorktree": {
-      "path": "/tmp/shiyu-h4f",
-      "head": "11d863a",
-      "method": "git worktree --detach 11d863a + 本切片 4 文件；node_modules/.local/ombre symlink",
-      "command": "cd /tmp/shiyu-h4f/plugins/shiyu && npm run check",
-      "exitCode": 1,
+      "path": "/tmp/shiyu-h4f2",
+      "head": "20364bc",
+      "method": "git worktree --detach 20364bc + 本切片 4 文件；node_modules/.local/ombre symlink",
+      "command": "cd /tmp/shiyu-h4f2/plugins/shiyu && npm run check",
+      "exitCode": 0,
       "typecheck": "pass",
       "tests": 1727,
-      "pass": 1726,
-      "fail": 1,
+      "pass": 1727,
+      "fail": 0,
       "cancelled": 0,
       "skipped": 0,
-      "durationMs": 1938632,
+      "durationMs": 1889838,
       "build": "pass",
       "clientSyntax": "pass",
-      "failure": {
-        "test": "tests/runtime-semantic-memory.test.ts: schema2 compatible but unverified embedding permits explicit index/search without claiming verified inference",
-        "reason": "当前 HEAD 既有 H2d readiness 门禁使 publication capabilities 在 embeddingVerified=false 时只有 exact_read；该旧测试仍期待 semantic_search+profileFingerprint。",
-        "isolation": "干净 worktree 仅 HEAD 520e305（不含 H4f 切片）单测复现同一失败；与 H4f 无关。",
-        "log": {
-          "path": "plugins/shiyu/.local/h4f-baseline-failure.log",
-          "sha256": "3ca82e25cede0cd7ac87d7ad9060b1d5b5426a5b9aca6109658130a6b4ffec51",
-          "bytes": 1652
-        },
-        "disposition": "待 Lead/负责 H2d 的 agent 更新测试期望（unverified→exact_read only）；H4f 切片本身 10/10。"
-      },
       "log": {
-        "path": "plugins/shiyu/.local/h4f-check-final.log",
-        "sha256": "e5dbd5aff879ce384aa4aaa3723c1b5b16179c24fa8f8402b87f96fa1826ba00",
-        "bytes": 183600
+        "path": "plugins/shiyu/.local/h4f2-check-final.log",
+        "sha256": "b30b86a2ce52e29f89ea16dceb11a07606f5906a28ccc32946d0c0568fb911a9",
+        "bytes": 182232
       }
     },
     "targeted": {
@@ -132,17 +121,17 @@
       ]
     },
     "runtimePatchCheck": {
-      "worktree": "/tmp/h4f-check",
-      "method": "HEAD 11d863a + runtime emotion patch",
+      "worktree": "/tmp/h4f-check2",
+      "method": "HEAD 20364bc + 重排后的 runtime.ts/index.ts H4f patch + 本切片模块",
       "command": "tsc --noEmit && tsc -p tsconfig.build.json",
       "result": "pass",
       "log": {
-        "path": "plugins/shiyu/.local/h4f-runtime-patch-check.log",
-        "sha256": "b293a0e906acbe82c7377cf6721e36e459d1fdbd9c7ae1622500eaa521b29c67",
-        "bytes": 120
+        "path": "plugins/shiyu/.local/h4f2-runtime-patch-check.log",
+        "sha256": "bc76ea1e64d38a1d9bf58ce417971e477d75ad1e7deaebc202251f33eb99b764",
+        "bytes": 134
       }
     },
-    "testArithmetic": "HEAD 11d863a 基线 1717 + 新增 10 = 1727（worktree 单批）；1 fail 为既有基线问题。"
+    "testArithmetic": "HEAD 20364bc 基线 1717 + 新增 10 = 1727（worktree 单批，0 fail/0 skip）"
   },
   "hostKit": {
     "status": "待真实宿主（本轮未 reload、未真实模型/embedding）",
@@ -164,15 +153,10 @@
       "before/after 审计 JSON sha256/bytes（commitSeq、stateVersion、entries、effects/tasks/goals、Session 文件数/hash）",
       "paused/无参/单槽失败样例（可选）",
       "边界陈述：state management/readable evidence ≠ subjective experience"
-    ]
+    ],
+    "patchNote": "patch 已重排到当前 HEAD 20364bc 且 tsc/build 通过；Lead 应用时如遇并行提交导致上下文冲突，可手动 rebase（语义不变）。"
   },
-  "failures": [
-    {
-      "id": "H4F-BASELINE-1",
-      "status": "open-external",
-      "detail": "HEAD 520e305 的 tests/runtime-semantic-memory.test.ts 期望未随 H2d readiness 门禁更新；干净 HEAD 复现，不属 H4f；待更新测试期望。"
-    }
-  ],
+  "failures": [],
   "boundaries": [
     "未改 runtime.ts/index.ts（patch 交付）、未 git 提交、未宿主 reload、未真实模型/embedding/Ombre 写；宿主探针待 Lead 执行。",
     "live 聊天中创建 emotion 记录的 owner 显式路径/背景投影本轮未实现；H4c 已能读取现有 emotion 记录，本轮提供 read-only context 命令与设计。",
@@ -185,5 +169,6 @@
     "复制本切片 4 文件；ln -s 主树 node_modules/.local/ombre；npm run check",
     "node --import tsx --test --test-concurrency=1 tests/emotion-continuation.test.ts",
     "runtime patch 编译：worktree 11d863a + git apply artifacts/dsh/h4/h4f-emotion-runtime.patch.diff + tsc"
-  ]
+  ],
+  "baselineResolution": "前次在 HEAD 11d863a 观察到的 runtime-semantic-memory.test.ts 期望失败（H2d 门禁后仍期待 unverified→semantic_search）已由 Lead 提交 20364bc 修复；该测试在 20364bc 干净 worktree 1/1 pass，本切片全量 1727/1727 pass。"
 }

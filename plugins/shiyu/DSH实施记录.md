@@ -2096,3 +2096,42 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 只证"真实本地 embedding + 检索 + 读取 + 撤回拒绝 + 能力发布"；**尚未用生成模型做单用户多轮聊天召回**。
 2. 下一步 P0：单用户多轮（同 native Session）写入事实→下一轮模型可见召回→有序 reload 后召回→撤回后拒绝；严格 oracle；需要一次有界真实模型聊天脚本。
 3. 多任务/多日稳定/多人/情绪行为仍按新优先级排队（情绪继续、不作主观体验声明）。
+
+## 73. 第十七轮：可写共享工作区、情绪延续、stream 分类与固定宿主验证
+
+状态：**G1 离线/集成 + 固定宿主零模型诊断通过**；单用户多轮真实聊天仍未执行。2026-11-03，代码 X=`6f6268d`，X+1=`4110d35`。
+
+### 73.1 可写共享工作区（用户要求：不能只读）
+
+- 每任务 `{workspacesRoot}/<taskId>/{task,shared}`；`shared/` 为配置共享根的文件硬链接镜像（目录重建、同设备、拒绝符号链接/跨设备/外部 inode），**原地写立即传播到 canonical**（回执/文档披露）。
+- 新文件受控 hardlink 发布并更新共享索引，冲突保留任务 mirror 不静默丢弃；删除默认只删任务侧链接，canonical 删除需显式 `ownerDecision`。
+- O_EXCL 锁+lease、manifest（path/dev/ino/nlink/size/mtime/sha256 + 完整性 hash）、未声明修改 → unknown 且索引不更新、外部替换/缺失 → conflict、manifest 篡改 → blocked、可选 pre-task snapshot + 原地回滚、allowlist/bounds/escape 检查；artifact 路径不变。
+- 15 测试；作者隔离全量 **1715/1715**；证据 `artifacts/dsh/tasks/workspace-shared-hardlink.json`。Runtime/TaskRunner 集成点已在文档给出，尚未接线。
+
+### 73.2 情绪域继续（用户要求：不要停）
+
+- `emotion.context`（conversation-scoped 只读）：当前 system-state（valence/arousal/label、v1 decay policy、reviewDue/regulations、degradation/revokedEvidence、derivation reasons）+ 最近 ≤8 事件（sourceRefs/observedAt/derivation/bodyAvailable/conclusion/guidance）；显式 `subject=system-state/humanFeeling=false/authorityEffect=none` 与 disclosure（无主观体验/无长期人格/模型自述无权威/Ombre pulse 不当情绪）。
+- `emotion.memoryDimension` 只读候选检索维度（valence/arousal、sourceDomain=emotion、ombreMetadataWritten=false）；写入仍仅 observe/review/regulate（无 set_emotion/pulse 写路径）。
+- 零模型隔离探针 15 checks（来源/时间/受众/撤回/降级/旧 capture 拒绝/不复活/pulse 不当情绪/memoryDimension 只读/cleanup/zeroActivity），工具 `shiyu_diagnose_emotion_continuation`。
+- 测试 10/10；作者隔离全量 **1727/1727**（含基线修复）；**宿主探针 passed（15/15 checks、zeroModel/embedding、liveDataTouched=false、cleanup ok）**。
+- 边界：情绪状态管理与可读证据 ≠ 模型主观情绪体验/长期人格；live 聊天 emotion 写入路径未实现（设计已披露）。
+
+### 73.3 provider stream 分类与 v7 准备
+
+- `streamDiagnostic`：empty-provider-stream / transport / auth / request-shape / timeout / aborted（首块前/后）/ unknown，仅受控 code/name/label，不保留 provider 正文；经 in-process handoff 透出到 `preStopEvaluation.streamDiagnostic`；receipt 增加 `goalSessionSummary`；0 自动重试。
+- `CORE_VALIDATION_EXPERIMENT_V7` 冻结（requestId `core-validation-frozen-v7`、content sha `8bd2944a…`、template sha `c8fbd85b…`），owner 命令/工具已接线；**第七次尝试未执行，需显式 owner 授权**。
+
+### 73.4 固定宿主验证（本轮）
+
+- 一次有序 reload（commitSeq 556→563、events 66→67、capability…、sessions 40/goals 8 不变、state 文件不变）。
+- `shiyu_diagnose_emotion_continuation`：**passed**，15 checks、zeroModel/zeroEmbedding、store=in-memory、liveDataTouched=false、cleanup storeClosed/workerTerminated、livePathsAccepted=0。
+- `shiyu_verify_memory_embedding`（重载后重验）：**ok=true**，5 steps 全 passed、index/search embedding 各 1 次、matches=1、semanticHit、exactReadBodyMatched、撤回后 MEMORY_READ_FORBIDDEN；readiness=embeddingVerified/semanticReady、capabilities exact_read+semantic_search。
+- 探针合计 +10 commitSeq（memory 往返），events/sessions/goals/state 不变；0 生成模型。
+- 边界：embedding 验证为**进程级**，每次 reload 后需重新验证；单用户多轮真实聊天记忆闭环尚未执行。
+
+### 73.5 证据与验收
+
+- 代码切片：memory gate/owner 工具（`fc9daae`..`520e305`）、可写工作区 `cce6deb`、情绪延续 `e860ac8`、stream/v7 `fa9e880`、H7-round17 `bcb252f`、R17-CORR `6f6268d`；X+1 `4110d35`。
+- clean X：**1764/1764、0 skip**；selfproof 22 files/182；traceability **92/92 sources（368 文件、0 unknown）**；产品行 79/79 not_covered、V/S/FL 不升级；acceptance gate=incomplete/executed=passed=0。
+- 宿主证据：`artifacts/dsh/host/round17-joint-emotion-memory.json` + `host/round17/`（emotion/memory receipts、3 审计）。
+- **真实多轮聊天记忆闭环、可写共享工作区真实任务执行均未做**：下一步。

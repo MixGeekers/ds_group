@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "phase": "round17-host",
+  "slice": "fixed-host zero-model verification of emotion continuation and repeated P0 memory embedding after reload",
+  "capturedAt": "2026-11-03T19:06:16.107Z",
+  "status": "fixed-host-zero-model-emotion-and-memory-passed",
+  "purpose": "One ordered reload of the round-17 build, then one owner-only isolated emotion-continuation probe and one owner-only memory embedding round-trip. Emotion probe uses a private :memory: store only; memory round-trip uses the real local Harrier embedding and leaves one withdrawn synthetic memory operation (disclosed).",
+  "code": {
+    "head": "6f6268d",
+    "dist": {
+      "files": 117,
+      "digest": "6a1f3b3a65a278fd4c2117612d48788b687c6c27b41503044a6213d2f5a21b2d"
+    }
+  },
+  "emotionProbe": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round17/emotion-probe-receipt.json",
+      "bytes": 4139,
+      "sha256": "091024b6d9ab96bbceb1a89898faf04f6b820764061d56ad4f3e6e2777218677"
+    },
+    "status": "passed",
+    "zeroModel": true,
+    "zeroEmbedding": true,
+    "zeroTaskOrEffect": true,
+    "store": "in-memory",
+    "liveDataTouched": false,
+    "steps": 7,
+    "checks": 15,
+    "checksPassed": 15,
+    "disclosure": {
+      "subjectiveExperience": false,
+      "longTermPersonality": false,
+      "modelSelfReportAuthority": "none",
+      "ombrePulseTreatedAsEmotion": false
+    },
+    "memoryDimension": {
+      "readOnly": true,
+      "ombreMetadataWritten": false
+    },
+    "cleanup": {
+      "storeClosed": true,
+      "workerTerminated": true
+    },
+    "zeroActivity": {
+      "modelCalls": 0,
+      "embeddingCalls": 0,
+      "tasks": 0,
+      "effects": 0,
+      "sends": 0
+    },
+    "released": true,
+    "disposed": true
+  },
+  "memoryRoundTrip": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round17/memory-embedding-receipt.json",
+      "bytes": 1572,
+      "sha256": "46f596103ada06d448b3d410258a26edae332ce2506db33629ea64c3f30d3700"
+    },
+    "ok": true,
+    "steps": [
+      {
+        "step": "remember-synthetic-fact",
+        "status": "passed"
+      },
+      {
+        "step": "index-fact",
+        "status": "passed"
+      },
+      {
+        "step": "semantic-search",
+        "status": "passed"
+      },
+      {
+        "step": "exact-read",
+        "status": "passed"
+      },
+      {
+        "step": "withdraw-fact",
+        "status": "passed"
+      }
+    ],
+    "embeddingCalls": 1,
+    "searchEmbeddingCalls": 1,
+    "usageComplete": true,
+    "matches": 1,
+    "semanticHit": true,
+    "exactReadBodyMatched": true,
+    "postWithdrawRejected": true,
+    "postWithdrawCode": "MEMORY_READ_FORBIDDEN",
+    "readiness": {
+      "version": 1,
+      "semanticConfigured": true,
+      "exactRead": true,
+      "embeddingVerified": true,
+      "profileCompatible": true,
+      "capabilities": [
+        "exact_read",
+        "semantic_search"
+      ],
+      "coverage": {
+        "readableCount": 0,
+        "indexedCount": 0,
+        "missingCount": 0,
+        "staleCount": 4,
+        "pendingCount": 0,
+        "unknownCount": 0,
+        "cancelledCount": 0,
+        "indexBaselineId": "index_f0f5218980fc4ed1a9f20176bee88905",
+        "indexWatermark": 4,
+        "observedAt": "2026-11-03T19:05:57.080Z",
+        "coverageComplete": false
+      },
+      "coverageComplete": false,
+      "semanticReady": true,
+      "reason": "INDEX_COVERAGE_INCOMPLETE",
+      "verification": {
+        "scope": "backend-instance",
+        "lastEmbeddingSuccessAt": "2026-11-03T19:05:57.217Z"
+      }
+    },
+    "coverage": {
+      "readableCount": 0,
+      "missingCount": 0,
+      "coverageComplete": true,
+      "indexedCount": 0,
+      "staleCount": 4,
+      "pendingCount": 0,
+      "unknownCount": 0,
+      "cancelledCount": 0,
+      "failedCount": 0,
+      "indexBaselineId": "index_f0f5218980fc4ed1a9f20176bee88905",
+      "indexWatermark": 4,
+      "observedAt": "2026-11-03T19:05:57.080Z"
+    },
+    "generationModelCalls": 0
+  },
+  "milestone": "The emotion continuation probe passed all 15 checks with zero model/embedding, an explicit no-subjective-experience disclosure and no live data touched. The P0 memory round-trip passed again after reload: real index/search embeddings (one each), one semantic match, exact body match, post-withdraw MEMORY_READ_FORBIDDEN, readiness flipped to embeddingVerified/semanticReady with capabilities exact_read+semantic_search.",
+  "reload": {
+    "commitSeq": [
+      556,
+      563
+    ],
+    "events": [
+      66,
+      67
+    ],
+    "capabilityRevision": [
+      67,
+      69
+    ],
+    "sessions": [
+      40,
+      40
+    ],
+    "goals": [
+      8,
+      8
+    ],
+    "stateFile": [
+      "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+      "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+    ],
+    "classification": "normal startup writes only; business facts unchanged."
+  },
+  "probes": {
+    "commitSeq": [
+      563,
+      573
+    ],
+    "events": [
+      67,
+      67
+    ],
+    "sessions": [
+      40,
+      40
+    ],
+    "goals": [
+      8,
+      8
+    ],
+    "stateFile": [
+      "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006",
+      "9a1d34c82e1a007b8d81f4c4a2db73be5b9ff47b8a752ef9bbdd1ec5e46b6006"
+    ],
+    "classification": "only the memory round-trip added +10 commitSeq (memory command/index/withdraw/availability); the emotion probe is in-memory only; sessions/goals/events and the runtime-state file are unchanged."
+  },
+  "limitations": [
+    "Emotion probe is isolated in-memory; it proves state read/withdrawal/audience/degradation/disclosure semantics, not live chat emotion behavior or subjective experience.",
+    "The memory round-trip leaves one withdrawn synthetic memory operation; coverage stays unpopulated (readable 0/stale 4) because probe facts are withdrawn.",
+    "Embedding verification is per-process: after a reload readiness falls back to exact_read until an explicit embedding succeeds again; a startup/first-search verification path is still needed for seamless restart chat."
+  ],
+  "sideEffects": {
+    "syntheticMemories": 3,
+    "totalNote": "three synthetic memory operations have been created across P0 runs and all are withdrawn/blocked; this round added one."
+  }
+}
