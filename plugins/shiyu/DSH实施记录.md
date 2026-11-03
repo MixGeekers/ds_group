@@ -1302,3 +1302,37 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 - 修复（方案 A）：`EvidenceFileRef` 增加可选 `blobCommit`/`expectedSha256`；`h7-round4-clean-artifacts` 的 manifest/traceability/acceptance 三个 ref 固定 `blobCommit:'dfe4372'` 并钉死交付 SHA，验证器要求 commit 存在且为 frozenHead 祖先，直接 `git show dfe4372:<path>` 校验 blob SHA/JSON，不再读可变工作树；其它来源保留 worktree tamper→unknown。
 - 测试：新增 2 项（流水线重写产物后 blobCommit 来源仍 verified；invalid commit/wrong expected SHA/非祖先→unknown）；harness 85/85；隔离 HEAD 6ae4582+仅切片 全量 **1498/1498、0 skip**；原 1496 clean check 标 superseded-by-hotfix。
 - 该 hotfix 成为新 X（`511fe65` 的祖先链不变；产品代码与宿主证据未变），随后重跑 clean 刷新获得 X+1。
+
+## 39. 第五轮独立复核与 F5 处置（round-5 收尾）
+
+2026-11-02/03，独立验证员对 round-5 修复链、宿主证据与 X+1 做只读复核（task-34）：**26 项检查完成，9 条 findings 全部 fixed/info/resolved**。报告：[ROUND5-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND5-EVIDENCE-REVIEW.md>)、[round5-evidence-review.json](<artifacts/dsh/verify/round5-evidence-review.json>)。
+
+### 39.1 复核覆盖
+
+| 项 | 结果 |
+|---|---|
+| H2c 修复链 `7f57ea1`→`7704e5d`→`3bec321`→`3e2bbf9`→`6ae4582` | 计数 1492/1493/1494/1495/1496 均匹配；每次修复有 fake-host 回归测试；H2c 边界未放宽（仅 types 工具、≤2 请求/2 stream、1 工具往返、256 tokens、usage unknown、0 重试、无业务写） |
+| H2b live 时间触发 `6ecb487` + H7-round5 | 1481/1479、harness 83 匹配；live trigger 8 checks |
+| **真实模型通过与 live 时间触发（host `511fe65`）** | 独立核对通过：真实模型 2 requests/2 streams、1 tool/1 result、usage 1469/41/2406（原样记录）、typesSeen=4 一致、title suppressed 2、cleanup、无业务写入；live DB 只读实测恰好 1 个 append-only `time.occurred`（seq46/eventId 与 receipt 一致）、规则/timeState 清理；审计链 353→390/44→51/27→33/cap25→37，known 27 Session 不变、6 个新增 probe Session 全对应、业务事实/state 不变 |
+| H7 blobCommit hotfix `444f377` | 仅 7 文件、产品/宿主不变；隔离 1498/1498；`git show <blobCommit>:<path>` + 祖先 + expectedSha 校验；pipeline 重写 manifest 后来源仍 verified |
+| X+1 `693fab1` | 11 artifacts only；manifest.vcs head=444f377/dirty=false/leaks=0；src/client/tests/scripts diff=0；11 件 SHA/bytes 全匹配；clean 1498/1498；pipeline 全绿；**38/38 sources verified、103 文件、0 unknown**；selfproof 85；产品 79/79 not_covered；acceptance gate=incomplete/executed=passed=0 |
+
+### 39.2 F5 findings 处置
+
+| ID | 处置 |
+|---|---|
+| F5-R1（中间日志覆盖） | 已披露：中间 per-fix slice-check 日志同路径被 final 覆盖；计数以 per-commit test 增量 + final 1496 日志 `408dc519…` 佐证，未重构 |
+| F5-R2（receipt bytes） | 改为实际 1322 字节 + bytesSemantics |
+| F5-R3（失败次数措辞） | 明确为 6 次失败（af201fe round-4 重测 + round-5 五个 pre-pass） |
+| F5-R4（请求 vs stream） | 精确措辞：attempt4/5 已发起 1 次 request、0 stream 完成、无 usage、provider 是否接收/计费未知，不得概括为零请求 |
+| F5-R5（reload 审计粒度） | 声明 6 次 reload / 4 个 audit 快照；中间 dist `6e566354…`、final `bdc6e3a2…`；聚合算术一致 |
+| F5-R6（final status 缓存） | info 接受（仅 core-model receipt 缓存；live event 单独 SQLite 核对） |
+| F5-R7（X+1/host 提交） | resolved（`693fab1`/`511fe65` 已提交并复核） |
+| F5-R8（acceptance 临时路径） | info 接受，future redact |
+| F5-R9（round-5 host 未入 H7 映射） | 按计划属 round-6 工作，无 unknown/升级 |
+
+### 39.3 边界
+
+1. **真实模型工具往返仅在受限诊断探针范围内通过**（固定 prompt、2 主请求、1 个只读 types 工具、受限 Session），不是完整 core 决策/计划/业务验收；provider 是否接收 attempt4/5 的请求与费用未知。
+2. live 时间触发为一次性规则探针，留下一个 append-only 事件；不是长期调度/崩溃恢复验收。
+3. round-5 host 证据尚未进入 H7 映射（round-6）；产品行 79/79 not_covered；acceptance gate=incomplete、executed=passed=0。
