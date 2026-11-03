@@ -274,6 +274,19 @@ export function coreGoalValidationV6Tool(service: { command(input: unknown): Pro
   } as const;
 }
 
+export function memoryEmbeddingProbeTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_verify_memory_embedding',
+    description: '零生成模型、单次真实本地 embedding 验证（owner-only）：对现有本地会话执行一次 memory.searchLocal 固定探针查询，仅用于确认 Harrier embedding 真实可用；不写记忆、不调用生成模型、0 重试；成功后 runtime 才允许声明 semantic_search，失败如实降级 exact_read；回执含 embeddingCalls/usageComplete/readiness/coverage。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.probe-memory-embedding' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  };
+}
 export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_validate_core_goal',
@@ -347,6 +360,8 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(coreGoalValidationV4Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV5Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV6Tool(service)));
+  // Owner-only one-shot embedding verification; no generation model, no retry.
+  ctx.effect(() => ctx.tools.register(memoryEmbeddingProbeTool(service)));
   // Zero-model native Session header-cut diagnostic: one bare lifecycle Session only.
   ctx.effect(() => ctx.tools.register(nativeHeaderCutProbeTool(service)));
   // Owner-only reconcile of the fixed core-validation Goal: read-only + at most

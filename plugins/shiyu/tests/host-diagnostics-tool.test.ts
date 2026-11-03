@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, nativeHeaderCutProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, memoryEmbeddingProbeTool, nativeHeaderCutProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 import { innerLifecycleDiagnosisTool } from '../src/control/inner-lifecycle-probe.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
@@ -209,4 +209,16 @@ test('core goal validation v6 tool executes exactly the sixth frozen experiment 
   assert.match(tool.description, /非 v1-v5 重试/);
   assert.equal(await tool.execute(), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.probe-core-goal-v6' }]);
+});
+
+test('memory embedding verification tool executes exactly the zero-generation-model probe command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, embeddingCalls: 1, usageComplete: true, generationModelCalls: 0 };
+  const tool = memoryEmbeddingProbeTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_verify_memory_embedding');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /零生成模型/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-memory-embedding' }]);
 });
