@@ -1,0 +1,13 @@
+diff --git a/plugins/shiyu/src/index.ts b/plugins/shiyu/src/index.ts
+index 168c224..1bd4e38 100644
+--- a/plugins/shiyu/src/index.ts
++++ b/plugins/shiyu/src/index.ts
+@@ -180,7 +180,7 @@ export function coreGoalValidationTool(service: { command(input: unknown): Promi
+ export function coreValidationReconcileTool(service: { command(input: unknown): Promise<unknown> }) {
+   return {
+     name: 'shiyu_reconcile_core_validation_goal',
+-    description: '只读核对固定 requestId core-validation-frozen-v1 的 Goal 并分类（absent/inert-unauthorized/paused-authorized/cancelled/unknown）；仅 inert unauthorized 残留 Goal 尝试一次显式 cancel，0 重试；不创建/重启 Goal、不调模型、不写业务库；要求运行时未暂停；回执仅存 snapshot().diagnostics.coreValidationReconcile。',
++    description: '只读核对固定 requestId 数组（core-validation-frozen-v1 与 core-validation-frozen-v2，代码常量，调用方不可选择/覆盖）的 core-validation Goal 并分别分类（absent/inert-unauthorized/paused-authorized/cancelled/unknown）；仅每个 inert unauthorized 残留 Goal 尝试一次显式 cancel（每个目标 0 重试），v1 主字段保持兼容并在 targets[] 返回两个固定目标；不创建/重启 Goal、不调模型、不写业务库；要求运行时未暂停；回执仅存 snapshot().diagnostics.coreValidationReconcile。',
+     parameters: { type: 'object', properties: {}, additionalProperties: false },
+     isConcurrencySafe: false,
+     execute: async () => service.command({ action: 'runtime.reconcile-core-validation-goal' }),

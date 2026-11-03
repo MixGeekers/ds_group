@@ -4,12 +4,13 @@ import test from 'node:test';
 import type { CoreCandidate, CoreEvaluation, CoreGoal, CorePlanVersion, CorePrepareInput } from '../src/contracts/core.js';
 import type { CoreEvaluationResult } from '../src/control/core-pump.js';
 import type { GoalBinding, GoalOperationPhase } from '../src/adapters/dsh/goals.js';
+import type { NativeHistoryDiagnostic } from '../src/adapters/dsh/native-context.js';
 import type { CommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
 import type { TaskDetail } from '../src/adapters/control-store/task-domain.js';
 import type { TaskView } from '../src/control/tasks/types.js';
 import type { Budget } from '../src/control/policy/mandates.js';
 import {
-  assertBoundedCoreValidationReceipt, assertBoundedCoreValidationReconcileReceipt, BoundedCoreValidationRunner,
+  assertBoundedCoreValidationReceipt, assertBoundedCoreValidationReconcileReceipt, assertHistoryDiagnostic, BoundedCoreValidationRunner,
   CoreValidationBusyError, CoreValidationReconcileBusyError, CoreValidationReconcileOptionsError, CoreValidationOptionsError,
   frozenCoreValidationInput, reconcileCoreValidationGoal, runBoundedCoreValidation, CORE_VALIDATION_BUDGET,
   CORE_VALIDATION_DELIVERABLE, CORE_VALIDATION_MAX_EVALUATIONS, CORE_VALIDATION_OBJECTIVE, CORE_VALIDATION_POLL_MS,
@@ -66,8 +67,12 @@ class World {
   workerTampered = false;
   content: string = CONTENT;
   contentSha: string = CONTENT_SHA;
-  createErrorDiagnostic?: { phase: GoalOperationPhase; code: string; message: string };
+  createErrorDiagnostic?: { phase: GoalOperationPhase; code: string; message: string; historyDiagnostic?: NativeHistoryDiagnostic };
   partialBindingDiagnostic?: { phase: GoalOperationPhase; code: string; message: string };
+  setReconcileGoalFor(requestId: string, kind: 'inert' | 'authorized' | 'cancelled'): void {
+    this.setReconcileGoal(kind);
+    this.goal = { ...this.goal!, requestId };
+  }
   snapshotFailure = false;
   snapshotOverride?: CoreGoal[];
   /** Simulates a durable partial Goal row left behind when create throws. */
@@ -828,12 +833,113 @@ test('the runner can only be bound to an exact code-level experiment constant an
     (error: unknown) => error instanceof CoreValidationOptionsError);
 });
 
-test('the v1 reconcile path is unchanged and ignores a v2 requestId Goal', async () => {
+test('the v1 primary reconcile path is unchanged while a v2 requestId Goal is handled by the v2 target', async () => {
   const world = makeWorld();
   world.setReconcileGoal('inert');
   world.goal = { ...world.goal!, requestId: 'core-validation-frozen-v2' };
   const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
-  assert.equal(receipt.classification, 'absent');
+  // v1 remains the backward-compatible primary target: absent here.
+  assert.equal(receipt.classification, 'absent'); assert.equal(receipt.cancelAttempts, 0);
+  // The fixed v2 target is reconciled independently (inert -> one cancel).
+  const v2 = receipt.targets[1]!;
+  assert.equal(v2.classification, 'inert-unauthorized'); assert.equal(v2.cancelAttempts, 1);
+  assert.deepEqual(world.controlCalls.map(call => call.kind), ['cancel']);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('a history-assert create failure carries the controlled expected/live historyDiagnostic', async () => {
+  const world = makeWorld();
+  world.createFailure = 'GOAL_OPERATION_UNKNOWN'; world.partialOnCreateFailure = 'inert';
+  const historyDiagnostic: NativeHistoryDiagnostic = { mismatchKind: 'live-seq-vs-event-count',
+    expected: { eventCount: 4, inheritedEventCount: 0, headerHash: 'a'.repeat(16), historyDigestPrefix: 'b'.repeat(16) },
+    live: { eventCount: 3, seq: 3, inheritedEventCount: 0, headerHash: 'c'.repeat(16), historyDigestPrefix: '' }, delta: -1 };
+  world.createErrorDiagnostic = { phase: 'history-assert', code: 'NATIVE_HISTORY_CHANGED',
+    message: 'Native history changed outside the trusted recovery suffix', historyDiagnostic };
+  const receipt = await runBoundedCoreValidation(optionsFor(world));
+  assert.equal(receipt.failurePhase, 'history-assert');
+  assert.equal(receipt.failureCode, 'NATIVE_HISTORY_CHANGED');
+  assert.deepEqual(receipt.historyDiagnostic, historyDiagnostic);
+  assert.equal(world.createCalls.length, 1); assert.equal(world.controlCalls.length, 0);
+  assertBoundedCoreValidationReceipt(receipt);
+  assert.doesNotThrow(() => assertHistoryDiagnostic(receipt.historyDiagnostic));
+});
+
+test('the independent historyDiagnostic validator rejects unbounded or malformed facts', () => {
+  const valid: NativeHistoryDiagnostic = { mismatchKind: 'event-count',
+    expected: { eventCount: 4, inheritedEventCount: 0, headerHash: 'a'.repeat(16), historyDigestPrefix: 'b'.repeat(16) },
+    live: { eventCount: 5, seq: 5, inheritedEventCount: 0, headerHash: 'c'.repeat(16), historyDigestPrefix: 'd'.repeat(16) }, delta: 1 };
+  assert.doesNotThrow(() => assertHistoryDiagnostic(valid));
+  const mutations: ((value: Record<string, unknown>) => void)[] = [
+    value => { value.mismatchKind = 'invented-kind'; },
+    value => { (value.expected as Record<string, unknown>).headerHash = 'z'.repeat(16); },
+    value => { (value.expected as Record<string, unknown>).headerHash = 'a'.repeat(65); },
+    value => { (value.live as Record<string, unknown>).seq = Number.NaN; },
+    value => { value.delta = Number.MAX_SAFE_INTEGER; },
+    value => { (value.live as Record<string, unknown>).historyDigestPrefix = 'body'.repeat(80); },
+  ];
+  for (const mutate of mutations) {
+    const copy = JSON.parse(JSON.stringify(valid)) as Record<string, unknown>;
+    mutate(copy);
+    assert.throws(() => assertHistoryDiagnostic(copy));
+  }
+  const oversized = JSON.parse(JSON.stringify(valid)) as Record<string, unknown>;
+  (oversized.expected as Record<string, unknown>).historyDigestPrefix = 'a'.repeat(16);
+  (oversized.live as Record<string, unknown>).historyDigestPrefix = 'b'.repeat(16);
+  const encoded = JSON.stringify({ ...oversized, extra: 'x'.repeat(300) });
+  assert.ok(encoded.length > 300);
+});
+
+test('reconcile processes the fixed v1 and v2 targets and cancels only the inert v2 Goal', async () => {
+  const world = makeWorld(); world.setReconcileGoalFor('core-validation-frozen-v2', 'inert');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.deepEqual(receipt.requestIds, ['core-validation-frozen-v1', 'core-validation-frozen-v2']);
+  assert.equal(receipt.targets.length, 2);
+  assert.equal(receipt.classification, 'absent'); // primary v1 target stays backward compatible
+  assert.equal(receipt.cancelAttempts, 0);
+  const v1 = receipt.targets[0]!, v2 = receipt.targets[1]!;
+  assert.equal(v1.requestId, 'core-validation-frozen-v1'); assert.equal(v1.classification, 'absent'); assert.equal(v1.cancelAttempts, 0);
+  assert.equal(v2.requestId, 'core-validation-frozen-v2'); assert.equal(v2.classification, 'inert-unauthorized');
+  assert.equal(v2.cancelAttempts, 1); assert.equal(v2.stopAction.kind, 'cancel'); assert.equal(v2.stopAction.ok, true);
+  assert.deepEqual(v2.postCancel, { cancelled: true, paused: true, version: 2 });
+  assert.deepEqual(world.controlCalls.map(call => call.kind), ['cancel']);
+  assert.equal(world.evaluateCalls, 0);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile reports both fixed targets absent and never cancels or creates anything', async () => {
+  const world = makeWorld();
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.deepEqual(receipt.requestIds, ['core-validation-frozen-v1', 'core-validation-frozen-v2']);
+  assert.deepEqual(receipt.targets.map(target => target.classification), ['absent', 'absent']);
+  assert.equal(receipt.targets.every(target => target.cancelAttempts === 0 && target.stopAction.kind === 'none'), true);
+  assert.equal(world.controlCalls.length, 0); assert.equal(world.createCalls.length, 0); assert.equal(world.evaluateCalls, 0);
+  assertBoundedCoreValidationReconcileReceipt(receipt);
+});
+
+test('reconcile never cancels a paused-authorized v2 target and rejects caller-supplied requestIds', async () => {
+  const world = makeWorld(); world.setReconcileGoalFor('core-validation-frozen-v2', 'authorized');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  assert.equal(receipt.targets[1]!.classification, 'paused-authorized');
+  assert.equal(receipt.targets[1]!.cancelAttempts, 0);
   assert.equal(world.controlCalls.length, 0);
   assertBoundedCoreValidationReconcileReceipt(receipt);
+  for (const override of [{ requestId: 'core-validation-frozen-v2' }, { requestIds: [] }, { requestId: 'arbitrary' }]) {
+    await assert.rejects(reconcileCoreValidationGoal(reconcileOptions(world, override)),
+      (error: unknown) => error instanceof CoreValidationReconcileOptionsError);
+  }
+});
+
+test('the reconcile validator requires the fixed target order and mirrors the v1 target at the top level', async () => {
+  const world = makeWorld(); world.setReconcileGoal('inert');
+  const receipt = await reconcileCoreValidationGoal(reconcileOptions(world));
+  for (const mutate of [
+    (value: Record<string, unknown>) => { value.requestIds = ['core-validation-frozen-v2', 'core-validation-frozen-v1']; },
+    (value: Record<string, unknown>) => { (value.targets as unknown[]).pop(); },
+    (value: Record<string, unknown>) => { value.classification = 'cancelled'; },
+    (value: Record<string, unknown>) => { ((value.targets as Record<string, unknown>[])[1]!).classification = 'inert-unauthorized'; },
+  ]) {
+    const copy = JSON.parse(JSON.stringify(receipt)) as Record<string, unknown>;
+    mutate(copy);
+    assert.throws(() => assertBoundedCoreValidationReconcileReceipt(copy));
+  }
 });

@@ -4,7 +4,7 @@ import { defaultModel } from './sessions.js';
 import { pinOwnedSessionTitle } from './session-title.js';
 import type { DshAgent, DshAgentContext, DshAgentHandle, DshContext, DshSession, SessionEvent } from './sessions.js';
 import type { NativeMessageFactory } from './native-message.js';
-import { coldNativeInboxSnapshot, extendNativeHistorySnapshot, nativeInboxReferences, observeNativeBaseline, assertNativeLiveHistory, type NativeColdInboxSnapshot } from './native-context.js';
+import { coldNativeInboxSnapshot, extendNativeHistorySnapshot, nativeInboxReferences, observeNativeBaseline, assertNativeLiveHistory, type NativeColdInboxSnapshot, type NativeHistoryDiagnostic } from './native-context.js';
 import { CoreDecisionRun, CoreEventToolModelProbeRun, validateCoreDecisionRequest, type CoreDecisionRequest, type CoreDecisionResult, type CoreDecisionPhase } from './core-decision.js';
 export type { CoreDecisionRequest, CoreDecisionResult, CoreDecisionBinding, CoreDecisionAccounting, CoreDecisionMessageRef, CoreDecisionPhase } from './core-decision.js';
 
@@ -27,7 +27,11 @@ export type GoalOperationPhase = 'prepare' | 'authorize' | 'binding' | 'native-s
   | 'history-assert' | 'title' | 'title-readback' | 'native-goal' | 'readback' | 'postcondition' | 'confirm' | 'release' | 'unknown';
 export const GOAL_OPERATION_PHASES: readonly GoalOperationPhase[] = Object.freeze(['prepare', 'authorize', 'binding', 'native-session',
   'observe', 'stabilize', 'history-assert', 'title', 'title-readback', 'native-goal', 'readback', 'postcondition', 'confirm', 'release', 'unknown']);
-export interface GoalOperationDiagnostic { phase: GoalOperationPhase; code: string; message: string }
+export interface GoalOperationDiagnostic {
+  phase: GoalOperationPhase; code: string; message: string;
+  /** Controlled native history mismatch facts for a history-assert failure. */
+  historyDiagnostic?: NativeHistoryDiagnostic;
+}
 /** Bounded create-time history observations: the first observation plus at most
  * two re-observations of the newly durable cut before the operation fails. */
 export const CORE_CREATE_HISTORY_OBSERVATIONS = 3;
@@ -131,7 +135,16 @@ function goalOperationDiagnostic(phase: GoalOperationPhase | undefined, cause: u
     .replaceAll(/[\u0000-\u001f\u007f]/g, ' ').trim();
   if (cwd && cwd.length > 1) message = message.split(cwd).join('<workspace>');
   message = message.replace(/(?:\/${'[\\w.@+-]+'}){2,}/g, '<workspace>').slice(0, 300).trim();
-  return { phase: phase ?? 'unknown', code, message };
+  const nativeHistory = cause && typeof cause === 'object' && 'historyDiagnostic' in cause
+    ? (cause as { historyDiagnostic?: unknown }).historyDiagnostic : undefined;
+  return { phase: phase ?? 'unknown', code, message,
+    ...(isNativeHistoryDiagnostic(nativeHistory) ? { historyDiagnostic: structuredClone(nativeHistory) } : {}) };
+}
+function isNativeHistoryDiagnostic(value: unknown): value is NativeHistoryDiagnostic {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  const candidate = value as Partial<NativeHistoryDiagnostic>;
+  return typeof candidate.mismatchKind === 'string' && candidate.expected !== undefined && candidate.live !== undefined
+    && Number.isSafeInteger(candidate.delta) && JSON.stringify(value).length <= 300;
 }
 interface NativeGoals {
   get(agent: DshAgent): NativeGoalView | undefined;

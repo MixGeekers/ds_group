@@ -34,9 +34,40 @@ const historyErrors: Record<NativeHistoryErrorCode, string> = {
   NATIVE_HISTORY_READ: 'Native history read failed',
   NATIVE_HISTORY_CLOSE: 'Native history handle release failed',
 };
+export type NativeHistoryMismatchKind = 'event-count' | 'live-seq-vs-event-count' | 'prefix-digest' | 'header-hash'
+  | 'inherited-count' | 'session-id' | 'preset' | 'references' | 'projection' | 'unknown';
+/** Controlled, bounded history mismatch facts. Hash prefixes only; no event
+ * body, message text, inbox content or filesystem path is ever attached. */
+export interface NativeHistoryDiagnostic {
+  mismatchKind: NativeHistoryMismatchKind;
+  expected: { eventCount: number; inheritedEventCount: number; headerHash: string; historyDigestPrefix: string };
+  /** live.eventCount is the live session.seq (the sequence-excluding-header count). */
+  live: { eventCount: number; seq: number; inheritedEventCount: number; headerHash: string; historyDigestPrefix: string };
+  delta: number;
+}
+const historyHashPrefix = (value: unknown): string => typeof value === 'string' && /^[a-f0-9]{16,}$/i.test(value) ? value.slice(0, 16) : '';
+const historyIntegerOr = (value: unknown): number => historyInteger(value) ? Number(value) : -1;
+export function historyDiagnostic(mismatchKind: NativeHistoryMismatchKind, expected: Partial<NativeColdInboxSnapshot> | undefined,
+  live: { eventCount?: unknown; seq?: unknown; inheritedEventCount?: unknown; headerHash?: unknown; historyDigest?: unknown } | undefined,
+  delta?: number): NativeHistoryDiagnostic {
+  const expectedCount = historyIntegerOr(expected?.eventCount), liveCount = historyIntegerOr(live?.eventCount ?? live?.seq);
+  const diagnostic: NativeHistoryDiagnostic = {
+    mismatchKind,
+    expected: { eventCount: expectedCount, inheritedEventCount: historyIntegerOr(expected?.inheritedEventCount),
+      headerHash: historyHashPrefix(expected?.headerHash), historyDigestPrefix: historyHashPrefix(expected?.historyDigest) },
+    live: { eventCount: liveCount, seq: historyIntegerOr(live?.seq ?? live?.eventCount),
+      inheritedEventCount: historyIntegerOr(live?.inheritedEventCount), headerHash: historyHashPrefix(live?.headerHash),
+      historyDigestPrefix: historyHashPrefix(live?.historyDigest) },
+    delta: Number.isSafeInteger(delta) ? Number(delta) : liveCount - expectedCount,
+  };
+  if (JSON.stringify(diagnostic).length > 300) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
+  return diagnostic;
+}
 /** No native error, event body, or provider text is attached to this public failure. */
 export class NativeHistoryError extends Error {
-  constructor(readonly code: NativeHistoryErrorCode) { super(historyErrors[code]); this.name = 'NativeHistoryError'; }
+  constructor(readonly code: NativeHistoryErrorCode, readonly historyDiagnostic?: NativeHistoryDiagnostic) {
+    super(historyErrors[code]); this.name = 'NativeHistoryError';
+  }
 }
 
 /** One complete, bounded observation of a native Session log at a logical cut. */
@@ -59,6 +90,10 @@ export interface NativeColdInboxSnapshot {
   appendedCount: number;
   /** Event types of the appended suffix only; never event bodies. */
   appendedTypes: string[];
+  /** Number of leading cold events that are Session header records (0 or 1).
+   * The live `session.seq` excludes such a record, so a create cut that includes
+   * it needs this offset to compare against the live seq. */
+  headerEventCount?: number;
 }
 
 export interface NativeColdHistoryOptions {
@@ -76,7 +111,13 @@ export interface NativeColdHistoryOptions {
   /** Exact live Session object to bind to this observation. */
   liveSession?: DshSession;
   /** Exact live inbox to compare with the official projection at this cut. */
-  liveInbox?: { readonly nextTurn: readonly unknown[]; readonly nextStep: readonly unknown[] };
+  liveInbox?: { readonly nextTurn: readonly unknown[]; readonly nextStep?: readonly unknown[] };
+  /**
+   * How the live `session.seq` maps to the cold cut. `event-count` is the normal
+   * semantics; `seq-excluding-header` subtracts a leading Session header record
+   * (a candidate create-only alignment, inactive unless the caller opts in).
+   */
+  liveCut?: 'event-count' | 'seq-excluding-header';
 }
 
 const HISTORY_SEED = 'shiyu-native-history-v1';
@@ -344,7 +385,8 @@ export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string
     const { headerHash, inheritedEventCount } = historyHeader(handle, sessionId, preset);
     if (expected !== undefined) {
       if (expected.headerHash !== headerHash || expected.inheritedEventCount !== inheritedEventCount) {
-        throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
+        throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic(expected.headerHash !== headerHash ? 'header-hash' : 'inherited-count',
+          expected, { eventCount: -1, seq: -1, inheritedEventCount, headerHash }));
       }
     }
     const observer = historyObserver(handle, headerHash, inheritedEventCount, signal, timeout, deadline, readSignal);
@@ -352,12 +394,14 @@ export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string
     // First pass: retain the complete bounded cut for the single official projection.
     const first = await readHistoryPass(observer, NATIVE_HISTORY_LIMITS.maxEvents);
     const total = first.events.length;
+    const headerEventCount = first.events[0]?.type === 'session' ? 1 : 0;
     validateInheritedCut(handle.header, inheritedEventCount, total, first.events);
     let appendedCount = 0, prefixDigest: string | undefined;
     const appendedTypes: string[] = [];
     let chain = chainSeed();
     if (expected !== undefined) {
-      if (total < expected.eventCount) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
+      if (total < expected.eventCount) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED',
+        historyDiagnostic('event-count', expected, { eventCount: total, seq: total, inheritedEventCount, headerHash }));
       if (expected.eventCount === 0) prefixDigest = chain;
       for (let index = 0; index < total; index++) {
         chain = foldHistoryDigest(chain, first.hashes[index]!);
@@ -369,7 +413,8 @@ export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string
           appendedCount++;
         }
       }
-      if (prefixDigest === undefined || prefixDigest !== expected.historyDigest) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
+      if (prefixDigest === undefined || prefixDigest !== expected.historyDigest) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED',
+        historyDiagnostic('prefix-digest', expected, { eventCount: total, seq: total, inheritedEventCount, headerHash, historyDigest: prefixDigest }));
     } else {
       for (const eventHash of first.hashes) chain = foldHistoryDigest(chain, eventHash);
     }
@@ -417,6 +462,7 @@ export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string
     observer.check();
 
     result = {
+      headerEventCount,
       references: inboxReferences,
       asOfSeq: total - 1,
       eventCount: total,
@@ -432,7 +478,7 @@ export async function coldNativeInboxSnapshot(ctx: DshContext, sessionId: string
       appendedTypes,
     };
     if (options.liveSession !== undefined || options.liveInbox !== undefined) {
-      assertNativeLiveHistory(ctx, options.liveSession!, result, options.liveInbox);
+      assertNativeLiveHistory(ctx, options.liveSession!, result, options.liveInbox, { ...(options.liveCut ? { liveCut: options.liveCut } : {}) });
     }
   } catch (error) {
     failure = error instanceof NativeHistoryError ? error : new NativeHistoryError('NATIVE_HISTORY_READ');
@@ -538,37 +584,65 @@ export async function extendNativeHistorySnapshot(ctx: DshContext, baseline: Nat
  * absence of future writers.
  */
 export function assertNativeLiveHistory(ctx: DshContext, session: DshSession, baseline: NativeColdInboxSnapshot,
-  liveInbox?: { readonly nextTurn: readonly unknown[]; readonly nextStep: readonly unknown[] }): void {
+  liveInbox?: { readonly nextTurn: readonly unknown[]; readonly nextStep?: readonly unknown[] },
+  options: { liveCut?: 'event-count' | 'seq-excluding-header' } = {}): void {
   if (!plainRecord(baseline) || typeof baseline.sessionId !== 'string' || typeof baseline.preset !== 'string'
     || !historyInteger(baseline.eventCount) || !historyInteger(baseline.inheritedEventCount)
-    || typeof baseline.headerHash !== 'string' || !Array.isArray(baseline.references)) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
-  if (!plainRecord(session) || typeof session.id !== 'string' || !plainRecord(session.header)) throw new NativeHistoryError('NATIVE_HISTORY_HEADER');
+    || typeof baseline.headerHash !== 'string' || !Array.isArray(baseline.references)) {
+    throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('unknown', baseline, undefined));
+  }
+  if (!plainRecord(session) || typeof session.id !== 'string' || !plainRecord(session.header)) {
+    throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('header-hash', baseline, undefined));
+  }
   const sessions = ctx.get('sessions');
   if (typeof sessions?.get !== 'function') throw new NativeHistoryError('NATIVE_HISTORY_SERVICES');
   let live: unknown;
   try { live = sessions.get(session.id); }
   catch { throw new NativeHistoryError('NATIVE_HISTORY_SERVICES'); }
-  if (live !== session) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
-  if (session.id !== baseline.sessionId || session.header.id !== session.id || session.header.version !== 4
-    || session.header.agentPreset !== baseline.preset || typeof session.header.isSeeded !== 'boolean') {
-    throw new NativeHistoryError('NATIVE_HISTORY_HEADER');
+  const liveFacts = { eventCount: session.seq, seq: session.seq, inheritedEventCount: session.inheritedEventCount,
+    headerHash: safeHeaderHash(session.header) };
+  if (live !== session) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('session-id', baseline, liveFacts));
+  if (session.id !== baseline.sessionId) {
+    throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('session-id', baseline, liveFacts));
+  }
+  if (session.header.id !== session.id || session.header.agentPreset !== baseline.preset) {
+    throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic(session.header.agentPreset !== baseline.preset ? 'preset' : 'session-id',
+      baseline, liveFacts));
+  }
+  if (session.header.version !== 4 || typeof session.header.isSeeded !== 'boolean') {
+    throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('header-hash', baseline, liveFacts));
   }
   let liveHeaderHash: string;
   try { liveHeaderHash = nativeMessageHash(session.header); }
-  catch { throw new NativeHistoryError('NATIVE_HISTORY_HEADER'); }
-  if (liveHeaderHash !== baseline.headerHash) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
-  if (!historyInteger(session.inheritedEventCount) || session.inheritedEventCount !== baseline.inheritedEventCount) {
-    throw new NativeHistoryError('NATIVE_HISTORY_HEADER');
+  catch { throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('header-hash', baseline, liveFacts)); }
+  if (liveHeaderHash !== baseline.headerHash) {
+    throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('header-hash', baseline, { ...liveFacts, headerHash: liveHeaderHash }));
   }
-  if (!historyInteger(session.seq) || session.seq !== baseline.eventCount) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
+  if (!historyInteger(session.inheritedEventCount) || session.inheritedEventCount !== baseline.inheritedEventCount) {
+    throw new NativeHistoryError('NATIVE_HISTORY_HEADER', historyDiagnostic('inherited-count', baseline, liveFacts));
+  }
+  const headerOffset = options.liveCut === 'seq-excluding-header' ? (baseline.headerEventCount ?? 0) : 0;
+  const expectedLiveSeq = baseline.eventCount - headerOffset;
+  if (!historyInteger(session.seq) || session.seq !== expectedLiveSeq) {
+    // A cold cut that includes a leading Session header record but compares to a
+    // live seq that excludes it is a cut-semantics mismatch, distinct from a real
+    // append. `liveCut: 'seq-excluding-header'` is the candidate create-only fix.
+    const headerCutMismatch = (baseline.headerEventCount ?? 0) > 0 && Number(session.seq) === baseline.eventCount - (baseline.headerEventCount ?? 0);
+    throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic(headerCutMismatch ? 'live-seq-vs-event-count' : 'event-count',
+      baseline, liveFacts, (Number(session.seq) || 0) - expectedLiveSeq));
+  }
   if (liveInbox !== undefined) {
     let refs: NativeInboxReference[];
-    try { refs = nativeInboxReferences(liveInbox); }
-    catch { throw new NativeHistoryError('NATIVE_HISTORY_PROJECTION'); }
-    if (!sameNativeInbox(refs, baseline.references)) throw new NativeHistoryError('NATIVE_HISTORY_CHANGED');
+    try { refs = nativeInboxReferences(liveInbox as { nextTurn: readonly unknown[]; nextStep: readonly unknown[] }); }
+    catch { throw new NativeHistoryError('NATIVE_HISTORY_PROJECTION', historyDiagnostic('projection', baseline, liveFacts)); }
+    if (!sameNativeInbox(refs, baseline.references)) {
+      throw new NativeHistoryError('NATIVE_HISTORY_CHANGED', historyDiagnostic('references', baseline, liveFacts));
+    }
   }
 }
-
+function safeHeaderHash(header: unknown): string | undefined {
+  try { return typeof header === 'object' && header !== null ? nativeMessageHash(header) : undefined; } catch { return undefined; }
+}
 export interface NativeHistoryObservationOptions extends Omit<NativeColdHistoryOptions, 'liveSession' | 'liveInbox'> {
   /** Caller cancellation fused with the native maintenance signal. */
   signal?: AbortSignal;
@@ -590,6 +664,7 @@ export async function observeNativeBaseline(ctx: DshContext, agent: DshAgent, pr
       ...(options.deadlineAtMs === undefined ? {} : { deadlineAtMs: options.deadlineAtMs }),
       ...(options.expectedPrefix === undefined ? {} : { expectedPrefix: options.expectedPrefix }),
       ...(options.allowAppended === undefined ? {} : { allowAppended: options.allowAppended }),
+      ...(options.liveCut === undefined ? {} : { liveCut: options.liveCut }),
       liveSession: agent.session,
       ...(agent.inbox === undefined ? {} : { liveInbox: agent.inbox }),
     });

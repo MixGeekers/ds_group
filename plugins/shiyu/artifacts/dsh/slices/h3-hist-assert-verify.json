@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "h3-hist-assert",
+  "capturedAt": "2026-11-03T06:20:12.273Z",
+  "head": "cc53c34e386d121c9201a5fcdd456da3c3582748",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-h3-hist-assert-1793686154094",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+      "bytes": 42413,
+      "sha256": "2a882e63e2a5790e8ced2bb163acfd4c4c932346cde7968d2598f37eeb8567f1"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 68479,
+      "sha256": "060e746f2f83aaf936073f56325690dbbf7d86b36d153a17320e38e8e631601a"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 85979,
+      "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 65548,
+      "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 101923,
+      "sha256": "95d5878318fad97a64a43f9f2a57575e59c5912b71ab987c552876fae33cf180"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 657769,
+    "bytes": 170794,
+    "sha256": "12289fc34d1edc17347970f134feccbc9767d349bf43815b9dac9e0f1b6072fd",
+    "tests": {
+      "tests": 1597,
+      "pass": 1597,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 656606.033",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-h3-hist-assert.log",
+    "bytes": 170794,
+    "sha256": "12289fc34d1edc17347970f134feccbc9767d349bf43815b9dac9e0f1b6072fd"
+  },
+  "verdict": "pass"
+}

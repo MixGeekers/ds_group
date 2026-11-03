@@ -7,6 +7,7 @@ import { GoalSessionAdapter, GoalOperationUnknownError, CORE_GOAL_PRESET_ID, COR
 import type { DshAgent, DshAgentContext, DshContext, DshSession, SessionEvent } from '../src/adapters/dsh/sessions.js';
 import { nativeMessageHash, type NativeMessageInput, type NativeUserMessage } from '../src/adapters/dsh/native-message.js';
 import { createCoreEventTools, CORE_EVENT_TOOL_NAMES } from '../src/adapters/dsh/event-tools.js';
+import { assertNativeLiveHistory, NativeHistoryError, type NativeColdInboxSnapshot, type NativeHistoryDiagnostic } from '../src/adapters/dsh/native-context.js';
 import { LocalCoreService, summarizeCoreDecisionAccounting } from '../src/control/local-core.js';
 import { eventStore, readerPrincipal } from './events-fixtures.js';
 
@@ -61,7 +62,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
   const archives: string[] = [], toolReturns: unknown[] = [];
   let failArchive = false;
   let failNativeCreate = false, failTitleRename = false, failFlushReadback = false, hideTitleAfterPin = false, wrongNativeGoal = false;
-  let historyRace: 'none' | 'once' | 'always' = 'none'; let historyRaceDone = false;
+  let historyRace: 'none' | 'once' | 'always' = 'none'; let historyRaceDone = false; let coldHeaderCut = false;
   let flushCount = 0, historyOpens = 0, nativeCreateCalls = 0, titleGetCalls = 0;
   let toolPlan: undefined | { name: string; args?: Record<string, unknown>; result?: unknown; unknownUsage?: boolean;
     duplicate?: boolean; omitResult?: boolean; skipExecution?: boolean; pauseOnTool?: boolean; secondRound?: boolean };
@@ -152,6 +153,13 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
     }
     if (failNativeCreate) throw Object.assign(new Error('Synthetic agents.create failed after session storage'), { code: 'SYNTHETIC_AGENTS_CREATE_FAILED' });
     const record = stored.get(id)!, hooks = new Hooks(), guards: Hook[] = [], registeredTools = new Map<string, any>();
+    if (coldHeaderCut) {
+      // Model the observed host shape: three persisted meta events but the live
+      // session.seq excludes the Session header record that the cold log has.
+      for (const type of ['permission/preset', 'sandbox/mode', 'approval/policy']) {
+        record.events.push({ seq: record.events.length, type, data: {}, time: Date.now() });
+      }
+    }
     const session: DshSession = {
       id, header: record.header, inheritedEventCount: 0,
       get seq() { return record.events.length; },
@@ -312,7 +320,12 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
           flushCount++; trace.push('flush');
           if (failFlush) throw new Error('Native flush failed');
           if (failFlushReadback && flushCount >= 3) throw new Error('Native flush failed during read-back');
-          const record = stored.get(session.id)!; record.durable = structuredClone(record.events); return true;
+          const record = stored.get(session.id)!;
+          record.durable = coldHeaderCut
+            ? [{ seq: 0, type: 'session', data: { header: structuredClone(record.header) }, time: Date.now() },
+               ...record.events.map((event, index) => ({ ...structuredClone(event), seq: index + 1 }))]
+            : structuredClone(record.events);
+          return true;
         },
         get(id: string) { return live.get(id)?.session; },
       };
@@ -406,6 +419,7 @@ function fixture(eventTools?: CoreDecisionEventToolFactory) {
       hideTitleAfterPin = value.titleReadbackHidden === true; failFlushReadback = value.flushReadback === true; wrongNativeGoal = value.wrongNativeGoal === true;
     },
     setHistoryRace(value: 'none' | 'once' | 'always') { historyRace = value; historyRaceDone = false; },
+    setColdHeaderCut(value: boolean) { coldHeaderCut = value; },
     createCounts: () => ({ flushes: flushCount, historyOpens, nativeCreateCalls, titleGets: titleGetCalls }),
     setAllowed(value: boolean) { allowed = value; }, setExpired(value: boolean) { expiredGrant = value; }, setMode(value: typeof mode) { mode = value; },
     setOutput(value: string) { output = value; }, setReadFault(value: typeof readFault) { readFault = value; }, setFlushFault(value: boolean) { failFlush = value; },
@@ -1263,4 +1277,111 @@ test('persistently changing live history fails bounded stabilization as history-
   const failure = await expectCreateFailure(host, 'history-assert', 'NATIVE_HISTORY_CHANGED');
   assert.equal(host.createCounts().nativeCreateCalls, 0, 'no native create replay on an unstable history');
   assert.equal(host.createCounts().historyOpens, 3, 'the stabilization is bounded to the first observation plus two re-observations');
+});
+
+// ---------------------------------------------------------------------------
+// History-assert diagnostic instrument: exact expected/live cut facts.
+// ---------------------------------------------------------------------------
+function historyProbe(overrides: { header?: Record<string, unknown>; liveHeader?: Record<string, unknown>; seq?: number;
+  inheritedEventCount?: number; liveInheritedEventCount?: number; references?: unknown[]; eventCount?: number;
+  headerEventCount?: number } = {}) {
+  const header = { id: 'session-a', version: 4, agentPreset: 'preset-a', isSeeded: false, ...(overrides.header ?? {}) };
+  const liveHeader = { ...header, ...(overrides.liveHeader ?? {}) };
+  const session = { id: liveHeader.id, header: liveHeader, seq: overrides.seq ?? 3,
+    inheritedEventCount: overrides.liveInheritedEventCount ?? 0 } as unknown as DshSession;
+  const ctx = { get: () => ({ get: () => session }) } as unknown as DshContext;
+  const baseline: NativeColdInboxSnapshot = {
+    references: (overrides.references ?? []) as never, asOfSeq: (overrides.eventCount ?? 3) - 1, eventCount: overrides.eventCount ?? 3,
+    sessionId: 'session-a', preset: 'preset-a', headerHash: nativeMessageHash(header), inheritedEventCount: overrides.inheritedEventCount ?? 0,
+    historyBytes: 0, historyDigest: 'b'.repeat(64), readPages: 1, appendedCount: 0, appendedTypes: [],
+    headerEventCount: overrides.headerEventCount ?? 0,
+  };
+  return { ctx, session, header, baseline };
+}
+function expectHistoryDiagnostic(work: () => void, expected: { kind: string; expectedCount?: number; liveSeq?: number; delta?: number;
+  code?: 'NATIVE_HISTORY_CHANGED' | 'NATIVE_HISTORY_HEADER' | 'NATIVE_HISTORY_PROJECTION' }): NativeHistoryDiagnostic {
+  try { work(); } catch (error) {
+    assert.ok(error instanceof NativeHistoryError);
+    assert.equal(error.code, expected.code ?? 'NATIVE_HISTORY_CHANGED');
+    const diagnostic = (error as NativeHistoryError).historyDiagnostic;
+    assert.ok(diagnostic, 'the native history error carries a controlled diagnostic');
+    assert.equal(diagnostic.mismatchKind, expected.kind);
+    if (expected.expectedCount !== undefined) assert.equal(diagnostic.expected.eventCount, expected.expectedCount);
+    if (expected.liveSeq !== undefined) { assert.equal(diagnostic.live.seq, expected.liveSeq); assert.equal(diagnostic.live.eventCount, expected.liveSeq); }
+    if (expected.delta !== undefined) assert.equal(diagnostic.delta, expected.delta);
+    const serialized = JSON.stringify(diagnostic);
+    assert.ok(serialized.length <= 300, 'diagnostic is bounded');
+    assert.equal(serialized.includes('content'), false); assert.equal(serialized.includes('message'), false);
+    assert.equal(serialized.includes('/synthetic'), false); assert.equal(serialized.includes('permission/preset'), false);
+    return diagnostic;
+  }
+  throw new Error('expected a NativeHistoryError');
+}
+
+test('a cold-cut header record versus a live seq excluding it is classified as live-seq-vs-event-count and the create-only cut option aligns it', () => {
+  const probe = historyProbe({ eventCount: 4, headerEventCount: 1 });
+  const diagnostic = expectHistoryDiagnostic(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline), {
+    kind: 'live-seq-vs-event-count', expectedCount: 4, liveSeq: 3, delta: -1 });
+  assert.equal(diagnostic.live.headerHash.length, 16); assert.equal(diagnostic.expected.historyDigestPrefix, 'b'.repeat(16));
+  assert.doesNotThrow(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline, undefined, { liveCut: 'seq-excluding-header' }));
+});
+
+test('an appended live event is classified as event-count with the exact delta', () => {
+  const probe = historyProbe({ seq: 5 });
+  expectHistoryDiagnostic(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline), { kind: 'event-count', expectedCount: 3, liveSeq: 5, delta: 2 });
+});
+
+test('a live header hash change is classified as header-hash with hex prefixes only', () => {
+  const probe = historyProbe({ liveHeader: { isSeeded: true } });
+  const diagnostic = expectHistoryDiagnostic(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline), { kind: 'header-hash' });
+  assert.equal(diagnostic.expected.headerHash.length, 16); assert.equal(diagnostic.live.headerHash.length, 16);
+  assert.notEqual(diagnostic.expected.headerHash, diagnostic.live.headerHash);
+});
+
+test('an inherited-count change is classified separately from an event append', () => {
+  const probe = historyProbe({ liveInheritedEventCount: 2 });
+  expectHistoryDiagnostic(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline), { kind: 'inherited-count', code: 'NATIVE_HISTORY_HEADER' });
+});
+
+test('a changed live Session identity or preset is classified as session-id/preset', () => {
+  const identity = historyProbe();
+  (identity.session as unknown as { id: string }).id = 'other-session';
+  expectHistoryDiagnostic(() => assertNativeLiveHistory(identity.ctx, identity.session, identity.baseline), { kind: 'session-id', code: 'NATIVE_HISTORY_HEADER' });
+  const preset = historyProbe({ liveHeader: { agentPreset: 'other-preset' } });
+  expectHistoryDiagnostic(() => assertNativeLiveHistory(preset.ctx, preset.session, preset.baseline), { kind: 'preset', code: 'NATIVE_HISTORY_HEADER' });
+});
+
+test('a live inbox that differs from the projected references is classified as references', () => {
+  const probe = historyProbe({ references: [{ messageId: 'm1', messageHash: 'a'.repeat(64), lane: 'next-turn', index: 0 }] });
+  expectHistoryDiagnostic(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline, { nextTurn: [], nextStep: [] }),
+    { kind: 'references' });
+});
+
+test('a malformed live inbox is classified as projection rather than silently accepted', () => {
+  const probe = historyProbe();
+  expectHistoryDiagnostic(() => assertNativeLiveHistory(probe.ctx, probe.session, probe.baseline, { nextTurn: 'not-an-array' as never, nextStep: [] }),
+    { kind: 'projection', code: 'NATIVE_HISTORY_PROJECTION' });
+});
+
+test('a deterministic cold-header cut (4 persisted events, live seq 3) fails create with the controlled diagnostic and no native create replay', async () => {
+  const host = fixture(); host.setColdHeaderCut(true);
+  const driver = host.adapter();
+  try {
+    let failure: CreateFailure | undefined;
+    await assert.rejects(driver.create(host.create), (error: unknown) => {
+      assert.ok(error instanceof GoalOperationUnknownError); failure = error as CreateFailure; return true;
+    });
+    assert.equal(failure!.diagnostic?.phase, 'history-assert');
+    assert.equal(failure!.diagnostic?.code, 'NATIVE_HISTORY_CHANGED');
+    assert.equal(failure!.diagnostic?.historyDiagnostic?.mismatchKind, 'live-seq-vs-event-count');
+    assert.equal(failure!.diagnostic?.historyDiagnostic?.expected.eventCount, 4);
+    assert.equal(failure!.diagnostic?.historyDiagnostic?.live.seq, 3);
+    assert.equal(failure!.diagnostic?.historyDiagnostic?.delta, -1);
+    assert.equal(host.createCounts().nativeCreateCalls, 0, 'native goals.create is never reached');
+    assert.equal(host.counts().followups, 0); assert.equal(host.counts().streams, 0);
+    const serialized = JSON.stringify(failure!.diagnostic);
+    assert.equal(serialized.includes('permission/preset'), false);
+    assert.equal(serialized.includes('sandbox/mode'), false);
+    assert.ok(failure!.binding.receipt?.reason?.startsWith('history-assert/NATIVE_HISTORY_CHANGED'));
+  } finally { await driver.close(); }
 });

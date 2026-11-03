@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 1,
+  "kind": "h3-history-assert-diagnosis",
+  "phase": "round11",
+  "capturedAt": "2026-11-03T06:20:54.063Z",
+  "status": "offline: controlled history-assert instrument + fake-host classification + dormant create-only candidate fix + v1/v2 reconcile generalization + frozen v2 experiment; real host confirmation NOT executed by implementer",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "realGoalCreatedByImplementer": false,
+  "realGoalCancelledByImplementer": false,
+  "head": "cc53c34e386d121c9201a5fcdd456da3c3582748",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+      "bytes": 42413,
+      "sha256": "2a882e63e2a5790e8ced2bb163acfd4c4c932346cde7968d2598f37eeb8567f1"
+    },
+    {
+      "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+      "bytes": 68479,
+      "sha256": "060e746f2f83aaf936073f56325690dbbf7d86b36d153a17320e38e8e631601a"
+    },
+    {
+      "path": "plugins/shiyu/src/control/core-validation.ts",
+      "bytes": 85979,
+      "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-validation.test.ts",
+      "bytes": 65548,
+      "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+    },
+    {
+      "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+      "bytes": 101923,
+      "sha256": "95d5878318fad97a64a43f9f2a57575e59c5912b71ab987c552876fae33cf180"
+    }
+  ],
+  "rootCauseCandidate": {
+    "evidenceFromHost": {
+      "source": "Lead-provided round-10/11 facts (implementer has no live host access and did not re-read them)",
+      "facts": [
+        "both v1 and v2 real attempts failed at assertNativeLiveHistory with phase history-assert / NATIVE_HISTORY_CHANGED",
+        "the failed Session persisted only 4 meta events: session (header) + permission/preset, sandbox/mode, approval/policy (seq 0,1,2)",
+        "≤3 bounded stabilizations did not help; the mismatch is deterministic, not a transient append",
+        "native goals().create was never called; title did not happen"
+      ],
+      "hypothesis": "cold snapshot eventCount includes the session header record (4) while live session.seq excludes it (3), so session.seq !== baseline.eventCount on every observation."
+    },
+    "judgment": "strong candidate root cause; the deterministic failure mode is reproduced offline with the exact expected/live counts (see tests), but the real host header/cut semantics are not host-confirmed. No speculative product fix was activated.",
+    "offlineReproduction": "core-event-tools: deterministic cold-header cut (cold 4 incl session header, live seq 3) -> create fails with history-assert and historyDiagnostic mismatchKind live-seq-vs-event-count, expected.eventCount 4, live.seq 3, delta -1, native create 0; the same cut passes when the create-only liveCut candidate is applied at the assert level."
+  },
+  "instrumentation": {
+    "nativeHistoryError": "NativeHistoryError now carries an optional bounded historyDiagnostic",
+    "mismatchKinds": [
+      "event-count",
+      "live-seq-vs-event-count",
+      "prefix-digest",
+      "header-hash",
+      "inherited-count",
+      "session-id",
+      "preset",
+      "references",
+      "projection",
+      "unknown"
+    ],
+    "facts": {
+      "expected": [
+        "eventCount",
+        "inheritedEventCount",
+        "headerHash (16-hex prefix)",
+        "historyDigestPrefix (16-hex prefix)"
+      ],
+      "live": [
+        "eventCount",
+        "seq",
+        "inheritedEventCount",
+        "headerHash (16-hex prefix)",
+        "historyDigestPrefix (16-hex prefix)"
+      ],
+      "delta": "live-expected safe integer"
+    },
+    "bounded": "compact fixed-shape JSON <=300 chars; never event body, message text, inbox content or filesystem path",
+    "surfaces": [
+      "GoalOperationUnknownError.diagnostic.historyDiagnostic",
+      "unknown binding receipt.reason keeps the controlled phase/code short text (receipt schema unchanged)",
+      "bounded runner create-failure receipt adds historyDiagnostic next to failurePhase/failureCode/failureDetail",
+      "assertHistoryDiagnostic independent validator (kind/hex-prefix/count/delta/size)"
+    ],
+    "candidateFix": {
+      "status": "candidate, verified at unit level only, NOT activated in the product create path",
+      "hypothesis": "The cold snapshot persisted cut includes the Session header record (eventCount 4), while live session.seq excludes it (3). assertNativeLiveHistory compares session.seq to baseline.eventCount, so every observation deterministically fails with event-count/history-assert; bounded re-observation cannot change a pure cut-semantics mismatch.",
+      "instrumentedKind": "live-seq-vs-event-count (expected.eventCount 4, live.seq 3, delta -1)",
+      "candidateChange": "In GoalSessionAdapter.stabilizeCoreCreateBaseline pass { liveCut: seq-excluding-header } to observeNativeBaseline and assertNativeLiveHistory (create-only), which subtracts baseline.headerEventCount from the expected live seq. Recovery with expectedPrefix keeps the existing semantics.",
+      "verifiedBy": "core-event-tools test: the deterministic cold-header cut fails with live-seq-vs-event-count under the normal cut and passes with liveCut: seq-excluding-header; no product behavior changed yet.",
+      "activationGate": "Confirm live-seq-vs-event-count from the next host instrumented run before activating; if the mismatchKind differs (event-count with a real delta, header-hash, references, ...), handle that branch instead. No guessing was applied to product logic.",
+      "activationSnippet": "observeNativeBaseline(ctx, agent, preset, { signal, ...(deadline?{deadlineAtMs:deadline}:{}) , liveCut: \"seq-excluding-header\" }) and assertNativeLiveHistory(ctx, agent.session, snapshot, agent.inbox, { liveCut: \"seq-excluding-header\" })"
+    }
+  },
+  "reconcileGeneralization": {
+    "fixedTargets": [
+      "core-validation-frozen-v1",
+      "core-validation-frozen-v2"
+    ],
+    "behavior": "one owner call reconciles both fixed requestIds in code-constant order; per target: read-only classification (absent/inert-unauthorized/paused-authorized/cancelled/unknown), at most one explicit cancel only for inert-unauthorized, postCancel readback, 0 retries, 0 model calls, no Goal creation; top-level fields remain the v1 target for backward compatibility and targets[] carries both",
+    "callerCannotSelect": "no requestId/requestIds input; arbitrary keys are rejected as invalid options",
+    "integration": {
+      "patchPath": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-reconcile-integration.patch",
+      "patchBytes": 1611,
+      "patchSha256": "fd7a2278dd753a48e391b394721ba5495f192764dca56f1e0f6242160d64e7e7",
+      "touchedFiles": [
+        "plugins/shiyu/src/index.ts"
+      ],
+      "runtimeChangeRequired": false,
+      "reason": "the runtime command already returns the reconcile object into diagnostics; only the tool description needed to mention the fixed v1/v2 targets",
+      "validation": {
+        "patchAppliesToHead": "git apply --check passed on an ephemeral worktree at HEAD cc53c34",
+        "typecheckWithPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + slice + patch)",
+        "buildWithPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+      },
+      "patch": "diff --git a/plugins/shiyu/src/index.ts b/plugins/shiyu/src/index.ts\nindex 168c224..1bd4e38 100644\n--- a/plugins/shiyu/src/index.ts\n+++ b/plugins/shiyu/src/index.ts\n@@ -180,7 +180,7 @@ export function coreGoalValidationTool(service: { command(input: unknown): Promi\n export function coreValidationReconcileTool(service: { command(input: unknown): Promise<unknown> }) {\n   return {\n     name: 'shiyu_reconcile_core_validation_goal',\n-    description: '只读核对固定 requestId core-validation-frozen-v1 的 Goal 并分类（absent/inert-unauthorized/paused-authorized/cancelled/unknown）；仅 inert unauthorized 残留 Goal 尝试一次显式 cancel，0 重试；不创建/重启 Goal、不调模型、不写业务库；要求运行时未暂停；回执仅存 snapshot().diagnostics.coreValidationReconcile。',\n+    description: '只读核对固定 requestId 数组（core-validation-frozen-v1 与 core-validation-frozen-v2，代码常量，调用方不可选择/覆盖）的 core-validation Goal 并分别分类（absent/inert-unauthorized/paused-authorized/cancelled/unknown）；仅每个 inert unauthorized 残留 Goal 尝试一次显式 cancel（每个目标 0 重试），v1 主字段保持兼容并在 targets[] 返回两个固定目标；不创建/重启 Goal、不调模型、不写业务库；要求运行时未暂停；回执仅存 snapshot().diagnostics.coreValidationReconcile。',\n     parameters: { type: 'object', properties: {}, additionalProperties: false },\n     isConcurrencySafe: false,\n     execute: async () => service.command({ action: 'runtime.reconcile-core-validation-goal' }),\n"
+    }
+  },
+  "tests": {
+    "coreEventTools": {
+      "total": 47,
+      "pass": 47,
+      "new": [
+        "live-seq-vs-event-count deterministic cold-header cut + candidate cut option aligns it",
+        "append meta event -> event-count with exact expected/live/delta",
+        "header hash change -> header-hash with hex prefixes only",
+        "inherited-count change -> inherited-count",
+        "session-id and preset changes -> session-id/preset",
+        "references mismatch -> references",
+        "malformed inbox -> projection",
+        "deterministic cold-header cut through GoalSessionAdapter.create: history-assert diagnostic, no native create replay, no body/path leakage"
+      ]
+    },
+    "coreValidation": {
+      "total": 40,
+      "pass": 40,
+      "new": [
+        "history-assert create failure carries historyDiagnostic into the bounded runner receipt",
+        "assertHistoryDiagnostic rejects unbounded/malformed facts (self-proof)",
+        "reconcile handles fixed v1+v2 targets and cancels only the inert v2 target",
+        "reconcile reports both targets absent with no writes",
+        "paused-authorized v2 target is never cancelled and caller-supplied requestIds are rejected",
+        "reconcile validator requires fixed target order and top-level v1 mirroring"
+      ]
+    },
+    "netNew": 14,
+    "logs": [
+      {
+        "path": "plugins/shiyu/.local/h3/h11-core-event-tools-focused.log",
+        "sha256": "f9f663099b18428a93ee7beb356b921d33b3674fe6b9ec4dd22589c6939d8d4a",
+        "tests": 47,
+        "pass": 47,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "path": "plugins/shiyu/.local/h3/h11-core-validation-focused.log",
+        "sha256": "5a5ac616fca25c51102df5ef102ed02995a2aa7e56b1c09cca84f5b5ffc7620b",
+        "tests": 40,
+        "pass": 40,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      {
+        "path": "plugins/shiyu/.local/h3/h11-regression.log",
+        "sha256": "1b0a2a2098fd705511792dbf987753dace9c231c93d1c991221743ea29fa39ec",
+        "tests": 188,
+        "pass": 188,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    ],
+    "noSkips": true
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice h3-hist-assert --manifest plugins/shiyu/.local/h3-hist-manifest.json",
+      "head": "cc53c34e386d121c9201a5fcdd456da3c3582748",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/native-context.ts",
+          "bytes": 42413,
+          "sha256": "2a882e63e2a5790e8ced2bb163acfd4c4c932346cde7968d2598f37eeb8567f1"
+        },
+        {
+          "path": "plugins/shiyu/src/adapters/dsh/goals.ts",
+          "bytes": 68479,
+          "sha256": "060e746f2f83aaf936073f56325690dbbf7d86b36d153a17320e38e8e631601a"
+        },
+        {
+          "path": "plugins/shiyu/src/control/core-validation.ts",
+          "bytes": 85979,
+          "sha256": "ed4c1e42575e9365c69e3bd1160618c10d4d72e032e3fac43ca044c7f323d942"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-validation.test.ts",
+          "bytes": 65548,
+          "sha256": "dddb8e49fb2ec409c3bfd57d416d47bcbc32be700aa44367ae51778708d274e0"
+        },
+        {
+          "path": "plugins/shiyu/tests/core-event-tools.test.ts",
+          "bytes": 101923,
+          "sha256": "95d5878318fad97a64a43f9f2a57575e59c5912b71ab987c552876fae33cf180"
+        }
+      ],
+      "exitCode": 0,
+      "tests": {
+        "tests": 1597,
+        "pass": 1597,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 657769,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-h3-hist-assert.log",
+        "bytes": 170794,
+        "sha256": "12289fc34d1edc17347970f134feccbc9767d349bf43815b9dac9e0f1b6072fd"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/h3-hist-assert-verify.json",
+        "sha256": "a26bca923858f24af67ee4e0ecf41eddbe91a9c083d3f5f0d7fe477086d4a686"
+      },
+      "tail": [
+        "ℹ cancelled 0",
+        "ℹ skipped 0",
+        "ℹ todo 0",
+        "ℹ duration_ms 656606.033",
+        "> @shiyu/runtime@0.1.0 build",
+        "> tsc -p tsconfig.build.json"
+      ]
+    },
+    "productOnlyIsolatedCheck": {
+      "worktree": "ephemeral worktree at HEAD cc53c34 + the five slice files (node_modules + pinned Python/Ombre symlinked)",
+      "typecheck": {
+        "command": "npm run typecheck",
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h3/h11-product-typecheck.log",
+          "sha256": "9f330d1ecd9e3050f50f049ede3a34ed2a36ff93e45c1352a138d95fd4c48add"
+        }
+      },
+      "build": {
+        "command": "npm run build",
+        "exitCode": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h3/h11-product-build.log",
+          "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+        }
+      },
+      "tests": {
+        "command": "node --import tsx --test --test-concurrency=1 $(ls tests/*.test.ts | grep -v /harness)",
+        "tests": 1482,
+        "pass": 1482,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "log": {
+          "path": "plugins/shiyu/.local/h3/h11-product-tests.log",
+          "sha256": "04da1c5978c8b2840843cfbb0b2be1ac73cf6c6778068325252fdfaa7ba1d637"
+        }
+      }
+    }
+  },
+  "hostDiagnosisKit": {
+    "kitVersion": 1,
+    "status": "frozen; no real host run executed by implementer; the next zero-model diagnosis or new v2 attempt needs an explicit owner decision",
+    "thirdAttempt": {
+      "requiresExplicitOwnerDecision": true,
+      "note": "v1 and v2 both failed at history-assert before native goals().create. Do not retry either requestId. A third attempt must be a new explicit owner decision using the existing v2 owner tool/command (or a later frozen experiment)."
+    },
+    "captureOnNextAttempt": [
+      "the runner receipt (diagnostics.coreGoalValidation): failurePhase, failureCode, failureDetail, historyDiagnostic (mismatchKind, expected.eventCount, live.seq, delta, hash prefixes)",
+      "the live shiyu_goal_commands receipt.reason for the same commandId (persisted phase/code prefix)",
+      "the archived core Goal Session event inventory: event count/types/seq, whether a leading session header record is present, live session.seq at observation, and the exact persisted vs live cut difference",
+      "do not retry, do not replay native create; reconcile only inert partial Goals (the generalized reconcile command now covers the fixed v1 and v2 requestIds in one call)"
+    ],
+    "interpretation": {
+      "live-seq-vs-event-count": "supports the header-cut/seq-semantics candidate fix; activate the create-only liveCut candidate in a following slice and re-run once",
+      "event-count with a positive delta": "a real append race; capture appended event types/counts and whether stabilization observed growth between attempts",
+      "prefix-digest": "the cold cut changed its hashed prefix; capture first/last event hashes and the two pass cut counts",
+      "header-hash / inherited-count / session-id / preset": "Session identity/header mismatch; capture header/inherited facts (hashes only)",
+      "references": "inbox projection vs live inbox mismatch; capture reference count/hash prefixes only",
+      "unknown": "readback/instrumentation unavailable; capture the raw controlled reason and stop"
+    },
+    "stopConditions": [
+      "one attempt only, 0 retries; no native create replay",
+      "wall/evaluation/budget/single-flight limits of the existing bounded runner stay unchanged",
+      "if historyDiagnostic remains absent from the receipt, the build does not include this instrument: stop and report"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real host/model run by the implementer: the live header/cut hypothesis is strongly supported but not host-confirmed; the candidate liveCut fix is dormant",
+    "the real host may expose the Session header differently (e.g. excluded by the official reader); the instrument is exactly what the next host run must resolve",
+    "the generalized reconcile returns a new targets[] shape in diagnostics; existing v1 primary fields are preserved, and the only integration patch is a tool-description update",
+    "no retry of v1/v2 create was performed and none should be performed without a new explicit owner decision"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/h3/h3-history-assert-reconcile-integration.patch",
+      "sha256": "fd7a2278dd753a48e391b394721ba5495f192764dca56f1e0f6242160d64e7e7",
+      "bytes": 1611
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/h3-hist-assert-verify.json",
+      "sha256": "a26bca923858f24af67ee4e0ecf41eddbe91a9c083d3f5f0d7fe477086d4a686"
+    },
+    {
+      "path": "plugins/shiyu/.local/slice-verify-h3-hist-assert.log",
+      "sha256": "12289fc34d1edc17347970f134feccbc9767d349bf43815b9dac9e0f1b6072fd"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h11-product-tests.log",
+      "sha256": "04da1c5978c8b2840843cfbb0b2be1ac73cf6c6778068325252fdfaa7ba1d637"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h11-product-typecheck.log",
+      "sha256": "9f330d1ecd9e3050f50f049ede3a34ed2a36ff93e45c1352a138d95fd4c48add"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h11-product-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h11-core-event-tools-focused.log",
+      "sha256": "f9f663099b18428a93ee7beb356b921d33b3674fe6b9ec4dd22589c6939d8d4a"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h11-core-validation-focused.log",
+      "sha256": "5a5ac616fca25c51102df5ef102ed02995a2aa7e56b1c09cca84f5b5ffc7620b"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h11-regression.log",
+      "sha256": "1b0a2a2098fd705511792dbf987753dace9c231c93d1c991221743ea29fa39ec"
+    }
+  ]
+}
