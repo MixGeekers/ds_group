@@ -2,7 +2,7 @@
  "schemaVersion": 1,
  "kind": "shiyu.harness.h7-round17-slice-evidence",
  "phase": "H7-round17",
- "capturedAt": "2026-11-03T17:48:22.277Z",
+ "capturedAt": "2026-11-03T18:55:51.630Z",
  "baselineHead": "9d419668c0eaf83512644719777b46b14e5ecab8",
  "status": "code-tests-delivered-not-clean-refresh",
  "purpose": "Bind the round-16 assembly-rendered runtime-context binding (v6) and the sixth fixed-host v6 attempt (create succeeded a third time; the FIRST real model request reached with request/header+context and three read-only event tools; provider returned an empty stream so the evaluation stayed CORE_EXECUTION_UNCONFIRMED with 0 usage), the round-16 clean artifacts and the round-16 review into evidence.ts and the acceptance index without granting pass; product rows stay not_covered.",
@@ -128,15 +128,15 @@
     }
    },
    "fullCheck": {
-    "tests": 1,
-    "pass": 1,
+    "tests": 1710,
+    "pass": 1710,
     "fail": 0,
     "skipped": 0,
     "exitCode": 0,
     "log": {
      "path": "plugins/shiyu/.local/h7-verify/round17-9d41966-check.log",
-     "sha256": "52d26753462488ad21852bc6718e21b84835f53765304d0a1e1b89d05a2a71b1",
-     "bytes": 8
+     "sha256": "43e77969225d6728101faf7836791eacb2440c47510b09bae4a6e14a8b8c3b52",
+     "bytes": 180125
     }
    }
   }
@@ -167,6 +167,16 @@
    "path": "plugins/shiyu/.local/h7-verify/round17-9d41966-isolated-tsc.log",
    "sha256": "a6ce7f41eaf235b981cdbfe9a3d6a5d9a3502b6bd605ffc2acf78679a4ee9a2f",
    "bytes": 11
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round17-9d41966-isolated-harness.log",
+   "sha256": "11d902bdefe2fd8cfca89b708047e44a2f0a85bbd6a984e7393edd716b9d2bb2",
+   "bytes": 13646
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round17-9d41966-check.log",
+   "sha256": "43e77969225d6728101faf7836791eacb2440c47510b09bae4a6e14a8b8c3b52",
+   "bytes": 180125
   }
  ]
 }
