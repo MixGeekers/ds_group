@@ -1013,6 +1013,11 @@ test('a wrong host working-directory snapshot is rejected in the first step befo
     assert.equal(stored.events.some(event => event.type === 'turn/end' && event.data?.reason?.kind === 'blocked'), true);
     assert.equal(stored.events.some(event => event.type === 'user/message'), false);
     assert.equal(receipt.cleanupVerified, true);
+    // Bounded diagnostics: the receipt explains why the first step failed and
+    // how many host messages were claimed, without leaking the absolute cwd.
+    assert.equal(receipt.firstStepMessageCount, 2);
+    assert.match(String(receipt.failureDetail), /runtime context/i);
+    assert.ok(!String(receipt.failureDetail).includes('/synthetic/shiyu/core'));
   } finally { await adapter.close(); }
 });
 
@@ -1028,6 +1033,8 @@ test('a third native first-step input is rejected before any model request', asy
     assert.equal(receipt.counters.mainModelRequests, 0); assert.equal(receipt.counters.mainModelStreams, 0);
     assert.equal(receipt.counters.toolCalls, 0); assert.equal(f.counts().requests, 0); assert.equal(f.counts().streams, 0);
     assert.equal(receipt.cleanupVerified, true);
+    assert.equal(receipt.firstStepMessageCount, 3);
+    assert.match(String(receipt.failureDetail), /first step/i);
   } finally { await adapter.close(); }
 });
 

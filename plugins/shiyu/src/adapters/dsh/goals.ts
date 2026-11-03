@@ -209,6 +209,10 @@ export interface CoreEventToolModelProbeResult {
   finalTextSha256?: string;
   finalJson?: { ok: true; typesSeen: number };
   usage: CoreEventToolModelProbeUsage;
+  /** Bounded, cwd-sanitized failure text for diagnosis; never a model output. */
+  failureDetail?: string;
+  /** How many messages the host claimed in the probe's first step (diagnostic). */
+  firstStepMessageCount?: number;
   released: boolean;
   disposed: boolean;
   archived: boolean;

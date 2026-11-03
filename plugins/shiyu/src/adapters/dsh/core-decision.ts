@@ -672,6 +672,8 @@ export class CoreEventToolModelProbeRun {
   private cancelled = false;
   private failure?: unknown;
   private failureCode?: string;
+  private failureMessage?: string;
+  private firstStepMessageCount?: number;
   private isAgentLoopRequest?: (request: unknown) => boolean;
   constructor(private readonly options: CoreEventToolModelProbeRunOptions) {
     this.requestMaxTokens = options.maxTokens;
@@ -691,6 +693,10 @@ export class CoreEventToolModelProbeRun {
   };
   private stop(code: string, error: unknown): void {
     this.failure ??= error; this.failureCode ??= code;
+    if (this.failureMessage === undefined) {
+      const text = error instanceof Error ? error.message : String(error);
+      this.failureMessage = text.split(this.options.cwd).join('<workspace>').slice(0, 300);
+    }
     if (!this.controller.signal.aborted) this.controller.abort(error);
   }
   private assertCurrent(): void {
@@ -734,6 +740,7 @@ export class CoreEventToolModelProbeRun {
    * registered prompt plus at most that one exact bound runtime-context message;
    * every other input count or identity still fails closed. */
   private validateFirstStepInputs(messages: unknown): void {
+    this.firstStepMessageCount = Array.isArray(messages) ? messages.length : -1;
     if (!Array.isArray(messages) || messages.length < 1 || messages.length > 2) {
       throw probeFailure('CORE_MODEL_PROBE_PROTOCOL_VIOLATION', 'Core model probe first step is not the one registered prompt with at most its bound runtime context');
     }
@@ -1119,7 +1126,9 @@ export class CoreEventToolModelProbeRun {
       toolCalls, ...(toolResult ? { toolResult } : {}),
       ...(final.text !== undefined ? { finalTextSha256: sha256Text(final.text) } : {}),
       ...(final.json !== undefined ? { finalJson: final.json } : {}),
-      usage, released: false, disposed: false, archived: false, cleanupVerified: false,
+      usage, ...(this.failureMessage === undefined ? {} : { failureDetail: this.failureMessage }),
+      ...(this.firstStepMessageCount === undefined ? {} : { firstStepMessageCount: this.firstStepMessageCount }),
+      released: false, disposed: false, archived: false, cleanupVerified: false,
       observedAt: new Date(this.options.now()).toISOString(),
     };
   }
