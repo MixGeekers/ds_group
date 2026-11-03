@@ -1,0 +1,86 @@
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ -48,6 +48,7 @@
+ } from './recovery/host-ports.js';
+ import { RuntimeCheckpointCommand, RuntimeCheckpointProbeCommand, type RuntimeCheckpointCommandResult } from './recovery/runtime-command.js';
+ import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
++import { TaskWorkspaceCoordinator, type TaskExecutionPlan } from './control/task-workspace.js';
+ import { computeMemoryReadiness, type MemoryReadiness } from './adapters/ombre/readiness.js';
+ import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
+ import { EMOTION_PROBE_ACTION, RuntimeEmotionContinuationProbeCommand, type EmotionProbeReceipt } from './adapters/control-store/emotion-continuation-probe.js';
+@@ -80,7 +81,16 @@
+   cancel(key: string): Promise<void>;
+   close(): Promise<void>;
+ }
+-export interface RuntimeConfig { dataDir?: string }
++export interface RuntimeConfig {
++  dataDir?: string;
++  /**
++   * Owner-configured writable shared workspace root. Must be an absolute path
++   * on the same filesystem as the task workspaces; absent preserves the
++   * historical artifact-only task behavior exactly (no shared mirror, no lock).
++   * This value is trusted composition configuration, never model/command input.
++   */
++  sharedWorkspaceRoot?: string;
++}
+ export interface GoalLifecycleDriver {
+   initialize(): Promise<void>;
+   run(taskId: string, options: GoalLifecycleRunOptions): Promise<GoalLifecycleResult>;
+@@ -109,6 +119,19 @@
+   labAdapterFactory?: LabServiceOptions['adapterFactory'];
+   /** Trusted fixture/composition only; never accepted from command JSON. */
+   memoryFactory?: (config: ManagedOmbreConfig) => Pick<ManagedOmbreBackend, 'adapter' | 'open' | 'status' | 'close'>;
++  /**
++   * Trusted composition only: list of in-place shared-workspace changes already
++   * accepted in the task plan/admitted parameters. Never populated from model
++   * output, worker tool arguments or command JSON.
++   */
++  workspaceExpectedChanges?: (plan: TaskExecutionPlan) => readonly string[];
++  /**
++   * Trusted composition only: explicit owner decision to delete canonical
++   * shared files. Absent keeps the adapter default (task-side link only).
++   */
++  workspaceOwnerDecision?: (plan: TaskExecutionPlan) => {
++    kind: 'delete-shared'; paths: readonly string[]; decisionId: string; decidedAt?: string;
++  } | undefined;
+   /**
+    * H5b trusted composition only: explicit checkpoint staging root outside the
+    * live data root. Public commands, model output and GET traffic can never set
+@@ -148,6 +171,8 @@
+   readonly startedAt = new Date().toISOString();
+   readonly operations = new Map<string, ActiveOperation>();
+   readonly dataDir: string;
++  /** Owner-configured writable shared workspace root; undefined = legacy no-shared behavior. */
++  private readonly sharedWorkspaceRoot?: string;
+   state!: LocalStateFile;
+   store!: ControlStore;
+   events!: EventService;
+@@ -224,7 +249,9 @@
+   constructor(private readonly ctx: DshContext, config: RuntimeConfig = {}, private readonly options: RuntimeOptions = {}) {
+     const defaultDirectory = fileURLToPath(new URL('../.local/runtime/', import.meta.url));
+     if (config.dataDir !== undefined && (typeof config.dataDir !== 'string' || !path.isAbsolute(config.dataDir))) throw new Error('dataDir must be an absolute path');
++    if (config.sharedWorkspaceRoot !== undefined && (typeof config.sharedWorkspaceRoot !== 'string' || !path.isAbsolute(config.sharedWorkspaceRoot))) throw new Error('sharedWorkspaceRoot must be an absolute path');
+     this.dataDir = path.resolve(config.dataDir ?? defaultDirectory);
++    this.sharedWorkspaceRoot = config.sharedWorkspaceRoot;
+   }
+   async init(): Promise<void> {
+     this.state = await LocalStateFile.open(this.dataDir);
+@@ -336,7 +363,17 @@
+       this.localReplies = new LocalReplyService({ store: this.store, sessions: this.sessions, assertRuntimeAllowed: () => this.ensureCanRun(),
+         ...(this.memorySearch ? { memory: this.memorySearch } : {}) });
+       await this.publishMemoryAvailability();
+-      this.tasks = new LocalTaskRunner(this.store, this.workers, this.artifacts);
++      // task-73: trusted shared-workspace integration. With no configured
++      // sharedWorkspaceRoot the coordinator is a strict no-op and the artifact
++      // path is unchanged; expected changes/owner decisions come only from
++      // trusted composition, never from a worker or model message.
++      const taskWorkspaceCoordinator = new TaskWorkspaceCoordinator({
++        workspacesRoot: path.join(this.dataDir, 'workspaces'),
++        ...(this.sharedWorkspaceRoot ? { sharedRoot: this.sharedWorkspaceRoot } : {}),
++        ...(this.options.workspaceExpectedChanges ? { expectedChanges: this.options.workspaceExpectedChanges } : {}),
++        ...(this.options.workspaceOwnerDecision ? { ownerDecision: this.options.workspaceOwnerDecision } : {}),
++      }, this.artifacts);
++      this.tasks = new LocalTaskRunner(this.store, this.workers, this.artifacts, taskWorkspaceCoordinator);
+       const goalOptions: GoalLifecycleOptions = {
+         ctx: this.ctx,
+         bindings: {

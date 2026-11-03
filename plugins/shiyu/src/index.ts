@@ -2,6 +2,8 @@ import { RuntimeService } from './runtime.js';
 import { emotionContinuationDiagnosisTool } from './adapters/control-store/emotion-continuation-probe.js';
 export { emotionContinuationDiagnosisTool };
 import { innerLifecycleDiagnosisTool } from './control/inner-lifecycle-probe.js';
+import { singleUserChatMemoryProbeTool } from './control/chat-memory-probe.js';
+export { singleUserChatMemoryProbeTool };
 import type { RuntimeConfig } from './runtime.js';
 
 export const inject = ['connection', 'tools', 'agents', 'agentPresets', 'systemPrompt', 'sessions', 'sessionPersistence', 'sessionProjections', 'workspaceRegistry', 'workingDirectory'];
@@ -391,5 +393,7 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private
   // :memory: store, never opens the live control database and never calls a model.
   ctx.effect(() => ctx.tools.register(innerLifecycleDiagnosisTool(service)));
+  // P0 round-18: two-phase single-user chat-memory verification (real local reply, <=2 calls total).
+  ctx.effect(() => ctx.tools.register(singleUserChatMemoryProbeTool(service)));
   ctx.effect(() => ctx.tools.register(timeTriggerDiagnosisTool(service)));
 }

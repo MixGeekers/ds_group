@@ -3,6 +3,8 @@ import type { ControlStore } from '../adapters/control-store/index.js';
 import type { TaskView } from './tasks/index.js';
 import type { WorkerEventToolSource, WorkerRunRequest, WorkerRunResult } from '../adapters/dsh/workers.js';
 import type { LocalArtifactStore } from '../adapters/artifacts/index.js';
+import { TaskWorkspaceCoordinator, TaskWorkspacePublishError, type TaskWorkspaceExecution } from './task-workspace.js';
+import type { TaskExecutionPlan } from '../adapters/control-store/task-domain.js';
 
 export interface TaskWorkerDriver {
   initialize(): Promise<void>;
@@ -20,16 +22,37 @@ export interface TaskRunOptions {
 
 /** Coordinates existing native workers and durable domain commands. No Agent loop. */
 export class LocalTaskRunner {
-  constructor(private readonly store: ControlStore, private readonly worker: TaskWorkerDriver, private readonly artifacts: LocalArtifactStore) {}
+  constructor(
+    private readonly store: ControlStore,
+    private readonly worker: TaskWorkerDriver,
+    private readonly artifacts: LocalArtifactStore,
+    /** Trusted composition only; absent keeps the historical artifact-only path unchanged. */
+    private readonly workspaces?: TaskWorkspaceCoordinator,
+  ) {}
 
   async run(taskId: string, options: TaskRunOptions): Promise<TaskView> {
     options.signal.throwIfAborted();
+    // Prepare the writable shared workspace (exclusive lock + hard-link mirror)
+    // BEFORE claiming the assignment, so a busy shared workspace leaves the
+    // task untouched in the queue instead of consuming a claim.
+    const workspace = this.workspaces ? await this.workspaces.begin(taskId) : undefined;
     options.progress('领取受限执行实例');
-    const plan = await this.store.request('task.claimAssignment', { taskId, leaseMs: 180000 });
-    const permit = plan.permit;
+    let plan: TaskExecutionPlan;
     try {
-      const cwd = await this.artifacts.prepareWorkspace(taskId);
+      plan = await this.store.request('task.claimAssignment', { taskId, leaseMs: 180000 });
+    } catch (error) {
+      await workspace?.abortBeforeWorker('assignment-not-claimed');
+      throw error;
+    }
+    const permit = plan.permit;
+    let workerStarted = false;
+    let workspacePublished = false;
+    try {
+      // Trusted plan projection only: unsafe paths fail before the worker runs.
+      workspace?.validatePlan(plan);
+      const cwd = workspace?.shared && workspace.cwd ? workspace.cwd : await this.artifacts.prepareWorkspace(taskId);
       options.signal.throwIfAborted();
+      workerStarted = true;
       const result = await this.worker.run({
         taskId, assignmentId: plan.assignmentId, scope: plan.scope, cwd, sessionId: plan.sessionId,
         permit: { ...permit, check: async () => this.store.request('task.checkPermit', { permit }) },
@@ -78,15 +101,33 @@ export class LocalTaskRunner {
       options.progress('核验产物、效果回执与完成条件');
       const observed = await this.artifacts.inspect({ taskId, expectedSha256: plan.expectedSha256 });
       if (!observed) throw new Error('Worker did not produce the required artifact');
+      // Publish the writable shared workspace before reporting ready: a
+      // conflict keeps the task non-terminal so it can be marked unknown.
+      if (workspace?.shared) {
+        options.progress('发布可写共享工作区');
+        await workspace.publish(plan);
+        workspacePublished = true;
+      }
       await this.store.request('task.report', { permit, state: 'ready', summary: result.candidate.summary });
       const task = await this.store.request('task.verify', { taskId });
       if (task.state !== 'succeeded') throw new Error('Independent completion verification is incomplete');
       options.progress('独立核验通过');
       return task;
     } catch (error) {
+      // A failed worker keeps the task mirror for explicit reconciliation;
+      // nothing is published implicitly. A publish conflict/unknown is retained
+      // with its receipt. A claim/pre-worker failure discards the empty mirror.
+      const reason = (error instanceof Error ? error.message : String(error)).slice(0, 500);
+      if (workspace?.shared) {
+        if (!workerStarted) await workspace.abortBeforeWorker(reason);
+        else await workspace.fail(reason, {
+          published: workspacePublished,
+          ...(error instanceof TaskWorkspacePublishError && error.report ? { report: error.report } : {}),
+        });
+      }
       // Cancellation or a crashed dispatch does not prove the external effect
       // stopped. Retain uncertainty until the recovery coordinator reconciles it.
-      try { await this.store.request('task.markUnknown', { taskId, reason: (error instanceof Error ? error.message : String(error)).slice(0, 500) }); }
+      try { await this.store.request('task.markUnknown', { taskId, reason }); }
       catch (recordError) { throw new AggregateError([error, recordError], 'Task execution and uncertainty recording failed'); }
       throw error;
     }

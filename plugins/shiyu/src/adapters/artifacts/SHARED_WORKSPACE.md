@@ -71,3 +71,24 @@ edit `runtime.ts`/`index.ts`.
 
 `artifacts/dsh/tasks/workspace-shared-hardlink.json` (layout, disclosure, matrix cases, fingerprints,
 zero-live-host boundaries, full-check verification).
+
+## TaskRunner integration (task-73, patch not applied in this slice)
+
+`src/control/task-workspace.ts` implements the trusted coordinator:
+
+- `LocalTaskRunner` accepts an optional `TaskWorkspaceCoordinator`. With a
+  configured `RuntimeConfig.sharedWorkspaceRoot`, a task prepares the mirror
+  **before** the assignment claim (a busy shared workspace leaves the task
+  untouched in the queue), runs the worker with `cwd = <taskId>/task`, and
+  publishes after independent artifact observation but before `task.report` so a
+  publish conflict keeps the task non-terminal and it is marked unknown.
+- Without `sharedWorkspaceRoot` the coordinator is a strict no-op: cwd remains
+  `<workspaces>/<taskId>` and artifact behavior is unchanged.
+- `expectedChanges` and an owner deletion decision come only from trusted
+  RuntimeOptions plan projections, never from worker tool arguments or model text.
+- Worker/verification failure writes `.workspace-failure.json`, retains the
+  mirror/lock for explicit `TaskWorkspaceCoordinator.discard`, and never
+  publishes task-side files implicitly.
+- Integration diff: `artifacts/dsh/tasks/runtime-task-workspace.diff`
+  (`RuntimeConfig.sharedWorkspaceRoot`, `RuntimeOptions.workspaceExpectedChanges`
+  / `workspaceOwnerDecision`, coordinator construction; index.ts/client unchanged).

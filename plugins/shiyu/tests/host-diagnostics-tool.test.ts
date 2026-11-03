@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreGoalValidationV7Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, emotionContinuationDiagnosisTool, memoryEmbeddingProbeTool, nativeHeaderCutProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreGoalValidationV7Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, emotionContinuationDiagnosisTool, memoryEmbeddingProbeTool, nativeHeaderCutProbeTool, singleUserChatMemoryProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 import { innerLifecycleDiagnosisTool } from '../src/control/inner-lifecycle-probe.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
@@ -245,4 +245,14 @@ test('core goal validation v7 tool executes exactly the seventh frozen experimen
   assert.match(tool.description, /streamDiagnostic/);
   assert.equal(await tool.execute(), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.probe-core-goal-v7' }]);
+});
+
+test('single-user chat memory probe tool forwards the exact phase request', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, phase: 'write', pass: true, generationModelCalls: 1 };
+  const tool = singleUserChatMemoryProbeTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_verify_single_user_chat_memory');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.equal(await tool.execute({ phase: 'write' }), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.probe-single-user-chat-memory', phase: 'write' }]);
 });

@@ -1,0 +1,405 @@
+{
+  "schemaVersion": 1,
+  "slice": "task-73",
+  "title": "可写共享工作区接入 Runtime/TaskRunner：prepare/publish/失败语义/锁/路径安全/审计",
+  "generatedAt": "2026-11-03T20:49:51.250Z",
+  "evidenceLevel": "G1 offline integration (real temporary ControlStore/LocalArtifactStore/hard links; fake worker; no live host/model)",
+  "environment": {
+    "node": "v24.19.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "fingerprints": {
+    "source": {
+      "git": {
+        "head": "ab08779e9883d3c4498b38ba495b1e384599605c"
+      },
+      "moduleFiles": [
+        {
+          "path": "src/control/task-workspace.ts",
+          "sha256": "dd3def64eea09d9119225e8ea13aea242fb1338c998c7dca516607ee2cffe7d3"
+        },
+        {
+          "path": "src/control/task-runner.ts",
+          "sha256": "b04c02ff4c70edac6ef4f2519f23178288310c4678a3955c2fa1a395fa289d14"
+        },
+        {
+          "path": "src/adapters/artifacts/shared-workspace.ts",
+          "sha256": "7f944d1e9f7d43869f8204c4307c4d03b91b4d711e8b74252fc45c4263711930"
+        },
+        {
+          "path": "src/adapters/artifacts/index.ts",
+          "sha256": "09138ac806be345c3a380c706672042bed535fe00cb7f42b28828f35a1704f27"
+        },
+        {
+          "path": "src/adapters/artifacts/SHARED_WORKSPACE.md",
+          "sha256": "ea4b15ac295c82f69e9f880f1372b90b2476c9a9bf3cbe8aa77fd2389ddc9353"
+        }
+      ]
+    },
+    "build": {
+      "buildCommand": "npm run check (tsc --noEmit + node --import tsx --test tests/*.test.ts + tsc -p tsconfig.build.json + node --check client/index.js)",
+      "tsconfigBuildSha256": "54b6d705480e307e263aa78965b318c0921d5b94fa346b385ca68cbd8318137a",
+      "packageJsonSha256": "7eb06a89562c77d7f6f674b630011764d9350528a81d316786470c4afdcf4700"
+    },
+    "tests": {
+      "files": [
+        {
+          "path": "tests/task-workspace-runtime.test.ts",
+          "sha256": "061a9fdbde8cf404b1d9ae62a344617e8dbecd8645f7c7c77eced02f6572b43f"
+        }
+      ]
+    }
+  },
+  "integration": {
+    "patchPath": "artifacts/dsh/tasks/runtime-task-workspace.diff",
+    "patchSha256": "cdc9e2688d887a367432d2cdd5f7f3fa4570f1df6b61227704756bfadfd817ce",
+    "patchApplies": true,
+    "runtime": "RuntimeConfig.sharedWorkspaceRoot (trusted owner config) + RuntimeOptions.workspaceExpectedChanges/workspaceOwnerDecision (trusted plan projections) -> TaskWorkspaceCoordinator -> LocalTaskRunner 4th argument",
+    "indexTsChange": "none required: RuntimeConfig/apply() already flow through the plugin entry; no client or model tool change"
+  },
+  "hostKit": {
+    "description": "Configure a temporary sharedRoot, run one synthetic TaskRunner task with the fake worker, inspect before/after manifest and publish receipt. No live host task is executed.",
+    "command": "node --import tsx --test tests/task-workspace-runtime.test.ts",
+    "beforeManifestCase": "audit-manifest-receipt",
+    "publishReceiptCase": "success-prepare-publish"
+  },
+  "boundaries": {
+    "liveHost": false,
+    "modelCalls": 0,
+    "realWorkspaceTouched": false,
+    "runtimeTsEdited": false,
+    "clientChanged": false,
+    "gitCommitMade": false,
+    "dependenciesInstalled": false,
+    "workerSharedFileTools": "the fake worker writes the shared mirror directly; a real worker tool surface for shared-file writes is outside this slice"
+  },
+  "summary": {
+    "total": 10,
+    "passed": 10,
+    "failed": 0
+  },
+  "cases": [
+    {
+      "caseId": "success-prepare-publish",
+      "injectionPoint": "配置 sharedRoot；fake worker 在 <taskId>/shared 新建/原地写文件，任务成功",
+      "expected": "cwd=<taskId>/task；canonical 新文件发布；index 更新；task succeeded",
+      "observed": "cwd task; published 2 changes; index entries=2; task=succeeded",
+      "evidence": {
+        "taskId": "56ae14ed5ce391c6bd839ce91072a2f8",
+        "changes": [
+          [
+            "docs/base.md",
+            "in-place-updated"
+          ],
+          [
+            "docs/created.md",
+            "published-new"
+          ]
+        ],
+        "canonical": "created during evidence task",
+        "manifestEntries": 1
+      },
+      "pass": true
+    },
+    {
+      "caseId": "no-shared-noop",
+      "injectionPoint": "未配置 sharedRoot",
+      "expected": "cwd=<workspaces>/<taskId>；无 .shared-workspaces/manifest；任务照旧成功",
+      "observed": "task=succeeded; cwd=/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/shiyu-task-workspace-Dz5VnR/workspaces/c7349a50a22f84da9b374dfc956ee408",
+      "evidence": {
+        "cwd": "/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/shiyu-task-workspace-Dz5VnR/workspaces/c7349a50a22f84da9b374dfc956ee408"
+      },
+      "pass": true
+    },
+    {
+      "caseId": "worker-failure-no-publish",
+      "injectionPoint": "fake worker 写入 shared 后失败",
+      "expected": "canonical 不变；无 publish receipt；task unknown；mirror 保留",
+      "observed": "task=unknown; canonical=unpublished",
+      "evidence": {
+        "failureMarker": {
+          "schemaVersion": 1,
+          "taskId": "5ca08efb00d9d2b52ae5046c14350761",
+          "at": "2026-11-03T20:49:47.709Z",
+          "status": "unknown-or-reconcile",
+          "reason": "Synthetic worker final response unavailable after artifact write",
+          "mirrorRetained": true,
+          "lockRetained": true,
+          "published": false,
+          "note": "Worker/verification did not complete; the task mirror is retained for explicit reconciliation and nothing was published."
+        }
+      },
+      "pass": true
+    },
+    {
+      "caseId": "conflict-unknown",
+      "injectionPoint": "原地修改未在 trusted expectedChanges 声明",
+      "expected": "task unknown；index 不猜；conflict 保留",
+      "observed": "task=unknown; report=unknown",
+      "evidence": {
+        "conflicts": [
+          {
+            "detail": "in-place modification was not declared in expectedChanges",
+            "kind": "unexpected-modification",
+            "path": "notes.md"
+          }
+        ]
+      },
+      "pass": true
+    },
+    {
+      "caseId": "lock-busy",
+      "injectionPoint": "第一个任务持锁时第二个任务 run",
+      "expected": "第二任务在 claim 前 TASK_WORKSPACE_BUSY；状态保持 queued；worker 不启动",
+      "observed": "busy=TASK_WORKSPACE_BUSY; second=queued",
+      "evidence": {
+        "busyCode": "TASK_WORKSPACE_BUSY",
+        "secondState": "queued"
+      },
+      "pass": true
+    },
+    {
+      "caseId": "path-safety",
+      "injectionPoint": "trusted expectedChanges 返回 ../escape.md",
+      "expected": "TASK_WORKSPACE_PATH_INVALID；worker 不运行；task unknown；无 mirror 残留",
+      "observed": "workerCalls=0; task=unknown",
+      "evidence": {
+        "workerCalls": 0
+      },
+      "pass": true
+    },
+    {
+      "caseId": "audit-manifest-receipt",
+      "injectionPoint": "成功任务后读取 manifest/seceipt/index",
+      "expected": "manifest 含 pre 状态；receipt synced；index 含新文件；artifact 路径未变",
+      "observed": "manifestEntries=1; report=synced; index=2",
+      "evidence": {
+        "beforeManifest": {
+          "createdAt": "2026-11-03T20:49:49.375Z",
+          "entries": [
+            {
+              "dev": 16777232,
+              "ino": 22607295,
+              "mtimeMs": 1793738989355.2927,
+              "nlink": 1,
+              "path": "docs/base.md",
+              "sha256": "cae662172fd450bb0cd710a769079c05bfc5d8e35efa6576edc7d0377afdd4a2",
+              "size": 4
+            }
+          ],
+          "lockToken": "7fd65d79-ef65-4db8-bf9b-973be27a7306",
+          "manifestSha256": "2f92d72a0cf871ea352ed1c65f71217240874b2113db03a4bd68348b69c45fc8",
+          "schemaVersion": 1,
+          "sharedRootHash": "22526ad3486e3a78546e15bc28197b97d151546d3f01d73442ea47b2dc9e000d",
+          "snapshot": null,
+          "taskId": "f52a7c021328666d6679d079da0a28d3",
+          "workspacesRootHash": "3ec5a625f8ac1a0b1238a22fa6f9c51f387a32803e236b034b5c4fc5abf8ecc2"
+        },
+        "publishReceipt": {
+          "changes": [
+            {
+              "kind": "in-place-updated",
+              "path": "docs/base.md",
+              "postSha256": "bac44ce75faeb4eba24ca5c8c980d8d25a4bf5ce7ca4208308f00c2c4815913d",
+              "preSha256": "cae662172fd450bb0cd710a769079c05bfc5d8e35efa6576edc7d0377afdd4a2"
+            },
+            {
+              "kind": "published-new",
+              "path": "docs/created.md",
+              "postSha256": "819c21bfd3c73cf502eba074ce2731ee6a962521cd8157dafdb7c1d75ce8a6f4",
+              "preSha256": null
+            }
+          ],
+          "code": null,
+          "conflicts": [],
+          "disclosure": {
+            "artifactsUnaffected": true,
+            "deleteSharedRequiresOwnerDecision": true,
+            "deletionDefault": "task-link-only",
+            "inPlaceWritesPropagateToSharedSource": true,
+            "mirrorUsesFileHardLinks": true
+          },
+          "index": {
+            "path": ".shared-workspaces/index.json",
+            "sha256": "dd79c9823bceace32d718b26de17171c85dfa23120f370ff64f72c8457d624a7"
+          },
+          "lockReleased": true,
+          "manifestSha256": "2f92d72a0cf871ea352ed1c65f71217240874b2113db03a4bd68348b69c45fc8",
+          "mirrorRetained": false,
+          "ownerDecision": null,
+          "rollbackAvailable": false,
+          "schemaVersion": 1,
+          "sharedRootHash": "22526ad3486e3a78546e15bc28197b97d151546d3f01d73442ea47b2dc9e000d",
+          "status": "synced",
+          "taskId": "f52a7c021328666d6679d079da0a28d3"
+        },
+        "index": {
+          "entries": [
+            {
+              "dev": 16777232,
+              "ino": 22607295,
+              "mtimeMs": 1793738989413.162,
+              "path": "docs/base.md",
+              "sha256": "bac44ce75faeb4eba24ca5c8c980d8d25a4bf5ce7ca4208308f00c2c4815913d",
+              "size": 27
+            },
+            {
+              "dev": 16777232,
+              "ino": 22607311,
+              "mtimeMs": 1793738989412.9934,
+              "path": "docs/created.md",
+              "sha256": "819c21bfd3c73cf502eba074ce2731ee6a962521cd8157dafdb7c1d75ce8a6f4",
+              "size": 28
+            }
+          ],
+          "schemaVersion": 1,
+          "sharedRootHash": "22526ad3486e3a78546e15bc28197b97d151546d3f01d73442ea47b2dc9e000d",
+          "updatedAt": "2026-11-03T20:49:49.545Z"
+        },
+        "artifact": "Synthetic task-73 artifact: independently verify this exact local-note content."
+      },
+      "pass": true
+    },
+    {
+      "caseId": "delete-default-integration",
+      "injectionPoint": "worker 删除 shared/ 中链接（无 ownerDecision）",
+      "expected": "canonical 保留；receipt=task-link-removed；task succeeded",
+      "observed": "task=succeeded; change=task-link-removed; canonical=keep",
+      "evidence": {
+        "change": {
+          "kind": "task-link-removed",
+          "path": "keep.md",
+          "postSha256": "6ca7ea2feefc88ecb5ed6356ed963f47dc9137f82526fdd25d618ea626d0803f",
+          "preSha256": "6ca7ea2feefc88ecb5ed6356ed963f47dc9137f82526fdd25d618ea626d0803f"
+        }
+      },
+      "pass": true
+    },
+    {
+      "caseId": "delete-owner-decision-integration",
+      "injectionPoint": "worker 删除链接 + trusted ownerDecision delete-shared",
+      "expected": "canonical 受控删除；receipt shared-deleted + decision；task succeeded",
+      "observed": "task=succeeded; change=shared-deleted",
+      "evidence": {
+        "ownerDecision": {
+          "decisionId": "evidence-owner-decision",
+          "kind": "delete-shared",
+          "paths": [
+            "remove.md"
+          ]
+        }
+      },
+      "pass": true
+    },
+    {
+      "caseId": "failure-reconcile-unblock",
+      "injectionPoint": "worker 失败保留 mirror；显式 discard 后新任务成功",
+      "expected": "失败任务 unknown、staged 文件未发布；discard 后第二任务成功",
+      "observed": "first=unknown; discard ok; second=succeeded",
+      "evidence": {
+        "secondTask": "7b85bd72803290a74c290780b7670c3a",
+        "canonical": "after"
+      },
+      "pass": true
+    }
+  ],
+  "regeneration": {
+    "command": "SHIYU_WRITE_EVIDENCE=1 node --import tsx --test tests/task-workspace-runtime.test.ts"
+  },
+  "verification": {
+    "generatedAt": "2026-11-03T21:31:39.156452Z",
+    "worktree": {
+      "path": "<temporary-worktree>/shiyu-taskws-verify/plugins/shiyu",
+      "baselineCommit": "ab08779",
+      "method": "git worktree add --detach HEAD + 仅复制本切片（src/control/task-workspace.ts、task-runner.ts、shared-workspace.ts、artifacts/index.ts、SHARED_WORKSPACE.md、tests/task-workspace-runtime.test.ts、本证据 JSON、runtime patch）；node_modules 符号链接；.local/ombre 仅符号链接复用既有 pinned Python/Ombre 夹具（未安装依赖）"
+    },
+    "commands": [
+      "npm run check  # tsc --noEmit && node --import tsx --test --test-concurrency=1 tests/*.test.ts && tsc -p tsconfig.build.json && node --check client/index.js"
+    ],
+    "runs": {
+      "final": {
+        "transientPath": "<transient-tmp>/taskws-check2.log",
+        "sha256": "7ed6d656e026bd599556d3b219594448ee236688e123cf0e03b844ed392b673a",
+        "bytes": 187093,
+        "exitCode": 0,
+        "counts": {
+          "tests": 1776,
+          "suites": 0,
+          "pass": 1776,
+          "fail": 0,
+          "cancelled": 0,
+          "skipped": 0,
+          "todo": 0,
+          "duration_ms": 2342973.909375
+        },
+        "pythonCrossLanguageTestRan": true,
+        "archivedCopy": {
+          "path": ".local/taskws-verify/taskws-check-final.log",
+          "sha256": "7ed6d656e026bd599556d3b219594448ee236688e123cf0e03b844ed392b673a",
+          "bytes": 187093,
+          "gitIgnored": true
+        }
+      }
+    },
+    "zeroSkipEvidence": {
+      "tests": 1776,
+      "pass": 1776,
+      "fail": 0,
+      "skipped": 0,
+      "cancelled": 0,
+      "pythonCrossLanguageTestRan": true,
+      "note": "隔离 worktree 全量 check 0 失败 / 0 跳过；pinned Python/Ombre 夹具以既有 .local/ombre 符号链接复用，未安装依赖。"
+    },
+    "sliceFileHashes": {
+      "files": [
+        {
+          "path": "src/control/task-workspace.ts",
+          "sha256": "dd3def64eea09d9119225e8ea13aea242fb1338c998c7dca516607ee2cffe7d3"
+        },
+        {
+          "path": "src/control/task-runner.ts",
+          "sha256": "b04c02ff4c70edac6ef4f2519f23178288310c4678a3955c2fa1a395fa289d14"
+        },
+        {
+          "path": "src/adapters/artifacts/shared-workspace.ts",
+          "sha256": "7f944d1e9f7d43869f8204c4307c4d03b91b4d711e8b74252fc45c4263711930"
+        },
+        {
+          "path": "src/adapters/artifacts/index.ts",
+          "sha256": "09138ac806be345c3a380c706672042bed535fe00cb7f42b28828f35a1704f27"
+        },
+        {
+          "path": "src/adapters/artifacts/SHARED_WORKSPACE.md",
+          "sha256": "ea4b15ac295c82f69e9f880f1372b90b2476c9a9bf3cbe8aa77fd2389ddc9353"
+        },
+        {
+          "path": "tests/task-workspace-runtime.test.ts",
+          "sha256": "061a9fdbde8cf404b1d9ae62a344617e8dbecd8645f7c7c77eced02f6572b43f"
+        },
+        {
+          "path": "artifacts/dsh/tasks/runtime-task-workspace.diff",
+          "sha256": "cdc9e2688d887a367432d2cdd5f7f3fa4570f1df6b61227704756bfadfd817ce"
+        }
+      ]
+    },
+    "patchCompileCheck": {
+      "worktree": "<temporary-worktree>/runtime-taskws-patch-check",
+      "baselineCommit": "ab08779",
+      "note": "在独立临时 worktree 应用 runtime-task-workspace.diff + 本切片后 npx tsc --noEmit 通过（0 errors）；该检查 worktree 已删除，未改主树 runtime.ts/index.ts。"
+    },
+    "boundaries": {
+      "liveHost": false,
+      "liveNativeSessionTouched": false,
+      "runtimeTsEdited": false,
+      "indexTsEdited": false,
+      "gitCommitMade": false,
+      "dependenciesInstalled": false,
+      "modelCalls": 0,
+      "realWorkspaceTouched": false
+    },
+    "discardedRuns": {
+      "note": "首次 full check 在测试补充/复核前启动，未完成即停止，不作为证据。"
+    }
+  }
+}

@@ -535,6 +535,44 @@ const validateManifest = (value: unknown, taskId: string): TaskWorkspaceManifest
   return manifest;
 };
 
+export interface TaskWorkspaceLayout {
+  taskRoot: string;
+  taskDir: string;
+  sharedDir: string;
+  manifestFile: string;
+  reportFile: string;
+  snapshotDir: string;
+}
+
+/** Read-only path layout helper for coordinators/audits; creates nothing. */
+export const taskWorkspaceLayout = (workspacesRoot: string, taskId: string): TaskWorkspaceLayout => {
+  const id = assertTaskId(taskId);
+  const root = path.resolve(workspacesRoot);
+  const taskRoot = path.join(root, id);
+  return {
+    taskRoot,
+    taskDir: path.join(taskRoot, 'task'),
+    sharedDir: path.join(taskRoot, 'shared'),
+    manifestFile: path.join(taskRoot, MANIFEST_NAME),
+    reportFile: path.join(taskRoot, REPORT_NAME),
+    snapshotDir: path.join(taskRoot, SNAPSHOT_NAME),
+  };
+};
+
+/** Read-only publish/rollback receipt, or undefined when no report exists. */
+export const readTaskWorkspaceReport = async (workspacesRoot: string, taskId: string): Promise<WorkspacePublishReport | undefined> => {
+  const layout = taskWorkspaceLayout(workspacesRoot, taskId);
+  try { return JSON.parse(await readFile(layout.reportFile, 'utf8')) as WorkspacePublishReport; }
+  catch (error) { if (isCode(error, 'ENOENT')) return undefined; throw error; }
+};
+
+/** Read-only pre-task manifest, or undefined when absent. */
+export const readTaskWorkspaceManifest = async (workspacesRoot: string, taskId: string): Promise<TaskWorkspaceManifest | undefined> => {
+  const layout = taskWorkspaceLayout(workspacesRoot, taskId);
+  try { return JSON.parse(await readFile(layout.manifestFile, 'utf8')) as TaskWorkspaceManifest; }
+  catch (error) { if (isCode(error, 'ENOENT')) return undefined; throw error; }
+};
+
 export interface PrepareTaskWorkspaceInput extends SharedWorkspaceManagerOptions {
   taskId: string;
 }

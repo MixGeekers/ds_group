@@ -1,0 +1,194 @@
+{
+  "slice": "P0 round-18：单用户多轮真实聊天记忆闭环 + 启动自动 embedding 验证（H2e）",
+  "recordedAt": "2026-11-03T17:30:45-04:00",
+  "workspace": "plugins/shiyu",
+  "status": "离线/集成通过：18/18 定向，隔离 worktree 全量 1782/1782 pass、0 fail/0 skip；runtime/index patch 已在 ab08779 干净应用并 tsc/build 通过。真实宿主两阶段（含 2 次 ≤256 tokens 本地回复 + 一次 reload）待 Lead 执行——本文件不宣称宿主通过。",
+  "baseline": {
+    "head": "ab08779",
+    "note": "隔离 worktree /tmp/shiyu-h2e 仅含本切片 4 文件（2 模块+2 测试）；runtime.ts/index.ts 未改，集成以精确 patch 交付。"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "plugins/shiyu/src/control/chat-memory-probe.ts",
+        "sha256": "8829558ba58b0a5d33d4a407e977ea4a490711cef78b4a76a8c8e69dd1226b2f",
+        "bytes": 23719,
+        "lines": 281
+      },
+      {
+        "path": "plugins/shiyu/src/control/startup-embedding-verifier.ts",
+        "sha256": "88f59f5e0728d0f69807d31db6686b7215fbd59d9c5d3c0aedbbc79af882cce2",
+        "bytes": 7213,
+        "lines": 119
+      },
+      {
+        "path": "plugins/shiyu/tests/chat-memory-probe.test.ts",
+        "sha256": "eb8fefe3f28c777c7c0a9171797b7e24f219699b493c9333d380f618f4b8a943",
+        "bytes": 14122,
+        "lines": 185
+      },
+      {
+        "path": "plugins/shiyu/tests/ombre-startup-embedding.test.ts",
+        "sha256": "eff49a0c0a9773198646af2ea027b1fa6a7827c10a751d3e3a6db63027fada13",
+        "bytes": 7558,
+        "lines": 107
+      },
+      {
+        "path": "plugins/shiyu/artifacts/dsh/h2/h2e-runtime-index.patch.diff",
+        "sha256": "3eab0953b3028691c84875299093bf09f9ce7cb6d8268012f803c8af81b9dae2",
+        "bytes": 16627,
+        "lines": 201
+      }
+    ],
+    "chat_memory_probe": {
+      "module": "src/control/chat-memory-probe.ts",
+      "phases": {
+        "write": "选现有本地 conversation → 写合成 marker 事实（chat-memory-probe-write-<uuid> / SHIYU_CHAT_MEMORY_<16hex>）→ 真实本地 embedding 索引（1 次）→ 发起 1 次本地回复（≤256 tokens，要求确认）。严格 oracle：索引 applied/publishable 且 embeddingCalls 1-2/usageComplete；reply 属同 conversation、contextReceipt confirmed、无 failed/cancelled/unknown；索引未确认时直接失败且不调用生成模型。合成记忆保留（sideEffects retained-until-recall）。",
+        "recall": "按 requestId 前缀查找最近 chat-memory-probe-write-* 事实（必须可读且同一 conversation）→ 读正文并提取 marker → 发起第 2 次本地回复（prompt 故意不含 marker，要求只复述事实）→ 严格 oracle 同时要求：reply 含 marker、受控 memorySources（reply 或零生成 background load）包含该 operationId、same native Session（expectedSessionId 来自 write receipt）且 confirmed；通过后撤回合成记忆并披露。模型仅凭 native 会话历史复述 marker 但无受控记忆来源 → pass=false reason=REPLY_WITHOUT_CONTROLLED_MEMORY_SOURCE。"
+      },
+      "receipts": "两阶段各有界/无损（≤32KiB）：phase/pass/reasonCode/capturedAt/conversationId/marker/markerSha256/checks/steps/sideEffects{generationModelCalls≤1, syntheticMemory retained|withdrawn, withdrawAttempted}；write 含 memory.operationId/index receipt；recall 含 memory read/withdrawn、reply sha/bytes/session、memoryEvidence{controlled,source:reply-memory-sources|background-load|none}、session evidence。无 reply 正文（仅 sha/bytes/marker 命中标志）。",
+      "no_retry": "每阶段最多 1 次生成调用、无自动重试；recall 的 background-load 是零生成受控背景读取，仅当 reply 未暴露 memorySources 时使用。",
+      "cross_conversation": "recall 指定 conversationId 时若 fact 不属于该 conversation → NO_PROBE_FACT，不跨会话读取。",
+      "tool": "singleUserChatMemoryProbeTool → shiyu_verify_single_user_chat_memory，参数 {phase: write|recall, expectedSessionId?, conversationId?}，additionalProperties=false；owner-only action runtime.probe-single-user-chat-memory。"
+    },
+    "startup_embedding": {
+      "module": "src/control/startup-embedding-verifier.ts",
+      "rule": "runtime init 在 memory availability 首次发布后、且 backend ready/binding verified/尚未 verified 时执行一次固定查询（STARTUP_EMBEDDING_QUERY）本地 embedding；查询使用已有可读 memory 的 conversation（无需写新记忆）；embeddingCalls==1、usageComplete、state=ok 才 verified 并 publish semantic_search；否则 exact_read + 受控 reason（SEMANTIC_NOT_CONFIGURED/BACKEND_NOT_READY/ALREADY_VERIFIED/NO_CONVERSATION/NO_ELIGIBLE_MEMORY/EMBEDDING_FAILED/TIMEOUT/ABORTED）。",
+      "once": "StartupEmbeddingVerifier 每进程最多一次尝试；第二次调用返回 ALREADY_ATTEMPTED 且 0 backend 调用；reload=新进程会重新尝试一次，从而恢复 semantic（前提是 reload 前存在可读且已索引的 conversation/memory；host kit write 阶段刻意保留合成记忆满足此条件）。",
+      "no_generation": "依赖接口只有 backendStatus/findConversationWithMemory/search/publishVerified，无生成/回复函数；测试断言无 generateReply 面。",
+      "runtime_hook": "runtime patch 在 init 的 publishMemoryAvailability 后 await 一次；resume 分支在未 attempt 时补一次（paused 启动不算 attempt）；结果写入 snapshot.diagnostics.startupEmbeddingVerification，并在 attempt 后刷新 coverage/availability。"
+    },
+    "runtime_patch": {
+      "path": "artifacts/dsh/h2/h2e-runtime-index.patch.diff",
+      "status": "未应用；已在 HEAD ab08779 干净 worktree 应用并 tsc --noEmit/build 通过（含 fresh application 复核）。",
+      "changes": [
+        "runtime.ts：导入两模块；字段 startupEmbeddingVerifier/startupEmbeddingReceipt/chatMemoryProbeReceipt；init/resume 启动验证钩子；命令分派 runtime.probe-single-user-chat-memory；commandChatMemoryProbe（idle/unpaused、单槽、signal、精确输入、ports 注入真实 memory/index/localReplies、recall 撤回合成记忆）；snapshot diagnostics 增加 startupEmbeddingVerification/singleUserChatMemoryProbe。",
+        "index.ts：注册 shiyu_verify_single_user_chat_memory 工具（无参数伪造面：仅 phase/expectedSessionId/conversationId 校验）。"
+      ]
+    }
+  },
+  "verification": {
+    "isolatedWorktree": {
+      "path": "/tmp/shiyu-h2e",
+      "head": "ab08779",
+      "method": "git worktree --detach ab08779 + 本切片 4 文件；node_modules/.local/ombre symlink",
+      "command": "cd /tmp/shiyu-h2e/plugins/shiyu && npm run check",
+      "exitCode": 0,
+      "typecheck": "pass",
+      "tests": 1782,
+      "pass": 1782,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 2360184,
+      "build": "pass",
+      "clientSyntax": "pass",
+      "log": {
+        "path": "plugins/shiyu/.local/h2e-check-final.log",
+        "sha256": "c933f4b251e1bbfecbf6ab5d4a0b97f81d192fa68aa3755a1e8d183215a23bf0",
+        "bytes": 187691
+      }
+    },
+    "targeted": {
+      "files": [
+        "tests/chat-memory-probe.test.ts（11）",
+        "tests/ombre-startup-embedding.test.ts（7）"
+      ],
+      "count": 18,
+      "pass": 18,
+      "log": {
+        "path": "plugins/shiyu/.local/h2e-targeted.log",
+        "sha256": "eb40a32b6b44d003d0dbf330104bbd1b065ed2ce598d9dcddcbe1d4a921c3571",
+        "bytes": 1945
+      }
+    },
+    "runtimePatchCheck": {
+      "worktree": "/tmp/h2e-check（应用 patch，tsc/build）与 /tmp/h2e-check2（fresh application 复核）",
+      "result": "pass",
+      "logs": [
+        {
+          "path": "plugins/shiyu/.local/h2e-runtime-patch-check.log",
+          "sha256": "50a859467d7865db23a03a1fddf5dee0ca239d323685f559d11941c541fadac4",
+          "bytes": 112
+        },
+        {
+          "path": "plugins/shiyu/.local/h2e-fresh-patch-check.log",
+          "sha256": "07ba4985853607375b9e3726ce6d21831181b99e0942b82db14ff0f11124029c",
+          "bytes": 94
+        }
+      ]
+    },
+    "testArithmetic": "HEAD ab08779 基线 1764 + 新增 18 = 1782（worktree 单批，0 fail/0 skip）"
+  },
+  "strictOracle": {
+    "write_pass": [
+      "conversation 存在且来自本地 conversation 快照",
+      "合成事实已保存",
+      "索引 applied/publishable 且 embeddingCalls 1-2/usageComplete",
+      "reply 同 conversation + contextReceipt confirmed + 非 failed/cancelled/unknown",
+      "每阶段生成调用≤1且无重试"
+    ],
+    "recall_pass": [
+      "找到最近 chat-memory-probe-write-* 可读事实且属于指定 conversation",
+      "读取正文含 marker（markerSha256 匹配）",
+      "第 2 次 reply 文本含 marker",
+      "reply 的受控 memorySources（或零生成 background load）包含该 operationId",
+      "reply native sessionId == write receipt expectedSessionId（同一原生 Session）",
+      "成功后撤回合成记忆并披露"
+    ],
+    "known_failure_reasons": [
+      "NO_CONVERSATION",
+      "INDEX_UNCONFIRMED/INDEX_FAILED",
+      "REPLY_CONVERSATION_MISMATCH",
+      "REPLY_UNCONFIRMED",
+      "NO_PROBE_FACT",
+      "FACT_NOT_READABLE",
+      "REPLY_MARKER_MISSING",
+      "REPLY_WITHOUT_CONTROLLED_MEMORY_SOURCE",
+      "SESSION_EVIDENCE_MISSING",
+      "SESSION_MISMATCH",
+      "TIMEOUT/ABORTED"
+    ],
+    "model_text_vs_controlled_memory": "仅模型回复含 marker 不算通过；必须同时有受控 memorySources/background-load 证据 + 同 Session，并记录 evidence.source。"
+  },
+  "hostKit": {
+    "status": "待真实宿主（Lead 执行；本切片禁止真实模型/宿主 reload）",
+    "prerequisites": [
+      "应用 artifacts/dsh/h2/h2e-runtime-index.patch.diff（Lead 可手动 rebase 到当前 runtime/index 上下文）；typecheck/build 后安装并做一次有序零模型 reload；确认单用户本地 conversation 已存在；运行时 idle/unpaused。",
+      "真实模型调用预算：最多 2 次本地回复（write 1 次、recall 1 次），每次 ≤256 tokens，0 自动重试；不得用其他模型调用替代。"
+    ],
+    "steps": [
+      "1. 基线审计：保存 shiyu_status（含 memory readiness/indexCoverage）与 control 审计（commitSeq/stateVersion/memory entries/effects/tasks/goals）+ Session 文件清单/hash。",
+      "2. write 阶段：调用工具 shiyu_verify_single_user_chat_memory {phase:\"write\"}（或 owner POST /api/shiyu/commands {\"action\":\"runtime.probe-single-user-chat-memory\",\"phase\":\"write\"}）。期望 pass=true、generationModelCalls=1、index applied/publishable、reply 同 conversation、nativeSessionId 写入 receipt；保存完整 receipt JSON sha256/bytes 与 marker/operationId；确认 syntheticMemory=retained-until-recall 且 memory 仍可读/已索引。",
+      "3. 一次有序 reload（零模型）。reload 后检查 snapshot.diagnostics.startupEmbeddingVerification：期望 attempted/verified=true、embeddingCalls=1、semanticPublished=true；snapshot.memory.backend.semanticReady/embeddingVerified=true 且 publication capabilities 含 semantic_search。若 reason 为 NO_ELIGIBLE_MEMORY/EMBEDDING_FAILED 等，如实记录并停止 recall（不得假装通过）。",
+      "4. recall 阶段：调用同一工具 {phase:\"recall\", expectedSessionId:\"<write receipt nativeSessionId>\", conversationId:\"<write receipt conversationId>\"}。期望 pass=true、reply 含 marker、memoryEvidence.controlled=true、session.sameSession=true、sideEffects.syntheticMemory=withdrawn；保存 receipt。模型自然复述但 memoryEvidence.controlled=false 必须判失败。",
+      "5. 副作用/撤回：memory.readLocal 该 operationId 应被拒绝；确认合成记忆已撤回并披露；若 recall 失败则记录 reason 与未撤回状态（工具不会在失败时撤回）。",
+      "6. 收尾审计：最多 2 次真实生成调用、每次 ≤256 tokens、0 自动重试；无 Task/Goal/Effect 副作用、无外部发送、无 live 数据路径被探针传入；对比 before/after 审计与 Session 文件；保存两个 receipt、startup verification receipt、status 差异为宿主证据。",
+      "7. 若 provider stream/模型失败：write/recall 如实 reason，不重试、不冒领；保留失败证据。"
+    ],
+    "evidenceToCapture": [
+      "write/recall 两阶段 receipt JSON 原文 sha256/bytes + 工具输出",
+      "startupEmbeddingVerification receipt + snapshot.memory.readiness/backend.semantic + publication capabilities",
+      "两次真实调用 usage/model id/token 数（如宿主报告）",
+      "before/after control 审计与 Session 文件清单",
+      "撤回后 readLocal 拒绝证据",
+      "reload 实例 ID/次数与时间线"
+    ],
+    "acceptanceBoundary": "宿主通过仅证明固定宿主上单用户两阶段受控记忆闭环（write→reload→recall）与启动 embedding 自动验证；不证明多用户/多渠道/多日稳定/主观体验/情绪行为/完整 provider 用量。"
+  },
+  "evidenceLevel": "G1 模块/集成测试（伪 ports、真实 runtime patch 编译验证；无真实模型/embedding）；宿主执行前不宣称宿主通过。",
+  "failures": [],
+  "boundaries": [
+    "runtime.ts/index.ts 未改（patch 交付）；未 git 提交；未真实模型/embedding/宿主 reload。",
+    "startup 验证需要已存在“可读+已索引”的 conversation memory 才能触发真实 query embedding；否则受控原因 NO_ELIGIBLE_MEMORY，不用生成模型或假数据绕过。host kit 的 write 阶段刻意保留合成记忆以支持 reload 后自动验证。",
+    "两阶段生成的模型文本只作说明；严格 oracle 依赖受控 memorySources/background-load 与同 Session 证据，且 receipt 不含回复正文。",
+    "合成记忆为明确披露的临时副作用：write 后保留，recall 成功后撤回；失败路径可能保留并在 receipt 中披露。",
+    "真实模型调用仅在宿主执行（≤2 次、每次 ≤256 tokens、0 重试）；离线测试用 fake ports。"
+  ],
+  "reproduce": [
+    "git worktree add --detach /tmp/shiyu-h2e ab08779",
+    "复制本切片 4 文件；ln -s 主树 node_modules/.local/ombre；npm run check",
+    "node --import tsx --test --test-concurrency=1 tests/chat-memory-probe.test.ts tests/ombre-startup-embedding.test.ts",
+    "runtime patch 编译：git worktree add --detach /tmp/h2e-check2 ab08779 + git apply artifacts/dsh/h2/h2e-runtime-index.patch.diff + tsc"
+  ]
+}

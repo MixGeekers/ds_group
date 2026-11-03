@@ -1,0 +1,201 @@
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ -50,6 +50,8 @@
+ import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
+ import { computeMemoryReadiness, type MemoryReadiness } from './adapters/ombre/readiness.js';
+ import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
++import { CHAT_MEMORY_PROBE_ACTION, runChatMemoryRecallPhase, runChatMemoryWritePhase, type ChatMemoryProbeReceipt } from './control/chat-memory-probe.js';
++import { StartupEmbeddingVerifier, type StartupEmbeddingResult } from './control/startup-embedding-verifier.js';
+ import { EMOTION_PROBE_ACTION, RuntimeEmotionContinuationProbeCommand, type EmotionProbeReceipt } from './adapters/control-store/emotion-continuation-probe.js';
+ import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6, CORE_VALIDATION_EXPERIMENT_V7 } from './control/core-validation.js';
+ import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, type NativeHeaderCutProbeReceipt } from './control/native-header-cut-probe.js';
+@@ -192,6 +194,11 @@
+   private memoryCoverage?: Partial<import('./adapters/ombre/readiness.js').MemoryIndexCoverage>;
+   /** Pure in-memory readiness projection; never queried by GET/snapshot. */
+   private memoryReadiness?: MemoryReadiness;
++  /** P0 round-18 startup verification: one attempt per process; no generation. */
++  private readonly startupEmbeddingVerifier = new StartupEmbeddingVerifier();
++  private startupEmbeddingReceipt?: StartupEmbeddingResult;
++  /** Last bounded two-phase single-user chat-memory probe receipt (diagnostics only). */
++  private chatMemoryProbeReceipt?: ChatMemoryProbeReceipt;
+   private lastSemanticOperation?: { kind: 'index' | 'search'; status: 'completed' | 'failed' | 'existing'; at: string;
+     outcome?: MemoryIndexEntry['effect']['status'];
+     embeddingUsage: { calls: number | null; complete: boolean } };
+@@ -336,6 +343,9 @@
+       this.localReplies = new LocalReplyService({ store: this.store, sessions: this.sessions, assertRuntimeAllowed: () => this.ensureCanRun(),
+         ...(this.memorySearch ? { memory: this.memorySearch } : {}) });
+       await this.publishMemoryAvailability();
++      // P0 round-18: one bounded local-embedding verification after availability
++      // publication. It never calls a generation model and never retries.
++      await this.runStartupEmbeddingVerification();
+       this.tasks = new LocalTaskRunner(this.store, this.workers, this.artifacts);
+       const goalOptions: GoalLifecycleOptions = {
+         ctx: this.ctx,
+@@ -566,6 +576,7 @@
+         catch { this.memoryFailure = 'MEMORY_BACKEND_UNAVAILABLE'; await this.memoryBackend.close().catch(() => undefined); }
+       }
+       if (!this.closed) await this.publishMemoryAvailability();
++      if (!this.closed && !this.startupEmbeddingVerifier.attempted) await this.runStartupEmbeddingVerification();
+       if (paused) for (const binding of await this.sessions.getStatus()) if (binding.status === 'running') await this.sessions.cancel(binding.key);
+       await this.record('runtime.lifecycle.changed', paused ? '已暂停新的模型操作' : '已恢复接纳新的模型操作', paused ? 'paused' : 'ready');
+       if (!paused) { await this.scheduleQueuedTasks(); void this.corePump?.wake(); }
+@@ -1010,6 +1021,8 @@
+         checkpointProbe: this.checkpointProbeReceipt ? structuredClone(this.checkpointProbeReceipt) : null,
+         // Diagnostics-only projection; never a publication, authorization or completion fact.
+         innerLifecycleProbe: this.innerLifecycleProbeReceipt ? structuredClone(this.innerLifecycleProbeReceipt) : null,
++        startupEmbeddingVerification: this.startupEmbeddingReceipt ? structuredClone(this.startupEmbeddingReceipt) : null,
++        singleUserChatMemoryProbe: this.chatMemoryProbeReceipt ? structuredClone(this.chatMemoryProbeReceipt) : null,
+         emotionContinuationProbe: this.emotionProbeReceipt ? structuredClone(this.emotionProbeReceipt) : null },
+       background: { ...conversations.background, ...backgroundState },
+       activeWork: [...this.operations.values()].map(({ controller: _controller, done: _done, finish: _finish, ...op }) => op),
+@@ -1067,6 +1080,7 @@
+     if (action === 'runtime.probe-core-goal-v7') return this.commandCoreGoalValidationV7(value, signal);
+     if (action === 'runtime.probe-native-header-cut') return this.commandNativeHeaderCutProbe(value, signal);
+     if (action === 'runtime.probe-memory-embedding') return this.commandMemoryEmbeddingProbe(value, signal);
++    if (action === CHAT_MEMORY_PROBE_ACTION) return this.commandChatMemoryProbe(value, signal);
+     if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);
+     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
+     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);
+@@ -1449,6 +1463,124 @@
+         searchState: (search as any)?.state, matches, semanticHit, exactReadBodyMatched: typeof (read as any)?.body === 'string' && (read as any).body.includes(marker),
+         postWithdrawRejected, ...(postWithdrawCode ? { postWithdrawCode } : {}),
+         readiness: this.memoryReadiness ?? null, coverage: this.memoryCoverage ?? null, semanticModel: 'local-embedding-only', generationModelCalls: 0 };
++    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
++  }
++  /**
++   * One bounded startup embedding verification. It reuses only the local
++   * conversation that already has readable memory; success publishes
++   * semantic_search, failure/skip keeps exact-read-only with a controlled
++   * reason. Guarded to one attempt per process by StartupEmbeddingVerifier.
++   */
++  private async runStartupEmbeddingVerification(): Promise<void> {
++    const runtime = this;
++    if (this.startupEmbeddingVerifier.attempted) return;
++    if (this.pauseRequested || this.closed || this.closing) return; // not an attempt while paused
++    if (!this.memoryBackend || this.memoryBackend.status().state !== 'ready') return;
++    const backendStatus = (): ReturnType<NonNullable<typeof this.memoryBackend>['status']> => runtime.memoryBackend!.status();
++    const result = await this.startupEmbeddingVerifier.verify({
++      semanticConfigured: Boolean(this.memorySearch),
++      backendStatus,
++      async findConversationWithMemory() {
++        const entries = await runtime.store.request('memory.list', {}) as Array<{ conversationId?: string; reference?: unknown }>;
++        const seen = new Set<string>();
++        for (const entry of entries) {
++          if (!entry?.reference || typeof entry.conversationId !== 'string' || seen.has(entry.conversationId)) continue;
++          seen.add(entry.conversationId);
++          return entry.conversationId;
++        }
++        return undefined;
++      },
++      async search({ conversationId, query, signal }) {
++        const search = await runtime.memorySearch!.search({ conversationId, text: query, signal });
++        return { state: search.state, embeddingCalls: search.embeddingUsage.calls, usageComplete: search.embeddingUsage.complete, matches: search.matches.length };
++      },
++      async publishVerified() { await runtime.refreshMemoryCoverage(); await runtime.publishMemoryAvailability(); },
++    }, { timeoutMs: 20000 });
++    this.startupEmbeddingReceipt = structuredClone(result);
++    try { await runtime.refreshMemoryCoverage(); await runtime.publishMemoryAvailability(); } catch { /* readiness stays honest */ }
++  }
++  /** Owner-only two-phase single-user chat-memory probe (write / recall). */
++  private async commandChatMemoryProbe(value: Record<string, unknown>, signal?: AbortSignal): Promise<ChatMemoryProbeReceipt> {
++    const runtime = this;
++    if (Object.keys(value).some(key => !['action', 'phase', 'expectedSessionId', 'conversationId'].includes(key))
++      || (value.phase !== 'write' && value.phase !== 'recall')
++      || (value.expectedSessionId !== undefined && (typeof value.expectedSessionId !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9:._/-]{0,149}$/.test(value.expectedSessionId)))
++      || (value.conversationId !== undefined && (typeof value.conversationId !== 'string' || !/^[a-f0-9-]{36}$/.test(value.conversationId)))) throw new Error('Invalid chat memory probe input');
++    runtime.ensureCanRun(); signal?.throwIfAborted();
++    if (!this.contextSafety.ready) throw new Error('Native context safety is unavailable; no model request was admitted');
++    if (this.operations.size + this.pendingAdmissions !== 0) throw new Error('Chat memory probe requires an idle runtime');
++    if ([...this.operations.values()].some(op => op.phase === 'single-user chat memory probe')) throw new Error('Chat memory probe is already running');
++    let finish!: () => void; const done = new Promise<void>(resolve => { finish = resolve; });
++    const op: ActiveOperation = { id: randomUUID(), title: '单用户聊天记忆往返探针', phase: 'single-user chat memory probe', status: 'running', controller: new AbortController(), done, finish };
++    const onAbort = () => op.controller.abort(signal?.reason);
++    signal?.addEventListener('abort', onAbort, { once: true }); this.operations.set(op.id, op);
++    try {
++      const phase = value.phase as 'write' | 'recall';
++      const conversationId = typeof value.conversationId === 'string' ? value.conversationId : undefined;
++      const expectedSessionId = typeof value.expectedSessionId === 'string' ? value.expectedSessionId : undefined;
++      const replyPort = async (input: { conversationId: string; inputId: string; text: string; maxTokens: number }) => {
++        const result = await runtime.localReplies.run({ conversationId: input.conversationId, inputId: input.inputId, text: input.text, signal: op.controller.signal, maxTokens: input.maxTokens });
++        runtime.ensureCanRun(); op.controller.signal.throwIfAborted();
++        const reply = result.reply;
++        return { operationId: result.operation.operationId, conversationId: result.operation.conversationId, status: result.operation.status,
++          text: reply?.text ?? '', sessionId: reply?.binding.sessionId ?? result.operation.nativeBinding?.sessionId ?? '',
++          ...(result.operation.expectedSessionId ? { expectedSessionId: result.operation.expectedSessionId } : {}),
++          contextConfirmed: reply?.contextReceipt?.durability === 'confirmed',
++          memoryOperationIds: (result.operation.memorySources ?? []).map((source: { operationId: string }) => source.operationId), duplicate: result.duplicate };
++      };
++      const receipt = phase === 'write'
++        ? await runChatMemoryWritePhase({
++          now: () => new Date().toISOString(),
++          async findConversation() {
++            const snapshot = await runtime.store.request('conversation.snapshotLocal', {}) as { conversations?: Array<{ conversationId?: string; source?: { kind?: string } }> };
++            const conversations = Array.isArray(snapshot?.conversations) ? snapshot.conversations : [];
++            const selected = conversationId ? conversations.find(item => item.conversationId === conversationId)
++              : conversations.find(item => item?.source?.kind === 'local') ?? conversations[0];
++            return selected?.conversationId ? { conversationId: selected.conversationId } : undefined;
++          },
++          async remember(input) {
++            const saved = await runtime.localMemories!.remember({ requestId: input.requestId, conversationId: input.conversationId, text: input.text, signal: op.controller.signal });
++            runtime.ensureCanRun(); op.controller.signal.throwIfAborted();
++            return { operationId: saved.entry.operation.operationId, requestId: saved.entry.requestId, canRead: saved.entry.canPublish };
++          },
++          async index(input) {
++            const indexed = await runtime.memorySearch!.index({ requestId: input.requestId, operationId: input.operationId, signal: op.controller.signal });
++            runtime.ensureCanRun(); op.controller.signal.throwIfAborted();
++            return { ...(indexed.entry.observation?.receipt?.receiptId ? { indexReceiptId: indexed.entry.observation.receipt.receiptId } : {}),
++              effectStatus: indexed.entry.effect.status, embeddingCalls: indexed.entry.embeddingUsage.calls, usageComplete: indexed.entry.embeddingUsage.complete };
++          },
++          reply: replyPort,
++        }, { signal: op.controller.signal, ...(conversationId ? { conversationId } : {}) })
++        : await runChatMemoryRecallPhase({
++          now: () => new Date().toISOString(),
++          async findProbeFact() {
++            const entries = await runtime.store.request('memory.list', {}) as Array<{ requestId?: string; conversationId?: string; reference?: unknown; canRead?: boolean; operation?: { operationId?: string } }>;
++            const candidates = entries.filter(entry => typeof entry?.requestId === 'string' && entry.requestId.startsWith('chat-memory-probe-write-')
++              && entry.reference !== undefined && entry.canRead !== false && typeof entry.operation?.operationId === 'string'
++              && (conversationId === undefined || entry.conversationId === conversationId));
++            const latest = candidates[candidates.length - 1];
++            return latest && latest.operation?.operationId && latest.requestId && latest.conversationId
++              ? { operationId: latest.operation.operationId, requestId: latest.requestId, conversationId: latest.conversationId } : undefined;
++          },
++          async readMemory(input) {
++            const read = await runtime.localMemories!.read({ operationId: input.operationId, signal: op.controller.signal });
++            return { body: read.body };
++          },
++          reply: replyPort,
++          async backgroundMemoryEvidence(input) {
++            const loaded = await runtime.localReplies.load({ conversationId: input.conversationId, inputId: `chat-memory-probe-bg-${randomUUID()}`, text: input.text, signal: op.controller.signal });
++            runtime.ensureCanRun(); op.controller.signal.throwIfAborted();
++            return { memoryOperationIds: (loaded.operation.memorySources ?? []).map((source: { operationId: string }) => source.operationId) };
++          },
++          async withdraw(input) { return runtime.commandLocalMemory({ action: 'memory.withdrawLocal', requestId: input.requestId, operationId: input.operationId }, op.controller.signal); },
++        }, { signal: op.controller.signal, ...(conversationId ? { conversationId } : {}), ...(expectedSessionId ? { expectedSessionId } : {}) });
++      runtime.ensureCanRun(); op.controller.signal.throwIfAborted();
++      this.chatMemoryProbeReceipt = structuredClone(receipt);
++      this.lastFailure = undefined;
++      return receipt;
++    } catch (error) {
++      this.lastFailure = error instanceof Error ? error.message : String(error);
++      throw error;
+     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+   }
+   private async commandSemanticMemory(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+--- a/plugins/shiyu/src/index.ts
++++ b/plugins/shiyu/src/index.ts
+@@ -2,6 +2,7 @@
+ import { emotionContinuationDiagnosisTool } from './adapters/control-store/emotion-continuation-probe.js';
+ export { emotionContinuationDiagnosisTool };
+ import { innerLifecycleDiagnosisTool } from './control/inner-lifecycle-probe.js';
++import { singleUserChatMemoryProbeTool } from './control/chat-memory-probe.js';
+ import type { RuntimeConfig } from './runtime.js';
+ 
+ export const inject = ['connection', 'tools', 'agents', 'agentPresets', 'systemPrompt', 'sessions', 'sessionPersistence', 'sessionProjections', 'workspaceRegistry', 'workingDirectory'];
+@@ -391,5 +392,7 @@
+   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private
+   // :memory: store, never opens the live control database and never calls a model.
+   ctx.effect(() => ctx.tools.register(innerLifecycleDiagnosisTool(service)));
++  // P0 round-18: two-phase single-user chat-memory verification (real local reply, <=2 calls total).
++  ctx.effect(() => ctx.tools.register(singleUserChatMemoryProbeTool(service)));
+   ctx.effect(() => ctx.tools.register(timeTriggerDiagnosisTool(service)));
+ }
