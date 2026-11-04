@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-04T13:12:03Z",
+  "status": "passed",
+  "sourceCommit": "684c79a4bd57148531af9dd489f3a7e1cf9293cc",
+  "ci": {
+    "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391",
+    "runId": 41835621391,
+    "conclusion": "success",
+    "jobs": [
+      {
+        "name": "Deploy / Linux amd64",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593642848"
+      },
+      {
+        "name": "Native / ubuntu-24.04-arm / Node 24.x",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643172"
+      },
+      {
+        "name": "DSH / ubuntu-24.04",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643263"
+      },
+      {
+        "name": "DSH / macos-15",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643320"
+      },
+      {
+        "name": "Deploy / Linux arm64",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643436"
+      },
+      {
+        "name": "Native / macos-15 / Node 24.19.0",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643438"
+      },
+      {
+        "name": "Native / macos-15-intel / Node 24.x",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643482"
+      },
+      {
+        "name": "DSH / ubuntu-24.04-arm",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643493"
+      },
+      {
+        "name": "Native / windows-2025 / Node 24.x",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643519"
+      },
+      {
+        "name": "Native / ubuntu-24.04-arm / Node 24.19.0",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643541"
+      },
+      {
+        "name": "Native / windows-2025 / Node 24.19.0",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643592"
+      },
+      {
+        "name": "Native / macos-15 / Node 24.x",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643595"
+      },
+      {
+        "name": "Native / macos-15-intel / Node 24.19.0",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643655"
+      },
+      {
+        "name": "Native / ubuntu-24.04 / Node 24.19.0",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643762"
+      },
+      {
+        "name": "Native / ubuntu-24.04 / Node 24.x",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126593643956"
+      },
+      {
+        "name": "DS-Group matrix passed",
+        "status": "success",
+        "url": "https://github.com/MixGeekers/shiyu/actions/runs/41835621391/job/126594627415"
+      }
+    ]
+  },
+  "localModules": {
+    "total": 62,
+    "passed": 62,
+    "modelCalls": 0
+  },
+  "nativeMatrix": {
+    "operatingSystems": [
+      "ubuntu-24.04 x64",
+      "ubuntu-24.04-arm ARM64",
+      "macos-15 ARM64",
+      "macos-15-intel x64",
+      "windows-2025 x64"
+    ],
+    "nodeVersions": [
+      "24.19.0",
+      "24.x"
+    ],
+    "combinations": 10,
+    "windowsScope": "native module and clean source installation; Unix CLI-discovery fixture skipped; full deployment uses Linux containers or WSL2"
+  },
+  "realDeployment": {
+    "architectures": [
+      "linux/amd64",
+      "linux/arm64"
+    ],
+    "nativeGithubRunners": true,
+    "checksPerArchitecture": 10,
+    "reports": {
+      "deploy-amd64": "artifacts/release-ci/deploy-amd64.json",
+      "deploy-arm64": "artifacts/release-ci/deploy-arm64.json"
+    },
+    "inferenceBridge": "registration-only-fixture",
+    "modelCalls": 0
+  },
+  "realDsh": {
+    "version": "0.2.1-rc.5",
+    "install": "official npm CLI",
+    "platforms": [
+      "linux x64",
+      "linux arm64",
+      "macOS arm64"
+    ],
+    "checksPerPlatform": 8,
+    "reports": {
+      "runtime-ubuntu-24.04": "artifacts/release-ci/runtime-ubuntu-24.04.json",
+      "runtime-ubuntu-24.04-arm": "artifacts/release-ci/runtime-ubuntu-24.04-arm.json",
+      "runtime-macos-15": "artifacts/release-ci/runtime-macos-15.json"
+    },
+    "core": "model-denying fixture",
+    "modelCalls": 0
+  },
+  "sourceArtifact": {
+    "name": "ds-group-0.1.0-source.tar.gz",
+    "sha256": "c01ac9a75ba99f54350ef3df595dfe0c58aa2ad2c586803fbc4bdcea089fd22a",
+    "files": 153,
+    "cleanInstallCheckedOnAllNativeJobs": true,
+    "localAndLinuxArchiveHashesMatch": true
+  },
+  "systemd": {
+    "report": "artifacts/release-ci/systemd-static.json",
+    "validation": "systemd-analyze verify",
+    "bootTested": false
+  },
+  "publication": {
+    "workflow": "tag-gated ds-group-v*",
+    "published": false,
+    "ghcrPushTested": false
+  },
+  "notCovered": [
+    "physical multi-machine model collaboration",
+    "native Windows DSH lifecycle",
+    "public HTTPS certificate issuance",
+    "physical phone notifications",
+    "cross-version database migration",
+    "multi-replica shared database deployment"
+  ]
+}

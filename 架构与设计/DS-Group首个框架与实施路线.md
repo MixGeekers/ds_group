@@ -25,7 +25,7 @@
 | 聊天界面 | `apps/ds-group/web/` | 多成员房间、私聊和节点运行状态 |
 | 部署与验证脚本 | `apps/ds-group/scripts/`、`apps/ds-group/tests/` | 启停、配置、模块检查及真实链路验证 |
 
-本机 Synapse 使用固定 ARM64 镜像摘要 `sha256:37090b4e5f26171922321a6acd1acf2675cb862f3b0cdf368f0dbbae6a70439a`。其他 CPU 架构部署时另行固定并记录对应镜像摘要。DS-Bot 供应源码及来源记录位于 `apps/ds-group/vendor/ds-bot/`，版本与修改情况以其中 `UPSTREAM.json` 为准。
+首轮本机 Synapse 使用固定 ARM64 镜像摘要 `sha256:37090b4e5f26171922321a6acd1acf2675cb862f3b0cdf368f0dbbae6a70439a`。后续发行改用同版本多架构 index `sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842`，包含该 ARM64 镜像及 amd64 镜像。两种架构已由原生 GitHub runner 通过部署与持久化检查，见[发行验证](<../apps/ds-group/发行验证.md>)。DS-Bot 供应源码及来源记录位于 `apps/ds-group/vendor/ds-bot/`，版本与修改情况以其中 `UPSTREAM.json` 为准。
 
 DS-Bot 已有 Bot 名称、职责和模型配置，长期记忆与长对话维护，当前复用范围以其固定源码和适配代码为准。它的群聊 Session、状态文件和本地运行时由节点使用，跨机器寻址及聊天核心接入由 DS-Group 补齐。[固定 DS-Bot 源码](https://github.com/Fei2411/DS-Bot/tree/71d344bf193f3f18185f25de3d8e5c483046910a/ds-bot)
 
@@ -121,3 +121,4 @@ DS-Bot 已有 Bot 名称、职责和模型配置，长期记忆与长对话维�
 | 2026-11-04 | 用户授权 Goal、无人值守实施、本机与测试机资源，以及唯一远端模型下不限次数测试 | 本轮实施授权 |
 | 2026-11-04 | 实施代理选择 Matrix/Synapse + DS-Bot 节点，并在 `apps/ds-group/` 建立首个框架 | 自主工程选型与实施基线 |
 | 2026-11-04 | 同机多进程首次闭环完成，追加 PWA 与个人 Bot 归属 | 8 项真实逻辑通过，手机推送实机、物理跨机与跨服务器带入待验 |
+| 2026-11-04 | 用户要求先提交，再补全发行 CI 和服务器部署 | 首轮远端 CI 16/16 成功，双架构容器和独立 DSH 已留证，尚未发布版本标签 |

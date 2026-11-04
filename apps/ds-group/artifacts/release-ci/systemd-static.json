@@ -1,0 +1,14 @@
+{
+  "checkedAt": "2026-11-04T13:10:18.372Z",
+  "level": "systemd-unit-static-validation",
+  "status": "passed",
+  "environment": "Debian bookworm Linux ARM64 container on one macOS ARM64 host",
+  "command": "systemd-analyze verify /opt/ds-group/deploy/systemd/ds-group-dsh@.service /opt/ds-group/deploy/systemd/ds-group-bot@.service",
+  "exitCode": 0,
+  "sourceHashes": {
+    "deploy/systemd/ds-group-dsh@.service": "36383efeb6552d85e3ea647a6ccd7c886612ce74db8b2d515f4ee43841d213a4",
+    "deploy/systemd/ds-group-bot@.service": "2afa1502028916448ee0b324d7090f348be00cf2f5bb52608f7f5ea9749136f4"
+  },
+  "actualBootSupervisionTested": false,
+  "modelCalls": 0
+}
