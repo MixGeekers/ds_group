@@ -173,7 +173,7 @@ interface V6Joint {
 }
 
 test('round17:new-round16-sources-integrity-and-ancestry', async () => {
-  assert.equal(EVIDENCE_SOURCES.length, 100);
+  assert.equal(EVIDENCE_SOURCES.length, 105);
   const ids = new Set(EVIDENCE_SOURCES.map(source => source.id));
   for (const id of ROUND16_SOURCE_IDS) assert.ok(ids.has(id), `missing round-16 source ${id}`);
   const newSources = EVIDENCE_SOURCES.filter(source => ROUND16_SOURCE_IDS.includes(source.id as (typeof ROUND16_SOURCE_IDS)[number]));
@@ -191,9 +191,9 @@ test('round17:new-round16-sources-integrity-and-ancestry', async () => {
   }
   const { report, result } = await verifyEvidenceSources(workspaceRoot, head);
   assert.equal(result.ok, true, JSON.stringify(result.violations.slice(0, 5)));
-  assert.equal(report.counts.sources, 100);
-  assert.equal(report.counts.verified, 100, `unknown: ${report.unknownSourceIds.join(',')}`);
-  assert.equal(report.counts.files, 420);
+  assert.equal(report.counts.sources, 105);
+  assert.equal(report.counts.verified, 105, `unknown: ${report.unknownSourceIds.join(',')}`);
+  assert.equal(report.counts.files, 454);
   for (const source of newSources) {
     const verified = report.sources.find(item => item.id === source.id);
     assert.equal(verified?.status, 'verified');

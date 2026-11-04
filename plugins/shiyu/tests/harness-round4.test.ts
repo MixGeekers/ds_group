@@ -106,7 +106,7 @@ function syntheticEvidenceReport(frozenHead: string): EvidenceVerificationReport
 
 test('round4:new-sources-integrity-and-ancestry', async () => {
   // 8 new round-3 sources, 18 new files, total 30 sources / 72 files.
-  assert.equal(EVIDENCE_SOURCES.length, 100);
+  assert.equal(EVIDENCE_SOURCES.length, 105);
   const ids = new Set(EVIDENCE_SOURCES.map(source => source.id));
   for (const id of ROUND3_SOURCE_IDS) assert.ok(ids.has(id), `missing round-3 source ${id}`);
   const newSources = EVIDENCE_SOURCES.filter(source => ROUND3_SOURCE_IDS.includes(source.id as (typeof ROUND3_SOURCE_IDS)[number]));
@@ -126,9 +126,9 @@ test('round4:new-sources-integrity-and-ancestry', async () => {
   }
   const { report, result } = await verifyEvidenceSources(workspaceRoot, head);
   assert.equal(result.ok, true, JSON.stringify(result.violations.slice(0, 5)));
-  assert.equal(report.counts.sources, 100);
-  assert.equal(report.counts.verified, 100, `unknown sources: ${report.unknownSourceIds.join(',')}`);
-  assert.equal(report.counts.files, 420);
+  assert.equal(report.counts.sources, 105);
+  assert.equal(report.counts.verified, 105, `unknown sources: ${report.unknownSourceIds.join(',')}`);
+  assert.equal(report.counts.files, 454);
   for (const source of newSources) {
     const verified = report.sources.find(item => item.id === source.id);
     assert.ok(verified !== undefined, `${source.id} verified entry`);

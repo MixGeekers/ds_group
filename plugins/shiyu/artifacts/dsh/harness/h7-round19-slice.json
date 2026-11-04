@@ -1,0 +1,200 @@
+{
+ "schemaVersion": 1,
+ "kind": "shiyu.harness.h7-round19-slice-evidence",
+ "phase": "H7-round19",
+ "capturedAt": "2026-11-04T01:44:36.286Z",
+ "baselineHead": "15d86eea46e76fb018947d9f746fdafc0b00f182",
+ "status": "code-tests-delivered-not-clean-refresh",
+ "purpose": "Bind the round-18 fixed-host P0 single-user chat-memory failure (a new limited diagnostic level), the startup embedding verification, the H2e offline two-phase probe, the TaskRunner workspace integration, the round-18 clean artifacts and the round-18 review into evidence.ts and the acceptance index without granting pass; product rows stay not_covered.",
+ "round18Sources": [
+  "round18-host-p0-chat-memory",
+  "h2e-chat-memory-probe",
+  "workspace-taskrunner-integration",
+  "h7-round18-clean-artifacts",
+  "round18-review"
+ ],
+ "sourceCounts": {
+  "sources": 105,
+  "files": 454
+ },
+ "files": [
+  {
+   "path": "plugins/shiyu/tests/harness/evidence.ts",
+   "sha256": "ffdc9c2ac3ab7b63181f38d799422e41a69d5cd9b52e1778de5cc2a8aee5445e",
+   "bytes": 307697
+  },
+  {
+   "path": "plugins/shiyu/tests/harness/acceptance-registry.ts",
+   "sha256": "ae26ac3ed18f61085cd8a9c32ccfa5489966f6697044d88bb5425bcfdac76d05",
+   "bytes": 52217
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-evidence.test.ts",
+   "sha256": "b28d89ef7dd5dd087639d042b1e50995f30220e408c517016a8d426177eaea21",
+   "bytes": 13465
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round19.test.ts",
+   "sha256": "beaff9837e177f2fe8c1487066d0c9e18682ae7e7c6b89e3f009496c5cfb5641",
+   "bytes": 33488
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round4.test.ts",
+   "sha256": "b453cfe9114bf11000647967fe55d44232c8c9a8457b09f139e2587986e0be1a",
+   "bytes": 18587
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round5.test.ts",
+   "sha256": "1e535c433e02fe03d0112a1f0554873354a5bdac55ab7ca498598cf7036d1279",
+   "bytes": 23356
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round6.test.ts",
+   "sha256": "2946bcdffec1f6f58bc4997955175a992761e7948b8e6a59d1e007935ece51a2",
+   "bytes": 20216
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round7.test.ts",
+   "sha256": "9438132c85a9c85c7b32a6b67345bbdb8145a8ec38bd133c37e8d628996ff67f",
+   "bytes": 17947
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round8.test.ts",
+   "sha256": "3838791acf8ac95221c4fb803abea00220adda7bfb2b339491482c09e29d7e72",
+   "bytes": 18153
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round9.test.ts",
+   "sha256": "d8ab26755c3384a7ca59eb5ee7298abcf2f4386424ca29e08dfa138f8462af2c",
+   "bytes": 17605
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round11.test.ts",
+   "sha256": "4a5d91b775583c2b486f17841a7824cc02f94c3c101a803a3ca2017ffe1852db",
+   "bytes": 17444
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round12.test.ts",
+   "sha256": "fb4f30d9ebc94f4d7bda9123361ec9db5ce20b35f3bcac098a13249ca1f38ac4",
+   "bytes": 23566
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round13.test.ts",
+   "sha256": "b8a7dcf2227035d9db5eb9adae16aa2bb773143d9d7bfb1129d3f6ffce28990a",
+   "bytes": 28381
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round14.test.ts",
+   "sha256": "d5a3b761d0952cbaaec955eb0bbf5824f4a9daad98c04e9de1ed9d5d7fde024c",
+   "bytes": 27985
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round15.test.ts",
+   "sha256": "22ddd910d7c8d844e27e86cabd1a3099cb4cca7df5d341934a611b38eb08f6ff",
+   "bytes": 27703
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round16.test.ts",
+   "sha256": "f26955cc8e418b81b386b95301dd2be96864c31c58db493738fe300d0e526ec5",
+   "bytes": 29178
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round17.test.ts",
+   "sha256": "5ba0331e067771365aff23c7175ec8835ce8d60fabac574cccb8e3925ee99f1a",
+   "bytes": 35084
+  },
+  {
+   "path": "plugins/shiyu/tests/harness-round18.test.ts",
+   "sha256": "087ce30773d7f2618d2c5a4dc999f762e119088637c27ab092d25bcfadee02a6",
+   "bytes": 35257
+  }
+ ],
+ "commands": [
+  "npx tsc --noEmit",
+  "node --import tsx --test --test-concurrency=1 tests/harness-*.test.ts",
+  "npm run check (isolated worktree 15d86ee + only round-19 slice files)",
+  "git show <commit>:<path> | shasum -a 256 (per evidence source file)",
+  "git merge-base --is-ancestor <sliceCommit> HEAD (ancestry)"
+ ],
+ "checks": {
+  "sharedTree": {
+   "blockedByConcurrentWip": true,
+   "note": "No green shared-tree run is claimed for the round-19 code slice: the shared workspace can carry concurrent uncommitted product WIP from other parallel round-19 tasks, so sources without a pinned blobCommit would compare dirty worktree files against the frozen HEAD blob. The authoritative slice verification is the isolated worktree below; no green/average claim is implied for the shared tree."
+  },
+  "isolatedWorktree": {
+   "head": "15d86eea46e76fb018947d9f746fdafc0b00f182",
+   "worktree": "/tmp/h7r19-slice (ephemeral)",
+   "tsc": {
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round19-15d86ee-isolated-tsc.log",
+     "sha256": "a6ce7f41eaf235b981cdbfe9a3d6a5d9a3502b6bd605ffc2acf78679a4ee9a2f",
+     "bytes": 11
+    }
+   },
+   "harness": {
+    "tests": 205,
+    "pass": 205,
+    "fail": 0,
+    "skipped": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round19-15d86ee-isolated-harness.log",
+     "sha256": "6bb91b023dfbdd02de174be864c8fa27468969be7a99819f5388a3b49874cc18",
+     "bytes": 15061
+    }
+   },
+   "fullCheck": {
+    "tests": 1819,
+    "pass": 1819,
+    "fail": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": {
+     "path": "plugins/shiyu/.local/h7-verify/round19-15d86ee-check.log",
+     "sha256": "90d02ffd78c0c0b5cbf422a14105835f6fbe950620060be82bb5faeca0ff2f72",
+     "bytes": 190430
+    }
+   }
+  }
+ },
+ "productRows": {
+  "total": 79,
+  "notCovered": 79,
+  "covered": 0
+ },
+ "toolingReady": [
+  "TV.1",
+  "TV.2",
+  "TV.3",
+  "TV.4",
+  "TV.5",
+  "TV.6",
+  "TV.7",
+  "TV.9"
+ ],
+ "acceptanceGate": "incomplete",
+ "limitations": [
+  "H7-round19 is code/test/evidence-mapping only: no product/host/model/business acceptance execution.",
+  "Round-18 fixed-host P0 chat-memory attempt FAILED and is NOT passed: write#1 failed before any generation model call with INVALID_INDEX_OBSERVATION (0 generation calls; fixed in ff5ea11); write#2 reached the ReadView with two controlled memory sources plus a draft but produced no current verified draft (REPLY_FAILED/unknown/usage null, replyer Session cancelled); 0 retries under the frozen no-retry rule, the recall phase was NOT executed and restart recall/marker/same-Session remain unverified; two synthetic chat-probe memories remain active; memory-command/index settlements added effects 19→21→23 and settled budget 27→29→31 (unknown 6) with the runtime-state file changing on write2 (F18-R1) but no Task/Goal business effect or send; never pass/V25/business/nine-system.",
+  "The automatic startup embedding verification independently passed after reload2 (verified=true, embeddingCalls=1, semanticPublished=true, coverage incomplete) — a readiness success item, NOT a chat-memory recall proof.",
+  "TaskRunner workspace integration is wired in code/tests (runtime applied by the Lead in c47502d, patch applies, 10/10 cases, isolated 1776/1776) but live host worker execution is unproven; the reply-failure class is the same upstream empty/failed-stream class as the v6 core attempt with unknown root cause.",
+  "Round-18 review is independent-review-info only and deliberately unmapped; product rows remain not_covered; tooling_ready/V/S/FL not upgraded; artifacts regenerate at round-end clean HEAD."
+ ],
+ "archivedCopies": [
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round19-15d86ee-isolated-tsc.log",
+   "sha256": "a6ce7f41eaf235b981cdbfe9a3d6a5d9a3502b6bd605ffc2acf78679a4ee9a2f",
+   "bytes": 11
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round19-15d86ee-isolated-harness.log",
+   "sha256": "6bb91b023dfbdd02de174be864c8fa27468969be7a99819f5388a3b49874cc18",
+   "bytes": 15061
+  },
+  {
+   "path": "plugins/shiyu/.local/h7-verify/round19-15d86ee-check.log",
+   "sha256": "90d02ffd78c0c0b5cbf422a14105835f6fbe950620060be82bb5faeca0ff2f72",
+   "bytes": 190430
+  }
+ ]
+}

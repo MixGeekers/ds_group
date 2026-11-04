@@ -36,6 +36,7 @@ export type EvidenceLevel =
   | 'fixed-host-zero-model-reconcile'
   | 'fixed-host-failure-diagnostic'
   | 'fixed-host-create-succeeded-evaluation-failure'
+  | 'fixed-host-p0-chat-memory-failed'
   | 'synthetic-ui'
   | 'bounded-real-model'
   | 'bounded-real-model-diagnostic-only'
@@ -52,6 +53,7 @@ export const ALLOWED_EVIDENCE_LEVELS: readonly EvidenceLevel[] = [
   'fixed-host-zero-model-reconcile',
   'fixed-host-failure-diagnostic',
   'fixed-host-create-succeeded-evaluation-failure',
+  'fixed-host-p0-chat-memory-failed',
   'synthetic-ui',
   'bounded-real-model',
   'bounded-real-model-diagnostic-only',
@@ -70,6 +72,7 @@ export const LIMITED_EVIDENCE_LEVELS: readonly EvidenceLevel[] = [
   'fixed-host-zero-model-reconcile',
   'fixed-host-failure-diagnostic',
   'fixed-host-create-succeeded-evaluation-failure',
+  'fixed-host-p0-chat-memory-failed',
   'synthetic-ui',
   'bounded-real-model',
   'bounded-real-model-diagnostic-only',
@@ -3456,6 +3459,299 @@ export const EVIDENCE_SOURCES: readonly EvidenceSource[] = [
       "Cannot upgrade V/S/FL/product rows or nine-system gate.",
     ],
   },
+  /* ---------------- round-18 P0 chat-memory failure / startup embedding verification / TaskRunner workspace integration evidence (H7-round19) ---------------- */
+  {
+    id: "round18-host-p0-chat-memory",
+    commits: ["3673395", "15d86ee"],
+    files: [
+      {
+        path: "plugins/shiyu/artifacts/dsh/h2/host-status-r18-reload1.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "b687bd255f5585e8fbfadb49509e4cc18f970e54b0c2dd0f1b8ecc7d53ab4b57",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/plan.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "aac957a91314ae2d9e54a37f7a1aa6576436d1f1367e5cb47d944207ecfdf533",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/host-before.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "122609e9aae1231a4a464ecd3b84745c52014486da2eaf6db7c518ea5ccdb115",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/host-after-write1.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "2e806d633feb5b018f3dbf44acf7e08937e31a07ef46dfb6f1b5c8397370e9cb",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/host-after-write2.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "39867ad29728b10418da16b9530c6dc1f1c9e4d31619222467495afc7e3368cd",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/host-before-retry.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "55ec51d86abda60567138a1f106b84dcdc7d59c8cafdf33e1ba664709616a20f",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/host-after-reload1.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "3b8d5aaffbf0741637dd2cb0de26a2b3675c78965374c27b72a54fbf7b369f94",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/host-after-reload2.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "5520564ad2d34a92e72bd045bfd1ebf2655543933959e4a697b15a51e6c98a99",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/host-final.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "5f79efa37869336e4873b347f3300d40da542f476916be9d319a6f82239b387a",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/reply-failures.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "c12b5371d1f4cd2eac6cdd7b21aab1175ce728ba99dfea5c5043fe5d67746c7f",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/status-extract.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "dad4725ded485cb30dfade4cf3f9db4499302fe963e0dc9c04390bab21740fb7",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18/status-final.json",
+        sliceCommit: "3673395",
+        blobCommit: "3673395",
+        expectedSha256: "4edb455a1583fb739e3b170559922fd9a5e071f2e3b7b8109f929785a6dc9e07",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/host/round18-p0-chat-memory.json",
+        sliceCommit: "3673395",
+        blobCommit: "15d86ee",
+        expectedSha256: "7a52db4e1b401bee24dab67dd4780022e7456958b6aaf3ee50dd6ee2579999b7",
+      },
+    ],
+    levels: ["fixed-host-p0-chat-memory-failed"],
+    scope: "Round-18 fixed-host P0 single-user chat-memory attempt (3673395; F18-R1 effects/budget/state disclosure corrected at 15d86ee) on the installed ff5ea11 build (dist 120 files): under the frozen plan (write phase + ordered reload with automatic startup embedding verification + recall phase, at most 2 local replies of <=256 tokens each, 0 automatic retries) attempt #1 failed BEFORE any generation model call with INVALID_INDEX_OBSERVATION (the probe indexed the synthetic fact and the backend became embeddingVerified, but the published memory manifest still advertised exact_read only, so the reply ReadView rejected the index observation; fixed in ff5ea11 with the trusted onIndexed publish hook; generationModelCalls=0); attempt #2 wrote and indexed the synthetic fact with a real embedding (indexWatermark 6), the reply ReadView observed TWO controlled memory sources and a draft, but the replyer Session was cancelled without a verified assistant draft (reply status unknown / REPLY_FAILED / usage null) — the same upstream empty/failed-stream generation class seen in the v6 core attempt. Per the frozen no-retry rule the recall phase was NOT executed, so restart recall, marker containment and same-Session evidence are NOT verified and the P0 single-user chat-memory round-trip is NOT passed. After the second ordered reload the automatic startup embedding verification passed independently: attempted=true, verified=true, embeddingCalls=1, usageComplete=true, semanticPublished=true, with manifest memory capabilities exact_read+semantic_search and the profile fingerprint (reason INDEX_COVERAGE_INCOMPLETE), which closes the reload-readiness gap but is NOT a chat-memory recall proof. Residual disclosures: two synthetic chat-probe memory facts remain active (no cleanup attempted); the audits show +4 succeeded effects (memory-command/index settlements, 19→21→23; explicitly NOT Task/Goal business effects and no external send) and +4 settled budget (27→29→31, unknown stays 6), and the runtime-state file changed on write2 (F18-R1).",
+    limitations: [
+      "It is a FAILED P0 chat-memory attempt: write#1 failed before any generation model call with INVALID_INDEX_OBSERVATION (0 generation calls) and, after the ff5ea11 fix, write#2 reached the ReadView with two controlled memory sources and a draft but produced NO current verified draft (REPLY_FAILED/unknown, usage null, replyer Session cancelled); the recall phase was NOT executed, restart recall/marker/same-Session remain unverified and the P0 chat-memory closure is NOT passed — this can NEVER be pass, V25, business or nine-system acceptance.",
+      "No retry was made under the frozen no-retry rule; a further attempt is a new explicit owner decision. The generation/reply failure is the same upstream empty/failed-stream class as the v6 core attempt and its root cause is still unknown.",
+      "The startup automatic embedding verification success (attempted/verified/embeddingCalls=1/semanticPublished=true after reload2) is an independent readiness success item, NOT a recall proof: index coverage stays incomplete (readable/indexed 2, stale 4) and verification scope is backend-instance.",
+      "Residual side effects are disclosed: two synthetic chat-probe memory facts remain active (no cleanup attempted); the memory-command/index settlements added +4 succeeded effects (19→21→23) and +4 settled budget (27→29→31, unknown 6) while no Task/Goal business effect or external send occurred, and the runtime-state file changed on write2 (F18-R1) — these are memory-operation settlements, not chat-memory acceptance.",
+    ],
+    derive: [
+      { label: "round18P0Status", path: "artifacts/dsh/host/round18-p0-chat-memory.json", jsonPath: "status" },
+      { label: "round18StartupVerified", path: "artifacts/dsh/host/round18-p0-chat-memory.json", jsonPath: "startupEmbeddingVerification.value.verified" },
+      { label: "round18StartupEmbeddingCalls", path: "artifacts/dsh/host/round18-p0-chat-memory.json", jsonPath: "startupEmbeddingVerification.value.embeddingCalls" },
+      { label: "round18StartupSemanticPublished", path: "artifacts/dsh/host/round18-p0-chat-memory.json", jsonPath: "startupEmbeddingVerification.value.semanticPublished" },
+    ],
+  },
+  {
+    id: "h2e-chat-memory-probe",
+    commits: ["c47502d", "ff5ea11"],
+    files: [
+      {
+        path: "plugins/shiyu/artifacts/dsh/h2/h2e-single-user-chat-memory-probe.json",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "165871ed0e65334b503aca8d5db7ff19fcbac84aec64764f8f6bf056d94a8c63",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/h2/h2e-runtime-index.patch.diff",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "3eab0953b3028691c84875299093bf09f9ce7cb6d8268012f803c8af81b9dae2",
+      },
+      {
+        path: "plugins/shiyu/src/control/chat-memory-probe.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "ff5ea11",
+        expectedSha256: "4704409ec6945ec2fe1995130b49376eb78106af99185b11deddbc1632c52098",
+      },
+      {
+        path: "plugins/shiyu/src/control/startup-embedding-verifier.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "88f59f5e0728d0f69807d31db6686b7215fbd59d9c5d3c0aedbbc79af882cce2",
+      },
+      {
+        path: "plugins/shiyu/src/runtime.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "ff5ea11",
+        expectedSha256: "7ff0117fb2715cf5faeeebb59a40b80decbde67078f90f0270d79b9c98999010",
+      },
+      {
+        path: "plugins/shiyu/src/index.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "7a30920f408868930ea4b873e9982bb7acf4feabb9f5a9f3b223ec91539c1e17",
+      },
+      {
+        path: "plugins/shiyu/tests/chat-memory-probe.test.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "ff5ea11",
+        expectedSha256: "07d0e2c0345f7b6d0262a2b69085fb310e75b70504ed2963a2bc7bbf666eaf77",
+      },
+      {
+        path: "plugins/shiyu/tests/ombre-startup-embedding.test.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "eff49a0c0a9773198646af2ea027b1fa6a7827c10a751d3e3a6db63027fada13",
+      },
+      {
+        path: "plugins/shiyu/tests/host-diagnostics-tool.test.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "102fbb6ae28855b598af3a7c47c4d4717d3260de175767d629a694c28534442b",
+      },
+    ],
+    levels: ["offline-module"],
+    scope: "H2e P0 single-user chat-memory two-phase probe plus automatic startup embedding verification offline slice (c47502d; ff5ea11 fix included and blob-bound): a two-phase owner-only probe (write: save a synthetic fact + real local embedding index + one local reply <=256 tokens; recall: second reply <=256 tokens with a marker-free prompt and a strict oracle = reply contains the marker AND controlled memorySources carry the operationId AND the same native Session, under a fixed <=2-call/0-retry order) and a startup embedding verifier that performs exactly one fixed local embedding query to publish semantic_search after reload (controlled NO_ELIGIBLE_MEMORY when no readable+indexed conversation memory exists, never bypassed with generation or fake data); targeted tests 18/18 (chat-memory-probe 11 + ombre-startup-embedding 7), isolated worktree full check 1782/1782 pass/0 fail/0 skip and the runtime/index integration delivered as a patch (h2e-runtime-index.patch.diff, applied by the Lead), with the receipt carrying no reply body and synthetic memory retained until a successful recall.",
+    limitations: [
+      "Offline/fake-ports only: the implementer ran no real model/embedding/host reload; the real host chat-memory closure is separate failed host evidence (round18-host-p0-chat-memory) and is NOT passed.",
+      "The probe and startup verifier are bounded (at most 2 generation calls of <=256 tokens, 0 retries, strict oracle on controlled memorySources/background-load and same Session); natural-language wording alone is never an oracle.",
+      "Synthetic probe memories are a disclosed temporary side effect (retained for reload verification until a successful recall; a failed path may retain them and must disclose).",
+      "This source can NEVER be pass, V25, business or nine-system acceptance.",
+    ],
+    derive: [
+      { label: "h2eStatus", path: "artifacts/dsh/h2/h2e-single-user-chat-memory-probe.json", jsonPath: "status" },
+      { label: "h2eTargetedTests", path: "artifacts/dsh/h2/h2e-single-user-chat-memory-probe.json", jsonPath: "verification.targeted.count" },
+      { label: "h2eIsolatedTests", path: "artifacts/dsh/h2/h2e-single-user-chat-memory-probe.json", jsonPath: "verification.isolatedWorktree.tests" },
+    ],
+  },
+  {
+    id: "workspace-taskrunner-integration",
+    commits: ["c47502d", "15d86ee"],
+    files: [
+      {
+        path: "plugins/shiyu/artifacts/dsh/tasks/workspace-runtime-integration.json",
+        sliceCommit: "c47502d",
+        blobCommit: "15d86ee",
+        expectedSha256: "2634d6e26f85176bd774a62eb027c571bff6d4f15d9d19c2a686e8263d08ba44",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/tasks/runtime-task-workspace.diff",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "cdc9e2688d887a367432d2cdd5f7f3fa4570f1df6b61227704756bfadfd817ce",
+      },
+      {
+        path: "plugins/shiyu/src/adapters/artifacts/SHARED_WORKSPACE.md",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "ea4b15ac295c82f69e9f880f1372b90b2476c9a9bf3cbe8aa77fd2389ddc9353",
+      },
+      {
+        path: "plugins/shiyu/src/adapters/artifacts/shared-workspace.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "7f944d1e9f7d43869f8204c4307c4d03b91b4d711e8b74252fc45c4263711930",
+      },
+      {
+        path: "plugins/shiyu/src/control/task-runner.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "b04c02ff4c70edac6ef4f2519f23178288310c4678a3955c2fa1a395fa289d14",
+      },
+      {
+        path: "plugins/shiyu/src/control/task-workspace.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "dd3def64eea09d9119225e8ea13aea242fb1338c998c7dca516607ee2cffe7d3",
+      },
+      {
+        path: "plugins/shiyu/tests/task-workspace-runtime.test.ts",
+        sliceCommit: "c47502d",
+        blobCommit: "c47502d",
+        expectedSha256: "061a9fdbde8cf404b1d9ae62a344617e8dbecd8645f7c7c77eced02f6572b43f",
+      },
+    ],
+    levels: ["offline-module"],
+    scope: "P0 TaskRunner workspace integration offline slice (c47502d; F18-R2 wiring wording/disclosure corrected at 15d86ee): the Runtime/plugin wiring is now REAL — RuntimeConfig.sharedWorkspaceRoot (trusted owner config) plus RuntimeOptions.workspaceExpectedChanges/workspaceOwnerDecision (trusted plan projections) flow through a TaskWorkspaceCoordinator into the LocalTaskRunner 4th argument (runtime-task-workspace.diff applies, patchSha256 recorded, no client or model tool change), and the offline module covers per-task workspace plus no-shared no-op compatibility, in-place write propagation, new-file publish, delete semantics, conflict detection, single-writer lock, symlink/cross-device rejection, manifest tamper detection and optional rollback (10/10 cases) verified in an isolated worktree (full check 1776/1776, exit 0).",
+    limitations: [
+      "G1 offline filesystem/TaskRunner module only: liveHost=false, modelCalls=0 and no real workspace touched; execution through a real host worker (including a real worker shared-file tool surface) is NOT proven.",
+      "The author did NOT edit runtime/index (patch delivery); the Lead applied the integration in c47502d, so the earlier adapter evidence runtimeWired=false is accurate only for the pre-integration adapter slice and must NOT be misread as the runtime never being wired (F18-R2).",
+      "Single-writer/exclusive-lock assumption only: external concurrent writers, crash consistency and long-run rollback drills remain unsupported; writable-shared in-place write propagation is a deliberate disclosed tradeoff.",
+      "This source can NEVER be pass, V25, business or nine-system acceptance.",
+    ],
+    derive: [
+      { label: "workspaceIntegrationCases", path: "artifacts/dsh/tasks/workspace-runtime-integration.json", jsonPath: "summary.total" },
+      { label: "workspaceIntegrationPassed", path: "artifacts/dsh/tasks/workspace-runtime-integration.json", jsonPath: "summary.passed" },
+      { label: "workspacePatchApplies", path: "artifacts/dsh/tasks/workspace-runtime-integration.json", jsonPath: "integration.patchApplies" },
+      { label: "workspaceRuntimeEditedByLead", path: "artifacts/dsh/tasks/workspace-runtime-integration.json", jsonPath: "boundaries.runtimeTsEditedByLead" },
+    ],
+  },
+  {
+    id: "h7-round18-clean-artifacts",
+    commits: ["8a06066"],
+    files: [
+      {
+        path: "plugins/shiyu/artifacts/dsh/harness/manifest.json",
+        sliceCommit: "8a06066",
+        blobCommit: "8a06066",
+        expectedSha256: "69b70cea51ab1359a5aad2dae24b62f0db4b9a679d02546d31f11bc127d50720",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/harness/traceability.json",
+        sliceCommit: "8a06066",
+        blobCommit: "8a06066",
+        expectedSha256: "e9dacd6a6a0d998d9126b616d9a464f690de479ab4846068d1a6c32cacdf4392",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/harness/acceptance-report.json",
+        sliceCommit: "8a06066",
+        blobCommit: "8a06066",
+        expectedSha256: "24f4955ad9b354b90b778d4e0177c644bf8ecccc611732cf145f3bda5bbf9f94",
+      },
+    ],
+    levels: ["offline-module"],
+    scope: "H7-round18 clean-VCS harness artifacts (X+1 of fc4b947, commit 8a06066): clean-X manifest (vcs head fc4b947, dirty=false, 426 files), traceability with 100 verified evidence sources/420 files and acceptance report (gate incomplete, executed=passed=0, product 79/79 not_covered); the same commit also carries the R18-CORR h7-round18 slice-evidence correction.",
+    limitations: [
+      "Tooling evidence only: not product/host/model/business acceptance; product rows remain not_covered and the gate incomplete.",
+      "Bound with blobCommit=8a06066 + expectedSha256; later pipeline rewrites do not affect the committed snapshot; never read from the mutable worktree.",
+      "Cannot upgrade V/S/FL/product rows or the nine-system gate.",
+    ],
+    derive: [
+      { label: "round18CleanGate", path: "artifacts/dsh/harness/acceptance-report.json", jsonPath: "gate.overall" },
+    ],
+  },
+  {
+    id: "round18-review",
+    commits: ["15d86ee"],
+    files: [
+      {
+        path: "plugins/shiyu/artifacts/dsh/verify/ROUND18-EVIDENCE-REVIEW.md",
+        sliceCommit: "15d86ee",
+        blobCommit: "15d86ee",
+        expectedSha256: "7a1327e2131c5f8ca0e48326ba8d06873f7cce5b03549ca444873cb5f399518f",
+      },
+      {
+        path: "plugins/shiyu/artifacts/dsh/verify/round18-evidence-review.json",
+        sliceCommit: "15d86ee",
+        blobCommit: "15d86ee",
+        expectedSha256: "ccc461baac3616c297061d4bfc52fbd6bcad11b43a0dc671d223ef1542dd0269",
+      },
+    ],
+    levels: ["independent-review-info"],
+    scope: "Round-18 independent evidence review metadata plus F18 dispositions (F18-R1 host audit effects/budget/state disclosure added: effects 19→21→23, settled budget 27→29→31 with unknown 6 and the runtime-state file change on write2 while the earlier no-Effect wording was corrected; F18-R2 workspace runtime wiring wording corrected — the Lead applied the runtime integration in c47502d so runtimeWired=false must not be misread as the runtime never being wired; P0 chat-memory failure, startup embedding verification, H7 round-18 evidence and X+1 reviewed; host round-18 mapping left to round-19).",
+    limitations: [
+      "Info/metadata only: independent review record, not product/host/model/business verification and not a pass claim.",
+      "Deliberately NOT referenced by any product row/module/system in the evidence map to avoid turning review metadata into acceptance evidence.",
+      "Cannot upgrade V/S/FL/product rows or nine-system gate.",
+    ],
+  },
 ];
 
 const SOURCE_BY_ID = new Map(EVIDENCE_SOURCES.map(source => [source.id, source]));
@@ -3499,7 +3795,7 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.3',
-    sourceIds: ['h3-core-planning', 'h3-bounded-core-validation-runner', 'h3-core-validation-reconcile', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'historical-task-goal', 'h2c-real-model-probe', 'h2c-probe-fix-chain', 'round4-localcore-hotfix', 'round4-host-zero-model', 'round5-host-real-model', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'history-assert-diagnostics', 'v1v2-reconcile-generalization', 'round11-lead-integration', 'round11-host-v1v2-reconcile', 'cold-cut-v3-activation', 'round12-lead-integration', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'native-header-cut-probe', 'round13-lead-integration', 'round13-host-native-header-cut', 'delegation-depth-normalization-v4', 'round14-host-v4-create-success-eval-failure', 'decision-prestep-reason-preservation-v5', 'round15-host-v5-create-success-context-rejected', 'runtime-context-binding-v6', 'round16-host-v6-first-model-request-empty-stream', 'h3-v7-stream-error-instrumentation'],
+    sourceIds: ['h3-core-planning', 'h3-bounded-core-validation-runner', 'h3-core-validation-reconcile', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'historical-task-goal', 'h2c-real-model-probe', 'h2c-probe-fix-chain', 'round4-localcore-hotfix', 'round4-host-zero-model', 'round5-host-real-model', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'history-assert-diagnostics', 'v1v2-reconcile-generalization', 'round11-lead-integration', 'round11-host-v1v2-reconcile', 'cold-cut-v3-activation', 'round12-lead-integration', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'native-header-cut-probe', 'round13-lead-integration', 'round13-host-native-header-cut', 'delegation-depth-normalization-v4', 'round14-host-v4-create-success-eval-failure', 'decision-prestep-reason-preservation-v5', 'round15-host-v5-create-success-context-rejected', 'runtime-context-binding-v6', 'round16-host-v6-first-model-request-empty-stream', 'h3-v7-stream-error-instrumentation', 'h2e-chat-memory-probe', 'round18-host-p0-chat-memory'],
     levels: ['offline-module', 'slice-verification', 'historical-limited', 'bounded-real-model', 'bounded-real-model-diagnostic-only', 'fixed-host-zero-model', 'fixed-host-failure-diagnostic', 'fixed-host-zero-model-reconcile', 'fixed-host-create-succeeded-evaluation-failure'],
     scope: 'H3 offline controlled multi-step plan/replan with CAS plan versions and Task/Mandate admission; historical limited owner local-note Goal closure.',
     limitations: [
@@ -3515,6 +3811,7 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
       'Round-15 fixes the decision pre-step to admit the exact owner+host-runtime-context claim shape and preserves the first unknown reason via preStopEvaluation (offline 1671/integration 1682). The fixed-host fifth v5 attempt created the Goal a second time (authorized/active/mandate/goalRef rev1/1 Goal Session) but the evaluation failed CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_NATIVE_CONTEXT_REJECTED (no longer owner_paused), evaluateAttempts=1 and 0 model requests; +14 commitSeq/goals 6→7/sessions 38→39/budget unknown 4→5 held 16384/2, v4+v5 residuals, no Task/Effect/artifact or business chain, sixth attempt NOT authorized — never pass/V25/business/nine-system.',
       'Round-16 binds the decision pre-step runtime-context claim through the exact host assembly renderer (exact rendered hash or structural kind/form/section/cwd binding; extra sections projected only when rendered; third/wrong-order/bad context still fails closed) plus a field-level bounded contextDiagnostic and the frozen v6 experiment/reconcile [v1..v6] (offline 1689/integration 1700). The fixed-host sixth v6 attempt then created the Goal a THIRD time and reached the FIRST real model request (21-event Goal Session with system/owner/runtime-context messages, request/header provider=opencode-go model=deepseek-v4.1-flash with the three read-only event tools, request/context 1M), but the provider stream was EMPTY (assistant/attempt streamLength=0), the turn aborted and the single evaluation stayed CORE_VALIDATION_EVALUATION_UNKNOWN with preStopEvaluation.reasonCode=CORE_EXECUTION_UNCONFIRMED preserved, evaluateAttempts=1 and 0 usage; +14 commitSeq/goals 7→8/sessions 39→40/budget unknown 5→6 held 16384/2, v4/v5/v6 residuals, no Task/Effect/artifact or completed business chain, seventh attempt NOT authorized — never pass/V25/business/nine-system.',
       'Round-17 freezes the bounded provider-stream failure instrumentation and the v7 experiment but does NOT execute it: preStopEvaluation.streamDiagnostic classifies empty-provider-stream/transport/auth/request-shape/timeout/aborted/unknown with bounded field facts, the Goal Session summary is bounded, CORE_VALIDATION_EXPERIMENT_V7 is frozen exact-reference-only and reconcile covers [v1..v7] (offline focused 167/167, regression 101/101, isolated slice verification 1710/1710) — realModelExecuted=false, hostReloads=0, the seventh attempt is NOT authorized and the empty-stream root cause is still unknown — never pass/V25/business/nine-system.',
+      'Round-18 adds control-layer limited diagnosis only: the H2e two-phase chat-memory probe and startup embedding verifier are offline/fake-ports (targeted 18/18, isolated 1782/1782) and the fixed-host P0 chat-memory attempt FAILED (write#1 INVALID_INDEX_OBSERVATION with 0 generation calls; write#2 reached ReadView with 2 controlled sources and a draft but REPLY_FAILED/unknown/usage null/replyer Session cancelled, 0 retry, recall not executed, P0 chat-memory NOT passed); its reply failure is the same upstream empty/failed-stream class as the v6 core attempt, and the startup embedding verification success is independent of recall — never pass/V25/business/nine-system.',
       'No real DSH host/native Goal rounds under current HEAD; historical goal closure is limited owner local-note evidence.',
       'Open-ended planning, multi-Goal timers and worker slot behaviour remain untested.',
     ],
@@ -3568,7 +3865,7 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
   },
   {
     rowId: 'SYS.8',
-    sourceIds: ['h5-g1-module', 'h5b-runtime-integration', 'h5b-checkpoint-probe', 'h4e-migration-hotfix', 'round3-lead-integration', 'round4-lead-integration', 'round6-lead-integration', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'h3-core-validation-reconcile', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'history-assert-diagnostics', 'v1v2-reconcile-generalization', 'round11-lead-integration', 'round11-host-v1v2-reconcile', 'cold-cut-v3-activation', 'round12-lead-integration', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'native-header-cut-probe', 'round13-lead-integration', 'round13-host-native-header-cut', 'delegation-depth-normalization-v4', 'round14-host-v4-create-success-eval-failure', 'decision-prestep-reason-preservation-v5', 'round15-host-v5-create-success-context-rejected', 'runtime-context-binding-v6', 'round16-host-v6-first-model-request-empty-stream', 'h2d-single-user-memory-chat', 'h2d-host-memory-embedding-verification', 'h4f-emotion-continuation', 'workspace-shared-hardlink', 'round17-host-emotion-memory-probes', 'round3-host-zero-model', 'round4-host-zero-model', 'h4h5-independent-review'],
+    sourceIds: ['h5-g1-module', 'h5b-runtime-integration', 'h5b-checkpoint-probe', 'h4e-migration-hotfix', 'round3-lead-integration', 'round4-lead-integration', 'round6-lead-integration', 'round7-lead-integration', 'round8-lead-integration', 'v2-experiment-activation', 'h3-core-validation-reconcile', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'history-assert-diagnostics', 'v1v2-reconcile-generalization', 'round11-lead-integration', 'round11-host-v1v2-reconcile', 'cold-cut-v3-activation', 'round12-lead-integration', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'native-header-cut-probe', 'round13-lead-integration', 'round13-host-native-header-cut', 'delegation-depth-normalization-v4', 'round14-host-v4-create-success-eval-failure', 'decision-prestep-reason-preservation-v5', 'round15-host-v5-create-success-context-rejected', 'runtime-context-binding-v6', 'round16-host-v6-first-model-request-empty-stream', 'h2d-single-user-memory-chat', 'h2d-host-memory-embedding-verification', 'h4f-emotion-continuation', 'workspace-shared-hardlink', 'round17-host-emotion-memory-probes', 'h2e-chat-memory-probe', 'round18-host-p0-chat-memory', 'workspace-taskrunner-integration', 'h7-round18-clean-artifacts', 'round3-host-zero-model', 'round4-host-zero-model', 'h4h5-independent-review'],
     levels: ['offline-module', 'slice-verification', 'independent-verification', 'fixed-host-zero-model', 'fixed-host-zero-model-reconcile', 'fixed-host-failure-diagnostic', 'fixed-host-create-succeeded-evaluation-failure'],
     scope: 'H5-B1 G1 checkpoint/restore module + H5b runtime composition/capture integration and read-only checkpoint availability probe + H4e additive migration hotfix + round-3/4 zero-model host reload/probes; independent authenticity review.',
     limitations: [
@@ -3583,19 +3880,20 @@ export const PRODUCT_EVIDENCE_MAPPINGS: readonly RowEvidenceMapping[] = [
       'Round-15 fixes the decision pre-step claim shape and reason preservation; the fifth fixed-host v5 attempt created the Goal a second time but the evaluation failed with the preserved CORE_NATIVE_CONTEXT_REJECTED reason, evaluateAttempts=1, 0 model requests and only +14 commitSeq/goals 6→7/sessions 38→39/budget unknown 4→5 held 16384/2, leaving v4+v5 unknown reservations; it proves pre-step/reason progress only, not planning/Task/native completion or checkpoint/recovery readiness, and a sixth attempt is NOT authorized.',
       'Round-16 aligns the pre-step runtime-context claim with the host assembly renderer and adds a bounded contextDiagnostic (offline 1689/integration 1700); the sixth fixed-host v6 attempt created the Goal a third time and reached the first real model request (request/header+context, three read-only event tools, 21-event Goal Session) but the provider stream was empty (assistant/attempt streamLength=0) so the evaluation stayed unknown with the preserved CORE_EXECUTION_UNCONFIRMED reason, evaluateAttempts=1, 0 usage and only +14 commitSeq/goals 7→8/sessions 39→40/budget unknown 5→6 held 16384/2, leaving v4/v5/v6 unknown reservations; it proves binding/create progress only, not a completed model round, planning/Task/native completion or checkpoint/recovery readiness, and a seventh attempt is NOT authorized.',
       'Round-17 adds limited data/lifecycle evidence, not recovery acceptance: the H2d readiness/offline slice gates semantic memory on verified embeddings (1716/1716), the P0 fixed-host embedding round-trip passed with 1+1 real Harrier embedding calls, 1 semantic match, exact read and post-withdraw MEMORY_READ_FORBIDDEN while leaving only withdrawn synthetic facts (coverage incomplete, +10 commitSeq 546→556, no generation model), the H4f emotion-continuation offline slice (1727/1727) plus the zero-model joint host probe (15/15 checks, in-memory store, liveDataTouched=false, +10 commitSeq 563→573) and the offline writable shared-workspace module (1715/1715, 11/11 cases, runtimeWired=false, hard-link write-propagation disclosed) each prove only their bounded paths — no restart chat closure, no recovery drill, no V15/V21/V22/V24/V27 acceptance.',
+      'Round-18 adds limited data/lifecycle evidence, not chat-memory or recovery acceptance: the fixed-host P0 single-user chat-memory attempt FAILED (write#1 INVALID_INDEX_OBSERVATION before any generation call; write#2 reached ReadView with 2 controlled memory sources + draft but REPLY_FAILED/unknown/usage null and the replyer Session was cancelled; recall phase NOT executed, restart recall/marker/same-Session unverified, P0 chat-memory NOT passed; 0 retry; two synthetic facts retained active); the automatic startup embedding verification independently passed after reload2 (verified=true, embeddingCalls=1, semanticPublished=true, coverage incomplete) and is a readiness item, NOT recall proof; a TaskRunner workspace integration is wired in code/tests (10/10 cases, isolated 1776/1776) but host worker execution is unproven; memory-command/index settlements added effects 19→21→23, settled budget 27→29→31 (unknown 6) and a state-file change on write2 (F18-R1) — no Task/Goal business effect or send; no recovery drill, no V15/V21/V22/V24/V27 acceptance.',
       'No real backup destination or restore drill; not V15/V21/V22/V24/V27 acceptance.',
     ],
     partialSubscenarios: ['G1 backup bundle capture/verify + isolated-root disarmed restore'],
   },
   {
     rowId: 'SYS.9',
-    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'round11-host-v1v2-reconcile', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'round13-host-native-header-cut', 'round14-host-v4-create-success-eval-failure', 'round15-host-v5-create-success-context-rejected', 'round16-host-v6-first-model-request-empty-stream', 'h2d-host-memory-embedding-verification', 'round17-host-emotion-memory-probes', 'joint-host-zero-model', 'h0-baseline'],
+    sourceIds: ['h4b-composition', 'h4b-host', 'h6c-channel-projection-ui', 'round3-host-zero-model', 'round4-host-zero-model', 'round5-host-real-model', 'round6-host-inner-lifecycle', 'round7-host-bounded-core-goal-failure', 'round8-host-core-validation-reconcile', 'round10-host-v2-create-failure', 'round11-host-v1v2-reconcile', 'round12-host-v3-create-failure', 'round12-host-v3-cleanup-reconcile', 'round13-host-native-header-cut', 'round14-host-v4-create-success-eval-failure', 'round15-host-v5-create-success-context-rejected', 'round16-host-v6-first-model-request-empty-stream', 'h2d-host-memory-embedding-verification', 'round17-host-emotion-memory-probes', 'round18-host-p0-chat-memory', 'joint-host-zero-model', 'h0-baseline'],
     levels: ['synthetic-ui', 'fixed-host-zero-model', 'fixed-host-zero-model-reconcile', 'fixed-host-failure-diagnostic', 'fixed-host-create-succeeded-evaluation-failure', 'bounded-real-model-diagnostic-only', 'offline-module', 'environment-baseline'],
     scope: 'H4b six-domain dashboard panel + H6c channel projection panel (synthetic-host UI cases); fixed-host visibility of schema4 publication/summary/projection, the round-11/round-12 generalized reconcile receipt caches, the round-13 header-cut probe receipt, the round-14 failed v4 receipt cache, the round-15 failed v5 receipt cache and the round-16 failed v6 receipt cache (all with preStopEvaluation; v6 also records the 21-event first-real-model-request Session with an empty provider stream) and the round-17 fixed-host status caches (68173-byte memory readiness/embedding verification with semantic_search publication; joint emotion/memory probe status after reload); H0 status tool check.',
     limitations: [
       'No real DSH client DOM/injection or production browser bundle: H4b/H6c use synthetic host pages, fixtures and synthetic bindings/connections.',
       'No real user interactions beyond read-only status/tool calls; no UI lifecycle/long-list/old-response matrix; round-3/4 host projection remains zero-model.',
-      'Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Round-11 adds a 61122-byte final status that caches the generalized v1/v2 reconcile receipt (v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq). round-12 adds a 69,295-byte final status caching BOTH the failed v3 create receipt (header-hash mismatch, 0 model requests, partial v3 Goal+Session) and the generalized cleanup reconcile receipt (v1/v2 no action, v3 inert exactly one cancel to version 2, only +1 commitSeq) — diagnostics caches, not dashboard/render or V05/V24 acceptance. Round-13 adds a 60,692-byte final status caching the zero-model header-cut probe receipt (matched=false, headerDiff delegationDepth: number:0→absent, one bare Session archived, 0 model/Goal/Task/Effect/business writes) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-14 adds a 65,594-byte final status caching the failed v4 receipt (create succeeded but evaluation unknown, 0 model requests, reason masked owner_paused, unknown budget 3→4 held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-15 adds a 67,986-byte final status caching the failed v5 receipt including preStopEvaluation (create succeeded again, evaluation unknown with CORE_NATIVE_CONTEXT_REJECTED, 0 model requests, v4/v5 unknown reservations held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-16 adds a 70,221-byte final status caching the failed v6 receipt including preStopEvaluation (create succeeded a third time, FIRST real model request with request/header+context and three read-only event tools, empty provider stream, CORE_EXECUTION_UNCONFIRMED preserved, evaluateAttempts=1, 0 usage, v4/v5/v6 unknown reservations held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-17 adds a 68173-byte final status caching the P0 memory readiness/embedding verification (readinessBefore exact_read/EMBEDDING_UNVERIFIED → readinessAfter exact_read+semantic_search/embeddingVerified with INDEX_COVERAGE_INCOMPLETE; 1+1 real embedding calls, 1 semantic match, post-withdraw rejection, +10 commitSeq) and the joint zero-model emotion/memory probe status after one ordered reload (15/15 in-memory checks, liveDataTouched=false, +10 commitSeq 563→573) — diagnostics caches only, not dashboard/render, live chat recall or V05/V24 acceptance. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.',
+      'Round-4 host had only a failed bounded real-model attempt; round-5 adds a diagnostic real-model tool round; round-6 adds an isolated inner-lifecycle diagnostic (59072-byte status-final proves only diagnostics-cache passed); round-7 adds a FAILED bounded core Goal attempt (GOAL_OPERATION_UNKNOWN, 0 model requests, partial unauthorized/paused Goal+Session); round-8 reconcile cancelled the residual Goal (58,375-byte status-final proves reconcile cache only). Round-11 adds a 61122-byte final status that caches the generalized v1/v2 reconcile receipt (v1 cancelled/no action, v2 inert exactly one cancel to version 2, 0 model/0 retries/0 creations, +1 commitSeq). round-12 adds a 69,295-byte final status caching BOTH the failed v3 create receipt (header-hash mismatch, 0 model requests, partial v3 Goal+Session) and the generalized cleanup reconcile receipt (v1/v2 no action, v3 inert exactly one cancel to version 2, only +1 commitSeq) — diagnostics caches, not dashboard/render or V05/V24 acceptance. Round-13 adds a 60,692-byte final status caching the zero-model header-cut probe receipt (matched=false, headerDiff delegationDepth: number:0→absent, one bare Session archived, 0 model/Goal/Task/Effect/business writes) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-14 adds a 65,594-byte final status caching the failed v4 receipt (create succeeded but evaluation unknown, 0 model requests, reason masked owner_paused, unknown budget 3→4 held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-15 adds a 67,986-byte final status caching the failed v5 receipt including preStopEvaluation (create succeeded again, evaluation unknown with CORE_NATIVE_CONTEXT_REJECTED, 0 model requests, v4/v5 unknown reservations held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-16 adds a 70,221-byte final status caching the failed v6 receipt including preStopEvaluation (create succeeded a third time, FIRST real model request with request/header+context and three read-only event tools, empty provider stream, CORE_EXECUTION_UNCONFIRMED preserved, evaluateAttempts=1, 0 usage, v4/v5/v6 unknown reservations held 16384/2) — a diagnostics cache, not dashboard/render or V05/V24 acceptance. Round-17 adds a 68173-byte final status caching the P0 memory readiness/embedding verification (readinessBefore exact_read/EMBEDDING_UNVERIFIED → readinessAfter exact_read+semantic_search/embeddingVerified with INDEX_COVERAGE_INCOMPLETE; 1+1 real embedding calls, 1 semantic match, post-withdraw rejection, +10 commitSeq) and the joint zero-model emotion/memory probe status after one ordered reload (15/15 in-memory checks, liveDataTouched=false, +10 commitSeq 563→573) — diagnostics caches only, not dashboard/render, live chat recall or V05/V24 acceptance. Round-18 adds a 69,563-byte final status and related host status/reply-failure extracts caching the failed P0 chat-memory attempt (write#1 INVALID_INDEX_OBSERVATION/0 generation; write#2 REPLY_FAILED/unknown/usage null), the startup embedding verification success (verified/embeddingCalls=1/semanticPublished) and the retained synthetic memories — diagnostics/audit caches only, not dashboard/render or chat-memory recall acceptance. Real browser DOM, sensitive-value sweep and V05/V24 dashboard acceptance remain untested.',
     ],
     partialSubscenarios: ['synthetic-host six-domain panel UI cases', 'fixed-host zero-model status/read-only visibility'],
   },
