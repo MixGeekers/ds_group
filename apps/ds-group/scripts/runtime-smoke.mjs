@@ -77,10 +77,10 @@ async function stop() {
   assert.equal(result.code, 0, 'foreground launcher should exit successfully after SIGTERM');
   await assert.rejects(fetch(`${base}/health`, { signal: AbortSignal.timeout(1000) }));
 }
-async function createBot() {
+async function createBot(instructions = '等待明确请求。') {
   const response = await fetch(`${base}/api/ds-group-node/bots`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ botId: '@finance:runtime-ci.local', name: 'Runtime CI', role: '财务', instructions: '等待明确请求。' }),
+    body: JSON.stringify({ botId: '@finance:runtime-ci.local', name: 'Runtime CI', role: '财务', instructions }),
     signal: AbortSignal.timeout(30_000),
   });
   const result = await response.json();
@@ -114,11 +114,31 @@ try {
   assert.ok(config.dataDir.startsWith(directory + path.sep));
   report.checks.importedRemoteCoreAndPrivateData = true;
   await stop();
+  const bridgeStatePath = path.join(config.dataDir, 'node-state.json');
+  const bridgeState = JSON.parse(await readFile(bridgeStatePath, 'utf8'));
+  bridgeState.schemaVersion = 1;
+  bridgeState.requests['legacy-running'] = { requestId: 'legacy-running', botId: first.botId,
+    inputHash: 'synthetic-interrupted-request', status: 'running' };
+  await writeFile(bridgeStatePath, JSON.stringify(bridgeState));
+  const botStatePath = path.join(config.dataDir, 'ds-bot', 'state.json');
+  const botState = JSON.parse(await readFile(botStatePath, 'utf8'));
+  botState.bots[first.dsBotId].instructions = 'LEGACY_NO_TOOLS_SYNTHETIC_MIGRATION';
+  await writeFile(botStatePath, JSON.stringify(botState));
   await start();
-  const restored = await createBot();
+  const restored = await createBot('UPDATED_NATIVE_FILE_WORK_INSTRUCTIONS');
   assert.equal(restored.sessionId, first.sessionId);
   assert.equal(restored.dsBotId, first.dsBotId);
   report.checks.sessionIdentityAfterRestart = true;
+  const updated = JSON.parse(await readFile(botStatePath, 'utf8')).bots[first.dsBotId];
+  assert.ok(updated.instructions.includes('UPDATED_NATIVE_FILE_WORK_INSTRUCTIONS'));
+  assert.equal(updated.instructions.includes('LEGACY_NO_TOOLS_SYNTHETIC_MIGRATION'), false);
+  assert.ok(restored.tools.includes('read') && restored.tools.includes('bash'));
+  assert.equal(JSON.parse(await readFile(bridgeStatePath, 'utf8')).schemaVersion, 2);
+  report.checks.legacyIdentityAndInstructionsMigrated = true;
+  const interrupted = await (await fetch(`${base}/api/ds-group-node/turns/legacy-running`)).json();
+  assert.equal(interrupted.status, 'unknown');
+  assert.equal(interrupted.errorCode, 'NODE_RESTARTED_DURING_REQUEST');
+  report.checks.interruptedRequestIsNotReplayed = true;
   await stop();
   report.checks.gracefulStop = true;
   assert.deepEqual(calls, []);

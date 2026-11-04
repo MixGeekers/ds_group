@@ -275,7 +275,7 @@ async function recordSmoke(setup, versions) {
     physicalHosts: 1,
     limitation: 'Verifies the Matrix core over HTTP. Bot reasoning and two-physical-machine operation require separate evidence.',
   };
-  await saveJson(path.join(packageRoot, 'artifacts', 'matrix-smoke.json'), evidence, 0o644);
+  await saveJson(process.env.DS_GROUP_MATRIX_REPORT || path.join(packageRoot, 'artifacts', 'matrix-smoke.json'), evidence, 0o644);
   if (!passed) throw new Error('Matrix HTTP smoke checks failed');
 }
 

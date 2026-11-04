@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "runId": "file-work-2026-11-04T14-23-09-862Z",
+  "startedAt": "2026-11-04T14:23:09.863Z",
+  "status": "failed",
+  "level": "real-matrix-dsh-tool-and-model-file-work",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "physicalHosts": 1,
+  "coreUrl": "http://127.0.0.1:19100",
+  "cases": [],
+  "eventIds": [],
+  "artifacts": [],
+  "modelCalls": 0,
+  "initialCalls": 0,
+  "sourceCommit": "3b912c5cf0089598b40f3bbfd64c726ae5fe5e80",
+  "sourceHashes": {
+    "scripts/verify-file-work.mjs": "1139b38d55a06f851bc01791e47524313570b48506d873654e273dc3f6328da9",
+    "src/core.mjs": "b65ef6895010db33408b45efba5915dd0335be62b56b823c6b99023a833ed18a",
+    "src/bot-node.mjs": "79d90e5bc0d9ffa57a8f8fce4edd660cbe00a8db251fb10a519296aa2662d8b0",
+    "src/node-store.mjs": "2a594f05513f3c27859a29ea8ca2f38b7e9d79682363d5916d1ead5958228e8a",
+    "src/node-files.mjs": "40a4262b324a85e6328de1d328ae42c25e0a1e169622f28f16dd9c6c267b8b84",
+    "dsh-plugin/runtime.mjs": "b3d4040aab13b1b101313433eab7793e7d6eee32346c0068ba6bae8ed3980d1e",
+    "dsh-plugin/runtime-rules.mjs": "28960fd171dd720d661359b6c646417ed85108787a16793ba114bbbe4fb47695",
+    "src/file-formats.mjs": "7b166a42d3572e7dce2876063d462d5797ea90289c08f3c08aba3b96162ba655"
+  },
+  "fixture": {
+    "csvSha256": "57de2051ce751ef84568997a6af1753da4b8b42a8a4b54485a93030adf65070c",
+    "xlsxSha256": "1bfe0078ae8933b348d270f5894203e26073d56b9ee444f009c8196f9f6f263b",
+    "expectedCents": {
+      "HR": 20000,
+      "Finance": 30000,
+      "Operations": 4845
+    }
+  },
+  "error": "Upload returned HTTP 400",
+  "finalCalls": 0,
+  "claims": [],
+  "finalNodes": [
+    {
+      "id": "finance",
+      "status": "idle",
+      "pending": 0,
+      "lastError": null
+    },
+    {
+      "id": "hr",
+      "status": "idle",
+      "pending": 0,
+      "lastError": null
+    }
+  ],
+  "completedAt": "2026-11-04T14:23:09.925Z"
+}

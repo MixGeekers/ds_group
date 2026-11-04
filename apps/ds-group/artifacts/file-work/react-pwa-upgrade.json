@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "level": "real-chromium-legacy-worker-to-built-react-upgrade",
+  "checks": [
+    "historicalServiceWorkerInstalledAndControllingLegacyShell",
+    "builtServiceWorkerActivatesAndReplacesLegacyCache",
+    "reactApplicationLoadsFromNewHashedAssetManifest",
+    "upgradedReactShellReloadsWhileOffline"
+  ],
+  "pageErrors": [],
+  "modelCalls": 0,
+  "sourceHashes": {
+    "legacyWorker": "0e85e6bc634a78c211c9ee373a609454ece863dbbc5c92702c99f3f83cae160b",
+    "currentWorker": "aa17d51abe08fd6415d769c57ce60b703d7ad3f4bef29f3bcd1b5c05e6c5518e"
+  }
+}

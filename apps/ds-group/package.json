@@ -1,6 +1,6 @@
 {
   "name": "ds-group",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Human and independent Bot collaboration over Matrix and DS-Bot",
@@ -8,6 +8,10 @@
     "node": ">=24.19.0 <25"
   },
   "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build && node scripts/build-pwa.mjs",
+    "preup": "npm run build",
     "up": "node scripts/service.mjs up",
     "down": "node scripts/service.mjs down",
     "status": "node scripts/service.mjs status",
@@ -20,10 +24,25 @@
     "verify": "node scripts/verify.mjs",
     "deploy:check": "node scripts/deploy-smoke.mjs",
     "runtime:check": "node scripts/runtime-smoke.mjs",
+    "runtime:work-check": "node scripts/runtime-work-smoke.mjs",
+    "test:browser": "node --test tests/*.browser.mjs",
+    "verify:work": "node scripts/verify-file-work.mjs --run",
     "release:pack": "node scripts/release-pack.mjs",
     "release:verify": "node scripts/release-verify.mjs"
   },
   "dependencies": {
+    "pdfjs-dist": "6.5.438",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "web-push": "3.6.7"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "24.19.2",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "typescript": "7.0.2",
+    "vite": "8.3.5"
   }
 }

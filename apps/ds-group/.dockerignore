@@ -1,10 +1,16 @@
 **
 !package.json
 !package-lock.json
+!tsconfig.json
+!vite.config.ts
 !src/
 !src/**
 !web/
 !web/**
 !scripts/
 !scripts/**
+!vendor/
+!vendor/**
+**/node_modules
+**/.local
 !Dockerfile

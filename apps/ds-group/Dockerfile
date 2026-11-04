@@ -1,4 +1,15 @@
 # syntax=docker/dockerfile:1
+FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS frontend
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts --no-audit --no-fund
+COPY tsconfig.json vite.config.ts ./
+COPY web ./web
+COPY scripts ./scripts
+COPY src/paths.mjs ./src/paths.mjs
+RUN npm run build
+
 FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df
 
 WORKDIR /app
@@ -7,6 +18,8 @@ RUN npm ci --omit=dev --ignore-scripts --no-audit --no-fund && npm cache clean -
 COPY --chown=node:node src ./src
 COPY --chown=node:node web ./web
 COPY --chown=node:node scripts ./scripts
+COPY --chown=node:node vendor ./vendor
+COPY --from=frontend --chown=node:node /app/dist/web ./dist/web
 
 ENV NODE_ENV=production DS_GROUP_DATA_DIR=/data DS_GROUP_HOST=0.0.0.0 DS_GROUP_PORT=18100
 USER node

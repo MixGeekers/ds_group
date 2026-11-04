@@ -38,6 +38,17 @@ export class NodeStore {
         last_error TEXT,
         UNIQUE(source_event_id, ordinal)
       );
+      CREATE TABLE IF NOT EXISTS artifact_uploads (
+        event_id TEXT NOT NULL REFERENCES inbox(event_id),
+        artifact_key TEXT NOT NULL,
+        attachment_json TEXT NOT NULL,
+        PRIMARY KEY(event_id, artifact_key)
+      );
+      CREATE TABLE IF NOT EXISTS task_updates (
+        event_id TEXT PRIMARY KEY REFERENCES inbox(event_id),
+        payload_json TEXT NOT NULL,
+        dirty INTEGER NOT NULL DEFAULT 1
+      );
     `);
     const identity = this.db.prepare('SELECT value FROM node_meta WHERE key=\'botId\'').get();
     if (identity && identity.value !== botId) {
@@ -70,6 +81,18 @@ export class NodeStore {
     return Boolean(this.db.prepare('SELECT 1 FROM messages WHERE event_id=?').get(eventId));
   }
 
+  message(eventId) {
+    const row = this.db.prepare('SELECT event_json FROM messages WHERE event_id=?').get(eventId);
+    return row ? JSON.parse(row.event_json) : undefined;
+  }
+
+  messageBatch(event) {
+    const batchId = event.content?.['org.ds_group']?.fileBatch?.id;
+    if (!batchId) return [event];
+    return this.db.prepare('SELECT event_json FROM messages WHERE room_id=? AND sender_id=? AND json_extract(event_json,?)=? ORDER BY sequence')
+      .all(event.room_id, event.sender, '$.content."org.ds_group".fileBatch.id', batchId).map(row => JSON.parse(row.event_json));
+  }
+
   ingest(events, cursor) {
     return this.transaction(() => {
       let accepted = 0;
@@ -100,6 +123,21 @@ export class NodeStore {
     return row ? { ...row, event: JSON.parse(row.event_json) } : undefined;
   }
 
+  item(eventId) {
+    const row = this.db.prepare('SELECT inbox.*, messages.event_json FROM inbox JOIN messages USING(event_id) WHERE event_id=?').get(eventId);
+    return row ? { ...row, event: JSON.parse(row.event_json), request: row.request_json ? JSON.parse(row.request_json) : null,
+      response: row.response_json ? JSON.parse(row.response_json) : null } : undefined;
+  }
+
+  pendingResult() {
+    const row = this.db.prepare("SELECT inbox.event_id FROM inbox JOIN messages USING(event_id) WHERE inbox.status='produced' ORDER BY messages.sequence LIMIT 1").get();
+    return row ? this.item(row.event_id) : undefined;
+  }
+
+  interrupted() {
+    return this.db.prepare("SELECT event_id FROM inbox WHERE status='unknown' AND request_json IS NOT NULL").all().map(row => this.item(row.event_id));
+  }
+
   historyBefore(eventId, limit = 40) {
     return this.db.prepare(`SELECT event_json FROM messages WHERE room_id =
       (SELECT room_id FROM messages WHERE event_id=?) AND sequence <
@@ -113,9 +151,59 @@ export class NodeStore {
     if (result.changes !== 1) throw new Error('Inbox item is not queued');
   }
 
+  prepared(eventId, request) {
+    const result = this.db.prepare("UPDATE inbox SET request_json=? WHERE event_id=? AND status='running'").run(JSON.stringify(request), eventId);
+    if (result.changes !== 1) throw new Error('Inbox item is not running');
+  }
+
+  resume(eventId) {
+    const result = this.db.prepare("UPDATE inbox SET status='running',error=NULL WHERE event_id=? AND status='unknown'").run(eventId);
+    if (result.changes !== 1) throw new Error('Inbox item has no interrupted request');
+  }
+
+  produced(eventId, response) {
+    const result = this.db.prepare("UPDATE inbox SET status='produced',response_json=?,session_id=?,error=NULL WHERE event_id=? AND status IN ('running','unknown','produced')")
+      .run(JSON.stringify(response), response.sessionId ?? null, eventId);
+    if (result.changes !== 1) throw new Error('Inbox item cannot accept a generation result');
+  }
+
+  uploaded(eventId, key) {
+    const row = this.db.prepare('SELECT attachment_json FROM artifact_uploads WHERE event_id=? AND artifact_key=?').get(eventId, key);
+    return row ? JSON.parse(row.attachment_json) : undefined;
+  }
+
+  recordUpload(eventId, key, attachment) {
+    this.db.prepare('INSERT INTO artifact_uploads VALUES (?,?,?) ON CONFLICT(event_id,artifact_key) DO UPDATE SET attachment_json=excluded.attachment_json')
+      .run(eventId, key, JSON.stringify(attachment));
+  }
+
+  task(eventId) {
+    const row = this.db.prepare('SELECT payload_json FROM task_updates WHERE event_id=?').get(eventId);
+    return row ? JSON.parse(row.payload_json) : undefined;
+  }
+
+  updateTask(eventId, payload) {
+    this.db.prepare('INSERT INTO task_updates VALUES (?,?,1) ON CONFLICT(event_id) DO UPDATE SET payload_json=excluded.payload_json,dirty=1')
+      .run(eventId, JSON.stringify(payload));
+  }
+
+  pendingTaskUpdates() {
+    return this.db.prepare('SELECT event_id,payload_json FROM task_updates WHERE dirty=1').all()
+      .map(row => ({ eventId: row.event_id, payload: JSON.parse(row.payload_json) }));
+  }
+
+  waitingTasks() {
+    return this.db.prepare("SELECT event_id,payload_json FROM task_updates WHERE json_extract(payload_json,'$.status')='running' AND json_extract(payload_json,'$.stage')='waiting_for_bot'")
+      .all().map(row => ({ eventId: row.event_id, payload: JSON.parse(row.payload_json) }));
+  }
+
+  acknowledgeTask(eventId, payload) {
+    this.db.prepare('UPDATE task_updates SET dirty=0 WHERE event_id=? AND payload_json=?').run(eventId, JSON.stringify(payload));
+  }
+
   generated(eventId, response, deliveries) {
     this.transaction(() => {
-      const result = this.db.prepare("UPDATE inbox SET status='generated',response_json=?,session_id=? WHERE event_id=? AND status='running'")
+      const result = this.db.prepare("UPDATE inbox SET status='generated',response_json=?,session_id=? WHERE event_id=? AND status IN ('running','produced')")
         .run(JSON.stringify(response), response.sessionId ?? null, eventId);
       if (result.changes !== 1) throw new Error('Inbox item is not running');
       for (const [ordinal, delivery] of deliveries.entries()) {
@@ -127,8 +215,8 @@ export class NodeStore {
   }
 
   failed(eventId, error, status = 'failed') {
-    if (!['failed', 'unknown'].includes(status)) throw new Error('Invalid failure status');
-    this.db.prepare("UPDATE inbox SET status=?,error=? WHERE event_id=? AND status IN ('queued','running')")
+    if (!['failed', 'unknown', 'cancelled'].includes(status)) throw new Error('Invalid failure status');
+    this.db.prepare("UPDATE inbox SET status=?,error=? WHERE event_id=? AND status IN ('queued','running','produced','unknown')")
       .run(status, String(error).slice(0, 1000), eventId);
   }
 
@@ -138,7 +226,7 @@ export class NodeStore {
     return row ? { ...row, options: JSON.parse(row.options_json) } : undefined;
   }
 
-  sent(transactionId, sentEventId) {
+  sent(transactionId, sentEventId, onCommittedReceipt) {
     if (typeof sentEventId !== 'string' || !sentEventId) throw new Error('Missing Matrix event receipt');
     this.transaction(() => {
       const row = this.db.prepare('SELECT * FROM outbox WHERE transaction_id=?').get(transactionId);
@@ -147,7 +235,9 @@ export class NodeStore {
       this.db.prepare("UPDATE outbox SET status='sent',sent_event_id=?,last_error=NULL WHERE transaction_id=?")
         .run(sentEventId, transactionId);
       const pending = this.db.prepare("SELECT 1 FROM outbox WHERE source_event_id=? AND status='pending'").get(row.source_event_id);
-      if (!pending) this.db.prepare("UPDATE inbox SET status='completed' WHERE event_id=? AND status='generated'").run(row.source_event_id);
+      if (!pending) this.db.prepare("UPDATE inbox SET status=CASE WHEN json_extract(response_json,'$.failure')=1 THEN 'failed' ELSE 'completed' END WHERE event_id=? AND status='generated'")
+        .run(row.source_event_id);
+      if (onCommittedReceipt) onCommittedReceipt();
     });
   }
 
@@ -165,12 +255,19 @@ export class NodeStore {
     });
   }
 
+  cancelDelivery(eventId) {
+    this.transaction(() => {
+      this.db.prepare("UPDATE outbox SET status='cancelled',last_error='Task cancelled before delivery' WHERE source_event_id=? AND status='pending'").run(eventId);
+      this.db.prepare("UPDATE inbox SET status='cancelled',error='Task cancelled before delivery' WHERE event_id=? AND status='generated'").run(eventId);
+    });
+  }
+
   snapshot() {
     const counts = Object.fromEntries(this.db.prepare('SELECT status,COUNT(*) AS count FROM inbox GROUP BY status').all().map(row => [row.status, row.count]));
     const latest = this.db.prepare('SELECT session_id FROM inbox WHERE session_id IS NOT NULL ORDER BY rowid DESC LIMIT 1').get();
-    const failure = this.db.prepare('SELECT error FROM inbox WHERE error IS NOT NULL ORDER BY rowid DESC LIMIT 1').get();
+    const failure = this.db.prepare("SELECT error FROM inbox WHERE error IS NOT NULL AND status IN ('failed','unknown') ORDER BY rowid DESC LIMIT 1").get();
     const pendingSends = this.db.prepare("SELECT COUNT(*) AS count FROM outbox WHERE status='pending'").get().count;
-    return { processed: counts.completed ?? 0, pending: (counts.queued ?? 0) + (counts.running ?? 0) + (counts.generated ?? 0),
+    return { processed: counts.completed ?? 0, pending: (counts.queued ?? 0) + (counts.running ?? 0) + (counts.produced ?? 0) + (counts.generated ?? 0),
       failed: counts.failed ?? 0, unknown: counts.unknown ?? 0, pendingSends, sessionId: latest?.session_id ?? null,
       lastError: failure?.error ?? null, counts, cursor: this.cursor() ?? null };
   }

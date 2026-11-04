@@ -1,3 +1,5 @@
+import { t, onLocaleChange } from './i18n.js';
+
 const PUSH_OWNER_KEY = 'ds-group.push-owner';
 
 function decodeApplicationKey(value) {
@@ -9,7 +11,7 @@ function deviceName() {
   const platform = navigator.userAgentData?.platform ?? navigator.platform ?? '';
   if (/iphone|ipad/i.test(navigator.userAgent)) return 'iPhone / iPad';
   if (/android/i.test(navigator.userAgent)) return 'Android';
-  return platform || '浏览器';
+  return platform || t('pwa.browser');
 }
 
 export function initializePwa({ request, getSession, onOpenRoom }) {
@@ -21,6 +23,8 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
     subscription: null,
     busy: false,
     deferredInstall: null,
+    feedback: null,
+    installFeedback: null,
   };
   const supported = () => window.isSecureContext && 'serviceWorker' in navigator
     && 'PushManager' in window && 'Notification' in window;
@@ -28,34 +32,41 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
   const owned = () => Boolean(getSession() && state.subscription
     && localStorage.getItem(PUSH_OWNER_KEY) === getSession().user_id);
 
+  function setFeedback(key, params = {}) {
+    state.feedback = key ? { key, params } : null;
+    $('push-feedback').textContent = key ? t(key, params) : '';
+  }
+
   function renderInstall() {
-    $('offline-status').textContent = navigator.onLine ? '在线' : '离线 · 待确认消息已保留';
+    $('offline-status').textContent = navigator.onLine ? t('pwa.online') : t('pwa.offlinePending');
     $('install-app').disabled = standalone();
-    $('install-status').textContent = standalone() ? '已安装' : '浏览器模式';
+    $('install-status').textContent = standalone() ? t('pwa.installed') : t('pwa.browserMode');
     if (standalone()) $('install-help').textContent = '';
-    else if (state.deferredInstall) $('install-help').textContent = '安装后可从桌面或主屏幕打开。';
-    else if (/iphone|ipad/i.test(navigator.userAgent)) $('install-help').textContent = '在 Safari 中点“分享 → 添加到主屏幕”。';
-    else $('install-help').textContent = '可通过浏览器菜单中的“安装应用”或“添加到主屏幕”安装。';
+    else if (state.installFeedback) $('install-help').textContent = t(state.installFeedback);
+    else if (state.deferredInstall) $('install-help').textContent = t('pwa.installAvailable');
+    else if (/iphone|ipad/i.test(navigator.userAgent)) $('install-help').textContent = t('pwa.installSafari');
+    else $('install-help').textContent = t('pwa.installMenu');
   }
 
   function renderNotifications() {
     const permission = 'Notification' in window ? Notification.permission : 'unsupported';
     let status;
-    if (!window.isSecureContext) status = '此地址需要 HTTPS 才能启用通知。';
-    else if (!supported()) status = '当前浏览器不支持推送通知。';
-    else if (!getSession()) status = '登录后可设置此设备的通知。';
-    else if (permission === 'denied') status = '通知权限已关闭，请在浏览器或系统设置中允许通知。';
-    else if (state.registrationError) status = `应用服务尚未就绪。${state.registrationError}`;
-    else if (!state.registration) status = '正在准备应用服务';
-    else if (!state.config) status = '正在读取服务器通知配置';
-    else if (!state.config.enabled) status = '服务器尚未启用推送通知。';
-    else if (owned()) status = `已为 ${getSession().user_id} 开启此设备通知。`;
-    else if (state.subscription) status = '此设备已有订阅，点击开启以绑定当前账号。';
-    else status = '此设备尚未订阅通知。';
+    if (!window.isSecureContext) status = t('pwa.httpsRequired');
+    else if (!supported()) status = t('pwa.pushUnsupported');
+    else if (!getSession()) status = t('pwa.signInNotifications');
+    else if (permission === 'denied') status = t('pwa.permissionDenied');
+    else if (state.registrationError) status = t('pwa.serviceError', { error: state.registrationError.code === 'SERVICE_WORKER_TIMEOUT'
+      ? t('pwa.serviceTimeout') : state.registrationError.message });
+    else if (!state.registration) status = t('pwa.preparingService');
+    else if (!state.config) status = t('pwa.loadingPushConfig');
+    else if (!state.config.enabled) status = t('pwa.pushDisabled');
+    else if (owned()) status = t('pwa.notificationsEnabled', { userId: getSession().user_id });
+    else if (state.subscription) status = t('pwa.existingSubscription');
+    else status = t('pwa.notSubscribed');
     $('push-status').textContent = status;
     $('enable-push').disabled = state.busy || !supported() || !getSession() || !state.registration
       || !state.config?.enabled || !state.config?.publicKey || permission === 'denied' || owned();
-    $('enable-push').textContent = state.busy ? '处理中' : '开启通知';
+    $('enable-push').textContent = state.busy ? t('pwa.working') : t('pwa.enableNotifications');
     $('disable-push').hidden = !owned();
     $('disable-push').disabled = state.busy;
     $('test-push').disabled = state.busy || !owned() || permission !== 'granted';
@@ -67,11 +78,11 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
       const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' });
       state.registration = registration.active ? registration : await Promise.race([
         navigator.serviceWorker.ready,
-        new Promise((_, reject) => setTimeout(() => reject(new Error('应用服务启动超时')), 15000)),
+        new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error('Service worker startup timed out'), { code: 'SERVICE_WORKER_TIMEOUT' })), 15000)),
       ]);
       state.registrationError = null;
     } catch (error) {
-      state.registrationError = error.message;
+      state.registrationError = error;
     }
     renderNotifications();
   }
@@ -88,24 +99,24 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
     if (results[0].status === 'fulfilled') state.config = results[0].value;
     else {
       state.config = null;
-      $('push-feedback').textContent = results[0].reason.message;
+      setFeedback('pwa.error', { error: results[0].reason.message });
     }
     if (results[1].status === 'fulfilled') state.subscription = results[1].value;
-    else $('push-feedback').textContent = results[1].reason.message;
+    else setFeedback('pwa.error', { error: results[1].reason.message });
     renderNotifications();
   }
 
   async function enableNotifications() {
     if (state.busy || !supported() || !getSession() || !state.registration || !state.config?.enabled) return;
     state.busy = true;
-    $('push-feedback').textContent = '';
+    setFeedback(null);
     let newlyCreated = false;
     try {
       // Keep the permission request directly inside the explicit click gesture.
       const permission = Notification.permission === 'granted'
         ? 'granted' : await Notification.requestPermission();
       if (permission !== 'granted') {
-        $('push-feedback').textContent = permission === 'denied' ? '通知权限未获允许。' : '已取消开启通知。';
+        setFeedback(permission === 'denied' ? 'pwa.permissionNotGranted' : 'pwa.enableCancelled');
         return;
       }
       renderNotifications();
@@ -123,13 +134,13 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
         body: { subscription: subscription.toJSON(), deviceLabel: $('push-device-label').value.trim() || deviceName() },
       });
       localStorage.setItem(PUSH_OWNER_KEY, getSession().user_id);
-      $('push-feedback').textContent = '此设备已订阅。可以发送一次测试通知。';
+      setFeedback('pwa.subscribed');
     } catch (error) {
       if (newlyCreated && state.subscription) {
         try { await state.subscription.unsubscribe(); state.subscription = null; }
         catch { /* The next refresh reports the remaining browser subscription. */ }
       }
-      $('push-feedback').textContent = `开启失败。${error.message}`;
+      setFeedback('pwa.enableFailed', { error: error.message });
     } finally {
       state.busy = false;
       renderNotifications();
@@ -150,9 +161,9 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
     renderNotifications();
     try {
       await removeCurrentSubscription();
-      $('push-feedback').textContent = '此设备通知已关闭。';
+      setFeedback('pwa.disabled');
     } catch (error) {
-      $('push-feedback').textContent = `关闭失败。${error.message}`;
+      setFeedback('pwa.disableFailed', { error: error.message });
     } finally {
       state.busy = false;
       renderNotifications();
@@ -174,9 +185,9 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
     renderNotifications();
     try {
       await request('/api/push/test', { method: 'POST', body: {} });
-      $('push-feedback').textContent = '测试通知已提交，请查看系统通知。';
+      setFeedback('pwa.testSubmitted');
     } catch (error) {
-      $('push-feedback').textContent = `测试通知提交失败。${error.message}`;
+      setFeedback('pwa.testFailed', { error: error.message });
     } finally {
       state.busy = false;
       renderNotifications();
@@ -198,7 +209,7 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
     state.deferredInstall = null;
     await prompt.prompt();
     const result = await prompt.userChoice;
-    $('install-help').textContent = result.outcome === 'accepted' ? '已提交安装。' : '已取消安装。';
+    state.installFeedback = result.outcome === 'accepted' ? 'pwa.installSubmitted' : 'pwa.installCancelled';
     renderInstall();
   });
   $('refresh-app').addEventListener('click', () => location.reload());
@@ -206,6 +217,11 @@ export function initializePwa({ request, getSession, onOpenRoom }) {
   $('disable-push').addEventListener('click', () => void disableNotifications());
   $('test-push').addEventListener('click', () => void testNotification());
   $('push-device-label').value = deviceName();
+  onLocaleChange(() => {
+    renderInstall();
+    renderNotifications();
+    if (state.feedback) $('push-feedback').textContent = t(state.feedback.key, state.feedback.params);
+  });
   navigator.serviceWorker?.addEventListener('message', event => {
     if (event.data?.type === 'ds-group:open-room') void onOpenRoom(event.data);
   });

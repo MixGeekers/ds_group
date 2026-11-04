@@ -1,0 +1,157 @@
+{
+  "checkedAt": "2026-11-04T14:37:07.897Z",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "level": "real-dsh-native-tools-scripted-local-provider",
+  "modelCalls": 0,
+  "scriptedProviderCalls": 6,
+  "sourceHashes": {
+    "dsh-plugin/runtime.mjs": "6d36f3f2481f575591e4885d873ca91f1dc27d0bb8b6261600b31300545a095c",
+    "dsh-plugin/runtime-rules.mjs": "28960fd171dd720d661359b6c646417ed85108787a16793ba114bbbe4fb47695",
+    "dsh-plugin/work-files.mjs": "dd96a8ca4881196a5c570e097cf811c47cd4539cdc6246a5b29d5628cd2f2074",
+    "scripts/runtime-work-smoke.mjs": "742c16f9982ff3039cf36fde3d1d4f1b35289ce957dba31d7cd9a78443f8faa1"
+  },
+  "checks": [
+    "asynchronousAdmissionAndDuplicate",
+    "realReadComputeWriteReadAndValidatedArtifact",
+    "nativeToolReceiptsAndEveryGenerationLedger",
+    "completedReplayAndCancellationDoNotExecuteAgain",
+    "runningAndQueuedCancellationStopsBackgroundProcess"
+  ],
+  "status": "passed",
+  "receipt": {
+    "requestId": "file-work-native-smoke",
+    "botId": "@finance:local-smoke.test",
+    "inputHash": "765c8ce0cd5a34f50e384cc206fa91f30b04a43f92f8991111badcb1303a1088",
+    "eventId": "$work",
+    "status": "completed",
+    "stage": "completed",
+    "summary": "成果文件已准备好",
+    "claims": [
+      {
+        "claimId": "local-claim-1",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-04T14:37:09.043Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 0,
+        "finishedAt": "2026-11-04T14:37:09.078Z",
+        "recorded": true
+      },
+      {
+        "claimId": "local-claim-3",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-04T14:37:09.103Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 0,
+        "finishedAt": "2026-11-04T14:37:09.105Z",
+        "recorded": true
+      },
+      {
+        "claimId": "local-claim-5",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-04T14:37:09.154Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 0,
+        "finishedAt": "2026-11-04T14:37:09.156Z",
+        "recorded": true
+      },
+      {
+        "claimId": "local-claim-7",
+        "kind": "generation",
+        "status": "completed",
+        "startedAt": "2026-11-04T14:37:09.175Z",
+        "usage": {
+          "inputTokens": 10,
+          "outputTokens": 10,
+          "totalTokens": 20
+        },
+        "textBytes": 190,
+        "finishedAt": "2026-11-04T14:37:09.177Z",
+        "recorded": true
+      }
+    ],
+    "toolCalls": 3,
+    "toolReceipts": [
+      {
+        "callId": "tool-1",
+        "name": "read",
+        "status": "completed",
+        "startedAt": "2026-11-04T14:37:09.081Z",
+        "finishedAt": "2026-11-04T14:37:09.087Z",
+        "summary": "<path>/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/ds-group-work-smoke-uwv07I/task/costs.csv</path>\n<type>file</type>\n<content>\n1: name,amount\n2: Alice,120\n3: Bob,230\n\n(End of file - total 3 lines)\n</content>"
+      },
+      {
+        "callId": "tool-2",
+        "name": "bash",
+        "status": "completed",
+        "startedAt": "2026-11-04T14:37:09.107Z",
+        "finishedAt": "2026-11-04T14:37:09.140Z",
+        "summary": "350\n"
+      },
+      {
+        "callId": "tool-3",
+        "name": "read",
+        "status": "completed",
+        "startedAt": "2026-11-04T14:37:09.157Z",
+        "finishedAt": "2026-11-04T14:37:09.162Z",
+        "summary": "<path>/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/ds-group-work-smoke-uwv07I/task/result.csv</path>\n<type>file</type>\n<content>\n1: total\n2: 350\n\n(End of file - total 2 lines)\n</content>"
+      }
+    ],
+    "artifacts": [
+      {
+        "name": "费用汇总.csv",
+        "path": "/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/ds-group-work-smoke-uwv07I/task/result.csv",
+        "mimeType": "text/csv",
+        "size": 10,
+        "sha256": "a8d92f639928d06c7f08954a86efbd26f2205fd4f9bdeda46ffcd8e5bef7870c"
+      }
+    ],
+    "acceptedAt": "2026-11-04T14:37:09.004Z",
+    "startedAt": "2026-11-04T14:37:09.005Z",
+    "updatedAt": "2026-11-04T14:37:09.184Z",
+    "workdir": "/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/ds-group-work-smoke-uwv07I/task",
+    "files": [
+      {
+        "name": "costs.csv",
+        "path": "/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/ds-group-work-smoke-uwv07I/task/costs.csv",
+        "mimeType": "text/csv",
+        "size": 30,
+        "sha256": "2bf74f3e604b17c04aa05ec672c9521fa1fd02228d756261dae1fd20d530fea1",
+        "id": "input-costs"
+      }
+    ],
+    "sessionId": "session-c682a541-80b3-42a0-8c22-1e772613937e",
+    "claimId": "local-claim-7",
+    "usage": {
+      "calls": 4,
+      "inputTokens": 40,
+      "outputTokens": 40,
+      "totalTokens": 80
+    },
+    "text": "{\"text\":\"费用合计350，结果见附件。\",\"artifacts\":[{\"path\":\"/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/ds-group-work-smoke-uwv07I/task/result.csv\",\"name\":\"费用汇总.csv\"}]}",
+    "finishedAt": "2026-11-04T14:37:09.184Z",
+    "duplicate": false
+  },
+  "cancellation": {
+    "runningStatus": "cancelled",
+    "queuedStatus": "cancelled",
+    "backgroundProcessStopped": true
+  },
+  "completedAt": "2026-11-04T14:37:09.797Z"
+}

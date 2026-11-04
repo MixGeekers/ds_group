@@ -1,0 +1,49 @@
+{
+  "checkedAt": "2026-11-04T15:27:05.760Z",
+  "level": "deterministic-replay-of-saved-real-turn",
+  "sourceReport": "artifacts/file-work-2026-11-04T15-22-18-862Z.json",
+  "requestId": "matrix-2ccdb17fb48850eac09fe382e39ef7b33b9ced279e99793dd3d82493743606cb",
+  "sourceEventId": "$sdxmU5hVkhauio5sN7q5ng0UFLia1UOpR-Q0WsHZc5A",
+  "botNodeSha256": "0273db597fa1b02925c7e602247f083e35469ab488deb47a1bfbe6062bcbf79e",
+  "originalInputs": [
+    {
+      "id": "attachment-50ddcea0-2a4f-435a-be46-8f4d07436a20",
+      "name": "expenses.csv",
+      "sha256": "9c7b1185a8bb7fc4d5d84e379f6409fcb33bcad1090f0420c818033c820d70c8"
+    }
+  ],
+  "derivedOutputs": [
+    {
+      "id": "attachment-92f06cb3-eb2f-4eba-9d9c-1fe16ef203bc",
+      "name": "expenses.csv",
+      "sha256": "9c7b1185a8bb7fc4d5d84e379f6409fcb33bcad1090f0420c818033c820d70c8"
+    }
+  ],
+  "previousDelegation": [
+    {
+      "id": "attachment-50ddcea0-2a4f-435a-be46-8f4d07436a20",
+      "name": "expenses.csv",
+      "sha256": "9c7b1185a8bb7fc4d5d84e379f6409fcb33bcad1090f0420c818033c820d70c8"
+    },
+    {
+      "id": "attachment-92f06cb3-eb2f-4eba-9d9c-1fe16ef203bc",
+      "name": "expenses.csv",
+      "sha256": "9c7b1185a8bb7fc4d5d84e379f6409fcb33bcad1090f0420c818033c820d70c8"
+    }
+  ],
+  "plannedDelegation": [
+    {
+      "id": "attachment-50ddcea0-2a4f-435a-be46-8f4d07436a20",
+      "name": "expenses.csv",
+      "sha256": "9c7b1185a8bb7fc4d5d84e379f6409fcb33bcad1090f0420c818033c820d70c8"
+    }
+  ],
+  "checks": {
+    "allOriginalInputIdsRetained": true,
+    "unchangedDerivedCopyOmitted": true,
+    "provisionalReplyOmitsUnchangedCopy": true
+  },
+  "modelCalls": 0,
+  "matrixSends": 0,
+  "status": "passed"
+}

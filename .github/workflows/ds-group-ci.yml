@@ -48,6 +48,8 @@ jobs:
         run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Syntax and zero-model module tests
         run: npm run check
+      - name: TypeScript 7 and React production build
+        run: npm run build
       - name: Build and verify source release
         run: |
           node scripts/release-pack.mjs
@@ -56,6 +58,7 @@ jobs:
         run: |
           npm ci --prefix .local/release-unpacked --ignore-scripts --no-audit --no-fund
           node .local/release-unpacked/scripts/check.mjs
+          npm --prefix .local/release-unpacked run build
       - name: Upload verified source release
         if: matrix.os == 'ubuntu-24.04' && matrix.node == '24.19.0'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -151,12 +154,50 @@ jobs:
           DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
           DS_GROUP_RUNTIME_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/runtime-smoke.json
           OPENCODE_API_KEY: ci-synthetic-key-no-generation
+      - name: Native tools, artifacts and cancellation with a local scripted provider
+        run: node scripts/runtime-work-smoke.mjs
+        env:
+          DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
+          DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
+          DS_GROUP_WORK_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/runtime-work-smoke.json
+          OPENCODE_API_KEY: ci-synthetic-key-no-generation
       - name: Upload native runtime result
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: runtime-${{ matrix.os }}
-          path: apps/ds-group/.local/runtime-smoke.json
+          path: |
+            apps/ds-group/.local/runtime-smoke.json
+            apps/ds-group/.local/runtime-work-smoke.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+
+  browser:
+    name: Browser / Chromium
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/ds-group
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.19.0'
+          cache: npm
+          cache-dependency-path: apps/ds-group/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Mention editor keyboard, clipboard, IME and touch behavior
+        run: npm run test:browser
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: always()
+        with:
+          name: browser-checks
+          path: apps/ds-group/.local/*browser*.json
           include-hidden-files: true
           if-no-files-found: warn
           retention-days: 14
@@ -164,7 +205,7 @@ jobs:
   required:
     name: DS-Group matrix passed
     if: always()
-    needs: [native, container, runtime]
+    needs: [native, container, runtime, browser]
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     steps:
@@ -173,4 +214,5 @@ jobs:
           NATIVE_RESULT: ${{ needs.native.result }}
           CONTAINER_RESULT: ${{ needs.container.result }}
           RUNTIME_RESULT: ${{ needs.runtime.result }}
-        run: test "$NATIVE_RESULT" = success && test "$CONTAINER_RESULT" = success && test "$RUNTIME_RESULT" = success
+          BROWSER_RESULT: ${{ needs.browser.result }}
+        run: test "$NATIVE_RESULT" = success && test "$CONTAINER_RESULT" = success && test "$RUNTIME_RESULT" = success && test "$BROWSER_RESULT" = success

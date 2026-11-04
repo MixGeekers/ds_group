@@ -1,10 +1,17 @@
-const CACHE_NAME = 'ds-group-shell-v1';
+const CACHE_NAME = 'ds-group-shell-v3';
 const SHELL_PATHS = [
   '/',
   '/index.html',
   '/styles.css',
+  '/tokens.css',
+  '/theme.js',
+  '/i18n.js',
+  '/locales/components.js',
   '/app.js',
   '/pwa.js',
+  '/mention-editor.js',
+  '/mention-tokens.js',
+  '/attachments.js',
   '/manifest.webmanifest',
   '/icons/icon.svg',
   '/icons/icon-192.png',

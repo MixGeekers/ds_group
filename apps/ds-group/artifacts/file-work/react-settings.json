@@ -1,0 +1,15 @@
+{
+  "level": "real-react-chromium-core-matrix-human-only",
+  "checks": [
+    "localeAndThemeSelectors",
+    "roleCreateEditDelete",
+    "roomNotificationPreferencesPersist",
+    "mentionInboxAndReadMarker",
+    "pwaSettingsMountedAndResponsive"
+  ],
+  "modelCalls": 0,
+  "status": "passed",
+  "errors": [],
+  "finalCalls": 68,
+  "initialCalls": 68
+}

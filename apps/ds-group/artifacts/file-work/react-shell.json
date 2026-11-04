@@ -1,0 +1,19 @@
+{
+  "level": "real-react-production-browser-shell",
+  "startedAt": "2026-11-04T15:08:40.080Z",
+  "checks": [
+    "nativeLoginDialogAndHumanAccount",
+    "desktopMemberPanelToggles",
+    "homeKeepsComposerInstanceAndDraft",
+    "createHumanGroupThroughReactDialog",
+    "memberProfileAndStableMentionInsertion",
+    "mobileDrawerBackdropAndHumanDirectNavigation",
+    "mobileMemberDrawerAndProfile",
+    "englishAndLightThemeApplyToShellAndDialogs"
+  ],
+  "modelCalls": 0,
+  "status": "passed",
+  "mentionChipToken": "<@@bob:file-work.local>",
+  "pageErrors": [],
+  "completedAt": "2026-11-04T15:08:42.432Z"
+}

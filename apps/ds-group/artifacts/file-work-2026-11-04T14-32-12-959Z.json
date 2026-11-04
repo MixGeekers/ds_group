@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "runId": "file-work-2026-11-04T14-32-12-959Z",
+  "startedAt": "2026-11-04T14:32:12.959Z",
+  "status": "passed",
+  "level": "real-matrix-dsh-tool-and-model-file-work",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "physicalHosts": 1,
+  "coreUrl": "http://127.0.0.1:19100",
+  "cases": [
+    {
+      "name": "a running native tool can be cancelled through the chat API",
+      "status": "passed",
+      "details": {
+        "requestId": "matrix-95b12db8c98061126f4b0ed259a895adeaa6ad457c98b96acd5025922082d62e",
+        "eventId": "$9xDqanU7gJz2a5s8dRbljWWsmg_A_pR5AZtrK-gJZBw",
+        "status": "cancelled",
+        "stage": "cancelled",
+        "toolCallsBeforeCancel": 1
+      },
+      "checkedAt": "2026-11-04T14:32:17.676Z"
+    }
+  ],
+  "eventIds": [
+    "$9xDqanU7gJz2a5s8dRbljWWsmg_A_pR5AZtrK-gJZBw"
+  ],
+  "artifacts": [],
+  "modelCalls": 1,
+  "initialCalls": 41,
+  "sourceCommit": "3b912c5cf0089598b40f3bbfd64c726ae5fe5e80",
+  "sourceHashes": {
+    "scripts/verify-file-work.mjs": "447082cf31927621335e5c6d3a3edf0302db7dd9ed1257a24bccc2478354359c",
+    "src/core.mjs": "b65ef6895010db33408b45efba5915dd0335be62b56b823c6b99023a833ed18a",
+    "src/media.mjs": "e592ffd819cc00fe3ab42fd631936e6afd903f993231db775589958736a6bd1e",
+    "src/matrix-client.mjs": "a65dc284df476551eea135285d603429345cd5a08ab75b25f0fcee0bbb704e1c",
+    "src/bot-node.mjs": "bd708c56b2c89819f23d58f0c5d6f6a25ae8eff59448d5dd4297db97ba86df62",
+    "src/node-store.mjs": "8455029451b3baebc575123e430e7b80564714869a2237f9f68dd995feebaca6",
+    "src/node-files.mjs": "e13ae7f186118d365894faf39a87a6aa5f1f5906436aa1b0b7ab79acb0165813",
+    "src/tasks.mjs": "6a00b9e7da88b6900116c221d8d2123d7e2fcaaceaba504fec9151e22ee0cac5",
+    "dsh-plugin/runtime.mjs": "b3d4040aab13b1b101313433eab7793e7d6eee32346c0068ba6bae8ed3980d1e",
+    "dsh-plugin/runtime-rules.mjs": "28960fd171dd720d661359b6c646417ed85108787a16793ba114bbbe4fb47695",
+    "dsh-plugin/work-files.mjs": "dd96a8ca4881196a5c570e097cf811c47cd4539cdc6246a5b29d5628cd2f2074",
+    "src/file-formats.mjs": "7b166a42d3572e7dce2876063d462d5797ea90289c08f3c08aba3b96162ba655"
+  },
+  "runtimes": [
+    {
+      "nodeId": "finance",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "loadedRuntimeSha256": "b3d4040aab13b1b101313433eab7793e7d6eee32346c0068ba6bae8ed3980d1e"
+    },
+    {
+      "nodeId": "hr",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "loadedRuntimeSha256": "b3d4040aab13b1b101313433eab7793e7d6eee32346c0068ba6bae8ed3980d1e"
+    }
+  ],
+  "fixture": {
+    "csvSha256": "9acdead144152ba0961b9d53fe695c40a533546ef4eaf4520a96659a2c3fa4ba",
+    "xlsxSha256": "944b33f3d1b6b5b8c81dd7e1cafe9f089b92db266cac4364543d7f3abba1659c",
+    "expectedCents": {
+      "HR": 20000,
+      "Finance": 30000,
+      "Operations": 4885
+    },
+    "workbookExpectedCents": {
+      "HR": 20000,
+      "Finance": 33729,
+      "Operations": 5998
+    }
+  },
+  "finalCalls": 42,
+  "claims": [
+    {
+      "claimId": "9ec6be5b-379a-400b-bd9a-1513884c28c7",
+      "nodeId": "finance",
+      "requestId": "matrix-95b12db8c98061126f4b0ed259a895adeaa6ad457c98b96acd5025922082d62e/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:32:13.249Z",
+      "completedAt": "2026-11-04T14:32:14.996Z",
+      "result": {
+        "usage": {
+          "inputTokens": 3704,
+          "outputTokens": 146,
+          "totalTokens": 44810,
+          "cacheReadTokens": 40960
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    }
+  ],
+  "finalNodes": [
+    {
+      "id": "finance",
+      "status": "idle",
+      "pending": 0,
+      "lastError": "TASK_CANCELLED"
+    },
+    {
+      "id": "hr",
+      "status": "idle",
+      "pending": 0,
+      "lastError": null
+    }
+  ],
+  "completedAt": "2026-11-04T14:32:17.683Z",
+  "postRunChecks": {
+    "checkedAt": "2026-11-04T14:33:20.096Z",
+    "nativeCancelled": true,
+    "toolReceipts": [
+      {
+        "callId": "call_00_3oljkwysm5csnd3h5attfifo",
+        "name": "bash",
+        "status": "failed",
+        "startedAt": "2026-11-04T14:32:15.001Z",
+        "finishedAt": "2026-11-04T14:32:16.259Z",
+        "summary": "Error: tool call aborted"
+      }
+    ],
+    "completionArtifactExists": false,
+    "lateArtifactCheckAt": "2026-11-04T14:34:20.059Z",
+    "lateCompletionArtifactExists": false
+  }
+}

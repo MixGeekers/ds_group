@@ -4,6 +4,7 @@ import { chmod, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import webPush from 'web-push';
 import { MatrixClient } from './matrix-client.mjs';
+import { displayMentionText } from '../web/mention-tokens.js';
 
 const digest = value => createHash('sha256').update(value).digest('hex');
 const pause = (milliseconds, signal) => new Promise(resolve => {
@@ -36,7 +37,7 @@ function checkedSubscription(input) {
 
 /** Standard Web Push delivery and per-human Matrix notification cursors. */
 export class PushService {
-  constructor({ dataRoot, setup, transport, clientFactory, now = Date.now, pollTimeout = 10000, retryDelays = [30000, 120000], onError = console.error } = {}) {
+  constructor({ dataRoot, setup, transport, clientFactory, now = Date.now, pollTimeout = 10000, retryDelays = [30000, 120000], onError = console.error, onEvent, shouldNotify = () => true } = {}) {
     if (!dataRoot || !setup?.participants || !setup.homeserverUrl) throw new Error('Push service needs a data root and Matrix setup');
     this.setup = setup;
     this.dataRoot = dataRoot;
@@ -44,6 +45,8 @@ export class PushService {
     this.pollTimeout = pollTimeout;
     this.retryDelays = retryDelays;
     this.onError = onError;
+    this.onEvent = onEvent;
+    this.shouldNotify = shouldNotify;
     this.transport = transport || ((subscription, payload, options) => webPush.sendNotification(subscription, payload, options));
     this.humans = setup.participants.filter(person => person.kind === 'human');
     this.clients = new Map(this.humans.map(person => [person.id, clientFactory ? clientFactory(person) : new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: person.accessToken })]));
@@ -145,7 +148,9 @@ export class PushService {
     const sender = this.setup.participants.find(person => person.id === event.sender)?.name || event.sender;
     const group = Boolean(event.room_name) || event.room_id === this.setup.roomId;
     const roomName = event.room_name || (group ? '初次协作' : sender);
-    const text = [...event.content.body].slice(0, 180).join('');
+    const roleLabels = event.content['org.ds_group']?.mentions?.roleLabels || {};
+    const text = [...displayMentionText(event.content.body, this.setup.participants,
+      Object.entries(roleLabels).map(([id, name]) => ({ id, name })))].slice(0, 180).join('');
     return { title: group ? `DS-Group · ${roomName}` : sender, body: group ? `${sender}：${text}` : text,
       tag: `ds-group-${digest(event.event_id).slice(0, 32)}`, icon: '/icons/icon-192.png', badge: '/icons/icon-192.png',
       data: { url: `/?roomId=${encodeURIComponent(event.room_id)}&eventId=${encodeURIComponent(event.event_id)}`, roomId: event.room_id, eventId: event.event_id } };
@@ -153,7 +158,9 @@ export class PushService {
 
   enqueueFor(userId, event) {
     if (event.type !== 'm.room.message' || typeof event.event_id !== 'string' || typeof event.room_id !== 'string'
-      || typeof event.sender !== 'string' || typeof event.content?.body !== 'string' || !event.content.body.trim() || event.sender === userId) return 0;
+      || typeof event.sender !== 'string' || typeof event.content?.body !== 'string' || !event.content.body.trim()) return 0;
+    this.onEvent?.(userId, event);
+    if (event.sender === userId || !this.shouldNotify(userId, event)) return 0;
     const payload = JSON.stringify(this.payload(event));
     const occurredAt = Number.isFinite(event.origin_server_ts) ? event.origin_server_ts : this.now();
     const subscriptions = this.db.prepare('SELECT id FROM push_subscriptions WHERE user_id=? AND created_at<=?').all(userId, occurredAt);

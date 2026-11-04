@@ -1,0 +1,257 @@
+{
+  "checkedAt": "2026-11-04T15:25:35.827Z",
+  "base": "http://127.0.0.1:19100",
+  "level": "real-compiled-react-chromium-ui-and-isolated-matrix",
+  "checks": [
+    {
+      "name": "desktop Alice and mobile Bob login through real UI",
+      "status": "passed"
+    },
+    {
+      "name": "create a humans-only group through UI",
+      "status": "passed"
+    },
+    {
+      "name": "keyboard @ member completion produces an atomic chip and stable metadata",
+      "status": "passed"
+    },
+    {
+      "name": "mobile inbox receives mention, jumps into room, and highlights message",
+      "status": "passed"
+    },
+    {
+      "name": "mobile @ selection works with touch",
+      "status": "passed"
+    },
+    {
+      "name": "reply mention toggle is preserved in sent message",
+      "status": "passed"
+    },
+    {
+      "name": "file picker uploads CSV and PNG with ready cards",
+      "status": "passed"
+    },
+    {
+      "name": "ready attachment draft survives room switches and page reload",
+      "status": "passed"
+    },
+    {
+      "name": "message attachment download preserves original bytes",
+      "status": "passed"
+    },
+    {
+      "name": "image and CSV previews open and close",
+      "status": "passed"
+    },
+    {
+      "name": "pasted file is accepted by contenteditable composer",
+      "status": "passed"
+    },
+    {
+      "name": "dragged file is accepted by conversation drop target",
+      "status": "passed"
+    },
+    {
+      "name": "owner creates a mentionable role containing only Bob",
+      "status": "passed"
+    },
+    {
+      "name": "owner edits role name and preserves Bob membership",
+      "status": "passed"
+    },
+    {
+      "name": "role mention sends stable role reference and targets Bob",
+      "status": "passed"
+    },
+    {
+      "name": "notification preferences save and restore through UI",
+      "status": "passed"
+    },
+    {
+      "name": "everyone and here completion preserve intended group mention types",
+      "status": "passed"
+    },
+    {
+      "name": "real throttled upload can be cancelled and retried with the same upload ID",
+      "status": "passed"
+    },
+    {
+      "name": "escaped and code mentions remain plain text",
+      "status": "passed"
+    },
+    {
+      "name": "desktop and mobile layout stay within viewport",
+      "status": "passed"
+    },
+    {
+      "name": "no page errors or unexpected console errors",
+      "status": "passed"
+    }
+  ],
+  "errors": [],
+  "requests": [
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "<@@bob:file-work.local>  React-UI-mw29qmdv 请查看费用表。",
+      "to": [],
+      "mentions": {
+        "users": [
+          "@bob:file-work.local"
+        ],
+        "roles": [],
+        "everyone": false,
+        "here": false
+      },
+      "attachments": []
+    },
+    {
+      "page": "bob-mobile",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "<@@alice:file-work.local>  React-UI-mw29qmdv 已收到。",
+      "to": [],
+      "mentions": {
+        "users": [
+          "@alice:file-work.local"
+        ],
+        "roles": [],
+        "everyone": false,
+        "here": false
+      },
+      "attachments": []
+    },
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "React-UI-mw29qmdv 回复但关闭提醒",
+      "to": [],
+      "mentions": {
+        "users": [],
+        "roles": [],
+        "everyone": false,
+        "here": false
+      },
+      "attachments": [],
+      "replyMention": false,
+      "replyTo": "$t4TTQMl8JjQfCmmoA4WwOeGfbj0lRUcNQl3PJStBwUQ"
+    },
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "React-UI-mw29qmdv 两份资料",
+      "to": [],
+      "mentions": {
+        "users": [],
+        "roles": [],
+        "everyone": false,
+        "here": false
+      },
+      "attachments": [
+        "attachment-03d370dd-bd78-4b5f-a064-74ad6590e0e9",
+        "attachment-99d51c02-e3c4-4283-9255-85ab80876508"
+      ]
+    },
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "React-UI-mw29qmdv 粘贴附件",
+      "to": [],
+      "mentions": {
+        "users": [],
+        "roles": [],
+        "everyone": false,
+        "here": false
+      },
+      "attachments": [
+        "attachment-e8f47d2b-0833-472c-88a3-4777bad2883f"
+      ]
+    },
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "React-UI-mw29qmdv 拖入附件",
+      "to": [],
+      "mentions": {
+        "users": [],
+        "roles": [],
+        "everyone": false,
+        "here": false
+      },
+      "attachments": [
+        "attachment-b4e44199-4a44-420b-8c44-1d15cb8e15ab"
+      ]
+    },
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "<@&role-afea5534-1c7b-43aa-a316-0badae3b321e>  React-UI-mw29qmdv 身份组提醒",
+      "to": [],
+      "mentions": {
+        "users": [],
+        "roles": [
+          "role-afea5534-1c7b-43aa-a316-0badae3b321e"
+        ],
+        "everyone": false,
+        "here": false
+      },
+      "attachments": []
+    },
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "@everyone  React-UI-mw29qmdv everyone 提醒",
+      "to": [],
+      "mentions": {
+        "users": [],
+        "roles": [],
+        "everyone": true,
+        "here": false
+      },
+      "attachments": []
+    },
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "@here  React-UI-mw29qmdv here 提醒",
+      "to": [],
+      "mentions": {
+        "users": [],
+        "roles": [],
+        "everyone": false,
+        "here": true
+      },
+      "attachments": []
+    },
+    {
+      "page": "alice",
+      "roomPath": "/api/rooms/!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g/messages",
+      "body": "React-UI-mw29qmdv \\@everyone `@here` alice@example.com",
+      "to": [],
+      "mentions": {
+        "users": [],
+        "roles": [],
+        "everyone": false,
+        "here": false
+      },
+      "attachments": []
+    }
+  ],
+  "modelCallsTriggeredByTest": 0,
+  "screenshots": [
+    ".local/react-full-ui-desktop.png",
+    ".local/react-full-ui-mobile.png"
+  ],
+  "status": "passed",
+  "sourceHashes": {
+    "web/src/App.tsx": "f6f83bef05843adf2bc5ac74c80dfd4383e815797fb385dcae8bad454e10e0b6",
+    "web/src/components/Composer.tsx": "d214060859c49034e21151a164ee7de6f80da4d143a58a5c47ba5103a411b3fc",
+    "web/src/components/Timeline.tsx": "f06f9c89b627008bbf52ffb93850b25fd91c3dfd50ac877fdedab5f72c2edca2",
+    "web/index.html": "cffc1e81df26f203df49f0e00639b1b5ba274137ebdced502c18e346ea524f5e",
+    "web/styles.css": "08537920977df5fd23a0c98d6afd592430f8ac78631c8489b80fe6eda855731c",
+    "web/attachments.js": "800a0f1563b326a7cde65286d4c6b203faffb4fb5adcdb2be383880d28e36688",
+    "web/mention-editor.js": "dc768cb73fea0675bad4d154c6a5260f15d1b0ee70bd0a4caad7fb957a7c729a",
+    "web/mention-tokens.js": "eada20081d0a90a089c1706f8a3c2861686e76e4d477604138706fa8279538a2"
+  },
+  "roomId": "!g6BakvWo3QsEUKnSgJr7gYatpWVqfIFvw2kKETCYr-g",
+  "completedAt": "2026-11-04T15:25:46.654Z"
+}

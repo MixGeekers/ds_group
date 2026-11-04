@@ -1,0 +1,240 @@
+{
+  "schemaVersion": 1,
+  "runId": "file-work-2026-11-04T15-01-25-862Z",
+  "startedAt": "2026-11-04T15:01:25.863Z",
+  "status": "passed",
+  "level": "real-matrix-dsh-tool-and-model-file-work",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "physicalHosts": 1,
+  "coreUrl": "http://127.0.0.1:19100",
+  "cases": [
+    {
+      "name": "a running native tool can be cancelled through the chat API",
+      "status": "passed",
+      "details": {
+        "requestId": "matrix-be1dae765ac30b79eeb5d6a9868225ec2161f1ecfc9b75336119a5d40861317b",
+        "eventId": "$gkGu6CQu-QZPNb4EI2jtjUO_-Q8eRqikm9A5gHN9BDE",
+        "status": "cancelled",
+        "stage": "cancelled",
+        "toolCallsBeforeCancel": 1,
+        "toolReceipts": [
+          {
+            "callId": "call_00_52adjrjke7fwb9pg0s6n88xh",
+            "name": "bash",
+            "status": "completed",
+            "startedAt": "2026-11-04T15:01:28.533Z",
+            "finishedAt": "2026-11-04T15:01:28.544Z",
+            "summary": "started background job bash-c00e6ee844a14938"
+          }
+        ],
+        "execution": {
+          "mode": "native-background-job-killed",
+          "sessionId": "session-55d09710-eedf-40d1-9819-0c5ffb3222ec",
+          "nativeSessionSha256": "a71fe9470c350ea0255ae410b828dc630b2095d4d583aea8e68307d2090a58e9",
+          "jobs": [
+            {
+              "jobId": "bash-c00e6ee844a14938",
+              "notice": "background job bash-c00e6ee844a14938 (bash: sleep 90; mkdir -p outputs; printf 'FINISHED\\n' > outputs/finished.txt; echo done) finished [status: killed, signal: SIGTERM; DS-Group task cancelled]. Read its output with job_output."
+            }
+          ]
+        },
+        "completionArtifactExists": false
+      },
+      "checkedAt": "2026-11-04T15:01:30.612Z"
+    },
+    {
+      "name": "the configured model reads a real image through the native image tool",
+      "status": "passed",
+      "details": {
+        "requestId": "matrix-b387374e6b402e279083e17ed357e8e17acd8b50cd3d16983da796df8aa32385",
+        "eventId": "$62F4sWGoen0OQGa3Hl5pvTdi0dEsrM6WsG6zAru4Dcg",
+        "toolCalls": 2,
+        "inputSha256": "a1f13378ca078a994d1a71cc14c46d6b48f3df4a40e05897384784e91fce197f",
+        "outputSha256": "027feae19389d190cf77e430620896af618d5c40422175b94c9f2d890963e29d",
+        "expected": {
+          "A": 209,
+          "B": 272,
+          "total": 481
+        }
+      },
+      "checkedAt": "2026-11-04T15:01:39.636Z"
+    }
+  ],
+  "eventIds": [
+    "$gkGu6CQu-QZPNb4EI2jtjUO_-Q8eRqikm9A5gHN9BDE",
+    "$62F4sWGoen0OQGa3Hl5pvTdi0dEsrM6WsG6zAru4Dcg"
+  ],
+  "artifacts": [
+    {
+      "id": "attachment-b9d423a6-f54b-4e88-870b-eb51de1ffe17",
+      "name": "image-result.json",
+      "sha256": "027feae19389d190cf77e430620896af618d5c40422175b94c9f2d890963e29d",
+      "size": 42
+    }
+  ],
+  "modelCalls": 5,
+  "initialCalls": 63,
+  "sourceCommit": "3b912c5cf0089598b40f3bbfd64c726ae5fe5e80",
+  "sourceHashes": {
+    "scripts/verify-file-work.mjs": "08e557105c89b0cd076109487a319bd3d4b7866582846f09f8cd5f81c6dde679",
+    "src/core.mjs": "28b5d919ebac02c8442a8daea8993931243bbeb3fd27145cb06099a74b2e1cee",
+    "src/media.mjs": "e592ffd819cc00fe3ab42fd631936e6afd903f993231db775589958736a6bd1e",
+    "src/matrix-client.mjs": "a65dc284df476551eea135285d603429345cd5a08ab75b25f0fcee0bbb704e1c",
+    "src/bot-node.mjs": "07fe7e388fd01387453f7c8bbfa62489b4a4d2e8a95b7b7bada6383f3378ec70",
+    "src/node-store.mjs": "224f835e6460e1a299b7e759e022bd8634b8357e5594a0e1ae1dd9d15f3a3272",
+    "src/node-files.mjs": "15bb81e4a12b5de5e67098b7884972aeb44276f75586d6a879dd4bb4fab4fb32",
+    "src/tasks.mjs": "6a00b9e7da88b6900116c221d8d2123d7e2fcaaceaba504fec9151e22ee0cac5",
+    "dsh-plugin/runtime.mjs": "6d36f3f2481f575591e4885d873ca91f1dc27d0bb8b6261600b31300545a095c",
+    "dsh-plugin/runtime-rules.mjs": "28960fd171dd720d661359b6c646417ed85108787a16793ba114bbbe4fb47695",
+    "dsh-plugin/work-files.mjs": "dd96a8ca4881196a5c570e097cf811c47cd4539cdc6246a5b29d5628cd2f2074",
+    "src/file-formats.mjs": "7b166a42d3572e7dce2876063d462d5797ea90289c08f3c08aba3b96162ba655"
+  },
+  "runtimes": [
+    {
+      "nodeId": "finance",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "loadedRuntimeSha256": "6d36f3f2481f575591e4885d873ca91f1dc27d0bb8b6261600b31300545a095c"
+    },
+    {
+      "nodeId": "hr",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "loadedRuntimeSha256": "6d36f3f2481f575591e4885d873ca91f1dc27d0bb8b6261600b31300545a095c"
+    }
+  ],
+  "fixture": {
+    "csvSha256": "fd2aa974778b84c2d5860a7160cb6855473b20f38907c524d0441c8b4dbc166b",
+    "xlsxSha256": "fc0a52a3cc12239a979c651f7d44512ca5a55209c574c01036a28f4a5920ed5a",
+    "expectedCents": {
+      "HR": 20000,
+      "Finance": 30000,
+      "Operations": 4862
+    },
+    "workbookExpectedCents": {
+      "HR": 20000,
+      "Finance": 33729,
+      "Operations": 5975
+    }
+  },
+  "finalCalls": 68,
+  "claims": [
+    {
+      "claimId": "13e7ecd8-98e5-4250-80ac-b208ce84e6d9",
+      "nodeId": "finance",
+      "requestId": "matrix-be1dae765ac30b79eeb5d6a9868225ec2161f1ecfc9b75336119a5d40861317b/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T15:01:26.049Z",
+      "completedAt": "2026-11-04T15:01:28.527Z",
+      "result": {
+        "usage": {
+          "inputTokens": 3463,
+          "outputTokens": 166,
+          "totalTokens": 76205,
+          "cacheReadTokens": 72576
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "14d51d30-06b8-45d2-afd4-a39d3737a575",
+      "nodeId": "finance",
+      "requestId": "matrix-be1dae765ac30b79eeb5d6a9868225ec2161f1ecfc9b75336119a5d40861317b/call-2",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "cancelled",
+      "claimedAt": "2026-11-04T15:01:28.563Z",
+      "completedAt": "2026-11-04T15:01:29.828Z",
+      "result": {
+        "usage": {
+          "inputTokens": 0,
+          "outputTokens": 0,
+          "totalTokens": 0
+        },
+        "textBytes": 0,
+        "errorCode": "MODEL_STREAM_INTERRUPTED"
+      }
+    },
+    {
+      "claimId": "9907f8e1-1dd6-4f19-9765-924ae6cff162",
+      "nodeId": "finance",
+      "requestId": "matrix-b387374e6b402e279083e17ed357e8e17acd8b50cd3d16983da796df8aa32385/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T15:01:31.263Z",
+      "completedAt": "2026-11-04T15:01:33.167Z",
+      "result": {
+        "usage": {
+          "inputTokens": 3852,
+          "outputTokens": 111,
+          "totalTokens": 80123,
+          "cacheReadTokens": 76160
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "5b08be54-db98-4159-951f-18437f64c0f3",
+      "nodeId": "finance",
+      "requestId": "matrix-b387374e6b402e279083e17ed357e8e17acd8b50cd3d16983da796df8aa32385/call-2",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T15:01:33.256Z",
+      "completedAt": "2026-11-04T15:01:35.766Z",
+      "result": {
+        "usage": {
+          "inputTokens": 618,
+          "outputTokens": 168,
+          "totalTokens": 80786,
+          "cacheReadTokens": 80000
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "7e5fa01a-d9b8-42de-8e02-6b2bf2c596f4",
+      "nodeId": "finance",
+      "requestId": "matrix-b387374e6b402e279083e17ed357e8e17acd8b50cd3d16983da796df8aa32385/call-3",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T15:01:35.875Z",
+      "completedAt": "2026-11-04T15:01:38.359Z",
+      "result": {
+        "usage": {
+          "inputTokens": 330,
+          "outputTokens": 160,
+          "totalTokens": 81002,
+          "cacheReadTokens": 80512
+        },
+        "textBytes": 534,
+        "errorCode": null
+      }
+    }
+  ],
+  "finalNodes": [
+    {
+      "id": "finance",
+      "status": "thinking",
+      "pending": 1,
+      "lastError": null
+    },
+    {
+      "id": "hr",
+      "status": "idle",
+      "pending": 0,
+      "lastError": null
+    }
+  ],
+  "completedAt": "2026-11-04T15:01:39.639Z"
+}

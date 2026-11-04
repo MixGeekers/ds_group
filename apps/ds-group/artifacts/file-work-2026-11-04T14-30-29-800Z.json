@@ -1,0 +1,523 @@
+{
+  "schemaVersion": 1,
+  "runId": "file-work-2026-11-04T14-30-29-800Z",
+  "startedAt": "2026-11-04T14:30:29.800Z",
+  "status": "passed",
+  "level": "real-matrix-dsh-tool-and-model-file-work",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "physicalHosts": 1,
+  "coreUrl": "http://127.0.0.1:19100",
+  "cases": [
+    {
+      "name": "XLSX input and output through a group Bot mention",
+      "status": "passed",
+      "details": {
+        "requestId": "matrix-d5ea1b8f4cf8b5fb26fb225ddbe0d2764d2a0a0dd82e6dbb2df1bd95efb1b4af",
+        "sourceEventId": "$67Jq7I0_i0kB_S-nUX-RCjBf-aMOfQLQ3s9TjiwDYOY",
+        "replyEventId": "$Cg-5X-oz-XVKeZ1Kp5JX2Be17o61bftNyTt48gICVdA",
+        "toolCalls": 3,
+        "attachment": {
+          "id": "attachment-4c37ffa6-decf-40d2-a68a-29a0c9285eb5",
+          "name": "department-summary.xlsx",
+          "size": 2261,
+          "sha256": "6d1b388f1e7929f482dfe76431a463ed83c11a982607d51509211516ef554028"
+        },
+        "totalsCents": {
+          "Finance": 33729,
+          "HR": 20000,
+          "Operations": 5984
+        }
+      },
+      "checkedAt": "2026-11-04T14:30:41.469Z"
+    },
+    {
+      "name": "HR delegates the same attachment and returns Finance’s verified file to the original DM",
+      "status": "passed",
+      "details": {
+        "requestId": "matrix-5dc83a271b9f121824e76c1cb529d60a2aa4836e4e3fdd79f4330bf95ebefd45",
+        "sourceEventId": "$4QeisJHP9mCv-AXB7QRY68aN2mVqTnaKwt4JoCfPH_k",
+        "replyEventId": "$wYpl_RCp4-y3mFBRu4xOeNP4zvl-Ey5rxc5s3pZCe7s",
+        "toolCalls": 2,
+        "attachment": {
+          "id": "attachment-690f4181-bcd3-43f7-a44a-9d79d4e264fd",
+          "name": "department-summary.csv",
+          "size": 63,
+          "sha256": "7146c121dea38b85b2e7abf88308a62d6c56a8f6b38d72bc0b682124a96f7051"
+        },
+        "totalsCents": {
+          "Finance": 30000,
+          "HR": 20000,
+          "Operations": 4871
+        },
+        "financeToolCalls": 2,
+        "delegatedEventId": "$qkpwRQystJ-gtB4b4PafGooo5UOWCLtqbLly_2nBPc0",
+        "financeResultEventId": "$xojNdfu3KcJwI5CGLTsiOk4fiewflkxsU3SwhFtoRxg",
+        "originalRoomId": "!jdi01F-t2Dz7r15XMI8HMYnj1CGI8A4SWndInRSVup8"
+      },
+      "checkedAt": "2026-11-04T14:31:22.156Z"
+    },
+    {
+      "name": "running task can be cancelled through the chat API",
+      "status": "passed",
+      "details": {
+        "requestId": "matrix-46359051ce793f751b0bda3054d43aa1ae017c91083a103e8664f1f26bc08b9d",
+        "eventId": "$FTZovPglvhtHd9skn4GDWY0_G93Brahy1YX8x3YHecs",
+        "status": "cancelled",
+        "stage": "cancelled"
+      },
+      "checkedAt": "2026-11-04T14:31:24.536Z"
+    },
+    {
+      "name": "the configured model reads a real image through the native image tool",
+      "status": "passed",
+      "details": {
+        "requestId": "matrix-fd022f8251bbb62c99fdb0b1358871b59c64a434e1945fa8822f8a7b0ba60ba9",
+        "eventId": "$VOjmo8yO2LtQ5RGDQh_3xgI5TaedhawB7EBzGSzVtfo",
+        "toolCalls": 2,
+        "inputSha256": "1497b916ebfdbf805e2bcc50fb03122634f15de14b7c3455647405da8ff0d97e",
+        "outputSha256": "f6a0d2f4e625aa63842c0674266df4bae0f4e5d51cac517e122459caaafa369b",
+        "expected": {
+          "A": 199,
+          "B": 387,
+          "total": 586
+        }
+      },
+      "checkedAt": "2026-11-04T14:31:35.033Z"
+    }
+  ],
+  "eventIds": [
+    "$67Jq7I0_i0kB_S-nUX-RCjBf-aMOfQLQ3s9TjiwDYOY",
+    "$4QeisJHP9mCv-AXB7QRY68aN2mVqTnaKwt4JoCfPH_k",
+    "$FTZovPglvhtHd9skn4GDWY0_G93Brahy1YX8x3YHecs",
+    "$VOjmo8yO2LtQ5RGDQh_3xgI5TaedhawB7EBzGSzVtfo"
+  ],
+  "artifacts": [
+    {
+      "id": "attachment-4c37ffa6-decf-40d2-a68a-29a0c9285eb5",
+      "name": "department-summary.xlsx",
+      "sha256": "6d1b388f1e7929f482dfe76431a463ed83c11a982607d51509211516ef554028",
+      "size": 2261
+    },
+    {
+      "id": "attachment-690f4181-bcd3-43f7-a44a-9d79d4e264fd",
+      "name": "department-summary.csv",
+      "sha256": "7146c121dea38b85b2e7abf88308a62d6c56a8f6b38d72bc0b682124a96f7051",
+      "size": 63
+    },
+    {
+      "id": "attachment-8964d78e-7cf5-4530-9371-5fa4697ed716",
+      "name": "image-result.json",
+      "sha256": "f6a0d2f4e625aa63842c0674266df4bae0f4e5d51cac517e122459caaafa369b",
+      "size": 42
+    }
+  ],
+  "modelCalls": 17,
+  "initialCalls": 24,
+  "sourceCommit": "3b912c5cf0089598b40f3bbfd64c726ae5fe5e80",
+  "sourceHashes": {
+    "scripts/verify-file-work.mjs": "aaf48ea5642e683a069ec1ec2b8cdfa304de108cdb66d47e1a3ec8ae676471a4",
+    "src/core.mjs": "b65ef6895010db33408b45efba5915dd0335be62b56b823c6b99023a833ed18a",
+    "src/media.mjs": "e592ffd819cc00fe3ab42fd631936e6afd903f993231db775589958736a6bd1e",
+    "src/matrix-client.mjs": "a65dc284df476551eea135285d603429345cd5a08ab75b25f0fcee0bbb704e1c",
+    "src/bot-node.mjs": "14ddf532e181493fe64fa76930971c8a8485000feff199dba3605837ef9e8b13",
+    "src/node-store.mjs": "2a594f05513f3c27859a29ea8ca2f38b7e9d79682363d5916d1ead5958228e8a",
+    "src/node-files.mjs": "ab71eb6ad4e21d240f6a06fa7763218cc6401489014de3ed130250824bf65d5b",
+    "src/tasks.mjs": "6a00b9e7da88b6900116c221d8d2123d7e2fcaaceaba504fec9151e22ee0cac5",
+    "dsh-plugin/runtime.mjs": "b3d4040aab13b1b101313433eab7793e7d6eee32346c0068ba6bae8ed3980d1e",
+    "dsh-plugin/runtime-rules.mjs": "28960fd171dd720d661359b6c646417ed85108787a16793ba114bbbe4fb47695",
+    "dsh-plugin/work-files.mjs": "dd96a8ca4881196a5c570e097cf811c47cd4539cdc6246a5b29d5628cd2f2074",
+    "src/file-formats.mjs": "7b166a42d3572e7dce2876063d462d5797ea90289c08f3c08aba3b96162ba655"
+  },
+  "runtimes": [
+    {
+      "nodeId": "finance",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "loadedRuntimeSha256": "b3d4040aab13b1b101313433eab7793e7d6eee32346c0068ba6bae8ed3980d1e"
+    },
+    {
+      "nodeId": "hr",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "loadedRuntimeSha256": "b3d4040aab13b1b101313433eab7793e7d6eee32346c0068ba6bae8ed3980d1e"
+    }
+  ],
+  "fixture": {
+    "csvSha256": "953b9b0b40cf29d07cec35893761b468936f6c5bc75eff399454e7b177843eec",
+    "xlsxSha256": "a3295b977ec6e21686b8c9f500cf298da70a3c9920d84b9ceedce8be1ecd0091",
+    "expectedCents": {
+      "HR": 20000,
+      "Finance": 30000,
+      "Operations": 4871
+    },
+    "workbookExpectedCents": {
+      "HR": 20000,
+      "Finance": 33729,
+      "Operations": 5984
+    }
+  },
+  "finalCalls": 41,
+  "claims": [
+    {
+      "claimId": "0677e369-0de5-45fd-9873-de4309dabf04",
+      "nodeId": "finance",
+      "requestId": "matrix-d5ea1b8f4cf8b5fb26fb225ddbe0d2764d2a0a0dd82e6dbb2df1bd95efb1b4af/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:30:30.252Z",
+      "completedAt": "2026-11-04T14:30:32.365Z",
+      "result": {
+        "usage": {
+          "inputTokens": 3661,
+          "outputTokens": 156,
+          "totalTokens": 28137,
+          "cacheReadTokens": 24320
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "32a75a15-5439-451d-a150-1130f6c01cd3",
+      "nodeId": "finance",
+      "requestId": "matrix-d5ea1b8f4cf8b5fb26fb225ddbe0d2764d2a0a0dd82e6dbb2df1bd95efb1b4af/call-2",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:30:32.404Z",
+      "completedAt": "2026-11-04T14:30:35.060Z",
+      "result": {
+        "usage": {
+          "inputTokens": 606,
+          "outputTokens": 295,
+          "totalTokens": 28805,
+          "cacheReadTokens": 27904
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "ae426bdf-7862-4738-963c-3ee048ae47e4",
+      "nodeId": "finance",
+      "requestId": "matrix-d5ea1b8f4cf8b5fb26fb225ddbe0d2764d2a0a0dd82e6dbb2df1bd95efb1b4af/call-3",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:30:35.275Z",
+      "completedAt": "2026-11-04T14:30:38.021Z",
+      "result": {
+        "usage": {
+          "inputTokens": 646,
+          "outputTokens": 307,
+          "totalTokens": 29369,
+          "cacheReadTokens": 28416
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "afb9b9ae-c620-42bb-8129-d873077a3450",
+      "nodeId": "finance",
+      "requestId": "matrix-d5ea1b8f4cf8b5fb26fb225ddbe0d2764d2a0a0dd82e6dbb2df1bd95efb1b4af/call-4",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:30:38.095Z",
+      "completedAt": "2026-11-04T14:30:40.354Z",
+      "result": {
+        "usage": {
+          "inputTokens": 358,
+          "outputTokens": 212,
+          "totalTokens": 29626,
+          "cacheReadTokens": 29056
+        },
+        "textBytes": 642,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "51c1f45a-1c98-46bb-b02b-2c9f0dffb02b",
+      "nodeId": "hr",
+      "requestId": "matrix-5dc83a271b9f121824e76c1cb529d60a2aa4836e4e3fdd79f4330bf95ebefd45/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:30:41.677Z",
+      "completedAt": "2026-11-04T14:30:46.929Z",
+      "result": {
+        "usage": {
+          "inputTokens": 3602,
+          "outputTokens": 224,
+          "totalTokens": 22514,
+          "cacheReadTokens": 18688
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "8fda5f94-4203-4481-a120-1ee272290c15",
+      "nodeId": "hr",
+      "requestId": "matrix-5dc83a271b9f121824e76c1cb529d60a2aa4836e4e3fdd79f4330bf95ebefd45/call-2",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:30:46.974Z",
+      "completedAt": "2026-11-04T14:30:50.768Z",
+      "result": {
+        "usage": {
+          "inputTokens": 447,
+          "outputTokens": 150,
+          "totalTokens": 22869,
+          "cacheReadTokens": 22272
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "a38fb40f-3025-4f8d-a417-04ec2df2d557",
+      "nodeId": "hr",
+      "requestId": "matrix-5dc83a271b9f121824e76c1cb529d60a2aa4836e4e3fdd79f4330bf95ebefd45/call-3",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:30:50.822Z",
+      "completedAt": "2026-11-04T14:30:56.982Z",
+      "result": {
+        "usage": {
+          "inputTokens": 266,
+          "outputTokens": 398,
+          "totalTokens": 23320,
+          "cacheReadTokens": 22656
+        },
+        "textBytes": 1291,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "181157c7-dccc-4b6f-b452-defa15193523",
+      "nodeId": "finance",
+      "requestId": "matrix-6d4904c6c4c62bccb88e6a0ede3b8a6031d297c684a914df85c02a7b447e6c4c/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:30:58.136Z",
+      "completedAt": "2026-11-04T14:30:59.993Z",
+      "result": {
+        "usage": {
+          "inputTokens": 5830,
+          "outputTokens": 122,
+          "totalTokens": 35264,
+          "cacheReadTokens": 29312
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "1684a34f-3037-4139-86d4-dc5856498f8b",
+      "nodeId": "finance",
+      "requestId": "matrix-6d4904c6c4c62bccb88e6a0ede3b8a6031d297c684a914df85c02a7b447e6c4c/call-2",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:31:00.025Z",
+      "completedAt": "2026-11-04T14:31:02.447Z",
+      "result": {
+        "usage": {
+          "inputTokens": 351,
+          "outputTokens": 357,
+          "totalTokens": 35780,
+          "cacheReadTokens": 35072
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "89c0be39-3367-46b8-acce-996f6251f339",
+      "nodeId": "finance",
+      "requestId": "matrix-6d4904c6c4c62bccb88e6a0ede3b8a6031d297c684a914df85c02a7b447e6c4c/call-3",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:31:02.525Z",
+      "completedAt": "2026-11-04T14:31:05.189Z",
+      "result": {
+        "usage": {
+          "inputTokens": 545,
+          "outputTokens": 226,
+          "totalTokens": 36099,
+          "cacheReadTokens": 35328
+        },
+        "textBytes": 738,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "39b1e239-39bf-4f33-be59-1de18d1d436b",
+      "nodeId": "hr",
+      "requestId": "matrix-87ad0a37efdf78a4710fa1c6f543ac5400f00c39b7fd8cb90275e8a904803e1f/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:31:06.222Z",
+      "completedAt": "2026-11-04T14:31:11.462Z",
+      "result": {
+        "usage": {
+          "inputTokens": 6893,
+          "outputTokens": 380,
+          "totalTokens": 30185,
+          "cacheReadTokens": 22912
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "b96ed321-5c82-40b3-8ec1-975bb1c6fbed",
+      "nodeId": "hr",
+      "requestId": "matrix-87ad0a37efdf78a4710fa1c6f543ac5400f00c39b7fd8cb90275e8a904803e1f/call-2",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:31:11.544Z",
+      "completedAt": "2026-11-04T14:31:15.247Z",
+      "result": {
+        "usage": {
+          "inputTokens": 657,
+          "outputTokens": 319,
+          "totalTokens": 30672,
+          "cacheReadTokens": 29696
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "d1d65293-74a5-4025-b97f-4c895aeb52b2",
+      "nodeId": "hr",
+      "requestId": "matrix-87ad0a37efdf78a4710fa1c6f543ac5400f00c39b7fd8cb90275e8a904803e1f/call-3",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:31:15.296Z",
+      "completedAt": "2026-11-04T14:31:20.648Z",
+      "result": {
+        "usage": {
+          "inputTokens": 579,
+          "outputTokens": 319,
+          "totalTokens": 31234,
+          "cacheReadTokens": 30336
+        },
+        "textBytes": 979,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "d507b3ee-091c-45bb-84ba-1b0fe03ccc7c",
+      "nodeId": "finance",
+      "requestId": "matrix-46359051ce793f751b0bda3054d43aa1ae017c91083a103e8664f1f26bc08b9d/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "claimed",
+      "claimedAt": "2026-11-04T14:31:22.338Z",
+      "completedAt": null,
+      "result": null
+    },
+    {
+      "claimId": "052d0cab-5c1d-471c-b784-a038c956234c",
+      "nodeId": "finance",
+      "requestId": "matrix-fd022f8251bbb62c99fdb0b1358871b59c64a434e1945fa8822f8a7b0ba60ba9/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:31:25.120Z",
+      "completedAt": "2026-11-04T14:31:30.546Z",
+      "result": {
+        "usage": {
+          "inputTokens": 2438,
+          "outputTokens": 526,
+          "totalTokens": 41236,
+          "cacheReadTokens": 38272
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "07b3027a-83a0-4eea-ba99-7be4856215c4",
+      "nodeId": "finance",
+      "requestId": "matrix-fd022f8251bbb62c99fdb0b1358871b59c64a434e1945fa8822f8a7b0ba60ba9/call-2",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:31:30.816Z",
+      "completedAt": "2026-11-04T14:31:32.803Z",
+      "result": {
+        "usage": {
+          "inputTokens": 1023,
+          "outputTokens": 182,
+          "totalTokens": 41909,
+          "cacheReadTokens": 40704
+        },
+        "textBytes": 0,
+        "errorCode": null
+      }
+    },
+    {
+      "claimId": "9a33f559-5a16-4292-bbc7-26256b2f46d7",
+      "nodeId": "finance",
+      "requestId": "matrix-fd022f8251bbb62c99fdb0b1358871b59c64a434e1945fa8822f8a7b0ba60ba9/call-3",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "completed",
+      "claimedAt": "2026-11-04T14:31:32.908Z",
+      "completedAt": "2026-11-04T14:31:34.816Z",
+      "result": {
+        "usage": {
+          "inputTokens": 365,
+          "outputTokens": 132,
+          "totalTokens": 42097,
+          "cacheReadTokens": 41600
+        },
+        "textBytes": 413,
+        "errorCode": null
+      }
+    }
+  ],
+  "finalNodes": [
+    {
+      "id": "finance",
+      "status": "thinking",
+      "pending": 1,
+      "lastError": "TASK_CANCELLED"
+    },
+    {
+      "id": "hr",
+      "status": "idle",
+      "pending": 0,
+      "lastError": null
+    }
+  ],
+  "completedAt": "2026-11-04T14:31:35.035Z"
+}

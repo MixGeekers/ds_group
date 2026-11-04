@@ -1,0 +1,154 @@
+{
+  "checkedAt": "2026-11-04T14:44:27.487Z",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v24.19.0"
+  },
+  "scope": "minimal typed component props and production build, no app migration or performance benchmark",
+  "results": [
+    {
+      "variant": "react",
+      "dependencies": {
+        "react": "19.3.1",
+        "react-dom": "19.3.1"
+      },
+      "devDependencies": {
+        "typescript": "7.0.2",
+        "@types/react": "19.3.0",
+        "@types/react-dom": "19.3.0",
+        "vite": "8.3.5",
+        "@vitejs/plugin-react": "6.2.1"
+      },
+      "versions": {
+        "command": "npm exec tsc -- --version",
+        "status": 0,
+        "signal": null,
+        "stdout": "Version 7.0.2\n",
+        "stderr": ""
+      },
+      "correct": {
+        "command": "npm run check",
+        "status": 0,
+        "signal": null,
+        "stdout": "\n> check\n> tsc --noEmit\n\n",
+        "stderr": ""
+      },
+      "incorrect": {
+        "command": "npm run check",
+        "status": 1,
+        "signal": null,
+        "stdout": "\n> check\n> tsc --noEmit\n\nsrc/main.tsx(5,90): error TS2322: Type 'string' is not assignable to type 'number'.\nsrc/main.tsx(5,105): error TS2322: Type '\"finished\"' is not assignable to type 'Status'.\n",
+        "stderr": ""
+      },
+      "build": {
+        "command": "npm run build",
+        "status": 0,
+        "signal": null,
+        "stdout": "\n> build\n> vite build\n\nvite v8.3.5 building client environment for production...\ntransforming...\n✓ 14 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                  0.22 kB │ gzip:  0.19 kB\ndist/assets/index-B86Qs5Ks.js  219.66 kB │ gzip: 68.68 kB\n\n✓ built in 53ms\n",
+        "stderr": ""
+      },
+      "wrongPropsDetected": true
+    },
+    {
+      "variant": "vue",
+      "dependencies": {
+        "vue": "3.5.44"
+      },
+      "devDependencies": {
+        "typescript": "7.0.2",
+        "vue-tsc": "3.3.14",
+        "vite": "8.3.5",
+        "@vitejs/plugin-vue": "6.0.10"
+      },
+      "versions": {
+        "command": "npm exec tsc -- --version",
+        "status": 0,
+        "signal": null,
+        "stdout": "Version 7.0.2\n",
+        "stderr": ""
+      },
+      "correct": {
+        "command": "npm run check",
+        "status": 1,
+        "signal": null,
+        "stdout": "\n> check\n> vue-tsc --noEmit\n\n",
+        "stderr": "/Users/caja/.codex/worktrees/ds-group-file-work/apps/ds-group/.local/toolchain-eval/vue/node_modules/vue-tsc/index.js:68\n                throw err;\n                ^\n\nError [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './lib/tsc' is not defined by \"exports\" in /Users/caja/.codex/worktrees/ds-group-file-work/apps/ds-group/.local/toolchain-eval/vue/node_modules/typescript/package.json\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:662:9)\n    at resolveExports (node:internal/modules/cjs/loader:707:36)\n    at Module._findPath (node:internal/modules/cjs/loader:774:31)\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1502:27)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at require.resolve (node:internal/modules/helpers:171:31)\n    at resolveTscPath (/Users/caja/.codex/worktrees/ds-group-file-work/apps/ds-group/.local/toolchain-eval/vue/node_modules/vue-tsc/index.js:73:43)\n    at main (/Users/caja/.codex/worktrees/ds-group-file-work/apps/ds-group/.local/toolchain-eval/vue/node_modules/vue-tsc/index.js:44:45) {\n  code: 'ERR_PACKAGE_PATH_NOT_EXPORTED'\n}\n\nNode.js v24.19.0\n"
+      },
+      "incorrect": {
+        "command": "npm run check",
+        "status": 1,
+        "signal": null,
+        "stdout": "\n> check\n> vue-tsc --noEmit\n\n",
+        "stderr": "/Users/caja/.codex/worktrees/ds-group-file-work/apps/ds-group/.local/toolchain-eval/vue/node_modules/vue-tsc/index.js:68\n                throw err;\n                ^\n\nError [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './lib/tsc' is not defined by \"exports\" in /Users/caja/.codex/worktrees/ds-group-file-work/apps/ds-group/.local/toolchain-eval/vue/node_modules/typescript/package.json\n    at exportsNotFound (node:internal/modules/esm/resolve:314:10)\n    at packageExportsResolve (node:internal/modules/esm/resolve:662:9)\n    at resolveExports (node:internal/modules/cjs/loader:707:36)\n    at Module._findPath (node:internal/modules/cjs/loader:774:31)\n    at Module._resolveFilename (node:internal/modules/cjs/loader:1502:27)\n    at wrapResolveFilename (node:internal/modules/cjs/loader:1071:27)\n    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1122:12)\n    at require.resolve (node:internal/modules/helpers:171:31)\n    at resolveTscPath (/Users/caja/.codex/worktrees/ds-group-file-work/apps/ds-group/.local/toolchain-eval/vue/node_modules/vue-tsc/index.js:73:43)\n    at main (/Users/caja/.codex/worktrees/ds-group-file-work/apps/ds-group/.local/toolchain-eval/vue/node_modules/vue-tsc/index.js:44:45) {\n  code: 'ERR_PACKAGE_PATH_NOT_EXPORTED'\n}\n\nNode.js v24.19.0\n"
+      },
+      "build": {
+        "command": "npm run build",
+        "status": 0,
+        "signal": null,
+        "stdout": "\n> build\n> vite build\n\nvite v8.3.5 building client environment for production...\ntransforming...\n✓ 13 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                 0.22 kB │ gzip:  0.19 kB\ndist/assets/index-DpBCWA3J.js  62.33 kB │ gzip: 24.64 kB\n\n✓ built in 38ms\n",
+        "stderr": ""
+      },
+      "wrongPropsDetected": false
+    },
+    {
+      "variant": "vue-bridge",
+      "dependencies": {
+        "vue": "3.5.44"
+      },
+      "devDependencies": {
+        "typescript": "npm:typescript-native-bridge@6.0.3-bridge.19.tsgo.7.0.2",
+        "vue-tsc": "3.3.14",
+        "vite": "8.3.5",
+        "@vitejs/plugin-vue": "6.0.10"
+      },
+      "overrides": {
+        "typescript": "$typescript"
+      },
+      "versions": {
+        "command": "npm exec tsc -- --version",
+        "status": 0,
+        "signal": null,
+        "stdout": "Version 6.0.3\n",
+        "stderr": ""
+      },
+      "correct": {
+        "command": "npm run check",
+        "status": 0,
+        "signal": null,
+        "stdout": "\n> check\n> vue-tsc --noEmit\n\n",
+        "stderr": "▎ TNB ACTIVE — `typescript` is the tsgo-backed fork\n"
+      },
+      "incorrect": {
+        "command": "npm run check",
+        "status": 2,
+        "signal": null,
+        "stdout": "\n> check\n> vue-tsc --noEmit\n\nsrc/App.vue(5,50): error TS2322: Type 'string' is not assignable to type 'number'.\nsrc/App.vue(5,65): error TS2322: Type '\"finished\"' is not assignable to type '\"completed\" | \"queued\" | \"running\"'.\n",
+        "stderr": "▎ TNB ACTIVE — `typescript` is the tsgo-backed fork\n"
+      },
+      "build": {
+        "command": "npm run build",
+        "status": 0,
+        "signal": null,
+        "stdout": "\n> build\n> vite build\n\nvite v8.3.5 building client environment for production...\ntransforming...\n✓ 13 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                 0.22 kB │ gzip:  0.19 kB\ndist/assets/index-DpBCWA3J.js  62.33 kB │ gzip: 24.64 kB\n\n✓ built in 41ms\n",
+        "stderr": ""
+      },
+      "wrongPropsDetected": true,
+      "incorrectSyntaxProbe": {
+        "command": "npm run check",
+        "status": 2,
+        "signal": null,
+        "stdout": "\n> check\n> vue-tsc --noEmit\n\nsrc/App.vue(5,55): error TS1003: Identifier expected.\n",
+        "stderr": "▎ TNB ACTIVE — `typescript` is the tsgo-backed fork\n"
+      }
+    }
+  ],
+  "sources": [
+    "https://devblogs.microsoft.com/typescript/announcing-typescript-7-0/",
+    "https://react.dev/learn/typescript",
+    "https://vuejs.org/guide/typescript/overview",
+    "https://github.com/vuejs/language-tools/pull/6129",
+    "https://github.com/johnsoncodehk/typescript-native-bridge"
+  ],
+  "completedAt": "2026-11-04T14:45:02.674Z"
+}

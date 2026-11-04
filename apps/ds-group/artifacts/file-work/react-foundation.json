@@ -1,0 +1,24 @@
+{
+  "status": "passed",
+  "level": "real-compiled-react-browser-matrix-http",
+  "checks": [
+    "zh-CN/dark/desktop/login-layout-mention",
+    "zh-CN/dark/mobile/login-layout-mention",
+    "zh-CN/light/desktop/login-layout-mention",
+    "zh-CN/light/mobile/login-layout-mention",
+    "en/dark/desktop/login-layout-mention",
+    "en/dark/mobile/login-layout-mention",
+    "en/light/desktop/login-layout-mention",
+    "en/light/mobile/login-layout-mention",
+    "compiled-pwa-offline-shell-draft-and-reconnect",
+    "service-worker-precache-contains-built-assets-and-excludes-api"
+  ],
+  "pageErrors": [],
+  "modelCalls": 0,
+  "sourceHashes": {
+    "web/src/App.tsx": "f6f83bef05843adf2bc5ac74c80dfd4383e815797fb385dcae8bad454e10e0b6",
+    "web/src/main.tsx": "cf18b50cb2aabe370fa75b40c16f027c806eb85d726f6ed15c9f023b78ab3116",
+    "web/styles.css": "08537920977df5fd23a0c98d6afd592430f8ac78631c8489b80fe6eda855731c",
+    "web/tokens.css": "a71a83f00e669036ac03efa9dafe38fba4d8a82cb2441f0ad14911e360d12137"
+  }
+}
