@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-11-04T22:20:40.002Z",
+  "status": "published-and-install-verified",
+  "registry": "https://registry.npmjs.org/",
+  "name": "dscord",
+  "version": "0.2.0-alpha.1",
+  "tag": "alpha",
+  "publisher": "mixgeeker",
+  "maintainers": [
+    "mixgeeker"
+  ],
+  "dist": {
+    "shasum": "9772cff18a3a56f64ecb7bc04885ce558e76d24a",
+    "integrity": "sha512-G6xQ/kobFE/A9EU7AhoaYnS4ixvN7QIqd/caUJud7zarCC2A9ZoFG/tEsYwlk3AboPo7A0IjhOdaNAJqntv1UQ==",
+    "tarball": "https://registry.npmjs.org/dscord/-/dscord-0.2.0-alpha.1.tgz"
+  },
+  "sourceCommit": "13a08dab4e1b5b14d32baef76ff1cd8716ef2c54",
+  "sourceCI": "https://github.com/MixGeekers/ds_group/actions/runs/41921166611",
+  "installation": {
+    "request": "dscord@alpha",
+    "cleanProductionInstall": true,
+    "versionCommand": "0.2.0-alpha.1",
+    "helpCommand": "passed"
+  },
+  "modelCalls": 0,
+  "initialPublishResponse": {
+    "httpStatus": 202,
+    "cliExitCode": 0,
+    "publicVersionInitiallyAvailable": false
+  }
+}
