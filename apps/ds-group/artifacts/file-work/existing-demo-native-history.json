@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-04T15:52:45.457207+00:00",
+  "level": "real-original-runtime-backup-versus-current-native-session-bytes",
+  "status": "passed",
+  "backup": "/Users/caja/Documents/识雨/apps/ds-group/.local/upgrades/2026-11-04-react-ts7/runtime-before.tar.gz",
+  "backupSha256": "8f9d031695211dcefd2a90d7ceeae9e2869bbd84b2086e7cda85ca85434a8ecc",
+  "comparisonMethod": "Read tar members and current files into memory; iterate concatenated zstd frames using zstdDecompressSync({info:true}).engine.bytesWritten; compare original compressed-byte and JSONL prefixes plus complete historical message record sequences. No message bodies emitted.",
+  "sessionCount": 2,
+  "sessions": [
+    {
+      "before": {
+        "compressedBytes": 167156,
+        "compressedSha256": "7db804adddc4ce60621624667e1aca276a70cf33d231ff12b35084242c95253f",
+        "decompressedBytes": 336452,
+        "decompressedSha256": "ce46b26223496bc675794d3cb348c116d69822fe112ebfcd1557c262675eee08",
+        "frames": 89,
+        "records": 242,
+        "recordTypes": {
+          "session": 1,
+          "permission/preset": 1,
+          "sandbox/mode": 1,
+          "approval/policy": 1,
+          "session/title": 1,
+          "session/end-seed": 7,
+          "model/selection": 1,
+          "agent/inbox/spliced": 52,
+          "turn/start": 26,
+          "step/start": 26,
+          "system/message": 1,
+          "user/message": 38,
+          "request/header": 7,
+          "request/context": 1,
+          "assistant/message": 26,
+          "step/end": 26,
+          "turn/end": 26
+        },
+        "messageRecords": 65,
+        "messageSequenceSha256": "ed35028835e2c9b7e8307f8f97631321488c7987074611f84e4239ef96cc2d44"
+      },
+      "after": {
+        "compressedBytes": 180625,
+        "compressedSha256": "40c94df1cf1718fff9c674114cc22c02a98e831c096cba5cf3b2a9a851431590",
+        "decompressedBytes": 362316,
+        "decompressedSha256": "e714cd948cda6f7b9a572264f218d60ed573fb81cd626cb5a3c9eb90be4d2c7c",
+        "frames": 93,
+        "records": 252,
+        "recordTypes": {
+          "session": 1,
+          "permission/preset": 2,
+          "sandbox/mode": 2,
+          "approval/policy": 2,
+          "session/title": 1,
+          "session/end-seed": 8,
+          "model/selection": 2,
+          "agent/inbox/spliced": 55,
+          "turn/start": 27,
+          "step/start": 26,
+          "system/message": 1,
+          "user/message": 38,
+          "request/header": 7,
+          "request/context": 1,
+          "assistant/message": 26,
+          "step/end": 26,
+          "turn/end": 27
+        },
+        "messageRecords": 65,
+        "messageSequenceSha256": "ed35028835e2c9b7e8307f8f97631321488c7987074611f84e4239ef96cc2d44"
+      },
+      "compressedBytesAreExactPrefix": true,
+      "originalJsonlLinesAreExactPrefix": true,
+      "originalRecordsAreExactPrefix": true,
+      "historicalMessagesIdentical": true,
+      "appendedRecordCount": 10,
+      "appendedRecordTypes": {
+        "session/end-seed": 1,
+        "agent/inbox/spliced": 3,
+        "turn/start": 1,
+        "model/selection": 1,
+        "permission/preset": 1,
+        "sandbox/mode": 1,
+        "approval/policy": 1,
+        "turn/end": 1
+      },
+      "appendedRecords": [
+        {
+          "type": "session/end-seed",
+          "sequence": 241
+        },
+        {
+          "type": "agent/inbox/spliced",
+          "sequence": 242,
+          "target": "next-turn",
+          "removedCount": 0,
+          "insertedCount": 1,
+          "insertedSourceKinds": [
+            "bot"
+          ]
+        },
+        {
+          "type": "turn/start",
+          "sequence": 243
+        },
+        {
+          "type": "agent/inbox/spliced",
+          "sequence": 244,
+          "target": "next-turn",
+          "removedCount": 1,
+          "insertedCount": 0,
+          "insertedSourceKinds": []
+        },
+        {
+          "type": "model/selection",
+          "sequence": 245
+        },
+        {
+          "type": "permission/preset",
+          "sequence": 246
+        },
+        {
+          "type": "sandbox/mode",
+          "sequence": 247
+        },
+        {
+          "type": "approval/policy",
+          "sequence": 248
+        },
+        {
+          "type": "agent/inbox/spliced",
+          "sequence": 249,
+          "target": "next-step",
+          "removedCount": 0,
+          "insertedCount": 1,
+          "insertedSourceKinds": [
+            "agent-instructions"
+          ]
+        },
+        {
+          "type": "turn/end",
+          "sequence": 250,
+          "reasonKind": "blocked"
+        }
+      ],
+      "newModelRequestRecords": 0,
+      "newModelStepRecords": 0,
+      "newAssistantMessages": 0,
+      "newUserMessages": 0,
+      "nodeId": "hr",
+      "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+      "archiveMember": "./dsh-hr/home/sessions/--Users-caja-Documents-~8BC6~96E8-apps-ds-group-.local-dsh-hr-runtime-ds-bot-workspace--/session-5b587762-482c-4314-abab-6625dcd19900/session.v4.jsonl.zstd",
+      "currentFile": "/Users/caja/Documents/识雨/apps/ds-group/.local/dsh-hr/home/sessions/--Users-caja-Documents-~8BC6~96E8-apps-ds-group-.local-dsh-hr-runtime-ds-bot-workspace--/session-5b587762-482c-4314-abab-6625dcd19900/session.v4.jsonl.zstd"
+    },
+    {
+      "before": {
+        "compressedBytes": 184141,
+        "compressedSha256": "2382058420bf2de8e2a4b20b37b6d09009632aed582f35e947fc234583756ad5",
+        "decompressedBytes": 362038,
+        "decompressedSha256": "e8c0fd6af38e9637f84027386b2e2b740e642c0fbaa4b86772d8cd1ffe488141",
+        "frames": 91,
+        "records": 253,
+        "recordTypes": {
+          "session": 1,
+          "permission/preset": 1,
+          "sandbox/mode": 1,
+          "approval/policy": 1,
+          "session/title": 1,
+          "session/end-seed": 4,
+          "model/selection": 1,
+          "agent/inbox/spliced": 56,
+          "turn/start": 28,
+          "step/start": 28,
+          "system/message": 1,
+          "user/message": 41,
+          "request/header": 4,
+          "request/context": 1,
+          "assistant/message": 28,
+          "step/end": 28,
+          "turn/end": 28
+        },
+        "messageRecords": 70,
+        "messageSequenceSha256": "5247d5e567dd0b2ebd7b33ed73e153b0142468e54f00ba008789d9ae83304439"
+      },
+      "after": {
+        "compressedBytes": 197608,
+        "compressedSha256": "65be4b8d567be7b393101e847d01cc18b9976f6ba6303ebcb11a96fb86ce381e",
+        "decompressedBytes": 387896,
+        "decompressedSha256": "9c1b0fb6f123daeaaa153e6379969af1fd7f498afb408601521655a8d1c71012",
+        "frames": 95,
+        "records": 263,
+        "recordTypes": {
+          "session": 1,
+          "permission/preset": 2,
+          "sandbox/mode": 2,
+          "approval/policy": 2,
+          "session/title": 1,
+          "session/end-seed": 5,
+          "model/selection": 2,
+          "agent/inbox/spliced": 59,
+          "turn/start": 29,
+          "step/start": 28,
+          "system/message": 1,
+          "user/message": 41,
+          "request/header": 4,
+          "request/context": 1,
+          "assistant/message": 28,
+          "step/end": 28,
+          "turn/end": 29
+        },
+        "messageRecords": 70,
+        "messageSequenceSha256": "5247d5e567dd0b2ebd7b33ed73e153b0142468e54f00ba008789d9ae83304439"
+      },
+      "compressedBytesAreExactPrefix": true,
+      "originalJsonlLinesAreExactPrefix": true,
+      "originalRecordsAreExactPrefix": true,
+      "historicalMessagesIdentical": true,
+      "appendedRecordCount": 10,
+      "appendedRecordTypes": {
+        "session/end-seed": 1,
+        "agent/inbox/spliced": 3,
+        "turn/start": 1,
+        "model/selection": 1,
+        "permission/preset": 1,
+        "sandbox/mode": 1,
+        "approval/policy": 1,
+        "turn/end": 1
+      },
+      "appendedRecords": [
+        {
+          "type": "session/end-seed",
+          "sequence": 252
+        },
+        {
+          "type": "agent/inbox/spliced",
+          "sequence": 253,
+          "target": "next-turn",
+          "removedCount": 0,
+          "insertedCount": 1,
+          "insertedSourceKinds": [
+            "bot"
+          ]
+        },
+        {
+          "type": "turn/start",
+          "sequence": 254
+        },
+        {
+          "type": "agent/inbox/spliced",
+          "sequence": 255,
+          "target": "next-turn",
+          "removedCount": 1,
+          "insertedCount": 0,
+          "insertedSourceKinds": []
+        },
+        {
+          "type": "model/selection",
+          "sequence": 256
+        },
+        {
+          "type": "permission/preset",
+          "sequence": 257
+        },
+        {
+          "type": "sandbox/mode",
+          "sequence": 258
+        },
+        {
+          "type": "approval/policy",
+          "sequence": 259
+        },
+        {
+          "type": "agent/inbox/spliced",
+          "sequence": 260,
+          "target": "next-step",
+          "removedCount": 0,
+          "insertedCount": 1,
+          "insertedSourceKinds": [
+            "agent-instructions"
+          ]
+        },
+        {
+          "type": "turn/end",
+          "sequence": 261,
+          "reasonKind": "blocked"
+        }
+      ],
+      "newModelRequestRecords": 0,
+      "newModelStepRecords": 0,
+      "newAssistantMessages": 0,
+      "newUserMessages": 0,
+      "nodeId": "finance",
+      "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+      "archiveMember": "./dsh-finance/home/sessions/--Users-caja-Documents-~8BC6~96E8-apps-ds-group-.local-dsh-finance-runtime-ds-bot-workspace--/session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90/session.v4.jsonl.zstd",
+      "currentFile": "/Users/caja/Documents/识雨/apps/ds-group/.local/dsh-finance/home/sessions/--Users-caja-Documents-~8BC6~96E8-apps-ds-group-.local-dsh-finance-runtime-ds-bot-workspace--/session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90/session.v4.jsonl.zstd"
+    }
+  ],
+  "interpretation": {
+    "historicalMessageRecordsPreserved": 135,
+    "newUserMessages": 0,
+    "newAssistantMessages": 0,
+    "newModelStepRecords": 0,
+    "newModelRequestRecords": 0,
+    "appendedRuntimeEvents": "Each session appends 10 records across 4 frames: startup seed/inbox activity, one blocked turn with no model step/request, model selection and permission/sandbox/approval settings, and updated agent instructions queued for a later turn."
+  },
+  "modelCallsByThisVerification": 0,
+  "runtimeFilesModifiedByThisVerification": false
+}

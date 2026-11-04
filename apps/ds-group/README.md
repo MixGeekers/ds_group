@@ -16,9 +16,9 @@ Bot 可以调用 DSH 文件读写、终端、后台作业及图片工具，连�
 
 ## 服务器部署与发行
 
-Linux x64 与 ARM64 服务器使用 [Docker Compose 部署说明](deploy/README.md)。服务器默认采用密码登录，核心、Synapse、Bot 节点分别运行。文档包含 HTTPS、账号读取、远程节点导出、备份与升级。Windows 服务器运行 Linux 容器或 WSL2，macOS 可通过 Docker Desktop 验证同一部署包。
+Linux x64 与 ARM64 服务器使用 [Docker Compose 部署说明](deploy/README.md)。服务器默认采用密码登录，核心、Synapse、Bot 节点分别运行。文档包含 HTTPS、账号读取、远程节点导出、备份与升级。正式发行和 CI 目标为 Linux amd64/arm64 与 Docker/Compose。
 
-发行 CI 会检查多系统 Node 运行、干净源码包安装、两种 Linux 架构的真实服务启动及持久化，以及独立 DSH 节点的零模型初始化。源码包附带 SHA256 清单。带 `ds-group-v` 前缀的版本标签通过完整检查后发布源码包和多架构 GHCR 镜像。具体矩阵和本轮结果见[发行验证记录](发行验证.md)。
+发行 CI 包含 10 个任务，检查两种 Linux 架构的 Node/TS7 构建、干净源码包安装、浏览器交互、真实容器部署及持久化，以及独立 DSH 节点初始化、工具执行与取消。源码包附带 SHA256 清单。带 `ds-group-v` 前缀的版本标签通过完整检查后发布源码包和多架构 GHCR 镜像。具体矩阵和本轮结果见[发行验证记录](发行验证.md)。
 
 ## 打开与使用
 
@@ -67,7 +67,7 @@ node scripts/service.mjs up finance
 ### 本机依赖
 
 - Node 24.19.0 及以上的 24.x 与 npm。
-- 已安装且可启动的 Docker Desktop，用于固定 Synapse 容器。
+- 可运行 Linux 容器的 Docker，用于固定 Synapse 容器。
 - DSH 0.2.1-rc.5，可使用官方 npm CLI 或现有桌面版。通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定独立安装，见部署说明。
 - 使用 `OPENCODE_API_KEY` 配置 `opencode-go/deepseek-v4.1-flash`，也可从现有 DSH 的指定 profile 复制该 provider。凭据仅写入隔离数据目录，不进入源码和发行包。
 

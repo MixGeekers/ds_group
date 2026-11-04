@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-11-04T15:51:54.389Z",
+  "status": "passed",
+  "closedPorts": [
+    19100,
+    19091,
+    19092,
+    19008
+  ],
+  "matrixContainer": "ds-group-file-work-matrix",
+  "runtimeDataRetained": true,
+  "userService": {
+    "url": "http://127.0.0.1:18100",
+    "modelClaims": 54,
+    "nodes": [
+      {
+        "id": "finance",
+        "status": "idle",
+        "pending": 0
+      },
+      {
+        "id": "hr",
+        "status": "idle",
+        "pending": 0
+      }
+    ]
+  }
+}

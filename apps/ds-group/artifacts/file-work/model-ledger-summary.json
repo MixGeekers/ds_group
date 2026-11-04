@@ -1,0 +1,27 @@
+{
+  "checkedAt": "2026-11-04T15:51:38.075Z",
+  "environment": "isolated-file-work.local",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "totalClaims": 78,
+  "statusCounts": {
+    "completed": 75,
+    "claimed": 1,
+    "cancelled": 2
+  },
+  "unsettledClaims": [
+    {
+      "claimId": "d507b3ee-091c-45bb-84ba-1b0fe03ccc7c",
+      "nodeId": "finance",
+      "requestId": "matrix-46359051ce793f751b0bda3054d43aa1ae017c91083a103e8664f1f26bc08b9d/call-1",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "maxTokens": 4096,
+      "kind": "generation",
+      "status": "claimed",
+      "claimedAt": "2026-11-04T14:31:22.338Z",
+      "completedAt": null,
+      "result": null
+    }
+  ],
+  "level": "actual-core-claim-ledger",
+  "completeProviderCostKnown": false
+}

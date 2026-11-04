@@ -1,0 +1,83 @@
+{
+  "checkedAt": "2026-11-04T15:48:42.540Z",
+  "level": "existing-demo-upgrade-real-local-dsh-and-matrix-zero-model",
+  "beforeCommit": "3b912c5cf0089598b40f3bbfd64c726ae5fe5e80",
+  "afterCommit": "7d28e92d249192df871ec2a357ee3a89c4c2a9d3",
+  "url": "http://127.0.0.1:18100",
+  "checks": {
+    "noNewModelClaims": true,
+    "currentCoreSourceLoaded": true,
+    "identitiesAndNativeSessionsPreserved": true,
+    "nativeToolsRegistered": true,
+    "compiledPwaAndReadinessHealthy": true,
+    "oldModuleWipHashesPreserved": true,
+    "originalDesktopReactUi": true,
+    "originalMobileReactUi": true,
+    "matrixMessageHistoryIdentical": true,
+    "nativeHistoryPreserved": true
+  },
+  "nodes": [
+    {
+      "id": "finance",
+      "botId": "@finance:ds-group.local",
+      "dsBotId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+      "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+      "tools": [
+        "read",
+        "write",
+        "edit",
+        "job_output",
+        "job_list",
+        "job_kill",
+        "skill",
+        "bash",
+        "read_image"
+      ],
+      "loadedRuntimeSha256": "6d36f3f2481f575591e4885d873ca91f1dc27d0bb8b6261600b31300545a095c",
+      "status": "idle",
+      "pending": 0
+    },
+    {
+      "id": "hr",
+      "botId": "@hr:ds-group.local",
+      "dsBotId": "session-5b587762-482c-4314-abab-6625dcd19900",
+      "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+      "tools": [
+        "read",
+        "write",
+        "edit",
+        "job_output",
+        "job_list",
+        "job_kill",
+        "skill",
+        "bash",
+        "read_image"
+      ],
+      "loadedRuntimeSha256": "6d36f3f2481f575591e4885d873ca91f1dc27d0bb8b6261600b31300545a095c",
+      "status": "idle",
+      "pending": 0
+    }
+  ],
+  "modelClaimsBefore": 54,
+  "modelClaimsAfter": 54,
+  "preservedWipFiles": 26,
+  "backup": {
+    "path": "/Users/caja/Documents/识雨/apps/ds-group/.local/upgrades/2026-11-04-react-ts7/runtime-before.tar.gz",
+    "sha256": "8f9d031695211dcefd2a90d7ceeae9e2869bbd84b2086e7cda85ca85434a8ecc"
+  },
+  "status": "passed",
+  "browserPageErrors": [],
+  "matrixMessageHistory": {
+    "count": 113,
+    "sha256": "350dacbd2778870add9dd4385794922c0ec2081b44b1d6ef1d543ad4f68a315d"
+  },
+  "nativeHistory": {
+    "evidence": "existing-demo-native-history.json",
+    "sessions": 2,
+    "originalRecords": 495,
+    "historicalMessages": 135,
+    "newModelRequests": 0,
+    "newAssistantMessages": 0,
+    "comparison": "original compressed bytes and parsed records preserved as exact prefixes"
+  }
+}

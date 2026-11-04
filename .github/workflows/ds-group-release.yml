@@ -145,7 +145,7 @@ jobs:
       - name: Publish source, checksums and image index
         shell: bash
         run: |
-          printf 'Container image `%s:%s` supports Linux amd64 and arm64.\n\nThe source archive includes deployment instructions in `deploy/README.md`. Verify it with `SHA256SUMS` before installation.\n\nCI covers native module tests, clean source installation, real Synapse deployment and zero-generation DSH session restart.\n' "$IMAGE" "$VERSION" > "$RUNNER_TEMP/release-notes.md"
+          printf 'Container image `%s:%s` supports Linux amd64 and arm64.\n\nThe source archive includes deployment instructions in `deploy/README.md`. Verify it with `SHA256SUMS` before installation.\n\nCI covers Linux Node/TypeScript 7 builds, browser interactions, clean source installation, real Synapse deployment and DSH session restart/tool execution with zero remote generations.\n' "$IMAGE" "$VERSION" > "$RUNNER_TEMP/release-notes.md"
           flags=()
           if [ "$PRERELEASE" = true ]; then flags+=(--prerelease); fi
           gh release create "$RELEASE_TAG" release/* --verify-tag --title "DS-Group $VERSION" --notes-file "$RUNNER_TEMP/release-notes.md" "${flags[@]}"

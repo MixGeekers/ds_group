@@ -8,8 +8,6 @@
 | --- | --- |
 | Linux x86-64 | Docker Engine 和 Compose v2 |
 | Linux ARM64 | Docker Engine 和 Compose v2，包括 ARM 云服务器及 64 位系统的树莓派 |
-| macOS Intel / Apple Silicon | Docker Desktop，适用于开发与验证 |
-| Windows x64 | Docker Desktop 的 Linux 容器模式或 WSL2 |
 
 镜像内使用 Debian、Node 24.19.0 和 Synapse 1.164.2。Node、Synapse、Caddy 的镜像摘要均指向包含 amd64 与 arm64 的多架构索引。建议初始配置为 2 核 CPU、2 GB 内存和持久磁盘，实际容量取决于用户、消息及 Bot 数量。
 
@@ -17,7 +15,7 @@
 
 ## 启动服务器
 
-以下命令在发布包根目录执行。源码仓库对应 `apps/ds-group/`。Linux、macOS 和 WSL2 可直接使用这些 shell 命令。
+以下命令在 Linux 服务器的发布包根目录执行，源码仓库对应 `apps/ds-group/`。
 
 ```sh
 cp deploy/.env.example deploy/.env
