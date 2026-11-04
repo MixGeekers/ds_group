@@ -164,9 +164,11 @@ class BoundedText {
 async function extractPdf(bytes, writer, maxPages, warnings) {
   const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
   const pdfRoot = path.dirname(fileURLToPath(import.meta.resolve('pdfjs-dist/package.json')));
+  // PDF.js requires slash-terminated directories while its Node factory reads filesystem paths.
+  const resourceDirectory = name => path.join(pdfRoot, name).split(path.sep).join('/') + '/';
   const task = getDocument({ data: Uint8Array.from(bytes), disableFontFace: true, isEvalSupported: false,
-    useSystemFonts: true, verbosity: 0, cMapUrl: path.join(pdfRoot, 'cmaps') + path.sep, cMapPacked: true,
-    standardFontDataUrl: path.join(pdfRoot, 'standard_fonts') + path.sep });
+    useSystemFonts: true, verbosity: 0, cMapUrl: resourceDirectory('cmaps'), cMapPacked: true,
+    standardFontDataUrl: resourceDirectory('standard_fonts') });
   let textFound = false;
   try {
     const document = await task.promise;

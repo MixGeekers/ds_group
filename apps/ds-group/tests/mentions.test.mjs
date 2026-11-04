@@ -19,9 +19,18 @@ const members = setup.participants.map(person => person.id);
 
 async function fixture(t) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'ds-group-mentions-'));
-  const feature = new ChatFeatures({ setup, dataRoot: directory, now: () => 10000 });
-  t.after(async () => { feature.close(); await rm(directory, { recursive: true, force: true }); });
-  return { feature, directory };
+  const opened = [];
+  const open = (now = () => 10000) => {
+    const feature = new ChatFeatures({ setup, dataRoot: directory, now });
+    opened.push(feature);
+    return feature;
+  };
+  const feature = open();
+  t.after(async () => {
+    for (const connection of opened) connection.close();
+    await rm(directory, { recursive: true, force: true });
+  });
+  return { feature, directory, open };
 }
 
 const event = (id, mentions, ts = 1000) => ({
@@ -91,11 +100,10 @@ test('reply mention uses the actual replied sender and can be disabled', async t
 });
 
 test('presence expires and here recipients remain the send-time snapshot', async t => {
-  const { directory, feature: initial } = await fixture(t);
+  const { open, feature: initial } = await fixture(t);
   initial.close();
   let now = 1000;
-  const feature = new ChatFeatures({ setup, dataRoot: directory, now: () => now });
-  t.after(() => feature.close());
+  const feature = open(() => now);
   feature.touchPresence(bob);
   const first = await feature.resolveMessage({ userId: alice, roomId, members, input: { body: '@here' } });
   now = 62000;
@@ -106,7 +114,7 @@ test('presence expires and here recipients remain the send-time snapshot', async
 });
 
 test('notification preferences distinguish direct, role and broad mentions and persist after reopening', async t => {
-  const { feature, directory } = await fixture(t);
+  const { feature, open } = await fixture(t);
   feature.savePreferences(bob, roomId, { mode: 'mentions', suppressEveryone: true, suppressRoles: true });
   assert.equal(feature.shouldNotify(bob, event('$ordinary', {})), false);
   assert.equal(feature.shouldNotify(bob, event('$all', { everyoneUsers: [bob] })), false);
@@ -114,15 +122,14 @@ test('notification preferences distinguish direct, role and broad mentions and p
   assert.equal(feature.shouldNotify(bob, event('$direct', { users: [bob], everyoneUsers: [bob] })), true);
   assert.equal(feature.shouldNotify(bob, event('$reply', { replyUserId: bob })), true);
   feature.close();
-  const restored = new ChatFeatures({ setup, dataRoot: directory });
-  t.after(() => restored.close());
+  const restored = open();
   assert.equal(restored.preferences(bob, roomId).mode, 'mentions');
   restored.savePreferences(bob, roomId, { muted: true });
   assert.equal(restored.shouldNotify(bob, event('$muted', { users: [bob] })), false);
 });
 
 test('unreads deduplicate replay, preserve read markers and keep here under the unread inbox', async t => {
-  const { feature, directory } = await fixture(t);
+  const { feature, open } = await fixture(t);
   const one = event('$one', { users: [bob] }, 1000);
   const two = event('$two', { hereUsers: [bob] }, 2000);
   const three = event('$three', { roleUsers: [bob] }, 3000);
@@ -139,8 +146,7 @@ test('unreads deduplicate replay, preserve read markers and keep here under the 
   assert.equal(feature.unreadFor(bob, roomId).unreadCount, 1);
   assert.equal(feature.inbox(bob, []).events.length, 0);
   feature.close();
-  const restored = new ChatFeatures({ setup, dataRoot: directory });
-  t.after(() => restored.close());
+  const restored = open();
   assert.equal(restored.unreadFor(bob, roomId).unreadCount, 1);
   assert.deepEqual(mentionKindsFor(one, bob), ['user']);
 });

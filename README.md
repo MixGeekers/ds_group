@@ -64,7 +64,7 @@ DS-Group 是一个供多个人类与多个独立 Bot 共同参与的聊天协作
 
 ## 版本管理
 
-远端：[MixGeekers/shiyu](https://github.com/MixGeekers/shiyu)。从 2026-11-01 开始纳入 Git，首个提交记录现有资料与工作台基线；这不是运行系统的首次发布。
+当前远端为 [MixGeekers/ds_group](https://github.com/MixGeekers/ds_group)。2026-11-01 开始纳入 Git，2026-11-04 随产品更名。首个提交记录当时资料与工作台基线。
 
 默认主分支为 `main`。后续按具体任务建立 `codex/<主题>` 分支，按可审阅的变化小步提交；提交前检查差异和文件范围，同步前读取远端变化。不要覆盖并行修改或强推共享历史。
 
