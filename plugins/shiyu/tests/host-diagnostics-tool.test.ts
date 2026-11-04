@@ -6,7 +6,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreGoalValidationV7Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, emotionContinuationDiagnosisTool, memoryEmbeddingProbeTool, nativeHeaderCutProbeTool, singleUserChatMemoryProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
+import { checkpointAvailabilityTool, coreGoalValidationTool, coreGoalValidationV2Tool, coreGoalValidationV3Tool, coreGoalValidationV4Tool, coreGoalValidationV5Tool, coreGoalValidationV6Tool, coreGoalValidationV7Tool, coreModelToolProbeTool, coreToolDiagnosisTool, coreValidationReconcileTool, emotionContinuationDiagnosisTool, memoryEmbeddingProbeTool, modelTransportDiagnosticTool, nativeHeaderCutProbeTool, replyStreamDiagnosticTool, singleUserChatMemoryProbeTool, statusTool, timeSourceDiagnosisTool, timeTriggerDiagnosisTool, workerToolDiagnosisTool } from '../src/index.js';
 import { innerLifecycleDiagnosisTool } from '../src/control/inner-lifecycle-probe.js';
 
 test('status tool is parameterless, concurrency-safe and simply returns the runtime snapshot', async () => {
@@ -255,4 +255,29 @@ test('single-user chat memory probe tool forwards the exact phase request', asyn
   assert.equal(tool.isConcurrencySafe, false);
   assert.equal(await tool.execute({ phase: 'write' }), receipt);
   assert.deepEqual(calls, [{ action: 'runtime.probe-single-user-chat-memory', phase: 'write' }]);
+});
+
+test('model transport diagnostic tool executes exactly the bounded real-model probe', async () => {
+  const calls: unknown[] = [];
+  const receipt = { ok: true, status: 'ok', realModelCall: true, automaticRetry: false, businessPass: false };
+  const tool = modelTransportDiagnosticTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_diagnose_model_transport');
+  assert.equal(tool.isConcurrencySafe, false);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /真实模型调用/);
+  assert.match(tool.description, /0 自动重试/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.diagnose-model-transport' }]);
+});
+
+test('reply stream diagnostic tool executes exactly the read-only diagnostic command', async () => {
+  const calls: unknown[] = [];
+  const receipt = { found: true, status: 'failed', reasonCode: 'REPLY_FAILED', streamDiagnostic: { category: 'empty-provider-stream' } };
+  const tool = replyStreamDiagnosticTool({ command: async (input: unknown) => { calls.push(input); return receipt; } });
+  assert.equal(tool.name, 'shiyu_reply_stream_diagnostic');
+  assert.equal(tool.isConcurrencySafe, true);
+  assert.deepEqual(tool.parameters, { type: 'object', properties: {}, additionalProperties: false });
+  assert.match(tool.description, /零模型只读诊断/);
+  assert.equal(await tool.execute(), receipt);
+  assert.deepEqual(calls, [{ action: 'runtime.reply-stream-diagnostic' }]);
 });

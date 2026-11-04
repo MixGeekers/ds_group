@@ -1,0 +1,271 @@
+{
+  "schemaVersion": 1,
+  "kind": "model-transport-diagnostic",
+  "phase": "round19",
+  "capturedAt": "2026-11-04T00:34:55.973Z",
+  "status": "offline owner-only minimal REAL MODEL transport diagnostic prepared; implementer did NOT execute any real model/host call",
+  "realModelExecutedByImplementer": false,
+  "hostReloadsByImplementer": 0,
+  "realGoalCreatedByImplementer": false,
+  "explicitDeclaration": "This deliverable prepares an owner-only diagnostic command/tool. The command itself performs ONE real model call when the owner invokes it; nothing in this slice invoked it. Its failure/unknown result is terminal, is never auto-retried and is never a chat/business/nine-system pass.",
+  "head": "15d86eea46e76fb018947d9f746fdafc0b00f182",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/model-transport-diagnostic.ts",
+      "bytes": 24018,
+      "sha256": "7382a162961dbac9a6d8518c83a1e3adab34feee641c1cc2ea7fccfc4a8bfadc"
+    },
+    {
+      "path": "plugins/shiyu/tests/model-transport.test.ts",
+      "bytes": 9748,
+      "sha256": "215768e128d07aa93176d2b8533e847b0252dea91a0546cf7d924b9be2ab263e"
+    }
+  ],
+  "hostFacts": {
+    "source": "Lead-provided round-18/round-19 facts (implementer has no live host access and did not re-read them)",
+    "core": "the v6 bounded core Goal decision reached the real model request layer but the provider returned an empty stream (assistant/attempt streamLength=0) and the run was released",
+    "replyer": "the round-18 replyer path also observed assistant/attempt streamLength=0 and aborted; fixed replyer config provider=opencode-go, model=deepseek-v4.1-flash, reasoning effort=low, maxTokens=256, tools=[]",
+    "need": "one minimal real generation call is needed to distinguish a provider-wide empty-stream/transport problem from a request-shape problem in a specific session"
+  },
+  "commandAndTool": {
+    "action": "runtime.diagnose-model-transport",
+    "tool": "shiyu_diagnose_model_transport",
+    "fixedRequest": {
+      "provider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "reasoningEffort": "low",
+      "maxTokens": 8,
+      "turns": 1,
+      "automaticRetries": 0,
+      "promptSha256": "ef7e7ff96d04cdcdb9a405d5319bdc1b52adabc168eea9179dfc1352aad79231",
+      "promptPersisted": false
+    },
+    "admission": {
+      "ownerOnly": true,
+      "pausedRejected": true,
+      "singleExclusiveSlot": true,
+      "capacityChecked": true,
+      "abortable": true
+    },
+    "session": "one disposable bare native Session may be created; it is always cancelled, disposed and archived; no Goal/Task/Effect/budget/business-store fact is created",
+    "usage": "only provider-reported usage is recorded; missing usage stays unknown and is never zero-padded",
+    "explicitRealCall": "the owner tool description and evidence state that this is a REAL model call and not a chat/business acceptance test"
+  },
+  "classification": {
+    "categories": [
+      "ok",
+      "empty-provider-stream",
+      "transport",
+      "auth",
+      "request-shape",
+      "timeout",
+      "aborted",
+      "unknown"
+    ],
+    "rules": {
+      "ok": "non-empty assistant text received (chunks>0 and textBytes>0); records text sha256/bytes/chunks/usage",
+      "empty-provider-stream": "stream completed with zero chunks and no error; terminal, no automatic retry",
+      "transport": "controlled code/name patterns ENOTFOUND/ECONNRESET/ECONNREFUSED/EHOSTUNREACH/EPIPE/socket/network/fetch/TLS",
+      "auth": "controlled auth/401/403/api-key/credential patterns",
+      "request-shape": "controlled invalid/schema/400/422/tool/parameter patterns",
+      "timeout": "deadline expiry or controlled timeout pattern",
+      "aborted": "caller abort; before/after first chunk recorded",
+      "unknown": "anything else; provider internals are never guessed"
+    },
+    "receipt": {
+      "fields": [
+        "schemaVersion/kind/toolName",
+        "realModelCall:true",
+        "automaticRetry:false",
+        "businessPass:false",
+        "chatPass:false",
+        "status/ok",
+        "request{fixed provider/model/effort/maxTokens/messageCount/toolCount/promptSha256}",
+        "result{chunks,textBytes,textSha256?,usage}",
+        "error{category,code,name,label} for failures",
+        "session{createdSessionId?,released,disposed,archived,cleanup}",
+        "checks",
+        "startedAt/completedAt/durationMs"
+      ],
+      "bounds": "<= 16384 bytes, lossless plain JSON; controlled codes/names/labels only (labels <=80, no path); no prompt, response text, body or path persisted"
+    }
+  },
+  "integration": {
+    "patchPath": "plugins/shiyu/artifacts/dsh/model/model-transport-diagnostic.patch",
+    "patchBytes": 9175,
+    "patchSha256": "5da59272c45072f1d0f43dc2565a9aa6cd1e747419c8b720f8b01b10331a9b7d",
+    "patchLines": 121,
+    "touchedFiles": [
+      "plugins/shiyu/src/runtime.ts",
+      "plugins/shiyu/src/index.ts"
+    ],
+    "runtime": {
+      "action": "runtime.diagnose-model-transport",
+      "behavior": "paused/idle/single-slot/abort/0-retry admission; one call to diagnoseModelTransport; bounded receipt cached only in snapshot().diagnostics.modelTransportDiagnostic; no automatic retry, no business write"
+    },
+    "index": {
+      "tool": "shiyu_diagnose_model_transport",
+      "parameters": "none (empty object, additionalProperties false)",
+      "output": "object (additionalProperties true), JSON text render",
+      "descriptionRequirements": [
+        "明确这是一次真实模型调用",
+        "固定 replyer provider/model/effort low/maxTokens 8/单轮/单槽/可中止/0 自动重试",
+        "受控分类与有界回执，无正文/路径/提示词",
+        "失败或未知即终态，不自动重试，诊断结论不是聊天/业务/九系统通过"
+      ]
+    },
+    "validation": {
+      "patchAppliesToHead": "git apply --check exit 0 on a clean worktree at HEAD 15d86ee",
+      "typecheckWithSliceAndPatch": "npx tsc --noEmit exit 0 in an ephemeral worktree (HEAD + slice + patch)",
+      "buildWithSliceAndPatch": "npm run build exit 0; log sha256 0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  },
+  "tests": {
+    "focused": {
+      "command": "node --import tsx --test --test-concurrency=1 tests/model-transport.test.ts",
+      "log": {
+        "path": "plugins/shiyu/.local/h3/h19-focused.log",
+        "sha256": "c777d9fe24526bcd034f0e6a357b244fd01683e073ae77c564ca7cec45e427f3"
+      },
+      "tests": 10,
+      "pass": 10,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "noSkips": true,
+    "netNew": 10,
+    "covered": [
+      "ok path records text sha/bytes/chunks/usage and never prompt/text",
+      "empty provider stream (assistant/attempt length 0) is empty-provider-stream, never ok",
+      "transport error with controlled code is transport; no path/body leak",
+      "error without code is unknown and raw text is redacted",
+      "auth and request-shape classification from controlled status codes",
+      "abort before/after first chunk and timeout are distinct classifications",
+      "missing usage stays unknown (never zero-padded)",
+      "receipt validator rejects unbounded/leaky/inconsistent mutations",
+      "owner admission helper enforces paused/single-slot/capacity",
+      "pure classification contract (only ok requires non-empty assistant text)"
+    ]
+  },
+  "verification": {
+    "isolatedFullCheck": {
+      "command": "node plugins/shiyu/scripts/slice-verify.mjs --slice model-transport-diagnostic --manifest plugins/shiyu/.local/h3-h19-manifest.json --timeout-ms 5000000",
+      "head": "15d86eea46e76fb018947d9f746fdafc0b00f182",
+      "files": [
+        {
+          "path": "plugins/shiyu/src/control/model-transport-diagnostic.ts",
+          "bytes": 24018,
+          "sha256": "7382a162961dbac9a6d8518c83a1e3adab34feee641c1cc2ea7fccfc4a8bfadc"
+        },
+        {
+          "path": "plugins/shiyu/tests/model-transport.test.ts",
+          "bytes": 9748,
+          "sha256": "215768e128d07aa93176d2b8533e847b0252dea91a0546cf7d924b9be2ab263e"
+        }
+      ],
+      "exitCode": 0,
+      "signal": null,
+      "tests": {
+        "tests": 1817,
+        "pass": 1817,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      },
+      "durationMs": 2679283,
+      "log": {
+        "path": "plugins/shiyu/.local/slice-verify-model-transport-diagnostic.log",
+        "bytes": 190678,
+        "sha256": "f10450e6bf4a541a34b3d6df8648d332099922fa570fe316da19664b2cb07a0b"
+      },
+      "evidence": {
+        "path": "plugins/shiyu/artifacts/dsh/slices/model-transport-diagnostic-verify.json",
+        "sha256": "9a7de46c0aa052b022d0a2edfbcea6a60b1020ad997b67e8e8e7f8765304ef4e"
+      }
+    },
+    "mainTreeTypecheck": "npx tsc --noEmit exit 0 (excluding unrelated concurrent WIP files)",
+    "noRealModelByImplementer": true
+  },
+  "hostKit": {
+    "kitVersion": 1,
+    "status": "frozen; running this diagnostic is a REAL model call and an explicit owner decision",
+    "ownerDecisionStatement": "I explicitly decide to run ONE owner-only minimal REAL MODEL transport diagnostic call with the fixed replyer provider/model/effort low/maxTokens 8 and accept that it consumes real model usage. This is not a retry of any failed core/replyer turn and its result is not a chat/business acceptance.",
+    "preconditions": [
+      "integrate this slice + the runtime/index patch and record the resulting build/commit digest",
+      "runtime unpaused and idle (a single probe slot; no queued Task admission); the command rejects otherwise before any call",
+      "capture a before-audit: runtime state/paused, active operations, model config, budget counters, Session counts/files",
+      "accept the declared real model call; no automatic retry will happen"
+    ],
+    "invocation": {
+      "action": "runtime.diagnose-model-transport",
+      "tool": "shiyu_diagnose_model_transport",
+      "parameters": "none",
+      "expectedOutput": "bounded receipt cached only in snapshot().diagnostics.modelTransportDiagnostic; no business/cached chat result"
+    },
+    "expectedReceiptFields": [
+      "realModelCall:true",
+      "automaticRetry:false",
+      "businessPass:false",
+      "chatPass:false",
+      "status/ok",
+      "request fixed provider=opencode-go/model=deepseek-v4.1-flash/effort=low/maxTokens=8/promptSha256",
+      "result{chunks,textBytes,textSha256?,usage{status reported|unknown}}",
+      "error{category,code,name,label} when not ok",
+      "session{released,disposed,archived,cleanup{ok,failures}} if a Session was created",
+      "checks",
+      "timestamps/durationMs"
+    ],
+    "interpretation": {
+      "ok": "provider returns non-empty assistant text: provider transport works for this minimal request; a failed replyer/core turn is not explained by a provider-wide empty stream and needs request-shape/session-path investigation",
+      "empty-provider-stream": "provider accepted the request but emitted no chunks: consistent with a provider-wide empty-stream condition; terminal, do NOT auto-retry",
+      "transport": "transport/network failure; terminal, capture receipt and stop",
+      "auth": "authorization/credential failure; terminal, do not retry blindly",
+      "request-shape": "the minimal request shape itself was rejected (model/tool/maxTokens/context); inspect request config before any other experiment",
+      "timeout": "deadline expired; terminal, no auto retry",
+      "aborted": "owner/caller abort; terminal",
+      "unknown": "unclassified; terminal, capture controlled label and stop"
+    },
+    "failureAndCleanupRules": [
+      "failure/unknown is terminal: NO automatic retry; any further real call is a new explicit owner decision",
+      "the disposable Session (if created) must be cancelled/disposed/archived; receipt cleanup.ok=false means report the controlled failure codes and leftover Session, do not silently delete",
+      "no Goal/Task/Effect/budget/business-store fact may be created; confirm the before/after audit",
+      "do NOT treat any result (including ok) as chat, business, V25 or nine-system acceptance; it only diagnoses the minimal model transport"
+    ],
+    "afterRunAudit": [
+      "record dist/commit digest, exact receipt JSON, Session inventory/hash delta and usage if reported",
+      "confirm no business/Goal/Task/Effect write and no automatic retry occurred"
+    ]
+  },
+  "failures": [],
+  "untestedOrBoundaries": [
+    "no real model/host call was executed by the implementer; all branches are validated through the injected fake transport interface",
+    "the production host-session transport path is compiled and integrated in the runtime/index patch but not host-executed in this slice",
+    "a real invocation is a real model call and must be treated as such by the owner",
+    "the diagnostic result is never a chat/business/nine-system pass; failures are terminal without automatic retry",
+    "the runtime/index patch is provided but not applied here (write scope excludes runtime.ts/index.ts)"
+  ],
+  "evidenceFiles": [
+    {
+      "path": "plugins/shiyu/artifacts/dsh/model/model-transport-diagnostic.patch",
+      "sha256": "5da59272c45072f1d0f43dc2565a9aa6cd1e747419c8b720f8b01b10331a9b7d",
+      "bytes": 9175
+    },
+    {
+      "path": "plugins/shiyu/artifacts/dsh/slices/model-transport-diagnostic-verify.json",
+      "sha256": "9a7de46c0aa052b022d0a2edfbcea6a60b1020ad997b67e8e8e7f8765304ef4e"
+    },
+    {
+      "path": "plugins/shiyu/.local/slice-verify-model-transport-diagnostic.log",
+      "sha256": "f10450e6bf4a541a34b3d6df8648d332099922fa570fe316da19664b2cb07a0b"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h19-focused.log",
+      "sha256": "c777d9fe24526bcd034f0e6a357b244fd01683e073ae77c564ca7cec45e427f3"
+    },
+    {
+      "path": "plugins/shiyu/.local/h3/h19-integration-build.log",
+      "sha256": "0e3dced82bc6d12165e16f4678f1fe9180e523b5589a819fe2516eda1ccbc824"
+    }
+  ]
+}

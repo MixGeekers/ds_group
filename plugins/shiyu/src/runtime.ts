@@ -51,10 +51,12 @@ import { probeCheckpointAvailability } from './recovery/checkpoint-probe.js';
 import { TaskWorkspaceCoordinator, type TaskExecutionPlan } from './control/task-workspace.js';
 import { computeMemoryReadiness, type MemoryReadiness } from './adapters/ombre/readiness.js';
 import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
+import { validateReplyStreamDiagnostic, type ReplyStreamDiagnostic } from './control/local-reply-stream-diag.js';
 import { CHAT_MEMORY_PROBE_ACTION, runChatMemoryRecallPhase, runChatMemoryWritePhase, type ChatMemoryProbeReceipt } from './control/chat-memory-probe.js';
 import { StartupEmbeddingVerifier, type StartupEmbeddingResult } from './control/startup-embedding-verifier.js';
 import { EMOTION_PROBE_ACTION, RuntimeEmotionContinuationProbeCommand, type EmotionProbeReceipt } from './adapters/control-store/emotion-continuation-probe.js';
 import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6, CORE_VALIDATION_EXPERIMENT_V7 } from './control/core-validation.js';
+import { assertModelTransportAdmission, diagnoseModelTransport, type ModelTransportDiagnosticReceipt } from './control/model-transport-diagnostic.js';
 import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, type NativeHeaderCutProbeReceipt } from './control/native-header-cut-probe.js';
 import { CORE_GOAL_PRESET_ID } from './adapters/dsh/goals.js';
 import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
@@ -185,6 +187,7 @@ export class RuntimeService {
   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
   private lastCoreGoalValidation?: CoreValidationReceipt;
+  private lastModelTransportDiagnostic: ModelTransportDiagnosticReceipt | null = null;
   private lastNativeHeaderCutProbe: NativeHeaderCutProbeReceipt | null = null;
   private lastCoreValidationReconcile?: CoreValidationReconcileReceipt;
   private lastTimeSourceProbe?: TimeSourceProbeResult;
@@ -888,6 +891,41 @@ export class RuntimeService {
       throw error;
     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
   }
+  /**
+   * Owner-only MINIMAL REAL MODEL TRANSPORT diagnostic. One bounded real
+   * generation call with the fixed replyer provider/model/reasoning effort,
+   * maxTokens 8, one turn and one runtime slot. It persists no prompt/response
+   * text, creates no Goal/Task/Effect/business fact and never retries; a
+   * failed/unknown result is terminal and is never a chat/business pass. It may
+   * create and release/archive one disposable native Session. The bounded receipt
+   * is cached only in snapshot().diagnostics.modelTransportDiagnostic.
+   */
+  private async commandModelTransportDiagnostic(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid model transport diagnostic input');
+    this.ensureCanRun(); signal?.throwIfAborted();
+    if (!this.ctx) throw new Error('MODEL_TRANSPORT_UNAVAILABLE');
+    if ([...this.operations.values()].some(op => op.phase === 'model transport diagnostic')) {
+      throw new Error('Model transport diagnostic is already running');
+    }
+    assertModelTransportAdmission({ paused: this.state.state.paused, operations: this.operations.size,
+      capacity: 1, sameActionRunning: false });
+    let finish!: () => void;
+    const done = new Promise<void>(resolve => { finish = resolve; });
+    const op: ActiveOperation = { id: randomUUID(), title: '模型传输最小真实诊断', phase: 'model transport diagnostic',
+      status: 'running', controller: new AbortController(), done, finish };
+    const onAbort = () => op.controller.abort(signal?.reason);
+    signal?.addEventListener('abort', onAbort, { once: true });
+    this.operations.set(op.id, op);
+    try {
+      const receipt = await diagnoseModelTransport({ ctx: this.ctx, cwd: path.join(this.dataDir, 'workspaces'),
+        signal: op.controller.signal });
+      this.lastModelTransportDiagnostic = structuredClone(receipt);
+      return receipt;
+    } catch (error) {
+      this.lastFailure = error instanceof Error ? error.message : String(error);
+      throw error;
+    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+  }
   private async commandCoreValidationReconcile(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
     if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core-validation reconcile input');
     this.ensureCanRun(); signal?.throwIfAborted();
@@ -1031,6 +1069,7 @@ export class RuntimeService {
         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
         coreGoalValidation: this.lastCoreGoalValidation ? structuredClone(this.lastCoreGoalValidation) : null,
+        modelTransportDiagnostic: this.lastModelTransportDiagnostic ? structuredClone(this.lastModelTransportDiagnostic) : null,
         nativeHeaderCutProbe: this.lastNativeHeaderCutProbe ? structuredClone(this.lastNativeHeaderCutProbe) : null,
         coreValidationReconcile: this.lastCoreValidationReconcile ? structuredClone(this.lastCoreValidationReconcile) : null,
         timeSource: this.timePump ? this.timePump.snapshot() : null,
@@ -1097,9 +1136,11 @@ export class RuntimeService {
     if (action === 'runtime.probe-core-goal-v5') return this.commandCoreGoalValidationV5(value, signal);
     if (action === 'runtime.probe-core-goal-v6') return this.commandCoreGoalValidationV6(value, signal);
     if (action === 'runtime.probe-core-goal-v7') return this.commandCoreGoalValidationV7(value, signal);
+    if (action === 'runtime.diagnose-model-transport') return this.commandModelTransportDiagnostic(value, signal);
     if (action === 'runtime.probe-native-header-cut') return this.commandNativeHeaderCutProbe(value, signal);
     if (action === 'runtime.probe-memory-embedding') return this.commandMemoryEmbeddingProbe(value, signal);
     if (action === CHAT_MEMORY_PROBE_ACTION) return this.commandChatMemoryProbe(value, signal);
+    if (action === 'runtime.reply-stream-diagnostic') return this.commandReplyStreamDiagnostic();
     if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);
     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);
@@ -1290,6 +1331,30 @@ export class RuntimeService {
     const receipt = await this.emotionProbeCommand.handle(value, signal);
     this.lastFailure = undefined;
     return receipt;
+  }
+
+  /** Owner-only read-only diagnostic for the latest local reply operation.
+   * It only reads the persisted control record and never generates, retries or
+   * exposes provider text; a missing/corrupt diagnostic is reported explicitly. */
+  private async commandReplyStreamDiagnostic(): Promise<unknown> {
+    this.ensureOpen();
+    const snapshot = await this.store.request('conversation.snapshotLocal', {}) as {
+      conversations?: Array<{ conversationId?: string; latestReply?: { operationId?: string; updatedAt?: string } }> };
+    const conversations = Array.isArray(snapshot?.conversations) ? snapshot.conversations : [];
+    const latest = conversations.filter(item => typeof item.latestReply?.operationId === 'string')
+      .sort((left, right) => String(right.latestReply?.updatedAt ?? '').localeCompare(String(left.latestReply?.updatedAt ?? '')))[0];
+    if (!latest?.latestReply?.operationId) return { found: false, reasonCode: 'NO_LOCAL_REPLY' };
+    const operationId = latest.latestReply.operationId;
+    const operation = await this.store.request('conversation.reply.get', { operationId }) as {
+      operationId: string; status: string; reasonCode?: string; streamDiagnostic?: unknown; updatedAt?: string };
+    let streamDiagnostic: ReplyStreamDiagnostic | undefined;
+    if (operation.streamDiagnostic !== undefined) {
+      try { streamDiagnostic = validateReplyStreamDiagnostic(operation.streamDiagnostic); }
+      catch { return { found: true, conversationId: latest.conversationId ?? null, operationId, status: operation.status,
+        reasonCode: operation.reasonCode ?? null, corruptDiagnostic: true, capturedAt: new Date().toISOString() }; }
+    }
+    return { found: true, conversationId: latest.conversationId ?? null, operationId, status: operation.status,
+      reasonCode: operation.reasonCode ?? null, ...(streamDiagnostic ? { streamDiagnostic } : {}), capturedAt: new Date().toISOString() };
   }
 
   private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {

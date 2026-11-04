@@ -12,7 +12,8 @@ import type { ContextLoadRequest, ContextLoadResult } from '../src/adapters/dsh/
 import { SHIYU_EVENT_TYPES } from '../src/contracts/events.js';
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
 import { installCommitWatermark } from '../src/adapters/control-store/commit-watermark.js';
-import { LocalReplyService, INNER_REFERENCE_MARKER, INNER_REFERENCE_POLICY, buildInnerReference, type LocalReplyOptions, type LocalReplySessionDriver } from '../src/control/local-reply.js';
+import { LocalReplyService, LocalReplyFailure, INNER_REFERENCE_MARKER, INNER_REFERENCE_POLICY, buildInnerReference, type LocalReplyOptions, type LocalReplySessionDriver } from '../src/control/local-reply.js';
+import { ReplyGenerationFailure, replyGenerationFacts, replyStreamDiagnosticFromGeneration, type ReplyStreamDiagnostic } from '../src/control/local-reply-stream-diag.js';
 import { innerCaptureHash, type InnerCapture, type InnerRecordMetadata } from '../src/contracts/inner.js';
 import type { LocalViewCapture } from '../src/adapters/control-store/view-domain.js';
 
@@ -663,4 +664,52 @@ test('a Lab permit reply also carries the bounded inner reference and explicit p
   assert.ok(sources); assert.notEqual(sources.captureId, result.operation.captureId);
   assert.equal(JSON.stringify(sources).includes('Lab别名-BETA'), false);
   assert.equal(result.operation.innerSources!.domains.find(domain => domain.domain === 'personality')!.status, 'included');
+});
+
+const controlledEmptyStream = (): ReplyStreamDiagnostic => replyStreamDiagnosticFromGeneration({
+  error: new Error('Context-safe reply cancelled or expired'), facts: replyGenerationFacts([{ type: 'assistant/attempt', data: { streamLength: 0 } }]),
+  timedOut: false, externallyAborted: false, operationAborted: false, turnError: 'Context-safe reply cancelled or expired', elapsedMs: 18,
+});
+
+test('a generation failure persists the controlled stream diagnostic and never retries', async t => {
+  const f = await fixture(t), diagnostic = controlledEmptyStream(); let calls = 0;
+  f.native.generateReply = async () => { calls++; throw new ReplyGenerationFailure('Context-safe reply cancelled or expired', diagnostic); };
+  let failure: LocalReplyFailure | undefined;
+  try { await f.run('stream-diagnostic-empty'); } catch (error) { failure = error as LocalReplyFailure; }
+  assert.ok(failure instanceof LocalReplyFailure);
+  assert.equal(calls, 1); // exactly one generation attempt, no automatic retry
+  assert.deepEqual(failure!.streamDiagnostic, diagnostic);
+  const operation = (await f.store.request('conversation.reply.get', { operationId: failure!.operationId })) as { reasonCode?: string; streamDiagnostic?: ReplyStreamDiagnostic; status: string };
+  assert.equal(operation.reasonCode, 'REPLY_EMPTY_PROVIDER_STREAM');
+  assert.equal(operation.streamDiagnostic?.category, 'empty-provider-stream');
+  assert.equal(operation.streamDiagnostic?.chunks, 0);
+  const serialized = JSON.stringify(operation);
+  assert.equal(serialized.includes('Context-safe reply cancelled'), false); // no provider/turn text persisted
+  assert.ok(Buffer.byteLength(JSON.stringify(operation.streamDiagnostic), 'utf8') <= 400);
+});
+
+test('a failure with no controlled diagnostic keeps REPLY_FAILED and fabricates nothing', async t => {
+  const f = await fixture(t), diagnostic = controlledEmptyStream(); let calls = 0;
+  f.native.generateReply = async () => { calls++; throw new Error('provider body must not persist'); };
+  let failure: LocalReplyFailure | undefined;
+  try { await f.run('stream-diagnostic-none'); } catch (error) { failure = error as LocalReplyFailure; }
+  assert.ok(failure instanceof LocalReplyFailure); assert.equal(calls, 1);
+  assert.equal(failure!.streamDiagnostic, undefined);
+  const operation = (await f.store.request('conversation.reply.get', { operationId: failure!.operationId })) as { reasonCode?: string; streamDiagnostic?: ReplyStreamDiagnostic };
+  assert.equal(operation.reasonCode, 'REPLY_FAILED'); assert.equal(operation.streamDiagnostic, undefined);
+  assert.equal(JSON.stringify(operation).includes('provider body must not persist'), false);
+  void diagnostic;
+});
+
+test('an aborted-before-first-chunk generation is persisted as an explicit abort category', async t => {
+  const f = await fixture(t);
+  const diagnostic = replyStreamDiagnosticFromGeneration({ error: new Error('aborted'), facts: replyGenerationFacts([]),
+    timedOut: false, externallyAborted: true, operationAborted: true });
+  f.native.generateReply = async () => { throw new ReplyGenerationFailure('aborted', diagnostic); };
+  let failure: LocalReplyFailure | undefined;
+  try { await f.run('stream-diagnostic-abort'); } catch (error) { failure = error as LocalReplyFailure; }
+  assert.ok(failure instanceof LocalReplyFailure);
+  assert.equal(failure!.streamDiagnostic?.category, 'aborted-before-first-chunk');
+  const operation = (await f.store.request('conversation.reply.get', { operationId: failure!.operationId })) as { reasonCode?: string };
+  assert.equal(operation.reasonCode, 'REPLY_ABORTED_BEFORE_FIRST_CHUNK');
 });

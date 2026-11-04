@@ -2,6 +2,8 @@ import { RuntimeService } from './runtime.js';
 import { emotionContinuationDiagnosisTool } from './adapters/control-store/emotion-continuation-probe.js';
 export { emotionContinuationDiagnosisTool };
 import { innerLifecycleDiagnosisTool } from './control/inner-lifecycle-probe.js';
+import { replyStreamDiagnosticTool } from './control/local-reply-stream-diag.js';
+export { replyStreamDiagnosticTool };
 import { singleUserChatMemoryProbeTool } from './control/chat-memory-probe.js';
 export { singleUserChatMemoryProbeTool };
 import type { RuntimeConfig } from './runtime.js';
@@ -305,6 +307,29 @@ export function coreGoalValidationV7Tool(service: { command(input: unknown): Pro
   } as const;
 }
 
+/**
+ * Owner-only MINIMAL REAL MODEL TRANSPORT diagnostic. This performs ONE real
+ * bounded model generation call (fixed replyer provider/model/reasoning effort,
+ * maxTokens 8, one turn) to distinguish an empty provider stream / transport /
+ * auth / request-shape / timeout failure from a broader provider outage. It
+ * returns only controlled classification, counts, hashes and usage; no prompt or
+ * response text is persisted. It never retries automatically and its result is
+ * NEVER a chat/business/nine-system pass.
+ */
+export function modelTransportDiagnosticTool(service: { command(input: unknown): Promise<unknown> }) {
+  return {
+    name: 'shiyu_diagnose_model_transport',
+    description: '最小真实模型传输诊断（owner-only，**这是一次真实模型调用**）：使用固定 replyer provider/model/reasoning effort low、maxTokens 8、单轮、单槽、可中止、0 自动重试，执行一次极小生成以区分 ok/empty-provider-stream/transport/auth/request-shape/timeout/aborted/unknown；不写业务库、不创建 Goal/Task/Effect/business 事实（允许一个一次性原生 Session 并在结束后释放/归档）；回执仅含受控分类/code/name/label、chunk 数、文本 sha/bytes、usage（缺失=unknown），无正文/路径/提示词；失败或未知即为终态，不自动重试；诊断结论不得当作聊天、业务或九系统通过；回执仅存 snapshot().diagnostics.modelTransportDiagnostic。',
+    parameters: { type: 'object', properties: {}, additionalProperties: false },
+    isConcurrencySafe: false,
+    execute: async () => service.command({ action: 'runtime.diagnose-model-transport' }),
+    output: {
+      schema: { type: 'object', additionalProperties: true },
+      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
+    },
+  } as const;
+}
+
 export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {
   return {
     name: 'shiyu_validate_core_goal',
@@ -379,6 +404,8 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   ctx.effect(() => ctx.tools.register(coreGoalValidationV5Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV6Tool(service)));
   ctx.effect(() => ctx.tools.register(coreGoalValidationV7Tool(service)));
+  // Minimal REAL model transport diagnostic: one bounded generation call, no business pass.
+  ctx.effect(() => ctx.tools.register(modelTransportDiagnosticTool(service)));
   // Owner-only one-shot embedding verification; no generation model, no retry.
   ctx.effect(() => ctx.tools.register(memoryEmbeddingProbeTool(service)));
   // Owner-only zero-model emotion-continuation diagnosis; private :memory: store.
@@ -393,6 +420,7 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private
   // :memory: store, never opens the live control database and never calls a model.
   ctx.effect(() => ctx.tools.register(innerLifecycleDiagnosisTool(service)));
+  ctx.effect(() => ctx.tools.register(replyStreamDiagnosticTool(service)));
   // P0 round-18: two-phase single-user chat-memory verification (real local reply, <=2 calls total).
   ctx.effect(() => ctx.tools.register(singleUserChatMemoryProbeTool(service)));
   ctx.effect(() => ctx.tools.register(timeTriggerDiagnosisTool(service)));

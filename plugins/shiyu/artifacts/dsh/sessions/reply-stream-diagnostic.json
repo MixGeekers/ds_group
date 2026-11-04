@@ -1,0 +1,187 @@
+{
+  "slice": "P0 round-19：本地回复失败可观察性（empty-provider-stream 受控诊断，H2x）",
+  "recordedAt": "2026-11-03T20:45:53-04:00",
+  "workspace": "plugins/shiyu",
+  "status": "离线/集成通过：13 个新测试全部通过（定向 67/67），隔离 worktree 全量 1820/1820 pass、0 fail/0 skip；runtime/index 只读诊断命令/工具以精确 patch 交付并验证 tsc/build。真实宿主失败现场取证待 Lead 部署后执行——本文件不宣称宿主通过。",
+  "baseline": {
+    "head": "15d86ee",
+    "note": "隔离 worktree /tmp/shiyu-replydiag 仅含本切片 7 文件（4 源 + 3 测试）；runtime.ts/index.ts 未改，读诊断接口以 patch 交付。"
+  },
+  "implementation": {
+    "files": [
+      {
+        "path": "plugins/shiyu/src/control/local-reply-stream-diag.ts",
+        "sha256": "5cfe7069ccaef12d45dc66cb4774e8f15b137d826b8e936caa4d8f7ba800b47c",
+        "bytes": 11779,
+        "lines": 173
+      },
+      {
+        "path": "plugins/shiyu/src/control/local-reply.ts",
+        "sha256": "8923f5a4bc900706db471a7332e3b031d8c02b3408c5d3ff57f5b1004057ac79",
+        "bytes": 38858,
+        "lines": 502
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/control-store/local-reply-domain.ts",
+        "sha256": "eb05c4c64bf97318802fe4dbad5c9c03ee45eb189f93aae8cd4bcf48d5faa535",
+        "bytes": 42758,
+        "lines": 516
+      },
+      {
+        "path": "plugins/shiyu/src/adapters/dsh/sessions.ts",
+        "sha256": "9ed3c00de10ab5e8b0f11dbb291e4f22150c6a844e3a9eee1b8dd545dc9178cc",
+        "bytes": 81331,
+        "lines": 1228
+      },
+      {
+        "path": "plugins/shiyu/tests/sessions-stream-diagnostic.test.ts",
+        "sha256": "7adf701291712f068d954c00259b11df4c96cdea6682bd4c4cb14db645c9dbf5",
+        "bytes": 7117,
+        "lines": 96
+      },
+      {
+        "path": "plugins/shiyu/tests/local-reply-domain.test.ts",
+        "sha256": "5b04786b6b9837472ff4ae4abdebfb850ea4085f109191b70a7c2b30e116a635",
+        "bytes": 36019,
+        "lines": 438
+      },
+      {
+        "path": "plugins/shiyu/tests/local-reply.test.ts",
+        "sha256": "2cd2224d55a51505c01f707be6651a132c17fad234888d32ffdfb1ed1061b901",
+        "bytes": 58284,
+        "lines": 715
+      },
+      {
+        "path": "plugins/shiyu/artifacts/dsh/sessions/reply-stream-diagnostic.patch.diff",
+        "sha256": "11907b2d6b196aff176b7d7cecdcd1204b637db8418e2a0fde1790e6a55b6d2e",
+        "bytes": 5137,
+        "lines": 67
+      }
+    ],
+    "session_capture": {
+      "where": "src/adapters/dsh/sessions.ts 的 replyer generation 路径（generateReply 与 generateContextReply 的 catch；只读诊断，不改变状态机/重试）",
+      "facts": "从本轮 observed/context events 提取受控事实：assistant/attempt 的 streamLength 列表（≤8，越界归零）、assistant/message 计数、chunks（stream 长度和+assistant 消息数，封顶 1e6）、firstChunkSeen；timer 超时标志、外部/内部 abort、turnError（仅用于分类，不持久化）。",
+      "failure": "生成失败包装为 ReplyGenerationFailure（保留原 message 供既有内存诊断；持久层不使用 message）；无生成重试。"
+    },
+    "classification": {
+      "module": "src/control/local-reply-stream-diag.ts",
+      "categories": [
+        "empty-provider-stream",
+        "transport",
+        "auth",
+        "request-shape",
+        "timeout",
+        "aborted-before-first-chunk",
+        "aborted-after-first-chunk",
+        "unknown"
+      ],
+      "order": "timeout > abort(before/after first chunk) > auth > transport > request-shape > 零 chunk 空 stream > unknown；只使用受控 code/name/signal/chunk 事实与有界 turn label，不解析 provider 正文；host round-18 现场（assistant/attempt streamLength=0 + “Context-safe reply cancelled or expired”）→ empty-provider-stream。",
+      "bounded": "diagnostic ≤400B：category/code/name/chunks/attemptStreamLengths(≤8)/assistantMessages/abort/timeout/label/elapsedMs；label=category[:CODE]；validator 拒绝未知字段/坏枚举/越界值/超长/路径或 Bearer/sk- 等敏感串回显。",
+      "reasonCode": "REPLY_EMPTY_PROVIDER_STREAM / REPLY_TRANSPORT / REPLY_AUTH / REPLY_REQUEST_SHAPE / REPLY_TIMEOUT / REPLY_ABORTED_BEFORE_FIRST_CHUNK / REPLY_ABORTED_AFTER_FIRST_CHUNK / REPLY_FAILED。"
+    },
+    "persistence": {
+      "service": "src/control/local-reply.ts catch 从异常读取已验证 diagnostic，映射 reasonCode，写 conversation.reply.fail（含 streamDiagnostic），LocalReplyFailure 暴露 diagnostic；不改变 0 自动重试。",
+      "domain": "src/adapters/control-store/local-reply-domain.ts fail 支持可选 streamDiagnostic（严格校验）；首次终态 reason 保留：operation 已 failed/cancelled/unknown 或已 ready/loaded 时后续 fail 不覆盖、不丢首个 diagnostic；持久 JSON 无 provider 正文/提示词/路径。",
+      "read_only_patch": "artifacts/dsh/sessions/reply-stream-diagnostic.patch.diff：owner-only 只读命令 runtime.reply-stream-diagnostic + 工具 shiyu_reply_stream_diagnostic（无参，零生成/零重试）；读取最近本地回复 operation 的 status/reasonCode/streamDiagnostic；diagnostic 缺失或损坏显式返回；已应用验证 tsc/build。"
+    }
+  },
+  "verification": {
+    "isolatedWorktree": {
+      "path": "/tmp/shiyu-replydiag",
+      "head": "15d86ee",
+      "method": "git worktree --detach 15d86ee + 本切片 7 文件；node_modules/.local/ombre symlink",
+      "command": "cd /tmp/shiyu-replydiag/plugins/shiyu && npm run check",
+      "exitCode": 0,
+      "typecheck": "pass",
+      "tests": 1820,
+      "pass": 1820,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "durationMs": 2581299,
+      "build": "pass",
+      "clientSyntax": "pass",
+      "log": {
+        "path": "plugins/shiyu/.local/replydiag-check-final.log",
+        "sha256": "b136cb9f849cf3104b5a77d0034464371552cddcdeeea54be25b087448d0ea63",
+        "bytes": 191122
+      }
+    },
+    "targeted": {
+      "files": [
+        "tests/sessions-stream-diagnostic.test.ts（7）",
+        "tests/local-reply-domain.test.ts（新增 3，含既有共 41）",
+        "tests/local-reply.test.ts（新增 3，含既有共 19）"
+      ],
+      "newTests": 13,
+      "run": "3 files → 67/67 pass",
+      "log": {
+        "path": "plugins/shiyu/.local/replydiag-targeted.log",
+        "sha256": "2330e51ab54f50a97cbe1c48396589b0ea0fa71dbb55c21db6fb1c042fc74aed",
+        "bytes": 7456
+      }
+    },
+    "runtimePatchCheck": {
+      "worktree": "/tmp/replydiag-checkbase（HEAD 15d86ee + 本切片 + 只读 patch）",
+      "command": "tsc --noEmit && tsc -p tsconfig.build.json",
+      "result": "pass",
+      "log": {
+        "path": "plugins/shiyu/.local/replydiag-runtime-patch-check.log",
+        "sha256": "2797e3215c4f5d89d6af508b3a9ad8e61f9fe9ccf1dee7e926cae9ec2eaf744d",
+        "bytes": 132
+      }
+    },
+    "testArithmetic": "HEAD 15d86ee 基线 1807 + 新增 13 = 1820（worktree 单批；0 fail/0 skip）"
+  },
+  "strictOracle": {
+    "new_tests": [
+      "空 stream：attempt streamLength=0 + Context-safe turn label → empty-provider-stream / REPLY_EMPTY_PROVIDER_STREAM；chunks=0、label 受控。",
+      "facts：assistant/attempt 长度与 assistant/message 计数提取、越界归零、attempt 列表有界。",
+      "有 code 抛错：ECONNRESET→transport、401→auth、422→request-shape、ETIMEDOUT/timeout flag→timeout、未知→unknown；reasonCode 映射。",
+      "首块前/后 abort：分别生成 aborted-before/after-first-chunk；timeout 优先且不误报 abort。",
+      "无泄露/有界：含 Bearer/sk-/路径/prompt/工具参数 provider 正文错误 → diagnostic 不含任何原文，≤400B。",
+      "validator 突变拒绝：坏 category/未知字段/负 chunks/超长 attempts/路径 label/越界计数均抛错。",
+      "持久 reason+diagnostic：domain fail 后 conversation.reply.get 可读回；重复 fail 保留首次终态与 diagnostic；ready 后迟到 fail 不覆盖。",
+      "服务路径：LocalReplyService 捕获 diagnostic → operation 持久 REPLY_EMPTY_PROVIDER_STREAM + streamDiagnostic，provider 文本不持久，生成恰 1 次（0 自动重试）；无 diagnostic 时保持 REPLY_FAILED 且不伪造。",
+      "aborted-before-first-chunk 服务路径持久映射正确。"
+    ]
+  },
+  "hostKit": {
+    "status": "待真实宿主（本切片禁止真实模型/宿主 reload；Lead 部署后可执行）",
+    "prerequisites": [
+      "构建并部署本切片（含 ReplyGenerationFailure/diagnostic 持久化）；可选应用 artifacts/dsh/sessions/reply-stream-diagnostic.patch.diff 以获得 owner-only 只读查看命令/工具；一次有序 reload。",
+      "准备一次可复现的本地回复失败现场（最直接为 round-18 chat-memory write#2：replyer request/header 后 assistant/attempt streamLength=0、turn aborted；不可强行重试，0 自动重试原则不变）。"
+    ],
+    "steps": [
+      "1. 复现/等待一次真实本地回复失败（不重试）；记录 Session events：request/header、assistant/attempt streamLength、turn/end 原因、operationId。",
+      "2. 立即调用 shiyu_reply_stream_diagnostic（无参数；或 owner POST /api/shiyu/commands {\"action\":\"runtime.reply-stream-diagnostic\"}）；不要在失败后再发起新的成功回复以免 latest 被覆盖。",
+      "3. 严格判读：found=true、status=failed|unknown、reasonCode 与现场一致（empty stream 期望 REPLY_EMPTY_PROVIDER_STREAM）、streamDiagnostic.category=empty-provider-stream、chunks=0、attemptStreamLengths 含 0、label 受控、elapsedMs/abort flags 合理；diagnostic JSON ≤400B 且不含 provider 正文/路径/提示词/工具参数。",
+      "4. 审计：查看命令前后 control commitSeq/stateVersion 不变（只读）；无新模型/embedding 调用；原失败终态未被改写；无自动重试（Session 无新增 attempt/usage）。",
+      "5. 对照：若现场是 transport/auth/timeout/abort，则 reasonCode/diagnostic 分别映射正确；若 diagnostic 缺失/损坏，命令显式返回 corruptDiagnostic 而非猜测。",
+      "6. 保存：diagnostic 命令回执 JSON sha256/bytes、对应 Session 事件摘要（hash/计数，不含正文）、reasonCode/diagnostic、前后审计与 reload 实例 ID。"
+    ],
+    "evidenceToCapture": [
+      "失败 operationId 与 Session event 计数/streamLength/turn end 原因（bounded）",
+      "诊断命令回执 JSON 原文 sha256/bytes",
+      "前后 control commitSeq/stateVersion 与用量（应无新增生成）",
+      "「首次原因保留」重查结果（再次读取同一 operation 不变）",
+      "边界：诊断可观察≠修复 provider/空 stream；不改变 0 重试与失败终态"
+    ],
+    "acceptanceBoundary": "通过仅证明：固定宿主上一次真实回复失败被持久为受控 reasonCode+streamDiagnostic，且可按严格分类判读/无泄露/只读；不证明 provider 空 stream 根因修复、生成质量、业务成功或“模型记得/不记得”。"
+  },
+  "evidenceLevel": "G1 模块/集成测试（伪 session/真实 Worker 域；无真实模型/embedding）；宿主失败现场取证需 Lead 部署后执行。",
+  "failures": [],
+  "boundaries": [
+    "未改 runtime.ts/index.ts（只读查看接口以 patch 交付）；未 git 提交、未真实模型/embedding、未宿主 reload。",
+    "诊断只从已观测事实分类；不解析/不持久化 provider 正文、提示词、工具参数、路径；不猜测根因。",
+    "分类是受控标签而非 provider 语义：empty-provider-stream 表示“零 chunk 后结束/取消”，不等同于上游 bug 根因。",
+    "首次终态/unknown 原因保留：后续迟到失败不能覆盖；诊断命令只读且仅看最近本地回复，不自动修复、不重试、不生成。",
+    "若宿主未应用只读 patch，诊断仍写入 control operation；读取需既有 owner 路径/SQLite（未在本切片扩权）。"
+  ],
+  "reproduce": [
+    "git worktree add --detach /tmp/shiyu-replydiag 15d86ee",
+    "复制本切片 7 文件；ln -s 主树 node_modules/.local/ombre；npm run check",
+    "node --import tsx --test --test-concurrency=1 tests/sessions-stream-diagnostic.test.ts tests/local-reply-domain.test.ts tests/local-reply.test.ts",
+    "只读 patch 编译：HEAD 15d86ee + git apply artifacts/dsh/sessions/reply-stream-diagnostic.patch.diff + tsc/build"
+  ]
+}

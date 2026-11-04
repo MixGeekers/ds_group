@@ -1,0 +1,67 @@
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ -51,6 +51,7 @@
+ import { TaskWorkspaceCoordinator, type TaskExecutionPlan } from './control/task-workspace.js';
+ import { computeMemoryReadiness, type MemoryReadiness } from './adapters/ombre/readiness.js';
+ import { INNER_LIFECYCLE_PROBE_ACTION, RuntimeInnerLifecycleProbeCommand, type InnerLifecycleProbeReceipt } from './control/inner-lifecycle-probe.js';
++import { validateReplyStreamDiagnostic, type ReplyStreamDiagnostic } from './control/local-reply-stream-diag.js';
+ import { CHAT_MEMORY_PROBE_ACTION, runChatMemoryRecallPhase, runChatMemoryWritePhase, type ChatMemoryProbeReceipt } from './control/chat-memory-probe.js';
+ import { StartupEmbeddingVerifier, type StartupEmbeddingResult } from './control/startup-embedding-verifier.js';
+ import { EMOTION_PROBE_ACTION, RuntimeEmotionContinuationProbeCommand, type EmotionProbeReceipt } from './adapters/control-store/emotion-continuation-probe.js';
+@@ -1100,6 +1101,7 @@
+     if (action === 'runtime.probe-native-header-cut') return this.commandNativeHeaderCutProbe(value, signal);
+     if (action === 'runtime.probe-memory-embedding') return this.commandMemoryEmbeddingProbe(value, signal);
+     if (action === CHAT_MEMORY_PROBE_ACTION) return this.commandChatMemoryProbe(value, signal);
++    if (action === 'runtime.reply-stream-diagnostic') return this.commandReplyStreamDiagnostic();
+     if (action === 'runtime.reconcile-core-validation-goal') return this.commandCoreValidationReconcile(value, signal);
+     if (action === 'runtime.probe-time-source') return this.commandTimeSourceProbe(value, signal);
+     if (action === 'runtime.probe-time-trigger') return this.commandTimeTriggerProbe(value, signal);
+@@ -1290,6 +1292,30 @@
+     const receipt = await this.emotionProbeCommand.handle(value, signal);
+     this.lastFailure = undefined;
+     return receipt;
++  }
++
++  /** Owner-only read-only diagnostic for the latest local reply operation.
++   * It only reads the persisted control record and never generates, retries or
++   * exposes provider text; a missing/corrupt diagnostic is reported explicitly. */
++  private async commandReplyStreamDiagnostic(): Promise<unknown> {
++    this.ensureOpen();
++    const snapshot = await this.store.request('conversation.snapshotLocal', {}) as {
++      conversations?: Array<{ conversationId?: string; latestReply?: { operationId?: string; updatedAt?: string } }> };
++    const conversations = Array.isArray(snapshot?.conversations) ? snapshot.conversations : [];
++    const latest = conversations.filter(item => typeof item.latestReply?.operationId === 'string')
++      .sort((left, right) => String(right.latestReply?.updatedAt ?? '').localeCompare(String(left.latestReply?.updatedAt ?? '')))[0];
++    if (!latest?.latestReply?.operationId) return { found: false, reasonCode: 'NO_LOCAL_REPLY' };
++    const operationId = latest.latestReply.operationId;
++    const operation = await this.store.request('conversation.reply.get', { operationId }) as {
++      operationId: string; status: string; reasonCode?: string; streamDiagnostic?: unknown; updatedAt?: string };
++    let streamDiagnostic: ReplyStreamDiagnostic | undefined;
++    if (operation.streamDiagnostic !== undefined) {
++      try { streamDiagnostic = validateReplyStreamDiagnostic(operation.streamDiagnostic); }
++      catch { return { found: true, conversationId: latest.conversationId ?? null, operationId, status: operation.status,
++        reasonCode: operation.reasonCode ?? null, corruptDiagnostic: true, capturedAt: new Date().toISOString() }; }
++    }
++    return { found: true, conversationId: latest.conversationId ?? null, operationId, status: operation.status,
++      reasonCode: operation.reasonCode ?? null, ...(streamDiagnostic ? { streamDiagnostic } : {}), capturedAt: new Date().toISOString() };
+   }
+ 
+   private async commandLab(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+--- a/plugins/shiyu/src/index.ts
++++ b/plugins/shiyu/src/index.ts
+@@ -2,6 +2,7 @@
+ import { emotionContinuationDiagnosisTool } from './adapters/control-store/emotion-continuation-probe.js';
+ export { emotionContinuationDiagnosisTool };
+ import { innerLifecycleDiagnosisTool } from './control/inner-lifecycle-probe.js';
++import { replyStreamDiagnosticTool } from './control/local-reply-stream-diag.js';
+ import { singleUserChatMemoryProbeTool } from './control/chat-memory-probe.js';
+ export { singleUserChatMemoryProbeTool };
+ import type { RuntimeConfig } from './runtime.js';
+@@ -393,6 +394,7 @@
+   // Zero-model isolated inner-lifecycle diagnosis. It constructs a private
+   // :memory: store, never opens the live control database and never calls a model.
+   ctx.effect(() => ctx.tools.register(innerLifecycleDiagnosisTool(service)));
++  ctx.effect(() => ctx.tools.register(replyStreamDiagnosticTool(service)));
+   // P0 round-18: two-phase single-user chat-memory verification (real local reply, <=2 calls total).
+   ctx.effect(() => ctx.tools.register(singleUserChatMemoryProbeTool(service)));
+   ctx.effect(() => ctx.tools.register(timeTriggerDiagnosisTool(service)));

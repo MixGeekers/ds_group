@@ -6,6 +6,7 @@ import { ConversationError, ConversationStore, type ContextSnapshot, type Contex
 import type { TrustedPolicyActor } from '../../control/policy/mandates.js';
 import { SqliteTransactions } from './transaction.js';
 import { INNER_DOMAINS, INNER_DOMAIN_BACKENDS, type InnerDomain } from '../../contracts/inner.js';
+import { validateReplyStreamDiagnostic, type ReplyStreamDiagnostic } from '../../control/local-reply-stream-diag.js';
 
 const OWNER: TrustedPolicyActor = { principalId: 'local-owner', kind: 'owner', scopes: ['local-owner'] };
 const canonical = (value: unknown) => JSON.stringify(value, (_key, item: unknown) => item && typeof item === 'object' && !Array.isArray(item) ? Object.fromEntries(Object.entries(item).sort(([a], [b]) => a.localeCompare(b))) : item);
@@ -144,6 +145,8 @@ export interface LocalReplyOperation {
   /** Explicit H4d inner provenance. Absent means the producer did not provide it (legacy/not_provided). */
   innerSources?: LocalReplyInnerSources;
   contextReceipt?: LocalReplyContextReceipt; assistantRef?: LocalReplyAssistantRef; draftRef?: string; reasonCode?: string;
+  /** P0 round-19: bounded controlled generation failure facts; never provider text. */
+  streamDiagnostic?: ReplyStreamDiagnostic;
   /** Hash of the exact transient native assistant text; no body is stored here. */
   textSha256?: string;
 }
@@ -155,7 +158,8 @@ export interface LocalReplyCommands {
   'conversation.reply.contextDurable': { input: { receipt: LocalReplyContextReceipt }; output: LocalReplyOperation };
   'conversation.reply.ready': { input: { operationId: string; assistantRef: LocalReplyAssistantRef; textSha256?: string }; output: LocalReplyOperation };
   'conversation.reply.loaded': { input: { operationId: string }; output: LocalReplyOperation };
-  'conversation.reply.fail': { input: { operationId: string; status: 'failed' | 'cancelled' | 'unknown'; reasonCode: string }; output: LocalReplyOperation };
+  'conversation.reply.fail': { input: { operationId: string; status: 'failed' | 'cancelled' | 'unknown'; reasonCode: string;
+    streamDiagnostic?: ReplyStreamDiagnostic }; output: LocalReplyOperation };
   'conversation.reply.get': { input: { operationId: string }; output: LocalReplyOperation };
 }
 export type LocalReplyDomainRequest = { [K in keyof LocalReplyCommands]: { command: K; args: LocalReplyCommands[K]['input'] } }[keyof LocalReplyCommands];
@@ -479,14 +483,21 @@ export class LocalReplyDomain {
     });
   }
   fail(input: LocalReplyCommands['conversation.reply.fail']['input']): LocalReplyOperation {
-    fields(input, ['operationId', 'status', 'reasonCode']);
+    fields(input, ['operationId', 'status', 'reasonCode', 'streamDiagnostic'], ['operationId', 'status', 'reasonCode']);
     if (!['failed', 'cancelled', 'unknown'].includes(input.status) || !/^[A-Z_]{1,80}$/.test(input.reasonCode)) fail('INVALID_SCHEMA', 'Invalid bounded reply failure');
+    const diagnostic = input.streamDiagnostic === undefined ? undefined : validateReplyStreamDiagnostic(input.streamDiagnostic);
     return this.tx.atomic(() => {
       const operation = this.get({ operationId: input.operationId });
       if (operation.status === 'ready' || operation.status === 'loaded') return operation; // A late caller failure cannot undo a committed native fact.
+      // First terminal reason wins: a later unknown/retry-shaped call can never
+      // rewrite the original failure or drop its controlled diagnostic.
       if (['failed', 'cancelled', 'unknown'].includes(operation.status)) return operation;
       if (operation.draftId) this.options.conversations.abandonReply(OWNER, operation.draftId);
-      operation.status = input.status; operation.reasonCode = input.reasonCode; return this.save(operation);
+      const reasonCode = input.reasonCode === 'REPLY_FAILED' && operation.reasonCode !== undefined ? operation.reasonCode : input.reasonCode;
+      operation.status = input.status; operation.reasonCode = reasonCode;
+      if (diagnostic && operation.streamDiagnostic === undefined) operation.streamDiagnostic = diagnostic;
+      if (!diagnostic && operation.streamDiagnostic !== undefined && input.reasonCode === 'REPLY_FAILED') operation.streamDiagnostic = operation.streamDiagnostic;
+      return this.save(operation);
     });
   }
   execute(request: LocalReplyDomainRequest): unknown {

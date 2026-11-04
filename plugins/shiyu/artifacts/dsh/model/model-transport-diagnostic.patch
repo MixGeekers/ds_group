@@ -1,0 +1,121 @@
+diff --git a/plugins/shiyu/src/index.ts b/plugins/shiyu/src/index.ts
+index e14031e..960d5cb 100644
+--- a/plugins/shiyu/src/index.ts
++++ b/plugins/shiyu/src/index.ts
+@@ -305,6 +305,29 @@ export function coreGoalValidationV7Tool(service: { command(input: unknown): Pro
+   } as const;
+ }
+ 
++/**
++ * Owner-only MINIMAL REAL MODEL TRANSPORT diagnostic. This performs ONE real
++ * bounded model generation call (fixed replyer provider/model/reasoning effort,
++ * maxTokens 8, one turn) to distinguish an empty provider stream / transport /
++ * auth / request-shape / timeout failure from a broader provider outage. It
++ * returns only controlled classification, counts, hashes and usage; no prompt or
++ * response text is persisted. It never retries automatically and its result is
++ * NEVER a chat/business/nine-system pass.
++ */
++export function modelTransportDiagnosticTool(service: { command(input: unknown): Promise<unknown> }) {
++  return {
++    name: 'shiyu_diagnose_model_transport',
++    description: '最小真实模型传输诊断（owner-only，**这是一次真实模型调用**）：使用固定 replyer provider/model/reasoning effort low、maxTokens 8、单轮、单槽、可中止、0 自动重试，执行一次极小生成以区分 ok/empty-provider-stream/transport/auth/request-shape/timeout/aborted/unknown；不写业务库、不创建 Goal/Task/Effect/business 事实（允许一个一次性原生 Session 并在结束后释放/归档）；回执仅含受控分类/code/name/label、chunk 数、文本 sha/bytes、usage（缺失=unknown），无正文/路径/提示词；失败或未知即为终态，不自动重试；诊断结论不得当作聊天、业务或九系统通过；回执仅存 snapshot().diagnostics.modelTransportDiagnostic。',
++    parameters: { type: 'object', properties: {}, additionalProperties: false },
++    isConcurrencySafe: false,
++    execute: async () => service.command({ action: 'runtime.diagnose-model-transport' }),
++    output: {
++      schema: { type: 'object', additionalProperties: true },
++      render: (_args: unknown, value: unknown) => [{ type: 'text', text: JSON.stringify(value) }],
++    },
++  } as const;
++}
++
+ export function coreGoalValidationTool(service: { command(input: unknown): Promise<unknown> }) {
+   return {
+     name: 'shiyu_validate_core_goal',
+@@ -379,6 +402,8 @@ export async function apply(ctx: any, config: RuntimeConfig = {}): Promise<void>
+   ctx.effect(() => ctx.tools.register(coreGoalValidationV5Tool(service)));
+   ctx.effect(() => ctx.tools.register(coreGoalValidationV6Tool(service)));
+   ctx.effect(() => ctx.tools.register(coreGoalValidationV7Tool(service)));
++  // Minimal REAL model transport diagnostic: one bounded generation call, no business pass.
++  ctx.effect(() => ctx.tools.register(modelTransportDiagnosticTool(service)));
+   // Owner-only one-shot embedding verification; no generation model, no retry.
+   ctx.effect(() => ctx.tools.register(memoryEmbeddingProbeTool(service)));
+   // Owner-only zero-model emotion-continuation diagnosis; private :memory: store.
+diff --git a/plugins/shiyu/src/runtime.ts b/plugins/shiyu/src/runtime.ts
+index 7224335..322bd87 100644
+--- a/plugins/shiyu/src/runtime.ts
++++ b/plugins/shiyu/src/runtime.ts
+@@ -55,6 +55,7 @@ import { CHAT_MEMORY_PROBE_ACTION, runChatMemoryRecallPhase, runChatMemoryWriteP
+ import { StartupEmbeddingVerifier, type StartupEmbeddingResult } from './control/startup-embedding-verifier.js';
+ import { EMOTION_PROBE_ACTION, RuntimeEmotionContinuationProbeCommand, type EmotionProbeReceipt } from './adapters/control-store/emotion-continuation-probe.js';
+ import { CORE_VALIDATION_EXPERIMENT, CORE_VALIDATION_EXPERIMENT_V3, CORE_VALIDATION_EXPERIMENT_V4, CORE_VALIDATION_EXPERIMENT_V5, CORE_VALIDATION_EXPERIMENT_V6, CORE_VALIDATION_EXPERIMENT_V7 } from './control/core-validation.js';
++import { assertModelTransportAdmission, diagnoseModelTransport, type ModelTransportDiagnosticReceipt } from './control/model-transport-diagnostic.js';
+ import { probeNativeHeaderCut, assertNativeHeaderCutAdmission, type NativeHeaderCutProbeReceipt } from './control/native-header-cut-probe.js';
+ import { CORE_GOAL_PRESET_ID } from './adapters/dsh/goals.js';
+ import type { CheckpointProbeResult, RuntimeManifest } from './recovery/types.js';
+@@ -185,6 +186,7 @@ export class RuntimeService {
+   private lastCoreEventToolProbe?: CoreDecisionEventToolProbeResult;
+   private lastCoreModelToolProbe?: CoreEventToolModelProbeResult;
+   private lastCoreGoalValidation?: CoreValidationReceipt;
++  private lastModelTransportDiagnostic: ModelTransportDiagnosticReceipt | null = null;
+   private lastNativeHeaderCutProbe: NativeHeaderCutProbeReceipt | null = null;
+   private lastCoreValidationReconcile?: CoreValidationReconcileReceipt;
+   private lastTimeSourceProbe?: TimeSourceProbeResult;
+@@ -888,6 +890,41 @@ export class RuntimeService {
+       throw error;
+     } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
+   }
++  /**
++   * Owner-only MINIMAL REAL MODEL TRANSPORT diagnostic. One bounded real
++   * generation call with the fixed replyer provider/model/reasoning effort,
++   * maxTokens 8, one turn and one runtime slot. It persists no prompt/response
++   * text, creates no Goal/Task/Effect/business fact and never retries; a
++   * failed/unknown result is terminal and is never a chat/business pass. It may
++   * create and release/archive one disposable native Session. The bounded receipt
++   * is cached only in snapshot().diagnostics.modelTransportDiagnostic.
++   */
++  private async commandModelTransportDiagnostic(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
++    if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid model transport diagnostic input');
++    this.ensureCanRun(); signal?.throwIfAborted();
++    if (!this.ctx) throw new Error('MODEL_TRANSPORT_UNAVAILABLE');
++    if ([...this.operations.values()].some(op => op.phase === 'model transport diagnostic')) {
++      throw new Error('Model transport diagnostic is already running');
++    }
++    assertModelTransportAdmission({ paused: this.state.state.paused, operations: this.operations.size,
++      capacity: 1, sameActionRunning: false });
++    let finish!: () => void;
++    const done = new Promise<void>(resolve => { finish = resolve; });
++    const op: ActiveOperation = { id: randomUUID(), title: '模型传输最小真实诊断', phase: 'model transport diagnostic',
++      status: 'running', controller: new AbortController(), done, finish };
++    const onAbort = () => op.controller.abort(signal?.reason);
++    signal?.addEventListener('abort', onAbort, { once: true });
++    this.operations.set(op.id, op);
++    try {
++      const receipt = await diagnoseModelTransport({ ctx: this.ctx, cwd: path.join(this.dataDir, 'workspaces'),
++        signal: op.controller.signal });
++      this.lastModelTransportDiagnostic = structuredClone(receipt);
++      return receipt;
++    } catch (error) {
++      this.lastFailure = error instanceof Error ? error.message : String(error);
++      throw error;
++    } finally { this.operations.delete(op.id); op.finish(); signal?.removeEventListener('abort', onAbort); }
++  }
+   private async commandCoreValidationReconcile(value: Record<string, unknown>, signal?: AbortSignal): Promise<unknown> {
+     if (Object.keys(value).some(key => key !== 'action')) throw new Error('Invalid core-validation reconcile input');
+     this.ensureCanRun(); signal?.throwIfAborted();
+@@ -1031,6 +1068,7 @@ export class RuntimeService {
+         coreEventToolProbe: this.lastCoreEventToolProbe ? structuredClone(this.lastCoreEventToolProbe) : null,
+         coreModelToolProbe: this.lastCoreModelToolProbe ? structuredClone(this.lastCoreModelToolProbe) : null,
+         coreGoalValidation: this.lastCoreGoalValidation ? structuredClone(this.lastCoreGoalValidation) : null,
++        modelTransportDiagnostic: this.lastModelTransportDiagnostic ? structuredClone(this.lastModelTransportDiagnostic) : null,
+         nativeHeaderCutProbe: this.lastNativeHeaderCutProbe ? structuredClone(this.lastNativeHeaderCutProbe) : null,
+         coreValidationReconcile: this.lastCoreValidationReconcile ? structuredClone(this.lastCoreValidationReconcile) : null,
+         timeSource: this.timePump ? this.timePump.snapshot() : null,
+@@ -1097,6 +1135,7 @@ export class RuntimeService {
+     if (action === 'runtime.probe-core-goal-v5') return this.commandCoreGoalValidationV5(value, signal);
+     if (action === 'runtime.probe-core-goal-v6') return this.commandCoreGoalValidationV6(value, signal);
+     if (action === 'runtime.probe-core-goal-v7') return this.commandCoreGoalValidationV7(value, signal);
++    if (action === 'runtime.diagnose-model-transport') return this.commandModelTransportDiagnostic(value, signal);
+     if (action === 'runtime.probe-native-header-cut') return this.commandNativeHeaderCutProbe(value, signal);
+     if (action === 'runtime.probe-memory-embedding') return this.commandMemoryEmbeddingProbe(value, signal);
+     if (action === CHAT_MEMORY_PROBE_ACTION) return this.commandChatMemoryProbe(value, signal);

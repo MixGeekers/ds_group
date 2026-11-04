@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { replyFailureReasonCode, replyStreamDiagnosticOf, type ReplyStreamDiagnostic } from './local-reply-stream-diag.js';
 import type { ControlStore } from '../adapters/control-store/index.js';
 import type { LocalReplyAssistantRef, LocalReplyContextReceipt, LocalReplyInnerSources, LocalReplyNativeBinding, LocalReplyOperation } from '../adapters/control-store/local-reply-domain.js';
 import type { ReplyRequest, ReplyResult, ReplyDraftReadRequest, ReplyDraftReadResult } from '../adapters/dsh/sessions.js';
@@ -67,7 +68,8 @@ export interface LocalReplyLoadResult {
   load?: ContextLoadResult;
 }
 export class LocalReplyFailure extends Error {
-  constructor(readonly operationId: string, readonly status: LocalReplyOperation['status'], cause: unknown) {
+  constructor(readonly operationId: string, readonly status: LocalReplyOperation['status'], cause: unknown,
+    readonly streamDiagnostic?: ReplyStreamDiagnostic) {
     super('Local reply did not produce a current verified draft', { cause }); this.name = 'LocalReplyFailure';
   }
 }
@@ -480,9 +482,12 @@ export class LocalReplyService {
     } catch (error) {
       if (!operation) throw error;
       const status = controller.signal.aborted ? 'cancelled' : nativeBound && !contextConfirmed ? 'unknown' : 'failed';
-      try { operation = await this.options.store.request('conversation.reply.fail', { operationId: operation.operationId, status, reasonCode: code(error) }); }
+      const diagnostic = replyStreamDiagnosticOf(error);
+      const reasonCode = diagnostic ? replyFailureReasonCode(diagnostic) : code(error);
+      try { operation = await this.options.store.request('conversation.reply.fail', { operationId: operation.operationId, status, reasonCode,
+        ...(diagnostic ? { streamDiagnostic: diagnostic } : {}) }); }
       catch (recordError) { throw new AggregateError([error, recordError], 'Local reply outcome could not be recorded; do not automatically retry'); }
-      throw new LocalReplyFailure(operation.operationId, operation.status, error);
+      throw new LocalReplyFailure(operation.operationId, operation.status, error, diagnostic);
     } finally {
       views?.close();
       if (operation) this.active.delete(operation.operationId);

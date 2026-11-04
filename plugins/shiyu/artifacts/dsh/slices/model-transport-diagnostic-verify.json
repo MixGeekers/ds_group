@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "kind": "isolated-slice-verification",
+  "slice": "model-transport-diagnostic",
+  "capturedAt": "2026-11-04T00:34:18.314Z",
+  "head": "15d86eea46e76fb018947d9f746fdafc0b00f182",
+  "worktree": "<repo>/plugins/shiyu/.local/slice-verify-model-transport-diagnostic-1793749778742",
+  "files": [
+    {
+      "path": "plugins/shiyu/src/control/model-transport-diagnostic.ts",
+      "bytes": 24018,
+      "sha256": "7382a162961dbac9a6d8518c83a1e3adab34feee641c1cc2ea7fccfc4a8bfadc"
+    },
+    {
+      "path": "plugins/shiyu/tests/model-transport.test.ts",
+      "bytes": 9748,
+      "sha256": "215768e128d07aa93176d2b8533e847b0252dea91a0546cf7d924b9be2ab263e"
+    }
+  ],
+  "check": {
+    "command": "npm run check (typecheck + node --test tests/*.test.ts + build + client syntax)",
+    "exitCode": 0,
+    "signal": null,
+    "timedOut": false,
+    "durationMs": 2679283,
+    "bytes": 190678,
+    "sha256": "f10450e6bf4a541a34b3d6df8648d332099922fa570fe316da19664b2cb07a0b",
+    "tests": {
+      "tests": 1817,
+      "pass": 1817,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "tail": [
+      "ℹ cancelled 0",
+      "ℹ skipped 0",
+      "ℹ todo 0",
+      "ℹ duration_ms 2677948.455042",
+      "> @shiyu/runtime@0.1.0 build",
+      "> tsc -p tsconfig.build.json"
+    ]
+  },
+  "log": {
+    "path": "<repo>/plugins/shiyu/.local/slice-verify-model-transport-diagnostic.log",
+    "bytes": 190678,
+    "sha256": "f10450e6bf4a541a34b3d6df8648d332099922fa570fe316da19664b2cb07a0b"
+  },
+  "verdict": "pass"
+}

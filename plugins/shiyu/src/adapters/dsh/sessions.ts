@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { pinOwnedSessionTitle } from './session-title.js';
+import { replyGenerationFacts, replyStreamDiagnosticFromGeneration, ReplyGenerationFailure } from '../../control/local-reply-stream-diag.js';
 import { checkedNativeUserMessage, loadNativeMessageFactory, nativeMessageHash, type NativeMessageFactory, type NativeUserMessage } from './native-message.js';
 import {
   appendNativeContextMessage, assertNativeLiveHistory, assertNativeMaintenance, coldNativeInbox, coldNativeInboxSnapshot,
@@ -816,7 +817,9 @@ export class ShiyuSessionAdapter {
     const abort = () => callerCancellation.abort(request.signal?.reason ?? abortError());
     request.signal?.addEventListener('abort', abort, { once: true });
     if (request.signal?.aborted) abort();
-    const timer = setTimeout(() => callerCancellation.abort(new Error('Context-safe reply deadline expired')), Math.min(remaining, this.timeoutMs));
+    const startedAt = Date.now();
+    let timedOut = false;
+    const timer = setTimeout(() => { timedOut = true; callerCancellation.abort(new Error('Context-safe reply deadline expired')); }, Math.min(remaining, this.timeoutMs));
     const base = Object.freeze({ operationId: safety.operationId, contextTokenId: safety.contextTokenId, sessionEpoch: safety.sessionEpoch, key, businessId: request.businessId, scope: request.scope });
     try {
       return await untilCancelled(this.inOrder(key, async () => {
@@ -903,9 +906,16 @@ export class ShiyuSessionAdapter {
           if (state.unknownNativeInput || this.contextInputs(state).at(-1)!.seq! !== lastInputSeq) throw new Error('Native context inputs changed after draft confirmation');
           return { text, binding: structuredClone(state.binding), usage, contextReceipt, assistantRef: { sessionId: binding.sessionId, eventSeq: assistant.seq!, messageId: assistantMessage.id }, accounting: this.replyAccounting(state, assistant) };
         } catch (error) {
-          try { await this.release(state, operation.signal.aborted ? 'cancelled' : 'error', message(error)); }
-          catch (cleanupError) { throw new AggregateError([error, cleanupError], 'Context-safe reply failed and native cleanup could not be confirmed'); }
-          throw error;
+          const failure = error instanceof ReplyGenerationFailure ? error : this.replyGenerationFailure(error, state, {
+            startedAt, timedOut, externallyAborted: Boolean(request.signal?.aborted) || Boolean(callerCancellation.signal.aborted),
+            operationAborted: operation.signal.aborted });
+          try { await this.release(state, operation.signal.aborted ? 'cancelled' : 'error', message(failure)); }
+          catch (cleanupError) {
+            const aggregate = new AggregateError([failure, cleanupError], 'Context-safe reply failed and native cleanup could not be confirmed');
+            Object.defineProperty(aggregate, 'replyStreamDiagnostic', { value: failure.replyStreamDiagnostic, enumerable: false });
+            throw aggregate;
+          }
+          throw failure;
         } finally {
           operation.signal.removeEventListener('abort', cancel);
           if (state.operation === operation) { state.operation = undefined; state.observedEvents = undefined; state.operationMaxTokens = undefined; state.contextRun = undefined; state.primaryRun = undefined; }
@@ -1079,6 +1089,16 @@ export class ShiyuSessionAdapter {
       } finally { await this.release(state); }
     });
   }
+  /** Bounded controlled diagnostic for one failed generation attempt (never retries). */
+  private replyGenerationFailure(error: unknown, state: LiveSession, input: { startedAt: number; timedOut: boolean; externallyAborted: boolean; operationAborted: boolean }): ReplyGenerationFailure {
+    const events = state.contextRun?.events ?? state.observedEvents ?? [];
+    const diagnostic = replyStreamDiagnosticFromGeneration({ error, facts: replyGenerationFacts(events),
+      timedOut: input.timedOut, externallyAborted: input.externallyAborted, operationAborted: input.operationAborted,
+      ...(state.turnError !== undefined ? { turnError: state.turnError } : {}), elapsedMs: Math.max(0, Date.now() - input.startedAt) });
+    // In-memory callers keep the original controlled cause message for existing
+    // diagnostics; the persisted diagnostic never carries any message text.
+    return new ReplyGenerationFailure(error instanceof Error ? error.message : String(error), diagnostic, { cause: error });
+  }
   async generateReply(request: ReplyRequest): Promise<ReplyResult> {
     if (typeof request.prompt !== 'string' || !request.prompt.trim() || request.prompt.length > 100000) throw new Error('Invalid reply prompt');
     if (request.context) return this.generateContextReply(request);
@@ -1094,13 +1114,15 @@ export class ShiyuSessionAdapter {
       const operation = new AbortController();
       state.operation = operation; state.steps = 0; state.turnError = undefined; state.observedEvents = []; state.operationMaxTokens = maxTokens;
       state.primaryRun = { operation, dispatchAttempted: false, requests: 0, streams: 0, completedStreams: 0, incomplete: false };
+      const startedAt = Date.now();
+      let timedOut = false;
       const abort = () => operation.abort(request.signal?.reason ?? abortError());
       request.signal?.addEventListener('abort', abort, { once: true });
       const agent = state.handle!.agent;
       const cancel = () => agent.cancel({ kind: 'hook', reason: 'Reply generation cancelled or timed out' });
       operation.signal.addEventListener('abort', cancel, { once: true });
       if (request.signal?.aborted) abort();
-      const timer = setTimeout(() => operation.abort(new Error('Reply generation timed out')), this.timeoutMs);
+      const timer = setTimeout(() => { timedOut = true; operation.abort(new Error('Reply generation timed out')); }, this.timeoutMs);
       try {
         // Suppress automatic title inference only for this managed Session.
         await pinOwnedSessionTitle(this.options.ctx, agent.session, '识雨 · 受限回复');
@@ -1119,8 +1141,10 @@ export class ShiyuSessionAdapter {
         this.assertOpen(); throwIfAborted(operation.signal);
         return { text, binding: structuredClone(state.binding), usage, accounting: this.replyAccounting(state) };
       } catch (error) {
-        await this.release(state, operation.signal.aborted ? 'cancelled' : 'error', message(error));
-        throw error;
+        const failure = error instanceof ReplyGenerationFailure ? error : this.replyGenerationFailure(error, state, {
+          startedAt, timedOut, externallyAborted: Boolean(request.signal?.aborted), operationAborted: operation.signal.aborted });
+        await this.release(state, operation.signal.aborted ? 'cancelled' : 'error', message(failure));
+        throw failure;
       } finally {
         clearTimeout(timer);
         request.signal?.removeEventListener('abort', abort);

@@ -10,6 +10,7 @@ import { LocalReplyDomain, type LocalReplyCapture, type LocalReplyContextReceipt
 import { SqliteTransactions } from '../src/adapters/control-store/transaction.js';
 import { sessionBindingKey } from '../src/adapters/dsh/sessions.js';
 import { ConversationError, ConversationStore, type ConversationActor, type ContextToken } from '../src/control/conversations/index.js';
+import { replyGenerationFacts, replyStreamDiagnosticFromGeneration, type ReplyStreamDiagnostic } from '../src/control/local-reply-stream-diag.js';
 
 const owner: ConversationActor = { principalId: 'local-owner', kind: 'owner', scopes: ['local-owner'] };
 const hash = (text: string) => createHash('sha256').update(text).digest('hex');
@@ -400,4 +401,38 @@ test('inner provenance from another conversation or another domain authority is 
   saved.capture.context.token.conversationId = 'another-conversation';
   assert.throws(() => h.domain.prepare({ operationId: operation.operationId, captureId: primary.captureId, viewId: randomUUID(), loadedTaskIds: ['task-a'], innerSources: valid }),
     (error: unknown) => error instanceof ConversationError && ['STALE_INNER_CONTEXT', 'STALE_CONTEXT', 'VIEW_INVALIDATED'].includes(error.code));
+});
+
+const emptyStreamDiagnostic = (): ReplyStreamDiagnostic => replyStreamDiagnosticFromGeneration({
+  error: new Error('Context-safe reply cancelled or expired'), facts: replyGenerationFacts([{ type: 'assistant/attempt', data: { streamLength: 0 } }]),
+  timedOut: false, externallyAborted: false, operationAborted: false, turnError: 'Context-safe reply cancelled or expired', elapsedMs: 12,
+});
+
+test('a failed reply persists a controlled reason and streamDiagnostic; the first terminal reason wins', t => {
+  const h = fixture(t), operation = h.admit('stream-diag-fail').operation, diagnostic = emptyStreamDiagnostic();
+  const failed = h.domain.fail({ operationId: operation.operationId, status: 'unknown', reasonCode: 'REPLY_EMPTY_PROVIDER_STREAM', streamDiagnostic: diagnostic });
+  assert.equal(failed.status, 'unknown'); assert.equal(failed.reasonCode, 'REPLY_EMPTY_PROVIDER_STREAM');
+  assert.deepEqual(failed.streamDiagnostic, diagnostic);
+  const persisted = h.domain.get({ operationId: operation.operationId });
+  assert.deepEqual(persisted.streamDiagnostic, diagnostic); assert.equal(persisted.reasonCode, 'REPLY_EMPTY_PROVIDER_STREAM');
+  // No retry/reclassification may rewrite the first terminal reason or drop its diagnostic.
+  const second = h.domain.fail({ operationId: operation.operationId, status: 'failed', reasonCode: 'REPLY_FAILED' });
+  assert.deepEqual(second, failed);
+  assert.equal(JSON.stringify(second).includes('Context-safe reply cancelled'), false);
+});
+
+test('tampered or over-bounded stream diagnostics are refused rather than persisted', t => {
+  const h = fixture(t), operation = h.admit('stream-diag-tamper').operation, diagnostic = emptyStreamDiagnostic();
+  assert.throws(() => h.domain.fail({ operationId: operation.operationId, status: 'failed', reasonCode: 'REPLY_EMPTY_PROVIDER_STREAM',
+    streamDiagnostic: { ...diagnostic, category: 'bogus' } as unknown as ReplyStreamDiagnostic }), /Invalid stream category/);
+  assert.throws(() => h.domain.fail({ operationId: operation.operationId, status: 'failed', reasonCode: 'REPLY_EMPTY_PROVIDER_STREAM',
+    streamDiagnostic: { ...diagnostic, label: '/Users/caja/secret prompt' } }), /disallowed|Invalid controlled label/);
+  assert.equal(h.domain.get({ operationId: operation.operationId }).streamDiagnostic, undefined);
+});
+
+test('a late failure cannot overwrite a ready operation or fabricate a diagnostic', t => {
+  const h = fixture(t), done = h.complete(), diagnostic = emptyStreamDiagnostic();
+  const late = h.domain.fail({ operationId: done.ready.operationId, status: 'failed', reasonCode: 'REPLY_EMPTY_PROVIDER_STREAM', streamDiagnostic: diagnostic });
+  assert.deepEqual(late, done.ready);
+  assert.equal(late.streamDiagnostic, undefined);
 });
