@@ -2288,3 +2288,24 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. 两次最小探针均空 stream；**不得**据此认为聊天/core 通过；P0 聊天记忆仍未通过。
 2. 本轮所有新增工作均为离线/零模型/诊断层；真实长历史/检查点宿主操作与任何真实业务仍未完成。
 3. provider 恢复后，聊天/core 尝试仍需**新的显式 owner 决定**；不自动重试。
+
+## 80. 交接：DeepSeek → 新 Agent（2026-11-03）
+
+按用户要求暂停当前 DeepSeek 会话并交接给新 Agent。**权威交接文档**：[04-DeepSeek交接-现状与下一步（2026-11-03）](<../../架构与设计/DSH交接/04-DeepSeek交接-现状与下一步（2026-11-03）.md>)。
+
+### 80.1 交接快照
+
+- HEAD `6f5655b`（已 push，0/0）；最近链：round-19 code `7ed9aa7` → X `7ffc08b` → X+1 `4a0a00a` → host `fba0179` → review `8a1e8e3` → round-20 reprobe `6f5655b`。
+- provider 两次最小真实探针均 **`empty-provider-stream`**（1 次调用/0 重试/无业务写）；P0 聊天记忆闭环未通过；不安排新聊天尝试。
+- 宿主：commitSeq 617、events 70、sessions 42、Goals 8、Tasks succeeded 2/unknown 1、budget settled 31/unknown 6、Effects 23；startup embedding 验证通过但非召回。
+- 验收：产品 79/79 not_covered、gate=incomplete/executed=passed=0；clean 1844/1844、selfproof 24/205、105/105 sources（454 files）。
+- 残留：v4/v5/v6 authorized/paused unknown budget、2 条 active 合成 chat-probe 记忆、1 个 unknown Task；v7 未执行。
+- 未提交 WIP：task-80（H7-round20）、task-81（H5b）、task-82（H1）被中断，文件清单与处置建议见交接文档 §6。
+- 交接时已 `interrupt_agent` 停止 3 个运行中 teammate；team task 板中 task-33/55/58 为旧轮次遗留 in_progress，需新 Agent 整理。
+
+### 80.2 下一步（详见交接文档 §10）
+
+1. 先做一次最小 transport 探针（新显式决定）判断 provider 是否恢复；仍空 stream 则继续零模型工作。
+2. provider 恢复后一次 P0 聊天记忆闭环（write→reload→recall，≤2 生成、0 重试、严格 oracle）。
+3. 完成 H5b/H1/H7-round20 WIP，各留证据；v7/真实 workspace/emotion live/H6 真实渠道按授权排队。
+4. 保持 evidence discipline：不升级产品/V 等级、不虚假宣称、不自动重试、不 force-push。
