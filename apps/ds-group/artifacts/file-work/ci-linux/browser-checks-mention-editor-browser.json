@@ -1,0 +1,16 @@
+{
+  "level": "real-chromium-composer-fixture",
+  "checks": [
+    "memberSearchAndKeyboardSelection",
+    "arrowNavigationTabAndEscape",
+    "roleAndGroupMentions",
+    "atomicDeletionUndoRedoAndCaretInsertion",
+    "imeAndCodeEscapesDoNotSubmitOrMention",
+    "copyPasteRetainsIdentityAndStripsHtml",
+    "pasteFileAndMultilineSubmission",
+    "mobileTouchSelectionAndDisabledState"
+  ],
+  "modelCalls": 0,
+  "status": "passed",
+  "browserErrors": []
+}

@@ -1,0 +1,125 @@
+{
+  "checkedAt": "2026-11-04T16:33:17.959Z",
+  "status": "passed",
+  "sourceCommit": "d3c3fc6f7ba17d1136da487bb3d22881594b3c28",
+  "ci": {
+    "runId": 41867044916,
+    "url": "https://github.com/MixGeekers/ds_group/actions/runs/41867044916",
+    "status": "completed",
+    "conclusion": "success",
+    "jobs": 10,
+    "aggregateStepConclusion": "success",
+    "note": "Some GitHub job status fields lagged the successful run conclusion. Completed step records, uploaded artifacts and raw logs were independently checked."
+  },
+  "targets": [
+    "linux/amd64",
+    "linux/arm64"
+  ],
+  "matrix": {
+    "nativeNode": 4,
+    "containers": 2,
+    "nativeDsh": 2,
+    "browser": 1,
+    "required": 1
+  },
+  "checks": {
+    "localModules": 130,
+    "browserInteractions": 41,
+    "deploymentPerArchitecture": 10,
+    "nativeDshRestartPerArchitecture": 10,
+    "nativeDshToolsPerArchitecture": 5,
+    "ts7": "7.0.2",
+    "react": "19.3.1"
+  },
+  "sourceArchive": {
+    "version": "0.2.0",
+    "files": 215,
+    "sha256": "20a599d78d78a5dd50d9ed3081cc4d4922e5ebf4b73cae0725e7515c8f60f4e5",
+    "extracted": null
+  },
+  "results": [
+    {
+      "group": "browser-checks",
+      "file": "ci-linux/browser-checks-mention-editor-browser.json",
+      "checks": 8,
+      "remoteModelCalls": 0,
+      "sha256": "c8a4cb3de46ebfdec80e8f4060a72920f18cfa99605ab5bbf005ba5677d2f760"
+    },
+    {
+      "group": "browser-checks",
+      "file": "ci-linux/browser-checks-react-app-browser.json",
+      "checks": 8,
+      "remoteModelCalls": 0,
+      "sha256": "1c6652ab1f7f19c70eeecf53f63f64d74e1fc9963b7a3656181a3e9682b1b957"
+    },
+    {
+      "group": "browser-checks",
+      "file": "ci-linux/browser-checks-react-artifacts-browser.json",
+      "checks": 9,
+      "remoteModelCalls": 0,
+      "sha256": "e9937baab49d93ecf48b5d1f270463bf3ed91a280b646f76243e8d4d8f6ad76d"
+    },
+    {
+      "group": "browser-checks",
+      "file": "ci-linux/browser-checks-react-chat-browser.json",
+      "checks": 9,
+      "remoteModelCalls": 0,
+      "sha256": "1764fea72f9215634e350600df6faca521fd87c19fcfa5b934b11e3f5c8a0df7"
+    },
+    {
+      "group": "browser-checks",
+      "file": "ci-linux/browser-checks-react-settings-browser.json",
+      "checks": 7,
+      "remoteModelCalls": 0,
+      "sha256": "2644b4c9504c5c0a8c268424f9c701fef7fbaadcb9b1c86c16626584eb97f984"
+    },
+    {
+      "group": "deploy-amd64",
+      "file": "ci-linux/deploy-amd64-deploy-smoke.json",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "sha256": "f1e4b5102cc881d3baa49ff6f52ea7d147cd309cac5455ac5308d450253be7d5"
+    },
+    {
+      "group": "deploy-arm64",
+      "file": "ci-linux/deploy-arm64-deploy-smoke.json",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "sha256": "9e4921f99df785bedac7a997bea740b3860a2b9f23873ece77015cdf8dff64bc"
+    },
+    {
+      "group": "runtime-ubuntu-24.04",
+      "file": "ci-linux/runtime-ubuntu-24.04-runtime-smoke.json",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "sha256": "b99aa9cc1de893a3bd22607ff83fe9a41695e931527b549057b505f3d017a02b"
+    },
+    {
+      "group": "runtime-ubuntu-24.04",
+      "file": "ci-linux/runtime-ubuntu-24.04-runtime-work-smoke.json",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "sha256": "f3a177da724877514da97c44544382fb8f1041a991b479487ccc1dc62c1f4970"
+    },
+    {
+      "group": "runtime-ubuntu-24.04-arm",
+      "file": "ci-linux/runtime-ubuntu-24.04-arm-runtime-smoke.json",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "sha256": "5c43e9472608a0fc17f7851939c056d7adf06c45b06de28844a68e30671bb4ed"
+    },
+    {
+      "group": "runtime-ubuntu-24.04-arm",
+      "file": "ci-linux/runtime-ubuntu-24.04-arm-runtime-work-smoke.json",
+      "checks": 5,
+      "remoteModelCalls": 0,
+      "sha256": "9fa4c5d8d2ad1cad95e064df6c2a52364567af34b74dab0a3be63f824d0ef20d"
+    }
+  ],
+  "remoteModelCalls": 0,
+  "publication": {
+    "releaseTagCreated": false,
+    "githubReleaseCreated": false,
+    "ghcrImagePublished": false
+  }
+}

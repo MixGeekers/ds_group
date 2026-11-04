@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "level": "real-chromium-react-chat-fixture",
+  "checks": [
+    "reactTimelineRendersAndResolvesMentions",
+    "atomicMentionSelectionAndSingleSubmission",
+    "roomSwitchPreservesIndependentDrafts",
+    "replyAndPingPreferenceRestoreWithRoom",
+    "localeSwitchPreservesDraftReplyAndUpload",
+    "reloadRestoresFileAndReplyDraft",
+    "failedSendRetryRetainsTransactionAndAttachments",
+    "mobileTouchMentionAndLayout",
+    "dynamicUploadLimitsPreserveDraftAndMentionChips"
+  ],
+  "modelCalls": 0,
+  "pageErrors": []
+}

@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "level": "real-chromium-react-settings-fixture",
+  "checks": [
+    "languagePreferenceChangesEvenWhenResolvedLocaleMatches",
+    "themeSystemOverrideAndPreferencePersistence",
+    "roleCreateEditDeleteUsesTypedComponentState",
+    "roomNotificationPreferencesSaveAndReopen",
+    "openInboxPollsNewMentionsAndJumpsToMessage",
+    "inboxFiltersMarkReadAndCloseStopsPolling",
+    "pwaControlsRemainMountedAndLocalizedOnMobile"
+  ],
+  "modelCalls": 0,
+  "pageErrors": [],
+  "pwaFixture": {
+    "permissionAndRegistrationMocked": true,
+    "status": "Push notifications are disabled on this server.",
+    "secure": true,
+    "permission": "granted",
+    "pushManager": true
+  }
+}

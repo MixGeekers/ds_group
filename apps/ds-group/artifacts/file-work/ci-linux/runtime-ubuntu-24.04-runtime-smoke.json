@@ -1,0 +1,32 @@
+{
+  "checkedAt": "2026-11-04T16:26:12.433Z",
+  "platform": "linux",
+  "arch": "x64",
+  "node": "v24.19.0",
+  "expectedDshVersion": "0.2.1-rc.5",
+  "installationKind": "npm-cli",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "level": "real-native-dsh-zero-model",
+  "sourceHashes": {
+    "scripts/dsh-node.mjs": "23b4ef6463e86d354277e2d210574ea96c98a337d2f5a52a0bab9138b00b1220",
+    "scripts/runtime-config.mjs": "36eb6f5d0b8d39e3510a699d1ce4a4898ca454353605f3370d2f3272e34ad11f",
+    "scripts/runtime-smoke.mjs": "c4a156c87e574042c8b2493c5a042b6aa35d74da721c220e493cb0a6dba268cc",
+    "dsh-plugin/index.mjs": "e1f513c3f44afa7a84d69d853a252c4a86fd29412a3cbc843bdaab026faee161",
+    "dsh-plugin/runtime.mjs": "6d36f3f2481f575591e4885d873ca91f1dc27d0bb8b6261600b31300545a095c"
+  },
+  "checks": {
+    "pinnedRuntimeVersion": true,
+    "pluginLoaded": true,
+    "allowedModelCatalog": true,
+    "nativeSessionCreated": true,
+    "importedRemoteCoreAndPrivateData": true,
+    "sessionIdentityAfterRestart": true,
+    "legacyIdentityAndInstructionsMigrated": true,
+    "interruptedRequestIsNotReplayed": true,
+    "gracefulStop": true,
+    "zeroModelClaims": true
+  },
+  "status": "passed",
+  "dshVersion": "0.2.1-rc.5",
+  "modelCalls": 0
+}
