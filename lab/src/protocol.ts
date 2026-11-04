@@ -21,6 +21,8 @@ export const protocol = {
     rule: '只读单个运行的持久事件，不重发、不修改事件或运行。相同 operationId 出现多条送达事件一律 ambiguous；仅唯一 target/SHIYU 送达且 channelId 与正文散列匹配才 delivered。not_found 不证明未发送；日志缺失、损坏或截断时拒绝查询，调用方保持 unknown。活动和封存房间均需原有效接入身份。'
   },
   actions: {
+    'time.schedule': { scheduleId: 'stable-own-id', revision: 1, kind: 'reminder | check', dueAt: '带时区的绝对ISO故事时刻', text: '计划内容', everyMs: '可选，固定间隔至少1000毫秒', until: '可选，带时区的结束时刻', missed: 'each | latest | coalesce | skip' },
+    'time.cancel': { scheduleId: '原scheduleId', revision: '当前revision' },
     'file.read': { path: 'inputs/orders.csv' },
     'file.write': { taskId: 'T01', path: 'outputs/T01/result.json', content: '{...}', encoding: 'utf8 | base64' },
     'task.update': { taskId: 'T01', status: 'queued | running | waiting | completed | failed | cancelled', detail: '当前进度；outcome 禁止用 completed 代替显式提交' },

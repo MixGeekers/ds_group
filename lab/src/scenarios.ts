@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { catalog, freeChatScenario, getScenario, scenarioCompany } from './catalog.ts';
 import type { Actor, Channel, EvaluationMode, Scenario, ScenarioAsset, ScheduledInput, TaskSpec } from './types.ts';
+import { MAX_STORY_MS } from './time.ts';
 
 const MAX_JSON = 2 * 1024 * 1024;
 const safeID = /^[A-Za-z][A-Za-z0-9_-]{0,79}$/;
@@ -40,7 +41,7 @@ export function validateScenario(input: unknown, mode: EvaluationMode = 'outcome
   ensure(Buffer.byteLength(JSON.stringify(input) ?? '') <= MAX_JSON, '剧本 JSON 超过 2 MiB');
   const raw = object(input, '剧本');
   const scenarioId = id(raw.id, '剧本 ID');
-  const durationMs = number(raw.durationMs, '剧本时长', 1, 86400000);
+  const durationMs = number(raw.durationMs, '剧本时长', 1, MAX_STORY_MS);
   // Normalized snapshots also include the two reserved participants. Keep
   // validation idempotent at the authored-role limit when reading saved scripts.
   const actorValues = raw.actors === undefined ? catalog.actors : array(raw.actors, '角色', 66);
@@ -80,7 +81,7 @@ export function validateScenario(input: unknown, mode: EvaluationMode = 'outcome
   });
   unique(assets.map(asset => asset.path), '剧本资料路径');
   const availableInputs = new Set([...fixturePaths, ...assets.map(asset => asset.path)]);
-  const tasks: TaskSpec[] = array(raw.tasks ?? [], '剧本任务', 32).map(value => {
+  const tasks: TaskSpec[] = array(raw.tasks ?? [], '剧本任务', 128).map(value => {
     const task = object(value, '剧本任务');
     const taskId = id(task.id, '任务 ID');
     const ownerId = id(task.ownerId ?? 'HUMAN', '任务负责人');
@@ -103,7 +104,7 @@ export function validateScenario(input: unknown, mode: EvaluationMode = 'outcome
       ensure(policy.allowText || minFiles > 0, '交付规则至少允许正文或要求文件');
       deliveryPolicy = { allowText: policy.allowText, minFiles };
     }
-    return { id: taskId, subjectId, title: text(task.title, '任务名称', 200), ownerId, channelId, instructions, inputs, deliverables, dependencies, workMs: number(task.workMs ?? 0, '任务延迟', 0, 600000), dueAtMs: number(task.dueAtMs ?? durationMs, '任务截止时间', 0, 86400000), ...(mode === 'outcome' ? { evaluationMode: 'outcome' as const, businessRequirements: strings(task.businessRequirements ?? [instructions], '业务要求', 32, 12000), deliveryPolicy } : {}) };
+    return { id: taskId, subjectId, title: text(task.title, '任务名称', 200), ownerId, channelId, instructions, inputs, deliverables, dependencies, workMs: number(task.workMs ?? 0, '任务延迟', 0, 600000), dueAtMs: number(task.dueAtMs ?? durationMs, '任务截止时间', 0, MAX_STORY_MS), ...(mode === 'outcome' ? { evaluationMode: 'outcome' as const, businessRequirements: strings(task.businessRequirements ?? [instructions], '业务要求', 32, 12000), deliveryPolicy } : {}) };
   });
   unique(tasks.map(task => task.id), '任务');
   const taskById = new Map(tasks.map(task => [task.id, task]));
@@ -123,7 +124,7 @@ export function validateScenario(input: unknown, mode: EvaluationMode = 'outcome
     visiting.add(taskId); for (const dependency of taskById.get(taskId)!.dependencies) visit(dependency); visiting.delete(taskId); visited.add(taskId);
   };
   tasks.forEach(task => visit(task.id));
-  const inputs: ScheduledInput[] = array(raw.inputs ?? [], '剧本事件', 128).map(value => {
+  const inputs: ScheduledInput[] = array(raw.inputs ?? [], '剧本事件', 4096).map(value => {
     const event = object(value, '剧本事件');
     ensure(['message', 'request', 'query', 'correction', 'cancel', 'memory'].includes(String(event.kind)), '剧本事件类型无效');
     const actorId = id(event.actorId, '事件角色'), channelId = id(event.channelId, '事件会话');

@@ -1,0 +1,45 @@
+
+> @shiyu/gym@0.3.0 test:plugin:ui
+> npm run build:plugin && playwright test --config plugin/playwright.config.mjs
+
+
+> @shiyu/gym@0.3.0 build:plugin
+> tsc -p plugin/tsconfig.json && node plugin/build.mjs
+
+Built DSH gym JavaScript, synthetic fixtures and local icon assets in lab/dist/gym.
+[WebServer] (node:14972) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] WebSocket server error:
+[WebServer] Error: listen EPERM: operation not permitted 0.0.0.0:24678
+[WebServer]     at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+[WebServer]     at listenInCluster (node:net:2224:12)
+[WebServer]     at Server.listen (node:net:2344:7)
+[WebServer]     at Object.listen (file:///Users/caja/Documents/%E8%AF%86%E9%9B%A8/lab/node_modules/vite/dist/node/chunks/node.js:24711:18)
+[WebServer]     at Object.listen (file:///Users/caja/Documents/%E8%AF%86%E9%9B%A8/lab/node_modules/vite/dist/node/chunks/node.js:25395:27)
+[WebServer]     at DevEnvironment.listen (file:///Users/caja/Documents/%E8%AF%86%E9%9B%A8/lab/node_modules/vite/dist/node/chunks/node.js:37149:12)
+[WebServer]     at file:///Users/caja/Documents/%E8%AF%86%E9%9B%A8/lab/node_modules/vite/dist/node/chunks/node.js:25100:95
+[WebServer]     at Array.map (<anonymous>)
+[WebServer]     at file:///Users/caja/Documents/%E8%AF%86%E9%9B%A8/lab/node_modules/vite/dist/node/chunks/node.js:25100:82
+[WebServer]     at async _createServer (file:///Users/caja/Documents/%E8%AF%86%E9%9B%A8/lab/node_modules/vite/dist/node/chunks/node.js:25117:9)
+[WebServer]     at async file:///Users/caja/Documents/%E8%AF%86%E9%9B%A8/lab/plugin/tests/ui/server.mjs:23:14
+[WebServer] node:events:487
+[WebServer]       throw er; // Unhandled 'error' event
+[WebServer]       ^
+[WebServer]
+[WebServer] Error: listen EPERM: operation not permitted 127.0.0.1:4339
+[WebServer]     at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+[WebServer]     at listenInCluster (node:net:2224:12)
+[WebServer]     at node:net:2448:7
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:90:21)
+[WebServer] Emitted 'error' event on Server instance at:
+[WebServer]     at emitErrorNT (node:net:2203:8)
+[WebServer]     at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+[WebServer]   code: 'EPERM',
+[WebServer]   errno: -1,
+[WebServer]   syscall: 'listen',
+[WebServer]   address: '127.0.0.1',
+[WebServer]   port: 4339
+[WebServer] }
+[WebServer]
+[WebServer] Node.js v24.19.0
+Error: Process from config.webServer was not able to start. Exit code: 1

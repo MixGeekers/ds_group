@@ -1,0 +1,22 @@
+
+> @shiyu/gym@0.3.0 build
+> tsc --noEmit && vite build && npm run build:plugin
+
+vite v8.3.5 building client environment for production...
+transforming...
+✓ 2045 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.58 kB │ gzip:  0.41 kB
+dist/assets/index-a0-KrP3K.css   39.24 kB │ gzip:  9.17 kB
+dist/assets/index-CHJYQBzq.js   275.52 kB │ gzip: 85.08 kB
+
+✓ built in 157ms
+
+> @shiyu/gym@0.3.0 build:plugin
+> tsc -p plugin/tsconfig.json && node plugin/build.mjs
+
+Built DSH gym JavaScript, synthetic fixtures and local icon assets in lab/dist/gym.
+
+> @shiyu/gym@0.3.0 check:plugin
+> node --check plugin/index.js && node --check plugin/service.js && node --check plugin/agent-driver.js && node --check plugin/tools.js && node --check plugin/client.js && node --check plugin/collaboration.js && node --check plugin/settings.js

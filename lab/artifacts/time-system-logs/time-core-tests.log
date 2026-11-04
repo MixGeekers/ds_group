@@ -1,0 +1,190 @@
+
+> @shiyu/gym@0.3.0 test
+> node --import tsx --test --test-concurrency=1 tests/*.test.ts
+
+✔ free chat stays open after scripted input and explicit drain seals it (127.451084ms)
+✔ uploaded inputs stay private until shared; retries are single effects and reject changed content (180.856791ms)
+✔ drain rejects new human input while permitting an admitted task to deliver (160.947875ms)
+✔ human cannot write into employee direct chats and target cannot attach unregistered or changed files (329.203583ms)
+✔ manual tasks with JSON-array inputs submit, seal with evidence, and restore without replay (182.80975ms)
+✔ custom report sources use an unknown-schema result instead of a false numerical failure (290.9135ms)
+✔ token rotation invalidates old token and live chat restart preserves interruption (129.759042ms)
+✔ open chat expires normally with no tasks and keeps its original history on restart (229.155667ms)
+✔ open chat expires normally after actual submission without promoting business success (563.413916ms)
+✔ open chat expiry preserves interruption for an unsubmitted queued task (547.341875ms)
+✔ open chat expiry preserves interruption for an unsubmitted running task (552.75425ms)
+✔ open chat expiry preserves interruption for an unsubmitted waiting task (560.538291ms)
+✔ open chat expiry preserves interruption for an unsubmitted failed task (564.054292ms)
+✔ open chat expiry preserves interruption for an unsubmitted cancelled task (550.817416ms)
+✔ open chat with not-yet-finished scripted input still expires as interrupted (203.780833ms)
+✔ expiry does not complete while a scripted actor response is still pending (236.109ms)
+✔ expiry interrupts a reference worker that is still executing (210.261834ms)
+✔ protocol expiry rejects a completed claim without delivery (files missing) (553.7155ms)
+✔ protocol expiry rejects a completed claim without delivery (files exist) (550.685084ms)
+✔ noise generation is seeded, schedule-bound, and does not expose a noise label (0.797625ms)
+✔ all eight real workloads finish under continuous noise, with independent input injection (5097.984375ms)
+✔ lost receipt is a real single effect; retry checks the original result and rejects changed content (311.279834ms)
+✔ target tools reject traversal, hidden files, symlinks, and mutation after stop (454.873375ms)
+✔ stop interrupts workers and persists partial evidence without resuming on restart (557.760709ms)
+✔ reference executor survives one injected tool failure and does not duplicate a lost effect (4748.394959ms)
+✔ actor response follows delivery and unknown questions are recorded as Lab limitations (447.176125ms)
+✔ independent verifier reads all eight real outputs and service effects (75.017125ms)
+✔ task completed claim and acknowledgement cannot replace missing deliverables (3.192917ms)
+✔ stopped missing work is inconclusive; tasks never introduced are excluded (2.545166ms)
+✔ a pre-work acknowledgement never counts as post-artifact delivery (11.968125ms)
+✔ numerical corruption fails even after artifact metadata and write receipts are refreshed (9.783209ms)
+✔ a fake Office file fails despite valid JSON business totals (10.983ms)
+✔ human-readable report.csv cannot be junk while its JSON remains correct (7.510541ms)
+✔ human-readable reconciliation.csv cannot be junk while its JSON remains correct (4.564667ms)
+✔ human-readable plan.csv cannot be junk while its JSON remains correct (4.185ms)
+✔ human-readable comparison.md cannot be junk while its JSON remains correct (3.811875ms)
+✔ human-readable inspection.md cannot be junk while its JSON remains correct (3.625917ms)
+✔ human-readable maintenance.md cannot be junk while its JSON remains correct (4.289542ms)
+✔ a workbook containing the right three totals but no usable report fails (11.933209ms)
+✔ correct cached Excel totals do not conceal an incorrect formula (21.753333ms)
+✔ inspection self-report needs independent service observation (3.825291ms)
+✔ same operation producing a second effect is independently detected (3.909541ms)
+✔ evidence reader refuses lexical traversal and symlink escape (2.90175ms)
+✔ large evidence packets keep task evidence and explicitly disclose omitted events (7.3755ms)
+✔ external HTTP protocol completes all eight workloads with a lost receipt and no target filesystem access (3977.189833ms)
+✔ import makes a new opinion and cannot replace the fact report or trusted provenance (1.126542ms)
+✔ rejects invalid scores, missing evidence, unknown references and duplicate dimensions (0.463375ms)
+✔ supports all reference forms and unscored missing evidence without inventing neutral scores (0.072125ms)
+✔ respects an explicit remote judge failure (0.088625ms)
+✖ HTTP adapter sends packet and bearer separately and validates returned opinion (3.237542ms)
+✖ HTTP failures, non-JSON, redirect and oversized response remain judge_error (1.58925ms)
+✖ streamed response limit applies without a content-length header (0.173084ms)
+✖ timeout includes response body reading and does not fabricate a score (0.129375ms)
+✔ rejects unsafe endpoint forms and invalid timeouts before network use (0.215ms)
+✔ message receipt cold-reads the delivered effect when operation receipt persistence failed (116.119833ms)
+✔ wrong body, channel, operation and non-target source never become delivered (107.433959ms)
+✔ multiple deliveries for one operation are ambiguous before body/channel matching (120.2805ms)
+✔ terminal run receipts remain readable without changing files, events or runtime content (131.191083ms)
+✔ partial or truncated persisted evidence is refused without repair (112.560083ms)
+✔ unpersisted in-memory delivery cannot yield a delivered receipt (96.737084ms)
+✔ message receipt validates the exact query before reading evidence (62.689958ms)
+✔ protocol remains the default, outcome has eight goal-based tasks and rejects the reference executor (80.683459ms)
+✔ unintroduced tasks and their inputs/service cannot be accessed or submitted (205.565625ms)
+✔ different legitimate output names and formats are accepted without fixed JSON: 本周经营分析.md (341.222333ms)
+✔ different legitimate output names and formats are accepted without fixed JSON: totals-any-name.csv (358.652792ms)
+✔ different legitimate output names and formats are accepted without fixed JSON: another-structure.json (551.093667ms)
+✔ a real differently named spreadsheet is read as evidence, not forced into the reference workbook layout (408.498416ms)
+✔ actual body delivery is allowed, but messages/acknowledgements/completed claims are not the submission gesture (447.362542ms)
+✔ required files, registration, owning task, uniqueness and path boundaries are validated before submission (669.401042ms)
+✔ registered files changed before submission are rejected and damaged files after submission fail independent verification (414.892875ms)
+✔ submission and Judge evidence reject internal symlinks, not just lexical traversal (296.195083ms)
+✔ forged completion and incorrect delivery recipient/order do not count as completed business work (286.273917ms)
+✔ garbage and unsupported formats never auto-pass, while understood wrong numerical facts fail (729.005ms)
+✔ claimed Office output containing junk is not accepted as readable business evidence (348.071125ms)
+✔ lost submission receipt retries one actual delivery, preserves request identity, and remains readable after sealing (320.614417ms)
+✔ a transient submission failure has no effect and a same-identity retry can succeed (313.664834ms)
+✔ outcome completion waits for explicit submissions, not fixed deliverables (434.364458ms)
+✔ maintenance facts accept a different healthy capacity and fail self-report without effects/recheck (456.716375ms)
+✔ Judge packet exposes actual scoped inputs/body/artifacts and raw read rejects tampered inputs (322.347083ms)
+✔ supplier outcomes allow a defensible non-cheapest recommendation while checking actual cost/eligibility (614.15525ms)
+✔ determinable reconciliation and allocation contradictions fail without requiring standard deliverable names (412.299875ms)
+✔ the final lost receipt cannot strand a run and failed tasks cannot inflate business success (718.150125ms)
+✔ independent outcome verification detects a duplicated actual delivery even with continuous event sequence (335.972208ms)
+✔ sealed outcome submissions and their idempotent receipts survive a normal engine restart (348.221459ms)
+✔ all built-in scenario modes and normalized snapshots validate repeatedly (8.521334ms)
+✔ scenario saves preserve originals, reject stale revisions, and survive reopening (5.689666ms)
+✔ maximum authored company remains valid after normalization and persistence (2.359958ms)
+✔ custom scripts reject invalid membership, missing assets, cyclic dependencies and spoofed requests (0.286375ms)
+✔ scenario library rejects symlink records and does not consume their content (2.35975ms)
+✔ API exposes company catalog and returns 404 for an unknown run (71.624875ms)
+✔ creation rejects invalid configuration before starting a run (6.383625ms)
+✔ run creation is idempotent and rejects reuse of a key for a different config (76.20925ms)
+✔ target credentials are required and scoped to one external run (159.054375ms)
+✔ simultaneous creation reserves capacity before asynchronous workspace initialization (284.527ms)
+✔ target sees released inputs and introduced tasks without observer scoring metadata (81.327917ms)
+✔ target action validation rejects unknown actions and cannot forge Lab observations (77.321709ms)
+✔ target writes are scoped and retries do not create duplicate effects (352.452792ms)
+✔ stopping a run rejects new effects and leaves previous artifacts unchanged (153.424625ms)
+✔ unfinished runs cannot produce sealed evidence or Agent review (86.8805ms)
+✔ external Agent can deliver its final result after marking the last task completed (1562.220959ms)
+✔ server shutdown waits for a naturally finishing run to seal its fact report (700.449125ms)
+✔ cross-site command requests are refused without creating a run (3.703375ms)
+✔ artifact endpoints only serve registered intact outputs and never arbitrary files (124.406917ms)
+✔ story steps encounter tomorrow reminder, external changes, own check and deadline in order (555.174125ms)
+✔ same-time priority, revision identity, cancellation and no duplicate step on stale watermark (455.580209ms)
+✔ paused story retains real timeout, independent of audit clock jumps (230.698333ms)
+✔ clean restart restores cancelled and pending agendas, preserves identities and cumulative elapsed (518.945208ms)
+✔ unknown occurrence blocks recovery without replay (162.294709ms)
+✔ incomplete persistence blocks recovery without replay (143.315083ms)
+✔ load injection continues independently and paused load excludes the paused interval (340.671709ms)
+✔ invalid manual deadline does not leave an orphan task (84.597042ms)
+✔ stopped run rejects time advancement and fresh target scheduling (70.505666ms)
+✔ periodic each records denominator and stable occurrence identities (0.247792ms)
+✔ periodic latest records denominator and stable occurrence identities (0.044792ms)
+✔ periodic coalesce records denominator and stable occurrence identities (0.031625ms)
+✔ periodic skip records denominator and stable occurrence identities (0.024708ms)
+✔ load clock uses monotonic time, pauses, resumes without offline catchup, and interval revision clears old recurrence (0.102834ms)
+✔ 90-day validation and absolute calendar views cover month boundary and DST offsets (0.444209ms)
+✔ eight work subjects produce usable files, correct business outcomes, and a repaired test service (67.194959ms)
+✔ report calculations follow changed business data rather than a fixed expected answer (8.008375ms)
+✔ a lost write receipt is recovered with the same operation ID and without applying the write twice (3.13375ms)
+✔ an aborted worker does not start new effects (2.52425ms)
+✔ a permanently rejected output does not get reported as completed work (2.58ms)
+✔ every target task exposes a public result contract that accepts its actual deliverable (82.151416ms)
+ℹ tests 124
+ℹ suites 0
+ℹ pass 120
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 41630.440917
+
+✖ failing tests:
+
+test at tests/judge.test.ts:1:4195
+✖ HTTP adapter sends packet and bearer separately and validates returned opinion (3.237542ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at node:net:2448:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at tests/judge.test.ts:1:4972
+✖ HTTP failures, non-JSON, redirect and oversized response remain judge_error (1.58925ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at node:net:2448:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at tests/judge.test.ts:1:5716
+✖ streamed response limit applies without a content-length header (0.173084ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at node:net:2448:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+
+test at tests/judge.test.ts:1:6151
+✖ timeout includes response body reading and does not fabricate a score (0.129375ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:2145:21)
+      at listenInCluster (node:net:2224:12)
+      at node:net:2448:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }

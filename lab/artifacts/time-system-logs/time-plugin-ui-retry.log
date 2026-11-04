@@ -1,0 +1,65 @@
+
+> @shiyu/gym@0.3.0 test:plugin:ui
+> npm run build:plugin && playwright test --config plugin/playwright.config.mjs
+
+
+> @shiyu/gym@0.3.0 build:plugin
+> tsc -p plugin/tsconfig.json && node plugin/build.mjs
+
+Built DSH gym JavaScript, synthetic fixtures and local icon assets in lab/dist/gym.
+[WebServer] (node:40768) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:41193) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   1 plugin/tests/client.spec.js:17:1 › story room UI creates explicit clock and steps through a target reminder (1.0m)
+(node:33454) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   2 plugin/tests/client.spec.js:46:1 › native client supports real room messages, files, target delivery and sealed review (3.5s)
+  ✓   3 plugin/tests/client.spec.js:116:1 › script editor saves a new actor and task then preserves revisions on reopen (845ms)
+  ✓   4 plugin/tests/client.spec.js:154:4 › raw JSON import preserves explicit empty actors and channels through save and reopen (624ms)
+  ✓   5 plugin/tests/client.spec.js:154:4 › raw JSON import preserves explicit empty actors with one group through save and reopen (618ms)
+  ✓   6 plugin/tests/client.spec.js:154:4 › raw JSON import preserves omitted actors and channels retain catalog defaults through save and reopen (652ms)
+  ✓   7 plugin/tests/client.spec.js:186:1 › a stale 0.2 service shows a reload instruction without permitting room writes (402ms)
+  ✓   8 plugin/tests/client.spec.js:202:1 › a delayed script save does not replace a later editor selection (674ms)
+  ✓   9 plugin/tests/client.spec.js:224:1 › Gym model settings use Host catalog efforts and persist each role independently (959ms)
+  ✓  10 plugin/tests/client.spec.js:260:1 › unavailable Host model catalog keeps follow-Host settings usable (451ms)
+
+
+  1) plugin/tests/client.spec.js:17:1 › story room UI creates explicit clock and steps through a target reminder
+
+    Test timeout of 60000ms exceeded.
+
+    Error: locator.selectOption: Test timeout of 60000ms exceeded.
+    Call log:
+      - waiting for getByLabel('时间模式', { exact: true })
+
+
+      18 |   await page.goto('/');
+      19 |   await page.getByText('高级', { exact: true }).click();
+    > 20 |   await page.getByLabel('时间模式', { exact: true }).selectOption('story');
+         |                                                  ^
+      21 |   await page.getByLabel('故事起点（ISO）', { exact: true }).fill('2026-01-05T13:00:00Z');
+      22 |   const created = actionResponse(page, 'create');
+      23 |   await page.getByRole('button', { name: '创建', exact: true }).click();
+        at /Users/caja/Documents/识雨/lab/plugin/tests/client.spec.js:20:50
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/plugin/client-story-room-UI-creat-94a4d-s-through-a-target-reminder/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/plugin/client-story-room-UI-creat-94a4d-s-through-a-target-reminder/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/plugin/client-story-room-UI-creat-94a4d-s-through-a-target-reminder/trace.zip
+    Usage:
+
+        npx playwright show-trace test-results/plugin/client-story-room-UI-creat-94a4d-s-through-a-target-reminder/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    plugin/tests/client.spec.js:17:1 › story room UI creates explicit clock and steps through a target reminder
+  9 passed (1.2m)

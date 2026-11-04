@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
+import { validateTimeConfig } from './time.ts';
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { readFile, realpath, stat } from 'node:fs/promises';
@@ -38,7 +39,8 @@ export function parseConfig(value: unknown): RunConfig {
     seed: boundedNumber(body.seed, 42, 0, 2147483647), noiseCount: boundedNumber(body.noiseCount, 60, 0, 1000),
     speed: boundedNumber(body.speed, 10, 1, 100, false), workerConcurrency: boundedNumber(body.workerConcurrency, 2, 1, 8),
     taskDelayMs: boundedNumber(body.taskDelayMs, 800, 0, 30000), fault: body.fault as RunConfig['fault'] ?? 'none',
-    maxDurationMs: boundedNumber(body.maxDurationMs, 60000, 1000, 600000)
+    maxDurationMs: boundedNumber(body.maxDurationMs, 60000, 1000, 600000),
+    ...(body.time === undefined ? {} : { time: validateTimeConfig(body.time) })
   };
 }
 function parseAction(value: unknown): TargetAction {
@@ -46,6 +48,8 @@ function parseAction(value: unknown): TargetAction {
   const task = () => textField(a.taskId, 'taskId', 100);
   const optionalTask = () => a.taskId === undefined ? undefined : task();
   switch (a.type) {
+    case 'time.schedule':
+    case 'time.cancel': return a as unknown as TargetAction;
     case 'file.read': return { type: a.type, path: textField(a.path, 'path', 500) };
     case 'file.write':
       if (typeof a.content !== 'string' || a.content.length > 6_000_000) throw new Error('文件内容超出限制');
@@ -146,6 +150,11 @@ export async function buildApp(options: ServerOptions = {}) {
     if (body.command !== 'drain' && body.command !== 'stop') throw badRequest('command 应为 drain 或 stop');
     return engine.controlRun(req.params.id, body.command);
   });
+  app.post<{ Params: { id: string } }>('/api/runs/:id/time', async req => {
+    withRun(req.params.id);
+    const body = bodyObject(req.body);
+    return engine.controlTime(req.params.id, body.command as 'pause' | 'resume' | 'step' | 'recover', body.expectedSeq as number);
+  });
   app.get<{ Params: { id: string }; Querystring: { after?: string } }>('/api/runs/:id/events', async (req, reply) => {
     const run = withRun(req.params.id);
     const after = cursor(req.headers['last-event-id'] ?? req.query.after);
@@ -221,11 +230,11 @@ export async function buildApp(options: ServerOptions = {}) {
 
   app.get<{ Params: { id: string } }>('/target/runs/:id', async req => {
     const run = auth(req.params.id, req.headers.authorization);
-    return { id: run.id, status: run.status, targetLabel: run.targetLabel, actors: catalog.actors, channels: catalog.channels, tasks: run.tasks.filter(t => t.introduced), protocolVersion: 1 };
+    return { id: run.id, status: run.status, time: engine.timeView(run.id), targetLabel: run.targetLabel, actors: catalog.actors, channels: catalog.channels, tasks: run.tasks.filter(t => t.introduced), protocolVersion: 1 };
   });
   app.get<{ Params: { id: string }; Querystring: { after?: string } }>('/target/runs/:id/inputs', async req => {
     const run = auth(req.params.id, req.headers.authorization);
-    return { status: run.status, inputs: engine.targetInputs(run.id, cursor(req.query.after)) };
+    return { status: run.status, time: engine.timeView(run.id), inputs: engine.targetInputs(run.id, cursor(req.query.after)) };
   });
   app.post<{ Params: { id: string } }>('/target/runs/:id/actions', async req => {
     auth(req.params.id, req.headers.authorization);

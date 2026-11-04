@@ -1,0 +1,52 @@
+
+> @shiyu/gym@0.3.0 test:plugin
+> npm run build:plugin && node --test --test-concurrency=1 plugin/tests/*.test.js
+
+
+> @shiyu/gym@0.3.0 build:plugin
+> tsc -p plugin/tsconfig.json && node plugin/build.mjs
+
+Built DSH gym JavaScript, synthetic fixtures and local icon assets in lab/dist/gym.
+✔ management schema exposes the room protocol and passes the real calling Agent (185.487ms)
+✔ HTTP target enters participant state, respects occupancy, and revokes disconnected credentials (107.332208ms)
+✔ room completion retains read-only identity until unload, without starting any model (90.329583ms)
+✔ connection and attachment preflight refusals can retry the same key after prerequisites recover (101.751166ms)
+✔ http: final lost receipt remains queryable after sealing, while new effects and revoked identities are rejected (269.17375ms)
+✔ session: final lost receipt remains queryable after sealing, while new effects and revoked identities are rejected (155.265667ms)
+✔ uploads stay private until shared; workspace download and target previews read real bytes (98.067792ms)
+✔ human task publishing and explicit target delivery produce one visible delivery (219.094583ms)
+✔ custom scenario HTTP save is durable, idempotent, and rejects stale revisions (114.577209ms)
+✔ local icon endpoints serve packaged font assets and reject arbitrary paths (1.728125ms)
+✔ registered GET routes survive the DSH HTTP bridge and retain download query parameters (89.827833ms)
+✔ UI and agent management share identical state, idempotency and errors (96.422709ms)
+✔ request receipts survive restart without replaying a run (103.960083ms)
+✔ one writer, bounded events, run token and unregistered path boundaries (236.843083ms)
+✔ generic Office writers produce real files and preserve lost-receipt identity (471.735458ms)
+✔ host probe creates scoped Session without a model call or shell exposure (5.669459ms)
+✔ DSH target is tool-scoped and stopping drains its handle (82.477458ms)
+✔ independent Judge sees sources read-only and imports a separate cited opinion (184.644ms)
+✔ Judge missing submission is an explicit error, never a fabricated score (217.990708ms)
+✔ package includes localized metadata, original icon and no extra Client runtime (2.214334ms)
+✔ cancellation during Agent creation disposes the late handle without model calls (73.93125ms)
+✔ concurrent Office retries reserve one byte generation and reject changed contents immediately (383.049334ms)
+✔ Judge can cite verified files and events omitted from its initial bounded packet (389.883167ms)
+✔ target file reads have explicit, lossless text pagination and never dump Office base64 (660.465667ms)
+✔ public receipt query permits original sealed identity, returns metadata and never creates another effect (194.061459ms)
+✔ receipt queries retain token, native occupancy and HTTP identity admission without state changes (73.333209ms)
+✔ model configuration rejection can retry the same create key without duplicating a started run (75.893292ms)
+✔ Lab settings follow Host by default and validate independent choices without model calls or global writes (10.211084ms)
+✔ settings saves have durable receipts and revisions while follow Host remains dynamic (5.160084ms)
+✔ target and Judge bind their own resolved model once and active sessions keep that snapshot (195.465167ms)
+✔ a probe awaiting model metadata cannot create a Session after unload (19.374916ms)
+✔ target reserves its binding during metadata lookup and cancellation prevents late startup (147.62625ms)
+✔ unload waits for a late probe Session and disposes it without invoking the model (52.509084ms)
+✔ public plugin protocol carries story clock, own reminders, hidden agenda boundary and controller watermark (508.981208ms)
+✔ native model barrier blocks steps while pause remains available (294.952ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6777.150333

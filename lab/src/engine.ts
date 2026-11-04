@@ -1,7 +1,8 @@
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { existsSync, lstatSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, resolve, sep } from 'node:path';
-import { performance } from 'node:perf_hooks';
+import { Timeline, systemTime, validateTimeConfig, parseStoryInstant } from './time.ts';
+import type { Occurrence, TimeSource } from './time.ts';
 import { catalog, getScenario, scenarioCompany } from './catalog.ts';
 import { decodeInputContent, validateInputPath, validateScenario } from './scenarios.ts';
 import { seedWorkspace, executeWork } from './workloads.ts';
@@ -23,6 +24,7 @@ type Runtime = {
   listeners: Set<(event: LabEvent) => void>;
   workPromises: Set<Promise<void>>;
   finalization?: Promise<void>;
+  timeline?: Timeline; timeTimer?: ReturnType<typeof setTimeout>; advancing?: boolean;
 };
 
 type EventFields = Partial<Pick<LabEvent, 'actorId' | 'channelId' | 'taskId' | 'data' | 'causeId'>>;
@@ -48,6 +50,7 @@ function stable(value: unknown): string {
 function configFor(input: Partial<RunConfig>): RunConfig {
   const config = { ...DEFAULT_CONFIG, ...input, evaluationMode: input.evaluationMode ?? 'protocol', keepOpen: input.keepOpen ?? false };
   if (input.keepOpen !== undefined && typeof input.keepOpen !== 'boolean') throw new Error('keepOpen 必须为布尔值');
+  if (input.time !== undefined) config.time = validateTimeConfig(input.time);
   if (!['protocol', 'outcome'].includes(config.evaluationMode)) throw new Error('未知验收模式');
   if (!['reference', 'external'].includes(config.target)) throw new Error('未知被测对象');
   if (config.evaluationMode === 'outcome' && config.target === 'reference') throw new Error('业务成果模式仅支持 external；参考执行器只用于 protocol 自检');
@@ -85,28 +88,31 @@ export class LabEngine {
   private creating = 0;
 
   private readonly scenarioResolver: (id: string, mode: EvaluationMode) => Scenario;
-  constructor(options: { runtimeDir: string; scenarioResolver?: (id: string, mode: EvaluationMode) => Scenario }) {
+  private readonly clock: TimeSource;
+  constructor(options: { runtimeDir: string; scenarioResolver?: (id: string, mode: EvaluationMode) => Scenario; clock?: TimeSource }) {
     this.store = new LabStore(resolve(options.runtimeDir));
     this.scenarioResolver = options.scenarioResolver ?? getScenario;
+    this.clock = options.clock ?? systemTime;
   }
 
   async init(): Promise<void> {
     this.store.init();
     for (const run of this.store.loadRuns()) {
       if (!terminalStatuses.has(run.status)) {
-        run.status = 'interrupted'; run.finishedAt = new Date().toISOString();
+        if (run.time) run.manifest.timeRecovery = { status: 'unclean_exit', elapsed: 'lower_bound', reason: '缺少正常关闭水位，真实耗时和外部在途状态尚未核对。' };
+        run.status = 'interrupted'; run.finishedAt = this.wallISO();
         run.error = 'Lab 进程退出，运行未完成；原始轨迹保留，没有自动重放任务。';
         run.factReport = undefined;
       }
       const rt = this.runtime(run);
       this.runtimes.set(run.id, rt);
       if (run.status === 'interrupted' && !run.factReport) {
-        run.finishedAt ??= new Date().toISOString();
+        run.finishedAt ??= this.wallISO();
         const recovery = run.manifest.evidenceRecovery as { status?: string } | undefined;
         if (recovery?.status === 'incomplete') {
           const tasksTotal = run.tasks.filter(task => task.introduced).length;
           run.factReport = {
-            id: `facts-${randomUUID()}`, at: new Date().toISOString(), scope: run.config.target === 'reference' ? 'lab_self_test' : 'target_evaluation',
+            id: `facts-${randomUUID()}`, at: this.wallISO(), scope: run.config.target === 'reference' ? 'lab_self_test' : 'target_evaluation',
             assertions: [{ id: 'evidence-recovery', name: '恢复证据完整性', status: 'inconclusive', detail: run.error ?? '恢复材料不完整，不能沿用旧通过结果。', evidenceRefs: [] }],
             tasksPassed: 0, tasksTotal, completionRate: 0, summary: '运行证据恢复不完整，当前结果不可判定。', limitations: ['原始损坏轨迹已保留；未重放业务操作，也未将缺证据算为通过。'],
           };
@@ -122,7 +128,27 @@ export class LabEngine {
   }
 
   private runtime(run: RunDetail): Runtime {
-    return { run, start: performance.now() - run.metrics.elapsedMs, timers: new Set(), actorTimers: new Set(), actorCounts: new Map(), active: new Map(), injectionDone: terminalStatuses.has(run.status), drainRequested: false, finishing: false, faultConsumed: false, listeners: new Set(), workPromises: new Set() };
+    const timeline = run.time ? new Timeline(run.id, run.time, run.config.speed, this.clock) : undefined;
+    if (timeline && terminalStatuses.has(run.status)) timeline.state.paused = true;
+    const actorCounts = new Map<string, number>();
+    for (const rule of timeline?.state.rules ?? []) {
+      if (rule.source !== 'actor') continue;
+      const input = rule.payload.input as ScheduledInput;
+      const key = `${input.taskId}:${input.data?.branch === 'known_assets' ? 'assets' : 'delivery'}`;
+      actorCounts.set(key, (actorCounts.get(key) ?? 0) + 1);
+    }
+    return { run, timeline, start: this.clock.monotonicNow() - run.metrics.elapsedMs, timers: new Set(), actorTimers: new Set(), actorCounts, active: new Map(), injectionDone: terminalStatuses.has(run.status), drainRequested: false, finishing: false, faultConsumed: false, listeners: new Set(), workPromises: new Set() };
+  }
+
+  private businessNow(rt: Runtime): number { return rt.timeline?.now() ?? Math.max(0, this.clock.monotonicNow() - rt.start) * rt.run.config.speed; }
+  private wallISO(): string { return new Date(this.clock.wallNow()).toISOString(); }
+
+  /** Target-safe clock view excludes the future world agenda. */
+  timeView(id: string) {
+    const rt = this.find(id);
+    if (!rt.timeline) return undefined;
+    return { ...rt.timeline.view(), realAt: this.wallISO(), elapsedMs: rt.run.metrics.elapsedMs,
+      schedules: clone(rt.timeline.state.rules.filter(rule => rule.source === 'target')) };
   }
 
   private find(id: string): Runtime {
@@ -234,12 +260,12 @@ export class LabEngine {
       if (rt.run.config.evaluationMode !== 'outcome' || rt.run.config.target !== 'external') throw new Error('手动发布任务只用于 external/outcome 运行');
       if (!input || typeof input !== 'object' || typeof input.title !== 'string' || !input.title.trim() || input.title.length > 200 || typeof input.instructions !== 'string' || !input.instructions.trim() || input.instructions.length > 12000) throw new Error('任务名称或要求无效');
       if (!this.runCompany(id).channels.find(channel => channel.id === input.channelId)?.memberIds.includes('HUMAN')) throw new Error('HUMAN 不是任务会话成员');
-      if (rt.run.tasks.filter(task => task.ownerId === 'HUMAN' && task.id.startsWith('U')).length >= 32 || rt.run.tasks.length >= 64) throw new Error('手动任务数达到上限');
+      if (rt.run.tasks.filter(task => task.ownerId === 'HUMAN' && task.id.startsWith('U')).length >= 32 || rt.run.tasks.length >= 128) throw new Error('手动任务数达到上限');
       const files = this.attachments(rt, input.inputs);
-      const dueAtMs = input.dueAtMs ?? Math.round((performance.now() - rt.start) * rt.run.config.speed) + 60000;
+      const dueAtMs = input.dueAtMs ?? Math.round(this.businessNow(rt)) + 60000;
       if (typeof dueAtMs !== 'number' || !Number.isFinite(dueAtMs) || dueAtMs < 0 || dueAtMs > Number.MAX_SAFE_INTEGER) throw new Error('任务截止时间无效');
       const task: TaskRecord = { id: `U${randomUUID().replaceAll('-', '')}`, subjectId: 'generic', title: input.title.trim(), ownerId: 'HUMAN', channelId: input.channelId, instructions: input.instructions.trim(), inputs: files.map(file => file.path), deliverables: [], dependencies: [], workMs: 0, dueAtMs, evaluationMode: 'outcome', businessRequirements: [input.instructions.trim()], deliveryPolicy: { allowText: true, minFiles: 0 }, status: 'queued', introduced: true, artifactPaths: [] };
-      rt.run.tasks.push(task); rt.run.metrics.scheduledInputs++; rt.run.metrics.injectedInputs++;
+      this.scheduleDeadline(rt, task); rt.run.tasks.push(task); rt.run.metrics.scheduledInputs++; rt.run.metrics.injectedInputs++;
       const event = this.emit(rt, 'input.request', 'world', `${task.title}\n${task.instructions}`, { actorId: 'HUMAN', channelId: task.channelId, taskId: task.id, data: { ...meta, attachments: files.map(file => file.path), attachmentAssets: files, taskSnapshot: clone(task) } });
       return { ok: true, data: { task: clone(task), event } };
     });
@@ -274,7 +300,7 @@ export class LabEngine {
     const company = scenarioCompany(scenario);
     this.creating++;
     try {
-    const id = `run-${Date.now().toString(36)}-${randomBytes(4).toString('hex')}`;
+    const id = `run-${this.clock.wallNow().toString(36)}-${randomBytes(4).toString('hex')}`;
     const runDir = this.store.runDir(id);
     mkdirSync(runDir, { recursive: true });
     const inputAssets = await seedWorkspace(runDir, scenario);
@@ -284,23 +310,28 @@ export class LabEngine {
     const service: ServiceState = existsSync(servicePath) ? JSON.parse(readFileSync(servicePath, 'utf8')) : defaultService;
     const schedule = [...scenario.inputs, ...generateNoise(config.seed, config.noiseCount, scenario.durationMs, company)].sort((a, b) => a.atMs - b.atMs || a.id.localeCompare(b.id));
     const run: RunDetail = {
-      id, name: scenario.name, status: 'prepared', createdAt: new Date().toISOString(), config,
+      id, name: scenario.name, status: 'prepared', createdAt: this.wallISO(), config,
       targetLabel: config.target === 'reference' ? '参考执行器 · Lab 自检' : '外部 Agent · 待测对象',
       metrics: { scheduledInputs: schedule.length, injectedInputs: 0, replies: 0, toolCalls: 0, completedTasks: 0, failedTasks: 0, pendingTasks: 0, maxInjectionLagMs: 0, elapsedMs: 0 },
       tasks: scenario.tasks.map(task => ({ ...clone(task), status: 'queued', introduced: false, artifactPaths: [] })),
       events: [], artifacts: [], reviews: [], service, memory: {}, company: clone(company),
+      ...(config.time ? { time: { version: 1 as const, config: clone(config.time), businessMs: 0, paused: config.time.mode === 'story', stopped: false, rules: [] } } : {}),
       manifest: {
         schemaVersion: 1, scenarioId: scenario.id, scenarioDigest: hash(stable(scenario)), scheduleDigest: hash(stable(schedule)),
-        createdAt: new Date().toISOString(), seed: config.seed, config: clone(config), evaluationMode: config.evaluationMode,
+        createdAt: this.wallISO(), seed: config.seed, config: clone(config), evaluationMode: config.evaluationMode,
         inputAssets: clone(inputAssets),
         scenarioSnapshot: { path: 'scenario.json', sha256: hash(JSON.stringify(scenario, null, 2)) },
         scope: config.target === 'reference' ? 'lab_self_test' : 'target_evaluation',
         components: { inputDriver: 'real', world: 'stateful_test_double', worker: config.target === 'reference' ? 'deterministic_reference' : 'external', core: config.target === 'reference' ? 'scripted_reference' : 'external', memory: 'target_reported_observation', evaluator: 'independent_files_and_effects' },
-        clock: { business: 'scaled-scenario-time', performance: 'monotonic-wall-time', speed: config.speed },
+        clock: { business: config.time?.mode ?? 'legacy-scaled-scenario-time', performance: 'monotonic', audit: 'real-calendar', speed: config.speed, ...(config.time ?? {}) },
         limitations: ['本机 DEV 环境；不是同用户文件系统盲测隔离。', '参考执行器验证 Lab，不证明识雨模型或六域能力。', '业务服务是可复位的有状态替身。'],
       },
     };
     const rt = this.runtime(run);
+    if (rt.timeline) {
+      for (const inputEvent of schedule) rt.timeline.add({ id: `external:${inputEvent.id}`, revision: 1, source: 'external', kind: 'input', nextAtMs: inputEvent.atMs, missed: 'each', payload: { input: clone(inputEvent) } });
+      rt.timeline.add({ id: 'scenario:end', revision: 1, source: 'end', kind: 'end', nextAtMs: scenario.durationMs, missed: 'each', payload: {} });
+    }
     this.runtimes.set(id, rt);
     const token = randomBytes(32).toString('base64url');
     this.store.saveToken(id, hash(token));
@@ -309,21 +340,34 @@ export class LabEngine {
     writeFileSync(servicePath, JSON.stringify(service, null, 2));
     run.status = 'running';
     this.emit(rt, 'run.started', 'lab', config.target === 'reference' ? '参考执行器开始 Lab 自检；不计为识雨能力验证。' : '外部 Agent 实验开始，等待客户端读取已发生输入。');
-    for (const inputEvent of schedule) {
-      this.schedule(rt, inputEvent.atMs / config.speed, () => this.inject(rt, inputEvent));
+    if (rt.timeline) {
+      this.store.saveRun(run);
+      this.armTimeline(rt);
+    } else {
+      for (const inputEvent of schedule) {
+        this.schedule(rt, inputEvent.atMs / config.speed, () => this.inject(rt, inputEvent));
+      }
+      this.schedule(rt, scenario.durationMs / config.speed, () => {
+        rt.injectionDone = true;
+        if (!run.config.keepOpen || rt.drainRequested) {
+          if (run.status === 'running') run.status = 'draining';
+          this.emit(rt, 'run.draining', 'lab', '外生输入已结束，等待已接纳工作结束。');
+        } else this.emit(rt, 'run.inputs_finished', 'lab', '剧本输入已结束；聊天室仍开放，可继续发言、分享资料和发布任务。');
+        this.pump(rt);
+        this.maybeFinish(rt);
+      });
     }
-    this.schedule(rt, scenario.durationMs / config.speed, () => {
-      rt.injectionDone = true;
-      if (!run.config.keepOpen || rt.drainRequested) {
-        if (run.status === 'running') run.status = 'draining';
-        this.emit(rt, 'run.draining', 'lab', '外生输入已结束，等待已接纳工作结束。');
-      } else this.emit(rt, 'run.inputs_finished', 'lab', '剧本输入已结束；聊天室仍开放，可继续发言、分享资料和发布任务。');
-      this.pump(rt);
-      this.maybeFinish(rt);
-    });
+    this.armDeadline(rt);
+    return { run: this.getRun(id), ...(config.target === 'external' ? { targetToken: token } : {}) };
+    } finally { this.creating--; }
+  }
+
+  private armDeadline(rt: Runtime): void {
+    const run = rt.run;
     rt.deadline = setTimeout(() => {
       if (rt.finishing || terminalStatuses.has(run.status)) return;
       const delivered = run.config.keepOpen && rt.injectionDone && !rt.active.size && !rt.workPromises.size && !rt.actorTimers.size
+        && (!rt.timeline || rt.timeline.nextTime() === undefined)
         && run.tasks.filter(task => task.introduced).every(task => task.status === 'completed' && this.hasDelivery(rt, task));
       if (delivered) {
         this.emit(rt, 'run.deadline_reached', 'lab', '房间时限已到；已引入任务均有实际交付（或没有任务），正常封存。运行结束不代表业务质量已通过，仍以独立验收与评分为准。', { data: { reason: 'time_budget_after_delivery' } });
@@ -332,9 +376,7 @@ export class LabEngine {
       }
       run.error = '达到运行时限；仍有未结束输入、待交付任务或引擎工作，运行标为中断。已经交付的成果和独立验收记录仍保留，不受此状态覆盖。';
       void this.finish(rt, 'interrupted');
-    }, config.maxDurationMs);
-    return { run: this.getRun(id), ...(config.target === 'external' ? { targetToken: token } : {}) };
-    } finally { this.creating--; }
+    }, Math.max(0, run.config.maxDurationMs - run.metrics.elapsedMs));
   }
 
   private schedule(rt: Runtime, delayMs: number, callback: () => void): void {
@@ -342,18 +384,127 @@ export class LabEngine {
       rt.timers.delete(timer);
       if (terminalStatuses.has(rt.run.status) || rt.finishing) return;
       try { callback(); } catch (error) { rt.run.error = String(error); void this.finish(rt, 'failed'); }
-    }, Math.max(0, delayMs - (performance.now() - rt.start)));
+    }, Math.max(0, delayMs - (this.clock.monotonicNow() - rt.start)));
     rt.timers.add(timer);
+  }
+
+  private scheduleDeadline(rt: Runtime, task: TaskRecord): void {
+    if (!rt.timeline) return;
+    rt.timeline.add({ id: `deadline:${task.id}`, revision: 1, source: 'deadline', kind: 'deadline',
+      nextAtMs: Math.max(rt.timeline.now(), task.dueAtMs), missed: 'each', payload: { taskId: task.id, dueAtMs: task.dueAtMs } });
+    this.armTimeline(rt);
+  }
+
+  private armTimeline(rt: Runtime): void {
+    if (rt.timeTimer) clearTimeout(rt.timeTimer);
+    rt.timeTimer = undefined;
+    const timeline = rt.timeline;
+    if (!timeline || timeline.state.config.mode !== 'load' || timeline.state.paused || timeline.state.stopped || terminalStatuses.has(rt.run.status) || rt.finishing) return;
+    const next = timeline.nextTime();
+    if (next === undefined) return;
+    rt.timeTimer = setTimeout(() => {
+      rt.timeTimer = undefined;
+      try { this.advanceTimeline(rt, timeline.now()); }
+      catch (error) { rt.run.error = String(error); void this.finish(rt, 'interrupted'); }
+      this.armTimeline(rt);
+    }, Math.min(2_147_483_647, Math.max(0, (next - timeline.now()) / rt.run.config.speed)));
+  }
+
+  private advanceTimeline(rt: Runtime, horizon: number): void {
+    const timeline = rt.timeline!;
+    if (rt.advancing) throw new Error('时间推进正在执行');
+    rt.advancing = true;
+    try {
+      timeline.state.businessMs = Math.max(timeline.state.businessMs, horizon);
+      // Bound each turn. Remaining each-policy occurrences keep their cursor.
+      for (let count = 0; count < 256; count++) {
+        if (terminalStatuses.has(rt.run.status) || rt.finishing || timeline.state.stopped) break;
+        const occurrence = timeline.next(horizon);
+        if (!occurrence) break;
+        timeline.claim(occurrence);
+        this.store.saveRun(rt.run);
+        if (occurrence.deliveredCount) this.dispatchOccurrence(rt, occurrence);
+        timeline.settle();
+        this.emit(rt, 'time.occurrence', 'lab', occurrence.deliveredCount ? '计划发生项已处理。' : '按策略记录错过项。', { data: { ...occurrence, payload: undefined,
+          scheduledAt: new Date(Date.parse(timeline.state.config.startAt) + occurrence.scheduledAtMs).toISOString(),
+          omittedCount: occurrence.count - occurrence.deliveredCount } });
+      }
+      this.store.saveRun(rt.run);
+      this.maybeFinish(rt);
+    } finally { rt.advancing = false; }
+  }
+
+  private dispatchOccurrence(rt: Runtime, occurrence: Occurrence): void {
+    const data = { occurrenceId: occurrence.id, scheduleId: occurrence.ruleId, revision: occurrence.revision,
+      scheduledAtMs: occurrence.scheduledAtMs, firstAtMs: occurrence.firstAtMs, count: occurrence.count, missed: occurrence.missed };
+    if (occurrence.kind === 'input') {
+      const input = clone(occurrence.payload.input) as ScheduledInput;
+      input.data = { ...input.data, ...data };
+      this.inject(rt, input, occurrence.source === 'actor');
+    } else if (occurrence.source === 'target') {
+      this.emit(rt, `input.${occurrence.kind}`, 'lab', String(occurrence.payload.text), { data: { ...data, source: 'target_schedule' } });
+    } else if (occurrence.kind === 'deadline') {
+      const task = rt.run.tasks.find(task => task.id === occurrence.payload.taskId);
+      this.emit(rt, 'task.deadline', 'world', '到达任务业务期限，保留当时状态及实际交付事实。', { taskId: task?.id,
+        data: { ...data, dueAtMs: occurrence.payload.dueAtMs, status: task?.status, delivered: task ? this.hasDelivery(rt, task) : false } });
+    } else if (occurrence.kind === 'end') {
+      rt.injectionDone = true;
+      if (!rt.run.config.keepOpen || rt.drainRequested) rt.run.status = 'draining';
+      this.emit(rt, 'run.inputs_finished', 'lab', '预定剧情输入已结束。');
+      this.pump(rt); this.maybeFinish(rt);
+    }
+  }
+
+  /** An explicit controller barrier. A stale watermark cannot advance twice. */
+  controlTime(id: string, command: 'pause' | 'resume' | 'step' | 'recover', expectedSeq: number): RunDetail {
+    if (this.closed) throw new Error('Lab 已关闭');
+    const rt = this.find(id), timeline = rt.timeline;
+    if (!timeline) throw new Error('此房间使用历史时钟，需新建启用 time 的房间');
+    if (!['pause', 'resume', 'step', 'recover'].includes(command)) throw new Error('未知时间控制动作');
+    if (!Number.isSafeInteger(expectedSeq) || expectedSeq !== rt.run.events.at(-1)?.seq) throw new Error('时间控制水位已变化，请重新读取运行');
+    if (rt.advancing || rt.finishing) throw new Error('运行仍在推进或封存');
+    if (command === 'recover') {
+      if (rt.run.status !== 'interrupted' || rt.run.config.target !== 'external' || timeline.state.stopped || timeline.state.pending
+        || rt.run.manifest.timeRecovery
+        || (rt.run.manifest.evidenceRecovery as { status?: string } | undefined)?.status === 'incomplete') throw new Error('当前运行不具备可核对的时间恢复条件');
+      if (rt.run.metrics.elapsedMs >= rt.run.config.maxDurationMs) throw new Error('真实运行预算已用尽');
+      if (rt.run.reviews.length) throw new Error('已有独立评分的封存运行不能续写');
+      for (const event of rt.run.events.filter(event => event.type === 'tool.call')) {
+        const result = rt.run.events.findLast(item => item.type === 'tool.result' && item.data?.operationId === event.data?.operationId);
+        if (!result || result.data?.unknown) throw new Error('存在未核对的目标操作，保持中断');
+      }
+      const resumptions = rt.run.manifest.timeResumptions as unknown[] | undefined;
+      rt.run.manifest.timeResumptions = [...(resumptions ?? []), { at: this.wallISO(), expectedSeq,
+        priorStatus: rt.run.status, priorError: rt.run.error, priorFinishedAt: rt.run.finishedAt,
+        priorFactReport: clone(rt.run.factReport), elapsedMs: rt.run.metrics.elapsedMs }];
+      rt.run.status = 'running'; delete rt.run.finishedAt; delete rt.run.factReport;
+      rt.start = this.clock.monotonicNow() - rt.run.metrics.elapsedMs;
+      rt.finalization = undefined; rt.injectionDone = rt.run.events.some(event => event.type === 'run.inputs_finished');
+      timeline.pause(); this.armDeadline(rt);
+    } else {
+      if (terminalStatuses.has(rt.run.status) || timeline.state.stopped) throw new Error('运行已封存');
+      if (command === 'pause') timeline.pause();
+      if (command === 'resume') timeline.resume();
+      if (command === 'step') {
+        if (rt.active.size || rt.workPromises.size || rt.actorTimers.size) throw new Error('引擎仍有在途工作，尚未达到步进屏障');
+        timeline.pause();
+        const next = timeline.nextTime();
+        if (next !== undefined) this.advanceTimeline(rt, next);
+      }
+    }
+    this.emit(rt, 'time.control', 'lab', `故事时间控制 ${command}`, { data: { command, expectedSeq, businessMs: timeline.state.businessMs } });
+    this.armTimeline(rt);
+    return this.getRun(id);
   }
 
   private inject(rt: Runtime, input: ScheduledInput, reactive = false): void {
     if ((!reactive && rt.injectionDone) || terminalStatuses.has(rt.run.status) || rt.finishing) return;
-    const elapsed = performance.now() - rt.start;
-    const lag = Math.max(0, elapsed - input.atMs / rt.run.config.speed);
+    const elapsed = this.clock.monotonicNow() - rt.start;
+    const lag = rt.timeline ? Math.max(0, this.businessNow(rt) - input.atMs) / rt.run.config.speed : Math.max(0, elapsed - input.atMs / rt.run.config.speed);
     rt.run.metrics.injectedInputs++;
     rt.run.metrics.maxInjectionLagMs = Math.max(rt.run.metrics.maxInjectionLagMs, lag);
     const task = input.taskId ? rt.run.tasks.find(t => t.id === input.taskId) : undefined;
-    if (input.kind === 'request' && task) task.introduced = true;
+    if (input.kind === 'request' && task) { task.introduced = true; this.scheduleDeadline(rt, task); }
     const event = this.emit(rt, `input.${input.kind}`, 'world', input.text, {
       actorId: input.actorId, channelId: input.channelId, taskId: input.taskId,
       data: { ...clone(input.data ?? {}), source: reactive ? 'scripted_actor' : 'scenario', inputId: input.id, scheduledAtMs: input.atMs, injectionLagMs: Math.round(lag * 100) / 100 },
@@ -392,7 +543,7 @@ export class LabEngine {
       if (!task.introduced || task.status !== 'queued' || rt.active.has(task.id)) continue;
       const dependencies = task.dependencies.map(id => rt.run.tasks.find(t => t.id === id));
       if (dependencies.some(dep => !dep || ['failed', 'cancelled'].includes(dep.status))) {
-        task.status = 'failed'; task.detail = '上游任务没有成功完成，依赖无法满足。'; task.finishedAt = new Date().toISOString();
+        task.status = 'failed'; task.detail = '上游任务没有成功完成，依赖无法满足。'; task.finishedAt = this.wallISO();
         this.emit(rt, 'task.dependency_failed', 'lab', task.detail, { taskId: task.id });
         continue;
       }
@@ -448,6 +599,7 @@ export class LabEngine {
   private maybeFinish(rt: Runtime): void {
     if (rt.run.config.keepOpen && !rt.drainRequested) return;
     if (rt.finishing || terminalStatuses.has(rt.run.status) || !rt.injectionDone || rt.active.size || rt.actorTimers.size) return;
+    if (rt.timeline && !rt.timeline.state.stopped && rt.timeline.nextTime() !== undefined) return;
     if (rt.run.tasks.some(task => task.introduced && !terminalTasks.has(task.status))) return;
     if (rt.run.config.target === 'external' && rt.run.tasks.some(task => task.introduced && task.status === 'completed' && !this.hasDelivery(rt, task))) return;
     void this.finish(rt, 'completed');
@@ -459,14 +611,14 @@ export class LabEngine {
     if (terminalStatuses.has(rt.run.status)) return this.getRun(id);
     if (command === 'stop') await this.finish(rt, 'stopped');
     else {
-      this.clearInjection(rt); rt.injectionDone = true; rt.drainRequested = true; rt.run.status = 'draining';
+      this.clearInjection(rt); rt.timeline?.stop(); rt.injectionDone = true; rt.drainRequested = true; rt.run.status = 'draining';
       this.emit(rt, 'run.draining', 'lab', '已停止新增输入，继续处理已接纳的工作。');
       this.pump(rt); this.maybeFinish(rt);
     }
     return this.getRun(id);
   }
 
-  private clearInjection(rt: Runtime): void { for (const timer of rt.timers) clearTimeout(timer); rt.timers.clear(); }
+  private clearInjection(rt: Runtime): void { if (rt.timeTimer) clearTimeout(rt.timeTimer); rt.timeTimer = undefined; for (const timer of rt.timers) clearTimeout(timer); rt.timers.clear(); }
 
   private finish(rt: Runtime, status: 'completed' | 'stopped' | 'interrupted' | 'failed'): Promise<void> {
     if (rt.finalization) return rt.finalization;
@@ -480,7 +632,9 @@ export class LabEngine {
     rt.finishing = true; this.clearInjection(rt); rt.injectionDone = true;
     for (const timer of rt.actorTimers) clearTimeout(timer); rt.actorTimers.clear();
     if (rt.deadline) clearTimeout(rt.deadline);
-    rt.run.status = status; rt.run.finishedAt = new Date().toISOString();
+    this.refreshMetrics(rt);
+    if (rt.timeline) { rt.timeline.pause(); if (status !== 'interrupted') rt.timeline.stop(); }
+    rt.run.status = status; rt.run.finishedAt = this.wallISO();
     for (const controller of rt.active.values()) controller.abort();
     if (status === 'stopped') for (const task of rt.run.tasks) {
       if (task.introduced && !terminalTasks.has(task.status)) { task.status = 'cancelled'; task.detail = '实验已停止；已发生外部效果仍保留。'; task.finishedAt = rt.run.finishedAt; }
@@ -526,7 +680,7 @@ export class LabEngine {
   targetInputs(id: string, after = 0): TargetInput[] {
     if (!Number.isSafeInteger(after) || after < 0) throw new Error('无效输入游标');
     const run = this.find(id).run;
-    return clone(run.events.filter(event => event.type.startsWith('input.') && event.seq > after).map(event => {
+    return clone(run.events.filter(event => (event.type.startsWith('input.') || event.type === 'task.deadline') && event.seq > after).map(event => {
       const record = event.taskId ? run.tasks.find(task => task.id === event.taskId && task.introduced) : undefined;
       const task: TaskSpec | undefined = record ? { id: record.id, subjectId: record.subjectId, title: record.title, ownerId: record.ownerId, channelId: record.channelId, instructions: record.instructions, inputs: [...record.inputs], deliverables: [...record.deliverables], dependencies: [...record.dependencies], workMs: record.workMs, dueAtMs: record.dueAtMs,
         ...(record.evaluationMode ? { evaluationMode: record.evaluationMode, businessRequirements: record.businessRequirements, deliveryPolicy: record.deliveryPolicy } : {}),
@@ -607,6 +761,27 @@ export class LabEngine {
     const run = rt.run;
     const task = 'taskId' in action && action.taskId ? run.tasks.find(item => item.id === action.taskId && item.introduced) : undefined;
     switch (action.type) {
+      case 'time.schedule': {
+        if (!rt.timeline || rt.drainRequested) throw new Error('此房间当前不接受故事调度');
+        if (!/^[A-Za-z0-9_.-]{1,100}$/.test(action.scheduleId) || !['reminder', 'check'].includes(action.kind)) throw new Error('目标调度身份或种类无效');
+        if (typeof action.text !== 'string' || !action.text.trim() || action.text.length > 4000) throw new Error('调度正文无效');
+        const offset = (value: string) => {
+          return parseStoryInstant(value) - Date.parse(rt.timeline!.state.config.startAt);
+        };
+        rt.timeline.add({ id: `target:${action.scheduleId}`, revision: action.revision, source: 'target', kind: action.kind,
+          nextAtMs: offset(action.dueAt), everyMs: action.everyMs, untilMs: action.until === undefined ? undefined : offset(action.until),
+          missed: action.missed ?? 'each', payload: { text: action.text } });
+        this.emit(rt, 'time.scheduled', 'lab', '登记目标自己的业务提醒或检查。', { data: { operationId, scheduleId: action.scheduleId, revision: action.revision } });
+        this.armTimeline(rt);
+        return { ok: true, data: { scheduleId: action.scheduleId, revision: action.revision } };
+      }
+      case 'time.cancel': {
+        if (!rt.timeline || typeof action.scheduleId !== 'string') throw new Error('此房间没有故事调度');
+        rt.timeline.cancel(`target:${action.scheduleId}`, action.revision);
+        this.emit(rt, 'time.cancelled', 'lab', '已取消目标调度的后续发生项。', { data: { operationId, scheduleId: action.scheduleId, revision: action.revision } });
+        this.armTimeline(rt);
+        return { ok: true };
+      }
       case 'task.deliver': {
         if (run.config.evaluationMode !== 'outcome') throw new Error('task.deliver 仅用于 outcome；protocol 保持原交付协议');
         if (!task || terminalTasks.has(task.status)) throw new Error('任务尚未接纳或已结束，不能重复提交');
@@ -630,7 +805,7 @@ export class LabEngine {
         if (!this.runCompany(run.id).channels.find(channel => channel.id === task.channelId)?.memberIds.includes(task.ownerId)) throw new Error('任务交付对象不在任务会话中');
         const text = [action.text.trim(), ...(action.paths.length ? [`交付产物：${action.paths.join('、')}`] : [])].filter(Boolean).join('\n');
         const data = { operationId, source: 'explicit_submission', toActorId: task.ownerId, paths: [...action.paths], text: action.text, artifacts };
-        task.status = 'completed'; task.finishedAt = new Date().toISOString(); task.detail = '实际成果已显式提交，业务质量等待独立验收与 Judge。';
+        task.status = 'completed'; task.finishedAt = this.wallISO(); task.detail = '实际成果已显式提交，业务质量等待独立验收与 Judge。';
         const submitted = this.emit(rt, 'task.delivered', 'world', text, { actorId: 'SHIYU', taskId: task.id, channelId: task.channelId, data });
         run.metrics.replies++;
         const delivered = this.emit(rt, 'message.delivered', 'world', text, { actorId: 'SHIYU', taskId: task.id, channelId: task.channelId, causeId: submitted.id, data: { ...data, source: run.config.target === 'reference' ? 'reference' : 'target', attachments: [...action.paths], deliveryEventId: submitted.id } });
@@ -642,8 +817,8 @@ export class LabEngine {
         if (run.config.evaluationMode === 'outcome' && action.status === 'completed') throw new Error('outcome 模式请用 task.deliver 提交实际成果；完成自述不算交付');
         if (terminalTasks.has(task.status) && task.status !== action.status) throw new Error('已结束任务不能用旧操作重新打开');
         task.status = action.status; task.detail = typeof action.detail === 'string' ? action.detail.slice(0, 4000) : undefined;
-        if (action.status === 'running') task.startedAt ??= new Date().toISOString();
-        if (terminalTasks.has(action.status)) task.finishedAt ??= new Date().toISOString();
+        if (action.status === 'running') task.startedAt ??= this.wallISO();
+        if (terminalTasks.has(action.status)) task.finishedAt ??= this.wallISO();
         this.emit(rt, 'task.updated', 'worker', `${task.title}：${action.status}${task.detail ? ` · ${task.detail}` : ''}`, { taskId: task.id, data: { status: action.status, source: 'target_reported' } });
         return { ok: true, data: { status: task.status } };
       }
@@ -715,7 +890,7 @@ export class LabEngine {
       case 'state.record': {
         if (!memoryDomains.has(action.domain) || typeof action.key !== 'string' || !action.key || action.key.length > 200) throw new Error('无效内层观察');
         if (stable(action.value).length > 10000 || !Array.isArray(action.sourceRefs) || action.sourceRefs.length > 100 || action.sourceRefs.some(ref => !run.events.some(event => event.id === ref))) throw new Error('观察来源不存在或内容过大');
-        const record = { value: clone(action.value), sourceRefs: [...action.sourceRefs], observedAt: new Date().toISOString(), source: 'target_reported' };
+        const record = { value: clone(action.value), sourceRefs: [...action.sourceRefs], observedAt: this.wallISO(), source: 'target_reported' };
         run.memory[`${action.domain}.${action.key}`] = record;
         this.emit(rt, 'state.observed', 'memory', `收到 ${action.domain} / ${action.key} 的被测侧状态观察。`, { data: { domain: action.domain, key: action.key, ...record } });
         return { ok: true, data: { recorded: true, source: 'target_reported' } };
@@ -755,11 +930,16 @@ export class LabEngine {
         ? `已收到「${task.title}」的 ${task.artifactPaths.length} 份成果，我会按任务要求核对。`
         : `我看到了完成通知，但还没有找到「${task.title}」的成果文件，请补充交付物。`;
     const input: ScheduledInput = {
-      id: `actor-${operationId}`, atMs: (performance.now() - rt.start + 150) * rt.run.config.speed,
+      id: `actor-${operationId}`, atMs: this.businessNow(rt) + 150 * rt.run.config.speed,
       actorId, channelId: action.channelId, kind: 'message', taskId: task.id, text,
       data: { interaction: 'bounded_script', branch: asksAssets ? 'known_assets' : 'delivery_received', respondsTo: operationId },
     };
     rt.run.metrics.scheduledInputs++;
+    if (rt.timeline) {
+      rt.timeline.add({ id: `actor:${operationId}`, revision: 1, source: 'actor', kind: 'input', nextAtMs: input.atMs, missed: 'each', payload: { input } });
+      this.store.saveRun(rt.run); this.armTimeline(rt);
+      return;
+    }
     const timer = setTimeout(() => {
       rt.actorTimers.delete(timer);
       this.inject(rt, input, true);
@@ -793,9 +973,11 @@ export class LabEngine {
   }
 
   private emit(rt: Runtime, type: string, role: Role, text: string, fields: EventFields = {}): LabEvent {
-    const elapsedMs = Math.max(0, Math.round(performance.now() - rt.start));
+    const elapsedMs = Math.max(0, Math.round(this.clock.monotonicNow() - rt.start));
+    const businessMs = rt.timeline ? Math.round(rt.timeline.now()) : Math.round(elapsedMs * rt.run.config.speed);
     const seq = (rt.run.events.at(-1)?.seq ?? 0) + 1;
-    const event: LabEvent = { id: `${rt.run.id}:e${seq}`, seq, runId: rt.run.id, at: new Date().toISOString(), elapsedMs, businessMs: Math.round(elapsedMs * rt.run.config.speed), type, role, text, ...fields };
+    const event: LabEvent = { id: `${rt.run.id}:e${seq}`, seq, runId: rt.run.id, at: this.wallISO(), elapsedMs, businessMs,
+      ...(rt.timeline ? { storyAt: new Date(Date.parse(rt.timeline.state.config.startAt) + businessMs).toISOString() } : {}), type, role, text, ...fields };
     rt.run.events.push(event); this.store.appendEvent(rt.run.id, event);
     this.refreshMetrics(rt); this.store.saveRun(rt.run);
     for (const listener of rt.listeners) { try { listener(clone(event)); } catch { /* A disconnected viewer cannot fail a run. */ } }
@@ -807,7 +989,8 @@ export class LabEngine {
     rt.run.metrics.completedTasks = tasks.filter(task => task.status === 'completed').length;
     rt.run.metrics.failedTasks = tasks.filter(task => task.status === 'failed').length;
     rt.run.metrics.pendingTasks = tasks.filter(task => !terminalTasks.has(task.status)).length;
-    rt.run.metrics.elapsedMs = rt.run.finishedAt ? Math.max(0, Date.parse(rt.run.finishedAt) - Date.parse(rt.run.createdAt)) : Math.max(0, Math.round(performance.now() - rt.start));
+    if (!rt.run.finishedAt) rt.run.metrics.elapsedMs = Math.max(0, Math.round(this.clock.monotonicNow() - rt.start));
+    if (rt.timeline) rt.run.metrics.storySpanMs = Math.round(rt.timeline.now());
   }
 
   async close(): Promise<void> {

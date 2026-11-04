@@ -14,6 +14,37 @@ const downloadBytes = async download => {
   return Buffer.concat(chunks);
 };
 
+test('story room UI creates explicit clock and steps through a target reminder', async ({ page, request }) => {
+  await page.goto('/');
+  await page.getByText('高级', { exact: true }).click();
+  await page.getByRole('combobox', { name: '时间模式', exact: true }).selectOption('story');
+  await page.getByRole('textbox', { name: '故事起点（ISO）', exact: true }).fill('2026-01-05T13:00:00Z');
+  const created = actionResponse(page, 'create');
+  await page.getByRole('button', { name: '创建', exact: true }).click();
+  const { run, targetToken } = await (await created).json();
+  expect(run.time.config.mode).toBe('story');
+  await post(request, { runId: run.id, targetToken, request: { action: 'act', operationId: 'ui-time-reminder', operation: { type: 'time.schedule', scheduleId: 'tomorrow', revision: 1, kind: 'reminder', dueAt: '2026-01-06T13:00:00Z', text: '明早九点' } } }, '/api/shiyu-gym/target');
+  await page.getByRole('button', { name: '刷新', exact: true }).first().click();
+  const clock = page.getByTestId('story-clock');
+  await expect(clock).toContainText('故事已暂停');
+  const step = async () => {
+    const response = actionResponse(page, 'time_control');
+    await page.getByRole('button', { name: '推进下一时点', exact: true }).click();
+    const result = await response;
+    expect(result.ok(), await result.text()).toBe(true);
+    await expect(page.getByRole('button', { name: '推进下一时点', exact: true })).toBeEnabled();
+  };
+  // A refreshed watermark includes the newly registered reminder.
+  await expect.poll(async () => (await post(request, { action: 'get', runId: run.id })).run.events.at(-1).type).toBe('tool.result');
+  const latest = await post(request, { action: 'get', runId: run.id });
+  await expect(clock).toHaveAttribute('data-event-seq', String(latest.run.events.at(-1).seq));
+  await step(); await step();
+  await expect(clock).toContainText('故事跨度（天） 1.000');
+  await expect(clock).toContainText('真实运行（秒）');
+  await page.screenshot({ path: artifact('gym-time-system.png') });
+  await post(request, { action: 'control', command: 'stop', runId: run.id });
+});
+
 test('native client supports real room messages, files, target delivery and sealed review', async ({ page, request }) => {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   await page.goto('/');

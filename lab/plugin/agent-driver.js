@@ -46,7 +46,7 @@ export class GymAgentDriver {
       this.service.updateBinding(binding, { status: 'running' });
       if (role === 'target') {
         const off = this.service.engine.subscribe(runId, event => {
-          if (event.type.startsWith('input.')) { state.dirty = true; this.wake(state); }
+          if (event.type.startsWith('input.') || event.type === 'task.deadline') { state.dirty = true; this.wake(state); }
           if (event.type === 'run.finished') { void this.retire(state, 'completed'); }
         }); state.disposers.push(off);
       }
@@ -78,7 +78,7 @@ export class GymAgentDriver {
           }
           if (args.action === 'overview') {
             const p = state.packet;
-            return { runId: p.runId, instructions: p.instructions, facts: p.facts, tasks: p.tasks, fileIndex: p.fileIndex ?? p.artifacts, evidenceReferences: [...new Set([...p.evidence.map(e => e.ref), ...p.events.map(e => e.id), ...p.facts.assertions.map(a => a.id)])], omittedEventCount: Math.max(0, this.service.engine.getRun(p.runId).events.length - p.events.length) };
+            return { runId: p.runId, time: p.time, instructions: p.instructions, facts: p.facts, tasks: p.tasks, fileIndex: p.fileIndex ?? p.artifacts, evidenceReferences: [...new Set([...p.evidence.map(e => e.ref), ...p.events.map(e => e.id), ...p.facts.assertions.map(a => a.id)])], omittedEventCount: Math.max(0, this.service.engine.getRun(p.runId).events.length - p.events.length) };
           }
           if (args.action === 'read') {
             const result = await this.service.preview(state.binding.runId, args.path, args.offset, true);
@@ -132,11 +132,16 @@ export class GymAgentDriver {
     });
     this.ctx.effect(() => dispose);
   }
+  atTimeBarrier(runId) {
+    return ![...this.live.values()].some(state => state.binding.runId === runId && (state.busy || state.dirty || state.closing || state.binding.status === 'starting'));
+  }
   wake(state, firstPrompt) {
     if (!state.handle || state.busy || state.closing || !active(state.binding) || (!state.dirty && !firstPrompt)) return;
     state.dirty = false; state.busy = true;
     if (state.binding.role === 'target') this.service.updateBinding(state.binding, { phase: 'thinking' });
-    try { state.handle.agent.followup(message(firstPrompt ?? '有新的公司输入到达。请使用 inputs 游标读取并继续处理未完成的业务。')); }
+    const time = state.binding.role === 'target' ? this.service.engine.timeView(state.binding.runId) : undefined;
+    const currentTime = time ? `健身房可信故事时间 ${time.storyAt}，时区 ${time.timeZone}，当地 ${time.localDateTime}。业务相对日期依此解释。真实运行时限独立计量。\n` : '';
+    try { state.handle.agent.followup(message(currentTime + (firstPrompt ?? '有新的公司输入到达。请使用 inputs 游标读取并继续处理未完成的业务。'))); }
     catch (error) { state.busy = false; void this.retire(state, 'error', error.message); return; }
     state.turn = (async () => {
       try {

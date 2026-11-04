@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "slice": "T1-time-system",
+  "recordedAt": "2026-11-04T00:06:36.224003-04:00",
+  "scope": "Lab source, module/protocol tests, simulated DSH UI; synthetic data only",
+  "baseCommit": "de3d7860b8b0ad660b0e5d40358fe793609e3705",
+  "compatibility": {
+    "packageVersion": "0.3.0",
+    "capability": "storyTime.version=1",
+    "activation": "opt-in config.time",
+    "legacyRooms": "legacy scaled clock",
+    "delivery": "existing single-submission task.deliver"
+  },
+  "decisions": [
+    "Story mode advances by explicit controller barriers and next scheduled time.",
+    "Load mode uses monotonic elapsed time independently of target work.",
+    "Mode/start/timezone are frozen per run; periodic rules currently use fixed absolute intervals.",
+    "Clean external-room recovery resumes paused with cumulative real budget; unclean or unknown state remains interrupted."
+  ],
+  "verification": [
+    {
+      "command": "npm test",
+      "cwd": "lab",
+      "status": "passed",
+      "tests": 130,
+      "passed": 130,
+      "failed": 0,
+      "log": "time-system-logs/time-core-tests-release.log"
+    },
+    {
+      "command": "npm run test:plugin",
+      "cwd": "lab",
+      "status": "passed",
+      "tests": 35,
+      "passed": 35,
+      "failed": 0,
+      "host": "simulated",
+      "log": "time-system-logs/time-plugin-release.log"
+    },
+    {
+      "command": "npm run test:plugin:ui",
+      "cwd": "lab",
+      "status": "passed",
+      "tests": 10,
+      "passed": 10,
+      "failed": 0,
+      "host": "simulated DSH, real Lab and Chrome",
+      "log": "time-system-logs/time-plugin-ui-release.log"
+    },
+    {
+      "command": "npm run build && npm run check:plugin",
+      "cwd": "lab",
+      "status": "passed",
+      "log": "time-system-logs/time-build-release.log"
+    },
+    {
+      "command": "git diff --check -- lab",
+      "status": "passed"
+    },
+    {
+      "kind": "visual_review",
+      "status": "passed",
+      "path": "gym-time-system.png",
+      "scope": "light desktop time panel; prior regression screenshots restored byte-for-byte"
+    }
+  ],
+  "retainedFailures": [
+    {
+      "log": "time-system-logs/time-core-tests.log",
+      "tests": 124,
+      "passed": 120,
+      "failed": 4,
+      "cause": "sandbox denied local HTTP listening (EPERM)"
+    },
+    {
+      "log": "time-system-logs/time-core-tests-retry.log",
+      "tests": 125,
+      "passed": 124,
+      "failed": 1,
+      "cause": "new REST test used buildApp return wrapper as app; fixture destructuring corrected"
+    },
+    {
+      "log": "time-system-logs/time-plugin-ui.log",
+      "cause": "sandbox denied test webserver listening (EPERM)"
+    },
+    {
+      "log": "time-system-logs/time-plugin-ui-retry.log",
+      "tests": 10,
+      "passed": 9,
+      "failed": 1,
+      "cause": "new UI test exact label locator timeout; switched to accessible role locator"
+    }
+  ],
+  "timeCoverage": {
+    "newCoreTests": 21,
+    "newPluginTests": 2,
+    "newUiTests": 1,
+    "capacityOnly": {
+      "staff": 5,
+      "businessDayOffsets": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        7,
+        8
+      ],
+      "plannedUtterances": 1120,
+      "plannedTasks": 71,
+      "completedConversationRounds": "not_executed"
+    },
+    "covered": [
+      "next external event",
+      "target reminder/check",
+      "task deadline",
+      "cancellation",
+      "same-time source/ID order",
+      "revision/occurrence identity",
+      "each/latest/coalesce/skip denominators",
+      "pause independent of real timeout",
+      "clean close/reopen deduplication",
+      "unknown/incomplete/unclean recovery refusal",
+      "month/DST absolute clock view",
+      "real monotonic load injection",
+      "REST and native public target entrypoints"
+    ]
+  },
+  "realDependencies": {
+    "nativeHostReloads": 0,
+    "realModelCalls": 0,
+    "realShiyuClockIntegration": "not_executed",
+    "realContinuous24Hours": "not_executed"
+  },
+  "remaining": [
+    "Cross-process target barrier acknowledgment.",
+    "Shiyu native business clock/reminder/memory integration.",
+    "Coordinated recovery after crash with external effects.",
+    "Local-calendar recurrence and mutable timezone.",
+    "Continuous world/chapters and actor knowledge views.",
+    "Responsive sparring, coach, practice/acceptance modes, per-role usage.",
+    "Full five-person seven-day 1120-round and 71-task scenario execution."
+  ],
+  "sourceSha256": {
+    "src/time.ts": "caaea1a89654588450f22a799a59b03057c1522a64a5d43e5a33e744db413832",
+    "src/engine.ts": "7c5861ccb6587b0ea8991a5fe925cab3cc7533df6b969a489e6628c96b08ba4d",
+    "src/types.ts": "b84102b56bbedf0b60dd6c856a49475168651b86414641a813072dfc12b6ff67",
+    "src/scenarios.ts": "8d43e15b5161dc4d17e130b0cbad5da95dc84087f0bd2f96438f9fbac472f0eb",
+    "src/protocol.ts": "b3063cef9930a44a5e04bfaa32455108f30a110464f4fc282477da7178219dc3",
+    "src/server.ts": "c875b57ec3c5873f5d84701cda314a9fae14e97f85fd3c536a4e2dfc0890c86f",
+    "src/evaluation.ts": "27bf50d83f86aa2b94c8da3309f3ef87dd8435410c6abf89410181ac4f9eae30",
+    "plugin/service.js": "810ce5da86eeb9b91a1a14d3ce119335977de236292a927fdbecc769eefda409",
+    "plugin/tools.js": "479cf7aa463aef5300ae3b42adcee1e013f0127314404f5028c7ca22d2032d7a",
+    "plugin/agent-driver.js": "e4589c92c85aca0c468bcfefc8974befcf0248e84bab258a55f36cb42a92c539",
+    "plugin/client.js": "4649bc54f6ee53b7bd52a3aa91bbf8794e32fcfff9feb32c7b26097b2935da78",
+    "tests/time.test.ts": "197e224da9b240a44441cd4f75b9a35661f98dcf53fa716895ad63effb0f7a85",
+    "plugin/tests/time.test.js": "f1da31da564051eb9c60b1b475758cf1eafea81b7f5c211b8157355a246b66f4",
+    "plugin/tests/client.spec.js": "ad8954221cbbf3805d47a53365c83ab06279bb1b9c4422aa65e9088c4b63fa74"
+  },
+  "artifactSha256": {
+    "gym-time-system.png": "3a843008bbbcdc3830fe797c1eca75ca8891e417b06def9c96110167d7663a48",
+    "time-system-logs/time-build-release.log": "2a8d69afb24d6499b0be1b68ec208d48ea10ff71c3c93df508b91b7542899f0e",
+    "time-system-logs/time-build-verified.log": "2be9a33641de0cdac3f3bad8432ba66b0d960379439a20549bca7a72f6cdf2e5",
+    "time-system-logs/time-core-tests-release.log": "9fe323469ec0e4bc49debba1da26e40fa6f79911d3381fad8ab72ce5a87c289a",
+    "time-system-logs/time-core-tests-retry.log": "680b488cd64cd95d93ece9afb35729de7a0fd23ba74cf5eb22066f9168ff21c9",
+    "time-system-logs/time-core-tests-verified.log": "930de208493c6b38829178615f66f3161f0ef7440d35e9d04c1cdd277a4cd9c3",
+    "time-system-logs/time-core-tests.log": "a93d9c3272ce96ebcd5eb95f42ddf09f852b9d64ddac73a26e8734a33459d12b",
+    "time-system-logs/time-plugin-release.log": "abf9fc7fcd6b38f8a3202298464e5234fb272aa6e10ade34d8eae7e763dde652",
+    "time-system-logs/time-plugin-ui-final.log": "e0b81fdaae57592700b899ff39765d3763c8e00839aa3ac2524a914476e1cff8",
+    "time-system-logs/time-plugin-ui-release.log": "da935e0e39c22fda2c9b50d8f676243239f5a028502093f9bf9e5f4d2e552e97",
+    "time-system-logs/time-plugin-ui-retry.log": "b9d4096bf96cfd6f3b9417c93ed5519098ad176ee4eb7aa4064b5bfb8f5a9753",
+    "time-system-logs/time-plugin-ui.log": "289227409a1d79af7d589e0a5f4df41eb142a00b87c6f81fd27177f1a5f6436d",
+    "time-system-logs/time-plugin-verified.log": "b94470a56252f39cf4928bf77691e7dae12795f29255c357d14b545e57dcaf1e"
+  },
+  "consoleLogNormalization": "Console text preserved, with trailing line whitespace and final blank lines normalized for Git. Raw log hashes refer to ignored lab/runtime originals.",
+  "rawConsoleSha256": {
+    "time-plugin-ui-final.log": "e0b81fdaae57592700b899ff39765d3763c8e00839aa3ac2524a914476e1cff8",
+    "time-core-tests-verified.log": "930de208493c6b38829178615f66f3161f0ef7440d35e9d04c1cdd277a4cd9c3",
+    "time-plugin-ui-retry.log": "59ff87c2daef3b4152eec5cac4d540cceef3b0d3ee3c4521368b9b85b0dbdc01",
+    "time-core-tests-release.log": "9fe323469ec0e4bc49debba1da26e40fa6f79911d3381fad8ab72ce5a87c289a",
+    "time-build-verified.log": "75d1494ffcaf8712426582467f0f254c6ce8d2041f726dcfe3590801e9dd8bb0",
+    "time-plugin-ui.log": "46c5f573ac7cd0d3cafbe38ff3e0ca0398f0103eed33758bbeed7739600316f8",
+    "time-plugin-verified.log": "b94470a56252f39cf4928bf77691e7dae12795f29255c357d14b545e57dcaf1e",
+    "time-build-release.log": "c4490bac6f48750a3b04f986de015f2d042ca58d32cdd5230ba7db9d350d4e83",
+    "time-plugin-release.log": "abf9fc7fcd6b38f8a3202298464e5234fb272aa6e10ade34d8eae7e763dde652",
+    "time-core-tests.log": "a93d9c3272ce96ebcd5eb95f42ddf09f852b9d64ddac73a26e8734a33459d12b",
+    "time-core-tests-retry.log": "680b488cd64cd95d93ece9afb35729de7a0fd23ba74cf5eb22066f9168ff21c9",
+    "time-plugin-ui-release.log": "da935e0e39c22fda2c9b50d8f676243239f5a028502093f9bf9e5f4d2e552e97"
+  }
+}

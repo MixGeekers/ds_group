@@ -11,7 +11,7 @@ export const managementSchema = {
   parameters: {
     type: 'object', additionalProperties: false, required: ['action'],
     properties: {
-      action: { type: 'string', enum: ['snapshot', 'settings_get', 'settings_save', 'get', 'create', 'control', 'judge', 'cancel_agent', 'preview', 'evidence', 'import_review', 'probe_host', 'chat', 'send_message', 'publish_task', 'workspace', 'workspace_read', 'workspace_upload', 'scenarios', 'scenario_get', 'scenario_save', 'attach_target', 'connection', 'target_connect', 'target_inputs', 'target_action', 'target_disconnect'] },
+      action: { type: 'string', enum: ['snapshot', 'settings_get', 'settings_save', 'get', 'create', 'control', 'time_control', 'judge', 'cancel_agent', 'preview', 'evidence', 'import_review', 'probe_host', 'chat', 'send_message', 'publish_task', 'workspace', 'workspace_read', 'workspace_upload', 'scenarios', 'scenario_get', 'scenario_save', 'attach_target', 'connection', 'target_connect', 'target_inputs', 'target_action', 'target_disconnect'] },
       runId: text('已有实验 ID。'),
       driver: { type: 'string', enum: ['reference', 'dsh', 'external'], description: 'create 使用；默认 reference 自检，dsh 启动真实模型，external 等待协议客户端。' },
       config: { type: 'object', additionalProperties: false, properties: {
@@ -19,10 +19,12 @@ export const managementSchema = {
         seed: number('随机种子整数，0–4294967295。'), noiseCount: number('噪声条数，0–5000。'), speed: number('场景时钟倍率，0.1–1000。'),
         workerConcurrency: number('参考 worker 并发，1–8；不控制真实 Agent 内部调度。'), taskDelayMs: number('参考执行器附加延时，0–30000 毫秒。'),
         fault: { type: 'string', enum: ['none', 'tool-once', 'lost-receipt'] }, maxDurationMs: number('实验时限，100–600000 毫秒；DSH 默认 300000。'),
+        time: { type: 'object', additionalProperties: false, required: ['mode', 'startAt', 'timeZone'], properties: { mode: { type: 'string', enum: ['story', 'load'] }, startAt: text('故事起点，带时区的 ISO 时刻。'), timeZone: text('IANA 故事时区。') } },
         keepOpen: { type: 'boolean', description: '剧本结束后保留房间，等待聊天或新任务；仍受总时限约束。' },
       } },
       idempotencyKey: text('创建、评分、发言、发布任务、上传、保存剧本和接入准备等写操作必填；重试复用同一个 1–100 字母数字或 _- 标识与相同内容。'),
-      command: { type: 'string', enum: ['drain', 'stop'] }, role: { type: 'string', enum: ['target', 'judge'] },
+      expectedSeq: number('time_control 必须提供 get 返回的最新事件水位，代表控制器确认当前交互屏障。'),
+      command: { type: 'string', enum: ['drain', 'stop', 'pause', 'resume', 'step', 'recover'] }, role: { type: 'string', enum: ['target', 'judge'] },
       path: text('本实验登记的成果相对路径。'), after: number('事件序号游标，默认 0。'), limit: number('每页条数，1–200，默认 50。'),
       review: { type: 'object', additionalProperties: true, description: '独立评分 JSON；包含 dimensions，每项 status/reason/evidenceRefs，scored 时 score 为1–5。' },
       channelId: text('chat/send_message/publish_task 使用的房间会话 ID。'), text: text('消息正文或任务要求。'), title: text('新任务标题。'),

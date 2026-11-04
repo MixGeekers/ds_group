@@ -1,0 +1,28 @@
+
+> @shiyu/gym@0.3.0 test:plugin:ui
+> npm run build:plugin && playwright test --config plugin/playwright.config.mjs
+
+
+> @shiyu/gym@0.3.0 build:plugin
+> tsc -p plugin/tsconfig.json && node plugin/build.mjs
+
+Built DSH gym JavaScript, synthetic fixtures and local icon assets in lab/dist/gym.
+[WebServer] (node:64927) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 10 tests using 1 worker
+
+(node:65396) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 plugin/tests/client.spec.js:17:1 › story room UI creates explicit clock and steps through a target reminder (1.0s)
+  ✓   2 plugin/tests/client.spec.js:48:1 › native client supports real room messages, files, target delivery and sealed review (3.4s)
+  ✓   3 plugin/tests/client.spec.js:118:1 › script editor saves a new actor and task then preserves revisions on reopen (833ms)
+  ✓   4 plugin/tests/client.spec.js:156:4 › raw JSON import preserves explicit empty actors and channels through save and reopen (601ms)
+  ✓   5 plugin/tests/client.spec.js:156:4 › raw JSON import preserves explicit empty actors with one group through save and reopen (617ms)
+  ✓   6 plugin/tests/client.spec.js:156:4 › raw JSON import preserves omitted actors and channels retain catalog defaults through save and reopen (607ms)
+  ✓   7 plugin/tests/client.spec.js:188:1 › a stale 0.2 service shows a reload instruction without permitting room writes (378ms)
+  ✓   8 plugin/tests/client.spec.js:204:1 › a delayed script save does not replace a later editor selection (640ms)
+  ✓   9 plugin/tests/client.spec.js:226:1 › Gym model settings use Host catalog efforts and persist each role independently (881ms)
+  ✓  10 plugin/tests/client.spec.js:262:1 › unavailable Host model catalog keeps follow-Host settings usable (464ms)
+
+  10 passed (10.4s)

@@ -83,7 +83,7 @@ export class GymService {
   updateBinding(binding, values) { Object.assign(binding, values); this.persist(); }
   model(role = 'target') { return this.settings.selection(role); }
   resolveModel(role = 'target', signal) { return this.settings.resolve(role, signal); }
-  capabilities() { const agents = Boolean(this.ctx.get('agents')); return { dshAgent: agents && this.settings.available('target'), judge: agents && this.settings.available('judge'), model: this.model('target') ?? null, judgeModel: this.model('judge') ?? null, noAutomaticModelCalls: true, isolation: 'tool-scoped; not an operating-system sandbox' }; }
+  capabilities() { const agents = Boolean(this.ctx.get('agents')); return { dshAgent: agents && this.settings.available('target'), judge: agents && this.settings.available('judge'), model: this.model('target') ?? null, judgeModel: this.model('judge') ?? null, noAutomaticModelCalls: true, storyTime: { version: 1, modes: ['story', 'load'] }, isolation: 'tool-scoped; not an operating-system sandbox' }; }
   snapshot() {
     const runs = this.engine.listRuns();
     const scenarios = this.library.list();
@@ -139,7 +139,7 @@ export class GymService {
         const driver = args.driver ?? 'reference';
         if (!['reference', 'dsh', 'external'].includes(driver)) throw new Error('未知执行对象');
         if (args.config !== undefined && !object(args.config)) throw new Error('config 必须是对象');
-        const allowed = ['scenarioId', 'evaluationMode', 'seed', 'noiseCount', 'speed', 'workerConcurrency', 'taskDelayMs', 'fault', 'maxDurationMs', 'keepOpen'];
+        const allowed = ['scenarioId', 'evaluationMode', 'seed', 'noiseCount', 'speed', 'workerConcurrency', 'taskDelayMs', 'fault', 'maxDurationMs', 'keepOpen', 'time'];
         if (Object.keys(args.config ?? {}).some(k => !allowed.includes(k))) throw new Error('config 包含不支持的参数');
         const config = { ...(driver === 'dsh' ? { speed: 1, maxDurationMs: 300000, noiseCount: 20, evaluationMode: 'outcome' } : {}), ...args.config, target: driver === 'reference' ? 'reference' : 'external' };
         if (driver === 'dsh' && config.evaluationMode !== 'outcome') throw new Error('DSH 训练使用业务成果模式；协议自检请选择参考执行器');
@@ -149,6 +149,11 @@ export class GymService {
         catch (error) { await this.engine.controlRun(created.run.id, 'stop'); throw error; }
         return { run: this.get(created.run.id).run, ...(binding ? { binding } : {}), ...(driver === 'external' ? { targetToken: created.targetToken, endpoint: '/api/shiyu-gym/target', connectionNote: '需 DSH 已认证连接；正文携带 targetToken。' } : {}) };
       }, () => { if (args.driver === 'dsh' && !this.capabilities().dshAgent) throw new Error('宿主尚未配置可用模型'); });
+      case 'time_control': {
+        if (['step', 'recover'].includes(args.command) && !this.driver.atTimeBarrier(args.runId)) throw new Error('模型仍有在途工作，尚未达到时间屏障');
+        const run = this.engine.controlTime(args.runId, args.command, args.expectedSeq);
+        return { run };
+      }
       case 'control': {
         if (!['drain', 'stop'].includes(args.command)) throw new Error('未知控制动作');
         if (args.command === 'stop') { await this.driver.cancel(args.runId, 'target'); this.collaboration.disconnect(args.runId); }
@@ -188,7 +193,7 @@ export class GymService {
     const run = this.engine.getRun(runId);
     const company = this.collaboration.company(run);
     const shared = run.events.filter(event => event.type.startsWith('input.') && Array.isArray(event.data?.attachments)).flatMap(event => event.data.attachments);
-    return { runId, status: run.status, self: { actorId: 'SHIYU' }, evaluationMode: run.config.evaluationMode ?? 'protocol', actors: company.actors, channels: company.channels, tasks: run.tasks.filter(t => t.introduced), readableFiles: [...new Set([...run.tasks.filter(t => t.introduced).flatMap(t => t.inputs), ...run.artifacts.map(a => a.path), ...shared])], protocol: { actions: protocol.actions }, instructions: '通过 message.send 在原会话中实际发言，附件引用已登记成果；普通最终回复不会自动投递到模拟聊天室。' };
+    return { runId, status: run.status, ...(this.engine.timeView(runId) ? { time: this.engine.timeView(runId) } : {}), self: { actorId: 'SHIYU' }, evaluationMode: run.config.evaluationMode ?? 'protocol', actors: company.actors, channels: company.channels, tasks: run.tasks.filter(t => t.introduced), readableFiles: [...new Set([...run.tasks.filter(t => t.introduced).flatMap(t => t.inputs), ...run.artifacts.map(a => a.path), ...shared])], protocol: { actions: protocol.actions }, instructions: '通过 message.send 在原会话中实际发言，附件引用已登记成果；普通最终回复不会自动投递到模拟聊天室。' };
   }
   async targetCall(runId, args, signal) {
     signal?.throwIfAborted();
@@ -206,14 +211,14 @@ export class GymService {
           let off = () => {}; const finish = () => { clearTimeout(timer); off(); signal?.removeEventListener('abort', aborted); resolve(); };
           const aborted = () => { finish(); reject(signal.reason ?? new Error('已取消')); };
           const timer = setTimeout(finish, wait);
-          off = this.engine.subscribe(runId, event => { if (event.type.startsWith('input.') || event.type === 'run.finished') finish(); });
+          off = this.engine.subscribe(runId, event => { if (event.type.startsWith('input.') || event.type === 'task.deadline' || event.type === 'run.finished') finish(); });
           signal?.addEventListener('abort', aborted, { once: true });
           if (signal?.aborted) aborted();
         });
       }
       signal?.throwIfAborted();
       const all = this.engine.targetInputs(runId, after), inputs = all.slice(0, 30);
-      return { status: this.engine.getRun(runId).status, inputs, nextAfter: inputs.at(-1)?.seq ?? after, hasMore: all.length > inputs.length };
+      return { status: this.engine.getRun(runId).status, time: this.engine.timeView(runId), inputs, nextAfter: inputs.at(-1)?.seq ?? after, hasMore: all.length > inputs.length };
     }
     if (typeof args.operationId !== 'string' || !/^[\w.:-]{1,160}$/.test(args.operationId)) throw new Error('业务动作需要稳定的 operationId');
     if (args.action === 'act') {
