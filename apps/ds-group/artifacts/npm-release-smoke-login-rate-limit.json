@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "runId": "npm-smoke-a397d749-761c-4479-aad0-0563d1dd11d7",
+  "startedAt": "2026-11-04T21:53:05.729Z",
+  "status": "failed",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "scope": "clean-npm-tarball-install-real-matrix-core-zero-model",
+  "checks": [
+    "clean-production-install",
+    "installed-cli-and-relative-data-paths",
+    "installed-runtime-import-closure",
+    "installed-core-health-and-prebuilt-pwa"
+  ],
+  "modelCalls": 0,
+  "tarball": {
+    "name": "dscord-0.2.0-alpha.1.tgz",
+    "sha256": "00f51ef6a90246d803c6a4c286b28cd2e775fdd93f2591032b5347a824717691",
+    "sha1": "d6c4f5b3e249b0a68190c9c9e785afc415f74093"
+  },
+  "scriptSha256": "f2d8874a642630756a1f91cabd3a6bc5dd09603f2953689fcf686ea428bd4de2",
+  "version": "0.2.0-alpha.1",
+  "synapse": {
+    "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+    "nonRootUid": 501,
+    "hostPort": 21008
+  },
+  "web": {
+    "assetCount": 6,
+    "manifest": true,
+    "serviceWorker": true
+  },
+  "loginRateLimits": [
+    {
+      "attempt": 1,
+      "waitMs": 15000
+    },
+    {
+      "attempt": 2,
+      "waitMs": 15000
+    },
+    {
+      "attempt": 3,
+      "waitMs": 15000
+    }
+  ],
+  "error": "Login returned 429 after 4 attempt(s)",
+  "coreStopped": true,
+  "synapseStopped": true,
+  "completedAt": "2026-11-04T21:53:58.786Z",
+  "failureClassification": "product-bootstrap-consumed-synapse-login-quota",
+  "diagnosis": {
+    "synapseDefaultAddressRatePerSecond": 0.003,
+    "synapseDefaultAddressBurst": 5,
+    "bootstrapExpectedFailedLogins": 4,
+    "fix": "Register new accounts first, fall back to login only for M_USER_IN_USE",
+    "statusPreserved": true
+  }
+}

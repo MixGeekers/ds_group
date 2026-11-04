@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "runId": "npm-smoke-91cbbb97-1268-4208-a3e3-30ac1b648651",
+  "startedAt": "2026-11-04T21:55:40.279Z",
+  "status": "failed",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "scope": "clean-npm-tarball-install-real-matrix-core-zero-model",
+  "checks": [
+    "clean-production-install",
+    "installed-cli-and-relative-data-paths",
+    "installed-runtime-import-closure",
+    "real-synapse-bootstrap-and-idempotency",
+    "installed-core-health-and-prebuilt-pwa",
+    "real-two-human-login-message-and-attachment-roundtrip"
+  ],
+  "modelCalls": 0,
+  "tarball": {
+    "name": "dscord-0.2.0-alpha.1.tgz",
+    "sha256": "8b945bb364a060e7b25543977011995c7fd2b3ee29b33ef267f91e30895be524",
+    "sha1": "9772cff18a3a56f64ecb7bc04885ce558e76d24a"
+  },
+  "scriptSha256": "c4c80f646bd1cf1d8c44075cab711938ac28f28331e1c8f0d96bf3d09664aa10",
+  "version": "0.2.0-alpha.1",
+  "synapse": {
+    "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+    "nonRootUid": 501,
+    "hostPort": 21008
+  },
+  "web": {
+    "assetCount": 6,
+    "manifest": true,
+    "serviceWorker": true
+  },
+  "humanLoginAttempts": {
+    "alice": 1,
+    "bob": 1,
+    "retries": 0
+  },
+  "matrix": {
+    "humanSenders": 2,
+    "messageRetrySameEvent": true,
+    "replyRelation": true,
+    "attachmentBytes": 78,
+    "attachmentSha256": "a36515092f69ac19e2e8739b4295efbeeff3e46d426d499d4accc394204db3cb"
+  },
+  "error": "Expected values to be strictly equal:\n\n2 !== 0\n",
+  "coreStopped": true,
+  "synapseStopped": true,
+  "completedAt": "2026-11-04T21:55:46.564Z",
+  "failureClassification": "harness-confused-configured-bot-members-with-active-nodes",
+  "diagnosis": {
+    "expectedRegisteredBots": 2,
+    "correctAssertion": "Every configured Bot remains offline and budget.used equals zero",
+    "statusPreserved": true
+  }
+}

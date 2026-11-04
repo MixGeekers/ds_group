@@ -20,6 +20,8 @@ Bot 可以调用 DSH 文件读写、终端、后台作业及图片工具，连�
 
 ## 服务器部署与发行
 
+npm 发行名已选定为 `dscord`。首个 alpha 包包含预构建 PWA、核心服务和 Bot 节点 CLI，安装与启动步骤见 [npm 部署说明](deploy/npm.md)。通过 `npm run npm:pack` 构建带文件白名单的独立发行包，源工程的私有包清单用于本地开发。
+
 Linux x64 与 ARM64 服务器使用 [Docker Compose 部署说明](deploy/README.md)。服务器默认采用密码登录，核心、Synapse、Bot 节点分别运行。文档包含 HTTPS、账号读取、远程节点导出、备份与升级。正式发行和 CI 目标为 Linux amd64/arm64 与 Docker/Compose。
 
 发行 CI 包含 10 个任务，检查两种 Linux 架构的 Node/TS7 构建、干净源码包安装、浏览器交互、真实容器部署及持久化，以及独立 DSH 节点初始化、工具执行与取消。源码包附带 SHA256 清单。带 `ds-group-v` 前缀的版本标签通过完整检查后发布源码包和多架构 GHCR 镜像。具体矩阵和本轮结果见[发行验证记录](发行验证.md)。

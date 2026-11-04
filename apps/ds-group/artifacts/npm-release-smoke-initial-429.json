@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "runId": "npm-smoke-7738ba45-38a2-4c4f-ad66-f9f12033d45d",
+  "startedAt": "2026-11-04T21:52:00.172Z",
+  "status": "failed",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "scope": "clean-npm-tarball-install-real-matrix-core-zero-model",
+  "checks": [
+    "clean-production-install",
+    "installed-cli-and-relative-data-paths",
+    "installed-runtime-import-closure",
+    "installed-core-health-and-prebuilt-pwa"
+  ],
+  "modelCalls": 0,
+  "tarball": {
+    "name": "dscord-0.2.0-alpha.1.tgz",
+    "sha256": "ca5bba854b0e847385d43adf807f9301c81d44510f5c6764d9eecd1ee5bff65d"
+  },
+  "version": "0.2.0-alpha.1",
+  "synapse": {
+    "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+    "nonRootUid": 501,
+    "hostPort": 21008
+  },
+  "web": {
+    "assetCount": 6,
+    "manifest": true,
+    "serviceWorker": true
+  },
+  "error": "POST /api/login returned 429",
+  "coreStopped": true,
+  "synapseStopped": true,
+  "completedAt": "2026-11-04T21:52:07.714Z",
+  "failureClassification": "product-bootstrap-consumed-synapse-login-quota",
+  "diagnosis": {
+    "synapseDefaultAddressRatePerSecond": 0.003,
+    "synapseDefaultAddressBurst": 5,
+    "bootstrapExpectedFailedLogins": 4,
+    "fix": "Register new accounts first, fall back to login only for M_USER_IN_USE",
+    "statusPreserved": true
+  }
+}

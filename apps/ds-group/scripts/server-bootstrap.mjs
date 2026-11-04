@@ -36,21 +36,18 @@ export async function bootstrapServer(options = serverOptions()) {
       catch (error) { if (![401, 403].includes(error.status)) throw error; }
     }
     if (!valid) {
+      const { nonce } = await anonymous.request('GET', '/_synapse/admin/v1/register');
+      const mac = createHmac('sha1', metadata.registrationSecret)
+        .update([nonce, participant.localpart, participant.password, 'notadmin'].join('\0')).digest('hex');
       let login;
-      try { login = await MatrixClient.login(homeserverUrl, participant.id, participant.password); }
+      try {
+        login = await anonymous.request('POST', '/_synapse/admin/v1/register', {
+          nonce, username: participant.localpart, password: participant.password, admin: false, mac,
+        });
+      }
       catch (error) {
-        if (error.errcode !== 'M_FORBIDDEN') throw error;
-        const { nonce } = await anonymous.request('GET', '/_synapse/admin/v1/register');
-        const mac = createHmac('sha1', metadata.registrationSecret)
-          .update([nonce, participant.localpart, participant.password, 'notadmin'].join('\0')).digest('hex');
-        try {
-          login = await anonymous.request('POST', '/_synapse/admin/v1/register', {
-            nonce, username: participant.localpart, password: participant.password, admin: false, mac,
-          });
-        } catch (registrationError) {
-          if (registrationError.errcode !== 'M_USER_IN_USE') throw registrationError;
-          login = await MatrixClient.login(homeserverUrl, participant.id, participant.password);
-        }
+        if (error.errcode !== 'M_USER_IN_USE') throw error;
+        login = await MatrixClient.login(homeserverUrl, participant.id, participant.password);
       }
       if (login.user_id !== participant.id || !login.access_token) throw new Error('Matrix identity does not match the server registry');
       participant.accessToken = login.access_token;

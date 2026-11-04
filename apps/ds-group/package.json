@@ -28,6 +28,8 @@
     "test:browser": "node --test tests/*.browser.mjs",
     "verify:work": "node scripts/verify-file-work.mjs --run",
     "release:pack": "node scripts/release-pack.mjs",
+    "npm:pack": "npm run build && node scripts/npm-pack.mjs",
+    "npm:smoke": "node scripts/npm-smoke.mjs",
     "release:verify": "node scripts/release-verify.mjs"
   },
   "dependencies": {
