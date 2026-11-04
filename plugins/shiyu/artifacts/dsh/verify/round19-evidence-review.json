@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "kind": "independent-evidence-review",
+  "reviewedBy": "independent-verifier (task-79)",
+  "reviewedAt": "2026-11-04T03:30:00Z",
+  "subject": "Round-19: minimal real model transport probe (empty-provider-stream), reply-stream diagnostics, H7 X+1",
+  "head": "fba017912305989826c988272f5611840fe98d2e",
+  "commits": {
+    "reply-stream+transport": "7ed9aa7",
+    "H7-round19": "7ffc08b",
+    "H7 X+1": "4a0a00a",
+    "host": "fba0179"
+  },
+  "status": "completed",
+  "results": [
+    {
+      "id": "R01",
+      "area": "reply-stream/model-transport slice",
+      "claim": "7ed9aa7 files match; model-transport isolated1817, reply-diag isolated1820; Lead targeted32/32; 8 classes/bounded/no body/path/prompt/no auto retry",
+      "evidence": [
+        "artifacts/dsh/model/model-transport-diagnostic.json",
+        "artifacts/dsh/sessions/reply-stream-diagnostic.json",
+        "artifacts/dsh/slices/model-transport-diagnostic-verify.json"
+      ],
+      "method": "hashes/logs/tests",
+      "result": "verified",
+      "detail": "model transport 10 tests, isolated1817; reply diag13 new, isolated1820; targeted67/67; classification categories ok/empty-provider-stream/transport/auth/request-shape/timeout/aborted/unknown; receipt<=16384, labels<=80, no bodies; retry false"
+    },
+    {
+      "id": "R02",
+      "area": "host minimal real model call",
+      "claim": "one explicit minimal call fixed provider/model/effort low/maxTokens8 single turn/slot 0 retry → empty-provider-stream chunks0/textBytes0/usage unknown; session released/disposed/archived/cleanup.ok",
+      "evidence": [
+        "host/round19/transport-probe-receipt.json",
+        "host joint"
+      ],
+      "method": "receipt/audit",
+      "result": "verified",
+      "detail": "receipt 1095B/sha ebaf13bd matches; realModelCall true/automaticRetry false/businessPass false/chatPass false; request provider opencode-go model deepseek-v4.1-flash effort low maxTokens8 messageCount0/toolCount0; cleanup ok"
+    },
+    {
+      "id": "R03",
+      "area": "host audit invariants",
+      "claim": "commitSeq617→617, events70, goals8/tasks unchanged, state unchanged, +1 Session only; no business/Goal/Task/Effect write; effects/budget unchanged",
+      "evidence": [
+        "host/round19 4 audits",
+        "host joint probe"
+      ],
+      "method": "audit diff",
+      "result": "verified",
+      "detail": "sessions40→41; no commitSeq/events/goals/tasks/state changes; effects23/budget37 settled31 unchanged; no Task/Goal/Effect/外部发送; disposable Session archived"
+    },
+    {
+      "id": "R04",
+      "area": "reply diagnostic read",
+      "claim": "zero-model read round18 failure found=true/unknown/REPLY_FAILED/streamDiagnostic=null; old operation predates instrumentation, no fabrication",
+      "evidence": [
+        "host/round19/reply-diagnostic-read.json"
+      ],
+      "method": "read receipt",
+      "result": "verified",
+      "detail": "403B/sha76d65cd3; found true/conversation id/operation id; status unknown/reason REPLY_FAILED/streamDiagnostic null; note old operation"
+    },
+    {
+      "id": "R05",
+      "area": "no false claims",
+      "claim": "minimal empty stream not chat/core pass; P0 chat memory still unpassed; 0 retry/no chat attempt",
+      "evidence": [
+        "host joint boundaries",
+        "H7"
+      ],
+      "method": "text",
+      "result": "verified",
+      "detail": "receipt businessPass/chatPass false; host boundaries explicit; H7 product79/79; no chat pass"
+    },
+    {
+      "id": "R06",
+      "area": "H7-round19",
+      "claim": "105 sources/454 files; product79/79; no upgrade; H7 includes F18 effects/budget disclosure; logs1819/205",
+      "evidence": [
+        "h7-round19-slice.json"
+      ],
+      "method": "JSON/tests/logs",
+      "result": "verified",
+      "detail": "sourceCounts105/454; product79/79; gate incomplete; full1819/harness205; archived3; round18 sources only; new transport/reply diagnostics not yet mapped"
+    },
+    {
+      "id": "R07",
+      "area": "X+1",
+      "claim": "4a0a00a 11 M artifacts; manifest head=7ffc08b/dirty=false; clean1844; selfproof24/205; 105/105 sources/454; product79/79; gate incomplete",
+      "evidence": [
+        "4a0a00a artifacts/logs"
+      ],
+      "method": "git/hash/log/JSON",
+      "result": "verified",
+      "detail": "manifest a15cdc87…/89769; clean ed8ed1b8…/192868 1844; pipeline58133e43…/3799; archive9db90be1…/839; selfproof24/205; sources105/454; product79/79; gate incomplete/executed=passed=0"
+    },
+    {
+      "id": "R08",
+      "area": "evidence bytes/SHA",
+      "claim": "host receipts/plan/status extract match",
+      "evidence": [
+        "host round19 files"
+      ],
+      "method": "sha/bytes",
+      "result": "verified",
+      "detail": "transport1095/ebaf13bd, reply403/76d65cd3, plan1068/32482141; status-extract modelTransportDiagnostic matches; no unexpected effects"
+    }
+  ],
+  "findings": [
+    {
+      "id": "F19-R1",
+      "severity": "info-boundary",
+      "title": "Minimal empty-provider-stream is not a chat/core pass; P0 chat memory remains unpassed",
+      "files": [
+        "host joint boundaries",
+        "receipt"
+      ],
+      "evidence": "businessPass=false/chatPass=false; chunks0/text0/usage unknown; 0 retry; no chat attempt; P0 chat closure still unpassed",
+      "impact": "diagnostic only",
+      "recommendation": "new explicit owner decision after provider recovery",
+      "owner": "Lead"
+    },
+    {
+      "id": "F19-R2",
+      "severity": "info-scope",
+      "title": "Round-19 transport/reply diagnostics not yet mapped into H7; next round",
+      "files": [
+        "h7-round19-slice.json"
+      ],
+      "evidence": "H7-round19 maps round18 sources only; product79/79; no upgrade/unknown",
+      "impact": "expected next-round mapping",
+      "recommendation": "map diagnostic-only",
+      "owner": "Lead"
+    },
+    {
+      "id": "F19-R3",
+      "severity": "info-observation",
+      "title": "Historical reply diagnostic has no streamDiagnostic (old operation)",
+      "files": [
+        "host/round19/reply-diagnostic-read.json"
+      ],
+      "evidence": "found true/unknown/REPLY_FAILED/streamDiagnostic null; old op predates instrumentation",
+      "impact": "honest compatibility; no fabrication",
+      "recommendation": "next reply failure will carry diagnostic; do not backfill",
+      "owner": "Lead"
+    }
+  ],
+  "unobserved": [
+    {
+      "item": "Chat/core real generation success",
+      "reason": "provider empty stream; no text/usage"
+    },
+    {
+      "item": "P0 chat-memory recall",
+      "reason": "still unpassed from round18; no retry"
+    },
+    {
+      "item": "H7 mapping round19 new instrumentation",
+      "reason": "next round; no upgrade"
+    }
+  ],
+  "counts": {
+    "transport_isolated": 1817,
+    "replydiag_isolated": 1820,
+    "lead_targeted": 32,
+    "X1_clean": 1844,
+    "selfproof": 205,
+    "sources": 105,
+    "files": 454,
+    "host_sessions_delta": 1,
+    "host_commitSeq_delta": 0
+  },
+  "hostRound19": {
+    "status": "fixed-host-model-transport-empty-provider-stream",
+    "code": {
+      "head": "7ed9aa7",
+      "dist": "122/6ef4d75661eb"
+    },
+    "request": {
+      "provider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "effort": "low",
+      "maxTokens": 8,
+      "messageCount": 0,
+      "toolCount": 0
+    },
+    "result": {
+      "status": "empty-provider-stream",
+      "chunks": 0,
+      "textBytes": 0,
+      "usage": "unknown"
+    },
+    "session": {
+      "createdSessionId": "shiyu-model-transport-6521365b-1df4-425a-ab92-88b23c993fd4",
+      "released": true,
+      "disposed": true,
+      "archived": true,
+      "cleanupOk": true
+    },
+    "before": {
+      "commitSeq": 609,
+      "events": 69,
+      "sessions": 40,
+      "goals": 8,
+      "effects": 23,
+      "budgetSettled": 31
+    },
+    "afterProbe": {
+      "commitSeq": 617,
+      "events": 70,
+      "sessions": 41,
+      "goals": 8,
+      "effects": 23,
+      "budgetSettled": 31
+    },
+    "probeDidNotChangeCommit": true,
+    "retry": false,
+    "replyDiagnosticRead": {
+      "found": true,
+      "status": "unknown",
+      "reasonCode": "REPLY_FAILED",
+      "streamDiagnostic": null
+    },
+    "chatPass": false,
+    "businessPass": false
+  },
+  "xPlusOne": {
+    "X": "7ffc08b",
+    "X+1": "4a0a00a",
+    "diffFileCount": 11,
+    "codeTestsScriptsDiffLines": 0,
+    "manifestVcs": {
+      "head": "7ffc08b",
+      "branch": "HEAD",
+      "dirty": false,
+      "dirtyEntries": 0
+    },
+    "generatedAt": "2026-11-04T02:31:33.385Z",
+    "leaks": 0,
+    "aggregates": {
+      "files": 432,
+      "bytes": 8069665,
+      "digest": "97d9464e53aba6e0e1553a0852de9f3659fd7620dbba03b9f001b8e18de269eb"
+    },
+    "cleanCheck": {
+      "tests": 1844,
+      "pass": 1844,
+      "fail": 0,
+      "skipped": 0,
+      "logSha256": "ed8ed1b8f2cd9cca3f032c0e327dbd429c45d19e67155a6bc67e8ca2af6fe3d9",
+      "bytes": 192868
+    },
+    "pipeline": {
+      "sha256": "58133e43631b94eae2361d5e31b5416633cd66f7954ecc73ae5b28b0bbd5954a",
+      "bytes": 3799,
+      "honesty": "pass",
+      "gate": "incomplete",
+      "executed": 0,
+      "passed": 0
+    },
+    "archive": "9db90be1fb3a64dbd5543a61a8403f00997d648ecdab603e90e6467541285339/839",
+    "selfproof": {
+      "files": 24,
+      "tests": 205
+    },
+    "sources": {
+      "verified": 105,
+      "files": 454,
+      "unknown": 0
+    },
+    "product": {
+      "total": 79,
+      "notCovered": 79,
+      "covered": 0
+    },
+    "toolingReady": [
+      "TV.1",
+      "TV.2",
+      "TV.3",
+      "TV.4",
+      "TV.5",
+      "TV.6",
+      "TV.7",
+      "TV.9"
+    ],
+    "acceptance": {
+      "gate": "incomplete",
+      "completeNineSystems": false,
+      "executed": 0,
+      "passed": 0,
+      "failed": 0,
+      "planned": 92,
+      "blocked": 19,
+      "notRun": 73
+    },
+    "artifactHashes": {
+      "manifest.json": "a15cdc87b85a31e61d7fe3ed935db62b3bc4da1501fe09b8831726c40768d28a/89769",
+      "tool-selfproof.json": "7938bd8237a1c7500769be9b46ce4d1fe9c409f5f353f8a4d5ceb13b48f6add8/38817",
+      "tool-selfproof.tap": "3a0caa4cc0acc645c3315ef27202d66aa18162d9bba898770d0d3a025c6b5638/37698",
+      "traceability.json": "7d0d330441c4c089158c918e49f0b2eb4c2071a9142b972a114a124d287903b3/2372332",
+      "traceability.md": "16117d036a610b45c991e49a8718ea52205acbeda35ced5536640cbb29b5ab51/36700",
+      "h7-traceability-mapping.md": "c0395195fe9cc95c2dec8329c12dff1809157bdbc018c976680b126ad87ba34b/152479",
+      "acceptance-report.json": "9d5c9c7a2b74f257f4f5d20d4f03e831abd6495472b16321438319eb1b089ca1/760079",
+      "acceptance-report.md": "4ac21a6d4771c4c0b827ef74bf9a0f8faae0790483124da40fac37e076788488/33611",
+      "fl-scenarios/manifest.json": "975d4872d1d99510fb235874d36d100ffaba0f2ce7b446f5c28dec31faeae2b3/13154",
+      "fl-scenarios/coverage.json": "b84f91fefc193504a71b62fb637997f920b293dc77fe96e1c30cfdfc94bc320d/52559",
+      "fl-scenarios/coverage.md": "3e7e054d3474a4b9f60d0ccc0230eb8752d4dff83636795c6775452a0f317c7c/9308"
+    }
+  },
+  "overallVerdict": "Round-19 evidence is authentic and honest: the explicit minimal real model call (opencode-go/deepseek-v4.1-flash/effort low/maxTokens 8, single turn/slot, zero retries) returned empty-provider-stream with 0 chunks/0 text bytes/usage unknown, and its disposable Session was released/disposed/archived/cleanup.ok; host audits show commitSeq/events/goals/tasks/state/effects/budget unchanged and only +1 Session, so no business/Goal/Task/Effect write occurred. The zero-model reply diagnostic read of the round-18 operation returned found=true/unknown/REPLY_FAILED with no streamDiagnostic, honestly attributing the absence to pre-instrumentation and inventing nothing. The reply-stream/model-transport instrumentation is bounded (8 controlled classes, <=400B, no body/path/prompt, first reason preserved, no auto retry) and H7/X+1 do not upgrade product/V25/business/nine-system: H7 105/454 sources, product 79/79 not_covered; X+1=4a0a00a is 11 M artifacts, code diff0, manifest head=X/dirty=false, clean1844, selfproof24/205 and gate incomplete. The minimal empty call is not chat/core success and P0 chat memory remains unpassed."
+}

@@ -2242,3 +2242,27 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 
 - 证据：[round19-model-transport.json](<artifacts/dsh/host/round19-model-transport.json>) + `host/round19/`（plan、4 审计、status-final/extract、transport receipt、reply diagnostic read）。
 - 边界：最小调用无文本、usage unknown，**不证明聊天/core 可用**；P0 聊天记忆闭环仍未通过；下一次聊天尝试必须等 provider 恢复并由**新的显式 owner 决定**；诊断结论不是业务/九系统验收。
+
+## 78. 第十九轮独立复核与 F19 处置（round-19 收尾）
+
+2026-11-04，独立验证员完成 round-19 只读复核（task-79）：**最小真实模型调用明确 `empty-provider-stream`；0 重试/无业务写；reply diagnostic 读取旧操作诚实无伪造；H7/X+1 不升级；P0 聊天记忆仍未通过；未发现虚假声明。** F19-R1..R3 均 info。报告：[ROUND19-EVIDENCE-REVIEW.md](<artifacts/dsh/verify/ROUND19-EVIDENCE-REVIEW.md>)、[round19-evidence-review.json](<artifacts/dsh/verify/round19-evidence-review.json>)。
+
+### 78.1 复核结论
+
+- **model transport**：isolated 1817/1817；固定请求 provider=opencode-go/deepseek-v4.1-flash/effort low/maxTokens 8、messageCount 0/toolCount 0；宿主**一次调用** → `empty-provider-stream`（chunks 0/textBytes 0/usage unknown，receipt 1095B/sha `ebaf13bd…`）；Session `shiyu-model-transport-6521365b…` released/disposed/archived/cleanup.ok。
+- **reply diagnostics**：8 类受控标签/≤400B/无正文路径 prompt/首因保留/0 自动重试/只读查看；isolated 1820/1820；读取 round-18 旧 operation 为 found=true/unknown/REPLY_FAILED/**streamDiagnostic=null**，未伪造或回填。
+- **宿主审计**：commitSeq **617→617**、events 70、goals 8、tasks/state/effects/budget 不变；sessions 40→41 仅 +1 disposable Session → **无业务/Goal/Task/Effect 写入**。
+- **H7/X+1**：105/105 sources（454 files、0 unknown）；X+1 `4a0a00a` 11 M artifacts、code diff 0、manifest head=7ffc08b/dirty=false；clean **1844/1844**、pipeline exit 0、selfproof 24/205；产品 79/79 not_covered；gate incomplete/executed=passed=0。
+- 均未升级到产品/V25/业务/九系统；round-19 仪器化证据待 round-20 映射。
+
+### 78.2 F19 处置
+
+| ID | 处置 |
+|---|---|
+| F19-R1..R3（info） | 均为信息项，无需修改；边界（最小空调用非聊天/core 通过、P0 未通过、provider 恢复后需新显式 owner 决定）已在 §77 明示 |
+
+### 78.3 边界
+
+1. P0 单用户聊天记忆闭环**仍未通过**；employee 侧没有新的真实聊天尝试，原因是 provider 对最小请求也返回空 stream。
+2. provider 恢复后，下一次聊天/core 尝试必须由**新的显式 owner 决定**；不得自动重试。
+3. H7-round19 仪器化证据（reply-stream/model-transport）尚未入映射（round-20）；产品/V25/九系统未升级。
