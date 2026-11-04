@@ -1,0 +1,73 @@
+{
+  "checkedAt": "2026-11-04T18:10:20.572Z",
+  "status": "passed",
+  "level": "original-service-upgrade-zero-model",
+  "sourceCommit": "2125979",
+  "checks": {
+    "currentSourcesLoaded": true,
+    "botIdentityAndNativeSessionsPreserved": true,
+    "modelClaimsUnchanged": true,
+    "existingWipPreserved": true,
+    "pwaAndReadinessHealthy": true,
+    "originalNativeHistoryIsExactBytePrefix": true,
+    "matrixMessageHistoryIdentical": true,
+    "currentDeliveryProtocolPersisted": true
+  },
+  "modelClaimsBefore": 66,
+  "modelClaimsAfter": 66,
+  "preservedWipFiles": 26,
+  "nodes": [
+    {
+      "nodeId": "finance",
+      "botId": "@finance:ds-group.local",
+      "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+      "tools": [
+        "read",
+        "write",
+        "edit",
+        "job_output",
+        "job_list",
+        "job_kill",
+        "skill",
+        "bash",
+        "read_image"
+      ]
+    },
+    {
+      "nodeId": "hr",
+      "botId": "@hr:ds-group.local",
+      "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+      "tools": [
+        "read",
+        "write",
+        "edit",
+        "job_output",
+        "job_list",
+        "job_kill",
+        "skill",
+        "bash",
+        "read_image"
+      ]
+    }
+  ],
+  "backupSha256": "3be91baa081f1d5ec11a357cbca5427623797e1a3892a87576a9461c9d521c01",
+  "nativeHistory": [
+    {
+      "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+      "originalBytes": 214581,
+      "originalSha256": "825fb3455df65c4155c48758c0811f97893c255a1bf9424c9f32d8abd4cbfd69",
+      "currentBytes": 231371
+    },
+    {
+      "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+      "originalBytes": 275019,
+      "originalSha256": "07b69504fed91574662f5368f5573fb0712a355900c47d1dd9f4ce3270fe4c2e",
+      "currentBytes": 291823
+    }
+  ],
+  "matrixMessageHistory": {
+    "count": 124,
+    "sha256": "1d1d55c02779c39ddbf18ed8db3ddb7d3d5b5158a4733f4f5c96c01eb9bbfe54"
+  },
+  "protocolSha256": "fc3470d1515b5b2d78710a421c3929be479373a43f538150b520fc3ce8b0a314"
+}
