@@ -2266,3 +2266,25 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. P0 单用户聊天记忆闭环**仍未通过**；employee 侧没有新的真实聊天尝试，原因是 provider 对最小请求也返回空 stream。
 2. provider 恢复后，下一次聊天/core 尝试必须由**新的显式 owner 决定**；不得自动重试。
 3. H7-round19 仪器化证据（reply-stream/model-transport）尚未入映射（round-20）；产品/V25/九系统未升级。
+
+## 79. 第二十轮：provider 仍未恢复；转向零模型推进 H1/H5b
+
+状态：**第二次显式最小 provider 探针仍 `empty-provider-stream`（1 次调用、0 重试、无业务写）；本轮不安排聊天/core 尝试**。2026-11-04，代码 HEAD `8a1e8e3`。
+
+### 79.1 provider 复探（显式决定）
+
+- 第二次 owner 显式最小真实模型调用（固定 opencode-go/deepseek-v4.1-flash/effort low/maxTokens 8、单轮单槽、0 重试）→ **`empty-provider-stream`**（chunks 0、textBytes 0、usage unknown；一次性 Session released/disposed/archived+cleanup.ok）。
+- 审计：commitSeq 617→617、events 70→70、goals 8→8、tasks/state 不变；sessions 41→42 仅 +1 disposable transport Session → **无业务/Goal/Task/Effect 写入**。
+- 结论：provider 仍未恢复；新的聊天记忆闭环尝试**不安排**（无 verified reply 可能）。证据：[round20-provider-reprobe.json](<artifacts/dsh/host/round20-provider-reprobe.json>) + `host/round20/`。
+
+### 79.2 本轮转向（不耗生成模型）
+
+- **H5b**：检查点/隔离恢复接入 Runtime 的评估 + 最小可信实现/精确 patch + 零模型宿主 kit（capture→verify→隔离 restore，不触碰 live）。
+- **H1**：固定宿主零模型长历史冷恢复取证准备（合成长历史原生 Session/只读语料 + 页/恢复基准校验，不调用生成模型）。
+- **H7-round20**：round-19 model-transport/reply 诊断证据映射（仅 limited/诊断等级，不升级产品）。
+
+### 79.3 边界
+
+1. 两次最小探针均空 stream；**不得**据此认为聊天/core 通过；P0 聊天记忆仍未通过。
+2. 本轮所有新增工作均为离线/零模型/诊断层；真实长历史/检查点宿主操作与任何真实业务仍未完成。
+3. provider 恢复后，聊天/core 尝试仍需**新的显式 owner 决定**；不自动重试。

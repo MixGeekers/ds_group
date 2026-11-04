@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "kind": "model-transport-diagnostic",
+  "toolName": "shiyu_diagnose_model_transport",
+  "realModelCall": true,
+  "automaticRetry": false,
+  "businessPass": false,
+  "chatPass": false,
+  "status": "empty-provider-stream",
+  "ok": false,
+  "request": {
+    "provider": "opencode-go",
+    "model": "deepseek-v4.1-flash",
+    "reasoningEffort": "low",
+    "maxTokens": 8,
+    "messageCount": 0,
+    "toolCount": 0,
+    "promptSha256": "ef7e7ff96d04cdcdb9a405d5319bdc1b52adabc168eea9179dfc1352aad79231"
+  },
+  "result": {
+    "chunks": 0,
+    "textBytes": 0,
+    "usage": {
+      "status": "unknown"
+    }
+  },
+  "session": {
+    "createdSessionId": "shiyu-model-transport-2de10f1a-f405-4f34-8b13-12ee28d36fab",
+    "released": true,
+    "disposed": true,
+    "archived": true,
+    "cleanup": {
+      "ok": true,
+      "failures": []
+    }
+  },
+  "checks": [
+    "real-model-call:true",
+    "automatic-retry:false",
+    "classification:empty-provider-stream"
+  ],
+  "startedAt": "2026-11-04T03:14:57.992Z",
+  "completedAt": "2026-11-04T03:14:58.056Z",
+  "durationMs": 64
+}
