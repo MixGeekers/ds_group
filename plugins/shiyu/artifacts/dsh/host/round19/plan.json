@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "phase": "round19-joint-host-model-transport-diagnostic",
+  "status": "frozen-before-execution",
+  "frozenAt": "2026-11-04T00:46:47.902Z",
+  "code": {
+    "head": "7ed9aa7"
+  },
+  "decision": "EXPLICIT MINIMAL REAL MODEL CALL: exactly one owner-only model transport probe (fixed provider opencode-go / deepseek-v4.1-flash / effort low / maxTokens 8, single turn, single slot, zero automatic retry) to classify whether the provider returns a non-empty stream for a minimal request. This is not a chat or business success criterion. A previously failed reply operation is also read with the zero-model reply-stream diagnostic; no reply retry is made.",
+  "scope": {
+    "realModelCalls": 1,
+    "maxTokens": 8,
+    "retries": 0,
+    "orderedReloads": 1,
+    "zeroModelReads": [
+      "reply-stream-diagnostic"
+    ]
+  },
+  "stops": [
+    "transport probe returns ok/empty-provider-stream/other terminal category in one call",
+    "any session cleanup failure",
+    "any business Goal/Task/Effect write",
+    "runtime paused or non-idle"
+  ]
+}
+

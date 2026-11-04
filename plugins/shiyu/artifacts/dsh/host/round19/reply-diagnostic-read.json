@@ -1,0 +1,9 @@
+{
+  "found": true,
+  "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+  "operationId": "fb226784-eb75-4fa2-ad48-b33ae4186b55",
+  "status": "unknown",
+  "reasonCode": "REPLY_FAILED",
+  "streamDiagnostic": null,
+  "note": "the round-18 reply operation predates instrumentation, so no persisted streamDiagnostic exists; the zero-model reader returned the persisted reason without inventing one"
+}

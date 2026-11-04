@@ -2217,3 +2217,28 @@ cd plugins/shiyu && node --import tsx --test --test-concurrency=1 tests/runtime.
 1. P0 聊天记忆闭环**未通过**；下一次尝试需新显式 owner 决定，并先诊断生成 provider 的 reply 失败（避免盲目重试）。
 2. 启动 embedding 验证为进程级、非召回证明；reload 后自动恢复 semantic 已实机验证一次。
 3. workspace 真实任务执行、v7 第七次尝试、live emotion 行为均未执行；H7/产品/V25/九系统未升级。
+
+## 77. 第十九轮：模型传输诊断确诊 provider 空 stream；P0 聊天不盲目重试
+
+状态：**固定宿主最小真实模型调用 = `empty-provider-stream`；0 重试；P0 聊天记忆闭环保持未通过**。2026-11-04，代码 HEAD `7ed9aa7`。
+
+### 77.1 交付（离线/集成）
+
+- **本地回复失败可观察性**：replyer generation 受控事实捕获（assistant/attempt streamLength、chunk 数、abort/timeout、受控 code/name）→ 8 类分类（empty-provider-stream/transport/auth/request-shape/timeout/aborted-before/after/unknown）；≤400B `streamDiagnostic` 持久到失败 operation，**首次终态原因保留**，0 自动重试，不保留 provider 正文/提示词/路径。
+- **只读查看**：owner-only `shiyu_reply_stream_diagnostic`（零生成/零重试）读取最近本地回复 operation 的 reasonCode/streamDiagnostic。
+- **最小模型传输诊断**：owner-only `shiyu_diagnose_model_transport`（真实模型调用，固定 provider/model/effort low/maxTokens 8、单轮、单槽、0 重试、一次性 Session 清理；分类 ok/empty-provider-stream/transport/auth/request-shape/timeout/aborted/unknown；回执 realModelCall=true/businessPass=false/chatPass=false）。
+- 测试：回复诊断定向 67/67、隔离全量 1820/1820；模型传输 10/10、隔离 1817/1817；Lead 定向 32/32。
+- 证据：`artifacts/dsh/sessions/reply-stream-diagnostic.json`、`artifacts/dsh/model/model-transport-diagnostic.json`。
+
+### 77.2 固定宿主结果（一次显式最小真实模型调用）
+
+1. 一次有序 reload（commitSeq 609→617、startup embedding 自动验证再次 verified=true/1 call/semanticPublished=true）。
+2. 零模型读取最近失败回复：`found=true`、status=unknown、reasonCode=`REPLY_FAILED`、无 streamDiagnostic（round-18 operation 早于仪器化，不伪造）。
+3. **`shiyu_diagnose_model_transport` 一次调用 → status=`empty-provider-stream`**：chunks=0、textBytes=0、usage unknown；固定请求 provider=opencode-go/deepseek-v4.1-flash/effort low/maxTokens 8；Session 清理 released/disposed/archived + cleanup.ok=true。
+4. 审计：commitSeq 617→617、events 不变、goals/tasks/state 文件不变；仅 +1 个一次性 transport Session（已归档）→ **无业务/Goal/Task/Effect 写入**。
+5. 结论：**provider 对最小固定请求也返回空 stream**，与 v6 core 和 round-18 replyer 的失败同类，属 provider 层面条件；不是长 prompt/请求形状问题。**没有重试**，也没有再发聊天尝试。
+
+### 77.3 证据与边界
+
+- 证据：[round19-model-transport.json](<artifacts/dsh/host/round19-model-transport.json>) + `host/round19/`（plan、4 审计、status-final/extract、transport receipt、reply diagnostic read）。
+- 边界：最小调用无文本、usage unknown，**不证明聊天/core 可用**；P0 聊天记忆闭环仍未通过；下一次聊天尝试必须等 provider 恢复并由**新的显式 owner 决定**；诊断结论不是业务/九系统验收。

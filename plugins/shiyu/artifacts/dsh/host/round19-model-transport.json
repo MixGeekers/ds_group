@@ -1,0 +1,114 @@
+{
+  "schemaVersion": 1,
+  "phase": "round19-host",
+  "slice": "fixed-host one-call model transport diagnostic: the minimal real model request returns an empty provider stream, so the replyer/core generation failures share the same provider-level condition; no retry was made",
+  "capturedAt": "2026-11-04T00:47:41.205Z",
+  "status": "fixed-host-model-transport-empty-provider-stream",
+  "purpose": "Explicit minimal real model call (owner decision) to classify whether the provider returns a non-empty stream for a minimal request, after the round-18 replyer failure showed an empty assistant attempt. Also read the latest failed reply operation with the zero-model reply-stream diagnostic. No reply retry and no chat-memory retry was made.",
+  "code": {
+    "head": "7ed9aa7",
+    "dist": {
+      "files": 122,
+      "digest": "6ef4d75661eb4c296e32db9694fa47aee8a9933c58ed428d93847b07a711e45a"
+    }
+  },
+  "plan": {
+    "file": "artifacts/dsh/host/round19/plan.json",
+    "sha256": "32482141b5200bac10637c34fdb95c24b49b45777bdfad2740cafa61550a4f8b"
+  },
+  "decision": "EXPLICIT MINIMAL REAL MODEL CALL: exactly one model transport probe (fixed provider opencode-go / deepseek-v4.1-flash / effort low / maxTokens 8, single turn, single slot, zero automatic retry). Not a chat or business success criterion.",
+  "transportProbe": {
+    "receipt": {
+      "file": "artifacts/dsh/host/round19/transport-probe-receipt.json",
+      "sha256": "ebaf13bde478f19d5ecd4180469e3f91521065a54e051baaa0955f606c2e261f",
+      "bytes": 1095
+    },
+    "status": "empty-provider-stream",
+    "ok": false,
+    "chunks": 0,
+    "textBytes": 0,
+    "usage": "unknown",
+    "sessionCleanup": {
+      "ok": true,
+      "released": true,
+      "disposed": true,
+      "archived": true
+    },
+    "interpretation": "the provider returned zero chunks for a minimal fixed single-turn request with maxTokens 8. This is the same empty-provider-stream condition observed indirectly in the v6 core attempt and the round-18 replyer attempt; the failure is provider-level, not specific to the large chat/core request shape. No retry was made and no further chat attempt is justified until the provider recovers."
+  },
+  "replyDiagnosticRead": {
+    "file": "artifacts/dsh/host/round19/reply-diagnostic-read.json",
+    "sha256": "76d65cd38b4eb865a142618ec7ffa77d56fc624a1fa50ae3908df0f04370426c",
+    "value": {
+      "found": true,
+      "status": "unknown",
+      "reasonCode": "REPLY_FAILED",
+      "streamDiagnostic": null
+    },
+    "note": "zero-model read only; the round-18 operation predates instrumentation so no persisted diagnostic exists and none was invented."
+  },
+  "reload": {
+    "commitSeq": [
+      609,
+      617
+    ],
+    "events": [
+      69,
+      70
+    ],
+    "sessions": [
+      40,
+      40
+    ],
+    "stateFile": [
+      "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690",
+      "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690"
+    ],
+    "classification": "normal startup writes (startup embedding verification) only; business facts unchanged."
+  },
+  "probe": {
+    "commitSeq": [
+      617,
+      617
+    ],
+    "events": [
+      70,
+      70
+    ],
+    "sessions": [
+      40,
+      41
+    ],
+    "goals": [
+      8,
+      8
+    ],
+    "tasks": [
+      "{\"succeeded\":2,\"unknown\":1}",
+      "{\"succeeded\":2,\"unknown\":1}"
+    ],
+    "stateFile": [
+      "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690",
+      "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690"
+    ],
+    "classification": "the probe created exactly one disposable model-transport session (+1 session) and archived it; commitSeq, events, goals, tasks and the runtime-state file are unchanged: no business or Goal/Task/Effect write."
+  },
+  "final": {
+    "commitSeq": [
+      617,
+      617
+    ],
+    "stateFile": [
+      "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690",
+      "b4879e93ff74a85a5bba6652b36c8de1088b308a968302a0ff0585a8771e4690"
+    ],
+    "classification": "read-only status call."
+  },
+  "milestone": "The provider-level condition is now explicit and independently classified: a minimal real model request returns empty-provider-stream. This explains the round-18 replyer failure and the v6 core empty stream without needing another chat attempt.",
+  "boundaries": [
+    "The probe is a real model call (maxTokens 8) but returned no text and reported usage unknown; it is not evidence that chat or core planning works.",
+    "No chat-memory retry was made; P0 single-user chat-memory closure remains unpassed and still needs a new explicit owner decision after the provider recovers.",
+    "The reply-stream diagnostic read path returned the historical persisted reason but no streamDiagnostic because that operation predates instrumentation.",
+    "The transport session was archived; session count increased by one and no business fact changed."
+  ]
+}

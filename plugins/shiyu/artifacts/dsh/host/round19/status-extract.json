@@ -1,0 +1,102 @@
+{
+  "modelTransportDiagnostic": {
+    "schemaVersion": 1,
+    "kind": "model-transport-diagnostic",
+    "toolName": "shiyu_diagnose_model_transport",
+    "realModelCall": true,
+    "automaticRetry": false,
+    "businessPass": false,
+    "chatPass": false,
+    "status": "empty-provider-stream",
+    "ok": false,
+    "request": {
+      "provider": "opencode-go",
+      "model": "deepseek-v4.1-flash",
+      "reasoningEffort": "low",
+      "maxTokens": 8,
+      "messageCount": 0,
+      "toolCount": 0,
+      "promptSha256": "ef7e7ff96d04cdcdb9a405d5319bdc1b52adabc168eea9179dfc1352aad79231"
+    },
+    "result": {
+      "chunks": 0,
+      "textBytes": 0,
+      "usage": {
+        "status": "unknown"
+      }
+    },
+    "session": {
+      "createdSessionId": "shiyu-model-transport-6521365b-1df4-425a-ab92-88b23c993fd4",
+      "released": true,
+      "disposed": true,
+      "archived": true,
+      "cleanup": {
+        "ok": true,
+        "failures": []
+      }
+    },
+    "checks": [
+      "real-model-call:true",
+      "automatic-retry:false",
+      "classification:empty-provider-stream"
+    ],
+    "startedAt": "2026-11-04T00:47:15.401Z",
+    "completedAt": "2026-11-04T00:47:15.628Z",
+    "durationMs": 227
+  },
+  "startupEmbeddingVerification": {
+    "schemaVersion": 1,
+    "attempted": true,
+    "verified": true,
+    "reason": null,
+    "conversationId": "075ffe7a-528d-4f42-b5e5-047a98468b49",
+    "embeddingCalls": 1,
+    "usageComplete": true,
+    "semanticPublished": true,
+    "capturedAt": "2026-11-04T00:46:58.042Z",
+    "durationMs": 188
+  },
+  "memoryReadiness": {
+    "version": 1,
+    "semanticConfigured": true,
+    "exactRead": true,
+    "embeddingVerified": true,
+    "profileCompatible": true,
+    "capabilities": [
+      "exact_read",
+      "semantic_search"
+    ],
+    "coverage": {
+      "readableCount": 2,
+      "indexedCount": 2,
+      "missingCount": 0,
+      "staleCount": 4,
+      "pendingCount": 0,
+      "unknownCount": 0,
+      "cancelledCount": 0,
+      "indexBaselineId": "index_f0f5218980fc4ed1a9f20176bee88905",
+      "indexWatermark": 6,
+      "observedAt": "2026-11-03T21:46:14.240Z",
+      "coverageComplete": false
+    },
+    "coverageComplete": false,
+    "semanticReady": true,
+    "reason": "INDEX_COVERAGE_INCOMPLETE",
+    "verification": {
+      "scope": "backend-instance",
+      "lastEmbeddingSuccessAt": "2026-11-04T00:46:57.982Z"
+    }
+  },
+  "sessions": {
+    "count": 10,
+    "transportSessions": []
+  },
+  "notices": [
+    {
+      "id": "scope",
+      "level": "info",
+      "message": "已接入原生会话、事件、本地任务、记忆读取与受控 Lab 对话；core 仅在显式目标范围和共享预算内选择已授权事项，开放式规划、其余内层状态及真实外部渠道仍待接入。"
+    }
+  ]
+}
+
