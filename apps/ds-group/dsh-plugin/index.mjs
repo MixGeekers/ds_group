@@ -7,12 +7,20 @@ export const inject = ['llm', 'tools', 'systemPrompt', 'sessionController', 'ses
 
 export async function apply(ctx, config) {
   const project = pathToFileURL(resolve(dirname(fileURLToPath(import.meta.url)), '..')).href + '/';
-  const installation = process.env.DS_GROUP_DSH_RUNTIME ?? '/Applications/DeepSeek Harness.app/Contents/Resources/app.asar/dsh';
-  const anchor = pathToFileURL(`${installation}/package.json`).href;
+  const installation = process.env.DS_GROUP_DSH_RUNTIME;
+  const anchor = installation
+    ? pathToFileURL(resolve(installation, 'package.json')).href
+    : pathToFileURL(process.argv[1]).href;
+  const dependencyAnchor = process.env.DS_GROUP_RUNTIME_DEPS_DIR
+    ? pathToFileURL(resolve(process.env.DS_GROUP_RUNTIME_DEPS_DIR, 'package.json')).href : undefined;
   const hook = registerHooks({
     resolve(specifier, context, nextResolve) {
       if (specifier.startsWith('@deepseek-ai/') && context.parentURL?.startsWith(project)) {
         return nextResolve(specifier, { ...context, parentURL: anchor });
+      }
+      if (dependencyAnchor && context.parentURL?.startsWith(project)
+        && (specifier === 'yaml' || specifier === 'deep-view' || specifier.startsWith('deep-view/'))) {
+        return nextResolve(specifier, { ...context, parentURL: dependencyAnchor });
       }
       return nextResolve(specifier, context);
     },

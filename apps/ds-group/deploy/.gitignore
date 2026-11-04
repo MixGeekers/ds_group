@@ -1,0 +1,4 @@
+.env
+*.tgz
+*.tar.gz
+*-node.json

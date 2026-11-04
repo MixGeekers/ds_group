@@ -1,0 +1,23 @@
+[Unit]
+Description=DS-Group DSH runtime (%i)
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=dsgroup
+Group=dsgroup
+WorkingDirectory=/opt/ds-group
+StateDirectory=ds-group-%i
+StateDirectoryMode=0700
+Environment=DS_GROUP_DATA_DIR=/var/lib/ds-group-%i
+EnvironmentFile=/etc/ds-group/%i.env
+ExecStart=/usr/bin/node /opt/ds-group/scripts/dsh-node.mjs run %i
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+KillMode=mixed
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

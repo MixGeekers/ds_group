@@ -1,0 +1,176 @@
+name: DS-Group CI
+
+on:
+  push:
+    branches: ['**']
+    paths:
+      - 'apps/ds-group/**'
+      - '.github/workflows/ds-group-*.yml'
+  pull_request:
+    paths:
+      - 'apps/ds-group/**'
+      - '.github/workflows/ds-group-*.yml'
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ds-group-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+# Runner labels verified against https://docs.github.com/en/actions/reference/runners/github-hosted-runners
+jobs:
+  native:
+    name: Native / ${{ matrix.os }} / Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15, macos-15-intel, windows-2025]
+        node: ['24.19.0', '24.x']
+    defaults:
+      run:
+        working-directory: apps/ds-group
+        shell: bash
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: apps/ds-group/package-lock.json
+      - name: Install exact dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Syntax and zero-model module tests
+        run: npm run check
+      - name: Build and verify source release
+        run: |
+          node scripts/release-pack.mjs
+          node scripts/release-verify.mjs --extract .local/release-unpacked
+      - name: Clean-install and test extracted release
+        run: |
+          npm ci --prefix .local/release-unpacked --ignore-scripts --no-audit --no-fund
+          node .local/release-unpacked/scripts/check.mjs
+      - name: Upload verified source release
+        if: matrix.os == 'ubuntu-24.04' && matrix.node == '24.19.0'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: ds-group-source
+          path: apps/ds-group/.local/release/*
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14
+
+  container:
+    name: Deploy / Linux ${{ matrix.arch }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            arch: amd64
+          - os: ubuntu-24.04-arm
+            arch: arm64
+    defaults:
+      run:
+        working-directory: apps/ds-group
+        shell: bash
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.19.0'
+      - name: Prepare standalone source
+        run: |
+          node scripts/release-pack.mjs
+          node scripts/release-verify.mjs --extract .local/release-unpacked
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+      - name: Build native image from release archive
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: apps/ds-group/.local/release-unpacked
+          platforms: linux/${{ matrix.arch }}
+          load: true
+          tags: ds-group:ci-${{ matrix.arch }}
+          cache-from: type=gha,scope=ds-group-${{ matrix.arch }}
+          cache-to: type=gha,mode=max,scope=ds-group-${{ matrix.arch }}
+      - name: Validate deployment configurations
+        run: |
+          docker compose -f .local/release-unpacked/deploy/compose.yaml config --quiet
+          DS_GROUP_DOMAIN=chat.example.com docker compose -f .local/release-unpacked/deploy/compose.yaml -f .local/release-unpacked/deploy/compose.https.yaml config --quiet
+      - name: Fresh deployment, messaging and restart persistence
+        run: node .local/release-unpacked/scripts/deploy-smoke.mjs
+        env:
+          DS_GROUP_IMAGE: ds-group:ci-${{ matrix.arch }}
+          DS_GROUP_PLATFORM: linux/${{ matrix.arch }}
+          DS_GROUP_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/deploy-smoke.json
+      - name: Upload deployment result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: deploy-${{ matrix.arch }}
+          path: apps/ds-group/.local/deploy-smoke.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+
+  runtime:
+    name: DSH / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, ubuntu-24.04-arm, macos-15]
+    defaults:
+      run:
+        working-directory: apps/ds-group
+        shell: bash
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.19.0'
+      - name: Install official standalone DSH
+        run: npm install --prefix .local/dsh-install --no-audit --no-fund @deepseek-ai/dsh@0.2.1-rc.5
+      - name: Native Bot session survives restart with zero generations
+        run: node scripts/runtime-smoke.mjs
+        env:
+          DS_GROUP_DSH_CLI: ${{ github.workspace }}/apps/ds-group/.local/dsh-install/node_modules/.bin/dsh
+          DS_GROUP_DSH_RUNTIME: ${{ github.workspace }}/apps/ds-group/.local/dsh-install
+          DS_GROUP_RUNTIME_SMOKE_REPORT: ${{ github.workspace }}/apps/ds-group/.local/runtime-smoke.json
+          OPENCODE_API_KEY: ci-synthetic-key-no-generation
+      - name: Upload native runtime result
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: runtime-${{ matrix.os }}
+          path: apps/ds-group/.local/runtime-smoke.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 14
+
+  required:
+    name: DS-Group matrix passed
+    if: always()
+    needs: [native, container, runtime]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Require every matrix result
+        env:
+          NATIVE_RESULT: ${{ needs.native.result }}
+          CONTAINER_RESULT: ${{ needs.container.result }}
+          RUNTIME_RESULT: ${{ needs.runtime.result }}
+        run: test "$NATIVE_RESULT" = success && test "$CONTAINER_RESULT" = success && test "$RUNTIME_RESULT" = success

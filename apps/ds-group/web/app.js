@@ -160,6 +160,10 @@ function renderParticipants() {
     return option;
   }));
   if (previousUser) $('login-user').value = previousUser;
+  const passwordRequired = state.bootstrap?.demoLogin === false;
+  $('login-password').required = passwordRequired;
+  $('password-options').open = passwordRequired;
+  $('password-options').querySelector('summary').hidden = passwordRequired;
   $('login-submit').disabled = !$('login-user').value || state.loggingIn;
   renderRecipients();
 }
@@ -367,6 +371,7 @@ async function login(event) {
   try {
     const user = $('login-user').value;
     const password = $('login-password').value;
+    if (state.bootstrap?.demoLogin === false && !password) throw new Error('请输入密码');
     const session = password
       ? await request('/api/login', { method: 'POST', body: { user, password }, auth: false })
       : await request(`/api/demo-login?user=${encodeURIComponent(user)}`, { auth: false });

@@ -5,9 +5,9 @@
 ## 运行依赖
 
 - 固定上游为 `71d344bf193f3f18185f25de3d8e5c483046910a`。原始 npm 包保存在 `../vendor/ds-bot/`，`UPSTREAM.json`、`LICENSE` 和 `NOTICE` 记录来源及许可，上游源码保持未修改。
-- 本轮宿主为本机安装的 DeepSeek Harness 0.2.1-rc.5。`index.mjs` 使用 Node `registerHooks` 将本模块及 vendored DS-Bot 的 SDK imports 解析到同一个宿主安装目录。
-- macOS 默认 CLI 是 `/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh`。`DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 可以指定其他安装位置。其他平台的实际启动仍需验证。
-- `runtime-dependencies.json` 与 `runtime-dependencies-lock.json` 固定 `deep-view@0.1.0`、`yaml@2.9.1`。启动器在私有 `.local/dsh-deps/` 使用 `npm ci --ignore-scripts` 准备依赖，再创建本地依赖链接。
+- 宿主固定 DeepSeek Harness 0.2.1-rc.5，支持官方 npm CLI 和已有 macOS 桌面版。`index.mjs` 使用 Node `registerHooks` 将本模块及 vendored DS-Bot 的 SDK imports 解析到同一个宿主安装目录。
+- 通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定安装位置。启动器也会查找 PATH 中的 `dsh`，macOS 另保留桌面版路径回退。Linux amd64/arm64 与 macOS ARM64 已完成零模型初始化和 Session 重启验证，详见[发行验证](../发行验证.md)。原生 Windows 的宿主管理使用 WSL2。
+- `runtime-dependencies.json` 与 `runtime-dependencies-lock.json` 固定 `deep-view@0.1.0`、`yaml@2.9.1`。启动器在数据目录内使用 `npm ci --ignore-scripts` 准备依赖，模块解析指向该私有依赖目录，源码树无需写入依赖链接。
 
 ## 启动和停止
 
@@ -20,7 +20,9 @@ node scripts/dsh-node.mjs status finance
 node scripts/dsh-node.mjs stop finance
 ```
 
-两个桥接端口分别为 `127.0.0.1:18091` 和 `127.0.0.1:18092`。每个宿主拥有独立 `.local/dsh-<node>/home/`、DS-Bot 数据目录、原生 Session 与工作区。启动器只复制原有 `opencode-go` 配置和它引用的一个模型凭据到私有目录，文件模式为 `0600`。停止命令等待对应进程退出及桥接端口关闭。
+两个桥接端口默认分别为 `127.0.0.1:18091` 和 `127.0.0.1:18092`，可通过 `DS_GROUP_FINANCE_PORT`、`DS_GROUP_HR_PORT` 调整。每个宿主拥有独立 `.local/dsh-<node>/home/`、DS-Bot 数据目录、原生 Session 与工作区。`DS_GROUP_DATA_DIR` 可将数据移出源码树。
+
+新服务器可以用 `OPENCODE_API_KEY` 配置模型，也可通过 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 从既有安装复制 `opencode-go` 的配置和单个引用凭据，文件模式为 `0600`。停止命令等待对应进程退出及桥接端口关闭。`run` 操作用于服务管理器的前台运行。完整安装、节点导出和启动步骤见[服务器部署](../deploy/README.md)。
 
 ## HTTP 契约
 

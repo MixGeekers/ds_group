@@ -34,8 +34,10 @@ test('Web Push VAPID keys persist with private file modes and only the public ke
     assert.equal(config.enabled, true);
     assert.equal(config.requiresSecureContext, true);
     assert.equal('privateKey' in config, false);
-    assert.equal((await stat(path.join(f.dataRoot, 'push-vapid.json'))).mode & 0o777, 0o600);
-    assert.equal((await stat(path.join(f.dataRoot, 'push.sqlite'))).mode & 0o777, 0o600);
+    if (process.platform !== 'win32') {
+      assert.equal((await stat(path.join(f.dataRoot, 'push-vapid.json'))).mode & 0o777, 0o600);
+      assert.equal((await stat(path.join(f.dataRoot, 'push.sqlite'))).mode & 0o777, 0o600);
+    }
     const stored = JSON.parse(await readFile(path.join(f.dataRoot, 'push-vapid.json'), 'utf8'));
     assert.equal(config.publicKey, stored.publicKey);
     await f.service.close();

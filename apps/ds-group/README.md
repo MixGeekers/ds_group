@@ -2,6 +2,12 @@
 
 人类与独立 Bot 共同参与的聊天协作框架。首个切片采用 Matrix Synapse 管理成员与聊天记录，两个独立 DSH 宿主运行固定 DS-Bot 0.2.7，节点适配器负责消息队列、委派与回传。前端是手机与电脑适配的 PWA，采用 Discord 式深色布局。
 
+## 服务器部署与发行
+
+Linux x64 与 ARM64 服务器使用 [Docker Compose 部署说明](deploy/README.md)。服务器默认采用密码登录，核心、Synapse、Bot 节点分别运行。文档包含 HTTPS、账号读取、远程节点导出、备份与升级。Windows 服务器运行 Linux 容器或 WSL2，macOS 可通过 Docker Desktop 验证同一部署包。
+
+发行 CI 会检查多系统 Node 运行、干净源码包安装、两种 Linux 架构的真实服务启动及持久化，以及独立 DSH 节点的零模型初始化。源码包附带 SHA256 清单。带 `ds-group-v` 前缀的版本标签通过完整检查后发布源码包和多架构 GHCR 镜像。具体矩阵和本轮结果见[发行验证记录](发行验证.md)。
+
 ## 打开与使用
 
 运行地址为 [DS-Group 本机界面](http://127.0.0.1:18100)。选择 Alice 或 Bob 进入演示，两个人可以分别使用不同窗口。共同群聊里勾选“邀请回应”的 Bot 后发送消息。点击联系人可进入真实私聊，返回“初次协作”继续群聊。
@@ -47,10 +53,10 @@ node scripts/service.mjs up finance
 
 ### 本机依赖
 
-- Node 24.19.x 与 npm。
+- Node 24.19.0 及以上的 24.x 与 npm。
 - 已安装且可启动的 Docker Desktop，用于固定 Synapse 容器。
-- 已安装的 DSH 0.2.1-rc.5。当前默认 CLI 位于 `/Applications/DeepSeek Harness.app/Contents/Resources/runtime/cli/bin/dsh`，可通过 `DS_GROUP_DSH_CLI` 指定其他位置。
-- 现有 DSH 中配置可用的 `opencode-go/deepseek-v4.1-flash`。launcher 只把该 provider 的配置与引用凭据复制到 `.local/` 内的隔离 DSH home，源码和公开证据不包含凭据。
+- DSH 0.2.1-rc.5，可使用官方 npm CLI 或现有桌面版。通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定独立安装，见部署说明。
+- 使用 `OPENCODE_API_KEY` 配置 `opencode-go/deepseek-v4.1-flash`，也可从现有 DSH 的指定 profile 复制该 provider。凭据仅写入隔离数据目录，不进入源码和发行包。
 
 首次启动会准备固定运行依赖，下载固定官方 Synapse 镜像，创建本项目演示成员和房间。详细 DSH 接缝与依赖准备见 [节点说明](dsh-plugin/README.md)。
 
@@ -85,11 +91,12 @@ npm run verify
 
 模型调用由 `.local/model-budget.sqlite` 记录，包含节点、请求 ID、开始与完成时间及用量。用户已授权无人值守不限次数测试，当前 `limit=null`，远端生成仍只允许 `opencode-go/deepseek-v4.1-flash`。单次输出上限当前为 4096 tokens，核心接纳上限为 8192 tokens。
 
-证据入口为 [Matrix 实测](artifacts/matrix-smoke.json)、[DS-Bot 真实探针](artifacts/ds-bot-smoke.json)、[界面验证](artifacts/ui-verification.json)。完整逻辑闭环记录在 `artifacts/first-flow-*.json`，当前汇总见[验收摘要](artifacts/framework-validation.json)和[实施记录](实施记录.md)。
+证据入口为 [Matrix 实测](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/artifacts/matrix-smoke.json)、[DS-Bot 真实探针](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/artifacts/ds-bot-smoke.json)、[界面验证](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/artifacts/ui-verification.json)。完整逻辑闭环记录在 `artifacts/first-flow-*.json`，当前汇总见[验收摘要](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/artifacts/framework-validation.json)和[实施记录](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/实施记录.md)。
 
 ## 第一版范围
 
 - 运行数据全部位于 `.local/`，已被 Git 排除。包含合成账号凭据、SQLite、日志、DSH Session 和 SDK 依赖链接。
+- `DS_GROUP_DATA_DIR` 可以将运行数据放在源码目录外。容器使用独立持久卷，升级镜像保留原数据。预算上限由已有预算数据库保存，修改配置文件不会重置历史账目或既存预算。
 - 网页提供本机演示账号快捷登录，当前使用合成成员。
 - 本轮验证原生 Session 历史回忆。自动长期记忆复盘与本地工具执行关闭，通用文件工作与更广的工具能力留待后续切片。
 - 对模型运行中断或回执不明的请求，保存 `unknown` 并停止自动重放。已生成并保存的 outbox 可以恢复发送。完整在途故障接管尚待实现和验证。
@@ -99,4 +106,4 @@ npm run verify
 
 DS-Bot npm 包固定为 0.2.7，对应提交 `71d344bf193f3f18185f25de3d8e5c483046910a`。上游文件保存在 `vendor/ds-bot/`，来源、完整性和许可见 [UPSTREAM](vendor/ds-bot/UPSTREAM.json)、[LICENSE](vendor/ds-bot/LICENSE)、[NOTICE](vendor/ds-bot/NOTICE)。适配代码位于 `dsh-plugin/` 与 `src/`。
 
-原识雨本体、资料工作台及健身房继续保留，历史成绩按原证据解释。项目方向与分阶段验收见 [DS-Group 首个框架路线](../../架构与设计/DS-Group首个框架与实施路线.md)。
+原识雨本体、资料工作台及健身房继续保留，历史成绩按原证据解释。项目方向与分阶段验收见 [DS-Group 首个框架路线](https://github.com/MixGeekers/shiyu/blob/codex/ds-group-release-ci/架构与设计/DS-Group首个框架与实施路线.md)。

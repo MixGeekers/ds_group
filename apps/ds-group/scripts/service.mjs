@@ -3,10 +3,24 @@ import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, open, readFile, writeFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { packageRoot, localPath } from '../src/paths.mjs';
+import { httpUrl, portNumber, runtimeSettings } from './runtime-config.mjs';
 
 const [command = 'status', component = 'all'] = process.argv.slice(2);
 if (!['up', 'down', 'status', 'restart'].includes(command)) throw new Error('Use up, down, restart or status');
 if (!['all', 'core', 'finance', 'hr'].includes(component)) throw new Error('Component must be all, core, finance or hr');
+if (process.platform === 'win32' && command !== 'status') throw new Error('Use Docker Compose or WSL2 for service lifecycle on Windows');
+if (component === 'all' && process.env.DS_GROUP_BRIDGE_PORT) throw new Error('Use DS_GROUP_FINANCE_PORT and DS_GROUP_HR_PORT when starting both Bots');
+const corePort = portNumber(process.env.DS_GROUP_PORT, 18100, 'DS_GROUP_PORT');
+const coreHost = process.env.DS_GROUP_HOST || '127.0.0.1';
+const connectHost = ['0.0.0.0', '::'].includes(coreHost) ? '127.0.0.1' : coreHost;
+const localCoreUrl = `http://${connectHost.includes(':') ? `[${connectHost}]` : connectHost}:${corePort}`;
+let coreUrl = httpUrl(process.env.DS_GROUP_CORE_URL || localCoreUrl, 'DS_GROUP_CORE_URL');
+if (!process.env.DS_GROUP_CORE_URL) {
+  try {
+    const imported = JSON.parse(await readFile(process.env.DS_GROUP_CORE_CONFIG_PATH || localPath('core-config.json'), 'utf8'));
+    if (imported.publicUrl) coreUrl = httpUrl(imported.publicUrl, 'Imported core URL');
+  } catch (error) { if (error.code !== 'ENOENT') throw error; }
+}
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const paths = name => ({ record: localPath('processes', `${name}.json`), log: localPath('logs', `${name}.log`) });
 
@@ -49,7 +63,7 @@ async function run(file, args) {
   if (exit !== 0) throw new Error(`${file} exited ${exit}`);
 }
 async function waitFor(url) {
-  for (let attempt = 0; attempt < 120; attempt++) {
+  for (let attempt = 0; attempt < 360; attempt++) {
     try { const response = await fetch(url, { signal: AbortSignal.timeout(1000) }); if (response.ok) return; } catch {}
     await sleep(500);
   }
@@ -69,12 +83,12 @@ async function up() {
   if (component === 'all') await run('scripts/matrix.mjs', ['up']);
   if (component === 'all' || component === 'core') {
     await start('core', 'src/core.mjs');
-    await waitFor('http://127.0.0.1:18100/api/bootstrap');
+    await waitFor(`${localCoreUrl}/api/bootstrap`);
   }
   for (const name of ['finance', 'hr']) {
     if (component !== 'all' && component !== name) continue;
     await run('scripts/dsh-node.mjs', ['start', name]);
-    await waitFor(`http://127.0.0.1:${name === 'finance' ? 18091 : 18092}/api/ds-group-node/status`);
+    await waitFor(`${runtimeSettings(name, { root: packageRoot }).bridgeUrl}/api/ds-group-node/status`);
     await start(name, 'src/bot-node.mjs', ['--bot', name]);
   }
 }
@@ -83,8 +97,8 @@ if (command === 'up' || command === 'restart') await up();
 if (command !== 'down') {
   await sleep(500);
   try {
-    const response = await fetch('http://127.0.0.1:18100/api/status', { signal: AbortSignal.timeout(2000) });
+    const response = await fetch(`${coreUrl}/api/status`, { signal: AbortSignal.timeout(2000) });
     const { nodes, budget } = await response.json();
-    console.log(JSON.stringify({ url: 'http://127.0.0.1:18100', nodes, generationCalls: budget.used }, null, 2));
+    console.log(JSON.stringify({ url: coreUrl, nodes, generationCalls: budget.used }, null, 2));
   } catch { console.log(JSON.stringify({ core: 'offline' })); }
 }

@@ -1,0 +1,12 @@
+{$DS_GROUP_DOMAIN} {
+	encode zstd gzip
+	handle /_matrix/* {
+		reverse_proxy synapse:8008
+	}
+	handle /_synapse/* {
+		respond 404
+	}
+	handle {
+		reverse_proxy core:18100
+	}
+}

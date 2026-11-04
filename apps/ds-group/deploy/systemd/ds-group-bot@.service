@@ -1,0 +1,22 @@
+[Unit]
+Description=DS-Group Matrix Bot adapter (%i)
+Wants=network-online.target ds-group-dsh@%i.service
+After=network-online.target ds-group-dsh@%i.service
+
+[Service]
+Type=simple
+User=dsgroup
+Group=dsgroup
+WorkingDirectory=/opt/ds-group
+StateDirectory=ds-group-%i
+StateDirectoryMode=0700
+Environment=DS_GROUP_DATA_DIR=/var/lib/ds-group-%i
+EnvironmentFile=/etc/ds-group/%i.env
+ExecStart=/usr/bin/node /opt/ds-group/src/bot-node.mjs --bot %i
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=45
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

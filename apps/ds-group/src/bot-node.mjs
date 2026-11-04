@@ -272,15 +272,19 @@ export async function runNode(argv = process.argv.slice(2)) {
   const argument = name => { const index = argv.indexOf(name); return index >= 0 ? argv[index + 1] : undefined; };
   const name = argument('--bot');
   if (!name) throw new Error('Usage: node src/bot-node.mjs --bot finance|hr [--endpoint URL]');
-  const setup = JSON.parse(await readFile(localPath('matrix-setup.json'), 'utf8'));
-  const config = JSON.parse(await readFile(localPath('core-config.json'), 'utf8'));
+  const setup = JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || localPath('matrix-setup.json'), 'utf8'));
+  const config = JSON.parse(await readFile(process.env.DS_GROUP_CORE_CONFIG_PATH || localPath('core-config.json'), 'utf8'));
+  if (process.env.DS_GROUP_MATRIX_URL) setup.homeserverUrl = process.env.DS_GROUP_MATRIX_URL;
   const participant = setup.participants.find(p => p.localpart === name && p.kind === 'bot');
   if (!participant) throw new Error(`Unknown Bot ${name}`);
+  if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('Bot name must be a local account name');
+  if (!participant.accessToken) throw new Error('This node needs its own Matrix access token');
   const directory = localPath('nodes', name);
   await mkdir(directory, { recursive: true });
   const releaseLock = await acquireNodeLock(path.join(directory, 'process.lock'));
-  const endpoint = argument('--endpoint') || process.env.DS_GROUP_BOT_ENDPOINT || `http://127.0.0.1:${name === 'finance' ? 18091 : 18092}`;
-  const coreUrl = process.env.DS_GROUP_CORE_URL || 'http://127.0.0.1:18100';
+  const bridgePort = process.env.DS_GROUP_BRIDGE_PORT || process.env[`DS_GROUP_${name.toUpperCase()}_PORT`] || (name === 'finance' ? 18091 : 18092);
+  const endpoint = argument('--endpoint') || process.env.DS_GROUP_BOT_ENDPOINT || `http://127.0.0.1:${bridgePort}`;
+  const coreUrl = process.env.DS_GROUP_CORE_URL || config.publicUrl || `http://127.0.0.1:${process.env.DS_GROUP_PORT || 18100}`;
   const store = new NodeStore(path.join(directory, 'node.sqlite'), participant.id);
   const node = new BotNode({ participant, participants: setup.participants, roomId: setup.roomId,
     matrix: new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: participant.accessToken }), store,

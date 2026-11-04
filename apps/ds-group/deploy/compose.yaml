@@ -1,0 +1,82 @@
+name: ds-group
+
+x-app: &app
+  image: ${DS_GROUP_IMAGE:-ds-group:local}
+  build:
+    context: ..
+    dockerfile: Dockerfile
+  init: true
+
+x-server-environment: &server-environment
+  DS_GROUP_DATA_DIR: /data
+  DS_GROUP_MATRIX_URL: http://synapse:8008
+  DS_GROUP_SERVER_NAME: ${DS_GROUP_SERVER_NAME:-localhost}
+  DS_GROUP_PUBLIC_URL: ${DS_GROUP_PUBLIC_URL:-http://localhost:18100}
+  DS_GROUP_MATRIX_PUBLIC_URL: ${DS_GROUP_MATRIX_PUBLIC_URL:-http://localhost:18008}
+
+services:
+  config:
+    <<: *app
+    user: "0:0"
+    command: ["node", "scripts/server-init.mjs"]
+    environment:
+      <<: *server-environment
+      DS_GROUP_SYNAPSE_DIR: /synapse
+    volumes:
+      - core-data:/data
+      - synapse-data:/synapse
+    restart: "no"
+
+  synapse:
+    image: ghcr.io/element-hq/synapse:v1.164.2@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842
+    environment:
+      UID: "1000"
+      GID: "1000"
+    command: ["run", "-m", "synapse.app.homeserver", "--config-path=/data/homeserver.yaml"]
+    depends_on:
+      config:
+        condition: service_completed_successfully
+    volumes:
+      - synapse-data:/data
+    ports:
+      - "${DS_GROUP_BIND:-127.0.0.1}:${DS_GROUP_MATRIX_PORT:-18008}:8008"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8008/_matrix/client/versions', timeout=4).read()"]
+      interval: 5s
+      timeout: 5s
+      start_period: 30s
+      retries: 24
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+  bootstrap:
+    <<: *app
+    command: ["node", "scripts/server-bootstrap.mjs"]
+    environment: *server-environment
+    volumes:
+      - core-data:/data
+    depends_on:
+      synapse:
+        condition: service_healthy
+    restart: "no"
+
+  core:
+    <<: *app
+    environment:
+      <<: *server-environment
+      DS_GROUP_HOST: 0.0.0.0
+      DS_GROUP_PORT: "18100"
+      DS_GROUP_DEMO_LOGIN: "false"
+    volumes:
+      - core-data:/data
+    ports:
+      - "${DS_GROUP_BIND:-127.0.0.1}:${DS_GROUP_HTTP_PORT:-18100}:18100"
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    stop_grace_period: 45s
+
+volumes:
+  core-data:
+  synapse-data:

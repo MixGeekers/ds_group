@@ -2,21 +2,24 @@ import { execFile } from 'node:child_process';
 import { createHmac, randomBytes } from 'node:crypto';
 import { chmod, mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { MatrixClient } from '../src/matrix-client.mjs';
+import { packageRoot, localRoot } from '../src/paths.mjs';
 
 const execute = promisify(execFile);
-const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const localRoot = path.join(packageRoot, '.local');
 const matrixRoot = path.join(localRoot, 'matrix');
 const setupPath = path.join(localRoot, 'matrix-setup.json');
 const lockPath = path.join(matrixRoot, 'bootstrap.lock');
 const registrationPath = path.join(matrixRoot, 'registration.yaml');
-const image = 'ghcr.io/element-hq/synapse@sha256:37090b4e5f26171922321a6acd1acf2675cb862f3b0cdf368f0dbbae6a70439a';
-const containerName = 'ds-group-matrix';
-const homeserverUrl = 'http://127.0.0.1:18008';
-const serverName = 'ds-group.local';
+// The OCI index selects the matching amd64 or arm64 image on the Docker host.
+const image = 'ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842';
+const previousArmImage = 'ghcr.io/element-hq/synapse@sha256:37090b4e5f26171922321a6acd1acf2675cb862f3b0cdf368f0dbbae6a70439a';
+const containerName = process.env.DS_GROUP_MATRIX_CONTAINER || 'ds-group-matrix';
+const matrixPort = Number(process.env.DS_GROUP_MATRIX_PORT || 18008);
+if (!Number.isInteger(matrixPort) || matrixPort < 1 || matrixPort > 65535) throw new Error('Invalid DS_GROUP_MATRIX_PORT');
+const homeserverUrl = `http://127.0.0.1:${matrixPort}`;
+const serverName = process.env.DS_GROUP_MATRIX_SERVER_NAME || 'ds-group.local';
+if (!/^[a-zA-Z0-9.-]+(?::[0-9]+)?$/.test(serverName)) throw new Error('Invalid DS_GROUP_MATRIX_SERVER_NAME');
 const roomAlias = `#ds-group-first-collaboration:${serverName}`;
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
 
@@ -49,7 +52,7 @@ async function inspectContainer() {
     if (result.Config.Labels?.['org.ds-group.component'] !== 'matrix' || !ownData) {
       throw new Error(`Container ${containerName} belongs to another installation`);
     }
-    if (result.Config.Image !== image) throw new Error('The existing DS-Group Matrix container uses a different image');
+    if (![image, previousArmImage].includes(result.Config.Image)) throw new Error('The existing DS-Group Matrix container uses a different image');
     return result;
   } catch (error) {
     if (/no such (object|container)/i.test(error.stderr ?? '')) return undefined;
@@ -307,7 +310,7 @@ async function up() {
     if (!container) {
       console.log('Preparing the pinned Synapse image');
       await docker(['pull', image]);
-      await docker(['run', '--detach', '--name', containerName, '--label', 'org.ds-group.component=matrix', '--publish', '127.0.0.1:18008:8008', '--mount', `type=bind,source=${matrixRoot},target=/data`, '--env', 'UID=0', '--env', 'GID=0', image, 'run', '-m', 'synapse.app.homeserver', '--config-path=/data/homeserver.yaml', '--config-path=/data/registration.yaml']);
+      await docker(['run', '--detach', '--name', containerName, '--label', 'org.ds-group.component=matrix', '--publish', `127.0.0.1:${matrixPort}:8008`, '--mount', `type=bind,source=${matrixRoot},target=/data`, '--env', 'UID=0', '--env', 'GID=0', image, 'run', '-m', 'synapse.app.homeserver', '--config-path=/data/homeserver.yaml', '--config-path=/data/registration.yaml']);
     } else if (!container.State.Running) {
       await docker(['start', containerName]);
     } else if (previousRegistration !== registration) {

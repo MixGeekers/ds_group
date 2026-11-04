@@ -33,9 +33,8 @@ function bearer(request) {
   return authorization.slice(7);
 }
 
-async function loadCoreConfig() {
-  await mkdir(localPath(), { recursive: true });
-  const filename = localPath('core-config.json');
+async function loadCoreConfig(dataRoot, filename = process.env.DS_GROUP_CORE_CONFIG_PATH || path.join(dataRoot, 'core-config.json')) {
+  await mkdir(path.dirname(filename), { recursive: true });
   try { return JSON.parse(await readFile(filename, 'utf8')); }
   catch (error) {
     if (error.code !== 'ENOENT') throw error;
@@ -46,8 +45,14 @@ async function loadCoreConfig() {
 }
 
 export async function createCore({ setup, config, dataRoot = localPath(), webRoot = path.join(packageRoot, 'web'), enablePush = true } = {}) {
-  setup ||= JSON.parse(await readFile(localPath('matrix-setup.json'), 'utf8'));
-  config ||= await loadCoreConfig();
+  setup ||= JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || path.join(dataRoot, 'matrix-setup.json'), 'utf8'));
+  setup = { ...setup, homeserverUrl: process.env.DS_GROUP_MATRIX_URL || setup.homeserverUrl };
+  config ||= await loadCoreConfig(dataRoot);
+  const demoLogin = process.env.DS_GROUP_DEMO_LOGIN === undefined ? config.demoLogin !== false : process.env.DS_GROUP_DEMO_LOGIN === 'true';
+  if (process.env.DS_GROUP_DEMO_LOGIN !== undefined && !['true', 'false'].includes(process.env.DS_GROUP_DEMO_LOGIN)) {
+    throw new Error('DS_GROUP_DEMO_LOGIN must be true or false');
+  }
+  if (typeof config.nodeSecret !== 'string' || !config.nodeSecret) throw new Error('Core nodeSecret is required');
   await mkdir(dataRoot, { recursive: true });
   const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
   const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
@@ -77,12 +82,21 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   async function dispatch(request, response) {
     const url = new URL(request.url, 'http://localhost');
     const send = (status, value) => { response.writeHead(status, jsonHeaders); response.end(JSON.stringify(value)); };
+    if (request.method === 'GET' && url.pathname === '/healthz') return send(200, { status: 'ok' });
+    if (request.method === 'GET' && url.pathname === '/readyz') {
+      try {
+        const upstream = await fetch(new URL('/_matrix/client/versions', setup.homeserverUrl), { signal: AbortSignal.timeout(3000) });
+        const versions = await upstream.json();
+        if (!upstream.ok || !Array.isArray(versions.versions)) throw new Error('Matrix is unavailable');
+        return send(200, { status: 'ready', matrix: 'ready' });
+      } catch { return send(503, { status: 'unavailable', matrix: 'unavailable' }); }
+    }
     if (request.method === 'GET' && url.pathname === '/api/bootstrap') {
       response.setHeader('Access-Control-Allow-Origin', '*');
-      return send(200, { name: 'DS-Group', roomId: setup.roomId, homeserverUrl: setup.homeserverUrl, participants: publicParticipants, nodes: nodeSnapshot(), mode: 'local-synthetic-demo' });
+      return send(200, { name: 'DS-Group', roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: publicParticipants, nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server' });
     }
     if (request.method === 'GET' && url.pathname === '/api/status') {
-      return send(200, { nodes: nodeSnapshot(), budget: budget.snapshot(), core: { startedAt, storage: 'Matrix Synapse', roomId: setup.roomId, evidenceScope: 'local-multiprocess', loadedCoreSha256 } });
+      return send(200, { nodes: nodeSnapshot(), budget: budget.snapshot(), core: { startedAt, storage: 'Matrix Synapse', roomId: setup.roomId, evidenceScope: setup.deploymentMode || 'local-multiprocess', loadedCoreSha256 } });
     }
     if (request.method === 'GET' && url.pathname === '/api/push/config') {
       return send(200, push ? await push.getConfig() : { enabled: false, requiresSecureContext: true });
@@ -101,6 +115,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       return send(404, { error: 'Unknown notification endpoint' });
     }
     if (request.method === 'GET' && url.pathname === '/api/demo-login') {
+      if (!demoLogin) return send(404, { error: 'Demo login is disabled' });
       const participant = setup.participants.find(p => p.kind === 'human' && (p.localpart === url.searchParams.get('user') || p.id === url.searchParams.get('user')));
       if (!participant) return send(404, { error: 'Unknown demo human' });
       return send(200, { access_token: participant.accessToken, user_id: participant.id, mode: 'synthetic-demo-account' });
