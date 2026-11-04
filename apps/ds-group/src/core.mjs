@@ -1,0 +1,287 @@
+import http from 'node:http';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { DatabaseSync } from 'node:sqlite';
+import { MatrixClient } from './matrix-client.mjs';
+import { ModelBudget } from './budget.mjs';
+import { PushService } from './push.mjs';
+import { localPath, packageRoot } from './paths.mjs';
+
+const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
+const loadedCoreSha256 = createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
+const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
+  '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
+
+export async function readJsonBody(request) {
+  const chunks = [];
+  let bytes = 0;
+  for await (const chunk of request) {
+    bytes += chunk.length;
+    if (bytes > 131072) throw Object.assign(new Error('Request too large'), { status: 413 });
+    chunks.push(Buffer.from(chunk));
+  }
+  const body = Buffer.concat(chunks).toString('utf8');
+  try { return body ? JSON.parse(body) : {}; }
+  catch { throw Object.assign(new Error('Expected JSON body'), { status: 400 }); }
+}
+
+function bearer(request) {
+  const authorization = request.headers.authorization || '';
+  if (!authorization.startsWith('Bearer ')) throw Object.assign(new Error('Please sign in'), { status: 401 });
+  return authorization.slice(7);
+}
+
+async function loadCoreConfig() {
+  await mkdir(localPath(), { recursive: true });
+  const filename = localPath('core-config.json');
+  try { return JSON.parse(await readFile(filename, 'utf8')); }
+  catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+    const config = { nodeSecret: randomBytes(32).toString('hex'), modelCallLimit: null, maxOutputTokens: 8192 };
+    await writeFile(filename, JSON.stringify(config, null, 2) + '\n', { mode: 0o600, flag: 'wx' });
+    return config;
+  }
+}
+
+export async function createCore({ setup, config, dataRoot = localPath(), webRoot = path.join(packageRoot, 'web'), enablePush = true } = {}) {
+  setup ||= JSON.parse(await readFile(localPath('matrix-setup.json'), 'utf8'));
+  config ||= await loadCoreConfig();
+  await mkdir(dataRoot, { recursive: true });
+  const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
+  const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
+  chat.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS direct_rooms (pair_key TEXT PRIMARY KEY, room_id TEXT NOT NULL, participants_json TEXT NOT NULL)');
+  chat.exec(`CREATE TABLE IF NOT EXISTS group_requests (request_key TEXT PRIMARY KEY, input_hash TEXT NOT NULL, status TEXT NOT NULL, room_id TEXT);
+    UPDATE group_requests SET status='unknown' WHERE status='creating';`);
+  const creatingDirectRooms = new Map();
+  const push = enablePush ? new PushService({ dataRoot, setup }) : null;
+  if (push) await push.start();
+  const nodes = new Map();
+  const startedAt = new Date().toISOString();
+  const defaultOwnerId = setup.participants.find(person => person.kind === 'human')?.id;
+  const publicParticipants = setup.participants.map(({ id, localpart, name, kind, ownerId }) => ({ id, localpart, name, kind,
+    ...(kind === 'bot' ? { ownerId: ownerId || defaultOwnerId } : {}) }));
+  function authorizeNode(request) {
+    const provided = Buffer.from(bearer(request));
+    const expected = Buffer.from(config.nodeSecret);
+    if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) throw Object.assign(new Error('Invalid node credential'), { status: 401 });
+  }
+  function nodeSnapshot() {
+    return publicParticipants.filter(p => p.kind === 'bot').map(participant => {
+      const active = nodes.get(participant.id);
+      if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DS-Bot 0.2.7' };
+      return { ...active, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
+    });
+  }
+  async function dispatch(request, response) {
+    const url = new URL(request.url, 'http://localhost');
+    const send = (status, value) => { response.writeHead(status, jsonHeaders); response.end(JSON.stringify(value)); };
+    if (request.method === 'GET' && url.pathname === '/api/bootstrap') {
+      response.setHeader('Access-Control-Allow-Origin', '*');
+      return send(200, { name: 'DS-Group', roomId: setup.roomId, homeserverUrl: setup.homeserverUrl, participants: publicParticipants, nodes: nodeSnapshot(), mode: 'local-synthetic-demo' });
+    }
+    if (request.method === 'GET' && url.pathname === '/api/status') {
+      return send(200, { nodes: nodeSnapshot(), budget: budget.snapshot(), core: { startedAt, storage: 'Matrix Synapse', roomId: setup.roomId, evidenceScope: 'local-multiprocess', loadedCoreSha256 } });
+    }
+    if (request.method === 'GET' && url.pathname === '/api/push/config') {
+      return send(200, push ? await push.getConfig() : { enabled: false, requiresSecureContext: true });
+    }
+    if (url.pathname.startsWith('/api/push/')) {
+      if (!push) return send(503, { error: 'Notifications are not enabled' });
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      const { user_id: userId } = await client.whoami();
+      if (!publicParticipants.some(p => p.id === userId && p.kind === 'human')) return send(403, { error: 'Choose a human notification recipient' });
+      if (url.pathname === '/api/push/subscriptions') {
+        if (request.method === 'GET') return send(200, { subscriptions: await push.subscriptions(userId) });
+        if (request.method === 'POST') return send(200, await push.subscribe(userId, await readJsonBody(request)));
+        if (request.method === 'DELETE') return send(200, await push.unsubscribe(userId, (await readJsonBody(request)).endpoint));
+      }
+      if (request.method === 'POST' && url.pathname === '/api/push/test') return send(200, await push.sendTest(userId));
+      return send(404, { error: 'Unknown notification endpoint' });
+    }
+    if (request.method === 'GET' && url.pathname === '/api/demo-login') {
+      const participant = setup.participants.find(p => p.kind === 'human' && (p.localpart === url.searchParams.get('user') || p.id === url.searchParams.get('user')));
+      if (!participant) return send(404, { error: 'Unknown demo human' });
+      return send(200, { access_token: participant.accessToken, user_id: participant.id, mode: 'synthetic-demo-account' });
+    }
+    if (request.method === 'POST' && url.pathname === '/api/login') {
+      const input = await readJsonBody(request);
+      return send(200, await MatrixClient.login(setup.homeserverUrl, input.user, input.password));
+    }
+    if (request.method === 'GET' && url.pathname === '/api/bots') {
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      const { user_id: userId } = await client.whoami();
+      return send(200, { bots: publicParticipants.filter(person => person.kind === 'bot' && person.ownerId === userId) });
+    }
+    if (request.method === 'GET' && url.pathname === '/api/rooms') {
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      const { user_id: userId } = await client.whoami();
+      const { joined_rooms: joined } = await client.request('GET', '/_matrix/client/v3/joined_rooms');
+      const rooms = [];
+      for (const row of chat.prepare('SELECT * FROM direct_rooms').all()) {
+        const ids = JSON.parse(row.participants_json);
+        if (!ids.includes(userId) || !joined.includes(row.room_id)) continue;
+        const other = publicParticipants.find(p => p.id === ids.find(id => id !== userId));
+        rooms.push({ roomId: row.room_id, name: other?.name || '私聊', kind: 'direct', participantIds: ids });
+      }
+      for (const roomId of joined) {
+        if (rooms.some(room => room.roomId === roomId)) continue;
+        const [roomName, members] = await Promise.all([
+          client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/m.room.name/`).catch(() => ({ name: '群聊' })),
+          client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`),
+        ]);
+        rooms.push({ roomId, name: roomId === setup.roomId ? '初次协作' : roomName.name || '群聊', kind: 'group', participantIds: Object.keys(members.joined || {}) });
+      }
+      return send(200, { rooms: rooms.filter(room => joined.includes(room.roomId)) });
+    }
+    if (request.method === 'POST' && url.pathname === '/api/rooms') {
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      const { user_id: userId } = await client.whoami();
+      const input = await readJsonBody(request);
+      if (typeof input.name !== 'string' || !input.name.trim() || input.name.length > 80 || !Array.isArray(input.inviteIds)) return send(400, { error: 'A group name and member list are required' });
+      const invited = [...new Set(input.inviteIds)].filter(id => id !== userId);
+      for (const id of invited) {
+        const person = publicParticipants.find(p => p.id === id);
+        if (!person || (person.kind === 'bot' && person.ownerId !== userId)) return send(403, { error: 'Only your own Bots can be invited' });
+      }
+      const requestId = input.requestId || randomBytes(16).toString('hex');
+      if (typeof requestId !== 'string' || !/^[a-zA-Z0-9_.:-]{1,200}$/.test(requestId)) return send(400, { error: 'Invalid group request ID' });
+      const requestKey = `${userId}/${requestId}`;
+      const inputHash = createHash('sha256').update(JSON.stringify({ name: input.name.trim(), invited: [...invited].sort() })).digest('hex');
+      const previous = chat.prepare('SELECT * FROM group_requests WHERE request_key=?').get(requestKey);
+      if (previous && previous.input_hash !== inputHash) return send(409, { error: 'This group request ID belongs to different content' });
+      if (previous && previous.status !== 'created') return send(409, { error: 'Group creation is pending confirmation; check your room list', requestId });
+      let roomId = previous?.room_id;
+      if (!roomId) {
+        chat.prepare("INSERT INTO group_requests VALUES (?, ?, 'creating', NULL)").run(requestKey, inputHash);
+        try {
+          roomId = (await client.createRoom({ name: input.name.trim(), preset: 'private_chat', invite: invited })).room_id;
+          chat.prepare("UPDATE group_requests SET status='created',room_id=? WHERE request_key=?").run(roomId, requestKey);
+        } catch (error) {
+          chat.prepare("UPDATE group_requests SET status='unknown' WHERE request_key=?").run(requestKey);
+          return send(409, { error: 'Group creation result is unknown; check your room list before creating another group', requestId });
+        }
+      }
+      const joinResults = [];
+      for (const id of invited) {
+        const participant = setup.participants.find(p => p.id === id);
+        try {
+          await new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: participant.accessToken }).join(roomId);
+          joinResults.push({ participantId: id, status: 'joined' });
+        } catch (error) {
+          joinResults.push({ participantId: id, status: 'pending', reason: error.errcode || 'JOIN_UNCONFIRMED' });
+        }
+      }
+      return send(200, { roomId, requestId, name: input.name.trim(), kind: 'group',
+        status: joinResults.every(item => item.status === 'joined') ? 'joined' : 'partially_joined', joinResults,
+        participantIds: [userId, ...joinResults.filter(item => item.status === 'joined').map(item => item.participantId)] });
+    }
+    const invite = url.pathname.match(/^\/api\/rooms\/([^/]+)\/invite$/);
+    if (request.method === 'POST' && invite) {
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      const { user_id: userId } = await client.whoami();
+      const input = await readJsonBody(request);
+      const participant = setup.participants.find(p => p.id === input.participantId && p.kind === 'bot');
+      const profile = publicParticipants.find(p => p.id === input.participantId);
+      if (!participant || profile.ownerId !== userId) return send(403, { error: 'Choose one of your own Bots' });
+      const roomId = decodeURIComponent(invite[1]);
+      const currentMembers = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`);
+      if (!currentMembers.joined?.[participant.id]) {
+        await client.request('POST', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/invite`, { user_id: participant.id });
+      }
+      await new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: participant.accessToken }).join(roomId);
+      return send(200, { roomId, participantId: participant.id, status: 'joined' });
+    }
+    if (request.method === 'POST' && url.pathname === '/api/dm') {
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      const { user_id: userId } = await client.whoami();
+      const input = await readJsonBody(request);
+      const target = setup.participants.find(p => p.id === input.participantId);
+      if (!target || target.id === userId || !publicParticipants.some(p => p.id === userId)) return send(400, { error: 'Choose a different demo participant' });
+      const ids = [userId, target.id].sort();
+      const key = JSON.stringify(ids);
+      if (!creatingDirectRooms.has(key)) {
+        const work = (async () => {
+          let roomId = chat.prepare('SELECT room_id FROM direct_rooms WHERE pair_key=?').get(key)?.room_id;
+          if (!roomId) {
+            const created = await client.createRoom({ is_direct: true, preset: 'private_chat', invite: [target.id], name: ids.map(id => publicParticipants.find(p => p.id === id)?.name).join(' · ') });
+            roomId = created.room_id;
+            chat.prepare('INSERT INTO direct_rooms VALUES (?, ?, ?)').run(key, roomId, key);
+          }
+          const targetClient = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: target.accessToken });
+          await targetClient.join(roomId);
+          return roomId;
+        })();
+        creatingDirectRooms.set(key, work);
+        void work.finally(() => creatingDirectRooms.delete(key)).catch(() => {});
+      }
+      const roomId = await creatingDirectRooms.get(key);
+      return send(200, { roomId, name: target.name, kind: 'direct', participantIds: ids });
+    }
+    const messages = url.pathname.match(/^\/api\/rooms\/([^/]+)\/messages$/);
+    if (messages) {
+      const roomId = decodeURIComponent(messages[1]);
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      if (request.method === 'GET') return send(200, { events: await client.timeline(roomId, Math.min(Number(url.searchParams.get('limit')) || 100, 200)) });
+      if (request.method === 'POST') {
+        const input = await readJsonBody(request);
+        if (typeof input.body !== 'string' || !input.body.trim() || input.body.length > 16000) return send(400, { error: 'Message must contain 1–16000 characters' });
+        if (!Array.isArray(input.to) || input.to.some(id => !publicParticipants.some(p => p.id === id))) return send(400, { error: 'Unknown recipient' });
+        if (input.to.length) {
+          const members = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`);
+          if (input.to.some(id => !members.joined?.[id])) return send(400, { error: 'Invite the selected Bot into this conversation first' });
+        }
+        if (typeof input.transactionId !== 'string' || !/^[a-zA-Z0-9_.:-]{1,200}$/.test(input.transactionId)) return send(400, { error: 'A stable transaction ID is required' });
+        return send(200, await client.send(roomId, input.body, input));
+      }
+    }
+    if (url.pathname.startsWith('/internal/')) {
+      authorizeNode(request);
+      const input = await readJsonBody(request);
+      if (request.method === 'POST' && url.pathname === '/internal/model/claim') return send(200, budget.claim(input));
+      if (request.method === 'POST' && url.pathname === '/internal/model/complete') return send(200, budget.complete(input));
+      if (request.method === 'POST' && url.pathname === '/internal/nodes/heartbeat') {
+        const participant = publicParticipants.find(p => p.id === input.botId && p.kind === 'bot');
+        if (!participant || typeof input.id !== 'string' || !input.id) return send(400, { error: 'Unknown Bot node' });
+        const current = nodes.get(input.botId);
+        if (current && current.status !== 'offline' && current.runtimeId !== input.runtimeId && Date.now() - current.heartbeatAt < 20000) return send(409, { error: 'Node already has an active runtime' });
+        const node = { id: input.id, botId: input.botId, name: participant.name, runtimeId: input.runtimeId,
+          status: input.status, processed: input.processed ?? 0, pending: input.pending ?? 0,
+          sessionId: input.sessionId ?? null, lastError: input.lastError ?? null,
+          engine: input.engine || 'DS-Bot 0.2.7', heartbeatAt: Date.now() };
+        nodes.set(input.botId, node);
+        return send(200, { accepted: true });
+      }
+      return send(404, { error: 'Unknown internal endpoint' });
+    }
+    if (request.method === 'GET') {
+      const requested = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
+      const filename = path.resolve(webRoot, requested);
+      if (!filename.startsWith(path.resolve(webRoot) + path.sep)) return send(404, { error: 'Not found' });
+      try {
+        const body = await readFile(filename);
+        response.writeHead(200, { 'Content-Type': mime[path.extname(filename)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
+        response.end(body);
+        return;
+      } catch (error) { if (error.code !== 'ENOENT') throw error; }
+    }
+    send(404, { error: 'Not found' });
+  }
+  const server = http.createServer((request, response) => {
+    dispatch(request, response).catch(error => {
+      if (response.headersSent) { response.destroy(); return; }
+      response.writeHead(error.status || error.statusCode || 500, jsonHeaders);
+      response.end(JSON.stringify({ error: error.message, code: error.code || 'REQUEST_FAILED' }));
+    });
+  });
+  return { server, budget, push, close: async () => { if (push) await push.close(); await new Promise(resolve => server.close(resolve)); budget.close(); chat.close(); } };
+}
+
+if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
+  const core = await createCore();
+  const port = Number(process.env.DS_GROUP_PORT || 18100);
+  const host = process.env.DS_GROUP_HOST || '127.0.0.1';
+  core.server.listen(port, host, () => console.log(`DS-Group ready at http://${host}:${port}`));
+  for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, async () => { await core.close(); process.exit(0); });
+}

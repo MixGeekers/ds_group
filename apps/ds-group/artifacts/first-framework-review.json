@@ -1,0 +1,168 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-11-04T04:25:46.694Z",
+  "reviewer": "independent-ds-group-review",
+  "status": "passed-with-declared-scope",
+  "evidence": {
+    "path": "artifacts/first-flow-2026-11-04T04-23-11-705Z.json",
+    "sha256": "a311a2a8e31b55dd2f7ce952414bf935daff9af702f88fcd05c29aba9bbc14b8",
+    "runId": "first-flow-2026-11-04T04-23-11-705Z",
+    "checksPassed": 8,
+    "checksTotal": 8
+  },
+  "methods": [
+    "Current-source hashes matched to the frozen real-run artifact",
+    "Initial and final loaded runtime hashes matched for both DSH nodes",
+    "Read-only node SQLite outbox links checked against exact live Matrix event reads",
+    "Native bridge input evidence checked without invoking a model",
+    "Independent zero-model npm run check"
+  ],
+  "sourceChecks": [
+    {
+      "file": "src/core.mjs",
+      "sha256": "8daeeeadbdb0567b28fdb9233237fda431d188464e7838855d17cdbc69036418",
+      "matched": true
+    },
+    {
+      "file": "src/bot-node.mjs",
+      "sha256": "46137d4febd527c74a29f11ca434898c517f9ab2733f295ae501deaf85c05a97",
+      "matched": true
+    },
+    {
+      "file": "src/node-store.mjs",
+      "sha256": "58dea3e6d7e696c38b4386b0468553d2b55932950c269db8c8605d15b3c9e48f",
+      "matched": true
+    },
+    {
+      "file": "src/matrix-client.mjs",
+      "sha256": "32f140f5e812f3f7001f151f4ac7d7f4555d1e9dfbe16856b183bc05fe1b9a7f",
+      "matched": true
+    },
+    {
+      "file": "dsh-plugin/runtime.mjs",
+      "sha256": "15da254701f2b69f7adf30aa34777e2782decc72963471b0de723564d9fa10fb",
+      "matched": true
+    },
+    {
+      "file": "scripts/verify.mjs",
+      "sha256": "004aa5855082e9ef7305a51fa48ee37dd3763f688d6acd5b134f0a1ce142e243",
+      "matched": true
+    }
+  ],
+  "runtime": {
+    "sha256": "15da254701f2b69f7adf30aa34777e2782decc72963471b0de723564d9fa10fb",
+    "initialAndFinalNodesMatch": true
+  },
+  "chainChecks": [
+    {
+      "name": "human to HR to finance and back to the human",
+      "links": [
+        {
+          "botId": "@hr:ds-group.local",
+          "sourceEventId": "$gcnMHpuzIrAS8s348wIF9s4lr8hnswkeKeQ-IUsxjGc",
+          "sentEventId": "$vO4hTYs3vFpQ_NNXweE9-7WECsflDtL3Z56gjr14e4g",
+          "transactionId": "ds-group-33fa9996110e82d03634f3ba44bebb87fe29439c-delegate",
+          "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+          "status": "sent",
+          "matrixContentMatched": true
+        },
+        {
+          "botId": "@finance:ds-group.local",
+          "sourceEventId": "$vO4hTYs3vFpQ_NNXweE9-7WECsflDtL3Z56gjr14e4g",
+          "sentEventId": "$tYswc-qKHFkE_3e01HZ7b3fCRM9pRq1CZ2kbN25ARwk",
+          "transactionId": "ds-group-55ef2bf8dd8b6be164fced2668f527eb547caeac-reply",
+          "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+          "status": "sent",
+          "matrixContentMatched": true
+        },
+        {
+          "botId": "@hr:ds-group.local",
+          "sourceEventId": "$tYswc-qKHFkE_3e01HZ7b3fCRM9pRq1CZ2kbN25ARwk",
+          "sentEventId": "$t8AWxxvNGAMtk67mC0SQOhvmB8VJDO-XgzlrHXycvyI",
+          "transactionId": "ds-group-84092d543678630debbb71435d2633720f2c0c79-reply",
+          "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+          "status": "sent",
+          "matrixContentMatched": true
+        }
+      ]
+    },
+    {
+      "name": "private task delegation returns from the shared room to the original private chat",
+      "links": [
+        {
+          "botId": "@hr:ds-group.local",
+          "sourceEventId": "$hbgsN-aQUGtygAKWdsXJ68AwPX1kunleUXpiPk1UnYY",
+          "sentEventId": "$qiDK8xXNSNjwB5N8-U7cTRcJo7UclSzmLOfqlrQLdFk",
+          "transactionId": "ds-group-689cc94823a15a107b83913f318943088e0a6817-delegate",
+          "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+          "status": "sent",
+          "matrixContentMatched": true
+        },
+        {
+          "botId": "@finance:ds-group.local",
+          "sourceEventId": "$qiDK8xXNSNjwB5N8-U7cTRcJo7UclSzmLOfqlrQLdFk",
+          "sentEventId": "$OZuLWPB2IBLZlGknhm5fPCMQLL-csnuwcJOBte5IPg0",
+          "transactionId": "ds-group-b481f68445b65f7e1513ac732a9fe450a134f6d4-reply",
+          "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+          "status": "sent",
+          "matrixContentMatched": true
+        },
+        {
+          "botId": "@hr:ds-group.local",
+          "sourceEventId": "$OZuLWPB2IBLZlGknhm5fPCMQLL-csnuwcJOBte5IPg0",
+          "sentEventId": "$q9ncN-UwkJyXj_XJ8nRBv8g6GyU_YJBdtmZWRcGt0RI",
+          "transactionId": "ds-group-3d81651e03226bf238e43fbf2b4057572f1e92f0-reply",
+          "roomId": "!AN3vy84lR9efgf9vRMvKLbLWpku9gwJ9I-Hfaucoh5E",
+          "status": "sent",
+          "matrixContentMatched": true
+        }
+      ]
+    }
+  ],
+  "contextRecall": {
+    "sameNativeSession": true,
+    "markerAbsentFromNewInput": true,
+    "markerEventNotReinjected": true,
+    "inputSha256Matched": true,
+    "actualMatrixAnswerMatched": true
+  },
+  "concurrency": {
+    "separateBotProviderStreamsOverlap": true,
+    "sameBotTurnsSerial": true
+  },
+  "reconnect": {
+    "offlineMessageHasOneSentOutboxResult": true,
+    "transactionDeduplicationVerifiedByRun": true
+  },
+  "tests": {
+    "command": "npm run check",
+    "exitCode": 0,
+    "passed": 26,
+    "failed": 0,
+    "modelCalls": 0
+  },
+  "resolvedFindings": [
+    "UTF-8 JSON parsing preserves Chinese characters across TCP chunks",
+    "Bot runtime takeover replaces the identity record and permits an offline predecessor",
+    "Private-chat delegation reaches the shared collaboration room and returns to its originating room",
+    "Permanent Matrix send rejection terminates that operation while other conversations continue",
+    "DSH request preparation errors become durable terminal results and concurrent duplicate requests share one in-flight promise",
+    "Dependency bootstrap and process shutdown are reproducible through the launcher",
+    "Final evidence binds delegation to durable outbox events, measures provider stream overlap, and checks the actual fresh recall input",
+    "Bot instructions accurately describe delegation visibility and keep internal routing IDs out of business text"
+  ],
+  "remainingScope": [
+    "One physical Mac with separate node processes and isolated DSH homes; two physical machines have not been tested",
+    "Automatic long-term memory review and general local tool execution remain disabled in this slice",
+    "In-flight model transport or process interruption can retain an unknown request and has no automatic reconciliation path",
+    "Remote split-brain takeover and network-partition fencing are outside this bounded verification"
+  ],
+  "reviewerActivity": {
+    "modelCalls": 0,
+    "serviceRestarts": 0,
+    "productCodeEdits": 0,
+    "artifactWrites": [
+      "artifacts/first-framework-review.json"
+    ]
+  }
+}

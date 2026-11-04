@@ -1,0 +1,103 @@
+{
+  "schemaVersion": 1,
+  "kind": "ds-group-real-ds-bot-smoke",
+  "status": "passed",
+  "evidenceLevel": "real-isolated-dsh-and-provider",
+  "recordedAt": "2026-11-04T04:17:36.893050+00:00",
+  "upstream": {
+    "name": "ds-bot",
+    "version": "0.2.7",
+    "commit": "71d344bf193f3f18185f25de3d8e5c483046910a",
+    "source": "https://registry.npmjs.org/ds-bot/-/ds-bot-0.2.7.tgz",
+    "license": "Apache-2.0",
+    "sourceModified": false
+  },
+  "host": {
+    "version": "0.2.1-rc.5",
+    "runtime": "installed-macOS-DSH-isolated-home",
+    "nodeId": "finance",
+    "separateFromExistingHost": true,
+    "physicalMachines": 1
+  },
+  "model": {
+    "provider": "opencode-go",
+    "model": "deepseek-v4.1-flash",
+    "reasoningEffort": "low",
+    "maxOutputTokens": 4096,
+    "providerMaxRetries": 0
+  },
+  "input": {
+    "requestId": "ds-group-real-smoke-1793765612116",
+    "botId": "@finance:ds-group.local",
+    "event": {
+      "eventId": "ds-group-real-smoke-1793765612116",
+      "roomId": "pilot-smoke",
+      "senderId": "@owner:ds-group.local",
+      "senderName": "测试者",
+      "body": "请计算三名员工每人120元入职材料费的合计金额。只回答JSON，text中包含计算结果。",
+      "to": "@finance:ds-group.local"
+    },
+    "history": []
+  },
+  "result": {
+    "requestId": "ds-group-real-smoke-1793765612116",
+    "botId": "@finance:ds-group.local",
+    "inputHash": "0eb9d10ea194e31ec03b84fadcb54674f9e4c8bbdadc81f589a4d245c9a720dd",
+    "eventId": "ds-group-real-smoke-1793765612116",
+    "status": "completed",
+    "acceptedAt": "2026-11-04T04:13:32.129Z",
+    "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+    "startedAt": "2026-11-04T04:13:32.130Z",
+    "text": "{\"text\":\"三名员工每人120元入职材料费，合计为 120 × 3 = 360 元。\"}",
+    "usage": {
+      "inputTokens": 8394,
+      "outputTokens": 45,
+      "totalTokens": 8439
+    },
+    "claimId": "7a3bc6cc-ae56-46b2-a5c5-64de9f988b54",
+    "finishedAt": "2026-11-04T04:13:34.883Z",
+    "duplicate": false
+  },
+  "oracle": {
+    "expectedAmount": 360,
+    "actualText": "三名员工每人120元入职材料费，合计为 120 × 3 = 360 元。",
+    "containsExpectedAmount": true,
+    "jsonResponse": true,
+    "nativeSessionPresent": true,
+    "centralClaimRecorded": true,
+    "statusCompleted": true
+  },
+  "initialization": {
+    "unexpectedGenerationCalls": 0,
+    "memoryReviewEnabled": false,
+    "modelTools": [],
+    "automaticGreetingSuppressed": true
+  },
+  "preModelAdaptations": [
+    {
+      "issue": "Vendored SDK imports outside app.asar failed",
+      "resolution": "Bootstrap resolver uses the same installed DSH SDK modules"
+    },
+    {
+      "issue": "DS-Bot scope-local tools were rejected by the global restrict API",
+      "resolution": "The bounded turn uses empty assembled tool schemas and an execution guard"
+    },
+    {
+      "issue": "Isolated home lacked the referenced provider credential and returned an empty model catalog",
+      "resolution": "Copy only the selected opencode-go credential reference into the private isolated home"
+    }
+  ],
+  "sourceHashesAtReport": {
+    "dsh-plugin/index.mjs": "e39f9475a4653bae70b74012c711120108fb4ca6bd3a292548b1c0be31a649d9",
+    "dsh-plugin/runtime.mjs": "d252a64f7750ae5c25166118320c43cba2e0e9d88fa8fcda9a2057ab79079b34",
+    "scripts/dsh-node.mjs": "ca57242630e4e5baca05346bf8dc13004605b4307ac558e60573b81c22c0ecba",
+    "vendor/ds-bot/index.js": "d993aae9d99f2bdb7330a4f821636837c8491ad4b442f8b2f15c1c425dce1c8e",
+    "vendor/ds-bot/src/host/memory.js": "5e89412362f055a9351238b3d3a7c37df5d85cfd260c75a7a113d830ed2a271c",
+    "vendor/ds-bot/src/host/parts.js": "dcab6dfea20d9f691ddaf31a5b2b9f5acdcfd37e74ce9107d7e1704d76ffe8fc"
+  },
+  "limitations": [
+    "The smoke ran before subsequent request-lifecycle and launcher-stop fixes. sourceHashesAtReport describe the later source tree, not an exact source freeze of this first run. Final fixed-source end-to-end verification is recorded separately.",
+    "This probe verifies one real DS-Bot native Session reply through the central model ledger. It does not by itself verify Matrix delivery, cross-node delegation, automatic long-term-memory extraction or long-context compaction.",
+    "Two isolated DSH processes run on one physical Mac. Cross-physical-machine deployment remains unverified."
+  ]
+}

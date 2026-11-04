@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "evidenceLevel": "real-local-http-push-configuration",
+  "checks": {
+    "publicKeyAvailable": true,
+    "privateKeyAbsent": true,
+    "accountScopedDeviceList": true,
+    "emptyTestRejected": true
+  },
+  "registeredDevices": 0,
+  "pushMessagesSent": 0,
+  "modelCalls": 0,
+  "limitations": [
+    "Does not verify subscription at a browser push service",
+    "Does not verify notification display on a physical phone"
+  ]
+}

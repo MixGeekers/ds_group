@@ -1,0 +1,180 @@
+{
+  "status": "passed",
+  "evidenceLevel": "real-local-core-and-matrix-ui",
+  "scope": {
+    "realModelCalls": 0,
+    "botTriggers": 0,
+    "humanMessages": 3,
+    "browserContexts": 2
+  },
+  "checks": [
+    "Alice and Bob separate logins",
+    "group human message synced",
+    "real private room opened",
+    "direct human message synced",
+    "private message absent from group",
+    "desktop no horizontal overflow",
+    "mobile no horizontal overflow",
+    "mobile members panel opens and closes",
+    "network failure preserves pending payload",
+    "pending survives page reload",
+    "retry uses same Matrix transaction ID",
+    "retry yields one visible message",
+    "contact count excludes current identity",
+    "desktop resize clears mobile panel backdrop"
+  ],
+  "observations": {
+    "groupMessages": 20,
+    "pageErrors": [],
+    "retryAttempts": 2,
+    "sameTransaction": true
+  },
+  "screenshots": [
+    "ui-desktop.png",
+    "ui-mobile.png"
+  ],
+  "limitations": [
+    "Does not verify a new Bot generation",
+    "Browser runs on the same local machine"
+  ],
+  "failureInjection": "One browser-intercepted outgoing human POST aborted before server delivery; retry used the real local core and Matrix",
+  "pwa": {
+    "status": "passed",
+    "evidenceLevel": "real-local-core-matrix-and-browser",
+    "checks": [
+      "Alice owns two Bots and Bob owns none",
+      "home lists the current human owned Bots",
+      "create room uses stable requestId",
+      "lost create receipt survives reload",
+      "same create request returns one Matrix room",
+      "human can invite own Bot into real room",
+      "response targets include only joined room members",
+      "service worker controls real page",
+      "offline cache contains only app shell",
+      "real manifest is standalone with app icons",
+      "Chrome parses manifest without errors",
+      "offline shell reloads",
+      "offline pending payload survives reload",
+      "reconnected retry preserves Matrix transaction",
+      "service worker message opens correct room",
+      "notification deep link opens correct room",
+      "mobile channel and member drawers work",
+      "desktop and mobile have no horizontal overflow",
+      "Chrome installability reports no errors in regular profile",
+      "normal room navigation replaces stale notification URL",
+      "server discovery reports reachable local endpoint without switching",
+      "server discovery rejects non-HTTP protocols"
+    ],
+    "observations": {
+      "pageErrors": [],
+      "cachePaths": [
+        "/",
+        "/manifest.webmanifest",
+        "/icons/icon-192.png",
+        "/icons/icon-512.png",
+        "/icons/apple-touch-icon.png",
+        "/index.html",
+        "/styles.css",
+        "/app.js",
+        "/pwa.js",
+        "/icons/icon.svg"
+      ],
+      "installabilityErrors": [],
+      "createdRoomId": "!srElRNyc9Z7I2UXdxlttZis_a8GWJ9I-39NVTBP13XY",
+      "createRequestRetries": 2,
+      "sameCreateRequestId": true,
+      "installabilityContext": "Temporary regular Chromium profile; no OS installation performed"
+    },
+    "scope": {
+      "humanMessages": 1,
+      "realModelCalls": 0,
+      "realSystemPermissionPrompts": 0,
+      "realPushSubscriptions": 0
+    },
+    "limitations": [
+      "Physical phone installation and push delivery are not exercised",
+      "Notification navigation uses a service-worker message fixture and a real deep link"
+    ]
+  },
+  "pushClient": {
+    "status": "passed",
+    "evidenceLevel": "browser-api-and-push-endpoint-fixtures",
+    "checks": [
+      "no automatic notification permission request",
+      "no automatic Push subscription",
+      "explicit click requests permission once",
+      "subscribe uses userVisibleOnly and real server VAPID public key",
+      "subscription POST follows browser subscription",
+      "test button submits once",
+      "identity switch deletes previous identity subscription",
+      "new identity can subscribe",
+      "disable deletes server subscription and unsubscribes browser",
+      "denied permission visibly disables enable",
+      "unsupported browser state is explicit"
+    ],
+    "observations": {
+      "requests": [
+        {
+          "method": "POST",
+          "path": "subscriptions"
+        },
+        {
+          "method": "POST",
+          "path": "test"
+        },
+        {
+          "method": "DELETE",
+          "path": "subscriptions"
+        },
+        {
+          "method": "POST",
+          "path": "subscriptions"
+        },
+        {
+          "method": "DELETE",
+          "path": "subscriptions"
+        }
+      ],
+      "pageErrors": [],
+      "permissionCalls": 1,
+      "subscribeCalls": 2,
+      "unsubscribeCalls": 2
+    },
+    "scope": {
+      "realSystemPermissionPrompts": 0,
+      "realPushSubscriptions": 0,
+      "realPushDeliveries": 0,
+      "realModelCalls": 0
+    },
+    "limitations": [
+      "PushManager, permission response and subscription/test endpoints were fixtures",
+      "Actual phone push delivery remains unverified"
+    ]
+  },
+  "partialJoinUi": {
+    "status": "passed",
+    "evidenceLevel": "partial-room-response-fixture",
+    "checks": [
+      "partial creation opens the returned room",
+      "pending participants are shown without creating another room",
+      "successful partial receipt clears pending creation request"
+    ],
+    "realRoomsCreated": 0
+  },
+  "serviceWorkerUnit": {
+    "status": "passed",
+    "evidenceLevel": "in-memory-worker-fixtures",
+    "checks": 20,
+    "realNotifications": 0,
+    "realSubscriptions": 0
+  },
+  "sourceHashes": {
+    "web/index.html": "d5b451a134e368b7a982d4b22a2aa1855f707e538417351c8306edd12b84596d",
+    "web/styles.css": "384a906cb7664e9ad89e51e09565bc79f8b9e1aab7c29a80a710128f203fd844",
+    "web/app.js": "624b11921ef91bc8495190c043fee059382ee92fda74c3269b77f07fd3540a2b",
+    "web/pwa.js": "802e37dcf9fa540cca3721b818670da95334725cbe524b982142b4e3b81dd52e",
+    "web/sw.js": "0e85e6bc634a78c211c9ee373a609454ece863dbbc5c92702c99f3f83cae160b",
+    "web/manifest.webmanifest": "efe2060182c1188e83988411ca8f55ec19f87eb7f63852973f1d901fd441b7c2"
+  },
+  "screenshotScope": "Real local core and Matrix, no browser API fixture active in final screenshots"
+}

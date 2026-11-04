@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-04T04:33:04.942Z",
+  "scope": "real-Matrix-ownership-group-invite-and-one-real-Bot-reply",
+  "checks": [
+    {
+      "name": "one human owns two independent Bots",
+      "passed": true,
+      "ownerId": "@alice:ds-group.local",
+      "botIds": [
+        "@finance:ds-group.local",
+        "@hr:ds-group.local"
+      ]
+    },
+    {
+      "name": "owner invites own Bot into a new group idempotently",
+      "passed": true,
+      "roomId": "!3qo1DuzcnDM9_srUSRKCQw8LbNOZSnv-aAvEJpLRACY",
+      "memberIds": [
+        "@alice:ds-group.local",
+        "@bob:ds-group.local",
+        "@finance:ds-group.local"
+      ],
+      "otherOwnerInviteStatus": 403
+    },
+    {
+      "name": "invited Bot participates with its own identity and replies in the new room",
+      "passed": true,
+      "roomId": "!3qo1DuzcnDM9_srUSRKCQw8LbNOZSnv-aAvEJpLRACY",
+      "humanEventId": "$2H-aWisXtAryZFC38w0FnwCUHKjgDs0WVamJlxxbF8A",
+      "botEventId": "$4RY7kkiI_OjlP-qG8mr-kMfrsWJlRd0CyGid8ZFrUNY",
+      "replyText": "两份材料，每份 15 元：15 × 2 = 30，合计 30 元。计算过程就是 15 + 15 = 30。谢谢欢迎，入职相关的费用核算随时找我。"
+    }
+  ],
+  "status": "passed",
+  "finishedAt": "2026-11-04T04:33:07.247Z"
+}

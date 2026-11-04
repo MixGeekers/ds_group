@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "status": "first-framework-verified",
+  "checkedAt": "2026-11-04T04:43:41.742Z",
+  "product": "DS-Group",
+  "implementationRoot": "apps/ds-group",
+  "topology": {
+    "physicalMachines": 1,
+    "matrixHomeservers": 1,
+    "dshBotHosts": 2,
+    "botAdapterProcesses": 2
+  },
+  "validation": {
+    "moduleTests": {
+      "passed": 44,
+      "failed": 0,
+      "command": "npm run check",
+      "logSha256": "df4cc1eeb2d796fbfe9c685ccfa801065ff3e1a1ac509de322021af8ae091b83",
+      "log": "module-check.txt"
+    },
+    "realLogic": {
+      "passed": 8,
+      "failed": 0,
+      "modelCalls": 13,
+      "evidence": "first-flow-2026-11-04T04-36-47-787Z.json"
+    },
+    "ownership": {
+      "passed": 3,
+      "evidence": "membership-flow.json"
+    },
+    "pwa": {
+      "realBrowserChecks": 22,
+      "installabilityErrors": [],
+      "evidence": "ui-verification.json"
+    },
+    "push": {
+      "serverModuleTests": 11,
+      "browserFixtureChecks": 11,
+      "realDeviceSubscriptions": 0,
+      "physicalPhoneDeliveryVerified": false
+    },
+    "lifecycle": {
+      "checks": {
+        "noExtraModelCalls": true,
+        "sameBotAndSessionIds": true,
+        "allNodesIdle": true,
+        "sameVapidIdentity": true,
+        "coreCodeMatches": true
+      },
+      "evidence": "service-lifecycle-final.json"
+    }
+  },
+  "model": {
+    "id": "opencode-go/deepseek-v4.1-flash",
+    "totalRecordedCalls": 51,
+    "statusCounts": {
+      "completed": 51
+    }
+  },
+  "pending": [
+    "physical cross-machine deployment",
+    "cross-independent-server account and Bot registration",
+    "physical phone PWA installation and notification delivery over trusted HTTPS",
+    "automatic long-term memory and general local tools",
+    "in-flight unknown request reconciliation"
+  ],
+  "sourceHashes": {
+    "src/core.mjs": "53651b8b17e8475f58c42f2b136d8c934bb0456d63f72de3bf1e77ae8cc7023f",
+    "src/bot-node.mjs": "46137d4febd527c74a29f11ca434898c517f9ab2733f295ae501deaf85c05a97",
+    "src/node-store.mjs": "58dea3e6d7e696c38b4386b0468553d2b55932950c269db8c8605d15b3c9e48f",
+    "src/matrix-client.mjs": "8d51b2ea425a2bf272a13878eaf3e98ba076f18502160146d23d8e9cb44a0770",
+    "src/push.mjs": "821ea58d11e14605698677d9826c3b9239c2376c6689bd9e0a43902ec0152e10",
+    "dsh-plugin/runtime.mjs": "15da254701f2b69f7adf30aa34777e2782decc72963471b0de723564d9fa10fb",
+    "web/app.js": "624b11921ef91bc8495190c043fee059382ee92fda74c3269b77f07fd3540a2b",
+    "web/pwa.js": "802e37dcf9fa540cca3721b818670da95334725cbe524b982142b4e3b81dd52e",
+    "web/sw.js": "0e85e6bc634a78c211c9ee373a609454ece863dbbc5c92702c99f3f83cae160b",
+    "web/manifest.webmanifest": "efe2060182c1188e83988411ca8f55ec19f87eb7f63852973f1d901fd441b7c2",
+    "scripts/verify.mjs": "004aa5855082e9ef7305a51fa48ee37dd3763f688d6acd5b134f0a1ce142e243",
+    "scripts/service.mjs": "520374be2842a2983767d593764705049301278dada616b52bf3d961097472ba"
+  },
+  "vendorValidation": {
+    "sourceUnmodified": true,
+    "whitespaceNote": "The unchanged upstream client.js bundle contains one trailing-whitespace line; authored source passes diff --check."
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "repository": "https://github.com/Fei2411/DS-Bot",
+  "commit": "71d344bf193f3f18185f25de3d8e5c483046910a",
+  "version": "0.2.7",
+  "source": "https://registry.npmjs.org/ds-bot/-/ds-bot-0.2.7.tgz",
+  "integrity": "sha512-d9t8XaD+CNwzGlTYWd6VWxBgNdLhdMbT1ag+H99ZJ19hdyShjntwhdRz+pBF8OMY4j/kSdyg0oAIF2sHNfIhoA==",
+  "license": "Apache-2.0",
+  "modifications": []
+}

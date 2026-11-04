@@ -1,0 +1,25 @@
+{
+  "name": "ds-group",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Human and independent Bot collaboration over Matrix and DS-Bot",
+  "engines": {
+    "node": ">=24.19.0 <25"
+  },
+  "scripts": {
+    "up": "node scripts/service.mjs up",
+    "down": "node scripts/service.mjs down",
+    "status": "node scripts/service.mjs status",
+    "matrix": "node scripts/matrix.mjs",
+    "start": "node src/core.mjs",
+    "node": "node src/bot-node.mjs",
+    "dsh": "node scripts/dsh-node.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "verify": "node scripts/verify.mjs"
+  },
+  "dependencies": {
+    "web-push": "3.6.7"
+  }
+}

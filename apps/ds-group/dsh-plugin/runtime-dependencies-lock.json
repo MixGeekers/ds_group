@@ -1,0 +1,40 @@
+{
+  "name": "dsh-deps",
+  "lockfileVersion": 3,
+  "requires": true,
+  "packages": {
+    "": {
+      "dependencies": {
+        "deep-view": "0.1.0",
+        "yaml": "2.9.1"
+      }
+    },
+    "node_modules/deep-view": {
+      "version": "0.1.0",
+      "resolved": "https://registry.npmjs.org/deep-view/-/deep-view-0.1.0.tgz",
+      "integrity": "sha512-INK3vzw/p68GjfIjy06Dgk429VpNRREkzHXTK6BhwrPCeh/3gj7uArBKion7nzBfRQhnoTV6v22Nl0CbVX89Gw==",
+      "license": "Apache-2.0",
+      "peerDependencies": {
+        "@deepseek-ai/cordis": "*",
+        "@deepseek-ai/dsh-llm": "*",
+        "@deepseek-ai/dsh-tools": "*",
+        "@deepseek-ai/dsh-web": "*"
+      }
+    },
+    "node_modules/yaml": {
+      "version": "2.9.1",
+      "resolved": "https://registry.npmjs.org/yaml/-/yaml-2.9.1.tgz",
+      "integrity": "sha512-3NxN8+78OdzbT7C/WjGsyfPAtJaN3FNDsWxv7Y7mcDsT/oOmgW8BpyQQFFBnvZE3j9Y2Sdz1ULFLezL7Eb2yFw==",
+      "license": "ISC",
+      "bin": {
+        "yaml": "bin.mjs"
+      },
+      "engines": {
+        "node": ">= 14.6"
+      },
+      "funding": {
+        "url": "https://github.com/sponsors/eemeli"
+      }
+    }
+  }
+}

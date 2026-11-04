@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "scope": "same-Mac-full-stack-stop-start-with-pwa-and-push-zero-generation",
+  "before": {
+    "calls": 51,
+    "core": {
+      "startedAt": "2026-11-04T04:36:46.732Z",
+      "storage": "Matrix Synapse",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+      "evidenceScope": "local-multiprocess",
+      "loadedCoreSha256": "53651b8b17e8475f58c42f2b136d8c934bb0456d63f72de3bf1e77ae8cc7023f"
+    },
+    "nodes": [
+      {
+        "nodeId": "finance",
+        "bots": [
+          {
+            "botId": "@finance:ds-group.local",
+            "name": "财务小雨",
+            "role": "财务",
+            "nodeId": "finance",
+            "dsBotId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+            "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+            "model": "opencode-go/deepseek-v4.1-flash"
+          }
+        ],
+        "hash": "15da254701f2b69f7adf30aa34777e2782decc72963471b0de723564d9fa10fb"
+      },
+      {
+        "nodeId": "hr",
+        "bots": [
+          {
+            "botId": "@hr:ds-group.local",
+            "name": "人事小晴",
+            "role": "人事",
+            "nodeId": "hr",
+            "dsBotId": "session-5b587762-482c-4314-abab-6625dcd19900",
+            "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+            "model": "opencode-go/deepseek-v4.1-flash"
+          }
+        ],
+        "hash": "15da254701f2b69f7adf30aa34777e2782decc72963471b0de723564d9fa10fb"
+      }
+    ],
+    "pushPublicKeyHash": "5916999e4fd3921a103706eff3c068f30ec987c56859fd30e670c9a2649bf603"
+  },
+  "after": {
+    "calls": 51,
+    "core": {
+      "startedAt": "2026-11-04T04:42:55.077Z",
+      "storage": "Matrix Synapse",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+      "evidenceScope": "local-multiprocess",
+      "loadedCoreSha256": "53651b8b17e8475f58c42f2b136d8c934bb0456d63f72de3bf1e77ae8cc7023f"
+    },
+    "nodes": [
+      {
+        "nodeId": "finance",
+        "bots": [
+          {
+            "botId": "@finance:ds-group.local",
+            "name": "财务小雨",
+            "role": "财务",
+            "nodeId": "finance",
+            "dsBotId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+            "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+            "model": "opencode-go/deepseek-v4.1-flash"
+          }
+        ],
+        "hash": "15da254701f2b69f7adf30aa34777e2782decc72963471b0de723564d9fa10fb"
+      },
+      {
+        "nodeId": "hr",
+        "bots": [
+          {
+            "botId": "@hr:ds-group.local",
+            "name": "人事小晴",
+            "role": "人事",
+            "nodeId": "hr",
+            "dsBotId": "session-5b587762-482c-4314-abab-6625dcd19900",
+            "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+            "model": "opencode-go/deepseek-v4.1-flash"
+          }
+        ],
+        "hash": "15da254701f2b69f7adf30aa34777e2782decc72963471b0de723564d9fa10fb"
+      }
+    ],
+    "pushPublicKeyHash": "5916999e4fd3921a103706eff3c068f30ec987c56859fd30e670c9a2649bf603"
+  },
+  "checks": {
+    "noExtraModelCalls": true,
+    "sameBotAndSessionIds": true,
+    "allNodesIdle": true,
+    "sameVapidIdentity": true,
+    "coreCodeMatches": true
+  },
+  "checkedAt": "2026-11-04T04:43:41.740Z"
+}

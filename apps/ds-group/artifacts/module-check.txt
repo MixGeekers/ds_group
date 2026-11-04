@@ -1,0 +1,56 @@
+
+> ds-group@0.1.0 check
+> node scripts/check.mjs
+
+✔ records all model attempts and enforces the selected provider (2.5615ms)
+✔ a configured finite limit includes failed and incomplete attempts (0.263291ms)
+✔ output bounds are checked before reserving a call (0.171708ms)
+✔ synthetic ownership lists two Bots for Alice and none for Bob (29.84775ms)
+✔ synthetic owner creates a group with her Bot and another human using their distinct Matrix accounts (24.083ms)
+✔ synthetic owner invites her Bot into an existing group and repeated invitation stays successful (13.938375ms)
+✔ synthetic group request identity survives fixture restart, avoids duplicate creation and rejects conflicting input (24.648583ms)
+✔ synthetic partial member join retains the created room and retries that room after fixture restart (14.023125ms)
+✔ synthetic non-owner cannot create a group with or invite somebody else’s Bot (4.950875ms)
+✔ synthetic room listing uses actual Matrix membership for the initial room and newly joined groups (6.524292ms)
+✔ HTTP JSON keeps Chinese characters split across TCP chunks intact (0.66125ms)
+✔ core publishes identities, keeps secrets local, and records a unique Bot runtime (43.015375ms)
+✔ send preserves identity-independent routing, task reference and Matrix reply relation (18.257834ms)
+✔ timeline returns events in chronological order and sync keeps its cursor (7.155375ms)
+✔ login uses an explicit user identity and returns the native Matrix receipt (3.731916ms)
+✔ Matrix errors retain their status and errcode without returning success (1.667709ms)
+✔ synthetic response protocol accepts text/JSON and validates explicit delegation (2.226125ms)
+✔ synthetic delegation produces stable transactions and result routing returns once to the requesting Bot (0.929ms)
+✔ synthetic private-chat delegation goes through the shared room and returns to the original private message (0.272708ms)
+✔ synthetic adapter persists generation once and retries only pending Matrix sends with identical transaction (2.665042ms)
+✔ synthetic transport failure ends the inbox as unknown without a second model call (0.47175ms)
+✔ synthetic permanent send rejection ends that operation and allows the next conversation to proceed (0.565666ms)
+✔ synthetic sync continues during a blocked generation and keeps the same Bot queue ordered (0.483ms)
+✔ synthetic Bot processing is serial per identity while two independent nodes overlap (3.107041ms)
+✔ synthetic sync fills limited history and includes direct-message rooms before advancing cursor (1.293834ms)
+✔ synthetic history pagination failure preserves the old cursor and does not partially ingest (0.851208ms)
+✔ synthetic bridge reports unreadable and server-error receipts as uncertain (11.943875ms)
+✔ local process ownership prevents concurrent writers for the same Bot (3.60825ms)
+✔ synthetic inbox preserves identities, room history and a durable cursor, deduplicating Matrix replay (2.744125ms)
+✔ synthetic non-targeted messages and self echoes are history without model inbox entries (1.166583ms)
+✔ synthetic generation and outbox are durable before delivery and receipts finish only after all sends (1.801416ms)
+✔ synthetic restart preserves generated sends and marks interrupted generation unknown without retry (10.487166ms)
+✔ synthetic cursor failure rolls back the complete sync batch (0.385792ms)
+✔ Web Push VAPID keys persist with private file modes and only the public key is returned (10.060083ms)
+✔ the installed Web Push library encrypts a synthetic payload and signs its VAPID request (6.093333ms)
+✔ synthetic push delivers to multiple devices, skips the author and deduplicates repeated events (5.794917ms)
+✔ subscription changes follow the signed-in human and old pending deliveries are removed (3.887375ms)
+✔ new subscriptions do not receive historical notifications and private titles use the sender (3.489ms)
+✔ expired push endpoints are removed and transient errors have a finite retry schedule (4.263375ms)
+✔ restarting preserves sent-event dedup and marks interrupted sends unknown (6.291208ms)
+✔ per-human Matrix sync includes private rooms and replays do not resend (4.839666ms)
+✔ limited Matrix history is backfilled before advancing a notification cursor (5.002459ms)
+✔ test notification requires a current device and reports push-service acceptance only (3.598834ms)
+✔ closing the listener aborts Matrix polling (2.778666ms)
+ℹ tests 44
+ℹ suites 0
+ℹ pass 44
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 190.705

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "scope": "same-Mac-full-stack-stop-start-zero-generation",
+  "before": {
+    "calls": 24,
+    "nodes": [
+      {
+        "nodeId": "finance",
+        "bots": [
+          {
+            "botId": "@finance:ds-group.local",
+            "name": "财务小雨",
+            "role": "财务",
+            "nodeId": "finance",
+            "dsBotId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+            "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+            "model": "opencode-go/deepseek-v4.1-flash"
+          }
+        ],
+        "hash": "fdcb6114624dc187fadfd40c4a23b3ced3cd559e8c06845340a62917e4b9e13c"
+      },
+      {
+        "nodeId": "hr",
+        "bots": [
+          {
+            "botId": "@hr:ds-group.local",
+            "name": "人事小晴",
+            "role": "人事",
+            "nodeId": "hr",
+            "dsBotId": "session-5b587762-482c-4314-abab-6625dcd19900",
+            "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+            "model": "opencode-go/deepseek-v4.1-flash"
+          }
+        ],
+        "hash": "fdcb6114624dc187fadfd40c4a23b3ced3cd559e8c06845340a62917e4b9e13c"
+      }
+    ]
+  },
+  "after": {
+    "calls": 24,
+    "nodes": [
+      {
+        "nodeId": "finance",
+        "bots": [
+          {
+            "botId": "@finance:ds-group.local",
+            "name": "财务小雨",
+            "role": "财务",
+            "nodeId": "finance",
+            "dsBotId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+            "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+            "model": "opencode-go/deepseek-v4.1-flash"
+          }
+        ],
+        "hash": "fdcb6114624dc187fadfd40c4a23b3ced3cd559e8c06845340a62917e4b9e13c"
+      },
+      {
+        "nodeId": "hr",
+        "bots": [
+          {
+            "botId": "@hr:ds-group.local",
+            "name": "人事小晴",
+            "role": "人事",
+            "nodeId": "hr",
+            "dsBotId": "session-5b587762-482c-4314-abab-6625dcd19900",
+            "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+            "model": "opencode-go/deepseek-v4.1-flash"
+          }
+        ],
+        "hash": "fdcb6114624dc187fadfd40c4a23b3ced3cd559e8c06845340a62917e4b9e13c"
+      }
+    ]
+  },
+  "checks": {
+    "noExtraModelCalls": true,
+    "sameBotAndSessionIds": true,
+    "allNodesIdle": true,
+    "matrixAndCoreRestarted": true
+  },
+  "checkedAt": "2026-11-04T04:22:33.413Z"
+}

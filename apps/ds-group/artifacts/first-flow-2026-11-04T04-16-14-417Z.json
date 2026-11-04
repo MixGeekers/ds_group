@@ -1,0 +1,444 @@
+{
+  "schemaVersion": 1,
+  "runId": "first-flow-2026-11-04T04-16-14-417Z",
+  "startedAt": "2026-11-04T04:16:14.418Z",
+  "evidenceLevel": "real-matrix-and-ds-bot-model-local-multiprocess",
+  "physicalHosts": 1,
+  "botHosts": [
+    "finance",
+    "hr"
+  ],
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "checks": [
+    {
+      "name": "two human identities in a shared room",
+      "status": "passed",
+      "details": {
+        "aliceEventId": "$nCqq3-pWXHnvS0NTs_cLolMAy5Tjp7WGaYnZQtXhH5M",
+        "bobEventId": "$E9S-ZmKgf_qdKnsyFT0u10WCe1YQdRYv-daRSLiO-VI",
+        "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+      },
+      "checkedAt": "2026-11-04T04:16:14.498Z"
+    },
+    {
+      "name": "human to HR to finance and back to the human",
+      "status": "passed",
+      "details": {
+        "sourceEventId": "$wsNcDmNmcokovatS9MWi1jkNUy9xBoZ15Hz4vgxSOpY",
+        "taskId": "first-flow-2026-11-04T04-16-14-417Z-onboarding",
+        "delegatedEventId": "$_VyVRDCPwXyjwgYOCtkjAfEq1xKDs3JQsbbj9yLUwXY",
+        "resultEventId": "$cy178xZ01wm8vqqcG_9EizEA9KX85XkNBWBE8zE9jGE",
+        "finalEventId": "$SwbnK6CkNoHBGxr81axvtKskSM6eObNnz5kwBLSGtsc",
+        "resultText": "【onboarding 任务】三位新同事入职培训费核算：每人 320 元 × 3 人 = 960 元，合计总额为 960 元。计算过程：320 + 320 + 320 = 960（等同 320×3）。结果请转汇总给 Alice。任务归属和房间信息已按来源保留（任务 onboarding，房间 !SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg，来源消息 matrix-08100780695417c8dbaee8f2cf06d44671560ef471efd905531100c9325820ff）。",
+        "finalText": "Alice，培训费核算结果已经出来了。小雨的财务核算是：每人 320 元 × 3 位新同事 = 960 元，合计 960 元（即 320 + 320 + 320 = 960）。任务 onboarding 已完成，核算过程与总额均来自财务小雨。"
+      },
+      "checkedAt": "2026-11-04T04:16:23.806Z"
+    },
+    {
+      "name": "private conversation uses the same independent HR identity",
+      "status": "passed",
+      "details": {
+        "roomId": "!AN3vy84lR9efgf9vRMvKLbLWpku9gwJ9I-Hfaucoh5E",
+        "eventId": "$7vJohV2dKVs82jxJAoBMu6RWfI8cKxytGTbUG00T250",
+        "answer": "已记住",
+        "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+        "marker": "星舟-21ccee46"
+      },
+      "checkedAt": "2026-11-04T04:16:26.039Z"
+    },
+    {
+      "name": "HR process and DSH restart preserve native Session and context",
+      "status": "passed",
+      "details": {
+        "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+        "queryEventId": "$Bs8SxPTbaP08wJOM6gWztsOYVcZSPEku5zxmlXh73nQ",
+        "responseEventId": "$rBjjnOxWKjAgza4fvsPLbZUrK9S2rlXpWHKzh3K4zF0",
+        "recalledText": "星舟-21ccee46",
+        "recallPromptContainsMarker": false
+      },
+      "checkedAt": "2026-11-04T04:16:40.376Z"
+    },
+    {
+      "name": "both Bot identities can generate concurrently",
+      "status": "passed",
+      "details": {
+        "sourceEventId": "$T-CthnWO7eNF0fmyD2_s8wC10BPivRA0viriu3IHzOU",
+        "financeEventId": "$zRfgUPoXhc8aP96q1Y6FS2-1iPCourqrNR1L_cy1cak",
+        "hrEventId": "$IHduRnY-0iudl6vVvClsPzvWu0_CxzSUsSxMxEN5OvE",
+        "finance": {
+          "startedAt": "2026-11-04T04:16:40.450Z",
+          "finishedAt": "2026-11-04T04:16:41.870Z"
+        },
+        "hr": {
+          "startedAt": "2026-11-04T04:16:40.481Z",
+          "finishedAt": "2026-11-04T04:16:42.769Z"
+        }
+      },
+      "checkedAt": "2026-11-04T04:16:43.013Z"
+    },
+    {
+      "name": "one Bot serializes messages from two humans",
+      "status": "passed",
+      "details": {
+        "firstEventId": "$9uGh20K3TeVt1rpIFmlv06mQdtfnRn1YZt5u_lDxPwg",
+        "secondEventId": "$CItpj4EhVQzO1koaGlxxeZ4ryvyIz4zMXHmDgDCYG7w",
+        "firstFinished": "2026-11-04T04:16:50.677Z",
+        "secondStarted": "2026-11-04T04:16:50.704Z"
+      },
+      "checkedAt": "2026-11-04T04:16:52.288Z"
+    },
+    {
+      "name": "offline Bot catches up once after reconnect",
+      "status": "passed",
+      "details": {
+        "sourceEventId": "$BgpfDu7BYXGtVCAetIPwBR1kaze2uRG8d13mhWMAsfg",
+        "responseEventId": "$7Rp4ZloNZc8dRGJXTQz51PsSSLt6udF4FfHdMpzK-Mw",
+        "replyCount": 1,
+        "duplicateSendPreservedEventId": true
+      },
+      "checkedAt": "2026-11-04T04:17:05.858Z"
+    }
+  ],
+  "eventIds": [
+    {
+      "eventId": "$nCqq3-pWXHnvS0NTs_cLolMAy5Tjp7WGaYnZQtXhH5M",
+      "senderId": "@alice:ds-group.local",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+    },
+    {
+      "eventId": "$E9S-ZmKgf_qdKnsyFT0u10WCe1YQdRYv-daRSLiO-VI",
+      "senderId": "@bob:ds-group.local",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+    },
+    {
+      "eventId": "$wsNcDmNmcokovatS9MWi1jkNUy9xBoZ15Hz4vgxSOpY",
+      "senderId": "@alice:ds-group.local",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+    },
+    {
+      "eventId": "$7vJohV2dKVs82jxJAoBMu6RWfI8cKxytGTbUG00T250",
+      "senderId": "@alice:ds-group.local",
+      "roomId": "!AN3vy84lR9efgf9vRMvKLbLWpku9gwJ9I-Hfaucoh5E"
+    },
+    {
+      "eventId": "$Bs8SxPTbaP08wJOM6gWztsOYVcZSPEku5zxmlXh73nQ",
+      "senderId": "@alice:ds-group.local",
+      "roomId": "!AN3vy84lR9efgf9vRMvKLbLWpku9gwJ9I-Hfaucoh5E"
+    },
+    {
+      "eventId": "$T-CthnWO7eNF0fmyD2_s8wC10BPivRA0viriu3IHzOU",
+      "senderId": "@bob:ds-group.local",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+    },
+    {
+      "eventId": "$9uGh20K3TeVt1rpIFmlv06mQdtfnRn1YZt5u_lDxPwg",
+      "senderId": "@alice:ds-group.local",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+    },
+    {
+      "eventId": "$CItpj4EhVQzO1koaGlxxeZ4ryvyIz4zMXHmDgDCYG7w",
+      "senderId": "@bob:ds-group.local",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+    },
+    {
+      "eventId": "$BgpfDu7BYXGtVCAetIPwBR1kaze2uRG8d13mhWMAsfg",
+      "senderId": "@bob:ds-group.local",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+    },
+    {
+      "eventId": "$yZjR0nMKn1R6ipS-ofBWGhSd5rtHxNJz6ihmdvnHR0w",
+      "senderId": "@alice:ds-group.local",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg"
+    }
+  ],
+  "failures": [],
+  "status": "passed",
+  "initialGenerationCalls": 1,
+  "finishedAt": "2026-11-04T04:17:05.863Z",
+  "finalState": {
+    "nodes": [
+      {
+        "id": "finance",
+        "botId": "@finance:ds-group.local",
+        "name": "小雨 · 财务",
+        "runtimeId": "fca47991-cd8c-452d-b711-18525cf0bacb",
+        "status": "idle",
+        "processed": 4,
+        "pending": 0,
+        "sessionId": "session-95eb63e9-6fa1-4c9e-b722-cf75905c1d90",
+        "lastError": null,
+        "engine": "DS-Bot 0.2.7",
+        "heartbeatAt": 1793765822264
+      },
+      {
+        "id": "hr",
+        "botId": "@hr:ds-group.local",
+        "name": "小晴 · 人事",
+        "runtimeId": "4fd86eee-5e2d-496d-98ad-e68020786dec",
+        "status": "idle",
+        "processed": 5,
+        "pending": 0,
+        "sessionId": "session-5b587762-482c-4314-abab-6625dcd19900",
+        "lastError": null,
+        "engine": "DS-Bot 0.2.7",
+        "heartbeatAt": 1793765822246
+      }
+    ],
+    "budget": {
+      "limit": null,
+      "used": 11,
+      "remaining": null,
+      "maxTokens": 8192,
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "claims": [
+        {
+          "claimId": "7a3bc6cc-ae56-46b2-a5c5-64de9f988b54",
+          "nodeId": "finance",
+          "requestId": "ds-group-real-smoke-1793765612116",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:13:32.167Z",
+          "completedAt": "2026-11-04T04:13:34.868Z",
+          "result": {
+            "usage": {
+              "inputTokens": 8394,
+              "outputTokens": 45,
+              "totalTokens": 8439
+            },
+            "textBytes": 84,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "2f440356-1a32-47cb-8d9d-45846398dbe8",
+          "nodeId": "hr",
+          "requestId": "matrix-08100780695417c8dbaee8f2cf06d44671560ef471efd905531100c9325820ff",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:14.635Z",
+          "completedAt": "2026-11-04T04:16:17.670Z",
+          "result": {
+            "usage": {
+              "inputTokens": 9435,
+              "outputTokens": 306,
+              "totalTokens": 9741
+            },
+            "textBytes": 652,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "e22997d1-25a4-4dd3-8b47-5020f6f4f7a8",
+          "nodeId": "finance",
+          "requestId": "matrix-f7d4d5a571ff9aebaef3a23c5c2190297bdcb171b279ab1a24cfa8d8b13f4809",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:17.848Z",
+          "completedAt": "2026-11-04T04:16:20.727Z",
+          "result": {
+            "usage": {
+              "inputTokens": 14194,
+              "outputTokens": 260,
+              "totalTokens": 14454
+            },
+            "textBytes": 435,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "d995f47f-5ad2-4278-be8f-abfe71112fff",
+          "nodeId": "hr",
+          "requestId": "matrix-2ac16b84a77dd092ec945dbb744ea3e2cb58d08a7f49c7756bfa92d56db94a87",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:20.919Z",
+          "completedAt": "2026-11-04T04:16:23.624Z",
+          "result": {
+            "usage": {
+              "inputTokens": 1384,
+              "outputTokens": 263,
+              "totalTokens": 10863,
+              "cacheReadTokens": 9216
+            },
+            "textBytes": 253,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "4132c60a-9c44-47a2-bd44-08b9a1344199",
+          "nodeId": "hr",
+          "requestId": "matrix-06fef4baf8980665458a210fb85ed2274c3ec8b5504b9eaec339d1148af7357c",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:24.114Z",
+          "completedAt": "2026-11-04T04:16:25.688Z",
+          "result": {
+            "usage": {
+              "inputTokens": 720,
+              "outputTokens": 99,
+              "totalTokens": 11187,
+              "cacheReadTokens": 10368
+            },
+            "textBytes": 20,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "cd356cba-716b-42ad-a931-4061a3380984",
+          "nodeId": "hr",
+          "requestId": "matrix-02c55d11f0181bae5701ce24e19c5ad49e433b7e734beb475dfdd1f37fcdc85d",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:37.926Z",
+          "completedAt": "2026-11-04T04:16:39.930Z",
+          "result": {
+            "usage": {
+              "inputTokens": 876,
+              "outputTokens": 135,
+              "totalTokens": 11891,
+              "cacheReadTokens": 10880
+            },
+            "textBytes": 26,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "008623f3-c7a5-4048-91e9-01a12930ca63",
+          "nodeId": "finance",
+          "requestId": "matrix-3f154964b73b29af6d916c86129f48b3e5d1cb0e2524b288d865c09b166d0026",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:40.469Z",
+          "completedAt": "2026-11-04T04:16:41.864Z",
+          "result": {
+            "usage": {
+              "inputTokens": 1124,
+              "outputTokens": 49,
+              "totalTokens": 15125,
+              "cacheReadTokens": 13952
+            },
+            "textBytes": 146,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "82a4d01b-7698-4f83-b8a9-e1250430d2e5",
+          "nodeId": "hr",
+          "requestId": "matrix-c9f59b3415ed08c4f6f38862f6ce01cf1c0a87909e37fc744d0d5578951665e2",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:40.499Z",
+          "completedAt": "2026-11-04T04:16:42.759Z",
+          "result": {
+            "usage": {
+              "inputTokens": 778,
+              "outputTokens": 52,
+              "totalTokens": 12350,
+              "cacheReadTokens": 11520
+            },
+            "textBytes": 143,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "3ee74f70-5aca-40bc-94db-1ffeb9e6ba28",
+          "nodeId": "finance",
+          "requestId": "matrix-a7075567243a62d3b471a57b109215152ccc4ff47f7819e17585a965c53b39a8",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:47.633Z",
+          "completedAt": "2026-11-04T04:16:50.665Z",
+          "result": {
+            "usage": {
+              "inputTokens": 814,
+              "outputTokens": 9,
+              "totalTokens": 15671,
+              "cacheReadTokens": 14848
+            },
+            "textBytes": 20,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "3649a569-f9d1-4bf5-836c-c0076803858b",
+          "nodeId": "finance",
+          "requestId": "matrix-456e3d7b1596ae690342ae98c0f2417b96de7868c4692ba9f4694b63133faef9",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:16:50.727Z",
+          "completedAt": "2026-11-04T04:16:51.869Z",
+          "result": {
+            "usage": {
+              "inputTokens": 576,
+              "outputTokens": 9,
+              "totalTokens": 16073,
+              "cacheReadTokens": 15488
+            },
+            "textBytes": 20,
+            "errorCode": null
+          }
+        },
+        {
+          "claimId": "8a588366-201f-4b44-a901-8957f99a0d95",
+          "nodeId": "finance",
+          "requestId": "matrix-9625827cc6c660a26a0b4541893385b8d74a754293868232ba57b217707f1885",
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "maxTokens": 4096,
+          "kind": "generation",
+          "status": "completed",
+          "claimedAt": "2026-11-04T04:17:02.391Z",
+          "completedAt": "2026-11-04T04:17:03.841Z",
+          "result": {
+            "usage": {
+              "inputTokens": 718,
+              "outputTokens": 10,
+              "totalTokens": 16600,
+              "cacheReadTokens": 15872
+            },
+            "textBytes": 29,
+            "errorCode": null
+          }
+        }
+      ]
+    },
+    "core": {
+      "startedAt": "2026-11-04T04:13:23.509Z",
+      "storage": "Matrix Synapse",
+      "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+      "evidenceScope": "local-multiprocess"
+    }
+  },
+  "sourceHashes": {
+    "src/core.mjs": "8daeeeadbdb0567b28fdb9233237fda431d188464e7838855d17cdbc69036418",
+    "src/bot-node.mjs": "46137d4febd527c74a29f11ca434898c517f9ab2733f295ae501deaf85c05a97",
+    "src/node-store.mjs": "58dea3e6d7e696c38b4386b0468553d2b55932950c269db8c8605d15b3c9e48f",
+    "src/matrix-client.mjs": "32f140f5e812f3f7001f151f4ac7d7f4555d1e9dfbe16856b183bc05fe1b9a7f",
+    "dsh-plugin/runtime.mjs": "0be1392d8e42debb98f450d0f29830d62194ba36133634acc724e9fe4df58cba"
+  },
+  "limits": [
+    "One physical Mac with separate processes and DSH homes",
+    "Automatic long-term memory review and general local tools are disabled in this first slice",
+    "Native Session history recall is measured separately from long-term memory",
+    "In-flight uncertain model requests remain unknown and are not automatically replayed"
+  ]
+}

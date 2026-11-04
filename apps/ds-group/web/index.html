@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#1d1f26">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="DS-Group">
+    <title>DS-Group</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="module" src="/app.js">
+    </script>
+  </head>
+  <body>
+    <svg class="icon-library" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-gear" viewBox="0 0 24 24">
+        <path d="m9 3-1 3-3 1-2 4 2 2v3l3 2 1 3h5l1-3 3-2v-3l2-2-2-4-3-1-1-3Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+        <circle cx="11.5" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      </symbol>
+      <symbol id="icon-members" viewBox="0 0 24 24">
+        <circle cx="9" cy="8" r="3" fill="currentColor"/>
+        <path d="M3 20v-2a6 6 0 0 1 12 0v2ZM17 5a3 3 0 0 1 0 6m1 3a5 5 0 0 1 3 4v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="icon-menu" viewBox="0 0 24 24">
+        <path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </symbol>
+    </svg>
+    <div class="app-shell">
+      <nav class="server-rail" aria-label="服务器">
+        <button id="home-button" class="server-icon server-home" type="button" aria-label="主页" title="主页">DS</button>
+        <div class="rail-divider">
+        </div>
+        <button id="server-button" class="server-icon active" type="button" aria-label="当前服务器" aria-current="page" title="DS-Group">DG</button>
+        <button id="server-settings-button" class="server-icon server-add" type="button" aria-label="服务器连接" title="服务器连接">+</button>
+      </nav>
+      <aside id="channel-panel" class="sidebar" aria-label="频道和私聊">
+        <header class="brand">
+          <span>DS-Group</span>
+          <button id="close-channels" class="icon-button mobile-close" type="button" aria-label="关闭频道">×</button>
+        </header>
+        <div class="section-heading">
+          <span>文字频道</span>
+          <button id="create-room-button" class="section-action" type="button" aria-label="创建群聊" title="创建群聊">+</button>
+        </div>
+        <nav id="channel-list" aria-label="会话列表">
+          <button id="group-room-button" class="room-item selected" type="button" aria-current="page">
+            <span class="room-symbol" aria-hidden="true">#</span>
+            <strong id="sidebar-room-name">初次协作</strong>
+          </button>
+          <div id="additional-rooms">
+          </div>
+        </nav>
+        <div class="section-heading members-heading">
+          <span>我的 Bot</span>
+          <span id="owned-bot-count">—</span>
+        </div>
+        <div id="owned-bots" class="member-list owned-bots">
+        </div>
+        <div class="section-heading members-heading">
+          <span>私聊</span>
+          <span id="member-count">—</span>
+        </div>
+        <div id="sidebar-members" class="member-list" aria-label="私聊联系人">
+        </div>
+        <div class="identity-bar">
+          <button id="identity-button" class="identity-button" type="button">
+            <span id="current-avatar" class="avatar avatar-human" aria-hidden="true">?</span>
+            <span>
+              <strong id="current-name">登录</strong>
+              <small id="current-id">选择账号</small>
+            </span>
+          </button>
+          <button id="settings-button" class="icon-button" type="button" aria-label="设置" title="设置">
+            <svg>
+              <use href="#icon-gear">
+              </use>
+            </svg>
+          </button>
+        </div>
+      </aside>
+      <main class="conversation">
+        <header class="conversation-header">
+          <div class="room-heading">
+            <button id="channels-button" class="icon-button mobile-channels" type="button" aria-label="打开频道和私聊" aria-expanded="false">
+              <svg>
+                <use href="#icon-menu">
+                </use>
+              </svg>
+            </button>
+            <span id="heading-symbol" class="heading-hash" aria-hidden="true">#</span>
+            <div>
+              <h1 id="room-title">初次协作</h1>
+              <p id="room-subtitle">
+              </p>
+            </div>
+          </div>
+          <div class="header-actions">
+            <span class="connection-label">
+              <span id="connection-dot" class="status-dot">
+              </span>
+              <span id="connection-text">连接中</span>
+            </span>
+            <button id="invite-bot-button" class="icon-button" type="button" aria-label="邀请我的 Bot" title="邀请我的 Bot">+</button>
+            <button id="mobile-settings" class="icon-button mobile-identity" type="button" aria-label="设置">
+              <svg>
+                <use href="#icon-gear">
+                </use>
+              </svg>
+            </button>
+            <button id="details-button" class="icon-button" type="button" aria-label="显示成员" aria-expanded="false">
+              <svg>
+                <use href="#icon-members">
+                </use>
+              </svg>
+            </button>
+          </div>
+        </header>
+        <div id="page-error" class="notice notice-error" role="alert" hidden>
+          <span id="page-error-text">
+          </span>
+          <button id="retry-connection" type="button">重新连接</button>
+        </div>
+        <section id="home-panel" class="home-panel" hidden>
+          <h2>我的 Bot</h2>
+          <div id="home-bots" class="home-bots">
+          </div>
+          <h2>私聊</h2>
+          <div id="home-contacts" class="home-contacts">
+          </div>
+        </section>
+        <div id="timeline" class="timeline" role="log" aria-label="聊天记录" aria-live="polite" aria-relevant="additions text">
+          <div id="empty-state" class="empty-state">
+            <h2>暂无消息</h2>
+            <p id="empty-description">正在读取记录</p>
+          </div>
+          <div id="message-list">
+          </div>
+        </div>
+        <form id="composer-form" class="composer-area">
+          <div id="reply-preview" class="reply-preview" hidden>
+            <div>
+              <span>回复</span>
+              <strong id="reply-preview-name">
+              </strong>
+              <p id="reply-preview-body">
+              </p>
+            </div>
+            <button id="clear-reply" class="icon-button" type="button" aria-label="取消引用">×</button>
+          </div>
+          <div class="composer-box">
+            <div class="recipient-row">
+              <span class="recipient-label">@</span>
+              <div id="recipient-options" class="recipient-options">
+              </div>
+              <span id="recipient-hint" class="recipient-hint">
+              </span>
+            </div>
+            <label class="sr-only" for="message-input">消息内容</label>
+            <textarea id="message-input" rows="2" maxlength="16000" placeholder="登录后发送消息" disabled>
+            </textarea>
+            <div class="composer-footer">
+              <span id="composer-help">Enter 发送 · Shift + Enter 换行</span>
+              <button id="send-button" class="primary-button send-button" type="submit" disabled>
+                <span id="send-button-text">发送</span>
+                <span aria-hidden="true">↗</span>
+              </button>
+            </div>
+          </div>
+          <div id="send-error" class="send-error" role="alert" hidden>
+          </div>
+        </form>
+      </main>
+      <aside id="details-panel" class="details-panel" aria-label="成员">
+        <header class="details-heading">
+          <h2>成员</h2>
+          <button id="close-details" class="icon-button mobile-close" type="button" aria-label="关闭成员">×</button>
+        </header>
+        <div id="room-members" class="room-members">
+        </div>
+      </aside>
+    </div>
+    <div id="panel-backdrop" class="panel-backdrop" hidden>
+    </div>
+    <dialog id="login-dialog" class="login-dialog" aria-labelledby="login-title">
+      <form id="login-form">
+        <div class="dialog-heading">
+          <h2 id="login-title">登录</h2>
+          <button id="close-login" class="icon-button" type="button" aria-label="关闭登录" hidden>×</button>
+        </div>
+        <label for="login-user">账号</label>
+        <select id="login-user" required>
+          <option value="">读取账号中</option>
+        </select>
+        <details id="password-options">
+          <summary>使用密码</summary>
+          <label for="login-password">密码</label>
+          <input id="login-password" type="password" autocomplete="current-password">
+        </details>
+        <div id="login-error" class="login-error" role="alert" hidden>
+        </div>
+        <button id="login-submit" class="primary-button login-submit" type="submit" disabled>登录</button>
+      </form>
+    </dialog>
+    <dialog id="settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <header class="dialog-heading">
+        <h2 id="settings-title">设置</h2>
+        <button id="close-settings" class="icon-button" type="button" aria-label="关闭设置">×</button>
+      </header>
+      <nav class="settings-tabs" aria-label="设置类别">
+        <button type="button" data-settings-tab="account" aria-selected="true">账号</button>
+        <button type="button" data-settings-tab="notifications">通知</button>
+        <button type="button" data-settings-tab="app">应用</button>
+        <button type="button" data-settings-tab="server">服务器</button>
+        <button type="button" data-settings-tab="runtime">节点</button>
+      </nav>
+      <section data-settings-panel="account">
+        <h3>当前账号</h3>
+        <p id="settings-account">
+        </p>
+        <button id="switch-account" class="secondary-button" type="button">切换账号</button>
+      </section>
+      <section data-settings-panel="notifications" hidden>
+        <h3>设备通知</h3>
+        <p id="push-status" role="status">读取通知状态中</p>
+        <label for="push-device-label">设备名称</label>
+        <input id="push-device-label" maxlength="80" autocomplete="off">
+        <div class="settings-actions">
+          <button id="enable-push" class="primary-button" type="button" disabled>开启通知</button>
+          <button id="disable-push" class="secondary-button" type="button" hidden>关闭通知</button>
+          <button id="test-push" class="secondary-button" type="button" disabled>测试通知</button>
+        </div>
+        <p id="push-feedback" class="settings-feedback" role="status">
+        </p>
+        <details class="settings-help">
+          <summary>手机通知设置</summary>
+          <p>手机请通过 HTTPS 地址打开。iPhone 或 iPad 使用 Safari 的“分享 → 添加到主屏幕”，从主屏幕打开 DS-Group，再开启通知。</p>
+        </details>
+      </section>
+      <section data-settings-panel="app" hidden>
+        <h3>安装应用</h3>
+        <p id="install-status" role="status">
+        </p>
+        <button id="install-app" class="primary-button" type="button">安装 DS-Group</button>
+        <p id="install-help" class="settings-feedback">
+        </p>
+        <h3>连接状态</h3>
+        <p id="offline-status">正在检查</p>
+        <button id="refresh-app" class="secondary-button" type="button">重新载入</button>
+      </section>
+      <section data-settings-panel="server" hidden>
+        <h3>服务器地址</h3>
+        <form id="server-form">
+          <label class="sr-only" for="server-url">服务器地址</label>
+          <input id="server-url" type="url" placeholder="https://chat.example.com" required>
+          <div class="settings-actions">
+            <button id="check-server" class="secondary-button" type="submit">检查地址</button>
+          </div>
+        </form>
+        <p id="server-feedback" class="settings-feedback" role="status">
+        </p>
+      </section>
+      <section data-settings-panel="runtime" hidden>
+        <div class="core-card">
+          <span id="core-icon" class="core-icon" aria-hidden="true">◎</span>
+          <div>
+            <strong id="core-title">聊天核心</strong>
+            <p id="core-description">等待服务器状态</p>
+          </div>
+          <span id="core-status-dot" class="status-dot">
+          </span>
+        </div>
+        <div class="section-heading">Bot 节点 <span id="node-count">—</span>
+        </div>
+        <div id="node-list" class="node-list">
+        </div>
+        <section class="budget-section">
+          <div class="section-heading">模型调用</div>
+          <div class="budget-values">
+            <strong id="budget-used">—</strong>
+            <span id="budget-limit">等待报告</span>
+          </div>
+          <div class="budget-track">
+            <div id="budget-fill">
+            </div>
+          </div>
+          <p id="budget-description" class="small muted">
+          </p>
+        </section>
+        <p id="last-sync" class="small muted">尚未同步</p>
+      </section>
+    </dialog>
+    <dialog id="room-dialog" class="room-dialog" aria-labelledby="room-dialog-title">
+      <form id="room-form">
+        <div class="dialog-heading">
+          <h2 id="room-dialog-title">创建群聊</h2>
+          <button id="close-room-dialog" class="icon-button" type="button" aria-label="关闭">×</button>
+        </div>
+        <div id="room-name-field">
+          <label for="new-room-name">群名称</label>
+          <input id="new-room-name" maxlength="80" autocomplete="off">
+        </div>
+        <label id="room-choice-label">邀请成员</label>
+        <div id="room-choices" class="room-choices">
+        </div>
+        <p id="room-form-error" class="settings-feedback" role="alert">
+        </p>
+        <button id="room-submit" class="primary-button login-submit" type="submit">创建</button>
+      </form>
+    </dialog>
+  </body>
+</html>

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-11-04T04:42:55.013Z",
+  "status": "passed",
+  "level": "real-local-matrix-http",
+  "image": "ghcr.io/element-hq/synapse@sha256:37090b4e5f26171922321a6acd1acf2675cb862f3b0cdf368f0dbbae6a70439a",
+  "versions": [
+    "r0.0.1",
+    "r0.1.0",
+    "r0.2.0",
+    "r0.3.0",
+    "r0.4.0",
+    "r0.5.0",
+    "r0.6.0",
+    "r0.6.1",
+    "v1.1",
+    "v1.2",
+    "v1.3",
+    "v1.4",
+    "v1.5",
+    "v1.6",
+    "v1.7",
+    "v1.8",
+    "v1.9",
+    "v1.10",
+    "v1.11",
+    "v1.12",
+    "v1.13",
+    "v1.14",
+    "v1.15",
+    "v1.16",
+    "v1.17"
+  ],
+  "homeserverUrl": "http://127.0.0.1:18008",
+  "roomId": "!SXVRbzB3Ny80CANo2Qi0F2_zmvdE_HCKxPhaFLOfcAg",
+  "participants": [
+    {
+      "id": "@alice:ds-group.local",
+      "name": "Alice",
+      "kind": "human"
+    },
+    {
+      "id": "@bob:ds-group.local",
+      "name": "Bob",
+      "kind": "human"
+    },
+    {
+      "id": "@finance:ds-group.local",
+      "name": "小雨 · 财务",
+      "kind": "bot"
+    },
+    {
+      "id": "@hr:ds-group.local",
+      "name": "小晴 · 人事",
+      "kind": "bot"
+    }
+  ],
+  "checks": {
+    "fourMembersJoined": true,
+    "humanSendersPreserved": true,
+    "replyReferencePreserved": true,
+    "transactionDeduplicated": true,
+    "publicRegistrationClosed": true,
+    "temporaryRegistrationClosed": true
+  },
+  "eventIds": [
+    "$4B-ecCB0_HxA9mD7GA0lR3BF5_LBAsYtTl1cgTtJM1Q",
+    "$R86eXsyPI243w1qPHiokFNw4AUbj6x3_E5jxJ3Nysys"
+  ],
+  "modelCalls": 0,
+  "physicalHosts": 1,
+  "limitation": "Verifies the Matrix core over HTTP. Bot reasoning and two-physical-machine operation require separate evidence."
+}
