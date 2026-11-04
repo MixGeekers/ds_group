@@ -70,7 +70,7 @@ export class MatrixClient {
   }
 
   send(roomId, body, { transactionId = randomUUID(), to = [], replyTo, taskId, returnTo, kind, hop, originSenderId, originRoomId, originEventId,
-    attachments = [], mentions, mMentions, replyMention, fileBatch } = {}) {
+    attachments = [], mentions, mMentions, replyMention, fileBatch, delivery, conversationKind } = {}) {
     if (typeof body !== 'string' || (!body.trim() && !attachments.length)) throw new Error('A message needs text or an attachment');
     if (!Array.isArray(attachments) || attachments.length > 10 || attachments.some(file => !file || typeof file.id !== 'string'
       || typeof file.name !== 'string' || typeof file.contentUri !== 'string' || !file.contentUri.startsWith('mxc://')
@@ -82,6 +82,7 @@ export class MatrixClient {
       if (value !== undefined && (typeof value !== 'string' || !value)) throw new Error('Message references must be non-empty strings');
     }
     if (hop !== undefined && (!Number.isSafeInteger(hop) || hop < 0)) throw new Error('Message hop must be a non-negative integer');
+    if (conversationKind !== undefined && !['direct', 'group'].includes(conversationKind)) throw new Error('Invalid conversation kind');
     if (fileBatch !== undefined && (!fileBatch || typeof fileBatch.id !== 'string' || !fileBatch.id
       || !Number.isSafeInteger(fileBatch.index) || !Number.isSafeInteger(fileBatch.total)
       || fileBatch.index < 1 || fileBatch.total < fileBatch.index || fileBatch.total > 100)) throw new Error('Invalid attachment batch');
@@ -96,6 +97,8 @@ export class MatrixClient {
         ...(mentions !== undefined ? { mentions } : {}),
         ...(replyMention !== undefined ? { replyMention } : {}),
         ...(fileBatch !== undefined ? { fileBatch: { id: fileBatch.id, index: fileBatch.index, total: fileBatch.total } } : {}),
+        ...(delivery !== undefined ? { delivery } : {}),
+        ...(conversationKind !== undefined ? { conversationKind } : {}),
         ...(replyTo ? { replyTo } : {}),
         ...(taskId ? { taskId } : {}),
         ...(returnTo ? { returnTo } : {}),

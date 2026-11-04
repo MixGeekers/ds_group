@@ -293,8 +293,15 @@ try {
     await refreshed;
     await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   }
+  await mkdir(path.join(packageRoot, '.local'), { recursive: true });
+  await page.locator('#toast').waitFor({ state: 'hidden' });
   for (const viewport of [{ width: 985, height: 822 }, { width: 390, height: 844 }]) {
     await page.setViewportSize(viewport);
+    await page.waitForFunction(() => document.querySelector('#details-panel').getBoundingClientRect().left >= innerWidth - 1);
+    await page.waitForFunction(() => {
+      const panel = document.querySelector('#channel-panel');
+      return getComputedStyle(panel).position !== 'fixed' || panel.getBoundingClientRect().right <= 1;
+    });
     await refreshTask(null);
     const idleTimeline = await page.locator('#timeline').boundingBox();
     await refreshTask(task);
@@ -313,6 +320,7 @@ try {
     const activeTimeline = await page.locator('#timeline').boundingBox();
     assert.equal(activeTimeline.height, idleTimeline.height);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    await page.screenshot({ path: path.join(packageRoot, '.local', `chat-activity-${viewport.width}.png`) });
   }
   await page.emulateMedia({ reducedMotion: 'reduce' });
   assert.deepEqual(await page.locator('.composer-activity > span').evaluateAll(elements =>

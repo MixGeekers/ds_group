@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-11-04T18:06:48.865Z",
+  "status": "passed",
+  "scope": "delivery routing and conversation UI",
+  "modules": 177,
+  "browserInteractions": 45,
+  "realScenarios": 9,
+  "sourceHashes": {
+    "scripts/verify-delivery.mjs": "51563650790241918110ea079bb7afb5b2fde1319de0ff000222f0de02c5778e",
+    "src/core.mjs": "2b6c186a4a66cbd822802e7a1ca15b10dc76cf2cb7584e891c20236c419bc1e5",
+    "src/bot-node.mjs": "2779451de17053f2b2d2ff71b3f51c4c0cbf8bd379f7904fda093cc16848397d",
+    "src/node-delivery.mjs": "cd40c9f8fd550b54a7cb293a35e28b5442129ad6c84cbf01ad8c14e98c233579",
+    "src/node-store.mjs": "ac07a37b8a69aaba19a64e44911a9b6c1002126cdbf0801a08d33a1dc27cda0a",
+    "src/tasks.mjs": "1a0ef8f8985afba139348b26ed46db1836ce3e0560c5d8392b2529cfce72cd05",
+    "src/matrix-client.mjs": "60dc194096a8f5c96d5d68ea38e331fb396fbba7f5b76afb73607c88f46e733f",
+    "src/delivery-policy.mjs": "e8eeaeead6b57b6a0f526225ab073cfdadc0cb7275e98f0ffd161b94f735b763",
+    "dsh-plugin/runtime.mjs": "6d36f3f2481f575591e4885d873ca91f1dc27d0bb8b6261600b31300545a095c",
+    "dsh-plugin/runtime-rules.mjs": "09954b212699c96d663bc4de66d1894db4ecf41e45bfc64eda8aac2e41a2eb32"
+  },
+  "realModel": "opencode-go/deepseek-v4.1-flash",
+  "totalModelCalls": 69,
+  "modelClaimStatuses": {
+    "completed": 69
+  },
+  "successfulRunModelCalls": 28,
+  "retainedFailure": "delivery-2026-11-04T17-40-01-602Z.json",
+  "successfulRun": "delivery-2026-11-04T18-01-30-103Z.json",
+  "physicalHosts": 1,
+  "ui": {
+    "icons": "Lucide 1.68.0",
+    "activity": "composer dots",
+    "taskHistory": "explicit modal",
+    "duplicatedArtifacts": false
+  },
+  "limits": {
+    "finalDirectRecipient": "original human requester",
+    "collaborationTranscriptSummary": "design proposal"
+  },
+  "intermediateSuccessfulRun": "delivery-2026-11-04T17-45-50-016Z.json",
+  "directConversationDefault": true
+}

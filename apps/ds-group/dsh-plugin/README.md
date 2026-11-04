@@ -35,6 +35,14 @@ node scripts/dsh-node.mjs stop finance
 
 成功回执包含 `status=completed`、`text`、`sessionId`、`usage`、逐次生成的 `claims`、工具回执及 `artifacts`。模型最终回答遵循 JSON `text/artifacts/delegate` 协议，成果由适配层核验、上传并发送到原会话，跨节点消息通过 Matrix 投递。
 
+## 交付目的地
+
+适配层持久保存任务的交付意图、原始人类发起者及原始 Bot。模型可以提出 `delivery`，形如 `{"kind":"direct","recipientId":"原始人类完整ID"}`，采用时由程序校验当前请求并解析真实私聊房间。已经明确指定的交付意图作为权威路线，Bot 间的回传遵循 `returnTo`。
+
+Core 根据私聊映射和实际成员计算 `conversationKind` 并随消息保存。已知人类私聊中的新任务默认采用私聊交付，显式本轮指令具有更高优先级。当前会话上下文也优先于历史跟进的默认路线，旧发送记录按原回执保存。
+
+在途控制、回复锚点与已有成品重发由 `src/node-delivery.mjs` 协调。最终发送前重新检查近期指令，解析房间后的版本比较与首次发送计划在本地事务中完成。首次发送发起后整批保持同一目的地与事务编号，恢复使用保存的计划。要求私聊交付时，Bot 间委派和回传采用双方私聊，最终成果由原 Bot 投递到原始人类私聊。
+
 ## 模型与工具行为
 
 唯一远端模型为 `opencode-go/deepseek-v4.1-flash`，effort 为 `low`，单次输出上限为 4096。所有实际 stream 先向核心 `/internal/model/claim` 记账，结束后向 `/internal/model/complete` 回报。核心不可达时不进入 provider。

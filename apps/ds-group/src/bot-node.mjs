@@ -8,6 +8,8 @@ import { localPath } from './paths.mjs';
 import { NodeStore } from './node-store.mjs';
 import { NodeFiles, eventAttachments } from './node-files.mjs';
 import { boundTaskRequest } from './node-request.mjs';
+import { NodeDelivery, createDeliveryClient } from './node-delivery.mjs';
+import { normalizeDelivery } from './delivery-policy.mjs';
 
 const metadataOf = event => event.content?.['org.ds_group'] || {};
 const digest = value => createHash('sha256').update(value).digest('hex');
@@ -22,7 +24,7 @@ const sleep = (ms, signal) => new Promise(resolve => {
   signal?.addEventListener('abort', finish, { once: true });
 });
 
-export function parseBotOutput(raw, botId, participants) {
+export function parseBotOutput(raw, botId, participants, { ignoreDelivery = false } = {}) {
   if (typeof raw !== 'string' || !raw.trim()) throw new Error('Bot returned an empty response');
   const text = raw.trim();
   const fenced = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
@@ -33,7 +35,8 @@ export function parseBotOutput(raw, botId, participants) {
     throw new Error('Structured Bot response requires non-empty text');
   }
   if (parsed.text.length > 16000) throw new Error('Bot response is too long');
-  if (parsed.delegate === undefined) return { text: parsed.text.trim() };
+  const output = { text: parsed.text.trim(), ...(ignoreDelivery || parsed.delivery === undefined ? {} : { delivery: normalizeDelivery(parsed.delivery, participants) }) };
+  if (parsed.delegate === undefined) return output;
   const delegate = parsed.delegate;
   if (!delegate || typeof delegate !== 'object' || Array.isArray(delegate)
     || Object.keys(delegate).some(key => !['to', 'body'].includes(key))
@@ -41,7 +44,7 @@ export function parseBotOutput(raw, botId, participants) {
     || delegate.to === botId || typeof delegate.body !== 'string' || !delegate.body.trim() || delegate.body.length > 16000) {
     throw new Error('Bot delegation must name one other registered Bot and a non-empty request');
   }
-  return { text: parsed.text.trim(), delegate: { to: delegate.to, body: delegate.body.trim() } };
+  return { ...output, delegate: { to: delegate.to, body: delegate.body.trim() } };
 }
 
 export function deliveriesFor(event, output, botId, participants, collaborationRoomId = event.room_id) {
@@ -59,7 +62,8 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
   const isFinalResult = requestedByBot && ['task.result', 'task.failure'].includes(meta.kind) && !output.delegate;
   const replyRoomId = isFinalResult ? originRoomId : event.room_id;
   const replyEventId = isFinalResult ? originEventId : event.event_id;
-  const common = { taskId, originSenderId, originRoomId, originEventId, hop: hop + 1 };
+  const common = { taskId, originSenderId, originRoomId, originEventId, hop: hop + 1,
+    ...(output.delivery || meta.delivery ? { delivery: output.delivery || meta.delivery } : {}) };
   const replyRecipient = isFinalResult ? originSenderId : event.sender;
   const sourceAttachments = uniqueAttachments([...eventAttachments(event), ...(output.sourceAttachments || [])]);
   const attachments = uniqueAttachments(output.attachments || []).filter(file => !output.delegate
@@ -67,6 +71,7 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
   const replyAttachments = attachments.length ? attachments : isFinalResult && !output.failure ? uniqueAttachments(output.resultAttachments || eventAttachments(event)) : [];
   const result = [{ roomId: replyRoomId, body: output.text, options: {
     ...common, replyTo: replyEventId, transactionId: `${prefix}-reply`, to: returnTo && !output.delegate ? [returnTo] : [],
+    deliveryRole: output.controlOnly ? 'control' : output.delegate ? 'ack' : returnTo ? 'peer' : 'final',
     kind: returnTo && !output.delegate ? output.failure ? 'task.failure' : 'task.result' : 'reply',
     ...(replyAttachments.length ? { attachments: replyAttachments } : {}),
     mentions: { users: [], roles: [], everyone: false, here: false, replyUserId: replyRecipient,
@@ -77,6 +82,7 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
     const delegatedFiles = uniqueAttachments([...sourceAttachments, ...attachments]);
     result.push({ roomId: collaborationRoomId, body: output.delegate.body, options: {
       ...common, transactionId: `${prefix}-delegate`, to: [output.delegate.to], returnTo: botId, kind: 'task.request',
+      deliveryRole: 'delegate',
       ...(event.room_id === collaborationRoomId ? { replyTo: event.event_id } : {}),
       ...(delegatedFiles.length ? { attachments: delegatedFiles } : {}),
       mentions: { users: [output.delegate.to], roles: [], everyone: false, here: false },
@@ -102,7 +108,7 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
 }
 
 export class BotNode {
-  constructor({ participant, participants, roomId, matrix, store, bridge, heartbeat, files, tasks, pollTimeout = 10000,
+  constructor({ participant, participants, roomId, matrix, store, bridge, heartbeat, files, tasks, delivery, pollTimeout = 10000,
     transferAttempts = 3, transferRetryDelayMs = 500, controlIntervalMs = 500, onError = console.error }) {
     this.participant = participant;
     this.participants = participants;
@@ -124,6 +130,9 @@ export class BotNode {
     this.state = 'idle';
     this.lastError = null;
     this.processing = null;
+    this.delivery = new NodeDelivery({ store, participant, participants, matrix, client: delivery, tasks,
+      updateTask: (item, value) => this.taskUpdate(item, value), flushTasks: () => this.flushTaskUpdates(),
+      ingest: events => this.store.ingest(events, undefined, event => this.delivery.register(event)) });
   }
 
   senderName(id) { return this.participants.find(p => p.id === id)?.name || id; }
@@ -143,7 +152,7 @@ export class BotNode {
     const peers = this.participants.filter(p => p.kind === 'bot' && p.id !== this.participant.id).map(p => `${p.name} (${p.id})`).join('、');
     return `你是 DS-Group 中独立的${this.participant.name}，身份 ${this.participant.id}。你的职责是${this.participant.localpart === 'finance' ? '财务核算、预算和金额核对' : '人事、入职安排和人员事项协调'}。保留自己的经历并区分每个人的身份。\n`
       + `消息源附有发送者、房间、原消息、任务和回复关系。按这些关系回答当前发送者。可协作的 Bot 为 ${peers}。\n`
-      + '每轮输出一个 JSON 对象，格式为 {"text":"你向群里说的话"}。确实需要其他 Bot 完成工作时，使用 {"text":"你的受理说明","delegate":{"to":"目标 Bot 的完整 ID","body":"具体工作要求及所需事实"}}。\n'
+      + '每轮输出一个 JSON 对象，格式为 {"text":"给请求者的回答"}。确实需要其他 Bot 完成工作时，使用 {"text":"你的受理说明","delegate":{"to":"目标 Bot 的完整 ID","body":"具体工作要求及所需事实"}}。\n'
       + '使用宿主提供的文件与终端工具完成工作。附件已下载到任务工作目录，先实际读取内容，再计算或编辑，检查成果后交付。文件修改工作要生成可下载的新文件。最终回复使用 JSON，生成的文件列入 artifacts 数组，每项包含 path 和 name。\n'
       + 'delegate 会真实投递到另一台节点，附带任务文件，由对方返回结果。收到 kind=task.result 后，结合结果向原请求者总结并交付文件。已经收到的结果不要再次委派同一任务。每轮最多一次委派，跨 Bot 协作使用 delegate 字段。';
   }
@@ -176,7 +185,7 @@ export class BotNode {
     for (const [roomId, room] of Object.entries(response.rooms?.join || {})) {
       events.push(...await this.collectRoomEvents(roomId, room));
     }
-    this.store.ingest(events, response.next_batch);
+    this.store.ingest(events, response.next_batch, event => this.delivery.register(event));
     if (this.tasks) {
       for (const event of events) {
         const item = this.store.item(event.event_id);
@@ -203,16 +212,20 @@ export class BotNode {
 
   requestFor(item) {
     const event = item.event;
+    this.delivery.register(event);
     const meta = metadataOf(event);
     const replyTo = meta.replyTo || event.content['m.relates_to']?.['m.in_reply_to']?.event_id;
     const replied = replyTo ? this.store.message(replyTo) : undefined;
     const workTransfer = ['task.request', 'task.result', 'task.failure'].includes(meta.kind);
     const referencedFiles = !workTransfer && replied?.room_id === event.room_id ? this.store.messageBatch(replied).flatMap(eventAttachments) : [];
     const ownFiles = workTransfer && meta.fileBatch ? this.store.messageBatch(event).flatMap(eventAttachments) : eventAttachments(event);
+    const followupFiles = ownFiles.length || replyTo ? [] : this.delivery.inputFiles(item);
     return { requestId: `matrix-${digest(`${this.participant.id}\0${event.event_id}`)}`, botId: this.participant.id,
       event: { eventId: event.event_id, roomId: event.room_id, senderId: event.sender, senderName: this.senderName(event.sender),
         senderKind: this.participants.find(person => person.id === event.sender)?.kind,
-        body: event.content.body, to: Array.isArray(meta.to) ? meta.to : [], attachments: uniqueAttachments([...ownFiles, ...referencedFiles]),
+        body: event.content.body, to: Array.isArray(meta.to) ? meta.to : [], attachments: uniqueAttachments([...ownFiles, ...referencedFiles, ...followupFiles]),
+        delivery: this.delivery.publicRoute(item),
+        ...(meta.conversationKind ? { conversationKind: meta.conversationKind } : {}),
         ...(meta.taskId ? { taskId: meta.taskId } : {}),
         ...(replyTo ? { replyTo } : {}),
         ...(meta.kind ? { kind: meta.kind } : {}), ...(meta.returnTo ? { returnTo: meta.returnTo } : {}),
@@ -235,21 +248,28 @@ export class BotNode {
     const payload = { requestId: request.requestId, botId: this.participant.id, roomId: item.event.room_id,
       eventId: item.event_id, taskId: meta.taskId || `task-${digest(item.event_id).slice(0, 24)}`,
       status: 'running', stage: 'thinking', summary: '', artifacts: [], toolCalls: 0,
-      ...previous, ...changes, updatedAt: new Date().toISOString() };
+      ...previous, ...changes, delivery: this.delivery.publicRoute(item), updatedAt: new Date().toISOString() };
     this.store.updateTask(item.event_id, payload);
   }
 
   async flushTaskUpdates() {
     if (!this.tasks) return;
-    for (const update of this.store.pendingTaskUpdates()) {
-      try {
-        await this.tasks.update(update.payload);
-        this.store.acknowledgeTask(update.eventId, update.payload);
-      } catch (error) {
-        this.onError(`Task status will be sent again: ${error.message}`);
-        return;
+    if (this.flushingTasks) return this.flushingTasks;
+    this.flushingTasks = (async () => {
+      while (this.store.pendingTaskUpdates().length) {
+        for (const update of this.store.pendingTaskUpdates()) {
+          try {
+            await this.tasks.update(update.payload);
+            this.store.acknowledgeTask(update.eventId, update.payload);
+          } catch (error) {
+            this.onError(`Task status will be sent again: ${error.message}`);
+            return;
+          }
+        }
       }
-    }
+    })();
+    try { await this.flushingTasks; }
+    finally { this.flushingTasks = null; }
   }
 
   async control(requestId, signal) {
@@ -353,18 +373,23 @@ export class BotNode {
   queueFailure(item, response, text) {
     const receipt = { ...response, text: JSON.stringify({ text }), failure: true, artifacts: [], publishedArtifacts: [], deliveredArtifacts: [] };
     this.store.produced(item.event_id, receipt);
-    const deliveries = deliveriesFor(item.event, { text, failure: true }, this.participant.id, this.participants, this.roomId);
+    const output = { text, failure: true };
+    this.delivery.applyOutput(item, output);
+    const deliveries = deliveriesFor(item.event, output, this.participant.id, this.participants, this.roomId);
     this.store.generated(item.event_id, receipt, deliveries);
   }
 
   async publishProduced(item) {
     const response = item.response;
     const request = item.request;
-    const attachments = [];
+    const attachments = [...(response.reusedAttachments || [])];
     this.taskUpdate(item, { status: 'running', stage: 'uploading', summary: '正在保存成果', toolCalls: response.toolCalls || 0 });
     await this.flushTaskUpdates();
     try {
-      const output = parseBotOutput(response.text, this.participant.id, this.participants);
+      const output = parseBotOutput(response.text, this.participant.id, this.participants,
+        { ignoreDelivery: !this.delivery.acceptsProposal(item) });
+      this.delivery.applyOutput(item, output);
+      output.controlOnly = response.controlOnly === true;
       await this.withTransferControl(item, async signal => {
         for (const artifact of response.artifacts || []) {
           if (!this.files) throw new Error('This node has no attachment transfer service');
@@ -388,7 +413,8 @@ export class BotNode {
       const deliveries = deliveriesFor(item.event, output, this.participant.id, this.participants, this.roomId);
       const deliveredArtifacts = uniqueAttachments(deliveries.filter(delivery => delivery.options.kind !== 'task.request')
         .flatMap(delivery => delivery.options.attachments || []));
-      const published = { ...response, publishedArtifacts: attachments, deliveredArtifacts, delegated: Boolean(output.delegate) };
+      const published = { ...response, publishedArtifacts: attachments, deliveredArtifacts, delegated: Boolean(output.delegate),
+        ...(output.delegate ? { delegate: output.delegate } : {}) };
       this.store.generated(item.event_id, published, deliveries);
       this.taskUpdate(item, { stage: 'delivering', summary: '正在发送成果', artifacts: deliveredArtifacts });
       this.lastError = null;
@@ -412,6 +438,7 @@ export class BotNode {
     const item = this.store.item(delivery.source_event_id);
     const failure = item.response?.failure;
     if (item.status !== 'completed' && !(item.status === 'failed' && failure)) return;
+    this.delivery.sent(item);
     const delegated = item.response?.delegated;
     const finalAttachments = item.response?.deliveredArtifacts || delivery.options.attachments || item.response?.publishedArtifacts || [];
     const status = failure ? 'failed' : delegated ? 'running' : 'completed';
@@ -450,7 +477,7 @@ export class BotNode {
   }
 
   async processOne() {
-    const delivery = this.store.pendingDelivery();
+    let delivery = this.store.pendingDelivery();
     if (delivery) {
       const source = this.store.item(delivery.source_event_id);
       const cancelRequested = this.parentCancelled(source) || (this.tasks && (await this.control(source.request.requestId)).cancelRequested);
@@ -461,11 +488,20 @@ export class BotNode {
         return true;
       }
       try {
-        const receipt = await this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+        const receipt = await this.delivery.prepare(delivery, prepared => {
+          delivery = prepared;
+          return this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+        });
         this.store.sent(delivery.transaction_id, receipt.event_id, () => this.finishDeliveryState(delivery));
         this.lastError = null;
         await this.flushTaskUpdates();
       } catch (error) {
+        if (error.taskCancelled) {
+          this.store.cancelDelivery(source.event_id);
+          this.taskUpdate(source, { status: 'cancelled', stage: 'cancelled', summary: '任务已取消' });
+          await this.flushTaskUpdates();
+          return true;
+        }
         const terminal = error.status >= 400 && error.status < 500 && ![408, 429].includes(error.status);
         this.store.deliveryFailed(delivery.transaction_id, error.message, { terminal });
         this.lastError = `Matrix delivery ${terminal ? 'failed' : 'pending'}: ${error.message}`;
@@ -493,6 +529,14 @@ export class BotNode {
     let submitted = false;
     try {
       request = boundTaskRequest(request);
+      const routing = this.delivery.route(item);
+      if (routing.error) throw new Error(routing.error);
+      const controlResult = this.delivery.controlResult(item);
+      if (controlResult) {
+        this.store.prepared(item.event_id, request);
+        await this.acceptResult(item, controlResult);
+        return true;
+      }
       if ((request.event.hop ?? 0) > 4) throw new Error('Collaboration hop limit reached');
       if (this.parentCancelled(item)) {
         await this.acceptResult(item, { status: 'cancelled', summary: '协作任务已取消' });
@@ -658,6 +702,7 @@ export async function runNode(argv = process.argv.slice(2)) {
     bridge: createBridge(endpoint, { token: process.env.DS_GROUP_BRIDGE_TOKEN }),
     files: new NodeFiles({ coreUrl, accessToken: participant.accessToken, directory: path.join(directory, 'tasks') }),
     tasks: createTaskClient(coreUrl, config.nodeSecret),
+    delivery: createDeliveryClient(coreUrl, participant.accessToken),
     heartbeat: async body => {
       const response = await fetch(new URL('/internal/nodes/heartbeat', coreUrl), { method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.nodeSecret}` },

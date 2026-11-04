@@ -84,6 +84,48 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) throw Object.assign(new Error('Invalid node credential'), { status: 401 });
   }
   const tasks = new TaskService({ setup, dataRoot, authorizeNode, readJsonBody });
+  async function directRoomFor(client, userId, target) {
+    const ids = [userId, target.id].sort();
+    const key = JSON.stringify(ids);
+    if (!creatingDirectRooms.has(key)) {
+      const work = (async () => {
+        let roomId = chat.prepare('SELECT room_id FROM direct_rooms WHERE pair_key=?').get(key)?.room_id;
+        if (!roomId) {
+          const localAlias = `ds-group-dm-${createHash('sha256').update(key).digest('hex')}`;
+          const domain = setup.serverName || userId.slice(userId.indexOf(':') + 1);
+          const alias = `#${localAlias}:${domain}`;
+          const findAlias = async () => {
+            try { return (await client.request('GET', `/_matrix/client/v3/directory/room/${encodeURIComponent(alias)}`)).room_id; }
+            catch (error) { if (error.errcode === 'M_NOT_FOUND') return undefined; throw error; }
+          };
+          roomId = await findAlias();
+          if (!roomId) {
+            try {
+              const created = await client.createRoom({ is_direct: true, preset: 'private_chat', room_alias_name: localAlias,
+                invite: [target.id], name: ids.map(id => publicParticipants.find(person => person.id === id)?.name).join(' · ') });
+              roomId = created.room_id;
+            } catch (error) {
+              // A lost create response or a concurrent creator is resolved by the stable alias.
+              roomId = await findAlias();
+              if (!roomId) throw error;
+            }
+          }
+        }
+        await client.join(roomId);
+        await new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: target.accessToken }).join(roomId);
+        const members = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`);
+        const joined = Object.keys(members.joined || {}).sort();
+        if (JSON.stringify(joined) !== key) throw Object.assign(new Error('The direct conversation has unexpected members'), { status: 409 });
+        chat.prepare('INSERT OR IGNORE INTO direct_rooms VALUES (?, ?, ?)').run(key, roomId, key);
+        const saved = chat.prepare('SELECT room_id FROM direct_rooms WHERE pair_key=?').get(key);
+        if (saved.room_id !== roomId) throw Object.assign(new Error('The direct conversation changed during creation'), { status: 409 });
+        return roomId;
+      })();
+      creatingDirectRooms.set(key, work);
+      void work.finally(() => creatingDirectRooms.delete(key)).catch(() => {});
+    }
+    return { roomId: await creatingDirectRooms.get(key), name: target.name, kind: 'direct', participantIds: ids };
+  }
   async function sendMessage({ client, userId, roomId, input, attachments, members, token }) {
     const key = JSON.stringify([userId, roomId, input.transactionId]);
     const identity = { body: input.body, attachments: attachments.map(file => file.id), to: [...new Set(input.to)].sort(),
@@ -108,9 +150,11 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (previous) payload = JSON.parse(previous.payload_json);
       else {
         const direct = chat.prepare('SELECT participants_json FROM direct_rooms WHERE room_id=?').get(roomId);
+        const directIds = direct ? JSON.parse(direct.participants_json) : [];
+        const conversationKind = directIds.length === 2 && members.length === 2 && directIds.every(id => members.includes(id)) ? 'direct' : 'group';
         const resolved = await chatFeatures.resolveMessage({ userId, roomId, input, client, members,
-          directIds: direct ? JSON.parse(direct.participants_json) : [] });
-        payload = { ...input, ...resolved, attachments };
+          directIds: conversationKind === 'direct' ? directIds : [] });
+        payload = { ...input, ...resolved, attachments, conversationKind };
         chat.prepare('INSERT INTO message_requests VALUES (?,?,?,?,NULL)').run(key, inputHash, JSON.stringify(payload), tokenHash);
       }
       const receipt = await client.send(roomId, payload.body, payload);
@@ -292,25 +336,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const input = await readJsonBody(request);
       const target = setup.participants.find(p => p.id === input.participantId);
       if (!target || target.id === userId || !publicParticipants.some(p => p.id === userId)) return send(400, { error: 'Choose a different demo participant' });
-      const ids = [userId, target.id].sort();
-      const key = JSON.stringify(ids);
-      if (!creatingDirectRooms.has(key)) {
-        const work = (async () => {
-          let roomId = chat.prepare('SELECT room_id FROM direct_rooms WHERE pair_key=?').get(key)?.room_id;
-          if (!roomId) {
-            const created = await client.createRoom({ is_direct: true, preset: 'private_chat', invite: [target.id], name: ids.map(id => publicParticipants.find(p => p.id === id)?.name).join(' · ') });
-            roomId = created.room_id;
-            chat.prepare('INSERT INTO direct_rooms VALUES (?, ?, ?)').run(key, roomId, key);
-          }
-          const targetClient = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: target.accessToken });
-          await targetClient.join(roomId);
-          return roomId;
-        })();
-        creatingDirectRooms.set(key, work);
-        void work.finally(() => creatingDirectRooms.delete(key)).catch(() => {});
-      }
-      const roomId = await creatingDirectRooms.get(key);
-      return send(200, { roomId, name: target.name, kind: 'direct', participantIds: ids });
+      return send(200, await directRoomFor(client, userId, target));
     }
     const context = url.pathname.match(/^\/api\/rooms\/([^/]+)\/context\/([^/]+)$/);
     if (request.method === 'GET' && context) {

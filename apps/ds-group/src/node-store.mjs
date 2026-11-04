@@ -36,7 +36,15 @@ export class NodeStore {
         status TEXT NOT NULL DEFAULT 'pending',
         sent_event_id TEXT,
         last_error TEXT,
+        routing_frozen INTEGER NOT NULL DEFAULT 0,
         UNIQUE(source_event_id, ordinal)
+      );
+      CREATE TABLE IF NOT EXISTS delivery_routes (
+        event_id TEXT PRIMARY KEY REFERENCES inbox(event_id), route_json TEXT NOT NULL,
+        revision INTEGER NOT NULL DEFAULT 1, frozen INTEGER NOT NULL DEFAULT 0
+      );
+      CREATE TABLE IF NOT EXISTS delivery_controls (
+        event_id TEXT PRIMARY KEY REFERENCES inbox(event_id), control_json TEXT NOT NULL
       );
       CREATE TABLE IF NOT EXISTS artifact_uploads (
         event_id TEXT NOT NULL REFERENCES inbox(event_id),
@@ -50,6 +58,9 @@ export class NodeStore {
         dirty INTEGER NOT NULL DEFAULT 1
       );
     `);
+    if (!this.db.prepare('PRAGMA table_info(outbox)').all().some(column => column.name === 'routing_frozen')) {
+      this.transaction(() => this.db.exec('ALTER TABLE outbox ADD COLUMN routing_frozen INTEGER NOT NULL DEFAULT 0; UPDATE outbox SET routing_frozen=1'));
+    }
     const identity = this.db.prepare('SELECT value FROM node_meta WHERE key=\'botId\'').get();
     if (identity && identity.value !== botId) {
       this.db.close();
@@ -93,7 +104,7 @@ export class NodeStore {
       .all(event.room_id, event.sender, '$.content."org.ds_group".fileBatch.id', batchId).map(row => JSON.parse(row.event_json));
   }
 
-  ingest(events, cursor) {
+  ingest(events, cursor, onAccepted) {
     return this.transaction(() => {
       let accepted = 0;
       for (const event of events) {
@@ -107,6 +118,7 @@ export class NodeStore {
         const targets = event.content['org.ds_group']?.to;
         if (event.sender !== this.botId && Array.isArray(targets) && targets.includes(this.botId)) {
           this.db.prepare("INSERT INTO inbox(event_id,status) VALUES (?, 'queued')").run(event.event_id);
+          if (onAccepted) onAccepted(event);
         }
       }
       if (cursor !== undefined) {
@@ -124,9 +136,123 @@ export class NodeStore {
   }
 
   item(eventId) {
+    if (typeof eventId !== 'string') return undefined;
     const row = this.db.prepare('SELECT inbox.*, messages.event_json FROM inbox JOIN messages USING(event_id) WHERE event_id=?').get(eventId);
     return row ? { ...row, event: JSON.parse(row.event_json), request: row.request_json ? JSON.parse(row.request_json) : null,
       response: row.response_json ? JSON.parse(row.response_json) : null } : undefined;
+  }
+
+  previousRequest(event) {
+    const row = this.db.prepare(`SELECT inbox.event_id FROM inbox JOIN messages USING(event_id)
+      WHERE room_id=? AND sender_id=? AND sequence<(SELECT sequence FROM messages WHERE event_id=?)
+      ORDER BY sequence DESC LIMIT 1`).get(event.room_id, event.sender, event.event_id);
+    return row ? this.item(row.event_id) : undefined;
+  }
+
+  sourceForSentEvent(eventId) {
+    const row = this.db.prepare('SELECT source_event_id FROM outbox WHERE sent_event_id=?').get(eventId);
+    return row ? this.item(row.source_event_id) : undefined;
+  }
+
+  frozenFinal(eventId) {
+    const item = this.item(eventId);
+    if (item?.response?.delegated) return undefined;
+    return this.db.prepare('SELECT room_id,status FROM outbox WHERE source_event_id=? AND routing_frozen=1 ORDER BY ordinal LIMIT 1').get(eventId);
+  }
+
+  inheritFrozenDelivery(eventId, delivery) {
+    const current = this.route(eventId);
+    if (!current || current.frozen) return;
+    const { revision, frozen, ...route } = current;
+    this.db.prepare('UPDATE delivery_routes SET route_json=?,frozen=1 WHERE event_id=?')
+      .run(JSON.stringify({ ...route, roomId: delivery.room_id, state: delivery.status === 'sent' ? 'sent' : 'sending' }), eventId);
+  }
+
+  interveningHuman(event, previousEventId, humanIds) {
+    if (!humanIds.length) return false;
+    return Boolean(this.db.prepare(`SELECT 1 FROM messages WHERE room_id=? AND sender_id<>?
+      AND sender_id IN (${humanIds.map(() => '?').join(',')})
+      AND sequence>(SELECT sequence FROM messages WHERE event_id=?)
+      AND sequence<(SELECT sequence FROM messages WHERE event_id=?) LIMIT 1`)
+      .get(event.room_id, event.sender, ...humanIds, previousEventId, event.event_id));
+  }
+
+  finalResult(eventId) {
+    const item = this.item(eventId);
+    if (!item?.response?.delegated) return item;
+    const row = this.db.prepare(`SELECT inbox.event_id FROM inbox JOIN messages USING(event_id)
+      WHERE inbox.status='completed' AND json_extract(event_json,?)=?
+      AND json_extract(event_json,?)='task.result' AND COALESCE(json_extract(response_json,'$.delegated'),0)=0
+      ORDER BY sequence DESC LIMIT 1`).get('$.content."org.ds_group".originEventId', eventId, '$.content."org.ds_group".kind');
+    return row ? this.item(row.event_id) : item;
+  }
+
+  route(eventId) {
+    const row = this.db.prepare('SELECT * FROM delivery_routes WHERE event_id=?').get(eventId);
+    return row ? { ...JSON.parse(row.route_json), revision: row.revision, frozen: Boolean(row.frozen) } : undefined;
+  }
+
+  setRoute(eventId, value) {
+    const current = this.route(eventId);
+    if (current?.frozen) return current;
+    const { revision: ignoredRevision, frozen: ignoredFrozen, ...route } = value;
+    const serialized = JSON.stringify(route);
+    this.db.prepare(`INSERT INTO delivery_routes(event_id,route_json) VALUES (?,?)
+      ON CONFLICT(event_id) DO UPDATE SET route_json=excluded.route_json,revision=delivery_routes.revision+1
+      WHERE delivery_routes.frozen=0 AND delivery_routes.route_json<>excluded.route_json`).run(eventId, serialized);
+    return this.route(eventId);
+  }
+
+  control(eventId) {
+    const row = this.db.prepare('SELECT control_json FROM delivery_controls WHERE event_id=?').get(eventId);
+    return row ? JSON.parse(row.control_json) : undefined;
+  }
+
+  setControl(eventId, control) {
+    this.db.prepare('INSERT INTO delivery_controls VALUES (?,?) ON CONFLICT(event_id) DO UPDATE SET control_json=excluded.control_json')
+      .run(eventId, JSON.stringify(control));
+  }
+
+  delivery(transactionId) {
+    const row = this.db.prepare('SELECT * FROM outbox WHERE transaction_id=?').get(transactionId);
+    return row ? { ...row, options: JSON.parse(row.options_json) } : undefined;
+  }
+
+  freezeDeliveries({ eventId, role, routeEventId, revision, roomId, intent, optionsFor, freezeTask }) {
+    return this.transaction(() => {
+      const current = this.route(routeEventId);
+      if (!current || current.revision !== revision) return false;
+      const rows = this.db.prepare("SELECT * FROM outbox WHERE source_event_id=? AND status='pending'").all(eventId)
+        .map(row => ({ ...row, options: JSON.parse(row.options_json) })).filter(row => row.options.deliveryRole === role);
+      if (rows.some(row => row.routing_frozen)) return true;
+      for (const row of rows) {
+        const prepared = optionsFor(row);
+        this.db.prepare('UPDATE outbox SET room_id=?,body=?,options_json=?,routing_frozen=1 WHERE transaction_id=?')
+          .run(roomId, prepared.body ?? row.body, JSON.stringify(prepared.options), row.transaction_id);
+      }
+      if (freezeTask) {
+        const { revision: ignoredRevision, frozen: ignoredFrozen, ...route } = current;
+        route.roomId = roomId;
+        route.state = 'sending';
+        this.db.prepare('UPDATE delivery_routes SET route_json=?,revision=revision+1,frozen=1 WHERE event_id=?')
+          .run(JSON.stringify(route), routeEventId);
+        if (routeEventId !== eventId) {
+          const own = this.route(eventId);
+          const { revision: ownRevision, frozen: ownFrozen, ...ownRoute } = own || {};
+          this.db.prepare(`INSERT INTO delivery_routes(event_id,route_json,frozen) VALUES (?,?,1)
+            ON CONFLICT(event_id) DO UPDATE SET route_json=excluded.route_json,revision=delivery_routes.revision+1,frozen=1`)
+            .run(eventId, JSON.stringify({ ...ownRoute, ...intent, roomId, state: 'sending', authoritative: false }));
+        }
+      }
+      return true;
+    });
+  }
+
+  deliverySent(eventId) {
+    const current = this.route(eventId);
+    if (!current?.frozen) return;
+    const { revision: ignoredRevision, frozen: ignoredFrozen, ...route } = current;
+    this.db.prepare('UPDATE delivery_routes SET route_json=? WHERE event_id=?').run(JSON.stringify({ ...route, state: 'sent' }), eventId);
   }
 
   pendingResult() {
