@@ -3,6 +3,7 @@ import { formatTime } from "../../i18n.js";
 import { parseMentionTokens } from "../../mention-tokens.js";
 import { messageOf } from "../api";
 import { useTranslation } from "../locale";
+import { Icon } from "./Icons";
 import { settingsMessages } from "../locales/settings";
 import type { Api, ChatEvent, Participant, Room } from "../types";
 
@@ -150,7 +151,7 @@ export function InboxDialog({
           aria-label={t("close")}
           onClick={onClose}
         >
-          ×
+          <Icon name="close" />
         </button>
       </header>
       <nav className="settings-tabs" aria-label={t("inboxCategories")}>

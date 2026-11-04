@@ -1,4 +1,5 @@
 import { t, formatFileSize, onLocaleChange } from './i18n.js';
+import { createActionIcon, createFileIcon } from './src/icons.ts';
 
 export { formatFileSize } from './i18n.js';
 
@@ -30,11 +31,15 @@ function fileTypeLabel(attachment) {
 
 function fileSymbol(attachment) {
   const kind = attachmentPreviewKind(attachment);
-  return node('span', `attachment-file-icon${kind ? ` attachment-type-${kind}` : ''}`, fileTypeLabel(attachment));
+  const symbol = createFileIcon(attachment);
+  symbol.classList.add('attachment-file-icon');
+  if (kind) symbol.classList.add(`attachment-type-${kind}`);
+  return symbol;
 }
 
-function button(label, title, action, className = 'attachment-action') {
-  const control = node('button', className, label);
+function button(icon, title, action, className = 'attachment-action') {
+  const control = node('button', className);
+  control.append(createActionIcon(icon));
   control.type = 'button';
   control.title = title;
   control.setAttribute('aria-label', title);
@@ -183,16 +188,16 @@ export function createAttachmentManager({ container, input, getSession, onChange
       card.append(information);
       const actions = node('div', 'attachment-draft-actions');
       if (record.status === 'uploading') {
-        const cancel = button(t('files.stop'), t('files.cancelUpload', { name: record.name }), () => record.xhr?.abort());
+        const cancel = button('stop', t('files.cancelUpload', { name: record.name }), () => record.xhr?.abort());
         cancel.disabled = disabled;
         actions.append(cancel);
       }
       if (['failed', 'cancelled'].includes(record.status) && record.file) {
-        const retry = button(t('files.retry'), t('files.retryUpload', { name: record.name }), () => upload(record));
+        const retry = button('retry', t('files.retryUpload', { name: record.name }), () => upload(record));
         retry.disabled = disabled;
         actions.append(retry);
       }
-      const removeButton = button('×', t('files.remove', { name: record.name }), () => remove(record));
+      const removeButton = button('close', t('files.remove', { name: record.name }), () => remove(record));
       removeButton.disabled = disabled;
       actions.append(removeButton);
       card.append(actions);
@@ -346,9 +351,9 @@ export function renderAttachmentCard(attachment, { getSession, onPreview, onErro
     });
   }
 
-  const previewButton = kind && onPreview ? button('', '', () => void preview()) : null;
+  const previewButton = kind && onPreview ? button('preview', '', () => void preview()) : null;
   if (previewButton) actions.append(previewButton);
-  const downloadButton = button('↓', '', () => void perform(async blob => {
+  const downloadButton = button('download', '', () => void perform(async blob => {
     const url = URL.createObjectURL(blob);
     objectUrls.add(url);
     const link = node('a');
@@ -368,10 +373,8 @@ export function renderAttachmentCard(attachment, { getSession, onPreview, onErro
   function renderLabels() {
     if (disposed) return;
     metadata.textContent = `${fileTypeLabel(attachment)} · ${formatFileSize(attachment.size)}`;
-    symbol.textContent = fileTypeLabel(attachment);
     const previewLabel = t('files.previewNamed', { name: attachment.name });
     if (previewButton) {
-      previewButton.textContent = t('files.preview');
       previewButton.title = previewLabel;
       previewButton.setAttribute('aria-label', previewLabel);
     }

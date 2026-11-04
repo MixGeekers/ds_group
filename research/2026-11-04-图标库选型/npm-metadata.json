@@ -1,0 +1,53 @@
+{
+  "checkedAt": "2026-11-04T17:04:05.958Z",
+  "source": "npm registry via npm view",
+  "level": "published-package-metadata",
+  "packages": [
+    {
+      "specification": "lucide-react@1.68.0",
+      "version": "1.68.0",
+      "license": "ISC",
+      "sideEffects": false,
+      "peerDependencies": {
+        "react": "^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0",
+        "@types/react": "*"
+      }
+    },
+    {
+      "specification": "lucide@1.68.0",
+      "version": "1.68.0",
+      "license": "ISC",
+      "sideEffects": false
+    },
+    {
+      "specification": "@tabler/icons-react@3.50.0",
+      "version": "3.50.0",
+      "license": "MIT",
+      "sideEffects": false,
+      "peerDependencies": {
+        "react": ">= 16"
+      },
+      "types": "./dist/tabler-icons-react.d.ts"
+    },
+    {
+      "specification": "@phosphor-icons/react@2.1.10",
+      "version": "2.1.10",
+      "license": "MIT",
+      "sideEffects": false,
+      "peerDependencies": {
+        "react": ">= 16.8",
+        "react-dom": ">= 16.8"
+      },
+      "types": "./dist/index.d.ts"
+    },
+    {
+      "specification": "@heroicons/react@2.2.0",
+      "version": "2.2.0",
+      "license": "MIT",
+      "sideEffects": false,
+      "peerDependencies": {
+        "react": ">= 16 || ^19.0.0-rc"
+      }
+    }
+  ]
+}

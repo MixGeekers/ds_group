@@ -10,7 +10,7 @@ import {
 } from "./components/BasicDialogs";
 import { Composer } from "./components/Composer";
 import { Timeline } from "./components/Timeline";
-import { TaskTray } from "./components/TaskTray";
+import { TaskHistoryDialog } from "./components/TaskTray";
 import { SettingsDialog } from "./components/SettingsDialog";
 import { InboxDialog } from "./components/InboxDialog";
 import { NotificationDialog } from "./components/NotificationDialog";
@@ -734,14 +734,6 @@ export default function App() {
           onRead={(id) => void markRead(id)}
           onRole={() => setSettingsTab("roles")}
         />
-        <TaskTray
-          tasks={tasks}
-          participants={participants}
-          session={session}
-          showHistory={showTaskHistory}
-          onCancel={cancelTask}
-          onError={notify}
-        />
         <Composer
           ref={composer}
           session={session}
@@ -756,12 +748,23 @@ export default function App() {
             setReplyMention(mention);
           }}
           sending={sending}
+          isWorking={tasks.some(
+            (task) => task.status === "queued" || task.status === "running",
+          )}
           pending={pending}
           onSend={sendMessage}
           limits={bootstrap?.attachments}
           onError={notify}
         />
       </Shell>
+      <TaskHistoryDialog
+        tasks={tasks}
+        participants={participants}
+        open={showTaskHistory}
+        onClose={() => setShowTaskHistory(false)}
+        onCancel={cancelTask}
+        onError={notify}
+      />
       <LoginDialog
         open={loginOpen}
         bootstrap={bootstrap}

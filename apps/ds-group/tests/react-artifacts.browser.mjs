@@ -29,11 +29,13 @@ const fixtureHtml = `<!doctype html>
     <script type="module">
       import React from 'react';
       import { createRoot } from 'react-dom/client';
-      import { TaskTray } from '/src/components/TaskTray.tsx';
+      import { TaskHistoryDialog } from '/src/components/TaskTray.tsx';
+      import { AttachmentView } from '/src/components/AttachmentView.tsx';
 
       const session = { user_id: '@alice:test', access_token: 'synthetic' };
       const participants = [{ id: '@finance:test', name: 'Finance', kind: 'bot' }];
       const attachment = { id: 'table', name: 'summary.csv', mimeType: 'text/csv', size: 24 };
+      const secondAttachment = { ...attachment, id: 'details', name: 'details.csv' };
       const task = {
         botId: '@finance:test', roomId: '!room:test', artifacts: [], toolCalls: 2,
         cancelRequested: false, createdAt: Date.now(), updatedAt: Date.now(),
@@ -52,6 +54,7 @@ const fixtureHtml = `<!doctype html>
       function Fixture() {
         const [tasks, setTasks] = React.useState(initialTasks);
         const [identity, setIdentity] = React.useState(session);
+        const [historyOpen, setHistoryOpen] = React.useState(false);
         window.switchUser = () => setIdentity({ ...session, user_id: '@bob:test' });
         window.rerender = () => setTasks(current => current.map(item => ({ ...item, artifacts: [...item.artifacts] })));
         window.showSummaryFixtures = () => setTasks([
@@ -77,10 +80,21 @@ const fixtureHtml = `<!doctype html>
             ? { ...item, status: 'cancelled', stage: 'cancelled' } : item));
         }
 
-        return React.createElement(TaskTray, {
-          tasks, participants, session: identity, showHistory: true,
-          onError: message => window.errors.push(message), onCancel: cancelTask,
-        });
+        return React.createElement(React.Fragment, null,
+          React.createElement('main', { className: 'conversation', style: { height: '100dvh' } },
+            React.createElement('div', { className: 'message-attachments' },
+              [attachment, secondAttachment].map(file => React.createElement(AttachmentView, {
+                key: file.id, attachment: file, session: identity,
+                onError: message => window.errors.push(message),
+              })),
+            ),
+            React.createElement('button', { id: 'open-history', onClick: () => setHistoryOpen(true) }, 'Work history'),
+          ),
+          React.createElement(TaskHistoryDialog, {
+            tasks, participants, open: historyOpen, onClose: () => setHistoryOpen(false),
+            onError: message => window.errors.push(message), onCancel: cancelTask,
+          }),
+        );
       }
 
       const root = createRoot(document.getElementById('root'));
@@ -138,9 +152,19 @@ try {
   });
 
   await page.goto(`http://127.0.0.1:${address.port}/__artifacts`);
-  await page.locator('.task-card').first().waitFor();
+  await page.locator('.message-attachments .attachment-card').first().waitFor();
+  assert.equal(await page.locator('#task-tray').count(), 0);
+  assert.equal(await page.locator('#task-history-dialog').isVisible(), false);
+  assert.equal(await page.locator('.task-card').count(), 0);
+  assert.equal(await page.locator('.attachment-card').count(), 2);
+  report.checks.push('taskActivityAndCompletionStayOutsideNormalConversation');
+
+  await page.locator('#open-history').click();
+  await page.locator('#task-history-dialog[open]').waitFor();
   assert.equal(await page.locator('.task-card').count(), 2);
-  report.checks.push('typedTaskCardsRender');
+  assert.equal(await page.locator('#task-history-dialog .attachment-card').count(), 0);
+  assert.equal(await page.locator('.attachment-card').count(), 2);
+  report.checks.push('explicitHistoryOpensWithoutDuplicatingMessageAttachments');
 
   await page.evaluate(() => window.showSummaryFixtures());
   await page.locator('[data-request-id="running"] .task-summary').filter({ hasText: 'Using bash' }).waitFor();
@@ -174,6 +198,9 @@ try {
   report.checks.push('applicationProgressSummariesLocalizeWithoutChangingBusinessText');
   await page.evaluate(() => window.restoreTasks());
   await page.waitForFunction(() => document.querySelectorAll('.task-card').length === 2);
+  await page.locator('#close-task-history').click();
+  await page.locator('#task-history-dialog').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator('.task-card').count(), 0);
 
   await page.getByRole('button', { name: 'Preview summary.csv', exact: true }).click();
   await page.locator('dialog[open] .preview-text').filter({ hasText: 'HR,200' }).waitFor();
@@ -186,13 +213,16 @@ try {
   report.checks.push('previewAndDownloadShareVerifiedBytes');
 
   await page.evaluate(() => window.rerender());
+  await page.locator('#open-history').click();
   await page.evaluate(async () => {
     const i18n = await import('/i18n.js');
     i18n.setLocalePreference('zh-CN');
   });
   await page.getByText('已完成', { exact: true }).waitFor();
   assert.equal(reads, 1);
-  assert.equal(await page.getByRole('button', { name: '下载 summary.csv', exact: true }).count(), 1);
+  assert.equal(await page.locator('#task-history-title').textContent(), '工作记录');
+  assert.equal(await page.getByRole('button', { name: '关闭工作记录', exact: true }).count(), 1);
+  assert.equal(await page.locator('.message-attachments button[aria-label="下载 summary.csv"]').count(), 1);
   report.checks.push('localeRefreshPreservesCachedAttachment');
 
   const cancel = page.getByRole('button', { name: '取消', exact: true });
@@ -209,13 +239,26 @@ try {
   assert.deepEqual(await page.evaluate(() => window.cancelAttempts), ['running', 'running']);
   report.checks.push('cancellationUpdatesCard');
 
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-  report.checks.push('mobileLayoutFits');
+  assert.equal(await page.evaluate(() => {
+    const dialog = document.querySelector('#task-history-dialog');
+    const bounds = dialog.getBoundingClientRect();
+    return document.documentElement.scrollWidth <= innerWidth
+      && bounds.left >= 0 && bounds.right <= innerWidth
+      && dialog.scrollWidth <= dialog.clientWidth;
+  }), true);
+  report.checks.push('mobileHistoryOverlayFits');
+
+  await page.keyboard.press('Escape');
+  await page.locator('#task-history-dialog').waitFor({ state: 'hidden' });
+  await page.evaluate(() => window.restoreTasks());
+  assert.equal(await page.locator('.task-card').count(), 0);
+  assert.equal(await page.locator('#task-history-dialog').isVisible(), false);
+  report.checks.push('historyClosesOnEscapeAndNewTaskUpdatesDoNotReopenIt');
 
   await page.getByRole('button', { name: '预览 summary.csv', exact: true }).click();
   await page.locator('dialog[open]').waitFor();
   await page.evaluate(() => window.switchUser());
-  await page.waitForFunction(() => document.querySelectorAll('dialog').length === 0);
+  await page.waitForFunction(() => document.querySelector('#preview-dialog') === null);
   report.checks.push('identityChangeClosesOldPreview');
 
   await page.getByRole('button', { name: '预览 summary.csv', exact: true }).click();

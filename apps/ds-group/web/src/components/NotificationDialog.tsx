@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { messageOf } from "../api";
 import { useTranslation } from "../locale";
+import { Icon } from "./Icons";
 import { settingsMessages } from "../locales/settings";
 import type { Api, NotificationPreferences, Room } from "../types";
 
@@ -109,7 +110,7 @@ export function NotificationDialog({
             onClick={onClose}
             disabled={saving}
           >
-            ×
+            <Icon name="close" />
           </button>
         </header>
         <label className="check-label">

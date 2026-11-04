@@ -1,6 +1,7 @@
 const en = {
   send: "Send",
   sending: "Sending",
+  working: "Processing",
   retry: "Retry sending",
   attach: "Add files",
   message: "Message {room}",
@@ -39,6 +40,7 @@ export const chatMessages = {
   "zh-CN": {
     send: "发送",
     sending: "发送中",
+    working: "正在处理",
     retry: "重试发送",
     attach: "添加附件",
     message: "发送消息到 {room}",

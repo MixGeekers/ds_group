@@ -2,6 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { renderAttachmentCard } from "../../attachments.js";
 import { useTranslation } from "../locale";
 import { artifactMessages } from "../locales/artifacts";
+import { Icon } from "./Icons";
 import type { Attachment, Session } from "../types";
 
 export interface AttachmentViewProps {
@@ -131,7 +132,7 @@ export function AttachmentView({
               aria-label={t("closePreview")}
               onClick={closePreview}
             >
-              ×
+              <Icon name="close" />
             </button>
           </header>
           <div id="preview-content">

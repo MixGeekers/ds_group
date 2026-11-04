@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "level": "real-chromium-react-components-fixture",
+  "checks": [
+    "taskActivityAndCompletionStayOutsideNormalConversation",
+    "explicitHistoryOpensWithoutDuplicatingMessageAttachments",
+    "applicationProgressSummariesLocalizeWithoutChangingBusinessText",
+    "previewAndDownloadShareVerifiedBytes",
+    "localeRefreshPreservesCachedAttachment",
+    "failedCancellationCanBeRetried",
+    "cancellationUpdatesCard",
+    "mobileHistoryOverlayFits",
+    "historyClosesOnEscapeAndNewTaskUpdatesDoNotReopenIt",
+    "identityChangeClosesOldPreview",
+    "unmountClosesPreviewWithoutErrors"
+  ],
+  "modelCalls": 0,
+  "pageErrors": []
+}

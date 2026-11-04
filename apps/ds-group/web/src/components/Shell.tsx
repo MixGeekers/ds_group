@@ -11,7 +11,7 @@ import type {
 } from "../types";
 import { useTranslation } from "../locale";
 import { shellMessages } from "../locales/shell";
-import { Icon, IconsLibrary } from "./Icons";
+import { Icon } from "./Icons";
 
 export interface ShellProps {
   bootstrap: Bootstrap | null;
@@ -229,7 +229,7 @@ export function Shell(props: ShellProps) {
         onClick={() => selectRoom(room)}
       >
         <span className="room-symbol" aria-hidden="true">
-          #
+          <Icon name="hash" />
         </span>
         <strong id={initial ? "sidebar-room-name" : undefined}>
           {room.name}
@@ -241,7 +241,6 @@ export function Shell(props: ShellProps) {
 
   return (
     <>
-      <IconsLibrary />
       <div className="app-shell">
         <nav className="server-rail" aria-label={t("servers")}>
           <button
@@ -280,7 +279,7 @@ export function Shell(props: ShellProps) {
             title={t("serverConnection")}
             onClick={() => props.onSettings("server")}
           >
-            +
+            <Icon name="plus" />
           </button>
         </nav>
         <aside
@@ -291,7 +290,7 @@ export function Shell(props: ShellProps) {
           <header className="brand">
             <span>DS-Group</span>
             <span className="brand-chevron" aria-hidden="true">
-              ⌄
+              <Icon name="chevronDown" />
             </span>
             <button
               id="close-channels"
@@ -300,7 +299,7 @@ export function Shell(props: ShellProps) {
               aria-label={t("closeChannels")}
               onClick={() => setChannelsOpen(false)}
             >
-              ×
+              <Icon name="close" />
             </button>
           </header>
           <div className="section-heading">
@@ -313,7 +312,7 @@ export function Shell(props: ShellProps) {
               title={t("createGroup")}
               onClick={props.onCreateRoom}
             >
-              +
+              <Icon name="plus" />
             </button>
           </div>
           <nav id="channel-list" aria-label={t("conversations")}>
@@ -398,7 +397,9 @@ export function Shell(props: ShellProps) {
                 className="heading-hash"
                 aria-hidden="true"
               >
-                {props.room?.kind === "direct" ? "@" : "#"}
+                <Icon
+                  name={props.room?.kind === "direct" ? "atSign" : "hash"}
+                />
               </span>
               <div>
                 <h1 id="room-title">
@@ -431,7 +432,7 @@ export function Shell(props: ShellProps) {
                 hidden={props.view !== "chat"}
                 onClick={props.onToggleTasks}
               >
-                <Icon name="file" />
+                <Icon name="history" />
               </button>
               <button
                 id="inbox-button"
@@ -474,7 +475,7 @@ export function Shell(props: ShellProps) {
                 hidden={props.view !== "chat" || props.room?.kind !== "group"}
                 onClick={props.onInvite}
               >
-                +
+                <Icon name="plus" />
               </button>
               <button
                 id="mobile-settings"
@@ -538,7 +539,7 @@ export function Shell(props: ShellProps) {
               aria-label={t("closeMembers")}
               onClick={() => setMembersOpen(false)}
             >
-              ×
+              <Icon name="close" />
             </button>
           </header>
           <div id="room-members" className="room-members">

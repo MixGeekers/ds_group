@@ -1,0 +1,24 @@
+{
+  "checkedAt": "2026-11-04T17:14:22.327Z",
+  "status": "passed",
+  "level": "real-chromium-components-with-mocked-network",
+  "browserFiles": 5,
+  "interactionChecks": 45,
+  "remoteModelCalls": 0,
+  "toolchain": {
+    "typescript": "7.0.2",
+    "react": "19.3.1",
+    "lucide": "1.68.0"
+  },
+  "sourceHashes": {
+    "web/src/App.tsx": "8ed8862b20bd8bf3c6e8838e42a9a3e0682975351a93082e2517f07ebea9b4fe",
+    "web/src/components/Composer.tsx": "e4d3009f74f6b8187981b08c1054a5d56a940b75ccbadc9356958f4b58b95dbc",
+    "web/src/components/TaskTray.tsx": "9e71651d1e9c11d8b176789f900d89227b1ad40c46ae02ef260931c73ad0b330",
+    "web/src/components/Icons.tsx": "a0ea7761662318a20175ea9f7b0e43a6b3dc386f490872005c072691b9b97ef7",
+    "web/src/icons.ts": "6c54012983e2b382dcc94979dbeeb2ade7bd81a8b506e0df7a447502ae521bf5",
+    "web/attachments.js": "a8ee11b4811b45d914da4f8b3b73fbf4c94cf4cbcaebe6c83289b671e213ec7d",
+    "web/styles.css": "7022257f6c39d95fd32a83bc725d8b4e7976a836a3d6799945451a6418cc5428",
+    "scripts/build-pwa.mjs": "b16c26316da1fdb5a48e1e3ab388524a7182899d4800d04b8b17b42a3c61d7a8"
+  },
+  "actualUserServiceUpdated": false
+}

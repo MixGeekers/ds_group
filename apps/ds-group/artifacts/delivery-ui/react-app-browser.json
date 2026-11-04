@@ -1,0 +1,52 @@
+{
+  "passed": true,
+  "evidence": "real Chromium with actual React App, isolated Vite and mocked APIs",
+  "checks": [
+    "appRestoresPendingMessageForInitialAccountAndRoom",
+    "roomSwitchDoesNotApplyPreviousPendingMessageToIndependentDraft",
+    "returningToPendingRoomRestoresReadonlyRetryState",
+    "accountSwitchDoesNotApplyAlicePendingMessageToBobDraft",
+    "returningToAliceRestoresOnlyAlicePendingMessage",
+    "unconfirmedSendRemainsPendingAfterServerFailure",
+    "retryReusesOriginalTransactionAndClearsOnlyConfirmedAccountRoom",
+    "activityUsesAnonymousDotsWithoutTaskCardsDuplicateFilesOrLayoutShift",
+    "completedWorkDisappearsAndHistoryRequiresExplicitOverlayOpen",
+    "fullAppUsesOnlyMockedApiAndHasNoPageErrors"
+  ],
+  "pageErrors": [],
+  "unhandledRequests": [],
+  "apiRequestCount": 112,
+  "sentMessages": [
+    {
+      "roomId": "!one:test",
+      "authorization": "Bearer alice-fixture",
+      "body": {
+        "body": "Alice pending in One",
+        "mentions": {
+          "users": [],
+          "roles": [],
+          "everyone": false,
+          "here": false
+        },
+        "attachments": [],
+        "transactionId": "already-submitted-one"
+      }
+    },
+    {
+      "roomId": "!one:test",
+      "authorization": "Bearer alice-fixture",
+      "body": {
+        "body": "Alice pending in One",
+        "mentions": {
+          "users": [],
+          "roles": [],
+          "everyone": false,
+          "here": false
+        },
+        "attachments": [],
+        "transactionId": "already-submitted-one"
+      }
+    }
+  ],
+  "modelCalls": 0
+}

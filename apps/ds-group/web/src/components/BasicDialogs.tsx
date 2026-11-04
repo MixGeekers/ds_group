@@ -7,6 +7,7 @@ import type {
 } from "react";
 import { messageOf, readStored } from "../api";
 import { useTranslation } from "../locale";
+import { Icon } from "./Icons";
 import { dialogMessages } from "../locales/dialogs";
 import type {
   Api,
@@ -129,7 +130,7 @@ export function LoginDialog({
             disabled={busy}
             onClick={onClose}
           >
-            ×
+            <Icon name="close" />
           </button>
         </div>
         <label htmlFor="login-user">{t("account")}</label>
@@ -328,7 +329,7 @@ export function RoomDialog({
             disabled={busy}
             onClick={onClose}
           >
-            ×
+            <Icon name="close" />
           </button>
         </div>
         <div id="room-name-field" hidden={isInvite}>
@@ -440,7 +441,7 @@ export function MemberDialog({
         aria-label={t("closeProfile")}
         onClick={onClose}
       >
-        ×
+        <Icon name="close" />
       </button>
       <div id="member-dialog-avatar">
         <span

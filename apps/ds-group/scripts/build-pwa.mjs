@@ -7,7 +7,7 @@ const source = path.join(packageRoot, 'web');
 const output = path.join(packageRoot, 'dist', 'web');
 await readFile(path.join(output, 'index.html'));
 await mkdir(output, { recursive: true });
-for (const filename of ['theme.js', 'manifest.webmanifest', 'icons']) {
+for (const filename of ['theme.js', 'manifest.webmanifest', 'icons', 'licenses']) {
   await cp(path.join(source, filename), path.join(output, filename), { recursive: true });
 }
 

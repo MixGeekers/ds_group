@@ -1,18 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatNumber, formatDateTime } from "../../i18n.js";
 import { useTranslation } from "../locale";
 import {
   artifactMessages,
   type ArtifactMessageKey,
 } from "../locales/artifacts";
-import type { Participant, Session, WorkTask } from "../types";
-import { AttachmentView } from "./AttachmentView";
+import type { Participant, WorkTask } from "../types";
+import { Icon } from "./Icons";
 
-export interface TaskTrayProps {
+export interface TaskHistoryDialogProps {
   tasks: WorkTask[];
   participants: Participant[];
-  session: Session | null;
-  showHistory: boolean;
+  open: boolean;
+  onClose(): void;
   onCancel: (requestId: string) => Promise<void> | void;
   onError: (message: string) => void;
 }
@@ -77,42 +77,32 @@ function statusClass(task: WorkTask) {
   return "error";
 }
 
-export function TaskTray({
+export function TaskHistoryDialog({
   tasks,
   participants,
-  session,
-  showHistory,
+  open,
+  onClose,
   onCancel,
   onError,
-}: TaskTrayProps) {
+}: TaskHistoryDialogProps) {
   const t = useTranslation(artifactMessages);
   const [cancelling, setCancelling] = useState<Set<string>>(() => new Set());
-  const [now, setNow] = useState(Date.now);
+  const dialog = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 15000);
-    return () => window.clearInterval(timer);
-  }, []);
+    const element = dialog.current;
+    if (!element) return;
+    if (open && !element.open) element.showModal();
+    if (!open && element.open) element.close();
+  }, [open]);
 
-  const visible = tasks
-    .filter(
-      (task) =>
-        showHistory ||
-        !terminalStates.has(task.status) ||
-        now - new Date(task.updatedAt).getTime() < 90000,
+  const visible = [...tasks]
+    .sort(
+      (left, right) =>
+        new Date(right.updatedAt).getTime() -
+        new Date(left.updatedAt).getTime(),
     )
-    .sort((left, right) => {
-      if (!showHistory) {
-        const activeOrder =
-          Number(terminalStates.has(left.status)) -
-          Number(terminalStates.has(right.status));
-        if (activeOrder !== 0) return activeOrder;
-      }
-      return (
-        new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()
-      );
-    })
-    .slice(0, showHistory ? 20 : 4);
+    .slice(0, 20);
 
   async function cancelTask(requestId: string) {
     if (cancelling.has(requestId)) return;
@@ -131,86 +121,95 @@ export function TaskTray({
   }
 
   return (
-    <section
-      id="task-tray"
-      className={`task-tray${showHistory ? " show-history" : ""}`}
-      aria-label={t("workHistory")}
-      hidden={!visible.length && !showHistory}
+    <dialog
+      ref={dialog}
+      id="task-history-dialog"
+      className="task-history-dialog"
+      aria-labelledby="task-history-title"
+      onCancel={(event) => {
+        event.preventDefault();
+        onClose();
+      }}
+      onClose={onClose}
     >
-      {!visible.length && showHistory && (
-        <p className="empty-tasks">{t("emptyWork")}</p>
-      )}
-      {visible.map((task) => {
-        const pendingCancellation =
-          !terminalStates.has(task.status) &&
-          (task.cancelRequested || cancelling.has(task.requestId));
-        const botName =
-          participants.find((person) => person.id === task.botId)?.name ??
-          task.botId;
-        const headingStage = pendingCancellation
-          ? t("cancelling")
-          : t(stageKey(task));
-        const translatedSummary = localizeApplicationSummary(task.summary, t);
-        const summary = translatedSummary ?? task.summary;
-        const showSummary =
-          summary &&
-          (translatedSummary === undefined || summary !== headingStage);
-        return (
-          <article
-            key={task.requestId}
-            className={`task-card task-${task.status}`}
-            data-request-id={task.requestId}
-          >
-            <div className="task-heading">
-              <span
-                className={`status-dot ${statusClass(task)}`}
-                aria-hidden="true"
-              />
-              <strong>{botName}</strong>
-              <span
-                className="task-stage"
-                title={formatDateTime(task.updatedAt)}
+      <header className="dialog-heading">
+        <h2 id="task-history-title">{t("workHistory")}</h2>
+        <button
+          id="close-task-history"
+          className="icon-button"
+          type="button"
+          aria-label={t("closeHistory")}
+          onClick={onClose}
+        >
+          <Icon name="close" />
+        </button>
+      </header>
+      <div className="task-history-list">
+        {open && !visible.length && (
+          <p className="empty-tasks">{t("emptyWork")}</p>
+        )}
+        {open &&
+          visible.map((task) => {
+            const pendingCancellation =
+              !terminalStates.has(task.status) &&
+              (task.cancelRequested || cancelling.has(task.requestId));
+            const botName =
+              participants.find((person) => person.id === task.botId)?.name ??
+              task.botId;
+            const headingStage = pendingCancellation
+              ? t("cancelling")
+              : t(stageKey(task));
+            const translatedSummary = localizeApplicationSummary(
+              task.summary,
+              t,
+            );
+            const summary = translatedSummary ?? task.summary;
+            const showSummary =
+              summary &&
+              (translatedSummary === undefined || summary !== headingStage);
+            return (
+              <article
+                key={task.requestId}
+                className={`task-card task-${task.status}`}
+                data-request-id={task.requestId}
               >
-                {headingStage}
-              </span>
-              {task.toolCalls > 0 && (
-                <span className="small muted">
-                  {t("toolCalls", { count: formatNumber(task.toolCalls) })}
-                </span>
-              )}
-              {!terminalStates.has(task.status) && (
-                <button
-                  className="text-button"
-                  type="button"
-                  disabled={pendingCancellation}
-                  onClick={() => void cancelTask(task.requestId)}
-                >
-                  {t("cancel")}
-                </button>
-              )}
-            </div>
-            {showSummary && (
-              <p className="task-summary" title={summary}>
-                {summary}
-              </p>
-            )}
-            {task.artifacts.length > 0 && (
-              <div className="task-artifacts">
-                {task.artifacts
-                  .filter((attachment) => attachment.id)
-                  .map((attachment) => (
-                    <AttachmentView
-                      key={attachment.id}
-                      attachment={attachment}
-                      session={session}
-                      onError={onError}
-                    />
-                  ))}
-              </div>
-            )}
-          </article>
-        );
-      })}
-    </section>
+                <div className="task-heading">
+                  <span
+                    className={`status-dot ${statusClass(task)}`}
+                    aria-hidden="true"
+                  />
+                  <strong>{botName}</strong>
+                  <span
+                    className="task-stage"
+                    title={formatDateTime(task.updatedAt)}
+                  >
+                    {headingStage}
+                  </span>
+                  {task.toolCalls > 0 && (
+                    <span className="small muted">
+                      {t("toolCalls", { count: formatNumber(task.toolCalls) })}
+                    </span>
+                  )}
+                  {!terminalStates.has(task.status) && (
+                    <button
+                      className="text-button"
+                      type="button"
+                      disabled={pendingCancellation}
+                      onClick={() => void cancelTask(task.requestId)}
+                    >
+                      {t("cancel")}
+                    </button>
+                  )}
+                </div>
+                {showSummary && (
+                  <p className="task-summary" title={summary}>
+                    {summary}
+                  </p>
+                )}
+              </article>
+            );
+          })}
+      </div>
+    </dialog>
   );
 }

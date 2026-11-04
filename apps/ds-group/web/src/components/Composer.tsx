@@ -12,6 +12,7 @@ import type { AttachmentManager, UploadState } from "../../attachments.js";
 import { readStored } from "../api";
 import { useTranslation } from "../locale";
 import { chatMessages } from "../locales/chat";
+import { Icon } from "./Icons";
 import type {
   Attachment,
   ComposerHandle,
@@ -45,6 +46,7 @@ export interface ComposerProps {
   onClearReply(): void;
   onRestoreReply?(reply: ReplyTarget | null, mention: boolean): void;
   sending: boolean;
+  isWorking?: boolean;
   pending: OutgoingMessage | null;
   onSend(message: OutgoingMessage): Promise<boolean>;
   limits?: { maxBytes: number; maxPerMessage: number };
@@ -456,7 +458,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               disabled={disabled}
               onClick={props.onClearReply}
             >
-              ×
+              <Icon name="close" />
             </button>
           </div>
           <div id="composer-box" className="composer-box">
@@ -505,7 +507,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 disabled={disabled}
                 onClick={() => fileInputRef.current?.click()}
               >
-                +
+                <Icon name="plus" />
               </button>
               <input
                 id="attachment-input"
@@ -523,6 +525,18 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 spellCheck
                 aria-label={t("message", { room: props.room?.name ?? "" })}
               />
+              {props.isWorking && (
+                <span
+                  className="composer-activity"
+                  role="status"
+                  aria-label={t("working")}
+                  title={t("working")}
+                >
+                  <span aria-hidden="true" />
+                  <span aria-hidden="true" />
+                  <span aria-hidden="true" />
+                </span>
+              )}
               <button
                 id="send-button"
                 className="send-button"
@@ -534,7 +548,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 <span id="send-button-text" className="sr-only">
                   {sendLabel}
                 </span>
-                <span aria-hidden="true">➤</span>
+                <Icon name="send" />
               </button>
             </div>
           </div>

@@ -149,6 +149,7 @@ try {
     const base = `/api/rooms/${encodeURIComponent(room.roomId)}`;
     responses.set(`GET ${base}/messages?limit=200`, { events: [] });
     responses.set(`GET ${base}/tasks`, { tasks: [] });
+    responses.set(`POST ${base}/read`, { read: true });
     responses.set(`GET ${base}/mentionables`, {
       members: people,
       roles: [],
@@ -265,6 +266,73 @@ try {
   assert.equal((await readStorage(bobOneDraftKey)).body, bobOneDraft.body);
   assert.equal(await editor.textContent(), '');
   checks.push('retryReusesOriginalTransactionAndClearsOnlyConfirmedAccountRoom');
+
+  const currentRoomBase = `/api/rooms/${encodeURIComponent(rooms[0].roomId)}`;
+  const attachment = {
+    id: 'delivered-sheet', name: 'result.xlsx', size: 4096,
+    mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  };
+  const task = {
+    requestId: 'activity-fixture', botId: people[1].id, roomId: rooms[0].roomId,
+    eventId: '$task-request', status: 'running', stage: 'thinking',
+    summary: '正在处理任务', artifacts: [attachment], toolCalls: 1,
+    cancelRequested: false, createdAt: Date.now(), updatedAt: Date.now(),
+  };
+  responses.set(`GET ${currentRoomBase}/messages?limit=200`, {
+    events: [{
+      event_id: '$delivered-sheet', room_id: rooms[0].roomId,
+      sender: people[1].id, type: 'm.room.message', origin_server_ts: Date.now(),
+      content: { body: 'Delivered spreadsheet', 'org.ds_group': { attachments: [attachment] } },
+    }],
+  });
+  async function refreshTask(nextTask) {
+    responses.set(`GET ${currentRoomBase}/tasks`, { tasks: nextTask ? [nextTask] : [] });
+    const refreshed = page.waitForResponse(response =>
+      new URL(response.url()).pathname === `${currentRoomBase}/tasks`);
+    await page.evaluate(() => window.dispatchEvent(new Event('online')));
+    await refreshed;
+    await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  }
+  for (const viewport of [{ width: 985, height: 822 }, { width: 390, height: 844 }]) {
+    await page.setViewportSize(viewport);
+    await refreshTask(null);
+    const idleTimeline = await page.locator('#timeline').boundingBox();
+    await refreshTask(task);
+    await page.locator('.composer-activity').waitFor();
+    assert.equal(await page.locator('.composer-activity').getAttribute('aria-label'), 'Processing');
+    assert.equal(await page.locator('.composer-activity').textContent(), '');
+    assert.equal(await page.locator('.composer-activity > span').count(), 3);
+    assert.equal(await page.locator('.conversation .task-card, #task-tray').count(), 0);
+    assert.equal(await page.locator('#task-history-dialog').evaluate(element => element.open), false);
+    assert.equal(await page.locator('.attachment-card[data-attachment-id="delivered-sheet"]').count(), 1);
+    const fileIcon = page.locator('.attachment-card[data-attachment-id="delivered-sheet"] svg.attachment-file-icon');
+    assert.equal(await fileIcon.count(), 1);
+    assert.equal(await fileIcon.textContent(), '');
+    assert.equal(await fileIcon.getAttribute('stroke-width'), '2');
+    assert.equal(await fileIcon.evaluate(element => getComputedStyle(element).borderWidth), '0px');
+    const activeTimeline = await page.locator('#timeline').boundingBox();
+    assert.equal(activeTimeline.height, idleTimeline.height);
+    assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  }
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.deepEqual(await page.locator('.composer-activity > span').evaluateAll(elements =>
+    elements.map(element => getComputedStyle(element).animationName)), ['none', 'none', 'none']);
+  checks.push('activityUsesAnonymousDotsWithoutTaskCardsDuplicateFilesOrLayoutShift');
+
+  await refreshTask({ ...task, status: 'completed', stage: 'completed', summary: '已交付' });
+  await page.locator('.composer-activity').waitFor({ state: 'detached' });
+  assert.equal(await page.locator('.task-card').count(), 0);
+  const closedTimeline = await page.locator('#timeline').boundingBox();
+  await page.locator('#tasks-button').click();
+  await page.locator('#task-history-dialog[open]').waitFor();
+  assert.equal(await page.locator('#task-history-dialog .task-card').count(), 1);
+  assert.equal(await page.locator('#task-history-dialog .attachment-card').count(), 0);
+  assert.equal(await page.locator('.attachment-card[data-attachment-id="delivered-sheet"]').count(), 1);
+  assert.equal((await page.locator('#timeline').boundingBox()).height, closedTimeline.height);
+  await page.locator('#close-task-history').click();
+  await page.locator('#task-history-dialog').waitFor({ state: 'hidden' });
+  assert.equal(await page.locator('.task-card').count(), 0);
+  checks.push('completedWorkDisappearsAndHistoryRequiresExplicitOverlayOpen');
 
   assert.deepEqual(unhandledRequests, []);
   assert.deepEqual(pageErrors, []);

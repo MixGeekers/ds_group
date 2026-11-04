@@ -4,6 +4,7 @@ import { initializePwa } from "../../pwa.js";
 import { formatNumber, getLocalePreference } from "../../i18n.js";
 import { messageOf } from "../api";
 import { useLocale, useTranslation } from "../locale";
+import { Icon } from "./Icons";
 import { settingsMessages } from "../locales/settings";
 import type {
   Api,
@@ -267,7 +268,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
           aria-label={t("close")}
           onClick={props.onClose}
         >
-          ×
+          <Icon name="close" />
         </button>
       </header>
       <nav className="settings-tabs" aria-label={t("settingsCategories")}>
@@ -564,7 +565,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
       <section data-settings-panel="runtime" hidden={tab !== "runtime"}>
         <div className="core-card">
           <span className="core-icon" aria-hidden="true">
-            ◎
+            <Icon name="server" />
           </span>
           <div>
             <strong id="core-title">

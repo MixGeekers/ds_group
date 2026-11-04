@@ -16,6 +16,7 @@ import type {
   Session,
 } from "../types";
 import { AttachmentView } from "./AttachmentView";
+import { Icon } from "./Icons";
 
 export interface TimelineProps {
   events: ChatEvent[];
@@ -306,9 +307,12 @@ export function Timeline(props: TimelineProps) {
                         type="button"
                         onClick={() => props.onJump(quoteId)}
                       >
-                        {quote
-                          ? `${displayName(quote.sender)}　${displayMentionText(quote.content.body, props.participants, roleList)}`
-                          : t("previous")}
+                        <Icon name="reply" />
+                        <span>
+                          {quote
+                            ? `${displayName(quote.sender)}　${displayMentionText(quote.content.body, props.participants, roleList)}`
+                            : t("previous")}
+                        </span>
                       </button>
                     )}
                     {showBody && (
@@ -339,7 +343,7 @@ export function Timeline(props: TimelineProps) {
                       aria-label={t("replyNamed", { name })}
                       onClick={() => props.onReply(event)}
                     >
-                      ↩
+                      <Icon name="reply" />
                     </button>
                     <button
                       className="message-action"
@@ -348,7 +352,7 @@ export function Timeline(props: TimelineProps) {
                       aria-label={t("copy")}
                       onClick={() => void copy(event.content.body)}
                     >
-                      ⧉
+                      <Icon name="copy" />
                     </button>
                   </div>
                 </article>
@@ -364,7 +368,7 @@ export function Timeline(props: TimelineProps) {
         hidden={!showJump}
         onClick={scrollToBottom}
       >
-        {t("latest")} <span aria-hidden="true">↓</span>
+        {t("latest")} <Icon name="arrowDown" />
       </button>
       {copyStatus && (
         <div className="toast" role="status">
