@@ -21,6 +21,7 @@ export const adminMessages = {
     save: "Save policy",
     apply: "Prepare and apply",
     reload: "Reload",
+    discardReload: "Discard changes and reload",
     busy: "Working…",
     unsaved: "Unsaved changes",
     saved: "Saved revision {revision}",
@@ -57,7 +58,9 @@ export const adminMessages = {
     roomIds: "Allowed room IDs, one per line",
     delegate: "Allow Bot delegation",
     botHint:
-      "This server’s limit intersects the Bot owner’s grant, the room policy and the node’s scoped tools. Cross-server work starts disabled. Owner grants are managed by the Bot’s owner.",
+      "Configure the server ceiling for a Bot belonging to this home server. It intersects the Bot owner’s grant, the room policy and the node’s scoped tools. Owner grants are managed separately by the Bot’s owner.",
+    botScope:
+      "Current cross-server scope supports read, write, edit and read_image within the authorized task directory. Delegation is unavailable in this scope. Policies require a node with the corresponding work-authorization runtime.",
     initialRoom: "Initial room",
     revision: "Policy revision",
     activePartners: "Active partners",
@@ -135,6 +138,7 @@ export const adminMessages = {
     save: "保存策略",
     apply: "准备并应用",
     reload: "重新加载",
+    discardReload: "放弃修改并重新加载",
     busy: "处理中…",
     unsaved: "有未保存修改",
     saved: "已保存版本 {revision}",
@@ -169,7 +173,9 @@ export const adminMessages = {
     roomIds: "获准房间 ID，每行一个",
     delegate: "允许 Bot 委派",
     botHint:
-      "本服限制与 Bot 所有者授权、房间规则及节点文件范围取交集。跨服工作默认关闭；所有者授权由 Bot 主人管理。",
+      "为归属本服的 Bot 设置服务器权限上限，与所有者授权、房间规则及节点文件范围取交集。所有者授权由 Bot 主人另外管理。",
+    botScope:
+      "当前跨服范围仅支持任务授权目录内的 read、write、edit 和 read_image。此范围暂不支持委派；实际执行需要节点具备对应的工作授权运行时。",
     initialRoom: "初始房间",
     revision: "策略版本",
     activePartners: "已启用伙伴",

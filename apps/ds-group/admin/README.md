@@ -105,3 +105,7 @@ Matrix ACL 不区分端口。本轮核对官方规范及固定 Synapse 源码后
 `org.dscord.work_policy` 的 v1 content 包含 `schemaVersion/roomId/authority/issuerId/revision/enabled/localMemberAdmission/memberIds/botIds/tools`。发布者必须是本实例 `@dscord-control:<authority>`，实际 joined 且具有对应事件权限与至少 50 级管理能力。具体 state 事件门槛优先于 `state_default`。撤权、join rule、ACL 及回读成功后才发布；部分失败不发布新授权。普通房间创建者即使有管理权，也不能冒充该发布者。外部名单经当前伙伴/成员过滤；本服身份仍需实际成员关系，Bot 所有者/节点/任务授权另外取交集。联邦复制可能延迟，这不是每次工具都已核对远端最新配置的证明，执行层由 Bot 聊天继续。
 
 本切片 295 项模块通过，实际 10 项联邦场景通过，覆盖双向 Core 文件证明/字节/Range/拒绝以及工作策略发布者与版本，模型调用 0。[证据与精确范围](../artifacts/governance/media-policy-validation.json)。没有修改 Node、DSH 或任务实现。
+
+## Bot 工作入口准备
+
+独立小切片开放“Bot 工作”配置，限定本服 Bot 完整 ID、精确发起者/房间名单和 read/write/edit/read_image 四项工具上限；所有者仍需另行授权，实际执行取完整交集。当前跨服委派未实现，界面不提供 canDelegate 勾选，新建/编辑保存为 false。CAS 冲突会保留未保存草稿，用户可显式放弃后重新加载。14 项管理 API/浏览器检查与后台 TS7/构建通过。此入口由主线程在 Bot 运行时验收就绪后整合，不把配置保存当作节点执行通过。[入口验证](../artifacts/governance/bot-admin-entry-validation.json)

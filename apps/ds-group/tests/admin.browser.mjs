@@ -126,6 +126,62 @@ try {
   checks.push(
     "Room rule binds one approved identity to an explicit authority and room",
   );
+  await page.getByRole("button", { name: "Bot work", exact: true }).click();
+  await page
+    .getByLabel("Full Matrix ID", { exact: true })
+    .fill("@worker:home.test");
+  await page
+    .getByLabel("Allowed room IDs, one per line")
+    .fill("!main:home.test");
+  await page
+    .getByLabel("Allowed task requesters, one per line")
+    .fill("@bob:partner.test");
+  for (const tool of ["read", "write", "edit", "read_image"])
+    await page.getByLabel(tool, { exact: true }).check();
+  assert.equal(await page.locator('input[name="canDelegate"]').count(), 0);
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Save policy", exact: true }).click();
+  await page.getByText("Saved revision 4", { exact: true }).waitFor();
+  assert.deepEqual((await admin.governance.read()).botPolicies[0], {
+    botId: "@worker:home.test",
+    enabled: true,
+    roomIds: ["!main:home.test"],
+    requesterIds: ["@bob:partner.test"],
+    tools: ["read", "write", "edit", "read_image"],
+    canDelegate: false,
+  });
+  checks.push(
+    "Bot ceiling form saves exact home Bot, room, requester and four supported file tools without offering delegation",
+  );
+  await admin.governance.save(await admin.governance.read());
+  await page
+    .getByLabel("Full Matrix ID", { exact: true })
+    .fill("@second:home.test");
+  await page
+    .getByLabel("Allowed room IDs, one per line")
+    .fill("!main:home.test");
+  await page
+    .getByLabel("Allowed task requesters, one per line")
+    .fill("@bob:partner.test");
+  await page.getByLabel("read", { exact: true }).check();
+  await page.getByRole("button", { name: "Add", exact: true }).click();
+  await page.getByRole("button", { name: "Save policy", exact: true }).click();
+  await page
+    .getByRole("alert")
+    .getByText("Policy changed; reload before saving", { exact: true })
+    .waitFor();
+  assert.equal((await admin.governance.read()).botPolicies.length, 1);
+  await page
+    .getByRole("button", { name: "Discard changes and reload", exact: true })
+    .click();
+  await page.getByText("Saved revision 5", { exact: true }).waitFor();
+  checks.push(
+    "Stale policy CAS is rejected and explicit discard/reload restores the current server revision",
+  );
+  await page.screenshot({
+    path: path.join(output, "bot-admin-desktop.png"),
+    fullPage: true,
+  });
   await page
     .getByRole("button", { name: "Prepare and apply", exact: true })
     .click();
@@ -146,7 +202,7 @@ try {
     .selectOption("closed");
   await page.getByLabel("Attachment limit (MiB)", { exact: true }).fill("2");
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
-  await page.getByText("Saved revision 4", { exact: true }).waitFor();
+  await page.getByText("Saved revision 6", { exact: true }).waitFor();
   assert.deepEqual((await admin.governance.read()).settings, {
     registrationMode: "closed",
     maxUploadBytes: 2097152,
@@ -219,6 +275,12 @@ try {
     await page.getByRole("button", { name: "添加", exact: true }).count(),
     0,
   );
+  await page.getByRole("button", { name: "Bot 工作", exact: true }).click();
+  assert.equal(
+    await page.getByRole("button", { name: "添加", exact: true }).count(),
+    0,
+  );
+  assert.equal(await page.locator('input[name="canDelegate"]').count(), 0);
   checks.push("Auditor login hides all policy mutation controls");
   assert.deepEqual(errors, []);
   checks.push("No browser runtime errors");

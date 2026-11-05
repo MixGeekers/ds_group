@@ -28,12 +28,13 @@ const sections = [
   "partners",
   "members",
   "rooms",
+  "bots",
   "storage",
   "deployment",
   "administrators",
   "audit",
 ] as const;
-type Section = (typeof sections)[number] | "bots";
+type Section = (typeof sections)[number];
 type Collection = "partners" | "members" | "rooms" | "bots";
 const icons = {
   overview: Gauge,
@@ -181,7 +182,7 @@ function PolicyCollection({
         roomIds: lines(data.get("roomIds")),
         requesterIds: lines(data.get("requesterIds")),
         tools: data.getAll("tools"),
-        canDelegate: data.get("canDelegate") === "on",
+        canDelegate: false,
       };
     onChange({
       ...policy,
@@ -226,7 +227,10 @@ function PolicyCollection({
             </div>
             <code>{String(row[idKey])}</code>
             {Object.entries(row)
-              .filter(([key]) => ![idKey, "enabled", "name"].includes(key))
+              .filter(
+                ([key]) =>
+                  ![idKey, "enabled", "name", "canDelegate"].includes(key),
+              )
               .map(([key, val]) => (
                 <div className="admin-record-detail" key={key}>
                   <span>{key}</span>
@@ -374,7 +378,13 @@ function PolicyCollection({
           {section === "bots" && (
             <>
               <Field label={t("identity")}>
-                <input name="botId" required defaultValue={value("botId")} />
+                <input
+                  name="botId"
+                  required
+                  placeholder={`@bot:${policy.serverName}`}
+                  pattern={`@[^:\\s]+:${policy.serverName.replaceAll(".", "\\.")}`}
+                  defaultValue={value("botId")}
+                />
               </Field>
               <Field label={t("roomIds")}>
                 <textarea
@@ -391,14 +401,7 @@ function PolicyCollection({
                 />
               </Field>
               <ToolFields current={editing?.tools as string[]} />
-              <label className="admin-checkbox">
-                <input
-                  type="checkbox"
-                  name="canDelegate"
-                  defaultChecked={editing?.canDelegate === true}
-                />
-                {t("delegate")}
-              </label>
+              <p className="admin-hint">{t("botScope")}</p>
             </>
           )}
           <label className="admin-checkbox">
@@ -688,9 +691,9 @@ export default function AdminApp() {
             </span>
           </div>
           <div className="admin-actions">
-            <button disabled={busy || dirty} onClick={() => void action(load)}>
+            <button disabled={busy} onClick={() => void action(load)}>
               <RefreshCw size={16} aria-hidden="true" />
-              {t("reload")}
+              {dirty ? t("discardReload") : t("reload")}
             </button>
             {!readOnly && (
               <>
