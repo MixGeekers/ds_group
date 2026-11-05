@@ -60,7 +60,7 @@ const checks = [];
 const errors = [];
 let browser;
 let failure;
-const output = path.join(packageRoot, ".local/governance");
+const output = path.join(packageRoot, ".local/admin-consistency-review");
 await mkdir(output, { recursive: true });
 await writeFile(path.join(output, "capture-origin.json"), JSON.stringify({ base, synthetic: true, transient: true }, null, 2) + "\n");
 try {
@@ -113,6 +113,20 @@ try {
   checks.push(
     "Partner form persists an explicit domain and updates the revision",
   );
+  await page.getByRole("button", { name: "Remove", exact: true }).click();
+  await page.locator(".admin-confirm").getByText("Remove this entry from the draft policy?", { exact: false }).waitFor();
+  await page.screenshot({ path: path.join(output, "admin-remove-confirm-desktop.png"), animations: "disabled" });
+  await page.getByRole("button", { name: "Cancel", exact: true }).click();
+  assert.equal(await page.getByText("Unsaved changes", { exact: true }).count(), 0);
+  await page.getByRole("button", { name: "Remove", exact: true }).click();
+  await page.getByRole("button", { name: "Confirm removal", exact: true }).click();
+  await page.getByText("Unsaved changes", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Administrators", exact: true }).click();
+  await page.getByRole("button", { name: "Open policy", exact: true }).click();
+  await page.getByRole("heading", { name: "Partner servers", exact: true }).waitFor();
+  await page.getByRole("button", { name: "Discard changes and reload", exact: true }).click();
+  await page.getByText("Saved revision 1", { exact: true }).waitFor();
+  checks.push("Removal requires confirmation and unsaved policy remains visible across sections");
   await page.getByRole("button", { name: "Admission", exact: true }).click();
   await page.getByLabel("Display name", { exact: true }).fill("Bob");
   await page
@@ -121,6 +135,13 @@ try {
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
   await page.getByText("Saved revision 2", { exact: true }).waitFor();
+  assert.equal(await page.locator(".admin-section-layout > .admin-list-panel").count(), 1);
+  assert.equal(await page.locator(".admin-section-layout > .admin-editor").count(), 1);
+  const [listBox, editorBox] = await Promise.all([
+    page.locator(".admin-list-panel").boundingBox(),
+    page.locator(".admin-editor").boundingBox(),
+  ]);
+  assert.ok(listBox && editorBox && editorBox.x > listBox.x + listBox.width);
   checks.push(
     "Admission keeps the external member’s complete original Matrix ID",
   );
@@ -134,6 +155,8 @@ try {
     return item.left >= frame.left && item.right <= frame.right;
   });
   await page.screenshot({ path: path.join(output, "admin-admission-mobile-long-id-en.png"), fullPage: true });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  checks.push("Admission list and editor align as columns on desktop; long Matrix ID fits mobile viewport");
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("button", { name: "Room rules", exact: true }).click();
   await page.getByLabel("Display name", { exact: true }).fill("Shared room");
@@ -217,6 +240,7 @@ try {
   await page
     .getByText("Synthetic service fixture: Synapse not running")
     .waitFor();
+  await page.screenshot({ path: path.join(output, "admin-application-error-desktop.png"), animations: "disabled" });
   assert.equal(
     await page.getByText("Live policy observed", { exact: true }).count(),
     0,
@@ -237,14 +261,22 @@ try {
     maxUploadBytes: 2097152,
   });
   checks.push("Deployment controls persist registration and upload policy");
+  await page.getByRole("button", { name: "Prepare and apply", exact: true }).click();
+  await page.getByLabel("Language", { exact: true }).selectOption("zh-CN");
+  await page.getByRole("button", { name: "概览", exact: true }).click();
+  await page.getByText("部分应用", { exact: true }).waitFor();
+  await page.getByLabel("语言", { exact: true }).selectOption("en");
+  checks.push("Chinese overview localizes the observed partial application state");
   await page
     .getByRole("button", { name: "Administrators", exact: true })
     .click();
+  await page.getByRole("button", { name: "Open policy", exact: true }).waitFor();
+  checks.push("Pending federation application has a compact route back to policy controls");
   await page.screenshot({ path: path.join(output, "admin-administrators-desktop.png"), animations: "disabled" });
   await page.getByRole("checkbox", { name: "Enabled", exact: true }).click();
   assert.equal(await page.getByRole("checkbox", { name: "Enabled", exact: true }).getAttribute("aria-checked"), "false");
-  await page.locator("form.admin-card").evaluate((form) => form.reset());
-  await page.waitForFunction(() => document.querySelector('form.admin-card [role="checkbox"]')?.getAttribute('aria-checked') === 'true');
+  await page.locator("form.admin-editor").evaluate((form) => form.reset());
+  await page.waitForFunction(() => document.querySelector('form.admin-editor [role="checkbox"]')?.getAttribute('aria-checked') === 'true');
   assert.equal(await page.getByRole("checkbox", { name: "Enabled", exact: true }).getAttribute("aria-checked"), "true");
   await page.getByLabel("Administrator", { exact: true }).fill("auditor");
   await page.getByLabel("Role", { exact: true }).selectOption("auditor");
@@ -258,7 +290,9 @@ try {
   assert.equal(await page.getByRole("checkbox", { name: "Enabled", exact: true }).getAttribute("aria-checked"), "true");
   checks.push("Owner can create an independent read-only administrator");
   await page.getByRole("button", { name: "Audit", exact: true }).click();
+  await page.getByRole("button", { name: "Open policy", exact: true }).click();
   await page.getByRole("button", { name: "Reload", exact: true }).click();
+  await page.getByRole("button", { name: "Audit", exact: true }).click();
   await page.getByText("policy.save", { exact: true }).first().waitFor();
   assert.equal(
     await page
@@ -272,7 +306,7 @@ try {
   await page.getByLabel("外观", { exact: true }).selectOption("dark");
   assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
   checks.push(
-    "Chinese translation and dark appearance use the shared preferences and tokens",
+    "Chinese translation and dark appearance use shared preferences and tokens",
   );
   await page.getByRole("button", { name: "伙伴服务器", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
@@ -318,6 +352,9 @@ try {
     await page.getByRole("button", { name: "添加", exact: true }).count(),
     0,
   );
+  assert.equal(await page.locator(".admin-section-layout.is-single").count(), 1);
+  await page.getByRole("button", { name: "管理员", exact: true }).click();
+  assert.equal(await page.locator(".admin-section-layout.is-single").count(), 1);
   await page.getByRole("button", { name: "Bot 工作", exact: true }).click();
   assert.equal(
     await page.getByRole("button", { name: "添加", exact: true }).count(),
