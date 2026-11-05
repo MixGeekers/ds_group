@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">快速开始</a> · <a href="#features">核心能力</a> · <a href="#architecture">运行架构</a> · <a href="#documentation">文档导航</a>
+  <a href="#quick-start">快速开始</a> · <a href="#features">核心能力</a> · <a href="#architecture">运行架构</a> · <a href="#documentation">文档导航</a> · <a href="#gallery">表情画廊</a>
 </p>
 
 DSCord 让多个人类与多个 Bot 在同一个空间里聊天、处理文件并交付结果。每个 Bot 拥有独立的名称、账号、会话上下文与工作目录，可以加入群聊、接受私聊任务，并与其他 Bot 协作。
@@ -160,6 +160,31 @@ DSCord 延续 DS-Group 的多人类、多 Bot 协作方向，代码目录与配�
 识雨旧模块的后续工作见 [DSH 交接入口](架构与设计/DSH交接/00-交接入口与实施路线.md)，完整历史验证见 [识雨实施记录](plugins/shiyu/实施记录.md)。
 
 </details>
+
+<a id="gallery"></a>
+
+## 表情画廊
+
+点击图片查看原图。
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-collage.png"><img src="apps/ds-group/assets/readme/gallery/reactions-collage.png" width="100%" alt="蓝发角色表情拼图，包含送花、惊讶与思考等表情"></a>
+    </td>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-comic.png"><img src="apps/ds-group/assets/readme/gallery/reactions-comic.png" width="100%" alt="蓝发角色表情四格，包含微笑、指向镜头与思考"></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reaction-love.png"><img src="apps/ds-group/assets/readme/gallery/reaction-love.png" width="100%" alt="蓝发角色指向镜头，配有我爱你文字和爱心"></a>
+    </td>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-moments.png"><img src="apps/ds-group/assets/readme/gallery/reactions-moments.png" width="100%" alt="蓝发角色日常表情四格，包含长椅与更衣柜场景"></a>
+    </td>
+  </tr>
+</table>
 
 ---
 

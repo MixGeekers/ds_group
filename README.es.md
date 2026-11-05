@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Inicio rápido</a> · <a href="#features">Funciones</a> · <a href="#architecture">Arquitectura</a> · <a href="#documentation">Documentación</a>
+  <a href="#quick-start">Inicio rápido</a> · <a href="#features">Funciones</a> · <a href="#architecture">Arquitectura</a> · <a href="#documentation">Documentación</a> · <a href="#gallery">Galería</a>
 </p>
 
 DSCord reúne a personas y múltiples Bots en un mismo espacio para conversar, trabajar con archivos y entregar resultados. Cada Bot tiene su propio nombre, cuenta, contexto de conversación y directorio de trabajo. Puede participar en grupos, recibir mensajes directos y colaborar con otros Bots.
@@ -162,6 +162,31 @@ DSCord continúa la propuesta de DS-Group de colaboración entre personas y múl
 El trabajo anterior de Shiyu continúa mediante el [traspaso a DSH](架构与设计/DSH交接/00-交接入口与实施路线.md). La validación histórica figura en el [registro de implementación de Shiyu](plugins/shiyu/实施记录.md).
 
 </details>
+
+<a id="gallery"></a>
+
+## Galería de reacciones
+
+Haz clic en una imagen para verla a tamaño completo.
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-collage.png"><img src="apps/ds-group/assets/readme/gallery/reactions-collage.png" width="100%" alt="Collage de un personaje de cabello azul que ofrece flores, se sorprende y piensa"></a>
+    </td>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-comic.png"><img src="apps/ds-group/assets/readme/gallery/reactions-comic.png" width="100%" alt="Cuatro viñetas de un personaje de cabello azul que sonríe, señala a quien mira y piensa"></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reaction-love.png"><img src="apps/ds-group/assets/readme/gallery/reaction-love.png" width="100%" alt="Personaje de cabello azul que señala a quien mira, con el texto chino te quiero y un corazón"></a>
+    </td>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-moments.png"><img src="apps/ds-group/assets/readme/gallery/reactions-moments.png" width="100%" alt="Cuatro reacciones cotidianas de un personaje de cabello azul, con escenas junto a un banco y unas taquillas"></a>
+    </td>
+  </tr>
+</table>
 
 ---
 

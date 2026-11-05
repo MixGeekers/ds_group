@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a> · <a href="#features">Features</a> · <a href="#architecture">Architecture</a> · <a href="#documentation">Documentation</a>
+  <a href="#quick-start">Quick start</a> · <a href="#features">Features</a> · <a href="#architecture">Architecture</a> · <a href="#documentation">Documentation</a> · <a href="#gallery">Gallery</a>
 </p>
 
 DSCord brings people and multiple Bots into one space to chat, work with files, and deliver results. Each Bot has its own name, account, conversation context, and workspace. Bots can join group conversations, receive direct messages, and collaborate with other Bots.
@@ -162,6 +162,31 @@ DSCord continues DS-Group's direction of collaboration between people and multip
 Earlier Shiyu work continues through the [DSH handoff](架构与设计/DSH交接/00-交接入口与实施路线.md). Historical validation is recorded in the [Shiyu implementation log](plugins/shiyu/实施记录.md).
 
 </details>
+
+<a id="gallery"></a>
+
+## Reaction gallery
+
+Select an image to view it at full size.
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-collage.png"><img src="apps/ds-group/assets/readme/gallery/reactions-collage.png" width="100%" alt="A collage of a blue-haired character offering flowers, looking surprised, and thinking"></a>
+    </td>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-comic.png"><img src="apps/ds-group/assets/readme/gallery/reactions-comic.png" width="100%" alt="Four panels of a blue-haired character smiling, pointing at the viewer, and thinking"></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reaction-love.png"><img src="apps/ds-group/assets/readme/gallery/reaction-love.png" width="100%" alt="A blue-haired character pointing at the viewer with Chinese text saying I love you and a heart"></a>
+    </td>
+    <td width="50%" align="center" valign="middle">
+      <a href="apps/ds-group/assets/readme/gallery/reactions-moments.png"><img src="apps/ds-group/assets/readme/gallery/reactions-moments.png" width="100%" alt="Four everyday reactions of a blue-haired character, including scenes by a bench and lockers"></a>
+    </td>
+  </tr>
+</table>
 
 ---
 
