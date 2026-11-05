@@ -29,6 +29,7 @@ export interface ShellProps {
   canCreateRoom?: boolean;
   canInvite?: boolean;
   ownedBots: Participant[];
+  openingDirectId: string | null;
   mentionables: Mentionables;
   status: ServerStatus | null;
   view: "home" | "chat" | "bots";
@@ -36,7 +37,7 @@ export interface ShellProps {
   mentionCount: number;
   showTaskHistory: boolean;
   onRoom(room: Room): void;
-  onDirect(id: string): void;
+  onDirect(id: string): Promise<void> | void;
   onHome(): void;
   onBots(): void;
   onServer(serverName: string): void;
@@ -89,6 +90,9 @@ function presenceClass(status?: string) {
 export function Shell(props: ShellProps) {
   const t = useTranslation(shellMessages);
   const [channelsOpen, setChannelsOpen] = useState(false);
+  const [mobileNavigation, setMobileNavigation] = useState(
+    () => window.matchMedia("(max-width: 760px)").matches,
+  );
   const [desktop, setDesktop] = useState(() => window.innerWidth > 1180);
   const [membersOpen, setMembersOpen] = useState(
     () => window.innerWidth > 1180,
@@ -113,6 +117,7 @@ export function Shell(props: ShellProps) {
       props.room.participantIds.includes(bot.id),
   );
   const botContext = props.view === "bots" || !!selectedBot;
+  const openingBot = ownedBots.find((bot) => bot.id === props.openingDirectId);
   const contacts = participants.filter(
     (member) => member.id !== props.session?.user_id && !ownIds.has(member.id),
   );
@@ -132,6 +137,16 @@ export function Shell(props: ShellProps) {
       setDesktop(event.matches);
       setMembersOpen(event.matches);
       setChannelsOpen(false);
+    };
+    breakpoint.addEventListener("change", resize);
+    return () => breakpoint.removeEventListener("change", resize);
+  }, []);
+
+  useEffect(() => {
+    const breakpoint = window.matchMedia("(max-width: 760px)");
+    const resize = (event: MediaQueryListEvent) => {
+      setMobileNavigation(event.matches);
+      if (!event.matches) setChannelsOpen(false);
     };
     breakpoint.addEventListener("change", resize);
     return () => breakpoint.removeEventListener("change", resize);
@@ -175,7 +190,7 @@ export function Shell(props: ShellProps) {
   }
   function openDirect(id: string) {
     closePanels();
-    props.onDirect(id);
+    return props.onDirect(id);
   }
 
   function unreadBadge(room?: Room, id?: string) {
@@ -296,7 +311,7 @@ export function Shell(props: ShellProps) {
             active={botContext}
             onOpen={() => {
               if (!botContext) props.onBots();
-              if (!desktop) setChannelsOpen(true);
+              if (mobileNavigation) setChannelsOpen(true);
             }}
           />
           <div className="rail-divider rail-divider-bots" />
@@ -399,6 +414,7 @@ export function Shell(props: ShellProps) {
               bots={ownedBots}
               rooms={props.allRooms ?? props.rooms}
               selectedRoom={selectedBot ? props.room : null}
+              openingBotId={props.openingDirectId}
               onDirect={openDirect}
               onManage={props.onManageBots ?? (() => {})}
               onCreate={props.onCreateBot}
@@ -586,7 +602,9 @@ export function Shell(props: ShellProps) {
             <div className="bots-panel-empty">
               <Icon name="bot" />
               <h2>{t("myBots")}</h2>
-              <p>{t("selectBot")}</p>
+              <p id={openingBot ? "bot-open-status" : undefined} role={openingBot ? "status" : undefined}>
+                {openingBot ? t("openingBot", { name: openingBot.name }) : t("selectBot")}
+              </p>
             </div>
           </section>
           <div hidden={props.view !== "chat"} style={{ display: "contents" }}>

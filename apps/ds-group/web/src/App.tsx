@@ -159,6 +159,7 @@ export default function App({
   const [status, setStatus] = useState<ServerStatus | null>(null);
   const [mentionCount, setMentionCount] = useState(0);
   const [view, setView] = useState<"home" | "chat" | "bots">("chat");
+  const [openingDirectId, setOpeningDirectId] = useState<string | null>(null);
   const [showTaskHistory, setShowTaskHistory] = useState(false);
   const [loginOpen, setLoginOpen] = useState(!session);
   const [loginBusy, setLoginBusy] = useState(false);
@@ -402,6 +403,7 @@ export default function App({
       setRoomId(nextRoom?.roomId ?? null);
       viewRef.current = "chat";
       setView("chat");
+      setOpeningDirectId(null);
       const account = sessionRef.current;
       if (account) {
         sessionStorage.setItem(
@@ -766,6 +768,7 @@ export default function App({
         openLogin();
         return;
       }
+      setOpeningDirectId(participantId);
       try {
         const result = await api<Room>("/api/dm", {
           method: "POST",
@@ -808,6 +811,9 @@ export default function App({
           viewRef.current === sourceView &&
           directRequestRef.current === requestId
         ) notify(messageOf(reason));
+      } finally {
+        if (directRequestRef.current === requestId)
+          setOpeningDirectId(null);
       }
     },
     [api, displayName, notify, openLogin, navigate, ownedBots, refresh, t],
@@ -1192,6 +1198,7 @@ export default function App({
         currentUser={currentUser}
         connection={connection}
         ownedBots={ownedBots}
+        openingDirectId={openingDirectId}
         mentionables={joinedMentionables}
         status={status}
         view={view}
@@ -1205,10 +1212,11 @@ export default function App({
           room.permissions?.inviteMembers === true
         }
         onRoom={selectRoom}
-        onDirect={(id) => void openDirect(id)}
+        onDirect={(id) => openDirect(id)}
         onHome={() => {
           viewRef.current = "home";
           setView("home");
+          setOpeningDirectId(null);
         }}
         onBots={() => {
           const account = sessionRef.current;

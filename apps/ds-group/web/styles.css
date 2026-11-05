@@ -34,6 +34,7 @@ input:focus-visible, select:focus-visible { outline: var(--focus-width) solid va
 .global-bot-identity { display: grid; gap: 2px; flex: 1; min-width: 0; }
 .global-bot-identity strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--font-size-compact); }
 .global-bot-identity small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--color-text-muted); font-size: var(--font-size-xs); font-weight: normal; }
+.global-bot-opening { color: var(--color-text-secondary); font-size: var(--font-size-xs); white-space: nowrap; }
 .global-bots-actions { display: grid; gap: var(--space-2); flex: 0 0 auto; padding: var(--space-6) var(--space-4) max(var(--space-7),env(safe-area-inset-bottom)); border-top: 1px solid var(--color-border-subtle); }
 .global-bots-actions .ds-button { display: inline-flex; align-items: center; justify-content: flex-start; gap: var(--space-4); min-width: 0; padding-inline: var(--space-5); font-size: var(--font-size-xs); }
 .global-bots-actions .icon { width: 15px; height: 15px; }

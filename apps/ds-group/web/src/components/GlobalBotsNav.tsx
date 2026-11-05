@@ -53,6 +53,7 @@ export function GlobalBotsSidebar({
   bots,
   rooms,
   selectedRoom,
+  openingBotId,
   onDirect,
   onManage,
   onCreate,
@@ -60,7 +61,8 @@ export function GlobalBotsSidebar({
   bots: Participant[];
   rooms: Room[];
   selectedRoom: Room | null;
-  onDirect(id: string): void;
+  openingBotId: string | null;
+  onDirect(id: string): Promise<void> | void;
   onManage(): void;
   onCreate(): void;
 }) {
@@ -81,6 +83,8 @@ export function GlobalBotsSidebar({
               data-owned-bot-id={bot.id}
               title={bot.id}
               aria-current={selected ? "page" : undefined}
+              aria-busy={openingBotId === bot.id}
+              disabled={openingBotId === bot.id}
               onClick={() => onDirect(bot.id)}
             >
               <span className={`avatar avatar-bot${index % 2 ? " avatar-alternate" : ""}`} aria-hidden="true">
@@ -90,6 +94,9 @@ export function GlobalBotsSidebar({
                 <strong>{bot.name}</strong>
                 <small>{bot.id}</small>
               </span>
+              {openingBotId === bot.id && (
+                <span className="global-bot-opening">{t("opening")}</span>
+              )}
               {!!direct?.mentionCount && (
                 <span className="unread-badge">
                   {direct.mentionCount > 99 ? "99+" : direct.mentionCount}

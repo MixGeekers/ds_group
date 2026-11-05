@@ -1061,7 +1061,16 @@ try {
   await page.locator("#additional-rooms .room-item").filter({ hasText: "Project" }).click();
   await page.locator("#room-title").filter({ hasText: "Project" }).waitFor();
   assert.equal(new URL(page.url()).searchParams.get("roomId"), secondHomeRoom);
+  await page.setViewportSize({ width: 986, height: 822 });
   await page.locator("#global-bots-button").click();
+  assert.equal(await page.locator("#panel-backdrop").isHidden(), true);
+  assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).evaluate((button) => {
+    const box = button.getBoundingClientRect();
+    const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    return hit === button || button.contains(hit);
+  }), true);
+  await page.screenshot({ path: path.join(output, "medium-owned-bot-navigation.png"), animations: "disabled" });
+  checks.push("mediumViewportBotEntryLeavesSidebarClickableWithoutBackdrop");
 
   assert.deepEqual(
     await page.locator("#owned-bots [data-owned-bot-id]").evaluateAll((elements) =>
@@ -1071,8 +1080,26 @@ try {
   );
   assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${otherOwnersBotId}"]`).count(), 0);
   assert.equal(await page.locator(".server-list .server-icon.active").count(), 0);
+  let firstDirectStarted;
+  const firstPendingDirect = new Promise((resolve) => { firstDirectStarted = resolve; });
+  let releaseFirstDirect;
+  state.delayedDirect = {
+    participantId: botId,
+    started: firstDirectStarted,
+    wait: new Promise((resolve) => { releaseFirstDirect = resolve; }),
+  };
   await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).click();
+  await firstPendingDirect;
+  await page.waitForTimeout(3200);
+  assert.equal(await page.locator("#bots-panel").isVisible(), true);
+  assert.match(await page.locator("#bot-open-status").textContent(), /Opening your conversation with Helper/);
+  assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).getAttribute("aria-busy"), "true");
+  await page.screenshot({ path: path.join(output, "desktop-owned-bot-opening.png"), animations: "disabled" });
+  releaseFirstDirect();
   await page.locator("#room-title").filter({ hasText: "Helper" }).waitFor();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).getAttribute("aria-busy"), "false");
+  checks.push("pendingOwnedBotDmShowsProgressAcrossBackgroundPollThenOpens");
   assert.equal(new URL(page.url()).searchParams.get("server"), "home.test");
   assert.equal(new URL(page.url()).searchParams.get("roomId"), "!dm-bot-owned:home.test");
   assert.equal(await page.locator("#room-subtitle").textContent(), botId);
