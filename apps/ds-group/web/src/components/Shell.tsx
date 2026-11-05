@@ -275,7 +275,7 @@ export function Shell(props: ShellProps) {
               props.onHome();
             }}
           >
-            <img src="/icons/icon-192.png" alt="DSCord" width={48} height={48} />
+            <span className="brand-mark" aria-hidden="true" />
           </button>
           <div className="rail-divider" />
           <div className="server-list">

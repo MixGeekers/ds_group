@@ -14,8 +14,9 @@ input:focus-visible, select:focus-visible { outline: var(--focus-width) solid va
 .server-list::-webkit-scrollbar { display: none; }
 .server-icon { position: relative; flex-shrink: 0; width: 48px; height: 48px; border: 0; border-radius: var(--radius-round); background: var(--color-bg-primary); color: var(--color-text-normal); font-size: var(--font-size-lg); font-weight: var(--font-weight-bold); transition: border-radius var(--motion-fast),background var(--motion-fast); }
 .server-icon:hover, .server-icon.active { border-radius: var(--radius-server); background: var(--accent); color: var(--color-text-on-accent); }
-.server-home { padding: 0; }
-.server-home img { display: block; width: 100%; height: 100%; border-radius: inherit; }
+.server-home,.server-home:hover,.server-home.active { padding: 0; background: transparent; color: var(--color-text-secondary); }
+.server-home:hover,.server-home.active { color: var(--color-text-primary); }
+.brand-mark { display: block; width: 48px; height: 48px; background: currentColor; mask: url("/icons/mark-128.png") center / contain no-repeat; }
 .server-add { color: var(--color-status-success); font-size: 28px; font-weight: 400; }
 .server-add:hover { background: var(--color-status-success); }
 .server-icon.active::before { content: ''; position: absolute; width: 4px; height: 38px; left: -12px; top: 5px; background: var(--color-text-primary); border-radius: 0 4px 4px 0; }

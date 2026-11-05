@@ -16,6 +16,7 @@ const SHELL_PATHS = [
   "/manifest.webmanifest",
   "/icons/favicon.ico",
   "/icons/favicon-32.png",
+  "/icons/mark-128.png",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/apple-touch-icon.png",

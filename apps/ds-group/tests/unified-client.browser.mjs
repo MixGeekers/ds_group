@@ -630,9 +630,12 @@ try {
 
   assert.equal(await page.locator(".server-rail #identity-button").count(), 1);
   assert.equal(await page.locator(".identity-bar").count(), 0);
-  assert.ok(await page.locator("#home-button img").evaluate((image) =>
-    image.complete && image.naturalWidth === 192,
+  assert.ok(await page.locator("#home-button .brand-mark").evaluate((mark) =>
+    getComputedStyle(mark).maskImage.includes("mark-128"),
   ));
+  assert.equal(await page.locator("#home-button").evaluate((button) =>
+    getComputedStyle(button).backgroundColor,
+  ), "rgba(0, 0, 0, 0)");
   assert.ok(await page.locator("#identity-button").evaluate((button) => {
     const box = button.getBoundingClientRect();
     return box.left < 24 && box.bottom > innerHeight - 24;
@@ -656,6 +659,9 @@ try {
   assert.equal(await page.locator("#settings-button").textContent(), "个人设置");
   await page.locator("#account-theme-select").selectOption("light");
   await page.locator('#account-menu [data-color="teal"]').click();
+  assert.equal(await page.locator("#home-button .brand-mark").evaluate((mark) =>
+    getComputedStyle(mark).backgroundColor,
+  ), "rgb(78, 80, 88)");
   assert.equal(await page.locator("html").getAttribute("data-accent"), "teal");
   await page.waitForFunction(() =>
     getComputedStyle(document.querySelector(".server-list .server-icon.active")).backgroundColor
@@ -689,6 +695,9 @@ try {
     && document.documentElement.dataset.theme === "dark"
     && document.documentElement.lang === "en",
   );
+  assert.equal(await page.locator("#home-button .brand-mark").evaluate((mark) =>
+    getComputedStyle(mark).backgroundColor,
+  ), "rgb(181, 186, 193)");
   assert.equal(await page.locator('#account-menu [data-color="rose"]').getAttribute("aria-pressed"), "true");
   assert.equal(await page.locator("#account-theme-select").inputValue(), "dark");
   assert.equal(await page.locator("#account-language-select").inputValue(), "en");
