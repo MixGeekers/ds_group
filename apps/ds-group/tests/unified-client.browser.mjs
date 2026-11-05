@@ -1165,7 +1165,13 @@ try {
   await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-owned:home.test");
   assert.equal(await page.locator("#message-input").textContent(), "Owned Bot draft");
   await page.locator(`#owned-bots [data-owned-bot-id="${secondBotId}"]`).click();
-  await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-foreign:home.test");
+  // Navigation updates the URL before the refreshed room list renders its identity.
+  await page.waitForFunction(
+    ({ roomId, participantId }) =>
+      new URL(location.href).searchParams.get("roomId") === roomId &&
+      document.querySelector("#room-subtitle")?.textContent === participantId,
+    { roomId: "!dm-bot-foreign:home.test", participantId: secondBotId },
+  );
   assert.equal(await page.locator("#room-subtitle").textContent(), secondBotId);
   assert.equal(await page.locator("#message-input").textContent(), "");
   assert.equal(await page.locator("#global-bots-button .server-invite-count").textContent(), "3");
