@@ -116,6 +116,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
             </button>
           ))}
         </nav>
+        <div className="dialog-scroll-region settings-panel-scroll">
         <section data-settings-panel="account" hidden={tab !== "account"}>
           <h3>{t("currentAccount")}</h3>
           <p id="settings-account" className="identity-value">
@@ -136,7 +137,33 @@ export function SettingsDialog(props: SettingsDialogProps) {
                 t("configuredByHome")}
             </dd>
           </dl>
-          <div className="settings-actions">
+        </section>
+        <section
+          data-settings-panel="notifications"
+          hidden={tab !== "notifications"}
+        >
+          <h3>{t("deviceNotifications")}</h3>
+          <p id="push-status" role="status" />
+          <label htmlFor="push-device-label">{t("deviceName")}</label>
+          <Input id="push-device-label" maxLength={80} autoComplete="off" />
+          <p id="push-feedback" className="settings-feedback" role="status" />
+          <details className="settings-help">
+            <summary>{t("mobileNotifications")}</summary>
+            <p>{t("mobileHelp")}</p>
+          </details>
+        </section>
+        <section data-settings-panel="appearance" hidden={tab !== "appearance"}>
+          <h3>{t("appearanceLanguage")}</h3>
+          <AppearanceControls />
+          <h3>{t("installApp")}</h3>
+          <p id="install-status" role="status" />
+          <p id="install-help" className="settings-feedback" />
+          <h3>{t("connection")}</h3>
+          <p id="offline-status" />
+        </section>
+        </div>
+        <footer className="dialog-footer settings-dialog-footer">
+          <div className="settings-actions" hidden={tab !== "account"}>
             <Button
               id="switch-account"
               variant="secondary"
@@ -158,16 +185,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
               </Button>
             )}
           </div>
-        </section>
-        <section
-          data-settings-panel="notifications"
-          hidden={tab !== "notifications"}
-        >
-          <h3>{t("deviceNotifications")}</h3>
-          <p id="push-status" role="status" />
-          <label htmlFor="push-device-label">{t("deviceName")}</label>
-          <Input id="push-device-label" maxLength={80} autoComplete="off" />
-          <div className="settings-actions">
+          <div className="settings-actions" hidden={tab !== "notifications"}>
             <Button id="enable-push" type="button">
               {t("enableNotifications")}
             </Button>
@@ -178,27 +196,15 @@ export function SettingsDialog(props: SettingsDialogProps) {
               {t("testNotification")}
             </Button>
           </div>
-          <p id="push-feedback" className="settings-feedback" role="status" />
-          <details className="settings-help">
-            <summary>{t("mobileNotifications")}</summary>
-            <p>{t("mobileHelp")}</p>
-          </details>
-        </section>
-        <section data-settings-panel="appearance" hidden={tab !== "appearance"}>
-          <h3>{t("appearanceLanguage")}</h3>
-          <AppearanceControls />
-          <h3>{t("installApp")}</h3>
-          <p id="install-status" role="status" />
-          <Button id="install-app" type="button">
-            {t("install")}
-          </Button>
-          <p id="install-help" className="settings-feedback" />
-          <h3>{t("connection")}</h3>
-          <p id="offline-status" />
-          <Button id="refresh-app" variant="secondary" type="button">
-            {t("reload")}
-          </Button>
-        </section>
+          <div className="settings-actions" hidden={tab !== "appearance"}>
+            <Button id="install-app" type="button">
+              {t("install")}
+            </Button>
+            <Button id="refresh-app" variant="secondary" type="button">
+              {t("reload")}
+            </Button>
+          </div>
+        </footer>
       </DialogContent>
     </Dialog>
   );

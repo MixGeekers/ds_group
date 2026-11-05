@@ -228,6 +228,7 @@ export function AuthDialog({
             <Icon name="close" />
           </Button>
         </div>
+        <div className="dialog-scroll-region">
         <label htmlFor="login-user">{t("username")}</label>
         <Input
           id="login-user"
@@ -342,6 +343,8 @@ export function AuthDialog({
         >
           {visibleError}
         </div>
+        </div>
+        <footer className="dialog-footer">
         <Button
           variant="default"
           id="login-submit"
@@ -371,6 +374,7 @@ export function AuthDialog({
             {t(registering ? "backToSignIn" : "createAccount")}
           </Button>
         )}
+        </footer>
       </form>
     </dialog>
   );

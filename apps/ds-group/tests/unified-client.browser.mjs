@@ -13,12 +13,16 @@ const records = [];
 const assetRequests = [];
 const trapRequests = [];
 const routeFailures = [];
+let layoutGeometry = null;
 const privateRouteJobs = new Set();
 const servers = [];
 const output = path.join(packageRoot, ".local/unified-client-browser");
 const homeUser = "@alice:home.test";
 const botId = "@bot-owned:home.test";
+const secondBotId = "@bot-foreign:a.test";
+const otherOwnersBotId = "@bot-other:a.test";
 const homeRoom = "!general:home.test";
+const secondHomeRoom = "!project:home.test";
 const aRoom = "!same:a.test";
 const bRoom = "!same:b.test";
 const deniedRoom = "!denied:c.test";
@@ -28,17 +32,23 @@ const people = [
   { id: "@bob:a.test", name: "Bob", kind: "human" },
   { id: "@bob:b.test", name: "Bob", kind: "human" },
   { id: botId, name: "Helper", kind: "bot", ownerId: homeUser },
-  { id: "@bot-foreign:a.test", name: "Helper", kind: "bot", ownerId: homeUser },
+  { id: secondBotId, name: "Helper", kind: "bot", ownerId: homeUser },
+  { id: otherOwnersBotId, name: "Helper", kind: "bot", ownerId: "@bob:a.test" },
 ];
 const room = (roomId, name) => ({
   roomId,
   name,
   kind: "group",
-  participantIds: people.map((person) => person.id),
+  participantIds: people
+    .filter((person) => person.kind === "human" ||
+      (roomId === homeRoom && person.id === botId) ||
+      (roomId === aRoom && person.id === secondBotId))
+    .map((person) => person.id),
   permissions: { inviteMembers: roomId === homeRoom },
 });
 const roomRows = [
   room(homeRoom, "General"),
+  room(secondHomeRoom, "Project"),
   room(aRoom, "A channel"),
   room(bRoom, "B channel"),
 ];
@@ -54,7 +64,7 @@ const events = new Map(
         origin_server_ts: Date.now(),
         content: {
           body: `${row.name} message`,
-          ...(row.roomId === homeRoom
+          ...([homeRoom, secondHomeRoom].includes(row.roomId)
             ? {}
             : {
                 "org.ds_group": {
@@ -74,7 +84,7 @@ const events = new Map(
   ]),
 );
 const state = {
-  joined: new Set([homeRoom, aRoom]),
+  joined: new Set([homeRoom, secondHomeRoom, aRoom]),
   tokens: new Map([["legacy-fixture-token", homeUser]]),
   uploads: [],
   messages: [],
@@ -86,7 +96,8 @@ const state = {
   holdMessage: false,
   delayedMessages: null,
   aRestricted: false,
-  direct: null,
+  directRooms: new Map(),
+  delayedDirect: null,
 };
 let clientOrigin;
 let homeOrigin;
@@ -139,10 +150,11 @@ function spaces(userId) {
         home: true,
         status: "connected",
         rooms: [...state.joined]
-          .filter((id) => [homeRoom, state.direct?.roomId].includes(id))
+          .filter((id) => [homeRoom, secondHomeRoom, ...[...state.directRooms.values()].map((room) => room.roomId)].includes(id))
           .map((roomId) => ({
             roomId,
-            name: roomId === homeRoom ? "General" : "Bob",
+            name: roomId === homeRoom ? "General" : roomId === secondHomeRoom ? "Project" :
+              [...state.directRooms.values()].find((room) => room.roomId === roomId)?.name ?? "Direct message",
             status: "joined",
             canSend: true,
           })),
@@ -294,7 +306,7 @@ async function apiHandler(request, response, origin = homeOrigin) {
       user: people.find((person) => person.id === userId),
       ownedBots:
         userId === homeUser
-          ? [people.find((person) => person.id === botId)]
+          ? [people.find((person) => person.id === botId), people.find((person) => person.id === secondBotId)]
           : [],
       identity: identity(userId),
       home: publicConfig(origin).home,
@@ -328,7 +340,7 @@ async function apiHandler(request, response, origin = homeOrigin) {
   }
   if (url.pathname === "/api/rooms")
     return json(response, 200, {
-      rooms: [...roomRows, ...(state.direct ? [state.direct] : [])].filter(
+      rooms: [...roomRows, ...state.directRooms.values()].filter(
         (row) => state.joined.has(row.roomId),
       ),
     });
@@ -344,15 +356,22 @@ async function apiHandler(request, response, origin = homeOrigin) {
     return json(response, 200, { events: [], unreadCount: 0, mentionCount: 0 });
   if (url.pathname === "/api/dm") {
     const input = JSON.parse(await readBody(request));
-    state.direct = {
-      roomId: "!personal-dm:home.test",
-      name: "Bob",
+    const direct = state.directRooms.get(input.participantId) ?? {
+      roomId: `!dm-${input.participantId.slice(1).split(":")[0]}:home.test`,
+      name: people.find((person) => person.id === input.participantId)?.name ?? "Direct message",
       kind: "direct",
       participantIds: [userId, input.participantId],
+      mentionCount: input.participantId === secondBotId ? 3 : 0,
     };
-    state.joined.add(state.direct.roomId);
-    events.set(state.direct.roomId, []);
-    return json(response, 200, state.direct);
+    state.directRooms.set(input.participantId, direct);
+    state.joined.add(direct.roomId);
+    if (!events.has(direct.roomId)) events.set(direct.roomId, []);
+    if (state.delayedDirect?.participantId === input.participantId) {
+      state.delayedDirect.started();
+      await state.delayedDirect.wait;
+      state.delayedDirect = null;
+    }
+    return json(response, 200, direct);
   }
   if (url.pathname === "/api/attachments" && request.method === "POST") {
     const bytes = await readBody(request);
@@ -633,7 +652,7 @@ try {
   await page.locator("#room-dialog[open]").waitFor();
   assert.deepEqual(
     await page.locator("#room-choices .room-choice-identity .member-full-id").allTextContents(),
-    ["@bob:home.test", "@bob:a.test", "@bob:b.test", "@bot-owned:home.test", "@bot-foreign:a.test"],
+    ["@bob:home.test", "@bob:a.test", "@bob:b.test", botId, secondBotId],
   );
   await page.screenshot({ path: path.join(output, "forms-create-room-desktop.png"), animations: "disabled" });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -641,6 +660,7 @@ try {
   await page.screenshot({ path: path.join(output, "forms-create-room-mobile.png"), animations: "disabled" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator("#close-room-dialog").click();
+  await page.locator("#global-bots-button").click();
   await page.locator("#create-bot-button").click();
   await page.locator("#create-bot-dialog[open]").waitFor();
   await page.screenshot({ path: path.join(output, "forms-create-bot-desktop.png"), animations: "disabled" });
@@ -648,6 +668,7 @@ try {
   await page.screenshot({ path: path.join(output, "forms-create-bot-mobile.png"), animations: "disabled" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator("#close-create-bot").click();
+  await page.locator('[data-server="home.test"]').click();
   await page.locator("#room-notifications-button").click();
   await page.locator("#notification-dialog[open]").waitFor();
   await page.screenshot({ path: path.join(output, "forms-room-notifications-desktop.png"), animations: "disabled" });
@@ -784,6 +805,29 @@ try {
   await page.locator("#spaces-dialog").waitFor({ state: "hidden" });
   await page.locator("#room-title").filter({ hasText: "B channel" }).waitFor();
   await page.getByText("B channel message", { exact: true }).waitFor();
+  layoutGeometry = await page.evaluate(() => {
+    const box = (selector) => {
+      const rect = document.querySelector(selector).getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height,
+        centerY: rect.y + rect.height / 2 };
+    };
+    return {
+      header: box(".conversation-header"),
+      message: box(".message:not(.grouped)"),
+      avatar: box(".message:not(.grouped) .message-avatar-button"),
+      body: box(".message:not(.grouped) .message-content"),
+      composer: box(".composer-box"),
+      attach: box(".attach-button"),
+      input: box("#message-input"),
+      send: box("#send-button"),
+    };
+  });
+  assert.ok(Math.abs(layoutGeometry.avatar.x - layoutGeometry.composer.x) <= 3);
+  assert.ok(Math.abs(layoutGeometry.body.x - layoutGeometry.input.x) <= 3);
+  assert.ok(Math.abs(layoutGeometry.attach.centerY - layoutGeometry.input.centerY) <= 2);
+  assert.ok(Math.abs(layoutGeometry.send.centerY - layoutGeometry.input.centerY) <= 2);
+  await page.screenshot({ path: path.join(output, "desktop-server-with-bot-rail.png"), animations: "disabled" });
+  checks.push("messageAndComposerShareMeasuredGutterAndControlCenters");
   assert.equal(
     await page.getByText("A channel message", { exact: true }).count(),
     0,
@@ -880,6 +924,9 @@ try {
     ["account", "appearance", "notifications"],
   );
   await page.locator("#close-settings").click();
+  await page.locator("#global-bots-button").click();
+  assert.equal(await page.locator("#channel-list").isHidden(), true);
+  await page.screenshot({ path: path.join(output, "desktop-global-bots-from-server.png"), animations: "disabled" });
   await page.locator("#manage-bots-button").click();
   assert.deepEqual(
     await page
@@ -887,9 +934,9 @@ try {
       .evaluateAll((elements) =>
         elements.map((element) => element.dataset.ownedBot),
       ),
-    [botId],
+    [botId, secondBotId],
   );
-  await page.locator("[data-work-grants-button]").click();
+  await page.locator(`[data-work-grants-button="${botId}"]`).click();
   await page.waitForFunction(
     () => !document.querySelector("#add-work-grant").disabled,
   );
@@ -1009,6 +1056,88 @@ try {
   checks.push(
     "personalSettingsAndOwnedBotManagementExcludeDeploymentAndForeignBotControls",
   );
+
+  await page.locator('[data-server="home.test"]').click();
+  await page.locator("#additional-rooms .room-item").filter({ hasText: "Project" }).click();
+  await page.locator("#room-title").filter({ hasText: "Project" }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("roomId"), secondHomeRoom);
+  await page.locator("#global-bots-button").click();
+
+  assert.deepEqual(
+    await page.locator("#owned-bots [data-owned-bot-id]").evaluateAll((elements) =>
+      elements.map((element) => element.dataset.ownedBotId),
+    ),
+    [botId, secondBotId],
+  );
+  assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${otherOwnersBotId}"]`).count(), 0);
+  assert.equal(await page.locator(".server-list .server-icon.active").count(), 0);
+  await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).click();
+  await page.locator("#room-title").filter({ hasText: "Helper" }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("server"), "home.test");
+  assert.equal(new URL(page.url()).searchParams.get("roomId"), "!dm-bot-owned:home.test");
+  assert.equal(await page.locator("#room-subtitle").textContent(), botId);
+  assert.equal(await page.locator("#global-bots-button").getAttribute("aria-current"), "page");
+  assert.equal(await page.locator(".server-list .server-icon.active").count(), 0);
+  assert.equal(await page.locator("#channel-list").isHidden(), true);
+  assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).getAttribute("aria-current"), "page");
+  assert.ok(records.some((row) => row.origin === homeOrigin && row.method === "POST" && row.path === "/api/dm"));
+  await page.screenshot({ path: path.join(output, "desktop-owned-bot-dm.png"), animations: "disabled" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator("#channels-button").click();
+  await page.screenshot({ path: path.join(output, "mobile-owned-bot-navigation.png"), animations: "disabled" });
+  await page.locator("#close-channels").click();
+  await page.screenshot({ path: path.join(output, "mobile-owned-bot-dm.png"), animations: "disabled" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator("#message-input").fill("Owned Bot draft");
+  await page.waitForTimeout(220);
+  await page.locator("#global-bots-button").click();
+  assert.equal(new URL(page.url()).searchParams.get("roomId"), "!dm-bot-owned:home.test");
+  assert.equal(await page.locator("#message-input").textContent(), "Owned Bot draft");
+  await page.locator('[data-server="home.test"]').click();
+  await page.locator("#room-title").filter({ hasText: "Project" }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("roomId"), secondHomeRoom);
+  assert.equal(await page.locator("#global-bots-button").getAttribute("aria-current"), null);
+  assert.equal(await page.locator('[data-server="home.test"]').getAttribute("aria-current"), "page");
+  await page.locator("#global-bots-button").click();
+  await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-owned:home.test");
+  assert.equal(await page.locator("#message-input").textContent(), "Owned Bot draft");
+  await page.locator(`#owned-bots [data-owned-bot-id="${secondBotId}"]`).click();
+  await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-foreign:home.test");
+  assert.equal(await page.locator("#room-subtitle").textContent(), secondBotId);
+  assert.equal(await page.locator("#message-input").textContent(), "");
+  assert.equal(await page.locator("#global-bots-button .server-invite-count").textContent(), "3");
+  assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${secondBotId}"] .unread-badge`).textContent(), "3");
+  await page.reload();
+  await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-foreign:home.test" && document.querySelector("#room-subtitle")?.textContent === "@bot-foreign:a.test");
+  assert.equal(await page.locator("#global-bots-button").getAttribute("aria-current"), "page");
+  assert.equal(await page.locator(".server-list .server-icon.active").count(), 0);
+  await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).click();
+  await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-owned:home.test");
+  assert.equal(await page.locator("#message-input").textContent(), "Owned Bot draft");
+  checks.push("ownedBotRailUsesExactIdentityHomeDmSeparateDraftsUnreadAndReloadWithoutServerHighlight");
+
+  await page.locator('[data-server="b.test"]').click();
+  await page.locator("#global-bots-button").click();
+  await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-owned:home.test");
+  assert.equal(await page.locator("#message-input").textContent(), "Owned Bot draft");
+  checks.push("botRailRestoresRecentOwnedDmWithoutOverwritingSecondHomeChannelOrActiveDraft");
+  let directStarted;
+  const pendingDirect = new Promise((resolve) => { directStarted = resolve; });
+  let releaseDirect;
+  state.delayedDirect = {
+    participantId: secondBotId,
+    started: directStarted,
+    wait: new Promise((resolve) => { releaseDirect = resolve; }),
+  };
+  await page.locator(`#owned-bots [data-owned-bot-id="${secondBotId}"]`).click();
+  await pendingDirect;
+  await page.locator('[data-server="a.test"]').click();
+  releaseDirect();
+  await page.locator("#room-title").filter({ hasText: "A channel" }).waitFor();
+  assert.equal(new URL(page.url()).searchParams.get("server"), "a.test");
+  assert.equal(await page.locator("#global-bots-button").getAttribute("aria-current"), null);
+  assert.deepEqual(await page.locator("#room-members .member-group:last-child .member-full-id").allTextContents(), [secondBotId]);
+  checks.push("lateOwnedBotDmResponseCannotStealNewServerAndGroupMembershipRemainsExact");
 
   await page.locator('[data-server="a.test"]').click();
   await page.waitForFunction(
@@ -1263,7 +1392,8 @@ try {
     () =>
       document.querySelector("#current-id").textContent === "@bob:home.test",
   );
-  assert.equal(await page.locator("#owned-bots .contact-row").count(), 0);
+  await page.locator("#global-bots-button").click();
+  assert.equal(await page.locator("#owned-bots [data-owned-bot-id]").count(), 0);
   assert.equal(await page.locator("#message-input").textContent(), "");
   checks.push(
     "logoutReloginClearsIdentityStateAndPasswordRequestsNeverFollowRedirects",
@@ -1489,6 +1619,7 @@ try {
     modelCalls: 0,
     physicalHosts: 1,
     realBackend: false,
+    layoutGeometry,
     ...(failure ? { error: failure.stack } : {}),
   };
   await writeFile(

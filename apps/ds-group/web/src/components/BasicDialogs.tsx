@@ -206,6 +206,7 @@ export function RoomDialog({
             <Icon name="close" />
           </Button>
         </div>
+        <div className="dialog-scroll-region">
         <div id="room-name-field" hidden={isInvite}>
           <label htmlFor="new-room-name">{t("groupName")}</label>
           <Input
@@ -254,6 +255,8 @@ export function RoomDialog({
         <p id="room-form-error" className="settings-feedback" role="alert">
           {error || (restored ? t("pendingGroup") : "")}
         </p>
+        </div>
+        <footer className="dialog-footer">
         <Button
           variant="default"
           id="room-submit"
@@ -271,6 +274,7 @@ export function RoomDialog({
                 : "create",
           )}
         </Button>
+        </footer>
       </form>
     </dialog>
   );
@@ -323,6 +327,7 @@ export function MemberDialog({
       >
         <Icon name="close" />
       </Button>
+      <div className="dialog-scroll-region">
       <div id="member-dialog-avatar">
         <span
           className={`avatar avatar-${member?.kind ?? "human"}`}
@@ -366,7 +371,8 @@ export function MemberDialog({
           </span>
         ))}
       </div>
-      <div className="settings-actions">
+      </div>
+      <div className="dialog-footer settings-actions">
         <Button
           variant="default"
           id="member-dm"

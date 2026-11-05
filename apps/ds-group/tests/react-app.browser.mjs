@@ -420,7 +420,7 @@ try {
   assert.deepEqual(logoutRequests, ['alice-fixture']);
   assert.equal(await readStorage('ds-group.session'), null);
   assert.equal(await page.locator('.message').count(), 0);
-  assert.equal(await page.locator('#owned-bots .contact-row').count(), 0);
+  assert.equal(await page.locator('#owned-bots [data-owned-bot-id]').count(), 0);
   assert.equal(await page.locator('#task-history-dialog').evaluate(element => element.open), false);
   checks.push('logoutRevokesCurrentSessionAndClearsVisibleAccountState');
 
@@ -437,6 +437,7 @@ try {
   assert.equal((await readStorage('ds-group.session')).binding.homeCoreUrl, new URL(page.url()).origin);
   checks.push('newAccountRegistersAndMeSuppliesIdentityOutsideBootstrapRoster');
 
+  await page.locator('#global-bots-button').click();
   await page.locator('#create-bot-button').click();
   await page.locator('#bot-name').fill('Finance');
   await page.locator('#create-bot-submit').click();
@@ -447,7 +448,7 @@ try {
   assert.equal(botRequests[0].name, 'Finance');
   assert.equal(typeof botRequests[0].requestId, 'string');
   await page.locator('#close-create-bot').click();
-  await page.locator('#owned-bots .contact-row').filter({ hasText: 'Finance' }).waitFor();
+  await page.locator('#owned-bots [data-owned-bot-id="@bot-created:test"]').filter({ hasText: 'Finance' }).waitFor();
   assert.equal(await page.locator('#owned-bot-count').textContent(), '1');
   checks.push('newOwnerCreatesBotAndReceivesConnectionIdWithUpdatedOwnedList');
 
@@ -456,7 +457,7 @@ try {
   await page.locator('#logout-button').click();
   await page.locator('#login-dialog[open]').waitFor();
   assert.deepEqual(logoutRequests, ['alice-fixture', 'registered-fixture']);
-  assert.equal(await page.locator('#owned-bots .contact-row').count(), 0);
+  assert.equal(await page.locator('#owned-bots [data-owned-bot-id]').count(), 0);
   await page.locator('#login-user').fill('charlie-new');
   await page.locator('#login-password').fill('fixture-password');
   loginLimits.push(
@@ -481,7 +482,9 @@ try {
   checks.push('rateLimitUsesBodyOrHeaderDelayPreservesInputsAndNeverRetriesAutomatically');
   await page.locator('#login-submit').click();
   await page.locator('#login-dialog').waitFor({ state: 'hidden' });
-  await page.locator('#owned-bots .contact-row').filter({ hasText: 'Finance' }).waitFor();
+  await page.locator('#global-bots-button').click();
+  await page.locator('#owned-bots [data-owned-bot-id="@bot-created:test"]').filter({ hasText: 'Finance' }).waitFor();
+  await page.locator('[data-server="test"]').click();
   assert.deepEqual(loginRequests, Array.from({ length: 4 }, () => ({ user: 'charlie-new', password: 'fixture-password' })));
   assert.equal((await readStorage('ds-group.session')).access_token, 'registered-login-fixture');
   checks.push('passwordLoginRestoresNewAccountAndOwnedBotsAfterLogout');

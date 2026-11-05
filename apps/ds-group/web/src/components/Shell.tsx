@@ -13,6 +13,7 @@ import { useTranslation } from "../locale";
 import { shellMessages } from "../locales/shell";
 import { Icon } from "./Icons";
 import { AccountMenu } from "./AccountMenu";
+import { GlobalBotsNav, GlobalBotsSidebar } from "./GlobalBotsNav";
 import type { CollaborationSpace } from "../spaces";
 
 export interface ShellProps {
@@ -30,13 +31,14 @@ export interface ShellProps {
   ownedBots: Participant[];
   mentionables: Mentionables;
   status: ServerStatus | null;
-  view: "home" | "chat";
+  view: "home" | "chat" | "bots";
   children: ReactNode;
   mentionCount: number;
   showTaskHistory: boolean;
   onRoom(room: Room): void;
   onDirect(id: string): void;
   onHome(): void;
+  onBots(): void;
   onServer(serverName: string): void;
   onSpaces?(): void;
   onManageBots?(): void;
@@ -102,7 +104,15 @@ export function Shell(props: ShellProps) {
           kind: "human" as const,
         }
       : undefined);
-  const ownIds = new Set(props.ownedBots.map((bot) => bot.id));
+  const ownedBots = props.ownedBots.filter(
+    (bot) => bot.ownerId === props.session?.user_id,
+  );
+  const ownIds = new Set(ownedBots.map((bot) => bot.id));
+  const selectedBot = ownedBots.find(
+    (bot) => props.view === "chat" && props.room?.kind === "direct" &&
+      props.room.participantIds.includes(bot.id),
+  );
+  const botContext = props.view === "bots" || !!selectedBot;
   const contacts = participants.filter(
     (member) => member.id !== props.session?.user_id && !ownIds.has(member.id),
   );
@@ -112,9 +122,9 @@ export function Shell(props: ShellProps) {
   const otherRooms = props.rooms.filter(
     (room) => room.kind === "group" && room.roomId !== props.bootstrap?.roomId,
   );
-  const roomMembers = participants.filter((member) =>
+  const roomMembers = props.view === "chat" ? participants.filter((member) =>
     props.room?.participantIds.includes(member.id),
-  );
+  ) : [];
 
   useEffect(() => {
     const breakpoint = window.matchMedia("(min-width: 1181px)");
@@ -264,7 +274,7 @@ export function Shell(props: ShellProps) {
 
   return (
     <>
-      <div className="app-shell">
+      <div className={`app-shell${props.view === "bots" ? " bots-view" : ""}`}>
         <nav className="server-rail" aria-label={t("servers")}>
           <button
             id="home-button"
@@ -280,17 +290,27 @@ export function Shell(props: ShellProps) {
             <span className="brand-mark" aria-hidden="true" />
           </button>
           <div className="rail-divider" />
+          <GlobalBotsNav
+            bots={ownedBots}
+            rooms={props.allRooms ?? props.rooms}
+            active={botContext}
+            onOpen={() => {
+              if (!botContext) props.onBots();
+              if (!desktop) setChannelsOpen(true);
+            }}
+          />
+          <div className="rail-divider rail-divider-bots" />
           <div className="server-list">
             {(props.spaces ?? []).map((space) => (
               <button
                 key={space.serverName}
                 id={space.home ? "server-button" : undefined}
                 data-server={space.serverName}
-                className={`server-icon${props.view === "chat" && props.selectedSpace?.serverName === space.serverName ? " active" : ""}${space.status === "revoked" ? " server-revoked" : ""}`}
+                className={`server-icon${props.view === "chat" && !botContext && props.selectedSpace?.serverName === space.serverName ? " active" : ""}${space.status === "revoked" ? " server-revoked" : ""}`}
                 type="button"
                 aria-label={`${space.name} · ${space.serverName} · ${t(space.status === "revoked" ? "revoked" : space.status === "offline" ? "offline" : "accessible")}`}
                 aria-current={
-                  props.view === "chat" &&
+                  props.view === "chat" && !botContext &&
                   props.selectedSpace?.serverName === space.serverName
                     ? "page"
                     : undefined
@@ -344,6 +364,9 @@ export function Shell(props: ShellProps) {
           aria-label={t("channelsAndMessages")}
         >
           <header className="brand">
+            {botContext ? (
+              <span className="workspace-brand">{t("myBots")}</span>
+            ) : (
             <button
               className="workspace-switcher"
               type="button"
@@ -360,6 +383,7 @@ export function Shell(props: ShellProps) {
                 <Icon name="chevronDown" />
               </span>
             </button>
+            )}
             <button
               id="close-channels"
               className="icon-button mobile-close"
@@ -370,6 +394,17 @@ export function Shell(props: ShellProps) {
               <Icon name="close" />
             </button>
           </header>
+          <div className="global-bots-view" hidden={!botContext}>
+            <GlobalBotsSidebar
+              bots={ownedBots}
+              rooms={props.allRooms ?? props.rooms}
+              selectedRoom={selectedBot ? props.room : null}
+              onDirect={openDirect}
+              onManage={props.onManageBots ?? (() => {})}
+              onCreate={props.onCreateBot}
+            />
+          </div>
+          <div className="server-sidebar-content" hidden={botContext}>
           <div className="section-heading">
             <span>{t("textChannels")}</span>
             <button
@@ -394,43 +429,6 @@ export function Shell(props: ShellProps) {
             )}
           </nav>
           <div className="section-heading members-heading">
-            <span>{t("myBots")}</span>
-            <div className="section-heading-actions">
-              <button
-                id="manage-bots-button"
-                className="section-action"
-                type="button"
-                aria-label={t("manageBots")}
-                title={t("manageBots")}
-                onClick={props.onManageBots}
-              >
-                <Icon name="gear" />
-              </button>
-              <span id="owned-bot-count">
-                {props.session ? props.ownedBots.length : "—"}
-              </span>
-              <button
-                id="create-bot-button"
-                className="section-action"
-                type="button"
-                aria-label={t("createBot")}
-                title={t("createBot")}
-                onClick={props.onCreateBot}
-              >
-                <Icon name="plus" />
-              </button>
-            </div>
-          </div>
-          <div id="owned-bots" className="member-list owned-bots">
-            {props.ownedBots.length ? (
-              props.ownedBots.map(contact)
-            ) : (
-              <p className="sidebar-empty">
-                {props.session ? t("noBots") : t("signInToView")}
-              </p>
-            )}
-          </div>
-          <div className="section-heading members-heading">
             <span>{t("directMessages")}</span>
             <span id="member-count">{contacts.length}</span>
           </div>
@@ -440,6 +438,7 @@ export function Shell(props: ShellProps) {
             aria-label={t("contacts")}
           >
             {contacts.map(contact)}
+          </div>
           </div>
         </aside>
         <main className="conversation">
@@ -464,19 +463,21 @@ export function Shell(props: ShellProps) {
                 aria-hidden="true"
               >
                 <Icon
-                  name={props.room?.kind === "direct" ? "atSign" : "hash"}
+                  name={botContext ? "bot" : props.room?.kind === "direct" ? "atSign" : "hash"}
                 />
               </span>
               <div>
                 <h1 id="room-title">
                   {props.view === "home"
                     ? t("home")
+                    : props.view === "bots"
+                      ? t("myBots")
                     : (props.room?.name ??
                       props.selectedSpace?.name ??
                       t("collaboration"))}
                 </h1>
                 <p id="room-subtitle">
-                  {props.view === "chat" ? props.room?.topic : ""}
+                  {props.view === "chat" ? (selectedBot?.id ?? props.room?.topic) : ""}
                 </p>
               </div>
             </div>
@@ -560,7 +561,8 @@ export function Shell(props: ShellProps) {
                 className="icon-button"
                 type="button"
                 aria-label={t("showMembers")}
-                aria-expanded={membersOpen}
+                aria-expanded={props.view !== "bots" && membersOpen}
+                hidden={props.view === "bots"}
                 onClick={() => {
                   setMembersOpen(!membersOpen);
                   setChannelsOpen(false);
@@ -575,31 +577,16 @@ export function Shell(props: ShellProps) {
             className="home-panel"
             hidden={props.view !== "home"}
           >
-            <div className="home-heading">
-              <h2>{t("myBots")}</h2>
-              <button
-                id="home-create-bot"
-                className="icon-button"
-                type="button"
-                aria-label={t("createBot")}
-                title={t("createBot")}
-                onClick={props.onCreateBot}
-              >
-                <Icon name="plus" />
-              </button>
-            </div>
-            <div id="home-bots" className="home-bots">
-              {props.ownedBots.length ? (
-                props.ownedBots.map(contact)
-              ) : (
-                <p className="muted small">
-                  {props.session ? t("noBots") : t("signInToView")}
-                </p>
-              )}
-            </div>
             <h2>{t("directMessages")}</h2>
             <div id="home-contacts" className="home-contacts">
               {contacts.map(contact)}
+            </div>
+          </section>
+          <section id="bots-panel" className="home-panel bots-panel" hidden={props.view !== "bots"}>
+            <div className="bots-panel-empty">
+              <Icon name="bot" />
+              <h2>{t("myBots")}</h2>
+              <p>{t("selectBot")}</p>
             </div>
           </section>
           <div hidden={props.view !== "chat"} style={{ display: "contents" }}>

@@ -116,6 +116,7 @@ export function NotificationDialog({
             <Icon name="close" />
           </Button>
         </header>
+        <div className="dialog-scroll-region">
         <label className="check-label">
           <Checkbox
             id="notification-muted"
@@ -184,6 +185,8 @@ export function NotificationDialog({
         >
           {loading ? t("loading") : feedback}
         </p>
+        </div>
+        <footer className="dialog-footer">
         <Button
           className="primary-button login-submit"
           variant="default"
@@ -192,6 +195,7 @@ export function NotificationDialog({
         >
           {t(saving ? "saving" : "save")}
         </Button>
+        </footer>
       </form>
     </dialog>
   );

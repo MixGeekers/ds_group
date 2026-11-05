@@ -181,6 +181,7 @@ export function CreateBotDialog({
           <Icon name="close" />
         </Button>
       </header>
+      <div className="dialog-scroll-region">
       {created ? (
         <section className="bot-connection-details">
           <h3>{created.name}</h3>
@@ -248,15 +249,6 @@ export function CreateBotDialog({
             {t("chooseName")}
           </p>
           {pending && <p className="settings-feedback">{t("pending")}</p>}
-          <Button
-            variant="default"
-            id="create-bot-submit"
-            className="primary-button login-submit"
-            type="submit"
-            disabled={busy || !session}
-          >
-            {t(busy ? "creating" : pending ? "retry" : "createBot")}
-          </Button>
           {!session && <p className="settings-feedback">{t("signIn")}</p>}
         </form>
       )}
@@ -268,6 +260,21 @@ export function CreateBotDialog({
       >
         {error}
       </p>
+      </div>
+      {!created && (
+        <footer className="dialog-footer">
+          <Button
+            variant="default"
+            id="create-bot-submit"
+            className="primary-button login-submit"
+            type="submit"
+            form="create-bot-form"
+            disabled={busy || !session}
+          >
+            {t(busy ? "creating" : pending ? "retry" : "createBot")}
+          </Button>
+        </footer>
+      )}
     </dialog>
   );
 }

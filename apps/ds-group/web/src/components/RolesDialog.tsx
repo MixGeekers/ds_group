@@ -118,6 +118,7 @@ export function RolesDialog({
           <Icon name="close" />
         </Button>
       </header>
+      <div className="dialog-scroll-region">
       <section>
         <div className="settings-section-heading">
           <h3>{t("roles")}</h3>
@@ -222,11 +223,17 @@ export function RolesDialog({
                 </label>
               ))}
             </div>
-            <div className="settings-actions">
+          </form>
+        )}
+      </section>
+      </div>
+      {draft && (
+        <footer className="dialog-footer settings-actions">
               <Button
                 variant="default"
                 className="primary-button"
                 type="submit"
+                form="role-form"
                 disabled={busy}
               >
                 {t(busy ? "saving" : "save")}
@@ -252,10 +259,8 @@ export function RolesDialog({
               >
                 {t("delete")}
               </Button>
-            </div>
-          </form>
-        )}
-      </section>
+        </footer>
+      )}
     </dialog>
   );
 }

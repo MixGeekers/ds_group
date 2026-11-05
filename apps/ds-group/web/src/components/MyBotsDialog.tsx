@@ -68,6 +68,7 @@ export function MyBotsDialog({
           <Icon name="close" />
         </Button>
       </header>
+      <div className="dialog-scroll-region">
       {detail ? (
         <BotWorkGrants
           key={detail.id}
@@ -143,6 +144,11 @@ export function MyBotsDialog({
             })}
           </div>
           {!owned.length && <p className="muted">{t("noBots")}</p>}
+        </>
+      )}
+      </div>
+      {!detail && (
+        <footer className="dialog-footer">
           <Button
             variant="default"
             id="manage-create-bot"
@@ -153,7 +159,7 @@ export function MyBotsDialog({
           >
             {t("createBot")}
           </Button>
-        </>
+        </footer>
       )}
     </dialog>
   );

@@ -191,10 +191,40 @@ try {
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/__settings`);
   await page.locator('#settings-dialog[data-open]').waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  await mkdir(path.join(packageRoot, '.local/react-settings-browser'), { recursive: true });
+  const frame = async () => {
+    const box = await page.locator('#settings-dialog[data-open]').boundingBox();
+    assert.ok(box);
+    return box;
+  };
+  const sameFrame = (actual, expected) => {
+    for (const key of ['x', 'y', 'width', 'height'])
+      assert.ok(Math.abs(actual[key] - expected[key]) <= 1, `${key}: ${actual[key]} vs ${expected[key]}`);
+  };
+  const desktopFrame = await frame();
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-account-desktop.png'), animations: 'disabled' });
+  await page.locator('[data-settings-tab="appearance"]').click();
+  sameFrame(await frame(), desktopFrame);
+  await page.waitForFunction(() => document.querySelector('#offline-status')?.textContent?.length);
+  assert.ok(await page.locator('#offline-status').evaluate((status) => {
+    const content = status.getBoundingClientRect();
+    const viewport = status.closest('.dialog-scroll-region').getBoundingClientRect();
+    return content.bottom <= viewport.bottom - 1;
+  }));
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-appearance-desktop.png'), animations: 'disabled' });
+  await page.locator('[data-settings-tab="notifications"]').click();
+  sameFrame(await frame(), desktopFrame);
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-notifications-desktop.png'), animations: 'disabled' });
+  await page.locator('[data-settings-tab="account"]').click();
+  sameFrame(await frame(), desktopFrame);
+  report.settingsDesktopFrame = desktopFrame;
+  checks.push('settingsFrameKeepsExactDesktopBoundsAcrossTabs');
 
   await page.locator('[data-settings-tab="appearance"]').click();
   await page.locator('#language-select').selectOption('en');
   await page.waitForFunction(() => document.documentElement.lang === 'en');
+  sameFrame(await frame(), desktopFrame);
   assert.equal(await page.locator('#settings-title').textContent(), 'Settings');
   await page.locator('#language-select').selectOption('system');
   assert.equal(await page.locator('#language-select').inputValue(), 'system');
@@ -220,7 +250,10 @@ try {
   assert.deepEqual(await page.locator('[data-settings-tab]').evaluateAll(elements => elements.map(element => element.dataset.settingsTab)), ['account', 'appearance', 'notifications']);
   await page.locator('#close-settings').click();
   await page.locator('#open-roles').click();
+  const rolesFrame = await page.locator('#roles-dialog[open]').boundingBox();
+  assert.ok(rolesFrame);
   await page.locator('#new-role').click();
+  sameFrame(await page.locator('#roles-dialog[open]').boundingBox(), rolesFrame);
   await page.locator('#role-name').fill('Reviewers');
   await page.locator('#role-members .room-choice').filter({ hasText: 'Bob' }).getByRole('checkbox').click();
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -231,13 +264,14 @@ try {
   await mkdir(path.join(packageRoot, '.local/react-settings-browser'), { recursive: true });
   await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/roles-form-desktop.png'), animations: 'disabled' });
   await page.setViewportSize({ width: 1000, height: 850 });
-  await page.locator('#role-form button[type="submit"]').click();
+  await page.locator('button[form="role-form"][type="submit"]').click();
   await page.locator('.role-row').filter({ hasText: 'Reviewers' }).waitFor();
+  sameFrame(await page.locator('#roles-dialog[open]').boundingBox(), rolesFrame);
   assert.deepEqual(await page.evaluate(() => window.fixture.roles[0].memberIds), ['@bob:test']);
   await page.locator('.role-row').filter({ hasText: 'Reviewers' }).click();
   await page.locator('#role-name').fill('Editors');
   await page.locator('label:has(#role-mentionable)').getByRole('checkbox').click();
-  await page.locator('#role-form button[type="submit"]').click();
+  await page.locator('button[form="role-form"][type="submit"]').click();
   await page.locator('.role-row').filter({ hasText: 'Editors' }).waitFor();
   assert.equal(await page.evaluate(() => window.fixture.roles[0].mentionable), false);
   await page.locator('.role-row').filter({ hasText: 'Editors' }).click();
@@ -249,6 +283,10 @@ try {
 
   await page.locator('#roles-dialog .dialog-heading button').click();
   await page.locator('#open-notifications').click();
+  const notificationFrame = await page.locator('#notification-dialog[open]').boundingBox();
+  assert.ok(notificationFrame);
+  await page.waitForFunction(() => !document.querySelector('#notification-muted').disabled);
+  sameFrame(await page.locator('#notification-dialog[open]').boundingBox(), notificationFrame);
   await page.locator('label:has(#notification-muted)').getByRole('checkbox').click();
   await page.locator('#notification-form').getByRole('radio').first().click();
   await page.locator('label:has(#notification-everyone)').getByRole('checkbox').click();
@@ -266,6 +304,8 @@ try {
   checks.push('roomNotificationPreferencesSaveAndReopen');
 
   await page.locator('#open-inbox').click();
+  const inboxFrame = await page.locator('#inbox-dialog[open]').boundingBox();
+  assert.ok(inboxFrame);
   await page.locator('.inbox-empty').waitFor();
   await page.evaluate(() => window.fixture.addEvent('$direct', 'direct', '<@@alice:test> Fresh mention'));
   await page.locator('.inbox-item').filter({ hasText: 'Fresh mention' }).waitFor({ timeout: 8000 });
@@ -286,6 +326,7 @@ try {
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 1);
   await page.locator('#inbox-unread').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 4);
+  sameFrame(await page.locator('#inbox-dialog[open]').boundingBox(), inboxFrame);
   assert.ok(await page.locator('#inbox-everyone').isDisabled());
   await page.locator('#mark-all-read').click();
   await page.locator('.inbox-empty').waitFor();
@@ -296,6 +337,7 @@ try {
   await page.waitForTimeout(2700);
   assert.equal(await page.evaluate(() => window.fixture.calls.filter(call => call.route.startsWith('/api/inbox?')).length), readsAfterClose);
   checks.push('inboxFiltersMarkReadAndCloseStopsPolling');
+  checks.push('nativeModalFramesStayFixedThroughListFormLoadingAndFilterChanges');
 
   await page.locator('#open-settings').click();
   await page.locator('[data-settings-tab="notifications"]').click();
@@ -322,6 +364,7 @@ try {
     await window.fixture.pwa.refresh();
   });
   assert.match(await page.locator('#push-feedback').textContent(), /^(Could not check notifications|无法检查通知状态).*Synthetic network unavailable/);
+  sameFrame(await frame(), desktopFrame);
   await page.evaluate(() => {
     window.fixture.pushFailure = false;
     window.dispatchEvent(new Event('online'));
@@ -370,6 +413,28 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(200);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const mobileFrame = await frame();
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-appearance-mobile.png'), animations: 'disabled' });
+  await page.locator('[data-settings-tab="account"]').click();
+  sameFrame(await frame(), mobileFrame);
+  await page.locator('[data-settings-tab="notifications"]').click();
+  sameFrame(await frame(), mobileFrame);
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-notifications-mobile.png'), animations: 'disabled' });
+  await page.setViewportSize({ width: 390, height: 540 });
+  const shortFrame = await frame();
+  await page.locator('#push-device-label').focus();
+  assert.ok(await page.locator('#push-device-label').evaluate((input) => {
+    const box = input.getBoundingClientRect();
+    const scroll = input.closest('.dialog-scroll-region').getBoundingClientRect();
+    return box.top >= scroll.top - 1 && box.bottom <= scroll.bottom + 1;
+  }));
+  assert.ok(await page.locator('#test-push').evaluate((button) => {
+    const box = button.getBoundingClientRect();
+    return box.top >= 0 && box.bottom <= innerHeight;
+  }));
+  report.settingsMobileFrame = mobileFrame;
+  report.settingsShortFrame = shortFrame;
+  checks.push('settingsFrameKeepsExactMobileBoundsAndShortViewportKeepsControlsReachable');
   checks.push('pwaControlsRemainMountedAndLocalizedOnMobile');
 
   assert.deepEqual(pageErrors, []);

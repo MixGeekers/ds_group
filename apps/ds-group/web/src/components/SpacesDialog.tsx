@@ -119,6 +119,7 @@ export function SpacesDialog(props: {
           <Icon name="close" />
         </Button>
       </header>
+      <div className="dialog-scroll-region">
       <div className="space-list">
         {!props.spaces.length && <p className="muted">{t("noSpaces")}</p>}
         {props.spaces.map((space) => (
@@ -223,16 +224,6 @@ export function SpacesDialog(props: {
         ))}
       </div>
       <p className="muted small">{t("connectionNote")}</p>
-      <Button
-        variant="secondary"
-        id="refresh-spaces"
-        className="secondary-button"
-        type="button"
-        disabled={busy}
-        onClick={props.onChanged}
-      >
-        {t("refresh")}
-      </Button>
       <section>
         <h3>{t("join")}</h3>
         <form
@@ -300,6 +291,19 @@ export function SpacesDialog(props: {
         </p>
         <p className="muted small">{t("discoveryHelp")}</p>
       </section>
+      </div>
+      <footer className="dialog-footer">
+        <Button
+          variant="secondary"
+          id="refresh-spaces"
+          className="secondary-button"
+          type="button"
+          disabled={busy}
+          onClick={props.onChanged}
+        >
+          {t("refresh")}
+        </Button>
+      </footer>
     </dialog>
   );
 }

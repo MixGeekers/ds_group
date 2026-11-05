@@ -152,7 +152,7 @@ export function AttachmentView({
               <Icon name="close" />
             </button>
           </header>
-          <div id="preview-content">
+          <div id="preview-content" className="dialog-scroll-region">
             {preview.kind === "image" && (
               <img
                 className="preview-image"

@@ -21,30 +21,34 @@ export function AppearanceControls({ idPrefix = "" }: { idPrefix?: string }) {
 
   return (
     <div className="appearance-controls">
-      <label htmlFor={`${idPrefix}language-select`}>{t("language")}</label>
-      <NativeSelect
-        id={`${idPrefix}language-select`}
-        value={locale.preference}
-        onChange={(event) =>
-          locale.setPreference(event.target.value as LocalePreference)
-        }
-      >
-        <option value="system">{t("system")}</option>
-        <option value="zh-CN">简体中文</option>
-        <option value="en">English</option>
-      </NativeSelect>
-      <label htmlFor={`${idPrefix}theme-select`}>{t("theme")}</label>
-      <NativeSelect
-        id={`${idPrefix}theme-select`}
-        value={theme.getPreference()}
-        onChange={(event) =>
-          theme.setPreference(event.target.value as ThemePreference)
-        }
-      >
-        <option value="system">{t("system")}</option>
-        <option value="light">{t("light")}</option>
-        <option value="dark">{t("dark")}</option>
-      </NativeSelect>
+      <div className="appearance-field">
+        <label htmlFor={`${idPrefix}language-select`}>{t("language")}</label>
+        <NativeSelect
+          id={`${idPrefix}language-select`}
+          value={locale.preference}
+          onChange={(event) =>
+            locale.setPreference(event.target.value as LocalePreference)
+          }
+        >
+          <option value="system">{t("system")}</option>
+          <option value="zh-CN">简体中文</option>
+          <option value="en">English</option>
+        </NativeSelect>
+      </div>
+      <div className="appearance-field">
+        <label htmlFor={`${idPrefix}theme-select`}>{t("theme")}</label>
+        <NativeSelect
+          id={`${idPrefix}theme-select`}
+          value={theme.getPreference()}
+          onChange={(event) =>
+            theme.setPreference(event.target.value as ThemePreference)
+          }
+        >
+          <option value="system">{t("system")}</option>
+          <option value="light">{t("light")}</option>
+          <option value="dark">{t("dark")}</option>
+        </NativeSelect>
+      </div>
       <fieldset className="theme-colors">
         <legend>{t("themeColor")}</legend>
         <div className="theme-swatches">

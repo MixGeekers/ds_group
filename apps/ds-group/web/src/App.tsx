@@ -158,7 +158,7 @@ export default function App({
   const [mentionables, setMentionables] = useState<Mentionables>(emptyMentions);
   const [status, setStatus] = useState<ServerStatus | null>(null);
   const [mentionCount, setMentionCount] = useState(0);
-  const [view, setView] = useState<"home" | "chat">("chat");
+  const [view, setView] = useState<"home" | "chat" | "bots">("chat");
   const [showTaskHistory, setShowTaskHistory] = useState(false);
   const [loginOpen, setLoginOpen] = useState(!session);
   const [loginBusy, setLoginBusy] = useState(false);
@@ -195,6 +195,8 @@ export default function App({
   const sessionRef = useRef(session);
   const serverRef = useRef(serverName);
   const roomRef = useRef(roomId);
+  const viewRef = useRef(view);
+  const directRequestRef = useRef(0);
   const spacesRef = useRef(spacesResult);
   const roomsRef = useRef(allRooms);
   const bootstrapRef = useRef(bootstrap);
@@ -206,6 +208,7 @@ export default function App({
   sessionRef.current = session;
   serverRef.current = serverName;
   roomRef.current = roomId;
+  viewRef.current = view;
   spacesRef.current = spacesResult;
   roomsRef.current = allRooms;
   bootstrapRef.current = bootstrap;
@@ -397,6 +400,7 @@ export default function App({
       roomRef.current = nextRoom?.roomId ?? null;
       setServerName(targetServer);
       setRoomId(nextRoom?.roomId ?? null);
+      viewRef.current = "chat";
       setView("chat");
       const account = sessionRef.current;
       if (account) {
@@ -404,10 +408,11 @@ export default function App({
           storageKey(config, "server", account),
           JSON.stringify(targetServer),
         );
-        sessionStorage.setItem(
-          storageKey(config, "room", account, targetServer),
-          JSON.stringify(nextRoom?.roomId ?? null),
-        );
+        if (nextRoom?.kind !== "direct")
+          sessionStorage.setItem(
+            storageKey(config, "room", account, targetServer),
+            JSON.stringify(nextRoom?.roomId ?? null),
+          );
       }
       const url = new URL(location.href);
       if (targetServer) url.searchParams.set("server", targetServer);
@@ -454,15 +459,21 @@ export default function App({
       const saved = account
         ? readScoped<string>(config, "room", account, name)
         : null;
+      const savedRoom = joined.find((value) => value.roomId === saved);
+      const savedOwnedBotDm = savedRoom?.kind === "direct" &&
+        ownedBots.some((bot) => bot.ownerId === account?.user_id &&
+          savedRoom.participantIds.includes(bot.id));
       navigate(
-        joined.find((value) => value.roomId === saved) ??
+        (savedOwnedBotDm ? null : savedRoom) ??
           joined.find((value) => value.kind === "group") ??
-          joined[0] ??
+          joined.find((value) => value.kind !== "direct" ||
+            !ownedBots.some((bot) => bot.ownerId === account?.user_id &&
+              value.participantIds.includes(bot.id))) ??
           null,
         name,
       );
     },
-    [config, navigate],
+    [config, navigate, ownedBots],
   );
 
   useEffect(() => {
@@ -749,6 +760,8 @@ export default function App({
       const account = sessionRef.current;
       const sourceServer = serverRef.current;
       const sourceRoom = roomRef.current;
+      const sourceView = viewRef.current;
+      const requestId = ++directRequestRef.current;
       if (!account) {
         openLogin();
         return;
@@ -761,7 +774,9 @@ export default function App({
         if (
           sessionRef.current !== account ||
           serverRef.current !== sourceServer ||
-          roomRef.current !== sourceRoom
+          roomRef.current !== sourceRoom ||
+          viewRef.current !== sourceView ||
+          directRequestRef.current !== requestId
         )
           return;
         if (!result.roomId) throw new Error(t("notJoined"));
@@ -774,16 +789,28 @@ export default function App({
             participantId,
           ],
         };
-        const space = spacesRef.current?.spaces.find((value) =>
-          value.rooms.some((item) => item.roomId === next.roomId),
+        const ownBot = ownedBots.some(
+          (bot) => bot.id === participantId && bot.ownerId === account.user_id,
         );
-        navigate(next, space?.serverName ?? matrixServer(account.user_id));
+        const space = ownBot
+          ? null
+          : spacesRef.current?.spaces.find((value) =>
+              value.rooms.some((item) => item.roomId === next.roomId),
+            );
+        navigate(next, ownBot ? matrixServer(account.user_id) :
+          (space?.serverName ?? matrixServer(account.user_id)));
         refresh();
       } catch (reason) {
-        if (sessionRef.current === account) notify(messageOf(reason));
+        if (
+          sessionRef.current === account &&
+          serverRef.current === sourceServer &&
+          roomRef.current === sourceRoom &&
+          viewRef.current === sourceView &&
+          directRequestRef.current === requestId
+        ) notify(messageOf(reason));
       }
     },
-    [api, displayName, notify, openLogin, navigate, refresh, t],
+    [api, displayName, notify, openLogin, navigate, ownedBots, refresh, t],
   );
 
   async function authenticate(input: AuthSubmission) {
@@ -1139,6 +1166,17 @@ export default function App({
           },
     [mentionables, participants, room],
   );
+  useEffect(() => {
+    if (
+      session && room?.kind === "direct" &&
+      ownedBots.some((bot) => bot.ownerId === session.user_id &&
+        room.participantIds.includes(bot.id))
+    )
+      sessionStorage.setItem(
+        storageKey(config, "owned-bot-room", session),
+        JSON.stringify(room.roomId),
+      );
+  }, [config, ownedBots, room, session]);
   const homeSelected = selectedSpace?.home === true;
 
   return (
@@ -1168,7 +1206,29 @@ export default function App({
         }
         onRoom={selectRoom}
         onDirect={(id) => void openDirect(id)}
-        onHome={() => setView("home")}
+        onHome={() => {
+          viewRef.current = "home";
+          setView("home");
+        }}
+        onBots={() => {
+          const account = sessionRef.current;
+          const saved = account && readScoped<string>(
+            config, "owned-bot-room", account,
+          );
+          const home = spacesRef.current?.spaces.find((space) => space.home);
+          const recent = roomsRef.current.find((candidate) =>
+            candidate.roomId === saved && candidate.kind === "direct" &&
+            ownedBots.some((bot) => bot.ownerId === account?.user_id &&
+              candidate.participantIds.includes(bot.id)),
+          );
+          if (recent && home?.rooms.some((item) =>
+            item.roomId === recent.roomId && item.status === "joined"))
+            navigate(recent, home.serverName);
+          else {
+            viewRef.current = "bots";
+            setView("bots");
+          }
+        }}
         onServer={selectServer}
         onSpaces={() => (session ? setSpacesOpen(true) : openLogin())}
         onSettings={(tab = "account") => setSettingsTab(tab)}
