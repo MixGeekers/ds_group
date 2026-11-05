@@ -94,6 +94,33 @@ function mergeEvents(
     : result;
 }
 
+function ownedBotCacheKey(config: ClientConfig, account: Session | null): string | null {
+  if (
+    !account?.identity?.subjectId ||
+    account.identity.kind !== "human" ||
+    account.identity.matrixUserId !== account.user_id ||
+    !account.binding?.authorityId ||
+    account.binding.authorityId !== account.identity.authorityId
+  ) return null;
+  return storageKey(config, "owned-bots", account);
+}
+
+function validOwnedBots(value: unknown, ownerId: string): value is Participant[] {
+  return Array.isArray(value) && value.every((bot) =>
+    bot && typeof bot === "object" &&
+    typeof bot.id === "string" && bot.id.startsWith("@") &&
+    typeof bot.name === "string" &&
+    bot.kind === "bot" && bot.ownerId === ownerId
+  ) && new Set(value.map((bot) => bot.id)).size === value.length;
+}
+
+function restoredOwnedBots(config: ClientConfig, account: Session | null): Participant[] | null {
+  const key = ownedBotCacheKey(config, account);
+  if (!key || !account) return null;
+  const value = readStored<unknown>(key);
+  return validOwnedBots(value, account.user_id) ? value : null;
+}
+
 export default function App({
   config: suppliedConfig,
 }: { config?: ClientConfig } = {}) {
@@ -150,7 +177,11 @@ export default function App({
     "connecting" | "connected" | "offline"
   >("connecting");
   const [directory, setDirectory] = useState<Participant[]>([]);
-  const [ownedBots, setOwnedBots] = useState<Participant[]>([]);
+  const [ownedBotsState, setOwnedBotsState] = useState<Participant[] | null>(() =>
+    restoredOwnedBots(config, session),
+  );
+  const ownedBots = ownedBotsState ?? [];
+  const ownedBotsKnown = ownedBotsState !== null;
   const [currentUser, setCurrentUser] = useState<Participant | null>(null);
   const [events, setEvents] = useState<ChatEvent[]>([]);
   const [tasks, setTasks] = useState<WorkTask[]>([]);
@@ -302,6 +333,8 @@ export default function App({
   }, []);
 
   const clearSession = useCallback(() => {
+    const botCache = ownedBotCacheKey(config, sessionRef.current);
+    if (botCache) sessionStorage.removeItem(botCache);
     sessionStorage.removeItem(sessionStorageKey(config));
     sessionRef.current = null;
     serverRef.current = null;
@@ -312,7 +345,7 @@ export default function App({
     setCurrentUser(null);
     setAllRooms([]);
     setSpacesResult(null);
-    setOwnedBots([]);
+    setOwnedBotsState(null);
     setDirectory([]);
     setMentionCount(0);
     resetConversation();
@@ -550,6 +583,8 @@ export default function App({
                 profile.identity.subjectId !== account.identity.subjectId)))
         )
           throw new ApiError(t("invalidLogin"), 401);
+        if (!validOwnedBots(profile.ownedBots, account.user_id))
+          throw new Error(t("invalidWorkspace"));
         if (homeDiscovery && !account.binding?.authorityId) {
           const upgraded = bindSession(
             { ...account, identity: profile.identity, home: profile.home },
@@ -590,7 +625,16 @@ export default function App({
           JSON.stringify(facts),
         );
         setCurrentUser(profile.user);
-        setOwnedBots(profile.ownedBots);
+        setOwnedBotsState(profile.ownedBots);
+        const botCache = ownedBotCacheKey(config, account);
+        if (botCache) {
+          if (
+            profile.identity?.authorityId === account.identity?.authorityId &&
+            profile.identity?.subjectId === account.identity?.subjectId &&
+            profile.identity?.matrixUserId === account.user_id
+          ) sessionStorage.setItem(botCache, JSON.stringify(profile.ownedBots));
+          else sessionStorage.removeItem(botCache);
+        }
         setDirectory(
           roster?.participants ?? bootstrapRef.current?.participants ?? [],
         );
@@ -864,7 +908,7 @@ export default function App({
       sessionRef.current = next;
       setSession(next);
       setCurrentUser(null);
-      setOwnedBots([]);
+      setOwnedBotsState(restoredOwnedBots(config, next));
       setDirectory([]);
       resetConversation();
       setAllRooms([]);
@@ -1198,6 +1242,7 @@ export default function App({
         currentUser={currentUser}
         connection={connection}
         ownedBots={ownedBots}
+        ownedBotsKnown={ownedBotsKnown}
         openingDirectId={openingDirectId}
         mentionables={joinedMentionables}
         status={status}
@@ -1379,7 +1424,7 @@ export default function App({
           session ? storageKey(config, "pending-bot", session) : ""
         }
         onCreated={(bot) => {
-          setOwnedBots((previous) => [
+          setOwnedBotsState((previous) => previous === null ? null : [
             ...previous.filter((value) => value.id !== bot.id),
             bot,
           ]);

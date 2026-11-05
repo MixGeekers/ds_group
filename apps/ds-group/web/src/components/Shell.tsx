@@ -29,6 +29,7 @@ export interface ShellProps {
   canCreateRoom?: boolean;
   canInvite?: boolean;
   ownedBots: Participant[];
+  ownedBotsKnown: boolean;
   openingDirectId: string | null;
   mentionables: Mentionables;
   status: ServerStatus | null;
@@ -98,6 +99,7 @@ export function Shell(props: ShellProps) {
     () => window.innerWidth > 1180,
   );
   const participants = props.bootstrap?.participants ?? [];
+  const ownershipKnown = !props.session || props.ownedBotsKnown;
   const currentUser =
     props.currentUser ??
     participants.find((member) => member.id === props.session?.user_id) ??
@@ -116,10 +118,13 @@ export function Shell(props: ShellProps) {
     (bot) => props.view === "chat" && props.room?.kind === "direct" &&
       props.room.participantIds.includes(bot.id),
   );
+  const loadingDirectOwnership = !!props.session && !props.ownedBotsKnown &&
+    props.view === "chat" && props.room?.kind === "direct";
   const botContext = props.view === "bots" || !!selectedBot;
   const openingBot = ownedBots.find((bot) => bot.id === props.openingDirectId);
   const contacts = participants.filter(
-    (member) => member.id !== props.session?.user_id && !ownIds.has(member.id),
+    (member) => member.id !== props.session?.user_id && !ownIds.has(member.id) &&
+      (ownershipKnown || member.kind !== "bot"),
   );
   const initialRoom = props.rooms.find(
     (room) => room.roomId === props.bootstrap?.roomId,
@@ -127,7 +132,7 @@ export function Shell(props: ShellProps) {
   const otherRooms = props.rooms.filter(
     (room) => room.kind === "group" && room.roomId !== props.bootstrap?.roomId,
   );
-  const roomMembers = props.view === "chat" ? participants.filter((member) =>
+  const roomMembers = props.view === "chat" && !loadingDirectOwnership ? participants.filter((member) =>
     props.room?.participantIds.includes(member.id),
   ) : [];
 
@@ -307,6 +312,7 @@ export function Shell(props: ShellProps) {
           <div className="rail-divider" />
           <GlobalBotsNav
             bots={ownedBots}
+            known={ownershipKnown}
             rooms={props.allRooms ?? props.rooms}
             active={botContext}
             onOpen={() => {
@@ -321,11 +327,11 @@ export function Shell(props: ShellProps) {
                 key={space.serverName}
                 id={space.home ? "server-button" : undefined}
                 data-server={space.serverName}
-                className={`server-icon${props.view === "chat" && !botContext && props.selectedSpace?.serverName === space.serverName ? " active" : ""}${space.status === "revoked" ? " server-revoked" : ""}`}
+                className={`server-icon${props.view === "chat" && !botContext && !loadingDirectOwnership && props.selectedSpace?.serverName === space.serverName ? " active" : ""}${space.status === "revoked" ? " server-revoked" : ""}`}
                 type="button"
                 aria-label={`${space.name} · ${space.serverName} · ${t(space.status === "revoked" ? "revoked" : space.status === "offline" ? "offline" : "accessible")}`}
                 aria-current={
-                  props.view === "chat" && !botContext &&
+                  props.view === "chat" && !botContext && !loadingDirectOwnership &&
                   props.selectedSpace?.serverName === space.serverName
                     ? "page"
                     : undefined
@@ -379,8 +385,10 @@ export function Shell(props: ShellProps) {
           aria-label={t("channelsAndMessages")}
         >
           <header className="brand">
-            {botContext ? (
-              <span className="workspace-brand">{t("myBots")}</span>
+            {botContext || loadingDirectOwnership ? (
+              <span className="workspace-brand">
+                {botContext ? t("myBots") : t("loadingConversation")}
+              </span>
             ) : (
             <button
               className="workspace-switcher"
@@ -404,6 +412,7 @@ export function Shell(props: ShellProps) {
               className="icon-button mobile-close"
               type="button"
               aria-label={t("closeChannels")}
+              hidden={!mobileNavigation}
               onClick={() => setChannelsOpen(false)}
             >
               <Icon name="close" />
@@ -412,6 +421,7 @@ export function Shell(props: ShellProps) {
           <div className="global-bots-view" hidden={!botContext}>
             <GlobalBotsSidebar
               bots={ownedBots}
+              known={ownershipKnown}
               rooms={props.allRooms ?? props.rooms}
               selectedRoom={selectedBot ? props.room : null}
               openingBotId={props.openingDirectId}
@@ -420,7 +430,7 @@ export function Shell(props: ShellProps) {
               onCreate={props.onCreateBot}
             />
           </div>
-          <div className="server-sidebar-content" hidden={botContext}>
+          <div className="server-sidebar-content" hidden={botContext || loadingDirectOwnership}>
           <div className="section-heading">
             <span>{t("textChannels")}</span>
             <button
@@ -446,7 +456,7 @@ export function Shell(props: ShellProps) {
           </nav>
           <div className="section-heading members-heading">
             <span>{t("directMessages")}</span>
-            <span id="member-count">{contacts.length}</span>
+            <span id="member-count">{ownershipKnown ? contacts.length : "…"}</span>
           </div>
           <div
             id="sidebar-members"
@@ -456,6 +466,11 @@ export function Shell(props: ShellProps) {
             {contacts.map(contact)}
           </div>
           </div>
+          {loadingDirectOwnership && (
+            <p id="ownership-loading-sidebar" className="sidebar-empty" role="status">
+              {t("loadingBotOwnership")}
+            </p>
+          )}
         </aside>
         <main className="conversation">
           <header className="conversation-header">
@@ -484,7 +499,9 @@ export function Shell(props: ShellProps) {
               </span>
               <div>
                 <h1 id="room-title">
-                  {props.view === "home"
+                  {loadingDirectOwnership
+                    ? t("loadingConversation")
+                    : props.view === "home"
                     ? t("home")
                     : props.view === "bots"
                       ? t("myBots")
@@ -493,7 +510,7 @@ export function Shell(props: ShellProps) {
                       t("collaboration"))}
                 </h1>
                 <p id="room-subtitle">
-                  {props.view === "chat" ? (selectedBot?.id ?? props.room?.topic) : ""}
+                  {props.view === "chat" && !loadingDirectOwnership ? (selectedBot?.id ?? props.room?.topic) : ""}
                 </p>
               </div>
             </div>
@@ -578,7 +595,7 @@ export function Shell(props: ShellProps) {
                 type="button"
                 aria-label={t("showMembers")}
                 aria-expanded={props.view !== "bots" && membersOpen}
-                hidden={props.view === "bots"}
+                hidden={props.view === "bots" || loadingDirectOwnership}
                 onClick={() => {
                   setMembersOpen(!membersOpen);
                   setChannelsOpen(false);
@@ -603,11 +620,18 @@ export function Shell(props: ShellProps) {
               <Icon name="bot" />
               <h2>{t("myBots")}</h2>
               <p id={openingBot ? "bot-open-status" : undefined} role={openingBot ? "status" : undefined}>
-                {openingBot ? t("openingBot", { name: openingBot.name }) : t("selectBot")}
+                {openingBot ? t("openingBot", { name: openingBot.name }) :
+                  ownershipKnown ? t("selectBot") : t("loadingBotOwnership")}
               </p>
             </div>
           </section>
-          <div hidden={props.view !== "chat"} style={{ display: "contents" }}>
+          <section id="ownership-loading" className="home-panel bots-panel" hidden={!loadingDirectOwnership}>
+            <div className="bots-panel-empty" role="status">
+              <h2>{t("loadingConversation")}</h2>
+              <p>{t("loadingBotOwnership")}</p>
+            </div>
+          </section>
+          <div hidden={props.view !== "chat" || loadingDirectOwnership} style={{ display: "contents" }}>
             {props.children}
           </div>
         </main>

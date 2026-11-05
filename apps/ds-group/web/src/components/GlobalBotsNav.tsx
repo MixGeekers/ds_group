@@ -12,11 +12,13 @@ function directRoom(rooms: Room[], botId: string) {
 
 export function GlobalBotsNav({
   bots,
+  known,
   rooms,
   active,
   onOpen,
 }: {
   bots: Participant[];
+  known: boolean;
   rooms: Room[];
   active: boolean;
   onOpen(): void;
@@ -32,13 +34,13 @@ export function GlobalBotsNav({
         id="global-bots-button"
         className={`server-icon rail-bots-trigger${active ? " active" : ""}`}
         type="button"
-        aria-label={`${t("myBots")} · ${bots.length}`}
+        aria-label={`${t("myBots")} · ${known ? bots.length : t("loadingBots")}`}
         aria-current={active ? "page" : undefined}
         title={t("myBots")}
         onClick={onOpen}
       >
         <Icon name="bot" />
-        <span id="owned-bot-count" className="rail-bots-count" aria-hidden="true">{bots.length}</span>
+        <span id="owned-bot-count" className="rail-bots-count" aria-hidden="true">{known ? bots.length : "…"}</span>
         {unread > 0 && (
           <span className="server-invite-count" title={t("mentions", { count: unread })}>
             {unread > 99 ? "99+" : unread}
@@ -51,6 +53,7 @@ export function GlobalBotsNav({
 
 export function GlobalBotsSidebar({
   bots,
+  known,
   rooms,
   selectedRoom,
   openingBotId,
@@ -59,6 +62,7 @@ export function GlobalBotsSidebar({
   onCreate,
 }: {
   bots: Participant[];
+  known: boolean;
   rooms: Room[];
   selectedRoom: Room | null;
   openingBotId: string | null;
@@ -104,10 +108,12 @@ export function GlobalBotsSidebar({
               )}
             </Button>
           );
-        }) : <p className="sidebar-empty">{t("noBots")}</p>}
+        }) : <p className="sidebar-empty" role={known ? undefined : "status"}>
+          {known ? t("noBots") : t("loadingBotOwnership")}
+        </p>}
       </nav>
       <div className="global-bots-actions">
-        <Button id="manage-bots-button" variant="ghost" type="button" onClick={onManage}>
+        <Button id="manage-bots-button" variant="ghost" type="button" onClick={onManage} disabled={!known}>
           <Icon name="gear" /> {t("manageBots")}
         </Button>
         <Button id="create-bot-button" variant="secondary" type="button" onClick={onCreate}>

@@ -98,7 +98,31 @@ const state = {
   aRestricted: false,
   directRooms: new Map(),
   delayedDirect: null,
+  delayedProfile: null,
 };
+async function reloadWithHeldProfile(targetPage, userId) {
+  let started;
+  const pending = new Promise((resolve) => { started = resolve; });
+  let release;
+  state.delayedProfile = {
+    userId,
+    started,
+    wait: new Promise((resolve) => { release = resolve; }),
+  };
+  await targetPage.reload();
+  let timer;
+  try {
+    await Promise.race([
+      pending,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Timed out waiting for /api/me")), 5000);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+  return release;
+}
 let clientOrigin;
 let homeOrigin;
 let unknownOrigin;
@@ -301,7 +325,13 @@ async function apiHandler(request, response, origin = homeOrigin) {
   }
   if (!userId)
     return json(response, 401, { error: "Invalid synthetic session" });
-  if (url.pathname === "/api/me")
+  if (url.pathname === "/api/me") {
+    if (state.delayedProfile?.userId === userId) {
+      const delayed = state.delayedProfile;
+      delayed.started();
+      await delayed.wait;
+      if (state.delayedProfile === delayed) state.delayedProfile = null;
+    }
     return json(response, 200, {
       user: people.find((person) => person.id === userId),
       ownedBots:
@@ -311,6 +341,7 @@ async function apiHandler(request, response, origin = homeOrigin) {
       identity: identity(userId),
       home: publicConfig(origin).home,
     });
+  }
   if (url.pathname === "/api/logout") {
     state.logout.push(token);
     state.tokens.delete(token);
@@ -1064,6 +1095,7 @@ try {
   await page.setViewportSize({ width: 986, height: 822 });
   await page.locator("#global-bots-button").click();
   assert.equal(await page.locator("#panel-backdrop").isHidden(), true);
+  assert.equal(await page.locator("#close-channels").isHidden(), true);
   assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).evaluate((button) => {
     const box = button.getBoundingClientRect();
     const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
@@ -1111,8 +1143,10 @@ try {
   await page.screenshot({ path: path.join(output, "desktop-owned-bot-dm.png"), animations: "disabled" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.locator("#channels-button").click();
+  assert.equal(await page.locator("#close-channels").isVisible(), true);
   await page.screenshot({ path: path.join(output, "mobile-owned-bot-navigation.png"), animations: "disabled" });
   await page.locator("#close-channels").click();
+  assert.equal(await page.locator("#channel-panel").getAttribute("class"), "sidebar");
   await page.screenshot({ path: path.join(output, "mobile-owned-bot-dm.png"), animations: "disabled" });
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.locator("#message-input").fill("Owned Bot draft");
@@ -1134,7 +1168,25 @@ try {
   assert.equal(await page.locator("#message-input").textContent(), "");
   assert.equal(await page.locator("#global-bots-button .server-invite-count").textContent(), "3");
   assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${secondBotId}"] .unread-badge`).textContent(), "3");
-  await page.reload();
+  const botCacheKey = await page.evaluate(() => {
+    const keys = Array.from({ length: sessionStorage.length }, (_, index) => sessionStorage.key(index));
+    return keys.find((key) => key && decodeURIComponent(key).includes('"owned-bots"')) ?? null;
+  });
+  assert.ok(botCacheKey);
+  assert.deepEqual(
+    (await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)), botCacheKey)).map((bot) => bot.id),
+    [botId, secondBotId],
+  );
+  const releaseProfile = await reloadWithHeldProfile(page, homeUser);
+  assert.equal(await page.locator("#owned-bot-count").textContent(), "2");
+  assert.equal(await page.locator("#global-bots-button").getAttribute("aria-current"), "page");
+  assert.equal(await page.locator(".server-list .server-icon.active").count(), 0);
+  assert.equal(await page.locator("#room-subtitle").textContent(), secondBotId);
+  assert.equal(await page.locator(`#owned-bots [data-owned-bot-id="${botId}"]`).count(), 1);
+  assert.equal(await page.locator(`#sidebar-members .contact-row[title="${botId}"]`).count(), 0);
+  await page.screenshot({ path: path.join(output, "owned-bot-refresh-profile-pending.png"), animations: "disabled" });
+  releaseProfile();
+  await page.locator("#connection-text").filter({ hasText: "Connected" }).waitFor();
   await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-foreign:home.test" && document.querySelector("#room-subtitle")?.textContent === "@bot-foreign:a.test");
   assert.equal(await page.locator("#global-bots-button").getAttribute("aria-current"), "page");
   assert.equal(await page.locator(".server-list .server-icon.active").count(), 0);
@@ -1142,6 +1194,27 @@ try {
   await page.waitForFunction(() => new URL(location.href).searchParams.get("roomId") === "!dm-bot-owned:home.test");
   assert.equal(await page.locator("#message-input").textContent(), "Owned Bot draft");
   checks.push("ownedBotRailUsesExactIdentityHomeDmSeparateDraftsUnreadAndReloadWithoutServerHighlight");
+  checks.push("verifiedOwnedBotCacheKeepsGlobalContextWhileProfileRefreshIsPending");
+
+  await page.evaluate((key) => sessionStorage.removeItem(key), botCacheKey);
+  const releaseLegacyProfile = await reloadWithHeldProfile(page, homeUser);
+  assert.equal(await page.locator("#owned-bot-count").textContent(), "…");
+  assert.match(await page.locator("#global-bots-button").getAttribute("aria-label"), /Loading Bots/);
+  assert.match(await page.locator("#owned-bots .sidebar-empty").textContent(), /Loading your Bots/);
+  assert.equal(await page.locator("#member-count").textContent(), "…");
+  assert.equal(await page.locator("#ownership-loading").isVisible(), true);
+  assert.equal(await page.locator("#room-title").textContent(), "Loading conversation");
+  assert.equal(await page.locator(".server-list .server-icon.active").count(), 0);
+  assert.equal(await page.locator(`#sidebar-members .contact-row[title="${botId}"]`).count(), 0);
+  assert.equal(await page.locator(`#sidebar-members .contact-row[title="${secondBotId}"]`).count(), 0);
+  await page.screenshot({ path: path.join(output, "owned-bot-refresh-legacy-loading.png"), animations: "disabled" });
+  releaseLegacyProfile();
+  await page.locator("#connection-text").filter({ hasText: "Connected" }).waitFor();
+  assert.equal(await page.locator("#owned-bot-count").textContent(), "2");
+  assert.equal(await page.locator("#global-bots-button").getAttribute("aria-current"), "page");
+  assert.equal(await page.locator("#ownership-loading").isHidden(), true);
+  assert.equal(await page.locator("#room-subtitle").textContent(), botId);
+  checks.push("legacyRoomCacheWithoutOwnershipShowsNeutralLoadingThenFreshGlobalContext");
 
   await page.locator('[data-server="b.test"]').click();
   await page.locator("#global-bots-button").click();
@@ -1404,6 +1477,7 @@ try {
   await page.locator("#settings-button").click();
   await page.locator("#logout-button").click();
   await page.locator("#login-dialog[open]").waitFor();
+  assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), botCacheKey), null);
   await page.locator("#login-user").fill("redirect");
   await page.locator("#login-password").fill("synthetic-password");
   await page.locator("#login-submit").click();
