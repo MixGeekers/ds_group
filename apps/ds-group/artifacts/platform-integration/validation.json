@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "branch": "codex/dscord-platform-integration",
+  "scope": "First integrated source candidate for central identity, independent client, per-instance administration, API-only hosting, controlled federation, proven media and scoped Bot file work. Integrated real Bot and product-source CI passed.",
+  "integratedCommits": {
+    "direction": "8580cd2",
+    "administration": "9d1cd3e",
+    "administrationEvidence": "909749e",
+    "centralIdentity": "8cacfe9",
+    "apiOnly": "ca336a2",
+    "administrationReadability": "57e2872",
+    "controlledFederation": "5a44c64",
+    "unifiedClient": "cf77e22",
+    "currentJoinedSpaces": "dc23777",
+    "roomMediaAndWorkPolicy": "2b8fd0a",
+    "crossServerBotFoundation": "585baf2",
+    "ownerGrantClient": "6167833",
+    "deploymentAndRelease": "bc75add",
+    "adminBotPolicyEntry": "fc98005",
+    "ciNativeAndBrowserFix": "d01f79f",
+    "realFederatedClientHarness": "8abe067",
+    "ciTenJobEvidence": "1b66565",
+    "verifiedMedia": "86f935e",
+    "realBotAndContextBoundaries": "9a44e8d",
+    "finalProductCiEvidence": "9e2ff2c",
+    "finalIntegratedBotEvidence": "69b7449"
+  },
+  "mergeReview": {
+    "file": "src/core.mjs",
+    "resolvedAreas": [
+      "Initialize both IdentityService and Governance after AccountService",
+      "Handle origin validation and public discovery before governance business dispatch",
+      "Return serverName, local public participants and identity discovery in bootstrap",
+      "Retain shared active-account admission before collaboration and ordinary protected APIs",
+      "Expose both identity and governance services in the Core lifecycle"
+    ]
+  },
+  "checks": [
+    {
+      "revision": "5078ab2 with direction-only documentation",
+      "command": "npm test",
+      "status": "passed",
+      "moduleTests": 280,
+      "history": "The first shell wrapper attempted to assign zsh's read-only status variable after the test process reported 280 passes. The corrected wrapper reran all 280 tests with exit code 0."
+    },
+    {
+      "revision": "909749e",
+      "commands": [
+        "npm run check",
+        "npm run build",
+        "node --test --test-concurrency=2 tests/*.browser.mjs"
+      ],
+      "status": "passed",
+      "moduleTests": 287,
+      "browserFiles": 8,
+      "browserScope": "Existing chat component fixtures and real management HTTP with synthetic Matrix control"
+    },
+    {
+      "revision": "8cacfe9",
+      "commands": [
+        "npm run check",
+        "npm run build"
+      ],
+      "status": "passed",
+      "moduleTests": 301
+    },
+    {
+      "revision": "8cacfe9 plus configurable verification-port change",
+      "command": "DS_GROUP_IDENTITY_VERIFY_PORT_BASE=24400 node scripts/verify-central-identity.mjs",
+      "status": "passed",
+      "checks": 12,
+      "scope": "Real local Synapse and integrated Core with Chromium on an independent origin; synthetic accounts and test helper client",
+      "report": "../central-identity/real-2026-11-05T03-17-50-202Z.json",
+      "sourceProof": "Exact per-file SHA-256 values recorded by the linked report",
+      "cleanup": "Run-specific Synapse container, Core and HTTP fixtures stopped"
+    },
+    {
+      "revision": "ca336a2",
+      "commands": [
+        "npm run check",
+        "npm run build"
+      ],
+      "status": "passed",
+      "moduleTests": 306
+    },
+    {
+      "revision": "ca336a2 plus configurable API-only verification ports",
+      "command": "DS_GROUP_API_ONLY_VERIFY_PORT_BASE=24410 node scripts/verify-api-only.mjs",
+      "status": "passed",
+      "checks": 7,
+      "scope": "Real CLI initialization, Synapse and integrated Core, independent-origin Chromium API checks, actual restarts and legacy hosting compatibility; Compose rendering separately identified",
+      "report": "../api-only/real-2026-11-05T03-30-35-697Z.json",
+      "sourceProof": "Exact per-file SHA-256 values recorded in the linked report",
+      "cleanup": "Run-specific Synapse container, Core and static HTTP fixture stopped"
+    },
+    {
+      "revision": "57e2872",
+      "commands": [
+        "npm run build:admin",
+        "node --test tests/governance.test.mjs tests/admin.browser.mjs"
+      ],
+      "status": "passed",
+      "moduleTests": 7,
+      "browserChecks": 12
+    },
+    {
+      "revision": "cf77e22 plus correction of duplicated dsh-connect packaging entry",
+      "commands": [
+        "npm run check",
+        "npm run build"
+      ],
+      "status": "passed",
+      "moduleTests": 323
+    },
+    {
+      "revision": "cf77e22",
+      "command": "node --test --test-concurrency=2 tests/*.browser.mjs",
+      "status": "failed",
+      "browserFilesPassed": 8,
+      "browserFilesFailed": 1,
+      "failure": "unified-client.browser.mjs async response diagnostics attempted response.json after disposal; lifecycle fix assigned to client line",
+      "log": "/tmp/dscord-platform-client-browser.log"
+    },
+    {
+      "revision": "cf77e22",
+      "commands": [
+        "node scripts/federation-lab.mjs up --project dscord-platform-20261105t0340 --port-base 24400",
+        "node scripts/federation-lab.mjs verify --project dscord-platform-20261105t0340 --port-base 24400",
+        "node scripts/federation-lab.mjs down --project dscord-platform-20261105t0340 --port-base 24400"
+      ],
+      "status": "passed",
+      "checks": 9,
+      "scope": "Three real independent Synapse/Core/admin deployments on one physical host, validated-TLS signed federation, invitation/admission, text/media, direct Matrix denial, outage recovery and revocation",
+      "report": "../governance/federation-2026-11-05T03-38-18-851Z.json",
+      "cleanup": "Owned processes, three containers and isolated network stopped/removed; private runtime data retained"
+    },
+    {
+      "revision": "cf77e22 plus corrected packaging entry",
+      "command": "node --test tests/release-package.test.mjs",
+      "status": "passed",
+      "moduleTests": 3
+    },
+    {
+      "revision": "cf77e22 plus verification port/web-mode options",
+      "command": "DS_GROUP_CLIENT_VERIFY_PORT_BASE=24470 DS_GROUP_CLIENT_VERIFY_WEB_MODE=api-only node scripts/verify-unified-client.mjs",
+      "status": "failed",
+      "checksPassed": 2,
+      "checksFailed": 1,
+      "finding": "Independent production client successfully registers with an API-only Core. New room is present in joined_rooms/state but omitted by /api/spaces because its initial sync snapshot is empty. Server fix pending.",
+      "report": "../unified-client/real-2026-11-05T03-39-31-043Z.json",
+      "cleanup": "Own Core, browser, HTTP listener and Synapse container stopped"
+    },
+    {
+      "revision": "dc23777",
+      "command": "node --test tests/governance.test.mjs tests/spaces.test.mjs",
+      "status": "passed",
+      "moduleTests": 10
+    },
+    {
+      "revision": "dc23777",
+      "command": "DS_GROUP_CLIENT_VERIFY_PORT_BASE=24470 DS_GROUP_CLIENT_VERIFY_WEB_MODE=api-only node scripts/verify-unified-client.mjs",
+      "status": "passed",
+      "checks": 7,
+      "scope": "Normal built React UI on independent static origin, real API-only Core and Synapse, registration, new room/text/file/Bot DM, offline reconnect and device logout/login",
+      "report": "../unified-client/real-2026-11-05T03-45-59-172Z.json",
+      "history": "The prior empty-sync integration failure remains in its original report"
+    },
+    {
+      "revision": "6167833",
+      "commands": [
+        "npm run check",
+        "npm run build",
+        "node --test --test-concurrency=2 tests/*.browser.mjs"
+      ],
+      "status": "passed",
+      "moduleTests": 357,
+      "browserFiles": 9,
+      "browserScope": "Production client fixture, existing components and independent management HTTP with synthetic Matrix control",
+      "history": "The async disposed-response failure on cf77e22 is preserved above"
+    },
+    {
+      "revision": "6167833 plus general native verification port validation",
+      "command": "DS_GROUP_SCOPED_SMOKE_PORT=24690 DS_GROUP_SCOPED_SMOKE_REPORT=artifacts/cross-server-bot/platform-native-2026-11-05.json node scripts/cross-server-runtime-smoke.mjs",
+      "status": "passed",
+      "checks": 8,
+      "scriptedProviderCalls": 10,
+      "remoteModelCalls": 0,
+      "scope": "Real isolated native DSH Sessions and tools, synthetic home authorization and scripted provider",
+      "report": "../cross-server-bot/platform-native-2026-11-05.json"
+    },
+    {
+      "revision": "bc75add",
+      "command": "node --test tests/release-package.test.mjs tests/npm-pack.test.mjs tests/node-roster.test.mjs",
+      "status": "passed",
+      "moduleTests": 13
+    },
+    {
+      "revision": "fc98005",
+      "command": "npm run build:admin && node --test tests/admin.browser.mjs",
+      "status": "passed",
+      "browserChecks": 14,
+      "scope": "Production independent administrator UI against management HTTP and synthetic Matrix control"
+    },
+    {
+      "revision": "d01f79f",
+      "command": "GitHub Actions DSCord CI",
+      "status": "passed",
+      "jobsPassed": 10,
+      "jobsTotal": 10,
+      "remoteModelCalls": 0,
+      "scope": "Four Linux/Node jobs, two full Compose deployments, two native DSH jobs, browser and required gate",
+      "report": "../ci/d01f79f/summary.json",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116"
+    },
+    {
+      "revision": "86f935e",
+      "command": "node --test tests/verified-media.test.mjs tests/media.test.mjs tests/room-media.test.mjs",
+      "status": "passed",
+      "moduleTests": 24,
+      "scope": "Real Core HTTP with synthetic Matrix source, byte count/hash, Range, queue/storage limits, staged revocation and cleanup"
+    },
+    {
+      "revision": "86f935e",
+      "command": "node scripts/verify-federated-client.mjs --run --port-base 24400 --client-port 24470",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scope": "Normal production UI, independent origin, actual A/B/C Synapse federation and Core/admin, API-only, text/media/owner grants/revocation/reconnect",
+      "report": "../unified-client/federated-ui-2026-11-05T04-16-52-441Z.json",
+      "cleanup": "Owned Core/admin/static processes, three Synapse containers and isolated network stopped; private runtime data retained"
+    },
+    {
+      "revision": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "commands": [
+        "npm run check",
+        "npm run build",
+        "node --test --test-concurrency=2 tests/*.browser.mjs"
+      ],
+      "status": "passed",
+      "moduleTests": 372,
+      "browserFiles": 9,
+      "browserScope": "Existing component fixtures, unified production client 19 checks, independent administrator UI 14 checks"
+    },
+    {
+      "revision": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "command": "DS_GROUP_SCOPED_SMOKE_PORT=24690 DS_GROUP_SCOPED_SMOKE_REPORT=artifacts/cross-server-bot/platform-native-final-2026-11-05.json node scripts/cross-server-runtime-smoke.mjs",
+      "status": "passed",
+      "checks": 8,
+      "scriptedProviderCalls": 10,
+      "remoteModelCalls": 0,
+      "scope": "Actual native DSH with synthetic authorization, isolated Sessions and file tools, late/revoked tool effect receipts",
+      "report": "../cross-server-bot/platform-native-final-2026-11-05.json"
+    },
+    {
+      "revision": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "command": "verify-cross-server-bot.mjs --prepare --run --real-model against the integrated product source and isolated existing Bot lab",
+      "status": "passed",
+      "checks": 9,
+      "remoteModelCalls": 9,
+      "scope": "Actual native DSH, real Synapse federation, original Bot/owner/node identity, colliding attachment identity, file work and original-room delivery, duplicate, reconnect and queued revocation",
+      "report": "../cross-server-bot/platform-real-9a44e8d.json",
+      "sourceProof": "../cross-server-bot/platform-source-9a44e8d.json",
+      "cleanupReport": "../cross-server-bot/platform-cleanup-9a44e8d.json"
+    },
+    {
+      "revision": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "command": "GitHub Actions DSCord CI",
+      "status": "passed",
+      "jobsPassed": 10,
+      "jobsTotal": 10,
+      "remoteModelCalls": 0,
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180",
+      "scope": "Four Linux/Node jobs, two full Compose deployments, two native DSH jobs, browser and required gate",
+      "report": "../ci/9a44e8d/summary.json"
+    }
+  ],
+  "verificationPortChange": {
+    "variable": "DS_GROUP_IDENTITY_VERIFY_PORT_BASE",
+    "default": 24200,
+    "offsets": {
+      "core": 0,
+      "client": 1,
+      "untrustedRemoteFixture": 2,
+      "matrix": 8
+    },
+    "reason": "Permit main-thread verification alongside the identity worker without sharing ports or data directories"
+  },
+  "modelCalls": 34,
+  "physicalCrossMachine": false,
+  "pending": [],
+  "apiOnlyVerificationPortChange": {
+    "variable": "DS_GROUP_API_ONLY_VERIFY_PORT_BASE",
+    "default": 24210,
+    "offsets": {
+      "core": 0,
+      "client": 1,
+      "matrix": 8
+    },
+    "reason": "Avoid cross-worker port collisions during independent deployment validation"
+  },
+  "clientVerificationOptions": {
+    "portBaseVariable": "DS_GROUP_CLIENT_VERIFY_PORT_BASE",
+    "default": 24370,
+    "offsets": {
+      "core": 0,
+      "client": 1,
+      "matrix": 8
+    },
+    "webModeVariable": "DS_GROUP_CLIENT_VERIFY_WEB_MODE",
+    "defaultWebMode": "deployment-default",
+    "reason": "Run normal production UI against an explicitly API-only Core on isolated integration ports"
+  },
+  "modelCallScope": {
+    "mainThreadRemote": 0,
+    "botWorkstreamRemote": 34,
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "report": "../cross-server-bot/accounting.json",
+    "billingCost": "unknown"
+  },
+  "physicalTestStatus": "User stated on 2026-11-05 that no test machine is currently available. This slice uses one physical host with independent Synapse containers and Core/admin processes, plus Linux amd64/arm64 full Compose CI. Physical cross-machine network/failure behavior is deferred.",
+  "implementationDecisions": [
+    "Reuse Synapse password authentication and device sessions with persistent authorityId/subjectId/full-Matrix-ID mapping; independent OIDC issuer is a follow-up",
+    "Explicit API-only mode for independently hosted collaboration services; separately built static client and per-instance administration",
+    "Cross-server Bot work currently permits read/write/edit/read_image and delivery to the original approved room/requester; wider tools, cross-server delegation and new external private chats are follow-ups",
+    "Proven media uses private full-object staging before successful bytes, default 256 MiB per file, concurrency 2, queue 16 and configurable Core limits"
+  ],
+  "deferred": [
+    "Physical cross-machine network and host-failure acceptance, pending a user test machine",
+    "Independent OIDC issuer evolution",
+    "Wider cross-server tools, delegation and new external private chats"
+  ],
+  "cleanup": {
+    "mainVerificationListenersReleased": [
+      24400,
+      24408,
+      24410,
+      24420,
+      24428,
+      24430,
+      24440,
+      24448,
+      24450,
+      24470,
+      24690,
+      24691
+    ],
+    "workerReports": [
+      "../cross-server-bot/platform-cleanup-9a44e8d.json",
+      "../deploy-release/cleanup.json"
+    ],
+    "privateData": "Retained only in Git-ignored test runtime directories",
+    "trackedCredentialReview": "New paths reviewed for private runtime paths and common Matrix/API/private-key material patterns; no matches"
+  },
+  "publication": {
+    "kind": "source-candidate",
+    "branch": "codex/dscord-platform-integration",
+    "productSourceCommit": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+    "releaseStatus": "Source branch integration; package publication is a separate step"
+  }
+}

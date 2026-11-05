@@ -17,8 +17,8 @@ const entries = new Map([
 ]);
 const help = `Usage: dscord <command> [arguments]
 
-  server                 Run the core server and PWA
-  init                   Prepare server and Synapse configuration
+  server                 Run the core server in its configured web mode
+  init [--web-mode MODE]  Prepare configuration (MODE: bundled or api-only)
   bootstrap              Register initial members on the configured Synapse
   admin <arguments>      Manage server credentials and node exports
   node <arguments>       Run a Matrix Bot adapter
@@ -29,6 +29,7 @@ const help = `Usage: dscord <command> [arguments]
   help                   Show this help
 
 DS_GROUP_DATA_DIR defaults to .dscord in the current directory.
+DS_GROUP_WEB_MODE overrides web hosting; init persists it in core-config.json.
 `;
 
 async function run() {

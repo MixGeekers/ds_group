@@ -1,0 +1,259 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "repository": "MixGeekers/dscord",
+  "headSha": "d01f79ff1fe9ef4fc0171d6088fb8cef4e28c0aa",
+  "branch": "codex/dscord-platform-integration",
+  "runId": 41965988116,
+  "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116",
+  "status": "completed",
+  "conclusion": "success",
+  "totalJobs": 10,
+  "succeeded": 10,
+  "failed": 0,
+  "jobs": [
+    {
+      "name": "DSH / ubuntu-24.04",
+      "id": 127042988684,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042988684",
+      "startedAt": "2026-11-05T04:09:05Z",
+      "completedAt": "2026-11-05T04:10:06Z"
+    },
+    {
+      "name": "DSH / ubuntu-24.04-arm",
+      "id": 127042988873,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042988873",
+      "startedAt": "2026-11-05T04:09:08Z",
+      "completedAt": "2026-11-05T04:10:39Z"
+    },
+    {
+      "name": "Native / ubuntu-24.04-arm / Node 24.19.0",
+      "id": 127042988933,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042988933",
+      "startedAt": "2026-11-05T04:09:08Z",
+      "completedAt": "2026-11-05T04:09:58Z"
+    },
+    {
+      "name": "Native / ubuntu-24.04 / Node 24.x",
+      "id": 127042988963,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042988963",
+      "startedAt": "2026-11-05T04:09:05Z",
+      "completedAt": "2026-11-05T04:09:45Z"
+    },
+    {
+      "name": "Deploy / Linux amd64",
+      "id": 127042989022,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042989022",
+      "startedAt": "2026-11-05T04:09:06Z",
+      "completedAt": "2026-11-05T04:11:38Z"
+    },
+    {
+      "name": "Native / ubuntu-24.04-arm / Node 24.x",
+      "id": 127042989171,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042989171",
+      "startedAt": "2026-11-05T04:09:09Z",
+      "completedAt": "2026-11-05T04:09:57Z"
+    },
+    {
+      "name": "Deploy / Linux arm64",
+      "id": 127042989195,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042989195",
+      "startedAt": "2026-11-05T04:09:08Z",
+      "completedAt": "2026-11-05T04:11:46Z"
+    },
+    {
+      "name": "Native / ubuntu-24.04 / Node 24.19.0",
+      "id": 127042989361,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042989361",
+      "startedAt": "2026-11-05T04:09:06Z",
+      "completedAt": "2026-11-05T04:10:01Z"
+    },
+    {
+      "name": "Browser / Chromium",
+      "id": 127042989372,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127042989372",
+      "startedAt": "2026-11-05T04:09:06Z",
+      "completedAt": "2026-11-05T04:10:23Z"
+    },
+    {
+      "name": "DS-Group matrix passed",
+      "id": 127043914288,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116/job/127043914288",
+      "startedAt": "2026-11-05T04:11:49Z",
+      "completedAt": "2026-11-05T04:11:52Z"
+    }
+  ],
+  "deployments": [
+    {
+      "arch": "amd64",
+      "report": "remote-amd64-deploy-smoke.json",
+      "checks": 10,
+      "modelCalls": 0,
+      "cleanedUp": true
+    },
+    {
+      "arch": "amd64",
+      "report": "remote-amd64-platform-deploy-smoke.json",
+      "checks": 5,
+      "modelCalls": 0,
+      "cleanedUp": true
+    },
+    {
+      "arch": "arm64",
+      "report": "remote-arm64-deploy-smoke.json",
+      "checks": 10,
+      "modelCalls": 0,
+      "cleanedUp": true
+    },
+    {
+      "arch": "arm64",
+      "report": "remote-arm64-platform-deploy-smoke.json",
+      "checks": 5,
+      "modelCalls": 0,
+      "cleanedUp": true
+    }
+  ],
+  "scopedRuntime": [
+    {
+      "runner": "ubuntu-24.04",
+      "report": "scoped-runtime-ubuntu-24.04.json",
+      "checks": 8,
+      "scriptedProviderCalls": 10,
+      "remoteModelCalls": 0,
+      "jobId": 127042988684,
+      "stepConclusion": "success"
+    },
+    {
+      "runner": "ubuntu-24.04-arm",
+      "report": "scoped-runtime-ubuntu-24.04-arm.json",
+      "checks": 8,
+      "scriptedProviderCalls": 10,
+      "remoteModelCalls": 0,
+      "jobId": 127042988873,
+      "stepConclusion": "success"
+    }
+  ],
+  "browser": {
+    "files": 9,
+    "passed": 9,
+    "failed": 0,
+    "adminChecks": 14,
+    "unifiedClientChecks": 19,
+    "buildStep": "success",
+    "testStep": "success",
+    "nestedEvidenceUploaded": true
+  },
+  "sourceRelease": {
+    "verifiedLocallyFromDownloadedRemoteArtifact": true,
+    "version": "0.3.0",
+    "files": 330,
+    "sha256": "5e34dc3d36728712a495ea8266383436f01971e0bafcfa27c98f15c8fafdecc2"
+  },
+  "artifactMetadata": [
+    {
+      "name": "browser-checks",
+      "id": 13387931083,
+      "digest": "sha256:86813ff1a4bcefe6c706f7239b9c7b9918abfb9dfc60044a6386e05bf4f4adb9",
+      "size": 409737,
+      "expired": false
+    },
+    {
+      "name": "deploy-amd64",
+      "id": 13387636970,
+      "digest": "sha256:2919a284a859a5ddb531ed8c9268d3be909b5c59b78ac721b3f1d4eb8eb3887c",
+      "size": 3208,
+      "expired": false
+    },
+    {
+      "name": "runtime-ubuntu-24.04-arm",
+      "id": 13387094212,
+      "digest": "sha256:87a598b19caed1a23dac5b6d8f58ae24b1dbf2d9b3d6152a5dfab1534714908d",
+      "size": 4148,
+      "expired": false
+    },
+    {
+      "name": "deploy-arm64",
+      "id": 13387003942,
+      "digest": "sha256:d3309e18cdd84123653d02b10499384356ab60aa3c5bed784445e3b35bb24b99",
+      "size": 3205,
+      "expired": false
+    },
+    {
+      "name": "runtime-ubuntu-24.04",
+      "id": 13386939851,
+      "digest": "sha256:6228abb03c407e6f8f27963449d07a5a2c2b637648fa6e4166e7e1b457bbcf1c",
+      "size": 4141,
+      "expired": false
+    },
+    {
+      "name": "ds-group-source",
+      "id": 13386779066,
+      "digest": "sha256:30eed5461ac9c3c7903b635a02ffde9e1a710c93692eb8b7221053a18a6ba46c",
+      "size": 1385161,
+      "expired": false
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "file": "remote-amd64-deploy-smoke.json",
+      "sha256": "991961928345beb018d5158f824f83f720667934f3fc19efb28d22f9ce6bda8b"
+    },
+    {
+      "file": "remote-amd64-platform-deploy-smoke.json",
+      "sha256": "016f15333ac669c1db2e80f385f0a33301c939a10381dbea77222d580574c13c"
+    },
+    {
+      "file": "remote-arm64-deploy-smoke.json",
+      "sha256": "52b99d01685d943fed11190a9c2c5e407e79244d7d6cb071be4b75654e60c713"
+    },
+    {
+      "file": "remote-arm64-platform-deploy-smoke.json",
+      "sha256": "94a9da8536327c4a38b328b4c54c95548f34079f111d0964b7e75bb0c32f56d1"
+    },
+    {
+      "file": "scoped-runtime-ubuntu-24.04.json",
+      "sha256": "ddb9edcf5d92714e8ed5063c616dd91edeb8f8d6d19971a1a38c039b4449499b"
+    },
+    {
+      "file": "scoped-runtime-ubuntu-24.04-arm.json",
+      "sha256": "815383d75b9df2d17427abdaf1141d8d079607b7397f099b79d348584f7ee324"
+    },
+    {
+      "file": "admin-browser.json",
+      "sha256": "4e9ee3983495fca0d217178e3cb3d4e08f3777a8a30a4d1fcb764c417638313f"
+    },
+    {
+      "file": "unified-client-browser.json",
+      "sha256": "8c952735af9a0b9d335dc4bd04a1cc39a861a1390128d482e6362f86af650b1f"
+    }
+  ],
+  "evidenceLevel": "new GitHub-hosted Linux amd64/arm64 execution for exact head; independent of earlier local macOS Docker arm64 reports",
+  "previousRun": {
+    "headSha": "541071a694c90c4c6b40d557d5f2d5fe9b541732",
+    "runId": 41964875351,
+    "result": "8/10 jobs passed; browser and aggregate gate failed; original records retained"
+  },
+  "remoteModelCalls": 0,
+  "note": "Each new cross-server runtime check used native DSH and a loopback scripted provider: 10 scripted calls per Linux runner, zero remote model calls. This does not claim a real federated Matrix/provider business test.",
+  "localActions": "Read-only GitHub run/artifact monitoring and checksum verification only; no rerun, push, merge to main, release or publication performed."
+}

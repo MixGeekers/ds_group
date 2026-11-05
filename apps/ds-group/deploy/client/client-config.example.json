@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "homeCoreUrl": "https://core.example.com",
+  "homeMatrixUrl": "https://matrix.example.com"
+}

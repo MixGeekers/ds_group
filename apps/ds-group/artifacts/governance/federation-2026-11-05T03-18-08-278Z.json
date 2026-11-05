@@ -1,0 +1,78 @@
+{
+  "startedAt": "2026-11-05T03:18:08.279Z",
+  "status": "failed",
+  "level": "real Synapse/Core/administration, private CA-verified TLS federation, one physical Docker host",
+  "modelCalls": 0,
+  "endpoints": {
+    "project": "dscord-federation",
+    "dataRoot": "/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation",
+    "physicalHosts": 1,
+    "topology": "three independent Synapse containers, Core processes and administration processes; private TLS federation on an isolated Docker network",
+    "servers": [
+      {
+        "name": "a",
+        "serverName": "a.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24100",
+        "matrixUrl": "http://127.0.0.1:24108",
+        "adminUrl": "http://127.0.0.1:24110"
+      },
+      {
+        "name": "b",
+        "serverName": "b.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24120",
+        "matrixUrl": "http://127.0.0.1:24128",
+        "adminUrl": "http://127.0.0.1:24130"
+      },
+      {
+        "name": "c",
+        "serverName": "c.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24140",
+        "matrixUrl": "http://127.0.0.1:24148",
+        "adminUrl": "http://127.0.0.1:24150"
+      }
+    ],
+    "commands": {
+      "up": "node scripts/federation-lab.mjs up --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "verify": "node scripts/federation-lab.mjs verify --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "down": "node scripts/federation-lab.mjs down --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'"
+    }
+  },
+  "checks": [
+    {
+      "name": "ordinary chat, room creator and foreign administration sessions cannot administer this instance",
+      "status": "passed",
+      "details": {
+        "chatRejected": true,
+        "roomCreatorRejected": true,
+        "foreignAdminRejected": true
+      }
+    },
+    {
+      "name": "A/B explicit partner, identity and room rules save and apply separately from network restart",
+      "status": "passed",
+      "details": {
+        "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+        "participants": [
+          "@alice:a.dscord-federation.test:8448",
+          "@alice:b.dscord-federation.test:8448"
+        ],
+        "staticRestartObserved": true
+      }
+    },
+    {
+      "name": "home identity receives a real foreign invitation and joins without a shadow account",
+      "status": "failed",
+      "error": "/api/rooms/!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4/invite: HTTP 403, expected 200; @alice:b.dscord-federation.test:8448 is already in the room.\n\n403 !== 200\n"
+    }
+  ],
+  "sourceSha256": {
+    "src/core.mjs": "8ebcf1b5191fd4922c22a7816c2d3b9d2e0ed80d36702105685f8ea5392cd616",
+    "src/collaboration.mjs": "37f38987efdc3a2c5e7d2511a882cf205492784ef51021a6e72a548a22e94d98",
+    "src/governance.mjs": "60d634ab592a05a3bab3bfb43ee83df226cce6a583eee02d9ead2764adb890c2",
+    "src/synapse-control.mjs": "6942c6dee54e895f0237c2506c0f375181e0b806acad4b0f042974bda5ec3ab7",
+    "deploy/synapse/dscord_guard.py": "d9b0d8ce32cb7db5495fb4790f78ebdda66d15f98fc5aa02baaf9be8d4b5c4a4",
+    "scripts/federation-lab.mjs": "18e117036c828f0c7307faf0cab8f33a86451d4be9726c0e61335afe99f68f53"
+  },
+  "error": "/api/rooms/!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4/invite: HTTP 403, expected 200; @alice:b.dscord-federation.test:8448 is already in the room.\n\n403 !== 200\n",
+  "finishedAt": "2026-11-05T03:18:10.299Z"
+}

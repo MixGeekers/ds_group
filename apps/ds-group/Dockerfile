@@ -6,6 +6,8 @@ COPY package.json package-lock.json ./
 RUN npm ci --ignore-scripts --no-audit --no-fund
 COPY tsconfig.json vite.config.ts ./
 COPY web ./web
+COPY admin ./admin
+COPY ui ./ui
 COPY scripts ./scripts
 COPY src/paths.mjs ./src/paths.mjs
 RUN npm run build
@@ -19,7 +21,9 @@ COPY --chown=node:node src ./src
 COPY --chown=node:node web ./web
 COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node vendor ./vendor
+COPY --chown=node:node deploy/synapse ./deploy/synapse
 COPY --from=frontend --chown=node:node /app/dist/web ./dist/web
+COPY --from=frontend --chown=node:node /app/dist/admin ./dist/admin
 
 ENV NODE_ENV=production DS_GROUP_DATA_DIR=/data DS_GROUP_HOST=0.0.0.0 DS_GROUP_PORT=18100
 USER node

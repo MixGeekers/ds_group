@@ -14,9 +14,12 @@ const execute = promisify(execFile);
 const name = `ds-group-smoke-${randomBytes(5).toString('hex')}`;
 const reportPath = path.resolve(process.env.DS_GROUP_SMOKE_REPORT || path.join(packageRoot, '.local', 'deploy-smoke.json'));
 const composeFiles = ['-f', path.join(packageRoot, 'deploy', 'compose.yaml')];
+const portBase = process.env.DS_GROUP_SMOKE_PORT_BASE === undefined ? 0 : Number(process.env.DS_GROUP_SMOKE_PORT_BASE);
+if (!Number.isInteger(portBase) || portBase < 0 || portBase > 65525 || (portBase > 0 && portBase < 1024)) throw new Error('Invalid DS_GROUP_SMOKE_PORT_BASE');
 const env = { ...process.env, DS_GROUP_IMAGE: process.env.DS_GROUP_IMAGE || 'ds-group:ci',
-  DS_GROUP_MEDIA_BACKEND: 'local',
-  DS_GROUP_HTTP_PORT: '0', DS_GROUP_MATRIX_PORT: '0', DS_GROUP_BIND: '127.0.0.1', DS_GROUP_SERVER_NAME: `${name}.local`,
+  DS_GROUP_MEDIA_BACKEND: 'local', DS_GROUP_WEB_MODE: 'bundled',
+  DS_GROUP_HTTP_PORT: String(portBase), DS_GROUP_MATRIX_PORT: String(portBase ? portBase + 8 : 0),
+  DS_GROUP_ADMIN_PORT: String(portBase ? portBase + 10 : 0), DS_GROUP_BIND: '127.0.0.1', DS_GROUP_SERVER_NAME: `${name}.local`,
   DS_GROUP_PUBLIC_URL: 'http://localhost:18100', DS_GROUP_MATRIX_PUBLIC_URL: 'http://localhost:18008' };
 const report = { schemaVersion: 1, startedAt: new Date().toISOString(), project: name,
   platform: process.env.DS_GROUP_PLATFORM || process.platform + '/' + process.arch,
@@ -150,7 +153,7 @@ async function checkRemoteAdapter(bundle, coreUrl, token) {
 await mkdir(path.dirname(reportPath), { recursive: true });
 if (process.env.DS_GROUP_PLATFORM) {
   const override = path.join(path.dirname(reportPath), `${name}.compose.json`);
-  await writeFile(override, JSON.stringify({ services: Object.fromEntries(['config', 'synapse', 'bootstrap', 'core'].map(service => [service, { platform: process.env.DS_GROUP_PLATFORM }])) }));
+  await writeFile(override, JSON.stringify({ services: Object.fromEntries(['config', 'synapse', 'bootstrap', 'core', 'administration'].map(service => [service, { platform: process.env.DS_GROUP_PLATFORM }])) }));
   composeFiles.push('-f', override);
 }
 
@@ -204,13 +207,15 @@ try {
     body: { body: message, to: [], transactionId: `${name}-message` } });
   assert.equal(duplicate.event_id, sent.event_id);
   report.checks.push('retryAfterRecreateDeduplicates');
-  await compose(['stop', '--timeout', '45', 'core', 'synapse']);
+  await compose(['stop', '--timeout', '45', 'core', 'administration', 'synapse']);
   const coreArchive = await archiveVolume('/data');
   const matrixArchive = await archiveVolume('/synapse');
+  const governanceArchive = await archiveVolume('/dscord-policy');
   // Only this randomly named smoke project owns these temporary volumes.
   await compose(['down', '--volumes', '--timeout', '45']);
   await restoreVolume('/data', coreArchive);
   await restoreVolume('/synapse', matrixArchive);
+  await restoreVolume('/dscord-policy', governanceArchive);
   await compose(['up', '--no-build', '--detach', '--wait', '--wait-timeout', '180']);
   url = await endpoint();
   assert.deepEqual(await snapshot(), before);

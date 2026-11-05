@@ -69,24 +69,28 @@ async function fileDigest(filename, limit) {
 }
 
 export class NodeFiles {
-  constructor({ coreUrl, accessToken, directory, fetchImpl = fetch, maxBytes = maximumBytes }) {
+  constructor({ coreUrl, accessToken, directory, fetchImpl = fetch, maxBytes = maximumBytes, work, matrix }) {
     this.coreUrl = coreUrl;
     this.accessToken = accessToken;
     this.directory = path.resolve(directory);
     this.fetch = fetchImpl;
     this.maxBytes = maxBytes;
+    this.work = work;
+    this.matrix = matrix;
   }
 
   async prepare(request, signal) {
-    const workdir = path.join(this.directory, digest(request.requestId).slice(0, 32));
+    const scoped = request.authorization?.kind === 'scoped';
+    const workdir = scoped ? path.join(this.directory, 'domains', request.authorization.domainId, digest(request.requestId).slice(0, 32))
+      : path.join(this.directory, digest(request.requestId).slice(0, 32));
     const inputs = path.join(workdir, 'inputs');
     await mkdir(inputs, { recursive: true, mode: 0o700 });
     await mkdir(path.join(workdir, 'outputs'), { recursive: true, mode: 0o700 });
-    const attachments = selectInputAttachments(request);
+    const attachments = scoped ? request.event.attachments || [] : selectInputAttachments(request);
     const files = [];
     const selected = attachments.slice(0, 64);
     for (const attachment of selected) {
-      const file = await this.download(attachment, inputs, signal);
+      const file = await this.download(attachment, inputs, signal, request);
       try {
         const extraction = await extractFile(file.path, { outputDirectory: path.join(workdir, 'extracted') });
         file.extraction = { type: extraction.type, textPath: extraction.textPath, truncated: extraction.truncated,
@@ -100,10 +104,16 @@ export class NodeFiles {
       ...(attachments.length > selected.length ? { attachmentWarnings: [`当前任务文件较多，本轮准备 ${selected.length} 个文件，其余文件可以重新引用后处理。`] } : {}) };
   }
 
-  async download(attachment, directory, signal) {
+  async download(attachment, directory, signal, request) {
+    const scoped = request?.authorization?.kind === 'scoped';
+    if (scoped) {
+      if (!this.work || !this.matrix || !/^[a-f0-9]{64}$/.test(request.authorization.domainId)) throw new Error('Scoped file transfer needs the home work authority and Matrix client');
+      await this.work.check(request, 'download', { attachment });
+    }
     if (attachment.size > this.maxBytes) throw new Error('Input attachment exceeds this node’s file size limit');
-    const filename = path.join(directory, `${digest(attachment.id).slice(0, 16)}-${localName(attachment.name)}`);
-    const cacheDirectory = path.join(this.directory, '_attachments');
+    const key = scoped ? JSON.stringify([attachment.source, attachment.id, attachment.contentUri, attachment.sha256]) : attachment.id;
+    const filename = path.join(directory, `${digest(key).slice(0, 16)}-${localName(attachment.name)}`);
+    const cacheDirectory = scoped ? path.join(this.directory, '_attachments', request.authorization.domainId) : path.join(this.directory, '_attachments');
     const cacheFile = /^[a-f0-9]{64}$/.test(attachment.sha256 || '') ? path.join(cacheDirectory, attachment.sha256) : null;
     if (typeof attachment.sha256 === 'string') {
       try {
@@ -122,8 +132,10 @@ export class NodeFiles {
     }
     let response;
     try {
-      response = await this.fetch(new URL(`/api/attachments/${encodeURIComponent(attachment.id)}`, this.coreUrl), {
+      response = scoped ? await this.matrix.downloadMedia(attachment.contentUri, { signal })
+        : await this.fetch(new URL(`/api/attachments/${encodeURIComponent(attachment.id)}`, this.coreUrl), {
         headers: { Authorization: `Bearer ${this.accessToken}` },
+        redirect: 'error',
         signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(120_000)]) : AbortSignal.timeout(120_000),
       });
     } catch (cause) { throw Object.assign(new Error(`Attachment download failed: ${cause.message}`), { networkError: true, cause }); }
@@ -160,6 +172,7 @@ export class NodeFiles {
   }
 
   async upload(artifact, request, signal) {
+    await this.work?.check(request, 'upload');
     const workspace = await realpath(request.workdir);
     const filename = await realpath(artifact.path);
     if (!filename.startsWith(workspace + path.sep)) throw new Error('Task artifact is outside its working directory');
@@ -169,7 +182,7 @@ export class NodeFiles {
     const url = new URL('/api/attachments', this.coreUrl);
     url.searchParams.set('filename', artifact.name || path.basename(filename));
     let response;
-    try { response = await this.fetch(url, { method: 'POST', headers: {
+    try { response = await this.fetch(url, { method: 'POST', redirect: 'error', headers: {
       Authorization: `Bearer ${this.accessToken}`, 'Content-Type': artifact.mimeType || 'application/octet-stream',
       'Content-Length': String(actual.size), 'X-Upload-Id': `artifact-${digest(`${request.botId}\0${request.requestId}\0${filename}\0${actual.sha256}`)}`,
     }, body: createReadStream(filename), duplex: 'half',
@@ -182,6 +195,9 @@ export class NodeFiles {
     if (!body.attachment?.id || body.attachment.sha256 !== actual.sha256 || body.attachment.size !== actual.size) {
       throw new Error('Artifact upload returned an inconsistent file receipt');
     }
-    return body.attachment;
+    let observationPending = false;
+    try { await this.work?.check(request, 'observe', { effectStatus: 'completed', callId: `upload:${body.attachment.id}` }); }
+    catch { observationPending = true; }
+    return { ...body.attachment, ...(observationPending ? { observationPending: true } : {}) };
   }
 }

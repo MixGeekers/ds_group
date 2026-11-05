@@ -1,0 +1,10 @@
+{
+  "date": "2026-11-04",
+  "status": "passed",
+  "tests": 5,
+  "sourceArchiveFiles": 280,
+  "independentClientFilesPresent": true,
+  "privateRuntimeExcluded": true,
+  "npmRuntimeIncludesCompiledConfig": true,
+  "note": "Source and npm packaging tests; no publication."
+}

@@ -13,31 +13,21 @@ import { TaskService } from './tasks.mjs';
 import { ChatFeatures } from './mentions.mjs';
 import { localPath, packageRoot } from './paths.mjs';
 import { AccountService } from './accounts.mjs';
+import { IdentityService } from './identity.mjs';
+import { effectiveWebMode } from './web-mode.mjs';
 import { NodeCredentials, requireNodeScope } from './node-auth.mjs';
 import { nodeBundle } from '../scripts/server-admin.mjs';
+import { Governance, serverOf, roomAllows } from './governance.mjs';
+import { CollaborationService } from './collaboration.mjs';
+import { RoomMedia } from './room-media.mjs';
+import { BotWorkService } from './bot-work.mjs';
+import { readJsonBody } from './http-json.mjs';
+export { readJsonBody } from './http-json.mjs';
 
 const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const loadedCoreSha256 = createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
-
-export async function readJsonBody(request) {
-  const chunks = [];
-  let bytes = 0;
-  for await (const chunk of request) {
-    bytes += chunk.length;
-    if (bytes > 131072) throw Object.assign(new Error('Request too large'), { status: 413 });
-    chunks.push(Buffer.from(chunk));
-  }
-  const body = Buffer.concat(chunks).toString('utf8');
-  let parsed;
-  try { parsed = body ? JSON.parse(body) : {}; }
-  catch { throw Object.assign(new Error('Expected JSON body'), { status: 400 }); }
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw Object.assign(new Error('Expected a JSON object'), { status: 400 });
-  }
-  return parsed;
-}
 
 function bearer(request) {
   const authorization = request.headers.authorization || '';
@@ -70,6 +60,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   setup ||= JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || path.join(dataRoot, 'matrix-setup.json'), 'utf8'));
   setup = { ...setup, homeserverUrl: process.env.DS_GROUP_MATRIX_URL || setup.homeserverUrl };
   config ||= await loadCoreConfig(dataRoot);
+  const webMode = effectiveWebMode(config);
   const proxySetting = process.env.DS_GROUP_TRUST_PROXY;
   if (proxySetting !== undefined && !['true', 'false'].includes(proxySetting)) throw new Error('DS_GROUP_TRUST_PROXY must be true or false');
   if (config.trustProxy !== undefined && typeof config.trustProxy !== 'boolean') throw new Error('trustProxy must be a boolean');
@@ -84,9 +75,22 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const accounts = await new AccountService({ setup, config, dataRoot,
     onParticipant: async person => { if (push) await push.upsertParticipant(person); },
   }).initialize();
+  setup.serverName ||= accounts.serverName || 'localhost';
+  let identity;
+  try {
+    identity = await new IdentityService({ accounts, setup, config, dataRoot }).initialize();
+  } catch (error) {
+    accounts.close();
+    throw error;
+  }
+  const governance = new Governance({ dataRoot, serverName: setup.serverName });
+  const collaboration = new CollaborationService({ setup, governance, accounts });
+  const roomMedia = new RoomMedia({ governance });
+  const directorySetup = { ...setup, participants: [] };
   const nodeCredentials = await new NodeCredentials({ dataRoot, setup, legacySecret: config.nodeSecret }).initialize();
   const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
-  const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES });
+  const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES,
+    verifiedDownloadMaxBytes: config.verifiedDownloadMaxBytes, verifiedDownloadConcurrency: config.verifiedDownloadConcurrency });
   const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
   chat.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS direct_rooms (pair_key TEXT PRIMARY KEY, room_id TEXT NOT NULL, participants_json TEXT NOT NULL)');
   chat.exec(`CREATE TABLE IF NOT EXISTS group_requests (request_key TEXT PRIMARY KEY, input_hash TEXT NOT NULL, status TEXT NOT NULL, room_id TEXT);
@@ -95,7 +99,8 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       payload_json TEXT NOT NULL, token_hash TEXT NOT NULL, event_id TEXT);`);
   const creatingDirectRooms = new Map();
   const sendingMessages = new Map();
-  const chatFeatures = new ChatFeatures({ setup, dataRoot });
+  const chatFeatures = new ChatFeatures({ setup: directorySetup, dataRoot });
+  chatFeatures.ownerId = accounts.ownerId;
   push = enablePush ? new PushService({ dataRoot, setup,
     onEvent: (userId, event) => chatFeatures.recordEvents(userId, [event]),
     shouldNotify: (userId, event) => chatFeatures.shouldNotify(userId, event),
@@ -103,9 +108,12 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   if (push) await push.start();
   const nodes = new Map();
   const startedAt = new Date().toISOString();
-  const publicParticipants = () => accounts.publicParticipants();
+  let directory = await collaboration.directory();
+  directorySetup.participants = directory;
+  const publicParticipants = () => directory;
   const authorizeNode = request => nodeCredentials.authorize(request);
-  const tasks = new TaskService({ setup, dataRoot, authorizeNode, readJsonBody });
+  const tasks = new TaskService({ setup, dataRoot, authorizeNode, readJsonBody, participants: publicParticipants });
+  const botWork = new BotWorkService({ setup, accounts, governance, dataRoot, authorizeNode, readJsonBody, tasks, maxBytes: () => media.maxBytes });
   async function directRoomFor(client, userId, target) {
     const ids = [userId, target.id].sort();
     const key = JSON.stringify(ids);
@@ -188,7 +196,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     finally { sendingMessages.delete(key); }
   }
   function nodeSnapshot() {
-    return publicParticipants().filter(p => p.kind === 'bot').map(participant => {
+    return accounts.publicParticipants().filter(p => p.kind === 'bot').map(participant => {
       const active = nodes.get(participant.id);
       if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DS-Bot 0.2.7' };
       return { ...active, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
@@ -197,6 +205,20 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   async function dispatch(request, response) {
     const url = new URL(request.url, 'http://localhost');
     const send = (status, value) => { response.writeHead(status, jsonHeaders); response.end(JSON.stringify(value)); };
+    identity.cors(request, response, url.pathname);
+    if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname.startsWith('/.well-known/'))) {
+      response.writeHead(204, { 'Cache-Control': 'no-store' }); response.end(); return;
+    }
+    if (request.method === 'GET' && ['/.well-known/dscord/client', '/api/client-config'].includes(url.pathname)) return send(200, identity.discovery());
+    if (request.method === 'GET' && url.pathname === '/.well-known/matrix/client') return send(200, {
+      'm.homeserver': { base_url: identity.home.matrixUrl }, 'org.dscord.client': { base_url: identity.home.coreUrl },
+    });
+    const policy = await governance.read();
+    directory = await collaboration.directory();
+    directorySetup.participants = directory;
+    accounts.mode = policy.settings.registrationMode ?? config.registrationMode ?? 'open';
+    media.maxBytes = policy.settings.maxUploadBytes ?? Number(config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES ?? 52428800);
+    if (url.pathname.startsWith('/admin-api/') || url.pathname === '/admin.html') return send(404, { error: 'Use the separate administration service' });
     if (request.method === 'GET' && url.pathname === '/healthz') return send(200, { status: 'ok' });
     if (request.method === 'GET' && url.pathname === '/readyz') {
       try {
@@ -208,14 +230,19 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     }
     if (request.method === 'GET' && url.pathname === '/api/bootstrap') {
       response.setHeader('Access-Control-Allow-Origin', '*');
-      return send(200, { name: 'DSCord', roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: publicParticipants(), nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server', registration: accounts.registration(),
-        attachments: { maxBytes: media.maxBytes, maxPerMessage: MAX_ATTACHMENTS } });
+      return send(200, { name: 'DSCord', serverName: setup.serverName, roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: accounts.publicParticipants(), nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server', registration: accounts.registration(),
+        attachments: { maxBytes: media.maxBytes, maxPerMessage: MAX_ATTACHMENTS }, identity: identity.discovery(), web: { mode: webMode } });
     }
     if (request.method === 'GET' && url.pathname === '/api/status') {
-      return send(200, { nodes: nodeSnapshot(), budget: budget.snapshot(), core: { startedAt, storage: 'Matrix Synapse', roomId: setup.roomId, evidenceScope: setup.deploymentMode || 'local-multiprocess', loadedCoreSha256 } });
+      return send(200, { nodes: nodeSnapshot(), budget: budget.snapshot(), core: { startedAt, storage: 'Matrix Synapse', roomId: setup.roomId, evidenceScope: setup.deploymentMode || 'local-multiprocess', loadedCoreSha256, webMode } });
     }
     if (request.method === 'GET' && url.pathname === '/api/push/config') {
       return send(200, push ? await push.getConfig() : { enabled: false, requiresSecureContext: true });
+    }
+    // Every ordinary credential is checked at this home; no caller-selected upstream is used.
+    if (url.pathname.startsWith('/api/') &&
+      !['/api/login', '/api/register', '/api/logout', '/api/demo-login'].includes(url.pathname)) {
+      request.dsIdentity = await accounts.authenticate(bearer(request));
     }
     if (url.pathname.startsWith('/api/push/')) {
       if (!push) return send(503, { error: 'Notifications are not enabled' });
@@ -243,6 +270,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       return send(201, await accounts.register(await readJsonBody(request), { clientIp: requestClientIp(request, trustProxy) }));
     }
     if (request.method === 'GET' && url.pathname === '/api/me') return send(200, await accounts.me(bearer(request)));
+    if (collaboration.handles(url.pathname)) return collaboration.handle({ request, url, send });
     if (request.method === 'POST' && url.pathname === '/api/logout') return send(200, await accounts.logout(bearer(request)));
     if (request.method === 'POST' && url.pathname === '/api/bots') {
       const { user } = await accounts.me(bearer(request));
@@ -257,11 +285,26 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const bundle = nodeBundle(setup, { ...config, nodeSecret: secret }, bot.localpart);
       return send(200, { bundle });
     }
+    if (botWork.handles(url.pathname)) return botWork.handle({ request, url, send });
     if (tasks.handles(url.pathname)) return tasks.handle({ request, url, send });
     if (chatFeatures.handles(url.pathname)) {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
       return chatFeatures.handle({ request, url, userId, client, readJsonBody, send });
+    }
+    const roomAttachment = url.pathname.match(/^\/api\/rooms\/([^/]+)\/attachments\/([^/]+)(\/metadata)?$/);
+    if (request.method === 'GET' && roomAttachment) {
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      const { user_id: userId } = await client.whoami();
+      if (serverOf(userId) !== setup.serverName || accounts.row(userId)?.status !== 'active') return send(403, { error: 'An active home identity is required' });
+      const proven = await roomMedia.prove({ client, userId, roomId: decodeURIComponent(roomAttachment[1]),
+        attachmentId: decodeURIComponent(roomAttachment[2]), eventId: url.searchParams.get('eventId') });
+      if (roomAttachment[3]) return send(200, proven);
+      return media.download({ verifiedAttachment: proven.attachment, client, request, response, asDownload: url.searchParams.get('download') === '1',
+        authorize: async () => {
+          if (accounts.row(userId)?.status !== 'active') throw Object.assign(new Error('An active home identity is required'), { status: 403 });
+          await roomMedia.prove({ client, userId, roomId: proven.proof.roomId, eventId: proven.proof.eventId, attachmentId: proven.attachment.id });
+        } });
     }
     if (url.pathname === '/api/attachments' || url.pathname.startsWith('/api/attachments/')) {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
@@ -358,6 +401,15 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
       const input = await readJsonBody(request);
+      if (serverOf(input.participantId) && serverOf(input.participantId) !== setup.serverName) {
+        const roomId = decodeURIComponent(invite[1]);
+        if (!roomAllows(policy, roomId, input.participantId)) return send(403, { error: 'Approve the external member and this room first' });
+        accounts.human(userId);
+        const current = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`);
+        if (current.joined?.[input.participantId]) return send(200, { roomId, participantId: input.participantId, status: 'joined' });
+        await client.request('POST', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/invite`, { user_id: input.participantId });
+        return send(200, { roomId, participantId: input.participantId, status: 'invited' });
+      }
       const participant = setup.participants.find(p => p.id === input.participantId && p.kind === 'bot');
       const profile = publicParticipants().find(p => p.id === input.participantId);
       if (!participant || profile.ownerId !== userId) return send(403, { error: 'Choose one of your own Bots' });
@@ -423,7 +475,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (request.method === 'POST' && url.pathname === '/internal/model/complete') return send(200, budget.complete(input, scope || {}));
       if (request.method === 'POST' && url.pathname === '/internal/nodes/heartbeat') {
         requireNodeScope(scope, { botId: input.botId, nodeId: input.id });
-        const participant = publicParticipants().find(p => p.id === input.botId && p.kind === 'bot');
+        const participant = accounts.publicParticipants().find(p => p.id === input.botId && p.kind === 'bot');
         if (!participant || typeof input.id !== 'string' || !input.id) return send(400, { error: 'Unknown Bot node' });
         const current = nodes.get(input.botId);
         if (current && current.status !== 'offline' && current.runtimeId !== input.runtimeId && Date.now() - current.heartbeatAt < 20000) return send(409, { error: 'Node already has an active runtime' });
@@ -437,7 +489,10 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       }
       return send(404, { error: 'Unknown internal endpoint' });
     }
-    if (request.method === 'GET') {
+    if (webMode === 'api-only' && !url.pathname.startsWith('/api/') && !url.pathname.startsWith('/internal/')) {
+      return send(404, { error: 'The chat client is hosted separately', code: 'WEB_DISABLED' });
+    }
+    if (webMode === 'bundled' && request.method === 'GET') {
       const requested = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
       const filename = path.resolve(webRoot, requested);
       if (!filename.startsWith(path.resolve(webRoot) + path.sep)) return send(404, { error: 'Not found' });
@@ -452,7 +507,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   }
   const server = http.createServer((request, response) => {
     dispatch(request, response).catch(error => {
-      if (response.headersSent) { response.destroy(); return; }
+      if (response.headersSent || response.destroyed) { response.destroy(); return; }
       const retryAfterMs = Number.isSafeInteger(error.retryAfterMs) && error.retryAfterMs >= 0 ? error.retryAfterMs : undefined;
       response.writeHead(error.status || error.statusCode || 500, {
         ...jsonHeaders, ...(retryAfterMs === undefined ? {} : { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) }),
@@ -461,13 +516,15 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         ...(retryAfterMs === undefined ? {} : { retry_after_ms: retryAfterMs }) }));
     });
   });
-  return { server, budget, push, media, tasks, chatFeatures, accounts, nodeCredentials, close: async () => {
+  return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, botWork, close: async () => {
+    media.verified.stop();
     await new Promise(resolve => server.close(resolve));
     if (push) await push.close();
     await nodeCredentials.close();
     accounts.close();
     await media.close();
     tasks.close();
+    botWork.close();
     chatFeatures.close();
     budget.close();
     chat.close();

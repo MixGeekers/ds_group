@@ -378,6 +378,17 @@ export function createMentionEditor({ element, popup, getMentionables = () => ({
   });
   function handleInput() {
     if (composing) return;
+    const onlyElement = element.childElementCount === 1
+      ? element.firstElementChild
+      : null;
+    // Native deletion can leave a browser placeholder break in an empty editor.
+    if (
+      onlyElement?.tagName === 'BR' &&
+      !onlyElement.hasAttribute('data-editor-tail') &&
+      !element.textContent
+    ) {
+      renderBody('', 0);
+    }
     if (getValue().body.length > maxLength) {
       const previous = undoStates[undoIndex];
       renderBody(previous.body, previous.caret);

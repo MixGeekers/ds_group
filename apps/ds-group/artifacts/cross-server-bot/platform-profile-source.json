@@ -1,0 +1,10 @@
+{
+  "sourceCommit": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+  "link": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/cross-server-federation/original-finance-node/dsh-finance/home/profiles/web/node_modules/@ds-group/dsh-node",
+  "previous": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/dsh-plugin",
+  "target": "/Users/caja/.codex/worktrees/dscord-platform-integration/apps/ds-group/dsh-plugin",
+  "scope": "Private test-only plugin link; original Bot runtime, Session state, node directory and credentials retained",
+  "restoredOriginalProfileSourceAt": "2026-11-05T04:32:52.482Z",
+  "finalLinkTarget": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/dsh-plugin",
+  "privateProfilePackageRestored": true
+}

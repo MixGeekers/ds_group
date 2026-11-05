@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "ownedProjects": [
+    {
+      "file": "platform-first.json",
+      "project": "dscord-platform-c7d149450bbf",
+      "status": "failed",
+      "remainingContainers": 0,
+      "remainingVolumes": 0
+    },
+    {
+      "file": "bundled-first.json",
+      "project": "ds-group-smoke-4e1128f2fc",
+      "status": "failed",
+      "remainingContainers": 0,
+      "remainingVolumes": 0
+    },
+    {
+      "file": "platform-integrated.json",
+      "project": "dscord-platform-f42b65d06c65",
+      "status": "passed",
+      "remainingContainers": 0,
+      "remainingVolumes": 0
+    },
+    {
+      "file": "platform-final.json",
+      "project": "dscord-platform-2bf510cc7eff",
+      "status": "passed",
+      "remainingContainers": 0,
+      "remainingVolumes": 0
+    },
+    {
+      "file": "bundled-final.json",
+      "project": "ds-group-smoke-c2303a1ea0",
+      "status": "passed",
+      "remainingContainers": 0,
+      "remainingVolumes": 0
+    }
+  ],
+  "ports": "24220/24228/24230 and 24260/24268/24270 released",
+  "runtimeSourceMatches": true,
+  "finalHandoffSource": {
+    "sha256": "529ab6145e8b0c9666fd6e30ff8112dbd38d6c5e0ca2fc02bb4f9070591640bf",
+    "files": 314,
+    "documentationOnlyChangesSinceTestedImage": [
+      "deploy/README.md",
+      "deploy/platform-validation.md"
+    ]
+  },
+  "imagesRemoved": [
+    "dscord:deploy-release-ca336a2",
+    "dscord:deploy-release-integrated",
+    "dscord:deploy-release-final"
+  ]
+}

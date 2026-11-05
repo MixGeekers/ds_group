@@ -139,7 +139,9 @@ test('invalid roster updates preserve existing objects and legacy roles remain s
 test('roster reads use the core bootstrap endpoint and preserve HTTP failure status', async () => {
   const client = createRosterClient('https://core.example', 'synthetic-node-token', async (url, options) => {
     assert.equal(url.href, 'https://core.example/api/bootstrap');
-    assert.equal(options.headers.Authorization, 'Bearer synthetic-node-token');
+    assert.equal(options.headers.Authorization, undefined);
+    assert.equal(options.credentials, 'omit');
+    assert.equal(options.redirect, 'error');
     return Response.json({ participants: [alice, bot] });
   });
   assert.deepEqual(await client.read(), { participants: [alice, bot] });

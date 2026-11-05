@@ -9,11 +9,12 @@
     "noEmit": true,
     "isolatedModules": true,
     "verbatimModuleSyntax": true,
+    "allowImportingTsExtensions": true,
     "skipLibCheck": true,
     "allowJs": true,
     "checkJs": false,
     "esModuleInterop": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["web/src/**/*.ts", "web/src/**/*.tsx", "web/**/*.d.ts", "vite.config.ts"]
+  "include": ["web/src/**/*.ts", "web/src/**/*.tsx", "web/**/*.d.ts", "ui/**/*.ts", "ui/**/*.tsx", "vite.config.ts"]
 }

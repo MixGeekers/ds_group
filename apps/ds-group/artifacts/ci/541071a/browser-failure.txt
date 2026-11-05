@@ -1,0 +1,18 @@
+2026-11-05T03:59:45.7857755Z     triggerUncaughtException(
+2026-11-05T03:59:45.7858381Z     ^
+2026-11-05T03:59:45.7858724Z 
+2026-11-05T03:59:45.7859161Z locator.fill: Timeout 30000ms exceeded.
+2026-11-05T03:59:45.7859661Z Call log:
+2026-11-05T03:59:45.7860399Z   - waiting for getByLabel('Administrator', { exact: true })
+2026-11-05T03:59:45.7860925Z 
+2026-11-05T03:59:45.7861467Z     at /home/runner/work/dscord/dscord/apps/ds-group/tests/admin.browser.mjs:77:59 {
+2026-11-05T03:59:45.7862555Z   log: [ "  - waiting for getByLabel('Administrator', { exact: true })" ],
+2026-11-05T03:59:45.7863031Z   name: 'TimeoutError'
+2026-11-05T03:59:45.7863427Z }
+2026-11-05T03:59:45.7863606Z 
+2026-11-05T03:59:45.7863757Z Node.js v24.19.0
+2026-11-05T03:59:45.7980968Z ✖ tests/admin.browser.mjs (31466.293617ms)
+2026-11-05T03:59:45.7981587Z {
+2026-11-05T03:59:45.7982061Z   "level": "real-chromium-composer-fixture",
+2026-11-05T03:59:45.7982569Z   "checks": [
+2026-11-05T03:59:45.7982960Z     "memberSearchAndKeyboardSelection",

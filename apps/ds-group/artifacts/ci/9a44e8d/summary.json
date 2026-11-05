@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "repository": "MixGeekers/dscord",
+  "headSha": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+  "branch": "codex/dscord-platform-integration",
+  "runId": 41967970180,
+  "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180",
+  "status": "completed",
+  "conclusion": "success",
+  "totalJobs": 10,
+  "succeeded": 10,
+  "failed": 0,
+  "createdAt": "2026-11-05T04:27:57Z",
+  "updatedAt": "2026-11-05T04:30:50Z",
+  "jobs": [
+    {
+      "name": "Browser / Chromium",
+      "id": 127049301813,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049301813",
+      "startedAt": "2026-11-05T04:28:00Z",
+      "completedAt": "2026-11-05T04:28:57Z",
+      "criticalSteps": [
+        {
+          "name": "Chat, unified client and administration browser checks",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "DSH / ubuntu-24.04-arm",
+      "id": 127049301944,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049301944",
+      "startedAt": "2026-11-05T04:28:02Z",
+      "completedAt": "2026-11-05T04:29:32Z",
+      "criticalSteps": [
+        {
+          "name": "Native cross-server work authorization and synchronous tool guard",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "Native / ubuntu-24.04-arm / Node 24.19.0",
+      "id": 127049301997,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049301997",
+      "startedAt": "2026-11-05T04:28:02Z",
+      "completedAt": "2026-11-05T04:29:02Z",
+      "criticalSteps": []
+    },
+    {
+      "name": "Native / ubuntu-24.04 / Node 24.x",
+      "id": 127049302001,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049302001",
+      "startedAt": "2026-11-05T04:28:00Z",
+      "completedAt": "2026-11-05T04:29:03Z",
+      "criticalSteps": []
+    },
+    {
+      "name": "Native / ubuntu-24.04 / Node 24.19.0",
+      "id": 127049302011,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049302011",
+      "startedAt": "2026-11-05T04:28:00Z",
+      "completedAt": "2026-11-05T04:28:59Z",
+      "criticalSteps": []
+    },
+    {
+      "name": "Deploy / Linux amd64",
+      "id": 127049302060,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049302060",
+      "startedAt": "2026-11-05T04:28:01Z",
+      "completedAt": "2026-11-05T04:30:45Z",
+      "criticalSteps": [
+        {
+          "name": "API-only central identity and separate administration survive recreation",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "DSH / ubuntu-24.04",
+      "id": 127049302082,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049302082",
+      "startedAt": "2026-11-05T04:28:00Z",
+      "completedAt": "2026-11-05T04:29:02Z",
+      "criticalSteps": [
+        {
+          "name": "Native cross-server work authorization and synchronous tool guard",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "Deploy / Linux arm64",
+      "id": 127049302084,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049302084",
+      "startedAt": "2026-11-05T04:28:03Z",
+      "completedAt": "2026-11-05T04:30:36Z",
+      "criticalSteps": [
+        {
+          "name": "API-only central identity and separate administration survive recreation",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "name": "Native / ubuntu-24.04-arm / Node 24.x",
+      "id": 127049302150,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127049302150",
+      "startedAt": "2026-11-05T04:28:04Z",
+      "completedAt": "2026-11-05T04:29:01Z",
+      "criticalSteps": []
+    },
+    {
+      "name": "DS-Group matrix passed",
+      "id": 127050203737,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180/job/127050203737",
+      "startedAt": "2026-11-05T04:30:47Z",
+      "completedAt": "2026-11-05T04:30:50Z",
+      "criticalSteps": []
+    }
+  ],
+  "evidenceLevel": "New exact-head GitHub-hosted Linux CI; not a restatement of earlier local arm64 or previous-head runs",
+  "scope": "4 native Linux/Node combinations, 2 Linux container deployments, 2 native DSH runtime jobs including scoped work guard, complete browser suite, final required gate",
+  "artifactHandling": "Compact run and job-link summary only as requested; prior detailed matrix reports are not copied again",
+  "pending": "The final docs/evidence head will require its own 10-job success after the main thread pushes it",
+  "actions": "Read-only monitoring; no push, rerun, merge to main or publication"
+}

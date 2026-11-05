@@ -1,0 +1,124 @@
+{
+  "startedAt": "2026-11-05T03:15:06.190Z",
+  "status": "failed",
+  "level": "real Synapse/Core/administration, private CA-verified TLS federation, one physical Docker host",
+  "modelCalls": 0,
+  "endpoints": {
+    "project": "dscord-federation",
+    "dataRoot": "/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation",
+    "physicalHosts": 1,
+    "topology": "three independent Synapse containers, Core processes and administration processes; private TLS federation on an isolated Docker network",
+    "servers": [
+      {
+        "name": "a",
+        "serverName": "a.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24100",
+        "matrixUrl": "http://127.0.0.1:24108",
+        "adminUrl": "http://127.0.0.1:24110"
+      },
+      {
+        "name": "b",
+        "serverName": "b.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24120",
+        "matrixUrl": "http://127.0.0.1:24128",
+        "adminUrl": "http://127.0.0.1:24130"
+      },
+      {
+        "name": "c",
+        "serverName": "c.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24140",
+        "matrixUrl": "http://127.0.0.1:24148",
+        "adminUrl": "http://127.0.0.1:24150"
+      }
+    ],
+    "commands": {
+      "up": "node scripts/federation-lab.mjs up --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "verify": "node scripts/federation-lab.mjs verify --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "down": "node scripts/federation-lab.mjs down --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'"
+    }
+  },
+  "checks": [
+    {
+      "name": "ordinary chat, room creator and foreign administration sessions cannot administer this instance",
+      "status": "passed",
+      "details": {
+        "chatRejected": true,
+        "roomCreatorRejected": true,
+        "foreignAdminRejected": true
+      }
+    },
+    {
+      "name": "A/B explicit partner, identity and room rules save and apply separately from network restart",
+      "status": "passed",
+      "details": {
+        "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+        "participants": [
+          "@alice:a.dscord-federation.test:8448",
+          "@alice:b.dscord-federation.test:8448"
+        ],
+        "staticRestartObserved": true
+      }
+    },
+    {
+      "name": "home identity receives a real foreign invitation and joins without a shadow account",
+      "status": "passed",
+      "details": {
+        "invitation": {
+          "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+          "name": "DS-Group",
+          "inviterId": "@alice:a.dscord-federation.test:8448",
+          "canJoin": true,
+          "status": "invited",
+          "authoritySource": "registered"
+        },
+        "joinedIdentity": "@alice:b.dscord-federation.test:8448"
+      }
+    },
+    {
+      "name": "two-way Core text and attachment bytes traverse the authenticated home federation",
+      "status": "passed",
+      "details": [
+        {
+          "source": "@alice:a.dscord-federation.test:8448",
+          "target": "@alice:b.dscord-federation.test:8448",
+          "eventId": "$3GTYvxurJvaCcja3vFs550V53fwAq4y_u_eIhFuUmx0",
+          "attachmentEventId": "$o-UDwiYYK6dVH6wjgviG4R94EPkFfajLgqg_9gTqRQI",
+          "sha256": "3a4d45a40df5006b1b1081f24ff8c00de45de3c20c1146915992fdd389a1d4fa",
+          "duplicateEventId": "$3GTYvxurJvaCcja3vFs550V53fwAq4y_u_eIhFuUmx0"
+        },
+        {
+          "source": "@alice:b.dscord-federation.test:8448",
+          "target": "@alice:a.dscord-federation.test:8448",
+          "eventId": "$RmvMYNz9P3VejIMhcUtVkKg7dUs33w78x8Lj__obE-Q",
+          "attachmentEventId": "$4FBvAhSmWOZw5TYdO2PQibB7VMzRFluUzOun4iCLTAs",
+          "sha256": "5a2e2a44f65beb1fb71a554d2f48cf88927ca06f03213688a97dd1124f387703",
+          "duplicateEventId": "$RmvMYNz9P3VejIMhcUtVkKg7dUs33w78x8Lj__obE-Q"
+        }
+      ]
+    },
+    {
+      "name": "direct Matrix API cannot admit an unapproved partner member or unlisted third server, or relax room rules",
+      "status": "passed",
+      "details": {
+        "unapprovedMember": "@bob:b.dscord-federation.test:8448",
+        "thirdServerIdentity": "@alice:c.dscord-federation.test:8448",
+        "bypassesRejected": 6
+      }
+    },
+    {
+      "name": "A rejects an actual C-signed federation request over validated TLS",
+      "status": "failed",
+      "error": "Command failed: docker exec dscord-federation-c python -c import json,ssl,urllib.request,urllib.error,urllib.parse\nfrom signedjson.key import read_signing_keys\nfrom signedjson.sign import sign_json\nx=json.loads(\"{\\\"origin\\\":\\\"c.dscord-federation.test:8448\\\",\\\"destination\\\":\\\"a.dscord-federation.test:8448\\\",\\\"roomId\\\":\\\"!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4\\\",\\\"userId\\\":\\\"@alice:c.dscord-federation.test:8448\\\"}\")\nuri='/_matrix/federation/v1/make_join/'+urllib.parse.quote(x['roomId'],safe='')+'/'+urllib.parse.quote(x['userId'],safe='')+'?ver=12'\nkey=read_signing_keys(open('/data/signing.key'))[0]\nsigned=sign_json({'method':'GET','uri':uri,'origin':x['origin'],'destination':x['destination']},x['origin'],key)\nk,s=next(iter(signed['signatures'][x['origin']].items()))\nauth='X-Matrix origin=\"'+x['origin']+'\",destination=\"'+x['destination']+'\",key=\"'+k+'\",sig=\"'+s+'\"'\nrequest=urllib.request.Request('https://'+x['destination']+uri,headers={'Authorization':auth})\ntry:\n r=urllib.request.urlopen(request,context=ssl.create_default_context(cafile='/data/ca.pem'),timeout=15);print(json.dumps({'status':r.status}))\nexcept urllib.error.HTTPError as e:\n body=json.loads(e.read());print(json.dumps({'status':e.code,'errcode':body.get('errcode'),'error':body.get('error')}))\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 1331, in do_open\n    h.request(req.get_method(), req.selector, req.data, headers,\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n              encode_chunked=req.has_header('Transfer-encoding'))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1386, in request\n    self._send_request(method, url, body, headers, encode_chunked)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1432, in _send_request\n    self.endheaders(body, encode_chunked=encode_chunked)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1381, in endheaders\n    self._send_output(message_body, encode_chunked=encode_chunked)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1141, in _send_output\n    self.send(msg)\n    ~~~~~~~~~^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1085, in send\n    self.connect()\n    ~~~~~~~~~~~~^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1527, in connect\n    self.sock = self._context.wrap_socket(self.sock,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n                                          server_hostname=server_hostname)\n                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/ssl.py\", line 469, in wrap_socket\n    return self.sslsocket_class._create(\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        sock=sock,\n        ^^^^^^^^^^\n    ...<5 lines>...\n        session=session\n        ^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/usr/local/lib/python3.13/ssl.py\", line 1087, in _create\n    self.do_handshake()\n    ~~~~~~~~~~~~~~~~~^^\n  File \"/usr/local/lib/python3.13/ssl.py\", line 1383, in do_handshake\n    self._sslobj.do_handshake()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~^^\nssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Missing Authority Key Identifier (_ssl.c:1035)\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"<string>\", line 12, in <module>\n    r=urllib.request.urlopen(request,context=ssl.create_default_context(cafile='/data/ca.pem'),timeout=15);print(json.dumps({'status':r.status}))\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 189, in urlopen\n    return opener.open(url, data, timeout)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 489, in open\n    response = self._open(req, data)\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 506, in _open\n    result = self._call_chain(self.handle_open, protocol, protocol +\n                              '_open', req)\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 466, in _call_chain\n    result = func(*args)\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 1379, in https_open\n    return self.do_open(http.client.HTTPSConnection, req,\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                        context=self._context)\n                        ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 1334, in do_open\n    raise URLError(err)\nurllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Missing Authority Key Identifier (_ssl.c:1035)>\n"
+    }
+  ],
+  "sourceSha256": {
+    "src/core.mjs": "8ebcf1b5191fd4922c22a7816c2d3b9d2e0ed80d36702105685f8ea5392cd616",
+    "src/collaboration.mjs": "37f38987efdc3a2c5e7d2511a882cf205492784ef51021a6e72a548a22e94d98",
+    "src/governance.mjs": "60d634ab592a05a3bab3bfb43ee83df226cce6a583eee02d9ead2764adb890c2",
+    "src/synapse-control.mjs": "6942c6dee54e895f0237c2506c0f375181e0b806acad4b0f042974bda5ec3ab7",
+    "deploy/synapse/dscord_guard.py": "d9b0d8ce32cb7db5495fb4790f78ebdda66d15f98fc5aa02baaf9be8d4b5c4a4",
+    "scripts/federation-lab.mjs": "19ccb0231cdcd2c4c0dd6937ac7e38392f18cc99c2079e573c363cc31d6a0ecd"
+  },
+  "error": "Command failed: docker exec dscord-federation-c python -c import json,ssl,urllib.request,urllib.error,urllib.parse\nfrom signedjson.key import read_signing_keys\nfrom signedjson.sign import sign_json\nx=json.loads(\"{\\\"origin\\\":\\\"c.dscord-federation.test:8448\\\",\\\"destination\\\":\\\"a.dscord-federation.test:8448\\\",\\\"roomId\\\":\\\"!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4\\\",\\\"userId\\\":\\\"@alice:c.dscord-federation.test:8448\\\"}\")\nuri='/_matrix/federation/v1/make_join/'+urllib.parse.quote(x['roomId'],safe='')+'/'+urllib.parse.quote(x['userId'],safe='')+'?ver=12'\nkey=read_signing_keys(open('/data/signing.key'))[0]\nsigned=sign_json({'method':'GET','uri':uri,'origin':x['origin'],'destination':x['destination']},x['origin'],key)\nk,s=next(iter(signed['signatures'][x['origin']].items()))\nauth='X-Matrix origin=\"'+x['origin']+'\",destination=\"'+x['destination']+'\",key=\"'+k+'\",sig=\"'+s+'\"'\nrequest=urllib.request.Request('https://'+x['destination']+uri,headers={'Authorization':auth})\ntry:\n r=urllib.request.urlopen(request,context=ssl.create_default_context(cafile='/data/ca.pem'),timeout=15);print(json.dumps({'status':r.status}))\nexcept urllib.error.HTTPError as e:\n body=json.loads(e.read());print(json.dumps({'status':e.code,'errcode':body.get('errcode'),'error':body.get('error')}))\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 1331, in do_open\n    h.request(req.get_method(), req.selector, req.data, headers,\n    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n              encode_chunked=req.has_header('Transfer-encoding'))\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1386, in request\n    self._send_request(method, url, body, headers, encode_chunked)\n    ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1432, in _send_request\n    self.endheaders(body, encode_chunked=encode_chunked)\n    ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1381, in endheaders\n    self._send_output(message_body, encode_chunked=encode_chunked)\n    ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1141, in _send_output\n    self.send(msg)\n    ~~~~~~~~~^^^^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1085, in send\n    self.connect()\n    ~~~~~~~~~~~~^^\n  File \"/usr/local/lib/python3.13/http/client.py\", line 1527, in connect\n    self.sock = self._context.wrap_socket(self.sock,\n                ~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^\n                                          server_hostname=server_hostname)\n                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/ssl.py\", line 469, in wrap_socket\n    return self.sslsocket_class._create(\n           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^\n        sock=sock,\n        ^^^^^^^^^^\n    ...<5 lines>...\n        session=session\n        ^^^^^^^^^^^^^^^\n    )\n    ^\n  File \"/usr/local/lib/python3.13/ssl.py\", line 1087, in _create\n    self.do_handshake()\n    ~~~~~~~~~~~~~~~~~^^\n  File \"/usr/local/lib/python3.13/ssl.py\", line 1383, in do_handshake\n    self._sslobj.do_handshake()\n    ~~~~~~~~~~~~~~~~~~~~~~~~~^^\nssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Missing Authority Key Identifier (_ssl.c:1035)\n\nDuring handling of the above exception, another exception occurred:\n\nTraceback (most recent call last):\n  File \"<string>\", line 12, in <module>\n    r=urllib.request.urlopen(request,context=ssl.create_default_context(cafile='/data/ca.pem'),timeout=15);print(json.dumps({'status':r.status}))\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 189, in urlopen\n    return opener.open(url, data, timeout)\n           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 489, in open\n    response = self._open(req, data)\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 506, in _open\n    result = self._call_chain(self.handle_open, protocol, protocol +\n                              '_open', req)\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 466, in _call_chain\n    result = func(*args)\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 1379, in https_open\n    return self.do_open(http.client.HTTPSConnection, req,\n           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n                        context=self._context)\n                        ^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.13/urllib/request.py\", line 1334, in do_open\n    raise URLError(err)\nurllib.error.URLError: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Missing Authority Key Identifier (_ssl.c:1035)>\n",
+  "finishedAt": "2026-11-05T03:15:09.812Z"
+}

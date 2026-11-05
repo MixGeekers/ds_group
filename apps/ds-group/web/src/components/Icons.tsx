@@ -2,6 +2,8 @@ import {
   ArrowDown,
   AtSign,
   Bell,
+  Bot,
+  Check,
   ChevronDown,
   Copy,
   Eye,
@@ -15,6 +17,7 @@ import {
   Send,
   Server,
   Settings,
+  UserRound,
   Users,
   X,
 } from "lucide-react";
@@ -23,6 +26,8 @@ const iconComponents = {
   arrowDown: ArrowDown,
   atSign: AtSign,
   bell: Bell,
+  bot: Bot,
+  check: Check,
   chevronDown: ChevronDown,
   close: X,
   copy: Copy,
@@ -38,6 +43,7 @@ const iconComponents = {
   reply: Reply,
   send: Send,
   server: Server,
+  user: UserRound,
 };
 
 export type IconName = keyof typeof iconComponents;

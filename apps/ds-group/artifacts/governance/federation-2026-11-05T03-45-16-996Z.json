@@ -1,0 +1,229 @@
+{
+  "startedAt": "2026-11-05T03:45:16.997Z",
+  "status": "passed",
+  "level": "real Synapse/Core/administration, private CA-verified TLS federation, one physical Docker host",
+  "modelCalls": 0,
+  "endpoints": {
+    "project": "dscord-federation",
+    "dataRoot": "/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation",
+    "physicalHosts": 1,
+    "topology": "three independent Synapse containers, Core processes and administration processes; private TLS federation on an isolated Docker network",
+    "servers": [
+      {
+        "name": "a",
+        "serverName": "a.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24100",
+        "matrixUrl": "http://127.0.0.1:24108",
+        "adminUrl": "http://127.0.0.1:24110"
+      },
+      {
+        "name": "b",
+        "serverName": "b.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24120",
+        "matrixUrl": "http://127.0.0.1:24128",
+        "adminUrl": "http://127.0.0.1:24130"
+      },
+      {
+        "name": "c",
+        "serverName": "c.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24140",
+        "matrixUrl": "http://127.0.0.1:24148",
+        "adminUrl": "http://127.0.0.1:24150"
+      }
+    ],
+    "commands": {
+      "up": "node scripts/federation-lab.mjs up --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "verify": "node scripts/federation-lab.mjs verify --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "down": "node scripts/federation-lab.mjs down --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'"
+    }
+  },
+  "checks": [
+    {
+      "name": "ordinary chat, room creator and foreign administration sessions cannot administer this instance",
+      "status": "passed",
+      "details": {
+        "chatRejected": true,
+        "roomCreatorRejected": true,
+        "foreignAdminRejected": true
+      }
+    },
+    {
+      "name": "A/B explicit partner, identity and room rules save and apply separately from network restart",
+      "status": "passed",
+      "details": {
+        "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+        "participants": [
+          "@alice:a.dscord-federation.test:8448",
+          "@alice:b.dscord-federation.test:8448"
+        ],
+        "staticRestartObserved": true
+      }
+    },
+    {
+      "name": "home identity receives a real foreign invitation and joins without a shadow account",
+      "status": "passed",
+      "details": {
+        "invitation": {
+          "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+          "name": "DS-Group",
+          "inviterId": "@alice:a.dscord-federation.test:8448",
+          "canJoin": true,
+          "status": "invited",
+          "authoritySource": "registered"
+        },
+        "joinedIdentity": "@alice:b.dscord-federation.test:8448"
+      }
+    },
+    {
+      "name": "room work policy is versioned, published by the actual powered control identity and cannot be replaced by the creator",
+      "status": "passed",
+      "details": {
+        "eventId": "$732s5scDLYJ2VS0GjA8_4sO0Nzac2UZU1QWwsjRYTMM",
+        "issuerId": "@dscord-control:a.dscord-federation.test:8448",
+        "threshold": 50,
+        "content": {
+          "authority": "a.dscord-federation.test:8448",
+          "botIds": [],
+          "enabled": true,
+          "issuerId": "@dscord-control:a.dscord-federation.test:8448",
+          "localMemberAdmission": "matrix-membership",
+          "memberIds": [
+            "@alice:b.dscord-federation.test:8448"
+          ],
+          "revision": 15,
+          "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+          "schemaVersion": 1,
+          "tools": []
+        }
+      }
+    },
+    {
+      "name": "two-way Core text and attachment bytes traverse the authenticated home federation",
+      "status": "passed",
+      "details": [
+        {
+          "source": "@alice:a.dscord-federation.test:8448",
+          "target": "@alice:b.dscord-federation.test:8448",
+          "eventId": "$_DZyk5iDoNek0g4_Sn5aGn0K_rFXWHOeBCn4xlHcK3o",
+          "attachmentEventId": "$kiIylhoN4iU5_ImiMYQ_CPcm-6JOsD6ZSc-xezUJ7Oo",
+          "sha256": "6fd99cfce5a32152b834882bcdcfa7b47c2fbe252dd3440b0b57048bc957c90f",
+          "duplicateEventId": "$_DZyk5iDoNek0g4_Sn5aGn0K_rFXWHOeBCn4xlHcK3o",
+          "attachmentProof": {
+            "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+            "eventId": "$kiIylhoN4iU5_ImiMYQ_CPcm-6JOsD6ZSc-xezUJ7Oo",
+            "senderId": "@alice:a.dscord-federation.test:8448",
+            "authority": "a.dscord-federation.test:8448",
+            "policyRevision": 11
+          },
+          "rangeVerified": true
+        },
+        {
+          "source": "@alice:b.dscord-federation.test:8448",
+          "target": "@alice:a.dscord-federation.test:8448",
+          "eventId": "$siyvMnVlO3ndg-VPVWuJxAr9GaBtubG9-h_EqJkjPlg",
+          "attachmentEventId": "$oaikB7e9CcKjrA9FwrBNPz5BCydkngfafBebjWQkFvk",
+          "sha256": "71dc614ffb84aee2a720268ed772cf93fb679fee8ed55303015833ed01abeb01",
+          "duplicateEventId": "$siyvMnVlO3ndg-VPVWuJxAr9GaBtubG9-h_EqJkjPlg",
+          "attachmentProof": {
+            "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+            "eventId": "$oaikB7e9CcKjrA9FwrBNPz5BCydkngfafBebjWQkFvk",
+            "senderId": "@alice:b.dscord-federation.test:8448",
+            "authority": "a.dscord-federation.test:8448",
+            "policyRevision": 15
+          },
+          "rangeVerified": true
+        }
+      ]
+    },
+    {
+      "name": "direct Matrix API cannot admit an unapproved partner member or unlisted third server, or relax room rules",
+      "status": "passed",
+      "details": {
+        "unapprovedMember": "@bob:b.dscord-federation.test:8448",
+        "thirdServerIdentity": "@alice:c.dscord-federation.test:8448",
+        "bypassesRejected": 6
+      }
+    },
+    {
+      "name": "A rejects an actual C-signed federation request over validated TLS",
+      "status": "passed",
+      "details": {
+        "origin": "c.dscord-federation.test:8448",
+        "destination": "a.dscord-federation.test:8448",
+        "status": 403,
+        "errcode": "M_FORBIDDEN",
+        "error": "Federation denied with c.dscord-federation.test:8448."
+      }
+    },
+    {
+      "name": "remote server outage recovers room events with unchanged home identities and transaction IDs",
+      "status": "passed",
+      "details": {
+        "eventId": "$G_40l0fNdtZxLK4rTd4dKelbwhVYtENrthJ5-DL6UeY",
+        "recoveredIdentity": "@alice:b.dscord-federation.test:8448"
+      }
+    },
+    {
+      "name": "member revocation applies a real ban and rejects subsequent direct Matrix sends",
+      "status": "passed",
+      "details": {
+        "revokedIdentity": "@alice:b.dscord-federation.test:8448",
+        "bans": [
+          {
+            "id": "@alice:b.dscord-federation.test:8448",
+            "status": "applied"
+          }
+        ],
+        "actualAcl": {
+          "allow": [
+            "a.dscord-federation.test",
+            "a.dscord-federation.test:8448"
+          ],
+          "allow_ip_literals": false,
+          "deny": []
+        }
+      }
+    },
+    {
+      "name": "partner revocation distinguishes live admission, room application and network restart, then explicit reapproval restores the same identity",
+      "status": "passed",
+      "details": {
+        "deniedPartner": "b.dscord-federation.test:8448",
+        "reapprovedIdentity": "@alice:b.dscord-federation.test:8448",
+        "oldReplicatedHistoryErased": false,
+        "restoration": "explicit unban, new invitation and home join"
+      }
+    }
+  ],
+  "sourceSha256": {
+    "src/core.mjs": "2d8f5a3bc3c9e50527b1bc74e495acef905141b20ca6be27fcd328bdb3ddf767",
+    "src/collaboration.mjs": "ae208f4868258327ebe68a1dbb79f3a4cac0d0db8bb7602648bfccf63382a57a",
+    "src/governance.mjs": "bca5ec0b29b90cb6ba48a79c26274c121381aded258ebd555ba6cb44e7ed83c1",
+    "src/synapse-control.mjs": "8bd87495e6107d6266885dfd4e2ce15ee2ba7516e802e4230a44c792d3376e6c",
+    "src/room-media.mjs": "2667e57561e34ba2da280a8e22a94f0bd42bc9dda5c8f5628077d399ab70a5cc",
+    "src/media.mjs": "fb81742bb484eaa082bf95cd7e2968689a26ed77a0592282df00565e31d0f05a",
+    "deploy/synapse/dscord_guard.py": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+    "scripts/federation-lab.mjs": "bfcb296f72bdd178e05c18ae40097d9c6f8d2028c74af2f1c584af4121e92d31"
+  },
+  "runtime": {
+    "a": {
+      "loadedCoreSha256": "2d8f5a3bc3c9e50527b1bc74e495acef905141b20ca6be27fcd328bdb3ddf767",
+      "guardSourceSha256": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+      "guardBootId": "1d020914-1082-435f-8a3d-26a4f33b832b",
+      "modelCalls": 0
+    },
+    "b": {
+      "loadedCoreSha256": "2d8f5a3bc3c9e50527b1bc74e495acef905141b20ca6be27fcd328bdb3ddf767",
+      "guardSourceSha256": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+      "guardBootId": "0487cb77-065b-4d80-8034-4f33725563da",
+      "modelCalls": 0
+    },
+    "c": {
+      "loadedCoreSha256": "2d8f5a3bc3c9e50527b1bc74e495acef905141b20ca6be27fcd328bdb3ddf767",
+      "guardSourceSha256": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+      "guardBootId": "51b78ea3-e7c6-4f23-a7ee-424721f8e699",
+      "modelCalls": 0
+    }
+  },
+  "finishedAt": "2026-11-05T03:45:27.811Z"
+}

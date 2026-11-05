@@ -7,8 +7,8 @@ import { packageRoot } from '../src/paths.mjs';
 
 const execute = promisify(execFile);
 const runtimeFiles = [
-  'bin/dscord.mjs', 'src', 'web/mention-tokens.js', 'dist/web', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot',
-  ...['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin']
+  'bin/dscord.mjs', 'src', 'web/mention-tokens.js', 'dist/web', 'dist/admin', 'deploy/synapse', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot',
+  ...['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin', 'central-init', 'admin']
     .map(name => `scripts/${name}.mjs`),
 ];
 
@@ -37,7 +37,7 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
   const source = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   version ||= `${source.version}-alpha.1`;
   if (!/^\d+\.\d+\.\d+-alpha\.\d+$/.test(version)) throw new Error('Use an explicit alpha version such as 0.2.0-alpha.1');
-  for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/licenses/lucide.txt', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE']) {
+  for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/client-config.json', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/index.html', 'dist/admin/licenses/ui-foundation.txt', 'deploy/synapse/dscord_guard.py', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE']) {
     await readFile(path.join(root, filename));
   }
   const manifest = {
@@ -48,7 +48,7 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
     exports: { '.': './dsh-connect/index.mjs', './client': './dsh-connect/client.js', './package.json': './package.json' },
     dsh: { bundle: { patch: './cordis.patch.yml' }, client: { platform: 'web', immediately: true } },
     bin: { dscord: 'bin/dscord.mjs' },
-    files: ['bin', 'src', 'scripts', 'web/mention-tokens.js', 'dist/web', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot'],
+    files: ['bin', 'src', 'scripts', 'web/mention-tokens.js', 'dist/web', 'dist/admin', 'deploy/synapse', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot'],
     dependencies: source.dependencies,
     repository: { type: 'git', url: 'git+https://github.com/MixGeekers/ds_group.git', directory: 'apps/ds-group' },
     homepage: 'https://github.com/MixGeekers/ds_group',

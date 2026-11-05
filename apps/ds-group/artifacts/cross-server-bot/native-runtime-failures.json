@@ -1,0 +1,92 @@
+{
+  "scope": "Native runtime integration attempts; all providers scripted, remote model calls zero. First three failed in harness event selection. Fourth exposed misuse of synchronous tools.guard and terminated the isolated host; fixed with async tools/execute. Original results retained.",
+  "attempts": [
+    {
+      "date": "2026-11-04",
+      "checkedAt": "2026-11-05T03:39:49.398Z",
+      "level": "native-dsh-scripted-provider-synthetic-work-authority",
+      "modelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "physicalHosts": 1,
+      "checks": [],
+      "status": "failed",
+      "sourceHashes": {
+        "dsh-plugin/runtime.mjs": "d4b0c2177e8417fb5a129693f4741120114506e0fe4bf42b01e160b60b3f7d66",
+        "dsh-plugin/scoped-work.mjs": "5fdb4ba7c9f3a44f26cece1eb76fad71f2760386ba1bdae1273cdb739da63612",
+        "src/bot-work.mjs": "f0c8e8a89da58efa97d9185e1d992c8bcd0cf14d5dc00d6dc5e7d98f26867aa8",
+        "src/bot-work-policy.mjs": "904f5c198bcb0e0975ccca129fca1f637a75170e42de27665b8626a854c82949",
+        "scripts/cross-server-runtime-smoke.mjs": "cba59d02736d820f68b776fe6778af3af06d1aadc2705e0598bea780f2bba782"
+      },
+      "providerError": "Every native provider request must belong to a scheduled smoke case",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+      "authorizationChecks": 0,
+      "directory": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-TxlUdo",
+      "attempt": "first"
+    },
+    {
+      "date": "2026-11-04",
+      "checkedAt": "2026-11-05T03:40:25.831Z",
+      "level": "native-dsh-scripted-provider-synthetic-work-authority",
+      "modelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "physicalHosts": 1,
+      "checks": [],
+      "status": "failed",
+      "sourceHashes": {
+        "dsh-plugin/runtime.mjs": "d4b0c2177e8417fb5a129693f4741120114506e0fe4bf42b01e160b60b3f7d66",
+        "dsh-plugin/scoped-work.mjs": "5fdb4ba7c9f3a44f26cece1eb76fad71f2760386ba1bdae1273cdb739da63612",
+        "src/bot-work.mjs": "f0c8e8a89da58efa97d9185e1d992c8bcd0cf14d5dc00d6dc5e7d98f26867aa8",
+        "src/bot-work-policy.mjs": "904f5c198bcb0e0975ccca129fca1f637a75170e42de27665b8626a854c82949",
+        "scripts/cross-server-runtime-smoke.mjs": "4153e1ba0f16c5f37f1cbe2494ad50f87cc7542e62348111abae9126639abe03"
+      },
+      "providerError": "Every native provider request must belong to a scheduled smoke case",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+      "authorizationChecks": 0,
+      "directory": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-VjiSiY",
+      "attempt": "second"
+    },
+    {
+      "date": "2026-11-04",
+      "checkedAt": "2026-11-05T03:40:45.568Z",
+      "level": "native-dsh-scripted-provider-synthetic-work-authority",
+      "modelCalls": 0,
+      "scriptedProviderCalls": 0,
+      "physicalHosts": 1,
+      "checks": [],
+      "status": "failed",
+      "sourceHashes": {
+        "dsh-plugin/runtime.mjs": "d4b0c2177e8417fb5a129693f4741120114506e0fe4bf42b01e160b60b3f7d66",
+        "dsh-plugin/scoped-work.mjs": "5fdb4ba7c9f3a44f26cece1eb76fad71f2760386ba1bdae1273cdb739da63612",
+        "src/bot-work.mjs": "f0c8e8a89da58efa97d9185e1d992c8bcd0cf14d5dc00d6dc5e7d98f26867aa8",
+        "src/bot-work-policy.mjs": "904f5c198bcb0e0975ccca129fca1f637a75170e42de27665b8626a854c82949",
+        "scripts/cross-server-runtime-smoke.mjs": "166b0cbec1a483b53c2960e2cfba7b1aac5b34de6fe3ffa8aa8bc6db12028030"
+      },
+      "providerError": "Every native provider request must belong to a scheduled smoke case",
+      "error": "Expected values to be strictly equal:\n+ actual - expected\n\n+ 'failed'\n- 'completed'\n",
+      "authorizationChecks": 0,
+      "directory": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-50SDLO",
+      "attempt": "third"
+    },
+    {
+      "date": "2026-11-04",
+      "checkedAt": "2026-11-05T03:41:02.725Z",
+      "level": "native-dsh-scripted-provider-synthetic-work-authority",
+      "modelCalls": 0,
+      "scriptedProviderCalls": 2,
+      "physicalHosts": 1,
+      "checks": [],
+      "status": "failed",
+      "sourceHashes": {
+        "dsh-plugin/runtime.mjs": "d4b0c2177e8417fb5a129693f4741120114506e0fe4bf42b01e160b60b3f7d66",
+        "dsh-plugin/scoped-work.mjs": "5fdb4ba7c9f3a44f26cece1eb76fad71f2760386ba1bdae1273cdb739da63612",
+        "src/bot-work.mjs": "f0c8e8a89da58efa97d9185e1d992c8bcd0cf14d5dc00d6dc5e7d98f26867aa8",
+        "src/bot-work-policy.mjs": "904f5c198bcb0e0975ccca129fca1f637a75170e42de27665b8626a854c82949",
+        "scripts/cross-server-runtime-smoke.mjs": "8a4c37f375f63553d6aceaf3b187daf06d34801a2253b7524357abc9d33c3d30"
+      },
+      "error": "fetch failed",
+      "authorizationChecks": 4,
+      "directory": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-oAfTyw",
+      "attempt": "fourth"
+    }
+  ]
+}

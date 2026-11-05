@@ -37,6 +37,11 @@ export class AccountService {
     } catch (error) { if (error.code !== 'ENOENT') throw error; }
     const filename = path.join(this.dataRoot, 'accounts.sqlite');
     this.db = new DatabaseSync(filename);
+    try { return await this.#initializeDatabase(filename); }
+    catch (error) { this.close(); throw error; }
+  }
+
+  async #initializeDatabase(filename) {
     await chmod(filename, 0o600);
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; PRAGMA busy_timeout=5000;
       CREATE TABLE IF NOT EXISTS account_metadata (key TEXT PRIMARY KEY,value TEXT NOT NULL);
@@ -48,7 +53,12 @@ export class AccountService {
       );
       CREATE TABLE IF NOT EXISTS bot_creation_requests (
         request_key TEXT PRIMARY KEY, input_hash TEXT NOT NULL, user_id TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS account_subjects (
+        user_id TEXT PRIMARY KEY, subject_id TEXT UNIQUE NOT NULL, created_at INTEGER NOT NULL
       );`);
+    const identityVersion = this.db.prepare("SELECT value FROM account_metadata WHERE key='identitySchemaVersion'").get()?.value;
+    if (identityVersion !== undefined && identityVersion !== '1') throw new Error('Unsupported account identity schema version');
     const storedServer = this.db.prepare("SELECT value FROM account_metadata WHERE key='serverName'").get()?.value;
     if (storedServer && this.serverName && storedServer !== this.serverName) throw new Error('Account database belongs to another Matrix server');
     this.serverName ||= storedServer;
@@ -56,15 +66,25 @@ export class AccountService {
       this.setup.serverName = this.serverName;
       this.db.prepare("INSERT OR IGNORE INTO account_metadata VALUES ('serverName',?)").run(this.serverName);
     }
+    this.db.prepare("INSERT OR IGNORE INTO account_metadata VALUES ('authorityId',?)").run(`urn:uuid:${randomUUID()}`);
+    this.authorityId = this.db.prepare("SELECT value FROM account_metadata WHERE key='authorityId'").get().value;
     const seedOwner = this.setup.participants.find(person => person.kind === 'human')?.id;
     if (seedOwner) this.db.prepare("INSERT OR IGNORE INTO account_metadata VALUES ('ownerId',?)").run(seedOwner);
     this.ownerId = this.db.prepare("SELECT value FROM account_metadata WHERE key='ownerId'").get()?.value;
     for (const person of this.setup.participants) {
+      if (!['human', 'bot'].includes(person.kind) || person.id !== `@${person.localpart}:${this.serverName}`) {
+        throw new Error('Account registry must contain complete identities on its own Matrix server');
+      }
+      const existing = this.row(person.id);
+      if (existing && existing.kind !== person.kind) throw new Error('An existing account cannot change identity kind');
       this.db.prepare(`INSERT OR IGNORE INTO accounts
         (user_id,localpart,name,kind,owner_id,status,service_token,created_at,updated_at) VALUES (?,?,?,?,?,'active',?,?,?)`)
         .run(person.id, person.localpart, person.name, person.kind, person.kind === 'bot' ? person.ownerId || this.ownerId : null,
           person.accessToken || null, Date.now(), Date.now());
     }
+    // Additive migration: neither Matrix accounts nor owner/node bindings are replaced.
+    for (const row of this.db.prepare("SELECT user_id FROM accounts WHERE status='active'").all()) this.ensureSubject(row.user_id);
+    this.db.prepare("INSERT OR REPLACE INTO account_metadata VALUES ('identitySchemaVersion','1')").run();
     this.refreshSetup();
     return this;
   }
@@ -72,6 +92,35 @@ export class AccountService {
   registration() { return { enabled: this.mode === 'open' && Boolean(this.serverName && this.registrationSecret), mode: this.mode }; }
 
   row(userId) { return this.db.prepare('SELECT * FROM accounts WHERE user_id=?').get(userId); }
+
+  ensureSubject(userId) {
+    this.db.prepare('INSERT OR IGNORE INTO account_subjects VALUES (?,?,?)').run(userId, randomUUID(), Date.now());
+    return this.db.prepare('SELECT subject_id FROM account_subjects WHERE user_id=?').get(userId).subject_id;
+  }
+
+  identity(userId) {
+    const row = this.row(userId);
+    if (!row) throw failure(403, 'A registered account is required');
+    const owner = row.owner_id && this.row(row.owner_id);
+    return { authorityId: this.authorityId, subjectId: this.ensureSubject(userId), matrixUserId: userId, kind: row.kind,
+      ...(row.owner_id ? { ownerMatrixUserId: row.owner_id, ...(owner?.kind === 'human' ? { ownerSubjectId: this.ensureSubject(row.owner_id) } : {}) } : {}) };
+  }
+
+  assertActive(userId) {
+    if (this.row(userId)?.status !== 'active') throw Object.assign(failure(403, 'This account is not active on its home server'), { code: 'ACCOUNT_INACTIVE' });
+    return userId;
+  }
+
+  async authenticate(token) {
+    const result = await this.clientFactory(token).whoami();
+    this.assertActive(result.user_id);
+    return result;
+  }
+
+  session(session) {
+    this.assertActive(session.user_id);
+    return { ...session, identity: this.identity(session.user_id), ...(this.home ? { home: this.home } : {}) };
+  }
 
   participant(row) {
     return { id: row.user_id, localpart: row.localpart, name: row.name, kind: row.kind,
@@ -90,6 +139,7 @@ export class AccountService {
   ownedBots(userId) { return this.setup.participants.filter(person => person.kind === 'bot' && person.ownerId === userId).map(publicPerson); }
 
   human(userId) {
+    this.assertActive(userId);
     const person = this.person(userId);
     if (person?.kind !== 'human') throw failure(403, 'A registered human account is required');
     return person;
@@ -172,6 +222,8 @@ export class AccountService {
   }
 
   async activate(userId) {
+    if (['disabled', 'deactivated'].includes(this.row(userId)?.status)) throw failure(403, 'This account is disabled');
+    this.ensureSubject(userId);
     this.db.prepare("UPDATE accounts SET status='active',last_error=NULL,updated_at=? WHERE user_id=?").run(Date.now(), userId);
     if (!this.ownerId && this.row(userId).kind === 'human') {
       this.db.prepare("INSERT OR IGNORE INTO account_metadata VALUES ('ownerId',?)").run(userId);
@@ -182,6 +234,7 @@ export class AccountService {
 
   async provision(userId, password, clientIp) {
     const row = this.row(userId);
+    if (['disabled', 'deactivated'].includes(row?.status)) throw failure(403, 'This account is disabled');
     try {
       if (!row.service_token) {
         const recovering = Boolean(row.last_error);
@@ -222,12 +275,13 @@ export class AccountService {
     const userId = `@${localpart}:${this.serverName}`;
     const hash = createHmac('sha256', this.registrationSecret).update(JSON.stringify([localpart, name, password])).digest('hex');
     const previous = this.row(userId);
+    if (['disabled', 'deactivated'].includes(previous?.status)) throw failure(403, 'This account is disabled');
     if (previous && (previous.kind !== 'human' || previous.registration_hash !== hash || previous.status === 'active' || previous.last_error === 'ACCOUNT_EXISTS')) throw failure(409, 'This account name is already in use. Sign in to continue');
     if (!previous) this.db.prepare(`INSERT INTO accounts
       (user_id,localpart,name,kind,status,registration_hash,created_at,updated_at) VALUES (?,?,?,'human','provisioning',?,?,?)`)
       .run(userId, localpart, name, hash, Date.now(), Date.now());
     await this.serialize(userId, () => this.provision(userId, password, clientIp));
-    return this.passwordLogin(userId, password, false, clientIp);
+    return this.session(await this.passwordLogin(userId, password, false, clientIp));
   }
 
   async login(input = {}, { clientIp } = {}) {
@@ -237,6 +291,7 @@ export class AccountService {
     const userId = `@${localpart}:${this.serverName}`;
     const previous = this.row(userId);
     if (previous?.kind === 'bot') throw failure(403, 'Sign in with a human account');
+    if (['disabled', 'deactivated'].includes(previous?.status)) throw failure(403, 'This account is disabled');
     const session = await this.passwordLogin(userId, password, false, clientIp);
     try {
       await this.serialize(userId, async () => {
@@ -251,7 +306,7 @@ export class AccountService {
         await this.joinInitialRoom(userId);
         await this.activate(userId);
       });
-      return session;
+      return this.session(session);
     } catch (error) {
       await this.clientFactory(session.access_token).request('POST', '/_matrix/client/v3/logout', {}).catch(() => {});
       throw error;
@@ -259,14 +314,16 @@ export class AccountService {
   }
 
   async me(token) {
-    const { user_id: userId } = await this.clientFactory(token).whoami();
-    return { user: publicPerson(this.human(userId)), ownedBots: this.ownedBots(userId) };
+    const { user_id: userId } = await this.authenticate(token);
+    return { user: publicPerson(this.human(userId)), ownedBots: this.ownedBots(userId), identity: this.identity(userId),
+      ...(this.home ? { home: this.home } : {}) };
   }
 
   async logout(token) {
     // Synthetic demo credentials are also the Core service credential. They are never revoked here.
     if (this.setup.participants.some(person => person.accessToken === token)) return { loggedOut: true, localOnly: true };
-    await this.clientFactory(token).request('POST', '/_matrix/client/v3/logout', {});
+    try { await this.clientFactory(token).request('POST', '/_matrix/client/v3/logout', {}); }
+    catch (error) { if (error.status !== 401) throw error; }
     return { loggedOut: true };
   }
 

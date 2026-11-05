@@ -18,6 +18,8 @@ if (!process.env.DS_GROUP_CORE_URL) {
   } catch (error) { if (error.code !== 'ENOENT') throw error; }
 }
 const { local, home, bridgeUrl, dataRoot } = settings;
+const webPort = process.env.DS_GROUP_DSH_WEB_PORT || '0';
+if (!/^\d{1,5}$/.test(webPort) || Number(webPort) > 65535) throw new Error('DS_GROUP_DSH_WEB_PORT must be a port from 0 to 65535');
 const script = fileURLToPath(import.meta.url);
 const pidPath = join(local, 'process.json');
 const plugin = join(packageRoot, 'dsh-plugin');
@@ -159,7 +161,7 @@ if (operation === 'prepare') {
 const childEnvironment = { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1', DS_GROUP_DSH_RUNTIME: runtime,
   DS_GROUP_RUNTIME_DEPS_DIR: dependencies };
 delete childEnvironment.OPENCODE_API_KEY;
-const child = spawn(cli, ['web', '--host', '127.0.0.1', '--port', '0', '--no-open'], {
+const child = spawn(cli, ['web', '--host', '127.0.0.1', '--port', webPort, '--no-open'], {
   cwd: local, stdio: 'inherit', env: childEnvironment,
 });
 let shuttingDown = false;

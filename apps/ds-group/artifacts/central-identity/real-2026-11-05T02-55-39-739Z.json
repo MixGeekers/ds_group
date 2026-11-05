@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "runId": "2026-11-05T02-55-39-739Z",
+  "startedAt": "2026-11-05T02:55:39.740Z",
+  "status": "failed",
+  "evidenceLevel": "real-local-Synapse-Core-and-independent-origin-Chromium; synthetic accounts; zero model",
+  "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+  "origins": {
+    "coreUrl": "http://127.0.0.1:24200",
+    "clientUrl": "http://127.0.0.1:24201",
+    "remoteUrl": "http://127.0.0.1:24202",
+    "matrixUrl": "http://127.0.0.1:24208"
+  },
+  "checks": [
+    {
+      "name": "initialize empty default home twice without synthetic demo credentials",
+      "status": "passed",
+      "details": {
+        "accounts": 0,
+        "mode": "central",
+        "repeatedInitialization": true
+      }
+    },
+    {
+      "name": "real Chromium on independent origin discovers, registers and signs in through normal APIs",
+      "status": "failed",
+      "error": "page.evaluate: TypeError: Failed to execute 'fetch' on 'Window': Illegal invocation\n    at #password (http://127.0.0.1:24200/client/home-session.mjs:65:51)\n    at HomeSession.register (http://127.0.0.1:24200/client/home-session.mjs:72:42)\n    at eval (eval at evaluate (:370:30), <anonymous>:5:39)\n    at async <anonymous>:396:30"
+    }
+  ],
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "federatedRoom": "owned by parallel federation slice",
+  "sourceSha256": {
+    "src/accounts.mjs": "36fa5a95d4b73d19252867932f95e7ec3cb45eb0c020727ce765e484dfe88859",
+    "src/identity.mjs": "e32ff4e39b79771bf1a54dabe65fff147a7221371a8095b94fe40dde35e323d4",
+    "src/home-session.mjs": "c18684331dd2b77c9b035910391c5ffeb79936f79a2d7679e1e098b2d14a20df",
+    "src/core.mjs": "71d59f279a8f6e1329359951348b13a63be65fafa7a0512701dd35dffbbb4142",
+    "src/matrix-client.mjs": "d6629d5387f5e2ce7462c080ca5318ccd29bf48887855d502b10fb6ce63d4c58",
+    "scripts/central-init.mjs": "0412e00a5a185f31459a24040ee8f5dc93e38e7e060375a012f970b7585aa86b",
+    "scripts/verify-central-identity.mjs": "36c47b0a79ce9d481e9da6ec5d6c3e4670467e86cd8687373ff27c41662a572a"
+  },
+  "authorityId": "urn:uuid:71d6a80f-351e-46f1-9cc8-5ad1d723d62a",
+  "error": "page.evaluate: TypeError: Failed to execute 'fetch' on 'Window': Illegal invocation\n    at #password (http://127.0.0.1:24200/client/home-session.mjs:65:51)\n    at HomeSession.register (http://127.0.0.1:24200/client/home-session.mjs:72:42)\n    at eval (eval at evaluate (:370:30), <anonymous>:5:39)\n    at async <anonymous>:396:30",
+  "finishedAt": "2026-11-05T02:55:42.992Z",
+  "cleanup": {
+    "containerRemoved": true,
+    "httpServersStopped": true,
+    "coreStopped": true
+  }
+}

@@ -144,7 +144,7 @@ export function TaskHistoryDialog({
           <Icon name="close" />
         </button>
       </header>
-      <div className="task-history-list">
+      <div className="task-history-list dialog-scroll-region">
         {open && !visible.length && (
           <p className="empty-tasks">{t("emptyWork")}</p>
         )}

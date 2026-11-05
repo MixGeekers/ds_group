@@ -1,0 +1,21 @@
+{
+  "scope": "real management service and built UI; synthetic Matrix control adapter; zero model calls",
+  "checks": [
+    "Independent management login reaches the real administration HTTP service",
+    "Partner form persists an explicit domain and updates the revision",
+    "Admission keeps the external member’s complete original Matrix ID",
+    "Room rule binds one approved identity to an explicit authority and room",
+    "Bot ceiling form saves exact home Bot, room, requester and four supported file tools without offering delegation",
+    "Stale policy CAS is rejected and explicit discard/reload restores the current server revision",
+    "Failed application is visible and does not claim a live policy or completed federation restart",
+    "Deployment controls persist registration and upload policy",
+    "Owner can create an independent read-only administrator",
+    "Audit shows actual administrative writes without credentials",
+    "Chinese translation and dark appearance use the shared preferences and tokens",
+    "Mobile management forms fit a 390px viewport without page overflow",
+    "Auditor login hides all policy mutation controls",
+    "No browser runtime errors"
+  ],
+  "errors": [],
+  "status": "passed"
+}

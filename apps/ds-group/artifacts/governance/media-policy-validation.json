@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-04",
+  "timezone": "America/Caracas",
+  "status": "passed",
+  "baseCommit": "178b31c",
+  "realReport": "federation-2026-11-05T03-45-16-996Z.json",
+  "realScenarios": 10,
+  "moduleTests": 295,
+  "modelCalls": 0,
+  "physicalHosts": 1,
+  "physicalCrossMachine": "not run",
+  "coverage": {
+    "attachments": "Normal source Core upload/send, target home Core exact-room/event metadata and streamed download, SHA256, Range, wrong event, nonmember and post-revocation denial in both transfer directions",
+    "workPolicy": "schemaVersion 1; exact actual control identity; actual joined/power threshold; creator cannot replace even equivalent content; only successful room reconciliation publishes the grant",
+    "partialPublication": "Synthetic failed ban stops new ACL/work-policy publication; actual successful ban path is covered in real report",
+    "eventThreshold": "Synthetic regression for event-specific thresholds overriding a higher state_default",
+    "size": "Synthetic proof accepts declared 100 MiB stored content and rejects negative/unsafe integer lengths; no separate 50 MiB read ceiling. This does not claim a real 100 MiB transfer.",
+    "compatibility": "Legacy local attachment index remains unchanged. Admitted foreign Bots are not represented as local node ownership."
+  },
+  "sourceBinding": "Every production source SHA256 in the real report matches this worktree snapshot. No node/DSH/task source changes.",
+  "parallel": "Unified client, central identity, Bot execution and deployment/Compose integration are owned by their respective chats",
+  "publication": "Local commit only; no package publication"
+}

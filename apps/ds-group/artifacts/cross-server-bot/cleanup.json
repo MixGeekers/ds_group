@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-05T04:24:40.484Z",
+  "ownedLab": "dscord-bot-work",
+  "dataRoot": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/cross-server-federation",
+  "dataRetained": true,
+  "credentialsAndRuntimeDataGitIgnored": true,
+  "coreAndAdminPidsRemaining": [],
+  "ownedContainersRemaining": [],
+  "ownedNetworksRemaining": [],
+  "listeningPorts24500Through24599": [],
+  "portVerification": "lsof -nP -iTCP:24500-24599 -sTCP:LISTEN returned no listeners (exit 1)",
+  "adapterAndDshStopped": true,
+  "retainedDemonstrationMatrixPorts": [
+    18008,
+    22008
+  ],
+  "evidence": "federation-lab down returned stopped; label-scoped Docker queries and private lab PID manifest rechecked"
+}

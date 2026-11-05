@@ -1,0 +1,164 @@
+{
+  "schemaVersion": 1,
+  "clientDate": "2026-11-04",
+  "timezone": "America/Caracas",
+  "status": "verified-and-ready-for-main-integration",
+  "initialBase": "ca336a2c9b0f2ac6b280948dc51ef873ce58e9c9",
+  "updatedBase": "cf77e22",
+  "branch": "codex/dscord-deploy-release",
+  "changes": [
+    "npm runtime includes central-init and requires built client-config.json",
+    "source archive requires identity/web-mode/admin/guard/client build inputs and contains identity/client implementation notes",
+    "duplicate dsh-connect archive entries removed",
+    "legacy smoke isolates admin ports and stops all writers/backups all three volumes",
+    "new real Compose platform smoke and CI coverage",
+    "Bot public roster request omits credentials and refuses redirects"
+  ],
+  "verification": {
+    "targetedModules": {
+      "command": "node --test tests/node-roster.test.mjs tests/npm-pack.test.mjs tests/release-package.test.mjs",
+      "passed": 13
+    },
+    "sourceRelease": {
+      "status": "passed",
+      "testedArchiveSha256": "496020c648ebde2bf1bc6b32477a9aa1dc9ecc7c77f6ff4766adc89fe81b1347",
+      "readyArchiveSha256": "529ab6145e8b0c9666fd6e30ff8112dbd38d6c5e0ca2fc02bb4f9070591640bf",
+      "readyFiles": 314,
+      "documentationOnlyChangesAfterRuntime": [
+        "deploy/README.md",
+        "deploy/platform-validation.md"
+      ]
+    },
+    "docker": {
+      "status": "built from verified extracted source, then both real Compose suites passed",
+      "imageIdentity": "sha256:6485d4fe5a8127cfaad171f3f8fcdb14b673177145700b525950dc4a120a1714 linux/arm64",
+      "platform": "linux/arm64"
+    },
+    "centralPlatform": {
+      "command": "DS_GROUP_IMAGE=<built image> DS_GROUP_PLATFORM_SMOKE_PORT_BASE=24220 node scripts/platform-deploy-smoke.mjs --browser",
+      "report": "platform-final.json",
+      "checks": 5,
+      "independentAdminBrowser": true,
+      "policyApply": "actual Synapse guard and room readback",
+      "recreation": "central subject, Matrix IDs, human/admin sessions, policy, API-only and history preserved"
+    },
+    "bundledCompatibility": {
+      "command": "DS_GROUP_IMAGE=<built image> DS_GROUP_SMOKE_PORT_BASE=24260 node scripts/deploy-smoke.mjs",
+      "report": "bundled-final.json",
+      "checks": 10,
+      "backupRestore": "Core + Synapse + governance volumes; all writers stopped"
+    },
+    "npm": {
+      "report": "package-final.json",
+      "status": "clean installed real tarball; installed API-only/central/admin initialization passed",
+      "files": 157,
+      "sha256": "c61113c1d5bdbee8e4469a72a15dd6848ac519c1445b9ef45e9bcb2d9a85e503"
+    },
+    "workflow": "Ruby YAML parsed; native npm assembly and both Linux container matrix deployment checks configured; remote Actions not run here"
+  },
+  "failureHistory": [
+    {
+      "report": "platform-first.json",
+      "observed": "ca336a2 apply returned partial; detailed application receipt not captured; subsequent integration contains governance readback fix and harness now expects prepared status separately from live policy"
+    },
+    {
+      "report": "bundled-first.json",
+      "observed": "Bot authenticated public roster fetch returned 403; minimum request fix and actual adapter revalidation passed"
+    }
+  ],
+  "cleanup": {
+    "schemaVersion": 1,
+    "status": "passed",
+    "ownedProjects": [
+      {
+        "file": "platform-first.json",
+        "project": "dscord-platform-c7d149450bbf",
+        "status": "failed",
+        "remainingContainers": 0,
+        "remainingVolumes": 0
+      },
+      {
+        "file": "bundled-first.json",
+        "project": "ds-group-smoke-4e1128f2fc",
+        "status": "failed",
+        "remainingContainers": 0,
+        "remainingVolumes": 0
+      },
+      {
+        "file": "platform-integrated.json",
+        "project": "dscord-platform-f42b65d06c65",
+        "status": "passed",
+        "remainingContainers": 0,
+        "remainingVolumes": 0
+      },
+      {
+        "file": "platform-final.json",
+        "project": "dscord-platform-2bf510cc7eff",
+        "status": "passed",
+        "remainingContainers": 0,
+        "remainingVolumes": 0
+      },
+      {
+        "file": "bundled-final.json",
+        "project": "ds-group-smoke-c2303a1ea0",
+        "status": "passed",
+        "remainingContainers": 0,
+        "remainingVolumes": 0
+      }
+    ],
+    "ports": "24220/24228/24230 and 24260/24268/24270 released",
+    "runtimeSourceMatches": true,
+    "finalHandoffSource": {
+      "sha256": "529ab6145e8b0c9666fd6e30ff8112dbd38d6c5e0ca2fc02bb4f9070591640bf",
+      "files": 314,
+      "documentationOnlyChangesSinceTestedImage": [
+        "deploy/README.md",
+        "deploy/platform-validation.md"
+      ]
+    },
+    "imagesRemoved": [
+      "dscord:deploy-release-ca336a2",
+      "dscord:deploy-release-integrated",
+      "dscord:deploy-release-final"
+    ]
+  },
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "published": false,
+  "scopeLimits": [
+    "No web/src edits; inherited latest client baseline used in source archive and image",
+    "Whole main module/build/API-only tests were not repeated; main already covered them",
+    "No new remote GitHub CI, npm publication, container publication or GitHub release",
+    "Local Docker arm64 proof does not substitute Linux amd64 runner or physical cross-machine acceptance"
+  ],
+  "integration": [
+    "Apply this branch commit onto the main integration branch that already contains cf77e22",
+    "Retain main verify-central-identity and verify-api-only configurable port changes; these scripts were not edited",
+    "Shared Bot change is limited to createRosterClient and its targeted existing test; preserve cross-server Bot implementation changes"
+  ],
+  "files": [
+    ".github/workflows/ds-group-ci.yml",
+    "apps/ds-group/artifacts/deploy-release/bundled-final.json",
+    "apps/ds-group/artifacts/deploy-release/bundled-first.json",
+    "apps/ds-group/artifacts/deploy-release/cleanup.json",
+    "apps/ds-group/artifacts/deploy-release/package-final.json",
+    "apps/ds-group/artifacts/deploy-release/package-install.json",
+    "apps/ds-group/artifacts/deploy-release/platform-final-admin-desktop.png",
+    "apps/ds-group/artifacts/deploy-release/platform-final.json",
+    "apps/ds-group/artifacts/deploy-release/platform-first.json",
+    "apps/ds-group/artifacts/deploy-release/platform-integrated-admin-desktop.png",
+    "apps/ds-group/artifacts/deploy-release/platform-integrated.json",
+    "apps/ds-group/artifacts/deploy-release/summary.json",
+    "apps/ds-group/artifacts/deploy-release/目录.md",
+    "apps/ds-group/deploy/README.md",
+    "apps/ds-group/deploy/platform-validation.md",
+    "apps/ds-group/scripts/deploy-smoke.mjs",
+    "apps/ds-group/scripts/npm-pack.mjs",
+    "apps/ds-group/scripts/platform-deploy-smoke.mjs",
+    "apps/ds-group/scripts/release-pack.mjs",
+    "apps/ds-group/src/bot-node.mjs",
+    "apps/ds-group/tests/node-roster.test.mjs",
+    "apps/ds-group/tests/npm-pack.test.mjs",
+    "apps/ds-group/tests/release-package.test.mjs"
+  ]
+}

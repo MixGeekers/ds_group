@@ -1,0 +1,412 @@
+[
+  {
+    "runner": "ubuntu-24.04",
+    "report": "runtime-smoke",
+    "status": "passed",
+    "modelCalls": 0,
+    "scriptedProviderCalls": null,
+    "sha256": "019da2c0bc7fa5b50ecc596c5d08e4ed628879131a6a1b427d77e7709fee252c",
+    "details": {
+      "checkedAt": "2026-11-05T03:59:26.260Z",
+      "platform": "linux",
+      "arch": "x64",
+      "node": "v24.19.0",
+      "expectedDshVersion": "0.2.1-rc.5",
+      "installationKind": "npm-cli",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "level": "real-native-dsh-zero-model",
+      "sourceHashes": {
+        "scripts/dsh-node.mjs": "035475c1f5fe198b9d5aeca1f284f7a7b5d40a84dd30b80d91f2531113e57cd4",
+        "scripts/runtime-config.mjs": "e2b40a796035043fb5c59fef53065b6f2a0e96f90e7e318006e1e2f70a9ed9c1",
+        "scripts/runtime-smoke.mjs": "c4a156c87e574042c8b2493c5a042b6aa35d74da721c220e493cb0a6dba268cc",
+        "dsh-plugin/index.mjs": "e1f513c3f44afa7a84d69d853a252c4a86fd29412a3cbc843bdaab026faee161",
+        "dsh-plugin/runtime.mjs": "be62b4b4248aded721be136e824d5ba3b85dd6eb2ec65268a39ef497ed51d65e"
+      },
+      "checks": {
+        "pinnedRuntimeVersion": true,
+        "pluginLoaded": true,
+        "allowedModelCatalog": true,
+        "nativeSessionCreated": true,
+        "importedRemoteCoreAndPrivateData": true,
+        "sessionIdentityAfterRestart": true,
+        "legacyIdentityAndInstructionsMigrated": true,
+        "interruptedRequestIsNotReplayed": true,
+        "gracefulStop": true,
+        "zeroModelClaims": true
+      },
+      "status": "passed",
+      "dshVersion": "0.2.1-rc.5",
+      "modelCalls": 0
+    }
+  },
+  {
+    "runner": "ubuntu-24.04",
+    "report": "runtime-work-smoke",
+    "status": "passed",
+    "modelCalls": 0,
+    "scriptedProviderCalls": 6,
+    "sha256": "c1bddd7ec1bf70da8acfe2c4994d2ceab9aa038303e0bdf10e7abb844d1017c8",
+    "details": {
+      "checkedAt": "2026-11-05T03:59:33.506Z",
+      "platform": "linux",
+      "arch": "x64",
+      "node": "v24.19.0",
+      "level": "real-dsh-native-tools-scripted-local-provider",
+      "modelCalls": 0,
+      "scriptedProviderCalls": 6,
+      "sourceHashes": {
+        "dsh-plugin/runtime.mjs": "be62b4b4248aded721be136e824d5ba3b85dd6eb2ec65268a39ef497ed51d65e",
+        "dsh-plugin/runtime-rules.mjs": "09954b212699c96d663bc4de66d1894db4ecf41e45bfc64eda8aac2e41a2eb32",
+        "dsh-plugin/work-files.mjs": "dd96a8ca4881196a5c570e097cf811c47cd4539cdc6246a5b29d5628cd2f2074",
+        "scripts/runtime-work-smoke.mjs": "742c16f9982ff3039cf36fde3d1d4f1b35289ce957dba31d7cd9a78443f8faa1"
+      },
+      "checks": [
+        "asynchronousAdmissionAndDuplicate",
+        "realReadComputeWriteReadAndValidatedArtifact",
+        "nativeToolReceiptsAndEveryGenerationLedger",
+        "completedReplayAndCancellationDoNotExecuteAgain",
+        "runningAndQueuedCancellationStopsBackgroundProcess"
+      ],
+      "status": "passed",
+      "receipt": {
+        "requestId": "file-work-native-smoke",
+        "botId": "@finance:local-smoke.test",
+        "inputHash": "8b609b922799f087a5605248952b1ce379a2df8cce4d8685232dc4ace0f781a5",
+        "eventId": "$work",
+        "status": "completed",
+        "stage": "completed",
+        "summary": "成果文件已准备好",
+        "claims": [
+          {
+            "claimId": "local-claim-1",
+            "kind": "generation",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:36.798Z",
+            "usage": {
+              "inputTokens": 10,
+              "outputTokens": 10,
+              "totalTokens": 20
+            },
+            "textBytes": 0,
+            "finishedAt": "2026-11-05T03:59:36.901Z",
+            "recorded": true
+          },
+          {
+            "claimId": "local-claim-3",
+            "kind": "generation",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:36.941Z",
+            "usage": {
+              "inputTokens": 10,
+              "outputTokens": 10,
+              "totalTokens": 20
+            },
+            "textBytes": 0,
+            "finishedAt": "2026-11-05T03:59:36.948Z",
+            "recorded": true
+          },
+          {
+            "claimId": "local-claim-5",
+            "kind": "generation",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:37.078Z",
+            "usage": {
+              "inputTokens": 10,
+              "outputTokens": 10,
+              "totalTokens": 20
+            },
+            "textBytes": 0,
+            "finishedAt": "2026-11-05T03:59:37.084Z",
+            "recorded": true
+          },
+          {
+            "claimId": "local-claim-7",
+            "kind": "generation",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:37.108Z",
+            "usage": {
+              "inputTokens": 10,
+              "outputTokens": 10,
+              "totalTokens": 20
+            },
+            "textBytes": 146,
+            "finishedAt": "2026-11-05T03:59:37.114Z",
+            "recorded": true
+          }
+        ],
+        "toolCalls": 3,
+        "toolReceipts": [
+          {
+            "callId": "tool-1",
+            "name": "read",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:36.909Z",
+            "finishedAt": "2026-11-05T03:59:36.916Z",
+            "summary": "<path>/tmp/ds-group-work-smoke-8mSmtl/task/costs.csv</path>\n<type>file</type>\n<content>\n1: name,amount\n2: Alice,120\n3: Bob,230\n\n(End of file - total 3 lines)\n</content>"
+          },
+          {
+            "callId": "tool-2",
+            "name": "bash",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:36.953Z",
+            "finishedAt": "2026-11-05T03:59:37.053Z",
+            "summary": "350\n"
+          },
+          {
+            "callId": "tool-3",
+            "name": "read",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:37.088Z",
+            "finishedAt": "2026-11-05T03:59:37.092Z",
+            "summary": "<path>/tmp/ds-group-work-smoke-8mSmtl/task/result.csv</path>\n<type>file</type>\n<content>\n1: total\n2: 350\n\n(End of file - total 2 lines)\n</content>"
+          }
+        ],
+        "artifacts": [
+          {
+            "name": "费用汇总.csv",
+            "path": "/tmp/ds-group-work-smoke-8mSmtl/task/result.csv",
+            "mimeType": "text/csv",
+            "size": 10,
+            "sha256": "a8d92f639928d06c7f08954a86efbd26f2205fd4f9bdeda46ffcd8e5bef7870c"
+          }
+        ],
+        "acceptedAt": "2026-11-05T03:59:36.685Z",
+        "startedAt": "2026-11-05T03:59:36.687Z",
+        "updatedAt": "2026-11-05T03:59:37.123Z",
+        "workdir": "/tmp/ds-group-work-smoke-8mSmtl/task",
+        "files": [
+          {
+            "name": "costs.csv",
+            "path": "/tmp/ds-group-work-smoke-8mSmtl/task/costs.csv",
+            "mimeType": "text/csv",
+            "size": 30,
+            "sha256": "2bf74f3e604b17c04aa05ec672c9521fa1fd02228d756261dae1fd20d530fea1",
+            "id": "input-costs"
+          }
+        ],
+        "sessionId": "session-32ab764b-06d0-41df-9185-fa7df7386da7",
+        "claimId": "local-claim-7",
+        "usage": {
+          "calls": 4,
+          "inputTokens": 40,
+          "outputTokens": 40,
+          "totalTokens": 80
+        },
+        "text": "{\"text\":\"费用合计350，结果见附件。\",\"artifacts\":[{\"path\":\"/tmp/ds-group-work-smoke-8mSmtl/task/result.csv\",\"name\":\"费用汇总.csv\"}]}",
+        "finishedAt": "2026-11-05T03:59:37.123Z",
+        "duplicate": false
+      },
+      "cancellation": {
+        "runningStatus": "cancelled",
+        "queuedStatus": "cancelled",
+        "backgroundProcessStopped": true
+      },
+      "completedAt": "2026-11-05T03:59:37.666Z"
+    }
+  },
+  {
+    "runner": "ubuntu-24.04-arm",
+    "report": "runtime-smoke",
+    "status": "passed",
+    "modelCalls": 0,
+    "scriptedProviderCalls": null,
+    "sha256": "17394247f3243fc8cdd1dfbce347f64527c9cddc70ba808988df343de2ec19c7",
+    "details": {
+      "checkedAt": "2026-11-05T03:59:35.311Z",
+      "platform": "linux",
+      "arch": "arm64",
+      "node": "v24.19.0",
+      "expectedDshVersion": "0.2.1-rc.5",
+      "installationKind": "npm-cli",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "level": "real-native-dsh-zero-model",
+      "sourceHashes": {
+        "scripts/dsh-node.mjs": "035475c1f5fe198b9d5aeca1f284f7a7b5d40a84dd30b80d91f2531113e57cd4",
+        "scripts/runtime-config.mjs": "e2b40a796035043fb5c59fef53065b6f2a0e96f90e7e318006e1e2f70a9ed9c1",
+        "scripts/runtime-smoke.mjs": "c4a156c87e574042c8b2493c5a042b6aa35d74da721c220e493cb0a6dba268cc",
+        "dsh-plugin/index.mjs": "e1f513c3f44afa7a84d69d853a252c4a86fd29412a3cbc843bdaab026faee161",
+        "dsh-plugin/runtime.mjs": "be62b4b4248aded721be136e824d5ba3b85dd6eb2ec65268a39ef497ed51d65e"
+      },
+      "checks": {
+        "pinnedRuntimeVersion": true,
+        "pluginLoaded": true,
+        "allowedModelCatalog": true,
+        "nativeSessionCreated": true,
+        "importedRemoteCoreAndPrivateData": true,
+        "sessionIdentityAfterRestart": true,
+        "legacyIdentityAndInstructionsMigrated": true,
+        "interruptedRequestIsNotReplayed": true,
+        "gracefulStop": true,
+        "zeroModelClaims": true
+      },
+      "status": "passed",
+      "dshVersion": "0.2.1-rc.5",
+      "modelCalls": 0
+    }
+  },
+  {
+    "runner": "ubuntu-24.04-arm",
+    "report": "runtime-work-smoke",
+    "status": "passed",
+    "modelCalls": 0,
+    "scriptedProviderCalls": 6,
+    "sha256": "b0f639f9f64967cfbc03e2a8bb4272e2629e633200fadc69f12ebe9ddc6d77a9",
+    "details": {
+      "checkedAt": "2026-11-05T03:59:43.733Z",
+      "platform": "linux",
+      "arch": "arm64",
+      "node": "v24.19.0",
+      "level": "real-dsh-native-tools-scripted-local-provider",
+      "modelCalls": 0,
+      "scriptedProviderCalls": 6,
+      "sourceHashes": {
+        "dsh-plugin/runtime.mjs": "be62b4b4248aded721be136e824d5ba3b85dd6eb2ec65268a39ef497ed51d65e",
+        "dsh-plugin/runtime-rules.mjs": "09954b212699c96d663bc4de66d1894db4ecf41e45bfc64eda8aac2e41a2eb32",
+        "dsh-plugin/work-files.mjs": "dd96a8ca4881196a5c570e097cf811c47cd4539cdc6246a5b29d5628cd2f2074",
+        "scripts/runtime-work-smoke.mjs": "742c16f9982ff3039cf36fde3d1d4f1b35289ce957dba31d7cd9a78443f8faa1"
+      },
+      "checks": [
+        "asynchronousAdmissionAndDuplicate",
+        "realReadComputeWriteReadAndValidatedArtifact",
+        "nativeToolReceiptsAndEveryGenerationLedger",
+        "completedReplayAndCancellationDoNotExecuteAgain",
+        "runningAndQueuedCancellationStopsBackgroundProcess"
+      ],
+      "status": "passed",
+      "receipt": {
+        "requestId": "file-work-native-smoke",
+        "botId": "@finance:local-smoke.test",
+        "inputHash": "8820114984e648d50cebd63f3992fe22d56374a6a353b167fbb0c1a18c5c239a",
+        "eventId": "$work",
+        "status": "completed",
+        "stage": "completed",
+        "summary": "成果文件已准备好",
+        "claims": [
+          {
+            "claimId": "local-claim-1",
+            "kind": "generation",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:48.060Z",
+            "usage": {
+              "inputTokens": 10,
+              "outputTokens": 10,
+              "totalTokens": 20
+            },
+            "textBytes": 0,
+            "finishedAt": "2026-11-05T03:59:48.177Z",
+            "recorded": true
+          },
+          {
+            "claimId": "local-claim-3",
+            "kind": "generation",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:48.220Z",
+            "usage": {
+              "inputTokens": 10,
+              "outputTokens": 10,
+              "totalTokens": 20
+            },
+            "textBytes": 0,
+            "finishedAt": "2026-11-05T03:59:48.229Z",
+            "recorded": true
+          },
+          {
+            "claimId": "local-claim-5",
+            "kind": "generation",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:48.353Z",
+            "usage": {
+              "inputTokens": 10,
+              "outputTokens": 10,
+              "totalTokens": 20
+            },
+            "textBytes": 0,
+            "finishedAt": "2026-11-05T03:59:48.361Z",
+            "recorded": true
+          },
+          {
+            "claimId": "local-claim-7",
+            "kind": "generation",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:48.393Z",
+            "usage": {
+              "inputTokens": 10,
+              "outputTokens": 10,
+              "totalTokens": 20
+            },
+            "textBytes": 146,
+            "finishedAt": "2026-11-05T03:59:48.400Z",
+            "recorded": true
+          }
+        ],
+        "toolCalls": 3,
+        "toolReceipts": [
+          {
+            "callId": "tool-1",
+            "name": "read",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:48.187Z",
+            "finishedAt": "2026-11-05T03:59:48.195Z",
+            "summary": "<path>/tmp/ds-group-work-smoke-94FlJs/task/costs.csv</path>\n<type>file</type>\n<content>\n1: name,amount\n2: Alice,120\n3: Bob,230\n\n(End of file - total 3 lines)\n</content>"
+          },
+          {
+            "callId": "tool-2",
+            "name": "bash",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:48.234Z",
+            "finishedAt": "2026-11-05T03:59:48.334Z",
+            "summary": "350\n"
+          },
+          {
+            "callId": "tool-3",
+            "name": "read",
+            "status": "completed",
+            "startedAt": "2026-11-05T03:59:48.366Z",
+            "finishedAt": "2026-11-05T03:59:48.370Z",
+            "summary": "<path>/tmp/ds-group-work-smoke-94FlJs/task/result.csv</path>\n<type>file</type>\n<content>\n1: total\n2: 350\n\n(End of file - total 2 lines)\n</content>"
+          }
+        ],
+        "artifacts": [
+          {
+            "name": "费用汇总.csv",
+            "path": "/tmp/ds-group-work-smoke-94FlJs/task/result.csv",
+            "mimeType": "text/csv",
+            "size": 10,
+            "sha256": "a8d92f639928d06c7f08954a86efbd26f2205fd4f9bdeda46ffcd8e5bef7870c"
+          }
+        ],
+        "acceptedAt": "2026-11-05T03:59:47.944Z",
+        "startedAt": "2026-11-05T03:59:47.947Z",
+        "updatedAt": "2026-11-05T03:59:48.412Z",
+        "workdir": "/tmp/ds-group-work-smoke-94FlJs/task",
+        "files": [
+          {
+            "name": "costs.csv",
+            "path": "/tmp/ds-group-work-smoke-94FlJs/task/costs.csv",
+            "mimeType": "text/csv",
+            "size": 30,
+            "sha256": "2bf74f3e604b17c04aa05ec672c9521fa1fd02228d756261dae1fd20d530fea1",
+            "id": "input-costs"
+          }
+        ],
+        "sessionId": "session-d93e175b-7f70-4fda-9ca6-c3029bf4eb8f",
+        "claimId": "local-claim-7",
+        "usage": {
+          "calls": 4,
+          "inputTokens": 40,
+          "outputTokens": 40,
+          "totalTokens": 80
+        },
+        "text": "{\"text\":\"费用合计350，结果见附件。\",\"artifacts\":[{\"path\":\"/tmp/ds-group-work-smoke-94FlJs/task/result.csv\",\"name\":\"费用汇总.csv\"}]}",
+        "finishedAt": "2026-11-05T03:59:48.412Z",
+        "duplicate": false
+      },
+      "cancellation": {
+        "runningStatus": "cancelled",
+        "queuedStatus": "cancelled",
+        "backgroundProcessStopped": true
+      },
+      "completedAt": "2026-11-05T03:59:48.956Z"
+    }
+  }
+]

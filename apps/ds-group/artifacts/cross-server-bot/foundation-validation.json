@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-04",
+  "level": "module-and-native-scripted-foundation",
+  "baseCommit": "0d0ed79",
+  "command": "npm run check",
+  "modulePassed": 320,
+  "moduleFailed": 0,
+  "nativeChecks": 8,
+  "scriptedProviderCalls": 10,
+  "remoteModelCalls": 0,
+  "sourceHashes": {
+    "src/bot-work.mjs": "aa8779a77d8dc2fdae42e7c1d75adb7dda46f01afe050518d633ccc05a690e23",
+    "src/bot-work-policy.mjs": "d0a13a65d6a876855ed0460987b65378c66d5ac375c58596b74aefe1f5d36a4d",
+    "src/node-work.mjs": "f7e78a38755911306044ccf6a335ffde108bfc6d664c60be2c49821336d1bc11",
+    "src/bot-node.mjs": "a94f76d2ee68c8a4b063ece73e1bda298ff1756ca9e2552cd8e271b6f00bf20a",
+    "src/node-files.mjs": "f0ebf1bfbf2435abfce54852e1a19e558e9cfbb4d5cb8ba56511d799213545b3",
+    "src/node-delivery.mjs": "3133d4abfa0d56f33df86df456fe60a030fe7a8420ae80d16873a1fdecdb19fd",
+    "src/core.mjs": "0fe6b567f6525c11320558e67510c01fb8768fedbf14158ed7344edb3fb3ab0e",
+    "src/tasks.mjs": "13074f2cc94ee88c428bd6fc66834c950f66dd067055df23137aa9280b3c8eec",
+    "dsh-plugin/runtime.mjs": "be62b4b4248aded721be136e824d5ba3b85dd6eb2ec65268a39ef497ed51d65e",
+    "dsh-plugin/scoped-work.mjs": "51d047857f3423721a5bdad79d390e0238fd4b34dd12fbc692d5098398961fb9"
+  },
+  "limits": [
+    "Real A/B/C Bot task and remote allowed-model run pending",
+    "Cross-server work supports read/write/edit/read_image in current task workspace; terminal/jobs/skills/delegation denied",
+    "Original approved room delivery; creating another cross-server DM denied",
+    "One physical host only"
+  ],
+  "recheck": "After anonymous public-roster alignment: tests/node-roster.test.mjs passed"
+}

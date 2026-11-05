@@ -1,0 +1,1445 @@
+{
+  "scope": "Synthetic isolated A/B/C identities; actual home-side authorization decisions, no credentials or tool arguments",
+  "events": [
+    {
+      "request_id": "join-b05a7d9d67800350ff9ee8c6bf2332c0f39e91f81624b5ce88efe5e052eaab68",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "join",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "{\"roomId\":\"!pda60X2y_HP93RBK_UWaRMasBgk-qyRnaGTNDd1IsVQ\",\"inviterId\":\"@alice:b.dscord-bot-work.test:8448\"}",
+      "at": "2026-11-05T04:03:46.478Z"
+    },
+    {
+      "request_id": "join-b05a7d9d67800350ff9ee8c6bf2332c0f39e91f81624b5ce88efe5e052eaab68",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "join",
+      "tool": null,
+      "call_id": null,
+      "decision": "observed:completed",
+      "detail": "!pda60X2y_HP93RBK_UWaRMasBgk-qyRnaGTNDd1IsVQ",
+      "at": "2026-11-05T04:03:46.584Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:03:54.070Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "download",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:03:54.084Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:03:54.111Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:03:54.122Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:03:54.157Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:03:54.179Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "chatcmpl-tool-8a6d90f38f21830d",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:01.051Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "chatcmpl-tool-8a6d90f38f21830d",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:01.079Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:01.084Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:01.114Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "write",
+      "call_id": "chatcmpl-tool-8c07d7a4b928b087",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:06.471Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "write",
+      "call_id": "chatcmpl-tool-8c07d7a4b928b087",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:06.500Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:06.506Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:06.531Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "chatcmpl-tool-96a70dee9915f54c",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:11.744Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "chatcmpl-tool-96a70dee9915f54c",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:11.760Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:11.761Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:11.779Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:17.055Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:17.637Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:17.649Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:17.662Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "upload:attachment-b3b0eb59-85d0-4f64-ac4e-c7b17f8672ea",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:17.694Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "deliver",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:17.773Z"
+    },
+    {
+      "request_id": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "ds-group-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb-reply",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:17.826Z"
+    },
+    {
+      "request_id": "matrix-fe1f854a86b5038bf9b44c28a922a2c918a66fe5a90a1a319d4ddb64e551d1f9",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "denied",
+      "detail": "BOT_WORK_DENIED",
+      "at": "2026-11-05T04:04:18.960Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:29.213Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "download",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:29.232Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:29.251Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:29.262Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:29.284Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:29.307Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "chatcmpl-tool-aaa21bce8eef9496",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:33.985Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "chatcmpl-tool-aaa21bce8eef9496",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:34.006Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:34.011Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:34.033Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "write",
+      "call_id": "chatcmpl-tool-b582499c625033b3",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:37.968Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "write",
+      "call_id": "chatcmpl-tool-b582499c625033b3",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:37.986Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:37.990Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:38.010Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "chatcmpl-tool-aac5b4413e603b3d",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:42.182Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "chatcmpl-tool-aac5b4413e603b3d",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:42.194Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:42.200Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:42.219Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:47.916Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:48.266Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:48.297Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:48.322Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "upload:attachment-091f23f7-3b14-426b-874a-e101e736e047",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:48.363Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "deliver",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:04:48.435Z"
+    },
+    {
+      "request_id": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "ds-group-03f80bdfe55df09332a81320e07a3c09f41c3473-reply",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:04:48.469Z"
+    },
+    {
+      "request_id": "matrix-cf36ef1ec36c1542fe5163167f52cd1b4143297aac4aab75f258e11172a52401",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "denied",
+      "detail": "BOT_WORK_DENIED",
+      "at": "2026-11-05T04:04:58.777Z"
+    },
+    {
+      "request_id": "matrix-03f75e51e2e97112cefceb1e5631bb4367b0ea362ce1b87b1e4723bd9c9e0a53",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "deliver-local",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "!fQuuqBFNJ9zNGNGHMgn7cTFgjxyYjpiLvRPG5VodH4c",
+      "at": "2026-11-05T04:11:23.665Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:23.910Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "download",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:23.931Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:23.966Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:23.978Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:24.027Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:24.052Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "call_00_wik3glaiunonkrx05pksiybu",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:25.803Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "call_00_wik3glaiunonkrx05pksiybu",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:11:25.816Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:25.822Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:25.842Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "write",
+      "call_id": "call_00_e2wq4szzkzdmxz93m9b0nefe",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:28.776Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "write",
+      "call_id": "call_00_e2wq4szzkzdmxz93m9b0nefe",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:11:28.806Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:28.810Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:28.835Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "bash",
+      "call_id": "call_00_mhozemsmubqpcw55vtqrcjg4",
+      "decision": "observed:failed",
+      "detail": "",
+      "at": "2026-11-05T04:11:30.906Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:30.913Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:30.936Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "write",
+      "call_id": "call_00_hg04zs4a9tvvgdeuoip1gwvt",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:32.804Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "write",
+      "call_id": "call_00_hg04zs4a9tvvgdeuoip1gwvt",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:11:32.838Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:32.843Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:32.869Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "call_00_2cfp1azvkev3xzi96ox65lcq",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:34.442Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "call_00_2cfp1azvkev3xzi96ox65lcq",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:11:34.473Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:34.479Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:34.500Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:36.918Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:37.678Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:37.704Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:37.718Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "upload:attachment-c81a1187-d8bc-4dff-bbda-42c2228c1cbb",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:11:37.756Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "deliver",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:11:37.829Z"
+    },
+    {
+      "request_id": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "ds-group-08facedb56503dfa760e88055fc9f24e603747f2-reply",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:11:37.858Z"
+    },
+    {
+      "request_id": "matrix-8a68b07e5b95247c52547f67627d5ab87e552c8c02a556bb62a3558c2fe096f7",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "deliver-local",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "!fQuuqBFNJ9zNGNGHMgn7cTFgjxyYjpiLvRPG5VodH4c",
+      "at": "2026-11-05T04:16:45.806Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:46.052Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "download",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:46.071Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:46.103Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:46.116Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:46.161Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:46.183Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "call_61369ae804cb45aeb0209754",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:48.910Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "call_a02c45e7b98242ba8fec1065",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:48.911Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "call_a02c45e7b98242ba8fec1065",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:16:48.935Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "call_61369ae804cb45aeb0209754",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:16:48.935Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:48.939Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:48.961Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "write",
+      "call_id": "call_441fd94c8ef0484280810a44",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:50.698Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "write",
+      "call_id": "call_441fd94c8ef0484280810a44",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:16:50.733Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:50.735Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:50.761Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "call_ba45f0c35e7f40ca869f2b36",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:52.196Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "call_ba45f0c35e7f40ca869f2b36",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:16:52.215Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:52.219Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:52.241Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:54.562Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:55.238Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:55.252Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:55.263Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "upload:attachment-8666f9b3-986c-41e1-9a69-9787fa927de2",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:16:55.291Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "deliver",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:16:55.351Z"
+    },
+    {
+      "request_id": "matrix-af5c186e0d404545b3d9600f004c6c0a6970f19ffdbdcefa67fc52198431ba46",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "ds-group-af5c186e0d404545b3d9600f004c6c0a6970f19f-reply",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:16:55.379Z"
+    },
+    {
+      "request_id": "matrix-0b47d65d5172fb0998f305b3aec3465d736a42bdbc9b55ec9a1c8948fef621de",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "denied",
+      "detail": "BOT_WORK_DENIED",
+      "at": "2026-11-05T04:16:56.611Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:06.815Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "download",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:06.832Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:06.850Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:06.862Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:06.883Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:06.905Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "call_e533f5e6dd5540c1b7f499b9",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:09.793Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "call_05078f72be564473a93a5f67",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:09.795Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "call_e533f5e6dd5540c1b7f499b9",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:17:09.806Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "call_05078f72be564473a93a5f67",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:17:09.809Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:09.814Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:09.831Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "write",
+      "call_id": "call_a3403f2e5bda42b7bf7e84ea",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:11.565Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "write",
+      "call_id": "call_a3403f2e5bda42b7bf7e84ea",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:17:11.583Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:11.586Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:11.606Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "tool",
+      "tool": "read",
+      "call_id": "call_4159cda00e5548748fd418ab",
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:13.340Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": "read",
+      "call_id": "call_4159cda00e5548748fd418ab",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:17:13.355Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:13.356Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "model",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:13.378Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:15.659Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "run",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:15.978Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:16.000Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "upload",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:16.016Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "upload:attachment-d65ebf4a-58d9-4ac9-9b1f-24805142daa9",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:17:16.051Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "deliver",
+      "tool": null,
+      "call_id": null,
+      "decision": "authorized",
+      "detail": "",
+      "at": "2026-11-05T04:17:16.117Z"
+    },
+    {
+      "request_id": "matrix-ed1a2457ce078733d8e0f407ba6497e8a3ec43191da51ac225d486aad916760d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "observe",
+      "tool": null,
+      "call_id": "ds-group-ed1a2457ce078733d8e0f407ba6497e8a3ec4319-reply",
+      "decision": "observed:completed",
+      "detail": "",
+      "at": "2026-11-05T04:17:16.148Z"
+    },
+    {
+      "request_id": "matrix-fadceb8cc7e23bd1d2378fb2977656431fa7eddf510118ef1224c73fe78e3a4d",
+      "bot_id": "@finance:a.dscord-bot-work.test:8448",
+      "stage": "accept",
+      "tool": null,
+      "call_id": null,
+      "decision": "denied",
+      "detail": "BOT_WORK_DENIED",
+      "at": "2026-11-05T04:17:26.444Z"
+    }
+  ]
+}

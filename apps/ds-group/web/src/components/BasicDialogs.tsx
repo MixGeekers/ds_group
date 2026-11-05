@@ -1,3 +1,4 @@
+import { Button, Checkbox, Input } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import type {
   CSSProperties,
@@ -6,6 +7,7 @@ import type {
   SyntheticEvent,
 } from "react";
 import { messageOf, readStored } from "../api";
+import { newRequestId } from "../identifiers";
 import { useTranslation } from "../locale";
 import { Icon } from "./Icons";
 import { dialogMessages } from "../locales/dialogs";
@@ -60,6 +62,7 @@ interface RoomDialogProps {
   participants: Participant[];
   ownedBots: Participant[];
   api: Api;
+  pendingStorageKey?: string;
   onRoom(room: Room): void;
   onChanged(): void | Promise<void>;
   onClose(): void;
@@ -73,6 +76,7 @@ export function RoomDialog({
   participants,
   ownedBots,
   api,
+  pendingStorageKey,
   onRoom,
   onChanged,
   onClose,
@@ -99,12 +103,14 @@ export function RoomDialog({
     if (mode === null) return;
     const saved =
       mode === "create" && session
-        ? readStored<PendingGroup>(`ds-group.pending-room.${session.user_id}`)
+        ? readStored<PendingGroup>(
+            pendingStorageKey ?? `ds-group.pending-room.${session.user_id}`,
+          )
         : null;
     setName(saved?.name ?? "");
     setSelectedIds(saved?.inviteIds ?? []);
     setRestored(Boolean(saved));
-  }, [mode, session?.user_id]);
+  }, [mode, session?.user_id, pendingStorageKey]);
 
   function toggleMember(id: string, selected: boolean) {
     setSelectedIds((current) =>
@@ -131,7 +137,8 @@ export function RoomDialog({
     setError("");
     try {
       if (mode === "create") {
-        const key = `ds-group.pending-room.${session.user_id}`;
+        const key =
+          pendingStorageKey ?? `ds-group.pending-room.${session.user_id}`;
         const saved = readStored<PendingGroup>(key);
         const cleanName = name.trim();
         const sameRequest =
@@ -140,7 +147,7 @@ export function RoomDialog({
         const request: PendingGroup = {
           name: cleanName,
           inviteIds,
-          requestId: sameRequest ? saved.requestId : crypto.randomUUID(),
+          requestId: sameRequest ? saved.requestId : newRequestId(),
         };
         sessionStorage.setItem(key, JSON.stringify(request));
         const result = await api<Room>("/api/rooms", {
@@ -186,7 +193,9 @@ export function RoomDialog({
       <form id="room-form" onSubmit={(event) => void submit(event)}>
         <div className="dialog-heading">
           <h2 id="room-dialog-title">{title}</h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             id="close-room-dialog"
             className="icon-button"
             type="button"
@@ -195,11 +204,12 @@ export function RoomDialog({
             onClick={onClose}
           >
             <Icon name="close" />
-          </button>
+          </Button>
         </div>
+        <div className="dialog-scroll-region">
         <div id="room-name-field" hidden={isInvite}>
           <label htmlFor="new-room-name">{t("groupName")}</label>
-          <input
+          <Input
             id="new-room-name"
             maxLength={80}
             autoComplete="off"
@@ -215,14 +225,11 @@ export function RoomDialog({
         <div id="room-choices" className="room-choices">
           {choices.map((person) => (
             <label key={person.id} className="room-choice">
-              <input
-                type="checkbox"
+              <Checkbox
                 value={person.id}
                 checked={selectedIds.includes(person.id)}
                 disabled={busy}
-                onChange={(event) =>
-                  toggleMember(person.id, event.target.checked)
-                }
+                onCheckedChange={(checked) => toggleMember(person.id, checked)}
               />
               <span
                 className={`avatar avatar-${person.kind}`}
@@ -230,7 +237,10 @@ export function RoomDialog({
               >
                 {person.name.slice(0, 1)}
               </span>
-              <span>{person.name}</span>
+              <span className="room-choice-identity">
+                <span>{person.name}</span>
+                <small className="member-full-id">{person.id}</small>
+              </span>
               {person.kind === "bot" && (
                 <span className="member-kind">BOT</span>
               )}
@@ -245,7 +255,10 @@ export function RoomDialog({
         <p id="room-form-error" className="settings-feedback" role="alert">
           {error || (restored ? t("pendingGroup") : "")}
         </p>
-        <button
+        </div>
+        <footer className="dialog-footer">
+        <Button
+          variant="default"
           id="room-submit"
           className="primary-button login-submit"
           type="submit"
@@ -260,7 +273,8 @@ export function RoomDialog({
                 ? "creating"
                 : "create",
           )}
-        </button>
+        </Button>
+        </footer>
       </form>
     </dialog>
   );
@@ -302,7 +316,9 @@ export function MemberDialog({
       onCancel={(event) => cancelDialog(event, true, onClose)}
       onClick={(event) => dismissBackdrop(event, true, onClose)}
     >
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         id="close-member"
         className="icon-button dialog-close"
         type="button"
@@ -310,7 +326,8 @@ export function MemberDialog({
         onClick={onClose}
       >
         <Icon name="close" />
-      </button>
+      </Button>
+      <div className="dialog-scroll-region">
       <div id="member-dialog-avatar">
         <span
           className={`avatar avatar-${member?.kind ?? "human"}`}
@@ -320,9 +337,7 @@ export function MemberDialog({
         </span>
       </div>
       <h2 id="member-dialog-name">{member?.name}</h2>
-      <p id="member-dialog-id">
-        {member?.kind === "bot" ? member.id : (member?.localpart ?? member?.id)}
-      </p>
+      <p id="member-dialog-id">{member?.id}</p>
       {member?.kind === "bot" && (
         <p className="bot-connection-status">
           {botText(
@@ -356,8 +371,10 @@ export function MemberDialog({
           </span>
         ))}
       </div>
-      <div className="settings-actions">
-        <button
+      </div>
+      <div className="dialog-footer settings-actions">
+        <Button
+          variant="default"
           id="member-dm"
           className="primary-button"
           type="button"
@@ -370,8 +387,9 @@ export function MemberDialog({
           }}
         >
           {t("sendMessage")}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
           id="member-mention"
           className="secondary-button"
           type="button"
@@ -386,7 +404,7 @@ export function MemberDialog({
           }}
         >
           {t("mention")}
-        </button>
+        </Button>
       </div>
     </dialog>
   );

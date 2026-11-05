@@ -56,6 +56,7 @@ export class MatrixClient {
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     const response = await fetch(`${this.baseUrl}${path}`, {
       method,
+      redirect: 'error',
       headers,
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(65_000)]) : AbortSignal.timeout(65_000),
@@ -71,7 +72,7 @@ export class MatrixClient {
     if (!Number.isSafeInteger(size) || size < 0) throw new Error('Matrix media upload needs its exact byte length');
     const query = new URLSearchParams({ filename });
     return fetch(`${this.baseUrl}/_matrix/media/v3/upload?${query}`, {
-      method: 'POST', body, duplex: 'half',
+      method: 'POST', body, duplex: 'half', redirect: 'error',
       headers: { 'Content-Type': mimeType, 'Content-Length': String(size), Authorization: `Bearer ${this.accessToken}` },
       signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(300_000)]) : AbortSignal.timeout(300_000),
     }).then(jsonResult);
@@ -82,6 +83,7 @@ export class MatrixClient {
     if (!match) throw new Error('Invalid Matrix media URI');
     const route = `/_matrix/client/v1/media/download/${encodeURIComponent(match[1])}/${encodeURIComponent(match[2])}`;
     const response = await fetch(`${this.baseUrl}${route}`, {
+      redirect: 'error',
       headers: { Authorization: `Bearer ${this.accessToken}`, ...(range ? { Range: range } : {}) },
       signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(300_000)]) : AbortSignal.timeout(300_000),
     });

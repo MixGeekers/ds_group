@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-05T04:09:55.537Z",
+  "project": "ds-group-smoke-cdb64f9bee",
+  "platform": "linux/amd64",
+  "runner": {
+    "platform": "linux",
+    "architecture": "x64"
+  },
+  "scriptSha256": "7c8a468043a7ae1839f2b1b8788f77c44d5c5025784efe150a5c2ab7f0ddc509",
+  "level": "real-container-matrix-http",
+  "image": "ds-group:ci-amd64",
+  "modelCalls": 0,
+  "checks": [
+    "freshVolumesReady",
+    "serverRequiresLogin",
+    "matrixLoginGroupAndMessage",
+    "pwaManifest",
+    "remoteNodeExport",
+    "exportedNodeImportsConnectsAndSyncs",
+    "recreatePreservesUsersRoomTokensSecretsVapidAndHistory",
+    "retryAfterRecreateDeduplicates",
+    "backupRestoreToFreshVolumes",
+    "zeroModelCalls"
+  ],
+  "adapter": {
+    "core": "real-container",
+    "matrix": "real-container",
+    "adapter": "real-host-process",
+    "inferenceBridge": "registration-only-fixture",
+    "generationCalls": 0
+  },
+  "loadedCoreSha256": "71592214dbc263199fe1e7bb6d7fecff5a4e7d71c9975f9e14abf10f1d597f80",
+  "status": "passed",
+  "cleanedUp": true,
+  "completedAt": "2026-11-05T04:10:54.819Z"
+}

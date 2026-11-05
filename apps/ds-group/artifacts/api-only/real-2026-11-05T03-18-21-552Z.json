@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "runId": "2026-11-05T03-18-21-552Z",
+  "startedAt": "2026-11-05T03:18:21.555Z",
+  "status": "passed",
+  "evidenceLevel": "real CLI initialization + Core process + official Synapse + independent static origin Chromium; synthetic account; zero model",
+  "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+  "origins": {
+    "coreUrl": "http://127.0.0.1:24210",
+    "clientUrl": "http://127.0.0.1:24211",
+    "matrixUrl": "http://127.0.0.1:24218"
+  },
+  "checks": [
+    {
+      "name": "normal CLI initialization persists api-only and central initialization preserves it",
+      "status": "passed",
+      "details": {
+        "mode": "api-only",
+        "cli": "dscord init --web-mode api-only",
+        "configurationPersisted": true
+      }
+    },
+    {
+      "name": "api-only retains health/readiness/discovery and rejects actual bundled PWA assets",
+      "status": "passed",
+      "details": {
+        "publicApiStatus": 200,
+        "rootAndAssetsStatus": 404,
+        "errorCode": "WEB_DISABLED",
+        "existingBuildPresent": true
+      }
+    },
+    {
+      "name": "independent static origin registers and logs in through the API-only Core",
+      "status": "passed",
+      "details": {
+        "userId": "@alice:api-only-qa.test",
+        "subjectId": "c1c5360a-49d3-4edc-8374-5f78249f5c31",
+        "staticIndexIsOriginalBuild": true
+      }
+    },
+    {
+      "name": "independent-origin business APIs send/read a message and upload/read an attachment",
+      "status": "passed",
+      "details": {
+        "messageSentAndRead": true,
+        "attachmentBytesVerified": true,
+        "eventId": "$_U-XsfUBB3Vs-rSmNR7e0gxSeui8Mi_bBPQ7rqgiFAA"
+      }
+    },
+    {
+      "name": "argument-free reinitialization and actual Core/Synapse restart retain api-only, session and business history",
+      "status": "passed",
+      "details": {
+        "modePreserved": true,
+        "sameAccountSubject": true,
+        "sameHistory": true,
+        "rootStatus": 404
+      }
+    },
+    {
+      "name": "explicit bundled rollback and old config without a mode both retain original single-server web hosting",
+      "status": "passed",
+      "details": {
+        "explicitRollbackRootStatus": 200,
+        "missingFieldRootStatus": 200,
+        "sessionPreserved": true
+      }
+    },
+    {
+      "name": "Compose renders explicit api-only for init/runtime and empty selection preserves persisted state",
+      "status": "passed",
+      "details": {
+        "explicitInitAndRuntime": "api-only",
+        "omittedValue": "",
+        "evidenceScope": "real Compose configuration renderer; full Compose deployment not run in this slice"
+      }
+    }
+  ],
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "adminListener": "owned by independent governance slice; not started or modified here",
+  "builtAssets": [
+    "/assets/manifest-Jp43nKnl.webmanifest",
+    "/assets/icon-D89EwVJD.svg",
+    "/assets/apple-touch-icon-W7v0EGrX.png",
+    "/assets/index-BaI7mIhU.js",
+    "/assets/index-DxS4Xfin.css"
+  ],
+  "sourceSha256": {
+    "src/core.mjs": "4498ce84d68edceee801b5cbfeba6539b3cd12d642465fa57bbcb87fcc8f8662",
+    "src/web-mode.mjs": "794c666a835ccb5f20102bb746288a9649ab1fcc600cb8b184674ef681547185",
+    "src/accounts.mjs": "18befa99631d08ecdb14ed445c3d72a4f0b80cb4eeef3b128c9633bce4f288a7",
+    "src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+    "scripts/server-init.mjs": "d312c3b0667052d8e64fff344259d6855199f18414b8b9c519e77595ca95012d",
+    "bin/dscord.mjs": "f39c1a8eb4e428cc16fd9f83c408e2cab5754daff466ebf2a9eaee1f9f70ec6e",
+    "deploy/compose.yaml": "63d405d060a5c17d7d2e6ec51763d0817045930a7d9453b35d6be9363fb24592",
+    "scripts/verify-api-only.mjs": "878e2422f94f863f212190494099c5e40defe82d0711747a5036e9844fc6852c",
+    "dist/web/index.html": "d03e8ad9deb296d54c967d093ffd372cdc06db8803be7bd1aacc7a2335363d6e"
+  },
+  "cleanup": {
+    "coreStopped": true,
+    "staticServerStopped": true,
+    "containerRemoved": true
+  },
+  "finishedAt": "2026-11-05T03:18:27.452Z"
+}

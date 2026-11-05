@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-04",
+  "evidence": "development validation history; not acceptance substitution",
+  "events": [
+    {
+      "finding": "Original client bootstrap required a room ID and blocked a fresh central registry with roomId:null.",
+      "resolution": "Accept explicit null and derive channels only from authenticated membership. Normal production UI with real empty Core/Synapse registered the first account and created its first room.",
+      "status": "fixed-real-central-verified"
+    },
+    {
+      "finding": "Initial origin validator rejected existing HTTP private same-origin deployments and private Matrix discovery.",
+      "resolution": "Allow the actual browser origin as the original credential target; permit its bound Matrix metadata; keep new split-origin targets restricted. Unit and route-backed ordinary-private-HTTP production-entry checks pass.",
+      "status": "fixed-browser-fixture-verified"
+    },
+    {
+      "finding": "HTTP nonsecure browser contexts do not expose crypto.randomUUID.",
+      "resolution": "Use crypto.getRandomValues to generate request/upload IDs when randomUUID is absent. Production entry sent a synthetic API message under its original full identity.",
+      "status": "fixed-browser-fixture-verified"
+    },
+    {
+      "finding": "First normal-entry fixture attempted a hidden message toolbar button without hover.",
+      "resolution": "Use the actual hover interaction, then click Reply; no product pointer-events bypass.",
+      "status": "fixture-corrected"
+    },
+    {
+      "finding": "Old SettingsDialog fixture expected roles in personal settings, and mocked active service worker lacked postMessage.",
+      "resolution": "Exercise separate RolesDialog entry; capability-check worker messaging; original bot status rerender remains stable.",
+      "status": "regression-fixtures-updated"
+    }
+  ]
+}

@@ -2,12 +2,15 @@ import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { packageRoot } from '../src/paths.mjs';
+import { parseClientConfig } from '../web/src/client-config.ts';
 
 const source = path.join(packageRoot, 'web');
 const output = path.join(packageRoot, 'dist', 'web');
+const clientConfig = JSON.parse(await readFile(path.join(source, 'client-config.json'), 'utf8'));
+parseClientConfig(clientConfig, clientConfig.homeCoreUrl ?? 'http://127.0.0.1');
 await readFile(path.join(output, 'index.html'));
 await mkdir(output, { recursive: true });
-for (const filename of ['theme.js', 'manifest.webmanifest', 'icons', 'licenses']) {
+for (const filename of ['client-config.json', 'theme.js', 'manifest.webmanifest', 'icons', 'licenses']) {
   await cp(path.join(source, filename), path.join(output, filename), { recursive: true });
 }
 

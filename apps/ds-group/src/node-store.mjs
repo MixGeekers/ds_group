@@ -57,9 +57,18 @@ export class NodeStore {
         payload_json TEXT NOT NULL,
         dirty INTEGER NOT NULL DEFAULT 1
       );
+      CREATE TABLE IF NOT EXISTS room_invitations (
+        room_id TEXT PRIMARY KEY,
+        received_at INTEGER NOT NULL,
+        last_error TEXT,
+        attempt_order INTEGER NOT NULL DEFAULT 0
+      );
     `);
     if (!this.db.prepare('PRAGMA table_info(outbox)').all().some(column => column.name === 'routing_frozen')) {
       this.transaction(() => this.db.exec('ALTER TABLE outbox ADD COLUMN routing_frozen INTEGER NOT NULL DEFAULT 0; UPDATE outbox SET routing_frozen=1'));
+    }
+    if (!this.db.prepare('PRAGMA table_info(room_invitations)').all().some(column => column.name === 'attempt_order')) {
+      this.db.exec('ALTER TABLE room_invitations ADD COLUMN attempt_order INTEGER NOT NULL DEFAULT 0');
     }
     const identity = this.db.prepare('SELECT value FROM node_meta WHERE key=\'botId\'').get();
     if (identity && identity.value !== botId) {
@@ -86,6 +95,23 @@ export class NodeStore {
 
   cursor() {
     return this.db.prepare('SELECT value FROM node_meta WHERE key=\'syncCursor\'').get()?.value;
+  }
+
+  noteInvitation(roomId) {
+    this.db.prepare('INSERT OR IGNORE INTO room_invitations(room_id,received_at) VALUES (?,?)').run(roomId, Date.now());
+  }
+
+  pendingInvitations() {
+    return this.db.prepare('SELECT * FROM room_invitations ORDER BY attempt_order,received_at,room_id LIMIT 100').all();
+  }
+
+  finishInvitation(roomId) {
+    this.db.prepare('DELETE FROM room_invitations WHERE room_id=?').run(roomId);
+  }
+
+  invitationFailed(roomId, error) {
+    this.db.prepare('UPDATE room_invitations SET last_error=?,attempt_order=(SELECT COALESCE(MAX(attempt_order),0)+1 FROM room_invitations) WHERE room_id=?')
+      .run(String(error).slice(0, 1000), roomId);
   }
 
   hasEvent(eventId) {

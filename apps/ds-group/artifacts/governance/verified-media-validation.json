@@ -1,0 +1,76 @@
+{
+  "date": "2026-11-05",
+  "timezone": "America/Caracas",
+  "status": "passed",
+  "baseCommit": "c8c571f",
+  "correction": "Earlier federation reports checked final SHA256 in the verifier, while the backend only checked declared length/range. This slice adds actual runtime length and SHA256 verification before successful file response headers. Earlier evidence remains scoped to its original source.",
+  "runtime": {
+    "scope": "Room/event-proven download path only; legacy local index download contract remains unchanged",
+    "method": "Stream the complete object into a private temporary file, verify actual byte count and SHA256, recheck active home identity and current room/governance authorization, then stream verified bytes to the client",
+    "failure": "Bad bytes become non-2xx no-store JSON responses before file Content-Disposition or binary body is sent. Existing client response.ok checks prevent successful blob caching.",
+    "range": "Verify the whole object first, then serve the requested range from the verified file. An isolated range is not represented as an independent proof of whole-file SHA256.",
+    "limits": {
+      "perFileDefaultBytes": 268435456,
+      "concurrencyDefault": 2,
+      "queueLimit": 16,
+      "requestTimeoutMs": 300000,
+      "aggregateDiskBudget": "per-file limit × concurrency, including retained orphan files; only files created by this request are removed",
+      "configuration": [
+        "core-config.json verifiedDownloadMaxBytes",
+        "core-config.json verifiedDownloadConcurrency",
+        "DS_GROUP_VERIFIED_DOWNLOAD_MAX_BYTES",
+        "DS_GROUP_VERIFIED_DOWNLOAD_CONCURRENCY"
+      ],
+      "apply": "Core restart; independent of upload limit"
+    }
+  },
+  "checks": [
+    {
+      "command": "node --test tests/verified-media.test.mjs",
+      "passed": 9,
+      "level": "Real Core HTTP endpoint with synthetic Matrix HTTP byte source",
+      "cases": [
+        "correct full bytes, absent length and compressed transport",
+        "same-length wrong bytes rejected as 502 JSON",
+        "headerless overflow and cleanly terminated truncation rejected",
+        "Range request detects corruption outside its requested interval",
+        "per-file cap and retained-file storage budget",
+        "bounded concurrency and queued cancellation",
+        "membership revoked during staging",
+        "home account disabled during staging",
+        "service stopping aborts staged transfer and cleans its file"
+      ]
+    },
+    {
+      "command": "npm run check",
+      "passed": 304,
+      "level": "Syntax, strict chat/admin TS7, full module regression including legacy media compatibility"
+    },
+    {
+      "command": "node scripts/federation-lab.mjs reload && node scripts/federation-lab.mjs verify",
+      "passed": 10,
+      "level": "Actual Synapse/Core/TLS federation",
+      "report": "federation-2026-11-05T04-10-48-751Z.json"
+    }
+  ],
+  "sourceSha256": {
+    "src/core.mjs": "9e7e94ddbeaf1381e70df8cb1d81c83a2cc20c9903a6cdebc63b4d6983cec086",
+    "src/collaboration.mjs": "ae208f4868258327ebe68a1dbb79f3a4cac0d0db8bb7602648bfccf63382a57a",
+    "src/governance.mjs": "bca5ec0b29b90cb6ba48a79c26274c121381aded258ebd555ba6cb44e7ed83c1",
+    "src/synapse-control.mjs": "8bd87495e6107d6266885dfd4e2ce15ee2ba7516e802e4230a44c792d3376e6c",
+    "src/room-media.mjs": "2667e57561e34ba2da280a8e22a94f0bd42bc9dda5c8f5628077d399ab70a5cc",
+    "src/media.mjs": "554c1e8f61e7193a5e258eb1e4cd19c84cb20a24e5f5f494cbeae772dc888ebd",
+    "src/verified-media.mjs": "773dc083de0f4675799baf685046c8e605ec1566f13234fb761fe1dda569dda1",
+    "deploy/synapse/dscord_guard.py": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+    "scripts/federation-lab.mjs": "0dc0c7e17f953eed322dd1fa43a5a321fec9f19b4afd051357c525869c7ddfb6"
+  },
+  "modelCalls": 0,
+  "physicalHosts": 1,
+  "physicalCrossMachine": "not run",
+  "limitations": [
+    "Actual malicious-byte cases use a controlled Matrix HTTP fixture; real Synapse covers valid federated object and Range transfers",
+    "Every new proven Range request fetches and verifies a complete upstream object; no shared verification cache is claimed",
+    "Previously copied history, known media references and downloaded bytes are not erased by revocation"
+  ],
+  "publication": "Local commit only; no package publication"
+}

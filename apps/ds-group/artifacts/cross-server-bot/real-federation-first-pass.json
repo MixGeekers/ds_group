@@ -1,0 +1,367 @@
+{
+  "startedAt": "2026-11-05T04:03:44.910Z",
+  "date": "2026-11-05",
+  "status": "passed",
+  "level": "real-three-Synapse-federation-Core-native-DSH-and-allowed-remote-model",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "physicalHosts": 1,
+  "remoteModelCalls": 9,
+  "checks": [
+    {
+      "name": "owner and per-node authentication never inherit external room or deployment administration",
+      "status": "passed",
+      "details": {
+        "originalBotId": "@finance:a.dscord-bot-work.test:8448",
+        "actualJoinedRoom": "!pda60X2y_HP93RBK_UWaRMasBgk-qyRnaGTNDd1IsVQ",
+        "minimalRoomParticipants": [
+          "@alice:b.dscord-bot-work.test:8448",
+          "@bob:b.dscord-bot-work.test:8448",
+          "@finance:a.dscord-bot-work.test:8448",
+          "@finance:b.dscord-bot-work.test:8448",
+          "@hr:b.dscord-bot-work.test:8448"
+        ]
+      }
+    },
+    {
+      "name": "an actual owner private native Session is retained separately",
+      "status": "passed",
+      "details": {
+        "roomId": "!fQuuqBFNJ9zNGNGHMgn7cTFgjxyYjpiLvRPG5VodH4c",
+        "eventId": "$GCqGUXol5lB3TY4G-xTpangV7C1a8_Y8HbNzRARuGw4",
+        "resultEventId": "$pEzLljvhSyOfDOUjQ5phpb3E1ctjQzsLfuJ22Ehg5Oc",
+        "sessionId": "session-8002c187-e090-406a-b137-b30d4edacd93",
+        "claims": 1
+      }
+    },
+    {
+      "name": "B attachment with a colliding A ID is read and real file work returns to B as the original A Bot",
+      "status": "passed",
+      "details": {
+        "requestEventId": "$l0CK2thqeZzXthRC4wbHuIEgTDQ_EuunB6QnGO2eDcQ",
+        "resultEventId": "$o01L2I-b5XEnb-dVD7q42kGzhuCNb03AgcTE9p0ApYI",
+        "senderId": "@finance:a.dscord-bot-work.test:8448",
+        "recipientId": "@alice:b.dscord-bot-work.test:8448",
+        "roomId": "!pda60X2y_HP93RBK_UWaRMasBgk-qyRnaGTNDd1IsVQ",
+        "scopedSessionId": "session-aba88c0a-0a56-4bda-96b4-256b3d3935df",
+        "nativeTools": [
+          {
+            "name": "read",
+            "status": "completed"
+          },
+          {
+            "name": "write",
+            "status": "completed"
+          },
+          {
+            "name": "read",
+            "status": "completed"
+          }
+        ],
+        "modelClaims": 4,
+        "forcedAttachmentIdCollision": "attachment-74bf720d-a853-44c6-a1d4-08606192eac7",
+        "verifiedInputSha256": "e6c539b15d5ccffdad16c16ff58fa15b2dad8d378f6d95f3cb0530101ec84af5",
+        "artifact": {
+          "id": "attachment-b3b0eb59-85d0-4f64-ac4e-c7b17f8672ea",
+          "sha256": "6e97480423d46bb3739a372db1264c37d4c23a2d60d6cb1436551e863224cea0",
+          "size": 10,
+          "content": "total=819\n"
+        }
+      }
+    },
+    {
+      "name": "a duplicate Matrix source transaction produces no additional native turn or result",
+      "status": "passed",
+      "details": {
+        "eventId": "$l0CK2thqeZzXthRC4wbHuIEgTDQ_EuunB6QnGO2eDcQ",
+        "resultEventId": "$o01L2I-b5XEnb-dVD7q42kGzhuCNb03AgcTE9p0ApYI",
+        "modelCallsAdded": 0
+      }
+    },
+    {
+      "name": "an admitted room member and an unapproved C identity cannot use another owner grant",
+      "status": "passed",
+      "details": {
+        "admittedButUngrantedId": "@bob:b.dscord-bot-work.test:8448",
+        "rejectedSameLocalpartId": "@alice:c.dscord-bot-work.test:8448",
+        "modelCallsAdded": 0
+      }
+    },
+    {
+      "name": "adapter disconnect catches up a new B task using the same original node and scoped Session",
+      "status": "passed",
+      "details": {
+        "requestEventId": "$2-CKcKJhk1htbFRPzx9v5bgczNuv8jQ2QRUgUixi0UI",
+        "resultEventId": "$ZStjdd5uVvrZNy4_T7Te7nIZdd-qCrqvuihzy8l3q48",
+        "scopedSessionId": "session-aba88c0a-0a56-4bda-96b4-256b3d3935df",
+        "artifact": {
+          "id": "attachment-091f23f7-3b14-426b-874a-e101e736e047",
+          "sha256": "6e97480423d46bb3739a372db1264c37d4c23a2d60d6cb1436551e863224cea0",
+          "size": 10,
+          "content": "total=819\n"
+        },
+        "modelClaims": 4
+      }
+    },
+    {
+      "name": "owner revocation while a task waits offline blocks tools, native generation and any final/private send",
+      "status": "passed",
+      "details": {
+        "requestEventId": "$cLLfzXbb2Yh83mZVbFt9DyTrHVJFAxaoyuOPCdXul2c",
+        "ownerId": "@alice:a.dscord-bot-work.test:8448",
+        "nativeCallsAdded": 0,
+        "outboxEntries": 0,
+        "error": "Owner, home server and room must all permit this exact work request"
+      }
+    }
+  ],
+  "sourceHashes": {
+    "src/core.mjs": "1227e62f8776c89f9e817f809f67087327b4c9802d071a5e49450cda693b9371",
+    "src/bot-work.mjs": "fe70c3aee87fab1a1f706e68b3b3a2d9ebb2f7e300249dae3f2412d2be2c3f9d",
+    "src/bot-work-policy.mjs": "d0a13a65d6a876855ed0460987b65378c66d5ac375c58596b74aefe1f5d36a4d",
+    "src/bot-node.mjs": "a700e285cc453dd467ec239a8dbad2c672024981322f30e1072f92cecbe3aafc",
+    "src/node-work.mjs": "31e3ae144498ea2baea446c261a8088850e7f79d9461acce08a4cfe78774d795",
+    "src/node-files.mjs": "f0ebf1bfbf2435abfce54852e1a19e558e9cfbb4d5cb8ba56511d799213545b3",
+    "src/node-delivery.mjs": "3133d4abfa0d56f33df86df456fe60a030fe7a8420ae80d16873a1fdecdb19fd",
+    "src/governance.mjs": "bca5ec0b29b90cb6ba48a79c26274c121381aded258ebd555ba6cb44e7ed83c1",
+    "src/synapse-control.mjs": "8bd87495e6107d6266885dfd4e2ce15ee2ba7516e802e4230a44c792d3376e6c",
+    "deploy/synapse/dscord_guard.py": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+    "dsh-plugin/runtime.mjs": "be62b4b4248aded721be136e824d5ba3b85dd6eb2ec65268a39ef497ed51d65e",
+    "dsh-plugin/scoped-work.mjs": "51d047857f3423721a5bdad79d390e0238fd4b34dd12fbc692d5098398961fb9",
+    "scripts/verify-cross-server-bot.mjs": "cc1c2d4660cddadcda55c4f6e0d14602b8e695ede1ddff8eab23f921b984fac2"
+  },
+  "runtime": {
+    "a": {
+      "loadedCoreSha256": "1227e62f8776c89f9e817f809f67087327b4c9802d071a5e49450cda693b9371",
+      "guardSourceSha256": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+      "guardBootId": "9f2f1002-8022-4372-8217-5e217501398d"
+    },
+    "b": {
+      "loadedCoreSha256": "1227e62f8776c89f9e817f809f67087327b4c9802d071a5e49450cda693b9371",
+      "guardSourceSha256": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+      "guardBootId": "2617178e-f29e-46a9-90a0-d35e766188df"
+    },
+    "c": {
+      "loadedCoreSha256": "1227e62f8776c89f9e817f809f67087327b4c9802d071a5e49450cda693b9371",
+      "guardSourceSha256": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+      "guardBootId": "27f3c674-507c-4aad-a185-21e584b18eaa"
+    }
+  },
+  "originalBinding": {
+    "botId": "@finance:a.dscord-bot-work.test:8448",
+    "ownerId": "@alice:a.dscord-bot-work.test:8448",
+    "dsBotId": "session-8002c187-e090-406a-b137-b30d4edacd93",
+    "privateSessionId": "session-8002c187-e090-406a-b137-b30d4edacd93",
+    "nodeDirectory": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/cross-server-federation/original-finance-node"
+  },
+  "budgetBefore": {
+    "limit": null,
+    "used": 0,
+    "remaining": null,
+    "maxTokens": 8192,
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "claims": []
+  },
+  "budgetAfter": {
+    "limit": null,
+    "used": 9,
+    "remaining": null,
+    "maxTokens": 8192,
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "claims": [
+      {
+        "claimId": "a8cab677-e4cd-4967-bcbd-6ab349ffcb2f",
+        "nodeId": "finance",
+        "requestId": "matrix-938301555e3e47172347e97de879b82eca2069b3cea39e121f97c074838066ee/call-1",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:03:47.053Z",
+        "completedAt": "2026-11-05T04:03:53.710Z",
+        "result": {
+          "usage": {
+            "inputTokens": 20125,
+            "outputTokens": 380,
+            "totalTokens": 20505
+          },
+          "textBytes": 20,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "9dda7fbc-fa23-4482-9950-a52eee112e4c",
+        "nodeId": "finance",
+        "requestId": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6/call-1",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:03:54.180Z",
+        "completedAt": "2026-11-05T04:04:01.020Z",
+        "result": {
+          "usage": {
+            "inputTokens": 11214,
+            "outputTokens": 154,
+            "totalTokens": 11368
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "0e895ef4-92b7-4688-ad95-1156486403a6",
+        "nodeId": "finance",
+        "requestId": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6/call-2",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:04:01.116Z",
+        "completedAt": "2026-11-05T04:04:06.445Z",
+        "result": {
+          "usage": {
+            "inputTokens": 281,
+            "outputTokens": 177,
+            "totalTokens": 11722,
+            "cacheReadTokens": 11264
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "da2c0a8e-07fb-4139-9d25-cf19882bb812",
+        "nodeId": "finance",
+        "requestId": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6/call-3",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:04:06.532Z",
+        "completedAt": "2026-11-05T04:04:11.726Z",
+        "result": {
+          "usage": {
+            "inputTokens": 207,
+            "outputTokens": 141,
+            "totalTokens": 11996,
+            "cacheReadTokens": 11648
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "e0266a56-8c7e-479d-be94-5dc167ae7734",
+        "nodeId": "finance",
+        "requestId": "matrix-abb16bb7f63d86e9ce7b1a9245f5b02e6fe1cddb8c1b8705980b9c9c2cf4e9e6/call-4",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:04:11.781Z",
+        "completedAt": "2026-11-05T04:04:16.986Z",
+        "result": {
+          "usage": {
+            "inputTokens": 238,
+            "outputTokens": 169,
+            "totalTokens": 12311,
+            "cacheReadTokens": 11904
+          },
+          "textBytes": 456,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "64e89cb6-cc3b-4022-9a9a-b527e7fb80e0",
+        "nodeId": "finance",
+        "requestId": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4/call-1",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:04:29.308Z",
+        "completedAt": "2026-11-05T04:04:33.952Z",
+        "result": {
+          "usage": {
+            "inputTokens": 2644,
+            "outputTokens": 203,
+            "totalTokens": 15135,
+            "cacheReadTokens": 12288
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "e14eb4b7-900d-4b4d-8b26-df2f0a3d12f7",
+        "nodeId": "finance",
+        "requestId": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4/call-2",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:04:34.034Z",
+        "completedAt": "2026-11-05T04:04:37.950Z",
+        "result": {
+          "usage": {
+            "inputTokens": 207,
+            "outputTokens": 190,
+            "totalTokens": 15501,
+            "cacheReadTokens": 15104
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "61f0fb0d-571f-4aa2-995a-ded7b6f65e41",
+        "nodeId": "finance",
+        "requestId": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4/call-3",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:04:38.011Z",
+        "completedAt": "2026-11-05T04:04:42.147Z",
+        "result": {
+          "usage": {
+            "inputTokens": 150,
+            "outputTokens": 145,
+            "totalTokens": 15783,
+            "cacheReadTokens": 15488
+          },
+          "textBytes": 0,
+          "errorCode": null
+        }
+      },
+      {
+        "claimId": "a94d1eb1-27d9-4761-b29b-47e53bb935e2",
+        "nodeId": "finance",
+        "requestId": "matrix-03f80bdfe55df09332a81320e07a3c09f41c34735d1c597d9dec5732e030c7b4/call-4",
+        "model": "opencode-go/deepseek-v4.1-flash",
+        "maxTokens": 4096,
+        "kind": "generation",
+        "status": "completed",
+        "claimedAt": "2026-11-05T04:04:42.220Z",
+        "completedAt": "2026-11-05T04:04:47.815Z",
+        "result": {
+          "usage": {
+            "inputTokens": 189,
+            "outputTokens": 207,
+            "totalTokens": 16140,
+            "cacheReadTokens": 15744
+          },
+          "textBytes": 629,
+          "errorCode": null
+        }
+      }
+    ]
+  },
+  "completedAt": "2026-11-05T04:05:08.778Z",
+  "coverageLimits": [
+    "One physical host, isolated processes and Docker homeservers",
+    "Cross-server terminal/jobs/skills/delegation disabled",
+    "In-flight tool revocation and unknown send receipts additionally covered by native scripted/module evidence; real federation revocation here occurs before queued work is accepted",
+    "Provider billing/cache and full external request bodies are not observed by this acceptance"
+  ]
+}

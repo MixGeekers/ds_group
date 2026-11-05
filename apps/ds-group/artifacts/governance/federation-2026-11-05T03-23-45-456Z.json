@@ -1,0 +1,188 @@
+{
+  "startedAt": "2026-11-05T03:23:45.456Z",
+  "status": "passed",
+  "level": "real Synapse/Core/administration, private CA-verified TLS federation, one physical Docker host",
+  "modelCalls": 0,
+  "endpoints": {
+    "project": "dscord-federation",
+    "dataRoot": "/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation",
+    "physicalHosts": 1,
+    "topology": "three independent Synapse containers, Core processes and administration processes; private TLS federation on an isolated Docker network",
+    "servers": [
+      {
+        "name": "a",
+        "serverName": "a.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24100",
+        "matrixUrl": "http://127.0.0.1:24108",
+        "adminUrl": "http://127.0.0.1:24110"
+      },
+      {
+        "name": "b",
+        "serverName": "b.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24120",
+        "matrixUrl": "http://127.0.0.1:24128",
+        "adminUrl": "http://127.0.0.1:24130"
+      },
+      {
+        "name": "c",
+        "serverName": "c.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24140",
+        "matrixUrl": "http://127.0.0.1:24148",
+        "adminUrl": "http://127.0.0.1:24150"
+      }
+    ],
+    "commands": {
+      "up": "node scripts/federation-lab.mjs up --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "verify": "node scripts/federation-lab.mjs verify --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "down": "node scripts/federation-lab.mjs down --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'"
+    }
+  },
+  "checks": [
+    {
+      "name": "ordinary chat, room creator and foreign administration sessions cannot administer this instance",
+      "status": "passed",
+      "details": {
+        "chatRejected": true,
+        "roomCreatorRejected": true,
+        "foreignAdminRejected": true
+      }
+    },
+    {
+      "name": "A/B explicit partner, identity and room rules save and apply separately from network restart",
+      "status": "passed",
+      "details": {
+        "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+        "participants": [
+          "@alice:a.dscord-federation.test:8448",
+          "@alice:b.dscord-federation.test:8448"
+        ],
+        "staticRestartObserved": true
+      }
+    },
+    {
+      "name": "home identity receives a real foreign invitation and joins without a shadow account",
+      "status": "passed",
+      "details": {
+        "invitation": {
+          "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+          "name": "DS-Group",
+          "inviterId": "@alice:a.dscord-federation.test:8448",
+          "canJoin": true,
+          "status": "invited",
+          "authoritySource": "registered"
+        },
+        "joinedIdentity": "@alice:b.dscord-federation.test:8448"
+      }
+    },
+    {
+      "name": "two-way Core text and attachment bytes traverse the authenticated home federation",
+      "status": "passed",
+      "details": [
+        {
+          "source": "@alice:a.dscord-federation.test:8448",
+          "target": "@alice:b.dscord-federation.test:8448",
+          "eventId": "$qoScl_ewHSzWoBv-6RpYDTdTmUk3c5qTk76gxht6daE",
+          "attachmentEventId": "$d4M812x0meqgyH0j3UREk0BKGD6aCf9aQQlm-hibtLs",
+          "sha256": "3a7467053dc46809f46c8f17d4932e96f2a6cc6a31362f164119f1c9d15ce724",
+          "duplicateEventId": "$qoScl_ewHSzWoBv-6RpYDTdTmUk3c5qTk76gxht6daE"
+        },
+        {
+          "source": "@alice:b.dscord-federation.test:8448",
+          "target": "@alice:a.dscord-federation.test:8448",
+          "eventId": "$lUz5PiI6x9hDTYup7rhDBeZguyb2Dkt1o4PytsEM6yE",
+          "attachmentEventId": "$2e2SUpypb_moq5netz2lSqZ8TJo57STfeR0godMrisk",
+          "sha256": "7517631220c3ba804a2c147f2d2193583f06ec33a4421f047b3fbba2088b5f63",
+          "duplicateEventId": "$lUz5PiI6x9hDTYup7rhDBeZguyb2Dkt1o4PytsEM6yE"
+        }
+      ]
+    },
+    {
+      "name": "direct Matrix API cannot admit an unapproved partner member or unlisted third server, or relax room rules",
+      "status": "passed",
+      "details": {
+        "unapprovedMember": "@bob:b.dscord-federation.test:8448",
+        "thirdServerIdentity": "@alice:c.dscord-federation.test:8448",
+        "bypassesRejected": 6
+      }
+    },
+    {
+      "name": "A rejects an actual C-signed federation request over validated TLS",
+      "status": "passed",
+      "details": {
+        "origin": "c.dscord-federation.test:8448",
+        "destination": "a.dscord-federation.test:8448",
+        "status": 403,
+        "errcode": "M_FORBIDDEN",
+        "error": "Federation denied with c.dscord-federation.test:8448."
+      }
+    },
+    {
+      "name": "remote server outage recovers room events with unchanged home identities and transaction IDs",
+      "status": "passed",
+      "details": {
+        "eventId": "$HcRmpuW2Cb9F3mPWdfghbMjEBr6w0I5b2NBlSsGYTzo",
+        "recoveredIdentity": "@alice:b.dscord-federation.test:8448"
+      }
+    },
+    {
+      "name": "member revocation applies a real ban and rejects subsequent direct Matrix sends",
+      "status": "passed",
+      "details": {
+        "revokedIdentity": "@alice:b.dscord-federation.test:8448",
+        "bans": [
+          {
+            "id": "@alice:b.dscord-federation.test:8448",
+            "status": "applied"
+          }
+        ],
+        "actualAcl": {
+          "allow": [
+            "a.dscord-federation.test",
+            "a.dscord-federation.test:8448"
+          ],
+          "allow_ip_literals": false,
+          "deny": []
+        }
+      }
+    },
+    {
+      "name": "partner revocation distinguishes live admission, room application and network restart, then explicit reapproval restores the same identity",
+      "status": "passed",
+      "details": {
+        "deniedPartner": "b.dscord-federation.test:8448",
+        "reapprovedIdentity": "@alice:b.dscord-federation.test:8448",
+        "oldReplicatedHistoryErased": false,
+        "restoration": "explicit unban, new invitation and home join"
+      }
+    }
+  ],
+  "sourceSha256": {
+    "src/core.mjs": "ec3c3576ff9a55f329ad44d030e282be078c2d4b7e8f3ebd0a0a655221192e76",
+    "src/collaboration.mjs": "37f38987efdc3a2c5e7d2511a882cf205492784ef51021a6e72a548a22e94d98",
+    "src/governance.mjs": "1039b61120a22dea94c2c3c237b054452e278386846818aadc56b8fc6ac3757c",
+    "src/synapse-control.mjs": "b295839823b5c966440656fbedc4d778c80e252bf1c950b7f2b252d00c242bd2",
+    "deploy/synapse/dscord_guard.py": "d9b0d8ce32cb7db5495fb4790f78ebdda66d15f98fc5aa02baaf9be8d4b5c4a4",
+    "scripts/federation-lab.mjs": "029c7c2cb10be7d33f40966f95282f2dd0dada34a063a30b60c66cec4eaeb67f"
+  },
+  "runtime": {
+    "a": {
+      "loadedCoreSha256": "ec3c3576ff9a55f329ad44d030e282be078c2d4b7e8f3ebd0a0a655221192e76",
+      "guardSourceSha256": "d9b0d8ce32cb7db5495fb4790f78ebdda66d15f98fc5aa02baaf9be8d4b5c4a4",
+      "guardBootId": "45b93615-a22f-4066-a9f1-b18dcfb9514d",
+      "modelCalls": 0
+    },
+    "b": {
+      "loadedCoreSha256": "ec3c3576ff9a55f329ad44d030e282be078c2d4b7e8f3ebd0a0a655221192e76",
+      "guardSourceSha256": "d9b0d8ce32cb7db5495fb4790f78ebdda66d15f98fc5aa02baaf9be8d4b5c4a4",
+      "guardBootId": "291abafc-e2d1-4db5-b3c2-6821ee9ff72c",
+      "modelCalls": 0
+    },
+    "c": {
+      "loadedCoreSha256": "ec3c3576ff9a55f329ad44d030e282be078c2d4b7e8f3ebd0a0a655221192e76",
+      "guardSourceSha256": "d9b0d8ce32cb7db5495fb4790f78ebdda66d15f98fc5aa02baaf9be8d4b5c4a4",
+      "guardBootId": "0a236e7f-5305-4d40-97eb-f053aa76dad8",
+      "modelCalls": 0
+    }
+  },
+  "finishedAt": "2026-11-05T03:23:56.730Z"
+}

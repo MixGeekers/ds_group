@@ -1,3 +1,4 @@
+import { Button, Checkbox, Radio, RadioGroup } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { messageOf } from "../api";
@@ -102,75 +103,76 @@ export function NotificationDialog({
           <h2 id="notification-title">
             {t("roomNotifications", { room: room?.name || t("conversation") })}
           </h2>
-          <button
+          <Button
             id="close-notification"
             className="icon-button"
+            variant="ghost"
+            size="icon"
             type="button"
             aria-label={t("close")}
             onClick={onClose}
             disabled={saving}
           >
             <Icon name="close" />
-          </button>
+          </Button>
         </header>
+        <div className="dialog-scroll-region">
         <label className="check-label">
-          <input
+          <Checkbox
             id="notification-muted"
-            type="checkbox"
             checked={preferences.muted}
             disabled={loading || saving}
-            onChange={(event) =>
-              setPreferences({ ...preferences, muted: event.target.checked })
+            onCheckedChange={(checked) =>
+              setPreferences({ ...preferences, muted: checked })
             }
           />
           {t("muteRoom")}
         </label>
         <fieldset disabled={loading || saving}>
           <legend>{t("notificationSettings")}</legend>
-          {(["all", "mentions", "nothing"] as const).map((mode) => (
-            <label className="check-label" key={mode}>
-              <input
-                type="radio"
-                name="notification-mode"
-                value={mode}
-                checked={preferences.mode === mode}
-                onChange={() => setPreferences({ ...preferences, mode })}
-              />
-              {t(
-                mode === "all"
-                  ? "allMessages"
-                  : mode === "mentions"
-                    ? "onlyMentions"
-                    : "nothing",
-              )}
-            </label>
-          ))}
+          <RadioGroup
+            name="notification-mode"
+            value={preferences.mode}
+            disabled={loading || saving}
+            onValueChange={(mode) => setPreferences({ ...preferences, mode })}
+          >
+            {(["all", "mentions", "nothing"] as const).map((mode) => (
+              <label className="check-label" key={mode}>
+                <Radio value={mode} />
+                {t(
+                  mode === "all"
+                    ? "allMessages"
+                    : mode === "mentions"
+                      ? "onlyMentions"
+                      : "nothing",
+                )}
+              </label>
+            ))}
+          </RadioGroup>
         </fieldset>
         <label className="check-label">
-          <input
+          <Checkbox
             id="notification-everyone"
-            type="checkbox"
             checked={preferences.suppressEveryone}
             disabled={loading || saving}
-            onChange={(event) =>
+            onCheckedChange={(checked) =>
               setPreferences({
                 ...preferences,
-                suppressEveryone: event.target.checked,
+                suppressEveryone: checked,
               })
             }
           />
           {t("suppressEveryone")}
         </label>
         <label className="check-label">
-          <input
+          <Checkbox
             id="notification-roles"
-            type="checkbox"
             checked={preferences.suppressRoles}
             disabled={loading || saving}
-            onChange={(event) =>
+            onCheckedChange={(checked) =>
               setPreferences({
                 ...preferences,
-                suppressRoles: event.target.checked,
+                suppressRoles: checked,
               })
             }
           />
@@ -183,13 +185,17 @@ export function NotificationDialog({
         >
           {loading ? t("loading") : feedback}
         </p>
-        <button
+        </div>
+        <footer className="dialog-footer">
+        <Button
           className="primary-button login-submit"
+          variant="default"
           type="submit"
           disabled={loading || saving}
         >
           {t(saving ? "saving" : "save")}
-        </button>
+        </Button>
+        </footer>
       </form>
     </dialog>
   );

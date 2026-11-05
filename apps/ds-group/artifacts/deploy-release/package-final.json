@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "baseCommit": "cf77e22",
+  "scope": "verified source release built into actual Docker image and clean-installed npm package with real CLI/central/admin initialization; isolated npm initialization makes no live Matrix claim",
+  "source": {
+    "archive": "ds-group-0.3.0-source.tar.gz",
+    "sha256": "496020c648ebde2bf1bc6b32477a9aa1dc9ecc7c77f6ff4766adc89fe81b1347",
+    "files": 313,
+    "requiredFiles": [
+      "scripts/central-init.mjs",
+      "scripts/admin.mjs",
+      "src/identity.mjs",
+      "src/web-mode.mjs",
+      "src/admin.mjs",
+      "deploy/synapse/dscord_guard.py",
+      "admin/vite.config.ts",
+      "web/src/client-config.ts",
+      "web/client-config.json",
+      "统一客户端实施记录.md",
+      "中央身份实施记录.md"
+    ]
+  },
+  "npm": {
+    "archive": "dscord-0.3.0-alpha.1.tgz",
+    "sha256": "c61113c1d5bdbee8e4469a72a15dd6848ac519c1445b9ef45e9bcb2d9a85e503",
+    "integrity": "sha512-nY6KHZrTZ0GFKREQtCe5k91AswNZChI0z2Kjxg/S/Npu3xKsDycpDFNOsGAmCQ1Npr90WXlBLX3s/fN/6y2lHQ==",
+    "shasum": "714ddc699b613d96d819c2b687bc8ecc522012c2",
+    "files": 157,
+    "requiredFiles": [
+      "scripts/central-init.mjs",
+      "scripts/admin.mjs",
+      "src/identity.mjs",
+      "src/web-mode.mjs",
+      "src/admin.mjs",
+      "dist/web/client-config.json",
+      "dist/admin/index.html",
+      "deploy/synapse/dscord_guard.py"
+    ]
+  },
+  "initialization": {
+    "webMode": "api-only",
+    "centralMode": "central",
+    "registeredAccounts": 0,
+    "independentAdministratorDatabase": true
+  },
+  "modelCalls": 0
+}

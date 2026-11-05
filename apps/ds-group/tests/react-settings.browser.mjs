@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createServer } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import { chromium } from 'playwright';
 import { packageRoot } from '../src/paths.mjs';
 
@@ -12,7 +13,9 @@ const html = `<!doctype html>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="/theme.js"></script>
     <link rel="stylesheet" href="/tokens.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/tailwind.css')}">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/styles.css')}">
   </head>
   <body>
     <div id="root"></div>
@@ -20,6 +23,7 @@ const html = `<!doctype html>
       import React from 'react';
       import { createRoot } from 'react-dom/client';
       import { SettingsDialog } from '/src/components/SettingsDialog.tsx';
+      import { RolesDialog } from '/src/components/RolesDialog.tsx';
       import { InboxDialog } from '/src/components/InboxDialog.tsx';
       import { NotificationDialog } from '/src/components/NotificationDialog.tsx';
 
@@ -32,12 +36,17 @@ const html = `<!doctype html>
       const fixture = window.fixture = {
         calls: [], roles: [], preferences: { ...defaults }, events: [], roleChanges: 0,
         reads: [], jumps: [], pwaReady: 0, savedPreferences: 0, changedInbox: 0,
+        pushEnabled: false, pushFailure: false, installPrompts: 0,
       };
       const copy = value => JSON.parse(JSON.stringify(value));
       const api = async (route, options = {}) => {
         const method = options.method || 'GET';
         fixture.calls.push({ route, method, body: options.body });
-        if (route === '/api/push/config') return { enabled: false };
+        if (route === '/api/push/config') {
+          if (fixture.pushFailure) throw new TypeError('Synthetic network unavailable');
+          return { enabled: fixture.pushEnabled, publicKey: 'AQID' };
+        }
+        if (route === '/api/push/subscriptions' || route === '/api/push/test') return {};
         if (route === '/api/roles') {
           if (method === 'GET') return copy({ roles: fixture.roles, canManage: true });
           if (method === 'POST') {
@@ -87,10 +96,13 @@ const html = `<!doctype html>
 
       function Fixture() {
         const [tab, setTab] = React.useState('account');
+        const [rolesOpen, setRolesOpen] = React.useState(false);
+        const session = React.useMemo(() => ({ user_id: '@alice:test', access_token: 'fixture-only' }), []);
         const [inboxOpen, setInboxOpen] = React.useState(false);
         const [notificationRoom, setNotificationRoom] = React.useState(null);
         return React.createElement(React.Fragment, null,
           React.createElement('div', { style: { display: 'flex', gap: 8 } },
+            React.createElement('button', { id: 'open-roles', onClick: () => { setTab(null); setRolesOpen(true); } }, 'Roles'),
             React.createElement('button', { id: 'open-settings', onClick: () => setTab('account') }, 'Settings'),
             React.createElement('button', { id: 'open-inbox', onClick: () => setInboxOpen(true) }, 'Inbox'),
             React.createElement('button', { id: 'open-notifications', onClick: () => setNotificationRoom(rooms[0]) }, 'Notifications'),
@@ -105,6 +117,7 @@ const html = `<!doctype html>
             onOpenRoom: (roomId, eventId) => fixture.jumps.push({ roomId, eventId }),
             onPwaReady: handle => { fixture.pwaReady++; fixture.pwa = handle; },
           }),
+          React.createElement(RolesDialog, { open: rolesOpen, session, participants: people, api, onClose: () => setRolesOpen(false), onChanged: () => { fixture.roleChanges++; } }),
           React.createElement(InboxDialog, {
             open: inboxOpen, api, rooms, participants: people, onClose: () => setInboxOpen(false),
             onJump: (roomId, eventId) => fixture.jumps.push({ roomId, eventId }),
@@ -127,7 +140,7 @@ const server = await createServer({
   configFile: false,
   root: path.join(packageRoot, 'web'),
   cacheDir: path.join(temporary, 'vite-cache'),
-  plugins: [{
+  plugins: [tailwindcss(), {
     name: 'react-settings-fixture',
     configureServer(vite) {
       vite.middlewares.use('/__settings', async (request, response, next) => {
@@ -160,18 +173,58 @@ try {
     });
     if ('serviceWorker' in navigator) {
       Object.defineProperty(navigator.serviceWorker, 'register', { configurable: true, value: async () => ({
-        active: {}, pushManager: { getSubscription: async () => null },
+        active: {}, pushManager: {
+          getSubscription: async () => window.fixtureSubscription || null,
+          subscribe: async () => {
+            window.fixtureSubscription = {
+              endpoint: 'https://push.fixture/subscription',
+              toJSON: () => ({ endpoint: 'https://push.fixture/subscription', keys: { p256dh: 'fixture', auth: 'fixture' } }),
+              unsubscribe: async () => { window.fixtureSubscription = null; return true; },
+            };
+            return window.fixtureSubscription;
+          },
+        },
       }) });
     }
   });
   const page = await context.newPage();
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/__settings`);
-  await page.locator('#settings-dialog[open]').waitFor();
+  await page.locator('#settings-dialog[data-open]').waitFor();
+  await page.evaluate(() => document.fonts.ready);
+  await mkdir(path.join(packageRoot, '.local/react-settings-browser'), { recursive: true });
+  const frame = async () => {
+    const box = await page.locator('#settings-dialog[data-open]').boundingBox();
+    assert.ok(box);
+    return box;
+  };
+  const sameFrame = (actual, expected) => {
+    for (const key of ['x', 'y', 'width', 'height'])
+      assert.ok(Math.abs(actual[key] - expected[key]) <= 1, `${key}: ${actual[key]} vs ${expected[key]}`);
+  };
+  const desktopFrame = await frame();
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-account-desktop.png'), animations: 'disabled' });
+  await page.locator('[data-settings-tab="appearance"]').click();
+  sameFrame(await frame(), desktopFrame);
+  await page.waitForFunction(() => document.querySelector('#offline-status')?.textContent?.length);
+  assert.ok(await page.locator('#offline-status').evaluate((status) => {
+    const content = status.getBoundingClientRect();
+    const viewport = status.closest('.dialog-scroll-region').getBoundingClientRect();
+    return content.bottom <= viewport.bottom - 1;
+  }));
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-appearance-desktop.png'), animations: 'disabled' });
+  await page.locator('[data-settings-tab="notifications"]').click();
+  sameFrame(await frame(), desktopFrame);
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-notifications-desktop.png'), animations: 'disabled' });
+  await page.locator('[data-settings-tab="account"]').click();
+  sameFrame(await frame(), desktopFrame);
+  report.settingsDesktopFrame = desktopFrame;
+  checks.push('settingsFrameKeepsExactDesktopBoundsAcrossTabs');
 
   await page.locator('[data-settings-tab="appearance"]').click();
   await page.locator('#language-select').selectOption('en');
   await page.waitForFunction(() => document.documentElement.lang === 'en');
+  sameFrame(await frame(), desktopFrame);
   assert.equal(await page.locator('#settings-title').textContent(), 'Settings');
   await page.locator('#language-select').selectOption('system');
   assert.equal(await page.locator('#language-select').inputValue(), 'system');
@@ -194,31 +247,50 @@ try {
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark');
   checks.push('themeSystemOverrideAndPreferencePersistence');
 
-  await page.locator('[data-settings-tab="roles"]').click();
+  assert.deepEqual(await page.locator('[data-settings-tab]').evaluateAll(elements => elements.map(element => element.dataset.settingsTab)), ['account', 'appearance', 'notifications']);
+  await page.locator('#close-settings').click();
+  await page.locator('#open-roles').click();
+  const rolesFrame = await page.locator('#roles-dialog[open]').boundingBox();
+  assert.ok(rolesFrame);
   await page.locator('#new-role').click();
+  sameFrame(await page.locator('#roles-dialog[open]').boundingBox(), rolesFrame);
   await page.locator('#role-name').fill('Reviewers');
-  await page.locator('#role-members input[value="@bob:test"]').check();
-  await page.locator('#role-form button[type="submit"]').click();
+  await page.locator('#role-members .room-choice').filter({ hasText: 'Bob' }).getByRole('checkbox').click();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  assert.equal(await page.locator('#role-name').evaluate((input) => {
+    const form = input.closest('form');
+    return input.getBoundingClientRect().width >= form.getBoundingClientRect().width * 0.95;
+  }), true);
+  await mkdir(path.join(packageRoot, '.local/react-settings-browser'), { recursive: true });
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/roles-form-desktop.png'), animations: 'disabled' });
+  await page.setViewportSize({ width: 1000, height: 850 });
+  await page.locator('button[form="role-form"][type="submit"]').click();
   await page.locator('.role-row').filter({ hasText: 'Reviewers' }).waitFor();
+  sameFrame(await page.locator('#roles-dialog[open]').boundingBox(), rolesFrame);
   assert.deepEqual(await page.evaluate(() => window.fixture.roles[0].memberIds), ['@bob:test']);
   await page.locator('.role-row').filter({ hasText: 'Reviewers' }).click();
   await page.locator('#role-name').fill('Editors');
-  await page.locator('#role-mentionable').uncheck();
-  await page.locator('#role-form button[type="submit"]').click();
+  await page.locator('label:has(#role-mentionable)').getByRole('checkbox').click();
+  await page.locator('button[form="role-form"][type="submit"]').click();
   await page.locator('.role-row').filter({ hasText: 'Editors' }).waitFor();
   assert.equal(await page.evaluate(() => window.fixture.roles[0].mentionable), false);
   await page.locator('.role-row').filter({ hasText: 'Editors' }).click();
   await page.locator('#delete-role').click();
   await page.waitForFunction(() => window.fixture.roles.length === 0);
   assert.equal(await page.evaluate(() => window.fixture.roleChanges), 3);
+  checks.push('collaborationRolesRemainSeparateFromPersonalSettings');
   checks.push('roleCreateEditDeleteUsesTypedComponentState');
 
-  await page.locator('#close-settings').click();
+  await page.locator('#roles-dialog .dialog-heading button').click();
   await page.locator('#open-notifications').click();
-  await page.locator('#notification-muted').check();
-  await page.locator('input[name="notification-mode"][value="all"]').check();
-  await page.locator('#notification-everyone').check();
-  await page.locator('#notification-roles').check();
+  const notificationFrame = await page.locator('#notification-dialog[open]').boundingBox();
+  assert.ok(notificationFrame);
+  await page.waitForFunction(() => !document.querySelector('#notification-muted').disabled);
+  sameFrame(await page.locator('#notification-dialog[open]').boundingBox(), notificationFrame);
+  await page.locator('label:has(#notification-muted)').getByRole('checkbox').click();
+  await page.locator('#notification-form').getByRole('radio').first().click();
+  await page.locator('label:has(#notification-everyone)').getByRole('checkbox').click();
+  await page.locator('label:has(#notification-roles)').getByRole('checkbox').click();
   await page.locator('#notification-form button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#notification-dialog').open);
   assert.deepEqual(await page.evaluate(() => window.fixture.preferences), {
@@ -232,6 +304,8 @@ try {
   checks.push('roomNotificationPreferencesSaveAndReopen');
 
   await page.locator('#open-inbox').click();
+  const inboxFrame = await page.locator('#inbox-dialog[open]').boundingBox();
+  assert.ok(inboxFrame);
   await page.locator('.inbox-empty').waitFor();
   await page.evaluate(() => window.fixture.addEvent('$direct', 'direct', '<@@alice:test> Fresh mention'));
   await page.locator('.inbox-item').filter({ hasText: 'Fresh mention' }).waitFor({ timeout: 8000 });
@@ -246,12 +320,13 @@ try {
   });
   await page.locator('#open-inbox').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 3);
-  await page.locator('#inbox-everyone').uncheck();
+  await page.locator('label:has(#inbox-everyone)').getByRole('checkbox').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 2);
-  await page.locator('#inbox-roles').uncheck();
+  await page.locator('label:has(#inbox-roles)').getByRole('checkbox').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 1);
   await page.locator('#inbox-unread').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 4);
+  sameFrame(await page.locator('#inbox-dialog[open]').boundingBox(), inboxFrame);
   assert.ok(await page.locator('#inbox-everyone').isDisabled());
   await page.locator('#mark-all-read').click();
   await page.locator('.inbox-empty').waitFor();
@@ -262,6 +337,7 @@ try {
   await page.waitForTimeout(2700);
   assert.equal(await page.evaluate(() => window.fixture.calls.filter(call => call.route.startsWith('/api/inbox?')).length), readsAfterClose);
   checks.push('inboxFiltersMarkReadAndCloseStopsPolling');
+  checks.push('nativeModalFramesStayFixedThroughListFormLoadingAndFilterChanges');
 
   await page.locator('#open-settings').click();
   await page.locator('[data-settings-tab="notifications"]').click();
@@ -282,9 +358,54 @@ try {
   assert.equal(await page.evaluate(() => window.fixture.pwaReady), 1);
   assert.equal(await page.locator('#enable-push').count(), 1);
   assert.ok(await page.locator('#enable-push').isDisabled());
+  await page.evaluate(async () => {
+    window.fixture.pushFailure = true;
+    window.dispatchEvent(new Event('offline'));
+    await window.fixture.pwa.refresh();
+  });
+  assert.match(await page.locator('#push-feedback').textContent(), /^(Could not check notifications|无法检查通知状态).*Synthetic network unavailable/);
+  sameFrame(await frame(), desktopFrame);
+  await page.evaluate(() => {
+    window.fixture.pushFailure = false;
+    window.dispatchEvent(new Event('online'));
+  });
+  await page.waitForFunction(() => document.querySelector('#push-feedback').textContent === '');
+  assert.match(await page.locator('#push-status').textContent(), /disabled on this server/);
+  checks.push('notificationRefreshFailureIsLocalizedAndClearsAfterOnlineRecovery');
+  await page.evaluate(async () => {
+    window.fixture.pushEnabled = true;
+    await window.fixture.pwa.refresh();
+  });
+  await page.locator('#enable-push').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#enable-push').isDisabled(), false);
+  await page.locator('#push-device-label').fill('中文输入设备');
+  await page.locator('#enable-push').focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.fixture.calls.some(call => call.route === '/api/push/subscriptions' && call.method === 'POST'));
+  assert.equal(await page.locator('#test-push').isDisabled(), false);
+  await page.locator('#test-push').focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.fixture.calls.some(call => call.route === '/api/push/test' && call.method === 'POST'));
+  assert.equal(await page.evaluate(() => window.fixture.calls.find(call => call.route === '/api/push/subscriptions').body.deviceLabel), '中文输入设备');
+  await page.locator('#close-settings').click();
+  await page.locator('#settings-dialog').waitFor({ state: 'hidden' });
+  await page.locator('#open-settings').click();
+  await page.locator('[data-settings-tab="notifications"]').click();
+  assert.equal(await page.locator('#test-push').isDisabled(), false);
+  checks.push('pushControlsAcceptKeyboardActivationAndKeepImperativeStateAcrossDialogReopen');
   await page.locator('[data-settings-tab="appearance"]').click();
   assert.equal(await page.locator('#install-app').count(), 1);
   assert.equal(await page.locator('#offline-status').textContent(), 'Online');
+  await page.evaluate(() => {
+    const prompt = new Event('beforeinstallprompt', { cancelable: true });
+    prompt.prompt = async () => { window.fixture.installPrompts++; };
+    prompt.userChoice = Promise.resolve({ outcome: 'accepted' });
+    window.dispatchEvent(prompt);
+  });
+  await page.locator('#install-app').focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.fixture.installPrompts === 1);
+  checks.push('installPromptRemainsBoundAfterDialogReopen');
   await page.locator('#theme-select').selectOption('light');
   await page.locator('#language-select').selectOption('zh-CN');
   await page.waitForFunction(() => document.documentElement.lang === 'zh-CN');
@@ -292,6 +413,28 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(200);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+  const mobileFrame = await frame();
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-appearance-mobile.png'), animations: 'disabled' });
+  await page.locator('[data-settings-tab="account"]').click();
+  sameFrame(await frame(), mobileFrame);
+  await page.locator('[data-settings-tab="notifications"]').click();
+  sameFrame(await frame(), mobileFrame);
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/settings-notifications-mobile.png'), animations: 'disabled' });
+  await page.setViewportSize({ width: 390, height: 540 });
+  const shortFrame = await frame();
+  await page.locator('#push-device-label').focus();
+  assert.ok(await page.locator('#push-device-label').evaluate((input) => {
+    const box = input.getBoundingClientRect();
+    const scroll = input.closest('.dialog-scroll-region').getBoundingClientRect();
+    return box.top >= scroll.top - 1 && box.bottom <= scroll.bottom + 1;
+  }));
+  assert.ok(await page.locator('#test-push').evaluate((button) => {
+    const box = button.getBoundingClientRect();
+    return box.top >= 0 && box.bottom <= innerHeight;
+  }));
+  report.settingsMobileFrame = mobileFrame;
+  report.settingsShortFrame = shortFrame;
+  checks.push('settingsFrameKeepsExactMobileBoundsAndShortViewportKeepsControlsReachable');
   checks.push('pwaControlsRemainMountedAndLocalizedOnMobile');
 
   assert.deepEqual(pageErrors, []);

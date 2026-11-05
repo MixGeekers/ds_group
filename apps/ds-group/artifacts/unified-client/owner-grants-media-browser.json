@@ -1,0 +1,36 @@
+{
+  "status": "passed",
+  "evidence": "Production build and real Chromium, separate static/home/discovery HTTP origins with synthetic API fixtures; no real Matrix or model calls",
+  "checks": [
+    "productionEntryLoadsSplitConfigAndLogsIntoOneStableHomeIdentity",
+    "spacesAndJoinedChannelsComeFromMembershipWithNoPhantomInvitationRoom",
+    "acceptedInvitationUsesHomeJoinAndFullRoomIdWithSeparateAttachmentBytes",
+    "cachedAttachmentActionsRecheckOriginalEventProofAndNeverDowngradeOnPermissionDenial",
+    "rejectedJoinRemainsRejectedAndUnknownDiscoveryOmitsCookiesTokensAndRedirects",
+    "ownedBotGrantsUseExactRoomFullRequesterIdsFourFileToolsAndExplicitVersionedSave",
+    "ownerGrantConflictDenialUnknownSaveAndExplicitRevocationKeepAuthoritativeState",
+    "personalSettingsAndOwnedBotManagementExcludeDeploymentAndForeignBotControls",
+    "inFlightSendReplyAndUploadedTaskAttachmentRemainBoundToOriginalSpace",
+    "latePollResponsesCannotMergeMessagesTasksOrMentionsIntoNewSpace",
+    "notificationNavigationRequiresCurrentUserHomeAuthorityAndActualJoinedRoom",
+    "productionPwaCachesOnlyStaticShellAndReconnectsSameHomeSessionAndDraft",
+    "revocationRemovesAccessibleChannelWithoutClaimingRemoteServerOffline",
+    "desktopAndNarrowLayoutsSupportBothLanguagesThemesAndServerDialogs",
+    "logoutReloginClearsIdentityStateAndPasswordRequestsNeverFollowRedirects",
+    "sameOriginLegacySessionAndDraftUpgradeToVerifiedCentralSubject",
+    "normalEntryPreservesPrivateHttpSameOriginSessionAndPrivateMatrixDiscoveryWithRouteBackedOrigin",
+    "splitDeploymentNeverMigratesUnboundLegacyCredential",
+    "allCredentialReceiversArePinnedHomeServicesWithNoAmbientCookiesOrPageErrors"
+  ],
+  "pageErrors": [],
+  "routeFailures": [],
+  "credentialOrigins": [
+    "http://127.0.0.1:24361",
+    "http://127.0.0.1:24360"
+  ],
+  "publicDiscoveryRequests": 1,
+  "trapRequests": 0,
+  "modelCalls": 0,
+  "physicalHosts": 1,
+  "realBackend": false
+}

@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "1.0.0",
+  "date": "2026-11-04",
+  "branch": "codex/dscord-unified-client",
+  "baseCommit": "5078ab2bf81fe50631a13208366cc3e58d61dd7d",
+  "status": "implemented-and-real-federated-client-verified",
+  "deployment": {
+    "configuration": "Public /client-config.json: schemaVersion=1, optional homeCoreUrl/homeMatrixUrl/authUrl. Default Core and auth are the actual client origin. No query parameter or discovered URL changes these targets.",
+    "origins": "New split-origin deployments require HTTPS or loopback HTTP. Existing trusted HTTP same-origin deployments, including private IP origins and their home-discovered private Matrix URL, remain compatible. Matrix is informational/binding metadata: the browser sends ordinary tokens only to home Core/auth API endpoints.",
+    "legacy": "Unbound ds-group.session migrates only when home Core and auth both equal the browser origin. v2 session keys pin these services; rooms/drafts/retries additionally bind full user ID, central subject/authority, space and room. Authenticated /me upgrades legacy subjects without losing pending transactions.",
+    "build": "npm run build creates dist/web; client-config.json is validated and copied into the PWA shell. No package/lock change. Vite adds /.well-known/dscord development proxy. Runtime root hosting only; no URL subdirectory support.",
+    "cors": "Exact client origin, Authorization/Content-Type/X-Upload-Id, business methods and preflight. Every credential-bearing fetch uses credentials:omit, redirect:error, cache:no-store. Upload uses fetch with cancellation and stable X-Upload-Id; progress is indeterminate until a real receipt."
+  },
+  "backendContracts": {
+    "identity": {
+      "matched": "central-identity contract 1.0.0, backend commit 425fb34e89e361479bb02ce9a9728df6ff32b808 in real central verification",
+      "discovery": "GET /.well-known/dscord/client (credential-free; 404 permits legacy Core)",
+      "session": [
+        "POST /api/login",
+        "POST /api/register",
+        "GET /api/me",
+        "POST /api/logout"
+      ],
+      "fields": [
+        "user_id",
+        "access_token",
+        "identity.authorityId",
+        "identity.subjectId",
+        "identity.matrixUserId",
+        "identity.kind",
+        "home.serverName",
+        "home.coreUrl",
+        "home.matrixUrl"
+      ],
+      "emptyHome": "/api/bootstrap roomId:null is supported; registration and first group creation work with zero initial joined rooms."
+    },
+    "collaboration": {
+      "matched": "governance contract 1.0.0",
+      "routes": [
+        "GET /api/spaces",
+        "GET /api/directory",
+        "POST /api/rooms/:roomId/join",
+        "POST /api/rooms/:roomId/leave"
+      ],
+      "spaceFields": [
+        "serverName",
+        "name",
+        "home",
+        "status:connected|revoked",
+        "rooms[].roomId/name/status/canSend",
+        "invitations[].roomId/name/inviterId/status/canJoin"
+      ],
+      "semantics": "All requests use the home Core. Connected is labeled Accessible, not remote online. Joined/restricted/invited/approval_required come from backend facts; local failed join attempts show server rejection or unknown result without creating a phantom space. Matrix opaque v12 room IDs and legacy room IDs are both accepted.",
+      "legacy": "404 for spaces/directory falls back to verified /api/rooms membership, never public bootstrap room claims.",
+      "future": "/api/servers and persistent application/request workflow remain future backend routes. No fake requested/approved memberships are persisted by the client."
+    },
+    "rooms": {
+      "existingRoutes": [
+        "/api/rooms",
+        "/api/rooms/:roomId/messages",
+        "/api/rooms/:roomId/tasks",
+        "/api/rooms/:roomId/mentionables",
+        "/api/inbox",
+        "/api/dm",
+        "/api/roles",
+        "/api/attachments"
+      ],
+      "scope": "Full room/member/event IDs preserve home identity across spaces. Late polls, sends, metadata and direct-room navigation are checked against their originating session and view. Drafts and uploads retain producing space; switching during a send is supported.",
+      "permissions": "Server invitation action is shown only with room.permissions.inviteMembers === true. Home-room creation is an ordinary authenticated home action; remote server operations are absent. Role editing is separate collaboration UI and requires the backend canManage result.",
+      "attachmentProof": "Attachment reads include the originating full roomId query. Real home upload/download verified. Foreign media proof/resolution requires the governance/media backend slice; synthetic cross-space byte routing is not counted as real federation."
+    },
+    "push": {
+      "routes": [
+        "/api/push/config",
+        "/api/push/subscriptions",
+        "/api/push/test"
+      ],
+      "requiredPayloadData": [
+        "userId",
+        "homeCoreUrl",
+        "authorityId",
+        "roomId",
+        "eventId"
+      ],
+      "clientBehavior": "Subscription owner is scoped to home authority and full user ID. SW persists recipient binding only, not token/message data. A foreign or stale bound recipient is ignored; an unbound legacy notification is generic and opens home without deep-linking. Open-room messages also recheck actual home room membership.",
+      "backendGap": "Current push.mjs payload lacks userId/homeCoreUrl/authorityId. Main/backend integration should add them per recipient before claiming full identity-bound mobile push delivery."
+    }
+  },
+  "clientSettings": {
+    "personal": [
+      "account",
+      "appearance",
+      "notifications"
+    ],
+    "bots": "Separate My Bots dialog only exposes accounts actually returned in ownedBots with the current full owner ID. A foreign directory ownerId does not grant management.",
+    "administration": "No deployment/node/budget/storage/admin configuration menu in personal settings."
+  },
+  "evidence": {
+    "module": {
+      "status": "passed",
+      "tests": 296,
+      "note": "280 baseline plus 16 client boundary tests; final aggregate log retained separately"
+    },
+    "productionBrowserFixture": {
+      "status": "passed",
+      "checks": 16,
+      "report": "browser-fixture.json",
+      "normalEntry": true,
+      "origins": "actual separate loopback origins plus route-backed ordinary HTTP private-origin compatibility",
+      "realBackend": false
+    },
+    "realCentral": {
+      "status": "passed",
+      "checks": 6,
+      "reports": [
+        "real-2026-11-05T03-19-35-829Z.json",
+        "real-2026-11-05T03-23-50-011Z.json"
+      ],
+      "normalProductionUI": true,
+      "realCoreSynapse": true,
+      "realFederation": false
+    },
+    "modelCalls": 0,
+    "physicalCrossMachine": false,
+    "regressionBrowser": {
+      "status": "passed",
+      "testFiles": 8,
+      "report": "browser-check.txt"
+    },
+    "integratedBackend": {
+      "status": "failed",
+      "backendCommit": "ca336a2c9b0f2ac6b280948dc51ef873ce58e9c9",
+      "report": "real-2026-11-05T03-30-35-702Z.json",
+      "finding": "After creating a room via normal UI, the selected space contained no selectable channel. Retained as a separate integration failure; no client membership bypass.",
+      "diagnosticReport": "real-2026-11-05T03-32-48-952Z.json",
+      "diagnostics": "GET /api/rooms returned the created joined room (200); direct Matrix state returned its local creator; Matrix /sync rooms.join was empty and /api/spaces home.rooms remained empty (200). Client did not infer an admitted space from this conflict.",
+      "historical": true
+    },
+    "realFederatedClient": {
+      "status": "passed",
+      "checks": 10,
+      "report": "federated-ui-2026-11-05T04-04-08-008Z.json",
+      "backendCommit": "616783395f7c55bb0085cc8faf0fb13d816bef14",
+      "clientCommit": "4b12b192baa0983ce36d46ea3e99b84f9a37cce0",
+      "modelCalls": 0,
+      "physicalHosts": 1,
+      "physicalCrossMachine": false
+    }
+  },
+  "remainingIntegration": [
+    "Backend current invitation-permission facts for UI controls where absent",
+    "Bot node/model execution and final cross-server task delivery are owned by the Bot lane",
+    "Server media-stream integrity rejection needs its separate final-backend checks; this UI run verifies positive bytes only",
+    "Per-recipient push binding and real mobile system delivery",
+    "Persistent join-application workflow if selected",
+    "Physical cross-machine acceptance"
+  ],
+  "sharedChanges": [
+    "scripts/build-pwa.mjs: validate/copy public client-config only",
+    "vite.config.ts: discovery development proxy",
+    "tsconfig.json: allow importing TS extensions for native Node24 boundary tests",
+    "README.md: client implementation and deployment links; upload state wording",
+    "scripts/release-pack.mjs: include unified-client implementation record in source archive"
+  ],
+  "evidencePolicy": "Executable synthetic APIs, normal UI with real local Core/Synapse, real federation and physical cross-machine acceptance are reported independently.",
+  "increments": [
+    {
+      "name": "owner grants and room/event media proof",
+      "contract": "owner-grants-media.json",
+      "moduleTests": 304,
+      "productionFixtureChecks": 19,
+      "realBackend": "verified with fixed 6167833 in federated-ui-2026-11-05T04-04-08-008Z.json"
+    }
+  ],
+  "latestValidationDate": "2026-11-05"
+}

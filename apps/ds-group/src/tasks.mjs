@@ -61,10 +61,11 @@ function deliveryAfter(previous, incoming) {
 }
 
 export class TaskService {
-  constructor({ setup, dataRoot, authorizeNode, readJsonBody }) {
+  constructor({ setup, dataRoot, authorizeNode, readJsonBody, participants = () => setup.participants }) {
     this.setup = setup;
     this.authorizeNode = authorizeNode;
     this.readJsonBody = readJsonBody;
+    this.participants = participants;
     mkdirSync(dataRoot, { recursive: true });
     this.db = new DatabaseSync(path.join(dataRoot, 'tasks.sqlite'));
     this.db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
@@ -143,7 +144,7 @@ export class TaskService {
     const reportedCalls = Number.isInteger(input.toolCalls) && input.toolCalls >= 0 ? input.toolCalls : 0;
     const toolCalls = Math.max(previous?.toolCalls ?? 0, reportedCalls);
     const delivery = input.delivery === undefined ? previous?.delivery
-      : deliveryAfter(previous?.delivery, taskDelivery(input.delivery, this.setup, botId));
+      : deliveryAfter(previous?.delivery, taskDelivery(input.delivery, { participants: this.participants() }, botId));
     const deliveryChanged = JSON.stringify(delivery) !== JSON.stringify(previous?.delivery);
     const deliveryRevision = (previous?.deliveryRevision ?? 0) + Number(deliveryChanged);
     const now = Date.now();

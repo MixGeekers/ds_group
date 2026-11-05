@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-05",
+  "initialFailure": {
+    "report": "federated-ui-2026-11-05T04-02-10-433Z.json",
+    "status": "failed",
+    "stage": "test harness configuration before browser login",
+    "cause": "B server-init was rerun after federation-lab added its TLS listener. Saved B listeners contained only 8008 HTTP, unlike A 8008 plus 8448 TLS, so A could not connect to B.",
+    "cleanup": true
+  },
+  "correction": "Persist B API-only mode via initializeServer before federation-lab up adds TLS; run central-init after up and reload Core without resetting Synapse listeners.",
+  "passedRun": {
+    "report": "federated-ui-2026-11-05T04-04-08-008Z.json",
+    "checks": 10,
+    "backendCommit": "616783395f7c55bb0085cc8faf0fb13d816bef14",
+    "clientCommit": "4b12b192baa0983ce36d46ea3e99b84f9a37cce0",
+    "modelCalls": 0,
+    "physicalHosts": 1,
+    "cleanup": true
+  },
+  "limits": [
+    "Positive normal-byte round trips were independently hashed; this is not a negative test of server streaming digest rejection.",
+    "Owned Bot grants were saved/read/disabled; no Bot node or model task was started.",
+    "TLS federation used three real Synapse instances on one physical Docker host; physical cross-machine validation was not run."
+  ]
+}

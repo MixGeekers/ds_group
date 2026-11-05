@@ -1,0 +1,175 @@
+{
+  "reviewedOn": "2026-11-05",
+  "timezone": "America/Caracas",
+  "level": "limited-static-source-review",
+  "runtimeValidation": "pending",
+  "files": [
+    {
+      "repository": "shadcn-ui/ui",
+      "commit": "8a3536678a528cc012b9e62484290e79d0be410f",
+      "path": "packages/shadcn/package.json",
+      "url": "https://raw.githubusercontent.com/shadcn-ui/ui/8a3536678a528cc012b9e62484290e79d0be410f/packages/shadcn/package.json",
+      "sha256": "0f15991a1e9b75394723f40fd6652d1ea72f93dcc0f7763ee523e415893b3dd1",
+      "package": {
+        "name": "shadcn",
+        "version": "4.23.0",
+        "license": "MIT",
+        "peerDependencies": null
+      }
+    },
+    {
+      "repository": "shadcn-ui/ui",
+      "commit": "8a3536678a528cc012b9e62484290e79d0be410f",
+      "path": "apps/v4/registry/bases/base/ui/dialog.tsx",
+      "url": "https://raw.githubusercontent.com/shadcn-ui/ui/8a3536678a528cc012b9e62484290e79d0be410f/apps/v4/registry/bases/base/ui/dialog.tsx",
+      "sha256": "aba6df6cbf51a1edcc22e415a3a46a666fc8cb66729e47b3ed2ecd97f166adff",
+      "selectedLines": [
+        {
+          "line": 4,
+          "text": "import { Dialog as DialogPrimitive } from \"@base-ui/react/dialog\""
+        },
+        {
+          "line": 33,
+          "text": "      className={cn(\"cn-dialog-overlay fixed inset-0 isolate z-50\", className)}"
+        },
+        {
+          "line": 52,
+          "text": "        className={cn("
+        },
+        {
+          "line": 65,
+          "text": "                className=\"cn-dialog-close\""
+        },
+        {
+          "line": 77,
+          "text": "            <span className=\"sr-only\">Close</span>"
+        },
+        {
+          "line": 89,
+          "text": "      className={cn(\"cn-dialog-header flex flex-col\", className)}"
+        },
+        {
+          "line": 106,
+          "text": "      className={cn("
+        },
+        {
+          "line": 126,
+          "text": "      className={cn(\"cn-dialog-title cn-font-heading\", className)}"
+        },
+        {
+          "line": 139,
+          "text": "      className={cn(\"cn-dialog-description\", className)}"
+        }
+      ]
+    },
+    {
+      "repository": "shadcn-ui/ui",
+      "commit": "8a3536678a528cc012b9e62484290e79d0be410f",
+      "path": "LICENSE.md",
+      "url": "https://raw.githubusercontent.com/shadcn-ui/ui/8a3536678a528cc012b9e62484290e79d0be410f/LICENSE.md",
+      "sha256": "1564074e13439397221ffd522e2e504d56561994a23d371aa5e3ad43e4f5423f",
+      "licenseHeading": "MIT License"
+    },
+    {
+      "repository": "mui/base-ui",
+      "commit": "cf696d6f6e08c699c5bda24d5a033430909f2285",
+      "path": "packages/react/package.json",
+      "url": "https://raw.githubusercontent.com/mui/base-ui/cf696d6f6e08c699c5bda24d5a033430909f2285/packages/react/package.json",
+      "sha256": "e233b6ebce8d0103bb26859768b677ad61dd74ad07c35d619da3a4373b2f0d73",
+      "package": {
+        "name": "@base-ui/react",
+        "version": "1.9.0",
+        "license": "MIT",
+        "peerDependencies": {
+          "@date-fns/tz": "^1.2.0",
+          "@types/react": "^17 || ^18 || ^19",
+          "date-fns": "^4.0.0",
+          "react": "^17 || ^18 || ^19",
+          "react-dom": "^17 || ^18 || ^19"
+        }
+      }
+    },
+    {
+      "repository": "mui/base-ui",
+      "commit": "cf696d6f6e08c699c5bda24d5a033430909f2285",
+      "path": "packages/react/src/dialog/popup/DialogPopup.tsx",
+      "url": "https://raw.githubusercontent.com/mui/base-ui/cf696d6f6e08c699c5bda24d5a033430909f2285/packages/react/src/dialog/popup/DialogPopup.tsx",
+      "sha256": "8478a2da9f4587eb79ec0a4b2392acc66189961f70a8c771b6877da2d81fd3d3",
+      "selectedLines": [
+        {
+          "line": 4,
+          "text": "import { FloatingFocusManager } from '../../utils/popups/focus/FloatingFocusManager';"
+        },
+        {
+          "line": 79,
+          "text": "        'aria-labelledby': titleElementId,"
+        },
+        {
+          "line": 80,
+          "text": "        'aria-describedby': descriptionElementId,"
+        },
+        {
+          "line": 100,
+          "text": "    <FloatingFocusManager"
+        },
+        {
+          "line": 105,
+          "text": "      initialFocus={resolvedInitialFocus}"
+        },
+        {
+          "line": 106,
+          "text": "      returnFocus={finalFocus}"
+        },
+        {
+          "line": 107,
+          "text": "      modal={modal !== false}"
+        },
+        {
+          "line": 111,
+          "text": "    </FloatingFocusManager>"
+        }
+      ]
+    },
+    {
+      "repository": "mui/base-ui",
+      "commit": "cf696d6f6e08c699c5bda24d5a033430909f2285",
+      "path": "LICENSE",
+      "url": "https://raw.githubusercontent.com/mui/base-ui/cf696d6f6e08c699c5bda24d5a033430909f2285/LICENSE",
+      "sha256": "07fc1b39d69d14bc7d40482a628f47226258eb01265db68ae684944b916beb2a",
+      "licenseHeading": "MIT License"
+    },
+    {
+      "repository": "mantinedev/mantine",
+      "commit": "82fb128c43f9927c1370a2732cd5aa9e6663ca11",
+      "path": "packages/@mantine/core/package.json",
+      "url": "https://raw.githubusercontent.com/mantinedev/mantine/82fb128c43f9927c1370a2732cd5aa9e6663ca11/packages/@mantine/core/package.json",
+      "sha256": "0a8fe40ccd83d9415ae587a9205053b2fe02272df29eab8c4bb3fb458ba6151f",
+      "package": {
+        "name": "@mantine/core",
+        "version": "9.7.5",
+        "license": "MIT",
+        "peerDependencies": {
+          "@mantine/hooks": "9.7.5",
+          "react": "^19.2.0",
+          "react-dom": "^19.2.0"
+        }
+      }
+    },
+    {
+      "repository": "ant-design/ant-design",
+      "commit": "175f0256eec61169c126a70f5ed8f3c0b8d17bab",
+      "path": "package.json",
+      "url": "https://raw.githubusercontent.com/ant-design/ant-design/175f0256eec61169c126a70f5ed8f3c0b8d17bab/package.json",
+      "sha256": "8a0b542eecba031b2d9600370d5c18afbdae825fd62eab772f037a8b1783f9c6",
+      "package": {
+        "name": "antd",
+        "version": "6.7.0",
+        "license": "MIT",
+        "peerDependencies": {
+          "react": ">=18.0.0",
+          "react-dom": ">=18.0.0"
+        }
+      }
+    }
+  ]
+}

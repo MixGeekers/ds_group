@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createServer } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import { chromium } from 'playwright';
 import { packageRoot } from '../src/paths.mjs';
 
@@ -11,7 +12,9 @@ const html = `<!doctype html>
   <head>
     <script src="/theme.js"></script>
     <link rel="stylesheet" href="/tokens.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/tailwind.css')}">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/styles.css')}">
   </head>
   <body>
     <div id="root"></div>
@@ -112,7 +115,7 @@ const server = await createServer({
   configFile: false,
   root: path.join(packageRoot, 'web'),
   cacheDir: path.join(temporary, 'vite-cache'),
-  plugins: [{
+  plugins: [tailwindcss(), {
     name: 'react-chat-fixture',
     configureServer(vite) {
       vite.middlewares.use('/__chat', async (request, response, next) => {
@@ -129,6 +132,7 @@ const server = await createServer({
 let browser;
 const checks = [];
 const pageErrors = [];
+const screenshotDirectory = path.join(packageRoot, '.local', 'attachment-cards');
 try {
   await server.listen();
   browser = await chromium.launch();
@@ -140,9 +144,21 @@ try {
     localStorage.setItem('ds-group.theme', 'dark');
   });
   const uploads = [];
-  await page.route('**/api/attachments?*', route => {
+  let releasePendingUpload;
+  const pendingUpload = new Promise(resolve => { releasePendingUpload = resolve; });
+  let retryFailed = false;
+  await page.route('**/api/attachments?*', async route => {
     const name = new URL(route.request().url()).searchParams.get('filename');
     uploads.push(name);
+    if (name === 'pending-upload.txt') {
+      await pendingUpload;
+      try { return await route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Cancelled fixture"}' }); }
+      catch { return; }
+    }
+    if (name === 'retry.zip' && !retryFailed) {
+      retryFailed = true;
+      return route.fulfill({ status: 503, contentType: 'application/json', body: '{"error":"Synthetic upload failure"}' });
+    }
     return route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify({ attachment: {
@@ -254,6 +270,52 @@ try {
   assert.equal(await editor.textContent(), draftWithMention);
   assert.equal(await page.locator('.mention-chip').getAttribute('data-mention-token'), mentionToken);
   checks.push('dynamicUploadLimitsPreserveDraftAndMentionChips');
+
+  await page.evaluate(async () => {
+    (await import('/i18n.js')).setLocalePreference('en');
+    window.DSGroupTheme.setPreference('light');
+  });
+  await page.getByRole('button', { name: 'Remove attachment limits.txt', exact: true }).click();
+  await page.evaluate(() => window.changeLimits({ maxBytes: 1000000, maxPerMessage: 10 }));
+  await page.setViewportSize({ width: 900, height: 720 });
+  await page.locator('#attachment-input').setInputFiles([
+    { name: 'pending-upload.txt', mimeType: 'text/plain', buffer: Buffer.from('pending upload') },
+    { name: 'retry.zip', mimeType: 'application/zip', buffer: Buffer.from('retry fixture') },
+    { name: 'ready.csv', mimeType: 'text/csv', buffer: Buffer.from('ready,1') },
+  ]);
+  await page.locator('.attachment-draft-uploading').filter({ hasText: 'pending-upload.txt' }).waitFor();
+  await page.locator('.attachment-draft-failed').waitFor();
+  await page.locator('.attachment-draft-ready').waitFor();
+  assert.equal(await page.locator('.attachment-upload-progress').count(), 1);
+  assert.equal(await page.locator('.attachment-upload-progress').evaluate(element => element.hasAttribute('value')), false);
+  assert.equal(await page.locator('#send-button').isDisabled(), true);
+  await mkdir(screenshotDirectory, { recursive: true });
+  await page.locator('#composer-box').screenshot({ path: path.join(screenshotDirectory, 'upload-pending-failed-ready-light-en.png') });
+  await page.getByRole('button', { name: 'Upload retry.zip again', exact: true }).click();
+  await page.locator('.attachment-draft-ready .attachment-name').filter({ hasText: 'retry.zip' }).waitFor();
+  await page.locator('#composer-box').screenshot({ path: path.join(screenshotDirectory, 'upload-retried-light-en.png') });
+  await page.getByRole('button', { name: 'Cancel uploading pending-upload.txt', exact: true }).click();
+  await page.locator('.attachment-draft-cancelled').waitFor();
+  releasePendingUpload();
+  await page.evaluate(async () => {
+    (await import('/i18n.js')).setLocalePreference('zh-CN');
+    window.DSGroupTheme.setPreference('dark');
+  });
+  await page.locator('.attachment-draft-cancelled .attachment-status').filter({ hasText: '已取消上传' }).waitFor();
+  await page.locator('#composer-box').screenshot({ path: path.join(screenshotDirectory, 'upload-cancelled-dark-zh.png') });
+  await page.getByRole('button', { name: '移除附件 retry.zip', exact: true }).click();
+  assert.equal(await page.locator('.attachment-name').filter({ hasText: 'retry.zip' }).count(), 0);
+  const longName = 'DSCord-跨服务器协作与独立身份设计方案-最终评审完整附件文件名称-2026-11-05.csv';
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator('#attachment-input').setInputFiles({
+    name: longName, mimeType: 'text/csv', buffer: Buffer.from('long,1'),
+  });
+  await page.locator('.attachment-draft-ready .attachment-name').filter({ hasText: longName }).waitFor();
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  assert.equal(await page.locator('.attachment-name').filter({ hasText: longName }).evaluate(element =>
+    element.scrollHeight <= element.clientHeight + 1), true);
+  await page.locator('#composer-box').screenshot({ path: path.join(screenshotDirectory, 'upload-long-mobile-dark-zh.png') });
+  checks.push('uploadCardsShowIndeterminateProgressRetryCancelReadyRemoveAndMobileLongName');
 
   assert.deepEqual(pageErrors, []);
   assert.deepEqual(await page.evaluate(() => window.errors), []);

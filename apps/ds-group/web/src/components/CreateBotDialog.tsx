@@ -1,3 +1,4 @@
+import { Button, Input } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import { ApiError, messageOf, readStored } from "../api";
@@ -5,6 +6,8 @@ import { useTranslation } from "../locale";
 import { botMessages } from "../locales/bots";
 import type { Api, Participant, ServerStatus, Session } from "../types";
 import { Icon } from "./Icons";
+import { sessionIdentity } from "../session";
+import { newRequestId } from "../identifiers";
 
 interface PendingBot {
   name: string;
@@ -16,6 +19,7 @@ export interface CreateBotDialogProps {
   api: Api;
   session: Session | null;
   status?: ServerStatus | null;
+  pendingStorageKey?: string;
   onCreated(bot: Participant): void | Promise<void>;
   onClose(): void;
 }
@@ -29,10 +33,12 @@ export function CreateBotDialog({
   api,
   session,
   status,
+  pendingStorageKey,
   onCreated,
   onClose,
 }: CreateBotDialogProps) {
   const t = useTranslation(botMessages);
+  const identity = sessionIdentity(session);
   const dialog = useRef<HTMLDialogElement>(null);
   const currentUser = useRef(session?.user_id);
   currentUser.current = session?.user_id;
@@ -57,7 +63,7 @@ export function CreateBotDialog({
   useEffect(() => {
     if (!open) return;
     const saved = session
-      ? readStored<PendingBot>(requestKey(session.user_id))
+      ? readStored<PendingBot>(pendingStorageKey ?? requestKey(session.user_id))
       : null;
     setName(saved?.name ?? "");
     setPending(saved);
@@ -65,7 +71,7 @@ export function CreateBotDialog({
     setError("");
     setNameError(false);
     setCopyFeedback(null);
-  }, [open, session?.user_id]);
+  }, [open, identity, pendingStorageKey]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -75,10 +81,10 @@ export function CreateBotDialog({
       return;
     }
     const ownerId = session.user_id;
-    const key = requestKey(ownerId);
+    const key = pendingStorageKey ?? requestKey(ownerId);
     const request = readStored<PendingBot>(key) ?? {
       name: name.trim(),
-      requestId: crypto.randomUUID(),
+      requestId: newRequestId(),
     };
     submitting.current = true;
     setBusy(true);
@@ -162,7 +168,9 @@ export function CreateBotDialog({
     >
       <header className="dialog-heading">
         <h2 id="create-bot-title">{t(created ? "connection" : "createBot")}</h2>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           id="close-create-bot"
           className="icon-button"
           type="button"
@@ -171,8 +179,9 @@ export function CreateBotDialog({
           onClick={onClose}
         >
           <Icon name="close" />
-        </button>
+        </Button>
       </header>
+      <div className="dialog-scroll-region">
       {created ? (
         <section className="bot-connection-details">
           <h3>{created.name}</h3>
@@ -185,13 +194,15 @@ export function CreateBotDialog({
           </p>
           <label htmlFor="bot-connection-id">{t("botId")}</label>
           <div className="bot-id-row">
-            <input
+            <Input
               id="bot-connection-id"
               className="bot-id"
               value={created.id}
               readOnly
             />
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               id="copy-bot-id"
               className="icon-button"
               type="button"
@@ -200,7 +211,7 @@ export function CreateBotDialog({
               onClick={() => void copyId()}
             >
               <Icon name="copy" />
-            </button>
+            </Button>
           </div>
           <p className="small muted">{t("connectInDsh")}</p>
           <p className="settings-feedback" role="status" hidden={!copyFeedback}>
@@ -214,7 +225,7 @@ export function CreateBotDialog({
           noValidate
         >
           <label htmlFor="bot-name">{t("botName")}</label>
-          <input
+          <Input
             id="bot-name"
             value={name}
             maxLength={80}
@@ -238,14 +249,6 @@ export function CreateBotDialog({
             {t("chooseName")}
           </p>
           {pending && <p className="settings-feedback">{t("pending")}</p>}
-          <button
-            id="create-bot-submit"
-            className="primary-button login-submit"
-            type="submit"
-            disabled={busy || !session}
-          >
-            {t(busy ? "creating" : pending ? "retry" : "createBot")}
-          </button>
           {!session && <p className="settings-feedback">{t("signIn")}</p>}
         </form>
       )}
@@ -257,6 +260,21 @@ export function CreateBotDialog({
       >
         {error}
       </p>
+      </div>
+      {!created && (
+        <footer className="dialog-footer">
+          <Button
+            variant="default"
+            id="create-bot-submit"
+            className="primary-button login-submit"
+            type="submit"
+            form="create-bot-form"
+            disabled={busy || !session}
+          >
+            {t(busy ? "creating" : pending ? "retry" : "createBot")}
+          </Button>
+        </footer>
+      )}
     </dialog>
   );
 }

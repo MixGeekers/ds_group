@@ -1,3 +1,4 @@
+import { Button, FileInput } from "../../../ui/controls";
 import {
   forwardRef,
   useEffect,
@@ -10,6 +11,7 @@ import type { MentionEditor } from "../../mention-editor.js";
 import { createAttachmentManager } from "../../attachments.js";
 import type { AttachmentManager, UploadState } from "../../attachments.js";
 import { readStored } from "../api";
+import { newRequestId } from "../identifiers";
 import { useTranslation } from "../locale";
 import { chatMessages } from "../locales/chat";
 import { Icon } from "./Icons";
@@ -20,6 +22,7 @@ import type {
   OutgoingMessage,
   ReplyTarget,
   Room,
+  RawRequest,
   Session,
 } from "../types";
 
@@ -38,6 +41,11 @@ interface Draft {
 
 export interface ComposerProps {
   session: Session | null;
+  request?: RawRequest;
+  requestScope?: string;
+  contextKey?: string;
+  legacyDraftKey?: string;
+  canSend?: boolean;
   room: Room | null;
   mentionables: Mentionables;
   reply: ReplyTarget | null;
@@ -84,9 +92,10 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
     const [interrupted, setInterrupted] = useState<InterruptedFile[]>([]);
     const [dragging, setDragging] = useState(false);
     const contextKey =
-      props.session && props.room
+      props.contextKey ??
+      (props.session && props.room
         ? `ds-group.draft.${props.session.user_id}.${props.room.roomId}`
-        : "";
+        : "");
     useEffect(() => {
       if (props.limits)
         managerRef.current?.setLimits({
@@ -142,6 +151,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
         !manager ||
         !editor ||
         current.sending ||
+        current.canSend === false ||
         sendingRef.current
       )
         return;
@@ -162,7 +172,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
         body: text,
         mentions: value.mentions,
         attachments: files.map((file) => file.id),
-        transactionId: crypto.randomUUID(),
+        transactionId: newRequestId(),
         ...(current.reply
           ? {
               replyTo: current.reply.eventId,
@@ -250,6 +260,22 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
         container,
         input,
         getSession: () => propsRef.current.session,
+        request: (route, init) =>
+          propsRef.current.request
+            ? propsRef.current.request(route, init)
+            : fetch(route, {
+                ...init,
+                headers: {
+                  ...init?.headers,
+                  Authorization: `Bearer ${propsRef.current.session?.access_token}`,
+                },
+                credentials: "omit",
+                redirect: "error",
+                cache: "no-store",
+              }),
+        getScope: () =>
+          propsRef.current.requestScope ??
+          `${propsRef.current.session?.user_id}/${propsRef.current.session?.access_token}`,
         onChange(files) {
           setUploads(files);
           if (!restoringRef.current) scheduleDraft();
@@ -279,7 +305,14 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
       const editor = editorRef.current;
       if (!manager || !editor) return;
       saveDraft();
-      const draft = contextKey ? readStored<Draft>(contextKey) : null;
+      let draft = contextKey ? readStored<Draft>(contextKey) : null;
+      if (!draft && contextKey && props.legacyDraftKey) {
+        draft = readStored<Draft>(props.legacyDraftKey);
+        if (draft) {
+          sessionStorage.setItem(contextKey, JSON.stringify(draft));
+          sessionStorage.removeItem(props.legacyDraftKey);
+        }
+      }
       contextRef.current = contextKey;
       restoringRef.current = true;
       manager.setContext(contextKey);
@@ -313,10 +346,22 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
       for (const id of props.pending?.attachments ?? []) {
         if (manager.getReady().some((file) => file.id === id) || !props.session)
           continue;
-        void fetch(`/api/attachments/${encodeURIComponent(id)}/metadata`, {
-          headers: { Authorization: `Bearer ${props.session.access_token}` },
-          signal: controller.signal,
-        })
+        void (props.request ?? fetch)(
+          `/api/attachments/${encodeURIComponent(id)}/metadata`,
+          {
+            ...(!props.request
+              ? {
+                  headers: {
+                    Authorization: `Bearer ${props.session.access_token}`,
+                  },
+                }
+              : {}),
+            credentials: "omit",
+            redirect: "error",
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        )
           .then(async (response) => {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return response.json() as Promise<{ attachment: Attachment }>;
@@ -335,7 +380,10 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
 
     useEffect(() => {
       const disabled =
-        !props.session || props.sending || Boolean(props.pending);
+        !props.session ||
+        !props.room ||
+        props.sending ||
+        Boolean(props.pending);
       editorRef.current?.setDisabled(disabled);
       managerRef.current?.setDisabled(disabled);
       editorRef.current?.setPlaceholder(
@@ -409,12 +457,14 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
       };
     }, []);
 
-    const disabled = !props.session || props.sending || Boolean(props.pending);
+    const disabled =
+      !props.session || !props.room || props.sending || Boolean(props.pending);
     const unready =
       uploads.some((file) => file.status !== "ready") || interrupted.length > 0;
     const hasReady = uploads.some((file) => file.status === "ready");
     const canSend =
       Boolean(props.session && props.room) &&
+      props.canSend !== false &&
       !props.sending &&
       body.length <= 16000 &&
       (Boolean(props.pending) ||
@@ -446,7 +496,8 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               <strong id="reply-preview-name">{props.reply?.senderName}</strong>
               <span id="reply-preview-body">{props.reply?.body}</span>
             </div>
-            <button
+            <Button
+              variant="ghost"
               id="reply-mention-toggle"
               className="reply-mention-toggle"
               type="button"
@@ -455,8 +506,10 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               onClick={() => props.onReplyMention(!props.replyMention)}
             >
               {props.replyMention ? t("replyOn") : t("replyOff")}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               id="clear-reply"
               className="icon-button"
               type="button"
@@ -465,7 +518,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               onClick={props.onClearReply}
             >
               <Icon name="close" />
-            </button>
+            </Button>
           </div>
           <div id="composer-box" className="composer-box">
             <div
@@ -485,7 +538,8 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                   files: interrupted.map((file) => file.name).join(", "),
                 })}
               </span>
-              <button
+              <Button
+                variant="ghost"
                 className="text-button"
                 type="button"
                 onClick={() => {
@@ -495,7 +549,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 }}
               >
                 {t("remove")}
-              </button>
+              </Button>
             </div>
             <div
               id="mention-popup"
@@ -504,7 +558,9 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               hidden
             />
             <div className="composer-input-row">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 id="attach-button"
                 className="attach-button"
                 type="button"
@@ -514,11 +570,10 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Icon name="plus" />
-              </button>
-              <input
+              </Button>
+              <FileInput
                 id="attachment-input"
                 ref={fileInputRef}
-                type="file"
                 multiple
                 hidden
               />
@@ -543,7 +598,9 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                   <span aria-hidden="true" />
                 </span>
               )}
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 id="send-button"
                 className="send-button"
                 type="submit"
@@ -555,7 +612,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                   {sendLabel}
                 </span>
                 <Icon name="send" />
-              </button>
+              </Button>
             </div>
           </div>
           <div className="composer-footer">

@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "clientDate": "2026-11-04",
+  "timezone": "America/Caracas",
+  "baseCommit": "425fb34e89e361479bb02ce9a9728df6ff32b808",
+  "status": "implemented-and-locally-verified",
+  "configuration": {
+    "persistentField": "core-config.json:webMode",
+    "values": [
+      "bundled",
+      "api-only"
+    ],
+    "missingField": "bundled",
+    "initialization": "dscord init --web-mode api-only or DS_GROUP_WEB_MODE=api-only dscord init",
+    "normalRuntime": "dscord server",
+    "priority": [
+      "explicit runtime DS_GROUP_WEB_MODE",
+      "persisted webMode",
+      "bundled default"
+    ],
+    "emptyComposeEnvironment": "preserves saved mode",
+    "argumentFreeReinitialization": "preserves saved mode"
+  },
+  "webBehavior": {
+    "apiOnly": "404 WEB_DISABLED before reading webRoot, including real index, hashed assets, manifest, service worker and theme script",
+    "publicApi": "health/readiness/bootstrap/client discovery remain live",
+    "protectedApi": "normal home Matrix and local account status checks unchanged",
+    "admin": "separate governance listener unchanged"
+  },
+  "verification": [
+    {
+      "command": "npm run check",
+      "status": "passed",
+      "tests": 299,
+      "includes": [
+        "syntax",
+        "TypeScript",
+        "module tests"
+      ],
+      "newWebModeTests": 5
+    },
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "buildId": "8fc2a1c498597b32"
+    },
+    {
+      "command": "node scripts/verify-api-only.mjs",
+      "status": "passed",
+      "checks": 7,
+      "report": "real-2026-11-05T03-18-21-552Z.json",
+      "exactSourceMatch": true,
+      "coverage": [
+        "actual dscord init flag and persisted config",
+        "API-only health, discovery and real built assets denial",
+        "independent static origin registration/login",
+        "message and attachment write/read",
+        "argument-free init and Core/Synapse restart",
+        "explicit bundled rollback and missing-field legacy Core restart",
+        "real Compose configuration renderer"
+      ]
+    }
+  ],
+  "reproduction": {
+    "cwd": "apps/ds-group",
+    "command": "node scripts/verify-api-only.mjs",
+    "arguments": [],
+    "ports": [
+      24210,
+      24211,
+      24218
+    ],
+    "dataDirectory": ".local/api-only/<fresh UTC run ID>",
+    "prerequisites": "Node 24.19, npm ci, npm run build, Docker and Playwright Chromium"
+  },
+  "sourceSha256": {
+    "src/core.mjs": "4498ce84d68edceee801b5cbfeba6539b3cd12d642465fa57bbcb87fcc8f8662",
+    "src/web-mode.mjs": "794c666a835ccb5f20102bb746288a9649ab1fcc600cb8b184674ef681547185",
+    "src/accounts.mjs": "18befa99631d08ecdb14ed445c3d72a4f0b80cb4eeef3b128c9633bce4f288a7",
+    "src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+    "scripts/server-init.mjs": "d312c3b0667052d8e64fff344259d6855199f18414b8b9c519e77595ca95012d",
+    "bin/dscord.mjs": "f39c1a8eb4e428cc16fd9f83c408e2cab5754daff466ebf2a9eaee1f9f70ec6e",
+    "deploy/compose.yaml": "63d405d060a5c17d7d2e6ec51763d0817045930a7d9453b35d6be9363fb24592",
+    "scripts/verify-api-only.mjs": "878e2422f94f863f212190494099c5e40defe82d0711747a5036e9844fc6852c",
+    "dist/web/index.html": "d03e8ad9deb296d54c967d093ffd372cdc06db8803be7bd1aacc7a2335363d6e"
+  },
+  "modelCalls": 0,
+  "cleanup": {
+    "coreStopped": true,
+    "staticServerStopped": true,
+    "containerRemoved": true
+  },
+  "limits": [
+    "full Compose image deployment not run in this increment",
+    "final independent TS client UI system acceptance remains with main/client slice",
+    "independent governance/admin listener acceptance remains with main/server slice",
+    "physical cross-machine not run"
+  ],
+  "integration": {
+    "sharedFiles": [
+      "src/core.mjs",
+      "scripts/server-init.mjs",
+      "bin/dscord.mjs",
+      "deploy/compose.yaml",
+      "deploy/.env.example",
+      "deploy/README.md"
+    ],
+    "coreChanges": [
+      "effectiveWebMode import and startup read",
+      "bootstrap.web.mode and status.core.webMode",
+      "static fallback gate after business routes"
+    ],
+    "verificationScriptBoundary": "scripts/verify-central-identity.mjs is unchanged; retain main thread configurable verification port addition"
+  }
+}

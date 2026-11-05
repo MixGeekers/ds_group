@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createServer } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import { chromium } from 'playwright';
 import { packageRoot } from '../src/paths.mjs';
 
@@ -52,7 +53,9 @@ const html = `<!doctype html>
   <head>
     <script src="/theme.js"></script>
     <link rel="stylesheet" href="/tokens.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/tailwind.css')}">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/styles.css')}">
   </head>
   <body>
     <div id="root"></div>
@@ -70,7 +73,7 @@ const server = await createServer({
   configFile: false,
   root: path.join(packageRoot, 'web'),
   cacheDir: path.join(temporary, 'vite-cache'),
-  plugins: [{
+  plugins: [tailwindcss(), {
     name: 'react-app-fixture',
     configureServer(vite) {
       vite.middlewares.use('/__app', async (request, response, next) => {
@@ -170,6 +173,7 @@ try {
 
   page = await context.newPage();
   page.on('pageerror', error => pageErrors.push(error.message));
+  await page.route('**/.well-known/dscord/client', route => route.fulfill({ status: 404, contentType: 'application/json', body: '{}' }));
   await page.route('**/api/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -183,7 +187,9 @@ try {
       : token === sessions.alice.access_token ? people[0]
         : token === sessions.bob.access_token ? people[1]
           : ['registered-fixture', 'registered-login-fixture'].includes(token) ? registeredUser : null;
-    if (key === 'GET /api/me') {
+    if (['GET /api/spaces', 'GET /api/directory'].includes(key)) {
+      status = 404; body = { error: 'Legacy fixture Core' };
+    } else if (key === 'GET /api/me') {
       status = user ? 200 : 401;
       body = user ? { user, ownedBots: ownedBots.get(user.id) ?? [] } : { error: 'Session expired' };
     } else if (key === 'POST /api/logout') {
@@ -248,10 +254,23 @@ try {
     }, { body, editable });
   }
   async function readStorage(key) {
-    return page.evaluate(storageKey => JSON.parse(sessionStorage.getItem(storageKey) ?? 'null'), key);
+    return page.evaluate(async legacy => {
+      const sessionModule = await import('/src/session.ts');
+      const configModule = await import('/src/client-config.ts');
+      const config = configModule.defaultClientConfig();
+      if (legacy === 'ds-group.session') return JSON.parse(sessionStorage.getItem(sessionModule.sessionStorageKey(config)) ?? 'null');
+      const prefix = 'ds-group.v2.' + configModule.bindingKey(config) + '.';
+      for (const key of Object.keys(sessionStorage)) {
+        if (!key.startsWith(prefix)) continue;
+        const [kind, authority, subject, userId, space, roomId] = JSON.parse(decodeURIComponent(key.slice(prefix.length)));
+        if (legacy === 'ds-group.' + kind + '.' + userId + (roomId ? '.' + roomId : '')) return JSON.parse(sessionStorage.getItem(key));
+      }
+      return JSON.parse(sessionStorage.getItem(legacy) ?? 'null');
+    }, key);
   }
   async function switchAccount(localpart, displayName) {
     await page.locator('#identity-button').click();
+    await page.locator('#account-switch-button').click();
     await page.locator('#login-dialog[open]').waitFor();
     await page.locator('#login-user').fill(localpart);
     await page.locator('#login-submit').click();
@@ -260,7 +279,7 @@ try {
   }
 
   await expectEditor(pendingMessage.body, false);
-  assert.equal(await sendButton.isEnabled(), true);
+  await page.waitForFunction(() => !document.querySelector('#send-button').disabled);
   assert.equal(await page.locator('#send-button-text').textContent(), 'Retry sending');
   assert.deepEqual(await readStorage(alicePendingKey), pendingMessage);
   checks.push('appRestoresPendingMessageForInitialAccountAndRoom');
@@ -394,13 +413,14 @@ try {
   checks.push('completedWorkDisappearsAndHistoryRequiresExplicitOverlayOpen');
 
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.locator('#identity-button').click();
   await page.locator('#settings-button').click();
   await page.locator('#logout-button').click();
   await page.locator('#login-dialog[open]').waitFor();
   assert.deepEqual(logoutRequests, ['alice-fixture']);
   assert.equal(await readStorage('ds-group.session'), null);
   assert.equal(await page.locator('.message').count(), 0);
-  assert.equal(await page.locator('#owned-bots .contact-row').count(), 0);
+  assert.equal(await page.locator('#owned-bots [data-owned-bot-id]').count(), 0);
   assert.equal(await page.locator('#task-history-dialog').evaluate(element => element.open), false);
   checks.push('logoutRevokesCurrentSessionAndClearsVisibleAccountState');
 
@@ -412,9 +432,12 @@ try {
   await page.locator('#login-dialog').waitFor({ state: 'hidden' });
   await page.waitForFunction(() => document.querySelector('#current-name')?.textContent === 'Charlie New');
   assert.deepEqual(registrationRequests, [{ username: 'charlie-new', password: 'fixture-password', displayName: 'Charlie New' }]);
-  assert.deepEqual(await readStorage('ds-group.session'), { user_id: '@charlie-new:test', access_token: 'registered-fixture' });
+  assert.equal((await readStorage('ds-group.session')).user_id, '@charlie-new:test');
+  assert.equal((await readStorage('ds-group.session')).access_token, 'registered-fixture');
+  assert.equal((await readStorage('ds-group.session')).binding.homeCoreUrl, new URL(page.url()).origin);
   checks.push('newAccountRegistersAndMeSuppliesIdentityOutsideBootstrapRoster');
 
+  await page.locator('#global-bots-button').click();
   await page.locator('#create-bot-button').click();
   await page.locator('#bot-name').fill('Finance');
   await page.locator('#create-bot-submit').click();
@@ -425,15 +448,16 @@ try {
   assert.equal(botRequests[0].name, 'Finance');
   assert.equal(typeof botRequests[0].requestId, 'string');
   await page.locator('#close-create-bot').click();
-  await page.locator('#owned-bots .contact-row').filter({ hasText: 'Finance' }).waitFor();
+  await page.locator('#owned-bots [data-owned-bot-id="@bot-created:test"]').filter({ hasText: 'Finance' }).waitFor();
   assert.equal(await page.locator('#owned-bot-count').textContent(), '1');
   checks.push('newOwnerCreatesBotAndReceivesConnectionIdWithUpdatedOwnedList');
 
+  await page.locator('#identity-button').click();
   await page.locator('#settings-button').click();
   await page.locator('#logout-button').click();
   await page.locator('#login-dialog[open]').waitFor();
   assert.deepEqual(logoutRequests, ['alice-fixture', 'registered-fixture']);
-  assert.equal(await page.locator('#owned-bots .contact-row').count(), 0);
+  assert.equal(await page.locator('#owned-bots [data-owned-bot-id]').count(), 0);
   await page.locator('#login-user').fill('charlie-new');
   await page.locator('#login-password').fill('fixture-password');
   loginLimits.push(
@@ -458,7 +482,9 @@ try {
   checks.push('rateLimitUsesBodyOrHeaderDelayPreservesInputsAndNeverRetriesAutomatically');
   await page.locator('#login-submit').click();
   await page.locator('#login-dialog').waitFor({ state: 'hidden' });
-  await page.locator('#owned-bots .contact-row').filter({ hasText: 'Finance' }).waitFor();
+  await page.locator('#global-bots-button').click();
+  await page.locator('#owned-bots [data-owned-bot-id="@bot-created:test"]').filter({ hasText: 'Finance' }).waitFor();
+  await page.locator('[data-server="test"]').click();
   assert.deepEqual(loginRequests, Array.from({ length: 4 }, () => ({ user: 'charlie-new', password: 'fixture-password' })));
   assert.equal((await readStorage('ds-group.session')).access_token, 'registered-login-fixture');
   checks.push('passwordLoginRestoresNewAccountAndOwnedBotsAfterLogout');
@@ -467,6 +493,7 @@ try {
   await editor.fill('Message awaiting receipt before logout');
   await sendButton.click();
   await page.waitForFunction(() => document.querySelector('#send-button-text')?.textContent === 'Sending');
+  await page.locator('#identity-button').click();
   await page.locator('#settings-button').click();
   await page.locator('#logout-button').click();
   await page.locator('#login-dialog[open]').waitFor();
@@ -480,7 +507,7 @@ try {
   await expectEditor(bobOneDraft.body, true);
   await page.waitForTimeout(220);
   assert.equal((await readStorage(bobOneDraftKey)).body, bobOneDraft.body);
-  assert.equal(await readStorage(`ds-group.pending.${registeredUser.id}.${rooms[0].roomId}`), null);
+  assert.equal((await readStorage(`ds-group.pending.${registeredUser.id}.${rooms[0].roomId}`)).body, 'Message awaiting receipt before logout');
   checks.push('lateSendReceiptAfterLogoutPreservesNextAccountsDraft');
 
   assert.deepEqual(unhandledRequests, []);

@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-04",
+  "status": "ready-for-integration-after-bot-runtime-validation",
+  "scope": "Independent administration UI and real management API; synthetic Matrix control adapter; no Bot execution claimed",
+  "checks": 14,
+  "build": "TS7 and administration Vite production build passed",
+  "supports": [
+    "exact home Bot Matrix ID",
+    "exact room and requester lists",
+    "read/write/edit/read_image ceiling",
+    "enabled state",
+    "revision CAS, conflict rejection and explicit discard/reload",
+    "auditor read-only view"
+  ],
+  "delegation": "Not offered; new or edited policies save canDelegate=false. Schema compatibility remains.",
+  "modelCalls": 0,
+  "evidence": "bot-admin-browser.json",
+  "integrationGate": "Main chat will merge the entry after the separate Bot execution slice and runtime verification are ready."
+}
