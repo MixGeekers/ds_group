@@ -812,6 +812,8 @@ try {
   await page.locator('[data-server="a.test"]').click();
   await page.locator("#room-title").filter({ hasText: "A channel" }).waitFor();
   await page.getByText("A channel message", { exact: true }).waitFor();
+  await page.locator('.message .attachment-card[data-attachment-id="same-file"]').waitFor();
+  await page.screenshot({ path: path.join(output, "attachment-chat-context-desktop-dark-en.png"), animations: "disabled" });
   assert.equal(await page.locator("#invite-bot-button").isHidden(), true);
   assert.equal(await page.locator("#create-room-button").isHidden(), true);
   await page

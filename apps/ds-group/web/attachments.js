@@ -53,10 +53,12 @@ function fileSymbol(attachment) {
   const symbol = createFileIcon(attachment);
   symbol.classList.add("attachment-file-icon");
   if (kind) symbol.classList.add(`attachment-type-${kind}`);
-  return symbol;
+  const frame = node("span", "attachment-file-symbol");
+  frame.append(symbol);
+  return frame;
 }
 
-function button(icon, title, action, className = "attachment-action") {
+function button(icon, title, action, className = "ds-button ds-button-ghost ds-button-size-icon attachment-action") {
   const control = node("button", className);
   control.append(createActionIcon(icon));
   control.type = "button";
@@ -231,9 +233,11 @@ export function createAttachmentManager({
         if (record.removed || destroyed || record.controller !== controller)
           return;
         record.status = controller.signal.aborted ? "cancelled" : "failed";
-        record.error = controller.signal.aborted
-          ? t("files.uploadCancelled")
-          : error.message;
+        if (controller.signal.aborted) {
+          record.error = null;
+          record.errorKey = "files.uploadCancelled";
+          record.errorParams = {};
+        } else record.error = error.message;
       } finally {
         if (record.controller === controller) {
           record.controller = null;
@@ -254,31 +258,39 @@ export function createAttachmentManager({
           `attachment-draft attachment-draft-${record.status}`,
         );
         card.dataset.uploadId = record.uploadId;
+        const symbol = fileSymbol(record);
         if (record.previewUrl) {
           const image = node("img", "attachment-draft-image");
           image.src = record.previewUrl;
           image.alt = "";
-          card.append(image);
-        } else card.append(fileSymbol(record));
+          symbol.replaceChildren(image);
+        }
+        card.append(symbol);
         const information = node("div", "attachment-draft-info");
         const name = node("strong", "attachment-name", record.name);
         name.title = record.name;
         information.append(name);
-        const status =
+        const state =
           record.status === "ready"
-            ? formatFileSize(record.size)
+            ? t("files.ready")
             : record.status === "uploading"
-              ? `${t("files.uploading")} · ${formatFileSize(record.size)}`
+              ? t("files.uploading")
               : recordError(record) || t("files.waitingUpload");
-        information.append(node("span", "attachment-status", status));
+        information.append(node(
+          "span",
+          "attachment-status",
+          `${fileTypeLabel(record)} · ${formatFileSize(record.size)} · ${state}`,
+        ));
         if (record.status === "uploading") {
+          const track = node("div", "attachment-progress-track");
           const progress = node("progress", "attachment-upload-progress");
           progress.max = 100;
           progress.setAttribute(
             "aria-label",
             t("files.uploadProgress", { name: record.name }),
           );
-          information.append(progress);
+          track.append(progress);
+          information.append(track);
         }
         card.append(information);
         const actions = node("div", "attachment-draft-actions");
@@ -539,8 +551,16 @@ export function renderAttachmentCard(
   }
 
   const information = node("div", "attachment-info");
-  const title = node("strong", "attachment-name", attachment.name);
+  const title = node(
+    kind && onPreview ? "button" : "strong",
+    `attachment-name${kind && onPreview ? " attachment-name-preview" : ""}`,
+    attachment.name,
+  );
   title.title = attachment.name;
+  if (kind && onPreview) {
+    title.type = "button";
+    title.addEventListener("click", () => void preview());
+  }
   const metadata = node("span", "attachment-meta");
   const symbol = fileSymbol(attachment);
   information.append(title, metadata);
@@ -552,7 +572,8 @@ export function renderAttachmentCard(
     if (busy || disposed) return;
     busy = true;
     card.setAttribute("aria-busy", "true");
-    for (const control of actions.querySelectorAll("button"))
+    const enabledControls = [...card.querySelectorAll("button:not(:disabled)")];
+    for (const control of enabledControls)
       control.disabled = true;
     try {
       await action(await loadBlob());
@@ -561,7 +582,7 @@ export function renderAttachmentCard(
     } finally {
       busy = false;
       card.removeAttribute("aria-busy");
-      for (const control of actions.querySelectorAll("button"))
+      for (const control of enabledControls)
         control.disabled = false;
     }
   }
@@ -579,9 +600,6 @@ export function renderAttachmentCard(
     });
   }
 
-  const previewButton =
-    kind && onPreview ? button("preview", "", () => void preview()) : null;
-  if (previewButton) actions.append(previewButton);
   const downloadButton = button(
     "download",
     "",
@@ -612,14 +630,14 @@ export function renderAttachmentCard(
     if (disposed) return;
     metadata.textContent = `${fileTypeLabel(attachment)} · ${formatFileSize(attachment.size)}`;
     const previewLabel = t("files.previewNamed", { name: attachment.name });
-    if (previewButton) {
-      previewButton.title = previewLabel;
-      previewButton.setAttribute("aria-label", previewLabel);
-    }
+    if (title.tagName === "BUTTON") title.setAttribute("aria-label", previewLabel);
     const downloadLabel = t("files.downloadNamed", { name: attachment.name });
     downloadButton.title = downloadLabel;
     downloadButton.setAttribute("aria-label", downloadLabel);
-    thumbnail?.setAttribute("aria-label", previewLabel);
+    thumbnail?.setAttribute(
+      "aria-label",
+      t("files.previewImageNamed", { name: attachment.name }),
+    );
     if (thumbnailFailed) card.title = t("files.previewFailed");
   }
 
@@ -632,7 +650,9 @@ export function renderAttachmentCard(
     thumbnail.append(image);
     if (onPreview) thumbnail.addEventListener("click", () => void preview());
     else thumbnail.disabled = true;
-    card.prepend(thumbnail);
+    const caption = node("div", "attachment-image-caption");
+    caption.append(information, actions);
+    card.replaceChildren(thumbnail, caption);
     card.classList.add("attachment-card-image");
     void loadBlob()
       .then((blob) => {
@@ -643,8 +663,8 @@ export function renderAttachmentCard(
       })
       .catch((error) => {
         if (!disposed && error.name !== "AbortError") {
-          thumbnail.remove();
           card.classList.remove("attachment-card-image");
+          card.replaceChildren(symbol, information, actions);
           thumbnailFailed = true;
           card.title = t("files.previewFailed");
         }
