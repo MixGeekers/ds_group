@@ -474,6 +474,10 @@ test("space grouping uses registered authority before creator inference and keep
       content: {},
     };
     const client = {
+      request: async (_method, route) =>
+        route.endsWith("/joined_rooms")
+          ? { joined_rooms: ["!joined"] }
+          : [creation],
       sync: async () => ({
         rooms: {
           join: { "!joined": { state: { events: [creation] } } },

@@ -95,3 +95,5 @@ Compose 新增 `administration` 服务；通过 `docker compose -f deploy/compos
 使用 `node scripts/federation-lab.mjs up|verify|status|down --data-root DIR --project NAME --port-base PORT` 可创建独立合成部署；`reload` 只重启该目录登记的 Core/后台，`refresh-guard` 更新并重启本样本门禁，`refresh-tls` 仅更新本样本测试证书。默认数据位于 `.local/federation-lab/`，所有账号和密钥被 Git 排除。测试的私有 IP 联邦及自建 CA 仅属于该隔离验证，不进入生产默认配置。
 
 Matrix ACL 不区分端口。本轮核对官方规范及固定 Synapse 源码后，以主机名作为有效 ACL 图案，并附带固定 Synapse 本地校验器所需的完整含端口名称。真正的伙伴名单和成员完整 ID 仍精确包含端口；ACL 不能独立隔离同一主机名的不同端口。
+
+空间发现补充：`/api/spaces` 以 `joined_rooms` 和当前完整 state 为加入事实，`/sync` 只补邀请。真实普通建群后已观察到单次 sync 缺少新房间，修补后仍正确展示；撤权房间保持 restricted。见 [真实回归](../artifacts/governance/spaces-2026-11-05T03-41-16-805Z.json)。

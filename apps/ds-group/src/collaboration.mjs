@@ -38,7 +38,11 @@ export class CollaborationService {
   }
   async spaces(client, userId) {
     const policy = await this.governance.read();
-    const sync = await client.sync({ timeout: 0 });
+    const [sync, membership] = await Promise.all([
+      client.sync({ timeout: 0 }),
+      client.request("GET", "/_matrix/client/v3/joined_rooms"),
+    ]);
+    const joinedRooms = new Set(membership.joined_rooms || []);
     const spaces = new Map();
     const home = this.setup.serverName;
     const add = (authority) => {
@@ -59,32 +63,26 @@ export class CollaborationService {
       return spaces.get(authority);
     };
     add(home);
-    for (const [roomId, room] of Object.entries(sync.rooms?.join || {})) {
+    for (const roomId of joinedRooms) {
       const rule = policy.rooms.find((row) => row.roomId === roomId);
-      const events = [
-        ...(room.state?.events || []),
-        ...(room.timeline?.events || []),
-      ];
-      let creator = events.find((event) => event.type === "m.room.create");
-      if (!creator) {
-        try {
-          creator = (
-            await client.request(
-              "GET",
-              `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state`,
-            )
-          ).find((event) => event.type === "m.room.create");
-        } catch {
-          /* The room remains available under its explicit rule if state retrieval is delayed. */
-        }
-      }
+      const events = await client.request(
+        "GET",
+        `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state`,
+      );
+      const creator = events.find((event) => event.type === "m.room.create");
       const authority = rule?.authority || serverOf(creator?.sender);
       if (!authority) continue;
+      const currentMember = events.find(
+        (event) => event.type === "m.room.member" && event.state_key === userId,
+      );
+      const stillJoined =
+        !currentMember || currentMember.content?.membership === "join";
       const allowed =
-        authority === home ||
-        (partnersOf(policy).includes(authority) &&
-          rule?.authority === authority &&
-          roomAllows(policy, roomId, userId));
+        stillJoined &&
+        (rule
+          ? roomAllows(policy, roomId, userId) &&
+            (authority === home || partnersOf(policy).includes(authority))
+          : authority === home);
       const name =
         events.find((event) => event.type === "m.room.name")?.content?.name ||
         rule?.name ||
@@ -100,6 +98,7 @@ export class CollaborationService {
     for (const [roomId, invitation] of Object.entries(
       sync.rooms?.invite || {},
     )) {
+      if (joinedRooms.has(roomId)) continue;
       const states = invitation.invite_state?.events || [];
       const rule = policy.rooms.find((row) => row.roomId === roomId);
       const inviter = states.find(
@@ -112,12 +111,12 @@ export class CollaborationService {
         ) ||
         serverOf(inviter);
       if (!authority) continue;
+      const roomApproved = rule
+        ? roomAllows(policy, roomId, userId) &&
+          (authority === home || partnersOf(policy).includes(authority))
+        : authority === home;
       const canJoin =
-        authority === home ||
-        (partnersOf(policy).includes(authority) &&
-          rule?.authority === authority &&
-          roomAllows(policy, roomId, userId) &&
-          admitted(policy, inviter));
+        roomApproved && (authority === home || admitted(policy, inviter));
       add(authority).invitations.push({
         roomId,
         name:

@@ -1,0 +1,45 @@
+{
+  "startedAt": "2026-11-05T03:41:16.806Z",
+  "scope": "Real Core and Matrix normal room APIs, three-server isolated fixture; zero model calls",
+  "status": "passed",
+  "collaborationSha256": "ae208f4868258327ebe68a1dbb79f3a4cac0d0db8bb7602648bfccf63382a57a",
+  "checks": [
+    {
+      "name": "new room created through normal API appears in actual joined rooms and spaces",
+      "status": "passed",
+      "roomId": "!bxwj0B3gU4Yx4j11atth9jIFUkXohprxO_dr_xLVic8",
+      "singleSyncIncludedNewRoom": false,
+      "displayed": {
+        "roomId": "!bxwj0B3gU4Yx4j11atth9jIFUkXohprxO_dr_xLVic8",
+        "name": "Spaces regression 414091c729",
+        "status": "joined",
+        "canSend": true,
+        "authoritySource": "creator_compatibility"
+      }
+    },
+    {
+      "name": "actual joined foreign room remains restricted after local room revocation",
+      "status": "passed",
+      "room": {
+        "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+        "name": "DS-Group",
+        "status": "restricted",
+        "canSend": false,
+        "authoritySource": "registered"
+      }
+    },
+    {
+      "name": "explicit reapproval restores the current joined association",
+      "status": "passed",
+      "room": {
+        "roomId": "!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4",
+        "name": "DS-Group",
+        "status": "joined",
+        "canSend": true,
+        "authoritySource": "registered"
+      }
+    }
+  ],
+  "modelCalls": 0,
+  "finishedAt": "2026-11-05T03:41:17.030Z"
+}

@@ -102,14 +102,14 @@
       ]
     },
     "origin": "Explicit roomId-to-authority mapping in local administrator policy takes precedence. Matrix creation sender domain is a compatibility fallback only. This is a collaboration grouping, not an authentication issuer or homeserver migration.",
-    "source": "Actual home Matrix /sync joins/invitations, then governance intersection. A configured partner with no rooms or invitations is not shown as an entered space. The home group always exists.",
+    "source": "Authoritative home Matrix joined_rooms plus each room’s current full state. /sync supplies invitation data only; an empty or cached sync join block cannot hide a currently joined room, and stale sync rooms cannot restore a departed or revoked room.",
     "connectionStatus": "connected means home Matrix sync succeeded and local partner policy permits collaboration; it is not a separate active login to the remote Core. A sync transport failure is an HTTP error, never a fabricated connected state.",
     "sendRules": "Foreign room requires an enabled partner, enabled registered room, and this exact local Matrix ID in room.memberIds. Matrix membership and event permission remain authoritative for actual sending.",
     "invitationRules": "Foreign invite additionally requires inviterId approved as an external member. An invitation alone never overrides local admission.",
     "errors": {
       "400": "malformed local policy or input",
       "401": "missing, expired or rejected home session; same as /api/me",
-      "403": "inactive/nonhuman/wrong-home account",
+      "403": "inactive/nonhuman/wrong-home account, or a Matrix state/membership request rejected during revocation",
       "500": "unexpected service failure",
       "502or503": "home Matrix unavailable; existing Matrix error may propagate"
     }
@@ -179,7 +179,8 @@
     "realFederation": "9/9 real service scenarios passed; report federation-2026-11-05T03-23-45-456Z.json",
     "modelCalls": 0,
     "physicalHostsTested": 1,
-    "physicalCrossMachine": "not run"
+    "physicalCrossMachine": "not run",
+    "spacesRegression": "Two exact empty/stale-sync module regressions and three real Core/Matrix checks passed; singleSyncIncludedNewRoom=false was actually observed."
   },
   "roomApplication": {
     "association": "Explicit local roomId-to-authority registration; creator home used only for unregistered legacy initial-room compatibility",
