@@ -2,12 +2,13 @@
   "schemaVersion": 1,
   "date": "2026-11-04",
   "branch": "codex/dscord-platform-integration",
-  "scope": "Main-thread integration of administration/governance foundation and central identity. Unified-client and actual federation integration remain in progress.",
+  "scope": "Main-thread integration of administration/governance, central identity and API-only deployment. Unified-client and actual federation integration remain in progress.",
   "integratedCommits": {
     "direction": "8580cd2",
     "administration": "9d1cd3e",
     "administrationEvidence": "909749e",
-    "centralIdentity": "8cacfe9"
+    "centralIdentity": "8cacfe9",
+    "apiOnly": "ca336a2"
   },
   "mergeReview": {
     "file": "src/core.mjs",
@@ -29,7 +30,11 @@
     },
     {
       "revision": "909749e",
-      "commands": ["npm run check", "npm run build", "node --test --test-concurrency=2 tests/*.browser.mjs"],
+      "commands": [
+        "npm run check",
+        "npm run build",
+        "node --test --test-concurrency=2 tests/*.browser.mjs"
+      ],
       "status": "passed",
       "moduleTests": 287,
       "browserFiles": 8,
@@ -37,7 +42,10 @@
     },
     {
       "revision": "8cacfe9",
-      "commands": ["npm run check", "npm run build"],
+      "commands": [
+        "npm run check",
+        "npm run build"
+      ],
       "status": "passed",
       "moduleTests": 301
     },
@@ -50,21 +58,54 @@
       "report": "../central-identity/real-2026-11-05T03-17-50-202Z.json",
       "sourceProof": "Exact per-file SHA-256 values recorded by the linked report",
       "cleanup": "Run-specific Synapse container, Core and HTTP fixtures stopped"
+    },
+    {
+      "revision": "ca336a2",
+      "commands": [
+        "npm run check",
+        "npm run build"
+      ],
+      "status": "passed",
+      "moduleTests": 306
+    },
+    {
+      "revision": "ca336a2 plus configurable API-only verification ports",
+      "command": "DS_GROUP_API_ONLY_VERIFY_PORT_BASE=24410 node scripts/verify-api-only.mjs",
+      "status": "passed",
+      "checks": 7,
+      "scope": "Real CLI initialization, Synapse and integrated Core, independent-origin Chromium API checks, actual restarts and legacy hosting compatibility; Compose rendering separately identified",
+      "report": "../api-only/real-2026-11-05T03-30-35-697Z.json",
+      "sourceProof": "Exact per-file SHA-256 values recorded in the linked report",
+      "cleanup": "Run-specific Synapse container, Core and static HTTP fixture stopped"
     }
   ],
   "verificationPortChange": {
     "variable": "DS_GROUP_IDENTITY_VERIFY_PORT_BASE",
     "default": 24200,
-    "offsets": { "core": 0, "client": 1, "untrustedRemoteFixture": 2, "matrix": 8 },
+    "offsets": {
+      "core": 0,
+      "client": 1,
+      "untrustedRemoteFixture": 2,
+      "matrix": 8
+    },
     "reason": "Permit main-thread verification alongside the identity worker without sharing ports or data directories"
   },
   "modelCalls": 0,
   "physicalCrossMachine": false,
   "pending": [
-    "API-only server deployment increment",
     "Unified production client integration and browser regression",
     "Actual A/B federation and unapproved C rejection on the integrated revision",
     "Cross-server attachments, Bot work, revocation and recovery",
     "Linux/container release verification and physical cross-machine evidence"
-  ]
+  ],
+  "apiOnlyVerificationPortChange": {
+    "variable": "DS_GROUP_API_ONLY_VERIFY_PORT_BASE",
+    "default": 24210,
+    "offsets": {
+      "core": 0,
+      "client": 1,
+      "matrix": 8
+    },
+    "reason": "Avoid cross-worker port collisions during independent deployment validation"
+  }
 }

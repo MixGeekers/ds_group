@@ -17,14 +17,23 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const runId = new Date().toISOString().replace(/[:.]/g, '-');
 const directory = path.join(root, '.local', 'api-only', runId);
 const reportPath = path.join(root, 'artifacts', 'api-only', `real-${runId}.json`);
-const coreUrl = 'http://127.0.0.1:24210', clientUrl = 'http://127.0.0.1:24211', matrixUrl = 'http://127.0.0.1:24218';
+const portBase = Number(process.env.DS_GROUP_API_ONLY_VERIFY_PORT_BASE || 24210);
+if (!Number.isInteger(portBase) || portBase < 1024 || portBase > 65527) {
+  throw new Error('DS_GROUP_API_ONLY_VERIFY_PORT_BASE must be an integer from 1024 to 65527');
+}
+const corePort = portBase;
+const clientPort = portBase + 1;
+const matrixPort = portBase + 8;
+const coreUrl = `http://127.0.0.1:${corePort}`;
+const clientUrl = `http://127.0.0.1:${clientPort}`;
+const matrixUrl = `http://127.0.0.1:${matrixPort}`;
 const image = 'ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842';
 const container = `dscord-api-only-${runId.toLowerCase()}`;
 const dataRoot = path.join(directory, 'core'), synapseRoot = path.join(directory, 'matrix');
 const cleanEnv = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('DS_GROUP_')));
 const env = { ...cleanEnv, DS_GROUP_DATA_DIR: dataRoot, DS_GROUP_SYNAPSE_DIR: synapseRoot,
   DS_GROUP_SERVER_NAME: 'api-only-qa.test', DS_GROUP_MATRIX_URL: matrixUrl, DS_GROUP_MATRIX_PUBLIC_URL: matrixUrl,
-  DS_GROUP_PUBLIC_URL: coreUrl, DS_GROUP_HOST: '127.0.0.1', DS_GROUP_PORT: '24210', DS_GROUP_WEB_DIR: path.join(root, 'dist/web') };
+  DS_GROUP_PUBLIC_URL: coreUrl, DS_GROUP_HOST: '127.0.0.1', DS_GROUP_PORT: String(corePort), DS_GROUP_WEB_DIR: path.join(root, 'dist/web') };
 const password = randomBytes(24).toString('base64url');
 const report = { schemaVersion: 1, runId, startedAt: new Date().toISOString(), status: 'running',
   evidenceLevel: 'real CLI initialization + Core process + official Synapse + independent static origin Chromium; synthetic account; zero model',
@@ -80,7 +89,7 @@ async function assertNoWeb() {
 
 await mkdir(directory, { recursive: true, mode: 0o700 }); await mkdir(path.dirname(reportPath), { recursive: true });
 try {
-  for (const port of [24210, 24211, 24218]) {
+  for (const port of [corePort, clientPort, matrixPort]) {
     const server = http.createServer();
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
     await new Promise(resolve => server.close(resolve));
@@ -98,7 +107,7 @@ try {
     return { mode: 'api-only', cli: 'dscord init --web-mode api-only', configurationPersisted: true };
   });
   await execute('docker', ['run', '--detach', '--name', container, '--label', `dscord.api-only=${runId}`,
-    '--publish', '127.0.0.1:24218:8008', '--mount', `type=bind,source=${synapseRoot},target=/data`, '--env', 'UID=0', '--env', 'GID=0',
+    '--publish', `127.0.0.1:${matrixPort}:8008`, '--mount', `type=bind,source=${synapseRoot},target=/data`, '--env', 'UID=0', '--env', 'GID=0',
     image, 'run', '-m', 'synapse.app.homeserver', '--config-path=/data/homeserver.yaml'], { timeout: 30000 });
   containerStarted = true; await ready(matrixUrl + '/_matrix/client/versions'); await startCore();
   await check('api-only retains health/readiness/discovery and rejects actual bundled PWA assets', async () => {
@@ -116,7 +125,7 @@ try {
     try { response.setHeader('Content-Type', path.extname(file) === '.html' ? 'text/html' : 'application/octet-stream'); response.end(await readFile(file)); }
     catch { response.writeHead(404); response.end(); }
   });
-  await new Promise(resolve => staticServer.listen(24211, '127.0.0.1', resolve));
+  await new Promise(resolve => staticServer.listen(clientPort, '127.0.0.1', resolve));
   assert.equal(hash(Buffer.from(await (await fetch(clientUrl)).arrayBuffer())), hash(index));
   browser = await chromium.launch({ headless: true }); const page = await browser.newPage(); await page.goto(clientUrl + '/qa.html');
   await check('independent static origin registers and logs in through the API-only Core', async () => {
