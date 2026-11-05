@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "runId": "2026-11-05T03-07-24-896Z",
+  "startedAt": "2026-11-05T03:07:24.896Z",
+  "status": "passed",
+  "evidenceLevel": "real-local-Synapse-Core-and-independent-origin-Chromium; synthetic accounts; zero model",
+  "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+  "origins": {
+    "coreUrl": "http://127.0.0.1:24200",
+    "clientUrl": "http://127.0.0.1:24201",
+    "remoteUrl": "http://127.0.0.1:24202",
+    "matrixUrl": "http://127.0.0.1:24208"
+  },
+  "checks": [
+    {
+      "name": "initialize empty default home twice without synthetic demo credentials",
+      "status": "passed",
+      "details": {
+        "accounts": 0,
+        "mode": "central",
+        "repeatedInitialization": true
+      }
+    },
+    {
+      "name": "real Chromium on independent origin discovers, registers and signs in through normal APIs",
+      "status": "passed",
+      "details": {
+        "userId": "@alice:central-qa.test",
+        "subjectId": "e5694a34-5007-4ab6-9a5d-c95875efbd58",
+        "distinctClientDevices": true,
+        "stableOwner": true
+      }
+    },
+    {
+      "name": "untrusted remote discovery receives no credentials and cannot replace the pinned home",
+      "status": "passed",
+      "details": {
+        "denied": 3,
+        "homeUnchanged": true,
+        "userId": "@alice:central-qa.test",
+        "discovered": "Untrusted collaboration server",
+        "observedRemote": [
+          {
+            "method": "GET",
+            "path": "/api/bootstrap",
+            "authorization": false,
+            "cookie": false
+          }
+        ]
+      }
+    },
+    {
+      "name": "real independent-origin attachment upload, idempotent retry, byte readback and Range",
+      "status": "passed",
+      "details": {
+        "sameAttachment": true,
+        "size": 43,
+        "sameBytes": true,
+        "disposition": "attachment; filename=\"download\"; filename*=UTF-8''origin-check.txt",
+        "rangeStatus": 206,
+        "range": "bytes 0-5/43",
+        "partial": [
+          68,
+          83,
+          67,
+          111,
+          114,
+          100
+        ]
+      }
+    },
+    {
+      "name": "wrong browser Origin fails real CORS preflight and receives no central session",
+      "status": "passed",
+      "details": {
+        "browserBlocked": true
+      }
+    },
+    {
+      "name": "verified legacy account import, Bot ownership and node credentials remain separate",
+      "status": "passed",
+      "details": {
+        "legacyId": "@legacy:central-qa.test",
+        "legacySubject": "3d4fe33e-5317-4b5b-b337-25728538f7d1",
+        "botId": "@bot-a8f0379a-7656-4b25-93f1-ed34b4e7687c:central-qa.test",
+        "ownerId": "@alice:central-qa.test",
+        "duplicateRequestSameBot": true,
+        "ordinaryTokenNodeStatus": 401,
+        "ordinaryTokenSynapseAdminStatus": 403
+      }
+    },
+    {
+      "name": "browser refresh and Core/Synapse restart preserve subjects, sessions, Bot owners and node credentials",
+      "status": "passed",
+      "details": {
+        "sameSubject": true,
+        "sameMatrixId": true,
+        "renamedDisplayOnly": true,
+        "sameBotAndOwner": true,
+        "sameNodeCredential": true,
+        "restoredClientSession": true
+      }
+    },
+    {
+      "name": "local disable blocks all protected API families and survives another Core restart",
+      "status": "passed",
+      "details": {
+        "blockedRoutes": [
+          "/api/me",
+          "/api/attachments/unknown/metadata",
+          "/api/rooms/unknown/messages",
+          "/api/spaces",
+          "/api/bots",
+          "/api/tasks/unknown",
+          "/api/push/subscriptions"
+        ],
+        "loginRejected": true,
+        "persistedAcrossRestart": true,
+        "localDisableDoesNotClaimDirectMatrixRevocation": true
+      }
+    },
+    {
+      "name": "logout is idempotent, revokes one actual device and preserves the other device and service credential",
+      "status": "passed",
+      "details": {
+        "revokedClientStatus": 401,
+        "otherDeviceStatus": 200,
+        "coreServiceValid": true,
+        "repeatedLogoutSucceeded": true
+      }
+    },
+    {
+      "name": "actual Synapse deactivation rejects the existing account token and future password login",
+      "status": "passed",
+      "details": {
+        "revokedTokenStatus": 401,
+        "loginStatus": 403,
+        "matrixHistoryErased": false
+      }
+    },
+    {
+      "name": "homeserver operator recovery retains the original subject and Bot owner while rotating client and service sessions",
+      "status": "passed",
+      "details": {
+        "oldClientStatus": 401,
+        "sameSubjectAndMatrixId": true,
+        "newServiceSession": true,
+        "botOwnershipPreserved": true,
+        "recoveryAuthority": "dedicated Synapse operator; ordinary central login has no recovery admin grant"
+      }
+    },
+    {
+      "name": "actual short-lived Matrix token expiry reaches Core as 401 and helper refuses an expired restored session",
+      "status": "passed",
+      "details": {
+        "expiryMs": 1996,
+        "expiredCoreStatus": 401,
+        "expiredHelperRestoreRejected": true
+      }
+    }
+  ],
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "federatedRoom": "owned by parallel federation slice",
+  "sourceSha256": {
+    "src/accounts.mjs": "809800acedef914c98449a47717ef8d12f867754fc96705d19dca548c4c80ad9",
+    "src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+    "tests/helpers/home-session.mjs": "ceb0f3d045e7316bc938b87656c5420b1fd744ff52225c748c521499fd535f55",
+    "src/core.mjs": "8c7e4bccbc148227606de45b84d442726be6e81ed1b9502029c8f955f2622613",
+    "src/matrix-client.mjs": "d6629d5387f5e2ce7462c080ca5318ccd29bf48887855d502b10fb6ce63d4c58",
+    "scripts/central-init.mjs": "0412e00a5a185f31459a24040ee8f5dc93e38e7e060375a012f970b7585aa86b",
+    "scripts/verify-central-identity.mjs": "477e2f10830e6842cef17751a36e70986099e0aafab2cf7fa681101299657ff3"
+  },
+  "authorityId": "urn:uuid:029a178e-2a7e-4602-895f-ed6e381bd7c8",
+  "finishedAt": "2026-11-05T03:07:35.820Z",
+  "cleanup": {
+    "containerRemoved": true,
+    "httpServersStopped": true,
+    "coreStopped": true
+  }
+}

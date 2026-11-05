@@ -1,0 +1,197 @@
+{
+  "contractVersion": "1.0.1",
+  "date": "2026-11-04",
+  "status": "implemented-and-locally-verified",
+  "baseCommit": "5078ab2bf81fe50631a13208366cc3e58d61dd7d",
+  "authentication": {
+    "mode": "matrix-password",
+    "authority": "The configured default-home Synapse verifies passwords, revocation and token expiry. This service is not an OIDC issuer.",
+    "login": {
+      "method": "POST",
+      "path": "/api/login",
+      "body": {
+        "user": "alice or @alice:home.example",
+        "password": "user-supplied secret"
+      }
+    },
+    "register": {
+      "method": "POST",
+      "path": "/api/register",
+      "body": {
+        "username": "alice",
+        "displayName": "Alice",
+        "password": "user-supplied secret"
+      }
+    },
+    "sessionResponse": {
+      "user_id": "@alice:home.example",
+      "access_token": "REDACTED: never a public configuration field",
+      "device_id": "one distinct Matrix device per client login",
+      "expires_in_ms": "optional Matrix-provided expiry; absence does not assert a lifetime",
+      "identity": {
+        "authorityId": "urn:uuid:persisted-deployment-id",
+        "subjectId": "persisted-account-uuid",
+        "matrixUserId": "@alice:home.example",
+        "kind": "human"
+      },
+      "home": {
+        "serverName": "home.example",
+        "coreUrl": "https://core.example",
+        "matrixUrl": "https://matrix.example"
+      }
+    },
+    "me": {
+      "method": "GET",
+      "path": "/api/me",
+      "response": {
+        "user": "existing public participant",
+        "ownedBots": "existing owned Bot list",
+        "identity": "same principal as login",
+        "home": "same pinned home"
+      }
+    },
+    "logout": {
+      "method": "POST",
+      "path": "/api/logout",
+      "semantics": "Revoke only this Matrix client device session; repeated logout is successful. Legacy synthetic demo service credentials remain local-only logout."
+    },
+    "cookies": false,
+    "csrf": "No ambient cookie credentials; JSON mutations and exact configured Origin checks. Cross-origin requests require an explicit allowlist.",
+    "oidc": {
+      "implemented": false,
+      "upgradeCandidate": "Matrix Authentication Service or Synapse native OIDC; issuer/subject binding must be proven, never inferred from display name or email"
+    }
+  },
+  "discovery": {
+    "callers": [
+      "independently deployed DSCord web client",
+      "native client",
+      "operator diagnostics"
+    ],
+    "method": "GET",
+    "paths": [
+      "/.well-known/dscord/client",
+      "/api/client-config"
+    ],
+    "credentials": "omit: public discovery must not carry passwords, Authorization, cookies or node credentials",
+    "response": {
+      "schemaVersion": 1,
+      "contractVersion": "1.0.1",
+      "name": "DSCord",
+      "mode": "central or standalone",
+      "authorityId": "urn:uuid:persisted-deployment-id",
+      "home": {
+        "serverName": "home.example",
+        "coreUrl": "https://core.example",
+        "matrixUrl": "https://matrix.example"
+      },
+      "auth": {
+        "mode": "matrix-password",
+        "loginPath": "/api/login",
+        "registerPath": "/api/register",
+        "mePath": "/api/me",
+        "logoutPath": "/api/logout",
+        "cookieCredentials": false
+      },
+      "credentials": {
+        "type": "matrix-access-token",
+        "coreOrigin": "https://core.example",
+        "matrixOrigin": "https://matrix.example",
+        "remoteCore": "forbidden",
+        "deploymentAdmin": "forbidden"
+      }
+    },
+    "legacy": "Without explicit public Core URL, standalone discovery returns home.coreUrl=null and credentials.coreOrigin=null; resolve the Core only to the origin from which discovery was fetched. Central mode requires explicit public URLs. Existing /api/bootstrap fields remain compatible."
+  },
+  "deployment": {
+    "config": "core-config.json identity: { mode: central|standalone, coreUrl, matrixUrl, clientOrigins: [exact origins] }",
+    "persistentState": [
+      "identity-config.json: immutable authority ID and Matrix server name, selected public URLs and client origins",
+      "accounts.sqlite: unique Matrix ID to immutable subject mapping",
+      "existing Matrix database, signing key and node-credentials.sqlite"
+    ],
+    "defaultHome": "The configured setup.serverName is the default home. It cannot be repointed to a different Matrix server name on restart.",
+    "clientOrigins": "HTTPS origins, or HTTP loopback origins for local verification. No wildcard, null, credentials, query or path. Core origin is allowed automatically.",
+    "serverInit": "A dedicated central-init script configures the identity section after ordinary server-init; existing server-init and CLI remain compatible.",
+    "cors": {
+      "allowedHeaders": [
+        "Authorization",
+        "Content-Type",
+        "Range",
+        "X-Upload-Id"
+      ],
+      "exposedHeaders": [
+        "Retry-After",
+        "Content-Disposition",
+        "Content-Length",
+        "Content-Range"
+      ],
+      "cookieCredentials": false
+    }
+  },
+  "credentialRules": [
+    "Pin a trusted discovery source before entering credentials. A user-added collaboration URL is untrusted and gets credential-free discovery only.",
+    "Passwords go only to the pinned home Core login/register endpoints. Matrix access tokens go only to the pinned home Core /api endpoints or home Matrix /_matrix/client and /_matrix/media endpoints.",
+    "Never follow credential-bearing redirects. A remote bootstrap response cannot change the home of a stored session.",
+    "No ordinary home token is accepted as a node, remote Core or deployment management credential. Federated room participation preserves the complete original Matrix ID.",
+    "Remote product APIs need a separately negotiated target-specific proof/session. This slice issues no remote credentials."
+  ],
+  "compatibility": {
+    "existingAccounts": "Migrate mapping additively in accounts.sqlite; preserve Matrix IDs, service tokens, room history, Bot owner IDs and node credentials. Import an unregistered local Matrix identity only after successful password proof at its actual home.",
+    "foreignAccounts": "Do not bind or create shadow accounts by matching localpart, display name or email. Cross-home identity linking is not implemented.",
+    "recovery": "Recover the same Matrix account through existing homeserver/operator recovery, then authenticate again. Restore the identity config, accounts database and Matrix state together to preserve subjects. No email recovery service or automatic homeserver migration is claimed.",
+    "disableAndExpiry": "Matrix remains the revocation/expiry authority. Rejected whoami invalidates Core access. A disabled local account must not be reactivated by login. Direct Matrix deactivation uses homeserver administration, independently authorized.",
+    "bots": "Keep the exact Bot Matrix ID and owner Matrix ID. Map owner subjects additively; keep node credentials and service sessions distinct from human client sessions.",
+    "admin": "Central login does not confer per-server deployment administration. Independent admin API and federation gate are owned by the parallel server slice."
+  },
+  "verification": {
+    "module": {
+      "command": "npm run check",
+      "status": "passed",
+      "tests": 294,
+      "includes": [
+        "syntax",
+        "TypeScript",
+        "module tests"
+      ]
+    },
+    "build": {
+      "command": "npm run build",
+      "status": "passed",
+      "buildId": "8fc2a1c498597b32"
+    },
+    "existingClientBrowserFixtures": {
+      "command": "npm run test:browser",
+      "status": "passed",
+      "files": 7,
+      "checks": 69,
+      "finalUnifiedClient": false
+    },
+    "realSynapse": {
+      "command": "node scripts/verify-central-identity.mjs",
+      "status": "passed",
+      "checks": 12,
+      "report": "real-2026-11-05T03-10-06-162Z.json",
+      "sourcesMatch": true
+    },
+    "independentOriginBrowser": {
+      "status": "passed",
+      "scope": "real Chromium test page using normal Core/Synapse APIs; registration/login, pinned-home requests, forbidden-origin preflight, attachment upload/retry/full/range reads; not the parallel final TS UI"
+    },
+    "federatedRoom": "parallel server slice; not verified here",
+    "physicalCrossMachine": "not run",
+    "modelCalls": 0
+  },
+  "changes": [
+    {
+      "from": "1.0.0",
+      "to": "1.0.1",
+      "details": [
+        "CORS permits X-Upload-Id required by actual attachment uploads and exposes response metadata",
+        "No product SDK: frontend owns the TS transport; tests/helpers/home-session.mjs is verification-only",
+        "Legacy standalone null Core URL resolves against trusted discovery origin; API session home may keep coreUrl=null until the client normalizes it",
+        "A legacy reverse proxy with no configured publicUrl may preserve HTTPS Host for same-origin requests"
+      ]
+    }
+  ]
+}

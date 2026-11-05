@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "clientDate": "2026-11-04",
+  "timezone": "America/Caracas",
+  "contractVersion": "1.0.1",
+  "baseCommit": "5078ab2bf81fe50631a13208366cc3e58d61dd7d",
+  "status": "passed-with-explicit-integration-limits",
+  "verification": {
+    "module": {
+      "command": "npm run check",
+      "status": "passed",
+      "tests": 294,
+      "includes": [
+        "syntax",
+        "TypeScript",
+        "module tests"
+      ]
+    },
+    "build": {
+      "command": "npm run build",
+      "status": "passed",
+      "buildId": "8fc2a1c498597b32"
+    },
+    "existingClientBrowserFixtures": {
+      "command": "npm run test:browser",
+      "status": "passed",
+      "files": 7,
+      "checks": 69,
+      "finalUnifiedClient": false
+    },
+    "realSynapse": {
+      "command": "node scripts/verify-central-identity.mjs",
+      "status": "passed",
+      "checks": 12,
+      "report": "real-2026-11-05T03-10-06-162Z.json",
+      "sourcesMatch": true
+    },
+    "independentOriginBrowser": {
+      "status": "passed",
+      "scope": "real Chromium test page using normal Core/Synapse APIs; registration/login, pinned-home requests, forbidden-origin preflight, attachment upload/retry/full/range reads; not the parallel final TS UI"
+    },
+    "federatedRoom": "parallel server slice; not verified here",
+    "physicalCrossMachine": "not run",
+    "modelCalls": 0
+  },
+  "sourceSha256": {
+    "src/accounts.mjs": "18befa99631d08ecdb14ed445c3d72a4f0b80cb4eeef3b128c9633bce4f288a7",
+    "src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+    "tests/helpers/home-session.mjs": "ceb0f3d045e7316bc938b87656c5420b1fd744ff52225c748c521499fd535f55",
+    "src/core.mjs": "8c7e4bccbc148227606de45b84d442726be6e81ed1b9502029c8f955f2622613",
+    "src/matrix-client.mjs": "d6629d5387f5e2ce7462c080ca5318ccd29bf48887855d502b10fb6ce63d4c58",
+    "scripts/central-init.mjs": "0412e00a5a185f31459a24040ee8f5dc93e38e7e060375a012f970b7585aa86b",
+    "scripts/verify-central-identity.mjs": "f38a0f72d619cd9d47083a41beaeb2a6652c600971eb6152e67fcf084774c327"
+  },
+  "runtimeReports": [
+    {
+      "path": "real-2026-11-05T02-55-39-739Z.json",
+      "status": "failed"
+    },
+    {
+      "path": "real-2026-11-05T02-57-09-541Z.json",
+      "status": "passed"
+    },
+    {
+      "path": "real-2026-11-05T02-58-59-133Z.json",
+      "status": "passed"
+    },
+    {
+      "path": "real-2026-11-05T03-02-35-644Z.json",
+      "status": "passed"
+    },
+    {
+      "path": "real-2026-11-05T03-06-38-983Z.json",
+      "status": "passed"
+    },
+    {
+      "path": "real-2026-11-05T03-07-24-896Z.json",
+      "status": "passed"
+    },
+    {
+      "path": "real-2026-11-05T03-10-06-162Z.json",
+      "status": "passed"
+    }
+  ],
+  "ordinaryApiGuard": {
+    "location": "core.mjs dispatch: after explicitly public routes and before ordinary protected /api routes",
+    "method": "accounts.authenticate(bearer(request)): current home whoami + accounts.sqlite active; request.dsIdentity available",
+    "coveredFamilies": [
+      "attachments",
+      "rooms",
+      "tasks",
+      "bots",
+      "push",
+      "future spaces placed after this guard"
+    ],
+    "exceptions": [
+      "discovery/bootstrap",
+      "health/readiness",
+      "public status and push config",
+      "register/login/demo",
+      "logout, which separately revokes the presented device"
+    ],
+    "directMatrixRevocation": "Synapse deactivation or session revocation; local disable alone governs Core only"
+  },
+  "compatibility": {
+    "additiveAccountMapping": true,
+    "passwordProvenLegacyImport": true,
+    "originalBotOwnerAndNodeCredentials": true,
+    "sameHomeOperatorPasswordRecovery": true,
+    "standaloneNullCoreFallback": true,
+    "privateHttpSingleServer": true,
+    "httpsReverseProxyHost": "module-tested; no production certificate or actual HTTPS reverse proxy deployed in this slice",
+    "rawDemoWithoutServerMetadata": "reject, operator-assisted upgrade required"
+  },
+  "integration": {
+    "sharedFiles": [
+      "src/core.mjs",
+      "src/matrix-client.mjs"
+    ],
+    "ownedModule": "src/accounts.mjs",
+    "frontend": "no web/src changes; protocol helper is tests/helpers/home-session.mjs only",
+    "remaining": [
+      "main thread merges core initialization/bootstrap/guard with governance",
+      "final independent TS client integration against contract 1.0.1",
+      "separate deployment admin and federation A/B acceptance",
+      "physical cross-machine acceptance",
+      "OIDC/MAS migration if later selected"
+    ]
+  },
+  "cleanup": {
+    "containerRemoved": true,
+    "httpServersStopped": true,
+    "coreStopped": true
+  },
+  "credentialsCommitted": false,
+  "modelCalls": 0,
+  "files": [
+    "apps/ds-group/artifacts/central-identity/contract.json",
+    "apps/ds-group/artifacts/central-identity/real-2026-11-05T02-55-39-739Z.json",
+    "apps/ds-group/artifacts/central-identity/real-2026-11-05T02-57-09-541Z.json",
+    "apps/ds-group/artifacts/central-identity/real-2026-11-05T02-58-59-133Z.json",
+    "apps/ds-group/artifacts/central-identity/real-2026-11-05T03-02-35-644Z.json",
+    "apps/ds-group/artifacts/central-identity/real-2026-11-05T03-06-38-983Z.json",
+    "apps/ds-group/artifacts/central-identity/real-2026-11-05T03-07-24-896Z.json",
+    "apps/ds-group/artifacts/central-identity/real-2026-11-05T03-10-06-162Z.json",
+    "apps/ds-group/artifacts/central-identity/verification-summary.json",
+    "apps/ds-group/artifacts/central-identity/目录.md",
+    "apps/ds-group/scripts/central-init.mjs",
+    "apps/ds-group/scripts/verify-central-identity.mjs",
+    "apps/ds-group/src/accounts.mjs",
+    "apps/ds-group/src/core.mjs",
+    "apps/ds-group/src/identity.mjs",
+    "apps/ds-group/src/matrix-client.mjs",
+    "apps/ds-group/tests/accounts.test.mjs",
+    "apps/ds-group/tests/central-identity.test.mjs",
+    "apps/ds-group/tests/helpers/home-session.mjs",
+    "apps/ds-group/中央身份实施记录.md"
+  ],
+  "disabledRegistrationAndProvisioning": {
+    "module": "passed before upstream mutation, including stale owner object",
+    "realCore": "disabled registration retry returns 403"
+  },
+  "reproduction": {
+    "command": "node scripts/verify-central-identity.mjs",
+    "cwd": "apps/ds-group",
+    "arguments": [],
+    "ports": [
+      24200,
+      24201,
+      24202,
+      24208
+    ],
+    "dataDirectory": ".local/central-identity/<fresh UTC run ID>",
+    "prerequisites": "Docker, locked npm dependencies, Playwright Chromium; script checks ports before startup",
+    "lifecycle": "isolated tagged Synapse container; Core and test HTTP servers are stopped, container removed at end"
+  }
+}

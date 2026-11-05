@@ -13,6 +13,7 @@ import { TaskService } from './tasks.mjs';
 import { ChatFeatures } from './mentions.mjs';
 import { localPath, packageRoot } from './paths.mjs';
 import { AccountService } from './accounts.mjs';
+import { IdentityService } from './identity.mjs';
 import { NodeCredentials, requireNodeScope } from './node-auth.mjs';
 import { nodeBundle } from '../scripts/server-admin.mjs';
 import { Governance, serverOf, roomAllows } from './governance.mjs';
@@ -71,6 +72,13 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     onParticipant: async person => { if (push) await push.upsertParticipant(person); },
   }).initialize();
   setup.serverName ||= accounts.serverName || 'localhost';
+  let identity;
+  try {
+    identity = await new IdentityService({ accounts, setup, config, dataRoot }).initialize();
+  } catch (error) {
+    accounts.close();
+    throw error;
+  }
   const governance = new Governance({ dataRoot, serverName: setup.serverName });
   const collaboration = new CollaborationService({ setup, governance, accounts });
   const directorySetup = { ...setup, participants: [] };
@@ -190,6 +198,14 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   async function dispatch(request, response) {
     const url = new URL(request.url, 'http://localhost');
     const send = (status, value) => { response.writeHead(status, jsonHeaders); response.end(JSON.stringify(value)); };
+    identity.cors(request, response, url.pathname);
+    if (request.method === 'OPTIONS' && (url.pathname.startsWith('/api/') || url.pathname.startsWith('/.well-known/'))) {
+      response.writeHead(204, { 'Cache-Control': 'no-store' }); response.end(); return;
+    }
+    if (request.method === 'GET' && ['/.well-known/dscord/client', '/api/client-config'].includes(url.pathname)) return send(200, identity.discovery());
+    if (request.method === 'GET' && url.pathname === '/.well-known/matrix/client') return send(200, {
+      'm.homeserver': { base_url: identity.home.matrixUrl }, 'org.dscord.client': { base_url: identity.home.coreUrl },
+    });
     const policy = await governance.read();
     directory = await collaboration.directory();
     directorySetup.participants = directory;
@@ -208,13 +224,18 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     if (request.method === 'GET' && url.pathname === '/api/bootstrap') {
       response.setHeader('Access-Control-Allow-Origin', '*');
       return send(200, { name: 'DSCord', serverName: setup.serverName, roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: accounts.publicParticipants(), nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server', registration: accounts.registration(),
-        attachments: { maxBytes: media.maxBytes, maxPerMessage: MAX_ATTACHMENTS } });
+        attachments: { maxBytes: media.maxBytes, maxPerMessage: MAX_ATTACHMENTS }, identity: identity.discovery() });
     }
     if (request.method === 'GET' && url.pathname === '/api/status') {
       return send(200, { nodes: nodeSnapshot(), budget: budget.snapshot(), core: { startedAt, storage: 'Matrix Synapse', roomId: setup.roomId, evidenceScope: setup.deploymentMode || 'local-multiprocess', loadedCoreSha256 } });
     }
     if (request.method === 'GET' && url.pathname === '/api/push/config') {
       return send(200, push ? await push.getConfig() : { enabled: false, requiresSecureContext: true });
+    }
+    // Every ordinary credential is checked at this home; no caller-selected upstream is used.
+    if (url.pathname.startsWith('/api/') &&
+      !['/api/login', '/api/register', '/api/logout', '/api/demo-login'].includes(url.pathname)) {
+      request.dsIdentity = await accounts.authenticate(bearer(request));
     }
     if (url.pathname.startsWith('/api/push/')) {
       if (!push) return send(503, { error: 'Notifications are not enabled' });
@@ -468,7 +489,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         ...(retryAfterMs === undefined ? {} : { retry_after_ms: retryAfterMs }) }));
     });
   });
-  return { server, budget, push, media, tasks, chatFeatures, accounts, nodeCredentials, governance, collaboration, close: async () => {
+  return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, close: async () => {
     await new Promise(resolve => server.close(resolve));
     if (push) await push.close();
     await nodeCredentials.close();

@@ -100,7 +100,7 @@ test('registration persists dynamic members, joins the lobby and isolates browse
   assert.notEqual(person.accessToken, session.access_token);
   assert.equal(f.matrix.joined.get(person.id).has(roomId), true);
   assert.equal(changed.length, 1);
-  assert.deepEqual(await f.service.me(session.access_token), { user: { id: person.id, name: 'Charlie', kind: 'human', localpart: 'charlie' }, ownedBots: [] });
+  assert.deepEqual(await f.service.me(session.access_token), { user: { id: person.id, name: 'Charlie', kind: 'human', localpart: 'charlie' }, ownedBots: [], identity: session.identity });
   const publicJson = JSON.stringify(f.service.publicParticipants());
   assert.equal(publicJson.includes('accessToken'), false);
   assert.equal(publicJson.includes('password'), false);
@@ -287,4 +287,80 @@ test('an empty directory reads Matrix identity from server metadata and retains 
     assert.equal(restored.serverName, serverName);
     assert.deepEqual(restored.registration(), { enabled: false, mode: 'open' });
   } finally { restored.close(); }
+});
+
+test('stable subjects survive display-name changes, Bot creation retries and restart without replacing old credentials', async t => {
+  const f = await fixture(t);
+  const human = f.service.identity(aliceId);
+  const bot = await f.service.createBot(aliceId, { name: 'Alice', requestId: 'stable-owner' });
+  const botIdentity = f.service.identity(bot.id);
+  assert.notEqual(botIdentity.subjectId, human.subjectId);
+  assert.equal(botIdentity.ownerSubjectId, human.subjectId);
+  assert.equal(botIdentity.ownerMatrixUserId, aliceId);
+  f.service.db.prepare('UPDATE accounts SET name=? WHERE user_id=?').run('Different nickname', aliceId);
+  f.service.refreshSetup();
+  assert.deepEqual(f.service.identity(aliceId), human);
+  const restored = await f.restore();
+  assert.deepEqual(restored.identity(aliceId), human);
+  assert.deepEqual(restored.identity(bot.id), botIdentity);
+  assert.equal(restored.person(aliceId).accessToken, 'alice-server-token');
+  assert.equal(restored.person(bot.id).ownerId, aliceId);
+});
+
+test('disabled accounts cannot sign in, use an existing session or reactivate after restart', async t => {
+  const f = await fixture(t);
+  const session = await f.service.login({ user: 'alice', password: 'alice-password' });
+  f.service.db.prepare("UPDATE accounts SET status='disabled' WHERE user_id=?").run(aliceId);
+  await assert.rejects(f.service.me(session.access_token), error => error.status === 403);
+  await assert.rejects(f.service.login({ user: 'alice', password: 'alice-password' }), /disabled/);
+  await assert.rejects(f.service.activate(aliceId), /disabled/);
+  const restored = await f.restore();
+  assert.equal(restored.person(aliceId), undefined);
+  assert.equal(restored.row(aliceId).status, 'disabled');
+  await assert.rejects(restored.login({ user: 'alice', password: 'alice-password' }), /disabled/);
+});
+
+test('old Matrix account binding requires an actual password proof and never matching nicknames', async t => {
+  const f = await fixture(t);
+  const id = `@old:${serverName}`;
+  f.matrix.users.set(id, { password: 'old-secret', name: 'Alice' });
+  await assert.rejects(f.service.login({ user: id, password: 'wrong-secret' }), error => error.status === 403);
+  assert.equal(f.service.row(id), undefined);
+  assert.equal(f.service.db.prepare('SELECT * FROM account_subjects WHERE user_id=?').get(id), undefined);
+  const session = await f.service.login({ user: id, password: 'old-secret' });
+  assert.equal(session.identity.matrixUserId, id);
+  assert.notEqual(session.identity.subjectId, f.service.identity(aliceId).subjectId);
+  assert.equal(f.service.person(id).name, 'Alice');
+});
+
+test('the pre-identity database migrates additively without replacing Matrix IDs or service credentials', async t => {
+  const f = await fixture(t);
+  const bot = await f.service.createBot(aliceId, { name: 'Old Bot', requestId: 'pre-migration' });
+  const credentials = f.service.row(bot.id).service_token;
+  f.service.db.exec("DROP TABLE account_subjects; DELETE FROM account_metadata WHERE key IN ('authorityId','identitySchemaVersion')");
+  const restored = await f.restore();
+  assert.equal(restored.row(aliceId).service_token, 'alice-server-token');
+  assert.equal(restored.row(bot.id).service_token, credentials);
+  assert.equal(restored.row(bot.id).owner_id, aliceId);
+  assert.equal(restored.identity(bot.id).ownerSubjectId, restored.identity(aliceId).subjectId);
+  assert.equal(restored.db.prepare('SELECT COUNT(*) AS count FROM account_subjects').get().count, 2);
+});
+
+test('a newer unknown identity schema fails instead of silently downgrading its metadata', async t => {
+  const f = await fixture(t);
+  f.service.db.prepare("UPDATE account_metadata SET value='99' WHERE key='identitySchemaVersion'").run();
+  await assert.rejects(f.restore(), /Unsupported account identity schema version/);
+});
+
+test('disabled registration retries, Bot provisioning and stale owner objects fail before any upstream mutation', async t => {
+  const f = await fixture(t);
+  const input = { username: 'charlie', password: 'secret', displayName: 'Charlie' };
+  const session = await f.service.register(input);
+  const bot = await f.service.createBot(aliceId, { name: 'Helper', requestId: 'disable-boundary' });
+  f.service.db.prepare("UPDATE accounts SET status='disabled' WHERE user_id IN (?,?,?)").run(session.user_id, bot.id, aliceId);
+  f.matrix.calls.length = 0;
+  await assert.rejects(f.service.register(input), error => error.status === 403);
+  await assert.rejects(f.service.provision(bot.id, 'anything'), error => error.status === 403);
+  await assert.rejects(f.service.createBot(aliceId, { name: 'Another Bot' }), error => error.status === 403);
+  assert.equal(f.matrix.calls.length, 0);
 });
