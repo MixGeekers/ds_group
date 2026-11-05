@@ -77,6 +77,14 @@ try {
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(base);
   await page.screenshot({ path: path.join(output, "admin-login-desktop.png"), animations: "disabled" });
+  await page.getByLabel("Language", { exact: true }).selectOption("zh-CN");
+  await page.getByLabel("管理员账号", { exact: true }).fill("admin");
+  await page.getByLabel("密码", { exact: true }).fill("incorrect-browser-password");
+  await page.getByRole("button", { name: "登录", exact: true }).click();
+  await page.getByRole("alert").getByText("管理员账号或密码错误。", { exact: true }).waitFor();
+  await page.getByLabel("语言", { exact: true }).selectOption("en");
+  await page.getByRole("alert").getByText("Administrator name or password is incorrect.", { exact: true }).waitFor();
+  checks.push("Known login errors follow the active language, including a language change after failure");
   await page.getByLabel("Administrator", { exact: true }).fill("admin");
   await page
     .getByLabel("Password", { exact: true })
@@ -89,6 +97,7 @@ try {
   await page
     .getByRole("button", { name: "Partner servers", exact: true })
     .click();
+  await page.getByText("Changes are staged. Save the policy, then prepare and apply it.", { exact: true }).waitFor();
   const [actualBorder, expectedBorder] = await page.getByLabel("Display name", { exact: true }).evaluate((input) => {
     const probe = document.createElement("span");
     probe.style.border = "1px solid var(--color-border-normal)";
@@ -313,12 +322,14 @@ try {
   checks.push("Audit shows actual administrative writes without credentials");
   await page.getByLabel("Language", { exact: true }).selectOption("zh-CN");
   await page.getByRole("heading", { name: "审计", exact: true }).waitFor();
+  await page.getByText("admin · 所有者", { exact: true }).waitFor();
   await page.getByLabel("外观", { exact: true }).selectOption("dark");
   assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
   checks.push(
     "Chinese translation and dark appearance use shared preferences and tokens",
   );
   await page.getByRole("button", { name: "伙伴服务器", exact: true }).click();
+  await page.getByText("修改先暂存；保存策略后，再准备并应用。", { exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(() => {
     const nav = document.querySelector('.admin-sidebar nav');
@@ -353,6 +364,7 @@ try {
     .fill("synthetic-auditor-password");
   await page.getByRole("button", { name: "登录", exact: true }).click();
   await page.getByRole("heading", { name: "概览", exact: true }).waitFor();
+  await page.getByText("auditor · 审计员", { exact: true }).waitFor();
   assert.equal(
     await page.getByRole("button", { name: "保存策略", exact: true }).count(),
     0,
@@ -372,6 +384,33 @@ try {
   );
   assert.equal(await page.locator('input[name="canDelegate"]').count(), 0);
   checks.push("Auditor login hides all policy mutation controls");
+  await admin.auth.change("test-console", {
+    username: "auditor",
+    role: "auditor",
+    enabled: true,
+  });
+  await page.getByRole("button", { name: "重新加载", exact: true }).click();
+  await page.getByRole("heading", { name: "管理员登录", exact: true }).waitFor();
+  await page.getByRole("alert").getByText("管理员会话已过期，请重新登录。", { exact: true }).waitFor();
+  await page.screenshot({ path: path.join(output, "admin-session-expired-zh.png"), animations: "disabled" });
+  checks.push("Revoked real administrator session returns to Chinese login with a localized expiration error");
+  const requiredContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  await requiredContext.addInitScript(() => {
+    localStorage.setItem("ds-group.language", "zh-CN");
+    sessionStorage.setItem(`dscord.management.${location.origin}`, JSON.stringify({
+      access_token: "not-an-admin-token",
+      administrator: { username: "synthetic", role: "owner" },
+      expiresAt: Date.now() + 60000,
+    }));
+  });
+  const requiredPage = await requiredContext.newPage();
+  requiredPage.on("pageerror", (error) => errors.push(error.message));
+  await requiredPage.goto(base);
+  await requiredPage.getByRole("heading", { name: "管理员登录", exact: true }).waitFor();
+  await requiredPage.getByRole("alert").getByText("请使用本服务器的管理员账号登录。", { exact: true }).waitFor();
+  await requiredPage.screenshot({ path: path.join(output, "admin-session-required-zh.png"), animations: "disabled" });
+  await requiredContext.close();
+  checks.push("Unauthenticated management session shows the localized required-session error");
   assert.deepEqual(errors, []);
   checks.push("No browser runtime errors");
 } catch (error) {

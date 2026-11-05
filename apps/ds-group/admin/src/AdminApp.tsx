@@ -72,6 +72,16 @@ const policySections: Section[] = [
 ];
 const errorText = (error: unknown) =>
   error instanceof Error ? error.message : String(error);
+const knownErrorKeys = {
+  "Administrator sign-in failed": "signInFailed",
+  "An instance administrator session is required": "sessionRequired",
+  "Administrator session expired": "sessionExpired",
+  "Your administrator role cannot perform this operation": "roleForbidden",
+  "Too many administrator login attempts; try again in 15 minutes": "signInLimited",
+  "Invalid management origin": "invalidManagementOrigin",
+  "Use this instance’s management origin": "wrongManagementOrigin",
+  "Keep at least one active owner": "keepOwner",
+} as const;
 const lines = (value: FormDataEntryValue | null) => [
   ...new Set(
     String(value || "")
@@ -296,7 +306,11 @@ function PolicyCollection({
                           {Array.isArray(val)
                             ? val.join(", ")
                             : field === "kind"
-                              ? t(val === "bot" ? "bot" : "human")
+                              ? val === "bot"
+                                ? t("bot")
+                                : val === "human"
+                                  ? t("human")
+                                  : String(val)
                               : String(val)}
                         </dd>
                       </div>
@@ -591,9 +605,16 @@ export default function AdminApp() {
     };
     return labels[status] || status;
   };
-  const roleLabel = (role: Administrator["role"]) => t(
-    role === "owner" ? "ownerRole" : role === "operator" ? "operatorRole" : "auditorRole",
-  );
+  const roleLabel = (role: string) => {
+    if (role === "owner") return t("ownerRole");
+    if (role === "operator") return t("operatorRole");
+    if (role === "auditor") return t("auditorRole");
+    return role;
+  };
+  const localizedError = (message: string) => {
+    const key = knownErrorKeys[message as keyof typeof knownErrorKeys];
+    return key ? t(key) : message;
+  };
   useEffect(() => {
     const element = navigation.current;
     if (!element) return;
@@ -760,7 +781,7 @@ export default function AdminApp() {
           </form>
           {error && (
             <p className="admin-error" role="alert">
-              {error}
+              {localizedError(error)}
             </p>
           )}
           {preferences}
@@ -801,7 +822,7 @@ export default function AdminApp() {
         </nav>
         <div className="admin-account">
           <span>
-            {session.administrator.username} · {session.administrator.role}
+            {session.administrator.username} · {roleLabel(session.administrator.role)}
           </span>
           <Button
             variant="ghost"
@@ -869,7 +890,7 @@ export default function AdminApp() {
         {error && (
           <div className="admin-error" role="alert">
             <AlertCircle size={18} aria-hidden="true" />
-            <span><strong>{t("error")}</strong><span>{error}</span></span>
+            <span><strong>{t("error")}</strong><span>{localizedError(error)}</span></span>
           </div>
         )}
         {notice && (
