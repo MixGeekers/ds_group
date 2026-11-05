@@ -346,7 +346,10 @@ function PolicyCollection({
                               (item) => item[idKey] !== row[idKey],
                             ),
                           });
-                          if (editing?.[idKey] === row[idKey]) setEditing(null);
+                          if (editing?.[idKey] === row[idKey]) {
+                            setEditing(null);
+                            setReset((value) => value + 1);
+                          }
                           setPendingRemoval(null);
                         }}
                       >
