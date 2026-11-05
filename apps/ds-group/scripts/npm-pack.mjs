@@ -7,8 +7,8 @@ import { packageRoot } from '../src/paths.mjs';
 
 const execute = promisify(execFile);
 const runtimeFiles = [
-  'bin/dscord.mjs', 'src', 'web/mention-tokens.js', 'dist/web', 'dsh-plugin', 'vendor/ds-bot',
-  ...['service', 'matrix', 'runtime-config', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin']
+  'bin/dscord.mjs', 'src', 'web/mention-tokens.js', 'dist/web', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot',
+  ...['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin']
     .map(name => `scripts/${name}.mjs`),
 ];
 
@@ -44,8 +44,11 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
     name: 'dscord', version, type: 'module',
     description: 'DSCord collaboration server and independent Bot nodes, with a prebuilt chat PWA',
     engines: source.engines,
+    main: './dsh-connect/index.mjs',
+    exports: { '.': './dsh-connect/index.mjs', './client': './dsh-connect/client.js', './package.json': './package.json' },
+    dsh: { bundle: { patch: './cordis.patch.yml' }, client: { platform: 'web', immediately: true } },
     bin: { dscord: 'bin/dscord.mjs' },
-    files: ['bin', 'src', 'scripts', 'web/mention-tokens.js', 'dist/web', 'dsh-plugin', 'vendor/ds-bot'],
+    files: ['bin', 'src', 'scripts', 'web/mention-tokens.js', 'dist/web', 'dsh-plugin', 'dsh-connect', 'cordis.patch.yml', 'vendor/ds-bot'],
     dependencies: source.dependencies,
     repository: { type: 'git', url: 'git+https://github.com/MixGeekers/ds_group.git', directory: 'apps/ds-group' },
     homepage: 'https://github.com/MixGeekers/ds_group',

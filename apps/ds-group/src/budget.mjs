@@ -21,10 +21,15 @@ export class ModelBudget {
   }
 
   claim(input) {
-    if (input.model !== ALLOWED_MODEL) throw Object.assign(new Error('Only opencode dsv4.1f is enabled'), { status: 403 });
-    if (!input.nodeId || !input.requestId || !Number.isInteger(input.maxTokens) || input.maxTokens < 1) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)
+      || typeof input.nodeId !== 'string' || !input.nodeId.trim()
+      || typeof input.requestId !== 'string' || !input.requestId.trim()
+      || typeof input.model !== 'string' || !input.model.trim()
+      || (input.kind != null && typeof input.kind !== 'string')
+      || !Number.isInteger(input.maxTokens) || input.maxTokens < 1) {
       throw Object.assign(new Error('Invalid model claim'), { status: 400 });
     }
+    if (input.model !== ALLOWED_MODEL) throw Object.assign(new Error('Only opencode dsv4.1f is enabled'), { status: 403 });
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const config = this.db.prepare('SELECT * FROM budget_config WHERE id=1').get();
@@ -44,9 +49,14 @@ export class ModelBudget {
     }
   }
 
-  complete(input) {
+  complete(input, { nodeId } = {}) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)
+      || typeof input.claimId !== 'string' || !input.claimId.trim()) {
+      throw Object.assign(new Error('Invalid model completion'), { status: 400 });
+    }
     const claim = this.db.prepare('SELECT * FROM model_claims WHERE id=?').get(input.claimId);
     if (!claim) throw Object.assign(new Error('Unknown model claim'), { status: 404 });
+    if (nodeId && claim.node_id !== nodeId) throw Object.assign(new Error('This model claim belongs to another Bot'), { status: 403 });
     if (claim.status !== 'claimed') return { recorded: true, duplicate: true };
     if (!['completed', 'failed', 'cancelled', 'unknown'].includes(input.status)) throw Object.assign(new Error('Invalid completion state'), { status: 400 });
     const result = { usage: input.usage ?? null, textBytes: input.textBytes ?? null, errorCode: input.errorCode ?? null };

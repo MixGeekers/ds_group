@@ -4,17 +4,22 @@ import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { MatrixClient } from './matrix-client.mjs';
-import { localPath } from './paths.mjs';
+import { localPath, packageRoot } from './paths.mjs';
 import { NodeStore } from './node-store.mjs';
 import { NodeFiles, eventAttachments } from './node-files.mjs';
 import { boundTaskRequest } from './node-request.mjs';
 import { NodeDelivery, createDeliveryClient } from './node-delivery.mjs';
 import { normalizeDelivery } from './delivery-policy.mjs';
+import { runtimeSettings } from '../scripts/runtime-config.mjs';
 
 const metadataOf = event => event.content?.['org.ds_group'] || {};
 const digest = value => createHash('sha256').update(value).digest('hex');
 const publicAttachment = ({ id, name, mimeType, size, sha256, contentUri }) => ({ id, name, mimeType, size, sha256, contentUri });
 const uniqueAttachments = values => [...new Map(values.filter(value => value?.id).map(value => [value.id, publicAttachment(value)])).values()];
+const legacyBotRoles = new Map([
+  ['finance', { role: '财务', duties: '财务核算、预算和金额核对' }],
+  ['hr', { role: '人事', duties: '人事、入职安排和人员事项协调' }],
+]);
 const temporaryTransferError = error => error.networkError === true || ['TimeoutError', 'AbortError'].includes(error.name)
   || error.status >= 500 || [408, 429].includes(error.status);
 const sleep = (ms, signal) => new Promise(resolve => {
@@ -108,7 +113,7 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
 }
 
 export class BotNode {
-  constructor({ participant, participants, roomId, matrix, store, bridge, heartbeat, files, tasks, delivery, pollTimeout = 10000,
+  constructor({ participant, participants, roomId, matrix, store, bridge, heartbeat, files, tasks, delivery, roster, pollTimeout = 10000,
     transferAttempts = 3, transferRetryDelayMs = 500, controlIntervalMs = 500, onError = console.error }) {
     this.participant = participant;
     this.participants = participants;
@@ -119,6 +124,7 @@ export class BotNode {
     this.sendHeartbeat = heartbeat;
     this.files = files;
     this.tasks = tasks;
+    this.roster = roster;
     this.transferAttempts = transferAttempts;
     this.transferRetryDelayMs = transferRetryDelayMs;
     this.controlIntervalMs = controlIntervalMs;
@@ -132,14 +138,73 @@ export class BotNode {
     this.processing = null;
     this.delivery = new NodeDelivery({ store, participant, participants, matrix, client: delivery, tasks,
       updateTask: (item, value) => this.taskUpdate(item, value), flushTasks: () => this.flushTaskUpdates(),
-      ingest: events => this.store.ingest(events, undefined, event => this.delivery.register(event)) });
+      ingest: events => this.ingestEvents(events) });
   }
 
   senderName(id) { return this.participants.find(p => p.id === id)?.name || id; }
 
+  roleOf(participant = this.participant) {
+    return participant.role || legacyBotRoles.get(participant.localpart)?.role || '通用助手';
+  }
+
+  async refreshRoster() {
+    if (!this.roster) return;
+    if (this.refreshingRoster) return this.refreshingRoster;
+    this.refreshingRoster = (async () => {
+      const { participants } = await this.roster.read();
+      if (!Array.isArray(participants) || participants.some(person => !person || typeof person.id !== 'string' || !person.id
+        || typeof person.name !== 'string' || !['human', 'bot'].includes(person.kind))
+        || new Set(participants.map(person => person.id)).size !== participants.length
+        || !participants.some(person => person.id === this.participant.id && person.kind === 'bot')) {
+        throw new Error('Core returned an invalid participant roster');
+      }
+      const existing = new Map(this.participants.map(person => [person.id, person]));
+      if (participants.some(person => existing.has(person.id) && existing.get(person.id).kind !== person.kind)) {
+        throw new Error('A registered participant changed identity kind');
+      }
+      const updated = participants.map(person => {
+        const record = existing.get(person.id) || {};
+        for (const field of ['id', 'localpart', 'name', 'kind', 'ownerId', 'role', 'instructions']) {
+          if (person[field] !== undefined) record[field] = person[field];
+        }
+        return record;
+      });
+      this.participants.splice(0, this.participants.length, ...updated);
+    })();
+    try { await this.refreshingRoster; }
+    finally { this.refreshingRoster = null; }
+  }
+
+  unknownParticipants(events) {
+    const known = new Set(this.participants.map(person => person.id));
+    const unknown = new Set();
+    for (const event of events) {
+      const meta = metadataOf(event);
+      if (event.type !== 'm.room.message' || event.sender === this.participant.id
+        || !Array.isArray(meta.to) || !meta.to.includes(this.participant.id)) continue;
+      for (const id of [event.sender, meta.originSenderId, meta.returnTo, meta.delivery?.recipientId, meta.delivery?.originBotId, ...meta.to]) {
+        if (typeof id === 'string' && !known.has(id)) unknown.add(id);
+      }
+    }
+    return [...unknown];
+  }
+
+  async ensureParticipants(events) {
+    if (!this.roster || !this.unknownParticipants(events).length) return;
+    await this.refreshRoster();
+    if (this.unknownParticipants(events).length) throw new Error('Message participants are not yet registered in the core roster');
+  }
+
+  async ingestEvents(events, cursor) {
+    await this.refreshRoster();
+    await this.ensureParticipants(events);
+    return this.store.ingest(events, cursor, event => this.delivery.register(event));
+  }
+
   async start() {
+    await this.refreshRoster();
     await this.bridge.createBot({ botId: this.participant.id, name: this.participant.name,
-      role: this.participant.localpart === 'finance' ? '财务' : '人事',
+      role: this.roleOf(),
       instructions: this.instructions() });
     await this.heartbeat();
     this.processing = this.processLoop();
@@ -150,8 +215,11 @@ export class BotNode {
 
   instructions() {
     const peers = this.participants.filter(p => p.kind === 'bot' && p.id !== this.participant.id).map(p => `${p.name} (${p.id})`).join('、');
-    return `你是 DS-Group 中独立的${this.participant.name}，身份 ${this.participant.id}。你的职责是${this.participant.localpart === 'finance' ? '财务核算、预算和金额核对' : '人事、入职安排和人员事项协调'}。保留自己的经历并区分每个人的身份。\n`
+    const duties = this.participant.instructions || legacyBotRoles.get(this.participant.localpart)?.duties
+      || '根据请求者的要求处理对话和工作，使用已有工具完成任务';
+    return `你是 DS-Group 中独立的${this.participant.name}，身份 ${this.participant.id}。你的职责是${duties}。保留自己的经历并区分每个人的身份。\n`
       + `消息源附有发送者、房间、原消息、任务和回复关系。按这些关系回答当前发送者。可协作的 Bot 为 ${peers}。\n`
+      + '当前身份与可协作成员以每轮 event.botIdentity 和 event.availableBots 为准。\n'
       + '每轮输出一个 JSON 对象，格式为 {"text":"给请求者的回答"}。确实需要其他 Bot 完成工作时，使用 {"text":"你的受理说明","delegate":{"to":"目标 Bot 的完整 ID","body":"具体工作要求及所需事实"}}。\n'
       + '使用宿主提供的文件与终端工具完成工作。附件已下载到任务工作目录，先实际读取内容，再计算或编辑，检查成果后交付。文件修改工作要生成可下载的新文件。最终回复使用 JSON，生成的文件列入 artifacts 数组，每项包含 path 和 name。\n'
       + 'delegate 会真实投递到另一台节点，附带任务文件，由对方返回结果。收到 kind=task.result 后，结合结果向原请求者总结并交付文件。已经收到的结果不要再次委派同一任务。每轮最多一次委派，跨 Bot 协作使用 delegate 字段。';
@@ -185,7 +253,7 @@ export class BotNode {
     for (const [roomId, room] of Object.entries(response.rooms?.join || {})) {
       events.push(...await this.collectRoomEvents(roomId, room));
     }
-    this.store.ingest(events, response.next_batch, event => this.delivery.register(event));
+    await this.ingestEvents(events, response.next_batch);
     if (this.tasks) {
       for (const event of events) {
         const item = this.store.item(event.event_id);
@@ -222,6 +290,9 @@ export class BotNode {
     const followupFiles = ownFiles.length || replyTo ? [] : this.delivery.inputFiles(item);
     return { requestId: `matrix-${digest(`${this.participant.id}\0${event.event_id}`)}`, botId: this.participant.id,
       event: { eventId: event.event_id, roomId: event.room_id, senderId: event.sender, senderName: this.senderName(event.sender),
+        botIdentity: { id: this.participant.id, name: this.participant.name, role: this.roleOf() },
+        availableBots: this.participants.filter(person => person.kind === 'bot' && person.id !== this.participant.id)
+          .map(person => ({ id: person.id, name: person.name, role: this.roleOf(person) })),
         senderKind: this.participants.find(person => person.id === event.sender)?.kind,
         body: event.content.body, to: Array.isArray(meta.to) ? meta.to : [], attachments: uniqueAttachments([...ownFiles, ...referencedFiles, ...followupFiles]),
         delivery: this.delivery.publicRoute(item),
@@ -523,6 +594,7 @@ export class BotNode {
     }
     const item = this.store.next();
     if (!item) return false;
+    if (this.roster) await this.ensureParticipants([item.event]);
     let request = this.requestFor(item);
     this.store.begin(item.event_id, request);
     this.state = 'thinking';
@@ -679,10 +751,20 @@ export function createTaskClient(coreUrl, nodeSecret, fetchImpl = fetch) {
     control: (requestId, options) => request(`/internal/tasks/${encodeURIComponent(requestId)}/control`, undefined, options) };
 }
 
+export function createRosterClient(coreUrl, accessToken, fetchImpl = fetch) {
+  return { read: async () => {
+    const response = await fetchImpl(new URL('/api/bootstrap', coreUrl), {
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' }, signal: AbortSignal.timeout(10_000),
+    });
+    if (!response.ok) throw Object.assign(new Error(`Core roster HTTP ${response.status}`), { status: response.status });
+    return response.json();
+  } };
+}
+
 export async function runNode(argv = process.argv.slice(2)) {
   const argument = name => { const index = argv.indexOf(name); return index >= 0 ? argv[index + 1] : undefined; };
   const name = argument('--bot');
-  if (!name) throw new Error('Usage: node src/bot-node.mjs --bot finance|hr [--endpoint URL]');
+  if (!name) throw new Error('Usage: node src/bot-node.mjs --bot ACCOUNT [--endpoint URL]');
   const setup = JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || localPath('matrix-setup.json'), 'utf8'));
   const config = JSON.parse(await readFile(process.env.DS_GROUP_CORE_CONFIG_PATH || localPath('core-config.json'), 'utf8'));
   if (process.env.DS_GROUP_MATRIX_URL) setup.homeserverUrl = process.env.DS_GROUP_MATRIX_URL;
@@ -690,11 +772,10 @@ export async function runNode(argv = process.argv.slice(2)) {
   if (!participant) throw new Error(`Unknown Bot ${name}`);
   if (!/^[a-zA-Z0-9_-]+$/.test(name)) throw new Error('Bot name must be a local account name');
   if (!participant.accessToken) throw new Error('This node needs its own Matrix access token');
+  const endpoint = argument('--endpoint') || process.env.DS_GROUP_BOT_ENDPOINT || runtimeSettings(name, { root: packageRoot }).bridgeUrl;
   const directory = localPath('nodes', name);
   await mkdir(directory, { recursive: true });
   const releaseLock = await acquireNodeLock(path.join(directory, 'process.lock'));
-  const bridgePort = process.env.DS_GROUP_BRIDGE_PORT || process.env[`DS_GROUP_${name.toUpperCase()}_PORT`] || (name === 'finance' ? 18091 : 18092);
-  const endpoint = argument('--endpoint') || process.env.DS_GROUP_BOT_ENDPOINT || `http://127.0.0.1:${bridgePort}`;
   const coreUrl = process.env.DS_GROUP_CORE_URL || config.publicUrl || `http://127.0.0.1:${process.env.DS_GROUP_PORT || 18100}`;
   const store = new NodeStore(path.join(directory, 'node.sqlite'), participant.id);
   const node = new BotNode({ participant, participants: setup.participants, roomId: setup.roomId,
@@ -703,6 +784,7 @@ export async function runNode(argv = process.argv.slice(2)) {
     files: new NodeFiles({ coreUrl, accessToken: participant.accessToken, directory: path.join(directory, 'tasks') }),
     tasks: createTaskClient(coreUrl, config.nodeSecret),
     delivery: createDeliveryClient(coreUrl, participant.accessToken),
+    roster: createRosterClient(coreUrl, participant.accessToken),
     heartbeat: async body => {
       const response = await fetch(new URL('/internal/nodes/heartbeat', coreUrl), { method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.nodeSecret}` },

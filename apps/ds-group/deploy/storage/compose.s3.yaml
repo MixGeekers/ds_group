@@ -1,0 +1,17 @@
+services:
+  config:
+    environment:
+      DS_GROUP_MEDIA_BACKEND: s3
+      DS_GROUP_S3_BUCKET: ${DS_GROUP_S3_BUCKET:?Set DS_GROUP_S3_BUCKET}
+      DS_GROUP_S3_ENDPOINT: ${DS_GROUP_S3_ENDPOINT:-}
+      DS_GROUP_S3_REGION: ${DS_GROUP_S3_REGION:-us-east-1}
+      DS_GROUP_S3_PREFIX: ${DS_GROUP_S3_PREFIX:-dscord/}
+      DS_GROUP_S3_ACCESS_KEY_ID: ${DS_GROUP_S3_ACCESS_KEY_ID:?Set DS_GROUP_S3_ACCESS_KEY_ID}
+      DS_GROUP_S3_SECRET_ACCESS_KEY: ${DS_GROUP_S3_SECRET_ACCESS_KEY:?Set DS_GROUP_S3_SECRET_ACCESS_KEY}
+      DS_GROUP_S3_SESSION_TOKEN: ${DS_GROUP_S3_SESSION_TOKEN:-}
+
+  synapse:
+    image: ${DS_GROUP_SYNAPSE_S3_IMAGE:-dscord-synapse-s3:1.164.2-1.7.0}
+    build:
+      context: ..
+      dockerfile: deploy/storage/Dockerfile.synapse-s3

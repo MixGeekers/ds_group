@@ -13,6 +13,10 @@ export interface Participant {
   ownerId?: string;
   status?: string;
 }
+export interface AccountProfile {
+  user: Participant;
+  ownedBots: Participant[];
+}
 export interface Role {
   id: string;
   name: string;
@@ -130,6 +134,7 @@ export interface Bootstrap {
   homeserverUrl?: string;
   participants: Participant[];
   demoLogin?: boolean;
+  registration?: { enabled: boolean; mode: "open" | "closed" };
   mode?: string;
   attachments?: { maxBytes: number; maxPerMessage: number };
 }

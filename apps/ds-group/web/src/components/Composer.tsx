@@ -157,6 +157,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
       )
         return;
       saveDraft();
+      const submittedContext = contextRef.current;
       const message: OutgoingMessage = current.pending ?? {
         body: text,
         mentions: value.mentions,
@@ -173,14 +174,19 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
       try {
         const sent = await current.onSend(message);
         if (sent) {
+          if (contextRef.current !== submittedContext) {
+            manager.clear(submittedContext);
+            sessionStorage.removeItem(submittedContext);
+            return;
+          }
           restoringRef.current = true;
-          manager.clear();
+          manager.clear(submittedContext);
           editor.clear();
           interruptedRef.current = [];
           setInterrupted([]);
           setBody("");
           current.onClearReply();
-          if (contextRef.current) sessionStorage.removeItem(contextRef.current);
+          sessionStorage.removeItem(submittedContext);
           restoringRef.current = false;
           editor.focus();
         }

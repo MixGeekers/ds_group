@@ -1,0 +1,29 @@
+# Use after compose.yaml and compose.s3.yaml with an already authorized rclone remote.
+services:
+  config:
+    environment:
+      DS_GROUP_S3_ENDPOINT: http://rclone:8080
+      DS_GROUP_S3_REGION: us-east-1
+
+  synapse:
+    depends_on:
+      rclone:
+        condition: service_started
+
+  rclone:
+    image: rclone/rclone:1.75.2@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5
+    command: ["serve", "s3", "${DS_GROUP_RCLONE_REMOTE:?Set DS_GROUP_RCLONE_REMOTE}", "--addr", ":8080", "--vfs-cache-mode", "off"]
+    environment:
+      RCLONE_CONFIG: /config/rclone/rclone.conf
+      RCLONE_AUTH_KEY: '"${DS_GROUP_S3_ACCESS_KEY_ID:?Set DS_GROUP_S3_ACCESS_KEY_ID},${DS_GROUP_S3_SECRET_ACCESS_KEY:?Set DS_GROUP_S3_SECRET_ACCESS_KEY}"'
+      TMPDIR: /spool
+    volumes:
+      - type: bind
+        source: ${DS_GROUP_RCLONE_CONFIG_DIR:?Set DS_GROUP_RCLONE_CONFIG_DIR}
+        target: /config/rclone
+      - rclone-spool:/spool
+    restart: unless-stopped
+    stop_grace_period: 45s
+
+volumes:
+  rclone-spool:

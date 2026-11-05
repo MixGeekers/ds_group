@@ -1,9 +1,10 @@
 import http from 'node:http';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { DatabaseSync } from 'node:sqlite';
+import { isIP } from 'node:net';
 import { MatrixClient } from './matrix-client.mjs';
 import { ModelBudget } from './budget.mjs';
 import { PushService } from './push.mjs';
@@ -11,6 +12,9 @@ import { MediaService, MAX_ATTACHMENTS } from './media.mjs';
 import { TaskService } from './tasks.mjs';
 import { ChatFeatures } from './mentions.mjs';
 import { localPath, packageRoot } from './paths.mjs';
+import { AccountService } from './accounts.mjs';
+import { NodeCredentials, requireNodeScope } from './node-auth.mjs';
+import { nodeBundle } from '../scripts/server-admin.mjs';
 
 const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const loadedCoreSha256 = createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
@@ -26,14 +30,29 @@ export async function readJsonBody(request) {
     chunks.push(Buffer.from(chunk));
   }
   const body = Buffer.concat(chunks).toString('utf8');
-  try { return body ? JSON.parse(body) : {}; }
+  let parsed;
+  try { parsed = body ? JSON.parse(body) : {}; }
   catch { throw Object.assign(new Error('Expected JSON body'), { status: 400 }); }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw Object.assign(new Error('Expected a JSON object'), { status: 400 });
+  }
+  return parsed;
 }
 
 function bearer(request) {
   const authorization = request.headers.authorization || '';
   if (!authorization.startsWith('Bearer ')) throw Object.assign(new Error('Please sign in'), { status: 401 });
   return authorization.slice(7);
+}
+
+function requestClientIp(request, trustProxy) {
+  const forwarded = request.headers['x-forwarded-for'];
+  if (trustProxy && typeof forwarded === 'string') {
+    const address = forwarded.split(',').at(-1).trim();
+    if (isIP(address)) return address;
+  }
+  const address = request.socket.remoteAddress;
+  return isIP(address || '') ? address : undefined;
 }
 
 async function loadCoreConfig(dataRoot, filename = process.env.DS_GROUP_CORE_CONFIG_PATH || path.join(dataRoot, 'core-config.json')) {
@@ -51,12 +70,21 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   setup ||= JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || path.join(dataRoot, 'matrix-setup.json'), 'utf8'));
   setup = { ...setup, homeserverUrl: process.env.DS_GROUP_MATRIX_URL || setup.homeserverUrl };
   config ||= await loadCoreConfig(dataRoot);
+  const proxySetting = process.env.DS_GROUP_TRUST_PROXY;
+  if (proxySetting !== undefined && !['true', 'false'].includes(proxySetting)) throw new Error('DS_GROUP_TRUST_PROXY must be true or false');
+  if (config.trustProxy !== undefined && typeof config.trustProxy !== 'boolean') throw new Error('trustProxy must be a boolean');
+  const trustProxy = proxySetting === undefined ? config.trustProxy === true : proxySetting === 'true';
   const demoLogin = process.env.DS_GROUP_DEMO_LOGIN === undefined ? config.demoLogin !== false : process.env.DS_GROUP_DEMO_LOGIN === 'true';
   if (process.env.DS_GROUP_DEMO_LOGIN !== undefined && !['true', 'false'].includes(process.env.DS_GROUP_DEMO_LOGIN)) {
     throw new Error('DS_GROUP_DEMO_LOGIN must be true or false');
   }
   if (typeof config.nodeSecret !== 'string' || !config.nodeSecret) throw new Error('Core nodeSecret is required');
   await mkdir(dataRoot, { recursive: true });
+  let push;
+  const accounts = await new AccountService({ setup, config, dataRoot,
+    onParticipant: async person => { if (push) await push.upsertParticipant(person); },
+  }).initialize();
+  const nodeCredentials = await new NodeCredentials({ dataRoot, setup, legacySecret: config.nodeSecret }).initialize();
   const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
   const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES });
   const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
@@ -68,21 +96,15 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const creatingDirectRooms = new Map();
   const sendingMessages = new Map();
   const chatFeatures = new ChatFeatures({ setup, dataRoot });
-  const push = enablePush ? new PushService({ dataRoot, setup,
+  push = enablePush ? new PushService({ dataRoot, setup,
     onEvent: (userId, event) => chatFeatures.recordEvents(userId, [event]),
     shouldNotify: (userId, event) => chatFeatures.shouldNotify(userId, event),
   }) : null;
   if (push) await push.start();
   const nodes = new Map();
   const startedAt = new Date().toISOString();
-  const defaultOwnerId = setup.participants.find(person => person.kind === 'human')?.id;
-  const publicParticipants = setup.participants.map(({ id, localpart, name, kind, ownerId }) => ({ id, localpart, name, kind,
-    ...(kind === 'bot' ? { ownerId: ownerId || defaultOwnerId } : {}) }));
-  function authorizeNode(request) {
-    const provided = Buffer.from(bearer(request));
-    const expected = Buffer.from(config.nodeSecret);
-    if (provided.length !== expected.length || !timingSafeEqual(provided, expected)) throw Object.assign(new Error('Invalid node credential'), { status: 401 });
-  }
+  const publicParticipants = () => accounts.publicParticipants();
+  const authorizeNode = request => nodeCredentials.authorize(request);
   const tasks = new TaskService({ setup, dataRoot, authorizeNode, readJsonBody });
   async function directRoomFor(client, userId, target) {
     const ids = [userId, target.id].sort();
@@ -102,7 +124,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
           if (!roomId) {
             try {
               const created = await client.createRoom({ is_direct: true, preset: 'private_chat', room_alias_name: localAlias,
-                invite: [target.id], name: ids.map(id => publicParticipants.find(person => person.id === id)?.name).join(' · ') });
+                invite: [target.id], name: ids.map(id => publicParticipants().find(person => person.id === id)?.name).join(' · ') });
               roomId = created.room_id;
             } catch (error) {
               // A lost create response or a concurrent creator is resolved by the stable alias.
@@ -166,7 +188,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     finally { sendingMessages.delete(key); }
   }
   function nodeSnapshot() {
-    return publicParticipants.filter(p => p.kind === 'bot').map(participant => {
+    return publicParticipants().filter(p => p.kind === 'bot').map(participant => {
       const active = nodes.get(participant.id);
       if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DS-Bot 0.2.7' };
       return { ...active, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
@@ -186,7 +208,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     }
     if (request.method === 'GET' && url.pathname === '/api/bootstrap') {
       response.setHeader('Access-Control-Allow-Origin', '*');
-      return send(200, { name: 'DS-Group', roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: publicParticipants, nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server',
+      return send(200, { name: 'DSCord', roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: publicParticipants(), nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server', registration: accounts.registration(),
         attachments: { maxBytes: media.maxBytes, maxPerMessage: MAX_ATTACHMENTS } });
     }
     if (request.method === 'GET' && url.pathname === '/api/status') {
@@ -199,7 +221,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (!push) return send(503, { error: 'Notifications are not enabled' });
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
-      if (!publicParticipants.some(p => p.id === userId && p.kind === 'human')) return send(403, { error: 'Choose a human notification recipient' });
+      if (!publicParticipants().some(p => p.id === userId && p.kind === 'human')) return send(403, { error: 'Choose a human notification recipient' });
       if (url.pathname === '/api/push/subscriptions') {
         if (request.method === 'GET') return send(200, { subscriptions: await push.subscriptions(userId) });
         if (request.method === 'POST') return send(200, await push.subscribe(userId, await readJsonBody(request)));
@@ -215,8 +237,25 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       return send(200, { access_token: participant.accessToken, user_id: participant.id, mode: 'synthetic-demo-account' });
     }
     if (request.method === 'POST' && url.pathname === '/api/login') {
-      const input = await readJsonBody(request);
-      return send(200, await MatrixClient.login(setup.homeserverUrl, input.user, input.password));
+      return send(200, await accounts.login(await readJsonBody(request), { clientIp: requestClientIp(request, trustProxy) }));
+    }
+    if (request.method === 'POST' && url.pathname === '/api/register') {
+      return send(201, await accounts.register(await readJsonBody(request), { clientIp: requestClientIp(request, trustProxy) }));
+    }
+    if (request.method === 'GET' && url.pathname === '/api/me') return send(200, await accounts.me(bearer(request)));
+    if (request.method === 'POST' && url.pathname === '/api/logout') return send(200, await accounts.logout(bearer(request)));
+    if (request.method === 'POST' && url.pathname === '/api/bots') {
+      const { user } = await accounts.me(bearer(request));
+      return send(201, { bot: await accounts.createBot(user.id, await readJsonBody(request)) });
+    }
+    const connectBot = url.pathname.match(/^\/api\/bots\/([^/]+)\/connect$/);
+    if (request.method === 'POST' && connectBot) {
+      const { user } = await accounts.me(bearer(request));
+      const bot = accounts.person(decodeURIComponent(connectBot[1]));
+      if (!bot || bot.kind !== 'bot' || bot.ownerId !== user.id) return send(403, { error: 'Choose one of your own Bots' });
+      const secret = await nodeCredentials.issue(bot);
+      const bundle = nodeBundle(setup, { ...config, nodeSecret: secret }, bot.localpart);
+      return send(200, { bundle });
     }
     if (tasks.handles(url.pathname)) return tasks.handle({ request, url, send });
     if (chatFeatures.handles(url.pathname)) {
@@ -227,7 +266,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     if (url.pathname === '/api/attachments' || url.pathname.startsWith('/api/attachments/')) {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
-      if (!publicParticipants.some(person => person.id === userId)) return send(403, { error: 'A registered member is required' });
+      if (!publicParticipants().some(person => person.id === userId)) return send(403, { error: 'A registered member is required' });
       if (request.method === 'POST' && url.pathname === '/api/attachments') {
         const controller = new AbortController();
         const disconnected = () => { if (!response.writableFinished) controller.abort(); };
@@ -245,10 +284,10 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       }
       return send(404, { error: 'Unknown attachment endpoint' });
     }
-    if (request.method === 'GET' && url.pathname === '/api/bots') {
+    if (request.method === 'GET' && ['/api/bots', '/api/my-bots'].includes(url.pathname)) {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
-      return send(200, { bots: publicParticipants.filter(person => person.kind === 'bot' && person.ownerId === userId) });
+      return send(200, { bots: publicParticipants().filter(person => person.kind === 'bot' && person.ownerId === userId) });
     }
     if (request.method === 'GET' && url.pathname === '/api/rooms') {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
@@ -258,7 +297,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       for (const row of chat.prepare('SELECT * FROM direct_rooms').all()) {
         const ids = JSON.parse(row.participants_json);
         if (!ids.includes(userId) || !joined.includes(row.room_id)) continue;
-        const other = publicParticipants.find(p => p.id === ids.find(id => id !== userId));
+        const other = publicParticipants().find(p => p.id === ids.find(id => id !== userId));
         rooms.push({ roomId: row.room_id, name: other?.name || '私聊', kind: 'direct', participantIds: ids });
       }
       for (const roomId of joined) {
@@ -279,7 +318,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (typeof input.name !== 'string' || !input.name.trim() || input.name.length > 80 || !Array.isArray(input.inviteIds)) return send(400, { error: 'A group name and member list are required' });
       const invited = [...new Set(input.inviteIds)].filter(id => id !== userId);
       for (const id of invited) {
-        const person = publicParticipants.find(p => p.id === id);
+        const person = publicParticipants().find(p => p.id === id);
         if (!person || (person.kind === 'bot' && person.ownerId !== userId)) return send(403, { error: 'Only your own Bots can be invited' });
       }
       const requestId = input.requestId || randomBytes(16).toString('hex');
@@ -320,7 +359,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const { user_id: userId } = await client.whoami();
       const input = await readJsonBody(request);
       const participant = setup.participants.find(p => p.id === input.participantId && p.kind === 'bot');
-      const profile = publicParticipants.find(p => p.id === input.participantId);
+      const profile = publicParticipants().find(p => p.id === input.participantId);
       if (!participant || profile.ownerId !== userId) return send(403, { error: 'Choose one of your own Bots' });
       const roomId = decodeURIComponent(invite[1]);
       const currentMembers = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`);
@@ -335,7 +374,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const { user_id: userId } = await client.whoami();
       const input = await readJsonBody(request);
       const target = setup.participants.find(p => p.id === input.participantId);
-      if (!target || target.id === userId || !publicParticipants.some(p => p.id === userId)) return send(400, { error: 'Choose a different demo participant' });
+      if (!target || target.id === userId || !publicParticipants().some(p => p.id === userId)) return send(400, { error: 'Choose a different demo participant' });
       return send(200, await directRoomFor(client, userId, target));
     }
     const context = url.pathname.match(/^\/api\/rooms\/([^/]+)\/context\/([^/]+)$/);
@@ -367,7 +406,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         const body = input.body ?? '';
         const to = input.to ?? [];
         if (typeof body !== 'string' || (!body.trim() && !attachments.length) || body.length > 16000) return send(400, { error: 'A message needs text or an attachment, with at most 16000 text characters' });
-        if (!Array.isArray(to) || to.some(id => !publicParticipants.some(p => p.id === id))) return send(400, { error: 'Unknown recipient' });
+        if (!Array.isArray(to) || to.some(id => !publicParticipants().some(p => p.id === id))) return send(400, { error: 'Unknown recipient' });
         if (typeof input.transactionId !== 'string' || !/^[a-zA-Z0-9_.:-]{1,200}$/.test(input.transactionId)) return send(400, { error: 'A stable transaction ID is required' });
         const { user_id: userId } = await client.whoami();
         const members = await chatFeatures.roomMembers(client, roomId, userId);
@@ -375,12 +414,16 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       }
     }
     if (url.pathname.startsWith('/internal/')) {
-      authorizeNode(request);
+      const scope = authorizeNode(request);
       const input = await readJsonBody(request);
-      if (request.method === 'POST' && url.pathname === '/internal/model/claim') return send(200, budget.claim(input));
-      if (request.method === 'POST' && url.pathname === '/internal/model/complete') return send(200, budget.complete(input));
+      if (request.method === 'POST' && url.pathname === '/internal/model/claim') {
+        requireNodeScope(scope, { nodeId: input.nodeId });
+        return send(200, budget.claim(input));
+      }
+      if (request.method === 'POST' && url.pathname === '/internal/model/complete') return send(200, budget.complete(input, scope || {}));
       if (request.method === 'POST' && url.pathname === '/internal/nodes/heartbeat') {
-        const participant = publicParticipants.find(p => p.id === input.botId && p.kind === 'bot');
+        requireNodeScope(scope, { botId: input.botId, nodeId: input.id });
+        const participant = publicParticipants().find(p => p.id === input.botId && p.kind === 'bot');
         if (!participant || typeof input.id !== 'string' || !input.id) return send(400, { error: 'Unknown Bot node' });
         const current = nodes.get(input.botId);
         if (current && current.status !== 'offline' && current.runtimeId !== input.runtimeId && Date.now() - current.heartbeatAt < 20000) return send(409, { error: 'Node already has an active runtime' });
@@ -410,13 +453,19 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const server = http.createServer((request, response) => {
     dispatch(request, response).catch(error => {
       if (response.headersSent) { response.destroy(); return; }
-      response.writeHead(error.status || error.statusCode || 500, jsonHeaders);
-      response.end(JSON.stringify({ error: error.message, code: error.code || 'REQUEST_FAILED' }));
+      const retryAfterMs = Number.isSafeInteger(error.retryAfterMs) && error.retryAfterMs >= 0 ? error.retryAfterMs : undefined;
+      response.writeHead(error.status || error.statusCode || 500, {
+        ...jsonHeaders, ...(retryAfterMs === undefined ? {} : { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) }),
+      });
+      response.end(JSON.stringify({ error: error.message, code: error.code || error.errcode || 'REQUEST_FAILED',
+        ...(retryAfterMs === undefined ? {} : { retry_after_ms: retryAfterMs }) }));
     });
   });
-  return { server, budget, push, media, tasks, chatFeatures, close: async () => {
-    if (push) await push.close();
+  return { server, budget, push, media, tasks, chatFeatures, accounts, nodeCredentials, close: async () => {
     await new Promise(resolve => server.close(resolve));
+    if (push) await push.close();
+    await nodeCredentials.close();
+    accounts.close();
     await media.close();
     tasks.close();
     chatFeatures.close();

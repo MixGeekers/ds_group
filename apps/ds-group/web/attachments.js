@@ -237,10 +237,10 @@ export function createAttachmentManager({ container, input, getSession, onChange
     notify();
   }
 
-  function clear() {
-    for (const record of currentDraft()) releaseRecord(record);
-    drafts.set(context, []);
-    notify();
+  function clear(key = context) {
+    for (const record of drafts.get(key) || []) releaseRecord(record);
+    drafts.set(key, []);
+    notify(key);
   }
 
   function cancelAll() {

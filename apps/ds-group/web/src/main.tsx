@@ -4,5 +4,5 @@ import "../tokens.css";
 import "../styles.css";
 
 const root = document.getElementById("root");
-if (!root) throw new Error("DS-Group root element is missing");
+if (!root) throw new Error("DSCord root element is missing");
 createRoot(root).render(<App />);

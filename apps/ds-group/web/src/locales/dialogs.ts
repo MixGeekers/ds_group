@@ -1,11 +1,4 @@
 const en = {
-  signIn: "Sign in",
-  signingIn: "Signing in",
-  closeSignIn: "Close sign in",
-  account: "Account",
-  loadingAccounts: "Loading accounts",
-  password: "Password",
-  usePassword: "Use a password",
   close: "Close",
   createGroup: "Create group",
   creating: "Creating",
@@ -33,13 +26,6 @@ const en = {
 export const dialogMessages = {
   en,
   "zh-CN": {
-    signIn: "登录",
-    signingIn: "登录中",
-    closeSignIn: "关闭登录",
-    account: "账号",
-    loadingAccounts: "读取账号中",
-    password: "密码",
-    usePassword: "使用密码",
     close: "关闭",
     createGroup: "创建群聊",
     creating: "创建中",

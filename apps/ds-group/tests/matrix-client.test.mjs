@@ -78,12 +78,25 @@ test('login uses an explicit user identity and returns the native Matrix receipt
     assert.equal(request.headers.authorization, undefined);
     assert.deepEqual(body.identifier, { type: 'm.id.user', user: '@alice:local' });
     assert.equal(body.password, 'synthetic-password');
-    assert.equal(body.device_id, 'DS_GROUP_FRAMEWORK');
+    assert.match(body.device_id, /^DSCORD_[a-f0-9-]+$/);
     response.end(JSON.stringify({ user_id: '@alice:local', access_token: 'synthetic-token' }));
   });
   assert.deepEqual(await MatrixClient.login(baseUrl, '@alice:local', 'synthetic-password'), {
     user_id: '@alice:local', access_token: 'synthetic-token',
   });
+});
+
+test('login permits a separate stable service device without reusing browser device IDs', async t => {
+  const devices = [];
+  const baseUrl = await mockServer(t, (_request, response, body) => {
+    devices.push(body.device_id);
+    response.end(JSON.stringify({ user_id: '@alice:local', access_token: `token-${devices.length}` }));
+  });
+  await MatrixClient.login(baseUrl, '@alice:local', 'password');
+  await MatrixClient.login(baseUrl, '@alice:local', 'password');
+  await MatrixClient.login(baseUrl, '@alice:local', 'password', { deviceId: 'DSCORD_CORE_ALICE', deviceName: 'Server' });
+  assert.notEqual(devices[0], devices[1]);
+  assert.equal(devices[2], 'DSCORD_CORE_ALICE');
 });
 
 test('Matrix errors retain their status and errcode without returning success', async t => {
@@ -97,4 +110,39 @@ test('Matrix errors retain their status and errcode without returning success', 
   assert.throws(() => client.send('!room:local', 'message', { originRoomId: '' }), /non-empty strings/);
   assert.throws(() => client.send('!room:local', 'message', { originEventId: 42 }), /non-empty strings/);
   assert.throws(() => client.sync({ timeout: -1 }), /timeout/);
+});
+
+test('Matrix rate-limit errors retain millisecond retry hints and fall back to Retry-After headers', async t => {
+  const baseUrl = await mockServer(t, (request, response) => {
+    response.statusCode = 429;
+    const hints = {
+      '/milliseconds': { body: { retry_after_ms: 1250 }, header: '99' },
+      '/seconds': { body: {}, header: '5' },
+      '/date': { body: {}, header: new Date(Date.now() + 60000).toUTCString() },
+      '/invalid': { body: { retry_after_ms: -1 }, header: 'invalid' },
+    }[request.url];
+    response.setHeader('Retry-After', hints.header);
+    response.end(JSON.stringify({ errcode: 'M_LIMIT_EXCEEDED', error: 'Too many requests', ...hints.body }));
+  });
+  const client = new MatrixClient({ baseUrl });
+  await assert.rejects(client.request('GET', '/milliseconds'), error => error.retryAfterMs === 1250 && error.errcode === 'M_LIMIT_EXCEEDED' && error.status === 429);
+  await assert.rejects(client.request('GET', '/seconds'), error => error.retryAfterMs === 5000);
+  await assert.rejects(client.request('GET', '/date'), error => error.retryAfterMs > 58000 && error.retryAfterMs <= 60000);
+  await assert.rejects(client.request('GET', '/invalid'), error => error.retryAfterMs === undefined);
+});
+
+test('Matrix requests forward only a validated client address supplied by the caller', async t => {
+  const addresses = [];
+  const baseUrl = await mockServer(t, (request, response) => {
+    addresses.push(request.headers['x-forwarded-for']);
+    response.end('{}');
+  });
+  const client = new MatrixClient({ baseUrl });
+  await client.request('POST', '/login', {}, { clientIp: '192.0.2.10' });
+  await client.request('POST', '/login', {}, { clientIp: '2001:db8::7' });
+  await client.request('POST', '/login', {});
+  for (const clientIp of ['', '192.0.2.1, 192.0.2.2', '127.0.0.1\r\nX-Test: value', 'a'.repeat(20000), 123]) {
+    await assert.rejects(client.request('POST', '/login', {}, { clientIp }), /Invalid client IP/);
+  }
+  assert.deepEqual(addresses, ['192.0.2.10', '2001:db8::7', undefined]);
 });

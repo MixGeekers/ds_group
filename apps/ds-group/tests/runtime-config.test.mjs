@@ -3,9 +3,21 @@ import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, chmod, symlink, rm, realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { runtimeSettings, providerConfiguration, resolveDsh, MODEL } from '../scripts/runtime-config.mjs';
+import { nodeIdentifier, runtimeSettings, providerConfiguration, resolveDsh, MODEL } from '../scripts/runtime-config.mjs';
 
 const root = path.resolve('runtime-config-fixture');
+
+test('new Bot accounts use independent state and explicit bridge ports', () => {
+  const bot = 'bot-f07de111-577b-4f77-b428-a636400f68ce';
+  const settings = runtimeSettings(bot, { root, env: { DS_GROUP_BRIDGE_PORT: '23100' } });
+  assert.equal(settings.nodeId, bot);
+  assert.equal(settings.local, path.join(root, '.local', `dsh-${bot}`));
+  assert.equal(settings.port, 23100);
+  assert.throws(() => runtimeSettings(bot, { root, env: {} }), /DS_GROUP_BRIDGE_PORT/);
+  for (const invalid of ['all', 'core', '../finance', 'BOT', '', undefined]) {
+    assert.throws(() => nodeIdentifier(invalid), /local Bot account name/);
+  }
+});
 
 test('remote node settings consistently place private state beneath a custom data directory', () => {
   const data = path.join(root, 'data');

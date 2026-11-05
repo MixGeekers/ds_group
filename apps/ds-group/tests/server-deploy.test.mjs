@@ -18,6 +18,12 @@ test('server initialization survives retries, keeps identity and rejects an inco
     assert.equal(await readFile(path.join(options.dataRoot, 'server.json'), 'utf8'), metadata);
     assert.equal(await readFile(path.join(options.dataRoot, 'core-config.json'), 'utf8'), core);
     assert.equal(JSON.parse(core).demoLogin, false);
+    const synapse = JSON.parse(await readFile(path.join(options.synapseRoot, 'homeserver.yaml'), 'utf8'));
+    assert.deepEqual(synapse.rc_login, {
+      address: { per_second: 1, burst_count: 20 },
+      account: { per_second: 0.003, burst_count: 5 },
+      failed_attempts: { per_second: 0.17, burst_count: 3 },
+    });
     await assert.rejects(initializeServer({ ...options, serverName: 'other.example.com' }, { containerOwnership: false }), /Existing Matrix identity/);
     assert.equal(await readFile(path.join(options.dataRoot, 'server.json'), 'utf8'), metadata);
     await initializeServer({ ...options, publicUrl: 'https://new-ui.example.com' }, { containerOwnership: false });

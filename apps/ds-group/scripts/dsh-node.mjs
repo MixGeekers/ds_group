@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { execFile, spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile, symlink, open, readlink, chmod } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { packageRoot } from '../src/paths.mjs';
 import { runtimeSettings, resolveDsh, providerConfiguration, httpUrl, MODEL } from './runtime-config.mjs';
+import { prepareRuntimeDependencies } from './runtime-dependencies.mjs';
 
 const [operation = 'start', nodeId = 'finance'] = process.argv.slice(2);
 if (!['start', 'run', 'stop', 'status', 'prepare'].includes(operation)) throw new Error('Use start, run, stop, status or prepare');
@@ -106,23 +106,7 @@ if (operation === 'start') {
 const { cli, runtime } = await resolveDsh();
 await mkdir(local, { recursive: true, mode: 0o700 });
 const dependencies = join(dataRoot, 'dsh-deps');
-await mkdir(dependencies, { recursive: true, mode: 0o700 });
-const dependencyManifest = await readFile(join(plugin, 'runtime-dependencies.json'), 'utf8');
-const dependencyLock = await readFile(join(plugin, 'runtime-dependencies-lock.json'), 'utf8');
-let installedLock;
-try { installedLock = await readFile(join(dependencies, 'package-lock.json'), 'utf8'); }
-catch (error) { if (error.code !== 'ENOENT') throw error; }
-await writeFile(join(dependencies, 'package.json'), dependencyManifest);
-await writeFile(join(dependencies, 'package-lock.json'), dependencyLock);
-const requireDependency = createRequire(join(dependencies, 'package.json'));
-try {
-  if (installedLock !== dependencyLock) throw new Error('Runtime dependency lock changed');
-  requireDependency.resolve('deep-view/core');
-  requireDependency.resolve('yaml');
-}
-catch {
-  await execute('npm', ['ci', '--ignore-scripts', '--legacy-peer-deps', '--no-audit', '--no-fund'], { cwd: dependencies });
-}
+const requireDependency = await prepareRuntimeDependencies({ directory: dependencies, plugin, runtime });
 const yaml = requireDependency(join(dependencies, 'node_modules', 'yaml', 'dist', 'index.js'));
 async function ensureLink(target, link) {
   try { await symlink(target, link, 'dir'); }

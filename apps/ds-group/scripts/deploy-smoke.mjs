@@ -15,6 +15,7 @@ const name = `ds-group-smoke-${randomBytes(5).toString('hex')}`;
 const reportPath = path.resolve(process.env.DS_GROUP_SMOKE_REPORT || path.join(packageRoot, '.local', 'deploy-smoke.json'));
 const composeFiles = ['-f', path.join(packageRoot, 'deploy', 'compose.yaml')];
 const env = { ...process.env, DS_GROUP_IMAGE: process.env.DS_GROUP_IMAGE || 'ds-group:ci',
+  DS_GROUP_MEDIA_BACKEND: 'local',
   DS_GROUP_HTTP_PORT: '0', DS_GROUP_MATRIX_PORT: '0', DS_GROUP_BIND: '127.0.0.1', DS_GROUP_SERVER_NAME: `${name}.local`,
   DS_GROUP_PUBLIC_URL: 'http://localhost:18100', DS_GROUP_MATRIX_PUBLIC_URL: 'http://localhost:18008' };
 const report = { schemaVersion: 1, startedAt: new Date().toISOString(), project: name,

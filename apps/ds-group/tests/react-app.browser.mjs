@@ -15,11 +15,12 @@ const rooms = [
   { roomId: '!two:test', name: 'Two', kind: 'group', participantIds: people.map(person => person.id) },
 ];
 const bootstrap = {
-  name: 'DS-Group',
+  name: 'DSCord',
   roomId: rooms[0].roomId,
   roomName: rooms[0].name,
   participants: people,
   demoLogin: true,
+  registration: { enabled: true, mode: 'open' },
   attachments: { maxBytes: 52428800, maxPerMessage: 10 },
 };
 const sessions = {
@@ -90,6 +91,16 @@ const checks = [];
 const pageErrors = [];
 const unhandledRequests = [];
 const sentMessages = [];
+const logoutRequests = [];
+const registrationRequests = [];
+const loginRequests = [];
+const loginLimits = [];
+const botRequests = [];
+const revokedTokens = new Set();
+const ownedBots = new Map();
+let registeredUser;
+let holdNextMessage = false;
+let releaseMessage;
 let apiRequestCount = 0;
 let browser;
 let page;
@@ -137,7 +148,6 @@ try {
     ['GET /api/bootstrap', bootstrap],
     ['GET /api/status', { nodes: [], core: { roomId: rooms[0].roomId }, budget: { used: 0, limit: null } }],
     ['GET /api/rooms', { rooms }],
-    ['GET /api/bots', { bots: [] }],
     ['GET /api/inbox?filter=mentions&limit=1', { events: [], unreadCount: 0, mentionCount: 0 }],
     ['GET /api/roles', { roles: [], canManage: true }],
     ['GET /api/push/config', { enabled: false }],
@@ -167,7 +177,44 @@ try {
     apiRequestCount++;
     let body;
     let status = 200;
-    if (key === `POST /api/rooms/${encodeURIComponent(rooms[0].roomId)}/messages`) {
+    let headers = {};
+    const token = request.headers().authorization?.replace('Bearer ', '');
+    const user = revokedTokens.has(token) ? null
+      : token === sessions.alice.access_token ? people[0]
+        : token === sessions.bob.access_token ? people[1]
+          : ['registered-fixture', 'registered-login-fixture'].includes(token) ? registeredUser : null;
+    if (key === 'GET /api/me') {
+      status = user ? 200 : 401;
+      body = user ? { user, ownedBots: ownedBots.get(user.id) ?? [] } : { error: 'Session expired' };
+    } else if (key === 'POST /api/logout') {
+      logoutRequests.push(token);
+      revokedTokens.add(token);
+      body = { loggedOut: true };
+    } else if (key === 'POST /api/register') {
+      const input = request.postDataJSON();
+      registrationRequests.push(input);
+      registeredUser = { id: `@${input.username}:test`, localpart: input.username, name: input.displayName, kind: 'human' };
+      status = 201;
+      body = { user_id: registeredUser.id, access_token: 'registered-fixture' };
+    } else if (key === 'POST /api/login') {
+      const input = request.postDataJSON();
+      loginRequests.push(input);
+      status = input.user === registeredUser?.localpart && input.password === 'fixture-password' ? 200 : 401;
+      body = status === 200 ? { user_id: registeredUser.id, access_token: 'registered-login-fixture' } : { error: 'Invalid credentials' };
+      const limit = loginLimits.shift();
+      if (limit) {
+        status = 429;
+        body = { error: 'Too Many Requests', code: 'M_LIMIT_EXCEEDED', ...limit.body };
+        headers = limit.headers ?? {};
+      }
+    } else if (key === 'POST /api/bots') {
+      const input = request.postDataJSON();
+      botRequests.push(input);
+      const bot = { id: '@bot-created:test', localpart: 'bot-created', name: input.name, kind: 'bot', ownerId: user.id };
+      ownedBots.set(user.id, [bot]);
+      status = 201;
+      body = { bot };
+    } else if (key === `POST /api/rooms/${encodeURIComponent(rooms[0].roomId)}/messages`) {
       sentMessages.push({
         roomId: rooms[0].roomId,
         authorization: request.headers().authorization,
@@ -177,6 +224,10 @@ try {
       body = status === 503
         ? { error: 'Synthetic temporarily unavailable' }
         : { event_id: '$confirmed-fixture-send' };
+      if (holdNextMessage) {
+        holdNextMessage = false;
+        await new Promise(resolve => { releaseMessage = resolve; });
+      }
     } else if (responses.has(key)) {
       body = responses.get(key);
     } else {
@@ -184,7 +235,7 @@ try {
       status = 501;
       body = { error: `Unhandled fixture request ${key}` };
     }
-    await route.fulfill({ status, contentType: 'application/json', body: JSON.stringify(body) });
+    await route.fulfill({ status, headers, contentType: 'application/json', body: JSON.stringify(body) });
   });
 
   await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/__app`);
@@ -202,7 +253,7 @@ try {
   async function switchAccount(localpart, displayName) {
     await page.locator('#identity-button').click();
     await page.locator('#login-dialog[open]').waitFor();
-    await page.locator('#login-user').selectOption(localpart);
+    await page.locator('#login-user').fill(localpart);
     await page.locator('#login-submit').click();
     await page.waitForFunction(name => document.querySelector('#current-name')?.textContent === name, displayName);
     await page.locator('#login-dialog').waitFor({ state: 'hidden' });
@@ -341,6 +392,96 @@ try {
   await page.locator('#task-history-dialog').waitFor({ state: 'hidden' });
   assert.equal(await page.locator('.task-card').count(), 0);
   checks.push('completedWorkDisappearsAndHistoryRequiresExplicitOverlayOpen');
+
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.locator('#settings-button').click();
+  await page.locator('#logout-button').click();
+  await page.locator('#login-dialog[open]').waitFor();
+  assert.deepEqual(logoutRequests, ['alice-fixture']);
+  assert.equal(await readStorage('ds-group.session'), null);
+  assert.equal(await page.locator('.message').count(), 0);
+  assert.equal(await page.locator('#owned-bots .contact-row').count(), 0);
+  assert.equal(await page.locator('#task-history-dialog').evaluate(element => element.open), false);
+  checks.push('logoutRevokesCurrentSessionAndClearsVisibleAccountState');
+
+  await page.locator('#auth-toggle-mode').click();
+  await page.locator('#login-user').fill('charlie-new');
+  await page.locator('#register-name').fill('Charlie New');
+  await page.locator('#login-password').fill('fixture-password');
+  await page.locator('#login-submit').click();
+  await page.locator('#login-dialog').waitFor({ state: 'hidden' });
+  await page.waitForFunction(() => document.querySelector('#current-name')?.textContent === 'Charlie New');
+  assert.deepEqual(registrationRequests, [{ username: 'charlie-new', password: 'fixture-password', displayName: 'Charlie New' }]);
+  assert.deepEqual(await readStorage('ds-group.session'), { user_id: '@charlie-new:test', access_token: 'registered-fixture' });
+  checks.push('newAccountRegistersAndMeSuppliesIdentityOutsideBootstrapRoster');
+
+  await page.locator('#create-bot-button').click();
+  await page.locator('#bot-name').fill('Finance');
+  await page.locator('#create-bot-submit').click();
+  await page.locator('#bot-connection-id').waitFor();
+  assert.equal(await page.locator('#bot-connection-id').inputValue(), '@bot-created:test');
+  assert.equal(await page.locator('.bot-connection-status').textContent(), 'Offline');
+  assert.equal(botRequests.length, 1);
+  assert.equal(botRequests[0].name, 'Finance');
+  assert.equal(typeof botRequests[0].requestId, 'string');
+  await page.locator('#close-create-bot').click();
+  await page.locator('#owned-bots .contact-row').filter({ hasText: 'Finance' }).waitFor();
+  assert.equal(await page.locator('#owned-bot-count').textContent(), '1');
+  checks.push('newOwnerCreatesBotAndReceivesConnectionIdWithUpdatedOwnedList');
+
+  await page.locator('#settings-button').click();
+  await page.locator('#logout-button').click();
+  await page.locator('#login-dialog[open]').waitFor();
+  assert.deepEqual(logoutRequests, ['alice-fixture', 'registered-fixture']);
+  assert.equal(await page.locator('#owned-bots .contact-row').count(), 0);
+  await page.locator('#login-user').fill('charlie-new');
+  await page.locator('#login-password').fill('fixture-password');
+  loginLimits.push(
+    { body: { retry_after_ms: 1100 } },
+    { headers: { 'Retry-After': '2' } },
+    {},
+  );
+  await page.locator('#login-submit').click();
+  await page.locator('#login-error').filter({ hasText: 'Try again in 2 seconds' }).waitFor();
+  assert.equal(await page.locator('#login-user').inputValue(), 'charlie-new');
+  assert.equal(await page.locator('#login-password').inputValue(), 'fixture-password');
+  assert.equal(await page.locator('#login-submit').isEnabled(), true);
+  await page.locator('#login-error').filter({ hasText: 'Try again shortly' }).waitFor();
+  assert.equal(loginRequests.length, 1);
+  await page.locator('#login-submit').click();
+  await page.locator('#login-error').filter({ hasText: 'Try again in 2 seconds' }).waitFor();
+  await page.evaluate(async () => (await import('/i18n.js')).setLocalePreference('zh-CN'));
+  await page.locator('#login-error').filter({ hasText: '登录请求过于频繁' }).waitFor();
+  await page.evaluate(async () => (await import('/i18n.js')).setLocalePreference('en'));
+  await page.locator('#login-submit').click();
+  await page.locator('#login-error').filter({ hasText: 'Try again shortly' }).waitFor();
+  checks.push('rateLimitUsesBodyOrHeaderDelayPreservesInputsAndNeverRetriesAutomatically');
+  await page.locator('#login-submit').click();
+  await page.locator('#login-dialog').waitFor({ state: 'hidden' });
+  await page.locator('#owned-bots .contact-row').filter({ hasText: 'Finance' }).waitFor();
+  assert.deepEqual(loginRequests, Array.from({ length: 4 }, () => ({ user: 'charlie-new', password: 'fixture-password' })));
+  assert.equal((await readStorage('ds-group.session')).access_token, 'registered-login-fixture');
+  checks.push('passwordLoginRestoresNewAccountAndOwnedBotsAfterLogout');
+
+  holdNextMessage = true;
+  await editor.fill('Message awaiting receipt before logout');
+  await sendButton.click();
+  await page.waitForFunction(() => document.querySelector('#send-button-text')?.textContent === 'Sending');
+  await page.locator('#settings-button').click();
+  await page.locator('#logout-button').click();
+  await page.locator('#login-dialog[open]').waitFor();
+  await page.locator('#login-user').fill('bob');
+  await page.locator('#login-submit').click();
+  await page.locator('#login-dialog').waitFor({ state: 'hidden' });
+  await page.waitForFunction(() => document.querySelector('#current-name')?.textContent === 'Bob');
+  assert.equal(await editor.textContent(), bobOneDraft.body);
+  assert.equal(typeof releaseMessage, 'function');
+  releaseMessage();
+  await expectEditor(bobOneDraft.body, true);
+  await page.waitForTimeout(220);
+  assert.equal((await readStorage(bobOneDraftKey)).body, bobOneDraft.body);
+  assert.equal(await readStorage(`ds-group.pending.${registeredUser.id}.${rooms[0].roomId}`), null);
+  checks.push('lateSendReceiptAfterLogoutPreservesNextAccountsDraft');
 
   assert.deepEqual(unhandledRequests, []);
   assert.deepEqual(pageErrors, []);

@@ -47,6 +47,32 @@ test('Web Push VAPID keys persist with private file modes and only the public ke
   } finally { await f.close(); }
 });
 
+test('new human accounts and rotated service tokens update the running notification service once', async () => {
+  const clients = [];
+  const f = await fixture({ clientFactory: person => {
+    const client = { token: person.accessToken };
+    clients.push(client);
+    return client;
+  } });
+  const started = [];
+  f.service.syncLoop = async userId => { started.push(userId); };
+  try {
+    await f.service.start();
+    const person = { id: '@charlie:test', name: 'Charlie', kind: 'human', accessToken: 'charlie-service' };
+    await f.service.upsertParticipant(person);
+    await f.service.upsertParticipant(person);
+    await f.service.subscribe(person.id, { subscription: subscription('charlie-phone') });
+    assert.equal((await f.service.subscriptions(person.id)).length, 1);
+    assert.equal(started.filter(id => id === person.id).length, 1);
+    const client = f.service.clients.get(person.id);
+    await f.service.upsertParticipant({ ...person, accessToken: 'charlie-rotated' });
+    assert.notEqual(f.service.clients.get(person.id), client);
+    assert.equal(f.service.clients.get(person.id).token, 'charlie-rotated');
+    assert.equal(started.filter(id => id === person.id).length, 1);
+    assert.equal(clients.length, 4);
+  } finally { await f.close(); }
+});
+
 test('the installed Web Push library encrypts a synthetic payload and signs its VAPID request', async () => {
   const receiver = createECDH('prime256v1');
   const publicKey = receiver.generateKeys();

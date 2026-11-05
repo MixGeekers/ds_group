@@ -48,10 +48,10 @@ async function run() {
   const entry = entries.get(command);
   if (!entry) throw new Error(`Unknown command "${command}". Run dscord help.`);
   if (command === 'service' && ['up', 'down', 'restart'].includes(args[0]) && !args[1]) {
-    throw new Error('Choose a service component explicitly: all, core, finance, or hr.');
+    throw new Error('Choose a service component explicitly: all, core, or a local Bot account name.');
   }
   if (command === 'dsh' && args.length < 2) {
-    throw new Error('Use dscord dsh <start|run|stop|status|prepare> <finance|hr>.');
+    throw new Error('Use dscord dsh <start|run|stop|status|prepare> <bot-account>.');
   }
 
   const env = { ...process.env };

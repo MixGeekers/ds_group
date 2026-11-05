@@ -22,6 +22,29 @@ export function nodeBundle(setup, coreConfig, nodeId) {
   };
 }
 
+export async function exportNodeBundle(dataRoot, nodeId) {
+  const [{ AccountService }, { NodeCredentials }] = await Promise.all([
+    import('../src/accounts.mjs'), import('../src/node-auth.mjs'),
+  ]);
+  const [setup, config] = await Promise.all([
+    readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || path.join(dataRoot, 'matrix-setup.json'), 'utf8').then(JSON.parse),
+    readFile(process.env.DS_GROUP_CORE_CONFIG_PATH || path.join(dataRoot, 'core-config.json'), 'utf8').then(JSON.parse),
+  ]);
+  const accounts = new AccountService({ setup, config, dataRoot });
+  const credentials = new NodeCredentials({ dataRoot, setup, legacySecret: config.nodeSecret });
+  try {
+    await accounts.initialize();
+    await credentials.initialize();
+    const bot = setup.participants.find(person => person.kind === 'bot' && person.localpart === nodeId);
+    if (!bot?.accessToken) throw new Error('Choose a registered Bot with an access token');
+    const nodeSecret = await credentials.issue(bot);
+    return nodeBundle(setup, { ...config, nodeSecret }, nodeId);
+  } finally {
+    await credentials.close();
+    accounts.close();
+  }
+}
+
 export async function importNodeBundle(bundle, directory) {
   if (bundle.schemaVersion !== 1 || !bundle.setup?.participants || !bundle.coreConfig?.nodeSecret || !bundle.coreUrl) throw new Error('Invalid node bundle');
   await mkdir(directory, { recursive: true, mode: 0o700 });
@@ -55,14 +78,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
     const directory = path.resolve(destination);
     console.log(JSON.stringify(await importNodeBundle(bundle, directory)));
   } else {
-    const setup = JSON.parse(await readFile(localPath('matrix-setup.json'), 'utf8'));
     if (command === 'credentials') {
+      const setup = JSON.parse(await readFile(localPath('matrix-setup.json'), 'utf8'));
       const human = setup.participants.find(participant => participant.kind === 'human' && participant.localpart === (argument || 'alice'));
       if (!human?.password) throw new Error('Choose a registered human');
       console.log(JSON.stringify({ user: human.id, password: human.password }));
     } else if (command === 'export-node') {
-      const config = JSON.parse(await readFile(localPath('core-config.json'), 'utf8'));
-      console.log(JSON.stringify(nodeBundle(setup, config, argument)));
+      console.log(JSON.stringify(await exportNodeBundle(localPath(), argument)));
     } else {
       throw new Error('Use credentials [alice|bob], export-node BOT, or import-node BUNDLE.json DATA_DIRECTORY');
     }

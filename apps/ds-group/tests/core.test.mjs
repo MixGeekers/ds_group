@@ -23,6 +23,11 @@ test('core publishes identities, keeps secrets local, and records a unique Bot r
   const base = `http://127.0.0.1:${core.server.address().port}`;
   const headers = { 'Content-Type': 'application/json', Authorization: 'Bearer synthetic-node-secret' };
   try {
+    for (const route of ['/internal/model/claim', '/internal/nodes/heartbeat', '/api/login', '/api/register']) {
+      for (const body of ['null', '[]', '"invalid"']) {
+        assert.equal((await fetch(base + route, { method: 'POST', headers, body })).status, 400);
+      }
+    }
     const bootstrap = await (await fetch(base + '/api/bootstrap')).json();
     assert.equal(bootstrap.participants.length, 2);
     assert.equal(JSON.stringify(bootstrap).includes('synthetic-alice-token'), false);

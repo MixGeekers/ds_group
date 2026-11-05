@@ -172,7 +172,7 @@ export class NodeDelivery {
     const anchor = this.store.item(this.routeEventId(item));
     if (anchor && this.isHuman(anchor.event.sender) && this.matrix.timeline) {
       const events = (await this.matrix.timeline(anchor.event.room_id, 60)).map(event => ({ ...event, room_id: anchor.event.room_id }));
-      this.ingest(events);
+      await this.ingest(events);
       await this.flushTasks();
     }
     if (this.tasks) {

@@ -20,7 +20,7 @@ async function listen(server) {
   return `http://127.0.0.1:${server.address().port}`;
 }
 
-async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0 } = {}) {
+async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0, upstreamRanges = false } = {}) {
   const dataRoot = await mkdtemp(path.join(os.tmpdir(), 'ds-group-media-'));
   const storedMedia = new Map();
   const events = new Map();
@@ -56,6 +56,15 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0 } = {}) {
       if (request.method === 'GET' && download) {
         const media = storedMedia.get(download[1]);
         if (!media) return json(404, { errcode: 'M_NOT_FOUND', error: 'Unknown fixture media' });
+        if (upstreamRanges && request.headers.range) {
+          const [, first, last] = /^bytes=(\d+)-(\d+)$/.exec(request.headers.range);
+          const start = Number(first);
+          const end = Math.min(Number(last), media.bytes.length - 1);
+          response.writeHead(206, { 'Content-Type': media.mimeType, 'Content-Length': media.declaredRangeLength ?? end - start + 1,
+            'Content-Range': `bytes ${start}-${end}/${media.bytes.length}` });
+          response.end(media.bytes.subarray(start, end + 1));
+          return;
+        }
         response.writeHead(200, { 'Content-Type': media.mimeType, 'Content-Length': media.bytes.length });
         response.end(media.bytes);
         return;
@@ -129,9 +138,9 @@ async function fixture(t, { maxUploadBytes = 1024, uploadDelay = 0 } = {}) {
     });
     return { status: response.status, body: await response.json() };
   }
-  async function request(actor, method, route, body) {
+  async function request(actor, method, route, body, headers = {}) {
     return fetch(baseUrl + route, { method,
-      headers: { ...(actor ? { Authorization: `Bearer ${tokenFor(actor)}` } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+      headers: { ...headers, ...(actor ? { Authorization: `Bearer ${tokenFor(actor)}` } : {}), ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
     });
   }
@@ -189,6 +198,71 @@ test('binary attachments preserve original bytes and Unicode names through uploa
   const value = await metadata.json();
   assert.equal((value.attachment || value).sha256, hash(bytes));
   assert.equal((await app.request(undefined, 'GET', `/api/attachments/${encodeURIComponent(attachment.id)}`)).status, 401);
+});
+
+test('single byte ranges stream from a full upstream response and survive a Core restart', async t => {
+  const app = await fixture(t, { maxUploadBytes: 1024 * 1024 });
+  const bytes = Buffer.alloc(256 * 1024);
+  for (let index = 0; index < bytes.length; index++) bytes[index] = index % 251;
+  const attachment = successfulUpload(await app.upload({ bytes }));
+  const route = `/api/attachments/${attachment.id}`;
+  for (const [range, start, end] of [['bytes=65530-131100', 65530, 131100], ['bytes=262100-', 262100, bytes.length - 1],
+    ['bytes=-31', bytes.length - 31, bytes.length - 1], ['bytes=0-999999', 0, bytes.length - 1]]) {
+    const response = await app.request('alice', 'GET', route, undefined, { Range: range });
+    assert.equal(response.status, 206);
+    assert.equal(response.headers.get('content-range'), `bytes ${start}-${end}/${bytes.length}`);
+    assert.equal(response.headers.get('content-length'), String(end - start + 1));
+    assert.equal(response.headers.get('accept-ranges'), 'bytes');
+    assert.deepEqual(Buffer.from(await response.arrayBuffer()), bytes.subarray(start, end + 1));
+  }
+  await app.restart();
+  const reopened = await app.request('alice', 'GET', route, undefined, { Range: 'bytes=17-39' });
+  assert.equal(reopened.status, 206);
+  assert.deepEqual(Buffer.from(await reopened.arrayBuffer()), bytes.subarray(17, 40));
+  const whole = await app.request('alice', 'GET', route);
+  assert.equal(whole.status, 200);
+  assert.deepEqual(Buffer.from(await whole.arrayBuffer()), bytes);
+});
+
+test('unsatisfiable and malformed ranges are rejected before contacting the media provider', async t => {
+  const app = await fixture(t);
+  const attachment = successfulUpload(await app.upload({ bytes: Buffer.from('12345') }));
+  const route = `/api/attachments/${attachment.id}`;
+  for (const range of ['bytes=5-', 'bytes=4-2', 'bytes=-0', 'bytes=99999999999999999999999-']) {
+    const response = await app.request('alice', 'GET', route, undefined, { Range: range });
+    assert.equal(response.status, 416);
+    assert.equal(response.headers.get('content-range'), 'bytes */5');
+    await response.arrayBuffer();
+  }
+  for (const range of ['bytes=-', 'bytes=0-1,3-4', 'bytes=a-b']) {
+    const response = await app.request('alice', 'GET', route, undefined, { Range: range });
+    assert.equal(response.status, 400);
+    await response.arrayBuffer();
+  }
+  assert.equal(app.calls.filter(call => call.pathname.includes('/media/download/')).length, 0);
+});
+
+test('a provider with native partial responses keeps its byte range and changed media size is rejected', async t => {
+  const app = await fixture(t, { upstreamRanges: true });
+  const bytes = Buffer.from('original-media');
+  const attachment = successfulUpload(await app.upload({ bytes }));
+  const route = `/api/attachments/${attachment.id}`;
+  const partial = await app.request('alice', 'GET', route, undefined, { Range: 'bytes=2-5' });
+  assert.equal(partial.status, 206);
+  assert.deepEqual(Buffer.from(await partial.arrayBuffer()), bytes.subarray(2, 6));
+  const stored = app.storedMedia.values().next().value;
+  stored.declaredRangeLength = 1;
+  const invalidLength = await app.request('alice', 'GET', route, undefined, { Range: 'bytes=2-5' });
+  assert.equal(invalidLength.status, 502);
+  assert.match((await invalidLength.json()).error, /unexpected byte range/);
+  delete stored.declaredRangeLength;
+  app.storedMedia.values().next().value.bytes = Buffer.from('changed');
+  const changed = await app.request('alice', 'GET', route);
+  assert.equal(changed.status, 502);
+  assert.match((await changed.json()).error, /size differs/);
+  const invalidRange = await app.request('alice', 'GET', route, undefined, { Range: 'bytes=2-5' });
+  assert.equal(invalidRange.status, 502);
+  assert.match((await invalidRange.json()).error, /unexpected byte range/);
 });
 
 test('upload identity deduplicates concurrent retries and survives core restart while conflicting content is rejected', async t => {

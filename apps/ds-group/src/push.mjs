@@ -48,8 +48,10 @@ export class PushService {
     this.onEvent = onEvent;
     this.shouldNotify = shouldNotify;
     this.transport = transport || ((subscription, payload, options) => webPush.sendNotification(subscription, payload, options));
+    this.clientFactory = clientFactory || (person => new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: person.accessToken }));
     this.humans = setup.participants.filter(person => person.kind === 'human');
-    this.clients = new Map(this.humans.map(person => [person.id, clientFactory ? clientFactory(person) : new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: person.accessToken })]));
+    this.clients = new Map(this.humans.map(person => [person.id, this.clientFactory(person)]));
+    this.syncUsers = new Set();
     this.controller = new AbortController();
     this.loops = [];
     this.roomNames = new Map();
@@ -329,13 +331,31 @@ export class PushService {
     if (this.closed) throw new Error('Push service is closed');
     if (this.started) return;
     this.started = true;
-    this.loops = this.humans.map(person => this.syncLoop(person.id));
+    for (const person of this.humans) this.startUserSync(person.id);
     this.loops.push((async () => {
       while (!this.controller.signal.aborted) {
         try { await this.drain(); } catch { this.onError('Push delivery queue is temporarily unavailable'); }
         await pause(1000, this.controller.signal);
       }
     })());
+  }
+
+  startUserSync(userId) {
+    if (this.syncUsers.has(userId)) return;
+    this.syncUsers.add(userId);
+    this.loops.push(this.syncLoop(userId));
+  }
+
+  async upsertParticipant(person) {
+    await this.ready;
+    if (this.closed) throw new Error('Push service is closed');
+    if (person?.kind !== 'human') return;
+    const index = this.humans.findIndex(existing => existing.id === person.id);
+    const previous = this.humans[index];
+    if (index === -1) this.humans.push(person);
+    else this.humans[index] = person;
+    if (!previous || previous.accessToken !== person.accessToken) this.clients.set(person.id, this.clientFactory(person));
+    if (this.started) this.startUserSync(person.id);
   }
 
   async close() {

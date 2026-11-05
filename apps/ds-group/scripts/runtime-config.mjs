@@ -6,6 +6,13 @@ import { homedir } from 'node:os';
 export const DSH_VERSION = '0.2.1-rc.5';
 export const MODEL = 'deepseek-v4.1-flash';
 
+export function nodeIdentifier(value) {
+  if (typeof value !== 'string' || !/^[a-z][a-z0-9_-]{0,63}$/.test(value) || ['all', 'core'].includes(value)) {
+    throw new Error('Node must use a local Bot account name with lowercase letters, digits, underscores or hyphens');
+  }
+  return value;
+}
+
 export function portNumber(value, fallback, name) {
   const port = value === undefined || value === '' ? fallback : Number(value);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(`${name} must be a port between 1 and 65535`);
@@ -22,10 +29,13 @@ export function httpUrl(value, name, { originOnly = true } = {}) {
 }
 
 export function runtimeSettings(nodeId, { env = process.env, root, userHome = homedir() } = {}) {
-  if (!['finance', 'hr'].includes(nodeId)) throw new Error('Node must be finance or hr');
+  nodeIdentifier(nodeId);
   const dataRoot = path.resolve(env.DS_GROUP_DATA_DIR || path.join(root, '.local'));
   const local = path.join(dataRoot, `dsh-${nodeId}`);
-  const port = portNumber(env.DS_GROUP_BRIDGE_PORT || env[`DS_GROUP_${nodeId.toUpperCase()}_PORT`], nodeId === 'finance' ? 18091 : 18092, 'Bridge port');
+  const defaultPort = { finance: 18091, hr: 18092 }[nodeId];
+  const configuredPort = env.DS_GROUP_BRIDGE_PORT || env[`DS_GROUP_${nodeId.toUpperCase()}_PORT`];
+  if (!configuredPort && !defaultPort) throw new Error('Set DS_GROUP_BRIDGE_PORT for this Bot node');
+  const port = portNumber(configuredPort, defaultPort, 'Bridge port');
   const corePort = portNumber(env.DS_GROUP_PORT, 18100, 'DS_GROUP_PORT');
   const sourceHome = path.resolve(env.DS_GROUP_DSH_SOURCE_HOME || path.join(userHome, '.dsh'));
   const sourceProfile = env.DS_GROUP_DSH_SOURCE_PROFILE || 'desktop';

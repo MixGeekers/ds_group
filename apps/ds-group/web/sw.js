@@ -99,7 +99,7 @@ self.addEventListener('push', event => {
   }
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) payload = {};
   const data = notificationTarget(payload.data && typeof payload.data === 'object' ? payload.data : {});
-  const title = typeof payload.title === 'string' && payload.title.trim() ? payload.title.slice(0, 120) : 'DS-Group';
+  const title = typeof payload.title === 'string' && payload.title.trim() ? payload.title.slice(0, 120) : 'DSCord';
   const body = typeof payload.body === 'string' ? payload.body.slice(0, 1000) : '收到一条新消息';
   event.waitUntil(self.registration.showNotification(title, {
     body,

@@ -231,16 +231,37 @@ export async function apply(ctx, config) {
       tools: bot.tools ?? [], model: MODEL };
   }
 
+  const botSetups = new Map();
   async function createBot(input) {
     required(input.botId, 'botId');
-    required(input.name, 'name', 40);
+    required(input.name, 'name', 80);
     required(input.role, 'role', 200);
+    const setup = (botSetups.get(input.botId) ?? Promise.resolve()).catch(() => {}).then(() => setupBot(input));
+    botSetups.set(input.botId, setup);
+    try {
+      return await setup;
+    } finally {
+      if (botSetups.get(input.botId) === setup) botSetups.delete(input.botId);
+    }
+  }
+
+  async function setupBot(input) {
     const previous = state.bots[input.botId];
-    let bot = previous ? rt.botOf(previous.dsBotId) : rt.findBot(input.name);
-    if (bot && !previous && !bot.instructions?.includes(PROTOCOL)) throw fail('BOT_NAME_CONFLICT');
-    if (!bot) bot = await rt.createBot({ name: input.name, role: input.role, instructions: botInstructions(input.instructions), pickModel: true });
+    const internalName = `ds-group-${createHash('sha256').update(input.botId).digest('hex').slice(0, 31)}`;
+    const binding = `\n\nDS_GROUP_MATRIX_BOT_ID=${JSON.stringify(input.botId)}`;
+    const instructions = `${botInstructions(input.instructions)}${binding}`;
+    // Persist the identity in the first DS-Bot write so retries can recover before the bridge mapping exists.
+    let bot = previous ? rt.botOf(previous.dsBotId) : rt.findBot(internalName);
+    if (previous && !bot) throw fail('BOT_BINDING_MISSING', 'Restore the existing DS-Bot state before retrying this saved binding.');
+    const boundElsewhere = bot && Object.entries(state.bots).some(([botId, record]) => botId !== input.botId && record.dsBotId === bot.id);
+    if (boundElsewhere || bot && !previous && (!bot.instructions?.includes(PROTOCOL) || !bot.instructions.endsWith(binding))) {
+      throw fail('BOT_BINDING_CONFLICT');
+    }
+    if (!bot) bot = await rt.createBot({ name: internalName, role: input.role, instructions, pickModel: true });
     const record = previous ?? { botId: input.botId, dsBotId: bot.id, name: input.name, role: input.role,
       seenEventIds: [], setupStatus: 'creating', createdAt: new Date().toISOString() };
+    record.name = input.name;
+    record.role = input.role;
     state.bots[input.botId] = record;
     await save();
     delete bot.kickoff;
@@ -248,7 +269,8 @@ export async function apply(ctx, config) {
     const agent = await rt.resolveAgent(rt.chatOf(bot.id));
     configureAgent(agent);
     record.tools = agent.ctx.tools.schemas(agent).map(tool => tool.name).filter(tool => WORK_TOOLS.has(tool));
-    await rt.updateBot(bot.id, { model: MODEL, effort: 'low', instructions: botInstructions(input.instructions) });
+    // Bridge setup must not send the vendor's profile-update message and start an unsolicited turn.
+    await rt.updateBot(bot.id, { model: MODEL, effort: 'low', instructions }, bot.id, rt.chatOf(bot.id));
     const presets = ctx.get?.('permissionPresets');
     if (presets) await rt.setPermission(bot, 'danger-full-access');
     record.setupStatus = 'ready';

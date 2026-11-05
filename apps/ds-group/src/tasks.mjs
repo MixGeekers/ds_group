@@ -2,6 +2,7 @@ import path from 'node:path';
 import { mkdirSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { MatrixClient } from './matrix-client.mjs';
+import { requireNodeScope } from './node-auth.mjs';
 
 const states = new Set(['queued', 'running', 'completed', 'failed', 'cancelled', 'unknown']);
 const terminalStates = new Set(['completed', 'failed', 'cancelled']);
@@ -115,15 +116,18 @@ export class TaskService {
       ...(source.delivery ? { delivery: source.delivery, deliveryRevision: source.deliveryRevision } : {}) };
   }
 
-  update(input) {
+  update(input, scope) {
+    if (!input || typeof input !== 'object' || Array.isArray(input)) throw fail('Invalid task update');
     const requestId = requiredString(input.requestId, 'task ID', 200);
     if (!/^[a-zA-Z0-9_.:-]+$/.test(requestId)) throw fail('Invalid task ID');
     const botId = requiredString(input.botId, 'Bot ID');
+    requireNodeScope(scope, { botId });
     if (!this.setup.participants.some(person => person.id === botId && person.kind === 'bot')) throw fail('Unknown Bot');
     const roomId = requiredString(input.roomId, 'room ID');
     const eventId = requiredString(input.eventId, 'event ID');
     if (!states.has(input.status)) throw fail('Invalid task status');
     const previous = this.get(requestId);
+    if (previous) requireNodeScope(scope, { botId: previous.botId });
     const taskId = requiredString(input.taskId ?? previous?.taskId ?? requestId, 'collaboration task ID', 200);
     if (previous && (previous.botId !== botId || previous.roomId !== roomId || previous.eventId !== eventId)) {
       throw fail('Task identity does not match the existing request', 409);
@@ -174,13 +178,16 @@ export class TaskService {
   async handle({ request, url, send }) {
     const pathname = url.pathname;
     if (pathname.startsWith('/internal/tasks/')) {
-      this.authorizeNode(request);
+      const scope = this.authorizeNode(request);
       if (pathname === '/internal/tasks/update' && request.method === 'POST') {
-        return send(200, { task: this.update(await this.readJsonBody(request)) });
+        const input = await this.readJsonBody(request);
+        return send(200, { task: this.update(input, scope) });
       }
       const control = pathname.match(/^\/internal\/tasks\/([^/]+)\/control$/);
       if (control && request.method === 'GET') {
         const requestId = decodeURIComponent(control[1]);
+        const task = this.get(requestId);
+        if (task) requireNodeScope(scope, { botId: task.botId });
         return send(200, this.control(requestId));
       }
       return send(405, { error: 'Unsupported task operation' });

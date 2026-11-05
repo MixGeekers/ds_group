@@ -9,14 +9,8 @@ import { messageOf, readStored } from "../api";
 import { useTranslation } from "../locale";
 import { Icon } from "./Icons";
 import { dialogMessages } from "../locales/dialogs";
-import type {
-  Api,
-  Bootstrap,
-  Participant,
-  Role,
-  Room,
-  Session,
-} from "../types";
+import { botMessages } from "../locales/bots";
+import type { Api, Participant, Role, Room, Session } from "../types";
 
 function useDialog(open: boolean) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -51,135 +45,6 @@ function dismissBackdrop(
     event.clientY < bounds.top ||
     event.clientY > bounds.bottom;
   if (outside) onClose();
-}
-
-interface LoginDialogProps {
-  open: boolean;
-  bootstrap: Bootstrap | null;
-  session: Session | null;
-  busy: boolean;
-  error: string;
-  onLogin(user: string, password: string): void | Promise<void>;
-  onClose(): void;
-}
-
-export function LoginDialog({
-  open,
-  bootstrap,
-  session,
-  busy,
-  error,
-  onLogin,
-  onClose,
-}: LoginDialogProps) {
-  const t = useTranslation(dialogMessages);
-  const dialog = useDialog(open);
-  const [user, setUser] = useState("");
-  const [password, setPassword] = useState("");
-  const [localError, setLocalError] = useState("");
-  const humans =
-    bootstrap?.participants.filter((person) => person.kind === "human") ?? [];
-  const passwordRequired = bootstrap?.demoLogin === false;
-  const canClose = Boolean(session) && !busy;
-
-  useEffect(() => {
-    if (!open) return;
-    setPassword("");
-    setLocalError("");
-    setUser((current) => {
-      const members =
-        bootstrap?.participants.filter((person) => person.kind === "human") ??
-        [];
-      if (members.some((person) => (person.localpart ?? person.id) === current))
-        return current;
-      const selected =
-        members.find((person) => person.id === session?.user_id) ?? members[0];
-      return selected?.localpart ?? selected?.id ?? "";
-    });
-  }, [open, bootstrap?.participants, session?.user_id]);
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (busy || !user) return;
-    setLocalError("");
-    try {
-      await onLogin(user, password);
-    } catch (cause) {
-      setLocalError(messageOf(cause));
-    }
-  }
-
-  return (
-    <dialog
-      ref={dialog}
-      id="login-dialog"
-      className="login-dialog"
-      aria-labelledby="login-title"
-      onCancel={(event) => cancelDialog(event, canClose, onClose)}
-      onClick={(event) => dismissBackdrop(event, canClose, onClose)}
-    >
-      <form id="login-form" onSubmit={(event) => void submit(event)}>
-        <div className="dialog-heading">
-          <h2 id="login-title">{t("signIn")}</h2>
-          <button
-            id="close-login"
-            className="icon-button"
-            type="button"
-            aria-label={t("closeSignIn")}
-            hidden={!session}
-            disabled={busy}
-            onClick={onClose}
-          >
-            <Icon name="close" />
-          </button>
-        </div>
-        <label htmlFor="login-user">{t("account")}</label>
-        <select
-          id="login-user"
-          required
-          value={user}
-          disabled={busy}
-          onChange={(event) => setUser(event.target.value)}
-        >
-          {!humans.length && <option value="">{t("loadingAccounts")}</option>}
-          {humans.map((person) => (
-            <option key={person.id} value={person.localpart ?? person.id}>
-              {person.name} · {person.localpart ?? person.id}
-            </option>
-          ))}
-        </select>
-        <details id="password-options" open={passwordRequired || undefined}>
-          <summary hidden={passwordRequired}>{t("usePassword")}</summary>
-          <label htmlFor="login-password">{t("password")}</label>
-          <input
-            id="login-password"
-            type="password"
-            autoComplete="current-password"
-            required={passwordRequired}
-            value={password}
-            disabled={busy}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </details>
-        <div
-          id="login-error"
-          className="login-error"
-          role="alert"
-          hidden={!error && !localError}
-        >
-          {error || localError}
-        </div>
-        <button
-          id="login-submit"
-          className="primary-button login-submit"
-          type="submit"
-          disabled={busy || !user}
-        >
-          {t(busy ? "signingIn" : "signIn")}
-        </button>
-      </form>
-    </dialog>
-  );
 }
 
 interface PendingGroup {
@@ -406,6 +271,7 @@ interface MemberDialogProps {
   session: Session | null;
   room: Room | null;
   roles: Role[];
+  botStatus?: string;
   onDirect(id: string): void;
   onMention(member: Participant): void;
   onClose(): void;
@@ -416,11 +282,13 @@ export function MemberDialog({
   session,
   room,
   roles,
+  botStatus = "offline",
   onDirect,
   onMention,
   onClose,
 }: MemberDialogProps) {
   const t = useTranslation(dialogMessages);
+  const botText = useTranslation(botMessages);
   const dialog = useDialog(member !== null);
   const membership = member
     ? roles.filter((role) => role.memberIds.includes(member.id))
@@ -452,7 +320,31 @@ export function MemberDialog({
         </span>
       </div>
       <h2 id="member-dialog-name">{member?.name}</h2>
-      <p id="member-dialog-id">{member?.localpart ?? member?.id}</p>
+      <p id="member-dialog-id">
+        {member?.kind === "bot" ? member.id : (member?.localpart ?? member?.id)}
+      </p>
+      {member?.kind === "bot" && (
+        <p className="bot-connection-status">
+          {botText(
+            ["online", "idle", "ready", "connected"].includes(botStatus)
+              ? "online"
+              : [
+                    "running",
+                    "thinking",
+                    "busy",
+                    "processing",
+                    "starting",
+                  ].includes(botStatus)
+                ? "busy"
+                : ["error", "failed", "unavailable"].includes(botStatus)
+                  ? "unavailable"
+                  : "offline",
+          )}
+        </p>
+      )}
+      {member?.kind === "bot" && member.ownerId === session?.user_id && (
+        <p className="bot-connection-help">{botText("connectInDsh")}</p>
+      )}
       <div id="member-dialog-roles" className="member-role-list">
         {membership.map((role) => (
           <span

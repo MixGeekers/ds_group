@@ -4,6 +4,8 @@ export class ApiError extends Error {
   constructor(
     message: string,
     public readonly status: number,
+    public readonly retryAfterMs = 0,
+    public readonly code = "",
   ) {
     super(message);
   }
@@ -33,12 +35,32 @@ export function createApi(getSession: () => Session | null): Api {
       throw new ApiError(`HTTP ${response.status}`, response.status);
     }
     if (!response.ok) {
-      const error = data as { error?: string; message?: string };
+      const error = data as {
+        error?: string;
+        message?: string;
+        retry_after_ms?: number;
+        code?: string;
+      };
+      const retryAfter = response.headers.get("Retry-After");
+      const headerDelay = retryAfter
+        ? Number.isFinite(Number(retryAfter))
+          ? Number(retryAfter) * 1000
+          : Date.parse(retryAfter) - Date.now()
+        : 0;
+      const bodyDelay = error.retry_after_ms;
+      const retryAfterMs =
+        typeof bodyDelay === "number" && Number.isFinite(bodyDelay)
+          ? Math.max(0, bodyDelay)
+          : Number.isFinite(headerDelay)
+            ? Math.max(0, headerDelay)
+            : 0;
       throw new ApiError(
         typeof error.error === "string"
           ? error.error
           : error.message || `HTTP ${response.status}`,
         response.status,
+        retryAfterMs,
+        typeof error.code === "string" ? error.code : "",
       );
     }
     return data as T;

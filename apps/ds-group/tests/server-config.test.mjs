@@ -70,3 +70,62 @@ test('first core config is created in the supplied data directory and reused on 
     await rm(directory, { recursive: true, force: true });
   }
 });
+
+test('login rate limits preserve the upstream retry interval for clients', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'dscord-login-limit-'));
+  const matrix = http.createServer((request, response) => {
+    request.resume();
+    response.writeHead(429, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ errcode: 'M_LIMIT_EXCEEDED', error: 'Too many requests', retry_after_ms: 2300 }));
+  });
+  const homeserverUrl = await listen(matrix);
+  let core;
+  try {
+    core = await createCore({ dataRoot: directory, enablePush: false,
+      setup: { homeserverUrl, serverName: 'rate.test', participants: [] },
+      config: { nodeSecret: 'synthetic-rate-secret', demoLogin: false } });
+    const base = await listen(core.server);
+    const response = await fetch(base + '/api/login', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user: 'test', password: 'synthetic-password' }) });
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get('retry-after'), '3');
+    assert.deepEqual(await response.json(), { error: 'Too many requests', code: 'M_LIMIT_EXCEEDED', retry_after_ms: 2300 });
+  } finally {
+    if (core) await core.close();
+    await stop(matrix);
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test('login forwards the socket IP and accepts only the last valid hop from an explicitly trusted proxy', async () => {
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'dscord-client-ip-'));
+  const received = [];
+  const matrix = http.createServer((request, response) => {
+    received.push(request.headers['x-forwarded-for']);
+    request.resume();
+    response.writeHead(429, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ errcode: 'M_LIMIT_EXCEEDED', error: 'Synthetic limit' }));
+  });
+  const homeserverUrl = await listen(matrix);
+  try {
+    for (const trustProxy of [false, true]) {
+      const core = await createCore({ dataRoot: path.join(directory, String(trustProxy)), enablePush: false,
+        setup: { homeserverUrl, serverName: 'ip.test', participants: [] },
+        config: { nodeSecret: 'synthetic-ip-secret', demoLogin: false, trustProxy } });
+      try {
+        const base = await listen(core.server);
+        for (const forwarded of ['198.51.100.9, 203.0.113.4', 'invalid']) {
+          const response = await fetch(base + '/api/login', { method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Forwarded-For': forwarded },
+            body: JSON.stringify({ user: 'test', password: 'synthetic-password' }) });
+          assert.equal(response.status, 429);
+        }
+      } finally { await core.close(); }
+    }
+    assert.deepEqual(received, ['127.0.0.1', '127.0.0.1', '203.0.113.4', '127.0.0.1']);
+  } finally {
+    await stop(matrix);
+    await rm(directory, { recursive: true, force: true });
+  }
+});

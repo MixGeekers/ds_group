@@ -1,12 +1,28 @@
 import { randomUUID } from 'node:crypto';
+import { isIP } from 'node:net';
 
 export class MatrixError extends Error {
-  constructor(status, errcode, message) {
+  constructor(status, errcode, message, retryAfterMs) {
     super(message);
     this.name = 'MatrixError';
     this.status = status;
     this.errcode = errcode;
+    if (retryAfterMs !== undefined) this.retryAfterMs = retryAfterMs;
   }
+}
+
+function retryDelay(response, result) {
+  if (typeof result.retry_after_ms === 'number' && Number.isFinite(result.retry_after_ms) && result.retry_after_ms >= 0) {
+    return Math.ceil(result.retry_after_ms);
+  }
+  const header = response.headers.get('Retry-After');
+  if (!header?.trim()) return undefined;
+  if (/^\d+(?:\.\d+)?$/.test(header.trim())) {
+    const milliseconds = Math.ceil(Number(header) * 1000);
+    return Number.isFinite(milliseconds) ? milliseconds : undefined;
+  }
+  const deadline = Date.parse(header);
+  return Number.isFinite(deadline) ? Math.max(0, deadline - Date.now()) : undefined;
 }
 
 async function jsonResult(response) {
@@ -17,7 +33,7 @@ async function jsonResult(response) {
   } catch {
     throw new MatrixError(response.status, 'M_INVALID_RESPONSE', 'Matrix returned invalid JSON');
   }
-  if (!response.ok) throw new MatrixError(response.status, result.errcode ?? 'M_UNKNOWN', result.error ?? `Matrix HTTP ${response.status}`);
+  if (!response.ok) throw new MatrixError(response.status, result.errcode ?? 'M_UNKNOWN', result.error ?? `Matrix HTTP ${response.status}`, retryDelay(response, result));
   return result;
 }
 
@@ -27,11 +43,15 @@ export class MatrixClient {
     this.accessToken = accessToken;
   }
 
-  async request(method, path, body, { signal } = {}) {
+  async request(method, path, body, { signal, clientIp } = {}) {
     if (!path.startsWith('/') || path.startsWith('//')) {
       throw new Error('Matrix request paths must start with one slash');
     }
     const headers = { Accept: 'application/json' };
+    if (clientIp !== undefined) {
+      if (typeof clientIp !== 'string' || !isIP(clientIp)) throw new Error('Invalid client IP address');
+      headers['X-Forwarded-For'] = clientIp;
+    }
     if (this.accessToken) headers.Authorization = `Bearer ${this.accessToken}`;
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     const response = await fetch(`${this.baseUrl}${path}`, {
@@ -135,13 +155,13 @@ export class MatrixClient {
     return this.request('POST', '/_matrix/client/v3/createRoom', options);
   }
 
-  static login(baseUrl, user, password) {
+  static login(baseUrl, user, password, { deviceId = `DSCORD_${randomUUID()}`, deviceName = 'DSCord', clientIp } = {}) {
     return new MatrixClient({ baseUrl }).request('POST', '/_matrix/client/v3/login', {
       type: 'm.login.password',
       identifier: { type: 'm.id.user', user },
       password,
-      device_id: 'DS_GROUP_FRAMEWORK',
-      initial_device_display_name: 'DS-Group framework',
-    });
+      device_id: deviceId,
+      initial_device_display_name: deviceName,
+    }, { clientIp });
   }
 }

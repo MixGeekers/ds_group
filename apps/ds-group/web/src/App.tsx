@@ -3,11 +3,10 @@ import { ApiError, createApi, messageOf, readStored } from "./api";
 import { useTranslation } from "./locale";
 import { appMessages } from "./locales/app";
 import { Shell } from "./components/Shell";
-import {
-  LoginDialog,
-  MemberDialog,
-  RoomDialog,
-} from "./components/BasicDialogs";
+import { MemberDialog, RoomDialog } from "./components/BasicDialogs";
+import { AuthDialog } from "./components/AuthDialog";
+import type { AuthSubmission } from "./components/AuthDialog";
+import { CreateBotDialog } from "./components/CreateBotDialog";
 import { Composer } from "./components/Composer";
 import { Timeline } from "./components/Timeline";
 import { TaskHistoryDialog } from "./components/TaskTray";
@@ -15,6 +14,7 @@ import { SettingsDialog } from "./components/SettingsDialog";
 import { InboxDialog } from "./components/InboxDialog";
 import { NotificationDialog } from "./components/NotificationDialog";
 import type {
+  AccountProfile,
   Bootstrap,
   ChatEvent,
   ComposerHandle,
@@ -98,6 +98,7 @@ export default function App() {
     );
   });
   const [ownedBots, setOwnedBots] = useState<Participant[]>([]);
+  const [currentUser, setCurrentUser] = useState<Participant | null>(null);
   const [events, setEvents] = useState<ChatEvent[]>([]);
   const [tasks, setTasks] = useState<WorkTask[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
@@ -108,13 +109,16 @@ export default function App() {
   const [showTaskHistory, setShowTaskHistory] = useState(false);
   const [loginOpen, setLoginOpen] = useState(!session);
   const [loginBusy, setLoginBusy] = useState(false);
+  const [logoutBusy, setLogoutBusy] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [loginRateLimitUntil, setLoginRateLimitUntil] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
   const [settingsTab, setSettingsTab] = useState<SettingsTab | null>(null);
   const [roomDialog, setRoomDialog] = useState<"create" | "invite" | null>(
     null,
   );
+  const [createBotOpen, setCreateBotOpen] = useState(false);
   const [inboxOpen, setInboxOpen] = useState(false);
   const [notificationRoom, setNotificationRoom] = useState<Room | null>(null);
   const [member, setMember] = useState<Participant | null>(null);
@@ -145,25 +149,71 @@ export default function App() {
   const sessionRef = useRef(session);
   const roomRef = useRef(roomId);
   const sendingRef = useRef(sending);
+  const authBusyRef = useRef(false);
   const suppressReadUntil = useRef(0);
   const lastRead = useRef(new Map<string, string>());
   sessionRef.current = session;
   roomRef.current = roomId;
   sendingRef.current = sending;
   const api = useMemo(() => createApi(() => sessionRef.current), []);
-  const participants = bootstrap?.participants ?? [];
+  const participants = useMemo(() => {
+    const members = new Map(
+      (bootstrap?.participants ?? []).map((person) => [person.id, person]),
+    );
+    if (currentUser) members.set(currentUser.id, currentUser);
+    for (const bot of ownedBots) members.set(bot.id, bot);
+    return [...members.values()];
+  }, [bootstrap?.participants, currentUser, ownedBots]);
+  const workspace = useMemo(
+    () => bootstrap && { ...bootstrap, participants },
+    [bootstrap, participants],
+  );
   const room = rooms.find((value) => value.roomId === roomId) ?? null;
 
   const refresh = useCallback(() => setRefreshNonce((value) => value + 1), []);
   const notify = useCallback((message: string) => setToast(message), []);
   const openLogin = useCallback(() => {
     setLoginError("");
+    setLoginRateLimitUntil(null);
     setLoginOpen(true);
   }, []);
   const displayName = useCallback(
     (id: string) => participants.find((person) => person.id === id)?.name ?? id,
     [participants],
   );
+
+  const clearSession = useCallback(() => {
+    sessionStorage.removeItem(SESSION_KEY);
+    sessionRef.current = null;
+    roomRef.current = null;
+    setSession(null);
+    setCurrentUser(null);
+    setRooms([]);
+    setRoomId(null);
+    setOwnedBots([]);
+    setEvents([]);
+    setTasks([]);
+    setRoles([]);
+    setMentionables(emptyMentions);
+    setMentionCount(0);
+    setPendingState({ key: "", message: null });
+    setReply(null);
+    setReplyMention(true);
+    setJump(null);
+    setMember(null);
+    setSettingsTab(null);
+    setRoomDialog(null);
+    setCreateBotOpen(false);
+    setNotificationRoom(null);
+    setInboxOpen(false);
+    setShowTaskHistory(false);
+    setLoginError("");
+    setLoginRateLimitUntil(null);
+    setError("");
+    lastRead.current.clear();
+    setView("home");
+    setLoginOpen(true);
+  }, []);
 
   useEffect(() => {
     if (!toast) return;
@@ -251,8 +301,10 @@ export default function App() {
           }),
         );
         jobs.push(
-          api<{ bots: Participant[] }>("/api/bots").then((value) => {
-            if (!stopped) setOwnedBots(value.bots);
+          api<AccountProfile>("/api/me").then((value) => {
+            if (stopped) return;
+            setCurrentUser(value.user);
+            setOwnedBots(value.ownedBots);
           }),
         );
         jobs.push(
@@ -307,9 +359,7 @@ export default function App() {
           failure.reason.status === 401 &&
           currentSession
         ) {
-          sessionStorage.removeItem(SESSION_KEY);
-          setSession(null);
-          setLoginOpen(true);
+          clearSession();
         } else setError(messageOf(failure.reason));
       } else setError("");
       cycle++;
@@ -331,7 +381,7 @@ export default function App() {
       window.removeEventListener("online", resume);
       document.removeEventListener("visibilitychange", resume);
     };
-  }, [api, session, roomId, refreshNonce, refresh]);
+  }, [api, session, roomId, refreshNonce, refresh, clearSession]);
 
   const selectRoom = useCallback((next: Room) => {
     if (sendingRef.current) return;
@@ -390,29 +440,51 @@ export default function App() {
     [api, displayName, notify, openLogin, selectRoom],
   );
 
-  async function login(user: string, password: string) {
-    if (loginBusy) return;
+  async function authenticate(input: AuthSubmission) {
+    if (authBusyRef.current || logoutBusy) return;
+    authBusyRef.current = true;
     setLoginBusy(true);
     setLoginError("");
+    setLoginRateLimitUntil(null);
     try {
-      if (bootstrap?.demoLogin === false && !password)
+      const { username, password } = input;
+      if (
+        input.mode === "register" &&
+        (!bootstrap?.registration?.enabled ||
+          bootstrap.registration.mode !== "open")
+      )
+        throw new Error(t("registrationClosed"));
+      if (
+        (input.mode === "register" || bootstrap?.demoLogin !== true) &&
+        !password
+      )
         throw new Error(t("passwordRequired"));
-      const next = password
-        ? await api<Session>("/api/login", {
-            method: "POST",
-            body: { user, password },
-            auth: false,
-          })
-        : await api<Session>(
-            `/api/demo-login?user=${encodeURIComponent(user)}`,
-            { auth: false },
-          );
+      await pwa.current?.beforeIdentityChange("");
+      const next =
+        input.mode === "register"
+          ? await api<Session>("/api/register", {
+              method: "POST",
+              body: { username, password, displayName: input.displayName },
+              auth: false,
+              timeout: 30000,
+            })
+          : password
+            ? await api<Session>("/api/login", {
+                method: "POST",
+                body: { user: username, password },
+                auth: false,
+                timeout: 30000,
+              })
+            : await api<Session>(
+                `/api/demo-login?user=${encodeURIComponent(username)}`,
+                { auth: false },
+              );
       if (!next.access_token || !next.user_id)
         throw new Error(t("invalidLogin"));
-      await pwa.current?.beforeIdentityChange(next.user_id);
       sessionStorage.setItem(SESSION_KEY, JSON.stringify(next));
       sessionRef.current = next;
       setSession(next);
+      setCurrentUser(null);
       setEvents([]);
       setTasks([]);
       setRooms(
@@ -446,11 +518,45 @@ export default function App() {
       lastRead.current.clear();
       setLoginOpen(false);
       setView("chat");
+      setBootstrapNonce((value) => value + 1);
       void pwa.current?.refresh();
     } catch (reason) {
-      setLoginError(messageOf(reason));
+      if (reason instanceof ApiError && reason.status === 429) {
+        setLoginRateLimitUntil(
+          reason.retryAfterMs > 0 ? Date.now() + reason.retryAfterMs : 0,
+        );
+      } else {
+        setLoginError(messageOf(reason));
+      }
     } finally {
+      authBusyRef.current = false;
       setLoginBusy(false);
+    }
+  }
+
+  async function logout() {
+    if (authBusyRef.current || logoutBusy || !sessionRef.current) return;
+    authBusyRef.current = true;
+    setLogoutBusy(true);
+    try {
+      await pwa.current?.beforeIdentityChange("");
+      try {
+        await api("/api/logout", { method: "POST", body: {} });
+      } catch (reason) {
+        if (!(reason instanceof ApiError) || reason.status !== 401)
+          throw reason;
+      }
+      clearSession();
+      const url = new URL(location.href);
+      url.searchParams.delete("roomId");
+      url.searchParams.delete("eventId");
+      history.replaceState(null, "", url);
+      void pwa.current?.refresh();
+    } catch (reason) {
+      notify(messageOf(reason));
+    } finally {
+      authBusyRef.current = false;
+      setLogoutBusy(false);
     }
   }
 
@@ -475,9 +581,14 @@ export default function App() {
         sessionStorage.removeItem(
           `ds-group.draft.${account.user_id}.${targetRoom}`,
         );
-        setPendingState({ key, message: null });
-        setReply(null);
-        setReplyMention(true);
+        if (
+          sessionRef.current?.user_id === account.user_id &&
+          roomRef.current === targetRoom
+        ) {
+          setPendingState({ key, message: null });
+          setReply(null);
+          setReplyMention(true);
+        }
         refresh();
         return true;
       } catch (reason) {
@@ -488,9 +599,17 @@ export default function App() {
           reason.status !== 429
         ) {
           sessionStorage.removeItem(key);
-          setPendingState({ key, message: null });
+          if (
+            sessionRef.current?.user_id === account.user_id &&
+            roomRef.current === targetRoom
+          )
+            setPendingState({ key, message: null });
         }
-        notify(messageOf(reason));
+        if (
+          sessionRef.current?.user_id === account.user_id &&
+          roomRef.current === targetRoom
+        )
+          notify(messageOf(reason));
         return false;
       } finally {
         sendingRef.current = false;
@@ -652,7 +771,7 @@ export default function App() {
   return (
     <>
       <Shell
-        bootstrap={bootstrap}
+        bootstrap={workspace}
         session={session}
         rooms={rooms}
         room={room}
@@ -677,6 +796,7 @@ export default function App() {
         onSettings={(tab = "account") => setSettingsTab(tab)}
         onLogin={openLogin}
         onCreateRoom={() => (session ? setRoomDialog("create") : openLogin())}
+        onCreateBot={() => (session ? setCreateBotOpen(true) : openLogin())}
         onInvite={() => (session ? setRoomDialog("invite") : openLogin())}
         onInbox={() => (session ? setInboxOpen(true) : openLogin())}
         onNotifications={() =>
@@ -765,16 +885,35 @@ export default function App() {
         onCancel={cancelTask}
         onError={notify}
       />
-      <LoginDialog
+      <AuthDialog
         open={loginOpen}
-        bootstrap={bootstrap}
+        bootstrap={workspace}
         session={session}
-        busy={loginBusy}
+        busy={loginBusy || logoutBusy}
         error={loginError}
-        onLogin={(user, password) => void login(user, password)}
+        rateLimitUntil={loginRateLimitUntil}
+        onSubmit={authenticate}
+        onClearError={() => {
+          setLoginError("");
+          setLoginRateLimitUntil(null);
+        }}
         onClose={() => {
           if (session) setLoginOpen(false);
         }}
+      />
+      <CreateBotDialog
+        open={createBotOpen}
+        api={api}
+        session={session}
+        status={status}
+        onCreated={(bot) => {
+          setOwnedBots((previous) => [
+            ...previous.filter((value) => value.id !== bot.id),
+            bot,
+          ]);
+          refresh();
+        }}
+        onClose={() => setCreateBotOpen(false)}
       />
       <RoomDialog
         mode={roomDialog}
@@ -796,6 +935,9 @@ export default function App() {
         session={session}
         room={room}
         roles={roles}
+        botStatus={
+          status?.nodes.find((node) => node.botId === member?.id)?.status
+        }
         onClose={() => setMember(null)}
         onDirect={(id) => {
           setMember(null);
@@ -814,6 +956,8 @@ export default function App() {
         participants={participants}
         status={status}
         api={api}
+        logoutBusy={logoutBusy}
+        onLogout={() => void logout()}
         onSwitchAccount={() => {
           setSettingsTab(null);
           openLogin();

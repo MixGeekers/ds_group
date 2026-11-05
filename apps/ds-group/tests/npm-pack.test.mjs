@@ -12,6 +12,7 @@ async function fixture(t) {
     'package.json': JSON.stringify({ name: 'ds-group', version: '0.2.0', private: true,
       engines: { node: '>=24.19.0 <25' }, dependencies: {} }),
     'bin/dscord.mjs': '#!/usr/bin/env node\nconsole.log("fixture");',
+    'dsh-connect/index.mjs': 'export {};', 'dsh-connect/client.js': '// DSH client', 'cordis.patch.yml': '[]',
     'src/core.mjs': 'import "../web/mention-tokens.js";',
     'web/mention-tokens.js': 'export {};',
     'dist/web/index.html': '<!doctype html>', 'dist/web/sw.js': '// worker',
@@ -23,7 +24,7 @@ async function fixture(t) {
     '.local/credentials.json': 'PRIVATE', '.npmrc': 'PRIVATE',
     'artifacts/chat.json': 'PRIVATE', 'deploy/.env': 'PRIVATE',
   };
-  for (const name of ['service', 'matrix', 'runtime-config', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin']) {
+  for (const name of ['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin']) {
     files[`scripts/${name}.mjs`] = 'export {};';
   }
   for (const [filename, content] of Object.entries(files)) {
@@ -41,7 +42,8 @@ test('npm alpha packs the runtime, compiled PWA and shared mention parser withou
   assert.ok(result.size > 0);
   for (const name of ['package.json', 'README.md', 'bin/dscord.mjs', 'src/core.mjs', 'web/mention-tokens.js',
     'dist/web/index.html', 'dist/web/sw.js', 'dist/web/licenses/lucide.txt', 'vendor/ds-bot/LICENSE',
-    'vendor/ds-bot/NOTICE', 'dsh-plugin/runtime-dependencies-lock.json']) assert.ok(result.files.includes(name), name);
+    'vendor/ds-bot/NOTICE', 'dsh-plugin/runtime-dependencies-lock.json', 'dsh-connect/index.mjs',
+    'dsh-connect/client.js', 'cordis.patch.yml']) assert.ok(result.files.includes(name), name);
   assert.equal(result.files.some(name => /\.local|\.npmrc|artifacts|\.env|\.vite/.test(name)), false);
   assert.equal(JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8')).private, true);
 });

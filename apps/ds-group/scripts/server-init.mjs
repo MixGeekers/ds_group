@@ -15,6 +15,46 @@ export async function savePrivateJson(filename, value) {
   await chmod(filename, 0o600);
 }
 
+function validateMediaStorage(storage) {
+  if (storage?.backend === 'local') return { backend: 'local' };
+  if (storage?.backend !== 's3') throw new Error('DS_GROUP_MEDIA_BACKEND must be local or s3');
+  if (typeof storage.bucket !== 'string' || !/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(storage.bucket) || storage.bucket.includes('..')) {
+    throw new Error('DS_GROUP_S3_BUCKET must be a valid S3 bucket name');
+  }
+  if (typeof storage.accessKeyId !== 'string' || !storage.accessKeyId || typeof storage.secretAccessKey !== 'string' || !storage.secretAccessKey) {
+    throw new Error('DS_GROUP_S3_ACCESS_KEY_ID and DS_GROUP_S3_SECRET_ACCESS_KEY are required together');
+  }
+  const region = storage.region || 'us-east-1';
+  if (typeof region !== 'string' || !/^[a-z0-9-]+$/.test(region)) throw new Error('DS_GROUP_S3_REGION must be a region identifier');
+  if (storage.sessionToken !== undefined && typeof storage.sessionToken !== 'string') throw new Error('DS_GROUP_S3_SESSION_TOKEN must be a string');
+  let endpointUrl;
+  if (storage.endpointUrl) {
+    let endpoint;
+    try { endpoint = new URL(storage.endpointUrl); }
+    catch { throw new Error('DS_GROUP_S3_ENDPOINT must be an HTTP(S) origin'); }
+    if (!['http:', 'https:'].includes(endpoint.protocol) || endpoint.username || endpoint.password || endpoint.search || endpoint.hash || endpoint.pathname !== '/') {
+      throw new Error('DS_GROUP_S3_ENDPOINT must be an HTTP(S) origin');
+    }
+    endpointUrl = endpoint.origin;
+  }
+  const prefix = storage.prefix ?? 'dscord/';
+  if (typeof prefix !== 'string' || prefix.startsWith('/') || prefix.includes('\\') || prefix.split('/').some(part => part === '.' || part === '..')) {
+    throw new Error('DS_GROUP_S3_PREFIX must be a relative object prefix without dot segments');
+  }
+  return { backend: 's3', bucket: storage.bucket, region, ...(endpointUrl ? { endpointUrl } : {}),
+    prefix: prefix && !prefix.endsWith('/') ? `${prefix}/` : prefix,
+    accessKeyId: storage.accessKeyId, secretAccessKey: storage.secretAccessKey,
+    ...(storage.sessionToken ? { sessionToken: storage.sessionToken } : {}) };
+}
+
+function mediaStorageOptions(env) {
+  if (!env.DS_GROUP_MEDIA_BACKEND) return undefined;
+  return validateMediaStorage({ backend: env.DS_GROUP_MEDIA_BACKEND, bucket: env.DS_GROUP_S3_BUCKET,
+    endpointUrl: env.DS_GROUP_S3_ENDPOINT, region: env.DS_GROUP_S3_REGION, prefix: env.DS_GROUP_S3_PREFIX,
+    accessKeyId: env.DS_GROUP_S3_ACCESS_KEY_ID, secretAccessKey: env.DS_GROUP_S3_SECRET_ACCESS_KEY,
+    sessionToken: env.DS_GROUP_S3_SESSION_TOKEN });
+}
+
 export function serverOptions(env = process.env) {
   const serverName = env.DS_GROUP_SERVER_NAME || 'localhost';
   if (!/^[a-zA-Z0-9][a-zA-Z0-9.-]*(?::[0-9]{1,5})?$/.test(serverName)) {
@@ -34,6 +74,7 @@ export function serverOptions(env = process.env) {
     homeserverUrl: normalizedUrl(env.DS_GROUP_MATRIX_URL || 'http://synapse:8008', 'DS_GROUP_MATRIX_URL'),
     publicUrl: normalizedUrl(env.DS_GROUP_PUBLIC_URL || 'http://localhost:18100', 'DS_GROUP_PUBLIC_URL'),
     publicHomeserverUrl: normalizedUrl(env.DS_GROUP_MATRIX_PUBLIC_URL || 'http://localhost:18008', 'DS_GROUP_MATRIX_PUBLIC_URL'),
+    mediaStorage: mediaStorageOptions(env),
   };
 }
 
@@ -45,6 +86,13 @@ export async function initializeServer(options = serverOptions(), { containerOwn
   const previous = await readOptionalJson(metadataPath);
   if (previous && previous.serverName !== serverName) {
     throw new Error(`Existing Matrix identity is ${previous.serverName}; restore DS_GROUP_SERVER_NAME before starting`);
+  }
+  const storagePath = path.join(dataRoot, 'media-storage.json');
+  const storedStorage = await readOptionalJson(storagePath);
+  const previousStorage = storedStorage && validateMediaStorage(storedStorage);
+  const mediaStorage = validateMediaStorage(options.mediaStorage || previousStorage || { backend: 'local' });
+  if (previousStorage?.backend === 's3' && ['backend', 'bucket', 'endpointUrl', 'prefix'].some(key => mediaStorage[key] !== previousStorage[key])) {
+    throw new Error('Changing an existing S3 media destination requires an explicit migration');
   }
   const metadata = previous || {
     schemaVersion: 1, serverName, createdAt: new Date().toISOString(),
@@ -72,12 +120,27 @@ export async function initializeServer(options = serverOptions(), { containerOwn
     macaroon_secret_key: metadata.macaroonSecret, form_secret: metadata.formSecret,
     report_stats: false, enable_registration: false, federation_domain_whitelist: [], trusted_key_servers: [],
     suppress_key_server_warning: true, rc_message: { per_second: 100, burst_count: 200 },
+    rc_login: {
+      address: { per_second: 1, burst_count: 20 },
+      account: { per_second: 0.003, burst_count: 5 },
+      failed_attempts: { per_second: 0.17, burst_count: 3 },
+    },
   };
+  if (mediaStorage.backend === 's3') {
+    synapse.media_storage_providers = [{ module: 's3_storage_provider.S3StorageProviderBackend',
+      store_local: true, store_remote: true, store_synchronous: true,
+      config: { bucket: mediaStorage.bucket, region_name: mediaStorage.region, prefix: mediaStorage.prefix,
+        ...(mediaStorage.endpointUrl ? { endpoint_url: mediaStorage.endpointUrl } : {}),
+        access_key_id: mediaStorage.accessKeyId, secret_access_key: mediaStorage.secretAccessKey,
+        ...(mediaStorage.sessionToken ? { session_token: mediaStorage.sessionToken } : {}) } }];
+  }
+  // Persist the selected destination before publishing Synapse configuration so a retry can finish it.
+  await savePrivateJson(storagePath, mediaStorage);
   await savePrivateJson(configPath, synapse);
   if (containerOwnership) {
-    for (const filename of [dataRoot, synapseRoot, metadataPath, corePath, configPath]) await chown(filename, 1000, 1000);
+    for (const filename of [dataRoot, synapseRoot, metadataPath, corePath, storagePath, configPath]) await chown(filename, 1000, 1000);
   }
-  return { serverName, publicUrl, publicHomeserverUrl, reused: Boolean(previous) };
+  return { serverName, publicUrl, publicHomeserverUrl, mediaBackend: mediaStorage.backend, reused: Boolean(previous) };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {

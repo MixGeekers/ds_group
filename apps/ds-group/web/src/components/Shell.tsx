@@ -32,6 +32,7 @@ export interface ShellProps {
   onSettings(tab?: SettingsTab): void;
   onLogin(): void;
   onCreateRoom(): void;
+  onCreateBot(): void;
   onInvite(): void;
   onInbox(): void;
   onNotifications(): void;
@@ -263,13 +264,13 @@ export function Shell(props: ShellProps) {
             type="button"
             aria-label={t("currentServer")}
             aria-current={props.view === "chat" ? "page" : undefined}
-            title="DS-Group"
+            title="DSCord"
             onClick={() => {
               closePanels();
               props.onServer();
             }}
           >
-            DG
+            DS
           </button>
           <button
             id="server-settings-button"
@@ -288,7 +289,7 @@ export function Shell(props: ShellProps) {
           aria-label={t("channelsAndMessages")}
         >
           <header className="brand">
-            <span>DS-Group</span>
+            <span>DSCord</span>
             <span className="brand-chevron" aria-hidden="true">
               <Icon name="chevronDown" />
             </span>
@@ -323,9 +324,21 @@ export function Shell(props: ShellProps) {
           </nav>
           <div className="section-heading members-heading">
             <span>{t("myBots")}</span>
-            <span id="owned-bot-count">
-              {props.session ? props.ownedBots.length : "—"}
-            </span>
+            <div className="section-heading-actions">
+              <span id="owned-bot-count">
+                {props.session ? props.ownedBots.length : "—"}
+              </span>
+              <button
+                id="create-bot-button"
+                className="section-action"
+                type="button"
+                aria-label={t("createBot")}
+                title={t("createBot")}
+                onClick={props.onCreateBot}
+              >
+                <Icon name="plus" />
+              </button>
+            </div>
           </div>
           <div id="owned-bots" className="member-list owned-bots">
             {props.ownedBots.length ? (
@@ -506,7 +519,19 @@ export function Shell(props: ShellProps) {
             className="home-panel"
             hidden={props.view !== "home"}
           >
-            <h2>{t("myBots")}</h2>
+            <div className="home-heading">
+              <h2>{t("myBots")}</h2>
+              <button
+                id="home-create-bot"
+                className="icon-button"
+                type="button"
+                aria-label={t("createBot")}
+                title={t("createBot")}
+                onClick={props.onCreateBot}
+              >
+                <Icon name="plus" />
+              </button>
+            </div>
             <div id="home-bots" className="home-bots">
               {props.ownedBots.length ? (
                 props.ownedBots.map(contact)

@@ -27,6 +27,8 @@ export interface SettingsDialogProps {
   status: ServerStatus | null;
   api: Api;
   onSwitchAccount(): void;
+  onLogout(): void;
+  logoutBusy: boolean;
   onRolesChanged(): void | Promise<void>;
   onOpenRoom(roomId: string, eventId?: string): void | Promise<void>;
   onPwaReady(handle: PwaHandle): void;
@@ -193,7 +195,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
         throw new Error(t("notWorkspace"));
       setServerFeedback(
         t("serverFound", {
-          name: workspace.name || "DS-Group",
+          name: workspace.name || "DSCord",
           origin: url.origin,
         }),
       );
@@ -287,14 +289,28 @@ export function SettingsDialog(props: SettingsDialogProps) {
       <section data-settings-panel="account" hidden={tab !== "account"}>
         <h3>{t("currentAccount")}</h3>
         <p id="settings-account">{session?.user_id || t("signedOut")}</p>
-        <button
-          id="switch-account"
-          className="secondary-button"
-          type="button"
-          onClick={props.onSwitchAccount}
-        >
-          {t("switchAccount")}
-        </button>
+        <div className="settings-actions">
+          <button
+            id="switch-account"
+            className="secondary-button"
+            type="button"
+            onClick={props.onSwitchAccount}
+            disabled={props.logoutBusy}
+          >
+            {t("switchAccount")}
+          </button>
+          {session && (
+            <button
+              id="logout-button"
+              className="danger-button"
+              type="button"
+              disabled={props.logoutBusy}
+              onClick={props.onLogout}
+            >
+              {t(props.logoutBusy ? "signingOut" : "signOut")}
+            </button>
+          )}
+        </div>
       </section>
       <section
         data-settings-panel="notifications"
@@ -572,7 +588,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
               {t(status ? "coreConnected" : "core")}
             </strong>
             <p id="core-description">
-              {status ? "DS-Group / Matrix" : t("waitingStatus")}
+              {status ? "DSCord / Matrix" : t("waitingStatus")}
             </p>
           </div>
           <span

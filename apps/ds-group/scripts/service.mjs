@@ -3,11 +3,12 @@ import { spawn, execFileSync } from 'node:child_process';
 import { mkdir, open, readFile, writeFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { packageRoot, localPath } from '../src/paths.mjs';
-import { httpUrl, portNumber, runtimeSettings } from './runtime-config.mjs';
+import { httpUrl, nodeIdentifier, portNumber, runtimeSettings } from './runtime-config.mjs';
 
 const [command = 'status', component = 'all'] = process.argv.slice(2);
 if (!['up', 'down', 'status', 'restart'].includes(command)) throw new Error('Use up, down, restart or status');
-if (!['all', 'core', 'finance', 'hr'].includes(component)) throw new Error('Component must be all, core, finance or hr');
+if (!['all', 'core'].includes(component)) nodeIdentifier(component);
+const selectedBots = component === 'all' ? ['finance', 'hr'] : component === 'core' ? [] : [component];
 if (process.platform === 'win32' && command !== 'status') throw new Error('Use Docker Compose or WSL2 for service lifecycle on Windows');
 if (component === 'all' && process.env.DS_GROUP_BRIDGE_PORT) throw new Error('Use DS_GROUP_FINANCE_PORT and DS_GROUP_HR_PORT when starting both Bots');
 const corePort = portNumber(process.env.DS_GROUP_PORT, 18100, 'DS_GROUP_PORT');
@@ -70,8 +71,7 @@ async function waitFor(url) {
   throw new Error(`Service did not become ready at ${url}`);
 }
 async function down() {
-  if (component === 'all' || component === 'finance') await stop('finance');
-  if (component === 'all' || component === 'hr') await stop('hr');
+  for (const name of selectedBots) await stop(name);
   if (component === 'all') {
     await run('scripts/dsh-node.mjs', ['stop', 'finance']);
     await run('scripts/dsh-node.mjs', ['stop', 'hr']);
@@ -85,8 +85,7 @@ async function up() {
     await start('core', 'src/core.mjs');
     await waitFor(`${localCoreUrl}/api/bootstrap`);
   }
-  for (const name of ['finance', 'hr']) {
-    if (component !== 'all' && component !== name) continue;
+  for (const name of selectedBots) {
     await run('scripts/dsh-node.mjs', ['start', name]);
     await waitFor(`${runtimeSettings(name, { root: packageRoot }).bridgeUrl}/api/ds-group-node/status`);
     await start(name, 'src/bot-node.mjs', ['--bot', name]);

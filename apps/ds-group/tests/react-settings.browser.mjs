@@ -100,6 +100,7 @@ const html = `<!doctype html>
             session: { user_id: '@alice:test', access_token: 'fixture-only' },
             participants: people, status: { nodes: [], budget: { used: 0, limit: null } }, api,
             onSwitchAccount: () => { fixture.switchAccount = true; },
+            onLogout: () => { fixture.logout = true; }, logoutBusy: false,
             onRolesChanged: () => { fixture.roleChanges++; },
             onOpenRoom: (roomId, eventId) => fixture.jumps.push({ roomId, eventId }),
             onPwaReady: handle => { fixture.pwaReady++; fixture.pwa = handle; },

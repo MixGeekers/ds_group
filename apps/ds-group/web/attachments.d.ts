@@ -17,7 +17,7 @@ export interface AttachmentManager {
   hasPending(): boolean;
   exportDraft(): Attachment[];
   restore(descriptors: Attachment[]): void;
-  clear(): void;
+  clear(context?: string): void;
   cancelAll(): void;
   setLimits(limits: { maxBytes: number; maxFiles: number }): void;
   setContext(key: string): void;
