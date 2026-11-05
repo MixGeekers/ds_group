@@ -62,6 +62,8 @@ Alice 拥有两个 Bot，可在“我的 Bot”找到它们、直接私聊、创
 
 ## PWA 与手机通知
 
+DSCORD 的鲸鱼与人类气泡标志已整理为[品牌资产包](assets/dscord/README.md)，包含 PWA 图标、favicon、透明标志、预览与接入说明。更多项目资产见[资产目录](assets/目录.md)。
+
 设置中提供安装应用、通知、设备名称和测试通知。PWA 缓存应用外壳，含账号信息的 API 响应不进入 Service Worker 缓存，待确认发送保存在当前窗口并沿用原事务 ID。
 
 桌面 localhost 可用于开发安装。手机使用需要可信 HTTPS 入口。iOS/iPadOS 16.4 及之后版本的 Web Push 需要从主屏幕打开 PWA，再点击开启通知。应用只在点击时申请系统权限。

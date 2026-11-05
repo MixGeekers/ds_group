@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "createdOn": "2026-11-04",
+  "timeZone": "America/Caracas",
+  "tool": "built-in image_gen",
+  "selection": "用户选定鲸鱼与普通气泡的组合，分别暗示 Agent 与人类。",
+  "selectedReference": "selected-concept.png",
+  "outputs": {
+    "app": "dscord-app-master.png",
+    "projectMark": "dscord-mark-master.png"
+  },
+  "initialPrompts": {
+    "app": "Use case: precise-object-edit, logo-brand.\nThe provided image is the USER-SELECTED DSCORD brand identity. Its whale represents an Agent and its ordinary speech bubble represents a human. The user likes this exact two-character design.\nProduce a SINGLE standalone square PWA application icon, 1024 by 1024 pixels. Extract the large two-character symbol from the left-hand app tile in the reference. Faithfully preserve the exact silhouettes, the whale's curling body and raised two-fluke tail, the speech bubble's rounded body and lower-right pointer, the diagonal relationship and gap, and the two pill-shaped eyes in EACH character. Do not redesign the mark, reverse it, add limbs, merge characters, add faces, or add new features.\nWhale white, human speech bubble very pale ice-blue, all four eye holes use the surrounding blue. Blue background matches the selected reference, made clean, flat and solid, filling the entire square canvas edge-to-edge. Canvas corners must be completely blue with NO rounded outer tile, NO white margin and NO transparency. No typography, no wordmark, no presentation board, no mockup or duplicate icons.\nOptically center the two-character group and scale it so EVERY part, including whale flukes and speech pointer, is within an invisible centered circle of diameter 76 percent of the full canvas. Maintain roomy balanced breathing space for platform masks. Preserve the original internal proportions as one uniformly scaled group.\nFlat clean professional vector-like logo rasterization, sharp smooth edges. No gradient, texture, shading, shadow or glow. Output only the one finished square icon.",
+    "transparentMark": "Use case: background-extraction and precise-object-edit.\nThe supplied image is the chosen DSCORD logo: an Agent represented by the upper-left whale and a human represented by the lower-right ordinary speech bubble.\nCreate a single transparent-background project logo PNG from this exact image, with the same square canvas and positions.\nPreserve the two shapes, all curves, their relative sizes, the diagonal arrangement, the gap, the whale flukes and curled body, the bubble pointer, and all four pill eyes exactly. Only change colors and remove background.\nTurn BOTH characters into the same solid vivid cobalt/periwinkle blue (#4057FF). Remove the entire blue background to true transparency, and make the four eye openings truly transparent as well. Retain antialiased edges without a white halo. Flat uniform blue fill with no gradients or textures.\nOutput the single isolated two-character symbol centered on an actual alpha-transparent background. No wordmark, no text, no tile, no border, no shadow, no extra objects, no checkerboard drawn into the image."
+  },
+  "finalEdits": [
+    {
+      "id": "Maskable",
+      "prompt": "Use case: precise-object-edit. Edit this existing square DSCORD app icon with ONE change only: uniformly shrink the ENTIRE two-character whale-and-speech-bubble group to exactly 82 percent of its current size, centered on the same canvas. Enlarge the surrounding solid blue background area to fill the space. Preserve every contour, eye, color and relative position within the group. Do not crop anything, change canvas aspect ratio, redraw the characters or alter their relationship. The final complete group should occupy approximately 56 percent of the canvas width and 58 percent of the height. Both the whale's tail tip and the speech bubble's lower-right pointer should be comfortably within an invisible central circle of radius 38 percent of canvas width. Solid blue background reaches all four square corners. No text, no extra copies, no rounded tile. Output only the single square icon.",
+      "transparent": false
+    },
+    {
+      "id": "AlphaClean",
+      "prompt": "Use case: precise-object-edit. Repair the ALPHA MASK of this transparent blue DSCORD logo. Keep the outer silhouettes, placement, size and blue color of the TWO large connected shapes exactly: the whale and ordinary speech bubble.\nRemove ALL detached blue flecks, ghost patches and residual pixels from outside the two main silhouettes. Especially clean the large curved gap between the whale and speech bubble and all FOUR eye holes. Each eye hole must be a completely empty, smooth pill-shaped transparent hole. The entire region outside the two silhouettes, including the gap and all eye holes, must have alpha exactly zero. Preserve just the two solid main silhouettes, with clean antialiased edges. Within the silhouettes use a uniform opaque flat blue fill. There must be precisely two clean shapes and four clean transparent holes. Do not add a background, checkerboard, text, new shapes or any noise. Output a clean alpha-transparent PNG.",
+      "transparent": true
+    }
+  ],
+  "export": {
+    "method": "macOS sips proportional raster resampling",
+    "originalDimensions": [
+      1254,
+      1254
+    ],
+    "ico": "PNG frames at 16, 32 and 48 pixels"
+  }
+}
