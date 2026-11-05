@@ -171,10 +171,10 @@
     "physical cross-machine validation"
   ],
   "evidence": {
-    "moduleRegression": "295/295 passed",
+    "moduleRegression": "304/304 passed",
     "adminBuild": "TS7 and Vite production builds passed",
     "adminBrowser": "12 checks passed against real management HTTP and synthetic Matrix control adapter",
-    "realFederation": "10/10 real service scenarios passed, including versioned policy issuer and room-proven Core media/Range/denial checks",
+    "realFederation": "10/10 real service scenarios passed with runtime verified Core full/Range downloads; adversarial bytes covered by nine permanent Core/HTTP source tests",
     "modelCalls": 0,
     "physicalHostsTested": 1,
     "physicalCrossMachine": "not run",
@@ -219,7 +219,7 @@
     "limits": "Federated state may lag during outages. This event is a published ceiling, not a claim that every tool has freshly confirmed the remote host’s latest private configuration. Bot execution/recheck/fail-closed behavior belongs to the Bot slice."
   },
   "mediaProof": {
-    "status": "validated against both real home Core APIs and Matrix federation; report federation-2026-11-05T03-45-16-996Z.json",
+    "status": "Runtime byte verification validated; federation-2026-11-05T04-10-48-751Z.json",
     "metadata": {
       "method": "GET",
       "path": "/api/rooms/:encodedRoomId/attachments/:encodedAttachmentId/metadata?eventId=:encodedSourceEventId",
@@ -241,7 +241,7 @@
         "Authorization: Bearer <home human or Bot Matrix token>",
         "Range: bytes=start-end (optional)"
       ],
-      "response": "private/no-store streaming bytes; 206 for supported byte range; content size checked against the proven descriptor"
+      "response": "Private/no-store streaming of already verified bytes; actual full byte length and SHA256 must succeed before success/file headers. Range also verifies the complete upstream object, then returns a verified-file slice."
     },
     "authorization": "Only an active registered local home identity. Fetch current actual joined membership, the exact event through the same home Matrix room endpoint, current room state and current local governance. Require unique attachment ID within that event, approved room/identity/partner, and an approved mxc media server. User-supplied URI/name/hash cannot substitute for a Matrix event proof.",
     "credentialScope": "Ordinary token stays at its pinned home Core and home Matrix. The home Matrix handles federation; no remote Core receives the token.",
@@ -250,10 +250,36 @@
       "401": "home token rejected",
       "403": "inactive/wrong-home identity, current membership or policy denied",
       "404": "event or unique attachment reference not found",
-      "409": "ambiguous duplicate attachment identity in the event"
+      "408": "verification request cancelled or timed out",
+      "409": "ambiguous duplicate attachment identity in the event",
+      "413": "independent verified download size budget exceeded",
+      "429": "bounded verification queue full",
+      "502": "actual size/SHA256 mismatch or failed media transfer; no successful file response",
+      "503": "verification service stopping",
+      "507": "verification staging disk budget full"
     },
-    "size": "No separate hard-coded 50 MiB read cap. Existing core-config/DS_GROUP_MAX_UPLOAD_BYTES supports larger uploaded files, and later upload-limit changes do not revoke already stored bytes. Descriptor size must be a nonnegative safe integer; the existing media streaming/range checks apply. Node task file budgets remain independent.",
+    "size": "Metadata validates nonnegative safe integer lengths without an upload-derived 50 MiB cap. Successful full verification has an independent configurable default 256 MiB per-file limit and bounded disk/concurrency budget. Upload limit changes do not set that separate read budget.",
     "legacy": "Existing /api/attachments/:id stays a local-upload-index API. Foreign attachment IDs are never imported into or guessed through that index. New clients use the room/event-qualified route; nodes may also prove room/event then use their own home Matrix authenticated media API.",
-    "revocation": "This API rechecks current home membership and governance on every request. It cannot erase already copied room history, known media references or previously downloaded bytes."
+    "revocation": "This API rechecks current home membership and governance on every request. It cannot erase already copied room history, known media references or previously downloaded bytes.",
+    "integrity": {
+      "scope": "Room/event-proven download path only; legacy local index download contract remains unchanged",
+      "method": "Stream the complete object into a private temporary file, verify actual byte count and SHA256, recheck active home identity and current room/governance authorization, then stream verified bytes to the client",
+      "failure": "Bad bytes become non-2xx no-store JSON responses before file Content-Disposition or binary body is sent. Existing client response.ok checks prevent successful blob caching.",
+      "range": "Verify the whole object first, then serve the requested range from the verified file. An isolated range is not represented as an independent proof of whole-file SHA256.",
+      "limits": {
+        "perFileDefaultBytes": 268435456,
+        "concurrencyDefault": 2,
+        "queueLimit": 16,
+        "requestTimeoutMs": 300000,
+        "aggregateDiskBudget": "per-file limit × concurrency, including retained orphan files; only files created by this request are removed",
+        "configuration": [
+          "core-config.json verifiedDownloadMaxBytes",
+          "core-config.json verifiedDownloadConcurrency",
+          "DS_GROUP_VERIFIED_DOWNLOAD_MAX_BYTES",
+          "DS_GROUP_VERIFIED_DOWNLOAD_CONCURRENCY"
+        ],
+        "apply": "Core restart; independent of upload limit"
+      }
+    }
   }
 }

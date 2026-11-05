@@ -550,6 +550,7 @@ async function verify() {
     "src/synapse-control.mjs",
     "src/room-media.mjs",
     "src/media.mjs",
+    "src/verified-media.mjs",
     "deploy/synapse/dscord_guard.py",
     "scripts/federation-lab.mjs",
   ])

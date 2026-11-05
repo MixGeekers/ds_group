@@ -89,7 +89,8 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const directorySetup = { ...setup, participants: [] };
   const nodeCredentials = await new NodeCredentials({ dataRoot, setup, legacySecret: config.nodeSecret }).initialize();
   const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
-  const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES });
+  const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES,
+    verifiedDownloadMaxBytes: config.verifiedDownloadMaxBytes, verifiedDownloadConcurrency: config.verifiedDownloadConcurrency });
   const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
   chat.exec('PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL; CREATE TABLE IF NOT EXISTS direct_rooms (pair_key TEXT PRIMARY KEY, room_id TEXT NOT NULL, participants_json TEXT NOT NULL)');
   chat.exec(`CREATE TABLE IF NOT EXISTS group_requests (request_key TEXT PRIMARY KEY, input_hash TEXT NOT NULL, status TEXT NOT NULL, room_id TEXT);
@@ -299,7 +300,11 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const proven = await roomMedia.prove({ client, userId, roomId: decodeURIComponent(roomAttachment[1]),
         attachmentId: decodeURIComponent(roomAttachment[2]), eventId: url.searchParams.get('eventId') });
       if (roomAttachment[3]) return send(200, proven);
-      return media.download({ verifiedAttachment: proven.attachment, client, request, response, asDownload: url.searchParams.get('download') === '1' });
+      return media.download({ verifiedAttachment: proven.attachment, client, request, response, asDownload: url.searchParams.get('download') === '1',
+        authorize: async () => {
+          if (accounts.row(userId)?.status !== 'active') throw Object.assign(new Error('An active home identity is required'), { status: 403 });
+          await roomMedia.prove({ client, userId, roomId: proven.proof.roomId, eventId: proven.proof.eventId, attachmentId: proven.attachment.id });
+        } });
     }
     if (url.pathname === '/api/attachments' || url.pathname.startsWith('/api/attachments/')) {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
@@ -502,7 +507,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   }
   const server = http.createServer((request, response) => {
     dispatch(request, response).catch(error => {
-      if (response.headersSent) { response.destroy(); return; }
+      if (response.headersSent || response.destroyed) { response.destroy(); return; }
       const retryAfterMs = Number.isSafeInteger(error.retryAfterMs) && error.retryAfterMs >= 0 ? error.retryAfterMs : undefined;
       response.writeHead(error.status || error.statusCode || 500, {
         ...jsonHeaders, ...(retryAfterMs === undefined ? {} : { 'Retry-After': String(Math.ceil(retryAfterMs / 1000)) }),
@@ -512,6 +517,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     });
   });
   return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, botWork, close: async () => {
+    media.verified.stop();
     await new Promise(resolve => server.close(resolve));
     if (push) await push.close();
     await nodeCredentials.close();

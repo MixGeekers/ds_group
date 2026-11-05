@@ -109,3 +109,9 @@ Matrix ACL 不区分端口。本轮核对官方规范及固定 Synapse 源码后
 ## Bot 工作入口准备
 
 独立小切片开放“Bot 工作”配置，限定本服 Bot 完整 ID、精确发起者/房间名单和 read/write/edit/read_image 四项工具上限；所有者仍需另行授权，实际执行取完整交集。当前跨服委派未实现，界面不提供 canDelegate 勾选，新建/编辑保存为 false。CAS 冲突会保留未保存草稿，用户可显式放弃后重新加载。14 项管理 API/浏览器检查与后台 TS7/构建通过。此入口由主线程在 Bot 运行时验收就绪后整合，不把配置保存当作节点执行通过。[入口验证](../artifacts/governance/bot-admin-entry-validation.json)
+
+## 完整下载的运行时校验
+
+新房间证明下载先流式写入私有临时文件并校验实际长度、SHA256，再检查账号/成员/本服政策，最后返回成功文件响应。错误字节不会先以成功文件流出。Range 也先核验完整上游对象，再发送该文件的分片；单个分片并不独立证明整文件 hash。旧本服索引下载保持原契约。
+
+完整校验默认每文件 256 MiB、同时 2 项、最多等待 16 项、每请求 5 分钟；临时磁盘总预算为文件上限乘并发数，遗留文件也计入预算。可通过 `core-config.json` 的 `verifiedDownloadMaxBytes/verifiedDownloadConcurrency` 或 `DS_GROUP_VERIFIED_DOWNLOAD_MAX_BYTES/DS_GROUP_VERIFIED_DOWNLOAD_CONCURRENCY` 调整，重启 Core 生效，与上传上限独立。超量、截断、同长度错误内容及 Range 外损坏均已覆盖，9 项永久检查、304 项完整模块及 10 项真实联邦验证通过。没有宣称旧端点已做同样的流 hash 检查。[运行时证据与修正](../artifacts/governance/verified-media-validation.json)

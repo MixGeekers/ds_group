@@ -5,6 +5,7 @@ import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { Readable } from 'node:stream';
 import { finished, pipeline } from 'node:stream/promises';
+import { VerifiedMedia } from './verified-media.mjs';
 
 export const MAX_ATTACHMENTS = 10;
 export const DEFAULT_MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
@@ -35,6 +36,17 @@ function descriptor(row) {
   };
 }
 
+function downloadHeaders(attachment, asDownload) {
+  return {
+    'Content-Type': attachment.mimeType,
+    'Cache-Control': 'private, no-store',
+    'X-Content-Type-Options': 'nosniff',
+    'Content-Security-Policy': "sandbox; default-src 'none'; style-src 'unsafe-inline'",
+    'Content-Disposition': `${asDownload ? 'attachment' : 'inline'}; filename="download"; filename*=UTF-8''${encodeURIComponent(attachment.name).replaceAll("'", '%27')}`,
+    'Accept-Ranges': 'bytes',
+  };
+}
+
 function byteRange(value, size) {
   const match = typeof value === 'string' && /^bytes=(\d*)-(\d*)$/.exec(value);
   if (!match || (!match[1] && !match[2])) throw failure(400, 'Invalid byte range');
@@ -57,7 +69,7 @@ async function* selectBytes(stream, { start, end }) {
 }
 
 export class MediaService {
-  constructor({ dataRoot, maxBytes = DEFAULT_MAX_UPLOAD_BYTES }) {
+  constructor({ dataRoot, maxBytes = DEFAULT_MAX_UPLOAD_BYTES, verifiedDownloadMaxBytes = process.env.DS_GROUP_VERIFIED_DOWNLOAD_MAX_BYTES, verifiedDownloadConcurrency = process.env.DS_GROUP_VERIFIED_DOWNLOAD_CONCURRENCY }) {
     this.maxBytes = Number(maxBytes);
     if (!Number.isSafeInteger(this.maxBytes) || this.maxBytes < 1) throw new Error('Attachment size limit must be a positive integer');
     this.directory = path.join(dataRoot, 'media-staging');
@@ -71,6 +83,7 @@ export class MediaService {
       );
       UPDATE attachments SET status='failed' WHERE status='uploading';`);
     this.uploads = new Map();
+    this.verified = new VerifiedMedia({ dataRoot, maxBytes: verifiedDownloadMaxBytes, concurrency: verifiedDownloadConcurrency, rangeFor: byteRange, headersFor: downloadHeaders });
   }
 
   get(id) {
@@ -171,8 +184,9 @@ export class MediaService {
     }
   }
 
-  async download({ id, verifiedAttachment, client, request, response, asDownload = false }) {
-    const attachment = verifiedAttachment || this.get(id);
+  async download({ id, verifiedAttachment, authorize, client, request, response, asDownload = false }) {
+    if (verifiedAttachment) return this.verified.download({ attachment: verifiedAttachment, authorize, client, request, response, asDownload });
+    const attachment = this.get(id);
     const range = request.headers.range;
     const selected = range ? byteRange(range, attachment.size) : undefined;
     if (selected === null) {
@@ -195,14 +209,7 @@ export class MediaService {
         await upstream.body?.cancel();
         throw failure(502, 'Media returned an unexpected byte range');
       }
-      const headers = {
-        'Content-Type': attachment.mimeType,
-        'Cache-Control': 'private, no-store',
-        'X-Content-Type-Options': 'nosniff',
-        'Content-Security-Policy': "sandbox; default-src 'none'; style-src 'unsafe-inline'",
-        'Content-Disposition': `${asDownload ? 'attachment' : 'inline'}; filename="download"; filename*=UTF-8''${encodeURIComponent(attachment.name).replaceAll("'", '%27')}`,
-        'Accept-Ranges': 'bytes',
-      };
+      const headers = downloadHeaders(attachment, asDownload);
       for (const name of ['content-length', 'content-range']) {
         if (upstream.headers.has(name)) headers[name] = upstream.headers.get(name);
       }
@@ -223,6 +230,7 @@ export class MediaService {
   }
 
   async close() {
+    await this.verified.close();
     await Promise.allSettled(this.uploads.values());
     this.db.close();
   }
