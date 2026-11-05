@@ -39,5 +39,20 @@
     "web/attachments.js": "f5f9b49904fdd53e454320b5f8cb205693dfb967daaf88370c8004ca007b7988",
     "tests/client-work-grants.test.mjs": "a54094d03b8bdd66b5a2038a415aa23d230b101e8383a19f7459906d9af241b3",
     "tests/unified-client.browser.mjs": "d10c4b9e125b5f8434b9d759bda33b80ffcccbadb44afe694cac38ab6c99707d"
+  },
+  "realValidation": {
+    "date": "2026-11-05",
+    "status": "passed",
+    "report": "federated-ui-2026-11-05T04-04-08-008Z.json",
+    "backendCommit": "616783395f7c55bb0085cc8faf0fb13d816bef14",
+    "clientCommit": "4b12b192baa0983ce36d46ea3e99b84f9a37cce0",
+    "ownerGrantRevisions": [
+      1,
+      2
+    ],
+    "crossServerMedia": "normal A-to-B UI preview/download and B-to-A upload; proof requests stay at pinned B home Core",
+    "nodeStarted": false,
+    "modelCalls": 0,
+    "physicalHosts": 1
   }
 }

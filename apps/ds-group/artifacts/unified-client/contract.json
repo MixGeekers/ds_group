@@ -4,7 +4,7 @@
   "date": "2026-11-04",
   "branch": "codex/dscord-unified-client",
   "baseCommit": "5078ab2bf81fe50631a13208366cc3e58d61dd7d",
-  "status": "implemented-browser-fixture-and-real-central-verified; cross-federation-integration-pending",
+  "status": "implemented-and-real-federated-client-verified",
   "deployment": {
     "configuration": "Public /client-config.json: schemaVersion=1, optional homeCoreUrl/homeMatrixUrl/authUrl. Default Core and auth are the actual client origin. No query parameter or discovered URL changes these targets.",
     "origins": "New split-origin deployments require HTTPS or loopback HTTP. Existing trusted HTTP same-origin deployments, including private IP origins and their home-discovered private Matrix URL, remain compatible. Matrix is informational/binding metadata: the browser sends ordinary tokens only to home Core/auth API endpoints.",
@@ -134,15 +134,27 @@
       "report": "real-2026-11-05T03-30-35-702Z.json",
       "finding": "After creating a room via normal UI, the selected space contained no selectable channel. Retained as a separate integration failure; no client membership bypass.",
       "diagnosticReport": "real-2026-11-05T03-32-48-952Z.json",
-      "diagnostics": "GET /api/rooms returned the created joined room (200); direct Matrix state returned its local creator; Matrix /sync rooms.join was empty and /api/spaces home.rooms remained empty (200). Client did not infer an admitted space from this conflict."
+      "diagnostics": "GET /api/rooms returned the created joined room (200); direct Matrix state returned its local creator; Matrix /sync rooms.join was empty and /api/spaces home.rooms remained empty (200). Client did not infer an admitted space from this conflict.",
+      "historical": true
+    },
+    "realFederatedClient": {
+      "status": "passed",
+      "checks": 10,
+      "report": "federated-ui-2026-11-05T04-04-08-008Z.json",
+      "backendCommit": "616783395f7c55bb0085cc8faf0fb13d816bef14",
+      "clientCommit": "4b12b192baa0983ce36d46ea3e99b84f9a37cce0",
+      "modelCalls": 0,
+      "physicalHosts": 1,
+      "physicalCrossMachine": false
     }
   },
   "remainingIntegration": [
-    "Main integrated central+governance normal-UI A/B/C run",
-    "Backend per-room invitation permission fact in /api/rooms; client hides action if absent",
-    "Foreign attachment proof/resolution and cross-server task delivery",
-    "Per-recipient push payload binding and real mobile delivery",
-    "Persistent join-application workflow if selected as a future product slice"
+    "Backend current invitation-permission facts for UI controls where absent",
+    "Bot node/model execution and final cross-server task delivery are owned by the Bot lane",
+    "Server media-stream integrity rejection needs its separate final-backend checks; this UI run verifies positive bytes only",
+    "Per-recipient push binding and real mobile system delivery",
+    "Persistent join-application workflow if selected",
+    "Physical cross-machine acceptance"
   ],
   "sharedChanges": [
     "scripts/build-pwa.mjs: validate/copy public client-config only",
@@ -158,7 +170,8 @@
       "contract": "owner-grants-media.json",
       "moduleTests": 304,
       "productionFixtureChecks": 19,
-      "realBackend": "pending final backend integration"
+      "realBackend": "verified with fixed 6167833 in federated-ui-2026-11-05T04-04-08-008Z.json"
     }
-  ]
+  ],
+  "latestValidationDate": "2026-11-05"
 }

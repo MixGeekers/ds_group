@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "runId": "2026-11-05T04-02-10-433Z",
+  "status": "failed",
+  "evidenceLevel": "normal production React/PWA; real independent A/B/C Synapse/Core/admin; verified private-CA Matrix federation; synthetic accounts",
+  "backendRoot": "/Users/caja/.codex/worktrees/dscord-unified-client-backend/apps/ds-group",
+  "clientUrl": "http://127.0.0.1:24370",
+  "project": "dscord-ui-mw30rl36-b299",
+  "portBase": 24300,
+  "labRoot": "/Users/caja/.codex/worktrees/dscord-unified-client/apps/ds-group/.local/federated-client/2026-11-05T04-02-10-433Z/lab",
+  "reportPath": "/Users/caja/.codex/worktrees/dscord-unified-client/apps/ds-group/artifacts/unified-client/federated-ui-2026-11-05T04-02-10-433Z.json",
+  "modelCalls": 0,
+  "physicalHosts": 1,
+  "checks": [
+    {
+      "name": "B becomes a persistent default home with exact independent client Origin and API-only hosting",
+      "status": "passed",
+      "details": {
+        "serverName": "b.dscord-ui-mw30rl36-b299.test:8448",
+        "apiOnly": true,
+        "authorityId": "urn:uuid:d009a64a-6486-4ee4-b483-1aff13f00478",
+        "clientOrigin": "http://127.0.0.1:24370"
+      }
+    },
+    {
+      "name": "A/B use real partner/member/room administration and an actual Matrix invitation",
+      "status": "failed",
+      "error": "POST /api/rooms/!koSFaFGuO1qMRRuFPda5Asrglf6OK9QxXBNG_OOxAYI/invite: 502; Can't connect to server b.dscord-ui-mw30rl36-b299.test:8448\n\n502 !== 200\n"
+    }
+  ],
+  "sourceSha256": {
+    "client/web/src/App.tsx": "503b44d08c1b46e50332b2705c5f62378cb285ef219323ed12481971a4a292cc",
+    "client/web/attachments.js": "f5f9b49904fdd53e454320b5f8cb205693dfb967daaf88370c8004ca007b7988",
+    "client/web/src/attachment-proof.ts": "f940beeee98f5399db15b96685248ff7c9d2d1a9a037eaf1658fb206d944cb61",
+    "client/web/src/components/BotWorkGrants.tsx": "65cc9aa975d16d15c8accc695bd37b01bfbe51499d88363e6d4a4db6abc2bd0b",
+    "client/scripts/verify-federated-client.mjs": "d8f4858f335773bbc048c161225b4d8e2505f2e67042073e133524e61dfa63e8",
+    "backend/src/core.mjs": "71592214dbc263199fe1e7bb6d7fecff5a4e7d71c9975f9e14abf10f1d597f80",
+    "backend/src/collaboration.mjs": "ae208f4868258327ebe68a1dbb79f3a4cac0d0db8bb7602648bfccf63382a57a",
+    "backend/src/room-media.mjs": "2667e57561e34ba2da280a8e22a94f0bd42bc9dda5c8f5628077d399ab70a5cc",
+    "backend/src/bot-work.mjs": "aa8779a77d8dc2fdae42e7c1d75adb7dda46f01afe050518d633ccc05a690e23",
+    "backend/scripts/federation-lab.mjs": "bfcb296f72bdd178e05c18ae40097d9c6f8d2028c74af2f1c584af4121e92d31",
+    "backend/deploy/synapse/dscord_guard.py": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f"
+  },
+  "backendCommit": "616783395f7c55bb0085cc8faf0fb13d816bef14",
+  "clientCommit": "4b12b192baa0983ce36d46ea3e99b84f9a37cce0",
+  "servers": [
+    {
+      "name": "a",
+      "serverName": "a.dscord-ui-mw30rl36-b299.test:8448",
+      "coreUrl": "http://127.0.0.1:24300",
+      "matrixUrl": "http://127.0.0.1:24308",
+      "adminUrl": "http://127.0.0.1:24310"
+    },
+    {
+      "name": "b",
+      "serverName": "b.dscord-ui-mw30rl36-b299.test:8448",
+      "coreUrl": "http://127.0.0.1:24320",
+      "matrixUrl": "http://127.0.0.1:24328",
+      "adminUrl": "http://127.0.0.1:24330"
+    },
+    {
+      "name": "c",
+      "serverName": "c.dscord-ui-mw30rl36-b299.test:8448",
+      "coreUrl": "http://127.0.0.1:24340",
+      "matrixUrl": "http://127.0.0.1:24348",
+      "adminUrl": "http://127.0.0.1:24350"
+    }
+  ],
+  "error": "POST /api/rooms/!koSFaFGuO1qMRRuFPda5Asrglf6OK9QxXBNG_OOxAYI/invite: 502; Can't connect to server b.dscord-ui-mw30rl36-b299.test:8448\n\n502 !== 200\n",
+  "cleanup": {
+    "labStopped": true,
+    "retainedPrivateData": "/Users/caja/.codex/worktrees/dscord-unified-client/apps/ds-group/.local/federated-client/2026-11-05T04-02-10-433Z/lab",
+    "staticClientStopped": true
+  },
+  "pageErrors": [],
+  "finishedAt": "2026-11-05T04:02:36.896Z"
+}
