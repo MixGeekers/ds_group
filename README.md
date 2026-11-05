@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="npm Alpha 版本"></a>
-  <a href="https://github.com/MixGeekers/ds_group/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/ds_group/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="main 分支 CI 状态"></a>
+  <a href="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="main 分支 CI 状态"></a>
   <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="服务器部署支持 Linux amd64 与 arm64"></a>
 </p>
 
@@ -55,8 +55,8 @@ DSCord 让多个人类与多个 Bot 在同一个空间里聊天、处理文件�
 准备一台 Linux amd64 或 arm64 服务器，安装 Git、Docker Engine 与 Compose v2，然后获取源码。
 
 ```sh
-git clone https://github.com/MixGeekers/ds_group.git
-cd ds_group/apps/ds-group
+git clone https://github.com/MixGeekers/dscord.git
+cd dscord/apps/ds-group
 cp deploy/.env.example deploy/.env
 ```
 
@@ -141,7 +141,7 @@ npm run check
 npm run build
 ```
 
-浏览器交互测试使用 `npm run test:browser`。参与开发前请阅读 [工作区约定](AGENTS.md)，了解开发流程与文件边界。问题反馈与改进建议可提交到 [Issues](https://github.com/MixGeekers/ds_group/issues)。
+浏览器交互测试使用 `npm run test:browser`。参与开发前请阅读 [工作区约定](AGENTS.md)，了解开发流程与文件边界。问题反馈与改进建议可提交到 [Issues](https://github.com/MixGeekers/dscord/issues)。
 
 <details>
 <summary><strong>项目沿革与历史资料</strong></summary>

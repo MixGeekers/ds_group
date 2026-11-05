@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="npm Alpha version"></a>
-  <a href="https://github.com/MixGeekers/ds_group/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/ds_group/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="CI status on main"></a>
+  <a href="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="CI status on main"></a>
   <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="Server deployment on Linux amd64 and arm64"></a>
 </p>
 
@@ -55,8 +55,8 @@ Select a Bot in a group, attach a file, and try a request like this.
 Prepare a Linux amd64 or arm64 server with Git, Docker Engine, and Compose v2, then get the source.
 
 ```sh
-git clone https://github.com/MixGeekers/ds_group.git
-cd ds_group/apps/ds-group
+git clone https://github.com/MixGeekers/dscord.git
+cd dscord/apps/ds-group
 cp deploy/.env.example deploy/.env
 ```
 
@@ -143,7 +143,7 @@ npm run check
 npm run build
 ```
 
-Use `npm run test:browser` for browser interaction tests. Read the [workspace guidelines](AGENTS.md) for development conventions and file boundaries. Report bugs and suggest improvements through [Issues](https://github.com/MixGeekers/ds_group/issues).
+Use `npm run test:browser` for browser interaction tests. Read the [workspace guidelines](AGENTS.md) for development conventions and file boundaries. Report bugs and suggest improvements through [Issues](https://github.com/MixGeekers/dscord/issues).
 
 <details>
 <summary><strong>Project history and earlier work</strong></summary>

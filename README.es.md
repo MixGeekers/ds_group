@@ -15,7 +15,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="Versión Alpha en npm"></a>
-  <a href="https://github.com/MixGeekers/ds_group/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/ds_group/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="Estado de CI en main"></a>
+  <a href="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/dscord/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="Estado de CI en main"></a>
   <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="Despliegue de servidores Linux amd64 y arm64"></a>
 </p>
 
@@ -55,8 +55,8 @@ Selecciona un Bot en un grupo, adjunta un archivo y prueba una petición como es
 Prepara un servidor Linux amd64 o arm64 con Git, Docker Engine y Compose v2, y obtén el código.
 
 ```sh
-git clone https://github.com/MixGeekers/ds_group.git
-cd ds_group/apps/ds-group
+git clone https://github.com/MixGeekers/dscord.git
+cd dscord/apps/ds-group
 cp deploy/.env.example deploy/.env
 ```
 
@@ -143,7 +143,7 @@ npm run check
 npm run build
 ```
 
-Usa `npm run test:browser` para las pruebas de interacción en el navegador. Las convenciones de desarrollo y los límites de cada módulo se encuentran en las [normas del espacio de trabajo](AGENTS.md). Puedes informar de errores y proponer mejoras en [Issues](https://github.com/MixGeekers/ds_group/issues).
+Usa `npm run test:browser` para las pruebas de interacción en el navegador. Las convenciones de desarrollo y los límites de cada módulo se encuentran en las [normas del espacio de trabajo](AGENTS.md). Puedes informar de errores y proponer mejoras en [Issues](https://github.com/MixGeekers/dscord/issues).
 
 <details>
 <summary><strong>Historia del proyecto y trabajos anteriores</strong></summary>
