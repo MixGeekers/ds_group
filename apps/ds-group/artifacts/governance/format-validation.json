@@ -1,0 +1,22 @@
+{
+  "date": "2026-11-04",
+  "scope": "Formatting limited to new administration/governance code; clarified saved/applied/observed UI wording",
+  "baseCommit": "181f171",
+  "validation": {
+    "command": "npm run build:admin && node --test tests/governance.test.mjs tests/admin.browser.mjs",
+    "moduleTests": 7,
+    "browserChecks": 12,
+    "status": "passed"
+  },
+  "sourceSha256": {
+    "admin/src/AdminApp.tsx": "69cab1d2503b788ca0d3295c197c3488261c86510fca2fb2e644bad1e25fb560",
+    "admin/src/messages.ts": "c27808f3683dd82accc2d3fb6809068b410e3112cb6c8d148970bd8ee065ba28",
+    "src/admin.mjs": "71c4d2b8fe1683a23105cafe1952e5c3f38ad1528cde55c34ab2860d2f78925a",
+    "src/admin-auth.mjs": "88274e04d2163189d9564b1dcce6d795bc6f9c5d8cfcb5dd4c511f10731aa186",
+    "src/collaboration.mjs": "37f38987efdc3a2c5e7d2511a882cf205492784ef51021a6e72a548a22e94d98",
+    "src/governance.mjs": "c5e48b62f30bf71ea3516d106bc8a4802c761ee8e482ffdb4920a94229a4f54b",
+    "src/synapse-control.mjs": "7d571be2bbe8822280c6217d7d98e9bd375a65cd245791d5438d8f77cd50445d"
+  },
+  "realModelCalls": 0,
+  "realSynapse": "not claimed by this formatting check"
+}

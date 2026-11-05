@@ -59,7 +59,7 @@
 
 角色为 `owner`、`operator`、`auditor`。后两者分别具有运维写权限和只读权限，均不能增改管理员。
 
-策略位于 `DS_GROUP_GOVERNANCE_DIR/policy.json`（缺省 `DATA_DIR/governance/policy.json`）。字段见 `src/governance.mjs`。伙伴域名、完整外部成员、精确房间、Bot 工作限制和管理员分别保存。禁用/移除名单立即改变动态门禁；`apply` 负责实际成员封禁和 ACL。配置保存、房间应用、待重启及模块观察到的版本分别展示，不能用一次保存回执代替实际生效。
+策略位于 `DS_GROUP_GOVERNANCE_DIR/policy.json`（缺省 `DATA_DIR/governance/policy.json`）。字段见 `src/governance.mjs`。伙伴域名、完整外部成员、精确房间、Bot 工作限制和管理员分别保存。新策略须由运行中的门禁模块读取后，才改变动态准入检查；`apply` 负责实际成员封禁和 ACL。配置保存、房间应用、待重启及模块观察到的版本分别展示，不能用一次保存回执代替实际生效。
 
 ## 本机使用
 
@@ -85,3 +85,5 @@ Compose 新增 `administration` 服务；通过 `docker compose -f deploy/compos
 独立后台 TS7 类型检查与生产构建通过。新增 7 项安全/契约模块检查通过，真实管理 HTTP 服务配合合成 Matrix 控制适配器完成 12 项生产界面检查，覆盖登录、策略表单、保存版本、应用失败、管理员、审计、中英/亮暗、手机布局和只读角色。该层不等于真实 Synapse 验收。
 
 浏览器首轮发现 select 的标签包含选项文本，修补为显式 `label/for`；第二轮暴露退出后保留旧页与界面状态，修补为退出即清空管理数据并回到概览。两轮失败独立保留。全量模块及发行夹具更新的最终结果见 `artifacts/governance/foundation-validation.json`。真实联邦、真实模型和物理跨机器均未在本切片运行。
+
+后台新增代码已按可审阅格式展开，保存提示收敛到保存、应用及实际观察到三个独立状态。格式切片的 7 项治理模块、12 项后台浏览器检查及后台构建通过，见 [后续验证](../artifacts/governance/format-validation.json)。
