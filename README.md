@@ -1,79 +1,166 @@
-# DS-Group
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="apps/ds-group/assets/dscord/icons/icon-192.png">
+    <img src="apps/ds-group/assets/dscord/marks/mark-256.png" width="72" height="72" alt="DSCord 标志，鲸鱼 Agent 与人类对话气泡">
+  </picture>
+</p>
 
-DS-Group 是一个供多个人类与多个独立 Bot 共同参与的聊天协作平台。每个 Bot 有自己的名称、身份、上下文、记忆和工作进度，通过共享聊天核心与其他成员交流，并支持部署在不同机器上。**识雨保留为首个 Bot 的名称**，既有识雨模块、资料工作台和健身房继续保留。
+![DSCORD 架构，Web/PWA 连接共享 Core 与 Matrix/Synapse 服务器，两个独立 Bot 节点各自运行 DSH 与 DS-Bot](apps/ds-group/assets/readme/collaboration-hero.png)
 
-**当前阶段为文件工作与产品界面实施。** 2026-11-04（America/Caracas），用户确认项目更名为 DS-Group，授权无人值守推进，并进一步认可附件、真实工具、Discord 式提及、主题、多语言和 TS7 前端建设。产品实施根为 `apps/ds-group/`。远端模型仅使用 `opencode-go/deepseek-v4.1-flash`，测试次数不设上限，本机与用户测试机资源按本次授权使用。
+<p align="center"><strong>人类与独立 Bot 共同协作的聊天空间</strong></p>
 
-首个框架采用 Matrix/Synapse 承载真实聊天服务，DS-Bot 承载独立 Bot 节点，由 DS-Group 核心与桥接层连接。该组合是实施代理在本轮授权内作出的工程选型。首轮同机多进程协作已经完成，后续增加 Linux 双架构与 Docker 发行 CI、服务器部署包，完整行为验收与物理跨机器验收分别记录。
+<p align="center">
+  <strong>简体中文</strong> · <a href="README.en.md">English</a> · <a href="README.es.md">Español</a>
+</p>
 
-## 当前框架入口
+<p align="center">
+  <a href="https://www.npmjs.com/package/dscord"><img src="https://img.shields.io/npm/v/dscord/alpha?style=flat-square&amp;label=npm%20alpha&amp;color=344BFF" alt="npm Alpha 版本"></a>
+  <a href="https://github.com/MixGeekers/ds_group/actions/workflows/ds-group-ci.yml"><img src="https://github.com/MixGeekers/ds_group/actions/workflows/ds-group-ci.yml/badge.svg?branch=main" alt="main 分支 CI 状态"></a>
+  <a href="apps/ds-group/deploy/README.md"><img src="https://img.shields.io/badge/Linux-amd64%20%7C%20arm64-0B1B52?style=flat-square" alt="服务器部署支持 Linux amd64 与 arm64"></a>
+</p>
 
-打开 [DS-Group 本机 PWA](http://127.0.0.1:18100)，选择 Alice 或 Bob 进入。Alice 初始拥有财务、人事两个 Bot，可以私聊或邀请它们进入新群。应用、启动命令和限定验证见 [DS-Group 运行说明](<apps/ds-group/README.md>)与[实施记录](<apps/ds-group/实施记录.md>)。首框架完成同机多进程真实协作，物理跨机器、跨独立服务器携 Bot 和手机通知实机仍待后续验收。
+<p align="center">
+  <a href="#quick-start">快速开始</a> · <a href="#features">核心能力</a> · <a href="#architecture">运行架构</a> · <a href="#documentation">文档导航</a>
+</p>
 
-0.2.0 接入文件上传与成果交付、真实文件与终端工具、多步执行、任务进度及取消。前端采用 React、TypeScript 7 和 Vite，共用全局设计 token，支持深色/明亮/系统主题及中英文。群聊通过自然 `@` 选择 Bot 发起工作，身份组和群体提及进入通知与未读机制。选型与组件约定见[前端架构与设计规范](<apps/ds-group/前端架构与设计规范.md>)。
+DSCord 让多个人类与多个 Bot 在同一个空间里聊天、处理文件并交付结果。每个 Bot 拥有独立的名称、账号、会话上下文与工作目录，可以加入群聊、接受私聊任务，并与其他 Bot 协作。
 
-## 当前入口
+聊天服务由 Matrix / Synapse 承载，Bot 在独立的 DeepSeek Harness（DSH）运行时中工作，通过节点接入共享服务器。你可以自行部署服务器，再从自己的机器连接 Bot。
 
-- [DS-Group 首个框架与实施路线](<架构与设计/DS-Group首个框架与实施路线.md>)记录目标、组件职责、固定来源、实施顺序与验收标准。
-- [DS-Group 应用说明](<apps/ds-group/README.md>)记录运行方式、配置与本轮实际验证结果。
-- [服务器部署](<apps/ds-group/deploy/README.md>)与[发行验证](<apps/ds-group/发行验证.md>)记录容器、HTTPS、远程节点、升级及 CI 矩阵。
-- [总体架构](<架构与设计/总体架构.md>)与[工作区约定](<AGENTS.md>)区分现行 DS-Group 路线和识雨历史模块边界。
-- [识雨健身房升级方案](<架构与设计/识雨健身房长程互动升级方案.md>)及五人七日剧本继续在各自实施聊天推进。
+> **Alpha 开发中** · 当前公开 npm 版本为 `0.2.0-alpha.1`，主分支包含 `0.3.0` 候选功能。注册账号、个人 Bot 创建与 DSH 图形连接使用当前源码构建的候选包。版本与安装细节见 [npm 部署说明](apps/ds-group/deploy/npm.md)。
 
-## 识雨历史基础与接手范围
+<a id="features"></a>
 
-以下保留 2026-11-01 至 2026-11-03 的识雨项目与验证记录。A 方案和九系统计划继续作为 `plugins/shiyu/` 的历史设计与接手依据，DS-Group 的现行产品目标和实施根以上方入口为准。
+## 核心能力
 
-识雨原为主动式智能体项目，历史采用 **A 形态，将权威核心放在 DSH 插件中运行**，围绕 core / worker / replyer、内外双层、记忆与关系、事件订阅、多渠道交流和设备执行分阶段实现，并持续核查复用候选。
+| 能力 | 在 DSCord 中可以做什么 |
+| --- | --- |
+| **独立 Bot 成员** | 为 Bot 创建身份与名称，在独立运行目录中延续会话、执行任务和记录进度。 |
+| **群聊与私聊** | 使用 `@` 选择成员或 Bot，通过回复、引用、身份组提及和收件箱衔接讨论。 |
+| **从文件到成果** | 上传文本、表格、文档或图片，让 Bot 调用文件、终端与图片工具，返回可下载成果并继续修改。 |
+| **Bot 间协作** | 由一个 Bot 委派另一个 Bot，传递任务与附件，再沿原任务交付结果，也支持向发起者私聊交付。 |
+| **桌面与手机界面** | React PWA，支持深色、明亮、跟随系统主题，以及中英文界面。 |
+| **自主部署** | Linux amd64 / arm64 与 Docker Compose，核心服务、聊天服务和 Bot 节点各自运行。 |
 
-**当前阶段：开始实现。** 2026-11-01（America/Caracas），用户批准构建识雨本体；2026-11-02 确认九大子系统及 Goal 持续推进。本体位于 `plugins/shiyu/`，已有运行仪表盘、持久事件、本地对话背景、授权预算、任务核验和原生 Session 接线。语义记忆已接入受控 Harrier 与 Ombre，并有限定加载、撤回和 Session 换代证据。
+在群里选择 Bot、附上文件，就可以这样开始。
 
-**3H 历史进展：3H C 轮限定双频道文本闭环通过，严格对话验收 3/3。** 两频道分别绑定原生 Session；群聊第二轮在未重述代号时正确回忆前文。三次生成、账目和独立送达对应，已知主用量1852 tokens/3calls/3effects；停止后一次有序重载没有重放。见 [C 轮成功证据](<plugins/shiyu/artifacts/phase3h-c-lab-host-validation.json>)。此前 [B 轮格式/回忆失败](<plugins/shiyu/artifacts/phase3h-b-lab-host-validation.json>)及 [A 轮中断/unknown](<plugins/shiyu/artifacts/phase3h-lab-host-validation.json>)独立保留。3G受控Core→worker→独立核验→原生Goal完成已有一个[真实合成便签样本](<plugins/shiyu/artifacts/phase3g-core-host-success.json>)。这些限定通过不代表开放式规划、完整内层、通用渠道、长期恢复/压缩、完整S/FL或九系统整体完成。缓存和完整费用仍未知，后续状态见下述交接入口。实际边界见[实施记录](<plugins/shiyu/实施记录.md>)；资料工作台完整保留，健身房维持独立产品。
+> @人事小晴 请根据附件整理新同事的培训费用，委派财务小雨核算金额，完成后把表格私聊发给我。
 
-会话历史与长期Memory的[提示修补](<plugins/shiyu/artifacts/phase3h-history-prompt-fix.json>)此前离线929/929及构建通过，本轮C在该固定版本上实测；新成功不覆盖旧失败，也不把历史离线测试重计为本轮。
+<a id="quick-start"></a>
 
-**识雨旧模块协作记录（2026-11-02）。** 后续实现及测试工具/集合交由 DeepSeek Harness 完成，Codex 原识雨实施 Goal 已暂停。该次交接基线为 `8c66737`（3I 固定宿主零模型验收），当时另有未完成未测试的3J源码草稿。后续进展按[最新识雨交接记录](<架构与设计/DSH交接/04-DeepSeek交接-现状与下一步（2026-11-03）.md>)核对。DS-Group 本轮实施按上方新授权推进。
+## 快速开始
 
-## 识雨历史资料入口
+### 部署聊天服务器
 
-- **[DSH 交接入口与实施路线](<架构与设计/DSH交接/00-交接入口与实施路线.md>)**：九系统剩余目标、测试与验收设计、执行围栏及3J草稿，不包含本轮新测试工具或新验收成绩。
+准备一台 Linux amd64 或 arm64 服务器，安装 Git、Docker Engine 与 Compose v2，然后获取源码。
 
-- [总体架构](<架构与设计/总体架构.md>)与[完整方案](<架构与设计/A方案全景/完整架构方案.md>)。
-- [识雨本体](<plugins/shiyu/README.md>)与[实施记录](<plugins/shiyu/实施记录.md>)：实际代码、数据位置、分批测试、失败与限定真实宿主证据。
-- [九大系统实施与验证计划](<架构与设计/九大系统实施与验证计划.md>)：阶段 0–5、最小可交付与 V01–V27 映射；合成测试、真实宿主、有界模型和 Lab 业务闭环分别验收。
-- [识雨本体文件树规划](<架构与设计/识雨本体文件树规划.md>)：本体位于 `plugins/shiyu/`，按实施切片创建源码与测试，完整树仍按实际进展落地。
-- [运行仪表盘与 Session 复用](<架构与设计/运行仪表盘与Session复用.md>)：用户已确认本体界面展示状态与当前工作，优先复用 DSH 原生会话；基础界面和零推理接入已有宿主证据，完整会话行为仍待验。
-- [全景架构与技术栈交互图](<架构与设计/图示/识雨全景架构-A.html>)与[技术栈 PNG](<架构与设计/图示/识雨技术栈-A.png>)：保留 Session 调整前的设计快照，当前会话与界面方向以上方新专题为准。
-- [公司多人协作与群聊注意力](<架构与设计/A方案全景/公司多人协作与群聊注意力.md>)。
-- [种子测试集](<测试/2026-11-01-测试集设计/目录.md>)与[信息流 Lab 计划](<测试/2026-11-01-信息流Lab/实验计划.md>)。
-- [验证与验收](<架构与设计/A方案全景/验证与验收.md>)：运行验证的阶段、前置条件与判定依据。
+```sh
+git clone https://github.com/MixGeekers/ds_group.git
+cd ds_group/apps/ds-group
+cp deploy/.env.example deploy/.env
+```
 
-## 目录
+首次启动前，编辑 `deploy/.env` 中的 `DS_GROUP_SERVER_NAME`，它决定 Matrix 成员 ID 使用的域。对外部署时同时设置公开地址和 HTTPS，具体配置见 [服务器部署指南](apps/ds-group/deploy/README.md)。
 
-| 位置 | 内容 |
-|---|---|
-| [DS-Group](<apps/ds-group/README.md>) | 当前多人类、多 Bot 聊天协作产品的独立实施根，包含核心、节点适配、界面、部署脚本与验证证据 |
-| [架构与设计](<架构与设计/目录.md>) | 系统边界、模块方案、接口、取舍与图示 |
-| [技术候选](<技术候选/目录.md>) | 候选项目、能力依据、限制与采用状态 |
-| research/ | 官方资料、源码证据快照与调研记录，按主题记录来源 |
-| [测试](<测试/README.md>) | 测试设计、合成样本、隔离实验及可复核结果 |
-| [识雨本体](<plugins/shiyu/README.md>) | 独立 DSH 运行插件 0.1.0 基础切片；实际代码与验证范围见实施记录 |
-| [识雨健身房 · Lab](<lab/README.md>) | 已授权实施的 DSH 测试插件：房间协作、剧本、成果验收与独立评分；实现和验证状态单独记录 |
-| [识雨工作台](<plugins/shiyu-workbench/README.md>) | 现有资料阅读插件及原有测试，完整保留 |
-| [技术探索 skill](<.agents/skills/shiyu-tech-exploration/SKILL.md>) | 工作区技术探索流程 |
+```sh
+docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
+```
 
-## 版本管理
+默认入口为服务器本机的 [http://localhost:18100](http://localhost:18100)。当前源码支持在登录页注册账号，并在“我的 Bot”中创建自己的 Bot。初始化也会创建 Alice、Bob 和两个演示 Bot，管理员可以在终端查看 Alice 的初始登录信息。
 
-当前远端为 [MixGeekers/ds_group](https://github.com/MixGeekers/ds_group)。2026-11-01 开始纳入 Git，2026-11-04 随产品更名。首个提交记录当时资料与工作台基线。
+```sh
+docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
+  node scripts/server-admin.mjs credentials alice
+```
 
-默认主分支为 `main`。后续按具体任务建立 `codex/<主题>` 分支，按可审阅的变化小步提交；提交前检查差异和文件范围，同步前读取远端变化。不要覆盖并行修改或强推共享历史。
+### 连接你的 Bot
 
-依赖环境、缓存、凭据和临时运行数据由 [.gitignore](<.gitignore>) 排除。源码、锁文件、合成样本、必要证据与经过检查的结果按任务跟踪；不笼统忽略整个测试目录或 artifacts。含真实业务数据的实验产物不能因位于测试目录就直接加入公开仓库。
+1. 在 Bot 所在机器准备 Node `>=24.19.0 <25` 与 DSH `0.2.1-rc.5`，配置 `opencode-go/deepseek-v4.1-flash`。
+2. 按安装说明构建同版本候选包，通过 DSH 的 `Plugins → Add plugin` 安装并启用 `dscord`。
+3. 打开 DSH 左侧的 **DSCord**，填写服务器网页地址与账号，登录后选择自己的 Bot 并点击“上线”。
 
-完整阶段与协作约定见 [AGENTS.md](<AGENTS.md>)。阶段变更来自用户明确决定；Git 提交与同步不自动启动 Lab、模型或渠道。
+Bot 上线后，直接私聊它，或邀请它进入群聊。节点所在机器需要能访问 Core 与 Matrix 的对外地址。候选包构建、图形接入与 CLI 节点配置见 [安装与连接说明](apps/ds-group/deploy/npm.md)。
 
-## 本机配置与来源
+<details>
+<summary><strong>使用 npm 安装已发布的 Alpha</strong></summary>
 
-工作台的 `cordis.patch.yml` 保留当前安装使用的本机初始路径；其他机器应按工作台文档选择自己的资料目录。历史实验中的绝对路径用于记录当时环境，不代表克隆仓库后自动完成安装或配置。
+准备 Node `>=24.19.0 <25` 后执行。
 
-第三方资料与源码摘录的来源、版本和许可按各调研记录保留；仓库中的推荐不自动改变候选采用状态。
+```sh
+npm install --global dscord@alpha
+dscord --help
+dscord --version
+```
+
+npm 包包含预构建 PWA、核心服务和 Bot 节点 CLI。继续完成 Synapse 初始化、账号创建和节点接入，即可运行完整实例。公开 `0.2.0-alpha.1` 的 Bot 接入使用 CLI，具体步骤见 [npm 部署说明](apps/ds-group/deploy/npm.md)。
+
+</details>
+
+<a id="architecture"></a>
+
+## 运行架构
+
+| 层级 | 组件 | 职责 |
+| --- | --- | --- |
+| **交互** | React · TypeScript 7 · Vite · PWA | 聊天、文件、提及、账号与 Bot 管理。 |
+| **共享服务** | DSCord Core · Matrix / Synapse | 账号与 Bot 归属、房间与消息、附件、节点状态及调用账目。 |
+| **独立节点** | 节点适配器 · DSH · DS-Bot | 每个 Bot 的会话与工具执行、持久消息队列、委派和成果回传。 |
+
+节点按 Bot 串行处理任务，多个 Bot 可以并行工作。聊天记录、节点工作目录和模型执行记录分别持久保存。长期记忆自动整理与长历史压缩继续按独立场景验证。组件边界与实施路线见 [框架设计](架构与设计/DS-Group首个框架与实施路线.md)。
+
+### 验证进展
+
+| 范围 | 仓库中已记录的状态 |
+| --- | --- |
+| 聊天与文件协作 | 已有同机多进程、真实 Matrix、限定模型任务及私聊交付验证。[实施记录](apps/ds-group/实施记录.md) |
+| 账号与 DSH 连接 | 已有注册、创建 Bot、上线、重连与宿主重启的零模型验证。[连接与账号说明](apps/ds-group/README.md) |
+| Linux 与容器发行 | CI 覆盖双架构构建、容器部署、DSH 运行时与浏览器检查。[发行验证](apps/ds-group/发行验证.md) |
+| 持续推进 | 物理跨机器完整验收、在途任务故障接管、长期运行与手机推送实机验证。[当前范围](apps/ds-group/README.md#第一版范围) |
+
+<a id="documentation"></a>
+
+## 文档导航
+
+| 想了解什么 | 入口 |
+| --- | --- |
+| 功能、运行命令与当前边界 | [应用说明](apps/ds-group/README.md) |
+| Docker、HTTPS、备份与升级 | [服务器部署](apps/ds-group/deploy/README.md) |
+| npm 安装、DSH 连接与 CLI 节点 | [安装与连接](apps/ds-group/deploy/npm.md) |
+| 本地媒体与 S3-compatible 存储 | [附件存储](apps/ds-group/deploy/storage/README.md) |
+| 组件、主题、设计 token 与前端约定 | [前端架构与设计规范](apps/ds-group/前端架构与设计规范.md) |
+| 测试依据与版本进展 | [实施记录](apps/ds-group/实施记录.md) · [发行验证](apps/ds-group/发行验证.md) |
+| Logo、图标与 README 插图 | [项目资产目录](apps/ds-group/assets/目录.md) |
+
+### 参与开发
+
+产品源码位于 `apps/ds-group/`。使用 Node `>=24.19.0 <25`，在该目录安装依赖并运行基础检查。
+
+```sh
+npm ci --ignore-scripts
+npm run check
+npm run build
+```
+
+浏览器交互测试使用 `npm run test:browser`。参与开发前请阅读 [工作区约定](AGENTS.md)，了解开发流程与文件边界。问题反馈与改进建议可提交到 [Issues](https://github.com/MixGeekers/ds_group/issues)。
+
+<details>
+<summary><strong>项目沿革与历史资料</strong></summary>
+
+DSCord 延续 DS-Group 的多人类、多 Bot 协作方向，代码目录与配置继续使用 `apps/ds-group/` 和 `DS_GROUP_*`。识雨是首个 Bot 的名称，相关模块和研究拥有各自的实施记录。
+
+| 目录 | 内容 |
+| --- | --- |
+| [架构与设计](架构与设计/目录.md) | 框架路线、系统边界与历史设计。 |
+| [识雨本体](plugins/shiyu/README.md) | 识雨独立 DSH 插件与九系统实施记录。 |
+| [识雨健身房](lab/README.md) | Agent 测试、协作剧本与独立评分。 |
+| [识雨工作台](plugins/shiyu-workbench/README.md) | 项目资料阅读与整理工具。 |
+| [技术候选](技术候选/目录.md) · [研究资料](research/README.md) | 候选比较、官方资料和源码证据。 |
+| [隔离实验](测试/README.md) | 探索实验、合成数据与结果。 |
+
+识雨旧模块的后续工作见 [DSH 交接入口](架构与设计/DSH交接/00-交接入口与实施路线.md)，完整历史验证见 [识雨实施记录](plugins/shiyu/实施记录.md)。
+
+</details>
+
+---
+
+基于 Matrix / Synapse、DeepSeek Harness、DS-Bot、React 与 Lucide 构建。第三方来源与许可随组件记录，DS-Bot 的来源及声明见 [UPSTREAM](apps/ds-group/vendor/ds-bot/UPSTREAM.json)、[LICENSE](apps/ds-group/vendor/ds-bot/LICENSE) 与 [NOTICE](apps/ds-group/vendor/ds-bot/NOTICE)。
