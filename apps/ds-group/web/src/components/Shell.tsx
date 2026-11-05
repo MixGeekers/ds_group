@@ -12,6 +12,7 @@ import type {
 import { useTranslation } from "../locale";
 import { shellMessages } from "../locales/shell";
 import { Icon } from "./Icons";
+import { AccountMenu } from "./AccountMenu";
 import type { CollaborationSpace } from "../spaces";
 
 export interface ShellProps {
@@ -139,7 +140,7 @@ export function Shell(props: ShellProps) {
       if (
         event.key !== "Escape" ||
         event.defaultPrevented ||
-        document.querySelector("dialog[open]")
+        document.querySelector("dialog[open], [popover]:popover-open")
       )
         return;
       if (channelsOpen || (!desktop && membersOpen)) {
@@ -274,55 +275,66 @@ export function Shell(props: ShellProps) {
               props.onHome();
             }}
           >
-            DS
+            <img src="/icons/icon-192.png" alt="DSCord" width={48} height={48} />
           </button>
           <div className="rail-divider" />
-          {(props.spaces ?? []).map((space) => (
+          <div className="server-list">
+            {(props.spaces ?? []).map((space) => (
+              <button
+                key={space.serverName}
+                id={space.home ? "server-button" : undefined}
+                data-server={space.serverName}
+                className={`server-icon${props.view === "chat" && props.selectedSpace?.serverName === space.serverName ? " active" : ""}${space.status === "revoked" ? " server-revoked" : ""}`}
+                type="button"
+                aria-label={`${space.name} · ${space.serverName} · ${t(space.status === "revoked" ? "revoked" : space.status === "offline" ? "offline" : "accessible")}`}
+                aria-current={
+                  props.view === "chat" &&
+                  props.selectedSpace?.serverName === space.serverName
+                    ? "page"
+                    : undefined
+                }
+                title={`${space.name} · ${space.serverName}`}
+                onClick={() => {
+                  closePanels();
+                  props.onServer(space.serverName);
+                }}
+              >
+                {(space.name.includes(" ")
+                  ? space.name
+                      .split(/\s+/)
+                      .map((word) => word[0])
+                      .join("")
+                  : space.name
+                )
+                  .slice(0, 2)
+                  .toUpperCase()}
+                {!!space.invitations.length && (
+                  <span className="server-invite-count">
+                    {space.invitations.length}
+                  </span>
+                )}
+              </button>
+            ))}
             <button
-              key={space.serverName}
-              id={space.home ? "server-button" : undefined}
-              data-server={space.serverName}
-              className={`server-icon${props.view === "chat" && props.selectedSpace?.serverName === space.serverName ? " active" : ""}${space.status === "revoked" ? " server-revoked" : ""}`}
+              id="server-settings-button"
+              className="server-icon server-add"
               type="button"
-              aria-label={`${space.name} · ${space.serverName} · ${t(space.status === "revoked" ? "revoked" : space.status === "offline" ? "offline" : "accessible")}`}
-              aria-current={
-                props.view === "chat" &&
-                props.selectedSpace?.serverName === space.serverName
-                  ? "page"
-                  : undefined
-              }
-              title={`${space.name} · ${space.serverName}`}
-              onClick={() => {
-                closePanels();
-                props.onServer(space.serverName);
-              }}
+              aria-label={t("serverConnection")}
+              title={t("serverConnection")}
+              onClick={props.onSpaces}
             >
-              {(space.name.includes(" ")
-                ? space.name
-                    .split(/\s+/)
-                    .map((word) => word[0])
-                    .join("")
-                : space.name
-              )
-                .slice(0, 2)
-                .toUpperCase()}
-              {!!space.invitations.length && (
-                <span className="server-invite-count">
-                  {space.invitations.length}
-                </span>
-              )}
+              <Icon name="plus" />
             </button>
-          ))}
-          <button
-            id="server-settings-button"
-            className="server-icon server-add"
-            type="button"
-            aria-label={t("serverConnection")}
-            title={t("serverConnection")}
-            onClick={props.onSpaces}
+          </div>
+          <AccountMenu
+            key={props.session?.user_id ?? "signed-out"}
+            name={currentUser?.name}
+            userId={props.session?.user_id}
+            onSettings={() => props.onSettings()}
+            onLogin={props.onLogin}
           >
-            <Icon name="plus" />
-          </button>
+            <Avatar member={currentUser} id="current-avatar" />
+          </AccountMenu>
         </nav>
         <aside
           id="channel-panel"
@@ -426,34 +438,6 @@ export function Shell(props: ShellProps) {
             aria-label={t("contacts")}
           >
             {contacts.map(contact)}
-          </div>
-          <div className="identity-bar">
-            <button
-              id="identity-button"
-              className="identity-button"
-              type="button"
-              onClick={props.onLogin}
-            >
-              <Avatar member={currentUser} id="current-avatar" />
-              <span>
-                <strong id="current-name">
-                  {currentUser?.name ?? t("signIn")}
-                </strong>
-                <small id="current-id">
-                  {props.session?.user_id ?? t("chooseAccount")}
-                </small>
-              </span>
-            </button>
-            <button
-              id="settings-button"
-              className="icon-button"
-              type="button"
-              aria-label={t("settings")}
-              title={t("settings")}
-              onClick={() => props.onSettings()}
-            >
-              <Icon name="gear" />
-            </button>
           </div>
         </aside>
         <main className="conversation">
@@ -568,15 +552,6 @@ export function Shell(props: ShellProps) {
                 onClick={props.onInvite}
               >
                 <Icon name="plus" />
-              </button>
-              <button
-                id="mobile-settings"
-                className="icon-button mobile-identity"
-                type="button"
-                aria-label={t("settings")}
-                onClick={() => props.onSettings()}
-              >
-                <Icon name="gear" />
               </button>
               <button
                 id="details-button"

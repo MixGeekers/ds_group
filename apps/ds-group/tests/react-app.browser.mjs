@@ -267,6 +267,7 @@ try {
   }
   async function switchAccount(localpart, displayName) {
     await page.locator('#identity-button').click();
+    await page.locator('#account-switch-button').click();
     await page.locator('#login-dialog[open]').waitFor();
     await page.locator('#login-user').fill(localpart);
     await page.locator('#login-submit').click();
@@ -409,6 +410,7 @@ try {
   checks.push('completedWorkDisappearsAndHistoryRequiresExplicitOverlayOpen');
 
   await page.setViewportSize({ width: 1440, height: 900 });
+  await page.locator('#identity-button').click();
   await page.locator('#settings-button').click();
   await page.locator('#logout-button').click();
   await page.locator('#login-dialog[open]').waitFor();
@@ -446,6 +448,7 @@ try {
   assert.equal(await page.locator('#owned-bot-count').textContent(), '1');
   checks.push('newOwnerCreatesBotAndReceivesConnectionIdWithUpdatedOwnedList');
 
+  await page.locator('#identity-button').click();
   await page.locator('#settings-button').click();
   await page.locator('#logout-button').click();
   await page.locator('#login-dialog[open]').waitFor();
@@ -484,6 +487,7 @@ try {
   await editor.fill('Message awaiting receipt before logout');
   await sendButton.click();
   await page.waitForFunction(() => document.querySelector('#send-button-text')?.textContent === 'Sending');
+  await page.locator('#identity-button').click();
   await page.locator('#settings-button').click();
   await page.locator('#logout-button').click();
   await page.locator('#login-dialog[open]').waitFor();

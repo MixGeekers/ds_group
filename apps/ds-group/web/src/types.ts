@@ -1,6 +1,7 @@
 export type Locale = "zh-CN" | "en";
 export type LocalePreference = Locale | "system";
 export type ThemePreference = "system" | "dark" | "light";
+export type ThemeColor = "indigo" | "blue" | "teal" | "rose" | "amber";
 export interface Session {
   access_token: string;
   user_id: string;
@@ -213,6 +214,8 @@ declare global {
       getPreference(): ThemePreference;
       getResolvedTheme(): "dark" | "light";
       setPreference(value: ThemePreference): void;
+      getColor(): ThemeColor;
+      setColor(value: ThemeColor): void;
     };
   }
 }

@@ -499,6 +499,7 @@ try {
     "logout revokes only this real browser device and password login returns the same subject",
     async () => {
       const oldToken = privateState.session.access_token;
+      await page.locator("#identity-button").click();
       await page.locator("#settings-button").click();
       await page.locator("#logout-button").click();
       await page.locator("#login-dialog[open]").waitFor();

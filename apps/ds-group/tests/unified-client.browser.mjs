@@ -628,6 +628,77 @@ try {
     "productionEntryLoadsSplitConfigAndLogsIntoOneStableHomeIdentity",
   );
 
+  assert.equal(await page.locator(".server-rail #identity-button").count(), 1);
+  assert.equal(await page.locator(".identity-bar").count(), 0);
+  assert.ok(await page.locator("#home-button img").evaluate((image) =>
+    image.complete && image.naturalWidth === 192,
+  ));
+  assert.ok(await page.locator("#identity-button").evaluate((button) => {
+    const box = button.getBoundingClientRect();
+    return box.left < 24 && box.bottom > innerHeight - 24;
+  }));
+  await page.locator("#identity-button").focus();
+  await page.keyboard.press("Enter");
+  await page.locator("#account-menu:popover-open").waitFor();
+  await page.keyboard.press("Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.id), "settings-button");
+  await page.keyboard.press("Escape");
+  await page.locator("#account-menu").waitFor({ state: "hidden" });
+  assert.equal(await page.evaluate(() => document.activeElement.id), "identity-button");
+  await page.locator("#identity-button").click();
+  await page.locator("#room-title").click();
+  await page.locator("#account-menu").waitFor({ state: "hidden" });
+  checks.push("railAccountMenuSupportsKeyboardFocusEscapeAndOutsideDismissalWithBrandedHome");
+
+  await page.locator("#message-input").fill("Draft while changing appearance");
+  await page.locator("#identity-button").click();
+  await page.locator("#account-language-select").selectOption("zh-CN");
+  assert.equal(await page.locator("#settings-button").textContent(), "个人设置");
+  await page.locator("#account-theme-select").selectOption("light");
+  await page.locator('#account-menu [data-color="teal"]').click();
+  assert.equal(await page.locator("html").getAttribute("data-accent"), "teal");
+  await page.waitForFunction(() =>
+    getComputedStyle(document.querySelector(".server-list .server-icon.active")).backgroundColor
+      === "rgb(15, 118, 110)",
+  );
+  await page.screenshot({ path: path.join(output, "desktop-account-menu-light-zh.png"), animations: "disabled" });
+  await page.locator("#settings-button").click();
+  await page.locator('[data-settings-tab="appearance"]').click();
+  assert.equal(await page.locator("#theme-select").inputValue(), "light");
+  assert.equal(await page.locator("#language-select").inputValue(), "zh-CN");
+  assert.equal(await page.locator('#settings-dialog [data-color="teal"]').getAttribute("aria-pressed"), "true");
+  await page.locator("#close-settings").click();
+  await page.reload();
+  await page.locator("#room-title").filter({ hasText: "General" }).waitFor();
+  await page.locator("#identity-button").click();
+  assert.equal(await page.locator("#account-theme-select").inputValue(), "light");
+  assert.equal(await page.locator("#account-language-select").inputValue(), "zh-CN");
+  assert.equal(await page.locator('#account-menu [data-color="teal"]').getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#message-input").textContent(), "Draft while changing appearance");
+  assert.equal(await page.locator("#current-id").textContent(), homeUser);
+
+  const appearanceTab = await context.newPage();
+  await appearanceTab.goto(clientOrigin);
+  await appearanceTab.evaluate(() => {
+    window.DSGroupTheme.setColor("rose");
+    window.DSGroupTheme.setPreference("dark");
+    localStorage.setItem("ds-group.language", "en");
+  });
+  await page.waitForFunction(() =>
+    document.documentElement.dataset.accent === "rose"
+    && document.documentElement.dataset.theme === "dark"
+    && document.documentElement.lang === "en",
+  );
+  assert.equal(await page.locator('#account-menu [data-color="rose"]').getAttribute("aria-pressed"), "true");
+  assert.equal(await page.locator("#account-theme-select").inputValue(), "dark");
+  assert.equal(await page.locator("#account-language-select").inputValue(), "en");
+  await appearanceTab.close();
+  await page.screenshot({ path: path.join(output, "desktop-account-menu-dark-en.png"), animations: "disabled" });
+  await page.locator('#account-menu [data-color="indigo"]').click();
+  await page.keyboard.press("Escape");
+  await page.locator("#message-input").fill("");
+  checks.push("accountAppearancePersistsAcrossReloadAndSyncsWithSettingsAndOtherTabsWithoutLosingDraftOrIdentity");
+
   await page.locator('[data-server="a.test"]').click();
   await page.locator("#room-title").filter({ hasText: "A channel" }).waitFor();
   await page.getByText("A channel message", { exact: true }).waitFor();
@@ -740,6 +811,7 @@ try {
     "rejectedJoinRemainsRejectedAndUnknownDiscoveryOmitsCookiesTokensAndRedirects",
   );
 
+  await page.locator("#identity-button").click();
   await page.locator("#settings-button").click();
   assert.deepEqual(
     await page
@@ -1050,6 +1122,7 @@ try {
   );
 
   await page.locator('[data-server="b.test"]').click();
+  await page.locator("#identity-button").click();
   await page.locator("#settings-button").click();
   await page.locator('[data-settings-tab="appearance"]').click();
   await page.locator("#theme-select").selectOption("light");
@@ -1063,6 +1136,16 @@ try {
     ),
   );
   await page.locator("#channels-button").click();
+  await page.locator("#identity-button").click();
+  await page.screenshot({ path: path.join(output, "mobile-account-menu-light-zh.png"), animations: "disabled" });
+  assert.ok(await page.locator("#account-menu").evaluate((menu) => {
+    const box = menu.getBoundingClientRect();
+    return box.left >= 64 && box.right <= innerWidth && box.top >= 0 && box.bottom <= innerHeight;
+  }));
+  await page.keyboard.press("Escape");
+  assert.equal(await page.locator("#account-menu").isHidden(), true);
+  assert.ok(await page.locator("#channel-panel").evaluate((panel) => panel.classList.contains("open")));
+  checks.push("mobileAccountMenuFitsViewportAndEscapeKeepsNavigationOpen");
   await page.locator("#server-settings-button").click();
   await page.screenshot({ path: path.join(output, "mobile-spaces.png") });
   assert.ok(
@@ -1073,6 +1156,7 @@ try {
   );
   await page.locator("#spaces-dialog .dialog-heading button").click();
   await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator("#identity-button").click();
   await page.locator("#settings-button").click();
   await page.locator('[data-settings-tab="appearance"]').click();
   await page.locator("#language-select").selectOption("en");
@@ -1083,6 +1167,7 @@ try {
     "desktopAndNarrowLayoutsSupportBothLanguagesThemesAndServerDialogs",
   );
 
+  await page.locator("#identity-button").click();
   await page.locator("#settings-button").click();
   await page.locator("#logout-button").click();
   await page.locator("#login-dialog[open]").waitFor();

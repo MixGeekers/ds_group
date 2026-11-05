@@ -89,7 +89,12 @@
   --color-border-header: #26272c;
   --color-border-divider: #42444a;
   --color-border-inset: #25262b;
-  --color-accent: #5865f2;
+  --palette-indigo: #5865f2;
+  --palette-blue: #2563eb;
+  --palette-teal: #0f766e;
+  --palette-rose: #be185d;
+  --palette-amber: #b45309;
+  --color-accent: var(--palette-indigo);
   --color-accent-hover: #4752c4;
   --color-status-success: #23a559;
   --color-status-warning: #f0b232;
@@ -193,6 +198,27 @@
   --shadow-navigation: 4px 0 20px #00000022;
   --shadow-dialog: 0 12px 48px #00000033;
   --shadow-toast: 0 3px 20px #00000033;
+}
+
+:root[data-accent="blue"] { --color-accent: var(--palette-blue); }
+:root[data-accent="teal"] { --color-accent: var(--palette-teal); }
+:root[data-accent="rose"] { --color-accent: var(--palette-rose); }
+:root[data-accent="amber"] { --color-accent: var(--palette-amber); }
+
+:root[data-accent]:not([data-accent="indigo"]) {
+  --color-accent-hover: color-mix(in srgb, var(--color-accent) 80%, black);
+  --color-mention-bg: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  --color-mention-text: color-mix(in srgb, var(--color-accent) 30%, white);
+  --color-message-highlight: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  --color-drop-background: color-mix(in srgb, var(--color-accent) 93%, transparent);
+  --color-drop-border: color-mix(in srgb, var(--color-accent) 35%, white);
+  --color-avatar-alternate: var(--color-accent);
+}
+
+:root[data-theme="light"][data-accent]:not([data-accent="indigo"]) {
+  --color-mention-bg: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  --color-mention-text: color-mix(in srgb, var(--color-accent) 80%, black);
+  --color-message-highlight: color-mix(in srgb, var(--color-accent) 20%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

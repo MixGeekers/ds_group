@@ -1,19 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { initializePwa } from "../../pwa.js";
-import { getLocalePreference } from "../../i18n.js";
 import { defaultClientConfig } from "../client-config";
 import type { ClientConfig } from "../client-config";
 import { storageKey } from "../session";
-import { useLocale, useTranslation } from "../locale";
+import { useTranslation } from "../locale";
+import { AppearanceControls } from "./AppearanceControls";
 import { Icon } from "./Icons";
 import { settingsMessages } from "../locales/settings";
 import type {
   Api,
-  LocalePreference,
   PwaHandle,
   Session,
   SettingsTab,
-  ThemePreference,
 } from "../types";
 
 export interface SettingsDialogProps {
@@ -38,16 +36,11 @@ const tabs: SettingsTab[] = ["account", "appearance", "notifications"];
 export function SettingsDialog(props: SettingsDialogProps) {
   const { tab, session } = props;
   const t = useTranslation(settingsMessages);
-  const locale = useLocale();
   const dialog = useRef<HTMLDialogElement>(null);
   const current = useRef(props);
   current.current = props;
   const pwa = useRef<PwaHandle | null>(null);
   const [config] = useState(() => props.config ?? defaultClientConfig());
-  const [theme, setTheme] = useState<ThemePreference>(
-    () => window.DSGroupTheme?.getPreference() ?? "system",
-  );
-  const [language, setLanguage] = useState<LocalePreference>(locale.preference);
   useEffect(() => {
     const element = dialog.current;
     if (!element) return;
@@ -82,16 +75,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
   useEffect(() => {
     void pwa.current?.refresh();
   }, [session, tab]);
-  useEffect(() => {
-    const updateTheme = () => setTheme(window.DSGroupTheme.getPreference());
-    const updateLanguage = () => setLanguage(getLocalePreference());
-    window.addEventListener("ds-group:theme", updateTheme);
-    window.addEventListener("ds-group:locale", updateLanguage);
-    return () => {
-      window.removeEventListener("ds-group:theme", updateTheme);
-      window.removeEventListener("ds-group:locale", updateLanguage);
-    };
-  }, []);
   return (
     <dialog
       id="settings-dialog"
@@ -213,34 +196,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
       </section>
       <section data-settings-panel="appearance" hidden={tab !== "appearance"}>
         <h3>{t("appearanceLanguage")}</h3>
-        <label htmlFor="theme-select">{t("theme")}</label>
-        <select
-          id="theme-select"
-          value={theme}
-          onChange={(event) => {
-            const value = event.target.value as ThemePreference;
-            window.DSGroupTheme.setPreference(value);
-            setTheme(value);
-          }}
-        >
-          <option value="system">{t("system")}</option>
-          <option value="dark">{t("dark")}</option>
-          <option value="light">{t("light")}</option>
-        </select>
-        <label htmlFor="language-select">{t("language")}</label>
-        <select
-          id="language-select"
-          value={language}
-          onChange={(event) => {
-            const value = event.target.value as LocalePreference;
-            setLanguage(value);
-            locale.setPreference(value);
-          }}
-        >
-          <option value="system">{t("system")}</option>
-          <option value="zh-CN">简体中文</option>
-          <option value="en">English</option>
-        </select>
+        <AppearanceControls />
         <h3>{t("installApp")}</h3>
         <p id="install-status" role="status" />
         <button id="install-app" className="primary-button" type="button">
