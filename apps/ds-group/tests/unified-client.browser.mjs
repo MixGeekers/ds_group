@@ -1613,6 +1613,7 @@ try {
   const privatePage = await privateContext.newPage();
   privatePage.on("pageerror", (error) => pageErrors.push(error.message));
   await privatePage.goto(privateOrigin);
+  await privatePage.locator("#message-input").waitFor({ state: "visible" });
   await privatePage.waitForFunction(
     () =>
       document.querySelector("#message-input").textContent ===

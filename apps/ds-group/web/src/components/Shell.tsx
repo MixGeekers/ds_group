@@ -627,7 +627,6 @@ export function Shell(props: ShellProps) {
           </section>
           <section id="ownership-loading" className="home-panel bots-panel" hidden={!loadingDirectOwnership}>
             <div className="bots-panel-empty" role="status">
-              <h2>{t("loadingConversation")}</h2>
               <p>{t("loadingBotOwnership")}</p>
             </div>
           </section>
