@@ -1,6 +1,6 @@
 # DSCord 连接、账号与存储
 
-更新于 2026-11-04（America/Caracas）。用户要求同时推进 DSH 安装后的连接体验、服务器注册登录，以及可选服务器附件存储和索引。用户已澄清 S2 指 Cloudflare R2。当前源码候选为 `0.3.0-alpha.1`，公开 npm 版本仍为 `0.2.0-alpha.1`。
+更新于 2026-11-05（America/Caracas）。用户要求同时推进 DSH 安装后的连接体验、服务器注册登录，以及可选服务器附件存储和索引。用户已澄清 S2 指 Cloudflare R2。当前源码候选为 `0.3.0-alpha.1`，已记录的公开 npm 版本为 `0.2.0-alpha.1`。
 
 [产品路线](<DS-Group首个框架与实施路线.md>) · [应用说明](<../apps/ds-group/README.md>) · [存储候选](<../技术候选/DSCord多后端存储.md>)
 
@@ -23,7 +23,7 @@
 
 Matrix 账号仍归属一个 homeserver，共同房间事件通过参与的 homeserver 同步。中央平台提供默认归属聊天服务后，需承担相应消息数据与可用性。客户端网页的托管地址、认证组件地址及聊天数据归属分别记录。[Matrix 架构](https://spec.matrix.org/latest/#architecture)
 
-认证组件的具体实现由实施线根据现有 Matrix 能力和成熟方案确定。采用 OIDC 时使用发行方与主体标识的组合进行稳定身份核对，并明确回调、令牌接收方及退出语义。各服务器仍根据自己的成员资格和策略授予业务权限。[OIDC 稳定标识](https://openid.net/specs/openid-connect-core-1_0.html#ClaimStability) · [Synapse OIDC 接入](https://element-hq.github.io/synapse/latest/openid.html)
+首个实施切片选择复用归属 Synapse 的密码认证和设备会话，在 Core 中持久保存中央 `authorityId`、用户 `subjectId` 与完整 Matrix ID 的绑定。中央身份映射和默认归属服务共同运行，统一客户端单独构建和托管，各协作 Core 可配置 `api-only`。各服务器根据自己的成员资格和策略授予业务权限。独立 OIDC 身份发行服务列为后续演进，接入时需明确发行方、主体、回调、令牌接收方及退出语义。[中央身份实现](<../apps/ds-group/中央身份实施记录.md>) · [API-only 部署](<../apps/ds-group/deploy/api-only.md>)
 
 ### 分层准入与交付规则
 
@@ -54,15 +54,21 @@ Matrix 账号仍归属一个 homeserver，共同房间事件通过参与的 home
 
 | 里程碑 | 通过条件 | 当前记录 |
 |---|---|---|
-| 契约与独立部署 | 各线接口对齐，中央账号、客户端、管理后台可分别运行，旧单服数据可读取 | 独立客户端与 API-only Core 的真实操作 7 项通过，部署线另有 Compose 证据 |
-| 一次登录与跨服加入 | 一个归属账号从统一客户端进入 A/B 获准空间，文本与附件使用真实服务同步 | 合并版本的真实 A/B/C API 联邦 9 项通过，统一 UI 跨服流程待验 |
-| 长期 Bot 跨服工作 | Bot 保留身份、所有者与节点，在外服完成有界任务并向原始对象交付 | 原生 DSH 隔离、文件工具与撤权的 8 项脚本检查通过，真实联邦模型任务待验 |
-| 撤权与恢复 | C 服及未获准成员被拒，直接 Matrix 绕过失败，撤权、重连、迟到和重复结果受控 | 待整体验证 |
-| 发行与跨机 | Linux/Docker 部署路径和相关 CI 通过，物理跨机器结果独立留证 | 按实际覆盖更新 |
+| 契约与独立部署 | 各线接口对齐，中央账号、客户端、管理后台可分别运行，旧单服数据可读取 | 中央身份 12 项、API-only 7 项与双架构 Compose 部署分别通过 |
+| 一次登录与跨服加入 | 一个归属账号从统一客户端进入 A/B 获准空间，文本与附件使用真实服务同步 | 主线程统一 UI 的 10 项真实 A/B/C 操作通过，包含原账号切服和双向附件 |
+| 长期 Bot 跨服工作 | Bot 保留身份、所有者与节点，在外服完成有界任务并向原始对象交付 | 整合源码 `9a44e8d` 的 9 项真实模型场景通过，原身份、节点与同域 Session 延续 |
+| 撤权与恢复 | C 服及未获准成员被拒，直接 Matrix 绕过失败，撤权、重连、迟到和重复结果受控 | 真实联邦、统一 UI、Bot 场景及原生脚本按各自撤权/恢复范围通过 |
+| 发行与跨机 | Linux/Docker 部署路径和相关 CI 通过，物理跨机器结果独立留证 | 最终产品源码 `9a44e8d` 的 10 项 CI 通过。用户暂时没有测试机，物理跨机留待后续 |
 
 模块、浏览器夹具、真实本地服务、真实模型与物理跨机验证分别登记。主线程按合并后的固定提交复验，各线局部成功保留为各自范围的证据。正式发布状态独立记录。
 
-主线程在 `6167833` 合并 Bot 授权、房间附件证明和个人 Bot 授权界面后，357 项模块、构建与 9 个浏览器文件通过。较早合并版本的真实 A/B/C 联邦 9 项、中央身份 12 项与 API-only 7 项分别留证。原生 DSH 复验完成 8 项检查与 10 次本地脚本生成。以上使用合成账号与同机独立服务，远端模型调用为 0。[主线程阶段复验](<../apps/ds-group/artifacts/platform-integration/validation.json>)
+主线程在最终产品源码 `9a44e8d` 完成 372 项模块、聊天/后台构建和 9 个浏览器文件检查。原生 DSH 复验完成 8 项检查与 10 次本地脚本生成，远端调用为 0。新房间证明下载先核对完整实际字节长度与 SHA256，再返回文件或 Range，24 项媒体相关定向回归通过。[主线程整合复验](<../apps/ds-group/artifacts/platform-integration/validation.json>) · [原生 DSH 复验](<../apps/ds-group/artifacts/cross-server-bot/platform-native-final-2026-11-05.json>)
+
+真实跨服客户端在 `86f935e` 完成 10 项检查，覆盖独立静态入口、API-only、同账号 A/B 切换、双向文本与附件、所有者 Bot 授权、C 拒绝、伙伴撤权和重连。测试使用一台物理主机上的三个独立 Synapse 容器及 Core/后台进程。Linux amd64/arm64 CI 另外验证完整 Compose 部署。物理网络、独立主机失效与跨机资源差异列入后续实机范围。[真实跨服 UI](<../apps/ds-group/artifacts/unified-client/federated-ui-2026-11-05T04-16-52-441Z.json>) · [双架构 CI](<../apps/ds-group/artifacts/ci/d01f79f/summary.json>)
+
+整合源码 `9a44e8d` 经开始/结束两次 80 个产品文件哈希核对，完成 9 项真实跨服 Bot 检查。原 A 服 Bot 在 B 服读取碰撞 ID 的正确附件、执行原生文件工具并向原房间和完整请求者交付，重复、断线补收、所有者撤权和越权拒绝均通过。本次新增 9 次指定模型调用，跨服 Bot 实施全程累计 34 次，费用账单仍未知。最终产品源码的 Linux/Compose/DSH/浏览器门禁为 10/10。[整合 Bot 实测](<../apps/ds-group/artifacts/cross-server-bot/platform-real-9a44e8d.json>) · [调用账目](<../apps/ds-group/artifacts/cross-server-bot/accounting.json>) · [最终源码 CI](https://github.com/MixGeekers/dscord/actions/runs/41967970180)
+
+首轮跨服 Bot 工具范围为 `read`、`write`、`edit`、`read_image`，成果返回获准原房间和原完整请求者。终端、后台作业、技能、跨服委派及新建外服私聊列为后续独立切片。同一 Bot 的私人原生 Session 与外服协作 Session 分开，跨服文件按房间、事件和内容哈希绑定。[Bot 实现与证据](<../apps/ds-group/artifacts/cross-server-bot/实施与验证.md>)
 
 空间枚举和浏览器诊断回调的两项集成回归已修复。真实独立 UI 在 `dc23777` 完成 7 项操作检查，覆盖 API-only 模式、注册、建房、文本、附件、Bot 私聊、离线恢复与重登。首轮失败按原记录保留。[真实 UI 通过记录](<../apps/ds-group/artifacts/unified-client/real-2026-11-05T03-45-59-172Z.json>) · [真实 UI 首轮失败](<../apps/ds-group/artifacts/unified-client/real-2026-11-05T03-39-31-043Z.json>)
 
@@ -82,7 +88,7 @@ Matrix 账号仍归属一个 homeserver，共同房间事件通过参与的 home
 
 DSH 连接页包含服务器地址、账号、密码、我的 Bot、连接状态、打开网页和可展开的本机配置目录。界面跟随宿主主题与语言。Bot 名称之外显示稳定账号 ID，以区分同名个体。新 Bot 先在网页创建，连接页读取所有者列表。
 
-一个 DSH profile 当前连接一个服务器账号，可以管理该账号的多个 Bot。切换账号或服务器时先停止原连接。此范围由当前 `ConnectController` 的单账号状态实现，多服务器同时在线可在后续扩展连接列表。
+一个 DSH profile 当前连接一个归属服务器账号，可以管理该账号的多个 Bot。这些 Bot 按明确授权参与多个协作服务器的房间。切换归属账号时先停止原连接，多个归属账号同时在线可在后续扩展连接列表。
 
 ## 核心与节点的边界
 

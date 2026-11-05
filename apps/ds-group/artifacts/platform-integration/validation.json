@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "date": "2026-11-04",
+  "date": "2026-11-05",
   "branch": "codex/dscord-platform-integration",
-  "scope": "Main-thread integration of administration, identity, API-only hosting, unified production client and controlled federation. Bot and release validation remain in progress.",
+  "scope": "First integrated source candidate for central identity, independent client, per-instance administration, API-only hosting, controlled federation, proven media and scoped Bot file work. Integrated real Bot and product-source CI passed.",
   "integratedCommits": {
     "direction": "8580cd2",
     "administration": "9d1cd3e",
@@ -16,7 +16,15 @@
     "roomMediaAndWorkPolicy": "2b8fd0a",
     "crossServerBotFoundation": "585baf2",
     "ownerGrantClient": "6167833",
-    "deploymentAndRelease": "bc75add"
+    "deploymentAndRelease": "bc75add",
+    "adminBotPolicyEntry": "fc98005",
+    "ciNativeAndBrowserFix": "d01f79f",
+    "realFederatedClientHarness": "8abe067",
+    "ciTenJobEvidence": "1b66565",
+    "verifiedMedia": "86f935e",
+    "realBotAndContextBoundaries": "9a44e8d",
+    "finalProductCiEvidence": "9e2ff2c",
+    "finalIntegratedBotEvidence": "69b7449"
   },
   "mergeReview": {
     "file": "src/core.mjs",
@@ -186,6 +194,85 @@
       "command": "node --test tests/release-package.test.mjs tests/npm-pack.test.mjs tests/node-roster.test.mjs",
       "status": "passed",
       "moduleTests": 13
+    },
+    {
+      "revision": "fc98005",
+      "command": "npm run build:admin && node --test tests/admin.browser.mjs",
+      "status": "passed",
+      "browserChecks": 14,
+      "scope": "Production independent administrator UI against management HTTP and synthetic Matrix control"
+    },
+    {
+      "revision": "d01f79f",
+      "command": "GitHub Actions DSCord CI",
+      "status": "passed",
+      "jobsPassed": 10,
+      "jobsTotal": 10,
+      "remoteModelCalls": 0,
+      "scope": "Four Linux/Node jobs, two full Compose deployments, two native DSH jobs, browser and required gate",
+      "report": "../ci/d01f79f/summary.json",
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41965988116"
+    },
+    {
+      "revision": "86f935e",
+      "command": "node --test tests/verified-media.test.mjs tests/media.test.mjs tests/room-media.test.mjs",
+      "status": "passed",
+      "moduleTests": 24,
+      "scope": "Real Core HTTP with synthetic Matrix source, byte count/hash, Range, queue/storage limits, staged revocation and cleanup"
+    },
+    {
+      "revision": "86f935e",
+      "command": "node scripts/verify-federated-client.mjs --run --port-base 24400 --client-port 24470",
+      "status": "passed",
+      "checks": 10,
+      "remoteModelCalls": 0,
+      "scope": "Normal production UI, independent origin, actual A/B/C Synapse federation and Core/admin, API-only, text/media/owner grants/revocation/reconnect",
+      "report": "../unified-client/federated-ui-2026-11-05T04-16-52-441Z.json",
+      "cleanup": "Owned Core/admin/static processes, three Synapse containers and isolated network stopped; private runtime data retained"
+    },
+    {
+      "revision": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "commands": [
+        "npm run check",
+        "npm run build",
+        "node --test --test-concurrency=2 tests/*.browser.mjs"
+      ],
+      "status": "passed",
+      "moduleTests": 372,
+      "browserFiles": 9,
+      "browserScope": "Existing component fixtures, unified production client 19 checks, independent administrator UI 14 checks"
+    },
+    {
+      "revision": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "command": "DS_GROUP_SCOPED_SMOKE_PORT=24690 DS_GROUP_SCOPED_SMOKE_REPORT=artifacts/cross-server-bot/platform-native-final-2026-11-05.json node scripts/cross-server-runtime-smoke.mjs",
+      "status": "passed",
+      "checks": 8,
+      "scriptedProviderCalls": 10,
+      "remoteModelCalls": 0,
+      "scope": "Actual native DSH with synthetic authorization, isolated Sessions and file tools, late/revoked tool effect receipts",
+      "report": "../cross-server-bot/platform-native-final-2026-11-05.json"
+    },
+    {
+      "revision": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "command": "verify-cross-server-bot.mjs --prepare --run --real-model against the integrated product source and isolated existing Bot lab",
+      "status": "passed",
+      "checks": 9,
+      "remoteModelCalls": 9,
+      "scope": "Actual native DSH, real Synapse federation, original Bot/owner/node identity, colliding attachment identity, file work and original-room delivery, duplicate, reconnect and queued revocation",
+      "report": "../cross-server-bot/platform-real-9a44e8d.json",
+      "sourceProof": "../cross-server-bot/platform-source-9a44e8d.json",
+      "cleanupReport": "../cross-server-bot/platform-cleanup-9a44e8d.json"
+    },
+    {
+      "revision": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "command": "GitHub Actions DSCord CI",
+      "status": "passed",
+      "jobsPassed": 10,
+      "jobsTotal": 10,
+      "remoteModelCalls": 0,
+      "url": "https://github.com/MixGeekers/dscord/actions/runs/41967970180",
+      "scope": "Four Linux/Node jobs, two full Compose deployments, two native DSH jobs, browser and required gate",
+      "report": "../ci/9a44e8d/summary.json"
     }
   ],
   "verificationPortChange": {
@@ -199,16 +286,9 @@
     },
     "reason": "Permit main-thread verification alongside the identity worker without sharing ports or data directories"
   },
-  "modelCalls": 0,
+  "modelCalls": 34,
   "physicalCrossMachine": false,
-  "pending": [
-    "Actual A/B production-client switching and owner-grant UI against integrated services",
-    "Real cross-server Bot model/file/delivery task and revocation",
-    "Full-download integrity enforcement for proven remote media",
-    "Independent admin Bot policy normal UI entry",
-    "Integrated Linux amd64/arm64 CI and final Compose verification",
-    "Physical cross-machine evidence"
-  ],
+  "pending": [],
   "apiOnlyVerificationPortChange": {
     "variable": "DS_GROUP_API_ONLY_VERIFY_PORT_BASE",
     "default": 24210,
@@ -230,5 +310,52 @@
     "webModeVariable": "DS_GROUP_CLIENT_VERIFY_WEB_MODE",
     "defaultWebMode": "deployment-default",
     "reason": "Run normal production UI against an explicitly API-only Core on isolated integration ports"
+  },
+  "modelCallScope": {
+    "mainThreadRemote": 0,
+    "botWorkstreamRemote": 34,
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "report": "../cross-server-bot/accounting.json",
+    "billingCost": "unknown"
+  },
+  "physicalTestStatus": "User stated on 2026-11-05 that no test machine is currently available. This slice uses one physical host with independent Synapse containers and Core/admin processes, plus Linux amd64/arm64 full Compose CI. Physical cross-machine network/failure behavior is deferred.",
+  "implementationDecisions": [
+    "Reuse Synapse password authentication and device sessions with persistent authorityId/subjectId/full-Matrix-ID mapping; independent OIDC issuer is a follow-up",
+    "Explicit API-only mode for independently hosted collaboration services; separately built static client and per-instance administration",
+    "Cross-server Bot work currently permits read/write/edit/read_image and delivery to the original approved room/requester; wider tools, cross-server delegation and new external private chats are follow-ups",
+    "Proven media uses private full-object staging before successful bytes, default 256 MiB per file, concurrency 2, queue 16 and configurable Core limits"
+  ],
+  "deferred": [
+    "Physical cross-machine network and host-failure acceptance, pending a user test machine",
+    "Independent OIDC issuer evolution",
+    "Wider cross-server tools, delegation and new external private chats"
+  ],
+  "cleanup": {
+    "mainVerificationListenersReleased": [
+      24400,
+      24408,
+      24410,
+      24420,
+      24428,
+      24430,
+      24440,
+      24448,
+      24450,
+      24470,
+      24690,
+      24691
+    ],
+    "workerReports": [
+      "../cross-server-bot/platform-cleanup-9a44e8d.json",
+      "../deploy-release/cleanup.json"
+    ],
+    "privateData": "Retained only in Git-ignored test runtime directories",
+    "trackedCredentialReview": "New paths reviewed for private runtime paths and common Matrix/API/private-key material patterns; no matches"
+  },
+  "publication": {
+    "kind": "source-candidate",
+    "branch": "codex/dscord-platform-integration",
+    "productSourceCommit": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+    "releaseStatus": "Source branch integration; package publication is a separate step"
   }
 }

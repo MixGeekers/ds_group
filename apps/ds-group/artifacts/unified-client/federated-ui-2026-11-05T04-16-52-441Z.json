@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "runId": "2026-11-05T04-16-52-441Z",
+  "status": "passed",
+  "evidenceLevel": "normal production React/PWA; real independent A/B/C Synapse/Core/admin; verified private-CA Matrix federation; synthetic accounts",
+  "backendRoot": "/Users/caja/.codex/worktrees/dscord-platform-integration/apps/ds-group",
+  "clientUrl": "http://127.0.0.1:24470",
+  "project": "dscord-ui-mw31ahnd-0b96",
+  "portBase": 24400,
+  "labRoot": "/Users/caja/.codex/worktrees/dscord-platform-integration/apps/ds-group/.local/federated-client/2026-11-05T04-16-52-441Z/lab",
+  "reportPath": "/Users/caja/.codex/worktrees/dscord-platform-integration/apps/ds-group/artifacts/unified-client/federated-ui-2026-11-05T04-16-52-441Z.json",
+  "modelCalls": 0,
+  "physicalHosts": 1,
+  "checks": [
+    {
+      "name": "B becomes a persistent default home with exact independent client Origin and API-only hosting",
+      "status": "passed",
+      "details": {
+        "serverName": "b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "apiOnly": true,
+        "authorityId": "urn:uuid:f68f372b-8a12-4b46-9d04-65479a7a99a0",
+        "clientOrigin": "http://127.0.0.1:24470"
+      }
+    },
+    {
+      "name": "A/B use real partner/member/room administration and an actual Matrix invitation",
+      "status": "passed",
+      "details": {
+        "sharedRoom": "!kZ07FDYEGkJ5w-DQMBr4epx9JfUPNnP_yl-Btk1Qstg",
+        "homeRoom": "!up12EJTWigucIKlljkZgVvw2BViDoSky9VouWn86_c4",
+        "invitedUser": "@alice:b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "shadowAccountCreated": false
+      }
+    },
+    {
+      "name": "one real B home login accepts A invitation and switches A/B while preserving its subject",
+      "status": "passed",
+      "details": {
+        "homeUser": "@alice:b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "sharedRoom": "!kZ07FDYEGkJ5w-DQMBr4epx9JfUPNnP_yl-Btk1Qstg",
+        "sameSubject": true,
+        "roomDraftsIndependent": true
+      }
+    },
+    {
+      "name": "foreign text and same-name member resolve to full A identity, and a UI reply arrives as the original B human",
+      "status": "passed",
+      "details": {
+        "sentEventId": "$6fgCEPLVRktoMT9Mz3ZcaXMUjen1-P2IeifE0hbTULw",
+        "sender": "@alice:b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "replyTo": "$COc74PCgVgC_kit0E8MgaTul_ChbD9TR6TgA0Q7-OkQ"
+      }
+    },
+    {
+      "name": "A-origin message attachment previews and downloads through B home room/event proof",
+      "status": "passed",
+      "details": {
+        "attachmentId": "attachment-60928741-a24c-4775-88fb-7fa73910f228",
+        "eventId": "$Emy5i8apxJdDZFsgvY0Rbud7Wtcdbt4Yd2YGAPRX2N4",
+        "bytes": 51,
+        "independentlyMatchedSha256": "51d973c0a7f6d9b06f7d4c7219c3a2b64439d5a89e978e2bc2fdd1dc32d26fe3",
+        "serverRejectsArbitraryBadStreamHashes": "not claimed by this positive-byte test"
+      }
+    },
+    {
+      "name": "file uploaded in the A view stays a B-home file on the actual A message",
+      "status": "passed",
+      "details": {
+        "eventId": "$y0bxdzc4cE97znfd4PMSeJgCEFBgZ_XRBkvXb7bZNWA",
+        "sender": "@alice:b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "attachmentId": "attachment-baf6d897-5772-4be2-851d-389354110ffa",
+        "mxcHome": "b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "bytes": 45
+      }
+    },
+    {
+      "name": "the actual B Bot owner explicitly saves, reads back and disables a real A-room work grant with CAS revisions",
+      "status": "passed",
+      "details": {
+        "botId": "@finance:b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "ownerId": "@alice:b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "requesterId": "@alice:a.dscord-ui-mw31ahnd-0b96.test:8448",
+        "savedRevision": 1,
+        "disabledRevision": 2,
+        "nodeStarted": false,
+        "modelCalls": 0
+      }
+    },
+    {
+      "name": "an unsupported C room remains a real rejection without a phantom server membership",
+      "status": "passed",
+      "details": {
+        "rejectedRoomId": "!a73POagiw-EOIggJLez87JirCFHu4jPQJr5H9hLNLWM",
+        "phantomSpace": false
+      }
+    },
+    {
+      "name": "actual B partner revocation removes A channels and denies fresh room-proven bytes",
+      "status": "passed",
+      "details": {
+        "authority": "a.dscord-ui-mw31ahnd-0b96.test:8448",
+        "currentViewRestricted": true,
+        "proofReadStatus": 403,
+        "previousCopiesErased": false
+      }
+    },
+    {
+      "name": "explicit reapproval, browser offline reload and formal Core restart preserve B identity and A draft",
+      "status": "passed",
+      "details": {
+        "sameSubject": true,
+        "sameHomeUser": "@alice:b.dscord-ui-mw31ahnd-0b96.test:8448",
+        "formalServiceReload": true,
+        "foreignMessageRecovered": true,
+        "draftPreserved": true
+      }
+    }
+  ],
+  "sourceSha256": {
+    "client/web/src/App.tsx": "503b44d08c1b46e50332b2705c5f62378cb285ef219323ed12481971a4a292cc",
+    "client/web/attachments.js": "f5f9b49904fdd53e454320b5f8cb205693dfb967daaf88370c8004ca007b7988",
+    "client/web/src/attachment-proof.ts": "f940beeee98f5399db15b96685248ff7c9d2d1a9a037eaf1658fb206d944cb61",
+    "client/web/src/components/BotWorkGrants.tsx": "65cc9aa975d16d15c8accc695bd37b01bfbe51499d88363e6d4a4db6abc2bd0b",
+    "client/scripts/verify-federated-client.mjs": "c2e6f013479a05cb6a6fe29ffba5260a3523d1c07552c33a3e2f18202c8dd4e8",
+    "backend/src/core.mjs": "d65ba7c8e1ac035d3ec9010ca3acaa7a62e142453d828e7596d903441184f00d",
+    "backend/src/collaboration.mjs": "ae208f4868258327ebe68a1dbb79f3a4cac0d0db8bb7602648bfccf63382a57a",
+    "backend/src/room-media.mjs": "2667e57561e34ba2da280a8e22a94f0bd42bc9dda5c8f5628077d399ab70a5cc",
+    "backend/src/bot-work.mjs": "aa8779a77d8dc2fdae42e7c1d75adb7dda46f01afe050518d633ccc05a690e23",
+    "backend/scripts/federation-lab.mjs": "0dc0c7e17f953eed322dd1fa43a5a321fec9f19b4afd051357c525869c7ddfb6",
+    "backend/deploy/synapse/dscord_guard.py": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f"
+  },
+  "backendCommit": "86f935e0cfdb17a68fb734dde04cce9d95f757b1",
+  "clientCommit": "86f935e0cfdb17a68fb734dde04cce9d95f757b1",
+  "servers": [
+    {
+      "name": "a",
+      "serverName": "a.dscord-ui-mw31ahnd-0b96.test:8448",
+      "coreUrl": "http://127.0.0.1:24400",
+      "matrixUrl": "http://127.0.0.1:24408",
+      "adminUrl": "http://127.0.0.1:24410"
+    },
+    {
+      "name": "b",
+      "serverName": "b.dscord-ui-mw31ahnd-0b96.test:8448",
+      "coreUrl": "http://127.0.0.1:24420",
+      "matrixUrl": "http://127.0.0.1:24428",
+      "adminUrl": "http://127.0.0.1:24430"
+    },
+    {
+      "name": "c",
+      "serverName": "c.dscord-ui-mw31ahnd-0b96.test:8448",
+      "coreUrl": "http://127.0.0.1:24440",
+      "matrixUrl": "http://127.0.0.1:24448",
+      "adminUrl": "http://127.0.0.1:24450"
+    }
+  ],
+  "identity": {
+    "userId": "@alice:b.dscord-ui-mw31ahnd-0b96.test:8448",
+    "subjectId": "3e2d43c2-0629-47a7-9f2a-0d771899b49f",
+    "authorityId": "urn:uuid:f68f372b-8a12-4b46-9d04-65479a7a99a0"
+  },
+  "credentialOrigins": [
+    "http://127.0.0.1:24420"
+  ],
+  "browserMediaRequests": [
+    {
+      "origin": "http://127.0.0.1:24420",
+      "path": "/api/rooms/!kZ07FDYEGkJ5w-DQMBr4epx9JfUPNnP_yl-Btk1Qstg/attachments/attachment-60928741-a24c-4775-88fb-7fa73910f228",
+      "eventId": "$Emy5i8apxJdDZFsgvY0Rbud7Wtcdbt4Yd2YGAPRX2N4"
+    },
+    {
+      "origin": "http://127.0.0.1:24420",
+      "path": "/api/rooms/!kZ07FDYEGkJ5w-DQMBr4epx9JfUPNnP_yl-Btk1Qstg/attachments/attachment-60928741-a24c-4775-88fb-7fa73910f228/metadata",
+      "eventId": "$Emy5i8apxJdDZFsgvY0Rbud7Wtcdbt4Yd2YGAPRX2N4"
+    }
+  ],
+  "budgets": {
+    "a": {
+      "modelCalls": 0,
+      "loadedCoreSha256": "d65ba7c8e1ac035d3ec9010ca3acaa7a62e142453d828e7596d903441184f00d"
+    },
+    "b": {
+      "modelCalls": 0,
+      "loadedCoreSha256": "d65ba7c8e1ac035d3ec9010ca3acaa7a62e142453d828e7596d903441184f00d"
+    },
+    "c": {
+      "modelCalls": 0,
+      "loadedCoreSha256": "d65ba7c8e1ac035d3ec9010ca3acaa7a62e142453d828e7596d903441184f00d"
+    }
+  },
+  "cleanup": {
+    "labStopped": true,
+    "retainedPrivateData": "/Users/caja/.codex/worktrees/dscord-platform-integration/apps/ds-group/.local/federated-client/2026-11-05T04-16-52-441Z/lab",
+    "staticClientStopped": true
+  },
+  "pageErrors": [],
+  "finishedAt": "2026-11-05T04:17:29.565Z"
+}

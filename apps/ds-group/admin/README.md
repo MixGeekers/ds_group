@@ -1,6 +1,6 @@
 # DSCord 独立后台与治理切片
 
-更新于 2026-11-04（America/Caracas）。本文件同时作为主聊天及中央身份、统一客户端实施聊天的接口交接入口。
+更新于 2026-11-05（America/Caracas）。本文件同时作为主聊天及中央身份、统一客户端实施聊天的接口交接入口。
 
 ## 基线、职责与状态
 
@@ -8,7 +8,7 @@
 - 本聊天负责独立管理服务、实例管理员、治理策略、Core 路由接线、Synapse 联邦与准入门禁，以及对应部署和验证。
 - 管理 UI 代码独立位于 `admin/`，不改动统一聊天客户端的 `web/src/`。只读取既有 `web/tokens.css`、`web/theme.js` 和 `web/i18n.js`。
 - 中央身份、全局产品 ID 与 Matrix ID 绑定、默认归属服务由另一聊天实施；统一聊天入口由客户端聊天实施。当前兼容本服账号与完整 Matrix ID，不建立外服影子账号，不接收外服普通 access token。
-- 当前为第一切片；本文件中的接口已接线。独立后台已通过真实管理 HTTP 服务和生产构建的浏览器检查。Synapse 与跨服 Bot 工作尚未作为验收通过登记；Bot 工具限制当前仅定义策略契约，因此后台暂不显示 Bot 工作菜单。
+- 当前后台包含概览、伙伴、成员、房间、Bot 工作、存储概览、实例设置、管理员和审计。生产构建已通过 14 项管理浏览器检查，真实 Synapse 联邦与房间附件通过 10 项检查。跨服 Bot 执行由主线程与节点实施线集成，结果见[跨服 Bot 证据](../artifacts/cross-server-bot/目录.md)。
 
 ## 共享文件改动清单
 
@@ -24,7 +24,7 @@
 | `deploy/compose.yaml` | 新增管理服务和治理卷；Synapse 加载门禁覆盖配置。管理端口只绑定宿主回环地址 |
 | `src/core.mjs` | 接入下述目录、协作空间和邀请 API；读取实时注册/上传策略；管理 API 不由聊天监听器承载 |
 
-根 `vite.config.ts`、聊天前端、账号实现和启动 CLI 当前未改。后台使用 `admin/vite.config.ts` 与 `admin/tsconfig.json`。后续 CLI 若需要 `dscord admin` 子命令，可由主聊天协调接入已独立提供的 `src/admin.mjs` 与 `scripts/admin.mjs`。
+后台使用 `admin/vite.config.ts` 与 `admin/tsconfig.json`。集成 CLI 已通过 `dscord admin` 接入 `src/admin.mjs` 与 `scripts/admin.mjs`，聊天前端和中央身份按各自实施线整合。
 
 ## 客户端 API 契约
 
@@ -34,14 +34,14 @@
 |---|---|
 | `GET /api/bootstrap` | 保留旧字段，新增 `serverName`。公开 `participants` 继续只含本服身份，不公开准入名单。中央身份可追加映射元数据，现有 `id` 仍为 Matrix ID |
 | `GET /api/directory` | 归属服聊天会话认证，返回 `{participants:[{id,name,kind,ownerId?,localpart?,homeServer}]}`。包括本服身份及当前已准入的外部身份。外部 Bot 的 owner 信息仅作资料，不能成为本服所有权凭据 |
-| `GET /api/spaces` | 归属服会话认证，返回 `{homeServer,userId,spaces:[{serverName,name,home,status,rooms,invitations}]}`。只根据真实 `/sync` 成员关系、邀请及本服政策组织空间；`status` 为 `connected` 或 `revoked` |
+| `GET /api/spaces` | 归属服会话认证，返回 `{homeServer,userId,spaces:[{serverName,name,home,status,rooms,invitations}]}`。根据真实 `/joined_rooms` 与房间状态枚举成员关系，结合 `/sync` 邀请及本服政策组织空间；`status` 为 `connected` 或 `revoked` |
 | `spaces[].rooms[]` | `{roomId,name,status:'joined'|'restricted',canSend,authoritySource}`。优先采用管理员登记的房间与服务器关系；创建者域名仅作兼容推断。已加入但被撤权的空间仍可被展示为受限 |
 | `spaces[].invitations[]` | `{roomId,name,inviterId,canJoin,status:'invited'|'approval_required'}`。伙伴不等于全部账号准入，`canJoin` 还需本服的精确房间与身份规则 |
 | `POST /api/rooms/:roomId/join` | 必须有已启用的精确房间规则；外服房间需本服身份在 `memberIds`、伙伴启用及实际 Matrix 邀请。通过归属 homeserver 加入，保留完整账号 ID |
 | `POST /api/rooms/:roomId/leave` | 当前归属账号离开该 Matrix 房间 |
 | `POST /api/rooms/:roomId/invite` | 保留本人 Bot 的旧路径。外部成员必须在本服准入与精确房间规则中，普通房间成员的邀请还受 Matrix 自身权限限制。外部邀请返回 `status:'invited'`，不会拿远端凭据代为加入 |
 
-既有 `/api/rooms`、消息和私聊接口继续兼容。外服私聊、附件的房间证明读取与跨服 Bot 工作门禁属于后续切片，不通过发现按钮冒充已验收。中央产品 ID 的新字段由主聊天统一，服务器名和 Matrix ID 保持不可随意迁移的既有归属。
+房间证明附件读取与 Bot 工作策略已经接入。新建外服私聊和跨服委派按后续范围推进。中央产品 ID 由身份服务提供持久绑定，服务器名和 Matrix ID 保持明确归属。
 
 ## 独立管理 API 与策略
 
