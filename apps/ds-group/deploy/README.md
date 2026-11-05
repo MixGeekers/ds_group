@@ -2,6 +2,8 @@
 
 服务器提供聊天核心、PWA、Matrix 和 Web Push 接口。Bot 节点通过公网 HTTPS 或内网地址连接核心，可以分别运行在其他机器。服务器数据保存在 Docker 命名卷中。
 
+聊天客户端独立托管时，可通过 `DS_GROUP_WEB_MODE=api-only` 持久关闭 Core 的网页发布；原单服缺省仍托管 PWA。配置、CLI/Compose 入口及升级兼容见 [API-only 部署](api-only.md)。
+
 本文对应 `0.3.0` 源码候选，新增账号注册、个人 Bot 创建与 DSH 连接页。公开 npm 包当前为 `0.2.0-alpha.1`，候选安装步骤见 [npm 说明](npm.md)。
 
 ## 支持范围

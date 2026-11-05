@@ -4,6 +4,8 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { Governance, privateJson } from '../src/governance.mjs';
 import { synapseGovernanceConfig } from '../src/synapse-control.mjs';
+import { parseArgs } from 'node:util';
+import { parseWebMode } from '../src/web-mode.mjs';
 
 export async function readOptionalJson(filename) {
   try { return JSON.parse(await readFile(filename, 'utf8')); }
@@ -77,11 +79,13 @@ export function serverOptions(env = process.env) {
     publicUrl: normalizedUrl(env.DS_GROUP_PUBLIC_URL || 'http://localhost:18100', 'DS_GROUP_PUBLIC_URL'),
     publicHomeserverUrl: normalizedUrl(env.DS_GROUP_MATRIX_PUBLIC_URL || 'http://localhost:18008', 'DS_GROUP_MATRIX_PUBLIC_URL'),
     mediaStorage: mediaStorageOptions(env),
+    ...(env.DS_GROUP_WEB_MODE ? { webMode: parseWebMode(env.DS_GROUP_WEB_MODE) } : {}),
   };
 }
 
 export async function initializeServer(options = serverOptions(), { containerOwnership = process.getuid?.() === 0 } = {}) {
   const { dataRoot, synapseRoot, serverName, homeserverUrl, publicUrl, publicHomeserverUrl } = options;
+  if (options.webMode !== undefined) parseWebMode(options.webMode);
   await mkdir(dataRoot, { recursive: true, mode: 0o700 });
   await mkdir(synapseRoot, { recursive: true, mode: 0o700 });
   const metadataPath = path.join(dataRoot, 'server.json');
@@ -100,6 +104,12 @@ export async function initializeServer(options = serverOptions(), { containerOwn
   if (previousStorage?.backend === 's3' && ['backend', 'bucket', 'endpointUrl', 'prefix'].some(key => mediaStorage[key] !== previousStorage[key])) {
     throw new Error('Changing an existing S3 media destination requires an explicit migration');
   }
+  const corePath = path.join(dataRoot, 'core-config.json');
+  const core = await readOptionalJson(corePath) || {
+    nodeSecret: randomBytes(32).toString('hex'), modelCallLimit: null, maxOutputTokens: 8192, demoLogin: false,
+  };
+  core.webMode = parseWebMode(options.webMode ?? core.webMode);
+  core.publicUrl = publicUrl;
   const metadata = previous || {
     schemaVersion: 1, serverName, createdAt: new Date().toISOString(),
     registrationSecret: randomBytes(48).toString('hex'),
@@ -108,11 +118,6 @@ export async function initializeServer(options = serverOptions(), { containerOwn
   if (metadata.schemaVersion !== 1) throw new Error('Unsupported server metadata version');
   Object.assign(metadata, { homeserverUrl, publicUrl, publicHomeserverUrl });
   await savePrivateJson(metadataPath, metadata);
-  const corePath = path.join(dataRoot, 'core-config.json');
-  const core = await readOptionalJson(corePath) || {
-    nodeSecret: randomBytes(32).toString('hex'), modelCallLimit: null, maxOutputTokens: 8192, demoLogin: false,
-  };
-  core.publicUrl = publicUrl;
   await savePrivateJson(corePath, core);
   const configPath = path.join(synapseRoot, 'homeserver.yaml');
   // JSON is valid YAML and keeps environment values out of the YAML grammar.
@@ -147,9 +152,12 @@ export async function initializeServer(options = serverOptions(), { containerOwn
     for (const filename of [dataRoot, synapseRoot, metadataPath, corePath, storagePath, configPath, governance.root, governance.filename,
       path.join(synapseRoot, 'dscord_guard.py'), path.join(synapseRoot, 'governance.generated.yaml')]) await chown(filename, 1000, 1000);
   }
-  return { serverName, publicUrl, publicHomeserverUrl, mediaBackend: mediaStorage.backend, reused: Boolean(previous) };
+  return { serverName, publicUrl, publicHomeserverUrl, mediaBackend: mediaStorage.backend, webMode: core.webMode, reused: Boolean(previous) };
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
-  console.log(JSON.stringify(await initializeServer()));
+  const { values } = parseArgs({ options: { 'web-mode': { type: 'string' } } });
+  const options = serverOptions();
+  if (values['web-mode'] !== undefined) options.webMode = parseWebMode(values['web-mode']);
+  console.log(JSON.stringify(await initializeServer(options)));
 }

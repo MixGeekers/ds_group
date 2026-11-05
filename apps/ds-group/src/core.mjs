@@ -14,6 +14,7 @@ import { ChatFeatures } from './mentions.mjs';
 import { localPath, packageRoot } from './paths.mjs';
 import { AccountService } from './accounts.mjs';
 import { IdentityService } from './identity.mjs';
+import { effectiveWebMode } from './web-mode.mjs';
 import { NodeCredentials, requireNodeScope } from './node-auth.mjs';
 import { nodeBundle } from '../scripts/server-admin.mjs';
 import { Governance, serverOf, roomAllows } from './governance.mjs';
@@ -57,6 +58,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   setup ||= JSON.parse(await readFile(process.env.DS_GROUP_MATRIX_SETUP_PATH || path.join(dataRoot, 'matrix-setup.json'), 'utf8'));
   setup = { ...setup, homeserverUrl: process.env.DS_GROUP_MATRIX_URL || setup.homeserverUrl };
   config ||= await loadCoreConfig(dataRoot);
+  const webMode = effectiveWebMode(config);
   const proxySetting = process.env.DS_GROUP_TRUST_PROXY;
   if (proxySetting !== undefined && !['true', 'false'].includes(proxySetting)) throw new Error('DS_GROUP_TRUST_PROXY must be true or false');
   if (config.trustProxy !== undefined && typeof config.trustProxy !== 'boolean') throw new Error('trustProxy must be a boolean');
@@ -224,10 +226,10 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     if (request.method === 'GET' && url.pathname === '/api/bootstrap') {
       response.setHeader('Access-Control-Allow-Origin', '*');
       return send(200, { name: 'DSCord', serverName: setup.serverName, roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: accounts.publicParticipants(), nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server', registration: accounts.registration(),
-        attachments: { maxBytes: media.maxBytes, maxPerMessage: MAX_ATTACHMENTS }, identity: identity.discovery() });
+        attachments: { maxBytes: media.maxBytes, maxPerMessage: MAX_ATTACHMENTS }, identity: identity.discovery(), web: { mode: webMode } });
     }
     if (request.method === 'GET' && url.pathname === '/api/status') {
-      return send(200, { nodes: nodeSnapshot(), budget: budget.snapshot(), core: { startedAt, storage: 'Matrix Synapse', roomId: setup.roomId, evidenceScope: setup.deploymentMode || 'local-multiprocess', loadedCoreSha256 } });
+      return send(200, { nodes: nodeSnapshot(), budget: budget.snapshot(), core: { startedAt, storage: 'Matrix Synapse', roomId: setup.roomId, evidenceScope: setup.deploymentMode || 'local-multiprocess', loadedCoreSha256, webMode } });
     }
     if (request.method === 'GET' && url.pathname === '/api/push/config') {
       return send(200, push ? await push.getConfig() : { enabled: false, requiresSecureContext: true });
@@ -465,7 +467,10 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       }
       return send(404, { error: 'Unknown internal endpoint' });
     }
-    if (request.method === 'GET') {
+    if (webMode === 'api-only' && !url.pathname.startsWith('/api/') && !url.pathname.startsWith('/internal/')) {
+      return send(404, { error: 'The chat client is hosted separately', code: 'WEB_DISABLED' });
+    }
+    if (webMode === 'bundled' && request.method === 'GET') {
       const requested = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
       const filename = path.resolve(webRoot, requested);
       if (!filename.startsWith(path.resolve(webRoot) + path.sep)) return send(404, { error: 'Not found' });

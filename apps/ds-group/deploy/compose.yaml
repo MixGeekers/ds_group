@@ -14,6 +14,8 @@ x-server-environment: &server-environment
   DS_GROUP_PUBLIC_URL: ${DS_GROUP_PUBLIC_URL:-http://localhost:18100}
   DS_GROUP_MATRIX_PUBLIC_URL: ${DS_GROUP_MATRIX_PUBLIC_URL:-http://localhost:18008}
   DS_GROUP_GOVERNANCE_DIR: /dscord-policy
+  # Empty preserves the mode already saved by init; a fresh deployment defaults to bundled.
+  DS_GROUP_WEB_MODE: ${DS_GROUP_WEB_MODE:-}
 
 services:
   config:
