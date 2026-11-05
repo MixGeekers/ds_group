@@ -28,9 +28,22 @@ const reportPath = path.join(
   "artifacts/unified-client",
   `real-${runId}.json`,
 );
-const coreUrl = "http://127.0.0.1:24370";
-const clientUrl = "http://127.0.0.1:24371";
-const matrixUrl = "http://127.0.0.1:24378";
+const portBase = Number(process.env.DS_GROUP_CLIENT_VERIFY_PORT_BASE || 24370);
+assert.ok(
+  Number.isInteger(portBase) && portBase >= 1024 && portBase <= 65527,
+  "DS_GROUP_CLIENT_VERIFY_PORT_BASE must be an integer from 1024 to 65527",
+);
+const corePort = portBase;
+const clientPort = portBase + 1;
+const matrixPort = portBase + 8;
+const coreUrl = `http://127.0.0.1:${corePort}`;
+const clientUrl = `http://127.0.0.1:${clientPort}`;
+const matrixUrl = `http://127.0.0.1:${matrixPort}`;
+const webMode = process.env.DS_GROUP_CLIENT_VERIFY_WEB_MODE || undefined;
+assert.ok(
+  webMode === undefined || ["bundled", "api-only"].includes(webMode),
+  "DS_GROUP_CLIENT_VERIFY_WEB_MODE must be bundled or api-only",
+);
 const containerName = `dscord-unified-client-${runId.toLowerCase()}`;
 const image =
   "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842";
@@ -46,6 +59,7 @@ const report = {
     "normal-production-React-client-real-local-Core-and-Synapse-separate-HTTP-origins-synthetic-accounts-zero-model",
   image,
   origins: { coreUrl, clientUrl, matrixUrl },
+  requestedWebMode: webMode ?? "deployment-default",
   checks: [],
   modelCalls: 0,
   physicalCrossMachine: false,
@@ -96,7 +110,7 @@ async function ready(url) {
   throw new Error(`Readiness timed out: ${url}`);
 }
 async function assertFreePorts() {
-  for (const port of [24370, 24371, 24378]) {
+  for (const port of [corePort, clientPort, matrixPort]) {
     const server = createServer();
     await new Promise((resolve, reject) => {
       server.once("error", reject);
@@ -160,6 +174,9 @@ try {
     cwd: packageRoot,
     maxBuffer: 2 ** 20,
   });
+  report.builtClientIndexSha256 = createHash("sha256")
+    .update(await readFile(path.join(packageRoot, "dist/web/index.html")))
+    .digest("hex");
   await initializeServer(
     {
       dataRoot,
@@ -168,6 +185,7 @@ try {
       homeserverUrl: matrixUrl,
       publicUrl: coreUrl,
       publicHomeserverUrl: matrixUrl,
+      webMode,
     },
     { containerOwnership: false },
   );
@@ -185,7 +203,7 @@ try {
       "--name",
       containerName,
       "--publish",
-      "127.0.0.1:24378:8008",
+      `127.0.0.1:${matrixPort}:8008`,
       "--mount",
       `type=bind,source=${synapseRoot},target=/data`,
       "--env",
@@ -208,7 +226,7 @@ try {
       ...process.env,
       DS_GROUP_DATA_DIR: dataRoot,
       DS_GROUP_MATRIX_URL: matrixUrl,
-      DS_GROUP_PORT: "24370",
+      DS_GROUP_PORT: String(corePort),
       DS_GROUP_HOST: "127.0.0.1",
       DS_GROUP_DEMO_LOGIN: "false",
     },
@@ -221,6 +239,16 @@ try {
     coreLog += bytes;
   });
   await ready(coreUrl + "/readyz");
+  if (webMode === "api-only") {
+    await check("the separately hosted client uses a persisted API-only Core", async () => {
+      const response = await fetch(coreUrl + "/");
+      assert.equal(response.status, 404);
+      assert.equal((await response.json()).code, "WEB_DISABLED");
+      const bootstrap = await (await fetch(coreUrl + "/api/bootstrap")).json();
+      assert.equal(bootstrap.web.mode, "api-only");
+      return { coreRootStatus: 404, persistedMode: bootstrap.web.mode };
+    });
+  }
   const types = {
     ".html": "text/html",
     ".js": "text/javascript",
@@ -277,7 +305,7 @@ try {
       }),
   );
   await new Promise((resolve) =>
-    staticServer.listen(24371, "127.0.0.1", resolve),
+    staticServer.listen(clientPort, "127.0.0.1", resolve),
   );
   browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({

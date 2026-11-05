@@ -2,13 +2,16 @@
   "schemaVersion": 1,
   "date": "2026-11-04",
   "branch": "codex/dscord-platform-integration",
-  "scope": "Main-thread integration of administration/governance, central identity and API-only deployment. Unified-client and actual federation integration remain in progress.",
+  "scope": "Main-thread integration of administration, identity, API-only hosting, unified production client and controlled federation. Bot and release validation remain in progress.",
   "integratedCommits": {
     "direction": "8580cd2",
     "administration": "9d1cd3e",
     "administrationEvidence": "909749e",
     "centralIdentity": "8cacfe9",
-    "apiOnly": "ca336a2"
+    "apiOnly": "ca336a2",
+    "administrationReadability": "57e2872",
+    "controlledFederation": "5a44c64",
+    "unifiedClient": "cf77e22"
   },
   "mergeReview": {
     "file": "src/core.mjs",
@@ -77,6 +80,63 @@
       "report": "../api-only/real-2026-11-05T03-30-35-697Z.json",
       "sourceProof": "Exact per-file SHA-256 values recorded in the linked report",
       "cleanup": "Run-specific Synapse container, Core and static HTTP fixture stopped"
+    },
+    {
+      "revision": "57e2872",
+      "commands": [
+        "npm run build:admin",
+        "node --test tests/governance.test.mjs tests/admin.browser.mjs"
+      ],
+      "status": "passed",
+      "moduleTests": 7,
+      "browserChecks": 12
+    },
+    {
+      "revision": "cf77e22 plus correction of duplicated dsh-connect packaging entry",
+      "commands": [
+        "npm run check",
+        "npm run build"
+      ],
+      "status": "passed",
+      "moduleTests": 323
+    },
+    {
+      "revision": "cf77e22",
+      "command": "node --test --test-concurrency=2 tests/*.browser.mjs",
+      "status": "failed",
+      "browserFilesPassed": 8,
+      "browserFilesFailed": 1,
+      "failure": "unified-client.browser.mjs async response diagnostics attempted response.json after disposal; lifecycle fix assigned to client line",
+      "log": "/tmp/dscord-platform-client-browser.log"
+    },
+    {
+      "revision": "cf77e22",
+      "commands": [
+        "node scripts/federation-lab.mjs up --project dscord-platform-20261105t0340 --port-base 24400",
+        "node scripts/federation-lab.mjs verify --project dscord-platform-20261105t0340 --port-base 24400",
+        "node scripts/federation-lab.mjs down --project dscord-platform-20261105t0340 --port-base 24400"
+      ],
+      "status": "passed",
+      "checks": 9,
+      "scope": "Three real independent Synapse/Core/admin deployments on one physical host, validated-TLS signed federation, invitation/admission, text/media, direct Matrix denial, outage recovery and revocation",
+      "report": "../governance/federation-2026-11-05T03-38-18-851Z.json",
+      "cleanup": "Owned processes, three containers and isolated network stopped/removed; private runtime data retained"
+    },
+    {
+      "revision": "cf77e22 plus corrected packaging entry",
+      "command": "node --test tests/release-package.test.mjs",
+      "status": "passed",
+      "moduleTests": 3
+    },
+    {
+      "revision": "cf77e22 plus verification port/web-mode options",
+      "command": "DS_GROUP_CLIENT_VERIFY_PORT_BASE=24470 DS_GROUP_CLIENT_VERIFY_WEB_MODE=api-only node scripts/verify-unified-client.mjs",
+      "status": "failed",
+      "checksPassed": 2,
+      "checksFailed": 1,
+      "finding": "Independent production client successfully registers with an API-only Core. New room is present in joined_rooms/state but omitted by /api/spaces because its initial sync snapshot is empty. Server fix pending.",
+      "report": "../unified-client/real-2026-11-05T03-39-31-043Z.json",
+      "cleanup": "Own Core, browser, HTTP listener and Synapse container stopped"
     }
   ],
   "verificationPortChange": {
@@ -93,10 +153,11 @@
   "modelCalls": 0,
   "physicalCrossMachine": false,
   "pending": [
-    "Unified production client integration and browser regression",
-    "Actual A/B federation and unapproved C rejection on the integrated revision",
-    "Cross-server attachments, Bot work, revocation and recovery",
-    "Linux/container release verification and physical cross-machine evidence"
+    "Unified-client empty-sync room listing regression and browser diagnostic lifecycle fix",
+    "Room-proven foreign attachment access and trusted work-policy publishing",
+    "Cross-server Bot work, owner-grant UI, revocation and recovery",
+    "Full Compose and Linux release verification",
+    "Physical cross-machine evidence"
   ],
   "apiOnlyVerificationPortChange": {
     "variable": "DS_GROUP_API_ONLY_VERIFY_PORT_BASE",
@@ -107,5 +168,17 @@
       "matrix": 8
     },
     "reason": "Avoid cross-worker port collisions during independent deployment validation"
+  },
+  "clientVerificationOptions": {
+    "portBaseVariable": "DS_GROUP_CLIENT_VERIFY_PORT_BASE",
+    "default": 24370,
+    "offsets": {
+      "core": 0,
+      "client": 1,
+      "matrix": 8
+    },
+    "webModeVariable": "DS_GROUP_CLIENT_VERIFY_WEB_MODE",
+    "defaultWebMode": "deployment-default",
+    "reason": "Run normal production UI against an explicitly API-only Core on isolated integration ports"
   }
 }
