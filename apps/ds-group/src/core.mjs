@@ -20,6 +20,7 @@ import { nodeBundle } from '../scripts/server-admin.mjs';
 import { Governance, serverOf, roomAllows } from './governance.mjs';
 import { CollaborationService } from './collaboration.mjs';
 import { RoomMedia } from './room-media.mjs';
+import { BotWorkService } from './bot-work.mjs';
 import { readJsonBody } from './http-json.mjs';
 export { readJsonBody } from './http-json.mjs';
 
@@ -110,7 +111,8 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   directorySetup.participants = directory;
   const publicParticipants = () => directory;
   const authorizeNode = request => nodeCredentials.authorize(request);
-  const tasks = new TaskService({ setup, dataRoot, authorizeNode, readJsonBody });
+  const tasks = new TaskService({ setup, dataRoot, authorizeNode, readJsonBody, participants: publicParticipants });
+  const botWork = new BotWorkService({ setup, accounts, governance, dataRoot, authorizeNode, readJsonBody, tasks, maxBytes: () => media.maxBytes });
   async function directRoomFor(client, userId, target) {
     const ids = [userId, target.id].sort();
     const key = JSON.stringify(ids);
@@ -282,6 +284,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const bundle = nodeBundle(setup, { ...config, nodeSecret: secret }, bot.localpart);
       return send(200, { bundle });
     }
+    if (botWork.handles(url.pathname)) return botWork.handle({ request, url, send });
     if (tasks.handles(url.pathname)) return tasks.handle({ request, url, send });
     if (chatFeatures.handles(url.pathname)) {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
@@ -508,13 +511,14 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         ...(retryAfterMs === undefined ? {} : { retry_after_ms: retryAfterMs }) }));
     });
   });
-  return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, close: async () => {
+  return { server, budget, push, media, tasks, chatFeatures, accounts, identity, nodeCredentials, governance, collaboration, botWork, close: async () => {
     await new Promise(resolve => server.close(resolve));
     if (push) await push.close();
     await nodeCredentials.close();
     accounts.close();
     await media.close();
     tasks.close();
+    botWork.close();
     chatFeatures.close();
     budget.close();
     chat.close();

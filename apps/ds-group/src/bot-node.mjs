@@ -11,10 +11,11 @@ import { boundTaskRequest } from './node-request.mjs';
 import { NodeDelivery, createDeliveryClient } from './node-delivery.mjs';
 import { normalizeDelivery } from './delivery-policy.mjs';
 import { runtimeSettings } from '../scripts/runtime-config.mjs';
+import { createNodeWorkClient, scopedTaskRequest } from './node-work.mjs';
 
 const metadataOf = event => event.content?.['org.ds_group'] || {};
 const digest = value => createHash('sha256').update(value).digest('hex');
-const publicAttachment = ({ id, name, mimeType, size, sha256, contentUri }) => ({ id, name, mimeType, size, sha256, contentUri });
+const publicAttachment = ({ id, name, mimeType, size, sha256, contentUri, source }) => ({ id, name, mimeType, size, sha256, contentUri, ...(source ? { source } : {}) });
 const uniqueAttachments = values => [...new Map(values.filter(value => value?.id).map(value => [value.id, publicAttachment(value)])).values()];
 const legacyBotRoles = new Map([
   ['finance', { role: '财务', duties: '财务核算、预算和金额核对' }],
@@ -113,7 +114,7 @@ export function deliveriesFor(event, output, botId, participants, collaborationR
 }
 
 export class BotNode {
-  constructor({ participant, participants, roomId, matrix, store, bridge, heartbeat, files, tasks, delivery, roster, pollTimeout = 10000,
+  constructor({ participant, participants, roomId, matrix, store, bridge, heartbeat, files, tasks, delivery, roster, work, pollTimeout = 10000,
     transferAttempts = 3, transferRetryDelayMs = 500, controlIntervalMs = 500, onError = console.error }) {
     this.participant = participant;
     this.participants = participants;
@@ -125,6 +126,9 @@ export class BotNode {
     this.files = files;
     this.tasks = tasks;
     this.roster = roster;
+    this.work = work;
+    this.nodeTools = [];
+    this.roomRosters = new Map();
     this.transferAttempts = transferAttempts;
     this.transferRetryDelayMs = transferRetryDelayMs;
     this.controlIntervalMs = controlIntervalMs;
@@ -169,6 +173,10 @@ export class BotNode {
         }
         return record;
       });
+      const home = this.participant.id.slice(this.participant.id.indexOf(':') + 1);
+      for (const people of this.roomRosters.values()) for (const person of people) {
+        if (person.id.slice(person.id.indexOf(':') + 1) !== home && !updated.some(existing => existing.id === person.id)) updated.push(person);
+      }
       this.participants.splice(0, this.participants.length, ...updated);
     })();
     try { await this.refreshingRoster; }
@@ -197,15 +205,31 @@ export class BotNode {
 
   async ingestEvents(events, cursor) {
     await this.refreshRoster();
-    await this.ensureParticipants(events);
+    if (this.work) {
+      for (const roomId of new Set(events.map(event => event.room_id))) {
+        try {
+          const { participants } = await this.work.directory(roomId);
+          this.roomRosters.set(roomId, participants);
+          for (const person of participants) {
+            const previous = this.participants.find(existing => existing.id === person.id);
+            if (previous && previous.kind !== person.kind) throw new Error('A room participant changed identity kind');
+            if (!previous) this.participants.push(person);
+          }
+        } catch (error) {
+          // Preserve the sync position and inbox. Admission rechecks the exact sender before any work.
+          this.onError(`Room work directory unavailable: ${error.message}`);
+        }
+      }
+    } else await this.ensureParticipants(events);
     return this.store.ingest(events, cursor, event => this.delivery.register(event));
   }
 
   async start() {
     await this.refreshRoster();
-    await this.bridge.createBot({ botId: this.participant.id, name: this.participant.name,
+    const setup = await this.bridge.createBot({ botId: this.participant.id, name: this.participant.name,
       role: this.roleOf(),
       instructions: this.instructions() });
+    this.nodeTools = setup?.tools || [];
     await this.heartbeat();
     this.processing = this.processLoop();
     this.syncing = this.syncLoop();
@@ -317,7 +341,7 @@ export class BotNode {
     if (previous?.status === 'cancelled' && changes.status !== 'cancelled') return;
     const meta = metadataOf(item.event);
     const payload = { requestId: request.requestId, botId: this.participant.id, roomId: item.event.room_id,
-      eventId: item.event_id, taskId: meta.taskId || `task-${digest(item.event_id).slice(0, 24)}`,
+      eventId: item.event_id, taskId: request.authorization ? request.event.taskId : meta.taskId || `task-${digest(item.event_id).slice(0, 24)}`,
       status: 'running', stage: 'thinking', summary: '', artifacts: [], toolCalls: 0,
       ...previous, ...changes, delivery: this.delivery.publicRoute(item), updatedAt: new Date().toISOString() };
     this.store.updateTask(item.event_id, payload);
@@ -428,7 +452,7 @@ export class BotNode {
       const meta = metadataOf(item.event);
       const delegated = meta.kind === 'task.request' && meta.returnTo === item.event.sender
         && this.participants.some(person => person.kind === 'bot' && person.id === item.event.sender);
-      if (status === 'failed' && delegated) {
+      if (status === 'failed' && delegated && !response.authorizationDenied) {
         this.queueFailure(item, response, `${this.participant.name}执行任务失败。${reason}`);
       } else this.store.failed(item.event_id, reason, status);
       this.taskUpdate(item, { status, stage: status, summary: reason, toolCalls: response.toolCalls || 0 });
@@ -457,12 +481,15 @@ export class BotNode {
     this.taskUpdate(item, { status: 'running', stage: 'uploading', summary: '正在保存成果', toolCalls: response.toolCalls || 0 });
     await this.flushTaskUpdates();
     try {
+      if (this.work) await this.work.check(request, 'run');
       const output = parseBotOutput(response.text, this.participant.id, this.participants,
         { ignoreDelivery: !this.delivery.acceptsProposal(item) });
+      if (request.authorization?.kind === 'scoped' && output.delegate) throw Object.assign(new Error('Cross-server delegation is outside this task grant'), { status: 403 });
       this.delivery.applyOutput(item, output);
       output.controlOnly = response.controlOnly === true;
       await this.withTransferControl(item, async signal => {
         for (const artifact of response.artifacts || []) {
+          if (this.work) await this.work.check(request, 'upload');
           if (!this.files) throw new Error('This node has no attachment transfer service');
           const key = digest(`${artifact.path}\0${artifact.sha256 || ''}`);
           let uploaded = this.store.uploaded(item.event_id, key);
@@ -481,7 +508,9 @@ export class BotNode {
           && (!request.event.fileBatch?.id || previous.fileBatch?.id === request.event.fileBatch.id));
         output.resultAttachments = uniqueAttachments([...earlierParts.flatMap(previous => previous.attachments || []), ...(request.event.attachments || eventAttachments(item.event))]);
       }
-      const deliveries = deliveriesFor(item.event, output, this.participant.id, this.participants, this.roomId);
+      const sourceEvent = request.authorization ? { ...item.event, content: { ...item.event.content,
+        'org.ds_group': { to: [this.participant.id], taskId: request.event.taskId, hop: 0 } } } : item.event;
+      const deliveries = deliveriesFor(sourceEvent, output, this.participant.id, this.participants, this.roomId);
       const deliveredArtifacts = uniqueAttachments(deliveries.filter(delivery => delivery.options.kind !== 'task.request')
         .flatMap(delivery => delivery.options.attachments || []));
       const published = { ...response, publishedArtifacts: attachments, deliveredArtifacts, delegated: Boolean(output.delegate),
@@ -532,6 +561,14 @@ export class BotNode {
     if (!item) return false;
     this.reconciled.add(item.event_id);
     try {
+      if (this.work && item.request.workGate === 'pending') {
+        await this.acceptResult(item, { status: 'failed', errorCode: 'Task stopped before work authorization was durably accepted', authorizationDenied: true });
+        return true;
+      }
+      if (this.work && !item.request.authorization) {
+        const current = await this.work.admit(item.event, this.nodeTools, this.files?.maxBytes);
+        if (current.mode === 'scoped') throw Object.assign(new Error('An older unscoped result cannot be promoted to cross-server authorization'), { status: 403 });
+      }
       let response = await this.bridge.status(item.request.requestId);
       if (['running', 'queued'].includes(response.status)) {
         this.store.resume(item.event_id);
@@ -551,6 +588,7 @@ export class BotNode {
     let delivery = this.store.pendingDelivery();
     if (delivery) {
       const source = this.store.item(delivery.source_event_id);
+      let sendAttempted = false;
       const cancelRequested = this.parentCancelled(source) || (this.tasks && (await this.control(source.request.requestId)).cancelRequested);
       if (cancelRequested) {
         this.store.cancelDelivery(source.event_id);
@@ -561,12 +599,25 @@ export class BotNode {
       try {
         const receipt = await this.delivery.prepare(delivery, prepared => {
           delivery = prepared;
-          return this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+          if (!this.work || !source.request.authorization) return this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+          return (async () => {
+            const scoped = source.request.authorization?.kind === 'scoped';
+            await this.work?.check(source.request, 'deliver', { destinationRoomId: delivery.room_id,
+              recipientId: source.request.authorization?.requesterId, replyTo: delivery.options.replyTo });
+            sendAttempted = true;
+            const receipt = await this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+            if (scoped) await this.work.check(source.request, 'observe', { effectStatus: 'completed', callId: delivery.transaction_id })
+              .catch(error => this.onError(`Known Matrix receipt retained; authorization observation pending: ${error.message}`));
+            return receipt;
+          })();
         });
         this.store.sent(delivery.transaction_id, receipt.event_id, () => this.finishDeliveryState(delivery));
         this.lastError = null;
         await this.flushTaskUpdates();
       } catch (error) {
+        if (sendAttempted && source.request.authorization) await this.work.check(source.request, 'observe', {
+          effectStatus: temporaryTransferError(error) ? 'unknown' : 'failed', callId: delivery.transaction_id,
+        }).catch(() => {});
         if (error.taskCancelled) {
           this.store.cancelDelivery(source.event_id);
           this.taskUpdate(source, { status: 'cancelled', stage: 'cancelled', summary: '任务已取消' });
@@ -594,12 +645,21 @@ export class BotNode {
     }
     const item = this.store.next();
     if (!item) return false;
-    if (this.roster) await this.ensureParticipants([item.event]);
+    if (this.roster && !this.work) await this.ensureParticipants([item.event]);
     let request = this.requestFor(item);
+    if (this.work) request = { ...request, workGate: 'pending' };
     this.store.begin(item.event_id, request);
     this.state = 'thinking';
     let submitted = false;
     try {
+      if (this.work) {
+        const admission = await this.work.admit(item.event, this.nodeTools, this.files?.maxBytes);
+        for (const person of admission.participants) if (!this.participants.some(existing => existing.id === person.id)) this.participants.push(person);
+        request = scopedTaskRequest(request, admission, item.event);
+        request.workGate = admission.mode === 'scoped' ? 'scoped' : 'local';
+        this.store.prepared(item.event_id, request);
+        item.request = request;
+      }
       request = boundTaskRequest(request);
       const routing = this.delivery.route(item);
       if (routing.error) throw new Error(routing.error);
@@ -636,13 +696,14 @@ export class BotNode {
         }
       }
       submitted = true;
+      if (this.work) await this.work.check(request, 'run');
       const response = await this.bridge.turn(request, this.bridgeOptions(item));
       await this.acceptResult(item, response);
     } catch (error) {
       if (this.store.item(item.event_id).status === 'produced') throw error;
       const uncertain = submitted && temporaryTransferError(error);
       const status = error.taskCancelled ? 'cancelled' : uncertain ? 'unknown' : 'failed';
-      await this.acceptResult(item, { status, errorCode: error.message });
+      await this.acceptResult(item, { status, errorCode: error.message, authorizationDenied: Boolean(this.work && request.workGate === 'pending') });
       this.lastError = status === 'cancelled' ? null : error.message;
       if (status !== 'cancelled') this.onError(`Bot turn ${request.requestId} ended: ${error.message}`);
     } finally { this.state = 'idle'; }
@@ -751,10 +812,10 @@ export function createTaskClient(coreUrl, nodeSecret, fetchImpl = fetch) {
     control: (requestId, options) => request(`/internal/tasks/${encodeURIComponent(requestId)}/control`, undefined, options) };
 }
 
-export function createRosterClient(coreUrl, accessToken, fetchImpl = fetch) {
+export function createRosterClient(coreUrl, _accessToken, fetchImpl = fetch) {
   return { read: async () => {
     const response = await fetchImpl(new URL('/api/bootstrap', coreUrl), {
-      headers: { Authorization: `Bearer ${accessToken}`, Accept: 'application/json' }, signal: AbortSignal.timeout(10_000),
+      headers: { Accept: 'application/json' }, credentials: 'omit', redirect: 'error', signal: AbortSignal.timeout(10_000),
     });
     if (!response.ok) throw Object.assign(new Error(`Core roster HTTP ${response.status}`), { status: response.status });
     return response.json();
@@ -777,11 +838,14 @@ export async function runNode(argv = process.argv.slice(2)) {
   await mkdir(directory, { recursive: true });
   const releaseLock = await acquireNodeLock(path.join(directory, 'process.lock'));
   const coreUrl = process.env.DS_GROUP_CORE_URL || config.publicUrl || `http://127.0.0.1:${process.env.DS_GROUP_PORT || 18100}`;
+  const work = createNodeWorkClient(coreUrl, config.nodeSecret, participant.id);
   const store = new NodeStore(path.join(directory, 'node.sqlite'), participant.id);
   const node = new BotNode({ participant, participants: setup.participants, roomId: setup.roomId,
     matrix: new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: participant.accessToken }), store,
     bridge: createBridge(endpoint, { token: process.env.DS_GROUP_BRIDGE_TOKEN }),
-    files: new NodeFiles({ coreUrl, accessToken: participant.accessToken, directory: path.join(directory, 'tasks') }),
+    files: new NodeFiles({ coreUrl, accessToken: participant.accessToken, directory: path.join(directory, 'tasks'), work,
+      matrix: new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: participant.accessToken }) }),
+    work,
     tasks: createTaskClient(coreUrl, config.nodeSecret),
     delivery: createDeliveryClient(coreUrl, participant.accessToken),
     roster: createRosterClient(coreUrl, participant.accessToken),

@@ -7,6 +7,7 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm';
 import { createRuntime } from '../vendor/ds-bot/index.js';
 import { PROTOCOL, WORK_TOOLS, botInstructions } from './runtime-rules.mjs';
 import { prepareWorkFiles, collectArtifacts } from './work-files.mjs';
+import { checkScopedFile, validateScopedInput } from './scoped-work.mjs';
 
 export const name = 'ds-group-node';
 export const inject = ['llm', 'tools', 'systemPrompt', 'sessionController', 'sessions', 'sessionTitle', 'workspaceRegistry', 'connection'];
@@ -88,6 +89,10 @@ export async function apply(ctx, config) {
       request.stage = 'unknown';
       request.errorCode = 'NODE_RESTARTED_DURING_REQUEST';
       request.finishedAt = new Date().toISOString();
+      for (const tool of request.toolReceipts || []) if (tool.status === 'running') {
+        tool.status = 'unknown';
+        tool.effectStatus = 'unknown';
+      }
     }
   }
   let writes = Promise.resolve();
@@ -117,8 +122,25 @@ export async function apply(ctx, config) {
   const inFlight = new Map();
   const botQueues = new Map();
   const protectedAgents = new WeakSet();
+  const scopedSessions = new Map();
   const progress = { requests: 0, completed: 0, failed: 0, streamClaims: 0, blockedStreams: 0 };
   let closing = false;
+
+  async function workCheck(run, stage, details = {}) {
+    if (!run?.input?.authorization) return undefined;
+    const core = JSON.parse(await readFile(config.coreConfigPath, 'utf8'));
+    const response = await fetch(new URL('/internal/bot-work/check', config.coreUrl), {
+      method: 'POST', redirect: 'error', headers: { 'content-type': 'application/json', authorization: `Bearer ${core.nodeSecret}` },
+      body: JSON.stringify({ ...details, requestId: run.record.requestId, botId: run.record.botId, stage }), signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) {
+      run.failureCode = 'WORK_AUTHORIZATION_REVOKED';
+      throw fail('WORK_AUTHORIZATION_REVOKED');
+    }
+    const result = await response.json();
+    if (stage !== 'observe') run.authorization = validateScopedInput(run.input, result.work);
+    return result;
+  }
 
   async function ledger(action, value) {
     const core = JSON.parse(await readFile(config.coreConfigPath, 'utf8'));
@@ -150,6 +172,7 @@ export async function apply(ctx, config) {
       || !Number.isInteger(options.maxTokens) || options.maxTokens < 1 || options.maxTokens > 8192) {
       throw fail('MODEL_REQUEST_OUTSIDE_SCOPE');
     }
+    await workCheck(run, 'model');
     const sequence = run.record.claims.length + 1;
     const kind = options.purpose ? `auxiliary:${String(options.purpose).slice(0, 80)}` : 'generation';
     const claim = await ledger('claim', { nodeId, requestId: `${run.record.requestId}/call-${sequence}`, model: MODEL, maxTokens: options.maxTokens, kind });
@@ -195,19 +218,39 @@ export async function apply(ctx, config) {
   const rt = createRuntime(ctx, { home: join(dataDir, 'ds-bot'), memory: true, memoryReview: false, diagnosticsFile: false,
     mainName: `${nodeId} coordinator`, mainRole: 'DS-Group node' });
   await rt.load();
+  if (ctx.systemPrompt) ctx.effect(() => ctx.systemPrompt.section({ name: 'ds-group-scoped-identity', order: 642, interpolate: false,
+    text: context => scopedSessions.get(context?.agent?.id)?.instructions || '' }), 'DS-Group scoped identity');
 
   function configureAgent(agent) {
     if (protectedAgents.has(agent)) return;
     protectedAgents.add(agent);
     agent.ctx.tools.presentAs('native');
-    agent.ctx.tools.guard(exec => WORK_TOOLS.has(exec.name) ? undefined : 'Use the task file tools and the final delegate field for collaboration.');
+    const toolsFor = () => {
+      const run = active.get(agent.session.id);
+      return run?.input?.authorization ? new Set(run.authorization?.tools || []) : WORK_TOOLS;
+    };
+    agent.ctx.tools.guard(exec => {
+      const run = active.get(agent.session.id);
+      if (scopedSessions.has(agent.session.id) && !run) return 'This collaboration Session has no active authorized task.';
+      return toolsFor().has(exec.name) ? undefined : 'Use only the current authorized task tools.';
+    });
+    agent.ctx.on('tools/execute', async (exec, next) => {
+      const run = active.get(agent.session.id);
+      if (run?.input?.authorization) {
+        await checkScopedFile(exec, run.record.workdir, run.authorization?.tools || []);
+        await workCheck(run, 'tool', { tool: exec.name, callId: exec.callId || exec.id });
+      }
+      return next();
+    });
     agent.ctx.on('system-prompt/assemble', async (_assembly, _context, next) => {
       const assembled = await next();
-      return { ...assembled, tools: (assembled.tools ?? []).filter(tool => WORK_TOOLS.has(tool.name)) };
+      return { ...assembled, tools: (assembled.tools ?? []).filter(tool => toolsFor().has(tool.name)) };
     });
     agent.ctx.on('agent/pre-step', async (_payload, next) => {
       const run = active.get(agent.session.id);
       if (!run || closing || run.record.cancelRequested) return { kind: 'reject' };
+      try { await workCheck(run, 'model'); }
+      catch { return { kind: 'reject' }; }
       if (++run.steps > maxSteps) {
         run.failureCode = 'TASK_STEP_LIMIT';
         return { kind: 'reject' };
@@ -221,14 +264,15 @@ export async function apply(ctx, config) {
       const request = await next();
       run.requests++;
       return { ...request, provider: 'opencode-go', model: 'deepseek-v4.1-flash', reasoningEffort: 'low', maxTokens: outputTokens,
-        tools: (request.tools ?? []).filter(tool => WORK_TOOLS.has(tool.name)) };
+        tools: (request.tools ?? []).filter(tool => toolsFor().has(tool.name)) };
     });
     agent.ctx.on('agent/request-error', async () => ({ kind: 'abort' }), { prepend: true });
   }
 
   function botResult(bot) {
     return { botId: bot.botId, name: bot.name, role: bot.role, nodeId, dsBotId: bot.dsBotId, sessionId: rt.chatOf(bot.dsBotId),
-      tools: bot.tools ?? [], model: MODEL };
+      tools: bot.tools ?? [], model: MODEL, scopedWork: { tools: (bot.tools || []).filter(tool => ['read', 'write', 'edit', 'read_image'].includes(tool)),
+        domains: Object.values(bot.domains || {}).map(({ sessionId, roomId, authority }) => ({ sessionId, roomId, authority })) } };
   }
 
   const botSetups = new Map();
@@ -278,7 +322,7 @@ export async function apply(ctx, config) {
     return botResult(record);
   }
 
-  ctx.on('session/event', (session, event) => {
+  ctx.on('session/event', async (session, event) => {
     const run = active.get(session.id);
     if (!run) return;
     if (event.type === 'assistant/message') {
@@ -298,6 +342,13 @@ export async function apply(ctx, config) {
         item.status = message.isError ? 'failed' : 'completed';
         item.finishedAt = new Date().toISOString();
         item.summary = textOf(message).slice(0, 2000);
+        if (run.input?.authorization) {
+          try {
+            const observation = await workCheck(run, 'observe', { tool: item.name, callId: item.callId, effectStatus: item.status });
+            item.effectStatus = item.status;
+            if (observation.late) item.late = true;
+          } catch { item.effectStatus = 'unknown'; }
+        }
       }
       void save().catch(() => {});
     }
@@ -335,15 +386,34 @@ export async function apply(ctx, config) {
     let timeout;
     let resolve;
     const ended = new Promise(done => { resolve = done; });
-    const run = { record, resolve, requests: 0, steps: 0, streamStarted: false, text: '' };
+    const run = { record, input, resolve, requests: 0, steps: 0, streamStarted: false, text: '' };
     record.status = 'running';
     record.startedAt = new Date().toISOString();
     updateProgress(record, 'preparing', '正在准备文件');
     try {
+      await workCheck(run, 'run');
       const workspace = await prepareWorkFiles({ dataDir, requestId: record.requestId, workdir: input.workdir, files: input.files });
       record.workdir = workspace.workdir;
       record.files = workspace.files;
-      sessionId = rt.chatOf(bot.dsBotId);
+      let domain;
+      if (input.authorization) {
+        if (!ctx.systemPrompt) throw fail('SCOPED_IDENTITY_UNAVAILABLE');
+        const work = run.authorization;
+        bot.domains ||= {};
+        domain = bot.domains[work.domainId];
+        if (!domain) {
+          const directory = join(dataDir, 'collaboration-domains', work.domainId);
+          await mkdir(directory, { recursive: true, mode: 0o700 });
+          const created = await rt.createSession(`${bot.name} · ${work.authority} · collaboration`, { dir: directory });
+          domain = { sessionId: created, roomId: work.roomId, authority: work.authority, seenEventIds: [] };
+          bot.domains[work.domainId] = domain;
+          await save();
+        }
+        sessionId = domain.sessionId;
+        scopedSessions.set(sessionId, { instructions: botInstructions(`你是 ${bot.name} (${bot.botId})，所有者 ${work.ownerId}。当前授权协作域为 ${work.authority} 的房间 ${work.roomId}。这里只能使用明确分享的本房间上下文和本任务文件，不可读取或透露私人记忆、其他房间或其他任务文件。当前工具权限以实际目录为准，结果返回当前原始请求者。跨服委派与新建私聊尚未授权。`) });
+        record.authorization = work;
+        record.contextDomainId = work.domainId;
+      } else sessionId = rt.chatOf(bot.dsBotId);
       agent = await rt.resolveAgent(sessionId);
       configureAgent(agent);
       const directory = ctx.get?.('workingDirectory');
@@ -352,7 +422,8 @@ export async function apply(ctx, config) {
       const presets = ctx.get?.('permissionPresets');
       if (presets) presets.set(agent.session, 'danger-full-access');
       if (record.cancelRequested) throw fail('TASK_CANCELLED');
-      const seen = new Set(bot.seenEventIds);
+      const seenRecord = domain || bot;
+      const seen = new Set(seenRecord.seenEventIds);
       const history = (input.history ?? []).filter(item => item && typeof item.eventId === 'string' && !seen.has(item.eventId) && item.eventId !== input.event.eventId)
         .slice(-100).map(item => ({ eventId: item.eventId, senderId: item.senderId, senderName: item.senderName, body: item.body, attachments: item.attachments }));
       const context = { kind: 'ds-group-turn', botId: input.botId, requestId: input.requestId, event: input.event,
@@ -378,7 +449,7 @@ export async function apply(ctx, config) {
       }, taskTimeoutMs);
       agent.followup(message);
       await ctx.sessions.flush(agent.session);
-      bot.seenEventIds = [...new Set([...bot.seenEventIds, ...history.map(item => item.eventId), input.event.eventId])].slice(-20000);
+      seenRecord.seenEventIds = [...new Set([...seenRecord.seenEventIds, ...history.map(item => item.eventId), input.event.eventId])].slice(-20000);
       await save();
       await ended;
       await agent.whenIdle();
@@ -386,6 +457,7 @@ export async function apply(ctx, config) {
       if (record.cancelRequested) throw fail('TASK_CANCELLED');
       if (run.failureCode) throw fail(run.failureCode);
       if (run.ledgerError) throw fail(run.ledgerError);
+      await workCheck(run, 'run');
       if (run.endReason !== 'completed' || !run.text || !run.streamStarted || record.claims.some(call => !call.recorded)) throw fail('MODEL_TURN_FAILED');
       const jobs = ctx.get?.('jobs')?.list(sessionId) ?? [];
       if (jobs.some(job => ['running', 'stopping'].includes(job.status))) throw fail('TASK_HAS_RUNNING_JOBS');

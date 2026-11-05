@@ -1,0 +1,181 @@
+{
+  "contractVersion": "1.0.0",
+  "date": "2026-11-04",
+  "status": "foundation-implemented-native-and-module-verified",
+  "baseCommit": "0d0ed79",
+  "branch": "codex/dscord-cross-server-bot",
+  "ownership": {
+    "owned": [
+      "src/bot-work.mjs",
+      "src/bot-work-policy.mjs",
+      "src/node-work.mjs",
+      "src/bot-node.mjs",
+      "src/node-files.mjs",
+      "src/node-delivery.mjs",
+      "dsh-plugin/runtime.mjs",
+      "dsh-plugin/scoped-work.mjs",
+      "tests/cross-server-bot*.test.mjs",
+      "scripts/verify-cross-server-bot.mjs",
+      "artifacts/cross-server-bot/"
+    ],
+    "sharedMinimal": [
+      "src/core.mjs: construct BotWorkService and route its endpoints",
+      "src/tasks.mjs: additive admitted participant view for task metadata"
+    ],
+    "untouched": [
+      "web/src/",
+      "admin/",
+      "src/accounts.mjs",
+      "src/identity.mjs",
+      "src/collaboration.mjs",
+      "src/synapse-control.mjs",
+      "vendor/"
+    ]
+  },
+  "identity": {
+    "bot": "Exact existing complete Matrix ID; no shadow account, renamed Bot or duplicate DS-Bot",
+    "owner": "Existing exact ownerId, validated through home accounts; remote administrator/member never becomes owner",
+    "node": "Existing node credential scoped to the original Bot, original private node directory, home Core/homeserver only"
+  },
+  "directory": {
+    "method": "GET",
+    "path": "/internal/bots/:encodedBotId/rooms/:encodedRoomId/directory",
+    "auth": "Bot-scoped node credential; legacy deployment node secret remains compatible but never an ordinary home session",
+    "scope": "Only actual joined members of this exact room who are active local participants or explicitly admitted external identities; bot must actually be joined. No full admission list, credentials or private Bot instructions."
+  },
+  "ownerGrants": {
+    "path": "/api/bots/:encodedBotId/work-grants",
+    "methods": [
+      "GET",
+      "PUT"
+    ],
+    "auth": "Active home human token and exact existing bot.ownerId",
+    "body": {
+      "revision": 0,
+      "grants": [
+        {
+          "roomId": "!shared:b.example",
+          "requesterIds": [
+            "@alice:b.example"
+          ],
+          "tools": [
+            "read",
+            "write",
+            "edit",
+            "read_image"
+          ],
+          "enabled": true
+        }
+      ]
+    },
+    "semantics": "Default foreign work denied. CAS owner grants are distinct from administrator governance.botPolicies. Server governance is an additional ceiling."
+  },
+  "roomWorkPolicy": {
+    "type": "org.dscord.work_policy",
+    "stateKey": "",
+    "content": {
+      "schemaVersion": 1,
+      "roomId": "!shared:b.example",
+      "revision": 1,
+      "enabled": true,
+      "memberIds": [
+        "@alice:b.example",
+        "@bot:a.example"
+      ],
+      "botIds": [
+        "@bot:a.example"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "edit",
+        "read_image"
+      ],
+      "authority": "b.example",
+      "issuerId": "@dscord-control:b.example",
+      "localMemberAdmission": "matrix-membership"
+    },
+    "publisherValidation": "Read actual current Matrix state event and power_levels at the home homeserver. Require exact issuerId=sender=@dscord-control:<registered authority>, current membership, event type/key/room binding, and actual power >= max(state_default or event-specific level, 50). Pin event ID/revision/hash; never trust user-supplied owner/authority metadata.",
+    "federationHandoff": "Use existing org.dscord.work_policy, with existing authority/revision/enabled/botIds/tools/memberIds plus schemaVersion:1 and exact roomId. Federation/admin line publishes this after successful room application using its already-powered authority control account; the Bot slice validates it.",
+    "localMembership": "memberIds explicitly admits external identities; origin-authority local members use actual Matrix membership. Home Core still checks each foreign identity against its own explicit admission and exact owner grant requesterIds."
+  },
+  "authorization": {
+    "admit": {
+      "method": "POST",
+      "path": "/internal/bots/:encodedBotId/work",
+      "body": {
+        "roomId": "!shared:b.example",
+        "eventId": "$request",
+        "nodeTools": [
+          "read",
+          "write",
+          "edit",
+          "read_image"
+        ],
+        "nodeMaxBytes": 52428800
+      }
+    },
+    "check": {
+      "method": "POST",
+      "path": "/internal/bot-work/check",
+      "body": {
+        "requestId": "matrix-stable-hash",
+        "botId": "@bot:a.example",
+        "stage": "tool",
+        "tool": "write",
+        "callId": "native-tool-call-id"
+      }
+    },
+    "intersection": [
+      "exact owner grant",
+      "home governance Bot/room ceilings and partner/member admission",
+      "verified origin room work state",
+      "actual node tool availability",
+      "task file-tool scope"
+    ],
+    "rechecks": [
+      "admission",
+      "native model step",
+      "every controlled tool invocation",
+      "attachment read even on cache hit",
+      "artifact upload",
+      "final Matrix send including frozen-route retry"
+    ],
+    "failClosed": "Authorization or Matrix check failure prevents new effects. A relevant rule/version/participant change invalidates the admitted authorization; no automatic model replay.",
+    "audit": "Persistent admission, decision and effect events in home bot-work.sqlite; native tool receipts, uploaded files, unknown sends and late results retain their original task/transaction relationships."
+  },
+  "context": {
+    "domain": "Hash of exact Bot ID, authoritative collaboration server, full room ID and admission security binding",
+    "session": "Persistent ordinary DSH native Session, distinct from original DS-Bot private owner Session; original identity and DS-Bot binding retained. No fork/copy of owner history or private memory.",
+    "history": "Only exact target room events from currently admitted and actually joined members. Files enter only through verified current/referenced Matrix events. Explicitly shared content is copied as task input.",
+    "tools": "File paths must resolve within the current task workspace, including symlink/ancestor validation. No terminal, jobs, skills, memory, session-reading or delegation tools in this first cross-server scope. Local existing paths retain their compatibility behavior."
+  },
+  "media": {
+    "identity": "Full {roomId,eventId,senderId,attachmentId,contentUri,sha256,size}, resolved from the actual Matrix event at the home homeserver",
+    "download": "Use original Bot home Matrix authenticated media download through the proven mxc URI; never resolve a foreign attachmentId through home Core media.get(id). Verify bytes and hash. Cache is scoped and authorization is rechecked before cache use.",
+    "output": "Upload with original Bot token to its home Core; stable upload ID and Matrix transaction preserve retry identity; send descriptors in the original federated room and reply to the exact source event/full human ID.",
+    "handoff": "Generic room-proven media UI APIs remain owned by federation line. This node uses Matrix room/event proof directly.",
+    "limits": "Input byte ceiling is min(current home media limit, actual node maximum); policy hash includes this ceiling."
+  },
+  "delivery": {
+    "initialScope": "Original approved room and exact original human; explicit same-room two-member direct conversation supported. Crossing to a new/unapproved DM or delegating externally is refused until separately supported.",
+    "revocation": "Block further tools/upload/send, preserve already observed effects and unknown results, no compensation or retrospective success assertion."
+  },
+  "validation": {
+    "ports": "24500–24599, check occupancy before launch",
+    "layers": [
+      "module checks",
+      "real native DSH with scripted provider",
+      "real federated Matrix and bounded allowed-model task",
+      "physical cross-machine separately"
+    ],
+    "allowedRemoteModel": "opencode-go/deepseek-v4.1-flash",
+    "currentEvidence": {
+      "module": "npm run check: 320/320 passed; TS7 web/admin typechecks and JavaScript syntax passed",
+      "nativeRuntime": "8 checks, 10 scripted localhost provider calls; original Bot/native Session and isolated room Sessions survive restart; private path denied before execution; revoked next write refused",
+      "remoteModelCalls": 0,
+      "realFederatedTask": "pending dependency integration and bounded run",
+      "physicalCrossMachine": "not tested"
+    }
+  }
+}
