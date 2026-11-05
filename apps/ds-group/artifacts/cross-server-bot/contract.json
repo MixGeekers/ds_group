@@ -1,7 +1,7 @@
 {
   "contractVersion": "1.0.0",
   "date": "2026-11-04",
-  "status": "implemented-and-real-federated-file-work-verified",
+  "status": "implemented-and-combined-platform-integration-verified",
   "baseCommit": "0d0ed79",
   "branch": "codex/dscord-cross-server-bot",
   "ownership": {
@@ -181,7 +181,7 @@
       "module": "333/333; JS syntax and TS7 web/admin passed",
       "native": "8 checks, 10 scripted provider calls, zero remote calls",
       "real": "9 real federation checks including preparation + 7 behavior checks; final run 9 remote calls",
-      "history": "First real pass 9 calls; later strict oracle failure 7 calls retained; final pass 9 calls; total 25 completed remote model stream receipts",
+      "history": "Slice real attempts: 9 passed + 7 in preserved strict-oracle failure + 9 final passed; combined 9a44e8d platform run adds 9 passed calls. Total 34 completed remote stream receipts.",
       "physicalHosts": 1,
       "cleanup": "All owned test containers, network, Core/admin, adapter and native host stopped; data retained under ignored .local"
     },
@@ -195,7 +195,18 @@
       "accounting.json",
       "authorization-audit.json",
       "cleanup.json"
-    ]
+    ],
+    "platformIntegration": {
+      "sourceCommit": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+      "realChecks": 9,
+      "newRemoteCalls": 9,
+      "cumulativeRemoteCalls": 34,
+      "sourceProductFilesMatched": 80,
+      "sourceChangedDuringRun": false,
+      "result": "platform-real-9a44e8d.json",
+      "sourceManifest": "platform-source-9a44e8d.json",
+      "cleanup": "platform-cleanup-9a44e8d.json"
+    }
   },
   "updatedDate": "2026-11-05",
   "foundationCommit": "5fb09d3",

@@ -1,0 +1,13 @@
+{
+  "checkedAt": "2026-11-05T04:32:52.592Z",
+  "sourceCommit": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+  "ownedLab": "dscord-bot-work",
+  "coreAndAdminPidsRemaining": [],
+  "ownedContainersRemaining": [],
+  "ownedNetworksRemaining": [],
+  "listeningPorts24500Through24599": [],
+  "adapterAndDshStopped": true,
+  "originalPrivateProfileSourceRestored": true,
+  "dataRetainedUnderGitIgnored": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/cross-server-federation",
+  "mainProductSourceModified": false
+}

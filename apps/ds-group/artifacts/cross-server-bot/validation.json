@@ -46,5 +46,16 @@
     "Delivery is the original approved collaboration room and exact original human/event. Same-home owner private conversation compatibility was separately exercised.",
     "Real queued revocation and reconnect were tested; in-flight tool revocation and unknown send receipts are additionally covered by native scripted/module evidence.",
     "No physical cross-machine acceptance. Stream usage/cacheReadTokens preserved as reported; billing and full provider requests remain unknown."
-  ]
+  ],
+  "platformIntegration": {
+    "sourceCommit": "9a44e8d249aaa1b3aeb99793c4b6673a9021d84f",
+    "realChecks": 9,
+    "newRemoteCalls": 9,
+    "cumulativeRemoteCalls": 34,
+    "sourceProductFilesMatched": 80,
+    "sourceChangedDuringRun": false,
+    "result": "platform-real-9a44e8d.json",
+    "sourceManifest": "platform-source-9a44e8d.json",
+    "cleanup": "platform-cleanup-9a44e8d.json"
+  }
 }
