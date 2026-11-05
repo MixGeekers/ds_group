@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "createdDate": "2026-11-05",
+  "timezone": "America/Caracas",
+  "asset": "collaboration-hero.png",
+  "purpose": "DSCord 中文、英文与西班牙语 README 共用架构横幅",
+  "tool": "image_gen.imagegen",
+  "mode": "built-in",
+  "dimensions": {
+    "width": 2172,
+    "height": 724
+  },
+  "sha256": "73d25b6734f10d21a2737754832ee60eccc08f6f6b3986ef7b9e9e1504e5edfd",
+  "wordmark": "DSCORD",
+  "architectureLabels": [
+    "Web / PWA",
+    "Shared Server",
+    "DSCord Core",
+    "Matrix / Synapse",
+    "Bot Node A",
+    "Bot Node B",
+    "DSH + DS-Bot"
+  ],
+  "reference": "本聊天生成的第一版蓝白鲸鱼协作插图，用作风格参考。最终横幅按用户要求补充字标与架构。",
+  "logo": "README 单独引用 ../dscord/ 中用户已选定的原始品牌资产。",
+  "prompt": "Use case: infographic-diagram.\nAsset type: polished architecture hero banner for the multilingual GitHub README of DSCord.\nInput image 1 is the earlier decorative banner, a style and palette reference and edit target. Redesign it into a readable architecture illustration while retaining its cobalt-blue whales, white human speech bubbles, soft porcelain and glass materials, gentle shadows, and light blue background.\nPrimary request: add a large exact uppercase \"DSCORD\" wordmark and clearly illustrate the project's real architecture.\nComposition: wide panoramic 3:1 banner, aim for 2400 by 800 pixels. Place the large dark navy DSCORD wordmark centered in the top 20 percent. Below it arrange three architecture groups from left to right with generous separation and all content safely inside the frame.\nLEFT group: one white human speech bubble with two blue eyes next to a minimal browser-shaped panel, on a small platform. Under this group print exactly \"Web / PWA\".\nCENTER group: a larger shared-server platform with two distinct stacked rounded blocks. Print \"DSCord Core\" on the top block and \"Matrix / Synapse\" on the bottom block. Print exactly \"Shared Server\" beneath this central group.\nRIGHT group: two visibly separate small platforms, one behind and slightly above the other, each containing a friendly blue whale Bot with two white pill eyes. Each is an independent runtime on its own machine. Label the upper platform exactly \"Bot Node A\" and below that \"DSH + DS-Bot\". Label the lower platform exactly \"Bot Node B\" and below that \"DSH + DS-Bot\". Keep both label sets clearly readable with ample space.\nCONNECTIONS: a simple bidirectional cobalt line links the Web / PWA group to the shared server. Two separate bidirectional cobalt lines connect the shared server to Bot Node A and Bot Node B, visibly branching from the server. Add small arrowheads at both ends. The two Bot nodes communicate through the shared server. The topology is clients connecting to one shared server plus two independent remote Bot runtimes. Connections must be visually traceable and must never cross text.\nTypography: exact labels as specified, consistent clean rounded sans-serif, high contrast navy on pale surfaces, large enough to read at 900 px display width, expertly aligned typesetting. Wordmark DSCORD must be visually dominant.\nPalette: cobalt #344BFF, navy #0B1B52, porcelain white #FFFFFF, pale sky blue #DCEEFF.\nStyle: premium, restrained soft-3D editorial architecture illustration. Balanced clear information hierarchy with much less ornament than the input. Use simple translucent framing around the server and each Bot node to communicate runtime boundaries.\nConstraints: one standalone finished banner. Only the exact specified text, no extra slogans, no watermark, no decorative text. Preserve the friendly brand identity. All diagram labels must be spelled correctly."
+}

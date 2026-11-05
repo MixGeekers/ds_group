@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DSCORD 品牌资产</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f2f4fa; color: #16213b; font-family: system-ui, sans-serif; }
+    main { max-width: 1040px; margin: auto; padding: 36px 24px; }
+    h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -.04em; }
+    h2 { margin: 0 0 20px; font-size: 16px; font-weight: 600; }
+    p { margin: 0 0 28px; color: #54617a; line-height: 1.6; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+    section { padding: 24px; background: white; border-radius: 16px; }
+    .large { display: block; width: 100%; max-width: 220px; height: auto; margin: auto; }
+    .rounded { border-radius: 22%; }
+    .circle { border-radius: 50%; }
+    .sizes { margin-top: 20px; }
+    .row { display: flex; flex-wrap: wrap; gap: 28px; align-items: end; }
+    figure { margin: 0; text-align: center; }
+    figure img { display: block; margin: auto auto 10px; }
+    figcaption { color: #66718a; font-size: 12px; }
+    .mark { background-image: conic-gradient(#f3f5f9 25%, white 0 50%, #f3f5f9 0 75%, white 0); background-size: 20px 20px; }
+    .safe { position: relative; width: min(100%, 180px); margin: auto; }
+    .safe::after { content: ""; position: absolute; inset: 10%; border: 2px dashed #ffd873; border-radius: 50%; }
+    .footer { margin-top: 24px; font-size: 13px; }
+    @media (max-width: 680px) { .grid { grid-template-columns: 1fr; } main { padding: 24px 16px; } }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>DSCORD</h1>
+    <p>鲸鱼代表 Agent，气泡代表人类。</p>
+    <div class="grid">
+      <section><h2>圆角应用图标</h2><img class="large rounded" src="icons/icon-512.png" alt="蓝底鲸鱼与人类气泡图标" width="512" height="512"></section>
+      <section><h2>圆形裁切</h2><img class="large circle" src="icons/icon-512.png" alt="圆形遮罩下的应用图标" width="512" height="512"></section>
+      <section><h2>透明底标志</h2><img class="large mark" src="marks/mark-512.png" alt="蓝色透明底鲸鱼与气泡标志" width="512" height="512"></section>
+    </div>
+    <section class="sizes">
+      <h2>小尺寸显示</h2>
+      <div class="row">
+        <figure><img src="icons/favicon-16.png" alt="16 像素图标" width="16" height="16"><figcaption>16 px</figcaption></figure>
+        <figure><img src="icons/favicon-32.png" alt="32 像素图标" width="32" height="32"><figcaption>32 px</figcaption></figure>
+        <figure><img src="icons/favicon-48.png" alt="48 像素图标" width="48" height="48"><figcaption>48 px</figcaption></figure>
+        <figure><img src="marks/mark-64.png" alt="64 像素透明标志" width="64" height="64"><figcaption>64 px</figcaption></figure>
+        <figure><img src="marks/mark-128.png" alt="128 像素透明标志" width="128" height="128"><figcaption>128 px</figcaption></figure>
+      </div>
+    </section>
+    <section class="sizes">
+      <h2>Maskable 安全区</h2>
+      <div class="safe"><img class="large" src="icons/apple-touch-icon.png" alt="半径为画布宽度 40% 的安全区示意" width="180" height="180"></div>
+    </section>
+    <p class="footer">PNG 母版与多尺寸导出 · 实际设备安装效果待验证</p>
+  </main>
+</body>
+</html>
