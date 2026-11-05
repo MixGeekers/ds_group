@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-04",
+  "branch": "codex/dscord-platform-integration",
+  "scope": "Main-thread integration of administration/governance foundation and central identity. Unified-client and actual federation integration remain in progress.",
+  "integratedCommits": {
+    "direction": "8580cd2",
+    "administration": "9d1cd3e",
+    "administrationEvidence": "909749e",
+    "centralIdentity": "8cacfe9"
+  },
+  "mergeReview": {
+    "file": "src/core.mjs",
+    "resolvedAreas": [
+      "Initialize both IdentityService and Governance after AccountService",
+      "Handle origin validation and public discovery before governance business dispatch",
+      "Return serverName, local public participants and identity discovery in bootstrap",
+      "Retain shared active-account admission before collaboration and ordinary protected APIs",
+      "Expose both identity and governance services in the Core lifecycle"
+    ]
+  },
+  "checks": [
+    {
+      "revision": "5078ab2 with direction-only documentation",
+      "command": "npm test",
+      "status": "passed",
+      "moduleTests": 280,
+      "history": "The first shell wrapper attempted to assign zsh's read-only status variable after the test process reported 280 passes. The corrected wrapper reran all 280 tests with exit code 0."
+    },
+    {
+      "revision": "909749e",
+      "commands": ["npm run check", "npm run build", "node --test --test-concurrency=2 tests/*.browser.mjs"],
+      "status": "passed",
+      "moduleTests": 287,
+      "browserFiles": 8,
+      "browserScope": "Existing chat component fixtures and real management HTTP with synthetic Matrix control"
+    },
+    {
+      "revision": "8cacfe9",
+      "commands": ["npm run check", "npm run build"],
+      "status": "passed",
+      "moduleTests": 301
+    },
+    {
+      "revision": "8cacfe9 plus configurable verification-port change",
+      "command": "DS_GROUP_IDENTITY_VERIFY_PORT_BASE=24400 node scripts/verify-central-identity.mjs",
+      "status": "passed",
+      "checks": 12,
+      "scope": "Real local Synapse and integrated Core with Chromium on an independent origin; synthetic accounts and test helper client",
+      "report": "../central-identity/real-2026-11-05T03-17-50-202Z.json",
+      "sourceProof": "Exact per-file SHA-256 values recorded by the linked report",
+      "cleanup": "Run-specific Synapse container, Core and HTTP fixtures stopped"
+    }
+  ],
+  "verificationPortChange": {
+    "variable": "DS_GROUP_IDENTITY_VERIFY_PORT_BASE",
+    "default": 24200,
+    "offsets": { "core": 0, "client": 1, "untrustedRemoteFixture": 2, "matrix": 8 },
+    "reason": "Permit main-thread verification alongside the identity worker without sharing ports or data directories"
+  },
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "pending": [
+    "API-only server deployment increment",
+    "Unified production client integration and browser regression",
+    "Actual A/B federation and unapproved C rejection on the integrated revision",
+    "Cross-server attachments, Bot work, revocation and recovery",
+    "Linux/container release verification and physical cross-machine evidence"
+  ]
+}

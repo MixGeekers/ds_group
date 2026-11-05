@@ -20,10 +20,15 @@ const directory = path.join(root, '.local', 'central-identity', runId);
 const reportPath = path.join(root, 'artifacts', 'central-identity', `real-${runId}.json`);
 const image = 'ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842';
 const containerName = `dscord-central-identity-${runId.toLowerCase()}`;
-const coreUrl = 'http://127.0.0.1:24200';
-const clientUrl = 'http://127.0.0.1:24201';
-const remoteUrl = 'http://127.0.0.1:24202';
-const matrixUrl = 'http://127.0.0.1:24208';
+const portBase = Number(process.env.DS_GROUP_IDENTITY_VERIFY_PORT_BASE ?? 24200);
+if (!Number.isInteger(portBase) || portBase < 1024 || portBase > 65527) {
+  throw new Error('DS_GROUP_IDENTITY_VERIFY_PORT_BASE must be an integer from 1024 to 65527');
+}
+const ports = { core: portBase, client: portBase + 1, remote: portBase + 2, matrix: portBase + 8 };
+const coreUrl = `http://127.0.0.1:${ports.core}`;
+const clientUrl = `http://127.0.0.1:${ports.client}`;
+const remoteUrl = `http://127.0.0.1:${ports.remote}`;
+const matrixUrl = `http://127.0.0.1:${ports.matrix}`;
 const dataRoot = path.join(directory, 'core');
 const synapseRoot = path.join(directory, 'matrix');
 const report = { schemaVersion: 1, runId, startedAt: new Date().toISOString(), status: 'running',
@@ -61,7 +66,7 @@ async function ready(url) {
 }
 async function startCore() {
   child = spawn(process.execPath, ['src/core.mjs'], { cwd: root, env: { ...process.env,
-    DS_GROUP_DATA_DIR: dataRoot, DS_GROUP_MATRIX_URL: matrixUrl, DS_GROUP_PORT: '24200', DS_GROUP_HOST: '127.0.0.1', DS_GROUP_DEMO_LOGIN: 'false' }, stdio: ['ignore', 'pipe', 'pipe'] });
+    DS_GROUP_DATA_DIR: dataRoot, DS_GROUP_MATRIX_URL: matrixUrl, DS_GROUP_PORT: String(ports.core), DS_GROUP_HOST: '127.0.0.1', DS_GROUP_DEMO_LOGIN: 'false' }, stdio: ['ignore', 'pipe', 'pipe'] });
   let output = '';
   child.stdout.on('data', part => { output += part; }); child.stderr.on('data', part => { output += part; });
   child.once('exit', () => writeFile(path.join(directory, `core-${child.pid}.log`), output));
@@ -95,7 +100,7 @@ function updateAccount(work) {
   try { return work(db); } finally { db.close(); }
 }
 async function freePorts() {
-  for (const port of [24200, 24201, 24202, 24208]) {
+  for (const port of Object.values(ports)) {
     const server = http.createServer();
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
     await new Promise(resolve => server.close(resolve));
@@ -120,7 +125,7 @@ try {
     return { accounts: 0, mode: first.mode, repeatedInitialization: true };
   });
   await execute('docker', ['run', '--detach', '--name', containerName, '--label', `dscord.central-identity=${runId}`,
-    '--publish', '127.0.0.1:24208:8008', '--mount', `type=bind,source=${synapseRoot},target=/data`,
+    '--publish', `127.0.0.1:${ports.matrix}:8008`, '--mount', `type=bind,source=${synapseRoot},target=/data`,
     '--env', 'UID=0', '--env', 'GID=0', image, 'run', '-m', 'synapse.app.homeserver', '--config-path=/data/homeserver.yaml'], { timeout: 30000 });
   startedContainer = true;
   await ready(matrixUrl + '/_matrix/client/versions');
@@ -130,13 +135,13 @@ try {
     req.resume(); res.setHeader('Access-Control-Allow-Origin', '*'); res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ name: 'Untrusted collaboration server', home: { coreUrl: remoteUrl, matrixUrl: remoteUrl } }));
   });
-  await new Promise(resolve => remote.listen(24202, '127.0.0.1', resolve)); httpServers.push(remote);
+  await new Promise(resolve => remote.listen(ports.remote, '127.0.0.1', resolve)); httpServers.push(remote);
   const fixtureModule = await readFile(path.join(root, 'tests/helpers/home-session.mjs'));
   const clientServer = http.createServer((req, res) => {
     if (req.url === '/home-session.mjs') { res.setHeader('Content-Type', 'text/javascript'); res.end(fixtureModule); return; }
     res.setHeader('Content-Type', 'text/html'); res.end('<!doctype html><title>DSCord identity origin verification</title>');
   });
-  await new Promise(resolve => clientServer.listen(24201, '127.0.0.1', resolve)); httpServers.push(clientServer);
+  await new Promise(resolve => clientServer.listen(ports.client, '127.0.0.1', resolve)); httpServers.push(clientServer);
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage(); await page.goto(clientUrl);
   await check('real Chromium on independent origin discovers, registers and signs in through normal APIs', async () => {
@@ -160,7 +165,7 @@ try {
     const value = await page.evaluate(async ({ remoteUrl, coreUrl }) => {
       const data = await (await fetch(remoteUrl + '/api/bootstrap', { credentials: 'omit', redirect: 'error' })).json();
       let denied = 0;
-      for (const url of [remoteUrl + '/api/me', '//127.0.0.1:24202/api/me', '/api/../_synapse/admin/v1/users']) {
+      for (const url of [remoteUrl + '/api/me', `//${new URL(remoteUrl).host}/api/me`, '/api/../_synapse/admin/v1/users']) {
         try { await window.home.request(url); } catch (e) { if (e.code === 'CREDENTIAL_TARGET_DENIED') denied++; }
       }
       const me = await window.home.me();
