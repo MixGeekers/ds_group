@@ -1,0 +1,118 @@
+{
+  "date": "2026-11-05",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "realAttempts": [
+    {
+      "report": "bot-work-2026-11-05T04-03-44-909Z.json",
+      "status": "passed",
+      "calls": 9,
+      "checksPassed": 7,
+      "checksFailed": 0
+    },
+    {
+      "report": "bot-work-2026-11-05T04-11-12-059Z.json",
+      "status": "failed",
+      "calls": 7,
+      "checksPassed": 4,
+      "checksFailed": 1
+    },
+    {
+      "report": "bot-work-2026-11-05T04-16-32-545Z.json",
+      "status": "passed",
+      "calls": 9,
+      "checksPassed": 9,
+      "checksFailed": 0
+    }
+  ],
+  "remoteModelCalls": 25,
+  "coreClaims": 25,
+  "coreClaimStatuses": {
+    "completed": 25
+  },
+  "reportedStreamingUsageTotals": {
+    "inputTokens": 83296,
+    "outputTokens": 4906,
+    "totalTokens": 353674,
+    "cacheReadTokens": 265472
+  },
+  "usageSemantics": "Fields are preserved and summed as reported, including cacheReadTokens. They are not a complete provider invoice; cache pricing/implementation and full provider request bodies are unobserved. Historical report coverage wording about cache refers to those unobserved internals, not absence of the reported token field.",
+  "finalNativeScriptedCalls": 10,
+  "finalNativeRemoteCalls": 0,
+  "historicalScriptedCounterCorrections": [
+    {
+      "attempt": "first",
+      "reportedMatchedScriptedCases": 0,
+      "nativeModelStreamClaims": 1,
+      "note": "Original harness counter excludes unmatched scripted HTTP requests. Native stream claims show the additional attempted call(s); original raw report is retained.",
+      "nativeRequestStatuses": [
+        {
+          "requestId": "private-owner",
+          "status": "failed",
+          "toolStatuses": []
+        }
+      ]
+    },
+    {
+      "attempt": "second",
+      "reportedMatchedScriptedCases": 0,
+      "nativeModelStreamClaims": 1,
+      "note": "Original harness counter excludes unmatched scripted HTTP requests. Native stream claims show the additional attempted call(s); original raw report is retained.",
+      "nativeRequestStatuses": [
+        {
+          "requestId": "private-owner",
+          "status": "failed",
+          "toolStatuses": []
+        }
+      ]
+    },
+    {
+      "attempt": "third",
+      "reportedMatchedScriptedCases": 0,
+      "nativeModelStreamClaims": 1,
+      "note": "Original harness counter excludes unmatched scripted HTTP requests. Native stream claims show the additional attempted call(s); original raw report is retained.",
+      "nativeRequestStatuses": [
+        {
+          "requestId": "private-owner",
+          "status": "failed",
+          "toolStatuses": []
+        }
+      ]
+    },
+    {
+      "attempt": "fourth",
+      "reportedMatchedScriptedCases": 2,
+      "nativeModelStreamClaims": 2,
+      "note": "Matched scripted calls and native stream claims agree.",
+      "nativeRequestStatuses": [
+        {
+          "requestId": "private-owner",
+          "status": "completed",
+          "toolStatuses": []
+        },
+        {
+          "requestId": "scope-first",
+          "status": "unknown",
+          "toolStatuses": [
+            {
+              "name": "read",
+              "status": "failed"
+            }
+          ]
+        }
+      ],
+      "outcome": "Host terminated during the guard integration error. Persisted running request/tool is an interrupted unknown outcome; not replayed or upgraded to success."
+    }
+  ],
+  "terminalAttemptReceipts": [
+    {
+      "requestId": "matrix-08facedb56503dfa760e88055fc9f24e603747f253bd206679a9fcf71be8b4c3",
+      "callId": "call_00_mhozemsmubqpcw55vtqrcjg4",
+      "status": "failed",
+      "effectStatus": "failed",
+      "summary": "Error: Use only the current authorized task tools."
+    }
+  ],
+  "billingCost": "unknown",
+  "physicalHostsTested": 1,
+  "terminalAttemptInterpretation": "The historical bash receipt says failed. Its error is the synchronous authorized-tool guard, and no corresponding tool authorization/execution admission exists; it was rejected before execution. Current receipts explicitly distinguish not_executed from an attempted tool with unknown effects."
+}

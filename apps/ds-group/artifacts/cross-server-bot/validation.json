@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-05",
+  "status": "passed",
+  "baseFoundation": "5fb09d3",
+  "dependencyCommits": [
+    "006026d",
+    "8c90702",
+    "178b31c",
+    "b6e3cd8"
+  ],
+  "moduleCommand": "npm run check",
+  "modulePassed": 333,
+  "moduleFailed": 0,
+  "typeAndSyntaxChecks": "TS7 web/admin and JavaScript syntax passed",
+  "nativeScriptedChecks": 8,
+  "nativeScriptedCalls": 10,
+  "nativeRemoteCalls": 0,
+  "realFederatedChecks": 9,
+  "finalRemoteCalls": 9,
+  "totalRemoteCallsAcrossAttempts": 25,
+  "remoteClaimStatuses": {
+    "completed": 25
+  },
+  "sourceHashes": {
+    "src/core.mjs": "1227e62f8776c89f9e817f809f67087327b4c9802d071a5e49450cda693b9371",
+    "src/bot-work.mjs": "91695459839c8f7e4e193c0d7808ffa00d5fd2e9c253e76afb69d21c57864cde",
+    "src/bot-work-policy.mjs": "d0a13a65d6a876855ed0460987b65378c66d5ac375c58596b74aefe1f5d36a4d",
+    "src/bot-node.mjs": "89c6980dd536169f5f8c5cf303f8ce9901fd088ecbcb3713837cf0fd1cea7cd2",
+    "src/node-work.mjs": "47c475c716097cf9e6ee3989a75bae060b7b7c977ad644dea7dc32316c30bc2f",
+    "src/node-files.mjs": "f0ebf1bfbf2435abfce54852e1a19e558e9cfbb4d5cb8ba56511d799213545b3",
+    "src/node-store.mjs": "866ec4a7cf37674ad53a2a903105dbc2f0b177b1bd5304a68a5f2e49b736be4e",
+    "src/node-delivery.mjs": "3133d4abfa0d56f33df86df456fe60a030fe7a8420ae80d16873a1fdecdb19fd",
+    "src/governance.mjs": "bca5ec0b29b90cb6ba48a79c26274c121381aded258ebd555ba6cb44e7ed83c1",
+    "src/synapse-control.mjs": "8bd87495e6107d6266885dfd4e2ce15ee2ba7516e802e4230a44c792d3376e6c",
+    "deploy/synapse/dscord_guard.py": "445a45a1cba263be406c2d561bad9527e99fd19026ff59f69049f7cd0254342f",
+    "dsh-plugin/runtime.mjs": "cc384899245abc8edb28972f07494ce2470bbd5af2cbe34e7f2c91c27592dbce",
+    "dsh-plugin/scoped-work.mjs": "b1b8447b3bafbb1921e16ef86881ccf3963b1bbabd71f304a68e882944b864ef",
+    "scripts/verify-cross-server-bot.mjs": "807a321c4a280f3b29403f35e3d8d39a6bcbe06624b346500297f424fc74308d"
+  },
+  "sourceEvidenceMatchesFinalFiles": true,
+  "physicalHostsTested": 1,
+  "cleanup": "cleanup.json",
+  "limitations": [
+    "Cross-server capability ceiling is read/write/edit/read_image in the current task workspace; real remote file execution covered read/write.",
+    "Cross-server terminal, jobs, skills, delegation and new private conversations are disabled.",
+    "Delivery is the original approved collaboration room and exact original human/event. Same-home owner private conversation compatibility was separately exercised.",
+    "Real queued revocation and reconnect were tested; in-flight tool revocation and unknown send receipts are additionally covered by native scripted/module evidence.",
+    "No physical cross-machine acceptance. Stream usage/cacheReadTokens preserved as reported; billing and full provider requests remain unknown."
+  ]
+}

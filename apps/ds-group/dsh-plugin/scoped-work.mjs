@@ -12,6 +12,12 @@ const denied = (message) =>
 const inside = (filename, directory) =>
   filename === directory || filename.startsWith(directory + path.sep);
 
+export const SCOPED_PROTOCOL = `你是 DS-Group 的同一个长期 Bot，当前在明确获准的协作房间处理文件工作。
+当前身份、原始请求者和协作域以本轮 event 与程序验证的授权为准。只使用本房间已分享的历史和本任务 files，不访问或转述私人记忆、其他房间或其他任务文件。
+本轮仅提供实际工具目录中获准的 read、write、edit、read_image。终端、脚本执行、后台作业、技能、会话读取、记忆工具和跨服委派均未获准，不得请求这些工具。简单计算可在读取原始数据后自行核算；超出当前能力时明确说明限制。
+先实际读取输入，再使用获准的文件工具制作成果，实际读取成品核对。路径必须位于当前 workdir，files.extraction.textPath 是同一任务中已提取的文本。
+最终输出一个 JSON 对象 {"text":"给原始请求者的实际结果","artifacts":[{"path":"本任务成品路径","name":"文件名"}]}。最多16个文件，路径须位于当前 workdir。只有实际文件和工具回执支持的事项才可称为完成。交付由程序返回原批准房间、原事件和原完整人类 ID，不新建私聊，不委派。`;
+
 /** File tools cannot open private memory, other domains or a symlink out of this task. */
 export async function checkScopedFile(
   { name, arguments: args },

@@ -1,0 +1,128 @@
+{
+  "date": "2026-11-05",
+  "checkedAt": "2026-11-05T04:17:46.564Z",
+  "level": "native-dsh-scripted-provider-synthetic-work-authority",
+  "modelCalls": 0,
+  "scriptedProviderCalls": 10,
+  "physicalHosts": 1,
+  "checks": [
+    "nativeFileToolsAndPrivatePathRefusal",
+    "ownerSessionAndPrivateMemoryExcluded",
+    "roomDomainsIsolateNativeHistory",
+    "sameAuthorizedDomainReusesNativeSession",
+    "revocationStopsNextNativeEffectAndPreservesEarlierFile",
+    "restartRetainsOriginalBotAndDomainBindings",
+    "duplicateCompletedRequestNeverReexecutes",
+    "nativeToolAndEveryModelStreamAuthorizationAndLedger"
+  ],
+  "status": "passed",
+  "sourceHashes": {
+    "dsh-plugin/runtime.mjs": "cc384899245abc8edb28972f07494ce2470bbd5af2cbe34e7f2c91c27592dbce",
+    "dsh-plugin/scoped-work.mjs": "b1b8447b3bafbb1921e16ef86881ccf3963b1bbabd71f304a68e882944b864ef",
+    "src/bot-work.mjs": "91695459839c8f7e4e193c0d7808ffa00d5fd2e9c253e76afb69d21c57864cde",
+    "src/bot-work-policy.mjs": "d0a13a65d6a876855ed0460987b65378c66d5ac375c58596b74aefe1f5d36a4d",
+    "scripts/cross-server-runtime-smoke.mjs": "2b34c6b3199c17e9b9b2f4395e83b74ed8c01971fabd370e662190ba57c52c52"
+  },
+  "sessions": {
+    "original": "session-49a664ce-a254-4962-b15e-4e0fc43c464b",
+    "firstRoom": "session-c59db0d7-f2f8-420e-ab3d-b749314198c8",
+    "secondRoom": "session-b586cb37-33ab-4b5b-b1c2-3f678e4ef26a"
+  },
+  "receipts": [
+    {
+      "id": "private-owner",
+      "status": "completed",
+      "sessionId": "session-49a664ce-a254-4962-b15e-4e0fc43c464b",
+      "toolReceipts": [],
+      "modelClaims": 1
+    },
+    {
+      "id": "scope-first",
+      "status": "completed",
+      "sessionId": "session-c59db0d7-f2f8-420e-ab3d-b749314198c8",
+      "toolReceipts": [
+        {
+          "callId": "tool-2",
+          "name": "read",
+          "status": "failed",
+          "startedAt": "2026-11-05T04:17:48.080Z",
+          "finishedAt": "2026-11-05T04:17:48.107Z",
+          "summary": "Error: The requested file is outside this task workspace",
+          "effectStatus": "not_executed"
+        },
+        {
+          "callId": "tool-3",
+          "name": "read",
+          "status": "completed",
+          "startedAt": "2026-11-05T04:17:48.126Z",
+          "finishedAt": "2026-11-05T04:17:48.131Z",
+          "summary": "<path>/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-n5NncU/tasks/scope-first/input.txt</path>\n<type>file</type>\n<content>\n1: shared input\n\n(End of file - total 1 lines)\n</content>",
+          "effectStatus": "completed"
+        },
+        {
+          "callId": "tool-4",
+          "name": "write",
+          "status": "completed",
+          "startedAt": "2026-11-05T04:17:48.148Z",
+          "finishedAt": "2026-11-05T04:17:48.157Z",
+          "summary": "<path>/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-n5NncU/tasks/scope-first/result.txt</path>\n<type>file</type>\n<content>\nCreated file\n</content>",
+          "effectStatus": "completed"
+        },
+        {
+          "callId": "tool-5",
+          "name": "read",
+          "status": "completed",
+          "startedAt": "2026-11-05T04:17:48.174Z",
+          "finishedAt": "2026-11-05T04:17:48.179Z",
+          "summary": "<path>/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-n5NncU/tasks/scope-first/result.txt</path>\n<type>file</type>\n<content>\n1: checked result\n\n(End of file - total 1 lines)\n</content>",
+          "effectStatus": "completed"
+        }
+      ],
+      "modelClaims": 5
+    },
+    {
+      "id": "scope-other",
+      "status": "completed",
+      "sessionId": "session-b586cb37-33ab-4b5b-b1c2-3f678e4ef26a",
+      "toolReceipts": [],
+      "modelClaims": 1
+    },
+    {
+      "id": "scope-followup",
+      "status": "completed",
+      "sessionId": "session-c59db0d7-f2f8-420e-ab3d-b749314198c8",
+      "toolReceipts": [],
+      "modelClaims": 1
+    },
+    {
+      "id": "scope-revoke",
+      "status": "failed",
+      "errorCode": "WORK_AUTHORIZATION_REVOKED",
+      "sessionId": "session-65304496-8ad2-4147-a076-b0bb4edf9844",
+      "toolReceipts": [
+        {
+          "callId": "tool-9",
+          "name": "write",
+          "status": "completed",
+          "startedAt": "2026-11-05T04:17:48.597Z",
+          "finishedAt": "2026-11-05T04:17:48.631Z",
+          "summary": "<path>/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-n5NncU/tasks/scope-revoke/before.txt</path>\n<type>file</type>\n<content>\nCreated file\n</content>",
+          "effectStatus": "completed"
+        },
+        {
+          "callId": "tool-10",
+          "name": "write",
+          "status": "failed",
+          "startedAt": "2026-11-05T04:17:48.649Z",
+          "finishedAt": "2026-11-05T04:17:48.652Z",
+          "summary": "Error: WORK_AUTHORIZATION_REVOKED",
+          "effectStatus": "not_executed",
+          "late": true
+        }
+      ],
+      "modelClaims": 2
+    }
+  ],
+  "authorizationChecks": 37,
+  "directory": "/Users/caja/.codex/worktrees/dscord-cross-server-bot/apps/ds-group/.local/scoped-runtime-n5NncU"
+}

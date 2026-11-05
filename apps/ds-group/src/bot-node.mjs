@@ -273,6 +273,17 @@ export class BotNode {
 
   async syncOnce() {
     const response = await this.matrix.sync({ since: this.store.cursor(), timeout: this.pollTimeout });
+    if (this.work) {
+      for (const roomId of Object.keys(response.rooms?.invite || {})) this.store.noteInvitation(roomId);
+      for (const roomId of [...Object.keys(response.rooms?.join || {}), ...Object.keys(response.rooms?.leave || {})]) this.store.finishInvitation(roomId);
+      for (const invitation of this.store.pendingInvitations()) {
+        try { await this.work.join(invitation.room_id); this.store.finishInvitation(invitation.room_id); }
+        catch (error) {
+          if (invitation.last_error !== error.message) this.onError(`Bot room invitation remains unaccepted: ${error.message}`);
+          this.store.invitationFailed(invitation.room_id, error.message);
+        }
+      }
+    }
     const events = [];
     for (const [roomId, room] of Object.entries(response.rooms?.join || {})) {
       events.push(...await this.collectRoomEvents(roomId, room));
@@ -485,6 +496,10 @@ export class BotNode {
       const output = parseBotOutput(response.text, this.participant.id, this.participants,
         { ignoreDelivery: !this.delivery.acceptsProposal(item) });
       if (request.authorization?.kind === 'scoped' && output.delegate) throw Object.assign(new Error('Cross-server delegation is outside this task grant'), { status: 403 });
+      if (this.work && output.delegate && output.delegate.to.slice(output.delegate.to.indexOf(':') + 1)
+        !== this.participant.id.slice(this.participant.id.indexOf(':') + 1)) {
+        throw Object.assign(new Error('Local work cannot implicitly delegate private context to an external Bot'), { status: 403 });
+      }
       this.delivery.applyOutput(item, output);
       output.controlOnly = response.controlOnly === true;
       await this.withTransferControl(item, async signal => {
@@ -599,11 +614,11 @@ export class BotNode {
       try {
         const receipt = await this.delivery.prepare(delivery, prepared => {
           delivery = prepared;
-          if (!this.work || !source.request.authorization) return this.matrix.send(delivery.room_id, delivery.body, delivery.options);
+          if (!this.work) return this.matrix.send(delivery.room_id, delivery.body, delivery.options);
           return (async () => {
             const scoped = source.request.authorization?.kind === 'scoped';
             await this.work?.check(source.request, 'deliver', { destinationRoomId: delivery.room_id,
-              recipientId: source.request.authorization?.requesterId, replyTo: delivery.options.replyTo });
+              recipientId: source.request.authorization?.requesterId || delivery.options.originSenderId || source.event.sender, replyTo: delivery.options.replyTo });
             sendAttempted = true;
             const receipt = await this.matrix.send(delivery.room_id, delivery.body, delivery.options);
             if (scoped) await this.work.check(source.request, 'observe', { effectStatus: 'completed', callId: delivery.transaction_id })

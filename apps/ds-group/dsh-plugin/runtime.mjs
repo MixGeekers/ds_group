@@ -7,7 +7,7 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm';
 import { createRuntime } from '../vendor/ds-bot/index.js';
 import { PROTOCOL, WORK_TOOLS, botInstructions } from './runtime-rules.mjs';
 import { prepareWorkFiles, collectArtifacts } from './work-files.mjs';
-import { checkScopedFile, validateScopedInput } from './scoped-work.mjs';
+import { SCOPED_PROTOCOL, checkScopedFile, validateScopedInput } from './scoped-work.mjs';
 
 export const name = 'ds-group-node';
 export const inject = ['llm', 'tools', 'systemPrompt', 'sessionController', 'sessions', 'sessionTitle', 'workspaceRegistry', 'connection'];
@@ -232,13 +232,20 @@ export async function apply(ctx, config) {
     agent.ctx.tools.guard(exec => {
       const run = active.get(agent.session.id);
       if (scopedSessions.has(agent.session.id) && !run) return 'This collaboration Session has no active authorized task.';
-      return toolsFor().has(exec.name) ? undefined : 'Use only the current authorized task tools.';
+      if (toolsFor().has(exec.name)) return undefined;
+      run?.blockedTools.add(exec.callId || exec.id);
+      return 'Use only the current authorized task tools.';
     });
     agent.ctx.on('tools/execute', async (exec, next) => {
       const run = active.get(agent.session.id);
       if (run?.input?.authorization) {
-        await checkScopedFile(exec, run.record.workdir, run.authorization?.tools || []);
-        await workCheck(run, 'tool', { tool: exec.name, callId: exec.callId || exec.id });
+        try {
+          await checkScopedFile(exec, run.record.workdir, run.authorization?.tools || []);
+          await workCheck(run, 'tool', { tool: exec.name, callId: exec.callId || exec.id });
+        } catch (error) {
+          run.blockedTools.add(exec.callId || exec.id);
+          throw error;
+        }
       }
       return next();
     });
@@ -343,11 +350,11 @@ export async function apply(ctx, config) {
         item.finishedAt = new Date().toISOString();
         item.summary = textOf(message).slice(0, 2000);
         if (run.input?.authorization) {
+          item.effectStatus = run.blockedTools.has(item.callId) ? 'not_executed' : message.isError ? 'unknown' : 'completed';
           try {
-            const observation = await workCheck(run, 'observe', { tool: item.name, callId: item.callId, effectStatus: item.status });
-            item.effectStatus = item.status;
+            const observation = await workCheck(run, 'observe', { tool: item.name, callId: item.callId, effectStatus: item.effectStatus });
             if (observation.late) item.late = true;
-          } catch { item.effectStatus = 'unknown'; }
+          } catch { item.observationPending = true; }
         }
       }
       void save().catch(() => {});
@@ -386,7 +393,7 @@ export async function apply(ctx, config) {
     let timeout;
     let resolve;
     const ended = new Promise(done => { resolve = done; });
-    const run = { record, input, resolve, requests: 0, steps: 0, streamStarted: false, text: '' };
+    const run = { record, input, resolve, requests: 0, steps: 0, streamStarted: false, text: '', blockedTools: new Set() };
     record.status = 'running';
     record.startedAt = new Date().toISOString();
     updateProgress(record, 'preparing', '正在准备文件');
@@ -410,7 +417,7 @@ export async function apply(ctx, config) {
           await save();
         }
         sessionId = domain.sessionId;
-        scopedSessions.set(sessionId, { instructions: botInstructions(`你是 ${bot.name} (${bot.botId})，所有者 ${work.ownerId}。当前授权协作域为 ${work.authority} 的房间 ${work.roomId}。这里只能使用明确分享的本房间上下文和本任务文件，不可读取或透露私人记忆、其他房间或其他任务文件。当前工具权限以实际目录为准，结果返回当前原始请求者。跨服委派与新建私聊尚未授权。`) });
+        scopedSessions.set(sessionId, { instructions: `你是 ${bot.name} (${bot.botId})，所有者 ${work.ownerId}。当前授权协作域为 ${work.authority} 的房间 ${work.roomId}。\n\n${SCOPED_PROTOCOL}` });
         record.authorization = work;
         record.contextDomainId = work.domainId;
       } else sessionId = rt.chatOf(bot.dsBotId);
@@ -429,11 +436,11 @@ export async function apply(ctx, config) {
       const context = { kind: 'ds-group-turn', botId: input.botId, requestId: input.requestId, event: input.event,
         workdir: workspace.workdir, files: workspace.files,
         attachmentWarnings: input.attachmentWarnings ?? [], historyWarnings: input.historyWarnings ?? [],
-        fileTools: { node: process.execPath, cli: fileWorkCli,
+        fileTools: input.authorization ? { available: run.authorization.tools } : { node: process.execPath, cli: fileWorkCli,
           commands: ['extract INPUT [--output-dir DIR]', 'table INPUT [--sheet NAME]', 'summarize INPUT --group COLUMN --sum COLUMN --output OUT.xlsx [--sheet NAME] [--unique COLUMN]',
             'xlsx-create --input SPEC.json --output OUT.xlsx', 'docx-create --input SPEC.json --output OUT.docx', 'docx-edit INPUT --ops OPS.json --output OUT.docx'] },
         previousUnseenRoomEvents: history };
-      const inputText = `${PROTOCOL}\n\n${JSON.stringify(context)}`;
+      const inputText = `${input.authorization ? SCOPED_PROTOCOL : PROTOCOL}\n\n${JSON.stringify(context)}`;
       record.inputEvidence = { messageSha256: createHash('sha256').update(inputText).digest('hex'),
         historyEventIds: history.map(item => item.eventId), currentEventId: input.event.eventId, inputText };
       const message = createUserMessage({ content: [{ type: 'text', text: inputText }],

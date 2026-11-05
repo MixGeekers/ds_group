@@ -1,7 +1,7 @@
 {
   "contractVersion": "1.0.0",
   "date": "2026-11-04",
-  "status": "foundation-implemented-native-and-module-verified",
+  "status": "implemented-and-real-federated-file-work-verified",
   "baseCommit": "0d0ed79",
   "branch": "codex/dscord-cross-server-bot",
   "ownership": {
@@ -16,7 +16,10 @@
       "dsh-plugin/scoped-work.mjs",
       "tests/cross-server-bot*.test.mjs",
       "scripts/verify-cross-server-bot.mjs",
-      "artifacts/cross-server-bot/"
+      "artifacts/cross-server-bot/",
+      "src/node-store.mjs: persistent fair invitation queue",
+      "scripts/dsh-node.mjs: optional explicit native web port",
+      "scripts/verify-cross-server-bot.mjs"
     ],
     "sharedMinimal": [
       "src/core.mjs: construct BotWorkService and route its endpoints",
@@ -142,11 +145,15 @@
       "final Matrix send including frozen-route retry"
     ],
     "failClosed": "Authorization or Matrix check failure prevents new effects. A relevant rule/version/participant change invalidates the admitted authorization; no automatic model replay.",
-    "audit": "Persistent admission, decision and effect events in home bot-work.sqlite; native tool receipts, uploaded files, unknown sends and late results retain their original task/transaction relationships."
+    "audit": "bot-work.sqlite admission/decision/observation receipts; native tools distinguish not_executed, known completed and unknown effects. Known upload/tool receipts survive observation outages.",
+    "localBoundary": {
+      "path": "/internal/bot-work/check-local-delivery",
+      "semantics": "Local Bot messages cannot import foreign origin authority, local task output cannot delegate to an external Bot, and final local delivery rechecks that both source and destination remain local. Foreign media references cannot fall back to a home attachment ID index."
+    }
   },
   "context": {
     "domain": "Hash of exact Bot ID, authoritative collaboration server, full room ID and admission security binding",
-    "session": "Persistent ordinary DSH native Session, distinct from original DS-Bot private owner Session; original identity and DS-Bot binding retained. No fork/copy of owner history or private memory.",
+    "session": "Persistent ordinary DSH native Session per exact Bot/authority/room/security proof. Uses a scoped file-only protocol without terminal/CLI/delegation hints. Original DS-Bot/private owner Session and node directory remain unchanged.",
     "history": "Only exact target room events from currently admitted and actually joined members. Files enter only through verified current/referenced Matrix events. Explicitly shared content is copied as task input.",
     "tools": "File paths must resolve within the current task workspace, including symlink/ancestor validation. No terminal, jobs, skills, memory, session-reading or delegation tools in this first cross-server scope. Local existing paths retain their compatibility behavior."
   },
@@ -158,7 +165,7 @@
     "limits": "Input byte ceiling is min(current home media limit, actual node maximum); policy hash includes this ceiling."
   },
   "delivery": {
-    "initialScope": "Original approved room and exact original human; explicit same-room two-member direct conversation supported. Crossing to a new/unapproved DM or delegating externally is refused until separately supported.",
+    "initialScope": "Original approved collaboration room and exact original human/event. Cross-server delegation and creation/rerouting to a new private conversation are refused; no cross-server two-person DM acceptance is claimed. Same-home owner private conversation remains compatible.",
     "revocation": "Block further tools/upload/send, preserve already observed effects and unknown results, no compensation or retrospective success assertion."
   },
   "validation": {
@@ -171,11 +178,38 @@
     ],
     "allowedRemoteModel": "opencode-go/deepseek-v4.1-flash",
     "currentEvidence": {
-      "module": "npm run check: 320/320 passed; TS7 web/admin typechecks and JavaScript syntax passed",
-      "nativeRuntime": "8 checks, 10 scripted localhost provider calls; original Bot/native Session and isolated room Sessions survive restart; private path denied before execution; revoked next write refused",
-      "remoteModelCalls": 0,
-      "realFederatedTask": "pending dependency integration and bounded run",
-      "physicalCrossMachine": "not tested"
-    }
+      "module": "333/333; JS syntax and TS7 web/admin passed",
+      "native": "8 checks, 10 scripted provider calls, zero remote calls",
+      "real": "9 real federation checks including preparation + 7 behavior checks; final run 9 remote calls",
+      "history": "First real pass 9 calls; later strict oracle failure 7 calls retained; final pass 9 calls; total 25 completed remote model stream receipts",
+      "physicalHosts": 1,
+      "cleanup": "All owned test containers, network, Core/admin, adapter and native host stopped; data retained under ignored .local"
+    },
+    "evidence": [
+      "validation.json",
+      "real-federation-validation.json",
+      "real-federation-first-pass.json",
+      "real-federation-failures.json",
+      "native-runtime-current.json",
+      "native-runtime-failures.json",
+      "accounting.json",
+      "authorization-audit.json",
+      "cleanup.json"
+    ]
+  },
+  "updatedDate": "2026-11-05",
+  "foundationCommit": "5fb09d3",
+  "dependencyCommits": [
+    "006026d",
+    "8c90702",
+    "178b31c",
+    "b6e3cd8"
+  ],
+  "join": {
+    "method": "POST",
+    "path": "/internal/bots/:encodedBotId/join",
+    "authentication": "Original Bot-scoped node credential",
+    "requirements": "Exact enabled owner room grant, home Bot/room policy and partner admission; actual home Matrix invitation from an exactly admitted member. No tool execution is authorized by joining.",
+    "persistence": "Pending invitations survive sync/restart. Up to 100 per pass with persistent fair rotation; denied invitations cannot starve later allowed rooms."
   }
 }

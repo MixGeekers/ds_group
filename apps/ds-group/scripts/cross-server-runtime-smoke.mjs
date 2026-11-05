@@ -22,7 +22,7 @@ const hash = (value) => createHash('sha256').update(value).digest('hex');
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const basePort = Number(process.env.DS_GROUP_SCOPED_SMOKE_PORT || 24570);
 assert.ok(
-  Number.isInteger(basePort) && basePort >= 1024 && basePort <= 65534,
+  Number.isSafeInteger(basePort) && basePort >= 1024 && basePort <= 65534,
   'DS_GROUP_SCOPED_SMOKE_PORT must be an integer from 1024 to 65534',
 );
 await mkdir(path.join(packageRoot, '.local'), { recursive: true });
@@ -42,7 +42,12 @@ const checkCalls = [];
 const ledger = [];
 const providerCalls = [];
 const report = {
-  date: '2026-11-04',
+  date: new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Caracas',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date()),
   checkedAt: new Date().toISOString(),
   level: 'native-dsh-scripted-provider-synthetic-work-authority',
   modelCalls: 0,

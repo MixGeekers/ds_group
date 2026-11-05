@@ -17,6 +17,7 @@ import {
   ROOM_WORK_EVENT,
   validateOwnerGrants,
   verifyRoomWorkState,
+  workRequestId,
 } from '../src/bot-work-policy.mjs';
 import { checkScopedFile } from '../dsh-plugin/scoped-work.mjs';
 import { NodeFiles } from '../src/node-files.mjs';
@@ -599,4 +600,116 @@ test('input descriptors use the smaller current home and actual node byte limits
     { botId },
   );
   assert.equal(work.maxInputBytes, 200);
+});
+
+test('a real invitation still requires exact owner, server, inviter and original node scope to join', async (t) => {
+  const f = await fixture(t);
+  let inviter = humanId;
+  let present = true;
+  let joins = 0;
+  const previous = f.matrix.request;
+  f.matrix.request = async (method, route) => {
+    if (route.endsWith('/joined_rooms')) return { joined_rooms: [] };
+    if (route.includes('/sync?'))
+      return {
+        rooms: {
+          invite: present
+            ? {
+                [roomId]: {
+                  invite_state: {
+                    events: [
+                      {
+                        type: 'm.room.member',
+                        state_key: botId,
+                        sender: inviter,
+                        content: { membership: 'invite' },
+                      },
+                    ],
+                  },
+                },
+              }
+            : {},
+        },
+      };
+    return previous(method, route);
+  };
+  f.matrix.join = async (id) => {
+    joins++;
+    return { room_id: id };
+  };
+  await assert.rejects(f.service.join(botId, roomId, { botId }), {
+    code: 'BOT_WORK_DENIED',
+  });
+  f.service.saveGrants(f.bot, f.grant);
+  await assert.rejects(
+    f.service.join(botId, roomId, { botId: '@other:a.test' }),
+    { status: 403 },
+  );
+  inviter = '@alice:c.test';
+  await assert.rejects(f.service.join(botId, roomId, { botId }), {
+    code: 'BOT_WORK_DENIED',
+  });
+  inviter = humanId;
+  present = false;
+  await assert.rejects(f.service.join(botId, roomId, { botId }), {
+    code: 'BOT_WORK_DENIED',
+  });
+  present = true;
+  const joined = await f.service.join(botId, roomId, { botId });
+  assert.equal(joined.botId, botId);
+  assert.equal(joined.ownerId, ownerId);
+  assert.equal(joins, 1);
+  f.service.saveGrants(f.bot, { revision: 1, grants: [] });
+  await assert.rejects(f.service.join(botId, roomId, { botId }), {
+    code: 'BOT_WORK_DENIED',
+  });
+  assert.equal(joins, 1);
+});
+
+test('local messages cannot import foreign authority or publish private results into an external room', async (t) => {
+  const f = await fixture(t);
+  f.setPolicy(emptyPolicy('a.test'));
+  f.setJoined([botId, ownerId]);
+  f.event.sender = ownerId;
+  const original = f.matrix.request;
+  const foreign = '!foreign:b.test';
+  f.matrix.request = async (method, route) => {
+    if (route.endsWith('/state'))
+      return [
+        {
+          type: 'm.room.create',
+          state_key: '',
+          sender: route.includes(encodeURIComponent(foreign))
+            ? humanId
+            : ownerId,
+          content: {},
+        },
+      ];
+    return original(method, route);
+  };
+  const local = await f.admit();
+  assert.equal(local.mode, 'local');
+  f.event.content['org.ds_group'].originSenderId = humanId;
+  await assert.rejects(f.admit(), { code: 'BOT_WORK_DENIED' });
+  delete f.event.content['org.ds_group'].originSenderId;
+  const input = {
+    requestId: workRequestId(botId, f.event.event_id),
+    botId,
+    eventId: f.event.event_id,
+    sourceRoomId: roomId,
+    destinationRoomId: foreign,
+    recipientId: ownerId,
+  };
+  await assert.rejects(f.service.checkLocalDelivery(input, { botId }), {
+    code: 'BOT_WORK_DENIED',
+  });
+  input.destinationRoomId = roomId;
+  assert.equal(
+    (await f.service.checkLocalDelivery(input, { botId })).authorized,
+    true,
+  );
+  f.event.content['org.ds_group'].attachments = [
+    { id: 'collision', contentUri: 'mxc://b.test/foreign' },
+  ];
+  await assert.rejects(f.admit(), { code: 'BOT_WORK_DENIED' });
 });

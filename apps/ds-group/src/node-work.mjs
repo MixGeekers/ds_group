@@ -35,6 +35,8 @@ export function createNodeWorkClient(
     return result;
   }
   return {
+    join: (roomId) =>
+      call(`/internal/bots/${encodeURIComponent(botId)}/join`, { roomId }),
     directory: (roomId) =>
       call(
         `/internal/bots/${encodeURIComponent(botId)}/rooms/${encodeURIComponent(roomId)}/directory`,
@@ -54,12 +56,31 @@ export function createNodeWorkClient(
             botId,
             stage,
           })
-        : Promise.resolve({ authorized: true }),
+        : stage === 'deliver'
+          ? call('/internal/bot-work/check-local-delivery', {
+              ...details,
+              botId,
+              requestId: request.requestId,
+              sourceRoomId: request.event.roomId,
+              eventId: request.event.eventId,
+            })
+          : Promise.resolve({ authorized: true }),
   };
 }
 
 export function scopedTaskRequest(request, admission, event) {
-  if (admission.mode !== 'scoped') return request;
+  if (admission.mode !== 'scoped') {
+    const home = request.botId.slice(request.botId.indexOf(':') + 1);
+    return {
+      ...request,
+      event: {
+        ...request.event,
+        availableBots: (request.event.availableBots || []).filter(
+          (person) => person.id.slice(person.id.indexOf(':') + 1) === home,
+        ),
+      },
+    };
+  }
   if (
     event.sender !== admission.event.sender ||
     event.room_id !== admission.event.room_id ||

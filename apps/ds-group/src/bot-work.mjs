@@ -3,7 +3,12 @@ import { DatabaseSync } from 'node:sqlite';
 import { MatrixClient } from './matrix-client.mjs';
 import { requireNodeScope } from './node-auth.mjs';
 import { DEFAULT_MAX_UPLOAD_BYTES } from './media.mjs';
-import { FILE_TOOLS, serverOf, policyError } from './governance.mjs';
+import {
+  FILE_TOOLS,
+  partnersOf,
+  serverOf,
+  policyError,
+} from './governance.mjs';
 import {
   ROOM_WORK_EVENT,
   denyWork,
@@ -15,21 +20,30 @@ import {
 
 const memberPath = (roomId) =>
   `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}`;
-const publicFile = (file, event, maxBytes) => {
+const publicFile = (file, event, maxBytes, policy) => {
   if (
     !file ||
     typeof file.id !== 'string' ||
-    !file.id ||
-    file.id.length > 200 ||
+    !/^[a-zA-Z0-9_.:-]{1,200}$/.test(file.id) ||
     typeof file.name !== 'string' ||
+    !file.name ||
+    file.name.length > 500 ||
+    /[\x00-\x1f\x7f]/.test(file.name) ||
     !/^[a-f0-9]{64}$/.test(file.sha256 || '') ||
     !Number.isSafeInteger(file.size) ||
     file.size < 0 ||
     file.size > maxBytes ||
     typeof file.mimeType !== 'string' ||
+    !/^[a-zA-Z0-9!#$&^_.+-]+\/[a-zA-Z0-9!#$&^_.+-]+$/.test(file.mimeType) ||
     !/^mxc:\/\/[^/?#]+\/[^/?#]+$/.test(file.contentUri || '')
   )
     throw denyWork('The Matrix attachment descriptor is incomplete');
+  const mediaServer = file.contentUri.slice(6).split('/')[0];
+  if (
+    mediaServer !== policy.serverName &&
+    !partnersOf(policy).includes(mediaServer)
+  )
+    throw denyWork('The attachment media server is not an approved partner');
   return {
     id: file.id,
     name: file.name,
@@ -184,6 +198,72 @@ export class BotWorkService {
     return { client, policy, joinedIds, participants };
   }
 
+  async join(botId, roomId, scope) {
+    requireNodeScope(scope, { botId });
+    const bot = this.bot(botId);
+    const policy = await this.governance.read();
+    const rule = policy.rooms.find((row) => row.roomId === roomId);
+    const owner = this.grants(bot).grants.find((row) => row.roomId === roomId);
+    const ceiling = policy.botPolicies.find((row) => row.botId === botId);
+    if (
+      !rule?.enabled ||
+      !rule.botIds.includes(botId) ||
+      !rule.memberIds.includes(botId) ||
+      !owner?.enabled ||
+      !ceiling?.enabled ||
+      !ceiling.roomIds.includes(roomId) ||
+      (rule.authority !== policy.serverName &&
+        !policy.partners.some(
+          (row) => row.enabled && row.serverName === rule.authority,
+        ))
+    ) {
+      throw denyWork(
+        'Joining this external room requires the existing owner and home server grants',
+      );
+    }
+    const client = this.matrixFor(bot);
+    const joined = await client.request(
+      'GET',
+      '/_matrix/client/v3/joined_rooms',
+    );
+    if (joined.joined_rooms?.includes(roomId))
+      return { roomId, status: 'joined', botId, ownerId: bot.ownerId };
+    const sync = await client.request(
+      'GET',
+      `/_matrix/client/v3/sync?timeout=0&filter=${encodeURIComponent(JSON.stringify({ room: { timeline: { limit: 0 } } }))}`,
+    );
+    const invite = sync.rooms?.invite?.[roomId]?.invite_state?.events?.find(
+      (event) =>
+        event.type === 'm.room.member' &&
+        event.state_key === botId &&
+        event.content?.membership === 'invite',
+    );
+    const inviter = trustedRoomParticipants({
+      policy,
+      locals: this.accounts.publicParticipants(),
+      joinedIds: invite ? [invite.sender] : [],
+    })[0];
+    if (!invite || !inviter || !rule.memberIds.includes(inviter.id))
+      throw denyWork(
+        'A real invitation from an exactly admitted room member is required',
+      );
+    const action = {
+      requestId: `join-${workRequestId(botId, roomId).slice(7)}`,
+      botId,
+      stage: 'join',
+    };
+    this.audit(
+      action,
+      'authorized',
+      JSON.stringify({ roomId, inviterId: inviter.id }),
+    );
+    const result = await client.join(roomId);
+    if (result.room_id !== roomId)
+      throw denyWork('Matrix joined a different room');
+    this.audit(action, 'observed:completed', roomId);
+    return { roomId, status: 'joined', botId, ownerId: bot.ownerId };
+  }
+
   async event(client, roomId, eventId) {
     if (
       typeof eventId !== 'string' ||
@@ -206,6 +286,21 @@ export class BotWorkService {
     return { ...event, room_id: roomId };
   }
 
+  foreignRoom({ policy, joinedIds }, states, roomId) {
+    const rule = policy.rooms.find((row) => row.roomId === roomId);
+    const creator = states.find((row) => row.type === 'm.room.create');
+    const work = states.find(
+      (row) => row.type === ROOM_WORK_EVENT && row.state_key === '',
+    );
+    return Boolean(
+      (rule && rule.authority !== policy.serverName) ||
+        joinedIds.some((id) => serverOf(id) !== policy.serverName) ||
+        (creator && serverOf(creator.sender) !== policy.serverName) ||
+        (work?.content?.authority &&
+          work.content.authority !== policy.serverName),
+    );
+  }
+
   async evaluate(
     bot,
     { roomId, eventId, nodeTools, nodeMaxBytes = DEFAULT_MAX_UPLOAD_BYTES },
@@ -217,17 +312,51 @@ export class BotWorkService {
       throw denyWork('The actual Matrix sender has not been admitted');
     if (serverOf(event.sender) === policy.serverName)
       this.accounts.assertActive?.(event.sender);
-    const rule = policy.rooms.find((row) => row.roomId === roomId);
-    const scoped =
-      (rule?.authority !== undefined && rule.authority !== policy.serverName) ||
-      joinedIds.some((id) => serverOf(id) !== policy.serverName);
+    const states = await client.request('GET', `${memberPath(roomId)}/state`);
+    const meta = event.content['org.ds_group'] || {};
+    const referenceId =
+      meta.replyTo ||
+      event.content['m.relates_to']?.['m.in_reply_to']?.event_id;
+    const ownFiles = Array.isArray(meta.attachments) ? meta.attachments : [];
+    const referenced =
+      referenceId && !ownFiles.length
+        ? await this.event(client, roomId, referenceId)
+        : undefined;
+    const sharedFiles = ownFiles.length
+      ? ownFiles
+      : referenced?.content?.['org.ds_group']?.attachments || [];
+    const foreignMedia =
+      Array.isArray(sharedFiles) &&
+      sharedFiles.some(
+        (file) =>
+          typeof file?.contentUri === 'string' &&
+          file.contentUri.startsWith('mxc://') &&
+          file.contentUri.slice(6).split('/')[0] !== policy.serverName,
+      );
+    const foreignReference =
+      [
+        meta.originSenderId,
+        meta.returnTo,
+        meta.delivery?.recipientId,
+        meta.delivery?.originBotId,
+      ].some((id) => serverOf(id) && serverOf(id) !== policy.serverName) ||
+      policy.rooms.some(
+        (row) =>
+          row.roomId === meta.originRoomId &&
+          row.authority !== policy.serverName,
+      );
+    if (!this.foreignRoom(room, states, roomId) && foreignReference) {
+      throw denyWork(
+        'A local Bot message cannot claim authority from an external requester or collaboration room',
+      );
+    }
+    const scoped = this.foreignRoom(room, states, roomId) || foreignMedia;
     if (!scoped) return { mode: 'local', event, participants };
     if (!Number.isSafeInteger(nodeMaxBytes) || nodeMaxBytes < 1)
       throw policyError(400, 'Invalid node input byte limit');
     const maxBytes = Math.min(nodeMaxBytes, this.maxBytes());
     if (!bot.ownerId)
       throw denyWork('This Bot has no owner work authorization');
-    const states = await client.request('GET', `${memberPath(roomId)}/state`);
     const state = states.find(
       (row) => row.type === ROOM_WORK_EVENT && row.state_key === '',
     );
@@ -269,15 +398,16 @@ export class BotWorkService {
       const values = source.content?.['org.ds_group']?.attachments || [];
       if (!Array.isArray(values) || values.length > 10)
         throw denyWork('Invalid Matrix attachment list');
+      if (new Set(values.map((file) => file?.id)).size !== values.length)
+        throw denyWork(
+          'Attachment IDs must be unambiguous within their source event',
+        );
       for (const file of values)
-        inputs.push(publicFile(file, source, maxBytes));
+        inputs.push(publicFile(file, source, maxBytes, policy));
     };
     addFiles(event);
-    const replyTo =
-      event.content['org.ds_group']?.replyTo ||
-      event.content['m.relates_to']?.['m.in_reply_to']?.event_id;
-    if (replyTo && !inputs.length) {
-      const replied = await this.event(client, roomId, replyTo);
+    if (referenced && !inputs.length) {
+      const replied = referenced;
       if (!participants.some((person) => person.id === replied.sender))
         throw denyWork(
           'The referenced file sender is no longer admitted in this room',
@@ -285,6 +415,47 @@ export class BotWorkService {
       addFiles(replied);
     }
     return { mode: 'scoped', work, event, participants, inputs };
+  }
+
+  async checkLocalDelivery(input, scope) {
+    if (
+      !input ||
+      typeof input.botId !== 'string' ||
+      typeof input.eventId !== 'string' ||
+      input.requestId !== workRequestId(input.botId, input.eventId)
+    )
+      throw policyError(400, 'Invalid local work delivery binding');
+    requireNodeScope(scope, { botId: input.botId });
+    const bot = this.bot(input.botId);
+    const source = await this.evaluate(bot, {
+      roomId: input.sourceRoomId,
+      eventId: input.eventId,
+      nodeTools: [],
+    });
+    if (source.mode !== 'local')
+      throw denyWork('An unscoped source cannot publish a cross-server result');
+    const room = await this.room(bot, input.destinationRoomId);
+    const states = await room.client.request(
+      'GET',
+      `${memberPath(input.destinationRoomId)}/state`,
+    );
+    if (
+      this.foreignRoom(room, states, input.destinationRoomId) ||
+      serverOf(input.recipientId) !== this.setup.serverName ||
+      !this.accounts
+        .publicParticipants()
+        .some((person) => person.id === input.recipientId)
+    ) {
+      throw denyWork(
+        'A local task cannot cross into an external delivery audience without its own scoped admission',
+      );
+    }
+    this.audit(
+      { ...input, stage: 'deliver-local' },
+      'authorized',
+      input.destinationRoomId,
+    );
+    return { authorized: true };
   }
 
   async admit(botId, input, scope) {
@@ -416,7 +587,7 @@ export class BotWorkService {
       this.audit(
         input,
         input.stage === 'observe'
-          ? `observed:${['completed', 'failed', 'unknown'].includes(input.effectStatus) ? input.effectStatus : 'unknown'}`
+          ? `observed:${['completed', 'failed', 'unknown', 'not_executed'].includes(input.effectStatus) ? input.effectStatus : 'unknown'}`
           : 'authorized',
       );
       return {
@@ -448,10 +619,13 @@ export class BotWorkService {
   handles(pathname) {
     return (
       /^\/api\/bots\/[^/]+\/work-grants$/.test(pathname) ||
-      /^\/internal\/bots\/[^/]+\/(work|rooms\/[^/]+\/directory)$/.test(
+      /^\/internal\/bots\/[^/]+\/(work|join|rooms\/[^/]+\/directory)$/.test(
         pathname,
       ) ||
-      pathname === '/internal/bot-work/check'
+      [
+        '/internal/bot-work/check',
+        '/internal/bot-work/check-local-delivery',
+      ].includes(pathname)
     );
   }
 
@@ -474,6 +648,23 @@ export class BotWorkService {
       throw policyError(405, 'Unsupported owner grant operation');
     }
     const scope = this.authorizeNode(request);
+    if (
+      request.method === 'POST' &&
+      url.pathname === '/internal/bot-work/check-local-delivery'
+    ) {
+      return send(
+        200,
+        await this.checkLocalDelivery(await this.readJsonBody(request), scope),
+      );
+    }
+    const join = url.pathname.match(/^\/internal\/bots\/([^/]+)\/join$/);
+    if (request.method === 'POST' && join) {
+      const input = await this.readJsonBody(request);
+      return send(
+        200,
+        await this.join(decodeURIComponent(join[1]), input.roomId, scope),
+      );
+    }
     const directory = url.pathname.match(
       /^\/internal\/bots\/([^/]+)\/rooms\/([^/]+)\/directory$/,
     );

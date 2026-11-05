@@ -313,3 +313,102 @@ test('a known uploaded attachment survives an observation outage as a separately
   assert.equal(result.observationPending, true);
   assert.equal(await readFile(artifactPath, 'utf8'), 'actual artifact');
 });
+
+test('a denied external invitation survives sync and restart until the owner actually grants it', async (t) => {
+  const f = await fixture(t);
+  let allowed = false;
+  let attempts = 0;
+  let syncs = 0;
+  f.client.join = async (target) => {
+    assert.equal(target, roomId);
+    attempts++;
+    if (!allowed)
+      throw Object.assign(new Error('Owner permission pending'), {
+        status: 403,
+      });
+    return { roomId, status: 'joined' };
+  };
+  f.matrix.sync = async () => ({
+    next_batch: `cursor-${++syncs}`,
+    rooms: syncs === 1 ? { invite: { [roomId]: {} } } : {},
+  });
+  await f.runtime.syncOnce();
+  assert.equal(f.store().pendingInvitations().length, 1);
+  const restarted = f.restart();
+  allowed = true;
+  await restarted.syncOnce();
+  assert.equal(attempts, 2);
+  assert.equal(f.store().pendingInvitations().length, 0);
+});
+
+test('a local model cannot implicitly export its private work through an external Bot delegate', async (t) => {
+  const f = await fixture(t);
+  f.client.admit = async () => ({
+    mode: 'local',
+    participants: [f.runtime.participant],
+    event: f.event,
+  });
+  f.client.check = async () => ({ authorized: true });
+  f.bridge.turn = async (request) => {
+    assert.equal(
+      request.event.availableBots.some(
+        (person) => person.id === '@peer:b.node.test',
+      ),
+      false,
+    );
+    return {
+      status: 'completed',
+      text: JSON.stringify({
+        text: 'Handing it over',
+        delegate: { to: '@peer:b.node.test', body: 'private content' },
+      }),
+      artifacts: [],
+    };
+  };
+  await f.runtime.processOne();
+  assert.equal(f.store().item(f.event.event_id).status, 'failed');
+  assert.equal(f.store().pendingDelivery(), undefined);
+  assert.deepEqual(f.sent, []);
+});
+
+test('one hundred permanently denied invitations cannot starve a later approved room', async (t) => {
+  const f = await fixture(t);
+  let approved = 0;
+  f.client.join = async (target) => {
+    if (target === roomId) {
+      approved++;
+      return { roomId, status: 'joined' };
+    }
+    throw Object.assign(new Error('Not authorized'), { status: 403 });
+  };
+  const invites = Object.fromEntries([
+    ...Array.from({ length: 100 }, (_, index) => [
+      `!denied-${index}:b.node.test`,
+      {},
+    ]),
+    [roomId, {}],
+  ]);
+  let first = true;
+  f.matrix.sync = async () => {
+    const response = {
+      next_batch: 'invitation-cursor',
+      rooms: first ? { invite: invites } : {},
+    };
+    first = false;
+    return response;
+  };
+  // Fix insertion order independently of lexical room IDs and wall-clock resolution.
+  for (const id of Object.keys(invites)) f.store().noteInvitation(id);
+  f.store()
+    .db.prepare('UPDATE room_invitations SET received_at=0 WHERE room_id<>?')
+    .run(roomId);
+  f.store()
+    .db.prepare('UPDATE room_invitations SET received_at=1 WHERE room_id=?')
+    .run(roomId);
+  await f.runtime.syncOnce();
+  assert.equal(approved, 0);
+  const restarted = f.restart();
+  await restarted.syncOnce();
+  assert.equal(approved, 1);
+  assert.equal(f.store().pendingInvitations().length, 100);
+});
