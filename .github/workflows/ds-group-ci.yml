@@ -208,7 +208,15 @@ jobs:
           cache: npm
           cache-dependency-path: apps/ds-group/package-lock.json
       - run: npm ci --ignore-scripts --no-audit --no-fund
-      - run: npx playwright install --with-deps chromium
+      - name: Install Chromium with bounded dependency downloads
+        timeout-minutes: 5
+        run: |
+          printf '%s\n' \
+            'Acquire::Retries "2";' \
+            'Acquire::http::Timeout "30";' \
+            'Acquire::https::Timeout "30";' \
+            | sudo tee /etc/apt/apt.conf.d/80-dscord-ci-network-timeouts
+          npx playwright install --with-deps chromium
       - name: Build chat and administration frontends required by the browser suite
         run: npm run build
       - name: Chat, unified client and administration browser checks
