@@ -612,7 +612,9 @@ export default function AdminApp() {
     return role;
   };
   const localizedError = (message: string) => {
-    const key = knownErrorKeys[message as keyof typeof knownErrorKeys];
+    const key = Object.hasOwn(knownErrorKeys, message)
+      ? knownErrorKeys[message as keyof typeof knownErrorKeys]
+      : undefined;
     return key ? t(key) : message;
   };
   useEffect(() => {

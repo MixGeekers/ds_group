@@ -155,7 +155,7 @@ export const adminMessages = {
     entryCount: "{count} 条记录",
     addEntry: "新增条目",
     editEntry: "编辑条目",
-    entryFormHint: "修改先暂存；保存策略后，再准备并应用。",
+    entryFormHint: "修改先暂存，保存策略后再准备并应用。",
     confirmRemove: "从待保存策略中移除此条目？",
     confirm: "确认移除",
     cancel: "取消",

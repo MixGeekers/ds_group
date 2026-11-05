@@ -329,7 +329,7 @@ try {
     "Chinese translation and dark appearance use shared preferences and tokens",
   );
   await page.getByRole("button", { name: "伙伴服务器", exact: true }).click();
-  await page.getByText("修改先暂存；保存策略后，再准备并应用。", { exact: true }).waitFor();
+  await page.getByText("修改先暂存，保存策略后再准备并应用。", { exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForFunction(() => {
     const nav = document.querySelector('.admin-sidebar nav');
