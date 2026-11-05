@@ -1,3 +1,4 @@
+import { Button, Input } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { ApiError, messageOf } from "../api";
 import { discoverServer } from "../spaces";
@@ -106,7 +107,9 @@ export function SpacesDialog(props: {
     >
       <header className="dialog-heading">
         <h2 id="spaces-title">{t("spaces")}</h2>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           className="icon-button"
           type="button"
           disabled={busy}
@@ -114,7 +117,7 @@ export function SpacesDialog(props: {
           onClick={props.onClose}
         >
           <Icon name="close" />
-        </button>
+        </Button>
       </header>
       <div className="space-list">
         {!props.spaces.length && <p className="muted">{t("noSpaces")}</p>}
@@ -132,7 +135,8 @@ export function SpacesDialog(props: {
               <span className={`space-state space-${space.status}`}>
                 {t(space.status === "connected" ? "accessible" : space.status)}
               </span>
-              <button
+              <Button
+                variant="secondary"
                 className="secondary-button"
                 type="button"
                 disabled={busy}
@@ -143,18 +147,19 @@ export function SpacesDialog(props: {
                     ? "current"
                     : "open",
                 )}
-              </button>
+              </Button>
             </header>
             {space.home && <span className="muted small">{t("home")}</span>}
             {space.home && props.onRoles && (
-              <button
+              <Button
+                variant="ghost"
                 id="home-roles-button"
                 className="text-button"
                 type="button"
                 onClick={props.onRoles}
               >
                 {t("homeRoles")}
-              </button>
+              </Button>
             )}
             {!space.rooms.length && !space.invitations.length && (
               <p className="muted small">{t("noRooms")}</p>
@@ -168,14 +173,15 @@ export function SpacesDialog(props: {
                 <span className={`space-state space-${room.status}`}>
                   {t(room.status)}
                 </span>
-                <button
+                <Button
+                  variant="ghost"
                   className="text-button"
                   type="button"
                   disabled={busy}
                   onClick={() => void act(room.roomId, "leave")}
                 >
                   {t("leave")}
-                </button>
+                </Button>
               </div>
             ))}
             {!!space.invitations.length && <h3>{t("invitations")}</h3>}
@@ -192,22 +198,24 @@ export function SpacesDialog(props: {
                 </span>
                 <span className="space-state">{t(invite.status)}</span>
                 <div className="settings-actions">
-                  <button
+                  <Button
+                    variant="default"
                     className="primary-button"
                     type="button"
                     disabled={busy || !invite.canJoin}
                     onClick={() => void act(invite.roomId, "join")}
                   >
                     {t("join")}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="secondary"
                     className="secondary-button"
                     type="button"
                     disabled={busy}
                     onClick={() => void act(invite.roomId, "leave")}
                   >
                     {t("decline")}
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}
@@ -215,7 +223,8 @@ export function SpacesDialog(props: {
         ))}
       </div>
       <p className="muted small">{t("connectionNote")}</p>
-      <button
+      <Button
+        variant="secondary"
         id="refresh-spaces"
         className="secondary-button"
         type="button"
@@ -223,7 +232,7 @@ export function SpacesDialog(props: {
         onClick={props.onChanged}
       >
         {t("refresh")}
-      </button>
+      </Button>
       <section>
         <h3>{t("join")}</h3>
         <form
@@ -233,7 +242,7 @@ export function SpacesDialog(props: {
           }}
         >
           <label htmlFor="join-room-id">{t("roomId")}</label>
-          <input
+          <Input
             id="join-room-id"
             autoComplete="off"
             required
@@ -244,14 +253,15 @@ export function SpacesDialog(props: {
             placeholder="!room:server.example"
           />
           <p className="muted small">{t("joinHelp")}</p>
-          <button
+          <Button
+            variant="default"
             id="join-room"
             className="primary-button"
             type="submit"
             disabled={busy || !props.session}
           >
             {t(busy ? "joining" : "join")}
-          </button>
+          </Button>
         </form>
       </section>
       <p id="space-feedback" className="settings-feedback" role="status">
@@ -266,7 +276,7 @@ export function SpacesDialog(props: {
           }}
         >
           <label htmlFor="server-url">{t("address")}</label>
-          <input
+          <Input
             id="server-url"
             type="url"
             required
@@ -275,14 +285,15 @@ export function SpacesDialog(props: {
             onChange={(event) => setAddress(event.target.value)}
             placeholder="https://chat.example.com"
           />
-          <button
+          <Button
+            variant="secondary"
             id="check-server"
             className="secondary-button"
             type="submit"
             disabled={checking}
           >
             {t(checking ? "checking" : "check")}
-          </button>
+          </Button>
         </form>
         <p id="server-feedback" className="settings-feedback" role="status">
           {found}

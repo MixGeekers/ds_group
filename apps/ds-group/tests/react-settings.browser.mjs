@@ -220,13 +220,17 @@ try {
   await page.locator('#open-roles').click();
   await page.locator('#new-role').click();
   await page.locator('#role-name').fill('Reviewers');
-  await page.locator('#role-members input[value="@bob:test"]').check();
+  await page.locator('#role-members .room-choice').filter({ hasText: 'Bob' }).getByRole('checkbox').click();
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await mkdir(path.join(packageRoot, '.local/react-settings-browser'), { recursive: true });
+  await page.screenshot({ path: path.join(packageRoot, '.local/react-settings-browser/roles-form-desktop.png'), animations: 'disabled' });
+  await page.setViewportSize({ width: 1000, height: 850 });
   await page.locator('#role-form button[type="submit"]').click();
   await page.locator('.role-row').filter({ hasText: 'Reviewers' }).waitFor();
   assert.deepEqual(await page.evaluate(() => window.fixture.roles[0].memberIds), ['@bob:test']);
   await page.locator('.role-row').filter({ hasText: 'Reviewers' }).click();
   await page.locator('#role-name').fill('Editors');
-  await page.locator('#role-mentionable').uncheck();
+  await page.locator('label:has(#role-mentionable)').getByRole('checkbox').click();
   await page.locator('#role-form button[type="submit"]').click();
   await page.locator('.role-row').filter({ hasText: 'Editors' }).waitFor();
   assert.equal(await page.evaluate(() => window.fixture.roles[0].mentionable), false);
@@ -239,10 +243,10 @@ try {
 
   await page.locator('#roles-dialog .dialog-heading button').click();
   await page.locator('#open-notifications').click();
-  await page.locator('#notification-muted').check();
-  await page.locator('input[name="notification-mode"][value="all"]').check();
-  await page.locator('#notification-everyone').check();
-  await page.locator('#notification-roles').check();
+  await page.locator('label:has(#notification-muted)').getByRole('checkbox').click();
+  await page.locator('#notification-form').getByRole('radio').first().click();
+  await page.locator('label:has(#notification-everyone)').getByRole('checkbox').click();
+  await page.locator('label:has(#notification-roles)').getByRole('checkbox').click();
   await page.locator('#notification-form button[type="submit"]').click();
   await page.waitForFunction(() => !document.querySelector('#notification-dialog').open);
   assert.deepEqual(await page.evaluate(() => window.fixture.preferences), {
@@ -270,9 +274,9 @@ try {
   });
   await page.locator('#open-inbox').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 3);
-  await page.locator('#inbox-everyone').uncheck();
+  await page.locator('label:has(#inbox-everyone)').getByRole('checkbox').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 2);
-  await page.locator('#inbox-roles').uncheck();
+  await page.locator('label:has(#inbox-roles)').getByRole('checkbox').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 1);
   await page.locator('#inbox-unread').click();
   await page.waitForFunction(() => document.querySelectorAll('.inbox-item').length === 4);

@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { NativeSelect } from "../../../ui/controls";
+import { Button, NativeSelect } from "../../../ui/controls";
 import { useLocale, useTranslation } from "../locale";
 import { settingsMessages } from "../locales/settings";
 import type { LocalePreference, ThemeColor, ThemePreference } from "../types";
@@ -49,7 +49,8 @@ export function AppearanceControls({ idPrefix = "" }: { idPrefix?: string }) {
         <legend>{t("themeColor")}</legend>
         <div className="theme-swatches">
           {colors.map((color) => (
-            <button
+            <Button
+              variant="ghost"
               key={color}
               type="button"
               className="theme-swatch"
@@ -60,7 +61,7 @@ export function AppearanceControls({ idPrefix = "" }: { idPrefix?: string }) {
               onClick={() => theme.setColor(color)}
             >
               {theme.getColor() === color && <Icon name="check" />}
-            </button>
+            </Button>
           ))}
         </div>
       </fieldset>

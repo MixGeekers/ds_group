@@ -76,6 +76,7 @@ try {
   const page = await context.newPage();
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto(base);
+  await page.screenshot({ path: path.join(output, "admin-login-desktop.png"), animations: "disabled" });
   await page.getByLabel("Administrator", { exact: true }).fill("admin");
   await page
     .getByLabel("Password", { exact: true })
@@ -164,7 +165,7 @@ try {
     .getByLabel("Allowed task requesters, one per line")
     .fill("@bob-with-a-very-long-identity-for-cross-server-collaboration:partner.test");
   for (const tool of ["read", "write", "edit", "read_image"])
-    await page.getByLabel(tool, { exact: true }).check();
+    await page.getByRole("checkbox", { name: tool, exact: true }).click();
   assert.equal(await page.locator('input[name="canDelegate"]').count(), 0);
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
@@ -190,7 +191,7 @@ try {
   await page
     .getByLabel("Allowed task requesters, one per line")
     .fill("@bob-with-a-very-long-identity-for-cross-server-collaboration:partner.test");
-  await page.getByLabel("read", { exact: true }).check();
+  await page.getByRole("checkbox", { name: "read", exact: true }).click();
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
   await page
@@ -224,6 +225,7 @@ try {
     "Failed application is visible and does not claim a live policy or completed federation restart",
   );
   await page.getByRole("button", { name: "Deployment", exact: true }).click();
+  await page.screenshot({ path: path.join(output, "admin-deployment-desktop.png"), animations: "disabled" });
   await page
     .getByLabel("Local registration", { exact: true })
     .selectOption("closed");
@@ -238,6 +240,12 @@ try {
   await page
     .getByRole("button", { name: "Administrators", exact: true })
     .click();
+  await page.screenshot({ path: path.join(output, "admin-administrators-desktop.png"), animations: "disabled" });
+  await page.getByRole("checkbox", { name: "Enabled", exact: true }).click();
+  assert.equal(await page.getByRole("checkbox", { name: "Enabled", exact: true }).getAttribute("aria-checked"), "false");
+  await page.locator("form.admin-card").evaluate((form) => form.reset());
+  await page.waitForFunction(() => document.querySelector('form.admin-card [role="checkbox"]')?.getAttribute('aria-checked') === 'true');
+  assert.equal(await page.getByRole("checkbox", { name: "Enabled", exact: true }).getAttribute("aria-checked"), "true");
   await page.getByLabel("Administrator", { exact: true }).fill("auditor");
   await page.getByLabel("Role", { exact: true }).selectOption("auditor");
   await page
@@ -247,6 +255,7 @@ try {
     .getByRole("button", { name: "Save administrator", exact: true })
     .click();
   await page.getByText("auditor", { exact: true }).first().waitFor();
+  assert.equal(await page.getByRole("checkbox", { name: "Enabled", exact: true }).getAttribute("aria-checked"), "true");
   checks.push("Owner can create an independent read-only administrator");
   await page.getByRole("button", { name: "Audit", exact: true }).click();
   await page.getByRole("button", { name: "Reload", exact: true }).click();

@@ -1,3 +1,4 @@
+import { Button, FileInput } from "../../../ui/controls";
 import {
   forwardRef,
   useEffect,
@@ -495,7 +496,8 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               <strong id="reply-preview-name">{props.reply?.senderName}</strong>
               <span id="reply-preview-body">{props.reply?.body}</span>
             </div>
-            <button
+            <Button
+              variant="ghost"
               id="reply-mention-toggle"
               className="reply-mention-toggle"
               type="button"
@@ -504,8 +506,10 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               onClick={() => props.onReplyMention(!props.replyMention)}
             >
               {props.replyMention ? t("replyOn") : t("replyOff")}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
               id="clear-reply"
               className="icon-button"
               type="button"
@@ -514,7 +518,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               onClick={props.onClearReply}
             >
               <Icon name="close" />
-            </button>
+            </Button>
           </div>
           <div id="composer-box" className="composer-box">
             <div
@@ -534,7 +538,8 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                   files: interrupted.map((file) => file.name).join(", "),
                 })}
               </span>
-              <button
+              <Button
+                variant="ghost"
                 className="text-button"
                 type="button"
                 onClick={() => {
@@ -544,7 +549,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 }}
               >
                 {t("remove")}
-              </button>
+              </Button>
             </div>
             <div
               id="mention-popup"
@@ -553,7 +558,9 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
               hidden
             />
             <div className="composer-input-row">
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 id="attach-button"
                 className="attach-button"
                 type="button"
@@ -563,11 +570,10 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Icon name="plus" />
-              </button>
-              <input
+              </Button>
+              <FileInput
                 id="attachment-input"
                 ref={fileInputRef}
-                type="file"
                 multiple
                 hidden
               />
@@ -592,7 +598,9 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                   <span aria-hidden="true" />
                 </span>
               )}
-              <button
+              <Button
+                variant="ghost"
+                size="icon"
                 id="send-button"
                 className="send-button"
                 type="submit"
@@ -604,7 +612,7 @@ export const Composer = forwardRef<ComposerHandle, ComposerProps>(
                   {sendLabel}
                 </span>
                 <Icon name="send" />
-              </button>
+              </Button>
             </div>
           </div>
           <div className="composer-footer">

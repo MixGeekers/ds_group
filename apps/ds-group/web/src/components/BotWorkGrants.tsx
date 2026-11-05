@@ -1,3 +1,4 @@
+import { Button, Checkbox, NativeSelect } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { ApiError, messageOf } from "../api";
 import {
@@ -175,14 +176,15 @@ export function BotWorkGrants({
   const editable = !busy && !!document && !locked;
   return (
     <section className="bot-work-grants" data-bot-work-grants={bot.id}>
-      <button
+      <Button
+        variant="ghost"
         className="text-button"
         type="button"
         disabled={saving}
         onClick={onBack}
       >
         {t("back")}
-      </button>
+      </Button>
       <h3>
         {bot.name} · {t("title")}
       </h3>
@@ -221,7 +223,7 @@ export function BotWorkGrants({
               >
                 <legend>{room?.name ?? (grant.roomId || t("choose"))}</legend>
                 <label htmlFor={`work-grant-room-${index}`}>{t("room")}</label>
-                <select
+                <NativeSelect
                   id={`work-grant-room-${index}`}
                   value={grant.roomId}
                   disabled={!editable || (!!grant.roomId && !room)}
@@ -250,18 +252,17 @@ export function BotWorkGrants({
                         {room.name} · {room.roomId}
                       </option>
                     ))}
-                </select>
+                </NativeSelect>
                 {!!grant.roomId && !room && (
                   <p className="muted small">{t("unavailableRoom")}</p>
                 )}
                 <label className="check-label">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     data-grant-enabled
                     checked={grant.enabled}
                     disabled={!editable || (!room && !grant.enabled)}
-                    onChange={(event) =>
-                      update(index, { enabled: event.target.checked })
+                    onCheckedChange={(checked) =>
+                      update(index, { enabled: checked })
                     }
                   />
                   {t("enabled")}
@@ -273,8 +274,7 @@ export function BotWorkGrants({
                 <div className="work-grant-people">
                   {requesters.map((id) => (
                     <label className="check-label" key={id}>
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         data-grant-requester={id}
                         checked={grant.requesterIds.includes(id)}
                         disabled={
@@ -282,9 +282,9 @@ export function BotWorkGrants({
                           (!currentIds.has(id) &&
                             !grant.requesterIds.includes(id))
                         }
-                        onChange={(event) =>
+                        onCheckedChange={(checked) =>
                           update(index, {
-                            requesterIds: event.target.checked
+                            requesterIds: checked
                               ? [...grant.requesterIds, id]
                               : grant.requesterIds.filter(
                                   (value) => value !== id,
@@ -309,14 +309,13 @@ export function BotWorkGrants({
                 <div className="work-grant-tools">
                   {fileTools.map((tool) => (
                     <label className="check-label" key={tool}>
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         data-grant-tool={tool}
                         checked={grant.tools.includes(tool)}
                         disabled={!editable || !room}
-                        onChange={(event) =>
+                        onCheckedChange={(checked) =>
                           update(index, {
-                            tools: event.target.checked
+                            tools: checked
                               ? [...grant.tools, tool]
                               : grant.tools.filter((value) => value !== tool),
                           })
@@ -326,7 +325,8 @@ export function BotWorkGrants({
                     </label>
                   ))}
                 </div>
-                <button
+                <Button
+                  variant="ghost"
                   className="text-button"
                   type="button"
                   onClick={() => {
@@ -337,13 +337,14 @@ export function BotWorkGrants({
                   }}
                 >
                   {t("remove")}
-                </button>
+                </Button>
               </fieldset>
             );
           })}
         </div>
         <div className="settings-actions">
-          <button
+          <Button
+            variant="secondary"
             id="add-work-grant"
             className="secondary-button"
             type="button"
@@ -361,16 +362,18 @@ export function BotWorkGrants({
             }
           >
             {t("add")}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="default"
             id="save-work-grants"
             className="primary-button"
             type="submit"
             disabled={!editable || !dirty}
           >
             {t(saving ? "saving" : "save")}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="secondary"
             id="reload-work-grants"
             className="secondary-button"
             type="button"
@@ -378,7 +381,7 @@ export function BotWorkGrants({
             onClick={() => void load()}
           >
             {t("reload")}
-          </button>
+          </Button>
         </div>
         {!rooms.length && <p className="muted small">{t("noRooms")}</p>}
       </form>

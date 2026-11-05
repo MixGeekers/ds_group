@@ -1,3 +1,4 @@
+import { Button, Checkbox, ColorInput, Input } from "../../../ui/controls";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { formatNumber } from "../../i18n.js";
 import { messageOf } from "../api";
@@ -105,7 +106,9 @@ export function RolesDialog({
     >
       <header className="dialog-heading">
         <h2 id="roles-title">{t("roles")}</h2>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           className="icon-button"
           type="button"
           aria-label={t("close")}
@@ -113,12 +116,13 @@ export function RolesDialog({
           onClick={onClose}
         >
           <Icon name="close" />
-        </button>
+        </Button>
       </header>
       <section>
         <div className="settings-section-heading">
           <h3>{t("roles")}</h3>
-          <button
+          <Button
+            variant="secondary"
             id="new-role"
             className="secondary-button"
             type="button"
@@ -126,11 +130,12 @@ export function RolesDialog({
             onClick={newRole}
           >
             {t("createRole")}
-          </button>
+          </Button>
         </div>
         <div id="role-list" className="role-list" hidden={!!draft}>
           {roles.map((role) => (
-            <button
+            <Button
+              variant="ghost"
               key={role.id}
               className="role-row"
               type="button"
@@ -147,7 +152,7 @@ export function RolesDialog({
                   count: formatNumber(role.memberIds.length),
                 })}
               </small>
-            </button>
+            </Button>
           ))}
           {!roles.length && <p className="muted small">{t("noRoles")}</p>}
         </div>
@@ -163,7 +168,7 @@ export function RolesDialog({
             }}
           >
             <label htmlFor="role-name">{t("roleName")}</label>
-            <input
+            <Input
               id="role-name"
               maxLength={40}
               required
@@ -174,21 +179,19 @@ export function RolesDialog({
               }
             />
             <label htmlFor="role-color">{t("roleColor")}</label>
-            <input
+            <ColorInput
               id="role-color"
-              type="color"
               value={draft.color}
               onChange={(event) =>
                 setDraft({ ...draft, color: event.target.value })
               }
             />
             <label className="check-label">
-              <input
+              <Checkbox
                 id="role-mentionable"
-                type="checkbox"
                 checked={draft.mentionable}
-                onChange={(event) =>
-                  setDraft({ ...draft, mentionable: event.target.checked })
+                onCheckedChange={(checked) =>
+                  setDraft({ ...draft, mentionable: checked })
                 }
               />
               {t("mentionable")}
@@ -197,14 +200,13 @@ export function RolesDialog({
             <div id="role-members" className="room-choices">
               {participants.map((person) => (
                 <label className="room-choice" key={person.id}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     value={person.id}
                     checked={draft.memberIds.includes(person.id)}
-                    onChange={(event) =>
+                    onCheckedChange={(checked) =>
                       setDraft({
                         ...draft,
-                        memberIds: event.target.checked
+                        memberIds: checked
                           ? [...draft.memberIds, person.id]
                           : draft.memberIds.filter((id) => id !== person.id),
                       })
@@ -221,10 +223,16 @@ export function RolesDialog({
               ))}
             </div>
             <div className="settings-actions">
-              <button className="primary-button" type="submit" disabled={busy}>
+              <Button
+                variant="default"
+                className="primary-button"
+                type="submit"
+                disabled={busy}
+              >
                 {t(busy ? "saving" : "save")}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 id="cancel-role"
                 className="secondary-button"
                 type="button"
@@ -232,8 +240,9 @@ export function RolesDialog({
                 onClick={() => setDraft(null)}
               >
                 {t("cancel")}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="destructive"
                 id="delete-role"
                 className="danger-button"
                 type="button"
@@ -242,7 +251,7 @@ export function RolesDialog({
                 onClick={() => void save(true)}
               >
                 {t("delete")}
-              </button>
+              </Button>
             </div>
           </form>
         )}

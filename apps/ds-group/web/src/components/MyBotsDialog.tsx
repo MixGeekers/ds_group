@@ -1,3 +1,4 @@
+import { Button } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "../locale";
 import { spaceMessages } from "../locales/spaces";
@@ -56,14 +57,16 @@ export function MyBotsDialog({
     >
       <header className="dialog-heading">
         <h2 id="my-bots-title">{t("myBots")}</h2>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           className="icon-button"
           type="button"
           aria-label={t("close")}
           onClick={onClose}
         >
           <Icon name="close" />
-        </button>
+        </Button>
       </header>
       {detail ? (
         <BotWorkGrants
@@ -114,21 +117,23 @@ export function MyBotsDialog({
                       <small className="member-full-id">{bot.id}</small>
                     </div>
                     <span className="space-state">{t(label)}</span>
-                    <button
+                    <Button
+                      variant="secondary"
                       className="secondary-button"
                       type="button"
                       data-work-grants-button={bot.id}
                       onClick={() => setSelected(bot.id)}
                     >
                       {grantText("title")}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="secondary"
                       className="secondary-button"
                       type="button"
                       onClick={() => onDirect(bot.id)}
                     >
                       {t("message")}
-                    </button>
+                    </Button>
                   </header>
                   {node?.lastError && (
                     <p className="node-error">{node.lastError}</p>
@@ -138,7 +143,8 @@ export function MyBotsDialog({
             })}
           </div>
           {!owned.length && <p className="muted">{t("noBots")}</p>}
-          <button
+          <Button
+            variant="default"
             id="manage-create-bot"
             className="primary-button"
             type="button"
@@ -146,7 +152,7 @@ export function MyBotsDialog({
             onClick={onCreate}
           >
             {t("createBot")}
-          </button>
+          </Button>
         </>
       )}
     </dialog>

@@ -1,3 +1,4 @@
+import { Button, Input } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, MouseEvent } from "react";
 import { messageOf } from "../api";
@@ -84,7 +85,8 @@ export function AuthDialog({
       : retrySeconds > 0
         ? t("rateLimitedFor", { seconds: retrySeconds })
         : t("rateLimited");
-  const visibleError = localError || (submittedMode === mode ? requestError : "");
+  const visibleError =
+    localError || (submittedMode === mode ? requestError : "");
 
   useEffect(() => {
     setCurrentTime(Date.now());
@@ -212,7 +214,9 @@ export function AuthDialog({
           <h2 id="login-title">
             {t(registering ? "createAccount" : "signIn")}
           </h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             id="close-login"
             className="icon-button"
             type="button"
@@ -222,10 +226,10 @@ export function AuthDialog({
             onClick={onClose}
           >
             <Icon name="close" />
-          </button>
+          </Button>
         </div>
         <label htmlFor="login-user">{t("username")}</label>
-        <input
+        <Input
           id="login-user"
           ref={usernameInput}
           type="text"
@@ -266,7 +270,7 @@ export function AuthDialog({
         {registering && (
           <>
             <label htmlFor="register-name">{t("displayName")}</label>
-            <input
+            <Input
               id="register-name"
               ref={displayNameInput}
               type="text"
@@ -293,7 +297,7 @@ export function AuthDialog({
         )}
         <label htmlFor="login-password">{t("password")}</label>
         <div className="auth-password-field">
-          <input
+          <Input
             id="login-password"
             ref={passwordInput}
             type={showPassword ? "text" : "password"}
@@ -311,7 +315,9 @@ export function AuthDialog({
               clearFieldError("password");
             }}
           />
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             id="password-toggle"
             className="icon-button"
             type="button"
@@ -321,7 +327,7 @@ export function AuthDialog({
             onClick={() => setShowPassword((previous) => !previous)}
           >
             <Icon name={showPassword ? "eyeOff" : "eye"} />
-          </button>
+          </Button>
         </div>
         {fieldErrors.password && (
           <p id="password-error" className="field-error" role="alert">
@@ -336,7 +342,8 @@ export function AuthDialog({
         >
           {visibleError}
         </div>
-        <button
+        <Button
+          variant="default"
           id="login-submit"
           className="primary-button login-submit"
           type="submit"
@@ -351,9 +358,10 @@ export function AuthDialog({
                 ? "signingIn"
                 : "signIn",
           )}
-        </button>
+        </Button>
         {registrationOpen && (
-          <button
+          <Button
+            variant="ghost"
             id="auth-toggle-mode"
             className="text-button auth-mode-switch"
             type="button"
@@ -361,7 +369,7 @@ export function AuthDialog({
             onClick={changeMode}
           >
             {t(registering ? "backToSignIn" : "createAccount")}
-          </button>
+          </Button>
         )}
       </form>
     </dialog>

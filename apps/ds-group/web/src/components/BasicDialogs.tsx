@@ -1,3 +1,4 @@
+import { Button, Checkbox, Input } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import type {
   CSSProperties,
@@ -192,7 +193,9 @@ export function RoomDialog({
       <form id="room-form" onSubmit={(event) => void submit(event)}>
         <div className="dialog-heading">
           <h2 id="room-dialog-title">{title}</h2>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             id="close-room-dialog"
             className="icon-button"
             type="button"
@@ -201,11 +204,11 @@ export function RoomDialog({
             onClick={onClose}
           >
             <Icon name="close" />
-          </button>
+          </Button>
         </div>
         <div id="room-name-field" hidden={isInvite}>
           <label htmlFor="new-room-name">{t("groupName")}</label>
-          <input
+          <Input
             id="new-room-name"
             maxLength={80}
             autoComplete="off"
@@ -221,14 +224,11 @@ export function RoomDialog({
         <div id="room-choices" className="room-choices">
           {choices.map((person) => (
             <label key={person.id} className="room-choice">
-              <input
-                type="checkbox"
+              <Checkbox
                 value={person.id}
                 checked={selectedIds.includes(person.id)}
                 disabled={busy}
-                onChange={(event) =>
-                  toggleMember(person.id, event.target.checked)
-                }
+                onCheckedChange={(checked) => toggleMember(person.id, checked)}
               />
               <span
                 className={`avatar avatar-${person.kind}`}
@@ -236,7 +236,10 @@ export function RoomDialog({
               >
                 {person.name.slice(0, 1)}
               </span>
-              <span>{person.name}</span>
+              <span className="room-choice-identity">
+                <span>{person.name}</span>
+                <small className="member-full-id">{person.id}</small>
+              </span>
               {person.kind === "bot" && (
                 <span className="member-kind">BOT</span>
               )}
@@ -251,7 +254,8 @@ export function RoomDialog({
         <p id="room-form-error" className="settings-feedback" role="alert">
           {error || (restored ? t("pendingGroup") : "")}
         </p>
-        <button
+        <Button
+          variant="default"
           id="room-submit"
           className="primary-button login-submit"
           type="submit"
@@ -266,7 +270,7 @@ export function RoomDialog({
                 ? "creating"
                 : "create",
           )}
-        </button>
+        </Button>
       </form>
     </dialog>
   );
@@ -308,7 +312,9 @@ export function MemberDialog({
       onCancel={(event) => cancelDialog(event, true, onClose)}
       onClick={(event) => dismissBackdrop(event, true, onClose)}
     >
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         id="close-member"
         className="icon-button dialog-close"
         type="button"
@@ -316,7 +322,7 @@ export function MemberDialog({
         onClick={onClose}
       >
         <Icon name="close" />
-      </button>
+      </Button>
       <div id="member-dialog-avatar">
         <span
           className={`avatar avatar-${member?.kind ?? "human"}`}
@@ -361,7 +367,8 @@ export function MemberDialog({
         ))}
       </div>
       <div className="settings-actions">
-        <button
+        <Button
+          variant="default"
           id="member-dm"
           className="primary-button"
           type="button"
@@ -374,8 +381,9 @@ export function MemberDialog({
           }}
         >
           {t("sendMessage")}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
           id="member-mention"
           className="secondary-button"
           type="button"
@@ -390,7 +398,7 @@ export function MemberDialog({
           }}
         >
           {t("mention")}
-        </button>
+        </Button>
       </div>
     </dialog>
   );

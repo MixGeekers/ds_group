@@ -1,3 +1,4 @@
+import { Button, Checkbox } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
 import { formatTime } from "../../i18n.js";
 import { parseMentionTokens } from "../../mention-tokens.js";
@@ -144,7 +145,9 @@ export function InboxDialog({
     >
       <header className="dialog-heading">
         <h2 id="inbox-title">{t("inbox")}</h2>
-        <button
+        <Button
+          variant="ghost"
+          size="icon"
           id="close-inbox"
           className="icon-button"
           type="button"
@@ -152,48 +155,53 @@ export function InboxDialog({
           onClick={onClose}
         >
           <Icon name="close" />
-        </button>
+        </Button>
       </header>
-      <nav className="settings-tabs" aria-label={t("inboxCategories")}>
-        <button
+      <div
+        className="settings-tabs"
+        role="group"
+        aria-label={t("inboxCategories")}
+      >
+        <Button
+          variant="ghost"
           id="inbox-mentions"
           type="button"
-          aria-selected={filter === "mentions"}
+          aria-pressed={filter === "mentions"}
           onClick={() => setFilter("mentions")}
         >
           {t("mentions")}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           id="inbox-unread"
           type="button"
-          aria-selected={filter === "unread"}
+          aria-pressed={filter === "unread"}
           onClick={() => setFilter("unread")}
         >
           {t("unread")}
-        </button>
-      </nav>
+        </Button>
+      </div>
       <div className="inbox-filters">
         <label>
-          <input
+          <Checkbox
             id="inbox-everyone"
-            type="checkbox"
             checked={includeEveryone}
             disabled={filter === "unread"}
-            onChange={(event) => setIncludeEveryone(event.target.checked)}
+            onCheckedChange={setIncludeEveryone}
           />
           {t("everyone")}
         </label>
         <label>
-          <input
+          <Checkbox
             id="inbox-roles"
-            type="checkbox"
             checked={includeRoles}
             disabled={filter === "unread"}
-            onChange={(event) => setIncludeRoles(event.target.checked)}
+            onCheckedChange={setIncludeRoles}
           />
           {t("roleMentions")}
         </label>
-        <button
+        <Button
+          variant="ghost"
           id="mark-all-read"
           className="text-button"
           type="button"
@@ -203,7 +211,7 @@ export function InboxDialog({
           }}
         >
           {t("markAllRead")}
-        </button>
+        </Button>
       </div>
       <div id="inbox-list" className="inbox-list" aria-live="polite">
         {loading ? (
@@ -218,7 +226,8 @@ export function InboxDialog({
               participants.find((person) => person.id === event.sender)?.name ||
               event.sender;
             return (
-              <button
+              <Button
+                variant="ghost"
                 key={event.event_id}
                 className={`inbox-item${event.read ? " read" : ""}`}
                 type="button"
@@ -236,7 +245,7 @@ export function InboxDialog({
                 </div>
                 <strong className="inbox-sender">{sender}</strong>
                 <p>{readableBody(event, participants, t("roles"))}</p>
-              </button>
+              </Button>
             );
           })
         ) : (

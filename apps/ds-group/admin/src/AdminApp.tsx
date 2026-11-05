@@ -1,4 +1,11 @@
-import { cloneElement, useCallback, useEffect, useId, useRef, useState } from "react";
+import {
+  cloneElement,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
 import type { FormEvent, ReactElement } from "react";
 import {
   Gauge,
@@ -14,7 +21,13 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useLocale, useTranslation } from "./locale";
-import { Button, Input, NativeSelect, Textarea } from "../../ui/controls";
+import {
+  Button,
+  Checkbox,
+  Input,
+  NativeSelect,
+  Textarea,
+} from "../../ui/controls";
 import { adminMessages } from "./messages";
 import type {
   Administrator,
@@ -97,11 +110,11 @@ function ToolFields({
       <legend>{t("tools")}</legend>
       {fileTools.map((tool) => (
         <label key={tool}>
-          <input
-            type="checkbox"
+          <Checkbox
             name="tools"
             value={tool}
             defaultChecked={current.includes(tool)}
+            disabled={disabled}
           />
           {tool}
         </label>
@@ -409,8 +422,7 @@ function PolicyCollection({
             </>
           )}
           <label className="admin-checkbox">
-            <input
-              type="checkbox"
+            <Checkbox
               name="enabled"
               defaultChecked={editing ? editing.enabled === true : true}
             />
@@ -470,11 +482,14 @@ export default function AdminApp() {
     const element = navigation.current;
     if (!element) return;
     const revealCurrent = () => {
-      const active = element.querySelector<HTMLElement>('[aria-current="page"]');
+      const active = element.querySelector<HTMLElement>(
+        '[aria-current="page"]',
+      );
       if (!active || element.scrollWidth <= element.clientWidth) return;
       const item = active.getBoundingClientRect();
       const frame = element.getBoundingClientRect();
-      element.scrollLeft += item.left - frame.left - (frame.width - item.width) / 2;
+      element.scrollLeft +=
+        item.left - frame.left - (frame.width - item.width) / 2;
     };
     revealCurrent();
     const observer = new ResizeObserver(revealCurrent);
@@ -669,7 +684,8 @@ export default function AdminApp() {
           <span>
             {session.administrator.username} · {session.administrator.role}
           </span>
-          <button
+          <Button
+            variant="ghost"
             disabled={busy}
             onClick={() =>
               void action(async () => {
@@ -680,7 +696,7 @@ export default function AdminApp() {
           >
             <LogOut size={17} aria-hidden="true" />
             {t("logout")}
-          </button>
+          </Button>
         </div>
       </aside>
       <main className="admin-main">
@@ -711,14 +727,18 @@ export default function AdminApp() {
             </span>
           </div>
           <div className="admin-actions">
-            <button disabled={busy} onClick={() => void action(load)}>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => void action(load)}
+            >
               <RefreshCw size={16} aria-hidden="true" />
               {dirty ? t("discardReload") : t("reload")}
-            </button>
+            </Button>
             {!readOnly && (
               <>
-                <button
-                  className="primary"
+                <Button
+                  variant="default"
                   disabled={busy || !dirty}
                   onClick={() =>
                     void action(async () => {
@@ -733,8 +753,9 @@ export default function AdminApp() {
                   }
                 >
                   {t("save")}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
                   disabled={busy || dirty || !policy}
                   onClick={() =>
                     void action(async () =>
@@ -747,7 +768,7 @@ export default function AdminApp() {
                   }
                 >
                   {busy ? t("busy") : t("apply")}
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -874,7 +895,9 @@ export default function AdminApp() {
             <article className="admin-card">
               <h2>{t("backup")}</h2>
               <p>{t("backupHint")}</p>
-              <button onClick={exportPolicy}>{t("exportPolicy")}</button>
+              <Button variant="secondary" onClick={exportPolicy}>
+                {t("exportPolicy")}
+              </Button>
             </article>
           </>
         )}
@@ -882,13 +905,13 @@ export default function AdminApp() {
           <article className="admin-card">
             <p>{t("deploymentHint")}</p>
             <Field label={t("server")}>
-              <input readOnly value={policy.serverName} />
+              <Input readOnly value={policy.serverName} />
             </Field>
             <Field label={t("publicUrl")}>
-              <input readOnly value={overview?.publicUrl || ""} />
+              <Input readOnly value={overview?.publicUrl || ""} />
             </Field>
             <Field label={t("registration")}>
-              <select
+              <NativeSelect
                 disabled={readOnly}
                 value={policy.settings.registrationMode || ""}
                 onChange={(event) =>
@@ -907,10 +930,10 @@ export default function AdminApp() {
                 <option value="">{t("inherited")}</option>
                 <option value="open">{t("open")}</option>
                 <option value="closed">{t("closed")}</option>
-              </select>
+              </NativeSelect>
             </Field>
             <Field label={t("upload")}>
-              <input
+              <Input
                 type="number"
                 min="0.001"
                 max="50"
@@ -948,9 +971,12 @@ export default function AdminApp() {
                     {admin.role} · {admin.enabled ? t("enabled") : t("closed")}
                   </p>
                   {session.administrator.role === "owner" && (
-                    <button onClick={() => setAdminEdit(admin)}>
+                    <Button
+                      variant="secondary"
+                      onClick={() => setAdminEdit(admin)}
+                    >
                       {t("edit")}
-                    </button>
+                    </Button>
                   )}
                 </article>
               ))}
@@ -982,7 +1008,7 @@ export default function AdminApp() {
                 }}
               >
                 <Field label={t("username")}>
-                  <input
+                  <Input
                     name="username"
                     required
                     pattern="[a-z][a-z0-9_.-]{2,63}"
@@ -990,17 +1016,17 @@ export default function AdminApp() {
                   />
                 </Field>
                 <Field label={t("role")}>
-                  <select
+                  <NativeSelect
                     name="role"
                     defaultValue={adminEdit?.role || "operator"}
                   >
                     <option value="owner">owner</option>
                     <option value="operator">operator</option>
                     <option value="auditor">auditor</option>
-                  </select>
+                  </NativeSelect>
                 </Field>
                 <Field label={t("newPassword")}>
-                  <input
+                  <Input
                     name="password"
                     type="password"
                     minLength={12}
@@ -1009,20 +1035,23 @@ export default function AdminApp() {
                   />
                 </Field>
                 <label className="admin-checkbox">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     name="enabled"
                     defaultChecked={adminEdit?.enabled ?? true}
                   />
                   {t("enabled")}
                 </label>
                 <div className="admin-actions">
-                  <button className="primary" disabled={busy}>
+                  <Button variant="default" type="submit" disabled={busy}>
                     {t("updateAdmin")}
-                  </button>
-                  <button type="button" onClick={() => setAdminEdit(null)}>
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    type="button"
+                    onClick={() => setAdminEdit(null)}
+                  >
                     {t("reset")}
-                  </button>
+                  </Button>
                 </div>
               </form>
             )}
@@ -1044,7 +1073,8 @@ export default function AdminApp() {
                 </article>
               ))}
             </div>
-            <button
+            <Button
+              variant="secondary"
               disabled={busy || !events.length}
               onClick={() =>
                 void action(async () => {
@@ -1056,7 +1086,7 @@ export default function AdminApp() {
               }
             >
               {t("more")}
-            </button>
+            </Button>
           </>
         )}
       </main>

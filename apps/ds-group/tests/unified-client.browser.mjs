@@ -616,6 +616,7 @@ try {
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.goto(clientOrigin);
   await page.locator("#login-dialog[open]").waitFor();
+  await page.screenshot({ path: path.join(output, "forms-login-desktop.png"), animations: "disabled" });
   await page.locator("#login-user").fill("alice");
   await page.locator("#login-password").fill("synthetic-password");
   await page.locator("#login-submit").click();
@@ -627,6 +628,36 @@ try {
   checks.push(
     "productionEntryLoadsSplitConfigAndLogsIntoOneStableHomeIdentity",
   );
+
+  await page.locator("#create-room-button").click();
+  await page.locator("#room-dialog[open]").waitFor();
+  assert.deepEqual(
+    await page.locator("#room-choices .room-choice-identity .member-full-id").allTextContents(),
+    ["@bob:home.test", "@bob:a.test", "@bob:b.test", "@bot-owned:home.test", "@bot-foreign:a.test"],
+  );
+  await page.screenshot({ path: path.join(output, "forms-create-room-desktop.png"), animations: "disabled" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(await page.locator("#room-dialog").evaluate((dialog) => dialog.scrollWidth <= dialog.clientWidth), true);
+  await page.screenshot({ path: path.join(output, "forms-create-room-mobile.png"), animations: "disabled" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator("#close-room-dialog").click();
+  await page.locator("#create-bot-button").click();
+  await page.locator("#create-bot-dialog[open]").waitFor();
+  await page.screenshot({ path: path.join(output, "forms-create-bot-desktop.png"), animations: "disabled" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: path.join(output, "forms-create-bot-mobile.png"), animations: "disabled" });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.locator("#close-create-bot").click();
+  await page.locator("#room-notifications-button").click();
+  await page.locator("#notification-dialog[open]").waitFor();
+  await page.screenshot({ path: path.join(output, "forms-room-notifications-desktop.png"), animations: "disabled" });
+  await page.locator("#close-notification").click();
+  await page.locator("#inbox-button").click();
+  await page.locator("#inbox-dialog[open]").waitFor();
+  await page.locator("#inbox-unread").click();
+  assert.equal(await page.locator("#inbox-unread").getAttribute("aria-pressed"), "true");
+  await page.screenshot({ path: path.join(output, "forms-inbox-unread-desktop.png"), animations: "disabled" });
+  await page.locator("#close-inbox").click();
 
   assert.equal(await page.locator(".server-rail #identity-button").count(), 1);
   assert.equal(await page.locator(".identity-bar").count(), 0);
@@ -865,7 +896,7 @@ try {
   assert.equal(state.grantWrites.length, 0);
   await page.locator("#add-work-grant").click();
   await page.locator("#work-grant-room-0").selectOption(aRoom);
-  await page.locator("[data-grant-enabled]").check();
+  await page.locator("[data-grant-enabled]").click();
   await page.locator("#save-work-grants").click();
   await page
     .locator("#work-grant-feedback")
@@ -880,9 +911,9 @@ try {
       ),
     ["read", "write", "edit", "read_image"],
   );
-  await page.locator('[data-grant-requester="@bob:a.test"]').check();
-  await page.locator('[data-grant-tool="read"]').check();
-  await page.locator('[data-grant-tool="write"]').check();
+  await page.locator('[data-grant-requester="@bob:a.test"]').click();
+  await page.locator('[data-grant-tool="read"]').click();
+  await page.locator('[data-grant-tool="write"]').click();
   await page.locator("#save-work-grants").click();
   await page
     .locator("#work-grant-feedback")
@@ -907,7 +938,7 @@ try {
     revision: 2,
     grants: [{ ...state.grantDoc.grants[0], tools: ["read"] }],
   };
-  await page.locator('[data-grant-tool="edit"]').check();
+  await page.locator('[data-grant-tool="edit"]').click();
   await page.locator("#save-work-grants").click();
   await page
     .locator("#work-grant-feedback")
@@ -939,7 +970,7 @@ try {
     () => !document.querySelector("#add-work-grant").disabled,
   );
   state.grantFailure = "unknown";
-  await page.locator('[data-grant-tool="write"]').check();
+  await page.locator('[data-grant-tool="write"]').click();
   await page.locator("#save-work-grants").click();
   await page
     .locator("#work-grant-feedback")
@@ -954,7 +985,7 @@ try {
     await page.locator('[data-grant-tool="write"]').isChecked(),
     true,
   );
-  await page.locator("[data-grant-enabled]").uncheck();
+  await page.locator("[data-grant-enabled]").click();
   await page.locator("#save-work-grants").click();
   await page
     .locator("#work-grant-feedback")

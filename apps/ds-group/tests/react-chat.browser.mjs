@@ -12,6 +12,7 @@ const html = `<!doctype html>
     <script src="/theme.js"></script>
     <link rel="stylesheet" href="/tokens.css">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/styles.css')}">
   </head>
   <body>
     <div id="root"></div>
