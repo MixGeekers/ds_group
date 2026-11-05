@@ -1,0 +1,66 @@
+{
+  "startedAt": "2026-11-05T03:13:25.710Z",
+  "status": "failed",
+  "level": "real Synapse/Core/administration, private CA-verified TLS federation, one physical Docker host",
+  "modelCalls": 0,
+  "endpoints": {
+    "project": "dscord-federation",
+    "dataRoot": "/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation",
+    "physicalHosts": 1,
+    "topology": "three independent Synapse containers, Core processes and administration processes; private TLS federation on an isolated Docker network",
+    "servers": [
+      {
+        "name": "a",
+        "serverName": "a.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24100",
+        "matrixUrl": "http://127.0.0.1:24108",
+        "adminUrl": "http://127.0.0.1:24110"
+      },
+      {
+        "name": "b",
+        "serverName": "b.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24120",
+        "matrixUrl": "http://127.0.0.1:24128",
+        "adminUrl": "http://127.0.0.1:24130"
+      },
+      {
+        "name": "c",
+        "serverName": "c.dscord-federation.test:8448",
+        "coreUrl": "http://127.0.0.1:24140",
+        "matrixUrl": "http://127.0.0.1:24148",
+        "adminUrl": "http://127.0.0.1:24150"
+      }
+    ],
+    "commands": {
+      "up": "node scripts/federation-lab.mjs up --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "verify": "node scripts/federation-lab.mjs verify --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+      "down": "node scripts/federation-lab.mjs down --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'"
+    }
+  },
+  "checks": [
+    {
+      "name": "ordinary chat, room creator and foreign administration sessions cannot administer this instance",
+      "status": "passed",
+      "details": {
+        "chatRejected": true,
+        "roomCreatorRejected": true,
+        "foreignAdminRejected": true
+      }
+    },
+    {
+      "name": "A/B explicit partner, identity and room rules save and apply separately from network restart",
+      "status": "failed",
+      "error": "{\"revision\":3,\"startedAt\":1793848405859,\"configuration\":{\"status\":\"prepared\",\"preparedPartners\":[\"b.dscord-federation.test:8448\"],\"restartCommand\":\"docker compose -f deploy/compose.yaml restart synapse\",\"note\":\"Synapse must load governance.generated.yaml and PYTHONPATH=/data. Restart is external to the management API.\"},\"rooms\":[{\"roomId\":\"!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4\",\"status\":\"failed\",\"bans\":[],\"error\":\"Can't create an ACL event that denies the local server\"}],\"status\":\"partial\",\"finishedAt\":1793848405913}\n+ actual - expected\n\n+ 'partial'\n- 'prepared'\n"
+    }
+  ],
+  "sourceSha256": {
+    "src/core.mjs": "8ebcf1b5191fd4922c22a7816c2d3b9d2e0ed80d36702105685f8ea5392cd616",
+    "src/collaboration.mjs": "37f38987efdc3a2c5e7d2511a882cf205492784ef51021a6e72a548a22e94d98",
+    "src/governance.mjs": "7dd76d2261f8b35cd0d417886b403d9afe41c1e10fdf8153b10a852df15db16b",
+    "src/synapse-control.mjs": "bd9ac1798b00e8dd4b54bfedabd829c96c9c84dac7e8a4840b896df1556cf4b8",
+    "deploy/synapse/dscord_guard.py": "855a84c216d0f0215764acab1c4d7372055ecd38de2f6cf25df2786a88d450f0",
+    "scripts/federation-lab.mjs": "19ccb0231cdcd2c4c0dd6937ac7e38392f18cc99c2079e573c363cc31d6a0ecd"
+  },
+  "error": "{\"revision\":3,\"startedAt\":1793848405859,\"configuration\":{\"status\":\"prepared\",\"preparedPartners\":[\"b.dscord-federation.test:8448\"],\"restartCommand\":\"docker compose -f deploy/compose.yaml restart synapse\",\"note\":\"Synapse must load governance.generated.yaml and PYTHONPATH=/data. Restart is external to the management API.\"},\"rooms\":[{\"roomId\":\"!7GFDrMldMp0KiKTyNx6A-w2ODV5q5paTFM__SA1sZu4\",\"status\":\"failed\",\"bans\":[],\"error\":\"Can't create an ACL event that denies the local server\"}],\"status\":\"partial\",\"finishedAt\":1793848405913}\n+ actual - expected\n\n+ 'partial'\n- 'prepared'\n",
+  "finishedAt": "2026-11-05T03:13:25.917Z"
+}

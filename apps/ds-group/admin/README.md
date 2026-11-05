@@ -87,3 +87,11 @@ Compose 新增 `administration` 服务；通过 `docker compose -f deploy/compos
 浏览器首轮发现 select 的标签包含选项文本，修补为显式 `label/for`；第二轮暴露退出后保留旧页与界面状态，修补为退出即清空管理数据并回到概览。两轮失败独立保留。全量模块及发行夹具更新的最终结果见 `artifacts/governance/foundation-validation.json`。真实联邦、真实模型和物理跨机器均未在本切片运行。
 
 后台新增代码已按可审阅格式展开，保存提示收敛到保存、应用及实际观察到三个独立状态。格式切片的 7 项治理模块、12 项后台浏览器检查及后台构建通过，见 [后续验证](../artifacts/governance/format-validation.json)。
+
+## 真实联邦增量
+
+三套独立 Synapse/Core/后台部署在一台物理主机，端口为 24100–24150。9 项真实场景与 288 项模块通过，包含真实 C 签名请求、双向文本/媒体、直连越权、断线补收、真实封禁及重新批准。详见 [联邦汇总](../artifacts/governance/federation-validation.json)与[端点及命令](../artifacts/governance/endpoints.json)。此增量的媒体证据是 Matrix 真实存取；Core 的房间证明读取和可信工作策略 v1 在下一切片。模型调用为 0，物理跨机未验。
+
+使用 `node scripts/federation-lab.mjs up|verify|status|down --data-root DIR --project NAME --port-base PORT` 可创建独立合成部署；`reload` 只重启该目录登记的 Core/后台，`refresh-guard` 更新并重启本样本门禁，`refresh-tls` 仅更新本样本测试证书。默认数据位于 `.local/federation-lab/`，所有账号和密钥被 Git 排除。测试的私有 IP 联邦及自建 CA 仅属于该隔离验证，不进入生产默认配置。
+
+Matrix ACL 不区分端口。本轮核对官方规范及固定 Synapse 源码后，以主机名作为有效 ACL 图案，并附带固定 Synapse 本地校验器所需的完整含端口名称。真正的伙伴名单和成员完整 ID 仍精确包含端口；ACL 不能独立隔离同一主机名的不同端口。

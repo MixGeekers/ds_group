@@ -1,7 +1,8 @@
-import { createHmac, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import { readFile, copyFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { MatrixClient } from "./matrix-client.mjs";
+import { isDeepStrictEqual } from "node:util";
 import {
   privateJson,
   partnersOf,
@@ -77,15 +78,28 @@ export class SynapseControl {
     }
     const application = await optional(this.stateFile);
     const loaded = observed?.serverName === policy.serverName ? observed : null;
+    const expectedSource = createHash("sha256")
+      .update(
+        await readFile(
+          path.join(packageRoot, "deploy/synapse/dscord_guard.py"),
+        ),
+      )
+      .digest("hex");
+    const currentGuard = Boolean(
+      loaded && loaded.sourceSha256 === expectedSource,
+    );
     return {
       savedRevision: policy.revision,
       guard: loaded,
+      guardSourceCurrent: currentGuard,
       ...(probeError ? { probeError } : {}),
       livePolicyObserved: Boolean(
-        loaded && !loaded.error && loaded.liveRevision === policy.revision,
+        currentGuard &&
+          !loaded.error &&
+          loaded.liveRevision === policy.revision,
       ),
       restartRequired:
-        !loaded ||
+        !currentGuard ||
         JSON.stringify([...(loaded.loadedPartners || [])].sort()) !==
           JSON.stringify(partnersOf(policy)),
       application: application || null,
@@ -332,7 +346,7 @@ export class SynapseControl {
             "GET",
             `${base}/m.room.server_acl/`,
           );
-          if (JSON.stringify(actual) !== JSON.stringify(acl))
+          if (!isDeepStrictEqual(actual, acl))
             throw new Error("Room ACL readback did not match");
           result.status = result.bans.some((row) => row.status === "failed")
             ? "partial"

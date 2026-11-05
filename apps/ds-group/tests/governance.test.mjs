@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 import os from "node:os";
+import http from "node:http";
+import { createHash } from "node:crypto";
 import { AdminAuth } from "../src/admin-auth.mjs";
 import {
   Governance,
@@ -221,6 +223,29 @@ test("policy separates partners, exact member IDs and rooms, persists CAS and fa
       "home.test",
       "partner.test",
     ]);
+    const portPolicy = {
+      ...policy,
+      serverName: "home.test:8448",
+      partners: [
+        { serverName: "partner.test:9448", name: "Partner", enabled: true },
+      ],
+      members: [
+        {
+          id: "@bob:partner.test:9448",
+          name: "Bob",
+          kind: "human",
+          enabled: true,
+        },
+      ],
+    };
+    assert.deepEqual(
+      roomAcl(portPolicy, {
+        enabled: true,
+        memberIds: ["@bob:partner.test:9448"],
+      }).allow,
+      ["home.test", "home.test:8448", "partner.test", "partner.test:9448"],
+    );
+    assert.equal(admitted(portPolicy, "@bob:partner.test:8448"), false);
     const next = await governance.save({
       ...policy,
       partners: policy.partners.map((row) => ({ ...row, enabled: false })),
@@ -620,7 +645,8 @@ test("registered collaboration authority may differ from the central creator but
           if (route.endsWith("/m.room.server_acl/")) acl = body;
           return {};
         }
-        if (route.endsWith("/m.room.server_acl/")) return acl;
+        if (route.endsWith("/m.room.server_acl/"))
+          return Object.fromEntries(Object.entries(acl).reverse());
         throw new Error("Unexpected Matrix request " + route);
       },
     };
@@ -650,6 +676,62 @@ test("registered collaboration authority may differ from the central creator but
       );
     }
   } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("runtime observation requires the current guard source and live matching policy rather than a saved status file", async () => {
+  const root = await temp();
+  const governance = new Governance({
+    dataRoot: root,
+    serverName: "home.test",
+  });
+  const currentHash = createHash("sha256")
+    .update(
+      await readFile(
+        new URL("../deploy/synapse/dscord_guard.py", import.meta.url),
+      ),
+    )
+    .digest("hex");
+  let status = {
+    serverName: "home.test",
+    sourceSha256: "old-module-source",
+    liveRevision: 0,
+    loadedPartners: [],
+    error: null,
+  };
+  let available = true;
+  const upstream = http.createServer((_request, response) => {
+    response.writeHead(available ? 200 : 503, {
+      "content-type": "application/json",
+    });
+    response.end(JSON.stringify(status));
+  });
+  await new Promise((resolve) => upstream.listen(0, "127.0.0.1", resolve));
+  const control = new SynapseControl({
+    dataRoot: root,
+    governance,
+    setup: {
+      ...setup,
+      homeserverUrl: `http://127.0.0.1:${upstream.address().port}`,
+    },
+  });
+  try {
+    const old = await control.status();
+    assert.equal(old.livePolicyObserved, false);
+    assert.equal(old.restartRequired, true);
+    status = { ...status, sourceSha256: currentHash };
+    assert.equal((await control.status()).livePolicyObserved, true);
+    await governance.save(await governance.read());
+    assert.equal((await control.status()).livePolicyObserved, false);
+    status = { ...status, liveRevision: 1 };
+    assert.equal((await control.status()).livePolicyObserved, true);
+    available = false;
+    const stopped = await control.status();
+    assert.equal(stopped.guard, null);
+    assert.equal(stopped.livePolicyObserved, false);
+  } finally {
+    await new Promise((resolve) => upstream.close(resolve));
     await rm(root, { recursive: true, force: true });
   }
 });

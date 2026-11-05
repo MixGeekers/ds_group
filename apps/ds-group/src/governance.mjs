@@ -9,6 +9,8 @@ export const serverOf = (id) =>
   typeof id === "string" && id.startsWith("@") && id.includes(":")
     ? id.slice(id.indexOf(":") + 1)
     : undefined;
+// Matrix room ACL matching excludes ports; federation identity lists do not.
+export const aclHost = (domain) => domain.replace(/:\d+$/, "");
 export function serverName(value) {
   if (
     typeof value !== "string" ||
@@ -297,14 +299,20 @@ export function roomAcl(policy, rule) {
   return {
     allow_ip_literals: false,
     allow: [
-      policy.serverName,
-      ...(rule.enabled
-        ? [
-            ...new Set(
-              rule.memberIds.filter((id) => admitted(policy, id)).map(serverOf),
-            ),
-          ].filter((domain) => domain !== policy.serverName)
-        : []),
+      ...new Set(
+        [
+          policy.serverName,
+          ...(rule.enabled
+            ? [
+                ...new Set(
+                  rule.memberIds
+                    .filter((id) => admitted(policy, id))
+                    .map(serverOf),
+                ),
+              ].filter((domain) => domain !== policy.serverName)
+            : []),
+        ].flatMap((domain) => [aclHost(domain), domain]),
+      ),
     ].sort(),
     deny: [],
   };

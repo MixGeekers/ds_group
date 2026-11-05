@@ -1,0 +1,64 @@
+{
+  "date": "2026-11-04",
+  "timezone": "America/Caracas",
+  "scope": "real Synapse 1.164.2, Core and administration; three independent deployments on one physical host",
+  "status": "passed",
+  "latestReport": "federation-2026-11-05T03-23-45-456Z.json",
+  "scenarios": 9,
+  "moduleTests": 288,
+  "modelCalls": 0,
+  "sourceBinding": "The staged federation source hashes exactly match latestReport. Attachment proof and versioned work-policy publication are isolated follow-up changes.",
+  "history": [
+    {
+      "report": "federation-2026-11-05T03-09-14-737Z.json",
+      "issue": "ACL semantic equality was compared by JSON key order",
+      "fix": "Structural equality and reordered-key regression"
+    },
+    {
+      "report": "federation-2026-11-05T03-10-47-763Z.json",
+      "issue": "ACL entries containing ports did not match federation requests",
+      "fix": "Port-free ACL host patterns; preserve full identity names separately"
+    },
+    {
+      "report": "federation-2026-11-05T03-13-25-710Z.json",
+      "issue": "Synapse local ACL validator also checks the unstripped port-bearing local name",
+      "fix": "Include a supplementary full-name entry alongside the effective host pattern; exact partner/member gates still include ports"
+    },
+    {
+      "report": "federation-2026-11-05T03-15-06-190Z.json",
+      "issue": "Python strict TLS verifier rejected test certificates without CA/authority-key extensions",
+      "fix": "Proper CA and leaf constraints/key identifiers; TLS verification remains enabled"
+    },
+    {
+      "report": "federation-2026-11-05T03-18-08-278Z.json",
+      "issue": "Repeated external invitation attempted to invite an already joined identity",
+      "fix": "Core returns the actual joined state idempotently; verifier explicitly leaves before testing a new invitation"
+    },
+    {
+      "report": "federation-2026-11-05T03-20-34-840Z.json",
+      "issue": "Verifier expected immediate guard observation",
+      "fix": "Poll actual live revision rather than count a save/application receipt as observation"
+    },
+    {
+      "report": "federation-2026-11-05T03-22-19-024Z.json",
+      "result": "9/9 passed before formatting and final runtime source binding"
+    }
+  ],
+  "coverage": {
+    "managementIsolation": true,
+    "foreignOriginalIdentity": true,
+    "twoWayCoreText": true,
+    "attachments": "Two-way real Matrix media byte/SHA256 verification; room-proven Core endpoint is next slice",
+    "unapprovedMemberAndThirdServer": true,
+    "actualThirdServerSignature": true,
+    "rawMatrixBypass": true,
+    "offlineRecoveryAndTransactionDedup": true,
+    "memberBanAndPartnerRevocation": true,
+    "explicitReapproval": true,
+    "centralCreatorDifferentAuthority": "Synthetic permission regression passed; real integration still pending",
+    "unifiedClient": "Parallel slice",
+    "botToolsAndTasks": "Separate Bot implementation chat",
+    "physicalCrossMachine": "Not run"
+  },
+  "publication": "Local commits only, no release publication"
+}

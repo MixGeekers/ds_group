@@ -1,0 +1,34 @@
+{
+  "project": "dscord-federation",
+  "dataRoot": "/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation",
+  "physicalHosts": 1,
+  "topology": "three independent Synapse containers, Core processes and administration processes; private TLS federation on an isolated Docker network",
+  "servers": [
+    {
+      "name": "a",
+      "serverName": "a.dscord-federation.test:8448",
+      "coreUrl": "http://127.0.0.1:24100",
+      "matrixUrl": "http://127.0.0.1:24108",
+      "adminUrl": "http://127.0.0.1:24110"
+    },
+    {
+      "name": "b",
+      "serverName": "b.dscord-federation.test:8448",
+      "coreUrl": "http://127.0.0.1:24120",
+      "matrixUrl": "http://127.0.0.1:24128",
+      "adminUrl": "http://127.0.0.1:24130"
+    },
+    {
+      "name": "c",
+      "serverName": "c.dscord-federation.test:8448",
+      "coreUrl": "http://127.0.0.1:24140",
+      "matrixUrl": "http://127.0.0.1:24148",
+      "adminUrl": "http://127.0.0.1:24150"
+    }
+  ],
+  "commands": {
+    "up": "node scripts/federation-lab.mjs up --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+    "verify": "node scripts/federation-lab.mjs verify --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'",
+    "down": "node scripts/federation-lab.mjs down --project dscord-federation --port-base 24100 --data-root '/Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/.local/federation-lab/dscord-federation'"
+  }
+}

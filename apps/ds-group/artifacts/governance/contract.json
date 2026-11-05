@@ -173,15 +173,17 @@
     "physical cross-machine validation"
   ],
   "evidence": {
-    "moduleRegression": "287/287 passed",
+    "moduleRegression": "288/288 passed",
     "adminBuild": "TS7 and Vite production builds passed",
     "adminBrowser": "12 checks passed against real management HTTP and synthetic Matrix control adapter",
-    "realFederation": "pending subsequent commit",
+    "realFederation": "9/9 real service scenarios passed; report federation-2026-11-05T03-23-45-456Z.json",
     "modelCalls": 0,
-    "physicalHostsTested": 0
+    "physicalHostsTested": 1,
+    "physicalCrossMachine": "not run"
   },
   "roomApplication": {
     "association": "Explicit local roomId-to-authority registration; creator home used only for unregistered legacy initial-room compatibility",
     "authorization": "Synapse make_room_admin must succeed using an existing powered local moderator; control identity must then join and have actual state/ban power. A registration mapping alone cannot grant Matrix management rights."
-  }
+  },
+  "federationEndpoints": "artifacts/governance/endpoints.json"
 }

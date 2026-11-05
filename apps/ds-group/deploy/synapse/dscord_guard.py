@@ -4,6 +4,7 @@ Policy is local authority, never instructions from room content. Each host enfor
 its own local users and rooms; remote message history is not rewritten by this module.
 """
 import json
+import hashlib
 import os
 import time
 import uuid
@@ -15,6 +16,10 @@ from twisted.web.resource import Resource
 
 def domain(user_id):
     return user_id.split(":", 1)[1] if isinstance(user_id, str) and ":" in user_id else None
+
+
+def acl_host(server):
+    return server.split(":", 1)[0]
 
 
 class GovernanceStatus(Resource):
@@ -39,6 +44,8 @@ class GovernanceModule:
         self.config = config
         self.server = config["server_name"]
         self.boot_id = str(uuid.uuid4())
+        with open(__file__, "rb") as stream:
+            self.source_hash = hashlib.sha256(stream.read()).hexdigest()
         self.last_status = None
         self.document = {}
         api.register_spam_checker_callbacks(user_may_invite=self.may_invite, user_may_join_room=self.may_join)
@@ -71,6 +78,7 @@ class GovernanceModule:
             error = "POLICY_UNAVAILABLE"
         status = (revision, error)
         self.document = {"serverName": self.server, "bootId": self.boot_id, "synapseVersion": "1.164.2",
+                         "sourceSha256": self.source_hash,
                          "liveRevision": revision, "loadedPartners": self.config.get("loaded_partners", []),
                          "observedAt": int(time.time() * 1000), "error": error}
         if status != self.last_status:
@@ -141,7 +149,7 @@ class GovernanceModule:
                 raise SynapseError(403, "Create the room, approve its rule, then invite external members", Codes.FORBIDDEN)
         states = [row for row in request_content.get("initial_state", []) if row.get("type") not in ("m.room.server_acl", "m.room.join_rules")]
         states.extend([{"type": "m.room.server_acl", "state_key": "", "content": {
-            "allow": [self.server], "deny": [], "allow_ip_literals": False}},
+            "allow": sorted({acl_host(self.server), self.server}), "deny": [], "allow_ip_literals": False}},
             {"type": "m.room.join_rules", "state_key": "", "content": {"join_rule": "invite"}}])
         request_content["initial_state"] = states
         request_content["visibility"] = "private"
@@ -153,7 +161,9 @@ class GovernanceModule:
         if domain(event.sender) != self.server:
             if event.type == "m.room.member" and event.content.get("membership") in ("invite", "join"):
                 creator = state_events.get(("m.room.create", ""))
-                if creator and domain(creator.sender) == self.server:
+                row = self.rule(policy, event.room_id) if policy else None
+                local_authority = row["authority"] == self.server if row else creator and domain(creator.sender) == self.server
+                if local_authority:
                     return bool(policy and self.allowed(policy, event.room_id, event.state_key)), None
             return True, None
         if not policy:
@@ -161,7 +171,7 @@ class GovernanceModule:
         row = self.rule(policy, event.room_id)
         creator = state_events.get(("m.room.create", ""))
         local_room = row["authority"] == self.server if row else not creator or domain(creator.sender) == self.server
-        if not local_room and event.type not in ("m.room.member",):
+        if not local_room and event.type not in ("m.room.member", "m.room.server_acl", "m.room.join_rules", "org.dscord.work_policy"):
             return bool(row and self.allowed(policy, event.room_id, event.sender)), None
         if event.type == "m.room.member":
             membership = event.content.get("membership")
@@ -171,15 +181,25 @@ class GovernanceModule:
                 return self.allowed(policy, event.room_id, event.state_key), None
             if not local_room:
                 return self.allowed(policy, event.room_id, event.state_key), None
-        if local_room and event.type == "m.room.join_rules":
+        if event.type == "m.room.join_rules":
             return event.content.get("join_rule") == "invite", None
-        if local_room and event.type == "m.room.server_acl":
-            permitted = {self.server}
+        if event.type == "m.room.server_acl":
+            # Host patterns enforce the specification. The full local name also
+            # satisfies Synapse 1.164.2's validator, which checks the port-bearing
+            # local server name without stripping its port.
+            permitted = {acl_host(self.server), self.server}
             if row and row.get("enabled"):
-                permitted.update(domain(user) for user in row["memberIds"] if self.admitted(policy, user))
+                if row["authority"] == self.server or row["authority"] in self.partners(policy):
+                    permitted.add(acl_host(row["authority"]))
+                    permitted.add(row["authority"])
+                for user in row["memberIds"]:
+                    if self.admitted(policy, user):
+                        permitted.update({acl_host(domain(user)), domain(user)})
             allow = event.content.get("allow", [])
             return bool(allow and set(allow).issubset(permitted) and event.content.get("allow_ip_literals") is False), None
-        if local_room and event.type == "org.dscord.work_policy":
+        if event.type == "org.dscord.work_policy":
+            if not local_room:
+                return False, None
             expected = {"revision": policy["revision"], "authority": self.server,
                         "enabled": bool(row and row.get("enabled")),
                         "botIds": row.get("botIds", []) if row else [],

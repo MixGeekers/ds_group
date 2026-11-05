@@ -385,6 +385,8 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         const roomId = decodeURIComponent(invite[1]);
         if (!roomAllows(policy, roomId, input.participantId)) return send(403, { error: 'Approve the external member and this room first' });
         accounts.human(userId);
+        const current = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`);
+        if (current.joined?.[input.participantId]) return send(200, { roomId, participantId: input.participantId, status: 'joined' });
         await client.request('POST', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/invite`, { user_id: input.participantId });
         return send(200, { roomId, participantId: input.participantId, status: 'invited' });
       }
