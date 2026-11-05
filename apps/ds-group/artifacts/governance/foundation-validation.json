@@ -9,7 +9,7 @@
     "src/admin.mjs": "63774a908186899708493cb5b6b5c55d77e5be8d5ee1e1c264418a02519369fc",
     "src/governance.mjs": "69f29b511373ef1f271740f543fbcb4ac89b8a22b444800e5056a6ce1b8a107b",
     "src/collaboration.mjs": "cc1c5236be9f1a1bd22c1fd006bc90e9bdefa9138a6ae36fc84c64b00aa76e3f",
-    "src/synapse-control.mjs": "54f89ca191c97879a2631f5125d802c7f06ba9764c93cf33181210330556a5dd",
+    "src/synapse-control.mjs": "1f4936e236fc42bfa8828623e23c281f5bd8165a0fe16a851e45ecea44405ab6",
     "src/core.mjs": "8ebcf1b5191fd4922c22a7816c2d3b9d2e0ed80d36702105685f8ea5392cd616",
     "deploy/synapse/dscord_guard.py": "15175042e4937b7e0d9cd55c052c28431d858b0ce375c0566107e14c92d82702",
     "admin/src/AdminApp.tsx": "654532363d57e4a1b9e456d840c79dbb4fabdb064b97425a84d3162f7f1550f8",
@@ -19,8 +19,8 @@
     {
       "command": "npm run check",
       "status": "passed",
-      "moduleTests": 286,
-      "includes": "JS syntax; chat and administration TS7 strict types; original 280 and six new security/contract tests"
+      "moduleTests": 287,
+      "includes": "JS syntax; chat and administration TS7 strict types; original 280 and seven security/contract tests"
     },
     {
       "command": "npm run build",
@@ -51,7 +51,7 @@
       "status": "failed",
       "issue": "npm source fixture lacked the newly required management build",
       "fix": "updated package fixture and asserted administration/guard assets in the allowlisted package",
-      "result": "286/286 subsequent regression"
+      "result": "287/287 subsequent regression"
     }
   ],
   "realSynapse": "not run in this foundation slice",
@@ -64,5 +64,7 @@
     "Administration uses one active process per instance",
     "Synapse static configuration changes require external restart",
     "Central identity and unified-client integration are parallel slices"
-  ]
+  ],
+  "foundationCommit": "f9f3186",
+  "authorityRegression": "Registered collaboration authority takes precedence over the central creator domain. Actual Matrix control membership/power is required; unavailable or insufficient authority rejects before ACL/join-rule/work-policy publication."
 }
