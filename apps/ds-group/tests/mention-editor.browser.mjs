@@ -84,6 +84,24 @@ try {
     await page.locator('#popup [role=option]').click();
     assert.equal(await page.evaluate(() => window.editor.getValue().mentions.everyone), true);
   });
+  await check('nativeEmptyDeletionRestoresPlaceholderAndUndo', async () => {
+    await setBody('clear this draft');
+    await page.keyboard.press('ControlOrMeta+A');
+    await page.keyboard.press('Backspace');
+    assert.equal(await page.evaluate(() => window.editor.getValue().body), '');
+    assert.equal(await input.getAttribute('data-empty'), 'true');
+    await page.keyboard.press('ControlOrMeta+z');
+    assert.equal(await page.evaluate(() => window.editor.getValue().body), 'clear this draft');
+    await page.keyboard.press('ControlOrMeta+Shift+z');
+    assert.equal(await page.evaluate(() => window.editor.getValue().body), '');
+    await setBody('x');
+    await page.keyboard.press('Backspace');
+    assert.equal(await page.evaluate(() => window.editor.getValue().body), '');
+    assert.equal(await input.getAttribute('data-empty'), 'true');
+    await page.keyboard.press('Shift+Enter');
+    assert.equal(await page.evaluate(() => window.editor.getValue().body), '\n');
+    assert.equal(await input.getAttribute('data-empty'), 'false');
+  });
   await check('atomicDeletionUndoRedoAndCaretInsertion', async () => {
     await setBody('<@@finance:example.test>');
     await page.keyboard.press('Backspace');
