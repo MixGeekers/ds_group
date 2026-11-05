@@ -9,6 +9,8 @@
 !web/**
 !admin/
 !admin/**
+!ui/
+!ui/**
 !deploy/
 !deploy/synapse/
 !deploy/synapse/**

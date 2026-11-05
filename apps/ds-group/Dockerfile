@@ -7,6 +7,7 @@ RUN npm ci --ignore-scripts --no-audit --no-fund
 COPY tsconfig.json vite.config.ts ./
 COPY web ./web
 COPY admin ./admin
+COPY ui ./ui
 COPY scripts ./scripts
 COPY src/paths.mjs ./src/paths.mjs
 RUN npm run build

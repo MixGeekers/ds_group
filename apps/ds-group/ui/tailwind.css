@@ -1,0 +1,6 @@
+/* Tailwind utilities without Preflight: the existing app CSS owns the element reset. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+@source "./";
+@source "../web/src/";
+@source "../admin/src/";

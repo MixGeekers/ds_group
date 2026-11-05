@@ -59,7 +59,7 @@ export const componentMessages = {
     'pwa.testFailed': '测试通知提交失败。{error}',
     'pwa.installSubmitted': '已提交安装。',
     'pwa.installCancelled': '已取消安装。',
-    'pwa.error': '{error}',
+    'pwa.error': 'Could not check notifications. {error}',
   },
   en: {
     'files.image': 'Image',
@@ -121,6 +121,6 @@ export const componentMessages = {
     'pwa.testFailed': 'Could not submit the test notification. {error}',
     'pwa.installSubmitted': 'Installation submitted.',
     'pwa.installCancelled': 'Installation cancelled.',
-    'pwa.error': '{error}',
+    'pwa.error': '无法检查通知状态。{error}',
   },
 };

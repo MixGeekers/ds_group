@@ -135,6 +135,7 @@ small,
   gap: var(--space-6);
   font-size: var(--font-size-compact);
 }
+.admin-account span { min-width: 0; overflow-wrap: anywhere; }
 .admin-main {
   min-width: 0;
   max-width: 1440px;

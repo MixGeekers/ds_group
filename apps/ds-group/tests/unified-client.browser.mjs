@@ -23,7 +23,7 @@ const aRoom = "!same:a.test";
 const bRoom = "!same:b.test";
 const deniedRoom = "!denied:c.test";
 const people = [
-  { id: homeUser, name: "Alice", kind: "human" },
+  { id: homeUser, name: "Alice Chen · Cross Server Collaboration Team", kind: "human" },
   { id: "@bob:home.test", name: "Bob Home", kind: "human" },
   { id: "@bob:a.test", name: "Bob", kind: "human" },
   { id: "@bob:b.test", name: "Bob", kind: "human" },
@@ -642,8 +642,11 @@ try {
   }));
   await page.locator("#identity-button").focus();
   await page.keyboard.press("Enter");
-  await page.locator("#account-menu:popover-open").waitFor();
+  await page.locator("#account-menu[data-open]").waitFor();
+  await page.waitForFunction(() => document.activeElement?.id === "settings-button");
   await page.keyboard.press("Tab");
+  assert.equal(await page.evaluate(() => document.activeElement.id), "account-switch-button");
+  await page.keyboard.press("Shift+Tab");
   assert.equal(await page.evaluate(() => document.activeElement.id), "settings-button");
   await page.keyboard.press("Escape");
   await page.locator("#account-menu").waitFor({ state: "hidden" });
@@ -659,6 +662,10 @@ try {
   assert.equal(await page.locator("#settings-button").textContent(), "个人设置");
   await page.locator("#account-theme-select").selectOption("light");
   await page.locator('#account-menu [data-color="teal"]').click();
+  const menuSelectStyle = await page.locator("#account-language-select").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return [style.backgroundColor, style.borderColor, style.borderRadius, style.paddingTop];
+  });
   assert.equal(await page.locator("#home-button .brand-mark").evaluate((mark) =>
     getComputedStyle(mark).backgroundColor,
   ), "rgb(78, 80, 88)");
@@ -669,11 +676,22 @@ try {
   );
   await page.screenshot({ path: path.join(output, "desktop-account-menu-light-zh.png"), animations: "disabled" });
   await page.locator("#settings-button").click();
+  await page.screenshot({ path: path.join(output, "desktop-settings-account-light-zh.png"), animations: "disabled" });
   await page.locator('[data-settings-tab="appearance"]').click();
+  await page.screenshot({ path: path.join(output, "desktop-settings-appearance-light-zh.png"), animations: "disabled" });
   assert.equal(await page.locator("#theme-select").inputValue(), "light");
   assert.equal(await page.locator("#language-select").inputValue(), "zh-CN");
+  assert.deepEqual(await page.locator("#language-select").evaluate((element) => {
+    const style = getComputedStyle(element);
+    return [style.backgroundColor, style.borderColor, style.borderRadius, style.paddingTop];
+  }), menuSelectStyle);
+  assert.equal(await page.locator('[data-settings-tab="appearance"]').getAttribute("aria-current"), "page");
   assert.equal(await page.locator('#settings-dialog [data-color="teal"]').getAttribute("aria-pressed"), "true");
+  await page.locator("#language-select").focus();
+  await page.screenshot({ path: path.join(output, "desktop-settings-appearance-focus-light-zh.png"), animations: "disabled" });
   await page.locator("#close-settings").click();
+  await page.locator("#settings-dialog").waitFor({ state: "hidden" });
+  assert.equal(await page.evaluate(() => document.activeElement.id), "identity-button");
   await page.reload();
   await page.locator("#room-title").filter({ hasText: "General" }).waitFor();
   await page.locator("#identity-button").click();
@@ -1152,7 +1170,17 @@ try {
     return box.left >= 64 && box.right <= innerWidth && box.top >= 0 && box.bottom <= innerHeight;
   }));
   await page.keyboard.press("Escape");
-  assert.equal(await page.locator("#account-menu").isHidden(), true);
+  await page.locator("#account-menu").waitFor({ state: "hidden" });
+  assert.ok(await page.locator("#channel-panel").evaluate((panel) => panel.classList.contains("open")));
+  await page.locator("#identity-button").click();
+  await page.locator("#settings-button").click();
+  await page.locator('[data-settings-tab="appearance"]').click();
+  await page.screenshot({ path: path.join(output, "mobile-settings-appearance-light-zh.png"), animations: "disabled" });
+  await page.locator('[data-settings-tab="notifications"]').click();
+  await page.screenshot({ path: path.join(output, "mobile-settings-notifications-light-zh.png"), animations: "disabled" });
+  await page.keyboard.press("Escape");
+  await page.locator("#settings-dialog").waitFor({ state: "hidden" });
+  assert.equal(await page.evaluate(() => document.activeElement.id), "identity-button");
   assert.ok(await page.locator("#channel-panel").evaluate((panel) => panel.classList.contains("open")));
   checks.push("mobileAccountMenuFitsViewportAndEscapeKeepsNavigationOpen");
   await page.locator("#server-settings-button").click();
@@ -1172,6 +1200,15 @@ try {
   await page.locator("#theme-select").selectOption("dark");
   await page.locator("#close-settings").click();
   await page.screenshot({ path: path.join(output, "desktop-dark-en.png") });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.locator("#channels-button").click();
+  await page.locator("#identity-button").click();
+  await page.screenshot({ path: path.join(output, "mobile-account-menu-dark-en.png"), animations: "disabled" });
+  await page.locator("#settings-button").click();
+  await page.locator('[data-settings-tab="appearance"]').click();
+  await page.screenshot({ path: path.join(output, "mobile-settings-appearance-dark-en.png"), animations: "disabled" });
+  await page.locator("#close-settings").click();
+  await page.setViewportSize({ width: 1440, height: 1000 });
   checks.push(
     "desktopAndNarrowLayoutsSupportBothLanguagesThemesAndServerDialogs",
   );

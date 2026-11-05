@@ -2,7 +2,9 @@ import { createRoot } from "react-dom/client";
 import App from "./App";
 import { loadClientConfig } from "./client-config";
 import "../tokens.css";
+import "../../ui/tailwind.css";
 import "../styles.css";
+import "../../ui/styles.css";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("DSCord root element is missing");

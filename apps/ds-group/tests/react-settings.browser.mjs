@@ -13,6 +13,7 @@ const html = `<!doctype html>
     <script src="/theme.js"></script>
     <link rel="stylesheet" href="/tokens.css">
     <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/styles.css')}">
   </head>
   <body>
     <div id="root"></div>
@@ -33,12 +34,17 @@ const html = `<!doctype html>
       const fixture = window.fixture = {
         calls: [], roles: [], preferences: { ...defaults }, events: [], roleChanges: 0,
         reads: [], jumps: [], pwaReady: 0, savedPreferences: 0, changedInbox: 0,
+        pushEnabled: false, pushFailure: false, installPrompts: 0,
       };
       const copy = value => JSON.parse(JSON.stringify(value));
       const api = async (route, options = {}) => {
         const method = options.method || 'GET';
         fixture.calls.push({ route, method, body: options.body });
-        if (route === '/api/push/config') return { enabled: false };
+        if (route === '/api/push/config') {
+          if (fixture.pushFailure) throw new TypeError('Synthetic network unavailable');
+          return { enabled: fixture.pushEnabled, publicKey: 'AQID' };
+        }
+        if (route === '/api/push/subscriptions' || route === '/api/push/test') return {};
         if (route === '/api/roles') {
           if (method === 'GET') return copy({ roles: fixture.roles, canManage: true });
           if (method === 'POST') {
@@ -165,14 +171,24 @@ try {
     });
     if ('serviceWorker' in navigator) {
       Object.defineProperty(navigator.serviceWorker, 'register', { configurable: true, value: async () => ({
-        active: {}, pushManager: { getSubscription: async () => null },
+        active: {}, pushManager: {
+          getSubscription: async () => window.fixtureSubscription || null,
+          subscribe: async () => {
+            window.fixtureSubscription = {
+              endpoint: 'https://push.fixture/subscription',
+              toJSON: () => ({ endpoint: 'https://push.fixture/subscription', keys: { p256dh: 'fixture', auth: 'fixture' } }),
+              unsubscribe: async () => { window.fixtureSubscription = null; return true; },
+            };
+            return window.fixtureSubscription;
+          },
+        },
       }) });
     }
   });
   const page = await context.newPage();
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/__settings`);
-  await page.locator('#settings-dialog[open]').waitFor();
+  await page.locator('#settings-dialog[data-open]').waitFor();
 
   await page.locator('[data-settings-tab="appearance"]').click();
   await page.locator('#language-select').selectOption('en');
@@ -290,9 +306,53 @@ try {
   assert.equal(await page.evaluate(() => window.fixture.pwaReady), 1);
   assert.equal(await page.locator('#enable-push').count(), 1);
   assert.ok(await page.locator('#enable-push').isDisabled());
+  await page.evaluate(async () => {
+    window.fixture.pushFailure = true;
+    window.dispatchEvent(new Event('offline'));
+    await window.fixture.pwa.refresh();
+  });
+  assert.match(await page.locator('#push-feedback').textContent(), /^(Could not check notifications|无法检查通知状态).*Synthetic network unavailable/);
+  await page.evaluate(() => {
+    window.fixture.pushFailure = false;
+    window.dispatchEvent(new Event('online'));
+  });
+  await page.waitForFunction(() => document.querySelector('#push-feedback').textContent === '');
+  assert.match(await page.locator('#push-status').textContent(), /disabled on this server/);
+  checks.push('notificationRefreshFailureIsLocalizedAndClearsAfterOnlineRecovery');
+  await page.evaluate(async () => {
+    window.fixture.pushEnabled = true;
+    await window.fixture.pwa.refresh();
+  });
+  await page.locator('#enable-push').waitFor({ state: 'visible' });
+  assert.equal(await page.locator('#enable-push').isDisabled(), false);
+  await page.locator('#push-device-label').fill('中文输入设备');
+  await page.locator('#enable-push').focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.fixture.calls.some(call => call.route === '/api/push/subscriptions' && call.method === 'POST'));
+  assert.equal(await page.locator('#test-push').isDisabled(), false);
+  await page.locator('#test-push').focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.fixture.calls.some(call => call.route === '/api/push/test' && call.method === 'POST'));
+  assert.equal(await page.evaluate(() => window.fixture.calls.find(call => call.route === '/api/push/subscriptions').body.deviceLabel), '中文输入设备');
+  await page.locator('#close-settings').click();
+  await page.locator('#settings-dialog').waitFor({ state: 'hidden' });
+  await page.locator('#open-settings').click();
+  await page.locator('[data-settings-tab="notifications"]').click();
+  assert.equal(await page.locator('#test-push').isDisabled(), false);
+  checks.push('pushControlsAcceptKeyboardActivationAndKeepImperativeStateAcrossDialogReopen');
   await page.locator('[data-settings-tab="appearance"]').click();
   assert.equal(await page.locator('#install-app').count(), 1);
   assert.equal(await page.locator('#offline-status').textContent(), 'Online');
+  await page.evaluate(() => {
+    const prompt = new Event('beforeinstallprompt', { cancelable: true });
+    prompt.prompt = async () => { window.fixture.installPrompts++; };
+    prompt.userChoice = Promise.resolve({ outcome: 'accepted' });
+    window.dispatchEvent(prompt);
+  });
+  await page.locator('#install-app').focus();
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => window.fixture.installPrompts === 1);
+  checks.push('installPromptRemainsBoundAfterDialogReopen');
   await page.locator('#theme-select').selectOption('light');
   await page.locator('#language-select').selectOption('zh-CN');
   await page.waitForFunction(() => document.documentElement.lang === 'zh-CN');

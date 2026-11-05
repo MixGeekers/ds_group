@@ -37,7 +37,7 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
   const source = JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8'));
   version ||= `${source.version}-alpha.1`;
   if (!/^\d+\.\d+\.\d+-alpha\.\d+$/.test(version)) throw new Error('Use an explicit alpha version such as 0.2.0-alpha.1');
-  for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/client-config.json', 'dist/web/licenses/lucide.txt', 'dist/admin/index.html', 'deploy/synapse/dscord_guard.py', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE']) {
+  for (const filename of ['dist/web/index.html', 'dist/web/sw.js', 'dist/web/client-config.json', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/index.html', 'dist/admin/licenses/ui-foundation.txt', 'deploy/synapse/dscord_guard.py', 'vendor/ds-bot/LICENSE', 'vendor/ds-bot/NOTICE']) {
     await readFile(path.join(root, filename));
   }
   const manifest = {

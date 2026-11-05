@@ -7,6 +7,7 @@ import { createAdmin } from "../src/admin.mjs";
 import { packageRoot } from "../src/paths.mjs";
 
 const root = await mkdtemp(path.join(os.tmpdir(), "dscord-admin-browser-"));
+const invitations = [];
 const admin = await createAdmin({
   dataRoot: root,
   setup: {
@@ -40,7 +41,7 @@ const admin = await createAdmin({
         rooms: [],
       },
     }),
-    invite: async () => ({ event_id: "$synthetic-invite" }),
+    invite: async (input) => { invitations.push(input); return { event_id: "$synthetic-invite" }; },
   }),
 });
 await admin.auth.change(
@@ -61,6 +62,7 @@ let browser;
 let failure;
 const output = path.join(packageRoot, ".local/governance");
 await mkdir(output, { recursive: true });
+await writeFile(path.join(output, "capture-origin.json"), JSON.stringify({ base, synthetic: true, transient: true }, null, 2) + "\n");
 try {
   browser = await chromium.launch();
   const context = await browser.newContext({
@@ -86,6 +88,15 @@ try {
   await page
     .getByRole("button", { name: "Partner servers", exact: true })
     .click();
+  const [actualBorder, expectedBorder] = await page.getByLabel("Display name", { exact: true }).evaluate((input) => {
+    const probe = document.createElement("span");
+    probe.style.border = "1px solid var(--color-border-normal)";
+    document.body.append(probe);
+    const colors = [getComputedStyle(input).borderTopColor, getComputedStyle(probe).borderTopColor];
+    probe.remove();
+    return colors;
+  });
+  assert.equal(actualBorder, expectedBorder);
   await page.getByLabel("Display name", { exact: true }).fill("Partner B");
   await page
     .getByLabel("Matrix server name", { exact: true })
@@ -105,13 +116,24 @@ try {
   await page.getByLabel("Display name", { exact: true }).fill("Bob");
   await page
     .getByLabel("Full Matrix ID", { exact: true })
-    .fill("@bob:partner.test");
+    .fill("@bob-with-a-very-long-identity-for-cross-server-collaboration:partner.test");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
   await page.getByText("Saved revision 2", { exact: true }).waitFor();
   checks.push(
     "Admission keeps the external member’s complete original Matrix ID",
   );
+  await page.screenshot({ path: path.join(output, "admin-admission-desktop-long-id-en.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(() => {
+    const nav = document.querySelector('.admin-sidebar nav');
+    const active = nav.querySelector('[aria-current="page"]');
+    const item = active.getBoundingClientRect();
+    const frame = nav.getBoundingClientRect();
+    return item.left >= frame.left && item.right <= frame.right;
+  });
+  await page.screenshot({ path: path.join(output, "admin-admission-mobile-long-id-en.png"), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page.getByRole("button", { name: "Room rules", exact: true }).click();
   await page.getByLabel("Display name", { exact: true }).fill("Shared room");
   await page
@@ -119,13 +141,18 @@ try {
     .fill("!main:home.test");
   await page
     .getByLabel("Approved member IDs, one per line")
-    .fill("@bob:partner.test");
+    .fill("@bob-with-a-very-long-identity-for-cross-server-collaboration:partner.test");
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
   await page.getByText("Saved revision 3", { exact: true }).waitFor();
   checks.push(
     "Room rule binds one approved identity to an explicit authority and room",
   );
+  await page.getByRole("button", { name: "Invite approved member", exact: true }).click();
+  await page.getByText("Invitation submitted", { exact: true }).waitFor();
+  assert.equal(invitations.length, 1);
+  assert.deepEqual(invitations, [{ roomId: "!main:home.test", memberId: "@bob-with-a-very-long-identity-for-cross-server-collaboration:partner.test", revision: 3 }]);
+  checks.push("Shared button submits an approved room invitation to the real administration API");
   await page.getByRole("button", { name: "Bot work", exact: true }).click();
   await page
     .getByLabel("Full Matrix ID", { exact: true })
@@ -135,7 +162,7 @@ try {
     .fill("!main:home.test");
   await page
     .getByLabel("Allowed task requesters, one per line")
-    .fill("@bob:partner.test");
+    .fill("@bob-with-a-very-long-identity-for-cross-server-collaboration:partner.test");
   for (const tool of ["read", "write", "edit", "read_image"])
     await page.getByLabel(tool, { exact: true }).check();
   assert.equal(await page.locator('input[name="canDelegate"]').count(), 0);
@@ -146,7 +173,7 @@ try {
     botId: "@worker:home.test",
     enabled: true,
     roomIds: ["!main:home.test"],
-    requesterIds: ["@bob:partner.test"],
+    requesterIds: ["@bob-with-a-very-long-identity-for-cross-server-collaboration:partner.test"],
     tools: ["read", "write", "edit", "read_image"],
     canDelegate: false,
   });
@@ -162,7 +189,7 @@ try {
     .fill("!main:home.test");
   await page
     .getByLabel("Allowed task requesters, one per line")
-    .fill("@bob:partner.test");
+    .fill("@bob-with-a-very-long-identity-for-cross-server-collaboration:partner.test");
   await page.getByLabel("read", { exact: true }).check();
   await page.getByRole("button", { name: "Add", exact: true }).click();
   await page.getByRole("button", { name: "Save policy", exact: true }).click();
@@ -240,6 +267,13 @@ try {
   );
   await page.getByRole("button", { name: "伙伴服务器", exact: true }).click();
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForFunction(() => {
+    const nav = document.querySelector('.admin-sidebar nav');
+    const active = nav.querySelector('[aria-current="page"]');
+    const item = active.getBoundingClientRect();
+    const frame = nav.getBoundingClientRect();
+    return item.left >= frame.left && item.right <= frame.right;
+  });
   assert.equal(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,

@@ -140,7 +140,9 @@ export function Shell(props: ShellProps) {
       if (
         event.key !== "Escape" ||
         event.defaultPrevented ||
-        document.querySelector("dialog[open], [popover]:popover-open")
+        document.querySelector(
+          'dialog[open], [popover]:popover-open, [data-slot="dialog-content"][data-open], [data-slot="popover-content"][data-open]',
+        )
       )
         return;
       if (channelsOpen || (!desktop && membersOpen)) {

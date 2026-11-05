@@ -30,7 +30,7 @@ export const adminMessages = {
     restart: "Federation restart required",
     ready: "Federation configuration observed",
     savedHint:
-      "Saving stores a new policy revision. Admission checks change after the server guard reads it. Applying reconciles room membership and ACLs, and prepares federation settings. Restart Synapse to load network changes; confirm the observed revision above.",
+      "Save changes, then apply room policy. Federation changes require a Synapse restart; confirm the observed revision above.",
     add: "Add",
     remove: "Remove",
     edit: "Edit",
@@ -147,7 +147,7 @@ export const adminMessages = {
     restart: "联邦配置需要重启",
     ready: "已观察到联邦配置",
     savedHint:
-      "保存会记录新策略版本；服务端门禁读取后才执行新准入规则。应用会协调房间成员和 ACL，并准备联邦配置。网络变更需重启 Synapse，再核对上方实际观察到的版本。",
+      "保存后应用房间策略。联邦变更需要重启 Synapse；请核对上方实际观察到的版本。",
     add: "添加",
     remove: "移除",
     edit: "编辑",

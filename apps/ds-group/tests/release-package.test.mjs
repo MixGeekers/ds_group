@@ -15,6 +15,7 @@ async function fixture(t) {
     'package-lock.json': '{}', 'src/core.mjs': 'export const value = "你好";',
     'web/index.html': '<!doctype html>', Dockerfile: 'FROM node:24',
     'web/src/client-config.ts': 'export {};', 'web/client-config.json': '{}', 'dsh-connect/index.mjs': 'export {};',
+    'ui/controls.tsx': 'export {};', 'ui/overlays.tsx': 'export {};', 'ui/tailwind.css': '@source "./";', 'web/licenses/ui-foundation.txt': 'MIT',
     'src/identity.mjs': 'export {};', 'src/web-mode.mjs': 'export {};', 'src/admin.mjs': 'export {};',
     'scripts/central-init.mjs': 'export {};', 'scripts/admin.mjs': 'export {};', 'bin/dscord.mjs': '// CLI',
     'admin/index.html': '<!doctype html>', 'admin/vite.config.ts': 'export default {};',
@@ -44,6 +45,7 @@ test('release packages are reproducible and extract a verified self-contained so
   const files = [...readReleaseArchive(await readFile(first.archive)).keys()];
   assert.ok(files.includes('ds-group-0.1.0/deploy/.env.example'));
   assert.ok(files.includes('ds-group-0.1.0/vendor/ds-bot/LICENSE'));
+  for (const file of ['ui/controls.tsx', 'ui/overlays.tsx', 'ui/tailwind.css', 'web/licenses/ui-foundation.txt']) assert.ok(files.includes(`ds-group-0.1.0/${file}`), file);
   for (const file of ['src/identity.mjs', 'src/web-mode.mjs', 'src/admin.mjs', 'scripts/central-init.mjs', 'scripts/admin.mjs',
     'admin/vite.config.ts', 'deploy/synapse/dscord_guard.py', '中央身份实施记录.md']) assert.ok(files.includes(`ds-group-0.1.0/${file}`), file);
   assert.equal(files.some(filename => /credential|evidence|backup|\/\.env$/.test(filename)), false);

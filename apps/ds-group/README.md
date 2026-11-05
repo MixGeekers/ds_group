@@ -6,6 +6,8 @@
 
 独立后台的管理 UI 位于 `admin/`，各实例通过独立管理会话配置伙伴、成员和房间准入。接口、运行方法及逐层验证见[独立后台与治理切片](admin/README.md)和[协作空间 API 契约](artifacts/governance/contract.json)。
 
+聊天端与独立后台共用 `ui/` 的 shadcn/ui + Base UI 基础控件、Tailwind 工具层和既有主题 token。当前迁移边界、依赖许可证与浏览器截图见[UI 基础组件实施记录](UI基础组件实施记录.md)。
+
 独立网页/PWA 可以连接固定归属 Core，以同一中央身份切换实际协作空间，接受邀请及加入获准房间。部署配置、兼容范围和分层证据见[独立客户端部署](deploy/client/README.md)与[统一客户端实施记录](统一客户端实施记录.md)。
 
 首个切片复用归属 Synapse 的密码认证与设备会话，持久保存中央 `authorityId`、用户 `subjectId` 和完整 Matrix ID 的绑定。协作服务器可通过 `dscord init --web-mode api-only` 选择纯 API 托管，运维使用独立后台入口。独立 OIDC 身份发行服务列为后续演进项。[中央身份实现](中央身份实施记录.md) · [API-only 部署](deploy/api-only.md)

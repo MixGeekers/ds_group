@@ -1,4 +1,4 @@
-import { cloneElement, useCallback, useEffect, useId, useState } from "react";
+import { cloneElement, useCallback, useEffect, useId, useRef, useState } from "react";
 import type { FormEvent, ReactElement } from "react";
 import {
   Gauge,
@@ -14,6 +14,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { useLocale, useTranslation } from "./locale";
+import { Button, Input, NativeSelect, Textarea } from "../../ui/controls";
 import { adminMessages } from "./messages";
 import type {
   Administrator,
@@ -241,16 +242,17 @@ function PolicyCollection({
               ))}
             {!readOnly && (
               <div className="admin-actions">
-                <button
+                <Button
+                  variant="secondary"
                   onClick={() => {
                     setEditing(row);
                     setReset((value) => value + 1);
                   }}
                 >
                   {t("edit")}
-                </button>
-                <button
-                  className="danger"
+                </Button>
+                <Button
+                  variant="destructive"
                   onClick={() => {
                     onChange({
                       ...policy,
@@ -262,7 +264,7 @@ function PolicyCollection({
                   }}
                 >
                   {t("remove")}
-                </button>
+                </Button>
               </div>
             )}
             {section === "rooms" &&
@@ -279,19 +281,21 @@ function PolicyCollection({
                   }}
                 >
                   <Field label={t("inviteMember")}>
-                    <select name="memberId" required>
+                    <NativeSelect name="memberId" required>
                       {(row.memberIds as string[]).map((id) => (
                         <option key={id} value={id}>
                           {id}
                         </option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </Field>
-                  <button
+                  <Button
+                    variant="secondary"
+                    type="submit"
                     disabled={busy || !(row.memberIds as string[]).length}
                   >
                     {t("invite")}
-                  </button>
+                  </Button>
                 </form>
               )}
           </article>
@@ -306,7 +310,7 @@ function PolicyCollection({
           <h2>{editing ? t("edit") : t("add")}</h2>
           {section !== "bots" && (
             <Field label={t("name")}>
-              <input
+              <Input
                 name="name"
                 required
                 maxLength={200}
@@ -317,7 +321,7 @@ function PolicyCollection({
           {section === "partners" && (
             <>
               <Field label={t("server")}>
-                <input
+                <Input
                   name="serverName"
                   required
                   placeholder="partner.example.org"
@@ -325,7 +329,7 @@ function PolicyCollection({
                 />
               </Field>
               <Field label={t("publicUrl")}>
-                <input
+                <Input
                   name="publicUrl"
                   type="url"
                   defaultValue={value("publicUrl")}
@@ -336,7 +340,7 @@ function PolicyCollection({
           {section === "members" && (
             <>
               <Field label={t("identity")}>
-                <input
+                <Input
                   name="id"
                   required
                   placeholder="@member:partner.example.org"
@@ -344,33 +348,33 @@ function PolicyCollection({
                 />
               </Field>
               <Field label={t("kind")}>
-                <select name="kind" defaultValue={value("kind", "human")}>
+                <NativeSelect name="kind" defaultValue={value("kind", "human")}>
                   <option value="human">{t("human")}</option>
                   <option value="bot">{t("bot")}</option>
-                </select>
+                </NativeSelect>
               </Field>
               <Field label={t("owner")}>
-                <input name="ownerId" defaultValue={value("ownerId")} />
+                <Input name="ownerId" defaultValue={value("ownerId")} />
               </Field>
             </>
           )}
           {section === "rooms" && (
             <>
               <Field label={t("roomId")}>
-                <input name="roomId" required defaultValue={value("roomId")} />
+                <Input name="roomId" required defaultValue={value("roomId")} />
               </Field>
               <Field label={t("authority")}>
-                <input
+                <Input
                   name="authority"
                   required
                   defaultValue={value("authority", policy.serverName)}
                 />
               </Field>
               <Field label={t("roomMembers")}>
-                <textarea name="memberIds" defaultValue={many("memberIds")} />
+                <Textarea name="memberIds" defaultValue={many("memberIds")} />
               </Field>
               <Field label={t("botIds")}>
-                <textarea name="botIds" defaultValue={many("botIds")} />
+                <Textarea name="botIds" defaultValue={many("botIds")} />
               </Field>
               <ToolFields current={editing?.tools as string[]} />
             </>
@@ -378,7 +382,7 @@ function PolicyCollection({
           {section === "bots" && (
             <>
               <Field label={t("identity")}>
-                <input
+                <Input
                   name="botId"
                   required
                   placeholder={`@bot:${policy.serverName}`}
@@ -387,14 +391,14 @@ function PolicyCollection({
                 />
               </Field>
               <Field label={t("roomIds")}>
-                <textarea
+                <Textarea
                   name="roomIds"
                   required
                   defaultValue={many("roomIds")}
                 />
               </Field>
               <Field label={t("requesterIds")}>
-                <textarea
+                <Textarea
                   name="requesterIds"
                   required
                   defaultValue={many("requesterIds")}
@@ -413,10 +417,11 @@ function PolicyCollection({
             {t("enabled")}
           </label>
           <div className="admin-actions">
-            <button className="primary">
+            <Button variant="default" type="submit">
               {editing ? t("edit") : t("add")}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
               type="button"
               onClick={() => {
                 setEditing(null);
@@ -424,7 +429,7 @@ function PolicyCollection({
               }}
             >
               {t("reset")}
-            </button>
+            </Button>
           </div>
         </form>
       )}
@@ -437,6 +442,7 @@ export default function AdminApp() {
   const { locale, preference, setPreference } = useLocale();
   const [session, setSession] = useState(storedSession);
   const [section, setSection] = useState<Section>("overview");
+  const navigation = useRef<HTMLElement>(null);
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [saved, setSaved] = useState("");
   const [application, setApplication] = useState<Application | null>(null);
@@ -460,6 +466,21 @@ export default function AdminApp() {
   );
   const dirty = !!policy && JSON.stringify(policy) !== saved;
   const readOnly = session?.administrator.role === "auditor";
+  useEffect(() => {
+    const element = navigation.current;
+    if (!element) return;
+    const revealCurrent = () => {
+      const active = element.querySelector<HTMLElement>('[aria-current="page"]');
+      if (!active || element.scrollWidth <= element.clientWidth) return;
+      const item = active.getBoundingClientRect();
+      const frame = element.getBoundingClientRect();
+      element.scrollLeft += item.left - frame.left - (frame.width - item.width) / 2;
+    };
+    revealCurrent();
+    const observer = new ResizeObserver(revealCurrent);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [section, session]);
   function remember(value: ManagementSession | null) {
     setSession(value);
     setSection("overview");
@@ -544,7 +565,7 @@ export default function AdminApp() {
   const preferences = (
     <div className="admin-preferences">
       <Field label={t("theme")}>
-        <select
+        <NativeSelect
           value={theme}
           onChange={(event) => {
             const value = event.target.value as "dark" | "light" | "system";
@@ -555,10 +576,10 @@ export default function AdminApp() {
           <option value="system">{t("system")}</option>
           <option value="light">{t("light")}</option>
           <option value="dark">{t("dark")}</option>
-        </select>
+        </NativeSelect>
       </Field>
       <Field label={t("language")}>
-        <select
+        <NativeSelect
           value={preference}
           onChange={(event) =>
             setPreference(event.target.value as "en" | "zh-CN" | "system")
@@ -567,7 +588,7 @@ export default function AdminApp() {
           <option value="system">{t("system")}</option>
           <option value="zh-CN">简体中文</option>
           <option value="en">English</option>
-        </select>
+        </NativeSelect>
       </Field>
     </div>
   );
@@ -592,19 +613,19 @@ export default function AdminApp() {
             }}
           >
             <Field label={t("username")}>
-              <input name="username" autoComplete="username" required />
+              <Input name="username" autoComplete="username" required />
             </Field>
             <Field label={t("password")}>
-              <input
+              <Input
                 name="password"
                 type="password"
                 autoComplete="current-password"
                 required
               />
             </Field>
-            <button className="primary" disabled={busy}>
+            <Button variant="default" type="submit" disabled={busy}>
               {busy ? t("busy") : t("login")}
-            </button>
+            </Button>
           </form>
           {error && (
             <p className="admin-error" role="alert">
@@ -626,7 +647,7 @@ export default function AdminApp() {
           </div>
         </div>
         <code>{policy?.serverName || overview?.serverName}</code>
-        <nav aria-label={t("title")}>
+        <nav ref={navigation} aria-label={t("title")}>
           {sections.map((name) => {
             const Icon = icons[name];
             return (
@@ -665,7 +686,6 @@ export default function AdminApp() {
       <main className="admin-main">
         <header className="admin-header">
           <div>
-            <p className="admin-eyebrow">{t("subtitle")}</p>
             <h1>{t(section)}</h1>
           </div>
           {preferences}

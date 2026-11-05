@@ -205,13 +205,11 @@ export function initializePwa({
     )
       return;
     if (results[0].status === "fulfilled") state.config = results[0].value;
-    else {
-      state.config = null;
-      setFeedback("pwa.error", { error: results[0].reason.message });
-    }
-    if (results[1].status === "fulfilled")
-      state.subscription = results[1].value;
-    else setFeedback("pwa.error", { error: results[1].reason.message });
+    else state.config = null;
+    if (results[1].status === "fulfilled") state.subscription = results[1].value;
+    const failed = results.find((result) => result.status === "rejected");
+    if (failed) setFeedback("pwa.error", { error: failed.reason.message });
+    else if (state.feedback?.key === "pwa.error") setFeedback(null);
     renderNotifications();
   }
 
@@ -353,7 +351,10 @@ export function initializePwa({
     state.deferredInstall = null;
     renderInstall();
   });
-  listen(window, "online", renderInstall);
+  listen(window, "online", () => {
+    renderInstall();
+    void refresh();
+  });
   listen(window, "offline", renderInstall);
   listen(
     window.matchMedia("(display-mode: standalone)"),

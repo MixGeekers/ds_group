@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { NativeSelect } from "../../../ui/controls";
 import { useLocale, useTranslation } from "../locale";
 import { settingsMessages } from "../locales/settings";
 import type { LocalePreference, ThemeColor, ThemePreference } from "../types";
@@ -21,7 +22,7 @@ export function AppearanceControls({ idPrefix = "" }: { idPrefix?: string }) {
   return (
     <div className="appearance-controls">
       <label htmlFor={`${idPrefix}language-select`}>{t("language")}</label>
-      <select
+      <NativeSelect
         id={`${idPrefix}language-select`}
         value={locale.preference}
         onChange={(event) =>
@@ -31,9 +32,9 @@ export function AppearanceControls({ idPrefix = "" }: { idPrefix?: string }) {
         <option value="system">{t("system")}</option>
         <option value="zh-CN">简体中文</option>
         <option value="en">English</option>
-      </select>
+      </NativeSelect>
       <label htmlFor={`${idPrefix}theme-select`}>{t("theme")}</label>
-      <select
+      <NativeSelect
         id={`${idPrefix}theme-select`}
         value={theme.getPreference()}
         onChange={(event) =>
@@ -43,7 +44,7 @@ export function AppearanceControls({ idPrefix = "" }: { idPrefix?: string }) {
         <option value="system">{t("system")}</option>
         <option value="light">{t("light")}</option>
         <option value="dark">{t("dark")}</option>
-      </select>
+      </NativeSelect>
       <fieldset className="theme-colors">
         <legend>{t("themeColor")}</legend>
         <div className="theme-swatches">

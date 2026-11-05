@@ -63,6 +63,9 @@
   --z-suggestions: 12;
   --z-drop-target: 20;
   --z-toast: 50;
+  --z-ui-popover: 80;
+  --z-ui-dialog-backdrop: 90;
+  --z-ui-dialog: 91;
   --color-bg-canvas: #1e1f22;
   --color-bg-primary: #313338;
   --color-bg-secondary: #2b2d31;
