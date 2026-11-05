@@ -4,9 +4,14 @@ import { mkdir, open, readFile, writeFile, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { packageRoot, localPath } from '../src/paths.mjs';
 import { httpUrl, nodeIdentifier, portNumber, runtimeSettings } from './runtime-config.mjs';
+import { acquireNodeLock } from '../src/bot-node.mjs';
 
-const [command = 'status', component = 'all'] = process.argv.slice(2);
+const [command = 'status', component = 'all', ...options] = process.argv.slice(2);
 if (!['up', 'down', 'status', 'restart'].includes(command)) throw new Error('Use up, down, restart or status');
+if (options.length && (options.length !== 1 || options[0] !== '--with-runtime' || !['down', 'restart'].includes(command))) {
+  throw new Error('Use --with-runtime with down or restart to stop the selected Bot runtime');
+}
+const withRuntime = options.includes('--with-runtime');
 if (!['all', 'core'].includes(component)) nodeIdentifier(component);
 const selectedBots = component === 'all' ? ['finance', 'hr'] : component === 'core' ? [] : [component];
 if (process.platform === 'win32' && command !== 'status') throw new Error('Use Docker Compose or WSL2 for service lifecycle on Windows');
@@ -72,9 +77,8 @@ async function waitFor(url) {
 }
 async function down() {
   for (const name of selectedBots) await stop(name);
-  if (component === 'all') {
-    await run('scripts/dsh-node.mjs', ['stop', 'finance']);
-    await run('scripts/dsh-node.mjs', ['stop', 'hr']);
+  if (component === 'all' || withRuntime) {
+    for (const name of selectedBots) await run('scripts/dsh-node.mjs', ['stop', name]);
   }
   if (component === 'all' || component === 'core') await stop('core');
   if (component === 'all') await run('scripts/matrix.mjs', ['down']);
@@ -91,8 +95,30 @@ async function up() {
     await start(name, 'src/bot-node.mjs', ['--bot', name]);
   }
 }
-if (command === 'down' || command === 'restart') await down();
-if (command === 'up' || command === 'restart') await up();
+const releases = [];
+try {
+  if (command !== 'status') {
+    await mkdir(localPath('processes'), { recursive: true, mode: 0o700 });
+    const names = [...selectedBots, ...(['all', 'core'].includes(component) ? ['core'] : [])].sort();
+    for (const name of names) {
+      const deadline = Date.now() + 260_000;
+      while (true) {
+        try {
+          releases.push(await acquireNodeLock(localPath('processes', `${name}.lifecycle.sqlite`)));
+          break;
+        } catch (error) {
+          if (error.code !== 'NODE_PROCESS_ACTIVE') throw error;
+          if (Date.now() >= deadline) throw new Error(`${name} is still starting or stopping; inspect its private log`);
+          await sleep(250);
+        }
+      }
+    }
+  }
+  if (command === 'down' || command === 'restart') await down();
+  if (command === 'up' || command === 'restart') await up();
+} finally {
+  for (const release of releases.reverse()) await release();
+}
 if (command !== 'down') {
   await sleep(500);
   try {

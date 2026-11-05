@@ -41,7 +41,10 @@ async function fixture(t, options = {}) {
       return Response.json({ user_id: userId, access_token: `synthetic-human-token-${logins}` });
     }
     if (pathname === '/api/bots') return Response.json({ bots: [bot] });
-    if (pathname === `/api/bots/${encodeURIComponent(bot.id)}/connect`) return Response.json({ bundle: options.bundle?.() || bundle() });
+    if (pathname === `/api/bots/${encodeURIComponent(bot.id)}/connect`) {
+      await options.beforeBundle?.();
+      return Response.json({ bundle: options.bundle?.() || bundle() });
+    }
     if (pathname === '/api/logout') return Response.json({});
     return Response.json({ error: 'Unknown route' }, { status: 404 });
   };
@@ -168,4 +171,61 @@ test('failed login persistence retains the previous identity and revokes the unu
   assert.equal(logout.init.headers.Authorization, 'Bearer synthetic-human-token-2');
   controller.filename = savedFilename;
   await controller.dispose();
+});
+
+test('host disposal starts every Bot cleanup before waiting for an individual drain', async t => {
+  const stops = [];
+  const finish = [];
+  const { controller } = await fixture(t, { processes: {
+    async stop(node) { stops.push(node.id); await new Promise(resolve => finish.push(resolve)); },
+  } });
+  for (const id of ['one', 'two']) {
+    controller.state.nodes[id] = { id, desired: true };
+    controller.running.set(id, { status: 'online', lastError: null });
+  }
+  const disposing = controller.dispose();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual(stops, ['one', 'two']);
+  for (const resolve of finish) resolve();
+  await disposing;
+  assert.equal(controller.state.nodes.one.desired, true);
+  assert.equal(controller.state.nodes.two.desired, true);
+});
+
+test('host disposal dispatches cleanup while a Bot startup command is still pending', async t => {
+  let releaseStartup;
+  let started;
+  const startup = new Promise(resolve => { releaseStartup = resolve; });
+  const ready = new Promise(resolve => { started = resolve; });
+  let stops = 0;
+  const { controller, login } = await fixture(t, { processes: {
+    async start() { started(); await startup; },
+    async stop() { stops++; },
+  } });
+  await login();
+  const connecting = controller.handle({ action: 'connect', botId: bot.id });
+  await ready;
+  const disposing = controller.dispose();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(stops, 1);
+  releaseStartup();
+  await Promise.all([connecting, disposing]);
+  assert.equal(controller.running.size, 0);
+});
+
+test('a connection awaiting a remote bundle cannot launch after the plugin begins closing', async t => {
+  let releaseBundle;
+  let requested;
+  const bundleReady = new Promise(resolve => { releaseBundle = resolve; });
+  const arrived = new Promise(resolve => { requested = resolve; });
+  const { controller, login, effects } = await fixture(t, { beforeBundle: async () => { requested(); await bundleReady; } });
+  await login();
+  const connecting = controller.handle({ action: 'connect', botId: bot.id });
+  await arrived;
+  const disposing = controller.dispose();
+  releaseBundle();
+  await assert.rejects(connecting, /正在关闭/);
+  await disposing;
+  assert.deepEqual(effects, []);
+  assert.deepEqual(controller.state.nodes, {});
 });

@@ -816,7 +816,7 @@ export async function acquireNodeLock(filename) {
         if (error.code !== 'ESRCH') throw new Error('Node process ownership could not be checked');
         alive = false;
       }
-      if (alive) throw new Error(`This Bot already has a local process (${previous.pid})`);
+      if (alive) throw Object.assign(new Error(`This Bot already has a local process (${previous.pid})`), { code: 'NODE_PROCESS_ACTIVE' });
     }
     db.prepare('INSERT INTO owner VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET pid=excluded.pid,runtime_id=excluded.runtime_id')
       .run(identity.pid, identity.runtimeId);

@@ -60,7 +60,7 @@ export class NodeProcesses {
     }
     try {
       await execute(this.env.DS_GROUP_NODE_EXECUTABLE || process.execPath, [path.join(packageRoot, script), ...args], {
-        cwd: packageRoot, env: this.environment(node), timeout: 240_000, maxBuffer: 1024 * 1024,
+        cwd: packageRoot, env: this.environment(node), timeout: 480_000, maxBuffer: 1024 * 1024,
       });
     } catch (error) {
       const details = String(error.stderr || '').trim().split('\n').filter(Boolean).slice(-5).join('\n');
@@ -80,9 +80,8 @@ export class NodeProcesses {
   }
 
   async stop(node) {
-    // Drain the Matrix adapter before stopping its isolated DSH runtime.
-    await this.command(node, 'scripts/service.mjs', ['down', node.localpart]);
-    await this.command(node, 'scripts/dsh-node.mjs', ['stop', node.localpart]);
+    // One child owns the full cleanup even when DSH exhausts its shutdown grace period.
+    await this.command(node, 'scripts/service.mjs', ['down', node.localpart, '--with-runtime']);
   }
 
   async probe(node) {

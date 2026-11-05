@@ -152,11 +152,13 @@ export class ConnectController {
     const { bundle } = await this.remote(this.state.serverUrl, `/api/bots/${encodeURIComponent(botId)}/connect`, {
       method: 'POST', token: this.state.accessToken, body: {},
     });
+    if (this.closed) throw new Error('连接插件正在关闭');
     const key = createHash('sha256').update(`${this.state.serverUrl}\n${botId}`).digest('hex').slice(0, 24);
     const directory = path.join(this.directory, 'nodes', key);
     await this.writeBundle(bot, bundle, directory);
     const node = { ...publicBot(bot), directory, serverUrl: this.state.serverUrl,
       port: existing?.port || await this.selectPort(), desired: true };
+    if (this.closed) throw new Error('连接插件正在关闭');
     const next = { ...this.state, nodes: { ...this.state.nodes, [botId]: node } };
     await this.save(next);
     this.state = next;
@@ -165,14 +167,17 @@ export class ConnectController {
   }
 
   async start(node) {
+    if (this.closed) throw new Error('连接插件正在关闭');
     this.running.set(node.id, { status: 'connecting', lastError: null });
     try {
       await this.processes.start(node);
-      this.running.set(node.id, { status: 'online', lastError: null });
+      if (!this.closed) this.running.set(node.id, { status: 'online', lastError: null });
     } catch (error) {
       let message = error.message;
-      try { await this.processes.stop(node); } catch (stopError) { message += `\n${stopError.message}`; }
-      this.running.set(node.id, { status: 'error', lastError: message });
+      if (!this.closed) {
+        try { await this.processes.stop(node); } catch (stopError) { message += `\n${stopError.message}`; }
+        this.running.set(node.id, { status: 'error', lastError: message });
+      }
       throw new Error(message);
     }
   }
@@ -188,10 +193,15 @@ export class ConnectController {
   }
 
   async stopAll(clearDesired) {
-    const errors = [];
-    for (const node of Object.values(this.state.nodes)) {
-      try { await this.stop(node, clearDesired); } catch (error) { errors.push(error); }
+    if (clearDesired) {
+      const nodes = Object.fromEntries(Object.entries(this.state.nodes).map(([id, node]) => [id, { ...node, desired: false }]));
+      const next = { ...this.state, nodes };
+      await this.save(next);
+      this.state = next;
     }
+    // Start every cleanup before awaiting any one Bot's drain or the host shutdown deadline.
+    const results = await Promise.allSettled(Object.values(this.state.nodes).map(node => this.stop(node, false)));
+    const errors = results.filter(result => result.status === 'rejected').map(result => result.reason);
     if (errors.length) throw new AggregateError(errors, errors.map(error => error.message).join('\n'));
   }
 
@@ -228,7 +238,9 @@ export class ConnectController {
 
   async dispose() {
     this.closed = true;
+    const cleanup = this.stopAll(false).then(() => null, error => error);
     await this.queue;
-    await this.stopAll(false);
+    const error = await cleanup;
+    if (error) throw error;
   }
 }
