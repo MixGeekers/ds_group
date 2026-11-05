@@ -13,6 +13,7 @@ x-server-environment: &server-environment
   DS_GROUP_SERVER_NAME: ${DS_GROUP_SERVER_NAME:-localhost}
   DS_GROUP_PUBLIC_URL: ${DS_GROUP_PUBLIC_URL:-http://localhost:18100}
   DS_GROUP_MATRIX_PUBLIC_URL: ${DS_GROUP_MATRIX_PUBLIC_URL:-http://localhost:18008}
+  DS_GROUP_GOVERNANCE_DIR: /dscord-policy
 
 services:
   config:
@@ -25,6 +26,7 @@ services:
     volumes:
       - core-data:/data
       - synapse-data:/synapse
+      - governance-data:/dscord-policy
     restart: "no"
 
   synapse:
@@ -32,12 +34,14 @@ services:
     environment:
       UID: "1000"
       GID: "1000"
-    command: ["run", "-m", "synapse.app.homeserver", "--config-path=/data/homeserver.yaml"]
+      PYTHONPATH: /data
+    command: ["run", "-m", "synapse.app.homeserver", "--config-path=/data/homeserver.yaml", "--config-path=/data/governance.generated.yaml"]
     depends_on:
       config:
         condition: service_completed_successfully
     volumes:
       - synapse-data:/data
+      - governance-data:/dscord-policy
     ports:
       - "${DS_GROUP_BIND:-127.0.0.1}:${DS_GROUP_MATRIX_PORT:-18008}:8008"
     healthcheck:
@@ -55,6 +59,7 @@ services:
     environment: *server-environment
     volumes:
       - core-data:/data
+      - governance-data:/dscord-policy
     depends_on:
       synapse:
         condition: service_healthy
@@ -69,6 +74,7 @@ services:
       DS_GROUP_DEMO_LOGIN: "false"
     volumes:
       - core-data:/data
+      - governance-data:/dscord-policy
     ports:
       - "${DS_GROUP_BIND:-127.0.0.1}:${DS_GROUP_HTTP_PORT:-18100}:18100"
     depends_on:
@@ -77,6 +83,29 @@ services:
     restart: unless-stopped
     stop_grace_period: 45s
 
+  administration:
+    <<: *app
+    command: ["node", "src/admin.mjs"]
+    environment:
+      <<: *server-environment
+      DS_GROUP_SYNAPSE_DIR: /synapse
+      DS_GROUP_ADMIN_HOST: 0.0.0.0
+      DS_GROUP_ADMIN_PORT: "18110"
+    volumes:
+      - core-data:/data
+      - synapse-data:/synapse
+      - governance-data:/dscord-policy
+    ports:
+      - "127.0.0.1:${DS_GROUP_ADMIN_PORT:-18110}:18110"
+    depends_on:
+      bootstrap:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:18110/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+    restart: unless-stopped
+    stop_grace_period: 15s
+
 volumes:
   core-data:
   synapse-data:
+  governance-data:

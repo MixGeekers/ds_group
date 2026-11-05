@@ -1,0 +1,18 @@
+{
+  "scope": "real management service and built UI; synthetic Matrix control adapter; zero model calls",
+  "checks": [
+    "Independent management login reaches the real administration HTTP service",
+    "Partner form persists an explicit domain and updates the revision",
+    "Admission keeps the external member’s complete original Matrix ID",
+    "Room rule binds one approved identity to an explicit authority and room",
+    "Failed application is visible and does not claim a live policy or completed federation restart",
+    "Deployment controls persist registration and upload policy",
+    "Owner can create an independent read-only administrator",
+    "Audit shows actual administrative writes without credentials",
+    "Chinese translation and dark appearance use the shared preferences and tokens",
+    "Mobile management forms fit a 390px viewport without page overflow"
+  ],
+  "errors": [],
+  "status": "failed",
+  "failure": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('heading', { name: '概览', exact: true }) to be visible\u001b[22m\n\n    at /Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/tests/admin.browser.mjs:99:64"
+}

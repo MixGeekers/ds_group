@@ -7,6 +7,11 @@
 !src/**
 !web/
 !web/**
+!admin/
+!admin/**
+!deploy/
+!deploy/synapse/
+!deploy/synapse/**
 !scripts/
 !scripts/**
 !vendor/

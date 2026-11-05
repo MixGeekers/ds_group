@@ -1,0 +1,13 @@
+{
+  "scope": "real management service and built UI; synthetic Matrix control adapter; zero model calls",
+  "checks": [
+    "Independent management login reaches the real administration HTTP service",
+    "Partner form persists an explicit domain and updates the revision",
+    "Admission keeps the external member’s complete original Matrix ID",
+    "Room rule binds one approved identity to an explicit authority and room",
+    "Failed application is visible and does not claim a live policy or completed federation restart"
+  ],
+  "errors": [],
+  "status": "failed",
+  "failure": "locator.selectOption: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByLabel('Local registration', { exact: true })\u001b[22m\n\n    at /Users/caja/.codex/worktrees/dscord-federation-admin/apps/ds-group/tests/admin.browser.mjs:64:64"
+}

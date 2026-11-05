@@ -1,7 +1,9 @@
 import { randomBytes } from 'node:crypto';
-import { chmod, chown, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
+import { chmod, chown, copyFile, mkdir, readFile, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { Governance, privateJson } from '../src/governance.mjs';
+import { synapseGovernanceConfig } from '../src/synapse-control.mjs';
 
 export async function readOptionalJson(filename) {
   try { return JSON.parse(await readFile(filename, 'utf8')); }
@@ -87,6 +89,10 @@ export async function initializeServer(options = serverOptions(), { containerOwn
   if (previous && previous.serverName !== serverName) {
     throw new Error(`Existing Matrix identity is ${previous.serverName}; restore DS_GROUP_SERVER_NAME before starting`);
   }
+  const governance = new Governance({ dataRoot, serverName });
+  const policy = await governance.ensure();
+  await copyFile(new URL('../deploy/synapse/dscord_guard.py', import.meta.url), path.join(synapseRoot, 'dscord_guard.py'));
+  await privateJson(path.join(synapseRoot, 'governance.generated.yaml'), synapseGovernanceConfig(policy));
   const storagePath = path.join(dataRoot, 'media-storage.json');
   const storedStorage = await readOptionalJson(storagePath);
   const previousStorage = storedStorage && validateMediaStorage(storedStorage);
@@ -113,7 +119,7 @@ export async function initializeServer(options = serverOptions(), { containerOwn
   const synapse = {
     server_name: serverName, public_baseurl: `${publicHomeserverUrl}/`, pid_file: '/data/homeserver.pid',
     listeners: [{ port: 8008, tls: false, type: 'http', x_forwarded: true, bind_addresses: ['0.0.0.0'],
-      resources: [{ names: ['client'], compress: false }] }],
+      resources: [{ names: ['client', 'federation'], compress: false }] }],
     database: { name: 'sqlite3', args: { database: '/data/homeserver.db' } },
     media_store_path: '/data/media_store', signing_key_path: '/data/signing.key',
     registration_shared_secret: metadata.registrationSecret,
@@ -138,7 +144,8 @@ export async function initializeServer(options = serverOptions(), { containerOwn
   await savePrivateJson(storagePath, mediaStorage);
   await savePrivateJson(configPath, synapse);
   if (containerOwnership) {
-    for (const filename of [dataRoot, synapseRoot, metadataPath, corePath, storagePath, configPath]) await chown(filename, 1000, 1000);
+    for (const filename of [dataRoot, synapseRoot, metadataPath, corePath, storagePath, configPath, governance.root, governance.filename,
+      path.join(synapseRoot, 'dscord_guard.py'), path.join(synapseRoot, 'governance.generated.yaml')]) await chown(filename, 1000, 1000);
   }
   return { serverName, publicUrl, publicHomeserverUrl, mediaBackend: mediaStorage.backend, reused: Boolean(previous) };
 }

@@ -13,11 +13,13 @@ async function checkDirectory(directory) {
     }
   }
 }
-for (const folder of ['bin', 'src', 'scripts', 'web', 'tests', 'dsh-plugin', 'dsh-connect']) await checkDirectory(path.join(packageRoot, folder));
+for (const folder of ['bin', 'src', 'scripts', 'web', 'admin', 'tests', 'dsh-plugin', 'dsh-connect']) await checkDirectory(path.join(packageRoot, folder));
 const types = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit'], {
   cwd: packageRoot, stdio: 'inherit',
 });
 if (types.status !== 0) process.exit(types.status ?? 1);
+const adminTypes = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules', 'typescript', 'bin', 'tsc'), '-p', 'admin/tsconfig.json', '--noEmit'], { cwd: packageRoot, stdio: 'inherit' });
+if (adminTypes.status !== 0) process.exit(adminTypes.status ?? 1);
 const tests = spawnSync(process.execPath, ['--test', 'tests/*.test.mjs'], { cwd: packageRoot, stdio: 'inherit' });
 if (tests.error) console.error(tests.error.message);
 process.exit(tests.status ?? 1);

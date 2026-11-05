@@ -1,0 +1,68 @@
+{
+  "date": "2026-11-04",
+  "timezone": "America/Caracas",
+  "baseCommit": "5078ab2bf81fe50631a13208366cc3e58d61dd7d",
+  "branch": "codex/dscord-federation-admin",
+  "scope": "Independent administration and governance foundation; management HTTP is real, Matrix control in browser checks is synthetic",
+  "sourceSha256": {
+    "src/admin-auth.mjs": "54dd1d96f9fedfbda97ccb336b1ee16fda743d4082a191248c8fb91e53e5c0dc",
+    "src/admin.mjs": "63774a908186899708493cb5b6b5c55d77e5be8d5ee1e1c264418a02519369fc",
+    "src/governance.mjs": "69f29b511373ef1f271740f543fbcb4ac89b8a22b444800e5056a6ce1b8a107b",
+    "src/collaboration.mjs": "cc1c5236be9f1a1bd22c1fd006bc90e9bdefa9138a6ae36fc84c64b00aa76e3f",
+    "src/synapse-control.mjs": "54f89ca191c97879a2631f5125d802c7f06ba9764c93cf33181210330556a5dd",
+    "src/core.mjs": "8ebcf1b5191fd4922c22a7816c2d3b9d2e0ed80d36702105685f8ea5392cd616",
+    "deploy/synapse/dscord_guard.py": "15175042e4937b7e0d9cd55c052c28431d858b0ce375c0566107e14c92d82702",
+    "admin/src/AdminApp.tsx": "654532363d57e4a1b9e456d840c79dbb4fabdb064b97425a84d3162f7f1550f8",
+    "admin/src/styles.css": "d162187b095fa1e17c05e8a88e3da0ee6fb72a7f99c757b132be21aa4dd2251e"
+  },
+  "checks": [
+    {
+      "command": "npm run check",
+      "status": "passed",
+      "moduleTests": 286,
+      "includes": "JS syntax; chat and administration TS7 strict types; original 280 and six new security/contract tests"
+    },
+    {
+      "command": "npm run build",
+      "status": "passed",
+      "includes": "chat PWA and independent administration production builds"
+    },
+    {
+      "command": "node --test tests/admin.browser.mjs",
+      "status": "passed",
+      "checks": 12,
+      "evidence": "admin-browser.json"
+    }
+  ],
+  "history": [
+    {
+      "status": "failed",
+      "evidence": "admin-browser-first-failure.json",
+      "issue": "select labels included option text",
+      "fix": "explicit label/for and unique control IDs"
+    },
+    {
+      "status": "failed",
+      "evidence": "admin-browser-second-failure.json",
+      "issue": "logout retained previous navigation and in-memory administration data",
+      "fix": "clear administration state and return to overview when ending a session"
+    },
+    {
+      "status": "failed",
+      "issue": "npm source fixture lacked the newly required management build",
+      "fix": "updated package fixture and asserted administration/guard assets in the allowlisted package",
+      "result": "286/286 subsequent regression"
+    }
+  ],
+  "realSynapse": "not run in this foundation slice",
+  "realFederation": "pending subsequent commit",
+  "realModelCalls": 0,
+  "physicalCrossMachine": "not run",
+  "publication": "no npm or container publication; local commit only",
+  "limitations": [
+    "Bot work policy is schema only in this slice; the unfinished Bot work menu is not shown",
+    "Administration uses one active process per instance",
+    "Synapse static configuration changes require external restart",
+    "Central identity and unified-client integration are parallel slices"
+  ]
+}

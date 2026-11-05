@@ -1,0 +1,183 @@
+{
+  "contractVersion": "1.0.0",
+  "date": "2026-11-04",
+  "status": "foundation-validated",
+  "baseCommit": "5078ab2bf81fe50631a13208366cc3e58d61dd7d",
+  "worktree": "/Users/caja/.codex/worktrees/dscord-federation-admin",
+  "files": {
+    "owned": [
+      "admin/",
+      "src/admin*.mjs",
+      "src/governance.mjs",
+      "src/collaboration.mjs",
+      "src/synapse-control.mjs",
+      "deploy/synapse/",
+      "Core route integration",
+      "federation deployment and tests"
+    ],
+    "untouched": [
+      "web/src/",
+      "src/accounts.mjs",
+      "src/identity.mjs",
+      "src/home-session.mjs",
+      "vite.config.ts",
+      "bin/dscord.mjs",
+      "package-lock.json"
+    ],
+    "sharedChanges": [
+      "package.json: independent admin build/init/start scripts and aggregate build/typecheck",
+      "scripts/check.mjs",
+      "Dockerfile and .dockerignore",
+      "scripts/npm-pack.mjs and release-pack.mjs: admin and guard package allowlist",
+      "scripts/server-init.mjs",
+      "deploy/compose.yaml",
+      "src/core.mjs: additive governance routes"
+    ]
+  },
+  "identity": {
+    "authority": "AccountService.me(token), same active human identity validation as /api/me",
+    "acceptedTokenTarget": "the configured home Core only",
+    "remoteCoreTokenForwarding": false,
+    "shadowAccounts": false,
+    "centralMapping": "owned by central-identity slice; current userId and participant.id remain full Matrix IDs"
+  },
+  "bootstrap": {
+    "method": "GET",
+    "path": "/api/bootstrap",
+    "additiveFields": {
+      "serverName": "configured Matrix home server"
+    },
+    "compatibility": "Existing fields remain. Public participants contains local identities only, never the governance admission list."
+  },
+  "directory": {
+    "method": "GET",
+    "path": "/api/directory",
+    "authentication": "home human session via AccountService.me",
+    "response": {
+      "participants": [
+        {
+          "id": "@alice:home.example",
+          "name": "Alice",
+          "kind": "human or bot",
+          "homeServer": "home.example",
+          "ownerId": "optional informational Bot ownership"
+        }
+      ]
+    },
+    "semantics": "Local active participants plus explicitly enabled external identities whose partner is enabled. External ownerId does not confer local Bot ownership."
+  },
+  "spaces": {
+    "method": "GET",
+    "path": "/api/spaces",
+    "authentication": "home human session",
+    "response": {
+      "homeServer": "home.example",
+      "userId": "@alice:home.example",
+      "spaces": [
+        {
+          "serverName": "partner.example",
+          "name": "Partner",
+          "home": false,
+          "status": "connected or revoked",
+          "rooms": [
+            {
+              "roomId": "!stable-room-id",
+              "name": "Shared room",
+              "status": "joined or restricted",
+              "canSend": true,
+              "authoritySource": "registered or creator_compatibility"
+            }
+          ],
+          "invitations": [
+            {
+              "roomId": "!invited-room-id",
+              "name": "Invitation",
+              "inviterId": "@bob:partner.example",
+              "canJoin": true,
+              "status": "invited or approval_required",
+              "authoritySource": "registered or creator_compatibility"
+            }
+          ]
+        }
+      ]
+    },
+    "origin": "Explicit roomId-to-authority mapping in local administrator policy takes precedence. Matrix creation sender domain is a compatibility fallback only. This is a collaboration grouping, not an authentication issuer or homeserver migration.",
+    "source": "Actual home Matrix /sync joins/invitations, then governance intersection. A configured partner with no rooms or invitations is not shown as an entered space. The home group always exists.",
+    "connectionStatus": "connected means home Matrix sync succeeded and local partner policy permits collaboration; it is not a separate active login to the remote Core. A sync transport failure is an HTTP error, never a fabricated connected state.",
+    "sendRules": "Foreign room requires an enabled partner, enabled registered room, and this exact local Matrix ID in room.memberIds. Matrix membership and event permission remain authoritative for actual sending.",
+    "invitationRules": "Foreign invite additionally requires inviterId approved as an external member. An invitation alone never overrides local admission.",
+    "errors": {
+      "400": "malformed local policy or input",
+      "401": "missing, expired or rejected home session; same as /api/me",
+      "403": "inactive/nonhuman/wrong-home account",
+      "500": "unexpected service failure",
+      "502or503": "home Matrix unavailable; existing Matrix error may propagate"
+    }
+  },
+  "join": {
+    "method": "POST",
+    "path": "/api/rooms/:encodedRoomId/join",
+    "body": {},
+    "rules": "Enabled exact rule is required. Foreign authority must be an enabled partner; memberIds includes the current local human. Synapse additionally enforces actual invite and exact admission. Calls the home homeserver /join, without any token sent to a remote Core.",
+    "response": {
+      "roomId": "!joined-room-id",
+      "status": "joined",
+      "serverName": "registered authority"
+    },
+    "errors": {
+      "401": "home session rejected",
+      "403": "rule/member/partner/invite denied",
+      "404": "unknown room",
+      "409": "conflicting request or policy state if applicable"
+    },
+    "idempotency": "Matrix join for an already joined permitted member returns that same room; no new account or room is created"
+  },
+  "leave": {
+    "method": "POST",
+    "path": "/api/rooms/:encodedRoomId/leave",
+    "response": {
+      "roomId": "!left-room-id",
+      "status": "left"
+    },
+    "semantics": "Only the current home user leaves; credentials remain at home"
+  },
+  "invite": {
+    "method": "POST",
+    "path": "/api/rooms/:encodedRoomId/invite",
+    "body": {
+      "participantId": "full Matrix ID"
+    },
+    "semantics": "Preserve owned local Bot invite/join. For external approved humans/Bots, require exact local room/member admission and Matrix inviter permission; return status invited without automatically using remote credentials."
+  },
+  "admin": {
+    "origin": "independent listener and admin/ frontend; default loopback port 18110",
+    "authentication": "instance-local dscord_admin_ session; not Matrix or central login",
+    "routes": [
+      "/admin-api/login",
+      "/admin-api/me",
+      "/admin-api/logout",
+      "/admin-api/overview",
+      "/admin-api/policy",
+      "/admin-api/apply",
+      "/admin-api/invite",
+      "/admin-api/administrators",
+      "/admin-api/audit"
+    ]
+  },
+  "futureSlices": [
+    "room-proven foreign attachments",
+    "owner/server/node work intersection and execution rechecks",
+    "real A/B federation and unapproved C rejection",
+    "in-flight revocation and delivery",
+    "central identity integration and unified-client browser verification",
+    "physical cross-machine validation"
+  ],
+  "evidence": {
+    "moduleRegression": "286/286 passed",
+    "adminBuild": "TS7 and Vite production builds passed",
+    "adminBrowser": "12 checks passed against real management HTTP and synthetic Matrix control adapter",
+    "realFederation": "pending subsequent commit",
+    "modelCalls": 0,
+    "physicalHostsTested": 0
+  }
+}

@@ -15,29 +15,15 @@ import { localPath, packageRoot } from './paths.mjs';
 import { AccountService } from './accounts.mjs';
 import { NodeCredentials, requireNodeScope } from './node-auth.mjs';
 import { nodeBundle } from '../scripts/server-admin.mjs';
+import { Governance, serverOf, roomAllows } from './governance.mjs';
+import { CollaborationService } from './collaboration.mjs';
+import { readJsonBody } from './http-json.mjs';
+export { readJsonBody } from './http-json.mjs';
 
 const jsonHeaders = { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' };
 const loadedCoreSha256 = createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
   '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
-
-export async function readJsonBody(request) {
-  const chunks = [];
-  let bytes = 0;
-  for await (const chunk of request) {
-    bytes += chunk.length;
-    if (bytes > 131072) throw Object.assign(new Error('Request too large'), { status: 413 });
-    chunks.push(Buffer.from(chunk));
-  }
-  const body = Buffer.concat(chunks).toString('utf8');
-  let parsed;
-  try { parsed = body ? JSON.parse(body) : {}; }
-  catch { throw Object.assign(new Error('Expected JSON body'), { status: 400 }); }
-  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw Object.assign(new Error('Expected a JSON object'), { status: 400 });
-  }
-  return parsed;
-}
 
 function bearer(request) {
   const authorization = request.headers.authorization || '';
@@ -84,6 +70,10 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const accounts = await new AccountService({ setup, config, dataRoot,
     onParticipant: async person => { if (push) await push.upsertParticipant(person); },
   }).initialize();
+  setup.serverName ||= accounts.serverName || 'localhost';
+  const governance = new Governance({ dataRoot, serverName: setup.serverName });
+  const collaboration = new CollaborationService({ setup, governance, accounts });
+  const directorySetup = { ...setup, participants: [] };
   const nodeCredentials = await new NodeCredentials({ dataRoot, setup, legacySecret: config.nodeSecret }).initialize();
   const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
   const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES });
@@ -95,7 +85,8 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       payload_json TEXT NOT NULL, token_hash TEXT NOT NULL, event_id TEXT);`);
   const creatingDirectRooms = new Map();
   const sendingMessages = new Map();
-  const chatFeatures = new ChatFeatures({ setup, dataRoot });
+  const chatFeatures = new ChatFeatures({ setup: directorySetup, dataRoot });
+  chatFeatures.ownerId = accounts.ownerId;
   push = enablePush ? new PushService({ dataRoot, setup,
     onEvent: (userId, event) => chatFeatures.recordEvents(userId, [event]),
     shouldNotify: (userId, event) => chatFeatures.shouldNotify(userId, event),
@@ -103,7 +94,9 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   if (push) await push.start();
   const nodes = new Map();
   const startedAt = new Date().toISOString();
-  const publicParticipants = () => accounts.publicParticipants();
+  let directory = await collaboration.directory();
+  directorySetup.participants = directory;
+  const publicParticipants = () => directory;
   const authorizeNode = request => nodeCredentials.authorize(request);
   const tasks = new TaskService({ setup, dataRoot, authorizeNode, readJsonBody });
   async function directRoomFor(client, userId, target) {
@@ -197,6 +190,12 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   async function dispatch(request, response) {
     const url = new URL(request.url, 'http://localhost');
     const send = (status, value) => { response.writeHead(status, jsonHeaders); response.end(JSON.stringify(value)); };
+    const policy = await governance.read();
+    directory = await collaboration.directory();
+    directorySetup.participants = directory;
+    accounts.mode = policy.settings.registrationMode ?? config.registrationMode ?? 'open';
+    media.maxBytes = policy.settings.maxUploadBytes ?? Number(config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES ?? 52428800);
+    if (url.pathname.startsWith('/admin-api/') || url.pathname === '/admin.html') return send(404, { error: 'Use the separate administration service' });
     if (request.method === 'GET' && url.pathname === '/healthz') return send(200, { status: 'ok' });
     if (request.method === 'GET' && url.pathname === '/readyz') {
       try {
@@ -208,7 +207,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     }
     if (request.method === 'GET' && url.pathname === '/api/bootstrap') {
       response.setHeader('Access-Control-Allow-Origin', '*');
-      return send(200, { name: 'DSCord', roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: publicParticipants(), nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server', registration: accounts.registration(),
+      return send(200, { name: 'DSCord', serverName: setup.serverName, roomId: setup.roomId, homeserverUrl: setup.publicHomeserverUrl || setup.homeserverUrl, participants: accounts.publicParticipants(), nodes: nodeSnapshot(), demoLogin, mode: demoLogin ? 'local-synthetic-demo' : 'server', registration: accounts.registration(),
         attachments: { maxBytes: media.maxBytes, maxPerMessage: MAX_ATTACHMENTS } });
     }
     if (request.method === 'GET' && url.pathname === '/api/status') {
@@ -243,6 +242,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       return send(201, await accounts.register(await readJsonBody(request), { clientIp: requestClientIp(request, trustProxy) }));
     }
     if (request.method === 'GET' && url.pathname === '/api/me') return send(200, await accounts.me(bearer(request)));
+    if (collaboration.handles(url.pathname)) return collaboration.handle({ request, url, send });
     if (request.method === 'POST' && url.pathname === '/api/logout') return send(200, await accounts.logout(bearer(request)));
     if (request.method === 'POST' && url.pathname === '/api/bots') {
       const { user } = await accounts.me(bearer(request));
@@ -358,6 +358,13 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
       const input = await readJsonBody(request);
+      if (serverOf(input.participantId) && serverOf(input.participantId) !== setup.serverName) {
+        const roomId = decodeURIComponent(invite[1]);
+        if (!roomAllows(policy, roomId, input.participantId)) return send(403, { error: 'Approve the external member and this room first' });
+        accounts.human(userId);
+        await client.request('POST', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/invite`, { user_id: input.participantId });
+        return send(200, { roomId, participantId: input.participantId, status: 'invited' });
+      }
       const participant = setup.participants.find(p => p.id === input.participantId && p.kind === 'bot');
       const profile = publicParticipants().find(p => p.id === input.participantId);
       if (!participant || profile.ownerId !== userId) return send(403, { error: 'Choose one of your own Bots' });
@@ -461,7 +468,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         ...(retryAfterMs === undefined ? {} : { retry_after_ms: retryAfterMs }) }));
     });
   });
-  return { server, budget, push, media, tasks, chatFeatures, accounts, nodeCredentials, close: async () => {
+  return { server, budget, push, media, tasks, chatFeatures, accounts, nodeCredentials, governance, collaboration, close: async () => {
     await new Promise(resolve => server.close(resolve));
     if (push) await push.close();
     await nodeCredentials.close();

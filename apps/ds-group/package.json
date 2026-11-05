@@ -9,8 +9,11 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "typecheck": "tsc --noEmit",
-    "build": "tsc --noEmit && vite build && node scripts/build-pwa.mjs",
+    "typecheck": "tsc --noEmit && tsc -p admin/tsconfig.json --noEmit",
+    "build": "tsc --noEmit && vite build && node scripts/build-pwa.mjs && npm run build:admin",
+    "build:admin": "tsc -p admin/tsconfig.json --noEmit && vite build --config admin/vite.config.ts && node admin/build.mjs",
+    "admin:init": "node scripts/admin.mjs init",
+    "admin:start": "node src/admin.mjs",
     "preup": "npm run build",
     "up": "node scripts/service.mjs up",
     "down": "node scripts/service.mjs down",
