@@ -4,6 +4,8 @@
 
 聊天客户端独立托管时，可通过 `DS_GROUP_WEB_MODE=api-only` 持久关闭 Core 的网页发布；原单服缺省仍托管 PWA。配置、CLI/Compose 入口及升级兼容见 [API-only 部署](api-only.md)。
 
+中央默认归属、独立 administration 监听、三卷备份及真实发行部署验收见[中央平台部署与发行验证](platform-validation.md)。
+
 本文对应 `0.3.0` 源码候选，新增账号注册、个人 Bot 创建与 DSH 连接页。公开 npm 包当前为 `0.2.0-alpha.1`，候选安装步骤见 [npm 说明](npm.md)。
 
 ## 支持范围

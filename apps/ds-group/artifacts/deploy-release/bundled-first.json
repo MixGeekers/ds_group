@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-05T03:40:23.067Z",
+  "project": "ds-group-smoke-4e1128f2fc",
+  "platform": "darwin/arm64",
+  "runner": {
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "scriptSha256": "7c8a468043a7ae1839f2b1b8788f77c44d5c5025784efe150a5c2ab7f0ddc509",
+  "level": "real-container-matrix-http",
+  "image": "dscord:deploy-release-integrated",
+  "modelCalls": 0,
+  "checks": [
+    "freshVolumesReady",
+    "serverRequiresLogin",
+    "matrixLoginGroupAndMessage",
+    "pwaManifest",
+    "remoteNodeExport"
+  ],
+  "status": "failed",
+  "error": "Adapter exited: Core roster HTTP 403\n",
+  "cleanedUp": true,
+  "completedAt": "2026-11-05T03:40:38.902Z"
+}

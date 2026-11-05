@@ -16,6 +16,7 @@ async function fixture(t) {
     'src/core.mjs': 'import "../web/mention-tokens.js";',
     'web/mention-tokens.js': 'export {};',
     'dist/web/index.html': '<!doctype html>', 'dist/web/sw.js': '// worker',
+    'dist/web/client-config.json': '{}',
     'dist/admin/index.html': '<!doctype html>', 'dist/admin/theme.js': '// theme',
     'deploy/synapse/dscord_guard.py': '# Synapse admission module',
     'dist/web/licenses/lucide.txt': 'ISC and MIT notices',
@@ -26,7 +27,7 @@ async function fixture(t) {
     '.local/credentials.json': 'PRIVATE', '.npmrc': 'PRIVATE',
     'artifacts/chat.json': 'PRIVATE', 'deploy/.env': 'PRIVATE',
   };
-  for (const name of ['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin', 'admin']) {
+  for (const name of ['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin', 'central-init', 'admin']) {
     files[`scripts/${name}.mjs`] = 'export {};';
   }
   for (const [filename, content] of Object.entries(files)) {
@@ -45,7 +46,7 @@ test('npm alpha packs the runtime, compiled PWA and shared mention parser withou
   for (const name of ['package.json', 'README.md', 'bin/dscord.mjs', 'src/core.mjs', 'web/mention-tokens.js',
     'dist/web/index.html', 'dist/web/sw.js', 'dist/web/licenses/lucide.txt', 'vendor/ds-bot/LICENSE',
     'vendor/ds-bot/NOTICE', 'dsh-plugin/runtime-dependencies-lock.json', 'dsh-connect/index.mjs',
-    'dsh-connect/client.js', 'cordis.patch.yml', 'dist/admin/index.html', 'dist/admin/theme.js', 'deploy/synapse/dscord_guard.py', 'scripts/admin.mjs']) assert.ok(result.files.includes(name), name);
+    'dsh-connect/client.js', 'cordis.patch.yml', 'dist/admin/index.html', 'dist/admin/theme.js', 'deploy/synapse/dscord_guard.py', 'scripts/admin.mjs', 'scripts/central-init.mjs']) assert.ok(result.files.includes(name), name);
   assert.equal(result.files.some(name => /\.local|\.npmrc|artifacts|\.env|\.vite/.test(name)), false);
   assert.equal(JSON.parse(await readFile(path.join(root, 'package.json'), 'utf8')).private, true);
 });

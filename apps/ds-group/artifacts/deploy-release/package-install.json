@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "scope": "real local source archive build and npm pack/install plus installed CLI/central/admin initialization; no live Matrix claimed for this isolated package initialization",
+  "npm": {
+    "archive": "dscord-0.3.0-alpha.1.tgz",
+    "integrity": "sha512-vXhc6V75C6D4RV5Gc9uEoicTIw98QZRWw0cUcFOiBxC0mgK95UxJ6BbHUJDQ1kSxEFVketVkrTSEsTh+Zswzew==",
+    "shasum": "67d33d54dacedd6136116e2be22e8792a9eeb6ca",
+    "requiredFiles": [
+      "scripts/central-init.mjs",
+      "scripts/admin.mjs",
+      "src/identity.mjs",
+      "src/web-mode.mjs",
+      "src/admin.mjs",
+      "dist/web/client-config.json",
+      "dist/admin/index.html",
+      "deploy/synapse/dscord_guard.py"
+    ]
+  },
+  "initialization": {
+    "webMode": "api-only",
+    "centralMode": "central",
+    "registeredAccounts": 0,
+    "independentAdministratorDatabase": true
+  },
+  "modelCalls": 0
+}

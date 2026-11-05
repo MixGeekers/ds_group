@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-05T03:43:36.860Z",
+  "project": "ds-group-smoke-c2303a1ea0",
+  "platform": "darwin/arm64",
+  "runner": {
+    "platform": "darwin",
+    "architecture": "arm64"
+  },
+  "scriptSha256": "7c8a468043a7ae1839f2b1b8788f77c44d5c5025784efe150a5c2ab7f0ddc509",
+  "level": "real-container-matrix-http",
+  "image": "dscord:deploy-release-final",
+  "modelCalls": 0,
+  "checks": [
+    "freshVolumesReady",
+    "serverRequiresLogin",
+    "matrixLoginGroupAndMessage",
+    "pwaManifest",
+    "remoteNodeExport",
+    "exportedNodeImportsConnectsAndSyncs",
+    "recreatePreservesUsersRoomTokensSecretsVapidAndHistory",
+    "retryAfterRecreateDeduplicates",
+    "backupRestoreToFreshVolumes",
+    "zeroModelCalls"
+  ],
+  "adapter": {
+    "core": "real-container",
+    "matrix": "real-container",
+    "adapter": "real-host-process",
+    "inferenceBridge": "registration-only-fixture",
+    "generationCalls": 0
+  },
+  "loadedCoreSha256": "29dc0f91590f9d0e7bf72a04afa7b8573292155130b6f29cda79254fbec3a156",
+  "status": "passed",
+  "cleanedUp": true,
+  "completedAt": "2026-11-05T03:44:30.111Z"
+}
