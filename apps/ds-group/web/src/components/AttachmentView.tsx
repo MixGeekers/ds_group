@@ -10,6 +10,8 @@ export interface AttachmentViewProps {
   session: Session | null;
   request?: RawRequest;
   roomId?: string;
+  eventId?: string;
+  allowLegacy?: boolean;
   onError?: (message: string) => void;
 }
 
@@ -25,6 +27,8 @@ export function AttachmentView({
   session,
   request,
   roomId,
+  eventId,
+  allowLegacy,
   onError,
 }: AttachmentViewProps) {
   const t = useTranslation(artifactMessages);
@@ -65,6 +69,8 @@ export function AttachmentView({
       getSession: () => sessionRef.current,
       request,
       roomId,
+      eventId,
+      allowLegacy,
       onPreview: openPreview,
       onError: (message) => {
         setError(message);
@@ -88,6 +94,8 @@ export function AttachmentView({
     session?.access_token,
     request,
     roomId,
+    eventId,
+    allowLegacy,
     openPreview,
   ]);
 

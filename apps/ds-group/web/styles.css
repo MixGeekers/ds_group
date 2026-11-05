@@ -402,3 +402,14 @@ legend { color: var(--color-text-secondary); font-weight: var(--font-weight-semi
 }
 .workspace-switcher { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); width: 100%; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: inherit; text-align: left; cursor: pointer; }
 .workspace-switcher:focus-visible { outline: 2px solid var(--color-focus); outline-offset: var(--space-2); border-radius: var(--radius-sm); }
+
+.bot-work-grants .identity-value { color: var(--color-text-muted); font-size: var(--font-size-sm); }
+.work-grant-list { display: grid; gap: var(--space-8); margin-block: var(--space-8); }
+.work-grant-row { min-width: 0; margin: 0; padding: var(--space-8); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); }
+.work-grant-row legend { padding-inline: var(--space-2); font-weight: 600; overflow-wrap: anywhere; }
+.work-grant-row h4 { margin: var(--space-8) 0 var(--space-4); }
+.work-grant-people, .work-grant-tools { display: grid; gap: var(--space-4); }
+.work-grant-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.work-grant-row .check-label { align-items: flex-start; }
+.work-grant-row .check-label input { flex-shrink: 0; margin-top: var(--space-1); }
+.bot-work-grants .settings-actions { flex-wrap: wrap; }

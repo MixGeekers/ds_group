@@ -12,6 +12,8 @@ const pageErrors = [];
 const records = [];
 const assetRequests = [];
 const trapRequests = [];
+const routeFailures = [];
+const privateRouteJobs = new Set();
 const servers = [];
 const output = path.join(packageRoot, ".local/unified-client-browser");
 const homeUser = "@alice:home.test";
@@ -77,6 +79,9 @@ const state = {
   uploads: [],
   messages: [],
   logout: [],
+  grantDoc: { revision: 0, grants: [] },
+  grantWrites: [],
+  grantFailure: null,
   configMode: "split",
   holdMessage: false,
   delayedMessages: null,
@@ -299,6 +304,28 @@ async function apiHandler(request, response, origin = homeOrigin) {
     state.tokens.delete(token);
     return json(response, 200, { loggedOut: true });
   }
+  const ownerGrant = url.pathname.match(/^\/api\/bots\/([^/]+)\/work-grants$/);
+  if (ownerGrant) {
+    if (
+      decodeURIComponent(ownerGrant[1]) !== botId ||
+      userId !== homeUser ||
+      state.grantFailure === "denied"
+    )
+      return json(response, 403, {
+        error: "Only the original owner may save grants",
+      });
+    if (request.method === "GET") return json(response, 200, state.grantDoc);
+    const input = JSON.parse(await readBody(request));
+    state.grantWrites.push(input);
+    if (input.revision !== state.grantDoc.revision)
+      return json(response, 409, { error: "Permissions changed elsewhere" });
+    state.grantDoc = { revision: input.revision + 1, grants: input.grants };
+    if (state.grantFailure === "unknown") {
+      state.grantFailure = null;
+      return json(response, 503, { error: "Receipt lost after saving" });
+    }
+    return json(response, 200, state.grantDoc);
+  }
   if (url.pathname === "/api/rooms")
     return json(response, 200, {
       rooms: [...roomRows, ...(state.direct ? [state.direct] : [])].filter(
@@ -343,6 +370,38 @@ async function apiHandler(request, response, origin = homeOrigin) {
       origin,
     });
     return json(response, 200, { attachment });
+  }
+  const proofMedia = url.pathname.match(
+    /^\/api\/rooms\/([^/]+)\/attachments\/([^/]+)(\/metadata)?$/,
+  );
+  if (proofMedia) {
+    const roomId = decodeURIComponent(proofMedia[1]);
+    if (
+      !state.joined.has(roomId) ||
+      (roomId === aRoom && state.aRestricted) ||
+      state.mediaDenied
+    )
+      return json(response, 403, { error: "Room media permission revoked" });
+    if (url.searchParams.get("eventId") !== "$same-event-fixture")
+      return json(response, 404, {
+        error: "This exact message does not prove the attachment",
+      });
+    if (proofMedia[3])
+      return json(response, 200, {
+        attachment: {
+          id: decodeURIComponent(proofMedia[2]),
+          name: "same.txt",
+          mimeType: "text/plain",
+          size: 7,
+        },
+        proof: { roomId, eventId: url.searchParams.get("eventId") },
+      });
+    response.writeHead(200, {
+      "Content-Type": "text/plain",
+      "Cache-Control": "no-store",
+    });
+    response.end(roomId === bRoom ? "B bytes" : "A bytes");
+    return;
   }
   if (url.pathname.startsWith("/api/attachments/")) {
     const roomId = url.searchParams.get("roomId");
@@ -608,6 +667,32 @@ try {
   checks.push(
     "acceptedInvitationUsesHomeJoinAndFullRoomIdWithSeparateAttachmentBytes",
   );
+  const oldRouteReads = records.filter(
+    (row) => row.method === "GET" && row.path.startsWith("/api/attachments/"),
+  ).length;
+  state.mediaDenied = true;
+  await page
+    .locator('.attachment-card button[aria-label="Download same.txt"]')
+    .click();
+  await page
+    .locator(".attachment-view ~ .send-error, .message-attachments .send-error")
+    .filter({ hasText: "Room media permission revoked" })
+    .waitFor();
+  assert.equal(
+    records.filter(
+      (row) => row.method === "GET" && row.path.startsWith("/api/attachments/"),
+    ).length,
+    oldRouteReads,
+  );
+  state.mediaDenied = false;
+  await page
+    .locator('.attachment-card button[aria-label="Preview same.txt"]')
+    .click();
+  await page.locator(".preview-text").filter({ hasText: "B bytes" }).waitFor();
+  await page.locator("#close-preview").click();
+  checks.push(
+    "cachedAttachmentActionsRecheckOriginalEventProofAndNeverDowngradeOnPermissionDenial",
+  );
 
   await page.locator("#server-settings-button").click();
   assert.equal(
@@ -673,6 +758,122 @@ try {
         elements.map((element) => element.dataset.ownedBot),
       ),
     [botId],
+  );
+  await page.locator("[data-work-grants-button]").click();
+  await page.waitForFunction(
+    () => !document.querySelector("#add-work-grant").disabled,
+  );
+  assert.equal(state.grantWrites.length, 0);
+  await page.locator("#add-work-grant").click();
+  await page.locator("#work-grant-room-0").selectOption(aRoom);
+  await page.locator("[data-grant-enabled]").check();
+  await page.locator("#save-work-grants").click();
+  await page
+    .locator("#work-grant-feedback")
+    .filter({ hasText: "at least one person" })
+    .waitFor();
+  assert.equal(state.grantWrites.length, 0);
+  assert.deepEqual(
+    await page
+      .locator("[data-grant-tool]")
+      .evaluateAll((elements) =>
+        elements.map((element) => element.dataset.grantTool),
+      ),
+    ["read", "write", "edit", "read_image"],
+  );
+  await page.locator('[data-grant-requester="@bob:a.test"]').check();
+  await page.locator('[data-grant-tool="read"]').check();
+  await page.locator('[data-grant-tool="write"]').check();
+  await page.locator("#save-work-grants").click();
+  await page
+    .locator("#work-grant-feedback")
+    .filter({ hasText: "Permissions saved" })
+    .waitFor();
+  assert.deepEqual(state.grantDoc, {
+    revision: 1,
+    grants: [
+      {
+        roomId: aRoom,
+        requesterIds: ["@bob:a.test"],
+        tools: ["read", "write"],
+        enabled: true,
+      },
+    ],
+  });
+  checks.push(
+    "ownedBotGrantsUseExactRoomFullRequesterIdsFourFileToolsAndExplicitVersionedSave",
+  );
+
+  state.grantDoc = {
+    revision: 2,
+    grants: [{ ...state.grantDoc.grants[0], tools: ["read"] }],
+  };
+  await page.locator('[data-grant-tool="edit"]').check();
+  await page.locator("#save-work-grants").click();
+  await page
+    .locator("#work-grant-feedback")
+    .filter({ hasText: "changed elsewhere" })
+    .waitFor();
+  assert.equal(
+    await page.locator('[data-grant-tool="edit"]').isChecked(),
+    true,
+  );
+  assert.equal(await page.locator("#save-work-grants").isDisabled(), true);
+  await page.locator("#reload-work-grants").click();
+  await page.waitForFunction(
+    () => !document.querySelector("#add-work-grant").disabled,
+  );
+  assert.equal(
+    await page.locator('[data-grant-tool="edit"]').isChecked(),
+    false,
+  );
+  state.grantFailure = "denied";
+  await page.locator("#reload-work-grants").click();
+  await page
+    .locator("#work-grant-feedback")
+    .filter({ hasText: "Permission denied" })
+    .waitFor();
+  assert.equal(await page.locator("[data-grant-tool]").count(), 0);
+  state.grantFailure = null;
+  await page.locator("#reload-work-grants").click();
+  await page.waitForFunction(
+    () => !document.querySelector("#add-work-grant").disabled,
+  );
+  state.grantFailure = "unknown";
+  await page.locator('[data-grant-tool="write"]').check();
+  await page.locator("#save-work-grants").click();
+  await page
+    .locator("#work-grant-feedback")
+    .filter({ hasText: "not confirmed" })
+    .waitFor();
+  assert.equal(await page.locator("#save-work-grants").isDisabled(), true);
+  await page.locator("#reload-work-grants").click();
+  await page.waitForFunction(
+    () => !document.querySelector("#add-work-grant").disabled,
+  );
+  assert.equal(
+    await page.locator('[data-grant-tool="write"]').isChecked(),
+    true,
+  );
+  await page.locator("[data-grant-enabled]").uncheck();
+  await page.locator("#save-work-grants").click();
+  await page
+    .locator("#work-grant-feedback")
+    .filter({ hasText: "Permissions saved" })
+    .waitFor();
+  assert.equal(state.grantDoc.grants[0].enabled, false);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: path.join(output, "owner-grants-mobile.png") });
+  assert.ok(
+    await page.locator("#my-bots-dialog").evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return box.left >= 0 && box.right <= innerWidth + 1;
+    }),
+  );
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  checks.push(
+    "ownerGrantConflictDenialUnknownSaveAndExplicitRevocationKeepAuthoritativeState",
   );
   await page.locator("#my-bots-dialog .dialog-heading button").click();
   checks.push(
@@ -980,33 +1181,41 @@ try {
     },
     { homeUser, homeRoom },
   );
-  await privateContext.route(privateOrigin + "/**", async (route) => {
-    const request = route.request();
-    const url = new URL(request.url());
-    if (url.pathname === "/.well-known/dscord/client") {
-      return route.fulfill({
-        contentType: "application/json",
-        body: JSON.stringify({
-          ...publicConfig(privateOrigin),
-          home: {
-            ...publicConfig(privateOrigin).home,
-            matrixUrl: "http://10.30.40.50:18008",
-          },
-        }),
+  await privateContext.route(privateOrigin + "/**", (route) => {
+    const work = (async () => {
+      const request = route.request();
+      const url = new URL(request.url());
+      if (url.pathname === "/.well-known/dscord/client") {
+        return route.fulfill({
+          contentType: "application/json",
+          body: JSON.stringify({
+            ...publicConfig(privateOrigin),
+            home: {
+              ...publicConfig(privateOrigin).home,
+              matrixUrl: "http://10.30.40.50:18008",
+            },
+          }),
+        });
+      }
+      const response = await route.fetch({
+        url: request.url().replace(privateOrigin, clientOrigin),
       });
-    }
-    const response = await route.fetch({
-      url: request.url().replace(privateOrigin, clientOrigin),
+      if (url.pathname === "/api/me") {
+        const profile = await response.json();
+        profile.home = {
+          ...publicConfig(privateOrigin).home,
+          matrixUrl: "http://10.30.40.50:18008",
+        };
+        return route.fulfill({ response, body: JSON.stringify(profile) });
+      }
+      return route.fulfill({ response });
+    })();
+    const tracked = work.catch((error) => {
+      routeFailures.push(error.message);
     });
-    if (url.pathname === "/api/me") {
-      const profile = await response.json();
-      profile.home = {
-        ...publicConfig(privateOrigin).home,
-        matrixUrl: "http://10.30.40.50:18008",
-      };
-      return route.fulfill({ response, body: JSON.stringify(profile) });
-    }
-    return route.fulfill({ response });
+    privateRouteJobs.add(tracked);
+    void tracked.finally(() => privateRouteJobs.delete(tracked));
+    return tracked;
   });
   const privatePage = await privateContext.newPage();
   privatePage.on("pageerror", (error) => pageErrors.push(error.message));
@@ -1044,6 +1253,9 @@ try {
   );
   assert.equal(state.messages.at(-1).userId, homeUser);
   assert.match(state.messages.at(-1).body.transactionId, /^[a-f0-9-]{36}$/);
+  await privateContext.unrouteAll({ behavior: "wait" });
+  await Promise.all([...privateRouteJobs]);
+  assert.deepEqual(routeFailures, []);
   await privateContext.close();
   checks.push(
     "normalEntryPreservesPrivateHttpSameOriginSessionAndPrivateMatrixDiscoveryWithRouteBackedOrigin",
@@ -1102,6 +1314,7 @@ try {
       "Production build and real Chromium, separate static/home/discovery HTTP origins with synthetic API fixtures; no real Matrix or model calls",
     checks,
     pageErrors,
+    routeFailures,
     credentialOrigins: [
       ...new Set(
         records.filter((row) => row.authorization).map((row) => row.origin),

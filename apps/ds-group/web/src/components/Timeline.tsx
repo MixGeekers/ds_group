@@ -24,6 +24,7 @@ export interface TimelineProps {
   participants: Participant[];
   session: Session | null;
   request?: RawRequest;
+  allowLegacyMedia?: boolean;
   mentionables: Mentionables;
   roles: Role[];
   onReply(event: ChatEvent): void;
@@ -334,6 +335,8 @@ export function Timeline(props: TimelineProps) {
                             session={props.session}
                             request={props.request}
                             roomId={event.room_id}
+                            eventId={event.event_id}
+                            allowLegacy={props.allowLegacyMedia}
                           />
                         ))}
                       </div>

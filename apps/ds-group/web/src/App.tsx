@@ -81,8 +81,9 @@ function mergeEvents(
     )
       continue;
     const current = known.get(event.event_id);
-    if (!current || JSON.stringify(current) !== JSON.stringify(event))
-      known.set(event.event_id, event);
+    const normalized = event.room_id ? event : { ...event, room_id: roomId };
+    if (!current || JSON.stringify(current) !== JSON.stringify(normalized))
+      known.set(event.event_id, normalized);
   }
   const result = [...known.values()].sort(
     (left, right) => left.origin_server_ts - right.origin_server_ts,
@@ -144,6 +145,7 @@ export default function App({
     ClientDiscovery | null | undefined
   >(undefined);
   const [verified, setVerified] = useState(false);
+  const [allowLegacyMedia, setAllowLegacyMedia] = useState(false);
   const [connection, setConnection] = useState<
     "connecting" | "connected" | "offline"
   >("connecting");
@@ -311,6 +313,7 @@ export default function App({
     setMentionCount(0);
     resetConversation();
     setVerified(false);
+    setAllowLegacyMedia(false);
     setSettingsTab(null);
     setCreateBotOpen(false);
     setBotsOpen(false);
@@ -332,6 +335,7 @@ export default function App({
   useEffect(() => {
     const controller = new AbortController();
     setHomeDiscovery(undefined);
+    setAllowLegacyMedia(false);
     void discoverHome(config, controller.signal)
       .then((discovery) => {
         if (controller.signal.aborted) return;
@@ -581,6 +585,7 @@ export default function App({
         setStatus(runtime);
         setConnection("connected");
         setVerified(true);
+        setAllowLegacyMedia(collaboration === null && homeDiscovery === null);
         setError("");
         let space =
           facts.spaces.find((value) => value.serverName === targetServer) ??
@@ -1205,6 +1210,7 @@ export default function App({
           participants={participants}
           session={session}
           request={rawRequest}
+          allowLegacyMedia={allowLegacyMedia}
           mentionables={joinedMentionables}
           roles={roles}
           onReply={(event) => {
@@ -1401,6 +1407,9 @@ export default function App({
       <MyBotsDialog
         open={botsOpen}
         bots={ownedBots}
+        api={api}
+        rooms={spaces.flatMap((space) => roomsInSpace(allRooms, space))}
+        participants={participants}
         status={status}
         session={session}
         onClose={() => setBotsOpen(false)}

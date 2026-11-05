@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-04",
+  "baseClientCommit": "b784987de5fadf679aed56c352cc4aef395826e9",
+  "status": "implemented-and-fixture-verified; real-backend-pending",
+  "ownerGrants": {
+    "path": "GET|PUT /api/bots/:botId/work-grants",
+    "tools": [
+      "read",
+      "write",
+      "edit",
+      "read_image"
+    ],
+    "scope": "Actual owned Bot, known joined room, complete human MXIDs. Explicit save with CAS revision; reject and unknown result never become optimistic success. Conflict preserves draft and locks until explicit reload."
+  },
+  "media": {
+    "download": "GET /api/rooms/:roomId/attachments/:id?eventId=:originalMessageEventId",
+    "metadata": "Same path plus /metadata before query",
+    "scope": "Pinned home Core only. Current event proof and matching descriptor are rechecked before using cached bytes.",
+    "legacy": "Only positively identified old discovery/spaces 404 family, proof route 404, authorized matching legacy metadata, and current home mxc namespace. Never downgrade 401/403/409 or a foreign/colliding/digest/size mismatch."
+  },
+  "fixtureLifecycle": "Track route body-copy jobs; unrouteAll behavior wait; await jobs and assert no failures before context close.",
+  "validation": {
+    "moduleTests": 304,
+    "browserTestFiles": 8,
+    "productionFixtureChecks": 19,
+    "realBackend": false,
+    "modelCalls": 0,
+    "routeFailures": []
+  },
+  "sourceSha256": {
+    "web/src/App.tsx": "503b44d08c1b46e50332b2705c5f62378cb285ef219323ed12481971a4a292cc",
+    "web/src/bot-work-grants.ts": "b892efd09ed17680f2704133c9d27106a7b09dbf8ad6b6b2a8b84993158e4a51",
+    "web/src/attachment-proof.ts": "f940beeee98f5399db15b96685248ff7c9d2d1a9a037eaf1658fb206d944cb61",
+    "web/src/components/BotWorkGrants.tsx": "65cc9aa975d16d15c8accc695bd37b01bfbe51499d88363e6d4a4db6abc2bd0b",
+    "web/src/components/MyBotsDialog.tsx": "65ef2a44c3d05d71ca5f085528e68e1319e5d39bd0ef8257be1475ebded92fbc",
+    "web/src/components/AttachmentView.tsx": "995fadaf0b3d47dc2ab10226af76a5afb81c4a9c31147fbb0aaa2475965f871f",
+    "web/src/components/Timeline.tsx": "ddcbc930dae3e51a5e09d6af3b58eb6187120363b7f314e75ded66c3d321e58c",
+    "web/attachments.js": "f5f9b49904fdd53e454320b5f8cb205693dfb967daaf88370c8004ca007b7988",
+    "tests/client-work-grants.test.mjs": "a54094d03b8bdd66b5a2038a415aa23d230b101e8383a19f7459906d9af241b3",
+    "tests/unified-client.browser.mjs": "d10c4b9e125b5f8434b9d759bda33b80ffcccbadb44afe694cac38ab6c99707d"
+  }
+}

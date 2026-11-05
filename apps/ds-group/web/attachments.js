@@ -1,6 +1,7 @@
 import { t, formatFileSize, onLocaleChange } from "./i18n.js";
 import { createActionIcon, createFileIcon } from "./src/icons.ts";
 import { newRequestId } from "./src/identifiers.ts";
+import { attachmentResponse } from "./src/attachment-proof.ts";
 
 export { formatFileSize } from "./i18n.js";
 
@@ -451,7 +452,15 @@ export function createAttachmentManager({
 /** A message attachment loads its bytes with the current account's credential. */
 export function renderAttachmentCard(
   attachment,
-  { getSession, request, roomId, onPreview, onError = () => {} } = {},
+  {
+    getSession,
+    request,
+    roomId,
+    eventId,
+    allowLegacy = false,
+    onPreview,
+    onError = () => {},
+  } = {},
 ) {
   const card = node("article", "attachment-card");
   card.dataset.attachmentId = attachment.id;
@@ -471,35 +480,51 @@ export function renderAttachmentCard(
   let disposed = false;
   let busy = false;
 
+  async function readResponse(metadata, session) {
+    const response = await attachmentResponse({
+      request:
+        request ??
+        ((route, init) =>
+          fetch(route, {
+            ...init,
+            headers: { Authorization: `Bearer ${session.access_token}` },
+            credentials: "omit",
+            redirect: "error",
+            cache: "no-store",
+          })),
+      attachment,
+      source: { roomId, eventId },
+      allowLegacy,
+      homeServerName: session.user_id.slice(session.user_id.indexOf(":") + 1),
+      metadata,
+      signal: AbortSignal.any([
+        controller.signal,
+        AbortSignal.timeout(5 * 60 * 1000),
+      ]),
+    });
+    if (!response.ok) {
+      const result = await response.json().catch(() => null);
+      throw new Error(
+        typeof result?.error === "string"
+          ? result.error
+          : t("files.readHttpError", { status: response.status }),
+      );
+    }
+    return response;
+  }
+
   async function loadBlob() {
     const session = getSession();
     if (!session?.access_token) throw new Error(t("files.signInDownload"));
-    if (loadedBlob && loadedForUser === identity()) return loadedBlob;
     if (pendingBlob) return pendingBlob;
     pendingBlob = (async () => {
       const expectedIdentity = identity();
-      const route = `/api/attachments/${encodeURIComponent(attachment.id)}${roomId ? `?roomId=${encodeURIComponent(roomId)}` : ""}`;
-      const response = await (request ?? fetch)(route, {
-        ...(!request
-          ? { headers: { Authorization: `Bearer ${session.access_token}` } }
-          : {}),
-        credentials: "omit",
-        redirect: "error",
-        cache: "no-store",
-        signal: AbortSignal.any([
-          controller.signal,
-          AbortSignal.timeout(5 * 60 * 1000),
-        ]),
-      });
-      if (!response.ok) {
-        const result = await response.json().catch(() => null);
-        throw new Error(
-          typeof result?.error === "string"
-            ? result.error
-            : t("files.readHttpError", { status: response.status }),
-        );
-      }
-      const blob = await response.blob();
+      const cached = loadedBlob && loadedForUser === expectedIdentity;
+      // A cached preview still needs a current room/event authorization before another action.
+      if (cached && roomId && eventId) await readResponse(true, session);
+      const blob = cached
+        ? loadedBlob
+        : await (await readResponse(false, session)).blob();
       if (identity() !== expectedIdentity || disposed)
         throw new Error(t("files.accountChanged"));
       loadedBlob = blob;

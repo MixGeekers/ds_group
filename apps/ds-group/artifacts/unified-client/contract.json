@@ -151,5 +151,14 @@
     "README.md: client implementation and deployment links; upload state wording",
     "scripts/release-pack.mjs: include unified-client implementation record in source archive"
   ],
-  "evidencePolicy": "Executable synthetic APIs, normal UI with real local Core/Synapse, real federation and physical cross-machine acceptance are reported independently."
+  "evidencePolicy": "Executable synthetic APIs, normal UI with real local Core/Synapse, real federation and physical cross-machine acceptance are reported independently.",
+  "increments": [
+    {
+      "name": "owner grants and room/event media proof",
+      "contract": "owner-grants-media.json",
+      "moduleTests": 304,
+      "productionFixtureChecks": 19,
+      "realBackend": "pending final backend integration"
+    }
+  ]
 }
