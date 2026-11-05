@@ -19,6 +19,7 @@ import { NodeCredentials, requireNodeScope } from './node-auth.mjs';
 import { nodeBundle } from '../scripts/server-admin.mjs';
 import { Governance, serverOf, roomAllows } from './governance.mjs';
 import { CollaborationService } from './collaboration.mjs';
+import { RoomMedia } from './room-media.mjs';
 import { readJsonBody } from './http-json.mjs';
 export { readJsonBody } from './http-json.mjs';
 
@@ -83,6 +84,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   }
   const governance = new Governance({ dataRoot, serverName: setup.serverName });
   const collaboration = new CollaborationService({ setup, governance, accounts });
+  const roomMedia = new RoomMedia({ governance });
   const directorySetup = { ...setup, participants: [] };
   const nodeCredentials = await new NodeCredentials({ dataRoot, setup, legacySecret: config.nodeSecret }).initialize();
   const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
@@ -191,7 +193,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     finally { sendingMessages.delete(key); }
   }
   function nodeSnapshot() {
-    return publicParticipants().filter(p => p.kind === 'bot').map(participant => {
+    return accounts.publicParticipants().filter(p => p.kind === 'bot').map(participant => {
       const active = nodes.get(participant.id);
       if (!active) return { id: participant.localpart, botId: participant.id, name: participant.name, status: 'offline', engine: 'DS-Bot 0.2.7' };
       return { ...active, status: Date.now() - active.heartbeatAt > 20000 ? 'offline' : active.status };
@@ -285,6 +287,16 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
       return chatFeatures.handle({ request, url, userId, client, readJsonBody, send });
+    }
+    const roomAttachment = url.pathname.match(/^\/api\/rooms\/([^/]+)\/attachments\/([^/]+)(\/metadata)?$/);
+    if (request.method === 'GET' && roomAttachment) {
+      const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
+      const { user_id: userId } = await client.whoami();
+      if (serverOf(userId) !== setup.serverName || accounts.row(userId)?.status !== 'active') return send(403, { error: 'An active home identity is required' });
+      const proven = await roomMedia.prove({ client, userId, roomId: decodeURIComponent(roomAttachment[1]),
+        attachmentId: decodeURIComponent(roomAttachment[2]), eventId: url.searchParams.get('eventId') });
+      if (roomAttachment[3]) return send(200, proven);
+      return media.download({ verifiedAttachment: proven.attachment, client, request, response, asDownload: url.searchParams.get('download') === '1' });
     }
     if (url.pathname === '/api/attachments' || url.pathname.startsWith('/api/attachments/')) {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
@@ -455,7 +467,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
       if (request.method === 'POST' && url.pathname === '/internal/model/complete') return send(200, budget.complete(input, scope || {}));
       if (request.method === 'POST' && url.pathname === '/internal/nodes/heartbeat') {
         requireNodeScope(scope, { botId: input.botId, nodeId: input.id });
-        const participant = publicParticipants().find(p => p.id === input.botId && p.kind === 'bot');
+        const participant = accounts.publicParticipants().find(p => p.id === input.botId && p.kind === 'bot');
         if (!participant || typeof input.id !== 'string' || !input.id) return send(400, { error: 'Unknown Bot node' });
         const current = nodes.get(input.botId);
         if (current && current.status !== 'offline' && current.runtimeId !== input.runtimeId && Date.now() - current.heartbeatAt < 20000) return send(409, { error: 'Node already has an active runtime' });

@@ -317,3 +317,18 @@ export function roomAcl(policy, rule) {
     deny: [],
   };
 }
+
+export function roomWorkPolicy(policy, rule) {
+  return {
+    schemaVersion: 1,
+    roomId: rule.roomId,
+    authority: policy.serverName,
+    issuerId: `@dscord-control:${policy.serverName}`,
+    revision: policy.revision,
+    enabled: rule.enabled,
+    localMemberAdmission: "matrix-membership",
+    botIds: (rule.botIds || []).filter((id) => admitted(policy, id)),
+    tools: rule.tools || [],
+    memberIds: (rule.memberIds || []).filter((id) => admitted(policy, id)),
+  };
+}

@@ -165,18 +165,16 @@
     ]
   },
   "futureSlices": [
-    "room-proven foreign attachments",
     "owner/server/node work intersection and execution rechecks",
-    "real A/B federation and unapproved C rejection",
     "in-flight revocation and delivery",
     "central identity integration and unified-client browser verification",
     "physical cross-machine validation"
   ],
   "evidence": {
-    "moduleRegression": "288/288 passed",
+    "moduleRegression": "295/295 passed",
     "adminBuild": "TS7 and Vite production builds passed",
     "adminBrowser": "12 checks passed against real management HTTP and synthetic Matrix control adapter",
-    "realFederation": "9/9 real service scenarios passed; report federation-2026-11-05T03-23-45-456Z.json",
+    "realFederation": "10/10 real service scenarios passed, including versioned policy issuer and room-proven Core media/Range/denial checks",
     "modelCalls": 0,
     "physicalHostsTested": 1,
     "physicalCrossMachine": "not run",
@@ -186,5 +184,76 @@
     "association": "Explicit local roomId-to-authority registration; creator home used only for unregistered legacy initial-room compatibility",
     "authorization": "Synapse make_room_admin must succeed using an existing powered local moderator; control identity must then join and have actual state/ban power. A registration mapping alone cannot grant Matrix management rights."
   },
-  "federationEndpoints": "artifacts/governance/endpoints.json"
+  "federationEndpoints": "artifacts/governance/endpoints.json",
+  "roomWorkPolicy": {
+    "status": "validated against actual Synapse/Core/administration; report federation-2026-11-05T03-45-16-996Z.json",
+    "type": "org.dscord.work_policy",
+    "stateKey": "",
+    "content": {
+      "schemaVersion": 1,
+      "roomId": "!exact-room-id",
+      "authority": "authority.example",
+      "issuerId": "@dscord-control:authority.example",
+      "revision": 1,
+      "enabled": true,
+      "localMemberAdmission": "matrix-membership",
+      "memberIds": [
+        "@human:partner.example"
+      ],
+      "botIds": [
+        "@bot:partner.example"
+      ],
+      "tools": [
+        "read",
+        "write",
+        "edit",
+        "read_image"
+      ]
+    },
+    "source": "SynapseControl.apply publishes from the instance-local control identity only after actual membership revocations, invitation join rule, ACL publication and ACL readback succeed for that room. A failed or partial room application does not publish a new work grant.",
+    "issuer": "The guard requires the exact @dscord-control:<authority> sender and exact content derived from the current local policy. A room creator or another powered local user cannot replace it even with equivalent content.",
+    "association": "authority is the explicitly registered room authority, not the creator homeserver. Consumers pin it to their trusted local registration, not to arbitrary user metadata. No additional serverName alias is required.",
+    "permissions": "Publisher must actually be joined and have power >= max(50, threshold for m.room.join_rules, threshold for m.room.server_acl, threshold for org.dscord.work_policy, ban threshold). Each event-specific threshold overrides state_default for that event; Matrix independently checks actual event authorization.",
+    "version": "revision is the monotonically increasing authority governance revision at successful room application. Pin the actual Matrix event ID, room ID, issuer ID and content hash. A saved JSON revision alone is not an applied room state or a fresh remote authorization proof.",
+    "memberSemantics": "External identities in memberIds and botIds are filtered through the enabled exact partner/member admission list. Identities local to authority need actual joined membership (localMemberAdmission=matrix-membership); this is room admission only and does not bypass owner grants, Bot ceilings, task scope or node tool checks.",
+    "limits": "Federated state may lag during outages. This event is a published ceiling, not a claim that every tool has freshly confirmed the remote host’s latest private configuration. Bot execution/recheck/fail-closed behavior belongs to the Bot slice."
+  },
+  "mediaProof": {
+    "status": "validated against both real home Core APIs and Matrix federation; report federation-2026-11-05T03-45-16-996Z.json",
+    "metadata": {
+      "method": "GET",
+      "path": "/api/rooms/:encodedRoomId/attachments/:encodedAttachmentId/metadata?eventId=:encodedSourceEventId",
+      "response": {
+        "attachment": "Native descriptor from that exact actual Matrix event",
+        "proof": {
+          "roomId": "!exact-room-id",
+          "eventId": "$exact-source-event",
+          "senderId": "@actual-author:home.example",
+          "authority": "registered authority, creator compatibility fallback only",
+          "policyRevision": "current local home governance revision"
+        }
+      }
+    },
+    "download": {
+      "method": "GET",
+      "path": "/api/rooms/:encodedRoomId/attachments/:encodedAttachmentId?eventId=:encodedSourceEventId&download=1",
+      "headers": [
+        "Authorization: Bearer <home human or Bot Matrix token>",
+        "Range: bytes=start-end (optional)"
+      ],
+      "response": "private/no-store streaming bytes; 206 for supported byte range; content size checked against the proven descriptor"
+    },
+    "authorization": "Only an active registered local home identity. Fetch current actual joined membership, the exact event through the same home Matrix room endpoint, current room state and current local governance. Require unique attachment ID within that event, approved room/identity/partner, and an approved mxc media server. User-supplied URI/name/hash cannot substitute for a Matrix event proof.",
+    "credentialScope": "Ordinary token stays at its pinned home Core and home Matrix. The home Matrix handles federation; no remote Core receives the token.",
+    "errors": {
+      "400": "missing/invalid source event ID or unsafe descriptor",
+      "401": "home token rejected",
+      "403": "inactive/wrong-home identity, current membership or policy denied",
+      "404": "event or unique attachment reference not found",
+      "409": "ambiguous duplicate attachment identity in the event"
+    },
+    "size": "No separate hard-coded 50 MiB read cap. Existing core-config/DS_GROUP_MAX_UPLOAD_BYTES supports larger uploaded files, and later upload-limit changes do not revoke already stored bytes. Descriptor size must be a nonnegative safe integer; the existing media streaming/range checks apply. Node task file budgets remain independent.",
+    "legacy": "Existing /api/attachments/:id stays a local-upload-index API. Foreign attachment IDs are never imported into or guessed through that index. New clients use the room/event-qualified route; nodes may also prove room/event then use their own home Matrix authenticated media API.",
+    "revocation": "This API rechecks current home membership and governance on every request. It cannot erase already copied room history, known media references or previously downloaded bytes."
+  }
 }

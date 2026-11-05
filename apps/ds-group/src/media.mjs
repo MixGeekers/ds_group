@@ -171,8 +171,8 @@ export class MediaService {
     }
   }
 
-  async download({ id, client, request, response, asDownload = false }) {
-    const attachment = this.get(id);
+  async download({ id, verifiedAttachment, client, request, response, asDownload = false }) {
+    const attachment = verifiedAttachment || this.get(id);
     const range = request.headers.range;
     const selected = range ? byteRange(range, attachment.size) : undefined;
     if (selected === null) {

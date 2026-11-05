@@ -624,6 +624,7 @@ test("registered collaboration authority may differ from the central creator but
     let permission = "allowed";
     let mutations = 0;
     let acl;
+    let work;
     const self = "@dscord-control:home.test";
     const client = {
       whoami: async () => ({ user_id: self }),
@@ -640,17 +641,44 @@ test("registered collaboration authority may differ from the central creator but
         if (route.startsWith("/_synapse/admin/v1/rooms/"))
           return { creator: "@creator:central.test" };
         if (route.endsWith("/m.room.power_levels/"))
-          return { users: { [self]: permission === "insufficient" ? 0 : 100 } };
+          return permission === "event-specific"
+            ? {
+                state_default: 100,
+                events: {
+                  "m.room.server_acl": 50,
+                  "m.room.join_rules": 50,
+                  "org.dscord.work_policy": 50,
+                },
+                users: { [self]: 50 },
+              }
+            : { users: { [self]: permission === "insufficient" ? 0 : 100 } };
         if (route.endsWith("/joined_members"))
           return { joined: { [self]: {} } };
-        if (route.endsWith("/members")) return { chunk: [] };
+        if (route.endsWith("/members"))
+          return {
+            chunk:
+              permission === "ban-failure"
+                ? [
+                    {
+                      state_key: "@revoked:partner.test",
+                      content: { membership: "join" },
+                    },
+                  ]
+                : [],
+          };
+        if (route.endsWith("/ban"))
+          throw Object.assign(new Error("Cannot ban a higher-powered member"), {
+            status: 403,
+          });
         if (method === "PUT") {
           mutations++;
           if (route.endsWith("/m.room.server_acl/")) acl = body;
-          return {};
+          if (route.endsWith("/org.dscord.work_policy/")) work = body;
+          return { event_id: `$publication-${mutations}` };
         }
         if (route.endsWith("/m.room.server_acl/"))
           return Object.fromEntries(Object.entries(acl).reverse());
+        if (route.endsWith("/org.dscord.work_policy/")) return work;
         throw new Error("Unexpected Matrix request " + route);
       },
     };
@@ -667,6 +695,15 @@ test("registered collaboration authority may differ from the central creator but
     const allowed = await control.apply(policy.revision);
     assert.equal(allowed.application.rooms[0].status, "applied");
     assert.equal(mutations, 3);
+    permission = "ban-failure";
+    mutations = 0;
+    const partial = await control.apply(policy.revision);
+    assert.equal(partial.application.rooms[0].status, "partial");
+    assert.equal(mutations, 0);
+    assert.match(
+      partial.application.rooms[0].error,
+      /new ACL and work policy were not published/,
+    );
     for (permission of ["denied", "insufficient"]) {
       mutations = 0;
       const denied = await control.apply(policy.revision);
@@ -679,6 +716,13 @@ test("registered collaboration authority may differ from the central creator but
           : /lacks actual Matrix/,
       );
     }
+    permission = "event-specific";
+    mutations = 0;
+    assert.equal(
+      (await control.apply(policy.revision)).application.rooms[0].status,
+      "applied",
+    );
+    assert.equal(mutations, 3);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

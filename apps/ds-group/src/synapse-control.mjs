@@ -8,6 +8,7 @@ import {
   partnersOf,
   roomAllows,
   roomAcl,
+  roomWorkPolicy,
   policyError,
 } from "./governance.mjs";
 import { packageRoot } from "./paths.mjs";
@@ -281,10 +282,12 @@ export class SynapseControl {
           ]);
           const level = power.users?.[self] ?? power.users_default ?? 0;
           const required = Math.max(
-            power.state_default ?? 50,
-            power.events?.["m.room.server_acl"] ?? 50,
-            power.events?.["m.room.join_rules"] ?? 50,
-            power.events?.["org.dscord.work_policy"] ?? 50,
+            50,
+            power.events?.["m.room.server_acl"] ?? power.state_default ?? 50,
+            power.events?.["m.room.join_rules"] ?? power.state_default ?? 50,
+            power.events?.["org.dscord.work_policy"] ??
+              power.state_default ??
+              50,
             power.ban ?? 50,
           );
           if (!joined.joined?.[self] || level < required)
@@ -327,33 +330,50 @@ export class SynapseControl {
               result.bans.push({ id, status: "failed", error: error.message });
             }
           }
+          if (result.bans.some((row) => row.status === "failed")) {
+            throw new Error(
+              "Member revocation is incomplete; new ACL and work policy were not published",
+            );
+          }
           const acl = roomAcl(policy, rule);
           await client.request("PUT", `${base}/m.room.join_rules/`, {
             join_rule: "invite",
           });
           await client.request("PUT", `${base}/m.room.server_acl/`, acl);
-          // This event contains public collaboration limits, never owner grants or credentials.
-          const work = {
-            revision: policy.revision,
-            authority: policy.serverName,
-            enabled: rule.enabled,
-            botIds: rule.botIds || [],
-            tools: rule.tools || [],
-            memberIds: rule.memberIds || [],
-          };
-          await client.request("PUT", `${base}/org.dscord.work_policy/`, work);
           const actual = await client.request(
             "GET",
             `${base}/m.room.server_acl/`,
           );
           if (!isDeepStrictEqual(actual, acl))
             throw new Error("Room ACL readback did not match");
-          result.status = result.bans.some((row) => row.status === "failed")
-            ? "partial"
-            : "applied";
+          if ((await this.governance.read()).revision !== policy.revision)
+            throw new Error("Policy changed before work-policy publication");
+          // Publish only after membership and room rules have succeeded. This
+          // event contains public limits, never owner grants or credentials.
+          const work = roomWorkPolicy(policy, rule);
+          const receipt = await client.request(
+            "PUT",
+            `${base}/org.dscord.work_policy/`,
+            work,
+          );
+          const confirmed = await client.request(
+            "GET",
+            `${base}/org.dscord.work_policy/`,
+          );
+          if (!isDeepStrictEqual(confirmed, work))
+            throw new Error("Work-policy readback did not match");
+          result.workPolicy = {
+            eventId: receipt.event_id,
+            schemaVersion: 1,
+            revision: policy.revision,
+            issuerId: self,
+          };
+          result.status = "applied";
           result.acl = actual;
         } catch (error) {
-          result.status = "failed";
+          result.status = result.bans.some((row) => row.status === "failed")
+            ? "partial"
+            : "failed";
           result.error = error.message;
         }
         await save();

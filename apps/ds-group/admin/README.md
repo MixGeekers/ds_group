@@ -97,3 +97,11 @@ Compose 新增 `administration` 服务；通过 `docker compose -f deploy/compos
 Matrix ACL 不区分端口。本轮核对官方规范及固定 Synapse 源码后，以主机名作为有效 ACL 图案，并附带固定 Synapse 本地校验器所需的完整含端口名称。真正的伙伴名单和成员完整 ID 仍精确包含端口；ACL 不能独立隔离同一主机名的不同端口。
 
 空间发现补充：`/api/spaces` 以 `joined_rooms` 和当前完整 state 为加入事实，`/sync` 只补邀请。真实普通建群后已观察到单次 sync 缺少新房间，修补后仍正确展示；撤权房间保持 restricted。见 [真实回归](../artifacts/governance/spaces-2026-11-05T03-41-16-805Z.json)。
+
+## 房间证明附件与可信工作策略 v1
+
+新增 `GET /api/rooms/:roomId/attachments/:attachmentId[/metadata]?eventId=:sourceEventId`，由归属 Core 使用当前成员关系、真实 Matrix 事件和本地政策证明文件引用。下载支持 Range，普通 token 始终留在归属 Core/Matrix。完整字段及错误见 [契约](../artifacts/governance/contract.json) 的 `mediaProof`。读取不另设 50 MiB 硬上限，上传仍由既有 `maxUploadBytes` 与 Synapse 设置控制；已存文件不会因后续上传上限缩小而被误拒。实际 100 MiB 传输未验，尺寸验证为合成检查。
+
+`org.dscord.work_policy` 的 v1 content 包含 `schemaVersion/roomId/authority/issuerId/revision/enabled/localMemberAdmission/memberIds/botIds/tools`。发布者必须是本实例 `@dscord-control:<authority>`，实际 joined 且具有对应事件权限与至少 50 级管理能力。具体 state 事件门槛优先于 `state_default`。撤权、join rule、ACL 及回读成功后才发布；部分失败不发布新授权。普通房间创建者即使有管理权，也不能冒充该发布者。外部名单经当前伙伴/成员过滤；本服身份仍需实际成员关系，Bot 所有者/节点/任务授权另外取交集。联邦复制可能延迟，这不是每次工具都已核对远端最新配置的证明，执行层由 Bot 聊天继续。
+
+本切片 295 项模块通过，实际 10 项联邦场景通过，覆盖双向 Core 文件证明/字节/Range/拒绝以及工作策略发布者与版本，模型调用 0。[证据与精确范围](../artifacts/governance/media-policy-validation.json)。没有修改 Node、DSH 或任务实现。

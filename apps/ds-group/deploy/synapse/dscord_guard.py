@@ -200,10 +200,13 @@ class GovernanceModule:
         if event.type == "org.dscord.work_policy":
             if not local_room:
                 return False, None
-            expected = {"revision": policy["revision"], "authority": self.server,
+            expected = {"schemaVersion": 1, "roomId": event.room_id,
+                        "revision": policy["revision"], "authority": self.server,
+                        "issuerId": "@dscord-control:" + self.server,
+                        "localMemberAdmission": "matrix-membership",
                         "enabled": bool(row and row.get("enabled")),
-                        "botIds": row.get("botIds", []) if row else [],
+                        "botIds": [user for user in row.get("botIds", []) if self.admitted(policy, user)] if row else [],
                         "tools": row.get("tools", []) if row else [],
-                        "memberIds": row.get("memberIds", []) if row else []}
-            return event.content == expected, None
+                        "memberIds": [user for user in row.get("memberIds", []) if self.admitted(policy, user)] if row else []}
+            return event.sender == expected["issuerId"] and event.content == expected, None
         return True, None

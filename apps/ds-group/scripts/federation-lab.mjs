@@ -548,6 +548,8 @@ async function verify() {
     "src/collaboration.mjs",
     "src/governance.mjs",
     "src/synapse-control.mjs",
+    "src/room-media.mjs",
+    "src/media.mjs",
     "deploy/synapse/dscord_guard.py",
     "scripts/federation-lab.mjs",
   ])
@@ -853,6 +855,57 @@ async function verify() {
       },
     );
     await check(
+      "room work policy is versioned, published by the actual powered control identity and cannot be replaced by the creator",
+      async () => {
+        const state = await a.client.request(
+          "GET",
+          `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state`,
+        );
+        const event = state.find(
+          (row) =>
+            row.type === "org.dscord.work_policy" && row.state_key === "",
+        );
+        assert.ok(event);
+        assert.equal(event.content.schemaVersion, 1);
+        assert.equal(event.content.roomId, roomId);
+        assert.equal(event.content.authority, a.serverName);
+        assert.equal(event.content.issuerId, `@dscord-control:${a.serverName}`);
+        assert.equal(event.sender, event.content.issuerId);
+        assert.equal(event.content.revision, a.policy.revision);
+        const members = await a.client.request(
+          "GET",
+          `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`,
+        );
+        assert.ok(members.joined[event.sender]);
+        const power = state.find(
+          (row) => row.type === "m.room.power_levels",
+        ).content;
+        const threshold = Math.max(
+          50,
+          power.events?.["org.dscord.work_policy"] ?? power.state_default ?? 50,
+        );
+        assert.ok(
+          (power.users?.[event.sender] ?? power.users_default ?? 0) >=
+            threshold,
+        );
+        await assert.rejects(
+          a.client.request(
+            "PUT",
+            `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/state/org.dscord.work_policy/`,
+            event.content,
+          ),
+          { status: 403 },
+        );
+        return {
+          eventId: event.event_id,
+          issuerId: event.sender,
+          threshold,
+          content: event.content,
+        };
+      },
+    );
+    const attachmentProofs = new Map();
+    await check(
       "two-way Core text and attachment bytes traverse the authenticated home federation",
       async () => {
         const receipts = [];
@@ -883,36 +936,81 @@ async function verify() {
           const bytes = Buffer.from(
             `synthetic attachment from ${source.name}\n${body}\n`,
           );
-          const uploaded = await source.client.uploadMedia(bytes, {
-            filename: `${source.name}.txt`,
-            mimeType: "text/plain",
-            size: bytes.length,
-          });
-          const media = await source.client.send(roomId, "Shared attachment", {
-            transactionId: `${transactionId}-file`,
-            attachments: [
-              {
-                id: `attachment-${randomBytes(16).toString("hex")}`,
-                name: `${source.name}.txt`,
-                mimeType: "text/plain",
-                size: bytes.length,
-                sha256: digest(bytes),
-                contentUri: uploaded.content_uri,
+          const upload = await fetch(
+            new URL(
+              `/api/attachments?filename=${source.name}.txt`,
+              source.coreUrl,
+            ),
+            {
+              method: "POST",
+              redirect: "error",
+              headers: {
+                authorization: `Bearer ${source.alice.accessToken}`,
+                "content-type": "text/plain",
+                "x-upload-id": `${transactionId}-upload`,
               },
-            ],
-          });
+              body: bytes,
+            },
+          );
+          assert.equal(upload.status, 200);
+          const { attachment } = await upload.json();
+          const media = await api(
+            source,
+            `/api/rooms/${encodeURIComponent(roomId)}/messages`,
+            {
+              token: source.alice.accessToken,
+              body: {
+                body: "Shared attachment",
+                transactionId: `${transactionId}-file`,
+                attachments: [attachment.id],
+              },
+            },
+          );
           await poll(async () =>
             (await target.client.timeline(roomId, 100)).find(
               (event) => event.event_id === media.event_id,
             ),
           );
-          const response = await target.client.downloadMedia(
-            uploaded.content_uri,
-          );
+          const route = `/api/rooms/${encodeURIComponent(roomId)}/attachments/${encodeURIComponent(attachment.id)}`;
+          const query = `?eventId=${encodeURIComponent(media.event_id)}`;
+          const metadata = await api(target, `${route}/metadata${query}`, {
+            token: target.alice.accessToken,
+          });
+          assert.equal(metadata.proof.eventId, media.event_id);
+          assert.equal(metadata.proof.senderId, source.alice.id);
+          assert.equal(metadata.attachment.sha256, digest(bytes));
+          const response = await fetch(new URL(route + query, target.coreUrl), {
+            redirect: "error",
+            headers: { authorization: `Bearer ${target.alice.accessToken}` },
+          });
+          assert.equal(response.status, 200);
           assert.equal(
             digest(Buffer.from(await response.arrayBuffer())),
             digest(bytes),
           );
+          const range = await fetch(new URL(route + query, target.coreUrl), {
+            redirect: "error",
+            headers: {
+              authorization: `Bearer ${target.alice.accessToken}`,
+              Range: "bytes=0-7",
+            },
+          });
+          assert.equal(range.status, 206);
+          assert.deepEqual(
+            Buffer.from(await range.arrayBuffer()),
+            bytes.subarray(0, 8),
+          );
+          await api(
+            target,
+            `${route}/metadata?eventId=${encodeURIComponent(first.event_id)}`,
+            { token: target.alice.accessToken, expected: 404 },
+          );
+          if (target === b)
+            await api(target, `${route}/metadata${query}`, {
+              token: target.bob.accessToken,
+              expected: 403,
+            });
+          attachmentProofs.set(target.name, { route, query });
           receipts.push({
             source: source.alice.id,
             target: target.alice.id,
@@ -920,6 +1018,8 @@ async function verify() {
             attachmentEventId: media.event_id,
             sha256: digest(bytes),
             duplicateEventId: repeat.event_id,
+            attachmentProof: metadata.proof,
+            rangeVerified: true,
           });
         }
         return receipts;
@@ -1067,6 +1167,11 @@ async function verify() {
           }),
           { status: 403 },
         );
+        const proof = attachmentProofs.get(b.name);
+        await api(b, `${proof.route}/metadata${proof.query}`, {
+          token: b.alice.accessToken,
+          expected: 403,
+        });
         return {
           revokedIdentity: b.alice.id,
           bans: room.bans,
