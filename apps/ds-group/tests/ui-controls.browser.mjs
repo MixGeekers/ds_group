@@ -4,6 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { chromium } from "playwright";
 import { createServer } from "vite";
+import tailwindcss from "@tailwindcss/vite";
 import { packageRoot } from "../src/paths.mjs";
 
 const html = `<!doctype html>
@@ -11,6 +12,7 @@ const html = `<!doctype html>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <script src="/theme.js"></script>
   <link rel="stylesheet" href="/tokens.css">
+  <link rel="stylesheet" href="/@fs/${path.join(packageRoot, "ui/tailwind.css")}">
   <link rel="stylesheet" href="/@fs/${path.join(packageRoot, "ui/styles.css")}">
 </head><body><div id="root"></div><script type="module">
   import React from 'react';
@@ -43,7 +45,7 @@ const server = await createServer({
   configFile: false,
   root: path.join(packageRoot, "web"),
   cacheDir: path.join(temporary, "vite-cache"),
-  plugins: [{
+  plugins: [tailwindcss(), {
     name: "ui-controls-fixture",
     configureServer(vite) {
       vite.middlewares.use("/__controls", async (request, response, next) => {

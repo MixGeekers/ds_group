@@ -49,7 +49,7 @@
 
 首批第一次全套浏览器运行因旧 React App 夹具未加载新增共享浮层样式而失败；补齐夹具 CSS 后 9/9 通过。先前 PWA Portal 初始化过早和后台邀请按钮缺少 `type="submit"` 也由针对性测试发现并修复。第二批首次测试因旧用例点击 Base UI 隐藏 input 失败，改为点击可见角色控件后通过；目视截图发现建群复选框被旧 flex 样式拉长，已修复。独立探针又发现原生 reset 只恢复隐藏 input、不恢复 Base UI 可见状态，封装修复后有效与取消的 reset、后台实际页面均通过。失败及复验均保留为本轮历史，不当作真实服务器验收。
 
-实际 27 张截图位于被忽略的绝对路径 `/Users/caja/.codex/worktrees/dscord-platform-integration/apps/ds-group/.local/ui-foundation-review/`，`manifest.json` 列出每张图、视口、语言、主题、实际回环抓取地址和合成数据。聊天主流程图来自生产 web 构建的正常入口、独立合成归属服务；后台图来自实际 `createAdmin` HTTP 服务及合成控制器；身份组表单图来自真实 React 组件的浏览器夹具。抓取端口在测试完成后关闭，可运行 `node --test tests/unified-client.browser.mjs tests/admin.browser.mjs tests/ui-controls.browser.mjs tests/react-settings.browser.mjs` 重现。物理跨机、真实手机推送和真实模型行为没有在本 UI 切片中执行。生产构建仍有 Vite 对大于 500 kB 的聊天 JS chunk 与非 module 主题脚本的非阻断提示。
+实际 27 张截图位于被忽略的绝对路径 `/Users/caja/.codex/worktrees/dscord-platform-integration/apps/ds-group/.local/ui-foundation-review/`，`manifest.json` 列出每张图、视口、语言、主题、实际回环抓取地址和合成数据。聊天主流程图来自生产 web 构建的正常入口、独立合成归属服务；后台图来自实际 `createAdmin` HTTP 服务及合成控制器；身份组表单图来自真实 React 组件的浏览器夹具。独立共享控件夹具与生产入口一样加载 Tailwind Vite 插件、`ui/tailwind.css` 和 `ui/styles.css`；角色图另断言名称输入框宽度至少达到表单宽度的 95%。此前角色图只加载共享 CSS，名称框偏窄，该旧图已被重新生成的截图替换。抓取端口在测试完成后关闭，可运行 `node --test tests/unified-client.browser.mjs tests/admin.browser.mjs tests/ui-controls.browser.mjs tests/react-settings.browser.mjs` 重现。物理跨机、真实手机推送和真实模型行为没有在本 UI 切片中执行。生产构建仍有 Vite 对大于 500 kB 的聊天 JS chunk 与非 module 主题脚本的非阻断提示。
 
 ## 验收边界
 

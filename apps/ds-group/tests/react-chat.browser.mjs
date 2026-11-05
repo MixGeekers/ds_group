@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createServer } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 import { chromium } from 'playwright';
 import { packageRoot } from '../src/paths.mjs';
 
@@ -11,6 +12,7 @@ const html = `<!doctype html>
   <head>
     <script src="/theme.js"></script>
     <link rel="stylesheet" href="/tokens.css">
+    <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/tailwind.css')}">
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/@fs/${path.join(packageRoot, 'ui/styles.css')}">
   </head>
@@ -113,7 +115,7 @@ const server = await createServer({
   configFile: false,
   root: path.join(packageRoot, 'web'),
   cacheDir: path.join(temporary, 'vite-cache'),
-  plugins: [{
+  plugins: [tailwindcss(), {
     name: 'react-chat-fixture',
     configureServer(vite) {
       vite.middlewares.use('/__chat', async (request, response, next) => {
