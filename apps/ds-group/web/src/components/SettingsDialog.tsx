@@ -1,18 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { initializePwa } from "../../pwa.js";
-import { formatNumber, getLocalePreference } from "../../i18n.js";
-import { messageOf } from "../api";
+import { getLocalePreference } from "../../i18n.js";
+import { defaultClientConfig } from "../client-config";
+import type { ClientConfig } from "../client-config";
+import { storageKey } from "../session";
 import { useLocale, useTranslation } from "../locale";
 import { Icon } from "./Icons";
 import { settingsMessages } from "../locales/settings";
 import type {
   Api,
   LocalePreference,
-  Participant,
   PwaHandle,
-  Role,
-  ServerStatus,
   Session,
   SettingsTab,
   ThemePreference,
@@ -23,111 +21,67 @@ export interface SettingsDialogProps {
   onClose(): void;
   onTab(tab: SettingsTab): void;
   session: Session | null;
-  participants: Participant[];
-  status: ServerStatus | null;
   api: Api;
+  config?: ClientConfig;
   onSwitchAccount(): void;
   onLogout(): void;
   logoutBusy: boolean;
-  onRolesChanged(): void | Promise<void>;
-  onOpenRoom(roomId: string, eventId?: string): void | Promise<void>;
+  onOpenRoom(
+    roomId: string,
+    eventId?: string,
+    expectedUserId?: string,
+  ): void | Promise<void>;
   onPwaReady(handle: PwaHandle): void;
 }
-
-interface RoleDraft {
-  id?: string;
-  name: string;
-  color: string;
-  mentionable: boolean;
-  memberIds: string[];
-}
-
-const tabs: SettingsTab[] = [
-  "account",
-  "appearance",
-  "notifications",
-  "server",
-  "roles",
-  "runtime",
-];
-const statusKeys = {
-  ready: "ready",
-  idle: "idle",
-  online: "online",
-  connected: "online",
-  offline: "offline",
-  busy: "busy",
-  running: "running",
-  thinking: "thinking",
-  processing: "running",
-  starting: "starting",
-  stopped: "stopped",
-  failed: "failed",
-  error: "error",
-  unknown: "unknown",
-} as const;
-
-function presenceClass(status: string) {
-  if (["ready", "idle", "online", "connected"].includes(status))
-    return "online";
-  if (
-    ["busy", "running", "thinking", "processing", "starting"].includes(status)
-  )
-    return "busy";
-  return status === "error" || status === "failed" ? "error" : "";
-}
-
-function roleColor() {
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue("--color-accent")
-    .trim();
-  return /^#[a-f\d]{6}$/i.test(value) ? value : "#000000";
-}
+const tabs: SettingsTab[] = ["account", "appearance", "notifications"];
 
 export function SettingsDialog(props: SettingsDialogProps) {
-  const { tab, session, participants, status, api } = props;
+  const { tab, session } = props;
   const t = useTranslation(settingsMessages);
   const locale = useLocale();
   const dialog = useRef<HTMLDialogElement>(null);
   const current = useRef(props);
   current.current = props;
   const pwa = useRef<PwaHandle | null>(null);
+  const [config] = useState(() => props.config ?? defaultClientConfig());
   const [theme, setTheme] = useState<ThemePreference>(
     () => window.DSGroupTheme?.getPreference() ?? "system",
   );
   const [language, setLanguage] = useState<LocalePreference>(locale.preference);
-  const [serverUrl, setServerUrl] = useState(location.origin);
-  const [serverFeedback, setServerFeedback] = useState("");
-  const [checkingServer, setCheckingServer] = useState(false);
-  const [roles, setRoles] = useState<Role[]>([]);
-  const [canManageRoles, setCanManageRoles] = useState(false);
-  const [roleDraft, setRoleDraft] = useState<RoleDraft | null>(null);
-  const [roleFeedback, setRoleFeedback] = useState("");
-  const [roleBusy, setRoleBusy] = useState(false);
-
   useEffect(() => {
     const element = dialog.current;
     if (!element) return;
     if (tab && !element.open) element.showModal();
     if (!tab && element.open) element.close();
   }, [tab]);
-
   useEffect(() => {
     if (!pwa.current) {
       pwa.current = initializePwa({
         request: (route, options) => current.current.api(route, options),
         getSession: () => current.current.session,
+        getOwnerScope: () =>
+          current.current.session
+            ? storageKey(config, "push", current.current.session)
+            : "",
+        homeCoreUrl: config.homeCoreUrl,
         onOpenRoom: (navigation) =>
-          current.current.onOpenRoom(navigation.roomId, navigation.eventId),
+          current.current.onOpenRoom(
+            navigation.roomId,
+            navigation.eventId,
+            navigation.userId,
+          ),
       });
       current.current.onPwaReady(pwa.current);
     }
     void pwa.current.refresh();
+    return () => {
+      pwa.current?.destroy?.();
+      pwa.current = null;
+    };
   }, []);
-
   useEffect(() => {
     void pwa.current?.refresh();
-  }, [session?.user_id, tab]);
+  }, [session, tab]);
   useEffect(() => {
     const updateTheme = () => setTheme(window.DSGroupTheme.getPreference());
     const updateLanguage = () => setLanguage(getLocalePreference());
@@ -137,119 +91,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
       window.removeEventListener("ds-group:theme", updateTheme);
       window.removeEventListener("ds-group:locale", updateLanguage);
     };
-  }, [locale.preference]);
-
-  const loadRoles = useCallback(async () => {
-    const result = await api<{ roles: Role[]; canManage: boolean }>(
-      "/api/roles",
-    );
-    setRoles(result.roles);
-    setCanManageRoles(result.canManage);
-  }, [api]);
-
-  useEffect(() => {
-    setRoleDraft(null);
-    setRoleFeedback("");
-    setCanManageRoles(false);
-    if (tab !== "roles" || !session) return;
-    let active = true;
-    void api<{ roles: Role[]; canManage: boolean }>("/api/roles")
-      .then((result) => {
-        if (active) {
-          setRoles(result.roles);
-          setCanManageRoles(result.canManage);
-        }
-      })
-      .catch((error) => {
-        if (active) setRoleFeedback(messageOf(error));
-      });
-    return () => {
-      active = false;
-    };
-  }, [api, session?.user_id, tab]);
-
-  async function checkServer(event: FormEvent) {
-    event.preventDefault();
-    setCheckingServer(true);
-    setServerFeedback("");
-    try {
-      const url = new URL(serverUrl.trim());
-      if (
-        !["https:", "http:"].includes(url.protocol) ||
-        url.username ||
-        url.password
-      )
-        throw new Error(t("invalidServer"));
-      const response = await fetch(new URL("/api/bootstrap", url.origin), {
-        credentials: "omit",
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-      const value: unknown = await response.json();
-      const workspace = value as {
-        name?: string;
-        roomId?: string;
-        participants?: unknown[];
-      };
-      if (!workspace.roomId || !Array.isArray(workspace.participants))
-        throw new Error(t("notWorkspace"));
-      setServerFeedback(
-        t("serverFound", {
-          name: workspace.name || "DSCord",
-          origin: url.origin,
-        }),
-      );
-    } catch (error) {
-      setServerFeedback(t("serverFailed", { error: messageOf(error) }));
-    } finally {
-      setCheckingServer(false);
-    }
-  }
-
-  async function saveRole(event: FormEvent) {
-    event.preventDefault();
-    if (!roleDraft || roleBusy) return;
-    setRoleBusy(true);
-    setRoleFeedback("");
-    try {
-      const { id, ...body } = roleDraft;
-      await api(id ? `/api/roles/${encodeURIComponent(id)}` : "/api/roles", {
-        method: id ? "PUT" : "POST",
-        body,
-      });
-      await loadRoles();
-      await props.onRolesChanged();
-      setRoleDraft(null);
-      setRoleFeedback(t("roleSaved"));
-    } catch (error) {
-      setRoleFeedback(messageOf(error));
-    } finally {
-      setRoleBusy(false);
-    }
-  }
-
-  async function deleteRole() {
-    if (!roleDraft?.id || roleBusy) return;
-    setRoleBusy(true);
-    try {
-      await api(`/api/roles/${encodeURIComponent(roleDraft.id)}`, {
-        method: "DELETE",
-      });
-      await loadRoles();
-      await props.onRolesChanged();
-      setRoleDraft(null);
-      setRoleFeedback(t("roleDeleted"));
-    } catch (error) {
-      setRoleFeedback(messageOf(error));
-    } finally {
-      setRoleBusy(false);
-    }
-  }
-
-  const budget = status?.budget;
-  const used = budget?.used;
-  const limit = budget?.limit;
-
+  }, []);
   return (
     <dialog
       id="settings-dialog"
@@ -288,7 +130,24 @@ export function SettingsDialog(props: SettingsDialogProps) {
       </nav>
       <section data-settings-panel="account" hidden={tab !== "account"}>
         <h3>{t("currentAccount")}</h3>
-        <p id="settings-account">{session?.user_id || t("signedOut")}</p>
+        <p id="settings-account" className="identity-value">
+          {session?.user_id || t("signedOut")}
+        </p>
+        {session?.identity && (
+          <p className="muted small identity-value">
+            {session.identity.subjectId}
+          </p>
+        )}
+        <dl className="account-origins">
+          <dt>{t("homeCore")}</dt>
+          <dd>{config.homeCoreUrl}</dd>
+          <dt>{t("homeMatrix")}</dt>
+          <dd>
+            {session?.home?.matrixUrl ??
+              config.homeMatrixUrl ??
+              t("configuredByHome")}
+          </dd>
+        </dl>
         <div className="settings-actions">
           <button
             id="switch-account"
@@ -393,286 +252,6 @@ export function SettingsDialog(props: SettingsDialogProps) {
         <button id="refresh-app" className="secondary-button" type="button">
           {t("reload")}
         </button>
-      </section>
-      <section data-settings-panel="server" hidden={tab !== "server"}>
-        <h3>{t("serverAddress")}</h3>
-        <p>
-          {t("activeServer")} · {location.origin}
-        </p>
-        <form
-          id="server-form"
-          onSubmit={(event) => {
-            void checkServer(event);
-          }}
-        >
-          <label className="sr-only" htmlFor="server-url">
-            {t("serverAddress")}
-          </label>
-          <input
-            id="server-url"
-            type="url"
-            placeholder="https://chat.example.com"
-            required
-            value={serverUrl}
-            onChange={(event) => setServerUrl(event.target.value)}
-          />
-          <div className="settings-actions">
-            <button
-              id="check-server"
-              className="secondary-button"
-              type="submit"
-              disabled={checkingServer}
-            >
-              {t(checkingServer ? "checking" : "checkAddress")}
-            </button>
-          </div>
-        </form>
-        <p id="server-feedback" className="settings-feedback" role="status">
-          {serverFeedback}
-        </p>
-      </section>
-      <section data-settings-panel="roles" hidden={tab !== "roles"}>
-        <div className="settings-section-heading">
-          <h3>{t("roles")}</h3>
-          <button
-            id="new-role"
-            className="secondary-button"
-            type="button"
-            hidden={!canManageRoles || Boolean(roleDraft)}
-            onClick={() =>
-              setRoleDraft({
-                name: "",
-                color: roleColor(),
-                mentionable: true,
-                memberIds: [],
-              })
-            }
-          >
-            {t("createRole")}
-          </button>
-        </div>
-        <div id="role-list" className="role-list" hidden={Boolean(roleDraft)}>
-          {roles.map((role) => (
-            <button
-              key={role.id}
-              className="role-row"
-              type="button"
-              disabled={!canManageRoles}
-              onClick={() => setRoleDraft({ ...role })}
-            >
-              <span
-                className="role-color"
-                style={{ backgroundColor: role.color }}
-              />
-              <strong>{role.name}</strong>
-              <small>
-                {t("memberCount", {
-                  count: formatNumber(role.memberIds.length),
-                })}
-              </small>
-            </button>
-          ))}
-          {!roles.length && <p className="muted small">{t("noRoles")}</p>}
-        </div>
-        <p id="role-feedback" className="settings-feedback" role="status">
-          {roleFeedback}
-        </p>
-        {roleDraft && (
-          <form
-            id="role-form"
-            onSubmit={(event) => {
-              void saveRole(event);
-            }}
-          >
-            <input id="role-id" type="hidden" value={roleDraft.id || ""} />
-            <label htmlFor="role-name">{t("roleName")}</label>
-            <input
-              id="role-name"
-              maxLength={40}
-              required
-              autoFocus
-              value={roleDraft.name}
-              onChange={(event) =>
-                setRoleDraft({ ...roleDraft, name: event.target.value })
-              }
-            />
-            <label htmlFor="role-color">{t("roleColor")}</label>
-            <input
-              id="role-color"
-              type="color"
-              value={roleDraft.color}
-              onChange={(event) =>
-                setRoleDraft({ ...roleDraft, color: event.target.value })
-              }
-            />
-            <label className="check-label">
-              <input
-                id="role-mentionable"
-                type="checkbox"
-                checked={roleDraft.mentionable}
-                onChange={(event) =>
-                  setRoleDraft({
-                    ...roleDraft,
-                    mentionable: event.target.checked,
-                  })
-                }
-              />
-              {t("mentionable")}
-            </label>
-            <h3>{t("members")}</h3>
-            <div id="role-members" className="room-choices">
-              {participants.map((person) => (
-                <label className="room-choice" key={person.id}>
-                  <input
-                    type="checkbox"
-                    value={person.id}
-                    checked={roleDraft.memberIds.includes(person.id)}
-                    onChange={(event) =>
-                      setRoleDraft({
-                        ...roleDraft,
-                        memberIds: event.target.checked
-                          ? [...roleDraft.memberIds, person.id]
-                          : roleDraft.memberIds.filter(
-                              (id) => id !== person.id,
-                            ),
-                      })
-                    }
-                  />
-                  <span className={`avatar avatar-${person.kind}`}>
-                    {person.name.slice(0, 1)}
-                  </span>
-                  <span>{person.name}</span>
-                </label>
-              ))}
-            </div>
-            <div className="settings-actions">
-              <button
-                className="primary-button"
-                type="submit"
-                disabled={roleBusy}
-              >
-                {t(roleBusy ? "saving" : "save")}
-              </button>
-              <button
-                id="cancel-role"
-                className="secondary-button"
-                type="button"
-                disabled={roleBusy}
-                onClick={() => setRoleDraft(null)}
-              >
-                {t("cancel")}
-              </button>
-              <button
-                id="delete-role"
-                className="danger-button"
-                type="button"
-                hidden={!roleDraft.id}
-                disabled={roleBusy}
-                onClick={() => {
-                  void deleteRole();
-                }}
-              >
-                {t("delete")}
-              </button>
-            </div>
-          </form>
-        )}
-      </section>
-      <section data-settings-panel="runtime" hidden={tab !== "runtime"}>
-        <div className="core-card">
-          <span className="core-icon" aria-hidden="true">
-            <Icon name="server" />
-          </span>
-          <div>
-            <strong id="core-title">
-              {t(status ? "coreConnected" : "core")}
-            </strong>
-            <p id="core-description">
-              {status ? "DSCord / Matrix" : t("waitingStatus")}
-            </p>
-          </div>
-          <span
-            id="core-status-dot"
-            className={`status-dot ${status ? "online" : ""}`}
-          />
-        </div>
-        <div className="section-heading">
-          {t("botNodes")}{" "}
-          <span id="node-count">{formatNumber(status?.nodes.length ?? 0)}</span>
-        </div>
-        <div id="node-list" className="node-list">
-          {status?.nodes.map((node) => {
-            const key =
-              statusKeys[node.status as keyof typeof statusKeys] ?? "unknown";
-            return (
-              <article className="node-card" key={node.botId}>
-                <header className="node-header">
-                  <span className="avatar avatar-bot">
-                    {node.name.slice(0, 1)}
-                  </span>
-                  <div className="node-title">
-                    <strong>{node.name}</strong>
-                    <small>{node.id}</small>
-                  </div>
-                  <span className="node-state">
-                    <span
-                      className={`status-dot ${presenceClass(node.status)}`}
-                    />
-                    {t(key)}
-                  </span>
-                </header>
-                <span className="node-engine">{node.engine || "DS-Bot"}</span>
-                <div className="node-meta">
-                  <span>
-                    {t("processed", {
-                      count: formatNumber(node.processed ?? 0),
-                    })}
-                  </span>
-                  <span>{node.model || "dsv4.1f"}</span>
-                </div>
-                {node.lastError && (
-                  <p className="node-error">{node.lastError}</p>
-                )}
-              </article>
-            );
-          })}
-          {!status?.nodes.length && (
-            <p className="muted small">{t("noNodes")}</p>
-          )}
-        </div>
-        <section className="budget-section">
-          <div className="section-heading">{t("calls")}</div>
-          <div className="budget-values">
-            <strong id="budget-used">
-              {used === undefined ? "—" : formatNumber(used)}
-            </strong>
-            <span id="budget-limit">
-              {limit == null
-                ? t("callsUnlimited")
-                : t("callsLimit", { limit: formatNumber(limit) })}
-            </span>
-          </div>
-          <div className="budget-track">
-            <div
-              id="budget-fill"
-              style={{
-                width:
-                  limit && used !== undefined
-                    ? `${Math.min(100, (used / limit) * 100)}%`
-                    : "0%",
-              }}
-            />
-          </div>
-          <p id="budget-description" className="small muted">
-            {limit == null
-              ? budget?.model || "opencode-go/deepseek-v4.1-flash"
-              : t("callsRemaining", {
-                  count: formatNumber(
-                    budget?.remaining ?? Math.max(0, limit - (used ?? 0)),
-                  ),
-                })}
-          </p>
-        </section>
       </section>
     </dialog>
   );

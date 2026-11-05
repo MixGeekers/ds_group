@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "runId": "2026-11-05T03-19-35-829Z",
+  "date": "2026-11-04",
+  "status": "passed",
+  "evidenceLevel": "normal-production-React-client-real-local-Core-and-Synapse-separate-HTTP-origins-synthetic-accounts-zero-model",
+  "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+  "origins": {
+    "coreUrl": "http://127.0.0.1:24370",
+    "clientUrl": "http://127.0.0.1:24371",
+    "matrixUrl": "http://127.0.0.1:24378"
+  },
+  "checks": [
+    {
+      "name": "normal production entry registers the first central account with no fabricated initial room",
+      "status": "passed",
+      "details": {
+        "userId": "@alice:client-qa.test",
+        "initialJoinedRooms": 0,
+        "stableSubject": true
+      }
+    },
+    {
+      "name": "room creation and text send from the normal UI reach the real home Matrix room",
+      "status": "passed",
+      "details": {
+        "roomId": "!kBnYBveXrDrJ2r1UKqfnyAd9A9vwVn_cAgHQlsBz9sk",
+        "independentlyReadMatrixMessage": true
+      }
+    },
+    {
+      "name": "cross-origin file upload sends real bytes and the returned attachment stays on its originating message",
+      "status": "passed",
+      "details": {
+        "bytesRoundTrip": true,
+        "attachmentCards": 1
+      }
+    },
+    {
+      "name": "the account owns a newly created Bot and its DM remains the same full home identity",
+      "status": "passed",
+      "details": {
+        "botId": "@bot-e6f6ff62-bb63-48dc-a5d5-de51222eee03:client-qa.test",
+        "modelCalls": 0,
+        "nodeStarted": false
+      }
+    },
+    {
+      "name": "reload and offline reconnect preserve the actual home subject and an independent DM draft",
+      "status": "passed",
+      "details": {
+        "sameSubject": true,
+        "offlineDraft": true,
+        "reconnect": true
+      }
+    },
+    {
+      "name": "logout revokes only this real browser device and password login returns the same subject",
+      "status": "passed",
+      "details": {
+        "previousDeviceRevoked": true,
+        "sameSubject": true,
+        "credentialOrigins": [
+          "http://127.0.0.1:24370"
+        ],
+        "pageErrors": []
+      }
+    }
+  ],
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "federatedRooms": "not run in this central-only script",
+  "backendCommit": "425fb34e89e361479bb02ce9a9728df6ff32b808",
+  "sourceSha256": {
+    "client/web/src/App.tsx": "8f0120a11bbaf37cc865803e16d58b157ccc20c6e613fdbe2ad72e5583c1f9cc",
+    "client/web/src/api.ts": "255f24923a98ed4a610314e0e8e51a0912b6ccd0e8421818e2f39bbc97691e9f",
+    "client/web/src/client-config.ts": "c893ed7023b0b0037f918eebe7671b12ead00fe66cf2c0dfa069219a3b152a30",
+    "client/web/src/session.ts": "49bdf3624ba1b1a67d0ac2e656b3a569739daa5b2e3e59cce11f80d8986e1bea",
+    "client/web/sw.js": "b19c543ab333c6808a6abe9836abaad2277f3c64bd6fd3c8062db4e9a6f40290",
+    "client/scripts/verify-unified-client.mjs": "6c6d408312a46b29733f3621e794ca9bc2476cfad3cf1900e4b5433d85598d6c",
+    "backend/src/core.mjs": "4498ce84d68edceee801b5cbfeba6539b3cd12d642465fa57bbcb87fcc8f8662",
+    "backend/src/accounts.mjs": "18befa99631d08ecdb14ed445c3d72a4f0b80cb4eeef3b128c9633bce4f288a7",
+    "backend/src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+    "backend/scripts/central-init.mjs": "0412e00a5a185f31459a24040ee8f5dc93e38e7e060375a012f970b7585aa86b"
+  },
+  "identity": {
+    "userId": "@alice:client-qa.test",
+    "subjectId": "7869edfb-7e6b-485f-8607-4c56ab533e48",
+    "authorityId": "urn:uuid:a5b98e98-1597-47d4-8cfb-4450ddb26a23"
+  },
+  "roomId": "!kBnYBveXrDrJ2r1UKqfnyAd9A9vwVn_cAgHQlsBz9sk",
+  "botId": "@bot-e6f6ff62-bb63-48dc-a5d5-de51222eee03:client-qa.test",
+  "containerStopped": true,
+  "finishedAt": "2026-11-05T03:19:42.014Z",
+  "pageErrors": []
+}

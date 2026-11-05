@@ -6,6 +6,7 @@ import type {
   SyntheticEvent,
 } from "react";
 import { messageOf, readStored } from "../api";
+import { newRequestId } from "../identifiers";
 import { useTranslation } from "../locale";
 import { Icon } from "./Icons";
 import { dialogMessages } from "../locales/dialogs";
@@ -60,6 +61,7 @@ interface RoomDialogProps {
   participants: Participant[];
   ownedBots: Participant[];
   api: Api;
+  pendingStorageKey?: string;
   onRoom(room: Room): void;
   onChanged(): void | Promise<void>;
   onClose(): void;
@@ -73,6 +75,7 @@ export function RoomDialog({
   participants,
   ownedBots,
   api,
+  pendingStorageKey,
   onRoom,
   onChanged,
   onClose,
@@ -99,12 +102,14 @@ export function RoomDialog({
     if (mode === null) return;
     const saved =
       mode === "create" && session
-        ? readStored<PendingGroup>(`ds-group.pending-room.${session.user_id}`)
+        ? readStored<PendingGroup>(
+            pendingStorageKey ?? `ds-group.pending-room.${session.user_id}`,
+          )
         : null;
     setName(saved?.name ?? "");
     setSelectedIds(saved?.inviteIds ?? []);
     setRestored(Boolean(saved));
-  }, [mode, session?.user_id]);
+  }, [mode, session?.user_id, pendingStorageKey]);
 
   function toggleMember(id: string, selected: boolean) {
     setSelectedIds((current) =>
@@ -131,7 +136,8 @@ export function RoomDialog({
     setError("");
     try {
       if (mode === "create") {
-        const key = `ds-group.pending-room.${session.user_id}`;
+        const key =
+          pendingStorageKey ?? `ds-group.pending-room.${session.user_id}`;
         const saved = readStored<PendingGroup>(key);
         const cleanName = name.trim();
         const sameRequest =
@@ -140,7 +146,7 @@ export function RoomDialog({
         const request: PendingGroup = {
           name: cleanName,
           inviteIds,
-          requestId: sameRequest ? saved.requestId : crypto.randomUUID(),
+          requestId: sameRequest ? saved.requestId : newRequestId(),
         };
         sessionStorage.setItem(key, JSON.stringify(request));
         const result = await api<Room>("/api/rooms", {
@@ -320,9 +326,7 @@ export function MemberDialog({
         </span>
       </div>
       <h2 id="member-dialog-name">{member?.name}</h2>
-      <p id="member-dialog-id">
-        {member?.kind === "bot" ? member.id : (member?.localpart ?? member?.id)}
-      </p>
+      <p id="member-dialog-id">{member?.id}</p>
       {member?.kind === "bot" && (
         <p className="bot-connection-status">
           {botText(

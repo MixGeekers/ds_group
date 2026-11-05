@@ -1,0 +1,43 @@
+
+> ds-group@0.3.0 test:browser
+> node --test tests/*.browser.mjs
+
+{
+  "level": "real-chromium-composer-fixture",
+  "checks": [
+    "memberSearchAndKeyboardSelection",
+    "arrowNavigationTabAndEscape",
+    "roleAndGroupMentions",
+    "atomicDeletionUndoRedoAndCaretInsertion",
+    "imeAndCodeEscapesDoNotSubmitOrMention",
+    "copyPasteRetainsIdentityAndStripsHtml",
+    "pasteFileAndMultilineSubmission",
+    "mobileTouchSelectionAndDisabledState"
+  ],
+  "modelCalls": 0,
+  "status": "passed",
+  "browserErrors": []
+}
+✔ tests/mention-editor.browser.mjs (2244.180042ms)
+React App browser checks passed (16)
+✔ tests/react-app.browser.mjs (12435.705459ms)
+{"status":"passed","level":"real-chromium-react-components-fixture","checks":["taskActivityAndCompletionStayOutsideNormalConversation","explicitHistoryOpensWithoutDuplicatingMessageAttachments","applicationProgressSummariesLocalizeWithoutChangingBusinessText","previewAndDownloadShareVerifiedBytes","localeRefreshPreservesCachedAttachment","failedCancellationCanBeRetried","cancellationUpdatesCard","mobileHistoryOverlayFits","historyClosesOnEscapeAndNewTaskUpdatesDoNotReopenIt","identityChangeClosesOldPreview","unmountClosesPreviewWithoutErrors"],"modelCalls":0,"pageErrors":[]}
+✔ tests/react-artifacts.browser.mjs (3514.60225ms)
+{"status":"passed","level":"real-chromium-auth-component-fixture","checks":["requiredFieldsIdentifyErrorsAndSignedOutDialogStaysOpen","unknownUsernameCanSignInAndBootstrapRefreshPreservesCredentials","passwordVisibilityUsesAccessibleExplicitToggle","openRegistrationCollectsDisplayNameAndReturnsToLoginWithoutStaleError","busySubmissionLocksControlsAndPreventsDuplicateRequests","failedRequestPreservesCredentialsAndAllowsRetry","closedRegistrationCannotBeSelectedAndPolicyChangeReturnsToLogin","explicitDemoModeKeepsPasswordlessKnownAccountPath","mobileLanguageAndThemeChangesPreserveTypedCredentials","signedInAccountSwitcherClosesExplicitly"],"pageErrors":[],"modelCalls":0}
+✔ tests/react-auth.browser.mjs (3306.593833ms)
+{"status":"passed","level":"real-chromium-react-bot-creation-fixture","checks":["blankNameShowsFieldErrorWithoutCreatingBot","unknownReceiptPersistsAcrossCloseAndRetriesSameRequest","pendingCreationIsScopedToAccount","confirmedCreationSurvivesCallbackFailureAndPreventsDuplicateSubmit","connectionViewExposesFullBotIdCopyAndLiveStatus","localeThemeAndMobileLayoutPreserveConnectionDetails","knownValidationFailureAllowsNameCorrection","longBotNameWrapsInsideMobileConnectionDetails"],"pageErrors":[],"modelCalls":0}
+✔ tests/react-bots.browser.mjs (3228.618625ms)
+{"status":"passed","checks":["reactTimelineRendersAndResolvesMentions","atomicMentionSelectionAndSingleSubmission","roomSwitchPreservesIndependentDrafts","replyAndPingPreferenceRestoreWithRoom","localeSwitchPreservesDraftReplyAndUpload","reloadRestoresFileAndReplyDraft","failedSendRetryRetainsTransactionAndAttachments","mobileTouchMentionAndLayout","dynamicUploadLimitsPreserveDraftAndMentionChips"]}
+✔ tests/react-chat.browser.mjs (3993.963333ms)
+{"status":"passed","level":"real-chromium-react-settings-fixture","checks":["languagePreferenceChangesEvenWhenResolvedLocaleMatches","themeSystemOverrideAndPreferencePersistence","collaborationRolesRemainSeparateFromPersonalSettings","roleCreateEditDeleteUsesTypedComponentState","roomNotificationPreferencesSaveAndReopen","openInboxPollsNewMentionsAndJumpsToMessage","inboxFiltersMarkReadAndCloseStopsPolling","pwaControlsRemainMountedAndLocalizedOnMobile"],"modelCalls":0,"pageErrors":[],"pwaFixture":{"permissionAndRegistrationMocked":true,"status":"Push notifications are disabled on this server.","secure":true,"permission":"granted","pushManager":true}}
+✔ tests/react-settings.browser.mjs (9728.308333ms)
+{"status":"passed","evidence":"Production build and real Chromium, separate static/home/discovery HTTP origins with synthetic API fixtures; no real Matrix or model calls","checks":["productionEntryLoadsSplitConfigAndLogsIntoOneStableHomeIdentity","spacesAndJoinedChannelsComeFromMembershipWithNoPhantomInvitationRoom","acceptedInvitationUsesHomeJoinAndFullRoomIdWithSeparateAttachmentBytes","rejectedJoinRemainsRejectedAndUnknownDiscoveryOmitsCookiesTokensAndRedirects","personalSettingsAndOwnedBotManagementExcludeDeploymentAndForeignBotControls","inFlightSendReplyAndUploadedTaskAttachmentRemainBoundToOriginalSpace","latePollResponsesCannotMergeMessagesTasksOrMentionsIntoNewSpace","notificationNavigationRequiresCurrentUserHomeAuthorityAndActualJoinedRoom","productionPwaCachesOnlyStaticShellAndReconnectsSameHomeSessionAndDraft","revocationRemovesAccessibleChannelWithoutClaimingRemoteServerOffline","desktopAndNarrowLayoutsSupportBothLanguagesThemesAndServerDialogs","logoutReloginClearsIdentityStateAndPasswordRequestsNeverFollowRedirects","sameOriginLegacySessionAndDraftUpgradeToVerifiedCentralSubject","normalEntryPreservesPrivateHttpSameOriginSessionAndPrivateMatrixDiscoveryWithRouteBackedOrigin","splitDeploymentNeverMigratesUnboundLegacyCredential","allCredentialReceiversArePinnedHomeServicesWithNoAmbientCookiesOrPageErrors"],"pageErrors":[],"credentialOrigins":["http://127.0.0.1:24361","http://127.0.0.1:24360"],"publicDiscoveryRequests":1,"trapRequests":0,"modelCalls":0,"physicalHosts":1,"realBackend":false}
+✔ tests/unified-client.browser.mjs (6698.718292ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12441.110458

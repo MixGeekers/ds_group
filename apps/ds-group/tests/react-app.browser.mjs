@@ -170,6 +170,7 @@ try {
 
   page = await context.newPage();
   page.on('pageerror', error => pageErrors.push(error.message));
+  await page.route('**/.well-known/dscord/client', route => route.fulfill({ status: 404, contentType: 'application/json', body: '{}' }));
   await page.route('**/api/**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
@@ -183,7 +184,9 @@ try {
       : token === sessions.alice.access_token ? people[0]
         : token === sessions.bob.access_token ? people[1]
           : ['registered-fixture', 'registered-login-fixture'].includes(token) ? registeredUser : null;
-    if (key === 'GET /api/me') {
+    if (['GET /api/spaces', 'GET /api/directory'].includes(key)) {
+      status = 404; body = { error: 'Legacy fixture Core' };
+    } else if (key === 'GET /api/me') {
       status = user ? 200 : 401;
       body = user ? { user, ownedBots: ownedBots.get(user.id) ?? [] } : { error: 'Session expired' };
     } else if (key === 'POST /api/logout') {
@@ -248,7 +251,19 @@ try {
     }, { body, editable });
   }
   async function readStorage(key) {
-    return page.evaluate(storageKey => JSON.parse(sessionStorage.getItem(storageKey) ?? 'null'), key);
+    return page.evaluate(async legacy => {
+      const sessionModule = await import('/src/session.ts');
+      const configModule = await import('/src/client-config.ts');
+      const config = configModule.defaultClientConfig();
+      if (legacy === 'ds-group.session') return JSON.parse(sessionStorage.getItem(sessionModule.sessionStorageKey(config)) ?? 'null');
+      const prefix = 'ds-group.v2.' + configModule.bindingKey(config) + '.';
+      for (const key of Object.keys(sessionStorage)) {
+        if (!key.startsWith(prefix)) continue;
+        const [kind, authority, subject, userId, space, roomId] = JSON.parse(decodeURIComponent(key.slice(prefix.length)));
+        if (legacy === 'ds-group.' + kind + '.' + userId + (roomId ? '.' + roomId : '')) return JSON.parse(sessionStorage.getItem(key));
+      }
+      return JSON.parse(sessionStorage.getItem(legacy) ?? 'null');
+    }, key);
   }
   async function switchAccount(localpart, displayName) {
     await page.locator('#identity-button').click();
@@ -260,7 +275,7 @@ try {
   }
 
   await expectEditor(pendingMessage.body, false);
-  assert.equal(await sendButton.isEnabled(), true);
+  await page.waitForFunction(() => !document.querySelector('#send-button').disabled);
   assert.equal(await page.locator('#send-button-text').textContent(), 'Retry sending');
   assert.deepEqual(await readStorage(alicePendingKey), pendingMessage);
   checks.push('appRestoresPendingMessageForInitialAccountAndRoom');
@@ -412,7 +427,9 @@ try {
   await page.locator('#login-dialog').waitFor({ state: 'hidden' });
   await page.waitForFunction(() => document.querySelector('#current-name')?.textContent === 'Charlie New');
   assert.deepEqual(registrationRequests, [{ username: 'charlie-new', password: 'fixture-password', displayName: 'Charlie New' }]);
-  assert.deepEqual(await readStorage('ds-group.session'), { user_id: '@charlie-new:test', access_token: 'registered-fixture' });
+  assert.equal((await readStorage('ds-group.session')).user_id, '@charlie-new:test');
+  assert.equal((await readStorage('ds-group.session')).access_token, 'registered-fixture');
+  assert.equal((await readStorage('ds-group.session')).binding.homeCoreUrl, new URL(page.url()).origin);
   checks.push('newAccountRegistersAndMeSuppliesIdentityOutsideBootstrapRoster');
 
   await page.locator('#create-bot-button').click();
@@ -480,7 +497,7 @@ try {
   await expectEditor(bobOneDraft.body, true);
   await page.waitForTimeout(220);
   assert.equal((await readStorage(bobOneDraftKey)).body, bobOneDraft.body);
-  assert.equal(await readStorage(`ds-group.pending.${registeredUser.id}.${rooms[0].roomId}`), null);
+  assert.equal((await readStorage(`ds-group.pending.${registeredUser.id}.${rooms[0].roomId}`)).body, 'Message awaiting receipt before logout');
   checks.push('lateSendReceiptAfterLogoutPreservesNextAccountsDraft');
 
   assert.deepEqual(unhandledRequests, []);

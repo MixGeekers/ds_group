@@ -3,11 +3,13 @@ import { renderAttachmentCard } from "../../attachments.js";
 import { useTranslation } from "../locale";
 import { artifactMessages } from "../locales/artifacts";
 import { Icon } from "./Icons";
-import type { Attachment, Session } from "../types";
+import type { Attachment, RawRequest, Session } from "../types";
 
 export interface AttachmentViewProps {
   attachment: Attachment;
   session: Session | null;
+  request?: RawRequest;
+  roomId?: string;
   onError?: (message: string) => void;
 }
 
@@ -21,6 +23,8 @@ interface Preview {
 export function AttachmentView({
   attachment,
   session,
+  request,
+  roomId,
   onError,
 }: AttachmentViewProps) {
   const t = useTranslation(artifactMessages);
@@ -59,6 +63,8 @@ export function AttachmentView({
     setPreview(null);
     const card = renderAttachmentCard(attachment, {
       getSession: () => sessionRef.current,
+      request,
+      roomId,
       onPreview: openPreview,
       onError: (message) => {
         setError(message);
@@ -79,6 +85,9 @@ export function AttachmentView({
     attachment.size,
     attachment.sha256,
     session?.user_id,
+    session?.access_token,
+    request,
+    roomId,
     openPreview,
   ]);
 

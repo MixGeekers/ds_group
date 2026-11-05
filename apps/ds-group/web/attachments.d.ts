@@ -1,4 +1,4 @@
-import type { Attachment, Session } from "./src/types";
+import type { Attachment, RawRequest, Session } from "./src/types";
 
 export interface UploadState {
   uploadId: string;
@@ -34,6 +34,8 @@ export function createAttachmentManager(options: {
   container: HTMLElement;
   input: HTMLInputElement;
   getSession(): Session | null;
+  request?: RawRequest;
+  getScope?(): string;
   onChange?(files: UploadState[]): void;
   onError?(message: string): void;
   maxBytes?: number;
@@ -43,6 +45,8 @@ export function renderAttachmentCard(
   attachment: Attachment,
   options: {
     getSession(): Session | null;
+    request?: RawRequest;
+    roomId?: string;
     onPreview?(preview: AttachmentPreview): void | Promise<void>;
     onError?(message: string): void;
   },

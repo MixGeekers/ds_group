@@ -370,3 +370,35 @@ legend { color: var(--color-text-secondary); font-weight: var(--font-weight-semi
 .empty-tasks { text-align: center; font-size: var(--font-size-sm); color: var(--color-text-muted); padding: var(--space-9) 0; }
 #tasks-button[aria-expanded="true"] { color: var(--color-text-primary); background: var(--color-bg-selected); }
 @media(max-width:760px) { .header-actions { gap: 3px; } .header-actions .icon-button { width: 25px; } h1 { max-width: 32vw; } }
+
+/* Collaboration spaces and personal identity share the existing semantic tokens. */
+.workspace-brand { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.member-full-id { display: block; color: var(--color-text-muted); font-size: var(--font-size-xs); font-weight: 400; overflow-wrap: anywhere; }
+.member-info .member-full-id { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.identity-value, .account-origins dd { overflow-wrap: anywhere; }
+.account-origins { display: grid; gap: var(--space-4); margin-block: var(--space-8); }
+.account-origins dt { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+.account-origins dd { margin: 0 0 var(--space-4); }
+.server-rail { overflow-y: auto; }
+.server-icon { flex-shrink: 0; }
+.server-invite-count { position: absolute; right: 0; bottom: 0; min-width: 18px; padding-inline: var(--space-2); border-radius: var(--radius-pill); background: var(--color-status-danger); color: var(--color-text-on-accent); font-size: var(--font-size-xs); line-height: 18px; }
+.server-revoked { outline: 1px solid var(--color-status-danger); }
+.space-list { display: grid; gap: var(--space-6); }
+.space-card { padding: var(--space-8); border: 1px solid var(--color-border-subtle); border-radius: var(--radius-lg); background: var(--color-bg-secondary); min-width: 0; }
+.space-card > header { display: flex; align-items: center; gap: var(--space-6); }
+.space-card > header > div { flex: 1; min-width: 0; }
+.space-state { color: var(--color-text-secondary); font-size: var(--font-size-sm); }
+.space-revoked, .space-restricted { color: var(--color-status-danger); }
+.space-connected, .space-joined { color: var(--color-status-success); }
+.space-room, .space-invitation { display: flex; align-items: center; gap: var(--space-6); margin-top: var(--space-6); padding-top: var(--space-6); border-top: 1px solid var(--color-border-subtle); }
+.space-room > span:first-child, .space-invitation > span:first-child { flex: 1; min-width: 0; }
+.spaces-dialog > section { margin-top: var(--space-12); }
+.spaces-dialog form > button { margin-top: var(--space-4); }
+@media (max-width: 600px) {
+  .space-card > header, .space-invitation, .space-room { flex-wrap: wrap; }
+  .space-card > header > div, .space-invitation > span:first-child, .space-room > span:first-child { flex-basis: 65%; }
+  .space-card .settings-actions { width: 100%; }
+  .account-origins dd { font-size: var(--font-size-sm); }
+}
+.workspace-switcher { display: flex; align-items: center; justify-content: space-between; gap: var(--space-4); width: 100%; min-width: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: inherit; text-align: left; cursor: pointer; }
+.workspace-switcher:focus-visible { outline: 2px solid var(--color-focus); outline-offset: var(--space-2); border-radius: var(--radius-sm); }

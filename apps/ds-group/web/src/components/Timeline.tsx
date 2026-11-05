@@ -13,6 +13,7 @@ import type {
   Mentionables,
   Participant,
   Role,
+  RawRequest,
   Session,
 } from "../types";
 import { AttachmentView } from "./AttachmentView";
@@ -22,6 +23,7 @@ export interface TimelineProps {
   events: ChatEvent[];
   participants: Participant[];
   session: Session | null;
+  request?: RawRequest;
   mentionables: Mentionables;
   roles: Role[];
   onReply(event: ChatEvent): void;
@@ -330,6 +332,8 @@ export function Timeline(props: TimelineProps) {
                             key={attachment.id}
                             attachment={attachment}
                             session={props.session}
+                            request={props.request}
+                            roomId={event.room_id}
                           />
                         ))}
                       </div>

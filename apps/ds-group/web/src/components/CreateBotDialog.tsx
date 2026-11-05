@@ -5,6 +5,8 @@ import { useTranslation } from "../locale";
 import { botMessages } from "../locales/bots";
 import type { Api, Participant, ServerStatus, Session } from "../types";
 import { Icon } from "./Icons";
+import { sessionIdentity } from "../session";
+import { newRequestId } from "../identifiers";
 
 interface PendingBot {
   name: string;
@@ -16,6 +18,7 @@ export interface CreateBotDialogProps {
   api: Api;
   session: Session | null;
   status?: ServerStatus | null;
+  pendingStorageKey?: string;
   onCreated(bot: Participant): void | Promise<void>;
   onClose(): void;
 }
@@ -29,10 +32,12 @@ export function CreateBotDialog({
   api,
   session,
   status,
+  pendingStorageKey,
   onCreated,
   onClose,
 }: CreateBotDialogProps) {
   const t = useTranslation(botMessages);
+  const identity = sessionIdentity(session);
   const dialog = useRef<HTMLDialogElement>(null);
   const currentUser = useRef(session?.user_id);
   currentUser.current = session?.user_id;
@@ -57,7 +62,7 @@ export function CreateBotDialog({
   useEffect(() => {
     if (!open) return;
     const saved = session
-      ? readStored<PendingBot>(requestKey(session.user_id))
+      ? readStored<PendingBot>(pendingStorageKey ?? requestKey(session.user_id))
       : null;
     setName(saved?.name ?? "");
     setPending(saved);
@@ -65,7 +70,7 @@ export function CreateBotDialog({
     setError("");
     setNameError(false);
     setCopyFeedback(null);
-  }, [open, session?.user_id]);
+  }, [open, identity, pendingStorageKey]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -75,10 +80,10 @@ export function CreateBotDialog({
       return;
     }
     const ownerId = session.user_id;
-    const key = requestKey(ownerId);
+    const key = pendingStorageKey ?? requestKey(ownerId);
     const request = readStored<PendingBot>(key) ?? {
       name: name.trim(),
-      requestId: crypto.randomUUID(),
+      requestId: newRequestId(),
     };
     submitting.current = true;
     setBusy(true);

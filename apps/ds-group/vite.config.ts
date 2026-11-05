@@ -10,6 +10,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': process.env.DS_GROUP_CORE_URL || 'http://127.0.0.1:18100',
+      '/.well-known/dscord': process.env.DS_GROUP_CORE_URL || 'http://127.0.0.1:18100',
     },
   },
   build: {

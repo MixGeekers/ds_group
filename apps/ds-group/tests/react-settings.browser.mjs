@@ -20,6 +20,7 @@ const html = `<!doctype html>
       import React from 'react';
       import { createRoot } from 'react-dom/client';
       import { SettingsDialog } from '/src/components/SettingsDialog.tsx';
+      import { RolesDialog } from '/src/components/RolesDialog.tsx';
       import { InboxDialog } from '/src/components/InboxDialog.tsx';
       import { NotificationDialog } from '/src/components/NotificationDialog.tsx';
 
@@ -87,10 +88,13 @@ const html = `<!doctype html>
 
       function Fixture() {
         const [tab, setTab] = React.useState('account');
+        const [rolesOpen, setRolesOpen] = React.useState(false);
+        const session = React.useMemo(() => ({ user_id: '@alice:test', access_token: 'fixture-only' }), []);
         const [inboxOpen, setInboxOpen] = React.useState(false);
         const [notificationRoom, setNotificationRoom] = React.useState(null);
         return React.createElement(React.Fragment, null,
           React.createElement('div', { style: { display: 'flex', gap: 8 } },
+            React.createElement('button', { id: 'open-roles', onClick: () => { setTab(null); setRolesOpen(true); } }, 'Roles'),
             React.createElement('button', { id: 'open-settings', onClick: () => setTab('account') }, 'Settings'),
             React.createElement('button', { id: 'open-inbox', onClick: () => setInboxOpen(true) }, 'Inbox'),
             React.createElement('button', { id: 'open-notifications', onClick: () => setNotificationRoom(rooms[0]) }, 'Notifications'),
@@ -105,6 +109,7 @@ const html = `<!doctype html>
             onOpenRoom: (roomId, eventId) => fixture.jumps.push({ roomId, eventId }),
             onPwaReady: handle => { fixture.pwaReady++; fixture.pwa = handle; },
           }),
+          React.createElement(RolesDialog, { open: rolesOpen, session, participants: people, api, onClose: () => setRolesOpen(false), onChanged: () => { fixture.roleChanges++; } }),
           React.createElement(InboxDialog, {
             open: inboxOpen, api, rooms, participants: people, onClose: () => setInboxOpen(false),
             onJump: (roomId, eventId) => fixture.jumps.push({ roomId, eventId }),
@@ -194,7 +199,9 @@ try {
   assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark');
   checks.push('themeSystemOverrideAndPreferencePersistence');
 
-  await page.locator('[data-settings-tab="roles"]').click();
+  assert.deepEqual(await page.locator('[data-settings-tab]').evaluateAll(elements => elements.map(element => element.dataset.settingsTab)), ['account', 'appearance', 'notifications']);
+  await page.locator('#close-settings').click();
+  await page.locator('#open-roles').click();
   await page.locator('#new-role').click();
   await page.locator('#role-name').fill('Reviewers');
   await page.locator('#role-members input[value="@bob:test"]').check();
@@ -211,9 +218,10 @@ try {
   await page.locator('#delete-role').click();
   await page.waitForFunction(() => window.fixture.roles.length === 0);
   assert.equal(await page.evaluate(() => window.fixture.roleChanges), 3);
+  checks.push('collaborationRolesRemainSeparateFromPersonalSettings');
   checks.push('roleCreateEditDeleteUsesTypedComponentState');
 
-  await page.locator('#close-settings').click();
+  await page.locator('#roles-dialog .dialog-heading button').click();
   await page.locator('#open-notifications').click();
   await page.locator('#notification-muted').check();
   await page.locator('input[name="notification-mode"][value="all"]').check();

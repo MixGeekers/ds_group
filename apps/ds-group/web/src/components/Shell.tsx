@@ -12,12 +12,20 @@ import type {
 import { useTranslation } from "../locale";
 import { shellMessages } from "../locales/shell";
 import { Icon } from "./Icons";
+import type { CollaborationSpace } from "../spaces";
 
 export interface ShellProps {
   bootstrap: Bootstrap | null;
   session: Session | null;
   rooms: Room[];
+  allRooms?: Room[];
   room: Room | null;
+  spaces?: CollaborationSpace[];
+  selectedSpace?: CollaborationSpace | null;
+  currentUser?: Participant | null;
+  connection?: "connecting" | "connected" | "offline";
+  canCreateRoom?: boolean;
+  canInvite?: boolean;
   ownedBots: Participant[];
   mentionables: Mentionables;
   status: ServerStatus | null;
@@ -28,7 +36,9 @@ export interface ShellProps {
   onRoom(room: Room): void;
   onDirect(id: string): void;
   onHome(): void;
-  onServer(): void;
+  onServer(serverName: string): void;
+  onSpaces?(): void;
+  onManageBots?(): void;
   onSettings(tab?: SettingsTab): void;
   onLogin(): void;
   onCreateRoom(): void;
@@ -81,9 +91,16 @@ export function Shell(props: ShellProps) {
     () => window.innerWidth > 1180,
   );
   const participants = props.bootstrap?.participants ?? [];
-  const currentUser = participants.find(
-    (member) => member.id === props.session?.user_id,
-  );
+  const currentUser =
+    props.currentUser ??
+    participants.find((member) => member.id === props.session?.user_id) ??
+    (props.session
+      ? {
+          id: props.session.user_id,
+          name: props.session.user_id,
+          kind: "human" as const,
+        }
+      : undefined);
   const ownIds = new Set(props.ownedBots.map((bot) => bot.id));
   const contacts = participants.filter(
     (member) => member.id !== props.session?.user_id && !ownIds.has(member.id),
@@ -94,10 +111,8 @@ export function Shell(props: ShellProps) {
   const otherRooms = props.rooms.filter(
     (room) => room.kind === "group" && room.roomId !== props.bootstrap?.roomId,
   );
-  const roomMembers = participants.filter(
-    (member) =>
-      !props.room?.participantIds.length ||
-      props.room.participantIds.includes(member.id),
+  const roomMembers = participants.filter((member) =>
+    props.room?.participantIds.includes(member.id),
   );
 
   useEffect(() => {
@@ -187,6 +202,9 @@ export function Shell(props: ShellProps) {
         <Avatar member={member} index={index} />
         <span className="member-info">
           <strong>{member.name}</strong>
+          {participants.some(
+            (other) => other.id !== member.id && other.name === member.name,
+          ) && <small className="member-full-id">{member.id}</small>}
         </span>
         {member.kind === "bot" && <span className="member-kind">BOT</span>}
         <span className={`status-dot member-presence ${color}`} title={label} />
@@ -195,7 +213,7 @@ export function Shell(props: ShellProps) {
   }
 
   function contact(member: Participant, index: number) {
-    const directRoom = props.rooms.find(
+    const directRoom = (props.allRooms ?? props.rooms).find(
       (room) =>
         room.kind === "direct" && room.participantIds.includes(member.id),
     );
@@ -209,6 +227,7 @@ export function Shell(props: ShellProps) {
         className={`member-row contact-row${selected ? " selected" : ""}`}
         type="button"
         aria-label={t("messageMember", { name: member.name })}
+        title={member.id}
         onClick={() => openDirect(member.id)}
       >
         {memberContents(member, index)}
@@ -258,27 +277,49 @@ export function Shell(props: ShellProps) {
             DS
           </button>
           <div className="rail-divider" />
-          <button
-            id="server-button"
-            className={`server-icon${props.view === "chat" ? " active" : ""}`}
-            type="button"
-            aria-label={t("currentServer")}
-            aria-current={props.view === "chat" ? "page" : undefined}
-            title="DSCord"
-            onClick={() => {
-              closePanels();
-              props.onServer();
-            }}
-          >
-            DS
-          </button>
+          {(props.spaces ?? []).map((space) => (
+            <button
+              key={space.serverName}
+              id={space.home ? "server-button" : undefined}
+              data-server={space.serverName}
+              className={`server-icon${props.view === "chat" && props.selectedSpace?.serverName === space.serverName ? " active" : ""}${space.status === "revoked" ? " server-revoked" : ""}`}
+              type="button"
+              aria-label={`${space.name} · ${space.serverName} · ${t(space.status === "revoked" ? "revoked" : space.status === "offline" ? "offline" : "accessible")}`}
+              aria-current={
+                props.view === "chat" &&
+                props.selectedSpace?.serverName === space.serverName
+                  ? "page"
+                  : undefined
+              }
+              title={`${space.name} · ${space.serverName}`}
+              onClick={() => {
+                closePanels();
+                props.onServer(space.serverName);
+              }}
+            >
+              {(space.name.includes(" ")
+                ? space.name
+                    .split(/\s+/)
+                    .map((word) => word[0])
+                    .join("")
+                : space.name
+              )
+                .slice(0, 2)
+                .toUpperCase()}
+              {!!space.invitations.length && (
+                <span className="server-invite-count">
+                  {space.invitations.length}
+                </span>
+              )}
+            </button>
+          ))}
           <button
             id="server-settings-button"
             className="server-icon server-add"
             type="button"
             aria-label={t("serverConnection")}
             title={t("serverConnection")}
-            onClick={() => props.onSettings("server")}
+            onClick={props.onSpaces}
           >
             <Icon name="plus" />
           </button>
@@ -289,10 +330,22 @@ export function Shell(props: ShellProps) {
           aria-label={t("channelsAndMessages")}
         >
           <header className="brand">
-            <span>DSCord</span>
-            <span className="brand-chevron" aria-hidden="true">
-              <Icon name="chevronDown" />
-            </span>
+            <button
+              className="workspace-switcher"
+              type="button"
+              onClick={props.onSpaces}
+              aria-label={t("servers")}
+            >
+              <span
+                className="workspace-brand"
+                title={props.selectedSpace?.serverName}
+              >
+                {props.selectedSpace?.name ?? "DSCord"}
+              </span>
+              <span className="brand-chevron" aria-hidden="true">
+                <Icon name="chevronDown" />
+              </span>
+            </button>
             <button
               id="close-channels"
               className="icon-button mobile-close"
@@ -312,6 +365,7 @@ export function Shell(props: ShellProps) {
               aria-label={t("createGroup")}
               title={t("createGroup")}
               onClick={props.onCreateRoom}
+              hidden={props.canCreateRoom === false}
             >
               <Icon name="plus" />
             </button>
@@ -321,10 +375,23 @@ export function Shell(props: ShellProps) {
             <div id="additional-rooms">
               {otherRooms.map((room) => roomButton(room))}
             </div>
+            {!props.rooms.some((room) => room.kind === "group") && (
+              <p className="sidebar-empty">{t("noChannels")}</p>
+            )}
           </nav>
           <div className="section-heading members-heading">
             <span>{t("myBots")}</span>
             <div className="section-heading-actions">
+              <button
+                id="manage-bots-button"
+                className="section-action"
+                type="button"
+                aria-label={t("manageBots")}
+                title={t("manageBots")}
+                onClick={props.onManageBots}
+              >
+                <Icon name="gear" />
+              </button>
               <span id="owned-bot-count">
                 {props.session ? props.ownedBots.length : "—"}
               </span>
@@ -418,7 +485,9 @@ export function Shell(props: ShellProps) {
                 <h1 id="room-title">
                   {props.view === "home"
                     ? t("home")
-                    : (props.room?.name ?? t("collaboration"))}
+                    : (props.room?.name ??
+                      props.selectedSpace?.name ??
+                      t("collaboration"))}
                 </h1>
                 <p id="room-subtitle">
                   {props.view === "chat" ? props.room?.topic : ""}
@@ -426,13 +495,19 @@ export function Shell(props: ShellProps) {
               </div>
             </div>
             <div className="header-actions">
-              <span className="connection-label">
+              <span className="connection-label" title={t("homeConnection")}>
                 <span
                   id="connection-dot"
-                  className={`status-dot${props.status ? " online" : ""}`}
+                  className={`status-dot${props.connection === "connected" ? " online" : ""}`}
                 />
                 <span id="connection-text">
-                  {props.status ? t("connected") : t("connecting")}
+                  {t(
+                    props.connection === "connected"
+                      ? "connected"
+                      : props.connection === "offline"
+                        ? "offline"
+                        : "connecting",
+                  )}
                 </span>
               </span>
               <button
@@ -485,7 +560,11 @@ export function Shell(props: ShellProps) {
                 type="button"
                 aria-label={t("inviteBots")}
                 title={t("inviteBots")}
-                hidden={props.view !== "chat" || props.room?.kind !== "group"}
+                hidden={
+                  props.view !== "chat" ||
+                  props.room?.kind !== "group" ||
+                  props.canInvite === false
+                }
                 onClick={props.onInvite}
               >
                 <Icon name="plus" />

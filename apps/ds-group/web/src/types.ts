@@ -4,6 +4,15 @@ export type ThemePreference = "system" | "dark" | "light";
 export interface Session {
   access_token: string;
   user_id: string;
+  device_id?: string;
+  identity?: {
+    authorityId: string;
+    subjectId: string;
+    matrixUserId: string;
+    kind: "human";
+  };
+  home?: { serverName: string; coreUrl: string | null; matrixUrl: string };
+  binding?: import("./session").SessionBinding;
 }
 export interface Participant {
   id: string;
@@ -16,6 +25,8 @@ export interface Participant {
 export interface AccountProfile {
   user: Participant;
   ownedBots: Participant[];
+  identity?: Session["identity"];
+  home?: Session["home"];
 }
 export interface Role {
   id: string;
@@ -35,6 +46,14 @@ export interface Room {
   mentionCount?: number;
   status?: string;
   joinResults?: { participantId: string; status: string }[];
+  serverId?: string;
+  spaceId?: string;
+  membership?: "joined" | "invited" | "left";
+  permissions?: {
+    inviteMembers?: boolean;
+    manageRoles?: boolean;
+    sendMessages?: boolean;
+  };
 }
 export interface Mentionables {
   members: Participant[];
@@ -129,9 +148,10 @@ export interface ServerStatus {
 }
 export interface Bootstrap {
   name: string;
-  roomId: string;
+  roomId: string | null;
   roomName?: string;
   homeserverUrl?: string;
+  serverName?: string;
   participants: Participant[];
   demoLogin?: boolean;
   registration?: { enabled: boolean; mode: "open" | "closed" };
@@ -156,8 +176,13 @@ export interface RequestOptions {
   auth?: boolean;
   timeout?: number;
   headers?: Record<string, string>;
+  signal?: AbortSignal;
 }
 export type Api = <T>(route: string, options?: RequestOptions) => Promise<T>;
+export type RawRequest = (
+  route: string,
+  options?: RequestInit & { auth?: boolean },
+) => Promise<Response>;
 export interface OutgoingMessage {
   body: string;
   mentions: Mentions;
@@ -178,14 +203,9 @@ export interface ComposerHandle {
 export interface PwaHandle {
   refresh(): Promise<void>;
   beforeIdentityChange(nextUserId: string): Promise<void>;
+  destroy?(): void;
 }
-export type SettingsTab =
-  | "account"
-  | "appearance"
-  | "notifications"
-  | "roles"
-  | "server"
-  | "runtime";
+export type SettingsTab = "account" | "appearance" | "notifications";
 
 declare global {
   interface Window {

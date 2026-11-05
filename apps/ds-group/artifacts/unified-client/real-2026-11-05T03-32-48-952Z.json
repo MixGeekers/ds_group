@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "runId": "2026-11-05T03-32-48-952Z",
+  "date": "2026-11-04",
+  "status": "failed",
+  "evidenceLevel": "normal-production-React-client-real-local-Core-and-Synapse-separate-HTTP-origins-synthetic-accounts-zero-model",
+  "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+  "origins": {
+    "coreUrl": "http://127.0.0.1:24370",
+    "clientUrl": "http://127.0.0.1:24371",
+    "matrixUrl": "http://127.0.0.1:24378"
+  },
+  "checks": [
+    {
+      "name": "normal production entry registers the first central account with no fabricated initial room",
+      "status": "passed",
+      "details": {
+        "userId": "@alice:client-qa.test",
+        "initialJoinedRooms": 0,
+        "stableSubject": true
+      }
+    },
+    {
+      "name": "room creation and text send from the normal UI reach the real home Matrix room",
+      "status": "failed",
+      "error": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#room-title').filter({ hasText: 'Unified client QA' }) to be visible\u001b[22m\n"
+    }
+  ],
+  "modelCalls": 0,
+  "physicalCrossMachine": false,
+  "federatedRooms": "not run in this central-only script",
+  "backendCommit": "57e287276b32668eade419a6917bd3d40628a4dd",
+  "sourceSha256": {
+    "client/web/src/App.tsx": "a84c43f1925e9aef7b68e415abbc3130f95072eaa721a09283a67cd75e10dce7",
+    "client/web/src/api.ts": "255f24923a98ed4a610314e0e8e51a0912b6ccd0e8421818e2f39bbc97691e9f",
+    "client/web/src/client-config.ts": "d3be3961bb026b93f4e5765ddc54c8dd5a8d945d52be7e409e8e5c2118f6f948",
+    "client/web/src/session.ts": "933a04906f4891ca8393f6025118fd94a464a21ea2fb6b2386c3e29017f8d328",
+    "client/web/src/identifiers.ts": "3dc64048ca9312cdfccc449477f7248da05cbf18e12eeae1c4395475ce0063c5",
+    "client/web/src/components/Composer.tsx": "2cc61797e4940bd5222327f15f89f38c67d5e3b677b525bcfb56b9b9ea4b4e7f",
+    "client/web/src/components/Shell.tsx": "2be2d28286aff06ddbbf826703aa0a07c49cbd4c1c286bf7899a9c9146f3f266",
+    "client/web/src/components/SpacesDialog.tsx": "a96793a93fbf1a584e1136332c0ef4302665f2d8d716e7001b9443f7855e205d",
+    "client/web/attachments.js": "104f3d7ae4fb3e83db8165757f4c90ad0f4a2902fb9bbb75c638c31fbe25cb77",
+    "client/web/pwa.js": "eba0a3efa64a1fb9f7225990daed4936b6fabb001b1543be3bbd5eb1d9a8a1ee",
+    "client/web/sw.js": "b19c543ab333c6808a6abe9836abaad2277f3c64bd6fd3c8062db4e9a6f40290",
+    "client/scripts/verify-unified-client.mjs": "6f2b9e2abfa05f21771178af0e1d229889525e265b49ee915f530bb885d6a301",
+    "backend/src/core.mjs": "8442a76ffbf1fea02385b243f2f9aeb468d414734a777f8c0250e67635c0b3e8",
+    "backend/src/accounts.mjs": "18befa99631d08ecdb14ed445c3d72a4f0b80cb4eeef3b128c9633bce4f288a7",
+    "backend/src/identity.mjs": "f4d283d6bcb60da3b87a7bf6513260be2c5ac3025dce7a465d6b3e68222a2db6",
+    "backend/scripts/central-init.mjs": "0412e00a5a185f31459a24040ee8f5dc93e38e7e060375a012f970b7585aa86b"
+  },
+  "identity": {
+    "userId": "@alice:client-qa.test",
+    "subjectId": "f75cf1fc-4670-4d40-9311-e518f036e811",
+    "authorityId": "urn:uuid:c1cd4b9e-f646-4eeb-8346-f47de07579f7"
+  },
+  "error": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('#room-title').filter({ hasText: 'Unified client QA' }) to be visible\u001b[22m\n",
+  "failureDiagnostics": {
+    "listed": {
+      "status": 200,
+      "body": {
+        "rooms": [
+          {
+            "roomId": "!S_67pfRnVdPBhSXbXXwcWc6bsxxxd3M1KRzOS4UIe_M",
+            "name": "Unified client QA",
+            "kind": "group",
+            "participantIds": [
+              "@alice:client-qa.test"
+            ],
+            "unreadCount": 0,
+            "mentionCount": 0,
+            "lastEventId": null
+          }
+        ]
+      }
+    },
+    "spaces": {
+      "status": 200,
+      "body": {
+        "homeServer": "client-qa.test",
+        "userId": "@alice:client-qa.test",
+        "spaces": [
+          {
+            "serverName": "client-qa.test",
+            "name": "client-qa.test",
+            "home": true,
+            "status": "connected",
+            "rooms": [],
+            "invitations": []
+          }
+        ]
+      }
+    },
+    "matrixSyncJoinedRoomIds": [],
+    "states": [
+      {
+        "roomId": "!S_67pfRnVdPBhSXbXXwcWc6bsxxxd3M1KRzOS4UIe_M",
+        "createEvents": [
+          {
+            "sender": "@alice:client-qa.test",
+            "content": {
+              "room_version": "12"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "containerStopped": true,
+  "finishedAt": "2026-11-05T03:33:09.011Z",
+  "pageErrors": []
+}
