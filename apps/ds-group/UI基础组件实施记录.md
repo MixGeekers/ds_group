@@ -90,6 +90,16 @@ Base UI 设置弹窗与原生弹窗采用固定外框高度：标题及底部操
 
 ## 附件独立卡片（2026-11-05）
 
-用户选择附件矩阵第 3 套“独立卡片”。按该决定，消息中的文件各自成为细边框、8px 圆角的单列卡片，文件图标使用现有 Lucide 24px/2px 与 36×40 容器，文件名、类型和大小按产品 token 排列；可预览格式点击文件名，右侧只保留下载，ZIP 等不支持的格式没有预览入口。图片缩略图与底部文件信息和下载动作归于同一容器，缩略图和文件名分别有明确的可访问名称；缩略图读取失败时退回完整文件卡。手机上的长文件名会换行显示完整内容，多文件与上传区均无横向滚动。上传队列改为逐条紧凑卡片，呈现真实的等待、上传、失败、取消、重试及就绪状态；取消状态在切换语言后按当前语言显示。当前 `fetch` 上传不提供字节进度，故显示语义上的不确定进度条和状态文字，不显示推测百分比。附件读取来源证明、缓存重新核验、撤权拒绝、下载文件名、Object URL 释放、草稿隔离、发送门禁和重试流程仍走原实现；预览弹窗尺寸没有改动。
+用户选择附件矩阵第 3 套“独立卡片”。消息中的文件各自采用细边框、8px 圆角的单列卡片，文件图标使用 Lucide 24px/2px 与 36×40 容器，文件名、类型和大小按产品 token 排列。可预览格式通过文件名打开，右侧提供下载，ZIP 等格式提供下载入口。图片缩略图与底部信息和下载动作归于同一卡片，缩略图和文件名分别有明确的可访问名称。缩略图读取失败时退回完整文件卡。手机上的长文件名换行显示完整内容，多文件与上传区采用纵向排列。
 
-本轮本地验证：`npm run build`（含 TS7）通过；附件来源与国际化模块 11/11，React 附件浏览器 15 项、React 聊天浏览器 10 项、React App 浏览器 16 项、生产入口统一客户端浏览器 30 项通过，页面错误和模型调用为 0。新增浏览器断言覆盖无假 ZIP 预览、图片失败降级、文件名与下载在忙碌时禁用并恢复原状态、无预览回调时图片缩略图保持禁用、手机完整文件名与无横向溢出、上传不确定进度及失败重试/取消/移除、固定预览尺寸。真实组件截图位于被忽略的 `.local/attachment-cards/`：`desktop-single-light.png`、`desktop-multiple-{light,dark}.png`、`desktop-image-{light,dark}.png`、`mobile-{long-name,multiple}-light.png`、`upload-{pending-failed-ready-light-en,retried-light-en,cancelled-dark-zh,long-mobile-dark-zh}.png`、`desktop-image-preview-{light,dark}.png`、`mobile-text-preview-light.png`。完整生产入口聊天截图为 `.local/unified-client-browser/attachment-chat-context-desktop-dark-en.png`，同时包含头像、消息正文、附件卡与输入框。组件与统一客户端截图均来自实际 Web 组件和合成账号；本轮没有部署预览、调用 Bot 或模型，实际预览的目视复验由主线程另行记录。
+上传队列改为逐条紧凑卡片，呈现等待、上传、失败、取消、重试及就绪状态。取消状态随语言切换即时翻译。当前 `fetch` 上传依赖完成回执，上传期间使用语义上的不确定进度条和状态文字。附件读取继续经过来源证明、缓存重新核验与撤权检查，下载文件名、Object URL 释放、草稿隔离、发送门禁和重试行为纳入回归。
+
+实施聊天完成 `npm run build`（含 TS7）、附件来源与国际化模块 11/11，以及 React 附件 15 项、React 聊天 10 项、React App 16 项、生产入口统一客户端 30 项浏览器检查，页面错误和模型调用均为 0。新增断言覆盖格式对应的预览入口、图片失败降级、忙碌时禁用与原禁用状态恢复、手机完整文件名、横向溢出检测、上传进度语义、失败重试、取消、移除和固定预览尺寸。实现提交为 `9d6851c`。
+
+真实组件截图位于被忽略的 `.local/attachment-cards/`，包括 `desktop-single-light.png`、`desktop-multiple-{light,dark}.png`、`desktop-image-{light,dark}.png`、`mobile-{long-name,multiple}-light.png`、`upload-{pending-failed-ready-light-en,retried-light-en,cancelled-dark-zh,long-mobile-dark-zh}.png`、`desktop-image-preview-{light,dark}.png` 和 `mobile-text-preview-light.png`。完整生产入口截图为 `.local/unified-client-browser/attachment-chat-context-desktop-dark-en.png`，包含头像、消息正文、附件卡和输入框。以上浏览器场景使用合成 API 与账号，手机检查采用 Chromium 视口模拟。
+
+### 主线程独立验收
+
+主线程在 `9d6851c` 独立重跑生产构建、`npm run check` 的 376 项模块检查、全部 10 个浏览器测试文件及 Docker `frontend` 构建，全部通过。日志保存在 `.local/attachment-card-acceptance/parent-{build,check,browser,docker-frontend}.log`。
+
+本地预览 `http://127.0.0.1:24470` 已更新至该提交，页面入口与构建产物逐字节匹配。主线程在连接实际本地 Core 与 Synapse 的 Partner A 群聊中复核两条已有文件卡，点击 `foreign-a.txt` 文件名成功打开跨服文本，预览外框实测为 948×760。下载结果保留原文件名，51 字节内容与预览一致。通过正常文件选择器上传 40 字节的合成文件 `parent-review.txt` 后，界面显示“已就绪，待发送”，移除后恢复空输入框与禁用的发送按钮。该验收只操作附件草稿，业务模型调用为 0。本轮提交与验收均在本地完成。
