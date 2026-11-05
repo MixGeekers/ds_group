@@ -1,0 +1,17 @@
+✔ tests/admin.browser.mjs (3779.029083ms)
+✔ tests/mention-editor.browser.mjs (2579.674416ms)
+✔ tests/react-app.browser.mjs (12709.731625ms)
+✔ tests/react-artifacts.browser.mjs (3847.577125ms)
+✔ tests/react-auth.browser.mjs (3810.10775ms)
+✔ tests/react-bots.browser.mjs (3692.51925ms)
+✔ tests/react-chat.browser.mjs (4461.445208ms)
+✔ tests/react-settings.browser.mjs (9963.372167ms)
+✔ tests/unified-client.browser.mjs (8607.971042ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12715.471166

@@ -1,0 +1,249 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-11-05",
+  "repository": "MixGeekers/dscord",
+  "headSha": "541071a694c90c4c6b40d557d5f2d5fe9b541732",
+  "branch": "codex/dscord-platform-integration",
+  "runId": 41964875351,
+  "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351",
+  "remote": {
+    "status": "completed",
+    "conclusion": "failure",
+    "totalJobs": 10,
+    "succeeded": 8,
+    "failed": 2,
+    "jobs": [
+      {
+        "name": "DSH / ubuntu-24.04",
+        "id": 127039465359,
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465359",
+        "startedAt": "2026-11-05T03:58:33Z",
+        "completedAt": "2026-11-05T03:59:41Z",
+        "failedSteps": []
+      },
+      {
+        "name": "DSH / ubuntu-24.04-arm",
+        "id": 127039465543,
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465543",
+        "startedAt": "2026-11-05T03:58:36Z",
+        "completedAt": "2026-11-05T03:59:53Z",
+        "failedSteps": []
+      },
+      {
+        "name": "Deploy / Linux amd64",
+        "id": 127039465545,
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465545",
+        "startedAt": "2026-11-05T03:58:33Z",
+        "completedAt": "2026-11-05T04:01:43Z",
+        "failedSteps": []
+      },
+      {
+        "name": "Native / ubuntu-24.04-arm / Node 24.19.0",
+        "id": 127039465554,
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465554",
+        "startedAt": "2026-11-05T03:58:35Z",
+        "completedAt": "2026-11-05T03:59:25Z",
+        "failedSteps": []
+      },
+      {
+        "name": "Native / ubuntu-24.04-arm / Node 24.x",
+        "id": 127039465556,
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465556",
+        "startedAt": "2026-11-05T03:58:35Z",
+        "completedAt": "2026-11-05T03:59:24Z",
+        "failedSteps": []
+      },
+      {
+        "name": "Browser / Chromium",
+        "id": 127039465568,
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465568",
+        "startedAt": "2026-11-05T03:58:33Z",
+        "completedAt": "2026-11-05T03:59:49Z",
+        "failedSteps": [
+          "Mention editor keyboard, clipboard, IME and touch behavior"
+        ]
+      },
+      {
+        "name": "Deploy / Linux arm64",
+        "id": 127039465588,
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465588",
+        "startedAt": "2026-11-05T03:58:35Z",
+        "completedAt": "2026-11-05T04:01:26Z",
+        "failedSteps": []
+      },
+      {
+        "name": "Native / ubuntu-24.04 / Node 24.x",
+        "id": 127039465624,
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465624",
+        "startedAt": "2026-11-05T03:58:33Z",
+        "completedAt": "2026-11-05T03:59:25Z",
+        "failedSteps": []
+      },
+      {
+        "name": "Native / ubuntu-24.04 / Node 24.19.0",
+        "id": 127039465799,
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127039465799",
+        "startedAt": "2026-11-05T03:58:33Z",
+        "completedAt": "2026-11-05T03:59:28Z",
+        "failedSteps": []
+      },
+      {
+        "name": "DS-Group matrix passed",
+        "id": 127040510631,
+        "status": "completed",
+        "conclusion": "failure",
+        "url": "https://github.com/MixGeekers/dscord/actions/runs/41964875351/job/127040510631",
+        "startedAt": "2026-11-05T04:01:47Z",
+        "completedAt": "2026-11-05T04:01:51Z",
+        "failedSteps": [
+          "Require every matrix result"
+        ]
+      }
+    ],
+    "deployment": [
+      {
+        "arch": "amd64",
+        "report": "remote-amd64-deploy-smoke.json",
+        "status": "passed",
+        "checks": 10,
+        "modelCalls": 0,
+        "cleanedUp": true,
+        "sha256": "bc9f988ba45dee54dd4ec38c0eda2298d1fa5f30920bc295febb62b4a31fe5fb"
+      },
+      {
+        "arch": "amd64",
+        "report": "remote-amd64-platform-deploy-smoke.json",
+        "status": "passed",
+        "checks": 5,
+        "modelCalls": 0,
+        "cleanedUp": true,
+        "sha256": "e4132fcc461efc941ef2b8dd776247605b143ef7ff01318b5b4886cdd68f4893"
+      },
+      {
+        "arch": "arm64",
+        "report": "remote-arm64-deploy-smoke.json",
+        "status": "passed",
+        "checks": 10,
+        "modelCalls": 0,
+        "cleanedUp": true,
+        "sha256": "4c1e74c49f1ad37c3d15e4c56b3bbdc3b4e90da305f96ab7742118473fd11c2b"
+      },
+      {
+        "arch": "arm64",
+        "report": "remote-arm64-platform-deploy-smoke.json",
+        "status": "passed",
+        "checks": 5,
+        "modelCalls": 0,
+        "cleanedUp": true,
+        "sha256": "cb7806de04f1e67dc392765eb7a65a224ce0aed5c4b6ced1a9cc9fefd24ac832"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": 13387715030,
+        "name": "deploy-arm64",
+        "size": 3208,
+        "digest": "sha256:c98e40c906b3b7594dfb555445a375cdbfcd35d8fb4499673d55e8738f8598d3",
+        "expired": false
+      },
+      {
+        "id": 13387565527,
+        "name": "deploy-amd64",
+        "size": 3208,
+        "digest": "sha256:9010bd0c0f810bef4003524bd11e6e1f8dfecbc952fcc4811a63da3583f7a622",
+        "expired": false
+      },
+      {
+        "id": 13387176983,
+        "name": "browser-checks",
+        "size": 4093,
+        "digest": "sha256:0679f445dd3f50301524f35186f612d2ea73d328c51897f7b25a66b84ceac288",
+        "expired": false
+      },
+      {
+        "id": 13386907364,
+        "name": "ds-group-source",
+        "size": 1384135,
+        "digest": "sha256:397e233a7975917aaeaab4ec8a77f6d19e673324678dfe27fd2fc8e9ff21f2d1",
+        "expired": false
+      },
+      {
+        "id": 13386783573,
+        "name": "runtime-ubuntu-24.04-arm",
+        "size": 2570,
+        "digest": "sha256:79fbf1f976fde4133771d1244e5bd8b1189c1628db64ddb1e4d96c4ac3ff8c6b",
+        "expired": false
+      },
+      {
+        "id": 13386328587,
+        "name": "runtime-ubuntu-24.04",
+        "size": 2573,
+        "digest": "sha256:6387ca1782b3b754b0eb0378ef4351d28104ff444bcc575b0f1908296cfe4280",
+        "expired": false
+      }
+    ]
+  },
+  "browserDiagnosis": {
+    "remoteObserved": "admin.browser.mjs timed out after 30000 ms waiting for Administrator input; other 8 browser files passed",
+    "workflowObserved": "browser job did not run npm run build before the suite",
+    "localMissingBuildProbe": {
+      "status": 404,
+      "body": {
+        "error": "Build the management frontend before opening it"
+      },
+      "builtFrontendPresent": false
+    },
+    "productChangesNeeded": false
+  },
+  "patch": {
+    "files": [
+      ".github/workflows/ds-group-ci.yml"
+    ],
+    "changes": [
+      "build chat/admin before browser suite",
+      "add cross-server-runtime-smoke to the existing two runtime jobs with same DSH installation and local scripted provider",
+      "upload cross-server runtime result and nested admin/unified-client browser JSON/screenshots",
+      "rename browser step to reflect all 9 files"
+    ],
+    "matrixJobCount": 10
+  },
+  "localValidation": {
+    "commands": [
+      "npm ci --ignore-scripts --no-audit --no-fund",
+      "npm run build",
+      "npm run test:browser",
+      "Ruby YAML structure checks"
+    ],
+    "browserFiles": 9,
+    "passed": 9,
+    "failed": 0,
+    "evidenceLevel": "local macOS Chromium and source build; does not change the failed remote head result"
+  },
+  "scopedRuntimeCoverage": {
+    "note": "The script exists in 541071a, but this run did not invoke it. This patch wires it into both runtime jobs; remote execution remains pending the next main-owned push.",
+    "scriptExistsInHead": true,
+    "invokedByThisHeadWorkflow": false
+  },
+  "distinction": "Remote Linux amd64/arm64 job and artifact results above are new remote CI evidence. Earlier local Docker arm64 deployment reports remain separate historical evidence.",
+  "pushed": false,
+  "published": false,
+  "remoteModelCalls": 0
+}
