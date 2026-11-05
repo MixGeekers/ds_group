@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "origin": "http://127.0.0.1:22100",
+  "level": "real-built-pwa-real-core-post-rate-limit-fix",
+  "priorFailure": "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/report.json",
+  "loginRequests": 1,
+  "registrationRequests": 0,
+  "messagesSent": 0,
+  "modelCalls": 0,
+  "checks": [
+    {
+      "name": "previously-rate-limited-new-account-signs-in",
+      "status": "passed",
+      "userId": "@pwa_c07ac73a:onboarding.local"
+    },
+    {
+      "name": "new-owner-and-created-bot-restored-through-me",
+      "status": "passed",
+      "botId": "@bot-52e71a75-85aa-4cf6-9f73-26cadfd8e329:onboarding.local",
+      "botCount": 1
+    },
+    {
+      "name": "session-and-own-bot-persist-on-pwa-reload",
+      "status": "passed"
+    }
+  ],
+  "pageErrors": [],
+  "blockedRequests": [],
+  "screenshots": [
+    "artifacts/onboarding/pwa-login-recovery-2026-11-05T00-43-39-942Z/signed-in-en-dark.png"
+  ],
+  "loginStatus": 200,
+  "buildIndexHash": "d03e8ad9deb296d54c967d093ffd372cdc06db8803be7bd1aacc7a2335363d6e",
+  "completedAt": "2026-11-05T00:43:40.545Z"
+}

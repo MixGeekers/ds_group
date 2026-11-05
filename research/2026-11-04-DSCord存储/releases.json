@@ -1,0 +1,42 @@
+[
+  {
+    "repository": "rclone/rclone",
+    "source_url": "https://api.github.com/repos/rclone/rclone/releases/latest",
+    "tag_name": "v1.75.2",
+    "published_at": "2026-10-09T11:03:19Z",
+    "html_url": "https://github.com/rclone/rclone/releases/tag/v1.75.2",
+    "retrieved_at": "2026-11-05T00:18:39.281327+00:00"
+  },
+  {
+    "repository": "matrix-org/synapse-s3-storage-provider",
+    "source_url": "https://api.github.com/repos/matrix-org/synapse-s3-storage-provider/releases/latest",
+    "tag_name": "v1.7.0",
+    "published_at": "2026-08-18T16:25:46Z",
+    "html_url": "https://github.com/matrix-org/synapse-s3-storage-provider/releases/tag/v1.7.0",
+    "retrieved_at": "2026-11-05T00:18:39.639714+00:00"
+  },
+  {
+    "repository": "OpenListTeam/OpenList",
+    "source_url": "https://api.github.com/repos/OpenListTeam/OpenList/releases/latest",
+    "tag_name": "v4.2.9",
+    "published_at": "2026-10-25T05:28:47Z",
+    "html_url": "https://github.com/OpenListTeam/OpenList/releases/tag/v4.2.9",
+    "retrieved_at": "2026-11-05T00:18:40.225917+00:00"
+  },
+  {
+    "repository": "AlistGo/alist",
+    "source_url": "https://api.github.com/repos/AlistGo/alist/releases/latest",
+    "tag_name": "v3.66.0",
+    "published_at": "2026-10-21T10:35:01Z",
+    "html_url": "https://github.com/AlistGo/alist/releases/tag/v3.66.0",
+    "retrieved_at": "2026-11-05T00:18:40.781313+00:00"
+  },
+  {
+    "repository": "t2bot/matrix-media-repo",
+    "source_url": "https://api.github.com/repos/t2bot/matrix-media-repo/releases/latest",
+    "tag_name": "v1.3.8",
+    "published_at": "2025-01-16T18:39:46Z",
+    "html_url": "https://github.com/t2bot/matrix-media-repo/releases/tag/v1.3.8",
+    "retrieved_at": "2026-11-05T00:18:41.175535+00:00"
+  }
+]

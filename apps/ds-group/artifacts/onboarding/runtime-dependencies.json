@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "startedAt": "2026-11-05T00:46:24.338Z",
+  "finishedAt": "2026-11-05T00:46:25.700Z",
+  "sourceCommit": "45da59900df390bb9a575dfbb0d862f5918cdb84",
+  "sourceHashes": {
+    "scripts/runtime-dependencies.mjs": "3861d157088b957cf6b8f89bff7935b3820795b1d32114103fe041a79d6b0c11",
+    "scripts/dsh-node.mjs": "035475c1f5fe198b9d5aeca1f284f7a7b5d40a84dd30b80d91f2531113e57cd4",
+    "dsh-plugin/runtime-dependencies.json": "69645e8583fa713e700318c5f7b3b0fb651b8beee759fa1fbdf32a2f51803038",
+    "dsh-plugin/runtime-dependencies-lock.json": "571b4460c4981e0a146e743d33d3d5ef4dffd1769eadc1fa1bc97098562da3f6",
+    "dsh-plugin/runtime-dependencies-pnpm-lock.yaml": "847646e6cdcfddf7f99e4d619ce31c9af79012ae7aeb4ae3ee43fd454d7d71c3",
+    "tests/runtime-dependencies.test.mjs": "e4ab9034b3d31ee684297b966f47bcb977e2fe515b636533d5c78774a89d4bee"
+  },
+  "level": "real-isolated-dependency-install",
+  "scope": "DSH bundled Node and pnpm install the fixed Bot runtime dependencies with npm absent from the child PATH",
+  "environment": {
+    "platform": "darwin",
+    "architecture": "arm64",
+    "desktopVersion": "0.2.1-rc.5",
+    "node": "24.21.0",
+    "pnpm": "11.28.5"
+  },
+  "scenarios": [
+    {
+      "name": "clean-install",
+      "status": "passed",
+      "npmAvailableDuringBotDependencyInstall": false,
+      "installCalls": 1,
+      "cacheReused": true,
+      "archiveIntegrityMatchesNpmLock": true,
+      "dependencyVersions": {
+        "deep-view": "0.1.0",
+        "yaml": "2.9.1"
+      },
+      "dshSdkPeerPackagesInstalled": [],
+      "interactivePrompt": false
+    },
+    {
+      "name": "existing-npm-migration",
+      "status": "passed",
+      "npmAvailableDuringBotDependencyInstall": false,
+      "installCalls": 1,
+      "cacheReused": true,
+      "archiveIntegrityMatchesNpmLock": true,
+      "dependencyVersions": {
+        "deep-view": "0.1.0",
+        "yaml": "2.9.1"
+      },
+      "dshSdkPeerPackagesInstalled": [],
+      "interactivePrompt": false
+    }
+  ],
+  "modelCalls": 0,
+  "dshHostStarts": 0,
+  "privateDiagnostics": ".local/runtime-dependencies-evidence-0TMV1R/result.json",
+  "limitations": [
+    "Full DSH GUI connection is verified separately.",
+    "The legacy npm directory for the migration case was prepared with system npm before the restricted-PATH verification."
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "schemaVersion": 1,
+  "runId": "onboarding-2026-11-05T00-43-04-326Z",
+  "startedAt": "2026-11-05T00:43:04.327Z",
+  "status": "passed",
+  "scope": "real-matrix-login-address-rate-limit-fix-zero-model",
+  "modelCalls": 0,
+  "coreUrl": "http://127.0.0.1:22100",
+  "checks": [
+    {
+      "name": "eight different humans register and log in consecutively with product rate limits",
+      "status": "passed",
+      "details": {
+        "differentHumans": 8,
+        "registrationRequests": 8,
+        "automaticClientLogins": 8,
+        "requestRetries": 0,
+        "durationMs": 3722,
+        "existingCredentialsFilePreserved": true
+      }
+    },
+    {
+      "name": "Synapse access logs record the real client address for all eight successful logins",
+      "status": "passed",
+      "details": {
+        "successfulLogins": 8,
+        "observedClientIp": "127.0.0.1",
+        "statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200
+        ]
+      }
+    }
+  ],
+  "synapseConfig": {
+    "rc_login": {
+      "address": {
+        "per_second": 1,
+        "burst_count": 20
+      },
+      "account": {
+        "per_second": 0.003,
+        "burst_count": 5
+      },
+      "failed_attempts": {
+        "per_second": 0.17,
+        "burst_count": 3
+      }
+    },
+    "x_forwarded": true,
+    "source": "initializeServer product defaults"
+  },
+  "sourceHashes": {
+    "src/core.mjs": "6857a414e6647b85455a03826788b24f387067f8de038bbf7fc7719a62389c90",
+    "src/accounts.mjs": "1ceacbea14a498f6342c8167f9af4aff094ff856d17cef0ecf231467f7f457bf",
+    "src/node-auth.mjs": "5eac06702c7e924d901b91d6b1722f3a5b2ec97c3df4880c00c7d1566281c755",
+    "src/tasks.mjs": "0af6838e9f6bdd75fda9d0ec0c281c70d9b9b652d333076c6c525ebe527c6184",
+    "src/budget.mjs": "bbf5006b532e79e72798ca539084fc7f6baacf75f6af611520317e59dfe62f3b",
+    "src/matrix-client.mjs": "1354f7626efc25c120d9a6b4c6eb338314e258236c2d99a3757a543c9bb21d21",
+    "scripts/server-admin.mjs": "88acd9ed6665924266c7f1ade880aa9d5a3e450813e3bea7a6760b5de60032ca",
+    "scripts/server-init.mjs": "d3808fc7435963d94a9e541cf16d7934c5aa9635b82aa8c10d59d00e9d9aff74"
+  },
+  "registrationRequests": [
+    {
+      "index": 1,
+      "httpStatus": 201,
+      "elapsedMs": 490
+    },
+    {
+      "index": 2,
+      "httpStatus": 201,
+      "elapsedMs": 983
+    },
+    {
+      "index": 3,
+      "httpStatus": 201,
+      "elapsedMs": 1453
+    },
+    {
+      "index": 4,
+      "httpStatus": 201,
+      "elapsedMs": 1901
+    },
+    {
+      "index": 5,
+      "httpStatus": 201,
+      "elapsedMs": 2380
+    },
+    {
+      "index": 6,
+      "httpStatus": 201,
+      "elapsedMs": 2838
+    },
+    {
+      "index": 7,
+      "httpStatus": 201,
+      "elapsedMs": 3279
+    },
+    {
+      "index": 8,
+      "httpStatus": 201,
+      "elapsedMs": 3717
+    }
+  ],
+  "synapseLoginEvidence": {
+    "records": [
+      {
+        "clientIp": "127.0.0.1",
+        "status": 200
+      },
+      {
+        "clientIp": "127.0.0.1",
+        "status": 200
+      },
+      {
+        "clientIp": "127.0.0.1",
+        "status": 200
+      },
+      {
+        "clientIp": "127.0.0.1",
+        "status": 200
+      },
+      {
+        "clientIp": "127.0.0.1",
+        "status": 200
+      },
+      {
+        "clientIp": "127.0.0.1",
+        "status": 200
+      },
+      {
+        "clientIp": "127.0.0.1",
+        "status": 200
+      },
+      {
+        "clientIp": "127.0.0.1",
+        "status": 200
+      }
+    ],
+    "lines": [
+      "2026-11-05 00:43:08,494 - synapse.access.http.8008 - 643 - INFO - POST-24 - 127.0.0.1 - 8008 - {None} Processed request: 0.197sec/0.000sec ru=(0.189sec, 0.000sec) db=(0.003sec/0.004sec/6) 277B 200 \"POST /_matrix/client/v3/login HTTP/1.1\" \"node\" [0 dbevts]",
+      "2026-11-05 00:43:08,986 - synapse.access.http.8008 - 643 - INFO - POST-50 - 127.0.0.1 - 8008 - {None} Processed request: 0.196sec/0.001sec ru=(0.189sec, 0.000sec) db=(0.003sec/0.002sec/6) 277B 200 \"POST /_matrix/client/v3/login HTTP/1.1\" \"node\" [0 dbevts]",
+      "2026-11-05 00:43:09,458 - synapse.access.http.8008 - 643 - INFO - POST-78 - 127.0.0.1 - 8008 - {None} Processed request: 0.192sec/0.000sec ru=(0.188sec, 0.000sec) db=(0.001sec/0.001sec/6) 277B 200 \"POST /_matrix/client/v3/login HTTP/1.1\" \"node\" [0 dbevts]",
+      "2026-11-05 00:43:09,905 - synapse.access.http.8008 - 643 - INFO - POST-111 - 127.0.0.1 - 8008 - {None} Processed request: 0.199sec/0.000sec ru=(0.195sec, 0.000sec) db=(0.001sec/0.002sec/6) 277B 200 \"POST /_matrix/client/v3/login HTTP/1.1\" \"node\" [0 dbevts]",
+      "2026-11-05 00:43:10,384 - synapse.access.http.8008 - 643 - INFO - POST-147 - 127.0.0.1 - 8008 - {None} Processed request: 0.201sec/0.000sec ru=(0.196sec, 0.000sec) db=(0.001sec/0.002sec/6) 277B 200 \"POST /_matrix/client/v3/login HTTP/1.1\" \"node\" [0 dbevts]",
+      "2026-11-05 00:43:10,843 - synapse.access.http.8008 - 643 - INFO - POST-185 - 127.0.0.1 - 8008 - {None} Processed request: 0.184sec/0.000sec ru=(0.180sec, 0.000sec) db=(0.001sec/0.002sec/6) 277B 200 \"POST /_matrix/client/v3/login HTTP/1.1\" \"node\" [0 dbevts]",
+      "2026-11-05 00:43:11,285 - synapse.access.http.8008 - 643 - INFO - POST-226 - 127.0.0.1 - 8008 - {None} Processed request: 0.180sec/0.000sec ru=(0.177sec, 0.000sec) db=(0.001sec/0.002sec/6) 277B 200 \"POST /_matrix/client/v3/login HTTP/1.1\" \"node\" [0 dbevts]",
+      "2026-11-05 00:43:11,722 - synapse.access.http.8008 - 643 - INFO - POST-270 - 127.0.0.1 - 8008 - {None} Processed request: 0.182sec/0.000sec ru=(0.178sec, 0.000sec) db=(0.001sec/0.002sec/6) 277B 200 \"POST /_matrix/client/v3/login HTTP/1.1\" \"node\" [0 dbevts]"
+    ]
+  },
+  "finalNodes": [
+    {
+      "id": "finance",
+      "status": "offline"
+    },
+    {
+      "id": "hr",
+      "status": "offline"
+    },
+    {
+      "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+      "status": "offline"
+    },
+    {
+      "id": "bot-85052fb5-fd7b-4255-96e3-d4b348d758a7",
+      "status": "offline"
+    },
+    {
+      "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+      "status": "offline"
+    },
+    {
+      "id": "bot-52e71a75-85aa-4cf6-9f73-26cadfd8e329",
+      "status": "offline"
+    }
+  ],
+  "servicesRetained": {
+    "core": 22100,
+    "matrix": 22008,
+    "stopInstructions": ".local/onboarding/qa-server.json"
+  },
+  "completedAt": "2026-11-05T00:43:11.763Z"
+}

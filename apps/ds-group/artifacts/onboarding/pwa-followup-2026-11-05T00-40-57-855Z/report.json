@@ -1,0 +1,41 @@
+{
+  "status": "failed",
+  "level": "real-built-pwa-real-core-existing-account-sessions",
+  "origin": "http://127.0.0.1:22100",
+  "checks": [
+    {
+      "name": "desktop-zh-light-brand-and-session-reload",
+      "status": "passed",
+      "ownedBotCount": 2
+    },
+    {
+      "name": "mobile-en-dark-brand-and-session-reload",
+      "status": "passed",
+      "ownedBotCount": 1
+    },
+    {
+      "name": "pwa-brand-and-stable-manifest-identity",
+      "status": "passed"
+    }
+  ],
+  "screenshots": [
+    "artifacts/onboarding/pwa-followup-2026-11-05T00-40-57-855Z/desktop-zh-light.png",
+    "artifacts/onboarding/pwa-followup-2026-11-05T00-40-57-855Z/mobile-en-dark.png"
+  ],
+  "pageErrors": [],
+  "blockedRequests": [
+    "POST /api/presence",
+    "POST /api/presence",
+    "POST /api/presence",
+    "POST /api/presence",
+    "POST /api/presence",
+    "POST /api/presence"
+  ],
+  "loginRequests": 0,
+  "registrationRequests": 0,
+  "messagesSent": 0,
+  "modelCalls": 0,
+  "priorRun": "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/report.json",
+  "error": "Expected values to be strictly deep-equal:\n+ actual - expected\n\n+ [\n+   'POST /api/presence',\n+   'POST /api/presence',\n+   'POST /api/presence',\n+   'POST /api/presence',\n+   'POST /api/presence',\n+   'POST /api/presence'\n+ ]\n- []\n",
+  "completedAt": "2026-11-05T00:40:58.763Z"
+}

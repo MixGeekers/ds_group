@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "runId": "pwa-ui-2026-11-05T00-34-36-034Z",
+  "startedAt": "2026-11-05T00:34:36.035Z",
+  "status": "failed",
+  "level": "real-built-pwa-real-matrix-core",
+  "origin": "http://127.0.0.1:22100",
+  "checks": [],
+  "screenshots": [],
+  "pageErrors": [],
+  "forbiddenRequests": [],
+  "loginRequests": 0,
+  "registrationRequests": 0,
+  "modelCalls": 0,
+  "error": "The expression evaluated to a falsy value:\n\n  assert.ok(box.left >= 0 && box.right <= width + 1)\n",
+  "completedAt": "2026-11-05T00:34:36.295Z"
+}

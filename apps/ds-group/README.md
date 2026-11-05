@@ -1,6 +1,28 @@
-# DS-Group 0.2.0
+# DSCord 0.3.0 候选
 
 人类与独立 Bot 共同参与的聊天协作框架。Matrix Synapse 管理成员、聊天记录与附件，独立 DSH 宿主运行固定 DS-Bot 0.2.7，节点适配器负责消息队列、工具工作、委派与成果回传。前端采用 React 19.3.1、TypeScript 7.0.2 与 Vite，提供 Discord 式 PWA、深浅主题和中英文界面。
+
+当前源码增加 DSH 连接页、服务器注册登录和可选附件存储。公开 npm 版本为 `dscord@0.2.0-alpha.1`，新功能使用本地构建的 `0.3.0-alpha.1` 候选验证。连接入口、状态归属与当前验收范围见[连接、账号与存储设计](../../架构与设计/DSCord连接、账号与存储.md)。
+
+## 账号与自己的 Bot
+
+打开服务器网页，在登录窗口选择“注册账号”，填写用户名、显示名称和密码。注册后在“我的 Bot”点击“创建 Bot”，输入名称即可生成独立 Bot 身份。多个 Bot 可以使用相同显示名称，列表同时显示各自的 Bot ID。新 Bot 由所有者邀请进群，也可以直接私聊。
+
+在 DSH 的 `Plugins → Add plugin` 安装候选 `.tgz`，启用 `dscord`，再打开左侧 **DSCord**。填写 Core/PWA 服务器地址和自己的账号密码，登录后在“我的 Bot”中点击“上线”。这里可以查看连接状态、断开或重连，也可以打开服务器网页或展开本机配置目录。每个 Bot 使用独立 DSH 运行目录和 Session，指定模型为 `opencode-go/deepseek-v4.1-flash`。[安装与连接步骤](deploy/npm.md)
+
+本地 DSH 0.2.1-rc.5 已完成实际安装、登录、上线、断开、重连和插件重载。最终候选另通过两个已在线 Bot 的完整宿主快速重启，恢复原 Bot/Session 身份，并持续观察 10 秒。测试为零模型调用，在途模型任务恢复仍需独立验收。[DSH 宿主验证](artifacts/onboarding/dsh-connect-host.json)
+
+服务器默认开放注册。管理员可在 `core-config.json` 中设置 `registrationMode: "closed"`，重启 Core 后关闭注册。每次客户端登录使用独立会话，退出一台设备后其他设备继续使用自己的会话。真实 Matrix/Core 联调已覆盖两个新账号、同名 Bot 的独立身份、所属 Bot 连接、附件、提及和重启恢复。[本轮账号验收](artifacts/onboarding/onboarding-2026-11-05T00-26-35-920Z.json)
+
+真实 PWA 检查覆盖桌面与手机尺寸、中英文和深浅主题，以及注册、创建 Bot、退出、修复后的登录和刷新恢复。初轮登录触发的地址限流已修复，原失败与后续复验分别保存。真实界面累计 18 项成功，另有 69 项浏览器夹具检查，均为零模型调用。[界面验收汇总](artifacts/onboarding/pwa-validation-summary.json)
+
+## 附件后端与索引
+
+默认使用 Synapse 本地媒体目录。`DS_GROUP_MEDIA_BACKEND=s3` 可以选择 S3-compatible 桶，支持 bucket、endpoint、region、prefix 和凭据配置。Cloudflare R2 使用自定义 endpoint 与 `auto` region。Compose 提供固定 Synapse S3 provider 扩展镜像，上传会等待远端写入完成。[存储部署步骤](deploy/storage/README.md)
+
+`media.sqlite` 保存附件身份、名称、大小、哈希、上传状态和 Matrix URI，原文件由媒体后端保存。服务器当前选择一个活动附件后端。rclone overlay 可以接入管理员已有的 remote，Google Drive 和 OneDrive 的真实云端授权与恢复尚待验证。已有云盘目录的扫描、分页搜索索引、历史附件迁移和远端回收列入后续实施。[存储候选与证据](../../技术候选/DSCord多后端存储.md)
+
+本地 rclone remote 的 9 项真实协议检查已通过，覆盖普通上传、9 MiB multipart、移除本地缓存后的远端读取、Range、重启恢复及远端写入失败后的稳定重试。此前健康探针与 Range 两轮失败记录分别保留。[存储协议验收](artifacts/storage/protocol-pass.json)
 
 ## 文件工作与提及
 
@@ -20,15 +42,15 @@ Bot 可以调用 DSH 文件读写、终端、后台作业及图片工具，连�
 
 ## 服务器部署与发行
 
-npm 发行名已选定为 `dscord`。首个 alpha 包包含预构建 PWA、核心服务和 Bot 节点 CLI，安装与启动步骤见 [npm 部署说明](deploy/npm.md)。通过 `npm run npm:pack` 构建带文件白名单的独立发行包，源工程的私有包清单用于本地开发。
+npm 发行名为 `dscord`。已公开的 `0.2.0-alpha.1` 包含预构建 PWA、核心服务和 Bot 节点 CLI，当前 `0.3.0-alpha.1` 候选另含 DSH 安装清单及连接页面。安装与启动步骤见 [npm 部署说明](deploy/npm.md)。通过 `npm run npm:pack` 构建带文件白名单的独立发行包，源工程的私有包清单用于本地开发。
 
 Linux x64 与 ARM64 服务器使用 [Docker Compose 部署说明](deploy/README.md)。服务器默认采用密码登录，核心、Synapse、Bot 节点分别运行。文档包含 HTTPS、账号读取、远程节点导出、备份与升级。正式发行和 CI 目标为 Linux amd64/arm64 与 Docker/Compose。
 
 发行 CI 包含 10 个任务，检查两种 Linux 架构的 Node/TS7 构建、干净源码包安装、浏览器交互、真实容器部署及持久化，以及独立 DSH 节点初始化、工具执行与取消。源码包附带 SHA256 清单。带 `ds-group-v` 前缀的版本标签通过完整检查后发布源码包和多架构 GHCR 镜像。具体矩阵和本轮结果见[发行验证记录](发行验证.md)。
 
-## 打开与使用
+## 本机演示
 
-运行地址为 [DS-Group 本机界面](http://127.0.0.1:18100)。选择 Alice 或 Bob 进入演示，两个人可以分别使用不同窗口。共同群聊里输入 `@` 并选择 Bot 后发送消息。点击联系人可进入真实私聊，返回“初次协作”继续群聊。
+默认本机入口为 [DSCord 本机界面](http://127.0.0.1:18100)。选择 Alice 或 Bob 进入演示，两个人可以分别使用不同窗口。共同群聊里输入 `@` 并选择 Bot 后发送消息。点击联系人可进入真实私聊，返回“初次协作”继续群聊。
 
 首批合成成员为 Alice、Bob、财务小雨、人事小晴。它们分别拥有独立 Matrix 身份，两个 Bot 分别保持自己的长期原生 Session。群聊和私聊中的同一个 Bot 使用同一条主对话队列。
 
@@ -84,7 +106,7 @@ node scripts/service.mjs up finance
 | 组件 | 本机位置 | 职责 |
 |---|---|---|
 | Matrix Synapse 1.164.2 | `127.0.0.1:18008` | 成员、房间、原生消息、历史、增量同步、发送事务去重 |
-| DS-Group Core | `127.0.0.1:18100` | 网页、演示身份入口、私聊创建、节点状态和模型调用账目 |
+| DSCord Core | `127.0.0.1:18100` | 网页、注册登录、Bot 归属、私聊创建、附件索引、节点状态和模型调用账目 |
 | 财务 DSH / DS-Bot | `127.0.0.1:18091` | 财务独立身份、原生 Session、模型生成 |
 | 人事 DSH / DS-Bot | `127.0.0.1:18092` | 人事独立身份、原生 Session、模型生成 |
 | 两个 Matrix 节点进程 | `.local/nodes/finance`、`.local/nodes/hr` | 持久 inbox/outbox、每 Bot 串行、跨 Bot 并行、离线同步 |
@@ -97,7 +119,7 @@ node scripts/service.mjs up finance
 
 节点只处理明确指向自己的消息，其余群消息保留为可引用背景。每个 Bot 的处理串行，两个节点可以同时生成。收到消息、保存游标、准备模型请求和保存生成结果各有持久记录。发送采用确定的 Matrix transaction ID，重连补发继续使用原 ID。
 
-Bot 使用宿主工具执行工作，最终输出文字、可选 `artifacts` 和 `delegate`。节点核对文件实际存在及哈希，上传成果后持久发送。跨 Bot 请求携带任务附件引用，结果沿原任务返回。私聊发起的协作经过共同协作群，最后由原 Bot 回到原私聊。独立 Bot 主 Session 延续跨群聊与私聊的经历。
+Bot 使用宿主工具执行工作，最终输出文字、可选 `artifacts` 和 `delegate`。节点核对文件实际存在及哈希，上传成果后持久发送。跨 Bot 请求携带任务附件引用，结果沿原任务返回。私聊交付任务的协作经过 Bot 间私聊，最后由原 Bot 交给人类。独立 Bot 主 Session 延续跨群聊与私聊的经历。
 
 ## 验证
 
@@ -118,10 +140,10 @@ npm run verify
 
 - 运行数据全部位于 `.local/`，已被 Git 排除。包含合成账号凭据、SQLite、日志、DSH Session 和 SDK 依赖链接。
 - `DS_GROUP_DATA_DIR` 可以将运行数据放在源码目录外。容器使用独立持久卷，升级镜像保留原数据。预算上限由已有预算数据库保存，修改配置文件不会重置历史账目或既存预算。
-- 网页提供本机演示账号快捷登录，当前使用合成成员。
+- 网页提供注册、密码登录、退出和个人 Bot 创建，本机演示模式另外提供合成账号快捷登录。
 - 原生 Session 历史延续与文件工具工作已有实际链路。自动长期记忆复盘和长历史压缩仍按独立场景验证。
 - 对模型运行中断或回执不明的请求，保存 `unknown` 并停止自动重放。已生成并保存的 outbox 可以恢复发送。完整在途故障接管尚待实现和验证。
-- 当前支持附件、群聊、私聊与身份组提及。语音视频通话、任意 Bot 创建、跨服务器身份管理和长期多日运行继续按功能推进。
+- 当前支持个人 Bot 创建、附件、群聊、私聊与身份组提及。语音视频通话、跨服务器身份管理和长期多日运行继续按功能推进。
 
 ## 来源
 

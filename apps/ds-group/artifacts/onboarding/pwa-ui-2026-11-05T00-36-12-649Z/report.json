@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "runId": "pwa-ui-2026-11-05T00-36-12-649Z",
+  "startedAt": "2026-11-05T00:36:12.650Z",
+  "status": "failed",
+  "level": "real-built-pwa-real-matrix-core",
+  "origin": "http://127.0.0.1:22100",
+  "checks": [
+    {
+      "name": "zh-CN-dark-desktop",
+      "status": "passed",
+      "owner": "@nora_48825da8:onboarding.local",
+      "ownedBotCount": 2,
+      "features": [
+        "session-restored",
+        "owned-bots",
+        "registration-form",
+        "create-bot-form",
+        "viewport-fit"
+      ]
+    },
+    {
+      "name": "zh-CN-dark-mobile",
+      "status": "passed",
+      "owner": "@omar_48825da8:onboarding.local",
+      "ownedBotCount": 1,
+      "features": [
+        "session-restored",
+        "owned-bots",
+        "registration-form",
+        "create-bot-form",
+        "viewport-fit"
+      ]
+    },
+    {
+      "name": "zh-CN-light-desktop",
+      "status": "passed",
+      "owner": "@nora_48825da8:onboarding.local",
+      "ownedBotCount": 2,
+      "features": [
+        "session-restored",
+        "owned-bots",
+        "registration-form",
+        "create-bot-form",
+        "viewport-fit"
+      ]
+    },
+    {
+      "name": "zh-CN-light-mobile",
+      "status": "passed",
+      "owner": "@omar_48825da8:onboarding.local",
+      "ownedBotCount": 1,
+      "features": [
+        "session-restored",
+        "owned-bots",
+        "registration-form",
+        "create-bot-form",
+        "viewport-fit"
+      ]
+    },
+    {
+      "name": "en-dark-desktop",
+      "status": "passed",
+      "owner": "@nora_48825da8:onboarding.local",
+      "ownedBotCount": 2,
+      "features": [
+        "session-restored",
+        "owned-bots",
+        "registration-form",
+        "create-bot-form",
+        "viewport-fit"
+      ]
+    },
+    {
+      "name": "en-dark-mobile",
+      "status": "passed",
+      "owner": "@omar_48825da8:onboarding.local",
+      "ownedBotCount": 1,
+      "features": [
+        "session-restored",
+        "owned-bots",
+        "registration-form",
+        "create-bot-form",
+        "viewport-fit"
+      ]
+    },
+    {
+      "name": "en-light-desktop",
+      "status": "passed",
+      "owner": "@nora_48825da8:onboarding.local",
+      "ownedBotCount": 2,
+      "features": [
+        "session-restored",
+        "owned-bots",
+        "registration-form",
+        "create-bot-form",
+        "viewport-fit"
+      ]
+    },
+    {
+      "name": "en-light-mobile",
+      "status": "passed",
+      "owner": "@omar_48825da8:onboarding.local",
+      "ownedBotCount": 1,
+      "features": [
+        "session-restored",
+        "owned-bots",
+        "registration-form",
+        "create-bot-form",
+        "viewport-fit"
+      ]
+    },
+    {
+      "name": "new-account-registration-through-pwa",
+      "status": "passed",
+      "userId": "@pwa_c07ac73a:onboarding.local"
+    },
+    {
+      "name": "bot-created-through-pwa-with-connection-details",
+      "status": "passed",
+      "botId": "@bot-52e71a75-85aa-4cf6-9f73-26cadfd8e329:onboarding.local",
+      "ownerId": "@pwa_c07ac73a:onboarding.local"
+    },
+    {
+      "name": "existing-bot-profile-and-real-theme-language-settings",
+      "status": "passed",
+      "botConversationOpened": true,
+      "messagesSent": 0
+    },
+    {
+      "name": "pwa-logout-revokes-own-session-and-clears-ui",
+      "status": "passed"
+    }
+  ],
+  "screenshots": [
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/zh-CN-dark-desktop-workspace.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/zh-CN-dark-mobile-workspace.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/zh-CN-dark-mobile-create-bot.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/zh-CN-light-desktop-workspace.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/zh-CN-light-desktop-registration.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/zh-CN-light-mobile-workspace.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/en-dark-desktop-workspace.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/en-dark-mobile-workspace.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/en-dark-mobile-registration.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/en-light-desktop-workspace.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/en-light-desktop-create-bot.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/en-light-mobile-workspace.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/new-account-registration.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/new-bot-connection-desktop.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/new-bot-connection-mobile.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/own-bot-profile-en-dark.png",
+    "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/signed-out-en-dark.png"
+  ],
+  "pageErrors": [],
+  "forbiddenRequests": [],
+  "loginRequests": 1,
+  "registrationRequests": 1,
+  "modelCalls": 0,
+  "error": "Single password login accepted\n\n429 !== 200\n",
+  "completedAt": "2026-11-05T00:36:18.531Z"
+}

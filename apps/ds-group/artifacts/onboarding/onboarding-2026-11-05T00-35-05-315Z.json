@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "runId": "onboarding-2026-11-05T00-35-05-315Z",
+  "startedAt": "2026-11-05T00:35:05.316Z",
+  "status": "passed",
+  "scope": "real-core-sqlite-node-credentials-cli-live-visibility-zero-model",
+  "modelCalls": 0,
+  "coreUrl": "http://127.0.0.1:22100",
+  "checks": [
+    {
+      "name": "existing client and service sessions survive the credential-store reload",
+      "status": "passed",
+      "details": {
+        "reusedHumans": 2,
+        "refreshedBotBundles": 2,
+        "loginRequests": 0
+      }
+    },
+    {
+      "name": "SQLite-backed credentials keep heartbeat model and task permissions scoped",
+      "status": "passed",
+      "details": {
+        "crossBotRejections": 5,
+        "legacyGlobalControlAccepted": true,
+        "modelClaims": 0
+      }
+    },
+    {
+      "name": "CLI export of a dynamic Bot immediately authorizes against the already-running Core",
+      "status": "passed",
+      "details": {
+        "botId": "@bot-436c0be4-cde8-4627-826b-b556fe2ba73d:onboarding.local",
+        "cli": "dscord admin export-node",
+        "credentialAbsentBeforeExport": true,
+        "httpAndCliCredentialMatch": true,
+        "coreStartedAt": "2026-11-05T00:35:05.434Z",
+        "coreRestartedAfterExport": false
+      }
+    }
+  ],
+  "sourceHashes": {
+    "src/core.mjs": "bfc2f9844035c39960ac2bc3069cb3a44b5f3de02e9898fc785e9aaa9481b6b6",
+    "src/accounts.mjs": "465523b249c9641024cedc9b2c5d102be526003e4badebf653156fc6e94726c5",
+    "src/node-auth.mjs": "5eac06702c7e924d901b91d6b1722f3a5b2ec97c3df4880c00c7d1566281c755",
+    "src/tasks.mjs": "0af6838e9f6bdd75fda9d0ec0c281c70d9b9b652d333076c6c525ebe527c6184",
+    "src/budget.mjs": "bbf5006b532e79e72798ca539084fc7f6baacf75f6af611520317e59dfe62f3b",
+    "src/matrix-client.mjs": "b2f2abdb7c9c35e7514e20322875064492a5186a041ae936c7d982692c091d8b",
+    "scripts/server-admin.mjs": "88acd9ed6665924266c7f1ade880aa9d5a3e450813e3bea7a6760b5de60032ca"
+  },
+  "finalNodes": [
+    {
+      "id": "finance",
+      "status": "offline"
+    },
+    {
+      "id": "hr",
+      "status": "offline"
+    },
+    {
+      "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+      "status": "offline"
+    },
+    {
+      "id": "bot-85052fb5-fd7b-4255-96e3-d4b348d758a7",
+      "status": "offline"
+    },
+    {
+      "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+      "status": "offline"
+    }
+  ],
+  "servicesRetained": {
+    "core": 22100,
+    "matrix": 22008,
+    "stopInstructions": ".local/onboarding/qa-server.json"
+  },
+  "completedAt": "2026-11-05T00:35:06.842Z"
+}

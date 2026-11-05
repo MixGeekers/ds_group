@@ -1,0 +1,442 @@
+{
+  "schemaVersion": 1,
+  "status": "passed",
+  "harnessVersion": "0.2.1-rc.5",
+  "platform": "darwin",
+  "arch": "arm64",
+  "package": "dscord@0.3.0-alpha.1",
+  "testedCandidateSha1": "e3bb46fd06d90c6c1ec733cf9b61fe65a48e369f",
+  "surfaces": {
+    "dsh": "http://127.0.0.1:23090",
+    "core": "http://127.0.0.1:22100",
+    "matrix": "http://127.0.0.1:22008",
+    "bridge": 23100
+  },
+  "installation": {
+    "path": "Plugins > Add plugin > local tarball > Install > Enable",
+    "actualTarballInstall": true,
+    "componentRunning": true,
+    "sidebarEntry": "DSCord",
+    "packageConfigurationPage": true,
+    "statusRpc": true
+  },
+  "phases": {
+    "login-connect": {
+      "candidate": "e567375c7ff5b6e41a9ba5abd9559114a23c767a",
+      "login": true,
+      "ownBotCount": 2,
+      "foreignBotsHidden": true,
+      "selectedBotId": "@bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c:onboarding.local",
+      "online": true,
+      "modelCalls": 0,
+      "browserErrors": [],
+      "actions": [
+        "status",
+        "connect",
+        "status"
+      ]
+    },
+    "lifecycle": {
+      "disconnect": true,
+      "serverOffline": true,
+      "connectAgain": true,
+      "reconnect": true,
+      "runtimeChanged": true,
+      "botIdentityPreserved": true,
+      "sessionIds": [
+        "session-0b53df9c-3f72-482a-9b11-fce3d36e3bfc"
+      ],
+      "modelCalls": 0,
+      "browserErrors": []
+    },
+    "reload-plugin": {
+      "pluginDisableStopsOwnedNode": true,
+      "enableRestoresDesired": true,
+      "identityPreserved": true,
+      "newRuntime": true,
+      "modelCalls": 0
+    },
+    "locale": {
+      "english": true,
+      "chinese": true,
+      "hostLocaleSwitch": true,
+      "darkTheme": true,
+      "mobile390": true,
+      "horizontalOverflow": false,
+      "browserErrors": []
+    },
+    "fullHostRapidRestart": {
+      "candidate": "e3bb46fd06d90c6c1ec733cf9b61fe65a48e369f",
+      "twoBots": true,
+      "shutdownElapsedMs": 5052,
+      "restartDelayAfterExitMs": 1,
+      "automaticReconnect": true,
+      "identityPreserved": true,
+      "nodes": [
+        {
+          "id": "@bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c:onboarding.local",
+          "nodeId": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+          "bridgePort": 23100,
+          "sessionIds": [
+            "session-0b53df9c-3f72-482a-9b11-fce3d36e3bfc"
+          ],
+          "desired": true
+        },
+        {
+          "id": "@bot-436c0be4-cde8-4627-826b-b556fe2ba73d:onboarding.local",
+          "nodeId": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+          "bridgePort": 23101,
+          "sessionIds": [
+            "session-6927e6d8-cafb-4d37-ac47-e97a49e6b877"
+          ],
+          "desired": true
+        }
+      ],
+      "runtimeChanged": true,
+      "stableForMs": 10000,
+      "stableSamples": [
+        {
+          "at": "2026-11-05T00:56:09.077Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:10.082Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:11.087Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:12.090Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:13.094Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:14.096Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:15.100Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:16.103Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:17.107Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:18.111Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        },
+        {
+          "at": "2026-11-05T00:56:19.116Z",
+          "statuses": [
+            {
+              "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+              "status": "idle"
+            },
+            {
+              "id": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+              "status": "idle"
+            }
+          ]
+        }
+      ],
+      "modelCalls": 0,
+      "mobileSignOutFullyVisible": true,
+      "browserErrors": []
+    }
+  },
+  "credentials": {
+    "humanLoginCount": 1,
+    "passwordPersisted": false,
+    "clientTokenFileMode": "600",
+    "isolatedProvider": "opencode-go/deepseek-v4.1-flash",
+    "originalDesktopProfileOperations": "read-only"
+  },
+  "history": [
+    {
+      "kind": "product-issue",
+      "detail": "Initial enable briefly rendered HTTP 404 before the host route was registered. Host route registration and bounded initial status reads were corrected and verified on candidate two."
+    },
+    {
+      "kind": "test-oracle",
+      "detail": "The initial ownership assertion compared duplicate display names. It was corrected to compare unique Bot localparts."
+    },
+    {
+      "kind": "test-selector",
+      "detail": "The enabled plugin page exposes both bundle and component switches. Reload validation selects the bundle switch by accessible name."
+    },
+    {
+      "kind": "product-issue",
+      "detail": "Visual inspection found a long account name clipping the mobile sign-out button. The CSS fix passed 12 synthetic width/language/theme combinations. Final installed-package verification is pending."
+    },
+    {
+      "kind": "product-issue",
+      "candidate": "be2a8d0a01f2448897f70c475725a6691cb2839d",
+      "detail": "A full SIGTERM shutdown reached DSH CLI's fixed five-second deadline. The adapter-stop child completed after the management host exited, while the second runtime-stop command was never launched. The orphan runtime was explicitly stopped using its installed launcher. The correction uses one cleanup child, per-component lifecycle locking, concurrent cleanup dispatch for multiple Bots, and closed-state checks for pending connections.",
+      "modelCalls": 0
+    },
+    {
+      "kind": "test-readiness",
+      "detail": "The first management-host readiness helper expected an unauthenticated HTTP 200. DSH correctly returned HTTP 401. The helper was corrected to recognize the live authenticated service and refresh its private browser session after restart."
+    }
+  ],
+  "pending": [],
+  "modelCalls": 0,
+  "currentState": {
+    "desiredConnected": 0,
+    "managementHostRunning": false,
+    "core22100Running": true,
+    "matrix22008Running": true
+  },
+  "screenshots": [
+    "dsh-installed-en.png",
+    "dsh-own-bots-en.png",
+    "dsh-online-en.png",
+    "dsh-disconnected-en.png",
+    "dsh-online-zh-dark.png",
+    "dsh-restored-final.png",
+    "dsh-mobile-final.png"
+  ],
+  "completedAt": "2026-11-05T00:58:35.559Z",
+  "installedSource": {
+    "sha1": "e3bb46fd06d90c6c1ec733cf9b61fe65a48e369f",
+    "version": "0.3.0-alpha.1",
+    "sources": [
+      {
+        "file": "dsh-connect/index.mjs",
+        "sha256": "d1aad50680686a34ad61a619952ae490b4f0af54ac0ee9f7344695610affe339",
+        "matchesFrozenSource": true
+      },
+      {
+        "file": "dsh-connect/controller.mjs",
+        "sha256": "8923294162df84370fd0aa9fdba0c9d3eefaa527508c5d56f7e65127a713e3f9",
+        "matchesFrozenSource": true
+      },
+      {
+        "file": "dsh-connect/processes.mjs",
+        "sha256": "245c2c0646bac2862e41ff922c558365392b645fe36b771b0234da540de1fca7",
+        "matchesFrozenSource": true
+      },
+      {
+        "file": "dsh-connect/client.js",
+        "sha256": "4982db8a835df596df320fc1b91406584df34ffaa7b95a7d82c763361ee73381",
+        "matchesFrozenSource": true
+      },
+      {
+        "file": "scripts/service.mjs",
+        "sha256": "cda1750cc2a482acc1aa26d0988f9f4117847977bfbf9de2a63893bb728da53a",
+        "matchesFrozenSource": true
+      },
+      {
+        "file": "scripts/runtime-dependencies.mjs",
+        "sha256": "3861d157088b957cf6b8f89bff7935b3820795b1d32114103fe041a79d6b0c11",
+        "matchesFrozenSource": true
+      },
+      {
+        "file": "dsh-plugin/runtime-dependencies-pnpm-lock.yaml",
+        "sha256": "847646e6cdcfddf7f99e4d619ce31c9af79012ae7aeb4ae3ee43fd454d7d71c3",
+        "matchesFrozenSource": true
+      },
+      {
+        "file": "src/bot-node.mjs",
+        "sha256": "8cee33a63278622c968a0be0a37681888cca8a2ddd9bf945bee97f929f3cbfe5",
+        "matchesFrozenSource": true
+      }
+    ],
+    "passwordPersisted": false,
+    "clientTokenMode": "600",
+    "publicRegistry": {
+      "url": "https://registry.npmjs.org/dscord",
+      "checkedAt": "2026-11-05T00:57:53.840Z",
+      "distTags": {
+        "latest": "0.2.0-alpha.1",
+        "alpha": "0.2.0-alpha.1"
+      }
+    }
+  },
+  "cleanup": {
+    "completedAt": "2026-11-05T00:58:35.559Z",
+    "processes": [
+      {
+        "kind": "management-host",
+        "pid": 82928,
+        "port": 23090,
+        "alive": false
+      },
+      {
+        "kind": "adapter",
+        "nodeId": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+        "pid": 83099,
+        "alive": false
+      },
+      {
+        "kind": "runtime-launcher",
+        "nodeId": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+        "pid": 83075,
+        "alive": false
+      },
+      {
+        "kind": "runtime-host",
+        "nodeId": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+        "pid": 83080,
+        "port": 23100,
+        "alive": false
+      },
+      {
+        "kind": "adapter",
+        "nodeId": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+        "pid": 83116,
+        "alive": false
+      },
+      {
+        "kind": "runtime-launcher",
+        "nodeId": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+        "pid": 83108,
+        "alive": false
+      },
+      {
+        "kind": "runtime-host",
+        "nodeId": "bot-436c0be4-cde8-4627-826b-b556fe2ba73d",
+        "pid": 83109,
+        "port": 23101,
+        "alive": false
+      }
+    ],
+    "ports": [
+      {
+        "port": 23090,
+        "listening": false
+      },
+      {
+        "port": 23100,
+        "listening": false
+      },
+      {
+        "port": 23101,
+        "listening": false
+      }
+    ],
+    "clientSessionRevoked": true,
+    "desiredConnected": 0,
+    "core22100Preserved": true,
+    "matrix22008Preserved": true,
+    "modelCalls": 0
+  },
+  "targetedModuleChecks": {
+    "passed": 22,
+    "client": 12,
+    "host": 10
+  },
+  "scope": {
+    "actualHost": "DSH 0.2.1-rc.5 Web in a dedicated DSH_HOME on macOS arm64",
+    "testedRestart": "Two already-online Bots, immediate management-host restart, then 10 seconds of stable recovery",
+    "inFlightConnectionShutdown": "Module regressions only; no real in-flight startup or model-task recovery claim",
+    "modelCalls": 0,
+    "physicalCrossMachine": "Not exercised in this local-host validation",
+    "publicNpmVersion": "0.2.0-alpha.1",
+    "releaseCandidate": "Local tarball only"
+  },
+  "historicalScreenshots": [
+    "dsh-installed-config.png",
+    "dsh-mobile-zh-dark.png"
+  ]
+}

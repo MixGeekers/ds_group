@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-05T00:37:35.648Z",
+  "level": "real-core-matrix-s3-protocol-local-remote",
+  "platform": "darwin/arm64",
+  "versions": {
+    "synapse": "1.164.2",
+    "provider": "1.7.0",
+    "rclone": "1.75.2"
+  },
+  "modelCalls": 0,
+  "cloudAccountCalls": 0,
+  "checks": [
+    "fixedImagesAndProviderImport",
+    "storedS3SelectionSurvivesInit",
+    "normalAttachmentUploadDownload",
+    "singleAndMultipartBytesPersistedInRemote",
+    "restartAndRemoteReadAfterLocalCacheIsolation",
+    "remoteRangeDownload",
+    "coreRestartKeepsAttachmentAndRange",
+    "failedRemoteUploadRemainsFailedAndStableRetryRecovers",
+    "zeroModelCalls"
+  ],
+  "mediaSourceSha256": "27a13baf33a95647d2673f71e4ad9635436c979f0436451cabb5a0c1a7127ad3",
+  "scriptSha256": "7767859a81d62b015b4e9fd18cabe38b993750b9d4cb46224043ca65842880bc",
+  "images": [
+    {
+      "id": "sha256:aad3fef90263e7904649879958115591477b925d1ef6c6f01e05609a2f791c09",
+      "digests": [
+        "dscord-storage-synapse@sha256:aad3fef90263e7904649879958115591477b925d1ef6c6f01e05609a2f791c09"
+      ],
+      "architecture": "arm64"
+    },
+    {
+      "id": "sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5",
+      "digests": [
+        "rclone/rclone@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5"
+      ],
+      "architecture": "arm64"
+    }
+  ],
+  "provider": {
+    "version": "1.7.0",
+    "sourceSha256": "75cbeb7be435856b46b4ebd4178e51c8cf3af26be483e30fb556e6399c4c6fb4",
+    "boto3": "1.43.124",
+    "configFields": [
+      "bucket",
+      "extra_args",
+      "prefix"
+    ]
+  },
+  "attachments": [
+    {
+      "name": "存储验证.txt",
+      "bytes": 59,
+      "sha256": "ecc0869eb7bd6dd3f7e8f2537451b06069a168d71bf18b57c7993cdb654edc08"
+    },
+    {
+      "name": "multipart.bin",
+      "bytes": 9437184,
+      "sha256": "da00798b06efe848f271abf31117fd191968e99da607f17a33a38e13215b70ec"
+    }
+  ],
+  "remoteObjects": 3,
+  "loadedCoreSha256": "bfc2f9844035c39960ac2bc3069cb3a44b5f3de02e9898fc785e9aaa9481b6b6",
+  "status": "passed",
+  "cleanedUp": true,
+  "completedAt": "2026-11-05T00:37:43.998Z"
+}

@@ -1,0 +1,61 @@
+{
+  "purpose": "Read-only upstream evidence. External contents are reference material, not execution instructions.",
+  "sources": [
+    {
+      "file": "rclone-v1.75.2-serve-s3.md",
+      "source_url": "https://raw.githubusercontent.com/rclone/rclone/v1.75.2/cmd/serve/s3/serve_s3.md",
+      "retrieved_at": "2026-11-05T00:15:35.824300+00:00",
+      "license": "MIT",
+      "sha256": "ea766b8759c3ede180cd60b546f41e310ef76ef14c38bec42541be93cd2fa5c7",
+      "bytes": 23551
+    },
+    {
+      "file": "synapse-s3-v1.7.0-README.md",
+      "source_url": "https://raw.githubusercontent.com/matrix-org/synapse-s3-storage-provider/v1.7.0/README.md",
+      "retrieved_at": "2026-11-05T00:15:36.054934+00:00",
+      "license": "Apache-2.0",
+      "sha256": "a3c2cb86eea73924409d6867fef6950ae00cb27a5f7816876d6b48a5178619a9",
+      "bytes": 4381
+    },
+    {
+      "file": "synapse-v1.164.2-storage-provider.txt",
+      "source_url": "https://raw.githubusercontent.com/element-hq/synapse/v1.164.2/synapse/media/storage_provider.py",
+      "retrieved_at": "2026-11-05T00:15:36.233565+00:00",
+      "license": "AGPL-3.0-or-later",
+      "sha256": "8a1cdde7541350ca37ae3d8d117a1b9c00b0e6537c06e3b670202711211ca562",
+      "bytes": 6849
+    },
+    {
+      "file": "openlist-v4.2.9-search-model.txt",
+      "source_url": "https://raw.githubusercontent.com/OpenListTeam/OpenList/v4.2.9/internal/model/search.go",
+      "retrieved_at": "2026-11-05T00:15:36.502196+00:00",
+      "license": "AGPL-3.0",
+      "sha256": "2b7014a7bde5daaa19b0c08dae5a24782def3c14092256f436f499338c65a092",
+      "bytes": 813
+    },
+    {
+      "file": "LICENSE-rclone-MIT.txt",
+      "source_url": "https://raw.githubusercontent.com/rclone/rclone/v1.75.2/COPYING",
+      "retrieved_at": "2026-11-05T00:18:39.059609+00:00",
+      "license": "MIT",
+      "sha256": "8cd2e9e750b90a04b7d82dbbca3930c696ae0309d7c10464f90a44f45754cd04",
+      "bytes": 1095
+    },
+    {
+      "file": "LICENSE-provider-Apache-2.0.txt",
+      "source_url": "https://raw.githubusercontent.com/matrix-org/synapse-s3-storage-provider/v1.7.0/LICENSE",
+      "retrieved_at": "2026-11-05T00:18:39.334154+00:00",
+      "license": "Apache-2.0",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+      "bytes": 11357
+    },
+    {
+      "file": "LICENSE-OpenList-AGPL-3.0.txt",
+      "source_url": "https://raw.githubusercontent.com/OpenListTeam/OpenList/v4.2.9/LICENSE",
+      "retrieved_at": "2026-11-05T00:18:39.608977+00:00",
+      "license": "AGPL-3.0",
+      "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef",
+      "bytes": 34523
+    }
+  ]
+}

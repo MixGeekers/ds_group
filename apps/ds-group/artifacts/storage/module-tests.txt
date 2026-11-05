@@ -1,0 +1,29 @@
+✔ binary attachments preserve original bytes and Unicode names through upload, message and authenticated download (51.9955ms)
+✔ single byte ranges stream from a full upstream response and survive a Core restart (43.867625ms)
+✔ unsatisfiable and malformed ranges are rejected before contacting the media provider (34.009584ms)
+✔ a provider with native partial responses keeps its byte range and changed media size is rejected (28.798167ms)
+✔ upload identity deduplicates concurrent retries and survives core restart while conflicting content is rejected (52.450458ms)
+✔ attachment-only multi-file messages deduplicate concurrent delivery and reject changed content after restart (41.696375ms)
+✔ Bot-generated artifacts upload with Bot credentials and preserve original task and reply references (30.162417ms)
+✔ oversized uploads fail before Matrix receives content and a later valid upload is usable (17.961916ms)
+✔ an interrupted upload can be retried with the same identity without publishing partial bytes (119.468709ms)
+✔ unknown attachments fail before message delivery and client-supplied metadata cannot replace stored identity (20.704708ms)
+✔ fresh bootstrap registers four members without failed password logins (54.801083ms)
+✔ bootstrap rerun preserves identities and reuses valid tokens without registration or login (46.644833ms)
+✔ bootstrap recovers a registered account whose token was not persisted with one fallback login (39.180958ms)
+✔ unexpected registration failure stops bootstrap without attempting password login (2.450917ms)
+✔ server initialization survives retries, keeps identity and rejects an incompatible server name (14.15675ms)
+✔ remote node export contains only its own Matrix credential and preserves public identities (0.285041ms)
+✔ deployment settings reject malformed origins and server names before creating files (0.184542ms)
+✔ node import can finish a partially written bundle and rejects a conflicting identity before modifying files (2.882708ms)
+✔ media backend defaults to local and preserves an explicit S3 destination across initialization (22.608166ms)
+✔ S3 configuration rejects invalid fields without exposing submitted credentials (0.344334ms)
+✔ invalid persisted media settings fail before rewriting the active configuration (2.766042ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 505.355709

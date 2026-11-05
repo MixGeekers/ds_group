@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-05T00:29:15.780Z",
+  "level": "real-core-matrix-s3-protocol-local-remote",
+  "platform": "darwin/arm64",
+  "versions": {
+    "synapse": "1.164.2",
+    "provider": "1.7.0",
+    "rclone": "1.75.2"
+  },
+  "modelCalls": 0,
+  "cloudAccountCalls": 0,
+  "checks": [
+    "fixedImagesAndProviderImport"
+  ],
+  "scriptSha256": "1cc0971bd3227ecfec8b27f4804e58a1ff08e3cc54cf37b767e6b2dca4d0ce36",
+  "images": [
+    {
+      "id": "sha256:e88b633ff44970e567211534e0337b4f77cd8c1c35e4ccdaab934cbf0b305fd7",
+      "digests": [
+        "dscord-storage-synapse@sha256:e88b633ff44970e567211534e0337b4f77cd8c1c35e4ccdaab934cbf0b305fd7"
+      ],
+      "architecture": "arm64"
+    },
+    {
+      "id": "sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5",
+      "digests": [
+        "rclone/rclone@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5"
+      ],
+      "architecture": "arm64"
+    }
+  ],
+  "status": "failed",
+  "error": "Service did not become ready at http://127.0.0.1:22300/",
+  "cleanedUp": true,
+  "completedAt": "2026-11-05T00:31:18.448Z"
+}

@@ -1,0 +1,66 @@
+{
+  "schemaVersion": 1,
+  "startedAt": "2026-11-05T00:35:55.879Z",
+  "level": "real-core-matrix-s3-protocol-local-remote",
+  "platform": "darwin/arm64",
+  "versions": {
+    "synapse": "1.164.2",
+    "provider": "1.7.0",
+    "rclone": "1.75.2"
+  },
+  "modelCalls": 0,
+  "cloudAccountCalls": 0,
+  "checks": [
+    "fixedImagesAndProviderImport",
+    "storedS3SelectionSurvivesInit",
+    "normalAttachmentUploadDownload",
+    "singleAndMultipartBytesPersistedInRemote",
+    "restartAndRemoteReadAfterLocalCacheIsolation",
+    "remoteRangeDownload",
+    "failedRemoteUploadRemainsFailedAndStableRetryRecovers",
+    "zeroModelCalls"
+  ],
+  "scriptSha256": "6c505da8581ae089f1a2a2de09159c7eb73bfaf958ad6e74af426f2d5dc137f1",
+  "images": [
+    {
+      "id": "sha256:b04fe12dad75b1913759fd8602ed2217a6f6a470deb68f136bb8d869e310ecf6",
+      "digests": [
+        "dscord-storage-synapse@sha256:b04fe12dad75b1913759fd8602ed2217a6f6a470deb68f136bb8d869e310ecf6"
+      ],
+      "architecture": "arm64"
+    },
+    {
+      "id": "sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5",
+      "digests": [
+        "rclone/rclone@sha256:2687085f718d3c628f7fdfb77c52a1d344332aed543110bb88088f2c70d43eb5"
+      ],
+      "architecture": "arm64"
+    }
+  ],
+  "provider": {
+    "version": "1.7.0",
+    "sourceSha256": "75cbeb7be435856b46b4ebd4178e51c8cf3af26be483e30fb556e6399c4c6fb4",
+    "boto3": "1.43.124",
+    "configFields": [
+      "bucket",
+      "extra_args",
+      "prefix"
+    ]
+  },
+  "attachments": [
+    {
+      "name": "存储验证.txt",
+      "bytes": 59,
+      "sha256": "ecc0869eb7bd6dd3f7e8f2537451b06069a168d71bf18b57c7993cdb654edc08"
+    },
+    {
+      "name": "multipart.bin",
+      "bytes": 9437184,
+      "sha256": "da00798b06efe848f271abf31117fd191968e99da607f17a33a38e13215b70ec"
+    }
+  ],
+  "remoteObjects": 3,
+  "status": "passed",
+  "cleanedUp": true,
+  "completedAt": "2026-11-05T00:36:04.675Z"
+}

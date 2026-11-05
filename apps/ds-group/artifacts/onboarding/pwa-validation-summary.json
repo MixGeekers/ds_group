@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "status": "passed-after-rate-limit-fix",
+  "level": "real-built-pwa-real-core-and-separate-browser-fixtures",
+  "completedAt": "2026-11-05T00:43:59.575Z",
+  "origin": "http://127.0.0.1:22100",
+  "real": {
+    "initial": {
+      "report": "pwa-ui-2026-11-05T00-36-12-649Z/report.json",
+      "passedChecks": 12,
+      "failedStep": "single password login returned HTTP 429",
+      "screenshots": 17
+    },
+    "brandAndSessionFollowup": {
+      "report": "pwa-followup-2026-11-05T00-41-08-017Z/report.json",
+      "passedChecks": 3,
+      "screenshots": 2
+    },
+    "loginRecovery": {
+      "report": "pwa-login-recovery-2026-11-05T00-43-39-942Z/report.json",
+      "passedChecks": 3,
+      "screenshots": 1,
+      "status": 200
+    },
+    "registrationRequests": 1,
+    "passwordLoginRequests": 2,
+    "automaticRetries": 0,
+    "messagesSent": 0,
+    "modelCalls": 0
+  },
+  "fixtures": {
+    "command": "npm run test:browser",
+    "passedFiles": 7,
+    "passedChecks": 69,
+    "pageErrors": 0,
+    "modelCalls": 0,
+    "includes": [
+      "429 retry_after_ms and Retry-After display",
+      "localized remaining wait and manual-only retry",
+      "unknown username and registration",
+      "logout and per-account draft consistency",
+      "long Bot name mobile wrapping",
+      "Bot creation request identity and unknown receipt retry"
+    ]
+  },
+  "visualInspection": {
+    "viewports": [
+      "1440x1000",
+      "390x844"
+    ],
+    "locales": [
+      "zh-CN",
+      "en"
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "status": "passed",
+    "brand": "DSCord",
+    "connectionHint": "Sign in to DSCord in DSH with this account, then bring this Bot online.",
+    "nativeIosSafariKeyboardZoom": "not exercised"
+  },
+  "build": {
+    "command": "npm run build",
+    "typecheck": "passed",
+    "buildId": "8fc2a1c498597b32"
+  },
+  "icon": {
+    "path": "web/icons/apple-touch-icon.png",
+    "dimensions": "180x180",
+    "action": "Rendered existing SVG through Chromium; inspected complete DS glyph",
+    "existing192And512": "visually inspected and valid"
+  },
+  "retainedHarnessFailures": [
+    {
+      "report": "pwa-ui-2026-11-05T00-34-36-034Z/report.json",
+      "reason": "Test used left/right instead of Playwright boundingBox x/width; fixed before any auth request"
+    },
+    {
+      "report": "pwa-followup-2026-11-05T00-40-57-855Z/report.json",
+      "reason": "Read-only followup guard initially blocked normal presence heartbeat; fixed guard and reran without auth requests"
+    }
+  ],
+  "sourceHashes": {
+    "web/src/App.tsx": "d86a831b9d5bb6fbc67ebded9720b9c90916eb94475fe49bf09ceb081c83fec2",
+    "web/src/api.ts": "83da05a7785334989519b21dc5de1689d426c3daecc17c4a60cc487550014841",
+    "web/src/components/AuthDialog.tsx": "c4cc412d70df7ece414f7d46f97b7ae8845d85d6c85e0d2f3d12d309fcc80b82",
+    "web/src/components/CreateBotDialog.tsx": "edcdcac88047fd09c4799ee6d4c62d185ab819b2c8aafae8941b1eb86018a4a2",
+    "web/src/locales/auth.ts": "58b4b0aeaed4d3f0d35320b810f0c70412159ccac7511b1fa38cf2bb4d8587eb",
+    "web/src/locales/bots.ts": "fccafde8bbc43b338b24e1f6a1e56c20c3b3b8719251de568848e20a661fa192",
+    "web/styles.css": "e2e33a23ab2e5f63d07f91a943c22391b694744642e1d3a72a80a862b0cfe1d1",
+    "web/index.html": "316eb14409b065be19541627fd17db337b001529ccf7cffe1168353ce6fa1d3e",
+    "web/manifest.webmanifest": "1846eec8094b545287154fe97007a493df45839e384114eb4ff8c38089720b7e",
+    "web/icons/apple-touch-icon.png": "e8bf94b5019e10795bc624d76289fcd1f27e7a2ac85e952cd406be075f29c623"
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "runId": "onboarding-2026-11-05T00-26-35-920Z",
+  "startedAt": "2026-11-05T00:26:35.921Z",
+  "status": "passed",
+  "scope": "real-matrix-core-registration-ownership-zero-model",
+  "modelCalls": 0,
+  "coreUrl": "http://127.0.0.1:22100",
+  "checks": [
+    {
+      "name": "two new humans register through HTTP and join the initial room",
+      "status": "passed",
+      "details": {
+        "ids": [
+          "@nora_48825da8:onboarding.local",
+          "@omar_48825da8:onboarding.local"
+        ],
+        "loginRequests": 2
+      }
+    },
+    {
+      "name": "each human has independent simultaneous devices and logout revokes only one device",
+      "status": "passed",
+      "details": {
+        "independentDevicesPerHuman": 2,
+        "extraLoginRequests": 2,
+        "loginRetries": 0,
+        "serviceSessionsValid": true
+      }
+    },
+    {
+      "name": "different owners create same-name Bots with distinct stable identities",
+      "status": "passed",
+      "details": {
+        "bots": [
+          {
+            "id": "@bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c:onboarding.local",
+            "ownerId": "@nora_48825da8:onboarding.local",
+            "name": "共同名字"
+          },
+          {
+            "id": "@bot-85052fb5-fd7b-4255-96e3-d4b348d758a7:onboarding.local",
+            "ownerId": "@omar_48825da8:onboarding.local",
+            "name": "共同名字"
+          }
+        ],
+        "requestRetriesStable": true
+      }
+    },
+    {
+      "name": "only owners can obtain their Bot connection bundle and credentials are scoped",
+      "status": "passed",
+      "details": {
+        "scopedSecretsDistinct": true,
+        "ownerOnly": true,
+        "credentialCountPerBundle": 1
+      }
+    },
+    {
+      "name": "service sessions still invite members and open DMs after client logout",
+      "status": "passed",
+      "details": {
+        "groupRoomId": "!iSnZpL9kdm9RMqY8zrM44yf9e7pjXm2QmqNWZIFTi38",
+        "humanDmRoomId": "!P7uRVhXGc6h7_Buh2pBX6PjAOiTApYSQz3nnIkQjDo8",
+        "fourMembersJoined": true
+      }
+    },
+    {
+      "name": "new humans exchange a real file and a canonical group mention",
+      "status": "passed",
+      "details": {
+        "sourceEventId": "$XST5E8vO23dE7VQp9FmlEYdH_EhdkGYT7rx4WqKZ_9Y",
+        "mentionUserId": "@omar_48825da8:onboarding.local",
+        "bytes": 62,
+        "sha256": "fd1f4aa4065dd75a22156177295bc43db0aa1a70a7e692cdeef95df1d94c3f30",
+        "botTargets": 0
+      }
+    },
+    {
+      "name": "scoped node credentials reject other Bot heartbeat model claims and tasks",
+      "status": "passed",
+      "details": {
+        "rejectedCrossBotOperations": [
+          "heartbeat-bot",
+          "heartbeat-node",
+          "model-claim",
+          "task-update",
+          "task-control"
+        ],
+        "legacyHeartbeatAndTaskControl": true,
+        "acceptedModelClaims": 0
+      }
+    },
+    {
+      "name": "Core restart retains accounts sessions owned Bots scoped secrets and conversations",
+      "status": "passed",
+      "details": {
+        "accountsRecovered": 2,
+        "ownedBotsRecovered": 2,
+        "clientAndServiceSessionsValid": true,
+        "scopedSecretsStable": true,
+        "conversationHistoryPreserved": true
+      }
+    }
+  ],
+  "sourceHashes": {
+    "src/core.mjs": "2a6af997522ea56be164d697808b74caa32f9d87dde98740b028745cdc5535e3",
+    "src/accounts.mjs": "465523b249c9641024cedc9b2c5d102be526003e4badebf653156fc6e94726c5",
+    "src/node-auth.mjs": "cecdb07aa69c5fdd89076110443f16b410ae5c89c066e6459286284c84c839ea",
+    "src/tasks.mjs": "b6b050e290b64a0edfea8045d5e72c2712cf017555366d4f4462516a46cb2724",
+    "src/budget.mjs": "b3dd7baa83086c22c4ec2d8eba2b4314998c31dd715cb0769839256d2488b9b8",
+    "src/matrix-client.mjs": "b2f2abdb7c9c35e7514e20322875064492a5186a041ae936c7d982692c091d8b"
+  },
+  "finalNodes": [
+    {
+      "id": "finance",
+      "status": "offline"
+    },
+    {
+      "id": "hr",
+      "status": "offline"
+    },
+    {
+      "id": "bot-ca08e73a-fb3b-4928-9adf-bc6dfa34003c",
+      "status": "offline"
+    },
+    {
+      "id": "bot-85052fb5-fd7b-4255-96e3-d4b348d758a7",
+      "status": "offline"
+    }
+  ],
+  "servicesRetained": {
+    "core": 22100,
+    "matrix": 22008,
+    "stopInstructions": ".local/onboarding/qa-server.json"
+  },
+  "completedAt": "2026-11-05T00:26:39.532Z"
+}

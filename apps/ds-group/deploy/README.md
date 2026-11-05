@@ -1,6 +1,8 @@
-# DS-Group 服务器部署
+# DSCord 服务器部署
 
 服务器提供聊天核心、PWA、Matrix 和 Web Push 接口。Bot 节点通过公网 HTTPS 或内网地址连接核心，可以分别运行在其他机器。服务器数据保存在 Docker 命名卷中。
+
+本文对应 `0.3.0` 源码候选，新增账号注册、个人 Bot 创建与 DSH 连接页。公开 npm 包当前为 `0.2.0-alpha.1`，候选安装步骤见 [npm 说明](npm.md)。
 
 ## 支持范围
 
@@ -31,6 +33,12 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core node s
 
 `credentials` 的输出包含登录密码，按需在管理员终端使用。服务器日常启动日志只输出公开身份和服务状态。初始 Bot 状态为离线，接入 Bot 节点后开始处理消息。
 
+### 注册与个人 Bot
+
+其他成员打开服务器网页，在登录窗口选择“注册账号”，填写用户名、显示名称和密码。注册后进入“我的 Bot”创建 Bot，随后从 DSH 连接。成员的显示名称可以重复，稳定账号 ID 用于区分成员。新 Bot 由所有者邀请进群，也可以直接私聊。
+
+注册默认开放。管理员可在 Core 数据卷的 `/data/core-config.json` 中设置 `registrationMode` 为 `closed`，再重启 Core 关闭注册。恢复为 `open` 后重新开放。初始化会保留已有配置。每次客户端登录拥有独立设备会话，退出一台设备只注销该会话。
+
 初始化之前编辑 `deploy/.env` 中的 `DS_GROUP_SERVER_NAME`。它是 Matrix 成员 ID 的域，例如 `@alice:chat.example.com`，建立后必须保留。网址可以随服务器迁移而更新。
 
 ```dotenv
@@ -58,11 +66,31 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml -f deploy/compose.h
 
 Caddy 会管理公共 HTTPS 证书，并转发同一域名下的 PWA、核心 API 和 Matrix 客户端 API。Synapse 管理路由保持在 Docker 内部网络。已有反向代理的部署可以参照 `Caddyfile` 的路由规则，将流量发往两个本机端口。
 
+### 代理与登录限流
+
+Core 默认将连接的来源 IP 传给 Synapse，用于按访问地址计算登录限流。`compose.https.yaml` 会给 Core 启用 `DS_GROUP_TRUST_PROXY=true`，从单层 Caddy 代理传入的 `X-Forwarded-For` 最后一项读取合法 IP。
+
+自行部署单层可信反向代理时，可以给 Core 进程设置 `DS_GROUP_TRUST_PROXY=true`，或在 `/data/core-config.json` 中设置 `trustProxy` 为 `true`。该选项适用于 Core 入口由这层代理控制、代理会写入实际来源地址的拓扑。直连部署使用默认值。多层代理需要另行配置真实地址传递关系。
+
+初始化生成的 Synapse 登录限制分别为地址每秒 1 次、突发 20 次，账号每秒 0.003 次、突发 5 次，以及失败尝试每秒 0.17 次、突发 3 次。网页会显示服务器返回的等待时间，由用户等待后重新提交。升级已有部署时，重新运行初始化服务并重建 Synapse，使生成配置生效。
+
 在手机上访问 HTTPS 地址并安装 PWA，然后在设置中主动启用通知。iOS/iPadOS 16.4 及以上需要先添加到主屏幕。Caddy 配置校验进入本地验证范围，公共证书签发和真实手机推送依赖部署域名及设备验证。
 
 ## 接入远端 Bot
 
-先让 `DS_GROUP_PUBLIC_URL` 和 `DS_GROUP_MATRIX_PUBLIC_URL` 指向 Bot 机器可达的地址，并执行一次 Compose `up` 更新持久配置。导出的文件只携带目标 Bot 的 Matrix token、公开成员资料和核心节点凭据。
+先让 `DS_GROUP_PUBLIC_URL` 和 `DS_GROUP_MATRIX_PUBLIC_URL` 指向 Bot 机器可达的地址，并执行一次 Compose `up` 更新持久配置。
+
+### DSH 图形连接
+
+在服务器网页注册并创建自己的 Bot，在 Bot 机器的 DSH 中配置 `opencode-go/deepseek-v4.1-flash`。随后通过 `Plugins → Add plugin` 安装同版本 `dscord` 候选包并启用，点击左侧 **DSCord**。
+
+输入 Core/PWA 的服务器地址、账号和密码，登录后在“我的 Bot”中点击“上线”。页面显示每个 Bot 的名称、ID 与连接状态，并提供断开、重连、打开网页和本机配置目录入口。程序会为每个 Bot 创建独立目录、端口与 DSH 运行时。
+
+当前候选安装使用本地 `.tgz` 绝对路径，公开 npm 版本升级后再使用包名安装。详细步骤见 [DSH 安装与连接](npm.md#在-dsh-中连接)。
+
+### CLI 节点导出
+
+管理员也可以导出节点配置。文件携带目标 Bot 的 Matrix token、公开成员资料和限定到该 Bot 的核心节点凭据。
 
 ```sh
 umask 077
@@ -94,6 +122,18 @@ node scripts/dsh-node.mjs stop finance
 第一个命令停止 Matrix 适配进程，第二个命令停止该 Bot 的 DSH。将节点交给 systemd 等服务管理器时，可以使用 `node scripts/dsh-node.mjs run finance` 前台运行 DSH，另一个服务运行 `node src/bot-node.mjs --bot finance`。
 
 Linux 开机启动和独立节点重启配置见 [systemd 部署说明](systemd/README.md)。
+
+网页新建 Bot 同样可以导出，命令参数使用其 ID 中 `@` 与 `:` 之间的账号部分。为自定义 Bot 设置独立 `DS_GROUP_DATA_DIR` 和 `DS_GROUP_BRIDGE_PORT`。
+
+## 附件存储
+
+默认附件后端为 Synapse 本地媒体目录。启用 `deploy/storage/compose.s3.yaml` 可以使用 S3-compatible 桶，Cloudflare R2 使用对应 S3 endpoint。带 provider 的 Synapse 扩展镜像保留本地上传和缓存，同时等待远端写入完成。
+
+`deploy/storage/compose.rclone.yaml` 提供已有 rclone remote 的内部网关接法，适用于后续 Drive、OneDrive 等 remote 验证。当前本地目录 remote 已完成限定 S3 协议测试，真实云账号另行验收。完整变量、镜像和启动命令见 [附件存储部署](storage/README.md)。
+
+Core 的 `media.sqlite` 保存附件 ID、哈希、上传状态和 Matrix URI，房间与消息中的引用由 Matrix 保存。已有云盘文件的扫描、外部变更同步、搜索分页和导入仍需独立索引作业。
+
+启用存储 overlay 后，日常启动、升级与恢复命令均保留相同 Compose 文件组合。备份同时覆盖 Core/Synapse 数据卷与桶中的文件字节。
 
 ## 状态和日常重启
 
@@ -138,7 +178,7 @@ dc run --rm --no-deps -T --user 0:0 config tar -xzf - -C /synapse < .local/backu
 dc up --detach --wait
 ```
 
-恢复完成后确认成员、历史消息、节点身份和推送公钥，再恢复 Bot 处理。HTTPS 部署需在 `dc` 函数中同时加入 `-f deploy/compose.https.yaml`。
+恢复完成后确认成员、历史消息、节点身份和推送公钥，再恢复 Bot 处理。HTTPS 部署需在 `dc` 函数中同时加入 `-f deploy/compose.https.yaml`。已启用 S3 或 rclone 的部署也加入对应存储 overlay，并恢复匹配的远端文件。
 
 ## 升级
 

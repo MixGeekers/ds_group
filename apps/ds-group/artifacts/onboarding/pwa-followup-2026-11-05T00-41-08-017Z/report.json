@@ -1,0 +1,42 @@
+{
+  "status": "passed",
+  "level": "real-built-pwa-real-core-existing-account-sessions",
+  "origin": "http://127.0.0.1:22100",
+  "checks": [
+    {
+      "name": "desktop-zh-light-brand-and-session-reload",
+      "status": "passed",
+      "ownedBotCount": 2
+    },
+    {
+      "name": "mobile-en-dark-brand-and-session-reload",
+      "status": "passed",
+      "ownedBotCount": 1
+    },
+    {
+      "name": "pwa-brand-and-stable-manifest-identity",
+      "status": "passed"
+    }
+  ],
+  "screenshots": [
+    "artifacts/onboarding/pwa-followup-2026-11-05T00-41-08-017Z/desktop-zh-light.png",
+    "artifacts/onboarding/pwa-followup-2026-11-05T00-41-08-017Z/mobile-en-dark.png"
+  ],
+  "pageErrors": [],
+  "blockedRequests": [],
+  "loginRequests": 0,
+  "registrationRequests": 0,
+  "messagesSent": 0,
+  "modelCalls": 0,
+  "priorRun": "artifacts/onboarding/pwa-ui-2026-11-05T00-36-12-649Z/report.json",
+  "sourceHashes": {
+    "web/src/App.tsx": "d86a831b9d5bb6fbc67ebded9720b9c90916eb94475fe49bf09ceb081c83fec2",
+    "web/src/api.ts": "83da05a7785334989519b21dc5de1689d426c3daecc17c4a60cc487550014841",
+    "web/src/components/AuthDialog.tsx": "c4cc412d70df7ece414f7d46f97b7ae8845d85d6c85e0d2f3d12d309fcc80b82",
+    "web/src/components/CreateBotDialog.tsx": "edcdcac88047fd09c4799ee6d4c62d185ab819b2c8aafae8941b1eb86018a4a2",
+    "web/src/locales/bots.ts": "fccafde8bbc43b338b24e1f6a1e56c20c3b3b8719251de568848e20a661fa192",
+    "web/styles.css": "e2e33a23ab2e5f63d07f91a943c22391b694744642e1d3a72a80a862b0cfe1d1",
+    "dist/web/index.html": "186cb8b8acd5c792a8ad12fcd4409dc03e240aecebd135ddd053ee7c63dd973d"
+  },
+  "completedAt": "2026-11-05T00:41:08.935Z"
+}

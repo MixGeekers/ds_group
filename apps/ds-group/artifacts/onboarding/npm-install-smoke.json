@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "runId": "npm-smoke-ceb2185d-105b-43c1-84ef-970341241e12",
+  "startedAt": "2026-11-05T00:43:06.900Z",
+  "status": "passed",
+  "platform": "darwin",
+  "arch": "arm64",
+  "node": "v24.19.0",
+  "scope": "clean-npm-tarball-install-real-matrix-core-zero-model",
+  "checks": [
+    "clean-production-install",
+    "installed-cli-and-relative-data-paths",
+    "installed-runtime-import-closure",
+    "real-synapse-bootstrap-and-idempotency",
+    "installed-core-health-and-prebuilt-pwa",
+    "real-two-human-login-message-and-attachment-roundtrip",
+    "zero-model-and-immutable-install"
+  ],
+  "modelCalls": 0,
+  "tarball": {
+    "name": "dscord-0.3.0-alpha.1.tgz",
+    "sha256": "d40e8d63c9256219acb958b76615e20301b18bfee1db358e0b42fa1b08185c46",
+    "sha1": "be2a8d0a01f2448897f70c475725a6691cb2839d"
+  },
+  "scriptSha256": "19157d54a5277f9b7ed1378b473d018c091b57f7ac05d4f0c03e8455287fe977",
+  "version": "0.3.0-alpha.1",
+  "synapse": {
+    "image": "ghcr.io/element-hq/synapse@sha256:f0df87cff259872637b4b5e5174b9977e5e3046dd421505407803b5e45c5f842",
+    "nonRootUid": 501,
+    "hostPort": 21008
+  },
+  "web": {
+    "assetCount": 6,
+    "manifest": true,
+    "serviceWorker": true
+  },
+  "humanLoginAttempts": {
+    "alice": 1,
+    "bob": 1,
+    "retries": 0
+  },
+  "matrix": {
+    "humanSenders": 2,
+    "messageRetrySameEvent": true,
+    "replyRelation": true,
+    "attachmentBytes": 78,
+    "attachmentSha256": "f02ad47baf7abfe8dac0f3b60f8b2c1c8be77e27d6f67b0223f02279043d070f"
+  },
+  "botStatuses": [
+    {
+      "id": "finance",
+      "status": "offline"
+    },
+    {
+      "id": "hr",
+      "status": "offline"
+    }
+  ],
+  "installation": {
+    "fileCount": 141,
+    "filesUnchanged": true,
+    "runtimeDataOutsidePackage": true
+  },
+  "loadedCoreSha256": "6857a414e6647b85455a03826788b24f387067f8de038bbf7fc7719a62389c90",
+  "coreStopped": true,
+  "synapseStopped": true,
+  "completedAt": "2026-11-05T00:43:17.695Z"
+}
