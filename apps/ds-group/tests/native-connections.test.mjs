@@ -15,13 +15,20 @@ test('native connection processes Matrix traffic in the original Bot and disconn
   const participants = [bot, human]; const room = '!group:home.test';
   const incoming = { type: 'm.room.message', event_id: '$input', room_id: room, sender: human.id,
     content: { body: '请回复当前群', 'org.ds_group': { to: [bot.id], conversationKind: 'group' } } };
-  const sent = []; const failures = []; let synced = false; let streamCalls = 0; let cancelled = 0;
+  const sent = []; const failures = []; let synced = false; let streamCalls = 0; let cancelled = 0; let heartbeat;
   const server = createServer(async (request, response) => {
     try {
       const url = new URL(request.url, 'http://localhost');
       const chunks = []; for await (const chunk of request) chunks.push(chunk);
       let value = {};
       if (url.pathname === '/api/bootstrap') value = { participants };
+      else if (url.pathname === '/internal/nodes/heartbeat') {
+        const next = JSON.parse(Buffer.concat(chunks));
+        if (heartbeat && heartbeat.status !== 'offline' && heartbeat.runtimeId !== next.runtimeId) {
+          response.writeHead(409, { 'content-type': 'application/json' }); response.end('{"error":"Node already has an active runtime"}'); return;
+        }
+        heartbeat = next;
+      }
       else if (url.pathname.endsWith('/directory')) value = { participants };
       else if (url.pathname.endsWith('/work')) value = { mode: 'native', participants, event: incoming };
       else if (url.pathname.endsWith('/sync')) {
@@ -64,6 +71,12 @@ test('native connection processes Matrix traffic in the original Bot and disconn
   assert.equal(sent[0].roomId, room); assert.equal(sent[0].content.body, '原生 Bot 的群回复');
   assert.equal(sent[0].content['org.ds_group'].originEventId, '$input');
   await connections.stop(node);
+  assert.equal(heartbeat.status, 'offline');
+  const oldRuntime = heartbeat.runtimeId;
+  await connections.start(node);
+  assert.notEqual(heartbeat.runtimeId, oldRuntime);
+  await connections.stop(node);
+  assert.equal(heartbeat.status, 'offline');
   assert.equal(streamCalls, 1); assert.equal(cancelled, 0); assert.equal((await connections.probe(node)).status, 'offline');
   assert.deepEqual(failures, []);
 });

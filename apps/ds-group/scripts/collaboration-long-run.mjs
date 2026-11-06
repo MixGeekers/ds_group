@@ -163,7 +163,7 @@ try {
     if([80,160,208].includes(n+1)) {
       await announce(`已完成 ${n+1}/240 条，正在做一次宿主恢复检查；原对话、文件与 Bot 身份保留。`);
       const memory=await snapshot(`memory-before-restart-${n+1}`);report.embeddingByBoot.push(memory.usage);await save();
-      await host.stop();await host.start();const rebound=await host.api('init');assert.deepEqual(rebound.map(b=>b.id),nativeBots.map(b=>b.id));await host.api('connect');await saveHost();
+      await host.api('disconnect');await host.stop();await host.start();const rebound=await host.api('init');assert.deepEqual(rebound.map(b=>b.id),nativeBots.map(b=>b.id));await host.api('connect');await saveHost();
       report.maintenance.push({type:'planned-restart',round:n+1,identitiesPreserved:true});await save();
     }
     if((n+1)%12===0)await announce(`本幕结束：已完成 ${n+1}/240 条，实际 Bot 回复 ${report.rounds.filter(r=>r.botId&&r.replyEventIds?.length).length} 条。自动检查记录 ${report.failures.length} 项未通过；开放式聊天和交接另行逐条审阅。`);
@@ -176,4 +176,4 @@ try {
   await sourceManifest(`source-hashes-end-${report.generation}.json`);
   await announce(`本轮 ${report.status}：完成 ${report.rounds.length}/240 条参与者消息，自动检查未通过 ${report.failures.length} 项，开放式行为待审阅 ${report.manualReviews.length} 项。真实消息、文件和原始失败已保留。`);
 }catch(error){report.status='failed';report.error=error.stack;process.exitCode=1;await announce(`测试执行已停止，完成 ${report.rounds.length}/240 条。原因：${error.message}。原始记录保留，正在诊断。`).catch(()=>{});}
-finally{await host.stop();report.finishedAt=new Date().toISOString();await save();console.log(JSON.stringify({status:report.status,completed:report.rounds.length,error:report.error,directory}));}
+finally{if(host.child)await host.api('disconnect').catch(()=>{});await host.stop();report.finishedAt=new Date().toISOString();await save();console.log(JSON.stringify({status:report.status,completed:report.rounds.length,error:report.error,directory}));}

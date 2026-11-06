@@ -71,6 +71,7 @@ export async function apply(ctx, config) {
         for (const node of nodes) await connections.start(node);
         value = await Promise.all(nodes.map(async node => ({ id: node.id, nativeBotId: node.nativeBotId, ...await connections.probe(node) })));
       } else if (action === 'receipts') value = [...connections.connections.values()].flatMap(entry => Object.values(entry.bridge.state.requests).map(record => ({ ...record, nativeBotId: entry.node.nativeBotId })));
+      else if (action === 'disconnect') { for (const {node} of [...connections.connections.values()]) await connections.stop(node); value = true; }
       else if (action === 'receipt') { const entry = connections.connections.get(input.botId); value = entry?.bridge.state.requests[input.requestId] || null; }
       else if (action === 'connection-state') value = [...connections.connections.values()].map(entry => ({ id: entry.node.id, state: entry.botNode.state, lastError: entry.botNode.lastError || entry.lastError, snapshot: entry.botNode.store.snapshot() }));
       else if (action === 'flush') { for (const bot of (await native.state()).bots) await rt.memoryFlush(bot.id); value = true; }
