@@ -10,6 +10,7 @@ import { resolveDsh } from './runtime-config.mjs';
 import { prepareRuntimeDependencies } from './runtime-dependencies.mjs';
 import {MODEL,restrictTestProvider} from './memory-test-model.mjs';
 import {modelReference} from '../src/model-config.mjs';
+import {parse as parseYaml} from 'yaml';
 
 export {MODEL};
 export const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -50,7 +51,7 @@ export async function apply(ctx){const plugin=await import(pathToFileURL(root+'/
       process.env.DS_GROUP_DSH_SOURCE_HOME||path.join(homedir(),'.dsh'),process.env.DS_GROUP_DSH_SOURCE_PROFILE||'desktop'],
       {env:{...process.env,ELECTRON_RUN_AS_NODE:'1',DS_GROUP_MODEL:MODEL,DS_GROUP_REASONING_EFFORT:route.provider==='opencode-go'?'low':''},maxBuffer:4*1024*1024});
     const prepared=JSON.parse(source.stdout);if(prepared.selection.model!==MODEL)throw new Error('TEST_MODEL_MISMATCH');
-    const file=path.join(this.home,'profiles/web/cordis.patch.yml'),patches=JSON.parse(await readFile(file,'utf8'));
+    const file=path.join(this.home,'profiles/web/cordis.patch.yml'),patches=parseYaml(await readFile(file,'utf8'));
     await writeFile(path.join(this.home,'.credentials.yaml'),JSON.stringify(prepared.credentials),{mode:0o600});
     await writeFile(file,JSON.stringify([
       {id:'llm-pi-ai',config:{providers:{[route.provider]:restrictTestProvider(prepared.provider)}}},

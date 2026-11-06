@@ -228,5 +228,58 @@
     "Native smoke uses synthetic Matrix envelopes; the real network continuation is separate.",
     "llm/stream counts are observed lifecycles, not an independent HTTP count. Full billing cost is unknown.",
     "Fast was not invoked; provider name and exact model ID are checked before every native stream."
-  ]
+  ],
+  "migration": {
+    "at": "2026-11-06T16:23:14.688Z",
+    "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+    "allowedProfileModels": [
+      "deepseek/deepseek-v4.1-flash"
+    ],
+    "userProfileUnchanged": true,
+    "originalEvidenceUnchanged": true,
+    "before": {
+      "report.json": "e3650e2c4a32709e5e806e0f2180887781627a857afbe16f271aa23dc2d91621",
+      "host/calls.jsonl": "fc6f2ec56a4f83395867506bbbfcb2ce4ff02b87343f208fe6369eb22926b3a1",
+      "host/events.jsonl": "f4957e3df5fe51a6b86c2ae05cde412508a79add2062f95fdc5773ff2b9d9cda"
+    },
+    "after": {
+      "report.json": "e3650e2c4a32709e5e806e0f2180887781627a857afbe16f271aa23dc2d91621",
+      "host/calls.jsonl": "fc6f2ec56a4f83395867506bbbfcb2ce4ff02b87343f208fe6369eb22926b3a1",
+      "host/events.jsonl": "f4957e3df5fe51a6b86c2ae05cde412508a79add2062f95fdc5773ff2b9d9cda"
+    },
+    "pauseArchived": true,
+    "catalog": {
+      "at": "2026-11-06T16:23:14.668Z",
+      "kind": "model-catalog",
+      "endpoint": "https://api.commandcode.ai/provider/v1/models",
+      "status": 200,
+      "available": true,
+      "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+      "selected": {
+        "id": "deepseek/deepseek-v4.1-flash",
+        "name": "DeepSeek V4.1 Flash (latest)",
+        "contextLength": 1000000,
+        "supportedEndpoints": [
+          "/chat/completions",
+          "/responses"
+        ]
+      },
+      "allowanceKnown": false,
+      "blockedWindows": [],
+      "resetAt": null
+    },
+    "firstFailure": {
+      "at": "2026-11-06T16:23:14.368Z",
+      "error": "configureModel used JSON.parse on a DSH-rewritten YAML profile",
+      "subsequentPreflight": {
+        "generation": 3,
+        "status": "failed",
+        "posted": 0,
+        "attempts": 0,
+        "error": "Error: CommandCode credential unavailable"
+      },
+      "modelHostStarted": false
+    },
+    "fix": "Parse DSH-written YAML as YAML instead of assuming its initial JSON representation. Actual existing-profile migration then passed without starting the model host."
+  }
 }
