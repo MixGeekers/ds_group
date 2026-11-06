@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { MatrixClient } from './matrix-client.mjs';
+import { withRoomDisplayNames } from './participant-labels.mjs';
 import { requireNodeScope } from './node-auth.mjs';
 import { DEFAULT_MAX_UPLOAD_BYTES } from './media.mjs';
 import {
@@ -202,7 +203,7 @@ export class BotWorkService {
       participants = joinedIds.map(id => known.get(id) || { id, kind: 'unknown', identitySource: 'matrix-membership',
         name: members.joined[id].display_name || id, localpart: id.slice(1, id.indexOf(':')) });
     }
-    return { client, policy, joinedIds, participants };
+    return { client, policy, joinedIds, participants: withRoomDisplayNames(participants, members.joined) };
   }
 
   async join(botId, roomId, scope) {

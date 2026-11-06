@@ -265,8 +265,12 @@ export default function App({
     );
     if (currentUser) members.set(currentUser.id, currentUser);
     for (const bot of ownedBots) members.set(bot.id, bot);
+    for (const label of mentionables.members) {
+      const person = members.get(label.id);
+      if (person && label.name) members.set(label.id, { ...person, name: label.name });
+    }
     return [...members.values()];
-  }, [bootstrap?.participants, directory, currentUser, ownedBots]);
+  }, [bootstrap?.participants, directory, currentUser, ownedBots, mentionables.members]);
   const workspace = useMemo(
     () => bootstrap && { ...bootstrap, participants },
     [bootstrap, participants],

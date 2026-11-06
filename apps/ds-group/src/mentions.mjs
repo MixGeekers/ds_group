@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { parseMentionTokens, mentionKindsFor } from '../web/mention-tokens.js';
+import { withRoomDisplayNames } from './participant-labels.mjs';
 
 const failure = (status, message) => Object.assign(new Error(message), { status });
 const unique = values => [...new Set(values)];
@@ -101,11 +102,15 @@ export class ChatFeatures {
     return preference.mode === 'all' || allowed.length > 0;
   }
 
-  async roomMembers(client, roomId, userId) {
+  async roomMemberProfiles(client, roomId, userId) {
     const response = await client.request('GET', `/_matrix/client/v3/rooms/${encodeURIComponent(roomId)}/joined_members`);
-    const members = Object.keys(response.joined || {});
-    if (!members.includes(userId)) throw failure(403, 'Join this conversation first');
-    return members;
+    const joined = response.joined || {};
+    if (!Object.hasOwn(joined, userId)) throw failure(403, 'Join this conversation first');
+    return joined;
+  }
+
+  async roomMembers(client, roomId, userId) {
+    return Object.keys(await this.roomMemberProfiles(client, roomId, userId));
   }
 
   async resolveMessage({ userId, roomId, input, client, members, directIds = [] }) {
@@ -245,9 +250,10 @@ export class ChatFeatures {
     const roomPath = url.pathname.match(/^\/api\/rooms\/([^/]+)\/(mentionables|notifications|read)$/);
     if (roomPath) {
       const roomId = decodeURIComponent(roomPath[1]);
-      const members = await this.roomMembers(client, roomId, userId);
+      const joined = await this.roomMemberProfiles(client, roomId, userId);
+      const members = Object.keys(joined);
       if (roomPath[2] === 'mentionables' && request.method === 'GET') {
-        return send(200, { members: members.map(id => this.person(id)).filter(Boolean).map(({ id, name, localpart, kind }) => ({ id, name, localpart, kind, status: this.presence(id) })),
+        return send(200, { members: withRoomDisplayNames(members.map(id => this.person(id)).filter(Boolean), joined).map(({ id, name, localpart, kind }) => ({ id, name, localpart, kind, status: this.presence(id) })),
           roles: this.roles().filter(role => role.memberIds.some(id => members.includes(id)))
             .map(role => ({ ...role, canMention: role.mentionable || userId === this.ownerId })),
           canMentionEveryone: userId === this.ownerId, canMentionHere: userId === this.ownerId });
