@@ -1,10 +1,12 @@
 import { DatabaseSync } from 'node:sqlite';
 import { randomUUID } from 'node:crypto';
-
-export const ALLOWED_MODEL = 'opencode-go/deepseek-v4.1-flash';
+import { checkModelPolicy, modelReference } from './model-config.mjs';
 
 export class ModelBudget {
-  constructor(filename, { limit = null, maxTokens = 8192 } = {}) {
+  constructor(filename, { limit = null, maxTokens = 8192, allowedModels = null } = {}) {
+    if (allowedModels !== null && !Array.isArray(allowedModels)) throw new Error('allowedModels must be null or an array of provider/model references');
+    allowedModels?.forEach(modelReference);
+    this.allowedModels = allowedModels === null ? null : [...new Set(allowedModels)];
     this.db = new DatabaseSync(filename);
     this.db.exec(`
       PRAGMA journal_mode=WAL;
@@ -29,7 +31,8 @@ export class ModelBudget {
       || !Number.isInteger(input.maxTokens) || input.maxTokens < 1) {
       throw Object.assign(new Error('Invalid model claim'), { status: 400 });
     }
-    if (input.model !== ALLOWED_MODEL) throw Object.assign(new Error('Only opencode dsv4.1f is enabled'), { status: 403 });
+    modelReference(input.model);
+    checkModelPolicy(input, { allowedModels: this.allowedModels });
     this.db.exec('BEGIN IMMEDIATE');
     try {
       const config = this.db.prepare('SELECT * FROM budget_config WHERE id=1').get();
@@ -74,7 +77,9 @@ export class ModelBudget {
       status: row.status, claimedAt: row.claimed_at, completedAt: row.completed_at,
       result: row.result_json ? JSON.parse(row.result_json) : null,
     }));
-    return { limit: config.call_limit, used: claims.length, remaining: config.call_limit === null ? null : config.call_limit - claims.length, maxTokens: config.max_tokens, model: ALLOWED_MODEL, claims };
+    const models = [...new Set(claims.map(claim => claim.model))];
+    return { limit: config.call_limit, used: claims.length, remaining: config.call_limit === null ? null : config.call_limit - claims.length,
+      maxTokens: config.max_tokens, allowedModels: this.allowedModels, models, model: models.length === 1 ? models[0] : null, claims };
   }
 
   close() { this.db.close(); }

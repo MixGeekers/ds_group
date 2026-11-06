@@ -16,13 +16,15 @@
 
 打开服务器网页，在登录窗口选择“注册账号”，填写用户名、显示名称和密码。注册后点击最左侧全局栏的“我的 Bot”，再点击“创建 Bot”，输入名称即可生成独立 Bot 身份。多个 Bot 可以使用相同显示名称，列表同时显示各自的完整 Bot ID。自己的 Bot 私聊始终在全局 Bot 区，进入服务器可查看其频道；Bot 实际加入的群仍会显示其成员身份。
 
-在 DSH 的 `Plugins → Add plugin` 安装候选 `.tgz`，启用 `dscord`，再打开左侧 **DSCord**。填写 Core/PWA 服务器地址和自己的账号密码，登录后在“我的 Bot”中点击“上线”。这里可以查看连接状态、断开或重连，也可以打开服务器网页或展开本机配置目录。每个 Bot 使用独立 DSH 运行目录和 Session。当前实现仍限制为 `opencode-go/deepseek-v4.1-flash`，需要自己的匹配凭据；DSH home、profile 与数据路径以实际安装为准。[配置与当前限制](deploy/README.md#configuration) · [安装与连接步骤](deploy/npm.md)
+在 DSH 的 `Plugins → Add plugin` 安装候选 `.tgz`，启用 `dscord`，再打开左侧 **DSCord**。填写 Core/PWA 服务器地址和自己的账号密码，登录后在“我的 Bot”中选择 DSH 已配置的模型，保存后点击“上线”。运行中更换选择后，点击“重连”应用新模型。模型配置与凭据由 DSH 管理，页面同时显示当前运行模型和已选模型。每个 Bot 使用独立 DSH 运行目录和 Session，DSH home、profile 与数据路径以实际安装为准。[配置与当前限制](deploy/README.md#configuration) · [安装与连接步骤](deploy/npm.md)
 
 本地 DSH 0.2.1-rc.5 已完成实际安装、登录、上线、断开、重连和插件重载。最终候选另通过两个已在线 Bot 的完整宿主快速重启，恢复原 Bot/Session 身份，并持续观察 10 秒。测试为零模型调用，在途模型任务恢复仍需独立验收。[DSH 宿主验证](artifacts/onboarding/dsh-connect-host.json)
 
 服务器默认开放注册。管理员可在 `core-config.json` 中设置 `registrationMode: "closed"`，重启 Core 后关闭注册。每次客户端登录使用独立会话，退出一台设备后其他设备继续使用自己的会话。真实 Matrix/Core 联调已覆盖两个新账号、同名 Bot 的独立身份、所属 Bot 连接、附件、提及和重启恢复。[本轮账号验收](artifacts/onboarding/onboarding-2026-11-05T00-26-35-920Z.json)
 
 真实 PWA 检查覆盖桌面与手机尺寸、中英文和深浅主题，以及注册、创建 Bot、退出、修复后的登录和刷新恢复。初轮登录触发的地址限流已修复，原失败与后续复验分别保存。真实界面累计 18 项成功，另有 69 项浏览器夹具检查，均为零模型调用。[界面验收汇总](artifacts/onboarding/pwa-validation-summary.json)
+
+模型选择的使用方法、旧节点升级和本轮验证见[模型配置与迁移](模型配置与迁移.md)。
 
 ## 附件后端与索引
 
@@ -40,7 +42,7 @@
 
 Bot 可以调用 DSH 文件读写、终端、后台作业及图片工具，连续执行读取、计算、编辑、检查和交付。文本、CSV、XLSX、DOCX 与文本 PDF 提供结构化预读，图片可通过指定模型的 `read_image` 读取。成果作为可下载附件返回原会话，支持引用上一版继续修改。任务卡展示进度、工具次数、取消及历史成果。
 
-每项任务默认最多 64 个执行步骤、15 分钟，每次模型生成独立记录。当前 provider/model 限制见[部署参数](deploy/README.md#configuration)。扫描 PDF 的整页转换与 OCR、自动长期记忆整理、任意第三方连接器按后续能力分别验收。
+每项任务默认最多 64 个执行步骤、15 分钟，每次模型生成独立记录。模型选择和服务器额度见[部署参数](deploy/README.md#configuration)。扫描 PDF 的整页转换与 OCR、自动长期记忆整理、任意第三方连接器按后续能力分别验收。
 
 群里可以向 Bot 说明“做好之后私聊发给我”。交付位置按原始人类发起者记录，生成中追加的明确提及或回复也可以在首次发送前更新。引用已有任务时优先按被回复消息关联，“再发一次”复用已确认的成品，普通新任务默认回当前会话。跨房间交付使用来源元数据关联原请求。
 
@@ -109,7 +111,7 @@ node scripts/service.mjs up finance
 - Node 24.19.0 及以上的 24.x 与 npm。
 - 可运行 Linux 容器的 Docker，用于固定 Synapse 容器。
 - DSH 0.2.1-rc.5，可使用官方 npm CLI 或现有桌面版。通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定独立安装，见部署说明。
-- 使用自己的 `OPENCODE_API_KEY`，或以 `DS_GROUP_DSH_SOURCE_HOME` / `DS_GROUP_DSH_SOURCE_PROFILE` 指定已有 DSH 配置来源。当前 provider/model 限制见部署指南；CLI 回退的 `~/.dsh` / `desktop` 不一定对应你的安装。凭据写入私有数据目录。
+- 在 DSH 中配置自己的模型，以 `DS_GROUP_DSH_SOURCE_HOME` / `DS_GROUP_DSH_SOURCE_PROFILE` 指定该配置来源，用 `DS_GROUP_MODEL` 选择已有的 `provider/model`。CLI 回退的 `~/.dsh` / `desktop` 需要与实际安装核对。节点所需凭据保存到私有数据目录，旧环境配置的兼容方式见[模型配置与迁移](模型配置与迁移.md)。
 
 首次启动会准备固定运行依赖，下载固定官方 Synapse 镜像，创建本项目演示成员和房间。详细 DSH 接缝与依赖准备见 [节点说明](dsh-plugin/README.md)。
 

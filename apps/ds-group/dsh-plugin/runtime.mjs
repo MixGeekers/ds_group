@@ -8,11 +8,11 @@ import { createRuntime } from '../vendor/ds-bot/index.js';
 import { PROTOCOL, WORK_TOOLS, botInstructions } from './runtime-rules.mjs';
 import { prepareWorkFiles, collectArtifacts } from './work-files.mjs';
 import { SCOPED_PROTOCOL, checkScopedFile, validateScopedInput } from './scoped-work.mjs';
+import { checkModel, modelSelection, modelReference } from '../src/model-config.mjs';
 
 export const name = 'ds-group-node';
 export const inject = ['llm', 'tools', 'systemPrompt', 'sessionController', 'sessions', 'sessionTitle', 'workspaceRegistry', 'connection'];
 
-const MODEL = 'opencode-go/deepseek-v4.1-flash';
 const LOADED_RUNTIME_SHA256 = createHash('sha256').update(await readFile(new URL(import.meta.url))).digest('hex');
 const DEFAULT_OUTPUT_TOKENS = 4096;
 const TERMINAL = new Set(['completed', 'failed', 'cancelled', 'unknown']);
@@ -66,11 +66,17 @@ export async function apply(ctx, config) {
   const nodeId = required(config.nodeId, 'nodeId');
   const dataDir = required(config.dataDir, 'dataDir', 4096);
   const port = Number(config.port);
-  const outputTokens = config.maxTokens ?? DEFAULT_OUTPUT_TOKENS;
+  const defaults = ctx.get?.('agentDefaultModel')?.currentSelection?.();
+  const selection = modelSelection({
+    model: config.model ?? (defaults?.provider && defaults?.model ? `${defaults.provider}/${defaults.model}` : undefined),
+    maxTokens: config.maxTokens ?? DEFAULT_OUTPUT_TOKENS,
+    reasoningEffort: config.model ? config.reasoningEffort : defaults?.reasoningEffort,
+  });
+  const route = modelReference(selection.model);
+  const outputTokens = selection.maxTokens;
   const taskTimeoutMs = config.taskTimeoutMs ?? 15 * 60_000;
   const maxSteps = config.maxSteps ?? 64;
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw fail('INVALID_PORT');
-  if (!Number.isInteger(outputTokens) || outputTokens < 1 || outputTokens > 8192) throw fail('INVALID_OUTPUT_LIMIT');
   if (!Number.isInteger(taskTimeoutMs) || taskTimeoutMs < 1000 || taskTimeoutMs > 3_600_000) throw fail('INVALID_TASK_TIMEOUT');
   if (!Number.isInteger(maxSteps) || maxSteps < 1 || maxSteps > 256) throw fail('INVALID_STEP_LIMIT');
   await mkdir(dataDir, { recursive: true });
@@ -168,15 +174,16 @@ export async function apply(ctx, config) {
       progress.blockedStreams++;
       throw fail('UNSCHEDULED_MODEL_REQUEST');
     }
-    if (options.provider !== 'opencode-go' || options.model !== 'deepseek-v4.1-flash'
-      || !Number.isInteger(options.maxTokens) || options.maxTokens < 1 || options.maxTokens > 8192) {
+    if (options.provider !== route.provider || options.model !== route.model
+      || !Number.isSafeInteger(options.maxTokens) || options.maxTokens < 1 || options.maxTokens > outputTokens) {
       throw fail('MODEL_REQUEST_OUTSIDE_SCOPE');
     }
+    await checkModel(ctx.llm, selection);
     await workCheck(run, 'model');
     const sequence = run.record.claims.length + 1;
     const kind = options.purpose ? `auxiliary:${String(options.purpose).slice(0, 80)}` : 'generation';
-    const claim = await ledger('claim', { nodeId, requestId: `${run.record.requestId}/call-${sequence}`, model: MODEL, maxTokens: options.maxTokens, kind });
-    const call = { claimId: required(claim.claimId, 'claimId'), kind, status: 'claimed', startedAt: new Date().toISOString(), usage: null };
+    const claim = await ledger('claim', { nodeId, requestId: `${run.record.requestId}/call-${sequence}`, model: `${options.provider}/${options.model}`, maxTokens: options.maxTokens, kind });
+    const call = { claimId: required(claim.claimId, 'claimId'), model: selection.model, kind, status: 'claimed', startedAt: new Date().toISOString(), usage: null };
     run.record.claims.push(call);
     run.record.claimId = call.claimId;
     run.streamStarted = true;
@@ -270,7 +277,7 @@ export async function apply(ctx, config) {
       if (!run || run.record.cancelRequested) throw fail('UNSCHEDULED_MODEL_REQUEST');
       const request = await next();
       run.requests++;
-      return { ...request, provider: 'opencode-go', model: 'deepseek-v4.1-flash', reasoningEffort: 'low', maxTokens: outputTokens,
+      return { ...request, ...route, reasoningEffort: selection.reasoningEffort, maxTokens: outputTokens,
         tools: (request.tools ?? []).filter(tool => toolsFor().has(tool.name)) };
     });
     agent.ctx.on('agent/request-error', async () => ({ kind: 'abort' }), { prepend: true });
@@ -278,7 +285,7 @@ export async function apply(ctx, config) {
 
   function botResult(bot) {
     return { botId: bot.botId, name: bot.name, role: bot.role, nodeId, dsBotId: bot.dsBotId, sessionId: rt.chatOf(bot.dsBotId),
-      tools: bot.tools ?? [], model: MODEL, scopedWork: { tools: (bot.tools || []).filter(tool => ['read', 'write', 'edit', 'read_image'].includes(tool)),
+      tools: bot.tools ?? [], model: selection.model, modelConfig: selection, scopedWork: { tools: (bot.tools || []).filter(tool => ['read', 'write', 'edit', 'read_image'].includes(tool)),
         domains: Object.values(bot.domains || {}).map(({ sessionId, roomId, authority }) => ({ sessionId, roomId, authority })) } };
   }
 
@@ -297,6 +304,7 @@ export async function apply(ctx, config) {
   }
 
   async function setupBot(input) {
+    await checkModel(ctx.llm, selection);
     const previous = state.bots[input.botId];
     const internalName = `ds-group-${createHash('sha256').update(input.botId).digest('hex').slice(0, 31)}`;
     const binding = `\n\nDS_GROUP_MATRIX_BOT_ID=${JSON.stringify(input.botId)}`;
@@ -321,7 +329,7 @@ export async function apply(ctx, config) {
     configureAgent(agent);
     record.tools = agent.ctx.tools.schemas(agent).map(tool => tool.name).filter(tool => WORK_TOOLS.has(tool));
     // Bridge setup must not send the vendor's profile-update message and start an unsolicited turn.
-    await rt.updateBot(bot.id, { model: MODEL, effort: 'low', instructions }, bot.id, rt.chatOf(bot.id));
+    await rt.updateBot(bot.id, { model: selection.model, effort: selection.reasoningEffort ?? '', instructions }, bot.id, rt.chatOf(bot.id));
     const presets = ctx.get?.('permissionPresets');
     if (presets) await rt.setPermission(bot, 'danger-full-access');
     record.setupStatus = 'ready';
@@ -398,6 +406,7 @@ export async function apply(ctx, config) {
     record.startedAt = new Date().toISOString();
     updateProgress(record, 'preparing', '正在准备文件');
     try {
+      await checkModel(ctx.llm, selection);
       await workCheck(run, 'run');
       const workspace = await prepareWorkFiles({ dataDir, requestId: record.requestId, workdir: input.workdir, files: input.files });
       record.workdir = workspace.workdir;
@@ -513,7 +522,7 @@ export async function apply(ctx, config) {
       return receipt(previous, true);
     }
     const record = { requestId: payload.requestId, botId: payload.botId, inputHash, eventId: payload.event.eventId,
-      status: 'queued', stage: 'queued', summary: '等待处理', claims: [], toolCalls: 0, toolReceipts: [], artifacts: [], acceptedAt: new Date().toISOString() };
+      status: 'queued', stage: 'queued', model: selection.model, modelConfig: selection, summary: '等待处理', claims: [], toolCalls: 0, toolReceipts: [], artifacts: [], acceptedAt: new Date().toISOString() };
     state.requests[payload.requestId] = record;
     const accepted = save();
     accepted.catch(() => {});
@@ -568,8 +577,12 @@ export async function apply(ctx, config) {
     try {
       const path = new URL(request.url, `http://127.0.0.1:${port}`).pathname;
       if (request.method === 'GET' && (path === '/health' || path === '/api/ds-group-node/status')) {
+        let modelStatus;
+        try { await checkModel(ctx.llm, selection); modelStatus = { status: 'ready' }; }
+        catch (error) { modelStatus = { status: 'unavailable', errorCode: publicError(error) }; }
         return json(response, 200, { status: closing ? 'stopping' : 'ready', nodeId, engine: 'DS-Bot', engineVersion: '0.2.7',
-          loadedRuntimeSha256: LOADED_RUNTIME_SHA256, model: MODEL, maxOutputTokens: outputTokens, maxSteps, taskTimeoutMs,
+          loadedRuntimeSha256: LOADED_RUNTIME_SHA256, model: selection.model, modelConfig: selection, modelStatus,
+          maxOutputTokens: outputTokens, maxSteps, taskTimeoutMs,
           capabilities: { fileWork: true, tools: [...WORK_TOOLS], asyncTasks: true },
           activeTurns: active.size, progress, bots: Object.values(state.bots).map(botResult) });
       }

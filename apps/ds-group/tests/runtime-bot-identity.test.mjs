@@ -93,7 +93,9 @@ async function fixture(t, { nodeState, bots = [], beforeCreate, updateFailures =
   };
   runtimes.set(path.join(directory, 'ds-bot'), rt);
   const disposers = [];
-  const ctx = { on() {}, effect: effect => { disposers.push(effect()); } };
+  const ctx = { on() {}, effect: effect => { disposers.push(effect()); }, llm: {
+    listProviders: () => [{ id: 'test' }], listModels: async () => [{ id: 'identity' }],
+  } };
   let baseUrl;
   async function stop() {
     for (const dispose of disposers.splice(0)) await dispose();
@@ -103,7 +105,7 @@ async function fixture(t, { nodeState, bots = [], beforeCreate, updateFailures =
     await new Promise(resolve => probe.listen(0, '127.0.0.1', resolve));
     const port = probe.address().port;
     await new Promise(resolve => probe.close(resolve));
-    await apply(ctx, { nodeId: 'synthetic-node', dataDir: directory, port });
+    await apply(ctx, { nodeId: 'synthetic-node', dataDir: directory, port, model: 'test/identity' });
     baseUrl = `http://127.0.0.1:${port}`;
   }
   t.after(async () => {

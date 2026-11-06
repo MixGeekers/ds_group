@@ -4,7 +4,7 @@
 
 已公开的版本为 `0.2.0-alpha.1`，使用 `alpha` 标签。当前源码正在验证 `0.3.0-alpha.1` 候选，增加 DSH 图形连接页、账号注册和个人 Bot 创建。下文标明这些新入口的使用范围。
 
-服务器发行目标为 Linux amd64/arm64，要求 Node 24.19.0 及以上的 24.x。Bot 节点另外需要 DSH 0.2.1-rc.5。当前实现仍将模型限制为 `opencode-go/deepseek-v4.1-flash`，这属于版本限制；用户需提供自己的匹配凭据。仅修改 DSH 默认模型无法切换其他 provider/model。[配置与当前限制](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/README.md#configuration)
+服务器发行目标为 Linux amd64/arm64，要求 Node 24.19.0 及以上的 24.x。Bot 节点另外需要 DSH 0.2.1-rc.5。当前源码候选支持为每个 Bot 选择 DSH 已配置的模型，服务商与凭据由 DSH 管理。升级已有安装时，Core 与节点使用同版本候选包。[配置与当前限制](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/README.md#configuration)
 
 ## 安装
 
@@ -71,11 +71,11 @@ dscord server
 2. 在已安装插件中选择 `dscord`，打开 `Enable dscord`。
 3. 点击左侧 **DSCord**。插件详情中也有同一配置页。
 4. 填写服务器网页地址、自己的账号和密码，点击“登录”。
-5. 在“我的 Bot”找到目标 Bot，点击“上线”。
+5. 在“我的 Bot”找到目标 Bot，从下拉列表选择模型并保存，然后点击“上线”。
 
-页面显示当前账号、服务器地址、Bot 名称和 ID，以及已断开、正在连接、已上线或连接失败状态。每个 Bot 有独立的上线、断开和重连操作。列表为空时，点击“打开网页”到服务器创建 Bot。
+页面显示当前账号、服务器地址、Bot 名称和 ID，以及已断开、正在连接、已上线或连接失败状态。每个 Bot 有独立的模型选择、上线、断开和重连操作。运行中保存新模型后，点击“重连”应用，当前任务会随重连停止。列表为空时，点击“打开网页”到服务器创建 Bot。
 
-服务器地址使用 Core/PWA 的地址，例如 `https://chat.example.com`。Core 配置的 Matrix 外部地址也需要从 Bot 机器访问。首次上线会准备该 Bot 的独立运行目录并读取当前宿主 profile 中的 `opencode-go` 配置与引用凭据，请在这个 profile 中配置当前版本支持的模型。
+服务器地址使用 Core/PWA 的地址，例如 `https://chat.example.com`。Core 配置的 Matrix 外部地址也需要从 Bot 机器访问。首次上线会准备该 Bot 的独立运行目录，并读取当前宿主 profile 中所选模型的配置和必要凭据。模型列表、服务商与凭据统一在 DSH 模型设置中管理。
 
 “本机配置目录”可以展开查看真实路径。默认位于 `<实际 DSH home>/dscord/<当前 profile>/`；只有 home 为 `~/.dsh` 且 profile 为 `desktop` 时，才是 `~/.dsh/dscord/desktop/`。连接账号和节点配置保存在这里，每个 Bot 使用自己的子目录。插件重载后按已保存的上线状态恢复连接。退出登录会先断开本插件管理的 Bot。
 
@@ -101,12 +101,13 @@ npm install --global @deepseek-ai/dsh@0.2.1-rc.5
 export DS_GROUP_DATA_DIR="$HOME/.local/share/dscord-nodes/$BOT_ACCOUNT"
 export DS_GROUP_BRIDGE_PORT=23100
 dscord admin import-node bot-node.json "$DS_GROUP_DATA_DIR"
-read -r -s OPENCODE_API_KEY
-export OPENCODE_API_KEY
+export DS_GROUP_DSH_SOURCE_HOME="/absolute/path/to/your/dsh-home"
+export DS_GROUP_DSH_SOURCE_PROFILE="your-profile"
+export DS_GROUP_MODEL="provider/model-id"
 dscord service up "$BOT_ACCOUNT"
 ```
 
-密钥在 Bash / Zsh 本机终端隐藏输入。也可省略凭据输入命令，通过 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 指向自己已有的 DSH 配置；CLI 的 `~/.dsh` / `desktop` 是未指定时的回退值。图形连接页会使用实际宿主 profile 并自动分配本机目录和端口。
+将来源目录、profile 和模型引用替换为自己的 DSH 配置。当前候选从该 profile 读取所选模型的配置与必要凭据；CLI 的 `~/.dsh` / `desktop` 是未指定时的回退值。旧 `0.2.0-alpha.1` CLI 仍使用其固定模型与 `OPENCODE_API_KEY` 接口，升级请同步更新 Core 与节点。图形连接页会使用实际宿主 profile 并自动分配本机目录和端口。
 
 在同一组环境变量下停止节点及其 DSH：
 

@@ -230,6 +230,7 @@ export class BotNode {
       role: this.roleOf(),
       instructions: this.instructions() });
     this.nodeTools = setup?.tools || [];
+    this.model = setup?.model;
     await this.heartbeat();
     this.processing = this.processLoop();
     this.syncing = this.syncLoop();
@@ -737,11 +738,17 @@ export class BotNode {
   }
 
   async heartbeat() {
+    if (this.bridge.runtimeStatus && this.state !== 'offline') {
+      const runtime = await this.bridge.runtimeStatus({
+        signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(2000)]),
+      }).catch(() => null);
+      this.model = runtime?.model ?? null;
+    }
     const snapshot = this.store.snapshot();
     await this.sendHeartbeat({ id: this.participant.localpart, botId: this.participant.id, name: this.participant.name,
       runtimeId: this.runtimeId, status: this.lastError && this.state === 'idle' ? 'error' : this.state,
       processed: snapshot.processed, pending: snapshot.pending, sessionId: snapshot.sessionId,
-      lastError: this.lastError || snapshot.lastError, engine: 'DS-Bot 0.2.7' });
+      lastError: this.lastError || snapshot.lastError, model: this.model, engine: 'DS-Bot 0.2.7' });
   }
 
   async heartbeatLoop() {
@@ -806,6 +813,7 @@ export function createBridge(endpoint, { token, fetchImpl = fetch, timeoutMs = 1
   }
   return {
     createBot: input => request('/api/ds-group-node/bots', input), status, wait,
+    runtimeStatus: options => request('/api/ds-group-node/status', undefined, options),
     cancel: requestId => request(`/api/ds-group-node/turns/${encodeURIComponent(requestId)}/cancel`, {}),
     turn: async (input, options = {}) => {
       const snapshot = await request('/api/ds-group-node/turns', { ...input, async: true }, options);

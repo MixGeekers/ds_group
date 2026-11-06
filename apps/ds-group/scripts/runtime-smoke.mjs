@@ -89,7 +89,7 @@ async function createBot(instructions = '等待明确请求。') {
   return result;
 }
 const sourceHashes = {};
-for (const file of ['scripts/dsh-node.mjs', 'scripts/runtime-config.mjs', 'scripts/runtime-smoke.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime.mjs']) {
+for (const file of ['src/model-config.mjs', 'dsh-plugin/model-profile.mjs', 'scripts/dsh-node.mjs', 'scripts/runtime-config.mjs', 'scripts/runtime-smoke.mjs', 'dsh-plugin/index.mjs', 'dsh-plugin/runtime.mjs']) {
   sourceHashes[file] = createHash('sha256').update(await readFile(path.join(packageRoot, file))).digest('hex');
 }
 const report = { checkedAt: new Date().toISOString(), platform: process.platform, arch: process.arch, node: process.version,
@@ -140,6 +140,70 @@ try {
   assert.equal(interrupted.errorCode, 'NODE_RESTARTED_DURING_REQUEST');
   report.checks.interruptedRequestIsNotReplayed = true;
   await stop();
+  const sourceHome = path.join(directory, 'source');
+  const sourceProfile = path.join(sourceHome, 'profiles', 'desktop');
+  await mkdir(sourceProfile, { recursive: true });
+  const sourceFiles = {
+    'profiles/desktop/package.json': JSON.stringify({ name: 'synthetic-source', private: true,
+      dsh: { profile: { bundles: ['@deepseek-ai/dsh-base'] } } }),
+    'profiles/desktop/cordis.patch.yml': JSON.stringify([
+      { id: 'llm-pi-ai', config: { providers: {
+        'sample-route': { api: 'openai-completions', baseURL: 'http://127.0.0.1:9/v1', apiKeyEnv: 'SYNTHETIC_MODEL_KEY',
+          models: [{ id: 'team/chat' }, { id: 'second' }], retryPolicy: { mode: 'normal', maxRetries: 2 }, headers: { 'X-Test': 'keep' } },
+        'opencode-go': { apiKeyEnv: 'SYNTHETIC_MODEL_KEY', modelOverrides: { [MODEL]: { contextWindow: 131072 } } },
+      } } },
+      { id: 'agent-default-model', config: { provider: 'sample-route', model: 'second' } },
+    ]),
+    '.credentials.yaml': JSON.stringify({ version: 1, refs: { SYNTHETIC_MODEL_KEY: 'synthetic-zero-model', UNRELATED_SECRET: 'do-not-copy' }, records: {} }),
+  };
+  for (const [name, content] of Object.entries(sourceFiles)) await writeFile(path.join(sourceHome, name), content, { mode: 0o600 });
+  delete env.OPENCODE_API_KEY;
+  env.DS_GROUP_DSH_SOURCE_HOME = sourceHome;
+  env.DS_GROUP_MODEL = 'sample-route/team/chat';
+  const alternate = await start();
+  assert.equal(alternate.model, env.DS_GROUP_MODEL);
+  const changed = await createBot();
+  assert.equal(changed.sessionId, first.sessionId);
+  assert.equal(changed.dsBotId, first.dsBotId);
+  assert.equal(changed.model, env.DS_GROUP_MODEL);
+  await stop();
+  report.checks.customProviderAndNamespacedModelReuseNativeIdentity = true;
+  const preparedPath = path.join(config.home, 'profiles/web/cordis.patch.yml');
+  let prepared = await readFile(preparedPath, 'utf8');
+  assert.match(prepared, /maxRetries: 2/);
+  assert.match(prepared, /X-Test: keep/);
+  assert.match(prepared, /id: second/);
+  assert.equal((await readFile(path.join(config.home, '.credentials.yaml'), 'utf8')).includes('UNRELATED_SECRET'), false);
+  report.checks.sourceProviderSettingsPreservedAndCredentialScoped = true;
+  delete env.DS_GROUP_MODEL;
+  assert.equal((await start()).model, 'sample-route/team/chat', 'the saved node choice wins over a changed source default');
+  await stop();
+  report.checks.savedModelSurvivesSourceDefaultChange = true;
+  env.DS_GROUP_MODEL = `opencode-go/${MODEL}`;
+  assert.equal((await start()).model, env.DS_GROUP_MODEL);
+  assert.equal((await createBot()).sessionId, first.sessionId);
+  await stop();
+  prepared = await readFile(preparedPath, 'utf8');
+  assert.match(prepared, /modelOverrides:/);
+  assert.match(prepared, /contextWindow: 131072/);
+  report.checks.nativeModelOverridesPreserved = true;
+  const previousConfig = await readFile(path.join(directory, 'dsh-finance/node-config.json'), 'utf8');
+  async function rejectedPrepare() {
+    await assert.rejects(promisify(execFile)(process.execPath, [path.join(packageRoot, 'scripts/dsh-node.mjs'), 'prepare', 'finance'],
+      { env, timeout: 30_000 }));
+    assert.equal(await readFile(preparedPath, 'utf8'), prepared);
+    assert.equal(await readFile(path.join(directory, 'dsh-finance/node-config.json'), 'utf8'), previousConfig);
+  }
+  env.DS_GROUP_MODEL = 'sample-route/absent';
+  await rejectedPrepare();
+  report.checks.invalidConfiguredModelRejectedWithoutProfileWrite = true;
+  env.DS_GROUP_MODEL = 'sample-route/second';
+  await writeFile(path.join(sourceHome, '.credentials.yaml'), JSON.stringify({ version: 1, refs: {}, records: {} }));
+  await rejectedPrepare();
+  await writeFile(path.join(sourceHome, '.credentials.yaml'), sourceFiles['.credentials.yaml']);
+  report.checks.missingCredentialRejectedWithoutProfileWrite = true;
+  for (const [name, content] of Object.entries(sourceFiles)) assert.equal(await readFile(path.join(sourceHome, name), 'utf8'), content);
+  report.checks.sourceProfileAndCredentialsUnmodified = true;
   report.checks.gracefulStop = true;
   assert.deepEqual(calls, []);
   report.checks.zeroModelClaims = true;

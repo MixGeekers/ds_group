@@ -1,15 +1,16 @@
 import path from 'node:path';
 import { homedir } from 'node:os';
 import { ConnectController } from './controller.mjs';
+import { DshModels } from './models.mjs';
 
 export const name = 'dscord-connect';
-export const inject = ['connection', 'profileContext'];
+export const inject = ['connection', 'profileContext', 'llm', 'settings', 'credentials'];
 
 export async function apply(ctx, config = {}) {
   const sourceHome = path.resolve(process.env.DSH_HOME || path.join(homedir(), '.dsh'));
   const sourceProfile = ctx.profileContext?.name || 'desktop';
   const directory = path.resolve(config.dataDirectory || path.join(sourceHome, 'dscord', sourceProfile));
-  const controller = new ConnectController({ directory, sourceHome, sourceProfile });
+  const controller = new ConnectController({ directory, sourceHome, sourceProfile, models: new DshModels(ctx) });
   const ready = controller.initialize();
   ctx.effect(() => ctx.connection.fetch.register({
     path: '/api/dscord', methods: ['POST'], requestBody: 'buffered',

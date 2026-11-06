@@ -2,12 +2,21 @@ window.__ModuleLoader__.load({
   id: 'dscord',
   factory(require) {
     const React = require('react');
-    const { IconPluginPinwheelOutlineRegular } = require('@deepseek-ai/dsh-client-ui-primitives');
+    const { Button, Input, IconPluginPinwheelOutlineRegular } = require('@deepseek-ai/dsh-client-ui-primitives');
     const h = React.createElement;
     const panelId = 'dscord';
     const localeNamespace = 'dscord.connection';
     const statusKeys = { offline: 'statusOffline', connecting: 'statusConnecting', online: 'statusOnline', error: 'statusError' };
     const zh = {
+      serverPolicyDenied: '此服务器未允许所选模型，请选择获准模型或联系管理员。',
+      serverOutputLimit: '模型输出上限超过服务器额度，请检查节点与服务器的配置。',
+      model: '模型', noModel: '请先在 DSH 中配置模型', saveModel: '保存选择',
+      savedModel: '模型选择已保存，下次连接时生效。', activeModel: '当前运行', nextModel: '已选模型',
+      modelPending: '点击重连应用新模型。重连会停止当前任务。',
+      modelUnavailable: '此模型在 DSH 中不可用，请到 DSH 模型设置检查。',
+      missingCredential: '请在 DSH 的模型设置中配置此模型的凭据。',
+      invalidEffort: '请检查 DSH 中的模型思考强度设置。', invalidOutput: '节点输出 tokens 必须为正整数。',
+      providerInvalid: '请检查 DSH 中的模型配置。',
       title: 'DSCord', pageLabel: 'DSCord 连接', loginTitle: '登录服务器', serverUrl: '服务器地址',
       username: '账号', password: '密码', login: '登录', loggingIn: '正在登录…',
       disconnect: '断开', disconnecting: '正在断开…', disconnectBot: '断开 {name}',
@@ -23,6 +32,15 @@ window.__ModuleLoader__.load({
       connectionUnavailable: '无法连接 DSH，请检查宿主是否正在运行',
     };
     const en = {
+      serverPolicyDenied: 'This server does not allow the selected model. Choose an allowed model or contact its administrator.',
+      serverOutputLimit: 'The model output limit exceeds this server’s budget. Check the node and server configuration.',
+      model: 'Model', noModel: 'Configure a model in DSH first', saveModel: 'Save selection',
+      savedModel: 'Model selection saved. It applies on the next connection.', activeModel: 'Running model', nextModel: 'Selected model',
+      modelPending: 'Reconnect to apply the new model. Reconnecting stops the current task.',
+      modelUnavailable: 'This model is unavailable in DSH. Check DSH model settings.',
+      missingCredential: 'Configure this model’s credentials in DSH model settings.',
+      invalidEffort: 'Check the thinking level in DSH model settings.', invalidOutput: 'Node output tokens must be a positive integer.',
+      providerInvalid: 'Check the model configuration in DSH.',
       title: 'DSCord', pageLabel: 'DSCord connection', loginTitle: 'Sign in to server', serverUrl: 'Server URL',
       username: 'Username', password: 'Password', login: 'Sign in', loggingIn: 'Signing in…',
       disconnect: 'Disconnect', disconnecting: 'Disconnecting…', disconnectBot: 'Disconnect {name}',
@@ -40,15 +58,15 @@ window.__ModuleLoader__.load({
 
     const styles = `
 .dscord-connect {
-  --dc-background: #f2f3f5;
-  --dc-panel: #ffffff;
-  --dc-field: #e9eaed;
-  --dc-text: #232428;
-  --dc-muted: #5c5e66;
-  --dc-line: #dcdde1;
-  --dc-accent: #5865f2;
-  --dc-danger: #b42335;
-  --dc-success: #16794d;
+  --dc-background: var(--dsw-alias-bg-layer-1, #ffffff);
+  --dc-panel: var(--dsw-alias-settings-card-fill, #f7f8fa);
+  --dc-field: var(--dsw-alias-bg-layer-1, #ffffff);
+  --dc-text: var(--dsw-alias-label-primary, #202124);
+  --dc-muted: var(--dsw-alias-label-secondary, #69707a);
+  --dc-line: var(--dsw-alias-settings-card-stroke, #e5e7eb);
+  --dc-accent: var(--dsw-alias-state-business-primary, #4d6bfe);
+  --dc-danger: var(--dsw-alias-state-error-primary, #b42335);
+  --dc-success: var(--dsw-alias-state-success-primary, #16794d);
   box-sizing: border-box;
   width: 100%;
   height: 100%;
@@ -59,14 +77,14 @@ window.__ModuleLoader__.load({
   font: 14px/1.5 var(--dsw-font-family, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
 }
 body[data-ds-dark-theme] .dscord-connect {
-  --dc-background: #313338;
-  --dc-panel: #2b2d31;
-  --dc-field: #1e1f22;
-  --dc-text: #f2f3f5;
-  --dc-muted: #b5bac1;
-  --dc-line: #45474e;
-  --dc-danger: #ff8e99;
-  --dc-success: #65d7a0;
+  --dc-background: var(--dsw-alias-bg-layer-1, #1c1c1e);
+  --dc-panel: var(--dsw-alias-settings-card-fill, #242426);
+  --dc-field: var(--dsw-alias-bg-layer-1, #1c1c1e);
+  --dc-text: var(--dsw-alias-label-primary, #f2f3f5);
+  --dc-muted: var(--dsw-alias-label-secondary, #b5bac1);
+  --dc-line: var(--dsw-alias-settings-card-stroke, #39393d);
+  --dc-danger: var(--dsw-alias-state-error-primary, #ff8e99);
+  --dc-success: var(--dsw-alias-state-success-primary, #65d7a0);
   color-scheme: dark;
 }
 .dscord-connect *, .dscord-connect *::before, .dscord-connect *::after { box-sizing: border-box; }
@@ -76,18 +94,15 @@ body[data-ds-dark-theme] .dscord-connect {
 .dscord-connect h1 { margin: 0; font-size: 22px; font-weight: 650; }
 .dscord-connect h2 { margin: 0 0 16px; font-size: 17px; font-weight: 600; }
 .dscord-connect p { margin: 0; }
-.dscord-connect .dc-panel { padding: 22px; border: 1px solid var(--dc-line); border-radius: 10px; background: var(--dc-panel); margin-bottom: 20px; }
+.dscord-connect .dc-panel { padding: 22px; border: 1px solid var(--dc-line); border-radius: var(--dsw-radius-lg, 12px); background: var(--dc-panel); margin-bottom: 20px; }
 .dscord-connect .dc-login { max-width: 460px; margin: 0 auto; }
 .dscord-connect .dc-field { display: grid; gap: 7px; margin-bottom: 18px; font-weight: 600; }
-.dscord-connect input { width: 100%; min-height: 42px; border: 1px solid transparent; border-radius: 5px; padding: 10px 12px; background: var(--dc-field); color: var(--dc-text); font: inherit; font-weight: 400; }
+.dscord-connect select { width: 100%; min-height: 42px; border: 1px solid var(--dc-line); border-radius: var(--dsw-radius-md, 8px); padding: 10px 12px; background: var(--dc-field); color: var(--dc-text); font: inherit; font-weight: 400; }
 .dscord-connect input::placeholder { color: var(--dc-muted); opacity: 1; }
-.dscord-connect button, .dscord-connect .dc-link { min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 13px; border: 1px solid var(--dc-line); border-radius: 5px; background: var(--dc-panel); color: var(--dc-text); font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; white-space: nowrap; }
-.dscord-connect button:hover:enabled, .dscord-connect .dc-link:hover { background: var(--dc-field); }
-.dscord-connect button:disabled { cursor: default; opacity: .55; }
-.dscord-connect .dc-primary { background: var(--dc-accent); color: #fff; border-color: var(--dc-accent); }
-.dscord-connect .dc-primary:hover:enabled { background: #4752c4; }
+.dscord-connect .dc-link { min-height: 36px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 7px 13px; border: 1px solid var(--dc-line); border-radius: 5px; background: var(--dc-panel); color: var(--dc-text); font: inherit; font-weight: 500; text-decoration: none; cursor: pointer; white-space: nowrap; }
+.dscord-connect .dc-link:hover { background: var(--dc-field); }
 .dscord-connect .dc-login .dc-primary { width: 100%; min-height: 42px; }
-.dscord-connect :is(button, input, a):focus-visible { outline: 2px solid var(--dc-accent); outline-offset: 3px; }
+.dscord-connect :is(select, summary, a):focus-visible { outline: 2px solid var(--dc-accent); outline-offset: 3px; }
 .dscord-connect .dc-muted { color: var(--dc-muted); }
 .dscord-connect .dc-error { color: var(--dc-danger); overflow-wrap: anywhere; }
 .dscord-connect .dc-notice { padding: 12px 16px; border: 1px solid var(--dc-line); border-radius: 6px; margin-bottom: 18px; background: var(--dc-panel); }
@@ -97,11 +112,11 @@ body[data-ds-dark-theme] .dscord-connect {
 .dscord-connect .dc-account-name { font-weight: 600; margin-bottom: 4px; overflow-wrap: anywhere; }
 .dscord-connect .dc-server, .dscord-connect .dc-directory { overflow-wrap: anywhere; color: var(--dc-muted); }
 .dscord-connect .dc-bots { list-style: none; margin: 0; padding: 0; }
-.dscord-connect .dc-bot { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 0; border-top: 1px solid var(--dc-line); }
+.dscord-connect .dc-bot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 0; border-top: 1px solid var(--dc-line); }
 .dscord-connect .dc-bot:first-child { border-top: 0; padding-top: 0; }
 .dscord-connect .dc-bot:last-child { padding-bottom: 0; }
 .dscord-connect .dc-bot-identity { display: flex; gap: 12px; align-items: center; min-width: 0; }
-.dscord-connect .dc-avatar { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 13px; background: var(--dc-accent); color: #fff; font-size: 18px; font-weight: 600; flex: 0 0 auto; }
+.dscord-connect .dc-avatar { display: flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 13px; background: var(--dc-field); color: var(--dc-accent); font-size: 18px; font-weight: 600; flex: 0 0 auto; }
 .dscord-connect .dc-bot-copy { min-width: 0; }
 .dscord-connect .dc-bot-name { font-weight: 600; overflow-wrap: anywhere; }
 .dscord-connect .dc-bot-id { color: var(--dc-muted); font-size: 12px; overflow-wrap: anywhere; }
@@ -114,7 +129,15 @@ body[data-ds-dark-theme] .dscord-connect {
 .dscord-connect .dc-directory { font-size: 12px; }
 .dscord-connect .dc-directory summary { cursor: pointer; width: fit-content; }
 .dscord-connect .dc-directory code { display: block; margin-top: 6px; user-select: text; }
+.dscord-connect .dc-model-settings { flex-basis: 100%; width: 100%; }
+.dscord-connect .dc-model-form { display: flex; align-items: flex-end; gap: 12px; }
+.dscord-connect .dc-model-form .dc-field { flex: 1; margin: 0; min-width: 0; }
+.dscord-connect .dc-model-form select { max-width: 100%; text-overflow: ellipsis; }
+.dscord-connect .dc-model-form button { min-height: 42px; }
+.dscord-connect .dc-model-info { margin-top: 7px; font-size: 13px; overflow-wrap: anywhere; }
 @media (max-width: 640px) {
+  .dscord-connect .dc-model-form { flex-wrap: wrap; }
+  .dscord-connect .dc-model-form .dc-field { flex-basis: 100%; }
   .dscord-connect .dc-content { padding: 18px 14px; }
   .dscord-connect .dc-panel { padding: 16px; }
   .dscord-connect .dc-header { gap: 12px; margin-bottom: 18px; }
@@ -160,7 +183,13 @@ body[data-ds-dark-theme] .dscord-connect {
           });
           if (!response.ok) throw Object.assign(clientError('requestHttp', { status: response.status }), { httpStatus: response.status });
           const result = await response.json();
-          if (!result.ok) throw result.error?.message ? new Error(result.error.message) : clientError('requestFailed');
+          if (!result.ok) {
+            const modelErrors = { MODEL_POLICY_DENIED: 'serverPolicyDenied', MODEL_OUTPUT_LIMIT: 'serverOutputLimit', MISSING_CREDENTIAL: 'missingCredential', INVALID_REASONING_EFFORT: 'invalidEffort',
+              INVALID_OUTPUT_LIMIT: 'invalidOutput', INVALID_MODEL: 'modelUnavailable', MODEL_UNAVAILABLE: 'modelUnavailable',
+              MODEL_PROVIDER_UNAVAILABLE: 'modelUnavailable', MODEL_PROFILE_INVALID: 'providerInvalid' };
+            const key = modelErrors[result.error?.code];
+            throw key ? clientError(key) : result.error?.message ? new Error(result.error.message) : clientError('requestFailed');
+          }
           if (!result.value || !Array.isArray(result.value.bots)) throw clientError('invalidStatus');
           return result.value;
         } catch (error) {
@@ -216,7 +245,7 @@ body[data-ds-dark-theme] .dscord-connect {
         const controller = new AbortController();
         actionController = controller;
         errorSource = null;
-        publish({ busy: { action, botId: payload.botId }, error: null, errorTranslation: null });
+        publish({ busy: { action, botId: payload.botId }, notice: null, error: null, errorTranslation: null });
         try {
           if (action === 'reconnect') {
             const value = await request('disconnect', payload, controller);
@@ -224,7 +253,7 @@ body[data-ds-dark-theme] .dscord-connect {
             action = 'connect';
           }
           const value = await request(action, payload, controller);
-          publish({ value, error: null, errorTranslation: null });
+          publish({ value, error: null, errorTranslation: null, notice: action === 'save-model' ? 'savedModel' : null });
         } catch (error) {
           errorSource = 'action';
           publish({ error: error.message, errorTranslation: error.translation || null });
@@ -257,6 +286,7 @@ body[data-ds-dark-theme] .dscord-connect {
         refresh,
         login: (serverUrl, user, password) => mutate('login', { serverUrl, user, password }),
         logout: () => mutate('logout'),
+        saveModel: (botId, selection) => mutate('save-model', { botId, selection }),
         connect: botId => mutate('connect', { botId }),
         disconnect: botId => mutate('disconnect', { botId }),
         reconnect: botId => mutate('reconnect', { botId }),
@@ -295,18 +325,40 @@ body[data-ds-dark-theme] .dscord-connect {
         },
       },
       h('h2', null, t('loginTitle')),
-      h('label', { className: 'dc-field' }, t('serverUrl'), h('input', {
+      h('label', { className: 'dc-field' }, t('serverUrl'), h(Input, {
         name: 'serverUrl', type: 'url', required: true, defaultValue: state.value?.serverUrl || '',
         placeholder: 'https://chat.example.com', autoComplete: 'url', disabled: Boolean(state.busy),
       })),
-      h('label', { className: 'dc-field' }, t('username'), h('input', {
+      h('label', { className: 'dc-field' }, t('username'), h(Input, {
         name: 'user', type: 'text', required: true, autoComplete: 'username', autoCapitalize: 'none',
         spellCheck: false, disabled: Boolean(state.busy),
       })),
-      h('label', { className: 'dc-field' }, t('password'), h('input', {
+      h('label', { className: 'dc-field' }, t('password'), h(Input, {
         name: 'password', type: 'password', required: true, autoComplete: 'off', disabled: Boolean(state.busy),
       })),
-      h('button', { type: 'submit', className: 'dc-primary', disabled: Boolean(state.busy) }, t(state.busy?.action === 'login' ? 'loggingIn' : 'login')));
+      h(Button, { variant: 'primary', type: 'submit', className: 'dc-primary', disabled: Boolean(state.busy) }, t(state.busy?.action === 'login' ? 'loggingIn' : 'login')));
+    }
+
+    function ModelForm({ bot, connection, state, t }) {
+      const catalog = state.value.models;
+      const models = (catalog?.providers || []).flatMap(provider => provider.models);
+      const saved = bot.modelSelection || catalog?.defaultSelection;
+      const [reference, setReference] = React.useState(saved?.model || '');
+      const selected = models.find(model => model.model === reference);
+      const pending = bot.activeModel && bot.modelSelection && bot.activeModel.model !== bot.modelSelection.model;
+      return h('div', { className: 'dc-model-settings' },
+        h('form', { className: 'dc-model-form', onSubmit(event) {
+          event.preventDefault();
+          void connection.saveModel(bot.id, { model: reference });
+        } },
+          h('label', { className: 'dc-field' }, t('model'), h('select', { name: 'model', 'aria-label': t('model'), required: true, value: reference,
+            disabled: Boolean(state.busy), onChange: event => setReference(event.target.value) },
+            !reference && h('option', { value: '' }, t('noModel')),
+            reference && !selected && h('option', { value: reference, disabled: true }, `${reference} · ${t('modelUnavailable')}`),
+            ...(catalog?.providers || []).filter(provider => provider.models.length).map(provider => h('optgroup', { key: provider.id, label: provider.name },
+              ...provider.models.map(model => h('option', { key: model.model, value: model.model }, model.name)))))),
+          h(Button, { variant: 'primary', className: 'dc-primary', type: 'submit', disabled: Boolean(state.busy) || !selected || reference === bot.modelSelection?.model }, t('saveModel'))),
+        pending && h('p', { className: 'dc-model-info', role: 'status' }, t('modelPending')));
     }
 
     function BotRow({ bot, connection, state, t }) {
@@ -316,6 +368,9 @@ body[data-ds-dark-theme] .dscord-connect {
       const disabled = Boolean(state.busy);
       const runtimeAvailable = state.value?.runtime?.available !== false;
       const name = bot.name || bot.id;
+      const catalog = state.value?.models;
+      const desiredModel = bot.modelSelection?.model || catalog?.defaultSelection?.model;
+      const modelAvailable = catalog?.available !== true || catalog.providers.some(provider => provider.models.some(model => model.model === desiredModel));
       return h('li', { className: 'dc-bot' },
         h('div', { className: 'dc-bot-identity' },
           h('span', { className: 'dc-avatar', 'aria-hidden': true }, Array.from(name)[0]),
@@ -323,12 +378,16 @@ body[data-ds-dark-theme] .dscord-connect {
             h('p', { className: 'dc-bot-name' }, name),
             h('p', { className: 'dc-bot-id' }, bot.localpart || bot.id),
             h('p', { className: 'dc-status', 'data-status': status }, statusKeys[status] ? t(statusKeys[status]) : status),
+            bot.activeModel && h('p', { className: 'dc-muted dc-model-info' }, `${t('activeModel')} · ${bot.activeModel.model}`),
+            (bot.modelSelection || state.value?.models?.defaultSelection) && h('p', { className: 'dc-muted dc-model-info' }, `${t('nextModel')} · ${(bot.modelSelection || state.value.models.defaultSelection).model}`),
+            !modelAvailable && h('p', { className: 'dc-error dc-bot-error' }, t('modelUnavailable')),
             bot.lastError && h('p', { className: 'dc-error dc-bot-error' }, bot.lastError))),
         h('div', { className: 'dc-actions' },
           connected
-            ? h('button', { type: 'button', disabled, onClick: () => void connection.disconnect(bot.id), 'aria-label': t('disconnectBot', { name }) }, t(busy && state.busy.action === 'disconnect' ? 'disconnecting' : 'disconnect'))
-            : h('button', { type: 'button', className: 'dc-primary', disabled: disabled || !runtimeAvailable, onClick: () => void connection.connect(bot.id), 'aria-label': t('connectBot', { name }) }, t(busy ? 'connecting' : 'connect')),
-          (connected || status === 'error') && h('button', { type: 'button', disabled: disabled || !runtimeAvailable, onClick: () => void connection.reconnect(bot.id), 'aria-label': t('reconnectBot', { name }) }, t(busy && state.busy.action === 'reconnect' ? 'reconnecting' : 'reconnect'))));
+            ? h(Button, { variant: 'outline', type: 'button', disabled, onClick: () => void connection.disconnect(bot.id), 'aria-label': t('disconnectBot', { name }) }, t(busy && state.busy.action === 'disconnect' ? 'disconnecting' : 'disconnect'))
+            : h(Button, { variant: 'primary', type: 'button', className: 'dc-primary', disabled: disabled || !runtimeAvailable || !modelAvailable, onClick: () => void connection.connect(bot.id), 'aria-label': t('connectBot', { name }) }, t(busy ? 'connecting' : 'connect')),
+          (connected || status === 'error') && h(Button, { variant: 'outline', type: 'button', disabled: disabled || !runtimeAvailable || !modelAvailable, onClick: () => void connection.reconnect(bot.id), 'aria-label': t('reconnectBot', { name }) }, t(busy && state.busy.action === 'reconnect' ? 'reconnecting' : 'reconnect'))),
+        state.value?.models?.available && h(ModelForm, { key: JSON.stringify(bot.modelSelection), bot, connection, state, t }));
     }
 
     function ConnectionPage({ connection, t }) {
@@ -344,7 +403,8 @@ body[data-ds-dark-theme] .dscord-connect {
             h('h1', null, t('title')),
             h('div', { className: 'dc-toolbar' },
               href && h('a', { className: 'dc-link', href, target: '_blank', rel: 'noopener noreferrer' }, t('openWeb')),
-              h('button', { type: 'button', disabled: state.loading || Boolean(state.busy), onClick: () => void connection.refresh() }, t('refresh')))),
+              h(Button, { variant: 'outline', type: 'button', disabled: state.loading || Boolean(state.busy), onClick: () => void connection.refresh() }, t('refresh')))),
+          state.notice && h('p', { role: 'status', className: 'dc-notice' }, t(state.notice)),
           errorMessage && h('p', { role: 'alert', className: 'dc-notice dc-error' }, errorMessage),
           value?.lastError && value.lastError !== errorMessage && h('p', { role: 'alert', className: 'dc-notice dc-error' }, value.lastError),
           state.loading && h('p', { role: 'status', className: 'dc-muted' }, t('readStatus')),
@@ -355,7 +415,7 @@ body[data-ds-dark-theme] .dscord-connect {
               h('div', null,
                 h('p', { className: 'dc-account-name' }, value.user.name || value.user.id),
                 h('p', { className: 'dc-server' }, value.serverUrl)),
-              h('button', { type: 'button', disabled: Boolean(state.busy), onClick: () => void connection.logout() }, t(state.busy?.action === 'logout' ? 'loggingOut' : 'logout'))),
+              h(Button, { variant: 'outline', type: 'button', disabled: Boolean(state.busy), onClick: () => void connection.logout() }, t(state.busy?.action === 'logout' ? 'loggingOut' : 'logout'))),
             h('section', { className: 'dc-panel', 'aria-label': t('myBots') },
               h('h2', null, t('myBots')),
               value.bots.length === 0

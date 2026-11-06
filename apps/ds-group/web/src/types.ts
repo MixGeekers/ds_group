@@ -134,7 +134,7 @@ export interface BotNode {
   engine?: string;
   processed?: number;
   pending?: number;
-  model?: string;
+  model?: string | null;
   lastError?: string | null;
 }
 export interface ServerStatus {
@@ -144,7 +144,9 @@ export interface ServerStatus {
     used?: number;
     limit?: number | null;
     remaining?: number | null;
-    model?: string;
+    model?: string | null;
+    models?: string[];
+    allowedModels?: string[] | null;
   };
 }
 export interface Bootstrap {

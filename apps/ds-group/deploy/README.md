@@ -78,10 +78,12 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
 | Node / DSH | Node `>=24.19.0 <25`，DSH `0.2.1-rc.5` | 当前适配器依赖这些版本，安装位置通过 PATH 或 `DS_GROUP_DSH_CLI` / `DS_GROUP_DSH_RUNTIME` 指定。 |
 | DSH 配置来源 | CLI 回退到 `~/.dsh` 的 `desktop` profile | CLI 用 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 指定自己的来源；图形连接使用所在 DSH 宿主的实际 home/profile。 |
 | 节点桥接端口 | 仅演示 `finance` / `hr` 预设 `18091` / `18092` | 自定义 CLI Bot 必须设置空闲的 `DS_GROUP_BRIDGE_PORT`；图形连接页自动分配。 |
-| provider / model | 当前固定 `opencode-go/deepseek-v4.1-flash` | 使用自己的匹配凭据；当前版本尚不支持任意 provider/model 切换。 |
+| Bot 模型 | 来自 DSH 已配置的模型目录 | 在 DSH 连接页为每个 Bot 选择模型并保存；CLI 使用 `DS_GROUP_MODEL=provider/model`。服务商、端点与凭据在 DSH 中管理。 |
 | 调用额度 | 新预算库默认 `modelCallLimit: null`，表示不限次数 | 根据自己的额度设置新实例配置；开发者的历史测试授权不适用于用户部署。 |
 
-模型限制同时存在于[节点配置准备](../scripts/runtime-config.mjs)、[运行时](../dsh-plugin/runtime.mjs)与[核心账本](../src/budget.mjs)。`OPENCODE_API_KEY` 或已有 DSH profile 可提供该 provider 的凭据，`DS_GROUP_OPENCODE_BASE_URL` 只调整其服务端点；改变默认模型或端点不会解除模型限制。
+模型选择贯穿节点准备、DSH 运行时和核心账本，账目按每次实际使用的 `provider/model` 记录。初次连接使用 DSH 默认模型或手动选择的模型，以后沿用该 Bot 保存的选择。运行中保存新选择后点击“重连”应用。
+
+Core 默认接受 DSH 可用模型。管理员可在 `core-config.json` 设置 `allowedModels` 为完整模型引用数组，重启 Core 后生效；省略或 `null` 表示开放，空数组暂停所有模型。调用次数与输出额度仍独立检查。旧版 Core 与节点应一同升级，迁移和凭据处理见[模型配置与迁移](../模型配置与迁移.md)。
 
 新预算数据库首次创建时读取 `core-config.json` 的 `modelCallLimit` 和 `maxOutputTokens`，后者默认 `8192`。如需限制新实例的调用次数，应在 Core 第一次启动、创建 `model-budget.sqlite` 前填写预算配置。已有数据库保留原额度和账目，修改 JSON 不会更新既存额度；当前未提供在线调整额度的管理入口。Bot 单次输出默认上限另为 `4096`，两项含义不同。模型生成需要用户自己的调用授权和费用预算。
 
@@ -129,9 +131,9 @@ Core 默认将连接的来源 IP 传给 Synapse，用于按访问地址计算登
 
 ### DSH 图形连接
 
-在服务器网页注册并创建自己的 Bot，按上方[当前限制](#configuration)在 Bot 机器的实际 DSH profile 中配置可用模型凭据。随后通过 `Plugins → Add plugin` 安装同版本 `dscord` 候选包并启用，点击左侧 **DSCord**。
+在服务器网页注册并创建自己的 Bot，先在 Bot 机器的 DSH 模型设置中配置可用模型。随后通过 `Plugins → Add plugin` 安装同版本 `dscord` 候选包并启用，点击左侧 **DSCord**。
 
-输入 Core/PWA 的服务器地址、账号和密码，登录后在“我的 Bot”中点击“上线”。页面显示每个 Bot 的名称、ID 与连接状态，并提供断开、重连、打开网页和本机配置目录入口。程序会为每个 Bot 创建独立目录、端口与 DSH 运行时。
+输入 Core/PWA 的服务器地址、账号和密码，登录后在“我的 Bot”中直接选择模型，点击“保存选择”，再点击“上线”。页面显示当前运行模型、已选模型及连接状态，并提供断开、重连、打开网页和本机配置目录入口。程序会为每个 Bot 创建独立目录、端口与 DSH 运行时。
 
 当前候选安装使用本地 `.tgz` 绝对路径，公开 npm 版本升级后再使用包名安装。详细步骤见 [DSH 安装与连接](npm.md#在-dsh-中连接)。
 
@@ -158,12 +160,13 @@ npm ci --ignore-scripts --no-audit --no-fund
 node scripts/server-admin.mjs import-node bot-node.json "$DS_GROUP_DATA_DIR"
 npm install --prefix "$DS_GROUP_DATA_DIR/dsh-cli" --no-audit --no-fund @deepseek-ai/dsh@0.2.1-rc.5
 export DS_GROUP_DSH_RUNTIME="$DS_GROUP_DATA_DIR/dsh-cli"
-read -r -s OPENCODE_API_KEY
-export OPENCODE_API_KEY
+export DS_GROUP_DSH_SOURCE_HOME="/absolute/path/to/your/dsh-home"
+export DS_GROUP_DSH_SOURCE_PROFILE="your-profile"
+export DS_GROUP_MODEL="provider/model-id"
 node scripts/service.mjs up "$BOT_ACCOUNT"
 ```
 
-`read` 在 Bash / Zsh 终端隐藏输入的密钥。也可省略这两条凭据输入命令，设置 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE`，从自己的 DSH 配置复制匹配 provider。导入文件已经记录 Core 和 Matrix 地址；需要覆盖 Core 地址时使用 `DS_GROUP_CORE_URL`。每个 Bot 同时运行一个节点。
+将来源目录、profile 和模型引用替换为自己的 DSH 配置。DSH 负责模型服务商和凭据，节点读取所选模型的运行配置。初次启动省略 `DS_GROUP_MODEL` 时使用 DSH 默认模型；已有节点沿用保存的模型。导入文件已经记录 Core 和 Matrix 地址；需要覆盖 Core 地址时使用 `DS_GROUP_CORE_URL`。每个 Bot 同时运行一个节点。
 
 同一文件可重复导入以完成中断的写入。已有不同节点身份时导入会退出，应选择新的数据目录。若强制中止导入留下 `node-import.lock`，先确认导入进程已退出再移除该锁重试。
 

@@ -5,6 +5,7 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import { packageRoot } from '../src/paths.mjs';
 import { resolveDsh } from '../scripts/runtime-config.mjs';
+import { existsSync } from 'node:fs';
 
 const execute = promisify(execFile);
 const delay = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -50,6 +51,12 @@ export class NodeProcesses {
       DS_GROUP_DSH_SOURCE_PROFILE: this.sourceProfile,
     };
     delete env.DS_GROUP_MATRIX_URL;
+    const source = path.join(node.directory, 'model-source.json');
+    if (existsSync(source)) {
+      // An explicit per-Bot choice wins over launcher defaults and ambient legacy keys.
+      for (const name of ['DS_GROUP_MODEL', 'DS_GROUP_REASONING_EFFORT', 'DS_GROUP_MAX_OUTPUT_TOKENS', 'OPENCODE_API_KEY', 'DS_GROUP_OPENCODE_BASE_URL']) delete env[name];
+      env.DS_GROUP_MODEL_SOURCE_PATH = source;
+    } else delete env.DS_GROUP_MODEL_SOURCE_PATH;
     if (process.versions.electron) env.ELECTRON_RUN_AS_NODE = '1';
     return env;
   }
@@ -99,10 +106,11 @@ export class NodeProcesses {
       if (!bridgeResponse.ok || !coreResponse.ok) throw new Error('Bot 状态暂时不可用');
       const [bridge, core] = await Promise.all([bridgeResponse.json(), coreResponse.json()]);
       if (bridge.nodeId !== node.localpart) throw new Error('本地端口已由另一个 Bot 使用');
+      if (bridge.modelStatus?.status === 'unavailable') throw new Error('模型配置不可用，请检查 DSH 模型目录和凭据后重连');
       const remote = core.nodes?.find(item => item.botId === node.id);
       if (!remote || remote.status === 'offline') return { status: 'offline', lastError: null };
       if (remote.status === 'error') return { status: 'error', lastError: remote.lastError || 'Bot 运行异常' };
-      return { status: 'online', lastError: null };
+      return { status: 'online', lastError: null, modelConfig: bridge.modelConfig ?? (bridge.model ? { model: bridge.model } : null) };
     } catch (error) {
       if (error.code === 'ENOENT' || error.code === 'ESRCH' || error.code === 1) return { status: 'offline', lastError: null };
       return { status: 'error', lastError: error.message };

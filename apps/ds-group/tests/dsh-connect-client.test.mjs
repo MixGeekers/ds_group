@@ -44,6 +44,7 @@ function harness(oracle = () => loggedOut, language = 'zh') {
   let descriptor;
   const react = {
     Fragment: Symbol('Fragment'),
+    useState: value => [value, () => {}],
     createElement: (type, props, ...children) => ({ type, props: props || {}, children: children.flat() }),
     useSyncExternalStore: (_subscribe, getSnapshot) => getSnapshot(),
   };
@@ -64,7 +65,7 @@ function harness(oracle = () => loggedOut, language = 'zh') {
   });
   const plugin = descriptor.factory(name => {
     if (name === 'react') return react;
-    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { IconPluginPinwheelOutlineRegular: () => null };
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Button: 'button', Input: 'input', IconPluginPinwheelOutlineRegular: () => null };
     throw new Error(`Unexpected dependency ${name}`);
   });
   plugin.apply({

@@ -88,7 +88,9 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const roomMedia = new RoomMedia({ governance });
   const directorySetup = { ...setup, participants: [] };
   const nodeCredentials = await new NodeCredentials({ dataRoot, setup, legacySecret: config.nodeSecret }).initialize();
-  const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
+  const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), {
+    limit: config.modelCallLimit, maxTokens: config.maxOutputTokens, allowedModels: config.allowedModels,
+  });
   const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES,
     verifiedDownloadMaxBytes: config.verifiedDownloadMaxBytes, verifiedDownloadConcurrency: config.verifiedDownloadConcurrency });
   const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
@@ -482,6 +484,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         const node = { id: input.id, botId: input.botId, name: participant.name, runtimeId: input.runtimeId,
           status: input.status, processed: input.processed ?? 0, pending: input.pending ?? 0,
           sessionId: input.sessionId ?? null, lastError: input.lastError ?? null,
+          model: typeof input.model === 'string' ? input.model.slice(0, 512) : null,
           engine: input.engine || 'DS-Bot 0.2.7', heartbeatAt: Date.now() };
         nodes.set(input.botId, node);
         chatFeatures.touchPresence(input.botId, { status: input.status === 'offline' ? 'offline' : 'online' });

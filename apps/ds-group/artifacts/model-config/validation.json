@@ -1,0 +1,312 @@
+{
+  "checkedAt": "2026-11-06T00:54:27.379953+00:00",
+  "baseCommit": "a4931162133ea083b56d3cfaca643d8d9c3bd24e",
+  "branch": "codex/dscord-model-config",
+  "status": "passed",
+  "remotePaidModelCalls": 0,
+  "sourceHashes": {
+    "dsh-connect/client.js": "ec1b579e59c056bc035125a9c219e6fa8d2ec9334ce3e0ce88ca801a7c838015",
+    "dsh-connect/controller.mjs": "588aa566d8786b4347ac3be7ade04feffc6d1834dc9f37a48de7e55cbbee94c3",
+    "dsh-connect/index.mjs": "671c2d197d454546153da3bee1051e855b0f39f554a8d6a752536c69a04062ee",
+    "dsh-connect/models.mjs": "f1d94136996eb653ed264859f18171c12897adbbdf7d394dd264ccf44e619dc6",
+    "dsh-connect/processes.mjs": "888192ca883f55bff4738ec8c790faf666694873baed792dcc9faefeeed6f970",
+    "dsh-plugin/model-profile.mjs": "41e089adcd751a9f61fb38ee885f77c520e539a7730daaf81dc61eb8b3b0e728",
+    "dsh-plugin/runtime.mjs": "fb69ddc3cfc3e8b831a5a067edd507e2fc79e61b37e8dfa9b4a2daa3b547a171",
+    "scripts/dsh-node.mjs": "6b2566cfa9fb50d6605d66e2586f672ad8602bfb39b6e8ce087be2dad845a2aa",
+    "scripts/model-settings-smoke.mjs": "96fa142b58cddaa56920ce88074784afaf0685578b385bd50d0b0ebd035c4bb2",
+    "scripts/runtime-config.mjs": "52c5ded9d80abb3edbe8680eeedfc19f54c98cdca2362aba9048a35344767cd0",
+    "scripts/runtime-smoke.mjs": "9ee9f5be8515272c0056b5824293a74e12a7103d8f534bb7aa22fc48c5b0c8c2",
+    "scripts/runtime-work-smoke.mjs": "7bd125d5aeb7d776c27d02676405b7e263c89781176c6459661f04ffd1074199",
+    "src/bot-node.mjs": "38060dcc766cc8c8698e6ece2fb46913cbc9e136a34255b8a1dff30ddd8b4188",
+    "src/budget.mjs": "e79680081ef02b9f7740276c73e717b367f5eb443bf69f82f3613a3c74d7cae2",
+    "src/core.mjs": "3c0e6224392aad93a170c661ca258c06b9ec4caefee798a256fe82fbbfcc4c63",
+    "src/model-config.mjs": "a66c902469bd7837733e14879c230393eb625fdd1aa343725119e1565bc228e3",
+    "tests/budget.test.mjs": "2c3366197869e170faeb26960d31306ca0cc995e6d0527ffbfa25784fb4a0c8c",
+    "tests/core.test.mjs": "6bcaff6995bf1a1a30199d73965032c6bbe4901b0cc1f77a607305ec8ce1772d",
+    "tests/dsh-connect-client.test.mjs": "0cb3d01315d152cda062093bd6974fd75f49a1c64a51b4eb5317258fc80f3667",
+    "tests/dsh-connect.test.mjs": "e0fa366ff18a7444b1deb12d9ef71860767531d4250795896a59c1d623de7295",
+    "tests/model-config.test.mjs": "689a22b0393b2f1813127fbb0dedbb5f6bcc45c5c73977004b8ce94e627b6651",
+    "tests/model-settings.browser.mjs": "aa52c5c8c106cbf7cebd934c3bf44bcdf67c16e421f626a9ee46d093563cbf52",
+    "tests/node-adapter.test.mjs": "c8167657d084500093e4cb170aef61a4ae00288ffb90fe1afd434dde91817bb8",
+    "tests/node-scope.test.mjs": "ba9424008d945dc1445d6ea13793eefa241bf9c10ea9ffe60c0de8fc43c218c2",
+    "tests/runtime-bot-identity.test.mjs": "c64694464ec77fa64c84831625e3c693013dea96d2ada4e5a06f96d0cf57c63d",
+    "tests/runtime-config.test.mjs": "bab4029fd55321077496faa0dff0465e83ba438013f57088fa2109c43ca57026",
+    "web/src/components/MyBotsDialog.tsx": "c042fd9bba07b69d250ae7a57268b4e615da0cf212afba3f237ff7d147e2f3f7",
+    "web/src/locales/bots.ts": "a9683bc0b77c839c12390d75e60476c377f1d846326da1e59a3627124ac2e31c",
+    "web/src/types.ts": "c6a1abcbd7d61ad4eabb0a50b94623e6104248fb86030ebb45e288da3284e525"
+  },
+  "moduleRegression": {
+    "command": "npm run check",
+    "passed": 388,
+    "failed": 0,
+    "logSha256": "6fc63bfc7362ebd6f9c4d5f2ba662404a8b23e575602956b471abf4e091c461a"
+  },
+  "browserRegression": {
+    "command": "npm run test:browser",
+    "passedFiles": 11,
+    "failedFiles": 0,
+    "logSha256": "bedb2e580dc312e14e597db548b424665d073b592f9cdd27e4a995a5e875fbee",
+    "modelSelection": {
+      "status": "passed",
+      "level": "real-chromium-production-ui-controller-synthetic-dsh-and-processes",
+      "modelCalls": 0,
+      "checks": [
+        "singleNativeModelPickerWithoutProviderOrCredentialForms",
+        "selectionSavedThroughRealControllerBeforeFirstConnection",
+        "savingDuringExecutionRetainsRunningModelAndShowsPendingSelection",
+        "selectingModelsKeepsDshProviderAndCredentialConfigurationIntact",
+        "explicitReconnectAppliesSavedSelection",
+        "lightDarkEnglishChineseAndMobileLayout"
+      ],
+      "pageErrors": []
+    }
+  },
+  "nativeZeroGeneration": {
+    "checkedAt": "2026-11-06T00:42:22.170Z",
+    "platform": "darwin",
+    "arch": "arm64",
+    "node": "v24.19.0",
+    "expectedDshVersion": "0.2.1-rc.5",
+    "installationKind": "desktop-bundled-cli",
+    "model": "opencode-go/deepseek-v4.1-flash",
+    "level": "real-native-dsh-zero-model",
+    "sourceHashes": {
+      "src/model-config.mjs": "a66c902469bd7837733e14879c230393eb625fdd1aa343725119e1565bc228e3",
+      "dsh-plugin/model-profile.mjs": "41e089adcd751a9f61fb38ee885f77c520e539a7730daaf81dc61eb8b3b0e728",
+      "scripts/dsh-node.mjs": "6b2566cfa9fb50d6605d66e2586f672ad8602bfb39b6e8ce087be2dad845a2aa",
+      "scripts/runtime-config.mjs": "52c5ded9d80abb3edbe8680eeedfc19f54c98cdca2362aba9048a35344767cd0",
+      "scripts/runtime-smoke.mjs": "9ee9f5be8515272c0056b5824293a74e12a7103d8f534bb7aa22fc48c5b0c8c2",
+      "dsh-plugin/index.mjs": "e1f513c3f44afa7a84d69d853a252c4a86fd29412a3cbc843bdaab026faee161",
+      "dsh-plugin/runtime.mjs": "fb69ddc3cfc3e8b831a5a067edd507e2fc79e61b37e8dfa9b4a2daa3b547a171"
+    },
+    "checks": {
+      "pinnedRuntimeVersion": true,
+      "pluginLoaded": true,
+      "allowedModelCatalog": true,
+      "nativeSessionCreated": true,
+      "importedRemoteCoreAndPrivateData": true,
+      "sessionIdentityAfterRestart": true,
+      "legacyIdentityAndInstructionsMigrated": true,
+      "interruptedRequestIsNotReplayed": true,
+      "customProviderAndNamespacedModelReuseNativeIdentity": true,
+      "sourceProviderSettingsPreservedAndCredentialScoped": true,
+      "savedModelSurvivesSourceDefaultChange": true,
+      "nativeModelOverridesPreserved": true,
+      "invalidConfiguredModelRejectedWithoutProfileWrite": true,
+      "missingCredentialRejectedWithoutProfileWrite": true,
+      "sourceProfileAndCredentialsUnmodified": true,
+      "gracefulStop": true,
+      "zeroModelClaims": true
+    },
+    "status": "passed",
+    "dshVersion": "0.2.1-rc.5",
+    "modelCalls": 0
+  },
+  "nativeSettingsAndUi": {
+    "status": "passed",
+    "level": "real-dsh-native-model-settings-zero-generation",
+    "modelCalls": 0,
+    "checks": [
+      "nativeProviderDirectoryAndCredentialStatus",
+      "saveSelectionAndRejectMissingCredentialAndInvalidModel",
+      "selectingAnotherDshModelPreservesNativeProviderAndCredentials",
+      "providerEditingActionsUnavailable",
+      "packagedPluginLoadsInRealDshShellAndSavesNativeModelSelection",
+      "nativeButtonsInputsAndDshThemeSwitch",
+      "zeroGenerationAttempts"
+    ],
+    "nativeUi": {
+      "host": "DSH 0.2.1-rc.5 web shell",
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "server": "isolated synthetic Core API",
+      "botRuntime": "offline",
+      "nativeControls": [
+        "Button",
+        "Input"
+      ],
+      "screenshots": [
+        "dsh-model-selection.png",
+        "dsh-model-selection-dark.png"
+      ]
+    }
+  },
+  "localScriptedProviders": [
+    {
+      "checkedAt": "2026-11-06T00:44:38.216Z",
+      "completedAt": "2026-11-06T00:44:50.095Z",
+      "platform": "darwin",
+      "arch": "arm64",
+      "node": "v24.19.0",
+      "model": "local-fixture/team/chat",
+      "level": "real-dsh-native-tools-scripted-local-provider",
+      "modelCalls": 0,
+      "scriptedProviderCalls": 6,
+      "sourceHashes": {
+        "dsh-plugin/runtime.mjs": "fb69ddc3cfc3e8b831a5a067edd507e2fc79e61b37e8dfa9b4a2daa3b547a171",
+        "dsh-plugin/runtime-rules.mjs": "09954b212699c96d663bc4de66d1894db4ecf41e45bfc64eda8aac2e41a2eb32",
+        "dsh-plugin/work-files.mjs": "dd96a8ca4881196a5c570e097cf811c47cd4539cdc6246a5b29d5628cd2f2074",
+        "scripts/runtime-work-smoke.mjs": "7bd125d5aeb7d776c27d02676405b7e263c89781176c6459661f04ffd1074199"
+      },
+      "checks": [
+        "asynchronousAdmissionAndDuplicate",
+        "realReadComputeWriteReadAndValidatedArtifact",
+        "nativeToolReceiptsAndEveryGenerationLedger",
+        "configuredProviderAndModelMatchRuntimeWireAndCoreLedger",
+        "completedReplayAndCancellationDoNotExecuteAgain",
+        "runningAndQueuedCancellationStopsBackgroundProcess"
+      ],
+      "status": "passed",
+      "ledger": {
+        "used": 6,
+        "models": [
+          "local-fixture/team/chat"
+        ],
+        "model": "local-fixture/team/chat",
+        "allowedModels": null
+      },
+      "claimModels": [
+        "local-fixture/team/chat",
+        "local-fixture/team/chat",
+        "local-fixture/team/chat",
+        "local-fixture/team/chat",
+        "local-fixture/team/chat",
+        "local-fixture/team/chat"
+      ],
+      "claimStatuses": [
+        "completed",
+        "completed",
+        "completed",
+        "completed",
+        "completed",
+        "cancelled"
+      ]
+    },
+    {
+      "checkedAt": "2026-11-06T00:44:38.198Z",
+      "completedAt": "2026-11-06T00:44:49.927Z",
+      "platform": "darwin",
+      "arch": "arm64",
+      "node": "v24.19.0",
+      "model": "other-fixture/second-model",
+      "level": "real-dsh-native-tools-scripted-local-provider",
+      "modelCalls": 0,
+      "scriptedProviderCalls": 6,
+      "sourceHashes": {
+        "dsh-plugin/runtime.mjs": "fb69ddc3cfc3e8b831a5a067edd507e2fc79e61b37e8dfa9b4a2daa3b547a171",
+        "dsh-plugin/runtime-rules.mjs": "09954b212699c96d663bc4de66d1894db4ecf41e45bfc64eda8aac2e41a2eb32",
+        "dsh-plugin/work-files.mjs": "dd96a8ca4881196a5c570e097cf811c47cd4539cdc6246a5b29d5628cd2f2074",
+        "scripts/runtime-work-smoke.mjs": "7bd125d5aeb7d776c27d02676405b7e263c89781176c6459661f04ffd1074199"
+      },
+      "checks": [
+        "asynchronousAdmissionAndDuplicate",
+        "realReadComputeWriteReadAndValidatedArtifact",
+        "nativeToolReceiptsAndEveryGenerationLedger",
+        "configuredProviderAndModelMatchRuntimeWireAndCoreLedger",
+        "completedReplayAndCancellationDoNotExecuteAgain",
+        "runningAndQueuedCancellationStopsBackgroundProcess"
+      ],
+      "status": "passed",
+      "ledger": {
+        "used": 6,
+        "models": [
+          "other-fixture/second-model"
+        ],
+        "model": "other-fixture/second-model",
+        "allowedModels": null
+      },
+      "claimModels": [
+        "other-fixture/second-model",
+        "other-fixture/second-model",
+        "other-fixture/second-model",
+        "other-fixture/second-model",
+        "other-fixture/second-model",
+        "other-fixture/second-model"
+      ],
+      "claimStatuses": [
+        "completed",
+        "completed",
+        "completed",
+        "completed",
+        "completed",
+        "cancelled"
+      ]
+    }
+  ],
+  "npmProfileHelper": {
+    "dshVersion": "0.2.1-rc.5",
+    "result": "passed",
+    "scope": "read-only native npm SDK profile composition on macOS ARM64"
+  },
+  "package": {
+    "command": "npm run npm:pack and native screenshot smoke packNpm",
+    "name": "dscord",
+    "version": "0.3.0-alpha.1",
+    "fileCount": 174,
+    "sha256": "58b9904703dd4889f132e081178bb8fcbac9c604877b50d743ddaa3363315d27",
+    "verifiedRuntimeFiles": [
+      "src/model-config.mjs",
+      "dsh-connect/models.mjs",
+      "dsh-connect/client.js",
+      "dsh-connect/controller.mjs",
+      "dsh-plugin/model-profile.mjs",
+      "scripts/runtime-config.mjs",
+      "scripts/dsh-node.mjs",
+      "dsh-plugin/runtime.mjs",
+      "src/bot-node.mjs"
+    ],
+    "buildLogSha256": "571fe533e9a11fdf4d647b2965e8a2bcaae8189ae3be8718fdb01607acb1ffe1"
+  },
+  "screenshots": {
+    "assets/model-settings/dsh-model-selection.png": {
+      "sha256": "3f8335c01a6114416cfafb2397f1b63f27705d573e71870982d3604c9edfab8a",
+      "width": 1440,
+      "height": 1000,
+      "host": "real DSH web shell",
+      "data": "synthetic local Core API and model catalog",
+      "botState": "offline"
+    },
+    "assets/model-settings/dsh-model-selection-dark.png": {
+      "sha256": "d2eb3bc407bf97d6d882653e2b1e3666d6e336bc2fc5fe6ab43c8cec03678a07",
+      "width": 1440,
+      "height": 1000,
+      "host": "real DSH web shell",
+      "data": "synthetic local Core API and model catalog",
+      "botState": "offline"
+    }
+  },
+  "earlierFailures": [
+    {
+      "area": "module fixture",
+      "finding": "old fixed-whitelist test expected 403 for malformed model reference",
+      "resolution": "updated to 400 syntax validation and added multi-model HTTP ledger checks"
+    },
+    {
+      "area": "browser fixture",
+      "finding": "implicit select label included option text",
+      "resolution": "explicit accessible model label"
+    },
+    {
+      "area": "native test harness",
+      "finding": "native API rejected unauthenticated request with HTTP 401",
+      "resolution": "exchange isolated DSH launch URL for native cookie"
+    },
+    {
+      "area": "server policy",
+      "finding": "connect wrote desired node state before policy rejection and discarded error code",
+      "resolution": "validate before node mutation and preserve error code, regression passed"
+    },
+    {
+      "area": "native screenshot harness",
+      "finding": "DSH preview introduction intercepted first sidebar click",
+      "resolution": "dismiss preview introduction through its Continue button before opening DSCord"
+    }
+  ],
+  "limits": [
+    "Remote provider credentials, inference quality and full provider costs were not exercised.",
+    "Native host tests ran on macOS ARM64. Linux amd64/arm64 CI was not rerun in this slice.",
+    "Node profile transfer supports llm-pi-ai. Extra adapter plugins and dynamic !!js profile settings require separate integration."
+  ]
+}

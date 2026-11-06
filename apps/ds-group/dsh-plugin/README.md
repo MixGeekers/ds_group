@@ -24,7 +24,7 @@ node scripts/dsh-node.mjs stop "$BOT_ACCOUNT"
 
 这些命令只管理 DSH 宿主，Matrix 适配进程按部署指南另行启动。自定义 Bot 必须配置空闲的 `DS_GROUP_BRIDGE_PORT`；`finance` / `hr` 是开发演示节点，它们的 `18091` / `18092` 只是预设端口。每个宿主拥有独立的 `<数据目录>/dsh-<Bot账号>/home/`、DS-Bot 数据、原生 Session 与工作区。
 
-当前版本通过 `OPENCODE_API_KEY` 提供固定模型的凭据，也可通过 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 从用户自己的安装复制 `opencode-go` 配置和单个引用凭据。CLI 未指定时回退到 `~/.dsh` / `desktop`，DSH 图形连接则使用实际宿主的 home/profile。凭据文件模式为 `0600`。
+模型与凭据在 DSH 中管理。CLI 使用 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 指向已有配置，用 `DS_GROUP_MODEL` 选择已有的 `provider/model`。节点复制所选 provider 的原生配置和必要凭据。CLI 未指定时回退到 `~/.dsh` / `desktop`，DSH 图形连接则使用实际宿主的 home/profile。凭据文件模式为 `0600`。
 
 停止命令等待对应进程退出及桥接端口关闭。`run` 用于服务管理器的前台运行。图形连接会自动管理每个 Bot 的目录、端口和两类进程，见[安装与连接](../deploy/npm.md)。
 
@@ -49,6 +49,6 @@ Core 根据私聊映射和实际成员计算 `conversationKind` 并随消息保�
 
 ## 模型与工具行为
 
-当前适配器、配置准备和核心账本共同限制模型为 `opencode-go/deepseek-v4.1-flash`。这是当前实现限制，其他 provider/model 尚不可通过更改默认模型启用。运行时 effort 为 `low`，单次输出默认上限为 4096；凭据和调用额度由部署者提供。详见[配置与限制](../deploy/README.md#configuration)。所有实际 stream 先向核心 `/internal/model/claim` 记账，结束后向 `/internal/model/complete` 回报。核心不可达时不进入 provider。
+每个 Bot 使用保存的 DSH 模型选择。初次连接可沿用 DSH 默认模型，也可在连接页选择其他已配置模型。使用默认模型时继承 DSH 的默认思考强度，单次输出默认上限为 4096。配置准备保留所选 provider 的模型目录、覆盖项、协议、端点、headers 和重试设置。凭据和调用额度由部署者提供。详见[配置与限制](../deploy/README.md#configuration)。每次 stream 先按实际 `provider/model` 向核心 `/internal/model/claim` 记账，结束后向 `/internal/model/complete` 回报。核心不可达时不进入 provider。
 
-Bot 初始化抑制自动问候。0.2.0 启用原生文件读写、编辑、终端、后台作业、图片及技能工具，默认每任务最多 64 步、15 分钟，每次模型请求独立记账。远程委派通过结构化回复完成。上下文连续性由 DS-Bot 与 DSH 原生 Session 承担，旧 Bot 的工具提示升级后沿用原身份和历史。自动长期记忆整理及长历史压缩按独立场景验收，provider retryPolicy 的 maxRetries 为 0。
+Bot 初始化抑制自动问候。0.2.0 启用原生文件读写、编辑、终端、后台作业、图片及技能工具，默认每任务最多 64 步、15 分钟，每次模型请求独立记账。远程委派通过结构化回复完成。上下文连续性由 DS-Bot 与 DSH 原生 Session 承担，旧 Bot 的工具提示升级后沿用原身份和历史。自动长期记忆整理及长历史压缩按独立场景验收，provider 的原生 `retryPolicy` 随 DSH 配置继承。核心以 stream 为单位记账，provider 内部 HTTP 重试与完整费用需结合服务商账单核对。迁移和本轮验证见[模型配置与迁移](../模型配置与迁移.md)。

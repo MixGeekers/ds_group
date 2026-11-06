@@ -44,29 +44,69 @@ test('single-node port override and custom local core port are respected', () =>
   assert.throws(() => runtimeSettings('hr', { root, env: { DS_GROUP_CORE_URL: 'https://example.org/core' } }), /without a path prefix/);
 });
 
-test('explicit opencode key needs no desktop provider and exposes only the allowed model', () => {
+test('legacy explicit opencode environment remains usable for existing deployments', () => {
   const config = providerConfiguration({ env: { OPENCODE_API_KEY: 'synthetic-key' } });
-  assert.equal(config.provider.apiKeyEnv, 'DS_GROUP_OPENCODE_API_KEY');
+  assert.equal(config.selection.model, `opencode-go/${MODEL}`);
   assert.deepEqual(config.provider.models, [{ id: MODEL }]);
-  assert.equal(config.credentials.refs.DS_GROUP_OPENCODE_API_KEY, 'synthetic-key');
-  assert.deepEqual(config.provider.retryPolicy, { mode: 'normal', maxRetries: 0 });
+  assert.equal(config.credentials.refs.DSCORD_NODE_MODEL_API_KEY, 'synthetic-key');
   assert.equal(JSON.stringify(config.provider).includes('synthetic-key'), false);
 });
 
-test('desktop provider import narrows model catalog and preserves declared protocol', () => {
-  const config = providerConfiguration({ env: {}, sourceProvider: {
-    apiKeyEnv: 'EXISTING_KEY', api: 'openai-completions', models: [{ id: 'other' }, { id: MODEL, contextWindow: 1048576 }],
-    modelOverrides: { other: {} }, retryPolicy: { maxRetries: 5 },
-  }, sourceCredentials: { refs: { EXISTING_KEY: 'synthetic-secret', UNRELATED: 'ignored' } } });
-  assert.deepEqual(config.provider.models, [{ id: MODEL, contextWindow: 1048576 }]);
-  assert.equal(config.provider.api, 'openai-completions');
-  assert.equal(config.provider.modelOverrides, undefined);
+test('imports native model catalogs, overrides and provider options without mutating the source', () => {
+  const provider = { apiKeyEnv: 'EXISTING_KEY', api: 'openai-completions', modelOverrides: { 'team-chat': { contextWindow: 65536 } },
+    retryPolicy: { mode: 'normal', maxRetries: 5 }, headers: { 'X-Route': 'team' }, transport: 'sse' };
+  const original = structuredClone(provider);
+  const config = providerConfiguration({ env: {}, sourceProviders: { openai: provider },
+    sourceSelection: { model: 'openai/team-chat', reasoningEffort: 'high', maxTokens: 5000 },
+    sourceCredentials: { refs: { EXISTING_KEY: 'synthetic-secret', UNRELATED: 'ignored' } } });
+  assert.deepEqual(config.provider, provider);
+  assert.deepEqual(provider, original);
   assert.deepEqual(config.credentials.refs, { EXISTING_KEY: 'synthetic-secret' });
+  assert.deepEqual(config.selection, { model: 'openai/team-chat', maxTokens: 5000, reasoningEffort: 'high' });
 });
 
-test('missing or unusable opencode credentials fail before host startup', () => {
-  assert.throws(() => providerConfiguration({ env: {} }), /Set OPENCODE_API_KEY/);
-  assert.throws(() => providerConfiguration({ env: {}, sourceProvider: { apiKeyEnv: 'MISSING' } }), /reference is unavailable/);
+test('explicit model wins over a saved node and a saved node wins over a changed profile default', () => {
+  const options = { sourceProviders: { first: {}, second: {} },
+    previousSelection: { model: 'first/old', reasoningEffort: 'low', maxTokens: 1024 }, sourceSelection: { model: 'second/new' } };
+  assert.deepEqual(providerConfiguration({ ...options, env: {} }).selection, options.previousSelection);
+  assert.deepEqual(providerConfiguration({ ...options, env: { DS_GROUP_MODEL: 'second/new' } }).selection,
+    { model: 'second/new', maxTokens: 4096 });
+});
+
+test('custom endpoints and model IDs containing slashes use the selected protocol and scoped key', () => {
+  const config = providerConfiguration({ env: { DS_GROUP_MODEL: 'my-provider/team/model-v2', DS_GROUP_MAX_OUTPUT_TOKENS: '16000' },
+    sourceProviders: { 'my-provider': { api: 'openai-completions', baseURL: 'http://127.0.0.1:9901/v1',
+      models: [{ id: 'team/model-v2' }], apiKeyEnv: 'SOURCE_KEY' } }, sourceCredentials: { refs: { SOURCE_KEY: 'synthetic' } } });
+  assert.equal(config.providerId, 'my-provider');
+  assert.deepEqual(config.provider.models, [{ id: 'team/model-v2' }]);
+  assert.equal(config.provider.baseURL, 'http://127.0.0.1:9901/v1');
+  assert.equal(config.selection.maxTokens, 16000);
+  assert.equal(config.provider.api, 'openai-completions');
+});
+
+test('selected native auth records and explicitly named ambient references are copied privately', () => {
+  const record = { kind: 'grant', payload: { type: 'oauth', refresh: 'synthetic' } };
+  const config = providerConfiguration({ env: {}, sourceProviders: { native: {} }, sourceSelection: { model: 'native/one' },
+    sourceCredentials: { records: { 'llm-pi-ai/native': record, 'llm-pi-ai/other': record }, refs: { NATIVE_ENV: 'one', OTHER: 'two' } },
+    sourceCredentialRefs: ['NATIVE_ENV'] });
+  assert.deepEqual(config.credentials.records, { 'llm-pi-ai/native': record });
+  assert.deepEqual(config.credentials.refs, { NATIVE_ENV: 'one' });
+});
+
+test('environment references and unauthenticated custom providers are supported', () => {
+  const options = { sourceProviders: { local: { api: 'openai-completions', baseURL: 'http://127.0.0.1:9901/v1', models: [{ id: 'one' }] } },
+    sourceSelection: { model: 'local/one' } };
+  assert.deepEqual(providerConfiguration({ ...options, env: {} }).credentials.refs, {});
+  options.sourceProviders.local.apiKeyEnv = 'LOCAL_KEY';
+  assert.equal(providerConfiguration({ ...options, env: { LOCAL_KEY: 'synthetic' } }).credentials.refs.LOCAL_KEY, 'synthetic');
+});
+
+test('missing credentials and unconfigured models fail before changing profiles', () => {
+  assert.throws(() => providerConfiguration({ env: {} }), { code: 'INVALID_MODEL' });
+  assert.throws(() => providerConfiguration({ env: { DS_GROUP_MODEL: 'unknown/one' } }), { code: 'MODEL_PROVIDER_UNAVAILABLE' });
+  const options = { env: {}, sourceProviders: { configured: { apiKeyEnv: 'MISSING', models: [{ id: 'one' }] } }, sourceSelection: { model: 'configured/one' } };
+  assert.throws(() => providerConfiguration(options), { code: 'MISSING_CREDENTIAL' });
+  assert.throws(() => providerConfiguration({ ...options, env: { DS_GROUP_MODEL: 'configured/missing' } }), { code: 'MODEL_UNAVAILABLE' });
   assert.throws(() => providerConfiguration({ env: { OPENCODE_API_KEY: 'synthetic', DS_GROUP_OPENCODE_BASE_URL: 'file:///tmp/model' } }), /HTTP\(S\)/);
 });
 

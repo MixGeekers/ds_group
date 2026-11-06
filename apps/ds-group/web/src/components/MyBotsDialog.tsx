@@ -4,6 +4,7 @@ import { useTranslation } from "../locale";
 import { spaceMessages } from "../locales/spaces";
 import { Icon } from "./Icons";
 import { BotWorkGrants } from "./BotWorkGrants";
+import { botMessages } from "../locales/bots";
 import { workGrantMessages } from "../locales/work-grants";
 import { sessionIdentity } from "../session";
 import type { Api, Participant, Room, ServerStatus, Session } from "../types";
@@ -33,6 +34,7 @@ export function MyBotsDialog({
 }) {
   const t = useTranslation(spaceMessages);
   const grantText = useTranslation(workGrantMessages);
+  const modelText = useTranslation(botMessages);
   const identity = sessionIdentity(session);
   const [selected, setSelected] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -136,6 +138,11 @@ export function MyBotsDialog({
                       {t("message")}
                     </Button>
                   </header>
+                  {node?.model && <p className="muted">{modelText("runtimeModel")} · {node.model}</p>}
+                  <details className="bot-model-settings">
+                    <summary>{modelText("modelSettings")}</summary>
+                    <p className="muted">{modelText("modelHelp")}</p>
+                  </details>
                   {node?.lastError && (
                     <p className="node-error">{node.lastError}</p>
                   )}

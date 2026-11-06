@@ -1,6 +1,9 @@
 import type { Catalog } from "../locale";
 
 const en = {
+  modelSettings: "Model settings",
+  modelHelp: "In DSH, open DSCord → My Bots, select a DSH model and save, then connect or reconnect this Bot. Configure models in DSH model settings.",
+  runtimeModel: "Running model",
   createBot: "Create Bot",
   botName: "Bot name",
   chooseName: "Enter a Bot name",
@@ -12,7 +15,7 @@ const en = {
     "The creation receipt is incomplete. Retry to confirm the Bot.",
   connection: "Connect Bot",
   botId: "Bot ID",
-  connectInDsh: "Sign in to DSCord in DSH with this account, then bring this Bot online.",
+  connectInDsh: "Sign in to DSCord in DSH with this account, choose its model, then bring this Bot online.",
   offline: "Offline",
   online: "Online",
   busy: "Working",
@@ -28,6 +31,9 @@ const en = {
 export const botMessages: Catalog<keyof typeof en> = {
   en,
   "zh-CN": {
+    modelSettings: "模型设置",
+    modelHelp: "在 DSH 打开 DSCord → 我的 Bot，选择 DSH 已配置的模型并保存，再上线或重连此 Bot。添加模型或修改凭据请使用 DSH 的模型设置。",
+    runtimeModel: "当前运行模型",
     createBot: "创建 Bot",
     botName: "Bot 名称",
     chooseName: "请输入 Bot 名称",
@@ -37,7 +43,7 @@ export const botMessages: Catalog<keyof typeof en> = {
     receiptMissing: "创建回执不完整。请重试确认 Bot。",
     connection: "连接 Bot",
     botId: "Bot ID",
-    connectInDsh: "在 DSH 的 DSCord 页面登录同一账号，再将此 Bot 上线。",
+    connectInDsh: "在 DSH 的 DSCord 页面登录同一账号，选择模型后将此 Bot 上线。",
     offline: "离线",
     online: "在线",
     busy: "工作中",

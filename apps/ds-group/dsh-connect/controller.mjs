@@ -5,18 +5,20 @@ import { httpUrl } from '../scripts/runtime-config.mjs';
 import { importNodeBundle } from '../scripts/server-admin.mjs';
 import { readOptionalJson, savePrivateJson } from '../scripts/server-init.mjs';
 import { availablePort, NodeProcesses } from './processes.mjs';
+import { LEGACY_MODEL, checkModelPolicy } from '../src/model-config.mjs';
 
 function publicBot(bot) {
   return { id: bot.id, name: bot.name || bot.localpart, localpart: bot.localpart };
 }
 
 export class ConnectController {
-  constructor({ directory, sourceHome, sourceProfile, processes, request = fetch, selectPort = availablePort }) {
+  constructor({ directory, sourceHome, sourceProfile, processes, models, request = fetch, selectPort = availablePort }) {
     this.directory = path.resolve(directory);
     this.filename = path.join(this.directory, 'connection.json');
     this.processes = processes || new NodeProcesses({ sourceHome, sourceProfile });
     this.request = request;
     this.selectPort = selectPort;
+    this.models = models;
     this.state = { schemaVersion: 1, serverUrl: '', user: null, accessToken: null, bots: [], nodes: {} };
     this.running = new Map();
     this.queue = Promise.resolve();
@@ -28,6 +30,17 @@ export class ConnectController {
     if (saved) {
       if (saved.schemaVersion !== 1) throw new Error('连接配置版本不受支持');
       this.state = saved;
+    }
+    this.state.modelSelections ||= {};
+    for (const node of Object.values(this.state.nodes)) {
+      if (Object.hasOwn(this.state.modelSelections, node.id)) continue;
+      const prepared = await readOptionalJson(path.join(node.directory, `dsh-${node.localpart}`, 'node-config.json'));
+      if (prepared?.model) {
+        const legacyEffort = prepared.modelConfigVersion === undefined && prepared.model === LEGACY_MODEL ? 'low' : undefined;
+        const reasoningEffort = prepared.reasoningEffort ?? legacyEffort;
+        this.state.modelSelections[node.id] = { model: prepared.model, maxTokens: prepared.maxTokens || 4096,
+          ...(reasoningEffort ? { reasoningEffort } : {}) };
+      }
     }
     this.runtime = await this.processes.available();
     this.restoring = this.serial(async () => {
@@ -80,10 +93,13 @@ export class ConnectController {
       const active = this.running.get(bot.id);
       let current = active || { status: 'offline', lastError: null };
       if (node && active?.status === 'online') current = await this.processes.probe(node);
-      return { ...bot, ...current, connected: Boolean(node?.desired) };
+      return { ...bot, ...current, connected: Boolean(node?.desired),
+        modelSelection: this.state.modelSelections?.[bot.id] ?? null,
+        activeModel: current.status === 'online' ? current.modelConfig ?? active?.modelConfig ?? null : null };
     }));
     return { serverUrl: this.state.serverUrl, user: this.state.user, bots, runtime: this.runtime,
-      dataDirectory: this.directory, lastError };
+      dataDirectory: this.directory, lastError, modelPolicy: this.modelPolicy,
+      models: this.models ? await this.models.view() : { available: false } };
   }
 
   async login({ serverUrl: input, user, password }) {
@@ -104,6 +120,7 @@ export class ConnectController {
     const next = {
       schemaVersion: 1, serverUrl, user: { id: login.user_id, name: login.user?.name || login.user_id },
       accessToken: login.access_token, bots: bots.map(publicBot), nodes: sameIdentity ? this.state.nodes : {},
+      modelSelections: sameIdentity ? this.state.modelSelections : {},
     };
     try {
       if (!sameIdentity) await this.stopAll(false);
@@ -115,6 +132,7 @@ export class ConnectController {
       throw error;
     }
     this.state = next;
+    if (!sameIdentity) this.modelPolicy = undefined;
     if (previous.accessToken && previous.accessToken !== login.access_token) {
       await this.remote(previous.serverUrl, '/api/logout', { method: 'POST', token: previous.accessToken, body: {} }).catch(() => {});
     }
@@ -148,6 +166,8 @@ export class ConnectController {
     }
     this.runtime = await this.processes.available();
     if (!this.runtime.available) throw new Error(this.runtime.message);
+    const source = this.models ? await this.modelSource(this.state.modelSelections?.[botId]) : undefined;
+    if (this.closed) throw new Error('连接插件正在关闭');
     if (existing && this.running.has(botId)) await this.stop(existing, false);
     const { bundle } = await this.remote(this.state.serverUrl, `/api/bots/${encodeURIComponent(botId)}/connect`, {
       method: 'POST', token: this.state.accessToken, body: {},
@@ -162,23 +182,42 @@ export class ConnectController {
     const next = { ...this.state, nodes: { ...this.state.nodes, [botId]: node } };
     await this.save(next);
     this.state = next;
-    await this.start(node);
+    await this.start(node, source);
     return this.status({ refresh: false });
   }
 
-  async start(node) {
+  async modelSource(selection) {
+    const source = await this.models.export(selection);
+    const { budget } = await this.remote(this.state.serverUrl, '/api/status', { token: this.state.accessToken });
+    this.modelPolicy = { maxTokens: budget?.maxTokens, allowedModels: budget?.allowedModels ?? null };
+    checkModelPolicy(source.selection, this.modelPolicy);
+    return source;
+  }
+
+  async start(node, preparedSource) {
     if (this.closed) throw new Error('连接插件正在关闭');
     this.running.set(node.id, { status: 'connecting', lastError: null });
     try {
+      let modelConfig;
+      if (this.models) {
+        const source = preparedSource ?? await this.modelSource(this.state.modelSelections?.[node.id]);
+        modelConfig = source.selection;
+        await savePrivateJson(path.join(node.directory, 'model-source.json'), source);
+        if (!this.state.modelSelections[node.id]) {
+          const next = { ...this.state, modelSelections: { ...this.state.modelSelections, [node.id]: source.selection } };
+          await this.save(next);
+          this.state = next;
+        }
+      }
       await this.processes.start(node);
-      if (!this.closed) this.running.set(node.id, { status: 'online', lastError: null });
+      if (!this.closed) this.running.set(node.id, { status: 'online', lastError: null, modelConfig });
     } catch (error) {
       let message = error.message;
       if (!this.closed) {
         try { await this.processes.stop(node); } catch (stopError) { message += `\n${stopError.message}`; }
         this.running.set(node.id, { status: 'error', lastError: message });
       }
-      throw new Error(message);
+      throw Object.assign(new Error(message), { code: error.code });
     }
   }
 
@@ -223,6 +262,16 @@ export class ConnectController {
     return this.serial(async () => {
       if (this.closed) throw new Error('连接插件正在关闭');
       switch (body.action) {
+        case 'save-model': {
+          if (!this.models || !this.state.accessToken || !this.state.bots.some(bot => bot.id === body.botId)) throw new Error('请选择自己的 Bot');
+          const prior = this.state.modelSelections?.[body.botId];
+          const selection = body.selection && { ...body.selection, maxTokens: body.selection.maxTokens ?? prior?.maxTokens ?? 4096 };
+          const source = await this.modelSource(selection);
+          const next = { ...this.state, modelSelections: { ...this.state.modelSelections, [body.botId]: source.selection } };
+          await this.save(next);
+          this.state = next;
+          return this.status({ refresh: false });
+        }
         case 'login': return this.login(body);
         case 'logout': return this.logout();
         case 'connect': return this.connect(body.botId);

@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import { execFile, spawn } from 'node:child_process';
-import { mkdir, readFile, writeFile, symlink, open, readlink, chmod } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { mkdir, readFile, writeFile, symlink, open, readlink, chmod, rename } from 'node:fs/promises';
+import { join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { packageRoot } from '../src/paths.mjs';
-import { runtimeSettings, resolveDsh, providerConfiguration, httpUrl, MODEL } from './runtime-config.mjs';
+import { runtimeSettings, resolveDsh, providerConfiguration, httpUrl } from './runtime-config.mjs';
 import { prepareRuntimeDependencies } from './runtime-dependencies.mjs';
+import { LEGACY_MODEL, modelReference } from '../src/model-config.mjs';
+import { readOptionalJson, savePrivateJson } from './server-init.mjs';
 
 const [operation = 'start', nodeId = 'finance'] = process.argv.slice(2);
 if (!['start', 'run', 'stop', 'status', 'prepare'].includes(operation)) throw new Error('Use start, run, stop, status or prepare');
@@ -105,6 +107,7 @@ if (operation === 'start') {
   process.exit(0);
 }
 
+if (await status()) throw new Error('Stop this Bot runtime before preparing or replacing its model configuration.');
 const { cli, runtime } = await resolveDsh();
 await mkdir(local, { recursive: true, mode: 0o700 });
 const dependencies = join(dataRoot, 'dsh-deps');
@@ -120,39 +123,85 @@ async function ensureLink(target, link) {
     if (resolve(link, '..', current) !== resolve(target)) throw new Error(`Dependency link belongs to another data directory: ${link}`);
   }
 }
+const previous = await readOptionalJson(join(local, 'node-config.json'));
+const modelEnv = { ...process.env };
+if (!modelEnv.DS_GROUP_MODEL && !modelEnv.DS_GROUP_MODEL_SOURCE_PATH && previous?.model) {
+  modelEnv.DS_GROUP_MODEL = previous.model;
+  const legacyEffort = previous.modelConfigVersion === undefined && previous.model === LEGACY_MODEL ? 'low' : undefined;
+  modelEnv.DS_GROUP_REASONING_EFFORT ??= previous.reasoningEffort ?? legacyEffort;
+  modelEnv.DS_GROUP_MAX_OUTPUT_TOKENS ??= String(previous.maxTokens || 4096);
+}
+let prepared;
+if (modelEnv.DS_GROUP_MODEL_SOURCE_PATH) {
+  const source = await readOptionalJson(resolve(modelEnv.DS_GROUP_MODEL_SOURCE_PATH));
+  if (!source?.selection || !source.providers) throw new Error('Invalid private model source snapshot');
+  prepared = providerConfiguration({ env: modelEnv, sourceSelection: source.selection,
+    sourceProviders: source.providers, sourceCredentials: source.credentials, sourceCredentialRefs: source.credentialRefs });
+} else {
+  const manifest = await readOptionalJson(join(settings.sourceHome, 'profiles', settings.sourceProfile, 'package.json'));
+  if (manifest) {
+    // Desktop SDK files live in an ASAR archive, which its bundled Electron can read.
+    const executable = runtime.includes(`${sep}app.asar${sep}`)
+      ? resolve(runtime, '..', '..', '..', 'MacOS', 'DeepSeek Harness') : process.execPath;
+    try {
+      const result = await execute(executable, [join(plugin, 'model-profile.mjs'), runtime, settings.sourceHome, settings.sourceProfile], {
+        env: { ...modelEnv, ELECTRON_RUN_AS_NODE: '1' }, timeout: 30_000, maxBuffer: 4 * 1024 * 1024,
+      });
+      prepared = JSON.parse(result.stdout);
+    } catch (error) {
+      const code = error.stderr?.includes('MISSING_CREDENTIAL') ? 'MISSING_CREDENTIAL' : 'MODEL_PROFILE_INVALID';
+      throw new Error(`${code}: Check the selected DSH profile, model and credential. Native profile diagnostics stay on the host.`);
+    }
+  } else prepared = providerConfiguration({ env: modelEnv });
+}
+const { provider, providerId, credentials, selection } = prepared;
+Object.assign(config, selection, { reasoningEffort: selection.reasoningEffort });
 const profile = join(home, 'profiles', 'web');
 await mkdir(join(profile, 'node_modules', '@ds-group'), { recursive: true });
 await ensureLink(plugin, join(profile, 'node_modules', '@ds-group', 'dsh-node'));
-await writeFile(join(profile, 'package.json'), `${JSON.stringify({ name: `ds-group-${nodeId}-profile`, private: true,
+async function createOnce(filename, contents) {
+  try { await writeFile(filename, contents, { flag: 'wx', mode: 0o600 }); }
+  catch (error) { if (error.code !== 'EEXIST') throw error; }
+}
+await createOnce(join(profile, 'package.json'), `${JSON.stringify({ name: `ds-group-${nodeId}-profile`, private: true,
   type: 'module', dependencies: { '@ds-group/dsh-node': `link:${plugin}` },
   dsh: { profile: { bundles: ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'] } } }, null, 2)}\n`);
-await writeFile(join(profile, 'cordis.yml'), '[]\n');
-
-let sourceProvider;
-let sourceCredentials;
-if (!process.env.OPENCODE_API_KEY?.trim()) {
-  const sourcePatch = join(settings.sourceHome, 'profiles', settings.sourceProfile, 'cordis.patch.yml');
-  try {
-    const patch = yaml.parse(await readFile(sourcePatch, 'utf8'));
-    sourceProvider = patch.find(entry => entry.id === 'llm-pi-ai')?.config?.providers?.['opencode-go'];
-    sourceCredentials = yaml.parse(await readFile(join(settings.sourceHome, '.credentials.yaml'), 'utf8'));
-  } catch (error) {
-    if (error.code !== 'ENOENT') throw error;
-    throw new Error('Set OPENCODE_API_KEY or configure DS_GROUP_DSH_SOURCE_HOME and DS_GROUP_DSH_SOURCE_PROFILE');
-  }
+await createOnce(join(profile, 'cordis.yml'), '[]\n');
+async function optionalYaml(filename, fallback) {
+  try { return yaml.parse(await readFile(filename, 'utf8')); }
+  catch (error) { if (error.code === 'ENOENT') return fallback; throw error; }
 }
-const { provider, credentials } = providerConfiguration({ sourceProvider, sourceCredentials });
+async function privateYaml(filename, value) {
+  const temporary = `${filename}.${process.pid}.tmp`;
+  await writeFile(temporary, yaml.stringify(value), { mode: 0o600 });
+  await rename(temporary, filename);
+  await chmod(filename, 0o600);
+}
 const credentialsPath = join(home, '.credentials.yaml');
-await writeFile(credentialsPath, yaml.stringify(credentials), { mode: 0o600 });
-await chmod(credentialsPath, 0o600);
-const patch = yaml.stringify([
-  { id: 'llm-pi-ai', config: { providers: { 'opencode-go': provider } } },
-  { id: 'agent-default-model', config: { provider: 'opencode-go', model: MODEL, reasoningEffort: 'low' } },
-  { id: 'web-runtime', config: { openBrowser: false, printUrl: false, surfaceContext: false } },
-  { insert: [{ id: 'ds-group-node', name: '@ds-group/dsh-node', config }] },
-]);
-await writeFile(join(profile, 'cordis.patch.yml'), patch, { mode: 0o600 });
-await writeFile(join(local, 'node-config.json'), `${JSON.stringify({ ...config, bridgeUrl, home, cli, runtime, model: `opencode-go/${MODEL}` }, null, 2)}\n`, { mode: 0o600 });
+const existingCredentials = await optionalYaml(credentialsPath, {});
+const patchPath = join(profile, 'cordis.patch.yml');
+const patch = await optionalYaml(patchPath, []);
+if (!Array.isArray(patch)) throw new Error('Invalid node profile patch');
+function upsert(id, value) {
+  const entry = patch.find(entry => entry.id === id);
+  if (entry) entry.config = { ...entry.config, ...value };
+  else patch.push({ id, config: value });
+}
+const providers = patch.find(entry => entry.id === 'llm-pi-ai')?.config?.providers;
+upsert('llm-pi-ai', { providers: { ...providers, [providerId]: provider } });
+// Replace the full selection so a model with no reasoning keeps its own native default.
+const defaultEntry = patch.find(entry => entry.id === 'agent-default-model');
+if (defaultEntry) defaultEntry.config = {};
+upsert('agent-default-model', { ...modelReference(selection.model),
+  ...(selection.reasoningEffort === undefined ? {} : { reasoningEffort: selection.reasoningEffort }) });
+upsert('web-runtime', { openBrowser: false, printUrl: false, surfaceContext: false });
+const nodeEntry = patch.flatMap(entry => entry.insert || []).find(entry => entry.id === 'ds-group-node');
+if (nodeEntry) nodeEntry.config = { ...nodeEntry.config, ...config };
+else patch.push({ insert: [{ id: 'ds-group-node', name: '@ds-group/dsh-node', config }] });
+await privateYaml(credentialsPath, { ...existingCredentials, version: 1,
+  refs: { ...existingCredentials.refs, ...credentials.refs }, records: { ...existingCredentials.records, ...credentials.records } });
+await privateYaml(patchPath, patch);
+await savePrivateJson(join(local, 'node-config.json'), { ...config, modelConfigVersion: 1, bridgeUrl, home, cli, runtime });
 if (operation === 'prepare') {
   console.log(JSON.stringify({ nodeId, status: 'prepared', url: bridgeUrl }));
   process.exit(0);

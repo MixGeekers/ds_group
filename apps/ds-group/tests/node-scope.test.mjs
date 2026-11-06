@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { createCore } from '../src/core.mjs';
-import { ALLOWED_MODEL } from '../src/budget.mjs';
+const ALLOWED_MODEL = 'opencode-go/deepseek-v4.1-flash';
 
 const legacySecret = 'synthetic-legacy-node-secret';
 const financeId = '@finance:test';
