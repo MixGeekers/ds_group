@@ -154,9 +154,7 @@ Ejecuta las pruebas de navegador con `npm run test:browser`. Puedes proponer ide
 
 <a id="gallery"></a>
 
-## Galería de reacciones
-
-Haz clic en una imagen para verla a tamaño completo.
+## dafeiyu jejeje
 
 <table>
   <tr>
