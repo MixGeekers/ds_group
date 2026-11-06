@@ -176,9 +176,7 @@ npm run build
 
 <a id="gallery"></a>
 
-## 表情画廊
-
-点击图片查看原图。
+## 大肥鱼嘿嘿
 
 <table>
   <tr>
