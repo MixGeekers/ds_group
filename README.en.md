@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Quick start</a> · <a href="#features">Features</a> · <a href="#architecture">Architecture</a> · <a href="#documentation">Documentation</a> · <a href="#gallery">Gallery</a>
+  <a href="#showcase">Screenshots</a> · <a href="#quick-start">Quick start</a> · <a href="README.md#dsh-setup">DSH setup prompt (中文)</a> · <a href="#features">Features</a> · <a href="#architecture">Architecture</a> · <a href="#documentation">Documentation</a> · <a href="#gallery">Gallery</a>
 </p>
 
 DSCord brings people and multiple Bots into one space to chat, work with files, and deliver results. Each Bot has its own name, account, conversation context, and workspace. Bots can join group conversations, receive direct messages, and collaborate with other Bots.
@@ -42,9 +42,44 @@ Matrix / Synapse runs the chat service. Bots work in independent DeepSeek Harnes
 | **Desktop and mobile UI** | A React PWA with dark, light, and system themes, plus Chinese and English interface languages. |
 | **Self-hosting** | Linux amd64 / arm64 and Docker Compose, with separate core, chat service, and Bot processes. |
 
-Select a Bot in a group, attach a file, and try a request like this.
+Create your own Bots and bring them online, then select one with `@` in a group and attach a file. The names below are examples; use the members you created.
 
 > @HR Bot Please organize the training costs from this attachment, delegate the calculations to Finance Bot, and send me the finished spreadsheet in a direct message.
+
+<a id="showcase"></a>
+
+## Screenshots
+
+Chinese UI and chat examples captured from the production build with synthetic sample data and zero model calls. The mobile image uses a simulated browser viewport. See [capture provenance and validation scope](apps/ds-group/assets/readme/screenshots/provenance.json). Click an image to view its original size.
+
+**Group chat · People and multiple Bots in one conversation**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/group-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/group-chat-zh.png" width="100%" alt="Group chat · People and multiple Bots in one conversation"></a>
+</p>
+
+<details>
+<summary><strong>Show Bot messages, server administration, and mobile UI</strong></summary>
+
+**Bot direct messages · Markdown and CSV file cards**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png"><img src="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png" width="100%" alt="Bot direct messages · Markdown and CSV file cards"></a>
+</p>
+
+**Server administration · Partner policies saved, awaiting application**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/server-admin-zh.png"><img src="apps/ds-group/assets/readme/screenshots/server-admin-zh.png" width="100%" alt="Server administration · Partner policies saved, awaiting application"></a>
+</p>
+
+**Mobile UI · Direct messages and attachments (390 × 844 viewport)**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png" width="390" alt="Mobile UI · Direct messages and attachments (390 × 844 viewport)"></a>
+</p>
+
+</details>
 
 <a id="quick-start"></a>
 
@@ -52,7 +87,7 @@ Select a Bot in a group, attach a file, and try a request like this.
 
 ### Deploy the chat server
 
-Prepare a Linux amd64 or arm64 server with Git, Docker Engine, and Compose v2, then get the source.
+If you already have a server, go to “Connect your Bot” below. To self-host, prepare a Linux amd64 or arm64 server with Git, Docker Engine, and Compose v2, then get the source.
 
 ```sh
 git clone https://github.com/MixGeekers/dscord.git
@@ -66,18 +101,17 @@ Before the first start, edit `DS_GROUP_SERVER_NAME` in `deploy/.env`. It determi
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
 ```
 
-The default address is [http://localhost:18100](http://localhost:18100) on the server itself. The current source supports registration from the login screen and personal Bot creation under “My Bots.” Initialization also creates Alice, Bob, and two demo Bots. Administrators can retrieve Alice's initial credentials in their terminal.
+The default address is [http://localhost:18100](http://localhost:18100) on the server itself. From another device, use the public URL you configured. Register your own account on the login screen, then create a Bot under “My Bots.”
 
-```sh
-docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
-  node scripts/server-admin.mjs credentials alice
-```
+The current bootstrap also creates four demo identities: Alice, Bob, `finance`, and `hr`. These are seed data in the startup script. See [initial demo accounts](apps/ds-group/deploy/README.md#initial-accounts) for details and administrator commands.
 
 ### Connect your Bot
 
-1. On the Bot machine, prepare Node `>=24.19.0 <25` and DSH `0.2.1-rc.5`, and configure `opencode-go/deepseek-v4.1-flash`.
+1. On the Bot machine, prepare Node `>=24.19.0 <25` and DSH `0.2.1-rc.5`. These are the current adapter version requirements.
 2. Build the matching candidate package following the installation guide. Install it through DSH's `Plugins → Add plugin` and enable `dscord`.
 3. Open **DSCord** in the DSH sidebar, enter the server's web address and your account credentials, then select your Bot and bring it online.
+
+The current node setup, runtime, and core usage ledger restrict the model to `opencode-go/deepseek-v4.1-flash`, using your own credentials. Changing the DSH default model alone does not enable another provider/model. See [deployment settings and current limits](apps/ds-group/deploy/README.md#configuration) for configuration, directory defaults, and call limits.
 
 Once online, message the Bot directly or invite it to a group. The Bot machine needs access to the public Core and Matrix URLs. Candidate builds, graphical setup, and CLI node configuration are covered in the [installation and connection guide](apps/ds-group/deploy/npm.md).
 

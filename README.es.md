@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">Inicio rápido</a> · <a href="#features">Funciones</a> · <a href="#architecture">Arquitectura</a> · <a href="#documentation">Documentación</a> · <a href="#gallery">Galería</a>
+  <a href="#showcase">Capturas</a> · <a href="#quick-start">Inicio rápido</a> · <a href="README.md#dsh-setup">Configuración con DSH (中文)</a> · <a href="#features">Funciones</a> · <a href="#architecture">Arquitectura</a> · <a href="#documentation">Documentación</a> · <a href="#gallery">Galería</a>
 </p>
 
 DSCord reúne a personas y múltiples Bots en un mismo espacio para conversar, trabajar con archivos y entregar resultados. Cada Bot tiene su propio nombre, cuenta, contexto de conversación y directorio de trabajo. Puede participar en grupos, recibir mensajes directos y colaborar con otros Bots.
@@ -42,9 +42,44 @@ Matrix / Synapse proporciona el servicio de chat. Los Bots trabajan en entornos 
 | **Interfaz de escritorio y móvil** | PWA en React con temas claro, oscuro y del sistema, e interfaz en chino e inglés. |
 | **Alojamiento propio** | Linux amd64 / arm64 y Docker Compose, con procesos independientes para el núcleo, el chat y los Bots. |
 
-Selecciona un Bot en un grupo, adjunta un archivo y prueba una petición como esta.
+Crea tus Bots y conéctalos; después selecciona uno con `@` en un grupo y adjunta un archivo. Los nombres del ejemplo se sustituyen por los miembros que hayas creado.
 
 > @Bot de RR. HH. Organiza los gastos de formación del archivo adjunto, delega los cálculos al Bot de Finanzas y envíame la hoja de cálculo terminada por mensaje directo.
+
+<a id="showcase"></a>
+
+## Capturas de uso
+
+Interfaz y conversaciones en chino, capturadas de la compilación de producción con datos sintéticos y sin llamadas al modelo. La imagen móvil usa una ventana simulada del navegador. Consulta [el origen y alcance de la validación](apps/ds-group/assets/readme/screenshots/provenance.json). Pulsa una imagen para verla a tamaño original.
+
+**Chat de grupo · Personas y varios Bots en una conversación**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/group-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/group-chat-zh.png" width="100%" alt="Chat de grupo · Personas y varios Bots en una conversación"></a>
+</p>
+
+<details>
+<summary><strong>Ver mensajes de Bots, administración y vista móvil</strong></summary>
+
+**Mensajes directos · Tarjetas de archivos Markdown y CSV**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png"><img src="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png" width="100%" alt="Mensajes directos · Tarjetas de archivos Markdown y CSV"></a>
+</p>
+
+**Administración · Políticas de socios guardadas, pendientes de aplicar**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/server-admin-zh.png"><img src="apps/ds-group/assets/readme/screenshots/server-admin-zh.png" width="100%" alt="Administración · Políticas de socios guardadas, pendientes de aplicar"></a>
+</p>
+
+**Vista móvil · Mensajes y adjuntos (ventana de 390 × 844)**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png" width="390" alt="Vista móvil · Mensajes y adjuntos (ventana de 390 × 844)"></a>
+</p>
+
+</details>
 
 <a id="quick-start"></a>
 
@@ -52,7 +87,7 @@ Selecciona un Bot en un grupo, adjunta un archivo y prueba una petición como es
 
 ### Desplegar el servidor de chat
 
-Prepara un servidor Linux amd64 o arm64 con Git, Docker Engine y Compose v2, y obtén el código.
+Si ya tienes servidor, pasa a “Conectar tu Bot”. Para alojar el tuyo, prepara un servidor Linux amd64 o arm64 con Git, Docker Engine y Compose v2, y obtén el código.
 
 ```sh
 git clone https://github.com/MixGeekers/dscord.git
@@ -66,18 +101,17 @@ Antes del primer inicio, edita `DS_GROUP_SERVER_NAME` en `deploy/.env`. Este val
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
 ```
 
-La dirección predeterminada es [http://localhost:18100](http://localhost:18100) en el propio servidor. El código actual permite registrarse desde la pantalla de acceso y crear Bots personales en “My Bots”. La inicialización también crea a Alice, Bob y dos Bots de demostración. El administrador puede consultar las credenciales iniciales de Alice en su terminal.
+La dirección predeterminada es [http://localhost:18100](http://localhost:18100) en el propio servidor. Desde otro dispositivo, utiliza la dirección pública que hayas configurado. Registra tu propia cuenta desde la pantalla de acceso y crea un Bot en “My Bots”.
 
-```sh
-docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
-  node scripts/server-admin.mjs credentials alice
-```
+La inicialización actual también crea cuatro identidades de demostración: Alice, Bob, `finance` y `hr`. Son datos iniciales del script de arranque. Consulta [las cuentas de demostración](apps/ds-group/deploy/README.md#initial-accounts) para ver los detalles y los comandos de administración.
 
 ### Conectar tu Bot
 
-1. En el equipo del Bot, prepara Node `>=24.19.0 <25` y DSH `0.2.1-rc.5`, y configura `opencode-go/deepseek-v4.1-flash`.
+1. En el equipo del Bot, prepara Node `>=24.19.0 <25` y DSH `0.2.1-rc.5`. Son los requisitos de versión del adaptador actual.
 2. Compila el paquete candidato de la misma versión siguiendo la guía de instalación. Instálalo desde `Plugins → Add plugin` en DSH y activa `dscord`.
 3. Abre **DSCord** en la barra lateral de DSH, introduce la dirección web del servidor y tus credenciales, selecciona tu Bot y conéctalo.
+
+La preparación del nodo, el entorno de ejecución y el registro de uso de Core todavía limitan el modelo a `opencode-go/deepseek-v4.1-flash`, con tus propias credenciales. Cambiar solo el modelo predeterminado de DSH no habilita otro proveedor o modelo. Consulta [los parámetros y límites actuales](apps/ds-group/deploy/README.md#configuration) para configurar rutas y límites de llamadas.
 
 Cuando esté conectado, envíale un mensaje directo o invítalo a un grupo. Su equipo debe poder acceder a las direcciones públicas de Core y Matrix. La compilación del candidato, la conexión gráfica y la configuración de nodos por CLI se describen en la [guía de instalación y conexión](apps/ds-group/deploy/npm.md).
 

@@ -21,29 +21,13 @@
 
 ## 启动服务器
 
-以下命令在 Linux 服务器的发布包根目录执行，源码仓库对应 `apps/ds-group/`。
+以下命令在 Linux 服务器的发布包根目录执行，源码仓库对应 `apps/ds-group/`。已有实例继续使用自己的 `.env` 和 Compose 项目名；首次部署先复制配置模板。
 
 ```sh
 cp deploy/.env.example deploy/.env
-docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
 ```
 
-本机浏览器打开 `http://localhost:18100`。第一次启动会创建 Alice、Bob 和两个归 Alice 所有的 Bot。登录密码由服务器随机生成，通过下面的管理命令取得。
-
-```sh
-docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core node scripts/server-admin.mjs credentials alice
-docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core node scripts/server-admin.mjs credentials bob
-```
-
-`credentials` 的输出包含登录密码，按需在管理员终端使用。服务器日常启动日志只输出公开身份和服务状态。初始 Bot 状态为离线，接入 Bot 节点后开始处理消息。
-
-### 注册与个人 Bot
-
-其他成员打开服务器网页，在登录窗口选择“注册账号”，填写用户名、显示名称和密码。注册后进入“我的 Bot”创建 Bot，随后从 DSH 连接。成员的显示名称可以重复，稳定账号 ID 用于区分成员。新 Bot 由所有者邀请进群，也可以直接私聊。
-
-注册默认开放。管理员可在 Core 数据卷的 `/data/core-config.json` 中设置 `registrationMode` 为 `closed`，再重启 Core 关闭注册。恢复为 `open` 后重新开放。初始化会保留已有配置。每次客户端登录拥有独立设备会话，退出一台设备只注销该会话。
-
-初始化之前编辑 `deploy/.env` 中的 `DS_GROUP_SERVER_NAME`。它是 Matrix 成员 ID 的域，例如 `@alice:chat.example.com`，建立后必须保留。网址可以随服务器迁移而更新。
+**首次启动前先编辑 `deploy/.env`。** `DS_GROUP_SERVER_NAME` 是 Matrix 身份域，例如 `@your-account:chat.example.com` 中的 `chat.example.com`，初始化后必须保留。网页和 Matrix 的公开地址则按实际网络入口设置，服务器迁移后可以更新。下列域名仅为示例。
 
 ```dotenv
 DS_GROUP_SERVER_NAME=chat.example.com
@@ -51,7 +35,66 @@ DS_GROUP_PUBLIC_URL=https://chat.example.com
 DS_GROUP_MATRIX_PUBLIC_URL=https://chat.example.com
 ```
 
-默认端口只绑定 `127.0.0.1`。内网直接访问时，可将 `DS_GROUP_BIND` 设为该服务器的内网 IP，并把两个公开 URL 分别设为可达的 `http://IP:18100` 和 `http://IP:18008`。手机安装和通知使用下面的 HTTPS 部署。
+仅在服务器本机试用时，可以保留模板的 `localhost` 默认值。默认监听 `127.0.0.1`；其他设备不能通过自己的 `localhost` 访问这台服务器。内网直接访问时，将 `DS_GROUP_BIND` 设为服务器内网 IP，两个公开 URL 分别设置为可达的 `http://IP:18100` 和 `http://IP:18008`。若更改宿主端口，同时修改 `DS_GROUP_HTTP_PORT`、`DS_GROUP_MATRIX_PORT` 和对应 URL。
+
+使用 HTTPS 时先完成下一节的域名配置，并使用带 HTTPS overlay 的启动命令。仅本机或内网 HTTP 部署执行：
+
+```sh
+docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
+```
+
+在浏览器打开配置的公开地址；默认本机入口为 `http://localhost:18100`。Core 的网页模式默认为 `bundled`，选择 `api-only` 时使用单独部署的聊天客户端。
+
+### 注册与个人 Bot
+
+在登录窗口选择“注册账号”，填写自己的用户名、显示名称和密码。注册后进入“我的 Bot”创建 Bot，随后从 DSH 连接。显示名称可以重复，稳定账号 ID 用于区分成员。新 Bot 由所有者邀请进群，也可以直接私聊。
+
+注册默认开放。管理员可在 Core 数据卷的 `/data/core-config.json` 中设置 `registrationMode` 为 `closed`，再重启 Core 关闭注册；恢复为 `open` 后重新开放。初始化会保留已有配置。每次客户端登录拥有独立设备会话，退出一台设备只注销该会话。独立管理后台的账号与普通聊天账号分别管理，初始化方法见[后台说明](../admin/README.md)。
+
+<a id="initial-accounts"></a>
+
+### 初始演示账号
+
+当前 `server-bootstrap.mjs` 在空实例中仍会创建 Alice、Bob、`finance` 和 `hr` 四个演示身份，两个 Bot 归 Alice 所有。这是尚未拆出的初始化种子数据；当前脚本没有跳过它们的选项。个人接入流程使用上方注册的账号和自己创建的 Bot。
+
+需要检查演示账号时，管理员可读取其随机生成的初始密码。`credentials` 只适用于初始化记录中的账号，不提供后来注册用户的密码查询。
+
+```sh
+docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
+  node scripts/server-admin.mjs credentials alice
+```
+
+输出含登录密码，仅在自己的管理员终端使用。Bot 初始离线，节点接入后才开始处理消息。
+
+<a id="configuration"></a>
+
+## 部署参数与当前限制
+
+| 项目 | 当前默认或限制 | 部署时填写什么 |
+| --- | --- | --- |
+| Matrix 身份域 | 模板使用 `localhost` | 首次启动前决定自己的 `DS_GROUP_SERVER_NAME`，已有实例保留原值。 |
+| 公开地址与监听 | 本机 Core `18100`、Matrix `18008` | 填写用户和 Bot 都能访问的地址；端口可通过 Compose 变量调整。 |
+| 账号与 Bot | 引导脚本包含四个演示身份 | 注册自己的账号、创建自己的 Bot；CLI 使用 Bot 完整 ID 中 `@` 与 `:` 之间的账号部分。 |
+| Node / DSH | Node `>=24.19.0 <25`，DSH `0.2.1-rc.5` | 当前适配器依赖这些版本，安装位置通过 PATH 或 `DS_GROUP_DSH_CLI` / `DS_GROUP_DSH_RUNTIME` 指定。 |
+| DSH 配置来源 | CLI 回退到 `~/.dsh` 的 `desktop` profile | CLI 用 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 指定自己的来源；图形连接使用所在 DSH 宿主的实际 home/profile。 |
+| 节点桥接端口 | 仅演示 `finance` / `hr` 预设 `18091` / `18092` | 自定义 CLI Bot 必须设置空闲的 `DS_GROUP_BRIDGE_PORT`；图形连接页自动分配。 |
+| provider / model | 当前固定 `opencode-go/deepseek-v4.1-flash` | 使用自己的匹配凭据；当前版本尚不支持任意 provider/model 切换。 |
+| 调用额度 | 新预算库默认 `modelCallLimit: null`，表示不限次数 | 根据自己的额度设置新实例配置；开发者的历史测试授权不适用于用户部署。 |
+
+模型限制同时存在于[节点配置准备](../scripts/runtime-config.mjs)、[运行时](../dsh-plugin/runtime.mjs)与[核心账本](../src/budget.mjs)。`OPENCODE_API_KEY` 或已有 DSH profile 可提供该 provider 的凭据，`DS_GROUP_OPENCODE_BASE_URL` 只调整其服务端点；改变默认模型或端点不会解除模型限制。
+
+新预算数据库首次创建时读取 `core-config.json` 的 `modelCallLimit` 和 `maxOutputTokens`，后者默认 `8192`。如需限制新实例的调用次数，应在 Core 第一次启动、创建 `model-budget.sqlite` 前填写预算配置。已有数据库保留原额度和账目，修改 JSON 不会更新既存额度；当前未提供在线调整额度的管理入口。Bot 单次输出默认上限另为 `4096`，两项含义不同。模型生成需要用户自己的调用授权和费用预算。
+
+### 数据目录按运行方式区分
+
+| 运行方式 | 默认保存位置 | 自定义方式 |
+| --- | --- | --- |
+| 源码开发演示 `npm run up` | 应用目录下 `.local/` | `DS_GROUP_DATA_DIR` |
+| 源码 `server-init.mjs` 直接运行 | 当前目录的 `.local/server` 和 `.local/server-synapse` | `DS_GROUP_DATA_DIR`、`DS_GROUP_SYNAPSE_DIR` |
+| npm CLI | 执行命令的当前目录下 `.dscord/` | 用绝对路径设置 `DS_GROUP_DATA_DIR`，管理同一实例时保持一致。 |
+| Docker Compose | `core-data`、`synapse-data`、`governance-data` 三个命名卷 | 保留同一 Compose 项目名及卷配置。容器内 `/data` 是挂载点。 |
+| DSH 图形连接 | `<实际 DSH home>/dscord/<当前 profile>/` | 在连接页查看“本机配置目录”，每个 Bot 有自己的子目录。 |
+| systemd 模板 | `/var/lib/ds-group-<Bot账号>/` | 随安装位置调整单元和环境文件，见 [systemd 说明](systemd/README.md)。 |
 
 ## HTTPS 和手机通知
 
@@ -86,7 +129,7 @@ Core 默认将连接的来源 IP 传给 Synapse，用于按访问地址计算登
 
 ### DSH 图形连接
 
-在服务器网页注册并创建自己的 Bot，在 Bot 机器的 DSH 中配置 `opencode-go/deepseek-v4.1-flash`。随后通过 `Plugins → Add plugin` 安装同版本 `dscord` 候选包并启用，点击左侧 **DSCord**。
+在服务器网页注册并创建自己的 Bot，按上方[当前限制](#configuration)在 Bot 机器的实际 DSH profile 中配置可用模型凭据。随后通过 `Plugins → Add plugin` 安装同版本 `dscord` 候选包并启用，点击左侧 **DSCord**。
 
 输入 Core/PWA 的服务器地址、账号和密码，登录后在“我的 Bot”中点击“上线”。页面显示每个 Bot 的名称、ID 与连接状态，并提供断开、重连、打开网页和本机配置目录入口。程序会为每个 Bot 创建独立目录、端口与 DSH 运行时。
 
@@ -94,40 +137,44 @@ Core 默认将连接的来源 IP 传给 Synapse，用于按访问地址计算登
 
 ### CLI 节点导出
 
-管理员也可以导出节点配置。文件携带目标 Bot 的 Matrix token、公开成员资料和限定到该 Bot 的核心节点凭据。
+管理员也可以导出自己要连接的 Bot。参数使用完整 Bot ID 中 `@` 与 `:` 之间的账号部分，**不是显示名称**。下方 `your-bot-account`、路径和端口均需要按自己的部署填写，服务器端与节点端的 `BOT_ACCOUNT` 保持一致。文件包含该 Bot 的 Matrix token 和限定节点凭据。
+
+在服务器端导出：
 
 ```sh
+BOT_ACCOUNT='your-bot-account'
 umask 077
-docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core node scripts/server-admin.mjs export-node finance > finance-node.json
+docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
+  node scripts/server-admin.mjs export-node "$BOT_ACCOUNT" > bot-node.json
 ```
 
-将这个文件和同版本 DS-Group 发布包复制到 Bot 机器。该机器需要 Node 24.19.0 与 DSH。运行以下命令导入私有数据目录。
+将文件和同版本发布包传到 Bot 机器，在包目录执行。以下数据目录是可自选的示例，桥接端口须空闲，其他 Bot 使用各自的目录和端口。
 
 ```sh
+BOT_ACCOUNT='your-bot-account'
+export DS_GROUP_DATA_DIR="$HOME/.local/share/dscord-nodes/$BOT_ACCOUNT"
+export DS_GROUP_BRIDGE_PORT=23100
 npm ci --ignore-scripts --no-audit --no-fund
-node scripts/server-admin.mjs import-node finance-node.json .local
-npm install --prefix .local/dsh-cli --no-audit --no-fund @deepseek-ai/dsh@0.2.1-rc.5
-export DS_GROUP_DSH_RUNTIME="$PWD/.local/dsh-cli"
-export DS_GROUP_CORE_URL=https://chat.example.com
+node scripts/server-admin.mjs import-node bot-node.json "$DS_GROUP_DATA_DIR"
+npm install --prefix "$DS_GROUP_DATA_DIR/dsh-cli" --no-audit --no-fund @deepseek-ai/dsh@0.2.1-rc.5
+export DS_GROUP_DSH_RUNTIME="$DS_GROUP_DATA_DIR/dsh-cli"
 read -r -s OPENCODE_API_KEY
 export OPENCODE_API_KEY
-node scripts/service.mjs up finance
+node scripts/service.mjs up "$BOT_ACCOUNT"
 ```
 
-同一文件可以重复导入以完成中断的写入。已有不同节点身份时导入会退出，操作员应选择新的数据目录。导入被强制终止而留下 `node-import.lock` 时，确认导入进程已退出后移除这个锁再重试。
+`read` 在 Bash / Zsh 终端隐藏输入的密钥。也可省略这两条凭据输入命令，设置 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE`，从自己的 DSH 配置复制匹配 provider。导入文件已经记录 Core 和 Matrix 地址；需要覆盖 Core 地址时使用 `DS_GROUP_CORE_URL`。每个 Bot 同时运行一个节点。
 
-`read` 等待输入 opencode 密钥并隐藏回显，输入后按回车。节点使用 `opencode-go/deepseek-v4.1-flash`。`DS_GROUP_DSH_RUNTIME` 可指向已有 DSH 安装，导入文件中的核心地址也会作为默认值。第二台机器导出并导入 `hr`，两个节点分别使用自己的数据目录和原生 Session。每个 Bot 同时运行一个节点。
+同一文件可重复导入以完成中断的写入。已有不同节点身份时导入会退出，应选择新的数据目录。若强制中止导入留下 `node-import.lock`，先确认导入进程已退出再移除该锁重试。
+
+在保留同一组环境变量的终端停止节点及其 DSH：
 
 ```sh
-node scripts/service.mjs down finance
-node scripts/dsh-node.mjs stop finance
+node scripts/service.mjs down "$BOT_ACCOUNT"
+node scripts/dsh-node.mjs stop "$BOT_ACCOUNT"
 ```
 
-第一个命令停止 Matrix 适配进程，第二个命令停止该 Bot 的 DSH。将节点交给 systemd 等服务管理器时，可以使用 `node scripts/dsh-node.mjs run finance` 前台运行 DSH，另一个服务运行 `node src/bot-node.mjs --bot finance`。
-
-Linux 开机启动和独立节点重启配置见 [systemd 部署说明](systemd/README.md)。
-
-网页新建 Bot 同样可以导出，命令参数使用其 ID 中 `@` 与 `:` 之间的账号部分。为自定义 Bot 设置独立 `DS_GROUP_DATA_DIR` 和 `DS_GROUP_BRIDGE_PORT`。
+服务管理器可用 `node scripts/dsh-node.mjs run "$BOT_ACCOUNT"` 前台运行 DSH，另一个服务运行 `node src/bot-node.mjs --bot "$BOT_ACCOUNT"`。Linux 常驻服务配置见 [systemd 说明](systemd/README.md)。
 
 ## 附件存储
 
@@ -147,7 +194,7 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml logs --tail 100 cor
 docker compose --env-file deploy/.env -f deploy/compose.yaml restart core
 ```
 
-`/healthz` 检查核心进程，`/readyz` 还检查 Matrix 连通性。Compose 使用健康检查等待首次启动。用户、消息、任务账本、推送密钥与订阅保存在 `core-data` 和 `synapse-data` 命名卷中。
+`/healthz` 检查核心进程，`/readyz` 还检查 Matrix 连通性。Compose 使用健康检查等待首次启动。用户、消息、任务账本、推送密钥、订阅和治理策略保存在 `core-data`、`synapse-data`、`governance-data` 三个命名卷中。
 
 ```sh
 docker compose --env-file deploy/.env -f deploy/compose.yaml down
@@ -158,16 +205,17 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml up --detach --wait
 
 ## 备份和恢复
 
-先暂停 Bot 节点，再停止两个写入服务。下面在同一个 shell 中定义 `dc`，后续备份、恢复和升级命令均用它指定项目。
+先暂停 Bot 节点，再停止 Core、administration、Synapse 三个写入服务。下面在同一终端定义 `dc`，后续命令均用它指定项目。`ds-group` 是模板默认项目名，请填写实际部署使用的名称；HTTPS 或存储 overlay 也要加入 `dc` 的文件组合。
 
 ```sh
 export DS_GROUP_COMPOSE_PROJECT=ds-group
 dc() { docker compose --env-file deploy/.env --project-name "$DS_GROUP_COMPOSE_PROJECT" -f deploy/compose.yaml "$@"; }
 umask 077
 mkdir -p .local/backups
-dc stop --timeout 45 core synapse
+dc stop --timeout 45 core administration synapse
 dc run --rm --no-deps -T --user 0:0 config tar -czf - -C /data . > .local/backups/core.tgz
 dc run --rm --no-deps -T --user 0:0 config tar -czf - -C /synapse . > .local/backups/synapse.tgz
+dc run --rm --no-deps -T --user 0:0 config tar -czf - -C /dscord-policy . > .local/backups/governance.tgz
 dc up --detach --wait
 ```
 
@@ -179,6 +227,7 @@ dc up --detach --wait
 export DS_GROUP_COMPOSE_PROJECT=ds-group-restore
 dc run --rm --no-deps -T --user 0:0 config tar -xzf - -C /data < .local/backups/core.tgz
 dc run --rm --no-deps -T --user 0:0 config tar -xzf - -C /synapse < .local/backups/synapse.tgz
+dc run --rm --no-deps -T --user 0:0 config tar -xzf - -C /dscord-policy < .local/backups/governance.tgz
 dc up --detach --wait
 ```
 

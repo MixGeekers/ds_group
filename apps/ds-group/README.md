@@ -16,7 +16,7 @@
 
 打开服务器网页，在登录窗口选择“注册账号”，填写用户名、显示名称和密码。注册后点击最左侧全局栏的“我的 Bot”，再点击“创建 Bot”，输入名称即可生成独立 Bot 身份。多个 Bot 可以使用相同显示名称，列表同时显示各自的完整 Bot ID。自己的 Bot 私聊始终在全局 Bot 区，进入服务器可查看其频道；Bot 实际加入的群仍会显示其成员身份。
 
-在 DSH 的 `Plugins → Add plugin` 安装候选 `.tgz`，启用 `dscord`，再打开左侧 **DSCord**。填写 Core/PWA 服务器地址和自己的账号密码，登录后在“我的 Bot”中点击“上线”。这里可以查看连接状态、断开或重连，也可以打开服务器网页或展开本机配置目录。每个 Bot 使用独立 DSH 运行目录和 Session，指定模型为 `opencode-go/deepseek-v4.1-flash`。[安装与连接步骤](deploy/npm.md)
+在 DSH 的 `Plugins → Add plugin` 安装候选 `.tgz`，启用 `dscord`，再打开左侧 **DSCord**。填写 Core/PWA 服务器地址和自己的账号密码，登录后在“我的 Bot”中点击“上线”。这里可以查看连接状态、断开或重连，也可以打开服务器网页或展开本机配置目录。每个 Bot 使用独立 DSH 运行目录和 Session。当前实现仍限制为 `opencode-go/deepseek-v4.1-flash`，需要自己的匹配凭据；DSH home、profile 与数据路径以实际安装为准。[配置与当前限制](deploy/README.md#configuration) · [安装与连接步骤](deploy/npm.md)
 
 本地 DSH 0.2.1-rc.5 已完成实际安装、登录、上线、断开、重连和插件重载。最终候选另通过两个已在线 Bot 的完整宿主快速重启，恢复原 Bot/Session 身份，并持续观察 10 秒。测试为零模型调用，在途模型任务恢复仍需独立验收。[DSH 宿主验证](artifacts/onboarding/dsh-connect-host.json)
 
@@ -40,7 +40,7 @@
 
 Bot 可以调用 DSH 文件读写、终端、后台作业及图片工具，连续执行读取、计算、编辑、检查和交付。文本、CSV、XLSX、DOCX 与文本 PDF 提供结构化预读，图片可通过指定模型的 `read_image` 读取。成果作为可下载附件返回原会话，支持引用上一版继续修改。任务卡展示进度、工具次数、取消及历史成果。
 
-每项任务默认最多 64 个执行步骤、15 分钟，每次模型生成独立记录。远端模型固定为 `opencode-go/deepseek-v4.1-flash`。扫描 PDF 的整页转换与 OCR、自动长期记忆整理、任意第三方连接器按后续能力分别验收。
+每项任务默认最多 64 个执行步骤、15 分钟，每次模型生成独立记录。当前 provider/model 限制见[部署参数](deploy/README.md#configuration)。扫描 PDF 的整页转换与 OCR、自动长期记忆整理、任意第三方连接器按后续能力分别验收。
 
 群里可以向 Bot 说明“做好之后私聊发给我”。交付位置按原始人类发起者记录，生成中追加的明确提及或回复也可以在首次发送前更新。引用已有任务时优先按被回复消息关联，“再发一次”复用已确认的成品，普通新任务默认回当前会话。跨房间交付使用来源元数据关联原请求。
 
@@ -52,13 +52,15 @@ Bot 可以调用 DSH 文件读写、终端、后台作业及图片工具，连�
 
 npm 发行名为 `dscord`。已公开的 `0.2.0-alpha.1` 包含预构建 PWA、核心服务和 Bot 节点 CLI，当前 `0.3.0-alpha.1` 候选另含 DSH 安装清单及连接页面。安装与启动步骤见 [npm 部署说明](deploy/npm.md)。通过 `npm run npm:pack` 构建带文件白名单的独立发行包，源工程的私有包清单用于本地开发。
 
-Linux x64 与 ARM64 服务器使用 [Docker Compose 部署说明](deploy/README.md)。服务器默认采用密码登录，核心、Synapse、Bot 节点分别运行。文档包含 HTTPS、账号读取、远程节点导出、备份与升级。正式发行和 CI 目标为 Linux amd64/arm64 与 Docker/Compose。
+Linux x64 与 ARM64 服务器使用 [Docker Compose 部署说明](deploy/README.md)。服务器默认采用密码登录，核心、Synapse、Bot 节点分别运行。文档包含 HTTPS、个人账号与 Bot、远程节点导出、备份与升级。正式发行和 CI 目标为 Linux amd64/arm64 与 Docker/Compose。
 
 发行 CI 包含 10 个任务，检查两种 Linux 架构的 Node/TS7 构建、干净源码包安装、浏览器交互、真实容器部署及持久化，以及独立 DSH 节点初始化、工具执行与取消。源码包附带 SHA256 清单。带 `ds-group-v` 前缀的版本标签通过完整检查后发布源码包和多架构 GHCR 镜像。具体矩阵和本轮结果见[发行验证记录](发行验证.md)。
 
-## 本机演示
+## 开发用本机演示
 
-默认本机入口为 [DSCord 本机界面](http://127.0.0.1:18100)。选择 Alice 或 Bob 进入演示，两个人可以分别使用不同窗口。共同群聊里输入 `@` 并选择 Bot 后发送消息。点击联系人可进入真实私聊，返回“初次协作”继续群聊。
+本节使用初始化脚本内置的合成成员和固定演示端口，供源码开发与复现实验。部署个人实例时，按[服务器指南](deploy/README.md)注册自己的账号并创建 Bot。
+
+演示默认本机入口为 [DSCord 本机界面](http://127.0.0.1:18100)。选择 Alice 或 Bob 进入演示，两个人可以分别使用不同窗口。共同群聊里输入 `@` 并选择 Bot 后发送消息。点击联系人可进入真实私聊，返回“初次协作”继续群聊。
 
 首批合成成员为 Alice、Bob、财务小雨、人事小晴。它们分别拥有独立 Matrix 身份，两个 Bot 分别保持自己的长期原生 Session。群聊和私聊中的同一个 Bot 使用同一条主对话队列。
 
@@ -80,9 +82,9 @@ DSCORD 的鲸鱼与人类气泡标志已整理为[品牌资产包](assets/dscord
 
 左侧服务器栏按实际成员资格和本服准入展示协作空间，支持邀请接受和 A/B 房间切换。跨服 Bot 沿用原完整身份、所有者与运行节点，由所有者授权、双方服务政策、房间工作策略和节点能力共同限定可执行范围。当前跨服文件工作限定在获准房间内，具体工具、交付边界及实测记录见[跨服 Bot 实施与验证](artifacts/cross-server-bot/实施与验证.md)。
 
-## 启动与停止
+## 开发演示的启动与停止
 
-在本目录执行。
+`npm run up` 是包含 `finance` / `hr` 的开发演示启动器，会准备并启动这些演示节点。以下命令在本目录执行；普通服务器与个人 Bot 使用[部署指南](deploy/README.md)中的入口。
 
 ```sh
 npm ci --ignore-scripts
@@ -102,16 +104,16 @@ node scripts/service.mjs up finance
 
 单独重启 DSH 时，先停止对应接入进程，再执行 `node scripts/dsh-node.mjs stop finance`，最后执行 `node scripts/service.mjs up finance`。
 
-### 本机依赖
+### 开发演示依赖
 
 - Node 24.19.0 及以上的 24.x 与 npm。
 - 可运行 Linux 容器的 Docker，用于固定 Synapse 容器。
 - DSH 0.2.1-rc.5，可使用官方 npm CLI 或现有桌面版。通过 `DS_GROUP_DSH_CLI` 和 `DS_GROUP_DSH_RUNTIME` 指定独立安装，见部署说明。
-- 使用 `OPENCODE_API_KEY` 配置 `opencode-go/deepseek-v4.1-flash`，也可从现有 DSH 的指定 profile 复制该 provider。凭据仅写入隔离数据目录，不进入源码和发行包。
+- 使用自己的 `OPENCODE_API_KEY`，或以 `DS_GROUP_DSH_SOURCE_HOME` / `DS_GROUP_DSH_SOURCE_PROFILE` 指定已有 DSH 配置来源。当前 provider/model 限制见部署指南；CLI 回退的 `~/.dsh` / `desktop` 不一定对应你的安装。凭据写入私有数据目录。
 
 首次启动会准备固定运行依赖，下载固定官方 Synapse 镜像，创建本项目演示成员和房间。详细 DSH 接缝与依赖准备见 [节点说明](dsh-plugin/README.md)。
 
-## 运行拓扑
+## 开发演示的默认拓扑
 
 | 组件 | 本机位置 | 职责 |
 |---|---|---|
@@ -121,7 +123,7 @@ node scripts/service.mjs up finance
 | 人事 DSH / DS-Bot | `127.0.0.1:18092` | 人事独立身份、原生 Session、模型生成 |
 | 两个 Matrix 节点进程 | `.local/nodes/finance`、`.local/nodes/hr` | 持久 inbox/outbox、每 Bot 串行、跨 Bot 并行、离线同步 |
 
-这次部署使用一台物理 Mac，Bot 的 DSH home、进程、数据目录和网络端点独立。物理跨机器部署、远端失联后接管和机器迁移仍待验证。接入协议使用 HTTP 与 Matrix，同机地址是当前配置。
+上表列出源码演示的默认值；端口和路径可按[部署参数](deploy/README.md#configuration)配置。首框架的历史验证使用一台物理 Mac，多个 Bot 的 home、进程和数据独立；这是同机多进程证据。物理跨机器部署、远端失联后接管和机器迁移的完整验收仍需分别完成。
 
 ## 消息与协作
 
@@ -137,18 +139,19 @@ Bot 使用宿主工具执行工作，最终输出文字、可选 `artifacts` 和
 npm run check
 npm run build
 npm run test:browser
-npm run verify
 ```
 
-`check` 做源码语法、TS7 严格类型检查与模块验证，`build` 生成生产 PWA，`test:browser` 验证编辑器及 React 组件交互。`verify` 保留首框架的真实文本协作验证。新的 `npm run verify:work` 使用隔离核心默认端口 19100，验证 CSV、Excel、文件改稿、跨 Bot 文件交接与取消，显式增加 `-- --cases csv,revision,xlsx,delegate,cancel,image` 可包含实际图片读取。该验证会使用指定远端模型并生成独立证据。
+`check` 做源码语法、TS7 严格类型检查与模块验证，`build` 生成生产 PWA，`test:browser` 使用夹具验证编辑器及 React 组件交互。这组基础命令不调用远端模型。
 
-模型调用由 `.local/model-budget.sqlite` 记录，包含节点、请求 ID、开始与完成时间及用量。用户已授权无人值守不限次数测试，当前 `limit=null`，远端生成仍只允许 `opencode-go/deepseek-v4.1-flash`。单次输出上限当前为 4096 tokens，核心接纳上限为 8192 tokens。
+`npm run verify` 是首框架的真实文本协作验证，`npm run verify:work` 使用隔离核心（默认端口 `19100`）验证 CSV、Excel、文件改稿、跨 Bot 交接与取消。后者显式添加 `-- --cases csv,revision,xlsx,delegate,cancel,image` 可包含实际图片读取。**这些验证会调用配置的远端模型**，运行前使用自己的凭据、测试环境和明确调用额度；仓库历史中的开发者测试授权不适用于其他用户。
+
+模型账目保存在所选数据目录的 `model-budget.sqlite`，记录节点、请求 ID、时间和用量。新库的额度默认值与既有数据库的持久化规则见[预算说明](deploy/README.md#configuration)。当前默认单次输出上限为 `4096` tokens，核心单次接纳上限为 `8192` tokens。
 
 证据入口为 [Matrix 实测](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/artifacts/matrix-smoke.json)、[DS-Bot 真实探针](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/artifacts/ds-bot-smoke.json)、[界面验证](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/artifacts/ui-verification.json)。完整逻辑闭环记录在 `artifacts/first-flow-*.json`，当前汇总见[验收摘要](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/artifacts/framework-validation.json)和[实施记录](https://github.com/MixGeekers/shiyu/blob/948f0b7dde72f072dbc44c3b2fc30b3817a74b49/apps/ds-group/实施记录.md)。
 
 ## 第一版范围
 
-- 运行数据全部位于 `.local/`，已被 Git 排除。包含合成账号凭据、SQLite、日志、DSH Session 和 SDK 依赖链接。
+- 源码开发演示默认使用被 Git 排除的 `.local/`。npm CLI、Compose 与 DSH 连接页使用各自的数据根，见[数据目录说明](deploy/README.md#数据目录按运行方式区分)；其中包含凭据、SQLite、日志和 Session。
 - `DS_GROUP_DATA_DIR` 可以将运行数据放在源码目录外。容器使用独立持久卷，升级镜像保留原数据。预算上限由已有预算数据库保存，修改配置文件不会重置历史账目或既存预算。
 - 网页提供注册、密码登录、退出和个人 Bot 创建，本机演示模式另外提供合成账号快捷登录。
 - 原生 Session 历史延续与文件工具工作已有实际链路。自动长期记忆复盘和长历史压缩仍按独立场景验证。

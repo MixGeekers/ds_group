@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <a href="#quick-start">快速开始</a> · <a href="#features">核心能力</a> · <a href="#architecture">运行架构</a> · <a href="#documentation">文档导航</a> · <a href="#gallery">表情画廊</a>
+  <a href="#showcase">使用截图</a> · <a href="#quick-start">快速开始</a> · <a href="#dsh-setup">让 DSH 配置</a> · <a href="#features">核心能力</a> · <a href="#architecture">运行架构</a> · <a href="#documentation">文档导航</a> · <a href="#gallery">表情画廊</a>
 </p>
 
 DSCord 让多个人类与多个 Bot 在同一个空间里聊天、处理文件并交付结果。每个 Bot 拥有独立的名称、账号、会话上下文与工作目录，可以加入群聊、接受私聊任务，并与其他 Bot 协作。
@@ -42,9 +42,44 @@ DSCord 让多个人类与多个 Bot 在同一个空间里聊天、处理文件�
 | **桌面与手机界面** | React PWA，支持深色、明亮、跟随系统主题，以及中英文界面。 |
 | **自主部署** | Linux amd64 / arm64 与 Docker Compose，核心服务、聊天服务和 Bot 节点各自运行。 |
 
-在群里选择 Bot、附上文件，就可以这样开始。
+先创建并上线自己的 Bot，再在群里通过 `@` 选择它、附上文件。下面的名称仅作示例，可替换为你创建的成员。
 
 > @人事小晴 请根据附件整理新同事的培训费用，委派财务小雨核算金额，完成后把表格私聊发给我。
+
+<a id="showcase"></a>
+
+## 使用截图
+
+中文界面与聊天示例，使用当前生产构建和预置合成数据截取，模型调用为 0 次。手机图来自浏览器视口模拟。详见 [截图来源与验证范围](apps/ds-group/assets/readme/screenshots/provenance.json)。点击图片可查看原尺寸。
+
+**群聊 · 人类与多个 Bot 一起讨论**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/group-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/group-chat-zh.png" width="100%" alt="群聊 · 人类与多个 Bot 一起讨论"></a>
+</p>
+
+<details>
+<summary><strong>展开查看 Bot 私聊、管理后台与手机界面</strong></summary>
+
+**Bot 私聊 · Markdown 与 CSV 文件卡片**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png"><img src="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png" width="100%" alt="Bot 私聊 · Markdown 与 CSV 文件卡片"></a>
+</p>
+
+**独立管理后台 · 伙伴服务器策略（已保存，待应用）**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/server-admin-zh.png"><img src="apps/ds-group/assets/readme/screenshots/server-admin-zh.png" width="100%" alt="独立管理后台 · 伙伴服务器策略（已保存，待应用）"></a>
+</p>
+
+**手机界面 · 私聊与附件（390 × 844 视口）**
+
+<p align="center">
+  <a href="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png" width="390" alt="手机界面 · 私聊与附件（390 × 844 视口）"></a>
+</p>
+
+</details>
 
 <a id="quick-start"></a>
 
@@ -52,7 +87,7 @@ DSCord 让多个人类与多个 Bot 在同一个空间里聊天、处理文件�
 
 ### 部署聊天服务器
 
-准备一台 Linux amd64 或 arm64 服务器，安装 Git、Docker Engine 与 Compose v2，然后获取源码。
+已有服务器的用户可以直接前往下方“连接你的 Bot”。自行部署时，准备一台 Linux amd64 或 arm64 服务器，安装 Git、Docker Engine 与 Compose v2，然后获取源码。
 
 ```sh
 git clone https://github.com/MixGeekers/dscord.git
@@ -66,18 +101,17 @@ cp deploy/.env.example deploy/.env
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
 ```
 
-默认入口为服务器本机的 [http://localhost:18100](http://localhost:18100)。当前源码支持在登录页注册账号，并在“我的 Bot”中创建自己的 Bot。初始化也会创建 Alice、Bob 和两个演示 Bot，管理员可以在终端查看 Alice 的初始登录信息。
+默认入口为服务器本机的 [http://localhost:18100](http://localhost:18100)。从其他设备访问时，使用你在部署配置中设置的公开地址。在登录页注册自己的账号，再到“我的 Bot”创建 Bot。
 
-```sh
-docker compose --env-file deploy/.env -f deploy/compose.yaml exec -T core \
-  node scripts/server-admin.mjs credentials alice
-```
+初始化目前仍会生成 Alice、Bob、`finance` 和 `hr` 四个演示身份；这些属于启动脚本的种子数据。演示账号说明和管理员命令见 [初始演示账号](apps/ds-group/deploy/README.md#initial-accounts)。
 
 ### 连接你的 Bot
 
-1. 在 Bot 所在机器准备 Node `>=24.19.0 <25` 与 DSH `0.2.1-rc.5`，配置 `opencode-go/deepseek-v4.1-flash`。
+1. 在 Bot 所在机器准备 Node `>=24.19.0 <25` 与 DSH `0.2.1-rc.5`。这是当前适配器的版本要求。
 2. 按安装说明构建同版本候选包，通过 DSH 的 `Plugins → Add plugin` 安装并启用 `dscord`。
 3. 打开 DSH 左侧的 **DSCord**，填写服务器网页地址与账号，登录后选择自己的 Bot 并点击“上线”。
+
+当前版本的节点准备、运行时和核心账本仍将模型限制为 `opencode-go/deepseek-v4.1-flash`，需要你自己的可用凭据；仅修改 DSH 默认模型还不能切换 provider/model。配置入口、路径默认值与调用额度见 [部署参数与当前限制](apps/ds-group/deploy/README.md#configuration)。
 
 Bot 上线后，直接私聊它，或邀请它进入群聊。节点所在机器需要能访问 Core 与 Matrix 的对外地址。候选包构建、图形接入与 CLI 节点配置见 [安装与连接说明](apps/ds-group/deploy/npm.md)。
 
@@ -93,6 +127,74 @@ dscord --version
 ```
 
 npm 包包含预构建 PWA、核心服务和 Bot 节点 CLI。继续完成 Synapse 初始化、账号创建和节点接入，即可运行完整实例。公开 `0.2.0-alpha.1` 的 Bot 接入使用 CLI，具体步骤见 [npm 部署说明](apps/ds-group/deploy/npm.md)。
+
+</details>
+
+<a id="dsh-setup"></a>
+
+## 让 DSH 帮你配置
+
+把下面整段复制给 DSH。它会先检查你的环境，再按已有服务器接入或自行部署的路径配置；缺少服务器地址、账号或凭据时，会指出需要你补充的内容。
+
+<details>
+<summary><strong>展开中文启动提示词，复制给 DSH</strong></summary>
+
+```text
+请帮我安装并配置 DSCord，让我能打开聊天界面，让自己的 Bot 从 DSH 上线。
+项目地址：https://github.com/MixGeekers/dscord
+
+请直接完成能够执行的配置工作，按以下步骤推进：
+
+1. 检查环境
+检查系统、权限、Node、npm、Docker/Compose、DSH 版本和安装位置，
+识别当前 DSH 的实际数据目录与 profile。
+检查已有 DSCord 服务、配置、数据和端口，优先复用有效安装，
+保留原有身份、聊天记录及其他项目。
+
+2. 确定接入方式
+判断我是接入已有服务器，还是需要部署新服务器。
+上下文缺少这个信息时简短询问，并继续做不依赖答案的环境检查。
+已有服务器需要网页地址和我的账号；新部署需要确认本机或远程，
+以及可用主机、持久数据目录、公开地址、首次使用的 Matrix 身份域。
+需要我补充的信息一次问清；密码和密钥使用本机私密输入或已有配置，
+不放进聊天回复。
+
+3. 安装并启动
+读取所用版本的 README、apps/ds-group/deploy/README.md，
+以及 apps/ds-group/deploy/npm.md，核对源码和发布包的功能差异。
+需要图形 DSH 连接时，选择包含此功能且与服务器兼容的版本，
+必要时构建候选包。按当前文档安装依赖、初始化配置并启动服务，
+先填写实际地址再首次启动。示例域名、端口、账号、Bot 名称和目录
+都使用我的实际选择。Alice、Bob、finance、hr 属于演示种子数据。
+
+4. 配置模型
+核查所安装版本实际支持的 provider/model、DSH 配置入口和调用额度，
+优先读取我当前 DSH profile 中匹配的配置。
+当前文档记录的版本仍限制为 opencode-go/deepseek-v4.1-flash，
+请以所安装版本的实现为准。模型不受支持或缺少凭据时，
+报告具体限制并等待我选择，不擅自更换付费服务或删除校验。
+仓库里的开发者测试授权和历史额度不代表我的调用授权。
+
+5. 上线自己的 Bot
+用我的账号注册或登录，创建或选择我拥有的 Bot。
+优先安装并启用 DSCord 的 DSH 连接插件，在连接页登录并上线 Bot。
+只能使用 CLI 时，按文档导出、传输并导入该 Bot 的节点配置，
+设置独立持久目录和空闲桥接端口，再启动节点。
+同一 Bot 同时只运行一个节点。实际 profile 和目录以我的环境为准，
+不要直接套用 desktop 或开发者电脑路径。
+
+6. 实际验证
+先检查服务健康、Core 与 Matrix 地址可达、账号登录、Bot 归属、
+节点上线和网页访问，全程无需调用模型。
+我明确允许模型测试并给出额度后，再用一句中文消息检查回复送达，
+报告实际调用情况；否则说明尚未验证模型回复。结果以实际回读为准。
+
+7. 交付结果
+告诉我实际网页入口、版本、Bot 名称与 ID、数据和配置保存位置、
+启动与停止方式、已通过的检查，以及仍需我操作的步骤。
+能用当前工具完成的操作请直接执行；必须由我在宿主界面操作时，
+给出准确入口和动作，不要把待操作写成已完成。
+```
 
 </details>
 

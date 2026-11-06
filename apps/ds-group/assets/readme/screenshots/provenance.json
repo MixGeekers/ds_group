@@ -1,0 +1,119 @@
+{
+  "title": "DSCord 中文 README 截图",
+  "createdAt": "2026-11-05T20:20:11.098022-04:00",
+  "sourceCommit": "a8b370f4b84ed8d96009f77a82625df6c72731c2",
+  "mergedMainCommitAtCapture": "d32764ba66f5c9099c93226bf9b9ee76598d36d2",
+  "gitTree": "c7ad5f3932dffe1a4115efb4923ff613fddde870",
+  "mainHasSameTreeAtCapture": true,
+  "productionBuild": {
+    "descriptionZh": "使用当前工作树已有的 dist/web 与 dist/admin 生产构建，界面通过真实浏览器渲染。",
+    "webIndexSha256": "21d872623aea4e778107c5701f6cfd5d8211397268d40879f8f0297466366030",
+    "adminIndexSha256": "a54a3aeaeac40eb1d7ceec9f13686b023a741be6754e4ba526c63de51dc3e621"
+  },
+  "capture": {
+    "tool": "Codex CUA in-app browser",
+    "inputFormat": "JPEG",
+    "outputFormat": "PNG",
+    "conversion": "macOS sips",
+    "composited": false,
+    "retouched": false,
+    "mobileDevice": "390×844 CSS 像素浏览器视口",
+    "mobileHorizontalOverflow": false
+  },
+  "evidenceScope": {
+    "chatBackend": "基于 tests/unified-client.browser.mjs 的合成 HTTP 展示夹具",
+    "chatMessagesFilesAndPresence": "预置合成示例",
+    "people": [
+      "林知",
+      "陈序",
+      "许宁",
+      "周禾"
+    ],
+    "bots": [
+      "识雨",
+      "文档助手",
+      "审校助手"
+    ],
+    "modelCalls": 0,
+    "executedBotTasks": 0,
+    "adminBackend": "真实 createAdmin HTTP 服务、登录鉴权与本地治理策略持久化",
+    "synapseAdapter": "合成控制适配器",
+    "adminSavedRevision": 1,
+    "adminLivePolicyObserved": false,
+    "adminRestartRequired": true,
+    "adminApplyPerformed": false,
+    "privateDataReview": "最终四张图逐张检查，显示的账号、服务器、消息和文件均为合成示例。"
+  },
+  "operationsZh": [
+    "启动仅监听本机回环地址的截图专用服务，使用独立合成状态目录。",
+    "通过登录表单进入中文客户端，查看创作空间的发布讨论频道。",
+    "通过全局我的 Bot 入口打开识雨私聊，并通过账号菜单切换明亮主题。",
+    "实际点击 Markdown 附件卡片，读取预览后关闭预览。",
+    "在消息框输入一条合成待发送草稿，保留在桌面私聊截图中。",
+    "通过独立后台登录，打开伙伴服务器，查看两条合成记录并打开编辑表单。",
+    "在 390×844 浏览器视口通过频道菜单与全局 Bot 入口进入私聊，核对无页面横向溢出。",
+    "将浏览器 JPEG 截图转换为 PNG，逐张检查最终画面，记录尺寸与 SHA-256。",
+    "关闭三个临时截图页并撤销临时视口设置，停止截图服务。"
+  ],
+  "deliveryFiles": [
+    "group-chat-zh.png",
+    "bot-direct-files-zh.png",
+    "server-admin-zh.png",
+    "mobile-chat-zh.png",
+    "provenance.json"
+  ],
+  "assets": [
+    {
+      "filename": "group-chat-zh.png",
+      "captionZh": "人类与多个 Bot 在同一频道中讨论，文件以独立卡片展示。",
+      "altZh": "DSCord 中文界面，人类与多个 Bot 在同一频道中讨论，文件以独立卡片展示。",
+      "theme": "深色",
+      "kind": "desktop",
+      "width": 1440,
+      "height": 810,
+      "sha256": "9b2d605947673d15bcdea934707bf32c1d8cdf471fc8b852ed33dfdcbd549543",
+      "bytes": 313749,
+      "visuallyReviewed": true,
+      "sourceFilename": "01-中文群聊与多Bot.png"
+    },
+    {
+      "filename": "bot-direct-files-zh.png",
+      "captionZh": "从全局 Bot 入口打开私聊，预览或下载 Markdown 与 CSV 附件。",
+      "altZh": "DSCord 中文界面，从全局 Bot 入口打开私聊，预览或下载 Markdown 与 CSV 附件。",
+      "theme": "明亮",
+      "kind": "desktop",
+      "width": 1440,
+      "height": 810,
+      "sha256": "b949cf0d03c32a33edf952cdcf7c571dde1212b236397f3a10f01d084ee2f918",
+      "bytes": 248071,
+      "visuallyReviewed": true,
+      "sourceFilename": "02-Bot私聊与文件卡片.png"
+    },
+    {
+      "filename": "server-admin-zh.png",
+      "captionZh": "独立管理后台配置伙伴服务器，展示已保存且待应用的策略。",
+      "altZh": "DSCord 中文界面，独立管理后台配置伙伴服务器，展示已保存且待应用的策略。",
+      "theme": "明亮",
+      "kind": "desktop",
+      "width": 1280,
+      "height": 720,
+      "sha256": "d4da7ccece2cc9391bdba33844b75db7278b44c580e83f72b89191253e1e416e",
+      "bytes": 232553,
+      "visuallyReviewed": true,
+      "sourceFilename": "03-独立服务器管理.png"
+    },
+    {
+      "filename": "mobile-chat-zh.png",
+      "captionZh": "手机尺寸下的 Bot 私聊与附件卡片，底部保留消息输入区。",
+      "altZh": "DSCord 中文界面，手机尺寸下的 Bot 私聊与附件卡片，底部保留消息输入区。",
+      "theme": "明亮",
+      "kind": "mobile-viewport",
+      "width": 390,
+      "height": 844,
+      "sha256": "86130ca9dac93c91f4d1bc1e72b5ef7aa029edc944386397465edb3dd64ba943",
+      "bytes": 138736,
+      "visuallyReviewed": true,
+      "sourceFilename": "04-手机端Bot私聊.png"
+    }
+  ]
+}
