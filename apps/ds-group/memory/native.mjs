@@ -8,6 +8,7 @@ import { createMemoryPanel } from './panel.mjs';
 import { prepareReviewBatch, prepareReviewProposal } from './review.mjs';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { memoryModelOptions } from './model-options.mjs';
+import { contactReadView } from './contacts.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('\n');
 const RULES = `# Source-aware memory
@@ -67,8 +68,9 @@ export function installNativeMemory(rt) {
     parameters: { id: string('Memory ID'), entry: string('Legacy unique text match'), scope: string('Current room by default; own, team, all or room:<ID>'), expectedRevision: { type: 'number' } }, output,
     async execute(args, exec) { const id = caller(exec); const result = memory.forget(id, args, memory.current(id, exec.agent?.id) || null); news.set(id, Date.now()); return stringify(result); } }));
   rt.teamTools.push(defineTool({ name: 'contacts', description: 'Find stable people/Bot/group identities and historical display names. Equal names stay separate accounts.',
-    parameters: { query: string('Full account ID or display-name fragment; omit to list') }, output,
-    async execute(args) { return stringify(store.contacts(args.query)); } }));
+    parameters: { query: string('Full account ID or display-name fragment; omit to list'),
+      history: { type: 'boolean', description: 'Include retained identity observations; default returns identities, all aliases and latest observation only' } }, output,
+    async execute(args) { return stringify(contactReadView(store.contacts(args.query), { history: args.history === true })); } }));
 
   async function oneShot(bot, system, text, tag = {}) {
     const reference = await rt.desiredModel(bot) ?? await rt.defaultModel();
@@ -121,7 +123,7 @@ export function installNativeMemory(rt) {
         const known = [...relevant.values()].map(row => ({
           id: row.id, text: row.text, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope, kind: row.kind, saidBy: row.saidBy, sourceRefs: row.sourceRefs,
         }));
-        const changes = await prepareReviewProposal({ input: { botId, contacts: store.contacts(), sources, existingMemories: known },
+        const changes = await prepareReviewProposal({ input: { botId, contacts: contactReadView(store.contacts()), sources, existingMemories: known },
           generate: input => botShot(bot, REVIEW, stringify(input)),
           onProposal: (result, attempt) => store.log('review-proposal', { botId, sourceRefs: refs, changes: result.changes, attempt }),
           onInvalid: (error, attempt) => { memory.errors.push({ operation: 'review-validation', botId, attempt, error: error.message, at: Date.now() });
