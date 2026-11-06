@@ -1,5 +1,5 @@
 // Loaded only by the acceptance harness, never the product profile.
-import { appendFile } from 'node:fs/promises';
+import { appendFile, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { createRuntime } from '../vendor/ds-bot/index.js';
@@ -11,7 +11,11 @@ export const inject = ['llm','tools','systemPrompt','sessionController','session
 const MODEL = 'opencode-go/deepseek-v4.1-flash';
 export async function apply(ctx, config) {
   const directory = config.directory;
-  const rt = createRuntime(ctx, { mainName: '识雨', workspace: config.workspace, memoryBackend: installNativeMemory, memoryReviewDelayMs: 50 });
+  let scenario;
+  try { scenario=JSON.parse(await readFile(join(directory,'scenario-profile.json'),'utf8')); }
+  catch(error) { if(error.code!=='ENOENT')throw error; }
+  const rt = createRuntime(ctx, { mainName: '识雨', workspace: config.workspace, memoryBackend: installNativeMemory,
+    ...(scenario ? {} : { memoryReviewDelayMs: 50 }) });
   const native = new NativeBots(ctx), bridges = new Map();
   let eventWrites = Promise.resolve();
   const log = (filename, entry) => { eventWrites = eventWrites.catch(() => {}).then(() => appendFile(join(directory, filename), JSON.stringify(entry) + '\n')); return eventWrites; };
@@ -49,12 +53,15 @@ export async function apply(ctx, config) {
         let state = await native.state();
         for (const bot of state.bots) await (await native.agent(bot.sessionId)).whenIdle();
         for (const name of ['知秋', '听澜']) if (!state.bots.some(bot => bot.name === name)) {
-          await native.call('create-bot', { name, role: '协作助手', model: MODEL, instructions: '用简体中文完成协作；记忆保留完整账号与来源；需要历史事实时调用 recall。' });
+          await native.call('create-bot', { name, role: '协作助手', model: MODEL, instructions: scenario?.instructions || '用简体中文完成协作；记忆保留完整账号与来源；需要历史事实时调用 recall。' });
           state = await native.state();
           await (await native.agent(state.bots.find(bot => bot.name === name).sessionId)).whenIdle();
         }
         value = [];
-        for (const [index, bot] of state.bots.entries()) value.push(await bind(bot.id, index));
+        for (const [index, bot] of state.bots.entries()) {
+          if(scenario)await native.call('update-bot',{id:bot.id,instructions:scenario.instructions});
+          value.push(await bind(bot.id, index));
+        }
         for (const bot of state.bots) await (await native.agent((await native.bot(bot.id)).sessionId)).whenIdle();
       } else if (action === 'turn') {
         const bridge = bridges.get(input.index || 0);

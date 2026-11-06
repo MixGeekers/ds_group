@@ -168,6 +168,20 @@ test('an explicit empty artifact list does not publish staged drafts', async t =
   assert.deepEqual((await f.bridge.turn(f.request('empty-explicit'))).artifacts,[]);
 });
 
+test('ordinary Markdown links to actual native files become attachments, excluding web links and examples', async t => {
+  const cwd=await mkdtemp(path.join(os.tmpdir(),'native-link-'));t.after(()=>rm(cwd,{recursive:true,force:true}));
+  await writeFile(path.join(cwd,'count.mjs'),'export const count = a => a.length;');
+  const f=await fixture(t,{cwd,send:async({event,turn})=>{
+    const text='Here is [count.mjs](./count.mjs). See [docs](https://nodejs.org/api/test.html).\n```md\n[example](/missing/example.md)\n```';
+    await event('assistant/message',{turn,message:{content:[{type:'text',text}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const result=await f.bridge.turn(f.request('native-file-link'));
+  assert.equal(result.status,'completed');assert.deepEqual(result.artifacts.map(x=>x.name),['count.mjs']);
+  assert.equal(result.artifactDelivery,'native-file-link');
+  assert.equal(await readFile(result.artifacts[0].path,'utf8'),'export const count = a => a.length;');
+});
+
 test('failed present calls and other turns never become native request attachments', async t => {
   const f = await fixture(t, { send: async ({ event, turn }) => {
     const arguments_ = JSON.stringify({ files: [{ path: path.join(f.node.directory, 'not-delivered.txt') }] });

@@ -29,3 +29,18 @@ test('malformed JSON and persistent invalid proposals never become successful em
   await assert.rejects(prepareReviewProposal({ input: { sources, existingMemories }, generate: async () => { calls++; return JSON.stringify({ changes: [{ ...good, sourceIds: [] }] }); } }), /MEMORY_REVIEW_SOURCE/);
   assert.equal(calls, 2);
 });
+
+test('a scope relocation cannot partially fail after applying earlier changes', async () => {
+  const old={id:'memory_old',scope:'room:!a:test',subjectId:'matrix:@lin:test',text:'Use short Chinese reports',sourceRefs:[{id:'source_correction',revision:2}]};
+  const move={op:'replace',replaceId:old.id,scope:'own',subjectId:old.subjectId,text:old.text,sourceIds:['$changed']};
+  assert.throws(()=>validateReviewProposal({changes:[move]},sources,[old]),/MEMORY_REVIEW_SCOPE/);
+  let calls=0;
+  const changes=await prepareReviewProposal({input:{sources,existingMemories:[old]},generate:async input=>{
+    calls++;
+    if(calls===1)return JSON.stringify({changes:[move]});
+    assert.match(input.validationError.instruction,/add it in own and forget/);
+    return JSON.stringify({changes:[{...move,op:'add',replaceId:undefined},good]});
+  }});
+  assert.deepEqual(changes.map(x=>x.op),['add','forget']);
+  assert.throws(()=>validateReviewProposal({changes:[good,good]},sources,[old]),/MEMORY_REVIEW_DUPLICATE_TARGET/);
+});

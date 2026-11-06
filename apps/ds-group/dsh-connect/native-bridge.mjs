@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { mkdir } from 'node:fs/promises';
 import { readOptionalJson, savePrivateJson } from '../scripts/server-init.mjs';
 import { prepareWorkFiles, collectArtifacts, collectStagedArtifacts, MAX_ARTIFACTS } from '../dsh-plugin/work-files.mjs';
@@ -25,6 +26,19 @@ function nativeArtifactOutput(text) {
     if (start === 0) break;
   }
   return { text, explicitArtifacts: false };
+}
+
+function nativeLinkedArtifacts(text, cwd) {
+  const prose=text.replace(/```[\s\S]*?```/g,'').replace(/`[^`\n]*`/g,'');
+  const files=[];
+  for(const match of prose.matchAll(/\[[^\]\n]*\]\((<[^>\n]+>|[^)\n]+)\)/g)) {
+    let target=match[1].replace(/^<|>$/g,'').trim();
+    if(/^file:/i.test(target)) { try { target=fileURLToPath(target); } catch { continue; } }
+    else if(/^[a-z][a-z\d+.-]*:/i.test(target)||target.startsWith('#')||target.startsWith('//'))continue;
+    if(!path.extname(target)||!path.isAbsolute(target)&&!cwd)continue;
+    files.push({path:path.isAbsolute(target)?target:path.resolve(cwd,target)});
+  }
+  return [...new Map(files.map(file=>[file.path,file])).values()];
 }
 
 /** DSCord is another input/output for the original Bot. Its native Session,
@@ -122,6 +136,7 @@ export class NativeBridge {
     if (!run.seen) return;
     if (event.data?.turn !== undefined && event.data.turn !== run.turn) return;
     if (event.type === 'assistant/message') {
+      run.cwd = this.ctx.get?.('workingDirectory')?.get?.(session) || session.header?.cwd || run.cwd;
       const text = textOf(event.data?.message);
       if (text.trim() === HANDOFF_ACK || /^\[(?:PASS|HANDOFF[^\]]*)\]$/.test(text.trim())) run.text = '';
       else if (text) run.text = text;
@@ -241,6 +256,12 @@ export class NativeBridge {
         if (paths.has(file.path)) continue;
         if (artifacts.length >= MAX_ARTIFACTS) throw error('TOO_MANY_ARTIFACTS');
         paths.add(file.path); artifacts.push(file);
+      }
+      if (!delivery.explicitArtifacts) for (const descriptor of nativeLinkedArtifacts(run.text,run.cwd||files.workdir)) {
+        const [file]=await collectArtifacts(JSON.stringify({text:'Linked native file',artifacts:[descriptor]}),files.workdir,{allowExternalPaths:true});
+        if(paths.has(file.path))continue;
+        if(artifacts.length>=MAX_ARTIFACTS)throw error('TOO_MANY_ARTIFACTS');
+        paths.add(file.path);artifacts.push(file);record.artifactDelivery='native-file-link';
       }
       if (!artifacts.length && !delivery.explicitArtifacts) {
         const staged = await collectStagedArtifacts(files.workdir);
