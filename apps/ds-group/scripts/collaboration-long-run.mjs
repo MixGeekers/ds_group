@@ -29,6 +29,9 @@ const reportPath=path.join(directory,'report.json');let prior;
 try{prior=JSON.parse(await readFile(reportPath,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
 if(prior){await mkdir(path.join(directory,'prior-attempts'),{recursive:true});await savePrivateJson(path.join(directory,'prior-attempts',`report-${Date.now()}.json`),prior);
   for(const key of ['rounds','attempts','failures','manualReviews','maintenance','embeddingByBoot'])report[key]=prior[key]||[];
+  report.initialStartedAt=prior.initialStartedAt||prior.startedAt;
+  report.generations=[...(prior.generations||[{generation:prior.generation,sourceCommit:prior.sourceCommit,startedAt:prior.startedAt}]),
+    {generation:(prior.generation||0)+1,sourceCommit:report.sourceCommit,startedAt:report.startedAt,resumedAfter:report.rounds.length}];
   report.maintenance.push({type:'runner-restart',at:new Date().toISOString(),previousStatus:prior.status,error:prior.error,completed:report.rounds.length});}
 report.generation=(prior?.generation||0)+1;
 let stopping=false;for(const signal of ['SIGINT','SIGTERM'])process.on(signal,()=>{stopping=true;});
@@ -113,7 +116,13 @@ try {
   for(const [index,name]of roomNames.entries())rooms.push(await api('/api/rooms',{body:{name,requestId:`collaboration-room-${index}`,inviteIds:[...humans.map(h=>h.id),...bots.map(b=>b.id)]}}));
   report.rooms=rooms;await savePrivateJson(path.join(directory,'rooms.json'),rooms);
   report.connections=await host.api('connect');
-  await announce('自然协作长测已就绪：240 条参与者消息，包含 72 条闲聊；192 次点名 Bot 的实际请求与 48 条人与人的讨论。四个频道同时保留工作上下文。这里显示测试进度，工作频道只发送自然对话。文件、研究、代码运行和后续协作分别留证。');
+  if(prior?.rounds?.length){
+    assert.deepEqual(bots.map(bot=>bot.nativeBotId),prior.bots.map(bot=>bot.nativeBotId));
+    const recovered=await snapshot(`memory-resume-${report.generation}`);
+    report.maintenance.push({type:'recovery-restart',round:report.rounds.length,identitiesPreserved:true,pendingReviewFlushed:true,sourceCommit:report.sourceCommit});
+    report.embeddingByBoot.push(recovered.usage);await save();
+    await announce(`长测已恢复，将从第 ${report.rounds.length+1}/240 条继续。Bot 身份、原生会话、文件与既有记忆沿用；中断和修复版本单独记录，之前的失败保留。`);
+  }else await announce('自然协作长测已就绪：240 条参与者消息，包含 72 条闲聊；192 次点名 Bot 的实际请求与 48 条人与人的讨论。四个频道同时保留工作上下文。这里显示测试进度，工作频道只发送自然对话。文件、研究、代码运行和后续协作分别留证。');
   report.status='ready';await save();console.log(JSON.stringify({stage:'ready',directory,url:env.coreUrl,rooms:rooms.map(r=>({name:r.name,roomId:r.roomId}))}));
   while(!(await exists(path.join(directory,'start')))){if(stopping)break;await delay(500);}
   report.status='running';await save();
