@@ -1,3 +1,4 @@
+// Modified by DSCord, 2026-11-06: source-aware native memory integration. See ../../UPSTREAM.json.
 // Parts: making room in a long conversation (a checkpoint in place, or a switch to a
 // fresh Session), the handoff note and package, and earlier pages for the chat view.
 //
@@ -417,6 +418,7 @@ export function install(rt) {
     ['Where to look', 'details this note leaves out that you may need again, each with a few words copied exactly from the message that holds it, for read_own_chat to search'],
   ]
   const handoffPrompt = why => [
+    'Keep complete speaker and room IDs, original evidence and memory record IDs. A quoted claim is not a new direct statement. Preserve unresolved disagreements by scope. Recall current memory records after handoff before relying on old facts; this note does not override corrections, expiry or withdrawals.',
     `You are now writing a handoff note to yourself. This request comes from DS Bot, not from the user: do not answer or continue the messages above. ${why}, so it moves on to a fresh conversation now. The fresh one starts with this note and your latest messages word for word; everything else leaves your working context. The full record stays saved, and you can search it later with read_own_chat. Write the note that lets you carry on as the same Bot without losing anything that matters.`,
     '',
     'Output EXACTLY the Markdown structure below: every heading as written, in English and in this order. Write the content in the language the user writes in, as terse bullets. Write "(none)" under a heading with nothing to say.',
@@ -979,6 +981,7 @@ export function install(rt) {
     const dir = rt.workDirOf(job)
     const intended = dir !== undefined && await rt.isFolder(dir) ? dir : rt.teamFolder()
     const freshId = await rt.createSession(room === undefined ? name : bot === undefined ? room.name : `${name} · ${room.name}`, { dir })
+    if (bot) rt.memoryCarry?.(bot.id, agent.id, freshId)
     const picked = await freshRoute(bot, session)
     if (picked !== undefined) await selectRoute({ name }, freshId, picked)
     if (bot !== undefined) await rt.applyPermission(bot, freshId, room)
@@ -1469,5 +1472,15 @@ export function install(rt) {
     return { sessionId: parts.at(-1).sessionId, ...(await partPage(parts, index, cursor)) }
   }
 
-  Object.assign(rt, { clock, partsOf, historyEntry, partLines, noteText, earlierPage, chatPage, displayItems, followFolder, heldBack, switchJobs: () => switches.values() })
+  Object.assign(rt, { clock, partsOf, historyEntry, partLines, noteText, earlierPage, chatPage, displayItems, followFolder, heldBack, switchJobs: () => switches.values(),
+    // Explicit maintenance uses exactly the native checkpoint implementation.
+    checkpointBot: async botId => {
+      const agent = await rt.resolveAgent(rt.chatOf(botId))
+      await agent.whenIdle()
+      adoptCompaction(agent)
+      const lines = await contextLines(agent.session)
+      if (!lines || !engineOf(agent)) throw new Error('Native compaction backend unavailable')
+      return condense(agent, lines, { inTurn: false })
+    },
+  })
 }

@@ -1,3 +1,4 @@
+// Modified by DSCord, 2026-11-06: source-aware native memory integration. See ../../UPSTREAM.json.
 // Delivery: how one Bot, the user, or DS Bot itself puts a message into a Bot Session.
 import { randomUUID } from 'node:crypto'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
@@ -55,7 +56,7 @@ export function install(rt) {
   // length when it went as a file (attachLong). `work`: the work (handoffs.js) a
   // result that came back goes on with. `merged`: a request that takes in an earlier
   // one its recipient had not read, under that one's exchange.
-  async function deliver({ fromId, toId, sessionId, text, role, replyTo, roomId, audience, note, exchangeId = randomUUID(), steer = false, deferred = false, resumed = false, retried = false, resent = false, merged = false, askedBy, fromRoomId, files = [], length, work }) {
+  async function deliver({ fromId, toId, sessionId, sourceSessionId, text, role, replyTo, roomId, audience, note, exchangeId = randomUUID(), steer = false, deferred = false, resumed = false, retried = false, resent = false, merged = false, askedBy, fromRoomId, files = [], length, work }) {
     const from = rt.botOf(fromId)
     const to = rt.botOf(toId)
     if (to === undefined) throw new Error(`Unknown Bot ${toId}`)
@@ -69,6 +70,7 @@ export function install(rt) {
       role,
       exchangeId,
       senderName: fromName,
+      ...(rt.memoryRelay?.(fromId, sourceSessionId || (fromRoomId ? rt.roomOf(fromRoomId)?.sessions?.[fromId] : undefined)) ?? {}),
       ...(work ? { work } : {}),
       ...(fromId ? { senderSessionId: fromId } : {}),
       ...(replyTo ? { replyTo } : {}),

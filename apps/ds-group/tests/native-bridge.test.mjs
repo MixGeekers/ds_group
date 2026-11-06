@@ -1,15 +1,16 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, readFile, realpath } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
 import { NativeBots } from '../dsh-connect/native-bots.mjs';
+import { parseBotOutput } from '../src/bot-node.mjs';
 
-async function fixture(t, { idle = Promise.resolve(), send } = {}) {
+async function fixture(t, { idle = Promise.resolve(), send, cwd } = {}) {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'native-bridge-'));
   const handlers = new Map(); let cancelled = 0; let turn = 0;
-  const ctx = { on(name, handler) { handlers.set(name, handler); return () => handlers.delete(name); } };
+  const ctx = { get(name) { return name === 'workingDirectory' && cwd ? { get: () => cwd } : undefined; }, on(name, handler) { handlers.set(name, handler); return () => handlers.delete(name); } };
   const native = new NativeBots(ctx);
   native.bot = async () => ({ id: 'native-one', name: 'Original', role: 'Research', sessionId: 'native-one', model: 'dsh/model' });
   native.agent = async () => ({ whenIdle: () => idle, cancel: () => cancelled++, ctx: { tools: { schemas: () => ['create_bot','remember','bash'].map(name => ({ name })) } } });
@@ -104,4 +105,139 @@ test('a native context-part handoff keeps the request and does not publish its a
   const result = await f.bridge.turn(f.request('part-switch'));
   assert.equal(result.status, 'completed'); assert.equal(result.sessionId, 'native-next');
   assert.equal(result.text, 'Final result after native context handoff');
+});
+
+test('native present delivers actual files with an ordinary final answer and resolves the native working folder', async t => {
+  const cwd = await mkdtemp(path.join(os.tmpdir(), 'native-present-work-'));
+  t.after(() => rm(cwd, { recursive: true, force: true }));
+  await writeFile(path.join(cwd, 'absolute.txt'), '441 !north:memory.test');
+  await writeFile(path.join(cwd, 'relative.txt'), 'independent native working folder');
+  const f = await fixture(t, { cwd, send: async ({ event, turn }) => {
+    await event('tool/call', { turn, callId: 'present-files', name: 'present', arguments: JSON.stringify({ files: [
+      { path: path.join(cwd, 'absolute.txt') }, { path: 'relative.txt' },
+    ] }) });
+    await event('tool/result', { turn, message: { toolCallId: 'present-files', isError: false, content: [{ type: 'text', text: 'Presented both files' }] } });
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text: 'Files are ready.' }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+  } });
+  const result = await f.bridge.turn(f.request('present-files'));
+  assert.equal(result.status, 'completed'); assert.equal(result.text, 'Files are ready.');
+  assert.deepEqual(result.artifacts.map(file => file.path), await Promise.all(['absolute.txt', 'relative.txt'].map(name => realpath(path.join(cwd, name)))));
+  assert.equal(await readFile(result.artifacts[0].path, 'utf8'), '441 !north:memory.test');
+  assert.equal(result.artifacts[0].size, Buffer.byteLength('441 !north:memory.test'));
+  assert.match(result.artifacts[0].sha256, /^[a-f0-9]{64}$/);
+});
+
+test('failed present calls and other turns never become native request attachments', async t => {
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    const arguments_ = JSON.stringify({ files: [{ path: path.join(f.node.directory, 'not-delivered.txt') }] });
+    await event('tool/call', { turn, callId: 'failed-present', name: 'present', arguments: arguments_ });
+    await event('tool/result', { turn, message: { toolCallId: 'failed-present', isError: true } });
+    await event('tool/call', { turn: 999, callId: 'other-turn', name: 'present', arguments: arguments_ });
+    await event('tool/result', { turn: 999, message: { toolCallId: 'other-turn', isError: false } });
+    await event('tool/call', { turn, callId: 'other-session', name: 'present', arguments: arguments_ }, 'native-peer');
+    await event('tool/result', { turn, message: { toolCallId: 'other-session', isError: false } }, 'native-peer');
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text: 'No delivered file.' }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+  } });
+  await writeFile(path.join(f.node.directory, 'not-delivered.txt'), 'exists but not delivered');
+  const result = await f.bridge.turn(f.request('failed-present'));
+  assert.equal(result.status, 'completed'); assert.deepEqual(result.artifacts, []);
+});
+
+test('native present plus an explicit delivery envelope returns one durable artifact on retry', async t => {
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    const filename = path.join(f.node.directory, 'once.txt');
+    await event('tool/call', { turn, callId: 'present-once', name: 'present', arguments: { files: [{ path: filename }] } });
+    await event('tool/result', { turn, message: { toolCallId: 'present-once', isError: false } });
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text: JSON.stringify({ text: 'Delivered', artifacts: [{ path: filename }] }) }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+  } });
+  await writeFile(path.join(f.node.directory, 'once.txt'), 'once');
+  const request = f.request('present-once'), result = await f.bridge.turn(request);
+  assert.equal(result.status, 'completed'); assert.equal(result.artifacts.length, 1);
+  assert.deepEqual((await f.bridge.turn(request)).artifacts, result.artifacts); assert.equal(f.calls.length, 1);
+});
+
+test('a file removed after native present fails the actual-byte delivery check', async t => {
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    const filename = path.join(f.node.directory, 'removed.txt');
+    await event('tool/call', { turn, callId: 'present-removed', name: 'present', arguments: JSON.stringify({ files: [{ path: filename }] }) });
+    await event('tool/result', { turn, message: { toolCallId: 'present-removed', isError: false } });
+    await rm(filename);
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text: 'File was presented.' }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+  } });
+  await writeFile(path.join(f.node.directory, 'removed.txt'), 'removed');
+  const result = await f.bridge.turn(f.request('present-removed'));
+  assert.equal(result.status, 'failed'); assert.equal(result.errorCode, 'WORK_FILE_NOT_FOUND'); assert.deepEqual(result.artifacts, []);
+});
+
+test('ordinary delegation acknowledgements wait for all correlated native replies', async t => {
+  let replyWork;
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    for (const exchangeId of ['first', 'second']) await event('user/message', { source: {
+      kind: 'bot', role: 'request', senderSessionId: 'native-one', exchangeId,
+    } }, 'native-peer');
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text: 'I delegated the work and will pass on the results later.' }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+    // Return from send before either reply, as the real native tool does.
+    replyWork = (async () => {
+      await new Promise(resolve => setTimeout(resolve, 20));
+      await event('turn/start', { turn: 2 });
+      await event('user/message', { source: { kind: 'bot', role: 'reply', replyTo: 'first' } });
+      await event('assistant/message', { turn: 2, message: { content: [{ type: 'text', text: 'The first answer is 437; still waiting for the second.' }] } });
+      await event('turn/end', { turn: 2, reason: { kind: 'completed' } });
+      await new Promise(resolve => setTimeout(resolve, 20));
+      await event('turn/start', { turn: 3 });
+      await event('user/message', { source: { kind: 'bot', role: 'reply', replyTo: 'second' } });
+      await event('assistant/message', { turn: 3, message: { content: [{ type: 'text', text: 'Both actual answers: 437 and 391.' }] } });
+      await event('turn/end', { turn: 3, reason: { kind: 'completed' } });
+    })();
+  } });
+  const result = await f.bridge.turn(f.request('await-delegation')); await replyWork;
+  assert.equal(result.status, 'completed'); assert.equal(result.text, 'Both actual answers: 437 and 391.');
+});
+
+test('native direct-to-user delegation does not wait for a reply to the originating Bot', async t => {
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    await event('user/message', { source: { kind: 'bot', role: 'request', senderSessionId: 'native-one', exchangeId: 'direct', audience: 'user' } }, 'native-peer');
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text: 'The Bot will answer you in its own native chat.' }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+  } });
+  const result = await f.bridge.turn(f.request('direct-user'));
+  assert.equal(result.status, 'completed'); assert.equal(result.text, 'The Bot will answer you in its own native chat.');
+});
+
+test('native file envelopes after an explanation or Markdown fence still deliver actual bytes', async t => {
+  let fenced = false;
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    const envelope = JSON.stringify({ text: 'Ready', artifacts: [{ path: path.join(f.node.directory, 'envelope.txt') }] });
+    const text = `File is ready.\n\n${fenced ? `\`\`\`json\n${envelope}\n\`\`\`` : envelope}`;
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+  } });
+  await writeFile(path.join(f.node.directory, 'envelope.txt'), '525 !north:memory.test');
+  for (const mode of [false, true]) {
+    fenced = mode;
+    const result = await f.bridge.turn(f.request(`envelope-${mode}`));
+    assert.equal(result.status, 'completed'); assert.equal(result.artifacts.length, 1);
+    assert.equal(parseBotOutput(result.text, f.node.id, []).text, 'Ready');
+    assert.equal(await readFile(result.artifacts[0].path, 'utf8'), '525 !north:memory.test');
+  }
+});
+
+test('ordinary structured native answers are kept verbatim through the native and chat output parsers', async t => {
+  let answer;
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    await event('assistant/message', { turn, message: { content: [{ type: 'text', text: answer }] } });
+    await event('turn/end', { turn, reason: { kind: 'completed' } });
+  } });
+  const answers = [JSON.stringify({ value: '苍鹭-7321', roomId: '!north:memory.test', speakerId: '@lin:a.test' }), '[1,2,3]', '437', 'true', 'null', '"quoted data"'];
+  for (const [index, value] of answers.entries()) {
+    answer = value;
+    const result = await f.bridge.turn(f.request(`ordinary-data-${index}`));
+    assert.equal(result.status, 'completed'); assert.equal(result.text, answer); assert.deepEqual(result.artifacts, []);
+    assert.deepEqual(parseBotOutput(result.text, f.node.id, []), { text: answer });
+  }
 });

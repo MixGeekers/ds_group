@@ -1,3 +1,4 @@
+// Modified by DSCord, 2026-11-06: source-aware native memory integration. See ../../UPSTREAM.json.
 // Client channel: the team view the browser renders, and the POST /api/bot endpoints.
 import { randomUUID } from 'node:crypto'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
@@ -81,6 +82,7 @@ export function install(rt) {
     browser: rt.browserEnabled,
     // False when config.memory turns memory off: no Memory row or panel.
     memory: rt.memoryEnabled !== false,
+    memoryBackend: rt.memoryBackend ?? 'native-markdown',
     // Set while another dsh host holds the team (store.js): why this one cannot change it.
     readOnly: rt.readOnly() ?? null,
   })
@@ -491,6 +493,7 @@ export function install(rt) {
               : past?.roomId === undefined && past !== undefined ? rt.chatOf(past.botId)
                 : past !== undefined ? rt.sessionOfRoom(rt.roomOf(past.roomId)) : body.sessionId
           await rt.ensureCapabilities(sessionId)
+          await rt.memoryIngress?.(sessionId, text, body.memoryContext)
           await ctx.sessionController.prompt({
             requestId: randomUUID(),
             sessionId,

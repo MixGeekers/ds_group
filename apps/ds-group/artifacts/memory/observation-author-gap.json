@@ -1,0 +1,200 @@
+{
+  "observedAt": "2026-11-06T09:09:48.536997+00:00",
+  "run": "memory-long-KqKzrC",
+  "round": 150,
+  "status": "preserved-failure-with-passed-targeted-followup",
+  "finding": "The first explicit tool observation inferred the requesting human as saidBy when both request and tool refs were supplied. Automatic review subsequently corrected the current author to tool:bash.",
+  "provenanceDecision": "Keep both valid source references. Derive an observation author from actual tool evidence at write time, independently of source-reference order. The original long-run only-tool-source audit remains unchanged and may flag mixed refs even when the final author is correct.",
+  "records": [
+    {
+      "id": "memory_2023e252913e23b1effc918ca442b8efb2e29de3a352f3721dfc555d1a818d1d",
+      "status": "superseded",
+      "text": "本次校验任务的实际 SHA-256：字符串「memory-round-150」的 SHA-256 = 785a7b85bec513be78dde5c066e59cac1b684954c359699c8d7b56c18045a130（design 组，工具观测）",
+      "kind": "observation",
+      "saidBy": "matrix:@song:memory.test",
+      "subjectId": "task:hash-150",
+      "sourceRefs": [
+        {
+          "id": "source_0f4d6ab2ce515b7e327bce30a173d2afd917635269e971310b88b20c65634ea2",
+          "revision": 1
+        },
+        {
+          "id": "source_dc7a93e4e7747266e7e7abe00425ff6323b5d9735ef2a831b548538a917dfcfc",
+          "revision": 1
+        }
+      ],
+      "sources": [
+        {
+          "id": "source_0f4d6ab2ce515b7e327bce30a173d2afd917635269e971310b88b20c65634ea2",
+          "authorId": "matrix:@song:memory.test",
+          "authorKind": "human",
+          "transport": "matrix",
+          "eventId": "$long-150",
+          "originRefs": []
+        },
+        {
+          "id": "source_dc7a93e4e7747266e7e7abe00425ff6323b5d9735ef2a831b548538a917dfcfc",
+          "authorId": "tool:bash",
+          "authorKind": "tool",
+          "transport": "tool",
+          "eventId": "chatcmpl-tool-97c6ca3192597ca9",
+          "originRefs": [
+            {
+              "id": "source_0f4d6ab2ce515b7e327bce30a173d2afd917635269e971310b88b20c65634ea2",
+              "revision": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "memory_dfe3d52c33b8bb525e9a90321e2bfe41b864ae643861934c8a6a2dbb6d772c59",
+      "status": "active",
+      "text": "本次校验任务的实际 SHA-256：字符串「memory-round-150」的 SHA-256 = 785a7b85bec513be78dde5c066e59cac1b684954c359699c8d7b56c18045a130（design 组，工具观测）",
+      "kind": "observation",
+      "saidBy": "tool:bash",
+      "subjectId": "task:hash-150",
+      "sourceRefs": [
+        {
+          "id": "source_0f4d6ab2ce515b7e327bce30a173d2afd917635269e971310b88b20c65634ea2",
+          "revision": 1
+        },
+        {
+          "id": "source_dc7a93e4e7747266e7e7abe00425ff6323b5d9735ef2a831b548538a917dfcfc",
+          "revision": 1
+        }
+      ],
+      "sources": [
+        {
+          "id": "source_0f4d6ab2ce515b7e327bce30a173d2afd917635269e971310b88b20c65634ea2",
+          "authorId": "matrix:@song:memory.test",
+          "authorKind": "human",
+          "transport": "matrix",
+          "eventId": "$long-150",
+          "originRefs": []
+        },
+        {
+          "id": "source_dc7a93e4e7747266e7e7abe00425ff6323b5d9735ef2a831b548538a917dfcfc",
+          "authorId": "tool:bash",
+          "authorKind": "tool",
+          "transport": "tool",
+          "eventId": "chatcmpl-tool-97c6ca3192597ca9",
+          "originRefs": [
+            {
+              "id": "source_0f4d6ab2ce515b7e327bce30a173d2afd917635269e971310b88b20c65634ea2",
+              "revision": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "candidateChecks": {
+    "passed": 14,
+    "total": 14,
+    "originalPassed": 13,
+    "originalTotal": 14
+  },
+  "sourceHashes": {
+    "memory/service.mjs": "40a5d50bdeb0e11437767eb669ae5d0099377d6e1f7d99c182f77a44abba493d",
+    ".local/source-fix/service-product.mjs": "1dda2077623cfac9bf9b486196de0c096a40efd79c60275120bb2593123d97cd",
+    ".local/source-fix/memory-product.test.mjs": "24b2d0c0c7b07eb19fbf726017c27cd606b624e2ccfca3084f8608b1ca7e536d"
+  },
+  "supplement": "scripts/memory-native-delivery.mjs now checks immediate native remember result and semantic readback; not run yet.",
+  "secondReproduction": {
+    "round": 174,
+    "observedAt": "2026-11-06T09:46:03.148259+00:00",
+    "records": [
+      {
+        "id": "memory_97fa43e5cddd96b532d04e72247dc454b5c6b92b9bd68fab0f83bcf57503e8d9",
+        "status": "superseded",
+        "text": "本次校验任务的实际 SHA-256：字符串「memory-round-174」的 SHA-256 = ea0b304753479785d32f7002cdb0010874db912202fe66bf66c7e33f3b0f41ad（design 组，工具观测）",
+        "kind": "observation",
+        "saidBy": "matrix:@song:memory.test",
+        "subjectId": "task:hash-174",
+        "sourceRefs": [
+          {
+            "id": "source_223f35a0248c08b3d4184cff01ef4a83a8bc76da7912925c45697d922a3661aa",
+            "revision": 1
+          },
+          {
+            "id": "source_cafd5cb15c4e2dfe3cf74d066bfd7db8bec1a9d60a89e61ed4b6f45fdc1e17eb",
+            "revision": 1
+          }
+        ],
+        "sources": [
+          {
+            "id": "source_223f35a0248c08b3d4184cff01ef4a83a8bc76da7912925c45697d922a3661aa",
+            "authorId": "matrix:@song:memory.test",
+            "authorKind": "human",
+            "transport": "matrix",
+            "eventId": "$long-174",
+            "originRefs": []
+          },
+          {
+            "id": "source_cafd5cb15c4e2dfe3cf74d066bfd7db8bec1a9d60a89e61ed4b6f45fdc1e17eb",
+            "authorId": "tool:bash",
+            "authorKind": "tool",
+            "transport": "tool",
+            "eventId": "chatcmpl-tool-8228323b1dc47e6b",
+            "originRefs": [
+              {
+                "id": "source_223f35a0248c08b3d4184cff01ef4a83a8bc76da7912925c45697d922a3661aa",
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "memory_50598f42f5fc201345d5f4eac81ccf3a1e2a28ba1bf737933b629e769e2b6058",
+        "status": "active",
+        "text": "本次校验任务的实际 SHA-256：字符串「memory-round-174」的 SHA-256 = ea0b304753479785d32f7002cdb0010874db912202fe66bf66c7e33f3b0f41ad（design 组，工具观测）",
+        "kind": "observation",
+        "saidBy": "tool:bash",
+        "subjectId": "task:hash-174",
+        "sourceRefs": [
+          {
+            "id": "source_223f35a0248c08b3d4184cff01ef4a83a8bc76da7912925c45697d922a3661aa",
+            "revision": 1
+          },
+          {
+            "id": "source_cafd5cb15c4e2dfe3cf74d066bfd7db8bec1a9d60a89e61ed4b6f45fdc1e17eb",
+            "revision": 1
+          }
+        ],
+        "sources": [
+          {
+            "id": "source_223f35a0248c08b3d4184cff01ef4a83a8bc76da7912925c45697d922a3661aa",
+            "authorId": "matrix:@song:memory.test",
+            "authorKind": "human",
+            "transport": "matrix",
+            "eventId": "$long-174",
+            "originRefs": []
+          },
+          {
+            "id": "source_cafd5cb15c4e2dfe3cf74d066bfd7db8bec1a9d60a89e61ed4b6f45fdc1e17eb",
+            "authorId": "tool:bash",
+            "authorKind": "tool",
+            "transport": "tool",
+            "eventId": "chatcmpl-tool-8228323b1dc47e6b",
+            "originRefs": [
+              {
+                "id": "source_223f35a0248c08b3d4184cff01ef4a83a8bc76da7912925c45697d922a3661aa",
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "followup": {
+    "status": "passed",
+    "evidence": "native-delivery.json",
+    "checks": 18,
+    "modelCalls": 53,
+    "fullModuleChecks": 422
+  },
+  "initialStatus": "observed-candidate-not-applied"
+}

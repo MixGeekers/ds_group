@@ -14,6 +14,7 @@ async function fixture(t) {
     'bin/dscord.mjs': '#!/usr/bin/env node\nconsole.log("fixture");',
     'dsh-connect/index.mjs': 'export {};', 'dsh-connect/client.js': '// DSH client', 'cordis.patch.yml': '[]',
     'src/core.mjs': 'import "../web/mention-tokens.js";',
+    'memory/native.mjs': 'export {};', 'service/ombre/service.py': '# memory service', 'service/ombre/LICENSE': 'MIT',
     'web/mention-tokens.js': 'export {};',
     'dist/web/index.html': '<!doctype html>', 'dist/web/sw.js': '// worker',
     'dist/web/client-config.json': '{}',
@@ -30,7 +31,7 @@ async function fixture(t) {
     '.local/credentials.json': 'PRIVATE', '.npmrc': 'PRIVATE',
     'artifacts/chat.json': 'PRIVATE', 'deploy/.env': 'PRIVATE',
   };
-  for (const name of ['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin', 'central-init', 'admin']) {
+  for (const name of ['service', 'matrix', 'runtime-config', 'runtime-dependencies', 'dsh-node', 'file-work', 'server-init', 'server-bootstrap', 'server-admin', 'central-init', 'admin', 'memory-setup']) {
     files[`scripts/${name}.mjs`] = 'export {};';
   }
   for (const [filename, content] of Object.entries(files)) {
@@ -47,6 +48,7 @@ test('npm alpha packs the runtime, compiled PWA and shared mention parser withou
   assert.equal(result.version, '0.2.0-alpha.1');
   assert.ok(result.size > 0);
   for (const name of ['package.json', 'README.md', 'bin/dscord.mjs', 'src/core.mjs', 'web/mention-tokens.js',
+    'memory/native.mjs', 'service/ombre/service.py', 'service/ombre/LICENSE',
     'dist/web/index.html', 'dist/web/sw.js', 'dist/web/licenses/lucide.txt', 'dist/web/licenses/ui-foundation.txt', 'dist/admin/licenses/ui-foundation.txt', 'vendor/ds-bot/LICENSE',
     'vendor/ds-bot/NOTICE', 'dsh-plugin/runtime-dependencies-lock.json', 'dsh-connect/index.mjs',
     'dsh-connect/client.js', 'cordis.patch.yml', 'dist/admin/index.html', 'dist/admin/theme.js', 'deploy/synapse/dscord_guard.py', 'scripts/admin.mjs', 'scripts/central-init.mjs']) assert.ok(result.files.includes(name), name);

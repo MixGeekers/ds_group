@@ -1,0 +1,50 @@
+{
+  "run": "memory-long-KqKzrC",
+  "round": 60,
+  "status": "observed-failure",
+  "layer": "native-bridge-file-delivery",
+  "sourceHash": "5ec7d7839ce6190fd6cf391cec6180cad6adc8b4f3889a04c23c1aedc9193788",
+  "tools": [
+    {
+      "callId": "chatcmpl-tool-a1dc61b24e773147",
+      "name": "bash",
+      "status": "completed"
+    },
+    {
+      "callId": "chatcmpl-tool-8a98a16879a9478c",
+      "name": "present",
+      "status": "completed"
+    }
+  ],
+  "bridgeArtifacts": [],
+  "actualFile": {
+    "name": "round-60.txt",
+    "size": 86,
+    "sha256": "f5a2f5ef7ca721ac2cb1d7d2296f8c8b91f5e58d6b4b60d927bcdf149a9d2263",
+    "content": "本轮样本统计\n63 × 7 = 441\n群组：北组\n群组完整 ID：!north:memory.test\n"
+  },
+  "finding": "Native present succeeded and real file content was correct. NativeBridge collected only explicit final JSON artifacts, so an ordinary native present delivery was omitted.",
+  "candidateFixtureTests": {
+    "passed": 9,
+    "newChecks": 4
+  },
+  "resolution": "Candidate kept outside the frozen code while the long run continues; apply and run independent real-model file checks after the long run.",
+  "prefacedEnvelopeCase": {
+    "round": 72,
+    "tools": [
+      {
+        "callId": "call_0e9bc82262e647ffb319064c",
+        "name": "write",
+        "status": "completed"
+      }
+    ],
+    "bridgeArtifacts": [],
+    "actualFile": {
+      "name": "round-72.txt",
+      "size": 70,
+      "sha256": "b8abab32ff579f8f4742c186836bf3a72b128b32839675b9f81df05f6d564768",
+      "content": "round-72 样本统计\n75 × 7 = 525\n群完整 ID：!north:memory.test\n"
+    },
+    "format": "An explanatory sentence followed by explicit text/artifacts JSON; no present call. Both original and repeated attempt lost the artifact."
+  }
+}

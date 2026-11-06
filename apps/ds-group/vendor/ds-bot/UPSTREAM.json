@@ -5,5 +5,13 @@
   "source": "https://registry.npmjs.org/ds-bot/-/ds-bot-0.2.7.tgz",
   "integrity": "sha512-d9t8XaD+CNwzGlTYWd6VWxBgNdLhdMbT1ag+H99ZJ19hdyShjntwhdRz+pBF8OMY4j/kSdyg0oAIF2sHNfIhoA==",
   "license": "Apache-2.0",
-  "modifications": []
+  "modifications": [
+    { "file": "src/host/memory.js", "purpose": "Optional source-aware backend and one-time legacy Markdown import hook" },
+    { "file": "src/host/channel.js", "purpose": "Expose memory backend state and forward original DSCord message context" },
+    { "file": "src/host/delivery.js", "purpose": "Preserve original memory evidence and caller Session across native Bot delegation" },
+    { "file": "src/host/tools.js", "purpose": "Carry the actual caller Session into native message_bot delivery" },
+    { "file": "src/host/parts.js", "purpose": "Source-aware handoff guidance and explicit native checkpoint entry point" },
+    { "file": "src/host/steward.js", "purpose": "Preserve identity, scope and unresolved conflicting claims during compaction" },
+    { "file": "client.js", "purpose": "Pass stable memory entry ID when removing a panel entry" }
+  ]
 }

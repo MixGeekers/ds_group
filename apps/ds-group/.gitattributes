@@ -9,3 +9,5 @@
 *.woff2 binary
 *.tar.gz binary
 *.zip binary
+# Preserve the reused upstream license byte-for-byte.
+service/ombre/LICENSE -text !eol whitespace=cr-at-eol

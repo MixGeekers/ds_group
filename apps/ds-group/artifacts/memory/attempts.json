@@ -1,0 +1,585 @@
+{
+  "generatedAt": "2026-11-06T10:25:22.636Z",
+  "attempts": [
+    {
+      "run": "memory-vector-vnL9Sa",
+      "type": "vector",
+      "status": "passed",
+      "startedAt": "2026-11-06T04:05:57.828Z",
+      "finishedAt": "2026-11-06T04:06:00.771Z",
+      "reportSha256": "a62b399513a67eaa3b734179183fac75c66f623833d06a52f21e2fb164640143",
+      "checks": [
+        "eightParaphraseQueriesRecallAt3AndExactRead",
+        "withdrawnExcluded"
+      ],
+      "calls": {
+        "started": 0,
+        "finished": 0,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [],
+        "byPurpose": {},
+        "observedUsage": {},
+        "usageRecords": 0,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-native-rYD5HM",
+      "type": "native",
+      "status": "passed",
+      "startedAt": "2026-11-06T04:12:10.542Z",
+      "finishedAt": "2026-11-06T04:13:21.827Z",
+      "reportSha256": "6f1b839771fb3c1dda57ff3f9032aa7e59fb191bc54a80184bc793bfc3d9d41a",
+      "checks": [
+        "realModelRememberAndAutoReview",
+        "nativeCompaction",
+        "restartSameBotIdentity",
+        "semanticRecallAfterCompactionAndRestart",
+        "disconnectedNativeChatRetainsMemory"
+      ],
+      "calls": {
+        "started": 14,
+        "finished": 14,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 10,
+          "memory": 3,
+          "compaction": 1
+        },
+        "observedUsage": {
+          "inputTokens": 177190,
+          "outputTokens": 1933,
+          "totalTokens": 225587,
+          "cacheReadTokens": 46464
+        },
+        "usageRecords": 14,
+        "costComplete": false
+      },
+      "interruption": null,
+      "audit": "Initial success invalidated by later audit: runtime snapshots had been ingested as human sources. Fixed and rerun."
+    },
+    {
+      "run": "memory-native-IQcIE4",
+      "type": "native",
+      "status": "failed",
+      "startedAt": "2026-11-06T04:15:35.917Z",
+      "finishedAt": "2026-11-06T04:18:56.476Z",
+      "reportSha256": "37bebfdef116e89849204af04de2c69da2734e9532f15885a9451cc2e0d22501",
+      "checks": [],
+      "error": "AssertionError [ERR_ASSERTION]: MEMORY_MODEL_error",
+      "calls": {
+        "started": 13,
+        "finished": 13,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 11,
+          "memory": 2
+        },
+        "observedUsage": {
+          "inputTokens": 107113,
+          "outputTokens": 802,
+          "totalTokens": 128395,
+          "cacheReadTokens": 20480
+        },
+        "usageRecords": 13,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-native-jYGJlm",
+      "type": "native",
+      "status": "failed",
+      "startedAt": "2026-11-06T04:20:54.684Z",
+      "finishedAt": "2026-11-06T04:23:49.646Z",
+      "reportSha256": "9a35f497d43ab1045edfc13173a179c00256b68323d5a8bfc0b390eac8f8b015",
+      "checks": [],
+      "error": "AssertionError [ERR_ASSERTION]: MEMORY_MODEL_error: RATE_LIMIT 429: {\"type\":\"server_error\",\"message\":\"Upstream request failed: [overloaded] the server is overloaded; retry shortly\"}",
+      "calls": {
+        "started": 14,
+        "finished": 14,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 13,
+          "memory": 1
+        },
+        "observedUsage": {
+          "inputTokens": 107141,
+          "outputTokens": 640,
+          "totalTokens": 128261,
+          "cacheReadTokens": 20480
+        },
+        "usageRecords": 14,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-native-hqE57G",
+      "type": "native",
+      "status": "failed",
+      "startedAt": "2026-11-06T04:24:45.098Z",
+      "finishedAt": "2026-11-06T04:27:37.836Z",
+      "reportSha256": "0a080b57e61291ba6eb9c44a31884d3d9b71ed859e80606a3aaf1d0509908422",
+      "checks": [
+        "realModelRememberAndAutoReview",
+        "nativeCompaction",
+        "restartSameBotIdentity"
+      ],
+      "error": "AssertionError [ERR_ASSERTION]: {\"record\":{\"requestId\":\"memory-native-2\",\"botId\":\"@bot0:memory.test\",\"inputHash\":\"7681942409d7ec7158fa0d3300a67d1e21e2b268bd55210dfee0101afe1a1844\",\"status\":\"failed\",\"stage\":\"failed\",\"summary\":\"原生 Bot 正在处理\",\"artifacts\":[],\"calls\":[{\"model\":\"opencode-go/deepseek-v4.1-flash\",\"kind\":\"generation\",\"status\":\"failed\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0},\"error\":true},{\"model\":\"opencode-go/deepseek-v4.1-flash\",\"kind\":\"generation\",\"status\":\"failed\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0},\"error\":true},{\"model\":\"opencode-go/deepseek-v4.1-flash\",\"kind\":\"generation\",\"status\":\"failed\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0},\"error\":true},{\"model\":\"opencode-go/deepseek-v4.1-flash\",\"kind\":\"generation\",\"status\":\"failed\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0},\"error\":true},{\"model\":\"opencode-go/deepseek-v4.1-flash\",\"kind\":\"generation\",\"status\":\"failed\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0},\"error\":true},{\"model\":\"opencode-go/deepseek-v4.1-flash\",\"kind\":\"generation\",\"status\":\"failed\",\"usage\":{\"inputTokens\":0,\"outputTokens\":0,\"totalTokens\":0},\"error\":true}],\"toolReceipts\":[],\"mode\":\"native\",\"sessionId\":\"session-f75248c9-9774-4a9d-94e7-3ed7051e58bc\",\"model\":\"opencode-go/deepseek-v4.1-flash\",\"source\":{\"transport\":\"matrix\",\"roomId\":\"!north:memory.test\",\"eventId\":\"$memory-2\",\"sender\":{\"id\":\"@lin:a.test\",\"name\":\"林青\",\"kind\":\"human\"},\"timestamp\":1793939208803},\"startedAt",
+      "calls": {
+        "started": 20,
+        "finished": 20,
+        "failed": 11,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 17,
+          "memory": 2,
+          "compaction": 1
+        },
+        "observedUsage": {
+          "inputTokens": 105044,
+          "outputTokens": 2375,
+          "totalTokens": 156699,
+          "cacheReadTokens": 49280
+        },
+        "usageRecords": 20,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-native-TRgvWp",
+      "type": "native",
+      "status": "failed",
+      "startedAt": "2026-11-06T04:29:03.890Z",
+      "finishedAt": "2026-11-06T04:32:59.301Z",
+      "reportSha256": "7ec2cf5cf6c9b0eea13891a4dfaa2b5ddd80de6562e09b1d611c3da3ce31c567",
+      "checks": [],
+      "error": "AssertionError [ERR_ASSERTION]: MEMORY_REVISION_CONFLICT",
+      "calls": {
+        "started": 8,
+        "finished": 8,
+        "failed": 1,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 6,
+          "memory": 2
+        },
+        "observedUsage": {
+          "inputTokens": 80902,
+          "outputTokens": 4457,
+          "totalTokens": 100207,
+          "cacheReadTokens": 14848
+        },
+        "usageRecords": 8,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-native-qtO4DO",
+      "type": "native",
+      "status": "failed",
+      "startedAt": "2026-11-06T04:35:28.173Z",
+      "finishedAt": "2026-11-06T04:36:24.311Z",
+      "reportSha256": "577ce96948507b44fb1b3dbdb8c4b8e669e5b41e0dc9c24229fd3a13e03a2864",
+      "checks": [],
+      "error": "AssertionError [ERR_ASSERTION]: MEMORY_REVISION_CONFLICT",
+      "calls": {
+        "started": 6,
+        "finished": 6,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 5,
+          "memory": 1
+        },
+        "observedUsage": {
+          "inputTokens": 53893,
+          "outputTokens": 3884,
+          "totalTokens": 82609,
+          "cacheReadTokens": 24832
+        },
+        "usageRecords": 6,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-vector-VHdxaW",
+      "type": "vector",
+      "status": "passed",
+      "startedAt": "2026-11-06T04:36:06.024Z",
+      "finishedAt": "2026-11-06T04:36:09.108Z",
+      "reportSha256": "59ad016829c55f9b6a0f8d6f03e759240f701e2dfce0bdf46bd7d3d9390b42ad",
+      "checks": [
+        "eightParaphraseQueriesRecallAt3AndExactRead",
+        "withdrawnExcluded"
+      ],
+      "calls": {
+        "started": 0,
+        "finished": 0,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [],
+        "byPurpose": {},
+        "observedUsage": {},
+        "usageRecords": 0,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-native-FkTRVO",
+      "type": "native",
+      "status": "passed",
+      "startedAt": "2026-11-06T04:38:06.940Z",
+      "finishedAt": "2026-11-06T04:41:44.859Z",
+      "reportSha256": "d0bb6f1bce35b44e38ab01c953f7770adb5e4f15650f4a2d9f5a3f53e54021f9",
+      "checks": [
+        "realModelRememberAndAutoReview",
+        "nativeCompaction",
+        "restartSameBotIdentity",
+        "semanticRecallAfterCompactionAndRestart",
+        "disconnectedNativeChatRetainsMemory"
+      ],
+      "calls": {
+        "started": 18,
+        "finished": 18,
+        "failed": 5,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 14,
+          "memory": 3,
+          "compaction": 1
+        },
+        "observedUsage": {
+          "inputTokens": 115644,
+          "outputTokens": 2916,
+          "totalTokens": 181280,
+          "cacheReadTokens": 62720
+        },
+        "usageRecords": 18,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-long-niPIa6",
+      "type": "long",
+      "status": "failed",
+      "startedAt": "2026-11-06T04:43:45.187Z",
+      "finishedAt": "2026-11-06T04:45:43.413Z",
+      "reportSha256": "b5efc3db3981bbceb6dce79b385575093087f358967495791d46945884e7bb68",
+      "rounds": 0,
+      "checkpoints": 0,
+      "error": "TypeError: fetch failed",
+      "calls": {
+        "started": 15,
+        "finished": 14,
+        "failed": 10,
+        "unfinished": 1,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 14
+        },
+        "observedUsage": {
+          "inputTokens": 45825,
+          "outputTokens": 743,
+          "totalTokens": 61544,
+          "cacheReadTokens": 14976
+        },
+        "usageRecords": 14,
+        "costComplete": false
+      },
+      "interruption": {
+        "reason": "Stopped for static review fixes to native group memory panel and temporal contact labels before full acceptance",
+        "signalTargetProcessGroup": 46396
+      }
+    },
+    {
+      "run": "memory-long-MfwPyt",
+      "type": "long",
+      "status": "failed",
+      "startedAt": "2026-11-06T04:48:23.711Z",
+      "finishedAt": "2026-11-06T05:16:47.300Z",
+      "reportSha256": "a25900c2f5835db1aab9067d6e6d8edb5374761cf08aaf46e5371116e31e6b3e",
+      "rounds": 60,
+      "checkpoints": 0,
+      "error": "TypeError: fetch failed",
+      "calls": {
+        "started": 175,
+        "finished": 174,
+        "failed": 0,
+        "unfinished": 1,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 113,
+          "memory": 60,
+          "compaction": 1
+        },
+        "observedUsage": {
+          "inputTokens": 2624446,
+          "outputTokens": 23189,
+          "totalTokens": 3800787,
+          "cacheReadTokens": 1153152
+        },
+        "usageRecords": 174,
+        "costComplete": false
+      },
+      "interruption": {
+        "reason": "Stopped to repair observed prompt-cache invalidation: current source context and memory pointers were regenerated inside the system section after writes. One observed follow-up processed 46443 uncached input tokens and took 181.1 seconds. Preserve this run and rerun the full fixed corpus after using a stable system section.",
+        "signalTargetProcessGroup": 52376
+      }
+    },
+    {
+      "run": "memory-recovery-SITbdT",
+      "type": "recovery",
+      "status": "passed",
+      "startedAt": "2026-11-06T04:57:40.474Z",
+      "finishedAt": "2026-11-06T04:57:46.085Z",
+      "reportSha256": "27215bac548fb819954c58a10487110e8c8e9ed4f84e363b4d8b13811fa9a526",
+      "checks": [
+        "realSemanticBaseline",
+        "killedOmbreProcessRecoversSameBodyAndSources",
+        "embeddingUnavailableKeepsExactReadWithExplicitFallback",
+        "ownedHarrierRecoversAndRebindsOmbre",
+        "serviceRestartPreservesReceiptAndSource",
+        "withdrawalStillExcluded"
+      ],
+      "calls": {
+        "started": 0,
+        "finished": 0,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [],
+        "byPurpose": {},
+        "observedUsage": {},
+        "usageRecords": 0,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-vector-scale-GkN2L1",
+      "type": "vector",
+      "status": "passed",
+      "startedAt": "2026-11-06T05:04:52.861Z",
+      "finishedAt": "2026-11-06T05:05:00.482Z",
+      "reportSha256": "02194833b6f0c3fb137a339e78d1df08beb96de1ac7ba79916b1309db3cf8130",
+      "calls": {
+        "started": 0,
+        "finished": 0,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [],
+        "byPurpose": {},
+        "observedUsage": {},
+        "usageRecords": 0,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-compat-GdP5dc",
+      "type": "compat",
+      "status": "passed",
+      "startedAt": "2026-11-06T05:19:44.554Z",
+      "finishedAt": "2026-11-06T05:21:21.860Z",
+      "reportSha256": "8d059985228c2f1afdd5df7dec8282567717fc496f11495a7017597677485cf3",
+      "checks": [
+        "personalTeamAndNativeGroupMarkdownImportedWithoutInventedHumanAuthor",
+        "legacyFilesUnchanged",
+        "legacyMigrationIdempotentAfterRestart",
+        "nativeGroupPanelModelEditUsesGroupScope",
+        "nativeGroupPanelRepeatedForgetAndRestorePreservesOriginalEvidence",
+        "realModelKeepsConflictingSpeakersSeparate",
+        "legacyRecallInDisconnectedNativeChat"
+      ],
+      "calls": {
+        "started": 27,
+        "finished": 27,
+        "failed": 12,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 21,
+          "memory": 6
+        },
+        "observedUsage": {
+          "inputTokens": 41942,
+          "outputTokens": 3185,
+          "totalTokens": 207687,
+          "cacheReadTokens": 162560
+        },
+        "usageRecords": 27,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-recovery-HFkaUx",
+      "type": "recovery",
+      "status": "passed",
+      "startedAt": "2026-11-06T05:19:45.663Z",
+      "finishedAt": "2026-11-06T05:19:51.345Z",
+      "reportSha256": "f60dca0eb5214e317aaa0f945807c24e654e3b33ac59f6023de7f2e502e3bcec",
+      "checks": [
+        "realSemanticBaseline",
+        "killedOmbreProcessRecoversSameBodyAndSources",
+        "embeddingUnavailableKeepsExactReadWithExplicitFallback",
+        "ownedHarrierRecoversAndRebindsOmbre",
+        "serviceRestartPreservesReceiptAndSource",
+        "withdrawalStillExcluded"
+      ],
+      "calls": {
+        "started": 0,
+        "finished": 0,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [],
+        "byPurpose": {},
+        "observedUsage": {},
+        "usageRecords": 0,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-long-KqKzrC",
+      "type": "long",
+      "status": "failed",
+      "startedAt": "2026-11-06T05:22:21.170Z",
+      "finishedAt": "2026-11-06T10:08:34.637Z",
+      "reportSha256": "b642010f77acbc0f7b8ee3c28e14f236d1db3c26ea5250050c8a95cecbd2b536",
+      "rounds": 240,
+      "checkpoints": 72,
+      "calls": {
+        "started": 1510,
+        "finished": 1510,
+        "failed": 815,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 482,
+          "memory": 1022,
+          "compaction": 6
+        },
+        "observedUsage": {
+          "inputTokens": 3574579,
+          "outputTokens": 70114,
+          "totalTokens": 31181717,
+          "cacheReadTokens": 27537024
+        },
+        "usageRecords": 1510,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-vector-scale-2ClX1b",
+      "type": "vector",
+      "status": "passed",
+      "startedAt": "2026-11-06T05:28:25.079Z",
+      "finishedAt": "2026-11-06T05:28:32.762Z",
+      "reportSha256": "325539ea64198de469fa73ec3b17905b665db6cf6f41fd291d58cc6ef7e94a57",
+      "calls": {
+        "started": 0,
+        "finished": 0,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [],
+        "byPurpose": {},
+        "observedUsage": {},
+        "usageRecords": 0,
+        "costComplete": false
+      },
+      "interruption": null
+    },
+    {
+      "run": "memory-delivery-bEl33J",
+      "type": "delivery",
+      "status": "passed",
+      "startedAt": "2026-11-06T10:12:19.998Z",
+      "finishedAt": "2026-11-06T10:14:03.186Z",
+      "reportSha256": "fd34b3fb46bcc6c2ab649f8281f47406ecba05a9fdcf8a62e5370917ec17236b",
+      "checks": [
+        "bot0NativePresentFileBytesAndRoom",
+        "bot0RetryReusesSameArtifactWithoutGeneration",
+        "bot1NativePresentFileBytesAndRoom",
+        "bot1RetryReusesSameArtifactWithoutGeneration",
+        "bot2NativePresentFileBytesAndRoom",
+        "bot2RetryReusesSameArtifactWithoutGeneration",
+        "prefacedNativeEnvelopeDeliversVerifiedFile",
+        "nativeStructuredAnswer0ReachesChatParserUnchanged",
+        "nativeStructuredAnswer1ReachesChatParserUnchanged",
+        "nativeObservationUsesToolAuthorBeforeAutomaticReview",
+        "nativeMixedEvidenceRetainsBothSourcesThroughSemanticRecall",
+        "explicitFreshRecall0ChecksNewStateWithActualToolCall",
+        "explicitFreshRecall1ChecksNewStateWithActualToolCall",
+        "explicitFreshRecall2ChecksNewStateWithActualToolCall",
+        "nativedelegate66ReturnsActualReply",
+        "nativerelay78ReturnsActualReply",
+        "nativeRelayKeepsOriginalHumanSource",
+        "onlyRequestedGenerationModel"
+      ],
+      "calls": {
+        "started": 53,
+        "finished": 53,
+        "failed": 0,
+        "unfinished": 0,
+        "models": [
+          "opencode-go/deepseek-v4.1-flash"
+        ],
+        "byPurpose": {
+          "generation": 38,
+          "memory": 15
+        },
+        "observedUsage": {
+          "inputTokens": 132316,
+          "outputTokens": 7138,
+          "totalTokens": 865854,
+          "cacheReadTokens": 726400
+        },
+        "usageRecords": 53,
+        "costComplete": false
+      },
+      "interruption": null
+    }
+  ]
+}

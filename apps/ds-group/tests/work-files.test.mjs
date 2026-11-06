@@ -136,6 +136,7 @@ test('structured output rejects invalid declarations and unsafe display names', 
   const root = await temporary(t);
   await writeFile(path.join(root, 'result.txt'), 'text');
   assert.throws(() => parseFinalOutput('{"artifacts":[]}'), coded('INVALID_FINAL_OUTPUT'));
+  assert.deepEqual(parseFinalOutput('{"value":"苍鹭-8472","roomId":"!north:test"}'), { text: '{"value":"苍鹭-8472","roomId":"!north:test"}', artifacts: [] });
   assert.throws(() => parseFinalOutput('{"text":"  ","artifacts":[]}'), coded('INVALID_FINAL_OUTPUT'));
   assert.throws(() => parseFinalOutput('{"text":"完成","artifacts":"result.txt"}'), coded('INVALID_FINAL_OUTPUT'));
   await assert.rejects(collectArtifacts(JSON.stringify({ text: '完成', artifacts: [{ path: 'result.txt', name: '../result.txt' }] }), root), coded('INVALID_WORK_FILE'));

@@ -13,7 +13,7 @@ async function checkDirectory(directory) {
     }
   }
 }
-for (const folder of ['bin', 'src', 'scripts', 'web', 'admin', 'tests', 'dsh-plugin', 'dsh-connect']) await checkDirectory(path.join(packageRoot, folder));
+for (const folder of ['bin', 'src', 'memory', 'scripts', 'web', 'admin', 'tests', 'dsh-plugin', 'dsh-connect']) await checkDirectory(path.join(packageRoot, folder));
 const types = spawnSync(process.execPath, [path.join(packageRoot, 'node_modules', 'typescript', 'bin', 'tsc'), '--noEmit'], {
   cwd: packageRoot, stdio: 'inherit',
 });

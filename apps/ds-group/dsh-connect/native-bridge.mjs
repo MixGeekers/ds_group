@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { mkdir } from 'node:fs/promises';
 import { readOptionalJson, savePrivateJson } from '../scripts/server-init.mjs';
-import { prepareWorkFiles, collectArtifacts } from '../dsh-plugin/work-files.mjs';
+import { prepareWorkFiles, collectArtifacts, MAX_ARTIFACTS } from '../dsh-plugin/work-files.mjs';
 import { nativeMessage } from '../src/message-context.mjs';
 import { HANDOFF_ACK } from '../vendor/ds-bot/src/host/constants.js';
 
@@ -11,6 +11,21 @@ const terminal = record => ['completed', 'failed', 'cancelled', 'unknown'].inclu
 const digest = value => createHash('sha256').update(value).digest('hex');
 const error = code => Object.assign(new Error(code), { code });
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+
+// Native answers may introduce their explicit delivery JSON with a sentence or
+// a Markdown fence. Only a complete trailing text/artifacts envelope opts in.
+function nativeArtifactOutput(text) {
+  const candidate = text.trim().replace(/```\s*$/, '').trim();
+  for (let start = candidate.lastIndexOf('{'); start >= 0; start = candidate.lastIndexOf('{', start - 1)) {
+    try {
+      const output = JSON.parse(candidate.slice(start));
+      if (typeof output?.text === 'string' && Array.isArray(output.artifacts)) return JSON.stringify(output);
+    } catch { /* This brace is nested or belongs to ordinary prose. */ }
+    if (start === 0) break;
+  }
+  return text;
+}
 
 /** DSCord is another input/output for the original Bot. Its native Session,
  * model, tools, permissions, working folder and autonomous work are untouched. */
@@ -83,7 +98,8 @@ export class NativeBridge {
     // Native Bot-to-Bot replies carry the exchange they answer. Record it where
     // it is delivered, so unrelated local chats cannot become DSCord answers.
     if (event.type === 'user/message' && source?.kind === 'bot' && source.role === 'request'
-      && source.senderSessionId === this.node.nativeBotId && run.seen && run.currentTurn === run.turn && source.exchangeId) {
+      && source.senderSessionId === this.node.nativeBotId && source.audience !== 'user'
+      && run.seen && run.currentTurn === run.turn && source.exchangeId) {
       run.exchanges.add(source.exchangeId);
     }
     if (session.id !== run.record.sessionId) {
@@ -112,6 +128,16 @@ export class NativeBridge {
     }
     if (event.type === 'tool/call') {
       run.record.toolReceipts.push({ callId: event.data.callId, name: event.data.name, status: 'running' });
+      if (event.data.name === 'present') {
+        try {
+          const args = typeof event.data.arguments === 'string' ? JSON.parse(event.data.arguments) : event.data.arguments;
+          const cwd = event.data.meta?.cwd || this.ctx.get?.('workingDirectory')?.get?.(session) || session.header?.cwd;
+          const files = (args?.files || []).filter(file => typeof file.path === 'string')
+            .filter(file => path.isAbsolute(file.path) || typeof cwd === 'string')
+            .map(file => ({ path: path.isAbsolute(file.path) ? file.path : path.resolve(cwd, file.path) }));
+          run.presentCalls.set(event.data.callId, files);
+        } catch { /* Invalid arguments cannot produce a successful file receipt. */ }
+      }
       run.record.toolCalls = run.record.toolReceipts.length;
       run.record.summary = `正在使用 ${event.data.name}`;
     }
@@ -119,11 +145,15 @@ export class NativeBridge {
       const message = event.data?.message;
       const receipt = run.record.toolReceipts.find(tool => tool.callId === message?.toolCallId);
       if (receipt) receipt.status = message.isError ? 'failed' : 'completed';
+      if (receipt?.name === 'present' && !message.isError) {
+        for (const file of run.presentCalls.get(message.toolCallId) || []) run.presented.set(file.path, file);
+      }
     }
     if (event.type === 'turn/end') {
       run.reason = event.data?.reason?.kind;
-      // Native message_bot can yield and continue when a teammate replies.
-      if (run.reason === 'completed' && run.text || run.reason === 'error' || run.reason === 'cancelled') run.resolve();
+      // An acknowledgement is not completion while a teammate still owes a
+      // reply to this Bot. Native direct-to-user work has a different destination.
+      if (run.reason === 'completed' && run.text && run.exchanges.size === 0 || run.reason === 'error' || run.reason === 'cancelled') run.resolve();
     }
   }
 
@@ -178,7 +208,7 @@ export class NativeBridge {
       let resolve;
       const done = new Promise(done => { resolve = done; });
       const marker = `DSCORD_REQUEST=${input.requestId}`;
-      const run = this.run = { marker, resolve, record, text: '', exchanges: new Set() };
+      const run = this.run = { marker, resolve, record, text: '', exchanges: new Set(), presentCalls: new Map(), presented: new Map() };
       Object.assign(record, { status: 'running', stage: 'working', sessionId: bot.sessionId, model: bot.model,
         contextKey: input.context?.key, source: input.context?.source,
         summary: '原生 Bot 正在处理', startedAt: new Date().toISOString() });
@@ -196,12 +226,23 @@ export class NativeBridge {
         finally { reporting = false; }
       }, 500);
       const text = nativeMessage({ input, bot, files });
-      await this.native.call('send', { sessionId: bot.id, text });
+      await this.native.call('send', { sessionId: bot.id, text, memoryContext: input });
       await done;
       if (run.error) throw error(run.error);
       if (run.reason !== 'completed') throw error('NATIVE_TURN_FAILED');
-      record.text = run.text;
-      record.artifacts = await collectArtifacts(run.text, files.workdir, { allowExternalPaths: true });
+      const deliveryOutput = nativeArtifactOutput(run.text);
+      record.text = deliveryOutput;
+      const artifacts = await collectArtifacts(deliveryOutput, files.workdir, { allowExternalPaths: true });
+      const paths = new Set(artifacts.map(file => file.path));
+      // Native present is the Bot's ordinary file delivery tool. Successful
+      // receipts are deliveries even when the final answer is plain Markdown.
+      for (const descriptor of run.presented.values()) {
+        const [file] = await collectArtifacts(JSON.stringify({ text: 'Native file delivery', artifacts: [descriptor] }), files.workdir, { allowExternalPaths: true });
+        if (paths.has(file.path)) continue;
+        if (artifacts.length >= MAX_ARTIFACTS) throw error('TOO_MANY_ARTIFACTS');
+        paths.add(file.path); artifacts.push(file);
+      }
+      record.artifacts = artifacts;
       record.status = 'completed'; record.stage = 'completed'; record.summary = '处理完成';
       record.usage = { accounting: 'native-ds-bot', complete: false, observedCalls: record.calls.length };
     } catch (cause) {

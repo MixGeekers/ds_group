@@ -1,0 +1,183 @@
+{
+  "startedAt": "2026-11-06T05:19:44.554Z",
+  "finishedAt": "2026-11-06T05:21:21.860Z",
+  "status": "passed",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "checks": [
+    "personalTeamAndNativeGroupMarkdownImportedWithoutInventedHumanAuthor",
+    "legacyFilesUnchanged",
+    "legacyMigrationIdempotentAfterRestart",
+    "nativeGroupPanelModelEditUsesGroupScope",
+    "nativeGroupPanelRepeatedForgetAndRestorePreservesOriginalEvidence",
+    "realModelKeepsConflictingSpeakersSeparate",
+    "legacyRecallInDisconnectedNativeChat"
+  ],
+  "room": {
+    "id": "session-abc10a4d-e822-4fa3-8051-5483340da33d",
+    "name": "归档组"
+  },
+  "panelAnswer": "已记住：归档组扫描仪标记为 **黄鹂-66**。  \n来源：用户提供；范围：本房间；当前无冲突。",
+  "localReply": "查到了，只有一条命中：\n\n**旧档案代号：落霞-403**\n- 记忆 ID：memory_579439b6…，scope `own`，kind `legacy`\n- 来源记录：来源是旧档案/legacy 存储条目（source_8c8521b8…），作者字段指向 Bot 自身会话，不是某位具体的人\n\n所以代号本身可用，但原始提出人无法确认——我不替它猜作者。其余命中都是别的东西（银色盒-16、黄鹂-66、云舟-52），不属于「档案代号」，需要的话我再细查。",
+  "conflicting": [
+    {
+      "bodyDigest": "625190b01cf51a34c6df35d5fccb9185c6624601633b39f18dc4d0333372fc0d",
+      "botId": "session-b11f0c0f-a35a-495d-b5ab-0a6e3aaf87c8",
+      "id": "memory_a3aa2188c8c7476d2f3bc584cc165c9ef1470706ba1714a306629c63f587551c",
+      "kind": "stated",
+      "observedAt": 1793942439060,
+      "predicate": "release-day",
+      "replaces": null,
+      "revision": 1,
+      "rootId": "memory_a3aa2188c8c7476d2f3bc584cc165c9ef1470706ba1714a306629c63f587551c",
+      "saidBy": "matrix:@lin:a.test",
+      "scope": "room:!conflict:memory.test",
+      "sourceRefs": [
+        {
+          "id": "source_e46b1beee34b3e637d8782a581efde7c805b84fac92683b634c63a9c8cbf9269",
+          "revision": 1
+        }
+      ],
+      "status": "active",
+      "subjectId": "project:砂桥",
+      "text": "砂桥项目的上线日为周六（林青 @lin:a.test 的个人判断，尚未经他人确认，不代表另一方同意）。",
+      "topic": "砂桥项目上线日",
+      "validFrom": 1793942433524,
+      "validUntil": null,
+      "derivation": "current"
+    },
+    {
+      "bodyDigest": "1f90c673b8d39787a9c5cd7733d32dd93edab51a647a6b5fbc4d9e90625d1fc2",
+      "botId": "session-b11f0c0f-a35a-495d-b5ab-0a6e3aaf87c8",
+      "id": "memory_9e8676edf6cdc5746d9c131aed30f6c948bb9cf13e4ae31f464688bfb80b3885",
+      "kind": "stated",
+      "observedAt": 1793942452180,
+      "predicate": "release-day",
+      "replaces": null,
+      "revision": 1,
+      "rootId": "memory_9e8676edf6cdc5746d9c131aed30f6c948bb9cf13e4ae31f464688bfb80b3885",
+      "saidBy": "matrix:@lin:b.test",
+      "scope": "room:!conflict:memory.test",
+      "sourceRefs": [
+        {
+          "id": "source_0a80fd26108d45eb29615b07b5be05f40dd99e8807c0a2043c6a2ef54c62b7a6",
+          "revision": 1
+        }
+      ],
+      "status": "active",
+      "subjectId": "project:砂桥",
+      "text": "砂桥项目的上线日为周日（另一位林青 @lin:b.test 的说法，与 @lin:a.test 的“周六”并列冲突，尚未达成一致）。",
+      "topic": "砂桥项目上线日",
+      "validFrom": 1793942446213,
+      "validUntil": null,
+      "derivation": "current"
+    }
+  ],
+  "sourceRun": "memory-compat-GdP5dc",
+  "turns": [
+    {
+      "text": "已保存。\n\n- 记忆 ID：`memory_a3aa2188…f587551c`，rev 1\n- subjectId `project:砂桥`，predicate `release-day`，kind `stated`\n- 作用域：本群 `!conflict:memory.test`\n- 来源：仅 @lin:a.test 在此消息中的陈述\n\n这条记录标明是「林青的个人判断、尚存争议、不代表他人同意」。之后有人给出不同日期时，我会作为并列说法保留，不会把这条改写成共识。",
+      "toolReceipts": [
+        {
+          "callId": "chatcmpl-tool-990d65cceceb0e0f",
+          "name": "remember",
+          "status": "completed"
+        }
+      ],
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1483,
+            "outputTokens": 377,
+            "totalTokens": 17092,
+            "cacheReadTokens": 15232
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1038,
+            "outputTokens": 135,
+            "totalTokens": 18197,
+            "cacheReadTokens": 17024
+          }
+        }
+      ],
+      "sessionId": "session-b11f0c0f-a35a-495d-b5ab-0a6e3aaf87c8"
+    },
+    {
+      "text": "已保存，未覆盖前一条。\n\n当前 `project:砂桥 / release-day` 有两条并列记录，都标记为冲突（kind=stated）：\n\n| 记忆 ID | 陈述人 | 说法 |\n|---|---|---|\n| memory_a3aa2188… | @lin:a.test | 周六 |\n| memory_9e8676ed… | @lin:b.test | 周日 |\n\n两个「林青」按完整 ID 分开记录——`@lin:a.test` 和 `@lin:b.test` 是不同的人，不会因为显示名相同而合并。在你或其他人明确裁定之前，两条都会保留，我不会把任一条当成共识。",
+      "toolReceipts": [
+        {
+          "callId": "chatcmpl-tool-b705ce8d185df877",
+          "name": "remember",
+          "status": "completed"
+        }
+      ],
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1126,
+            "outputTokens": 335,
+            "totalTokens": 19637,
+            "cacheReadTokens": 18176
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1174,
+            "outputTokens": 164,
+            "totalTokens": 20922,
+            "cacheReadTokens": 19584
+          }
+        }
+      ],
+      "sessionId": "session-b11f0c0f-a35a-495d-b5ab-0a6e3aaf87c8"
+    },
+    {
+      "text": "砂桥项目的上线日，本群目前有两条并列记录，没有共同决定。我不替任何人选一个：\n\n**说法一 — 周六**\n- 原始说话人：`@lin:a.test`（显示名 林青）\n- kind: stated，主题：砂桥项目上线日\n- 来源事件：`$compat-1`（本群 !conflict:memory.test，2026-11-06）\n- 记忆：memory_a3aa2188…，标为与说法二冲突\n\n**说法二 — 周日**\n- 原始说话人：`@lin:b.test`（显示名同为 林青，但是另一个账号）\n- kind: stated，主题：砂桥项目上线日\n- 来源事件：`$compat-2`（本群 !conflict:memory.test，2026-11-06）\n- 记忆：memory_9e8676ed…，标为与说法一冲突\n\n两点提醒：两条都只是各自发言人的个人陈述，不是群里的决定；另外你这次用的账号是 `@song:memory.test`，显示名也叫林青，跟前两位是三个不同身份，我不会把三者的说法混在一起。要定案的话，需要群里明确指定以谁为准。",
+      "toolReceipts": [
+        {
+          "callId": "chatcmpl-tool-bdcab1a2b2d0e98c",
+          "name": "recall",
+          "status": "completed"
+        }
+      ],
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1206,
+            "outputTokens": 160,
+            "totalTokens": 22230,
+            "cacheReadTokens": 20864
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1771,
+            "outputTokens": 302,
+            "totalTokens": 24217,
+            "cacheReadTokens": 22144
+          }
+        }
+      ],
+      "sessionId": "session-b11f0c0f-a35a-495d-b5ab-0a6e3aaf87c8"
+    }
+  ]
+}

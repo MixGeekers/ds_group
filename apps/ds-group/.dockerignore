@@ -18,6 +18,10 @@
 !scripts/**
 !vendor/
 !vendor/**
+!memory/
+!memory/**
+!service/
+!service/**
 **/node_modules
 **/.local
 !Dockerfile

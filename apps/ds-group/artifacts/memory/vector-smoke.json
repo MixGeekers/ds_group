@@ -1,0 +1,62 @@
+{
+  "status": "passed",
+  "startedAt": "2026-11-06T04:36:06.024Z",
+  "checks": [
+    "eightParaphraseQueriesRecallAt3AndExactRead",
+    "withdrawnExcluded"
+  ],
+  "queries": [
+    {
+      "query": "聚餐给阿岚准备什么样的菜？",
+      "rank": 1,
+      "mode": "semantic"
+    },
+    {
+      "query": "河湾项目的数据恢复介质放哪了？",
+      "rank": 1,
+      "mode": "semantic"
+    },
+    {
+      "query": "宋禾星期三在哪里办公？",
+      "rank": 1,
+      "mode": "semantic"
+    },
+    {
+      "query": "橙灯展示会要怎么处理地图网络？",
+      "rank": 1,
+      "mode": "semantic"
+    },
+    {
+      "query": "林青希望收到怎样的周度汇报？",
+      "rank": 1,
+      "mode": "semantic"
+    },
+    {
+      "query": "另一个林青的报告语言与附件要求是什么？",
+      "rank": 1,
+      "mode": "semantic"
+    },
+    {
+      "query": "南组什么时候上线？",
+      "rank": 2,
+      "mode": "semantic"
+    },
+    {
+      "query": "北组选择哪个上线时间？",
+      "rank": 1,
+      "mode": "semantic"
+    }
+  ],
+  "generationCalls": 0,
+  "usage": {
+    "indexCalls": 8,
+    "queryCalls": 8,
+    "complete": true
+  },
+  "finishedAt": "2026-11-06T04:36:09.108Z",
+  "run": "memory-vector-VHdxaW",
+  "rawReportSha256": "59ad016829c55f9b6a0f8d6f03e759240f701e2dfce0bdf46bd7d3d9390b42ad",
+  "backend": "Ombre 3.6.14 / 115d831d979bf67efc7150f976e2cb34c333c935",
+  "embedding": "Harrier 0.6B Q8_0, 1024 dimensions, last pooling, L2",
+  "modelArtifactSha256": "b017b8fceae7c77864652c63d07af51480088b078771a89cafe1a467b069ea75"
+}

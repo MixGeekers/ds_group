@@ -156,6 +156,10 @@ export function parseFinalOutput(value) {
   let result;
   try { result = JSON.parse(fenced ? fenced[1] : text); }
   catch { return { text, artifacts: [] }; }
+  // A user may ask for ordinary structured data. Only objects using a delivery
+  // field opt into DSCord's text/artifacts/delegate envelope.
+  if (!result || typeof result !== 'object' || Array.isArray(result)
+    || !['text', 'artifacts', 'delegate'].some(key => Object.hasOwn(result, key))) return { text, artifacts: [] };
   if (!result || typeof result !== 'object' || Array.isArray(result) || typeof result.text !== 'string' || !result.text.trim()) {
     throw fail('INVALID_FINAL_OUTPUT', 'Structured output requires non-empty text');
   }
