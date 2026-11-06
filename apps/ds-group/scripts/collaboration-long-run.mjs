@@ -11,6 +11,8 @@ import {savePrivateJson} from './server-init.mjs';
 import {importNodeBundle} from './server-admin.mjs';
 import {resolveDsh} from './runtime-config.mjs';
 import {MatrixClient} from '../src/matrix-client.mjs';
+import {isModelQuotaFailure} from '../src/model-failure.mjs';
+import {readGoQuota} from './go-quota.mjs';
 
 const env=JSON.parse(await readFile(path.join(packageRoot,'.local/collaboration-live-active.json'),'utf8'));
 const directory=env.directory,hostDir=path.join(directory,'host'),corpus=buildCollaborationCorpus();
@@ -28,7 +30,7 @@ const report={schemaVersion:2,scenario:corpus.scenario,model:MODEL,status:'prepa
 const reportPath=path.join(directory,'report.json');let prior;
 try{prior=JSON.parse(await readFile(reportPath,'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
 if(prior){await mkdir(path.join(directory,'prior-attempts'),{recursive:true});await savePrivateJson(path.join(directory,'prior-attempts',`report-${Date.now()}.json`),prior);
-  for(const key of ['rounds','attempts','failures','manualReviews','maintenance','embeddingByBoot'])report[key]=prior[key]||[];
+  for(const key of ['rounds','attempts','failures','manualReviews','maintenance','embeddingByBoot','bots','rooms'])report[key]=prior[key]||[];
   report.initialStartedAt=prior.initialStartedAt||prior.startedAt;
   report.generations=[...(prior.generations||[{generation:prior.generation,sourceCommit:prior.sourceCommit,startedAt:prior.startedAt}]),
     {generation:(prior.generation||0)+1,sourceCommit:report.sourceCommit,startedAt:report.startedAt,resumedAfter:report.rounds.length}];
@@ -86,7 +88,7 @@ async function downloadArtifacts(delivered,room,n) {
     result.push({id:file.id,name:file.name,path:filename,size:bytes.length,sha256:sha(bytes),eventId:event.event_id});
   }return result;
 }
-async function flush() {for(let attempt=0;;attempt++)try{return await host.api('flush');}catch(error){report.maintenance.push({type:'flush-error',at:new Date().toISOString(),error:error.message,attempt});await save();if(attempt>=3)throw error;await delay(10000*(attempt+1));}}
+async function flush() {for(let attempt=0;;attempt++)try{return await host.api('flush');}catch(error){report.maintenance.push({type:'flush-error',at:new Date().toISOString(),error:error.message,attempt});await save();if(isModelQuotaFailure(error)||attempt>=3)throw error;await delay(10000*(attempt+1));}}
 async function snapshot(name) {await flush();const memory=await host.api('memory');await savePrivateJson(path.join(directory,`${name}.json`),memory);return memory;}
 async function sourceManifest(name) {
   const files=execFileSync('git',['ls-files','-z','src','dsh-connect','memory','vendor/ds-bot','scripts/collaboration-long-corpus.mjs','scripts/collaboration-long-check.mjs','scripts/collaboration-long-run.mjs','scripts/memory-visible-host-plugin.mjs'],{cwd:packageRoot}).toString().split('\0').filter(Boolean);
@@ -100,6 +102,8 @@ try {
   await savePrivateJson(path.join(hostDir,'scenario-profile.json'),{instructions:scenarioInstructions});
   try{host.workspace=JSON.parse(await readFile(path.join(hostDir,'workspace.json'),'utf8')).path;host.installation=await resolveDsh();host.boot=Math.max(0,...(await readdir(hostDir)).map(name=>Number(/^host-(\d+)\.log$/.exec(name)?.[1]||0)));}
   catch(error){if(error.code!=='ENOENT')throw error;await host.prepare();}
+  const quota=await readGoQuota(host.home);await savePrivateJson(path.join(directory,'provider-quota.json'),quota);
+  if(!quota.available)throw Object.assign(new Error(`Go allowance exhausted (${quota.blockedWindows.join(', ')}); provider reset: ${quota.resetAt}`),{code:'MODEL_QUOTA_EXCEEDED'});
   const harness=path.join(hostDir,'harness.mjs');await writeFile(harness,(await readFile(harness,'utf8')).replace('scripts/memory-host-plugin.mjs','scripts/memory-visible-host-plugin.mjs'));
   await host.start();
   const saveHost=()=>savePrivateJson(path.join(directory,'host-current.json'),{pid:host.child.pid,port:host.port,logfile:host.logfile,home:host.home});await saveHost();
@@ -156,6 +160,7 @@ try {
     }else{await delay(1200);row.checks.push({name:'realHumanChatPosted',passed:true});}
     row.finishedAt=new Date().toISOString();report.rounds.push(row);await save();
     console.log(JSON.stringify({completed:n+1,type:step.type,room:room.name,failures:report.failures.length}));
+    if(isModelQuotaFailure(report.attempts.find(attempt=>attempt.round===n+1)?.receipt))throw Object.assign(new Error('Go allowance exhausted; no later scenario messages were posted'),{code:'MODEL_QUOTA_EXCEEDED'});
     if([48,88,128,168,208,224].includes(n+1)) {
       const index=[48,88,128,168,208,224].indexOf(n+1)%3;await flush();const result=await host.api('compact',{index});
       report.maintenance.push({type:'native-compaction',round:n+1,index,result});if(!result.compacted)report.failures.push({round:n+1,type:'compaction',result});await save();
@@ -175,5 +180,7 @@ try {
   if(report.rounds.length===corpus.steps.length)report.status=report.failures.length?'completed-with-failures':'completed-awaiting-review';
   await sourceManifest(`source-hashes-end-${report.generation}.json`);
   await announce(`本轮 ${report.status}：完成 ${report.rounds.length}/240 条参与者消息，自动检查未通过 ${report.failures.length} 项，开放式行为待审阅 ${report.manualReviews.length} 项。真实消息、文件和原始失败已保留。`);
-}catch(error){report.status='failed';report.error=error.stack;process.exitCode=1;await announce(`测试执行已停止，完成 ${report.rounds.length}/240 条。原因：${error.message}。原始记录保留，正在诊断。`).catch(()=>{});}
-finally{if(host.child)await host.api('disconnect').catch(()=>{});await host.stop();report.finishedAt=new Date().toISOString();await save();console.log(JSON.stringify({status:report.status,completed:report.rounds.length,error:report.error,directory}));}
+}catch(error){report.status=isModelQuotaFailure(error)?'provider-blocked':'failed';report.error=error.stack;process.exitCode=1;
+  if(host.child)try{const memory=await host.api('memory');await savePrivateJson(path.join(directory,'memory-after-stop.json'),{...memory,reviewFlushed:false,reason:report.status});}catch{}
+  await announce(`测试执行已停止，已投放 ${report.rounds.length}/240 条（不等于全部获得有效回复）。原因：${error.message}。原始记录保留。`).catch(()=>{});}
+finally{if(host.child)await host.api('disconnect').catch(()=>{});await host.stop();await sourceManifest(`source-hashes-end-${report.generation}.json`).catch(()=>{});report.finishedAt=new Date().toISOString();await save();console.log(JSON.stringify({status:report.status,completed:report.rounds.length,error:report.error,directory}));}

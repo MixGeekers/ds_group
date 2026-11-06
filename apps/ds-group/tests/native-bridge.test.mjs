@@ -91,6 +91,18 @@ test('usage observation cannot fail or restrict a native model stream', async t 
   f.bridge.save = save; f.bridge.run = null;
 });
 
+test('native account quota failures remain distinguishable from other failed turns', async t => {
+  let failure={code:'QUOTA',message:'429: {"type":"GoUsageLimitError","message":"Go usage limit exceeded"}'};
+  const f=await fixture(t,{send:async({event,turn})=>{
+    await event('turn/end',{turn,reason:{kind:'error',error:failure}});
+  }});
+  const blocked=await f.bridge.turn(f.request('quota'));
+  assert.equal(blocked.status,'failed');assert.equal(blocked.errorCode,'MODEL_QUOTA_EXCEEDED');
+  assert.deepEqual(blocked.nativeFailure,failure);
+  failure={code:'INVALID_REQUEST',message:'Invalid tool id'};
+  assert.equal((await f.bridge.turn(f.request('other-error'))).errorCode,'NATIVE_TURN_FAILED');
+});
+
 test('a native context-part handoff keeps the request and does not publish its acknowledgement', async t => {
   const f = await fixture(t, { send: async ({ event, turn }) => {
     await event('assistant/message', { turn, message: { content: [{ type: 'text', text: 'Still working' }] } });

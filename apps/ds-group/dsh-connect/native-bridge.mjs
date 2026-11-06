@@ -6,6 +6,7 @@ import { readOptionalJson, savePrivateJson } from '../scripts/server-init.mjs';
 import { prepareWorkFiles, collectArtifacts, collectStagedArtifacts, MAX_ARTIFACTS } from '../dsh-plugin/work-files.mjs';
 import { nativeMessage } from '../src/message-context.mjs';
 import { HANDOFF_ACK } from '../vendor/ds-bot/src/host/constants.js';
+import { isModelQuotaFailure } from '../src/model-failure.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('');
 const terminal = record => ['completed', 'failed', 'cancelled', 'unknown'].includes(record?.status);
@@ -183,6 +184,7 @@ export class NativeBridge {
     }
     if (event.type === 'turn/end') {
       run.reason = event.data?.reason?.kind;
+      run.failure = event.data?.reason?.error;
       // An acknowledgement is not completion while a teammate still owes a
       // reply to this Bot. Native direct-to-user work has a different destination.
       if (run.reason === 'completed' && run.text && run.exchanges.size === 0 || run.reason === 'error' || run.reason === 'cancelled') run.resolve();
@@ -261,7 +263,10 @@ export class NativeBridge {
       await this.native.call('send', { sessionId: bot.id, text, memoryContext: input });
       await done;
       if (run.error) throw error(run.error);
-      if (run.reason !== 'completed') throw error('NATIVE_TURN_FAILED');
+      if (run.reason !== 'completed') {
+        if (run.failure) record.nativeFailure = { code: run.failure.code, message: String(run.failure.message||'').slice(0,4096) };
+        throw error(isModelQuotaFailure(run.failure) ? 'MODEL_QUOTA_EXCEEDED' : 'NATIVE_TURN_FAILED');
+      }
       const delivery = nativeArtifactOutput(run.text), deliveryOutput = delivery.text;
       record.text = deliveryOutput;
       const artifacts = await collectArtifacts(deliveryOutput, files.workdir, { allowExternalPaths: true });

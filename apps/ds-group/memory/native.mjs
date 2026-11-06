@@ -6,6 +6,7 @@ import { MemoryService } from './service.mjs';
 import { sha, sourceId } from './store.mjs';
 import { createMemoryPanel } from './panel.mjs';
 import { prepareReviewProposal } from './review.mjs';
+import { isModelQuotaFailure } from '../src/model-failure.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('\n');
 const RULES = `# Source-aware memory
@@ -148,7 +149,7 @@ export function installNativeMemory(rt) {
     clearTimeout(timers.get(botId));
     const timer = setTimeout(() => { timers.delete(botId); void flush(botId).catch(error => {
       memory.errors.push({ operation: 'review', botId, error: error.message, at: Date.now() }); rt.warn('ds-bot: source memory review failed: %s', error.message);
-      if (!disposed) {
+      if (!disposed && !isModelQuotaFailure(error)) {
         const retry = setTimeout(() => { timers.delete(botId); schedule(botId); }, 60000);
         retry.unref?.(); timers.set(botId, retry);
       }
