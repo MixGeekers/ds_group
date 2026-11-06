@@ -17,31 +17,31 @@ export function csvRows(text) {
   if(quoted)throw new Error('Unclosed CSV quote');return rows;
 }
 const normalize=text=>String(text).normalize('NFKC').replace(/下午两点半/g,'14:30').replace(/下午五点一刻/g,'17:15').replace(/二楼|2楼/g,'二楼').replace(/[\s，。、「」“”]/g,'');
-export async function checkCollaborationStep({step,receipt,delivered,artifacts,directory}) {
+export async function checkCollaborationStep({step,receipt,delivered,artifacts,directory,researchEvidence}) {
   const checks=[];const test=(name,passed,detail)=>checks.push({name,passed:Boolean(passed),...(detail?{detail}:{})});
   const reply=delivered.map(e=>e.content.body||'').join('\n');
   const contents=await Promise.all(artifacts.map(async f=>({name:f.name,text:await readFile(f.path,'utf8')})));
   const text=[reply,...contents.map(f=>f.text)].join('\n');
   test('actualMatrixReply',delivered.length>0);
-  for(const filename of [step.artifact,step.alsoArtifact].filter(Boolean))test(`delivered:${filename}`,artifacts.some(f=>f.name===filename));
+  for(const filename of [step.artifact,step.alsoArtifact,...(step.requiredArtifacts||[])].filter(Boolean))test(`delivered:${filename}`,artifacts.some(f=>f.name===filename));
   for(const value of step.contains||[])test(`contains:${value}`,normalize(text).includes(normalize(value)));
   const tools=receipt?.toolReceipts||[];
   if(step.execution)test('actualExecution',tools.some(t=>/^(bash|terminal|exec|shell|python|run_command)$/.test(t.name)&&t.status==='completed'));
   if(step.delegation)test('nativeBotDelegation',tools.some(t=>t.name==='message_bot'&&t.status==='completed'));
   if(step.research) {
     test('citedRelevantDomain',(step.links||[]).some(domain=>text.includes(domain)));
-    test('actualResearchTool',tools.some(t=>t.status==='completed'&&(/search|fetch|browse/i.test(t.name)||(/bash|terminal|exec|shell/i.test(t.name)&&/https?:|curl|wget|fetch\(/i.test(JSON.stringify(t))))));
+    test('actualResearchTool',researchEvidence===undefined?tools.some(t=>t.status==='completed'&&(/search|fetch|browse/i.test(t.name)||(/bash|terminal|exec|shell/i.test(t.name)&&/https?:|curl|wget|fetch\(/i.test(JSON.stringify(t))))):researchEvidence.some(row=>['native-fetch-returned','observed-http-200'].includes(row.level)));
   }
   if(step.csvRoundtrip) {
     try {const output=contents.find(f=>f.name===step.artifact);test('losslessQuotedCsvRoundtrip',JSON.stringify(csvRows(output.text))===JSON.stringify(csvRows(assets['留言.csv'])));}
     catch(error){test('losslessQuotedCsvRoundtrip',false,error.message);}
   }
-  if(/^budget-v[123]\.csv$/.test(step.artifact||'')) {
+  if(/^budget-v[123]\.csv$/.test(step.artifact||'')||step.budgetExpected!==undefined) {
     try {
       const rows=csvRows(contents.find(f=>f.name===step.artifact).text),header=rows[0].map(x=>x.toLowerCase());
       let amount=header.findIndex(x=>/total|amount|subtotal|cost|合计|总额/.test(x)&&!/unit/.test(x));
       if(amount<0)amount=header.length-1;
-      const expected=step.artifact==='budget-v1.csv'?1492:step.artifact==='budget-v2.csv'?1548:1623;
+      const expected=step.budgetExpected??(step.artifact==='budget-v1.csv'?1492:step.artifact==='budget-v2.csv'?1548:1623);
       const detailRows=rows.slice(1).filter(r=>!/total|remaining|allowance|budget|总计|合计|余额|余量|上限/i.test(r[0]||''));
       const total=detailRows.reduce((sum,row)=>sum+Number(String(row[amount]||'').replace(/[¥￥$,\s]/g,'')),0);
       test('downloadedBudgetCategorySum',Math.abs(total-expected)<0.001,`observed ${total}; expected ${expected}`);
@@ -57,7 +57,7 @@ export async function checkCollaborationStep({step,receipt,delivered,artifacts,d
     }catch(error){test('downloadedSignupSlotCounts',false,error.message);}
   }
   if(step.jsonEquals) {
-    try{const data=JSON.parse(contents.find(f=>f.name===step.artifact).text);for(const [key,expected]of Object.entries(step.jsonEquals))test(`json:${key}`,data[key]===expected,`observed ${JSON.stringify(data[key])}`);}
+    try{const data=JSON.parse(contents.find(f=>f.name===(step.jsonArtifact||step.artifact)).text);for(const [key,expected]of Object.entries(step.jsonEquals))test(`json:${key}`,data[key]===expected,`observed ${JSON.stringify(data[key])}`);}
     catch(error){test('validJsonArtifact',false,error.message);}
   }
   if(step.codeContract) {

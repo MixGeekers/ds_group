@@ -33,7 +33,7 @@ const unresolvedManual=(report.manualReviews||[]).filter(x=>!manual?.reviews?.so
 const published=clean({schemaVersion:2,run:path.basename(directory),status:report.status,
   acceptance:`${report.rounds.length<report.plannedMessages?'Incomplete natural long test. ':''}Posted messages are not successful Bot responses. Original verdicts, human review, provider rejection and evaluator limitations remain separate.`,
   startedAt:report.initialStartedAt||report.startedAt,finishedAt:report.finishedAt,elapsedMs:Date.parse(report.finishedAt)-Date.parse(report.initialStartedAt||report.startedAt),
-  topology:report.topology,model:report.model,browserUrl:report.browserUrl,rawReportSha256:sha(raw),corpusHash:report.corpusHash,
+  topology:report.topology,model:report.model,browserUrl:report.browserUrl,rawReportSha256:sha(raw),corpusHash:report.corpusHash,parent:report.parent,
   corpusHashMatches:sha(JSON.stringify(corpus))===report.corpusHash,generations:report.generations||[{generation:1,sourceCommit:report.sourceCommit}],sourceManifests:manifests,
   coverage:{plannedMessages:report.plannedMessages,postedMessages:report.rounds.length,unpostedMessages:report.plannedMessages-report.rounds.length,
     plannedBotRequests:report.plannedBotRequests,attemptedBotRequests:report.attempts.length,
@@ -41,13 +41,13 @@ const published=clean({schemaVersion:2,run:path.basename(directory),status:repor
     humanOnlyMessages:report.rounds.filter(x=>!x.botId).length,quotaRejectedBotRequests:quotaFailures.length,contextOverflowBotRequests:overflowFailures.length,
     observedBotChatReplies:audit.conversationReviewQueue.length,
     types:Object.fromEntries([...new Set(corpus.steps.map(x=>x.type))].map(type=>[type,corpus.steps.filter(x=>x.type===type).length])),
-    deliveredFiles:audit.artifacts.length,plannedCompactions:6,completedCompactions:report.maintenance.filter(x=>x.type==='native-compaction'&&x.result?.compacted).length,
+    deliveredFiles:audit.artifacts.length,plannedCompactions:report.plannedMaintenance?.compactions.length??6,completedCompactions:report.maintenance.filter(x=>x.type==='native-compaction'&&x.result?.compacted).length,
     successfulPlannedRestarts:report.maintenance.filter(x=>x.type==='planned-restart'&&x.identitiesPreserved).length,
     recoveryRestarts:report.maintenance.filter(x=>x.type==='recovery-restart'&&x.identitiesPreserved).length},
   providerBlock:quota?{observedAt:quota.at,endpoint:quota.endpoint,httpStatus:quota.status,available:quota.available,
     blockedWindows:quota.blockedWindows,providerReportedResetAt:quota.resetAt,firstRejectedBotRound:replayUnsafeFrom,
     preflightVerification:await optional('quota-preflight-verification.json')}:null,
-  continuation:{complete:false,originalUnpostedRounds:[report.rounds.length+1,report.plannedMessages],
+  continuation:{complete:false,originalUnpostedRounds:report.rounds.length<report.plannedMessages?[report.rounds.length+1,report.plannedMessages]:[],
     note:'Quota-rejected messages already exist in room/native histories. Do not silently replay their earlier oracles against later facts. Preserve this failed segment and register a new natural continuation with current information, additional behavior coverage, files, chat and recovery checks. Leave the pause marker until the provider allowance is available; a reset timestamp is not proof of availability.'},
   bots:report.bots.map(({id,name,nativeBotId})=>({id,name,nativeBotId})),rooms:report.rooms,
   rounds:report.rounds.map(row=>({...row,artifacts:files(row),prompt:corpus.steps[row.round-1].body})),
@@ -69,6 +69,8 @@ const published=clean({schemaVersion:2,run:path.basename(directory),status:repor
     sourceMetadata:body.sources.map(({id,eventId,authorId,authorKind,roomId,revision,body,originRefs,withdrawn})=>({id,eventId,authorId,authorKind,roomId,revision,bodySha256:sha(body||''),originRefs,withdrawn})),
     contacts:body.contacts.map(({id,name,aliases,kind})=>({id,name,aliases,kind})),errors:body.errors}:null});
 const destination=path.join(packageRoot,'artifacts/memory');await mkdir(destination,{recursive:true});
-await writeFile(path.join(destination,'collaboration-live.json'),JSON.stringify(published,null,2)+'\n');
-await writeFile(path.join(destination,'collaboration-corpus.json'),JSON.stringify(corpus,null,2)+'\n');
+const stem=report.parent?corpus.id:'collaboration-live';
+if(!/^[a-z0-9-]+$/.test(stem))throw new Error('Invalid evidence filename');
+await writeFile(path.join(destination,`${stem}.json`),JSON.stringify(published,null,2)+'\n');
+await writeFile(path.join(destination,report.parent?`${stem}-corpus.json`:'collaboration-corpus.json'),JSON.stringify(corpus,null,2)+'\n');
 console.log(JSON.stringify({destination,status:published.status,coverage:published.coverage,unresolvedManual:unresolvedManual.length}));

@@ -1,0 +1,94 @@
+{
+  "at": "2026-11-06T15:47:55.896Z",
+  "status": "offline-passed-real-continuation-not-started",
+  "phase": "natural-continuation-01",
+  "sourceCommit": "2a16d50d0d9f2fed9aaef49b296782a6f1061fa6",
+  "sourceTree": "The changes listed by exact hashes were uncommitted during validation.",
+  "sourceHashes": {
+    "artifacts/memory/natural-continuation-01-corpus.json": "7d0b5060ae0f8cf96bf2f707e0dfcf25e99fc43847ffd439f9edec65a7128399",
+    "artifacts/memory/natural-continuation-01-preflight.json": "2936cd96a73f520a7ab321b361af356009006deb98a02ef4d925a43b60a762b3",
+    "artifacts/memory/ui/natural-continuation-preflight.jpg": "e43d384eb56de60ea4be1715174baf171cc4071e0f495894c12fd814eedae941",
+    "artifacts/memory/目录.md": "dd46617c1cd18cc1d2b9b2be6627c799abe49a45246808e8829c4cb8a0738c65",
+    "memory/实施与长程测试.md": "7e0b90f16b0ab1aecfc67910a41a79b26eb20e9538c4cdbbffc4457772690cda",
+    "scripts/collaboration-continuation-corpus.mjs": "50c2d093e57af294d54cccff4dac6979b451b190be7eec51393edb248915c835",
+    "scripts/collaboration-evidence.mjs": "9127d7aba592b98801f9c8997f39090b33c3f75f6f9a4d9f69c88d4cff9f5157",
+    "scripts/collaboration-long-check.mjs": "10d21703acb49c285d067cf5eae5205f148cf15c8c02376161dfca1b5a120e02",
+    "scripts/collaboration-long-run.mjs": "3508973f968d6eb4b8611cef5542566a7bee28464ffb0cdbeb6b6066450a67a2",
+    "scripts/collaboration-memory-snapshot.mjs": "ac3ad90ee5d02d320b513d0f59682728ae2bd76a4718a9c106d50f18513899d3",
+    "scripts/memory-visible-host-plugin.mjs": "ec2adbf59e15a16ab62e1227115b8905e962deaf1ae3f87a94f7c10faca66576",
+    "tests/collaboration-continuation.test.mjs": "df087664eb88400778020bd99a513b79c807315cdfdf263269768e06025994cd",
+    "实施记录.md": "e4dbe54138616484a1534a9e314fff3158bc5c11c38c3f674af7ae1d26b08e8f"
+  },
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "newModelStreams": 0,
+  "plannedMessages": 96,
+  "postedMessages": 0,
+  "moduleTests": {
+    "command": "npm test",
+    "passed": 454,
+    "failed": 0,
+    "skipped": 0,
+    "newScenarioTests": 4,
+    "durationMs": 9315.766708,
+    "logSha256": "3cd34985b9e8e796829bc2af8be7a344d69b5a6096891013abc0d7bcae6c3d13",
+    "finishedAt": "2026-11-06T15:43:51.442Z"
+  },
+  "syntaxChecks": {
+    "files": [
+      "scripts/collaboration-continuation-corpus.mjs",
+      "scripts/collaboration-long-run.mjs",
+      "scripts/collaboration-long-check.mjs",
+      "scripts/collaboration-evidence.mjs",
+      "scripts/collaboration-memory-snapshot.mjs",
+      "scripts/memory-visible-host-plugin.mjs",
+      "tests/collaboration-continuation.test.mjs"
+    ],
+    "passed": 7
+  },
+  "diffWhitespaceCheck": "passed",
+  "corpus": {
+    "messages": 96,
+    "botRequests": 72,
+    "humanOnly": 24,
+    "chatMessages": 37,
+    "fileTasks": 34,
+    "independentCodeContracts": 5,
+    "researchTasks": 4,
+    "delegationTasks": 7,
+    "compactions": [
+      24,
+      48,
+      72,
+      88
+    ],
+    "restarts": [
+      32,
+      64,
+      88
+    ],
+    "registration": "prospective; no new actor message posted"
+  },
+  "preflight": {
+    "file": "natural-continuation-01-preflight.json",
+    "attempts": 2,
+    "status": "provider-blocked-before-host-start",
+    "originalEvidenceUnchanged": true,
+    "checkedOriginalFiles": 7,
+    "newPhaseProtocolFiles": false
+  },
+  "browser": {
+    "surface": "Codex in-app browser",
+    "url": "http://127.0.0.1:25320/?server=collaboration-live.local&roomId=%21MUEy9yduQr7P1NfBVNvzRFTLnwxJk4eat8L6kptJ5kg",
+    "screenshot": "ui/natural-continuation-preflight.jpg",
+    "observed": "Original 208/240 status and two real continuation quota stops at 0/96; existing human names and four work channels visible.",
+    "keptOpen": true,
+    "screenshotNote": "Actual local test UI. Historical diagnostic messages contain local source paths; no login token is shown."
+  },
+  "scope": [
+    "Offline tests and real zero-generation quota preflight only.",
+    "Native/Matrix identities, protocol redirection, pending review recovery, planned compactions/restarts and all 96-message model behavior still require actual execution.",
+    "Original 208-message evidence remains frozen; this phase cannot convert quota-rejected requests into successes.",
+    "No frontend code changed or new frontend build claimed; previous build/type results remain at their own source cut.",
+    "No physical cross-machine acceptance."
+  ]
+}

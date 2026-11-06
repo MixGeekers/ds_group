@@ -9,7 +9,7 @@ if(!process.argv[2])throw new Error('Pass the isolated, stopped collaboration ru
 const directory=path.resolve(process.argv[2]);
 const report=JSON.parse(await readFile(path.join(directory,'report.json'),'utf8'));
 if(!['provider-blocked','failed','stopped-by-operator'].includes(report.status))throw new Error('This snapshot is for an interrupted, stopped run');
-const filename=path.join(directory,'host/home/bot/knowledge/knowledge.sqlite');
+const filename=path.join(report.runtimeDirectory||path.join(directory,'host'),'home/bot/knowledge/knowledge.sqlite');
 const hashes=async()=>Object.fromEntries(await Promise.all(['','-wal'].map(async suffix=>{
   try{return[path.basename(filename)+suffix,createHash('sha256').update(await readFile(filename+suffix)).digest('hex')];}
   catch(error){if(error.code==='ENOENT')return[path.basename(filename)+suffix,null];throw error;}

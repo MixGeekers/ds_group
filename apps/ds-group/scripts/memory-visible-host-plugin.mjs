@@ -17,7 +17,7 @@ export async function apply(ctx, config) {
     ...(scenario ? {} : { memoryReviewDelayMs: 250 }) });
   const native = new NativeBots(ctx), connections = new NativeConnections({ ctx, native });
   let writes = Promise.resolve();
-  const log = (file, value) => { writes = writes.catch(() => {}).then(() => appendFile(join(config.directory, file), JSON.stringify(value) + '\n')); return writes; };
+  const log = (file, value) => { writes = writes.catch(() => {}).then(() => appendFile(join(scenario?.evidenceDirectory || config.directory, file), JSON.stringify(value) + '\n')); return writes; };
   ctx.on('session/event', (session, event) => log('events.jsonl', { sessionId: session.id, ...event }));
   ctx.on('llm/stream', async function* (options, next) {
     const model = `${options.provider}/${options.model}`;
