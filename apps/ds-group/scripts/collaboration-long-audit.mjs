@@ -49,6 +49,9 @@ export async function auditRun(directory) {
   const ends=calls.filter(x=>x.event==='end'),ended=new Set(ends.map(x=>x.callId));
   const result={schemaVersion:1,at:new Date().toISOString(),rawReportSha256:sha(raw),completed:report.rounds.length,
     rawStatus:report.status,rawFailures:report.failures,research,contractClarifications,interventions,
+    conversationReviewQueue:report.rounds.filter(row=>row.type==='chat'&&row.reply).map(row=>({round:row.round,
+      prompt:corpus.steps[row.round-1].body,reply:row.reply,eventId:row.eventId,replyEventIds:row.replyEventIds,
+      criteria:['Respond to this actual conversational turn and its language','Respect requests for brevity or no tasks','Keep personal attribution and scope; do not turn a passing mood into a durable preference'],status:'pending'})),
     accounting:{modelIds:[...new Set(calls.map(c=>c.model))],completedCalls:ends.length,failedCalls:ends.filter(c=>c.status==='failed').length,
       pendingCalls:calls.filter(c=>c.event==='start'&&!ended.has(c.callId)).length,costComplete:false},
     artifacts:report.rounds.flatMap(r=>(r.artifacts||[]).map(f=>({round:r.round,name:f.name,size:f.size,sha256:f.sha256}))),

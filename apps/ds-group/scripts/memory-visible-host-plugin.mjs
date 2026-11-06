@@ -57,6 +57,14 @@ export async function apply(ctx, config) {
     try {
       const { action, input = {} } = await request.json(); let value;
       if (action === 'state') value = await native.state();
+      else if(action==='context-stats')value=await Promise.all((await native.state()).bots.map(async bot=>{
+        const agent=await native.agent(bot.sessionId),session=agent.session,route=session.requestHeader()?.config;
+        const info=route?.provider&&route?.model?await ctx.llm.resolveModelInfo(route.provider,route.model):null;
+        let measured;try{const m=ctx.get('tokenMeter')?.measure(session);measured=m?{totalTokens:m.totalTokens,nodes:m.nodes?.length}:null;}catch(error){measured={error:error.message};}
+        const messages=session.deriveMessages();
+        return{id:bot.id,sessionId:session.id,model:route?`${route.provider}/${route.model}`:null,context:info?.context,maxTokens:route?.maxTokens,
+          measured,messageCount:messages.length,textCharacters:messages.reduce((n,m)=>n+(m.content||[]).filter(x=>x.type==='text').reduce((a,x)=>a+x.text.length,0),0)};
+      }));
       else if (action === 'init') value = await init();
       else if (action === 'connect') {
         const nodes = JSON.parse(await readFile(join(config.directory, 'nodes.json'), 'utf8'));
