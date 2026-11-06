@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import assert from 'node:assert/strict';
+import { ModelBudget } from '../src/budget.mjs';
+import { modelReference } from '../src/model-config.mjs';
 import { createServer } from 'node:http';
 import { spawn } from 'node:child_process';
 import { mkdtemp, mkdir, writeFile, readFile, open, rm } from 'node:fs/promises';
@@ -13,6 +15,9 @@ import { resolveDsh } from './runtime-config.mjs';
 // Real DSH and native local tools, with scripted localhost model responses.
 // This test never calls a remote model or uses a real provider credential.
 const installation = await resolveDsh();
+const selectedModel = process.env.DS_GROUP_SMOKE_MODEL || 'local-fixture/team/chat';
+const selectedRoute = modelReference(selectedModel);
+const budget = new ModelBudget(':memory:');
 const directory = await mkdtemp(path.join(os.tmpdir(), 'ds-group-work-smoke-'));
 const workdir = path.join(directory, 'task');
 await mkdir(workdir);
@@ -37,11 +42,11 @@ const model = createServer(async (request, response) => {
     if (request.url.startsWith('/internal/model/')) {
       ledger.push({ route: request.url, body: input });
       response.writeHead(200, { 'content-type': 'application/json' });
-      response.end(JSON.stringify(request.url.endsWith('/claim') ? { claimId: `local-claim-${ledger.length}` } : { recorded: true }));
+      response.end(JSON.stringify(request.url.endsWith('/claim') ? budget.claim(input) : budget.complete(input)));
       return;
     }
     assert.equal(request.url, '/v1/chat/completions');
-    assert.equal(input.model, 'deepseek-v4.1-flash');
+    assert.equal(input.model, selectedRoute.model);
     requests.push(input);
     const step = requests.length;
     if (step === 6) {
@@ -89,12 +94,24 @@ await once(reserve, 'listening');
 const bridgePort = reserve.address().port;
 await new Promise(resolve => reserve.close(resolve));
 await writeFile(path.join(directory, 'core-config.json'), JSON.stringify({ nodeSecret: 'local-scripted-smoke', publicUrl: origin }));
+const sourceHome = path.join(directory, 'source');
+const sourceProfile = path.join(sourceHome, 'profiles/desktop');
+await mkdir(sourceProfile, { recursive: true });
+await writeFile(path.join(sourceProfile, 'package.json'), JSON.stringify({ name: 'scripted-source', private: true,
+  dsh: { profile: { bundles: ['@deepseek-ai/dsh-base'] } } }));
+await writeFile(path.join(sourceProfile, 'cordis.patch.yml'), JSON.stringify([
+  { id: 'llm-pi-ai', config: { providers: { [selectedRoute.provider]: { api: 'openai-completions', baseURL: `${origin}/v1`,
+    models: [{ id: selectedRoute.model }], apiKeyEnv: 'SYNTHETIC_KEY' } } } },
+  { id: 'agent-default-model', config: selectedRoute },
+]));
+await writeFile(path.join(sourceHome, '.credentials.yaml'), JSON.stringify({ version: 1, refs: { SYNTHETIC_KEY: 'scripted-never-remote-key' }, records: {} }), { mode: 0o600 });
 const log = await open(path.join(directory, 'host.log'), 'a', 0o600);
 const child = spawn(process.execPath, [path.join(packageRoot, 'scripts/dsh-node.mjs'), 'run', 'finance'], {
   cwd: packageRoot, detached: true, stdio: ['ignore', log.fd, log.fd], env: {
     ...process.env, DS_GROUP_DSH_CLI: installation.cli, DS_GROUP_DSH_RUNTIME: installation.runtime,
     DS_GROUP_DATA_DIR: directory, DS_GROUP_CORE_CONFIG_PATH: path.join(directory, 'core-config.json'), DS_GROUP_CORE_URL: origin,
-    DS_GROUP_BRIDGE_PORT: String(bridgePort), OPENCODE_API_KEY: 'local-scripted-smoke-no-remote-key', DS_GROUP_OPENCODE_BASE_URL: `${origin}/v1`,
+    DS_GROUP_BRIDGE_PORT: String(bridgePort), DS_GROUP_MODEL: selectedModel,
+    DS_GROUP_DSH_SOURCE_HOME: sourceHome, DS_GROUP_DSH_SOURCE_PROFILE: 'desktop',
   },
 });
 const exited = new Promise(resolve => child.once('close', resolve));
@@ -115,7 +132,9 @@ try {
     try { ready = await api('/status'); break; } catch { await sleep(500); }
   }
   assert.ok(ready);
+  assert.equal(ready.model, selectedModel);
   const bot = await api('/bots', { botId: '@finance:local-smoke.test', name: 'File work smoke', role: '财务', instructions: 'Use the actual file tools to complete tasks.' });
+  assert.equal(bot.model, selectedModel);
   assert.ok(bot.tools.includes('bash') && bot.tools.includes('read') && bot.tools.includes('write'));
   const request = { async: true, requestId: 'file-work-native-smoke', botId: bot.botId, workdir,
     event: { eventId: '$work', roomId: '!test:local', senderId: '@alice:local', body: '请读取CSV，实际计算费用合计，生成结果CSV并读取核对后交付。' },
@@ -142,7 +161,9 @@ try {
   assert.ok(result.claims.every(item => item.recorded && item.status === 'completed'));
   assert.equal(ledger.filter(item => item.route.endsWith('/claim')).length, 4);
   assert.equal(ledger.filter(item => item.route.endsWith('/complete')).length, 4);
-  report.checks.push('nativeToolReceiptsAndEveryGenerationLedger');
+  assert.ok(budget.snapshot().claims.every(claim => claim.model === selectedModel && claim.status === 'completed'));
+  assert.ok(result.claims.every(claim => claim.model === selectedModel));
+  report.checks.push('nativeToolReceiptsAndEveryGenerationLedger', 'configuredProviderAndModelMatchRuntimeWireAndCoreLedger');
   assert.equal((await api('/turns', { ...request, async: false })).duplicate, true);
   assert.equal((await api('/turns/file-work-native-smoke/cancel', {})).status, 'completed');
   assert.equal(requests.length, 4);
@@ -196,6 +217,9 @@ try {
   for (const response of heldResponses) response.destroy();
   await new Promise(resolve => model.close(resolve));
   report.scriptedProviderCalls = requests.length;
+  report.model = selectedModel;
+  report.ledger = budget.snapshot();
+  budget.close();
   report.completedAt = new Date().toISOString();
   const reportPath = path.resolve(process.env.DS_GROUP_WORK_SMOKE_REPORT || path.join(packageRoot, '.local/runtime-work-smoke.json'));
   await mkdir(path.dirname(reportPath), { recursive: true });

@@ -42,7 +42,7 @@ const en = {
   connectionNote:
     "Access is based on your home server's membership and policy. It does not report a remote server's physical uptime.",
   myBots: "My Bots",
-  createBot: "Create Bot",
+  createBot: "Add existing Bot",
   message: "Message",
   botHelp:
     "Connect your Bot from DSCord in DSH. Its identity and work stay on its own node.",
@@ -96,7 +96,7 @@ const zh: Record<keyof typeof en, string> = {
   connectionNote:
     "访问状态来自归属服务的成员资格及准入规则，不表示远端服务器的实际运行状态。",
   myBots: "我的 Bot",
-  createBot: "创建 Bot",
+  createBot: "添加已有 Bot",
   message: "私聊",
   botHelp:
     "在 DSH 的 DSCord 中连接自己的 Bot。身份和工作保留在各自的独立节点。",

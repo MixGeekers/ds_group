@@ -70,6 +70,7 @@ export class BotWorkService {
     readJsonBody,
     matrixFor,
     tasks,
+    nativeBot = () => false,
     maxBytes = () => DEFAULT_MAX_UPLOAD_BYTES,
   }) {
     Object.assign(this, {
@@ -79,6 +80,7 @@ export class BotWorkService {
       authorizeNode,
       readJsonBody,
       tasks,
+      nativeBot,
       maxBytes,
     });
     this.matrixFor =
@@ -190,17 +192,28 @@ export class BotWorkService {
     const joinedIds = Object.keys(members.joined || {}).sort();
     if (!joinedIds.includes(bot.id))
       throw denyWork('The original Bot is not joined to this room');
-    const participants = trustedRoomParticipants({
+    let participants = trustedRoomParticipants({
       policy,
       locals: this.accounts.publicParticipants(),
       joinedIds,
     });
+    if (this.nativeBot(bot.id)) {
+      const known = new Map([...this.accounts.publicParticipants(), ...participants].map(person => [person.id, person]));
+      participants = joinedIds.map(id => known.get(id) || { id, kind: 'unknown', identitySource: 'matrix-membership',
+        name: members.joined[id].display_name || id, localpart: id.slice(1, id.indexOf(':')) });
+    }
     return { client, policy, joinedIds, participants };
   }
 
   async join(botId, roomId, scope) {
     requireNodeScope(scope, { botId });
     const bot = this.bot(botId);
+    if (this.nativeBot(botId)) {
+      if (typeof roomId !== 'string' || !roomId.startsWith('!')) throw policyError(400, 'A Matrix room ID is required');
+      const result = await this.matrixFor(bot).join(roomId);
+      if (result.room_id !== roomId) throw denyWork('Matrix joined a different room');
+      return { roomId, status: 'joined', botId, ownerId: bot.ownerId, mode: 'native' };
+    }
     const policy = await this.governance.read();
     const rule = policy.rooms.find((row) => row.roomId === roomId);
     const owner = this.grants(bot).grants.find((row) => row.roomId === roomId);
@@ -312,6 +325,9 @@ export class BotWorkService {
       throw denyWork('The actual Matrix sender has not been admitted');
     if (serverOf(event.sender) === policy.serverName)
       this.accounts.assertActive?.(event.sender);
+    // An attached native Bot runs its full native capabilities in every joined
+    // server. Membership supplies routing; DSCord adds no execution sandbox.
+    if (this.nativeBot(bot.id)) return { mode: 'native', event, participants };
     const states = await client.request('GET', `${memberPath(roomId)}/state`);
     const meta = event.content['org.ds_group'] || {};
     const referenceId =
@@ -432,6 +448,10 @@ export class BotWorkService {
       eventId: input.eventId,
       nodeTools: [],
     });
+    if (source.mode === 'native') {
+      await this.room(bot, input.destinationRoomId);
+      return { authorized: true, mode: 'native' };
+    }
     if (source.mode !== 'local')
       throw denyWork('An unscoped source cannot publish a cross-server result');
     const room = await this.room(bot, input.destinationRoomId);
@@ -473,7 +493,7 @@ export class BotWorkService {
     const action = { requestId, botId, stage: 'accept' };
     try {
       const result = await this.evaluate(bot, input);
-      if (result.mode === 'local') return result;
+      if (result.mode === 'local' || result.mode === 'native') return result;
       const previous = this.db
         .prepare('SELECT * FROM bot_work_admissions WHERE request_id=?')
         .get(requestId);

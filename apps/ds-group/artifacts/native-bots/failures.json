@@ -1,0 +1,26 @@
+[
+  {
+    "stage": "initial full module suite",
+    "passed": 397,
+    "total": 398,
+    "cause": "npm-pack fixture lacked the newly required native client bundle. Fixture updated; final 400/400."
+  },
+  {
+    "stage": "initial full browser suite",
+    "passedFiles": 9,
+    "totalFiles": 11,
+    "cause": "react-app still filled removed Bot name form; unified-client referenced removed close button ID. Updated selection fixture and retained close button ID; both targeted reruns passed."
+  },
+  {
+    "stage": "native UI integration",
+    "cause": "Native Bot mode replaced the sidebar; a footer button was occluded, then an overlay read inject from the wrong slot property. Final portal entry uses the original DS-Bot switch action; real DSH browser checks passed."
+  },
+  {
+    "stage": "native scripted provider development",
+    "cause": "Earlier attempts had a missing synthetic credential, incorrect user/message event wrapper, wrong scripted message selection, and an asynchronous teammate greeting count assumption. Final report requires an actual created/configured teammate and a new post-disconnect provider request."
+  },
+  {
+    "stage": "abandoned group-session experiment",
+    "cause": "Original DS-Bot group requires at least two members. Per user direction, separate group execution was abandoned; vendor modifications reverted. Final path uses the original Bot Session."
+  }
+]

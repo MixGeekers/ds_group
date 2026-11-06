@@ -12,6 +12,7 @@ import { NodeDelivery, createDeliveryClient } from './node-delivery.mjs';
 import { normalizeDelivery } from './delivery-policy.mjs';
 import { runtimeSettings } from '../scripts/runtime-config.mjs';
 import { createNodeWorkClient, scopedTaskRequest } from './node-work.mjs';
+import { conversationContext, messageSource, threadOf } from './message-context.mjs';
 
 const metadataOf = event => event.content?.['org.ds_group'] || {};
 const digest = value => createHash('sha256').update(value).digest('hex');
@@ -163,11 +164,12 @@ export class BotNode {
         throw new Error('Core returned an invalid participant roster');
       }
       const existing = new Map(this.participants.map(person => [person.id, person]));
-      if (participants.some(person => existing.has(person.id) && existing.get(person.id).kind !== person.kind)) {
+      if (participants.some(person => existing.has(person.id) && existing.get(person.id).kind !== 'unknown' && existing.get(person.id).kind !== person.kind)) {
         throw new Error('A registered participant changed identity kind');
       }
       const updated = participants.map(person => {
         const record = existing.get(person.id) || {};
+        delete record.identitySource;
         for (const field of ['id', 'localpart', 'name', 'kind', 'ownerId', 'role', 'instructions']) {
           if (person[field] !== undefined) record[field] = person[field];
         }
@@ -212,7 +214,11 @@ export class BotNode {
           this.roomRosters.set(roomId, participants);
           for (const person of participants) {
             const previous = this.participants.find(existing => existing.id === person.id);
-            if (previous && previous.kind !== person.kind) throw new Error('A room participant changed identity kind');
+            if (previous && previous.kind !== person.kind && previous.kind !== 'unknown' && person.kind !== 'unknown') throw new Error('A room participant changed identity kind');
+            if (previous && person.kind !== 'unknown') {
+              delete previous.identitySource;
+              Object.assign(previous, person);
+            }
             if (!previous) this.participants.push(person);
           }
         } catch (error) {
@@ -230,6 +236,7 @@ export class BotNode {
       role: this.roleOf(),
       instructions: this.instructions() });
     this.nodeTools = setup?.tools || [];
+    this.model = setup?.model;
     await this.heartbeat();
     this.processing = this.processLoop();
     this.syncing = this.syncLoop();
@@ -286,6 +293,7 @@ export class BotNode {
     }
     const events = [];
     for (const [roomId, room] of Object.entries(response.rooms?.join || {})) {
+      this.store.noteRoomState(roomId, [...(room.state?.events || []), ...(room.timeline?.events || [])]);
       events.push(...await this.collectRoomEvents(roomId, room));
     }
     await this.ingestEvents(events, response.next_batch);
@@ -323,7 +331,14 @@ export class BotNode {
     const referencedFiles = !workTransfer && replied?.room_id === event.room_id ? this.store.messageBatch(replied).flatMap(eventAttachments) : [];
     const ownFiles = workTransfer && meta.fileBatch ? this.store.messageBatch(event).flatMap(eventAttachments) : eventAttachments(event);
     const followupFiles = ownFiles.length || replyTo ? [] : this.delivery.inputFiles(item);
+    const history = this.store.historyBefore(event.event_id);
+    const inRoom = value => value?.room_id === event.room_id ? value : undefined;
+    const room = this.store.roomContext(event.room_id);
+    if (this.roomRosters.has(event.room_id)) room.members = this.roomRosters.get(event.room_id).map(person => person.id);
     return { requestId: `matrix-${digest(`${this.participant.id}\0${event.event_id}`)}`, botId: this.participant.id,
+      context: conversationContext({ event, participants: this.participants, room, history,
+        earlierCount: Math.max(0, this.store.historyCountBefore(event.event_id) - history.length),
+        reply: inRoom(replied), threadRoot: inRoom(this.store.message(threadOf(event))) }),
       event: { eventId: event.event_id, roomId: event.room_id, senderId: event.sender, senderName: this.senderName(event.sender),
         botIdentity: { id: this.participant.id, name: this.participant.name, role: this.roleOf() },
         availableBots: this.participants.filter(person => person.kind === 'bot' && person.id !== this.participant.id)
@@ -339,7 +354,8 @@ export class BotNode {
         ...(meta.originSenderId ? { originSenderId: meta.originSenderId } : {}), ...(Number.isInteger(meta.hop) ? { hop: meta.hop } : {}),
         ...(meta.originRoomId ? { originRoomId: meta.originRoomId } : {}), ...(meta.originEventId ? { originEventId: meta.originEventId } : {}),
       },
-      history: this.store.historyBefore(event.event_id).map(previous => ({ eventId: previous.event_id,
+      history: history.map(previous => ({ eventId: previous.event_id, roomId: previous.room_id,
+        source: messageSource(previous, this.participants),
         senderId: previous.sender, senderName: this.senderName(previous.sender), senderKind: this.participants.find(person => person.id === previous.sender)?.kind,
         body: previous.content.body, attachments: eventAttachments(previous), taskId: metadataOf(previous).taskId,
         kind: metadataOf(previous).kind, originSenderId: metadataOf(previous).originSenderId, fileBatch: metadataOf(previous).fileBatch })),
@@ -737,11 +753,17 @@ export class BotNode {
   }
 
   async heartbeat() {
+    if (this.bridge.runtimeStatus && this.state !== 'offline') {
+      const runtime = await this.bridge.runtimeStatus({
+        signal: AbortSignal.any([this.controller.signal, AbortSignal.timeout(2000)]),
+      }).catch(() => null);
+      this.model = runtime?.model ?? null;
+    }
     const snapshot = this.store.snapshot();
     await this.sendHeartbeat({ id: this.participant.localpart, botId: this.participant.id, name: this.participant.name,
       runtimeId: this.runtimeId, status: this.lastError && this.state === 'idle' ? 'error' : this.state,
       processed: snapshot.processed, pending: snapshot.pending, sessionId: snapshot.sessionId,
-      lastError: this.lastError || snapshot.lastError, engine: 'DS-Bot 0.2.7' });
+      lastError: this.lastError || snapshot.lastError, model: this.model, engine: 'DS-Bot 0.2.7' });
   }
 
   async heartbeatLoop() {
@@ -806,6 +828,7 @@ export function createBridge(endpoint, { token, fetchImpl = fetch, timeoutMs = 1
   }
   return {
     createBot: input => request('/api/ds-group-node/bots', input), status, wait,
+    runtimeStatus: options => request('/api/ds-group-node/status', undefined, options),
     cancel: requestId => request(`/api/ds-group-node/turns/${encodeURIComponent(requestId)}/cancel`, {}),
     turn: async (input, options = {}) => {
       const snapshot = await request('/api/ds-group-node/turns', { ...input, async: true }, options);

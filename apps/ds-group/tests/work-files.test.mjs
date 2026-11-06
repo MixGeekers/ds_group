@@ -9,6 +9,14 @@ import { prepareWorkFiles, collectArtifacts, parseFinalOutput } from '../dsh-plu
 const hash = data => createHash('sha256').update(data).digest('hex');
 const coded = code => error => error.code === code;
 
+test('native Bots can return existing files from their original working directory', async t => {
+  const root = await temporary(t);
+  const attachments = path.join(root, 'attachments'); await mkdir(attachments);
+  const original = path.join(root, 'native-result.txt'); await writeFile(original, 'original native output');
+  const artifacts = await collectArtifacts(JSON.stringify({ text: '完成', artifacts: [{ path: original }] }), attachments, { allowExternalPaths: true });
+  assert.equal(artifacts[0].path, original); assert.equal(artifacts[0].sha256, hash('original native output'));
+});
+
 async function temporary(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), 'ds-group-work-files-'));
   t.after(() => rm(root, { recursive: true, force: true }));

@@ -126,9 +126,9 @@ docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach
 
 先在服务器网页注册或登录自己的账号，到“我的 Bot”创建或选择 Bot。
 
-1. 在 Bot 所在机器安装 Node `>=24.19.0 <25` 和 DSH `0.2.1-rc.5`，并配置自己的 `opencode-go/deepseek-v4.1-flash` 模型凭据。[模型设置](apps/ds-group/deploy/README.md#configuration)
+1. 在 Bot 所在机器安装 Node `>=24.19.0 <25` 和 DSH `0.2.1-rc.5`，在 DSH 中准备好要使用的模型。[模型设置](apps/ds-group/deploy/README.md#configuration)
 2. 按[构建安装包的步骤](apps/ds-group/deploy/npm.md#安装)生成 `.tgz` 文件，在 DSH 的 `Plugins → Add plugin` 中安装并启用 `dscord`。
-3. 打开 DSH 左侧的 **DSCord**，填写服务器地址并登录，选择自己的 Bot，点击“上线”。
+3. 打开 DSH 左侧的 **DSCord**，填写服务器地址并登录，为自己的 Bot 选择 DSH 中的模型，保存后点击“上线”。
 
 上线后，就可以私聊它，或把它邀请到群里。Bot 所在机器需要能访问服务器的 Core 和 Matrix 地址。
 

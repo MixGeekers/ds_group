@@ -34,10 +34,23 @@ test('core publishes identities, keeps secrets local, and records a unique Bot r
     const identity = { id: 'node-a', botId: '@finance:test', runtimeId: 'run-one', status: 'idle' };
     assert.equal((await fetch(base + '/internal/nodes/heartbeat', { method: 'POST', headers, body: JSON.stringify(identity) })).status, 200);
     assert.equal((await fetch(base + '/internal/nodes/heartbeat', { method: 'POST', headers, body: JSON.stringify({ ...identity, id: 'node-b', runtimeId: 'run-two' }) })).status, 409);
-    assert.equal((await fetch(base + '/internal/model/claim', { method: 'POST', headers, body: JSON.stringify({ nodeId: 'node-a', requestId: 'm1', model: 'wrong', maxTokens: 10 }) })).status, 403);
+    assert.equal((await fetch(base + '/internal/model/claim', { method: 'POST', headers, body: JSON.stringify({ nodeId: 'node-a', requestId: 'm1', model: 'wrong', maxTokens: 10 }) })).status, 400);
     const status = await (await fetch(base + '/api/status')).json();
     assert.equal(status.nodes[0].status, 'idle');
     assert.equal(status.budget.used, 0);
+    for (const model of ['first/team/chat', 'second/model']) {
+      const claimResponse = await fetch(base + '/internal/model/claim', { method: 'POST', headers,
+        body: JSON.stringify({ nodeId: 'node-a', requestId: model, model, maxTokens: 10 }) });
+      assert.equal(claimResponse.status, 200);
+      const { claimId } = await claimResponse.json();
+      assert.equal((await fetch(base + '/internal/model/complete', { method: 'POST', headers,
+        body: JSON.stringify({ claimId, status: 'completed', usage: { outputTokens: 1 } }) })).status, 200);
+    }
+    const ledger = (await (await fetch(base + '/api/status')).json()).budget;
+    assert.deepEqual(ledger.models, ['first/team/chat', 'second/model']);
+    assert.equal(ledger.model, null);
+    assert.equal(ledger.used, 2);
+    assert.ok(ledger.claims.every(claim => claim.status === 'completed'));
     await fetch(base + '/internal/nodes/heartbeat', { method: 'POST', headers, body: JSON.stringify({ ...identity, status: 'offline' }) });
     const replacement = { ...identity, id: 'node-b', runtimeId: 'run-two' };
     assert.equal((await fetch(base + '/internal/nodes/heartbeat', { method: 'POST', headers, body: JSON.stringify(replacement) })).status, 200);

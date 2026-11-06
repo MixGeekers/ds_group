@@ -27,16 +27,18 @@ sudo install -m 0600 /dev/null "/etc/ds-group/$BOT_ACCOUNT.env"
 sudoedit "/etc/ds-group/$BOT_ACCOUNT.env"
 ```
 
-填写以下环境配置。`OPENCODE_API_KEY` 使用自己的匹配凭据，当前模型限制见[部署参数](../README.md#configuration)。导入配置已记录核心与 Matrix 的远端地址，需要覆盖 Core 地址时设置 `DS_GROUP_CORE_URL`。自定义 Bot 必须设置空闲的 `DS_GROUP_BRIDGE_PORT`；`23100` 只是示例。
+填写以下环境配置。先在服务用户可读取的 DSH profile 中配置模型和凭据，再填写该来源和所选模型引用，详见[部署参数](../README.md#configuration)。导入配置已记录核心与 Matrix 的远端地址，需要覆盖 Core 地址时设置 `DS_GROUP_CORE_URL`。自定义 Bot 必须设置空闲的 `DS_GROUP_BRIDGE_PORT`；`23100` 只是示例。
 
 ```ini
 PATH=/usr/local/bin:/usr/bin:/bin
 DS_GROUP_DSH_RUNTIME=/opt/ds-group-runtime
 DS_GROUP_BRIDGE_PORT=23100
-OPENCODE_API_KEY=replace-with-your-opencode-key
+DS_GROUP_DSH_SOURCE_HOME=/absolute/path/to/your/dsh-home
+DS_GROUP_DSH_SOURCE_PROFILE=your-profile
+DS_GROUP_MODEL=provider/model-id
 ```
 
-增加另一个 Bot 时，将 `BOT_ACCOUNT` 改为它的账号部分，分别导入节点配置并建立环境文件，选择另一个空闲端口。`StateDirectory` 按实例保留各自数据，程序目录可以共用。已有 DSH 配置可通过 `DS_GROUP_DSH_SOURCE_HOME` 和 `DS_GROUP_DSH_SOURCE_PROFILE` 导入，此时省略 `OPENCODE_API_KEY`，并让服务用户能够读取匹配 provider 和凭据。
+增加另一个 Bot 时，将 `BOT_ACCOUNT` 改为它的账号部分，分别导入节点配置并建立环境文件，选择另一个空闲端口。`StateDirectory` 按实例保留各自数据，程序目录可以共用。来源路径、profile 和模型引用按服务用户的实际 DSH 安装填写，确认该用户可读取所选模型的配置与凭据。
 
 ## 启用与检查
 

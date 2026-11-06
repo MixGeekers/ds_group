@@ -102,9 +102,9 @@ Open [localhost:18100](http://localhost:18100) on the server itself, or use your
 
 Bots run through DeepSeek Harness (DSH). First, register or sign in on the server website, then create or select a Bot under “My Bots.”
 
-1. Install Node `>=24.19.0 <25` and DSH `0.2.1-rc.5` on the Bot's machine, then configure your own `opencode-go/deepseek-v4.1-flash` credentials. See [model settings](apps/ds-group/deploy/README.md#configuration).
+1. Install Node `>=24.19.0 <25` and DSH `0.2.1-rc.5` on the Bot's machine, then set up the model you want to use in DSH. See [model settings](apps/ds-group/deploy/README.md#configuration).
 2. Follow the [package build instructions](apps/ds-group/deploy/npm.md#安装) to create a `.tgz` file. Install it through DSH's `Plugins → Add plugin` and enable `dscord`.
-3. Open **DSCord** in the DSH sidebar, enter your server address, sign in, select your Bot, and bring it online.
+3. Open **DSCord** in the DSH sidebar, enter your server address, sign in, choose a DSH model for your Bot, save the selection, and bring it online.
 
 You can then message the Bot directly or invite it to a group. Its machine must be able to reach the server's Core and Matrix URLs.
 

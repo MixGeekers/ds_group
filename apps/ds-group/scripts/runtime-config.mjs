@@ -2,9 +2,11 @@ import { access, readFile, realpath } from 'node:fs/promises';
 import { constants } from 'node:fs';
 import path from 'node:path';
 import { homedir } from 'node:os';
+import { LEGACY_MODEL, modelError, modelReference, modelSelection } from '../src/model-config.mjs';
 
 export const DSH_VERSION = '0.2.1-rc.5';
-export const MODEL = 'deepseek-v4.1-flash';
+// Compatibility alias for the original zero-model smoke fixtures.
+export const MODEL = modelReference(LEGACY_MODEL).model;
 
 export function nodeIdentifier(value) {
   if (typeof value !== 'string' || !/^[a-z][a-z0-9_-]{0,63}$/.test(value) || ['all', 'core'].includes(value)) {
@@ -91,27 +93,46 @@ export async function resolveDsh({ env = process.env, platform = process.platfor
   throw new Error('Cannot locate the DSH SDK. Set DS_GROUP_DSH_RUNTIME to its package root or npm installation prefix');
 }
 
-export function providerConfiguration({ env = process.env, sourceProvider, sourceCredentials } = {}) {
-  const suppliedKey = env.OPENCODE_API_KEY?.trim();
-  let provider;
-  let key;
-  let credentialName;
-  if (suppliedKey) {
-    credentialName = 'DS_GROUP_OPENCODE_API_KEY';
-    key = suppliedKey;
-    provider = { apiKeyEnv: credentialName };
-  } else {
-    if (!sourceProvider || typeof sourceProvider.apiKeyEnv !== 'string') {
-      throw new Error('Set OPENCODE_API_KEY or configure opencode-go in DS_GROUP_DSH_SOURCE_HOME / DS_GROUP_DSH_SOURCE_PROFILE');
-    }
-    credentialName = sourceProvider.apiKeyEnv;
-    key = sourceCredentials?.refs?.[credentialName];
-    if (typeof key !== 'string' || !key.trim()) throw new Error('The opencode-go credential reference is unavailable');
-    provider = { ...sourceProvider };
+export function providerConfiguration({ env = process.env, sourceProviders = {}, sourceSelection, sourceCredentials = {}, sourceCredentialRefs = [], previousSelection } = {}) {
+  const reference = env.DS_GROUP_MODEL || previousSelection?.model
+    || (env.OPENCODE_API_KEY?.trim() ? LEGACY_MODEL : sourceSelection?.model);
+  const route = modelReference(reference);
+  const inherited = reference === previousSelection?.model ? previousSelection
+    : reference === sourceSelection?.model ? sourceSelection
+    : !env.DS_GROUP_MODEL && env.OPENCODE_API_KEY?.trim() ? { reasoningEffort: 'low' } : {};
+  const selection = modelSelection({ ...inherited, model: reference,
+    ...(env.DS_GROUP_MAX_OUTPUT_TOKENS ? { maxTokens: Number(env.DS_GROUP_MAX_OUTPUT_TOKENS) } : {}),
+    ...(env.DS_GROUP_REASONING_EFFORT ? { reasoningEffort: env.DS_GROUP_REASONING_EFFORT } : {}),
+  });
+  const sourceProvider = sourceProviders[route.provider];
+  const provider = structuredClone(sourceProvider || {});
+  const suppliedKey = route.provider === 'opencode-go' ? env.OPENCODE_API_KEY?.trim() : undefined;
+  if (!sourceProvider && !suppliedKey) {
+    throw modelError('MODEL_PROVIDER_UNAVAILABLE', 'Configure the selected provider in the DSH source profile.');
   }
-  if (env.DS_GROUP_OPENCODE_BASE_URL) provider.baseURL = httpUrl(env.DS_GROUP_OPENCODE_BASE_URL, 'DS_GROUP_OPENCODE_BASE_URL', { originOnly: false });
-  provider.models = [{ ...(sourceProvider?.models?.find(model => model.id === MODEL) || {}), id: MODEL }];
-  delete provider.modelOverrides;
-  provider.retryPolicy = { mode: 'normal', maxRetries: 0 };
-  return { provider, credentials: { version: 1, records: {}, refs: { [credentialName]: key } } };
+  const endpoint = route.provider === 'opencode-go' ? env.DS_GROUP_OPENCODE_BASE_URL : undefined;
+  if (endpoint) provider.baseURL = httpUrl(endpoint, 'DS_GROUP_OPENCODE_BASE_URL', { originOnly: false });
+  // Keep the original environment-only deployment usable during migration.
+  if (!sourceProvider && reference === LEGACY_MODEL) provider.models = [{ id: route.model }];
+  if (provider.models?.length && !provider.models.some(model => model.id === route.model)) {
+    throw modelError('MODEL_UNAVAILABLE', 'The selected model is absent from this provider’s configured models.');
+  }
+  const credentials = { version: 1, records: {}, refs: {} };
+  if (suppliedKey) {
+    provider.apiKeyEnv = 'DSCORD_NODE_MODEL_API_KEY';
+    credentials.refs[provider.apiKeyEnv] = suppliedKey;
+  } else if (provider.apiKeyEnv) {
+    const key = sourceCredentials.refs?.[provider.apiKeyEnv] || env[provider.apiKeyEnv];
+    if (typeof key !== 'string' || !key.trim()) {
+      throw modelError('MISSING_CREDENTIAL', 'The selected provider credential is unavailable. Set it in DSH Models or the node environment.');
+    }
+    credentials.refs[provider.apiKeyEnv] = key;
+  } else {
+    const recordKey = `llm-pi-ai/${route.provider}`;
+    for (const ref of sourceCredentialRefs) {
+      if (typeof sourceCredentials.refs?.[ref] === 'string') credentials.refs[ref] = sourceCredentials.refs[ref];
+    }
+    if (sourceCredentials.records?.[recordKey]) credentials.records[recordKey] = structuredClone(sourceCredentials.records[recordKey]);
+  }
+  return { selection, providerId: route.provider, provider, credentials };
 }

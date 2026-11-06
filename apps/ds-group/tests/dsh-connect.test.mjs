@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { ConnectController } from '../dsh-connect/controller.mjs';
@@ -40,6 +40,7 @@ async function fixture(t, options = {}) {
       logins++;
       return Response.json({ user_id: userId, access_token: `synthetic-human-token-${logins}` });
     }
+    if (pathname === '/api/status') return Response.json({ budget: options.policy || { maxTokens: 8192, allowedModels: null } });
     if (pathname === '/api/bots') return Response.json({ bots: [bot] });
     if (pathname === `/api/bots/${encodeURIComponent(bot.id)}/connect`) {
       await options.beforeBundle?.();
@@ -48,7 +49,7 @@ async function fixture(t, options = {}) {
     if (pathname === '/api/logout') return Response.json({});
     return Response.json({ error: 'Unknown route' }, { status: 404 });
   };
-  const settings = { directory, processes, request, selectPort: async () => 23100 };
+  const settings = { directory, processes, models: options.models, request, selectPort: async () => 23100 };
   const controller = await new ConnectController(settings).initialize();
   await controller.restoring;
   const login = () => controller.handle({ action: 'login', serverUrl, user: 'alice', password: 'synthetic-password' });
@@ -228,4 +229,92 @@ test('a connection awaiting a remote bundle cannot launch after the plugin begin
   await disposing;
   assert.deepEqual(effects, []);
   assert.deepEqual(controller.state.nodes, {});
+});
+
+test('per-Bot selections persist before connection and apply on reconnect with only a private credential snapshot', async t => {
+  const first = { model: 'first/team/chat', maxTokens: 2048 };
+  const second = { model: 'second/other', maxTokens: 4096 };
+  const models = {
+    view: async () => ({ available: true, providers: [], defaultSelection: first }),
+    async export(selection = first) {
+      if (selection.model === 'invalid/model') throw Object.assign(new Error('Missing model'), { code: 'MODEL_UNAVAILABLE' });
+      return { selection, providers: { [selection.model.split('/')[0]]: { apiKeyEnv: 'KEY' } },
+        credentials: { version: 1, refs: { KEY: 'synthetic-private-model-key' }, records: {} } };
+    },
+  };
+  const { controller, login, effects, directory, settings } = await fixture(t, { models });
+  await login();
+  const initial = await controller.handle({ action: 'save-model', botId: bot.id, selection: first });
+  assert.deepEqual(initial.bots[0].modelSelection, first);
+  assert.deepEqual(effects, []);
+  await controller.handle({ action: 'connect', botId: bot.id });
+  assert.deepEqual((await controller.status()).bots[0].activeModel, first);
+  const saved = await controller.handle({ action: 'save-model', botId: bot.id, selection: second });
+  assert.deepEqual(saved.bots[0].activeModel, first);
+  assert.deepEqual(saved.bots[0].modelSelection, second);
+  assert.deepEqual(effects, [['start', bot.id]]);
+  const priorState = await readFile(path.join(directory, 'connection.json'), 'utf8');
+  await assert.rejects(controller.handle({ action: 'save-model', botId: bot.id, selection: { model: 'invalid/model' } }), { code: 'MODEL_UNAVAILABLE' });
+  assert.equal(await readFile(path.join(directory, 'connection.json'), 'utf8'), priorState);
+  assert.equal(priorState.includes('synthetic-private-model-key'), false);
+  assert.equal(JSON.stringify(saved).includes('synthetic-private-model-key'), false);
+  await controller.handle({ action: 'disconnect', botId: bot.id });
+  await controller.handle({ action: 'connect', botId: bot.id });
+  const node = controller.state.nodes[bot.id];
+  const sourcePath = path.join(node.directory, 'model-source.json');
+  assert.deepEqual(JSON.parse(await readFile(sourcePath, 'utf8')).selection, second);
+  if (process.platform !== 'win32') assert.equal((await stat(sourcePath)).mode & 0o777, 0o600);
+  const runner = new NodeProcesses({ env: { DS_GROUP_MODEL: 'ambient/wrong', OPENCODE_API_KEY: 'ambient-secret' } });
+  const env = runner.environment(node);
+  assert.equal(env.DS_GROUP_MODEL_SOURCE_PATH, sourcePath);
+  assert.equal(env.DS_GROUP_MODEL, undefined);
+  assert.equal(env.OPENCODE_API_KEY, undefined);
+  await controller.dispose();
+  const restored = await new ConnectController(settings).initialize();
+  await restored.restoring;
+  assert.deepEqual((await restored.status()).bots[0].activeModel, second);
+  await restored.dispose();
+});
+
+test('legacy connection state migrates its prepared model before a changed DSH default can run', async t => {
+  const { controller, login, settings } = await fixture(t);
+  await login();
+  await controller.handle({ action: 'connect', botId: bot.id });
+  const node = controller.state.nodes[bot.id];
+  const preparedDirectory = path.join(node.directory, `dsh-${node.localpart}`);
+  await mkdir(preparedDirectory, { recursive: true });
+  await writeFile(path.join(preparedDirectory, 'node-config.json'), JSON.stringify({ model: 'legacy/model', maxTokens: 3072 }));
+  await controller.dispose();
+  const selections = [];
+  settings.models = {
+    view: async () => ({ providers: [] }),
+    export: async selection => {
+      selections.push(selection);
+      return { selection, providers: {}, credentials: {} };
+    },
+  };
+  const restored = await new ConnectController(settings).initialize();
+  await restored.restoring;
+  assert.deepEqual(selections, [{ model: 'legacy/model', maxTokens: 3072 }]);
+  await restored.dispose();
+});
+
+test('server model policy rejects a selection before persistence or node startup', async t => {
+  const selection = { model: 'first/chat', maxTokens: 4096 };
+  const models = {
+    view: async () => ({ available: true, providers: [], defaultSelection: selection }),
+    export: async input => ({ selection: { ...selection, ...input }, providers: {}, credentials: {} }),
+  };
+  const { controller, login, directory, effects } = await fixture(t, { models,
+    policy: { allowedModels: ['second/chat'], maxTokens: 8192 },
+  });
+  await login();
+  const before = await readFile(path.join(directory, 'connection.json'), 'utf8');
+  await assert.rejects(controller.handle({ action: 'save-model', botId: bot.id, selection }), { code: 'MODEL_POLICY_DENIED' });
+  await assert.rejects(controller.handle({ action: 'connect', botId: bot.id }), { code: 'MODEL_POLICY_DENIED' });
+  assert.equal(await readFile(path.join(directory, 'connection.json'), 'utf8'), before);
+  assert.deepEqual(effects, []);
+  await assert.rejects(controller.handle({ action: 'save-model', botId: bot.id,
+    selection: { model: 'second/chat', maxTokens: 9000 } }), { code: 'MODEL_OUTPUT_LIMIT' });
+  await controller.dispose();
 });

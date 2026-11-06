@@ -13,6 +13,7 @@ import { TaskService } from './tasks.mjs';
 import { ChatFeatures } from './mentions.mjs';
 import { localPath, packageRoot } from './paths.mjs';
 import { AccountService } from './accounts.mjs';
+import { NativeBotCatalog } from './native-bot-catalog.mjs';
 import { IdentityService } from './identity.mjs';
 import { effectiveWebMode } from './web-mode.mjs';
 import { NodeCredentials, requireNodeScope } from './node-auth.mjs';
@@ -75,6 +76,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const accounts = await new AccountService({ setup, config, dataRoot,
     onParticipant: async person => { if (push) await push.upsertParticipant(person); },
   }).initialize();
+  const nativeBots = new NativeBotCatalog(accounts);
   setup.serverName ||= accounts.serverName || 'localhost';
   let identity;
   try {
@@ -88,7 +90,9 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const roomMedia = new RoomMedia({ governance });
   const directorySetup = { ...setup, participants: [] };
   const nodeCredentials = await new NodeCredentials({ dataRoot, setup, legacySecret: config.nodeSecret }).initialize();
-  const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), { limit: config.modelCallLimit, maxTokens: config.maxOutputTokens });
+  const budget = new ModelBudget(path.join(dataRoot, 'model-budget.sqlite'), {
+    limit: config.modelCallLimit, maxTokens: config.maxOutputTokens, allowedModels: config.allowedModels,
+  });
   const media = new MediaService({ dataRoot, maxBytes: config.maxUploadBytes ?? process.env.DS_GROUP_MAX_UPLOAD_BYTES,
     verifiedDownloadMaxBytes: config.verifiedDownloadMaxBytes, verifiedDownloadConcurrency: config.verifiedDownloadConcurrency });
   const chat = new DatabaseSync(path.join(dataRoot, 'chat.sqlite'));
@@ -113,7 +117,8 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
   const publicParticipants = () => directory;
   const authorizeNode = request => nodeCredentials.authorize(request);
   const tasks = new TaskService({ setup, dataRoot, authorizeNode, readJsonBody, participants: publicParticipants });
-  const botWork = new BotWorkService({ setup, accounts, governance, dataRoot, authorizeNode, readJsonBody, tasks, maxBytes: () => media.maxBytes });
+  const botWork = new BotWorkService({ setup, accounts, governance, dataRoot, authorizeNode, readJsonBody, tasks,
+    nativeBot: id => nativeBots.isNative(id), maxBytes: () => media.maxBytes });
   async function directRoomFor(client, userId, target) {
     const ids = [userId, target.id].sort();
     const key = JSON.stringify(ids);
@@ -269,9 +274,26 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     if (request.method === 'POST' && url.pathname === '/api/register') {
       return send(201, await accounts.register(await readJsonBody(request), { clientIp: requestClientIp(request, trustProxy) }));
     }
-    if (request.method === 'GET' && url.pathname === '/api/me') return send(200, await accounts.me(bearer(request)));
+    if (request.method === 'GET' && url.pathname === '/api/me') {
+      const profile = await accounts.me(bearer(request));
+      const bindings = nativeBots.bindings(profile.user.id);
+      return send(200, { ...profile, ownedBots: profile.ownedBots.map(bot => {
+        const nativeBinding = bindings.find(binding => binding.botId === bot.id);
+        return nativeBinding ? { ...bot, nativeBinding } : bot;
+      }) });
+    }
     if (collaboration.handles(url.pathname)) return collaboration.handle({ request, url, send });
     if (request.method === 'POST' && url.pathname === '/api/logout') return send(200, await accounts.logout(bearer(request)));
+    if (url.pathname === '/api/bot-catalog') {
+      const { user } = await accounts.me(bearer(request));
+      if (request.method === 'GET') return send(200, { bots: nativeBots.list(user.id) });
+      if (request.method === 'POST') return send(200, nativeBots.publish(user.id, await readJsonBody(request)));
+    }
+    if (request.method === 'POST' && url.pathname === '/api/bots/attach') {
+      const { user } = await accounts.me(bearer(request));
+      const bot = await nativeBots.attach(user.id, await readJsonBody(request));
+      return send(200, { bot: { ...bot, nativeBinding: nativeBots.bindings(user.id).find(binding => binding.botId === bot.id) } });
+    }
     if (request.method === 'POST' && url.pathname === '/api/bots') {
       const { user } = await accounts.me(bearer(request));
       return send(201, { bot: await accounts.createBot(user.id, await readJsonBody(request)) });
@@ -330,7 +352,9 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
     if (request.method === 'GET' && ['/api/bots', '/api/my-bots'].includes(url.pathname)) {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
       const { user_id: userId } = await client.whoami();
-      return send(200, { bots: publicParticipants().filter(person => person.kind === 'bot' && person.ownerId === userId) });
+      const bindings = nativeBots.bindings(userId);
+      return send(200, { bots: publicParticipants().filter(person => person.kind === 'bot' && person.ownerId === userId)
+        .map(bot => ({ ...bot, nativeBinding: bindings.find(binding => binding.botId === bot.id) ?? null })) });
     }
     if (request.method === 'GET' && url.pathname === '/api/rooms') {
       const client = new MatrixClient({ baseUrl: setup.homeserverUrl, accessToken: bearer(request) });
@@ -482,6 +506,7 @@ export async function createCore({ setup, config, dataRoot = localPath(), webRoo
         const node = { id: input.id, botId: input.botId, name: participant.name, runtimeId: input.runtimeId,
           status: input.status, processed: input.processed ?? 0, pending: input.pending ?? 0,
           sessionId: input.sessionId ?? null, lastError: input.lastError ?? null,
+          model: typeof input.model === 'string' ? input.model.slice(0, 512) : null,
           engine: input.engine || 'DS-Bot 0.2.7', heartbeatAt: Date.now() };
         nodes.set(input.botId, node);
         chatFeatures.touchPresence(input.botId, { status: input.status === 'offline' ? 'offline' : 'online' });

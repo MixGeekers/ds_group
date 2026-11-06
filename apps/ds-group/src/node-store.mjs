@@ -97,6 +97,37 @@ export class NodeStore {
     return this.db.prepare('SELECT value FROM node_meta WHERE key=\'syncCursor\'').get()?.value;
   }
 
+  roomContext(roomId) {
+    const row = this.db.prepare('SELECT value FROM node_meta WHERE key=?').get(`room:${roomId}`);
+    return row ? JSON.parse(row.value) : {};
+  }
+
+  noteRoomState(roomId, events) {
+    const room = this.roomContext(roomId);
+    const members = new Set(room.members || []);
+    const parents = new Set(room.parentSpaceIds || []);
+    for (const event of events) {
+      if (event.type === 'm.room.name') room.name = event.content?.name || '';
+      if (event.type === 'm.room.topic') room.topic = event.content?.topic || '';
+      if (event.type === 'm.room.create') room.creatorId = event.sender || event.content?.creator;
+      if (event.type === 'm.room.member' && event.state_key) {
+        if (event.content?.membership === 'join') members.add(event.state_key);
+        else members.delete(event.state_key);
+      }
+      if (event.type === 'm.space.parent' && event.state_key) {
+        if (event.content?.via?.length) parents.add(event.state_key); else parents.delete(event.state_key);
+      }
+    }
+    Object.assign(room, { members: [...members], parentSpaceIds: [...parents] });
+    this.db.prepare('INSERT OR REPLACE INTO node_meta VALUES (?, ?)').run(`room:${roomId}`, JSON.stringify(room));
+  }
+
+  historyCountBefore(eventId) {
+    return this.db.prepare(`SELECT COUNT(*) AS count FROM messages WHERE room_id =
+      (SELECT room_id FROM messages WHERE event_id=?) AND sequence <
+      (SELECT sequence FROM messages WHERE event_id=?)`).get(eventId, eventId).count;
+  }
+
   noteInvitation(roomId) {
     this.db.prepare('INSERT OR IGNORE INTO room_invitations(room_id,received_at) VALUES (?,?)').run(roomId, Date.now());
   }

@@ -1,13 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ModelBudget, ALLOWED_MODEL } from '../src/budget.mjs';
+import { ModelBudget } from '../src/budget.mjs';
 
-const request = { nodeId: 'finance', requestId: 'message-1', model: ALLOWED_MODEL, maxTokens: 1024 };
+const request = { nodeId: 'finance', requestId: 'message-1', model: 'opencode-go/deepseek-v4.1-flash', maxTokens: 1024 };
 
-test('records all model attempts and enforces the selected provider', () => {
+test('records all model attempts and validates provider/model references', () => {
   const ledger = new ModelBudget(':memory:');
   try {
-    assert.throws(() => ledger.claim({ ...request, model: 'some-other-model' }), /Only opencode/);
+    assert.throws(() => ledger.claim({ ...request, model: 'some-other-model' }), /provider\/model/);
     const receipt = ledger.claim(request);
     assert.equal(ledger.snapshot().used, 1);
     assert.deepEqual(ledger.complete({ claimId: receipt.claimId, status: 'failed', errorCode: 'EMPTY_STREAM' }),

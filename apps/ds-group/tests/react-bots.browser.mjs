@@ -34,15 +34,16 @@ const html = `<!doctype html>
       } });
       const api = async (route, options = {}) => {
         fixture.calls.push({ route, method: options.method, body: options.body, userId: fixture.userId });
-        if (route !== '/api/bots' || options.method !== 'POST') throw new Error('Unexpected API request');
+        if (route === '/api/bot-catalog') return {bots:[{id:'native-a',hostId:'host-a',hostName:'Local DSH',name:'Researcher',role:'Research',model:'local/chat',main:true,available:true,botId:null},{id:'offline',hostId:'host-b',hostName:'Offline DSH',name:'Offline Bot',role:'Writer',model:'local/chat',available:false,botId:null}]};
+        if (route !== '/api/bots/attach' || options.method !== 'POST') throw new Error('Unexpected API request');
         if (fixture.mode === 'unknown') throw new Error('Synthetic connection interrupted');
         if (fixture.mode === 'validation') throw new ApiError('Synthetic invalid Bot name', 400);
         if (fixture.mode === 'hold') await new Promise(resolve => { fixture.release = resolve; });
         if (fixture.mode === 'missing') return {};
         return { bot: {
-          id: '@bot-' + options.body.requestId + ':test',
-          localpart: 'bot-' + options.body.requestId,
-          name: options.body.name, kind: 'bot', ownerId: fixture.userId,
+          id: '@bot-' + options.body.nativeBotId + ':test',
+          localpart: 'bot-' + options.body.nativeBotId,
+          name: 'Researcher', kind: 'bot', ownerId: fixture.userId,
         } };
       };
       function Fixture() {
@@ -72,7 +73,7 @@ const temporary = await mkdtemp(path.join(os.tmpdir(), 'dscord-react-bots-'));
 const reportPath = path.join(packageRoot, '.local/react-bots-browser.json');
 const checks = [];
 const pageErrors = [];
-const report = { status: 'failed', level: 'real-chromium-react-bot-creation-fixture', checks, pageErrors, modelCalls: 0 };
+const report = { status: 'failed', level: 'real-chromium-existing-native-bot-selector-fixture', checks, pageErrors, modelCalls: 0 };
 const server = await createServer({
   configFile: false,
   root: path.join(packageRoot, 'web'),
@@ -105,106 +106,41 @@ try {
   page.on('pageerror', error => pageErrors.push(error.message));
   await page.goto(`http://127.0.0.1:${server.httpServer.address().port}/__bots`);
   await page.locator('#create-bot-dialog[open]').waitFor();
-  await page.locator('#create-bot-submit').click();
-  assert.equal(await page.locator('#bot-name').getAttribute('aria-invalid'), 'true');
-  assert.equal(await page.evaluate(() => window.fixture.calls.length), 0);
-  checks.push('blankNameShowsFieldErrorWithoutCreatingBot');
-
-  await page.locator('#bot-name').fill('Finance');
-  await page.locator('#create-bot-submit').click();
-  await page.locator('#create-bot-error').filter({ hasText: 'Synthetic connection interrupted' }).waitFor();
-  assert.equal(await page.locator('#bot-name').getAttribute('readonly'), '');
-  const firstRequest = await page.evaluate(() => window.fixture.calls[0].body);
-  assert.ok(firstRequest.requestId);
-  await page.locator('#close-create-bot').click();
+  const add = page.getByRole('button', {name:'Add existing Bot',exact:true});
+  await page.getByRole('radio').first().waitFor();
+  assert.equal(await add.isDisabled(),true);
+  assert.equal(await page.getByRole('radio').last().isDisabled(),true);
+  assert.equal(await page.locator('input[type="text"]').count(),0);
+  checks.push('selectsExistingLocalBotsWithoutNameCreationForm');
+  await page.getByRole('radio').first().check();
+  await add.click();
+  await page.getByRole('alert').filter({hasText:'Synthetic connection interrupted'}).waitFor();
+  await page.evaluate(()=>{window.fixture.mode='hold';});
+  await add.click();
+  assert.equal(await page.getByRole('button',{name:'Adding',exact:true}).isDisabled(),true);
+  await page.evaluate(()=>{window.fixture.release();});
+  await page.waitForFunction(()=>window.fixture.created.length===1);
+  const calls=await page.evaluate(()=>window.fixture.calls.filter(call=>call.method==='POST'));
+  assert.equal(calls.length,2);
+  assert.deepEqual(calls[0].body,calls[1].body);
+  assert.equal(calls[0].route,'/api/bots/attach');
+  assert.deepEqual(calls[0].body,{hostId:'host-a',nativeBotId:'native-a'});
+  checks.push('retryUsesStableNativeIdentityAndPreventsDuplicateSubmit');
   await page.locator('#open-create-bot').click();
-  assert.equal(await page.locator('#bot-name').inputValue(), 'Finance');
-  assert.equal(await page.locator('#create-bot-submit').textContent(), 'Retry creation');
-  await page.evaluate(() => { window.fixture.mode = 'missing'; });
-  await page.locator('#create-bot-submit').click();
-  await page.locator('#create-bot-error').filter({ hasText: 'receipt is incomplete' }).waitFor();
-  assert.deepEqual(await page.evaluate(() => window.fixture.calls[1].body), firstRequest);
-  checks.push('unknownReceiptPersistsAcrossCloseAndRetriesSameRequest');
-
-  await page.evaluate(() => window.fixture.switchUser('@bob:test'));
-  await page.waitForFunction(() => document.querySelector('#bot-name').value === '');
-  assert.equal(await page.locator('#bot-name').getAttribute('readonly'), null);
-  await page.locator('#bot-name').fill('People');
-  await page.evaluate(() => { window.fixture.mode = 'unknown'; });
-  await page.locator('#create-bot-submit').click();
-  await page.locator('#create-bot-error').filter({ hasText: 'Synthetic connection interrupted' }).waitFor();
-  const bobRequest = await page.evaluate(() => window.fixture.calls[2].body);
-  assert.notEqual(bobRequest.requestId, firstRequest.requestId);
-  await page.evaluate(() => window.fixture.switchUser('@alice:test'));
-  await page.waitForFunction(() => document.querySelector('#bot-name').value === 'Finance');
-  checks.push('pendingCreationIsScopedToAccount');
-
-  await page.evaluate(() => { window.fixture.mode = 'hold'; window.fixture.callbacksFail = true; });
-  await page.locator('#create-bot-submit').click();
-  await page.waitForFunction(() => typeof window.fixture.release === 'function');
-  assert.equal(await page.locator('#create-bot-submit').isDisabled(), true);
-  assert.equal(await page.locator('#close-create-bot').isDisabled(), true);
-  await page.locator('#create-bot-form').evaluate(form => form.requestSubmit());
-  assert.equal(await page.evaluate(() => window.fixture.calls.length), 4);
-  await page.evaluate(() => window.fixture.release());
-  await page.locator('#bot-connection-id').waitFor();
-  const botId = await page.locator('#bot-connection-id').inputValue();
-  assert.equal(botId, '@bot-' + firstRequest.requestId + ':test');
-  assert.equal(await page.locator('#create-bot-submit').count(), 0);
-  assert.equal(await page.locator('#create-bot-error').textContent(), 'Bot created. The list could not refresh. Synthetic list refresh failed');
-  assert.equal(await page.evaluate(() => sessionStorage.getItem('ds-group.pending-bot.@alice:test')), null);
-  assert.equal(await page.evaluate(() => window.fixture.created.length), 1);
-  checks.push('confirmedCreationSurvivesCallbackFailureAndPreventsDuplicateSubmit');
-
-  assert.equal(await page.locator('.bot-connection-status').textContent(), 'Offline');
-  await page.locator('#copy-bot-id').click();
-  assert.deepEqual(await page.evaluate(() => window.fixture.copied), [botId]);
-  await page.evaluate(id => window.fixture.setStatus({ nodes: [{ id: 'node', botId: id, name: 'Finance', status: 'ready' }] }), botId);
-  await page.locator('.bot-connection-status').filter({ hasText: 'Online' }).waitFor();
-  checks.push('connectionViewExposesFullBotIdCopyAndLiveStatus');
-
-  await page.evaluate(async () => {
-    (await import('/i18n.js')).setLocalePreference('zh-CN');
-    window.DSGroupTheme.setPreference('light');
-  });
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.locator('#create-bot-title').filter({ hasText: '连接 Bot' }).waitFor();
-  assert.equal(await page.locator('#bot-connection-id').inputValue(), botId);
-  assert.equal(await page.locator('.bot-connection-status').textContent(), '在线');
-  assert.equal(await page.evaluate(() => {
-    const dialog = document.querySelector('#create-bot-dialog');
-    const bounds = dialog.getBoundingClientRect();
-    return bounds.left >= 0 && bounds.right <= innerWidth && dialog.scrollWidth <= dialog.clientWidth;
-  }), true);
-  checks.push('localeThemeAndMobileLayoutPreserveConnectionDetails');
-
-  await page.locator('#close-create-bot').click();
-  await page.locator('#open-create-bot').click();
-  await page.locator('#bot-name').fill('Invalid');
-  await page.evaluate(() => { window.fixture.mode = 'validation'; });
-  await page.locator('#create-bot-submit').click();
-  await page.locator('#create-bot-error').filter({ hasText: 'Synthetic invalid Bot name' }).waitFor();
-  assert.equal(await page.locator('#bot-name').getAttribute('readonly'), null);
-  assert.equal(await page.evaluate(() => sessionStorage.getItem('ds-group.pending-bot.@alice:test')), null);
-  checks.push('knownValidationFailureAllowsNameCorrection');
-
-  const longBotName = 'A'.repeat(80);
-  await page.locator('#bot-name').fill(longBotName);
-  await page.evaluate(() => { window.fixture.mode = 'success'; window.fixture.callbacksFail = false; });
-  await page.locator('#create-bot-submit').click();
-  await page.locator('.bot-connection-details h3').filter({ hasText: longBotName }).waitFor();
-  assert.equal(await page.locator('.bot-connection-details h3').textContent(), longBotName);
-  assert.equal(await page.evaluate(() => {
-    const dialog = document.querySelector('#create-bot-dialog');
-    const heading = dialog.querySelector('.bot-connection-details h3');
-    const bounds = dialog.getBoundingClientRect();
-    return innerWidth === 390 && bounds.left >= 0 && bounds.right <= innerWidth
-      && dialog.scrollWidth <= dialog.clientWidth && heading.scrollWidth <= heading.clientWidth;
-  }), true);
-  checks.push('longBotNameWrapsInsideMobileConnectionDetails');
-
-  assert.deepEqual(pageErrors, []);
-  report.status = 'passed';
+  await page.getByRole('radio').first().check();
+  await add.click();
+  await page.evaluate(()=>window.fixture.switchUser('@bob:test'));
+  await page.waitForFunction(()=>window.fixture.calls.some(call=>call.route==='/api/bot-catalog' && call.userId==='@bob:test'));
+  await page.evaluate(()=>window.fixture.release());
+  await page.waitForTimeout(100);
+  assert.equal(await page.evaluate(()=>window.fixture.created.length),1);
+  checks.push('lateAttachDoesNotPublishIntoAnotherAccount');
+  await page.setViewportSize({width:390,height:844});
+  const bounds=await page.locator('#create-bot-dialog').evaluate(element=>({width:element.getBoundingClientRect().width,scroll:element.scrollWidth,client:element.clientWidth}));
+  assert.ok(bounds.width<=390 && bounds.scroll<=bounds.client+1);
+  assert.deepEqual(pageErrors,[]);
+  checks.push('mobileLayoutFitsAndHasNoBrowserErrors');
+  report.status='passed';
 } catch (error) {
   report.error = error.stack ?? String(error);
   throw error;

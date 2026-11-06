@@ -25,6 +25,26 @@ function fixture({ matrix = {}, bridge = {} } = {}) {
   return { node, store };
 }
 
+test('heartbeat refreshes the model after an independent runtime restart and clears an unavailable model', async () => {
+  let model = 'first/chat';
+  const bridge = createBridge('http://fixture.invalid', { fetchImpl: async url => {
+    assert.equal(url.pathname, '/api/ds-group-node/status');
+    if (!model) throw new Error('runtime restarting');
+    return Response.json({ model });
+  } });
+  const { node, store } = fixture({ bridge });
+  const sent = [];
+  node.sendHeartbeat = async heartbeat => sent.push(heartbeat);
+  try {
+    await node.heartbeat();
+    model = 'second/team/chat';
+    await node.heartbeat();
+    model = null;
+    await node.heartbeat();
+    assert.deepEqual(sent.map(heartbeat => heartbeat.model), ['first/chat', 'second/team/chat', null]);
+  } finally { store.close(); }
+});
+
 test('synthetic response protocol accepts text/JSON and validates explicit delegation', () => {
   assert.deepEqual(parseBotOutput('普通回复', finance.id, participants), { text: '普通回复' });
   assert.deepEqual(parseBotOutput('```json\n{"text":"收到","delegate":{"to":"@hr:ds-group.local","body":"整理名单"}}\n```', finance.id, participants),

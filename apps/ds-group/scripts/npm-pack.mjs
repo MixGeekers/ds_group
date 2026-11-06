@@ -59,6 +59,14 @@ export async function packNpm({ root = packageRoot, output = path.join(root, '.l
   const staging = await mkdtemp(path.join(output, 'staging-'));
   try {
     for (const filename of runtimeFiles) await copyRuntime(path.join(root, filename), path.join(staging, filename));
+    const nativeClient = await readFile(path.join(root, 'vendor/ds-bot/client.js'), 'utf8');
+    const start = nativeClient.indexOf('  factory: (require) => {') + '  factory: '.length;
+    const end = nativeClient.lastIndexOf('\n  },');
+    if (start < '  factory: '.length || end < start) throw new Error('Unexpected native DS-Bot client bundle format');
+    const factory = nativeClient.slice(start, end) + '\n  }';
+    const connectorClient = await readFile(path.join(root, 'dsh-connect/client.js'), 'utf8');
+    // One module registration, retaining the original native UI factory verbatim.
+    await writeFile(path.join(staging, 'dsh-connect/client.js'), `const dscordNativeFactory = ${factory};\n${connectorClient}`);
     await chmod(path.join(staging, 'bin/dscord.mjs'), 0o755);
     await writeFile(path.join(staging, 'package.json'), JSON.stringify(manifest, null, 2) + '\n');
     await copyFile(path.join(root, 'deploy/npm.md'), path.join(staging, 'README.md'));

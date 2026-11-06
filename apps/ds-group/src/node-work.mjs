@@ -69,6 +69,7 @@ export function createNodeWorkClient(
 }
 
 export function scopedTaskRequest(request, admission, event) {
+  if (admission.mode === 'native') return { ...request, executionMode: 'native' };
   if (admission.mode !== 'scoped') {
     const home = request.botId.slice(request.botId.indexOf(':') + 1);
     return {
