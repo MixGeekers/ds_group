@@ -334,3 +334,96 @@ test('ordinary structured native answers are kept verbatim through the native an
     assert.deepEqual(parseBotOutput(result.text, f.node.id, []), { text: answer });
   }
 });
+
+const hashBytes = bytes => import('node:crypto').then(({createHash})=>createHash('sha256').update(bytes).digest('hex'));
+
+// Regressions from continuation rounds 81 and 88: actual shell work was done,
+// but plain final answers omitted existing code and shell-generated JSON.
+test('verified shell receipts supplement a partial delivery with the exact requested existing code', async t => {
+  const cwd=await mkdtemp(path.join(os.tmpdir(),'native-resend-'));t.after(()=>rm(cwd,{recursive:true,force:true}));
+  await mkdir(path.join(cwd,'code'));
+  const module=path.join(cwd,'code','count.mjs'),tests=path.join(cwd,'code','count.test.mjs'),log=path.join(cwd,'tests.txt');
+  await writeFile(module,'export const count = a => a.length;');await writeFile(tests,'test code');await writeFile(log,'2/2 pass');
+  const f=await fixture(t,{cwd,send:async({event,turn})=>{
+    await event('tool/call',{turn,callId:'verified-code',name:'bash',arguments:{command:'node --test'}});
+    await event('tool/result',{turn,message:{toolCallId:'verified-code',content:[{type:'text',text:
+      `${await hashBytes(await readFile(module))}  ${module}\n${await hashBytes(await readFile(tests))}  code/count.test.mjs\n`}] }});
+    await event('tool/call',{turn,callId:'log-write',name:'write',arguments:{file_path:log}});
+    await event('tool/result',{turn,message:{toolCallId:'log-write'}});
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:'Attached: count.mjs, count.test.mjs and tests.txt. The test run used these bytes.'}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const request=f.request('resend');request.event.body='Give me count.mjs and count.test.mjs again, with tests.txt.';
+  const result=await f.bridge.turn(request);
+  assert.equal(result.status,'completed');
+  assert.deepEqual(result.artifacts.map(x=>x.name),['tests.txt','count.mjs','count.test.mjs']);
+  assert.equal(result.artifactDelivery,'verified-tool-output');
+  assert.equal(result.verifiedArtifactReceipts.length,2);
+  assert.equal(result.artifacts[1].sha256,await hashBytes(await readFile(module)));
+  assert.deepEqual((await f.bridge.turn(request)).artifacts,result.artifacts);assert.equal(f.calls.length,1);
+});
+
+test('a shell-generated requested JSON reaches delivery without a write-tool receipt', async t => {
+  const cwd=await mkdtemp(path.join(os.tmpdir(),'native-shell-json-'));t.after(()=>rm(cwd,{recursive:true,force:true}));
+  const bytes='{"count":17}\n',sha=await hashBytes(bytes);
+  const f=await fixture(t,{cwd,send:async({event,turn})=>{
+    await writeFile(path.join(cwd,'acceptance.json'),bytes);
+    await event('tool/call',{turn,callId:'shell-json',name:'bash',arguments:{command:'node make-json.mjs'}});
+    await event('tool/result',{turn,message:{toolCallId:'shell-json',content:[{type:'text',text:`${sha}  acceptance.json\n`}]}});
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:'acceptance.json 已写好。'}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const request=f.request('shell-json');request.event.body='发 acceptance.json 给我。';
+  const result=await f.bridge.turn(request);
+  assert.equal(result.artifactDelivery,'verified-tool-output');assert.equal(result.artifacts.length,1);
+  assert.equal(await readFile(result.artifacts[0].path,'utf8'),bytes);
+});
+
+test('shell receipts cannot deliver changed bytes, failed commands, other turns or unrequested references', async t => {
+  const cwd=await mkdtemp(path.join(os.tmpdir(),'native-shell-filter-'));t.after(()=>rm(cwd,{recursive:true,force:true}));
+  const sha=await hashBytes('before');
+  const f=await fixture(t,{cwd,send:async({event,turn})=>{
+    for(const name of ['changed.txt','failed.txt','other-turn.txt','reference.txt','code.mjs']) {
+      await writeFile(path.join(cwd,name),name==='changed.txt'?'after':'before');
+      const toolTurn=name==='other-turn.txt'?999:turn;
+      await event('tool/call',{turn:toolTurn,callId:name,name:'bash'});
+      await event('tool/result',{turn:toolTurn,message:{toolCallId:name,isError:name==='failed.txt',content:[{type:'text',text:`${sha}  ${name}\n`}]}});
+    }
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:'changed.txt failed.txt other-turn.txt reference.txt code.mjs'}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const request=f.request('shell-filter');request.event.body='Send changed.txt failed.txt other-turn.txt, old-code.mjs and code.mjs.map.';
+  const result=await f.bridge.turn(request);assert.equal(result.status,'completed');assert.deepEqual(result.artifacts,[]);
+});
+
+test('an explicit empty delivery overrides matching verified shell receipts', async t => {
+  const cwd=await mkdtemp(path.join(os.tmpdir(),'native-shell-empty-'));t.after(()=>rm(cwd,{recursive:true,force:true}));
+  const sha=await hashBytes('draft');await writeFile(path.join(cwd,'draft.txt'),'draft');
+  const f=await fixture(t,{cwd,send:async({event,turn})=>{
+    await event('tool/call',{turn,callId:'draft',name:'bash'});
+    await event('tool/result',{turn,message:{toolCallId:'draft',content:[{type:'text',text:`${sha}  draft.txt\n`}]}});
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:JSON.stringify({text:'draft.txt is unfinished.',artifacts:[]})}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const request=f.request('shell-empty');request.event.body='Send draft.txt.';
+  assert.deepEqual((await f.bridge.turn(request)).artifacts,[]);
+});
+
+test('identical shell-verified copies deliver once and different versions of the same name stay ambiguous', async t => {
+  const cwd=await mkdtemp(path.join(os.tmpdir(),'native-shell-copies-'));t.after(()=>rm(cwd,{recursive:true,force:true}));
+  for(const folder of ['a','b'])await mkdir(path.join(cwd,folder));
+  let distinct=false;
+  const f=await fixture(t,{cwd,send:async({event,turn})=>{
+    const lines=[];
+    for(const folder of ['a','b']) {
+      const bytes=distinct?folder:'same',filename=path.join(cwd,folder,'code.mjs');await writeFile(filename,bytes);
+      lines.push(`${await hashBytes(bytes)}  ${filename}`);
+    }
+    await event('tool/call',{turn,callId:'copies',name:'bash'});
+    await event('tool/result',{turn,message:{toolCallId:'copies',content:[{type:'text',text:lines.join('\n')}]}});
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:'code.mjs is ready.'}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const one=f.request('same-copies');one.event.body='Send code.mjs.';assert.equal((await f.bridge.turn(one)).artifacts.length,1);
+  distinct=true;const two=f.request('different-copies');two.event.body=one.event.body;assert.deepEqual((await f.bridge.turn(two)).artifacts,[]);
+});

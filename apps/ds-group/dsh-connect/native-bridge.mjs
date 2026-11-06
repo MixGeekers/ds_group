@@ -48,6 +48,26 @@ function nativeLinkedArtifacts(text, cwd) {
   return [...new Map(files.map(file=>[file.path,file])).values()];
 }
 
+// A shell can create or verify a deliverable without using the file tools.
+// Accept only ordinary SHA-256 receipts, then verify the bytes independently.
+// No shell parsing, workspace crawl, or stale delivery history is involved.
+function nativeHashedArtifacts(text, cwd) {
+  const files=[];
+  for(const match of text.matchAll(/^\s*([a-f\d]{64})[ \t]+\*?([^\r\n]+)$/gmi)) {
+    const filename=match[2].trim();
+    if(!path.extname(filename)||filename.includes('\0')||/^[a-z][a-z\d+.-]*:\/\//i.test(filename))continue;
+    if(!path.isAbsolute(filename)&&!cwd)continue;
+    files.push({path:path.resolve(cwd||'',filename),sha256:match[1].toLowerCase()});
+  }
+  return files;
+}
+
+function namesFile(text,name) {
+  const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return new RegExp(`(^|[^\\p{L}\\p{N}_.-])${escaped}(?![\\p{L}\\p{N}_-]|\\.[\\p{L}\\p{N}_-])`,'u')
+    .test(text.replace(/```[\s\S]*?```/g,''));
+}
+
 /** DSCord is another input/output for the original Bot. Its native Session,
  * model, tools, permissions, working folder and autonomous work are untouched. */
 export class NativeBridge {
@@ -150,6 +170,8 @@ export class NativeBridge {
     }
     if (event.type === 'tool/call') {
       run.record.toolReceipts.push({ callId: event.data.callId, name: event.data.name, status: 'running' });
+      if(event.data.name==='bash')run.shellCalls.set(event.data.callId,
+        event.data.meta?.cwd||this.ctx.get?.('workingDirectory')?.get?.(session)||session.header?.cwd);
       if (['write','write_file','edit','edit_file'].includes(event.data.name)) {
         try {
           const args=typeof event.data.arguments==='string'?JSON.parse(event.data.arguments):event.data.arguments;
@@ -177,6 +199,10 @@ export class NativeBridge {
       if (receipt) receipt.status = message.isError ? 'failed' : 'completed';
       if (!message.isError && run.writeCalls.has(message.toolCallId)) {
         const descriptor=run.writeCalls.get(message.toolCallId);run.written.set(descriptor.path,descriptor);
+      }
+      if(!message.isError&&run.shellCalls.has(message.toolCallId)) {
+        for(const descriptor of nativeHashedArtifacts(textOf(message),run.shellCalls.get(message.toolCallId)))
+          run.hashed.set(descriptor.path,{...descriptor,callId:message.toolCallId});
       }
       if (receipt?.name === 'present' && !message.isError) {
         for (const file of run.presentCalls.get(message.toolCallId) || []) run.presented.set(file.path, file);
@@ -242,7 +268,7 @@ export class NativeBridge {
       let resolve;
       const done = new Promise(done => { resolve = done; });
       const marker = `DSCORD_REQUEST=${input.requestId}`;
-      const run = this.run = { marker, resolve, record, text: '', exchanges: new Set(), presentCalls: new Map(), presented: new Map(), writeCalls: new Map(), written: new Map() };
+      const run = this.run = { marker, resolve, record, text: '', exchanges: new Set(), presentCalls: new Map(), presented: new Map(), writeCalls: new Map(), written: new Map(), shellCalls: new Map(), hashed: new Map() };
       Object.assign(record, { status: 'running', stage: 'working', sessionId: bot.sessionId, model: bot.model,
         contextKey: input.context?.key, source: input.context?.source,
         summary: '原生 Bot 正在处理', startedAt: new Date().toISOString() });
@@ -292,6 +318,28 @@ export class NativeBridge {
       if (!artifacts.length && !delivery.explicitArtifacts) {
         const mentioned=[...run.written.values()].filter(file=>run.text.includes(path.basename(file.path)));
         if(mentioned.length){artifacts.push(...await collectArtifacts(JSON.stringify({text:'Mentioned file-tool outputs',artifacts:mentioned}),files.workdir,{allowExternalPaths:true}));record.artifactDelivery='mentioned-tool-output';}
+      }
+      if(!delivery.explicitArtifacts) {
+        const candidates=new Map();
+        for(const descriptor of run.hashed.values()) {
+          const name=path.basename(descriptor.path);
+          if(!namesFile(input.event.body||'',name)||!namesFile(run.text,name)||artifacts.some(file=>file.name===name))continue;
+          let file;
+          try { [file]=await collectArtifacts(JSON.stringify({text:'Verified shell output',artifacts:[{path:descriptor.path}]}),files.workdir,{allowExternalPaths:true}); }
+          catch(cause) { if(['WORK_FILE_NOT_FOUND','WORK_FILE_NOT_REGULAR'].includes(cause.code))continue;throw cause; }
+          if(file.sha256!==descriptor.sha256)continue;
+          const group=candidates.get(name)||[];group.push({file,callId:descriptor.callId});candidates.set(name,group);
+        }
+        for(const group of candidates.values()) {
+          // Two different byte versions with the same requested name are
+          // ambiguous. Identical copies need only one actual attachment.
+          if(new Set(group.map(({file})=>file.sha256)).size!==1)continue;
+          const {file,callId}=group.at(-1);
+          if(artifacts.some(existing=>existing.path===file.path))continue;
+          if(artifacts.length>=MAX_ARTIFACTS)throw error('TOO_MANY_ARTIFACTS');
+          artifacts.push(file);record.artifactDelivery='verified-tool-output';
+          (record.verifiedArtifactReceipts||=[]).push({name:file.name,sha256:file.sha256,callId});
+        }
       }
       record.artifacts = artifacts;
       record.status = 'completed'; record.stage = 'completed'; record.summary = '处理完成';
