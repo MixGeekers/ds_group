@@ -1,0 +1,67 @@
+{
+  "recordedAt": "2026-11-06T03:59:51.863998+00:00",
+  "level": "local real Docker Compose from verified standalone release; synthetic accounts; zero model",
+  "imageIdentity": "sha256:44f33d3ae139c093d901518952e89b0d0524adf9ce88387eb1a9ee11801ab0d3 linux/arm64",
+  "sourceSha256": {
+    "scripts/deploy-smoke.mjs": "8b19f5e2c1b5e18e7959c48e4d5eacde06f5712e2a58d65b82cbc973ccfe790d"
+  },
+  "deployment": {
+    "status": "passed",
+    "runner": {
+      "platform": "darwin",
+      "architecture": "arm64"
+    },
+    "platform": "darwin/arm64",
+    "checks": [
+      "freshVolumesReady",
+      "serverRequiresLogin",
+      "matrixLoginGroupAndMessage",
+      "pwaManifest",
+      "remoteNodeExport",
+      "exportedNodeImportsConnectsAndSyncs",
+      "recreatePreservesUsersRoomTokensSecretsVapidAndHistory",
+      "retryAfterRecreateDeduplicates",
+      "backupRestoreToFreshVolumes",
+      "zeroModelCalls"
+    ],
+    "adapter": {
+      "core": "real-container",
+      "matrix": "real-container",
+      "adapter": "real-host-process",
+      "inferenceBridge": "registration-and-status-fixture",
+      "statusReads": 1,
+      "generationCalls": 0
+    },
+    "modelCalls": 0,
+    "cleanedUp": true
+  },
+  "centralPlatform": {
+    "status": "passed",
+    "checks": [
+      {
+        "name": "real Compose starts API-only Core, official Synapse and independent administration listener",
+        "status": "passed"
+      },
+      {
+        "name": "containerized central initialization persists the default home without replacing its Matrix identities",
+        "status": "passed"
+      },
+      {
+        "name": "ordinary central login and room business work while management credentials remain separate",
+        "status": "passed"
+      },
+      {
+        "name": "independent management UI/assets and real governance apply work against the containerized Synapse guard",
+        "status": "passed"
+      },
+      {
+        "name": "container recreation with mode omitted preserves central identity, sessions, admin policy and API-only",
+        "status": "passed"
+      }
+    ],
+    "modelCalls": 0,
+    "cleanedUp": true
+  },
+  "initialRemoteRun": "https://github.com/MixGeekers/dscord/actions/runs/42159331967",
+  "remoteRecheck": "Recorded by GitHub Actions on the fix commit; not claimed by this local evidence."
+}
