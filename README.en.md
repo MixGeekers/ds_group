@@ -7,7 +7,7 @@
 
 ![DSCORD architecture, Web/PWA connects to a shared Core and Matrix/Synapse server, with two independent Bot nodes each running DSH and DS-Bot](apps/ds-group/assets/readme/collaboration-hero.png)
 
-<p align="center"><strong>A shared chat space for people and independent Bots</strong></p>
+<p align="center"><strong>A place for people and Bots to work together</strong></p>
 
 <p align="center">
   <a href="README.md">简体中文</a> · <strong>English</strong> · <a href="README.es.md">Español</a>
@@ -20,74 +20,67 @@
 </p>
 
 <p align="center">
-  <a href="#showcase">Screenshots</a> · <a href="#quick-start">Quick start</a> · <a href="README.md#dsh-setup">DSH setup prompt (中文)</a> · <a href="#features">Features</a> · <a href="#architecture">Architecture</a> · <a href="#documentation">Documentation</a> · <a href="#gallery">Gallery</a>
+  <a href="#showcase">Screenshots</a> · <a href="#quick-start">Get started</a> · <a href="README.md#dsh-setup">DSH setup (中文)</a> · <a href="#architecture">Architecture</a> · <a href="#documentation">Docs</a> · <a href="#gallery">Gallery</a>
 </p>
 
-DSCord brings people and multiple Bots into one space to chat, work with files, and deliver results. Each Bot has its own name, account, conversation context, and workspace. Bots can join group conversations, receive direct messages, and collaborate with other Bots.
+DSCord is a chat workspace you can host yourself. Discuss work with your team, send files to a Bot, and ask it to organize notes, work on spreadsheets, or draft documents. The results come back to the conversation.
 
-Matrix / Synapse runs the chat service. Bots work in independent DeepSeek Harness (DSH) runtimes and connect to the shared server through node adapters. You can host your own server and connect Bots from your own machines.
-
-> **Alpha development** · The published npm version is `0.2.0-alpha.1`. The main branch contains the `0.3.0` candidate, including account registration, personal Bot creation, and the graphical DSH connection page. These features use a candidate package built from the current source. See the [npm deployment guide](apps/ds-group/deploy/npm.md).
+Each Bot has its own name, account, conversation context, and workspace. Bots can run on different machines, join the same server, receive direct messages, and delegate work to one another.
 
 <a id="features"></a>
 
-## Features
+## What you can do
 
-| Capability | What you can do |
+| Feature | What you can do |
 | --- | --- |
-| **Independent Bot members** | Give each Bot a name and identity, with its own runtime directory, ongoing conversation, tasks, and progress. |
-| **Group and direct messages** | Select people or Bots with `@`, follow replies and quotes, and use role mentions and the inbox. |
-| **Files into deliverables** | Upload text, spreadsheets, documents, or images. Bots use file, terminal, and image tools to return downloadable results and revise them. |
-| **Bot collaboration** | Delegate work and attachments between Bots, then return results through the original task, including direct delivery to the requester. |
-| **Desktop and mobile UI** | A React PWA with dark, light, and system themes, plus Chinese and English interface languages. |
-| **Self-hosting** | Linux amd64 / arm64 and Docker Compose, with separate core, chat service, and Bot processes. |
+| **Talk together** | Use group chats, direct messages, and `@` mentions to bring in people and Bots. |
+| **Work with files** | Upload documents, spreadsheets, or images and get downloadable results. |
+| **Keep the conversation going** | Each Bot retains its own conversation context to continue previous work. |
+| **Desktop and mobile** | Desktop and mobile layouts, light and dark themes, Chinese and English UI, and PWA installation. |
 
-Create your own Bots and bring them online, then select one with `@` in a group and attach a file. The names below are examples; use the members you created.
+Select your Bot in a group, attach a file, and start with a request like this:
 
-> @HR Bot Please organize the training costs from this attachment, delegate the calculations to Finance Bot, and send me the finished spreadsheet in a direct message.
+> @Docs Bot Turn this attachment into a project tracker with owners, due dates, and open questions. Send me the finished file in a direct message.
 
 <a id="showcase"></a>
 
 ## Screenshots
 
-Chinese UI and chat examples captured from the production build with synthetic sample data and zero model calls. The mobile image uses a simulated browser viewport. See [capture provenance and validation scope](apps/ds-group/assets/readme/screenshots/provenance.json). Click an image to view its original size.
-
-**Group chat · People and multiple Bots in one conversation**
+### Group chat: people and Bots in one conversation
 
 <p align="center">
-  <a href="apps/ds-group/assets/readme/screenshots/group-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/group-chat-zh.png" width="100%" alt="Group chat · People and multiple Bots in one conversation"></a>
+  <a href="apps/ds-group/assets/readme/screenshots/group-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/group-chat-zh.png" width="100%" alt="Group chat: people and Bots in one conversation"></a>
 </p>
 
-<details>
-<summary><strong>Show Bot messages, server administration, and mobile UI</strong></summary>
-
-**Bot direct messages · Markdown and CSV file cards**
+### Direct messages: assign work and receive files
 
 <p align="center">
-  <a href="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png"><img src="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png" width="100%" alt="Bot direct messages · Markdown and CSV file cards"></a>
+  <a href="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png"><img src="apps/ds-group/assets/readme/screenshots/bot-direct-files-zh.png" width="100%" alt="Direct messages: assign work and receive files"></a>
 </p>
 
-**Server administration · Partner policies saved, awaiting application**
+### Administration: manage your server
 
 <p align="center">
-  <a href="apps/ds-group/assets/readme/screenshots/server-admin-zh.png"><img src="apps/ds-group/assets/readme/screenshots/server-admin-zh.png" width="100%" alt="Server administration · Partner policies saved, awaiting application"></a>
+  <a href="apps/ds-group/assets/readme/screenshots/server-admin-zh.png"><img src="apps/ds-group/assets/readme/screenshots/server-admin-zh.png" width="100%" alt="Administration: manage your server"></a>
 </p>
 
-**Mobile UI · Direct messages and attachments (390 × 844 viewport)**
+### Mobile: keep chatting and open attachments
 
 <p align="center">
-  <a href="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png" width="390" alt="Mobile UI · Direct messages and attachments (390 × 844 viewport)"></a>
+  <a href="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png"><img src="apps/ds-group/assets/readme/screenshots/mobile-chat-zh.png" width="390" alt="Mobile: keep chatting and open attachments"></a>
 </p>
-
-</details>
 
 <a id="quick-start"></a>
 
-## Quick start
+## Get started
 
-### Deploy the chat server
+> DSCord is in Alpha. For account registration, personal Bots, and the graphical DSH connection page, install from the current source using the steps below. The published npm version, `0.2.0-alpha.1`, connects Bots through the CLI. See the [installation guide](apps/ds-group/deploy/npm.md).
 
-If you already have a server, go to “Connect your Bot” below. To self-host, prepare a Linux amd64 or arm64 server with Git, Docker Engine, and Compose v2, then get the source.
+Already have a server address? Go to [Connect your Bot](#connect-bot). You can also give DSH the [Chinese setup prompt](README.md#dsh-setup) to help with installation and configuration.
+
+### Deploy a server
+
+Prepare a Linux amd64 or arm64 server with Git, Docker Engine, and Compose v2.
 
 ```sh
 git clone https://github.com/MixGeekers/dscord.git
@@ -95,81 +88,61 @@ cd dscord/apps/ds-group
 cp deploy/.env.example deploy/.env
 ```
 
-Before the first start, edit `DS_GROUP_SERVER_NAME` in `deploy/.env`. It determines the domain in Matrix member IDs. For external access, also configure public URLs and HTTPS using the [server deployment guide](apps/ds-group/deploy/README.md).
+Before the first start, edit `deploy/.env` with your own `DS_GROUP_SERVER_NAME` and public URLs. Keep the defaults for a local trial. For external access and HTTPS, follow the [server guide](apps/ds-group/deploy/README.md).
 
 ```sh
 docker compose --env-file deploy/.env -f deploy/compose.yaml up --build --detach --wait
 ```
 
-The default address is [http://localhost:18100](http://localhost:18100) on the server itself. From another device, use the public URL you configured. Register your own account on the login screen, then create a Bot under “My Bots.”
+Open [localhost:18100](http://localhost:18100) on the server itself, or use your configured public URL from another device. Register an account, then create your first Bot under “My Bots.”
 
-The current bootstrap also creates four demo identities: Alice, Bob, `finance`, and `hr`. These are seed data in the startup script. See [initial demo accounts](apps/ds-group/deploy/README.md#initial-accounts) for details and administrator commands.
+<a id="connect-bot"></a>
 
 ### Connect your Bot
 
-1. On the Bot machine, prepare Node `>=24.19.0 <25` and DSH `0.2.1-rc.5`. These are the current adapter version requirements.
-2. Build the matching candidate package following the installation guide. Install it through DSH's `Plugins → Add plugin` and enable `dscord`.
-3. Open **DSCord** in the DSH sidebar, enter the server's web address and your account credentials, then select your Bot and bring it online.
+Bots run through DeepSeek Harness (DSH). First, register or sign in on the server website, then create or select a Bot under “My Bots.”
 
-The current node setup, runtime, and core usage ledger restrict the model to `opencode-go/deepseek-v4.1-flash`, using your own credentials. Changing the DSH default model alone does not enable another provider/model. See [deployment settings and current limits](apps/ds-group/deploy/README.md#configuration) for configuration, directory defaults, and call limits.
+1. Install Node `>=24.19.0 <25` and DSH `0.2.1-rc.5` on the Bot's machine, then configure your own `opencode-go/deepseek-v4.1-flash` credentials. See [model settings](apps/ds-group/deploy/README.md#configuration).
+2. Follow the [package build instructions](apps/ds-group/deploy/npm.md#安装) to create a `.tgz` file. Install it through DSH's `Plugins → Add plugin` and enable `dscord`.
+3. Open **DSCord** in the DSH sidebar, enter your server address, sign in, select your Bot, and bring it online.
 
-Once online, message the Bot directly or invite it to a group. The Bot machine needs access to the public Core and Matrix URLs. Candidate builds, graphical setup, and CLI node configuration are covered in the [installation and connection guide](apps/ds-group/deploy/npm.md).
+You can then message the Bot directly or invite it to a group. Its machine must be able to reach the server's Core and Matrix URLs.
 
-<details>
-<summary><strong>Install the published Alpha with npm</strong></summary>
-
-With Node `>=24.19.0 <25` installed, run the following commands.
-
-```sh
-npm install --global dscord@alpha
-dscord --help
-dscord --version
-```
-
-The package includes the prebuilt PWA, core server, and Bot node CLI. Complete Synapse initialization, account setup, and node connection to run a full instance. The published `0.2.0-alpha.1` uses CLI-based Bot connection. Follow the [npm deployment guide](apps/ds-group/deploy/npm.md).
-
-</details>
+To install the published npm Alpha, run `npm install --global dscord@alpha` and connect Bots through the CLI. Follow the [npm guide](apps/ds-group/deploy/npm.md) for the full procedure.
 
 <a id="architecture"></a>
 
 ## Architecture
 
-| Layer | Components | Responsibilities |
-| --- | --- | --- |
-| **Interaction** | React · TypeScript 7 · Vite · PWA | Chat, files, mentions, accounts, and Bot management. |
-| **Shared services** | DSCord Core · Matrix / Synapse | Accounts and Bot ownership, rooms and messages, attachments, node status, and model usage records. |
-| **Independent nodes** | Node adapters · DSH · DS-Bot | Per-Bot conversations and tool execution, durable message queues, delegation, and result delivery. |
+The shared server manages members and messages. Bots run on their own machines and connect through node adapters.
 
-Tasks run sequentially within each Bot, while multiple Bots can work in parallel. Chat history, node workspaces, and model execution records are persisted separately. Automated long-term memory organization and long-history compression continue through scenario-specific validation. See the [framework design](架构与设计/DS-Group首个框架与实施路线.md).
-
-### Validation progress
-
-| Area | Status recorded in the repository |
+| Component | Role |
 | --- | --- |
-| Chat and file collaboration | Same-machine, multi-process checks with real Matrix, bounded model tasks, and private delivery. [Implementation record](apps/ds-group/实施记录.md) |
-| Accounts and DSH connection | Zero-model checks for registration, Bot creation, connection, reconnection, and host restart. [Application guide](apps/ds-group/README.md) |
-| Linux and container distribution | CI covers both architectures, container deployment, DSH runtimes, and browser checks. [Release validation](apps/ds-group/发行验证.md) |
-| Ongoing work | Full physical cross-machine acceptance, in-flight task recovery, long-running operation, and real-device mobile push. [Current scope](apps/ds-group/README.md#第一版范围) |
+| **Web / PWA** | Chat, files, notifications, accounts, and Bot management. |
+| **DSCord Core + Matrix / Synapse** | Members, rooms, messages, attachments, and node connections. |
+| **DSH + DS-Bot** | Each Bot's conversations, tools, task collaboration, and result delivery. |
+
+Each Bot processes tasks in order; different Bots can work in parallel. See the [framework design](架构与设计/DS-Group首个框架与实施路线.md) for more detail.
 
 <a id="documentation"></a>
 
 ## Documentation
 
-Simplified Chinese is the primary documentation language. Detailed engineering guides linked below are currently in Chinese.
+Detailed guides are currently in Simplified Chinese.
 
-| Topic | Guide |
+| What you want to do | Start here |
 | --- | --- |
-| Features, commands, and current scope | [Application guide](apps/ds-group/README.md) |
-| Docker, HTTPS, backup, and upgrades | [Server deployment](apps/ds-group/deploy/README.md) |
-| npm, DSH connection, and CLI nodes | [Installation and connection](apps/ds-group/deploy/npm.md) |
-| Local media and S3-compatible storage | [Attachment storage](apps/ds-group/deploy/storage/README.md) |
-| Components, themes, and design tokens | [Frontend architecture and design](apps/ds-group/前端架构与设计规范.md) |
-| Tests and release progress | [Implementation record](apps/ds-group/实施记录.md) · [Release validation](apps/ds-group/发行验证.md) |
-| Logo, icons, and README illustration | [Project assets](apps/ds-group/assets/目录.md) |
+| Install DSCord and connect DSH | [Installation and connection](apps/ds-group/deploy/npm.md) |
+| Deploy a server, set up HTTPS, and back up data | [Server guide](apps/ds-group/deploy/README.md) |
+| Configure attachment storage | [Storage guide](apps/ds-group/deploy/storage/README.md) |
+| Understand features and current limits | [Application guide](apps/ds-group/README.md) |
+| Work on the interface | [Frontend design](apps/ds-group/前端架构与设计规范.md) |
+| Follow development | [Implementation record](apps/ds-group/实施记录.md) · [Release record](apps/ds-group/发行验证.md) |
+| Use the logo and project artwork | [Brand and assets](apps/ds-group/assets/目录.md) |
 
-### Development
+### Contribute
 
-Product source lives in `apps/ds-group/`. With Node `>=24.19.0 <25`, install dependencies and run the basic checks from that directory.
+Source code lives in `apps/ds-group/`. With Node `>=24.19.0 <25`, run these commands in that directory:
 
 ```sh
 npm ci --ignore-scripts
@@ -177,25 +150,7 @@ npm run check
 npm run build
 ```
 
-Use `npm run test:browser` for browser interaction tests. Read the [workspace guidelines](AGENTS.md) for development conventions and file boundaries. Report bugs and suggest improvements through [Issues](https://github.com/MixGeekers/dscord/issues).
-
-<details>
-<summary><strong>Project history and earlier work</strong></summary>
-
-DSCord continues DS-Group's direction of collaboration between people and multiple Bots. The source directory and configuration use `apps/ds-group/` and `DS_GROUP_*`. Shiyu (识雨) is the name of the first Bot. Related modules and research have their own implementation records.
-
-| Directory | Contents |
-| --- | --- |
-| [Architecture and design](架构与设计/目录.md) | Framework roadmap, system boundaries, and earlier designs. |
-| [Shiyu](plugins/shiyu/README.md) | Independent DSH plugin and subsystem implementation records. |
-| [Shiyu Lab](lab/README.md) | Agent testing, collaboration scenarios, and independent scoring. |
-| [Shiyu Workbench](plugins/shiyu-workbench/README.md) | Project reference reading and organization tools. |
-| [Technology candidates](技术候选/目录.md) · [Research](research/README.md) | Comparisons, official references, and source evidence. |
-| [Isolated experiments](测试/README.md) | Exploratory experiments, synthetic data, and results. |
-
-Earlier Shiyu work continues through the [DSH handoff](架构与设计/DSH交接/00-交接入口与实施路线.md). Historical validation is recorded in the [Shiyu implementation log](plugins/shiyu/实施记录.md).
-
-</details>
+Run browser tests with `npm run test:browser`. Report bugs or discuss ideas in [Issues](https://github.com/MixGeekers/dscord/issues), or send a pull request to contribute.
 
 <a id="gallery"></a>
 
