@@ -1,0 +1,12 @@
+{
+  "at": "2026-11-06T19:16:05.945Z",
+  "coreUrl": "http://127.0.0.1:25320",
+  "summaryRoomId": "!MUEy9yduQr7P1NfBVNvzRFTLnwxJk4eat8L6kptJ5kg",
+  "summaryEventId": "$sqw4lP-fB6OL6DvrpdpDb_l5ZSkyTeaS_71eqaH1OGU",
+  "body": "【自然续篇与独立补测完成】\n普通版 commandcode-goat/deepseek/deepseek-v4.1-flash；Fast 调用 0。\n续篇 96/96 条参与者消息、72/72 条实际 Bot 回复、48 个附件；首末场景约 2 小时 32 分钟。4 次计划压缩、3 次计划重启完成，最终待整理来源 0。\n原始四条自动失败及人工发现保留：旧文件盖过人类更正、偏好执行不稳、误报未交付等，行为未整体验收通过。\n交付修复独立补测：两条新请求实际收到 4 个附件；下载代码的 20 项测试和 12 项独立检查通过。另有一条检查器格式误判已附人工核验，不改写原结果。\n隔离生成宿主已结束；这套 Core/Matrix 与聊天记录继续保留供回看。",
+  "generationHost": "stopped",
+  "screenshots": [
+    "commandcode-final-chat.jpg",
+    "commandcode-delivery-recheck.jpg"
+  ]
+}

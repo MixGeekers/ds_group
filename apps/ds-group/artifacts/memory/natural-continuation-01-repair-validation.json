@@ -71,7 +71,27 @@
         "pendingSources": 10,
         "databaseUnchanged": true
       },
-      "note": "Code was edited during maintenance but becomes active only on the next host start. Loaded generation 6 kept the fixed 8192-token implementation."
+      "note": "Code was edited during maintenance but becomes active only on the next host start. Loaded generation 6 kept the fixed 8192-token implementation.",
+      "lifecycleSummary": {
+        "sourceCommit": "7a520d5faef072ee447d1a29cbca8fb029116ab2",
+        "start": "2026-11-06T17:16:45.254Z",
+        "end": "2026-11-06T17:56:43.953Z",
+        "started": 177,
+        "ended": 176,
+        "completed": 168,
+        "truncated": 8,
+        "failed": 0,
+        "unfinished": [
+          {
+            "callId": "28c0b316-655f-4dec-a2cf-fb2b0a79b258",
+            "startedAt": 1793987779213,
+            "purpose": "memory"
+          }
+        ],
+        "modelIds": [
+          "commandcode-goat/deepseek/deepseek-v4.1-flash"
+        ]
+      }
     }
   ],
   "realRecovery": {
@@ -130,7 +150,7 @@
   },
   "outputBudgetRepair": {
     "at": "2026-11-06T17:58:37.586Z",
-    "status": "module-validated-awaiting-host-recovery",
+    "status": "real-recovery-completed",
     "limits": [
       8192,
       16384,
@@ -146,6 +166,194 @@
       "scripts/memory-host-plugin.mjs": "87abc06af147c634a089f0808c5db95f51d2afa6145dd094dc2661c0938ef530",
       "scripts/memory-visible-host-plugin.mjs": "3ad4a159e5b7480dd49cc3cfa3bc51a98fd9993557698766f591bf3b3c639952",
       "tests/memory-review.test.mjs": "2c51c17e1ff644a57fb6092220cc000cf0a207062fcc4e9798fa03600743c641"
+    },
+    "sourceCommit": "f707d8b2da339493a4e132f245bc1c4c0bfa65e3",
+    "realRecovery": {
+      "at": "2026-11-06T18:06:12.430Z",
+      "generation": 7,
+      "sourceCommit": "f707d8b2da339493a4e132f245bc1c4c0bfa65e3",
+      "recovery": {
+        "type": "recovery-restart",
+        "round": 48,
+        "identitiesPreserved": true,
+        "pendingReviewFlushed": true,
+        "sourceCommit": "f707d8b2da339493a4e132f245bc1c4c0bfa65e3"
+      },
+      "compaction": {
+        "type": "native-compaction",
+        "round": 48,
+        "index": 1,
+        "result": {
+          "compacted": true,
+          "bot": {
+            "id": "session-89126c4f-8db0-4606-8016-5aaedef9bc70",
+            "name": "知秋",
+            "role": "协作助手",
+            "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+            "instructions": "你是团队中的协作助手。按当前参与者的需要聊天、研究资料和完成实际工作；可以与其他 Bot 协作。完成文件或代码工作时交付实际产物，如实说明完成情况和遇到的问题。",
+            "createdAt": 1793971198626,
+            "createdBy": null,
+            "capabilities": [],
+            "appliedModel": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+            "effort": "low",
+            "permission": "danger-full-access",
+            "sessionId": "session-4cd8a678-e24c-4507-89b0-80a9a411b878",
+            "parts": [
+              "session-89126c4f-8db0-4606-8016-5aaedef9bc70",
+              "session-a128cd8b-d8c2-45e4-9589-e1a54af2b35f"
+            ]
+          }
+        },
+        "resumed": true,
+        "generation": 7
+      },
+      "firstBudgetSuccess": {
+        "at": "2026-11-06T18:04:56.423Z",
+        "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+        "sourceCommit": "f707d8b",
+        "firstCompletedLargerBudget": {
+          "callId": "7cf3527d-a1fd-418a-b9ba-8f28303f90a4",
+          "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+          "sessionId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+          "purpose": "memory",
+          "startedAt": 1793988039785,
+          "maxTokens": 16384,
+          "usage": {
+            "inputTokens": 2,
+            "outputTokens": 15079,
+            "totalTokens": 32745,
+            "cacheReadTokens": 17664
+          },
+          "finish": {
+            "kind": "stop"
+          },
+          "status": "completed",
+          "event": "end",
+          "finishedAt": 1793988186799
+        },
+        "acknowledgement": {
+          "action": "review",
+          "at": 1793988188343,
+          "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+          "changeId": "4b3b1b97-b4b7-44c0-b832-c687d08d73fa",
+          "changes": 15,
+          "sourceRefs": [
+            {
+              "id": "source_4bf268d25e8b38252774d0405adec00189dc506f450d4865191af61e50f3c024",
+              "revision": 1
+            }
+          ]
+        },
+        "proposals": [
+          {
+            "at": 1793988186802,
+            "sourceRefs": [
+              {
+                "id": "source_4bf268d25e8b38252774d0405adec00189dc506f450d4865191af61e50f3c024",
+                "revision": 1
+              }
+            ],
+            "attempt": 0,
+            "changes": 15
+          }
+        ],
+        "scope": "This proves one full proposal was accepted and its source acknowledged after a completed 16384-token stream; it does not yet prove the whole recovery completed."
+      },
+      "snapshotSha256": "d64bbe4b0e45cdee783866bd899d72bfb62c2d18e61497c148c0edc4b3b9e17d",
+      "remainingPendingSources": 0
+    },
+    "later32kBoundary": {
+      "round": 88,
+      "truncatedCallId": "81dffb33-1167-46cc-b596-ef7830a7e3d6",
+      "previousMaxTokens": 16384,
+      "successfulCall": {
+        "callId": "3fad3e00-09e0-4dcc-8ee9-9f9bb924d02a",
+        "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+        "sessionId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "purpose": "memory",
+        "startedAt": 1793991493741,
+        "maxTokens": 32768,
+        "usage": {
+          "inputTokens": 56,
+          "outputTokens": 8765,
+          "totalTokens": 26101,
+          "cacheReadTokens": 17280
+        },
+        "finish": {
+          "kind": "stop"
+        },
+        "status": "completed",
+        "event": "end",
+        "finishedAt": 1793991543942
+      },
+      "compaction": {
+        "type": "native-compaction",
+        "round": 88,
+        "index": 0,
+        "result": {
+          "compacted": true,
+          "bot": {
+            "id": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+            "name": "识雨",
+            "role": "Chief of Staff",
+            "color": "deepseek",
+            "avatar": {
+              "shape": "whale"
+            },
+            "instructions": "你是团队中的协作助手。按当前参与者的需要聊天、研究资料和完成实际工作；可以与其他 Bot 协作。完成文件或代码工作时交付实际产物，如实说明完成情况和遇到的问题。",
+            "createdAt": 1793971198570,
+            "createdBy": null,
+            "capabilities": [],
+            "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+            "effort": "low",
+            "appliedModel": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+            "permission": "danger-full-access",
+            "sessionId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+            "parts": []
+          }
+        },
+        "resumed": false,
+        "generation": 7
+      },
+      "restart": {
+        "type": "planned-restart",
+        "round": 88,
+        "identitiesPreserved": true,
+        "resumed": false,
+        "generation": 7
+      },
+      "flushWaitFailures": [
+        {
+          "type": "flush-error",
+          "at": "2026-11-06T18:49:41.947Z",
+          "error": "fetch failed",
+          "attempt": 0
+        },
+        {
+          "type": "flush-error",
+          "at": "2026-11-06T18:54:53.309Z",
+          "error": "fetch failed",
+          "attempt": 1
+        },
+        {
+          "type": "flush-error",
+          "at": "2026-11-06T19:00:14.691Z",
+          "error": "fetch failed",
+          "attempt": 2
+        }
+      ]
     }
+  },
+  "completion": {
+    "status": "completed-with-failures",
+    "reportSha256": "2352fe223c73db44ea0fd1356ac8ad962655a53889d6eb4f11c7f1c30f01b31c",
+    "corpusHash": "ea6e913cf1200e9e12617853bdc8fd6aba43c2fc92e6014356d018c2c3f40530",
+    "all96MessagesPosted": true,
+    "all72BotRequestsReplied": true,
+    "finalReviewFlushed": true,
+    "finalPendingSources": 0,
+    "parentEvidencePreserved": true,
+    "behavioralAcceptance": false,
+    "note": "Completed execution and restored maintenance do not erase original delivery failures or manual source-fidelity/style findings."
   }
 }
