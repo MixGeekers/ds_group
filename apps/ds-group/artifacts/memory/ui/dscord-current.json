@@ -13,5 +13,11 @@
   "scope": "This is the existing local test deployment, not a screenshot of the long-run memory dataset. The memory branch wires chat context to native memory but has no dedicated DSCord web memory-management or contact-dossier view.",
   "sentMessages": 0,
   "modelRequestsInitiated": 0,
-  "applicationCodeChanged": false
+  "applicationCodeChanged": false,
+  "correction": {
+    "reason": "Wrong screenshot instance selected: onboarding.local serves the November 4 build, not current main UI.",
+    "replacement": "dscord-latest-ui.png",
+    "evidence": "dscord-latest-ui.json",
+    "latestUiTreeMatchesOriginMain": true
+  }
 }
