@@ -182,6 +182,22 @@ test('ordinary Markdown links to actual native files become attachments, excludi
   assert.equal(await readFile(result.artifacts[0].path,'utf8'),'export const count = a => a.length;');
 });
 
+test('a final filename can deliver the matching successful file-tool output, but not unrelated or failed writes', async t => {
+  const f=await fixture(t,{send:async({event,turn})=>{
+    const workdir=f.calls.at(-1).attachmentsDirectory;
+    for(const [name,failed]of [['venue-status.md',false],['draft.md',false],['failed.md',true]]){
+      const filename=path.join(workdir,name);await writeFile(filename,name);
+      await event('tool/call',{turn,callId:name,name:'write',arguments:JSON.stringify({file_path:filename,content:name})});
+      await event('tool/result',{turn,message:{toolCallId:name,isError:failed}});
+    }
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:'venue-status.md 已生成；failed.md 没写成功。'}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const result=await f.bridge.turn(f.request('mentioned-output'));
+  assert.equal(result.status,'completed');assert.deepEqual(result.artifacts.map(x=>x.name),['venue-status.md']);
+  assert.equal(result.artifactDelivery,'mentioned-tool-output');
+});
+
 test('failed present calls and other turns never become native request attachments', async t => {
   const f = await fixture(t, { send: async ({ event, turn }) => {
     const arguments_ = JSON.stringify({ files: [{ path: path.join(f.node.directory, 'not-delivered.txt') }] });

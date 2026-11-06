@@ -143,6 +143,14 @@ export class NativeBridge {
     }
     if (event.type === 'tool/call') {
       run.record.toolReceipts.push({ callId: event.data.callId, name: event.data.name, status: 'running' });
+      if (['write','write_file','edit','edit_file'].includes(event.data.name)) {
+        try {
+          const args=typeof event.data.arguments==='string'?JSON.parse(event.data.arguments):event.data.arguments;
+          const filename=args?.file_path||args?.path||args?.filename;
+          const cwd=event.data.meta?.cwd||this.ctx.get?.('workingDirectory')?.get?.(session)||session.header?.cwd;
+          if(typeof filename==='string'&&(path.isAbsolute(filename)||typeof cwd==='string'))run.writeCalls.set(event.data.callId,{path:path.resolve(cwd||'',filename)});
+        } catch { /* Only an actual successful file-tool result can publish it. */ }
+      }
       if (event.data.name === 'present') {
         try {
           const args = typeof event.data.arguments === 'string' ? JSON.parse(event.data.arguments) : event.data.arguments;
@@ -160,6 +168,9 @@ export class NativeBridge {
       const message = event.data?.message;
       const receipt = run.record.toolReceipts.find(tool => tool.callId === message?.toolCallId);
       if (receipt) receipt.status = message.isError ? 'failed' : 'completed';
+      if (!message.isError && run.writeCalls.has(message.toolCallId)) {
+        const descriptor=run.writeCalls.get(message.toolCallId);run.written.set(descriptor.path,descriptor);
+      }
       if (receipt?.name === 'present' && !message.isError) {
         for (const file of run.presentCalls.get(message.toolCallId) || []) run.presented.set(file.path, file);
       }
@@ -223,7 +234,7 @@ export class NativeBridge {
       let resolve;
       const done = new Promise(done => { resolve = done; });
       const marker = `DSCORD_REQUEST=${input.requestId}`;
-      const run = this.run = { marker, resolve, record, text: '', exchanges: new Set(), presentCalls: new Map(), presented: new Map() };
+      const run = this.run = { marker, resolve, record, text: '', exchanges: new Set(), presentCalls: new Map(), presented: new Map(), writeCalls: new Map(), written: new Map() };
       Object.assign(record, { status: 'running', stage: 'working', sessionId: bot.sessionId, model: bot.model,
         contextKey: input.context?.key, source: input.context?.source,
         summary: '原生 Bot 正在处理', startedAt: new Date().toISOString() });
@@ -266,6 +277,10 @@ export class NativeBridge {
       if (!artifacts.length && !delivery.explicitArtifacts) {
         const staged = await collectStagedArtifacts(files.workdir);
         if (staged.length) { artifacts.push(...staged); record.artifactDelivery = 'staged-output'; }
+      }
+      if (!artifacts.length && !delivery.explicitArtifacts) {
+        const mentioned=[...run.written.values()].filter(file=>run.text.includes(path.basename(file.path)));
+        if(mentioned.length){artifacts.push(...await collectArtifacts(JSON.stringify({text:'Mentioned file-tool outputs',artifacts:mentioned}),files.workdir,{allowExternalPaths:true}));record.artifactDelivery='mentioned-tool-output';}
       }
       record.artifacts = artifacts;
       record.status = 'completed'; record.stage = 'completed'; record.summary = '处理完成';

@@ -19,12 +19,14 @@ const people={planner:{id:'@lin_a:fix.test',name:'林青',kind:'human'},data:{id
 const histories=new Map();
 const statement=(id,person,body,roomId=room)=>({eventId:`$${id}`,roomId,senderId:people[person].id,senderName:people[person].name,senderKind:'human',body,timestamp:Date.now()});
 const addHistory=e=>{const h=histories.get(e.roomId)||[];h.push(e);histories.set(e.roomId,h);};
-async function turn(id,person,body,roomId=room){
+async function turn(id,person,body,roomId=room,expectedFiles=[]){
   const event=statement(id,person,body,roomId),request={requestId:id,botId:'@bot0:memory.test',event,
     context:{room:{id:roomId,name:roomId===room?'码头活动筹备':'休息区'},source:{transport:'matrix',eventId:event.eventId,roomId,timestamp:event.timestamp,sender:people[person]}},
     history:histories.get(roomId)||[]};
   const result=await host.api('turn',{index:0,request});addHistory(event);
-  const row={id,prompt:body,request,...result};report.rounds.push(row);await save();console.log(JSON.stringify({id,status:result.record.status,artifacts:result.record.artifacts.map(x=>x.name),reviewError:result.reviewError}));
+  const row={id,prompt:body,request,...result};report.rounds.push(row);
+  for(const filename of expectedFiles)check(`${id}:delivered:${filename}`,result.record.artifacts.some(x=>x.name===filename));
+  await save();console.log(JSON.stringify({id,status:result.record.status,artifacts:result.record.artifacts.map(x=>x.name),reviewError:result.reviewError}));
   return row;
 }
 try{
@@ -40,7 +42,7 @@ try{
   check('sameRequestRetainsArtifactsWithoutNewGeneration',JSON.stringify(retry.record.artifacts)===JSON.stringify(staged.record.artifacts)&&(await readFile(path.join(directory,'calls.jsonl'),'utf8'))===before);
   const unknown=statement('unaddressed-elevator','field','场地方还没答复电梯能不能用，先按待确认写。我负责现场入口。');addHistory(unknown);
   const preference=statement('unaddressed-planner-style','planner','平时项目进度给我中文短版就行，最多三条，太长我看不过来。');addHistory(preference);
-  await turn('venue-notes','planner','把我们已经知道的现场条件和待确认事项整理成 venue-status.md，方便我接着问场地方。');
+  await turn('venue-notes','planner','把我们已经知道的现场条件和待确认事项整理成 venue-status.md，方便我接着问场地方。',room,['venue-status.md']);
   let memory=await host.api('memory');const source=memory.sources.find(x=>x.eventId===unknown.eventId);
   check('unaddressedDiscussionAutomaticallyStoredWithOriginalAuthor',source&&memory.entries.some(x=>x.derivation==='current'&&x.sourceRefs.some(ref=>ref.id===source.id)&&x.text.includes('电梯')),{sourceId:source?.id,authorId:source?.authorId});
   await turn('data-preference','data','For number reviews I normally use an English table. Current spending is 1623 against a cap of 1800, and registration is 18 people. Give me a quick check of those figures.');
