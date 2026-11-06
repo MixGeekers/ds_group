@@ -1,10 +1,38 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { prepareReviewBatch, prepareReviewProposal, validateReviewProposal } from '../memory/review.mjs';
+import { generateReviewWithBudget, prepareReviewBatch, prepareReviewProposal, validateReviewProposal } from '../memory/review.mjs';
 
 const sources = [{ id: 'source_correction', eventId: '$changed', revision: 2 }];
 const existingMemories = [{ id: 'memory_old', sourceRefs: [{ id: 'source_original', revision: 1 }] }];
 const good = { op: 'forget', replaceId: 'memory_old', sourceIds: ['$changed'] };
+
+test('an indivisible review increases output budget without accepting a truncated proposal', async () => {
+  const calls = [], changes = [], complete = '{"changes":[]}';
+  const result = await generateReviewWithBudget({ generate: async maxTokens => {
+    calls.push(maxTokens);
+    if (maxTokens === 8192) throw Object.assign(new Error('truncated JSON'), { code: 'MEMORY_OUTPUT_LIMIT' });
+    return complete;
+  }, onOutputLimit: ({ maxTokens, nextMaxTokens }) => changes.push([maxTokens, nextMaxTokens]) });
+  assert.equal(result, complete);
+  assert.deepEqual(calls, [8192, 16384]);
+  assert.deepEqual(changes, [[8192, 16384]]);
+});
+
+test('a calibrated review budget is reused and truncation stops at the finite cap', async () => {
+  const calls = [], error = Object.assign(new Error('still truncated'), { code: 'MEMORY_OUTPUT_LIMIT' });
+  await assert.rejects(generateReviewWithBudget({ initialMaxTokens: 16384, generate: async limit => {
+    calls.push(limit); throw error;
+  } }), value => value === error);
+  assert.deepEqual(calls, [16384, 32768]);
+});
+
+test('quota and invalid proposals are not retried with a larger output budget', async () => {
+  for (const code of ['MODEL_QUOTA_EXCEEDED', 'MEMORY_REVIEW_INVALID', 'NETWORK']) {
+    let calls = 0; const error = Object.assign(new Error(code), { code });
+    await assert.rejects(generateReviewWithBudget({ generate: async () => { calls++; throw error; } }), value => value === error);
+    assert.equal(calls, 1);
+  }
+});
 test('cancellation cites its new correction and preserves the exact reviewed revision', () => {
   assert.deepEqual(validateReviewProposal({ changes: [good] }, sources, existingMemories)[0].sourceRefs, [{ id: 'source_correction', revision: 2 }]);
   for (const sourceIds of [undefined, [], ['source_original']]) assert.throws(() => validateReviewProposal({ changes: [{ ...good, sourceIds }] }, sources, existingMemories), /MEMORY_REVIEW_SOURCE/);

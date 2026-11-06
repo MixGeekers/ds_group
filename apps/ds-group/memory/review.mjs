@@ -16,6 +16,21 @@ export async function prepareReviewBatch({ refs, prepare, onOutputLimit = () => 
   }
 }
 
+// An indivisible source can still exceed a reasoning model's output budget.
+// Retry only explicit truncation, with a finite cap; no partial text is accepted.
+export async function generateReviewWithBudget({ generate, initialMaxTokens = 8192, onOutputLimit = () => {} }) {
+  let maxTokens = [8192, 16384, 32768].includes(initialMaxTokens) ? initialMaxTokens : 8192;
+  for (;;) {
+    try { return await generate(maxTokens); }
+    catch (error) {
+      if (error.code !== 'MEMORY_OUTPUT_LIMIT' || maxTokens >= 32768) throw error;
+      const nextMaxTokens = maxTokens * 2;
+      onOutputLimit({ error, maxTokens, nextMaxTokens });
+      maxTokens = nextMaxTokens;
+    }
+  }
+}
+
 export function validateReviewProposal(result, sources, existingMemories = []) {
   if (!Array.isArray(result?.changes)) fail('MEMORY_REVIEW_INVALID');
   const known = new Map(existingMemories.map(row => [row.id,row])), modified = new Set();

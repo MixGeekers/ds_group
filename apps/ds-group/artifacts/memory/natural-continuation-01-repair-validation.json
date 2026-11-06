@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-06T17:17:08.407Z",
+  "sourceCommit": "7a520d5faef072ee447d1a29cbca8fb029116ab2",
+  "scope": "Memory output truncation, contact model input size and interrupted maintenance boundary; module checks are not real recovery acceptance.",
+  "moduleRuns": [
+    {
+      "tests": 464,
+      "log": ".local/memory-output-limit-module-tests.log",
+      "passed": 464,
+      "failed": 0,
+      "logSha256": "4f6dcaa61910d5fd01eeb2f85670d6d776e39bf8c89f9317be0a38ef4246d4aa"
+    },
+    {
+      "tests": 466,
+      "log": ".local/memory-contact-view-module-tests.log",
+      "passed": 466,
+      "failed": 0,
+      "logSha256": "5985f54d4fd1a02984eb4ff31d0ff8468b6ed3957ff044cb98e9a9795709e6f9"
+    },
+    {
+      "tests": 469,
+      "log": ".local/memory-output-budget-module-tests.log",
+      "passed": 469,
+      "failed": 0,
+      "logSha256": "5049f4328d2312ede198fa86eafc66284686be391ae02b4dc5ea4e19be2a7a3e"
+    }
+  ],
+  "repairs": [
+    "Reduce a truncated source-review batch and acknowledge only the completed prefix",
+    "Resume missing maintenance at the last completed message boundary",
+    "Mark max-token stream finishes as truncated",
+    "Use compact contact identities in model input; retain history in storage and expose history:true",
+    "For an indivisible truncated review, grow the model-scoped output budget from 8192 to 16384 and at most 32768; validate the complete proposal before acknowledgement"
+  ],
+  "contactInputChars": {
+    "before": 158744,
+    "after": 5860,
+    "contacts": 17,
+    "fullHistoryDeleted": false
+  },
+  "interruptedAttempts": [
+    {
+      "generation": 4,
+      "rawReportSha256": "57174e7efec8f4db160bde3384244cce53eb77130a6b3bb5d67683e8bd8e1fe2",
+      "status": "failed",
+      "postedMessages": 24,
+      "error": "TypeError: fetch failed",
+      "sourceCommit": "d25694b5f88befb9fb80b48709607e329466ca54"
+    },
+    {
+      "generation": 5,
+      "rawReportSha256": "e06465811327bfb52b70525dac85349ec99e282ee27bd9a344f2441fa4cc3a44",
+      "status": "failed",
+      "postedMessages": 24,
+      "error": "TypeError: fetch failed",
+      "sourceCommit": "8fa7fc9d7ab270372cc0a8f86c01ccfd7a27a6a4"
+    },
+    {
+      "generation": 6,
+      "rawReportSha256": "5a028060d57ebdf38c1e3618c2d004dfe304f2df80fb6ff72748b6f54241a323",
+      "status": "failed",
+      "postedMessages": 48,
+      "error": "MEMORY_OUTPUT_LIMIT during flush at round 48",
+      "sourceCommit": "7a520d5faef072ee447d1a29cbca8fb029116ab2",
+      "offlineSnapshot": {
+        "sha256": "2232031d047da7882816cda4e6d86dec67d74859e8bb78418422fae7fd00180c",
+        "entries": 550,
+        "sources": 896,
+        "contacts": 17,
+        "pendingSources": 10,
+        "databaseUnchanged": true
+      },
+      "note": "Code was edited during maintenance but becomes active only on the next host start. Loaded generation 6 kept the fixed 8192-token implementation."
+    }
+  ],
+  "realRecovery": {
+    "at": "2026-11-06T17:25:22.529Z",
+    "sourceCommit": "7a520d5faef072ee447d1a29cbca8fb029116ab2",
+    "generation": 6,
+    "postedMessages": 24,
+    "pending": [
+      {
+        "botId": "session-89126c4f-8db0-4606-8016-5aaedef9bc70",
+        "count": 0
+      },
+      {
+        "botId": "session-57dfc084-a8e5-4500-b3a8-d8b741acdbe2",
+        "count": 0
+      },
+      {
+        "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "count": 0
+      }
+    ],
+    "outputLimitTransitions": [
+      {
+        "at": 1793985153297,
+        "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "sourceCount": 8,
+        "nextBatchSize": 4
+      },
+      {
+        "at": 1793985239593,
+        "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "sourceCount": 4,
+        "nextBatchSize": 2
+      },
+      {
+        "at": 1793985525788,
+        "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "sourceCount": 2,
+        "nextBatchSize": 1
+      }
+    ],
+    "identitiesPreserved": true,
+    "resumedBoundaryCompaction": {
+      "round": 24,
+      "compacted": true
+    },
+    "memorySnapshotSha256": "12eb2608eeda2137da70a41a7ae50e04a478f78a25adb45ef96589c5a876bdbb",
+    "note": "Recovery succeeded after one additional single-source truncation and a later successful flush retry; earlier truncations and unfinished receipts remain failures/unknowns."
+  },
+  "sourceHashes": {
+    "memory/contacts.mjs": "c1550471b03c2a594516daef944b97eca74557ea3baf59efe7c1fb931c5c9d07",
+    "memory/native.mjs": "6548909c41a28cc32ffc050e1efd9c3e9733f6c77b5bfee7e5da1ea94a955e5f",
+    "memory/review.mjs": "018a91afc300cabacd1dc9c186a6560717c903cdfa3541047330b484147888a4",
+    "scripts/collaboration-maintenance.mjs": "affb95c6b5d09c0d19abdfd4ffc6cb837434496312951be1ac58438d0e85892a",
+    "scripts/collaboration-long-run.mjs": "c63d1efc69d4e07c783939e01f989e40320df0e3a23e741e8e5267d64794caf9"
+  },
+  "outputBudgetRepair": {
+    "at": "2026-11-06T17:58:37.586Z",
+    "status": "module-validated-awaiting-host-recovery",
+    "limits": [
+      8192,
+      16384,
+      32768
+    ],
+    "onlyExplicitTruncation": true,
+    "onlyIndivisibleSource": true,
+    "partialProposalsAccepted": false,
+    "persistCalibrationByModel": true,
+    "sourceHashes": {
+      "memory/native.mjs": "3f9aeddd52a401721e7f16b67a06d8031b75402c46495dfd02875d3f2c9f40a4",
+      "memory/review.mjs": "2f3c9c4fb968f476d8764c3281665577ffc153f9df076fc6787189b34493e926",
+      "scripts/memory-host-plugin.mjs": "87abc06af147c634a089f0808c5db95f51d2afa6145dd094dc2661c0938ef530",
+      "scripts/memory-visible-host-plugin.mjs": "3ad4a159e5b7480dd49cc3cfa3bc51a98fd9993557698766f591bf3b3c639952",
+      "tests/memory-review.test.mjs": "2c51c17e1ff644a57fb6092220cc000cf0a207062fcc4e9798fa03600743c641"
+    }
+  }
+}

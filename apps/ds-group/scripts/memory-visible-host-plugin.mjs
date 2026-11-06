@@ -22,7 +22,8 @@ export async function apply(ctx, config) {
   ctx.on('llm/stream', async function* (options, next) {
     const model = `${options.provider}/${options.model}`;
     if (model !== MODEL) throw new Error(`TEST_MODEL_MISMATCH:${model}`);
-    const row = { callId: randomUUID(), model, sessionId: options.sessionId, purpose: options.purpose || 'generation', startedAt: Date.now() };
+    const row = { callId: randomUUID(), model, sessionId: options.sessionId, purpose: options.purpose || 'generation', startedAt: Date.now(),
+      maxTokens: options.maxTokens, reasoningEffort: options.reasoningEffort };
     await log('calls.jsonl', { ...row, event: 'start' });
     try { for await (const chunk of next()) {
       if (chunk.type === 'usage') row.usage = chunk.usage;

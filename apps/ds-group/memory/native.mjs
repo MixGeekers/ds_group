@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { MemoryService } from './service.mjs';
 import { sha, sourceId } from './store.mjs';
 import { createMemoryPanel } from './panel.mjs';
-import { prepareReviewBatch, prepareReviewProposal } from './review.mjs';
+import { generateReviewWithBudget, prepareReviewBatch, prepareReviewProposal } from './review.mjs';
 import { isModelQuotaFailure } from '../src/model-failure.mjs';
 import { memoryModelOptions } from './model-options.mjs';
 import { contactReadView } from './contacts.mjs';
@@ -79,9 +79,10 @@ export function installNativeMemory(rt) {
     const messages = [{ role: 'user', content: [{ type: 'text', text }] }];
     rt.tagUsage?.(messages, { sessionId: tag.sessionId || rt.chatOf(bot.id), kind: 'memory' });
     const assembled = new BlockAssembler();
+    const maxTokens = tag.maxTokens || 8192;
     for await (const chunk of ctx.llm.stream({ ...modelOptions,
-      sessionId: tag.sessionId || rt.chatOf(bot.id), purpose: 'memory', system, messages, maxTokens: 8192,
-      signal: AbortSignal.timeout(120000) })) assembled.push(chunk);
+      sessionId: tag.sessionId || rt.chatOf(bot.id), purpose: 'memory', system, messages, maxTokens,
+      signal: AbortSignal.timeout(Math.ceil(maxTokens / 8192) * 120000) })) assembled.push(chunk);
     if (['error', 'aborted', 'max-tokens'].includes(assembled.finish.kind)) throw Object.assign(new Error(`MEMORY_MODEL_${assembled.finish.kind}: ${assembled.finish.failure?.code || ''} ${assembled.finish.failure?.message || ''}`), {
       code: assembled.finish.kind === 'max-tokens' ? 'MEMORY_OUTPUT_LIMIT' : assembled.finish.failure?.code });
     const reply = assembled.blocks().filter(block => block.type === 'text').map(block => block.text).join('\n');
@@ -123,8 +124,17 @@ export function installNativeMemory(rt) {
         const known = [...relevant.values()].map(row => ({
           id: row.id, text: row.text, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope, kind: row.kind, saidBy: row.saidBy, sourceRefs: row.sourceRefs,
         }));
+        const reference = await rt.desiredModel(bot) ?? await rt.defaultModel();
+        const budgetKey = `review-output-budget:${reference}`;
         const changes = await prepareReviewProposal({ input: { botId, contacts: contactReadView(store.contacts()), sources, existingMemories: known },
-          generate: input => botShot(bot, REVIEW, stringify(input)),
+          generate: input => refs.length > 1 ? botShot(bot, REVIEW, stringify(input)) : generateReviewWithBudget({
+            initialMaxTokens: store.getMeta(budgetKey),
+            generate: maxTokens => botShot(bot, REVIEW, stringify(input), { maxTokens }),
+            onOutputLimit: ({ error, maxTokens, nextMaxTokens }) => {
+              store.setMeta(budgetKey, nextMaxTokens);
+              store.log('review-output-budget', { botId, model: reference, sourceRefs: refs, maxTokens, nextMaxTokens, error: error.message });
+            },
+          }),
           onProposal: (result, attempt) => store.log('review-proposal', { botId, sourceRefs: refs, changes: result.changes, attempt }),
           onInvalid: (error, attempt) => { memory.errors.push({ operation: 'review-validation', botId, attempt, error: error.message, at: Date.now() });
             store.log('review-validation-error', { botId, sourceRefs: refs, attempt, error: error.message }); } });
