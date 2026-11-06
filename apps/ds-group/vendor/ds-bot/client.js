@@ -14217,7 +14217,7 @@ function EntryRow({ entry, remove }) {
     return () => clearTimeout(timer);
   }, [confirming]);
   const by = entry.source === "memory panel" ? t("by you") : entry.by ? t("by {name}", { name: entry.by }) : null;
-  const meta = [entry.added, by].filter(Boolean).join(" · ");
+  const meta = [entry.added, by, entry.source && entry.source !== "memory panel" ? entry.source : null].filter(Boolean).join(" · ");
   const click = async () => {
     if (!confirming) {
       setConfirming(true);

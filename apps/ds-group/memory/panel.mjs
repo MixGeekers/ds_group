@@ -17,7 +17,9 @@ export function createMemoryPanel(rt, memory, { flush, botShot }) {
     if (!keeper) throw new Error('Unknown Bot');
     return { body: { botId: keeper.id }, keeper, filter: { botId: keeper.id } };
   }
-  const entries = panel => store.list(panel.filter).map(row => ({ ...memory.describe(row), scope: scopeTag(row.scope), memoryScope: row.scope,
+  const entries = panel => store.list(panel.filter).map(row => ({ ...memory.describe(row),
+    scope: panel.roomId ? 'group' : row.scope === 'team' ? 'team' : 'own', memoryScope: row.scope,
+    topic: row.scope.startsWith('room:') ? [row.scope, row.topic].filter(Boolean).join(' · ') : row.topic,
     added: new Date(row.observedAt).toISOString().slice(0, 10), by: row.saidBy,
     source: row.sourceRefs.map(ref => { const source = store.source(ref.id, ref.revision); return `${source?.authorId} · ${source?.roomId || '本地'} · ${source?.eventId || ref.id}`; }).join(', ') }));
   const changes = panel => {
@@ -26,8 +28,10 @@ export function createMemoryPanel(rt, memory, { flush, botShot }) {
   };
   function view(panel) {
     const rows = entries(panel);
-    return { ...panel.body, entries: rows, sizes: {}, limits: { entry: 15000, main: 1e9, topic: 1e9, topics: 1e9 },
-      summary: { text: rows.map(row => `- ${row.text}（${row.kind}，${row.memoryScope}；${row.saidBy}）`).join('\n'), at: Date.now() },
+    const sizes = { own: 0, team: 0, group: 0 };
+    for (const row of rows) sizes[row.scope] += row.text.length;
+    return { ...panel.body, entries: rows, sizes, limits: { entry: 15000, main: 1e9, topic: 1e9, topics: 1e9 },
+      summary: { text: rows.map(row => `- ${row.text}（${row.kind}，${row.memoryScope}；${row.saidBy}）`).join('\n\n'), at: Date.now() },
       fresh: true, summarizing: false, error: null, backend: memory.backend ? 'ombre' : 'local-exact', diagnostics: memory.errors.slice(-10) };
   }
   return async function memoryEndpoint(endpoint, body) {

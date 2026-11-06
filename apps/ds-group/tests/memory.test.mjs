@@ -119,6 +119,25 @@ test('metadata repair keeps identical evidence and content; it cannot reassign a
   const corrected = await service.remember('a', { text: old.text, subjectId: 'project:x', replaceId: old.id, reclassify: true });
   assert.equal(corrected.subjectId, 'project:x'); assert.deepEqual(corrected.sourceRefs, old.sourceRefs);
 }));
+test('native memory panels render numeric sizes, room facts and original sources', async () => withService(async service => {
+  const bot = { id: 'a' };
+  const rt = { load: async () => {}, botOf: id => id === 'a' ? bot : null,
+    roomOf: id => id === '!a:test' ? { id, admin: 'a', members: ['a'] } : null };
+  service.ingest('a', event(1, '周六发布')); await service.remember('a', { text: '周六发布' });
+  service.ingest('a', event(2, '周日发布', '!b:test')); await service.remember('a', { text: '周日发布' });
+  const panel = createMemoryPanel(rt, service, {});
+  const personal = await panel('memory-view', { botId: 'a' });
+  assert.equal(personal.entries.length, 2);
+  assert.ok(personal.entries.every(row => row.scope === 'own'));
+  assert.deepEqual(personal.entries.map(row => row.memoryScope), ['room:!a:test', 'room:!b:test']);
+  assert.deepEqual(personal.entries.map(row => row.topic), ['room:!a:test', 'room:!b:test']);
+  assert.match(personal.entries[0].source, /@lin:a\.test.*!a:test.*\$1/);
+  assert.deepEqual(personal.sizes, { own: 8, team: 0, group: 0 });
+  assert.match(personal.summary.text, /\n\n/);
+  const group = await panel('memory-view', { roomId: '!a:test' });
+  assert.equal(group.entries.length, 1); assert.equal(group.entries[0].scope, 'group');
+  assert.deepEqual(group.sizes, { own: 0, team: 0, group: 4 });
+}));
 test('native group panel has a keeper, complete history and independently repeatable undo', async () => withService(async service => {
   const bots = { a: { id: 'a' }, b: { id: 'b' } }, room = { id: '!a:test', admin: 'a', members: ['a','b'] };
   const rt = { home: '/synthetic/bot', load: async () => {}, botOf: id => bots[id], roomOf: id => id === room.id ? room : undefined };
