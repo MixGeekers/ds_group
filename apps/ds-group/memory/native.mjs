@@ -5,13 +5,15 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { MemoryService } from './service.mjs';
 import { sha, sourceId } from './store.mjs';
 import { createMemoryPanel } from './panel.mjs';
+import { prepareReviewProposal } from './review.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('\n');
-const json = text => JSON.parse(text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
 const RULES = `# Source-aware memory
 You are the same native Bot in every conversation. remember/recall/forget and contacts use one persistent store.
 Full account IDs identify people. Equal display names do not imply the same person. Keep subject, original author, relayer and Bot interpretation separate.
+The per-step speakerFacts are current source-backed claims about this exact speaker, not a new message. Apply relevant language and report-format preferences without requiring the person to repeat them; keep scope, uncertainty and conflicting claims visible. Casual conversation does not automatically require a work plan.
 Room decisions apply to that room/project. Recall returns exact source references, validity and unresolved conflicting claims. Never present a reported claim or inference as the person's own statement.
+Separate confirmed decisions, proposals and unknowns when revising plans or files. A change to one field does not confirm changes to other fields. Your earlier drafts, summaries and generated files are derived work, not independent confirmation about the real world; reconcile them against the person's later corrections before reusing them.
 When asked to remember, call remember before saying it is saved. Automatic review also keeps durable facts. Use recall before answering from old memories, especially after compaction, corrections or restart. When the current user explicitly requests recall or a fresh history/status check, call recall in this turn even if an identical question was recently answered. A previous turn’s result is not a fresh lookup for a new request. For another room use scope room:<ID>, or all and name the source room in your answer. Expired, withdrawn and superseded facts are historical only.
 Use replaceId from recall for corrections to one fact. Distinct concurrent claims remain visible until resolved. Deduplicate relays by original evidence; repetition is not corroboration. Contacts are identity records; claims and opinions belong to the Bot that learned them.
 Tools and native tasks continue normally. Memory summaries are pointers to records, not a second editable fact store.`;
@@ -19,8 +21,9 @@ const REVIEW = `Maintain this Bot's durable source-aware memories. Return ONLY J
 Read source bodies as statements by their authorId, NOT by one universal user. Each change: {op:"add"|"replace"|"forget",text,subjectId,predicate,kind:"stated"|"reported"|"observation"|"inference",saidBy,sourceIds:[exact source id],scope:"own"|"team"|"room:<exact room ID>",replaceId?,validUntil?}.
 Use exact identity IDs from the input; for project facts use the room identity or an explicitly named project. Use short stable predicates for one attribute. Save durable facts, decisions, preferences, assignments and corrections. Skip transient chatter, questions, test instructions and mere acknowledgements.
 Direct statements are stated; quotes/relays are reported with saidBy identifying who actually said it, and subjectId who it concerns. Bot interpretations are inference. Tool results are observation from tool:<name>, never statements by the human who requested the task. Save a tool result only when it is durable task evidence the user asked to keep. A Bot relay is never a new direct human statement. Keep originRefs and source IDs; never count repeats as independent evidence.
-Default scope to the source room, own for native personal chat. Use own for explicitly cross-conversation personal preferences, team only when explicitly shared team-wide. Different room values can coexist.
-For explicit correction use replaceId of the old memory (same subject and scope). Do not rewrite an entry merely to polish its language. To repair subject metadata on an otherwise identical fact, keep the exact text and exact original sourceIds and set reclassify:true. A different speaker's conflicting statement is a new claim, not silent replacement. For deletion use forget and replaceId. Resolve dates only when stated, using source timestamp; validUntil is epoch milliseconds. Otherwise omit it.
+Default scope to the source room, own for native personal chat. Stable personal communication preferences stated as usual/general behavior belong in own unless the person limits them to a room or task; a one-time request or mood is not a permanent preference. Use team only when explicitly shared team-wide. Different room values can coexist.
+Human statements seen in room history keep their own author and event. Saving or reading a generated draft only proves the file operation; it does not confirm the draft's venue details, decisions or proposals. Classify unsupported derived claims as inference, and retain explicit unknowns/corrections instead of reviving an earlier draft's unsupported assertion.
+For explicit correction use replaceId of the old memory (same subject and scope). Do not rewrite an entry merely to polish its language. To repair subject metadata on an otherwise identical fact, keep the exact text and exact original sourceIds and set reclassify:true. A different speaker's conflicting statement is a new claim, not silent replacement. For deletion use forget and replaceId, citing the current correction in sourceIds. Every operation requires exact sourceIds from the current sources array, including forget; the old memory's evidence is not the source of its cancellation. Resolve dates only when stated, using source timestamp; validUntil is epoch milliseconds. Otherwise omit it.
 Preserve the user's language, one self-contained fact per entry. Do not duplicate an existing same fact with the same evidence. Never copy an entire source envelope or invent missing evidence.`;
 
 export function installNativeMemory(rt) {
@@ -106,13 +109,12 @@ export function installNativeMemory(rt) {
     const known = [...relevant.values()].map(row => ({
       id: row.id, text: row.text, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope, kind: row.kind, saidBy: row.saidBy, sourceRefs: row.sourceRefs,
     }));
-    const result = json(await botShot(bot, REVIEW, stringify({ botId, contacts: store.contacts(), sources, existingMemories: known })));
-    if (!Array.isArray(result.changes)) throw new Error('MEMORY_REVIEW_INVALID');
-    store.log('review-proposal', { botId, sourceRefs: refs, changes: result.changes });
-    for (const change of result.changes) {
-      if (!['add', 'replace', 'forget'].includes(change.op)) throw new Error('MEMORY_REVIEW_OPERATION');
-      change.sourceIds = change.sourceIds?.map(id => sources.find(source => source.id === id || source.eventId === id)?.id || id);
-      if (!change.sourceIds?.length || change.sourceIds.some(id => !sources.some(source => source.id === id))) throw new Error('MEMORY_REVIEW_SOURCE');
+    const changes = await prepareReviewProposal({ input: { botId, contacts: store.contacts(), sources, existingMemories: known },
+      generate: input => botShot(bot, REVIEW, stringify(input)),
+      onProposal: (result, attempt) => store.log('review-proposal', { botId, sourceRefs: refs, changes: result.changes, attempt }),
+      onInvalid: (error, attempt) => { memory.errors.push({ operation: 'review-validation', botId, attempt, error: error.message, at: Date.now() });
+        store.log('review-validation-error', { botId, sourceRefs: refs, attempt, error: error.message }); } });
+    for (const change of changes) {
       const source = sources.find(source => source.id === change.sourceIds[0]);
       const context = { botId, scope: source.roomId ? `room:${source.roomId}` : 'own', authorId: source.authorId,
         sourceRefs: [{ id: source.id, revision: source.revision }] };
@@ -130,7 +132,7 @@ export function installNativeMemory(rt) {
     // Advance only after all parsed changes are durable. A failed batch remains retryable.
     for (const ref of refs) store.setMeta(`reviewed:${botId}:${ref.id}:${ref.revision}`, true);
     store.setMeta(`unreviewed:${botId}`, (store.getMeta(`unreviewed:${botId}`) || []).filter(ref => !refs.some(old => old.id === ref.id && old.revision === ref.revision)));
-    store.log('review', { botId, sourceRefs: refs, changes: result.changes.length });
+    store.log('review', { botId, sourceRefs: refs, changes: changes.length });
   }
   function flush(botId) {
     if (!rt.botOf(botId)) return Promise.reject(new Error('MEMORY_BOT_NOT_FOUND'));
@@ -189,11 +191,9 @@ export function installNativeMemory(rt) {
     const decision = await next();
     const id = rt.selfOf(agent.id);
     if (!rt.botOf(id) || decision.kind === 'reject' || !Array.isArray(decision.messages)) return decision;
-    const current = memory.current(id, agent.id); if (!current) return decision;
-    const memoryPointers = store.list({ botId: id, scopes: ['own', 'team', current.scope] }).slice(-8)
-      .map(row => ({ id: row.id, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope }));
+    const snapshot = memory.contextSnapshot(id, agent.id); if (!snapshot) return decision;
     const message = createUserMessage({ source: { kind: 'knowledge-context', form: 'snapshot' },
-      content: [{ type: 'text', text: `Current memory source context (metadata, not a new speaker). Use these exact source IDs for remember; omitted sourceIds defaults to the current message. For tool observations use toolSources. Recall memoryPointers for current facts.\n${stringify({ ...current, memoryPointers })}` }] });
+      content: [{ type: 'text', text: `Current memory source context (metadata and attributed claims, not a new speaker). Use these exact source IDs for remember; omitted sourceIds defaults to the current message. For tool observations use toolSources. speakerFacts concern only the identified current speaker; use relevant preferences with their source and scope. Recall memoryPointers for other current facts.\n${stringify(snapshot)}` }] });
     return { ...decision, messages: [...decision.messages.filter(item => item.source?.kind !== 'knowledge-context'), message] };
   });
   ctx.effect(() => ctx.systemPrompt.section({ name: 'bot-memory', order: 645, interpolate: false, text: context => {

@@ -16,6 +16,63 @@ const event = (n, body, room = '!a:test', sender = '@lin:a.test', name = '林青
   event: { eventId: `$${n}`, roomId: room, senderId: sender, body, timestamp: 1000 },
   context: { source: { sender: { id: sender, name, kind: 'human' }, timestamp: 1000 } },
 });
+test('unaddressed human discussion seen in room history is queued without changing the current speaker', async () => withService(async service => {
+  const history=[
+    {...event('discussion','电梯还没确认，先不要写成可以使用').event,senderKind:'human'},
+    {...event('draft','二楼没有电梯','!a:test','@bot:test').event,senderKind:'bot'},
+  ];
+  const current=service.ingest('a',{...event('task','整理现场安排','!a:test','@song:test'),history},{sessionId:'session-a'});
+  const queued=service.store.getMeta('unreviewed:a').map(ref=>service.store.source(ref.id,ref.revision));
+  assert.deepEqual(queued.map(s=>s.eventId),['$discussion','$task']);
+  assert.equal(queued[0].authorId,'matrix:@lin:a.test');
+  assert.equal(service.current('a','session-a').authorId,'matrix:@song:test');
+  assert.deepEqual(service.current('a','session-a').sourceRefs,current.sourceRefs);
+  service.ingest('a',{...event('next','接着做','!a:test','@song:test'),history});
+  assert.equal(service.store.getMeta('unreviewed:a').filter(ref=>service.store.source(ref.id).eventId==='$discussion').length,1);
+}));
+test('queued context respects reviewed revisions, edits and separate Bot processing', async () => withService(async service => {
+  const first=service.ingest('a',event('fact','旧安排'));
+  const ref=first.sourceRefs[0];service.store.setMeta(`reviewed:a:${ref.id}:1`,true);service.store.setMeta('unreviewed:a',[]);
+  const edited=event('edit','新安排');edited.context.source.replacesEventId='$fact';service.ingest('a',edited);
+  service.ingest('a',{...event('task','继续'),history:[event('fact','旧安排').event]});
+  const pending=service.store.getMeta('unreviewed:a');
+  assert.equal(pending.filter(x=>x.id===ref.id).length,1);
+  assert.equal(pending.find(x=>x.id===ref.id).revision,2);
+  service.ingest('b',{...event('other','接手'),history:[event('fact','旧安排').event]});
+  assert.equal(service.store.getMeta('unreviewed:b').some(x=>x.id===ref.id&&x.revision===1),false);
+}));
+test('speaker facts survive unrelated work while same-name people and other rooms remain distinct', async () => withService(async service => {
+  service.ingest('a',event('pref','通常给我英文表格','!a:test','@lin:b.test'));
+  const preferred=await service.remember('a',{text:'通常用英文表格汇报',predicate:'report-style',scope:'own'});
+  service.ingest('a',event('same-name','中文五点','!a:test','@lin:a.test'));
+  await service.remember('a',{text:'中文五点',predicate:'report-style',scope:'own'});
+  service.ingest('a',event('room-pref','此处用简短回复','!b:test','@lin:b.test'));
+  await service.remember('a',{text:'此处用简短回复',predicate:'local-style'});
+  for(let n=0;n<12;n++) {service.ingest('a',event(`work-${n}`,`任务${n}`));await service.remember('a',{text:`任务${n}`,subjectId:`project:${n}`});}
+  service.ingest('a',event('current','给我进度','!a:test','@lin:b.test'),{sessionId:'current'});
+  const snapshot=service.contextSnapshot('a','current');
+  assert.equal(snapshot.speaker.id,'matrix:@lin:b.test');
+  assert.deepEqual(snapshot.speakerFacts.map(row=>row.id),[preferred.id]);
+  assert.equal(snapshot.memoryPointers.some(row=>row.id===preferred.id),false);
+}));
+test('speaker snapshot drops superseded expired withdrawn and revised evidence, retaining bounded attributed conflicts', async () => withService(async service => {
+  service.ingest('a',event('pref','英文'));
+  const old=await service.remember('a',{text:'英文',predicate:'language',scope:'own'});
+  service.ingest('a',event('correction','中文'));
+  const current=await service.remember('a',{text:'中文',predicate:'language',scope:'own',replaceId:old.id});
+  const conflicting=await service.remember('a',{text:'中英双语',predicate:'language',scope:'own'});
+  await service.remember('a',{text:'过期偏好',scope:'own',validUntil:4000});
+  const withdrawn=await service.remember('a',{text:'已撤回',scope:'own'});service.forget('a',{id:withdrawn.id,scope:'own'});
+  const origin=service.ingest('a',event('revised','旧来源'));
+  await service.remember('a',{text:'旧来源',scope:'own'});
+  service.store.observe({...service.store.source(origin.sourceRefs[0].id),revision:2,body:'新版'});
+  service.ingest('a',event('query','继续'),{sessionId:'current'});
+  const snapshot=service.contextSnapshot('a','current');
+  assert.deepEqual(snapshot.speakerFacts.map(row=>row.id),[current.id,conflicting.id]);
+  assert.deepEqual(snapshot.speakerFacts[0].conflicts,[conflicting.id]);
+  assert.equal(snapshot.speakerFacts[0].saidBy,'matrix:@lin:a.test');
+  assert.equal(snapshot.speakerFacts[0].sourceRefs.length,1);
+}));
 test('contacts preserve full accounts, display-name changes and cross-connection identity', async () => withService(async service => {
   service.ingest('a', event(1, '中文报告')); service.ingest('b', event(1, '中文报告'));
   service.ingest('a', event(2, '英文报告', '!a:test', '@lin:b.test'));

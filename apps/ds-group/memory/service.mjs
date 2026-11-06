@@ -12,6 +12,15 @@ export class MemoryService {
     const task = (this.queues.get(botId) || Promise.resolve()).catch(() => {}).then(fn);
     this.queues.set(botId, task); return task;
   }
+  enqueueReview(botId, refs) {
+    const pending = new Map();
+    for (const ref of [...(this.store.getMeta(`unreviewed:${botId}`) || []), ...refs]) {
+      const head = this.store.source(ref.id);
+      if (!head || head.revision !== ref.revision || this.store.getMeta(`reviewed:${botId}:${ref.id}:${ref.revision}`)) continue;
+      pending.set(`${ref.id}:${ref.revision}`, ref);
+    }
+    this.store.setMeta(`unreviewed:${botId}`, [...pending.values()]);
+  }
   ingest(botId, input, { contextual = false, sessionId } = {}) {
     const contextRefs = [];
     if (!contextual) {
@@ -30,7 +39,7 @@ export class MemoryService {
     const source = context.source || event.source || {};
     const transport = source.transport || 'matrix';
     const roomId = source.roomId || event.roomId;
-    const sender = source.sender || { id: event.senderId || event.sender, name: event.senderName || event.senderId || event.sender, kind: 'human' };
+    const sender = source.sender || { id: event.senderId || event.sender, name: event.senderName || event.senderId || event.sender, kind: event.senderKind || 'human' };
     if (!sender.id || !event.eventId) throw new Error('EVENT_IDENTITY_REQUIRED');
     const authorId = identityId(transport, sender.id);
     const members = context.members || context.participants || [];
@@ -58,10 +67,11 @@ export class MemoryService {
         authorId: this.store.source(ref.id, ref.revision)?.authorId })) };
     if (contextual) return current;
     this.setCurrent(botId, current);
-    const pending = this.store.getMeta(`unreviewed:${botId}`) || [];
-    if (!pending.some(ref => ref.id === id && ref.revision === observed.revision) && !this.store.getMeta(`reviewed:${botId}:${id}:${observed.revision}`)) {
-      this.store.setMeta(`unreviewed:${botId}`, [...pending, ...current.sourceRefs]);
-    }
+    // Ordinary human discussion is also evidence when this Bot sees it in the
+    // actual room history. Keep its original author; do not promote a Bot's
+    // generated draft in that history into another person's new statement.
+    const humanContext = contextRefs.filter(ref => this.store.source(ref.id, ref.revision)?.authorKind === 'human');
+    this.enqueueReview(botId, [...humanContext, ...current.sourceRefs]);
     return current;
   }
   setCurrent(botId, current) {
@@ -73,6 +83,18 @@ export class MemoryService {
     if (exact) return exact;
     const latest = this.store.getMeta(`current:${botId}`);
     return !sessionId || !latest?.sessionId || latest.sessionId === sessionId ? latest : undefined;
+  }
+  contextSnapshot(botId, sessionId) {
+    const current = this.current(botId, sessionId);
+    if (!current) return undefined;
+    const accessible = this.store.list({ botId, scopes: ['own', 'team', current.scope] });
+    const speakerFacts = accessible.filter(row => canonicalIdentity(row.subjectId) === canonicalIdentity(current.authorId))
+      .slice(-8).map(row => ({ id: row.id, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope,
+        text: row.text.slice(0, 1000), truncated: row.text.length > 1000, kind: row.kind, saidBy: row.saidBy,
+        sourceRefs: row.sourceRefs, conflicts: this.store.conflicts(row) }));
+    const memoryPointers = accessible.slice(-8).map(row => ({ id: row.id, subjectId: row.subjectId, predicate: row.predicate, scope: row.scope }));
+    const contact = this.store.getContact(current.authorId);
+    return { ...current, speaker: contact ? { id: contact.id, name: contact.name, aliases: contact.aliases } : { id: current.authorId }, speakerFacts, memoryPointers };
   }
   carry(botId, before, after) {
     const current = this.current(botId, before);
@@ -91,8 +113,7 @@ export class MemoryService {
       originRefs: current.sourceRefs, toolName: name });
     const ref = { id: source.id, revision: source.revision };
     this.setCurrent(botId, { ...current, toolSources: [...(current.toolSources || []), { ...ref, name }].slice(-12) });
-    const pending = this.store.getMeta(`unreviewed:${botId}`) || [];
-    if (!pending.some(item => item.id === ref.id)) this.store.setMeta(`unreviewed:${botId}`, [...pending, ref]);
+    this.enqueueReview(botId, [ref]);
     return source;
   }
   scope(current, requested) {
