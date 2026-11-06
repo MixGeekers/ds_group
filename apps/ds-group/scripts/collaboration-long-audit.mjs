@@ -27,7 +27,8 @@ export function researchTraceEvidence(receipt,events) {
 }
 export async function auditRun(directory) {
   const raw=await readFile(path.join(directory,'report.json'),'utf8'),report=JSON.parse(raw),corpus=buildCollaborationCorpus();
-  const events=(await readFile(path.join(directory,'host/events.jsonl'),'utf8')).split('\n').filter(Boolean).map(JSON.parse).filter(e=>e.type.startsWith('tool/'));
+  const allEvents=(await readFile(path.join(directory,'host/events.jsonl'),'utf8')).split('\n').filter(Boolean).map(JSON.parse);
+  const events=allEvents.filter(e=>e.type.startsWith('tool/'));
   let interventions=[];try{interventions=(await readFile(path.join(directory,'interventions.jsonl'),'utf8')).split('\n').filter(Boolean).map(JSON.parse);}catch(e){if(e.code!=='ENOENT')throw e;}
   const clarifiedAt=interventions.find(e=>e.type==='natural-requirement-refinement')?.at;
   const research=[];
@@ -47,13 +48,34 @@ export async function auditRun(directory) {
   }
   const calls=(await readFile(path.join(directory,'host/calls.jsonl'),'utf8')).split('\n').filter(Boolean).map(JSON.parse);
   const ends=calls.filter(x=>x.event==='end'),ended=new Set(ends.map(x=>x.callId));
+  const replyOmissions=[];
+  for(const row of report.rounds) {
+    const receipt=report.attempts.find(x=>x.round===row.round)?.receipt;if(!receipt||!row.reply)continue;
+    const final=allEvents.filter(e=>e.type==='assistant/message'&&e.sessionId===receipt.sessionId&&e.time>=Date.parse(receipt.startedAt)&&e.time<=Date.parse(receipt.finishedAt))
+      .map(e=>(e.data.message?.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('\n')).filter(Boolean).at(-1);
+    if(!final)continue;
+    const candidate=final.trim().replace(/```\s*$/,'').trim();
+    for(let start=candidate.lastIndexOf('{');start>=0;start=candidate.lastIndexOf('{',start-1)) {
+      try { const envelope=JSON.parse(candidate.slice(start));
+        if(typeof envelope.text==='string'&&Array.isArray(envelope.artifacts)) {
+          const prefix=candidate.slice(0,start).replace(/```(?:json)?\s*$/i,'').trim();
+          if(prefix&&row.reply.trim()===envelope.text.trim()&&prefix!==row.reply.trim())replyOmissions.push({round:row.round,
+            classification:'native-answer-prefix-not-delivered',omittedCharacters:prefix.length,omittedTextSha256:sha(prefix),excerpt:prefix.slice(0,400),
+            note:'The final native assistant text contained this prose before its delivery envelope. The Matrix reply retained only the envelope text; assess the effect on this task separately.'});
+          break;
+        }
+      } catch { /* This is not the trailing delivery envelope. */ }
+      if(start===0)break;
+    }
+  }
   const result={schemaVersion:1,at:new Date().toISOString(),rawReportSha256:sha(raw),completed:report.rounds.length,
-    rawStatus:report.status,rawFailures:report.failures,research,contractClarifications,interventions,
+    rawStatus:report.status,rawFailures:report.failures,research,contractClarifications,replyOmissions,interventions,
     conversationReviewQueue:report.rounds.filter(row=>row.type==='chat'&&row.reply).map(row=>({round:row.round,
       prompt:corpus.steps[row.round-1].body,reply:row.reply,eventId:row.eventId,replyEventIds:row.replyEventIds,
       criteria:['Respond to this actual conversational turn and its language','Respect requests for brevity or no tasks','Keep personal attribution and scope; do not turn a passing mood into a durable preference'],status:'pending'})),
     accounting:{modelIds:[...new Set(calls.map(c=>c.model))],completedCalls:ends.length,failedCalls:ends.filter(c=>c.status==='failed').length,
-      pendingCalls:calls.filter(c=>c.event==='start'&&!ended.has(c.callId)).length,costComplete:false},
+      pendingCalls:calls.filter(c=>c.event==='start'&&!ended.has(c.callId)).length,costComplete:false,
+      unit:'Observed llm/stream lifecycles, including native short-circuit acknowledgements; not a count of independently verified provider HTTP requests.'},
     artifacts:report.rounds.flatMap(r=>(r.artifacts||[]).map(f=>({round:r.round,name:f.name,size:f.size,sha256:f.sha256}))),
     manualReviews:report.manualReviews};
   await writeFile(path.join(directory,'independent-audit.json'),JSON.stringify(result,null,2),{mode:0o600});return result;

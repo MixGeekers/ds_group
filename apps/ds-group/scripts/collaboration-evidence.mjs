@@ -12,12 +12,12 @@ const lines=async file=>{try{return(await readFile(path.join(directory,file),'ut
 const sha=value=>createHash('sha256').update(value).digest('hex');
 const raw=await readFile(path.join(directory,'report.json'),'utf8'),report=JSON.parse(raw);
 if(['running','ready','preparing','paused-by-operator'].includes(report.status))throw new Error('Wait until the run stops before publishing a final result');
-const corpus=await read('corpus-private.json'),audit=await auditRun(directory),manual=await optional('manual-review.json'),observations=await lines('observations.jsonl');
+const corpus=await read('corpus-private.json'),audit=await auditRun(directory),manual=await optional('manual-review.json'),observations=await lines('observations.jsonl'),oracleReview=await optional('oracle-review.json');
 const workspace=(await optional('host/workspace.json'))?.path;
 const clean=value=>JSON.parse(JSON.stringify(value,(_key,item)=>{
   if(typeof item!=='string')return item;
   let result=item.replaceAll(directory,'<run>').replaceAll(packageRoot,'<package>');
-  if(workspace)result=result.replaceAll(workspace,'<native-workspace>').replaceAll('/private'+workspace,'<native-workspace>');
+  if(workspace)result=result.replaceAll('/private'+workspace,'<native-workspace>').replaceAll(workspace,'<native-workspace>');
   return result.replace(/\/private\/var\/folders\/[^\s"'`\)]+/g,'<temporary-file>').replace(/\/tmp\/[a-zA-Z0-9._\/-]+/g,'<temporary-file>');
 }));
 const files=row=>(row.artifacts||[]).map(({name,size,sha256,eventId})=>({name,size,sha256,eventId}));
@@ -40,8 +40,8 @@ const published=clean({schemaVersion:1,run:path.basename(directory),status:repor
   attempts:report.attempts.map(x=>({round:x.round,eventId:x.eventId,requestId:x.requestId,status:x.receipt?.status,sessionId:x.receipt?.sessionId,
     errorCode:x.receipt?.errorCode,toolReceipts:x.receipt?.toolReceipts,artifactDelivery:x.receipt?.artifactDelivery,
     deliveredEvents:x.delivered?.map(e=>({eventId:e.event_id,sender:e.sender,replyTo:e.content?.['org.ds_group']?.replyTo}))})),
-  rawFailures:report.failures,maintenance:report.maintenance,
-  independentReview:{research:audit.research,contractClarifications:audit.contractClarifications,manual,observations,
+  rawFailures:report.failures,maintenance:report.maintenance,contextRecovery:{failedCheckpoint:await optional('context-recovery-144-attempt1.json'),recovery:await optional('context-recovery-144-attempt2.json')},
+  independentReview:{research:audit.research,contractClarifications:audit.contractClarifications,replyOmissions:audit.replyOmissions,oracleReview,manual,observations,
     unresolvedCheckpoints:unresolvedManual.map(x=>({round:x.round,criteria:x.criteria})),
     botChatRounds:audit.conversationReviewQueue.map(x=>({round:x.round,reviewed:Boolean(manual?.reviews?.some(y=>y.round===x.round))}))},
   interventions:audit.interventions,accounting:{...audit.accounting,byPurpose:Object.fromEntries([...new Set(ends.map(x=>x.purpose))].map(p=>[p,ends.filter(x=>x.purpose===p).length])),
