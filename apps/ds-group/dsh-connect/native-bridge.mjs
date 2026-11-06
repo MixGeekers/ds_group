@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { mkdir } from 'node:fs/promises';
 import { readOptionalJson, savePrivateJson } from '../scripts/server-init.mjs';
-import { prepareWorkFiles, collectArtifacts, MAX_ARTIFACTS } from '../dsh-plugin/work-files.mjs';
+import { prepareWorkFiles, collectArtifacts, collectStagedArtifacts, MAX_ARTIFACTS } from '../dsh-plugin/work-files.mjs';
 import { nativeMessage } from '../src/message-context.mjs';
 import { HANDOFF_ACK } from '../vendor/ds-bot/src/host/constants.js';
 
@@ -20,11 +20,11 @@ function nativeArtifactOutput(text) {
   for (let start = candidate.lastIndexOf('{'); start >= 0; start = candidate.lastIndexOf('{', start - 1)) {
     try {
       const output = JSON.parse(candidate.slice(start));
-      if (typeof output?.text === 'string' && Array.isArray(output.artifacts)) return JSON.stringify(output);
+      if (typeof output?.text === 'string' && Array.isArray(output.artifacts)) return { text: JSON.stringify(output), explicitArtifacts: true };
     } catch { /* This brace is nested or belongs to ordinary prose. */ }
     if (start === 0) break;
   }
-  return text;
+  return { text, explicitArtifacts: false };
 }
 
 /** DSCord is another input/output for the original Bot. Its native Session,
@@ -230,7 +230,7 @@ export class NativeBridge {
       await done;
       if (run.error) throw error(run.error);
       if (run.reason !== 'completed') throw error('NATIVE_TURN_FAILED');
-      const deliveryOutput = nativeArtifactOutput(run.text);
+      const delivery = nativeArtifactOutput(run.text), deliveryOutput = delivery.text;
       record.text = deliveryOutput;
       const artifacts = await collectArtifacts(deliveryOutput, files.workdir, { allowExternalPaths: true });
       const paths = new Set(artifacts.map(file => file.path));
@@ -241,6 +241,10 @@ export class NativeBridge {
         if (paths.has(file.path)) continue;
         if (artifacts.length >= MAX_ARTIFACTS) throw error('TOO_MANY_ARTIFACTS');
         paths.add(file.path); artifacts.push(file);
+      }
+      if (!artifacts.length && !delivery.explicitArtifacts) {
+        const staged = await collectStagedArtifacts(files.workdir);
+        if (staged.length) { artifacts.push(...staged); record.artifactDelivery = 'staged-output'; }
       }
       record.artifacts = artifacts;
       record.status = 'completed'; record.stage = 'completed'; record.summary = '处理完成';

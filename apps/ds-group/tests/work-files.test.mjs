@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import { mkdtemp, mkdir, writeFile, rm, realpath, symlink } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
-import { prepareWorkFiles, collectArtifacts, parseFinalOutput } from '../dsh-plugin/work-files.mjs';
+import { prepareWorkFiles, collectArtifacts, collectStagedArtifacts, parseFinalOutput } from '../dsh-plugin/work-files.mjs';
 
 const hash = data => createHash('sha256').update(data).digest('hex');
 const coded = code => error => error.code === code;
@@ -56,6 +56,19 @@ test('only explicitly declared real artifacts are returned and empty files remai
   assert.equal(parseFinalOutput(text).delegate.to, '@hr:test');
   assert.deepEqual(await collectArtifacts('文件位于 result.xlsx', root), []);
   assert.deepEqual(await collectArtifacts('{"text":"普通回复"}', root), []);
+});
+
+test('staged delivery reads only this task output area and verifies its actual files', async t => {
+  const root=await temporary(t),other=await temporary(t);
+  assert.deepEqual(await collectStagedArtifacts(root),[]);
+  await mkdir(path.join(root,'outputs'));
+  await writeFile(path.join(root,'input.txt'),'input');
+  await writeFile(path.join(root,'outputs','.temporary'),'hidden');
+  await writeFile(path.join(root,'outputs','empty.txt'),'');
+  assert.deepEqual((await collectStagedArtifacts(root)).map(x=>({name:x.name,size:x.size})),[{name:'empty.txt',size:0}]);
+  await writeFile(path.join(other,'outside.txt'),'outside');
+  await symlink(path.join(other,'outside.txt'),path.join(root,'outputs','outside.txt'));
+  await assert.rejects(collectStagedArtifacts(root),coded('WORK_FILE_OUTSIDE_DIRECTORY'));
 });
 
 test('input extraction preserves format details and requires a real sidecar within the task directory', async t => {

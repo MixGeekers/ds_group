@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, open, realpath, stat } from 'node:fs/promises';
+import { mkdir, open, readdir, realpath, stat } from 'node:fs/promises';
 import path from 'node:path';
 
 export const MAX_ARTIFACTS = 16;
@@ -183,4 +183,19 @@ export async function collectArtifacts(text, workdir, { maxFiles = MAX_ARTIFACTS
     files.push(file);
   }
   return files;
+}
+
+// outputs/ is the current task's deliberate handoff area, never its input or
+// native working folder. Used only when no explicit file delivery was made.
+export async function collectStagedArtifacts(workdir) {
+  const directory = await realpath(requiredString(workdir, 'workdir'));
+  const output = path.join(directory, 'outputs');
+  let entries;
+  try {
+    if (!contained(await realpath(output), directory)) throw fail('WORK_FILE_OUTSIDE_DIRECTORY');
+    entries = await readdir(output, { withFileTypes: true });
+  } catch (error) { if (error.code === 'ENOENT') return []; throw error; }
+  const artifacts = entries.filter(entry => !entry.name.startsWith('.') && !entry.isDirectory())
+    .sort((a,b) => a.name.localeCompare(b.name)).map(entry => ({path:path.join(output,entry.name)}));
+  return collectArtifacts(JSON.stringify({text:'Staged task outputs',artifacts}),directory);
 }

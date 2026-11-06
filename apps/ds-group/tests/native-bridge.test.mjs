@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, rm, writeFile, readFile, realpath } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile, readFile, realpath, mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import { NativeBridge } from '../dsh-connect/native-bridge.mjs';
@@ -126,6 +126,46 @@ test('native present delivers actual files with an ordinary final answer and res
   assert.equal(await readFile(result.artifacts[0].path, 'utf8'), '441 !north:memory.test');
   assert.equal(result.artifacts[0].size, Buffer.byteLength('441 !north:memory.test'));
   assert.match(result.artifacts[0].sha256, /^[a-f0-9]{64}$/);
+});
+
+test('an intentionally staged task output is delivered when the native answer forgets its envelope', async t => {
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    const workdir=f.calls.at(-1).attachmentsDirectory;
+    await mkdir(path.join(workdir,'outputs'),{recursive:true});
+    await writeFile(path.join(workdir,'outputs','organizer-summary.md'),'Expense 1548; allowance 252; attendance 18.');
+    await writeFile(path.join(workdir,'input.csv'),'not a deliverable');
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:'The organizer summary is attached.'}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const request=f.request('staged-output'),result=await f.bridge.turn(request);
+  assert.equal(result.status,'completed');assert.equal(result.artifacts.length,1);
+  assert.equal(result.artifacts[0].name,'organizer-summary.md');
+  assert.equal(await readFile(result.artifacts[0].path,'utf8'),'Expense 1548; allowance 252; attendance 18.');
+  assert.equal(result.artifactDelivery,'staged-output');
+  assert.deepEqual((await f.bridge.turn(request)).artifacts,result.artifacts);assert.equal(f.calls.length,1);
+});
+
+test('explicit native delivery remains authoritative over other staged files', async t => {
+  const f = await fixture(t, { send: async ({ event, turn }) => {
+    const workdir=f.calls.at(-1).attachmentsDirectory;
+    await mkdir(path.join(workdir,'outputs'),{recursive:true});
+    const selected=path.join(workdir,'outputs','selected.md');await writeFile(selected,'selected');
+    await writeFile(path.join(workdir,'outputs','draft.md'),'not selected');
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:JSON.stringify({text:'Only selected',artifacts:[{path:selected}]})}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  const result=await f.bridge.turn(f.request('selected-output'));
+  assert.equal(result.status,'completed');assert.deepEqual(result.artifacts.map(x=>x.name),['selected.md']);
+});
+
+test('an explicit empty artifact list does not publish staged drafts', async t => {
+  const f=await fixture(t,{send:async({event,turn})=>{
+    const workdir=f.calls.at(-1).attachmentsDirectory;
+    await mkdir(path.join(workdir,'outputs'),{recursive:true});await writeFile(path.join(workdir,'outputs','draft.md'),'draft');
+    await event('assistant/message',{turn,message:{content:[{type:'text',text:JSON.stringify({text:'No files to deliver yet',artifacts:[]})}]}});
+    await event('turn/end',{turn,reason:{kind:'completed'}});
+  }});
+  assert.deepEqual((await f.bridge.turn(f.request('empty-explicit'))).artifacts,[]);
 });
 
 test('failed present calls and other turns never become native request attachments', async t => {
