@@ -1,16 +1,72 @@
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { mkdir } from 'node:fs/promises';
 import { readOptionalJson, savePrivateJson } from '../scripts/server-init.mjs';
-import { prepareWorkFiles, collectArtifacts } from '../dsh-plugin/work-files.mjs';
+import { prepareWorkFiles, collectArtifacts, collectStagedArtifacts, MAX_ARTIFACTS } from '../dsh-plugin/work-files.mjs';
 import { nativeMessage } from '../src/message-context.mjs';
 import { HANDOFF_ACK } from '../vendor/ds-bot/src/host/constants.js';
+import { isModelQuotaFailure } from '../src/model-failure.mjs';
 
 const textOf = message => (message?.content || []).filter(block => block.type === 'text').map(block => block.text).join('');
 const terminal = record => ['completed', 'failed', 'cancelled', 'unknown'].includes(record?.status);
 const digest = value => createHash('sha256').update(value).digest('hex');
 const error = code => Object.assign(new Error(code), { code });
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+
+// Native answers may introduce their explicit delivery JSON with a sentence or
+// a Markdown fence. Only a complete trailing text/artifacts envelope opts in.
+function nativeArtifactOutput(text) {
+  const candidate = text.trim().replace(/```\s*$/, '').trim();
+  for (let start = candidate.lastIndexOf('{'); start >= 0; start = candidate.lastIndexOf('{', start - 1)) {
+    try {
+      const output = JSON.parse(candidate.slice(start));
+      if (typeof output?.text === 'string' && Array.isArray(output.artifacts)) {
+        // The prose can contain the answer (a table, instructions, findings),
+        // followed by a delivery receipt saying only "see above". Keep both.
+        const prefix = candidate.slice(0, start).replace(/```(?:json)?\s*$/i, '').trim();
+        if (prefix && prefix !== output.text.trim()) output.text = [prefix, output.text.trim()].filter(Boolean).join('\n\n');
+        return { text: JSON.stringify(output), explicitArtifacts: true };
+      }
+    } catch { /* This brace is nested or belongs to ordinary prose. */ }
+    if (start === 0) break;
+  }
+  return { text, explicitArtifacts: false };
+}
+
+function nativeLinkedArtifacts(text, cwd) {
+  const prose=text.replace(/```[\s\S]*?```/g,'').replace(/`[^`\n]*`/g,'');
+  const files=[];
+  for(const match of prose.matchAll(/\[[^\]\n]*\]\((<[^>\n]+>|[^)\n]+)\)/g)) {
+    let target=match[1].replace(/^<|>$/g,'').trim();
+    if(/^file:/i.test(target)) { try { target=fileURLToPath(target); } catch { continue; } }
+    else if(/^[a-z][a-z\d+.-]*:/i.test(target)||target.startsWith('#')||target.startsWith('//'))continue;
+    if(!path.extname(target)||!path.isAbsolute(target)&&!cwd)continue;
+    files.push({path:path.isAbsolute(target)?target:path.resolve(cwd,target)});
+  }
+  return [...new Map(files.map(file=>[file.path,file])).values()];
+}
+
+// A shell can create or verify a deliverable without using the file tools.
+// Accept only ordinary SHA-256 receipts, then verify the bytes independently.
+// No shell parsing, workspace crawl, or stale delivery history is involved.
+function nativeHashedArtifacts(text, cwd) {
+  const files=[];
+  for(const match of text.matchAll(/^\s*([a-f\d]{64})[ \t]+\*?([^\r\n]+)$/gmi)) {
+    const filename=match[2].trim();
+    if(!path.extname(filename)||filename.includes('\0')||/^[a-z][a-z\d+.-]*:\/\//i.test(filename))continue;
+    if(!path.isAbsolute(filename)&&!cwd)continue;
+    files.push({path:path.resolve(cwd||'',filename),sha256:match[1].toLowerCase()});
+  }
+  return files;
+}
+
+function namesFile(text,name) {
+  const escaped=name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+  return new RegExp(`(^|[^\\p{L}\\p{N}_.-])${escaped}(?![\\p{L}\\p{N}_-]|\\.[\\p{L}\\p{N}_-])`,'u')
+    .test(text.replace(/```[\s\S]*?```/g,''));
+}
 
 /** DSCord is another input/output for the original Bot. Its native Session,
  * model, tools, permissions, working folder and autonomous work are untouched. */
@@ -83,7 +139,8 @@ export class NativeBridge {
     // Native Bot-to-Bot replies carry the exchange they answer. Record it where
     // it is delivered, so unrelated local chats cannot become DSCord answers.
     if (event.type === 'user/message' && source?.kind === 'bot' && source.role === 'request'
-      && source.senderSessionId === this.node.nativeBotId && run.seen && run.currentTurn === run.turn && source.exchangeId) {
+      && source.senderSessionId === this.node.nativeBotId && source.audience !== 'user'
+      && run.seen && run.currentTurn === run.turn && source.exchangeId) {
       run.exchanges.add(source.exchangeId);
     }
     if (session.id !== run.record.sessionId) {
@@ -106,12 +163,33 @@ export class NativeBridge {
     if (!run.seen) return;
     if (event.data?.turn !== undefined && event.data.turn !== run.turn) return;
     if (event.type === 'assistant/message') {
+      run.cwd = this.ctx.get?.('workingDirectory')?.get?.(session) || session.header?.cwd || run.cwd;
       const text = textOf(event.data?.message);
       if (text.trim() === HANDOFF_ACK || /^\[(?:PASS|HANDOFF[^\]]*)\]$/.test(text.trim())) run.text = '';
       else if (text) run.text = text;
     }
     if (event.type === 'tool/call') {
       run.record.toolReceipts.push({ callId: event.data.callId, name: event.data.name, status: 'running' });
+      if(event.data.name==='bash')run.shellCalls.set(event.data.callId,
+        event.data.meta?.cwd||this.ctx.get?.('workingDirectory')?.get?.(session)||session.header?.cwd);
+      if (['write','write_file','edit','edit_file'].includes(event.data.name)) {
+        try {
+          const args=typeof event.data.arguments==='string'?JSON.parse(event.data.arguments):event.data.arguments;
+          const filename=args?.file_path||args?.path||args?.filename;
+          const cwd=event.data.meta?.cwd||this.ctx.get?.('workingDirectory')?.get?.(session)||session.header?.cwd;
+          if(typeof filename==='string'&&(path.isAbsolute(filename)||typeof cwd==='string'))run.writeCalls.set(event.data.callId,{path:path.resolve(cwd||'',filename)});
+        } catch { /* Only an actual successful file-tool result can publish it. */ }
+      }
+      if (event.data.name === 'present') {
+        try {
+          const args = typeof event.data.arguments === 'string' ? JSON.parse(event.data.arguments) : event.data.arguments;
+          const cwd = event.data.meta?.cwd || this.ctx.get?.('workingDirectory')?.get?.(session) || session.header?.cwd;
+          const files = (args?.files || []).filter(file => typeof file.path === 'string')
+            .filter(file => path.isAbsolute(file.path) || typeof cwd === 'string')
+            .map(file => ({ path: path.isAbsolute(file.path) ? file.path : path.resolve(cwd, file.path) }));
+          run.presentCalls.set(event.data.callId, files);
+        } catch { /* Invalid arguments cannot produce a successful file receipt. */ }
+      }
       run.record.toolCalls = run.record.toolReceipts.length;
       run.record.summary = `正在使用 ${event.data.name}`;
     }
@@ -119,11 +197,23 @@ export class NativeBridge {
       const message = event.data?.message;
       const receipt = run.record.toolReceipts.find(tool => tool.callId === message?.toolCallId);
       if (receipt) receipt.status = message.isError ? 'failed' : 'completed';
+      if (!message.isError && run.writeCalls.has(message.toolCallId)) {
+        const descriptor=run.writeCalls.get(message.toolCallId);run.written.set(descriptor.path,descriptor);
+      }
+      if(!message.isError&&run.shellCalls.has(message.toolCallId)) {
+        for(const descriptor of nativeHashedArtifacts(textOf(message),run.shellCalls.get(message.toolCallId)))
+          run.hashed.set(descriptor.path,{...descriptor,callId:message.toolCallId});
+      }
+      if (receipt?.name === 'present' && !message.isError) {
+        for (const file of run.presentCalls.get(message.toolCallId) || []) run.presented.set(file.path, file);
+      }
     }
     if (event.type === 'turn/end') {
       run.reason = event.data?.reason?.kind;
-      // Native message_bot can yield and continue when a teammate replies.
-      if (run.reason === 'completed' && run.text || run.reason === 'error' || run.reason === 'cancelled') run.resolve();
+      run.failure = event.data?.reason?.error;
+      // An acknowledgement is not completion while a teammate still owes a
+      // reply to this Bot. Native direct-to-user work has a different destination.
+      if (run.reason === 'completed' && run.text && run.exchanges.size === 0 || run.reason === 'error' || run.reason === 'cancelled') run.resolve();
     }
   }
 
@@ -178,7 +268,7 @@ export class NativeBridge {
       let resolve;
       const done = new Promise(done => { resolve = done; });
       const marker = `DSCORD_REQUEST=${input.requestId}`;
-      const run = this.run = { marker, resolve, record, text: '', exchanges: new Set() };
+      const run = this.run = { marker, resolve, record, text: '', exchanges: new Set(), presentCalls: new Map(), presented: new Map(), writeCalls: new Map(), written: new Map(), shellCalls: new Map(), hashed: new Map() };
       Object.assign(record, { status: 'running', stage: 'working', sessionId: bot.sessionId, model: bot.model,
         contextKey: input.context?.key, source: input.context?.source,
         summary: '原生 Bot 正在处理', startedAt: new Date().toISOString() });
@@ -196,12 +286,62 @@ export class NativeBridge {
         finally { reporting = false; }
       }, 500);
       const text = nativeMessage({ input, bot, files });
-      await this.native.call('send', { sessionId: bot.id, text });
+      await this.native.call('send', { sessionId: bot.id, text, memoryContext: input });
       await done;
       if (run.error) throw error(run.error);
-      if (run.reason !== 'completed') throw error('NATIVE_TURN_FAILED');
-      record.text = run.text;
-      record.artifacts = await collectArtifacts(run.text, files.workdir, { allowExternalPaths: true });
+      if (run.reason !== 'completed') {
+        if (run.failure) record.nativeFailure = { code: run.failure.code, message: String(run.failure.message||'').slice(0,4096) };
+        throw error(isModelQuotaFailure(run.failure) ? 'MODEL_QUOTA_EXCEEDED' : 'NATIVE_TURN_FAILED');
+      }
+      const delivery = nativeArtifactOutput(run.text), deliveryOutput = delivery.text;
+      record.text = deliveryOutput;
+      const artifacts = await collectArtifacts(deliveryOutput, files.workdir, { allowExternalPaths: true });
+      const paths = new Set(artifacts.map(file => file.path));
+      // Native present is the Bot's ordinary file delivery tool. Successful
+      // receipts are deliveries even when the final answer is plain Markdown.
+      for (const descriptor of run.presented.values()) {
+        const [file] = await collectArtifacts(JSON.stringify({ text: 'Native file delivery', artifacts: [descriptor] }), files.workdir, { allowExternalPaths: true });
+        if (paths.has(file.path)) continue;
+        if (artifacts.length >= MAX_ARTIFACTS) throw error('TOO_MANY_ARTIFACTS');
+        paths.add(file.path); artifacts.push(file);
+      }
+      if (!delivery.explicitArtifacts) for (const descriptor of nativeLinkedArtifacts(run.text,run.cwd||files.workdir)) {
+        const [file]=await collectArtifacts(JSON.stringify({text:'Linked native file',artifacts:[descriptor]}),files.workdir,{allowExternalPaths:true});
+        if(paths.has(file.path))continue;
+        if(artifacts.length>=MAX_ARTIFACTS)throw error('TOO_MANY_ARTIFACTS');
+        paths.add(file.path);artifacts.push(file);record.artifactDelivery='native-file-link';
+      }
+      if (!artifacts.length && !delivery.explicitArtifacts) {
+        const staged = await collectStagedArtifacts(files.workdir);
+        if (staged.length) { artifacts.push(...staged); record.artifactDelivery = 'staged-output'; }
+      }
+      if (!artifacts.length && !delivery.explicitArtifacts) {
+        const mentioned=[...run.written.values()].filter(file=>run.text.includes(path.basename(file.path)));
+        if(mentioned.length){artifacts.push(...await collectArtifacts(JSON.stringify({text:'Mentioned file-tool outputs',artifacts:mentioned}),files.workdir,{allowExternalPaths:true}));record.artifactDelivery='mentioned-tool-output';}
+      }
+      if(!delivery.explicitArtifacts) {
+        const candidates=new Map();
+        for(const descriptor of run.hashed.values()) {
+          const name=path.basename(descriptor.path);
+          if(!namesFile(input.event.body||'',name)||!namesFile(run.text,name)||artifacts.some(file=>file.name===name))continue;
+          let file;
+          try { [file]=await collectArtifacts(JSON.stringify({text:'Verified shell output',artifacts:[{path:descriptor.path}]}),files.workdir,{allowExternalPaths:true}); }
+          catch(cause) { if(['WORK_FILE_NOT_FOUND','WORK_FILE_NOT_REGULAR'].includes(cause.code))continue;throw cause; }
+          if(file.sha256!==descriptor.sha256)continue;
+          const group=candidates.get(name)||[];group.push({file,callId:descriptor.callId});candidates.set(name,group);
+        }
+        for(const group of candidates.values()) {
+          // Two different byte versions with the same requested name are
+          // ambiguous. Identical copies need only one actual attachment.
+          if(new Set(group.map(({file})=>file.sha256)).size!==1)continue;
+          const {file,callId}=group.at(-1);
+          if(artifacts.some(existing=>existing.path===file.path))continue;
+          if(artifacts.length>=MAX_ARTIFACTS)throw error('TOO_MANY_ARTIFACTS');
+          artifacts.push(file);record.artifactDelivery='verified-tool-output';
+          (record.verifiedArtifactReceipts||=[]).push({name:file.name,sha256:file.sha256,callId});
+        }
+      }
+      record.artifacts = artifacts;
       record.status = 'completed'; record.stage = 'completed'; record.summary = '处理完成';
       record.usage = { accounting: 'native-ds-bot', complete: false, observedCalls: record.calls.length };
     } catch (cause) {

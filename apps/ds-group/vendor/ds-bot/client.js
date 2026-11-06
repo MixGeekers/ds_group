@@ -1,3 +1,4 @@
+// Modified by DSCord, 2026-11-06: stable memory entry IDs in panel actions. See UPSTREAM.json.
 // Generated from src/client by `npm run build` (scripts/build-client.mjs). Do not edit by hand.
 window.__ModuleLoader__.load({
   id: 'ds-bot',
@@ -1848,7 +1849,7 @@ function teamActions({ call: call2, after, partFor, roster, ui: ui2, live, cards
     // `summarize` starts a summary when the entries changed; `regenerate` always does.
     memoryView: (id, flags = {}) => call2("memory-view", { ...memoryOf(id), ...flags }),
     memoryAsk: (id, text) => call2("memory-ask", { ...memoryOf(id), text }),
-    memoryForget: (id, entry) => call2("memory-forget", { ...memoryOf(id), scope: entry.scope, topic: entry.topic, text: entry.text }),
+    memoryForget: (id, entry) => call2("memory-forget", { ...memoryOf(id), id: entry.id, scope: entry.scope, topic: entry.topic, text: entry.text }),
     memoryHistory: (id, before) => call2("memory-history", { ...memoryOf(id), ...before === void 0 ? {} : { before } }),
     memoryRestore: (id, rowId) => call2("memory-restore", { ...memoryOf(id), id: rowId }),
     diagnostics: (payload) => call2("diagnostics", payload),
@@ -14216,7 +14217,7 @@ function EntryRow({ entry, remove }) {
     return () => clearTimeout(timer);
   }, [confirming]);
   const by = entry.source === "memory panel" ? t("by you") : entry.by ? t("by {name}", { name: entry.by }) : null;
-  const meta = [entry.added, by].filter(Boolean).join(" · ");
+  const meta = [entry.added, by, entry.source && entry.source !== "memory panel" ? entry.source : null].filter(Boolean).join(" · ");
   const click = async () => {
     if (!confirming) {
       setConfirming(true);

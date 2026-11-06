@@ -1,0 +1,89 @@
+{
+  "at": "2026-11-06T19:07:43.807Z",
+  "status": "completed-with-failures",
+  "phase": "natural-continuation-01",
+  "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+  "generationSource": "f707d8b2da339493a4e132f245bc1c4c0bfa65e3",
+  "rawReportSha256": "2352fe223c73db44ea0fd1356ac8ad962655a53889d6eb4f11c7f1c30f01b31c",
+  "corpusHash": "ea6e913cf1200e9e12617853bdc8fd6aba43c2fc92e6014356d018c2c3f40530",
+  "corpusUnchanged": true,
+  "parentUnchanged": true,
+  "coverage": {
+    "plannedMessages": 96,
+    "postedMessages": 96,
+    "unpostedMessages": 0,
+    "plannedBotRequests": 72,
+    "attemptedBotRequests": 72,
+    "deliveredBotReplies": 72,
+    "additionalNaturalMessages": 0,
+    "humanOnlyMessages": 24,
+    "quotaRejectedBotRequests": 0,
+    "contextOverflowBotRequests": 0,
+    "observedBotChatReplies": 13,
+    "types": {
+      "coordination": 9,
+      "chat": 37,
+      "file": 17,
+      "conversation": 12,
+      "code": 6,
+      "writing": 4,
+      "research": 4,
+      "revision": 3,
+      "planning": 4
+    },
+    "deliveredFiles": 48,
+    "plannedCompactions": 4,
+    "completedCompactions": 4,
+    "resumedBoundaryCompactions": 2,
+    "successfulPlannedRestarts": 3,
+    "recoveryRestarts": 2
+  },
+  "timing": {
+    "firstPostedAt": "2026-11-06T16:31:03.922Z",
+    "lastCompletedRoundAt": "2026-11-06T19:03:14.744Z",
+    "scenarioWallMs": 9130822,
+    "note": "elapsedMs includes earlier preflight attempts and interruptions; scenarioWallMs starts with the first posted scenario message. Neither is exclusive model execution time."
+  },
+  "finalMemory": {
+    "historicalEntries": 833,
+    "currentEntries": 784,
+    "sourceRevisions": 1135,
+    "contacts": 17,
+    "pendingReviews": 0,
+    "currentRuntimeErrors": [],
+    "note": "Entry counts are storage coverage, not a count of independently proven correct facts; historical failures remain in the run."
+  },
+  "manualReview": {
+    "records": 64,
+    "unresolvedCheckpoints": 0,
+    "overallBehaviorAccepted": false,
+    "noAggregateAcceptanceRate": true
+  },
+  "rawFailureRounds": [
+    16,
+    28,
+    81,
+    88
+  ],
+  "generationAccounting": {
+    "endedCalls": 661,
+    "successfulCalls": 639,
+    "failedCalls": 1,
+    "outputLimitedCalls": 21,
+    "pendingCalls": 4,
+    "modelIds": [
+      "commandcode-goat/deepseek/deepseek-v4.1-flash"
+    ],
+    "costComplete": false,
+    "unit": "Observed llm/stream lifecycles, including native short-circuit acknowledgements; not a count of independently verified provider HTTP requests. completedCalls is a legacy field for ended lifecycles, including failed or truncated ones; successfulCalls excludes these."
+  },
+  "limitations": [
+    "One physical host; not a physical multi-machine test.",
+    "Existing native history remains available after compaction; correct recall is not proof that vector retrieval alone produced the answer.",
+    "The actual natural run used multiple explicitly recorded repair generations; earlier failures are not overwritten.",
+    "Expense, registration and code outcomes do not validate all prose facts in generated handoffs."
+  ],
+  "screenshots": [
+    "ui/commandcode-final-chat.jpg"
+  ]
+}

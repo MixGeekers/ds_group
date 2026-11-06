@@ -1,0 +1,30 @@
+{
+  "testedAt": "2026-11-06T05:03:56.185Z",
+  "status": "passed",
+  "evidenceLevel": "real DSH owner API, read-only personal memory view and history; no browser layout or group editing claim",
+  "run": "memory-long-MfwPyt",
+  "checks": [
+    {
+      "botId": "session-dd0adf74-4dff-4345-82c9-883b8b44c2eb",
+      "backend": "ombre",
+      "entries": 16,
+      "historyRows": 29,
+      "sourceLabels": true
+    },
+    {
+      "botId": "session-05f3a3ea-164f-4621-9af4-b6e2bd2c3f28",
+      "backend": "ombre",
+      "entries": 12,
+      "historyRows": 12,
+      "sourceLabels": true
+    },
+    {
+      "botId": "session-b18bfc4c-3dcd-4937-a62e-527409ad1e6f",
+      "backend": "ombre",
+      "entries": 12,
+      "historyRows": 12,
+      "sourceLabels": true
+    }
+  ],
+  "sourceRun": ".local"
+}

@@ -1,0 +1,1004 @@
+{
+  "run": "memory-delivery-bEl33J",
+  "status": "passed",
+  "startedAt": "2026-11-06T10:12:19.998Z",
+  "finishedAt": "2026-11-06T10:14:03.186Z",
+  "elapsedMs": 103188,
+  "topology": "real local DSH/native DS-Bot + synthetic Matrix envelopes + Ombre/Harrier",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "checks": [
+    "bot0NativePresentFileBytesAndRoom",
+    "bot0RetryReusesSameArtifactWithoutGeneration",
+    "bot1NativePresentFileBytesAndRoom",
+    "bot1RetryReusesSameArtifactWithoutGeneration",
+    "bot2NativePresentFileBytesAndRoom",
+    "bot2RetryReusesSameArtifactWithoutGeneration",
+    "prefacedNativeEnvelopeDeliversVerifiedFile",
+    "nativeStructuredAnswer0ReachesChatParserUnchanged",
+    "nativeStructuredAnswer1ReachesChatParserUnchanged",
+    "nativeObservationUsesToolAuthorBeforeAutomaticReview",
+    "nativeMixedEvidenceRetainsBothSourcesThroughSemanticRecall",
+    "explicitFreshRecall0ChecksNewStateWithActualToolCall",
+    "explicitFreshRecall1ChecksNewStateWithActualToolCall",
+    "explicitFreshRecall2ChecksNewStateWithActualToolCall",
+    "nativedelegate66ReturnsActualReply",
+    "nativerelay78ReturnsActualReply",
+    "nativeRelayKeepsOriginalHumanSource",
+    "onlyRequestedGenerationModel"
+  ],
+  "sourceHashes": {
+    "dsh-connect/native-bridge.mjs": "528be5ded342218d4ccf1c825d1f7ac3ca24f05cb99f4d202492c38eba756133",
+    "dsh-plugin/work-files.mjs": "d66383fbe594ee927f7064fb5ca226408d472d0c82b60e7c66c23bd9442f1402",
+    "src/bot-node.mjs": "ea32f2cf6d5f1caed67cf975cd896eaf88b62d1bccd82f514fa9b6852ccee6e9",
+    "memory/native.mjs": "48db00ce5c22b94219231b4b7fd74f15ea183915497a38c868eed2aa88b54929",
+    "memory/service.mjs": "1dda2077623cfac9bf9b486196de0c096a40efd79c60275120bb2593123d97cd",
+    "scripts/memory-native-delivery.mjs": "6dd0e929d780210b65213af54f72340e6264724e932e5038da592f93c01694b5"
+  },
+  "cases": [
+    {
+      "index": 0,
+      "requestId": "native-present-0-0",
+      "text": "文件已经建好并附上了：`native-present-0.txt`，里面写着 63 × 7 = 441，以及当前群的完整 ID `!north:memory.test`。",
+      "publicText": "文件已经建好并附上了：`native-present-0.txt`，里面写着 63 × 7 = 441，以及当前群的完整 ID `!north:memory.test`。",
+      "file": {
+        "name": "native-present-0.txt",
+        "sha256": "2ef9a40257de8140e674087367a94067775e62ab9dd9a1b219d3b20d7ce03ea0",
+        "size": 73,
+        "content": "本轮样本统计\n63 × 7 = 441\n当前群完整 ID：!north:memory.test\n"
+      },
+      "toolReceipts": [
+        {
+          "callId": "call_00_4ywuuah4mhi8ekp26g7m8i92",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_bistj6x5dvwglhygdtl5gqa8",
+          "name": "write",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_xhokj4eum6kbyfma3rh7tk36",
+          "name": "present",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "index": 1,
+      "requestId": "native-present-1-0",
+      "text": "文件已创建：`native-present-1.txt`，内容为 64 × 7 = 448，以及当前群完整 ID `!south:memory.test`。已通过 present 交付。\n\n这条只是一次性任务，没有当作你的长期偏好记下来。",
+      "publicText": "文件已创建：`native-present-1.txt`，内容为 64 × 7 = 448，以及当前群完整 ID `!south:memory.test`。已通过 present 交付。\n\n这条只是一次性任务，没有当作你的长期偏好记下来。",
+      "file": {
+        "name": "native-present-1.txt",
+        "sha256": "dc9ef3760c9417c63e950423b1a843f7aba4e0f9ed7fa7fbee7f93c9f510326b",
+        "size": 54,
+        "content": "64 × 7 = 448\n当前群完整 ID：!south:memory.test\n"
+      },
+      "toolReceipts": [
+        {
+          "callId": "call_00_ow2wh0emjvt4stq7d9exvlon",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_xe8qjl2i0j2q23btr3jcgo5t",
+          "name": "present",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "index": 2,
+      "requestId": "native-present-2-0",
+      "text": "文件已建好并附上：native-present-2.txt。\n\n里面写了两行：65 × 7 = 455，以及当前群完整 ID !design:memory.test。\n\n这只是一次性的统计，没有当成你的偏好记下来。",
+      "publicText": "文件已建好并附上：native-present-2.txt。\n\n里面写了两行：65 × 7 = 455，以及当前群完整 ID !design:memory.test。\n\n这只是一次性的统计，没有当成你的偏好记下来。",
+      "file": {
+        "name": "native-present-2.txt",
+        "sha256": "23a07c54a6003a4fa4d526c9540ee691b2d9ce8bd11d1bed92ceca79433bc8f4",
+        "size": 89,
+        "content": "本轮样本统计\n============\n\n65 × 7 = 455\n\n当前群完整 ID：!design:memory.test\n"
+      },
+      "toolReceipts": [
+        {
+          "callId": "call_00_0ojxvyg9143te0k1sf5xzbiy",
+          "name": "write",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_vkbluj7x9glzp8tufb3vz8up",
+          "name": "present",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "type": "prefaced-envelope",
+      "requestId": "native-prefaced-envelope-0",
+      "text": "{\"text\":\"native-envelope.txt 已创建，内容含 13 × 11 = 143 以及当前群完整 ID !field:memory.test。\",\"artifacts\":[{\"path\":\"/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-work-f273DR/native-envelope.txt\",\"name\":\"native-envelope.txt\"}]}",
+      "nativeText": "文件已经建好了。下面是本次的交付声明：\n\n```json\n{\n  \"text\": \"native-envelope.txt 已创建，内容含 13 × 11 = 143 以及当前群完整 ID !field:memory.test。\",\n  \"artifacts\": [\n    {\n      \"path\": \"/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-work-f273DR/native-envelope.txt\",\n      \"name\": \"native-envelope.txt\"\n    }\n  ]\n}\n```",
+      "publicText": "native-envelope.txt 已创建，内容含 13 × 11 = 143 以及当前群完整 ID !field:memory.test。",
+      "file": {
+        "name": "native-envelope.txt",
+        "sha256": "0fc3818411f990c0d4eb18c52c0d55a6e5e40af8a275b1717201e94a6528ee37",
+        "size": 89,
+        "content": "原生信封测试\n============\n\n13 × 11 = 143\n\n当前群完整 ID：!field:memory.test\n"
+      },
+      "toolReceipts": [
+        {
+          "callId": "call_00_kkxwzwdjqettrfjgehwrjt9e",
+          "name": "write",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "type": "structured-data",
+      "requestId": "native-structured-0-0",
+      "text": "437",
+      "publicText": "437"
+    },
+    {
+      "type": "structured-data",
+      "requestId": "native-structured-1-0",
+      "text": "[\"north\",\"south\"]",
+      "publicText": "[\"north\",\"south\"]"
+    },
+    {
+      "type": "mixed-observation",
+      "requestId": "native-mixed-observation-0",
+      "text": "算好了：`mixed-source-observation`（无换行）的 SHA-256 是 `6814575761af3a9c7dffbee29c9403f228547b37d1665b1c6ab963b83b7e418f`。\n\n已用 remember 存为 observation（subjectId `task:mixed-source`），两条 sourceIds 都带上了、没传 saidBy——后端把作者判成了 `tool:bash`，kind 是 observation。随后 recall 能查到这一条，来源引用和证据根都完整。",
+      "remembered": {
+        "id": "memory_26ae445c1c641461f066ba1f04f67b37a807d7155adb9f5e13ee469b003b0b96",
+        "revision": 1,
+        "text": "字符串 mixed-source-observation（无换行）的 SHA-256 为 6814575761af3a9c7dffbee29c9403f228547b37d1665b1c6ab963b83b7e418f",
+        "botId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+        "scope": "room:!north:memory.test",
+        "subjectId": "task:mixed-source",
+        "predicate": "note",
+        "kind": "observation",
+        "saidBy": "tool:bash",
+        "validFrom": 1793959981673,
+        "validUntil": null,
+        "derivation": "current",
+        "conflicts": [],
+        "sourceRefs": [
+          {
+            "id": "source_5a193e93df4ddb6cbeae10d1960d89bfbd00ac254b77924528fa755e09f212fd",
+            "revision": 1
+          },
+          {
+            "id": "source_e97328484fc2e4a277fb722542834bd5688bc579250d0857df0d45e8e840a662",
+            "revision": 1
+          }
+        ],
+        "evidenceRoots": [
+          {
+            "id": "source_38f8fc297c51cefa1ea0b042ffa8e77f2eb3b0c35ade7c91b1461a2f91f434df",
+            "revision": 1
+          },
+          {
+            "id": "source_5a193e93df4ddb6cbeae10d1960d89bfbd00ac254b77924528fa755e09f212fd",
+            "revision": 1
+          }
+        ],
+        "sources": [
+          {
+            "authorId": "matrix:@song:memory.test",
+            "authorKind": "human",
+            "body": "23 乘以 19 是多少？严格只输出结果数字，不要保存长期记忆。",
+            "digest": "59eeba4cbafff85fd1f596cb948c94520af90583ac70952c5d9278c6fb1af5b1",
+            "eventId": "$native-structured-0",
+            "id": "source_5a193e93df4ddb6cbeae10d1960d89bfbd00ac254b77924528fa755e09f212fd",
+            "observedAt": 1793959981697,
+            "originRefs": [],
+            "relay": null,
+            "replyTo": null,
+            "revision": 1,
+            "roomId": "!north:memory.test",
+            "timestamp": 1793959981673,
+            "transport": "matrix",
+            "withdrawn": false
+          },
+          {
+            "authorId": "tool:bash",
+            "authorKind": "tool",
+            "body": "6814575761af3a9c7dffbee29c9403f228547b37d1665b1c6ab963b83b7e418f  -\n",
+            "digest": "f631fb2504403905d3df96a2a6bebe6b5a79dfdc76676dbddeed341fb2e184c4",
+            "eventId": "call_00_8c10f9iz0o4tm5sivdxskcfe",
+            "id": "source_e97328484fc2e4a277fb722542834bd5688bc579250d0857df0d45e8e840a662",
+            "observedAt": 1793959988021,
+            "originRefs": [
+              {
+                "id": "source_38f8fc297c51cefa1ea0b042ffa8e77f2eb3b0c35ade7c91b1461a2f91f434df",
+                "revision": 1
+              }
+            ],
+            "revision": 1,
+            "roomId": "!north:memory.test",
+            "timestamp": 1793959988021,
+            "toolName": "bash",
+            "transport": "tool"
+          }
+        ],
+        "topic": null,
+        "indexed": true
+      },
+      "recallMode": "semantic",
+      "toolReceipts": [
+        {
+          "callId": "call_00_8c10f9iz0o4tm5sivdxskcfe",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_qnl3vewd42l4mowsxhyce7mb",
+          "name": "remember",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_0wcqiqqzhs7pcgpswl9a7tz9",
+          "name": "recall",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "type": "fresh-recall",
+      "repetition": 0,
+      "requestId": "native-fresh-recall-0-0",
+      "text": "{\"status\": \"withdrawn\"}",
+      "toolReceipts": [
+        {
+          "callId": "call_00_cdakpm1s74qfqdwqdvahuvba",
+          "name": "recall",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_u3l676ne5q4ds6ynpljo5zpv",
+          "name": "recall",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "type": "fresh-recall",
+      "repetition": 1,
+      "requestId": "native-fresh-recall-1-0",
+      "text": "{\"status\": \"withdrawn\"}",
+      "toolReceipts": [
+        {
+          "callId": "call_00_lew7xkjv6bnk4dquu7yvtabr",
+          "name": "recall",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "type": "fresh-recall",
+      "repetition": 2,
+      "requestId": "native-fresh-recall-2-0",
+      "text": "{\"status\": \"withdrawn\"}",
+      "toolReceipts": [
+        {
+          "callId": "call_00_54n10k8jbd33tzk953gkzg8h",
+          "name": "recall",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "round": 66,
+      "requestId": "native-delegation-66-0",
+      "text": "结果是 437，执行者是知秋。",
+      "toolReceipts": [
+        {
+          "callId": "call_00_9xnu7t32l7ufb82efcaxmxhr",
+          "name": "list_bots",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_hqgskl4yoq65ct3uyg05ae93",
+          "name": "message_bot",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "round": 78,
+      "requestId": "native-delegation-78-0",
+      "text": "听澜核对完了，原样回报如下：\n\n- 信息内容：北组临时包裹编号为「云雀-619」\n- 原始说话人：@lin:a.test（青禾）\n- 来源群：北组（!north:memory.test）\n- 来源请求 ID：native-delegation-78-0\n- 性质：这是青禾的转述，不构成另一个人的独立确认；听澜说它没找到第二方证据，已按「青禾转述」归属记录，没当成已确认事实。",
+      "toolReceipts": [
+        {
+          "callId": "call_00_qjcxwf8hqbgrd1lpnnqsw6cc",
+          "name": "message_bot",
+          "status": "completed"
+        }
+      ]
+    }
+  ],
+  "rawReportSha256": "fd34b3fb46bcc6c2ab649f8281f47406ecba05a9fdcf8a62e5370917ec17236b",
+  "rawCallsSha256": "3a424180fa3424c7c57b51793876241ca5f13ad51d14aba0bb872b114aa28931",
+  "attempts": [
+    {
+      "phase": "turn",
+      "index": 0,
+      "attempt": 0,
+      "requestId": "native-present-0-0",
+      "status": "completed",
+      "text": "文件已经建好并附上了：`native-present-0.txt`，里面写着 63 × 7 = 441，以及当前群的完整 ID `!north:memory.test`。",
+      "sessionId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 947,
+            "outputTokens": 84,
+            "totalTokens": 16007,
+            "cacheReadTokens": 14976
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 461,
+            "outputTokens": 89,
+            "totalTokens": 16422,
+            "cacheReadTokens": 15872
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 569,
+            "outputTokens": 65,
+            "totalTokens": 16890,
+            "cacheReadTokens": 16256
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 558,
+            "outputTokens": 42,
+            "totalTokens": 17368,
+            "cacheReadTokens": 16768
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_4ywuuah4mhi8ekp26g7m8i92",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_bistj6x5dvwglhygdtl5gqa8",
+          "name": "write",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_xhokj4eum6kbyfma3rh7tk36",
+          "name": "present",
+          "status": "completed"
+        }
+      ],
+      "artifacts": [
+        {
+          "name": "native-present-0.txt",
+          "sha256": "2ef9a40257de8140e674087367a94067775e62ab9dd9a1b219d3b20d7ce03ea0",
+          "size": 73
+        }
+      ]
+    },
+    {
+      "phase": "turn",
+      "index": 1,
+      "attempt": 0,
+      "requestId": "native-present-1-0",
+      "status": "completed",
+      "text": "文件已创建：`native-present-1.txt`，内容为 64 × 7 = 448，以及当前群完整 ID `!south:memory.test`。已通过 present 交付。\n\n这条只是一次性任务，没有当作你的长期偏好记下来。",
+      "sessionId": "session-9dca1679-7d0d-4d75-9f43-ef66a76b3470",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 15926,
+            "outputTokens": 184,
+            "totalTokens": 16110
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 605,
+            "outputTokens": 113,
+            "totalTokens": 16590,
+            "cacheReadTokens": 15872
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 591,
+            "outputTokens": 58,
+            "totalTokens": 17033,
+            "cacheReadTokens": 16384
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_ow2wh0emjvt4stq7d9exvlon",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_xe8qjl2i0j2q23btr3jcgo5t",
+          "name": "present",
+          "status": "completed"
+        }
+      ],
+      "artifacts": [
+        {
+          "name": "native-present-1.txt",
+          "sha256": "dc9ef3760c9417c63e950423b1a843f7aba4e0f9ed7fa7fbee7f93c9f510326b",
+          "size": 54
+        }
+      ]
+    },
+    {
+      "phase": "turn",
+      "index": 2,
+      "attempt": 0,
+      "requestId": "native-present-2-0",
+      "status": "completed",
+      "text": "文件已建好并附上：native-present-2.txt。\n\n里面写了两行：65 × 7 = 455，以及当前群完整 ID !design:memory.test。\n\n这只是一次性的统计，没有当成你的偏好记下来。",
+      "sessionId": "session-f1bfe349-5ce0-4b61-8a83-93ef058840da",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 15874,
+            "outputTokens": 161,
+            "totalTokens": 16035
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 502,
+            "outputTokens": 102,
+            "totalTokens": 16476,
+            "cacheReadTokens": 15872
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 596,
+            "outputTokens": 52,
+            "totalTokens": 16904,
+            "cacheReadTokens": 16256
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_0ojxvyg9143te0k1sf5xzbiy",
+          "name": "write",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_vkbluj7x9glzp8tufb3vz8up",
+          "name": "present",
+          "status": "completed"
+        }
+      ],
+      "artifacts": [
+        {
+          "name": "native-present-2.txt",
+          "sha256": "23a07c54a6003a4fa4d526c9540ee691b2d9ce8bd11d1bed92ceca79433bc8f4",
+          "size": 89
+        }
+      ]
+    },
+    {
+      "phase": "prefaced-envelope",
+      "attempt": 0,
+      "requestId": "native-prefaced-envelope-0",
+      "status": "completed",
+      "text": "{\"text\":\"native-envelope.txt 已创建，内容含 13 × 11 = 143 以及当前群完整 ID !field:memory.test。\",\"artifacts\":[{\"path\":\"/private/var/folders/43/n7kh26_n1lj51qncv499rp140000gn/T/dscord-memory-work-f273DR/native-envelope.txt\",\"name\":\"native-envelope.txt\"}]}",
+      "sessionId": "session-f1bfe349-5ce0-4b61-8a83-93ef058840da",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1140,
+            "outputTokens": 159,
+            "totalTokens": 18067,
+            "cacheReadTokens": 16768
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 612,
+            "outputTokens": 122,
+            "totalTokens": 18526,
+            "cacheReadTokens": 17792
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_kkxwzwdjqettrfjgehwrjt9e",
+          "name": "write",
+          "status": "completed"
+        }
+      ],
+      "artifacts": [
+        {
+          "name": "native-envelope.txt",
+          "sha256": "0fc3818411f990c0d4eb18c52c0d55a6e5e40af8a275b1717201e94a6528ee37",
+          "size": 89
+        }
+      ]
+    },
+    {
+      "phase": "structured-data",
+      "index": 0,
+      "attempt": 0,
+      "requestId": "native-structured-0-0",
+      "status": "completed",
+      "text": "437",
+      "sessionId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1091,
+            "outputTokens": 2,
+            "totalTokens": 18373,
+            "cacheReadTokens": 17280
+          }
+        }
+      ],
+      "toolReceipts": [],
+      "artifacts": []
+    },
+    {
+      "phase": "structured-data",
+      "index": 1,
+      "attempt": 0,
+      "requestId": "native-structured-1-0",
+      "status": "completed",
+      "text": "[\"north\",\"south\"]",
+      "sessionId": "session-9dca1679-7d0d-4d75-9f43-ef66a76b3470",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1102,
+            "outputTokens": 8,
+            "totalTokens": 18006,
+            "cacheReadTokens": 16896
+          }
+        }
+      ],
+      "toolReceipts": [],
+      "artifacts": []
+    },
+    {
+      "phase": "mixed-observation",
+      "attempt": 0,
+      "requestId": "native-mixed-observation-0",
+      "status": "completed",
+      "text": "算好了：`mixed-source-observation`（无换行）的 SHA-256 是 `6814575761af3a9c7dffbee29c9403f228547b37d1665b1c6ab963b83b7e418f`。\n\n已用 remember 存为 observation（subjectId `task:mixed-source`），两条 sourceIds 都带上了、没传 saidBy——后端把作者判成了 `tool:bash`，kind 是 observation。随后 recall 能查到这一条，来源引用和证据根都完整。",
+      "sessionId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 988,
+            "outputTokens": 88,
+            "totalTokens": 19380,
+            "cacheReadTokens": 18304
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 503,
+            "outputTokens": 331,
+            "totalTokens": 20034,
+            "cacheReadTokens": 19200
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1646,
+            "outputTokens": 44,
+            "totalTokens": 21274,
+            "cacheReadTokens": 19584
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1366,
+            "outputTokens": 124,
+            "totalTokens": 22610,
+            "cacheReadTokens": 21120
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_8c10f9iz0o4tm5sivdxskcfe",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_qnl3vewd42l4mowsxhyce7mb",
+          "name": "remember",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_0wcqiqqzhs7pcgpswl9a7tz9",
+          "name": "recall",
+          "status": "completed"
+        }
+      ],
+      "artifacts": []
+    },
+    {
+      "phase": "fresh-recall",
+      "repetition": 0,
+      "attempt": 0,
+      "requestId": "native-fresh-recall-0-0",
+      "status": "completed",
+      "text": "{\"status\": \"withdrawn\"}",
+      "sessionId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1152,
+            "outputTokens": 79,
+            "totalTokens": 23631,
+            "cacheReadTokens": 22400
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1175,
+            "outputTokens": 254,
+            "totalTokens": 24981,
+            "cacheReadTokens": 23552
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 525,
+            "outputTokens": 74,
+            "totalTokens": 25303,
+            "cacheReadTokens": 24704
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_cdakpm1s74qfqdwqdvahuvba",
+          "name": "recall",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_u3l676ne5q4ds6ynpljo5zpv",
+          "name": "recall",
+          "status": "completed"
+        }
+      ],
+      "artifacts": []
+    },
+    {
+      "phase": "fresh-recall",
+      "repetition": 1,
+      "attempt": 0,
+      "requestId": "native-fresh-recall-1-0",
+      "status": "completed",
+      "text": "{\"status\": \"withdrawn\"}",
+      "sessionId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 978,
+            "outputTokens": 84,
+            "totalTokens": 26278,
+            "cacheReadTokens": 25216
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1257,
+            "outputTokens": 9,
+            "totalTokens": 27378,
+            "cacheReadTokens": 26112
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_lew7xkjv6bnk4dquu7yvtabr",
+          "name": "recall",
+          "status": "completed"
+        }
+      ],
+      "artifacts": []
+    },
+    {
+      "phase": "fresh-recall",
+      "repetition": 2,
+      "attempt": 0,
+      "requestId": "native-fresh-recall-2-0",
+      "status": "completed",
+      "text": "{\"status\": \"withdrawn\"}",
+      "sessionId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1005,
+            "outputTokens": 79,
+            "totalTokens": 28348,
+            "cacheReadTokens": 27264
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1278,
+            "outputTokens": 9,
+            "totalTokens": 29447,
+            "cacheReadTokens": 28160
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_54n10k8jbd33tzk953gkzg8h",
+          "name": "recall",
+          "status": "completed"
+        }
+      ],
+      "artifacts": []
+    },
+    {
+      "phase": "delegation",
+      "round": 66,
+      "attempt": 0,
+      "requestId": "native-delegation-66-0",
+      "status": "completed",
+      "text": "结果是 437，执行者是知秋。",
+      "sessionId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1000,
+            "outputTokens": 40,
+            "totalTokens": 30352,
+            "cacheReadTokens": 29312
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 567,
+            "outputTokens": 127,
+            "totalTokens": 30902,
+            "cacheReadTokens": 30208
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 543,
+            "outputTokens": 120,
+            "totalTokens": 31383,
+            "cacheReadTokens": 30720
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 491,
+            "outputTokens": 10,
+            "totalTokens": 31733,
+            "cacheReadTokens": 31232
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_9xnu7t32l7ufb82efcaxmxhr",
+          "name": "list_bots",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_hqgskl4yoq65ct3uyg05ae93",
+          "name": "message_bot",
+          "status": "completed"
+        }
+      ],
+      "artifacts": []
+    },
+    {
+      "phase": "delegation",
+      "round": 78,
+      "attempt": 0,
+      "requestId": "native-delegation-78-0",
+      "status": "completed",
+      "text": "听澜核对完了，原样回报如下：\n\n- 信息内容：北组临时包裹编号为「云雀-619」\n- 原始说话人：@lin:a.test（青禾）\n- 来源群：北组（!north:memory.test）\n- 来源请求 ID：native-delegation-78-0\n- 性质：这是青禾的转述，不构成另一个人的独立确认；听澜说它没找到第二方证据，已按「青禾转述」归属记录，没当成已确认事实。",
+      "sessionId": "session-e6c1ebbb-393b-4c5c-924f-08ac56e6d3b8",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 1030,
+            "outputTokens": 151,
+            "totalTokens": 32797,
+            "cacheReadTokens": 31616
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 462,
+            "outputTokens": 48,
+            "totalTokens": 33150,
+            "cacheReadTokens": 32640
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "memory",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 2435,
+            "outputTokens": 337,
+            "totalTokens": 2772
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 615,
+            "outputTokens": 209,
+            "totalTokens": 33848,
+            "cacheReadTokens": 33024
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_qjcxwf8hqbgrd1lpnnqsw6cc",
+          "name": "message_bot",
+          "status": "completed"
+        }
+      ],
+      "artifacts": []
+    }
+  ],
+  "accounting": {
+    "started": 53,
+    "finished": 53,
+    "failed": 0,
+    "unfinished": 0,
+    "models": [
+      "opencode-go/deepseek-v4.1-flash"
+    ],
+    "byPurpose": {
+      "generation": 38,
+      "memory": 15
+    },
+    "observedUsage": {
+      "inputTokens": 132316,
+      "outputTokens": 7138,
+      "totalTokens": 865854,
+      "cacheReadTokens": 726400
+    },
+    "usageRecords": 53,
+    "embedding": {
+      "indexCalls": 3,
+      "queryCalls": 6,
+      "complete": true
+    },
+    "costComplete": false
+  },
+  "accountingChecks": {
+    "onlyRequestedModel": true,
+    "noUnfinishedStreams": true
+  }
+}

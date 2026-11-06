@@ -1,0 +1,10 @@
+{
+  "registeredAt": "2026-11-06T07:34:12.260536+00:00",
+  "run": "memory-long-KqKzrC",
+  "completedRoundsAtRegistration": 94,
+  "queryCheckpointsAtRegistration": 0,
+  "publisherSha256": "9e5fcc9efb677a4b1ed0174d7cbce896c3f4815fa10efc51984facbde7f4c414",
+  "logicalRecallRule": "One successful recall receipt in any attempt for the same original Matrix event is sufficient. Background review retries need not repeat a completed retrieval. All answer, room, original speaker and status checks remain unchanged.",
+  "rawResults": "Frozen runner last-attempt checks, failures, attempts and call IDs remain unmodified and are published separately.",
+  "gapRule": "Global interactions across the three Bots; the changed location uses its correction at round 48, giving 145 interactions to its final check. Unchanged values have a 192-interaction gap."
+}

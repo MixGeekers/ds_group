@@ -1,0 +1,134 @@
+{
+  "sourceHashes": {
+    "src/bot-node.mjs": "be6301fb43ea1f0ce2b4935d9956209485e5fd005a7893e31e6bac67ef31fa99",
+    "dsh-plugin/work-files.mjs": "7125c6743fb01a82a9c95e5c67cf76165c341df423a4536bd44ff57c70cc4dd3"
+  },
+  "level": "zero-model actual parser reproduction and isolated candidate regression",
+  "cases": [
+    {
+      "text": "{\"value\":\"苍鹭-7321\",\"roomId\":\"!north:memory.test\"}",
+      "before": {
+        "files": {
+          "passed": true
+        },
+        "chat": {
+          "passed": false,
+          "error": "Structured Bot response requires non-empty text"
+        }
+      },
+      "candidate": {
+        "files": {
+          "passed": true
+        },
+        "chat": {
+          "passed": true
+        }
+      }
+    },
+    {
+      "text": "[1,2,3]",
+      "before": {
+        "files": {
+          "passed": false,
+          "error": "Structured output requires non-empty text"
+        },
+        "chat": {
+          "passed": false,
+          "error": "Structured Bot response requires non-empty text"
+        }
+      },
+      "candidate": {
+        "files": {
+          "passed": true
+        },
+        "chat": {
+          "passed": true
+        }
+      }
+    },
+    {
+      "text": "437",
+      "before": {
+        "files": {
+          "passed": false,
+          "error": "Structured output requires non-empty text"
+        },
+        "chat": {
+          "passed": false,
+          "error": "Structured Bot response requires non-empty text"
+        }
+      },
+      "candidate": {
+        "files": {
+          "passed": true
+        },
+        "chat": {
+          "passed": true
+        }
+      }
+    },
+    {
+      "text": "true",
+      "before": {
+        "files": {
+          "passed": false,
+          "error": "Structured output requires non-empty text"
+        },
+        "chat": {
+          "passed": false,
+          "error": "Structured Bot response requires non-empty text"
+        }
+      },
+      "candidate": {
+        "files": {
+          "passed": true
+        },
+        "chat": {
+          "passed": true
+        }
+      }
+    },
+    {
+      "text": "null",
+      "before": {
+        "files": {
+          "passed": false,
+          "error": "Structured output requires non-empty text"
+        },
+        "chat": {
+          "passed": false,
+          "error": "Structured Bot response requires non-empty text"
+        }
+      },
+      "candidate": {
+        "files": {
+          "passed": true
+        },
+        "chat": {
+          "passed": true
+        }
+      }
+    },
+    {
+      "text": "\"quoted data\"",
+      "before": {
+        "files": {
+          "passed": false,
+          "error": "Structured output requires non-empty text"
+        },
+        "chat": {
+          "passed": false,
+          "error": "Structured Bot response requires non-empty text"
+        }
+      },
+      "candidate": {
+        "files": {
+          "passed": true
+        },
+        "chat": {
+          "passed": true
+        }
+      }
+    }
+  ]
+}

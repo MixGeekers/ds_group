@@ -6,7 +6,7 @@ import { gzipSync } from 'node:zlib';
 import { packageRoot } from '../src/paths.mjs';
 
 const rootFiles = ['package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'cordis.patch.yml', 'README.md', '发行验证.md', '前端架构与设计规范.md', 'UI基础组件实施记录.md', '中央身份实施记录.md', '统一客户端实施记录.md', '.gitignore', '.gitattributes', '.dockerignore', 'Dockerfile'];
-const sourceDirectories = ['bin', 'src', 'scripts', 'tests', 'web', 'admin', 'ui', 'deploy', 'dsh-plugin', 'dsh-connect', 'vendor'];
+const sourceDirectories = ['bin', 'src', 'memory', 'service', 'scripts', 'tests', 'web', 'admin', 'ui', 'deploy', 'dsh-plugin', 'dsh-connect', 'vendor'];
 const excludedNames = new Set(['node_modules', '.local', '.git', 'artifacts', 'dist', 'test-results', 'playwright-report', '.DS_Store']);
 const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
 

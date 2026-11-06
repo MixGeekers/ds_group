@@ -1,0 +1,52 @@
+{
+  "run": "memory-long-KqKzrC",
+  "round": 66,
+  "status": "observed-failure",
+  "layer": "native-bridge-delegation-completion",
+  "sourceHash": "5ec7d7839ce6190fd6cf391cec6180cad6adc8b4f3889a04c23c1aedc9193788",
+  "returnedText": "已交给知秋，让它计算 23 × 19 并返回结果。它一回复，我就把计算结果和执行者名字告诉你。",
+  "finishedAt": "2026-11-06T06:28:08.856Z",
+  "laterActualReply": {
+    "time": 1793946495434,
+    "source": {
+      "kind": "bot",
+      "form": "relay",
+      "role": "reply",
+      "exchangeId": "c4621338-c298-4d43-9f32-b91ae37b2974",
+      "senderName": "知秋",
+      "memoryOrigin": {
+        "authorId": "native:session-e5daf000-4cea-4db9-b0a0-ef00273b5a7d",
+        "botId": "session-f56b21bd-6ff9-49df-acc7-8751e672938e",
+        "contextSources": [],
+        "roomId": "!north:memory.test",
+        "scope": "room:!north:memory.test",
+        "sessionId": "session-f56b21bd-6ff9-49df-acc7-8751e672938e",
+        "sourceRefs": [
+          {
+            "id": "source_e47ec339e0f18850d7a129d57846aab4b069a4ac38f835bb036c522ce8029188",
+            "revision": 1
+          }
+        ],
+        "timestamp": 1793946487020,
+        "transport": "native"
+      },
+      "senderSessionId": "session-f56b21bd-6ff9-49df-acc7-8751e672938e",
+      "replyTo": "b061b717-df0e-4e45-b829-7d6fe5bd892a"
+    },
+    "content": [
+      {
+        "type": "text",
+        "text": "[Reply from 知秋]\n23 × 19 = 437\n\n由知秋计算。"
+      }
+    ]
+  },
+  "finding": "The bridge treated an ordinary acknowledgement as final while the native exchange was still pending. The teammate returned 437 later; its original human source remained linked.",
+  "candidateFixtureTests": {
+    "baselinePassed": 8,
+    "baselineFailed": 3,
+    "candidatePassed": 11,
+    "candidateFailed": 0,
+    "newChecks": 6
+  },
+  "resolution": "Candidate retained outside the frozen code; apply and run scripts/memory-native-delivery.mjs after the long run."
+}

@@ -18,6 +18,7 @@ import type {
 } from "../types";
 import { AttachmentView } from "./AttachmentView";
 import { Icon } from "./Icons";
+import { messageParts } from "../message-format";
 
 export interface TimelineProps {
   events: ChatEvent[];
@@ -35,42 +36,17 @@ export interface TimelineProps {
 }
 
 function formattedText(text: string): ReactNode[] {
-  const output: ReactNode[] = [];
-  const expression =
-    /```(?:[\w+-]*\n)?([\s\S]*?)```|`([^`\n]+)`|\*\*([^*\n]+)\*\*|(https?:\/\/[^\s<>]+)/g;
-  let offset = 0;
-  for (const match of text.matchAll(expression)) {
-    output.push(text.slice(offset, match.index));
-    if (match[1] !== undefined)
-      output.push(
-        <pre key={match.index} className="message-code">
-          {match[1]}
-        </pre>,
-      );
-    else if (match[2] !== undefined)
-      output.push(
-        <code key={match.index} className="inline-code">
-          {match[2]}
-        </code>,
-      );
-    else if (match[3] !== undefined)
-      output.push(<strong key={match.index}>{match[3]}</strong>);
-    else
-      output.push(
-        <a
-          key={match.index}
-          className="message-link"
-          href={match[4]}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {match[4]}
-        </a>,
-      );
-    offset = match.index + match[0].length;
-  }
-  output.push(text.slice(offset));
-  return output;
+  return messageParts(text).map((part) => {
+    const key = `${part.offset}:${part.kind}`;
+    if (part.kind === "pre")
+      return <pre key={key} className="message-code">{part.text}</pre>;
+    if (part.kind === "code")
+      return <code key={key} className="inline-code">{part.text}</code>;
+    if (part.kind === "strong") return <strong key={key}>{part.text}</strong>;
+    if (part.kind === "link")
+      return <a key={key} className="message-link" href={part.href} target="_blank" rel="noopener noreferrer">{part.text}</a>;
+    return part.text;
+  });
 }
 
 export function Timeline(props: TimelineProps) {

@@ -1,3 +1,4 @@
+// Modified by DSCord, 2026-11-06: source-aware native memory integration. See ../../UPSTREAM.json.
 // Memory: what a Bot keeps across all its conversations, as Markdown in the Agent
 // Memory Repo format (github.com/AgentMemoryRepo/agentmemoryrepo): one entry per
 // bullet line ending in `[key: value; …]` metadata, and a MEMORY.md entry point whose
@@ -465,6 +466,14 @@ export function install(rt) {
       memoryNews: () => ({}),
       memoryReviews: () => 0,
     })
+    return
+  }
+
+  // DSCord extension point: keep Bot/Session/tools native while replacing the one
+  // memory authority, including review and the panel. Legacy files are imported once.
+  if (typeof config.memoryBackend === 'function') {
+    config.memoryBackend(rt)
+    ctx.effect(() => { void rt.load().then(() => rt.memoryMigrate?.(parseMemory)).catch(error => rt.warn('ds-bot: memory migration: %s', error)) })
     return
   }
 

@@ -1,0 +1,359 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-06T17:17:08.407Z",
+  "sourceCommit": "7a520d5faef072ee447d1a29cbca8fb029116ab2",
+  "scope": "Memory output truncation, contact model input size and interrupted maintenance boundary; module checks are not real recovery acceptance.",
+  "moduleRuns": [
+    {
+      "tests": 464,
+      "log": ".local/memory-output-limit-module-tests.log",
+      "passed": 464,
+      "failed": 0,
+      "logSha256": "4f6dcaa61910d5fd01eeb2f85670d6d776e39bf8c89f9317be0a38ef4246d4aa"
+    },
+    {
+      "tests": 466,
+      "log": ".local/memory-contact-view-module-tests.log",
+      "passed": 466,
+      "failed": 0,
+      "logSha256": "5985f54d4fd1a02984eb4ff31d0ff8468b6ed3957ff044cb98e9a9795709e6f9"
+    },
+    {
+      "tests": 469,
+      "log": ".local/memory-output-budget-module-tests.log",
+      "passed": 469,
+      "failed": 0,
+      "logSha256": "5049f4328d2312ede198fa86eafc66284686be391ae02b4dc5ea4e19be2a7a3e"
+    }
+  ],
+  "repairs": [
+    "Reduce a truncated source-review batch and acknowledge only the completed prefix",
+    "Resume missing maintenance at the last completed message boundary",
+    "Mark max-token stream finishes as truncated",
+    "Use compact contact identities in model input; retain history in storage and expose history:true",
+    "For an indivisible truncated review, grow the model-scoped output budget from 8192 to 16384 and at most 32768; validate the complete proposal before acknowledgement"
+  ],
+  "contactInputChars": {
+    "before": 158744,
+    "after": 5860,
+    "contacts": 17,
+    "fullHistoryDeleted": false
+  },
+  "interruptedAttempts": [
+    {
+      "generation": 4,
+      "rawReportSha256": "57174e7efec8f4db160bde3384244cce53eb77130a6b3bb5d67683e8bd8e1fe2",
+      "status": "failed",
+      "postedMessages": 24,
+      "error": "TypeError: fetch failed",
+      "sourceCommit": "d25694b5f88befb9fb80b48709607e329466ca54"
+    },
+    {
+      "generation": 5,
+      "rawReportSha256": "e06465811327bfb52b70525dac85349ec99e282ee27bd9a344f2441fa4cc3a44",
+      "status": "failed",
+      "postedMessages": 24,
+      "error": "TypeError: fetch failed",
+      "sourceCommit": "8fa7fc9d7ab270372cc0a8f86c01ccfd7a27a6a4"
+    },
+    {
+      "generation": 6,
+      "rawReportSha256": "5a028060d57ebdf38c1e3618c2d004dfe304f2df80fb6ff72748b6f54241a323",
+      "status": "failed",
+      "postedMessages": 48,
+      "error": "MEMORY_OUTPUT_LIMIT during flush at round 48",
+      "sourceCommit": "7a520d5faef072ee447d1a29cbca8fb029116ab2",
+      "offlineSnapshot": {
+        "sha256": "2232031d047da7882816cda4e6d86dec67d74859e8bb78418422fae7fd00180c",
+        "entries": 550,
+        "sources": 896,
+        "contacts": 17,
+        "pendingSources": 10,
+        "databaseUnchanged": true
+      },
+      "note": "Code was edited during maintenance but becomes active only on the next host start. Loaded generation 6 kept the fixed 8192-token implementation.",
+      "lifecycleSummary": {
+        "sourceCommit": "7a520d5faef072ee447d1a29cbca8fb029116ab2",
+        "start": "2026-11-06T17:16:45.254Z",
+        "end": "2026-11-06T17:56:43.953Z",
+        "started": 177,
+        "ended": 176,
+        "completed": 168,
+        "truncated": 8,
+        "failed": 0,
+        "unfinished": [
+          {
+            "callId": "28c0b316-655f-4dec-a2cf-fb2b0a79b258",
+            "startedAt": 1793987779213,
+            "purpose": "memory"
+          }
+        ],
+        "modelIds": [
+          "commandcode-goat/deepseek/deepseek-v4.1-flash"
+        ]
+      }
+    }
+  ],
+  "realRecovery": {
+    "at": "2026-11-06T17:25:22.529Z",
+    "sourceCommit": "7a520d5faef072ee447d1a29cbca8fb029116ab2",
+    "generation": 6,
+    "postedMessages": 24,
+    "pending": [
+      {
+        "botId": "session-89126c4f-8db0-4606-8016-5aaedef9bc70",
+        "count": 0
+      },
+      {
+        "botId": "session-57dfc084-a8e5-4500-b3a8-d8b741acdbe2",
+        "count": 0
+      },
+      {
+        "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "count": 0
+      }
+    ],
+    "outputLimitTransitions": [
+      {
+        "at": 1793985153297,
+        "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "sourceCount": 8,
+        "nextBatchSize": 4
+      },
+      {
+        "at": 1793985239593,
+        "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "sourceCount": 4,
+        "nextBatchSize": 2
+      },
+      {
+        "at": 1793985525788,
+        "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "sourceCount": 2,
+        "nextBatchSize": 1
+      }
+    ],
+    "identitiesPreserved": true,
+    "resumedBoundaryCompaction": {
+      "round": 24,
+      "compacted": true
+    },
+    "memorySnapshotSha256": "12eb2608eeda2137da70a41a7ae50e04a478f78a25adb45ef96589c5a876bdbb",
+    "note": "Recovery succeeded after one additional single-source truncation and a later successful flush retry; earlier truncations and unfinished receipts remain failures/unknowns."
+  },
+  "sourceHashes": {
+    "memory/contacts.mjs": "c1550471b03c2a594516daef944b97eca74557ea3baf59efe7c1fb931c5c9d07",
+    "memory/native.mjs": "6548909c41a28cc32ffc050e1efd9c3e9733f6c77b5bfee7e5da1ea94a955e5f",
+    "memory/review.mjs": "018a91afc300cabacd1dc9c186a6560717c903cdfa3541047330b484147888a4",
+    "scripts/collaboration-maintenance.mjs": "affb95c6b5d09c0d19abdfd4ffc6cb837434496312951be1ac58438d0e85892a",
+    "scripts/collaboration-long-run.mjs": "c63d1efc69d4e07c783939e01f989e40320df0e3a23e741e8e5267d64794caf9"
+  },
+  "outputBudgetRepair": {
+    "at": "2026-11-06T17:58:37.586Z",
+    "status": "real-recovery-completed",
+    "limits": [
+      8192,
+      16384,
+      32768
+    ],
+    "onlyExplicitTruncation": true,
+    "onlyIndivisibleSource": true,
+    "partialProposalsAccepted": false,
+    "persistCalibrationByModel": true,
+    "sourceHashes": {
+      "memory/native.mjs": "3f9aeddd52a401721e7f16b67a06d8031b75402c46495dfd02875d3f2c9f40a4",
+      "memory/review.mjs": "2f3c9c4fb968f476d8764c3281665577ffc153f9df076fc6787189b34493e926",
+      "scripts/memory-host-plugin.mjs": "87abc06af147c634a089f0808c5db95f51d2afa6145dd094dc2661c0938ef530",
+      "scripts/memory-visible-host-plugin.mjs": "3ad4a159e5b7480dd49cc3cfa3bc51a98fd9993557698766f591bf3b3c639952",
+      "tests/memory-review.test.mjs": "2c51c17e1ff644a57fb6092220cc000cf0a207062fcc4e9798fa03600743c641"
+    },
+    "sourceCommit": "f707d8b2da339493a4e132f245bc1c4c0bfa65e3",
+    "realRecovery": {
+      "at": "2026-11-06T18:06:12.430Z",
+      "generation": 7,
+      "sourceCommit": "f707d8b2da339493a4e132f245bc1c4c0bfa65e3",
+      "recovery": {
+        "type": "recovery-restart",
+        "round": 48,
+        "identitiesPreserved": true,
+        "pendingReviewFlushed": true,
+        "sourceCommit": "f707d8b2da339493a4e132f245bc1c4c0bfa65e3"
+      },
+      "compaction": {
+        "type": "native-compaction",
+        "round": 48,
+        "index": 1,
+        "result": {
+          "compacted": true,
+          "bot": {
+            "id": "session-89126c4f-8db0-4606-8016-5aaedef9bc70",
+            "name": "知秋",
+            "role": "协作助手",
+            "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+            "instructions": "你是团队中的协作助手。按当前参与者的需要聊天、研究资料和完成实际工作；可以与其他 Bot 协作。完成文件或代码工作时交付实际产物，如实说明完成情况和遇到的问题。",
+            "createdAt": 1793971198626,
+            "createdBy": null,
+            "capabilities": [],
+            "appliedModel": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+            "effort": "low",
+            "permission": "danger-full-access",
+            "sessionId": "session-4cd8a678-e24c-4507-89b0-80a9a411b878",
+            "parts": [
+              "session-89126c4f-8db0-4606-8016-5aaedef9bc70",
+              "session-a128cd8b-d8c2-45e4-9589-e1a54af2b35f"
+            ]
+          }
+        },
+        "resumed": true,
+        "generation": 7
+      },
+      "firstBudgetSuccess": {
+        "at": "2026-11-06T18:04:56.423Z",
+        "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+        "sourceCommit": "f707d8b",
+        "firstCompletedLargerBudget": {
+          "callId": "7cf3527d-a1fd-418a-b9ba-8f28303f90a4",
+          "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+          "sessionId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+          "purpose": "memory",
+          "startedAt": 1793988039785,
+          "maxTokens": 16384,
+          "usage": {
+            "inputTokens": 2,
+            "outputTokens": 15079,
+            "totalTokens": 32745,
+            "cacheReadTokens": 17664
+          },
+          "finish": {
+            "kind": "stop"
+          },
+          "status": "completed",
+          "event": "end",
+          "finishedAt": 1793988186799
+        },
+        "acknowledgement": {
+          "action": "review",
+          "at": 1793988188343,
+          "botId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+          "changeId": "4b3b1b97-b4b7-44c0-b832-c687d08d73fa",
+          "changes": 15,
+          "sourceRefs": [
+            {
+              "id": "source_4bf268d25e8b38252774d0405adec00189dc506f450d4865191af61e50f3c024",
+              "revision": 1
+            }
+          ]
+        },
+        "proposals": [
+          {
+            "at": 1793988186802,
+            "sourceRefs": [
+              {
+                "id": "source_4bf268d25e8b38252774d0405adec00189dc506f450d4865191af61e50f3c024",
+                "revision": 1
+              }
+            ],
+            "attempt": 0,
+            "changes": 15
+          }
+        ],
+        "scope": "This proves one full proposal was accepted and its source acknowledged after a completed 16384-token stream; it does not yet prove the whole recovery completed."
+      },
+      "snapshotSha256": "d64bbe4b0e45cdee783866bd899d72bfb62c2d18e61497c148c0edc4b3b9e17d",
+      "remainingPendingSources": 0
+    },
+    "later32kBoundary": {
+      "round": 88,
+      "truncatedCallId": "81dffb33-1167-46cc-b596-ef7830a7e3d6",
+      "previousMaxTokens": 16384,
+      "successfulCall": {
+        "callId": "3fad3e00-09e0-4dcc-8ee9-9f9bb924d02a",
+        "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+        "sessionId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+        "purpose": "memory",
+        "startedAt": 1793991493741,
+        "maxTokens": 32768,
+        "usage": {
+          "inputTokens": 56,
+          "outputTokens": 8765,
+          "totalTokens": 26101,
+          "cacheReadTokens": 17280
+        },
+        "finish": {
+          "kind": "stop"
+        },
+        "status": "completed",
+        "event": "end",
+        "finishedAt": 1793991543942
+      },
+      "compaction": {
+        "type": "native-compaction",
+        "round": 88,
+        "index": 0,
+        "result": {
+          "compacted": true,
+          "bot": {
+            "id": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+            "name": "识雨",
+            "role": "Chief of Staff",
+            "color": "deepseek",
+            "avatar": {
+              "shape": "whale"
+            },
+            "instructions": "你是团队中的协作助手。按当前参与者的需要聊天、研究资料和完成实际工作；可以与其他 Bot 协作。完成文件或代码工作时交付实际产物，如实说明完成情况和遇到的问题。",
+            "createdAt": 1793971198570,
+            "createdBy": null,
+            "capabilities": [],
+            "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+            "effort": "low",
+            "appliedModel": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+            "permission": "danger-full-access",
+            "sessionId": "session-088a93b3-f5d1-487c-afe3-c024329db47e",
+            "parts": []
+          }
+        },
+        "resumed": false,
+        "generation": 7
+      },
+      "restart": {
+        "type": "planned-restart",
+        "round": 88,
+        "identitiesPreserved": true,
+        "resumed": false,
+        "generation": 7
+      },
+      "flushWaitFailures": [
+        {
+          "type": "flush-error",
+          "at": "2026-11-06T18:49:41.947Z",
+          "error": "fetch failed",
+          "attempt": 0
+        },
+        {
+          "type": "flush-error",
+          "at": "2026-11-06T18:54:53.309Z",
+          "error": "fetch failed",
+          "attempt": 1
+        },
+        {
+          "type": "flush-error",
+          "at": "2026-11-06T19:00:14.691Z",
+          "error": "fetch failed",
+          "attempt": 2
+        }
+      ]
+    }
+  },
+  "completion": {
+    "status": "completed-with-failures",
+    "reportSha256": "2352fe223c73db44ea0fd1356ac8ad962655a53889d6eb4f11c7f1c30f01b31c",
+    "corpusHash": "ea6e913cf1200e9e12617853bdc8fd6aba43c2fc92e6014356d018c2c3f40530",
+    "all96MessagesPosted": true,
+    "all72BotRequestsReplied": true,
+    "finalReviewFlushed": true,
+    "finalPendingSources": 0,
+    "parentEvidencePreserved": true,
+    "behavioralAcceptance": false,
+    "note": "Completed execution and restored maintenance do not erase original delivery failures or manual source-fidelity/style findings."
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "capturedAt": "2026-11-06T12:39:02.317Z",
+  "level": "current-production-web-build-with-existing-real-local-core",
+  "sourceCommit": "f0eba7f17d2ea077780bf48a9d077ae4e273be41",
+  "uiTree": "be5fa0099020ff594ca2370ef0a41bda9256a9ea",
+  "originMainUiTree": "be5fa0099020ff594ca2370ef0a41bda9256a9ea",
+  "browserErrors": [],
+  "servedBuildAssets": [
+    {
+      "path": "index.html",
+      "sha256": "7b62b9a9ec63520a0a42568f032d35f5057671f60a87132884a084ed155abbc2"
+    },
+    {
+      "path": "theme.js",
+      "sha256": "24be4081fda0659df49722da4cd6f512b353569868de23d262e71fd389af6d6f"
+    },
+    {
+      "path": "assets/index-C_kqTH_i.css",
+      "sha256": "0b3d0596d4b4ae7926b7d865de48e488cfa2d05e496102522a5ae5da73d6c283"
+    },
+    {
+      "path": "assets/index-KLjoJroZ.js",
+      "sha256": "cc4b61797a1fb1d226e5cf3f4075fdcc1479566ca562413ae939143cd49d1d1b"
+    },
+    {
+      "path": "client-config.json",
+      "sha256": "609b0270c380969286ce2be72aad387758e8169c221f93c3bb14a4b352c5e65c"
+    },
+    {
+      "path": "assets/mark-128-C4ed4p0U.png",
+      "sha256": "ea75bb6c7a5d756617f58db9d512fc6687e97d89c224fdf80d4eaeab09e58637"
+    }
+  ],
+  "existingServer": "b.dscord-ui-mw31ahnd-0b96.test:8448",
+  "uiBuildCommand": "npm run build",
+  "uiBuildStatus": "passed",
+  "sentMessages": 0,
+  "remoteModelRequestsInitiated": 0,
+  "screenshot": "dscord-latest-ui.png",
+  "sha256": "0075cc998027cbb0e8c37f67f8e963e47e3bb903996d65c5ce70c8f347dec58a",
+  "status": "passed",
+  "previewMethod": "Existing Core origin; browser loads unmodified dist/web build bytes for static files, all API requests reach real Core. No shared service was replaced."
+}

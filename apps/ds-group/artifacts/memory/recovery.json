@@ -1,0 +1,32 @@
+{
+  "startedAt": "2026-11-06T05:19:45.663Z",
+  "status": "passed",
+  "checks": [
+    "realSemanticBaseline",
+    "killedOmbreProcessRecoversSameBodyAndSources",
+    "embeddingUnavailableKeepsExactReadWithExplicitFallback",
+    "ownedHarrierRecoversAndRebindsOmbre",
+    "serviceRestartPreservesReceiptAndSource",
+    "withdrawalStillExcluded"
+  ],
+  "generationCalls": 0,
+  "sourceHashes": {
+    "service.mjs": "40a5d50bdeb0e11437767eb669ae5d0099377d6e1f7d99c182f77a44abba493d",
+    "store.mjs": "2d3beb52b957ca7afcf6fc565f6d3c578b8f91de421d3c376c1f607d6c5efee4",
+    "ombre.mjs": "f5aadcb2e70609a4ae8b94a5a0db3f832d460a1b829b934c62bec54b7bffc882"
+  },
+  "usage": [
+    {
+      "indexCalls": 1,
+      "queryCalls": 3,
+      "complete": true
+    },
+    {
+      "indexCalls": 0,
+      "queryCalls": 1,
+      "complete": true
+    }
+  ],
+  "finishedAt": "2026-11-06T05:19:51.345Z",
+  "sourceRun": "memory-recovery-HFkaUx"
+}

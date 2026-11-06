@@ -21,6 +21,8 @@ COPY --chown=node:node src ./src
 COPY --chown=node:node web ./web
 COPY --chown=node:node scripts ./scripts
 COPY --chown=node:node vendor ./vendor
+COPY --chown=node:node memory ./memory
+COPY --chown=node:node service ./service
 COPY --chown=node:node deploy/synapse ./deploy/synapse
 COPY --from=frontend --chown=node:node /app/dist/web ./dist/web
 COPY --from=frontend --chown=node:node /app/dist/admin ./dist/admin

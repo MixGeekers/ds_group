@@ -1,0 +1,53 @@
+{
+  "level": "real-packaged-native-dsh-browser-read-only",
+  "capturedAt": "2026-11-06T12:25:27.697Z",
+  "dataset": "copy of memory-long-KqKzrC/home after completed 240-round run",
+  "viewport": {
+    "width": 1440,
+    "height": 1000
+  },
+  "browserErrors": [],
+  "checks": [
+    "actual saved summary visible",
+    "all 20 saved entries render across room scopes",
+    "entry source account, room, original event and corrected event visible",
+    "history page opens without closing memory dialog"
+  ],
+  "screenshots": [
+    "native-conversation.png",
+    "memory-summary.png",
+    "memory-entries.png",
+    "memory-identities.png",
+    "memory-history.png"
+  ],
+  "status": "passed",
+  "blockedModelAttempts": 0,
+  "remoteModelCalls": 0,
+  "modelGuard": "llm/stream disabled for screenshot host; no attempts observed",
+  "moduleTests": {
+    "command": "node --test tests/memory.test.mjs",
+    "passed": 15,
+    "failed": 0
+  },
+  "preFix": {
+    "baseCommit": "691e8a775291b754800327292bc4ea3c796512ef",
+    "observed": "opening All entries closed the memory dialog",
+    "cause": "empty sizes left undefined section size; native list calls toLocaleString()",
+    "additionalFix": "map room facts to native personal display sections while preserving memoryScope and source; show sources; paragraph-separated summary"
+  },
+  "sourceSha256": {
+    "memory/panel.mjs": "1cec6e67e2137a5a9c2895835663d4e45bf16ba0f757e2bfdcab2de71ab53f43",
+    "vendor/ds-bot/client.js": "4419239b28fa0e4d2f573c367dc34fff66020bd1ac7905ee39cff2c4567a44a3",
+    "tests/memory.test.mjs": "014498722f840a4c69faaadf962a4cf28343d64953493df9e0837059b9184659"
+  },
+  "screenshotSha256": {
+    "native-conversation.png": "72c79f93f7dec5bf4afdcbb815f497b4d690f5e359066e75b91de89cf0360be8",
+    "memory-summary.png": "d7f9c78a1b767a0eb540d54bc00950bfddadcb62d2f5ee6245af4aa8e6a76100",
+    "memory-entries.png": "81dc7cbc5b7933ea398a4fa6cc5f35f28c8840d900cdfc9013bf45c5022a1b06",
+    "memory-identities.png": "a3afda16f7808da44b0ecc544a432fa9cf2d40bc363358ea310215a121b5949b",
+    "memory-history.png": "7a21a1c6bf8fe6bf52bbdc223d610743d7b1f32733b235aad6ee2c63b1df95f6"
+  },
+  "temporaryHostStopped": true,
+  "previousTemporaryHostStopped": true,
+  "userLiveInstanceChanged": false
+}

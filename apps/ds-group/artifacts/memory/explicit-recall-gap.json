@@ -1,0 +1,89 @@
+{
+  "run": "memory-long-KqKzrC",
+  "status": "preserved-failure-with-passed-targeted-followup",
+  "failed": [
+    {
+      "round": 234,
+      "type": "withdraw-query",
+      "checks": [
+        {
+          "name": "usesRecall",
+          "passed": false
+        },
+        {
+          "name": "structuredAnswer",
+          "passed": true
+        },
+        {
+          "name": "withdrawn",
+          "passed": true
+        }
+      ],
+      "passed": false,
+      "text": "{\"status\":\"withdrawn\"}",
+      "attempts": [
+        {
+          "requestId": "long-234-attempt-0",
+          "toolReceipts": []
+        }
+      ]
+    },
+    {
+      "round": 238,
+      "type": "withdraw-query",
+      "checks": [
+        {
+          "name": "usesRecall",
+          "passed": false
+        },
+        {
+          "name": "structuredAnswer",
+          "passed": true
+        },
+        {
+          "name": "withdrawn",
+          "passed": true
+        }
+      ],
+      "passed": false,
+      "text": "{\"status\":\"withdrawn\"}",
+      "attempts": [
+        {
+          "requestId": "long-238-attempt-0",
+          "toolReceipts": []
+        }
+      ]
+    }
+  ],
+  "previousSameQuestion": {
+    "round": 230,
+    "type": "withdraw-query",
+    "checks": [
+      {
+        "name": "usesRecall",
+        "passed": true
+      },
+      {
+        "name": "structuredAnswer",
+        "passed": true
+      },
+      {
+        "name": "withdrawn",
+        "passed": true
+      }
+    ],
+    "passed": true,
+    "text": "{\"status\":\"withdrawn\"}"
+  },
+  "decision": "A new event explicitly requesting a fresh lookup must call recall even when the same correct answer appears in recent history. Preserve both failed checks; do not expand the same-event retry exemption.",
+  "fixedNativeSha256": "48db00ce5c22b94219231b4b7fd74f15ea183915497a38c868eed2aa88b54929",
+  "supplement": "scripts/memory-native-delivery.mjs: withdraw a stored observation, then issue three distinct events requesting the same fresh history query.",
+  "followup": {
+    "status": "passed",
+    "evidence": "native-delivery.json",
+    "checks": 18,
+    "modelCalls": 53,
+    "fullModuleChecks": 422
+  },
+  "initialStatus": "reproduced-prompt-fix-applied-real-regression-running"
+}

@@ -1,0 +1,129 @@
+{
+  "run": "memory-long-KqKzrC",
+  "rawReportSha256": "b642010f77acbc0f7b8ee3c28e14f236d1db3c26ea5250050c8a95cecbd2b536",
+  "reviewedAt": "2026-11-06T10:13:15.271105+00:00",
+  "rawStatusPreserved": "failed",
+  "counts": {
+    "rounds": 240,
+    "answersAndSourcesPassed": 72,
+    "queryTotal": 72,
+    "frozenLastAttemptPassed": 67,
+    "preregisteredLogicalPassed": 70,
+    "nativeCompactions": 6,
+    "plannedRestarts": 3
+  },
+  "adjudications": [
+    {
+      "audit": "forgottenFactHasNoCurrentDuplicate",
+      "originalPassed": false,
+      "finding": "The substring-only predicate also matched the current voided-note notice. The original affirmative note is withdrawn; the current record explicitly says it is void and must not be used. This is a cancellation fact, not a resurrected current label. The original audit result is not changed.",
+      "records": [
+        {
+          "id": "memory_a6764af2f2c8141786578d5cdc899bf49f51c21134591c529128b95271397e3d",
+          "text": "现场组临时便签：旧备用钥匙盒的标记是「赤狐-804」（来源为 @lin:b.test，现场组 !field:memory.test，$long-54）。",
+          "status": "withdrawn",
+          "derivation": "withdrawn",
+          "kind": "stated",
+          "saidBy": "matrix:@lin:b.test",
+          "predicate": "note",
+          "scope": "room:!field:memory.test",
+          "sourceRefs": [
+            {
+              "id": "source_af998b3680303431f3630679d022f9fe495b0862a01f6e6a1c80b40167b70e26",
+              "revision": 1
+            }
+          ],
+          "sourceEvents": [
+            "$long-54"
+          ]
+        },
+        {
+          "id": "memory_fb3234d59c4ac46b8c433f2e002304341ed40b5e5675065001c0f429be5b4169",
+          "text": "现场组旧备用钥匙盒的「赤狐-804」便签已作废，不应再作为有效记忆使用（仅适用于现场组 !field:memory.test）。",
+          "status": "active",
+          "derivation": "current",
+          "kind": "stated",
+          "saidBy": "matrix:@lin:b.test",
+          "predicate": "voided-note",
+          "scope": "room:!field:memory.test",
+          "sourceRefs": [
+            {
+              "id": "source_c20f991aee73c8d8f14bb7255f9d590e14ead1bec2fa5afb28d5098399a029af",
+              "revision": 1
+            }
+          ],
+          "sourceEvents": [
+            "$long-56"
+          ]
+        }
+      ]
+    },
+    {
+      "audit": "toolObservation150/toolObservation174",
+      "originalPassed": false,
+      "finding": "The predicate required every direct reference to be a tool. Both records retain the human request and actual tool output; final kind is observation and saidBy is tool:bash. Mixed provenance is retained by design. Separate first-write human-author errors are real and preserved in observation-author-gap.json.",
+      "records": [
+        {
+          "id": "memory_dfe3d52c33b8bb525e9a90321e2bfe41b864ae643861934c8a6a2dbb6d772c59",
+          "text": "本次校验任务的实际 SHA-256：字符串「memory-round-150」的 SHA-256 = 785a7b85bec513be78dde5c066e59cac1b684954c359699c8d7b56c18045a130（design 组，工具观测）",
+          "status": "active",
+          "derivation": "current",
+          "kind": "observation",
+          "saidBy": "tool:bash",
+          "predicate": "sha256",
+          "scope": "room:!design:memory.test",
+          "sourceRefs": [
+            {
+              "id": "source_0f4d6ab2ce515b7e327bce30a173d2afd917635269e971310b88b20c65634ea2",
+              "revision": 1
+            },
+            {
+              "id": "source_dc7a93e4e7747266e7e7abe00425ff6323b5d9735ef2a831b548538a917dfcfc",
+              "revision": 1
+            }
+          ],
+          "sourceEvents": [
+            "$long-150",
+            "chatcmpl-tool-97c6ca3192597ca9"
+          ]
+        },
+        {
+          "id": "memory_50598f42f5fc201345d5f4eac81ccf3a1e2a28ba1bf737933b629e769e2b6058",
+          "text": "本次校验任务的实际 SHA-256：字符串「memory-round-174」的 SHA-256 = ea0b304753479785d32f7002cdb0010874db912202fe66bf66c7e33f3b0f41ad（design 组，工具观测）",
+          "status": "active",
+          "derivation": "current",
+          "kind": "observation",
+          "saidBy": "tool:bash",
+          "predicate": "sha256",
+          "scope": "room:!design:memory.test",
+          "sourceRefs": [
+            {
+              "id": "source_223f35a0248c08b3d4184cff01ef4a83a8bc76da7912925c45697d922a3661aa",
+              "revision": 1
+            },
+            {
+              "id": "source_cafd5cb15c4e2dfe3cf74d066bfd7db8bec1a9d60a89e61ed4b6f45fdc1e17eb",
+              "revision": 1
+            }
+          ],
+          "sourceEvents": [
+            "$long-174",
+            "chatcmpl-tool-8228323b1dc47e6b"
+          ]
+        }
+      ]
+    },
+    {
+      "audit": "allLogicalQueryCheckpointsMatchAnswerAndSourceWithActualRecall",
+      "originalPassed": false,
+      "finding": "Rounds 234 and 238 answered withdrawn correctly but omitted an explicitly requested new recall. They are new events, not same-event retries, and remain failures. The fresh-recall prompt rule and three new real requests are a separate follow-up."
+    }
+  ],
+  "embeddingAccountingNote": "The owned Harrier log emits no HTTP access lines. An initial publication reported 0 matching lines; the final publisher marks the independent server request count null/unknown and preserves the matching-line count separately. Receipt-based client counters record 49 indexing and 315 query embeddings.",
+  "sourceBoundary": "All 121 frozen files matched at completion. Subsequent delivery/parser, observation-author and fresh-recall fixes are validated separately; this is not a rerun of all 240 rounds on the repaired version.",
+  "publisherMetadataCorrection": {
+    "scope": "Access-log count metadata only. No answer, retrieval, source or status grading predicate changed.",
+    "publisherSha256": "cbe071bb258c6d973f7ddb62111d3b7d8bc0c9a10443a4a877bb24400c505c67",
+    "preQueryRegistration": "oracle-registration.json preserves the original publisher digest."
+  }
+}

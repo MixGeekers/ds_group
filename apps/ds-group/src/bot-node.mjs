@@ -38,6 +38,10 @@ export function parseBotOutput(raw, botId, participants, { ignoreDelivery = fals
   let parsed;
   try { parsed = JSON.parse(fenced ? fenced[1] : text); }
   catch { return { text }; }
+  // Plain JSON data and scalar answers are chat content. Only explicit delivery
+  // fields opt into the text/delegation protocol.
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)
+    || !['text', 'artifacts', 'delegate', 'delivery'].some(key => Object.hasOwn(parsed, key))) return { text };
   if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed) || typeof parsed.text !== 'string' || !parsed.text.trim()) {
     throw new Error('Structured Bot response requires non-empty text');
   }
@@ -344,7 +348,7 @@ export class BotNode {
         availableBots: this.participants.filter(person => person.kind === 'bot' && person.id !== this.participant.id)
           .map(person => ({ id: person.id, name: person.name, role: this.roleOf(person) })),
         senderKind: this.participants.find(person => person.id === event.sender)?.kind,
-        body: event.content.body, to: Array.isArray(meta.to) ? meta.to : [], attachments: uniqueAttachments([...ownFiles, ...referencedFiles, ...followupFiles]),
+        body: event.content['m.new_content']?.body ?? event.content.body, to: Array.isArray(meta.to) ? meta.to : [], attachments: uniqueAttachments([...ownFiles, ...referencedFiles, ...followupFiles]),
         delivery: this.delivery.publicRoute(item),
         ...(meta.conversationKind ? { conversationKind: meta.conversationKind } : {}),
         ...(meta.taskId ? { taskId: meta.taskId } : {}),
@@ -357,7 +361,7 @@ export class BotNode {
       history: history.map(previous => ({ eventId: previous.event_id, roomId: previous.room_id,
         source: messageSource(previous, this.participants),
         senderId: previous.sender, senderName: this.senderName(previous.sender), senderKind: this.participants.find(person => person.id === previous.sender)?.kind,
-        body: previous.content.body, attachments: eventAttachments(previous), taskId: metadataOf(previous).taskId,
+        body: previous.content['m.new_content']?.body ?? previous.content.body, attachments: eventAttachments(previous), taskId: metadataOf(previous).taskId,
         kind: metadataOf(previous).kind, originSenderId: metadataOf(previous).originSenderId, fileBatch: metadataOf(previous).fileBatch })),
     };
   }

@@ -1,0 +1,12 @@
+{
+  "platform": "Darwin",
+  "architecture": "arm64",
+  "llamaServerSha256": "0e142035f2622a23ff6a04f51a0c4594dce87acf0389a4e839e4714c953bdac8",
+  "llamaServerBytes": 33472,
+  "ggufSha256": "b017b8fceae7c77864652c63d07af51480088b078771a89cafe1a467b069ea75",
+  "generationModel": "opencode-go/deepseek-v4.1-flash",
+  "topology": "same physical machine; real DSH, Ombre and local Harrier; synthetic Matrix envelopes",
+  "dshVersion": "0.2.1-rc.5",
+  "dshNode": "24.21.0",
+  "driverNode": "24.19.0"
+}

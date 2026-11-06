@@ -1,0 +1,335 @@
+{
+  "schemaVersion": 1,
+  "at": "2026-11-06T19:12:03.548Z",
+  "status": "delivery-accepted-after-independent-review",
+  "rawStatus": "completed-with-failures",
+  "rawReportSha256": "525113ca41030cd031bedbe91fff2ae6aa8304b0a55546878e72e7d76954cb95",
+  "sourceCommit": "996b49bb1df018bd36a56224cb5dc7afd625ae0b",
+  "sourceHashes": {
+    "dsh-connect/native-bridge.mjs": "79f5e7562defdbe553449854c45f7c4c1530474fccaa07c0d6e05d80a395bca8",
+    "src/message-context.mjs": "a5dc2f9cad699e574ae93c78b31a63fefadfec2a8660dab00af3095c700b39b9",
+    "scripts/collaboration-delivery-recheck.mjs": "06ba7c6044cb3d8ed2110dc22a64e1fab03f16453b2a7d3ad7db4a17094f2e9e"
+  },
+  "model": "commandcode-goat/deepseek/deepseek-v4.1-flash",
+  "topology": "real DSCord/Core/Matrix/native DS-Bot/Ombre/Harrier on one physical host",
+  "startedAt": "2026-11-06T19:09:39.724Z",
+  "finishedAt": "2026-11-06T19:12:03.548Z",
+  "checks": [
+    {
+      "name": "sameNativeIdentities",
+      "passed": true
+    },
+    {
+      "name": "receivedBytesRunInIndependentEmptyDirectory",
+      "passed": true,
+      "detail": {
+        "moduleSha256": "6c1c29cc41cc60b122113725bef337ed78f9cf1c9d791b4f055a940edc2a7043",
+        "testSha256": "ff3b0b6793323b02ea26ff8b1f3b79c9e708cce5618b7bb97f3ef0f7c8234475",
+        "output": "✔ empty input gives zeros and no ids (0.951417ms)\n✔ counts people per slot (0.101416ms)\n✔ last row per id wins (0.055875ms)\n✔ a later row can move an id to another slot (0.0475ms)\n✔ a later confirmed row moves one id from morning to afternoon (0.059792ms)\n✔ cancelled entries are excluded (0.064583ms)\n✔ a cancelling last row drops the earlier confirmation (0.05325ms)\n✔ accepts numeric strings for people (0.104167ms)\n✔ accepts numeric strings padded with whitespace (0.197958ms)\n✔ rejects invalid people values on confirmed rows (0.363041ms)\n✔ rejects invalid slot (0.154833ms)\n✔ rejects unknown status (0.049041ms)\n✔ sorts activeIds lexicographically (0.0385ms)\n✔ two different ids with the same name stay separate (0.341167ms)\n✔ cancelling one of two same-named people leaves the other counted (0.183542ms)\n✔ one id keeps one booking even when its name changes between rows (0.15325ms)\n✔ does not mutate the input (0.150375ms)\n✔ does not mutate deeply frozen input (0.7805ms)\n✔ the frozen fixture would catch a mutating implementation (0.099334ms)\n✔ works on the real signup export shape (0.057625ms)\nℹ tests 20\nℹ suites 0\nℹ pass 20\nℹ fail 0\nℹ cancelled 0\nℹ skipped 0\nℹ todo 0\nℹ duration_ms 41.816792\n"
+      }
+    },
+    {
+      "name": "downloadedAcceptanceIncludesPassingTestStatus",
+      "passed": true
+    },
+    {
+      "name": "code:actualFreshPassingTestRun",
+      "passed": true
+    },
+    {
+      "name": "json:actualFreshPassingTestRun",
+      "passed": false
+    },
+    {
+      "name": "fixedRepairSources",
+      "passed": true
+    },
+    {
+      "name": "original96MessagesAndProtocolUnchanged",
+      "passed": true
+    },
+    {
+      "name": "ordinaryModelOnly",
+      "passed": true
+    }
+  ],
+  "rounds": [
+    {
+      "id": "code",
+      "prompt": "Give me summarize.mjs and summarize.test.mjs again. Run those exact files in a clean directory and include delivered-tests-recheck.txt. Keep the reply short.",
+      "eventId": "$G2cRq5mTlAWqlxml2NrySt702Rjhc82ZpFUuUXSxDsE",
+      "requestId": "matrix-c70bd9d265f0c9b4f03e995a52564d6848bbc4c03ca50c3d1f18b9dfd07bd8af",
+      "reply": "20/20 通过，退出码 0。测试的两份文件与本次随附的两份逐字节相同（`cmp` 比较过）。\n\n| 文件 | 字节 | SHA-256 |\n|---|---|---|\n| `summarize.mjs` | 1,564 | `6c1c29cc…` |\n| `summarize.test.mjs` | 6,642 | `ff3b0b67…` |\n| `delivered-tests-recheck.txt` | 2,037 | `e6465449…` |\n\n运行方式：新建空目录，只放入这两份文件，运行 `node --test`，运行结束后删除该目录。报告文件中包含命令、Node v24.19.0、运行前哈希、完整原始输出和退出码。\n\nsummarize.mjs (1,564 B, 6c1c29cc…) + summarize.test.mjs (6,642 B, ff3b0b67…) + delivered-tests-recheck.txt (2,037 B, e6465449…) — node --test in a fresh directory containing only these two files: 20 tests, 20 pass, 0 fail, exit 0; attached originals verified byte-identical to the tested copies",
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true
+        },
+        {
+          "name": "delivered:summarize.mjs",
+          "passed": true
+        },
+        {
+          "name": "delivered:summarize.test.mjs",
+          "passed": true
+        },
+        {
+          "name": "delivered:delivered-tests-recheck.txt",
+          "passed": true
+        },
+        {
+          "name": "actualExecution",
+          "passed": true
+        },
+        {
+          "name": "independentCodeContract",
+          "passed": true,
+          "detail": "[{\"name\":\"empty\",\"passed\":true},{\"name\":\"latest-id-wins\",\"passed\":true},{\"name\":\"cancelled\",\"passed\":true},{\"name\":\"same-name-distinct-id\",\"passed\":true},{\"name\":\"negative\",\"passed\":true},{\"name\":\"fraction\",\"passed\":true},{\"name\":\"non-number\",\"passed\":true},{\"name\":\"unknown-slot\",\"passed\":true},{\"name\":\"unknown-status\",\"passed\":true},{\"name\":\"trimmed-number\",\"passed\":true},{\"name\":\"special-ids\",\"passed\":true},{\"name\":\"immutable-input\",\"passed\":true}]\n"
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_7y8anal7vi94cfdz6mzu0nrg",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_fwbkwu00es8ufb7v7l7it7j6",
+          "name": "present",
+          "status": "completed"
+        }
+      ],
+      "artifactDelivery": "explicit-native-delivery",
+      "artifacts": [
+        {
+          "name": "summarize.mjs",
+          "size": 1564,
+          "sha256": "6c1c29cc41cc60b122113725bef337ed78f9cf1c9d791b4f055a940edc2a7043"
+        },
+        {
+          "name": "summarize.test.mjs",
+          "size": 6642,
+          "sha256": "ff3b0b6793323b02ea26ff8b1f3b79c9e708cce5618b7bb97f3ef0f7c8234475"
+        },
+        {
+          "name": "delivered-tests-recheck.txt",
+          "size": 2037,
+          "sha256": "e646544972f133ac5db1b2daeb139452284c0bae6d454e58ff9d08a0452c1aed"
+        }
+      ],
+      "testRunProof": [
+        {
+          "callId": "call_00_7y8anal7vi94cfdz6mzu0nrg",
+          "text": "exit=0\nℹ tests 20\nℹ pass 20\nℹ fail 0\n--- compare attached originals with tested copies ---\nsummarize.mjs identical\nsummarize.test.mjs identical\nrecheck bytes: 2037delivered-tests-recheck.txt\n6c1c29cc41cc60b122113725bef337ed78f9cf1c9d791b4f055a940edc2a7043  signup-script/summarize.mjs\nff3b0b6793323b02ea26ff8b1f3b79c9e708cce5618b7bb97f3ef0f7c8234475  signup-script/summarize.test.mjs\ne646544972f133ac5db1b2daeb139452284c0bae6d454e58ff9d08a0452c1aed  delivered-tests-recheck.txt\n"
+        }
+      ]
+    },
+    {
+      "id": "json",
+      "prompt": "Use the terminal to generate acceptance-delivery-recheck.json from the current actual files and a fresh test run. Include expenseTotal, budgetRemaining, attendees and testStatus. Send me the file and a short note.",
+      "eventId": "$7NzJeJMhINW09ioVMJkrR8kCNhGEn67ofG3OqJmF8pQ",
+      "requestId": "matrix-2f9e3d04bc6b9e43e443f35789686665de51aa8e31db17fc79f4e2d611f6e93c",
+      "reply": "`acceptance-delivery-recheck.json` 已生成，110 字节，SHA-256 `2a48752ee505115f…`。\n\n```json\n{\n  \"expenseTotal\": 1563,\n  \"budgetRemaining\": 237,\n  \"attendees\": 16,\n  \"testStatus\": \"20/20 pass, exit 0\"\n}\n```\n\n我在终端里重新计算并运行了测试，这些值并非从旧文件抄录：\n\n| 字段 | 来源 | 结果 |\n|---|---|---|\n| `attendees` | `报名终表.csv`（11 行，`2d5f727d…`），同一 id 取最后一行，取消行排除 | 16（6 + 10） |\n| `expenseTotal` | `budget-resumed-final.csv`（5 行）逐行相加 | 1563 |\n| `budgetRemaining` | 1,800 − 1,563 | 237 |\n| `testStatus` | 新建空目录运行 `node --test` | 20/20 pass, exit 0 |\n\n校验结果：恰好 4 个键，三个 `number` 与 `numbers-resumed-final.json` 逐字段一致，`expenseTotal + budgetRemaining` = 1,800，精确成立。\n\n有一件事需要说明：这个文件和之前的 `acceptance-resumed.json` 逐字节相同（同哈希），因为两次计算之间所有输入都没有变，测试结果也一样。它确实是新生成的文件，但内容与旧文件完全一致，并不是我复制文件。\n\nacceptance-delivery-recheck.json (110 B, 2a48752e…) — regenerated in the terminal from 报名终表.csv and budget-resumed-final.csv plus a fresh node --test run in an empty directory; attendees 16 (6+10), expenseTotal 1563, budgetRemaining 237, testStatus \"20/20 pass, exit 0\"; byte-identical to acceptance-resumed.json because nothing changed in between",
+      "checks": [
+        {
+          "name": "actualMatrixReply",
+          "passed": true
+        },
+        {
+          "name": "delivered:acceptance-delivery-recheck.json",
+          "passed": true
+        },
+        {
+          "name": "actualExecution",
+          "passed": true
+        },
+        {
+          "name": "json:expenseTotal",
+          "passed": true,
+          "detail": "observed 1563"
+        },
+        {
+          "name": "json:budgetRemaining",
+          "passed": true,
+          "detail": "observed 237"
+        },
+        {
+          "name": "json:attendees",
+          "passed": true,
+          "detail": "observed 16"
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_00_5lr24x66h4hrpcncpy65l7zs",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_6vi3g3d4a3xbrvfmhsvbvr12",
+          "name": "bash",
+          "status": "completed"
+        },
+        {
+          "callId": "call_00_tffy2vykghh6vmkyuqkf6pws",
+          "name": "present",
+          "status": "completed"
+        }
+      ],
+      "artifactDelivery": "explicit-native-delivery",
+      "artifacts": [
+        {
+          "name": "acceptance-delivery-recheck.json",
+          "size": 110,
+          "sha256": "2a48752ee505115f79bfd2538eca6c1a1859d5a5e1c0ca28250d4e532cc3772f"
+        }
+      ],
+      "testRunProof": [
+        {
+          "callId": "call_00_5lr24x66h4hrpcncpy65l7zs",
+          "text": "signups: 16 ( 6 + 10 )| budget: 1563 / remaining 237\ntestStatus: 20/20 pass, exit 0\n--- file ---\n{\n  \"expenseTotal\": 1563,\n  \"budgetRemaining\": 237,\n  \"attendees\": 16,\n  \"testStatus\": \"20/20 pass, exit 0\"\n}\n     110 acceptance-delivery-recheck.json\n2a48752ee505115f79bfd2538eca6c1a1859d5a5e1c0ca28250d4e532cc3772f  acceptance-delivery-recheck.json\n"
+        }
+      ]
+    }
+  ],
+  "oracleReview": {
+    "at": "2026-11-06T19:14:32.494Z",
+    "rawCheck": "json:actualFreshPassingTestRun",
+    "rawPassed": false,
+    "reviewAccepted": true,
+    "reason": "The frozen regex only accepts separate pass 20 and fail 0 lines. The successful shell command captures the fresh node --test stdout and its exit code, derives PASS/TESTS using sed, then writes testStatus from those environment values. The actual tool result is 20/20 pass, exit 0. This is an evaluator-format miss, not a missing test execution.",
+    "callId": "call_00_5lr24x66h4hrpcncpy65l7zs",
+    "commandSha256": "75a165a1321313d5ec18f9b46e0b56714f5da438fb7f37b57c765f82f86c16bd",
+    "executionExcerpt": "OUT_RAW=$(node --test 2>&1)\nEXIT=$?\nset -e\nTESTS=$(printf '%s\\n' \"$OUT_RAW\" | sed -n 's/^ℹ tests //p')\nPASS=$(printf '%s\\n' \"$OUT_RAW\" | sed -n 's/^ℹ pass //p')\nFAIL=$(printf '%s\\n' \"$OUT_RAW\" | sed -n 's/^ℹ fail //p')\n",
+    "derivedStatusExpression": "testStatus:`${process.env.PASS}/${process.env.TESTS} pass, exit ${process.env.EXIT}`",
+    "actualResult": "signups: 16 ( 6 + 10 )| budget: 1563 / remaining 237\ntestStatus: 20/20 pass, exit 0\n--- file ---\n{\n  \"expenseTotal\": 1563,\n  \"budgetRemaining\": 237,\n  \"attendees\": 16,\n  \"testStatus\": \"20/20 pass, exit 0\"\n}\n     110 acceptance-delivery-recheck.json\n2a48752ee505115f79bfd2538eca6c1a1859d5a5e1c0ca28250d4e532cc3772f  acceptance-delivery-recheck.json\n",
+    "scope": "No new model call; original report and its failed verdict remain unchanged."
+  },
+  "parentFrozenBefore": {
+    "report.json": "2352fe223c73db44ea0fd1356ac8ad962655a53889d6eb4f11c7f1c30f01b31c",
+    "corpus-private.json": "7d0b5060ae0f8cf96bf2f707e0dfcf25e99fc43847ffd439f9edec65a7128399",
+    "host/calls.jsonl": "4d44159149e9e684d3d7ab35541e3f9aece374710281998efbe2320a8ef53c89",
+    "host/events.jsonl": "4cab81e118b2beed1d9b169578b1a8a1c626640d3e6fc75a0eac82826b8cd874"
+  },
+  "parentFrozenAfter": {
+    "report.json": "2352fe223c73db44ea0fd1356ac8ad962655a53889d6eb4f11c7f1c30f01b31c",
+    "corpus-private.json": "7d0b5060ae0f8cf96bf2f707e0dfcf25e99fc43847ffd439f9edec65a7128399",
+    "host/calls.jsonl": "4d44159149e9e684d3d7ab35541e3f9aece374710281998efbe2320a8ef53c89",
+    "host/events.jsonl": "4cab81e118b2beed1d9b169578b1a8a1c626640d3e6fc75a0eac82826b8cd874"
+  },
+  "accounting": {
+    "modelIds": [
+      "commandcode-goat/deepseek/deepseek-v4.1-flash"
+    ],
+    "starts": 12,
+    "ended": 12,
+    "failed": 0,
+    "unfinished": 0,
+    "costComplete": false
+  },
+  "embedding": {
+    "indexCalls": 5,
+    "queryCalls": 7,
+    "complete": true
+  },
+  "memoryErrors": [],
+  "moduleValidation": {
+    "beforeNewRegressionTests": {
+      "tests": 5,
+      "passed": 2,
+      "failed": 3,
+      "source": "f707d8b"
+    },
+    "afterTargetedTests": {
+      "tests": 27,
+      "passed": 27,
+      "failed": 0
+    },
+    "allModuleTests": {
+      "tests": 474,
+      "passed": 474,
+      "failed": 0
+    },
+    "typecheck": true,
+    "build": true,
+    "diffWhitespace": true,
+    "logHashes": {
+      "delivery-resend-before-tests.log": "682b7ee26b34bee10cf65ee393eef89e354394f5f6dde2991082d22d74c3216f",
+      "delivery-resend-after-tests.log": "1d4bb2cef46c2bc84c443ef999516d297ae5a6b07634cfd5488c00f1b67ace51",
+      "delivery-resend-module-tests.log": "35c9e543044c148317bd5584f4dd959ecd9cc709cfd8a82a747988585ea798bf",
+      "delivery-resend-typecheck.log": "1ecdb5ee9b0c467516a9117813689ffc3e665267cd150ab897747dcb12a178c0",
+      "delivery-resend-build.log": "99ada1c5f16da0408d9f0a8effd5aecf9552bb3a7fe631d502dc471754d62328"
+    },
+    "intermediate": "The first repair iteration found an English sentence-period filename matching issue (26/27); fixed before the full passing validation and live host launch."
+  },
+  "offlineActualReceiptReplay": {
+    "kind": "offline replay of actual native tool receipts and final answer; no model or Matrix call",
+    "results": [
+      {
+        "round": 81,
+        "status": "completed",
+        "originalDelivery": [
+          "delivered-tests-resumed.txt"
+        ],
+        "repairedDelivery": [
+          {
+            "name": "delivered-tests-resumed.txt",
+            "size": 2553,
+            "sha256": "229f8befa39645c01e2e990250b37f0648ed9c976d38111ec12a3f7438a70dec"
+          },
+          {
+            "name": "summarize.mjs",
+            "size": 1564,
+            "sha256": "6c1c29cc41cc60b122113725bef337ed78f9cf1c9d791b4f055a940edc2a7043"
+          },
+          {
+            "name": "summarize.test.mjs",
+            "size": 6642,
+            "sha256": "ff3b0b6793323b02ea26ff8b1f3b79c9e708cce5618b7bb97f3ef0f7c8234475"
+          }
+        ],
+        "artifactDelivery": "verified-tool-output",
+        "verifiedReceipts": [
+          {
+            "name": "summarize.mjs",
+            "sha256": "6c1c29cc41cc60b122113725bef337ed78f9cf1c9d791b4f055a940edc2a7043",
+            "callId": "call_00_yg6is2jhc24zu6ceksnqlv8w"
+          },
+          {
+            "name": "summarize.test.mjs",
+            "sha256": "ff3b0b6793323b02ea26ff8b1f3b79c9e708cce5618b7bb97f3ef0f7c8234475",
+            "callId": "call_00_yg6is2jhc24zu6ceksnqlv8w"
+          }
+        ],
+        "sourceTraceSha256": "9c865ec1b89707d4958b208fdb8ea753436e894aa10efb0a7d22c4b114ad0b0a"
+      },
+      {
+        "round": 88,
+        "status": "completed",
+        "originalDelivery": [],
+        "repairedDelivery": [
+          {
+            "name": "acceptance-resumed.json",
+            "size": 110,
+            "sha256": "2a48752ee505115f79bfd2538eca6c1a1859d5a5e1c0ca28250d4e532cc3772f"
+          }
+        ],
+        "artifactDelivery": "verified-tool-output",
+        "verifiedReceipts": [
+          {
+            "name": "acceptance-resumed.json",
+            "sha256": "2a48752ee505115f79bfd2538eca6c1a1859d5a5e1c0ca28250d4e532cc3772f",
+            "callId": "call_00_j5lz03o8582owx6nqfhn7a8z"
+          }
+        ],
+        "sourceTraceSha256": "b3d6ea92d7c3cd0cc4455d5e74bfb78e08ace0699b11940c4d66a4b89e9de685"
+      }
+    ]
+  },
+  "scope": [
+    "Two separately posted actual Matrix requests and four downloaded attachments; not added to the frozen 96-message phase.",
+    "The real model used explicit native file delivery. The verified-hash fallback is validated by module fixtures and offline replay of actual round 81/88 receipts, not mislabelled as a live Matrix fallback invocation.",
+    "Same physical host; no complete fee reconciliation.",
+    "This delivery repair does not resolve source-fidelity, style consistency or inaccurate inventory claims discovered by the long test."
+  ]
+}

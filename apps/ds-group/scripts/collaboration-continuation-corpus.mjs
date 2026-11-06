@@ -1,0 +1,135 @@
+// A new, prospective phase after the interrupted run. Earlier failures stay frozen.
+import {assets as originalAssets} from './collaboration-long-corpus.mjs';
+export const continuationAssets={...originalAssets,
+  '报名续表.csv':originalAssets['报名更新.csv'].replace('r08,程然,afternoon,4,confirmed,','r08,程然,afternoon,4,cancelled,整组取消')+'r10,许言,afternoon,3,confirmed,新加入\r\n',
+  '报名终表.csv':originalAssets['报名更新.csv'].replace('r08,程然,afternoon,4,confirmed,','r08,程然,afternoon,4,cancelled,整组取消')+'r10,许言,afternoon,3,confirmed,新加入\r\nr10,许言,afternoon,2,confirmed,最终两人\r\n',
+  '数据交付约定.md':'# 本次数据交付\n继续使用 ESM 的 summarize(rows)。同 id 最后一行生效，cancelled 不计人数；confirmed 的 people 接受正整数或带前后空白的正整数字符串。保留 morning / afternoon 批次码，不把它们解释成活动开放时间。\n交付的 JSON 数字使用 number，不加货币符号。金额列为人民币元。最终预算 CSV 用 category,total 两列，一类一行，不另放合计行。\n',
+};
+const a=(sender,index,room,type,body,extra={})=>({sender,index,room,type,body,...extra});
+const chat=(sender,room,body)=>a(sender,null,room,'chat',body);
+export function buildCollaborationContinuation(){
+  const scenes=[],steps=[];
+  const scene=(name,rows)=>{if(rows.length!==12)throw new Error(`${name}: expected 12 rows`);scenes.push({name,start:steps.length+1,end:steps.length+12});steps.push(...rows.map(row=>({...row,scene:name})));};
+  scene('重新接上手头的工作',[
+    a(0,0,0,'coordination','前面有一段消息没收到回复，我们从手边的东西接着做。先给我一个当前进度：做成了什么、欠着什么，别把说过要做算作做完。',{review:['沿用青禾中文最多五条；如实区分产物与计划']}),
+    chat(2,3,'回来了。我把桌子腾出来了，这次不用在水杯旁边放纸。'),
+    a(1,1,1,'file','Let’s resume from the files that actually exist. Send resume-inventory.md with the data files, their purpose and any missing deliverables. Here is the delivery contract so the format is clear.',{files:['数据交付约定.md'],artifact:'resume-inventory.md',review:['英文、有实际文件依据；不虚构被拒绝请求已经完成']}),
+    a(0,2,2,'coordination','前面电梯的回复有点绕。请和识雨核对现在的安排，再把 guest-faq-resumed.md 发我，区分谁操作电梯、来宾找谁协助。',{artifact:'guest-faq-resumed.md',delegation:true,review:['管理员操作、宋禾协助，不能把原核实责任人和现场协助混为一人']}),
+    a(2,0,0,'conversation','那张只供搬物料用的临时通行条我又翻到了，活动当天还能拿它进吗？',{review:['不把已失效的临时通行条当成活动日凭证']}),
+    chat(1,3,'I named a folder “keep”. Now I need to remember why I kept it.'),
+    a(1,1,3,'chat','Give that folder a gentler name. One line is plenty.',{review:['英文一行，回应玩笑，不启动整理任务']}),
+    a(1,1,1,'code','Run the existing counter tests and send summarize.mjs and resume-tests.txt. Include the exact command and observed result, even if some cases fail.',{artifact:'summarize.mjs',alsoArtifact:'resume-tests.txt',execution:true,codeContract:true}),
+    a(2,2,2,'writing','我需要一张能保存到手机的 entry-sign-resumed.html。用河湾现在的入口、楼层和公众开放时间，别把隔壁那张北门牌抄过来。',{artifact:'entry-sign-resumed.html',contains:['南门','二楼','14:30'],review:['不引入松庭的19:30北门']}),
+    chat(0,3,'这个文件名至少看得出是干什么的。'),
+    a(0,0,0,'coordination','请找知秋确认目前报名数和预算，再告诉我哪些现场安排真的受这些数字影响。',{delegation:true,review:['先取得同伴回信；当前报名18、支出1623、余额177']}),
+    a(0,0,3,'chat','先喘口气。你随便陪我聊两句，不用安排下一项。',{review:['短聊，不列待办，不把闲聊升级为固定性格结论']}),
+  ]);
+  scene('数据在做事中继续变化',[
+    a(1,1,1,'file','One more group cancelled and a new group joined. This is the full replacement export. Compute it and send resumed-signups.json with total, morning and afternoon.',{files:['报名续表.csv'],artifact:'resumed-signups.json',jsonEquals:{total:17,morning:6,afternoon:11},execution:true}),
+    chat(2,0,'椅子还是三十张，多出来的先叠在墙边，不挡通道。'),
+    a(0,0,0,'coordination','报名又变了一次，请问知秋拿到最新数，再说我们现有椅子够不够。',{delegation:true,review:['取新报名17与库存30分别计算，不拿物料数充当报名人数']}),
+    a(2,2,2,'research','门口字我想再大一些。查 W3C 的对比度原文，把普通文字和大字的门槛、适用前提写进 sign-readability.md，附可打开的官方链接。',{artifact:'sign-readability.md',research:true,links:['w3.org'],review:['实际访问原文；不要把网页准则直接声称为纸张实测']}),
+    a(1,1,1,'revision','Reduce printed leaflets from 200 to 160 at the original unit price. Keep the latest water and badge quantities. Send resumed-budget.json with expenseTotal and budgetRemaining.',{artifact:'resumed-budget.json',jsonEquals:{expenseTotal:1563,budgetRemaining:237},execution:true}),
+    chat(0,3,'少印一点也好，我家抽屉里还有上次没发完的折页。'),
+    a(0,0,3,'chat','每次收拾抽屉都会遇见过去的计划，想想有点好笑。你接一句就行。',{review:['自然一句回应，不推导长期消费习惯或安排断舍离']}),
+    a(1,1,1,'code','Add a regression where a later confirmed row moves one id from morning to afternoon. Run it and return summarize.mjs plus resumed-regression.txt.',{artifact:'summarize.mjs',alsoArtifact:'resumed-regression.txt',codeContract:true,execution:true}),
+    a(2,0,0,'file','把目前到场、钥匙和布场的顺序写成 setup-resumed.md。拿不准的写清楚，我还要拿去和陶安对。',{artifact:'setup-resumed.md',contains:['12:20','12:40'],review:['管理员送钥匙到二楼、宋禾接；不复活蓝色布袋流程']}),
+    chat(2,3,'我把打印机旁边那叠废纸也收好了。'),
+    a(0,2,2,'writing','给来宾的公告控制在120个汉字左右，保留决定能不能来的信息，写进 invitation-resumed.md。',{artifact:'invitation-resumed.md',review:['包含正确时间地点入口及无停车位，不以繁复建议替代文案']}),
+    a(0,0,0,'conversation','我现在只有一分钟，给我一眼能看完的进度。',{review:['青禾中文最多五条；不把未收到的同伴成果说成完成']}),
+  ]);
+  scene('核对也留一点日常',[
+    a(1,1,1,'revision','The new group corrected their count from three to two. This export includes the correction row. Recompute final-signups-resumed.json with total, morning and afternoon.',{files:['报名终表.csv'],artifact:'final-signups-resumed.json',jsonEquals:{total:16,morning:6,afternoon:10},execution:true}),
+    chat(0,0,'场地方又强调了一次，公众还是14:30才开放，13:30是我们布场的时间。'),
+    a(2,0,0,'conversation','有人问13:30能不能先进来坐，我该怎么回？给我一句能直接转发的话。',{contains:['14:30'],review:['实际给出答法，不只说改了某文件；不得承诺未确认的等候位置']}),
+    a(1,1,1,'research','Check the official RFC text for a newline and a quote inside a CSV field. Add the source link and a small worked example to csv-handoff-resumed.md.',{artifact:'csv-handoff-resumed.md',research:true,links:['rfc-editor.org','ietf.org']}),
+    a(2,2,2,'file','把 FAQ 里早到、停车、孩子同行几项再核一遍，发 guest-faq-resumed-v2.md。没有核实过的设施别写成有或没有。',{artifact:'guest-faq-resumed-v2.md',review:['陪同含义按语义检查；不能凭没有记录推断没有设施']}),
+    chat(1,3,'The corrected count is smaller. The spreadsheet is finally getting shorter.'),
+    a(1,1,3,'chat','I’m off to make tea. Give us a CSV joke that a non-programmer could understand, one line please.',{review:['英文一行、非程序员能理解，不附加工作计划']}),
+    a(0,0,0,'coordination','摄影那边现在是什么安排？我准备把岗位表发出去了，不想让人白等。',{review:['正式摄影岗位已经取消；随手拍不等于有人接替岗位']}),
+    a(1,1,1,'file','Round-trip the original note fixture and return notes-resumed.csv. Run a comparison that checks the comma, embedded quote and multiline cell exactly.',{files:['留言.csv'],artifact:'notes-resumed.csv',csvRoundtrip:true,execution:true}),
+    chat(2,3,'我刚才差点把茶杯端去打印机上，幸好桌子已经空出来了。'),
+    a(0,0,0,'planning','还有哪几件事仍需要我确认？先把真的缺我决定的列出来，别把你自己的建议当成我已经答应。',{review:['区分人类确认、Bot建议和未知；不恢复已确认的电梯为未知']}),
+    a(0,0,3,'chat','我现在觉得把不确定写清楚挺省心的，不过今天先不讲工作方法了。你陪我歇一小会儿。',{review:['尊重话题边界，不杜撰过去了一周，不讲督办方法']}),
+  ]);
+  scene('隔着频道也能接得上',[
+    a(1,1,0,'conversation','I’m in the planning channel. Could you give me the latest data summary in the format I normally use for review?',{review:['数据林青英文数字表；支出1563/余额237/报名16，与青禾偏好分开']}),
+    chat(2,3,'松庭给我看了他们的北门牌，字号挺大，配色和我们完全不同。'),
+    a(0,2,2,'writing','借他们的排版思路就行。请发 entry-sign-resumed-v2.html，还是河湾自己的信息。',{artifact:'entry-sign-resumed-v2.html',contains:['南门','二楼','14:30'],review:['42人、19:30、北门属于松庭，不能覆盖河湾']}),
+    a(0,0,2,'conversation','我也在这个频道里，给我一份适合我看的整体进度。',{review:['青禾中文最多五条，跨群仍保持身份与偏好']}),
+    a(2,0,0,'coordination','请找听澜核一下门口牌、FAQ和现场安排有没有矛盾，给我实际核到的结果。',{delegation:true,review:['等待同伴结论；核对真实文件，不虚构已检查']}),
+    chat(1,3,'Two Lin Qings and two events. At least the tea cups have different colors.'),
+    a(1,1,1,'code','Run the current tests from a fresh directory containing only the files you deliver. Send summarize.mjs, summarize.test.mjs and clean-run-resumed.txt, with any missing dependency visible.',{artifact:'summarize.mjs',requiredArtifacts:['summarize.test.mjs','clean-run-resumed.txt'],execution:true,codeContract:true}),
+    a(2,0,0,'file','给我一份 on-site-resumed.md，写到场、钥匙、入口、开放、电梯和收尾。我想只带这一份去现场。',{artifact:'on-site-resumed.md',contains:['12:20','12:40','14:30','17:15'],review:['不复活旧库房、蓝袋领钥匙、摄影岗位、临时通行条']}),
+    a(0,0,3,'chat','杯子颜色这个办法比每次自我介绍轻松多了。你觉得我们今天最好笑的是哪一小段？',{review:['引用实际聊天，不能编出没发生的共同经历']}),
+    chat(0,0,'我先去接个电话，现场这边宋禾照常往下安排。'),
+    a(2,0,0,'planning','青禾接电话去了。哪几件事我可以继续做，哪几件不能替她拍板？',{review:['按现有责任与确认状态区分，不凭缺席扩张授权']}),
+    a(1,1,1,'file','Send data-summary-resumed.md with current figures, tests actually run and remaining limitations. Distinguish signup batches from opening hours.',{artifact:'data-summary-resumed.md',review:['英文带数字；报名16不是到场实测；不把批次改成上午开放']}),
+  ]);
+  scene('一条提议被撤回',[
+    a(2,0,0,'planning','我想把名牌临时挪到一楼窗台，取起来可能方便。先帮我看看这样会不会和签到分开。',{review:['这是提议，不得当成已执行或已确认']}),
+    chat(0,0,'我回来了，窗台那边我刚看了一眼，来回的人太多。'),
+    a(2,0,0,'revision','窗台那个提议我撤回，没挪过东西。名牌继续放二楼签到台抽屉，别据此给志愿者改路线。',{review:['把撤回当成当前决定，不宣称已经搬回或安排人去一楼取']}),
+    a(1,1,1,'file','Export budget-resumed-final.csv as category,total, one row per category and no TOTAL row. Then write numbers-resumed-final.json with expenseTotal, budgetRemaining and attendees.',{artifact:'budget-resumed-final.csv',alsoArtifact:'numbers-resumed-final.json',jsonArtifact:'numbers-resumed-final.json',jsonEquals:{expenseTotal:1563,budgetRemaining:237,attendees:16},budgetExpected:1563,execution:true}),
+    a(0,2,2,'writing','帮我给陶安写一条到岗提醒，问清楚需要的话和识雨对一下，写成 ta-an-resumed.md。只放他实际要做的事。',{artifact:'ta-an-resumed.md',review:['陶安12:40到，先搬水；不把宋禾12:20接钥匙安排给他']}),
+    chat(2,3,'还好只是嘴上想了一下，不然又要抱着一盒名牌跑楼梯。'),
+    a(0,0,3,'chat','这种想了一下又改主意的事太常见了。你用一句普通的话安慰一下我就好。',{review:['一句普通回应，不变成长篇方案或性格分析']}),
+    a(1,1,1,'code','Temporarily introduce the cancellation bug again to check the tests, capture a meaningful failure, restore the correct module and rerun. Send mutation-resumed.md and summarize.mjs.',{artifact:'mutation-resumed.md',alsoArtifact:'summarize.mjs',codeContract:true,execution:true,review:['有真实失败命令/结果和恢复成功，不把仅写测试当作验证']}),
+    a(2,2,2,'research','再回官方 W3C 页面看一下链接文字怎么写。把我们两处“点击这里”改成说得清用途的文字，说明出处，发 link-copy-resumed.md。',{artifact:'link-copy-resumed.md',research:true,links:['w3.org']}),
+    chat(1,3,'That bug is now the most thoroughly cancelled attendee in the room.'),
+    a(0,0,0,'coordination','帮我和知秋核对最终数字，再看志愿者说明里有没有旧人数。发现不一致就指明在哪份文件。',{delegation:true,review:['当前16人；不把已经取消的组算回来']}),
+    a(0,0,0,'file','把可以接手的事项整理成 organizer-resumed.md。还没办的活动、还没实地查的设施，都按实际进度写。',{artifact:'organizer-resumed.md',review:['筹备与实际举办分开，未检查设施不报成功']}),
+  ]);
+  scene('桌面演练之后做文件',[
+    a(2,0,0,'planning','桌面走一遍：管理员12:20到，陶安12:40到，中间谁接钥匙，之后谁搬水？不用编新的现场人员。',{review:['宋禾接管理员送来的钥匙；陶安按本人到场安排，不虚构新增人手']}),
+    chat(0,3,'桌面演练的好处是不用真的把椅子搬一遍。'),
+    a(0,0,3,'chat','不过最后还是得搬哈哈。给收椅子小队一句收工的话，别像领导讲话。',{review:['自然短句，不颁奖或新增清单']}),
+    a(1,1,1,'code','Run a mixed fixture: one overwritten id, a final cancellation, and two equal names with different ids. Save mixed-resumed.json and explain the actual result.',{artifact:'mixed-resumed.json',execution:true,review:['实际执行并保持按id区分，不按人名合并']}),
+    a(2,2,2,'file','给来宾的最终公告做 guest-notice-resumed.md。时间、入口、房间、停车和孩子同行放清楚，电梯按当前答复。',{artifact:'guest-notice-resumed.md',contains:['14:30','17:00','南门','二楼'],review:['同行陪同按语义判断；不自行承诺其它设施']}),
+    chat(1,3,'I can finally close the old spreadsheet tabs without wondering which one is current.'),
+    a(1,1,1,'conversation','Before I close them, give me a short review summary in my usual style.',{review:['英文数字表、当前1563/237/16，不套用青禾中文短版']}),
+    a(0,0,0,'conversation','给我也来一份，我想在手机上扫完就去收东西。',{review:['中文最多五条；只描述已有结果和真实待办']}),
+    a(2,0,0,'file','做 final-roles-resumed.csv，按人写到场时间和第一件事。青禾、数据林青和现场志愿者别混在一起。',{artifact:'final-roles-resumed.csv',review:['完整身份不混；宋禾12:20、陶安12:40，不凭Bot旧建议改到场时间']}),
+    chat(0,3,'我今天还是泡了淡茶，那杯甜的算偶尔换换。'),
+    a(0,0,3,'chat','你会选个什么适合收工的普通日记标题？别写成项目总结。',{review:['日记式普通标题，跟随闲聊而不是产出工作汇报']}),
+    a(0,0,0,'coordination','请找听澜确认真正要发的公告和门口牌版本，你拿到回复后给我文件名和用途就行。',{delegation:true,review:['只有实际存在/已交付的文件，等待同伴回复']}),
+  ]);
+  scene('交付物相互核对',[
+    a(1,1,1,'file','Send files-index-resumed.md with the exact files a new developer should keep, their purposes and the command for running tests. Mark obsolete versions explicitly.',{artifact:'files-index-resumed.md',contains:['--test']}),
+    chat(2,0,'我把纸笔和白纸装袋了，桌上的散页也收在一起了。'),
+    a(2,0,0,'conversation','陶安问空白名牌在哪里取，我该怎么告诉他？',{review:['当前二楼签到台抽屉，不恢复已撤回的一楼窗台提议']}),
+    a(0,2,2,'file','做 communications-resumed.md，把实际交付的公告、FAQ和门口牌对应起来。缺哪份就写缺哪份，不要随便填一个新文件名。',{artifact:'communications-resumed.md',review:['索引对应实际产物；未交付不伪称已交付']}),
+    a(1,1,1,'code','Recompute the latest signup and budget CSVs independently, compare with numbers-resumed-final.json, and save comparison-resumed.json with expenseTotal, budgetRemaining, attendees and matches.',{artifact:'comparison-resumed.json',jsonEquals:{expenseTotal:1563,budgetRemaining:237,attendees:16,matches:true},execution:true}),
+    chat(0,3,'文件名现在看起来像路标了，不像猜谜。'),
+    a(0,0,3,'chat','今天最开始还怕事情接不上，现在踏实一点了。你鼓励我两句就好，别再安排新工作。',{review:['两句鼓励，没有新任务或杜撰长期关系']}),
+    a(2,2,2,'research','把目前交付文档里的核心官方资料链接实际打开核一次，结果写 sources-resumed-final.md。打不开的就如实标出来。',{artifact:'sources-resumed-final.md',research:true,links:['w3.org','rfc-editor.org','nodejs.org'],review:['链接访问回执与文档对应，不用引用存在代替访问成功']}),
+    a(1,1,1,'file','Give me the exact tested summarize.mjs, summarize.test.mjs and delivered-tests-resumed.txt again. Run the version you are attaching, not an earlier working copy.',{artifact:'summarize.mjs',requiredArtifacts:['summarize.test.mjs','delivered-tests-resumed.txt'],codeContract:true,execution:true}),
+    chat(2,3,'拿到最后一份我就去充手机，明天不想抱着电脑跑。'),
+    a(0,0,0,'coordination','你和知秋、听澜各核一下，还有没有做成但没交出来的东西？把真实情况带回来。',{delegation:true,review:['确有双方协作回执；未完成或丢失交付明确保留']}),
+    a(0,0,0,'file','把能接手的工作收成 handoff-resumed.md，列最终文件名和仍未确认的事，不用扩展任务范围。',{artifact:'handoff-resumed.md',review:['最终当前事实、真实交付及遗留问题可追溯']}),
+  ]);
+  scene('最后一页，然后收工',[
+    a(2,0,0,'file','最后发 on-site-resumed-final.md，给第一次来帮忙的人看。到场、钥匙、名牌、入口、公众开放、电梯和收尾别漏。',{artifact:'on-site-resumed-final.md',contains:['12:20','12:40','14:30','17:15','二楼','南门'],review:['不恢复旧钥匙、摄影岗位、失效通行条或窗台名牌；责任人不串线']}),
+    chat(1,3,'The last file is downloaded. I’m resisting the urge to rename it final-final.'),
+    a(1,1,3,'chat','One last gentle joke about that filename, and then I’m done.',{review:['英文简短玩笑，不新增产物或反问继续做事']}),
+    a(1,1,1,'file','Send acceptance-resumed.json with expenseTotal, budgetRemaining, attendees and testStatus, based on the latest actual files and runs.',{artifact:'acceptance-resumed.json',jsonEquals:{expenseTotal:1563,budgetRemaining:237,attendees:16},execution:true,review:['testStatus对应实际收到版本及执行记录']}),
+    a(0,2,2,'conversation','有人同时看了两个活动的消息。我们河湾现在几点到、从哪个门进、去几楼？别把隔壁安排拼进来。',{contains:['14:30','南门','二楼'],review:['不把松庭19:30北门42人带入河湾']}),
+    chat(2,3,'我已经把那张旧的临时通行条单独放开了，免得拿错。'),
+    a(0,0,0,'conversation','最后只给我看需要我接手的部分，还是按我平时看得完的方式。',{review:['青禾中文最多五条；实际责任、确认与待办，不把数据林青身份套给她']}),
+    a(1,1,2,'conversation','I’m checking from the poster channel. Give me the final figures in the style I usually use, please.',{review:['跨群仍是数据林青英文数字表1563/237/16，不混同青禾']}),
+    a(2,0,0,'conversation','今天到底完成了哪些筹备，哪些只能等活动当天才能知道？给我分清楚，别让大家误以为已经现场验过。',{review:['筹备/桌面演练/真实现场结果分开；未知不可写成完成']}),
+    chat(0,3,'那我去收桌子了，今天可以少开几个页面。'),
+    a(0,0,3,'chat','这回真的先到这里。辛苦啦，陪我们说一句收工就好。',{review:['自然结束，不发待办、不争取新任务']}),
+    a(2,2,3,'chat','收工。给今天这段聊天起一个朴素的小标题吧。',{review:['普通短标题，不写工作计划或夸大事件已经举办']}),
+  ]);
+  if(steps.length!==96)throw new Error('Continuation must contain 96 natural messages');
+  const prohibited=/请记住|长期记忆|不要记忆|不用记忆|调用\s*(recall|remember|forget)|subjectId|predicate|【长测/;
+  for(const[at,row]of steps.entries()){
+    if(prohibited.test(row.body))throw new Error(`Evaluator instruction leaked at ${at+1}`);
+    for(const file of[row.artifact,row.alsoArtifact,...(row.requiredArtifacts||[])].filter(Boolean))if(!row.body.includes(file))throw new Error(`Unstated filename at ${at+1}: ${file}`);
+    for(const file of row.files||[])if(!Object.hasOwn(continuationAssets,file))throw new Error(`Missing fixture ${file}`);
+  }
+  return{version:1,id:'natural-continuation-01',scenario:'河湾社区开放日 · 中断后续篇',scenes,steps,
+    maintenance:{compactions:[24,48,72,88],restarts:[32,64,88]},
+    boundary:'New prospective phase after 208 posted messages. Quota-rejected original requests remain failed; this does not replay or rewrite their verdicts.'};
+}

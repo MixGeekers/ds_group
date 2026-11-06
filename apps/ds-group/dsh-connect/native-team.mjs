@@ -16,9 +16,10 @@ export async function startNativeTeam(ctx) {
   } });
   ctx.effect(() => () => hooks.deregister(), 'dscord: native dependency resolution');
   const { createRuntime } = await import('../vendor/ds-bot/index.js');
+  const { installNativeMemory } = await import('../memory/native.mjs');
   const { apply: applySearch } = await import('../vendor/ds-bot/web-search.js');
   ctx.inject(['web'], scope => {
     if (!scope.web.searchProviders.has('auto')) applySearch(scope);
   });
-  return createRuntime(ctx);
+  return createRuntime(ctx, { memoryBackend: installNativeMemory });
 }

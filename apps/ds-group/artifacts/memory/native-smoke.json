@@ -1,0 +1,110 @@
+{
+  "startedAt": "2026-11-06T04:38:06.940Z",
+  "finishedAt": "2026-11-06T04:41:44.859Z",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "status": "passed",
+  "checks": [
+    "realModelRememberAndAutoReview",
+    "nativeCompaction",
+    "restartSameBotIdentity",
+    "semanticRecallAfterCompactionAndRestart",
+    "disconnectedNativeChatRetainsMemory"
+  ],
+  "run": "memory-native-FkTRVO",
+  "rawReportSha256": "d0bb6f1bce35b44e38ab01c953f7770adb5e4f15650f4a2d9f5a3f53e54021f9",
+  "evidenceLevel": "real local DSH and native DS-Bot; synthetic Matrix envelope; actual remote generation and local embeddings",
+  "turns": [
+    {
+      "text": "记下了，林青：河湾项目离线备份标签「苍鹭-8472」，在蓝色硬盘。",
+      "status": "completed",
+      "sessionId": "session-77fa865f-19ed-4dea-969d-9f1a9856cd3f",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 858,
+            "outputTokens": 210,
+            "totalTokens": 16172,
+            "cacheReadTokens": 15104
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 14601,
+            "outputTokens": 25,
+            "totalTokens": 17058,
+            "cacheReadTokens": 2432
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_b755212ec00e43d4b82f6f7c",
+          "name": "remember",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "text": "标签是「苍鹭-8472」，存放在蓝色硬盘。",
+      "status": "completed",
+      "sessionId": "session-77fa865f-19ed-4dea-969d-9f1a9856cd3f",
+      "model": "opencode-go/deepseek-v4.1-flash",
+      "calls": [
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 14937,
+            "outputTokens": 85,
+            "totalTokens": 17582,
+            "cacheReadTokens": 2560
+          }
+        },
+        {
+          "model": "opencode-go/deepseek-v4.1-flash",
+          "kind": "generation",
+          "status": "completed",
+          "usage": {
+            "inputTokens": 17270,
+            "outputTokens": 15,
+            "totalTokens": 19717,
+            "cacheReadTokens": 2432
+          }
+        }
+      ],
+      "toolReceipts": [
+        {
+          "callId": "call_faa7b904abd34f009d108047",
+          "name": "recall",
+          "status": "completed"
+        }
+      ]
+    }
+  ],
+  "compacted": true,
+  "detachedReply": "查到了（记录来自北组）：标签「苍鹭-8472」，存放在蓝色硬盘。",
+  "sourceCount": 3,
+  "pending": [
+    {
+      "botId": "session-77fa865f-19ed-4dea-969d-9f1a9856cd3f",
+      "refs": []
+    },
+    {
+      "botId": "session-8373256c-c38d-4bf6-8e9a-2f1e5a7d7c3b",
+      "refs": []
+    },
+    {
+      "botId": "session-6f2f87dc-8055-4561-9609-4be506177480",
+      "refs": []
+    }
+  ],
+  "scopeNote": "Before later panel and temporal-contact fixes; full long run validates the subsequent source hashes."
+}

@@ -1,0 +1,16 @@
+{
+  "at": "2026-11-06T15:19:06.836Z",
+  "browser": "Codex in-app browser",
+  "url": "http://127.0.0.1:25320/?server=collaboration-live.local&roomId=!wRbhBJIo9CrGMw6apwhX5jgCLT_28siIVisNUIRLA3g&eventId=%24nUnNDVH9_477siJP-oY02w4rYCMECEbgmqOkVle3BrI",
+  "environment": "real Core and Synapse; native model host stopped at provider quota",
+  "screenshots": [
+    "collaboration-status.jpg",
+    "collaboration-files.jpg"
+  ],
+  "observed": [
+    "Observer channel shows 208 posted, 129 actual Bot replies and incomplete provider-blocked status",
+    "The room member list and conversation labels show 青禾 and 林青 as separate accounts",
+    "The actual delivered test-results.txt preview shows Node version, node --test, 19 passed tests and exit code 0"
+  ],
+  "scope": "The file preview is from natural round 145; it is not the product module test suite or a completed 240-message run. Current UI includes the post-run display-name fix. Tab retained for review."
+}

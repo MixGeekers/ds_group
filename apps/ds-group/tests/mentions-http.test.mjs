@@ -15,13 +15,14 @@ const roomId = '!group:http.test';
 test('core HTTP routes connect mention picker, roles, actual message routing, inbox and read preferences', async () => {
   const directory = await mkdtemp(path.join(os.tmpdir(), 'ds-group-mention-http-'));
   const events = [];
+  const labels = {};
   const matrix = http.createServer(async (request, response) => {
     const userId = request.headers.authorization?.slice('Bearer '.length);
     const url = new URL(request.url, 'http://localhost');
     let value;
     if (url.pathname.endsWith('/whoami')) value = { user_id: userId };
     else if (url.pathname.endsWith('/joined_rooms')) value = { joined_rooms: [roomId] };
-    else if (url.pathname.endsWith('/joined_members')) value = { joined: { [alice]: {}, [bob]: {}, [bot]: {} } };
+    else if (url.pathname.endsWith('/joined_members')) value = { joined: { [alice]: labels[alice] || {}, [bob]: labels[bob] || {}, [bot]: {} } };
     else if (url.pathname.endsWith('/m.room.name/')) value = { name: 'HTTP mentions' };
     else if (url.pathname.endsWith('/messages')) value = { chunk: [...events].reverse() };
     else if (url.pathname.includes('/send/m.room.message/')) {
@@ -63,6 +64,13 @@ test('core HTTP routes connect mention picker, roles, actual message routing, in
     assert.equal(picker.roles[0].canMention, true);
     assert.equal((await call(roomPath + '/mentionables', bob)).value.roles[0].canMention, false);
     assert.equal(picker.canMentionEveryone, true);
+    labels[alice] = { display_name: '青禾', kind: 'bot', ownerId: bob };
+    labels[bob] = { display_name: '林青' };
+    const renamed = (await call(roomPath + '/mentionables')).value;
+    assert.equal(renamed.members.find(person => person.id === alice).name, '青禾');
+    assert.equal(renamed.members.find(person => person.id === alice).kind, 'human');
+    assert.equal(renamed.members.find(person => person.id === bob).name, '林青');
+    assert.equal(renamed.canMentionEveryone, true);
     const first = await call(roomPath + '/messages', alice, { body: `<@${bot}> read this`, transactionId: 'mention-bot', to: [], mentions: { users: [bot] } });
     assert.equal(first.status, 200);
     assert.deepEqual(events[0].content['org.ds_group'].to, [bot]);
