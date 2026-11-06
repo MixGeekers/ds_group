@@ -76,6 +76,7 @@ export async function apply(ctx, config) {
       else if (action === 'flush') { for (const bot of (await native.state()).bots) await rt.memoryFlush(bot.id); value = true; }
       else if (action === 'memory') value = { entries: rt.knowledge.store.list({ history: true }), sources: rt.knowledge.store.sources(), contacts: rt.knowledge.store.contacts(), errors: rt.knowledge.errors, usage: rt.knowledge.backend?.usage };
       else if (action === 'compact') { const bot = (await native.state()).bots[input.index || 0]; await rt.memoryFlush(bot.id); value = { compacted: await rt.checkpointBot(bot.id), bot: await native.bot(bot.id) }; }
+      else if (action === 'recover-context') { const bot = (await native.state()).bots[input.index || 0]; await rt.memoryFlush(bot.id); value = { recovery: await rt.recoverContextBot(bot.id), bot: await native.bot(bot.id) }; }
       else throw new Error('Unknown visible-test action');
       await writes; return Response.json({ ok: true, value });
     } catch (error) { return Response.json({ ok: false, error: { message: error.message, stack: error.stack } }); }

@@ -19,6 +19,7 @@ import { randomUUID } from 'node:crypto'
 import { BlockAssembler, createUserMessage } from '@deepseek-ai/dsh-llm'
 import { openTurnAt } from './btw.js'
 import { HANDOFF_ACK, HISTORY_TIMEOUT_MS, REPLY_KIND, SOURCE_KIND } from './constants.js'
+import { isContextOverflow } from './context-failure.js'
 import { parseReplies, stackReplies } from '../shared/group-replies.js'
 import { CHECKPOINT_PROMPT, STEWARD_SYSTEM, checkpointCount, checkpointTail, checkpointTailNote, checkpointText, linesFor, parseDecision, stewardRequest } from './steward.js'
 import { RESUME_DELAY_MS } from './resume.js'
@@ -181,7 +182,6 @@ export function install(rt) {
   // only after a wait that grows with each failure in a row.
   const NOTE_COOLDOWN_MS = [60_000, 300_000, 900_000]
   const SWITCH_ATTEMPTS = 5
-  const OVERFLOW = 'CONTEXT_WINDOW_EXCEEDED'
   // Generic request and credential errors say nothing about the conversation.
   const STUCK_CODES = ['IMAGE_OFFLOAD_REQUIRED']
   const ORIGINAL_COMPACT = Symbol.for('ds-bot/compaction')
@@ -840,7 +840,7 @@ export function install(rt) {
     if (place === undefined || switches.has(agent.id) || readOnly()) return
     const job = { ...place, carry: [...carry], info, joined, resume, overflow, failed, bare, folder, hard, since: Date.now() }
     switches.set(agent.id, job)
-    void runSwitch(agent, job)
+    return runSwitch(agent, job)
       .catch(error => {
         const name = rt.botOf(job.botId)?.name ?? rt.roomOf(job.roomId)?.name ?? agent.id
         if (unloaded(error)) return noteInfo('ds-bot: plugin unloaded while %s switched parts; input kept in part %s', name, agent.id)
@@ -1027,7 +1027,9 @@ export function install(rt) {
     if (now !== undefined && (now.ref !== picked?.ref || now.effort !== picked?.effort)) await selectRoute({ name }, freshId, now)
     if (job.failed !== undefined) rescued.set(freshId, job.bare ? 'bare' : 'carried')
     job.moved = true
-    const resume = job.resume || job.overflow
+    // Automatic overflow callers request a continuation. Explicit idle recovery
+    // must not replay a request whose failure has already been delivered.
+    const resume = job.resume
     // Then what the old part held: the stopped turn's input, then whatever waited. It
     // moves first; only after that does the old inbox give it up, so a failure keeps it.
     const held = [...agent.inbox.nextStep, ...agent.inbox.nextTurn]
@@ -1222,7 +1224,7 @@ export function install(rt) {
   }, { prepend: true })
 
   ctx.on('agent/request-error', async (payload, next) => {
-    if (payload.failure?.code !== OVERFLOW || payload.signal?.aborted) return next()
+    if (!isContextOverflow(payload.failure) || payload.signal?.aborted) return next()
     await rt.load()
     const { agent } = payload
     if (!rt.isBotSession(agent.id) || switches.has(agent.id) || readOnly() || !await canMakeRoom(agent)) return next()
@@ -1481,6 +1483,22 @@ export function install(rt) {
       const lines = await contextLines(agent.session)
       if (!lines || !engineOf(agent)) throw new Error('Native compaction backend unavailable')
       return condense(agent, lines, { inTurn: false })
+    },
+    // Recover an already-ended overflow without trying to summarize the same
+    // oversized prefix. The native part mechanism archives it and keeps its
+    // recent messages and history lookup; the next user request starts work.
+    recoverContextBot: async botId => {
+      await rt.load()
+      if (readOnly()) throw new Error('The Bot team is read-only')
+      const agent = await rt.resolveAgent(rt.chatOf(botId))
+      await agent.whenIdle()
+      if (!isContextOverflow(lastTurnEnd(agent)?.data?.reason?.error)) throw new Error('The latest turn did not end with a context overflow')
+      if (switches.has(agent.id) || !await canMakeRoom(agent)) throw new Error('A fresh part cannot make room now')
+      const previousSessionId = agent.id
+      await startSwitch(agent, { overflow: true, resume: false })
+      const sessionId = rt.chatOf(botId)
+      if (sessionId === previousSessionId) throw new Error('Native context recovery did not move to a fresh part')
+      return { previousSessionId, sessionId, replayed: false }
     },
   })
 }

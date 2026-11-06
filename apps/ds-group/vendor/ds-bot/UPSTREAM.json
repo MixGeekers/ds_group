@@ -10,7 +10,8 @@
     { "file": "src/host/channel.js", "purpose": "Expose memory backend state and forward original DSCord message context" },
     { "file": "src/host/delivery.js", "purpose": "Preserve original memory evidence and caller Session across native Bot delegation" },
     { "file": "src/host/tools.js", "purpose": "Carry the actual caller Session into native message_bot delivery" },
-    { "file": "src/host/parts.js", "purpose": "Source-aware handoff guidance and explicit native checkpoint entry point" },
+    { "file": "src/host/parts.js", "purpose": "Source-aware handoff, explicit native checkpoint and idle overflow recovery, provider overflow fallback" },
+    { "file": "src/host/context-failure.js", "purpose": "Recognize an explicit provider token-window overflow reported as INVALID_REQUEST" },
     { "file": "src/host/steward.js", "purpose": "Preserve identity, scope and unresolved conflicting claims during compaction" },
     { "file": "client.js", "purpose": "Pass stable memory entry ID when removing a panel entry" }
   ]
