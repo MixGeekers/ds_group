@@ -1,13 +1,18 @@
 import type { Catalog } from "../locale";
 
 const en = {
+  nativeHelp: "Ask your Main Bot in DS-Bot to create and configure teammates. Sign in to DSCord in that DSH, then select an existing Bot here.",
+  nativeEmpty: "No local Bots discovered. Open DSH → DSCord and sign in with this account, then refresh.",
+  nativeBots: "Local DS-Bot team", nativeAdded: "Already added", nativeReady: "Ready to add", nativeOffline: "Open its DSH to connect",
+  nativeLifecycle: "Bots stay in their original DSH. Closing this page or disconnecting DSCord keeps their local chats, memory and tasks.",
+  refresh: "Refresh",
   modelSettings: "Model settings",
-  modelHelp: "In DSH, open DSCord → My Bots, select a DSH model and save, then connect or reconnect this Bot. Configure models in DSH model settings.",
+  modelHelp: "In DSH, open DSCord → My Bots and select a configured model. This updates the same native Bot. Manage providers in DSH model settings.",
   runtimeModel: "Running model",
-  createBot: "Create Bot",
+  createBot: "Add existing Bot",
   botName: "Bot name",
   chooseName: "Enter a Bot name",
-  creating: "Creating",
+  creating: "Adding",
   retry: "Retry creation",
   pending:
     "The creation result is awaiting confirmation. Retry to check the same request.",
@@ -25,19 +30,24 @@ const en = {
   copyFailed: "Select the Bot ID and copy it manually.",
   refreshFailed: "Bot created. The list could not refresh. {error}",
   close: "Close",
-  signIn: "Sign in to create a Bot",
+  signIn: "Sign in to add an existing Bot",
 } as const;
 
 export const botMessages: Catalog<keyof typeof en> = {
   en,
   "zh-CN": {
+    nativeHelp: "让 DS-Bot 的 Main Bot 创建并配置伙伴。在该 DSH 的 DSCord 中登录后，从这里选择已有 Bot。",
+    nativeEmpty: "尚未发现本地 Bot。请在 DSH → DSCord 登录同一账号，然后刷新。",
+    nativeBots: "本地 DS-Bot 团队", nativeAdded: "已添加", nativeReady: "可添加", nativeOffline: "请打开它所在的 DSH",
+    nativeLifecycle: "Bot 留在原来的 DSH 中。关闭网页或断开 DSCord 后，本地对话、记忆和任务继续保留。",
+    refresh: "刷新",
     modelSettings: "模型设置",
-    modelHelp: "在 DSH 打开 DSCord → 我的 Bot，选择 DSH 已配置的模型并保存，再上线或重连此 Bot。添加模型或修改凭据请使用 DSH 的模型设置。",
+    modelHelp: "在 DSH 打开 DSCord → 我的 Bot，直接选择已配置的模型，修改会应用到同一个原生 Bot。添加模型或修改凭据请使用 DSH 的模型设置。",
     runtimeModel: "当前运行模型",
-    createBot: "创建 Bot",
+    createBot: "添加已有 Bot",
     botName: "Bot 名称",
     chooseName: "请输入 Bot 名称",
-    creating: "创建中",
+    creating: "添加中",
     retry: "重试创建",
     pending: "创建结果待确认。重试会核对同一次请求。",
     receiptMissing: "创建回执不完整。请重试确认 Bot。",
@@ -53,6 +63,6 @@ export const botMessages: Catalog<keyof typeof en> = {
     copyFailed: "请选择 Bot ID 后手动复制。",
     refreshFailed: "Bot 已创建，列表刷新失败。{error}",
     close: "关闭",
-    signIn: "登录后创建 Bot",
+    signIn: "登录后添加已有 Bot",
   },
 };

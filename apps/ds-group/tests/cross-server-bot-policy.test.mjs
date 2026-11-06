@@ -159,6 +159,15 @@ async function fixture(t) {
   };
 }
 
+test('native Bot work retains full native mode across servers without an extra grant or tool list', async t => {
+  const f = await fixture(t);
+  f.service.nativeBot = id => id === f.bot.id;
+  f.setPolicy(emptyPolicy('a.test'));
+  const admitted = await f.admit();
+  assert.equal(admitted.mode, 'native'); assert.equal(admitted.work, undefined);
+  assert.ok(admitted.participants.some(person => person.id === f.event.sender && person.kind === 'unknown'));
+});
+
 test('external work needs a distinct owner grant despite room membership and administrator policy', async (t) => {
   const f = await fixture(t);
   await assert.rejects(f.admit(), { code: 'BOT_WORK_DENIED' });

@@ -50,7 +50,7 @@ function mimeType(value, filename) {
   return value.toLowerCase();
 }
 
-async function inspectFile(descriptor, directory, maximumBytes = Infinity) {
+async function inspectFile(descriptor, directory, maximumBytes = Infinity, allowExternalPaths = false) {
   if (!descriptor || typeof descriptor !== 'object' || Array.isArray(descriptor)) {
     throw fail('INVALID_WORK_FILE', 'A file descriptor is required');
   }
@@ -61,7 +61,7 @@ async function inspectFile(descriptor, directory, maximumBytes = Infinity) {
     if (error.code === 'ENOENT') throw fail('WORK_FILE_NOT_FOUND');
     throw error;
   }
-  if (!contained(filename, directory)) throw fail('WORK_FILE_OUTSIDE_DIRECTORY');
+  if (!allowExternalPaths && !contained(filename, directory)) throw fail('WORK_FILE_OUTSIDE_DIRECTORY');
   if (!(await stat(filename)).isFile()) throw fail('WORK_FILE_NOT_REGULAR');
   const handle = await open(filename, 'r');
   try {
@@ -165,7 +165,7 @@ export function parseFinalOutput(value) {
   return { ...result, artifacts: result.artifacts || [] };
 }
 
-export async function collectArtifacts(text, workdir, { maxFiles = MAX_ARTIFACTS, maxBytes = MAX_ARTIFACT_BYTES } = {}) {
+export async function collectArtifacts(text, workdir, { maxFiles = MAX_ARTIFACTS, maxBytes = MAX_ARTIFACT_BYTES, allowExternalPaths = false } = {}) {
   const output = parseFinalOutput(text);
   if (output.artifacts.length > maxFiles) throw fail('TOO_MANY_ARTIFACTS');
   if (output.artifacts.length === 0) return [];
@@ -173,7 +173,7 @@ export async function collectArtifacts(text, workdir, { maxFiles = MAX_ARTIFACTS
   const paths = new Set();
   const files = [];
   for (const artifact of output.artifacts) {
-    const file = await inspectFile(artifact, directory, maxBytes);
+    const file = await inspectFile(artifact, directory, maxBytes, allowExternalPaths);
     if (paths.has(file.path)) throw fail('DUPLICATE_ARTIFACT');
     paths.add(file.path);
     files.push(file);

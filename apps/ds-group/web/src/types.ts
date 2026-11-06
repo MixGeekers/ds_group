@@ -22,6 +22,7 @@ export interface Participant {
   kind: "human" | "bot";
   ownerId?: string;
   status?: string;
+  nativeBinding?: { hostId: string; nativeBotId: string; botId: string };
 }
 export interface AccountProfile {
   user: Participant;

@@ -213,10 +213,13 @@ try {
         body = { error: 'Too Many Requests', code: 'M_LIMIT_EXCEEDED', ...limit.body };
         headers = limit.headers ?? {};
       }
-    } else if (key === 'POST /api/bots') {
+    } else if (key === 'GET /api/bot-catalog') {
+      body = { bots: [{ id: 'native-finance', name: 'Finance', hostId: 'dsh-test', hostName: 'Local DSH', available: true, role: 'Finance', model: 'native/model', botId: null }] };
+    } else if (key === 'POST /api/bots/attach') {
       const input = request.postDataJSON();
       botRequests.push(input);
-      const bot = { id: '@bot-created:test', localpart: 'bot-created', name: input.name, kind: 'bot', ownerId: user.id };
+      const bot = { id: '@bot-created:test', localpart: 'bot-created', name: 'Finance', kind: 'bot', ownerId: user.id,
+        nativeBinding: { hostId: input.hostId, nativeBotId: input.nativeBotId, botId: '@bot-created:test' } };
       ownedBots.set(user.id, [bot]);
       status = 201;
       body = { bot };
@@ -439,18 +442,14 @@ try {
 
   await page.locator('#global-bots-button').click();
   await page.locator('#create-bot-button').click();
-  await page.locator('#bot-name').fill('Finance');
+  await page.locator('input[name="native-bot"]').check();
   await page.locator('#create-bot-submit').click();
-  await page.locator('#bot-connection-id').waitFor();
-  assert.equal(await page.locator('#bot-connection-id').inputValue(), '@bot-created:test');
-  assert.equal(await page.locator('.bot-connection-status').textContent(), 'Offline');
+  await page.locator('#create-bot-dialog').waitFor({ state: 'hidden' });
   assert.equal(botRequests.length, 1);
-  assert.equal(botRequests[0].name, 'Finance');
-  assert.equal(typeof botRequests[0].requestId, 'string');
-  await page.locator('#close-create-bot').click();
+  assert.deepEqual(botRequests[0], { hostId: 'dsh-test', nativeBotId: 'native-finance' });
   await page.locator('#owned-bots [data-owned-bot-id="@bot-created:test"]').filter({ hasText: 'Finance' }).waitFor();
   assert.equal(await page.locator('#owned-bot-count').textContent(), '1');
-  checks.push('newOwnerCreatesBotAndReceivesConnectionIdWithUpdatedOwnedList');
+  checks.push('newOwnerSelectsExistingNativeBotAndSeesLinkedIdentity');
 
   await page.locator('#identity-button').click();
   await page.locator('#settings-button').click();

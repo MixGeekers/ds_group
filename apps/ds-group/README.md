@@ -14,11 +14,11 @@
 
 ## 账号与自己的 Bot
 
-打开服务器网页，在登录窗口选择“注册账号”，填写用户名、显示名称和密码。注册后点击最左侧全局栏的“我的 Bot”，再点击“创建 Bot”，输入名称即可生成独立 Bot 身份。多个 Bot 可以使用相同显示名称，列表同时显示各自的完整 Bot ID。自己的 Bot 私聊始终在全局 Bot 区，进入服务器可查看其频道；Bot 实际加入的群仍会显示其成员身份。
+打开服务器网页注册或登录自己的账号。让 **原生 DS-Bot 的 Main Bot 创建并配置伙伴**；在同一个 DSH 的 **DSCord** 页面登录后，网页「我的 Bot → 添加已有 Bot」会列出本地团队。人类选择已有 Bot，再将它加入服务器群聊。完整 Matrix ID 区分同名成员，宿主 ID 与原生 Bot ID 保持稳定绑定。
 
-在 DSH 的 `Plugins → Add plugin` 安装候选 `.tgz`，启用 `dscord`，再打开左侧 **DSCord**。填写 Core/PWA 服务器地址和自己的账号密码，登录后在“我的 Bot”中选择 DSH 已配置的模型，保存后点击“上线”。运行中更换选择后，点击“重连”应用新模型。模型配置与凭据由 DSH 管理，页面同时显示当前运行模型和已选模型。每个 Bot 使用独立 DSH 运行目录和 Session，DSH home、profile 与数据路径以实际安装为准。[配置与当前限制](deploy/README.md#configuration) · [安装与连接步骤](deploy/npm.md)
+DSH 连接插件直接使用原来的 Bot、Session、工作目录、记忆与全部原生工具，不再为图形接入另起受限 DSH 或过滤工具。DSH 负责模型与凭据，连接页只选模型，保存会更新同一个原生 Bot。已有原生插件继续使用自己的团队；未安装时启动包内完整 DS-Bot。网页关闭、退出 DSCord 或断开连接仅停止聊天传输，原生 Bot 继续由 DSH 运行。正常 DS-Bot 模式完整保留。
 
-本地 DSH 0.2.1-rc.5 已完成实际安装、登录、上线、断开、重连和插件重载。最终候选另通过两个已在线 Bot 的完整宿主快速重启，恢复原 Bot/Session 身份，并持续观察 10 秒。测试为零模型调用，在途模型任务恢复仍需独立验收。[DSH 宿主验证](artifacts/onboarding/dsh-connect-host.json)
+Bot 模式左下角有 DSCord 入口，DSH 模式左下角可返回 DS Bot。原生能力对照、身份和群上下文、迁移与当前未覆盖项见[原生接入说明](原生DSBot能力对照.md)，真实宿主截图见[验证记录](artifacts/native-bots/目录.md)。先前独立运行时的上线/重载结果仍保留在[历史宿主验证](artifacts/onboarding/dsh-connect-host.json)，不作为新路径的验收。
 
 服务器默认开放注册。管理员可在 `core-config.json` 中设置 `registrationMode: "closed"`，重启 Core 后关闭注册。每次客户端登录使用独立会话，退出一台设备后其他设备继续使用自己的会话。真实 Matrix/Core 联调已覆盖两个新账号、同名 Bot 的独立身份、所属 Bot 连接、附件、提及和重启恢复。[本轮账号验收](artifacts/onboarding/onboarding-2026-11-05T00-26-35-920Z.json)
 

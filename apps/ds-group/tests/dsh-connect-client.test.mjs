@@ -65,6 +65,7 @@ function harness(oracle = () => loggedOut, language = 'zh') {
   });
   const plugin = descriptor.factory(name => {
     if (name === 'react') return react;
+    if (name === 'react-dom') return { createPortal: element => element };
     if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Button: 'button', Input: 'input', IconPluginPinwheelOutlineRegular: () => null };
     throw new Error(`Unexpected dependency ${name}`);
   });
@@ -107,11 +108,11 @@ test('DSH client registers the package page, sidebar icon and installed-package 
   const fixture = harness();
   t.after(fixture.dispose);
   assert.equal(fixture.descriptor.id, 'dscord');
-  assert.deepEqual(Array.from(fixture.plugin.inject), ['slots', 'locale']);
+  assert.deepEqual(Array.from(fixture.plugin.inject), ['slots', 'locale', 'layout']);
   assert.deepEqual(fixture.entries.map(entry => [entry.options.name, entry.options.key || entry.options.id]), [
-    ['main', 'dscord'], ['sidebar.panellist', 'dscord'], ['plugins.bundle.config', 'dscord'],
+    ['main', 'dscord'], ['sidebar.panellist', 'dscord'], ['shell.overlay', 'dscord'], ['plugins.bundle.config', 'dscord'],
   ]);
-  assert.equal(fixture.entries[2].options.inject().connection, fixture.connection);
+  assert.equal(fixture.entries[3].options.inject().connection, fixture.connection);
   assert.ok(fixture.entries.every(entry => entry.options.locale === 'dscord.connection'));
   assert.equal(fixture.requests.length, 0);
 });
@@ -128,7 +129,7 @@ test('the DSH locale namespace covers both languages and switches page labels wi
     ['zh', { page: 'DSCord 连接', login: '登录服务器', submit: '登录', password: '密码' }],
   ]) {
     fixture.locale.setLocale(language);
-    for (const entry of fixture.entries.filter(item => item.options.name !== 'sidebar.panellist')) {
+    for (const entry of fixture.entries.filter(item => ['main', 'plugins.bundle.config'].includes(item.options.name))) {
       const tree = render(entry.component(entry.options.inject()));
       assert.equal(tree.props['aria-label'], labels.page);
       assert.ok(find(tree, element => element.type === 'form' && element.props['aria-label'] === labels.login));

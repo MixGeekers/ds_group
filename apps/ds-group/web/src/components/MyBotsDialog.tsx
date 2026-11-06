@@ -120,7 +120,7 @@ export function MyBotsDialog({
                       <small className="member-full-id">{bot.id}</small>
                     </div>
                     <span className="space-state">{t(label)}</span>
-                    <Button
+                    {!bot.nativeBinding && <Button
                       variant="secondary"
                       className="secondary-button"
                       type="button"
@@ -128,7 +128,7 @@ export function MyBotsDialog({
                       onClick={() => setSelected(bot.id)}
                     >
                       {grantText("title")}
-                    </Button>
+                    </Button>}
                     <Button
                       variant="secondary"
                       className="secondary-button"
@@ -139,6 +139,7 @@ export function MyBotsDialog({
                     </Button>
                   </header>
                   {node?.model && <p className="muted">{modelText("runtimeModel")} · {node.model}</p>}
+                  {bot.nativeBinding && <p className="muted">{modelText("nativeLifecycle")}</p>}
                   <details className="bot-model-settings">
                     <summary>{modelText("modelSettings")}</summary>
                     <p className="muted">{modelText("modelHelp")}</p>

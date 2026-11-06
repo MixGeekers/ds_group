@@ -2,7 +2,7 @@
 
 人类与独立 Bot 共同参与的聊天协作框架，原项目名为 DS-Group。npm 包包含 Node 服务端、预构建 React PWA、Matrix 接入器、DSH 桥接和固定 DS-Bot 0.2.7。
 
-已公开的版本为 `0.2.0-alpha.1`，使用 `alpha` 标签。当前源码正在验证 `0.3.0-alpha.1` 候选，增加 DSH 图形连接页、账号注册和个人 Bot 创建。下文标明这些新入口的使用范围。
+已公开的版本为 `0.2.0-alpha.1`，使用 `alpha` 标签。当前源码正在验证 `0.3.0-alpha.1` 候选，增加 DSH 图形连接页、账号注册和原生 Bot 接入。下文标明这些新入口的使用范围。
 
 服务器发行目标为 Linux amd64/arm64，要求 Node 24.19.0 及以上的 24.x。Bot 节点另外需要 DSH 0.2.1-rc.5。当前源码候选支持为每个 Bot 选择 DSH 已配置的模型，服务商与凭据由 DSH 管理。升级已有安装时，Core 与节点使用同版本候选包。[配置与当前限制](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/README.md#configuration)
 
@@ -26,7 +26,7 @@ npm install --global /absolute/path/dscord-0.3.0-alpha.1.tgz
 
 ## 部署当前源码候选
 
-当前候选包含独立管理后台和治理配置，服务器端按 [Compose 部署指南](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/README.md) 运行完整的服务组合。先设置自己的身份域、公开地址和持久存储，再首次启动。注册自己的账号，在“我的 Bot”创建 Bot，随后按下方 DSH 或 CLI 流程接入。
+当前候选包含独立管理后台和治理配置，服务器端按 [Compose 部署指南](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/deploy/README.md) 运行完整的服务组合。先设置自己的身份域、公开地址和持久存储，再首次启动。注册自己的账号，让原生 Main Bot 创建并配置伙伴，再按下方 DSH 流程将已有 Bot 加入服务器。
 
 注册默认开放；`core-config.json` 中的 `registrationMode: "closed"` 可在重启 Core 后关闭注册。数据路径、预算初始化、演示种子账号及实际模型限制见部署指南。
 
@@ -67,21 +67,21 @@ dscord server
 
 这一入口随 `0.3.0-alpha.1` 候选提供。当前公开的 `0.2.0-alpha.1` 使用下方 CLI 接入。
 
-1. 在 DSH 打开 `Plugins → Add plugin`，输入候选 `.tgz` 的绝对路径并安装。
-2. 在已安装插件中选择 `dscord`，打开 `Enable dscord`。
-3. 点击左侧 **DSCord**。插件详情中也有同一配置页。
-4. 填写服务器网页地址、自己的账号和密码，点击“登录”。
-5. 在“我的 Bot”找到目标 Bot，从下拉列表选择模型并保存，然后点击“上线”。
+1. 在 DSH 打开 `Plugins → Add plugin`，安装候选 `.tgz` 并启用 `dscord`。
+2. 在 DS-Bot 正常模式让 Main Bot 创建并配置伙伴。已有原生团队直接复用，未安装时使用包内完整 DS-Bot。
+3. 打开 **DSCord**，填写服务器地址和自己的账号密码并登录。Bot 模式左下角也有此入口。
+4. 在「本机原生 Bot」中选已有 Bot，点击「加入服务器」。也可在网页「我的 Bot → 添加已有 Bot」选择，当前 DSH 会自动接入。
+5. 模型下拉列表来自 DSH，保存即更新同一个原生 Bot；将 Bot 邀请到需要它参与的群聊。
 
-页面显示当前账号、服务器地址、Bot 名称和 ID，以及已断开、正在连接、已上线或连接失败状态。每个 Bot 有独立的模型选择、上线、断开和重连操作。运行中保存新模型后，点击“重连”应用，当前任务会随重连停止。列表为空时，点击“打开网页”到服务器创建 Bot。
+断开、退出 DSCord 和关闭网页均不停止原生 Bot。DSH 自身必须继续运行，Bot 才能继续执行。连接页不创建新的受限运行环境，不裁剪原生工具，不复制模型凭据。正常 DS-Bot UI 保留，可从 DSH 左下角返回。
 
-服务器地址使用 Core/PWA 的地址，例如 `https://chat.example.com`。Core 配置的 Matrix 外部地址也需要从 Bot 机器访问。首次上线会准备该 Bot 的独立运行目录，并读取当前宿主 profile 中所选模型的配置和必要凭据。模型列表、服务商与凭据统一在 DSH 模型设置中管理。
+服务器地址使用 Core/PWA 地址；Core 提供的 Matrix 地址必须从 Bot 所在机器可达。连接元数据默认位于 `<实际 DSH home>/dscord/<当前 profile>/`，原生 Bot 数据仍在原有 DS-Bot 目录。一个连接页使用一个归属账号，该账号可以连接多个本地 Bot；跨服务器聊天复用其 Matrix 身份。
 
-“本机配置目录”可以展开查看真实路径。默认位于 `<实际 DSH home>/dscord/<当前 profile>/`；只有 home 为 `~/.dsh` 且 profile 为 `desktop` 时，才是 `~/.dsh/dscord/desktop/`。连接账号和节点配置保存在这里，每个 Bot 使用自己的子目录。插件重载后按已保存的上线状态恢复连接。退出登录会先断开本插件管理的 Bot。
+旧网页创建的服务器 Bot 可在连接页选择「绑定已有 Bot」，保留原 Matrix 身份和聊天历史。旧独立节点的本地 Session 不会自动合并进原生团队；原文件完整保留，不能把绑定说成已经迁移记忆。当前能力与验证边界见[原生接入说明](https://github.com/MixGeekers/dscord/blob/main/apps/ds-group/原生DSBot能力对照.md)。
 
-当前一个 DSH profile 的连接页使用一个服务器账号，该账号可连接多个自己的 Bot。切换账号或服务器会先停止当前连接。也可以复制中文主页的 [DSH 启动提示词](https://github.com/MixGeekers/dscord/blob/main/README.md#dsh-setup)，让 DSH 按你的环境完成配置。
+## 兼容 CLI 独立节点（历史路径）
 
-## 通过 CLI 连接 Bot 节点
+本节保留此前独立运行时的部署方式，其模型复制、工具规则和生命周期不适用于上方原生连接。新增 Bot 优先采用原生连接。
 
 先按服务器指南设置 Bot 机器可达的 Core 与 Matrix 公开地址，并按所选部署方式重新运行初始化更新配置。当前候选可以导出自己的 Bot；旧版公开包使用其已存在的成员。下方 `your-bot-account` 必须替换为完整 Bot ID 中 `@` 与 `:` 之间的账号部分，显示名称不能作为参数。
 

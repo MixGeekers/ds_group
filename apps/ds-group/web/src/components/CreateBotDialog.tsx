@@ -1,280 +1,81 @@
-import { Button, Input } from "../../../ui/controls";
+import { Button } from "../../../ui/controls";
 import { useEffect, useRef, useState } from "react";
-import type { FormEvent } from "react";
-import { ApiError, messageOf, readStored } from "../api";
+import { messageOf } from "../api";
 import { useTranslation } from "../locale";
 import { botMessages } from "../locales/bots";
+import { sessionIdentity } from "../session";
 import type { Api, Participant, ServerStatus, Session } from "../types";
 import { Icon } from "./Icons";
-import { sessionIdentity } from "../session";
-import { newRequestId } from "../identifiers";
 
-interface PendingBot {
-  name: string;
-  requestId: string;
-}
-
+type LocalBot = { id: string; hostId: string; hostName: string; name: string; role: string;
+  model: string; main: boolean; available: boolean; botId: string | null };
 export interface CreateBotDialogProps {
-  open: boolean;
-  api: Api;
-  session: Session | null;
-  status?: ServerStatus | null;
-  pendingStorageKey?: string;
-  onCreated(bot: Participant): void | Promise<void>;
-  onClose(): void;
+  open: boolean; api: Api; session: Session | null; status?: ServerStatus | null;
+  pendingStorageKey?: string; onCreated(bot: Participant): void | Promise<void>; onClose(): void;
 }
 
-function requestKey(userId: string) {
-  return `ds-group.pending-bot.${userId}`;
-}
-
-export function CreateBotDialog({
-  open,
-  api,
-  session,
-  status,
-  pendingStorageKey,
-  onCreated,
-  onClose,
-}: CreateBotDialogProps) {
+export function CreateBotDialog({ open, api, session, onCreated, onClose }: CreateBotDialogProps) {
   const t = useTranslation(botMessages);
-  const identity = sessionIdentity(session);
   const dialog = useRef<HTMLDialogElement>(null);
-  const currentUser = useRef(session?.user_id);
-  currentUser.current = session?.user_id;
-  const submitting = useRef(false);
-  const [name, setName] = useState("");
+  const [bots, setBots] = useState<LocalBot[]>([]);
+  const [selected, setSelected] = useState("");
   const [busy, setBusy] = useState(false);
-  const [pending, setPending] = useState<PendingBot | null>(null);
-  const [created, setCreated] = useState<Participant | null>(null);
   const [error, setError] = useState("");
-  const [nameError, setNameError] = useState(false);
-  const [copyFeedback, setCopyFeedback] = useState<
-    "copied" | "copyFailed" | null
-  >(null);
-
+  const [revision, setRevision] = useState(0);
+  const identity = sessionIdentity(session);
+  const current = useRef(identity); current.current = identity;
   useEffect(() => {
-    const element = dialog.current;
-    if (!element) return;
-    if (open && !element.open) element.showModal();
-    if (!open && element.open) element.close();
+    if (open && !dialog.current?.open) dialog.current?.showModal();
+    if (!open) dialog.current?.close();
   }, [open]);
-
   useEffect(() => {
-    if (!open) return;
-    const saved = session
-      ? readStored<PendingBot>(pendingStorageKey ?? requestKey(session.user_id))
-      : null;
-    setName(saved?.name ?? "");
-    setPending(saved);
-    setCreated(null);
-    setError("");
-    setNameError(false);
-    setCopyFeedback(null);
-  }, [open, identity, pendingStorageKey]);
-
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!session || submitting.current || created) return;
-    if (!name.trim()) {
-      setNameError(true);
-      return;
-    }
-    const ownerId = session.user_id;
-    const key = pendingStorageKey ?? requestKey(ownerId);
-    const request = readStored<PendingBot>(key) ?? {
-      name: name.trim(),
-      requestId: newRequestId(),
-    };
-    submitting.current = true;
-    setBusy(true);
-    setError("");
-    setNameError(false);
+    if (!open || !session) return;
+    let cancelled = false;
+    setError(""); setSelected(""); setBots([]);
+    void api<{ bots: LocalBot[] }>("/api/bot-catalog").then(result => {
+      if (!cancelled) setBots(result.bots);
+    }).catch(cause => { if (!cancelled) setError(messageOf(cause)); });
+    return () => { cancelled = true; };
+  }, [open, identity, revision, api]);
+  const choice = bots.find(bot => `${bot.hostId}/${bot.id}` === selected);
+  async function attach() {
+    if (!choice || busy || !session) return;
+    const owner = identity;
+    setBusy(true); setError("");
     try {
-      sessionStorage.setItem(key, JSON.stringify(request));
-      setPending(request);
-      const result = await api<{ bot: Participant }>("/api/bots", {
-        method: "POST",
-        body: request,
+      const result = await api<{ bot: Participant }>("/api/bots/attach", {
+        method: "POST", body: { hostId: choice.hostId, nativeBotId: choice.id },
       });
-      if (!result.bot?.id || result.bot.kind !== "bot")
-        throw new Error(t("receiptMissing"));
-      sessionStorage.removeItem(key);
-      if (currentUser.current !== ownerId) return;
-      setPending(null);
-      setCreated(result.bot);
-      try {
-        await onCreated(result.bot);
-      } catch (cause) {
-        if (currentUser.current === ownerId)
-          setError(t("refreshFailed", { error: messageOf(cause) }));
-      }
-    } catch (cause) {
-      if (currentUser.current !== ownerId) return;
-      if (cause instanceof ApiError && [400, 422].includes(cause.status)) {
-        sessionStorage.removeItem(key);
-        setPending(null);
-      }
-      setError(messageOf(cause));
-    } finally {
-      submitting.current = false;
-      setBusy(false);
-    }
+      if (current.current !== owner) return;
+      if (!result.bot?.id) throw new Error(t("receiptMissing"));
+      await onCreated(result.bot); onClose();
+    } catch (cause) { if (current.current === owner) setError(messageOf(cause)); }
+    finally { setBusy(false); }
   }
-
-  async function copyId() {
-    if (!created) return;
-    try {
-      await navigator.clipboard.writeText(created.id);
-      setCopyFeedback("copied");
-    } catch {
-      setCopyFeedback("copyFailed");
-    }
-  }
-
-  const nodeStatus =
-    status?.nodes.find((node) => node.botId === created?.id)?.status ??
-    created?.status ??
-    "offline";
-  const online = ["online", "idle", "ready", "connected"].includes(nodeStatus);
-  const working = [
-    "running",
-    "thinking",
-    "busy",
-    "processing",
-    "starting",
-  ].includes(nodeStatus);
-  const unavailable = ["error", "failed", "unavailable"].includes(nodeStatus);
-  const connectionLabel = t(
-    online
-      ? "online"
-      : working
-        ? "busy"
-        : unavailable
-          ? "unavailable"
-          : "offline",
-  );
-
-  return (
-    <dialog
-      ref={dialog}
-      id="create-bot-dialog"
-      className="create-bot-dialog"
-      aria-labelledby="create-bot-title"
-      onCancel={(event) => {
-        event.preventDefault();
-        if (!busy) onClose();
-      }}
-    >
-      <header className="dialog-heading">
-        <h2 id="create-bot-title">{t(created ? "connection" : "createBot")}</h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          id="close-create-bot"
-          className="icon-button"
-          type="button"
-          aria-label={t("close")}
-          disabled={busy}
-          onClick={onClose}
-        >
-          <Icon name="close" />
-        </Button>
-      </header>
-      <div className="dialog-scroll-region">
-      {created ? (
-        <section className="bot-connection-details">
-          <h3>{created.name}</h3>
-          <p className="bot-connection-status" role="status">
-            <span
-              className={`status-dot${online ? " online" : working ? " busy" : unavailable ? " error" : ""}`}
-              aria-hidden="true"
-            />
-            {connectionLabel}
-          </p>
-          <label htmlFor="bot-connection-id">{t("botId")}</label>
-          <div className="bot-id-row">
-            <Input
-              id="bot-connection-id"
-              className="bot-id"
-              value={created.id}
-              readOnly
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              id="copy-bot-id"
-              className="icon-button"
-              type="button"
-              aria-label={t("copyId")}
-              title={t("copyId")}
-              onClick={() => void copyId()}
-            >
-              <Icon name="copy" />
-            </Button>
-          </div>
-          <p className="small muted">{t("connectInDsh")}</p>
-          <p className="settings-feedback" role="status" hidden={!copyFeedback}>
-            {copyFeedback ? t(copyFeedback) : ""}
-          </p>
-        </section>
-      ) : (
-        <form
-          id="create-bot-form"
-          onSubmit={(event) => void submit(event)}
-          noValidate
-        >
-          <label htmlFor="bot-name">{t("botName")}</label>
-          <Input
-            id="bot-name"
-            value={name}
-            maxLength={80}
-            required
-            autoComplete="off"
-            disabled={busy || !session}
-            readOnly={Boolean(pending)}
-            aria-invalid={nameError || undefined}
-            aria-describedby={nameError ? "bot-name-error" : undefined}
-            onChange={(event) => {
-              setName(event.target.value);
-              setNameError(false);
-            }}
-          />
-          <p
-            id="bot-name-error"
-            className="field-error"
-            role="alert"
-            hidden={!nameError}
-          >
-            {t("chooseName")}
-          </p>
-          {pending && <p className="settings-feedback">{t("pending")}</p>}
-          {!session && <p className="settings-feedback">{t("signIn")}</p>}
-        </form>
-      )}
-      <p
-        id="create-bot-error"
-        className="settings-feedback error-text"
-        role="alert"
-        hidden={!error}
-      >
-        {error}
-      </p>
+  return <dialog id="create-bot-dialog" className="settings-dialog" ref={dialog}
+    aria-labelledby="create-bot-title" onCancel={event => { event.preventDefault(); if (!busy) onClose(); }}>
+    <header className="dialog-heading"><h2 id="create-bot-title">{t("createBot")}</h2>
+      <Button id="close-create-bot" variant="ghost" size="icon" aria-label={t("close")} disabled={busy} onClick={onClose}><Icon name="close" /></Button>
+    </header>
+    <div className="dialog-scroll-region">
+      <p className="muted">{t("nativeHelp")}</p>
+      {error && <p role="alert" className="node-error">{error}</p>}
+      {!bots.length && <p className="muted">{t("nativeEmpty")}</p>}
+      <div className="space-list" role="radiogroup" aria-label={t("nativeBots")}>
+        {bots.map(bot => <label className="space-card" key={`${bot.hostId}/${bot.id}`}>
+          <input type="radio" name="native-bot" value={`${bot.hostId}/${bot.id}`} checked={selected === `${bot.hostId}/${bot.id}`}
+            disabled={busy || !bot.available || !!bot.botId} onChange={event => setSelected(event.target.value)} />
+          <strong> {bot.name}</strong>{bot.main && <span> · Main Bot</span>}
+          <p className="muted">{bot.role} · {bot.hostName}</p>
+          <small>{bot.model}</small>
+          <p className="muted">{t(bot.botId ? "nativeAdded" : bot.available ? "nativeReady" : "nativeOffline")}</p>
+        </label>)}
       </div>
-      {!created && (
-        <footer className="dialog-footer">
-          <Button
-            variant="default"
-            id="create-bot-submit"
-            className="primary-button login-submit"
-            type="submit"
-            form="create-bot-form"
-            disabled={busy || !session}
-          >
-            {t(busy ? "creating" : pending ? "retry" : "createBot")}
-          </Button>
-        </footer>
-      )}
-    </dialog>
-  );
+      <p className="muted">{t("nativeLifecycle")}</p>
+    </div>
+    <footer className="dialog-footer">
+      <Button variant="secondary" disabled={busy} onClick={() => setRevision(value => value + 1)}>{t("refresh")}</Button>
+      <Button id="create-bot-submit" disabled={busy || !choice || !choice.available || !!choice.botId} onClick={() => void attach()}>{t(busy ? "creating" : "createBot")}</Button>
+    </footer>
+  </dialog>;
 }

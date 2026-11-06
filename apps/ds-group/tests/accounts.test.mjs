@@ -364,3 +364,32 @@ test('disabled registration retries, Bot provisioning and stale owner objects fa
   await assert.rejects(f.service.createBot(aliceId, { name: 'Another Bot' }), error => error.status === 403);
   assert.equal(f.matrix.calls.length, 0);
 });
+
+test('native catalog exposes only owner metadata and attaches one stable server identity', async t => {
+  const { NativeBotCatalog } = await import('../src/native-bot-catalog.mjs');
+  const { service, restore } = await fixture(t);
+  const catalog = new NativeBotCatalog(service);
+  const input = { hostId: 'host-a', label: 'Local DSH', bots: [{ id: 'session-a', name: 'Researcher', role: 'Research', model: 'local/chat', main: true, secret: 'never-publish' }] };
+  catalog.publish(aliceId, input);
+  assert.equal(JSON.stringify(catalog.list(aliceId)).includes('never-publish'), false);
+  const [a,b] = await Promise.all([catalog.attach(aliceId, { hostId: 'host-a', nativeBotId: 'session-a' }), catalog.attach(aliceId, { hostId: 'host-a', nativeBotId: 'session-a' })]);
+  assert.equal(a.id,b.id); assert.equal(service.ownedBots(aliceId).length,1);
+  const next = new NativeBotCatalog(await restore());
+  assert.equal((await next.attach(aliceId, { hostId: 'host-a', nativeBotId: 'session-a' })).id,a.id);
+  assert.equal(next.list(aliceId)[0].botId,a.id);
+  assert.throws(()=>next.list('@unknown:accounts.test'));
+});
+
+test('native catalog binds a legacy server Bot without replacing its identity and refuses stale or conflicting choices', async t => {
+  const { NativeBotCatalog } = await import('../src/native-bot-catalog.mjs');
+  const { service } = await fixture(t);
+  const catalog = new NativeBotCatalog(service);
+  const prior = await service.createBot(aliceId,{name:'Existing server Bot'});
+  catalog.publish(aliceId,{hostId:'host-a',bots:[{id:'session-a',name:'Native A'},{id:'session-b',name:'Native B'}]});
+  const linked = await catalog.attach(aliceId,{hostId:'host-a',nativeBotId:'session-a',botId:prior.id});
+  assert.equal(linked.id,prior.id); assert.equal(service.ownedBots(aliceId).length,1);
+  await assert.rejects(catalog.attach(aliceId,{hostId:'host-a',nativeBotId:'session-b',botId:prior.id}), /already linked/);
+  service.db.prepare('UPDATE native_bot_hosts SET updated_at=0').run();
+  await assert.rejects(catalog.attach(aliceId,{hostId:'host-a',nativeBotId:'session-b'}), /Open DSH/);
+  assert.throws(()=>catalog.publish(aliceId,{hostId:'host-a',bots:[{id:'x',name:'A'},{id:'x',name:'B'}]}), /Duplicate/);
+});

@@ -2,16 +2,20 @@ window.__ModuleLoader__.load({
   id: 'dscord',
   factory(require) {
     const React = require('react');
+    const { createPortal } = require('react-dom');
     const { Button, Input, IconPluginPinwheelOutlineRegular } = require('@deepseek-ai/dsh-client-ui-primitives');
     const h = React.createElement;
     const panelId = 'dscord';
     const localeNamespace = 'dscord.connection';
     const statusKeys = { offline: 'statusOffline', connecting: 'statusConnecting', online: 'statusOnline', error: 'statusError' };
     const zh = {
+      nativeBots: '本机原生 Bot', nativeHelp: '让 Main Bot 创建并配置伙伴，再把已有 Bot 加入服务器。它们仍可在 DS Bot 中正常使用。',
+      nativeEmpty: '请在原生 DS Bot 中让 Main Bot 创建伙伴，然后刷新。', attach: '加入服务器', bind: '绑定已有 Bot',
+      chooseNative: '选择本机 Bot', nativeBound: '已绑定', nativeLifecycle: '断开只关闭 DSCord 连接。本地 Bot、记忆和后台任务继续由 DSH 运行。',
       serverPolicyDenied: '此服务器未允许所选模型，请选择获准模型或联系管理员。',
       serverOutputLimit: '模型输出上限超过服务器额度，请检查节点与服务器的配置。',
       model: '模型', noModel: '请先在 DSH 中配置模型', saveModel: '保存选择',
-      savedModel: '模型选择已保存，下次连接时生效。', activeModel: '当前运行', nextModel: '已选模型',
+      savedModel: '模型选择已保存。', activeModel: '当前运行', nextModel: '已选模型',
       modelPending: '点击重连应用新模型。重连会停止当前任务。',
       modelUnavailable: '此模型在 DSH 中不可用，请到 DSH 模型设置检查。',
       missingCredential: '请在 DSH 的模型设置中配置此模型的凭据。',
@@ -26,16 +30,19 @@ window.__ModuleLoader__.load({
       openWeb: '打开网页', refresh: '刷新', readStatus: '正在读取连接状态…',
       runtimeUnavailable: 'Bot 运行环境暂不可用', account: '当前账号',
       logout: '退出登录', loggingOut: '正在退出…', myBots: '我的 Bot',
-      emptyBots: '暂无 Bot，请在服务器网页中创建。', configDirectory: '本机配置目录',
+      emptyBots: '尚未连接 Bot，请从本机团队中选择。', configDirectory: '本机配置目录',
       requestHttp: 'DSH 请求失败（HTTP {status}）', requestFailed: '操作失败，请重试',
       invalidStatus: 'DSH 返回的连接状态不完整', requestTimeout: '请求超时，请刷新连接状态',
       connectionUnavailable: '无法连接 DSH，请检查宿主是否正在运行',
     };
     const en = {
+      nativeBots: 'Local native Bots', nativeHelp: 'Ask your Main Bot to create and configure teammates, then add existing Bots to this server. Keep using them in DS Bot.',
+      nativeEmpty: 'Ask the Main Bot in DS Bot to create teammates, then refresh.', attach: 'Add to server', bind: 'Bind existing Bot',
+      chooseNative: 'Choose a local Bot', nativeBound: 'Linked', nativeLifecycle: 'Disconnecting closes the DSCord connection. DSH keeps the local Bot, memory and background tasks running.',
       serverPolicyDenied: 'This server does not allow the selected model. Choose an allowed model or contact its administrator.',
       serverOutputLimit: 'The model output limit exceeds this server’s budget. Check the node and server configuration.',
       model: 'Model', noModel: 'Configure a model in DSH first', saveModel: 'Save selection',
-      savedModel: 'Model selection saved. It applies on the next connection.', activeModel: 'Running model', nextModel: 'Selected model',
+      savedModel: 'Model selection saved.', activeModel: 'Running model', nextModel: 'Selected model',
       modelPending: 'Reconnect to apply the new model. Reconnecting stops the current task.',
       modelUnavailable: 'This model is unavailable in DSH. Check DSH model settings.',
       missingCredential: 'Configure this model’s credentials in DSH model settings.',
@@ -287,6 +294,7 @@ body[data-ds-dark-theme] .dscord-connect {
         login: (serverUrl, user, password) => mutate('login', { serverUrl, user, password }),
         logout: () => mutate('logout'),
         saveModel: (botId, selection) => mutate('save-model', { botId, selection }),
+        attach: (nativeBotId, botId) => mutate('attach', { nativeBotId, ...(botId ? { botId } : {}) }),
         connect: botId => mutate('connect', { botId }),
         disconnect: botId => mutate('disconnect', { botId }),
         reconnect: botId => mutate('reconnect', { botId }),
@@ -345,7 +353,7 @@ body[data-ds-dark-theme] .dscord-connect {
       const saved = bot.modelSelection || catalog?.defaultSelection;
       const [reference, setReference] = React.useState(saved?.model || '');
       const selected = models.find(model => model.model === reference);
-      const pending = bot.activeModel && bot.modelSelection && bot.activeModel.model !== bot.modelSelection.model;
+      const pending = !state.value?.nativeMode && bot.activeModel && bot.modelSelection && bot.activeModel.model !== bot.modelSelection.model;
       return h('div', { className: 'dc-model-settings' },
         h('form', { className: 'dc-model-form', onSubmit(event) {
           event.preventDefault();
@@ -362,6 +370,8 @@ body[data-ds-dark-theme] .dscord-connect {
     }
 
     function BotRow({ bot, connection, state, t }) {
+      const [nativeId, setNativeId] = React.useState('');
+      const needsBinding = state.value?.nativeMode && !bot.nativeBotId;
       const busy = state.busy?.botId === bot.id;
       const status = bot.status || 'offline';
       const connected = bot.connected || status === 'online' || status === 'connecting';
@@ -382,12 +392,19 @@ body[data-ds-dark-theme] .dscord-connect {
             (bot.modelSelection || state.value?.models?.defaultSelection) && h('p', { className: 'dc-muted dc-model-info' }, `${t('nextModel')} · ${(bot.modelSelection || state.value.models.defaultSelection).model}`),
             !modelAvailable && h('p', { className: 'dc-error dc-bot-error' }, t('modelUnavailable')),
             bot.lastError && h('p', { className: 'dc-error dc-bot-error' }, bot.lastError))),
-        h('div', { className: 'dc-actions' },
+        needsBinding ? h('form', { className: 'dc-model-form', onSubmit(event) {
+          event.preventDefault(); void connection.attach(nativeId, bot.id);
+        } }, h('label', { className: 'dc-field' }, t('bind'), h('select', { value: nativeId, onChange: event => setNativeId(event.target.value), disabled },
+          h('option', { value: '' }, t('chooseNative')),
+          ...(state.value.nativeBots || []).filter(local => !state.value.bots.some(bot => bot.nativeBotId === local.id))
+            .map(local => h('option', { key: local.id, value: local.id }, local.name)))),
+          h(Button, { type: 'submit', variant: 'primary', disabled: disabled || !nativeId }, t('bind')))
+        : h('div', { className: 'dc-actions' },
           connected
             ? h(Button, { variant: 'outline', type: 'button', disabled, onClick: () => void connection.disconnect(bot.id), 'aria-label': t('disconnectBot', { name }) }, t(busy && state.busy.action === 'disconnect' ? 'disconnecting' : 'disconnect'))
             : h(Button, { variant: 'primary', type: 'button', className: 'dc-primary', disabled: disabled || !runtimeAvailable || !modelAvailable, onClick: () => void connection.connect(bot.id), 'aria-label': t('connectBot', { name }) }, t(busy ? 'connecting' : 'connect')),
           (connected || status === 'error') && h(Button, { variant: 'outline', type: 'button', disabled: disabled || !runtimeAvailable || !modelAvailable, onClick: () => void connection.reconnect(bot.id), 'aria-label': t('reconnectBot', { name }) }, t(busy && state.busy.action === 'reconnect' ? 'reconnecting' : 'reconnect'))),
-        state.value?.models?.available && h(ModelForm, { key: JSON.stringify(bot.modelSelection), bot, connection, state, t }));
+        !needsBinding && state.value?.models?.available && h(ModelForm, { key: JSON.stringify(bot.modelSelection), bot, connection, state, t }));
     }
 
     function ConnectionPage({ connection, t }) {
@@ -416,6 +433,18 @@ body[data-ds-dark-theme] .dscord-connect {
                 h('p', { className: 'dc-account-name' }, value.user.name || value.user.id),
                 h('p', { className: 'dc-server' }, value.serverUrl)),
               h(Button, { variant: 'outline', type: 'button', disabled: Boolean(state.busy), onClick: () => void connection.logout() }, t(state.busy?.action === 'logout' ? 'loggingOut' : 'logout'))),
+            value.nativeMode && h('section', { className: 'dc-panel', 'aria-label': t('nativeBots') },
+              h('h2', null, t('nativeBots')), h('p', { className: 'dc-muted' }, t('nativeHelp')),
+              h('ul', { className: 'dc-bots' }, (value.nativeBots || []).map(bot => {
+                const bound = value.bots.some(link => link.nativeBotId === bot.id);
+                return h('li', { key: bot.id, className: 'dc-bot' },
+                  h('div', null, h('strong', null, bot.name), bot.main && h('span', null, ' · Main Bot'),
+                    h('p', { className: 'dc-muted' }, `${bot.role || ''} · ${bot.model || t('noModel')}`)),
+                  h(Button, { variant: 'outline', disabled: Boolean(state.busy) || bound || !bot.model,
+                    onClick: () => void connection.attach(bot.id) }, t(bound ? 'nativeBound' : 'attach')));
+              })),
+              !value.nativeBots?.length && h('p', { className: 'dc-muted' }, t('nativeEmpty')),
+              h('p', { className: 'dc-muted' }, t('nativeLifecycle'))),
             h('section', { className: 'dc-panel', 'aria-label': t('myBots') },
               h('h2', null, t('myBots')),
               value.bots.length === 0
@@ -434,17 +463,49 @@ body[data-ds-dark-theme] .dscord-connect {
       ctx.effect(() => ctx.locale.register(localeNamespace, { zh, en }), 'dscord: dictionaries');
       const t = ctx.locale.bind(localeNamespace);
       const connection = createConnectionModel(t);
+      // The packaged client supplies the unchanged native DS-Bot factory. An
+      // independently installed DS-Bot keeps ownership of its own normal UI.
+      if (typeof dscordNativeFactory === 'function') {
+        let mounted = false;
+        const unsubscribe = connection.subscribe(() => {
+          if (!mounted && connection.getSnapshot().value?.nativeBundled) {
+            mounted = true;
+            ctx.plugin(dscordNativeFactory(require));
+          }
+        });
+        ctx.effect(() => unsubscribe, 'dscord: native Bot interface');
+      }
       ctx.effect(() => () => connection.dispose(), 'dscord: connection page');
       const inject = () => ({ connection });
       ctx.slots.inject('main', () => ctx.slots.register({ name: 'main', key: panelId, locale: localeNamespace, inject }, ConnectionPage));
       ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
         name: 'sidebar.panellist', id: panelId, label: () => t('title'), locale: localeNamespace, order: 20,
       }, SidebarIcon));
+      // DS-Bot owns its sidebar in Bot mode. Use its registered return action
+      // to switch modes, keeping both the native team UI and DSH panels intact.
+      function NativeShortcutButton({ face }) {
+        const mode = React.useSyncExternalStore(face.hooks.surface.subscribe, () => face.hooks.surface.getSnapshot().mode);
+        if (mode !== 'bot') return null;
+        return createPortal(h('div', { style: { position: 'fixed', left: 56, bottom: 16, zIndex: 50, pointerEvents: 'auto' } },
+          h(Button, { variant: 'outline', type: 'button', onClick: () => {
+            face.actions.setSurface('agent'); ctx.layout.selectPanel(panelId);
+          } }, t('title'))), document.body);
+      }
+      function NativeShortcut() {
+        const entry = React.useSyncExternalStore(
+          listener => ctx.slots.subscribe('sidebar.footer.action', listener),
+          () => ctx.slots.entries('sidebar.footer.action').find(item => item.options?.id === 'bot-return'));
+        const face = entry?.inject?.();
+        return face?.actions?.setSurface && face?.hooks?.surface ? h(NativeShortcutButton, { face }) : null;
+      }
+      ctx.slots.inject('shell.overlay', () => ctx.slots.register({
+        name: 'shell.overlay', id: panelId, order: 65, locale: localeNamespace,
+      }, NativeShortcut));
       ctx.slots.inject('plugins.bundle.config', () => ctx.slots.register({
         name: 'plugins.bundle.config', key: 'dscord', locale: localeNamespace, inject,
       }, ConnectionPage));
     }
 
-    return { inject: ['slots', 'locale'], apply };
+    return { inject: ['slots', 'locale', 'layout'], apply };
   },
 });

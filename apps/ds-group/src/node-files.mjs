@@ -175,7 +175,7 @@ export class NodeFiles {
     await this.work?.check(request, 'upload');
     const workspace = await realpath(request.workdir);
     const filename = await realpath(artifact.path);
-    if (!filename.startsWith(workspace + path.sep)) throw new Error('Task artifact is outside its working directory');
+    if (request.executionMode !== 'native' && !filename.startsWith(workspace + path.sep)) throw new Error('Task artifact is outside its working directory');
     const actual = await fileDigest(filename, this.maxBytes);
     if (artifact.sha256 && artifact.sha256 !== actual.sha256) throw new Error('Task artifact changed after verification');
     if (Number.isInteger(artifact.size) && artifact.size !== actual.size) throw new Error('Task artifact length changed after verification');
